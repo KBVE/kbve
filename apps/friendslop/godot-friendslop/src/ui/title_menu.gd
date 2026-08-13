@@ -15,6 +15,10 @@ extends CanvasLayer
 
 signal play_requested
 signal solo_requested
+## Credentials the player typed. The menu does not know what to do with them —
+## `title_screen.gd` owns the Auth call and reports back.
+signal sign_in_requested(email: String, password: String)
+signal sign_out_requested
 signal settings_requested
 signal quit_requested
 ## Escape. Separate from `quit_requested` because escape means "back out of
@@ -27,9 +31,12 @@ signal locale_requested(code: String)
 const WORLD_SCENE := "res://scenes/main.tscn"
 const ONLINE_SCENE := "res://scenes/online.tscn"
 
+const SIGN_IN_PANEL := preload("res://src/ui/sign_in_panel.gd")
+## For the Mode enum only — the live object is the `Auth` autoload.
+const AUTH := preload("res://src/autoload/auth_session.gd")
+
 const TITLE_KEY := "title.name"
-## Shown under the button column while Supabase login is unwired, so the greyed
-## button reads as "not yet" rather than "broken".
+## Shown under the button column when nobody is signed in.
 const SIGN_IN_HINT_KEY := "title.sign_in_hint"
 
 var play_button: PaperButton
@@ -41,6 +48,8 @@ var status_label: Label
 var language_buttons: Array[PaperButton] = []
 
 var _root: Control
+var _column: VBoxContainer
+var _sign_in: SignInPanel
 
 
 func _ready() -> void:
@@ -75,6 +84,7 @@ func _build() -> void:
 	_root.add_child(scrim)
 
 	var column := VBoxContainer.new()
+	_column = column
 	column.alignment = BoxContainer.ALIGNMENT_CENTER
 	column.add_theme_constant_override("separation", 12)
 	column.anchor_left = 0.5
@@ -103,11 +113,7 @@ func _build() -> void:
 
 	play_button = _add_button(column, I18n.t("title.play_guest"), func() -> void: play_requested.emit())
 	solo_button = _add_button(column, I18n.t("title.singleplayer"), func() -> void: solo_requested.emit())
-	sign_in_button = _add_button(column, I18n.t("title.sign_in"), Callable())
-	# Disabled rather than hidden: the slot is real and the ecosystem it plugs
-	# into exists, so hiding it would misrepresent what is left to do.
-	sign_in_button.disabled = true
-	sign_in_button.tooltip_text = I18n.t(SIGN_IN_HINT_KEY)
+	sign_in_button = _add_button(column, I18n.t("title.sign_in"), _toggle_sign_in)
 	settings_button = _add_button(column, I18n.t("action.settings"), func() -> void: settings_requested.emit())
 	quit_button = _add_button(column, I18n.t("action.quit"), func() -> void: quit_requested.emit())
 
@@ -176,11 +182,69 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+## Opens the form, or signs out if there is an account to sign out of — the
+## button is the one place the state is visible, so it is where leaving it lives.
+func _toggle_sign_in() -> void:
+	var auth := get_node_or_null(^"/root/Auth")
+	if auth and auth.mode() == AUTH.Mode.ACCOUNT:
+		sign_out_requested.emit()
+		return
+	open_sign_in()
+
+
+func open_sign_in() -> void:
+	if _sign_in != null:
+		return
+	_sign_in = SIGN_IN_PANEL.new()
+	_sign_in.submitted.connect(func(email: String, password: String) -> void:
+		_sign_in.set_busy(true)
+		sign_in_requested.emit(email, password))
+	_sign_in.cancelled.connect(close_sign_in)
+	_root.add_child(_sign_in)
+	# Hidden rather than dimmed: both are centred columns, and two of those on
+	# one screen read as one broken column.
+	_column.visible = false
+
+
+func close_sign_in() -> void:
+	if _sign_in == null:
+		return
+	_sign_in.clear_password()
+	_sign_in.queue_free()
+	_sign_in = null
+	_column.visible = true
+
+
+func is_signing_in() -> bool:
+	return _sign_in != null
+
+
+## The sign-in failed and the panel stays open holding the reason — closing it
+## would leave the player guessing which half of the form was wrong.
+func sign_in_failed(message: String) -> void:
+	if _sign_in:
+		_sign_in.show_message(message)
+
+
+func sign_in_succeeded() -> void:
+	close_sign_in()
+	_refresh_status()
+
+
 func _refresh_status() -> void:
 	if status_label == null:
 		return
 	var auth := get_node_or_null(^"/root/Auth")
-	if auth and auth.is_guest():
-		status_label.text = I18n.t("title.guest_status")
-	else:
+	if auth == null:
 		status_label.text = I18n.t(SIGN_IN_HINT_KEY)
+		return
+	match auth.mode():
+		AUTH.Mode.ACCOUNT:
+			status_label.text = I18n.t("title.signed_in_as").format({"name": auth.requested_name()})
+			sign_in_button.text = I18n.t("title.sign_out")
+		AUTH.Mode.GUEST:
+			status_label.text = I18n.t("title.guest_status")
+			sign_in_button.text = I18n.t("title.sign_in")
+		_:
+			status_label.text = I18n.t(SIGN_IN_HINT_KEY)
+			sign_in_button.text = I18n.t("title.sign_in")

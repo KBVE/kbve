@@ -31,6 +31,11 @@ pub struct QNetClient3D {
     /// server sanitizes it and [`local_name`](Self::local_name) is the answer.
     #[export]
     player_name: GString,
+    /// Bearer token to join with. Set means "join as this account": the host
+    /// verifies it and names the player from its claims, and refuses the
+    /// session outright if it does not check out. Empty is guest mode.
+    #[export]
+    access_token: GString,
     /// Connect in `_ready`. Off by default so a scene can be opened without a
     /// server running.
     #[export]
@@ -145,11 +150,13 @@ impl QNetClient3D {
     #[func]
     fn connect_to_server(&mut self) {
         self.disconnect_from_server();
-        self.client = Some(NetClientHandle::spawn_as(
-            self.server_url.to_string(),
-            self.tick_hz,
-            self.player_name.to_string(),
-        ));
+        let url = self.server_url.to_string();
+        let token = self.access_token.to_string();
+        self.client = Some(if token.is_empty() {
+            NetClientHandle::spawn_as(url, self.tick_hz, self.player_name.to_string())
+        } else {
+            NetClientHandle::spawn_with_token(url, self.tick_hz, token)
+        });
     }
 
     #[func]

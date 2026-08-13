@@ -1,8 +1,10 @@
 extends GdUnitTestSuite
 
-## Covers the identity the title screen hands the game. The Supabase half is
-## deliberately unimplemented, so what is pinned here is that it *says so*
-## rather than quietly reporting success.
+## Covers the identity the title screen hands the game.
+##
+## The Supabase half is exercised without a network: what a sign-in has to get
+## right locally is refusing empty input, reading the name out of a token, and
+## never reporting success it did not get.
 
 const AuthSessionScript = preload("res://src/autoload/auth_session.gd")
 
@@ -38,10 +40,57 @@ func test_a_guest_carries_no_token_and_no_name() -> void:
 	assert_str(auth.requested_name()).is_empty()
 
 
-func test_supabase_login_reports_that_it_is_unwired() -> void:
+## No round trip for a form that cannot possibly succeed, and no state change
+## either — a blank password must not sign anybody out of anything.
+func test_empty_credentials_never_reach_the_network() -> void:
 	var auth := _auth()
-	assert_int(auth.sign_in("someone@kbve.com", "hunter2")).is_equal(ERR_UNAVAILABLE)
+	var code: int = await auth.sign_in("", "")
+	assert_int(code).is_equal(ERR_INVALID_PARAMETER)
 	assert_bool(auth.is_signed_in()).is_false()
+	assert_str(auth.last_error()).is_not_empty()
+
+
+## The username the title draws comes out of the token itself, so the claim has
+## to survive base64url without padding — which is what a JWT always is.
+func test_the_username_is_read_out_of_the_token() -> void:
+	var token := _token({"kbve_username": "h0lybyte", "sub": "abc"})
+	assert_str(AuthSessionScript.username_in(token)).is_equal("h0lybyte")
+
+
+func test_a_token_without_the_claim_falls_back_to_user_metadata() -> void:
+	var token := _token({"user_metadata": {"username": "fallback_guy"}})
+	assert_str(AuthSessionScript.username_in(token)).is_equal("fallback_guy")
+
+
+## Garbage in the token field is a bug somewhere else; it must not be a crash
+## here, and it must not produce a name.
+func test_an_unreadable_token_yields_no_name() -> void:
+	assert_str(AuthSessionScript.username_in("")).is_empty()
+	assert_str(AuthSessionScript.username_in("not-a-jwt")).is_empty()
+	assert_str(AuthSessionScript.username_in("a.b.c")).is_empty()
+
+
+## Adopting a token with no explicit username reads the claim rather than
+## leaving the player nameless until the server answers.
+func test_adopting_a_token_learns_the_name_from_it() -> void:
+	var auth := _auth()
+	auth.adopt_account(_token({"kbve_username": "claimed"}), "")
+	assert_str(auth.requested_name()).is_equal("claimed")
+
+
+## A guest has no token to refresh, and refreshing must not turn them into one.
+func test_refresh_is_a_no_op_for_a_guest() -> void:
+	var auth := _auth()
+	auth.sign_in_as_guest()
+	assert_int(await auth.refresh_if_stale()).is_equal(OK)
+	assert_bool(auth.is_guest()).is_true()
+
+
+## Base64url, unpadded — exactly the shape GoTrue emits.
+func _token(claims: Dictionary) -> String:
+	var payload := Marshalls.utf8_to_base64(JSON.stringify(claims))
+	payload = payload.replace("+", "-").replace("/", "_").rstrip("=")
+	return "header.%s.signature" % payload
 
 
 func test_an_account_carries_its_token_and_name() -> void:

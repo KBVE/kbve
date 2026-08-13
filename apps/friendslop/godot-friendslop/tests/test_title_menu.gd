@@ -66,13 +66,49 @@ func test_the_current_language_is_not_offered_again() -> void:
 	assert_array(disabled).is_equal([I18n.locale_code()])
 
 
-## The slot is real and the ecosystem behind it exists, so the button is shown
-## and disabled rather than hidden — hiding it would misreport what is left.
-func test_sign_in_is_present_but_disabled() -> void:
+func test_sign_in_opens_a_form_rather_than_signing_anyone_in() -> void:
 	var menu := _menu()
-	assert_object(menu.sign_in_button).is_not_null()
-	assert_bool(menu.sign_in_button.disabled).is_true()
-	assert_str(menu.sign_in_button.tooltip_text).is_not_empty()
+	assert_bool(menu.sign_in_button.disabled).is_false()
+	assert_bool(menu.is_signing_in()).is_false()
+	menu.sign_in_button.pressed.emit()
+	assert_bool(menu.is_signing_in()).is_true()
+
+
+## The menu collects credentials and reports them; it never calls Auth itself,
+## which is what lets the flow be tested without a network.
+func test_the_form_reports_what_was_typed() -> void:
+	var menu := _menu()
+	var seen := []
+	menu.sign_in_requested.connect(func(email: String, password: String) -> void:
+		seen.append([email, password]))
+	menu.open_sign_in()
+	var panel: SignInPanel = menu._sign_in
+	panel.email_field.text = "someone@kbve.com"
+	panel.password_field.text = "hunter2"
+	panel.submit_button.pressed.emit()
+	assert_array(seen).is_equal([["someone@kbve.com", "hunter2"]])
+
+
+## A failed sign-in leaves the form open holding the reason — closing it would
+## leave the player guessing which half was wrong.
+func test_a_failed_sign_in_keeps_the_form_and_the_reason() -> void:
+	var menu := _menu()
+	menu.open_sign_in()
+	menu.sign_in_failed("Invalid login credentials")
+	assert_bool(menu.is_signing_in()).is_true()
+	assert_str(menu._sign_in.message_label.text).is_equal("Invalid login credentials")
+
+
+## The password lives in the form and nowhere else, so closing it is what
+## disposes of it.
+func test_closing_the_form_clears_the_password() -> void:
+	var menu := _menu()
+	menu.open_sign_in()
+	var panel: SignInPanel = menu._sign_in
+	panel.password_field.text = "hunter2"
+	menu.close_sign_in()
+	assert_str(panel.password_field.text).is_empty()
+	assert_bool(menu.is_signing_in()).is_false()
 
 
 func test_play_asks_rather_than_loading_the_world_itself() -> void:

@@ -13,7 +13,7 @@ tags:
 key: friendslop_server
 pipeline: docker
 app_name: friendslop-server
-version: "0.0.3"
+version: "0.0.4"
 source_path: apps/agones/friendslop/server
 version_toml: apps/agones/friendslop/server/version.toml
 version_target: apps/agones/friendslop/server/Cargo.toml
@@ -121,11 +121,19 @@ The end goal for Friendslop is Steam P2P co-op, where one player hosts. That is 
 - Apply client **intent** — a horizontal wish direction and a jump flag — against server-owned gravity and speed.
 - Run the Agones SDK lifecycle (`Ready` / `Health` / `Shutdown`); degrades gracefully outside Agones for local dev.
 
-### Guest identity
+### Identity
 
-There is no account layer yet, so every player is a guest and the **server** names them. `SessionMsg::Join` carries a requested name; the host sanitizes it (ASCII alphanumerics plus single interior `_ - .`, 24 chars, no all-digit names) and falls back to a generated `Anon-XXXX` when the request is empty, unusable, or already taken. What the client asked for is never what it renders — `Welcome` carries the granted name, and a `Roster` message broadcasts `{peer, body, name}` for everyone on every join and leave.
+A player arrives one of two ways, and the **server** decides what they are called either way.
 
-That split is the point: a display name is drawn on other players' screens, so it is host-authored data that happens to have been suggested by a client.
+`SessionMsg::Join` is a guest. Its `name` field is vestigial and ignored — a guest that could ask for a name could ask for someone else's — so the host generates `Anon-XXXX` and hands it back in `Welcome`.
+
+`SessionMsg::JoinAuthed` carries a Supabase access token and nothing else: the name is *in* the token. `auth.rs` verifies it locally against the JWKS at `SUPABASE_URL/auth/v1/.well-known/jwks.json` (ES256 today, HS256 still accepted if `SUPABASE_JWT_SECRET` is set) through the shared `jedi::jwks::JwtVerifier`, then takes `kbve_username` from the claims. Verification is local rather than a call to GoTrue per join — the sim thread cannot await, and a login endpoint that has to be up for players to walk around is a dependency this server does not need.
+
+The name from a token is still sanitized (ASCII alphanumerics plus single interior `_ - .`, 24 chars, no all-digit names): a claim signed by an identity provider is still a string that lands on someone else's screen. An account already in the session is refused rather than duplicated, and a token that does not verify is refused rather than quietly downgraded to a guest — signing in and silently arriving as somebody else is worse than not arriving.
+
+A server with no `SUPABASE_URL` (or `SUPABASE_JWKS_URI`) runs guests-only and rejects `JoinAuthed` outright. It does not fail open: a host that cannot verify a token has no way to tell an account from a claim about one.
+
+`JoinAuthed` was appended to the message enum rather than folded into `Join`, so postcard's variant numbering did not move and the guest path speaks to older builds unchanged.
 
 ### Layout
 

@@ -17,10 +17,11 @@
 //! to the physics thread is the app's job.
 
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
-use super::guest::{MAX_NAME_LEN, resolve_name};
+use super::guest::{sanitize, unique_guest_name};
 use super::transport::{Delivery, PeerId, Transport};
 use crate::proto::{self, PROTOCOL_VERSION};
 use crate::rapier::sim3d::{
@@ -51,11 +52,15 @@ pub struct PeerInfo {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum SessionMsg {
+    /// Join as a guest. The host names the player; see [`JoinAuthed`] for the
+    /// only way to arrive under a name of your own.
+    ///
+    /// [`JoinAuthed`]: SessionMsg::JoinAuthed
     Join {
         protocol: u32,
-        /// Name the client would like. A request, not a claim: the host
-        /// sanitizes it and hands back what was actually assigned. Empty means
-        /// "give me a guest name", which is the whole of guest mode.
+        /// Legacy request field, ignored since accounts landed — a guest that
+        /// could ask for a name could ask for someone else's. Kept so the
+        /// encoding does not move under clients already shipped.
         name: String,
     },
     /// `peer` is the id the host assigned; a client cannot infer its own.
@@ -78,6 +83,29 @@ pub enum SessionMsg {
     },
     Input(PlayerInput),
     Snapshot(SimSnapshot),
+    /// Join carrying a bearer token from an external identity provider
+    /// (Supabase GoTrue, in practice). The name is *in* the token — a client
+    /// never states it — and a host with no [`TokenAuthority`] rejects this
+    /// outright rather than trusting it.
+    ///
+    /// Appended rather than folded into `Join` so the guest path keeps its
+    /// exact encoding: postcard numbers variants by declaration order, and a
+    /// server that predates this variant still speaks to guests.
+    JoinAuthed {
+        protocol: u32,
+        token: String,
+    },
+}
+
+/// Turns a bearer token into a display name, or into a reason the player can
+/// read. Injected by the host binary so this crate stays out of the business of
+/// knowing who issues tokens or how they are signed.
+///
+/// Sync on purpose: the friendslop host verifies against a cached JWKS, which
+/// is a map lookup and a signature check, and the session step has nowhere to
+/// await.
+pub trait TokenAuthority: Send + Sync {
+    fn verify(&self, token: &str) -> Result<String, String>;
 }
 
 #[derive(Clone, Copy, Debug)]
@@ -101,6 +129,11 @@ impl Default for SessionConfig {
         }
     }
 }
+
+/// Longest token the host will look at. A GoTrue access token is a few hundred
+/// bytes; this is generous enough to survive a claims change and small enough
+/// that refusing is cheaper than verifying.
+const MAX_TOKEN_LEN: usize = 8 * 1024;
 
 /// Players occupy a reserved id band so world props can never collide with a
 /// player body id, whatever order things spawn in.
@@ -129,6 +162,7 @@ pub struct HostSession<T: Transport> {
     players: HashMap<PeerId, Player>,
     seed: u64,
     snapshot_accum: f64,
+    authority: Option<Arc<dyn TokenAuthority>>,
 }
 
 impl<T: Transport> HostSession<T> {
@@ -137,9 +171,9 @@ impl<T: Transport> HostSession<T> {
     pub fn new(transport: T, config: SessionConfig, sim: SimConfig, seed: u64) -> Self {
         let mut host = Self::dedicated(transport, config, sim, seed);
         let local = host.transport.local_peer();
-        // The host never sends itself a Join, so it never states a preference —
-        // it gets a guest name like anyone else until an account layer exists.
-        host.admit(local, "");
+        // The host never sends itself a Join, and hosting is not an identity —
+        // it gets a guest name like anyone else who has not signed in.
+        host.admit_guest(local);
         host
     }
 
@@ -154,7 +188,16 @@ impl<T: Transport> HostSession<T> {
             players: HashMap::new(),
             seed,
             snapshot_accum: 0.0,
+            authority: None,
         }
+    }
+
+    /// Installs the authority that signed-in joins are checked against. Without
+    /// one every `JoinAuthed` is refused: a host that cannot verify a token has
+    /// no way to tell an account from a claim about one.
+    pub fn with_authority(mut self, authority: Arc<dyn TokenAuthority>) -> Self {
+        self.authority = Some(authority);
+        self
     }
 
     pub fn world_mut(&mut self) -> &mut SimWorld {
@@ -194,19 +237,45 @@ impl<T: Transport> HostSession<T> {
         players
     }
 
-    /// Admits `peer` under a name derived from `requested` and returns what was
-    /// actually assigned. A rejoining peer keeps the name it already has.
-    fn admit(&mut self, peer: PeerId, requested: &str) -> String {
+    /// Admits `peer` as a guest under a host-assigned name, and returns it. A
+    /// rejoining peer keeps the name it already has.
+    ///
+    /// The name is never the client's to pick. Honouring a requested name would
+    /// hand every guest the ability to arrive as anyone with an account, which
+    /// is the one thing signing in is supposed to buy.
+    fn admit_guest(&mut self, peer: PeerId) -> String {
         if let Some(player) = self.players.get(&peer) {
             return player.name.clone();
         }
         let taken = |candidate: &str| self.players.values().any(|p| p.name == candidate);
-        let name = resolve_name(requested, taken, peer.0);
+        let name = unique_guest_name(taken, peer.0);
+        self.spawn_player(peer, name.clone());
+        name
+    }
 
+    /// Admits `peer` under the name their verified token carries.
+    ///
+    /// Sanitized like any other name — a claim signed by an identity provider
+    /// is still a string that ends up on someone else's screen — and refused
+    /// when the account is already in the room, since the alternative is two
+    /// bodies wearing one name.
+    fn admit_account(&mut self, peer: PeerId, username: &str) -> Result<String, String> {
+        if let Some(player) = self.players.get(&peer) {
+            return Ok(player.name.clone());
+        }
+        let name = sanitize(username).ok_or("account has no usable display name")?;
+        if self.players.values().any(|p| p.name == name) {
+            return Err("that account is already in this session".to_owned());
+        }
+        self.spawn_player(peer, name.clone());
+        Ok(name)
+    }
+
+    fn spawn_player(&mut self, peer: PeerId, name: String) {
         self.players.insert(
             peer,
             Player {
-                name: name.clone(),
+                name,
                 ..Default::default()
             },
         );
@@ -217,7 +286,6 @@ impl<T: Transport> HostSession<T> {
                 ..Default::default()
             },
         });
-        name
     }
 
     pub fn remove_player(&mut self, peer: PeerId) {
@@ -228,6 +296,19 @@ impl<T: Transport> HostSession<T> {
             // Whoever is left needs to stop drawing their nameplate.
             self.broadcast_roster();
         }
+    }
+
+    fn welcome(&mut self, peer: PeerId, assigned: String) {
+        self.reply(
+            peer,
+            &SessionMsg::Welcome {
+                protocol: PROTOCOL_VERSION,
+                seed: self.seed,
+                peer,
+                name: assigned,
+            },
+        );
+        self.broadcast_roster();
     }
 
     fn broadcast_roster(&self) {
@@ -244,7 +325,7 @@ impl<T: Transport> HostSession<T> {
 
     fn handle(&mut self, from: PeerId, msg: SessionMsg) {
         match msg {
-            SessionMsg::Join { protocol, name } => {
+            SessionMsg::Join { protocol, name: _ } => {
                 if protocol != PROTOCOL_VERSION {
                     // P2P means mismatched builds will absolutely try to
                     // connect; refusing loudly beats desyncing quietly.
@@ -252,21 +333,47 @@ impl<T: Transport> HostSession<T> {
                     self.reply(from, &SessionMsg::Reject { reason });
                     return;
                 }
+                let assigned = self.admit_guest(from);
+                self.welcome(from, assigned);
+            }
+            SessionMsg::JoinAuthed { protocol, token } => {
+                if protocol != PROTOCOL_VERSION {
+                    let reason = format!("protocol {protocol} != {PROTOCOL_VERSION}");
+                    self.reply(from, &SessionMsg::Reject { reason });
+                    return;
+                }
+                let Some(authority) = self.authority.clone() else {
+                    self.reply(
+                        from,
+                        &SessionMsg::Reject {
+                            reason: "this server does not accept accounts".to_owned(),
+                        },
+                    );
+                    return;
+                };
                 // Bound the work before doing any of it: a client can send a
-                // megabyte here, and sanitizing it character by character is
-                // exactly the kind of loop worth not entering.
-                let requested: String = name.chars().take(MAX_NAME_LEN * 4).collect();
-                let assigned = self.admit(from, &requested);
-                self.reply(
-                    from,
-                    &SessionMsg::Welcome {
-                        protocol: PROTOCOL_VERSION,
-                        seed: self.seed,
-                        peer: from,
-                        name: assigned,
-                    },
-                );
-                self.broadcast_roster();
+                // megabyte here, and every byte past a plausible token is a
+                // byte spent proving it is not one.
+                if token.len() > MAX_TOKEN_LEN {
+                    self.reply(
+                        from,
+                        &SessionMsg::Reject {
+                            reason: "token too large".to_owned(),
+                        },
+                    );
+                    return;
+                }
+                let assigned = match authority
+                    .verify(&token)
+                    .and_then(|username| self.admit_account(from, &username))
+                {
+                    Ok(name) => name,
+                    Err(reason) => {
+                        self.reply(from, &SessionMsg::Reject { reason });
+                        return;
+                    }
+                };
+                self.welcome(from, assigned);
             }
             SessionMsg::Input(input) => {
                 let Some(player) = self.players.get_mut(&from) else {
@@ -385,12 +492,34 @@ impl<T: Transport> ClientSession<T> {
         Self::connect_as(transport, "")
     }
 
+    /// Joins with a bearer token: the host verifies it and names the player
+    /// from the claims inside. A host with no authority refuses.
+    pub fn connect_with_token(transport: T, token: &str) -> Self {
+        Self::open(
+            transport,
+            SessionMsg::JoinAuthed {
+                protocol: PROTOCOL_VERSION,
+                token: token.to_owned(),
+            },
+        )
+    }
+
     /// Sends the join request immediately — reliably, because a dropped join is
     /// a session that silently never starts.
     ///
-    /// `requested_name` is advisory; read [`name`](Self::name) after the
-    /// welcome for what was actually assigned.
+    /// `requested_name` no longer influences anything: guests are named by the
+    /// host. Read [`name`](Self::name) after the welcome for what was assigned.
     pub fn connect_as(transport: T, requested_name: &str) -> Self {
+        Self::open(
+            transport,
+            SessionMsg::Join {
+                protocol: PROTOCOL_VERSION,
+                name: requested_name.to_owned(),
+            },
+        )
+    }
+
+    fn open(transport: T, join: SessionMsg) -> Self {
         let client = Self {
             transport,
             status: ClientStatus::Connecting,
@@ -402,11 +531,7 @@ impl<T: Transport> ClientSession<T> {
             name: None,
             roster: Vec::new(),
         };
-        let msg = SessionMsg::Join {
-            protocol: PROTOCOL_VERSION,
-            name: requested_name.to_owned(),
-        };
-        if let Ok(bytes) = proto::encode(&msg) {
+        if let Ok(bytes) = proto::encode(&join) {
             let _ = client
                 .transport
                 .send(PeerId::HOST, Delivery::Reliable, &bytes);
@@ -498,7 +623,7 @@ impl<T: Transport> ClientSession<T> {
                         self.snapshot = Some(snapshot);
                     }
                 }
-                SessionMsg::Join { .. } | SessionMsg::Input(_) => {}
+                SessionMsg::Join { .. } | SessionMsg::JoinAuthed { .. } | SessionMsg::Input(_) => {}
             }
         }
 
@@ -810,8 +935,10 @@ mod tests {
         );
     }
 
+    /// A guest asking for a name is how you arrive as somebody else, so asking
+    /// buys nothing at all — an account is the only way to bring a name.
     #[test]
-    fn a_requested_name_is_honoured_when_it_is_usable() {
+    fn a_guest_cannot_ask_for_a_name() {
         let mesh = Loopback::mesh(2);
         let mut host = HostSession::dedicated(
             mesh[0].clone(),
@@ -827,7 +954,9 @@ mod tests {
             client.tick();
         }
 
-        assert_eq!(client.name(), Some("h0lybyte"));
+        let name = client.name().expect("welcomed");
+        assert_ne!(name, "h0lybyte");
+        assert!(name.starts_with("Anon-"), "{name}");
     }
 
     /// The name field is client-controlled, so it is an injection point for
@@ -886,8 +1015,8 @@ mod tests {
             1,
         );
         host.set_terrain(flat_terrain());
-        let mut a = ClientSession::connect_as(mesh[1].clone(), "twin");
-        let mut b = ClientSession::connect_as(mesh[2].clone(), "twin");
+        let mut a = ClientSession::connect(mesh[1].clone());
+        let mut b = ClientSession::connect(mesh[2].clone());
 
         for _ in 0..4 {
             host.tick();
@@ -895,10 +1024,138 @@ mod tests {
             b.tick();
         }
 
-        assert_eq!(a.name(), Some("twin"), "first asker keeps it");
+        let first = a.name().expect("welcomed");
         let second = b.name().expect("welcomed");
-        assert_ne!(second, "twin");
-        assert!(second.starts_with("Anon-"), "{second}");
+        assert_ne!(first, second);
+        assert!(first.starts_with("Anon-") && second.starts_with("Anon-"));
+    }
+
+    /// Stands in for the GoTrue verifier: whatever the "token" says, minus the
+    /// signature nobody in a unit test has.
+    struct StubAuthority;
+
+    impl TokenAuthority for StubAuthority {
+        fn verify(&self, token: &str) -> Result<String, String> {
+            match token.strip_prefix("valid:") {
+                Some(name) => Ok(name.to_owned()),
+                None => Err("sign-in was not accepted".to_owned()),
+            }
+        }
+    }
+
+    fn authed_host(mesh: &[Loopback]) -> HostSession<Loopback> {
+        let mut host = HostSession::dedicated(
+            mesh[0].clone(),
+            SessionConfig::default(),
+            SimConfig::default(),
+            1,
+        )
+        .with_authority(Arc::new(StubAuthority));
+        host.set_terrain(flat_terrain());
+        host
+    }
+
+    #[test]
+    fn a_verified_token_brings_its_own_name() {
+        let mesh = Loopback::mesh(2);
+        let mut host = authed_host(&mesh);
+        let mut client = ClientSession::connect_with_token(mesh[1].clone(), "valid:h0lybyte");
+
+        for _ in 0..2 {
+            host.tick();
+            client.tick();
+        }
+
+        assert_eq!(client.status(), ClientStatus::Joined);
+        assert_eq!(client.name(), Some("h0lybyte"));
+    }
+
+    /// A name from a token is still a name on someone else's screen.
+    #[test]
+    fn a_verified_name_is_still_sanitized() {
+        let mesh = Loopback::mesh(2);
+        let mut host = authed_host(&mesh);
+        let mut client =
+            ClientSession::connect_with_token(mesh[1].clone(), "valid:\u{202e}h0ly\nbyte");
+
+        for _ in 0..2 {
+            host.tick();
+            client.tick();
+        }
+
+        assert_eq!(client.name(), Some("h0lybyte"));
+    }
+
+    #[test]
+    fn a_bad_token_is_rejected_rather_than_downgraded_to_a_guest() {
+        let mesh = Loopback::mesh(2);
+        let mut host = authed_host(&mesh);
+        let mut client = ClientSession::connect_with_token(mesh[1].clone(), "forged");
+
+        for _ in 0..2 {
+            host.tick();
+            client.tick();
+        }
+
+        assert_eq!(client.status(), ClientStatus::Rejected);
+        assert_eq!(host.player_count(), 0, "nothing was spawned");
+    }
+
+    /// A host with no verifier cannot tell an account from a claim about one.
+    #[test]
+    fn a_host_without_an_authority_refuses_accounts() {
+        let mesh = Loopback::mesh(2);
+        let mut host = HostSession::dedicated(
+            mesh[0].clone(),
+            SessionConfig::default(),
+            SimConfig::default(),
+            1,
+        );
+        host.set_terrain(flat_terrain());
+        let mut client = ClientSession::connect_with_token(mesh[1].clone(), "valid:h0lybyte");
+
+        for _ in 0..2 {
+            host.tick();
+            client.tick();
+        }
+
+        assert_eq!(client.status(), ClientStatus::Rejected);
+    }
+
+    /// Two bodies wearing one name is worse than a refused second session.
+    #[test]
+    fn one_account_cannot_be_in_the_session_twice() {
+        let mesh = Loopback::mesh(3);
+        let mut host = authed_host(&mesh);
+        let mut a = ClientSession::connect_with_token(mesh[1].clone(), "valid:h0lybyte");
+        let mut b = ClientSession::connect_with_token(mesh[2].clone(), "valid:h0lybyte");
+
+        for _ in 0..4 {
+            host.tick();
+            a.tick();
+            b.tick();
+        }
+
+        assert_eq!(a.name(), Some("h0lybyte"));
+        assert_eq!(b.status(), ClientStatus::Rejected);
+        assert_eq!(host.player_count(), 1);
+    }
+
+    /// Guests and accounts share one namespace, and the guest arrived first.
+    #[test]
+    fn an_account_name_already_in_the_room_is_refused() {
+        let mesh = Loopback::mesh(2);
+        let mut host = authed_host(&mesh);
+        let taken = host.admit_guest(PeerId(9));
+        let mut client =
+            ClientSession::connect_with_token(mesh[1].clone(), &format!("valid:{taken}"));
+
+        for _ in 0..2 {
+            host.tick();
+            client.tick();
+        }
+
+        assert_eq!(client.status(), ClientStatus::Rejected);
     }
 
     #[test]

@@ -3,7 +3,7 @@ use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
 use q::net::dual::DualHost;
-use q::net::session::{HostSession, SessionConfig};
+use q::net::session::{HostSession, SessionConfig, TokenAuthority};
 use q::rapier::sim3d::{SimConfig, TerrainDesc};
 use q::worldgen::{HeightGen, HeightParams};
 
@@ -57,7 +57,11 @@ pub fn terrain_for(cfg: &DriverConfig) -> TerrainDesc {
 ///
 /// Not a tokio task: `HostSession::tick` is synchronous CPU work, and parking it
 /// on a runtime worker would stall the sockets it depends on.
-pub fn spawn(transport: Arc<DualHost>, cfg: DriverConfig) -> Driver {
+pub fn spawn(
+    transport: Arc<DualHost>,
+    cfg: DriverConfig,
+    authority: Option<Arc<dyn TokenAuthority>>,
+) -> Driver {
     let stop = Arc::new(AtomicBool::new(false));
     let tick = Arc::new(AtomicU64::new(0));
     let (stop_t, tick_t) = (stop.clone(), tick.clone());
@@ -74,6 +78,9 @@ pub fn spawn(transport: Arc<DualHost>, cfg: DriverConfig) -> Driver {
         .spawn(move || {
             let mut host =
                 HostSession::dedicated(transport.clone(), SessionConfig::default(), sim, seed);
+            if let Some(authority) = authority {
+                host = host.with_authority(authority);
+            }
             host.set_terrain(terrain);
 
             let step = Duration::from_secs_f64(sim.timestep());

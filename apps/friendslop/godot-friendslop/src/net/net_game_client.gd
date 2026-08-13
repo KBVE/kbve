@@ -27,11 +27,14 @@ const DEPLOYED_URL := "wss://friendslop.kbve.com/ws"
 ## correct while the camera happens to face -Z.
 @export var intent_basis_path: NodePath
 
-## Name to ask the server for. Empty is guest mode — the server answers with
-## an Anon-XXXX name, which is what local_name() reports once joined. Anything
-## set here is a request: the server sanitizes it and may hand back a guest
-## name instead, so never render this, render local_name().
+## Vestigial: guests are named by the server, and a name asked for is a name
+## that could be someone else's. Render local_name(), never this.
 @export var player_name := ""
+
+## Supabase access token. Set means "join as this account" — the server verifies
+## it and reads the name out of its claims, and refuses the session if it does
+## not check out. Empty is guest mode.
+@export var access_token := ""
 
 # Built here rather than @onready so callers that reach for it before _ready
 # get a live node instead of null.
@@ -62,6 +65,7 @@ func connect_to_server(url: String = "") -> void:
 	_client.server_url = server_url
 	_client.tick_hz = tick_hz
 	_client.player_name = player_name
+	_client.access_token = access_token
 	if _client.get_parent() == null and is_inside_tree():
 		add_child(_client)
 	_client.connect_to_server()
