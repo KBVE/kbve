@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3]
+[gd_scene load_steps=19 format=3]
 
 [ext_resource type="Script" path="res://src/title_screen.gd" id="1_title"]
 [ext_resource type="Material" path="res://assets/biomes/grassland/grass/ground.tres" id="2_ground"]
@@ -10,6 +10,10 @@
 [ext_resource type="Script" path="res://src/world/wind.gd" id="8_wind"]
 [ext_resource type="Script" path="res://src/world/title_camera.gd" id="9_orbit"]
 [ext_resource type="Script" path="res://src/ui/title_menu.gd" id="10_menu"]
+[ext_resource type="Script" path="res://src/settings/graphics_settings.gd" id="11_gfx"]
+[ext_resource type="Script" path="res://src/settings/gameplay_settings.gd" id="12_play"]
+[ext_resource type="Material" path="res://assets/environment/props/bridge/bridge.tres" id="13_bridge"]
+[ext_resource type="Material" path="res://assets/environment/props/bridge/abutment.tres" id="14_abut"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(1024, 1024)
@@ -53,6 +57,8 @@ grass_material = ExtResource("3_grassmat")
 ground_material = ExtResource("2_ground")
 water_material = ExtResource("4_water")
 riverbed_material = ExtResource("5_riverbed")
+bridge_material = ExtResource("13_bridge")
+abutment_material = ExtResource("14_abut")
 
 [node name="GrassField" type="QGrassField" parent="."]
 player_path = NodePath("../CameraRig")
@@ -88,3 +94,9 @@ fov = 62.0
 
 [node name="TitleMenu" type="CanvasLayer" parent="."]
 script = ExtResource("10_menu")
+
+[node name="GraphicsSettings" type="Node" parent="."]
+script = ExtResource("11_gfx")
+
+[node name="GameplaySettings" type="Node" parent="."]
+script = ExtResource("12_play")
