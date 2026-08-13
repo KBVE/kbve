@@ -51,7 +51,6 @@ impl ICanvasLayer for BrowserManager {
             any(target_os = "macos", target_os = "windows", target_os = "linux")
         ))]
         {
-            // use raw_window_handle::HasWindowHandle;
             let browser_clone = self.browser.clone();
             {
                 let mut base = self.base_mut();

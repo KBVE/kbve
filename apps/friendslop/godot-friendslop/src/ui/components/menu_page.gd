@@ -2,12 +2,6 @@ class_name MenuPage
 extends MarginContainer
 
 ## One writable page of the open book, and the rows on it.
-##
-## The page owns three things the caller used to track in parallel arrays: its
-## UV rect (was `_page_frames`), the controls that scale with the projection
-## (was `_scaled_rows`), and the rows to refresh when any one of them cycles (was
-## an `Array[Callable]` the caller had to keep in step with the controls it had
-## built). Adding a row can no longer forget to register it for any of the three.
 
 var uv: Rect2
 var box: VBoxContainer
@@ -43,8 +37,7 @@ static func make(side: int, panel: Control) -> MenuPage:
 	return page
 
 
-## Two pages of one spread share their rows, so a cycle on either refreshes
-## both. Registered rather than discovered: they are siblings under the panel.
+## Two pages of one spread share their rows, so a cycle on either refreshes both.
 func pair_with(other: MenuPage) -> void:
 	_spread = [self, other]
 	other._spread = [self, other]
@@ -74,8 +67,6 @@ func layout(book: Rect2, metrics: Dictionary) -> void:
 	anchor_top = book.position.y + book.size.y * uv.position.y
 	anchor_right = book.position.x + book.size.x * (uv.position.x + uv.size.x)
 	anchor_bottom = book.position.y + book.size.y * (uv.position.y + uv.size.y)
-	# Anchors alone do not move a Control -- the default offsets still apply on
-	# top of them, so the box lands off its page unless they are cleared.
 	offset_left = 0.0
 	offset_top = 0.0
 	offset_right = 0.0

@@ -3,9 +3,6 @@
 #[cfg(all(feature = "client", feature = "server"))]
 compile_error!("q: enable either the `client` or `server` feature, not both.");
 
-// -----------------------------------------------------------------------------
-// Client flavor (Godot GDExtension)
-// -----------------------------------------------------------------------------
 #[cfg(feature = "client")]
 use godot::prelude::*;
 
@@ -67,17 +64,13 @@ unsafe impl ExtensionLibrary for Q {
     }
 }
 
-// -----------------------------------------------------------------------------
-// Cross-cutting modules — gated by their own features.
-// -----------------------------------------------------------------------------
 #[cfg(feature = "proto-shared")]
 pub mod proto;
 
 #[cfg(any(feature = "client", feature = "rapier3d-sim"))]
 pub mod worldgen;
 
-/// Gait and stance decisions. Dependency-free, so it is available to whichever
-/// side is authoritative without pulling a feature in behind it.
+/// Gait and stance decisions.
 pub mod locomotion;
 
 #[cfg(any(

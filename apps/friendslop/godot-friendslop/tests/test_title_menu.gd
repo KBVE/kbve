@@ -1,7 +1,6 @@
 extends GdUnitTestSuite
 
-## The title's wiring, not its looks. Entering the world is a signal precisely
-## so this can be checked without loading the world.
+## The title's wiring, not its looks.
 
 
 func _menu() -> TitleMenu:
@@ -18,8 +17,8 @@ func test_it_offers_guest_play_first() -> void:
 	assert_bool(menu.play_button.disabled).is_false()
 
 
-## The row is on the title rather than behind Settings because a player who
-## cannot read the menu cannot navigate the menu to reach it.
+## The row is on the title rather than behind Settings because a player who cannot read
+## the menu cannot navigate the menu to reach it.
 func test_language_row_is_on_the_title_itself() -> void:
 	var menu := _menu()
 	assert_int(menu.language_buttons.size()).is_equal(I18n.locales().size())
@@ -29,8 +28,8 @@ func test_language_row_is_on_the_title_itself() -> void:
 	assert_array(labels).contains_exactly_in_any_order(I18n.locale_names())
 
 
-## Written in its own language, not the current one: the label is the only part
-## of the screen a player who does not read the current language can use.
+## Written in its own language, not the current one: the label is the only part of the
+## screen a player who does not read the current language can use.
 func test_language_labels_do_not_change_with_the_locale() -> void:
 	var before := I18n.locale_code()
 	I18n.set_locale("ja")
@@ -55,8 +54,8 @@ func test_choosing_a_language_asks_rather_than_switching_itself() -> void:
 	assert_str(asked[0]).is_not_equal(I18n.locale_code())
 
 
-## The row doubles as the readout of which language is on, so the current one is
-## shown unavailable rather than dropped from the list.
+## The row doubles as the readout of which language is on, so the current one is shown
+## unavailable rather than dropped from the list.
 func test_the_current_language_is_not_offered_again() -> void:
 	var menu := _menu()
 	var disabled: Array = []
@@ -74,8 +73,8 @@ func test_sign_in_opens_a_form_rather_than_signing_anyone_in() -> void:
 	assert_bool(menu.is_signing_in()).is_true()
 
 
-## The menu reports which provider was chosen; it never calls Auth itself,
-## which is what lets the flow be tested without a browser.
+## The menu reports which provider was chosen; it never calls Auth itself, which is what
+## lets the flow be tested without a browser.
 func test_the_panel_reports_the_provider_that_was_chosen() -> void:
 	var menu := _menu()
 	var seen := []
@@ -85,16 +84,15 @@ func test_the_panel_reports_the_provider_that_was_chosen() -> void:
 	assert_array(seen).is_equal(["discord"])
 
 
-## Every provider Auth will accept has a button, and no button names one it
-## would refuse to start.
+## Every provider Auth will accept has a button, and no button names one it would refuse
+## to start.
 func test_every_offered_provider_can_actually_be_started() -> void:
 	var menu := _menu()
 	menu.open_sign_in()
 	assert_array(menu._sign_in.provider_buttons.keys()).is_equal(AuthSession.PROVIDERS)
 
 
-## A second press would open a second tab against a verifier the first one
-## already owns.
+## A second press would open a second tab against a verifier the first one already owns.
 func test_a_sign_in_in_flight_ignores_further_presses() -> void:
 	var menu := _menu()
 	var seen := []
@@ -105,8 +103,8 @@ func test_a_sign_in_in_flight_ignores_further_presses() -> void:
 	assert_array(seen).is_equal(["discord"])
 
 
-## A failed sign-in leaves the form open holding the reason — closing it would
-## leave the player guessing which half was wrong.
+## A failed sign-in leaves the form open holding the reason — closing it would leave the
+## player guessing which half was wrong.
 func test_a_failed_sign_in_keeps_the_panel_and_the_reason() -> void:
 	var menu := _menu()
 	menu.open_sign_in()
@@ -132,8 +130,8 @@ func test_play_asks_rather_than_loading_the_world_itself() -> void:
 	assert_int(asked[0]).is_equal(1)
 
 
-## Two ways in, and they are not the same thing: guest play joins the dedicated
-## server, singleplayer runs this machine's own sim.
+## Two ways in, and they are not the same thing: guest play joins the dedicated server,
+## singleplayer runs this machine's own sim.
 func test_the_two_play_paths_are_separate() -> void:
 	var menu := _menu()
 	var online := [0]
@@ -157,8 +155,8 @@ func test_settings_and_quit_are_wired() -> void:
 	assert_int(quit[0]).is_equal(1)
 
 
-## Escape is "back out of what is open", which is only "quit" when nothing is —
-## so it gets its own signal and the title decides which one it meant.
+## Escape is "back out of what is open", which is only "quit" when nothing is — so it
+## gets its own signal and the title decides which one it meant.
 func test_escape_is_a_cancel_not_a_quit() -> void:
 	var menu := _menu()
 	var cancelled := [0]

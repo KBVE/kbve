@@ -1,10 +1,4 @@
 //! Server-side WebSocket transport — axum router + per-match session loop.
-//!
-//! Every connection sends a `ClientMessage::JoinMatch` first; the server
-//! verifies the Supabase JWT (HS256 against `SUPABASE_JWT_SECRET`) and then
-//! claims a free slot from the shared roster. When `SUPABASE_JWT_SECRET` is
-//! unset the server runs in dev-accept mode and trusts the username field at
-//! face value — handy for local smoke runs, never for production.
 
 use std::sync::{Arc, RwLock};
 
@@ -19,12 +13,10 @@ use tokio::sync::{broadcast, mpsc};
 use crate::auth;
 use crate::proto::{self, ClientMessage, Input, ServerEvent};
 
-/// One input as it crosses from a WS session into the bevy sim. Slot is the
-/// authenticated source; trust this, never the wire.
+/// One input as it crosses from a WS session into the bevy sim.
 pub type SlotInput = (proto::PlayerSlot, Input);
 
 /// Match-wide roster of admitted players, indexed by slot.
-/// Holds `MAX_PLAYERS` slots; `None` = free.
 #[derive(Default)]
 pub struct Roster {
     slots: Vec<Option<RosterEntry>>,
@@ -42,7 +34,7 @@ impl Roster {
         }
     }
 
-    /// Claim the lowest free slot. Returns `None` when full.
+    /// Claim the lowest free slot.
     fn claim(&mut self, kbve_username: String) -> Option<proto::PlayerSlot> {
         for (i, s) in self.slots.iter_mut().enumerate() {
             if s.is_none() {
@@ -74,8 +66,7 @@ impl Roster {
             .collect()
     }
 
-    /// Enumerate every claimed slot. Used by the sim to size per-player
-    /// fields (`Snapshot.fields[]`) and per-player wave spawners.
+    /// Enumerate every claimed slot.
     pub fn active_slots(&self) -> Vec<proto::PlayerSlot> {
         self.slots
             .iter()
@@ -87,15 +78,13 @@ impl Roster {
 
 #[derive(Clone)]
 pub struct ServerState {
-    /// Broadcast bus shared with the bevy sim. WS sessions subscribe a
-    /// receiver per connection.
+    /// Broadcast bus shared with the bevy sim.
     pub broadcast: Option<broadcast::Sender<ServerEvent>>,
-    /// Inputs from authenticated WS sessions → sim. None = no sim wired,
-    /// inputs are silently dropped (smoke/test path).
+    /// Inputs from authenticated WS sessions → sim.
     pub input_tx: Option<mpsc::UnboundedSender<SlotInput>>,
     /// Seed echoed back to clients in the Welcome frame.
     pub seed: u64,
-    /// Supabase JWT secret. Empty = dev-accept mode (any token admitted).
+    /// Supabase JWT secret.
     pub jwt_secret: Vec<u8>,
     /// Shared roster — multiple WS sessions race for free slots.
     pub roster: Arc<RwLock<Roster>>,
@@ -312,8 +301,6 @@ async fn send_reject(socket: &mut WebSocket, reason: &str) {
     if let Ok(buf) = proto::encode(&evt) {
         let _ = socket.send(Message::Binary(buf.into())).await;
     }
-    // Issue a clean WS Close so the client tears down without surfacing a
-    // protocol-error disconnect on top of the Reject payload.
     let _ = socket
         .send(Message::Close(Some(axum::extract::ws::CloseFrame {
             code: 1000,

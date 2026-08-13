@@ -2,14 +2,12 @@ extends CanvasLayer
 
 @export var species: BirdSpecies
 
-## In the world this menu owns the escape key and hands the mouse back to the
-## camera on close. On the title screen neither is true: escape belongs to the
-## title, and there is no camera to capture the cursor for. Both default to the
-## in-world behaviour, so the world scene sets nothing.
+## In the world this menu owns the escape key and hands the mouse back to the camera on
+## close.
 var toggles_on_cancel := true
 var captures_mouse_on_close := true
-## Log Off would be a button back to the screen it is already on, so the title
-## screen turns the session pair off and keeps its own Quit.
+## Log Off would be a button back to the screen it is already on, so the title screen
+## turns the session pair off and keeps its own Quit.
 var shows_session_actions := true
 
 var _root: Control
@@ -31,9 +29,9 @@ var _book_warm_light: OmniLight3D
 var _book_base: Transform3D
 var _book_start: Transform3D
 var _transition := 0
-## Touch needs a bigger hit target than a mouse cursor, and the book pages are a
-## smaller share of a phone screen, so sizes come from here rather than being
-## hardcoded per control.
+## Touch needs a bigger hit target than a mouse cursor, and the book pages are a smaller
+## share of a phone screen, so sizes come from here rather than being hardcoded per
+## control.
 var _touch := false
 
 const TITLE_SCENE := "res://scenes/title.tscn"
@@ -42,8 +40,8 @@ const BOOK_OPEN_POSE := 1.6
 const CLOSE_SPEED := 3.0
 
 
-## Q_CODEX=1 opens straight into it, which is how the Codex gets looked at while
-## it is being worked on.
+## Q_CODEX=1 opens straight into it, which is how the Codex gets looked at while it is
+## being worked on.
 func _open_codex_on_start() -> void:
 	if OS.get_environment("Q_CODEX") == "":
 		return
@@ -204,9 +202,8 @@ func _find_anim(node: Node) -> AnimationPlayer:
 	return null
 
 
-## Split across both open pages rather than one tall centred column: six rows
-## grow from the middle in both directions and run off the top of the book.
-## Ordered by measured cost, worst first.
+## Split across both open pages rather than one tall centred column: six rows grow from
+## the middle in both directions and run off the top of the book.
 func _build_graphics() -> void:
 	_graphics_panel = Control.new()
 	_graphics_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -223,11 +220,6 @@ func _build_graphics() -> void:
 		_page_back(right)
 		return
 
-	# One control on touch. The tier already sets scale, ground detail, shadows,
-	# grass and PostFX together, so the individual rows are a way to build a
-	# broken combination on a phone rather than a way to tune one -- and a phone
-	# has no cursor to hover a row it did not mean to change. Count is TIERS, not
-	# PRESET_NAMES: "Custom" is a readout, never something to cycle into.
 	left.add_cycler(I18n.t("settings.quality" if _touch else "settings.preset"),
 			func() -> Array: return I18n.t_all(_gfx.PRESET_NAMES),
 			func() -> int: return _gfx.preset_index(),
@@ -309,12 +301,6 @@ func _build_gameplay() -> void:
 			func(i: int) -> void: _play.set_crosshair(i == 1),
 			2)
 
-	# Title only, and a second way to the same thing: the title's own row is
-	# where a player who cannot read this page will find it, and this is where a
-	# player who can read it will look. Every row here was built once, in the
-	# language current at the time, so switching reloads the scene that built
-	# them -- and reloading the world would cost the session to change a menu's
-	# words. From in-game the way to another language is Log Off.
 	if not shows_session_actions:
 		left.add_cycler(I18n.t("settings.language"),
 				func() -> Array: return I18n.locale_names(),
@@ -345,14 +331,8 @@ func _off_on() -> Array:
 
 const SCALE_STEPS := [0.5, 0.6, 0.7, 0.85, 1.0]
 
-## Page rects, touch padding and row sizing all moved to MenuStyle -- the pages
-## are the only thing that reads them, and MenuPage applies them in its layout
-## pass. The long note on why they are measured against the projected book
-## rather than the screen lives there with the values.
-
-
-
-
+## Page rects, touch padding and row sizing all moved to MenuStyle -- the pages are the
+## only thing that reads them, and MenuPage applies them in its layout pass.
 
 
 func _book_rect() -> Rect2:
@@ -373,8 +353,8 @@ func _book_rect() -> Rect2:
 	return Rect2(mn, mx - mn)
 
 
-## Anchors and row metrics both come off the projected book, so a resize re-flows
-## the pages instead of sliding them off the paper.
+## Anchors and row metrics both come off the projected book, so a resize re-flows the
+## pages instead of sliding them off the paper.
 func _layout_pages() -> void:
 	var book := _book_rect()
 	if book.size.x <= 0.0 or book.size.y <= 0.0:
@@ -395,9 +375,9 @@ func _nearest_scale(v: float) -> int:
 	return _nearest(SCALE_STEPS, v)
 
 
-## Blades per square metre, shown as the number rather than a percentage: the
-## field default has already moved 250 -> 150, and a percentage would have meant
-## a different density either side of that.
+## Blades per square metre, shown as the number rather than a percentage: the field
+## default has already moved 250 -> 150, and a percentage would have meant a different
+## density either side of that.
 func _grass_labels() -> Array:
 	var out: Array = []
 	for v in _gfx.GRASS_STEPS:
@@ -416,8 +396,8 @@ func _nearest(steps: Array, v: float) -> int:
 	return best
 
 
-## One row, cycled by clicking rather than a dropdown: every option here is a
-## short ordered list, and a Button is already themed to match the book.
+## One row, cycled by clicking rather than a dropdown: every option here is a short
+## ordered list, and a Button is already themed to match the book.
 func _menu_box(page_x: float = 0.5, page_y: float = 0.5) -> VBoxContainer:
 	var box := VBoxContainer.new()
 	box.anchor_left = page_x
@@ -478,8 +458,7 @@ func close() -> void:
 	_close()
 
 
-## Opens straight onto the settings pages. The title screen has its own Play
-## button, so showing the book's would be two buttons for one action.
+## Opens straight onto the settings pages.
 func open_settings() -> void:
 	await _open()
 	if _root.visible:
@@ -531,9 +510,9 @@ func _close() -> void:
 	_set_crosshair(true)
 
 
-## Leaves without the book's close animation: the scene it is animating on top
-## of is about to be freed, and an awaited tween there is a tween that resumes
-## against a dead node.
+## Leaves without the book's close animation: the scene it is animating on top of is
+## about to be freed, and an awaited tween there is a tween that resumes against a dead
+## node.
 func _log_off() -> void:
 	_transition += 1
 	_show(null)
@@ -553,8 +532,8 @@ func _quit() -> void:
 	get_tree().quit()
 
 
-## The server keeps a body for a peer that vanished without saying so, so both
-## paths out hand the connection back before the scene or the process goes.
+## The server keeps a body for a peer that vanished without saying so, so both paths out
+## hand the connection back before the scene or the process goes.
 func _leave_session() -> void:
 	for node in get_tree().root.find_children("*", "NetGameClient", true, false):
 		node.disconnect_from_server()
@@ -618,6 +597,3 @@ func _model_aabb(root: Node) -> AABB:
 			first = false
 		stack.append_array(n.get_children())
 	return result
-
-
-

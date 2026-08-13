@@ -36,8 +36,7 @@ func test_states_are_fully_specified() -> void:
 
 
 ## Every clip the rig names has to exist in the pack, or the state is added to the
-## machine as a null node. The pack spells it "HitRecieve", and correcting that
-## spelling in STATES is a silent break.
+## machine as a null node.
 func test_every_named_clip_exists_in_every_mech() -> void:
 	var wanted: Array[String] = []
 	wanted.append_array(Rig.MOVE_CLIPS)
@@ -52,8 +51,8 @@ func test_every_named_clip_exists_in_every_mech() -> void:
 					.override_failure_message("%s has no clip '%s'" % [mech, clip]).is_true()
 
 
-## The pack imports every clip as LOOP_NONE, cycles included, so the rig has to
-## mark them or Idle plays once and holds its last frame forever.
+## The pack imports every clip as LOOP_NONE, cycles included, so the rig has to mark
+## them or Idle plays once and holds its last frame forever.
 func test_locomotion_clips_import_unlooped() -> void:
 	var scene: PackedScene = load("res://assets/characters/creatures/mech/models/George.glb")
 	var inst := scene.instantiate()

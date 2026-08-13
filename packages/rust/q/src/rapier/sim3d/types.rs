@@ -1,15 +1,10 @@
 //! Wire types between the app pillar and the physics pillar.
-//!
-//! Deliberately free of rapier and Godot types: the app side builds commands
-//! without linking a physics engine, and the sim side never learns what is
-//! rendering it. Arrays instead of nalgebra/Godot vectors keep both true.
 
 use std::sync::Arc;
 
 use serde::{Deserialize, Serialize};
 
-/// App-assigned body id. The app owns the numbering so it can key its own
-/// node tables without waiting for a round trip through the sim.
+/// App-assigned body id.
 #[derive(
     Clone, Copy, Debug, Default, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize,
 )]
@@ -40,8 +35,8 @@ impl Iso {
 pub enum BodyKind {
     Dynamic,
     Fixed,
-    /// Driven by the app each tick via [`SimCommand::SetKinematicTarget`];
-    /// the solver moves other bodies out of its way but never pushes it back.
+    /// Driven by the app each tick via [`SimCommand::SetKinematicTarget`]; the solver
+    /// moves other bodies out of its way but never pushes it back.
     KinematicPosition,
 }
 
@@ -69,7 +64,7 @@ pub struct BodyDesc {
     pub friction: f32,
     /// Ignored for non-dynamic bodies.
     pub linear_damping: f32,
-    /// Dynamic bodies only. `None` lets rapier derive it from shape volume.
+    /// Dynamic bodies only.
     pub mass: Option<f32>,
 }
 
@@ -87,15 +82,12 @@ impl Default for BodyDesc {
     }
 }
 
-/// A stair/ledge the controller is allowed to step onto instead of being
-/// stopped by it. `min_width` guards against stepping onto a lip too narrow to
-/// stand on, which otherwise reads as the character snagging on scenery.
+/// A stair/ledge the controller is allowed to step onto instead of being stopped by it.
 #[derive(Clone, Copy, Debug)]
 pub struct AutostepDesc {
     pub max_height: f32,
     pub min_width: f32,
-    /// Whether dynamic bodies count as steppable. Usually false, or players
-    /// climb the debris they just knocked over.
+    /// Whether dynamic bodies count as steppable.
     pub include_dynamic: bool,
 }
 
@@ -110,25 +102,18 @@ impl Default for AutostepDesc {
 }
 
 /// A character proxy — the rapier equivalent of a `CharacterBody3D`.
-///
-/// Movement is driven by [`SimCommand::MoveCharacter`], not by forces: the sim
-/// resolves the requested motion against the world (sliding, stepping,
-/// ground-snapping) rather than integrating it. Gravity is **not** applied for
-/// you — fold it into the requested translation exactly as you would manage
-/// `velocity.y` before `move_and_slide`.
 #[derive(Clone, Copy, Debug)]
 pub struct CharacterDesc {
     pub shape: ShapeDesc,
     pub iso: Iso,
-    /// Skin width kept between the character and geometry. Too small and the
-    /// character jitters against surfaces; too large and it floats.
+    /// Skin width kept between the character and geometry.
     pub offset: f32,
     pub max_slope_climb_deg: f32,
     /// Slopes steeper than this make the character slide back down.
     pub min_slope_slide_deg: f32,
     pub autostep: Option<AutostepDesc>,
-    /// Distance to search downward for ground when walking off a lip, so the
-    /// character follows terrain instead of launching off every bump.
+    /// Distance to search downward for ground when walking off a lip, so the character
+    /// follows terrain instead of launching off every bump.
     pub snap_to_ground: Option<f32>,
 }
 
@@ -149,17 +134,7 @@ impl Default for CharacterDesc {
     }
 }
 
-/// A square, origin-centred heightfield spanning `-extent..=extent` on both X
-/// and Z. Row-major, `resolution * resolution` samples — the exact layout
-/// `QTerrain::cpu_heights` already hands out, so no repack on the app side.
-///
-/// `Arc` because the app keeps its copy for its own queries; the send is a
-/// refcount bump rather than a clone of a half-megabyte grid.
-///
-/// Deliberately **not** `Serialize`: terrain never travels over the wire. Peers
-/// regenerate an identical grid from the seed in `ServerEvent::Welcome`, which
-/// is eight bytes instead of a megabyte. If you find yourself wanting to send
-/// this, send the seed instead.
+/// A square, origin-centred heightfield spanning `-extent..=extent` on both X and Z.
 #[derive(Clone, Debug)]
 pub struct TerrainDesc {
     pub heights: Arc<Vec<f32>>,
@@ -177,7 +152,7 @@ pub enum SimCommand {
     Despawn {
         id: BodyId,
     },
-    /// Kinematic bodies only. Applied at the head of the next step.
+    /// Kinematic bodies only.
     SetKinematicTarget {
         id: BodyId,
         iso: Iso,
@@ -192,9 +167,7 @@ pub enum SimCommand {
         id: BodyId,
         desc: CharacterDesc,
     },
-    /// Requested motion for this tick, in world units — gravity included by the
-    /// caller. Repeated sends before a step accumulate rather than overwrite,
-    /// so a frame that outruns the sim adds its intent instead of dropping it.
+    /// Requested motion for this tick, in world units — gravity included by the caller.
     MoveCharacter {
         id: BodyId,
         translation: [f32; 3],
@@ -206,14 +179,12 @@ pub struct BodySnapshot {
     pub id: BodyId,
     pub iso: Iso,
     pub linvel: [f32; 3],
-    /// Characters only — always false for ordinary bodies, which have no
-    /// meaningful notion of standing on something.
+    /// Characters only — always false for ordinary bodies, which have no meaningful
+    /// notion of standing on something.
     pub grounded: bool,
 }
 
-/// One published sim state. Snapshots are latest-wins: a slow app frame drops
-/// intermediate ticks rather than queueing them, so the sim never blocks on
-/// rendering and the app never replays stale physics.
+/// One published sim state.
 #[derive(Clone, Debug, Default, Serialize, Deserialize)]
 pub struct SimSnapshot {
     pub tick: u64,
@@ -236,9 +207,7 @@ impl SimSnapshot {
 pub struct SimConfig {
     pub tick_hz: f64,
     pub gravity: [f32; 3],
-    /// Ceiling on catch-up steps in one loop pass. Without it a stalled
-    /// process wakes owing thousands of ticks and never finishes paying them
-    /// back — each catch-up burst pushes the deadline further out.
+    /// Ceiling on catch-up steps in one loop pass.
     pub max_steps_per_pass: u32,
 }
 

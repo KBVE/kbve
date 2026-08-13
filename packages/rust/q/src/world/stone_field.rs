@@ -15,13 +15,12 @@ use crate::world::{TerrainSnapshot, hash32, randf, world_aabb};
 const VARIANTS: usize = 12;
 
 struct VariantMeshes {
-    /// Intact stone at each LOD, then the two damage stages (no LOD needed —
-    /// damaged stones are rare and only ever seen up close).
+    /// Intact stone at each LOD, then the two damage stages (no LOD needed — damaged
+    /// stones are rare and only ever seen up close).
     lods: [Gd<ArrayMesh>; LOD_LEVELS],
     damaged: [Gd<ArrayMesh>; 2],
     hull: PackedVector3Array,
-    /// Measured from the built mesh at unit scale. Seating depends on this, and
-    /// the species parameters only predict it to within a factor of two.
+    /// Measured from the built mesh at unit scale.
     height: f32,
 }
 
@@ -96,8 +95,8 @@ pub struct QStoneField {
     /// Snapshot of the terrain used to test sight lines during LOD rebucketing.
     terrain_heights: Vec<f32>,
     terrain_res: i32,
-    /// Stones nearer than this are never occlusion tested; the march costs more
-    /// than it saves at close range and a false positive there is very visible.
+    /// Stones nearer than this are never occlusion tested; the march costs more than it
+    /// saves at close range and a false positive there is very visible.
     #[init(val = 30.0)]
     occlusion_start: f32,
     dirty: bool,
@@ -129,7 +128,6 @@ impl QStoneField {
         noise.set_noise_type(Some(NoiseType::OpenSimplex2S));
         noise.set_frequency(Some(self.patch_frequency));
 
-        // Meshes first: seating needs each variant's measured height.
         self.build_meshes();
         let heights: Vec<f32> = self.meshes.iter().map(|m| m.height).collect();
 
@@ -263,8 +261,6 @@ impl INode3D for QStoneField {
             }
             return;
         }
-        // Re-bucket LODs only after the camera has actually travelled; the
-        // rebuild walks every entry, so doing it per frame would be wasteful.
         if !self.dirty {
             let view = self.view_origin();
             if view.distance_squared_to(self.last_lod_origin) > self.lod_refresh * self.lod_refresh
@@ -416,10 +412,8 @@ impl QStoneField {
 }
 
 impl QStoneField {
-    /// Seat a stone into the terrain: returns the ground normal to align to and
-    /// the Y the instance origin should sit at. The origin is dropped to the
-    /// lowest ground under the stone's footprint (plus a bite of burial), so on
-    /// a slope the uphill side digs in instead of the downhill side hovering.
+    /// Seat a stone into the terrain: returns the ground normal to align to and the Y
+    /// the instance origin should sit at.
     fn bed<F: Fn(f32, f32) -> f32>(
         &self,
         sample: &F,
@@ -432,8 +426,6 @@ impl QStoneField {
         let hx = sample(x + e, z) - sample(x - e, z);
         let hz = sample(x, z + e) - sample(x, z - e);
         let normal = Vector3::new(-hx, 2.0 * e, -hz).normalized();
-        // Follow the ground, but cap the lean: on a cliff face a fully aligned
-        // stone lies on its side and knifes into the hill.
         let mut blend = self.ground_align.clamp(0.0, 1.0);
         let angle = normal.dot(Vector3::UP).clamp(-1.0, 1.0).acos();
         let max_tilt = self.max_tilt_degrees.to_radians();
@@ -443,10 +435,6 @@ impl QStoneField {
         let up = Vector3::UP.lerp(normal, blend).normalized();
 
         let centre = sample(x, z);
-        // The base is a disc perpendicular to `up`, so tilting it lifts the rim
-        // by radius * tan(tilt) — enough to hang a stone in mid air on its own.
-        // Drop the origin until that tilted plane is under the ground at every
-        // sample in the footprint, then bite in by the burial fraction.
         let uy = up.y.max(0.2);
         let mut sunk = centre;
         let mut rest = centre;
@@ -463,20 +451,8 @@ impl QStoneField {
                 rest = rest.max(g + plane_drop);
             }
         }
-        // `sunk` clears the ground everywhere under the footprint; `rest` is
-        // where a rigid base would first touch down. Neither alone is right:
-        // sunk swallows a stone on a convex crest, rest leaves it perched over
-        // a hollow. Bias between them, then bite in.
         let seat = sunk + (rest - sunk) * self.seat_bias.clamp(0.0, 1.0);
-        // Whatever the bias picks, never leave a lip worth more than a few
-        // percent of the stone's own height: that is the gap you can see under
-        // the downhill edge.
         let seat = seat.min(sunk + stone_height * 0.05);
-        // Burial is measured against the stone's own height, not its width, so
-        // a flat slab doesn't vanish while a tall boulder barely dents the soil.
-        // The floor bounds how deep a stone sinks, but it tracks the lowest
-        // ground under the footprint: pinning it to the centre height stops a
-        // stone on a steep drop from ever reaching contact.
         let floor = lowest - stone_height * 0.6;
         let seat = (seat - stone_height * self.burial).max(floor);
         (up, seat)
@@ -494,10 +470,6 @@ impl QStoneField {
         if right.length_squared() < 1e-6 {
             right = Vector3::RIGHT.cross(up);
         }
-        // Basis columns are X, Y, Z, so a right-handed frame needs X cross Y == Z.
-        // Building Z as up cross X gives the negative of that: the basis mirrors,
-        // every instance rasterises with reversed winding, and back-face culling
-        // eats the faces it should be keeping.
         let right = right.normalized();
         let fwd = right.cross(up).normalized() * e.scale;
         let right = right * e.scale;
@@ -606,8 +578,6 @@ impl QStoneField {
                     continue;
                 }
                 let slot = if stage == 0 {
-                    // Bigger stones hold detail longer: scale the LOD ranges by
-                    // instance size so a boulder doesn't pop before a pebble.
                     let d2 = e.pos.distance_squared_to(view) / (e.scale * e.scale).max(0.01);
                     if d2 > lod2 {
                         2
@@ -652,10 +622,7 @@ impl QStoneField {
         (h00 + (h10 - h00) * tx) + ((h01 + (h11 - h01) * tx) - (h00 + (h10 - h00) * tx)) * tz
     }
 
-    /// Distance culling keeps everything in a radius, hill or no hill. Walking
-    /// the ground between a stone and the eye drops the ones standing behind a
-    /// ridge. Tested against the top of the stone, so it is fully hidden before
-    /// it is dropped, and only run during LOD rebucketing.
+    /// Distance culling keeps everything in a radius, hill or no hill.
     fn occluded(&self, pos: Vector3, top: f32, view: Vector3) -> bool {
         if self.terrain_res < 2 {
             return false;
@@ -689,8 +656,6 @@ impl QStoneField {
         };
         let space = world.get_space();
         let mut ps = PhysicsServer3D::singleton();
-        // One convex hull per variant, shared by every instance of it; the
-        // per-instance transform carries position, ground tilt and scale.
         for m in &self.meshes {
             let shape = ps.convex_polygon_shape_create();
             ps.shape_set_data(shape, &m.hull.to_variant());

@@ -4,7 +4,6 @@ use serde::{Deserialize, Serialize};
 pub type EntityId = u64;
 
 /// Generate a new unique EntityId via a monotonic atomic counter.
-/// No external RNG dependency — safe on all platforms including WASM.
 fn new_entity_id() -> EntityId {
     use std::sync::atomic::{AtomicU64, Ordering};
     static COUNTER: AtomicU64 = AtomicU64::new(1);

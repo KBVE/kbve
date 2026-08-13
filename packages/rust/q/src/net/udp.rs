@@ -1,15 +1,4 @@
 //! Unreliable datagram lane.
-//!
-//! Carries snapshots and inputs, which are worthless once superseded — a
-//! retransmitted snapshot costs head-of-line blocking in exchange for state
-//! nobody wants. The reliable lane stays on WebSocket; this one drops.
-//!
-//! A datagram carries no connection, so the host has to learn which address
-//! belongs to which peer. The reliable channel hands the client a one-time
-//! token, the client sends it in a `Hello`, and the host binds
-//! token -> (peer, addr). Everything after that routes by address. Without the
-//! token an attacker who guessed a peer id could redirect that player's traffic
-//! to their own address.
 
 use std::collections::HashMap;
 use std::net::SocketAddr;
@@ -24,13 +13,11 @@ use tokio::net::UdpSocket;
 use super::transport::{Delivery, Envelope, Inbox, PeerId};
 use crate::proto::{self, PROTOCOL_VERSION};
 
-/// Conservative payload ceiling. Above this a datagram risks IP fragmentation,
-/// where losing one fragment loses the whole packet — the opposite of what an
-/// unreliable lane is for. Oversize sends fall back to the reliable lane.
+/// Conservative payload ceiling.
 pub const MAX_DATAGRAM: usize = 1200;
 
-/// A binding is dropped after this long without traffic, so a client that
-/// changes address (NAT rebind, roaming) can re-`Hello` into a fresh one.
+/// A binding is dropped after this long without traffic, so a client that changes
+/// address (NAT rebind, roaming) can re-`Hello` into a fresh one.
 const STALE: Duration = Duration::from_secs(10);
 
 pub type Token = [u8; 16];
@@ -53,9 +40,6 @@ struct Binding {
     last_seen: Instant,
 }
 
-// -----------------------------------------------------------------------------
-// Host
-// -----------------------------------------------------------------------------
 
 pub struct UdpLane {
     socket: Arc<UdpSocket>,
@@ -71,8 +55,6 @@ pub struct UdpLane {
 impl UdpLane {
     pub async fn bind(addr: SocketAddr) -> std::io::Result<Arc<Self>> {
         let socket = UdpSocket::bind(addr).await?;
-        // A fresh socket has no cached write readiness, so the first
-        // `try_send_to` would fail with WouldBlock. Await it once here.
         socket.writable().await?;
         let port = socket.local_addr()?.port();
         Ok(Arc::new(Self {
@@ -114,8 +96,8 @@ impl UdpLane {
         }
     }
 
-    /// The peer's current address, or `None` if it never completed the
-    /// handshake or has gone quiet past [`STALE`].
+    /// The peer's current address, or `None` if it never completed the handshake or has
+    /// gone quiet past [`STALE`].
     pub fn bound_addr(&self, peer: PeerId) -> Option<SocketAddr> {
         let bindings = self.bindings.lock().unwrap();
         let binding = bindings.get(&peer)?;
@@ -127,7 +109,6 @@ impl UdpLane {
     }
 
     /// Returns false when the caller must fall back to the reliable lane:
-    /// the peer is unbound, the payload is oversize, or the socket refused it.
     pub fn try_send(&self, peer: PeerId, payload: &[u8]) -> bool {
         let Some(addr) = self.bound_addr(peer) else {
             return false;
@@ -153,9 +134,6 @@ impl UdpLane {
     fn bind_peer(&self, peer: PeerId, addr: SocketAddr) {
         let mut addr2peer = self.addr2peer.lock().unwrap();
         let mut bindings = self.bindings.lock().unwrap();
-        // An address can only speak for one peer. Reclaiming it from a stale
-        // owner keeps a NAT that reused a port from silently cross-wiring two
-        // players' inputs.
         if let Some(previous) = addr2peer.insert(addr, peer)
             && previous != peer
         {
@@ -228,9 +206,6 @@ impl UdpLane {
     }
 }
 
-// -----------------------------------------------------------------------------
-// Client
-// -----------------------------------------------------------------------------
 
 pub struct UdpClient {
     socket: Arc<UdpSocket>,
@@ -242,8 +217,7 @@ pub struct UdpClient {
 }
 
 impl UdpClient {
-    /// Binds a local socket and starts the handshake. The lane is not usable
-    /// until the host acks; until then callers must use the reliable lane.
+    /// Binds a local socket and starts the handshake.
     pub async fn connect(server: SocketAddr, token: Token) -> std::io::Result<Arc<Self>> {
         let bind: SocketAddr = if server.is_ipv4() {
             "0.0.0.0:0".parse().unwrap()
@@ -292,8 +266,7 @@ impl UdpClient {
         Ok(client)
     }
 
-    /// Re-sends the handshake. The `Hello` is itself droppable, so a caller
-    /// that is still unconfirmed should retry rather than wait forever.
+    /// Re-sends the handshake.
     pub fn send_hello(&self) {
         if let Ok(bytes) = proto::encode(&UdpPacket::Hello {
             protocol: PROTOCOL_VERSION,
@@ -385,8 +358,8 @@ mod tests {
         .await;
     }
 
-    /// The whole point of the token: an address cannot claim a peer id it was
-    /// not granted, so it can never redirect that player's traffic to itself.
+    /// The whole point of the token: an address cannot claim a peer id it was not
+    /// granted, so it can never redirect that player's traffic to itself.
     #[tokio::test]
     async fn an_unknown_token_never_binds() {
         let (lane, addr) = lane().await;
@@ -426,7 +399,6 @@ mod tests {
         )
         .await;
 
-        // Sends address the peer, so a's snapshot must not reach b.
         assert!(lane.try_send(a, b"for-a"));
         tokio::time::sleep(Duration::from_millis(100)).await;
         assert!(ca.try_recv().is_some());
@@ -465,7 +437,6 @@ mod tests {
         assert!(!client.try_send(&huge), "client should refuse oversize");
         assert_eq!(client.oversize_count(), 1);
 
-        // Still healthy for normal traffic afterwards.
         assert!(lane.try_send(peer, b"ok"));
     }
 

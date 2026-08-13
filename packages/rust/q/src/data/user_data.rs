@@ -81,7 +81,6 @@ impl UserDataCache {
         }
     }
 
-    // User Saving + File
     pub fn save_new_user_data(&mut self, file_path: &str) -> UserData {
         godot_warn!("[UserDataCache] Creating new default user data...");
 

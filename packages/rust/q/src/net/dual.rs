@@ -1,17 +1,4 @@
 //! Two-lane [`Transport`]: reliable over WebSocket, unreliable over UDP.
-//!
-//! This is where `Delivery` stops being advisory. Joins and welcomes take the
-//! WebSocket; snapshots and inputs take datagrams and are allowed to vanish.
-//! Neither session type changes — they were written against the seam.
-//!
-//! Falls back rather than fails. Until the datagram handshake completes, or if
-//! a payload is too big for one packet, unreliable traffic rides the reliable
-//! lane. Degraded is still playable; dropped is not.
-//!
-//! Reliable frames carry a one-byte channel tag so the transport can pass its
-//! own control messages (the UDP port and token) alongside session bytes
-//! without the session layer ever seeing them. That keeps the UDP handshake out
-//! of `SessionMsg`, which matters because Steam P2P has no port to offer.
 
 use std::collections::HashSet;
 use std::net::SocketAddr;
@@ -30,9 +17,9 @@ const CH_CONTROL: u8 = 1;
 
 #[derive(Serialize, Deserialize)]
 enum Control {
-    /// `host` is set when the datagram lane is reachable somewhere other than
-    /// the WebSocket's host — Agones port-maps and an L7 gateway cannot carry
-    /// UDP at all, so the advertised endpoint is not always the one we bound.
+    /// `host` is set when the datagram lane is reachable somewhere other than the
+    /// WebSocket's host — Agones port-maps and an L7 gateway cannot carry UDP at all,
+    /// so the advertised endpoint is not always the one we bound.
     UdpOffer {
         port: u16,
         token: Token,
@@ -40,8 +27,8 @@ enum Control {
     },
 }
 
-/// Resolves a host that may be a name rather than a literal address — the
-/// advertised endpoint can be a DNS name behind a load balancer.
+/// Resolves a host that may be a name rather than a literal address — the advertised
+/// endpoint can be a DNS name behind a load balancer.
 fn resolve(host: &str, port: u16) -> Option<SocketAddr> {
     use std::net::ToSocketAddrs;
     (host, port).to_socket_addrs().ok()?.next()
@@ -54,9 +41,6 @@ fn tag(channel: u8, payload: &[u8]) -> Vec<u8> {
     framed
 }
 
-// -----------------------------------------------------------------------------
-// Host
-// -----------------------------------------------------------------------------
 
 pub struct DualHost {
     ws: Arc<WsHost>,
@@ -75,10 +59,7 @@ impl DualHost {
         })
     }
 
-    /// Endpoint clients should send datagrams to, when it differs from what we
-    /// bound. Under Agones `portPolicy: Dynamic` the container port is mapped
-    /// to a host port, so advertising the bound port would send every client to
-    /// a port nothing is listening on.
+    /// Endpoint clients should send datagrams to, when it differs from what we bound.
     pub fn advertise_udp(&self, host: Option<String>, port: Option<u16>) {
         *self.advertise.lock().unwrap() = (host, port);
     }
@@ -104,9 +85,7 @@ impl DualHost {
         self.udp.oversize_count()
     }
 
-    /// Offers the datagram lane to any newly-connected peer. Call once per tick
-    /// alongside [`take_disconnects`](Self::take_disconnects) — the transport
-    /// has no clock of its own.
+    /// Offers the datagram lane to any newly-connected peer.
     pub fn pump(&self) {
         for peer in self.ws.peers() {
             if self.offered.lock().unwrap().contains(&peer) {
@@ -132,8 +111,7 @@ impl DualHost {
         }
     }
 
-    /// Peers whose socket dropped. Also releases their datagram binding, so a
-    /// recycled address cannot inherit the departed player's identity.
+    /// Peers whose socket dropped.
     pub fn take_disconnects(&self) -> Vec<PeerId> {
         let gone = self.ws.take_disconnects();
         for peer in &gone {
@@ -167,8 +145,6 @@ impl Transport for Arc<DualHost> {
     }
 
     fn try_recv(&self) -> Option<Envelope> {
-        // Datagrams first: they are the latency-sensitive lane, and letting a
-        // reliable backlog delay them would undo the point of having one.
         if let Some(envelope) = self.udp.try_recv() {
             return Some(envelope);
         }
@@ -178,7 +154,6 @@ impl Transport for Arc<DualHost> {
                 continue;
             }
             let channel = envelope.payload.remove(0);
-            // A client has no control messages to send; ignore rather than trust.
             if channel == CH_SESSION {
                 return Some(envelope);
             }
@@ -190,9 +165,6 @@ impl Transport for Arc<DualHost> {
     }
 }
 
-// -----------------------------------------------------------------------------
-// Client
-// -----------------------------------------------------------------------------
 
 pub struct DualClient {
     ws: Arc<WsClient>,
@@ -202,8 +174,8 @@ pub struct DualClient {
 }
 
 impl DualClient {
-    /// `server_host` is the host portion of the WebSocket url — the datagram
-    /// lane goes to the same machine on a different port.
+    /// `server_host` is the host portion of the WebSocket url — the datagram lane goes
+    /// to the same machine on a different port.
     pub fn new(ws: Arc<WsClient>, server_host: impl Into<String>) -> Arc<Self> {
         Arc::new(Self {
             ws,
@@ -226,8 +198,7 @@ impl DualClient {
             .is_some_and(|u| u.is_confirmed())
     }
 
-    /// Advances the datagram handshake. Must be called from inside a tokio
-    /// runtime, once per tick.
+    /// Advances the datagram handshake.
     pub fn pump(self: &Arc<Self>) {
         let offer = self.pending.lock().unwrap().take();
         if let Some((host, port, token)) = offer {
@@ -242,7 +213,6 @@ impl DualClient {
             });
             return;
         }
-        // The Hello is itself droppable, so an unconfirmed lane keeps asking.
         let udp = self.udp.lock().unwrap();
         if let Some(client) = udp.as_ref()
             && !client.is_confirmed()
@@ -394,8 +364,8 @@ mod tests {
         assert!(client.latest_snapshot().is_some_and(|s| s.tick > 0));
     }
 
-    /// The fallback is what makes the lane safe to add: a client that never
-    /// completes the datagram handshake must still play, just over TCP.
+    /// The fallback is what makes the lane safe to add: a client that never completes
+    /// the datagram handshake must still play, just over TCP.
     #[tokio::test]
     async fn a_client_that_never_gets_udp_still_plays() {
         let (transport, url) = serve().await;
@@ -411,7 +381,6 @@ mod tests {
         let client_transport = DualClient::new(ws, "127.0.0.1");
         let mut client = ClientSession::connect(client_transport.clone());
 
-        // Never pump the client, so it never acts on the UDP offer.
         for _ in 0..200 {
             transport.pump();
             host.tick();
@@ -443,13 +412,11 @@ mod tests {
             tokio::time::sleep(Duration::from_millis(2)).await;
         }
 
-        // Drain everything the session layer would have seen.
         let seen: Vec<Envelope> = std::iter::from_fn(|| client_transport.try_recv()).collect();
         assert!(
             seen.is_empty(),
             "the UDP offer must be consumed by the transport, got {seen:?}"
         );
-        // ...and it was consumed, not dropped.
         client_transport.pump();
         for _ in 0..100 {
             client_transport.pump();

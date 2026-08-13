@@ -1,7 +1,4 @@
 //! Client-side WebSocket transport — tokio-tungstenite over rustls.
-//!
-//! This module only exposes encode/decode shims so consumers can
-//! prove parity with the server side.
 
 #[cfg(feature = "proto-shared")]
 use crate::proto;

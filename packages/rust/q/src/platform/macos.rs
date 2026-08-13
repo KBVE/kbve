@@ -33,7 +33,7 @@ pub fn enable_mac_always_on_top() {
         let ns_window: *mut AnyObject = msg_send![ns_app, mainWindow];
 
         if !ns_window.is_null() {
-            let _: () = msg_send![ns_window, setLevel: 5]; // NSFloatingWindowLevel
+            let _: () = msg_send![ns_window, setLevel: 5];
             println!("[MacOS] Window set to always on top.");
         } else {
             eprintln!("[MacOS] No main window found for always-on-top!");
@@ -41,7 +41,6 @@ pub fn enable_mac_always_on_top() {
     }
 }
 
-// --- Wry Browser Options ---
 
 #[cfg(all(feature = "webview", target_os = "macos"))]
 use std::ffi::c_void;

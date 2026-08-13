@@ -1,8 +1,8 @@
 extends GdUnitTestSuite
 
-## The title's grass boost, which is arithmetic on the tier table rather than a
-## set of numbers of its own — so what it has to get right is staying relative
-## to whatever the player chose.
+## The title's grass boost, which is arithmetic on the tier table rather than a set of
+## numbers of its own — so what it has to get right is staying relative to whatever the
+## player chose.
 
 const TITLE := preload("res://src/title_screen.gd")
 const GFX := preload("res://src/settings/graphics_settings.gd")
@@ -21,8 +21,8 @@ func test_boost_scales_the_tier_the_player_is_on() -> void:
 		assert_float(out.grass_fade_out_end).is_equal_approx(row.grass_fade_out_end * RANGE_BOOST, 0.01)
 
 
-## Every tier stays ordered after the boost — a Potato title must never end up
-## denser than a Low one, which is what an absolute number would have risked.
+## Every tier stays ordered after the boost — a Potato title must never end up denser
+## than a Low one, which is what an absolute number would have risked.
 func test_boost_preserves_the_order_of_the_tiers() -> void:
 	var previous := 0.0
 	for tier in GFX.TIERS.size():
@@ -37,8 +37,7 @@ func test_boost_clamps_to_what_the_field_accepts() -> void:
 	assert_float(out.blades_per_sqm).is_equal_approx(600.0, 0.01)
 
 
-## Custom is a preset index past the end of the table. Ranges have to come from
-## the row the player's density actually resembles, not from the last row.
+## Custom is a preset index past the end of the table.
 func test_custom_density_borrows_the_ranges_of_the_tier_it_resembles() -> void:
 	var custom := GFX.PRESET_NAMES.size() - 1
 	var potato: Dictionary = GFX.TIERS[GFX.Tier.POTATO].grass

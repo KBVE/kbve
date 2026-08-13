@@ -1,5 +1,4 @@
-//! The physics pillar's actual state. Engine-agnostic on purpose — this is the
-//! same code path the authoritative server steps, so it must build headless.
+//! The physics pillar's actual state.
 
 use std::collections::HashMap;
 
@@ -28,8 +27,7 @@ fn shared_shape(shape: &ShapeDesc) -> SharedShape {
 struct CharacterState {
     controller: KinematicCharacterController,
     shape: SharedShape,
-    /// Motion requested since the last step. Accumulated, then cleared once
-    /// consumed, so intent from frames that outran the sim is not lost.
+    /// Motion requested since the last step.
     desired: Vector,
     grounded: bool,
 }
@@ -115,14 +113,6 @@ impl SimWorld {
     }
 
     /// Replaces any previous terrain.
-    ///
-    /// Two layout conversions happen here and both are easy to get backwards.
-    /// The source grid is row-major with the row index walking +Z and the
-    /// column index walking +X — Godot's `HeightMapShape3D` order, which is
-    /// what `QTerrain::cpu_heights` hands out. Parry wants an `Array2` that is
-    /// *column*-major (`flat = i + j * nrows`) indexed `[z][x]`, so the copy
-    /// below is a transpose, not a memcpy. The `terrain_plateau_runs_along_*`
-    /// tests pin it, because a swapped grid still yields a plausible surface.
     fn set_terrain(&mut self, desc: &TerrainDesc) {
         let res = desc.resolution as usize;
         if res < 2 || desc.heights.len() < res * res {
@@ -224,12 +214,8 @@ impl SimWorld {
         }
     }
 
-    /// Resolves each character's requested motion against the world before the
-    /// solver runs.
-    ///
-    /// Split into a read pass and a write pass because `move_shape` needs a
-    /// `QueryPipeline` borrowed from the physics world while the result has to
-    /// be written back into it — the two cannot overlap.
+    /// Resolves each character's requested motion against the world before the solver
+    /// runs.
     fn step_characters(&mut self) {
         if self.characters.is_empty() {
             return;
@@ -245,9 +231,6 @@ impl SimWorld {
                 continue;
             };
             let pose = *rb.position();
-            // Excluding the character's own body matters: without it the shape
-            // cast immediately hits the collider it started inside and the
-            // character never moves.
             let queries = self
                 .physics
                 .query_pipeline_with_filter(QueryFilter::new().exclude_rigid_body(*handle));
@@ -280,16 +263,8 @@ impl SimWorld {
         self.tick += 1;
     }
 
-    /// Writes into a caller-owned snapshot so the steady state reuses one
-    /// buffer rather than allocating a fresh `Vec` every tick.
-    ///
-    /// Fixed bodies are **excluded**. They cannot move — a fixed body that
-    /// needs to move is a kinematic body — so replicating them would spend
-    /// bandwidth restating level geometry many times a second, forever. At
-    /// roughly 42 bytes per body that is the difference between a snapshot
-    /// that fits one datagram and one that fragments; peers are expected to
-    /// build static geometry locally from the shared seed, exactly as they do
-    /// for terrain.
+    /// Writes into a caller-owned snapshot so the steady state reuses one buffer rather
+    /// than allocating a fresh `Vec` every tick.
     pub fn snapshot_into(&self, out: &mut SimSnapshot) {
         out.tick = self.tick;
         out.sim_time = self.tick as f64 * self.physics.integration_parameters.dt as f64;
@@ -310,8 +285,6 @@ impl SimWorld {
                 grounded: self.characters.get(id).is_some_and(|c| c.grounded),
             });
         }
-        // `HashMap` iteration order is arbitrary and reshuffles as the table
-        // grows; sorting is what lets `SimSnapshot::body` bisect.
         out.bodies.sort_unstable_by_key(|b| b.id);
     }
 
@@ -388,17 +361,8 @@ mod tests {
         );
     }
 
-    /// Pins the row/col -> Z/X mapping empirically, because a transposed
-    /// heightfield still yields a plausible-looking surface.
-    ///
-    /// The probe terrain is a plateau over the +X half and flat elsewhere: a
-    /// ball resting at x=+40 must sit 5m higher than one at x=-40. If rows and
-    /// columns were swapped the plateau would run along Z instead, and both
-    /// probes — which share z=0 — would settle at the same low height.
-    ///
-    /// Plateaus rather than a ramp on purpose: a sphere on a constant slope
-    /// rolls for the whole settle window, so a ramp measures how long the test
-    /// waited rather than which way the grid is oriented.
+    /// Pins the row/col -> Z/X mapping empirically, because a transposed heightfield
+    /// still yields a plausible-looking surface.
     #[test]
     fn terrain_plateau_runs_along_x_as_authored() {
         let mut world = SimWorld::new(&SimConfig::default());
@@ -422,8 +386,8 @@ mod tests {
         );
     }
 
-    /// The mirror of the above: Z is the axis a transpose would swap into X,
-    /// so probe it directly with a plateau over the +Z half.
+    /// The mirror of the above: Z is the axis a transpose would swap into X, so probe
+    /// it directly with a plateau over the +Z half.
     #[test]
     fn terrain_plateau_runs_along_z_as_authored() {
         let mut world = SimWorld::new(&SimConfig::default());
@@ -490,8 +454,7 @@ mod tests {
         assert!(snap.body(BodyId(2)).is_some());
     }
 
-    /// Static level geometry must not ride the wire. It cannot move, and at
-    /// ~42 bytes each it is what pushes a snapshot past a single datagram.
+    /// Static level geometry must not ride the wire.
     #[test]
     fn fixed_bodies_are_excluded_from_snapshots() {
         let mut world = SimWorld::new(&SimConfig::default());
@@ -554,14 +517,12 @@ mod tests {
         drop_ball(&mut world, BodyId(1), [0.0, 12.0, 0.0]);
         settle(&mut world, 400);
 
-        // Resting on the new surface (y=5) proves the old one was removed
-        // rather than left behind as a second collider.
         let y = pos(&world, BodyId(1))[1];
         assert!((y - 5.5).abs() < 0.3, "expected rest near y=5.5, got {y}");
     }
 
-    /// Capsule half_height 0.6 + radius 0.35 puts the resting centre 0.95
-    /// above whatever it is standing on.
+    /// Capsule half_height 0.6 + radius 0.35 puts the resting centre 0.95 above
+    /// whatever it is standing on.
     const CH_RIDE: f32 = 0.95;
 
     fn spawn_character(world: &mut SimWorld, id: BodyId, at: [f32; 3]) {
@@ -588,8 +549,8 @@ mod tests {
         });
     }
 
-    /// Walks with a downward bias each tick — the controller does not apply
-    /// gravity, exactly as `move_and_slide` does not.
+    /// Walks with a downward bias each tick — the controller does not apply gravity,
+    /// exactly as `move_and_slide` does not.
     fn walk(world: &mut SimWorld, id: BodyId, dx: f32, ticks: usize) {
         for _ in 0..ticks {
             world.apply(SimCommand::MoveCharacter {
@@ -634,22 +595,6 @@ mod tests {
     }
 
     /// KNOWN FAILURE — rapier's autostep does not engage in this setup.
-    ///
-    /// The character reaches the ledge and then oscillates: it rises ~0.05 from
-    /// riding the capsule's rounded edge against the box corner, `snap_to_ground`
-    /// pulls it straight back, and it repeats forever, never gaining the 0.3.
-    /// Reproduce with `diag_autostep`.
-    ///
-    /// Ruled out: our parameterisation (rapier's own `CharacterAutostep::default()`
-    /// with `Relative` lengths behaves identically), and snap/autostep fighting
-    /// (disabling `snap_to_ground` stops the oscillation but it still never
-    /// climbs — it just slides back down instead).
-    ///
-    /// Suspected cause: `handle_stairs` bails at its "can we go up" shape cast,
-    /// which uses `target_distance: offset` and so counts the wall the character
-    /// is already flush against as an obstruction. Small per-tick motion means
-    /// every tick after first contact starts flush, so the check never passes.
-    /// Un-ignore once this is resolved — walls and slopes already work.
     #[test]
     #[ignore = "rapier autostep does not engage; see doc comment and diag_autostep"]
     fn character_autosteps_onto_a_low_ledge() {
@@ -718,8 +663,6 @@ mod tests {
         spawn_character(&mut world, BodyId(1), [0.0, 2.0, 0.0]);
         walk(&mut world, BodyId(1), 0.0, 90);
 
-        // Two requests before a single step must both land — a frame that
-        // outruns the sim should add intent, not overwrite it.
         let before = pos(&world, BodyId(1))[0];
         for _ in 0..2 {
             world.apply(SimCommand::MoveCharacter {
@@ -785,11 +728,8 @@ mod tests {
 
     #[test]
     fn rotation_survives_the_iso_round_trip() {
-        // 90 degrees about Y, as xyzw.
         let h = std::f32::consts::FRAC_1_SQRT_2;
         let mut world = SimWorld::new(&SimConfig::default());
-        // Kinematic rather than fixed: fixed bodies are not replicated, so a
-        // fixed body would never appear in the snapshot to check.
         world.apply(SimCommand::Spawn {
             id: BodyId(1),
             desc: BodyDesc {
@@ -804,7 +744,6 @@ mod tests {
         world.step();
 
         let rot = world.snapshot().body(BodyId(1)).unwrap().iso.rot;
-        // Sign may flip (q and -q are the same rotation), so compare magnitudes.
         assert!((rot[1].abs() - h).abs() < 1e-4, "got {rot:?}");
         assert!((rot[3].abs() - h).abs() < 1e-4, "got {rot:?}");
         assert!(rot[0].abs() < 1e-4 && rot[2].abs() < 1e-4, "got {rot:?}");

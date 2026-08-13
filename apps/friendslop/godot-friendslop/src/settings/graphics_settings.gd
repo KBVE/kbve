@@ -1,20 +1,6 @@
 extends Node
 
 ## Player-facing graphics options, saved to user:// and applied live.
-##
-## The option list is the profiling result, not a guess: at 1080p the parallax
-## ground costs 3.56 ms of a 9.64 ms frame, render scale 0.75 -> 1.0 costs 1.4 ms,
-## and every other subsystem measured under 0.6 ms. So detail and scale get their
-## own controls and the cheap systems ride the preset instead of cluttering the
-## menu with toggles that buy nothing.
-##
-## TIERS is the single source of truth for both platforms. main.gd reads the same
-## table in _enter_tree, because the fields latch these as exports during their
-## own _ready and can only be steered before that; this node then owns everything
-## that can move at runtime. Previously the two disagreed -- the mobile profile
-## set scale 0.65 and hid PostFX, then this node's deferred apply() put scale back
-## to 1.0 and PostFX back on a frame later, which is how a Galaxy S10 ended up
-## rendering 1440x3040 with fullscreen passes at 3 fps.
 
 signal changed
 
@@ -23,8 +9,8 @@ const CONFIG_PATH := "user://graphics.cfg"
 enum Detail { OFF, LOW, HIGH }
 enum Tier { POTATO, LOW, MEDIUM, HIGH, EPIC }
 
-## Keys, not words: the menu translates them on the way to the page, and the
-## tier arrays below are indexed by position either way.
+## Keys, not words: the menu translates them on the way to the page, and the tier arrays
+## below are indexed by position either way.
 const DETAIL_NAMES := [
 	"settings.detail_name.off",
 	"settings.detail_name.low",
@@ -39,26 +25,19 @@ const PRESET_NAMES := [
 	"settings.preset_name.custom",
 ]
 
-## pom_strength, pom_layers_max, pom_shadow_strength per detail step. Low drops
-## the layer count and the self-shadow march, which together are the part of the
-## cost that came from chasing grazing-angle smear.
+## pom_strength, pom_layers_max, pom_shadow_strength per detail step.
 const DETAIL_POM := [
 	{"strength": 0.0, "layers": 24.0, "shadow": 0.0},
 	{"strength": 1.0, "layers": 24.0, "shadow": 0.0},
 	{"strength": 1.0, "layers": 48.0, "shadow": 0.7},
 ]
 
-## Blades per square metre, absolute rather than a fraction of whatever the
-## field happens to ship with -- the Rust default has already moved 250 -> 150,
-## and a percentage would have silently meant a different density either side of
-## that change. Near-camera density is where grass cost lives; blade_range buys
-## far less for the same loss.
+## Blades per square metre, absolute rather than a fraction of whatever the field
+## happens to ship with -- the Rust default has already moved 250 -> 150, and a
+## percentage would have silently meant a different density either side of that change.
 const GRASS_STEPS := [40.0, 80.0, 150.0, 250.0, 400.0]
 
-## One row per tier. `grass`/`fields` are latched by main.gd before the fields
-## ready; the rest is live. Mobile and desktop share the table and differ only in
-## which row they start on -- a phone set to Epic gets the same world a desktop
-## does, it just cannot run it.
+## One row per tier.
 const TIERS := [
 	{
 		"scale": 0.5, "detail": Detail.OFF, "shadows": false, "shadow_distance": 30.0,
@@ -127,9 +106,7 @@ const TIERS := [
 	},
 ]
 
-## Parallax is desktop-only for now. Writing DEPTH costs nothing on Forward+
-## because the depth prepass already resolved visibility, but the mobile
-## renderer has no prepass, so this stays off there until it is measured.
+## Parallax is desktop-only for now.
 const MOBILE_GROUND := {"pom_strength": 0.0, "detail_amount": 0.35}
 
 var render_scale := 1.0
@@ -145,14 +122,13 @@ var _day: Node
 var _post: CanvasLayer
 
 
-## The tier a fresh install starts on. Phones cannot carry the desktop row, and
-## guessing per-SoC is worse than letting the player move up one notch.
+## The tier a fresh install starts on.
 static func default_tier() -> int:
 	return Tier.LOW if OS.has_feature("mobile") else Tier.HIGH
 
 
-## Read by main.gd during _enter_tree, before this node exists, so it has to work
-## off the file rather than off instance state.
+## Read by main.gd during _enter_tree, before this node exists, so it has to work off
+## the file rather than off instance state.
 static func saved_tier() -> int:
 	var cfg := ConfigFile.new()
 	if cfg.load(CONFIG_PATH) != OK:
@@ -161,9 +137,9 @@ static func saved_tier() -> int:
 	return clampi(t, 0, TIERS.size() - 1)
 
 
-## Field exports only take effect before the field readies, so this is called
-## from main.gd's _enter_tree and again on a tier change (where the live setters
-## re-stream what they can).
+## Field exports only take effect before the field readies, so this is called from
+## main.gd's _enter_tree and again on a tier change (where the live setters re-stream
+## what they can).
 static func apply_fields(main: Node, tier: int) -> void:
 	var row: Dictionary = TIERS[clampi(tier, 0, TIERS.size() - 1)]
 	var grass := main.get_node_or_null(^"GrassField")
@@ -190,12 +166,8 @@ func _ready() -> void:
 		_grass = main.get_node_or_null("GrassField")
 		_day = main.get_node_or_null("DayNight")
 		_post = main.get_node_or_null("PostFX") as CanvasLayer
-	# Seed from the platform tier rather than from whatever the field readied
-	# with, so the first apply() reinforces main.gd's latch instead of undoing it.
 	_seed_from_tier(saved_tier())
 	load_settings()
-	# The fields read their own exports during _ready, which runs after this node
-	# on some orderings, so the first apply waits a frame rather than racing them.
 	apply.call_deferred()
 
 
@@ -223,8 +195,6 @@ func apply_preset(index: int) -> void:
 	if index < 0 or index >= TIERS.size():
 		return
 	_seed_from_tier(index)
-	# Ranges and billboards are part of the tier too, and the fields can take
-	# these live -- only the initial value had to come from _enter_tree.
 	var main := get_parent()
 	if main:
 		apply_fields(main, index)

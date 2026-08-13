@@ -2,11 +2,6 @@ class_name OnlineHud
 extends CanvasLayer
 
 ## Connection state and who else is here.
-##
-## Every state the socket can be in gets words, including the ones that are not
-## errors. A client that is still handshaking looks exactly like a broken one
-## from the outside — a world with nobody in it — and "Connecting" is the entire
-## difference between waiting and quitting.
 
 signal leave_requested
 
@@ -47,8 +42,6 @@ func _label(size: int) -> Label:
 	var label := Label.new()
 	label.add_theme_font_size_override("font_size", size)
 	label.add_theme_color_override("font_color", INK)
-	# The world behind runs from noon to midnight, so the text carries its own
-	# contrast rather than assuming a dark backdrop.
 	label.add_theme_color_override("font_shadow_color", Color(0.05, 0.03, 0.02, 0.9))
 	label.add_theme_constant_override("shadow_offset_x", 1)
 	label.add_theme_constant_override("shadow_offset_y", 1)
@@ -67,9 +60,8 @@ func set_joined(assigned_name: String) -> void:
 	status_label.text = I18n.t("hud.joined", {"name": assigned_name})
 
 
-## A rejection is terminal — the socket is gone and nothing will retry it — so
-## it says why and says what to do about it, rather than leaving an empty world
-## on screen.
+## A rejection is terminal — the socket is gone and nothing will retry it — so it says
+## why and says what to do about it, rather than leaving an empty world on screen.
 func set_rejected(reason: String) -> void:
 	status_label.add_theme_color_override("font_color", WARN)
 	status_label.text = I18n.t("hud.disconnected", {"reason": reason})

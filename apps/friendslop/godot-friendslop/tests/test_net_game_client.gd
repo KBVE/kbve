@@ -1,8 +1,6 @@
 extends GdUnitTestSuite
 
-## Covers the client wiring, not the network. A real session needs a running
-## friendslop-server; the protocol itself is covered by the Rust integration
-## tests in `packages/rust/q`.
+## Covers the client wiring, not the network.
 
 
 func _client() -> NetGameClient:
@@ -24,8 +22,8 @@ func test_starts_disconnected() -> void:
 	assert_object(client.local_avatar()).is_null()
 
 
-## Guest mode asks for nothing and the server answers; anything shown before
-## that would be a name the server never granted.
+## Guest mode asks for nothing and the server answers; anything shown before that would
+## be a name the server never granted.
 func test_guest_mode_requests_no_name() -> void:
 	var client := _client()
 	assert_str(client.player_name).is_empty()
@@ -37,8 +35,8 @@ func test_body_name_is_empty_for_an_unknown_body() -> void:
 	assert_str(_client().body_name(1000042)).is_empty()
 
 
-## Before the host welcomes us there is no body, and guessing one would render
-## another player's character.
+## Before the host welcomes us there is no body, and guessing one would render another
+## player's character.
 func test_local_body_is_unassigned_until_welcomed() -> void:
 	assert_int(_client().local_body()).is_equal(-1)
 
@@ -51,7 +49,6 @@ func test_avatar_is_spawned_and_freed_with_its_body() -> void:
 	assert_int(client.get_child_count()).is_equal(before + 1)
 	assert_object(client.get_node_or_null("Body42")).is_not_null()
 
-	# Duplicate adds must not stack avatars on top of each other.
 	client._on_body_added(42)
 	assert_int(client.get_child_count()).is_equal(before + 1)
 

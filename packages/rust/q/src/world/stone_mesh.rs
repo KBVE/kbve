@@ -49,7 +49,6 @@ pub struct RockGrowth {
 }
 
 pub const SPECIES: &[RockGrowth] = &[
-    // granite boulder: isotropic, rounded, few broad fractures, heavily weathered
     RockGrowth {
         aspect: Vector3::new(1.0, 0.86, 0.95),
         roundness: Vector2::new(0.85, 0.9),
@@ -62,7 +61,6 @@ pub const SPECIES: &[RockGrowth] = &[
         strata_bias: 0.0,
         subdiv: 2,
     },
-    // sandstone slab: flattened, boxy, bedding-plane fractures, strong strata
     RockGrowth {
         aspect: Vector3::new(1.35, 0.5, 1.1),
         roundness: Vector2::new(0.5, 0.62),
@@ -75,7 +73,6 @@ pub const SPECIES: &[RockGrowth] = &[
         strata_bias: 0.85,
         subdiv: 2,
     },
-    // river stone: flattened, very round, almost no visible fracture
     RockGrowth {
         aspect: Vector3::new(1.15, 0.62, 1.0),
         roundness: Vector2::new(1.0, 1.0),
@@ -88,7 +85,6 @@ pub const SPECIES: &[RockGrowth] = &[
         strata_bias: 0.0,
         subdiv: 2,
     },
-    // talus rock: asymmetric, angular, many sharp planes, barely weathered
     RockGrowth {
         aspect: Vector3::new(0.95, 1.05, 0.85),
         roundness: Vector2::new(0.42, 0.5),
@@ -368,10 +364,6 @@ fn emit(
     } else {
         grown.verts.iter().fold(Vector3::ZERO, |acc, v| acc + *v) / grown.verts.len() as f32
     };
-    // Winding is a property of the whole shell, not of one facet: after
-    // fracture and weathering a recessed facet can face away from the
-    // centroid, so a per-face centroid test would flip it and punch a hole.
-    // Signed volume stays correct through any amount of concavity.
     let mut volume = 0.0f64;
     for f in faces {
         let (l0, l1, l2) = (
@@ -407,8 +399,6 @@ fn emit(
         };
         let broken = (grown.fresh[i0] + grown.fresh[i1] + grown.fresh[i2]) / 3.0;
         let jitter = randf(state);
-        // Creases between facets read as crevices: the more a face turns away
-        // from the outward direction, the deeper it sits.
         let local_mid = (grown.verts[i0] + grown.verts[i1] + grown.verts[i2]) / 3.0;
         let radial = (local_mid - center).normalized();
         let crevice = (1.0 - n.dot(radial).clamp(0.0, 1.0)).powf(1.6);
@@ -417,7 +407,6 @@ fn emit(
             (up * 0.36 + y01 * 0.16 + band * 0.25 + jitter * 0.1 + broken * 0.22 + speckle * 0.14
                 - crevice * 0.3)
                 .clamp(0.0, 1.0);
-        // Mineral tint: warm on exposed faces, cool in shade, subtle either way.
         let warm = (speckle - 0.5) * 0.05;
         let col = Color::from_rgba(
             (dark.r + (light.r - dark.r) * t + warm).clamp(0.0, 1.0),
@@ -437,7 +426,6 @@ fn lod_species(variant: usize, lod: usize) -> RockGrowth {
         aspect: g.aspect,
         roundness: g.roundness,
         macro_noise: g.macro_noise,
-        // Detail below a couple of pixels is wasted; drop it with distance.
         detail_noise: match lod {
             0 => g.detail_noise,
             1 => g.detail_noise * 0.5,
@@ -465,8 +453,6 @@ pub fn build_stone_mesh(seed: u32, variant: usize) -> Gd<ArrayMesh> {
 }
 
 /// lod 0 = full (~320 tris), 1 = mid (~80), 2 = distant (~20).
-/// Every level grows from the same seed and parameters, so the silhouette
-/// stays put across a swap; only surface detail drops out.
 pub fn build_stone_lod(seed: u32, variant: usize, lod: usize) -> Gd<ArrayMesh> {
     let g = lod_species(variant, lod);
     let grown = grow(&g, seed);

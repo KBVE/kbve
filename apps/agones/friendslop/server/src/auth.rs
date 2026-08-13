@@ -1,13 +1,4 @@
 //! Account identity for joining players.
-//!
-//! The client signs in against Supabase GoTrue and sends the access token it
-//! got back; this verifies that token locally against the published JWKS and
-//! hands the session the username inside it. Nothing here trusts a name the
-//! client typed — the whole point of the token is that the name is signed.
-//!
-//! Verification is local rather than a call to GoTrue per join: the sim thread
-//! cannot await, and a login endpoint that has to be up for players to walk
-//! around is a dependency this server does not need.
 
 use std::sync::Arc;
 use std::time::Duration;
@@ -16,8 +7,7 @@ use jedi::jwks::{JwtVerifier, VerifyError};
 use q::net::session::TokenAuthority;
 use serde::Deserialize;
 
-/// Only the claims this server acts on. GoTrue sends a great deal more; a
-/// struct that ignores the rest keeps a claims change from breaking joins.
+/// Only the claims this server acts on.
 #[derive(Deserialize)]
 struct Claims {
     #[serde(default)]
@@ -29,12 +19,9 @@ pub struct SupabaseAuthority {
 }
 
 impl SupabaseAuthority {
-    /// Builds from the environment, or `None` when no issuer is configured —
-    /// in which case the server runs guests-only rather than pretending to
-    /// check tokens it has no key for.
-    ///
-    /// `SUPABASE_JWKS_URI` wins; otherwise it is derived from `SUPABASE_URL`,
-    /// which is the shape every other service in the fleet already uses.
+    /// Builds from the environment, or `None` when no issuer is configured — in which
+    /// case the server runs guests-only rather than pretending to check tokens it has
+    /// no key for.
     pub async fn from_env() -> Option<Self> {
         let jwks_uri = std::env::var("SUPABASE_JWKS_URI").ok().or_else(|| {
             std::env::var("SUPABASE_URL").ok().map(|base| {
@@ -54,8 +41,6 @@ impl SupabaseAuthority {
             Some("supabase".to_owned()),
             None,
         );
-        // Fetch up front so the first player to sign in is not the one who pays
-        // for it; refreshes hourly after that to pick up a rotated key.
         verifier.start(Duration::from_secs(3600)).await;
         tracing::info!(%jwks_uri, "account joins enabled");
         Some(Self { verifier })
@@ -73,8 +58,8 @@ impl TokenAuthority for SupabaseAuthority {
     }
 }
 
-/// Reasons are read by a player on a HUD, so they say what to do about it and
-/// nothing about why the signature failed.
+/// Reasons are read by a player on a HUD, so they say what to do about it and nothing
+/// about why the signature failed.
 fn reason_for(error: VerifyError) -> String {
     match error {
         VerifyError::Expired => "session expired — sign in again".to_owned(),
@@ -85,11 +70,8 @@ fn reason_for(error: VerifyError) -> String {
     }
 }
 
-/// An account with no `kbve_username` is a real, verified account that the
-/// username hook has not stamped yet. Refusing is right — the alternative is
-/// admitting them under someone else's fallback — but it is not a bad token,
-/// and the message has to say so or the player will keep retyping a password
-/// that was correct.
+/// An account with no `kbve_username` is a real, verified account that the username
+/// hook has not stamped yet.
 fn name_in(claims: Claims) -> Result<String, String> {
     if claims.kbve_username.trim().is_empty() {
         return Err("this account has no username yet".to_owned());
@@ -122,8 +104,8 @@ mod tests {
         );
     }
 
-    /// An expired session is the one failure a player can fix themselves, so it
-    /// is the one that does not get the generic answer.
+    /// An expired session is the one failure a player can fix themselves, so it is the
+    /// one that does not get the generic answer.
     #[test]
     fn expiry_is_distinguished_from_rejection() {
         assert!(reason_for(VerifyError::Expired).contains("expired"));

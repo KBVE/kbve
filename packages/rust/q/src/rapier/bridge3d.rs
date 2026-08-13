@@ -1,18 +1,4 @@
 //! Godot adapter for the off-thread sim — the seam between {App} and {Physics}.
-//!
-//! Everything Godot-shaped stops here. `sim3d` below never sees a `Gd<T>`, and
-//! GDScript above never sees a rapier handle; this file is the only translator,
-//! which is what keeps the sim compilable into the headless server unchanged.
-//!
-//! Bodies come in two flavours and the direction of travel is the whole point:
-//!
-//! * **Sim-driven** (`spawn_*`) — rapier owns the transform and this node
-//!   writes it onto the Godot node each frame. Props, debris, projectiles.
-//! * **Proxy** (`track_*`) — Godot owns the transform and this node pushes it
-//!   into the sim each frame as a kinematic target. That is how the player
-//!   keeps `move_and_slide` feel in phase 1 while still shouldering other
-//!   bodies around; flipping the player to sim-driven is a later phase, and it
-//!   is a one-line change at the call site rather than a rewrite.
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -49,9 +35,6 @@ pub(super) fn iso_of(node: &Gd<Node3D>) -> super::sim3d::Iso {
 
 pub(super) fn apply_iso(node: &mut Gd<Node3D>, iso: &super::sim3d::Iso) {
     let mut xform = node.get_global_transform();
-    // Rebuild the basis from the sim's rotation but keep the node's authored
-    // scale — the sim carries no scale, so a naive overwrite would silently
-    // reset every scaled prop to 1.
     let scale = xform.basis.get_scale();
     let q = Quaternion::new(iso.rot[0], iso.rot[1], iso.rot[2], iso.rot[3]);
     xform.basis = Basis::from_quaternion(q).scaled(scale);
@@ -64,8 +47,7 @@ pub(super) fn apply_iso(node: &mut Gd<Node3D>, iso: &super::sim3d::Iso) {
 pub struct QPhysics3D {
     base: Base<Node3D>,
 
-    /// `QTerrain` to source the collision heightfield from. Optional: without
-    /// it the sim runs with no ground, which is what you want for tests.
+    /// `QTerrain` to source the collision heightfield from.
     #[export]
     terrain_path: NodePath,
     #[export]
@@ -108,9 +90,8 @@ impl INode3D for QPhysics3D {
 }
 
 impl QPhysics3D {
-    /// `QTerrain` bakes its heightfield on a worker thread, so it is normal for
-    /// this to find nothing for the first frames after load. Retried each frame
-    /// until the grid exists rather than resolved once in `ready`.
+    /// `QTerrain` bakes its heightfield on a worker thread, so it is normal for this to
+    /// find nothing for the first frames after load.
     fn try_send_terrain(&mut self) {
         if self.terrain_path.is_empty() {
             return;
@@ -187,9 +168,6 @@ impl QPhysics3D {
                 ..Default::default()
             },
         });
-        // Fixed bodies are not tracked: they never move, and the sim leaves
-        // them out of snapshots entirely, so tracking one would walk a node
-        // every frame waiting for an update that by definition never comes.
         if kind != BodyKind::Fixed {
             self.tracked.insert(id, Tracked { node, drive });
         }
@@ -199,7 +177,6 @@ impl QPhysics3D {
 
 #[godot_api]
 impl QPhysics3D {
-    /// Sim-driven ball. The sim owns `node`'s transform from here on.
     #[func]
     fn spawn_ball(&mut self, node: Gd<Node3D>, radius: f32) -> i64 {
         self.insert(
@@ -210,7 +187,6 @@ impl QPhysics3D {
         )
     }
 
-    /// Sim-driven box. `half_extents` is half the full size on each axis.
     #[func]
     fn spawn_box(&mut self, node: Gd<Node3D>, half_extents: Vector3) -> i64 {
         self.insert(
@@ -250,10 +226,8 @@ impl QPhysics3D {
         )
     }
 
-    /// Registers a Godot-driven capsule proxy — the shape used for the player
-    /// while `move_and_slide` still owns movement. Its transform is pushed into
-    /// the sim every frame and never written back, so the controller keeps its
-    /// feel while dynamic bodies still collide with it.
+    /// Registers a Godot-driven capsule proxy — the shape used for the player while
+    /// `move_and_slide` still owns movement.
     #[func]
     fn track_capsule(&mut self, node: Gd<Node3D>, half_height: f32, radius: f32) -> i64 {
         self.insert(
@@ -286,8 +260,8 @@ impl QPhysics3D {
         }
     }
 
-    /// Not named `set_gravity`: the `gravity` export already generates a setter
-    /// under that name, and a second one silently shadows it in GDScript.
+    /// Not named `set_gravity`: the `gravity` export already generates a setter under
+    /// that name, and a second one silently shadows it in GDScript.
     #[func]
     fn update_gravity(&mut self, gravity: Vector3) {
         self.gravity = gravity;
@@ -309,15 +283,14 @@ impl QPhysics3D {
             .unwrap_or(Vector3::ZERO)
     }
 
-    /// True once the terrain heightfield has been handed to the sim. Until
-    /// then the only collision in the world is whatever was spawned explicitly.
+    /// True once the terrain heightfield has been handed to the sim.
     #[func]
     fn is_terrain_ready(&self) -> bool {
         self.terrain_sent
     }
 
-    /// Tick the sim has most recently published — useful for debug overlays
-    /// confirming the physics thread is actually running.
+    /// Tick the sim has most recently published — useful for debug overlays confirming
+    /// the physics thread is actually running.
     #[func]
     fn sim_tick(&self) -> i64 {
         self.sim.as_ref().map(|s| s.latest().tick).unwrap_or(0) as i64

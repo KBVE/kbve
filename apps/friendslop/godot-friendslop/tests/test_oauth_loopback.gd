@@ -1,11 +1,6 @@
 extends GdUnitTestSuite
 
 ## The browser sign-in, minus the browser.
-##
-## What has to be right here is arithmetic and parsing: a challenge the provider
-## will accept, a redirect URL pointing at a port we are actually listening on,
-## and a request line read the same way whether it carries a code, a refusal, or
-## nothing at all — the port is open to anything else running on this machine.
 
 const AuthSessionScript = preload("res://src/autoload/auth_session.gd")
 
@@ -19,8 +14,8 @@ func test_the_challenge_matches_the_specs_worked_example() -> void:
 	assert_str(OAuthLoopback.challenge_for(RFC_VERIFIER)).is_equal(RFC_CHALLENGE)
 
 
-## Base64url with no padding, 43 characters — the shortest the spec allows, and
-## the length 32 random bytes produces.
+## Base64url with no padding, 43 characters — the shortest the spec allows, and the
+## length 32 random bytes produces.
 func test_a_verifier_is_the_right_shape() -> void:
 	var verifier := OAuthLoopback.new_verifier()
 	assert_int(verifier.length()).is_equal(43)
@@ -28,8 +23,8 @@ func test_a_verifier_is_the_right_shape() -> void:
 	assert_bool(verifier.contains("+") or verifier.contains("/")).is_false()
 
 
-## Two sessions must never share one, or a code caught by one could be redeemed
-## by the other.
+## Two sessions must never share one, or a code caught by one could be redeemed by the
+## other.
 func test_verifiers_do_not_repeat() -> void:
 	var seen := {}
 	for i in 32:
@@ -43,8 +38,6 @@ func test_the_authorize_url_carries_the_challenge_and_the_port() -> void:
 	assert_str(url).contains("provider=discord")
 	assert_str(url).contains("code_challenge=%s" % RFC_CHALLENGE)
 	assert_str(url).contains("code_challenge_method=s256")
-	# Encoded, not raw: GoTrue matches redirect_to against its allow list, and a
-	# half-encoded URL is a redirect that silently goes somewhere else.
 	assert_str(url).contains("redirect_to=http%3A%2F%2F127.0.0.1%3A47119%2Fcallback")
 
 
@@ -61,8 +54,8 @@ func test_a_redirect_with_a_code_is_read() -> void:
 	assert_str(answer.get("code", "")).is_equal("abc123")
 
 
-## Pressing Cancel on the provider's consent page comes back as an error, and
-## the player should read the provider's own words rather than a timeout.
+## Pressing Cancel on the provider's consent page comes back as an error, and the player
+## should read the provider's own words rather than a timeout.
 func test_a_refusal_is_reported_in_the_providers_words() -> void:
 	var answer := OAuthLoopback.parse_request(
 		"GET /callback?error=access_denied&error_description=The+user+denied+access HTTP/1.1\r\n\r\n"
@@ -71,8 +64,8 @@ func test_a_refusal_is_reported_in_the_providers_words() -> void:
 	assert_str(answer.get("error", "")).is_equal("The user denied access")
 
 
-## The port is open to anything else on this machine, so every other shape of
-## request has to come back as an error rather than a crash or a blank code.
+## The port is open to anything else on this machine, so every other shape of request
+## has to come back as an error rather than a crash or a blank code.
 func test_anything_else_on_the_port_is_an_error_not_a_code() -> void:
 	for request in [
 		"",
@@ -93,8 +86,8 @@ func test_percent_encoding_survives_the_parse() -> void:
 	assert_str(answer.get("code", "")).is_equal("a/b=c")
 
 
-## Bound on loopback and nowhere else: a listener on every interface would let
-## the rest of the network answer the redirect.
+## Bound on loopback and nowhere else: a listener on every interface would let the rest
+## of the network answer the redirect.
 func test_it_listens_on_localhost_and_gives_the_port_back() -> void:
 	var loopback := OAuthLoopback.new()
 	add_child(loopback)

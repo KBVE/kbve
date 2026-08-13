@@ -1,9 +1,4 @@
 //! The physics pillar's thread: a fixed-tick loop that never blocks on the app.
-//!
-//! Deliberately a plain OS thread rather than a tokio task. The sim wants an
-//! even cadence, and a multi-threaded work-stealing scheduler with net and IO
-//! work on it will not give one — tokio stays on the IO pillar where its
-//! latency profile is the right trade.
 
 use std::sync::Arc;
 use std::thread::{self, JoinHandle};
@@ -15,10 +10,10 @@ use tokio::sync::watch;
 use super::types::{SimCommand, SimConfig, SimSnapshot};
 use super::world::SimWorld;
 
-/// App-side handle to a running sim. Dropping it stops the thread and joins it.
+/// App-side handle to a running sim.
 pub struct PhysicsHandle {
-    /// Kept private and never cloned out: closing this channel is what tells
-    /// the loop to exit, so a stray clone elsewhere would leak the thread.
+    /// Kept private and never cloned out: closing this channel is what tells the loop
+    /// to exit, so a stray clone elsewhere would leak the thread.
     cmd_tx: Option<UnboundedSender<SimCommand>>,
     snap_rx: watch::Receiver<Arc<SimSnapshot>>,
     join: Option<JoinHandle<()>>,
@@ -41,8 +36,7 @@ impl PhysicsHandle {
         }
     }
 
-    /// Queues a command for the next tick. Returns false once the sim thread is
-    /// gone; commands sent before the first step are buffered, not dropped.
+    /// Queues a command for the next tick.
     pub fn send(&self, cmd: SimCommand) -> bool {
         self.cmd_tx
             .as_ref()
@@ -50,15 +44,13 @@ impl PhysicsHandle {
             .unwrap_or(false)
     }
 
-    /// The most recent published state. Cheap: bumps a refcount and releases
-    /// the channel lock immediately, so however long the app then spends
-    /// walking the snapshot, the sim thread is never waiting on it.
+    /// The most recent published state.
     pub fn latest(&self) -> Arc<SimSnapshot> {
         self.snap_rx.borrow().clone()
     }
 
-    /// True when a new snapshot has landed since the last `latest()` — lets the
-    /// app skip re-applying transforms on frames that outran the sim.
+    /// True when a new snapshot has landed since the last `latest()` — lets the app
+    /// skip re-applying transforms on frames that outran the sim.
     pub fn has_update(&mut self) -> bool {
         self.snap_rx.has_changed().unwrap_or(false)
     }
@@ -73,7 +65,6 @@ impl PhysicsHandle {
 
 impl Drop for PhysicsHandle {
     fn drop(&mut self) {
-        // Closing the only sender is the shutdown signal.
         self.cmd_tx.take();
         if let Some(join) = self.join.take() {
             let _ = join.join();
@@ -95,7 +86,6 @@ fn run(
             match cmd_rx.try_recv() {
                 Ok(cmd) => world.apply(cmd),
                 Err(TryRecvError::Empty) => break,
-                // Handle dropped — drain done, shut down.
                 Err(TryRecvError::Disconnected) => return,
             }
         }
@@ -107,10 +97,6 @@ fn run(
             stepped += 1;
         }
 
-        // Still behind after the catch-up budget: the process was descheduled
-        // long enough that paying the debt back tick-by-tick would keep us
-        // permanently behind. Drop the owed ticks and resync — sim time slips
-        // rather than the loop spiralling.
         if stepped == config.max_steps_per_pass && Instant::now() >= next_tick {
             next_tick = Instant::now() + dt;
         }
@@ -118,7 +104,6 @@ fn run(
         if stepped > 0 {
             let mut snapshot = SimSnapshot::default();
             world.snapshot_into(&mut snapshot);
-            // A dead receiver is not fatal; the app can reattach later.
             let _ = snap_tx.send(Arc::new(snapshot));
         }
 
@@ -170,8 +155,6 @@ mod tests {
     #[test]
     fn commands_sent_before_first_step_are_not_lost() {
         let sim = PhysicsHandle::spawn(SimConfig::default());
-        // Sent with no delay — these race the thread's first loop pass and must
-        // still be applied rather than dropped on the floor.
         for id in 0..8u32 {
             assert!(sim.send(SimCommand::Spawn {
                 id: BodyId(id),
@@ -200,7 +183,6 @@ mod tests {
             || (sim.latest().tick > 0).then_some(()),
             Duration::from_secs(5),
         );
-        // Drop joins; if the loop ignored the closed channel this would hang.
         drop(sim);
     }
 

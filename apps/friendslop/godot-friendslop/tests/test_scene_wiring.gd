@@ -1,14 +1,6 @@
 extends GdUnitTestSuite
 
 ## Guards the wiring every playable scene needs but nothing enforces.
-##
-## QTerrain builds its bridge, water and riverbed at runtime and assigns
-## whatever materials it was handed. Hand it none and it still builds them —
-## untextured white — so a missing material is invisible in code review and
-## obvious only on screen, which is where the title screen's bridge was found.
-##
-## Read from the packed scene rather than by instantiating: `online.tscn` opens
-## a socket in `_ready`, and a test suite is the wrong place to do that.
 
 const SCENES := [
 	"res://scenes/main.tscn",
@@ -16,8 +8,7 @@ const SCENES := [
 	"res://scenes/online.tscn",
 ]
 
-## Every material QTerrain draws with. `grass_material` is deliberately absent:
-## the fields own that, and a scene without grass is a legitimate scene.
+## Every material QTerrain draws with.
 const TERRAIN_MATERIALS := [
 	&"ground_material",
 	&"water_material",
@@ -26,9 +17,9 @@ const TERRAIN_MATERIALS := [
 	&"abutment_material",
 ]
 
-## Settings nodes are looked up by name from the pause menu's parent, so a scene
-## that omits them silently loses the graphics and gameplay pages — which is how
-## the title screen ended up with a settings book that had nothing in it.
+## Settings nodes are looked up by name from the pause menu's parent, so a scene that
+## omits them silently loses the graphics and gameplay pages — which is how the title
+## screen ended up with a settings book that had nothing in it.
 const SETTINGS_NODES := ["GraphicsSettings", "GameplaySettings"]
 
 
@@ -45,9 +36,9 @@ func _properties_of(state: SceneState, node_index: int) -> Dictionary:
 	return out
 
 
-## A QFishField with no model or materials places its fish, simulates them and
-## draws nothing — the same silent shape as the bridge, and just as invisible
-## outside a screenshot.
+## A QFishField with no model or materials places its fish, simulates them and draws
+## nothing — the same silent shape as the bridge, and just as invisible outside a
+## screenshot.
 const FISH_SCENES := ["res://scenes/main.tscn", "res://scenes/title.tscn"]
 const FISH_RESOURCES := [&"fish_model", &"fish_material", &"shadow_material"]
 

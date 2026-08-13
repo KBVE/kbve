@@ -56,8 +56,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing::info!(udp_port = udp.port(), "datagram lane bound");
 
     let transport = DualHost::new(ws.clone(), udp);
-    // Guests never need this; a server with no issuer configured simply refuses
-    // signed-in joins rather than failing to start.
     let authority = match auth::SupabaseAuthority::from_env().await {
         Some(a) => Some(a.shared()),
         None => {
@@ -70,8 +68,6 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     let app = router(ws).merge(stats_route(transport.clone(), sim.tick_handle()));
 
     let listener = TcpListener::bind(addr).await?;
-    // An explicit override wins over whatever Agones reports, for when the
-    // datagram lane is fronted by something Agones does not know about.
     let advertise_host = std::env::var("FS_UDP_ADVERTISE_HOST").ok();
     let advertise_port: Option<u16> = std::env::var("FS_UDP_ADVERTISE_PORT")
         .ok()
@@ -95,8 +91,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     Ok(())
 }
 
-/// A live tick counter is the only cheap proof the sim thread is stepping —
-/// `/healthz` answers even if it has wedged.
+/// A live tick counter is the only cheap proof the sim thread is stepping — `/healthz`
+/// answers even if it has wedged.
 fn stats_route(
     transport: std::sync::Arc<DualHost>,
     tick: std::sync::Arc<std::sync::atomic::AtomicU64>,

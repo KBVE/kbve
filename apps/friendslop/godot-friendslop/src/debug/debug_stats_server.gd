@@ -1,12 +1,7 @@
 extends Node
 
-## Serves the debug HUD's numbers as JSON over loopback so a profiling pass can
-## read them directly instead of going through a screenshot of the overlay.
-## Off unless Q_STATS_PORT is set, e.g. Q_STATS_PORT=8777, then:
-##   curl -s localhost:8777
-## Frame timings are sampled continuously rather than at request time, so a
-## single reading carries min/avg/max over the window instead of whichever frame
-## the request happened to land on.
+## Serves the debug HUD's numbers as JSON over loopback so a profiling pass can read
+## them directly instead of going through a screenshot of the overlay.
 
 const WINDOW := 2.0
 
@@ -59,7 +54,6 @@ func _process(delta: float) -> void:
 	var peer := _server.take_connection()
 	if peer == null:
 		return
-	# Drain the request line so the client sees a clean close rather than a reset.
 	if peer.get_available_bytes() > 0:
 		peer.get_data(peer.get_available_bytes())
 	var body := JSON.stringify(_snapshot(), "  ")
@@ -82,8 +76,6 @@ func _snapshot() -> Dictionary:
 	out["vram_mb"] = float(RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_VIDEO_MEM_USED)) / 1048576.0
 	out["mem_mb"] = float(OS.get_static_memory_usage()) / 1048576.0
 
-	# Same correction the HUD applies: the raw count charges the grass compute
-	# buffers at full capacity rather than at what was actually filled.
 	if _grass and _grass.has_method("get_grass_stats"):
 		var g: Dictionary = _grass.get_grass_stats()
 		if g.get("active", false):
@@ -98,15 +90,8 @@ func _snapshot() -> Dictionary:
 	out["tris"] = tris
 
 	out["hidden"] = OS.get_environment("Q_HIDE")
-	# Without the resolution a frame time cannot be compared against another run:
-	# the same scene is fill-bound or not depending purely on how many pixels the
-	# window happens to cover.
 	var vp := get_viewport()
 	var scale: float = vp.scaling_3d_scale
-	# Physical pixels, from the display server. get_visible_rect() reports the
-	# logical stretch size under stretch/mode="canvas_items", which is the same
-	# whether the window is 720p or fullscreen -- exactly the number that makes a
-	# fill-bound frame look resolution independent.
 	var win := DisplayServer.window_get_size()
 	out["render_scale"] = scale
 	out["window_px"] = [win.x, win.y]
