@@ -27,7 +27,7 @@ base64 = { workspace = true }
 hex = { workspace = true }
 bevy_npc = { version = "0.1", path = "../bevy_npc", optional = true }
 aeronet_webtransport = { version = "0.21", optional = true }
-lightyear_aeronet = { version = "0.28", optional = true }
+lightyear_aeronet = { version = "0.29", optional = true }
 bevy_tasker = { version = "0.1", path = "../bevy_tasker", optional = true }
 crossbeam-channel = { workspace = true, optional = true }
 dashmap = { workspace = true, optional = true }

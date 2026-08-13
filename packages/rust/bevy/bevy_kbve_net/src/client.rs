@@ -159,6 +159,7 @@ impl GameClient {
                         PeerAddr(server_addr),
                         WebTransportClientIo {
                             certificate_digest: digest,
+                            target: None,
                         },
                     ));
 

@@ -1834,6 +1834,7 @@ fn connect_to_server(commands: &mut Commands, transport: &ClientTransport, token
                 PeerAddr(server_addr),
                 WebTransportClientIo {
                     certificate_digest: digest,
+                    target: None,
                 },
                 ReplicationReceiver::default(),
             ));
@@ -1876,7 +1877,7 @@ fn connect_to_server(commands: &mut Commands, transport: &ClientTransport, token
                         let client_entity = commands
                             .spawn((
                                 netcode,
-                                lightyear::prelude::Link::new(None),
+                                lightyear::prelude::Link::default(),
                                 ws_socket,
                                 ReplicationReceiver::default(),
                             ))
