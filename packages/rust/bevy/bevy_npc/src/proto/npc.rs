@@ -37,6 +37,43 @@ pub struct NpcStats {
     pub mp_regen: ::core::option::Option<f32>,
     #[prost(float, optional, tag = "16")]
     pub ep_regen: ::core::option::Option<f32>,
+    /// JRPG split — special attack/defense distinct from physical (Pokemon-style)
+    #[prost(int32, optional, tag = "17")]
+    pub special_attack: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "18")]
+    pub special_defense: ::core::option::Option<i32>,
+    /// Base hit modifier (100 = neutral)
+    #[prost(int32, optional, tag = "19")]
+    pub accuracy: ::core::option::Option<i32>,
+    /// Base dodge modifier (100 = neutral)
+    #[prost(int32, optional, tag = "20")]
+    pub evasion: ::core::option::Option<i32>,
+    /// Base crit chance, in basis points or %
+    #[prost(int32, optional, tag = "21")]
+    pub crit_rate: ::core::option::Option<i32>,
+    /// Crit multiplier (e.g. 1.5 = +50%)
+    #[prost(float, optional, tag = "22")]
+    pub crit_damage: ::core::option::Option<f32>,
+    /// Real-time colony-sim needs (RareIcon UnitStats). max_hp/max_mp/max_ep above map to health/mana/energy.
+    ///
+    /// World units per WanderStep (fractional; `speed` above is coarse int rank)
+    #[prost(float, optional, tag = "23")]
+    pub move_speed: ::core::option::Option<f32>,
+    /// Hunger pool ceiling
+    #[prost(int32, optional, tag = "24")]
+    pub max_hunger: ::core::option::Option<i32>,
+    /// Fatigue pool ceiling
+    #[prost(int32, optional, tag = "25")]
+    pub max_fatigue: ::core::option::Option<i32>,
+    /// Fourth attribute alongside strength/agility/intelligence
+    #[prost(int32, optional, tag = "26")]
+    pub will: ::core::option::Option<i32>,
+    /// Hunger accrual rate
+    #[prost(float, optional, tag = "27")]
+    pub hunger_per_sec: ::core::option::Option<f32>,
+    /// Fatigue accrual rate
+    #[prost(float, optional, tag = "28")]
+    pub fatigue_per_sec: ::core::option::Option<f32>,
 }
 /// Elemental affinity with magnitude (for multi-element resistance/weakness)
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -149,6 +186,41 @@ pub struct NpcAbility {
     /// Selection probability weight
     #[prost(float, optional, tag = "13")]
     pub weight: ::core::option::Option<f32>,
+    /// JRPG turn-based move fields
+    ///
+    /// physical / special / status
+    #[prost(enumeration = "MoveCategory", optional, tag = "14")]
+    pub category: ::core::option::Option<i32>,
+    /// Move base power (preferred over damage for JRPG)
+    #[prost(int32, optional, tag = "15")]
+    pub power: ::core::option::Option<i32>,
+    /// Current power points (uses per battle)
+    #[prost(int32, optional, tag = "16")]
+    pub pp: ::core::option::Option<i32>,
+    /// Maximum power points
+    #[prost(int32, optional, tag = "17")]
+    pub max_pp: ::core::option::Option<i32>,
+    /// Turn-order bump (-7..+7, higher acts first)
+    #[prost(int32, optional, tag = "18")]
+    pub priority: ::core::option::Option<i32>,
+    /// 0.0–1.0 chance to apply status_effect
+    #[prost(float, optional, tag = "19")]
+    pub status_chance: ::core::option::Option<f32>,
+    /// Self-damage as fraction of dealt damage
+    #[prost(float, optional, tag = "20")]
+    pub recoil_fraction: ::core::option::Option<f32>,
+    /// Heal self as fraction of dealt damage
+    #[prost(float, optional, tag = "21")]
+    pub drain_fraction: ::core::option::Option<f32>,
+    /// Elevated crit stage
+    #[prost(bool, optional, tag = "22")]
+    pub high_crit: ::core::option::Option<bool>,
+    /// Resolution target
+    #[prost(enumeration = "MoveTarget", optional, tag = "23")]
+    pub target: ::core::option::Option<i32>,
+    /// Buff/debuff applied on hit
+    #[prost(message, repeated, tag = "24")]
+    pub stat_changes: ::prost::alloc::vec::Vec<StatChange>,
 }
 /// Intent weight — probability of choosing an ability by tier
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -456,6 +528,32 @@ pub struct SpatialProperties {
     #[prost(bool, optional, tag = "7")]
     pub can_fly: ::core::option::Option<bool>,
 }
+/// Ambient population config — how many of this creature exist in the world and
+/// how they are scattered across it. Game-agnostic: drives chunk-scatter spawners
+/// for 2D billboards and 3D instanced meshes alike.
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct CreatureConfig {
+    /// Render pipeline for a spawned instance
+    #[prost(enumeration = "CreatureRenderKind", tag = "1")]
+    pub render_kind: i32,
+    /// Max pooled instances alive at once
+    #[prost(int32, tag = "2")]
+    pub pool_size: i32,
+    /// World-space chunk edge for deterministic placement
+    #[prost(float, tag = "3")]
+    pub chunk_size: f32,
+    /// Potential spawn slots per chunk
+    #[prost(int32, tag = "4")]
+    pub per_chunk: i32,
+    /// 0.0–1.0 fraction of slots that fill
+    #[prost(float, tag = "5")]
+    pub spawn_chance: f32,
+    /// When this creature is present
+    #[prost(enumeration = "CreatureSchedule", tag = "6")]
+    pub schedule: i32,
+}
 /// Interaction flags — what players can do with this NPC
 #[derive(serde::Serialize, serde::Deserialize)]
 #[serde(default)]
@@ -482,6 +580,147 @@ pub struct InteractionFlags {
     /// Killing causes reputation penalty
     #[prost(bool, optional, tag = "7")]
     pub is_civilian: ::core::option::Option<bool>,
+}
+/// One animation clip inside a sprite atlas — maps a concept to a row + frame range
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct SpriteClip {
+    #[prost(enumeration = "SpriteAnim", tag = "1")]
+    pub anim: i32,
+    /// Atlas row this clip plays from
+    #[prost(int32, tag = "2")]
+    pub row: i32,
+    /// First column (default 0)
+    #[prost(int32, tag = "3")]
+    pub start_frame: i32,
+    /// Frames in the clip
+    #[prost(int32, tag = "4")]
+    pub frame_count: i32,
+    /// Playback rate
+    #[prost(float, tag = "5")]
+    pub fps: f32,
+    /// Loop (default true)
+    #[prost(bool, optional, tag = "6")]
+    pub r#loop: ::core::option::Option<bool>,
+}
+/// Billboarded pixel-art sprite atlas — columns are frames, rows are directions/clips.
+/// Consumed by the KBVENPCSprite UE module (UKBVENpcSpriteDef) and 2D clients.
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct SpriteAtlas {
+    /// Texture path / LFS asset ref
+    #[prost(string, tag = "1")]
+    pub atlas_ref: ::prost::alloc::string::String,
+    /// Frames per row
+    #[prost(int32, tag = "2")]
+    pub columns: i32,
+    /// Atlas rows
+    #[prost(int32, tag = "3")]
+    pub rows: i32,
+    /// Source cell px (informational)
+    #[prost(int32, optional, tag = "4")]
+    pub cell_width: ::core::option::Option<i32>,
+    #[prost(int32, optional, tag = "5")]
+    pub cell_height: ::core::option::Option<i32>,
+    /// Direction row indices
+    #[prost(int32, tag = "6")]
+    pub row_front: i32,
+    #[prost(int32, tag = "7")]
+    pub row_side: i32,
+    #[prost(int32, tag = "8")]
+    pub row_back: i32,
+    /// default true
+    #[prost(bool, optional, tag = "9")]
+    pub mirror_right_from_side: ::core::option::Option<bool>,
+    /// In-world billboard size (cm)
+    #[prost(float, optional, tag = "10")]
+    pub world_width: ::core::option::Option<f32>,
+    #[prost(float, optional, tag = "11")]
+    pub world_height: ::core::option::Option<f32>,
+    /// 0 = bottom-anchored
+    #[prost(float, optional, tag = "12")]
+    pub pivot_z: ::core::option::Option<f32>,
+    #[prost(message, repeated, tag = "13")]
+    pub clips: ::prost::alloc::vec::Vec<SpriteClip>,
+}
+/// A single stat buff/debuff a move applies on hit
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+#[derive(Clone, Copy, PartialEq, ::prost::Message)]
+pub struct StatChange {
+    #[prost(enumeration = "StatKind", tag = "1")]
+    pub stat: i32,
+    /// -6..+6 stage delta
+    #[prost(int32, tag = "2")]
+    pub stages: i32,
+    /// Defaults to the move's target
+    #[prost(enumeration = "MoveTarget", optional, tag = "3")]
+    pub target: ::core::option::Option<i32>,
+    /// 0.0–1.0 chance to apply (default 1.0)
+    #[prost(float, optional, tag = "4")]
+    pub chance: ::core::option::Option<f32>,
+}
+/// One level-up move a pet learns naturally
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct PetMovepoolEntry {
+    /// Level at which the move is learned
+    #[prost(int32, tag = "1")]
+    pub level: i32,
+    /// References an NpcAbility.id on this species
+    #[prost(string, tag = "2")]
+    pub ability_id: ::prost::alloc::string::String,
+}
+/// Evolution branch for a pet species
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+#[derive(Clone, PartialEq, Eq, Hash, ::prost::Message)]
+pub struct PetEvolution {
+    /// Target species ref
+    #[prost(string, tag = "1")]
+    pub evolves_to_ref: ::prost::alloc::string::String,
+    /// Level-up trigger
+    #[prost(int32, optional, tag = "2")]
+    pub level: ::core::option::Option<i32>,
+    /// Item-use trigger
+    #[prost(string, optional, tag = "3")]
+    pub item_ref: ::core::option::Option<::prost::alloc::string::String>,
+    /// Free-form gate (time, friendship, location)
+    #[prost(string, optional, tag = "4")]
+    pub condition: ::core::option::Option<::prost::alloc::string::String>,
+}
+/// Catchable-pet metadata — present only on species that can be caught & trained.
+/// Absent on regular NPCs; the JRPG battle/capture systems gate on `catchable`.
+#[derive(serde::Serialize, serde::Deserialize)]
+#[serde(default)]
+#[derive(Clone, PartialEq, ::prost::Message)]
+pub struct PetInfo {
+    #[prost(bool, tag = "1")]
+    pub catchable: bool,
+    /// 0–255, higher = easier to catch
+    #[prost(int32, optional, tag = "2")]
+    pub capture_rate: ::core::option::Option<i32>,
+    #[prost(enumeration = "GrowthRate", optional, tag = "3")]
+    pub growth_rate: ::core::option::Option<i32>,
+    /// XP granted to victor on defeat
+    #[prost(int32, optional, tag = "4")]
+    pub base_xp_yield: ::core::option::Option<i32>,
+    /// Starting friendship/loyalty
+    #[prost(int32, optional, tag = "5")]
+    pub base_friendship: ::core::option::Option<i32>,
+    /// Male fraction 0.0–1.0; <0 = genderless
+    #[prost(float, optional, tag = "6")]
+    pub gender_ratio: ::core::option::Option<f32>,
+    #[prost(message, repeated, tag = "7")]
+    pub movepool: ::prost::alloc::vec::Vec<PetMovepoolEntry>,
+    #[prost(message, repeated, tag = "9")]
+    pub evolutions: ::prost::alloc::vec::Vec<PetEvolution>,
+    /// Dual-typing for matchups
+    #[prost(enumeration = "Element", optional, tag = "10")]
+    pub secondary_element: ::core::option::Option<i32>,
 }
 /// Generic extension slot — arbitrary key-value pairs for game-specific data
 #[derive(serde::Serialize, serde::Deserialize)]
@@ -568,6 +807,9 @@ pub struct Npc {
     pub animation_set: ::core::option::Option<::prost::alloc::string::String>,
     #[prost(string, optional, tag = "34")]
     pub sound_set: ::core::option::Option<::prost::alloc::string::String>,
+    /// Billboarded pixel-art sprite atlas
+    #[prost(message, optional, tag = "51")]
+    pub sprite_atlas: ::core::option::Option<SpriteAtlas>,
     /// Level & scaling
     #[prost(int32, tag = "15")]
     pub level: i32,
@@ -580,6 +822,20 @@ pub struct Npc {
     /// Stats
     #[prost(message, optional, tag = "18")]
     pub stats: ::core::option::Option<NpcStats>,
+    /// Engine bridge — RareIcon real-time ECS. Optional; ignored by turn-based / other-game consumers.
+    ///
+    /// Maps to RareIcon UnitType enum; loader keys spawn table by this
+    #[prost(int32, optional, tag = "54")]
+    pub unit_type: ::core::option::Option<i32>,
+    /// RareIcon WeaponType enum baseline loadout
+    #[prost(int32, optional, tag = "55")]
+    pub default_weapon: ::core::option::Option<i32>,
+    /// Numeric FirstContact dialogue id (0 = silent)
+    #[prost(int32, optional, tag = "56")]
+    pub dialogue_tree_id: ::core::option::Option<i32>,
+    /// Locale key, e.g. "creature.goblin"
+    #[prost(string, optional, tag = "57")]
+    pub name_key: ::core::option::Option<::prost::alloc::string::String>,
     /// Combat
     #[prost(message, repeated, tag = "19")]
     pub abilities: ::prost::alloc::vec::Vec<NpcAbility>,
@@ -626,6 +882,9 @@ pub struct Npc {
     /// Shared kill credit ID for quest tracking
     #[prost(string, optional, tag = "43")]
     pub kill_credit_ref: ::core::option::Option<::prost::alloc::string::String>,
+    /// Item refs this merchant buys/sells (prices from itemdb)
+    #[prost(string, repeated, tag = "52")]
+    pub shop_items: ::prost::alloc::vec::Vec<::prost::alloc::string::String>,
     /// Spawning
     #[prost(message, repeated, tag = "25")]
     pub spawn_rules: ::prost::alloc::vec::Vec<SpawnRule>,
@@ -643,6 +902,12 @@ pub struct Npc {
     /// Interaction flags
     #[prost(message, optional, tag = "48")]
     pub interaction: ::core::option::Option<InteractionFlags>,
+    /// Ambient population / scatter config (isometric + 3D creature spawners)
+    #[prost(message, optional, tag = "58")]
+    pub creature_config: ::core::option::Option<CreatureConfig>,
+    /// Pet — catchable/trainable creature metadata for JRPG-style capture & battles
+    #[prost(message, optional, tag = "53")]
+    pub pet: ::core::option::Option<PetInfo>,
     /// Extensions — game-specific key-value pairs for future needs
     #[prost(message, repeated, tag = "49")]
     pub extensions: ::prost::alloc::vec::Vec<NpcExtension>,
@@ -659,6 +924,9 @@ pub struct Npc {
 pub struct NpcRegistry {
     #[prost(message, repeated, tag = "1")]
     pub npcs: ::prost::alloc::vec::Vec<Npc>,
+    /// Build stamp for future multiplayer server/client parity checks
+    #[prost(string, optional, tag = "2")]
+    pub content_version: ::core::option::Option<::prost::alloc::string::String>,
 }
 /// NPC archetype flags — an NPC can wear multiple hats (merchant + quest giver)
 #[derive(
@@ -1055,6 +1323,7 @@ pub enum MovementType {
     MovementRandomWander = 1,
     MovementPatrol = 2,
     MovementScripted = 3,
+    MovementAggressive = 4,
 }
 impl MovementType {
     /// String value of the enum field names used in the ProtoBuf definition.
@@ -1067,6 +1336,7 @@ impl MovementType {
             Self::MovementRandomWander => "MOVEMENT_RANDOM_WANDER",
             Self::MovementPatrol => "MOVEMENT_PATROL",
             Self::MovementScripted => "MOVEMENT_SCRIPTED",
+            Self::MovementAggressive => "MOVEMENT_AGGRESSIVE",
         }
     }
     /// Creates an enum from field names used in the ProtoBuf definition.
@@ -1076,6 +1346,7 @@ impl MovementType {
             "MOVEMENT_RANDOM_WANDER" => Some(Self::MovementRandomWander),
             "MOVEMENT_PATROL" => Some(Self::MovementPatrol),
             "MOVEMENT_SCRIPTED" => Some(Self::MovementScripted),
+            "MOVEMENT_AGGRESSIVE" => Some(Self::MovementAggressive),
             _ => None,
         }
     }
@@ -1121,6 +1392,434 @@ impl DifficultyMode {
             "DIFFICULTY_HARD" => Some(Self::DifficultyHard),
             "DIFFICULTY_HEROIC" => Some(Self::DifficultyHeroic),
             "DIFFICULTY_MYTHIC" => Some(Self::DifficultyMythic),
+            _ => None,
+        }
+    }
+}
+/// Sprite animation concept — which clip a billboard atlas row/range represents
+#[derive(
+    serde::Serialize,
+    serde::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::prost::Enumeration,
+)]
+#[repr(i32)]
+pub enum SpriteAnim {
+    Unspecified = 0,
+    Idle = 1,
+    Walk = 2,
+    Crawl = 3,
+    Run = 4,
+    Attack = 5,
+    Cast = 6,
+    Hurt = 7,
+    Death = 8,
+    Spawn = 9,
+    Special = 10,
+}
+impl SpriteAnim {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "SPRITE_ANIM_UNSPECIFIED",
+            Self::Idle => "SPRITE_ANIM_IDLE",
+            Self::Walk => "SPRITE_ANIM_WALK",
+            Self::Crawl => "SPRITE_ANIM_CRAWL",
+            Self::Run => "SPRITE_ANIM_RUN",
+            Self::Attack => "SPRITE_ANIM_ATTACK",
+            Self::Cast => "SPRITE_ANIM_CAST",
+            Self::Hurt => "SPRITE_ANIM_HURT",
+            Self::Death => "SPRITE_ANIM_DEATH",
+            Self::Spawn => "SPRITE_ANIM_SPAWN",
+            Self::Special => "SPRITE_ANIM_SPECIAL",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "SPRITE_ANIM_UNSPECIFIED" => Some(Self::Unspecified),
+            "SPRITE_ANIM_IDLE" => Some(Self::Idle),
+            "SPRITE_ANIM_WALK" => Some(Self::Walk),
+            "SPRITE_ANIM_CRAWL" => Some(Self::Crawl),
+            "SPRITE_ANIM_RUN" => Some(Self::Run),
+            "SPRITE_ANIM_ATTACK" => Some(Self::Attack),
+            "SPRITE_ANIM_CAST" => Some(Self::Cast),
+            "SPRITE_ANIM_HURT" => Some(Self::Hurt),
+            "SPRITE_ANIM_DEATH" => Some(Self::Death),
+            "SPRITE_ANIM_SPAWN" => Some(Self::Spawn),
+            "SPRITE_ANIM_SPECIAL" => Some(Self::Special),
+            _ => None,
+        }
+    }
+}
+/// Sprite view direction — right is the side row mirrored
+#[derive(
+    serde::Serialize,
+    serde::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::prost::Enumeration,
+)]
+#[repr(i32)]
+pub enum SpriteFacing {
+    Unspecified = 0,
+    Front = 1,
+    Side = 2,
+    Back = 3,
+}
+impl SpriteFacing {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "SPRITE_FACING_UNSPECIFIED",
+            Self::Front => "SPRITE_FACING_FRONT",
+            Self::Side => "SPRITE_FACING_SIDE",
+            Self::Back => "SPRITE_FACING_BACK",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "SPRITE_FACING_UNSPECIFIED" => Some(Self::Unspecified),
+            "SPRITE_FACING_FRONT" => Some(Self::Front),
+            "SPRITE_FACING_SIDE" => Some(Self::Side),
+            "SPRITE_FACING_BACK" => Some(Self::Back),
+            _ => None,
+        }
+    }
+}
+/// XP curve governing how much experience a pet needs per level
+#[derive(
+    serde::Serialize,
+    serde::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::prost::Enumeration,
+)]
+#[repr(i32)]
+pub enum GrowthRate {
+    Unspecified = 0,
+    Erratic = 1,
+    Fast = 2,
+    MediumFast = 3,
+    MediumSlow = 4,
+    Slow = 5,
+    Fluctuating = 6,
+}
+impl GrowthRate {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "GROWTH_RATE_UNSPECIFIED",
+            Self::Erratic => "GROWTH_RATE_ERRATIC",
+            Self::Fast => "GROWTH_RATE_FAST",
+            Self::MediumFast => "GROWTH_RATE_MEDIUM_FAST",
+            Self::MediumSlow => "GROWTH_RATE_MEDIUM_SLOW",
+            Self::Slow => "GROWTH_RATE_SLOW",
+            Self::Fluctuating => "GROWTH_RATE_FLUCTUATING",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "GROWTH_RATE_UNSPECIFIED" => Some(Self::Unspecified),
+            "GROWTH_RATE_ERRATIC" => Some(Self::Erratic),
+            "GROWTH_RATE_FAST" => Some(Self::Fast),
+            "GROWTH_RATE_MEDIUM_FAST" => Some(Self::MediumFast),
+            "GROWTH_RATE_MEDIUM_SLOW" => Some(Self::MediumSlow),
+            "GROWTH_RATE_SLOW" => Some(Self::Slow),
+            "GROWTH_RATE_FLUCTUATING" => Some(Self::Fluctuating),
+            _ => None,
+        }
+    }
+}
+/// JRPG move damage class — drives which attack/defense stat applies
+#[derive(
+    serde::Serialize,
+    serde::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::prost::Enumeration,
+)]
+#[repr(i32)]
+pub enum MoveCategory {
+    Unspecified = 0,
+    /// Uses attack vs defense
+    Physical = 1,
+    /// Uses special_attack vs special_defense
+    Special = 2,
+    /// No direct damage; status / stat changes only
+    Status = 3,
+}
+impl MoveCategory {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "MOVE_CATEGORY_UNSPECIFIED",
+            Self::Physical => "MOVE_CATEGORY_PHYSICAL",
+            Self::Special => "MOVE_CATEGORY_SPECIAL",
+            Self::Status => "MOVE_CATEGORY_STATUS",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "MOVE_CATEGORY_UNSPECIFIED" => Some(Self::Unspecified),
+            "MOVE_CATEGORY_PHYSICAL" => Some(Self::Physical),
+            "MOVE_CATEGORY_SPECIAL" => Some(Self::Special),
+            "MOVE_CATEGORY_STATUS" => Some(Self::Status),
+            _ => None,
+        }
+    }
+}
+/// Who a move resolves against in a turn-based battle
+#[derive(
+    serde::Serialize,
+    serde::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::prost::Enumeration,
+)]
+#[repr(i32)]
+pub enum MoveTarget {
+    Unspecified = 0,
+    Enemy = 1,
+    AllEnemies = 2,
+    Self_ = 3,
+    Ally = 4,
+    AllAllies = 5,
+    Field = 6,
+}
+impl MoveTarget {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "MOVE_TARGET_UNSPECIFIED",
+            Self::Enemy => "MOVE_TARGET_ENEMY",
+            Self::AllEnemies => "MOVE_TARGET_ALL_ENEMIES",
+            Self::Self_ => "MOVE_TARGET_SELF",
+            Self::Ally => "MOVE_TARGET_ALLY",
+            Self::AllAllies => "MOVE_TARGET_ALL_ALLIES",
+            Self::Field => "MOVE_TARGET_FIELD",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "MOVE_TARGET_UNSPECIFIED" => Some(Self::Unspecified),
+            "MOVE_TARGET_ENEMY" => Some(Self::Enemy),
+            "MOVE_TARGET_ALL_ENEMIES" => Some(Self::AllEnemies),
+            "MOVE_TARGET_SELF" => Some(Self::Self_),
+            "MOVE_TARGET_ALLY" => Some(Self::Ally),
+            "MOVE_TARGET_ALL_ALLIES" => Some(Self::AllAllies),
+            "MOVE_TARGET_FIELD" => Some(Self::Field),
+            _ => None,
+        }
+    }
+}
+/// How an ambient creature instance is drawn
+#[derive(
+    serde::Serialize,
+    serde::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::prost::Enumeration,
+)]
+#[repr(i32)]
+pub enum CreatureRenderKind {
+    Unspecified = 0,
+    /// Sprite sheet + UV frame animation
+    Sprite = 1,
+    /// Camera-facing mesh billboard
+    Billboard = 2,
+    /// Emissive glow + light source
+    Emissive = 3,
+    /// Individual 3D mesh instance
+    Mesh = 4,
+    /// Batched instanced mesh (shoal / flock)
+    MultiMesh = 5,
+}
+impl CreatureRenderKind {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "CREATURE_RENDER_KIND_UNSPECIFIED",
+            Self::Sprite => "CREATURE_RENDER_KIND_SPRITE",
+            Self::Billboard => "CREATURE_RENDER_KIND_BILLBOARD",
+            Self::Emissive => "CREATURE_RENDER_KIND_EMISSIVE",
+            Self::Mesh => "CREATURE_RENDER_KIND_MESH",
+            Self::MultiMesh => "CREATURE_RENDER_KIND_MULTI_MESH",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "CREATURE_RENDER_KIND_UNSPECIFIED" => Some(Self::Unspecified),
+            "CREATURE_RENDER_KIND_SPRITE" => Some(Self::Sprite),
+            "CREATURE_RENDER_KIND_BILLBOARD" => Some(Self::Billboard),
+            "CREATURE_RENDER_KIND_EMISSIVE" => Some(Self::Emissive),
+            "CREATURE_RENDER_KIND_MESH" => Some(Self::Mesh),
+            "CREATURE_RENDER_KIND_MULTI_MESH" => Some(Self::MultiMesh),
+            _ => None,
+        }
+    }
+}
+/// Time-of-day window an ambient creature populates
+#[derive(
+    serde::Serialize,
+    serde::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::prost::Enumeration,
+)]
+#[repr(i32)]
+pub enum CreatureSchedule {
+    Unspecified = 0,
+    Always = 1,
+    Day = 2,
+    Night = 3,
+}
+impl CreatureSchedule {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "CREATURE_SCHEDULE_UNSPECIFIED",
+            Self::Always => "CREATURE_SCHEDULE_ALWAYS",
+            Self::Day => "CREATURE_SCHEDULE_DAY",
+            Self::Night => "CREATURE_SCHEDULE_NIGHT",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "CREATURE_SCHEDULE_UNSPECIFIED" => Some(Self::Unspecified),
+            "CREATURE_SCHEDULE_ALWAYS" => Some(Self::Always),
+            "CREATURE_SCHEDULE_DAY" => Some(Self::Day),
+            "CREATURE_SCHEDULE_NIGHT" => Some(Self::Night),
+            _ => None,
+        }
+    }
+}
+/// Stat a battle modifier targets (buff / debuff stages, -6..+6)
+#[derive(
+    serde::Serialize,
+    serde::Deserialize,
+    Clone,
+    Copy,
+    Debug,
+    PartialEq,
+    Eq,
+    Hash,
+    PartialOrd,
+    Ord,
+    ::prost::Enumeration,
+)]
+#[repr(i32)]
+pub enum StatKind {
+    Unspecified = 0,
+    Attack = 1,
+    Defense = 2,
+    SpecialAttack = 3,
+    SpecialDefense = 4,
+    Speed = 5,
+    Accuracy = 6,
+    Evasion = 7,
+    CritRate = 8,
+}
+impl StatKind {
+    /// String value of the enum field names used in the ProtoBuf definition.
+    ///
+    /// The values are not transformed in any way and thus are considered stable
+    /// (if the ProtoBuf definition does not change) and safe for programmatic use.
+    pub fn as_str_name(&self) -> &'static str {
+        match self {
+            Self::Unspecified => "STAT_KIND_UNSPECIFIED",
+            Self::Attack => "STAT_KIND_ATTACK",
+            Self::Defense => "STAT_KIND_DEFENSE",
+            Self::SpecialAttack => "STAT_KIND_SPECIAL_ATTACK",
+            Self::SpecialDefense => "STAT_KIND_SPECIAL_DEFENSE",
+            Self::Speed => "STAT_KIND_SPEED",
+            Self::Accuracy => "STAT_KIND_ACCURACY",
+            Self::Evasion => "STAT_KIND_EVASION",
+            Self::CritRate => "STAT_KIND_CRIT_RATE",
+        }
+    }
+    /// Creates an enum from field names used in the ProtoBuf definition.
+    pub fn from_str_name(value: &str) -> ::core::option::Option<Self> {
+        match value {
+            "STAT_KIND_UNSPECIFIED" => Some(Self::Unspecified),
+            "STAT_KIND_ATTACK" => Some(Self::Attack),
+            "STAT_KIND_DEFENSE" => Some(Self::Defense),
+            "STAT_KIND_SPECIAL_ATTACK" => Some(Self::SpecialAttack),
+            "STAT_KIND_SPECIAL_DEFENSE" => Some(Self::SpecialDefense),
+            "STAT_KIND_SPEED" => Some(Self::Speed),
+            "STAT_KIND_ACCURACY" => Some(Self::Accuracy),
+            "STAT_KIND_EVASION" => Some(Self::Evasion),
+            "STAT_KIND_CRIT_RATE" => Some(Self::CritRate),
             _ => None,
         }
     }

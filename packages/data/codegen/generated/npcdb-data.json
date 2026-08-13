@@ -16,7 +16,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_ARCANE",
       "level": 16,
       "stats": {
@@ -196,7 +196,7 @@
       "rarity": "NPC_RARITY_COMMON",
       "personality": "PERSONALITY_CUNNING",
       "rank": "NPC_RANK_NORMAL",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 2,
       "stats": {
         "hp": 50,
@@ -267,7 +267,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_HOLY",
       "level": 16,
       "stats": {
@@ -447,7 +447,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_FEARFUL",
       "rank": "NPC_RANK_NORMAL",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 2,
       "stats": {
         "hp": 45,
@@ -523,7 +523,7 @@
       "rarity": "NPC_RARITY_COMMON",
       "personality": "PERSONALITY_AGGRESSIVE",
       "rank": "NPC_RANK_NORMAL",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 2,
       "stats": {
         "hp": 55,
@@ -596,7 +596,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_CHEERFUL",
       "rank": "NPC_RANK_NORMAL",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 1,
       "img": "/assets/npc/barkeep.webp",
       "role": "Tavern Keeper",
@@ -674,7 +674,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_FIRE",
       "level": 16,
       "stats": {
@@ -855,7 +855,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_FEARFUL",
       "rank": "NPC_RANK_ELITE",
-      "family": "undead",
+      "family": "CREATURE_FAMILY_UNDEAD",
       "level": 2,
       "stats": {
         "hp": 22,
@@ -976,7 +976,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_NOBLE",
       "rank": "NPC_RANK_ELITE",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 3,
       "stats": {
         "hp": 85,
@@ -1053,7 +1053,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_FERAL",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_POISON",
       "level": 1,
       "stats": {
@@ -1167,7 +1167,7 @@
       "rarity": "NPC_RARITY_COMMON",
       "personality": "PERSONALITY_FEARFUL",
       "rank": "NPC_RANK_NORMAL",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "level": 1,
       "stats": {
         "hp": 5,
@@ -1229,7 +1229,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_NOBLE",
       "rank": "NPC_RANK_NORMAL",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 3,
       "stats": {
         "hp": 60,
@@ -1305,7 +1305,7 @@
       "rarity": "NPC_RARITY_EPIC",
       "personality": "PERSONALITY_AGGRESSIVE",
       "rank": "NPC_RANK_RARE_ELITE",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "element": "ELEMENT_SHADOW",
       "level": 5,
       "stats": {
@@ -1452,7 +1452,7 @@
       "rarity": "NPC_RARITY_COMMON",
       "personality": "PERSONALITY_FEARFUL",
       "rank": "NPC_RANK_NORMAL",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "level": 1,
       "stats": {
         "hp": 40,
@@ -1508,7 +1508,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "construct",
+      "family": "CREATURE_FAMILY_CONSTRUCT",
       "element": "ELEMENT_EARTH",
       "level": 1,
       "stats": {
@@ -1618,7 +1618,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_FERAL",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "level": 1,
       "animationSet": "bird",
       "spriteAtlas": {
@@ -1750,7 +1750,7 @@
       "rarity": "NPC_RARITY_EPIC",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "construct",
+      "family": "CREATURE_FAMILY_CONSTRUCT",
       "element": "ELEMENT_ARCANE",
       "level": 3,
       "stats": {
@@ -1883,7 +1883,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_AGGRESSIVE",
       "rank": "NPC_RANK_ELITE",
-      "family": "undead",
+      "family": "CREATURE_FAMILY_UNDEAD",
       "element": "ELEMENT_SHADOW",
       "level": 2,
       "stats": {
@@ -2015,7 +2015,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_SHADOW",
       "level": 16,
       "stats": {
@@ -2196,7 +2196,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_SHADOW",
       "level": 16,
       "stats": {
@@ -2376,7 +2376,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_FERAL",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "level": 1,
       "stats": {
         "hp": 12,
@@ -2483,7 +2483,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_FEARFUL",
       "rank": "NPC_RANK_ELITE",
-      "family": "elemental",
+      "family": "CREATURE_FAMILY_ELEMENTAL",
       "element": "ELEMENT_FIRE",
       "level": 2,
       "stats": {
@@ -2611,7 +2611,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_FIRE",
       "level": 16,
       "stats": {
@@ -2792,7 +2792,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_FEARFUL",
       "rank": "NPC_RANK_ELITE",
-      "family": "demon",
+      "family": "CREATURE_FAMILY_DEMON",
       "element": "ELEMENT_FIRE",
       "level": 2,
       "stats": {
@@ -2918,7 +2918,7 @@
       "rarity": "NPC_RARITY_COMMON",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_NORMAL",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 3,
       "stats": {
         "hp": 80,
@@ -2983,7 +2983,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_ICE",
       "level": 16,
       "stats": {
@@ -3162,7 +3162,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_FERAL",
       "rank": "NPC_RANK_ELITE",
-      "family": "plant",
+      "family": "CREATURE_FAMILY_PLANT",
       "element": "ELEMENT_POISON",
       "level": 2,
       "stats": {
@@ -3287,7 +3287,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 4,
       "stats": {
         "hp": 140,
@@ -3352,7 +3352,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_ICE",
       "level": 16,
       "stats": {
@@ -3532,7 +3532,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_CUNNING",
       "rank": "NPC_RANK_ELITE",
-      "family": "construct",
+      "family": "CREATURE_FAMILY_CONSTRUCT",
       "level": 3,
       "stats": {
         "hp": 22,
@@ -3666,7 +3666,7 @@
       "rarity": "NPC_RARITY_EPIC",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_RARE_ELITE",
-      "family": "construct",
+      "family": "CREATURE_FAMILY_CONSTRUCT",
       "element": "ELEMENT_ARCANE",
       "level": 5,
       "stats": {
@@ -3814,7 +3814,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_FERAL",
       "rank": "NPC_RANK_ELITE",
-      "family": "aberration",
+      "family": "CREATURE_FAMILY_ABERRATION",
       "level": 1,
       "spriteAtlas": {
         "atlasRef": "/Game/NPC/Slime/T_Slime_Crawl",
@@ -3950,7 +3950,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_AGGRESSIVE",
       "rank": "NPC_RANK_ELITE",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 5,
       "stats": {
         "hp": 140,
@@ -4026,7 +4026,7 @@
       "rarity": "NPC_RARITY_COMMON",
       "personality": "PERSONALITY_AGGRESSIVE",
       "rank": "NPC_RANK_NORMAL",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 1,
       "stats": {
         "hp": 40,
@@ -4094,7 +4094,7 @@
       "rarity": "NPC_RARITY_COMMON",
       "personality": "PERSONALITY_PASSIVE",
       "rank": "NPC_RANK_MINION",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_NATURE",
       "level": 1,
       "stats": {
@@ -4126,12 +4126,12 @@
         }
       ],
       "creatureConfig": {
-        "renderKind": "sprite",
+        "renderKind": "CREATURE_RENDER_KIND_SPRITE",
         "poolSize": 8,
         "chunkSize": 16,
         "perChunk": 1,
         "spawnChance": 0.35,
-        "schedule": "day"
+        "schedule": "CREATURE_SCHEDULE_DAY"
       },
       "lore": "Green Toads are common grassland amphibians known for their rhythmic croaking and sudden, arcing hops.\nThey use a sprite-sheet animation with idle, croak emote, and hop cycles across a 9x5 frame grid.\nOccasionally they pause to puff up their throat in a charming display before launching to a new spot.\n",
       "credits": "KBVE Isometric ambient creature system.\n"
@@ -4152,7 +4152,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_SHADOW",
       "level": 16,
       "stats": {
@@ -4331,7 +4331,7 @@
       "rarity": "NPC_RARITY_LEGENDARY",
       "personality": "PERSONALITY_NOBLE",
       "rank": "NPC_RANK_WORLD_BOSS",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 8,
       "stats": {
         "hp": 200,
@@ -4418,7 +4418,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_NOBLE",
       "rank": "NPC_RANK_ELITE",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 4,
       "stats": {
         "hp": 120,
@@ -4503,7 +4503,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_NOBLE",
       "rank": "NPC_RANK_NORMAL",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 1,
       "img": "/assets/npc/kress.png",
       "role": "Fleet Dispatcher",
@@ -4586,7 +4586,7 @@
       "rarity": "NPC_RARITY_COMMON",
       "personality": "PERSONALITY_PASSIVE",
       "rank": "NPC_RANK_MINION",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_NATURE",
       "level": 1,
       "stats": {
@@ -4636,7 +4636,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_LIGHT",
       "level": 16,
       "stats": {
@@ -4816,7 +4816,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_CUNNING",
       "rank": "NPC_RANK_ELITE",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 4,
       "stats": {
         "hp": 45,
@@ -4887,7 +4887,7 @@
       "rarity": "NPC_RARITY_COMMON",
       "personality": "PERSONALITY_PASSIVE",
       "rank": "NPC_RANK_MINION",
-      "family": "spirit",
+      "family": "CREATURE_FAMILY_SPIRIT",
       "element": "ELEMENT_LIGHT",
       "level": 1,
       "stats": {
@@ -4919,12 +4919,12 @@
         }
       ],
       "creatureConfig": {
-        "renderKind": "emissive",
+        "renderKind": "CREATURE_RENDER_KIND_EMISSIVE",
         "poolSize": 80,
         "chunkSize": 12,
         "perChunk": 3,
         "spawnChance": 0.55,
-        "schedule": "night"
+        "schedule": "CREATURE_SCHEDULE_NIGHT"
       },
       "lore": "Meadow Fireflies are gentle spirits of fading starlight, drawn to open grasslands after dusk.\nTheir synchronized double-pulse glow has inspired countless folk tales about fairy lanterns\nguiding lost travelers home.\n",
       "credits": "KBVE Isometric ambient creature system.\n"
@@ -4944,7 +4944,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_CHEERFUL",
       "rank": "NPC_RANK_NORMAL",
-      "family": "mechanical",
+      "family": "CREATURE_FAMILY_MECHANICAL",
       "element": "ELEMENT_LIGHTNING",
       "level": 5,
       "stats": {
@@ -5170,7 +5170,7 @@
       "rarity": "NPC_RARITY_COMMON",
       "personality": "PERSONALITY_NOBLE",
       "rank": "NPC_RANK_NORMAL",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 1,
       "stats": {
         "hp": 30,
@@ -5245,7 +5245,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_CHEERFUL",
       "rank": "NPC_RANK_NORMAL",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 1,
       "img": "/assets/npc/mira.png",
       "role": "Logistics Officer",
@@ -5300,7 +5300,7 @@
       "rarity": "NPC_RARITY_COMMON",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_NORMAL",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 1,
       "img": "/assets/entity/monks.png",
       "role": "Shrine Keeper",
@@ -5370,7 +5370,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_NATURE",
       "level": 16,
       "stats": {
@@ -5552,7 +5552,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_FERAL",
       "rank": "NPC_RANK_ELITE",
-      "family": "plant",
+      "family": "CREATURE_FAMILY_PLANT",
       "element": "ELEMENT_POISON",
       "level": 1,
       "stats": {
@@ -5660,7 +5660,7 @@
       "rarity": "NPC_RARITY_COMMON",
       "personality": "PERSONALITY_AGGRESSIVE",
       "rank": "NPC_RANK_NORMAL",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 1,
       "stats": {
         "hp": 50,
@@ -5692,7 +5692,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_AGGRESSIVE",
       "rank": "NPC_RANK_ELITE",
-      "family": "spirit",
+      "family": "CREATURE_FAMILY_SPIRIT",
       "element": "ELEMENT_SHADOW",
       "level": 3,
       "stats": {
@@ -5826,7 +5826,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_AGGRESSIVE",
       "rank": "NPC_RANK_ELITE",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 4,
       "stats": {
         "hp": 120,
@@ -5891,7 +5891,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_ARCANE",
       "level": 16,
       "stats": {
@@ -6071,7 +6071,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_AGGRESSIVE",
       "rank": "NPC_RANK_ELITE",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 2,
       "img": "/assets/npc/reno.png",
       "role": "Combat Lieutenant",
@@ -6126,7 +6126,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_CUNNING",
       "rank": "NPC_RANK_NORMAL",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 3,
       "stats": {
         "hp": 45,
@@ -6195,7 +6195,7 @@
       "rarity": "NPC_RARITY_COMMON",
       "personality": "PERSONALITY_CUNNING",
       "rank": "NPC_RANK_NORMAL",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 1,
       "stats": {
         "hp": 35,
@@ -6271,7 +6271,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_CUNNING",
       "rank": "NPC_RANK_ELITE",
-      "family": "spirit",
+      "family": "CREATURE_FAMILY_SPIRIT",
       "element": "ELEMENT_SHADOW",
       "level": 2,
       "stats": {
@@ -6399,7 +6399,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_CUNNING",
       "rank": "NPC_RANK_ELITE",
-      "family": "spirit",
+      "family": "CREATURE_FAMILY_SPIRIT",
       "element": "ELEMENT_SHADOW",
       "level": 3,
       "stats": {
@@ -6533,7 +6533,7 @@
       "rarity": "NPC_RARITY_COMMON",
       "personality": "PERSONALITY_FEARFUL",
       "rank": "NPC_RANK_NORMAL",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "level": 1,
       "stats": {
         "hp": 20,
@@ -6591,7 +6591,7 @@
       "rarity": "NPC_RARITY_COMMON",
       "personality": "PERSONALITY_CHEERFUL",
       "rank": "NPC_RANK_NORMAL",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_NONE",
       "level": 5,
       "stats": {
@@ -6791,7 +6791,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_NOBLE",
       "rank": "NPC_RANK_NORMAL",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 1,
       "role": "Base Character / Player Avatar",
       "tags": [
@@ -6830,7 +6830,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_NORMAL",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 1,
       "img": "/assets/npc/sila.png",
       "role": "Vault Keeper",
@@ -6885,7 +6885,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "undead",
+      "family": "CREATURE_FAMILY_UNDEAD",
       "level": 2,
       "stats": {
         "hp": 30,
@@ -7027,7 +7027,7 @@
       "rarity": "NPC_RARITY_COMMON",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_NORMAL",
-      "family": "undead",
+      "family": "CREATURE_FAMILY_UNDEAD",
       "level": 1,
       "stats": {
         "attack": 4,
@@ -7060,7 +7060,7 @@
       "rarity": "NPC_RARITY_COMMON",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_NORMAL",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 2,
       "stats": {
         "hp": 70,
@@ -7147,7 +7147,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_FIRE",
       "level": 16,
       "stats": {
@@ -7331,7 +7331,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_POISON",
       "level": 16,
       "stats": {
@@ -7513,7 +7513,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "construct",
+      "family": "CREATURE_FAMILY_CONSTRUCT",
       "element": "ELEMENT_EARTH",
       "level": 3,
       "stats": {
@@ -7649,7 +7649,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_LIGHTNING",
       "level": 16,
       "stats": {
@@ -7831,7 +7831,7 @@
       "rarity": "NPC_RARITY_COMMON",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_NORMAL",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 1,
       "img": "/assets/npc/tann.png",
       "role": "Field Engineer",
@@ -7886,7 +7886,7 @@
       "rarity": "NPC_RARITY_LEGENDARY",
       "personality": "PERSONALITY_ANCIENT",
       "rank": "NPC_RANK_WORLD_BOSS",
-      "family": "undead",
+      "family": "CREATURE_FAMILY_UNDEAD",
       "element": "ELEMENT_SHADOW",
       "level": 5,
       "stats": {
@@ -8058,7 +8058,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_FERAL",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_POISON",
       "level": 3,
       "stats": {
@@ -8192,7 +8192,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_NATURE",
       "level": 16,
       "stats": {
@@ -8374,7 +8374,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_CUNNING",
       "rank": "NPC_RANK_NORMAL",
-      "family": "humanoid",
+      "family": "CREATURE_FAMILY_HUMANOID",
       "level": 1,
       "img": "/assets/npc/vex.png",
       "role": "Exchange Keeper",
@@ -8438,7 +8438,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_CUNNING",
       "rank": "NPC_RANK_ELITE",
-      "family": "aberration",
+      "family": "CREATURE_FAMILY_ABERRATION",
       "element": "ELEMENT_ARCANE",
       "level": 3,
       "stats": {
@@ -8574,7 +8574,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_SHADOW",
       "level": 16,
       "stats": {
@@ -8754,7 +8754,7 @@
       "rarity": "NPC_RARITY_RARE",
       "personality": "PERSONALITY_PASSIVE",
       "rank": "NPC_RANK_ELITE",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "level": 6,
       "stats": {
         "hp": 320,
@@ -8816,7 +8816,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_AGGRESSIVE",
       "rank": "NPC_RANK_NORMAL",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "level": 2,
       "stats": {
         "hp": 35,
@@ -8879,7 +8879,7 @@
       "rarity": "NPC_RARITY_COMMON",
       "personality": "PERSONALITY_PASSIVE",
       "rank": "NPC_RANK_MINION",
-      "family": "beast",
+      "family": "CREATURE_FAMILY_BEAST",
       "element": "ELEMENT_NATURE",
       "level": 1,
       "stats": {
@@ -8911,12 +8911,12 @@
         }
       ],
       "creatureConfig": {
-        "renderKind": "billboard",
+        "renderKind": "CREATURE_RENDER_KIND_BILLBOARD",
         "poolSize": 14,
         "chunkSize": 16,
         "perChunk": 2,
         "spawnChance": 0.45,
-        "schedule": "day"
+        "schedule": "CREATURE_SCHEDULE_DAY"
       },
       "lore": "Woodland Butterflies come in seven distinct color morphs — from monarch orange to purple emperor.\nThey drift in from the edges of the visible world, flutter around a wander anchor, and glide away\nwhen they stray too far. Gentle wind pushes them along their path.\n",
       "credits": "KBVE Isometric ambient creature system.\n"
@@ -8935,7 +8935,7 @@
       "rarity": "NPC_RARITY_EPIC",
       "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_ELITE",
-      "family": "undead",
+      "family": "CREATURE_FAMILY_UNDEAD",
       "element": "ELEMENT_SHADOW",
       "level": 4,
       "stats": {
@@ -9018,7 +9018,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_PASSIVE",
       "rank": "NPC_RANK_ELITE",
-      "family": "dragon",
+      "family": "CREATURE_FAMILY_DRAGON",
       "element": "ELEMENT_WIND",
       "level": 2,
       "stats": {
@@ -9072,7 +9072,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_PASSIVE",
       "rank": "NPC_RANK_ELITE",
-      "family": "dragon",
+      "family": "CREATURE_FAMILY_DRAGON",
       "element": "ELEMENT_FIRE",
       "level": 2,
       "stats": {
@@ -9126,7 +9126,7 @@
       "rarity": "NPC_RARITY_UNCOMMON",
       "personality": "PERSONALITY_PASSIVE",
       "rank": "NPC_RANK_ELITE",
-      "family": "dragon",
+      "family": "CREATURE_FAMILY_DRAGON",
       "element": "ELEMENT_ICE",
       "level": 2,
       "stats": {
@@ -9180,7 +9180,7 @@
       "rarity": "NPC_RARITY_COMMON",
       "personality": "PERSONALITY_AGGRESSIVE",
       "rank": "NPC_RANK_NORMAL",
-      "family": "undead",
+      "family": "CREATURE_FAMILY_UNDEAD",
       "level": 2,
       "stats": {
         "hp": 50,

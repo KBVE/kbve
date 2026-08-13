@@ -7,20 +7,7 @@ use godot::classes::{
 use godot::prelude::*;
 
 use crate::world::terrain::QTerrain;
-
-fn hash32(mut x: u32) -> u32 {
-    x ^= x >> 16;
-    x = x.wrapping_mul(0x7feb352d);
-    x ^= x >> 15;
-    x = x.wrapping_mul(0x846ca68b);
-    x ^= x >> 16;
-    x
-}
-
-fn randf(state: &mut u32) -> f32 {
-    *state = hash32(*state);
-    (*state >> 8) as f32 / 16_777_216.0
-}
+use crate::world::{hash32, randf};
 
 #[derive(Clone, Copy, Default)]
 struct Fish {

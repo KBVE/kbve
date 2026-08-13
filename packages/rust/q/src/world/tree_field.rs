@@ -7,7 +7,7 @@ use godot::prelude::*;
 use godot::tools::try_load;
 
 use crate::world::flora_compute::{FloraCompute, TerrainOcclusion};
-use crate::world::terrain::QTerrain;
+use crate::world::{TerrainSnapshot, hash32, randf, world_aabb};
 
 struct Growth {
     lateral_angle: [(f32, f32); 3],
@@ -116,20 +116,6 @@ const SPECIES: &[TreeSpecies] = &[
     },
 ];
 
-fn hash32(mut x: u32) -> u32 {
-    x ^= x >> 16;
-    x = x.wrapping_mul(0x7feb352d);
-    x ^= x >> 15;
-    x = x.wrapping_mul(0x846ca68b);
-    x ^= x >> 16;
-    x
-}
-
-fn randf(state: &mut u32) -> f32 {
-    *state = hash32(*state);
-    (*state >> 8) as f32 / 16_777_216.0
-}
-
 #[derive(GodotClass)]
 #[class(init, base = Node3D)]
 pub struct QTreeField {
@@ -202,59 +188,19 @@ impl QTreeField {
             .base()
             .get_node_or_null(&self.player_path)
             .and_then(|n| n.try_cast::<Node3D>().ok());
-        let terrain = if self.terrain_path.is_empty() {
-            self.base().get_node_or_null("../Terrain")
-        } else {
-            self.base().get_node_or_null(&self.terrain_path)
-        }
-        .and_then(|n| n.try_cast::<QTerrain>().ok());
-        let Some(terrain) = terrain else {
+        let node = self.base().clone().upcast::<godot::classes::Node>();
+        let Some(terrain) = crate::world::resolve_terrain(&node, &self.terrain_path) else {
             godot_error!("[QTreeField] no QTerrain found; trees disabled");
             return true;
         };
-        let (heights, res, extent, water, road_mask, road_res) = {
-            let t = terrain.bind();
-            let Some((h, r)) = t.cpu_heights() else {
-                return false;
-            };
-            let (rm, rr) = t
-                .road_mask()
-                .map(|(m, r)| (m.to_vec(), r))
-                .unwrap_or((Vec::new(), 0));
-            (h.to_vec(), r, t.world_extent(), t.water(), rm, rr)
+        let Some(terra) = TerrainSnapshot::take(&terrain) else {
+            return false;
         };
-
-        // Keep the carriageway clear; grass already honours this through the
-        // clearance map, but scatter placement never consulted it.
-        let on_road = |x: f32, z: f32| -> f32 {
-            if road_res < 2 {
-                return 0.0;
-            }
-            let u = ((x + extent) / (extent * 2.0)).clamp(0.0, 1.0);
-            let v = ((z + extent) / (extent * 2.0)).clamp(0.0, 1.0);
-            let px = ((u * (road_res - 1) as f32) as i32).clamp(0, road_res - 1);
-            let pz = ((v * (road_res - 1) as f32) as i32).clamp(0, road_res - 1);
-            road_mask[(pz * road_res + px) as usize] as f32 / 255.0
-        };
+        let extent = terra.extent;
+        let water = terra.water;
         self.extent = extent;
 
-        let sample = |x: f32, z: f32| -> f32 {
-            let fx =
-                (((x + extent) / (extent * 2.0)).clamp(0.001, 0.999) * res as f32 - 0.5).max(0.0);
-            let fz =
-                (((z + extent) / (extent * 2.0)).clamp(0.001, 0.999) * res as f32 - 0.5).max(0.0);
-            let x0 = (fx as i32).clamp(0, res - 2);
-            let z0 = (fz as i32).clamp(0, res - 2);
-            let tx = (fx - x0 as f32).clamp(0.0, 1.0);
-            let tz = (fz - z0 as f32).clamp(0.0, 1.0);
-            let h00 = heights[(z0 * res + x0) as usize];
-            let h10 = heights[(z0 * res + x0 + 1) as usize];
-            let h01 = heights[((z0 + 1) * res + x0) as usize];
-            let h11 = heights[((z0 + 1) * res + x0 + 1) as usize];
-            let a = h00 + (h10 - h00) * tx;
-            let b = h01 + (h11 - h01) * tx;
-            a + (b - a) * tz
-        };
+        let sample = |x: f32, z: f32| -> f32 { terra.height(x, z) };
 
         let mut noise = FastNoiseLite::with_seed(self.tree_seed + 5);
         noise.set_noise_type(Some(NoiseType::OpenSimplex2S));
@@ -279,7 +225,7 @@ impl QTreeField {
                 if noise.get_noise_2d(x, z) < self.grove_threshold {
                     continue;
                 }
-                if on_road(x, z) > 0.12 {
+                if terra.on_road(x, z) > 0.12 {
                     continue;
                 }
                 let h = sample(x, z);
@@ -320,11 +266,8 @@ impl QTreeField {
             return true;
         };
         let scenario = world.get_scenario();
-        let e = extent + 10.0;
-        let aabb = Aabb::new(
-            Vector3::new(-e, -40.0, -e),
-            Vector3::new(e * 2.0, 120.0, e * 2.0),
-        );
+        let aabb = world_aabb(extent);
+        let (occl_h, occl_res) = terra.raw_heights();
 
         for (i, sp) in SPECIES.iter().enumerate() {
             let cands: Vec<f32> = self
@@ -383,7 +326,7 @@ impl QTreeField {
                 true,
                 true,
                 2,
-                TerrainOcclusion::new(&heights, res, extent, 25.0),
+                TerrainOcclusion::new(occl_h, occl_res, extent, 25.0),
             );
             let far_c = FloraCompute::new(
                 scenario,
@@ -403,7 +346,7 @@ impl QTreeField {
                 true,
                 false,
                 2,
-                TerrainOcclusion::new(&heights, res, extent, 25.0),
+                TerrainOcclusion::new(occl_h, occl_res, extent, 25.0),
             );
             match (near_c, far_c) {
                 (Some(n), Some(f)) => {

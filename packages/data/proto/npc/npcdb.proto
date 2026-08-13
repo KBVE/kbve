@@ -163,6 +163,24 @@ enum MoveTarget {
   MOVE_TARGET_FIELD = 6;
 }
 
+// How an ambient creature instance is drawn
+enum CreatureRenderKind {
+  CREATURE_RENDER_KIND_UNSPECIFIED = 0;
+  CREATURE_RENDER_KIND_SPRITE = 1;      // Sprite sheet + UV frame animation
+  CREATURE_RENDER_KIND_BILLBOARD = 2;   // Camera-facing mesh billboard
+  CREATURE_RENDER_KIND_EMISSIVE = 3;    // Emissive glow + light source
+  CREATURE_RENDER_KIND_MESH = 4;        // Individual 3D mesh instance
+  CREATURE_RENDER_KIND_MULTI_MESH = 5;  // Batched instanced mesh (shoal / flock)
+}
+
+// Time-of-day window an ambient creature populates
+enum CreatureSchedule {
+  CREATURE_SCHEDULE_UNSPECIFIED = 0;
+  CREATURE_SCHEDULE_ALWAYS = 1;
+  CREATURE_SCHEDULE_DAY = 2;
+  CREATURE_SCHEDULE_NIGHT = 3;
+}
+
 // Stat a battle modifier targets (buff / debuff stages, -6..+6)
 enum StatKind {
   STAT_KIND_UNSPECIFIED = 0;
@@ -429,6 +447,18 @@ message SpatialProperties {
   optional bool can_fly = 7;
 }
 
+// Ambient population config — how many of this creature exist in the world and
+// how they are scattered across it. Game-agnostic: drives chunk-scatter spawners
+// for 2D billboards and 3D instanced meshes alike.
+message CreatureConfig {
+  CreatureRenderKind render_kind = 1;   // Render pipeline for a spawned instance
+  int32 pool_size = 2;                  // Max pooled instances alive at once
+  float chunk_size = 3;                 // World-space chunk edge for deterministic placement
+  int32 per_chunk = 4;                  // Potential spawn slots per chunk
+  float spawn_chance = 5;               // 0.0–1.0 fraction of slots that fill
+  CreatureSchedule schedule = 6;        // When this creature is present
+}
+
 // Interaction flags — what players can do with this NPC
 message InteractionFlags {
   optional bool is_interactable = 1;       // Can be clicked / targeted
@@ -616,6 +646,9 @@ message Npc {
 
   // Interaction flags
   optional InteractionFlags interaction = 48;
+
+  // Ambient population / scatter config (isometric + 3D creature spawners)
+  optional CreatureConfig creature_config = 58;
 
   // Pet — catchable/trainable creature metadata for JRPG-style capture & battles
   optional PetInfo pet = 53;

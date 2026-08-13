@@ -199,6 +199,30 @@ export type StatKindValue = (typeof StatKinds)[number];
 
 export const StatKindSchema = z.enum(StatKinds);
 
+export const CreatureRenderKinds = [
+	'unspecified',
+	'sprite',
+	'billboard',
+	'emissive',
+	'mesh',
+	'multi_mesh',
+] as const;
+
+export type CreatureRenderKindValue = (typeof CreatureRenderKinds)[number];
+
+export const CreatureRenderKindSchema = z.enum(CreatureRenderKinds);
+
+export const CreatureSchedules = [
+	'unspecified',
+	'always',
+	'day',
+	'night',
+] as const;
+
+export type CreatureScheduleValue = (typeof CreatureSchedules)[number];
+
+export const CreatureScheduleSchema = z.enum(CreatureSchedules);
+
 // SpriteClip
 export const SpriteClipSchema = z.object({
 	anim: z.string(),
@@ -532,6 +556,18 @@ export const InteractionFlagsSchema = z
 
 export type InteractionFlags = z.infer<typeof InteractionFlagsSchema>;
 
+// CreatureConfig
+export const CreatureConfigSchema = z.object({
+	render_kind: CreatureRenderKindSchema,
+	pool_size: z.number(),
+	chunk_size: z.number(),
+	per_chunk: z.number(),
+	spawn_chance: z.number(),
+	schedule: CreatureScheduleSchema,
+});
+
+export type CreatureConfig = z.infer<typeof CreatureConfigSchema>;
+
 // PetMovepoolEntry
 export const PetMovepoolEntrySchema = z.object({
 	level: z.number(),
@@ -634,6 +670,7 @@ export const NpcSchema = z.object({
 	party_scaling: PartyScalingSchema.optional(),
 	spatial: SpatialPropertiesSchema.optional(),
 	interaction: InteractionFlagsSchema.optional(),
+	creature_config: CreatureConfigSchema.optional(),
 	pet: PetInfoSchema.optional(),
 	extensions: z.array(NpcExtensionSchema).optional(),
 	credits: z.string().optional(),

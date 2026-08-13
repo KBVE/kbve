@@ -154,171 +154,185 @@ namespace KBVE.Proto.Npc {
             "AkgEiAEBEhUKCGNhbl9zd2ltGAYgASgISAWIAQESFAoHY2FuX2ZseRgHIAEo",
             "CEgGiAEBQg8KDV9jb21iYXRfcmVhY2hCEgoQX2JvdW5kaW5nX3JhZGl1c0IN",
             "Cgtfd2Fsa19zcGVlZEIMCgpfcnVuX3NwZWVkQgwKCl9mbHlfc3BlZWRCCwoJ",
-            "X2Nhbl9zd2ltQgoKCF9jYW5fZmx5IsoCChBJbnRlcmFjdGlvbkZsYWdzEhwK",
-            "D2lzX2ludGVyYWN0YWJsZRgBIAEoCEgAiAEBEhoKDWlzX2F0dGFja2FibGUY",
-            "AiABKAhIAYgBARIaCg1pc190YXJnZXRhYmxlGAMgASgISAKIAQESGQoMaXNf",
-            "c2tpbm5hYmxlGAQgASgISAOIAQESGAoLaXNfaGVyYmFibGUYBSABKAhIBIgB",
-            "ARIYCgtpc19taW5lYWJsZRgGIAEoCEgFiAEBEhgKC2lzX2NpdmlsaWFuGAcg",
-            "ASgISAaIAQFCEgoQX2lzX2ludGVyYWN0YWJsZUIQCg5faXNfYXR0YWNrYWJs",
-            "ZUIQCg5faXNfdGFyZ2V0YWJsZUIPCg1faXNfc2tpbm5hYmxlQg4KDF9pc19o",
-            "ZXJiYWJsZUIOCgxfaXNfbWluZWFibGVCDgoMX2lzX2NpdmlsaWFuIosBCgpT",
-            "cHJpdGVDbGlwEh0KBGFuaW0YASABKA4yDy5ucGMuU3ByaXRlQW5pbRILCgNy",
-            "b3cYAiABKAUSEwoLc3RhcnRfZnJhbWUYAyABKAUSEwoLZnJhbWVfY291bnQY",
-            "BCABKAUSCwoDZnBzGAUgASgCEhEKBGxvb3AYBiABKAhIAIgBAUIHCgVfbG9v",
-            "cCKgAwoLU3ByaXRlQXRsYXMSEQoJYXRsYXNfcmVmGAEgASgJEg8KB2NvbHVt",
-            "bnMYAiABKAUSDAoEcm93cxgDIAEoBRIXCgpjZWxsX3dpZHRoGAQgASgFSACI",
-            "AQESGAoLY2VsbF9oZWlnaHQYBSABKAVIAYgBARIRCglyb3dfZnJvbnQYBiAB",
-            "KAUSEAoIcm93X3NpZGUYByABKAUSEAoIcm93X2JhY2sYCCABKAUSIwoWbWly",
-            "cm9yX3JpZ2h0X2Zyb21fc2lkZRgJIAEoCEgCiAEBEhgKC3dvcmxkX3dpZHRo",
-            "GAogASgCSAOIAQESGQoMd29ybGRfaGVpZ2h0GAsgASgCSASIAQESFAoHcGl2",
-            "b3RfehgMIAEoAkgFiAEBEh4KBWNsaXBzGA0gAygLMg8ubnBjLlNwcml0ZUNs",
-            "aXBCDQoLX2NlbGxfd2lkdGhCDgoMX2NlbGxfaGVpZ2h0QhkKF19taXJyb3Jf",
-            "cmlnaHRfZnJvbV9zaWRlQg4KDF93b3JsZF93aWR0aEIPCg1fd29ybGRfaGVp",
-            "Z2h0QgoKCF9waXZvdF96IooBCgpTdGF0Q2hhbmdlEhsKBHN0YXQYASABKA4y",
-            "DS5ucGMuU3RhdEtpbmQSDgoGc3RhZ2VzGAIgASgFEiQKBnRhcmdldBgDIAEo",
-            "DjIPLm5wYy5Nb3ZlVGFyZ2V0SACIAQESEwoGY2hhbmNlGAQgASgCSAGIAQFC",
-            "CQoHX3RhcmdldEIJCgdfY2hhbmNlIjUKEFBldE1vdmVwb29sRW50cnkSDQoF",
-            "bGV2ZWwYASABKAUSEgoKYWJpbGl0eV9pZBgCIAEoCSKOAQoMUGV0RXZvbHV0",
-            "aW9uEhYKDmV2b2x2ZXNfdG9fcmVmGAEgASgJEhIKBWxldmVsGAIgASgFSACI",
-            "AQESFQoIaXRlbV9yZWYYAyABKAlIAYgBARIWCgljb25kaXRpb24YBCABKAlI",
-            "AogBAUIICgZfbGV2ZWxCCwoJX2l0ZW1fcmVmQgwKCl9jb25kaXRpb24izAMK",
-            "B1BldEluZm8SEQoJY2F0Y2hhYmxlGAEgASgIEhkKDGNhcHR1cmVfcmF0ZRgC",
-            "IAEoBUgAiAEBEikKC2dyb3d0aF9yYXRlGAMgASgOMg8ubnBjLkdyb3d0aFJh",
-            "dGVIAYgBARIaCg1iYXNlX3hwX3lpZWxkGAQgASgFSAKIAQESHAoPYmFzZV9m",
-            "cmllbmRzaGlwGAUgASgFSAOIAQESGQoMZ2VuZGVyX3JhdGlvGAYgASgCSASI",
-            "AQESJwoIbW92ZXBvb2wYByADKAsyFS5ucGMuUGV0TW92ZXBvb2xFbnRyeRIl",
-            "Cgpldm9sdXRpb25zGAkgAygLMhEubnBjLlBldEV2b2x1dGlvbhIsChFzZWNv",
-            "bmRhcnlfZWxlbWVudBgKIAEoDjIMLm5wYy5FbGVtZW50SAWIAQFCDwoNX2Nh",
-            "cHR1cmVfcmF0ZUIOCgxfZ3Jvd3RoX3JhdGVCEAoOX2Jhc2VfeHBfeWllbGRC",
-            "EgoQX2Jhc2VfZnJpZW5kc2hpcEIPCg1fZ2VuZGVyX3JhdGlvQhQKEl9zZWNv",
-            "bmRhcnlfZWxlbWVudEoECAgQCUoECAsQDFIKZWdnX2dyb3Vwc1IPYmFzZV9z",
-            "dGF0X3RvdGFsIpUBCgxOcGNFeHRlbnNpb24SCwoDa2V5GAEgASgJEhYKDHN0",
-            "cmluZ192YWx1ZRgCIAEoCUgAEhMKCWludF92YWx1ZRgDIAEoA0gAEhUKC2Zs",
-            "b2F0X3ZhbHVlGAQgASgBSAASFAoKYm9vbF92YWx1ZRgFIAEoCEgAEhUKC2J5",
-            "dGVzX3ZhbHVlGAYgASgMSABCBwoFdmFsdWUi0hAKA05wYxIKCgJpZBgBIAEo",
-            "CRILCgNyZWYYAiABKAkSDAoEbmFtZRgDIAEoCRISCgV0aXRsZRgEIAEoCUgA",
-            "iAEBEhgKC2Rlc2NyaXB0aW9uGAUgASgJSAGIAQESEQoEbG9yZRgGIAEoCUgC",
-            "iAEBEhIKCnR5cGVfZmxhZ3MYByABKAUSHgoGcmFyaXR5GAggASgOMg4ubnBj",
-            "Lk5wY1Jhcml0eRIlCgtwZXJzb25hbGl0eRgJIAEoDjIQLm5wYy5QZXJzb25h",
-            "bGl0eRIiCgdlbGVtZW50GAogASgOMgwubnBjLkVsZW1lbnRIA4gBARIMCgR0",
-            "YWdzGAsgAygJEhoKBHJhbmsYHSABKA4yDC5ucGMuTnBjUmFuaxIjCgZmYW1p",
-            "bHkYHiABKA4yEy5ucGMuQ3JlYXR1cmVGYW1pbHkSEAoDaW1nGAwgASgJSASI",
-            "AQESEQoEaWNvbhgNIAEoCUgFiAEBEhoKDXBpeGVsX2RlbnNpdHkYDiABKAVI",
-            "BogBARISCgVzY2FsZRgfIAEoAkgHiAEBEhYKCW1vZGVsX3JlZhggIAEoCUgI",
-            "iAEBEhoKDWFuaW1hdGlvbl9zZXQYISABKAlICYgBARIWCglzb3VuZF9zZXQY",
-            "IiABKAlICogBARIrCgxzcHJpdGVfYXRsYXMYMyABKAsyEC5ucGMuU3ByaXRl",
-            "QXRsYXNIC4gBARINCgVsZXZlbBgPIAEoBRIWCglsZXZlbF9taW4YECABKAVI",
-            "DIgBARIWCglsZXZlbF9tYXgYESABKAVIDYgBARIcCgVzdGF0cxgSIAEoCzIN",
-            "Lm5wYy5OcGNTdGF0cxIWCgl1bml0X3R5cGUYNiABKAVIDogBARIbCg5kZWZh",
-            "dWx0X3dlYXBvbhg3IAEoBUgPiAEBEh0KEGRpYWxvZ3VlX3RyZWVfaWQYOCAB",
-            "KAVIEIgBARIVCghuYW1lX2tleRg5IAEoCUgRiAEBEiIKCWFiaWxpdGllcxgT",
-            "IAMoCzIPLm5wYy5OcGNBYmlsaXR5EioKCndlYWtuZXNzZXMYIyADKAsyFi5u",
-            "cGMuRWxlbWVudGFsQWZmaW5pdHkSKwoLcmVzaXN0YW5jZXMYJCADKAsyFi5u",
-            "cGMuRWxlbWVudGFsQWZmaW5pdHkSGQoRc3RhdHVzX2ltbXVuaXRpZXMYJSAD",
-            "KAkSKQoOaW50ZW50X3dlaWdodHMYJiADKAsyES5ucGMuSW50ZW50V2VpZ2h0",
-            "EioKCGJlaGF2aW9yGCcgASgLMhMubnBjLkJlaGF2aW9yVHJhaXRzSBKIAQES",
-            "JgoHZmFjdGlvbhgoIAEoCzIQLm5wYy5GYWN0aW9uSW5mb0gTiAEBEiEKBGxv",
-            "b3QYFiABKAsyDi5ucGMuTG9vdFRhYmxlSBSIAQESLQoJZXF1aXBtZW50GBwg",
-            "ASgLMhUubnBjLkVxdWlwbWVudExvYWRvdXRIFYgBARIkCgtmbGF2b3JfdGV4",
-            "dBgXIAMoCzIPLm5wYy5GbGF2b3JQb29sEiMKCGRpYWxvZ3VlGBggAygLMhEu",
-            "bnBjLkRpYWxvZ3VlTGluZRItCg1kaWFsb2d1ZV90cmVlGDIgASgLMhEubnBj",
-            "LkRpYWxvZ3VlVHJlZUgWiAEBEhIKCnF1ZXN0X3JlZnMYKSADKAkSHwoSc2hv",
-            "cF9pbnZlbnRvcnlfcmVmGCogASgJSBeIAQESHAoPa2lsbF9jcmVkaXRfcmVm",
-            "GCsgASgJSBiIAQESEgoKc2hvcF9pdGVtcxg0IAMoCRIjCgtzcGF3bl9ydWxl",
-            "cxgZIAMoCzIOLm5wYy5TcGF3blJ1bGUSIwoLcGhhc2VfcnVsZXMYLCADKAsy",
-            "Di5ucGMuUGhhc2VSdWxlEjUKFGRpZmZpY3VsdHlfb3ZlcnJpZGVzGC0gAygL",
-            "MhcubnBjLkRpZmZpY3VsdHlPdmVycmlkZRItCg1wYXJ0eV9zY2FsaW5nGC4g",
-            "ASgLMhEubnBjLlBhcnR5U2NhbGluZ0gZiAEBEiwKB3NwYXRpYWwYLyABKAsy",
-            "Fi5ucGMuU3BhdGlhbFByb3BlcnRpZXNIGogBARIvCgtpbnRlcmFjdGlvbhgw",
-            "IAEoCzIVLm5wYy5JbnRlcmFjdGlvbkZsYWdzSBuIAQESHgoDcGV0GDUgASgL",
-            "MgwubnBjLlBldEluZm9IHIgBARIlCgpleHRlbnNpb25zGDEgAygLMhEubnBj",
-            "Lk5wY0V4dGVuc2lvbhIUCgdjcmVkaXRzGBogASgJSB2IAQESFAoHZHJhZnRl",
-            "ZBgbIAEoCEgeiAEBQggKBl90aXRsZUIOCgxfZGVzY3JpcHRpb25CBwoFX2xv",
-            "cmVCCgoIX2VsZW1lbnRCBgoEX2ltZ0IHCgVfaWNvbkIQCg5fcGl4ZWxfZGVu",
-            "c2l0eUIICgZfc2NhbGVCDAoKX21vZGVsX3JlZkIQCg5fYW5pbWF0aW9uX3Nl",
-            "dEIMCgpfc291bmRfc2V0Qg8KDV9zcHJpdGVfYXRsYXNCDAoKX2xldmVsX21p",
-            "bkIMCgpfbGV2ZWxfbWF4QgwKCl91bml0X3R5cGVCEQoPX2RlZmF1bHRfd2Vh",
-            "cG9uQhMKEV9kaWFsb2d1ZV90cmVlX2lkQgsKCV9uYW1lX2tleUILCglfYmVo",
-            "YXZpb3JCCgoIX2ZhY3Rpb25CBwoFX2xvb3RCDAoKX2VxdWlwbWVudEIQCg5f",
-            "ZGlhbG9ndWVfdHJlZUIVChNfc2hvcF9pbnZlbnRvcnlfcmVmQhIKEF9raWxs",
-            "X2NyZWRpdF9yZWZCEAoOX3BhcnR5X3NjYWxpbmdCCgoIX3NwYXRpYWxCDgoM",
-            "X2ludGVyYWN0aW9uQgYKBF9wZXRCCgoIX2NyZWRpdHNCCgoIX2RyYWZ0ZWQi",
-            "VwoLTnBjUmVnaXN0cnkSFgoEbnBjcxgBIAMoCzIILm5wYy5OcGMSHAoPY29u",
-            "dGVudF92ZXJzaW9uGAIgASgJSACIAQFCEgoQX2NvbnRlbnRfdmVyc2lvbiqZ",
-            "AgoLTnBjVHlwZUZsYWcSEQoNTlBDX1RZUEVfTk9ORRAAEhIKDk5QQ19UWVBF",
-            "X0VORU1ZEAESFQoRTlBDX1RZUEVfTUVSQ0hBTlQQAhIYChROUENfVFlQRV9R",
-            "VUVTVF9HSVZFUhAEEhYKEk5QQ19UWVBFX0NPTVBBTklPThAIEhQKEE5QQ19U",
-            "WVBFX05FVVRSQUwQEBIRCg1OUENfVFlQRV9CT1NTECASFQoRTlBDX1RZUEVf",
-            "TUlOSUJPU1MQQBIUCg9OUENfVFlQRV9TVU1NT04QgAESFQoQTlBDX1RZUEVf",
-            "VFJBSU5FUhCAAhIUCg9OUENfVFlQRV9SRVBBSVIQgAQSFwoSTlBDX1RZUEVf",
-            "SU5OS0VFUEVSEIAIKr8CCgtQZXJzb25hbGl0eRIbChdQRVJTT05BTElUWV9V",
-            "TlNQRUNJRklFRBAAEhoKFlBFUlNPTkFMSVRZX0FHR1JFU1NJVkUQARIXChNQ",
-            "RVJTT05BTElUWV9DVU5OSU5HEAISFwoTUEVSU09OQUxJVFlfRkVBUkZVTBAD",
-            "EhUKEVBFUlNPTkFMSVRZX1NUT0lDEAQSFQoRUEVSU09OQUxJVFlfRkVSQUwQ",
-            "BRIXChNQRVJTT05BTElUWV9BTkNJRU5UEAYSGAoUUEVSU09OQUxJVFlfQ0hF",
-            "RVJGVUwQBxIaChZQRVJTT05BTElUWV9NWVNURVJJT1VTEAgSGAoUUEVSU09O",
-            "QUxJVFlfQ09XQVJETFkQCRIVChFQRVJTT05BTElUWV9OT0JMRRAKEhcKE1BF",
-            "UlNPTkFMSVRZX1BBU1NJVkUQCyrvAQoHRWxlbWVudBIQCgxFTEVNRU5UX05P",
-            "TkUQABIQCgxFTEVNRU5UX0ZJUkUQARIPCgtFTEVNRU5UX0lDRRACEhUKEUVM",
-            "RU1FTlRfTElHSFROSU5HEAMSEgoORUxFTUVOVF9QT0lTT04QBBISCg5FTEVN",
-            "RU5UX1NIQURPVxAFEhAKDEVMRU1FTlRfSE9MWRAGEhIKDkVMRU1FTlRfQVJD",
-            "QU5FEAcSEQoNRUxFTUVOVF9FQVJUSBAIEhAKDEVMRU1FTlRfV0lORBAJEhIK",
-            "DkVMRU1FTlRfTkFUVVJFEAoSEQoNRUxFTUVOVF9MSUdIVBALKpYBCglOcGNS",
-            "YXJpdHkSFQoRTlBDX1JBUklUWV9DT01NT04QABIXChNOUENfUkFSSVRZX1VO",
-            "Q09NTU9OEAESEwoPTlBDX1JBUklUWV9SQVJFEAISEwoPTlBDX1JBUklUWV9F",
-            "UElDEAMSGAoUTlBDX1JBUklUWV9MRUdFTkRBUlkQBBIVChFOUENfUkFSSVRZ",
-            "X01ZVEhJQxAFKnkKB05wY1JhbmsSEwoPTlBDX1JBTktfTk9STUFMEAASEwoP",
-            "TlBDX1JBTktfTUlOSU9OEAESEgoOTlBDX1JBTktfRUxJVEUQAhIXChNOUENf",
-            "UkFOS19SQVJFX0VMSVRFEAMSFwoTTlBDX1JBTktfV09STERfQk9TUxAEKvIC",
-            "Cg5DcmVhdHVyZUZhbWlseRIfChtDUkVBVFVSRV9GQU1JTFlfVU5TUEVDSUZJ",
-            "RUQQABIZChVDUkVBVFVSRV9GQU1JTFlfQkVBU1QQARIaChZDUkVBVFVSRV9G",
-            "QU1JTFlfVU5ERUFEEAISGQoVQ1JFQVRVUkVfRkFNSUxZX0RFTU9OEAMSHQoZ",
-            "Q1JFQVRVUkVfRkFNSUxZX0VMRU1FTlRBTBAEEhwKGENSRUFUVVJFX0ZBTUlM",
-            "WV9IVU1BTk9JRBAFEh4KGkNSRUFUVVJFX0ZBTUlMWV9NRUNIQU5JQ0FMEAYS",
-            "GgoWQ1JFQVRVUkVfRkFNSUxZX0RSQUdPThAHEh4KGkNSRUFUVVJFX0ZBTUlM",
-            "WV9BQkVSUkFUSU9OEAgSGQoVQ1JFQVRVUkVfRkFNSUxZX1BMQU5UEAkSGgoW",
-            "Q1JFQVRVUkVfRkFNSUxZX1NQSVJJVBAKEh0KGUNSRUFUVVJFX0ZBTUlMWV9D",
-            "T05TVFJVQ1QQCyqIAQoMTW92ZW1lbnRUeXBlEhcKE01PVkVNRU5UX1NUQVRJ",
-            "T05BUlkQABIaChZNT1ZFTUVOVF9SQU5ET01fV0FOREVSEAESEwoPTU9WRU1F",
-            "TlRfUEFUUk9MEAISFQoRTU9WRU1FTlRfU0NSSVBURUQQAxIXChNNT1ZFTUVO",
-            "VF9BR0dSRVNTSVZFEAQqagoORGlmZmljdWx0eU1vZGUSFQoRRElGRklDVUxU",
-            "WV9OT1JNQUwQABITCg9ESUZGSUNVTFRZX0hBUkQQARIVChFESUZGSUNVTFRZ",
-            "X0hFUk9JQxACEhUKEURJRkZJQ1VMVFlfTVlUSElDEAMqjAIKClNwcml0ZUFu",
-            "aW0SGwoXU1BSSVRFX0FOSU1fVU5TUEVDSUZJRUQQABIUChBTUFJJVEVfQU5J",
-            "TV9JRExFEAESFAoQU1BSSVRFX0FOSU1fV0FMSxACEhUKEVNQUklURV9BTklN",
-            "X0NSQVdMEAMSEwoPU1BSSVRFX0FOSU1fUlVOEAQSFgoSU1BSSVRFX0FOSU1f",
-            "QVRUQUNLEAUSFAoQU1BSSVRFX0FOSU1fQ0FTVBAGEhQKEFNQUklURV9BTklN",
-            "X0hVUlQQBxIVChFTUFJJVEVfQU5JTV9ERUFUSBAIEhUKEVNQUklURV9BTklN",
-            "X1NQQVdOEAkSFwoTU1BSSVRFX0FOSU1fU1BFQ0lBTBAKKnYKDFNwcml0ZUZh",
-            "Y2luZxIdChlTUFJJVEVfRkFDSU5HX1VOU1BFQ0lGSUVEEAASFwoTU1BSSVRF",
-            "X0ZBQ0lOR19GUk9OVBABEhYKElNQUklURV9GQUNJTkdfU0lERRACEhYKElNQ",
-            "UklURV9GQUNJTkdfQkFDSxADKsUBCgpHcm93dGhSYXRlEhsKF0dST1dUSF9S",
-            "QVRFX1VOU1BFQ0lGSUVEEAASFwoTR1JPV1RIX1JBVEVfRVJSQVRJQxABEhQK",
-            "EEdST1dUSF9SQVRFX0ZBU1QQAhIbChdHUk9XVEhfUkFURV9NRURJVU1fRkFT",
-            "VBADEhsKF0dST1dUSF9SQVRFX01FRElVTV9TTE9XEAQSFAoQR1JPV1RIX1JB",
-            "VEVfU0xPVxAFEhsKF0dST1dUSF9SQVRFX0ZMVUNUVUFUSU5HEAYqfgoMTW92",
-            "ZUNhdGVnb3J5Eh0KGU1PVkVfQ0FURUdPUllfVU5TUEVDSUZJRUQQABIaChZN",
-            "T1ZFX0NBVEVHT1JZX1BIWVNJQ0FMEAESGQoVTU9WRV9DQVRFR09SWV9TUEVD",
-            "SUFMEAISGAoUTU9WRV9DQVRFR09SWV9TVEFUVVMQAyq8AQoKTW92ZVRhcmdl",
-            "dBIbChdNT1ZFX1RBUkdFVF9VTlNQRUNJRklFRBAAEhUKEU1PVkVfVEFSR0VU",
-            "X0VORU1ZEAESGwoXTU9WRV9UQVJHRVRfQUxMX0VORU1JRVMQAhIUChBNT1ZF",
-            "X1RBUkdFVF9TRUxGEAMSFAoQTU9WRV9UQVJHRVRfQUxMWRAEEhoKFk1PVkVf",
-            "VEFSR0VUX0FMTF9BTExJRVMQBRIVChFNT1ZFX1RBUkdFVF9GSUVMRBAGKuwB",
-            "CghTdGF0S2luZBIZChVTVEFUX0tJTkRfVU5TUEVDSUZJRUQQABIUChBTVEFU",
-            "X0tJTkRfQVRUQUNLEAESFQoRU1RBVF9LSU5EX0RFRkVOU0UQAhIcChhTVEFU",
-            "X0tJTkRfU1BFQ0lBTF9BVFRBQ0sQAxIdChlTVEFUX0tJTkRfU1BFQ0lBTF9E",
-            "RUZFTlNFEAQSEwoPU1RBVF9LSU5EX1NQRUVEEAUSFgoSU1RBVF9LSU5EX0FD",
-            "Q1VSQUNZEAYSFQoRU1RBVF9LSU5EX0VWQVNJT04QBxIXChNTVEFUX0tJTkRf",
-            "Q1JJVF9SQVRFEAgqhAIKCUVxdWlwU2xvdBIaChZFUVVJUF9TTE9UX1VOU1BF",
-            "Q0lGSUVEEAASEwoPRVFVSVBfU0xPVF9IRUFEEAESFAoQRVFVSVBfU0xPVF9D",
-            "SEVTVBACEhMKD0VRVUlQX1NMT1RfTEVHUxADEhMKD0VRVUlQX1NMT1RfRkVF",
-            "VBAEEhQKEEVRVUlQX1NMT1RfSEFORFMQBRIYChRFUVVJUF9TTE9UX01BSU5f",
-            "SEFORBAGEhcKE0VRVUlQX1NMT1RfT0ZGX0hBTkQQBxITCg9FUVVJUF9TTE9U",
-            "X05FQ0sQCBITCg9FUVVJUF9TTE9UX1JJTkcQCRITCg9FUVVJUF9TTE9UX0JB",
-            "Q0sQCkIRqgIOS0JWRS5Qcm90by5OcGNiBnByb3RvMw=="));
+            "X2Nhbl9zd2ltQgoKCF9jYW5fZmx5IrcBCg5DcmVhdHVyZUNvbmZpZxIsCgty",
+            "ZW5kZXJfa2luZBgBIAEoDjIXLm5wYy5DcmVhdHVyZVJlbmRlcktpbmQSEQoJ",
+            "cG9vbF9zaXplGAIgASgFEhIKCmNodW5rX3NpemUYAyABKAISEQoJcGVyX2No",
+            "dW5rGAQgASgFEhQKDHNwYXduX2NoYW5jZRgFIAEoAhInCghzY2hlZHVsZRgG",
+            "IAEoDjIVLm5wYy5DcmVhdHVyZVNjaGVkdWxlIsoCChBJbnRlcmFjdGlvbkZs",
+            "YWdzEhwKD2lzX2ludGVyYWN0YWJsZRgBIAEoCEgAiAEBEhoKDWlzX2F0dGFj",
+            "a2FibGUYAiABKAhIAYgBARIaCg1pc190YXJnZXRhYmxlGAMgASgISAKIAQES",
+            "GQoMaXNfc2tpbm5hYmxlGAQgASgISAOIAQESGAoLaXNfaGVyYmFibGUYBSAB",
+            "KAhIBIgBARIYCgtpc19taW5lYWJsZRgGIAEoCEgFiAEBEhgKC2lzX2Npdmls",
+            "aWFuGAcgASgISAaIAQFCEgoQX2lzX2ludGVyYWN0YWJsZUIQCg5faXNfYXR0",
+            "YWNrYWJsZUIQCg5faXNfdGFyZ2V0YWJsZUIPCg1faXNfc2tpbm5hYmxlQg4K",
+            "DF9pc19oZXJiYWJsZUIOCgxfaXNfbWluZWFibGVCDgoMX2lzX2NpdmlsaWFu",
+            "IosBCgpTcHJpdGVDbGlwEh0KBGFuaW0YASABKA4yDy5ucGMuU3ByaXRlQW5p",
+            "bRILCgNyb3cYAiABKAUSEwoLc3RhcnRfZnJhbWUYAyABKAUSEwoLZnJhbWVf",
+            "Y291bnQYBCABKAUSCwoDZnBzGAUgASgCEhEKBGxvb3AYBiABKAhIAIgBAUIH",
+            "CgVfbG9vcCKgAwoLU3ByaXRlQXRsYXMSEQoJYXRsYXNfcmVmGAEgASgJEg8K",
+            "B2NvbHVtbnMYAiABKAUSDAoEcm93cxgDIAEoBRIXCgpjZWxsX3dpZHRoGAQg",
+            "ASgFSACIAQESGAoLY2VsbF9oZWlnaHQYBSABKAVIAYgBARIRCglyb3dfZnJv",
+            "bnQYBiABKAUSEAoIcm93X3NpZGUYByABKAUSEAoIcm93X2JhY2sYCCABKAUS",
+            "IwoWbWlycm9yX3JpZ2h0X2Zyb21fc2lkZRgJIAEoCEgCiAEBEhgKC3dvcmxk",
+            "X3dpZHRoGAogASgCSAOIAQESGQoMd29ybGRfaGVpZ2h0GAsgASgCSASIAQES",
+            "FAoHcGl2b3RfehgMIAEoAkgFiAEBEh4KBWNsaXBzGA0gAygLMg8ubnBjLlNw",
+            "cml0ZUNsaXBCDQoLX2NlbGxfd2lkdGhCDgoMX2NlbGxfaGVpZ2h0QhkKF19t",
+            "aXJyb3JfcmlnaHRfZnJvbV9zaWRlQg4KDF93b3JsZF93aWR0aEIPCg1fd29y",
+            "bGRfaGVpZ2h0QgoKCF9waXZvdF96IooBCgpTdGF0Q2hhbmdlEhsKBHN0YXQY",
+            "ASABKA4yDS5ucGMuU3RhdEtpbmQSDgoGc3RhZ2VzGAIgASgFEiQKBnRhcmdl",
+            "dBgDIAEoDjIPLm5wYy5Nb3ZlVGFyZ2V0SACIAQESEwoGY2hhbmNlGAQgASgC",
+            "SAGIAQFCCQoHX3RhcmdldEIJCgdfY2hhbmNlIjUKEFBldE1vdmVwb29sRW50",
+            "cnkSDQoFbGV2ZWwYASABKAUSEgoKYWJpbGl0eV9pZBgCIAEoCSKOAQoMUGV0",
+            "RXZvbHV0aW9uEhYKDmV2b2x2ZXNfdG9fcmVmGAEgASgJEhIKBWxldmVsGAIg",
+            "ASgFSACIAQESFQoIaXRlbV9yZWYYAyABKAlIAYgBARIWCgljb25kaXRpb24Y",
+            "BCABKAlIAogBAUIICgZfbGV2ZWxCCwoJX2l0ZW1fcmVmQgwKCl9jb25kaXRp",
+            "b24izAMKB1BldEluZm8SEQoJY2F0Y2hhYmxlGAEgASgIEhkKDGNhcHR1cmVf",
+            "cmF0ZRgCIAEoBUgAiAEBEikKC2dyb3d0aF9yYXRlGAMgASgOMg8ubnBjLkdy",
+            "b3d0aFJhdGVIAYgBARIaCg1iYXNlX3hwX3lpZWxkGAQgASgFSAKIAQESHAoP",
+            "YmFzZV9mcmllbmRzaGlwGAUgASgFSAOIAQESGQoMZ2VuZGVyX3JhdGlvGAYg",
+            "ASgCSASIAQESJwoIbW92ZXBvb2wYByADKAsyFS5ucGMuUGV0TW92ZXBvb2xF",
+            "bnRyeRIlCgpldm9sdXRpb25zGAkgAygLMhEubnBjLlBldEV2b2x1dGlvbhIs",
+            "ChFzZWNvbmRhcnlfZWxlbWVudBgKIAEoDjIMLm5wYy5FbGVtZW50SAWIAQFC",
+            "DwoNX2NhcHR1cmVfcmF0ZUIOCgxfZ3Jvd3RoX3JhdGVCEAoOX2Jhc2VfeHBf",
+            "eWllbGRCEgoQX2Jhc2VfZnJpZW5kc2hpcEIPCg1fZ2VuZGVyX3JhdGlvQhQK",
+            "El9zZWNvbmRhcnlfZWxlbWVudEoECAgQCUoECAsQDFIKZWdnX2dyb3Vwc1IP",
+            "YmFzZV9zdGF0X3RvdGFsIpUBCgxOcGNFeHRlbnNpb24SCwoDa2V5GAEgASgJ",
+            "EhYKDHN0cmluZ192YWx1ZRgCIAEoCUgAEhMKCWludF92YWx1ZRgDIAEoA0gA",
+            "EhUKC2Zsb2F0X3ZhbHVlGAQgASgBSAASFAoKYm9vbF92YWx1ZRgFIAEoCEgA",
+            "EhUKC2J5dGVzX3ZhbHVlGAYgASgMSABCBwoFdmFsdWUimREKA05wYxIKCgJp",
+            "ZBgBIAEoCRILCgNyZWYYAiABKAkSDAoEbmFtZRgDIAEoCRISCgV0aXRsZRgE",
+            "IAEoCUgAiAEBEhgKC2Rlc2NyaXB0aW9uGAUgASgJSAGIAQESEQoEbG9yZRgG",
+            "IAEoCUgCiAEBEhIKCnR5cGVfZmxhZ3MYByABKAUSHgoGcmFyaXR5GAggASgO",
+            "Mg4ubnBjLk5wY1Jhcml0eRIlCgtwZXJzb25hbGl0eRgJIAEoDjIQLm5wYy5Q",
+            "ZXJzb25hbGl0eRIiCgdlbGVtZW50GAogASgOMgwubnBjLkVsZW1lbnRIA4gB",
+            "ARIMCgR0YWdzGAsgAygJEhoKBHJhbmsYHSABKA4yDC5ucGMuTnBjUmFuaxIj",
+            "CgZmYW1pbHkYHiABKA4yEy5ucGMuQ3JlYXR1cmVGYW1pbHkSEAoDaW1nGAwg",
+            "ASgJSASIAQESEQoEaWNvbhgNIAEoCUgFiAEBEhoKDXBpeGVsX2RlbnNpdHkY",
+            "DiABKAVIBogBARISCgVzY2FsZRgfIAEoAkgHiAEBEhYKCW1vZGVsX3JlZhgg",
+            "IAEoCUgIiAEBEhoKDWFuaW1hdGlvbl9zZXQYISABKAlICYgBARIWCglzb3Vu",
+            "ZF9zZXQYIiABKAlICogBARIrCgxzcHJpdGVfYXRsYXMYMyABKAsyEC5ucGMu",
+            "U3ByaXRlQXRsYXNIC4gBARINCgVsZXZlbBgPIAEoBRIWCglsZXZlbF9taW4Y",
+            "ECABKAVIDIgBARIWCglsZXZlbF9tYXgYESABKAVIDYgBARIcCgVzdGF0cxgS",
+            "IAEoCzINLm5wYy5OcGNTdGF0cxIWCgl1bml0X3R5cGUYNiABKAVIDogBARIb",
+            "Cg5kZWZhdWx0X3dlYXBvbhg3IAEoBUgPiAEBEh0KEGRpYWxvZ3VlX3RyZWVf",
+            "aWQYOCABKAVIEIgBARIVCghuYW1lX2tleRg5IAEoCUgRiAEBEiIKCWFiaWxp",
+            "dGllcxgTIAMoCzIPLm5wYy5OcGNBYmlsaXR5EioKCndlYWtuZXNzZXMYIyAD",
+            "KAsyFi5ucGMuRWxlbWVudGFsQWZmaW5pdHkSKwoLcmVzaXN0YW5jZXMYJCAD",
+            "KAsyFi5ucGMuRWxlbWVudGFsQWZmaW5pdHkSGQoRc3RhdHVzX2ltbXVuaXRp",
+            "ZXMYJSADKAkSKQoOaW50ZW50X3dlaWdodHMYJiADKAsyES5ucGMuSW50ZW50",
+            "V2VpZ2h0EioKCGJlaGF2aW9yGCcgASgLMhMubnBjLkJlaGF2aW9yVHJhaXRz",
+            "SBKIAQESJgoHZmFjdGlvbhgoIAEoCzIQLm5wYy5GYWN0aW9uSW5mb0gTiAEB",
+            "EiEKBGxvb3QYFiABKAsyDi5ucGMuTG9vdFRhYmxlSBSIAQESLQoJZXF1aXBt",
+            "ZW50GBwgASgLMhUubnBjLkVxdWlwbWVudExvYWRvdXRIFYgBARIkCgtmbGF2",
+            "b3JfdGV4dBgXIAMoCzIPLm5wYy5GbGF2b3JQb29sEiMKCGRpYWxvZ3VlGBgg",
+            "AygLMhEubnBjLkRpYWxvZ3VlTGluZRItCg1kaWFsb2d1ZV90cmVlGDIgASgL",
+            "MhEubnBjLkRpYWxvZ3VlVHJlZUgWiAEBEhIKCnF1ZXN0X3JlZnMYKSADKAkS",
+            "HwoSc2hvcF9pbnZlbnRvcnlfcmVmGCogASgJSBeIAQESHAoPa2lsbF9jcmVk",
+            "aXRfcmVmGCsgASgJSBiIAQESEgoKc2hvcF9pdGVtcxg0IAMoCRIjCgtzcGF3",
+            "bl9ydWxlcxgZIAMoCzIOLm5wYy5TcGF3blJ1bGUSIwoLcGhhc2VfcnVsZXMY",
+            "LCADKAsyDi5ucGMuUGhhc2VSdWxlEjUKFGRpZmZpY3VsdHlfb3ZlcnJpZGVz",
+            "GC0gAygLMhcubnBjLkRpZmZpY3VsdHlPdmVycmlkZRItCg1wYXJ0eV9zY2Fs",
+            "aW5nGC4gASgLMhEubnBjLlBhcnR5U2NhbGluZ0gZiAEBEiwKB3NwYXRpYWwY",
+            "LyABKAsyFi5ucGMuU3BhdGlhbFByb3BlcnRpZXNIGogBARIvCgtpbnRlcmFj",
+            "dGlvbhgwIAEoCzIVLm5wYy5JbnRlcmFjdGlvbkZsYWdzSBuIAQESMQoPY3Jl",
+            "YXR1cmVfY29uZmlnGDogASgLMhMubnBjLkNyZWF0dXJlQ29uZmlnSByIAQES",
+            "HgoDcGV0GDUgASgLMgwubnBjLlBldEluZm9IHYgBARIlCgpleHRlbnNpb25z",
+            "GDEgAygLMhEubnBjLk5wY0V4dGVuc2lvbhIUCgdjcmVkaXRzGBogASgJSB6I",
+            "AQESFAoHZHJhZnRlZBgbIAEoCEgfiAEBQggKBl90aXRsZUIOCgxfZGVzY3Jp",
+            "cHRpb25CBwoFX2xvcmVCCgoIX2VsZW1lbnRCBgoEX2ltZ0IHCgVfaWNvbkIQ",
+            "Cg5fcGl4ZWxfZGVuc2l0eUIICgZfc2NhbGVCDAoKX21vZGVsX3JlZkIQCg5f",
+            "YW5pbWF0aW9uX3NldEIMCgpfc291bmRfc2V0Qg8KDV9zcHJpdGVfYXRsYXNC",
+            "DAoKX2xldmVsX21pbkIMCgpfbGV2ZWxfbWF4QgwKCl91bml0X3R5cGVCEQoP",
+            "X2RlZmF1bHRfd2VhcG9uQhMKEV9kaWFsb2d1ZV90cmVlX2lkQgsKCV9uYW1l",
+            "X2tleUILCglfYmVoYXZpb3JCCgoIX2ZhY3Rpb25CBwoFX2xvb3RCDAoKX2Vx",
+            "dWlwbWVudEIQCg5fZGlhbG9ndWVfdHJlZUIVChNfc2hvcF9pbnZlbnRvcnlf",
+            "cmVmQhIKEF9raWxsX2NyZWRpdF9yZWZCEAoOX3BhcnR5X3NjYWxpbmdCCgoI",
+            "X3NwYXRpYWxCDgoMX2ludGVyYWN0aW9uQhIKEF9jcmVhdHVyZV9jb25maWdC",
+            "BgoEX3BldEIKCghfY3JlZGl0c0IKCghfZHJhZnRlZCJXCgtOcGNSZWdpc3Ry",
+            "eRIWCgRucGNzGAEgAygLMggubnBjLk5wYxIcCg9jb250ZW50X3ZlcnNpb24Y",
+            "AiABKAlIAIgBAUISChBfY29udGVudF92ZXJzaW9uKpkCCgtOcGNUeXBlRmxh",
+            "ZxIRCg1OUENfVFlQRV9OT05FEAASEgoOTlBDX1RZUEVfRU5FTVkQARIVChFO",
+            "UENfVFlQRV9NRVJDSEFOVBACEhgKFE5QQ19UWVBFX1FVRVNUX0dJVkVSEAQS",
+            "FgoSTlBDX1RZUEVfQ09NUEFOSU9OEAgSFAoQTlBDX1RZUEVfTkVVVFJBTBAQ",
+            "EhEKDU5QQ19UWVBFX0JPU1MQIBIVChFOUENfVFlQRV9NSU5JQk9TUxBAEhQK",
+            "D05QQ19UWVBFX1NVTU1PThCAARIVChBOUENfVFlQRV9UUkFJTkVSEIACEhQK",
+            "D05QQ19UWVBFX1JFUEFJUhCABBIXChJOUENfVFlQRV9JTk5LRUVQRVIQgAgq",
+            "vwIKC1BlcnNvbmFsaXR5EhsKF1BFUlNPTkFMSVRZX1VOU1BFQ0lGSUVEEAAS",
+            "GgoWUEVSU09OQUxJVFlfQUdHUkVTU0lWRRABEhcKE1BFUlNPTkFMSVRZX0NV",
+            "Tk5JTkcQAhIXChNQRVJTT05BTElUWV9GRUFSRlVMEAMSFQoRUEVSU09OQUxJ",
+            "VFlfU1RPSUMQBBIVChFQRVJTT05BTElUWV9GRVJBTBAFEhcKE1BFUlNPTkFM",
+            "SVRZX0FOQ0lFTlQQBhIYChRQRVJTT05BTElUWV9DSEVFUkZVTBAHEhoKFlBF",
+            "UlNPTkFMSVRZX01ZU1RFUklPVVMQCBIYChRQRVJTT05BTElUWV9DT1dBUkRM",
+            "WRAJEhUKEVBFUlNPTkFMSVRZX05PQkxFEAoSFwoTUEVSU09OQUxJVFlfUEFT",
+            "U0lWRRALKu8BCgdFbGVtZW50EhAKDEVMRU1FTlRfTk9ORRAAEhAKDEVMRU1F",
+            "TlRfRklSRRABEg8KC0VMRU1FTlRfSUNFEAISFQoRRUxFTUVOVF9MSUdIVE5J",
+            "TkcQAxISCg5FTEVNRU5UX1BPSVNPThAEEhIKDkVMRU1FTlRfU0hBRE9XEAUS",
+            "EAoMRUxFTUVOVF9IT0xZEAYSEgoORUxFTUVOVF9BUkNBTkUQBxIRCg1FTEVN",
+            "RU5UX0VBUlRIEAgSEAoMRUxFTUVOVF9XSU5EEAkSEgoORUxFTUVOVF9OQVRV",
+            "UkUQChIRCg1FTEVNRU5UX0xJR0hUEAsqlgEKCU5wY1Jhcml0eRIVChFOUENf",
+            "UkFSSVRZX0NPTU1PThAAEhcKE05QQ19SQVJJVFlfVU5DT01NT04QARITCg9O",
+            "UENfUkFSSVRZX1JBUkUQAhITCg9OUENfUkFSSVRZX0VQSUMQAxIYChROUENf",
+            "UkFSSVRZX0xFR0VOREFSWRAEEhUKEU5QQ19SQVJJVFlfTVlUSElDEAUqeQoH",
+            "TnBjUmFuaxITCg9OUENfUkFOS19OT1JNQUwQABITCg9OUENfUkFOS19NSU5J",
+            "T04QARISCg5OUENfUkFOS19FTElURRACEhcKE05QQ19SQU5LX1JBUkVfRUxJ",
+            "VEUQAxIXChNOUENfUkFOS19XT1JMRF9CT1NTEAQq8gIKDkNyZWF0dXJlRmFt",
+            "aWx5Eh8KG0NSRUFUVVJFX0ZBTUlMWV9VTlNQRUNJRklFRBAAEhkKFUNSRUFU",
+            "VVJFX0ZBTUlMWV9CRUFTVBABEhoKFkNSRUFUVVJFX0ZBTUlMWV9VTkRFQUQQ",
+            "AhIZChVDUkVBVFVSRV9GQU1JTFlfREVNT04QAxIdChlDUkVBVFVSRV9GQU1J",
+            "TFlfRUxFTUVOVEFMEAQSHAoYQ1JFQVRVUkVfRkFNSUxZX0hVTUFOT0lEEAUS",
+            "HgoaQ1JFQVRVUkVfRkFNSUxZX01FQ0hBTklDQUwQBhIaChZDUkVBVFVSRV9G",
+            "QU1JTFlfRFJBR09OEAcSHgoaQ1JFQVRVUkVfRkFNSUxZX0FCRVJSQVRJT04Q",
+            "CBIZChVDUkVBVFVSRV9GQU1JTFlfUExBTlQQCRIaChZDUkVBVFVSRV9GQU1J",
+            "TFlfU1BJUklUEAoSHQoZQ1JFQVRVUkVfRkFNSUxZX0NPTlNUUlVDVBALKogB",
+            "CgxNb3ZlbWVudFR5cGUSFwoTTU9WRU1FTlRfU1RBVElPTkFSWRAAEhoKFk1P",
+            "VkVNRU5UX1JBTkRPTV9XQU5ERVIQARITCg9NT1ZFTUVOVF9QQVRST0wQAhIV",
+            "ChFNT1ZFTUVOVF9TQ1JJUFRFRBADEhcKE01PVkVNRU5UX0FHR1JFU1NJVkUQ",
+            "BCpqCg5EaWZmaWN1bHR5TW9kZRIVChFESUZGSUNVTFRZX05PUk1BTBAAEhMK",
+            "D0RJRkZJQ1VMVFlfSEFSRBABEhUKEURJRkZJQ1VMVFlfSEVST0lDEAISFQoR",
+            "RElGRklDVUxUWV9NWVRISUMQAyqMAgoKU3ByaXRlQW5pbRIbChdTUFJJVEVf",
+            "QU5JTV9VTlNQRUNJRklFRBAAEhQKEFNQUklURV9BTklNX0lETEUQARIUChBT",
+            "UFJJVEVfQU5JTV9XQUxLEAISFQoRU1BSSVRFX0FOSU1fQ1JBV0wQAxITCg9T",
+            "UFJJVEVfQU5JTV9SVU4QBBIWChJTUFJJVEVfQU5JTV9BVFRBQ0sQBRIUChBT",
+            "UFJJVEVfQU5JTV9DQVNUEAYSFAoQU1BSSVRFX0FOSU1fSFVSVBAHEhUKEVNQ",
+            "UklURV9BTklNX0RFQVRIEAgSFQoRU1BSSVRFX0FOSU1fU1BBV04QCRIXChNT",
+            "UFJJVEVfQU5JTV9TUEVDSUFMEAoqdgoMU3ByaXRlRmFjaW5nEh0KGVNQUklU",
+            "RV9GQUNJTkdfVU5TUEVDSUZJRUQQABIXChNTUFJJVEVfRkFDSU5HX0ZST05U",
+            "EAESFgoSU1BSSVRFX0ZBQ0lOR19TSURFEAISFgoSU1BSSVRFX0ZBQ0lOR19C",
+            "QUNLEAMqxQEKCkdyb3d0aFJhdGUSGwoXR1JPV1RIX1JBVEVfVU5TUEVDSUZJ",
+            "RUQQABIXChNHUk9XVEhfUkFURV9FUlJBVElDEAESFAoQR1JPV1RIX1JBVEVf",
+            "RkFTVBACEhsKF0dST1dUSF9SQVRFX01FRElVTV9GQVNUEAMSGwoXR1JPV1RI",
+            "X1JBVEVfTUVESVVNX1NMT1cQBBIUChBHUk9XVEhfUkFURV9TTE9XEAUSGwoX",
+            "R1JPV1RIX1JBVEVfRkxVQ1RVQVRJTkcQBip+CgxNb3ZlQ2F0ZWdvcnkSHQoZ",
+            "TU9WRV9DQVRFR09SWV9VTlNQRUNJRklFRBAAEhoKFk1PVkVfQ0FURUdPUllf",
+            "UEhZU0lDQUwQARIZChVNT1ZFX0NBVEVHT1JZX1NQRUNJQUwQAhIYChRNT1ZF",
+            "X0NBVEVHT1JZX1NUQVRVUxADKrwBCgpNb3ZlVGFyZ2V0EhsKF01PVkVfVEFS",
+            "R0VUX1VOU1BFQ0lGSUVEEAASFQoRTU9WRV9UQVJHRVRfRU5FTVkQARIbChdN",
+            "T1ZFX1RBUkdFVF9BTExfRU5FTUlFUxACEhQKEE1PVkVfVEFSR0VUX1NFTEYQ",
+            "AxIUChBNT1ZFX1RBUkdFVF9BTExZEAQSGgoWTU9WRV9UQVJHRVRfQUxMX0FM",
+            "TElFUxAFEhUKEU1PVkVfVEFSR0VUX0ZJRUxEEAYq5gEKEkNyZWF0dXJlUmVu",
+            "ZGVyS2luZBIkCiBDUkVBVFVSRV9SRU5ERVJfS0lORF9VTlNQRUNJRklFRBAA",
+            "Eh8KG0NSRUFUVVJFX1JFTkRFUl9LSU5EX1NQUklURRABEiIKHkNSRUFUVVJF",
+            "X1JFTkRFUl9LSU5EX0JJTExCT0FSRBACEiEKHUNSRUFUVVJFX1JFTkRFUl9L",
+            "SU5EX0VNSVNTSVZFEAMSHQoZQ1JFQVRVUkVfUkVOREVSX0tJTkRfTUVTSBAE",
+            "EiMKH0NSRUFUVVJFX1JFTkRFUl9LSU5EX01VTFRJX01FU0gQBSqLAQoQQ3Jl",
+            "YXR1cmVTY2hlZHVsZRIhCh1DUkVBVFVSRV9TQ0hFRFVMRV9VTlNQRUNJRklF",
+            "RBAAEhwKGENSRUFUVVJFX1NDSEVEVUxFX0FMV0FZUxABEhkKFUNSRUFUVVJF",
+            "X1NDSEVEVUxFX0RBWRACEhsKF0NSRUFUVVJFX1NDSEVEVUxFX05JR0hUEAMq",
+            "7AEKCFN0YXRLaW5kEhkKFVNUQVRfS0lORF9VTlNQRUNJRklFRBAAEhQKEFNU",
+            "QVRfS0lORF9BVFRBQ0sQARIVChFTVEFUX0tJTkRfREVGRU5TRRACEhwKGFNU",
+            "QVRfS0lORF9TUEVDSUFMX0FUVEFDSxADEh0KGVNUQVRfS0lORF9TUEVDSUFM",
+            "X0RFRkVOU0UQBBITCg9TVEFUX0tJTkRfU1BFRUQQBRIWChJTVEFUX0tJTkRf",
+            "QUNDVVJBQ1kQBhIVChFTVEFUX0tJTkRfRVZBU0lPThAHEhcKE1NUQVRfS0lO",
+            "RF9DUklUX1JBVEUQCCqEAgoJRXF1aXBTbG90EhoKFkVRVUlQX1NMT1RfVU5T",
+            "UEVDSUZJRUQQABITCg9FUVVJUF9TTE9UX0hFQUQQARIUChBFUVVJUF9TTE9U",
+            "X0NIRVNUEAISEwoPRVFVSVBfU0xPVF9MRUdTEAMSEwoPRVFVSVBfU0xPVF9G",
+            "RUVUEAQSFAoQRVFVSVBfU0xPVF9IQU5EUxAFEhgKFEVRVUlQX1NMT1RfTUFJ",
+            "Tl9IQU5EEAYSFwoTRVFVSVBfU0xPVF9PRkZfSEFORBAHEhMKD0VRVUlQX1NM",
+            "T1RfTkVDSxAIEhMKD0VRVUlQX1NMT1RfUklORxAJEhMKD0VRVUlQX1NMT1Rf",
+            "QkFDSxAKQhGqAg5LQlZFLlByb3RvLk5wY2IGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { global::KBVE.Proto.Common.CommonReflection.Descriptor, },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::KBVE.Proto.Npc.NpcTypeFlag), typeof(global::KBVE.Proto.Npc.Personality), typeof(global::KBVE.Proto.Npc.Element), typeof(global::KBVE.Proto.Npc.NpcRarity), typeof(global::KBVE.Proto.Npc.NpcRank), typeof(global::KBVE.Proto.Npc.CreatureFamily), typeof(global::KBVE.Proto.Npc.MovementType), typeof(global::KBVE.Proto.Npc.DifficultyMode), typeof(global::KBVE.Proto.Npc.SpriteAnim), typeof(global::KBVE.Proto.Npc.SpriteFacing), typeof(global::KBVE.Proto.Npc.GrowthRate), typeof(global::KBVE.Proto.Npc.MoveCategory), typeof(global::KBVE.Proto.Npc.MoveTarget), typeof(global::KBVE.Proto.Npc.StatKind), typeof(global::KBVE.Proto.Npc.EquipSlot), }, null, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::KBVE.Proto.Npc.NpcTypeFlag), typeof(global::KBVE.Proto.Npc.Personality), typeof(global::KBVE.Proto.Npc.Element), typeof(global::KBVE.Proto.Npc.NpcRarity), typeof(global::KBVE.Proto.Npc.NpcRank), typeof(global::KBVE.Proto.Npc.CreatureFamily), typeof(global::KBVE.Proto.Npc.MovementType), typeof(global::KBVE.Proto.Npc.DifficultyMode), typeof(global::KBVE.Proto.Npc.SpriteAnim), typeof(global::KBVE.Proto.Npc.SpriteFacing), typeof(global::KBVE.Proto.Npc.GrowthRate), typeof(global::KBVE.Proto.Npc.MoveCategory), typeof(global::KBVE.Proto.Npc.MoveTarget), typeof(global::KBVE.Proto.Npc.CreatureRenderKind), typeof(global::KBVE.Proto.Npc.CreatureSchedule), typeof(global::KBVE.Proto.Npc.StatKind), typeof(global::KBVE.Proto.Npc.EquipSlot), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.NpcStats), global::KBVE.Proto.Npc.NpcStats.Parser, new[]{ "Hp", "MaxHp", "Attack", "Defense", "Speed", "Mp", "MaxMp", "Ep", "MaxEp", "Armor", "Intelligence", "Strength", "Agility", "HpRegen", "MpRegen", "EpRegen", "SpecialAttack", "SpecialDefense", "Accuracy", "Evasion", "CritRate", "CritDamage", "MoveSpeed", "MaxHunger", "MaxFatigue", "Will", "HungerPerSec", "FatiguePerSec" }, new[]{ "Mp", "MaxMp", "Ep", "MaxEp", "Armor", "Intelligence", "Strength", "Agility", "HpRegen", "MpRegen", "EpRegen", "SpecialAttack", "SpecialDefense", "Accuracy", "Evasion", "CritRate", "CritDamage", "MoveSpeed", "MaxHunger", "MaxFatigue", "Will", "HungerPerSec", "FatiguePerSec" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.ElementalAffinity), global::KBVE.Proto.Npc.ElementalAffinity.Parser, new[]{ "Element", "Magnitude" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.LootEntry), global::KBVE.Proto.Npc.LootEntry.Parser, new[]{ "ItemRef", "ItemName", "MinQuantity", "MaxQuantity", "DropRate", "LevelRequirement" }, new[]{ "ItemName", "LevelRequirement" }, null, null, null),
@@ -339,6 +353,7 @@ namespace KBVE.Proto.Npc {
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.PartyScaling), global::KBVE.Proto.Npc.PartyScaling.Parser, new[]{ "Enabled", "HpPerMember", "DamagePerMember", "BasePartySize" }, new[]{ "HpPerMember", "DamagePerMember", "BasePartySize" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.PhaseRule), global::KBVE.Proto.Npc.PhaseRule.Parser, new[]{ "PhaseId", "PrerequisiteQuestRefs", "EventRef", "TimeStart", "TimeEnd" }, new[]{ "PhaseId", "EventRef", "TimeStart", "TimeEnd" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.SpatialProperties), global::KBVE.Proto.Npc.SpatialProperties.Parser, new[]{ "CombatReach", "BoundingRadius", "WalkSpeed", "RunSpeed", "FlySpeed", "CanSwim", "CanFly" }, new[]{ "CombatReach", "BoundingRadius", "WalkSpeed", "RunSpeed", "FlySpeed", "CanSwim", "CanFly" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.CreatureConfig), global::KBVE.Proto.Npc.CreatureConfig.Parser, new[]{ "RenderKind", "PoolSize", "ChunkSize", "PerChunk", "SpawnChance", "Schedule" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.InteractionFlags), global::KBVE.Proto.Npc.InteractionFlags.Parser, new[]{ "IsInteractable", "IsAttackable", "IsTargetable", "IsSkinnable", "IsHerbable", "IsMineable", "IsCivilian" }, new[]{ "IsInteractable", "IsAttackable", "IsTargetable", "IsSkinnable", "IsHerbable", "IsMineable", "IsCivilian" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.SpriteClip), global::KBVE.Proto.Npc.SpriteClip.Parser, new[]{ "Anim", "Row", "StartFrame", "FrameCount", "Fps", "Loop" }, new[]{ "Loop" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.SpriteAtlas), global::KBVE.Proto.Npc.SpriteAtlas.Parser, new[]{ "AtlasRef", "Columns", "Rows", "CellWidth", "CellHeight", "RowFront", "RowSide", "RowBack", "MirrorRightFromSide", "WorldWidth", "WorldHeight", "PivotZ", "Clips" }, new[]{ "CellWidth", "CellHeight", "MirrorRightFromSide", "WorldWidth", "WorldHeight", "PivotZ" }, null, null, null),
@@ -347,7 +362,7 @@ namespace KBVE.Proto.Npc {
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.PetEvolution), global::KBVE.Proto.Npc.PetEvolution.Parser, new[]{ "EvolvesToRef", "Level", "ItemRef", "Condition" }, new[]{ "Level", "ItemRef", "Condition" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.PetInfo), global::KBVE.Proto.Npc.PetInfo.Parser, new[]{ "Catchable", "CaptureRate", "GrowthRate", "BaseXpYield", "BaseFriendship", "GenderRatio", "Movepool", "Evolutions", "SecondaryElement" }, new[]{ "CaptureRate", "GrowthRate", "BaseXpYield", "BaseFriendship", "GenderRatio", "SecondaryElement" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.NpcExtension), global::KBVE.Proto.Npc.NpcExtension.Parser, new[]{ "Key", "StringValue", "IntValue", "FloatValue", "BoolValue", "BytesValue" }, new[]{ "Value" }, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.Npc), global::KBVE.Proto.Npc.Npc.Parser, new[]{ "Id", "Ref", "Name", "Title", "Description", "Lore", "TypeFlags", "Rarity", "Personality", "Element", "Tags", "Rank", "Family", "Img", "Icon", "PixelDensity", "Scale", "ModelRef", "AnimationSet", "SoundSet", "SpriteAtlas", "Level", "LevelMin", "LevelMax", "Stats", "UnitType", "DefaultWeapon", "DialogueTreeId", "NameKey", "Abilities", "Weaknesses", "Resistances", "StatusImmunities", "IntentWeights", "Behavior", "Faction", "Loot", "Equipment", "FlavorText", "Dialogue", "DialogueTree", "QuestRefs", "ShopInventoryRef", "KillCreditRef", "ShopItems", "SpawnRules", "PhaseRules", "DifficultyOverrides", "PartyScaling", "Spatial", "Interaction", "Pet", "Extensions", "Credits", "Drafted" }, new[]{ "Title", "Description", "Lore", "Element", "Img", "Icon", "PixelDensity", "Scale", "ModelRef", "AnimationSet", "SoundSet", "SpriteAtlas", "LevelMin", "LevelMax", "UnitType", "DefaultWeapon", "DialogueTreeId", "NameKey", "Behavior", "Faction", "Loot", "Equipment", "DialogueTree", "ShopInventoryRef", "KillCreditRef", "PartyScaling", "Spatial", "Interaction", "Pet", "Credits", "Drafted" }, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.Npc), global::KBVE.Proto.Npc.Npc.Parser, new[]{ "Id", "Ref", "Name", "Title", "Description", "Lore", "TypeFlags", "Rarity", "Personality", "Element", "Tags", "Rank", "Family", "Img", "Icon", "PixelDensity", "Scale", "ModelRef", "AnimationSet", "SoundSet", "SpriteAtlas", "Level", "LevelMin", "LevelMax", "Stats", "UnitType", "DefaultWeapon", "DialogueTreeId", "NameKey", "Abilities", "Weaknesses", "Resistances", "StatusImmunities", "IntentWeights", "Behavior", "Faction", "Loot", "Equipment", "FlavorText", "Dialogue", "DialogueTree", "QuestRefs", "ShopInventoryRef", "KillCreditRef", "ShopItems", "SpawnRules", "PhaseRules", "DifficultyOverrides", "PartyScaling", "Spatial", "Interaction", "CreatureConfig", "Pet", "Extensions", "Credits", "Drafted" }, new[]{ "Title", "Description", "Lore", "Element", "Img", "Icon", "PixelDensity", "Scale", "ModelRef", "AnimationSet", "SoundSet", "SpriteAtlas", "LevelMin", "LevelMax", "UnitType", "DefaultWeapon", "DialogueTreeId", "NameKey", "Behavior", "Faction", "Loot", "Equipment", "DialogueTree", "ShopInventoryRef", "KillCreditRef", "PartyScaling", "Spatial", "Interaction", "CreatureConfig", "Pet", "Credits", "Drafted" }, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::KBVE.Proto.Npc.NpcRegistry), global::KBVE.Proto.Npc.NpcRegistry.Parser, new[]{ "Npcs", "ContentVersion" }, new[]{ "ContentVersion" }, null, null, null)
           }));
     }
@@ -541,6 +556,43 @@ namespace KBVE.Proto.Npc {
     [pbr::OriginalName("MOVE_TARGET_ALLY")] Ally = 4,
     [pbr::OriginalName("MOVE_TARGET_ALL_ALLIES")] AllAllies = 5,
     [pbr::OriginalName("MOVE_TARGET_FIELD")] Field = 6,
+  }
+
+  /// <summary>
+  /// How an ambient creature instance is drawn
+  /// </summary>
+  public enum CreatureRenderKind {
+    [pbr::OriginalName("CREATURE_RENDER_KIND_UNSPECIFIED")] Unspecified = 0,
+    /// <summary>
+    /// Sprite sheet + UV frame animation
+    /// </summary>
+    [pbr::OriginalName("CREATURE_RENDER_KIND_SPRITE")] Sprite = 1,
+    /// <summary>
+    /// Camera-facing mesh billboard
+    /// </summary>
+    [pbr::OriginalName("CREATURE_RENDER_KIND_BILLBOARD")] Billboard = 2,
+    /// <summary>
+    /// Emissive glow + light source
+    /// </summary>
+    [pbr::OriginalName("CREATURE_RENDER_KIND_EMISSIVE")] Emissive = 3,
+    /// <summary>
+    /// Individual 3D mesh instance
+    /// </summary>
+    [pbr::OriginalName("CREATURE_RENDER_KIND_MESH")] Mesh = 4,
+    /// <summary>
+    /// Batched instanced mesh (shoal / flock)
+    /// </summary>
+    [pbr::OriginalName("CREATURE_RENDER_KIND_MULTI_MESH")] MultiMesh = 5,
+  }
+
+  /// <summary>
+  /// Time-of-day window an ambient creature populates
+  /// </summary>
+  public enum CreatureSchedule {
+    [pbr::OriginalName("CREATURE_SCHEDULE_UNSPECIFIED")] Unspecified = 0,
+    [pbr::OriginalName("CREATURE_SCHEDULE_ALWAYS")] Always = 1,
+    [pbr::OriginalName("CREATURE_SCHEDULE_DAY")] Day = 2,
+    [pbr::OriginalName("CREATURE_SCHEDULE_NIGHT")] Night = 3,
   }
 
   /// <summary>
@@ -10878,6 +10930,403 @@ namespace KBVE.Proto.Npc {
   }
 
   /// <summary>
+  /// Ambient population config — how many of this creature exist in the world and
+  /// how they are scattered across it. Game-agnostic: drives chunk-scatter spawners
+  /// for 2D billboards and 3D instanced meshes alike.
+  /// </summary>
+  public sealed partial class CreatureConfig : pb::IMessage<CreatureConfig>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<CreatureConfig> _parser = new pb::MessageParser<CreatureConfig>(() => new CreatureConfig());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<CreatureConfig> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[20]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CreatureConfig() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CreatureConfig(CreatureConfig other) : this() {
+      renderKind_ = other.renderKind_;
+      poolSize_ = other.poolSize_;
+      chunkSize_ = other.chunkSize_;
+      perChunk_ = other.perChunk_;
+      spawnChance_ = other.spawnChance_;
+      schedule_ = other.schedule_;
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CreatureConfig Clone() {
+      return new CreatureConfig(this);
+    }
+
+    /// <summary>Field number for the "render_kind" field.</summary>
+    public const int RenderKindFieldNumber = 1;
+    private global::KBVE.Proto.Npc.CreatureRenderKind renderKind_ = global::KBVE.Proto.Npc.CreatureRenderKind.Unspecified;
+    /// <summary>
+    /// Render pipeline for a spawned instance
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Npc.CreatureRenderKind RenderKind {
+      get { return renderKind_; }
+      set {
+        renderKind_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "pool_size" field.</summary>
+    public const int PoolSizeFieldNumber = 2;
+    private int poolSize_;
+    /// <summary>
+    /// Max pooled instances alive at once
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int PoolSize {
+      get { return poolSize_; }
+      set {
+        poolSize_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "chunk_size" field.</summary>
+    public const int ChunkSizeFieldNumber = 3;
+    private float chunkSize_;
+    /// <summary>
+    /// World-space chunk edge for deterministic placement
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float ChunkSize {
+      get { return chunkSize_; }
+      set {
+        chunkSize_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "per_chunk" field.</summary>
+    public const int PerChunkFieldNumber = 4;
+    private int perChunk_;
+    /// <summary>
+    /// Potential spawn slots per chunk
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int PerChunk {
+      get { return perChunk_; }
+      set {
+        perChunk_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "spawn_chance" field.</summary>
+    public const int SpawnChanceFieldNumber = 5;
+    private float spawnChance_;
+    /// <summary>
+    /// 0.0–1.0 fraction of slots that fill
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public float SpawnChance {
+      get { return spawnChance_; }
+      set {
+        spawnChance_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "schedule" field.</summary>
+    public const int ScheduleFieldNumber = 6;
+    private global::KBVE.Proto.Npc.CreatureSchedule schedule_ = global::KBVE.Proto.Npc.CreatureSchedule.Unspecified;
+    /// <summary>
+    /// When this creature is present
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Npc.CreatureSchedule Schedule {
+      get { return schedule_; }
+      set {
+        schedule_ = value;
+      }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as CreatureConfig);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(CreatureConfig other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if (RenderKind != other.RenderKind) return false;
+      if (PoolSize != other.PoolSize) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(ChunkSize, other.ChunkSize)) return false;
+      if (PerChunk != other.PerChunk) return false;
+      if (!pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.Equals(SpawnChance, other.SpawnChance)) return false;
+      if (Schedule != other.Schedule) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      if (RenderKind != global::KBVE.Proto.Npc.CreatureRenderKind.Unspecified) hash ^= RenderKind.GetHashCode();
+      if (PoolSize != 0) hash ^= PoolSize.GetHashCode();
+      if (ChunkSize != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(ChunkSize);
+      if (PerChunk != 0) hash ^= PerChunk.GetHashCode();
+      if (SpawnChance != 0F) hash ^= pbc::ProtobufEqualityComparers.BitwiseSingleEqualityComparer.GetHashCode(SpawnChance);
+      if (Schedule != global::KBVE.Proto.Npc.CreatureSchedule.Unspecified) hash ^= Schedule.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      if (RenderKind != global::KBVE.Proto.Npc.CreatureRenderKind.Unspecified) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) RenderKind);
+      }
+      if (PoolSize != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(PoolSize);
+      }
+      if (ChunkSize != 0F) {
+        output.WriteRawTag(29);
+        output.WriteFloat(ChunkSize);
+      }
+      if (PerChunk != 0) {
+        output.WriteRawTag(32);
+        output.WriteInt32(PerChunk);
+      }
+      if (SpawnChance != 0F) {
+        output.WriteRawTag(45);
+        output.WriteFloat(SpawnChance);
+      }
+      if (Schedule != global::KBVE.Proto.Npc.CreatureSchedule.Unspecified) {
+        output.WriteRawTag(48);
+        output.WriteEnum((int) Schedule);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (RenderKind != global::KBVE.Proto.Npc.CreatureRenderKind.Unspecified) {
+        output.WriteRawTag(8);
+        output.WriteEnum((int) RenderKind);
+      }
+      if (PoolSize != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(PoolSize);
+      }
+      if (ChunkSize != 0F) {
+        output.WriteRawTag(29);
+        output.WriteFloat(ChunkSize);
+      }
+      if (PerChunk != 0) {
+        output.WriteRawTag(32);
+        output.WriteInt32(PerChunk);
+      }
+      if (SpawnChance != 0F) {
+        output.WriteRawTag(45);
+        output.WriteFloat(SpawnChance);
+      }
+      if (Schedule != global::KBVE.Proto.Npc.CreatureSchedule.Unspecified) {
+        output.WriteRawTag(48);
+        output.WriteEnum((int) Schedule);
+      }
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      if (RenderKind != global::KBVE.Proto.Npc.CreatureRenderKind.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) RenderKind);
+      }
+      if (PoolSize != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(PoolSize);
+      }
+      if (ChunkSize != 0F) {
+        size += 1 + 4;
+      }
+      if (PerChunk != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(PerChunk);
+      }
+      if (SpawnChance != 0F) {
+        size += 1 + 4;
+      }
+      if (Schedule != global::KBVE.Proto.Npc.CreatureSchedule.Unspecified) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Schedule);
+      }
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(CreatureConfig other) {
+      if (other == null) {
+        return;
+      }
+      if (other.RenderKind != global::KBVE.Proto.Npc.CreatureRenderKind.Unspecified) {
+        RenderKind = other.RenderKind;
+      }
+      if (other.PoolSize != 0) {
+        PoolSize = other.PoolSize;
+      }
+      if (other.ChunkSize != 0F) {
+        ChunkSize = other.ChunkSize;
+      }
+      if (other.PerChunk != 0) {
+        PerChunk = other.PerChunk;
+      }
+      if (other.SpawnChance != 0F) {
+        SpawnChance = other.SpawnChance;
+      }
+      if (other.Schedule != global::KBVE.Proto.Npc.CreatureSchedule.Unspecified) {
+        Schedule = other.Schedule;
+      }
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 8: {
+            RenderKind = (global::KBVE.Proto.Npc.CreatureRenderKind) input.ReadEnum();
+            break;
+          }
+          case 16: {
+            PoolSize = input.ReadInt32();
+            break;
+          }
+          case 29: {
+            ChunkSize = input.ReadFloat();
+            break;
+          }
+          case 32: {
+            PerChunk = input.ReadInt32();
+            break;
+          }
+          case 45: {
+            SpawnChance = input.ReadFloat();
+            break;
+          }
+          case 48: {
+            Schedule = (global::KBVE.Proto.Npc.CreatureSchedule) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+        switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 8: {
+            RenderKind = (global::KBVE.Proto.Npc.CreatureRenderKind) input.ReadEnum();
+            break;
+          }
+          case 16: {
+            PoolSize = input.ReadInt32();
+            break;
+          }
+          case 29: {
+            ChunkSize = input.ReadFloat();
+            break;
+          }
+          case 32: {
+            PerChunk = input.ReadInt32();
+            break;
+          }
+          case 45: {
+            SpawnChance = input.ReadFloat();
+            break;
+          }
+          case 48: {
+            Schedule = (global::KBVE.Proto.Npc.CreatureSchedule) input.ReadEnum();
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  /// <summary>
   /// Interaction flags — what players can do with this NPC
   /// </summary>
   public sealed partial class InteractionFlags : pb::IMessage<InteractionFlags>
@@ -10895,7 +11344,7 @@ namespace KBVE.Proto.Npc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[20]; }
+      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[21]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -11423,7 +11872,7 @@ namespace KBVE.Proto.Npc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[21]; }
+      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[22]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -11831,7 +12280,7 @@ namespace KBVE.Proto.Npc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[22]; }
+      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[23]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -12560,7 +13009,7 @@ namespace KBVE.Proto.Npc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[23]; }
+      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[24]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -12899,7 +13348,7 @@ namespace KBVE.Proto.Npc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[24]; }
+      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[25]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -13135,7 +13584,7 @@ namespace KBVE.Proto.Npc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[25]; }
+      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[26]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -13490,7 +13939,7 @@ namespace KBVE.Proto.Npc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[26]; }
+      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[27]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -14050,7 +14499,7 @@ namespace KBVE.Proto.Npc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[27]; }
+      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[28]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -14470,7 +14919,7 @@ namespace KBVE.Proto.Npc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[28]; }
+      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[29]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -14542,6 +14991,7 @@ namespace KBVE.Proto.Npc {
       partyScaling_ = other.partyScaling_ != null ? other.partyScaling_.Clone() : null;
       spatial_ = other.spatial_ != null ? other.spatial_.Clone() : null;
       interaction_ = other.interaction_ != null ? other.interaction_.Clone() : null;
+      creatureConfig_ = other.creatureConfig_ != null ? other.creatureConfig_.Clone() : null;
       pet_ = other.pet_ != null ? other.pet_.Clone() : null;
       extensions_ = other.extensions_.Clone();
       credits_ = other.credits_;
@@ -15501,6 +15951,21 @@ namespace KBVE.Proto.Npc {
       }
     }
 
+    /// <summary>Field number for the "creature_config" field.</summary>
+    public const int CreatureConfigFieldNumber = 58;
+    private global::KBVE.Proto.Npc.CreatureConfig creatureConfig_;
+    /// <summary>
+    /// Ambient population / scatter config (isometric + 3D creature spawners)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public global::KBVE.Proto.Npc.CreatureConfig CreatureConfig {
+      get { return creatureConfig_; }
+      set {
+        creatureConfig_ = value;
+      }
+    }
+
     /// <summary>Field number for the "pet" field.</summary>
     public const int PetFieldNumber = 53;
     private global::KBVE.Proto.Npc.PetInfo pet_;
@@ -15651,6 +16116,7 @@ namespace KBVE.Proto.Npc {
       if (!object.Equals(PartyScaling, other.PartyScaling)) return false;
       if (!object.Equals(Spatial, other.Spatial)) return false;
       if (!object.Equals(Interaction, other.Interaction)) return false;
+      if (!object.Equals(CreatureConfig, other.CreatureConfig)) return false;
       if (!object.Equals(Pet, other.Pet)) return false;
       if(!extensions_.Equals(other.extensions_)) return false;
       if (Credits != other.Credits) return false;
@@ -15713,6 +16179,7 @@ namespace KBVE.Proto.Npc {
       if (partyScaling_ != null) hash ^= PartyScaling.GetHashCode();
       if (spatial_ != null) hash ^= Spatial.GetHashCode();
       if (interaction_ != null) hash ^= Interaction.GetHashCode();
+      if (creatureConfig_ != null) hash ^= CreatureConfig.GetHashCode();
       if (pet_ != null) hash ^= Pet.GetHashCode();
       hash ^= extensions_.GetHashCode();
       if (HasCredits) hash ^= Credits.GetHashCode();
@@ -15913,6 +16380,10 @@ namespace KBVE.Proto.Npc {
         output.WriteRawTag(202, 3);
         output.WriteString(NameKey);
       }
+      if (creatureConfig_ != null) {
+        output.WriteRawTag(210, 3);
+        output.WriteMessage(CreatureConfig);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -16101,6 +16572,10 @@ namespace KBVE.Proto.Npc {
         output.WriteRawTag(202, 3);
         output.WriteString(NameKey);
       }
+      if (creatureConfig_ != null) {
+        output.WriteRawTag(210, 3);
+        output.WriteMessage(CreatureConfig);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -16237,6 +16712,9 @@ namespace KBVE.Proto.Npc {
       }
       if (interaction_ != null) {
         size += 2 + pb::CodedOutputStream.ComputeMessageSize(Interaction);
+      }
+      if (creatureConfig_ != null) {
+        size += 2 + pb::CodedOutputStream.ComputeMessageSize(CreatureConfig);
       }
       if (pet_ != null) {
         size += 2 + pb::CodedOutputStream.ComputeMessageSize(Pet);
@@ -16416,6 +16894,12 @@ namespace KBVE.Proto.Npc {
           Interaction = new global::KBVE.Proto.Npc.InteractionFlags();
         }
         Interaction.MergeFrom(other.Interaction);
+      }
+      if (other.creatureConfig_ != null) {
+        if (creatureConfig_ == null) {
+          CreatureConfig = new global::KBVE.Proto.Npc.CreatureConfig();
+        }
+        CreatureConfig.MergeFrom(other.CreatureConfig);
       }
       if (other.pet_ != null) {
         if (pet_ == null) {
@@ -16698,6 +17182,13 @@ namespace KBVE.Proto.Npc {
             NameKey = input.ReadString();
             break;
           }
+          case 466: {
+            if (creatureConfig_ == null) {
+              CreatureConfig = new global::KBVE.Proto.Npc.CreatureConfig();
+            }
+            input.ReadMessage(CreatureConfig);
+            break;
+          }
         }
       }
     #endif
@@ -16966,6 +17457,13 @@ namespace KBVE.Proto.Npc {
             NameKey = input.ReadString();
             break;
           }
+          case 466: {
+            if (creatureConfig_ == null) {
+              CreatureConfig = new global::KBVE.Proto.Npc.CreatureConfig();
+            }
+            input.ReadMessage(CreatureConfig);
+            break;
+          }
         }
       }
     }
@@ -16987,7 +17485,7 @@ namespace KBVE.Proto.Npc {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[29]; }
+      get { return global::KBVE.Proto.Npc.NpcdbReflection.Descriptor.MessageTypes[30]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

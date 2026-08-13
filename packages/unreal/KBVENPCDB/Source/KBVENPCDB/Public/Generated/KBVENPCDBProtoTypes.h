@@ -618,6 +618,31 @@ struct KBVENPCDB_API FKBVEGenSpatialProperties
 };
 
 USTRUCT(BlueprintType)
+struct KBVENPCDB_API FKBVEGenCreatureConfig
+{
+	GENERATED_BODY()
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	FString RenderKind;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 PoolSize = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	float ChunkSize = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	int32 PerChunk = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	float SpawnChance = 0;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	FString Schedule;
+
+};
+
+USTRUCT(BlueprintType)
 struct KBVENPCDB_API FKBVEGenInteractionFlags
 {
 	GENERATED_BODY()
@@ -964,6 +989,9 @@ struct KBVENPCDB_API FKBVEGenNpc
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
 	FKBVEGenInteractionFlags Interaction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
+	FKBVEGenCreatureConfig CreatureConfig;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|NPCDB")
 	FKBVEGenPetInfo Pet;

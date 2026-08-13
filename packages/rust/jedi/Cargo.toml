@@ -96,9 +96,8 @@ observ = ["dep:tracing-subscriber"]
 aws = ["dep:aws-config", "dep:aws-sdk-s3"]
 
 [dependencies.tracing-subscriber]
-version = "0.2.3"
+workspace = true
 optional = true
-default-features = false
 features = ["registry", "std"]
 
 [dev-dependencies]

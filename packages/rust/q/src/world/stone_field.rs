@@ -10,23 +10,9 @@ use crate::world::stone_mesh::{
     LOD_LEVELS, SPECIES, build_cracked_mesh, build_rubble_mesh, build_stone_hull, build_stone_lod,
     build_stone_mesh,
 };
-use crate::world::terrain::QTerrain;
+use crate::world::{TerrainSnapshot, hash32, randf, world_aabb};
 
 const VARIANTS: usize = 12;
-
-fn hash32(mut x: u32) -> u32 {
-    x ^= x >> 16;
-    x = x.wrapping_mul(0x7feb352d);
-    x ^= x >> 15;
-    x = x.wrapping_mul(0x846ca68b);
-    x ^= x >> 16;
-    x
-}
-
-fn randf(state: &mut u32) -> f32 {
-    *state = hash32(*state);
-    (*state >> 8) as f32 / 16_777_216.0
-}
 
 struct VariantMeshes {
     /// Intact stone at each LOD, then the two damage stages (no LOD needed —
@@ -122,61 +108,22 @@ pub struct QStoneField {
 impl QStoneField {
     fn late_init(&mut self) -> bool {
         let _t = super::ReadyTimer::start("stones");
-        let terrain = if self.terrain_path.is_empty() {
-            self.base().get_node_or_null("../Terrain")
-        } else {
-            self.base().get_node_or_null(&self.terrain_path)
-        }
-        .and_then(|n| n.try_cast::<QTerrain>().ok());
-        let Some(terrain) = terrain else {
+        let node = self.base().clone().upcast::<godot::classes::Node>();
+        let Some(terrain) = crate::world::resolve_terrain(&node, &self.terrain_path) else {
             godot_error!("[QStoneField] no QTerrain found; stones disabled");
             return true;
         };
-        let (heights, res, extent, water, road_mask, road_res) = {
-            let t = terrain.bind();
-            let Some((h, r)) = t.cpu_heights() else {
-                return false;
-            };
-            let (rm, rr) = t
-                .road_mask()
-                .map(|(m, r)| (m.to_vec(), r))
-                .unwrap_or((Vec::new(), 0));
-            (h.to_vec(), r, t.world_extent(), t.water(), rm, rr)
+        let Some(terra) = TerrainSnapshot::take(&terrain) else {
+            return false;
         };
-
-        // Keep the carriageway clear; grass already honours this through the
-        // clearance map, but scatter placement never consulted it.
-        let on_road = |x: f32, z: f32| -> f32 {
-            if road_res < 2 {
-                return 0.0;
-            }
-            let u = ((x + extent) / (extent * 2.0)).clamp(0.0, 1.0);
-            let v = ((z + extent) / (extent * 2.0)).clamp(0.0, 1.0);
-            let px = ((u * (road_res - 1) as f32) as i32).clamp(0, road_res - 1);
-            let pz = ((v * (road_res - 1) as f32) as i32).clamp(0, road_res - 1);
-            road_mask[(pz * road_res + px) as usize] as f32 / 255.0
-        };
+        let extent = terra.extent;
+        let water = terra.water;
         self.extent = extent;
-        self.terrain_heights = heights.clone();
-        self.terrain_res = res;
+        let (raw, raw_res) = terra.raw_heights();
+        self.terrain_heights = raw.to_vec();
+        self.terrain_res = raw_res;
 
-        let sample = |x: f32, z: f32| -> f32 {
-            let fx =
-                (((x + extent) / (extent * 2.0)).clamp(0.001, 0.999) * res as f32 - 0.5).max(0.0);
-            let fz =
-                (((z + extent) / (extent * 2.0)).clamp(0.001, 0.999) * res as f32 - 0.5).max(0.0);
-            let x0 = (fx as i32).clamp(0, res - 2);
-            let z0 = (fz as i32).clamp(0, res - 2);
-            let tx = (fx - x0 as f32).clamp(0.0, 1.0);
-            let tz = (fz - z0 as f32).clamp(0.0, 1.0);
-            let h00 = heights[(z0 * res + x0) as usize];
-            let h10 = heights[(z0 * res + x0 + 1) as usize];
-            let h01 = heights[((z0 + 1) * res + x0) as usize];
-            let h11 = heights[((z0 + 1) * res + x0 + 1) as usize];
-            let a = h00 + (h10 - h00) * tx;
-            let b = h01 + (h11 - h01) * tx;
-            a + (b - a) * tz
-        };
+        let sample = |x: f32, z: f32| -> f32 { terra.height(x, z) };
 
         let mut noise = FastNoiseLite::with_seed(self.stone_seed + 3);
         noise.set_noise_type(Some(NoiseType::OpenSimplex2S));
@@ -217,7 +164,7 @@ impl QStoneField {
                 if noise.get_noise_2d(x, z) < self.patch_threshold && slope < 0.32 {
                     continue;
                 }
-                if on_road(x, z) > 0.12 {
+                if terra.on_road(x, z) > 0.12 {
                     continue;
                 }
                 let h = sample(x, z);
@@ -254,7 +201,7 @@ impl QStoneField {
                     if cx.abs() > extent - 5.0 || cz.abs() > extent - 5.0 {
                         continue;
                     }
-                    if on_road(cx, cz) > 0.12 {
+                    if terra.on_road(cx, cz) > 0.12 {
                         continue;
                     }
                     let ch = sample(cx, cz);
@@ -596,14 +543,6 @@ impl QStoneField {
         }
     }
 
-    fn world_aabb(&self) -> Aabb {
-        let e = self.extent + 10.0;
-        Aabb::new(
-            Vector3::new(-e, -40.0, -e),
-            Vector3::new(e * 2.0, 120.0, e * 2.0),
-        )
-    }
-
     fn make_slot(&self, mesh: &Gd<ArrayMesh>, scenario: Rid, material: Rid) -> MmSlot {
         let mut rs = RenderingServer::singleton();
         let mm = rs.multimesh_create();
@@ -614,7 +553,7 @@ impl QStoneField {
         if material.is_valid() {
             rs.instance_geometry_set_material_override(inst, material);
         }
-        rs.instance_set_custom_aabb(inst, self.world_aabb());
+        rs.instance_set_custom_aabb(inst, world_aabb(self.extent));
         rs.instance_set_transform(inst, Transform3D::IDENTITY);
         MmSlot { mm, inst }
     }
@@ -741,11 +680,7 @@ impl QStoneField {
     }
 
     fn view_origin(&self) -> Vector3 {
-        self.base()
-            .get_viewport()
-            .and_then(|vp| vp.get_camera_3d())
-            .map(|c| c.get_global_position())
-            .unwrap_or(Vector3::ZERO)
+        crate::world::view_origin(&self.base().clone(), None).unwrap_or(Vector3::ZERO)
     }
 
     fn build_colliders(&mut self) {
