@@ -8,32 +8,28 @@
 		"editor": {
 			"executor": "nx:run-commands",
 			"options": {
-				"command": "godot --editor .",
+				"command": "bash scripts/godot.sh --editor .",
 				"cwd": "apps/friendslop/godot-friendslop"
 			}
 		},
 		"test": {
 			"executor": "nx:run-commands",
 			"options": {
-				"commands": [
-					"godot --headless --import",
-					"godot --headless -d -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd --ignoreHeadlessMode -a res://tests -c"
-				],
-				"parallel": false,
+				"command": "bash scripts/test.sh",
 				"cwd": "apps/friendslop/godot-friendslop"
 			}
 		},
 		"test:smoke": {
 			"executor": "nx:run-commands",
 			"options": {
-				"command": "godot --headless -s tests/smoke_ecs.gd",
+				"command": "bash scripts/godot.sh --headless -s tests/smoke_ecs.gd",
 				"cwd": "apps/friendslop/godot-friendslop"
 			}
 		},
 		"run": {
 			"executor": "nx:run-commands",
 			"options": {
-				"command": "godot .",
+				"command": "bash scripts/godot.sh .",
 				"cwd": "apps/friendslop/godot-friendslop"
 			}
 		},
@@ -46,7 +42,7 @@
 				}
 			],
 			"options": {
-				"command": "godot .",
+				"command": "bash scripts/godot.sh .",
 				"cwd": "apps/friendslop/godot-friendslop"
 			}
 		},
@@ -59,14 +55,14 @@
 				}
 			],
 			"options": {
-				"command": "godot --editor .",
+				"command": "bash scripts/godot.sh --editor .",
 				"cwd": "apps/friendslop/godot-friendslop"
 			}
 		},
 		"export:windows": {
 			"executor": "nx:run-commands",
 			"options": {
-				"command": "mkdir -p ../../../dist/apps/friendslop/windows && godot --headless --export-release \"Windows Desktop\"",
+				"command": "mkdir -p ../../../dist/apps/friendslop/windows && bash scripts/godot.sh --headless --export-release \"Windows Desktop\"",
 				"cwd": "apps/friendslop/godot-friendslop"
 			},
 			"outputs": ["{workspaceRoot}/dist/apps/friendslop/windows"]
@@ -74,7 +70,7 @@
 		"export:macos": {
 			"executor": "nx:run-commands",
 			"options": {
-				"command": "mkdir -p ../../../dist/apps/friendslop/macos && godot --headless --export-release \"macOS\"",
+				"command": "mkdir -p ../../../dist/apps/friendslop/macos && bash scripts/godot.sh --headless --export-release \"macOS\"",
 				"cwd": "apps/friendslop/godot-friendslop"
 			},
 			"outputs": ["{workspaceRoot}/dist/apps/friendslop/macos"]
@@ -82,7 +78,7 @@
 		"export:linux": {
 			"executor": "nx:run-commands",
 			"options": {
-				"command": "mkdir -p ../../../dist/apps/friendslop/linux && godot --headless --export-release \"Linux\"",
+				"command": "mkdir -p ../../../dist/apps/friendslop/linux && bash scripts/godot.sh --headless --export-release \"Linux\"",
 				"cwd": "apps/friendslop/godot-friendslop"
 			},
 			"outputs": ["{workspaceRoot}/dist/apps/friendslop/linux"]

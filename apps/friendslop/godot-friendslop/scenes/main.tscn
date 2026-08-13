@@ -25,6 +25,8 @@
 [ext_resource type="Script" path="res://src/settings/graphics_settings.gd" id="30_gfx"]
 [ext_resource type="Script" path="res://src/settings/gameplay_settings.gd" id="31_play"]
 [ext_resource type="Script" path="res://src/ui/crosshair.gd" id="32_cross"]
+[ext_resource type="Script" path="res://src/fx/underwater.gd" id="41_underwater"]
+[ext_resource type="Material" path="res://assets/fx/shaders/underwater.tres" id="42_underwatermat"]
 [ext_resource type="PackedScene" path="res://assets/environment/props/fauna/lizardfish/lizardfish.glb" id="39_fishmodel"]
 [ext_resource type="Material" path="res://assets/environment/props/fauna/lizardfish/fish.tres" id="40_fishmat"]
 [ext_resource type="Script" path="res://src/characters/character_rig.gd" id="33_rig"]
@@ -179,6 +181,11 @@ default_animation = "UAL1/Idle_LookAround"
 terrain_path = NodePath("../Terrain")
 fish_model = ExtResource("39_fishmodel")
 fish_material = ExtResource("40_fishmat")
+
+[node name="Underwater" type="Node3D" parent="."]
+script = ExtResource("41_underwater")
+terrain_path = NodePath("../Terrain")
+material = ExtResource("42_underwatermat")
 
 [node name="Ravens" type="Node3D" parent="."]
 script = ExtResource("14_ravens")

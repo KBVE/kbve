@@ -1,0 +1,23 @@
+[gd_resource type="ShaderMaterial" load_steps=2 format=3]
+
+[ext_resource type="Shader" path="res://assets/fx/shaders/underwater.gdshader" id="1_underwater"]
+
+[resource]
+render_priority = 20
+shader = ExtResource("1_underwater")
+shader_parameter/submersion = 0.0
+shader_parameter/deep_color = Color(0.05, 0.19, 0.24, 1)
+shader_parameter/shallow_color = Color(0.24, 0.53, 0.55, 1)
+shader_parameter/fog_density = 0.11
+shader_parameter/fog_strength = 0.92
+shader_parameter/desaturate = 0.35
+shader_parameter/darken = 0.18
+shader_parameter/wobble_strength = 0.006
+shader_parameter/wobble_speed = 1.1
+shader_parameter/wobble_scale = 18.0
+shader_parameter/shaft_color = Color(0.75, 0.95, 1, 1)
+shader_parameter/shaft_strength = 0.14
+shader_parameter/shaft_scale = 7.0
+shader_parameter/shaft_speed = 0.28
+shader_parameter/vignette_strength = 0.42
+shader_parameter/vignette_start = 0.32

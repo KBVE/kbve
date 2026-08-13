@@ -223,9 +223,6 @@ func apply() -> void:
 	vp.scaling_3d_scale = clampf(render_scale, 0.5, 1.0)
 	vp.msaa_3d = TIERS[clampi(preset_index(), 0, TIERS.size() - 1)].msaa
 
-	# The riverbed runs the same SPOM as the ground, so one Ground Detail step
-	# drives both surfaces rather than leaving the bank on whatever its material
-	# shipped with.
 	var d: Dictionary = DETAIL_POM[clampi(detail, 0, DETAIL_POM.size() - 1)]
 	for m in [_ground, _riverbed]:
 		if m == null:

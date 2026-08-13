@@ -45,9 +45,9 @@ void main() {
     if (all(greaterThan(prev_uv, vec2(0.0))) && all(lessThan(prev_uv, vec2(1.0)))) {
         v = texture(wake_prev, prev_uv).r;
     }
-    v *= exp(-pc.delta * 0.8);
+    v *= exp(-pc.delta * 2.4);
     float d = length(w - pc.player);
-    v += pc.strength * (1.0 - smoothstep(pc.radius * 0.25, pc.radius, d)) * pc.delta * 6.0;
+    v += pc.strength * (1.0 - smoothstep(pc.radius * 0.25, pc.radius, d)) * pc.delta * 12.0;
     imageStore(wake_next, px, vec4(clamp(v, 0.0, 1.0)));
 }
 "#;
@@ -251,8 +251,8 @@ impl QTerrain {
         let strength = in_water * (speed_h * 0.22).clamp(0.06, 0.65);
 
         let idle = in_water <= 0.0;
-        self.wake_energy = self.wake_energy * (-delta * 0.8).exp()
-            + if idle { 0.0 } else { strength * delta * 6.0 };
+        self.wake_energy = self.wake_energy * (-delta * 2.4).exp()
+            + if idle { 0.0 } else { strength * delta * 12.0 };
         if idle && self.wake_energy < 0.004 {
             self.wake_active = false;
             return;

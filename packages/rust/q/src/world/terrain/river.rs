@@ -81,6 +81,8 @@ impl QTerrain {
     fn build_water_plane(&mut self, strip_width: f32) {
         let mut plane = PlaneMesh::new_gd();
         plane.set_size(Vector2::new(strip_width, self.extent * 2.0));
+        plane.set_subdivide_width((strip_width as i32 - 1).max(1));
+        plane.set_subdivide_depth((self.extent as i32 * 2 - 1).max(1));
         let mut water = MeshInstance3D::new_alloc();
         water.set_name("Water");
         water.set_mesh(&plane);

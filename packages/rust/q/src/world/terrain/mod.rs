@@ -242,7 +242,13 @@ impl QTerrain {
             m.set_shader_parameter("water_level", &self.water_level.to_variant());
         }
         if let Some(m) = self.water_material.as_mut() {
+            if let Some(t) = tex.as_ref() {
+                m.set_shader_parameter("heightmap", &t.to_variant());
+            }
             m.set_shader_parameter("terrain_extent", &self.extent.to_variant());
+            m.set_shader_parameter("water_level", &self.water_level.to_variant());
+            let texel = self.extent * 2.0 / (res - 1).max(1) as f32;
+            m.set_shader_parameter("heightmap_texel", &texel.to_variant());
         }
 
         self.bake_clearance(&heights, res);
