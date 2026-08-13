@@ -8,6 +8,8 @@ use bevy_chat::ChatMessage;
 
 use super::chat::{MAX_CHAT_LEN, PLATFORM, sanitize_content, sanitize_nick};
 use super::claim::{ClaimStore, Redeem};
+use super::games::text::{Rng, bar, meter, strip_markup};
+use super::games::{self, Flow, Game, blackjack, dungeon, hangman, highlow, tictactoe};
 use super::render::{Ink, Screen, Term, truncate, wrap_lines};
 use super::telnet::{DO, IAC, OPT_ECHO, OPT_NAWS, SB, SE, TelnetConn, WILL};
 
@@ -225,4 +227,249 @@ fn chat_body_is_clamped_and_stripped() {
     assert_eq!(sanitize_content("  hi\u{7}there  "), "hithere");
     assert_eq!(sanitize_content("\u{1b}[2Jwipe"), "[2Jwipe");
     assert_eq!(sanitize_content(&"a".repeat(1000)).len(), MAX_CHAT_LEN);
+}
+
+fn drain(term: Term, game: &dyn Game) -> String {
+    let mut screen = Screen::new(term, 80, 24);
+    game.draw(&mut screen);
+    String::from_utf8_lossy(&screen.take()).to_string()
+}
+
+#[test]
+fn bar_fills_and_clamps() {
+    assert_eq!(bar(0, 10, 4), "[----]");
+    assert_eq!(bar(10, 10, 4), "[####]");
+    assert_eq!(bar(5, 10, 4), "[##--]");
+    assert_eq!(bar(-5, 10, 4), "[----]");
+    assert_eq!(bar(99, 10, 4), "[####]");
+    assert_eq!(bar(1, 0, 4), "[----]");
+}
+
+#[test]
+fn meter_shows_numbers_after_the_bar() {
+    assert_eq!(meter("HP", 32, 50, 10), "HP [######----] 32/50");
+}
+
+#[test]
+fn strip_markup_drops_emphasis_and_keeps_words() {
+    assert_eq!(strip_markup("**13** damage"), "13 damage");
+    assert_eq!(strip_markup("a `code` span"), "a code span");
+    assert_eq!(strip_markup("__bold__ text"), "bold text");
+}
+
+#[test]
+fn strip_markup_transliterates_the_dungeon_glyphs() {
+    assert_eq!(strip_markup("\u{2665}\u{2665}\u{2661}"), "##.");
+    assert_eq!(strip_markup("\u{2588}\u{2591}"), "#.");
+    assert_eq!(strip_markup("\u{2620} heavy"), "!! heavy");
+}
+
+#[test]
+fn strip_markup_leaves_no_non_ascii() {
+    let messy = "\u{2660} hit \u{2014} \u{1F4A5} boom \u{2026}";
+    let cleaned = strip_markup(messy);
+    assert!(cleaned.is_ascii(), "not ascii: {cleaned:?}");
+}
+
+#[test]
+fn rng_is_deterministic_for_a_seed() {
+    let mut a = Rng::new(42);
+    let mut b = Rng::new(42);
+    let left: Vec<usize> = (0..8).map(|_| a.below(100)).collect();
+    let right: Vec<usize> = (0..8).map(|_| b.below(100)).collect();
+    assert_eq!(left, right);
+    assert!(left.iter().all(|v| *v < 100));
+}
+
+#[test]
+fn rng_below_zero_does_not_divide_by_zero() {
+    assert_eq!(Rng::new(7).below(0), 0);
+}
+
+#[test]
+fn rng_shuffle_keeps_every_element() {
+    let mut deck: Vec<u8> = (0..52).collect();
+    Rng::new(9).shuffle(&mut deck);
+    deck.sort_unstable();
+    assert_eq!(deck, (0..52).collect::<Vec<u8>>());
+}
+
+#[test]
+fn blackjack_counts_aces_softly_then_hard() {
+    let mut game = blackjack::Blackjack::new(Rng::new(1));
+    assert!(game.chips() <= 100);
+    let _ = game.on_key('S');
+    let _ = game.on_key('N');
+    assert!(game.chips() >= 0);
+}
+
+#[test]
+fn blackjack_quit_exits_from_any_phase() {
+    let mut game = blackjack::Blackjack::new(Rng::new(2));
+    assert_eq!(game.on_key('Q'), Flow::Exit);
+}
+
+#[test]
+fn blackjack_hitting_eventually_settles() {
+    let mut game = blackjack::Blackjack::new(Rng::new(3));
+    for _ in 0..12 {
+        let _ = game.on_key('H');
+    }
+    let frame = drain(Term::Ansi, &game);
+    assert!(frame.contains("chips"));
+}
+
+#[test]
+fn tictactoe_cpu_blocks_an_immediate_loss() {
+    let mut game = tictactoe::TicTacToe::new(Rng::new(5));
+    let _ = game.on_key('1');
+    let _ = game.on_key('2');
+    let board = game.board();
+    let ours = board.iter().filter(|c| **c == tictactoe::Cell::You).count();
+    let theirs = board.iter().filter(|c| **c == tictactoe::Cell::Cpu).count();
+    assert_eq!(ours, 2);
+    assert_eq!(theirs, 2, "cpu should have answered both moves");
+}
+
+#[test]
+fn tictactoe_rejects_occupied_and_out_of_range_cells() {
+    let mut game = tictactoe::TicTacToe::new(Rng::new(6));
+    let _ = game.on_key('1');
+    let before = *game.board();
+    let _ = game.on_key('1');
+    assert_eq!(&before, game.board());
+    let _ = game.on_key('0');
+    assert_eq!(&before, game.board());
+}
+
+#[test]
+fn tictactoe_reaches_a_terminal_outcome() {
+    let mut game = tictactoe::TicTacToe::new(Rng::new(7));
+    for key in ['1', '2', '3', '4', '5', '6', '7', '8', '9'] {
+        if game.outcome() != tictactoe::Outcome::Playing {
+            break;
+        }
+        let _ = game.on_key(key);
+    }
+    assert_ne!(game.outcome(), tictactoe::Outcome::Playing);
+}
+
+#[test]
+fn hangman_words_are_guessable() {
+    for (word, _) in hangman::WORDS {
+        assert!(
+            !word.contains('Q'),
+            "{word} needs Q, which is reserved for quitting the game"
+        );
+        assert!(
+            word.chars().all(|c| c.is_ascii_uppercase()),
+            "{word} is not plain uppercase ASCII"
+        );
+    }
+}
+
+#[test]
+fn hangman_quit_is_not_swallowed_as_a_guess() {
+    let mut game = hangman::Hangman::new(Rng::new(12));
+    assert_eq!(game.on_key('Q'), Flow::Exit);
+}
+
+#[test]
+fn hangman_masks_until_guessed() {
+    let mut game = hangman::Hangman::new(Rng::new(13));
+    assert!(game.masked().contains('_'));
+
+    let answer = game.answer();
+    for letter in answer.chars() {
+        let _ = game.on_key(letter);
+    }
+
+    assert!(!game.masked().contains('_'));
+    assert_eq!(game.state(), hangman::State::Won);
+}
+
+#[test]
+fn highlow_tracks_a_streak_and_quits() {
+    let mut game = highlow::HighLow::new(Rng::new(17));
+    for _ in 0..6 {
+        let _ = game.on_key('H');
+        let _ = game.on_key('N');
+    }
+    assert!(game.streak() <= 6);
+    assert_eq!(game.on_key('Q'), Flow::Exit);
+}
+
+#[test]
+fn every_catalog_entry_launches() {
+    for entry in games::CATALOG {
+        assert!(
+            games::launch(entry.key).is_some(),
+            "catalog entry {} does not launch",
+            entry.key
+        );
+    }
+    assert!(games::launch('Z').is_none());
+}
+
+#[test]
+fn dungeon_lobby_is_honest_then_previews() {
+    let mut lobby = dungeon::Lobby::new();
+    let status = drain(Term::Ansi, &lobby);
+    assert!(status.contains("not yet playable"));
+
+    assert_eq!(lobby.on_key('P'), Flow::Continue);
+    let preview = drain(Term::Ansi, &lobby);
+    assert!(preview.contains("Glass Slime"));
+    assert!(preview.contains("sample turn"));
+
+    assert_eq!(lobby.on_key('Q'), Flow::Continue);
+    assert_eq!(lobby.on_key('Q'), Flow::Exit);
+}
+
+#[test]
+fn dungeon_frame_renders_bars_not_markdown() {
+    let mut lobby = dungeon::Lobby::new();
+    let _ = lobby.on_key('P');
+    let preview = drain(Term::Ansi, &lobby);
+    assert!(preview.contains("HP [######----] 32/50"));
+    assert!(!preview.contains("**"));
+    assert!(!preview.contains('`'));
+}
+
+#[test]
+fn dungeon_frame_survives_petscii_without_substitutions() {
+    let mut lobby = dungeon::Lobby::new();
+    let _ = lobby.on_key('P');
+    let mut screen = Screen::new(Term::Petscii, 40, 25);
+    lobby.draw(&mut screen);
+    let bytes = screen.take();
+    assert!(
+        !bytes.contains(&b'?'),
+        "petscii render fell back to '?' for a glyph strip_markup missed"
+    );
+}
+
+#[test]
+fn dungeon_frame_wraps_inside_the_petscii_width() {
+    let frame = dungeon::Frame {
+        room: "a ".repeat(80),
+        party: vec![dungeon::Actor {
+            name: "averyveryverylongcharactername".to_string(),
+            hp: 5,
+            max_hp: 40,
+        }],
+        ..Default::default()
+    };
+    let mut screen = Screen::new(Term::Petscii, 40, 25);
+    dungeon::draw_frame(&mut screen, &frame);
+    let bytes = screen.take();
+    let widest = bytes
+        .split(|b| *b == 0x0D)
+        .map(|line| line.iter().filter(|b| **b >= 0x20).count())
+        .max()
+        .unwrap_or(0);
+    assert!(
+        widest <= 40,
+        "line overflowed the 40-column screen: {widest}"
+    );
 }
