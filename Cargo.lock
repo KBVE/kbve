@@ -2330,6 +2330,7 @@ dependencies = [
  "axum-server",
  "base64 0.22.1",
  "bevy",
+ "bevy_chat",
  "bevy_inventory",
  "bevy_items",
  "bevy_kbve_net",

@@ -126,6 +126,7 @@ fn platform_tag(platform: &str) -> String {
         "rareicon" => "R".to_owned(),
         "minecraft" => "M".to_owned(),
         "palworld" => "PAL".to_owned(),
+        "bbs" => "BBS".to_owned(),
         "system" => "SYS".to_owned(),
         "irc" => "IRC".to_owned(),
         other => other
@@ -154,10 +155,7 @@ async fn resolve_user_mentions(
         // Prefer the KBVE username linked to the Discord account; fall back to
         // the Discord display name when unlinked / no username / no resolver.
         let display = match app.mentions.as_ref() {
-            Some(resolver) => resolver
-                .kbve_username(&id)
-                .await
-                .unwrap_or(discord_name),
+            Some(resolver) => resolver.kbve_username(&id).await.unwrap_or(discord_name),
             None => discord_name,
         };
         pairs.push((id, display));

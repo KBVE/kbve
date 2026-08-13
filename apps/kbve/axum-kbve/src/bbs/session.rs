@@ -1,9 +1,13 @@
+use std::collections::VecDeque;
 use std::time::Duration;
 
+use bevy_chat::{ChatMessage, MessageKind};
+use tokio::sync::broadcast::error::RecvError;
 use uuid::Uuid;
 
 use crate::db::{FeedQuery, SpaceRow, get_forum_service, get_profile_service, get_wallet_client};
 
+use super::chat::{self, SendError};
 use super::claim::{CLAIM_TTL, claims};
 use super::presence;
 use super::render::{Ink, Screen, Term, truncate, wrap_lines};
@@ -12,6 +16,11 @@ use super::telnet::{ReadError, TelnetConn};
 const MAX_THREADS: i32 = 20;
 const MAX_BODY_CHARS: usize = 6000;
 const CLAIM_POLL: Duration = Duration::from_secs(5);
+const CHAT_SCROLLBACK: usize = 200;
+const KEY_ESC: u8 = 0x1B;
+const KEY_CR: u8 = 0x0D;
+const KEY_BS: u8 = 0x08;
+const KEY_DEL: u8 = 0x7F;
 
 struct Account {
     user_id: String,
@@ -27,6 +36,11 @@ pub struct Session {
 }
 
 type Flow = Result<(), ReadError>;
+
+enum Tick {
+    Incoming(Result<ChatMessage, RecvError>),
+    Key(u8),
+}
 
 impl Session {
     pub fn new(conn: TelnetConn, term: Term, width: usize, height: usize) -> Self {
@@ -78,6 +92,7 @@ impl Session {
             self.main_menu().await?;
             match self.key().await? {
                 'M' => self.boards().await?,
+                'C' => self.chat_room().await?,
                 'W' => self.who().await?,
                 'A' => self.account().await?,
                 'L' => {
@@ -114,6 +129,9 @@ impl Session {
         self.screen.clear().banner("K B V E   B B S");
         self.screen.nl();
         self.screen.item('M', "Message boards");
+        if chat::hub().is_some() {
+            self.screen.item('C', "Chat");
+        }
         self.screen.item('W', "Who's online");
         self.screen.item('A', "Account");
         if self.user.is_some() {
@@ -276,6 +294,109 @@ impl Session {
                 _ => return Ok(()),
             }
         }
+    }
+
+    /// Live `#general`, shared with Discord, Palworld and the web client.
+    /// Guests read; only a claimed account may send.
+    async fn chat_room(&mut self) -> Flow {
+        let Some(hub) = chat::hub() else {
+            return self.unavailable("chat").await;
+        };
+        let mut rx = hub.subscribe();
+        let mut lines: VecDeque<String> = VecDeque::new();
+        let mut input = String::new();
+
+        if !hub.online().await {
+            push_line(&mut lines, "-- relay offline --".to_string());
+        }
+        self.draw_chat(hub.channel(), &lines, &input).await?;
+
+        loop {
+            // Keep the arms free of `self`: select! holds both futures alive
+            // across the handler, so a `self` call here collides with the
+            // borrow taken by `read_key`.
+            let tick = tokio::select! {
+                incoming = rx.recv() => Tick::Incoming(incoming),
+                key = self.conn.read_key() => Tick::Key(key?),
+            };
+
+            match tick {
+                Tick::Incoming(Ok(msg)) => push_message(&mut lines, &msg),
+                Tick::Incoming(Err(RecvError::Lagged(n))) => {
+                    push_line(&mut lines, format!("-- {n} message(s) skipped --"));
+                }
+                Tick::Incoming(Err(RecvError::Closed)) => return Ok(()),
+                Tick::Key(KEY_ESC) => return Ok(()),
+                Tick::Key(KEY_CR) => {
+                    let text = std::mem::take(&mut input);
+                    if text.trim().eq_ignore_ascii_case("/quit") {
+                        return Ok(());
+                    }
+                    self.say(hub, &text, &mut lines).await;
+                }
+                Tick::Key(KEY_BS | KEY_DEL) => {
+                    input.pop();
+                }
+                Tick::Key(b'Q' | b'q') if self.user.is_none() => return Ok(()),
+                Tick::Key(b @ 0x20..=0x7E) if self.user.is_some() => {
+                    if input.len() < chat::MAX_CHAT_LEN {
+                        input.push(b as char);
+                    }
+                }
+                Tick::Key(_) => {}
+            }
+
+            self.draw_chat(hub.channel(), &lines, &input).await?;
+        }
+    }
+
+    async fn say(&mut self, hub: &chat::ChatHub, text: &str, lines: &mut VecDeque<String>) {
+        let Some(account) = self.user.as_ref() else {
+            push_line(lines, "-- log in to chat --".to_string());
+            return;
+        };
+        let (user_id, username) = (account.user_id.clone(), account.username.clone());
+        match hub.send(&user_id, &username, text).await {
+            // Ergo does not echo our own PRIVMSG back, so the local copy is
+            // what the sender sees; render the scrubbed body, not the raw one.
+            Ok(()) => push_line(
+                lines,
+                format!("<{username}> {}", chat::sanitize_content(text)),
+            ),
+            Err(SendError::Empty) => {}
+            Err(SendError::TooFast) => push_line(lines, "-- slow down --".to_string()),
+            Err(SendError::Offline) => push_line(lines, "-- relay offline --".to_string()),
+        }
+    }
+
+    async fn draw_chat(&mut self, channel: &str, lines: &VecDeque<String>, input: &str) -> Flow {
+        let width = self.screen.width.saturating_sub(1);
+        let rows = self.screen.height_hint().saturating_sub(8).max(4);
+        self.screen
+            .clear()
+            .banner(&format!("CHAT {}", channel.to_ascii_uppercase()));
+        self.screen.nl().ink(Ink::Body);
+        for line in lines.iter().skip(lines.len().saturating_sub(rows)) {
+            self.screen.line(&truncate(line, width));
+        }
+        self.screen.reset();
+        if self.user.is_some() {
+            self.screen
+                .nl()
+                .ink(Ink::Dim)
+                .line("[esc] back")
+                .reset()
+                .prompt("say> ")
+                .text(input);
+        } else {
+            self.screen
+                .nl()
+                .ink(Ink::Dim)
+                .line("read only - choose [L] to log in")
+                .reset()
+                .prompt("[esc] back ");
+        }
+        self.flush().await
     }
 
     async fn who(&mut self) -> Flow {
@@ -449,6 +570,21 @@ impl Drop for Session {
     fn drop(&mut self) {
         presence::leave(self.id);
     }
+}
+
+fn push_line(lines: &mut VecDeque<String>, text: String) {
+    if lines.len() >= CHAT_SCROLLBACK {
+        lines.pop_front();
+    }
+    lines.push_back(text);
+}
+
+fn push_message(lines: &mut VecDeque<String>, msg: &ChatMessage) {
+    let text = match msg.kind {
+        MessageKind::Chat => format!("<{}/{}> {}", msg.sender, msg.platform, msg.content),
+        _ => format!("* {}", msg.content),
+    };
+    push_line(lines, text);
 }
 
 fn clip(body: &str) -> &str {
