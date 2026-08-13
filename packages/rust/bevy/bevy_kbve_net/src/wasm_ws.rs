@@ -120,7 +120,8 @@ pub fn wasm_ws_recv(mut query: Query<(&mut Link, &WasmWsSocket), With<Linked>>) 
     for (mut link, ws) in &mut query {
         if let Ok(mut buf) = ws.recv_buf.lock() {
             for packet in buf.drain(..) {
-                link.recv.push(packet, bevy::platform::time::Instant::now());
+                link.recv
+                    .push(packet.into(), bevy::platform::time::Instant::now());
             }
         }
     }
@@ -174,11 +175,13 @@ pub fn wasm_ws_lifecycle(
                 if !is_linked {
                     // Never connected — unlink
                     commands.entity(entity).insert(Unlinked {
-                        reason: "WebSocket closed before connected".to_string(),
+                        reason: UnlinkReason::TransportError(
+                            "WebSocket closed before connected".to_string(),
+                        ),
                     });
                 } else {
                     commands.entity(entity).insert(Unlinked {
-                        reason: "WebSocket connection closed".to_string(),
+                        reason: UnlinkReason::ByPeer("WebSocket connection closed".to_string()),
                     });
                 }
                 warn!("[wasm-ws] WebSocket closed (readyState={})", ready_state);
