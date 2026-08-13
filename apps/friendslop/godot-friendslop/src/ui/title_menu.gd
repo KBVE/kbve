@@ -14,6 +14,7 @@ extends CanvasLayer
 ## file.
 
 signal play_requested
+signal solo_requested
 signal settings_requested
 signal quit_requested
 ## Escape. Separate from `quit_requested` because escape means "back out of
@@ -21,6 +22,7 @@ signal quit_requested
 signal cancel_requested
 
 const WORLD_SCENE := "res://scenes/main.tscn"
+const ONLINE_SCENE := "res://scenes/online.tscn"
 
 const TITLE_TEXT := "Friendslop"
 ## Shown under the button column while Supabase login is unwired, so the greyed
@@ -28,6 +30,7 @@ const TITLE_TEXT := "Friendslop"
 const SIGN_IN_HINT := "Sign in is coming — guests are named by the server."
 
 var play_button: PaperButton
+var solo_button: PaperButton
 var sign_in_button: PaperButton
 var settings_button: PaperButton
 var quit_button: PaperButton
@@ -91,6 +94,7 @@ func _build() -> void:
 	column.add_child(spacer)
 
 	play_button = _add_button(column, "Play as Guest", func() -> void: play_requested.emit())
+	solo_button = _add_button(column, "Singleplayer", func() -> void: solo_requested.emit())
 	sign_in_button = _add_button(column, "Sign In", Callable())
 	# Disabled rather than hidden: the slot is real and the ecosystem it plugs
 	# into exists, so hiding it would misrepresent what is left to do.

@@ -30,15 +30,24 @@ func _ready() -> void:
 	# cursor here even if the world scene captured it before returning.
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_menu.play_requested.connect(_play_as_guest)
+	_menu.solo_requested.connect(_play_solo)
 	_menu.settings_requested.connect(_open_settings)
 	_menu.quit_requested.connect(_quit)
 	_menu.cancel_requested.connect(_cancel)
 
 
+## Signs in before the scene swaps so the session scene finds an identity
+## already in place rather than having to invent one on arrival.
 func _play_as_guest() -> void:
 	var auth := get_node_or_null(^"/root/Auth")
 	if auth:
 		auth.sign_in_as_guest()
+	get_tree().change_scene_to_file(TitleMenu.ONLINE_SCENE)
+
+
+## The offline world. Nothing to sign in to — it is this machine's own sim, and
+## the terrain is whatever this machine generated.
+func _play_solo() -> void:
 	get_tree().change_scene_to_file(TitleMenu.WORLD_SCENE)
 
 

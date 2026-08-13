@@ -1,0 +1,101 @@
+[gd_scene load_steps=15 format=3]
+
+[ext_resource type="Script" path="res://src/net/online_world.gd" id="1_world"]
+[ext_resource type="Material" path="res://assets/biomes/grassland/grass/ground.tres" id="2_ground"]
+[ext_resource type="Material" path="res://assets/biomes/grassland/grass/grass.tres" id="3_grassmat"]
+[ext_resource type="Material" path="res://assets/environment/water/water.tres" id="4_water"]
+[ext_resource type="Material" path="res://assets/environment/water/riverbed.tres" id="5_riverbed"]
+[ext_resource type="Material" path="res://assets/environment/props/bridge/bridge.tres" id="6_bridge"]
+[ext_resource type="Material" path="res://assets/environment/props/bridge/abutment.tres" id="7_abut"]
+[ext_resource type="Shader" path="res://assets/environment/skyboxes/sky.gdshader" id="8_sky"]
+[ext_resource type="Script" path="res://src/world/day_night.gd" id="9_daynight"]
+[ext_resource type="Script" path="res://src/world/wind.gd" id="10_wind"]
+[ext_resource type="Script" path="res://src/net/net_game_client.gd" id="11_client"]
+[ext_resource type="PackedScene" path="res://scenes/net_avatar.tscn" id="12_avatar"]
+[ext_resource type="Script" path="res://src/net/net_camera_rig.gd" id="13_rig"]
+[ext_resource type="Script" path="res://src/net/online_hud.gd" id="14_hud"]
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
+size = Vector2(1024, 1024)
+subdivide_width = 511
+subdivide_depth = 511
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_sky"]
+shader = ExtResource("8_sky")
+shader_parameter/clouds_fuzziness = 0.3
+shader_parameter/clouds_blur = 0.2
+
+[sub_resource type="Sky" id="Sky_online"]
+sky_material = SubResource("ShaderMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_online"]
+background_mode = 2
+sky = SubResource("Sky_online")
+ambient_light_source = 2
+ambient_light_color = Color(0.7, 0.66, 0.6, 1)
+fog_enabled = true
+fog_light_color = Color(0.851974, 0.909539, 1, 1)
+fog_density = 0.008
+fog_sun_scatter = 0.15
+fog_aerial_perspective = 0.93
+fog_sky_affect = 0.0
+adjustment_enabled = true
+adjustment_contrast = 1.15
+adjustment_saturation = 1.2
+
+[node name="Online" type="Node3D"]
+script = ExtResource("1_world")
+
+[node name="Ground" type="MeshInstance3D" parent="."]
+material_override = ExtResource("2_ground")
+mesh = SubResource("PlaneMesh_ground")
+extra_cull_margin = 16.0
+
+[node name="Terrain" type="QTerrain" parent="."]
+player_path = NodePath("../CameraRig")
+grass_material = ExtResource("3_grassmat")
+ground_material = ExtResource("2_ground")
+water_material = ExtResource("4_water")
+riverbed_material = ExtResource("5_riverbed")
+bridge_material = ExtResource("6_bridge")
+abutment_material = ExtResource("7_abut")
+
+[node name="GrassField" type="QGrassField" parent="."]
+player_path = NodePath("../CameraRig")
+grass_material = ExtResource("3_grassmat")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_online")
+
+[node name="DayNight" type="Node3D" parent="."]
+script = ExtResource("9_daynight")
+environment_node = NodePath("../WorldEnvironment")
+
+[node name="Sun" type="DirectionalLight3D" parent="DayNight"]
+shadow_enabled = true
+shadow_blur = 0.3
+
+[node name="Moon" type="DirectionalLight3D" parent="DayNight"]
+light_energy = 0.0
+shadow_blur = 0.5
+
+[node name="Wind" type="Node" parent="."]
+script = ExtResource("10_wind")
+grass_material = ExtResource("3_grassmat")
+ground_material = ExtResource("2_ground")
+environment_node = NodePath("../WorldEnvironment")
+
+[node name="NetGameClient" type="Node3D" parent="."]
+script = ExtResource("11_client")
+avatar_scene = ExtResource("12_avatar")
+intent_basis_path = NodePath("../CameraRig")
+
+[node name="CameraRig" type="Node3D" parent="."]
+script = ExtResource("13_rig")
+
+[node name="Camera" type="Camera3D" parent="CameraRig"]
+current = true
+fov = 68.0
+
+[node name="OnlineHud" type="CanvasLayer" parent="."]
+script = ExtResource("14_hud")
