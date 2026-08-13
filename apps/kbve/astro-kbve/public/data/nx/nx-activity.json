@@ -1,176 +1,176 @@
 {
-  "generated_at": "2026-08-12T03:23:23Z",
+  "generated_at": "2026-08-13T03:27:12Z",
   "window": {
     "days": 7,
-    "since": "2026-08-05T03:23:23Z"
+    "since": "2026-08-06T03:27:12Z"
   },
   "commits": {
-    "total": 309,
+    "total": 322,
     "authors": 2,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 203
+        "commits": 222
       },
       {
         "author": "github-actions[bot]",
-        "commits": 106
+        "commits": 100
       }
     ],
     "recent": [
       {
-        "sha": "576733f",
+        "sha": "a0d3251",
         "author": "h0lybyte",
-        "message": "Merge pull request #15596 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/576733f89226a66554dd17b89dad8621a3f493a8",
-        "date": "2026-08-11T06:06:45Z"
+        "message": "Merge pull request #15622 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/a0d325163ff77ad2d7969ea3307e4a596767472c",
+        "date": "2026-08-13T03:07:30Z"
       },
       {
-        "sha": "fc92fec",
+        "sha": "186068d",
         "author": "h0lybyte",
-        "message": "fix(godot): give each export preset an output extension (#15598)",
-        "url": "https://github.com/KBVE/kbve/commit/fc92fece002aadd6b414049eae1a14390cc777db",
-        "date": "2026-08-11T06:05:24Z"
+        "message": "chore(friendslop): bump godot pipeline version to 0.1.1 (#15625)",
+        "url": "https://github.com/KBVE/kbve/commit/186068d458fe99f040cdae641c92fb8caabad9b7",
+        "date": "2026-08-13T03:07:18Z"
       },
       {
-        "sha": "01cbe98",
+        "sha": "c532d62",
         "author": "h0lybyte",
-        "message": "fix(godot): updating the packages to bevy features.",
-        "url": "https://github.com/KBVE/kbve/commit/01cbe98dcbe38cb10a8d9e58a54c7634e034eb6c",
-        "date": "2026-08-11T03:26:36Z"
+        "message": "fix(astro-kbve): clear 30 TS errors blocking check (#15624)",
+        "url": "https://github.com/KBVE/kbve/commit/c532d62834b2f84b1858af94bc9fb00d1718864c",
+        "date": "2026-08-13T03:06:59Z"
       },
       {
-        "sha": "c35d445",
-        "author": "h0lybyte",
-        "message": "Merge pull request #15582 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/c35d445acc7f1d922bf2b49f8b79637dadaf46d8",
-        "date": "2026-08-11T03:24:36Z"
-      },
-      {
-        "sha": "295d9ee",
-        "author": "h0lybyte",
-        "message": "fix(ci): make engine.gdextension generated, unblock windows gdextension job (#15585)",
-        "url": "https://github.com/KBVE/kbve/commit/295d9ee5811a4aabda7c9928bb584466f5ac0637",
-        "date": "2026-08-11T03:16:28Z"
-      },
-      {
-        "sha": "04aa519",
+        "sha": "5440e74",
         "author": "github-actions[bot]",
-        "message": "chore(content): daily security scaffold [skip ci] (#15595)",
-        "url": "https://github.com/KBVE/kbve/commit/04aa519d2a4f551d79f12e5ec549fe091ca434ff",
-        "date": "2026-08-11T03:08:57Z"
+        "message": "chore(axum-kbve): post-publish sync to v1.0.280 (#15623)",
+        "url": "https://github.com/KBVE/kbve/commit/5440e74430d15dbef7ac927fe9f60913a795e09d",
+        "date": "2026-08-13T02:43:29Z"
       },
       {
-        "sha": "d43490a",
+        "sha": "aab1ee8",
         "author": "github-actions[bot]",
-        "message": "chore(content): daily deps scaffold [skip ci] (#15594)",
-        "url": "https://github.com/KBVE/kbve/commit/d43490aa945b584e0a4eab54107efe1f7f83e501",
-        "date": "2026-08-11T03:08:47Z"
+        "message": "chore(friendslop-server): post-publish sync to v0.0.2 (#15621)",
+        "url": "https://github.com/KBVE/kbve/commit/aab1ee8d698d3757f06167993259b3428fbc3989",
+        "date": "2026-08-13T02:21:56Z"
       },
       {
-        "sha": "c6c80bb",
-        "author": "github-actions[bot]",
-        "message": "chore(content): daily report scaffold [skip ci] (#15593)",
-        "url": "https://github.com/KBVE/kbve/commit/c6c80bbeb6082a78105b9978d0036d6e4eee0e60",
-        "date": "2026-08-11T03:07:23Z"
-      },
-      {
-        "sha": "cf82708",
+        "sha": "c04cfa1",
         "author": "h0lybyte",
-        "message": "chore(godot): adding the updated libq, uids and import files.",
-        "url": "https://github.com/KBVE/kbve/commit/cf827085aadef10e32f85a06395f76f075d90cad",
-        "date": "2026-08-11T03:07:15Z"
+        "message": "Merge pull request #15616 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/c04cfa1bb926cb49427dc9e1faed8dadef4e7c19",
+        "date": "2026-08-13T02:10:16Z"
       },
       {
-        "sha": "38fb338",
+        "sha": "472a389",
         "author": "h0lybyte",
-        "message": "feat(godot): updating the session and roads.",
-        "url": "https://github.com/KBVE/kbve/commit/38fb3380a26b687a81ad539da54165022df07317",
-        "date": "2026-08-11T03:06:36Z"
+        "message": "feat(godot): updating underwater shader.",
+        "url": "https://github.com/KBVE/kbve/commit/472a38940cbb93e7061cf918a9425bab15664050",
+        "date": "2026-08-13T01:21:32Z"
       },
       {
-        "sha": "946561f",
-        "author": "github-actions[bot]",
-        "message": "chore(content): daily graph scaffold [skip ci] (#15591)",
-        "url": "https://github.com/KBVE/kbve/commit/946561fc19037ab82f337efe8c96928d89d59ceb",
-        "date": "2026-08-11T03:06:12Z"
+        "sha": "d0114ba",
+        "author": "h0lybyte",
+        "message": "feat(godot): updating the water, could be better.",
+        "url": "https://github.com/KBVE/kbve/commit/d0114ba70da6e6dfe29e1206f1c6438be55292e7",
+        "date": "2026-08-13T01:05:06Z"
       },
       {
-        "sha": "0b869b9",
-        "author": "github-actions[bot]",
-        "message": "chore(content): daily proto scaffold [skip ci] (#15592)",
-        "url": "https://github.com/KBVE/kbve/commit/0b869b951e198517e8df0c437d462c0515f14049",
-        "date": "2026-08-11T03:06:11Z"
+        "sha": "218f6b5",
+        "author": "h0lybyte",
+        "message": "fix(godot): updating the godot shell issue.",
+        "url": "https://github.com/KBVE/kbve/commit/218f6b5280a9dedae8813e81808c3d85b3d23a46",
+        "date": "2026-08-12T23:28:54Z"
+      },
+      {
+        "sha": "211df7a",
+        "author": "h0lybyte",
+        "message": "chore(godot): including the exr imports.",
+        "url": "https://github.com/KBVE/kbve/commit/211df7a075385c6857eaba37cacecc3315eba4f0",
+        "date": "2026-08-12T23:28:37Z"
+      },
+      {
+        "sha": "9cb0146",
+        "author": "h0lybyte",
+        "message": "feat(godot): updating the codex entries.",
+        "url": "https://github.com/KBVE/kbve/commit/9cb0146b9dbbd30131f46b3463829780ce62ccd3",
+        "date": "2026-08-12T23:28:14Z"
+      },
+      {
+        "sha": "557bee8",
+        "author": "h0lybyte",
+        "message": "feat(godot): updating the codex for entries.",
+        "url": "https://github.com/KBVE/kbve/commit/557bee8100c8bd21af322afb4ca86f281c538071",
+        "date": "2026-08-12T22:54:37Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 223,
+    "merged": 199,
     "recent": [
       {
-        "number": 15601,
-        "title": "deploy(isometric): update WASM build",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15601"
+        "number": 15575,
+        "title": "chore(deps): bump @pixiv/three-vrm-animation from 3.5.3 to 3.5.5",
+        "user": "dependabot[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15575"
       },
       {
-        "number": 15599,
-        "title": "Atomic: friendslop v0.1.0 post-publish sync",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15599"
+        "number": 15572,
+        "title": "chore(deps): bump phaser from 4.2.0 to 4.2.1",
+        "user": "dependabot[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15572"
       },
       {
-        "number": 15596,
-        "title": "Release: 2 fixes \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15596"
+        "number": 15569,
+        "title": "chore(deps): bump trybuild from 1.0.118 to 1.0.120",
+        "user": "dependabot[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15569"
       },
       {
-        "number": 15598,
-        "title": "fix(godot): give each export preset an output extension",
+        "number": 15622,
+        "title": "Release: 1 fix, 3 chores \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15622"
+      },
+      {
+        "number": 15625,
+        "title": "chore(friendslop): bump godot pipeline version to 0.1.1",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15598"
+        "url": "https://github.com/KBVE/kbve/pull/15625"
       },
       {
-        "number": 15582,
-        "title": "Release: 7 features, 6 fixes, 11 chores \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15582"
-      },
-      {
-        "number": 15585,
-        "title": "fix(ci): make engine.gdextension generated, unblock windows gdextension job",
+        "number": 15624,
+        "title": "fix(astro-kbve): clear 30 TS errors blocking astro-kbve:check",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15585"
+        "url": "https://github.com/KBVE/kbve/pull/15624"
       },
       {
-        "number": 15595,
-        "title": "chore(content): daily security scaffold",
+        "number": 15623,
+        "title": "Atomic: axum-kbve v1.0.280 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15595"
+        "url": "https://github.com/KBVE/kbve/pull/15623"
       },
       {
-        "number": 15594,
-        "title": "chore(content): daily deps scaffold",
+        "number": 15621,
+        "title": "Atomic: friendslop-server v0.0.2 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15594"
+        "url": "https://github.com/KBVE/kbve/pull/15621"
       },
       {
-        "number": 15593,
-        "title": "chore(content): daily report scaffold",
+        "number": 15616,
+        "title": "Release: 12 features, 7 fixes, 1 refactor, 3 chores \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15593"
+        "url": "https://github.com/KBVE/kbve/pull/15616"
       },
       {
-        "number": 15591,
-        "title": "chore(content): daily graph scaffold",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15591"
+        "number": 15620,
+        "title": "refactor(godot): menu components, on top of the projected-book layout",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/15620"
       }
     ]
   },
   "issues": {
-    "opened": 230,
-    "closed": 223
+    "opened": 205,
+    "closed": 199
   }
 }
