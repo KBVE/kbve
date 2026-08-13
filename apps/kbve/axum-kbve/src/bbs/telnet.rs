@@ -22,6 +22,7 @@ pub const OPT_NAWS: u8 = 31;
 const TTYPE_IS: u8 = 0;
 const TTYPE_SEND: u8 = 1;
 
+const CR: u8 = 0x0D;
 const LF: u8 = 0x0A;
 
 const READ_CHUNK: usize = 512;
@@ -64,6 +65,7 @@ pub struct TelnetConn {
     pub height: u16,
     pub term_type: Option<String>,
     idle_timeout: Duration,
+    pending_eol: bool,
 }
 
 impl TelnetConn {
@@ -79,6 +81,7 @@ impl TelnetConn {
             height: 25,
             term_type: None,
             idle_timeout,
+            pending_eol: false,
         }
     }
 
@@ -276,12 +279,22 @@ impl TelnetConn {
         Ok(())
     }
 
-    /// Read one keypress, folding CR/LF pairs into a single `\r`.
+    /// Read one keypress, normalising every end-of-line spelling to a single
+    /// `\r`. Clients variously send `CR LF`, `CR NUL` or a bare `LF`; the pair
+    /// forms collapse to one `\r` via `pending_eol`, and a lone `LF` reports as
+    /// `\r` rather than vanishing, so Enter is a usable key and not just a
+    /// menu no-op.
     pub async fn read_key(&mut self) -> Result<u8, ReadError> {
         loop {
             let b = self.read_byte().await?;
+            let after_cr = std::mem::take(&mut self.pending_eol);
             match b {
-                LF => continue,
+                CR => {
+                    self.pending_eol = true;
+                    return Ok(CR);
+                }
+                LF | 0 if after_cr => continue,
+                LF => return Ok(CR),
                 0 => continue,
                 _ => return Ok(b),
             }

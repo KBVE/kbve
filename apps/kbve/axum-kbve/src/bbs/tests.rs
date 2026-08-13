@@ -80,6 +80,38 @@ async fn echo_request_is_accepted_once() {
 }
 
 #[tokio::test]
+async fn bare_lf_reports_as_enter() {
+    let (mut conn, mut client) = pair().await;
+    client.write_all(b"a\nb").await.expect("write");
+
+    assert_eq!(conn.read_key().await.expect("key"), b'a');
+    assert_eq!(conn.read_key().await.expect("key"), 0x0D);
+    assert_eq!(conn.read_key().await.expect("key"), b'b');
+}
+
+#[tokio::test]
+async fn crlf_and_crnul_collapse_to_one_enter() {
+    let (mut conn, mut client) = pair().await;
+    client.write_all(b"\r\nx\r\0y").await.expect("write");
+
+    assert_eq!(conn.read_key().await.expect("key"), 0x0D);
+    assert_eq!(conn.read_key().await.expect("key"), b'x');
+    assert_eq!(conn.read_key().await.expect("key"), 0x0D);
+    assert_eq!(conn.read_key().await.expect("key"), b'y');
+}
+
+#[tokio::test]
+async fn repeated_enter_is_not_swallowed() {
+    let (mut conn, mut client) = pair().await;
+    client.write_all(b"\r\n\r\n\n\nz").await.expect("write");
+
+    for _ in 0..4 {
+        assert_eq!(conn.read_key().await.expect("key"), 0x0D);
+    }
+    assert_eq!(conn.read_key().await.expect("key"), b'z');
+}
+
+#[tokio::test]
 async fn claim_is_single_use() {
     let store = ClaimStore::default();
     let slot = store.create(Uuid::new_v4()).expect("slot");
