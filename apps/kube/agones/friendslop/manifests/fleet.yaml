@@ -1,0 +1,123 @@
+apiVersion: agones.dev/v1
+kind: Fleet
+metadata:
+    name: friendslop-server
+    namespace: friendslop
+    labels:
+        app: friendslop-server
+        app.kubernetes.io/part-of: friendslop
+spec:
+    replicas: 0
+    scheduling: Packed
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 25%
+            maxUnavailable: 25%
+    template:
+        metadata:
+            labels:
+                app: friendslop-server
+                app.kubernetes.io/part-of: friendslop
+        spec:
+            ports:
+                # No hostPort — the reliable lane is reached through the
+                # Cilium gateway (HTTPRoute -> friendslop-game Service) and the
+                # datagram lane through an L4 LoadBalancer Service
+                # (friendslop-game-udp), so the pod stays compatible with
+                # baseline PodSecurity. Same shape as arpg.
+                - name: ws
+                  portPolicy: None
+                  containerPort: 7980
+                  protocol: TCP
+                # UDP cannot traverse an L7 HTTPRoute, hence the separate
+                # LoadBalancer Service rather than a gateway route.
+                - name: udp
+                  portPolicy: None
+                  containerPort: 7981
+                  protocol: UDP
+            health:
+                initialDelaySeconds: 10
+                periodSeconds: 10
+                failureThreshold: 5
+            sdkServer:
+                logLevel: Info
+            template:
+                metadata:
+                    labels:
+                        app: friendslop-server
+                        app.kubernetes.io/part-of: friendslop
+                spec:
+                    securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 10001
+                        runAsGroup: 10001
+                        fsGroup: 10001
+                        seccompProfile:
+                            type: RuntimeDefault
+                    containers:
+                        - name: friendslop-server
+                          image: ghcr.io/kbve/friendslop-server:0.0.1
+                          imagePullPolicy: IfNotPresent
+                          env:
+                              - name: FS_SERVER_ADDR
+                                value: '0.0.0.0:7980'
+                              - name: FS_UDP_ADDR
+                                value: '0.0.0.0:7981'
+                              # Every peer bakes terrain from this, so changing
+                              # it desyncs collision until clients reconnect.
+                              - name: FS_SERVER_SEED
+                                value: '1337'
+                              - name: FS_TICK_HZ
+                                value: '60'
+                              - name: FS_TERRAIN_EXTENT
+                                value: '256'
+                              - name: FS_TERRAIN_RESOLUTION
+                                value: '513'
+                              # portPolicy None means no port mapping, so the
+                              # container port is the reachable one — but the
+                              # datagram lane answers on the LoadBalancer IP,
+                              # not the gateway hostname the WebSocket uses, so
+                              # the host still has to be advertised explicitly.
+                              - name: FS_UDP_ADVERTISE_HOST
+                                value: '142.132.206.71'
+                              - name: FS_UDP_ADVERTISE_PORT
+                                value: '7981'
+                              - name: RUST_LOG
+                                value: 'info,friendslop_server=debug,q=info'
+                          ports:
+                              - name: ws
+                                containerPort: 7980
+                                protocol: TCP
+                              - name: udp
+                                containerPort: 7981
+                                protocol: UDP
+                          readinessProbe:
+                              httpGet:
+                                  path: /healthz
+                                  port: 7980
+                              initialDelaySeconds: 3
+                              periodSeconds: 5
+                              failureThreshold: 3
+                          livenessProbe:
+                              httpGet:
+                                  path: /healthz
+                                  port: 7980
+                              initialDelaySeconds: 10
+                              periodSeconds: 15
+                              failureThreshold: 5
+                          resources:
+                              requests:
+                                  # The sim thread runs a fixed 60 Hz tick and
+                                  # is the floor here, not the socket traffic.
+                                  cpu: '500m'
+                                  memory: '256Mi'
+                              limits:
+                                  cpu: '2000m'
+                                  memory: '1Gi'
+                          securityContext:
+                              allowPrivilegeEscalation: false
+                              readOnlyRootFilesystem: true
+                              capabilities:
+                                  drop:
+                                      - ALL

@@ -1,22 +1,15 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=11 format=3]
 
 [ext_resource type="Script" path="res://src/player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://src/player/camera_rig.gd" id="5_camrig"]
-[ext_resource type="Shader" path="res://assets/fx/shaders/anime.gdshader" id="2_anime"]
-[ext_resource type="Shader" path="res://assets/fx/shaders/outline.gdshader" id="3_outline"]
 [ext_resource type="Shader" path="res://assets/fx/shaders/ink_lines.gdshader" id="4_ink"]
+[ext_resource type="Script" path="res://src/characters/character_rig.gd" id="6_rig"]
+[ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/models/Regular_Male_FullBody.glb" id="7_body"]
+[ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/models/hair/Hair_Ponytail.glb" id="8_hair"]
+[ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/animations/UAL1.glb" id="9_ual1"]
+[ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/animations/UAL2.glb" id="10_ual2"]
 
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
-
-[sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_anime"]
-shader = ExtResource("2_anime")
-shader_parameter/albedo_tint = Color(0.85, 0.3, 0.25, 1)
-shader_parameter/body_shadows = true
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_outline"]
-shader = ExtResource("3_outline")
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_ink"]
 shader = ExtResource("4_ink")
@@ -31,15 +24,15 @@ script = ExtResource("1_player")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
 shape = SubResource("CapsuleShape3D_body")
 
-[node name="Mesh" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)
-mesh = SubResource("CapsuleMesh_body")
-material_override = SubResource("ShaderMaterial_anime")
-
-[node name="Outline" type="MeshInstance3D" parent="Mesh"]
-mesh = SubResource("CapsuleMesh_body")
-material_override = SubResource("ShaderMaterial_outline")
-cast_shadow = 0
+[node name="Mesh" type="Node3D" parent="."]
+script = ExtResource("6_rig")
+body = ExtResource("7_body")
+attachments = Array[PackedScene]([ExtResource("8_hair")])
+snap_to_terrain = false
+animation_sources = Array[PackedScene]([ExtResource("9_ual1"), ExtResource("10_ual2")])
+locomotion = true
+foot_ik = true
+terrain_path = NodePath("../../Terrain")
 
 [node name="StatusSmoke" type="QStatusSmoke" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0)

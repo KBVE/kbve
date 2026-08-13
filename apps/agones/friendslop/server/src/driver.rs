@@ -2,8 +2,8 @@ use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
+use q::net::dual::DualHost;
 use q::net::session::{HostSession, SessionConfig};
-use q::net::ws::WsHost;
 use q::rapier::sim3d::{SimConfig, TerrainDesc};
 use q::worldgen::{HeightGen, HeightParams};
 
@@ -57,7 +57,7 @@ pub fn terrain_for(cfg: &DriverConfig) -> TerrainDesc {
 ///
 /// Not a tokio task: `HostSession::tick` is synchronous CPU work, and parking it
 /// on a runtime worker would stall the sockets it depends on.
-pub fn spawn(transport: Arc<WsHost>, cfg: DriverConfig) -> Driver {
+pub fn spawn(transport: Arc<DualHost>, cfg: DriverConfig) -> Driver {
     let stop = Arc::new(AtomicBool::new(false));
     let tick = Arc::new(AtomicU64::new(0));
     let (stop_t, tick_t) = (stop.clone(), tick.clone());
@@ -80,6 +80,8 @@ pub fn spawn(transport: Arc<WsHost>, cfg: DriverConfig) -> Driver {
             let mut next = Instant::now();
 
             while !stop_t.load(Ordering::Relaxed) {
+                // Offers the datagram lane to any peer that just connected.
+                transport.pump();
                 for peer in transport.take_disconnects() {
                     tracing::info!(peer = peer.0, "peer disconnected");
                     host.remove_player(peer);

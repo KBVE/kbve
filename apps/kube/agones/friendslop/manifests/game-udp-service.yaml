@@ -1,0 +1,37 @@
+# Datagram lane. UDP cannot traverse the L7 gateway, so it gets its own L4
+# LoadBalancer instead of an HTTPRoute.
+#
+# The public pool is a single /32, so every LoadBalancer in the cluster shares
+# 142.132.206.71 via `sharing-key: public-71`. Sharing only works if every
+# participant names the others in `sharing-cross-namespace`, so adding this
+# service also requires friendslop to be listed on kbve-gateway and on
+# arpg-game-udp. Port 7981/UDP is free on that IP (80/443, 25/587/465 TCP, and
+# arpg's 7977/UDP are taken).
+apiVersion: v1
+kind: Service
+metadata:
+    name: friendslop-game-udp
+    namespace: friendslop
+    annotations:
+        lbipam.cilium.io/ips: '142.132.206.71'
+        lbipam.cilium.io/sharing-key: public-71
+        lbipam.cilium.io/sharing-cross-namespace: kbve,arpg,stalwart
+    labels:
+        app: friendslop-server
+        kbve.com/lb-pool: public
+        app.kubernetes.io/part-of: friendslop
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+        kbve.com/managed-by: argocd
+spec:
+    type: LoadBalancer
+    selector:
+        app: friendslop-server
+    # A datagram lane is bound to one pod's address, so a client must keep
+    # landing on the pod that issued its token.
+    sessionAffinity: ClientIP
+    ports:
+        - name: udp
+          port: 7981
+          targetPort: 7981
+          protocol: UDP

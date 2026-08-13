@@ -242,7 +242,13 @@ impl QTerrain {
             m.set_shader_parameter("water_level", &self.water_level.to_variant());
         }
         if let Some(m) = self.water_material.as_mut() {
+            if let Some(t) = tex.as_ref() {
+                m.set_shader_parameter("heightmap", &t.to_variant());
+            }
             m.set_shader_parameter("terrain_extent", &self.extent.to_variant());
+            m.set_shader_parameter("water_level", &self.water_level.to_variant());
+            let texel = self.extent * 2.0 / (res - 1).max(1) as f32;
+            m.set_shader_parameter("heightmap_texel", &texel.to_variant());
         }
 
         self.bake_clearance(&heights, res);
@@ -311,6 +317,21 @@ impl QTerrain {
     fn height_at(&self, x: f32, z: f32) -> f32 {
         self.height(x, z)
     }
+
+    #[func]
+    fn river_x_at(&self, z: f32) -> f32 {
+        self.hgen.as_ref().map(|g| g.river_x(z)).unwrap_or(0.0)
+    }
+
+    #[func]
+    fn water_level_at(&self) -> f32 {
+        self.water_level
+    }
+
+    #[func]
+    fn river_width_at(&self) -> f32 {
+        self.river_width
+    }
 }
 
 impl QTerrain {
@@ -362,6 +383,18 @@ impl QTerrain {
 
     pub fn water(&self) -> f32 {
         self.water_level
+    }
+
+    pub fn river_center(&self, z: f32) -> f32 {
+        self.hgen.as_ref().map(|g| g.river_x(z)).unwrap_or(0.0)
+    }
+
+    pub fn river_width_value(&self) -> f32 {
+        self.river_width
+    }
+
+    pub fn sample_height(&self, x: f32, z: f32) -> f32 {
+        self.height(x, z)
     }
 
     pub fn clearance_texture(&self) -> Option<Gd<ImageTexture>> {

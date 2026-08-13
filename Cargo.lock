@@ -15156,6 +15156,7 @@ dependencies = [
  "dashmap 6.2.1",
  "fastnoise-lite",
  "futures-util",
+ "getrandom 0.2.17",
  "godot",
  "http 1.4.2",
  "infer",

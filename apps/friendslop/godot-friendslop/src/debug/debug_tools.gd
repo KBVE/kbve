@@ -15,6 +15,7 @@ var _yaw := 0.0
 var _pitch := 0.0
 var _place_queued := false
 var _smoke_state := 0
+var _shot_frames := -1
 
 @onready var _player: CharacterBody3D = get_node(player_path)
 
@@ -22,6 +23,9 @@ var _smoke_state := 0
 func _ready() -> void:
 	_cam = Camera3D.new()
 	add_child(_cam)
+	var shot := OS.get_environment("Q_SHOT")
+	if shot != "":
+		_shot_frames = maxi(int(shot), 1)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -107,6 +111,11 @@ func _toggle() -> void:
 
 
 func _process(delta: float) -> void:
+	if _shot_frames > 0:
+		_shot_frames -= 1
+		if _shot_frames == 0:
+			_screenshot()
+			get_tree().quit()
 	if not _active:
 		return
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")

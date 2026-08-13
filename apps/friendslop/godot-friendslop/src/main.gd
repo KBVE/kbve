@@ -13,35 +13,18 @@ const HIDE_TARGETS := {
 	"ground": "Ground",
 }
 
-## Mobile budget. The fields read these as exports during their own _ready, so
-## the profile has to land in _enter_tree, which runs before any child readies.
-## Render scale is deliberately back up: cutting it to 0.5 bought almost nothing,
-## which ruled out fill as the bottleneck and left it as pure quality loss.
-const MOBILE_RENDER_SCALE := 0.65
-const MOBILE_GRASS := {
-	"thin_start": 12.0,
-	"blade_range": 22.0,
-	"blades_per_sqm": 160.0,
-	"billboards": false,
-}
-const MOBILE_FIELDS := {
-	"TreeField": {"mesh_range": 55.0, "far_range": 160.0},
-	"FloraField": {"fade_end": 40.0},
-	"ShrubField": {"fade_end": 45.0},
-}
-const MOBILE_SHADOW_DISTANCE := 55.0
-## Parallax is desktop-only for now. Writing DEPTH costs nothing on Forward+
-## because the depth prepass already resolved visibility, but the mobile
-## renderer has no prepass, so this stays off there until it is measured.
-const MOBILE_GROUND := {"pom_strength": 0.0, "detail_amount": 0.35}
-## Fullscreen CanvasLayer passes ignore scaling_3d and run at native resolution,
-## so they cost the same no matter how low the 3D render scale goes.
-const MOBILE_HIDE := ["PostFX", "Ravens"]
+## Quality tiers live in graphics_settings.gd so the pre-ready latch here and the
+## runtime setters there can never drift apart. The fields read these as exports
+## during their own _ready, so the tier has to land in _enter_tree, which runs
+## before any child readies.
+const GFX := preload("res://src/settings/graphics_settings.gd")
 
 
 func _enter_tree() -> void:
+	GFX.apply_fields(self, GFX.saved_tier())
 	# Benchmark override, e.g. Q_GRASS="blades_per_sqm=150,blade_range=30".
-	# Applied before the field readies, same as the mobile profile below.
+	# Applied after the tier so a sweep still overrides it, and before the field
+	# readies so it lands at all.
 	var overrides := OS.get_environment("Q_GRASS")
 	if overrides != "":
 		var grass_node := get_node_or_null("GrassField")
@@ -52,37 +35,30 @@ func _enter_tree() -> void:
 					grass_node.set(kv[0].strip_edges(), float(kv[1]))
 	if not OS.has_feature("mobile"):
 		return
-	var grass := get_node_or_null("GrassField")
-	if grass:
-		for key in MOBILE_GRASS:
-			grass.set(key, MOBILE_GRASS[key])
-	for field_name in MOBILE_FIELDS:
-		var field := get_node_or_null(NodePath(field_name))
-		if field == null:
-			continue
-		for key in MOBILE_FIELDS[field_name]:
-			field.set(key, MOBILE_FIELDS[field_name][key])
 	var ground := get_node_or_null("Ground") as MeshInstance3D
 	if ground and ground.material_override is ShaderMaterial:
 		var mat: ShaderMaterial = ground.material_override
-		for key in MOBILE_GROUND:
-			mat.set_shader_parameter(key, MOBILE_GROUND[key])
-	for light_path in ["DayNight/Sun", "DayNight/Moon"]:
-		var light := get_node_or_null(light_path)
-		if light:
-			light.set("directional_shadow_max_distance", MOBILE_SHADOW_DISTANCE)
+		for key in GFX.MOBILE_GROUND:
+			mat.set_shader_parameter(key, GFX.MOBILE_GROUND[key])
 
 
 ## On-device bisect. Each step hides more of the world so the cost can be
 ## attributed by tapping rather than by reinstalling a build per experiment.
 const BISECT_FIELDS := ["GrassField", "FloraField", "ShrubField", "StoneField", "TreeField"]
 const BISECT_GROUND := ["Ground", "Terrain"]
+## Water and the riverbed are QTerrain's own children, built in Rust, so they
+## ride along with any step that hides Terrain. They get their own steps because
+## a transparent screen-reading surface is the one thing here whose cost tracks
+## neither render scale nor triangle count.
+const BISECT_WATER := ["Terrain/Water", "Terrain/Riverbed"]
 const BISECT_STEPS := [
 	{"name": "all", "hide": []},
+	{"name": "-water", "hide": ["Terrain/Water"]},
+	{"name": "-water-bed", "hide": BISECT_WATER},
 	{"name": "-grass", "hide": ["GrassField"]},
 	{"name": "-fields", "hide": BISECT_FIELDS},
 	{"name": "-terrain", "hide": BISECT_GROUND},
-	{"name": "-world", "hide": BISECT_FIELDS + BISECT_GROUND},
+	{"name": "-world", "hide": BISECT_FIELDS + BISECT_GROUND + BISECT_WATER},
 ]
 
 var bisect_step := 0
@@ -93,7 +69,7 @@ func cycle_bisect() -> String:
 	var step: Dictionary = BISECT_STEPS[bisect_step]
 	# Every node any step can touch, so a step always restores what it does not
 	# hide rather than leaving stale state from the previous step.
-	for entry in BISECT_FIELDS + BISECT_GROUND:
+	for entry in BISECT_FIELDS + BISECT_GROUND + BISECT_WATER:
 		var node := get_node_or_null(NodePath(entry))
 		if node:
 			node.set("visible", not step.hide.has(entry))
@@ -110,12 +86,14 @@ func _ready() -> void:
 	var scale_override := OS.get_environment("Q_SCALE")
 	if scale_override != "":
 		get_viewport().scaling_3d_scale = clampf(float(scale_override), 0.1, 2.0)
-	elif OS.has_feature("mobile"):
-		get_viewport().scaling_3d_scale = MOBILE_RENDER_SCALE
-		for node_name in MOBILE_HIDE:
-			var node := get_node_or_null(NodePath(node_name))
-			if node:
-				node.set("visible", false)
+	else:
+		# GraphicsSettings applies scale and PostFX visibility for the active tier
+		# on its deferred first apply; setting them here too would just be a value
+		# that gets overwritten a frame later.
+		if OS.has_feature("mobile"):
+			var ravens := get_node_or_null(^"Ravens")
+			if ravens:
+				ravens.set("visible", false)
 
 	# The sky is an environment background rather than a node, so it is swapped
 	# for a flat colour instead of being hidden.

@@ -107,9 +107,15 @@ apps/herbmail/herbmail-game/art/**/*.fbx     filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/assets/**/*.fbx   filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/assets/**/*.glb   filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/assets/**/*.gltf  filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/assets/**/*.bin   filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/assets/**/*.blend filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/assets/**/*.png   filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/assets/**/*.webp  filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/assets/**/*.jpg   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/assets/**/*.jpeg  filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/assets/**/*.tga   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/assets/**/*.exr   filter=lfs diff=lfs merge=lfs -text
+apps/friendslop/godot-friendslop/assets/**/*.hdr   filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/assets/**/*.mp3   filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/assets/**/*.ogg   filter=lfs diff=lfs merge=lfs -text
 apps/friendslop/godot-friendslop/assets/**/*.wav   filter=lfs diff=lfs merge=lfs -text

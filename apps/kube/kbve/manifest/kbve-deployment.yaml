@@ -53,6 +53,12 @@ spec:
                       - name: wt
                         containerPort: 5001
                         protocol: UDP
+                      - name: bbs-petscii
+                        containerPort: 6400
+                        protocol: TCP
+                      - name: bbs-ansi
+                        containerPort: 6401
+                        protocol: TCP
                   livenessProbe:
                       httpGet:
                           path: /health
@@ -72,6 +78,16 @@ spec:
                   env:
                       - name: PORT
                         value: '4321'
+                      - name: BBS_ENABLED
+                        value: 'true'
+                      - name: BBS_PETSCII_ADDR
+                        value: '0.0.0.0:6400'
+                      - name: BBS_ANSI_ADDR
+                        value: '0.0.0.0:6401'
+                      - name: BBS_PUBLIC_HOST
+                        value: bbs.kbve.com
+                      - name: BBS_CLAIM_URL
+                        value: https://kbve.com/bbs/
                       - name: SUPABASE_URL
                         value: http://kong.kilobase.svc.cluster.local:8000
                       - name: GOTRUE_INTERNAL_URL
@@ -349,3 +365,11 @@ spec:
           port: 5001
           targetPort: 5001
           protocol: UDP
+        - name: bbs-petscii
+          port: 6400
+          targetPort: 6400
+          protocol: TCP
+        - name: bbs-ansi
+          port: 6401
+          targetPort: 6401
+          protocol: TCP

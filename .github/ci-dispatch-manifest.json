@@ -82,7 +82,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.279",
+			"version": "1.0.280",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -332,13 +332,14 @@
 		{
 			"key": "friendslop_server",
 			"app_name": "friendslop-server",
-			"version": "0.0.1",
+			"version": "0.0.2",
 			"version_toml": "apps/agones/friendslop/server/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/friendslop-server.mdx",
 			"version_target": "apps/agones/friendslop/server/Cargo.toml",
 			"source_path": "apps/agones/friendslop/server",
 			"runner": "arc-runner-set",
 			"image": "kbve/friendslop-server",
+			"deployment_yaml": "apps/kube/agones/friendslop/manifests/fleet.yaml",
 			"has_test": false
 		},
 		{

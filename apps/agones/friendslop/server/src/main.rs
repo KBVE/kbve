@@ -3,6 +3,8 @@ mod driver;
 
 use std::net::SocketAddr;
 
+use q::net::dual::DualHost;
+use q::net::udp::UdpLane;
 use q::net::ws::{WsHost, router};
 use tokio::net::TcpListener;
 use tracing_subscriber::EnvFilter;
@@ -43,13 +45,34 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         "friendslop-server listening"
     );
 
-    let transport = WsHost::new();
+    let udp_addr: SocketAddr = std::env::var("FS_UDP_ADDR")
+        .unwrap_or_else(|_| "0.0.0.0:7981".into())
+        .parse()?;
+
+    let ws = WsHost::new();
+    let udp = UdpLane::bind(udp_addr).await?;
+    udp.spawn_recv_loop();
+    tracing::info!(udp_port = udp.port(), "datagram lane bound");
+
+    let transport = DualHost::new(ws.clone(), udp);
     let mut sim = driver::spawn(transport.clone(), cfg);
 
-    let app = router(transport.clone()).merge(stats_route(transport.clone(), sim.tick_handle()));
+    let app = router(ws).merge(stats_route(transport.clone(), sim.tick_handle()));
 
     let listener = TcpListener::bind(addr).await?;
-    let agones_handle = tokio::spawn(agones::run_health_loop());
+    // An explicit override wins over whatever Agones reports, for when the
+    // datagram lane is fronted by something Agones does not know about.
+    let advertise_host = std::env::var("FS_UDP_ADVERTISE_HOST").ok();
+    let advertise_port: Option<u16> = std::env::var("FS_UDP_ADVERTISE_PORT")
+        .ok()
+        .and_then(|v| v.parse().ok());
+    let overridden = advertise_host.is_some() || advertise_port.is_some();
+    if overridden {
+        tracing::info!(?advertise_host, ?advertise_port, "udp endpoint overridden");
+        transport.advertise_udp(advertise_host, advertise_port);
+    }
+
+    let agones_handle = tokio::spawn(agones::run_health_loop(transport.clone(), !overridden));
 
     let serve = axum::serve(listener, app).with_graceful_shutdown(shutdown_signal());
     if let Err(e) = serve.await {
@@ -65,7 +88,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 /// A live tick counter is the only cheap proof the sim thread is stepping —
 /// `/healthz` answers even if it has wedged.
 fn stats_route(
-    transport: std::sync::Arc<WsHost>,
+    transport: std::sync::Arc<DualHost>,
     tick: std::sync::Arc<std::sync::atomic::AtomicU64>,
 ) -> axum::Router {
     axum::Router::new().route(
@@ -74,6 +97,9 @@ fn stats_route(
             axum::Json(serde_json::json!({
                 "tick": tick.load(std::sync::atomic::Ordering::Relaxed),
                 "peers": transport.peer_count(),
+                "udp_bound": transport.bound_count(),
+                "udp_port": transport.udp_port(),
+                "udp_oversize": transport.oversize_count(),
             }))
         }),
     )

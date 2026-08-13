@@ -63,9 +63,11 @@ net-session = ["net-transport", "rapier3d-sim"]
 # sideless module, so the dedicated Agones server and the Godot client share it.
 net-ws = ["net-transport", "dep:tokio", "dep:axum", "dep:tokio-tungstenite", "dep:futures-util"]
 # Everything the dedicated server needs: authoritative sim + session + wire.
-net-dedicated = ["net-session", "net-ws"]
+# Unreliable datagram lane, paired with net-ws as the reliable side.
+net-udp = ["net-ws", "dep:getrandom"]
+net-dedicated = ["net-session", "net-ws", "net-udp"]
 # Godot node that renders a remote session — the client half of the dedicated flow.
-net-godot = ["rapier3d-client", "net-session", "net-ws"]
+net-godot = ["rapier3d-client", "net-session", "net-udp"]
 net-client = ["client", "proto-client", "net-transport", "dep:tokio-tungstenite", "dep:futures-util"]
 net-server = ["server", "proto-server", "net-transport", "dep:axum", "dep:tokio-tungstenite", "dep:futures-util"]
 
@@ -107,6 +109,7 @@ futures-util = { workspace = true, optional = true, features = ["sink", "std"] }
 
 # Supabase JWT verification (HS256 against SUPABASE_JWT_SECRET).
 jsonwebtoken = { workspace = true, optional = true }
+getrandom = { version = "0.2", optional = true }
 fastnoise-lite = "1.1.1"
 
 # -----------------------------------------------------------------------------

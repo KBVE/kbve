@@ -12,7 +12,13 @@ pub mod session;
 #[cfg(feature = "net-ws")]
 pub mod ws;
 
-#[cfg(all(feature = "net-ws", feature = "net-session"))]
+#[cfg(feature = "net-udp")]
+pub mod udp;
+
+#[cfg(feature = "net-udp")]
+pub mod dual;
+
+#[cfg(all(feature = "net-udp", feature = "net-session"))]
 pub mod client_thread;
 
 #[cfg(feature = "net-client")]

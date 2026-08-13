@@ -14,31 +14,12 @@ use std::sync::atomic::{AtomicU32, Ordering};
 use futures_util::{SinkExt, StreamExt};
 use tokio::sync::mpsc::{self, UnboundedReceiver, UnboundedSender};
 
-use super::transport::{Delivery, Envelope, PeerId, Transport};
+use super::transport::{Delivery, Envelope, Inbox, PeerId, Transport};
 
 #[derive(Debug)]
 pub enum WsError {
     NotConnected(PeerId),
     Connect(String),
-}
-
-struct Inbox {
-    tx: UnboundedSender<Envelope>,
-    rx: Mutex<UnboundedReceiver<Envelope>>,
-}
-
-impl Inbox {
-    fn new() -> Self {
-        let (tx, rx) = mpsc::unbounded_channel();
-        Self {
-            tx,
-            rx: Mutex::new(rx),
-        }
-    }
-
-    fn pop(&self) -> Option<Envelope> {
-        self.rx.lock().unwrap().try_recv().ok()
-    }
 }
 
 // -----------------------------------------------------------------------------

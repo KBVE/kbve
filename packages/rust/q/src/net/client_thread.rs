@@ -15,6 +15,7 @@ use std::time::{Duration, Instant};
 
 use tokio::sync::watch;
 
+use super::dual::DualClient;
 use super::session::{ClientSession, ClientStatus};
 use super::ws::WsClient;
 use crate::rapier::sim3d::{BodyId, SimSnapshot};
@@ -27,6 +28,8 @@ pub struct NetClientState {
     pub snapshot: Option<SimSnapshot>,
     /// Set when the socket never came up, or dropped after it did.
     pub error: Option<String>,
+    /// False while unreliable traffic is still falling back to the socket.
+    pub udp_ready: bool,
 }
 
 impl Default for NetClientState {
@@ -37,6 +40,7 @@ impl Default for NetClientState {
             local_body: None,
             snapshot: None,
             error: None,
+            udp_ready: false,
         }
     }
 }
@@ -100,6 +104,18 @@ impl Drop for NetClientHandle {
     }
 }
 
+/// Host portion of a `ws://host:port/path` url — the datagram lane targets the
+/// same machine on a different port.
+fn server_host(url: &str) -> String {
+    let rest = url.split_once("://").map_or(url, |(_, rest)| rest);
+    let hostport = rest.split('/').next().unwrap_or(rest);
+    hostport
+        .rsplit_once(':')
+        .map(|(host, _)| host)
+        .unwrap_or(hostport)
+        .to_owned()
+}
+
 fn run(
     url: String,
     tick_hz: f64,
@@ -125,7 +141,7 @@ fn run(
     let _guard = runtime.enter();
 
     let transport = match runtime.block_on(WsClient::connect(&url)) {
-        Ok(t) => t,
+        Ok(ws) => DualClient::new(ws, server_host(&url)),
         Err(e) => {
             let _ = state_tx.send(Arc::new(NetClientState {
                 status: ClientStatus::Rejected,
@@ -141,6 +157,7 @@ fn run(
     let mut next = Instant::now() + dt;
 
     while !stop.load(Ordering::Relaxed) {
+        transport.pump();
         let intent = *intent_rx.borrow();
         session.set_input(intent.wish_dir, intent.jump);
         session.tick();
@@ -155,6 +172,7 @@ fn run(
                 .reject_reason()
                 .map(str::to_owned)
                 .or_else(|| dropped.then(|| "socket closed".to_owned())),
+            udp_ready: transport.udp_ready(),
         }));
 
         if dropped {
@@ -172,7 +190,9 @@ fn run(
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::net::dual::DualHost;
     use crate::net::session::{HostSession, SessionConfig};
+    use crate::net::udp::UdpLane;
     use crate::net::ws::{WsHost, router};
     use crate::rapier::sim3d::{SimConfig, TerrainDesc};
 
@@ -201,12 +221,17 @@ mod tests {
                 .unwrap();
             let _g = rt.enter();
 
-            let transport = WsHost::new();
+            let ws = WsHost::new();
+            let udp = rt
+                .block_on(UdpLane::bind("127.0.0.1:0".parse().unwrap()))
+                .unwrap();
+            udp.spawn_recv_loop();
+            let transport = DualHost::new(ws.clone(), udp);
             let listener = rt
                 .block_on(tokio::net::TcpListener::bind("127.0.0.1:0"))
                 .unwrap();
             addr_tx.send(listener.local_addr().unwrap()).unwrap();
-            let app = router(transport.clone());
+            let app = router(ws);
             rt.spawn(async move {
                 let _ = axum::serve(listener, app).await;
             });
@@ -222,6 +247,7 @@ mod tests {
 
             let step = Duration::from_secs_f64(sim.timestep());
             while !stop_t.load(Ordering::Relaxed) {
+                transport.pump();
                 for peer in transport.take_disconnects() {
                     host.remove_player(peer);
                 }
@@ -278,6 +304,26 @@ mod tests {
         );
         assert!(moved.is_some(), "intent should have crossed the wire");
         stop.store(true, Ordering::Relaxed);
+    }
+
+    #[test]
+    fn the_handle_brings_up_the_datagram_lane() {
+        let (stop, url) = spawn_host();
+        let client = NetClientHandle::spawn(url, 60.0);
+
+        let ready = wait_for(
+            || client.state().udp_ready.then_some(()),
+            Duration::from_secs(15),
+        );
+        assert!(ready.is_some(), "udp lane should come up end to end");
+        stop.store(true, Ordering::Relaxed);
+    }
+
+    #[test]
+    fn server_host_is_extracted_from_the_url() {
+        assert_eq!(server_host("ws://127.0.0.1:7980/ws"), "127.0.0.1");
+        assert_eq!(server_host("wss://game.kbve.com:443/ws"), "game.kbve.com");
+        assert_eq!(server_host("ws://host/ws"), "host");
     }
 
     #[test]

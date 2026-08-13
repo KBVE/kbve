@@ -79,8 +79,10 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
 COPY --from=builder --chown=10001:10001 /app/target/release/friendslop-server /app/friendslop-server
 
 ENV FS_SERVER_ADDR=0.0.0.0:7980
+ENV FS_UDP_ADDR=0.0.0.0:7981
 ENV RUST_LOG=info,friendslop_server=debug
 
 EXPOSE 7980
+EXPOSE 7981/udp
 
 ENTRYPOINT ["/app/friendslop-server"]
