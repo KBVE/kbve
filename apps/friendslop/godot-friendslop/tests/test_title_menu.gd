@@ -35,6 +35,19 @@ func test_play_asks_rather_than_loading_the_world_itself() -> void:
 	assert_int(asked[0]).is_equal(1)
 
 
+## Two ways in, and they are not the same thing: guest play joins the dedicated
+## server, singleplayer runs this machine's own sim.
+func test_the_two_play_paths_are_separate() -> void:
+	var menu := _menu()
+	var online := [0]
+	var solo := [0]
+	menu.play_requested.connect(func() -> void: online[0] += 1)
+	menu.solo_requested.connect(func() -> void: solo[0] += 1)
+	menu.solo_button.pressed.emit()
+	assert_int(solo[0]).is_equal(1)
+	assert_int(online[0]).is_equal(0)
+
+
 func test_settings_and_quit_are_wired() -> void:
 	var menu := _menu()
 	var settings := [0]
@@ -65,5 +78,6 @@ func test_escape_is_a_cancel_not_a_quit() -> void:
 	assert_int(quit[0]).is_equal(0)
 
 
-func test_the_world_scene_it_points_at_exists() -> void:
+func test_the_scenes_it_points_at_exist() -> void:
 	assert_bool(ResourceLoader.exists(TitleMenu.WORLD_SCENE)).is_true()
+	assert_bool(ResourceLoader.exists(TitleMenu.ONLINE_SCENE)).is_true()

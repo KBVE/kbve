@@ -13,10 +13,19 @@ signal rejected(reason: String)
 signal avatar_spawned(body_id: int, node: Node3D)
 signal roster_changed()
 
+## The deployed fleet. A local server is reached by overriding `server_url`
+## (see `online_world.gd`, which reads FS_URL), not by editing this.
+const DEPLOYED_URL := "wss://friendslop.kbve.com/ws"
+
 @export var server_url := "ws://127.0.0.1:7980/ws"
 @export var tick_hz := 60.0
 @export var autoconnect := false
 @export var avatar_scene: PackedScene
+
+## Node whose Y rotation movement intent is expressed relative to — the camera,
+## in practice. Unset sends the raw input vector, which is world-space and only
+## correct while the camera happens to face -Z.
+@export var intent_basis_path: NodePath
 
 ## Name to ask the server for. Empty is guest mode — the server answers with
 ## an Anon-XXXX name, which is what local_name() reports once joined. Anything
@@ -114,7 +123,21 @@ func _process(_delta: float) -> void:
 	if not _client.is_joined():
 		return
 	var wish := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-	_client.set_intent(wish, Input.is_action_pressed("jump"))
+	_client.set_intent(_world_wish(wish), Input.is_action_pressed("jump"))
+
+
+## Input is in screen terms — left is left of the camera, not west. The server
+## reads a world-space direction and has no idea where anyone is looking, so the
+## rotation into world space belongs on this side of the wire.
+func _world_wish(wish: Vector2) -> Vector2:
+	if wish == Vector2.ZERO or intent_basis_path.is_empty():
+		return wish
+	var basis_node := get_node_or_null(intent_basis_path) as Node3D
+	if basis_node == null:
+		return wish
+	# Godot's input +y is "back", and the session's wish_dir is [x, z] in world
+	# space, where +z is also back. The two agree, so only the yaw is applied.
+	return wish.rotated(-basis_node.global_rotation.y)
 
 
 func _on_joined(seed_value: int, assigned_name: String) -> void:

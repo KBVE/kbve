@@ -1,0 +1,32 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" path="res://src/net/net_avatar.gd" id="1_avatar"]
+[ext_resource type="Script" path="res://src/characters/character_rig.gd" id="2_rig"]
+[ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/models/Regular_Male_FullBody.glb" id="3_body"]
+[ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/models/hair/Hair_Ponytail.glb" id="4_hair"]
+[ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/animations/UAL1.glb" id="5_ual1"]
+[ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/animations/UAL2.glb" id="6_ual2"]
+
+[node name="NetAvatar" type="Node3D"]
+script = ExtResource("1_avatar")
+
+[node name="Mesh" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.95, 0)
+script = ExtResource("2_rig")
+body = ExtResource("3_body")
+attachments = Array[PackedScene]([ExtResource("4_hair")])
+snap_to_terrain = false
+animation_sources = Array[PackedScene]([ExtResource("5_ual1"), ExtResource("6_ual2")])
+locomotion = true
+
+[node name="Nameplate" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.25, 0)
+billboard = 1
+no_depth_test = true
+fixed_size = true
+pixel_size = 0.0008
+font_size = 64
+outline_size = 14
+modulate = Color(0.97, 0.94, 0.85, 1)
+outline_modulate = Color(0.08, 0.06, 0.04, 0.9)
+text = ""
