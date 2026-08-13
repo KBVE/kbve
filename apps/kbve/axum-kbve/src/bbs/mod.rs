@@ -1,5 +1,6 @@
 mod chat;
 pub mod claim;
+mod games;
 mod presence;
 mod render;
 mod session;

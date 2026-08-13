@@ -4,8 +4,14 @@
 		"play_guest": "Play as Guest",
 		"singleplayer": "Singleplayer",
 		"sign_in": "Sign In",
-		"sign_in_hint": "Sign in is coming — guests are named by the server.",
-		"guest_status": "Playing as a guest"
+		"sign_in_hint": "Sign in with your KBVE account, or play as a guest.",
+		"guest_status": "Playing as a guest",
+		"email": "Email",
+		"password": "Password",
+		"signing_in": "Signing in…",
+		"signed_in_as": "Signed in as {name}",
+		"sign_out": "Sign Out",
+		"play_as_account": "Play"
 	},
 	"pause": {
 		"log_off": "Log Off"

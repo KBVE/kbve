@@ -35,13 +35,17 @@ func _ready() -> void:
 	_client.roster_changed.connect(_refresh_nameplates)
 	_hud.leave_requested.connect(_leave)
 
-	# Guests ask for nothing and the server names them; an account would put its
-	# claimed username here. Either way the answer arrives in `joined`.
+	# Guests carry nothing and the server names them; an account carries a token
+	# and the server reads the name out of it. Either way the answer arrives in
+	# `joined`, and it is the server's answer that gets drawn.
 	var auth := get_node_or_null(^"/root/Auth")
 	if auth:
 		if not auth.is_signed_in():
 			auth.sign_in_as_guest()
-		_client.player_name = auth.requested_name()
+		# A token that expires between the title and the join is a rejection the
+		# player cannot act on, so it is renewed here rather than discovered.
+		await auth.refresh_if_stale()
+		_client.access_token = auth.access_token()
 
 	_client.server_url = server_url()
 	_hud.set_connecting(_client.server_url)
@@ -96,4 +100,4 @@ func _refresh_nameplates() -> void:
 func _leave() -> void:
 	_client.disconnect_from_server()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	get_tree().change_scene_to_file(TITLE_SCENE)
+	LoadingScreen.swap(get_tree(), TITLE_SCENE, "Friendslop")

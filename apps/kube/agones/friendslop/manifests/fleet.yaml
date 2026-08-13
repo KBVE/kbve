@@ -57,7 +57,7 @@ spec:
                             type: RuntimeDefault
                     containers:
                         - name: friendslop-server
-                          image: ghcr.io/kbve/friendslop-server:0.0.3
+                          image: ghcr.io/kbve/friendslop-server:0.0.4
                           imagePullPolicy: IfNotPresent
                           env:
                               - name: FS_SERVER_ADDR
@@ -74,6 +74,12 @@ spec:
                                 value: '256'
                               - name: FS_TERRAIN_RESOLUTION
                                 value: '513'
+                              # Signed-in players join with a GoTrue token; the
+                              # server verifies it against the JWKS published
+                              # here and takes the name from its claims. Unset
+                              # would mean guests only — it does not fail open.
+                              - name: SUPABASE_URL
+                                value: 'https://supabase.kbve.com'
                               # portPolicy None means no port mapping, so the
                               # container port is the reachable one — but the
                               # datagram lane answers on the LoadBalancer IP,

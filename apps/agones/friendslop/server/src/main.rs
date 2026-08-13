@@ -1,4 +1,5 @@
 mod agones;
+mod auth;
 mod driver;
 
 use std::net::SocketAddr;
@@ -55,7 +56,16 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     tracing::info!(udp_port = udp.port(), "datagram lane bound");
 
     let transport = DualHost::new(ws.clone(), udp);
-    let mut sim = driver::spawn(transport.clone(), cfg);
+    // Guests never need this; a server with no issuer configured simply refuses
+    // signed-in joins rather than failing to start.
+    let authority = match auth::SupabaseAuthority::from_env().await {
+        Some(a) => Some(a.shared()),
+        None => {
+            tracing::info!("no SUPABASE_URL/SUPABASE_JWKS_URI; guests only");
+            None
+        }
+    };
+    let mut sim = driver::spawn(transport.clone(), cfg, authority);
 
     let app = router(ws).merge(stats_route(transport.clone(), sim.tick_handle()));
 

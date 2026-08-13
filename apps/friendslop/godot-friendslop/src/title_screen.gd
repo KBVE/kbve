@@ -99,7 +99,9 @@ func _ready() -> void:
 	# The title is the one screen with no camera to steer, so the cursor is a
 	# cursor here even if the world scene captured it before returning.
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	_menu.play_requested.connect(_play_as_guest)
+	_menu.play_requested.connect(_play)
+	_menu.sign_in_requested.connect(_sign_in)
+	_menu.sign_out_requested.connect(_sign_out)
 	_menu.solo_requested.connect(_play_solo)
 	_menu.settings_requested.connect(_open_settings)
 	_menu.quit_requested.connect(_quit)
@@ -140,12 +142,32 @@ func _switch_locale(code: String) -> void:
 
 
 ## Signs in before the scene swaps so the session scene finds an identity
-## already in place rather than having to invent one on arrival.
-func _play_as_guest() -> void:
+## already in place rather than having to invent one on arrival. An account that
+## is already signed in is left alone — pressing Play does not sign you out.
+func _play() -> void:
 	var auth := get_node_or_null(^"/root/Auth")
-	if auth:
+	if auth and not auth.is_signed_in():
 		auth.sign_in_as_guest()
 	_enter(TitleMenu.ONLINE_SCENE)
+
+
+## Owned here rather than in the menu so the form stays a form: it collects two
+## strings and shows what it is told, and never learns what a token is.
+func _sign_in(email: String, password: String) -> void:
+	var auth := get_node_or_null(^"/root/Auth")
+	if auth == null:
+		_menu.sign_in_failed("Sign-in is unavailable in this build.")
+		return
+	if await auth.sign_in(email, password) == OK:
+		_menu.sign_in_succeeded()
+	else:
+		_menu.sign_in_failed(auth.last_error())
+
+
+func _sign_out() -> void:
+	var auth := get_node_or_null(^"/root/Auth")
+	if auth:
+		auth.sign_out()
 
 
 ## The offline world. Nothing to sign in to — it is this machine's own sim, and
@@ -157,9 +179,13 @@ func _play_solo() -> void:
 ## Leaving the title is where the other languages' fonts stop being worth their
 ## memory: the picker was the only thing that needed them all, and the world has
 ## no picker.
+##
+## The swap goes through LoadingScreen rather than `change_scene_to_file`: both
+## scenes past this point are heavy enough to freeze on, and a blocking change
+## cannot draw while it runs.
 func _enter(scene: String) -> void:
 	I18n.use_locale_font()
-	get_tree().change_scene_to_file(scene)
+	LoadingScreen.swap(get_tree(), scene, "world" if scene == TitleMenu.WORLD_SCENE else "session")
 
 
 ## Built on first use: the book is a SubViewport with its own 3D world, and
@@ -182,6 +208,9 @@ func _open_settings() -> void:
 ## Escape backs out of the settings book before it quits — a key that sometimes
 ## closes a panel and sometimes exits the process is one nobody presses twice.
 func _cancel() -> void:
+	if _menu.is_signing_in():
+		_menu.close_sign_in()
+		return
 	if _settings and _settings.is_open():
 		_settings.close()
 		return
