@@ -1,19 +1,13 @@
-#[cfg(target_os = "linux")]
 use godot::classes::DisplayServer;
-#[cfg(target_os = "linux")]
 use godot::classes::display_server::HandleType;
-#[cfg(target_os = "linux")]
 use godot::prelude::*;
 
-#[cfg(target_os = "linux")]
 use raw_window_handle::{
     HandleError, HasWindowHandle, RawWindowHandle, WindowHandle, XlibWindowHandle,
 };
 
-#[cfg(target_os = "linux")]
 pub struct LinuxWryBrowserOptions;
 
-#[cfg(target_os = "linux")]
 impl HasWindowHandle for LinuxWryBrowserOptions {
     fn window_handle(&self) -> Result<WindowHandle<'_>, HandleError> {
         let display_server = DisplayServer::singleton();

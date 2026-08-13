@@ -8,17 +8,14 @@ use crate::platform::macos::MacOSWryBrowserOptions;
 #[cfg(target_os = "windows")]
 use crate::platform::windows::WindowsWryBrowserOptions;
 
-#[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
 use wry::{
     Rect, WebViewBuilder,
     dpi::{PhysicalPosition, PhysicalSize},
     http::Request,
 };
 
-#[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
 use std::{borrow::Cow, fs, path::PathBuf};
 
-#[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
 use http::{Response, header::CONTENT_TYPE};
 
 #[derive(GodotClass)]
@@ -26,7 +23,6 @@ use http::{Response, header::CONTENT_TYPE};
 pub struct GodotBrowser {
     base: Base<Control>,
 
-    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
     webview: Option<wry::WebView>,
 
     full_window_size: bool,
@@ -48,7 +44,6 @@ impl IControl for GodotBrowser {
         Self {
             base,
 
-            #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
             webview: None,
 
             full_window_size: true,
@@ -66,59 +61,56 @@ impl IControl for GodotBrowser {
     }
 
     fn ready(&mut self) {
-        #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
-        {
-            #[cfg(target_os = "macos")]
-            let window = MacOSWryBrowserOptions;
+        #[cfg(target_os = "macos")]
+        let window = MacOSWryBrowserOptions;
 
-            #[cfg(target_os = "windows")]
-            let window = WindowsWryBrowserOptions;
+        #[cfg(target_os = "windows")]
+        let window = WindowsWryBrowserOptions;
 
-            #[cfg(target_os = "linux")]
-            let window = LinuxWryBrowserOptions;
+        #[cfg(target_os = "linux")]
+        let window = LinuxWryBrowserOptions;
 
-            let base = self.base().clone();
-            let mut builder = WebViewBuilder::new()
-                .with_transparent(self.transparent)
-                .with_devtools(self.devtools)
-                .with_hotkeys_zoom(self.zoom_hotkeys)
-                .with_clipboard(self.clipboard)
-                .with_incognito(self.incognito)
-                .with_focused(self.focused)
-                .with_custom_protocol("res".into(), |_id, req| get_res_response(req))
-                .with_ipc_handler(move |req: Request<String>| {
-                    let body = req.body().as_str();
-                    base.clone()
-                        .emit_signal("ipc_message", &[body.to_variant()]);
-                });
+        let base = self.base().clone();
+        let mut builder = WebViewBuilder::new()
+            .with_transparent(self.transparent)
+            .with_devtools(self.devtools)
+            .with_hotkeys_zoom(self.zoom_hotkeys)
+            .with_clipboard(self.clipboard)
+            .with_incognito(self.incognito)
+            .with_focused(self.focused)
+            .with_custom_protocol("res".into(), |_id, req| get_res_response(req))
+            .with_ipc_handler(move |req: Request<String>| {
+                let body = req.body().as_str();
+                base.clone()
+                    .emit_signal("ipc_message", &[body.to_variant()]);
+            });
 
-            if !self.user_agent.is_empty() {
-                builder = builder.with_user_agent(self.user_agent.to_string());
+        if !self.user_agent.is_empty() {
+            builder = builder.with_user_agent(self.user_agent.to_string());
+        }
+
+        if self.html.is_empty() && !self.url.is_empty() {
+            builder = builder.with_url(self.url.to_string());
+        } else if !self.html.is_empty() && self.url.is_empty() {
+            builder = builder.with_html(self.html.to_string());
+        }
+
+        let webview_builder = builder;
+
+        if !self.url.is_empty() && !self.html.is_empty() {
+            godot_error!(
+                "[GodotBrowser] You have entered both a URL and HTML code. Only one can be used."
+            );
+            return;
+        }
+
+        match webview_builder.build_as_child(&window) {
+            Ok(webview) => {
+                self.webview.replace(webview);
+                self.resize();
             }
-
-            if self.html.is_empty() && !self.url.is_empty() {
-                builder = builder.with_url(self.url.to_string());
-            } else if !self.html.is_empty() && self.url.is_empty() {
-                builder = builder.with_html(self.html.to_string());
-            }
-
-            let webview_builder = builder;
-
-            if !self.url.is_empty() && !self.html.is_empty() {
-                godot_error!(
-                    "[GodotBrowser] You have entered both a URL and HTML code. Only one can be used."
-                );
-                return;
-            }
-
-            match webview_builder.build_as_child(&window) {
-                Ok(webview) => {
-                    self.webview.replace(webview);
-                    self.resize();
-                }
-                Err(e) => {
-                    godot_error!("[GodotBrowser] Failed to create WebView: {:?}", e);
-                }
+            Err(e) => {
+                godot_error!("[GodotBrowser] Failed to create WebView: {:?}", e);
             }
         }
     }
@@ -148,7 +140,6 @@ impl GodotBrowser {
 
     #[func]
     pub fn open_url(&self, url: GString) {
-        #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
         if let Some(webview) = &self.webview {
             let url_str = url.to_string();
             let script = format!("window.location.href = '{}';", url_str.replace('\'', "\\'"));
@@ -183,7 +174,6 @@ impl GodotBrowser {
     }
 }
 
-#[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
 pub fn get_res_response(request: Request<Vec<u8>>) -> Response<Cow<'static, [u8]>> {
     let os = Os::singleton();
     let root = if os.has_feature("editor") {

@@ -46,18 +46,18 @@ pub fn set_windows_opacity(transparency_value: f64, gui_manager: &Gd<CanvasLayer
 
 // --- Wry Browser Options ---
 
-#[cfg(target_os = "windows")]
+#[cfg(all(feature = "webview", target_os = "windows"))]
 use std::num::{NonZero, NonZeroIsize};
 
-#[cfg(target_os = "windows")]
+#[cfg(all(feature = "webview", target_os = "windows"))]
 use raw_window_handle::{
     HandleError, HasWindowHandle, RawWindowHandle, Win32WindowHandle, WindowHandle,
 };
 
-#[cfg(target_os = "windows")]
+#[cfg(all(feature = "webview", target_os = "windows"))]
 pub struct WindowsWryBrowserOptions;
 
-#[cfg(target_os = "windows")]
+#[cfg(all(feature = "webview", target_os = "windows"))]
 impl HasWindowHandle for WindowsWryBrowserOptions {
     fn window_handle(&self) -> Result<WindowHandle<'_>, HandleError> {
         let display_server = DisplayServer::singleton();
