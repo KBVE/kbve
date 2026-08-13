@@ -75,11 +75,16 @@ jobs:
 
     test:
         name: Test (godot --headless)
-        needs: [version_gate]
+        needs: [version_gate, gdextension]
+        # `always()` so a project with no `engine.gdextension` (job skipped) still
+        # tests. A suite that touches the extension's classes can't even parse
+        # without the library, so the build is gated on it either way.
+        if: ${{ always() && needs.version_gate.result == 'success' && needs.gdextension.result != 'failure' && needs.gdextension.result != 'cancelled' }}
         runs-on: ubuntu-latest
         timeout-minutes: 20
         permissions:
             contents: read
+            actions: read
         container:
             image: barichello/godot-ci:${{ fromJSON(inputs.engine).dotnet_enabled && 'mono-' || '' }}${{ fromJSON(inputs.engine).version }}
         steps:
@@ -126,6 +131,26 @@ jobs:
                     echo "$STUBS"
                     exit 1
                   fi
+            - name: Download GDExtension binaries
+              if: ${{ fromJSON(inputs.engine).gdextension.package != '' }}
+              uses: actions/download-artifact@v8
+              with:
+                  name: gdext-${{ fromJSON(inputs.engine).app_name }}-linux
+                  path: gdext
+            - name: Stage GDExtension binaries
+              if: ${{ fromJSON(inputs.engine).gdextension.package != '' }}
+              env:
+                  PROJECT_PATH: ${{ fromJSON(inputs.engine).project_path }}
+                  ADDON_PATH: ${{ fromJSON(inputs.engine).gdextension.addon_path }}
+              run: |
+                  # Only the linux slot: this container is the only platform the
+                  # test pass ever loads. Without it Godot can't register the
+                  # extension's classes, and a suite that names one fails at parse
+                  # time — "Identifier not declared", then a gdUnit4 crash (132),
+                  # which reads like a broken test rather than a missing library.
+                  mkdir -p "$PROJECT_PATH/$ADDON_PATH"
+                  cp -R gdext/. "$PROJECT_PATH/$ADDON_PATH/"
+                  find "$PROJECT_PATH/$ADDON_PATH" -type f -printf '%p\t%s bytes\n'
             - name: Run headless test pass
               env:
                   GODOT_BIN: godot
@@ -216,6 +241,7 @@ jobs:
                       apps/agones/cryptothrone/server
                       apps/agones/arpg/server
                       apps/agones/herbmail/server
+                      apps/agones/friendslop/server
                       apps/media/reel
             - name: Verify workspace members were checked out
               shell: bash

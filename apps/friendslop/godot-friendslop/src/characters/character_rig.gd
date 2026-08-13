@@ -18,10 +18,10 @@ extends Node3D
 ## The kit exports with the character facing +Z; Godot's forward is -Z.
 @export var facing_offset_deg := 180.0
 
-## The kit's base colour maps are greyscale and its own materials multiply them
-## by a colour parameter. Godot's glTF importer builds a StandardMaterial3D with
-## a white albedo_color, which is the same multiply with the tint left out, so
-## setting it here restores the intended look and makes tone a value not a texture.
+## The kit's own materials multiply their base map by a colour parameter, which
+## the glTF importer drops, so it is fed back in as the cel shader's albedo_tint.
+## The body map already carries a skin tone, so white leaves it as authored and
+## the tint is there to shift it; the hair map is closer to neutral and needs one.
 @export var skin_color := Color(1, 1, 1)
 @export var hair_color := Color(0.214, 0.155, 0.047)
 
@@ -118,14 +118,28 @@ const GAITS := [
 
 var _blend := Vector2.ZERO
 
-const TINTS := {
-	&"MI_Hair_1": "hair_color",
-	&"MI_Regular_Male": "skin_color",
-	&"MI_Regular_Female": "skin_color",
-	&"MI_Teen_Male": "skin_color",
-	&"MI_Teen_Female": "skin_color",
-	&"MI_Superhero_Male": "skin_color",
-	&"MI_Superhero_Female": "skin_color",
+## Per-surface cel shading, keyed by the kit's material name. tint names the
+## exported colour the base map is multiplied by, body picks the shader's body
+## preset over its cloth one, lit flattens the terminator for surfaces a shadow
+## edge should never cross, and sat pulls the skin map's chroma down, because it
+## is far more saturated than the greens and browns it stands in front of and
+## reads as glowing orange next to them at full strength.
+##
+## toon.gdshader is not an option here: its brush strokes are positioned from
+## VERTEX, which Godot has already skinned by the time the shader runs, so the
+## strokes swim across the body as it animates. anime.gdshader carries no
+## positional noise and holds still under deformation.
+const SHADE_SHADER := preload("res://assets/fx/shaders/anime.gdshader")
+
+const SHADING := {
+	&"MI_Hair_1": {&"tint": &"hair_color"},
+	&"MI_Eyes": {&"lit": true},
+	&"MI_Regular_Male": {&"tint": &"skin_color", &"body": true, &"sat": 0.7},
+	&"MI_Regular_Female": {&"tint": &"skin_color", &"body": true, &"sat": 0.7},
+	&"MI_Teen_Male": {&"tint": &"skin_color", &"body": true, &"sat": 0.7},
+	&"MI_Teen_Female": {&"tint": &"skin_color", &"body": true, &"sat": 0.7},
+	&"MI_Superhero_Male": {&"tint": &"skin_color", &"body": true, &"sat": 0.7},
+	&"MI_Superhero_Female": {&"tint": &"skin_color", &"body": true, &"sat": 0.7},
 }
 
 var skeleton: Skeleton3D
@@ -146,7 +160,7 @@ func _ready() -> void:
 		_attach(scene)
 	for child in skeleton.get_children():
 		if child is MeshInstance3D:
-			_tint(child)
+			_shade(child)
 	_build_animation(rig)
 	if foot_ik:
 		_build_foot_ik()
@@ -385,15 +399,31 @@ func _find_player(n: Node) -> AnimationPlayer:
 	return null
 
 
-func _tint(mi: MeshInstance3D) -> void:
+func _shade(mi: MeshInstance3D) -> void:
+	if mi.mesh == null:
+		return
 	for i in mi.mesh.get_surface_count():
-		var mat := mi.mesh.surface_get_material(i)
-		if mat == null or not TINTS.has(mat.resource_name):
+		var src := mi.mesh.surface_get_material(i) as BaseMaterial3D
+		if src == null:
 			continue
-		# The imported material is shared by every instance of the glb, so it has
-		# to be copied before the tint is applied or all of them change together.
-		var own := mat.duplicate() as BaseMaterial3D
-		own.albedo_color = get(TINTS[mat.resource_name])
+		var cfg: Dictionary = SHADING.get(src.resource_name, {})
+		if cfg.is_empty():
+			push_warning("character_rig: no shading for material %s" % src.resource_name)
+			continue
+		# The imported material is shared by every instance of the glb, so the cel
+		# material is set as a surface override or every character changes together.
+		var own := ShaderMaterial.new()
+		own.resource_name = src.resource_name
+		own.shader = SHADE_SHADER
+		if src.albedo_texture:
+			own.set_shader_parameter(&"albedo_tex", src.albedo_texture)
+		var tint: StringName = cfg.get(&"tint", &"")
+		var color: Color = get(tint) if tint != &"" else Color.WHITE
+		own.set_shader_parameter(&"albedo_tint", Vector3(color.r, color.g, color.b))
+		own.set_shader_parameter(&"body_shadows", cfg.get(&"body", false))
+		own.set_shader_parameter(&"albedo_sat", cfg.get(&"sat", 1.0))
+		if cfg.get(&"lit", false):
+			own.set_shader_parameter(&"shadow_threshold", 0.0)
 		mi.set_surface_override_material(i, own)
 
 

@@ -41,7 +41,7 @@ const mapD = spanZ * cellSize;
 <section class="mclot-panel not-content kbve-dashboard-page">
 	<header class="mclot-panel__head">
 		<div>
-			<h2>{Astro.props.title ?? lot.lot_id}</h2>
+			<h1 id="_top">{Astro.props.title ?? lot.lot_id}</h1>
 			<p class="mclot-panel__sub">
 				<code>{lot.lot_id}</code> · <code>{lot.world}</code>
 			</p>
@@ -230,7 +230,7 @@ const mapD = spanZ * cellSize;
 		flex-wrap: wrap;
 	}
 
-	.mclot-panel__head h2 {
+	.mclot-panel__head h1 {
 		margin: 0;
 	}
 

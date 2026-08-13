@@ -4575,6 +4575,54 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Lizardfish",
+        "hidden": true
+      },
+      "description": "A slender river fish that drifts in loose schools through shallow current, catchable with a line from the bank.\n",
+      "ref": "lizard-fish",
+      "id": "01KZWMGYHVMYGZBXJ4RAWY6R4F",
+      "name": "Lizardfish",
+      "typeFlags": 1,
+      "rarity": "NPC_RARITY_COMMON",
+      "personality": "PERSONALITY_PASSIVE",
+      "rank": "NPC_RANK_MINION",
+      "family": "beast",
+      "element": "ELEMENT_NATURE",
+      "level": 1,
+      "stats": {
+        "hp": 2,
+        "maxHp": 2,
+        "attack": 0,
+        "defense": 0,
+        "speed": 4,
+        "armor": 0
+      },
+      "behavior": {
+        "movementType": "MOVEMENT_TYPE_RANDOM_WANDER",
+        "firstStrike": false
+      },
+      "spatial": {
+        "walkSpeed": 1.2,
+        "canSwim": true,
+        "canFly": false
+      },
+      "interaction": {
+        "isInteractable": true,
+        "isTargetable": true,
+        "isAttackable": true
+      },
+      "spawnRules": [
+        {
+          "zone": "river",
+          "spawnWeight": 1
+        }
+      ],
+      "lore": "Lizardfish hold the slow water behind gravel bars, facing upstream in loose ranks so the current\ndoes the swimming for them. The long jaw and mottled back read as reptilian to anyone who has only\nseen one hauled up on a line, which is where the name comes from and why river folk insist it is\nperfectly good eating despite the look of it. A school breaks apart at a shadow on the water and\nreassembles a few lengths downstream as if nothing happened.\n",
+      "credits": "KBVE friendslop river fauna.\n"
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Lumipaw",
         "hidden": true
       },

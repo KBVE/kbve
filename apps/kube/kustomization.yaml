@@ -77,7 +77,7 @@ resources:
     - agones/cryptothrone/application.yaml
     - agones/arpg/application.yaml
     # - agones/herbmail/application.yaml  # DISABLED: enable once ghcr.io/kbve/herbmail-server:<version> is published and game.herbmail.com resolves
-    # - agones/friendslop/application.yaml  # DISABLED: enable once ghcr.io/kbve/friendslop-server:<version> is published; also needs the shared-IP sharing-cross-namespace edits on kbve-gateway + arpg-game-udp to land
+    - agones/friendslop/application.yaml
     - agones/factorio/application.yaml
     - agones/palworld/application.yaml
     - chuckrpg/application.yaml
