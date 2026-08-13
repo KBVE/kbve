@@ -45,6 +45,31 @@ func _properties_of(state: SceneState, node_index: int) -> Dictionary:
 	return out
 
 
+## A QFishField with no model or materials places its fish, simulates them and
+## draws nothing — the same silent shape as the bridge, and just as invisible
+## outside a screenshot.
+const FISH_SCENES := ["res://scenes/main.tscn", "res://scenes/title.tscn"]
+const FISH_RESOURCES := [&"fish_model", &"fish_material", &"shadow_material"]
+
+
+func test_every_fish_field_can_draw() -> void:
+	for path in FISH_SCENES:
+		var state := _state(path)
+		var seen := false
+		for i in state.get_node_count():
+			if state.get_node_type(i) != &"QFishField":
+				continue
+			seen = true
+			var props := _properties_of(state, i)
+			for key in FISH_RESOURCES:
+				assert_object(props.get(key)) \
+					.override_failure_message("%s: QFishField is missing %s" % [path, key]) \
+					.is_not_null()
+		assert_bool(seen) \
+			.override_failure_message("%s has no QFishField" % path) \
+			.is_true()
+
+
 func test_every_terrain_is_handed_all_of_its_materials() -> void:
 	for path in SCENES:
 		var state := _state(path)

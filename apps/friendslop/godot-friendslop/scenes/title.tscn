@@ -1,4 +1,4 @@
-[gd_scene load_steps=19 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="Script" path="res://src/title_screen.gd" id="1_title"]
 [ext_resource type="Material" path="res://assets/biomes/grassland/grass/ground.tres" id="2_ground"]
@@ -14,6 +14,9 @@
 [ext_resource type="Script" path="res://src/settings/gameplay_settings.gd" id="12_play"]
 [ext_resource type="Material" path="res://assets/environment/props/bridge/bridge.tres" id="13_bridge"]
 [ext_resource type="Material" path="res://assets/environment/props/bridge/abutment.tres" id="14_abut"]
+[ext_resource type="PackedScene" path="res://assets/environment/props/fauna/lizardfish/lizardfish.glb" id="15_fishmodel"]
+[ext_resource type="Material" path="res://assets/environment/props/fauna/lizardfish/fish.tres" id="16_fishmat"]
+[ext_resource type="Material" path="res://assets/environment/props/fauna/lizardfish/fish_shadow.tres" id="17_fishshadowmat"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(1024, 1024)
@@ -63,6 +66,16 @@ abutment_material = ExtResource("14_abut")
 [node name="GrassField" type="QGrassField" parent="."]
 player_path = NodePath("../CameraRig")
 grass_material = ExtResource("3_grassmat")
+
+[node name="FishField" type="QFishField" parent="."]
+terrain_path = NodePath("../Terrain")
+player_path = NodePath("../CameraRig")
+fish_model = ExtResource("15_fishmodel")
+fish_material = ExtResource("16_fishmat")
+shadow_material = ExtResource("17_fishshadowmat")
+count = 560
+pods = 52
+school_chance = 0.45
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_title")
