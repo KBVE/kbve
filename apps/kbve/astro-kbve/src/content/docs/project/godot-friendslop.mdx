@@ -71,6 +71,25 @@ The title is not the boot scene yet; `run/main_scene` still points at `scenes/ma
 bash scripts/godot.sh res://scenes/title.tscn
 ```
 
+### Online sessions
+
+**Play as Guest** enters `scenes/online.tscn`; **Singleplayer** enters `scenes/main.tscn`. The split is authority, not content — online, the server owns both where bodies end up *and* what the world looks like.
+
+Terrain is never shipped. `Welcome` carries a seed, `online_world.gd` writes it onto `QTerrain.terrain_seed`, and the client bakes the same heightmap the server is stepping collision against — which is the entire reason the generator is deterministic. A client that baked a different one would walk through hills the server can still see.
+
+| Piece | Job |
+| --- | --- |
+| `src/net/online_world.gd` | Auth → connect, seed → terrain, roster → nameplates |
+| `src/net/net_avatar.gd` | One body: nameplate, and a velocity derived from the position delta so remote players animate |
+| `src/net/net_camera_rig.gd` | Third-person follow; its yaw is the frame movement intent is expressed in |
+| `src/net/online_hud.gd` | Connecting / joined / rejected, and who else is here |
+
+Movement stays intent-only: `NetGameClient` rotates the input vector by the camera's yaw and sends a direction, never a translation. Defaults to `wss://friendslop.kbve.com/ws`; `FS_URL` points it at a local server.
+
+```bash
+FS_URL=ws://127.0.0.1:7980/ws bash scripts/godot.sh res://scenes/online.tscn
+```
+
 ### Local
 
 - `pnpm nx run godot-friendslop:test` — import + gdUnit4 headless suite

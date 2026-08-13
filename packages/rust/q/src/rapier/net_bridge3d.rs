@@ -62,9 +62,16 @@ impl INode3D for QNetClient3D {
             .last
             .as_ref()
             .is_none_or(|previous| previous.roster != state.roster);
+        let status_changed = self.last.as_ref().map(|s| s.status) != Some(state.status);
 
-        let previous = self.last.as_ref().map(|s| s.status);
-        if previous != Some(state.status) {
+        // Publish before announcing. Every getter on this node answers from
+        // `last`, and a handler runs *inside* the emit — so leaving the old
+        // state in place until the end means `body_added` fires while
+        // `local_body()` still says -1, and the frame a player joins is the one
+        // frame they cannot recognise their own body on.
+        self.last = Some((*state).clone());
+
+        if status_changed {
             match state.status {
                 ClientStatus::Joined => {
                     let seed = state.seed.unwrap_or(0) as i64;
@@ -81,16 +88,19 @@ impl INode3D for QNetClient3D {
 
         if let Some(snapshot) = state.snapshot.as_ref() {
             let live: HashSet<BodyId> = snapshot.bodies.iter().map(|b| b.id).collect();
+            let added: Vec<BodyId> = live.difference(&self.known).copied().collect();
+            let removed: Vec<BodyId> = self.known.difference(&live).copied().collect();
+            // Same reason as `last`: `body_ids()` is readable from inside the
+            // handler, so the set has to be current before anything is told.
+            self.known = live;
 
-            for id in live.difference(&self.known).copied().collect::<Vec<_>>() {
-                self.known.insert(id);
+            for id in added {
                 self.signals().body_added().emit(id.0 as i64);
             }
-            for id in self.known.difference(&live).copied().collect::<Vec<_>>() {
+            for id in removed {
                 self.tracked.remove(&id);
                 self.signals().body_removed().emit(id.0 as i64);
             }
-            self.known = live;
 
             for body in &snapshot.bodies {
                 if let Some(node) = self.tracked.get_mut(&body.id)
@@ -106,8 +116,6 @@ impl INode3D for QNetClient3D {
         if roster_changed {
             self.signals().roster_changed().emit();
         }
-
-        self.last = Some((*state).clone());
     }
 }
 
