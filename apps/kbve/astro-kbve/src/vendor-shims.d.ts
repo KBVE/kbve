@@ -7,4 +7,3 @@ declare module 'd3-sankey' {
 	export const sankeyJustify: any;
 }
 declare module 'guacamole-common-js';
-declare module '@novnc/novnc/lib/rfb';

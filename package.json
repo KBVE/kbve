@@ -157,7 +157,6 @@
 		"@hcaptcha/react-hcaptcha": "^2.0.2",
 		"@hcaptcha/react-native-hcaptcha": "^4.1.0",
 		"@hookform/resolvers": "^5.2.2",
-		"@novnc/novnc": "1.7.0",
 		"@phaserjs/rapier-connector": "^1.0.2",
 		"@pixiv/three-vrm": "^3.5.3",
 		"@pixiv/three-vrm-animation": "^3.5.5",
