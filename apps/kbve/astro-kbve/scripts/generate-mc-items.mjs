@@ -1,6 +1,7 @@
 import { mkdir, readdir, readFile, writeFile, stat } from 'fs/promises';
 import { join } from 'path';
 import { parse as parseYaml } from 'yaml';
+import { resolveTitles } from './mc-title.mjs';
 
 const VERSION = '1.21.5';
 const DATA_URL = `https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master/data/pc/${VERSION}/items.json`;
@@ -102,21 +103,13 @@ async function hasTexture(ref) {
 	return (await exists(itemPath)) || (await exists(blockPath));
 }
 
-function titleCase(name) {
-	return name
-		.split(' ')
-		.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-		.join(' ');
-}
-
-function generateMdx(item, slug, category, tier) {
-	const title = item.displayName ?? titleCase(item.name.replace(/_/g, ' '));
+function generateMdx(item, slug, category, tier, title) {
 	const stackSize = inferStackSize(item);
 	const tierLine = tier ? `\n    tier: ${tier}` : '';
 	return `---
 title: ${title}
 description: |
-    Minecraft ${title} — vanilla 1.21.5 item record (auto-generated).
+    Minecraft ${title}: vanilla 1.21.5 item record.
 sidebar:
     label: ${title}
 tags:
@@ -158,15 +151,20 @@ async function main() {
 
 	let created = 0;
 	let skippedExisting = 0;
-	let skippedNoTexture = 0;
-	for (const item of items) {
-		if (!item.name) continue;
+
+	const named = items.filter((i) => i.name);
+	const withTexture = [];
+	for (const item of named) {
+		if (await hasTexture(item.name)) withTexture.push(item);
+	}
+	const skippedNoTexture = named.length - withTexture.length;
+	const titles = resolveTitles(
+		withTexture.map((i) => ({ ref: i.name, displayName: i.displayName })),
+	);
+
+	for (const item of withTexture) {
 		if (existing.has(item.name)) {
 			skippedExisting++;
-			continue;
-		}
-		if (!(await hasTexture(item.name))) {
-			skippedNoTexture++;
 			continue;
 		}
 		const slug = refToSlug(item.name);
@@ -178,7 +176,7 @@ async function main() {
 			created++;
 			continue;
 		}
-		const mdx = generateMdx(item, slug, category, tier);
+		const mdx = generateMdx(item, slug, category, tier, titles.get(item.name));
 		await writeFile(dest, mdx, 'utf-8');
 		created++;
 		if (created <= 10 || created % 100 === 0) {

@@ -2,6 +2,7 @@ import { mkdir, readdir, readFile, writeFile, stat } from 'fs/promises';
 import { join, resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 import { parse as parseYaml } from 'yaml';
+import { resolveTitles } from './mc-title.mjs';
 
 const VERSION = '1.21.5';
 const DATA_URL = `https://raw.githubusercontent.com/PrismarineJS/minecraft-data/master/data/pc/${VERSION}/blocks.json`;
@@ -140,15 +141,7 @@ async function buildExistingRefIndex() {
 	return refs;
 }
 
-function titleCase(name) {
-	return name
-		.split(' ')
-		.map((w) => w.charAt(0).toUpperCase() + w.slice(1))
-		.join(' ');
-}
-
-function generateMdx(block, slug, material, bestTool) {
-	const title = block.displayName ?? titleCase(block.name.replace(/_/g, ' '));
+function generateMdx(block, slug, material, bestTool, title) {
 	const hardness = typeof block.hardness === 'number' ? block.hardness : 0;
 	const blastResistance = typeof block.resistance === 'number' && block.resistance >= 0
 		? block.resistance
@@ -168,7 +161,7 @@ function generateMdx(block, slug, material, bestTool) {
 	return `---
 title: ${title}
 description: |
-    Minecraft ${title} — vanilla 1.21.5 block record (auto-generated).
+    Minecraft ${title}: vanilla 1.21.5 block record.
 sidebar:
     label: ${title}
 tags:
@@ -220,8 +213,13 @@ async function main() {
 
 	let created = 0;
 	let skippedExisting = 0;
-	for (const block of blocks) {
-		if (!block.name) continue;
+
+	const named = blocks.filter((b) => b.name);
+	const titles = resolveTitles(
+		named.map((b) => ({ ref: b.name, displayName: b.displayName })),
+	);
+
+	for (const block of named) {
 		if (existing.has(block.name)) {
 			skippedExisting++;
 			continue;
@@ -237,7 +235,7 @@ async function main() {
 			created++;
 			continue;
 		}
-		const mdx = generateMdx(block, slug, material, bestTool);
+		const mdx = generateMdx(block, slug, material, bestTool, titles.get(block.name));
 		await writeFile(dest, mdx, 'utf-8');
 		created++;
 		if (created <= 10 || created % 100 === 0) {
