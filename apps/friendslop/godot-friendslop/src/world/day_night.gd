@@ -136,12 +136,26 @@ func _configure_lights() -> void:
 
 func _update_celestial_state(force := false) -> void:
 	var raw_angle := (hour - SUNRISE_OFFSET) * DAY_RADIANS
+
+	# Rotation tracks the continuous angle. Quantising it too made the shadow
+	# map re-project in visible jumps a few times a second; the step below only
+	# gates the LUT reads, which are the part worth skipping.
+	sun.rotation.x = -raw_angle
+	moon.rotation.x = -raw_angle + PI
+
+	# Direction toward the dominant light, for shaders that march their own
+	# shadows and so need the light vector in the fragment stage, where Godot
+	# exposes it only inside light(). A DirectionalLight3D shines along -Z, so
+	# +Z of its basis points back at it.
+	var key_light := sun if sun.light_energy >= moon.light_energy else moon
+	RenderingServer.global_shader_parameter_set("sun_direction",
+			key_light.global_transform.basis.z.normalized())
+
 	var angle_step := roundi(raw_angle * _angle_step_inv)
 	if not force and angle_step == _last_angle_step:
 		return
 	_last_angle_step = angle_step
 
-	var angle := float(angle_step) * _angle_step_rad
 	var o := posmod(angle_step, _steps_per_day) * LUT_STRIDE
 	var sun_elevation := _lut[o + LUT_SUN_ELEVATION]
 	var moon_elevation := -sun_elevation
@@ -151,17 +165,6 @@ func _update_celestial_state(force := false) -> void:
 	_update_shadow_state(sun_elevation, moon_elevation)
 	sun.shadow_opacity = _lut[o + LUT_SUN_OPACITY]
 	moon.shadow_opacity = _lut[o + LUT_MOON_OPACITY]
-
-	sun.rotation.x = -angle
-	moon.rotation.x = -angle + PI
-
-	# Direction toward the dominant light, for shaders that march their own
-	# shadows and so need the light vector in the fragment stage, where Godot
-	# exposes it only inside light(). A DirectionalLight3D shines along -Z, so
-	# +Z of its basis points back at it.
-	var key_light := sun if sun.light_energy >= moon.light_energy else moon
-	RenderingServer.global_shader_parameter_set("sun_direction",
-			key_light.global_transform.basis.z.normalized())
 
 	if environment_node:
 		var t := smoothstep(-0.1, 0.15, sun_elevation)
