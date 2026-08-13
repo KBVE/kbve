@@ -51,6 +51,26 @@ A Godot 4.7 game driven by a small GDScript ECS (`addons/GodotECS`) with observe
 
 `ci-main.yml` reads the CI dispatch manifest and hands this entry to `ci-godot.yml` whenever the MDX `version` outpaces `version.toml`. The godot pipeline runs the gdUnit4 suite headless via `scripts/test.sh`, exports the `Windows Desktop`, `macOS`, and `Linux` presets in the `barichello/godot-ci` container, and pushes each build to `kbve/friendslop` on itch.io with butler. gdUnit4 and the `tests/` directory are excluded from exports via the preset `exclude_filter`, so the test harness never ships in the finished product.
 
+### Title screen & identity
+
+`scenes/title.tscn` is the front door: the real world generator drifting behind a paper button column, not a render of one — same `QTerrain`, same materials, same sky, so it costs what the game costs. The orbit rig doubles as the streaming anchor the terrain and grass fields normally take a player for.
+
+Identity lives in the `Auth` autoload (`src/autoload/auth_session.gd`), which has three modes and one implemented path:
+
+| Mode | Token | Requested name |
+| --- | --- | --- |
+| `SIGNED_OUT` | — | — |
+| `GUEST` | `""` | `""` — the server answers with `Anon-XXXX` |
+| `ACCOUNT` | Supabase JWT | `kbve_username` |
+
+Guest works today. `sign_in` returns `ERR_UNAVAILABLE` rather than pretending, and `adopt_account` is the seam the Supabase flow lands on — the rest of the ecosystem already issues GoTrue tokens at `supabase.kbve.com` and stamps the username claim via the Custom Access Token hook, so what is missing is the flow, not a second identity system.
+
+The title is not the boot scene yet; `run/main_scene` still points at `scenes/main.tscn`. Open it directly to work on it:
+
+```bash
+bash scripts/godot.sh res://scenes/title.tscn
+```
+
 ### Local
 
 - `pnpm nx run godot-friendslop:test` — import + gdUnit4 headless suite
