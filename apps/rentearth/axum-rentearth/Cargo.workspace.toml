@@ -43,7 +43,7 @@ js-sys = { version = "0.3", default-features = false }
 jsonwebtoken = { version = "10.3.0", default-features = false }
 k8s-openapi = "0.28"
 kube = { version = "4", default-features = false }
-lightyear = { version = "0.28", default-features = false }
+lightyear = { version = "0.29", default-features = false }
 log = "0.4"
 lru = "0.18"
 metrics = "0.24"
@@ -91,7 +91,7 @@ uuid = "1"
 wasm-bindgen = { version = "=0.2.114", default-features = false }
 wasm-bindgen-futures = "0.4"
 web-sys = "0.3"
-webpki-roots = "0.26"
+webpki-roots = "1.0"
 wgpu = "29"
 
 [profile.release]
