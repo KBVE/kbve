@@ -179,7 +179,7 @@
 		"@tauri-apps/plugin-store": "^2.4.3",
 		"@types/d3-force": "^3.0.10",
 		"@xyflow/react": "^12.11.1",
-		"babel-preset-expo": "~57.0.1",
+		"babel-preset-expo": "~57.0.6",
 		"bitecs": "^0.4.0",
 		"canvaskit-wasm": "^0.41.0",
 		"clsx": "^2.1.1",
