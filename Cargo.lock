@@ -2320,7 +2320,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.279"
+version = "1.0.280"
 dependencies = [
  "anyhow",
  "askama",
@@ -7823,7 +7823,7 @@ dependencies = [
 
 [[package]]
 name = "friendslop-server"
-version = "0.0.1"
+version = "0.0.2"
 dependencies = [
  "agones",
  "axum 0.8.9",

@@ -190,7 +190,7 @@ export function createMarkerWorld() {
 export type MarkerWorld = ReturnType<typeof createMarkerWorld>;
 
 export function markerEntities(world: MarkerWorld): readonly number[] {
-	return query(world, [Marker, Pos, Kind]);
+	return Array.from(query(world, [Marker, Pos, Kind]));
 }
 
 export interface LivePlayer {

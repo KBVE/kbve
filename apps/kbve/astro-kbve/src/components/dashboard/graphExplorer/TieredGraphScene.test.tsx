@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render } from '@testing-library/react';
 import { Canvas } from '@react-three/fiber';
 import TieredGraphScene from './TieredGraphScene';
-import type { Overview } from './useMonorepoGraph';
+import type { DirChunk, Overview } from './useMonorepoGraph';
 
 // Mock dependencies
 vi.mock('./graphGeo', () => ({
@@ -10,7 +10,9 @@ vi.mock('./graphGeo', () => ({
 		dispose: vi.fn(),
 	})),
 	buildAdjacency: vi.fn(() => new Map()),
-	githubUrl: vi.fn((path: string) => `https://github.com/test/repo/blob/main/${path}`),
+	githubUrl: vi.fn(
+		(path: string) => `https://github.com/test/repo/blob/main/${path}`,
+	),
 }));
 
 vi.mock('./GraphLabels', () => ({
@@ -24,6 +26,8 @@ const mockOverview: Overview = {
 		symbols: 100,
 		dirEdges: 1,
 		built_at_commit: 'abc123',
+		scale: 1,
+		relations: ['imports'],
 	},
 	dirs: [
 		{
@@ -47,7 +51,7 @@ const mockOverview: Overview = {
 			c: 2,
 		},
 	],
-	dirEdges: [[0, 1, 1]],
+	dirEdges: [[0, 1, 1, 0]],
 };
 
 const mockProps = {
@@ -237,8 +241,10 @@ describe('TieredGraphScene', () => {
 
 	describe('File and Symbol Nodes', () => {
 		it('enforces minimum file node radius', () => {
-			const mockChunk = {
+			const mockChunk: DirChunk = {
 				dir: 'test-dir',
+				center: [0, 0],
+				r: 10,
 				files: [
 					{
 						i: 0,
@@ -267,8 +273,10 @@ describe('TieredGraphScene', () => {
 		});
 
 		it('renders symbols 10% brighter for distinction', () => {
-			const mockChunk = {
+			const mockChunk: DirChunk = {
 				dir: 'test-dir',
+				center: [0, 0],
+				r: 10,
 				files: [
 					{
 						i: 0,
@@ -309,8 +317,10 @@ describe('TieredGraphScene', () => {
 
 	describe('Double-Tap File Navigation', () => {
 		it('shows tooltip on first tap, opens GitHub on second tap', () => {
-			const mockChunk = {
+			const mockChunk: DirChunk = {
 				dir: 'test-dir',
+				center: [0, 0],
+				r: 10,
 				files: [
 					{
 						i: 0,
@@ -331,7 +341,11 @@ describe('TieredGraphScene', () => {
 
 			render(
 				<Canvas>
-					<TieredGraphScene {...mockProps} getChunk={getChunk} onHover={onHover} />
+					<TieredGraphScene
+						{...mockProps}
+						getChunk={getChunk}
+						onHover={onHover}
+					/>
 				</Canvas>,
 			);
 
