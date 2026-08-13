@@ -161,7 +161,7 @@
 		"@phaserjs/rapier-connector": "^1.0.2",
 		"@pixiv/three-vrm": "^3.5.3",
 		"@pixiv/three-vrm-animation": "^3.5.5",
-		"@react-native-async-storage/async-storage": "2.2.0",
+		"@react-native-async-storage/async-storage": "3.1.1",
 		"@react-spring/web": "^10.0.3",
 		"@react-three/drei": "^10.7.7",
 		"@react-three/fiber": "^9.7.0",
