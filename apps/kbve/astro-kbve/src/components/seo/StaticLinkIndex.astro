@@ -1,0 +1,109 @@
+---
+/**
+ * Server-rendered link index.
+ *
+ * The hub browsers hydrate their results from an API endpoint, so none of the
+ * detail pages appear in static HTML and the whole section is reachable only
+ * via the sitemap. This renders every link at build time, grouped by initial,
+ * so crawlers have a real path in regardless of the island.
+ */
+interface Link {
+	href: string;
+	label: string;
+}
+
+interface Props {
+	links: Link[];
+	heading: string;
+	id?: string;
+}
+
+const { links, heading, id } = Astro.props;
+
+const groups = new Map<string, Link[]>();
+for (const link of links) {
+	const first = link.label.trim().charAt(0).toUpperCase();
+	const key = /[A-Z]/.test(first) ? first : '#';
+	const bucket = groups.get(key);
+	if (bucket) bucket.push(link);
+	else groups.set(key, [link]);
+}
+const sorted = [...groups.entries()].sort(([a], [b]) =>
+	a === '#' ? 1 : b === '#' ? -1 : a.localeCompare(b),
+);
+---
+
+<section class="slindex not-content" {id}>
+	<h2 class="slindex__heading">{heading}</h2>
+	<p class="slindex__count">{links.length.toLocaleString()} pages</p>
+	{
+		sorted.map(([letter, entries]) => (
+			<div class="slindex__group">
+				<h3 class="slindex__letter">{letter}</h3>
+				<ul class="slindex__list">
+					{entries.map((l) => (
+						<li>
+							<a href={l.href}>{l.label}</a>
+						</li>
+					))}
+				</ul>
+			</div>
+		))
+	}
+</section>
+
+<style>
+	.slindex {
+		padding: 2rem 1rem 3rem;
+	}
+
+	.slindex__heading {
+		margin: 0;
+		font-size: 1.125rem;
+		font-weight: 700;
+		color: var(--sl-color-white);
+	}
+
+	.slindex__count {
+		margin: 0.25rem 0 1.5rem;
+		font-size: 0.8125rem;
+		color: var(--sl-color-gray-3);
+	}
+
+	.slindex__group {
+		margin-bottom: 1.25rem;
+	}
+
+	.slindex__letter {
+		margin: 0 0 0.375rem;
+		font-size: 0.8125rem;
+		font-weight: 700;
+		color: var(--sl-color-gray-2);
+	}
+
+	.slindex__list {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem 0.75rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.slindex__list a {
+		font-size: 0.8125rem;
+		color: var(--sl-color-gray-3);
+		text-decoration: none;
+	}
+
+	.slindex__list a:hover {
+		color: var(--sl-color-white);
+		text-decoration: underline;
+	}
+
+	@media (min-width: 640px) {
+		.slindex {
+			padding-inline: 1.5rem;
+		}
+	}
+</style>
