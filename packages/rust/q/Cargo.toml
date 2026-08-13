@@ -65,7 +65,7 @@ net-transport = ["proto-shared"]
 net-session = ["net-transport", "rapier3d-sim"]
 # WebSocket `Transport` impl — host (axum) and client (tungstenite) in one
 # sideless module, so the dedicated Agones server and the Godot client share it.
-net-ws = ["net-transport", "dep:tokio", "dep:axum", "dep:tokio-tungstenite", "dep:futures-util"]
+net-ws = ["net-transport", "dep:tokio", "dep:axum", "dep:tokio-tungstenite", "dep:futures-util", "dep:rustls"]
 # Everything the dedicated server needs: authoritative sim + session + wire.
 # Unreliable datagram lane, paired with net-ws as the reliable side.
 net-udp = ["net-ws", "dep:getrandom"]
@@ -108,6 +108,10 @@ bevy = { workspace = true, optional = true, features = ["bevy_state"] }
 
 # Networking
 tokio-tungstenite = { workspace = true, optional = true, features = ["rustls-tls-webpki-roots", "connect"] }
+# `rustls-tls-webpki-roots` brings rustls in without choosing a crypto backend,
+# and rustls 0.23 panics at first use when it cannot pick one itself. Naming
+# `ring` here is what makes that choice; `WsClient::connect` installs it.
+rustls = { workspace = true, optional = true, features = ["ring"] }
 axum = { workspace = true, optional = true, features = ["ws", "json", "http1", "tokio"] }
 futures-util = { workspace = true, optional = true, features = ["sink", "std"] }
 
@@ -123,7 +127,7 @@ fastnoise-lite = "1.1.1"
 # -----------------------------------------------------------------------------
 [target."cfg(all(target_os = \"macos\", not(target_family = \"wasm\")))".dependencies]
 objc2 = { workspace = true, optional = true }
-wry = { version = "0.54.2", optional = true, features = ["transparent", "devtools"] }
+wry = { version = "0.55.1", optional = true, features = ["transparent", "devtools"] }
 raw-window-handle = { workspace = true, optional = true }
 http = { workspace = true, optional = true }
 infer = { version = "0.19.0", optional = true }
@@ -135,13 +139,13 @@ windows = { version = "0.62.2", optional = true, features = [
     "Win32_System_Threading",
     "Win32_UI_WindowsAndMessaging",
 ] }
-wry = { version = "0.54.2", optional = true, features = ["transparent", "devtools"] }
+wry = { version = "0.55.1", optional = true, features = ["transparent", "devtools"] }
 raw-window-handle = { workspace = true, optional = true }
 http = { workspace = true, optional = true }
 infer = { version = "0.19.0", optional = true }
 
 [target."cfg(all(target_os = \"linux\", not(target_family = \"wasm\")))".dependencies]
-wry = { version = "0.54.2", optional = true, features = ["transparent", "devtools"] }
+wry = { version = "0.55.1", optional = true, features = ["transparent", "devtools"] }
 raw-window-handle = { workspace = true, optional = true }
 http = { workspace = true, optional = true }
 infer = { version = "0.19.0", optional = true }

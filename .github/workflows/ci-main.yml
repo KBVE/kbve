@@ -554,7 +554,7 @@ jobs:
                     # convert it before it gets entries.
                     local engine_json version_json publish_json
                     engine_json=$(echo "$entry" | jq -c --arg app "$app" --arg sp "$shell_path" \
-                      '(.engine // {}) + {app_name:$app, shell_path:$sp, build_targets:(.engine.build_targets // []), maps:(.engine.maps // [])}')
+                      '(.engine // {}) + {app_name:$app, shell_path:$sp, build_targets:(.engine.build_targets // []), maps:(.engine.maps // []), features:(.engine.features // [])}')
                     version_json=$(jq -nc --arg s "$src" --arg t "$vtoml" --arg m "$ver" \
                       '{source:$s, toml:$t, manifest:$m}')
                     publish_json=$(jq -nc --argjson d "$deploy_itch" --arg u "$itch_user" --arg g "$itch_game" --arg c "$itch_chan" \

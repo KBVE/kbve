@@ -143,7 +143,7 @@ jobs:
                   VERSION="${{ steps.validate.outputs.version }}"
 
                   if [ -f "$VTOML" ] && grep -q '^version' "$VTOML"; then
-                    sed -i "s/^version = .*/version = \"${VERSION}\"/" "$VTOML"
+                    sh scripts/set-toml-version.sh "$VTOML" "$VERSION"
                   else
                     mkdir -p "$(dirname "$VTOML")"
                     printf 'version = "%s"\npublish = true\n' "$VERSION" > "$VTOML"
@@ -163,7 +163,7 @@ jobs:
 
                   case "$TARGET" in
                     *.toml)
-                      sed -i "s/^version = .*/version = \"${VERSION}\"/" "$TARGET"
+                      sh scripts/set-toml-version.sh "$TARGET" "$VERSION"
                       ;;
                     *.json)
                       jq --arg v "$VERSION" '.version = $v' "$TARGET" > "$TARGET.tmp" && mv "$TARGET.tmp" "$TARGET"

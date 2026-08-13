@@ -476,10 +476,10 @@ export default defineConfig({
 		},
 		build: {
 			rollupOptions: {
-				// noVNC CJS has broken top-level await; guacamole-common-js is
-				// loaded via vendored ESM at runtime. Both use @vite-ignore
-				// dynamic imports — externalize so Rollup never parses them.
-				external: ['fsevents', /^\.\.\/pkg/, '@novnc/novnc', /^@novnc\//, 'guacamole-common-js'],
+				// guacamole-common-js is loaded via vendored ESM at runtime behind
+				// an @vite-ignore dynamic import — externalize so Rollup never
+				// parses it.
+				external: ['fsevents', /^\.\.\/pkg/, 'guacamole-common-js'],
 			},
 		},
 		optimizeDeps: {
@@ -493,7 +493,6 @@ export default defineConfig({
 			],
 			exclude: [
 				'fsevents',
-				'@novnc/novnc',
 				'guacamole-common-js',
 				'expo-modules-core',
 				'@kbve/droid',
@@ -525,7 +524,7 @@ export default defineConfig({
 		},
 		ssr: {
 			noExternal: [],
-			external: ['@novnc/novnc', 'guacamole-common-js'],
+			external: ['guacamole-common-js'],
 		},
 	},
 });

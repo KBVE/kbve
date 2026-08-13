@@ -62,12 +62,12 @@ jobs:
                     exit 1
                   fi
 
-                  CURRENT=$(grep -m1 '^version' "$TGT" | sed 's/version = "\(.*\)"/\1/')
+                  CURRENT=$(sh scripts/set-toml-version.sh --get "$TGT")
                   echo "Source ($SRC): $VER"
                   echo "Target ($TGT): $CURRENT"
 
                   if [ "$CURRENT" != "$VER" ]; then
-                    sed -i "s/^version = \"$CURRENT\"/version = \"$VER\"/" "$TGT"
+                    sh scripts/set-toml-version.sh "$TGT" "$VER"
                     echo "Patched $TGT: $CURRENT → $VER"
                   else
                     echo "Already at $VER — no patch needed"

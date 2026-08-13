@@ -132,18 +132,16 @@ const GAIT_CLIPS := [
 	{"radius": 2.0, "prefix": "UAL1/Jog_", "side": {"L": "Left", "R": "Right"}},
 ]
 
-## Per-surface cel shading, keyed by the kit's material name. tint names the
-## exported colour the base map is multiplied by, body picks the shader's body
-## preset over its cloth one, lit flattens the terminator for surfaces a shadow
-## edge should never cross, and sat pulls the skin map's chroma down, because it
-## is far more saturated than the greens and browns it stands in front of and
-## reads as glowing orange next to them at full strength.
+## Per-surface cel shading; see cel_shading.gd for what the fields mean. sat
+## pulls the skin map's chroma down because it is far more saturated than the
+## greens and browns it stands in front of, and reads as glowing orange next to
+## them at full strength.
 ##
 ## toon.gdshader is not an option here: its brush strokes are positioned from
 ## VERTEX, which Godot has already skinned by the time the shader runs, so the
 ## strokes swim across the body as it animates. anime.gdshader carries no
 ## positional noise and holds still under deformation.
-const SHADE_SHADER := preload("res://assets/fx/shaders/anime.gdshader")
+const CelShading := preload("res://src/characters/cel_shading.gd")
 
 const SHADING := {
 	&"MI_Hair_1": {&"tint": &"hair_color"},
@@ -178,7 +176,7 @@ func _ready() -> void:
 		_attach(scene)
 	for child in skeleton.get_children():
 		if child is MeshInstance3D:
-			_shade(child)
+			CelShading.apply(child, SHADING, self)
 	_build_animation(rig)
 	if foot_ik:
 		_build_foot_ik()
@@ -443,34 +441,6 @@ func _find_player(n: Node) -> AnimationPlayer:
 		if f:
 			return f
 	return null
-
-
-func _shade(mi: MeshInstance3D) -> void:
-	if mi.mesh == null:
-		return
-	for i in mi.mesh.get_surface_count():
-		var src := mi.mesh.surface_get_material(i) as BaseMaterial3D
-		if src == null:
-			continue
-		var cfg: Dictionary = SHADING.get(src.resource_name, {})
-		if cfg.is_empty():
-			push_warning("character_rig: no shading for material %s" % src.resource_name)
-			continue
-		# The imported material is shared by every instance of the glb, so the cel
-		# material is set as a surface override or every character changes together.
-		var own := ShaderMaterial.new()
-		own.resource_name = src.resource_name
-		own.shader = SHADE_SHADER
-		if src.albedo_texture:
-			own.set_shader_parameter(&"albedo_tex", src.albedo_texture)
-		var tint: StringName = cfg.get(&"tint", &"")
-		var color: Color = get(tint) if tint != &"" else Color.WHITE
-		own.set_shader_parameter(&"albedo_tint", Vector3(color.r, color.g, color.b))
-		own.set_shader_parameter(&"body_shadows", cfg.get(&"body", false))
-		own.set_shader_parameter(&"albedo_sat", cfg.get(&"sat", 1.0))
-		if cfg.get(&"lit", false):
-			own.set_shader_parameter(&"shadow_threshold", 0.0)
-		mi.set_surface_override_material(i, own)
 
 
 func _find_skeleton(n: Node) -> Skeleton3D:

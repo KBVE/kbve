@@ -1,6 +1,7 @@
 extends Node3D
 
 const SHRUB := preload("res://assets/environment/props/flora/euonymus/euonymus.fbx")
+const CreatureSpawner := preload("res://src/characters/creature_spawner.gd")
 const MARKER_SCRIPT := preload("res://src/debug/debug_marker.gd")
 
 @export var player_path: NodePath
@@ -16,6 +17,7 @@ var _pitch := 0.0
 var _place_queued := false
 var _smoke_state := 0
 var _shot_frames := -1
+var _spawners: Array[Node3D] = []
 
 @onready var _player: CharacterBody3D = get_node(player_path)
 
@@ -26,6 +28,29 @@ func _ready() -> void:
 	var shot := OS.get_environment("Q_SHOT")
 	if shot != "":
 		_shot_frames = maxi(int(shot), 1)
+	var extra := OS.get_environment("Q_CREATURES")
+	if extra != "":
+		# Deferred so the terrain it is dropped onto has finished generating.
+		_spawn_creatures.call_deferred(extra)
+
+
+## Q_CREATURES=all, or a comma-separated pick of George,Leela,Mike,Stan, adds
+## another group in front of the player. The scene already carries a Creatures
+## spawner, so this is for trying a different set without editing it. These roam
+## rather than follow, so they can be watched without trailing the player around.
+func _spawn_creatures(which: String) -> void:
+	var spawner: Node3D = CreatureSpawner.new()
+	if which != "all":
+		var picked: Array[String] = []
+		for name in which.split(",", false):
+			picked.append(name)
+		spawner.mechs = picked
+	add_child(spawner)
+	spawner.global_position = _player.global_position - _player.global_basis.z * 26.0
+	var terrain := get_tree().current_scene.get_node_or_null("Terrain")
+	if terrain:
+		spawner.terrain_path = spawner.get_path_to(terrain)
+	_spawners.append(spawner)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -162,6 +187,14 @@ func _spawn_marker(pos: Vector3) -> void:
 func _screenshot() -> void:
 	var dir := ProjectSettings.globalize_path("res://screenshots")
 	DirAccess.make_dir_recursive_absolute(dir)
+	# Every spawner, not just the ones this file made, so the scene's own group is
+	# reported too.
+	for spawner in get_tree().get_nodes_in_group(CreatureSpawner.GROUP):
+		for p in spawner.spawned:
+			print("  creature ", p.rig.display_name, " at ", p.global_position,
+					" gap=%.1f" % p.global_position.distance_to(_player.global_position),
+					" state=", p.rig.debug_state(),
+					" dot=%.2f" % p.motion_dot)
 	var path := "%s/shot_%d.png" % [dir, Time.get_ticks_msec()]
 	get_viewport().get_texture().get_image().save_png(path)
 	print("screenshot: ", path)

@@ -16,7 +16,7 @@ use std::time::{Duration, Instant};
 use tokio::sync::watch;
 
 use super::dual::DualClient;
-use super::session::{ClientSession, ClientStatus};
+use super::session::{ClientSession, ClientStatus, PeerInfo};
 use super::ws::WsClient;
 use crate::rapier::sim3d::{BodyId, SimSnapshot};
 
@@ -30,6 +30,10 @@ pub struct NetClientState {
     pub error: Option<String>,
     /// False while unreliable traffic is still falling back to the socket.
     pub udp_ready: bool,
+    /// Name the host assigned. `None` until welcomed — what was requested and
+    /// what was granted are not the same thing.
+    pub name: Option<String>,
+    pub roster: Vec<PeerInfo>,
 }
 
 impl Default for NetClientState {
@@ -41,6 +45,8 @@ impl Default for NetClientState {
             snapshot: None,
             error: None,
             udp_ready: false,
+            name: None,
+            roster: Vec::new(),
         }
     }
 }
@@ -59,7 +65,14 @@ pub struct NetClientHandle {
 }
 
 impl NetClientHandle {
+    /// Joins as a guest — the host names us.
     pub fn spawn(url: String, tick_hz: f64) -> Self {
+        Self::spawn_as(url, tick_hz, String::new())
+    }
+
+    /// `name` is a request. The host may sanitize it, or ignore it entirely and
+    /// hand back a guest name; read [`NetClientState::name`] for the answer.
+    pub fn spawn_as(url: String, tick_hz: f64, name: String) -> Self {
         let stop = Arc::new(AtomicBool::new(false));
         let (intent_tx, intent_rx) = watch::channel(Intent::default());
         let (state_tx, state_rx) = watch::channel(Arc::new(NetClientState::default()));
@@ -67,7 +80,7 @@ impl NetClientHandle {
 
         let join = thread::Builder::new()
             .name("q-netclient".into())
-            .spawn(move || run(url, tick_hz, stop_t, intent_rx, state_tx))
+            .spawn(move || run(url, tick_hz, name, stop_t, intent_rx, state_tx))
             .expect("q: failed to spawn net client thread");
 
         Self {
@@ -119,6 +132,7 @@ fn server_host(url: &str) -> String {
 fn run(
     url: String,
     tick_hz: f64,
+    requested_name: String,
     stop: Arc<AtomicBool>,
     intent_rx: watch::Receiver<Intent>,
     state_tx: watch::Sender<Arc<NetClientState>>,
@@ -152,7 +166,7 @@ fn run(
         }
     };
 
-    let mut session = ClientSession::connect(transport.clone());
+    let mut session = ClientSession::connect_as(transport.clone(), &requested_name);
     let dt = Duration::from_secs_f64(1.0 / tick_hz.max(1.0));
     let mut next = Instant::now() + dt;
 
@@ -173,6 +187,8 @@ fn run(
                 .map(str::to_owned)
                 .or_else(|| dropped.then(|| "socket closed".to_owned())),
             udp_ready: transport.udp_ready(),
+            name: session.name().map(str::to_owned),
+            roster: session.roster().to_vec(),
         }));
 
         if dropped {
@@ -279,6 +295,30 @@ mod tests {
         assert!(
             state.snapshot.as_ref().unwrap().body(body).is_some(),
             "our character should be in the snapshot"
+        );
+        stop.store(true, Ordering::Relaxed);
+    }
+
+    #[test]
+    fn a_guest_handle_learns_its_assigned_name() {
+        let (stop, url) = spawn_host();
+        let client = NetClientHandle::spawn(url, 60.0);
+
+        let state = wait_for(
+            || {
+                let s = client.state();
+                (s.name.is_some() && !s.roster.is_empty()).then_some(s)
+            },
+            Duration::from_secs(10),
+        )
+        .expect("should be named and rostered");
+
+        let name = state.name.as_deref().unwrap();
+        assert!(name.starts_with("Anon-"), "{name}");
+        assert!(
+            state.roster.iter().any(|p| p.name == name),
+            "our own name should be on the roster: {:?}",
+            state.roster
         );
         stop.store(true, Ordering::Relaxed);
     }

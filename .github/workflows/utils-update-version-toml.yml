@@ -57,7 +57,7 @@ jobs:
 
                   if [ -f "$VTOML" ] && grep -q '^version' "$VTOML"; then
                     # In-place update preserves all other content (e.g. function registry)
-                    sed -i "s/^version = .*/version = \"${VERSION}\"/" "$VTOML"
+                    sh scripts/set-toml-version.sh "$VTOML" "$VERSION"
                   else
                     # Fresh file — simple two-line version.toml
                     printf 'version = "%s"\npublish = true\n' "$VERSION" > "$VTOML"
@@ -78,7 +78,7 @@ jobs:
 
                   case "$TARGET" in
                     *.toml)
-                      sed -i "s/^version = .*/version = \"${VERSION}\"/" "$TARGET"
+                      sh scripts/set-toml-version.sh "$TARGET" "$VERSION"
                       ;;
                     *.uplugin)
                       jq --arg v "$VERSION" '.VersionName = $v' "$TARGET" > "$TARGET.tmp" && mv "$TARGET.tmp" "$TARGET"

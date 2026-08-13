@@ -26,6 +26,11 @@ pub struct QNetClient3D {
     #[export]
     #[init(val = 60.0)]
     tick_hz: f64,
+    /// Name to ask for. Empty — the default — is guest mode: the server hands
+    /// back an `Anon-XXXX`. Whatever is set here is a request either way; the
+    /// server sanitizes it and [`local_name`](Self::local_name) is the answer.
+    #[export]
+    player_name: GString,
     /// Connect in `_ready`. Off by default so a scene can be opened without a
     /// server running.
     #[export]
@@ -53,12 +58,18 @@ impl INode3D for QNetClient3D {
             return;
         };
 
+        let roster_changed = self
+            .last
+            .as_ref()
+            .is_none_or(|previous| previous.roster != state.roster);
+
         let previous = self.last.as_ref().map(|s| s.status);
         if previous != Some(state.status) {
             match state.status {
                 ClientStatus::Joined => {
                     let seed = state.seed.unwrap_or(0) as i64;
-                    self.signals().joined().emit(seed);
+                    let name = GString::from(state.name.clone().unwrap_or_default().as_str());
+                    self.signals().joined().emit(seed, &name);
                 }
                 ClientStatus::Rejected => {
                     let reason = GString::from(state.error.clone().unwrap_or_default().as_str());
@@ -90,18 +101,30 @@ impl INode3D for QNetClient3D {
             }
         }
 
+        // After the body diff: a nameplate needs the node to exist first, and
+        // `body_added` is what creates it.
+        if roster_changed {
+            self.signals().roster_changed().emit();
+        }
+
         self.last = Some((*state).clone());
     }
 }
 
 #[godot_api]
 impl QNetClient3D {
-    /// Emitted once the host accepts, carrying the world seed.
+    /// Emitted once the host accepts, carrying the world seed and the name we
+    /// were actually given — which is not necessarily the one we asked for.
     #[signal]
-    fn joined(seed: i64);
+    fn joined(seed: i64, name: GString);
 
     #[signal]
     fn rejected(reason: GString);
+
+    /// Someone joined or left, or a name changed. Nameplates re-read
+    /// [`body_name`](Self::body_name) from here.
+    #[signal]
+    fn roster_changed();
 
     /// A body appeared in the server's snapshot. Bind a node to it with
     /// [`track`](Self::track) to have its transform driven.
@@ -114,9 +137,10 @@ impl QNetClient3D {
     #[func]
     fn connect_to_server(&mut self) {
         self.disconnect_from_server();
-        self.client = Some(NetClientHandle::spawn(
+        self.client = Some(NetClientHandle::spawn_as(
             self.server_url.to_string(),
             self.tick_hz,
+            self.player_name.to_string(),
         ));
     }
 
@@ -164,6 +188,48 @@ impl QNetClient3D {
             .as_ref()
             .and_then(|s| s.local_body)
             .map_or(-1, |b| b.0 as i64)
+    }
+
+    /// Name the server assigned us — empty until welcomed.
+    #[func]
+    fn local_name(&self) -> GString {
+        GString::from(
+            self.last
+                .as_ref()
+                .and_then(|s| s.name.as_deref())
+                .unwrap_or_default(),
+        )
+    }
+
+    /// Name of whoever owns `id`, or empty for a body with no player behind it
+    /// (props, and any player whose roster entry has not arrived yet).
+    #[func]
+    fn body_name(&self, id: i64) -> GString {
+        GString::from(
+            self.last
+                .as_ref()
+                .and_then(|s| s.roster.iter().find(|p| p.body == BodyId(id as u32)))
+                .map(|p| p.name.as_str())
+                .unwrap_or_default(),
+        )
+    }
+
+    /// Every player in the session, in a stable order, as `[name, ...]`.
+    #[func]
+    fn roster_names(&self) -> PackedStringArray {
+        self.last
+            .as_ref()
+            .map(|s| s.roster.iter().map(|p| GString::from(&p.name)).collect())
+            .unwrap_or_default()
+    }
+
+    /// Body ids matching [`roster_names`](Self::roster_names), index for index.
+    #[func]
+    fn roster_bodies(&self) -> PackedInt64Array {
+        self.last
+            .as_ref()
+            .map(|s| s.roster.iter().map(|p| p.body.0 as i64).collect())
+            .unwrap_or_default()
     }
 
     #[func]
