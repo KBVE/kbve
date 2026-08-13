@@ -73,6 +73,9 @@ pub mod worldgen;
 /// Gait and stance decisions.
 pub mod locomotion;
 
+/// Closed-chain inverse kinematics.
+pub mod ik;
+
 #[cfg(any(
     feature = "rapier2d-client",
     feature = "rapier2d-server",
