@@ -301,10 +301,18 @@ jobs:
                   # The runner image ships an NDK; take the newest one rather than
                   # pinning a revision that ages out of the image.
                   NDK=$(ls -d "$ANDROID_HOME"/ndk/* | sort -V | tail -1)
-                  CLANG="$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang"
+                  BIN="$NDK/toolchains/llvm/prebuilt/linux-x86_64/bin"
+                  CLANG="$BIN/aarch64-linux-android24-clang"
                   test -x "$CLANG" || { echo "::error::No aarch64 clang wrapper under $NDK"; exit 1; }
+                  # NDK r23+ ships only llvm-ar; cc-rs otherwise probes for the
+                  # long-gone aarch64-linux-android-ar and fails ring's build script.
+                  AR="$BIN/llvm-ar"
+                  test -x "$AR" || { echo "::error::No llvm-ar under $NDK"; exit 1; }
                   echo "CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER=$CLANG" >> "$GITHUB_ENV"
                   echo "CC_aarch64_linux_android=$CLANG" >> "$GITHUB_ENV"
+                  echo "CXX_aarch64_linux_android=$BIN/aarch64-linux-android24-clang++" >> "$GITHUB_ENV"
+                  echo "AR_aarch64_linux_android=$AR" >> "$GITHUB_ENV"
+                  echo "RANLIB_aarch64_linux_android=$BIN/llvm-ranlib" >> "$GITHUB_ENV"
             - name: Rust Cache
               uses: Swatinem/rust-cache@v2
               with:
