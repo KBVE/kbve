@@ -30,13 +30,20 @@ impl QTerrain {
     }
 
     fn share_ground_palette(&mut self) {
-        const KEYS: [(&str, &str); 6] = [
+        const KEYS: [(&str, &str); 13] = [
             ("color_small", "ground_color_small"),
             ("color_large", "ground_color_large"),
             ("patch_noise", "ground_patch_noise"),
             ("patch_scale", "ground_patch_scale"),
             ("soil_color", "ground_soil_color"),
             ("litter_color", "ground_litter_color"),
+            ("detail_albedo", "ground_detail_albedo"),
+            ("detail_normal", "ground_detail_normal"),
+            ("detail_orm", "ground_detail_orm"),
+            ("detail_tile_scale", "ground_detail_tile_scale"),
+            ("detail_amount", "ground_detail_amount"),
+            ("detail_tint", "ground_detail_tint"),
+            ("detail_normal_strength", "ground_detail_normal_strength"),
         ];
         let Some(ground) = self.ground_material.clone() else {
             return;
