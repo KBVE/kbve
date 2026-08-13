@@ -1,0 +1,88 @@
+extends GdUnitTestSuite
+
+const Rig := preload("res://src/characters/creature_rig.gd")
+const MECHS := ["George", "Leela", "Mike", "Stan"]
+
+
+func _clips(mech: String) -> PackedStringArray:
+	var scene: PackedScene = load("res://assets/characters/creatures/mech/models/%s.glb" % mech)
+	assert_object(scene).override_failure_message("%s.glb missing" % mech).is_not_null()
+	var inst := scene.instantiate()
+	var player := _find_player(inst)
+	assert_object(player).override_failure_message("%s has no AnimationPlayer" % mech).is_not_null()
+	var names := player.get_animation_list()
+	inst.free()
+	return names
+
+
+func _find_player(n: Node) -> AnimationPlayer:
+	if n is AnimationPlayer:
+		return n
+	for c in n.get_children():
+		var found := _find_player(c)
+		if found:
+			return found
+	return null
+
+
+func test_states_are_fully_specified() -> void:
+	for state in Rig.STATES:
+		var cfg: Dictionary = Rig.STATES[state]
+		for key in [&"clip", &"loop", &"xfade", &"reset", &"returns_to_move"]:
+			assert_bool(cfg.has(key)) \
+					.override_failure_message("'%s' missing %s" % [state, key]).is_true()
+		assert_float(cfg[&"xfade"]).is_between(0.0, 1.0)
+	assert_str(Rig.STATES[&"move"][&"clip"]).is_empty()
+
+
+## Every clip the rig names has to exist in the pack, or the state is added to the
+## machine as a null node. The pack spells it "HitRecieve", and correcting that
+## spelling in STATES is a silent break.
+func test_every_named_clip_exists_in_every_mech() -> void:
+	var wanted: Array[String] = []
+	wanted.append_array(Rig.MOVE_CLIPS)
+	for state in Rig.STATES:
+		var clip: String = Rig.STATES[state][&"clip"]
+		if clip != "":
+			wanted.append(clip)
+	for mech in MECHS:
+		var have := _clips(mech)
+		for clip in wanted:
+			assert_bool(clip in have) \
+					.override_failure_message("%s has no clip '%s'" % [mech, clip]).is_true()
+
+
+## The pack imports every clip as LOOP_NONE, cycles included, so the rig has to
+## mark them or Idle plays once and holds its last frame forever.
+func test_locomotion_clips_import_unlooped() -> void:
+	var scene: PackedScene = load("res://assets/characters/creatures/mech/models/George.glb")
+	var inst := scene.instantiate()
+	var player := _find_player(inst)
+	for clip in Rig.MOVE_CLIPS:
+		var anim: Animation = player.get_animation(clip)
+		assert_int(anim.loop_mode) \
+				.override_failure_message("'%s' now imports looped; _mark_loops may be dead code" % clip) \
+				.is_equal(Animation.LOOP_NONE)
+	inst.free()
+
+
+func test_attacks_are_one_shots_that_return() -> void:
+	for attack in Rig.ATTACKS:
+		assert_bool(Rig.STATES.has(attack)) \
+				.override_failure_message("attack '%s' has no state" % attack).is_true()
+		assert_bool(Rig.STATES[attack][&"returns_to_move"]) \
+				.override_failure_message("attack '%s' never returns" % attack).is_true()
+		assert_bool(Rig.STATES[attack][&"loop"]) \
+				.override_failure_message("attack '%s' should not loop" % attack).is_false()
+
+
+## Death is the one state that keeps the body, so a corpse does not stand back up.
+func test_death_does_not_return_to_move() -> void:
+	assert_bool(Rig.STATES[&"death"][&"returns_to_move"]).is_false()
+	assert_bool(Rig.STATES[&"death"][&"loop"]).is_false()
+
+
+func test_shading_covers_every_mech_material() -> void:
+	for mech in MECHS:
+		assert_bool(Rig.SHADING.has(StringName("%s_Texture" % mech))) \
+				.override_failure_message("no shading entry for %s_Texture" % mech).is_true()

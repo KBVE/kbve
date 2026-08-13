@@ -1,6 +1,8 @@
 extends Node3D
 
 const SHRUB := preload("res://assets/environment/props/flora/euonymus/euonymus.fbx")
+const CreatureRig := preload("res://src/characters/creature_rig.gd")
+const MECH_DIR := "res://assets/characters/creatures/mech/models/"
 const MARKER_SCRIPT := preload("res://src/debug/debug_marker.gd")
 
 @export var player_path: NodePath
@@ -26,6 +28,28 @@ func _ready() -> void:
 	var shot := OS.get_environment("Q_SHOT")
 	if shot != "":
 		_shot_frames = maxi(int(shot), 1)
+	var boss := OS.get_environment("Q_BOSS")
+	if boss != "":
+		# Deferred so the terrain it is dropped onto has finished generating.
+		_spawn_boss.call_deferred(boss)
+
+
+## Q_BOSS=George|Leela|Mike|Stan drops one mech in front of the player, for
+## looking at a creature without wiring it into the scene first.
+func _spawn_boss(which: String) -> void:
+	var path := MECH_DIR + which + ".glb"
+	if not ResourceLoader.exists(path):
+		push_warning("debug_tools: no mech '%s'" % which)
+		return
+	var rig: Node3D = CreatureRig.new()
+	rig.body = load(path)
+	add_child(rig)
+	var terrain := get_tree().current_scene.get_node_or_null("Terrain")
+	if terrain:
+		rig.terrain_path = rig.get_path_to(terrain)
+	rig.place(_player.global_position - _player.global_basis.z * 10.0)
+	rig.look_at(_player.global_position)
+	print("boss: ", which, " at ", rig.global_position, " anim=", rig.debug_state())
 
 
 func _unhandled_input(event: InputEvent) -> void:
