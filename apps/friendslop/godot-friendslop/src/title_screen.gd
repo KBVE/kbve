@@ -104,6 +104,39 @@ func _ready() -> void:
 	_menu.settings_requested.connect(_open_settings)
 	_menu.quit_requested.connect(_quit)
 	_menu.cancel_requested.connect(_cancel)
+	_menu.locale_requested.connect(_switch_locale)
+	_ask_language_once()
+
+
+## First launch only. The boot locale is a guess made from the device, and this
+## is where the guess becomes an answer -- after which the saved answer stands
+## and the title's own row is how it changes.
+func _ask_language_once() -> void:
+	if I18n.has_choice() or I18n.locales().size() < 2:
+		return
+	var modal := LanguageModal.new()
+	modal.chosen.connect(_on_language_chosen)
+	add_child(modal)
+
+
+func _on_language_chosen(code: String) -> void:
+	# Reloaded rather than closed: the title behind was built in the guessed
+	# language, and every label on it was set once.
+	if code == I18n.locale_code():
+		get_tree().reload_current_scene()
+		return
+	_switch_locale(code)
+
+
+## Reloaded rather than relabelled: the menu, the settings book and the HUD all
+## build their strings once, in whatever language was current at the time. The
+## title is cheap to rebuild and is the only screen offering this, so nothing
+## in progress is lost by starting it again.
+func _switch_locale(code: String) -> void:
+	if code == I18n.locale_code():
+		return
+	I18n.set_locale(code, true)
+	get_tree().reload_current_scene()
 
 
 ## Signs in before the scene swaps so the session scene finds an identity
@@ -112,13 +145,21 @@ func _play_as_guest() -> void:
 	var auth := get_node_or_null(^"/root/Auth")
 	if auth:
 		auth.sign_in_as_guest()
-	get_tree().change_scene_to_file(TitleMenu.ONLINE_SCENE)
+	_enter(TitleMenu.ONLINE_SCENE)
 
 
 ## The offline world. Nothing to sign in to — it is this machine's own sim, and
 ## the terrain is whatever this machine generated.
 func _play_solo() -> void:
-	get_tree().change_scene_to_file(TitleMenu.WORLD_SCENE)
+	_enter(TitleMenu.WORLD_SCENE)
+
+
+## Leaving the title is where the other languages' fonts stop being worth their
+## memory: the picker was the only thing that needed them all, and the world has
+## no picker.
+func _enter(scene: String) -> void:
+	I18n.use_locale_font()
+	get_tree().change_scene_to_file(scene)
 
 
 ## Built on first use: the book is a SubViewport with its own 3D world, and
@@ -130,6 +171,7 @@ func _open_settings() -> void:
 		_settings.set_script(PAUSE_MENU)
 		_settings.toggles_on_cancel = false
 		_settings.captures_mouse_on_close = false
+		_settings.shows_session_actions = false
 		add_child(_settings)
 		# The menu builds its book during _ready; opening in the same frame
 		# would race the SubViewport's first fit.

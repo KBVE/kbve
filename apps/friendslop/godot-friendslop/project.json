@@ -119,6 +119,21 @@
 				"parallel": false
 			}
 		},
+		"i18n:sync": {
+			"executor": "nx:run-commands",
+			"inputs": ["{workspaceRoot}/packages/data/i18n/locales/**/*.json"],
+			"outputs": ["{projectRoot}/assets/i18n"],
+			"options": {
+				"cwd": "{workspaceRoot}",
+				"commands": [
+					"rm -rf apps/friendslop/godot-friendslop/assets/i18n",
+					"mkdir -p apps/friendslop/godot-friendslop/assets/i18n",
+					"cp -R packages/data/i18n/locales/. apps/friendslop/godot-friendslop/assets/i18n/"
+				],
+				"parallel": false
+			},
+			"cache": true
+		},
 		"bake:turf": {
 			"executor": "nx:run-commands",
 			"options": {

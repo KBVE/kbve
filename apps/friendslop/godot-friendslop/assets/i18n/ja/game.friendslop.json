@@ -1,0 +1,54 @@
+{
+	"title": {
+		"name": "Friendslop",
+		"play_guest": "ゲストでプレイ",
+		"singleplayer": "シングルプレイ",
+		"sign_in": "サインイン",
+		"sign_in_hint": "サインインは準備中です。ゲストの名前はサーバーが決めます。",
+		"guest_status": "ゲストとしてプレイ中"
+	},
+	"pause": {
+		"log_off": "ログオフ"
+	},
+	"settings": {
+		"graphics": "グラフィック",
+		"gameplay": "ゲームプレイ",
+		"codex": "コーデックス",
+		"language": "言語",
+		"preset": "プリセット",
+		"quality": "画質",
+		"ground_detail": "地面のディテール",
+		"resolution": "解像度",
+		"shadows": "影",
+		"grass": "草",
+		"post_fx": "ポストFX",
+		"camera": "カメラ",
+		"crosshair": "照準",
+		"grass_density": "{{count}}/m2",
+		"preset_name": {
+			"potato": "最低",
+			"low": "低",
+			"medium": "中",
+			"high": "高",
+			"epic": "最高",
+			"custom": "カスタム"
+		},
+		"detail_name": {
+			"off": "オフ",
+			"low": "低",
+			"high": "高"
+		},
+		"camera_name": {
+			"first_person": "一人称",
+			"third_person": "三人称",
+			"over_shoulder": "肩越し"
+		}
+	},
+	"hud": {
+		"connecting": "{{url}} に接続中…",
+		"joined": "{{name}} として参加しました",
+		"disconnected": "切断されました: {{reason}}  (Escで退出)",
+		"roster_you": "{{name}}（あなた）",
+		"roster": "{{count}}人 — {{names}}"
+	}
+}

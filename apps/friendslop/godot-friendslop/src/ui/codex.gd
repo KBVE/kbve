@@ -186,7 +186,7 @@ func _build_side() -> void:
 	side.add_child(_info)
 
 	var back := Button.new()
-	back.text = "Back"
+	back.text = I18n.t("action.back")
 	back.pressed.connect(func() -> void:
 		if on_back.is_valid():
 			on_back.call())

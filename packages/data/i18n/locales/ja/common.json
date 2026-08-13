@@ -1,0 +1,13 @@
+{
+	"action": {
+		"play": "プレイ",
+		"back": "戻る",
+		"quit": "終了",
+		"settings": "設定",
+		"cancel": "キャンセル"
+	},
+	"toggle": {
+		"off": "オフ",
+		"on": "オン"
+	}
+}

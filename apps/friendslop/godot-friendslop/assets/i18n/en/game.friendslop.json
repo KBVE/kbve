@@ -1,0 +1,54 @@
+{
+	"title": {
+		"name": "Friendslop",
+		"play_guest": "Play as Guest",
+		"singleplayer": "Singleplayer",
+		"sign_in": "Sign In",
+		"sign_in_hint": "Sign in is coming — guests are named by the server.",
+		"guest_status": "Playing as a guest"
+	},
+	"pause": {
+		"log_off": "Log Off"
+	},
+	"settings": {
+		"graphics": "Graphics",
+		"gameplay": "Gameplay",
+		"codex": "Codex",
+		"language": "Language",
+		"preset": "Preset",
+		"quality": "Quality",
+		"ground_detail": "Ground Detail",
+		"resolution": "Resolution",
+		"shadows": "Shadows",
+		"grass": "Grass",
+		"post_fx": "Post FX",
+		"camera": "Camera",
+		"crosshair": "Crosshair",
+		"grass_density": "{{count}}/m2",
+		"preset_name": {
+			"potato": "Potato",
+			"low": "Low",
+			"medium": "Medium",
+			"high": "High",
+			"epic": "Epic",
+			"custom": "Custom"
+		},
+		"detail_name": {
+			"off": "Off",
+			"low": "Low",
+			"high": "High"
+		},
+		"camera_name": {
+			"first_person": "First Person",
+			"third_person": "Third Person",
+			"over_shoulder": "Over Shoulder"
+		}
+	},
+	"hud": {
+		"connecting": "Connecting to {{url}}…",
+		"joined": "Joined as {{name}}",
+		"disconnected": "Disconnected: {{reason}}  (Esc to leave)",
+		"roster_you": "{{name}} (you)",
+		"roster": "{{count}} here — {{names}}"
+	}
+}
