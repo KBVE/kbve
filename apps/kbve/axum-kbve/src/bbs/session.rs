@@ -9,6 +9,7 @@ use crate::db::{FeedQuery, SpaceRow, get_forum_service, get_profile_service, get
 
 use super::chat::{self, SendError};
 use super::claim::{CLAIM_TTL, claims};
+use super::games;
 use super::presence;
 use super::render::{Ink, Screen, Term, truncate, wrap_lines};
 use super::telnet::{ReadError, TelnetConn};
@@ -93,6 +94,7 @@ impl Session {
             match self.key().await? {
                 'M' => self.boards().await?,
                 'C' => self.chat_room().await?,
+                'G' => self.games().await?,
                 'W' => self.who().await?,
                 'A' => self.account().await?,
                 'L' => {
@@ -132,6 +134,7 @@ impl Session {
         if chat::hub().is_some() {
             self.screen.item('C', "Chat");
         }
+        self.screen.item('G', "Games");
         self.screen.item('W', "Who's online");
         self.screen.item('A', "Account");
         if self.user.is_some() {
@@ -397,6 +400,41 @@ impl Session {
                 .prompt("[esc] back ");
         }
         self.flush().await
+    }
+
+    /// `[G] Games` — pick a title, then drive it one keypress per redraw.
+    async fn games(&mut self) -> Flow {
+        loop {
+            self.screen.clear().banner("GAMES");
+            self.screen.nl();
+            for entry in games::CATALOG {
+                self.screen.item(entry.key, entry.label);
+            }
+            self.screen.item('Q', "Back");
+            self.screen.prompt("game> ");
+            self.flush().await?;
+
+            let key = self.key().await?;
+            if key == 'Q' {
+                return Ok(());
+            }
+            if let Some(mut game) = games::launch(key) {
+                self.play(game.as_mut()).await?;
+            }
+        }
+    }
+
+    async fn play(&mut self, game: &mut (dyn games::Game + Send)) -> Flow {
+        loop {
+            let title = game.title().to_string();
+            self.screen.clear().banner(&title);
+            game.draw(&mut self.screen);
+            self.flush().await?;
+
+            if game.on_key(self.key().await?) == games::Flow::Exit {
+                return Ok(());
+            }
+        }
     }
 
     async fn who(&mut self) -> Flow {
