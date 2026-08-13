@@ -1,0 +1,53 @@
+apiVersion: gateway.networking.k8s.io/v1
+kind: HTTPRoute
+metadata:
+    name: friendslop-game-route
+    namespace: friendslop
+    labels:
+        app.kubernetes.io/part-of: friendslop
+spec:
+    # parentRefs/backendRefs carry the API-server default group/kind (+ backendRef
+    # weight) EXPLICITLY — the Gateway API defaults them on the live object, so
+    # omitting them makes ArgoCD diff git-vs-live forever (perpetual OutOfSync).
+    # Mirrors the synced arpg-game-route manifest.
+    parentRefs:
+        - group: gateway.networking.k8s.io
+          kind: Gateway
+          name: kbve-gateway
+          namespace: kbve
+    # Served by the gateway's existing `*.kbve.com` listener — a dedicated
+    # listener for this host would duplicate a SAN the wildcard already covers,
+    # which Cilium resolves to the wrong filter chain and 404s the route.
+    hostnames:
+        - friendslop.kbve.com
+    rules:
+        # Reliable lane only. The datagram lane is UDP and cannot traverse an L7
+        # route at all — it answers on the friendslop-game-udp LoadBalancer,
+        # which the server advertises to clients via FS_UDP_ADVERTISE_HOST.
+        - matches:
+              - path:
+                    type: PathPrefix
+                    value: /ws
+          timeouts:
+              # Long-lived WebSocket — override Envoy's ~15s default backend
+              # timeout so wss connections survive (matches the arpg /ws rule).
+              backendRequest: 3600s
+          backendRefs:
+              - group: ''
+                kind: Service
+                name: friendslop-game
+                port: 7980
+                weight: 1
+        # There is no web client for friendslop (the Godot export ships native),
+        # so the only other thing worth exposing is the health endpoint the
+        # probes already hit — useful for checking a fleet from outside.
+        - matches:
+              - path:
+                    type: Exact
+                    value: /healthz
+          backendRefs:
+              - group: ''
+                kind: Service
+                name: friendslop-game
+                port: 7980
+                weight: 1
