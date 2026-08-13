@@ -127,7 +127,7 @@ fastnoise-lite = "1.1.1"
 # -----------------------------------------------------------------------------
 [target."cfg(all(target_os = \"macos\", not(target_family = \"wasm\")))".dependencies]
 objc2 = { workspace = true, optional = true }
-wry = { version = "0.54.2", optional = true, features = ["transparent", "devtools"] }
+wry = { version = "0.55.1", optional = true, features = ["transparent", "devtools"] }
 raw-window-handle = { workspace = true, optional = true }
 http = { workspace = true, optional = true }
 infer = { version = "0.19.0", optional = true }
@@ -139,13 +139,13 @@ windows = { version = "0.62.2", optional = true, features = [
     "Win32_System_Threading",
     "Win32_UI_WindowsAndMessaging",
 ] }
-wry = { version = "0.54.2", optional = true, features = ["transparent", "devtools"] }
+wry = { version = "0.55.1", optional = true, features = ["transparent", "devtools"] }
 raw-window-handle = { workspace = true, optional = true }
 http = { workspace = true, optional = true }
 infer = { version = "0.19.0", optional = true }
 
 [target."cfg(all(target_os = \"linux\", not(target_family = \"wasm\")))".dependencies]
-wry = { version = "0.54.2", optional = true, features = ["transparent", "devtools"] }
+wry = { version = "0.55.1", optional = true, features = ["transparent", "devtools"] }
 raw-window-handle = { workspace = true, optional = true }
 http = { workspace = true, optional = true }
 infer = { version = "0.19.0", optional = true }
