@@ -193,7 +193,8 @@ func _screenshot() -> void:
 		for p in spawner.spawned:
 			print("  creature ", p.rig.display_name, " at ", p.global_position,
 					" gap=%.1f" % p.global_position.distance_to(_player.global_position),
-					" state=", p.rig.debug_state())
+					" state=", p.rig.debug_state(),
+					" dot=%.2f" % p.motion_dot)
 	var path := "%s/shot_%d.png" % [dir, Time.get_ticks_msec()]
 	get_viewport().get_texture().get_image().save_png(path)
 	print("screenshot: ", path)

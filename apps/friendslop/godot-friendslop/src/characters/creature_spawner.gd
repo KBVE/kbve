@@ -20,6 +20,9 @@ const MECH_DIR := "res://assets/characters/creatures/mech/models/"
 @export var spacing := 13.0
 @export var roam_radius := 20.0
 @export var speed := 2.6
+## Rank distance behind the leader, matched to the patrol's own default.
+@export var formation_distance := 7.0
+@export var formation_columns := 2
 ## Seconds between one-shot actions. Zero leaves them walking without attacking.
 @export var action_interval := 7.0
 
@@ -47,6 +50,18 @@ func _spawn() -> void:
 			push_warning("creature_spawner: no creature '%s'" % name)
 			continue
 		var at := global_position + global_transform.basis.x * (spacing * i - span * 0.5)
+		# Dropped straight onto its formation slot when there is a leader, so the
+		# group does not open by sprinting past whoever it is meant to escort.
+		if leader is Node3D:
+			var lead := (leader as Node3D).global_transform
+			var back := Vector3(lead.basis.z.x, 0.0, lead.basis.z.z).normalized()
+			var side := Vector3(lead.basis.x.x, 0.0, lead.basis.x.z).normalized()
+			var columns := maxi(formation_columns, 1)
+			var row := i / columns
+			var col := i % columns
+			var in_row := mini(columns, mechs.size() - row * columns)
+			at = lead.origin + back * (formation_distance + row * 9.0) \
+					+ side * (spacing * (col - (in_row - 1) * 0.5))
 
 		var patrol: Node3D = CreaturePatrol.new()
 		patrol.roam_radius = roam_radius
@@ -54,6 +69,9 @@ func _spawn() -> void:
 		patrol.action_interval = action_interval
 		patrol.formation_slot = i
 		patrol.formation_count = mechs.size()
+		patrol.formation_distance = formation_distance
+		patrol.formation_spacing = spacing
+		patrol.formation_columns = formation_columns
 		add_child(patrol)
 		if leader:
 			patrol.leader_path = patrol.get_path_to(leader)
