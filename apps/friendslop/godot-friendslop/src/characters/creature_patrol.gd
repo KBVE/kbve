@@ -1,43 +1,50 @@
-extends Node3D
+extends CharacterBody3D
 
 ## Steers a creature, either following a leader or roaming a home area.
 ##
-## Allies follow: given a leader, each creature holds a slot in formation behind
-## it and closes the gap at a speed set by how far behind it is, which is what
-## makes it walk when it is nearly there and run when it has fallen behind. With
-## no leader it roams its spawn area instead, which is what a wild creature or a
-## staged encounter wants.
+## Allies follow: given a leader, each creature works toward a slot in formation
+## and closes the gap at a speed set by how far behind it is, which is what makes
+## it walk when it is nearly there and run when it has fallen behind. Once it is
+## near the leader and the leader has stopped, it stops too -- the exact slot is a
+## destination to head for, not a spot it has to stand on. With no leader it roams
+## its spawn area instead, which is what a wild creature or a staged encounter
+## wants.
 ##
-## Kinematic on purpose: the position is written directly and settled onto the
-## terrain height each frame, rather than going through a body and move_and_slide.
-## A creature this size wants a collider shaped to it and a real controller, and
-## neither of those is decided yet -- so this stays a driver for looking at
-## locomotion, and gets replaced rather than extended when the combat is built.
+## A body rather than a bare Node3D, because the world's collision is Godot's:
+## QTerrain builds a HeightMapShape3D under a StaticBody3D, road.rs builds the
+## bridge and its ramps, and the stones carry their own. Writing the position
+## directly and sampling terrain height ignored every one of those, which is what
+## walked a mech through the bridge. move_and_slide uses the same colliders the
+## player already does.
+
+const CreatureRig := preload("res://src/characters/creature_rig.gd")
 
 @export var rig: Node3D
-@export var terrain_path: NodePath
 ## Followed when set. Empty means roam instead.
 @export var leader_path: NodePath
+
 ## Which slot in the formation this one holds, spread sideways behind the leader so
 ## allies do not queue up in single file.
 @export var formation_slot := 0
 @export var formation_count := 1
 @export var formation_distance := 7.0
 ## Sideways gap between slots. Has to be at least the separation radius, or the
-## formation asks them to stand closer than the push-apart allows and they jostle
-## in place forever instead of settling.
+## formation asks them to stand closer than the push-apart allows.
 @export var formation_spacing := 9.0
 ## Slots per rank. Everything abreast makes a line as wide as the count times the
 ## spacing, which at four mechs is wider than a road and stops reading as a group,
 ## so they stack into ranks instead.
 @export var formation_columns := 2
 @export var rank_depth := 9.0
-## Near enough to its slot to just stand there, rather than shuffling every time
-## the leader breathes. Generous on purpose: an ally that insists on an exact spot
-## fights the push-apart from its neighbours and neither ever settles.
+
+## Near enough to the leader to stop caring about the slot. Inside this, a creature
+## holds position whenever the leader is holding position; it only sets off again
+## when the leader does, or when it has drifted outside.
+@export var hold_radius := 14.0
+## Speed below which the leader counts as standing still.
+@export var leader_idle_speed := 0.4
+## Fallback for when the leader is moving but the slot is close enough anyway.
 @export var follow_deadzone := 3.5
-## Starts walking again only past follow_deadzone times this. Without the gap it
-## flickers between standing and walking on the boundary.
 @export var follow_release := 1.8
 ## Gap at which it is running flat out. Between the deadzone and this the speed
 ## ramps, so the gait follows the gap rather than snapping between clips.
@@ -47,6 +54,7 @@ extends Node3D
 ## above the player's run settles the whole formation far further back than
 ## formation_distance: at 6.0 against a 5.0 player that equilibrium is 10.5 units.
 @export var max_speed := 7.5
+
 ## Waypoints are drawn inside this radius of wherever the creature started.
 @export var roam_radius := 22.0
 @export var arrive_distance := 2.0
@@ -54,9 +62,8 @@ extends Node3D
 ## walk-versus-run choice.
 @export var speed := 2.6
 @export var turn_rate := 2.5
-## Creatures push apart inside this radius. Nothing here collides -- the driver is
-## kinematic -- so without it two of them walk into the same patch of ground and
-## the meshes interpenetrate, which is the first thing the eye catches.
+## Creatures steer apart inside this radius. The bodies cannot overlap now, so this
+## is only to stop them shouldering each other along a shared heading.
 @export var separation := 9.0
 @export var separation_strength := 1.6
 ## Held still on arrival before picking somewhere new, so it does not read as a
@@ -65,40 +72,76 @@ extends Node3D
 ## Rough seconds between one-shots while moving. Zero to leave them alone.
 @export var action_interval := 7.0
 
-var _terrain: Node
+## Zero derives both from the rig's mesh. The radius comes off the creature's
+## shallowest horizontal extent rather than its widest: a mech's arm span is over
+## seven units across while its legs are barely two, and a capsule as wide as the
+## arms cannot cross its own bridge.
+@export var collider_radius := 0.0
+@export var collider_height := 0.0
+@export var collider_radius_scale := 0.4
+
+const GROUP := &"creature_patrol"
+
+var motion_dot := 1.0
+
 var _leader: Node3D
 var _home := Vector3.ZERO
 var _target := Vector3.ZERO
 var _pause := 0.0
 var _action_t := 0.0
 var _prepared := false
-var _idling := false
-## Facing against actual displacement, reported by the debug screenshot. Negative
-## means the body travelled backwards under an animation playing forwards, which
-## is the signature of something moving the body that the rig was not told about.
-var motion_dot := 1.0
+var _holding := false
 var _last_pos := Vector3.ZERO
-
-
-const GROUP := &"creature_patrol"
+var _leader_last := Vector3.ZERO
+var _leader_speed := 0.0
+var _gravity := -9.8
 
 
 func _ready() -> void:
 	add_to_group(GROUP)
 
 
-## Resolved on the first step rather than in _ready, because add_child is what
-## runs _ready and a spawner naturally sets the paths and the position after that.
+## Resolved on the first step rather than in _ready, because add_child is what runs
+## _ready and a spawner naturally sets the paths and the position after that.
 ## Reading them in _ready silently left every creature leaderless and roaming.
 func _prepare() -> void:
 	_prepared = true
 	_home = global_position
+	_last_pos = global_position
 	_leader = get_node_or_null(leader_path) as Node3D
-	_terrain = get_node_or_null(terrain_path)
-	if _terrain == null:
-		_terrain = get_tree().current_scene.get_node_or_null("Terrain")
+	if _leader:
+		_leader_last = _leader.global_position
+	_gravity = get_gravity().y if has_method("get_gravity") else -9.8
 	_action_t = randf_range(action_interval * 0.4, action_interval)
+	_build_collider()
 	_pick_target()
+
+
+func _build_collider() -> void:
+	for child in get_children():
+		if child is CollisionShape3D:
+			return
+	var radius := collider_radius
+	var height := collider_height
+	if (radius <= 0.0 or height <= 0.0) and rig and rig.has_method("mesh_extents"):
+		var box: AABB = rig.mesh_extents()
+		if height <= 0.0:
+			height = box.size.y
+		if radius <= 0.0:
+			radius = minf(box.size.x, box.size.z) * collider_radius_scale
+	radius = maxf(radius, 0.2)
+	height = maxf(height, radius * 2.0 + 0.1)
+
+	var capsule := CapsuleShape3D.new()
+	capsule.radius = radius
+	capsule.height = height
+	var shape := CollisionShape3D.new()
+	shape.shape = capsule
+	shape.position = Vector3(0.0, height * 0.5, 0.0)
+	add_child(shape)
+	if OS.get_environment("Q_MOVE_DEBUG") != "":
+		print("[creature] %s capsule radius=%.2f height=%.2f" % [
+				rig.display_name if rig else "?", radius, height])
 
 
 func _physics_process(delta: float) -> void:
@@ -106,42 +149,21 @@ func _physics_process(delta: float) -> void:
 		return
 	if not _prepared:
 		_prepare()
-	var was := _last_pos
-	_last_pos = global_position
 	if rig.has_method("is_dead") and rig.is_dead():
+		velocity = Vector3(0.0, velocity.y, 0.0)
+		_step(delta)
 		return
 
 	if _leader:
+		var moved := _leader.global_position - _leader_last
+		moved.y = 0.0
+		_leader_speed = moved.length() / maxf(delta, 0.0001)
+		_leader_last = _leader.global_position
 		_follow(delta)
-		return
+	else:
+		_roam(delta)
 
-	if _pause > 0.0:
-		_pause -= delta
-		_commit(delta)
-		return
-
-	var to := _target - global_position
-	to.y = 0.0
-	if to.length() <= arrive_distance:
-		_pause = randf_range(pause_range.x, pause_range.y)
-		_pick_target()
-		return
-
-	var dir := to.normalized()
-	# Turned toward the heading rather than snapped onto it, so a new waypoint
-	# does not spin a thirty-tonne machine on the spot.
-	_face(dir, delta)
-
-	# Travelled along where it is actually facing, not where it wants to go, so
-	# the feet and the motion agree while it is still coming round.
-	var facing := -global_transform.basis.z
-	facing.y = 0.0
-	var travel := speed * maxf(facing.normalized().dot(dir), 0.0)
-	global_position += facing.normalized() * travel * delta
-	global_position += _separation() * separation_strength * delta
-	_commit(delta)
-
-	if action_interval > 0.0:
+	if action_interval > 0.0 and velocity.length() > 0.5:
 		_action_t -= delta
 		if _action_t <= 0.0:
 			_action_t = randf_range(action_interval * 0.6, action_interval * 1.4)
@@ -149,42 +171,92 @@ func _physics_process(delta: float) -> void:
 			rig.play_action(attacks[randi() % attacks.size()])
 
 
-## Holds a slot behind the leader, at a speed set by the gap left to close, and
-## stands about once it is near enough that the exact spot stops mattering.
-##
-## Judged against the slot rather than against the leader, so every ally is working
-## toward the same thing. Mixing the two -- some parking where they stand, others
-## still driving for a slot -- leaves the parked ones being shoved off station by
-## the push-apart and the moving ones chasing through them, and nothing settles.
+## Works toward its slot, but treats being near the leader as good enough whenever
+## the leader is not going anywhere. Judging it on the leader's motion rather than
+## on the slot alone is what stops an ally jockeying for an exact spot behind
+## someone who is standing still.
 func _follow(delta: float) -> void:
 	var slot := _slot()
-	var to := slot - global_position
-	to.y = 0.0
-	var gap := to.length()
+	var to_slot := slot - global_position
+	to_slot.y = 0.0
+	var gap := to_slot.length()
 
-	if _idling:
-		_idling = gap <= follow_deadzone * follow_release
+	var to_leader := _leader.global_position - global_position
+	to_leader.y = 0.0
+	var lead_gap := to_leader.length()
+
+	var settled := _leader_speed <= leader_idle_speed and lead_gap <= hold_radius
+	if _holding:
+		_holding = settled and lead_gap <= hold_radius * follow_release
 	else:
-		_idling = gap <= follow_deadzone
-	if _idling:
-		# Turned to match the leader while stood still, so a waiting ally faces the
-		# same way as whoever it is following.
+		_holding = settled and gap <= maxf(follow_deadzone, hold_radius * 0.5)
+	if _holding or gap <= follow_deadzone:
 		_face(-_leader.global_transform.basis.z, delta)
-		global_position += _separation() * separation_strength * delta
-		_commit(delta)
+		_drive(_separation() * separation_strength, delta)
 		return
 
-	var dir := to / gap
+	var dir := to_slot / gap
 	_face(dir, delta)
-	var ramp := clampf((gap - follow_deadzone) / maxf(sprint_distance - follow_deadzone, 0.01), 0.0, 1.0)
-	var travel := lerpf(speed, max_speed, ramp)
+	var ramp := clampf((gap - follow_deadzone) / maxf(sprint_distance - follow_deadzone, 0.01),
+			0.0, 1.0)
+	var wanted := lerpf(speed, max_speed, ramp)
+	# Driven along where it is actually facing, not where it wants to go, so the
+	# feet and the motion agree while it is still coming round.
+	var facing := _flat_facing()
+	_drive(facing * wanted * maxf(facing.dot(dir), 0.0)
+			+ _separation() * separation_strength, delta)
+
+
+func _roam(delta: float) -> void:
+	if _pause > 0.0:
+		_pause -= delta
+		_drive(Vector3.ZERO, delta)
+		return
+
+	var to := _target - global_position
+	to.y = 0.0
+	if to.length() <= arrive_distance:
+		_pause = randf_range(pause_range.x, pause_range.y)
+		_pick_target()
+		_drive(Vector3.ZERO, delta)
+		return
+
+	var dir := to.normalized()
+	_face(dir, delta)
+	var facing := _flat_facing()
+	_drive(facing * speed * maxf(facing.dot(dir), 0.0)
+			+ _separation() * separation_strength, delta)
+
+
+## Applies a horizontal wish, keeps gravity on the vertical, and slides against the
+## world. What the rig is told comes from the displacement that survived the slide,
+## so a creature held up by the bridge railing stands rather than running on the
+## spot against it.
+func _drive(wish: Vector3, delta: float) -> void:
+	velocity.x = wish.x
+	velocity.z = wish.z
+	if is_on_floor():
+		velocity.y = 0.0
+	else:
+		velocity.y += _gravity * delta
+	_step(delta)
+
+
+func _step(delta: float) -> void:
+	move_and_slide()
+	var moved := global_position - _last_pos
+	_last_pos = global_position
+	moved.y = 0.0
+	var travelled := moved.length()
+	rig.set_speed(travelled / maxf(delta, 0.0001))
+	if travelled > 0.0005:
+		motion_dot = _flat_facing().dot(moved.normalized())
+
+
+func _flat_facing() -> Vector3:
 	var facing := -global_transform.basis.z
 	facing.y = 0.0
-	facing = facing.normalized()
-	travel *= maxf(facing.dot(dir), 0.0)
-	global_position += facing * travel * delta
-	global_position += _separation() * separation_strength * delta
-	_commit(delta)
+	return facing.normalized()
 
 
 ## Ranks behind the leader, laid out on the leader's own axes so the formation
@@ -225,25 +297,6 @@ func _separation() -> Vector3:
 			continue
 		push += away / distance * (1.0 - distance / separation)
 	return push
-
-
-## Settles onto the ground and tells the rig how fast the body actually moved.
-##
-## Derived from the displacement rather than from the intended travel, because the
-## separation push moves the body too. Feeding intent instead let a creature that
-## was only being shoved aside play a standing idle while it slid, which is what
-## reads as the feet not belonging to the motion.
-func _commit(delta: float) -> void:
-	if _terrain and _terrain.has_method("height_at"):
-		global_position.y = _terrain.height_at(global_position.x, global_position.z)
-	var moved := global_position - _last_pos
-	moved.y = 0.0
-	var travelled := moved.length()
-	rig.set_speed(travelled / maxf(delta, 0.0001))
-	if travelled > 0.0005:
-		var facing := -global_transform.basis.z
-		facing.y = 0.0
-		motion_dot = facing.normalized().dot(moved.normalized())
 
 
 func _pick_target() -> void:

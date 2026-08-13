@@ -75,9 +75,11 @@ func _spawn() -> void:
 		add_child(patrol)
 		if leader:
 			patrol.leader_path = patrol.get_path_to(leader)
+		# Physics owns the vertical now, so they are dropped just above the ground and
+		# the first steps settle them, rather than planted inside the heightfield.
+		if terrain and terrain.has_method("height_at"):
+			at.y = terrain.height_at(at.x, at.z) + 1.0
 		patrol.global_position = at
-		if terrain:
-			patrol.terrain_path = patrol.get_path_to(terrain)
 
 		# Parented to the patrol node so one transform carries the body and the
 		# plate over its head together.
@@ -86,7 +88,5 @@ func _spawn() -> void:
 		rig.display_name = name
 		rig.snap_to_terrain = false
 		patrol.add_child(rig)
-		if terrain:
-			rig.terrain_path = rig.get_path_to(terrain)
 		patrol.rig = rig
 		spawned.append(patrol)

@@ -89,7 +89,7 @@ spec:
                       - name: BBS_CLAIM_URL
                         value: https://kbve.com/bbs/
                       - name: BBS_CHAT_ENABLED
-                        value: 'false'
+                        value: 'true'
                       - name: BBS_IRC_HOST
                         value: ergo-irc-service.irc.svc.cluster.local
                       - name: BBS_IRC_PORT
