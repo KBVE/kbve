@@ -1,0 +1,56 @@
+---
+title: 'Lizardfish'
+template: splash
+sidebar:
+    label: 'Lizardfish'
+    hidden: true
+description: |
+    A slender river fish that drifts in loose schools through shallow current, catchable with a line from the bank.
+ref: 'lizard-fish'
+id: '01KZWMGYHVMYGZBXJ4RAWY6R4F'
+name: 'Lizardfish'
+type_flags: 1
+rarity: 'common'
+personality: 'passive'
+rank: 'minion'
+family: 'beast'
+element: 'nature'
+level: 1
+stats:
+    hp: 2
+    max_hp: 2
+    attack: 0
+    defense: 0
+    speed: 4
+    armor: 0
+behavior:
+    movement_type: 'random_wander'
+    first_strike: false
+spatial:
+    walk_speed: 1.2
+    can_swim: true
+    can_fly: false
+interaction:
+    is_interactable: true
+    is_targetable: true
+    is_attackable: true
+spawn_rules:
+    - zone: 'river'
+      spawn_weight: 1.0
+lore: |
+    Lizardfish hold the slow water behind gravel bars, facing upstream in loose ranks so the current
+    does the swimming for them. The long jaw and mottled back read as reptilian to anyone who has only
+    seen one hauled up on a line, which is where the name comes from and why river folk insist it is
+    perfectly good eating despite the look of it. A school breaks apart at a shadow on the water and
+    reassembles a few lengths downstream as if nothing happened.
+credits: |
+    KBVE friendslop river fauna.
+---
+
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
+
+<NpcLeaf data={frontmatter}>
+
+A slender river fish that drifts in loose schools through shallow current, catchable with a line from the bank.
+
+</NpcLeaf>
