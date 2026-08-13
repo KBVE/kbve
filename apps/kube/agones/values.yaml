@@ -57,13 +57,18 @@ agones:
 
 # Game server defaults
 gameservers:
-    # Namespaces for game servers
+    # Every namespace that runs GameServers has to be listed here — the chart
+    # only creates the `agones-sdk` ServiceAccount and its RoleBinding in these.
+    # Miss one and the fleet never gets a pod: the GameServer goes straight to
+    # Error with `serviceaccount "agones-sdk" not found` and the GameServerSet
+    # respawns it every 30s forever.
     namespaces:
         - arc-runners
         - factorio
         - cryptothrone
         - arpg
         - palworld
+        - friendslop
 
     # Port range for game server host ports.
     minPort: 7000
