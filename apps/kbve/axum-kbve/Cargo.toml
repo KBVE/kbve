@@ -1,7 +1,7 @@
 [package]
 name = "axum-kbve"
 authors = ["kbve", "h0lybyte"]
-version = "1.0.280"
+version = "1.0.281"
 edition = "2021"
 rust-version.workspace = true
 publish = false
@@ -58,8 +58,8 @@ avian3d = { workspace = true, features = ["3d", "f32", "parry-f32", "serialize"]
 lightyear = { workspace = true, features = ["server", "replication", "prediction", "interpolation", "input_native", "websocket", "websocket_self_signed", "netcode", "webtransport", "webtransport_self_signed", "avian3d"] }
 base64 = { workspace = true }
 rand = { workspace = true }
-lightyear_avian3d = { version = "0.28", default-features = false, features = ["3d"] }
-lightyear_replication = { version = "0.28", default-features = false, features = ["server"] }
+lightyear_avian3d = { version = "0.29", default-features = false, features = ["3d"] }
+lightyear_replication = { version = "0.29", default-features = false, features = ["server"] }
 bevy_kbve_net = { path = "../../../packages/rust/bevy/bevy_kbve_net", features = ["npcdb", "creatures"] }
 bevy_inventory = { path = "../../../packages/rust/bevy/bevy_inventory" }
 bevy_items = { path = "../../../packages/rust/bevy/bevy_items", features = ["inventory"] }
