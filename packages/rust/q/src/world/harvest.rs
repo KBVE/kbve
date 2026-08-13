@@ -76,8 +76,8 @@ impl HarvestKind for Stone {
 pub struct Entry {
     pub id: u64,
     pub pos: Vector3,
-    /// Ground normal the instance is bedded into; drives both its transform and
-    /// its collider so the two never disagree on a slope.
+    /// Ground normal the instance is bedded into; drives both its transform and its
+    /// collider so the two never disagree on a slope.
     pub up: Vector3,
     pub scale: f32,
     pub yaw: f32,

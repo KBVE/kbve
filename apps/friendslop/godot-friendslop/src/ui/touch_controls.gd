@@ -1,10 +1,6 @@
 extends Control
 
-## Dual stick layout. The left stick drives the movement actions so the shared
-## controller code keeps reading Input.get_vector; the right stick accumulates a
-## look delta the player drains each frame, which keeps camera feel out of the
-## input map. Both sticks anchor wherever the thumb lands rather than at a fixed
-## point, so nothing has to be aimed for.
+## Dual stick layout.
 
 const STICK_RADIUS := 110.0
 const STICK_DEADZONE := 12.0
@@ -19,8 +15,8 @@ const MOVE_ACTIONS := {
 	"move_back": Vector2(0.0, 1.0),
 }
 
-## Anchors are fractions of the viewport so the layout survives rotation and
-## differing device aspects. Add gameplay actions here as they land.
+## Anchors are fractions of the viewport so the layout survives rotation and differing
+## device aspects.
 const BUTTONS := [
 	{"action": "jump", "label": "JUMP", "anchor": Vector2(1.0, 1.0), "offset": Vector2(-200.0, -430.0), "radius": 74.0},
 	{"action": "debug_hud", "label": "HUD", "anchor": Vector2(1.0, 0.0), "offset": Vector2(-90.0, 90.0), "radius": 48.0},
@@ -44,8 +40,8 @@ func _ready() -> void:
 	set_process(touch)
 
 
-## Returns the accumulated look movement and clears it, so a frame that runs
-## long cannot replay the same input twice.
+## Returns the accumulated look movement and clears it, so a frame that runs long cannot
+## replay the same input twice.
 func consume_look() -> Vector2:
 	var delta := look_delta
 	look_delta = Vector2.ZERO
@@ -82,8 +78,6 @@ func _unhandled_input(event: InputEvent) -> void:
 func _begin_touch(index: int, position: Vector2) -> void:
 	for button in BUTTONS:
 		if position.distance_to(_button_center(button)) <= button.radius:
-			# An empty action means the button is handled here rather than
-			# through the input map.
 			if button.action == "":
 				var main := get_tree().current_scene
 				if main and main.has_method("cycle_bisect"):
@@ -105,8 +99,6 @@ func _begin_touch(index: int, position: Vector2) -> void:
 
 
 func _drag_touch(index: int, position: Vector2) -> void:
-	# Dictionaries compare by content in GDScript, and the two sticks are
-	# identical when idle, so which stick is which is decided by finger id.
 	if _move.finger == index:
 		_move.position = position
 		_apply_move()

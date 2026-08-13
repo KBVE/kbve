@@ -2,19 +2,13 @@ class_name NetGameClient
 extends Node3D
 
 ## Renders a remote authoritative session.
-##
-## Bodies are authored by the server, so this node reacts to body_added /
-## body_removed rather than spawning into a sim it does not own. Movement is
-## never applied locally: input is sent as intent and the server decides what
-## it means.
 
 signal joined(seed_value: int, player_name: String)
 signal rejected(reason: String)
 signal avatar_spawned(body_id: int, node: Node3D)
 signal roster_changed()
 
-## The deployed fleet. A local server is reached by overriding `server_url`
-## (see `online_world.gd`, which reads FS_URL), not by editing this.
+## The deployed fleet.
 const DEPLOYED_URL := "wss://friendslop.kbve.com/ws"
 
 @export var server_url := "ws://127.0.0.1:7980/ws"
@@ -22,22 +16,17 @@ const DEPLOYED_URL := "wss://friendslop.kbve.com/ws"
 @export var autoconnect := false
 @export var avatar_scene: PackedScene
 
-## Node whose Y rotation movement intent is expressed relative to — the camera,
-## in practice. Unset sends the raw input vector, which is world-space and only
-## correct while the camera happens to face -Z.
+## Node whose Y rotation movement intent is expressed relative to — the camera, in
+## practice.
 @export var intent_basis_path: NodePath
 
-## Vestigial: guests are named by the server, and a name asked for is a name
-## that could be someone else's. Render local_name(), never this.
+## Vestigial: guests are named by the server, and a name asked for is a name that could
+## be someone else's.
 @export var player_name := ""
 
-## Supabase access token. Set means "join as this account" — the server verifies
-## it and reads the name out of its claims, and refuses the session if it does
-## not check out. Empty is guest mode.
+## Supabase access token.
 @export var access_token := ""
 
-# Built here rather than @onready so callers that reach for it before _ready
-# get a live node instead of null.
 var _client := QNetClient3D.new()
 
 var _avatars: Dictionary[int, Node3D] = {}
@@ -90,8 +79,7 @@ func local_avatar() -> Node3D:
 	return _avatars.get(_client.local_body())
 
 
-## Name the server gave us. Empty until joined — the requested name is not the
-## granted one, so nothing should be drawn before this answers.
+## Name the server gave us.
 func local_name() -> String:
 	return _client.local_name()
 
@@ -130,17 +118,13 @@ func _process(_delta: float) -> void:
 	_client.set_intent(_world_wish(wish), Input.is_action_pressed("jump"))
 
 
-## Input is in screen terms — left is left of the camera, not west. The server
-## reads a world-space direction and has no idea where anyone is looking, so the
-## rotation into world space belongs on this side of the wire.
+## Input is in screen terms — left is left of the camera, not west.
 func _world_wish(wish: Vector2) -> Vector2:
 	if wish == Vector2.ZERO or intent_basis_path.is_empty():
 		return wish
 	var basis_node := get_node_or_null(intent_basis_path) as Node3D
 	if basis_node == null:
 		return wish
-	# Godot's input +y is "back", and the session's wish_dir is [x, z] in world
-	# space, where +z is also back. The two agree, so only the yaw is applied.
 	return wish.rotated(-basis_node.global_rotation.y)
 
 
@@ -163,8 +147,6 @@ func _on_body_added(body_id: int) -> void:
 	node.name = "Body%d" % body_id
 	add_child(node)
 	_avatars[body_id] = node
-	# Handing the node to the extension is what makes the server drive it; a
-	# node that is never tracked simply sits at the origin.
 	_client.track(body_id, node)
 	avatar_spawned.emit(body_id, node)
 

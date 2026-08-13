@@ -1,9 +1,4 @@
 //! Godot adapter for a networked session.
-//!
-//! The mirror of `bridge3d`: that node owns a local sim, this one renders a
-//! remote one. Bodies are authored by the server, so GDScript reacts to
-//! `body_added`/`body_removed` and hands back a node to drive rather than
-//! spawning into the sim itself.
 
 use std::collections::{HashMap, HashSet};
 
@@ -26,18 +21,13 @@ pub struct QNetClient3D {
     #[export]
     #[init(val = 60.0)]
     tick_hz: f64,
-    /// Name to ask for. Empty — the default — is guest mode: the server hands
-    /// back an `Anon-XXXX`. Whatever is set here is a request either way; the
-    /// server sanitizes it and [`local_name`](Self::local_name) is the answer.
+    /// Name to ask for.
     #[export]
     player_name: GString,
-    /// Bearer token to join with. Set means "join as this account": the host
-    /// verifies it and names the player from its claims, and refuses the
-    /// session outright if it does not check out. Empty is guest mode.
+    /// Bearer token to join with.
     #[export]
     access_token: GString,
-    /// Connect in `_ready`. Off by default so a scene can be opened without a
-    /// server running.
+    /// Connect in `_ready`.
     #[export]
     autoconnect: bool,
 
@@ -69,11 +59,6 @@ impl INode3D for QNetClient3D {
             .is_none_or(|previous| previous.roster != state.roster);
         let status_changed = self.last.as_ref().map(|s| s.status) != Some(state.status);
 
-        // Publish before announcing. Every getter on this node answers from
-        // `last`, and a handler runs *inside* the emit — so leaving the old
-        // state in place until the end means `body_added` fires while
-        // `local_body()` still says -1, and the frame a player joins is the one
-        // frame they cannot recognise their own body on.
         self.last = Some((*state).clone());
 
         if status_changed {
@@ -95,8 +80,6 @@ impl INode3D for QNetClient3D {
             let live: HashSet<BodyId> = snapshot.bodies.iter().map(|b| b.id).collect();
             let added: Vec<BodyId> = live.difference(&self.known).copied().collect();
             let removed: Vec<BodyId> = self.known.difference(&live).copied().collect();
-            // Same reason as `last`: `body_ids()` is readable from inside the
-            // handler, so the set has to be current before anything is told.
             self.known = live;
 
             for id in added {
@@ -116,8 +99,6 @@ impl INode3D for QNetClient3D {
             }
         }
 
-        // After the body diff: a nameplate needs the node to exist first, and
-        // `body_added` is what creates it.
         if roster_changed {
             self.signals().roster_changed().emit();
         }
@@ -126,21 +107,19 @@ impl INode3D for QNetClient3D {
 
 #[godot_api]
 impl QNetClient3D {
-    /// Emitted once the host accepts, carrying the world seed and the name we
-    /// were actually given — which is not necessarily the one we asked for.
+    /// Emitted once the host accepts, carrying the world seed and the name we were
+    /// actually given — which is not necessarily the one we asked for.
     #[signal]
     fn joined(seed: i64, name: GString);
 
     #[signal]
     fn rejected(reason: GString);
 
-    /// Someone joined or left, or a name changed. Nameplates re-read
-    /// [`body_name`](Self::body_name) from here.
+    /// Someone joined or left, or a name changed.
     #[signal]
     fn roster_changed();
 
-    /// A body appeared in the server's snapshot. Bind a node to it with
-    /// [`track`](Self::track) to have its transform driven.
+    /// A body appeared in the server's snapshot.
     #[signal]
     fn body_added(id: i64);
 
@@ -216,8 +195,8 @@ impl QNetClient3D {
         )
     }
 
-    /// Name of whoever owns `id`, or empty for a body with no player behind it
-    /// (props, and any player whose roster entry has not arrived yet).
+    /// Name of whoever owns `id`, or empty for a body with no player behind it (props,
+    /// and any player whose roster entry has not arrived yet).
     #[func]
     fn body_name(&self, id: i64) -> GString {
         GString::from(

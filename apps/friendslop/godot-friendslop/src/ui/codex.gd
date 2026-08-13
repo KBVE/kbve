@@ -1,17 +1,6 @@
 extends HBoxContainer
 
 ## Somewhere to look at a character, a creature or a weapon on its own.
-##
-## Everything here exists because the alternative was launching the game and
-## walking somewhere. A gait was settled by relaunching eight times to read one
-## number off a log; a grip was checked by starting the world, spawning in and
-## squinting at a hand. Neither needed the world, and both needed the same four
-## things: pick a subject, drive it, see the rig, change one value.
-##
-## It drives the real character_rig rather than a preview of one, so what is on
-## screen is the same animation tree, the same foot IK and the same weapon mount
-## the game runs. A viewer with its own simplified path would show a rig that
-## works here and nowhere else.
 
 const Entries := preload("res://src/ui/codex_entries.gd")
 const Ground := preload("res://src/ui/codex_ground.gd")
@@ -51,9 +40,9 @@ var _fixes: Array[Control] = []
 var _rows: Dictionary = {}
 
 var _playing := true
-## Guards the scrub slider against the playhead it is displaying: without it,
-## following the animation moves the slider, which reads as a seek, which stops
-## the playback the slider was following.
+## Guards the scrub slider against the playhead it is displaying: without it, following
+## the animation moves the slider, which reads as a seek, which stops the playback the
+## slider was following.
 var _syncing := false
 
 
@@ -136,9 +125,6 @@ func _build_side() -> void:
 
 	_spinning = _add_toggle(side, "turntable", true, func(_on: bool) -> void: pass)
 
-	# Locomotion is driven by hand rather than by a body moving through a world,
-	# which is the only way to hold a speed steady long enough to judge it. The
-	# blend space is fed the same call the player controller makes.
 	_walking = _add_toggle(side, "locomotion", true, _set_walking)
 	_speed = _add_slider(side, "speed m/s", 0.0, 6.0, 0.0)
 	_heading = _add_slider(side, "heading", -PI, PI, 0.0)
@@ -156,9 +142,6 @@ func _build_side() -> void:
 	_scrub = _add_slider(side, "frame", 0.0, 1.0, 0.0)
 	_scrub.value_changed.connect(_seek)
 
-	# The same weapons the Codex lists on their own are the ones the hand is
-	# offered, so a mesh that has just been exported can be put in a fist without
-	# it being registered twice.
 	_weapon_pick = OptionButton.new()
 	_weapon_pick.add_item("no weapon")
 	for entry in _weapons:
@@ -166,8 +149,6 @@ func _build_side() -> void:
 	_weapon_pick.item_selected.connect(_equip)
 	side.add_child(_weapon_pick)
 
-	# Orientation fixes for creature models, which is authoring rather than
-	# viewing: the number the slider lands on is copied into the species.
 	_yaw_fix = _add_slider(side, "yaw fix", -PI, PI, 0.0)
 	_yaw_fix.value_changed.connect(func(_v: float) -> void: _apply_fix())
 	_pitch_fix = _add_slider(side, "pitch fix", -PI * 0.5, PI * 0.5, 0.0)
@@ -197,9 +178,9 @@ func _build_side() -> void:
 	_fixes = [_yaw_fix, _pitch_fix]
 
 
-## Label and slider go in together, so hiding a control that does not apply to
-## the subject takes its caption with it rather than leaving a heading over the
-## control below.
+## Label and slider go in together, so hiding a control that does not apply to the
+## subject takes its caption with it rather than leaving a heading over the control
+## below.
 func _add_slider(parent: Container, label: String, from: float, to: float,
 		value: float) -> HSlider:
 	var row := VBoxContainer.new()
@@ -230,9 +211,7 @@ func _add_toggle(parent: Container, label: String, on: bool,
 	return check
 
 
-## Swaps what is on the turntable. Everything below rebuilds rather than being
-## reconfigured, since a rig sets itself up in _ready and half of what the Codex
-## changes is decided there.
+## Swaps what is on the turntable.
 func _load(index: int) -> void:
 	if index < 0 or index >= _entries.size():
 		return
@@ -285,15 +264,12 @@ func _build_character() -> Node3D:
 	rig.locomotion = true
 	rig.foot_ik = true
 	rig.snap_to_terrain = false
-	# Absolute, because the rig resolves this in its own _ready and is not in the
-	# tree yet to be counted from.
 	rig.terrain_path = _ground.get_path()
 	_rig = rig
 	return rig
 
 
-## A weapon from wherever it came from. A stand-in and an exported mesh differ
-## only in which key the entry carries.
+## A weapon from wherever it came from.
 func _build_weapon(entry: Dictionary) -> Node3D:
 	if entry.has("proxy"):
 		return WeaponProxy.make(entry.proxy)
@@ -372,8 +348,8 @@ func _show_control(control: Control, shown: bool) -> void:
 	row.visible = shown
 
 
-## Applied to the model on screen and reported, so the value can be read off
-## and written into the species where it belongs.
+## Applied to the model on screen and reported, so the value can be read off and written
+## into the species where it belongs.
 func _apply_fix() -> void:
 	if _syncing or _subject == null or _entry.get("kind") != "model":
 		return
@@ -440,7 +416,6 @@ func _process(delta: float) -> void:
 	if _rig == null:
 		return
 	if _walking.button_pressed and _rig.has_method("set_locomotion"):
-		# x is right and z is backward in the rig's own frame, so forward is -z.
 		var speed: float = _speed.value
 		var local := Vector3(sin(_heading.value) * speed, 0.0, -cos(_heading.value) * speed)
 		_rig.set_locomotion(local, false, delta)

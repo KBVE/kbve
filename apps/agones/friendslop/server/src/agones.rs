@@ -28,9 +28,6 @@ pub async fn run_health_loop(transport: Arc<DualHost>, advertise: bool) {
     }
     info!("[friendslop-server/agones] GameServer marked Ready");
 
-    // Agones port-maps the container port to a host port, and an L7 gateway
-    // cannot carry UDP, so the endpoint we bound is not the one clients can
-    // reach. Ask Agones what it actually published and advertise that.
     if advertise {
         match sdk.get_gameserver().await {
             Ok(gs) => match gs.status {

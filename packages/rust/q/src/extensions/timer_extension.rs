@@ -132,7 +132,7 @@ impl ClockMaster {
         let timer_key = key.to_string();
         if let Some(mut timer) = self.timer_cache.remove(&timer_key) {
             godot_print!("[ClockMaster] Destroying Timer '{}'", timer_key);
-            timer.queue_free(); // godot::prelude::Node::queue_free + https://godot-rust.github.io/docs/gdext/master/godot/classes/struct.Timer.html -> queue_free(&mut self)
+            timer.queue_free();
         } else {
             godot_warn!(
                 "[ClockMaster] Cant destroy Timer '{}' as it was not found.",

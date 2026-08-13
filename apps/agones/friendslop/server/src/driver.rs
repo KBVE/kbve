@@ -54,9 +54,6 @@ pub fn terrain_for(cfg: &DriverConfig) -> TerrainDesc {
 }
 
 /// Runs the authoritative sim on its own OS thread at a fixed cadence.
-///
-/// Not a tokio task: `HostSession::tick` is synchronous CPU work, and parking it
-/// on a runtime worker would stall the sockets it depends on.
 pub fn spawn(
     transport: Arc<DualHost>,
     cfg: DriverConfig,
@@ -87,7 +84,6 @@ pub fn spawn(
             let mut next = Instant::now();
 
             while !stop_t.load(Ordering::Relaxed) {
-                // Offers the datagram lane to any peer that just connected.
                 transport.pump();
                 for peer in transport.take_disconnects() {
                     tracing::info!(peer = peer.0, "peer disconnected");
@@ -100,8 +96,6 @@ pub fn spawn(
                 next += step;
                 match next.checked_duration_since(Instant::now()) {
                     Some(wait) => std::thread::sleep(wait),
-                    // Fell behind. Resync rather than sprint to catch up, which
-                    // would only dig the hole deeper under sustained load.
                     None => next = Instant::now(),
                 }
             }

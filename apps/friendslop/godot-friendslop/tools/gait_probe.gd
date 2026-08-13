@@ -1,28 +1,7 @@
 extends SceneTree
 
-## Measures the ground speed a locomotion clip was authored at, without the
-## root-motion build of the library.
-##
-## The clips are in place, so the root never moves and there is no displacement
-## to read off it. The stance foot carries the same information: while it is
-## planted it is not travelling over the ground, so the speed it moves through
-## the character's own frame is the speed the ground moves past the character.
-##
-## Which foot is planted has to be worked out per foot rather than by taking
-## whichever is lower. A run has a flight phase where neither foot is down, and
-## the lower of two airborne feet is still airborne -- reading it as stance is
-## what puts a sprint at a third of its real speed. Each foot is instead called
-## planted over the part of the cycle it spends near its own lowest point, and
-## only those frames are measured.
-##
-## Two things this has to work around, both from running with no frames:
-##   - the mixer only applies when stepped by hand, so it is put in manual
-##     callback mode and advanced rather than seeked;
-##   - get_bone_global_pose is served from a cache the skeleton refreshes during
-##     processing, so it reads stale forever here. The pose is composed up the
-##     parent chain instead, which is the same arithmetic without the cache.
-##
-## Run: godot --headless --path . --script tools/gait_probe.gd
+## Measures the ground speed a locomotion clip was authored at, without the root-motion
+## build of the library.
 
 const SOURCES := [
 	"res://assets/characters/quaternius_ubc/animations/UAL1.glb",
@@ -30,12 +9,12 @@ const SOURCES := [
 ]
 const FEET := [&"LeftFoot", &"RightFoot"]
 const STEPS := 160
-## How far above its lowest point a foot still counts as planted, as a fraction
-## of that foot's own vertical travel in the clip.
+## How far above its lowest point a foot still counts as planted, as a fraction of that
+## foot's own vertical travel in the clip.
 const STANCE_BAND := 0.2
-## Values from the root-motion builds, kept as a check on the method rather than
-## as an input to it: a probe that cannot reproduce these is not to be believed
-## about the clips it is being asked about.
+## Values from the root-motion builds, kept as a check on the method rather than as an
+## input to it: a probe that cannot reproduce these is not to be believed about the
+## clips it is being asked about.
 const KNOWN := {"Walk_Fwd": 1.01, "Jog_Fwd": 5.36, "Walk_L": 0.64, "Jog_Left": 3.21}
 
 
@@ -97,9 +76,6 @@ func _measure(player: AnimationPlayer, skeleton: Skeleton3D, bones: Array[int],
 		for at in path:
 			low = minf(low, at.y)
 			high = maxf(high, at.y)
-		# Near its own lowest point, and only there. The band is a fraction of
-		# this foot's own lift rather than a fixed height, so it means the same
-		# thing for a walk that barely leaves the floor and a run that does not.
 		var floor_band: float = low + (high - low) * STANCE_BAND
 		for i in range(1, path.size()):
 			if path[i].y > floor_band or path[i - 1].y > floor_band:

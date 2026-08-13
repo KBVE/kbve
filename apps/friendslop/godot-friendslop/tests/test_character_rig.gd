@@ -7,8 +7,8 @@ func _links() -> Array:
 	return Rig.JUMP_CHAIN + Rig.CLIMB_CHAIN
 
 
-## A state named in a transition but missing from STATES takes the tree build down
-## with it, since the build reads reset off the entry.
+## A state named in a transition but missing from STATES takes the tree build down with
+## it, since the build reads reset off the entry.
 func test_every_transition_endpoint_is_described() -> void:
 	for link in _links():
 		assert_bool(Rig.STATES.has(StringName(link.from))) \
@@ -33,16 +33,14 @@ func test_states_are_fully_specified() -> void:
 		assert_bool(cfg.has(&"ik")).is_true()
 		assert_bool(cfg.has(&"clip")).is_true()
 		assert_float(cfg[&"ik"]).is_between(0.0, 1.0)
-	# Only move draws its clip from the blend space; a one-shot without one would
-	# be added to the machine as a null node.
 	assert_str(Rig.STATES[&"move"][&"clip"]).is_empty()
 	for state in Rig.STATES:
 		if state != &"move":
 			assert_str(Rig.STATES[state][&"clip"]).is_not_empty()
 
 
-## QLocomotion decides in stances and the machine is addressed by name, so an
-## unmapped stance is a state the rig can be asked to travel to and cannot.
+## QLocomotion decides in stances and the machine is addressed by name, so an unmapped
+## stance is a state the rig can be asked to travel to and cannot.
 func test_every_stance_maps_to_a_real_state() -> void:
 	var stances := [QLocomotion.STANCE_MOVE, QLocomotion.STANCE_JUMP,
 			QLocomotion.STANCE_CLIMB_LOW, QLocomotion.STANCE_CLIMB_HIGH]
@@ -57,15 +55,13 @@ func test_every_stance_maps_to_a_real_state() -> void:
 ## The ring the clips are laid out on has to be the ring Q solves radii against.
 func test_clip_rings_match_the_rust_gait_radii() -> void:
 	var loco := QLocomotion.create()
-	# Q's inner ring is the walk's authored forward speed, the outer the jog's.
 	assert_float(loco.gait_speed(Vector2(0.0, 1.0))).is_greater(0.0)
 	assert_int(Rig.GAIT_CLIPS.size()).is_equal(2)
 	assert_float(Rig.GAIT_CLIPS[0].radius).is_equal(1.0)
 	assert_float(Rig.GAIT_CLIPS[1].radius).is_equal(2.0)
 
 
-## The locomotion cycle has to survive a round trip through the air. Resetting it
-## restarts the blend space at frame 0, which cuts the legs out of mid-stride.
+## The locomotion cycle has to survive a round trip through the air.
 func test_locomotion_resumes_but_one_shots_restart() -> void:
 	assert_bool(Rig.STATES[&"move"][&"reset"]).is_false()
 	for state in Rig.STATES:
@@ -83,16 +79,12 @@ func test_air_hands_the_legs_back() -> void:
 
 func test_ground_weight_follows_the_crossfade() -> void:
 	var rig := Rig.new()
-	# Landing: the legs are handed back over the fade rather than at one edge of it.
 	assert_float(rig.ground_weight_for(&"move", &"jump_land", 0.0)).is_equal_approx(0.7, 0.001)
 	assert_float(rig.ground_weight_for(&"move", &"jump_land", 0.5)).is_equal_approx(0.85, 0.001)
 	assert_float(rig.ground_weight_for(&"move", &"jump_land", 1.0)).is_equal_approx(1.0, 0.001)
-	# Take-off runs the other way, down to nothing in the air.
 	assert_float(rig.ground_weight_for(&"jump", &"jump_start", 0.5)).is_equal_approx(0.2, 0.001)
-	# Nothing fading is the settled state, and past the ends it holds.
 	assert_float(rig.ground_weight_for(&"move", &"", 0.0)).is_equal(1.0)
 	assert_float(rig.ground_weight_for(&"move", &"jump_land", 4.0)).is_equal(1.0)
 	assert_float(rig.ground_weight_for(&"move", &"jump_land", -4.0)).is_equal_approx(0.7, 0.001)
-	# An unknown state must not silently unplant the feet.
 	assert_float(rig.ground_weight_for(&"nonexistent", &"", 0.0)).is_equal(1.0)
 	rig.free()

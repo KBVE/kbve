@@ -1,9 +1,4 @@
 //! Engine-agnostic terrain height generation.
-//!
-//! Lives outside `world` (which is Godot-only) because the dedicated server
-//! bakes collision from the same seed the client renders from. If the two ever
-//! ran different generators, players would sink or float on the host's view of
-//! ground while looking level on their own.
 
 use fastnoise_lite::{FastNoiseLite, FractalType, NoiseType};
 

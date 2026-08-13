@@ -2,14 +2,6 @@ class_name LanguageModal
 extends CanvasLayer
 
 ## The first question the game asks, once, before anything else is legible.
-##
-## Shown only when the player has never answered it: after that the saved answer
-## is the answer, and the title's own row is where it gets changed. A modal that
-## reappears every launch is a modal that gets dismissed without being read.
-##
-## Nothing here is translated. Every label is a language written in its own
-## script, and the heading is the word "Language" in each of them -- a modal
-## asking which language you read is the one screen that cannot assume one.
 
 signal chosen(code: String)
 
@@ -21,12 +13,9 @@ var _root: Control
 
 
 func _ready() -> void:
-	# Above the title's own layer: this is a question, not a panel behind one.
 	layer = 130
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	MenuStyle.detect()
-	# Every script at once, and this is the screen that proves why: each button
-	# is written in a different one.
 	I18n.use_all_fonts()
 	_build()
 
@@ -36,8 +25,6 @@ func _build() -> void:
 	_root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(_root)
 
-	# Opaque rather than a scrim. There is nothing behind this worth reading yet,
-	# and a first-run modal over a moving 3D backdrop reads as a bug.
 	var dim := ColorRect.new()
 	dim.color = Color(0.06, 0.05, 0.04, 0.92)
 	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -65,8 +52,6 @@ func _build() -> void:
 	spacer.custom_minimum_size = Vector2(0, 18)
 	column.add_child(spacer)
 
-	# One per row rather than a wrapped grid: a column of full-width targets is
-	# the shape a thumb reaches, and five rows fit the shortest phone in portrait.
 	for entry: Dictionary in I18n.locales():
 		var code: String = entry["code"]
 		var button := PaperButton.make(str(entry["name"]),
@@ -79,16 +64,15 @@ func _build() -> void:
 		buttons.append(button)
 
 
-## Written to disk here rather than by the caller: the modal exists precisely to
-## turn a guess into an answer, and an answer that is not saved brings the modal
-## back on the next launch.
+## Written to disk here rather than by the caller: the modal exists precisely to turn a
+## guess into an answer, and an answer that is not saved brings the modal back on the
+## next launch.
 func _choose(code: String) -> void:
 	I18n.set_locale(code, true)
 	chosen.emit(code)
 
 
-## No escape hatch. Dismissing without answering would save nothing, so the
-## modal would be back on the next launch -- which is worse than asking once.
+## No escape hatch.
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"ui_cancel"):
 		get_viewport().set_input_as_handled()

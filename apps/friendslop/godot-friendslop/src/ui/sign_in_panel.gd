@@ -2,23 +2,13 @@ class_name SignInPanel
 extends Control
 
 ## Which account to sign in with, over the title's world.
-##
-## No password field: GoTrue has hCaptcha enabled, so the password grant refuses
-## any client that has no browser to solve one in. Signing in happens in the
-## player's own browser and comes back to a loopback socket, which means this
-## panel collects a provider name and nothing else — there is no credential here
-## to mishandle.
-##
-## Deliberately dumb: it reports which button was pressed and shows whatever it
-## is told afterwards. It never touches `Auth`, so the flow is testable without
-## a browser and the panel is testable without an account.
 
 signal submitted(provider: String)
 signal cancelled
 
 const WIDTH := 320.0
 
-## Provider id to how it is written on the button. The ids are GoTrue's.
+## Provider id to how it is written on the button.
 const PROVIDER_NAMES := {
 	"discord": "Discord",
 	"github": "GitHub",
@@ -32,8 +22,6 @@ var _busy := false
 
 
 func _ready() -> void:
-	# Offsets as well as anchors: a Control added in code starts at zero size,
-	# and anchors alone leave it that way until something else lays it out.
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build()
 
@@ -42,8 +30,6 @@ func _build() -> void:
 	var scrim := ColorRect.new()
 	scrim.color = Color(0.05, 0.04, 0.03, 0.55)
 	scrim.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	# Eats clicks meant for the buttons behind it — a menu you can press through
-	# is a menu that starts a session while you are signing in.
 	scrim.mouse_filter = Control.MOUSE_FILTER_STOP
 	add_child(scrim)
 
@@ -78,8 +64,8 @@ func _build() -> void:
 	column.add_child(cancel_button)
 
 
-## Bound per provider rather than read back off the pressed button, so the
-## button's label can be translated without changing what it means.
+## Bound per provider rather than read back off the pressed button, so the button's
+## label can be translated without changing what it means.
 func _submitter(provider: String) -> Callable:
 	return func() -> void:
 		if _busy:
@@ -98,8 +84,8 @@ func _caption(text: String) -> Label:
 	return label
 
 
-## Locks the buttons while a browser round trip is in flight: a second press
-## would open a second tab against a verifier the first one already owns.
+## Locks the buttons while a browser round trip is in flight: a second press would open
+## a second tab against a verifier the first one already owns.
 func set_busy(busy: bool) -> void:
 	_busy = busy
 	for button in provider_buttons.values():

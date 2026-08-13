@@ -1,22 +1,13 @@
 extends RefCounted
 
-## Stand-in weapons, built from primitives, so combat can be worked on before
-## any art exists and without waiting on an export.
-##
-## They are not a separate code path: a proxy comes out shaped exactly like a
-## finished weapon scene is expected to be -- meshes under a root, with a
-## Grip_Main marker where the holding hand goes and a Grip_Off marker for the
-## second hand on the two-handed ones. Swapping a real mesh in is a change of
-## file, not of code, and if the real mesh is missing its markers the same
-## fallback catches both.
-##
-## Blade runs up +Y, edge across X, and the root sits at the hand.
+## Stand-in weapons, built from primitives, so combat can be worked on before any art
+## exists and without waiting on an export.
 
 const HANDLE := Color(0.24, 0.16, 0.11)
 const STEEL := Color(0.72, 0.74, 0.78)
 const BRASS := Color(0.65, 0.5, 0.22)
 
-## grip/off are heights along the handle. off is only read for two-handed.
+## grip/off are heights along the handle.
 const KINDS := {
 	"dagger": {
 		"two_handed": false, "grip": -0.02, "off": 0.0,

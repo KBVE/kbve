@@ -1,12 +1,6 @@
 extends Node3D
 
 ## Ground for the Codex, standing in for the terrain the foot IK expects.
-##
-## The solver asks its terrain for height_at, so previewing a character without
-## one means previewing it with the IK switched off -- which is the half most
-## worth looking at. This answers the same question against a plane that can be
-## tilted, so a stance can be checked on a slope steeper than anywhere in the
-## world without going to find one.
 
 var tilt := 0.0
 var facing := 0.0

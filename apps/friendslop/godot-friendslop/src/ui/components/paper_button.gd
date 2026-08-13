@@ -1,12 +1,6 @@
 class_name PaperButton
 extends Button
 
-## A paper button. `make` is the whole API -- the styling is applied on
-## construction so there is no half-styled state to add a child in.
-##
-## Named PaperButton because MenuButton is a Godot built-in. Row height and font
-## are not set here: a button inside a page is scaled by that page's layout pass,
-## which is the only place that knows how big the projected book currently is.
 
 
 static func make(text: String, action: Callable) -> PaperButton:

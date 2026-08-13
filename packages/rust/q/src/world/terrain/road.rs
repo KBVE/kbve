@@ -28,9 +28,8 @@ pub(super) struct RoadNetwork {
 }
 
 impl RoadNetwork {
-    /// The trunk road runs across the valley and meets the river head-on, so the
-    /// deck can be a straight span. Wander is damped to zero near the crossing
-    /// for the same reason.
+    /// The trunk road runs across the valley and meets the river head-on, so the deck
+    /// can be a straight span.
     pub(super) fn build(hgen: &HeightGen, extent: f32, water_level: f32, width: f32) -> Self {
         let crossing_z = 0.0;
         let river_x = hgen.river_x(crossing_z);
@@ -51,10 +50,6 @@ impl RoadNetwork {
         let mut points: Vec<Vector2> = Vec::new();
         let mut x = -limit;
         while x <= limit {
-            // Hold the line straight across the whole bridge corridor — deck
-            // plus the longest approach a ramp can take — then let it drift.
-            // The bridge is built on one fixed axis, so any bend inside that
-            // span leaves the deck and the painted carriageway disagreeing.
             let hold = half_span + STRAIGHT_APPROACH;
             let away = (((x - river_x).abs() - hold) / 18.0).clamp(0.0, 1.0);
             let bend = away * away * (3.0 - 2.0 * away);
@@ -78,8 +73,8 @@ impl RoadNetwork {
         }
     }
 
-    /// Widened once the ramps are laid out, so road paint stops where the
-    /// timber approach starts instead of running on underneath it.
+    /// Widened once the ramps are laid out, so road paint stops where the timber
+    /// approach starts instead of running on underneath it.
     pub(super) fn set_bridge_reach(&mut self, reach: f32) {
         self.bridge_reach = reach;
     }
@@ -103,8 +98,8 @@ impl RoadNetwork {
         self.segments.iter().copied()
     }
 
-    /// The carriageway drifts in z, so callers wanting a spot "on the road" must
-    /// take a real polyline point rather than assume a fixed z.
+    /// The carriageway drifts in z, so callers wanting a spot "on the road" must take a
+    /// real polyline point rather than assume a fixed z.
     pub(super) fn point_near_x(&self, x: f32) -> Vector2 {
         self.points()
             .min_by(|a, b| {
@@ -129,8 +124,6 @@ impl QTerrain {
             return;
         };
         let mut road = RoadNetwork::build(&hgen, self.extent, self.water_level, self.road_width);
-        // Ramp length is solved against the terrain, so the bridge has to be
-        // laid out before the mask knows where the paint should stop.
         let reach = self.build_bridge(&hgen, &road);
         road.set_bridge_reach(reach);
 
@@ -151,7 +144,6 @@ impl QTerrain {
                 if d > paint_reach {
                     continue;
                 }
-                // Dry land only; the riverbed keeps its own material.
                 if hgen.height(x, z) < self.water_level + 0.35 {
                     continue;
                 }
@@ -162,10 +154,6 @@ impl QTerrain {
         }
 
         let data = PackedByteArray::from(mask.as_slice());
-        // One texel per metre, so a carriageway is only a few pixels wide at
-        // range. Without a mip chain the ground shader point-samples the mask
-        // there and whole stretches of road fall under the paint threshold;
-        // averaging down keeps them present as a weaker mask instead.
         let tex =
             Image::create_from_data(res, res, false, ImageFormat::R8, &data).and_then(|mut img| {
                 img.generate_mipmaps();
@@ -179,9 +167,6 @@ impl QTerrain {
         self.road_res = res;
         self.road_mask = mask;
 
-        // Grass reads clearance, so stamping the verge clears the carriageway.
-        // Segment endpoints alone sit SEGMENT_STEP apart, which lets the swept
-        // core pinch inward between stamps; subdivide so the circles overlap.
         let stamps: Vec<Vector2> = road
             .segments()
             .flat_map(|(a, b)| {
@@ -190,9 +175,6 @@ impl QTerrain {
             })
             .filter(|p| hgen.height(p.x, p.y) >= self.water_level + 0.35)
             .collect();
-        // The core has to reach past the painted edge (half the width, plus the
-        // noise fray) or blades stand right against the kerb; the outer radius
-        // then thins the verge back into open grass.
         let hard = road.width * 0.5 + 1.3;
         for p in stamps {
             self.stamp_clearance_band(p.x, p.y, hard, hard + 1.8);
@@ -221,10 +203,8 @@ impl PlankMesh {
         }
     }
 
-    /// Godot treats clockwise as front-facing, so a quad's corner order has to
-    /// agree with the normal it declares. Callers that walk their corners from
-    /// a start/end pair flip traversal whenever the pair reverses, so the order
-    /// is checked against the normal here rather than trusted.
+    /// Godot treats clockwise as front-facing, so a quad's corner order has to agree
+    /// with the normal it declares.
     fn quad(&mut self, c: [Vector3; 4], n: Vector3, uv: [Vector2; 4]) {
         if (c[1] - c[0]).cross(c[2] - c[0]).dot(n) > 0.0 {
             self.push_quad([c[0], c[3], c[2], c[1]], n, [uv[0], uv[3], uv[2], uv[1]]);
@@ -244,11 +224,9 @@ impl PlankMesh {
             .extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
     }
 
-    /// Axis-aligned box in the road frame. UVs are world-scaled so the plank
-    /// texture keeps a constant real-world size on every face.
+    /// Axis-aligned box in the road frame.
     fn box_at(&mut self, center: Vector3, half: Vector3, right: Vector3, fwd: Vector3, uvs: f32) {
         let up = Vector3::UP;
-        // normal, tangent, bitangent, offset along normal, tangent extent, bitangent extent
         let faces: [(Vector3, Vector3, Vector3, f32, f32, f32); 6] = [
             (up, right, fwd, half.y, half.x, half.z),
             (-up, right, -fwd, half.y, half.x, half.z),
@@ -275,11 +253,8 @@ impl PlankMesh {
         }
     }
 
-    /// Pitched slab between two points at different heights, used for the
-    /// approach ramps. box_at cannot pitch, so sloped pieces need their own
-    /// primitive. The underside is given per-end absolute heights rather than a
-    /// thickness so the ramp can skirt down into whatever the terrain does
-    /// underneath it instead of hovering as a constant-thickness ribbon.
+    /// Pitched slab between two points at different heights, used for the approach
+    /// ramps.
     fn skirt(
         &mut self,
         a: Vector3,
@@ -305,9 +280,6 @@ impl PlankMesh {
         let b0 = b - lat * half_w;
         let b1 = b + lat * half_w;
         let d = |p: Vector3, y: f32| Vector3::new(p.x, y, p.z);
-        // Every face gets UVs from its own real extents. Reusing one rect built
-        // from width and length smears the plank grain across the tall side
-        // panels, whose second axis is height and not length at all.
         let w = half_w * 2.0 * uvs;
         let l = len * uvs;
         let ha = (a.y - bot_a) * uvs;
@@ -318,7 +290,6 @@ impl PlankMesh {
             Vector2::new(w, l),
             Vector2::new(0.0, l),
         ];
-        // start-top, end-top, end-bottom, start-bottom
         let side = [
             Vector2::new(0.0, 0.0),
             Vector2::new(l, 0.0),
@@ -333,8 +304,6 @@ impl PlankMesh {
         );
         self.quad([a1, b1, d(b1, bot_b), d(a1, bot_a)], lat, side);
         self.quad([b0, a0, d(a0, bot_a), d(b0, bot_b)], -lat, side);
-        // The ramp is thicker than the deck, so its first slice hangs below the
-        // deck's underside and needs closing or you see straight into it.
         if cap_start {
             let cap = [
                 Vector2::new(0.0, 0.0),
@@ -382,8 +351,8 @@ impl PlankMesh {
 }
 
 impl QTerrain {
-    /// Returns how far along the road the timber structure extends, so the
-    /// caller can stop painting carriageway underneath it.
+    /// Returns how far along the road the timber structure extends, so the caller can
+    /// stop painting carriageway underneath it.
     fn build_bridge(&mut self, hgen: &HeightGen, road: &RoadNetwork) -> f32 {
         let right = Vector3::new(road.direction.x, 0.0, road.direction.y).normalized();
         let fwd = Vector3::new(-right.z, 0.0, right.x);
@@ -392,9 +361,6 @@ impl QTerrain {
 
         let bank_l = hgen.height(cx - road.half_span, cz);
         let bank_r = hgen.height(cx + road.half_span, cz);
-        // The deck has to clear the highest ground the ramps will cross, not
-        // just the two abutments — on a rising bank a deck set from the
-        // abutments alone leaves the approach buried under the hillside.
         let corridor = road.half_span + 7.0;
         let mut crest = bank_l.max(bank_r);
         let mut s = -corridor;
@@ -410,8 +376,6 @@ impl QTerrain {
         let uvs = 0.5;
         let mut mb = PlankMesh::new();
 
-        // Deck. Runs past the abutments so the ends bury themselves in the banks
-        // instead of leaving the span visibly floating over a sloped shore.
         let deck_half = road.half_span + 1.8;
         mb.box_at(
             center,
@@ -420,7 +384,6 @@ impl QTerrain {
             fwd,
             uvs,
         );
-        // Kerb rails along both sides
         for side in [-1.0f32, 1.0] {
             mb.box_at(
                 center + fwd * (half_w - 0.08) * side + Vector3::UP * 0.62,
@@ -430,7 +393,6 @@ impl QTerrain {
                 uvs,
             );
         }
-        // Balusters
         let posts = ((deck_half * 2.0) / 1.6).round().max(2.0) as i32;
         for i in 0..=posts {
             let t = i as f32 / posts as f32;
@@ -445,7 +407,6 @@ impl QTerrain {
                 );
             }
         }
-        // Piers down to the bed
         let bed = self.water_level - self.riverbed_depth;
         for side in [-1.0f32, 1.0] {
             for k in [-0.45f32, 0.45] {
@@ -463,10 +424,6 @@ impl QTerrain {
             }
         }
 
-        // Masonry abutments: the substructure at each end of the span, taking
-        // the deck load and retaining the bank behind it. They sit under the
-        // stretch of deck that buries itself in the shore, so the timber lands
-        // on stone rather than on soil.
         let mut sb = PlankMesh::new();
         for side in [-1.0f32, 1.0] {
             let x = (road.half_span + (deck_half - road.half_span) * 0.5) * side;
@@ -484,20 +441,10 @@ impl QTerrain {
             );
         }
 
-        // Approach ramps: follow the bank down from each deck end so the road
-        // meets the deck on a walkable slope instead of a step. The run is not
-        // fixed — terrain is generated, so each side searches for the shortest
-        // run that keeps the grade walkable against its own bank.
         const PLANK_T: f32 = 0.18;
         const RAMP_GRADE: f32 = 0.15;
         let rail_lat = half_w - 0.08;
-        // Only the deck masks the carriageway off. The ramps are an open timber
-        // trestle, so the stone path is meant to run in underneath them and stop
-        // at the span itself.
         let reach = deck_half + 0.6;
-        // The side panels are cut level across the ramp's width, so where the
-        // bank cross-slopes the low edge lifts off the ground. Skirt down to the
-        // lowest ground the slice spans, not just the ground on its centreline.
         let ground_lo = |p: Vector3| -> f32 {
             let mut lo = f32::MAX;
             for k in [-1.0f32, -0.5, 0.0, 0.5, 1.0] {
@@ -506,8 +453,6 @@ impl QTerrain {
             }
             lo
         };
-        // And the deck has to clear the highest ground it spans, or the terrain
-        // mesh pokes up through the planks and shows carriageway on the timber.
         let ground_hi = |p: Vector3| -> f32 {
             let mut hi = f32::MIN;
             for k in [-1.0f32, -0.5, 0.0, 0.5, 1.0] {
@@ -518,8 +463,6 @@ impl QTerrain {
         };
         for side in [-1.0f32, 1.0] {
             let x_start = deck_half * side;
-            // Flush with the deck's walking surface, not its underside, or the
-            // ramp starts a full deck-thickness below where you step off.
             let y_start = deck_y + 0.11;
             let mut ramp_run = 3.0f32;
             for k in 0..16 {
@@ -539,21 +482,10 @@ impl QTerrain {
             for i in 1..=ramp_steps {
                 let t = i as f32 / ramp_steps as f32;
                 let last = i == ramp_steps;
-                // Run the final slice on past the landing point so the buried
-                // tail has somewhere to go.
                 let x = x_start + side * (t * ramp_run + if last { 0.7 } else { 0.0 });
                 let p = center + right * x;
                 let ground = hgen.height(p.x, p.z);
                 let ground_min = ground_lo(p);
-                // Ease onto the terrain rather than meeting it at a hard angle.
-                // Retire the lip as the ramp lands so it finishes level with the
-                // ground rather than stepping off a raised edge. The floor stops
-                // the deck dropping under the hillside it crosses; a buried ramp
-                // both vanishes and traps the player's collider.
-                // Everywhere but the tip the deck must stay clear of the ground
-                // or the terrain mesh pokes carriageway up through the planks.
-                // The tip does the opposite: it sinks under, so the approach
-                // dies into the path instead of ending on a visible step.
                 let lip = 0.06 * (1.0 - t);
                 let y = if last {
                     ground - 0.08
@@ -563,8 +495,6 @@ impl QTerrain {
                         .max(ground_hi(p) + 0.09)
                 };
                 let next = Vector3::new(p.x, y, p.z);
-                // Solid timber side panels carried down to the bank, so the
-                // approach reads as one built piece in a single material.
                 mb.skirt(
                     prev,
                     next,
@@ -575,8 +505,6 @@ impl QTerrain {
                     uvs,
                     i == 1,
                 );
-                // Railings stop before the buried tip; they have nothing to
-                // stand on once the deck goes under.
                 if !last {
                     for rs in [-1.0f32, 1.0] {
                         let ra = prev + fwd * rail_lat * rs + Vector3::UP * 0.58;
@@ -598,8 +526,6 @@ impl QTerrain {
                 prev_ground = ground_min;
                 prev_y = y;
             }
-            // Newel post where the handrail runs out, so the railing terminates
-            // on something instead of stopping in mid-air.
             for rs in [-1.0f32, 1.0] {
                 mb.box_at(
                     rail_end + fwd * rail_lat * rs + Vector3::UP * 0.3,
@@ -611,10 +537,6 @@ impl QTerrain {
             }
         }
 
-        // Collision comes straight off the generated geometry. Approximating a
-        // pitched, terrain-following structure with a pile of boxes leaves a
-        // notch at every joint for the capsule to jam in, and stacks dozens of
-        // overlapping shapes under the player at once.
         let mut body = StaticBody3D::new_alloc();
         body.set_name("BridgeBody");
 

@@ -1,20 +1,11 @@
 //! The seam between session logic and the wire.
-//!
-//! Exists because Steam P2P cannot run in CI: it needs a live Steam client and
-//! a real appid, so any netcode written directly against `SteamNetworkingSockets`
-//! is untestable by construction. Session logic talks to [`Transport`] instead,
-//! and the tests drive it through [`Loopback`] in-process.
-//!
-//! Deliberately byte-oriented. Framing and message types stay in `crate::proto`
-//! so a transport swap cannot quietly change the wire format.
 
 use std::collections::{HashMap, VecDeque};
 use std::sync::{Arc, Mutex};
 
 use serde::{Deserialize, Serialize};
 
-/// A participant in a session. The listen-server host is always [`PeerId::HOST`];
-/// with one client hosting, "host" is a role, not a separate build.
+/// A participant in a session.
 #[derive(
     Clone, Copy, Debug, Default, Eq, PartialEq, Hash, PartialOrd, Ord, Serialize, Deserialize,
 )]
@@ -23,8 +14,7 @@ pub struct PeerId(pub u32);
 impl PeerId {
     pub const HOST: Self = PeerId(0);
 
-    /// A client's id before the host welcomes it; real transports assign on
-    /// accept. `ClientSession::peer` is the answer once known.
+    /// A client's id before the host welcomes it; real transports assign on accept.
     pub const UNASSIGNED: Self = PeerId(u32::MAX);
 
     pub fn is_host(self) -> bool {
@@ -33,16 +23,11 @@ impl PeerId {
 }
 
 /// Delivery guarantee for one send.
-///
-/// The distinction is load-bearing, not decoration: snapshots must be
-/// [`Unreliable`](Delivery::Unreliable) because a retransmitted snapshot is
-/// worthless — a newer one is already in flight, and retrying old state buys
-/// head-of-line blocking in exchange for data nobody wants.
 #[derive(Clone, Copy, Debug, Eq, PartialEq)]
 pub enum Delivery {
-    /// Retransmitted and ordered. Joins, spawns, inventory, chat.
+    /// Retransmitted and ordered.
     Reliable,
-    /// Dropped rather than retransmitted. World snapshots.
+    /// Dropped rather than retransmitted.
     Unreliable,
 }
 
@@ -64,8 +49,7 @@ pub trait Transport {
     /// Sends to every connected peer except the local one.
     fn broadcast(&self, delivery: Delivery, payload: &[u8]) -> Result<(), Self::Error>;
 
-    /// Non-blocking. Returns `None` when nothing is queued — never parks, so a
-    /// caller can drain it from a fixed-tick loop without stalling the tick.
+    /// Non-blocking.
     fn try_recv(&self) -> Option<Envelope>;
 
     /// Connected peers, excluding the local one.
@@ -103,16 +87,12 @@ pub enum LoopbackError {
 #[derive(Default)]
 struct Router {
     inboxes: HashMap<PeerId, VecDeque<Envelope>>,
-    /// When set, unreliable sends are discarded — lets a test assert the game
-    /// survives snapshot loss without waiting on real packet loss.
+    /// When set, unreliable sends are discarded — lets a test assert the game survives
+    /// snapshot loss without waiting on real packet loss.
     drop_unreliable: bool,
 }
 
 /// In-process [`Transport`] for tests and single-player.
-///
-/// Every endpoint shares one router, so a send is immediately visible to the
-/// recipient's `try_recv`. No timing, no loss, and no ordering surprises unless
-/// a test asks for them via [`Loopback::set_drop_unreliable`].
 #[derive(Clone)]
 pub struct Loopback {
     router: Arc<Mutex<Router>>,
@@ -120,7 +100,7 @@ pub struct Loopback {
 }
 
 impl Loopback {
-    /// Builds `count` mutually-connected endpoints. Index 0 is [`PeerId::HOST`].
+    /// Builds `count` mutually-connected endpoints.
     pub fn mesh(count: u32) -> Vec<Loopback> {
         let router = Arc::new(Mutex::new(Router::default()));
         {
@@ -145,8 +125,6 @@ impl Loopback {
     fn deliver(&self, to: PeerId, delivery: Delivery, payload: &[u8]) -> Result<(), LoopbackError> {
         let mut r = self.router.lock().unwrap();
         if r.drop_unreliable && delivery == Delivery::Unreliable {
-            // Still an Ok: dropping an unreliable datagram is normal operation,
-            // not a transport failure, and callers must not treat it as one.
             return Ok(());
         }
         let inbox = r
@@ -199,7 +177,6 @@ impl Transport for Loopback {
             .copied()
             .filter(|p| *p != self.me)
             .collect();
-        // HashMap order is arbitrary; broadcast order should not be.
         peers.sort_unstable();
         peers
     }
@@ -283,8 +260,8 @@ mod tests {
         assert_eq!(got, vec![0, 1, 2, 3, 4]);
     }
 
-    /// The seam's actual job: carry real sim state between a host and a client
-    /// with no engine and no Steam client anywhere in the test.
+    /// The seam's actual job: carry real sim state between a host and a client with no
+    /// engine and no Steam client anywhere in the test.
     #[cfg(feature = "rapier3d-sim")]
     #[test]
     fn a_sim_snapshot_survives_the_round_trip() {
@@ -322,7 +299,6 @@ mod tests {
         assert_eq!(envelope.from, PeerId::HOST);
         assert_eq!(decoded.tick, 1234);
         assert_eq!(decoded.bodies.len(), 2);
-        // Still bisectable on the far side — sorted order must survive the wire.
         let body = decoded.body(BodyId(7)).expect("body 7");
         assert_eq!(body.iso.pos, [-4.0, 0.25, 8.0]);
         assert!(!body.grounded);

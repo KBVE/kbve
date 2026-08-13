@@ -2,27 +2,12 @@ class_name OAuthLoopback
 extends Node
 
 ## One-shot loopback listener for a browser OAuth redirect.
-##
-## The game has no browser and Supabase's password grant is behind hCaptcha, so
-## the only sign-in a client like this can complete is the one a real browser
-## does on the player's behalf: open the provider in their default browser, and
-## catch the redirect on a socket bound to localhost.
-##
-## PKCE is what makes that safe to do without a client secret. We send the hash
-## of a secret we generated (`code_challenge`); the code that comes back is
-## worthless to anyone who cannot also present the original (`code_verifier`),
-## which never leaves this process.
-##
-## Binds `127.0.0.1` explicitly, not `0.0.0.0` — the redirect is from a browser
-## on this machine, and a listener on every interface is an invitation from the
-## rest of the network.
 
-## Long enough to find the tab, log in, and approve; short enough that a
-## forgotten window does not leave a socket open for the session.
+## Long enough to find the tab, log in, and approve; short enough that a forgotten
+## window does not leave a socket open for the session.
 const TIMEOUT_SECONDS := 180.0
 
-## RFC 7636 puts the verifier between 43 and 128 characters. 32 random bytes is
-## 43 base64url characters — the shortest length that is still 256 bits.
+## RFC 7636 puts the verifier between 43 and 128 characters.
 const VERIFIER_BYTES := 32
 
 signal finished(answer: Dictionary)
@@ -34,7 +19,6 @@ var _done := false
 
 
 func _ready() -> void:
-	# Nothing to poll until someone is waiting for a code.
 	set_process(false)
 
 
@@ -43,8 +27,7 @@ static func new_verifier() -> String:
 	return _b64url(Crypto.new().generate_random_bytes(VERIFIER_BYTES))
 
 
-## The challenge derived from a verifier — SHA-256, base64url. What is sent to
-## the provider; the verifier itself is only ever sent back to GoTrue.
+## The challenge derived from a verifier — SHA-256, base64url.
 static func challenge_for(verifier: String) -> String:
 	var ctx := HashingContext.new()
 	ctx.start(HashingContext.HASH_SHA256)
@@ -61,9 +44,7 @@ static func _b64url(bytes: PackedByteArray) -> String:
 	)
 
 
-## Binds an ephemeral port on localhost and returns it, or 0 if nothing was
-## free. The port is part of the redirect URL, so it has to be known before the
-## browser is opened.
+## Binds an ephemeral port on localhost and returns it, or 0 if nothing was free.
 func listen() -> int:
 	_server = TCPServer.new()
 	if _server.listen(0, "127.0.0.1") != OK:
@@ -72,8 +53,8 @@ func listen() -> int:
 	return _server.get_local_port()
 
 
-## Resolves once the browser comes back: `{"code": "..."}`, or `{"error": "..."}`
-## for a refusal, a timeout, or a request that carried neither.
+## Resolves once the browser comes back: `{"code": "..."}`, or `{"error": "..."}` for a
+## refusal, a timeout, or a request that carried neither.
 func wait_for_code() -> Dictionary:
 	if _server == null:
 		return {"error": "No local port was available for sign-in."}
@@ -82,8 +63,6 @@ func wait_for_code() -> Dictionary:
 
 
 func _process(delta: float) -> void:
-	# Cancelled from outside — `close()` is callable at any time, including
-	# between this frame's poll and the next.
 	if _done or _server == null:
 		return
 	_elapsed += delta
@@ -105,16 +84,13 @@ func _process(delta: float) -> void:
 	if available <= 0:
 		return
 
-	# Only the request line matters, and it arrives in the first packet — the
-	# code is in the URL, so nothing here needs to read a body.
 	var request := _peer.get_utf8_string(available)
 	var answer := parse_request(request)
 	_reply(answer)
 	_finish(answer)
 
 
-## Pulls the result out of an HTTP request line. Static and total: this parses
-## whatever a browser (or anything else on localhost) sends at the port.
+## Pulls the result out of an HTTP request line.
 static func parse_request(request: String) -> Dictionary:
 	var line := request.split("\r\n")[0]
 	var parts := line.split(" ")
@@ -132,7 +108,6 @@ static func parse_request(request: String) -> Dictionary:
 
 	if fields.has("code"):
 		return {"code": fields["code"]}
-	# The provider's own words when a player presses Cancel on its consent page.
 	if fields.has("error_description"):
 		return {"error": String(fields["error_description"]).replace("+", " ")}
 	if fields.has("error"):
@@ -140,8 +115,7 @@ static func parse_request(request: String) -> Dictionary:
 	return {"error": "Sign-in came back without a code."}
 
 
-## The page the player is left looking at. Plain and self-contained: this is
-## served from a socket that is about to close, so it can load nothing.
+## The page the player is left looking at.
 func _reply(answer: Dictionary) -> void:
 	var message := (
 		"You are signed in. Close this tab and return to the game."

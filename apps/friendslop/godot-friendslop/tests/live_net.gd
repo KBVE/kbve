@@ -1,15 +1,6 @@
 extends SceneTree
 
-## Manual end-to-end check against a running friendslop-server. Not a gdUnit
-## suite — it needs a live server, so `nx test` skips it.
-##
-## Defaults to the deployed fleet; point FS_URL at a local server to check one:
-##
-##   godot --headless -s tests/live_net.gd
-##   FS_URL=ws://127.0.0.1:7980/ws godot --headless -s tests/live_net.gd
-##
-## No name is requested, so the server answers with an Anon-XXXX one — that is
-## the whole of guest mode, and it is what LIVE OK prints back.
+## Manual end-to-end check against a running friendslop-server.
 
 const DEPLOYED_URL := "wss://friendslop.kbve.com/ws"
 

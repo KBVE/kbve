@@ -52,11 +52,6 @@ float terrain_at(vec2 p) {
     return mix(mix(h00, h10, f.x), mix(h01, h11, f.x), f.y);
 }
 
-// Frustum culling keeps whatever is in front of the camera, including the far
-// side of a hill. Walking the terrain between the instance and the eye is what
-// drops those: if the ground stands above the sight line anywhere along the
-// way, nothing at that spot can be seen. Tested against the top of the
-// instance, so the whole thing is hidden before it is dropped.
 bool occluded(vec3 top, vec3 eye) {
     if (OCCL_STEPS <= 0 || distance(top.xz, eye.xz) < OCCL_START) {
         return false;
@@ -196,9 +191,7 @@ fn storage_uniform(binding: i32, buffer: Rid) -> Gd<RdUniform> {
     u
 }
 
-/// Terrain the cull pass tests sight lines against. Carries its own dummy so a
-/// field that readies before the terrain still builds a valid uniform set, just
-/// with the occlusion step switched off.
+/// Terrain the cull pass tests sight lines against.
 pub struct TerrainOcclusion {
     pub heights: Vec<f32>,
     pub res: i32,
@@ -334,9 +327,6 @@ impl FloraCompute {
             .data(&cand_bytes)
             .done();
         let counter_buf = rd.storage_buffer_create(4);
-        // Always allocated, even with occlusion off: the binding has to exist for
-        // the uniform set to validate, and a one-float dummy is cheaper than a
-        // second shader variant.
         let height_bytes = PackedFloat32Array::from(terrain.sample_data()).to_byte_array();
         let height_buf = rd
             .storage_buffer_create_ex(height_bytes.len() as u32)

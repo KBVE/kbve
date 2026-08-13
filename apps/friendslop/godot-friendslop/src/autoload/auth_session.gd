@@ -2,26 +2,6 @@ class_name AuthSession
 extends Node
 
 ## Who the player currently is, for as long as the process lives.
-##
-## Guest is a first-class mode, not a fallback: the server names guests itself
-## (`Anon-XXXX`), so signing in as one needs no credentials, no network round
-## trip, and no stored token. Everything an account would add — a token, a
-## claimed username — is exposed here as an empty value in guest mode, so a
-## caller never has to ask which mode it is in before wiring a join.
-##
-## Accounts are Supabase GoTrue, the same issuer the rest of the ecosystem uses.
-## The token carries a `kbve_username` claim stamped by the Custom Access Token
-## hook; it is what the game server verifies, and the username read out of it
-## here is only for drawing on this screen before the join.
-##
-## Signing in goes through the player's own browser (`sign_in_with_provider`):
-## GoTrue has hCaptcha enabled, and a password grant from a client with no
-## browser is refused outright. `sign_in` keeps the password path for the day
-## that changes, but nothing calls it.
-##
-## Nothing is written to disk. A refresh token on a shared machine is a login,
-## and the cost of typing a password again is smaller than the cost of leaving
-## one lying in `user://`.
 
 signal changed
 
@@ -35,17 +15,15 @@ enum Mode {
 const SUPABASE_URL := "https://supabase.kbve.com"
 
 ## Public by design — it identifies the project, it does not authorize anything.
-## The same key ships in the website bundle.
 const ANON_KEY := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzU1NDAzMjAwLCJleHAiOjE5MTMxNjk2MDB9.oietJI22ZytbghFywvdYMSJp7rcsBdBYbcciJxeGWrg"
 
 const TIMEOUT_SECONDS := 15.0
 
-## Providers offered on the title. Both are enabled on GoTrue; the list is here
-## rather than in the UI so the menu never names one this cannot start.
+## Providers offered on the title.
 const PROVIDERS := ["discord", "github"]
 
-## Refresh this far before the token actually expires, so a join that takes a
-## moment to travel does not arrive holding something that just went stale.
+## Refresh this far before the token actually expires, so a join that takes a moment to
+## travel does not arrive holding something that just went stale.
 const REFRESH_MARGIN_SECONDS := 60
 
 var _mode: Mode = Mode.SIGNED_OUT
@@ -68,14 +46,12 @@ func is_guest() -> bool:
 	return _mode == Mode.GUEST
 
 
-## Why the last sign-in failed, in words a player can act on. Empty after a
-## successful one.
+## Why the last sign-in failed, in words a player can act on.
 func last_error() -> String:
 	return _error
 
 
-## Immediate and infallible. The name arrives from the server on join, so there
-## is nothing to wait for here.
+## Immediate and infallible.
 func sign_in_as_guest() -> void:
 	_mode = Mode.GUEST
 	_token = ""
@@ -86,10 +62,7 @@ func sign_in_as_guest() -> void:
 	changed.emit()
 
 
-## Exchanges credentials for a token. Await it — this is a network round trip.
-##
-## Returns `OK`, or an error with [`last_error`](last_error) set to something
-## worth showing. The password is never stored, here or anywhere else.
+## Exchanges credentials for a token.
 func sign_in(email: String, password: String) -> Error:
 	if email.strip_edges().is_empty() or password.is_empty():
 		_error = "Enter an email and password."
@@ -102,12 +75,8 @@ func sign_in(email: String, password: String) -> Error:
 	return _adopt_answer(answer)
 
 
-## Signs in through the player's browser: opens the provider, catches the
-## redirect on a loopback socket, and exchanges the code for a token.
-##
-## PKCE, so no client secret ships in the game: the browser carries the hash of
-## a secret generated here, and the code it brings back is worthless without the
-## original — which never leaves this process.
+## Signs in through the player's browser: opens the provider, catches the redirect on a
+## loopback socket, and exchanges the code for a token.
 func sign_in_with_provider(provider: String) -> Error:
 	if not PROVIDERS.has(provider):
 		_error = "Unknown sign-in provider."
@@ -130,15 +99,13 @@ func sign_in_with_provider(provider: String) -> Error:
 		_error = answer["error"]
 		return ERR_UNAUTHORIZED
 
-	# The code alone proves nothing; the verifier is what claims it.
 	return _adopt_answer(await _post("/auth/v1/token?grant_type=pkce", {
 		"auth_code": answer["code"],
 		"code_verifier": verifier,
 	}))
 
 
-## The URL the browser is sent to. Built here so it can be asserted on without
-## opening anything.
+## The URL the browser is sent to.
 static func authorize_url(provider: String, port: int, verifier: String) -> String:
 	var redirect := "http://127.0.0.1:%d/callback" % port
 	return "%s/auth/v1/authorize?provider=%s&redirect_to=%s&code_challenge=%s&code_challenge_method=s256" % [
@@ -149,8 +116,7 @@ static func authorize_url(provider: String, port: int, verifier: String) -> Stri
 	]
 
 
-## Renews the access token from the refresh token obtained at sign-in. No-op for
-## guests and for a token with life left in it.
+## Renews the access token from the refresh token obtained at sign-in.
 func refresh_if_stale() -> Error:
 	if _mode != Mode.ACCOUNT or _refresh_token.is_empty():
 		return OK
@@ -161,7 +127,6 @@ func refresh_if_stale() -> Error:
 		"refresh_token": _refresh_token,
 	})
 	if answer.get("code", 0) != 200:
-		# The refresh token is spent or revoked; this is a sign-out, not a retry.
 		sign_out()
 		_error = "Session expired — sign in again."
 		return ERR_UNAUTHORIZED
@@ -178,21 +143,17 @@ func sign_out() -> void:
 	changed.emit()
 
 
-## Supabase access token, or "" for a guest. This is what the game server
-## verifies before it will hand out a name.
+## Supabase access token, or "" for a guest.
 func access_token() -> String:
 	return _token
 
 
-## Username from the token's claims — for this screen only. The server reads the
-## same claim out of the same token and its answer is the one that counts.
+## Username from the token's claims — for this screen only.
 func requested_name() -> String:
 	return _username
 
 
-## Adopts a signed-in account directly. The seam an OAuth flow lands on: whatever
-## obtains the token hands it here, and the rest of the game reads it the same
-## way it reads a password sign-in.
+## Adopts a signed-in account directly.
 func adopt_account(token: String, username: String, refresh_token := "", expires_at := 0) -> void:
 	if token.is_empty():
 		push_error("AuthSession.adopt_account: refusing an empty token")
@@ -206,16 +167,14 @@ func adopt_account(token: String, username: String, refresh_token := "", expires
 	changed.emit()
 
 
-## Reads the `kbve_username` claim out of a token without verifying it — the
-## signature is the server's business, and a name drawn on this machine's own
-## screen is not a security boundary. Empty when the claim is missing.
+## Reads the `kbve_username` claim out of a token without verifying it — the signature
+## is the server's business, and a name drawn on this machine's own screen is not a
+## security boundary.
 static func username_in(token: String) -> String:
 	var parts := token.split(".")
 	if parts.size() < 2:
 		return ""
 	var payload := parts[1]
-	# JWTs are base64url with the padding stripped; Godot's decoder wants
-	# neither of those things.
 	payload = payload.replace("-", "+").replace("_", "/")
 	while payload.length() % 4 != 0:
 		payload += "="
@@ -254,15 +213,9 @@ func _adopt_answer(answer: Dictionary) -> Error:
 	return OK
 
 
-## GoTrue spells its failures several ways depending on the endpoint and the
-## version; a player only needs the sentence.
-##
-## The captcha case gets its own: hCaptcha is enabled on the password grant, and
-## a game client has no browser to solve one in, so "request disallowed" is not
-## something the player can fix by retyping anything.
+## GoTrue spells its failures several ways depending on the endpoint and the version; a
+## player only needs the sentence.
 static func _message_in(body: Dictionary, code: int) -> String:
-	# GoTrue's own words for a code that was never issued, or one whose flow
-	# state has already been spent or aged out. True, and useless to a player.
 	if String(body.get("error_code", "")).begins_with("flow_state"):
 		return "Sign-in expired before it finished — try again."
 	for key in ["error_description", "msg", "message", "error"]:

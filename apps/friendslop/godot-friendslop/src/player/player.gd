@@ -1,9 +1,9 @@
 extends CharacterBody3D
 
-## Speeds, the jump impulse, the fall cap and the stopping rate are all
-## QLocomotion's now, so the ring the rig blends over and the speed the body
-## actually travels cannot drift apart -- and an authoritative server reaches the
-## same numbers from the same intent. What is left here is input and the slide.
+## Speeds, the jump impulse, the fall cap and the stopping rate are all QLocomotion's
+## now, so the ring the rig blends over and the speed the body actually travels cannot
+## drift apart -- and an authoritative server reaches the same numbers from the same
+## intent.
 const MOUSE_SENSITIVITY := 0.003
 const PITCH_LIMITS := Vector2(-1.2, 0.6)
 
@@ -14,9 +14,8 @@ const Mantle := preload("res://src/player/mantle.gd")
 
 var _touch := false
 var _mantle := Mantle.new()
-## Q_WALK="x,z" leans on the stick without a hand on it, and "auto" sweeps it
-## through every heading. Walking into a jam by hand to find out whether the
-## character can climb back out of it is the slow half of testing this.
+## Q_WALK="x,z" leans on the stick without a hand on it, and "auto" sweeps it through
+## every heading.
 var _walk := Vector2.ZERO
 var _walk_sweep := false
 var _walk_t := 0.0
@@ -38,8 +37,8 @@ func _ready() -> void:
 		_use_mobile_materials()
 
 
-## The screen-space ink pass depends on Forward+ only inputs, so it is dropped
-## under the mobile renderer.
+## The screen-space ink pass depends on Forward+ only inputs, so it is dropped under the
+## mobile renderer.
 func _use_mobile_materials() -> void:
 	var ink: Node = get_node_or_null("Pivot/Camera3D/InkLines")
 	if ink:
@@ -52,8 +51,6 @@ func _notification(what: int) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	# Touch devices synthesise mouse motion from drags by default, so the mouse
-	# path has to stay shut there or every look drag is applied twice.
 	if _touch:
 		return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
@@ -86,9 +83,6 @@ func _physics_process(delta: float) -> void:
 	var jump := Input.is_action_just_pressed("jump")
 	var direction: Vector3 = rig.wish_direction(input_dir, global_rotation.y)
 
-	# Offered the jump before the jump is: pressed against a ledge, climbing it
-	# is what was meant, and a hop into the wall is not. The rig is left alone
-	# while it owns the body, since it is playing its own climb.
 	if _mantle.update(delta, direction, jump):
 		_report(delta)
 		return
