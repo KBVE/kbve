@@ -207,6 +207,9 @@ pub struct QFishField {
     chunk_cap: i32,
     buf: Vec<f32>,
     shadow_buf: Vec<f32>,
+    scratch: PackedFloat32Array,
+    overflow: i32,
+    overflow_warned: bool,
     rng: u32,
     water: f32,
     half_width: f32,
@@ -779,6 +782,7 @@ impl QFishField {
         }
 
         let mut counts = vec![0usize; n];
+        self.overflow = 0;
         let scale = self.shadow_size;
         let alpha = self.shadow_alpha;
         let water = self.water;
@@ -793,6 +797,7 @@ impl QFishField {
             let c = self.chunk_of(f.z);
             let slot = counts[c];
             if slot * 16 >= stride {
+                self.overflow += 1;
                 continue;
             }
             let o = c * stride + slot * 16;
@@ -844,16 +849,41 @@ impl QFishField {
         }
 
         let mut rs = RenderingServer::singleton();
-        for (c, chunk) in self.chunks.iter_mut().enumerate() {
+        let mut scratch = std::mem::take(&mut self.scratch);
+        if scratch.len() != stride {
+            scratch.resize(stride);
+        }
+        for c in 0..n {
             let used = counts[c];
+            if used == 0 && self.chunks[c].count == 0 {
+                continue;
+            }
             let o = c * stride;
-            let slice = &self.buf[o..o + stride];
-            rs.multimesh_set_buffer(chunk.mm, &PackedFloat32Array::from(slice));
-            rs.multimesh_set_visible_instances(chunk.mm, used as i32);
-            let sslice = &self.shadow_buf[o..o + stride];
-            rs.multimesh_set_buffer(chunk.shadow_mm, &PackedFloat32Array::from(sslice));
-            rs.multimesh_set_visible_instances(chunk.shadow_mm, used as i32);
-            chunk.count = used as i32;
+            let (mm, smm) = (self.chunks[c].mm, self.chunks[c].shadow_mm);
+
+            scratch
+                .as_mut_slice()
+                .copy_from_slice(&self.buf[o..o + stride]);
+            rs.multimesh_set_buffer(mm, &scratch);
+            rs.multimesh_set_visible_instances(mm, used as i32);
+
+            scratch
+                .as_mut_slice()
+                .copy_from_slice(&self.shadow_buf[o..o + stride]);
+            rs.multimesh_set_buffer(smm, &scratch);
+            rs.multimesh_set_visible_instances(smm, used as i32);
+
+            self.chunks[c].count = used as i32;
+        }
+        self.scratch = scratch;
+
+        if self.overflow > 0 && !self.overflow_warned {
+            self.overflow_warned = true;
+            godot_warn!(
+                "[QFishField] {} fish skipped this frame; chunk_cap={} exceeded (raise chunk_cap or chunk_len)",
+                self.overflow,
+                self.chunk_cap
+            );
         }
     }
 
