@@ -151,6 +151,33 @@ jobs:
                   mkdir -p "$PROJECT_PATH/$ADDON_PATH"
                   cp -R gdext/. "$PROJECT_PATH/$ADDON_PATH/"
                   find "$PROJECT_PATH/$ADDON_PATH" -type f -printf '%p\t%s bytes\n'
+            - name: Install GDExtension runtime libraries
+              if: ${{ fromJSON(inputs.engine).gdextension.package != '' }}
+              env:
+                  PROJECT_PATH: ${{ fromJSON(inputs.engine).project_path }}
+                  ADDON_PATH: ${{ fromJSON(inputs.engine).gdextension.addon_path }}
+              run: |
+                  # The gdextension job installs webkit's -dev packages on its
+                  # runner so the cdylib links, but this container is a different
+                  # machine and ships neither. q's `client` feature pulls wry, which
+                  # puts a hard DT_NEEDED on libwebkit2gtk-4.1.so.0 — so the .so we
+                  # just staged dlopens to "cannot open shared object file", the
+                  # extension's classes never register, and the suite dies at parse
+                  # time with an unrelated-looking gdUnit4 crash.
+                  # libfontconfig1 is cosmetic (kills the system-font error spam)
+                  # but comes cheap alongside.
+                  apt-get update -qq
+                  apt-get install -y -qq --no-install-recommends \
+                    libwebkit2gtk-4.1-0 libfontconfig1
+                  # Assert every soname resolves. Without this a future dependency
+                  # regresses into the same signal-11 mystery rather than saying so.
+                  MISSING=$(find "$PROJECT_PATH/$ADDON_PATH" -name '*.so' -exec ldd {} \; 2>/dev/null \
+                    | awk '/not found/ {print $1}' | sort -u)
+                  if [ -n "$MISSING" ]; then
+                    echo "::error::Staged GDExtension libraries have unresolved sonames in this container:"
+                    echo "$MISSING"
+                    exit 1
+                  fi
             - name: Run headless test pass
               env:
                   GODOT_BIN: godot
