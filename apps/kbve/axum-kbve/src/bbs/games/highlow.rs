@@ -36,6 +36,7 @@ impl HighLow {
         }
     }
 
+    #[cfg(test)]
     pub fn streak(&self) -> u32 {
         self.streak
     }

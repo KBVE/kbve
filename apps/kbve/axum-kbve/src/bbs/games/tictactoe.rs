@@ -96,10 +96,12 @@ impl TicTacToe {
         }
     }
 
+    #[cfg(test)]
     pub fn outcome(&self) -> Outcome {
         self.outcome
     }
 
+    #[cfg(test)]
     pub fn board(&self) -> &[Cell; 9] {
         &self.board
     }

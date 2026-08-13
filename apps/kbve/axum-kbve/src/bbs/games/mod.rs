@@ -2,6 +2,7 @@ pub mod blackjack;
 pub mod dungeon;
 pub mod hangman;
 pub mod highlow;
+pub mod run;
 pub mod text;
 pub mod tictactoe;
 
@@ -52,7 +53,7 @@ pub const CATALOG: &[Entry] = &[
 
 pub fn launch(key: char) -> Option<Box<dyn Game + Send>> {
     match key {
-        '1' => Some(Box::new(dungeon::Lobby::new())),
+        '1' => Some(Box::new(run::Run::new(text::Rng::from_clock()))),
         '2' => Some(Box::new(blackjack::Blackjack::new(text::Rng::from_clock()))),
         '3' => Some(Box::new(tictactoe::TicTacToe::new(text::Rng::from_clock()))),
         '4' => Some(Box::new(hangman::Hangman::new(text::Rng::from_clock()))),

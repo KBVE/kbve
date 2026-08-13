@@ -86,6 +86,7 @@ impl Blackjack {
         game
     }
 
+    #[cfg(test)]
     pub fn chips(&self) -> i32 {
         self.chips
     }

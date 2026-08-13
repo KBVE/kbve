@@ -64,10 +64,12 @@ impl Hangman {
         }
     }
 
+    #[cfg(test)]
     pub fn state(&self) -> State {
         self.state
     }
 
+    #[cfg(test)]
     pub fn answer(&self) -> &'static str {
         self.word
     }

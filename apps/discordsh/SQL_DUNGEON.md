@@ -4,7 +4,11 @@
 
 Goal: let one player reach one dungeon profile from either door — the Discord bot or the telnet BBS — without changing how the game saves today.
 
-This document exists because the schema work ran ahead of the rendering work. The SQL below was drafted and verified against the kilobase prod-replica image, then deliberately pulled back out of the branch so a migration can't land before the BBS dungeon client is real. Write the migration when the client needs it, not before.
+This document exists because the schema work ran ahead of the game work. The SQL below was drafted and verified against the kilobase prod-replica image, then deliberately pulled back out of the branch so a migration can't land before there is anything to save.
+
+**Where the game is now:** `[G] Games -> [1] Dungeons` on the BBS is playable — floors, combat, potions, gold, death and restart — and entirely **ephemeral**. State lives in the session; hanging up ends the run. That is the intended test-phase shape.
+
+**When to write this migration:** when the ephemeral run is the shape we want to keep and players start asking for their progress back. Not before. Two things should be settled first — whether the BBS run stays its own small game or gets replaced by the extracted discordsh core, and which kind of cross-play is actually wanted (see the last two sections).
 
 Related: [DISCORDSH_PLAN.md](./DISCORDSH_PLAN.md), [DISCORDSH_GAMEIDEA.md](./DISCORDSH_GAMEIDEA.md).
 

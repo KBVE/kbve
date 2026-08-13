@@ -9,7 +9,7 @@ use bevy_chat::ChatMessage;
 use super::chat::{MAX_CHAT_LEN, PLATFORM, sanitize_content, sanitize_nick};
 use super::claim::{ClaimStore, Redeem};
 use super::games::text::{Rng, bar, meter, strip_markup};
-use super::games::{self, Flow, Game, blackjack, dungeon, hangman, highlow, tictactoe};
+use super::games::{self, Flow, Game, blackjack, dungeon, hangman, highlow, run, tictactoe};
 use super::render::{Ink, Screen, Term, truncate, wrap_lines};
 use super::telnet::{DO, IAC, OPT_ECHO, OPT_NAWS, SB, SE, TelnetConn, WILL};
 
@@ -412,44 +412,6 @@ fn every_catalog_entry_launches() {
 }
 
 #[test]
-fn dungeon_lobby_is_honest_then_previews() {
-    let mut lobby = dungeon::Lobby::new();
-    let status = drain(Term::Ansi, &lobby);
-    assert!(status.contains("not yet playable"));
-
-    assert_eq!(lobby.on_key('P'), Flow::Continue);
-    let preview = drain(Term::Ansi, &lobby);
-    assert!(preview.contains("Glass Slime"));
-    assert!(preview.contains("sample turn"));
-
-    assert_eq!(lobby.on_key('Q'), Flow::Continue);
-    assert_eq!(lobby.on_key('Q'), Flow::Exit);
-}
-
-#[test]
-fn dungeon_frame_renders_bars_not_markdown() {
-    let mut lobby = dungeon::Lobby::new();
-    let _ = lobby.on_key('P');
-    let preview = drain(Term::Ansi, &lobby);
-    assert!(preview.contains("HP [######----] 32/50"));
-    assert!(!preview.contains("**"));
-    assert!(!preview.contains('`'));
-}
-
-#[test]
-fn dungeon_frame_survives_petscii_without_substitutions() {
-    let mut lobby = dungeon::Lobby::new();
-    let _ = lobby.on_key('P');
-    let mut screen = Screen::new(Term::Petscii, 40, 25);
-    lobby.draw(&mut screen);
-    let bytes = screen.take();
-    assert!(
-        !bytes.contains(&b'?'),
-        "petscii render fell back to '?' for a glyph strip_markup missed"
-    );
-}
-
-#[test]
 fn dungeon_frame_wraps_inside_the_petscii_width() {
     let frame = dungeon::Frame {
         room: "a ".repeat(80),
@@ -472,4 +434,143 @@ fn dungeon_frame_wraps_inside_the_petscii_width() {
         widest <= 40,
         "line overflowed the 40-column screen: {widest}"
     );
+}
+
+fn play(run: &mut run::Run, keys: &str) {
+    for k in keys.chars() {
+        if run.phase() == run::Phase::Dead {
+            break;
+        }
+        let _ = run.on_key(k);
+    }
+}
+
+#[test]
+fn dungeon_run_starts_on_the_first_floor() {
+    let game = run::Run::new(Rng::new(1));
+    assert_eq!(game.depth(), 1);
+    assert!(game.hp() > 0);
+    assert_eq!(game.potions(), 3);
+}
+
+#[test]
+fn dungeon_quit_exits_from_any_phase() {
+    let mut game = run::Run::new(Rng::new(2));
+    assert_eq!(game.on_key('Q'), Flow::Exit);
+}
+
+#[test]
+fn dungeon_descending_increases_depth() {
+    let mut game = run::Run::new(Rng::new(4));
+    let start = game.depth();
+    play(&mut game, "AAAAAAAAAA");
+    if game.phase() == run::Phase::Exploring {
+        let _ = game.on_key('G');
+        assert!(game.depth() > start);
+    }
+}
+
+#[test]
+fn dungeon_potion_heals_and_is_consumed() {
+    let mut game = run::Run::new(Rng::new(5));
+    play(&mut game, "AAAA");
+    if game.phase() != run::Phase::Dead && game.hp() < 40 {
+        let before_hp = game.hp();
+        let before_potions = game.potions();
+        let _ = game.on_key('P');
+        assert_eq!(game.potions(), before_potions - 1);
+        assert!(game.hp() >= before_hp);
+    }
+}
+
+#[test]
+fn dungeon_potion_is_refused_when_empty() {
+    let mut game = run::Run::new(Rng::new(6));
+    for _ in 0..8 {
+        if game.phase() == run::Phase::Dead {
+            break;
+        }
+        let _ = game.on_key('P');
+    }
+    assert_eq!(game.potions(), 0);
+    let frame = drain(Term::Ansi, &game);
+    assert!(frame.contains("Potion (0)"));
+}
+
+#[test]
+fn dungeon_fighting_eventually_resolves() {
+    let mut game = run::Run::new(Rng::new(8));
+    for _ in 0..200 {
+        if game.phase() == run::Phase::Dead {
+            break;
+        }
+        let _ = game.on_key(if game.phase() == run::Phase::Fighting {
+            'A'
+        } else {
+            'G'
+        });
+    }
+    assert!(game.depth() > 1 || game.phase() == run::Phase::Dead);
+}
+
+#[test]
+fn dungeon_death_offers_a_new_run() {
+    let mut game = run::Run::new(Rng::new(3));
+    for _ in 0..400 {
+        if game.phase() == run::Phase::Dead {
+            break;
+        }
+        let _ = game.on_key(if game.phase() == run::Phase::Fighting {
+            'A'
+        } else {
+            'G'
+        });
+    }
+    assert_eq!(game.phase(), run::Phase::Dead);
+    assert_eq!(game.hp(), 0);
+
+    let dead_frame = drain(Term::Ansi, &game);
+    assert!(dead_frame.contains("run over"));
+    assert!(dead_frame.contains("New run"));
+
+    let _ = game.on_key('N');
+    assert_ne!(game.phase(), run::Phase::Dead);
+    assert!(game.hp() > 0);
+    assert_eq!(game.depth(), 1);
+    assert_eq!(game.potions(), 3);
+}
+
+#[test]
+fn dungeon_says_progress_is_not_saved() {
+    let game = run::Run::new(Rng::new(9));
+    assert!(drain(Term::Ansi, &game).contains("progress is not saved"));
+}
+
+#[test]
+fn dungeon_run_renders_clean_on_petscii() {
+    let mut game = run::Run::new(Rng::new(10));
+    for _ in 0..30 {
+        let mut screen = Screen::new(Term::Petscii, 40, 25);
+        game.draw(&mut screen);
+        let bytes = screen.take();
+        assert!(
+            !bytes.contains(&b'?'),
+            "petscii fallback in a dungeon frame"
+        );
+        let widest = bytes
+            .split(|b| *b == 0x0D)
+            .map(|line| line.iter().filter(|b| **b >= 0x20).count())
+            .max()
+            .unwrap_or(0);
+        assert!(widest <= 40, "line overflowed 40 columns: {widest}");
+
+        if game.phase() == run::Phase::Dead {
+            break;
+        }
+        let _ = game.on_key(if game.phase() == run::Phase::Fighting {
+            'A'
+        } else {
+            'G'
+        });
+    }
 }
