@@ -1307,6 +1307,9 @@
 					"macOS",
 					"Linux"
 				],
+				"features": [
+					"net-godot"
+				],
 				"gdextension": {
 					"package": "q",
 					"addon_path": "addons/q"
