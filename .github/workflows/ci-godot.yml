@@ -316,7 +316,12 @@ jobs:
               env:
                   PKG: ${{ fromJSON(inputs.engine).gdextension.package }}
                   RUST_TARGET: ${{ matrix.rust_target }}
-              run: cargo build --release -p "$PKG" ${RUST_TARGET:+--target "$RUST_TARGET"}
+                  FEATURES: ${{ join(fromJSON(inputs.engine).features, ',') }}
+              run: |
+                  echo "::notice::Building $PKG with features: ${FEATURES:-<default>}"
+                  cargo build --release -p "$PKG" \
+                    ${RUST_TARGET:+--target "$RUST_TARGET"} \
+                    ${FEATURES:+--features "$FEATURES"}
             - name: Stage artefact
               shell: bash
               env:
