@@ -1,18 +1,6 @@
 extends RefCounted
 
 ## Puts the cel shader over an imported mesh's surfaces, keyed by material name.
-##
-## Shared by every rig rather than written per creature, because the awkward parts
-## are the same wherever it is used: the imported material is shared by every
-## instance of the glb so it has to be overridden rather than edited, and the
-## kit's tint has to be fed back in as a shader parameter because the glTF
-## importer drops it.
-##
-## Config per material name:
-##   tint  - name of a Color property on `owner` the base map is multiplied by
-##   body  - use the shader's body preset instead of its cloth one
-##   lit   - flatten the terminator, for surfaces a shadow edge must not cross
-##   sat   - scale the map's chroma, for maps more saturated than the scene
 
 const SHADER := preload("res://assets/fx/shaders/anime.gdshader")
 

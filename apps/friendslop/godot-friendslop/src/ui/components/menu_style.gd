@@ -2,10 +2,6 @@ class_name MenuStyle
 extends RefCounted
 
 ## Every touch-vs-desktop decision in the menu, in one place.
-##
-## `touch` is a static var rather than a parameter because it is a property of
-## the device, not of any one control -- threading it through each factory is how
-## the sizing drifted before.
 
 static var touch := false
 
@@ -19,21 +15,17 @@ const PAPER := Color(0.93, 0.87, 0.72, 0.55)
 const PAPER_HOVER := Color(0.97, 0.9, 0.72, 0.8)
 const PAPER_PRESSED := Color(0.8, 0.72, 0.55, 0.85)
 
-## Pages are measured against the projected book rather than the screen, so they
-## hold at any window size and survive a change to the book's framing. The
-## reference frame is the projected bounds of the book mesh -- the closed bind
-## pose, narrower than the open spread, hence values outside 0..1 on x. What
-## matters is that it moves with the book. Flip PAGE_BORDER to see them.
+## Pages are measured against the projected book rather than the screen, so they hold at
+## any window size and survive a change to the book's framing.
 const PAGE_LEFT_UV := Rect2(-1.161, 0.250, 1.429, 0.570)
 const PAGE_RIGHT_UV := Rect2(0.732, 0.421, 1.429, 0.570)
 const PAGE_BORDER := false
 
-## Touch gets wider pages and taller rows: the margins that read as comfortable
-## on a desktop window leave the rows squeezed under a thumb.
+## Touch gets wider pages and taller rows: the margins that read as comfortable on a
+## desktop window leave the rows squeezed under a thumb.
 const PAGE_PAD_TOUCH := Vector2(0.23, 0.03)
-## Row height as a fraction of the projected book height, clamped so a tiny
-## window still gets a hittable row and a 4K one does not get slabs. Apple and
-## Android both put the minimum comfortable touch target near 44pt.
+## Row height as a fraction of the projected book height, clamped so a tiny window still
+## gets a hittable row and a 4K one does not get slabs.
 const ROW_H_UV := 0.067
 const ROW_H_UV_TOUCH := 0.095
 const ROW_H_RANGE := Vector2(26.0, 64.0)
@@ -59,8 +51,8 @@ static func page_uv(side: int) -> Rect2:
 	return uv
 
 
-## Row height and font for the current projection, so every page scales its rows
-## from one rule instead of each caller re-deriving it.
+## Row height and font for the current projection, so every page scales its rows from
+## one rule instead of each caller re-deriving it.
 static func row_metrics(book_height: float, root_height: float) -> Dictionary:
 	var limits := ROW_H_RANGE_TOUCH if touch else ROW_H_RANGE
 	var row_uv := ROW_H_UV_TOUCH if touch else ROW_H_UV

@@ -1,7 +1,4 @@
 //! Rapier2d integration helpers.
-//!
-//! Split per side so the same crate can ship a thin query/render-only
-//! flavor for the client and a full physics-stepping flavor for the server.
 
 #[cfg(feature = "rapier2d-client")]
 pub mod client;
@@ -13,8 +10,7 @@ pub mod server;
 #[cfg(feature = "rapier3d-sim")]
 pub mod sim3d;
 
-/// Godot adapter over [`sim3d`]. Client-only — it is the one place in the
-/// physics stack allowed to name Godot types.
+/// Godot adapter over [`sim3d`].
 #[cfg(feature = "rapier3d-client")]
 pub mod bridge3d;
 

@@ -9,13 +9,10 @@ var _accum := 0.0
 var _player: Node3D
 var _grass: Node
 var _trees: Node
-## Per-system counts need buffer_get_data on the compute counters, which is a
-## blocking GPU readback. That is affordable on desktop and wrecks the very
-## frame time we are trying to measure on mobile, so mobile shows totals only.
+## Per-system counts need buffer_get_data on the compute counters, which is a blocking
+## GPU readback.
 var _detailed := true
-## Worst frame seen since the last readout, plus a slower-decaying peak. An
-## average hides hitches completely, and hitches and a low steady rate need
-## opposite fixes, so both are tracked separately.
+## Worst frame seen since the last readout, plus a slower-decaying peak.
 var _worst_ms := 0.0
 var _peak_ms := 0.0
 var _peak_age := 0.0
@@ -73,8 +70,6 @@ func _process(delta: float) -> void:
 	var vram := RenderingServer.get_rendering_info(RenderingServer.RENDERING_INFO_VIDEO_MEM_USED)
 	var mem := OS.get_static_memory_usage()
 	var lines := PackedStringArray()
-	# CPU time against total frame time: if they track, we are CPU bound, and a
-	# large gap means the GPU is the one behind.
 	var proc_ms := Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0
 	var phys_ms := Performance.get_monitor(Performance.TIME_PHYSICS_PROCESS) * 1000.0
 	lines.append("FPS %d  (%.2f ms)" % [fps, frame_ms])

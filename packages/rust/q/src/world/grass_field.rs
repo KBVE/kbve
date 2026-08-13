@@ -119,9 +119,9 @@ pub struct QGrassField {
     #[export]
     #[init(val = 20.0)]
     card_chunk_size: f32,
-    /// Near-camera density is where grass cost lives: 250 -> 150 roughly halved
-    /// frame time in an open field for very little visible thinning, while
-    /// cutting blade_range over the same span bought a fraction of that.
+    /// Near-camera density is where grass cost lives: 250 -> 150 roughly halved frame
+    /// time in an open field for very little visible thinning, while cutting
+    /// blade_range over the same span bought a fraction of that.
     #[export]
     #[init(val = 150.0)]
     blades_per_sqm: f32,
@@ -152,10 +152,8 @@ pub struct QGrassField {
     #[export]
     #[init(val = 100.0)]
     transition_out_end: f32,
-    /// The billboard card and transition tiers are a local addition; the
-    /// upstream design this is based on goes blades straight to the ground
-    /// impostor. Cards fade by rescaling an alpha-tested cutout, which crawls
-    /// under motion, so they are off by default.
+    /// The billboard card and transition tiers are a local addition; the upstream
+    /// design this is based on goes blades straight to the ground impostor.
     #[export]
     #[init(val = true)]
     billboards: bool,
@@ -393,8 +391,6 @@ impl QGrassField {
         };
         self.apply_compute_mode(mode);
 
-        // Per-tier draw toggles. These hide instances but leave the compute
-        // dispatch running, so they isolate raster cost from culling cost.
         if super::q_hidden("blades") {
             if let Some(bc) = self.blade_compute.as_mut() {
                 bc.set_visible(false);
@@ -714,9 +710,6 @@ impl QGrassField {
             Some(bc) => bc.online() || bc.try_finalize(),
             None => return,
         };
-        // A tier that was never built is not a tier that failed, so absent
-        // counts as online; otherwise running without billboards trips the
-        // fallback and drops the whole field to the classic path.
         let card_online = self
             .card_compute
             .as_mut()
@@ -1709,11 +1702,6 @@ impl QGrassField {
                 let t = yy as f32 / bh;
                 let half = bw * (1.0 - t * 0.92) * 0.5;
                 let cx = base_x + lean * t * t;
-                // Coverage rather than a binary stamp. A hard-edged stroke whose
-                // half-width falls below a pixel toward the tip lands on one
-                // pixel some rows and two the next, and the ragged result cuts
-                // visible lines across the card once it is mipmapped and
-                // alpha-tested.
                 let left = cx - half;
                 let right = cx + half;
                 let x0 = left.floor().max(0.0) as i32;

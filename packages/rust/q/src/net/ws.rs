@@ -1,10 +1,4 @@
 //! WebSocket [`Transport`]: axum host, tungstenite client.
-//!
-//! Delivery is advisory — WebSocket rides TCP, so `Unreliable` is still
-//! retransmitted and still head-of-line blocks. The argument is carried through
-//! rather than discarded so a UDP snapshot lane can route on it later.
-//!
-//! One binary message carries exactly one COBS frame from `crate::proto`.
 
 use std::collections::BTreeMap;
 use std::sync::Arc;
@@ -22,9 +16,6 @@ pub enum WsError {
     Connect(String),
 }
 
-// -----------------------------------------------------------------------------
-// Host
-// -----------------------------------------------------------------------------
 
 pub struct WsHost {
     next_peer: AtomicU32,
@@ -43,8 +34,7 @@ impl WsHost {
         })
     }
 
-    /// Peers dropped since the last call. The driver feeds these to
-    /// `HostSession::remove_player`; the transport cannot, it has no session.
+    /// Peers dropped since the last call.
     pub fn take_disconnects(&self) -> Vec<PeerId> {
         std::mem::take(&mut *self.disconnects.lock().unwrap())
     }
@@ -77,8 +67,6 @@ impl Transport for Arc<WsHost> {
     fn send(&self, to: PeerId, _delivery: Delivery, payload: &[u8]) -> Result<(), Self::Error> {
         let peers = self.peers.lock().unwrap();
         let tx = peers.get(&to).ok_or(WsError::NotConnected(to))?;
-        // A closed channel means the writer task already exited; the reader
-        // task files the disconnect, so it is not raised here.
         let _ = tx.send(payload.to_vec());
         Ok(())
     }
@@ -147,25 +135,18 @@ pub fn router(host: Arc<WsHost>) -> axum::Router {
         .with_state(host)
 }
 
-// -----------------------------------------------------------------------------
-// Client
-// -----------------------------------------------------------------------------
 
 pub struct WsClient {
     outbound: UnboundedSender<Vec<u8>>,
     inbox: Inbox,
 }
 
-/// rustls 0.23 refuses to guess a crypto backend and panics on first use when
-/// none is installed — which, for a `wss://` url, means the panic lands inside
-/// the connect future rather than at startup. Godot turns that into an engine
-/// abort, so a TLS server the client could otherwise reach kills the game
-/// instead. Installing once, here, keeps the fix next to the only thing that
-/// needs it.
+/// rustls 0.23 refuses to guess a crypto backend and panics on first use when none is
+/// installed — which, for a `wss://` url, means the panic lands inside the connect
+/// future rather than at startup.
 fn install_crypto_provider() {
     static ONCE: std::sync::Once = std::sync::Once::new();
     ONCE.call_once(|| {
-        // Err means someone else installed one first, which is just as good.
         let _ = rustls::crypto::ring::default_provider().install_default();
     });
 }

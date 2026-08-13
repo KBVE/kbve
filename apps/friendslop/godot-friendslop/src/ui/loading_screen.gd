@@ -2,28 +2,12 @@ class_name LoadingScreen
 extends CanvasLayer
 
 ## The screen that stands in front of a scene swap.
-##
-## Every heavy scene in this project -- the world, and the title, which runs the
-## same QTerrain and the same materials -- costs seconds to load on a cold
-## start, most of it the renderer turning shaders into pipelines. Godot spends
-## those seconds inside `change_scene_to_file`, which does not return until the
-## new scene is built, so nothing can draw a frame while it runs. That is the
-## frozen splash: not a hang, a blocking call with no one holding the screen.
-##
-## So the swap goes through `load_threaded_request` instead, and this layer
-## lives on the tree root rather than inside either scene -- it has to outlive
-## the one it is replacing. It is deliberately made of nothing but Control
-## nodes: canvas shaders are already resident by the time anything calls this,
-## so the loading screen itself never waits on the compile it is covering.
 
 const BACKDROP := Color(0.07, 0.06, 0.05, 1.0)
 const BAR_SIZE := Vector2(360, 10)
 const BAR_TRACK := Color(0.2, 0.16, 0.12, 0.9)
 
-## Frames to hold after the swap. The new scene's first `_process` is where the
-## renderer creates the pipelines it could not create earlier, so tearing the
-## cover down the instant `change_scene_to_packed` returns just moves the freeze
-## into view rather than hiding it.
+## Frames to hold after the swap.
 const HOLD_FRAMES := 3
 
 var _label: Label
@@ -32,16 +16,10 @@ var _percent: Label
 
 
 ## Swaps to `path` behind a cover that keeps drawing while the load runs.
-##
-## Static and self-parenting because the caller is usually the scene being
-## replaced: it cannot hold the screen it is about to be freed by.
 static func swap(tree: SceneTree, path: String, what: String = "") -> LoadingScreen:
 	var screen := LoadingScreen.new()
 	screen.name = "LoadingScreen"
 	tree.root.add_child(screen)
-	# Callers reach this from inside their own `_ready`, where the node is in
-	# the tree but has not been readied yet, so the cover is built here rather
-	# than waiting for a `_ready` that lands a frame too late to draw.
 	screen._build()
 	screen._run(tree, path, what)
 	return screen
@@ -49,8 +27,6 @@ static func swap(tree: SceneTree, path: String, what: String = "") -> LoadingScr
 
 func _init() -> void:
 	layer = 200
-	# The tree pauses under the pause menu, and a cover that stops animating
-	# because something paused the tree is worse than no cover.
 	process_mode = Node.PROCESS_MODE_ALWAYS
 
 
@@ -95,8 +71,6 @@ func _build() -> void:
 	track.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	column.add_child(track)
 
-	# Anchored left and grown by ratio rather than resized in pixels, so the bar
-	# tracks the window without this script knowing the window's size.
 	_fill = ColorRect.new()
 	_fill.color = MenuStyle.PAPER_HOVER
 	_fill.anchor_top = 0.0

@@ -44,7 +44,6 @@ pub fn set_windows_opacity(transparency_value: f64, gui_manager: &Gd<CanvasLayer
     }
 }
 
-// --- Wry Browser Options ---
 
 #[cfg(all(feature = "webview", target_os = "windows"))]
 use std::num::{NonZero, NonZeroIsize};

@@ -3,10 +3,6 @@ extends SkeletonModifier3D
 const TwoBoneIK := preload("res://src/characters/two_bone_ik.gd")
 
 ## Plants feet on the terrain instead of on the flat plane the clips assume.
-##
-## Runs as a modifier rather than from _process so it reads the pose the
-## animation just wrote, and so the TwoBoneIK3D that solves the legs can sit
-## after it in child order and consume the targets in the same skeleton update.
 
 const FEET := [
 	{"foot": &"LeftFoot", "upper": &"LeftUpperLeg", "lower": &"LeftLowerLeg"},
@@ -18,42 +14,26 @@ const FEET := [
 @export var probe_up := 0.6
 @export var probe_down := 1.2
 @export_flags_3d_physics var probe_mask := 1
-## Ankle bone height in the rest pose, measured against the body mesh's lowest
-## vertex. Too large and the character walks on stilts, too small and it sinks.
+## Ankle bone height in the rest pose, measured against the body mesh's lowest vertex.
 @export var ankle_height := 0.0865
 ## How far the hips may drop to keep the trailing foot from over-extending.
 @export var max_hip_drop := 0.45
-## Newton steps used to drive the reach violation to zero. Three is enough for
-## the drop to converge on every slope the terrain actually produces.
+## Newton steps used to drive the reach violation to zero.
 @export var solver_iterations := 3
 ## Extension the hips are solved to keep the most-stretched planted leg under.
-## Bare reachability is not enough: a leg is "solved" at 99% extension and still
-## reads as a locked knee, so the target is comfort, and the hips drop to buy the
-## bend back the way a person settles on a slope.
 @export_range(0.7, 1.0) var knee_comfort := 0.94
-## Budget for the comfort part of the drop, on top of whatever reachability
-## demands. Mid-stride a leg routinely passes the comfort threshold, so an
-## unbudgeted comfort solve just parks the character in a permanent crouch at
-## the max_hip_drop cap.
+## Budget for the comfort part of the drop, on top of whatever reachability demands.
 @export var max_comfort_drop := 0.09
-## Clip lift at which a foot counts as fully mid-stride and is left to the
-## animation. It has to clear the lift the walk and jog cycles actually use --
-## measured at 0.16 to 0.18 -- or the plant fades out partway through every
-## stride and the feet ride above sloped ground while moving.
+## Clip lift at which a foot counts as fully mid-stride and is left to the animation.
 @export var plant_height := 0.32
-## Ground normals steeper than this stop steering the foot, so a cliff edge
-## under one toe does not snap the whole foot sideways.
+## Ground normals steeper than this stop steering the foot, so a cliff edge under one
+## toe does not snap the whole foot sideways.
 @export var max_foot_tilt_deg := 35.0
-## How far a foot's ground may sit from the ground the body is standing on. This
-## is a guard against a foot overhanging a cliff and reading a surface metres
-## down, not against slopes: on any real bank the downhill foot is legitimately
-## well below the body, and a tight value here silently unplants it.
+## How far a foot's ground may sit from the ground the body is standing on.
 @export var max_ground_step := 1.2
 @export var adapt_speed := 10.0
 
-## Added to ankle_height by footwear, whose sole sits below the bare foot. Set
-## from the thickness of whatever is equipped rather than hardcoded, since a
-## boot and a sandal lift the ankle by different amounts.
+## Added to ankle_height by footwear, whose sole sits below the bare foot.
 var sole_offset := 0.0
 
 var targets: Array[Marker3D] = []
@@ -61,18 +41,14 @@ var targets: Array[Marker3D] = []
 var _terrain: Node
 var _hips := -1
 var _hip_offset := 0.0
-## Fades the whole solve out where there is no ground to stand on. Chases
-## _want rather than being set from it outright, so a transition with no
-## crossfade of its own still arrives smoothly.
+## Fades the whole solve out where there is no ground to stand on.
 var _blend := 1.0
 var _ready_done := false
-## How much of the legs the animation state is handing over, set by the rig from
-## the live crossfade. See character_rig.STATES.
+## How much of the legs the animation state is handing over, set by the rig from the
+## live crossfade.
 var _want := 1.0
 
-## Ray results, refreshed on the physics tick. Space-state queries are not safe
-## from inside a skeleton modifier, which runs on the idle frame, so the probe
-## and the solve are split and the solve reads one tick behind.
+## Ray results, refreshed on the physics tick.
 var _probe_xz: Array[Vector2] = [Vector2.ZERO, Vector2.ZERO]
 var _probe_y: Array[float] = [0.0, 0.0]
 var _hit: Array[bool] = [false, false]
@@ -91,8 +67,7 @@ func set_sole_offset(value: float) -> void:
 	sole_offset = value
 
 
-## Distance the foot mesh extends below the ankle bone. Measuring the attached
-## footwear beats trusting a number per item: the mesh already knows.
+## Distance the foot mesh extends below the ankle bone.
 func measure_sole(mesh: MeshInstance3D, foot_bone: StringName) -> void:
 	var skeleton := get_skeleton()
 	if skeleton == null or mesh == null:
@@ -148,9 +123,7 @@ func _build() -> void:
 		skeleton.add_child(probe)
 
 
-## Reads the pose back from behind the solver. Sampling anywhere outside the
-## modifier stack catches the skeleton before it has been modified at all, which
-## reports the raw clip and says nothing about whether the solve landed.
+## Reads the pose back from behind the solver.
 class Tail extends SkeletonModifier3D:
 	var driver
 
@@ -198,11 +171,6 @@ func _process_modification_with_delta(delta: float) -> void:
 		_probe_xz[i] = Vector2(world.x, world.z)
 		_probe_y[i] = world.y
 
-		# The height field is sampled fresh at the foot, so it never lags. The
-		# ray lags a tick because it has to run on the physics step, which is
-		# why it only takes over where it finds something standing above the
-		# terrain -- a bridge deck or ramp, whose height barely varies over the
-		# distance a foot travels in one tick.
 		var terrain_h: float = _terrain.height_at(world.x, world.z)
 		var surface := terrain_h
 		var normal := _terrain_normal(world)
@@ -215,10 +183,6 @@ func _process_modification_with_delta(delta: float) -> void:
 					"" if _hit[i] else "miss@", _hit_y[i], surface,
 					"ray" if from_ray else "field"]
 
-		# Fade the plant out as the surface departs from the plane the body is
-		# actually standing on, rather than clamping it. A hard clamp still drags
-		# the foot to the clamped height, which on a ledge parks it in mid-air;
-		# fading hands the foot back to the animation instead.
 		var step := absf(surface - base_y)
 		var reachable := 1.0 - smoothstep(max_ground_step, max_ground_step * 1.6, step)
 
@@ -226,23 +190,13 @@ func _process_modification_with_delta(delta: float) -> void:
 		grounds.append(surface + ankle_height + sole_offset)
 		normals.append(normal.lerp(Vector3.UP, 1.0 - reachable).normalized())
 		_edge[i] = reachable
-		# How far the clip itself lifts the foot off the body's base, which is
-		# the only signal that separates a stride from a slope. Height above the
-		# ground cannot: standing still on a bank, the downhill foot is just as
-		# high as a swing foot, and treating it as one leaves it in mid-air.
 		plant.append(reachable * (1.0 - smoothstep(0.0, plant_height,
 				world.y - base_y - ankle_height - sole_offset)))
 
-	# Scaled by the same blend the legs get. Left unscaled, a partly handed-over
-	# solve dropped the pelvis its full distance while the legs were still mostly
-	# the clip's, so the character sank into a crouch the legs had not asked for.
 	_hip_offset = lerpf(_hip_offset,
 			_solve_hips(skeleton, posed, grounds, plant) * _blend, weight)
 	_apply_hips(skeleton)
 
-	# Re-read after the hips move. Targets built from the pre-drop pose are stale
-	# by exactly the drop, which is enough to put them past the leg's reach and
-	# lock it straight.
 	for i in FEET.size():
 		var idx := skeleton.find_bone(FEET[i].foot)
 		if idx >= 0:
@@ -259,9 +213,8 @@ func _process_modification_with_delta(delta: float) -> void:
 			_solve_leg(skeleton, i, goal, normals[i], plant[i] * _blend)
 
 
-## Plants the leg, then lays the ground's tilt over the foot the animation and
-## the solve left it in. The limb itself is solved by the shared hinge IK, which
-## the off-hand grip on a two-handed weapon uses too.
+## Plants the leg, then lays the ground's tilt over the foot the animation and the solve
+## left it in.
 func _solve_leg(skeleton: Skeleton3D, i: int, goal: Vector3, normal: Vector3,
 		amount: float) -> void:
 	var hip := skeleton.find_bone(FEET[i].upper)
@@ -275,10 +228,6 @@ func _solve_leg(skeleton: Skeleton3D, i: int, goal: Vector3, normal: Vector3,
 		_pole_dbg[i] = to_world.basis.inverse() * TwoBoneIK.hinge_axis(
 				skeleton, hip, knee, ankle, to_world).normalized()
 
-	# Read after the leg has moved, so the foot carries the shin's new rotation
-	# and only the ground tilt is layered on. Taking the pre-solve basis instead
-	# pins the foot to an orientation the leg no longer has, which is what reads
-	# as the ankle being wrung round.
 	var ankle_pose := skeleton.get_bone_global_pose(ankle)
 	var followed := skeleton.global_transform.basis * ankle_pose.basis
 	skeleton.set_bone_global_pose(ankle, Transform3D(
@@ -286,9 +235,7 @@ func _solve_leg(skeleton: Skeleton3D, i: int, goal: Vector3, normal: Vector3,
 			ankle_pose.origin))
 
 
-## Clamps a target into the leg's span. Handed anything further, a two-bone
-## solver has no answer but to straighten the limb and aim it, which reads as a
-## locked knee and a pointed toe.
+## Clamps a target into the leg's span.
 func _reachable(skeleton: Skeleton3D, i: int, target: Vector3) -> Vector3:
 	var hip := skeleton.find_bone(FEET[i].upper)
 	var knee := skeleton.find_bone(FEET[i].lower)
@@ -301,9 +248,6 @@ func _reachable(skeleton: Skeleton3D, i: int, target: Vector3) -> Vector3:
 			+ skeleton.get_bone_global_rest(knee).origin.distance_to(
 			skeleton.get_bone_global_rest(ankle).origin)
 	var span := hip_w.distance_to(target)
-	# Short of full extension, so the knee keeps a bend to solve with. Tighter
-	# than this and a foot that genuinely sits at arm's length is pulled visibly
-	# short of the ground.
 	var limit := reach * 0.99
 	if span <= limit or span < 0.0001:
 		return target
@@ -341,11 +285,6 @@ func _debug(skeleton: Skeleton3D, posed: Array[Transform3D], grounds: Array[floa
 
 
 ## Solves the pelvis drop that brings every planted foot inside its leg's reach.
-##
-## Only the drop: the pelvis stays upright. Rotating it to chase a foot tilts the
-## whole torso with it, which on a bank reads as the character keeling over.
-## Ground too steep for the legs to span is a stance problem, not something the
-## hips can absorb, so it is capped and left short instead.
 func _solve_hips(skeleton: Skeleton3D, posed: Array[Transform3D], grounds: Array[float],
 		plant: Array[float]) -> float:
 	if _hips < 0:
@@ -366,16 +305,13 @@ func _solve_hips(skeleton: Skeleton3D, posed: Array[Transform3D], grounds: Array
 		if upper >= 0 and plant[i] > 0.5:
 			active.append(i)
 
-	# Reachability first, since a foot that cannot touch its ground is a visible
-	# failure, then comfort on its own budget on top.
 	var needed := _drop_for(socket, target, reach, active, 0.99, max_hip_drop)
 	var eased := _drop_for(socket, target, reach, active, knee_comfort, max_hip_drop)
 	return maxf(eased, needed - max_comfort_drop)
 
 
-## Newton-steps the pelvis down until no planted leg is stretched past `ratio`
-## of its span. Each step subtracts the worst violation outright, which is exact
-## when the target is below the socket and the usual case here.
+## Newton-steps the pelvis down until no planted leg is stretched past `ratio` of its
+## span.
 func _drop_for(socket: Array[Vector3], target: Array[Vector3], reach: Array[float],
 		active: Array[int], ratio: float, limit: float) -> float:
 	var drop := 0.0
@@ -405,8 +341,6 @@ func _leg_reach(skeleton: Skeleton3D, i: int) -> float:
 func _apply_hips(skeleton: Skeleton3D) -> void:
 	if _hips < 0:
 		return
-	# The solved drop is world-space; the bone pose is written in its parent's
-	# frame, so it is carried across before being added to what the clip set.
 	var parent := skeleton.get_bone_parent(_hips)
 	var parent_basis := skeleton.global_transform.basis
 	if parent >= 0:
@@ -415,8 +349,8 @@ func _apply_hips(skeleton: Skeleton3D) -> void:
 			+ parent_basis.inverse() * Vector3(0.0, _hip_offset, 0.0))
 
 
-## Fallback normal by finite difference, for when the ray missed and only the
-## height field has an answer.
+## Fallback normal by finite difference, for when the ray missed and only the height
+## field has an answer.
 func _terrain_normal(at: Vector3) -> Vector3:
 	var e := 0.15
 	var hx: float = _terrain.height_at(at.x + e, at.z) - _terrain.height_at(at.x - e, at.z)
@@ -424,9 +358,7 @@ func _terrain_normal(at: Vector3) -> Vector3:
 	return Vector3(-hx, 2.0 * e, -hz).normalized()
 
 
-## The animated basis is tilted onto the ground normal rather than rebuilt from
-## it. Constructing a basis outright would have to assume which axis the foot
-## bone calls forward, and would throw away the roll the clip authored.
+## The animated basis is tilted onto the ground normal rather than rebuilt from it.
 func _tilt(normal: Vector3, posed: Basis, amount: float) -> Basis:
 	var angle := normal.angle_to(Vector3.UP)
 	if angle < 0.0001 or amount <= 0.001:

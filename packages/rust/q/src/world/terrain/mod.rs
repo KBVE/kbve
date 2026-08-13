@@ -401,8 +401,8 @@ impl QTerrain {
         self.clearance_tex.clone()
     }
 
-    /// Scatter fields snapshot this the same way they snapshot heights, so they
-    /// can keep their placement loops off the road without binding per candidate.
+    /// Scatter fields snapshot this the same way they snapshot heights, so they can
+    /// keep their placement loops off the road without binding per candidate.
     pub fn road_mask(&self) -> Option<(&[u8], i32)> {
         if self.road_mask.is_empty() {
             None
@@ -415,9 +415,7 @@ impl QTerrain {
         self.stamp_clearance_band(x, z, radius * 0.55, radius);
     }
 
-    /// Clearance stamp with an explicit fully-cleared core. Scatter props are
-    /// happy with a soft blob, but the road needs its carriageway swept to zero
-    /// well past the painted edge, so it drives the two radii directly.
+    /// Clearance stamp with an explicit fully-cleared core.
     pub fn stamp_clearance_band(&mut self, x: f32, z: f32, inner: f32, radius: f32) {
         let cres = self.clearance_res;
         if cres < 2 || radius <= 0.0 || inner >= radius {

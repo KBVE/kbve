@@ -64,8 +64,6 @@ var _sun_shadow_active := false
 var _moon_shadow_active := false
 var _shadows_off := false
 
-## Player setting. The elevation logic below re-decides shadow state every angle
-## step, so a toggle has to live here or it gets overwritten on the next tick.
 var shadows_enabled := true:
 	set(value):
 		shadows_enabled = value
@@ -137,16 +135,9 @@ func _configure_lights() -> void:
 func _update_celestial_state(force := false) -> void:
 	var raw_angle := (hour - SUNRISE_OFFSET) * DAY_RADIANS
 
-	# Rotation tracks the continuous angle. Quantising it too made the shadow
-	# map re-project in visible jumps a few times a second; the step below only
-	# gates the LUT reads, which are the part worth skipping.
 	sun.rotation.x = -raw_angle
 	moon.rotation.x = -raw_angle + PI
 
-	# Direction toward the dominant light, for shaders that march their own
-	# shadows and so need the light vector in the fragment stage, where Godot
-	# exposes it only inside light(). A DirectionalLight3D shines along -Z, so
-	# +Z of its basis points back at it.
 	var key_light := sun if sun.light_energy >= moon.light_energy else moon
 	RenderingServer.global_shader_parameter_set("sun_direction",
 			key_light.global_transform.basis.z.normalized())

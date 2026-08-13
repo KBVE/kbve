@@ -48,8 +48,8 @@ func load_settings() -> void:
 	crosshair = cfg.get_value("gameplay", "crosshair", crosshair)
 
 
-## Read before written: the chosen locale lives in this section too, and a
-## fresh ConfigFile here would drop it every time the camera changed.
+## Read before written: the chosen locale lives in this section too, and a fresh
+## ConfigFile here would drop it every time the camera changed.
 func save_settings() -> void:
 	var cfg := ConfigFile.new()
 	cfg.load(CONFIG_PATH)

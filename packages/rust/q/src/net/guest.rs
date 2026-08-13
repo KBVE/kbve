@@ -1,36 +1,20 @@
 //! Guest identity: the name a player carries before there is an account.
-//!
-//! Names are host-assigned, never client-chosen. A client may *ask* for one,
-//! but what it asks for is sanitized and can be replaced outright — the wire is
-//! a hostile input, and a display name is drawn on other players' screens.
-//!
-//! No rng dependency: `RandomState` is seeded per-process by the standard
-//! library, so hashing a counter through a fresh one yields bits that differ
-//! between runs without pulling `rand` into a crate that has to build for
-//! wasm, android, and the Godot cdylib alike.
 
 use std::collections::hash_map::RandomState;
 use std::hash::{BuildHasher, Hasher};
 
 pub const GUEST_PREFIX: &str = "Anon";
 
-/// Suffix length. Four characters over a 32-symbol alphabet is ~1M names —
-/// enough that a collision inside one small session is a curiosity, and short
-/// enough to read out loud.
 const SUFFIX_LEN: usize = 4;
 
 /// No vowels (can't spell a slur), no `0/O/1/I` (can't be misread aloud).
 const ALPHABET: &[u8] = b"BCDFGHJKLMNPQRSTVWXYZ23456789";
 
-/// Longest name the host will store or echo. Long enough for a real handle,
-/// short enough that a nameplate can't be used as a billboard.
+/// Longest name the host will store or echo.
 pub const MAX_NAME_LEN: usize = 24;
 
-/// `Anon-K7QF`. Unique per call within a process, not globally: uniqueness
-/// inside a session is [`unique_guest_name`]'s job.
+/// `Anon-K7QF`.
 pub fn guest_name() -> String {
-    // The input is a constant on purpose — the entropy is in the hasher, which
-    // `RandomState::new` re-keys on every call.
     let mut bits = RandomState::new().build_hasher();
     bits.write_u8(0);
     let mut n = bits.finish();
@@ -47,11 +31,6 @@ pub fn guest_name() -> String {
 }
 
 /// A guest name no one in `taken` is already using.
-///
-/// Retries rather than appending a counter, so the collision case is
-/// indistinguishable from the normal one — `Anon-K7QF2` would quietly announce
-/// "someone else got here first". Falls back to the peer id after a few tries
-/// so a pathological host can never spin here.
 pub fn unique_guest_name(taken: impl Fn(&str) -> bool, peer: u32) -> String {
     for _ in 0..8 {
         let candidate = guest_name();
@@ -62,14 +41,8 @@ pub fn unique_guest_name(taken: impl Fn(&str) -> bool, peer: u32) -> String {
     format!("{GUEST_PREFIX}-{peer}")
 }
 
-/// Trims a requested name down to what is safe to render, or returns `None`
-/// when nothing usable is left.
-///
-/// Deliberately narrow: letters, digits, and single interior separators. Every
-/// other codepoint is dropped rather than escaped, because the set of things
-/// that break a nameplate (RTL overrides, combining marks, zero-width joiners,
-/// newlines) is open-ended and a blocklist would always be one codepoint
-/// behind.
+/// Trims a requested name down to what is safe to render, or returns `None` when
+/// nothing usable is left.
 pub fn sanitize(requested: &str) -> Option<String> {
     let mut out = String::with_capacity(requested.len().min(MAX_NAME_LEN));
     let mut last_was_sep = true;
@@ -90,16 +63,14 @@ pub fn sanitize(requested: &str) -> Option<String> {
     while out.ends_with(['_', '-', '.']) {
         out.pop();
     }
-    // A name that is only digits reads as an id, and an id is something the
-    // server hands out — it should not be forgeable from the name field.
     if out.is_empty() || out.chars().all(|c| c.is_ascii_digit()) {
         return None;
     }
     Some(out)
 }
 
-/// The name a joining peer actually gets: their request if it survives
-/// sanitizing and is free, otherwise a fresh guest name.
+/// The name a joining peer actually gets: their request if it survives sanitizing and
+/// is free, otherwise a fresh guest name.
 pub fn resolve_name(requested: &str, taken: impl Fn(&str) -> bool, peer: u32) -> String {
     match sanitize(requested) {
         Some(name) if !taken(&name) => name,
@@ -146,7 +117,6 @@ mod tests {
 
     #[test]
     fn sanitize_drops_what_would_break_a_nameplate() {
-        // Zero-width joiner, RTL override, newline, and a combining stack.
         assert_eq!(sanitize("ab\u{200d}cd").as_deref(), Some("abcd"));
         assert_eq!(sanitize("\u{202e}gnol").as_deref(), Some("gnol"));
         assert_eq!(sanitize("first\nsecond").as_deref(), Some("firstsecond"));
@@ -185,8 +155,6 @@ mod tests {
         let kept = resolve_name("h0lybyte", |_| false, 3);
         assert_eq!(kept, "h0lybyte");
 
-        // Requested but already in the room: they get a guest name rather than
-        // impersonating whoever is holding it.
         let collided = resolve_name("h0lybyte", |n| n == "h0lybyte", 3);
         assert!(collided.starts_with("Anon-"), "{collided}");
     }

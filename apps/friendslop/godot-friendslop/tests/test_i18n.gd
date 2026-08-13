@@ -1,10 +1,6 @@
 extends GdUnitTestSuite
 
 ## Guards the two ways a keyed UI goes wrong silently.
-##
-## A key with no entry renders as the key itself — "action.play" on the button —
-## and a locale that is missing a key renders nothing at all unless English
-## catches it. Neither throws, so neither shows up anywhere but a screenshot.
 
 const KEYS := [
 	"action.play",
@@ -44,8 +40,8 @@ func test_every_key_resolves() -> void:
 		assert_str(I18n.t(key)).is_not_equal(key)
 
 
-## The settings arrays hold keys and are indexed by position, so a renamed key
-## shows up as a menu row reading "settings.preset_name.epic".
+## The settings arrays hold keys and are indexed by position, so a renamed key shows up
+## as a menu row reading "settings.preset_name.epic".
 func test_settings_option_keys_resolve() -> void:
 	for key: String in GFX.PRESET_NAMES + GFX.DETAIL_NAMES + PLAY.CAMERA_NAMES:
 		assert_str(I18n.t(key)).is_not_equal(key)
@@ -62,10 +58,9 @@ func test_unknown_key_returns_the_key() -> void:
 	assert_str(I18n.t("nope.not.here")).is_equal("nope.not.here")
 
 
-## The one failure mode that no amount of correct JSON prevents: a locale whose
-## script the fonts have no glyphs for renders as a row of empty boxes, and
-## nothing anywhere reports it. Checked per locale against the chain that locale
-## actually installs, because the chain changes with the locale.
+## The one failure mode that no amount of correct JSON prevents: a locale whose script
+## the fonts have no glyphs for renders as a row of empty boxes, and nothing anywhere
+## reports it.
 func test_every_locale_has_glyphs_for_its_own_strings() -> void:
 	var before := I18n.locale_code()
 	for entry: Dictionary in I18n.locales():
@@ -77,10 +72,9 @@ func test_every_locale_has_glyphs_for_its_own_strings() -> void:
 	I18n.set_locale(before)
 
 
-## The picker is the one control read before the language is chosen, and it
-## lists every language in its own script at once -- so it is also the one place
-## the per-locale font chain is not enough. Whatever locale is current, opening
-## it has to make all of them drawable.
+## The picker is the one control read before the language is chosen, and it lists every
+## language in its own script at once -- so it is also the one place the per-locale font
+## chain is not enough.
 func test_language_names_draw_while_the_picker_is_open() -> void:
 	var before := I18n.locale_code()
 	var names := "".join(I18n.locale_names())
@@ -94,8 +88,8 @@ func test_language_names_draw_while_the_picker_is_open() -> void:
 	I18n.use_locale_font()
 
 
-## Closing the picker has to give the memory back, or the lazy load is only
-## lazy until the first visit to the settings book.
+## Closing the picker has to give the memory back, or the lazy load is only lazy until
+## the first visit to the settings book.
 func test_closing_the_picker_drops_back_to_one_font() -> void:
 	I18n.set_locale("en")
 	I18n.use_all_fonts()
@@ -104,9 +98,9 @@ func test_closing_the_picker_drops_back_to_one_font() -> void:
 	assert_array(ThemeDB.fallback_font.fallbacks).is_empty()
 
 
-## Combining marks sit at zero width by design, so `has_char` is asked of the
-## whole chain rather than the base font alone -- a matra the base font happens
-## to know about is still wrong if the consonant beside it comes from elsewhere.
+## Combining marks sit at zero width by design, so `has_char` is asked of the whole
+## chain rather than the base font alone -- a matra the base font happens to know about
+## is still wrong if the consonant beside it comes from elsewhere.
 func _uncovered_glyphs(texts: Array, font: Font) -> Array:
 	var missing: Array = []
 	for text: String in texts:

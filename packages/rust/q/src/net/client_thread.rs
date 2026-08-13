@@ -1,12 +1,4 @@
 //! App-side handle to a [`ClientSession`] running on its own thread.
-//!
-//! Mirrors `PhysicsHandle`: fixed cadence, latest-wins snapshot out, latest-wins
-//! intent in. The engine polls; it never blocks on the network.
-//!
-//! The thread owns a small tokio runtime because the WebSocket reader and
-//! writer are tasks. Keeping it here rather than on the app's runtime means a
-//! stalled frame cannot stall the socket, and a dead socket cannot stall a
-//! frame.
 
 use std::sync::Arc;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -30,8 +22,7 @@ pub struct NetClientState {
     pub error: Option<String>,
     /// False while unreliable traffic is still falling back to the socket.
     pub udp_ready: bool,
-    /// Name the host assigned. `None` until welcomed — what was requested and
-    /// what was granted are not the same thing.
+    /// Name the host assigned.
     pub name: Option<String>,
     pub roster: Vec<PeerInfo>,
 }
@@ -56,8 +47,7 @@ impl Default for NetClientState {
 pub enum Credential {
     #[default]
     Guest,
-    /// Bearer token from the identity provider. The name lives in the claims,
-    /// so there is nothing else to send.
+    /// Bearer token from the identity provider.
     Token(String),
 }
 
@@ -81,15 +71,11 @@ impl NetClientHandle {
     }
 
     /// Joins with a bearer token; the host reads the name out of its claims.
-    /// A rejected token comes back as [`ClientStatus::Rejected`] with the
-    /// host's reason, not as a silent fall back to guest — signing in and
-    /// quietly arriving as someone else is worse than not arriving.
     pub fn spawn_with_token(url: String, tick_hz: f64, token: String) -> Self {
         Self::spawn_credentialed(url, tick_hz, Credential::Token(token))
     }
 
-    /// `name` is vestigial — guests are named by the host. Read
-    /// [`NetClientState::name`] for what was assigned.
+    /// `name` is vestigial — guests are named by the host.
     pub fn spawn_as(url: String, tick_hz: f64, name: String) -> Self {
         let _ = name;
         Self::spawn_credentialed(url, tick_hz, Credential::Guest)
@@ -140,8 +126,8 @@ impl Drop for NetClientHandle {
     }
 }
 
-/// Host portion of a `ws://host:port/path` url — the datagram lane targets the
-/// same machine on a different port.
+/// Host portion of a `ws://host:port/path` url — the datagram lane targets the same
+/// machine on a different port.
 fn server_host(url: &str) -> String {
     let rest = url.split_once("://").map_or(url, |(_, rest)| rest);
     let hostport = rest.split('/').next().unwrap_or(rest);
@@ -394,7 +380,6 @@ mod tests {
 
     #[test]
     fn a_refused_connection_is_reported_rather_than_hanging() {
-        // Port 1 is privileged and unbound; connect must fail fast.
         let client = NetClientHandle::spawn("ws://127.0.0.1:1/ws".into(), 60.0);
         let state = wait_for(
             || {

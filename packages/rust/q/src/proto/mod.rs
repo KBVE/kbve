@@ -1,11 +1,8 @@
 //! Shared wire types between the Godot client and the bevy/axum server.
-//!
-//! Encoded with `postcard` (COBS-framed) for snapshots and inputs. Keep this
-//! module pure — no Godot, no Bevy, no I/O — so both sides can reuse it.
 
 use serde::{Deserialize, Serialize};
 
-/// Bump on any breaking wire change. Server rejects mismatched clients.
+/// Bump on any breaking wire change.
 pub const PROTOCOL_VERSION: u32 = 4;
 
 /// Maximum players per match (parallel-race default per #11294).
@@ -49,16 +46,8 @@ pub enum EnemyKind {
     Regen = 6,
 }
 
-// -----------------------------------------------------------------------------
-// Client -> Server
-// -----------------------------------------------------------------------------
 
-/// First message client sends after WS upgrade. Server validates protocol +
-/// JWT then admits the player into a slot.
-///
-/// `jwt` is a Supabase GoTrue access token issued by supabase.kbve.com. The
-/// `kbve_username` field is informational only; the server trusts the claim
-/// inside the JWT (injected by the Custom Access Token hook), not the field.
+/// First message client sends after WS upgrade.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct JoinMatch {
     pub protocol: u32,
@@ -66,8 +55,7 @@ pub struct JoinMatch {
     pub kbve_username: String,
 }
 
-/// Top-level client-to-server envelope. The first frame on every connection
-/// must be `JoinMatch`; subsequent frames are `Frame`.
+/// Top-level client-to-server envelope.
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum ClientMessage {
     JoinMatch(JoinMatch),
@@ -99,7 +87,7 @@ pub enum Input {
         target: Option<Vec2>,
     },
     Leave,
-    /// Wall-clock round-trip echo. Server replies via `Snapshot.input_ack`.
+    /// Wall-clock round-trip echo.
     Heartbeat {
         client_tick: u32,
     },
@@ -111,9 +99,6 @@ pub struct ClientFrame {
     pub inputs: Vec<Input>,
 }
 
-// -----------------------------------------------------------------------------
-// Server -> Client
-// -----------------------------------------------------------------------------
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlayerView {
@@ -154,21 +139,17 @@ pub struct ProjectileDelta {
 }
 
 /// Per-slot match phase — drives the client HUD's pacing chip + banner.
-/// Mapped to u8 on the wire so older clients can ignore unknown variants
-/// without crashing the decoder.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[repr(u8)]
 pub enum MatchPhase {
-    /// Inter-wave breather + initial countdown before the first enemy
-    /// spawn. Towers can be placed; no enemies on the field yet.
+    /// Inter-wave breather + initial countdown before the first enemy spawn.
     #[default]
     Prepare = 0,
     /// Spawn window is open — enemies are being added each spawn-tick.
     Wave = 1,
-    /// Spawning is done; remaining enemies still walking the path. Wave
-    /// counter has not yet ticked over to the next number.
+    /// Spawning is done; remaining enemies still walking the path.
     Intermission = 2,
-    /// Player ran out of lives. No more enemies will be spawned for them.
+    /// Player ran out of lives.
     GameOver = 3,
 }
 
@@ -183,8 +164,8 @@ pub struct FieldDelta {
     pub wave: u16,
     /// Current pacing state for this slot.
     pub phase: MatchPhase,
-    /// Milliseconds remaining in the current phase (countdown for
-    /// Prepare/Intermission; 0 for Wave/GameOver).
+    /// Milliseconds remaining in the current phase (countdown for Prepare/Intermission;
+    /// 0 for Wave/GameOver).
     pub phase_remaining_ms: u32,
     /// Cumulative enemy kills for this slot since the match started.
     pub kills: u32,
@@ -192,9 +173,9 @@ pub struct FieldDelta {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Snapshot {
-    /// Sim tick on the server. Monotonic.
+    /// Sim tick on the server.
     pub tick: u32,
-    /// Milliseconds since match start. Lets the client tune interpolation.
+    /// Milliseconds since match start.
     pub server_time_ms: u32,
     /// Echo of the highest client_tick the server has consumed for this player.
     pub input_ack: u32,
@@ -228,10 +209,6 @@ pub enum ServerEvent {
     },
 }
 
-// -----------------------------------------------------------------------------
-// Codec helpers — postcard with COBS framing so each WS binary message is one
-// independent frame and partial reads can resynchronize.
-// -----------------------------------------------------------------------------
 
 #[cfg(feature = "proto-shared")]
 pub fn encode<T: Serialize>(value: &T) -> Result<Vec<u8>, postcard::Error> {

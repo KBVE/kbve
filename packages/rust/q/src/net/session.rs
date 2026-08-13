@@ -1,20 +1,4 @@
 //! Listen-server session: the host/client role split over a [`Transport`].
-//!
-//! One player hosts. The host owns the authoritative [`SimWorld`] and is also a
-//! player; everyone else sends intent and renders what comes back. Both roles
-//! ship in the same binary — hosting is a role, not a build — which is what
-//! makes Steam P2P invite-a-friend co-op work without a dedicated server.
-//!
-//! Clients send **intent, not motion**. A client says "I want to go this way";
-//! the host decides what that means against gravity, speed, and the world. A
-//! client that lies can only claim to be holding a direction, which is the
-//! cheapest cheat-resistance available and costs nothing to adopt now — sending
-//! finished translations would hand movement authority to the client and is
-//! very hard to walk back later.
-//!
-//! Deliberately synchronous: `tick()` is called by whoever owns the cadence, so
-//! the whole session is testable in-process without threads or Steam. Wiring it
-//! to the physics thread is the app's job.
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -31,18 +15,14 @@ use crate::rapier::sim3d::{
 /// What a client reports it is trying to do this tick.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct PlayerInput {
-    /// Monotonic per-client counter. Late or duplicated datagrams are discarded
-    /// by comparing this, and it is the hook a prediction layer would later use
-    /// to reconcile against acknowledged inputs.
+    /// Monotonic per-client counter.
     pub sequence: u32,
-    /// Horizontal wish direction in world space, `[x, z]`. Magnitude is clamped
-    /// host-side, so an oversized vector buys a cheater nothing.
+    /// Horizontal wish direction in world space, `[x, z]`.
     pub wish_dir: [f32; 2],
     pub jump: bool,
 }
 
-/// One entry of the player list. `body` is carried explicitly so the client can
-/// label an avatar without knowing how peer ids map onto body ids.
+/// One entry of the player list.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 pub struct PeerInfo {
     pub peer: PeerId,
@@ -52,20 +32,14 @@ pub struct PeerInfo {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum SessionMsg {
-    /// Join as a guest. The host names the player; see [`JoinAuthed`] for the
-    /// only way to arrive under a name of your own.
-    ///
-    /// [`JoinAuthed`]: SessionMsg::JoinAuthed
+    /// Join as a guest.
     Join {
         protocol: u32,
-        /// Legacy request field, ignored since accounts landed — a guest that
-        /// could ask for a name could ask for someone else's. Kept so the
-        /// encoding does not move under clients already shipped.
+        /// Legacy request field, ignored since accounts landed — a guest that could ask
+        /// for a name could ask for someone else's.
         name: String,
     },
     /// `peer` is the id the host assigned; a client cannot infer its own.
-    /// `name` likewise — what was asked for and what was granted differ
-    /// whenever the request was empty, unusable, or already taken.
     Welcome {
         protocol: u32,
         seed: u64,
@@ -75,44 +49,28 @@ pub enum SessionMsg {
     Reject {
         reason: String,
     },
-    /// Whole player list, reliably, whenever it changes. Small and rare enough
-    /// (max a handful of players, only on join/leave) that diffing it would
-    /// cost more in bugs than it saves in bytes.
+    /// Whole player list, reliably, whenever it changes.
     Roster {
         players: Vec<PeerInfo>,
     },
     Input(PlayerInput),
     Snapshot(SimSnapshot),
-    /// Join carrying a bearer token from an external identity provider
-    /// (Supabase GoTrue, in practice). The name is *in* the token — a client
-    /// never states it — and a host with no [`TokenAuthority`] rejects this
-    /// outright rather than trusting it.
-    ///
-    /// Appended rather than folded into `Join` so the guest path keeps its
-    /// exact encoding: postcard numbers variants by declaration order, and a
-    /// server that predates this variant still speaks to guests.
+    /// Join carrying a bearer token from an external identity provider (Supabase
+    /// GoTrue, in practice).
     JoinAuthed {
         protocol: u32,
         token: String,
     },
 }
 
-/// Turns a bearer token into a display name, or into a reason the player can
-/// read. Injected by the host binary so this crate stays out of the business of
-/// knowing who issues tokens or how they are signed.
-///
-/// Sync on purpose: the friendslop host verifies against a cached JWKS, which
-/// is a map lookup and a signature check, and the session step has nowhere to
-/// await.
+/// Turns a bearer token into a display name, or into a reason the player can read.
 pub trait TokenAuthority: Send + Sync {
     fn verify(&self, token: &str) -> Result<String, String>;
 }
 
 #[derive(Clone, Copy, Debug)]
 pub struct SessionConfig {
-    /// Snapshot broadcast rate. Far below the sim rate on purpose — clients
-    /// interpolate between snapshots, and sending every tick spends bandwidth
-    /// on detail no one can perceive.
+    /// Snapshot broadcast rate.
     pub snapshot_hz: f64,
     pub move_speed: f32,
     pub gravity: f32,
@@ -130,13 +88,11 @@ impl Default for SessionConfig {
     }
 }
 
-/// Longest token the host will look at. A GoTrue access token is a few hundred
-/// bytes; this is generous enough to survive a claims change and small enough
-/// that refusing is cheaper than verifying.
+/// Longest token the host will look at.
 const MAX_TOKEN_LEN: usize = 8 * 1024;
 
-/// Players occupy a reserved id band so world props can never collide with a
-/// player body id, whatever order things spawn in.
+/// Players occupy a reserved id band so world props can never collide with a player
+/// body id, whatever order things spawn in.
 const PLAYER_BODY_BASE: u32 = 1_000_000;
 
 pub fn player_body(peer: PeerId) -> BodyId {
@@ -147,8 +103,8 @@ pub fn player_body(peer: PeerId) -> BodyId {
 struct Player {
     last_sequence: u32,
     input: PlayerInput,
-    /// Integrated separately from the character controller, which resolves
-    /// motion but never applies gravity.
+    /// Integrated separately from the character controller, which resolves motion but
+    /// never applies gravity.
     vel_y: f32,
     /// Host-assigned display name — see [`crate::net::guest`].
     name: String,
@@ -166,19 +122,17 @@ pub struct HostSession<T: Transport> {
 }
 
 impl<T: Transport> HostSession<T> {
-    /// Listen-server host: the local peer is also a player, admitted up front
-    /// since it will never send itself a Join.
+    /// Listen-server host: the local peer is also a player, admitted up front since it
+    /// will never send itself a Join.
     pub fn new(transport: T, config: SessionConfig, sim: SimConfig, seed: u64) -> Self {
         let mut host = Self::dedicated(transport, config, sim, seed);
         let local = host.transport.local_peer();
-        // The host never sends itself a Join, and hosting is not an identity —
-        // it gets a guest name like anyone else who has not signed in.
         host.admit_guest(local);
         host
     }
 
-    /// Dedicated host: authoritative but not a participant, so no body is
-    /// spawned for the local peer.
+    /// Dedicated host: authoritative but not a participant, so no body is spawned for
+    /// the local peer.
     pub fn dedicated(transport: T, config: SessionConfig, sim: SimConfig, seed: u64) -> Self {
         Self {
             world: SimWorld::new(&sim),
@@ -192,9 +146,7 @@ impl<T: Transport> HostSession<T> {
         }
     }
 
-    /// Installs the authority that signed-in joins are checked against. Without
-    /// one every `JoinAuthed` is refused: a host that cannot verify a token has
-    /// no way to tell an account from a claim about one.
+    /// Installs the authority that signed-in joins are checked against.
     pub fn with_authority(mut self, authority: Arc<dyn TokenAuthority>) -> Self {
         self.authority = Some(authority);
         self
@@ -231,18 +183,11 @@ impl<T: Transport> HostSession<T> {
                 name: player.name.clone(),
             })
             .collect();
-        // HashMap order is arbitrary and would reshuffle the list on every
-        // broadcast, which a client rendering it in order would show as flicker.
         players.sort_by_key(|p| p.peer);
         players
     }
 
-    /// Admits `peer` as a guest under a host-assigned name, and returns it. A
-    /// rejoining peer keeps the name it already has.
-    ///
-    /// The name is never the client's to pick. Honouring a requested name would
-    /// hand every guest the ability to arrive as anyone with an account, which
-    /// is the one thing signing in is supposed to buy.
+    /// Admits `peer` as a guest under a host-assigned name, and returns it.
     fn admit_guest(&mut self, peer: PeerId) -> String {
         if let Some(player) = self.players.get(&peer) {
             return player.name.clone();
@@ -254,11 +199,6 @@ impl<T: Transport> HostSession<T> {
     }
 
     /// Admits `peer` under the name their verified token carries.
-    ///
-    /// Sanitized like any other name — a claim signed by an identity provider
-    /// is still a string that ends up on someone else's screen — and refused
-    /// when the account is already in the room, since the alternative is two
-    /// bodies wearing one name.
     fn admit_account(&mut self, peer: PeerId, username: &str) -> Result<String, String> {
         if let Some(player) = self.players.get(&peer) {
             return Ok(player.name.clone());
@@ -293,7 +233,6 @@ impl<T: Transport> HostSession<T> {
             self.world.apply(SimCommand::Despawn {
                 id: player_body(peer),
             });
-            // Whoever is left needs to stop drawing their nameplate.
             self.broadcast_roster();
         }
     }
@@ -327,8 +266,6 @@ impl<T: Transport> HostSession<T> {
         match msg {
             SessionMsg::Join { protocol, name: _ } => {
                 if protocol != PROTOCOL_VERSION {
-                    // P2P means mismatched builds will absolutely try to
-                    // connect; refusing loudly beats desyncing quietly.
                     let reason = format!("protocol {protocol} != {PROTOCOL_VERSION}");
                     self.reply(from, &SessionMsg::Reject { reason });
                     return;
@@ -351,9 +288,6 @@ impl<T: Transport> HostSession<T> {
                     );
                     return;
                 };
-                // Bound the work before doing any of it: a client can send a
-                // megabyte here, and every byte past a plausible token is a
-                // byte spent proving it is not one.
                 if token.len() > MAX_TOKEN_LEN {
                     self.reply(
                         from,
@@ -379,14 +313,11 @@ impl<T: Transport> HostSession<T> {
                 let Some(player) = self.players.get_mut(&from) else {
                     return;
                 };
-                // Unreliable delivery reorders, so an older sequence arriving
-                // after a newer one must not rewind the player's intent.
                 if input.sequence >= player.last_sequence {
                     player.last_sequence = input.sequence;
                     player.input = input;
                 }
             }
-            // Host-authored messages; a peer sending one is confused or hostile.
             SessionMsg::Welcome { .. }
             | SessionMsg::Reject { .. }
             | SessionMsg::Roster { .. }
@@ -400,9 +331,7 @@ impl<T: Transport> HostSession<T> {
         }
     }
 
-    /// Drain inputs, advance the sim one tick, and broadcast on the network
-    /// cadence. This ordering is the authoritative loop: intent is applied to
-    /// the tick it arrived for, never a tick late.
+    /// Drain inputs, advance the sim one tick, and broadcast on the network cadence.
     pub fn tick(&mut self) {
         while let Some(mut envelope) = self.transport.try_recv() {
             if let Ok(msg) = proto::decode::<SessionMsg>(&mut envelope.payload) {
@@ -417,8 +346,6 @@ impl<T: Transport> HostSession<T> {
             let grounded = snapshot.body(body).is_some_and(|b| b.grounded);
 
             if grounded && player.vel_y < 0.0 {
-                // Zero it rather than letting gravity integrate without bound
-                // while standing, or the first step off a ledge is a plummet.
                 player.vel_y = 0.0;
             }
             if grounded && player.input.jump {
@@ -492,8 +419,8 @@ impl<T: Transport> ClientSession<T> {
         Self::connect_as(transport, "")
     }
 
-    /// Joins with a bearer token: the host verifies it and names the player
-    /// from the claims inside. A host with no authority refuses.
+    /// Joins with a bearer token: the host verifies it and names the player from the
+    /// claims inside.
     pub fn connect_with_token(transport: T, token: &str) -> Self {
         Self::open(
             transport,
@@ -504,11 +431,8 @@ impl<T: Transport> ClientSession<T> {
         )
     }
 
-    /// Sends the join request immediately — reliably, because a dropped join is
-    /// a session that silently never starts.
-    ///
-    /// `requested_name` no longer influences anything: guests are named by the
-    /// host. Read [`name`](Self::name) after the welcome for what was assigned.
+    /// Sends the join request immediately — reliably, because a dropped join is a
+    /// session that silently never starts.
     pub fn connect_as(transport: T, requested_name: &str) -> Self {
         Self::open(
             transport,
@@ -547,8 +471,7 @@ impl<T: Transport> ClientSession<T> {
         self.reject_reason.as_deref()
     }
 
-    /// Seed the world was generated from. Terrain is rebuilt locally from this
-    /// rather than shipped — see `TerrainDesc`.
+    /// Seed the world was generated from.
     pub fn seed(&self) -> Option<u64> {
         self.seed
     }
@@ -567,13 +490,12 @@ impl<T: Transport> ClientSession<T> {
         self.peer.map(player_body)
     }
 
-    /// Name the host assigned us. `None` until welcomed — showing the requested
-    /// name before then would flash a name the server may not have granted.
+    /// Name the host assigned us.
     pub fn name(&self) -> Option<&str> {
         self.name.as_deref()
     }
 
-    /// Everyone in the session, host included. Empty until the first roster.
+    /// Everyone in the session, host included.
     pub fn roster(&self) -> &[PeerInfo] {
         &self.roster
     }
@@ -613,8 +535,6 @@ impl<T: Transport> ClientSession<T> {
                     self.reject_reason = Some(reason);
                 }
                 SessionMsg::Snapshot(snapshot) => {
-                    // Out-of-order snapshots are normal on an unreliable
-                    // channel; an older one must never replace a newer one.
                     let newer = self
                         .snapshot
                         .as_ref()
@@ -680,7 +600,6 @@ mod tests {
 
         assert_eq!(client.status(), ClientStatus::Joined);
         assert_eq!(client.seed(), Some(42));
-        // Host counts itself plus the joiner — the host is a player too.
         assert_eq!(host.player_count(), 2);
     }
 
@@ -811,7 +730,6 @@ mod tests {
         host.set_terrain(flat_terrain());
         let peer = mesh[1].clone();
 
-        // One second of sim at 60Hz should yield ~10 snapshots, not ~60.
         for _ in 0..60 {
             host.tick();
         }
@@ -863,7 +781,6 @@ mod tests {
             .expect("client should be welcomed by now");
         let start = host.world_mut().snapshot().body(body).unwrap().iso.pos;
 
-        // A cheating client claiming a huge direction vector.
         host.handle(
             PeerId(1),
             SessionMsg::Input(PlayerInput {
@@ -898,12 +815,8 @@ mod tests {
         }
     }
 
-    /// Snapshots ride an unreliable datagram, and Steam fragments anything past
-    /// roughly an MTU. Fragmentation is not fatal but it amplifies loss — one
-    /// missing fragment discards the whole snapshot — so the per-body cost is
-    /// worth pinning. At ~42 bytes each, about 28 bodies fit in a single ~1200
-    /// byte datagram; beyond that, cull what is replicated rather than letting
-    /// the snapshot grow.
+    /// Snapshots ride an unreliable datagram, and Steam fragments anything past roughly
+    /// an MTU.
     #[test]
     fn snapshot_wire_cost_per_body_stays_bounded() {
         let small = proto::encode(&SessionMsg::Snapshot(snapshot_of(8)))
@@ -935,8 +848,8 @@ mod tests {
         );
     }
 
-    /// A guest asking for a name is how you arrive as somebody else, so asking
-    /// buys nothing at all — an account is the only way to bring a name.
+    /// A guest asking for a name is how you arrive as somebody else, so asking buys
+    /// nothing at all — an account is the only way to bring a name.
     #[test]
     fn a_guest_cannot_ask_for_a_name() {
         let mesh = Loopback::mesh(2);
@@ -959,8 +872,8 @@ mod tests {
         assert!(name.starts_with("Anon-"), "{name}");
     }
 
-    /// The name field is client-controlled, so it is an injection point for
-    /// whatever renders it. What comes back must already be safe.
+    /// The name field is client-controlled, so it is an injection point for whatever
+    /// renders it.
     #[test]
     fn a_hostile_name_never_survives_the_join() {
         let mesh = Loopback::mesh(2);
@@ -1003,8 +916,8 @@ mod tests {
         );
     }
 
-    /// Two guests with the same generated name would be indistinguishable on
-    /// screen, which is the one thing the name exists to prevent.
+    /// Two guests with the same generated name would be indistinguishable on screen,
+    /// which is the one thing the name exists to prevent.
     #[test]
     fn two_players_never_share_a_name() {
         let mesh = Loopback::mesh(3);

@@ -93,7 +93,6 @@ impl GameManager {
     #[signal]
     fn game_exited();
 
-    // [INTERNAL] Rust functions
     pub fn internal_get_music_manager(&self) -> &Gd<MusicManager> {
         &self.music_manager
     }

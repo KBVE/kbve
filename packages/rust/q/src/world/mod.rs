@@ -32,8 +32,8 @@ pub(crate) fn randf_range(state: &mut u32, lo: f32, hi: f32) -> f32 {
     lo + randf(state) * (hi - lo)
 }
 
-/// Scatter fields all cover the whole world and are never culled as a unit, so
-/// they share one generous box rather than paying to track their own bounds.
+/// Scatter fields all cover the whole world and are never culled as a unit, so they
+/// share one generous box rather than paying to track their own bounds.
 pub(crate) fn world_aabb(extent: f32) -> Aabb {
     let e = extent + 10.0;
     Aabb::new(
@@ -52,8 +52,8 @@ pub(crate) fn resolve_terrain(node: &Gd<Node>, path: &NodePath) -> Option<Gd<QTe
     .and_then(|n| n.try_cast::<QTerrain>().ok())
 }
 
-/// Where the world should be detailed around: the active camera, falling back
-/// to the player node, so headless and editor paths still get a sane origin.
+/// Where the world should be detailed around: the active camera, falling back to the
+/// player node, so headless and editor paths still get a sane origin.
 pub(crate) fn view_origin(node: &Gd<Node3D>, player: Option<&Gd<Node3D>>) -> Option<Vector3> {
     if let Some(cam) = node
         .get_viewport()
@@ -65,8 +65,8 @@ pub(crate) fn view_origin(node: &Gd<Node3D>, player: Option<&Gd<Node3D>>) -> Opt
     player.map(|p| p.get_global_position())
 }
 
-/// The CPU-side terrain data scatter placement needs, lifted out of QTerrain
-/// once so placement loops never bind it per candidate.
+/// The CPU-side terrain data scatter placement needs, lifted out of QTerrain once so
+/// placement loops never bind it per candidate.
 pub(crate) struct TerrainSnapshot {
     heights: Vec<f32>,
     res: i32,
@@ -77,8 +77,8 @@ pub(crate) struct TerrainSnapshot {
 }
 
 impl TerrainSnapshot {
-    /// Returns None while the terrain is still generating; callers stay in
-    /// their late_init poll until it lands.
+    /// Returns None while the terrain is still generating; callers stay in their
+    /// late_init poll until it lands.
     pub(crate) fn take(terrain: &Gd<QTerrain>) -> Option<Self> {
         let t = terrain.bind();
         let (h, r) = t.cpu_heights()?;
@@ -96,8 +96,8 @@ impl TerrainSnapshot {
         })
     }
 
-    /// For fields that keep their own copy alive past init — stone marches it
-    /// for occlusion long after the snapshot is dropped.
+    /// For fields that keep their own copy alive past init — stone marches it for
+    /// occlusion long after the snapshot is dropped.
     pub(crate) fn raw_heights(&self) -> (&[f32], i32) {
         (&self.heights, self.res)
     }
@@ -121,8 +121,8 @@ impl TerrainSnapshot {
         a + (b - a) * tz
     }
 
-    /// Keep the carriageway clear; grass honours this through the clearance
-    /// map, but scatter placement has to consult the mask itself.
+    /// Keep the carriageway clear; grass honours this through the clearance map, but
+    /// scatter placement has to consult the mask itself.
     pub(crate) fn on_road(&self, x: f32, z: f32) -> f32 {
         if self.road_res < 2 {
             return 0.0;
@@ -147,9 +147,8 @@ pub(crate) fn q_hidden(name: &str) -> bool {
         .any(|s| s == name)
 }
 
-/// Times a block that runs on the main thread only occasionally — streaming
-/// rebuilds and the like — and reports it when it is slow enough to be seen as
-/// a hitch. Armed by Q_PROFILE so a normal run never pays for it.
+/// Times a block that runs on the main thread only occasionally — streaming rebuilds
+/// and the like — and reports it when it is slow enough to be seen as a hitch.
 pub(crate) struct StallTimer(&'static str, std::time::Instant);
 
 fn profiling() -> bool {
@@ -159,8 +158,6 @@ fn profiling() -> bool {
 
 impl StallTimer {
     pub(crate) fn start(name: &'static str) -> Option<Self> {
-        // Some of these sit on per-frame paths, and env::var allocates and locks
-        // the environment on every call, so the lookup happens once.
         if profiling() {
             Some(Self(name, std::time::Instant::now()))
         } else {

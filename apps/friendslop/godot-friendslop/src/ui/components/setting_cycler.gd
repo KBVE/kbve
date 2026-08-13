@@ -2,18 +2,9 @@ class_name SettingCycler
 extends HBoxContainer
 
 ## A label and a value button that steps through a fixed list.
-##
-## The settings node stays the source of truth: this reads through `_names` and
-## `_get_index` on every refresh rather than caching an index, so a value changed
-## from anywhere else -- a preset applying, a config load, another row -- shows up
-## without anything having to notify this row.
-##
-## `count` is the number of reachable values, which is not always the number of
-## labels: the graphics preset row lists a trailing "Custom" that reports a
-## combination but must never be cycled into.
 
-## Emitted after the value moves, so the page can refresh its sibling rows --
-## one preset change moves every other row on the spread.
+## Emitted after the value moves, so the page can refresh its sibling rows -- one preset
+## change moves every other row on the spread.
 signal cycled
 
 var _names: Callable
@@ -59,15 +50,13 @@ func refresh() -> void:
 	_value.text = str(list[i])
 
 
-## The controls whose height and font track the projected book, handed to the
-## page so it can rescale them on every layout pass.
+## The controls whose height and font track the projected book, handed to the page so it
+## can rescale them on every layout pass.
 func scalables() -> Array[Control]:
 	return [_label, _value]
 
 
 func _advance() -> void:
-	# Modulo by the reachable count, not the label count, so a page sitting on a
-	# trailing readout value steps back into the real range instead of past it.
 	_set_index.call((int(_get_index.call()) + 1) % _count)
 	refresh()
 	cycled.emit()

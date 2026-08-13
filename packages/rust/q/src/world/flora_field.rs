@@ -246,8 +246,6 @@ impl QFloraField {
             false,
             false,
             1,
-            // Flora and shrubs fade out well inside the range where a hill would
-            // hide them, so the march would cost more than it culls.
             TerrainOcclusion::disabled(),
         )
     }

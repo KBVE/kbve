@@ -148,9 +148,7 @@ pub struct QTreeField {
     #[export]
     #[init(val = 110.0)]
     mesh_range: f32,
-    /// Draw distance for the cheap far tree LOD. Zero keeps the historic
-    /// behaviour of covering the whole map, which on a large terrain means
-    /// every tree is drawn every frame regardless of how far away it is.
+    /// Draw distance for the cheap far tree LOD.
     #[export]
     #[init(val = 0.0)]
     far_range: f32,
@@ -165,8 +163,7 @@ pub struct QTreeField {
     attempts: i32,
     candidates: Vec<f32>,
     meshes: Vec<Gd<ArrayMesh>>,
-    /// Per-entry triangle count, parallel to `meshes`. Cached at build time so
-    /// the stats hook never walks the vertex arrays on a live frame.
+    /// Per-entry triangle count, parallel to `meshes`.
     mesh_tris: Vec<u64>,
     leaf_mats: Vec<Gd<ShaderMaterial>>,
     bark_mats: Vec<Gd<ShaderMaterial>>,

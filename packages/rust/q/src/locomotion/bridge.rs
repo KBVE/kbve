@@ -1,9 +1,4 @@
-//! Godot adapter over [`super`]. The one file in the locomotion stack allowed to
-//! name a Godot type, so the decision itself stays compilable into the headless
-//! server unchanged.
-//!
-//! RefCounted rather than a node: it is per-character state the controller owns,
-//! not something with a place in the scene.
+//! Godot adapter over [`super`].
 
 use godot::prelude::*;
 
@@ -39,18 +34,15 @@ impl QLocomotion {
         })
     }
 
-    /// Where the body wants to go this tick, world space. `move_axis` is x right,
-    /// y forward -- Godot's input vector calls +y backward, so the caller flips it
-    /// once on the way in.
+    /// Where the body wants to go this tick, world space.
     #[func]
     fn wish_direction(&self, move_axis: Vector2, yaw: f32) -> Vector3 {
         let d = self.inner.wish_direction([move_axis.x, move_axis.y], yaw);
         Vector3::new(d[0], d[1], d[2])
     }
 
-    /// The whole movement decision for one tick: gravity, the fall cap, whether a
-    /// jump press is taken, and the speed for the heading. Returns the velocity to
-    /// carry into `move_and_slide`; the slide itself stays with the body.
+    /// The whole movement decision for one tick: gravity, the fall cap, whether a jump
+    /// press is taken, and the speed for the heading.
     #[func]
     #[allow(clippy::too_many_arguments)]
     fn step_motion(
@@ -81,8 +73,8 @@ impl QLocomotion {
         )
     }
 
-    /// Whether the last [`Self::step_motion`] actually took a jump, rather than
-    /// the caller re-deriving it from a press it already handed over.
+    /// Whether the last [`Self::step_motion`] actually took a jump, rather than the
+    /// caller re-deriving it from a press it already handed over.
     #[func]
     fn jumped(&self) -> bool {
         self.motion.jumped
@@ -99,8 +91,6 @@ impl QLocomotion {
     }
 
     /// `local_velocity` is in the character's own frame: +x right, +z backward.
-    /// Advances the decision and caches it for the getters below, so a frame
-    /// costs one crossing rather than one per field.
     #[func]
     fn step(&mut self, local_velocity: Vector3, airborne: bool, delta: f32) {
         self.state = self.inner.step(

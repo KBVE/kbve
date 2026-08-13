@@ -1,12 +1,11 @@
 extends Node
 
-## Logs a line whenever a frame takes far longer than its neighbours, with
-## enough engine-side counters to say which subsystem stalled. Enabled with
-## Q_PROFILE=1 so it costs nothing in a normal run.
+## Logs a line whenever a frame takes far longer than its neighbours, with enough
+## engine-side counters to say which subsystem stalled.
 
 const SPIKE_RATIO := 1.8
-## Low enough to stay out of the way at a 16.7ms vsync baseline, where the
-## ratio governs, and still catch stalls when vsync is off and frames are ~4ms.
+## Low enough to stay out of the way at a 16.7ms vsync baseline, where the ratio
+## governs, and still catch stalls when vsync is off and frames are ~4ms.
 const SPIKE_FLOOR_MS := 8.0
 const WARMUP_FRAMES := 120
 const TAIL_FRAMES := 6
@@ -40,8 +39,6 @@ func _process(delta: float) -> void:
 		_avg_ms = lerpf(_avg_ms, ms, 0.1)
 		return
 
-	# Track the worst frame unconditionally, so a run with no spikes still
-	# reports how bad it got rather than looking like no data.
 	if ms > _worst_ms:
 		_worst_ms = ms
 		if is_instance_valid(_player):
@@ -61,12 +58,9 @@ func _process(delta: float) -> void:
 		_report("SPIKE", ms)
 		_tail = TAIL_FRAMES
 	elif _tail > 0:
-		# The frames after a spike say whether it was one stall or a sustained
-		# drop that merely started at one frame.
 		_tail -= 1
 		_report("after", ms)
 
-	# Spikes must not poison the baseline they are measured against.
 	if not spiked:
 		_avg_ms = lerpf(_avg_ms, ms, 0.05)
 

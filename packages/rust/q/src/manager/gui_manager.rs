@@ -104,8 +104,6 @@ impl GUIManager {
     fn enable_always_ontop(&mut self) {
         self.base_mut()
             .with_windowflag(WindowFlags::ALWAYS_ON_TOP, true);
-        //self.base_mut().with_windowflag(WindowFlags::MOUSE_PASSTHROUGH, true);
-        //self.base_mut().with_windowflag(WindowFlags::BORDERLESS, false);
     }
 
     #[func]

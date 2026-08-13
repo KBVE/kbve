@@ -1,10 +1,4 @@
 //! Supabase access-token verification.
-//!
-//! Tokens are issued by GoTrue on supabase.kbve.com. They are HS256 JWTs
-//! signed with the project's `SUPABASE_JWT_SECRET`. The Custom Access Token
-//! hook injects a top-level `kbve_username` claim — see the project memory
-//! note `project_supabase_kbve_username_hook.md` — so servers can identify
-//! players without an extra DB round trip.
 
 use serde::{Deserialize, Serialize};
 
@@ -45,15 +39,12 @@ impl std::fmt::Display for AuthError {
 
 impl std::error::Error for AuthError {}
 
-/// Verify a Supabase access token. `secret` is the project's
-/// `SUPABASE_JWT_SECRET`. Returns the decoded claims on success.
+/// Verify a Supabase access token.
 pub fn verify_supabase_jwt(token: &str, secret: &[u8]) -> Result<SupabaseClaims, AuthError> {
     if secret.is_empty() {
         return Err(AuthError::MissingSecret);
     }
     let mut validation = Validation::new(jsonwebtoken::Algorithm::HS256);
-    // GoTrue tokens default to aud=`authenticated`. Don't pin it — clients
-    // may legitimately come in with different aud (e.g. service role).
     validation.validate_aud = false;
     let data = decode::<SupabaseClaims>(token, &DecodingKey::from_secret(secret), &validation)
         .map_err(|e| AuthError::Invalid(e.to_string()))?;
