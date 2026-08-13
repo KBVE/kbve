@@ -1566,6 +1566,9 @@ dependencies = [
  "glam_matrix_extras",
  "itertools 0.15.0",
  "obvhs",
+ "parry2d 0.27.0",
+ "parry2d-f64",
+ "serde",
  "smallvec",
  "thiserror 2.0.19",
  "thread_local",
@@ -2345,8 +2348,8 @@ dependencies = [
  "jsonwebtoken",
  "kbve",
  "lightyear",
- "lightyear_avian3d",
- "lightyear_replication",
+ "lightyear_avian3d 0.28.0",
+ "lightyear_replication 0.28.0",
  "lru 0.18.1",
  "num_cpus",
  "prost 0.14.4",
@@ -3429,7 +3432,7 @@ dependencies = [
  "hex 0.4.3",
  "js-sys",
  "lightyear",
- "lightyear_aeronet",
+ "lightyear_aeronet 0.28.0",
  "serde",
  "ulid",
  "wasm-bindgen",
@@ -3866,6 +3869,27 @@ name = "bevy_replicon"
 version = "0.41.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a25105650eb1b27c6ada888e06bb38ff7e326a94c7c5b4d75fb5aee50c5ae45e"
+dependencies = [
+ "bevy",
+ "bitflags 2.13.1",
+ "bytes",
+ "deterministic-hash",
+ "log",
+ "petgraph 0.8.3",
+ "postcard",
+ "serde",
+ "smallbitvec",
+ "smallvec",
+ "typeid",
+ "variadics_please 2.0.0",
+ "xxhash-rust",
+]
+
+[[package]]
+name = "bevy_replicon"
+version = "0.42.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "be0faf3fdbafd7d1d658c1b8f8c05c186764765264c1d8aece2807da7f540853"
 dependencies = [
  "bevy",
  "bitflags 2.13.1",
@@ -11316,41 +11340,45 @@ dependencies = [
 
 [[package]]
 name = "lightyear"
-version = "0.28.0"
+version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ccf8a5a84d29c0bdf7db4b7a709a8699f3a8359927c8310ffb5b6dd0056d883"
+checksum = "374717fe6eacae2bcda5e9ebd7a95d37ccfa99349347f8580ac0661446b6d3d6"
 dependencies = [
  "aeronet_io",
  "bevy_app",
  "bevy_ecs",
  "console_error_panic_hook",
  "document-features",
- "lightyear_aeronet",
+ "getrandom 0.2.17",
+ "getrandom 0.3.4",
+ "getrandom 0.4.3",
+ "lightyear_aeronet 0.29.0",
  "lightyear_avian2d",
- "lightyear_avian3d",
- "lightyear_connection",
- "lightyear_core",
+ "lightyear_avian3d 0.29.0",
+ "lightyear_connection 0.29.0",
+ "lightyear_core 0.29.0",
  "lightyear_deterministic_replication",
- "lightyear_frame_interpolation",
+ "lightyear_frame_interpolation 0.29.0",
  "lightyear_inputs",
  "lightyear_inputs_bei",
  "lightyear_inputs_leafwing",
  "lightyear_inputs_native",
- "lightyear_interpolation",
- "lightyear_link",
- "lightyear_messages",
+ "lightyear_interpolation 0.29.0",
+ "lightyear_link 0.29.0",
+ "lightyear_messages 0.29.0",
  "lightyear_metrics",
  "lightyear_netcode",
- "lightyear_prediction",
+ "lightyear_p2p",
+ "lightyear_prediction 0.29.0",
  "lightyear_raw_connection",
- "lightyear_replication",
- "lightyear_serde",
+ "lightyear_replication 0.29.0",
+ "lightyear_serde 0.29.0",
  "lightyear_steam",
- "lightyear_sync",
+ "lightyear_sync 0.29.0",
  "lightyear_tools",
- "lightyear_transport",
+ "lightyear_transport 0.29.0",
  "lightyear_udp",
- "lightyear_utils",
+ "lightyear_utils 0.29.0",
  "lightyear_web",
  "lightyear_websocket",
  "lightyear_webtransport",
@@ -11369,30 +11397,49 @@ dependencies = [
  "bevy_app",
  "bevy_ecs",
  "bevy_reflect",
- "lightyear_core",
- "lightyear_link",
+ "lightyear_core 0.28.0",
+ "lightyear_link 0.28.0",
+ "tracing",
+]
+
+[[package]]
+name = "lightyear_aeronet"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "acc11040ea0e7f3e5e0ba317e9fd2ebd1cf59de050895ef4ab696a9692d5cb4b"
+dependencies = [
+ "aeronet_io",
+ "bevy_app",
+ "bevy_ecs",
+ "bevy_reflect",
+ "lightyear_core 0.29.0",
+ "lightyear_link 0.29.0",
  "tracing",
 ]
 
 [[package]]
 name = "lightyear_avian2d"
-version = "0.28.0"
+version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "226205837bacb1723b383e29dab8d903901aaf5be00037941769f5be13c78896"
+checksum = "afdc5147d5b3ce079ddf8ed2e458ed0ce7c2084da0915bc77829ef8cf15ad482"
 dependencies = [
+ "arrayvec",
  "avian2d",
  "bevy_app",
+ "bevy_derive",
  "bevy_ecs",
  "bevy_math",
  "bevy_time",
  "bevy_transform",
+ "bevy_transform_interpolation",
  "bevy_utils",
- "lightyear_core",
- "lightyear_frame_interpolation",
- "lightyear_interpolation",
- "lightyear_link",
- "lightyear_prediction",
- "lightyear_replication",
+ "lightyear_core 0.29.0",
+ "lightyear_frame_interpolation 0.29.0",
+ "lightyear_interpolation 0.29.0",
+ "lightyear_link 0.29.0",
+ "lightyear_prediction 0.29.0",
+ "lightyear_replication 0.29.0",
+ "obvhs",
  "tracing",
 ]
 
@@ -11409,12 +11456,37 @@ dependencies = [
  "bevy_time",
  "bevy_transform",
  "bevy_utils",
- "lightyear_core",
- "lightyear_frame_interpolation",
- "lightyear_interpolation",
- "lightyear_link",
- "lightyear_prediction",
- "lightyear_replication",
+ "lightyear_core 0.28.0",
+ "lightyear_frame_interpolation 0.28.0",
+ "lightyear_interpolation 0.28.0",
+ "lightyear_link 0.28.0",
+ "lightyear_prediction 0.28.0",
+ "lightyear_replication 0.28.0",
+ "tracing",
+]
+
+[[package]]
+name = "lightyear_avian3d"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f851f8b1c5fa04fe0ee06660cc7e24317b8ea7fdb31d48957b407ada5ea95d2e"
+dependencies = [
+ "avian3d",
+ "bevy_app",
+ "bevy_derive",
+ "bevy_ecs",
+ "bevy_math",
+ "bevy_time",
+ "bevy_transform",
+ "bevy_transform_interpolation",
+ "bevy_utils",
+ "lightyear_core 0.29.0",
+ "lightyear_frame_interpolation 0.29.0",
+ "lightyear_interpolation 0.29.0",
+ "lightyear_link 0.29.0",
+ "lightyear_prediction 0.29.0",
+ "lightyear_replication 0.29.0",
+ "obvhs",
  "tracing",
 ]
 
@@ -11429,9 +11501,29 @@ dependencies = [
  "bevy_platform",
  "bevy_reflect",
  "bytes",
- "lightyear_core",
- "lightyear_link",
- "lightyear_serde",
+ "lightyear_core 0.28.0",
+ "lightyear_link 0.28.0",
+ "lightyear_serde 0.28.0",
+ "serde",
+ "smallvec",
+ "thiserror 2.0.19",
+ "tracing",
+]
+
+[[package]]
+name = "lightyear_connection"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "687dd1078fe85fb566b5d265ab0638716685a5aaa100e038d05e39ffe1e88723"
+dependencies = [
+ "bevy_app",
+ "bevy_ecs",
+ "bevy_platform",
+ "bevy_reflect",
+ "bytes",
+ "lightyear_core 0.29.0",
+ "lightyear_link 0.29.0",
+ "lightyear_serde 0.29.0",
  "serde",
  "smallvec",
  "thiserror 2.0.19",
@@ -11452,31 +11544,52 @@ dependencies = [
  "bevy_time",
  "chrono",
  "fixed",
- "lightyear_serde",
- "lightyear_utils",
+ "lightyear_serde 0.28.0",
+ "lightyear_utils 0.28.0",
+ "serde",
+ "tracing",
+]
+
+[[package]]
+name = "lightyear_core"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c894fa7532711c6c6ef866bbbd04b948c43b0057bde18e5489aa96e57aec7f40"
+dependencies = [
+ "bevy_app",
+ "bevy_derive",
+ "bevy_ecs",
+ "bevy_platform",
+ "bevy_reflect",
+ "bevy_time",
+ "bytes",
+ "chrono",
+ "fixed",
+ "lightyear_serde 0.29.0",
+ "lightyear_utils 0.29.0",
  "serde",
  "tracing",
 ]
 
 [[package]]
 name = "lightyear_deterministic_replication"
-version = "0.28.0"
+version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bdd0989fe60f91f5d4f9a9281aaa00bc2a6868e6d0a3819ccdd5ef65ae9d8108"
+checksum = "b8f60417ffa32c73144bf03ee2be027df0b92b68f1a9c442f749c1c13bdd0beb"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
- "bevy_replicon",
- "lightyear_connection",
- "lightyear_core",
+ "bevy_replicon 0.42.1",
+ "lightyear_connection 0.29.0",
+ "lightyear_core 0.29.0",
  "lightyear_inputs",
- "lightyear_link",
- "lightyear_messages",
- "lightyear_prediction",
- "lightyear_replication",
- "lightyear_sync",
- "lightyear_transport",
- "lightyear_utils",
+ "lightyear_link 0.29.0",
+ "lightyear_messages 0.29.0",
+ "lightyear_prediction 0.29.0",
+ "lightyear_replication 0.29.0",
+ "lightyear_sync 0.29.0",
+ "lightyear_transport 0.29.0",
+ "lightyear_utils 0.29.0",
  "seahash",
  "serde",
  "tracing",
@@ -11494,19 +11607,40 @@ dependencies = [
  "bevy_time",
  "bevy_transform",
  "bevy_utils",
- "lightyear_connection",
- "lightyear_core",
- "lightyear_interpolation",
- "lightyear_replication",
+ "lightyear_connection 0.28.0",
+ "lightyear_core 0.28.0",
+ "lightyear_interpolation 0.28.0",
+ "lightyear_replication 0.28.0",
  "serde",
  "tracing",
 ]
 
 [[package]]
-name = "lightyear_inputs"
-version = "0.28.0"
+name = "lightyear_frame_interpolation"
+version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a03fac5216402f484b0018318b1174c7d3530e8886745bc954c6883f7e882edd"
+checksum = "fc28ccb16b6c15e3b6641808f0161df59f42d13582904f2915746a2f544e610d"
+dependencies = [
+ "bevy_app",
+ "bevy_ecs",
+ "bevy_math",
+ "bevy_platform",
+ "bevy_reflect",
+ "bevy_time",
+ "bevy_transform",
+ "lightyear_core 0.29.0",
+ "lightyear_interpolation 0.29.0",
+ "lightyear_replication 0.29.0",
+ "serde",
+ "smallvec",
+ "tracing",
+]
+
+[[package]]
+name = "lightyear_inputs"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e2ff629a9843374534c84767997cd6c1526bf1444c4fe007e2959e5a473a066a"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
@@ -11514,47 +11648,47 @@ dependencies = [
  "bevy_reflect",
  "bevy_time",
  "bevy_utils",
- "lightyear_connection",
- "lightyear_core",
- "lightyear_interpolation",
- "lightyear_link",
- "lightyear_messages",
- "lightyear_prediction",
- "lightyear_replication",
- "lightyear_sync",
- "lightyear_transport",
+ "lightyear_connection 0.29.0",
+ "lightyear_core 0.29.0",
+ "lightyear_interpolation 0.29.0",
+ "lightyear_link 0.29.0",
+ "lightyear_messages 0.29.0",
+ "lightyear_prediction 0.29.0",
+ "lightyear_replication 0.29.0",
+ "lightyear_sync 0.29.0",
+ "lightyear_transport 0.29.0",
  "serde",
  "tracing",
 ]
 
 [[package]]
 name = "lightyear_inputs_bei"
-version = "0.28.0"
+version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "336d6f7c302924c1093fd1959c5ebdf59f8bdea74af5d0e58585b9883bda8c0a"
+checksum = "c72c988593bfe1bf24e81e1293e21ade685a277b5b7a0a7c134fbdff73eb7523"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
  "bevy_enhanced_input",
  "bevy_reflect",
- "bevy_replicon",
+ "bevy_replicon 0.42.1",
  "bevy_utils",
- "lightyear_connection",
- "lightyear_core",
+ "lightyear_connection 0.29.0",
+ "lightyear_core 0.29.0",
  "lightyear_inputs",
- "lightyear_link",
- "lightyear_messages",
- "lightyear_replication",
- "lightyear_serde",
+ "lightyear_link 0.29.0",
+ "lightyear_messages 0.29.0",
+ "lightyear_replication 0.29.0",
+ "lightyear_serde 0.29.0",
  "serde",
  "tracing",
 ]
 
 [[package]]
 name = "lightyear_inputs_leafwing"
-version = "0.28.0"
+version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bb0f00b5535d0b867d01f185ac49330167218cc60433402c86f920eacc2eda68"
+checksum = "80ecda897fed93186208de26993a3a485434788ea4f760ca40134f7f9ce96b9c"
 dependencies = [
  "bevy_app",
  "bevy_derive",
@@ -11565,24 +11699,24 @@ dependencies = [
  "bevy_reflect",
  "bevy_utils",
  "leafwing-input-manager",
- "lightyear_core",
+ "lightyear_core 0.29.0",
  "lightyear_inputs",
- "lightyear_sync",
+ "lightyear_sync 0.29.0",
  "serde",
  "tracing",
 ]
 
 [[package]]
 name = "lightyear_inputs_native"
-version = "0.28.0"
+version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "765cb40b1a38396e4f311e0bb4da99a96b36d40bcf6cf64a80585433a88fcc7a"
+checksum = "f749fac6358d9cf618f31d664fa84e95c3afe75bbc290219d19bd2fa0e7ca676"
 dependencies = [
  "bevy_app",
  "bevy_derive",
  "bevy_ecs",
  "bevy_reflect",
- "lightyear_core",
+ "lightyear_core 0.29.0",
  "lightyear_inputs",
  "serde",
  "tracing",
@@ -11600,18 +11734,47 @@ dependencies = [
  "bevy_math",
  "bevy_platform",
  "bevy_reflect",
- "bevy_replicon",
+ "bevy_replicon 0.41.1",
  "bevy_time",
  "bevy_utils",
- "lightyear_connection",
- "lightyear_core",
- "lightyear_messages",
- "lightyear_replication",
- "lightyear_serde",
- "lightyear_sync",
- "lightyear_utils",
+ "lightyear_connection 0.28.0",
+ "lightyear_core 0.28.0",
+ "lightyear_messages 0.28.0",
+ "lightyear_replication 0.28.0",
+ "lightyear_serde 0.28.0",
+ "lightyear_sync 0.28.0",
+ "lightyear_utils 0.28.0",
  "serde",
  "tracing",
+]
+
+[[package]]
+name = "lightyear_interpolation"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a1175562af581cbeec3fe99eadced1793bc3ffc5dc72a00584fec816d077637c"
+dependencies = [
+ "bevy_app",
+ "bevy_derive",
+ "bevy_ecs",
+ "bevy_math",
+ "bevy_platform",
+ "bevy_reflect",
+ "bevy_replicon 0.42.1",
+ "bevy_time",
+ "bevy_utils",
+ "indexmap 2.14.0",
+ "lightyear_connection 0.29.0",
+ "lightyear_core 0.29.0",
+ "lightyear_messages 0.29.0",
+ "lightyear_replication 0.29.0",
+ "lightyear_serde 0.29.0",
+ "lightyear_sync 0.29.0",
+ "lightyear_transport 0.29.0",
+ "lightyear_utils 0.29.0",
+ "serde",
+ "tracing",
+ "variadics_please 2.0.0",
 ]
 
 [[package]]
@@ -11625,8 +11788,25 @@ dependencies = [
  "bevy_reflect",
  "bevy_utils",
  "bytes",
- "lightyear_core",
- "lightyear_utils",
+ "lightyear_core 0.28.0",
+ "lightyear_utils 0.28.0",
+ "rand 0.10.2",
+ "tracing",
+]
+
+[[package]]
+name = "lightyear_link"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "42a13f98bac9b455663d9ea2562dca2ae8fd6e2db9c66d1aeb0e3d5bde2772dd"
+dependencies = [
+ "bevy_app",
+ "bevy_ecs",
+ "bevy_reflect",
+ "bevy_utils",
+ "bytes",
+ "lightyear_core 0.29.0",
+ "lightyear_utils 0.29.0",
  "rand 0.10.2",
  "tracing",
 ]
@@ -11642,12 +11822,33 @@ dependencies = [
  "bevy_reflect",
  "bevy_utils",
  "bytes",
- "lightyear_connection",
- "lightyear_core",
- "lightyear_link",
- "lightyear_serde",
- "lightyear_transport",
- "lightyear_utils",
+ "lightyear_connection 0.28.0",
+ "lightyear_core 0.28.0",
+ "lightyear_serde 0.28.0",
+ "lightyear_transport 0.28.0",
+ "lightyear_utils 0.28.0",
+ "serde",
+ "thiserror 2.0.19",
+ "tracing",
+]
+
+[[package]]
+name = "lightyear_messages"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "74eac73a81b9c4e3618ce84532059522e4d9f3f6efeab2a494ec04c86aa5590f"
+dependencies = [
+ "bevy_app",
+ "bevy_ecs",
+ "bevy_reflect",
+ "bevy_utils",
+ "bytes",
+ "lightyear_connection 0.29.0",
+ "lightyear_core 0.29.0",
+ "lightyear_link 0.29.0",
+ "lightyear_serde 0.29.0",
+ "lightyear_transport 0.29.0",
+ "lightyear_utils 0.29.0",
  "serde",
  "thiserror 2.0.19",
  "tracing",
@@ -11655,9 +11856,9 @@ dependencies = [
 
 [[package]]
 name = "lightyear_metrics"
-version = "0.28.0"
+version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "64e00d80e123c73cf1dc121875852e1c7447cee26a0c1f37f7bb322a32ba6839"
+checksum = "96689dcf69f8e1993db6aa34d0e8651d62b07791767a20fc8acf85ab8f7c705f"
 dependencies = [
  "bevy_app",
  "bevy_color",
@@ -11675,9 +11876,9 @@ dependencies = [
 
 [[package]]
 name = "lightyear_netcode"
-version = "0.28.0"
+version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f009241f6954e89fc2417f10488deee00cca08028e4eb20b7ad8c4954fc8832"
+checksum = "a9f56e6ed51b558c9b40991ff8af5bb71396deb2fb77217bf619a392bd1a3c54"
 dependencies = [
  "aeronet_io",
  "bevy_app",
@@ -11686,17 +11887,36 @@ dependencies = [
  "bevy_time",
  "bytes",
  "chacha20poly1305",
- "lightyear_connection",
- "lightyear_core",
- "lightyear_link",
- "lightyear_serde",
- "lightyear_transport",
- "lightyear_utils",
+ "lightyear_connection 0.29.0",
+ "lightyear_core 0.29.0",
+ "lightyear_link 0.29.0",
+ "lightyear_serde 0.29.0",
+ "lightyear_transport 0.29.0",
+ "lightyear_utils 0.29.0",
  "no_std_io2",
  "rand 0.10.2",
  "thiserror 2.0.19",
  "tracing",
  "web-time",
+]
+
+[[package]]
+name = "lightyear_p2p"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b2df1e335384bdd5749150f1f595022020b9d495dee6ce79745678d957122529"
+dependencies = [
+ "bevy_app",
+ "bevy_ecs",
+ "lightyear_connection 0.29.0",
+ "lightyear_core 0.29.0",
+ "lightyear_link 0.29.0",
+ "lightyear_messages 0.29.0",
+ "lightyear_sync 0.29.0",
+ "lightyear_transport 0.29.0",
+ "serde",
+ "smallvec",
+ "tracing",
 ]
 
 [[package]]
@@ -11712,17 +11932,47 @@ dependencies = [
  "bevy_math",
  "bevy_platform",
  "bevy_reflect",
- "bevy_replicon",
+ "bevy_replicon 0.41.1",
  "bevy_time",
  "bevy_utils",
- "lightyear_connection",
- "lightyear_core",
- "lightyear_frame_interpolation",
- "lightyear_interpolation",
- "lightyear_messages",
- "lightyear_replication",
- "lightyear_sync",
- "lightyear_utils",
+ "lightyear_connection 0.28.0",
+ "lightyear_core 0.28.0",
+ "lightyear_frame_interpolation 0.28.0",
+ "lightyear_interpolation 0.28.0",
+ "lightyear_replication 0.28.0",
+ "lightyear_sync 0.28.0",
+ "lightyear_utils 0.28.0",
+ "parking_lot",
+ "seahash",
+ "serde",
+ "tracing",
+]
+
+[[package]]
+name = "lightyear_prediction"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2a4a0ced6bb4eabafa7ad26c89105ccf9ad2fb7ccf6fb5124596293d01ca5d66"
+dependencies = [
+ "bevy_app",
+ "bevy_derive",
+ "bevy_diagnostic",
+ "bevy_ecs",
+ "bevy_math",
+ "bevy_platform",
+ "bevy_reflect",
+ "bevy_replicon 0.42.1",
+ "bevy_time",
+ "bevy_utils",
+ "indexmap 2.14.0",
+ "lightyear_connection 0.29.0",
+ "lightyear_core 0.29.0",
+ "lightyear_frame_interpolation 0.29.0",
+ "lightyear_interpolation 0.29.0",
+ "lightyear_messages 0.29.0",
+ "lightyear_replication 0.29.0",
+ "lightyear_sync 0.29.0",
+ "lightyear_utils 0.29.0",
  "parking_lot",
  "seahash",
  "serde",
@@ -11731,17 +11981,17 @@ dependencies = [
 
 [[package]]
 name = "lightyear_raw_connection"
-version = "0.28.0"
+version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1c3dd25d5168ece94862f36fc4f9531caff7c92bca604754ac5fb86886a41c4e"
+checksum = "4149c1f04ae850a08c8e00c0545b4350e549fb2c18ce2aab5711887ada360ffd"
 dependencies = [
  "aeronet_io",
  "bevy_app",
  "bevy_ecs",
- "lightyear_connection",
- "lightyear_core",
- "lightyear_link",
- "lightyear_transport",
+ "lightyear_connection 0.29.0",
+ "lightyear_core 0.29.0",
+ "lightyear_link 0.29.0",
+ "lightyear_transport 0.29.0",
  "tracing",
 ]
 
@@ -11750,6 +12000,43 @@ name = "lightyear_replication"
 version = "0.28.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "25bd33e61d5fe7925e36cd1e9844b872d99dcf8bea1653a8049261bccadb7cb5"
+dependencies = [
+ "avian3d",
+ "bevy_app",
+ "bevy_derive",
+ "bevy_ecs",
+ "bevy_math",
+ "bevy_platform",
+ "bevy_ptr",
+ "bevy_reflect",
+ "bevy_replicon 0.41.1",
+ "bevy_state",
+ "bevy_time",
+ "bevy_transform",
+ "bevy_utils",
+ "bytes",
+ "dashmap 6.2.1",
+ "fixedbitset",
+ "indexmap 2.14.0",
+ "lightyear_connection 0.28.0",
+ "lightyear_core 0.28.0",
+ "lightyear_link 0.28.0",
+ "lightyear_messages 0.28.0",
+ "lightyear_serde 0.28.0",
+ "lightyear_transport 0.28.0",
+ "lightyear_utils 0.28.0",
+ "seahash",
+ "serde",
+ "smallvec",
+ "thiserror 2.0.19",
+ "tracing",
+]
+
+[[package]]
+name = "lightyear_replication"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0dc148f7eee7d0b4e585fced7bac81e97a50f45076563b1f51d561be8afeba38"
 dependencies = [
  "avian2d",
  "avian3d",
@@ -11760,23 +12047,22 @@ dependencies = [
  "bevy_platform",
  "bevy_ptr",
  "bevy_reflect",
- "bevy_replicon",
+ "bevy_replicon 0.42.1",
  "bevy_state",
  "bevy_time",
  "bevy_transform",
  "bevy_utils",
  "bytes",
- "dashmap 6.2.1",
  "fixedbitset",
  "indexmap 2.14.0",
- "lightyear_connection",
- "lightyear_core",
- "lightyear_link",
- "lightyear_messages",
- "lightyear_serde",
- "lightyear_sync",
- "lightyear_transport",
- "lightyear_utils",
+ "lightyear_connection 0.29.0",
+ "lightyear_core 0.29.0",
+ "lightyear_link 0.29.0",
+ "lightyear_messages 0.29.0",
+ "lightyear_serde 0.29.0",
+ "lightyear_sync 0.29.0",
+ "lightyear_transport 0.29.0",
+ "lightyear_utils 0.29.0",
  "seahash",
  "serde",
  "smallvec",
@@ -11806,19 +12092,41 @@ dependencies = [
 ]
 
 [[package]]
-name = "lightyear_steam"
-version = "0.28.0"
+name = "lightyear_serde"
+version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2e7886d0ea99ab0b9e021d5627ea1a9810f8c2bcd0189c2402ff29541d52fb01"
+checksum = "a1cacdc85ecf6ca3370abd22194ad5dc7c7ae5b041dfe5ffb571a6bb6099691e"
+dependencies = [
+ "bevy_derive",
+ "bevy_ecs",
+ "bevy_platform",
+ "bevy_ptr",
+ "bevy_reflect",
+ "bevy_utils",
+ "bytes",
+ "no_std_io2",
+ "postcard",
+ "serde",
+ "smallvec",
+ "thiserror 2.0.19",
+ "tracing",
+ "variadics_please 2.0.0",
+]
+
+[[package]]
+name = "lightyear_steam"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c3635cbc92fffff33842a95ef0f0a6f29a0e445d089e64b6e73a726f49192007"
 dependencies = [
  "aeronet_io",
  "aeronet_steam",
  "bevy_app",
  "bevy_ecs",
- "lightyear_aeronet",
- "lightyear_connection",
- "lightyear_core",
- "lightyear_link",
+ "lightyear_aeronet 0.29.0",
+ "lightyear_connection 0.29.0",
+ "lightyear_core 0.29.0",
+ "lightyear_link 0.29.0",
  "thiserror 2.0.19",
  "tracing",
 ]
@@ -11836,22 +12144,46 @@ dependencies = [
  "bevy_reflect",
  "bevy_time",
  "bevy_utils",
- "lightyear_connection",
- "lightyear_core",
- "lightyear_link",
- "lightyear_messages",
- "lightyear_serde",
- "lightyear_transport",
- "lightyear_utils",
+ "lightyear_connection 0.28.0",
+ "lightyear_core 0.28.0",
+ "lightyear_link 0.28.0",
+ "lightyear_messages 0.28.0",
+ "lightyear_serde 0.28.0",
+ "lightyear_transport 0.28.0",
+ "lightyear_utils 0.28.0",
+ "serde",
+ "tracing",
+]
+
+[[package]]
+name = "lightyear_sync"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "f1a8a3f7d7186261fa5dff17f3110b3e358d18613d084ec01227f151a37bdaa4"
+dependencies = [
+ "bevy_app",
+ "bevy_derive",
+ "bevy_diagnostic",
+ "bevy_ecs",
+ "bevy_reflect",
+ "bevy_time",
+ "bevy_utils",
+ "lightyear_connection 0.29.0",
+ "lightyear_core 0.29.0",
+ "lightyear_link 0.29.0",
+ "lightyear_messages 0.29.0",
+ "lightyear_serde 0.29.0",
+ "lightyear_transport 0.29.0",
+ "lightyear_utils 0.29.0",
  "serde",
  "tracing",
 ]
 
 [[package]]
 name = "lightyear_tools"
-version = "0.28.0"
+version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a4e6425d9b85396c2920f764af46452ceb1fd44b7e099f8792b08702cea0c2b0"
+checksum = "6c63a1fd8ad0c4b1a7e29790fa41c69423d208f6969fb0df66525722a84f6584"
 dependencies = [
  "bevy_app",
  "bevy_color",
@@ -11863,10 +12195,11 @@ dependencies = [
  "bevy_time",
  "bevy_ui",
  "bevy_utils",
- "lightyear_connection",
- "lightyear_core",
- "lightyear_link",
+ "lightyear_connection 0.29.0",
+ "lightyear_core 0.29.0",
+ "lightyear_link 0.29.0",
  "lightyear_metrics",
+ "lightyear_replication 0.29.0",
  "metrics",
  "metrics-util",
  "serde",
@@ -11892,11 +12225,40 @@ dependencies = [
  "enum_dispatch",
  "governor",
  "indexmap 2.14.0",
- "lightyear_connection",
- "lightyear_core",
- "lightyear_link",
- "lightyear_serde",
- "lightyear_utils",
+ "lightyear_connection 0.28.0",
+ "lightyear_core 0.28.0",
+ "lightyear_link 0.28.0",
+ "lightyear_serde 0.28.0",
+ "lightyear_utils 0.28.0",
+ "nonzero_ext",
+ "ringbuffer",
+ "serde",
+ "thiserror 2.0.19",
+ "tracing",
+]
+
+[[package]]
+name = "lightyear_transport"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bec0a6415de877501ee271f109289ed013b0806dce44ee791bbd8a2482bef2cc"
+dependencies = [
+ "bevy_app",
+ "bevy_ecs",
+ "bevy_platform",
+ "bevy_reflect",
+ "bevy_time",
+ "bevy_utils",
+ "bytes",
+ "crossbeam-channel",
+ "governor",
+ "indexmap 2.14.0",
+ "lightyear_connection 0.29.0",
+ "lightyear_core 0.29.0",
+ "lightyear_link 0.29.0",
+ "lightyear_serde 0.29.0",
+ "lightyear_utils 0.29.0",
+ "no_std_io2",
  "nonzero_ext",
  "ringbuffer",
  "serde",
@@ -11906,17 +12268,18 @@ dependencies = [
 
 [[package]]
 name = "lightyear_udp"
-version = "0.28.0"
+version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f5de693f3e82a67aeed2bdec3f29dad9394aaa5b8a63c6268131824e4d312a71"
+checksum = "c9a1d0e3977fa96cd1037f0b75f27571c3266635f1d29f01f2b3c69a1d152c92"
 dependencies = [
  "aeronet_io",
  "bevy_app",
  "bevy_ecs",
  "bevy_platform",
  "bytes",
- "lightyear_core",
- "lightyear_link",
+ "lightyear_core 0.29.0",
+ "lightyear_link 0.29.0",
+ "lightyear_utils 0.29.0",
  "thiserror 2.0.19",
  "tracing",
 ]
@@ -11938,10 +12301,26 @@ dependencies = [
 ]
 
 [[package]]
-name = "lightyear_web"
-version = "0.28.0"
+name = "lightyear_utils"
+version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a8036a839a28aa82b43820b86e6587405f39f74fde9c13b15ba88e9d81723b5a"
+checksum = "c89bf3355f41dee32b474e93bd7b65bccf7196249b6138164baada8f8fe66342"
+dependencies = [
+ "bevy_ecs",
+ "bevy_platform",
+ "bevy_reflect",
+ "bevy_utils",
+ "hashbrown 0.17.1",
+ "pastey 0.2.3",
+ "seahash",
+ "tracing",
+]
+
+[[package]]
+name = "lightyear_web"
+version = "0.29.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8efa20096ce356ab14133596b966daccb1a143baa543db8a3761daab886c9f78"
 dependencies = [
  "bevy_app",
  "bevy_ecs",
@@ -11952,34 +12331,34 @@ dependencies = [
 
 [[package]]
 name = "lightyear_websocket"
-version = "0.28.0"
+version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "754048029ad9ceb2a108d0546bd20dfceb78aa1d85d9d6900e5b357a466cbafc"
+checksum = "93743064cbf381f67bc6a326cd5b89e167af543131ccf4a9ed8451ce4e26e733"
 dependencies = [
  "aeronet_io",
  "aeronet_websocket",
  "bevy_app",
  "bevy_ecs",
  "bevy_reflect",
- "lightyear_aeronet",
- "lightyear_link",
+ "lightyear_aeronet 0.29.0",
+ "lightyear_link 0.29.0",
  "thiserror 2.0.19",
  "tracing",
 ]
 
 [[package]]
 name = "lightyear_webtransport"
-version = "0.28.0"
+version = "0.29.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "37d9b8cc1471cdf897c4d1810606eac9011b75dd18a23acc0dd6e82af35f62ec"
+checksum = "b9814de7cd09078f27f52c72acb65e59d1f81d960693947815587a5308413292"
 dependencies = [
  "aeronet_io",
  "aeronet_webtransport",
  "bevy_app",
  "bevy_ecs",
  "bevy_reflect",
- "lightyear_aeronet",
- "lightyear_link",
+ "lightyear_aeronet 0.29.0",
+ "lightyear_link 0.29.0",
  "thiserror 2.0.19",
  "tracing",
 ]
@@ -13936,6 +14315,62 @@ dependencies = [
 ]
 
 [[package]]
+name = "parry2d"
+version = "0.27.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "64f0ec92e9560ebd24cbdd071e19e07a96df6a6d4970d8719cc898c7dfdc359a"
+dependencies = [
+ "approx",
+ "arrayvec",
+ "bitflags 2.13.1",
+ "downcast-rs 2.0.2",
+ "either",
+ "ena",
+ "foldhash 0.2.0",
+ "glamx 0.2.0",
+ "hashbrown 0.16.1",
+ "log",
+ "num-derive",
+ "num-traits",
+ "ordered-float 5.3.0",
+ "serde",
+ "serde_arrays",
+ "simba 0.9.1",
+ "slab",
+ "smallvec",
+ "spade",
+ "thiserror 2.0.19",
+]
+
+[[package]]
+name = "parry2d-f64"
+version = "0.27.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9445ae064bfaad3ef13354d2f9a4a5b6e01bbbad770a18aafd38662501b289cb"
+dependencies = [
+ "approx",
+ "arrayvec",
+ "bitflags 2.13.1",
+ "downcast-rs 2.0.2",
+ "either",
+ "ena",
+ "foldhash 0.2.0",
+ "glamx 0.2.0",
+ "hashbrown 0.16.1",
+ "log",
+ "num-derive",
+ "num-traits",
+ "ordered-float 5.3.0",
+ "serde",
+ "serde_arrays",
+ "simba 0.9.1",
+ "slab",
+ "smallvec",
+ "spade",
+ "thiserror 2.0.19",
+]
+
+[[package]]
 name = "parry3d"
 version = "0.25.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -15540,7 +15975,7 @@ dependencies = [
  "num-derive",
  "num-traits",
  "ordered-float 4.6.0",
- "parry2d",
+ "parry2d 0.17.6",
  "rustc-hash 2.1.3",
  "simba 0.9.1",
  "thiserror 1.0.69",
