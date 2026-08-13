@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dimejj8artfjv"
-path="res://.godot/imported/George_George_Texture.png-a906f8f6bd8c486c348694e234efa890.ctex"
+path.s3tc="res://.godot/imported/George_George_Texture.png-a906f8f6bd8c486c348694e234efa890.s3tc.ctex"
+path.etc2="res://.godot/imported/George_George_Texture.png-a906f8f6bd8c486c348694e234efa890.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "6a05aea76c3a5c9dd5db347fd83fdf3f"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/characters/creatures/mech/models/George_George_Texture.png"
-dest_files=["res://.godot/imported/George_George_Texture.png-a906f8f6bd8c486c348694e234efa890.ctex"]
+dest_files=["res://.godot/imported/George_George_Texture.png-a906f8f6bd8c486c348694e234efa890.s3tc.ctex", "res://.godot/imported/George_George_Texture.png-a906f8f6bd8c486c348694e234efa890.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0

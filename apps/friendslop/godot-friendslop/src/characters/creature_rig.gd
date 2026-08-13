@@ -29,6 +29,11 @@ const CelShading := preload("res://src/characters/cel_shading.gd")
 ## whatever it was aimed at.
 @export var facing_offset_deg := 0.0
 @export var tint := Color(1, 1, 1)
+## Shown on a billboard over the creature. Empty for no plate.
+@export var display_name := ""
+## Clearance above the top of the mesh, so the plate sits off the head rather than
+## at a guessed world height -- the mechs differ by more than a metre in stature.
+@export var nameplate_clearance := 0.9
 
 ## Ground speed the walk and run clips were authored for. Unmeasured: these clips
 ## are in-place with no root motion, so unlike the humanoid gait table these are
@@ -76,8 +81,12 @@ var animation: AnimationPlayer
 var tree: AnimationTree
 var skeleton: Skeleton3D
 
+var nameplate: Label3D
+
 var _dead := false
 var _speed := 0.0
+## Top of the mesh in local space, which is where the nameplate hangs from.
+var _height := 0.0
 
 
 func _ready() -> void:
@@ -93,6 +102,10 @@ func _ready() -> void:
 	for child in skeleton.get_children():
 		if child is MeshInstance3D:
 			CelShading.apply(child, SHADING, self)
+			var box := (child as MeshInstance3D).mesh.get_aabb()
+			_height = maxf(_height, box.position.y + box.size.y)
+	if display_name != "":
+		_build_nameplate()
 	animation = _find_player(rig)
 	if animation == null:
 		push_error("creature_rig: no AnimationPlayer in %s" % body.resource_path)
@@ -101,6 +114,28 @@ func _ready() -> void:
 	_build_tree(rig)
 	if snap_to_terrain:
 		_snap()
+
+
+## Billboarded so it reads from any angle, and depth-tested so a plate does not
+## show through the hill the creature is standing behind.
+func _build_nameplate() -> void:
+	nameplate = Label3D.new()
+	nameplate.text = display_name
+	nameplate.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	nameplate.double_sided = true
+	nameplate.pixel_size = 0.006
+	nameplate.font_size = 96
+	nameplate.outline_size = 28
+	nameplate.modulate = Color(1, 0.93, 0.8)
+	nameplate.outline_modulate = Color(0.05, 0.04, 0.08)
+	nameplate.position = Vector3(0.0, _height + nameplate_clearance, 0.0)
+	add_child(nameplate)
+
+
+func set_display_name(value: String) -> void:
+	display_name = value
+	if nameplate:
+		nameplate.text = value
 
 
 ## The pack ships every clip as LOOP_NONE, including the cycles. Left alone, the

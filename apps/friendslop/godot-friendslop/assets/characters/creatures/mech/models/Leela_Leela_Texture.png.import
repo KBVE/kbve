@@ -3,9 +3,11 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://dxg6610rqvruj"
-path="res://.godot/imported/Leela_Leela_Texture.png-8e1d5b64757d7111cb479a9aa4ad91bc.ctex"
+path.s3tc="res://.godot/imported/Leela_Leela_Texture.png-8e1d5b64757d7111cb479a9aa4ad91bc.s3tc.ctex"
+path.etc2="res://.godot/imported/Leela_Leela_Texture.png-8e1d5b64757d7111cb479a9aa4ad91bc.etc2.ctex"
 metadata={
-"vram_texture": false
+"imported_formats": ["s3tc_bptc", "etc2_astc"],
+"vram_texture": true
 }
 generator_parameters={
 "md5": "919a51bf6b26f47ffd3611590ab6cd66"
@@ -14,11 +16,11 @@ generator_parameters={
 [deps]
 
 source_file="res://assets/characters/creatures/mech/models/Leela_Leela_Texture.png"
-dest_files=["res://.godot/imported/Leela_Leela_Texture.png-8e1d5b64757d7111cb479a9aa4ad91bc.ctex"]
+dest_files=["res://.godot/imported/Leela_Leela_Texture.png-8e1d5b64757d7111cb479a9aa4ad91bc.s3tc.ctex", "res://.godot/imported/Leela_Leela_Texture.png-8e1d5b64757d7111cb479a9aa4ad91bc.etc2.ctex"]
 
 [params]
 
-compress/mode=0
+compress/mode=2
 compress/high_quality=false
 compress/lossy_quality=0.7
 compress/uastc_level=0
