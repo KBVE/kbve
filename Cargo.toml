@@ -148,7 +148,7 @@ uuid = "1"
 wasm-bindgen = { version = "=0.2.114", default-features = false }
 wasm-bindgen-futures = "0.4"
 web-sys = "0.3"
-webpki-roots = "0.26"
+webpki-roots = "1.0"
 wgpu = "29"
 
 [profile.dev]
