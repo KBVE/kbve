@@ -31,7 +31,37 @@ func test_states_are_fully_specified() -> void:
 		var cfg: Dictionary = Rig.STATES[state]
 		assert_bool(cfg.has(&"reset")).is_true()
 		assert_bool(cfg.has(&"ik")).is_true()
+		assert_bool(cfg.has(&"clip")).is_true()
 		assert_float(cfg[&"ik"]).is_between(0.0, 1.0)
+	# Only move draws its clip from the blend space; a one-shot without one would
+	# be added to the machine as a null node.
+	assert_str(Rig.STATES[&"move"][&"clip"]).is_empty()
+	for state in Rig.STATES:
+		if state != &"move":
+			assert_str(Rig.STATES[state][&"clip"]).is_not_empty()
+
+
+## QLocomotion decides in stances and the machine is addressed by name, so an
+## unmapped stance is a state the rig can be asked to travel to and cannot.
+func test_every_stance_maps_to_a_real_state() -> void:
+	var stances := [QLocomotion.STANCE_MOVE, QLocomotion.STANCE_JUMP,
+			QLocomotion.STANCE_CLIMB_LOW, QLocomotion.STANCE_CLIMB_HIGH]
+	for stance in stances:
+		assert_bool(Rig.STANCE_STATES.has(stance)) \
+				.override_failure_message("stance %d is unmapped" % stance).is_true()
+		assert_bool(Rig.STATES.has(Rig.STANCE_STATES[stance])) \
+				.override_failure_message("stance %d maps to a missing state" % stance).is_true()
+	assert_int(Rig.STANCE_STATES.size()).is_equal(stances.size())
+
+
+## The ring the clips are laid out on has to be the ring Q solves radii against.
+func test_clip_rings_match_the_rust_gait_radii() -> void:
+	var loco := QLocomotion.create()
+	# Q's inner ring is the walk's authored forward speed, the outer the jog's.
+	assert_float(loco.gait_speed(Vector2(0.0, 1.0))).is_greater(0.0)
+	assert_int(Rig.GAIT_CLIPS.size()).is_equal(2)
+	assert_float(Rig.GAIT_CLIPS[0].radius).is_equal(1.0)
+	assert_float(Rig.GAIT_CLIPS[1].radius).is_equal(2.0)
 
 
 ## The locomotion cycle has to survive a round trip through the air. Resetting it
