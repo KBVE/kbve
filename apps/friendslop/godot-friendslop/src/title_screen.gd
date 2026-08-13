@@ -179,9 +179,13 @@ func _play_solo() -> void:
 ## Leaving the title is where the other languages' fonts stop being worth their
 ## memory: the picker was the only thing that needed them all, and the world has
 ## no picker.
+##
+## The swap goes through LoadingScreen rather than `change_scene_to_file`: both
+## scenes past this point are heavy enough to freeze on, and a blocking change
+## cannot draw while it runs.
 func _enter(scene: String) -> void:
 	I18n.use_locale_font()
-	get_tree().change_scene_to_file(scene)
+	LoadingScreen.swap(get_tree(), scene, "world" if scene == TitleMenu.WORLD_SCENE else "session")
 
 
 ## Built on first use: the book is a SubViewport with its own 3D world, and

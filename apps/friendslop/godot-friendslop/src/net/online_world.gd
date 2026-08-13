@@ -100,4 +100,4 @@ func _refresh_nameplates() -> void:
 func _leave() -> void:
 	_client.disconnect_from_server()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	get_tree().change_scene_to_file(TITLE_SCENE)
+	LoadingScreen.swap(get_tree(), TITLE_SCENE, "Friendslop")

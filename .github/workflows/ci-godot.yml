@@ -461,9 +461,32 @@ jobs:
               run: |
                   CLEAN=$(echo '${{ matrix.preset }}' | tr '/' '-' | tr ' ' '-')
                   echo "name=$CLEAN" >> "$GITHUB_OUTPUT"
+            - name: Install software Vulkan for the shader baker
+              # The shader baker only runs when a RenderingDevice exists, and
+              # `--headless` never makes one, so an export that looks fine bakes
+              # nothing and ships a build that compiles ~100 shaders on the
+              # player's first launch. lavapipe is Mesa's CPU Vulkan driver — the
+              # runners have no GPU and do not need one; the baking itself is
+              # CPU work either way. xvfb supplies the X display the x11 driver
+              # opens. Texture import wants the same device: Godot compresses
+              # VRAM textures on the RenderingDevice, so a headless import
+              # silently skips them.
+              continue-on-error: true
+              run: |
+                  apt-get update -qq
+                  apt-get install -y -qq --no-install-recommends \
+                    mesa-vulkan-drivers xvfb libfontconfig1 libxcursor1 \
+                    libxinerama1 libxrandr2 libxi6 libxext6 libx11-6 libgl1 libxkbcommon0
             - name: Import project
               working-directory: ${{ fromJSON(inputs.engine).project_path }}
-              run: godot --headless --import || true
+              run: |
+                  # Both steps fall back to headless rather than failing: without
+                  # the device the build is exactly what it was before the baker
+                  # was switched on, which is worth more than a red pipeline.
+                  xvfb-run -a -s "-screen 0 1280x720x24" \
+                    godot --display-driver x11 --rendering-driver vulkan --import \
+                    || godot --headless --import \
+                    || true
             - name: Export
               working-directory: ${{ fromJSON(inputs.engine).project_path }}
               env:
@@ -487,7 +510,21 @@ jobs:
                     *)               OUT="$APP" ;;
                   esac
                   mkdir -p "build/$DIR"
-                  godot --headless --export-release "${{ matrix.preset }}" "build/$DIR/$OUT"
+                  # Try the device-backed export first so the shader baker has
+                  # something to bake into, then fall back. Keyed on the artefact
+                  # existing rather than the exit code: a partial export that
+                  # left no file still has to reach the headless path.
+                  if xvfb-run -a -s "-screen 0 1280x720x24" \
+                       godot --display-driver x11 --rendering-driver vulkan \
+                       --export-release "${{ matrix.preset }}" "build/$DIR/$OUT" \
+                     && [ -s "build/$DIR/$OUT" ]; then
+                    echo "::notice::${{ matrix.preset }} exported with a RenderingDevice (shader baker active)"
+                  else
+                    echo "::warning::${{ matrix.preset }} fell back to a headless export — shaders are NOT baked and first launch will compile them"
+                    rm -rf "build/$DIR"
+                    mkdir -p "build/$DIR"
+                    godot --headless --export-release "${{ matrix.preset }}" "build/$DIR/$OUT"
+                  fi
             - name: Upload artefact
               uses: actions/upload-artifact@v7
               with:
