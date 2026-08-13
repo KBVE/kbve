@@ -1,0 +1,13 @@
+{
+	"action": {
+		"play": "Jugar",
+		"back": "Volver",
+		"quit": "Salir",
+		"settings": "Ajustes",
+		"cancel": "Cancelar"
+	},
+	"toggle": {
+		"off": "No",
+		"on": "Sí"
+	}
+}

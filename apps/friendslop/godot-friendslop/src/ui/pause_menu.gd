@@ -8,6 +8,9 @@ extends CanvasLayer
 ## in-world behaviour, so the world scene sets nothing.
 var toggles_on_cancel := true
 var captures_mouse_on_close := true
+## Log Off would be a button back to the screen it is already on, so the title
+## screen turns the session pair off and keeps its own Quit.
+var shows_session_actions := true
 
 var _root: Control
 var _main_panel: VBoxContainer
@@ -33,6 +36,7 @@ var _transition := 0
 ## hardcoded per control.
 var _touch := false
 
+const TITLE_SCENE := "res://scenes/title.tscn"
 const BOOK_MODEL := preload("res://assets/ui/book/book.glb")
 const BOOK_OPEN_POSE := 1.6
 const CLOSE_SPEED := 3.0
@@ -67,14 +71,17 @@ func _ready() -> void:
 	_build_book()
 
 	_main_panel = _menu_box(0.40)
-	_add_button(_main_panel, "Play", _close)
-	_add_button(_main_panel, "Settings", func() -> void: _show(_settings_panel))
+	_add_button(_main_panel, I18n.t("action.play"), _close)
+	_add_button(_main_panel, I18n.t("action.settings"), func() -> void: _show(_settings_panel))
+	if shows_session_actions:
+		_add_button(_main_panel, I18n.t("pause.log_off"), _log_off)
+		_add_button(_main_panel, I18n.t("action.quit"), _quit)
 
 	_settings_panel = _menu_box(0.60)
-	_add_button(_settings_panel, "Graphics", func() -> void: _show(_graphics_panel))
-	_add_button(_settings_panel, "Gameplay", func() -> void: _show(_gameplay_panel))
-	_add_button(_settings_panel, "Codex", _open_codex)
-	_add_button(_settings_panel, "Back", func() -> void: _show(_main_panel))
+	_add_button(_settings_panel, I18n.t("settings.graphics"), func() -> void: _show(_graphics_panel))
+	_add_button(_settings_panel, I18n.t("settings.gameplay"), func() -> void: _show(_gameplay_panel))
+	_add_button(_settings_panel, I18n.t("settings.codex"), _open_codex)
+	_add_button(_settings_panel, I18n.t("action.back"), func() -> void: _show(_main_panel))
 
 	_build_graphics()
 	_build_gameplay()
@@ -221,8 +228,8 @@ func _build_graphics() -> void:
 	# broken combination on a phone rather than a way to tune one -- and a phone
 	# has no cursor to hover a row it did not mean to change. Count is TIERS, not
 	# PRESET_NAMES: "Custom" is a readout, never something to cycle into.
-	left.add_cycler("Quality" if _touch else "Preset",
-			func() -> Array: return _gfx.PRESET_NAMES,
+	left.add_cycler(I18n.t("settings.quality" if _touch else "settings.preset"),
+			func() -> Array: return I18n.t_all(_gfx.PRESET_NAMES),
 			func() -> int: return _gfx.preset_index(),
 			func(i: int) -> void: _gfx.apply_preset(i),
 			_gfx.TIERS.size())
@@ -231,15 +238,15 @@ func _build_graphics() -> void:
 		_page_back(right)
 		return
 
-	left.add_cycler("Ground Detail",
-			func() -> Array: return _gfx.DETAIL_NAMES,
+	left.add_cycler(I18n.t("settings.ground_detail"),
+			func() -> Array: return I18n.t_all(_gfx.DETAIL_NAMES),
 			func() -> int: return _gfx.detail,
 			func(i: int) -> void:
 				_gfx.detail = i
 				_gfx.apply(),
 			_gfx.DETAIL_NAMES.size())
 
-	left.add_cycler("Resolution",
+	left.add_cycler(I18n.t("settings.resolution"),
 			func() -> Array: return ["50%", "60%", "70%", "85%", "100%"],
 			func() -> int: return _nearest_scale(_gfx.render_scale),
 			func(i: int) -> void:
@@ -247,15 +254,15 @@ func _build_graphics() -> void:
 				_gfx.apply(),
 			SCALE_STEPS.size())
 
-	right.add_cycler("Shadows",
-			func() -> Array: return ["Off", "On"],
+	right.add_cycler(I18n.t("settings.shadows"),
+			func() -> Array: return _off_on(),
 			func() -> int: return 1 if _gfx.shadows else 0,
 			func(i: int) -> void:
 				_gfx.shadows = i == 1
 				_gfx.apply(),
 			2)
 
-	right.add_cycler("Grass",
+	right.add_cycler(I18n.t("settings.grass"),
 			func() -> Array: return _grass_labels(),
 			func() -> int: return _nearest(_gfx.GRASS_STEPS, _gfx.grass_blades),
 			func(i: int) -> void:
@@ -263,8 +270,8 @@ func _build_graphics() -> void:
 				_gfx.apply(),
 			_gfx.GRASS_STEPS.size())
 
-	right.add_cycler("Post FX",
-			func() -> Array: return ["Off", "On"],
+	right.add_cycler(I18n.t("settings.post_fx"),
+			func() -> Array: return _off_on(),
 			func() -> int: return 1 if _gfx.postfx else 0,
 			func(i: int) -> void:
 				_gfx.postfx = i == 1
@@ -290,23 +297,50 @@ func _build_gameplay() -> void:
 		_page_back(right)
 		return
 
-	left.add_cycler("Camera",
-			func() -> Array: return _play.CAMERA_NAMES,
+	left.add_cycler(I18n.t("settings.camera"),
+			func() -> Array: return I18n.t_all(_play.CAMERA_NAMES),
 			func() -> int: return _play.camera_mode,
 			func(i: int) -> void: _play.set_camera_mode(i),
 			_play.CAMERA_NAMES.size())
 
-	right.add_cycler("Crosshair",
-			func() -> Array: return ["Off", "On"],
+	right.add_cycler(I18n.t("settings.crosshair"),
+			func() -> Array: return _off_on(),
 			func() -> int: return 1 if _play.crosshair else 0,
 			func(i: int) -> void: _play.set_crosshair(i == 1),
 			2)
 
+	# Title only, and a second way to the same thing: the title's own row is
+	# where a player who cannot read this page will find it, and this is where a
+	# player who can read it will look. Every row here was built once, in the
+	# language current at the time, so switching reloads the scene that built
+	# them -- and reloading the world would cost the session to change a menu's
+	# words. From in-game the way to another language is Log Off.
+	if not shows_session_actions:
+		left.add_cycler(I18n.t("settings.language"),
+				func() -> Array: return I18n.locale_names(),
+				func() -> int: return I18n.locale_index(),
+				func(i: int) -> void: _switch_locale(i),
+				I18n.locales().size())
+
 	_page_back(right)
 
 
+func _switch_locale(index: int) -> void:
+	if index == I18n.locale_index():
+		return
+	I18n.set_locale_index(index, true)
+	_transition += 1
+	get_tree().paused = false
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	get_tree().reload_current_scene()
+
+
 func _page_back(page: MenuPage) -> PaperButton:
-	return page.add_button("Back", func() -> void: _show(_settings_panel))
+	return page.add_button(I18n.t("action.back"), func() -> void: _show(_settings_panel))
+
+
+func _off_on() -> Array:
+	return [I18n.t("toggle.off"), I18n.t("toggle.on")]
 
 
 const SCALE_STEPS := [0.5, 0.6, 0.7, 0.85, 1.0]
@@ -367,7 +401,7 @@ func _nearest_scale(v: float) -> int:
 func _grass_labels() -> Array:
 	var out: Array = []
 	for v in _gfx.GRASS_STEPS:
-		out.append("%d/m2" % int(v))
+		out.append(I18n.t("settings.grass_density", {"count": int(v)}))
 	return out
 
 
@@ -495,6 +529,38 @@ func _close() -> void:
 			else Input.MOUSE_MODE_VISIBLE)
 	_root.visible = false
 	_set_crosshair(true)
+
+
+## Leaves without the book's close animation: the scene it is animating on top
+## of is about to be freed, and an awaited tween there is a tween that resumes
+## against a dead node.
+func _log_off() -> void:
+	_transition += 1
+	_show(null)
+	_root.visible = false
+	get_tree().paused = false
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_leave_session()
+	get_tree().change_scene_to_file(TITLE_SCENE)
+
+
+func _quit() -> void:
+	_transition += 1
+	_show(null)
+	_root.visible = false
+	get_tree().paused = false
+	_leave_session()
+	get_tree().quit()
+
+
+## The server keeps a body for a peer that vanished without saying so, so both
+## paths out hand the connection back before the scene or the process goes.
+func _leave_session() -> void:
+	for node in get_tree().root.find_children("*", "NetGameClient", true, false):
+		node.disconnect_from_server()
+	if multiplayer.multiplayer_peer != null:
+		multiplayer.multiplayer_peer.close()
+		multiplayer.multiplayer_peer = null
 
 
 func _set_crosshair(shown: bool) -> void:

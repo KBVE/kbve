@@ -90,7 +90,11 @@ func _hud() -> OnlineHud:
 func test_the_hud_names_every_state() -> void:
 	var hud := _hud()
 	hud.set_connecting("wss://friendslop.kbve.com/ws")
-	assert_str(hud.status_label.text).contains("Connecting")
+	# Against the key rather than the English words: the HUD says whatever the
+	# current locale says, and what matters is that it says the connecting one
+	# and names the server.
+	assert_str(hud.status_label.text).is_equal(
+			I18n.t("hud.connecting", {"url": "wss://friendslop.kbve.com/ws"}))
 	assert_str(hud.status_label.text).contains("friendslop.kbve.com")
 
 	hud.set_joined("Anon-K7QF")
@@ -103,8 +107,8 @@ func test_the_hud_names_every_state() -> void:
 func test_the_roster_marks_which_one_is_us() -> void:
 	var hud := _hud()
 	hud.set_roster({1000001: "Anon-K7QF", 1000002: "Anon-X5P5"}, 1000002)
-	assert_str(hud.roster_label.text).contains("2 here")
-	assert_str(hud.roster_label.text).contains("Anon-X5P5 (you)")
+	assert_str(hud.roster_label.text).contains("2")
+	assert_str(hud.roster_label.text).contains(I18n.t("hud.roster_you", {"name": "Anon-X5P5"}))
 	assert_str(hud.roster_label.text).contains("Anon-K7QF")
 
 

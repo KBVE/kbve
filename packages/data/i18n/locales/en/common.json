@@ -1,0 +1,13 @@
+{
+	"action": {
+		"play": "Play",
+		"back": "Back",
+		"quit": "Quit",
+		"settings": "Settings",
+		"cancel": "Cancel"
+	},
+	"toggle": {
+		"off": "Off",
+		"on": "On"
+	}
+}

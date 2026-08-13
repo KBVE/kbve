@@ -1,0 +1,16 @@
+{
+	"name": "data-i18n",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/data/i18n",
+	"tags": ["scope:data", "type:i18n"],
+	"targets": {
+		"sync": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["nx run godot-friendslop:i18n:sync"],
+				"parallel": false
+			}
+		}
+	}
+}

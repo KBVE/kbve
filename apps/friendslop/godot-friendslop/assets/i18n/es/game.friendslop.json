@@ -1,0 +1,54 @@
+{
+	"title": {
+		"name": "Friendslop",
+		"play_guest": "Jugar como invitado",
+		"singleplayer": "Un jugador",
+		"sign_in": "Iniciar sesión",
+		"sign_in_hint": "El inicio de sesión llegará pronto: el servidor nombra a los invitados.",
+		"guest_status": "Jugando como invitado"
+	},
+	"pause": {
+		"log_off": "Cerrar sesión"
+	},
+	"settings": {
+		"graphics": "Gráficos",
+		"gameplay": "Juego",
+		"codex": "Códice",
+		"language": "Idioma",
+		"preset": "Preajuste",
+		"quality": "Calidad",
+		"ground_detail": "Detalle del suelo",
+		"resolution": "Resolución",
+		"shadows": "Sombras",
+		"grass": "Hierba",
+		"post_fx": "Post FX",
+		"camera": "Cámara",
+		"crosshair": "Mira",
+		"grass_density": "{{count}}/m2",
+		"preset_name": {
+			"potato": "Mínimo",
+			"low": "Bajo",
+			"medium": "Medio",
+			"high": "Alto",
+			"epic": "Épico",
+			"custom": "Personalizado"
+		},
+		"detail_name": {
+			"off": "No",
+			"low": "Bajo",
+			"high": "Alto"
+		},
+		"camera_name": {
+			"first_person": "Primera persona",
+			"third_person": "Tercera persona",
+			"over_shoulder": "Sobre el hombro"
+		}
+	},
+	"hud": {
+		"connecting": "Conectando a {{url}}…",
+		"joined": "Conectado como {{name}}",
+		"disconnected": "Desconectado: {{reason}}  (Esc para salir)",
+		"roster_you": "{{name}} (tú)",
+		"roster": "{{count}} aquí — {{names}}"
+	}
+}
