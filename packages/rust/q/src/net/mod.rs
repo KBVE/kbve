@@ -6,6 +6,9 @@
 #[cfg(feature = "net-transport")]
 pub mod transport;
 
+#[cfg(feature = "net-transport")]
+pub mod guest;
+
 #[cfg(feature = "net-session")]
 pub mod session;
 

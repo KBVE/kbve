@@ -6,7 +6,7 @@
 use serde::{Deserialize, Serialize};
 
 /// Bump on any breaking wire change. Server rejects mismatched clients.
-pub const PROTOCOL_VERSION: u32 = 3;
+pub const PROTOCOL_VERSION: u32 = 4;
 
 /// Maximum players per match (parallel-race default per #11294).
 pub const MAX_PLAYERS: usize = 4;

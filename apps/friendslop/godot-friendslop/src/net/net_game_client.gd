@@ -8,14 +8,21 @@ extends Node3D
 ## never applied locally: input is sent as intent and the server decides what
 ## it means.
 
-signal joined(seed_value: int)
+signal joined(seed_value: int, player_name: String)
 signal rejected(reason: String)
 signal avatar_spawned(body_id: int, node: Node3D)
+signal roster_changed()
 
 @export var server_url := "ws://127.0.0.1:7980/ws"
 @export var tick_hz := 60.0
 @export var autoconnect := false
 @export var avatar_scene: PackedScene
+
+## Name to ask the server for. Empty is guest mode — the server answers with
+## an Anon-XXXX name, which is what local_name() reports once joined. Anything
+## set here is a request: the server sanitizes it and may hand back a guest
+## name instead, so never render this, render local_name().
+@export var player_name := ""
 
 # Built here rather than @onready so callers that reach for it before _ready
 # get a live node instead of null.
@@ -37,6 +44,7 @@ func _init() -> void:
 	_client.rejected.connect(_on_rejected)
 	_client.body_added.connect(_on_body_added)
 	_client.body_removed.connect(_on_body_removed)
+	_client.roster_changed.connect(_on_roster_changed)
 
 
 func connect_to_server(url: String = "") -> void:
@@ -44,6 +52,7 @@ func connect_to_server(url: String = "") -> void:
 		server_url = url
 	_client.server_url = server_url
 	_client.tick_hz = tick_hz
+	_client.player_name = player_name
 	if _client.get_parent() == null and is_inside_tree():
 		add_child(_client)
 	_client.connect_to_server()
@@ -68,6 +77,27 @@ func local_avatar() -> Node3D:
 	return _avatars.get(_client.local_body())
 
 
+## Name the server gave us. Empty until joined — the requested name is not the
+## granted one, so nothing should be drawn before this answers.
+func local_name() -> String:
+	return _client.local_name()
+
+
+## Name of whoever owns body_id, or "" for a body with no player behind it.
+func body_name(body_id: int) -> String:
+	return _client.body_name(body_id)
+
+
+## Every player as { body_id: name }, in roster order.
+func roster() -> Dictionary[int, String]:
+	var out: Dictionary[int, String] = {}
+	var bodies := _client.roster_bodies()
+	var names := _client.roster_names()
+	for i in mini(bodies.size(), names.size()):
+		out[bodies[i]] = names[i]
+	return out
+
+
 func world_seed() -> int:
 	return _client.world_seed()
 
@@ -87,8 +117,12 @@ func _process(_delta: float) -> void:
 	_client.set_intent(wish, Input.is_action_pressed("jump"))
 
 
-func _on_joined(seed_value: int) -> void:
-	joined.emit(seed_value)
+func _on_joined(seed_value: int, assigned_name: String) -> void:
+	joined.emit(seed_value, assigned_name)
+
+
+func _on_roster_changed() -> void:
+	roster_changed.emit()
 
 
 func _on_rejected(reason: String) -> void:

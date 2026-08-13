@@ -24,6 +24,19 @@ func test_starts_disconnected() -> void:
 	assert_object(client.local_avatar()).is_null()
 
 
+## Guest mode asks for nothing and the server answers; anything shown before
+## that would be a name the server never granted.
+func test_guest_mode_requests_no_name() -> void:
+	var client := _client()
+	assert_str(client.player_name).is_empty()
+	assert_str(client.local_name()).is_empty()
+	assert_dict(client.roster()).is_empty()
+
+
+func test_body_name_is_empty_for_an_unknown_body() -> void:
+	assert_str(_client().body_name(1000042)).is_empty()
+
+
 ## Before the host welcomes us there is no body, and guessing one would render
 ## another player's character.
 func test_local_body_is_unassigned_until_welcomed() -> void:
