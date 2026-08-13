@@ -156,10 +156,26 @@ pub struct WsClient {
     inbox: Inbox,
 }
 
+/// rustls 0.23 refuses to guess a crypto backend and panics on first use when
+/// none is installed — which, for a `wss://` url, means the panic lands inside
+/// the connect future rather than at startup. Godot turns that into an engine
+/// abort, so a TLS server the client could otherwise reach kills the game
+/// instead. Installing once, here, keeps the fix next to the only thing that
+/// needs it.
+fn install_crypto_provider() {
+    static ONCE: std::sync::Once = std::sync::Once::new();
+    ONCE.call_once(|| {
+        // Err means someone else installed one first, which is just as good.
+        let _ = rustls::crypto::ring::default_provider().install_default();
+    });
+}
+
 impl WsClient {
-    /// `url` is e.g. `ws://127.0.0.1:7980/ws`.
+    /// `url` is e.g. `ws://127.0.0.1:7980/ws`, or `wss://` for TLS.
     pub async fn connect(url: &str) -> Result<Arc<Self>, WsError> {
         use tokio_tungstenite::tungstenite::Message;
+
+        install_crypto_provider();
 
         let (socket, _) = tokio_tungstenite::connect_async(url)
             .await

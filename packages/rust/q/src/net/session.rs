@@ -20,6 +20,7 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
+use super::guest::{MAX_NAME_LEN, resolve_name};
 use super::transport::{Delivery, PeerId, Transport};
 use crate::proto::{self, PROTOCOL_VERSION};
 use crate::rapier::sim3d::{
@@ -39,19 +40,41 @@ pub struct PlayerInput {
     pub jump: bool,
 }
 
+/// One entry of the player list. `body` is carried explicitly so the client can
+/// label an avatar without knowing how peer ids map onto body ids.
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct PeerInfo {
+    pub peer: PeerId,
+    pub body: BodyId,
+    pub name: String,
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum SessionMsg {
     Join {
         protocol: u32,
+        /// Name the client would like. A request, not a claim: the host
+        /// sanitizes it and hands back what was actually assigned. Empty means
+        /// "give me a guest name", which is the whole of guest mode.
+        name: String,
     },
     /// `peer` is the id the host assigned; a client cannot infer its own.
+    /// `name` likewise — what was asked for and what was granted differ
+    /// whenever the request was empty, unusable, or already taken.
     Welcome {
         protocol: u32,
         seed: u64,
         peer: PeerId,
+        name: String,
     },
     Reject {
         reason: String,
+    },
+    /// Whole player list, reliably, whenever it changes. Small and rare enough
+    /// (max a handful of players, only on join/leave) that diffing it would
+    /// cost more in bugs than it saves in bytes.
+    Roster {
+        players: Vec<PeerInfo>,
     },
     Input(PlayerInput),
     Snapshot(SimSnapshot),
@@ -94,6 +117,8 @@ struct Player {
     /// Integrated separately from the character controller, which resolves
     /// motion but never applies gravity.
     vel_y: f32,
+    /// Host-assigned display name — see [`crate::net::guest`].
+    name: String,
 }
 
 pub struct HostSession<T: Transport> {
@@ -111,7 +136,10 @@ impl<T: Transport> HostSession<T> {
     /// since it will never send itself a Join.
     pub fn new(transport: T, config: SessionConfig, sim: SimConfig, seed: u64) -> Self {
         let mut host = Self::dedicated(transport, config, sim, seed);
-        host.admit(host.transport.local_peer());
+        let local = host.transport.local_peer();
+        // The host never sends itself a Join, so it never states a preference —
+        // it gets a guest name like anyone else until an account layer exists.
+        host.admit(local, "");
         host
     }
 
@@ -145,11 +173,43 @@ impl<T: Transport> HostSession<T> {
         self.world.apply(SimCommand::SetTerrain(terrain));
     }
 
-    fn admit(&mut self, peer: PeerId) {
-        if self.players.contains_key(&peer) {
-            return;
+    /// Assigned display name for a peer, if it is in the session.
+    pub fn player_name(&self, peer: PeerId) -> Option<&str> {
+        self.players.get(&peer).map(|p| p.name.as_str())
+    }
+
+    pub fn roster(&self) -> Vec<PeerInfo> {
+        let mut players: Vec<PeerInfo> = self
+            .players
+            .iter()
+            .map(|(peer, player)| PeerInfo {
+                peer: *peer,
+                body: player_body(*peer),
+                name: player.name.clone(),
+            })
+            .collect();
+        // HashMap order is arbitrary and would reshuffle the list on every
+        // broadcast, which a client rendering it in order would show as flicker.
+        players.sort_by_key(|p| p.peer);
+        players
+    }
+
+    /// Admits `peer` under a name derived from `requested` and returns what was
+    /// actually assigned. A rejoining peer keeps the name it already has.
+    fn admit(&mut self, peer: PeerId, requested: &str) -> String {
+        if let Some(player) = self.players.get(&peer) {
+            return player.name.clone();
         }
-        self.players.insert(peer, Player::default());
+        let taken = |candidate: &str| self.players.values().any(|p| p.name == candidate);
+        let name = resolve_name(requested, taken, peer.0);
+
+        self.players.insert(
+            peer,
+            Player {
+                name: name.clone(),
+                ..Default::default()
+            },
+        );
         self.world.apply(SimCommand::SpawnCharacter {
             id: player_body(peer),
             desc: CharacterDesc {
@@ -157,6 +217,7 @@ impl<T: Transport> HostSession<T> {
                 ..Default::default()
             },
         });
+        name
     }
 
     pub fn remove_player(&mut self, peer: PeerId) {
@@ -164,12 +225,26 @@ impl<T: Transport> HostSession<T> {
             self.world.apply(SimCommand::Despawn {
                 id: player_body(peer),
             });
+            // Whoever is left needs to stop drawing their nameplate.
+            self.broadcast_roster();
+        }
+    }
+
+    fn broadcast_roster(&self) {
+        if self.transport.peers().is_empty() {
+            return;
+        }
+        let msg = SessionMsg::Roster {
+            players: self.roster(),
+        };
+        if let Ok(bytes) = proto::encode(&msg) {
+            let _ = self.transport.broadcast(Delivery::Reliable, &bytes);
         }
     }
 
     fn handle(&mut self, from: PeerId, msg: SessionMsg) {
         match msg {
-            SessionMsg::Join { protocol } => {
+            SessionMsg::Join { protocol, name } => {
                 if protocol != PROTOCOL_VERSION {
                     // P2P means mismatched builds will absolutely try to
                     // connect; refusing loudly beats desyncing quietly.
@@ -177,15 +252,21 @@ impl<T: Transport> HostSession<T> {
                     self.reply(from, &SessionMsg::Reject { reason });
                     return;
                 }
-                self.admit(from);
+                // Bound the work before doing any of it: a client can send a
+                // megabyte here, and sanitizing it character by character is
+                // exactly the kind of loop worth not entering.
+                let requested: String = name.chars().take(MAX_NAME_LEN * 4).collect();
+                let assigned = self.admit(from, &requested);
                 self.reply(
                     from,
                     &SessionMsg::Welcome {
                         protocol: PROTOCOL_VERSION,
                         seed: self.seed,
                         peer: from,
+                        name: assigned,
                     },
                 );
+                self.broadcast_roster();
             }
             SessionMsg::Input(input) => {
                 let Some(player) = self.players.get_mut(&from) else {
@@ -199,7 +280,10 @@ impl<T: Transport> HostSession<T> {
                 }
             }
             // Host-authored messages; a peer sending one is confused or hostile.
-            SessionMsg::Welcome { .. } | SessionMsg::Reject { .. } | SessionMsg::Snapshot(_) => {}
+            SessionMsg::Welcome { .. }
+            | SessionMsg::Reject { .. }
+            | SessionMsg::Roster { .. }
+            | SessionMsg::Snapshot(_) => {}
         }
     }
 
@@ -290,12 +374,23 @@ pub struct ClientSession<T: Transport> {
     reject_reason: Option<String>,
     /// Assigned by the host in `Welcome`; unknown until then.
     peer: Option<PeerId>,
+    /// Likewise assigned — the requested name is not the granted one.
+    name: Option<String>,
+    roster: Vec<PeerInfo>,
 }
 
 impl<T: Transport> ClientSession<T> {
+    /// Joins as a guest: no name requested, so the host assigns one.
+    pub fn connect(transport: T) -> Self {
+        Self::connect_as(transport, "")
+    }
+
     /// Sends the join request immediately — reliably, because a dropped join is
     /// a session that silently never starts.
-    pub fn connect(transport: T) -> Self {
+    ///
+    /// `requested_name` is advisory; read [`name`](Self::name) after the
+    /// welcome for what was actually assigned.
+    pub fn connect_as(transport: T, requested_name: &str) -> Self {
         let client = Self {
             transport,
             status: ClientStatus::Connecting,
@@ -304,9 +399,12 @@ impl<T: Transport> ClientSession<T> {
             input: PlayerInput::default(),
             reject_reason: None,
             peer: None,
+            name: None,
+            roster: Vec::new(),
         };
         let msg = SessionMsg::Join {
             protocol: PROTOCOL_VERSION,
+            name: requested_name.to_owned(),
         };
         if let Ok(bytes) = proto::encode(&msg) {
             let _ = client
@@ -344,6 +442,24 @@ impl<T: Transport> ClientSession<T> {
         self.peer.map(player_body)
     }
 
+    /// Name the host assigned us. `None` until welcomed — showing the requested
+    /// name before then would flash a name the server may not have granted.
+    pub fn name(&self) -> Option<&str> {
+        self.name.as_deref()
+    }
+
+    /// Everyone in the session, host included. Empty until the first roster.
+    pub fn roster(&self) -> &[PeerInfo] {
+        &self.roster
+    }
+
+    pub fn name_of_body(&self, body: BodyId) -> Option<&str> {
+        self.roster
+            .iter()
+            .find(|p| p.body == body)
+            .map(|p| p.name.as_str())
+    }
+
     pub fn set_input(&mut self, wish_dir: [f32; 2], jump: bool) {
         self.input.sequence = self.input.sequence.wrapping_add(1);
         self.input.wish_dir = wish_dir;
@@ -356,10 +472,16 @@ impl<T: Transport> ClientSession<T> {
                 continue;
             };
             match msg {
-                SessionMsg::Welcome { seed, peer, .. } => {
+                SessionMsg::Welcome {
+                    seed, peer, name, ..
+                } => {
                     self.status = ClientStatus::Joined;
                     self.seed = Some(seed);
                     self.peer = Some(peer);
+                    self.name = Some(name);
+                }
+                SessionMsg::Roster { players } => {
+                    self.roster = players;
                 }
                 SessionMsg::Reject { reason } => {
                     self.status = ClientStatus::Rejected;
@@ -450,6 +572,7 @@ mod tests {
 
         let bogus = proto::encode(&SessionMsg::Join {
             protocol: PROTOCOL_VERSION + 99,
+            name: String::new(),
         })
         .unwrap();
         client
@@ -671,6 +794,125 @@ mod tests {
             "per-body wire cost grew to {per_body} bytes; \
              re-check the datagram budget before accepting this"
         );
+    }
+
+    #[test]
+    fn a_guest_is_named_by_the_host() {
+        let (mut host, mut client) = host_and_client();
+        run(&mut host, &mut client, 2);
+
+        let name = client.name().expect("welcomed");
+        assert!(name.starts_with("Anon-"), "{name}");
+        assert_eq!(
+            host.player_name(PeerId(1)),
+            Some(name),
+            "host and client must agree on who we are"
+        );
+    }
+
+    #[test]
+    fn a_requested_name_is_honoured_when_it_is_usable() {
+        let mesh = Loopback::mesh(2);
+        let mut host = HostSession::dedicated(
+            mesh[0].clone(),
+            SessionConfig::default(),
+            SimConfig::default(),
+            1,
+        );
+        host.set_terrain(flat_terrain());
+        let mut client = ClientSession::connect_as(mesh[1].clone(), "h0lybyte");
+
+        for _ in 0..2 {
+            host.tick();
+            client.tick();
+        }
+
+        assert_eq!(client.name(), Some("h0lybyte"));
+    }
+
+    /// The name field is client-controlled, so it is an injection point for
+    /// whatever renders it. What comes back must already be safe.
+    #[test]
+    fn a_hostile_name_never_survives_the_join() {
+        let mesh = Loopback::mesh(2);
+        let mut host = HostSession::dedicated(
+            mesh[0].clone(),
+            SessionConfig::default(),
+            SimConfig::default(),
+            1,
+        );
+        host.set_terrain(flat_terrain());
+        let mut client = ClientSession::connect_as(mesh[1].clone(), &"\u{202e}".repeat(4096));
+
+        for _ in 0..2 {
+            host.tick();
+            client.tick();
+        }
+
+        let name = client.name().expect("welcomed anyway");
+        assert!(name.starts_with("Anon-"), "{name}");
+        assert!(name.chars().all(|c| c.is_ascii_alphanumeric() || c == '-'));
+    }
+
+    #[test]
+    fn the_roster_names_every_player_and_their_body() {
+        let (mut host, mut client) = host_and_client();
+        run(&mut host, &mut client, 4);
+
+        let roster = client.roster();
+        assert_eq!(roster.len(), 2, "host and joiner: {roster:?}");
+
+        let me = client.local_body().expect("welcomed");
+        assert_eq!(client.name_of_body(me), client.name());
+        assert!(
+            roster.iter().all(|p| !p.name.is_empty()),
+            "every entry needs a name: {roster:?}"
+        );
+        assert!(
+            roster.iter().any(|p| p.body == player_body(PeerId::HOST)),
+            "the host is a player here too: {roster:?}"
+        );
+    }
+
+    /// Two guests with the same generated name would be indistinguishable on
+    /// screen, which is the one thing the name exists to prevent.
+    #[test]
+    fn two_players_never_share_a_name() {
+        let mesh = Loopback::mesh(3);
+        let mut host = HostSession::dedicated(
+            mesh[0].clone(),
+            SessionConfig::default(),
+            SimConfig::default(),
+            1,
+        );
+        host.set_terrain(flat_terrain());
+        let mut a = ClientSession::connect_as(mesh[1].clone(), "twin");
+        let mut b = ClientSession::connect_as(mesh[2].clone(), "twin");
+
+        for _ in 0..4 {
+            host.tick();
+            a.tick();
+            b.tick();
+        }
+
+        assert_eq!(a.name(), Some("twin"), "first asker keeps it");
+        let second = b.name().expect("welcomed");
+        assert_ne!(second, "twin");
+        assert!(second.starts_with("Anon-"), "{second}");
+    }
+
+    #[test]
+    fn a_departing_player_drops_off_the_roster() {
+        let (mut host, mut client) = host_and_client();
+        run(&mut host, &mut client, 4);
+        assert_eq!(client.roster().len(), 2);
+
+        host.remove_player(PeerId::HOST);
+        run(&mut host, &mut client, 2);
+
+        let roster = client.roster();
+        assert_eq!(roster.len(), 1, "only us left: {roster:?}");
+        assert_eq!(roster[0].peer, PeerId(1));
     }
 
     #[test]

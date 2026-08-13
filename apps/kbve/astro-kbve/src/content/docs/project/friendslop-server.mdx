@@ -13,7 +13,7 @@ tags:
 key: friendslop_server
 pipeline: docker
 app_name: friendslop-server
-version: "0.0.2"
+version: "0.0.3"
 source_path: apps/agones/friendslop/server
 version_toml: apps/agones/friendslop/server/version.toml
 version_target: apps/agones/friendslop/server/Cargo.toml
@@ -117,9 +117,15 @@ The end goal for Friendslop is Steam P2P co-op, where one player hosts. That is 
 ### Responsibilities
 
 - Step the authoritative `SimWorld` at 60 Hz on its own thread, fanning out 20 Hz snapshots.
-- Accept WebSocket peers, assign each a `PeerId`, and despawn their character when the socket drops.
+- Accept WebSocket peers, assign each a `PeerId` and a display name, and despawn their character when the socket drops.
 - Apply client **intent** — a horizontal wish direction and a jump flag — against server-owned gravity and speed.
 - Run the Agones SDK lifecycle (`Ready` / `Health` / `Shutdown`); degrades gracefully outside Agones for local dev.
+
+### Guest identity
+
+There is no account layer yet, so every player is a guest and the **server** names them. `SessionMsg::Join` carries a requested name; the host sanitizes it (ASCII alphanumerics plus single interior `_ - .`, 24 chars, no all-digit names) and falls back to a generated `Anon-XXXX` when the request is empty, unusable, or already taken. What the client asked for is never what it renders — `Welcome` carries the granted name, and a `Roster` message broadcasts `{peer, body, name}` for everyone on every join and leave.
+
+That split is the point: a display name is drawn on other players' screens, so it is host-authored data that happens to have been suggested by a client.
 
 ### Layout
 
