@@ -237,7 +237,7 @@ importers:
         version: 12.42.2(@emotion/is-prop-valid@1.4.0)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       grid-engine:
         specifier: ^2.52.1
-        version: 2.52.1(phaser@4.2.0)
+        version: 2.52.1(phaser@4.2.1)
       gsap:
         specifier: ^3.15.0
         version: 3.15.0
@@ -272,8 +272,8 @@ importers:
         specifier: ^6.3.1
         version: 6.3.1
       phaser:
-        specifier: ^4.2.0
-        version: 4.2.0
+        specifier: ^4.2.1
+        version: 4.2.1
       pngjs:
         specifier: ^7.0.0
         version: 7.0.0
@@ -13179,8 +13179,8 @@ packages:
   performance-now@2.1.0:
     resolution: {integrity: sha512-7EAHlyLHI56VEIdK57uwHdHKIaAGbnXPiw0yWbarQZOKaKpvUIgW0jWRVLiatnM+XXlSwsanIBH/hzGMJulMow==}
 
-  phaser@4.2.0:
-    resolution: {integrity: sha512-9nSQZs4CJ9+V96i2mRC3BBStBcsQWGJJBRpdFYSbpL40/i/QM+wLofaCYMsxNyDk8WJOlHGZUh3uVRKa7lj6yg==}
+  phaser@4.2.1:
+    resolution: {integrity: sha512-WUNwCPJpdjvZiuT6SgCfYVW8Qw/3j0jJ4ws7P2QkhFLFu74sbGuyHJcbFueGkY/AYO4Pi47bNQXn1OCJeLX//w==}
 
   piccolore@0.1.3:
     resolution: {integrity: sha512-o8bTeDWjE086iwKrROaDf31K0qC/BENdm15/uH9usSC/uZjJOKb2YGiVHfLY4GhwsERiPI1jmwI2XrA7ACOxVw==}
@@ -29484,10 +29484,10 @@ snapshots:
       section-matter: 1.0.0
       strip-bom-string: 1.0.0
 
-  grid-engine@2.52.1(phaser@4.2.0):
+  grid-engine@2.52.1(phaser@4.2.1):
     dependencies:
       mnemonist: 0.40.4
-      phaser: 4.2.0
+      phaser: 4.2.1
       rxjs: 7.8.2
       tiled-property-flattener: 1.1.1
 
@@ -33049,7 +33049,7 @@ snapshots:
 
   performance-now@2.1.0: {}
 
-  phaser@4.2.0:
+  phaser@4.2.1:
     dependencies:
       eventemitter3: 5.0.4
 
