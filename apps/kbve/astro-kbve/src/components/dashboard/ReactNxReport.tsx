@@ -44,7 +44,7 @@ export default function ReactNxReport({ entries, height = 420 }: Props) {
 						borderRadius: 6,
 						color: '#e2e8f0',
 					}}
-					formatter={(v: number) => v.toLocaleString()}
+					formatter={(v: unknown) => Number(v).toLocaleString()}
 				/>
 				<Bar dataKey="code" name="Lines of code" radius={[0, 4, 4, 0]}>
 					{top.map((e) => (

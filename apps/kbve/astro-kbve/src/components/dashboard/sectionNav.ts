@@ -79,12 +79,15 @@ export interface SectionShell {
 
 const norm = (p: string) => (p.endsWith('/') ? p : `${p}/`);
 
-type CollectionNav = () => Promise<DashboardNavEntry[]>;
+type CollectionNav<T extends DashboardNavEntry> = () => Promise<T[]>;
 
 const memo = new Map<string, Promise<DashboardNavEntry[]>>();
 
-const cached = (key: string, build: CollectionNav) => {
-	let pending = memo.get(key);
+const cached = <T extends DashboardNavEntry>(
+	key: string,
+	build: CollectionNav<T>,
+): Promise<T[]> => {
+	let pending = memo.get(key) as Promise<T[]> | undefined;
 	if (!pending) {
 		pending = build();
 		memo.set(key, pending);

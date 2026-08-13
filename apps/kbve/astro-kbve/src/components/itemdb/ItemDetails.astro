@@ -19,7 +19,7 @@ interface Card {
 const cards: Card[] = [];
 
 for (const recipe of item.recipes ?? []) {
-	const rows = (recipe.ingredients ?? []).map((ing) => ({
+	const rows: Card['rows'] = (recipe.ingredients ?? []).map((ing) => ({
 		label: ing.name ?? titleCase(ing.item_ref),
 		value: `×${ing.amount}`,
 		href: `/itemdb/${ing.item_ref}/`,
