@@ -86,6 +86,16 @@ pub struct Tuning {
     pub time_scale_max: f32,
     /// Rise above which a climb uses the tall clip instead of the short one.
     pub climb_split: f32,
+    pub jump_velocity: f32,
+    /// Capped so a fall that never lands cannot wind gravity up without bound.
+    /// Left open, a body held off the floor by geometry it is stuck in builds a
+    /// speed that fires it through the world the moment it comes free.
+    pub terminal_fall: f32,
+    /// Horizontal speed shed per tick when nothing is asking for movement. Per
+    /// tick rather than per second, which at these values is an immediate stop.
+    /// Carried over as-is from the controller rather than rescaled, because a
+    /// refactor is the wrong place to change how stopping feels.
+    pub stop_rate: f32,
 }
 
 impl Default for Tuning {
@@ -101,6 +111,36 @@ impl Default for Tuning {
             time_scale_min: 0.6,
             time_scale_max: 1.8,
             climb_split: 1.35,
+            jump_velocity: 4.5,
+            terminal_fall: 55.0,
+            stop_rate: 5.0,
+        }
+    }
+}
+
+/// What the controller is asking for this tick, which is all a server needs to be
+/// sent. `move_axis` is in this module's frame: x right, y forward.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Intent {
+    pub move_axis: [f32; 2],
+    pub jump: bool,
+}
+
+/// Velocity the body should carry into its collide-and-slide, plus whatever the
+/// step decided that the caller has to react to.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Motion {
+    pub velocity: [f32; 3],
+    /// True on the tick a jump was actually taken, so the caller does not have to
+    /// re-derive whether the press was accepted.
+    pub jumped: bool,
+}
+
+impl Default for Motion {
+    fn default() -> Self {
+        Self {
+            velocity: [0.0; 3],
+            jumped: false,
         }
     }
 }
@@ -164,6 +204,68 @@ impl Locomotion {
             lerp(self.tuning.strafe_speed, self.tuning.back_speed, -dir[1])
         } else {
             lerp(self.tuning.strafe_speed, self.tuning.speed, dir[1])
+        }
+    }
+
+    /// Where the body wants to go, in world space, from an intent and a heading.
+    ///
+    /// Godot's basis rotated by yaw about Y has x_axis `(cos, 0, -sin)` and
+    /// z_axis `(sin, 0, cos)`, and its forward is -z, which is the one place a
+    /// sign slip would send a strafe forward. Derived here rather than taken
+    /// pre-rotated from the caller, because a server handed a direction is
+    /// trusting the client's arithmetic instead of doing its own.
+    pub fn wish_direction(&self, move_axis: [f32; 2], yaw: f32) -> [f32; 3] {
+        let local = [move_axis[0], -move_axis[1]];
+        let length = (local[0] * local[0] + local[1] * local[1]).sqrt();
+        if length < 0.0001 {
+            return [0.0; 3];
+        }
+        let (sin, cos) = yaw.sin_cos();
+        let x = cos * local[0] + sin * local[1];
+        let z = -sin * local[0] + cos * local[1];
+        let scale = 1.0 / length;
+        [x * scale, 0.0, z * scale]
+    }
+
+    /// Decides the velocity for one tick. The collide-and-slide itself stays with
+    /// whoever owns the body, so this is the whole movement decision and none of
+    /// the movement resolution.
+    pub fn step_motion(
+        &mut self,
+        intent: Intent,
+        velocity: [f32; 3],
+        yaw: f32,
+        grounded: bool,
+        gravity_y: f32,
+        dt: f32,
+    ) -> Motion {
+        let mut out = velocity;
+        let mut jumped = false;
+
+        if !grounded {
+            out[1] += gravity_y * dt;
+            out[1] = out[1].max(-self.tuning.terminal_fall);
+        }
+        if intent.jump && grounded {
+            out[1] = self.tuning.jump_velocity;
+            jumped = true;
+        }
+
+        let axis = intent.move_axis;
+        let length = (axis[0] * axis[0] + axis[1] * axis[1]).sqrt();
+        if length > 0.0001 {
+            let dir = self.wish_direction(axis, yaw);
+            let speed = self.gait_speed([axis[0] / length, axis[1] / length]);
+            out[0] = dir[0] * speed;
+            out[2] = dir[2] * speed;
+        } else {
+            out[0] = move_toward(out[0], 0.0, self.tuning.stop_rate);
+            out[2] = move_toward(out[2], 0.0, self.tuning.stop_rate);
+        }
+
+        Motion {
+            velocity: out,
+            jumped,
         }
     }
 
@@ -251,6 +353,14 @@ impl Locomotion {
 
 fn lerp(from: f32, to: f32, t: f32) -> f32 {
     from + (to - from) * t
+}
+
+fn move_toward(from: f32, to: f32, delta: f32) -> f32 {
+    if (to - from).abs() <= delta {
+        to
+    } else {
+        from + (to - from).signum() * delta
+    }
 }
 
 #[cfg(test)]
@@ -421,6 +531,144 @@ mod tests {
             "gait_speed's fastest heading blended to {:?}",
             state.blend
         );
+    }
+
+    /// Godot's forward is -z. Facing yaw 0 and asking to go forward must produce
+    /// -z, not +z, or the character runs away from where the camera points.
+    #[test]
+    fn forward_at_rest_yaw_is_negative_z() {
+        let l = loco();
+        let dir = l.wish_direction(FWD, 0.0);
+        assert!(dir[2] < -0.99, "forward went to {dir:?}");
+        assert!(dir[0].abs() < 0.001);
+    }
+
+    #[test]
+    fn right_at_rest_yaw_is_positive_x() {
+        let l = loco();
+        let dir = l.wish_direction(SIDE, 0.0);
+        assert!(dir[0] > 0.99, "right went to {dir:?}");
+        assert!(dir[2].abs() < 0.001);
+    }
+
+    /// A quarter turn left puts the body's forward down -x. Getting the rotation
+    /// handedness backwards sends it to +x, which reads as inverted strafing.
+    #[test]
+    fn yaw_turns_the_heading_the_way_the_body_faces() {
+        let l = loco();
+        let dir = l.wish_direction(FWD, std::f32::consts::FRAC_PI_2);
+        assert!(dir[0] < -0.99, "quarter turn sent forward to {dir:?}");
+        assert!(dir[2].abs() < 0.001);
+    }
+
+    #[test]
+    fn wish_direction_is_unit_or_zero() {
+        let l = loco();
+        for axis in [FWD, BACK, SIDE, [1.0, 1.0], [-3.0, 2.0]] {
+            for yaw in [0.0, 0.7, -2.4, 6.0] {
+                let d = l.wish_direction(axis, yaw);
+                let len = (d[0] * d[0] + d[2] * d[2]).sqrt();
+                assert!((len - 1.0).abs() < 0.001, "{axis:?}@{yaw} -> {d:?}");
+            }
+        }
+        assert_eq!(l.wish_direction([0.0, 0.0], 1.0), [0.0; 3]);
+    }
+
+    #[test]
+    fn gravity_only_accumulates_off_the_floor() {
+        let mut l = loco();
+        let grounded = l.step_motion(Intent::default(), [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+        assert_eq!(grounded.velocity[1], 0.0);
+        let airborne = l.step_motion(Intent::default(), [0.0; 3], 0.0, false, -9.8, 1.0 / 60.0);
+        assert!(airborne.velocity[1] < 0.0);
+    }
+
+    #[test]
+    fn falling_is_capped() {
+        let mut l = loco();
+        let mut v = [0.0; 3];
+        for _ in 0..6000 {
+            v = l
+                .step_motion(Intent::default(), v, 0.0, false, -9.8, 1.0 / 60.0)
+                .velocity;
+        }
+        assert!(
+            v[1] >= -l.tuning.terminal_fall - 0.001,
+            "fell away to {}",
+            v[1]
+        );
+    }
+
+    /// A jump press only counts with the floor under you, and the caller is told
+    /// which it was rather than having to work it out again.
+    #[test]
+    fn jump_needs_the_floor() {
+        let mut l = loco();
+        let intent = Intent {
+            move_axis: [0.0, 0.0],
+            jump: true,
+        };
+        let taken = l.step_motion(intent, [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+        assert!(taken.jumped);
+        assert_eq!(taken.velocity[1], l.tuning.jump_velocity);
+
+        let refused = l.step_motion(intent, [0.0; 3], 0.0, false, -9.8, 1.0 / 60.0);
+        assert!(!refused.jumped);
+        assert!(refused.velocity[1] < 0.0);
+    }
+
+    #[test]
+    fn releasing_the_stick_stops_the_body() {
+        let mut l = loco();
+        let moving = l.step_motion(
+            Intent {
+                move_axis: FWD,
+                jump: false,
+            },
+            [0.0; 3],
+            0.0,
+            true,
+            -9.8,
+            1.0 / 60.0,
+        );
+        assert!((moving.velocity[2] + l.tuning.speed).abs() < 0.001);
+        let stopped = l.step_motion(
+            Intent::default(),
+            moving.velocity,
+            0.0,
+            true,
+            -9.8,
+            1.0 / 60.0,
+        );
+        assert_eq!(stopped.velocity[0], 0.0);
+        assert_eq!(stopped.velocity[2], 0.0);
+    }
+
+    /// The speed the body travels and the ring the rig blends over come from the
+    /// same table, so a heading cannot move at one speed and animate at another.
+    #[test]
+    fn travelled_speed_matches_the_ring_it_animates_on() {
+        let mut l = loco();
+        for axis in [FWD, BACK, SIDE] {
+            let motion = l.step_motion(
+                Intent {
+                    move_axis: axis,
+                    jump: false,
+                },
+                [0.0; 3],
+                0.0,
+                true,
+                -9.8,
+                1.0 / 60.0,
+            );
+            let travelled = (motion.velocity[0] * motion.velocity[0]
+                + motion.velocity[2] * motion.velocity[2])
+                .sqrt();
+            assert!(
+                (travelled - l.gait_speed(axis)).abs() < 0.001,
+                "{axis:?} travelled {travelled}"
+            );
+        }
     }
 
     #[test]
