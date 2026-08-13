@@ -58,13 +58,13 @@ func _label(size: int) -> Label:
 
 func set_connecting(url: String) -> void:
 	status_label.add_theme_color_override("font_color", INK)
-	status_label.text = "Connecting to %s…" % url
+	status_label.text = I18n.t("hud.connecting", {"url": url})
 	roster_label.text = ""
 
 
 func set_joined(assigned_name: String) -> void:
 	status_label.add_theme_color_override("font_color", INK)
-	status_label.text = "Joined as %s" % assigned_name
+	status_label.text = I18n.t("hud.joined", {"name": assigned_name})
 
 
 ## A rejection is terminal — the socket is gone and nothing will retry it — so
@@ -72,7 +72,7 @@ func set_joined(assigned_name: String) -> void:
 ## on screen.
 func set_rejected(reason: String) -> void:
 	status_label.add_theme_color_override("font_color", WARN)
-	status_label.text = "Disconnected: %s  (Esc to leave)" % reason
+	status_label.text = I18n.t("hud.disconnected", {"reason": reason})
 	roster_label.text = ""
 
 
@@ -83,9 +83,9 @@ func set_roster(roster: Dictionary, local_body: int) -> void:
 	var names: Array[String] = []
 	for body_id: int in roster:
 		var entry: String = roster[body_id]
-		names.append("%s (you)" % entry if body_id == local_body else entry)
+		names.append(I18n.t("hud.roster_you", {"name": entry}) if body_id == local_body else entry)
 	names.sort()
-	roster_label.text = "%d here — %s" % [names.size(), ", ".join(names)]
+	roster_label.text = I18n.t("hud.roster", {"count": names.size(), "names": ", ".join(names)})
 
 
 func _unhandled_input(event: InputEvent) -> void:

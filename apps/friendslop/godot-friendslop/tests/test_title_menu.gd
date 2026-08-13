@@ -14,8 +14,56 @@ func _menu() -> TitleMenu:
 func test_it_offers_guest_play_first() -> void:
 	var menu := _menu()
 	assert_object(menu.play_button).is_not_null()
-	assert_str(menu.play_button.text).contains("Guest")
+	assert_str(menu.play_button.text).is_equal(I18n.t("title.play_guest"))
 	assert_bool(menu.play_button.disabled).is_false()
+
+
+## The row is on the title rather than behind Settings because a player who
+## cannot read the menu cannot navigate the menu to reach it.
+func test_language_row_is_on_the_title_itself() -> void:
+	var menu := _menu()
+	assert_int(menu.language_buttons.size()).is_equal(I18n.locales().size())
+	var labels: Array = []
+	for button: PaperButton in menu.language_buttons:
+		labels.append(button.text)
+	assert_array(labels).contains_exactly_in_any_order(I18n.locale_names())
+
+
+## Written in its own language, not the current one: the label is the only part
+## of the screen a player who does not read the current language can use.
+func test_language_labels_do_not_change_with_the_locale() -> void:
+	var before := I18n.locale_code()
+	I18n.set_locale("ja")
+	var menu := _menu()
+	var labels: Array = []
+	for button: PaperButton in menu.language_buttons:
+		labels.append(button.text)
+	assert_array(labels).contains_exactly_in_any_order(I18n.locale_names())
+	assert_array(labels).contains(["English"])
+	I18n.set_locale(before)
+
+
+func test_choosing_a_language_asks_rather_than_switching_itself() -> void:
+	var menu := _menu()
+	var asked: Array = []
+	menu.locale_requested.connect(func(code: String) -> void: asked.append(code))
+	for button: PaperButton in menu.language_buttons:
+		if not button.disabled:
+			button.pressed.emit()
+			break
+	assert_int(asked.size()).is_equal(1)
+	assert_str(asked[0]).is_not_equal(I18n.locale_code())
+
+
+## The row doubles as the readout of which language is on, so the current one is
+## shown unavailable rather than dropped from the list.
+func test_the_current_language_is_not_offered_again() -> void:
+	var menu := _menu()
+	var disabled: Array = []
+	for i in menu.language_buttons.size():
+		if menu.language_buttons[i].disabled:
+			disabled.append(I18n.locales()[i]["code"])
+	assert_array(disabled).is_equal([I18n.locale_code()])
 
 
 ## The slot is real and the ecosystem behind it exists, so the button is shown

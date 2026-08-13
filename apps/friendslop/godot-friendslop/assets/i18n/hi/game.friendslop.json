@@ -1,0 +1,54 @@
+{
+	"title": {
+		"name": "Friendslop",
+		"play_guest": "अतिथि के रूप में खेलें",
+		"singleplayer": "एकल खिलाड़ी",
+		"sign_in": "साइन इन",
+		"sign_in_hint": "साइन इन जल्द आ रहा है — अतिथियों के नाम सर्वर देता है।",
+		"guest_status": "अतिथि के रूप में खेल रहे हैं"
+	},
+	"pause": {
+		"log_off": "लॉग ऑफ"
+	},
+	"settings": {
+		"graphics": "ग्राफ़िक्स",
+		"gameplay": "गेमप्ले",
+		"codex": "कोडेक्स",
+		"language": "भाषा",
+		"preset": "प्रीसेट",
+		"quality": "गुणवत्ता",
+		"ground_detail": "ज़मीन का विवरण",
+		"resolution": "रिज़ॉल्यूशन",
+		"shadows": "छायाएँ",
+		"grass": "घास",
+		"post_fx": "पोस्ट एफ़एक्स",
+		"camera": "कैमरा",
+		"crosshair": "क्रॉसहेयर",
+		"grass_density": "{{count}}/मी2",
+		"preset_name": {
+			"potato": "न्यूनतम",
+			"low": "कम",
+			"medium": "मध्यम",
+			"high": "उच्च",
+			"epic": "एपिक",
+			"custom": "कस्टम"
+		},
+		"detail_name": {
+			"off": "बंद",
+			"low": "कम",
+			"high": "उच्च"
+		},
+		"camera_name": {
+			"first_person": "प्रथम पुरुष",
+			"third_person": "तृतीय पुरुष",
+			"over_shoulder": "कंधे के ऊपर"
+		}
+	},
+	"hud": {
+		"connecting": "{{url}} से जुड़ रहे हैं…",
+		"joined": "{{name}} के रूप में जुड़े",
+		"disconnected": "डिस्कनेक्ट: {{reason}}  (निकलने के लिए Esc)",
+		"roster_you": "{{name}} (आप)",
+		"roster": "{{count}} यहाँ — {{names}}"
+	}
+}

@@ -17,6 +17,7 @@ config/icon="res://icon.svg"
 
 [autoload]
 
+I18n="*res://src/autoload/i18n.gd"
 Game="*res://src/autoload/game.gd"
 Auth="*res://src/autoload/auth_session.gd"
 

@@ -23,8 +23,21 @@ const CONFIG_PATH := "user://graphics.cfg"
 enum Detail { OFF, LOW, HIGH }
 enum Tier { POTATO, LOW, MEDIUM, HIGH, EPIC }
 
-const DETAIL_NAMES := ["Off", "Low", "High"]
-const PRESET_NAMES := ["Potato", "Low", "Medium", "High", "Epic", "Custom"]
+## Keys, not words: the menu translates them on the way to the page, and the
+## tier arrays below are indexed by position either way.
+const DETAIL_NAMES := [
+	"settings.detail_name.off",
+	"settings.detail_name.low",
+	"settings.detail_name.high",
+]
+const PRESET_NAMES := [
+	"settings.preset_name.potato",
+	"settings.preset_name.low",
+	"settings.preset_name.medium",
+	"settings.preset_name.high",
+	"settings.preset_name.epic",
+	"settings.preset_name.custom",
+]
 
 ## pom_strength, pom_layers_max, pom_shadow_strength per detail step. Low drops
 ## the layer count and the self-shadow march, which together are the part of the

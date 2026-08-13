@@ -306,6 +306,9 @@ impl Session {
         let mut lines: VecDeque<String> = VecDeque::new();
         let mut input = String::new();
 
+        for msg in hub.recent() {
+            push_message(&mut lines, &msg);
+        }
         if !hub.online().await {
             push_line(&mut lines, "-- relay offline --".to_string());
         }
@@ -357,12 +360,9 @@ impl Session {
         };
         let (user_id, username) = (account.user_id.clone(), account.username.clone());
         match hub.send(&user_id, &username, text).await {
-            // Ergo does not echo our own PRIVMSG back, so the local copy is
-            // what the sender sees; render the scrubbed body, not the raw one.
-            Ok(()) => push_line(
-                lines,
-                format!("<{username}> {}", chat::sanitize_content(text)),
-            ),
+            // The hub rebroadcasts an accepted line to every subscriber, this
+            // session included, so it arrives through `rx` like any other.
+            Ok(()) => {}
             Err(SendError::Empty) => {}
             Err(SendError::TooFast) => push_line(lines, "-- slow down --".to_string()),
             Err(SendError::Offline) => push_line(lines, "-- relay offline --".to_string()),
@@ -384,7 +384,7 @@ impl Session {
             self.screen
                 .nl()
                 .ink(Ink::Dim)
-                .line("[esc] back")
+                .line("[enter] send  [esc] back")
                 .reset()
                 .prompt("say> ")
                 .text(input);
