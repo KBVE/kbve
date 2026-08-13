@@ -1,3 +1,4 @@
+use std::collections::VecDeque;
 use std::sync::{Arc, Mutex, OnceLock};
 use std::time::{Duration, Instant};
 
@@ -13,6 +14,7 @@ const DEFAULT_NICK: &str = "bbs-bot";
 
 pub const PLATFORM: &str = "bbs";
 pub const MAX_CHAT_LEN: usize = 350;
+pub const HISTORY_LEN: usize = 80;
 
 const PING_INTERVAL: Duration = Duration::from_secs(60);
 const STALE_AFTER: Duration = Duration::from_secs(300);
@@ -39,6 +41,7 @@ pub struct ChatHub {
     tx: broadcast::Sender<ChatMessage>,
     client: RwLock<Option<ChatClient>>,
     last_rx: Mutex<Instant>,
+    history: Mutex<VecDeque<ChatMessage>>,
 }
 
 impl ChatHub {
@@ -48,6 +51,26 @@ impl ChatHub {
 
     pub fn subscribe(&self) -> broadcast::Receiver<ChatMessage> {
         self.tx.subscribe()
+    }
+
+    /// Backscroll for a caller opening the room, oldest first. Kept in process:
+    /// the gateway's own ring lives in its Valkey database, which is not the
+    /// one this service is pointed at, so reading it would depend on two URLs
+    /// agreeing that nothing here can check.
+    pub fn recent(&self) -> Vec<ChatMessage> {
+        self.history
+            .lock()
+            .map(|ring| ring.iter().cloned().collect())
+            .unwrap_or_default()
+    }
+
+    fn remember(&self, msg: &ChatMessage) {
+        if let Ok(mut ring) = self.history.lock() {
+            if ring.len() >= HISTORY_LEN {
+                ring.pop_front();
+            }
+            ring.push_back(msg.clone());
+        }
     }
 
     pub async fn online(&self) -> bool {
@@ -77,7 +100,13 @@ impl ChatHub {
         };
 
         match sent {
-            Ok(()) => Ok(()),
+            // Ergo never echoes a client's own PRIVMSG, so this is the only
+            // point at which one BBS caller's line can reach the others.
+            Ok(()) => {
+                self.remember(&msg);
+                let _ = self.tx.send(msg);
+                Ok(())
+            }
             Err(e) => {
                 tracing::warn!(error = %e, "[bbs] irc send failed, dropping connection");
                 self.client.write().await.take();
@@ -158,6 +187,7 @@ pub fn init_chat() -> bool {
         tx,
         client: RwLock::new(None),
         last_rx: Mutex::new(Instant::now()),
+        history: Mutex::new(VecDeque::with_capacity(HISTORY_LEN)),
     });
     if HUB.set(hub.clone()).is_err() {
         return true;
@@ -216,6 +246,7 @@ async fn connect(hub: &Arc<ChatHub>, config: IrcConfig) -> Result<(), String> {
                 Ok(msg) => {
                     pump.mark_rx();
                     if msg.channel == pump.channel && msg.platform != PLATFORM {
+                        pump.remember(&msg);
                         let _ = pump.tx.send(msg);
                     }
                 }
