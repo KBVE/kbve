@@ -263,8 +263,8 @@ importers:
         specifier: ^18.0.2
         version: 18.0.2
       n8ao:
-        specifier: ^2.0.0
-        version: 2.0.0(postprocessing@6.39.4(three@0.185.1))(three@0.185.1)
+        specifier: ^2.0.1
+        version: 2.0.1(postprocessing@6.39.4(three@0.185.1))(three@0.185.1)
       openapi-fetch:
         specifier: ^0.17.0
         version: 0.17.0
@@ -7538,10 +7538,12 @@ packages:
   '@xmldom/xmldom@0.8.13':
     resolution: {integrity: sha512-KRYzxepc14G/CEpEGc3Yn+JKaAeT63smlDr+vjB8jRfgTBBI9wRj/nkQEO+ucV8p8I9bfKLWp37uHgFrbntPvw==}
     engines: {node: '>=10.0.0'}
+    deprecated: this version has critical issues, please update to the latest version
 
   '@xmldom/xmldom@0.9.10':
     resolution: {integrity: sha512-A9gOqLdi6cV4ibazAjcQufGj0B1y/vDqYrcuP6d/6x8P27gRS8643Dj9o1dEKtB6O7fwxb2FgBmJS2mX7gpvdw==}
     engines: {node: '>=14.6'}
+    deprecated: this version has critical issues, please update to the latest version
 
   '@xtuc/ieee754@1.2.0':
     resolution: {integrity: sha512-DX8nKgqcGwsc0eJSqYt5lwP4DH5FlHnmuWWBRy7X0NcaGR0ZtuyeESgMwTYVEtxmsNGY+qit4QYT/MIYTOTPeA==}
@@ -12686,8 +12688,8 @@ packages:
     resolution: {integrity: sha512-dkEJPVvun4FryqBmZ5KhDo0K9iDXAwn08tMLDinNdRBNPcYEDiWYysLcc6k3mjTMlbP9KyylvRpd4wFtwrT9rw==}
     engines: {node: ^20.17.0 || >=22.9.0}
 
-  n8ao@2.0.0:
-    resolution: {integrity: sha512-7oajUGXk10jJIcjGxOgjRY2X/gy5wiLOY4eOiAfFJ51ljN6Djmsg+j8HMOip+SpqV7OkwzF9VCkDRLluxVlySA==}
+  n8ao@2.0.1:
+    resolution: {integrity: sha512-MoP1QKUdj4/3cKEnhFl917t0eQwWGER1l43ckz5mNOPyYWGRDGQbVoTOQz/VBvy01in6QVNG+AL6Xxx5AjZBYA==}
     peerDependencies:
       postprocessing: '>=6.30.0'
       three: '>=0.137'
@@ -32435,7 +32437,7 @@ snapshots:
 
   mute-stream@3.0.0: {}
 
-  n8ao@2.0.0(postprocessing@6.39.4(three@0.185.1))(three@0.185.1):
+  n8ao@2.0.1(postprocessing@6.39.4(three@0.185.1))(three@0.185.1):
     dependencies:
       postprocessing: 6.39.4(three@0.185.1)
       three: 0.185.1

@@ -218,7 +218,7 @@
 		"lucide": "^0.575.0",
 		"lucide-react": "^0.575.0",
 		"marked": "^18.0.2",
-		"n8ao": "^2.0.0",
+		"n8ao": "^2.0.1",
 		"openapi-fetch": "^0.17.0",
 		"openpgp": "^6.3.1",
 		"phaser": "^4.2.1",
