@@ -70,7 +70,7 @@
 		"@types/three": "^0.185.3",
 		"@types/topojson-client": "^3.1.5",
 		"@typescript-eslint/eslint-plugin": "8.64.0",
-		"@typescript-eslint/parser": "8.64.0",
+		"@typescript-eslint/parser": "8.66.0",
 		"@vite-pwa/astro": "^1.2.0",
 		"@vitejs/plugin-react": "6.0.2",
 		"@vitest/coverage-v8": "4.0.9",
