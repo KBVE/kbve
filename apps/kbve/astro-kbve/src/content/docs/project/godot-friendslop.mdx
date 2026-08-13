@@ -14,7 +14,7 @@ pipeline: godot
 app_name: friendslop
 source_path: apps/friendslop/godot-friendslop
 version_toml: apps/friendslop/godot-friendslop/version.toml
-version: "0.1.1"
+version: "0.1.2"
 runner: ubuntu-latest
 author: h0lybyte
 license: KBVE
@@ -59,21 +59,21 @@ The backdrop runs none of what the world scene runs — no player, no physics st
 
 A `QFishField` swims the river under the bridge — the same field the world scene uses, turned up (560 fish, 52 pods, `school_chance` 0.45) since nothing here is scaring them.
 
-Identity lives in the `Auth` autoload (`src/autoload/auth_session.gd`), which has three modes and one implemented path:
+Identity lives in the `Auth` autoload (`src/autoload/auth_session.gd`):
 
-| Mode | Token | Requested name |
+| Mode | Token | Name |
 | --- | --- | --- |
 | `SIGNED_OUT` | — | — |
-| `GUEST` | `""` | `""` — the server answers with `Anon-XXXX` |
-| `ACCOUNT` | Supabase JWT | `kbve_username` |
+| `GUEST` | `""` | the server answers with `Anon-XXXX` |
+| `ACCOUNT` | Supabase JWT | `kbve_username`, read from the claims |
 
-Guest works today. `sign_in` returns `ERR_UNAVAILABLE` rather than pretending, and `adopt_account` is the seam the Supabase flow lands on — the rest of the ecosystem already issues GoTrue tokens at `supabase.kbve.com` and stamps the username claim via the Custom Access Token hook, so what is missing is the flow, not a second identity system.
+`sign_in` posts to GoTrue's password grant at `supabase.kbve.com`, keeps the access and refresh tokens in memory only, and reads the username out of the token for the title to draw. Nothing is written to `user://` — a refresh token on a shared machine is a login. `adopt_account` is the same seam an OAuth flow would land on.
 
-The title is not the boot scene yet; `run/main_scene` still points at `scenes/main.tscn`. Open it directly to work on it:
+The token is what the **server** verifies; the username decoded on this side is only for what the title screen prints before the join. See [friendslop-server](/project/friendslop-server) for the verification half.
 
-```bash
-bash scripts/godot.sh res://scenes/title.tscn
-```
+**Password sign-in cannot succeed against production today.** GoTrue runs with `GOTRUE_SECURITY_CAPTCHA_ENABLED=true` (hCaptcha), and the password grant answers `captcha protection: request disallowed (no captcha_token found)` to any client that has no browser to solve one in. The form reports that as "not available yet" rather than as a wrong password. The two ways out are a loopback OAuth flow (`GOTRUE_URI_ALLOW_LIST` already permits `http://127.0.0.1:**` and `kbve://**`) or exempting the grant from captcha; the client half is otherwise finished and works the moment either lands.
+
+`scenes/title.tscn` is now the boot scene (`run/main_scene`). The pause menu's Log Off already returns here from either world.
 
 ### Online sessions
 

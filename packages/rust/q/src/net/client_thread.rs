@@ -51,6 +51,16 @@ impl Default for NetClientState {
     }
 }
 
+/// How the client asks to be let in.
+#[derive(Clone, Debug, Default)]
+pub enum Credential {
+    #[default]
+    Guest,
+    /// Bearer token from the identity provider. The name lives in the claims,
+    /// so there is nothing else to send.
+    Token(String),
+}
+
 #[derive(Clone, Copy, Debug, Default, PartialEq)]
 pub struct Intent {
     pub wish_dir: [f32; 2],
@@ -70,9 +80,22 @@ impl NetClientHandle {
         Self::spawn_as(url, tick_hz, String::new())
     }
 
-    /// `name` is a request. The host may sanitize it, or ignore it entirely and
-    /// hand back a guest name; read [`NetClientState::name`] for the answer.
+    /// Joins with a bearer token; the host reads the name out of its claims.
+    /// A rejected token comes back as [`ClientStatus::Rejected`] with the
+    /// host's reason, not as a silent fall back to guest — signing in and
+    /// quietly arriving as someone else is worse than not arriving.
+    pub fn spawn_with_token(url: String, tick_hz: f64, token: String) -> Self {
+        Self::spawn_credentialed(url, tick_hz, Credential::Token(token))
+    }
+
+    /// `name` is vestigial — guests are named by the host. Read
+    /// [`NetClientState::name`] for what was assigned.
     pub fn spawn_as(url: String, tick_hz: f64, name: String) -> Self {
+        let _ = name;
+        Self::spawn_credentialed(url, tick_hz, Credential::Guest)
+    }
+
+    fn spawn_credentialed(url: String, tick_hz: f64, credential: Credential) -> Self {
         let stop = Arc::new(AtomicBool::new(false));
         let (intent_tx, intent_rx) = watch::channel(Intent::default());
         let (state_tx, state_rx) = watch::channel(Arc::new(NetClientState::default()));
@@ -80,7 +103,7 @@ impl NetClientHandle {
 
         let join = thread::Builder::new()
             .name("q-netclient".into())
-            .spawn(move || run(url, tick_hz, name, stop_t, intent_rx, state_tx))
+            .spawn(move || run(url, tick_hz, credential, stop_t, intent_rx, state_tx))
             .expect("q: failed to spawn net client thread");
 
         Self {
@@ -132,7 +155,7 @@ fn server_host(url: &str) -> String {
 fn run(
     url: String,
     tick_hz: f64,
-    requested_name: String,
+    credential: Credential,
     stop: Arc<AtomicBool>,
     intent_rx: watch::Receiver<Intent>,
     state_tx: watch::Sender<Arc<NetClientState>>,
@@ -166,7 +189,10 @@ fn run(
         }
     };
 
-    let mut session = ClientSession::connect_as(transport.clone(), &requested_name);
+    let mut session = match &credential {
+        Credential::Guest => ClientSession::connect(transport.clone()),
+        Credential::Token(token) => ClientSession::connect_with_token(transport.clone(), token),
+    };
     let dt = Duration::from_secs_f64(1.0 / tick_hz.max(1.0));
     let mut next = Instant::now() + dt;
 

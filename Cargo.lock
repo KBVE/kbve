@@ -7830,7 +7830,9 @@ version = "0.0.3"
 dependencies = [
  "agones",
  "axum 0.8.9",
+ "jedi",
  "q",
+ "serde",
  "serde_json",
  "tokio",
  "tracing",
