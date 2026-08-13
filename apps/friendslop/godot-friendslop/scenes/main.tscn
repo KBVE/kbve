@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="5_player"]
 [ext_resource type="Shader" path="res://assets/environment/skyboxes/sky.gdshader" id="6_sky"]
 [ext_resource type="Script" path="res://src/world/day_night.gd" id="7_daynight"]
+[ext_resource type="Script" path="res://src/characters/creature_spawner.gd" id="30_creatures"]
 [ext_resource type="Script" path="res://src/world/wind.gd" id="8_wind"]
 [ext_resource type="Script" path="res://src/world/climate.gd" id="9_climate"]
 [ext_resource type="Script" path="res://src/debug/debug_tools.gd" id="10_debug"]
@@ -262,3 +263,8 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+
+[node name="Creatures" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -30)
+script = ExtResource("30_creatures")
+terrain_path = NodePath("../Terrain")

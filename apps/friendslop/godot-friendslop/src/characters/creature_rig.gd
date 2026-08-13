@@ -34,6 +34,9 @@ const CelShading := preload("res://src/characters/cel_shading.gd")
 ## Clearance above the top of the mesh, so the plate sits off the head rather than
 ## at a guessed world height -- the mechs differ by more than a metre in stature.
 @export var nameplate_clearance := 0.9
+## Plates stop drawing past this, so a far-off creature does not leave a speck of
+## unreadable text on the horizon.
+@export var nameplate_range := 90.0
 
 ## Ground speed the walk and run clips were authored for. Unmeasured: these clips
 ## are in-place with no root motion, so unlike the humanoid gait table these are
@@ -123,9 +126,14 @@ func _build_nameplate() -> void:
 	nameplate.text = display_name
 	nameplate.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	nameplate.double_sided = true
-	nameplate.pixel_size = 0.006
-	nameplate.font_size = 96
-	nameplate.outline_size = 28
+	# Fixed size so the plate keeps one screen size at any distance. Scaling with
+	# distance is what left the far ones as an unreadable speck.
+	nameplate.fixed_size = true
+	nameplate.pixel_size = 0.0004
+	nameplate.font_size = 64
+	nameplate.outline_size = 20
+	nameplate.visibility_range_end = nameplate_range
+	nameplate.visibility_range_end_margin = 12.0
 	nameplate.modulate = Color(1, 0.93, 0.8)
 	nameplate.outline_modulate = Color(0.05, 0.04, 0.08)
 	nameplate.position = Vector3(0.0, _height + nameplate_clearance, 0.0)

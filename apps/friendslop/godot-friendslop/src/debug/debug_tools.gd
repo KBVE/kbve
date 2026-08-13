@@ -1,10 +1,7 @@
 extends Node3D
 
 const SHRUB := preload("res://assets/environment/props/flora/euonymus/euonymus.fbx")
-const CreatureRig := preload("res://src/characters/creature_rig.gd")
-const CreaturePatrol := preload("res://src/characters/creature_patrol.gd")
-const MECH_DIR := "res://assets/characters/creatures/mech/models/"
-const MECHS := ["George", "Leela", "Mike", "Stan"]
+const CreatureSpawner := preload("res://src/characters/creature_spawner.gd")
 const MARKER_SCRIPT := preload("res://src/debug/debug_marker.gd")
 
 @export var player_path: NodePath
@@ -20,7 +17,7 @@ var _pitch := 0.0
 var _place_queued := false
 var _smoke_state := 0
 var _shot_frames := -1
-var _patrols: Array[Node3D] = []
+var _spawners: Array[Node3D] = []
 
 @onready var _player: CharacterBody3D = get_node(player_path)
 
@@ -37,48 +34,22 @@ func _ready() -> void:
 		_spawn_boss.call_deferred(boss)
 
 
-## Q_BOSS=all, or a comma-separated pick of George,Leela,Mike,Stan. Each one is
-## dropped in a ring ahead of the player and set walking, for looking at the rigs
-## in motion without wiring anything into the scene first.
+## Q_BOSS=all, or a comma-separated pick of George,Leela,Mike,Stan, adds another
+## group of creatures in front of the player. The scene already carries a
+## Creatures spawner, so this is for trying a different set without editing it.
 func _spawn_boss(which: String) -> void:
-	var wanted := MECHS if which == "all" else Array(which.split(",", false))
-	var forward := -_player.global_basis.z
-	var origin := _player.global_position + forward * 26.0
-	for i in wanted.size():
-		var name := String(wanted[i]).strip_edges()
-		var path := MECH_DIR + name + ".glb"
-		if not ResourceLoader.exists(path):
-			push_warning("debug_tools: no mech '%s'" % name)
-			continue
-		# Spread across the arc the player is facing rather than in a line, so all
-		# four are on screen at once from the spawn point.
-		# A mech is over 7 units across, so the slots have to be further apart than
-		# that or two of them spawn intersecting.
-		var angle := -1.35 + 2.7 * (float(i) / maxf(wanted.size() - 1.0, 1.0))
-		var at := origin + forward.rotated(Vector3.UP, angle) * 14.0
-
-		var rig: Node3D = CreatureRig.new()
-		rig.body = load(path)
-		rig.display_name = name
-		add_child(rig)
-		var terrain := get_tree().current_scene.get_node_or_null("Terrain")
-		if terrain:
-			rig.terrain_path = rig.get_path_to(terrain)
-		rig.place(at)
-
-		var patrol: Node3D = CreaturePatrol.new()
-		patrol.rig = rig
-		add_child(patrol)
-		patrol.global_position = at
-		# The rig rides the patrol node, so one transform moves both the body and
-		# the plate over its head.
-		rig.get_parent().remove_child(rig)
-		patrol.add_child(rig)
-		rig.position = Vector3.ZERO
-		if terrain:
-			patrol.terrain_path = patrol.get_path_to(terrain)
-		_patrols.append(patrol)
-		print("boss: ", name, " at ", at)
+	var spawner: Node3D = CreatureSpawner.new()
+	if which != "all":
+		var picked: Array[String] = []
+		for name in which.split(",", false):
+			picked.append(name)
+		spawner.mechs = picked
+	add_child(spawner)
+	spawner.global_position = _player.global_position - _player.global_basis.z * 26.0
+	var terrain := get_tree().current_scene.get_node_or_null("Terrain")
+	if terrain:
+		spawner.terrain_path = spawner.get_path_to(terrain)
+	_spawners.append(spawner)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -215,9 +186,10 @@ func _spawn_marker(pos: Vector3) -> void:
 func _screenshot() -> void:
 	var dir := ProjectSettings.globalize_path("res://screenshots")
 	DirAccess.make_dir_recursive_absolute(dir)
-	for p in _patrols:
-		print("  patrol ", p.rig.display_name, " at ", p.global_position,
-				" state=", p.rig.debug_state())
+	for spawner in _spawners:
+		for p in spawner.spawned:
+			print("  patrol ", p.rig.display_name, " at ", p.global_position,
+					" state=", p.rig.debug_state())
 	var path := "%s/shot_%d.png" % [dir, Time.get_ticks_msec()]
 	get_viewport().get_texture().get_image().save_png(path)
 	print("screenshot: ", path)
