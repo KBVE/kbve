@@ -61,10 +61,14 @@ var targets: Array[Marker3D] = []
 var _terrain: Node
 var _hips := -1
 var _hip_offset := 0.0
-## Fades the whole solve out in the air, where there is no ground to stand on.
+## Fades the whole solve out where there is no ground to stand on. Chases
+## _want rather than being set from it outright, so a transition with no
+## crossfade of its own still arrives smoothly.
 var _blend := 1.0
 var _ready_done := false
-var _grounded := true
+## How much of the legs the animation state is handing over, set by the rig from
+## the live crossfade. See character_rig.STATES.
+var _want := 1.0
 
 ## Ray results, refreshed on the physics tick. Space-state queries are not safe
 ## from inside a skeleton modifier, which runs on the idle frame, so the probe
@@ -119,8 +123,8 @@ func _physics_process(_delta: float) -> void:
 			_hit_normal[i] = result.normal
 
 
-func set_grounded(value: bool) -> void:
-	_grounded = value
+func set_ground_weight(value: float) -> void:
+	_want = clampf(value, 0.0, 1.0)
 
 
 func _build() -> void:
@@ -169,12 +173,11 @@ func _process_modification_with_delta(delta: float) -> void:
 		return
 
 	var weight := clampf(adapt_speed * delta, 0.0, 1.0)
-	if not _grounded:
+	_blend = lerpf(_blend, _want, weight)
+	if _blend <= 0.001:
 		_hip_offset = lerpf(_hip_offset, 0.0, weight)
-		_blend = lerpf(_blend, 0.0, weight)
 		_apply_hips(skeleton)
 		return
-	_blend = lerpf(_blend, 1.0, weight)
 
 	var base_y := skeleton.global_transform.origin.y
 	var posed: Array[Transform3D] = []
@@ -230,7 +233,11 @@ func _process_modification_with_delta(delta: float) -> void:
 		plant.append(reachable * (1.0 - smoothstep(0.0, plant_height,
 				world.y - base_y - ankle_height - sole_offset)))
 
-	_hip_offset = lerpf(_hip_offset, _solve_hips(skeleton, posed, grounds, plant), weight)
+	# Scaled by the same blend the legs get. Left unscaled, a partly handed-over
+	# solve dropped the pelvis its full distance while the legs were still mostly
+	# the clip's, so the character sank into a crouch the legs had not asked for.
+	_hip_offset = lerpf(_hip_offset,
+			_solve_hips(skeleton, posed, grounds, plant) * _blend, weight)
 	_apply_hips(skeleton)
 
 	# Re-read after the hips move. Targets built from the pre-drop pose are stale
@@ -314,7 +321,7 @@ func _debug(skeleton: Skeleton3D, posed: Array[Transform3D], grounds: Array[floa
 	if _debug_t < 0.5:
 		return
 	_debug_t = 0.0
-	var out := "base_y=%.3f hip=%.3f infl=%.2f gnd=%s" % [base_y, _hip_offset, _blend, str(_grounded)]
+	var out := "base_y=%.3f hip=%.3f blend=%.2f want=%.2f" % [base_y, _hip_offset, _blend, _want]
 	for i in FEET.size():
 		var hip := skeleton.find_bone(FEET[i].upper)
 		var knee := skeleton.find_bone(FEET[i].lower)

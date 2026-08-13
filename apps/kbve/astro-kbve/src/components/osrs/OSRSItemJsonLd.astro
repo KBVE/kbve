@@ -163,32 +163,6 @@ const product = {
 	sameAs: [WIKI_URL, GE_URL],
 };
 
-const breadcrumbs = {
-	'@context': 'https://schema.org',
-	'@type': 'BreadcrumbList',
-	'@id': `${ITEM_URL}#breadcrumb`,
-	itemListElement: [
-		{
-			'@type': 'ListItem',
-			position: 1,
-			name: 'KBVE',
-			item: SITE,
-		},
-		{
-			'@type': 'ListItem',
-			position: 2,
-			name: 'OSRS Item Database',
-			item: `${SITE}/osrs/`,
-		},
-		{
-			'@type': 'ListItem',
-			position: 3,
-			name: item.name,
-			item: ITEM_URL,
-		},
-	],
-};
-
 interface HowToInput {
 	id: string;
 	name: string;
@@ -322,11 +296,6 @@ const faqLd =
 	type="application/ld+json"
 	is:inline
 	set:html={JSON.stringify(product)}
-/>
-<script
-	type="application/ld+json"
-	is:inline
-	set:html={JSON.stringify(breadcrumbs)}
 />
 {
 	howtoLd.map((ld) => (

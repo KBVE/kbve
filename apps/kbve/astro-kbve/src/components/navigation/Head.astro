@@ -19,6 +19,16 @@ const route = Astro.locals.starlightRoute;
 const head = route.head;
 const data = route.entry.data as Record<string, unknown>;
 
+// The rendered breadcrumb nav is the single source of truth for the trail, so
+// the BreadcrumbList mirrors it instead of humanizing path segments (which
+// yields brand-wrong labels like "Osrs" / "Mc"). Panels must not emit their
+// own BreadcrumbList — a second node under the same @id contradicts this one.
+const sectionCrumbs = Astro.locals.kbveSection?.crumbs;
+const visibleTrail =
+	sectionCrumbs && sectionCrumbs.length > 0
+		? sectionCrumbs.map((c) => [c.label, c.href] as [string, string])
+		: undefined;
+
 const osrsData = (data.osrs ?? {}) as Record<string, unknown>;
 const canonicalOverride =
 	typeof osrsData.canonical === 'string'
@@ -174,9 +184,10 @@ const jsonLdGraph =
 					dateModified: jl.dateModified,
 					keywords:
 						jl.keywords ?? (fmTags.length ? fmTags : undefined),
-					breadcrumb: jl.breadcrumb?.map(
-						(c) => [c.name, c.path] as [string, string],
-					),
+					breadcrumb:
+						jl.breadcrumb?.map(
+							(c) => [c.name, c.path] as [string, string],
+						) ?? visibleTrail,
 					faq: jl.faq,
 					software,
 				}),

@@ -1,16 +1,9 @@
 extends CharacterBody3D
 
-const SPEED := 5.0
-## Held low enough that neither heading rides onto its jog clip. The blend ring
-## puts backwards at radius 1.28 and sideways at 1.61, both walk-weighted, which
-## is where those two clips hold up; pushing either toward the jog end is what
-## made the backpedal look janky. Both still solve to a playback rate of 1.0, so
-## nothing is being stretched to fit.
-##
-## They also sit close together on purpose, so a diagonal is not visibly quicker
-## than either heading it is made of.
-const BACK_SPEED := 2.0
-const STRAFE_SPEED := 2.2
+## Only the deceleration rate. The top speeds per heading are QLocomotion's, so
+## the ring the rig blends over and the speed the body actually travels cannot
+## drift apart -- and so an authoritative server reaches the same numbers.
+const STOP_RATE := 5.0
 const JUMP_VELOCITY := 4.5
 const TERMINAL_FALL := 55.0
 const MOUSE_SENSITIVITY := 0.003
@@ -114,29 +107,16 @@ func _physics_process(delta: float) -> void:
 		Game.events.notify(EventNames.PLAYER_JUMPED, global_position)
 
 	if direction:
-		var gait := _gait(input_dir.normalized())
+		var gait: float = rig.gait_speed(input_dir.normalized())
 		velocity.x = direction.x * gait
 		velocity.z = direction.z * gait
 	else:
-		velocity.x = move_toward(velocity.x, 0.0, SPEED)
-		velocity.z = move_toward(velocity.z, 0.0, SPEED)
+		velocity.x = move_toward(velocity.x, 0.0, STOP_RATE)
+		velocity.z = move_toward(velocity.z, 0.0, STOP_RATE)
 
 	move_and_slide()
 	rig.set_locomotion(global_transform.basis.inverse() * velocity, not is_on_floor(), delta)
 	_report(delta)
-
-
-## Top speed for a heading. y is positive going backwards, so the two halves are
-## blended separately rather than through its magnitude -- which is the same
-## mistake that had the animation treating a backpedal as a forward run.
-##
-## A diagonal lands between its two headings, so backing away at an angle is
-## quicker than backing away straight. That follows from sideways and backwards
-## differing at all, and matches the blend the rig does over the same ring.
-func _gait(dir: Vector2) -> float:
-	if dir.y > 0.0:
-		return lerpf(STRAFE_SPEED, BACK_SPEED, dir.y)
-	return lerpf(STRAFE_SPEED, SPEED, -dir.y)
 
 
 func _report(delta: float) -> void:

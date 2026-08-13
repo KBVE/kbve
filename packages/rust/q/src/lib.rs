@@ -76,6 +76,10 @@ pub mod proto;
 #[cfg(any(feature = "client", feature = "rapier3d-sim"))]
 pub mod worldgen;
 
+/// Gait and stance decisions. Dependency-free, so it is available to whichever
+/// side is authoritative without pulling a feature in behind it.
+pub mod locomotion;
+
 #[cfg(any(
     feature = "rapier2d-client",
     feature = "rapier2d-server",

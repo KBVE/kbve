@@ -23,7 +23,7 @@ serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 postcard = { workspace = true, features = ["use-std"] }
 bevy = { workspace = true, features = ["bevy_state"] }
-bevy_spells = { path = "../bevy/bevy_spells" }
+bevy_spells = { version = "0.1.0", path = "../bevy/bevy_spells" }
 axum = { workspace = true, features = ["ws"] }
 tokio = { workspace = true, features = ["default", "rt-multi-thread", "macros", "sync", "time", "net"] }
 futures-util = { workspace = true, features = ["std"] }

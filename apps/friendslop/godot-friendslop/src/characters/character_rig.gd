@@ -35,10 +35,13 @@ extends Node3D
 ## than a forward walk playing while the character strafes.
 @export var locomotion := false
 @export var foot_ik := false
-@export var blend_sharpness := 12.0
+## Left at 0 to keep QLocomotion's own defaults. Set either to override the gait
+## tuning for this character, which is how an NPC gets a different top speed
+## without a second copy of the table.
+@export var blend_sharpness := 0.0
 ## Playback is rescaled to the ground speed the clip was authored for. Outside
 ## this range the correction reads worse than the slide it fixes.
-@export var time_scale_range := Vector2(0.6, 1.8)
+@export var time_scale_range := Vector2.ZERO
 
 ## One instantiate of a 20 MB library per run, not per character.
 static var _library_cache: Dictionary = {}
@@ -46,21 +49,12 @@ static var _library_cache: Dictionary = {}
 var animation: AnimationPlayer
 var tree: AnimationTree
 var ik: SkeletonModifier3D
-## Held while a climb owns the body, so the per-frame locomotion state does not
-## travel out of the climb the moment the controller reports it airborne.
-var _climbing := false
+## Gait and stance decisions, which are simulation rather than presentation and
+## so live in Q where the authoritative server can reach the same answers. This
+## file consumes what it decides; see src/locomotion in the q crate.
+var loco := QLocomotion.create()
 
 const IDLE_CLIP := "UAL1/Idle"
-const JUMP_CLIP := "UAL1/Jump"
-const JUMP_START_CLIP := "UAL1/Jump_Start"
-const JUMP_LAND_CLIP := "UAL1/Jump_Land"
-## Two heights of climb, so a hop onto a rock and a haul over a fence are not
-## the same clip stretched. Which one plays is chosen by how far the body
-## actually rises, and the clip's own length is what the movement is timed to,
-## rather than the animation being scaled to fit a made-up duration.
-const CLIMB_LOW_CLIP := "UAL2/ClimbUp_1m"
-const CLIMB_HIGH_CLIP := "UAL2/ClimbUp_2m"
-const CLIMB_SPLIT := 1.35
 
 ## Take-off and landing are one-shots either side of the airborne loop. The
 ## graph is walked by travel(), so airborne only ever asks for "jump" and
@@ -84,6 +78,39 @@ const CLIMB_CHAIN := [
 	{"from": "climb_high", "to": "move", "at_end": true, "xfade": 0.15},
 ]
 
+## What each state wants out of a transition into it.
+##
+## reset says whether entering restarts the state's clip. Godot defaults this on,
+## which is right for the one-shots and wrong for move: every landing dropped the
+## locomotion cycle back to frame 0, so the legs cut out of whatever stride they
+## were in. Resuming instead lets the cyclic sync in the blend space carry the
+## phase through the jump.
+##
+## ik is how much of the leg solve the state hands to the ground. There is nothing
+## to stand on in the air, and a take-off crouch or a landing recovery is only
+## partly weight-bearing, so neither should be planted as hard as a walk.
+## clip is the animation the state plays, empty for move because the blend space
+## picks its own. Two heights of climb, so a hop onto a rock and a haul over a
+## fence are not the same clip stretched; which one plays is QLocomotion's call
+## from how far the body rises, and the clip's own length is what the movement is
+## timed to rather than the animation being scaled to a made-up duration.
+const STATES := {
+	&"move": {&"clip": "", &"reset": false, &"ik": 1.0},
+	&"jump_start": {&"clip": "UAL1/Jump_Start", &"reset": true, &"ik": 0.4},
+	&"jump": {&"clip": "UAL1/Jump", &"reset": true, &"ik": 0.0},
+	&"jump_land": {&"clip": "UAL1/Jump_Land", &"reset": true, &"ik": 0.7},
+	&"climb_low": {&"clip": "UAL2/ClimbUp_1m", &"reset": true, &"ik": 0.0},
+	&"climb_high": {&"clip": "UAL2/ClimbUp_2m", &"reset": true, &"ik": 0.0},
+}
+
+## QLocomotion decides in stances; the state machine is addressed by name.
+const STANCE_STATES := {
+	QLocomotion.STANCE_MOVE: &"move",
+	QLocomotion.STANCE_JUMP: &"jump",
+	QLocomotion.STANCE_CLIMB_LOW: &"climb_low",
+	QLocomotion.STANCE_CLIMB_HIGH: &"climb_high",
+}
+
 ## Unit ring, counter-clockwise from forward. x is right, y is forward.
 const RING := [
 	[Vector2(0, 1), "Fwd"],
@@ -97,26 +124,13 @@ const RING := [
 ]
 
 ## The two libraries disagree on the pure-sideways names: walk uses L/R, jog
-## spells them out. Everything else differs only by the gait prefix.
-##
-## fwd/lateral/back are the ground speeds the clips were authored at. They set
-## both which ring a given speed lands on and how far playback has to be
-## rescaled to stop the feet sliding. Sideways clips cover barely half the
-## ground the forward ones do, and backwards is slower again.
-##
-## fwd and lateral were read off the root motion in the _RM builds. back was
-## measured from the in-place clips by tools/gait_probe.gd, which times the
-## stance foot's travel through the rig's own frame; run against the forward
-## clips as a check it lands within 3% on the jog and 9% on the walk, and each
-## back value is corrected by its own gait's forward error.
-const GAITS := [
-	{"radius": 1.0, "prefix": "UAL2/Walk_", "side": {"L": "L", "R": "R"},
-		"fwd": 1.01, "lateral": 0.64, "back": 1.07},
-	{"radius": 2.0, "prefix": "UAL1/Jog_", "side": {"L": "Left", "R": "Right"},
-		"fwd": 5.36, "lateral": 3.21, "back": 4.36},
+## spells them out. Everything else differs only by the gait prefix. The ring
+## radii and the ground speeds behind them are QLocomotion::GAITS, so the layout
+## here and the solve there cannot drift apart.
+const GAIT_CLIPS := [
+	{"radius": 1.0, "prefix": "UAL2/Walk_", "side": {"L": "L", "R": "R"}},
+	{"radius": 2.0, "prefix": "UAL1/Jog_", "side": {"L": "Left", "R": "Right"}},
 ]
-
-var _blend := Vector2.ZERO
 
 ## Per-surface cel shading, keyed by the kit's material name. tint names the
 ## exported colour the base map is multiplied by, body picks the shader's body
@@ -156,6 +170,10 @@ func _ready() -> void:
 	if skeleton == null:
 		push_error("character_rig: no Skeleton3D in %s" % body.resource_path)
 		return
+	if blend_sharpness > 0.0:
+		loco.set_blend_sharpness(blend_sharpness)
+	if time_scale_range != Vector2.ZERO:
+		loco.set_time_scale_range(time_scale_range.x, time_scale_range.y)
 	for scene in attachments:
 		_attach(scene)
 	for child in skeleton.get_children():
@@ -235,7 +253,7 @@ func _build_tree(rig: Node3D) -> void:
 	space.sync = true
 	space.sync_mode = AnimationNodeBlendSpace2D.SYNC_MODE_CYCLIC_MUTABLE
 	space.add_blend_point(_clip(IDLE_CLIP), Vector2.ZERO, -1, &"idle")
-	for gait in GAITS:
+	for gait in GAIT_CLIPS:
 		for entry in RING:
 			var dir: Vector2 = entry[0]
 			var suffix: String = entry[1]
@@ -254,11 +272,10 @@ func _build_tree(rig: Node3D) -> void:
 
 	var machine := AnimationNodeStateMachine.new()
 	machine.add_node("move", move)
-	machine.add_node("jump", _clip(JUMP_CLIP))
-	machine.add_node("jump_start", _clip(JUMP_START_CLIP))
-	machine.add_node("jump_land", _clip(JUMP_LAND_CLIP))
-	machine.add_node("climb_low", _clip(CLIMB_LOW_CLIP))
-	machine.add_node("climb_high", _clip(CLIMB_HIGH_CLIP))
+	for state in STATES:
+		var clip: String = STATES[state].clip
+		if clip != "":
+			machine.add_node(state, _clip(clip))
 	for link in JUMP_CHAIN + CLIMB_CHAIN:
 		var t := AnimationNodeStateMachineTransition.new()
 		# The one-shots hand over when they finish; the two driven by the
@@ -268,6 +285,11 @@ func _build_tree(rig: Node3D) -> void:
 		t.advance_mode = AnimationNodeStateMachineTransition.ADVANCE_MODE_AUTO \
 				if link.at_end else AnimationNodeStateMachineTransition.ADVANCE_MODE_DISABLED
 		t.xfade_time = link.xfade
+		# Linear crossfades read as a snap at both ends, because the pose leaves
+		# the outgoing clip and arrives at the incoming one at full rate. Easing
+		# the weight instead means the fade starts and finishes at a standstill.
+		t.xfade_curve = _fade_curve()
+		t.reset = STATES[link.to].reset
 		machine.add_transition(link.from, link.to, t)
 
 	tree = AnimationTree.new()
@@ -275,6 +297,18 @@ func _build_tree(rig: Node3D) -> void:
 	rig.add_child(tree)
 	tree.anim_player = tree.get_path_to(animation)
 	tree.active = true
+
+
+## One curve shared by every transition, since they all want the same easing.
+static var _curve: Curve
+
+
+static func _fade_curve() -> Curve:
+	if _curve == null:
+		_curve = Curve.new()
+		_curve.add_point(Vector2(0.0, 0.0), 0.0, 0.0)
+		_curve.add_point(Vector2(1.0, 1.0), 0.0, 0.0)
+	return _curve
 
 
 ## A missing clip is reported rather than silently leaving a hole in the space,
@@ -293,23 +327,31 @@ func _clip(name: String) -> AnimationNodeAnimation:
 func play_climb(rise: float) -> float:
 	if tree == null or animation == null:
 		return 0.0
-	var clip := CLIMB_LOW_CLIP if rise <= CLIMB_SPLIT else CLIMB_HIGH_CLIP
+	# Which of the two climbs fits the rise is QLocomotion's call, so the height
+	# split is not a number this file and the server can disagree about.
+	var state: StringName = STANCE_STATES[loco.begin_climb(rise)]
+	var clip: String = STATES[state].clip
 	if not animation.has_animation(clip):
+		loco.end_climb()
 		return 0.0
-	_climbing = true
 	var playback: AnimationNodeStateMachinePlayback = tree.get("parameters/playback")
-	playback.travel("climb_low" if rise <= CLIMB_SPLIT else "climb_high")
-	if ik:
-		ik.set_grounded(false)
+	playback.travel(state)
 	return animation.get_animation(clip).length
 
 
 func end_climb() -> void:
-	_climbing = false
+	loco.end_climb()
 
 
 ## What the state machine is doing, for Q_MOVE_DEBUG. A latched animation and a
 ## latched airborne flag look identical from outside the rig.
+## Top speed for a heading, taking Godot's input vector as it comes: its y is
+## positive going backward, and QLocomotion's is positive going forward, so the
+## flip between the two frames happens here and nowhere else.
+func gait_speed(input_dir: Vector2) -> float:
+	return loco.gait_speed(Vector2(input_dir.x, -input_dir.y))
+
+
 func debug_state() -> String:
 	if tree == null:
 		return "no tree"
@@ -319,60 +361,52 @@ func debug_state() -> String:
 
 
 ## local_velocity is in the character's own frame: +x right, +z backward.
+##
+## Which gait a speed belongs to and how far playback has to be rescaled are
+## decided by QLocomotion, not here: they are simulation answers an authoritative
+## server has to be able to reach from the same inputs. What is left in this
+## file is the half that is presentation -- feeding the blend space, and the
+## crossfades and foot solve that hang off the state machine.
 func set_locomotion(local_velocity: Vector3, airborne: bool, delta: float) -> void:
 	if tree == null:
 		return
-	var flat := Vector2(local_velocity.x, -local_velocity.z)
-	var speed := flat.length()
-	var dir := flat / speed if speed > 0.001 else Vector2.ZERO
-	var radius := _radius_for(speed, dir)
-	_blend = _blend.lerp(dir * radius, clampf(blend_sharpness * delta, 0.0, 1.0))
-	tree.set("parameters/move/space/blend_position", _blend)
-	tree.set("parameters/move/scale/scale", _time_scale(speed, dir, radius))
+	loco.step(local_velocity, airborne, delta)
+	tree.set("parameters/move/space/blend_position", loco.blend())
+	tree.set("parameters/move/scale/scale", loco.time_scale())
+	var playback: AnimationNodeStateMachinePlayback = tree.get("parameters/playback")
+	if ik:
+		ik.set_ground_weight(_ground_weight(playback))
 	# Only ever asked for the two ends of the chain: travel() routes through
 	# take-off or landing on the way, so a landing plays its recovery instead of
-	# cutting from a mid-air pose straight into idle.
-	if _climbing:
+	# cutting from a mid-air pose straight into idle. A latched climb is already
+	# travelling, so it is left to finish.
+	if loco.is_climbing():
 		return
-	var playback: AnimationNodeStateMachinePlayback = tree.get("parameters/playback")
-	var want := "jump" if airborne else "move"
+	var want: StringName = STANCE_STATES[loco.stance()]
 	if playback.get_travel_path().is_empty() and playback.get_current_node() != want:
 		playback.travel(want)
-	if ik:
-		ik.set_grounded(not airborne)
 
 
-## Ground speed the blended clip covers in this direction, which is what the
-## ring radius has to be solved against.
-##
-## Forward and backward are looked up separately rather than through the
-## magnitude of dir.y. Collapsing them treats a backpedal as a forward run, so
-## the ring and the playback rate are both solved against a speed those clips
-## never cover, and the feet skate the difference.
-func _authored(gait: Dictionary, dir: Vector2) -> float:
-	var toward: float = gait.fwd if dir.y >= 0.0 else gait.back
-	return lerpf(gait.lateral, toward, absf(dir.y))
+## Leg solve weight for the pose that is actually on the skeleton. Mid-transition
+## that pose is a blend of two states and matches neither, so the weight is read
+## off the same fade the animation is using rather than from the controller's
+## airborne flag. A flag flips a frame before the pose it describes exists, which
+## is what re-planted the feet onto a pose still half way out of the air.
+func _ground_weight(playback: AnimationNodeStateMachinePlayback) -> float:
+	var length := playback.get_fading_length()
+	var at := 1.0 if length <= 0.0 else playback.get_fading_position() / length
+	return ground_weight_for(playback.get_current_node(),
+			playback.get_fading_from_node(), at)
 
 
-## Inverse of the ring layout: find the radius whose blended clip is authored
-## for this speed, so the gait matches the ground rather than being scaled into
-## place. Rings are not evenly spaced in speed, hence the piecewise solve.
-func _radius_for(speed: float, dir: Vector2) -> float:
-	var slow := _authored(GAITS[0], dir)
-	var fast := _authored(GAITS[1], dir)
-	if speed <= slow:
-		return GAITS[0].radius * (speed / maxf(slow, 0.01))
-	var t := (speed - slow) / maxf(fast - slow, 0.01)
-	return lerpf(GAITS[0].radius, GAITS[1].radius, clampf(t, 0.0, 1.0))
-
-
-func _time_scale(speed: float, dir: Vector2, radius: float) -> float:
-	if speed < 0.05:
-		return 1.0
-	var slow := _authored(GAITS[0], dir)
-	var fast := _authored(GAITS[1], dir)
-	var expected := lerpf(slow, fast, clampf(radius - GAITS[0].radius, 0.0, 1.0))
-	return clampf(speed / maxf(expected, 0.01), time_scale_range.x, time_scale_range.y)
+## Split from the playback so the curve can be checked without a live tree. `at`
+## is how far the crossfade has run, 0 at the outgoing pose and 1 at the incoming.
+func ground_weight_for(into: StringName, from: StringName, at: float) -> float:
+	var arriving: float = STATES.get(into, {}).get(&"ik", 1.0)
+	if from == &"":
+		return arriving
+	var leaving: float = STATES.get(from, {}).get(&"ik", 1.0)
+	return lerpf(leaving, arriving, clampf(at, 0.0, 1.0))
 
 
 func _library(source: PackedScene) -> AnimationLibrary:
