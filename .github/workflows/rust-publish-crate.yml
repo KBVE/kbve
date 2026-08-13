@@ -67,7 +67,7 @@ jobs:
                   echo "Target ($TGT): $CURRENT"
 
                   if [ "$CURRENT" != "$VER" ]; then
-                    sed -i "s/^version = \"$CURRENT\"/version = \"$VER\"/" "$TGT"
+                    sed -i "0,/^version = \"$CURRENT\"/s//version = \"$VER\"/" "$TGT"
                     echo "Patched $TGT: $CURRENT → $VER"
                   else
                     echo "Already at $VER — no patch needed"

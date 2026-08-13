@@ -165,7 +165,7 @@ jobs:
                     case "$TGT" in
                       *.json)   jq --arg v "$VER" '.version = $v' "$TGT" > "${TGT}.tmp" && mv "${TGT}.tmp" "$TGT" ;;
                       *.csproj) sed -i "s|<Version>[^<]*</Version>|<Version>${VER}</Version>|" "$TGT" ;;
-                      *)        sed -i "s/^version = .*/version = \"${VER}\"/" "$TGT" ;;
+                      *)        awk -v v="$VER" '!d && /^version[[:space:]]*=/ { print "version = \"" v "\""; d=1; next } { print }' "$TGT" > "${TGT}.tmp" && mv "${TGT}.tmp" "$TGT" ;;
                     esac
                     echo "Synced version ${VER} → ${TGT}"
                   fi
