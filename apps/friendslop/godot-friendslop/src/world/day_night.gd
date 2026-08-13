@@ -1,7 +1,7 @@
 extends Node3D
 
 @export_category("Time")
-@export var day_length_minutes := 10.0
+@export var day_length_minutes := 45.0
 @export var start_hour := 9.0
 
 @export_category("Celestial Movement")
@@ -134,18 +134,18 @@ func _configure_lights() -> void:
 
 func _update_celestial_state(force := false) -> void:
 	var raw_angle := (hour - SUNRISE_OFFSET) * DAY_RADIANS
-
-	sun.rotation.x = -raw_angle
-	moon.rotation.x = -raw_angle + PI
-
-	var key_light := sun if sun.light_energy >= moon.light_energy else moon
-	RenderingServer.global_shader_parameter_set("sun_direction",
-			key_light.global_transform.basis.z.normalized())
-
 	var angle_step := roundi(raw_angle * _angle_step_inv)
 	if not force and angle_step == _last_angle_step:
 		return
 	_last_angle_step = angle_step
+
+	var angle := float(angle_step) * _angle_step_rad
+	sun.rotation.x = -angle
+	moon.rotation.x = -angle + PI
+
+	var key_light := sun if sun.light_energy >= moon.light_energy else moon
+	RenderingServer.global_shader_parameter_set("sun_direction",
+			key_light.global_transform.basis.z.normalized())
 
 	var o := posmod(angle_step, _steps_per_day) * LUT_STRIDE
 	var sun_elevation := _lut[o + LUT_SUN_ELEVATION]
