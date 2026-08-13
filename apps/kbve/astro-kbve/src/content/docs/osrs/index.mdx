@@ -20,6 +20,7 @@ next: false
 import BentoShell from '@/components/hero/BentoShell.astro';
 import OSRSItemBrowser from '@/components/osrs/OSRSItemBrowser.tsx';
 import OSRSDisclaimer from '@/components/osrs/OSRSDisclaimer.astro';
+import OSRSStaticIndex from '@/components/osrs/OSRSStaticIndex.astro';
 
 <BentoShell
 	eyebrow="Old School RuneScape"
@@ -31,6 +32,8 @@ live Grand Exchange pricing, equipment stats, drop sources, recipes, and more.
 Use the browser below to find an item, then click through to its full page.
 
 <OSRSItemBrowser client:only="react" />
+
+<OSRSStaticIndex />
 
 </BentoShell>
 

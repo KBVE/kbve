@@ -1,6 +1,26 @@
 ---
+import { getCollection } from 'astro:content';
 import MCItemsBrowser from './MCItemsBrowser';
 import MCTooltipMount from './MCTooltipMount.astro';
+import StaticLinkIndex from '@/components/seo/StaticLinkIndex.astro';
+
+const entries = await getCollection(
+	'docs',
+	(entry: { id: string; data: Record<string, unknown> }) =>
+		entry.id.startsWith('mc/items/') && Boolean(entry.data?.mc_item),
+);
+
+// href from the entry id (the real built route) rather than the slug field, so
+// a stale slug cannot point the link at a different page's URL.
+const links = entries
+	.map((entry: { id: string; data: { mc_item?: Record<string, unknown> } }) => {
+		const mc = entry.data.mc_item;
+		return mc
+			? { href: `/${entry.id}/`, label: String(mc.display_name) }
+			: null;
+	})
+	.filter((l): l is { href: string; label: string } => l !== null)
+	.sort((a, b) => a.label.localeCompare(b.label));
 ---
 
 <MCTooltipMount />
@@ -46,6 +66,8 @@ import MCTooltipMount from './MCTooltipMount.astro';
 
 	<MCItemsBrowser client:visible />
 </section>
+
+<StaticLinkIndex links={links} heading="All Minecraft items" />
 
 <style is:global>
 	.mcdb-browse__shell {

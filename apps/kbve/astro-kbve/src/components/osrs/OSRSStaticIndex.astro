@@ -1,0 +1,22 @@
+---
+import { getCollection } from 'astro:content';
+import type { OSRSExtended } from '@/data/schema';
+import StaticLinkIndex from '@/components/seo/StaticLinkIndex.astro';
+
+const docs = await getCollection('docs');
+
+// href comes from the entry id (the real built route), not `osrs.slug` — a
+// stale slug field points the link at another page's URL and leaves this one
+// unreachable, which is exactly how weapon-poison-5940 went missing.
+const links = docs
+	.map((entry: { id: string; data: { osrs?: OSRSExtended } }) => {
+		const o = entry.data.osrs;
+		return o?.name && entry.id.startsWith('osrs/') && entry.id !== 'osrs/index'
+			? { href: `/${entry.id}/`, label: o.name }
+			: null;
+	})
+	.filter((l): l is { href: string; label: string } => l !== null)
+	.sort((a, b) => a.label.localeCompare(b.label));
+---
+
+<StaticLinkIndex links={links} heading="All OSRS items" />
