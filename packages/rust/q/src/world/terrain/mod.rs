@@ -466,11 +466,24 @@ impl QTerrain {
         if let Some(t0) = self.gen_t0.take() {
             godot_print!("[q] terrain gen+apply {}ms", t0.elapsed().as_millis());
         }
+        self.signals().ground_ready().emit();
     }
 }
 
 #[godot_api]
 impl QTerrain {
+    /// The first frame there is ground to stand on. Anything that would otherwise
+    /// spawn into an empty world waits for this.
+    #[signal]
+    fn ground_ready();
+
+    /// Whether the collider exists yet, for whatever readied before the signal
+    /// went out.
+    #[func]
+    fn is_ground_ready(&self) -> bool {
+        self.ground_body.is_some() && !self.heights.is_empty()
+    }
+
     #[func]
     fn height_at(&self, x: f32, z: f32) -> f32 {
         self.height(x, z)

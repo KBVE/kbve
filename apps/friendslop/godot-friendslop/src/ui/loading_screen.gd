@@ -7,8 +7,16 @@ const BACKDROP := Color(0.07, 0.06, 0.05, 1.0)
 const BAR_SIZE := Vector2(360, 10)
 const BAR_TRACK := Color(0.2, 0.16, 0.12, 0.9)
 
-## Frames to hold after the swap.
+## Frames to hold after the swap, so the new scene is the current one before it is asked
+## anything.
 const HOLD_FRAMES := 3
+## Longest the cover waits on a scene still building its world. Past this the player gets
+## a world that is still settling, which beats a cover that never lifts.
+const BUILD_TIMEOUT := 25.0
+## The build has no percentage to report -- it is one worker thread landing whenever it
+## lands -- so the bar eases toward full on this many seconds rather than lying about a
+## fraction it does not have.
+const BUILD_PACE := 4.0
 
 var _label: Label
 var _fill: ColorRect
@@ -123,7 +131,28 @@ func _run(tree: SceneTree, path: String, what: String) -> void:
 	tree.change_scene_to_packed(packed)
 	for _i in HOLD_FRAMES:
 		await tree.process_frame
+	await _wait_for_world(tree, what)
 	queue_free()
+
+
+## Holds the cover up while the scene builds whatever it cannot build inside _ready. The
+## world bakes its ground on a worker thread, and lifting the cover before that lands
+## drops the player into a scene with no collider under them.
+func _wait_for_world(tree: SceneTree, what: String) -> void:
+	var scene := tree.current_scene
+	if scene == null or not scene.has_method("world_ready") or scene.world_ready():
+		return
+	_label.text = "Building %s" % what if what != "" else "Building the world"
+	var started := Time.get_ticks_msec()
+	while not scene.world_ready():
+		var waited := (Time.get_ticks_msec() - started) / 1000.0
+		if waited >= BUILD_TIMEOUT:
+			push_warning("[LoadingScreen] %s still building after %.0fs; going in anyway" % [
+					what, waited])
+			return
+		_set_progress(1.0 - exp(-waited / BUILD_PACE))
+		await tree.process_frame
+	_set_progress(1.0)
 
 
 func _set_progress(ratio: float) -> void:

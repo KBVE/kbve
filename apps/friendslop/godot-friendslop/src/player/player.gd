@@ -9,8 +9,21 @@ const PITCH_LIMITS := Vector2(-1.2, 0.6)
 
 const Mantle := preload("res://src/player/mantle.gd")
 
+## The ground is baked on a worker thread, so for the first frames of a scene there is
+## no collider anywhere and gravity has nothing to land on.
+@export var terrain_path: NodePath = ^"../Terrain"
+## Clearance kept above the ground when the body is settled onto it.
+@export var settle_clearance := 1.0
+## How far under the ground the body has to be before it counts as having fallen through
+## the world rather than standing in a dip the height field smooths over.
+@export var fall_through_slack := 3.0
+
 @onready var pivot: Node3D = $Pivot
 @onready var rig: Node3D = $Mesh
+
+var _terrain: Node
+## Held until there is ground, so the fall never starts.
+var _held := false
 
 var _touch := false
 var _mantle := Mantle.new()
@@ -24,6 +37,7 @@ var _debug_t := 0.0
 
 func _ready() -> void:
 	_mantle.setup(self, rig)
+	_wait_for_ground()
 	var walk := OS.get_environment("Q_WALK")
 	_walk_sweep = walk == "auto"
 	var axes := walk.split(",", false)
@@ -35,6 +49,43 @@ func _ready() -> void:
 	_touch = DisplayServer.is_touchscreen_available()
 	if OS.has_feature("mobile"):
 		_use_mobile_materials()
+
+
+func _wait_for_ground() -> void:
+	_terrain = get_node_or_null(terrain_path)
+	## Dropped rather than kept, so nothing downstream asks a node that cannot answer.
+	if _terrain != null and not (_terrain.has_method("is_ground_ready")
+			and _terrain.has_method("height_at")):
+		_terrain = null
+	if _terrain == null:
+		return
+	if _terrain.is_ground_ready():
+		return
+	_held = true
+	if _terrain.has_signal("ground_ready"):
+		_terrain.ground_ready.connect(_settle, CONNECT_ONE_SHOT)
+
+
+## Puts the body on the ground and lets it move again. The terrain picks the spawn itself
+## once it has heights, so this only lifts a body that would otherwise start underneath
+## one.
+func _settle() -> void:
+	_held = false
+	velocity = Vector3.ZERO
+	if _terrain == null or not _terrain.is_ground_ready():
+		return
+	var ground: float = _terrain.height_at(global_position.x, global_position.z)
+	global_position.y = maxf(global_position.y, ground + settle_clearance)
+
+
+## True once the body is under the ground by more than any dip explains, which is the
+## shape a fall through the world takes: a hitch long enough to outrun the collider, or a
+## spawn that beat it.
+func _fell_through() -> bool:
+	if _held or _terrain == null or not _terrain.is_ground_ready():
+		return false
+	return global_position.y < _terrain.height_at(global_position.x, global_position.z) \
+			- fall_through_slack
 
 
 ## The screen-space ink pass depends on Forward+ only inputs, so it is dropped under the
@@ -74,6 +125,15 @@ func _process(_delta: float) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	if _held:
+		velocity = Vector3.ZERO
+		rig.set_locomotion(Vector3.ZERO, false, delta)
+		return
+	if _fell_through():
+		push_warning("[player] fell through the world at %.1f,%.1f,%.1f; put back on the ground" % [
+				global_position.x, global_position.y, global_position.z])
+		_settle()
+
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
 	if _walk_sweep:
 		_walk_t += delta

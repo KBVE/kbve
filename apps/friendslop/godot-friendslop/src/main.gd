@@ -115,6 +115,15 @@ func _ready() -> void:
 		_place_player.call_deferred(Vector3(float(pos[0]), float(pos[1]), float(pos[2])))
 
 
+## Whether there is ground to stand on yet. The loading cover reads this, because the
+## heights are baked on a worker thread and nothing before them has a collider.
+func world_ready() -> bool:
+	var terrain := get_node_or_null(^"Terrain")
+	if terrain == null or not terrain.has_method("is_ground_ready"):
+		return true
+	return terrain.is_ground_ready()
+
+
 ## Deferred, and held for a few frames: the player readies after this node and the
 ## terrain settles it again once the collider streams in, so a single assignment during
 ## _ready is overwritten before anything is drawn.
