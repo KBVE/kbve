@@ -16,8 +16,9 @@ echo "============================================"
 # PGDATA is initialised at image build time, so the server is started directly
 # rather than through the official entrypoint. The entrypoint boots a temporary
 # server and shuts it down before starting the real one, and pg_durable's worker
-# does not release its connection on fast shutdown, so that cycle never
-# completes. Starting once also means there is no bootstrap server to race.
+# takes ~10s to notice a shutdown when it cannot reach the database over TCP,
+# which the temporary server does not allow. Starting once avoids that cost and
+# means there is no bootstrap server to race.
 postgres -D "${PGDATA:-/pgdata}" &
 PG_PID=$!
 
@@ -66,8 +67,8 @@ while IFS= read -r line; do
     fi
 done <<< "$TEST_OUTPUT"
 
-# Stop PostgreSQL. SIGQUIT (immediate shutdown) rather than SIGTERM: pg_durable's
-# background worker does not exit on fast shutdown, so a graceful stop hangs here.
+# Stop PostgreSQL. SIGQUIT (immediate shutdown) rather than SIGTERM only to keep
+# teardown quick — a fast shutdown is clean but waits on pg_durable's worker.
 kill -QUIT $PG_PID 2>/dev/null || true
 wait $PG_PID 2>/dev/null || true
 
