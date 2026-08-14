@@ -8,7 +8,10 @@ const TwoBoneIK := preload("res://src/characters/two_bone_ik.gd")
 
 ## Bend swept while bracketing the solution, each way from the posed bend.
 const MAX_BEND := 2.2
-const BISECTIONS := 12
+## Samples across the sweep. A chain posed straight gets shorter whichever way it is
+## bent, so the span is not monotonic in the bend and cannot be bisected blind.
+const SAMPLES := 24
+const BISECTIONS := 8
 const EPSILON := 0.000001
 
 
@@ -87,9 +90,13 @@ static func rest_limits(skeleton: Skeleton3D, bones: PackedInt32Array,
 		joints.append(skeleton.get_bone_global_rest(bones[j]).origin)
 		axes.append(Vector3.ZERO if j == 0 else _rest_axis(skeleton, bones, tip_local, j))
 	var tip := _rest_tip(skeleton, bones, tip_local)
-	var one := _reach(joints, tip, axes, MAX_BEND)
-	var other := _reach(joints, tip, axes, -MAX_BEND)
-	return Vector2(minf(one, other), maxf(one, other))
+	var low := INF
+	var high := 0.0
+	for i in SAMPLES + 1:
+		var span := _reach(joints, tip, axes, -MAX_BEND + MAX_BEND * 2.0 / SAMPLES * i)
+		low = minf(low, span)
+		high = maxf(high, span)
+	return Vector2(low, high)
 
 
 static func _rest_axis(skeleton: Skeleton3D, bones: PackedInt32Array, tip_local: Vector3,
@@ -101,30 +108,42 @@ static func _rest_axis(skeleton: Skeleton3D, bones: PackedInt32Array, tip_local:
 	return (above - here).cross(beyond - here)
 
 
-## Bisects the shared joint angle that puts the tip `span` from the root. Curling every
-## hinge the same way is monotonic in the tip's distance, so the bracket cannot straddle
-## two answers; which sign curls is read off the pose rather than assumed, because the
-## packs disagree on which way a knee bends.
+## Shared joint angle that puts the tip `span` from the root: the sweep is sampled, the
+## crossing that moves the pose least is bracketed, and that bracket is bisected. Out of
+## range, the sample that comes closest is as far as the chain goes.
 static func _bend_for(joints: PackedVector3Array, tip: Vector3, axes: PackedVector3Array,
 		span: float) -> float:
-	var curl := 1.0 if _reach(joints, tip, axes, 0.05) <= _reach(joints, tip, axes, -0.05) \
-			else -1.0
-	var shortest := _reach(joints, tip, axes, curl * MAX_BEND)
-	var longest := _reach(joints, tip, axes, -curl * MAX_BEND)
-	if span <= shortest:
-		return curl * MAX_BEND
-	if span >= longest:
-		return -curl * MAX_BEND
+	var step := MAX_BEND * 2.0 / SAMPLES
+	var previous := _reach(joints, tip, axes, -MAX_BEND)
+	var best := -MAX_BEND
+	var best_error := absf(previous - span)
+	var low := 0.0
+	var high := 0.0
+	var found := false
 
-	var low := -MAX_BEND
-	var high := MAX_BEND
-	for step in BISECTIONS:
+	for i in range(1, SAMPLES + 1):
+		var bend := -MAX_BEND + step * i
+		var here := _reach(joints, tip, axes, bend)
+		if absf(here - span) < best_error:
+			best_error = absf(here - span)
+			best = bend
+		if (previous - span) * (here - span) <= 0.0:
+			var edge := maxf(absf(bend), absf(bend - step))
+			if not found or edge < maxf(absf(high), absf(low)):
+				low = bend - step
+				high = bend
+				found = true
+		previous = here
+
+	if not found:
+		return best
+	for pass_ in BISECTIONS:
 		var mid := (low + high) * 0.5
-		if _reach(joints, tip, axes, curl * mid) > span:
-			low = mid
-		else:
+		if (_reach(joints, tip, axes, low) - span) * (_reach(joints, tip, axes, mid) - span) <= 0.0:
 			high = mid
-	return curl * (low + high) * 0.5
+		else:
+			low = mid
+	return (low + high) * 0.5
 
 
 ## Tip distance the chain would have if every joint turned by `bend`, without touching the

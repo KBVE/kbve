@@ -103,6 +103,15 @@ func world_seed() -> int:
 	return _client.world_seed()
 
 
+## Half-width of the ground the host simulates, 0 before joining.
+func world_extent() -> float:
+	return _client.world_extent()
+
+
+func world_resolution() -> int:
+	return _client.world_resolution()
+
+
 func last_error() -> String:
 	return _client.last_error()
 

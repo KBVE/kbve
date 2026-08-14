@@ -46,6 +46,8 @@ var _reach := 0.0
 var _exclude: Array[RID] = []
 
 var _probe: Array[Vector3] = []
+## Where each ankle ended up once the solve ran, for the debug residual.
+var _post: Array[Vector3] = []
 var _hit: Array[bool] = []
 var _hit_y: Array[float] = []
 var _hit_normal: Array[Vector3] = []
@@ -82,20 +84,21 @@ func _build() -> void:
 			continue
 		var ankle := skeleton.get_bone_global_rest(foot).origin
 		var last := chain[chain.size() - 1]
-		var reach := skeleton.get_bone_global_rest(last).origin.distance_to(ankle)
-		for i in chain.size() - 1:
-			reach += skeleton.get_bone_global_rest(chain[i]).origin.distance_to(
-					skeleton.get_bone_global_rest(chain[i + 1]).origin)
+		var tip_local := skeleton.get_bone_global_rest(last).affine_inverse() * ankle
+		## However far the hinges can actually carry the ankle, which on a leg that folds
+		## the other way at the hock is far short of the bones laid end to end.
+		var reach := ChainIK.rest_limits(skeleton, chain, tip_local).y
 		legs.append({
 			&"chain": chain,
 			&"foot": foot,
-			&"tip": skeleton.get_bone_global_rest(last).affine_inverse() * ankle,
+			&"tip": tip_local,
 			&"reach": reach,
 			&"ankle_height": ankle.y,
 		})
 		_reach = maxf(_reach, reach)
 
 	_probe.resize(legs.size())
+	_post.resize(legs.size())
 	_hit.resize(legs.size())
 	_hit_y.resize(legs.size())
 	_hit_normal.resize(legs.size())
@@ -166,14 +169,14 @@ func _process_modification_with_delta(delta: float) -> void:
 	_apply_root(skeleton)
 
 	for i in legs.size():
-		var amount := plant[i] * _blend
-		if amount <= 0.001:
-			continue
 		var leg := legs[i]
-		var ankle := ChainIK.tip(skeleton, leg[&"chain"], leg[&"tip"], to_world)
-		var goal := ankle.lerp(Vector3(ankle.x, grounds[i], ankle.z), plant[i])
-		ChainIK.solve(skeleton, leg[&"chain"], leg[&"tip"], goal, amount)
-		_place_foot(skeleton, leg, to_world, normals[i], amount)
+		var amount := plant[i] * _blend
+		if amount > 0.001:
+			var ankle := ChainIK.tip(skeleton, leg[&"chain"], leg[&"tip"], to_world)
+			var goal := ankle.lerp(Vector3(ankle.x, grounds[i], ankle.z), plant[i])
+			ChainIK.solve(skeleton, leg[&"chain"], leg[&"tip"], goal, amount)
+			_place_foot(skeleton, leg, to_world, normals[i], amount)
+		_post[i] = ChainIK.tip(skeleton, leg[&"chain"], leg[&"tip"], to_world)
 
 	_debug(delta, plant, grounds)
 
@@ -274,5 +277,5 @@ func _debug(delta: float, plant: Array[float], grounds: Array[float]) -> void:
 	var out := "reach=%.2f root=%+.3f blend=%.2f" % [_reach, _root_offset, _blend]
 	for i in legs.size():
 		out += " | %s plant=%.2f err=%+.3f" % [SIDES[i], plant[i],
-				_probe[i].y - grounds[i]]
+				_post[i].y - grounds[i]]
 	print("[creature ik] ", out)

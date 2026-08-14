@@ -30,7 +30,16 @@ pub(super) struct RoadNetwork {
 impl RoadNetwork {
     /// The trunk road runs across the valley and meets the river head-on, so the deck
     /// can be a straight span.
-    pub(super) fn build(hgen: &HeightGen, extent: f32, water_level: f32, width: f32) -> Self {
+    pub(super) fn build(
+        hgen: &HeightGen,
+        origin: Vector2,
+        extent: f32,
+        water_level: f32,
+        width: f32,
+    ) -> Self {
+        // The crossing is a property of the world, not of the window looking at
+        // it. Recomputing it per window would lay a fresh bridge wherever the
+        // player happened to be standing.
         let crossing_z = 0.0;
         let river_x = hgen.river_x(crossing_z);
         let crossing = Vector2::new(river_x, crossing_z);
@@ -46,10 +55,17 @@ impl RoadNetwork {
         }
         half_span += 2.5;
 
+        // The carriageway is a function of x, so a window only decides which
+        // stretch of it to lay -- never where it goes.
         let limit = extent - 6.0;
         let mut points: Vec<Vector2> = Vec::new();
-        let mut x = -limit;
-        while x <= limit {
+        // Snapped out to whole segments at both ends: snapping the start is what
+        // makes two windows lay the carriageway in the same place, and running
+        // one segment past the far edge is what stops it ending short of it.
+        let from = ((origin.x - limit) / SEGMENT_STEP).floor() * SEGMENT_STEP;
+        let to = origin.x + limit + SEGMENT_STEP;
+        let mut x = from;
+        while x <= to {
             let hold = half_span + STRAIGHT_APPROACH;
             let away = (((x - river_x).abs() - hold) / 18.0).clamp(0.0, 1.0);
             let bend = away * away * (3.0 - 2.0 * away);
@@ -75,6 +91,13 @@ impl RoadNetwork {
 
     /// Widened once the ramps are laid out, so road paint stops where the timber
     /// approach starts instead of running on underneath it.
+    /// True when the bridge belongs to this window at all.
+    pub(super) fn crossing_in(&self, origin: Vector2, extent: f32) -> bool {
+        let reach = self.half_span + 40.0;
+        (self.crossing.x - origin.x).abs() <= extent + reach
+            && (self.crossing.y - origin.y).abs() <= extent + reach
+    }
+
     pub(super) fn set_bridge_reach(&mut self, reach: f32) {
         self.bridge_reach = reach;
     }
@@ -123,8 +146,21 @@ impl QTerrain {
         let Some(hgen) = self.hgen.take() else {
             return;
         };
-        let mut road = RoadNetwork::build(&hgen, self.extent, self.water_level, self.road_width);
-        let reach = self.build_bridge(&hgen, &road);
+        let origin = self.window_origin();
+        let mut road = RoadNetwork::build(
+            &hgen,
+            origin,
+            self.extent,
+            self.water_level,
+            self.road_width,
+        );
+        // Only where it actually is. A window that does not reach the crossing
+        // gets no bridge, rather than one built under the player.
+        let reach = if road.crossing_in(origin, self.extent) {
+            self.build_bridge(&hgen, &road)
+        } else {
+            road.half_span + 1.0
+        };
         road.set_bridge_reach(reach);
 
         let res = ROAD_RES;
@@ -133,9 +169,9 @@ impl QTerrain {
         let paint_reach = road.width * 1.9;
 
         for iy in 0..res {
-            let z = -self.extent + iy as f32 * step;
+            let z = origin.y - self.extent + iy as f32 * step;
             for ix in 0..res {
-                let x = -self.extent + ix as f32 * step;
+                let x = origin.x - self.extent + ix as f32 * step;
                 let p = Vector2::new(x, z);
                 if road.on_bridge(p) {
                     continue;
@@ -575,5 +611,105 @@ impl QTerrain {
 
         self.base_mut().add_child(&body);
         reach
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::worldgen::HeightParams;
+
+    fn hgen() -> HeightGen {
+        HeightGen::new(&HeightParams::default())
+    }
+
+    fn road_at(origin: Vector2) -> RoadNetwork {
+        RoadNetwork::build(&hgen(), origin, 256.0, -1.4, 3.2)
+    }
+
+    /// The crossing is a property of the world. Recomputed per window it would
+    /// follow the player, and a bridge would appear wherever they stood.
+    #[test]
+    fn the_crossing_does_not_move_with_the_window() {
+        let home = road_at(Vector2::ZERO);
+        for origin in [
+            Vector2::new(512.0, 0.0),
+            Vector2::new(-1280.0, 640.0),
+            Vector2::new(4096.0, -2048.0),
+        ] {
+            let away = road_at(origin);
+            assert_eq!(
+                away.crossing, home.crossing,
+                "crossing moved for {origin:?}"
+            );
+            assert_eq!(away.half_span, home.half_span);
+        }
+    }
+
+    /// Two windows overlapping the same ground must lay the carriageway in the
+    /// same place, or the road kinks at every seam.
+    #[test]
+    fn overlapping_windows_agree_on_where_the_road_is() {
+        let a = road_at(Vector2::ZERO);
+        let b = road_at(Vector2::new(128.0, 0.0));
+        let mut compared = 0;
+        for i in 0..200 {
+            // Ground both windows cover.
+            let x = -100.0 + i as f32 * 1.4;
+            for z in [-20.0f32, 0.0, 15.0] {
+                let p = Vector2::new(x, z);
+                let (da, db) = (a.distance(p), b.distance(p));
+                assert!(
+                    (da - db).abs() < 0.01,
+                    "road disagrees at {p:?}: {da} vs {db}"
+                );
+                compared += 1;
+            }
+        }
+        assert!(compared > 500, "compared almost nothing: {compared}");
+    }
+
+    /// A window has to have road under the whole of it, or the carriageway stops
+    /// in mid air partway across.
+    #[test]
+    fn the_road_spans_the_window_it_was_built_for() {
+        for origin in [Vector2::ZERO, Vector2::new(3000.0, 0.0)] {
+            let road = road_at(origin);
+            let xs: Vec<f32> = road.points().map(|p| p.x).collect();
+            let lo = xs.iter().copied().fold(f32::MAX, f32::min);
+            // `points` yields segment starts, so the carriageway reaches one
+            // segment further than the last of them.
+            let hi = xs.iter().copied().fold(f32::MIN, f32::max) + SEGMENT_STEP;
+            let edge = 250.0;
+            assert!(
+                lo <= origin.x - edge,
+                "road starts late at {origin:?}: {lo}"
+            );
+            assert!(hi >= origin.x + edge, "road ends early at {origin:?}: {hi}");
+        }
+    }
+
+    /// The bridge belongs to the window holding the crossing, and to no other.
+    #[test]
+    fn only_the_window_with_the_crossing_gets_a_bridge() {
+        let road = road_at(Vector2::ZERO);
+        assert!(road.crossing_in(Vector2::ZERO, 256.0), "no bridge at home");
+        assert!(
+            !road.crossing_in(Vector2::new(4000.0, 0.0), 256.0),
+            "built a second bridge far from the river crossing"
+        );
+        assert!(
+            !road.crossing_in(Vector2::new(0.0, 3000.0), 256.0),
+            "built a bridge far up the river"
+        );
+    }
+
+    /// A window whose edge clips the crossing still needs the bridge, or the
+    /// road runs into the water while the deck is one window behind.
+    #[test]
+    fn a_window_reaching_the_crossing_still_gets_the_bridge() {
+        let road = road_at(Vector2::ZERO);
+        let near = Vector2::new(road.crossing.x + 250.0, road.crossing.y);
+        assert!(road.crossing_in(near, 256.0));
     }
 }

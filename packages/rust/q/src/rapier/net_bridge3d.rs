@@ -323,6 +323,20 @@ impl QNetClient3D {
             .map_or(0, |s| s as i64)
     }
 
+    /// Half-width of the ground the host simulates. A client that bakes a
+    /// different one puts its players into the floor or above it.
+    #[func]
+    fn world_extent(&self) -> f32 {
+        self.last.as_ref().map_or(0.0, |s| s.terrain.extent)
+    }
+
+    #[func]
+    fn world_resolution(&self) -> i64 {
+        self.last
+            .as_ref()
+            .map_or(0, |s| s.terrain.resolution as i64)
+    }
+
     #[func]
     fn last_error(&self) -> GString {
         GString::from(

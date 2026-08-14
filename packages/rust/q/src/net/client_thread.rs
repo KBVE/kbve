@@ -16,6 +16,8 @@ use crate::rapier::sim3d::{BodyId, SimSnapshot};
 pub struct NetClientState {
     pub status: ClientStatus,
     pub seed: Option<u64>,
+    /// The ground the host is simulating, so the client bakes the same shape.
+    pub terrain: crate::net::session::TerrainShape,
     pub local_body: Option<BodyId>,
     pub snapshot: Option<SimSnapshot>,
     /// Set when the socket never came up, or dropped after it did.
@@ -36,6 +38,7 @@ impl Default for NetClientState {
         Self {
             status: ClientStatus::Connecting,
             seed: None,
+            terrain: crate::net::session::TerrainShape::default(),
             local_body: None,
             snapshot: None,
             error: None,
@@ -200,6 +203,7 @@ fn run(
         let _ = state_tx.send(Arc::new(NetClientState {
             status: session.status(),
             seed: session.seed(),
+            terrain: session.terrain(),
             local_body: session.local_body(),
             snapshot: session.latest_snapshot().cloned(),
             error: session
