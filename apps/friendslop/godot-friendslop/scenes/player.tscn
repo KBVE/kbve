@@ -1,7 +1,8 @@
-[gd_scene load_steps=11 format=3]
+[gd_scene load_steps=12 format=3]
 
 [ext_resource type="Script" path="res://src/player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://src/player/camera_rig.gd" id="5_camrig"]
+[ext_resource type="Script" path="res://src/player/interactor.gd" id="11_interactor"]
 [ext_resource type="Shader" path="res://assets/fx/shaders/ink_lines.gdshader" id="4_ink"]
 [ext_resource type="Script" path="res://src/characters/character_rig.gd" id="6_rig"]
 [ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/models/Regular_Male_FullBody.glb" id="7_body"]
@@ -51,3 +52,6 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
 mesh = SubResource("QuadMesh_ink")
 material_override = SubResource("ShaderMaterial_ink")
 cast_shadow = 0
+
+[node name="Interactor" type="Node3D" parent="."]
+script = ExtResource("11_interactor")

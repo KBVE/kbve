@@ -26,6 +26,7 @@ var _terrain: Node
 var _held := false
 
 var _touch := false
+var _talking := false
 var _mantle := Mantle.new()
 ## Q_WALK="x,z" leans on the stick without a hand on it, and "auto" sweeps it through
 ## every heading.
@@ -101,8 +102,14 @@ func _notification(what: int) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
+## Held mid-conversation: the body stops taking the stick, and a click on a reply is not
+## also a click that recaptures the mouse.
+func set_talking(on: bool) -> void:
+	_talking = on
+
+
 func _unhandled_input(event: InputEvent) -> void:
-	if _touch:
+	if _touch or _talking:
 		return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		_look(event.relative * MOUSE_SENSITIVITY)
@@ -135,6 +142,9 @@ func _physics_process(delta: float) -> void:
 		_settle()
 
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	## Standing and listening, but still falling if the ground goes away underneath.
+	if _talking:
+		input_dir = Vector2.ZERO
 	if _walk_sweep:
 		_walk_t += delta
 		input_dir = Vector2.RIGHT.rotated(_walk_t * 0.8)
