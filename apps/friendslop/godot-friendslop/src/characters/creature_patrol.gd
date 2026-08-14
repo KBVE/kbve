@@ -52,6 +52,9 @@ const ESCAPE_SAMPLES := 12
 ## Facing gates forward speed, so a creature leans into its turn rather than
 ## sliding sideways. Never to zero: that was half of why they got stuck.
 const TURN_GATE_FLOOR := 0.35
+## Physics frames the silhouette is sampled over, which has to span a full stride
+## or it catches the creature mid-step with its legs together.
+const REACH_FRAMES := 120
 
 var motion_dot := 1.0
 
@@ -65,6 +68,11 @@ var _gravity := -9.8
 var _mode := 0
 ## The capsule this body actually got, which is what avoidance measures against.
 var _radius := 1.0
+## The silhouette avoidance keeps clear of, which is the whole machine rather
+## than the capsule. Sampled over the first stride, because the rest pose has the
+## arms out and the answer only means anything once the walk cycle is playing.
+var _reach := 0.0
+var _reach_frames := 0
 
 
 func _ready() -> void:
@@ -93,6 +101,22 @@ func _prepare() -> void:
 
 func body_radius() -> float:
 	return _radius
+
+
+## Widest the creature gets over one stride, handed to the solver as the distance
+## to keep from its neighbours.
+##
+## Deliberately not the capsule: that is the hard body and has to stay small
+## enough to cross a three metre bridge deck. This is what a viewer sees, and
+## avoidance sized off the capsule instead let two of the wider mechs walk
+## through each other for one frame in six.
+func _measure_reach() -> void:
+	if _reach_frames >= REACH_FRAMES or rig == null or not rig.has_method("body_reach"):
+		return
+	_reach_frames += 1
+	_reach = maxf(_reach, rig.body_reach())
+	if _reach_frames >= REACH_FRAMES and _reach > _radius:
+		_patrol.set_body(_reach, look_ahead, pass_margin)
 
 
 func _build_collider() -> void:
@@ -135,6 +159,8 @@ func _physics_process(delta: float) -> void:
 		velocity = Vector3(0.0, velocity.y, 0.0)
 		_step(delta)
 		return
+
+	_measure_reach()
 
 	var travelled := (global_position - _last_pos)
 	travelled.y = 0.0
