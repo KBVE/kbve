@@ -14,7 +14,7 @@ pipeline: godot
 app_name: friendslop
 source_path: apps/friendslop/godot-friendslop
 version_toml: apps/friendslop/godot-friendslop/version.toml
-version: "0.1.2"
+version: "0.1.3"
 runner: ubuntu-latest
 author: h0lybyte
 license: KBVE
@@ -81,6 +81,22 @@ Tokens live in memory only — a refresh token in `user://` on a shared machine 
 The token is what the **server** verifies; the username decoded on this side is only for what the title prints before the join. See [friendslop-server](/project/friendslop-server) for the verification half.
 
 `scenes/title.tscn` is now the boot scene (`run/main_scene`). The pause menu's Log Off already returns here from either world.
+
+### Shadows & foliage
+
+Daylight shadows crawled across every surface while the player stood still. The sun's rotation was written from the raw hour angle each frame while `light_angle_step_deg` only gated the energy lookup, and a directional shadow map is reprojected from the light's rotation with no texel snapping — a hundredth of a degree per frame reshuffles every edge. The rotation now derives from the same quantized step the lookup does, and the day runs 45 minutes rather than 10, which is 0.13°/s of sun instead of 0.6.
+
+That left an artifact only on foliage, because both tree shaders `discard` in `fragment()` and both set `ALPHA_SCISSOR_THRESHOLD` — so that function runs in the shadow pass too. **`CAMERA_POSITION_WORLD` is the light's camera there, not the player's.** The leaf shader's camera-occlusion fade therefore ran a second time along the sun-to-player ray and cut a metre-wide disc out of whatever canopy it crossed: a patch of sunlight under the tree, centred on the player, tracking them as they walked. The screen-space LOD dither had the same problem, writing stochastic noise into the map instead of a silhouette.
+
+Godot exposes no builtin for "this is the shadow pass", so the `ViewGlobals` autoload publishes the active camera as a `view_position` global and the shaders compare it against `CAMERA_POSITION_WORLD`. Wind flutter is gated the same way — 2.2 cm of per-vertex displacement at 4.5 Hz buzzed every leaf shadow edge, and the shadow now uses the unfluttered card.
+
+The canopy itself was rebuilt around what a card actually is. Leaves have always spawned only at branch tips, off a recursive skeleton with Murray's-law taper, but `leaf_cluster` had no idea which twig held it — every tuft was a sphere, so the crown collapsed into one mass with the branches buried. Tufts now lay their cards on an ellipsoid along the twig, and cards are fewer and larger: at 9 cm they were smaller than a shadow texel in the outer cascades, so no bias setting could stop them aliasing.
+
+Cards were also square while thirteen of the fifteen `euonymus_alpha_*` textures are 256×512 single leaves, so two of the three species were painting every leaf at double width. Extents now come from the texture's aspect, area-preserving.
+
+Lighting is foliage lighting rather than surface lighting: backfaces are flipped by `FRONT_FACING` before the lift toward world up (the shader is `cull_disabled`, so half of every card had been shaded facing the wrong way), the texture contributes luminance instead of hue so a species' colour stays its own, light is wrapped rather than lambert, cast shadows land on a tinted floor instead of dropping to ambient, and light travelling through a leaf toward the camera adds a warm term in place of a flat `BACKLIGHT`. Every value is a material uniform.
+
+Characters got the same class of fix. `cel_shading.gd` builds `lit` materials with `shadow_threshold = 0.0`, putting the toon terminator exactly at `dot(NORMAL, LIGHT) == 0` — the lighting silhouette, where the normal turns fastest per pixel — and `shadow_softness` of 0.005 made that band a fraction of a pixel wide on a limb. A boundary narrower than a pixel cannot be sampled stably. It now widens to the screen-space derivative of N·L when that is larger, so camera-facing surfaces keep the authored hard edge and only grazing and distant ones open up.
 
 ### Online sessions
 
