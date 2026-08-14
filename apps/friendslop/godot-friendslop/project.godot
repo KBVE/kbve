@@ -20,6 +20,7 @@ config/icon="res://icon.svg"
 I18n="*res://src/autoload/i18n.gd"
 Game="*res://src/autoload/game.gd"
 Auth="*res://src/autoload/auth_session.gd"
+ViewGlobals="*res://src/autoload/view_globals.gd"
 
 [display]
 
@@ -100,6 +101,10 @@ scaling_3d/scale=0.75
 sun_direction={
 "type": "vec3",
 "value": Vector3(0, 1, 0)
+}
+view_position={
+"type": "vec3",
+"value": Vector3(0, -1e+06, 0)
 }
 wind_direction={
 "type": "vec2",
