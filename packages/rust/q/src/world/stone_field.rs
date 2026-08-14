@@ -308,6 +308,41 @@ impl QStoneField {
         out
     }
 
+    /// Every standing stone as flat `x, z, radius` triples, for a flow field to
+    /// route around. Mined-out stones are left out, so a field rebuilt after a
+    /// stone breaks stops routing around the hole where it was.
+    ///
+    /// The radius comes off the collision hull, measured flat: a stone bedded
+    /// into a slope leans, so this reads a little under its true footprint and
+    /// the field's own clearance covers the difference.
+    #[func]
+    fn obstacle_discs(&self) -> PackedFloat32Array {
+        let radii: Vec<f32> = self
+            .meshes
+            .iter()
+            .map(|m| {
+                m.hull
+                    .as_slice()
+                    .iter()
+                    .map(|p| (p.x * p.x + p.z * p.z).sqrt())
+                    .fold(0.0f32, f32::max)
+            })
+            .collect();
+        let mut out = PackedFloat32Array::new();
+        for e in self.core.entries() {
+            if !self.core.alive(e.id) {
+                continue;
+            }
+            let Some(r) = radii.get(e.variant as usize) else {
+                continue;
+            };
+            out.push(e.pos.x);
+            out.push(e.pos.z);
+            out.push(r * e.scale);
+        }
+        out
+    }
+
     #[func]
     fn get_info(&self, id: i64) -> VarDictionary {
         let mut d = VarDictionary::new();

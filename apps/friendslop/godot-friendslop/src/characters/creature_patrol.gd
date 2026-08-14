@@ -29,6 +29,11 @@ const CreatureRig := preload("res://src/characters/creature_rig.gd")
 @export var turn_rate := 2.5
 @export var separation := 9.0
 @export var separation_strength := 1.6
+## Seconds ahead the dodge looks. Short enough and it only reacts after contact;
+## long enough and it swerves round creatures it was never going to meet.
+@export var look_ahead := 1.8
+## Clearance wanted on top of the two capsule radii when passing somebody.
+@export var pass_margin := 0.8
 ## Nobody gets closer to the leader than this. The leader is usually the player.
 @export var personal_space := 3.5
 ## Rough seconds between one-shots while moving.
@@ -53,6 +58,8 @@ var _action_t := 0.0
 var _prepared := false
 var _gravity := -9.8
 var _mode := 0
+## The capsule this body actually got, which is what avoidance measures against.
+var _radius := 1.0
 
 
 func _ready() -> void:
@@ -76,11 +83,19 @@ func _prepare() -> void:
 	_patrol.configure(speed, max_speed, roam_radius, arrive_distance, separation,
 			separation_strength, personal_space, formation_distance, formation_spacing,
 			formation_columns, rank_depth, hold_radius)
+	_patrol.set_body(_radius, look_ahead, pass_margin)
+
+
+func body_radius() -> float:
+	return _radius
 
 
 func _build_collider() -> void:
 	for child in get_children():
 		if child is CollisionShape3D:
+			var existing := (child as CollisionShape3D).shape
+			if existing is CapsuleShape3D:
+				_radius = (existing as CapsuleShape3D).radius
 			return
 	var radius := collider_radius
 	var height := collider_height
@@ -93,6 +108,7 @@ func _build_collider() -> void:
 	radius = maxf(radius, 0.2)
 	height = maxf(height, radius * 2.0 + 0.1)
 
+	_radius = radius
 	var capsule := CapsuleShape3D.new()
 	capsule.radius = radius
 	capsule.height = height
@@ -117,7 +133,8 @@ func _physics_process(delta: float) -> void:
 
 	var travelled := (global_position - _last_pos)
 	travelled.y = 0.0
-	_patrol.observe(global_position, _flat_facing(), travelled.length(), _neighbours())
+	_patrol.observe(global_position, _flat_facing(),
+			Vector3(velocity.x, 0.0, velocity.z), travelled.length(), _crowd())
 
 	_observe_route()
 
@@ -161,17 +178,38 @@ func _observe_route() -> void:
 	if _leader == null or spawner == null or not ("field" in spawner) or spawner.field == null:
 		_patrol.clear_route()
 		return
-	_patrol.observe_route(spawner.field.direction_at(global_position))
+	var field = spawner.field
+	# A field that cannot route from here is a different answer from no field at
+	# all: it means there is no way through, and walking at the leader anyway is
+	# how a creature ends up leaning on a riverbank.
+	var reachable: bool = field.distance_at(global_position) >= 0.0
+	_patrol.observe_route(field.direction_at(global_position), reachable)
 
 
-## Every other creature, so the solver can steer around them. The leader goes in
-## separately: it is avoided harder than a peer is.
-func _neighbours() -> PackedVector3Array:
-	var out := PackedVector3Array()
+## Every other creature within reach, as the flat `x, z, vx, vz, radius` the
+## solver reads. The leader goes in separately: it is avoided harder than a peer.
+##
+## Velocity and radius are here because position alone only says who is nearby.
+## Whether this creature is about to walk into them is a different question, and
+## the one that decides whether it steps aside or brakes into a jam.
+func _crowd() -> PackedFloat32Array:
+	var out := PackedFloat32Array()
+	var here := global_position
+	var reach := separation
 	for other in get_tree().get_nodes_in_group(GROUP):
 		if other == self:
 			continue
-		out.append((other as Node3D).global_position)
+		var body := other as CharacterBody3D
+		if body == null:
+			continue
+		var at := body.global_position
+		if absf(at.x - here.x) > reach or absf(at.z - here.z) > reach:
+			continue
+		out.append(at.x)
+		out.append(at.z)
+		out.append(body.velocity.x)
+		out.append(body.velocity.z)
+		out.append(body.body_radius() if body.has_method("body_radius") else 1.0)
 	return out
 
 

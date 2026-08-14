@@ -21,9 +21,12 @@ const MECH_DIR := "res://assets/characters/creatures/mech/models/"
 ## Seconds between one-shot actions.
 @export var action_interval := 7.0
 
-## Size of a flow field cell. Smaller routes more precisely and costs more to
-## integrate; the whole grid is rebuilt at once.
-@export var field_cell := 4.0
+## Size of a flow field cell. The whole grid is integrated at once, so this is
+## the number that decides both precision and cost: 4.0 rebuilds in 0.5ms and
+## cannot represent a 3.5 wide bridge deck at all, 2.0 takes 2.4ms and can.
+## Rebuilds only happen when the leader has moved `field_slack`, so 2.4ms lands
+## about once a second. Worth raising again on a phone.
+@export var field_cell := 2.0
 ## Ground steeper than this is not walkable, as a height change per unit across.
 @export var field_max_slope := 1.1
 ## Obstacles grow by this so the routes fit a mech rather than a point.
@@ -32,11 +35,37 @@ const MECH_DIR := "res://assets/characters/creatures/mech/models/"
 ## rebuild is far too slow to run every frame.
 @export var field_slack := 6.0
 
+@export_group("Field obstacles")
+## Where the trees and rocks come from. Left empty, they are looked up by name
+## in the current scene, which is how the world scene has them.
+@export var tree_field_path: NodePath
+@export var stone_field_path: NodePath
+## Cell density at which trunks stop being a cost and become a wall. A single
+## trunk fills a few percent of a cell, so this only trips in real woodland.
+@export var tree_block_ratio := 0.45
+## Cost a fully covered cell of trunks would carry. Sparse woods stay walkable
+## but lose to open ground, which is what keeps routes on the paths.
+@export var tree_cost := 160.0
+## Rocks are wide enough to stop a mech, so they close ground far sooner.
+@export var stone_block_ratio := 0.2
+@export var stone_cost := 220.0
+## The crossing is narrow and has a drop either side, so it is opened but not
+## made attractive: a route only takes it when there is no way round.
+@export var bridge_cost := 40
+## Prints what the built field closed. A field that walled off the whole map
+## routes nothing and looks exactly like one that was never built at all.
+@export var field_debug := false
+
 const GROUP := &"creature_spawner"
 
 var spawned: Array[Node3D] = []
 var field: QFlowField
 var _leader: Node3D
+var _terrain: Node
+## Scatter arrives a frame or more after this spawner runs, so the first field
+## is built without it and rebuilt once it lands.
+var _scatter_tries := 20
+var _scatter_wait := 0.0
 
 
 func _ready() -> void:
@@ -50,6 +79,7 @@ func _spawn() -> void:
 		terrain = get_tree().current_scene.get_node_or_null("Terrain")
 	var leader := get_node_or_null(leader_path)
 	_leader = leader as Node3D
+	_terrain = terrain
 	_build_field(terrain)
 	var span := spacing * maxf(mechs.size() - 1.0, 0.0)
 	for i in mechs.size():
@@ -97,7 +127,8 @@ func _spawn() -> void:
 
 
 ## One field, shared by everything following the leader. Water and cliffs come
-## out of the terrain the ground is drawn from, so a route never crosses either.
+## out of the terrain the ground is drawn from, and the trees and rocks off the
+## same fields that grew them, so a route never crosses anything a body would.
 func _build_field(terrain: Node) -> void:
 	if terrain == null or not terrain.has_method("height_grid"):
 		return
@@ -108,12 +139,62 @@ func _build_field(terrain: Node) -> void:
 	var extent: float = terrain.extent
 	field = QFlowField.create(extent, field_cell)
 	field.stamp_terrain(heights, res, extent, terrain.water_level, field_max_slope)
+
+	var trees := _obstacle_discs(tree_field_path, "TreeField")
+	if not trees.is_empty():
+		field.stamp_obstacles(trees, tree_block_ratio, tree_cost)
+	var stones := _obstacle_discs(stone_field_path, "StoneField")
+	if not stones.is_empty():
+		field.stamp_obstacles(stones, stone_block_ratio, stone_cost)
+
 	field.inflate(field_clearance)
+	# After the clearance, never before. The terrain under a bridge is water, so
+	# every stamp so far has closed the one place the river can be crossed, and
+	# the clearance grown off the banks would close it again.
+	var span: PackedFloat32Array = _bridge_span(terrain)
+	if span.size() == 5:
+		field.open_path(Vector3(span[0], 0.0, span[1]), Vector3(span[2], 0.0, span[3]),
+				span[4], bridge_cost)
+
 	if _leader:
 		field.build(_leader.global_position)
+	if field_debug:
+		var s: Dictionary = field.stats()
+		print("creature_spawner: field %d cells, %d blocked, %d reachable; %d trees, %d rocks" % [
+			s.get("cells", 0), s.get("blocked", 0), s.get("reachable", 0),
+			trees.size() / 3, stones.size() / 3,
+		])
+		print("creature_spawner: bridge span %s" % [span])
 
 
-func _physics_process(_delta: float) -> void:
+## The line a bridge lets a body walk, if the terrain built one.
+func _bridge_span(terrain: Node) -> PackedFloat32Array:
+	if terrain == null or not terrain.has_method("bridge_span"):
+		return PackedFloat32Array()
+	return terrain.bridge_span()
+
+
+## Scatter is grown on the GPU and read back, so it may not exist yet on the
+## frame this spawner runs. An empty answer means "not yet", not "none".
+func _obstacle_discs(path: NodePath, fallback: String) -> PackedFloat32Array:
+	var node := get_node_or_null(path)
+	if node == null:
+		node = get_tree().current_scene.get_node_or_null(NodePath(fallback))
+	if node == null or not node.has_method("obstacle_discs"):
+		return PackedFloat32Array()
+	return node.obstacle_discs()
+
+
+func _physics_process(delta: float) -> void:
+	if _scatter_tries > 0:
+		_scatter_wait -= delta
+		if _scatter_wait <= 0.0:
+			_scatter_wait = 0.5
+			_scatter_tries -= 1
+			if not _obstacle_discs(tree_field_path, "TreeField").is_empty() \
+					or not _obstacle_discs(stone_field_path, "StoneField").is_empty():
+				_scatter_tries = 0
+				_build_field(_terrain)
 	# Rebuilt here rather than by each creature, so the cost is paid once no
 	# matter how many are following it.
 	if field and _leader:

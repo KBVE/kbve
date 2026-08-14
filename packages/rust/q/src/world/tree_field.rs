@@ -507,6 +507,28 @@ impl QTreeField {
         out
     }
 
+    /// Every trunk as flat `x, z, radius` triples, for a flow field to route
+    /// around. The radius is the trunk collider's, so what the field closes and
+    /// what a body actually hits are the same thing.
+    #[func]
+    fn obstacle_discs(&self) -> PackedFloat32Array {
+        let scale_r = self.trunk_collider_radius / 5.0;
+        let mut out = PackedFloat32Array::new();
+        for c in self.candidates.chunks_exact(8) {
+            let bucket = if c[3] < 4.5 {
+                3.5
+            } else if c[3] < 6.5 {
+                5.5
+            } else {
+                7.5
+            };
+            out.push(c[0]);
+            out.push(c[2]);
+            out.push(scale_r * bucket);
+        }
+        out
+    }
+
     #[func]
     fn get_tree_info(&self, max: i32) -> VarArray {
         let mut out = VarArray::new();

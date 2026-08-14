@@ -3,7 +3,7 @@
 use godot::prelude::*;
 
 use super::field::{BLOCKED, Field, Grid};
-use super::{Config, Mode, Patrol, Sense, Vec2};
+use super::{Config, Mode, Neighbour, Patrol, Sense, Vec2};
 
 fn flat(v: Vector3) -> Vec2 {
     [v.x, v.z]
@@ -20,6 +20,7 @@ fn mode_id(mode: Mode) -> i64 {
         Mode::Following => 2,
         Mode::Holding => 3,
         Mode::Unsticking => 4,
+        Mode::Waiting => 5,
     }
 }
 
@@ -44,6 +45,8 @@ impl QPatrol {
     pub const MODE_HOLDING: i64 = 3;
     #[constant]
     pub const MODE_UNSTICKING: i64 = 4;
+    #[constant]
+    pub const MODE_WAITING: i64 = 5;
 
     /// `seed` decides this creature's wander. Give each one its own, and the
     /// same one on every machine that simulates it.
@@ -111,21 +114,40 @@ impl QPatrol {
 
     /// What the body can see this tick. `travelled` is how far it actually got
     /// after `move_and_slide`, which is how the stuck check knows anything.
+    ///
+    /// `crowd` is flat `x, z, vx, vz, radius` per neighbour. Velocity is there
+    /// because position alone cannot tell a creature it is about to walk into
+    /// somebody -- only that somebody is nearby, which is a different question.
     #[func]
     fn observe(
         &mut self,
         position: Vector3,
         facing: Vector3,
+        velocity: Vector3,
         travelled: f32,
-        neighbours: PackedVector3Array,
+        crowd: PackedFloat32Array,
     ) {
         self.sense.position = flat(position);
         self.sense.facing = flat(facing);
+        self.sense.velocity = flat(velocity);
         self.sense.travelled = travelled;
         self.sense.neighbours.clear();
         self.sense
             .neighbours
-            .extend(neighbours.as_slice().iter().map(|v| flat(*v)));
+            .extend(crowd.as_slice().chunks_exact(5).map(|c| Neighbour {
+                position: [c[0], c[1]],
+                velocity: [c[2], c[3]],
+                radius: c[4],
+            }));
+    }
+
+    /// This body's own radius, so what counts as a collision is measured rather
+    /// than assumed. Godot builds the capsule, so Godot is what knows.
+    #[func]
+    fn set_body(&mut self, radius: f32, look_ahead: f32, pass_margin: f32) {
+        self.inner.config.radius = radius.max(0.05);
+        self.inner.config.look_ahead = look_ahead.max(0.0);
+        self.inner.config.pass_margin = pass_margin.max(0.0);
     }
 
     /// The leader is an obstacle as well as a destination.
@@ -141,21 +163,27 @@ impl QPatrol {
         self.sense.leader = None;
     }
 
-    /// The direction a flow field wants this creature to take. Left unset, it
-    /// steers straight at its target, which is right in the open.
+    /// The direction a flow field wants this creature to take, and whether the
+    /// field can route to the leader at all.
+    ///
+    /// `reachable` false is not the same as having no route: it means the field
+    /// looked and there is no way through. Steering straight at the leader then
+    /// is how a creature ends up leaning on a riverbank until they move.
     #[func]
-    fn observe_route(&mut self, route: Vector3) {
+    fn observe_route(&mut self, route: Vector3, reachable: bool) {
         let flat = flat(route);
         self.sense.route = if flat[0].abs() + flat[1].abs() > 1e-4 {
             Some(flat)
         } else {
             None
         };
+        self.sense.route_blocked = !reachable;
     }
 
     #[func]
     fn clear_route(&mut self) {
         self.sense.route = None;
+        self.sense.route_blocked = false;
     }
 
     /// Returns `wish`, `face` and `mode`.
@@ -232,6 +260,54 @@ impl QFlowField {
         self.inner
             .grid
             .stamp_disc(flat(centre), radius, cost.clamp(0, 254) as u8);
+    }
+
+    /// Takes scatter -- trees, rocks -- as flat `x, y, radius` triples and adds
+    /// it by how much of each cell it fills.
+    ///
+    /// Blocking the cell a trunk stands in would wall off ground a mech walks
+    /// through daily, and `block_disc` on something narrower than a cell mostly
+    /// misses. This gets both: a lone tree is cost, a thicket is a wall.
+    #[func]
+    fn stamp_obstacles(&mut self, discs: PackedFloat32Array, block_ratio: f32, cost_scale: f32) {
+        self.inner
+            .grid
+            .stamp_coverage(discs.as_slice(), block_ratio, cost_scale);
+    }
+
+    /// What the field ended up with: `cells`, `blocked` and `reachable`. Worth
+    /// printing once after a build, because a field that closed too much routes
+    /// nothing and looks exactly like a field that was never built.
+    #[func]
+    fn stats(&self) -> VarDictionary {
+        let g = &self.inner.grid;
+        let mut blocked = 0i64;
+        let mut reachable = 0i64;
+        for y in 0..g.height {
+            for x in 0..g.width {
+                if g.cost(x, y) == BLOCKED {
+                    blocked += 1;
+                } else if self.inner.distance_at(g.centre_of(x, y)).is_finite() {
+                    reachable += 1;
+                }
+            }
+        }
+        let mut out = VarDictionary::new();
+        out.set("cells", (g.width * g.height) as i64);
+        out.set("blocked", blocked);
+        out.set("reachable", reachable);
+        out
+    }
+
+    /// Reopens a line of cells across ground the terrain closed, for a bridge.
+    ///
+    /// Must be called after `inflate`, or the clearance grown off the riverbank
+    /// closes the crossing straight back up.
+    #[func]
+    fn open_path(&mut self, from: Vector3, to: Vector3, half_width: f32, cost: i64) {
+        self.inner
+            .grid
+            .open_path(flat(from), flat(to), half_width, cost.clamp(1, 254) as u8);
     }
 
     /// Grows every obstacle by a body radius, so the routes it hands out fit

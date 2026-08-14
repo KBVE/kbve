@@ -120,6 +120,130 @@ impl Grid {
         }
     }
 
+    /// Adds obstacles by how much of each cell they take up.
+    ///
+    /// A trunk is a fraction of a cell across, so neither of the other two
+    /// stamps suits it: closing its cell walls off ground a mech walks through
+    /// every day, and testing the cell centre against the disc misses the trunk
+    /// entirely unless it happens to stand near the middle. Accumulated
+    /// coverage gets both -- scattered trees raise cost, a thicket closes.
+    ///
+    /// `discs` is flat `x, y, radius` triples. A cell at or over `block_ratio`
+    /// covered is closed; the rest take `coverage * cost_scale` of cost.
+    ///
+    /// Overlapping discs add rather than merge, so this measures density rather
+    /// than area. That is the wanted reading for scatter -- two trunks in one
+    /// spot are worse to walk through than one -- but it means `block_ratio`
+    /// is a tuning number, not a fraction of ground covered.
+    pub fn stamp_coverage(&mut self, discs: &[f32], block_ratio: f32, cost_scale: f32) {
+        let mut covered = vec![0.0f32; self.width * self.height];
+        for d in discs.chunks_exact(3) {
+            let centre = [d[0], d[1]];
+            let radius = d[2];
+            if radius <= 0.0
+                || !radius.is_finite()
+                || !centre[0].is_finite()
+                || !centre[1].is_finite()
+            {
+                continue;
+            }
+            // `cell_of` clamps, so a disc off the grid would otherwise smear its
+            // coverage along the nearest edge.
+            let far = [0, 1].iter().any(|&i| {
+                let span = if i == 0 { self.width } else { self.height } as f32 * self.cell;
+                centre[i] < self.origin[i] - radius || centre[i] > self.origin[i] + span + radius
+            });
+            if far {
+                continue;
+            }
+            // Sampled finely enough that the disc cannot fall between samples:
+            // a fixed grid misses anything narrower than its own spacing, and a
+            // trunk is exactly that. Small discs touch few cells, so the work
+            // per disc stays roughly flat as this rises.
+            let sub_n = ((self.cell / radius) * 2.0).ceil().clamp(4.0, 32.0) as usize;
+            let share = 1.0 / (sub_n * sub_n) as f32;
+            let step = self.cell / sub_n as f32;
+            let (x0, y0) = self.cell_of(sub(centre, [radius, radius]));
+            let (x1, y1) = self.cell_of([centre[0] + radius, centre[1] + radius]);
+            for y in y0..=y1 {
+                for x in x0..=x1 {
+                    let base = [
+                        self.origin[0] + x as f32 * self.cell,
+                        self.origin[1] + y as f32 * self.cell,
+                    ];
+                    let mut hits = 0;
+                    for sy in 0..sub_n {
+                        for sx in 0..sub_n {
+                            let at = [
+                                base[0] + (sx as f32 + 0.5) * step,
+                                base[1] + (sy as f32 + 0.5) * step,
+                            ];
+                            if length(sub(at, centre)) <= radius {
+                                hits += 1;
+                            }
+                        }
+                    }
+                    if hits > 0 {
+                        covered[self.index(x, y)] += hits as f32 * share;
+                    }
+                }
+            }
+        }
+        for i in 0..covered.len() {
+            let c = covered[i];
+            if c <= 0.0 || self.cost[i] == BLOCKED {
+                continue;
+            }
+            if block_ratio > 0.0 && c >= block_ratio {
+                self.cost[i] = BLOCKED;
+            } else {
+                let added = (c * cost_scale).clamp(0.0, 253.0) as u8;
+                self.cost[i] = self.cost[i].saturating_add(added).min(BLOCKED - 1);
+            }
+        }
+    }
+
+    /// Reopens a line of cells, for a structure the ground underneath denies.
+    ///
+    /// A bridge is the case: the terrain below it is water, so every stamp so
+    /// far has closed the one place the map can be crossed. This has to run
+    /// after `inflate`, or the clearance grown off the riverbanks closes it
+    /// straight back up.
+    ///
+    /// Every cell the line passes through is opened whatever its width, so the
+    /// route is always connected. A deck narrower than a cell cannot be drawn
+    /// on this grid at all -- the field says which way to cross, and the deck
+    /// and its rails are what keep a body on it.
+    pub fn open_path(&mut self, from: Vec2, to: Vec2, half_width: f32, cost: u8) {
+        let span = sub(to, from);
+        let distance = length(span);
+        let steps = ((distance / (self.cell * 0.5)).ceil() as usize).max(1);
+        for i in 0..=steps {
+            let t = i as f32 / steps as f32;
+            let at = add(from, scale(span, t));
+            if self.outside(at) {
+                continue;
+            }
+            let (cx, cy) = self.cell_of(at);
+            let reach = (half_width / self.cell).ceil() as i32;
+            for dy in -reach..=reach {
+                for dx in -reach..=reach {
+                    let (nx, ny) = (cx as i32 + dx, cy as i32 + dy);
+                    if nx < 0 || ny < 0 || nx >= self.width as i32 || ny >= self.height as i32 {
+                        continue;
+                    }
+                    let (nx, ny) = (nx as usize, ny as usize);
+                    // Beyond the containing cell, only what the width covers.
+                    if (dx != 0 || dy != 0) && length(sub(self.centre_of(nx, ny), at)) > half_width
+                    {
+                        continue;
+                    }
+                    self.set_cost(nx, ny, cost);
+                }
+            }
+        }
+    }
+
     /// Raises the cost of a disc without closing it, for ground a creature may
     /// cross but would rather not.
     pub fn stamp_disc(&mut self, centre: Vec2, radius: f32, cost: u8) {
