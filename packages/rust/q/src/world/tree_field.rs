@@ -281,8 +281,13 @@ impl QTreeField {
             let seed = (self.tree_seed as u32).wrapping_add(sp.seed_off);
 
             let leaf_mat = self.leaf_material.as_ref().map(|m| m.duplicate_resource());
+            let mut leaf_aspect = 1.0f32;
             if let Some(mut lm) = leaf_mat.clone() {
                 if let Ok(tex) = try_load::<Texture2D>(sp.leaf_tex) {
+                    let size = tex.get_size();
+                    if size.y > 0.0 {
+                        leaf_aspect = size.x / size.y;
+                    }
                     lm.set_shader_parameter("albedo_tex", &tex.to_variant());
                 }
             }
@@ -292,7 +297,7 @@ impl QTreeField {
                 dup
             });
 
-            let mut near = build_skeleton_tree_mesh(seed, sp);
+            let mut near = build_skeleton_tree_mesh(seed, sp, leaf_aspect);
             if let Some(m) = bark_mat.as_ref() {
                 near.surface_set_material(0, m);
             }
@@ -728,10 +733,13 @@ fn frame(dir: Vector3) -> (Vector3, Vector3) {
     (t, b)
 }
 
-/// How far a tuft reaches along its twig, and how tightly it hugs it across.
-const TUFT_ALONG: f32 = 1.45;
-const TUFT_ACROSS: f32 = 0.75;
+/// How far up its twig the card band reaches; 1.0 would close over the tuft's ends.
+const TUFT_BAND: f32 = 0.85;
+/// Tuft radius along the twig and across it, both in units of `cluster_r`.
+const TUFT_ALONG: f32 = 1.6;
+const TUFT_ACROSS: f32 = 0.8;
 
+#[allow(clippy::too_many_arguments)]
 fn leaf_cluster(
     leaves: &mut MeshBuilder,
     pos: Vector3,
@@ -739,15 +747,17 @@ fn leaf_cluster(
     n_cards: u32,
     cluster_r: f32,
     card_size: f32,
+    card_aspect: f32,
     sway: f32,
     state: &mut u32,
 ) {
     let golden = 2.399963;
     let spin = randf(state) * std::f32::consts::TAU;
     let (ax_t, ax_b) = frame(axis);
+    let stretch = card_aspect.max(0.01).sqrt();
     for i in 0..n_cards {
         let f = (i as f32 + 0.5) / n_cards as f32;
-        let cosphi = (1.0 - 2.0 * f) * 0.6;
+        let cosphi = (1.0 - 2.0 * f) * TUFT_BAND;
         let sinphi = (1.0 - cosphi * cosphi).max(0.0).sqrt();
         let theta = spin + golden * i as f32;
         let offset = axis * (cosphi * TUFT_ALONG)
@@ -760,16 +770,10 @@ fn leaf_cluster(
         let t = t0 * roll.cos() + b0 * roll.sin();
         let b = dir.cross(t).normalized();
         let hs = card_size * (0.85 + randf(state) * 0.3);
+        let sx = t * (hs * stretch);
+        let sy = b * (hs / stretch);
         let col = Color::from_rgba(1.0, 1.0, 1.0, sway);
-        leaves.card(
-            [
-                c - t * hs - b * hs,
-                c + t * hs - b * hs,
-                c + t * hs + b * hs,
-                c - t * hs + b * hs,
-            ],
-            col,
-        );
+        leaves.card([c - sx - sy, c + sx - sy, c + sx + sy, c - sx + sy], col);
     }
 }
 
@@ -788,6 +792,7 @@ fn limb(
     depth: u32,
     sway: f32,
     crown: f32,
+    leaf_aspect: f32,
     g: &Growth,
     state: &mut u32,
 ) {
@@ -1012,6 +1017,7 @@ fn limb(
                 depth + 1,
                 child_sway,
                 crown,
+                leaf_aspect,
                 g,
                 state,
             );
@@ -1024,6 +1030,7 @@ fn limb(
                 (10.0 * crown) as u32,
                 0.095 * crown,
                 0.044 * crown,
+                leaf_aspect,
                 (sway + 0.3).min(0.9),
                 state,
             );
@@ -1037,6 +1044,7 @@ fn limb(
             (16.0 * crown) as u32,
             0.11 * crown,
             0.045 * crown,
+            leaf_aspect,
             0.9,
             state,
         );
@@ -1047,6 +1055,7 @@ fn limb(
             (9.0 * crown) as u32,
             0.085 * crown,
             0.041 * crown,
+            leaf_aspect,
             (sway + 0.25).min(0.9),
             state,
         );
@@ -1057,13 +1066,14 @@ fn limb(
             (6.0 * crown) as u32,
             0.07 * crown,
             0.039 * crown,
+            leaf_aspect,
             (sway + 0.2).min(0.9),
             state,
         );
     }
 }
 
-fn build_skeleton_tree_mesh(seed: u32, sp: &TreeSpecies) -> Gd<ArrayMesh> {
+fn build_skeleton_tree_mesh(seed: u32, sp: &TreeSpecies, leaf_aspect: f32) -> Gd<ArrayMesh> {
     let crown = sp.crown;
     let mut bark = MeshBuilder::new();
     let mut leaves = MeshBuilder::new();
@@ -1089,6 +1099,7 @@ fn build_skeleton_tree_mesh(seed: u32, sp: &TreeSpecies) -> Gd<ArrayMesh> {
         0,
         0.0,
         crown,
+        leaf_aspect,
         &sp.growth,
         &mut state,
     );
