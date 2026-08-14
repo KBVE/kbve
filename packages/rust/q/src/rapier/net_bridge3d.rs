@@ -8,7 +8,8 @@ use godot::prelude::*;
 use super::bridge3d::apply_iso;
 use super::net_interp::{InterpConfig, SnapshotBuffer};
 use super::sim3d::BodyId;
-use crate::net::client_thread::{Intent, NetClientHandle, NetClientState};
+use crate::harvest::HarvestTarget;
+use crate::net::client_thread::{HarvestRequest, Intent, NetClientHandle, NetClientState};
 use crate::net::session::ClientStatus;
 
 #[derive(GodotClass)]
@@ -73,6 +74,7 @@ impl INode3D for QNetClient3D {
             ..InterpConfig::default()
         });
         self.drain_session();
+        self.drain_harvest();
         self.buffer.advance(delta);
         self.draw();
     }
@@ -133,6 +135,43 @@ impl QNetClient3D {
         }
     }
 
+    fn request_harvest(
+        &self,
+        target: HarvestTarget,
+        cell_x: i64,
+        cell_z: i64,
+        ordinal: i64,
+        hits: i64,
+    ) {
+        let Some(client) = self.client.as_ref() else {
+            return;
+        };
+        client.harvest(HarvestRequest {
+            target,
+            cell: [cell_x as i32, cell_z as i32],
+            ordinal: ordinal.max(0) as u32,
+            hits: hits.clamp(1, 255) as u8,
+        });
+    }
+
+    /// Reports the host's harvest rulings, so whoever owns the scatter can apply
+    /// them. Drained every frame; a delta missed is a rock left standing.
+    fn drain_harvest(&mut self) {
+        let events = match self.client.as_mut() {
+            Some(client) => client.take_harvest_events(),
+            None => return,
+        };
+        for event in events {
+            let target = match event.target {
+                HarvestTarget::Stone => 0,
+                HarvestTarget::Tree => 1,
+            };
+            self.signals()
+                .harvest_applied()
+                .emit(target, event.id as i64, event.stage as i64);
+        }
+    }
+
     /// Writes the pose the render clock currently reads onto every tracked node.
     fn draw(&mut self) {
         let local = match self.local_body() {
@@ -179,6 +218,23 @@ impl QNetClient3D {
 
     #[signal]
     fn body_removed(id: i64);
+
+    /// The host ruled on a scattered object. `target` is 0 for stone, 1 for
+    /// tree, matching `harvest_stone` / `harvest_tree`.
+    #[signal]
+    fn harvest_applied(target: i64, id: i64, stage: i64);
+
+    /// Asks the host to mine the stone in a cell. The host derives the id, so
+    /// this cannot name something the player is nowhere near.
+    #[func]
+    fn harvest_stone(&self, cell_x: i64, cell_z: i64, ordinal: i64, hits: i64) {
+        self.request_harvest(HarvestTarget::Stone, cell_x, cell_z, ordinal, hits);
+    }
+
+    #[func]
+    fn harvest_tree(&self, cell_x: i64, cell_z: i64, ordinal: i64, hits: i64) {
+        self.request_harvest(HarvestTarget::Tree, cell_x, cell_z, ordinal, hits);
+    }
 
     #[func]
     fn connect_to_server(&mut self) {

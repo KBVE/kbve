@@ -86,6 +86,19 @@ spec:
                                 value: 'true'
                               - name: FS_STREAM_STRIDE
                                 value: '128'
+                              # Cell sizes of the stone and tree scatters. The
+                              # server never generates either, so these are only
+                              # how a claimed cell becomes somewhere to measure a
+                              # reach check from. They must match QStoneField and
+                              # QTreeField's grid_size: too small and legitimate
+                              # harvests are refused, too large and the check
+                              # stops bounding anything.
+                              - name: FS_STONE_GRID
+                                value: '22'
+                              - name: FS_TREE_GRID
+                                value: '14'
+                              - name: FS_HARVEST_REACH
+                                value: '6'
                               # Signed-in players join with a GoTrue token; the
                               # server verifies it against the JWKS published
                               # here and takes the name from its claims. Unset

@@ -22,6 +22,11 @@ pub struct DriverConfig {
     /// terrain streaming is switched off and which therefore never leaves the tile.
     pub stream_enabled: bool,
     pub stream_stride: f32,
+    /// Scatter cell sizes, which must match the client's field exports, and how
+    /// far a player may stand from a cell and still work it.
+    pub stone_grid_size: f32,
+    pub tree_grid_size: f32,
+    pub harvest_reach: f32,
     pub stream_keep_radius: f32,
 }
 
@@ -101,6 +106,9 @@ pub fn spawn(
     let keep_radius = cfg.stream_keep_radius;
     let water_level = cfg.water_level;
     let road_width = cfg.road_width;
+    let stone_grid_size = cfg.stone_grid_size;
+    let tree_grid_size = cfg.tree_grid_size;
+    let harvest_reach = cfg.harvest_reach;
 
     let thread =
         std::thread::Builder::new()
@@ -113,6 +121,9 @@ pub fn spawn(
                     terrain_resolution: resolution.max(2) as u32,
                     water_level,
                     road_width,
+                    stone_grid_size,
+                    tree_grid_size,
+                    harvest_reach,
                     ..SessionConfig::default()
                 };
                 let mut host = HostSession::dedicated(transport.clone(), session_config, sim, seed);
