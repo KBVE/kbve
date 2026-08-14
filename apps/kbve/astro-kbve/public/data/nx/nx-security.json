@@ -1,18 +1,18 @@
 {
-	"generated_at": "2026-08-13T03:31:03Z",
+	"generated_at": "2026-08-14T03:28:28Z",
 	"summary": {
 		"critical": 4,
-		"high": 54,
+		"high": 53,
 		"medium": 61,
 		"low": 11,
 		"info": 32
 	},
 	"ecosystems": {
 		"npm": {
-			"total": 113,
+			"total": 112,
 			"severities": {
 				"critical": 4,
-				"high": 54,
+				"high": 53,
 				"medium": 44,
 				"low": 11,
 				"info": 0
@@ -194,13 +194,6 @@
 					"url": "https://github.com/advisories/GHSA-q8mj-m7cp-5q26"
 				},
 				{
-					"id": "1120127",
-					"title": "When Vitest UI server is listening, arbitrary file can be read and executed",
-					"severity": "critical",
-					"package": "vitest",
-					"url": "https://github.com/advisories/GHSA-5xrq-8626-4rwp"
-				},
-				{
 					"id": "1120370",
 					"title": "Lodash has Prototype Pollution Vulnerability in `_.unset` and `_.omit` functions",
 					"severity": "medium",
@@ -269,13 +262,6 @@
 					"severity": "high",
 					"package": "undici",
 					"url": "https://github.com/advisories/GHSA-vmh5-mc38-953g"
-				},
-				{
-					"id": "1121191",
-					"title": "Nodemailer: Message-level raw option bypasses disableFileAccess/disableUrlAccess, enabling arbitrary file read and full-response SSRF in the delivered message",
-					"severity": "high",
-					"package": "nodemailer",
-					"url": "https://github.com/advisories/GHSA-p6gq-j5cr-w38f"
 				},
 				{
 					"id": "1121241",
@@ -516,20 +502,6 @@
 					"url": "https://github.com/advisories/GHSA-xvcm-6775-5m9r"
 				},
 				{
-					"id": "1124019",
-					"title": "SVGO removeScripts plugin leaves some executable scripts intact",
-					"severity": "high",
-					"package": "svgo",
-					"url": "https://github.com/advisories/GHSA-2p49-hgcm-8545"
-				},
-				{
-					"id": "1124020",
-					"title": "SVGO removeScripts plugin leaves some executable scripts intact",
-					"severity": "high",
-					"package": "svgo",
-					"url": "https://github.com/advisories/GHSA-2p49-hgcm-8545"
-				},
-				{
 					"id": "1124022",
 					"title": "DOMPurify: `CUSTOM_ELEMENT_HANDLING` bypasses `afterSanitizeElements` for allowed custom elements.",
 					"severity": "low",
@@ -551,25 +523,11 @@
 					"url": "https://github.com/advisories/GHSA-f88m-g3jw-g9cj"
 				},
 				{
-					"id": "1124067",
-					"title": "fast-xml-parser: Repeated DOCTYPE declarations reset entity expansion limits",
-					"severity": "high",
-					"package": "fast-xml-parser",
-					"url": "https://github.com/advisories/GHSA-8r6m-32jq-jx6q"
-				},
-				{
 					"id": "1124287",
 					"title": "node-tar: Uncontrolled recursion in mapHas/filesFilter allows uncatchable stack-overflow DoS via crafted long-path tar with member selection",
 					"severity": "medium",
 					"package": "tar",
 					"url": "https://github.com/advisories/GHSA-r292-9mhp-454m"
-				},
-				{
-					"id": "1124288",
-					"title": "PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure",
-					"severity": "high",
-					"package": "postcss",
-					"url": "https://github.com/advisories/GHSA-r28c-9q8g-f849"
 				},
 				{
 					"id": "1130588",
@@ -747,13 +705,6 @@
 					"url": "https://github.com/advisories/GHSA-5p4m-2wfm-xmqj"
 				},
 				{
-					"id": "1138395",
-					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
-					"severity": "high",
-					"package": "fast-uri",
-					"url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
-				},
-				{
 					"id": "1138538",
 					"title": "DOMPurify: IN_PLACE hook removal leaves a detached subtree executable, causing XSS",
 					"severity": "medium",
@@ -789,13 +740,6 @@
 					"url": "https://github.com/advisories/GHSA-28wg-ghj8-5hjv"
 				},
 				{
-					"id": "1138813",
-					"title": "nanoid: custom generators can loop indefinitely when size is zero",
-					"severity": "high",
-					"package": "nanoid",
-					"url": "https://github.com/advisories/GHSA-2v37-7h3g-55p8"
-				},
-				{
 					"id": "1138948",
 					"title": "fast-uri vulnerable to path traversal via percent-encoded dot segments",
 					"severity": "high",
@@ -803,11 +747,60 @@
 					"url": "https://github.com/advisories/GHSA-q3j6-qgpj-74h6"
 				},
 				{
-					"id": "1138950",
+					"id": "1139427",
+					"title": "nanoid: custom generators can loop indefinitely when size is zero",
+					"severity": "high",
+					"package": "nanoid",
+					"url": "https://github.com/advisories/GHSA-2v37-7h3g-55p8"
+				},
+				{
+					"id": "1139454",
 					"title": "fast-uri vulnerable to host confusion via percent-encoded authority delimiters",
 					"severity": "high",
 					"package": "fast-uri",
 					"url": "https://github.com/advisories/GHSA-v39h-62p7-jpjc"
+				},
+				{
+					"id": "1139457",
+					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
+					"severity": "high",
+					"package": "fast-uri",
+					"url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
+				},
+				{
+					"id": "1139510",
+					"title": "PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure",
+					"severity": "high",
+					"package": "postcss",
+					"url": "https://github.com/advisories/GHSA-r28c-9q8g-f849"
+				},
+				{
+					"id": "1139512",
+					"title": "fast-xml-parser: Repeated DOCTYPE declarations reset entity expansion limits",
+					"severity": "high",
+					"package": "fast-xml-parser",
+					"url": "https://github.com/advisories/GHSA-8r6m-32jq-jx6q"
+				},
+				{
+					"id": "1139518",
+					"title": "SVGO removeScripts plugin leaves some executable scripts intact",
+					"severity": "high",
+					"package": "svgo",
+					"url": "https://github.com/advisories/GHSA-2p49-hgcm-8545"
+				},
+				{
+					"id": "1139519",
+					"title": "SVGO removeScripts plugin leaves some executable scripts intact",
+					"severity": "high",
+					"package": "svgo",
+					"url": "https://github.com/advisories/GHSA-2p49-hgcm-8545"
+				},
+				{
+					"id": "1139529",
+					"title": "When Vitest UI server is listening, arbitrary file can be read and executed",
+					"severity": "critical",
+					"package": "vitest",
+					"url": "https://github.com/advisories/GHSA-5xrq-8626-4rwp"
 				}
 			]
 		},
@@ -871,6 +864,13 @@
 					"url": "https://github.com/RustCrypto/RSA/issues/626"
 				},
 				{
+					"id": "RUSTSEC-2026-0098",
+					"title": "Name constraints for URI names were incorrectly accepted",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
 					"id": "RUSTSEC-2026-0099",
 					"title": "Name constraints were accepted for certificates asserting a wildcard name",
 					"severity": "medium",
@@ -887,13 +887,6 @@
 				{
 					"id": "RUSTSEC-2026-0098",
 					"title": "Name constraints for URI names were incorrectly accepted",
-					"severity": "medium",
-					"package": "rustls-webpki",
-					"url": null
-				},
-				{
-					"id": "RUSTSEC-2026-0099",
-					"title": "Name constraints were accepted for certificates asserting a wildcard name",
 					"severity": "medium",
 					"package": "rustls-webpki",
 					"url": null
@@ -906,15 +899,15 @@
 					"url": null
 				},
 				{
-					"id": "RUSTSEC-2026-0104",
-					"title": "Reachable panic in certificate revocation list parsing",
+					"id": "RUSTSEC-2026-0099",
+					"title": "Name constraints were accepted for certificates asserting a wildcard name",
 					"severity": "medium",
 					"package": "rustls-webpki",
 					"url": null
 				},
 				{
-					"id": "RUSTSEC-2026-0098",
-					"title": "Name constraints for URI names were incorrectly accepted",
+					"id": "RUSTSEC-2026-0104",
+					"title": "Reachable panic in certificate revocation list parsing",
 					"severity": "medium",
 					"package": "rustls-webpki",
 					"url": null
