@@ -13,11 +13,15 @@ COPY Cargo.lock ./
 
 COPY apps/agones/friendslop/server/Cargo.toml apps/agones/friendslop/server/Cargo.toml
 COPY packages/rust/q/Cargo.toml packages/rust/q/Cargo.toml
+COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
 
 RUN mkdir -p apps/agones/friendslop/server/src && \
     echo "fn main() {}" > apps/agones/friendslop/server/src/main.rs && \
     mkdir -p packages/rust/q/src && \
-    echo "" > packages/rust/q/src/lib.rs
+    echo "" > packages/rust/q/src/lib.rs && \
+    mkdir -p packages/rust/jedi/src && \
+    echo "" > packages/rust/jedi/src/lib.rs && \
+    echo "fn main() {}" > packages/rust/jedi/build.rs
 
 RUN cargo chef prepare --recipe-path recipe.json --bin friendslop-server
 
@@ -58,6 +62,7 @@ COPY apps/agones/friendslop/server/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
 COPY packages/rust/q packages/rust/q
+COPY packages/rust/jedi packages/rust/jedi
 COPY apps/agones/friendslop/server apps/agones/friendslop/server
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
