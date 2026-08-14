@@ -7,6 +7,9 @@
 
 #[cfg(feature = "client")]
 pub mod bridge;
+pub mod field;
+#[cfg(test)]
+mod field_tests;
 #[cfg(test)]
 mod tests;
 
@@ -88,6 +91,9 @@ pub struct Sense {
     pub leader: Option<Vec2>,
     pub leader_facing: Vec2,
     pub leader_speed: f32,
+    /// Which way the flow field says to go, when one covers this creature.
+    /// `None` means steer straight at the target, which is right in the open.
+    pub route: Option<Vec2>,
 }
 
 /// Tuning. Defaults match what the GDScript patrol shipped with.
@@ -392,7 +398,7 @@ impl Patrol {
             };
         }
 
-        let dir = normalize(to_slot);
+        let dir = sense.route.unwrap_or_else(|| normalize(to_slot));
         if self.update_stuck(sense, delta, true) {
             self.mode = Mode::Unsticking;
             return Step {
@@ -454,7 +460,7 @@ impl Patrol {
             };
         }
 
-        let dir = normalize(to);
+        let dir = sense.route.unwrap_or_else(|| normalize(to));
         self.mode = Mode::Roaming;
         Step {
             wish: add(scale(dir, self.config.speed), avoid),
