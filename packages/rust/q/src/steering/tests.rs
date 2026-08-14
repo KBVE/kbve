@@ -9,6 +9,7 @@ fn sense_at(position: Vec2) -> Sense {
         leader: None,
         leader_facing: [0.0, 1.0],
         leader_speed: 0.0,
+        route: None,
     }
 }
 
@@ -129,6 +130,7 @@ fn never_settles_inside_the_leader() {
         leader: Some([0.0, 0.0]),
         leader_facing: [0.0, 1.0],
         leader_speed: 0.0,
+        route: None,
     };
     let mut closest = f32::MAX;
     for i in 0..600 {
@@ -157,6 +159,7 @@ fn pushes_out_of_an_exact_overlap() {
         leader: Some([0.0, 0.0]),
         leader_facing: [0.0, 1.0],
         leader_speed: 0.0,
+        route: None,
     };
     let step = patrol.step(&sense, 1.0 / 60.0);
     assert!(
@@ -180,6 +183,7 @@ fn holds_station_behind_a_standing_leader() {
         leader: Some([0.0, 0.0]),
         leader_facing: [0.0, 1.0],
         leader_speed: 0.0,
+        route: None,
     };
     let mut modes = Vec::new();
     for _ in 0..120 {
@@ -221,6 +225,7 @@ fn separation_pushes_apart_not_together() {
         leader: None,
         leader_facing: [0.0, 1.0],
         leader_speed: 0.0,
+        route: None,
     };
     let push = patrol.avoid(&sense);
     assert!(push[0] < 0.0, "pushed toward the neighbour: {push:?}");
@@ -254,4 +259,29 @@ fn different_seeds_wander_differently() {
     walk(&mut a, &mut sa, 300, 1.0 / 60.0, false);
     walk(&mut b, &mut sb, 300, 1.0 / 60.0, false);
     assert!(length(sub(sa.position, sb.position)) > 0.5, "moved as one");
+}
+
+/// A routed creature walks the way the field says, not the way the target is.
+#[test]
+fn a_route_overrides_the_straight_line() {
+    let mut patrol = Patrol::new([0.0, 0.0], 43, Config::default());
+    let mut sense = sense_at([0.0, 0.0]);
+    // Target is somewhere ahead; the field says go hard right instead.
+    sense.route = Some([1.0, 0.0]);
+    let step = patrol.step(&sense, 1.0 / 60.0);
+    assert!(
+        step.face[0] > 0.9,
+        "ignored the route and went its own way: {:?}",
+        step.face
+    );
+}
+
+#[test]
+fn without_a_route_it_still_steers_at_the_target() {
+    let mut patrol = Patrol::new([0.0, 0.0], 43, Config::default());
+    let sense = sense_at([0.0, 0.0]);
+    let to = normalize(sub(patrol.target(), sense.position));
+    let step = patrol.step(&sense, 1.0 / 60.0);
+    let dot = step.face[0] * to[0] + step.face[1] * to[1];
+    assert!(dot > 0.9, "did not aim at its waypoint: {dot}");
 }

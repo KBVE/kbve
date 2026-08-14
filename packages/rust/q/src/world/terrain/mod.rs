@@ -328,6 +328,21 @@ impl QTerrain {
         self.water_level
     }
 
+    /// The CPU height grid, for anything that needs to read the ground in bulk
+    /// rather than a point at a time.
+    #[func]
+    fn height_grid(&self) -> PackedFloat32Array {
+        match self.cpu_heights() {
+            Some((h, _)) => PackedFloat32Array::from(h),
+            None => PackedFloat32Array::new(),
+        }
+    }
+
+    #[func]
+    fn height_grid_res(&self) -> i64 {
+        self.cpu_heights().map(|(_, r)| r as i64).unwrap_or(0)
+    }
+
     #[func]
     fn river_width_at(&self) -> f32 {
         self.river_width
