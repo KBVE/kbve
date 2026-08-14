@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use std::time::Duration;
+use std::time::{Duration, Instant};
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::TcpStream;
 use tokio::sync::{Mutex, broadcast, mpsc};
@@ -22,6 +22,7 @@ pub struct ChatClient {
     config: IrcConfig,
     tx: broadcast::Sender<ChatMessage>,
     writer: Arc<Mutex<Option<Writer>>>,
+    last_line: Arc<std::sync::Mutex<Instant>>,
 }
 
 enum Writer {
@@ -37,6 +38,26 @@ impl ChatClient {
             config,
             tx,
             writer: Arc::new(Mutex::new(None)),
+            last_line: Arc::new(std::sync::Mutex::new(Instant::now())),
+        }
+    }
+
+    /// How long since the server last sent anything at all.
+    ///
+    /// Subscribers only see `PRIVMSG`s, so a caller watching the message
+    /// stream cannot tell a quiet channel from a dead socket. This counts
+    /// every inbound line — `PING`, `PONG`, joins, numerics — and so answers
+    /// "is the link alive", not "is anyone talking".
+    pub fn idle_for(&self) -> Duration {
+        self.last_line
+            .lock()
+            .map(|seen| seen.elapsed())
+            .unwrap_or_default()
+    }
+
+    fn touch(last_line: &Arc<std::sync::Mutex<Instant>>) {
+        if let Ok(mut seen) = last_line.lock() {
+            *seen = Instant::now();
         }
     }
 
@@ -70,7 +91,12 @@ impl ChatClient {
 
         let stream = tokio::time::timeout(CONNECT_TIMEOUT, TcpStream::connect(&addr))
             .await
-            .map_err(|_| format!("IRC connect timed out after {:?}: {}", CONNECT_TIMEOUT, addr))?
+            .map_err(|_| {
+                format!(
+                    "IRC connect timed out after {:?}: {}",
+                    CONNECT_TIMEOUT, addr
+                )
+            })?
             .map_err(|e| format!("IRC connect failed: {}", e))?;
 
         let (reader, writer) = tokio::io::split(stream);
@@ -100,9 +126,12 @@ impl ChatClient {
         let tx = self.tx.clone();
         let nick = self.config.nick.clone();
         let writer_clone = self.writer.clone();
+        let last_line = self.last_line.clone();
+        Self::touch(&last_line);
         tokio::spawn(async move {
             let mut lines = BufReader::new(reader).lines();
             while let Ok(Some(line)) = lines.next_line().await {
+                Self::touch(&last_line);
                 if line.starts_with("PING") {
                     let pong = line.replacen("PING", "PONG", 1);
                     if let Some(Writer::Tcp(ref mut w)) = *writer_clone.lock().await {
@@ -140,7 +169,12 @@ impl ChatClient {
         let (ws, _resp) =
             tokio::time::timeout(CONNECT_TIMEOUT, tokio_tungstenite::connect_async(&url))
                 .await
-                .map_err(|_| format!("IRC-WS connect timed out after {:?}: {}", CONNECT_TIMEOUT, url))?
+                .map_err(|_| {
+                    format!(
+                        "IRC-WS connect timed out after {:?}: {}",
+                        CONNECT_TIMEOUT, url
+                    )
+                })?
                 .map_err(|e| format!("IRC-WS connect failed: {}", e))?;
         let (mut sink, mut stream) = ws.split();
 
@@ -211,8 +245,11 @@ impl ChatClient {
         let tx = self.tx.clone();
         let nick = self.config.nick.clone();
         let writer_clone = self.writer.clone();
+        let last_line = self.last_line.clone();
+        Self::touch(&last_line);
         tokio::spawn(async move {
             while let Some(item) = stream.next().await {
+                Self::touch(&last_line);
                 let payload = match item {
                     Ok(WsMessage::Text(t)) => t.to_string(),
                     Ok(WsMessage::Binary(b)) => match String::from_utf8(b.to_vec()) {
@@ -327,6 +364,53 @@ fn parse_privmsg(line: &str, own_nick: &str) -> Option<ChatMessage> {
 mod tests {
     use super::*;
     use crate::message::MessageKind;
+    use tokio::net::TcpListener;
+
+    /// A quiet channel is not a dead link. Subscribers only ever see
+    /// `PRIVMSG`s, so anything judging health by the message stream tears
+    /// down a perfectly good connection the moment nobody is talking.
+    #[tokio::test]
+    async fn server_traffic_other_than_privmsg_counts_as_liveness() {
+        let listener = TcpListener::bind("127.0.0.1:0").await.expect("bind");
+        let addr = listener.local_addr().expect("addr");
+
+        let server = tokio::spawn(async move {
+            let (mut sock, _) = listener.accept().await.expect("accept");
+            tokio::time::sleep(Duration::from_millis(400)).await;
+            sock.write_all(b"PING :hello\r\n").await.expect("ping");
+            sock
+        });
+
+        let mut client = ChatClient::new(IrcConfig {
+            host: "127.0.0.1".to_owned(),
+            port: addr.port(),
+            tls: false,
+            nick: "probe".to_owned(),
+            channels: vec!["#general".to_owned()],
+            password: None,
+            reconnect_delay_secs: 0,
+            transport: IrcTransport::Tcp,
+            skip_registration: false,
+        });
+        client.connect().await.expect("connect");
+        let mut rx = client.subscribe();
+
+        tokio::time::sleep(Duration::from_millis(350)).await;
+        let before = client.idle_for();
+
+        tokio::time::sleep(Duration::from_millis(250)).await;
+        let after = client.idle_for();
+
+        assert!(
+            after < before,
+            "inbound PING should reset idle: before={before:?} after={after:?}"
+        );
+        assert!(
+            rx.try_recv().is_err(),
+            "a PING must not surface as a chat message"
+        );
+        let _ = server.await;
+    }
 
     #[test]
     fn parse_privmsg_chat() {
