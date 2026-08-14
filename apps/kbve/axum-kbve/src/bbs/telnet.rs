@@ -64,6 +64,10 @@ pub struct TelnetConn {
     pub width: u16,
     pub height: u16,
     pub term_type: Option<String>,
+    /// Whether the client ever told us its window size. Without this a caller
+    /// who never sends NAWS is indistinguishable from one reporting the 40x25
+    /// fallback, and an ANSI terminal ends up laid out for a C64.
+    pub naws_seen: bool,
     idle_timeout: Duration,
     pending_eol: bool,
 }
@@ -80,6 +84,7 @@ impl TelnetConn {
             width: 40,
             height: 25,
             term_type: None,
+            naws_seen: false,
             idle_timeout,
             pending_eol: false,
         }
@@ -259,6 +264,7 @@ impl TelnetConn {
                 let h = u16::from_be_bytes([payload[3], payload[4]]);
                 if w > 0 {
                     self.width = w;
+                    self.naws_seen = true;
                 }
                 if h > 0 {
                     self.height = h;

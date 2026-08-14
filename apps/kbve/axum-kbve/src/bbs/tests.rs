@@ -17,6 +17,24 @@ use super::render::{Ink, Screen, Term, truncate, wrap_lines};
 use super::session::Session;
 use super::telnet::{DO, IAC, OPT_ECHO, OPT_NAWS, SB, SE, TelnetConn, WILL};
 
+/// Everything the board painted, until it goes quiet.
+async fn read_paint(client: &mut TcpStream) -> String {
+    let mut buf = vec![0u8; 8192];
+    let mut out = Vec::new();
+    while let Ok(Ok(n)) =
+        tokio::time::timeout(Duration::from_millis(150), client.read(&mut buf)).await
+    {
+        if n == 0 {
+            break;
+        }
+        out.extend_from_slice(&buf[..n]);
+        if out.len() > 64_000 {
+            break;
+        }
+    }
+    String::from_utf8_lossy(&out).to_string()
+}
+
 async fn pair() -> (TelnetConn, TcpStream) {
     let listener = TcpListener::bind("127.0.0.1:0").await.expect("bind");
     let addr = listener.local_addr().expect("addr");
@@ -227,6 +245,43 @@ async fn reconnect_flushes_held_lines_in_the_order_they_were_typed() {
     assert!(delivered[0].ends_with("first"), "got {:?}", delivered[0]);
     assert!(delivered[1].ends_with("second"), "got {:?}", delivered[1]);
     assert!(delivered[2].ends_with("third"), "got {:?}", delivered[2]);
+}
+
+#[tokio::test]
+async fn a_long_chat_line_wraps_instead_of_losing_its_tail() {
+    let (conn, mut client) = pair().await;
+    let mut session = Session::new(conn, Term::Ansi, 40, 25);
+    let spoken = "<h0lybyte/bbs> I am here to test the bbs, lets see if it works.";
+
+    session.draw_chat_for_tests("#general", spoken).await;
+    let painted = read_paint(&mut client).await;
+
+    assert!(
+        painted.contains("bbs, lets see if it works."),
+        "tail was clipped: {painted}"
+    );
+}
+
+#[tokio::test]
+async fn an_ansi_caller_without_naws_is_not_given_a_c64_screen() {
+    let (conn, _client) = pair().await;
+
+    assert!(!conn.naws_seen);
+    assert_eq!(super::window_for(&conn, Term::Ansi), (80, 24));
+    assert_eq!(super::window_for(&conn, Term::Petscii), (40, 25));
+}
+
+#[tokio::test]
+async fn a_reported_window_still_wins() {
+    let (mut conn, mut client) = pair().await;
+    client
+        .write_all(&[IAC, SB, OPT_NAWS, 0, 132, 0, 50, IAC, SE, b'X'])
+        .await
+        .expect("write");
+
+    assert_eq!(conn.read_byte().await.expect("byte"), b'X');
+    assert!(conn.naws_seen);
+    assert_eq!(super::window_for(&conn, Term::Ansi), (132, 50));
 }
 
 #[tokio::test]
