@@ -67,6 +67,18 @@ pub struct QTerrain {
     #[export]
     #[init(val = 513)]
     resolution: i32,
+    /// Re-bakes the ground around the player as they walk, so the world does not
+    /// end at `extent`. Off leaves the world exactly as it was: one bake at the
+    /// origin, which is what everything downstream still assumes.
+    #[export]
+    #[init(val = false)]
+    stream_enabled: bool,
+    /// How far the window may jump at a time. Smaller re-bakes more often for
+    /// less work each; it also has to divide the sample spacing evenly or the
+    /// new grid lands between the old samples and the seam shows.
+    #[export]
+    #[init(val = 128.0)]
+    stream_stride: f32,
     #[export]
     #[init(val = true)]
     wake_enabled: bool,
@@ -134,6 +146,10 @@ pub struct QTerrain {
     road_mask: Vec<u8>,
     road_res: i32,
     road: Option<road::RoadNetwork>,
+    ground_body: Option<Gd<StaticBody3D>>,
+    ground_shape: Option<Gd<HeightMapShape3D>>,
+    window: Option<crate::worldgen::Window>,
+    shift_rx: Option<std::sync::mpsc::Receiver<(Vec<f32>, [f32; 2])>>,
 }
 
 #[godot_api]
@@ -152,12 +168,16 @@ impl INode3D for QTerrain {
         }
         self.hgen = Some(HeightGen::new(&self.height_params()));
         self.gen_t0 = Some(std::time::Instant::now());
+        self.window = Some(crate::worldgen::Window::new(
+            self.extent,
+            self.stream_stride,
+        ));
         let worker_gen = HeightGen::new(&self.height_params());
         let extent = self.extent;
         let res = self.resolution.max(2);
         let (tx, rx) = std::sync::mpsc::channel();
         let job = move || {
-            let _ = tx.send(worker_gen.bake(extent, res));
+            let _ = tx.send(worker_gen.bake_at([0.0, 0.0], extent, res));
         };
         let rt = Engine::singleton()
             .get_singleton(crate::threads::runtime::RuntimeManager::SINGLETON)
@@ -201,6 +221,7 @@ impl INode3D for QTerrain {
         }
         self.water_time += delta as f32;
         self.dispatch_water_fx();
+        self.stream_step();
     }
 
     fn on_notification(&mut self, what: Node3DNotification) {
@@ -211,6 +232,96 @@ impl INode3D for QTerrain {
 }
 
 impl QTerrain {
+    /// Moves the baked window after the player, one re-bake at a time.
+    ///
+    /// The bake runs off the main thread because it is tens of milliseconds, and
+    /// the old window stays live until the new one lands -- there is never a
+    /// frame with no ground under anybody.
+    fn stream_step(&mut self) {
+        if !self.stream_enabled {
+            return;
+        }
+        if let Some(rx) = self.shift_rx.as_ref() {
+            match rx.try_recv() {
+                Ok((heights, origin)) => {
+                    self.shift_rx = None;
+                    self.apply_window(heights, origin);
+                }
+                Err(std::sync::mpsc::TryRecvError::Empty) => return,
+                Err(_) => self.shift_rx = None,
+            }
+            return;
+        }
+        let Some(window) = self.window else {
+            return;
+        };
+        let Some(player) = self.player.as_ref().map(|p| p.get_global_position()) else {
+            return;
+        };
+        let Some(next) = window.next_origin([player.x, player.z]) else {
+            return;
+        };
+        let worker_gen = HeightGen::new(&self.height_params());
+        let (extent, res) = (self.extent, self.resolution.max(2));
+        let (tx, rx) = std::sync::mpsc::channel();
+        let job = move || {
+            let _ = tx.send((worker_gen.bake_at(next, extent, res), next));
+        };
+        match Engine::singleton()
+            .get_singleton(crate::threads::runtime::RuntimeManager::SINGLETON)
+            .and_then(|s| s.try_cast::<crate::threads::runtime::RuntimeManager>().ok())
+        {
+            Some(rt) => {
+                rt.bind().spawn_blocking(job);
+            }
+            None => {
+                std::thread::spawn(job);
+            }
+        }
+        self.shift_rx = Some(rx);
+    }
+
+    /// Swaps a freshly baked window in: the heightmap every shader reads, the
+    /// collider bodies stand on, and the origin that ties the two together.
+    fn apply_window(&mut self, heights: Vec<f32>, origin: [f32; 2]) {
+        let res = self.resolution.max(2);
+        if heights.len() != (res * res) as usize {
+            return;
+        }
+        if let Some(w) = self.window.as_mut() {
+            w.origin = origin;
+        }
+        let bytes: Vec<u8> = heights.iter().flat_map(|h| h.to_le_bytes()).collect();
+        let data = PackedByteArray::from(bytes.as_slice());
+        if let Some(tex) = self.texture.as_mut() {
+            if let Some(img) = Image::create_from_data(res, res, false, ImageFormat::RF, &data) {
+                // Updated in place, so every material still points at the same
+                // texture and none of them need rebinding.
+                tex.update(&img);
+            }
+        }
+        let at = Vector2::new(origin[0], origin[1]);
+        for m in [
+            self.grass_material.as_mut(),
+            self.ground_material.as_mut(),
+            self.riverbed_material.as_mut(),
+            self.water_material.as_mut(),
+        ]
+        .into_iter()
+        .flatten()
+        {
+            m.set_shader_parameter("terrain_origin", &at.to_variant());
+        }
+        if let Some(shape) = self.ground_shape.as_mut() {
+            shape.set_map_data(&PackedFloat32Array::from(heights.as_slice()));
+        }
+        if let Some(body) = self.ground_body.as_mut() {
+            body.set_position(Vector3::new(origin[0], 0.0, origin[1]));
+        }
+        self.bake_clearance(&heights, res);
+        self.heights = heights;
+    }
+
     fn finish_init(&mut self, heights: Vec<f32>) {
         let res = self.resolution.max(2);
         let bytes: Vec<u8> = heights.iter().flat_map(|h| h.to_le_bytes()).collect();
@@ -262,6 +373,8 @@ impl QTerrain {
         let mut body = StaticBody3D::new_alloc();
         body.add_child(&col);
         self.base_mut().add_child(&body);
+        self.ground_shape = Some(shape);
+        self.ground_body = Some(body.clone());
 
         if crate::world::q_hidden("pom") {
             if let Some(m) = self.riverbed_material.as_mut() {
@@ -409,6 +522,14 @@ impl QTerrain {
 
     pub fn heightmap_texture(&self) -> Option<Gd<ImageTexture>> {
         self.texture.clone()
+    }
+
+    /// Centre of the baked window. Everything that maps world to the heightmap
+    /// has to subtract this, or it reads the wrong ground once the world moves.
+    pub fn window_origin(&self) -> Vector2 {
+        self.window
+            .map(|w| Vector2::new(w.origin[0], w.origin[1]))
+            .unwrap_or(Vector2::ZERO)
     }
 
     pub fn world_extent(&self) -> f32 {

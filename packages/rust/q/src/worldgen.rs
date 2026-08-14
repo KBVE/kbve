@@ -88,16 +88,85 @@ impl HeightGen {
 
     /// Row-major `res * res` heights over `[-extent, extent]` on both axes.
     pub fn bake(&self, extent: f32, res: i32) -> Vec<f32> {
-        let step = extent * 2.0 / (res - 1) as f32;
-        let mut heights = vec![0.0f32; (res * res) as usize];
+        self.bake_at([0.0, 0.0], extent, res)
+    }
+
+    /// The same grid, centred anywhere.
+    ///
+    /// The height function is unbounded and stateless, so a window is only ever
+    /// a view: two windows overlapping the same ground agree on it exactly, and
+    /// that is what lets the world be baked around the player rather than once.
+    pub fn bake_at(&self, origin: [f32; 2], extent: f32, res: i32) -> Vec<f32> {
+        let step = extent * 2.0 / (res - 1).max(1) as f32;
+        let mut heights = vec![0.0f32; (res.max(1) * res.max(1)) as usize];
         for iy in 0..res {
-            let z = -extent + iy as f32 * step;
+            let z = origin[1] - extent + iy as f32 * step;
             for ix in 0..res {
-                let x = -extent + ix as f32 * step;
+                let x = origin[0] - extent + ix as f32 * step;
                 heights[(iy * res + ix) as usize] = self.height(x, z);
             }
         }
         heights
+    }
+}
+
+/// The square of world currently baked, and when to bake the next one.
+///
+/// The ground function has no edges, so "more world" is not more data -- it is
+/// moving this window and re-baking. The two numbers that matter are `stride`,
+/// which quantises where a window may sit so the same ground bakes identically
+/// however you approach it, and `shift_at`, which is what stops a player
+/// standing on a boundary re-baking the world every step.
+#[derive(Clone, Copy, Debug)]
+pub struct Window {
+    pub origin: [f32; 2],
+    pub extent: f32,
+    pub stride: f32,
+    /// How far from the origin the player gets before the window follows.
+    pub shift_at: f32,
+}
+
+impl Window {
+    pub fn new(extent: f32, stride: f32) -> Self {
+        Self {
+            origin: [0.0, 0.0],
+            extent,
+            // A stride bigger than the window would leave gaps between bakes.
+            stride: stride.clamp(1.0, extent),
+            shift_at: extent * 0.35,
+        }
+    }
+
+    /// Nearest origin a window is allowed to sit on.
+    pub fn snap(&self, at: [f32; 2]) -> [f32; 2] {
+        [
+            (at[0] / self.stride).round() * self.stride,
+            (at[1] / self.stride).round() * self.stride,
+        ]
+    }
+
+    /// True while the point is inside the baked square.
+    pub fn covers(&self, at: [f32; 2]) -> bool {
+        (at[0] - self.origin[0]).abs() <= self.extent
+            && (at[1] - self.origin[1]).abs() <= self.extent
+    }
+
+    /// Where the window should move to, or `None` to stay put.
+    ///
+    /// Two guards, and both are needed. Distance from the current origin gives
+    /// the hysteresis: without it a player walking the boundary re-bakes on
+    /// every step. Comparing against the snapped target catches the case where
+    /// they are far out but the nearest legal origin is the one already in use.
+    pub fn next_origin(&self, player: [f32; 2]) -> Option<[f32; 2]> {
+        let off = [player[0] - self.origin[0], player[1] - self.origin[1]];
+        if off[0].abs().max(off[1].abs()) < self.shift_at {
+            return None;
+        }
+        let target = self.snap(player);
+        if target == self.origin {
+            return None;
+        }
+        Some(target)
     }
 }
 
@@ -123,6 +192,125 @@ mod tests {
             HeightGen::new(&a).bake(64.0, 33),
             HeightGen::new(&b).bake(64.0, 33)
         );
+    }
+
+    /// The property the whole sliding world rests on: two windows that overlap
+    /// must agree on the ground they share, exactly, or the seam is a cliff.
+    #[test]
+    fn overlapping_windows_agree_on_shared_ground() {
+        let g = HeightGen::new(&HeightParams::default());
+        let (extent, res) = (64.0f32, 65);
+        let step = extent * 2.0 / (res - 1) as f32;
+        let a = g.bake_at([0.0, 0.0], extent, res);
+        // Shifted by a whole number of samples, so the grids line up.
+        let shift = step * 16.0;
+        let b = g.bake_at([shift, 0.0], extent, res);
+        let mut shared = 0;
+        for iy in 0..res {
+            for ix in 16..res {
+                let from_a = a[(iy * res + ix) as usize];
+                let from_b = b[(iy * res + ix - 16) as usize];
+                assert_eq!(
+                    from_a.to_bits(),
+                    from_b.to_bits(),
+                    "seam at {ix},{iy}: {from_a} vs {from_b}"
+                );
+                shared += 1;
+            }
+        }
+        assert!(shared > 2000, "compared almost nothing: {shared}");
+    }
+
+    #[test]
+    fn baking_somewhere_else_is_not_baking_the_same_place() {
+        let g = HeightGen::new(&HeightParams::default());
+        assert_ne!(
+            g.bake_at([0.0, 0.0], 64.0, 33),
+            g.bake_at([900.0, 900.0], 64.0, 33)
+        );
+    }
+
+    #[test]
+    fn bake_at_the_origin_is_the_old_bake() {
+        let g = HeightGen::new(&HeightParams::default());
+        assert_eq!(g.bake(64.0, 33), g.bake_at([0.0, 0.0], 64.0, 33));
+    }
+
+    #[test]
+    fn a_window_follows_a_player_who_walks_away() {
+        let w = Window::new(256.0, 128.0);
+        assert_eq!(w.next_origin([0.0, 0.0]), None);
+        assert_eq!(w.next_origin([10.0, 0.0]), None, "moved for a few steps");
+        let next = w.next_origin([300.0, 0.0]).expect("never followed");
+        assert_eq!(next, [256.0, 0.0]);
+    }
+
+    /// Without hysteresis a player standing on a boundary re-bakes the world on
+    /// every step, which is the whole cost of the system paid continuously.
+    #[test]
+    fn a_window_does_not_thrash_on_the_boundary() {
+        let mut w = Window::new(256.0, 128.0);
+        w.origin = [128.0, 0.0];
+        // Right on the line between two legal origins, jittering across it.
+        let mut shifts = 0;
+        for i in 0..200 {
+            let jitter = if i % 2 == 0 { 0.4 } else { -0.4 };
+            if let Some(next) = w.next_origin([192.0 + jitter, 0.0]) {
+                w.origin = next;
+                shifts += 1;
+            }
+        }
+        assert!(shifts <= 1, "re-baked {shifts} times standing still");
+    }
+
+    /// Walking a long way must leave the player inside the window at every step,
+    /// or there is ground with no collider under them.
+    #[test]
+    fn a_walk_is_always_on_baked_ground() {
+        let mut w = Window::new(256.0, 128.0);
+        let mut at = [0.0f32, 0.0];
+        for step in 0..4000 {
+            at[0] += 1.3;
+            at[1] += (step as f32 * 0.01).sin() * 1.1;
+            if let Some(next) = w.next_origin(at) {
+                w.origin = next;
+            }
+            assert!(
+                w.covers(at),
+                "walked off the world at {at:?} on step {step}"
+            );
+        }
+    }
+
+    /// The same ground must bake identically however the player got there, or
+    /// walking back somewhere shows a different world.
+    #[test]
+    fn arriving_from_either_side_gives_the_same_window() {
+        let mut east = Window::new(256.0, 128.0);
+        let mut west = Window::new(256.0, 128.0);
+        let mut at = [0.0f32, 0.0];
+        while at[0] < 512.0 {
+            at[0] += 4.0;
+            if let Some(n) = east.next_origin(at) {
+                east.origin = n;
+            }
+        }
+        let mut at = [1200.0f32, 0.0];
+        west.origin = west.snap(at);
+        while at[0] > 512.0 {
+            at[0] -= 4.0;
+            if let Some(n) = west.next_origin(at) {
+                west.origin = n;
+            }
+        }
+        assert_eq!(east.origin, west.origin, "history changed the world");
+    }
+
+    #[test]
+    fn a_stride_wider_than_the_window_is_refused() {
+        // It would leave ground between two bakes that neither covers.
+        let w = Window::new(100.0, 4000.0);
+        assert!(w.stride <= w.extent);
     }
 
     #[test]

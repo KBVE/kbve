@@ -92,6 +92,9 @@ pub struct QStoneField {
     body: Rid,
     shapes: Vec<Rid>,
     extent: f32,
+    origin: Vector2,
+    /// What the player has already mined, kept across rescatters.
+    ledger: crate::world::harvest::Ledger,
     /// Snapshot of the terrain used to test sight lines during LOD rebucketing.
     terrain_heights: Vec<f32>,
     terrain_res: i32,
@@ -105,6 +108,32 @@ pub struct QStoneField {
 }
 
 impl QStoneField {
+    /// True once the terrain has re-baked somewhere else and these stones are
+    /// for ground nobody is standing on any more.
+    fn window_moved(&self) -> bool {
+        let node = self.base().clone().upcast::<godot::classes::Node>();
+        crate::world::resolve_terrain(&node, &self.terrain_path)
+            .map(|t| t.bind().window_origin() != self.origin)
+            .unwrap_or(false)
+    }
+
+    /// Throws the scatter away and builds it again for the new window.
+    ///
+    /// What the player mined goes into the ledger first and is replayed after,
+    /// so a rock broken before walking away is still broken on the way back.
+    fn rescatter(&mut self) {
+        let _t = crate::world::StallTimer::start("stones.rescatter");
+        let damage: Vec<(u64, u8)> = self.core.damage().collect();
+        for (id, stage) in damage {
+            self.ledger.record(id, stage);
+        }
+        self.free_all();
+        self.core.clear();
+        self.meshes.clear();
+        self.slots.clear();
+        self.init_done = false;
+    }
+
     fn late_init(&mut self) -> bool {
         let _t = super::ReadyTimer::start("stones");
         let node = self.base().clone().upcast::<godot::classes::Node>();
@@ -132,7 +161,9 @@ impl QStoneField {
         let heights: Vec<f32> = self.meshes.iter().map(|m| m.height).collect();
 
         let seed64 = self.stone_seed as u64;
-        let cells = ((extent * 2.0) / self.grid_size) as i32;
+        let grid = crate::world::ScatterGrid::new(self.grid_size, terra.origin, extent);
+        let cells = grid.cells();
+        self.origin = terra.origin;
         let mut placed: Vec<(f32, f32, f32)> = Vec::new();
         let overlaps = |placed: &Vec<(f32, f32, f32)>, x: f32, z: f32, r: f32| -> bool {
             placed.iter().any(|(px, pz, pr)| {
@@ -143,16 +174,12 @@ impl QStoneField {
         };
         for iz in 0..cells {
             for ix in 0..cells {
-                let mut state = hash32(
-                    (self.stone_seed as u32)
-                        .wrapping_add(hash32(ix as u32).wrapping_mul(37))
-                        .wrapping_add(hash32(iz as u32)),
-                );
+                let mut state = grid.seed(self.stone_seed as u32, ix, iz);
                 let jx = (randf(&mut state) - 0.5) * (self.grid_size - 5.0);
                 let jz = (randf(&mut state) - 0.5) * (self.grid_size - 5.0);
-                let x = -extent + (ix as f32 + 0.5) * self.grid_size + jx;
-                let z = -extent + (iz as f32 + 0.5) * self.grid_size + jz;
-                if x.abs() > extent - 5.0 || z.abs() > extent - 5.0 {
+                let (cx, cz) = grid.centre(ix, iz);
+                let (x, z) = (cx + jx, cz + jz);
+                if !grid.inside(x, z, 5.0) {
                     continue;
                 }
                 let slope = (sample(x + 1.0, z) - sample(x - 1.0, z))
@@ -196,7 +223,7 @@ impl QStoneField {
                     let dist = (radius + cradius) * (1.15 + randf(&mut state) * 0.5);
                     let cx = x + az.cos() * dist;
                     let cz = z + az.sin() * dist;
-                    if cx.abs() > extent - 5.0 || cz.abs() > extent - 5.0 {
+                    if !grid.inside(cx, cz, 5.0) {
                         continue;
                     }
                     if terra.on_road(cx, cz) > 0.12 {
@@ -242,6 +269,12 @@ impl QStoneField {
             tb.flush_clearance();
         }
 
+        // Before anything is drawn or given a collider: a rock the player
+        // already broke must come back broken, not whole.
+        let ledger = std::mem::take(&mut self.ledger);
+        self.core.restore(&ledger);
+        self.ledger = ledger;
+
         self.build_multimeshes();
         self.build_colliders();
         self.dirty = true;
@@ -259,6 +292,10 @@ impl INode3D for QStoneField {
             if super::q_hidden("stones") || self.late_init() {
                 self.init_done = true;
             }
+            return;
+        }
+        if self.window_moved() {
+            self.rescatter();
             return;
         }
         if !self.dirty {
