@@ -1192,12 +1192,12 @@
 		},
 		"credits": "KBVE Isometric ambient creature system.\n",
 		"creature_config": {
-			"render_kind": "sprite",
+			"render_kind": 1,
 			"pool_size": 8,
 			"chunk_size": 16,
 			"per_chunk": 1,
 			"spawn_chance": 0.35,
-			"schedule": "day"
+			"schedule": 2
 		}
 	},
 	{
@@ -1255,12 +1255,12 @@
 		},
 		"credits": "KBVE Isometric ambient creature system.\n",
 		"creature_config": {
-			"render_kind": "emissive",
+			"render_kind": 3,
 			"pool_size": 80,
 			"chunk_size": 12,
 			"per_chunk": 3,
 			"spawn_chance": 0.55,
-			"schedule": "night"
+			"schedule": 3
 		}
 	},
 	{
@@ -2077,12 +2077,12 @@
 		},
 		"credits": "KBVE Isometric ambient creature system.\n",
 		"creature_config": {
-			"render_kind": "billboard",
+			"render_kind": 2,
 			"pool_size": 14,
 			"chunk_size": 16,
 			"per_chunk": 2,
 			"spawn_chance": 0.45,
-			"schedule": "day"
+			"schedule": 2
 		}
 	}
 ]

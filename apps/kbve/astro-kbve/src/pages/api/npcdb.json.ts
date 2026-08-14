@@ -10,6 +10,8 @@ import {
 	MovementTypes,
 	DifficultyModes,
 	EquipSlots,
+	CreatureRenderKinds,
+	CreatureSchedules,
 } from '@kbve/proto/npcdb-schema';
 
 /**
@@ -27,6 +29,8 @@ const ENUM_FIELDS: Record<string, readonly string[]> = {
 	movement_type: MovementTypes,
 	mode: DifficultyModes,
 	slot: EquipSlots,
+	render_kind: CreatureRenderKinds,
+	schedule: CreatureSchedules,
 };
 
 /** Recursively walk an object, converting any string enum field to its proto integer index. */
