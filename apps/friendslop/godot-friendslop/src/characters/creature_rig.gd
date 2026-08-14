@@ -8,6 +8,8 @@ const CelShading := preload("res://src/characters/cel_shading.gd")
 @export var body: PackedScene
 @export var terrain_path: NodePath
 @export var snap_to_terrain := true
+## Plants the feet on the ground the creature is standing on; needs a terrain.
+@export var foot_ik := true
 ## The mech pack exports facing +Z, same as the humanoid kit; Godot's forward is -Z.
 @export var facing_offset_deg := 180.0
 @export var tint := Color(1, 1, 1)
@@ -29,17 +31,19 @@ const CelShading := preload("res://src/characters/cel_shading.gd")
 const MOVE_CLIPS := ["Idle", "Walk", "Run"]
 
 ## clip is the animation, loop marks the cyclic ones -- the pack imports every clip as
-## LOOP_NONE, so an unmarked Idle plays once and freezes.
+## LOOP_NONE, so an unmarked Idle plays once and freezes. ik is how much of the legs the
+## state hands to the foot solver, which is none of them wherever the clip takes the feet
+## off the ground.
 const STATES := {
-	&"move": {&"clip": "", &"loop": true, &"xfade": 0.22, &"reset": false, &"returns_to_move": false},
-	&"jump": {&"clip": "Jump", &"loop": false, &"xfade": 0.10, &"reset": true, &"returns_to_move": true},
-	&"punch": {&"clip": "Punch", &"loop": false, &"xfade": 0.07, &"reset": true, &"returns_to_move": true},
-	&"kick": {&"clip": "Kick", &"loop": false, &"xfade": 0.07, &"reset": true, &"returns_to_move": true},
-	&"shoot": {&"clip": "Shoot", &"loop": false, &"xfade": 0.06, &"reset": true, &"returns_to_move": true},
-	&"slash": {&"clip": "SwordSlash", &"loop": false, &"xfade": 0.07, &"reset": true, &"returns_to_move": true},
-	&"hit_1": {&"clip": "HitRecieve_1", &"loop": false, &"xfade": 0.05, &"reset": true, &"returns_to_move": true},
-	&"hit_2": {&"clip": "HitRecieve_2", &"loop": false, &"xfade": 0.05, &"reset": true, &"returns_to_move": true},
-	&"death": {&"clip": "Death", &"loop": false, &"xfade": 0.12, &"reset": true, &"returns_to_move": false},
+	&"move": {&"clip": "", &"loop": true, &"xfade": 0.22, &"reset": false, &"returns_to_move": false, &"ik": 1.0},
+	&"jump": {&"clip": "Jump", &"loop": false, &"xfade": 0.10, &"reset": true, &"returns_to_move": true, &"ik": 0.0},
+	&"punch": {&"clip": "Punch", &"loop": false, &"xfade": 0.07, &"reset": true, &"returns_to_move": true, &"ik": 1.0},
+	&"kick": {&"clip": "Kick", &"loop": false, &"xfade": 0.07, &"reset": true, &"returns_to_move": true, &"ik": 0.4},
+	&"shoot": {&"clip": "Shoot", &"loop": false, &"xfade": 0.06, &"reset": true, &"returns_to_move": true, &"ik": 1.0},
+	&"slash": {&"clip": "SwordSlash", &"loop": false, &"xfade": 0.07, &"reset": true, &"returns_to_move": true, &"ik": 1.0},
+	&"hit_1": {&"clip": "HitRecieve_1", &"loop": false, &"xfade": 0.05, &"reset": true, &"returns_to_move": true, &"ik": 0.8},
+	&"hit_2": {&"clip": "HitRecieve_2", &"loop": false, &"xfade": 0.05, &"reset": true, &"returns_to_move": true, &"ik": 0.8},
+	&"death": {&"clip": "Death", &"loop": false, &"xfade": 0.12, &"reset": true, &"returns_to_move": false, &"ik": 0.0},
 }
 
 ## Attacks a fight can ask for by name, so a behaviour tree does not have to know which
@@ -58,6 +62,7 @@ static var _curve: Curve
 var animation: AnimationPlayer
 var tree: AnimationTree
 var skeleton: Skeleton3D
+var ik: SkeletonModifier3D
 
 var nameplate: Label3D
 
@@ -92,8 +97,43 @@ func _ready() -> void:
 		return
 	_mark_loops()
 	_build_tree(rig)
+	if foot_ik:
+		_build_foot_ik()
 	if snap_to_terrain:
 		_snap()
+
+
+func _build_foot_ik() -> void:
+	var terrain := get_node_or_null(terrain_path)
+	if terrain == null or not terrain.has_method("height_at"):
+		push_warning("creature_rig: foot_ik needs a terrain exposing height_at")
+		return
+	var mod: SkeletonModifier3D = preload("res://src/characters/creature_foot_ik.gd").new()
+	skeleton.add_child(mod)
+	var owner_body: Node = self
+	while owner_body and owner_body is not PhysicsBody3D:
+		owner_body = owner_body.get_parent()
+	mod.setup(terrain, owner_body)
+	ik = mod
+
+
+func _process(_delta: float) -> void:
+	if ik == null or tree == null:
+		return
+	var playback: AnimationNodeStateMachinePlayback = tree.get("parameters/playback")
+	var length := playback.get_fading_length()
+	var at := 1.0 if length <= 0.0 else playback.get_fading_position() / length
+	ik.set_ground_weight(ground_weight_for(playback.get_current_node(),
+			playback.get_fading_from_node(), at))
+
+
+## Leg solve weight for the pose that is actually on the skeleton.
+func ground_weight_for(into: StringName, from: StringName, at: float) -> float:
+	var arriving: float = STATES.get(into, {}).get(&"ik", 1.0)
+	if from == &"":
+		return arriving
+	var leaving: float = STATES.get(from, {}).get(&"ik", 1.0)
+	return lerpf(leaving, arriving, clampf(at, 0.0, 1.0))
 
 
 ## Billboarded so it reads from any angle, and depth-tested so a plate does not show

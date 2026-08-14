@@ -315,8 +315,30 @@ impl QTerrain {
         if let Some(shape) = self.ground_shape.as_mut() {
             shape.set_map_data(&PackedFloat32Array::from(heights.as_slice()));
         }
+        // Everything drawn flat over the window travels with it: the ground
+        // plane, the riverbed and the water. Left behind, the player walks off
+        // the edge of the visible world while still standing on collider.
+        let at = Vector3::new(origin[0], 0.0, origin[1]);
         if let Some(body) = self.ground_body.as_mut() {
-            body.set_position(Vector3::new(origin[0], 0.0, origin[1]));
+            body.set_position(at);
+        }
+        for name in ["Riverbed", "Water"] {
+            if let Some(mut n) = self
+                .base()
+                .get_node_or_null(name)
+                .and_then(|n| n.try_cast::<Node3D>().ok())
+            {
+                let keep = n.get_position();
+                n.set_position(Vector3::new(at.x, keep.y, at.z));
+            }
+        }
+        if let Some(mut ground) = self
+            .base()
+            .get_node_or_null("../Ground")
+            .and_then(|n| n.try_cast::<Node3D>().ok())
+        {
+            let keep = ground.get_position();
+            ground.set_position(Vector3::new(at.x, keep.y, at.z));
         }
         self.bake_clearance(&heights, res);
         self.heights = heights;

@@ -133,6 +133,18 @@ impl Ledger {
         *self.stages.get(&id).unwrap_or(&0)
     }
 
+    /// Folds another ledger in, taking the worse damage for anything in both.
+    ///
+    /// This is what makes the ledger safe to replicate: damage only ever
+    /// increases, so merging is order-independent and two clients that saw the
+    /// same events in a different order still agree. A server merging a late
+    /// client's report cannot be talked into repairing a rock.
+    pub fn merge(&mut self, other: &Ledger) {
+        for (id, stage) in &other.stages {
+            self.record(*id, *stage);
+        }
+    }
+
     /// Flat `id_lo, id_hi, stage` triples, for handing to a save file.
     pub fn to_flat(&self) -> Vec<u32> {
         let mut ids: Vec<(&u64, &u8)> = self.stages.iter().collect();
@@ -399,5 +411,58 @@ mod tests {
         flat.pop();
         let back = Ledger::from_flat(&flat);
         assert_eq!(back.len(), 1, "a cut-off save should not invent an entry");
+    }
+}
+
+#[cfg(test)]
+mod merge_tests {
+    use super::*;
+
+    /// Two clients mining different rocks must end up agreeing on both.
+    #[test]
+    fn merging_keeps_everybody_s_damage() {
+        let mut host = Ledger::new();
+        host.record(1, 3);
+        let mut guest = Ledger::new();
+        guest.record(2, 3);
+        host.merge(&guest);
+        assert_eq!(host.stage(1), 3);
+        assert_eq!(host.stage(2), 3);
+    }
+
+    /// Order must not matter, or two servers replaying the same events disagree.
+    #[test]
+    fn merging_is_order_independent() {
+        let mut a = Ledger::new();
+        a.record(5, 1);
+        let mut b = Ledger::new();
+        b.record(5, 3);
+        let mut forward = a.clone();
+        forward.merge(&b);
+        let mut backward = b.clone();
+        backward.merge(&a);
+        assert_eq!(forward.to_flat(), backward.to_flat());
+        assert_eq!(forward.stage(5), 3);
+    }
+
+    /// A client reporting less damage than the server already has must not be
+    /// able to bring a mined rock back.
+    #[test]
+    fn a_late_report_cannot_repair_a_rock() {
+        let mut server = Ledger::new();
+        server.record(9, 3);
+        let mut stale = Ledger::new();
+        stale.record(9, 1);
+        server.merge(&stale);
+        assert_eq!(server.stage(9), 3);
+    }
+
+    #[test]
+    fn merging_nothing_changes_nothing() {
+        let mut a = Ledger::new();
+        a.record(4, 2);
+        let before = a.to_flat();
+        a.merge(&Ledger::new());
+        assert_eq!(a.to_flat(), before);
     }
 }
