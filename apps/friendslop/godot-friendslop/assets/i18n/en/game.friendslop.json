@@ -58,9 +58,10 @@
 		"roster": "{{count}} here — {{names}}"
 	},
 	"prompt": {
-		"talk": "[{{key}}]  Talk to {{name}}"
+		"talk": "[{{key}}]  Talk"
 	},
 	"dlg": {
-		"continue": "[{{key}}]  Continue"
+		"continue": "[{{key}}]  Continue",
+		"close": "Leave the conversation"
 	}
 }

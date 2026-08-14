@@ -18,6 +18,8 @@ const PANEL_MARGIN := Vector2(90.0, 40.0)
 const BACKDROP := Color(0.07, 0.06, 0.05, 0.82)
 const NAME_FONT := 26
 const LINE_FONT := 20
+const CLOSE_FONT := 22
+const CLOSE_SIZE := 34.0
 
 ## Characters a second the line is written at. Fast enough to read along with, slow enough
 ## that it reads as somebody speaking.
@@ -114,10 +116,16 @@ func _build() -> void:
 	column.add_theme_constant_override("separation", 10)
 	frame.add_child(column)
 
+	var header := HBoxContainer.new()
+	column.add_child(header)
+
 	_name_label = Label.new()
 	_name_label.add_theme_font_size_override("font_size", NAME_FONT)
 	_name_label.add_theme_color_override("font_color", MenuStyle.PAPER_HOVER)
-	column.add_child(_name_label)
+	_name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(_name_label)
+
+	header.add_child(_close_button())
 
 	_line_label = Label.new()
 	_line_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -134,6 +142,24 @@ func _build() -> void:
 	_hint.add_theme_font_size_override("font_size", 14)
 	_hint.add_theme_color_override("font_color", MenuStyle.PAPER)
 	column.add_child(_hint)
+
+
+## A way out that does not need the player to know which key leaves. Kept off the focus
+## chain, or the first reply would no longer be what a keyboard lands on.
+func _close_button() -> Button:
+	var out := Button.new()
+	out.name = "Close"
+	out.text = "✕"
+	out.flat = true
+	out.tooltip_text = I18n.t("dlg.close")
+	out.focus_mode = Control.FOCUS_NONE
+	out.custom_minimum_size = Vector2(CLOSE_SIZE, CLOSE_SIZE)
+	out.add_theme_font_size_override("font_size", CLOSE_FONT)
+	out.add_theme_color_override("font_color", MenuStyle.PAPER)
+	out.add_theme_color_override("font_hover_color", MenuStyle.PAPER_HOVER)
+	out.add_theme_color_override("font_pressed_color", MenuStyle.PAPER_PRESSED)
+	out.pressed.connect(close)
+	return out
 
 
 ## Redrawn whenever the runner moves, which is the only thing that changes what is on

@@ -32,6 +32,8 @@ const GROUP := &"interactable"
 ## Clearance over the top of the head for the nameplate.
 @export var nameplate_clearance := 0.35
 @export var nameplate_range := 40.0
+## How far under the name the offer to talk sits.
+@export var prompt_drop := 0.28
 
 @export_group("Placing")
 ## Puts him beside the crossing rather than wherever the scene was saved with him, since
@@ -46,6 +48,7 @@ var rig: Node3D
 
 var _terrain: Node
 var _nameplate: Label3D
+var _prompt: Label3D
 
 
 func _ready() -> void:
@@ -77,30 +80,53 @@ func _build_body() -> void:
 	add_child(rig)
 
 
-## Hung off the actor rather than the rig so it stays put while he turns.
+## Hung off the actor rather than the rig so it stays put while he turns. Built for anyone
+## with a name to show, which the catalog answers even when no local key was set.
 func _build_nameplate() -> void:
-	if display_name_key == "":
+	if display_name_key == "" and npc_ref == "":
 		return
-	_nameplate = Label3D.new()
-	_nameplate.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	_nameplate.double_sided = true
-	_nameplate.fixed_size = true
-	_nameplate.pixel_size = 0.0004
-	_nameplate.font_size = 64
-	_nameplate.outline_size = 20
-	_nameplate.visibility_range_end = nameplate_range
-	_nameplate.visibility_range_end_margin = 8.0
-	_nameplate.modulate = Color(1, 0.93, 0.8)
-	_nameplate.outline_modulate = Color(0.05, 0.04, 0.08)
-	_nameplate.position = Vector3(0.0, _head_height() + nameplate_clearance, 0.0)
-	add_child(_nameplate)
+	var head := _head_height() + nameplate_clearance
+	_nameplate = _floating_label(head, 64, Color(1, 0.93, 0.8))
+	_prompt = _floating_label(head - prompt_drop, 44, MenuStyle.PAPER_HOVER)
+	_prompt.visible = false
 	_refresh_name()
 	I18n.locale_changed.connect(_refresh_name)
+
+
+func _floating_label(height: float, size: int, tint: Color) -> Label3D:
+	var label := Label3D.new()
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.double_sided = true
+	label.fixed_size = true
+	label.pixel_size = 0.0004
+	label.font_size = size
+	label.outline_size = 20
+	label.visibility_range_end = nameplate_range
+	label.visibility_range_end_margin = 8.0
+	label.modulate = tint
+	label.outline_modulate = Color(0.05, 0.04, 0.08)
+	label.position = Vector3(0.0, height, 0.0)
+	add_child(label)
+	return label
 
 
 func _refresh_name() -> void:
 	if _nameplate:
 		_nameplate.text = display_name()
+
+
+## The offer to talk, written where the player is already looking rather than at the foot
+## of the screen. Driven by whoever is doing the reaching, so only the nearest is asked.
+func offer_talk(key: String) -> void:
+	if _prompt == null:
+		return
+	_prompt.text = I18n.t("prompt.talk", {"key": key})
+	_prompt.visible = true
+
+
+func withdraw_talk() -> void:
+	if _prompt:
+		_prompt.visible = false
 
 
 ## The catalog knows his name; a key overrides it where a locale has one.
