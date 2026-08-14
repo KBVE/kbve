@@ -1,4 +1,4 @@
-[gd_scene load_steps=44 format=3]
+[gd_scene load_steps=45 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://src/ui/touch_controls.gd" id="28_touch"]
@@ -8,6 +8,7 @@
 [ext_resource type="Shader" path="res://assets/environment/skyboxes/sky.gdshader" id="6_sky"]
 [ext_resource type="Script" path="res://src/world/day_night.gd" id="7_daynight"]
 [ext_resource type="Script" path="res://src/characters/creature_spawner.gd" id="30_creatures"]
+[ext_resource type="Script" path="res://src/npc/npc_actor.gd" id="44_npc"]
 [ext_resource type="Script" path="res://src/world/wind.gd" id="8_wind"]
 [ext_resource type="Script" path="res://src/world/climate.gd" id="9_climate"]
 [ext_resource type="Script" path="res://src/debug/debug_tools.gd" id="10_debug"]
@@ -169,6 +170,19 @@ environment_node = NodePath("../WorldEnvironment")
 
 [node name="Player" parent="." instance=ExtResource("5_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
+
+[node name="Marlow" type="Node3D" parent="."]
+script = ExtResource("44_npc")
+display_name_key = "npc.marlow.name"
+dialogue_path = "res://assets/dialogue/marlow.json"
+terrain_path = NodePath("../Terrain")
+body = ExtResource("34_body")
+attachments = Array[PackedScene]([ExtResource("35_hair")])
+animation_sources = Array[PackedScene]([ExtResource("36_ual1"), ExtResource("37_ual2")])
+idle_animation = "UAL1/Idle_LookAround"
+skin_color = Color(0.94, 0.83, 0.72, 1)
+hair_color = Color(0.16, 0.13, 0.11, 1)
+stand_under_bridge = true
 
 [node name="CharacterProbe" type="Node3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 2)
