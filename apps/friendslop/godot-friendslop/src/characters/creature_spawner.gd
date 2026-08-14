@@ -66,6 +66,12 @@ var _terrain: Node
 ## is built without it and rebuilt once it lands.
 var _scatter_tries := 20
 var _scatter_wait := 0.0
+## The world is generated off-thread and this spawner defers itself by a single
+## frame, so the first _build_field runs while height_grid() is still empty and
+## returns at its guard. Retried until the terrain actually has heights: without
+## this the field only ever appears if scatter happens to land first, and a
+## creature that needs a route around the river never gets one.
+var _field_tries := 60
 
 
 func _ready() -> void:
@@ -190,7 +196,15 @@ func _obstacle_discs(path: NodePath, fallback: String) -> PackedFloat32Array:
 
 
 func _physics_process(delta: float) -> void:
-	if _scatter_tries > 0:
+	if field == null and _field_tries > 0:
+		_scatter_wait -= delta
+		if _scatter_wait <= 0.0:
+			_scatter_wait = 0.5
+			_field_tries -= 1
+			_build_field(_terrain)
+			if field != null and field_debug:
+				print("creature_spawner: field built once the terrain was ready")
+	elif _scatter_tries > 0:
 		_scatter_wait -= delta
 		if _scatter_wait <= 0.0:
 			_scatter_wait = 0.5
