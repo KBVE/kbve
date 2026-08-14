@@ -91,7 +91,9 @@ void main() {
         }
         float d = distance(vec2(x, z), pc.cam.xz);
         float keep = RANK_FADE > 0.5 ? 1.0 - smoothstep(FADE_END * 0.7, FADE_END, d) : 1.0;
-        alive = d >= DIST_MIN && d < FADE_END && rank <= keep;
+        // Slot 7 is the harvested flag. A felled instance stays in the buffer so
+        // every index after it holds still, and is culled here instead.
+        alive = d >= DIST_MIN && d < FADE_END && rank <= keep && cand.data[src + 7u] < 0.5;
         if (BAND1 > BAND0) {
             float bf = smoothstep(BAND0, BAND1, d);
             fade = mix(bf, 1.0 - bf, BAND_OUT);
@@ -467,6 +469,20 @@ impl FloraCompute {
 
     pub fn cap(&self) -> u32 {
         self.cap
+    }
+
+    /// Marks one candidate harvested, so the cull pass drops it from here on.
+    ///
+    /// Patches the one float rather than re-uploading the buffer: felling is
+    /// rare, but the buffer is every tree in the window.
+    pub fn set_harvested(&mut self, index: u32, harvested: bool) {
+        if !self.online() || index >= self.count {
+            return;
+        }
+        let v: f32 = if harvested { 1.0 } else { 0.0 };
+        let bytes = PackedByteArray::from(v.to_le_bytes().as_slice());
+        self.rd
+            .buffer_update(self.cand_buf, (index * 8 + 7) * 4, 4, &bytes);
     }
 
     pub fn set_visible(&mut self, visible: bool) {
