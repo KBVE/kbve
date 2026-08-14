@@ -8,9 +8,7 @@ use std::marker::PhantomData;
 
 use godot::prelude::*;
 
-pub use crate::harvest::{
-    DropEntry, HarvestKind, HarvestOutcome, HarvestTarget, Ledger, Stone, Tree, hash64, stable_id,
-};
+pub use crate::harvest::{HarvestKind, HarvestOutcome, Ledger, Stone, Tree, hash64, stable_id};
 
 #[derive(Clone, Copy)]
 pub struct Entry {
