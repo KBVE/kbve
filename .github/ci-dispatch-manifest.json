@@ -1322,7 +1322,8 @@
 			"runner": "ubuntu-latest",
 			"external_publish": {
 				"itch_user": "kbve",
-				"itch_game": "friendslop"
+				"itch_game": "friendslop",
+				"notarize": true
 			}
 		}
 	],

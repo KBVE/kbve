@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+	Hardened-runtime entitlements for notarized Godot exports.
+
+	Deliberately empty. A GDExtension game usually needs
+	com.apple.security.cs.disable-library-validation because the .app loads a dylib
+	the bundle did not sign — but the export pipeline signs the extension with the
+	same Developer ID as the bundle, so library validation is satisfied without
+	weakening it. Apple has been tightening review on that entitlement; do not add
+	it back unless a launch actually fails with a code-signing rejection on the
+	extension, and prefer fixing the signature over granting the exemption.
+
+	The app sandbox is off in the export preset, so no network entitlement is
+	needed for the WebSocket session. Godot 4 has no JIT, so allow-jit and
+	allow-unsigned-executable-memory are not needed either.
+-->
+<plist version="1.0">
+<dict/>
+</plist>
