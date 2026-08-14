@@ -1,4 +1,4 @@
-[gd_scene load_steps=45 format=3]
+[gd_scene load_steps=44 format=3]
 
 [ext_resource type="Script" path="res://src/main.gd" id="1_main"]
 [ext_resource type="Script" path="res://src/ui/touch_controls.gd" id="28_touch"]
@@ -32,7 +32,6 @@
 [ext_resource type="PackedScene" path="res://assets/environment/props/fauna/lizardfish/lizardfish.glb" id="39_fishmodel"]
 [ext_resource type="Material" path="res://assets/environment/props/fauna/lizardfish/fish.tres" id="40_fishmat"]
 [ext_resource type="Material" path="res://assets/environment/props/fauna/lizardfish/fish_shadow.tres" id="43_fishshadowmat"]
-[ext_resource type="Script" path="res://src/characters/character_rig.gd" id="33_rig"]
 [ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/models/Regular_Male_FullBody.glb" id="34_body"]
 [ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/models/hair/Hair_Ponytail.glb" id="35_hair"]
 [ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/animations/UAL1.glb" id="36_ual1"]
@@ -182,15 +181,6 @@ idle_animation = "UAL1/Idle_LookAround"
 skin_color = Color(0.94, 0.83, 0.72, 1)
 hair_color = Color(0.16, 0.13, 0.11, 1)
 stand_under_bridge = true
-
-[node name="CharacterProbe" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 2)
-script = ExtResource("33_rig")
-body = ExtResource("34_body")
-attachments = Array[PackedScene]([ExtResource("35_hair")])
-terrain_path = NodePath("../Terrain")
-animation_sources = Array[PackedScene]([ExtResource("36_ual1"), ExtResource("37_ual2")])
-default_animation = "UAL1/Idle_LookAround"
 
 [node name="FishField" type="QFishField" parent="."]
 terrain_path = NodePath("../Terrain")
