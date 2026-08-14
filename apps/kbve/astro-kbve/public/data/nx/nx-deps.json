@@ -1,8 +1,8 @@
 {
-	"generated_at": "2026-08-13T03:30:54Z",
+	"generated_at": "2026-08-14T03:28:25Z",
 	"node": {
-		"count": 127,
-		"major": 23,
+		"count": 119,
+		"major": 22,
 		"items": [
 			{
 				"name": "@astrojs/starlight",
@@ -54,9 +54,9 @@
 			},
 			{
 				"name": "@bufbuild/protobuf",
-				"current": "2.12.1",
-				"wanted": "2.12.1",
-				"latest": "2.13.0",
+				"current": "2.13.0",
+				"wanted": "2.13.0",
+				"latest": "2.14.0",
 				"type": "dependencies",
 				"major": false
 			},
@@ -122,14 +122,6 @@
 				"wanted": "1.0.0",
 				"latest": "1.1.0",
 				"type": "devDependencies",
-				"major": false
-			},
-			{
-				"name": "@novnc/novnc",
-				"current": "1.5.0",
-				"wanted": "1.5.0",
-				"latest": "1.7.0",
-				"type": "dependencies",
 				"major": false
 			},
 			{
@@ -200,7 +192,7 @@
 				"name": "@scalar/api-reference",
 				"current": "1.55.3",
 				"wanted": "1.55.3",
-				"latest": "1.64.1",
+				"latest": "1.65.0",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -208,7 +200,7 @@
 				"name": "@scalar/client-side-rendering",
 				"current": "0.3.1",
 				"wanted": "0.3.1",
-				"latest": "0.3.6",
+				"latest": "0.3.7",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -272,14 +264,6 @@
 				"name": "@tanstack/query-core",
 				"current": "5.100.5",
 				"wanted": "5.100.5",
-				"latest": "5.101.4",
-				"type": "dependencies",
-				"major": false
-			},
-			{
-				"name": "@tanstack/react-query",
-				"current": "5.101.2",
-				"wanted": "5.101.2",
 				"latest": "5.101.4",
 				"type": "dependencies",
 				"major": false
@@ -406,16 +390,16 @@
 			},
 			{
 				"name": "@typescript-eslint/eslint-plugin",
-				"current": "8.64.0",
-				"wanted": "8.64.0",
+				"current": "8.66.0",
+				"wanted": "8.66.0",
 				"latest": "8.67.0",
 				"type": "devDependencies",
 				"major": false
 			},
 			{
 				"name": "@typescript-eslint/parser",
-				"current": "8.64.0",
-				"wanted": "8.64.0",
+				"current": "8.66.0",
+				"wanted": "8.66.0",
 				"latest": "8.67.0",
 				"type": "devDependencies",
 				"major": false
@@ -501,14 +485,6 @@
 				"major": false
 			},
 			{
-				"name": "babel-preset-expo",
-				"current": "57.0.5",
-				"wanted": "57.0.5",
-				"latest": "57.0.6",
-				"type": "dependencies",
-				"major": false
-			},
-			{
 				"name": "canvaskit-wasm",
 				"current": "0.41.0",
 				"wanted": "0.41.0",
@@ -546,14 +522,6 @@
 				"wanted": "3.4.11",
 				"latest": "3.4.13",
 				"type": "dependencies",
-				"major": false
-			},
-			{
-				"name": "esbuild",
-				"current": "0.28.0",
-				"wanted": "0.28.0",
-				"latest": "0.28.2",
-				"type": "devDependencies",
 				"major": false
 			},
 			{
@@ -627,14 +595,6 @@
 				"latest": "25.9.23",
 				"type": "dependencies",
 				"major": false
-			},
-			{
-				"name": "framer-motion",
-				"current": "12.42.2",
-				"wanted": "12.42.2",
-				"latest": "13.1.0",
-				"type": "dependencies",
-				"major": true
 			},
 			{
 				"name": "happy-dom",
@@ -712,7 +672,7 @@
 				"name": "mdream",
 				"current": "1.4.1",
 				"wanted": "1.4.1",
-				"latest": "1.6.2",
+				"latest": "1.6.3",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -721,30 +681,6 @@
 				"current": "11.15.0",
 				"wanted": "11.15.0",
 				"latest": "11.16.1",
-				"type": "devDependencies",
-				"major": false
-			},
-			{
-				"name": "monocart-reporter",
-				"current": "2.11.2",
-				"wanted": "2.11.2",
-				"latest": "2.12.4",
-				"type": "devDependencies",
-				"major": false
-			},
-			{
-				"name": "n8ao",
-				"current": "2.0.0",
-				"wanted": "2.0.0",
-				"latest": "2.0.1",
-				"type": "dependencies",
-				"major": false
-			},
-			{
-				"name": "nanostores",
-				"current": "1.4.0",
-				"wanted": "1.4.0",
-				"latest": "1.4.2",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -816,7 +752,7 @@
 				"name": "react-native-gesture-handler",
 				"current": "2.32.0",
 				"wanted": "2.32.0",
-				"latest": "3.1.0",
+				"latest": "3.2.0",
 				"type": "dependencies",
 				"major": true
 			},
@@ -832,7 +768,7 @@
 				"name": "react-native-safe-area-context",
 				"current": "5.7.0",
 				"wanted": "5.7.0",
-				"latest": "5.8.1",
+				"latest": "5.9.0",
 				"type": "dependencies",
 				"major": false
 			},
@@ -1023,7 +959,7 @@
 		]
 	},
 	"rust": {
-		"count": 214,
+		"count": 235,
 		"major": 1,
 		"items": [
 			{
@@ -1909,6 +1845,84 @@
 				"major": false
 			},
 			{
+				"name": "icu_collator",
+				"current": "2.2.1",
+				"latest": "2.3.0",
+				"major": false
+			},
+			{
+				"name": "icu_collator_data",
+				"current": "2.2.0",
+				"latest": "2.3.0",
+				"major": false
+			},
+			{
+				"name": "icu_collections",
+				"current": "2.2.0",
+				"latest": "2.3.0",
+				"major": false
+			},
+			{
+				"name": "icu_locale",
+				"current": "2.2.0",
+				"latest": "2.3.0",
+				"major": false
+			},
+			{
+				"name": "icu_locale_core",
+				"current": "2.2.0",
+				"latest": "2.3.0",
+				"major": false
+			},
+			{
+				"name": "icu_locale_data",
+				"current": "2.2.0",
+				"latest": "2.3.0",
+				"major": false
+			},
+			{
+				"name": "icu_normalizer",
+				"current": "2.2.0",
+				"latest": "2.3.0",
+				"major": false
+			},
+			{
+				"name": "icu_normalizer_data",
+				"current": "2.2.0",
+				"latest": "2.3.0",
+				"major": false
+			},
+			{
+				"name": "icu_properties",
+				"current": "2.2.0",
+				"latest": "2.3.0",
+				"major": false
+			},
+			{
+				"name": "icu_properties_data",
+				"current": "2.2.0",
+				"latest": "2.3.0",
+				"major": false
+			},
+			{
+				"name": "icu_provider",
+				"current": "2.2.0",
+				"latest": "2.3.0",
+				"major": false
+			},
+			{
+				"name": "icu_segmenter",
+				"current": "2.2.0",
+				"latest": "2.3.0",
+				"major": false
+			},
+			{
+				"name": "icu_segmenter_data",
+				"current": "2.2.0",
+				"latest": "2.3.0",
+				"major": false
+			},
+			{
 				"name": "impl-more",
 				"current": "0.3.1",
 				"latest": "0.3.5",
@@ -1963,6 +1977,12 @@
 				"major": false
 			},
 			{
+				"name": "litemap",
+				"current": "0.8.2",
+				"latest": "0.8.3",
+				"major": false
+			},
+			{
 				"name": "lru",
 				"current": "0.18.1",
 				"latest": "0.18.2",
@@ -1993,6 +2013,12 @@
 				"major": false
 			},
 			{
+				"name": "obvhs",
+				"current": "0.3.2",
+				"latest": "0.3.3",
+				"major": false
+			},
+			{
 				"name": "open",
 				"current": "5.4.0",
 				"latest": "5.4.1",
@@ -2001,31 +2027,37 @@
 			{
 				"name": "pest",
 				"current": "2.8.7",
-				"latest": "2.8.8",
+				"latest": "2.9.0",
 				"major": false
 			},
 			{
 				"name": "pest_derive",
 				"current": "2.8.7",
-				"latest": "2.8.8",
+				"latest": "2.9.0",
 				"major": false
 			},
 			{
 				"name": "pest_generator",
 				"current": "2.8.7",
-				"latest": "2.8.8",
+				"latest": "2.9.0",
 				"major": false
 			},
 			{
 				"name": "pest_meta",
 				"current": "2.8.7",
-				"latest": "2.8.8",
+				"latest": "2.9.0",
 				"major": false
 			},
 			{
 				"name": "portable-atomic",
 				"current": "1.14.0",
 				"latest": "1.15.0",
+				"major": false
+			},
+			{
+				"name": "potential_utf",
+				"current": "0.1.5",
+				"latest": "0.1.6",
 				"major": false
 			},
 			{
@@ -2155,6 +2187,12 @@
 				"major": false
 			},
 			{
+				"name": "tinystr",
+				"current": "0.8.3",
+				"latest": "0.8.4",
+				"major": false
+			},
+			{
 				"name": "tokio-macros",
 				"current": "2.7.1",
 				"latest": "2.7.2",
@@ -2239,6 +2277,12 @@
 				"major": false
 			},
 			{
+				"name": "writeable",
+				"current": "0.6.3",
+				"latest": "0.6.4",
+				"major": false
+			},
+			{
 				"name": "xcursor",
 				"current": "0.3.10",
 				"latest": "0.3.11",
@@ -2281,6 +2325,24 @@
 				"major": false
 			},
 			{
+				"name": "zerotrie",
+				"current": "0.2.4",
+				"latest": "0.2.5",
+				"major": false
+			},
+			{
+				"name": "zerovec",
+				"current": "0.11.6",
+				"latest": "0.11.7",
+				"major": false
+			},
+			{
+				"name": "zerovec-derive",
+				"current": "0.11.3",
+				"latest": "0.11.4",
+				"major": false
+			},
+			{
 				"name": "zlib-rs",
 				"current": "0.6.6",
 				"latest": "0.6.7",
@@ -2312,6 +2374,6 @@
 			}
 		]
 	},
-	"total": 341,
-	"major_total": 24
+	"total": 354,
+	"major_total": 23
 }
