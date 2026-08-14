@@ -41,7 +41,6 @@ fn tag(channel: u8, payload: &[u8]) -> Vec<u8> {
     framed
 }
 
-
 pub struct DualHost {
     ws: Arc<WsHost>,
     udp: Arc<UdpLane>,
@@ -164,7 +163,6 @@ impl Transport for Arc<DualHost> {
         self.ws.peers()
     }
 }
-
 
 pub struct DualClient {
     ws: Arc<WsClient>,
@@ -352,7 +350,7 @@ mod tests {
 
         let body = client.local_body().expect("welcomed");
         let start = host.world_mut().snapshot().body(body).unwrap().iso.pos;
-        client.set_input([1.0, 0.0], false);
+        client.set_input([1.0, 0.0], false, 0.0);
         run(&mut host, &transport, &mut client, &client_transport, 300).await;
         let end = host.world_mut().snapshot().body(body).unwrap().iso.pos;
 
