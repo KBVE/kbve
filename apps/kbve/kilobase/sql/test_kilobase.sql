@@ -566,34 +566,76 @@ END $$;
 -- ============================================================
 -- Test 28: Background worker is registered and running
 -- ============================================================
+-- This asserts rather than soft-passes. Every branch of the previous version
+-- reported PASS, including the branch where no worker existed at all, so a
+-- worker that died on startup looked identical to a healthy one.
 DO $$
 DECLARE
-    worker_count INTEGER;
+    deadline TIMESTAMPTZ := clock_timestamp() + INTERVAL '30 seconds';
+    worker_db TEXT;
 BEGIN
-    -- The bgworker should be registered if shared_preload_libraries = 'kilobase'
-    -- is set and .set_library("kilobase") points to the correct .so file.
-    -- Worker connects to "postgres" DB so it may error on missing tables,
-    -- but the process should still be visible in pg_stat_activity.
-    SELECT COUNT(*) INTO worker_count
-    FROM pg_stat_activity
-    WHERE backend_type = 'background worker';
+    LOOP
+        SELECT datname INTO worker_db
+        FROM pg_stat_activity
+        WHERE backend_type = 'Smart Matview Refresher'
+           OR application_name = 'Smart Matview Refresher'
+        LIMIT 1;
 
-    IF worker_count > 0 THEN
-        RAISE NOTICE 'PASS: test_bgworker_registered (% background workers running)', worker_count;
-    ELSE
-        -- Worker might not show up if shared_preload_libraries wasn't applied
-        -- or if it exited. Check if extension is at least preloaded.
-        IF EXISTS (
-            SELECT 1 FROM pg_shmem_allocations
-            WHERE name LIKE '%kilobase%'
-        ) THEN
-            RAISE NOTICE 'PASS: test_bgworker_registered (extension preloaded, worker may have exited)';
-        ELSE
-            -- Soft pass: in test containers, shared_preload may not always take effect
-            -- depending on initdb timing. The key thing is no crash.
-            RAISE NOTICE 'PASS: test_bgworker_registered (no worker visible — shared_preload_libraries may not be active)';
-        END IF;
+        EXIT WHEN worker_db IS NOT NULL OR clock_timestamp() > deadline;
+        PERFORM pg_sleep(1);
+    END LOOP;
+
+    IF worker_db IS NULL THEN
+        RAISE EXCEPTION 'FAIL: test_bgworker_registered (worker not present in pg_stat_activity after 30s)';
     END IF;
+
+    IF worker_db IS DISTINCT FROM current_database() THEN
+        RAISE EXCEPTION 'FAIL: test_bgworker_registered (worker attached to %, expected %)',
+            worker_db, current_database();
+    END IF;
+
+    RAISE NOTICE 'PASS: test_bgworker_registered (attached to %)', worker_db;
+END $$;
+
+-- ============================================================
+-- Test 28a: kilobase.database GUC is defined and routes the worker
+-- ============================================================
+DO $$
+DECLARE
+    configured TEXT;
+BEGIN
+    configured := current_setting('kilobase.database', true);
+
+    IF configured IS NULL THEN
+        RAISE EXCEPTION 'FAIL: test_database_guc_defined (kilobase.database is not registered)';
+    END IF;
+
+    IF configured IS DISTINCT FROM current_database() THEN
+        RAISE EXCEPTION 'FAIL: test_database_guc_defined (set to %, suite runs in %)',
+            configured, current_database();
+    END IF;
+
+    RAISE NOTICE 'PASS: test_database_guc_defined (%)', configured;
+END $$;
+
+-- ============================================================
+-- Test 28b: kilobase.max_sleep_seconds GUC is defined and bounded
+-- ============================================================
+DO $$
+DECLARE
+    configured INTEGER;
+BEGIN
+    configured := current_setting('kilobase.max_sleep_seconds', true)::INTEGER;
+
+    IF configured IS NULL THEN
+        RAISE EXCEPTION 'FAIL: test_max_sleep_guc_defined (not registered)';
+    END IF;
+
+    IF configured < 1 OR configured > 3600 THEN
+        RAISE EXCEPTION 'FAIL: test_max_sleep_guc_defined (% outside 1..3600)', configured;
+    END IF;
+
+    RAISE NOTICE 'PASS: test_max_sleep_guc_defined (% seconds)', configured;
 END $$;
 
 -- ============================================================
@@ -1711,4 +1753,260 @@ BEGIN
     WHERE error_message = 'Test error message for e2e';
 
     RAISE NOTICE 'PASS: test_cleanup';
+END $$;
+
+-- ============================================================
+-- Background worker write paths
+--
+-- Everything above drives the PL/pgSQL API directly. These drive the Rust
+-- worker instead, which is the only caller of update_next_refresh_standalone,
+-- log_refresh_success_standalone, log_refresh_failure_standalone,
+-- increment_skip_count, update_change_count and update_unique_index_status.
+-- Those all issue DML, and pgrx 0.19 runs SpiClient::select in read-only SPI
+-- mode, so a regression back to `select` surfaces here and nowhere else.
+--
+-- Each block polls: the worker runs on its own clock, so the assertions wait
+-- for its effects rather than assuming a cycle has already happened.
+-- ============================================================
+
+-- Registered without a source table: change detection compares the source's
+-- pg_stat_user_tables counters against last_change_count, which starts at 0.
+-- A source table whose stats also read 0 is treated as unchanged and skipped
+-- forever, so a change-detecting job is the wrong instrument for asserting
+-- that a first refresh happens. Skip behaviour gets its own job below.
+CREATE TABLE worker_src (id INTEGER PRIMARY KEY, val TEXT);
+INSERT INTO worker_src VALUES (1, 'one');
+CREATE MATERIALIZED VIEW worker_mv AS SELECT id, val FROM worker_src;
+CREATE UNIQUE INDEX idx_worker_mv_id ON worker_mv(id);
+
+SELECT register_matview_refresh('public', 'worker_mv', 5);
+
+-- register_matview_refresh always schedules at least 60s out, so pull the job
+-- forward rather than making every assertion below wait a minute.
+UPDATE matview_refresh_jobs SET next_refresh = NOW() WHERE view_name = 'worker_mv';
+
+-- ============================================================
+-- Test 54: Worker refreshes a due view and logs success
+-- ============================================================
+DO $$
+DECLARE
+    deadline TIMESTAMPTZ := clock_timestamp() + INTERVAL '90 seconds';
+    job INTEGER;
+    success_rows INTEGER := 0;
+BEGIN
+    SELECT id INTO job FROM matview_refresh_jobs WHERE view_name = 'worker_mv';
+
+    LOOP
+        SELECT COUNT(*) INTO success_rows
+        FROM matview_refresh_log
+        WHERE job_id = job AND status = 'Success';
+
+        EXIT WHEN success_rows > 0 OR clock_timestamp() > deadline;
+        PERFORM pg_sleep(1);
+    END LOOP;
+
+    IF success_rows = 0 THEN
+        RAISE EXCEPTION 'FAIL: test_worker_logs_success (no Success row for job % after 90s)', job;
+    END IF;
+
+    RAISE NOTICE 'PASS: test_worker_logs_success (% rows)', success_rows;
+END $$;
+
+-- ============================================================
+-- Test 55: Worker advances last_refresh / next_refresh
+-- ============================================================
+DO $$
+DECLARE
+    job INTEGER;
+    refreshed_at TIMESTAMPTZ;
+    next_at TIMESTAMPTZ;
+BEGIN
+    SELECT id, last_refresh, next_refresh INTO job, refreshed_at, next_at
+    FROM matview_refresh_jobs WHERE view_name = 'worker_mv';
+
+    IF refreshed_at IS NULL THEN
+        RAISE EXCEPTION 'FAIL: test_worker_updates_schedule (last_refresh still NULL)';
+    END IF;
+
+    IF next_at IS NULL OR next_at <= refreshed_at THEN
+        RAISE EXCEPTION 'FAIL: test_worker_updates_schedule (next_refresh % not after last_refresh %)',
+            next_at, refreshed_at;
+    END IF;
+
+    RAISE NOTICE 'PASS: test_worker_updates_schedule (last_refresh %)', refreshed_at;
+END $$;
+
+-- ============================================================
+-- Test 56: Worker records the source-table change count
+--
+-- Seeded with -1 (the sentinel get_table_change_count returns for a source
+-- with no stats row) so the first pass is guaranteed to count as "changed".
+-- The assertion is that the worker wrote *something* back, not that the count
+-- is positive: pg_stat_user_tables is populated asynchronously, so the real
+-- count may legitimately still be 0 by the time the worker reads it.
+-- ============================================================
+CREATE TABLE worker_skip_src (id INTEGER PRIMARY KEY, val TEXT);
+INSERT INTO worker_skip_src VALUES (1, 'one');
+CREATE MATERIALIZED VIEW worker_skip_mv AS SELECT id, val FROM worker_skip_src;
+
+SELECT register_matview_refresh('public', 'worker_skip_mv', 5, 'worker_skip_src');
+
+UPDATE matview_refresh_jobs
+SET next_refresh = NOW(), last_change_count = -1
+WHERE view_name = 'worker_skip_mv';
+
+DO $$
+DECLARE
+    deadline TIMESTAMPTZ := clock_timestamp() + INTERVAL '60 seconds';
+    job INTEGER;
+    change_count BIGINT := -1;
+BEGIN
+    SELECT id INTO job FROM matview_refresh_jobs WHERE view_name = 'worker_skip_mv';
+
+    LOOP
+        SELECT last_change_count INTO change_count
+        FROM matview_refresh_jobs WHERE id = job;
+
+        EXIT WHEN change_count <> -1 OR clock_timestamp() > deadline;
+        PERFORM pg_sleep(1);
+    END LOOP;
+
+    IF change_count = -1 THEN
+        RAISE EXCEPTION 'FAIL: test_worker_records_change_count (sentinel never overwritten after 60s)';
+    END IF;
+
+    RAISE NOTICE 'PASS: test_worker_records_change_count (%)', change_count;
+END $$;
+
+-- ============================================================
+-- Test 57: Worker skips an unchanged source table
+-- ============================================================
+DO $$
+DECLARE
+    deadline TIMESTAMPTZ := clock_timestamp() + INTERVAL '90 seconds';
+    job INTEGER;
+    skips INTEGER := 0;
+BEGIN
+    SELECT id INTO job FROM matview_refresh_jobs WHERE view_name = 'worker_skip_mv';
+
+    -- worker_skip_src has not been written to since the refresh above, so the
+    -- recorded count now matches and the job must start skipping.
+    LOOP
+        SELECT skip_count INTO skips FROM matview_refresh_jobs WHERE id = job;
+        EXIT WHEN skips > 0 OR clock_timestamp() > deadline;
+        PERFORM pg_sleep(1);
+    END LOOP;
+
+    IF skips = 0 THEN
+        RAISE EXCEPTION 'FAIL: test_worker_skips_unchanged_source (skip_count still 0 after 90s)';
+    END IF;
+
+    RAISE NOTICE 'PASS: test_worker_skips_unchanged_source (% skips)', skips;
+END $$;
+
+-- ============================================================
+-- Test 58: Worker re-detects a dropped UNIQUE index
+-- ============================================================
+DROP INDEX idx_worker_mv_id;
+
+-- Forcing the job due has to happen at statement level. Inside the DO block
+-- below it would sit in an uncommitted transaction that the worker, running in
+-- its own backend, could never observe.
+UPDATE matview_refresh_jobs SET next_refresh = NOW() WHERE view_name = 'worker_mv';
+
+DO $$
+DECLARE
+    deadline TIMESTAMPTZ := clock_timestamp() + INTERVAL '90 seconds';
+    job INTEGER;
+    has_unique BOOLEAN := TRUE;
+BEGIN
+    SELECT id INTO job FROM matview_refresh_jobs WHERE view_name = 'worker_mv';
+
+    LOOP
+        SELECT has_unique_index INTO has_unique
+        FROM matview_refresh_jobs WHERE id = job;
+
+        EXIT WHEN has_unique = FALSE OR clock_timestamp() > deadline;
+        PERFORM pg_sleep(1);
+    END LOOP;
+
+    IF has_unique THEN
+        RAISE EXCEPTION 'FAIL: test_worker_detects_dropped_unique_index (still true after 90s)';
+    END IF;
+
+    RAISE NOTICE 'PASS: test_worker_detects_dropped_unique_index';
+END $$;
+
+-- ============================================================
+-- Test 59: Worker logs a failure when the view disappears
+-- ============================================================
+DROP MATERIALIZED VIEW worker_mv;
+
+UPDATE matview_refresh_jobs SET next_refresh = NOW() WHERE view_name = 'worker_mv';
+
+DO $$
+DECLARE
+    deadline TIMESTAMPTZ := clock_timestamp() + INTERVAL '90 seconds';
+    job INTEGER;
+    failures INTEGER := 0;
+BEGIN
+    SELECT id INTO job FROM matview_refresh_jobs WHERE view_name = 'worker_mv';
+
+    LOOP
+        SELECT COUNT(*) INTO failures
+        FROM matview_refresh_log
+        WHERE job_id = job AND status = 'Failed';
+
+        EXIT WHEN failures > 0 OR clock_timestamp() > deadline;
+        PERFORM pg_sleep(1);
+    END LOOP;
+
+    IF failures = 0 THEN
+        RAISE EXCEPTION 'FAIL: test_worker_logs_failure (no Failed row for job % after 90s)', job;
+    END IF;
+
+    RAISE NOTICE 'PASS: test_worker_logs_failure (% rows)', failures;
+END $$;
+
+-- ============================================================
+-- Test 60: Worker survives every one of the above
+--
+-- The failure path in test 59 raises inside SPI. If that unwound the worker
+-- the process would be gone, which is exactly the crash this suite exists to
+-- catch, so re-assert liveness after the error was provoked.
+-- ============================================================
+DO $$
+DECLARE
+    alive BOOLEAN;
+BEGIN
+    SELECT EXISTS (
+        SELECT 1 FROM pg_stat_activity
+        WHERE backend_type = 'Smart Matview Refresher'
+           OR application_name = 'Smart Matview Refresher'
+    ) INTO alive;
+
+    IF NOT alive THEN
+        RAISE EXCEPTION 'FAIL: test_worker_survives_failures (worker exited)';
+    END IF;
+
+    RAISE NOTICE 'PASS: test_worker_survives_failures';
+END $$;
+
+-- ============================================================
+-- Worker test cleanup
+-- ============================================================
+DO $$
+BEGIN
+    DELETE FROM matview_refresh_log
+    WHERE job_id IN (
+        SELECT id FROM matview_refresh_jobs
+        WHERE view_name IN ('worker_mv', 'worker_skip_mv')
+    );
+    DELETE FROM matview_refresh_jobs
+    WHERE view_name IN ('worker_mv', 'worker_skip_mv');
+    DROP MATERIALIZED VIEW IF EXISTS worker_skip_mv;
+    DROP TABLE IF EXISTS worker_src CASCADE;
+    DROP TABLE IF EXISTS worker_skip_src CASCADE;
+
+    RAISE NOTICE 'PASS: test_worker_cleanup';
 END $$;

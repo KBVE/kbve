@@ -77,6 +77,43 @@ extension_sql!(
     requires = ["schema_evolution"]
 );
 
+// The background worker refreshes views through this wrapper rather than
+// issuing REFRESH directly. A REFRESH that raises — a dropped view, a lock
+// timeout, a unique violation during a CONCURRENT refresh — propagates as a
+// Postgres ERROR, and in a background worker that unwinds past the caller's
+// Result handling and terminates the process. PL/pgSQL's EXCEPTION block opens
+// a subtransaction, so the error is caught, the surrounding transaction stays
+// usable, and the failure can be recorded instead of killing the worker.
+//
+// Identifiers are interpolated with %I rather than accepted as ready-made SQL:
+// the function must not be usable as a general statement executor.
+extension_sql!(
+    r#"
+    CREATE OR REPLACE FUNCTION kilobase_try_refresh(
+        p_schema_name TEXT,
+        p_view_name TEXT,
+        p_concurrent BOOLEAN
+    ) RETURNS TEXT AS $$
+    BEGIN
+        IF p_concurrent THEN
+            EXECUTE format('REFRESH MATERIALIZED VIEW CONCURRENTLY %I.%I',
+                           p_schema_name, p_view_name);
+        ELSE
+            EXECUTE format('REFRESH MATERIALIZED VIEW %I.%I',
+                           p_schema_name, p_view_name);
+        END IF;
+        RETURN NULL;
+    EXCEPTION WHEN OTHERS THEN
+        RETURN SQLERRM;
+    END;
+    $$ LANGUAGE plpgsql;
+
+    REVOKE EXECUTE ON FUNCTION kilobase_try_refresh(TEXT, TEXT, BOOLEAN) FROM PUBLIC;
+    "#,
+    name = "try_refresh_helper",
+    requires = ["create_indexes"]
+);
+
 // Helper functions for managing refresh jobs
 extension_sql!(
     r#"

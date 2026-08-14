@@ -20,7 +20,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-get update && apt-get install -y --no-install-recommends postgresql-server-dev-17 && \
     rm -rf /var/lib/apt/lists/*
 
-RUN cargo install cargo-pgrx --version "=0.16.1" --locked
+RUN cargo install cargo-pgrx --version "=0.19.2" --locked
 RUN cargo pgrx init --pg17=/usr/bin/pg_config
 
 WORKDIR /build
@@ -44,8 +44,12 @@ COPY --from=builder /build/target/release/kilobase-pg17/usr/lib/postgresql/17/li
 # Copy the SQL test script to /tests/ (NOT initdb.d — avoid double execution)
 COPY sql/test_kilobase.sql /tests/test_kilobase.sql
 
-# Configure PostgreSQL to preload kilobase
-RUN echo "shared_preload_libraries = 'kilobase'" >> /usr/share/postgresql/postgresql.conf.sample
+# Configure PostgreSQL to preload kilobase. kilobase.database must name the
+# database the suite runs in, otherwise the worker attaches to `postgres`,
+# finds no extension tables there, and never exercises its write paths.
+# max_sleep_seconds is dropped to 1 so a refresh is observable within a test.
+RUN printf "shared_preload_libraries = 'kilobase'\nkilobase.database = 'kilobase_test'\nkilobase.max_sleep_seconds = 1\n" \
+        >> /usr/share/postgresql/postgresql.conf.sample
 
 # The test entrypoint script
 COPY sql/run_tests.sh /run_tests.sh

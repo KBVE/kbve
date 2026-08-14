@@ -2,25 +2,22 @@
 name = "kilobase"
 version = "17.4.1"
 edition = "2021"
-rust-version.workspace = true
+rust-version = "1.96"
 
 [lib]
-crate-type = ["cdylib", "lib"]
-
-[[bin]]
-name = "pgrx_embed_kilobase"
-path = "./src/bin/pgrx_embed.rs"
+crate-type = ["cdylib"]
 
 [features]
 default = ["pg17"]
 pg17 = ["pgrx/pg17", "pgrx-tests/pg17" ]
 pg18 = ["pgrx/pg18", "pgrx-tests/pg18" ]
+pg19 = ["pgrx/pg19", "pgrx-tests/pg19" ]
 pg_test = []
 
 [dependencies]
-thiserror = { workspace = true }
-pgrx = { version = "=0.16.1", default-features = false }
-serde = { workspace = true }
+thiserror = "2.0.12"
+pgrx = { version = "=0.19.2", default-features = false }
+serde = { version = "1.0", features = ["derive"] }
 
 [dev-dependencies]
-pgrx-tests = "=0.16.1"
+pgrx-tests = "=0.19.2"
