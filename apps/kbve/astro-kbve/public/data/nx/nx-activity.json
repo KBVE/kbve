@@ -1,176 +1,180 @@
 {
-  "generated_at": "2026-08-13T03:27:12Z",
+  "generated_at": "2026-08-14T03:24:44Z",
   "window": {
     "days": 7,
-    "since": "2026-08-06T03:27:12Z"
+    "since": "2026-08-07T03:24:44Z"
   },
   "commits": {
-    "total": 322,
-    "authors": 2,
+    "total": 356,
+    "authors": 3,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 222
+        "commits": 250
       },
       {
         "author": "github-actions[bot]",
-        "commits": 100
+        "commits": 103
+      },
+      {
+        "author": "dependabot[bot]",
+        "commits": 3
       }
     ],
     "recent": [
       {
-        "sha": "a0d3251",
+        "sha": "4b15e6e",
         "author": "h0lybyte",
-        "message": "Merge pull request #15622 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/a0d325163ff77ad2d7969ea3307e4a596767472c",
-        "date": "2026-08-13T03:07:30Z"
+        "message": "Merge pull request #15733 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/4b15e6e8ee542b00f72dbb9bcb1138090208c6a3",
+        "date": "2026-08-14T02:19:00Z"
       },
       {
-        "sha": "186068d",
+        "sha": "c03586d",
         "author": "h0lybyte",
-        "message": "chore(friendslop): bump godot pipeline version to 0.1.1 (#15625)",
-        "url": "https://github.com/KBVE/kbve/commit/186068d458fe99f040cdae641c92fb8caabad9b7",
-        "date": "2026-08-13T03:07:18Z"
+        "message": "fix(friendslop): stop foliage cutouts from punching holes in the shadow map (#15731)",
+        "url": "https://github.com/KBVE/kbve/commit/c03586d4b0152b1be7f297fca5952c8a48aba528",
+        "date": "2026-08-14T02:06:43Z"
       },
       {
-        "sha": "c532d62",
+        "sha": "b66a9a8",
         "author": "h0lybyte",
-        "message": "fix(astro-kbve): clear 30 TS errors blocking check (#15624)",
-        "url": "https://github.com/KBVE/kbve/commit/c532d62834b2f84b1858af94bc9fb00d1718864c",
-        "date": "2026-08-13T03:06:59Z"
+        "message": "feat(q): flow field routing for creatures (#15734)",
+        "url": "https://github.com/KBVE/kbve/commit/b66a9a8d4ffa81fd0ee67feb50ed93fbbdb4fe01",
+        "date": "2026-08-14T02:06:29Z"
       },
       {
-        "sha": "5440e74",
+        "sha": "d34e461",
         "author": "github-actions[bot]",
-        "message": "chore(axum-kbve): post-publish sync to v1.0.280 (#15623)",
-        "url": "https://github.com/KBVE/kbve/commit/5440e74430d15dbef7ac927fe9f60913a795e09d",
-        "date": "2026-08-13T02:43:29Z"
+        "message": "chore(friendslop-server): post-publish sync to v0.0.4 (#15735)",
+        "url": "https://github.com/KBVE/kbve/commit/d34e4619a1a3bb56d8f3d30e9049899d2c094676",
+        "date": "2026-08-14T01:52:31Z"
       },
       {
-        "sha": "aab1ee8",
+        "sha": "d79f28c",
         "author": "github-actions[bot]",
-        "message": "chore(friendslop-server): post-publish sync to v0.0.2 (#15621)",
-        "url": "https://github.com/KBVE/kbve/commit/aab1ee8d698d3757f06167993259b3428fbc3989",
-        "date": "2026-08-13T02:21:56Z"
+        "message": "chore(reel): post-publish sync to v0.1.41 (#15732)",
+        "url": "https://github.com/KBVE/kbve/commit/d79f28c60aa868b87a15c134f06679d276ee2c53",
+        "date": "2026-08-14T01:49:35Z"
       },
       {
-        "sha": "c04cfa1",
+        "sha": "a7125f4",
         "author": "h0lybyte",
-        "message": "Merge pull request #15616 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/c04cfa1bb926cb49427dc9e1faed8dadef4e7c19",
-        "date": "2026-08-13T02:10:16Z"
+        "message": "Merge pull request #15725 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/a7125f436542178fd56debf3f506a3691139b8d1",
+        "date": "2026-08-14T01:38:16Z"
       },
       {
-        "sha": "472a389",
+        "sha": "e53a748",
         "author": "h0lybyte",
-        "message": "feat(godot): updating underwater shader.",
-        "url": "https://github.com/KBVE/kbve/commit/472a38940cbb93e7061cf918a9425bab15664050",
-        "date": "2026-08-13T01:21:32Z"
+        "message": "fix(friendslop-server): add jedi crate to docker workspace (#15730)",
+        "url": "https://github.com/KBVE/kbve/commit/e53a748d635b29e8b74793fc1cb75560743092cf",
+        "date": "2026-08-14T01:36:10Z"
       },
       {
-        "sha": "d0114ba",
+        "sha": "ffeed1f",
         "author": "h0lybyte",
-        "message": "feat(godot): updating the water, could be better.",
-        "url": "https://github.com/KBVE/kbve/commit/d0114ba70da6e6dfe29e1206f1c6438be55292e7",
-        "date": "2026-08-13T01:05:06Z"
+        "message": "feat(godot): updating the shadows and minor graphic tweaks.",
+        "url": "https://github.com/KBVE/kbve/commit/ffeed1f64f04cae8ca527c8d91e3cb92448d1a4b",
+        "date": "2026-08-14T01:24:09Z"
       },
       {
-        "sha": "218f6b5",
-        "author": "h0lybyte",
-        "message": "fix(godot): updating the godot shell issue.",
-        "url": "https://github.com/KBVE/kbve/commit/218f6b5280a9dedae8813e81808c3d85b3d23a46",
-        "date": "2026-08-12T23:28:54Z"
+        "sha": "0dc95b4",
+        "author": "github-actions[bot]",
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#15729)",
+        "url": "https://github.com/KBVE/kbve/commit/0dc95b4b21c3c7cd31b531ef332a18da66872e52",
+        "date": "2026-08-14T01:19:11Z"
       },
       {
-        "sha": "211df7a",
+        "sha": "339c8bd",
         "author": "h0lybyte",
-        "message": "chore(godot): including the exr imports.",
-        "url": "https://github.com/KBVE/kbve/commit/211df7a075385c6857eaba37cacecc3315eba4f0",
-        "date": "2026-08-12T23:28:37Z"
+        "message": "chore(godot): updating the lib q.",
+        "url": "https://github.com/KBVE/kbve/commit/339c8bdcd4f36aa0ad1184797a63b58c33656c61",
+        "date": "2026-08-14T01:17:22Z"
       },
       {
-        "sha": "9cb0146",
+        "sha": "3e9f4fa",
         "author": "h0lybyte",
-        "message": "feat(godot): updating the codex entries.",
-        "url": "https://github.com/KBVE/kbve/commit/9cb0146b9dbbd30131f46b3463829780ce62ccd3",
-        "date": "2026-08-12T23:28:14Z"
+        "message": "docs(journal): daily update to the entry.",
+        "url": "https://github.com/KBVE/kbve/commit/3e9f4fa6e5ed5cefdf8d37e6ab57a791a949c444",
+        "date": "2026-08-14T01:17:08Z"
       },
       {
-        "sha": "557bee8",
+        "sha": "7e85f09",
         "author": "h0lybyte",
-        "message": "feat(godot): updating the codex for entries.",
-        "url": "https://github.com/KBVE/kbve/commit/557bee8100c8bd21af322afb4ca86f281c538071",
-        "date": "2026-08-12T22:54:37Z"
+        "message": "chore(kbve): preparing the release of reel v0.1.41.",
+        "url": "https://github.com/KBVE/kbve/commit/7e85f0986ac9a808344fd2ad276a832833ed038f",
+        "date": "2026-08-14T01:15:29Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 199,
+    "merged": 213,
     "recent": [
       {
-        "number": 15575,
-        "title": "chore(deps): bump @pixiv/three-vrm-animation from 3.5.3 to 3.5.5",
-        "user": "dependabot[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15575"
-      },
-      {
-        "number": 15572,
-        "title": "chore(deps): bump phaser from 4.2.0 to 4.2.1",
-        "user": "dependabot[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15572"
-      },
-      {
-        "number": 15569,
-        "title": "chore(deps): bump trybuild from 1.0.118 to 1.0.120",
-        "user": "dependabot[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15569"
-      },
-      {
-        "number": 15622,
-        "title": "Release: 1 fix, 3 chores \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15622"
-      },
-      {
-        "number": 15625,
-        "title": "chore(friendslop): bump godot pipeline version to 0.1.1",
+        "number": 15731,
+        "title": "fix(friendslop): foliage shadows \u2014 stop cutouts holing the shadow map, rebuild the tufts",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15625"
+        "url": "https://github.com/KBVE/kbve/pull/15731"
       },
       {
-        "number": 15624,
-        "title": "fix(astro-kbve): clear 30 TS errors blocking astro-kbve:check",
+        "number": 15733,
+        "title": "Release: 1 feature, 1 fix, 2 chores \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15733"
+      },
+      {
+        "number": 15734,
+        "title": "feat(q): flow field routing for creatures",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15624"
+        "url": "https://github.com/KBVE/kbve/pull/15734"
       },
       {
-        "number": 15623,
-        "title": "Atomic: axum-kbve v1.0.280 post-publish sync",
+        "number": 15735,
+        "title": "Atomic: friendslop-server v0.0.4 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15623"
+        "url": "https://github.com/KBVE/kbve/pull/15735"
       },
       {
-        "number": 15621,
-        "title": "Atomic: friendslop-server v0.0.2 post-publish sync",
+        "number": 15732,
+        "title": "Atomic: reel v0.1.41 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15621"
+        "url": "https://github.com/KBVE/kbve/pull/15732"
       },
       {
-        "number": 15616,
-        "title": "Release: 12 features, 7 fixes, 1 refactor, 3 chores \u2192 Main",
+        "number": 15725,
+        "title": "Release: 2 features, 4 fixes, 1 doc, 3 chores \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15616"
+        "url": "https://github.com/KBVE/kbve/pull/15725"
       },
       {
-        "number": 15620,
-        "title": "refactor(godot): menu components, on top of the projected-book layout",
+        "number": 15730,
+        "title": "fix(friendslop-server): add jedi crate to docker workspace",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15620"
+        "url": "https://github.com/KBVE/kbve/pull/15730"
+      },
+      {
+        "number": 15729,
+        "title": "chore(ci): sync ci-dispatch-manifest",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15729"
+      },
+      {
+        "number": 15728,
+        "title": "fix(friendslop): creatures stop climbing the player and unstick themselves",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/15728"
+      },
+      {
+        "number": 15727,
+        "title": "fix(reel): pick a real media file and reject stream-less sources",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/15727"
       }
     ]
   },
   "issues": {
-    "opened": 205,
-    "closed": 199
+    "opened": 230,
+    "closed": 229
   }
 }
