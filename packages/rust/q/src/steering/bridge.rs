@@ -2,7 +2,7 @@
 
 use godot::prelude::*;
 
-use super::field::{BLOCKED, Field, Grid};
+use super::field::{BLOCKED, Deck, Field, Grid};
 use super::{Config, Mode, Neighbour, Patrol, Sense, Vec2};
 
 fn flat(v: Vector3) -> Vec2 {
@@ -308,6 +308,45 @@ impl QFlowField {
         self.inner
             .grid
             .open_path(flat(from), flat(to), half_width, cost.clamp(1, 254) as u8);
+    }
+
+    /// Closes a band of cells along a line, for a structure that is mostly wall.
+    ///
+    /// Must be called before `inflate` and before `open_path`: a bridge is a
+    /// solid causeway carrying one walkable line, so the band goes down first and
+    /// the line is cut back out of it afterwards.
+    #[func]
+    fn block_path(&mut self, from: Vector3, to: Vector3, half_width: f32) {
+        self.inner.grid.block_path(flat(from), flat(to), half_width);
+    }
+
+    /// Tells the field that a stretch of it is a raised walkway, so a body under
+    /// the thing stops being told to walk on through.
+    ///
+    /// The grid is flat and cannot tell a deck from the riverbed beneath it. This
+    /// is the one exception, and `surface_y` is what separates the two.
+    #[func]
+    fn set_deck(&mut self, from: Vector3, to: Vector3, half_width: f32, surface_y: f32, drop: f32) {
+        self.inner.set_deck(Some(Deck {
+            from: flat(from),
+            to: flat(to),
+            half_width,
+            surface_y,
+            drop,
+        }));
+    }
+
+    #[func]
+    fn clear_deck(&mut self) {
+        self.inner.set_deck(None);
+    }
+
+    /// Whether this point is inside a walkway's footprint but below its surface.
+    /// True means every flat answer the field gives here is about ground the body
+    /// cannot reach, and it should be steered out rather than onward.
+    #[func]
+    fn under_deck(&self, at: Vector3) -> bool {
+        self.inner.under_deck([at.x, at.y, at.z])
     }
 
     /// Grows every obstacle by a body radius, so the routes it hands out fit

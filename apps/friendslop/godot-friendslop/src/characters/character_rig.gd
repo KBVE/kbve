@@ -41,6 +41,8 @@ var ik: SkeletonModifier3D
 var loco := QLocomotion.create()
 
 const IDLE_CLIP := "UAL1/Idle"
+const CROUCH_IDLE_CLIP := "UAL1/Crouch_Idle"
+const ROLL_CLIP := "UAL1/Roll"
 
 ## Take-off and landing are one-shots either side of the airborne loop.
 const JUMP_CHAIN := [
@@ -61,9 +63,30 @@ const CLIMB_CHAIN := [
 	{"from": "climb_high", "to": "move", "at_end": true, "xfade": 0.15},
 ]
 
+## Crouching is entered and left through one-shots, so the body folds down rather than
+## cross-fading into a pose it never took.
+const CROUCH_CHAIN := [
+	{"from": "move", "to": "crouch_enter", "at_end": false, "xfade": 0.10},
+	{"from": "crouch_enter", "to": "crouch", "at_end": true, "xfade": 0.14},
+	{"from": "crouch", "to": "crouch_exit", "at_end": false, "xfade": 0.10},
+	{"from": "crouch_exit", "to": "move", "at_end": true, "xfade": 0.16},
+]
+
+## A roll can be thrown from either stance and always ends standing.
+const ROLL_CHAIN := [
+	{"from": "move", "to": "roll", "at_end": false, "xfade": 0.07},
+	{"from": "crouch", "to": "roll", "at_end": false, "xfade": 0.07},
+	{"from": "crouch_enter", "to": "roll", "at_end": false, "xfade": 0.07},
+	{"from": "roll", "to": "move", "at_end": true, "xfade": 0.18},
+]
+
 ## What each state wants out of a transition into it.
 const STATES := {
 	&"move": {&"clip": "", &"reset": false, &"ik": 1.0},
+	&"crouch": {&"clip": "", &"reset": false, &"ik": 1.0},
+	&"roll": {&"clip": "", &"reset": true, &"ik": 0.15},
+	&"crouch_enter": {&"clip": "UAL1/Crouch_Enter", &"reset": true, &"ik": 0.9},
+	&"crouch_exit": {&"clip": "UAL1/Crouch_Exit", &"reset": true, &"ik": 0.9},
 	&"jump_start": {&"clip": "UAL1/Jump_Start", &"reset": true, &"ik": 0.4},
 	&"jump": {&"clip": "UAL1/Jump", &"reset": true, &"ik": 0.0},
 	&"jump_land": {&"clip": "UAL1/Jump_Land", &"reset": true, &"ik": 0.7},
@@ -77,6 +100,8 @@ const STANCE_STATES := {
 	QLocomotion.STANCE_JUMP: &"jump",
 	QLocomotion.STANCE_CLIMB_LOW: &"climb_low",
 	QLocomotion.STANCE_CLIMB_HIGH: &"climb_high",
+	QLocomotion.STANCE_CROUCH: &"crouch",
+	QLocomotion.STANCE_ROLL: &"roll",
 }
 
 ## Unit ring, counter-clockwise from forward.
@@ -96,6 +121,12 @@ const RING := [
 const GAIT_CLIPS := [
 	{"radius": 1.0, "prefix": "UAL2/Walk_", "side": {"L": "L", "R": "R"}},
 	{"radius": 2.0, "prefix": "UAL1/Jog_", "side": {"L": "Left", "R": "Right"}},
+]
+
+## Crouching has one ring of its own; nothing blends from a crouch to a jog without
+## standing up first, so it does not belong on the ladder above.
+const CROUCH_GAIT_CLIPS := [
+	{"radius": 1.0, "prefix": "UAL1/Crouch_", "side": {"L": "Left", "R": "Right"}},
 ]
 
 ## Per-surface cel shading; see cel_shading.gd for what the fields mean.
@@ -195,14 +226,57 @@ func _build_animation(rig: Node3D) -> void:
 
 
 func _build_tree(rig: Node3D) -> void:
+	var machine := AnimationNodeStateMachine.new()
+	machine.add_node("move", _rescaled(_ring(GAIT_CLIPS, IDLE_CLIP, 2.2)))
+	machine.add_node("crouch", _rescaled(_ring(CROUCH_GAIT_CLIPS, CROUCH_IDLE_CLIP, 1.2)))
+	var roll := _clip(ROLL_CLIP)
+	if roll:
+		machine.add_node("roll", _rescaled(roll))
+	for state in STATES:
+		var clip: String = STATES[state].clip
+		if clip != "":
+			var node := _clip(clip)
+			if node:
+				machine.add_node(state, node)
+	for link in JUMP_CHAIN + CLIMB_CHAIN + CROUCH_CHAIN + ROLL_CHAIN:
+		if not machine.has_node(link.from) or not machine.has_node(link.to):
+			continue
+		machine.add_transition(link.from, link.to, _transition(link))
+
+	tree = AnimationTree.new()
+	tree.tree_root = machine
+	rig.add_child(tree)
+	tree.anim_player = tree.get_path_to(animation)
+	tree.active = true
+	_fit_roll()
+
+
+## `travel` refuses to path through a disabled transition, so a link that is only ever
+## taken by hand still has to be enabled -- what it must not be is AUTO, which would fire
+## it the moment the state is entered. Getting this wrong costs the cross-fade entirely:
+## with no route to the state asked for, playback hard-cuts to it.
+func _transition(link: Dictionary) -> AnimationNodeStateMachineTransition:
+	var t := AnimationNodeStateMachineTransition.new()
+	t.switch_mode = AnimationNodeStateMachineTransition.SWITCH_MODE_AT_END \
+			if link.at_end else AnimationNodeStateMachineTransition.SWITCH_MODE_IMMEDIATE
+	t.advance_mode = AnimationNodeStateMachineTransition.ADVANCE_MODE_AUTO \
+			if link.at_end else AnimationNodeStateMachineTransition.ADVANCE_MODE_ENABLED
+	t.xfade_time = link.xfade
+	t.xfade_curve = _fade_curve()
+	t.reset = STATES[link.to].reset
+	return t
+
+
+## A directional ring of clips around an idle at its centre.
+func _ring(gaits: Array, idle: String, extent: float) -> AnimationNodeBlendSpace2D:
 	var space := AnimationNodeBlendSpace2D.new()
 	space.auto_triangles = true
-	space.min_space = Vector2(-2.2, -2.2)
-	space.max_space = Vector2(2.2, 2.2)
+	space.min_space = Vector2(-extent, -extent)
+	space.max_space = Vector2(extent, extent)
 	space.sync = true
 	space.sync_mode = AnimationNodeBlendSpace2D.SYNC_MODE_CYCLIC_MUTABLE
-	space.add_blend_point(_clip(IDLE_CLIP), Vector2.ZERO, -1, &"idle")
-	for gait in GAIT_CLIPS:
+	space.add_blend_point(_clip(idle), Vector2.ZERO, -1, &"idle")
+	for gait in gaits:
 		for entry in RING:
 			var dir: Vector2 = entry[0]
 			var suffix: String = entry[1]
@@ -212,35 +286,28 @@ func _build_tree(rig: Node3D) -> void:
 			var node := _clip(clip)
 			if node:
 				space.add_blend_point(node, dir * gait.radius, -1, StringName(clip.get_file()))
+	return space
 
-	var move := AnimationNodeBlendTree.new()
-	move.add_node("space", space)
-	move.add_node("scale", AnimationNodeTimeScale.new())
-	move.connect_node("scale", 0, "space")
-	move.connect_node("output", 0, "scale")
 
-	var machine := AnimationNodeStateMachine.new()
-	machine.add_node("move", move)
-	for state in STATES:
-		var clip: String = STATES[state].clip
-		if clip != "":
-			machine.add_node(state, _clip(clip))
-	for link in JUMP_CHAIN + CLIMB_CHAIN:
-		var t := AnimationNodeStateMachineTransition.new()
-		t.switch_mode = AnimationNodeStateMachineTransition.SWITCH_MODE_AT_END \
-				if link.at_end else AnimationNodeStateMachineTransition.SWITCH_MODE_IMMEDIATE
-		t.advance_mode = AnimationNodeStateMachineTransition.ADVANCE_MODE_AUTO \
-				if link.at_end else AnimationNodeStateMachineTransition.ADVANCE_MODE_DISABLED
-		t.xfade_time = link.xfade
-		t.xfade_curve = _fade_curve()
-		t.reset = STATES[link.to].reset
-		machine.add_transition(link.from, link.to, t)
+## Wraps a node so its playback rate can be driven, at `<state>/scale/scale`.
+func _rescaled(inner: AnimationNode) -> AnimationNodeBlendTree:
+	var tree_node := AnimationNodeBlendTree.new()
+	tree_node.add_node("space", inner)
+	tree_node.add_node("scale", AnimationNodeTimeScale.new())
+	tree_node.connect_node("scale", 0, "space")
+	tree_node.connect_node("output", 0, "scale")
+	return tree_node
 
-	tree = AnimationTree.new()
-	tree.tree_root = machine
-	rig.add_child(tree)
-	tree.anim_player = tree.get_path_to(animation)
-	tree.active = true
+
+## The roll clip is authored longer than the roll is allowed to own the body, so it is
+## played at whatever rate makes the two end together.
+func _fit_roll() -> void:
+	if not animation.has_animation(ROLL_CLIP):
+		return
+	var window: float = loco.roll_time()
+	if window <= 0.0:
+		return
+	tree.set("parameters/roll/scale/scale", animation.get_animation(ROLL_CLIP).length / window)
 
 
 ## One curve shared by every transition, since they all want the same easing.
@@ -290,11 +357,13 @@ func wish_direction(input_dir: Vector2, yaw: float) -> Vector3:
 	return loco.wish_direction(Vector2(input_dir.x, -input_dir.y), yaw)
 
 
-## Velocity for one tick.
-func step_motion(input_dir: Vector2, jump: bool, velocity: Vector3, yaw: float,
-		grounded: bool, gravity_y: float, delta: float) -> Vector3:
-	return loco.step_motion(Vector2(input_dir.x, -input_dir.y), jump, velocity,
-			yaw, grounded, gravity_y, delta)
+## Velocity for one tick. `crouch` is held for as long as the stance should last; `roll`
+## is the press that starts one, and is ignored until the roll it started has run out.
+func step_motion(input_dir: Vector2, jump: bool, crouch: bool, roll: bool,
+		velocity: Vector3, yaw: float, grounded: bool, gravity_y: float,
+		delta: float) -> Vector3:
+	return loco.step_motion(Vector2(input_dir.x, -input_dir.y), jump, crouch, roll,
+			velocity, yaw, grounded, gravity_y, delta)
 
 
 func jumped() -> bool:
@@ -315,7 +384,10 @@ func set_locomotion(local_velocity: Vector3, airborne: bool, delta: float) -> vo
 		return
 	loco.step(local_velocity, airborne, delta)
 	tree.set("parameters/move/space/blend_position", loco.blend())
-	tree.set("parameters/move/scale/scale", loco.time_scale())
+	tree.set("parameters/crouch/space/blend_position", loco.crouch_blend())
+	var scale := loco.time_scale()
+	tree.set("parameters/move/scale/scale", scale)
+	tree.set("parameters/crouch/scale/scale", scale)
 	var playback: AnimationNodeStateMachinePlayback = tree.get("parameters/playback")
 	if ik:
 		ik.set_ground_weight(_ground_weight(playback))

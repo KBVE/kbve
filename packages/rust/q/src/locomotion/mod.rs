@@ -29,6 +29,15 @@ pub const GAITS: [Gait; 2] = [
     },
 ];
 
+/// Crouch has one ring of its own rather than a rung on the standing ladder, since
+/// nothing blends between a crouch and a jog without passing through a stand.
+pub const CROUCH_GAIT: Gait = Gait {
+    radius: 1.0,
+    fwd: 0.56,
+    lateral: 0.51,
+    back: 0.69,
+};
+
 /// Which clip set owns the body.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 #[repr(u8)]
@@ -37,6 +46,8 @@ pub enum Stance {
     Jump = 1,
     ClimbLow = 2,
     ClimbHigh = 3,
+    Crouch = 4,
+    Roll = 5,
 }
 
 impl Stance {
@@ -45,6 +56,8 @@ impl Stance {
             1 => Self::Jump,
             2 => Self::ClimbLow,
             3 => Self::ClimbHigh,
+            4 => Self::Crouch,
+            5 => Self::Roll,
             _ => Self::Move,
         }
     }
@@ -69,6 +82,17 @@ pub struct Tuning {
     pub terminal_fall: f32,
     /// Horizontal speed shed per tick when nothing is asking for movement.
     pub stop_rate: f32,
+    /// Crouched top speeds, kept near what the crouch clips were authored for so the
+    /// rescaling stays inside its bounds.
+    pub crouch_speed: f32,
+    pub crouch_back_speed: f32,
+    pub crouch_strafe_speed: f32,
+    /// How long a roll owns the body, and how fast it carries it.
+    pub roll_time: f32,
+    pub roll_speed: f32,
+    /// Airborne this long before the rig is told to leave the move state, so a step off
+    /// a kerb or a frame of float on a slope does not fire the whole jump chain.
+    pub air_grace: f32,
 }
 
 impl Default for Tuning {
@@ -84,6 +108,12 @@ impl Default for Tuning {
             jump_velocity: 4.5,
             terminal_fall: 55.0,
             stop_rate: 5.0,
+            crouch_speed: 0.85,
+            crouch_back_speed: 0.65,
+            crouch_strafe_speed: 0.70,
+            roll_time: 0.85,
+            roll_speed: 6.0,
+            air_grace: 0.12,
         }
     }
 }
@@ -93,6 +123,10 @@ impl Default for Tuning {
 pub struct Intent {
     pub move_axis: [f32; 2],
     pub jump: bool,
+    /// Held, so the stance lasts exactly as long as the key does.
+    pub crouch: bool,
+    /// An edge, not a level: the roll it starts runs to its own end.
+    pub roll: bool,
 }
 
 /// Velocity the body should carry into its collide-and-slide, plus whatever the step
@@ -119,6 +153,9 @@ impl Default for Motion {
 pub struct LocomotionState {
     /// Position in the blend space, in the character's own frame: x right, y forward.
     pub blend: [f32; 2],
+    /// The same heading solved against the crouch ring. Carried every tick rather than
+    /// only while crouched, so the two spaces are both current while they cross-fade.
+    pub crouch_blend: [f32; 2],
     pub time_scale: f32,
     pub stance: Stance,
 }
@@ -127,6 +164,7 @@ impl Default for LocomotionState {
     fn default() -> Self {
         Self {
             blend: [0.0, 0.0],
+            crouch_blend: [0.0, 0.0],
             time_scale: 1.0,
             stance: Stance::Move,
         }
@@ -138,7 +176,15 @@ impl Default for LocomotionState {
 pub struct Locomotion {
     pub tuning: Tuning,
     blend: [f32; 2],
+    crouch_blend: [f32; 2],
     climbing: Option<Stance>,
+    /// Whether the last motion step was taken crouched, which is what decides both the
+    /// speed the body travels and the ring the rig reads.
+    crouched: bool,
+    /// Time left in the roll that owns the body, and the heading it was launched on.
+    roll_t: f32,
+    roll_dir: [f32; 3],
+    air_t: f32,
 }
 
 impl Default for Locomotion {
@@ -152,17 +198,36 @@ impl Locomotion {
         Self {
             tuning,
             blend: [0.0, 0.0],
+            crouch_blend: [0.0, 0.0],
             climbing: None,
+            crouched: false,
+            roll_t: 0.0,
+            roll_dir: [0.0, 0.0, -1.0],
+            air_t: 0.0,
         }
     }
 
-    /// Top speed for a heading.
+    /// Top speed for a heading, in whichever stance the body is currently in.
     pub fn gait_speed(&self, dir: [f32; 2]) -> f32 {
-        if dir[1] < 0.0 {
-            lerp(self.tuning.strafe_speed, self.tuning.back_speed, -dir[1])
+        let t = &self.tuning;
+        let (fwd, back, strafe) = if self.crouched {
+            (t.crouch_speed, t.crouch_back_speed, t.crouch_strafe_speed)
         } else {
-            lerp(self.tuning.strafe_speed, self.tuning.speed, dir[1])
+            (t.speed, t.back_speed, t.strafe_speed)
+        };
+        if dir[1] < 0.0 {
+            lerp(strafe, back, -dir[1])
+        } else {
+            lerp(strafe, fwd, dir[1])
         }
+    }
+
+    pub fn is_crouched(&self) -> bool {
+        self.crouched
+    }
+
+    pub fn is_rolling(&self) -> bool {
+        self.roll_t > 0.0
     }
 
     /// Where the body wants to go, in world space, from an intent and a heading.
@@ -192,18 +257,29 @@ impl Locomotion {
         let mut out = velocity;
         let mut jumped = false;
 
+        self.roll_t = (self.roll_t - dt).max(0.0);
+        if intent.roll && grounded && self.roll_t <= 0.0 && self.climbing.is_none() {
+            self.roll_t = self.tuning.roll_time;
+            self.roll_dir = self.roll_heading(intent.move_axis, yaw);
+        }
+        let rolling = self.roll_t > 0.0;
+        self.crouched = intent.crouch && grounded && !rolling;
+
         if !grounded {
             out[1] += gravity_y * dt;
             out[1] = out[1].max(-self.tuning.terminal_fall);
         }
-        if intent.jump && grounded {
+        if intent.jump && grounded && !rolling {
             out[1] = self.tuning.jump_velocity;
             jumped = true;
         }
 
         let axis = intent.move_axis;
         let length = (axis[0] * axis[0] + axis[1] * axis[1]).sqrt();
-        if length > 0.0001 {
+        if rolling {
+            out[0] = self.roll_dir[0] * self.tuning.roll_speed;
+            out[2] = self.roll_dir[2] * self.tuning.roll_speed;
+        } else if length > 0.0001 {
             let dir = self.wish_direction(axis, yaw);
             let speed = self.gait_speed([axis[0] / length, axis[1] / length]);
             out[0] = dir[0] * speed;
@@ -216,6 +292,17 @@ impl Locomotion {
         Motion {
             velocity: out,
             jumped,
+        }
+    }
+
+    /// A roll thrown with no stick on it goes where the body is looking, rather than
+    /// rolling on the spot.
+    fn roll_heading(&self, move_axis: [f32; 2], yaw: f32) -> [f32; 3] {
+        let dir = self.wish_direction(move_axis, yaw);
+        if dir[0].abs() + dir[2].abs() > 0.0001 {
+            dir
+        } else {
+            self.wish_direction([0.0, 1.0], yaw)
         }
     }
 
@@ -250,22 +337,52 @@ impl Locomotion {
         };
 
         let radius = self.radius_for(speed, dir);
-        let target = [dir[0] * radius, dir[1] * radius];
+        let crouch_radius = self.crouch_radius_for(speed, dir);
         let weight = (self.tuning.blend_sharpness * dt).clamp(0.0, 1.0);
         self.blend = [
-            lerp(self.blend[0], target[0], weight),
-            lerp(self.blend[1], target[1], weight),
+            lerp(self.blend[0], dir[0] * radius, weight),
+            lerp(self.blend[1], dir[1] * radius, weight),
         ];
+        self.crouch_blend = [
+            lerp(self.crouch_blend[0], dir[0] * crouch_radius, weight),
+            lerp(self.crouch_blend[1], dir[1] * crouch_radius, weight),
+        ];
+
+        self.air_t = if airborne { self.air_t + dt } else { 0.0 };
 
         LocomotionState {
             blend: self.blend,
-            time_scale: self.time_scale(speed, dir, radius),
+            crouch_blend: self.crouch_blend,
+            time_scale: if self.crouched {
+                self.crouch_time_scale(speed, dir)
+            } else {
+                self.time_scale(speed, dir, radius)
+            },
             stance: match self.climbing {
                 Some(climb) => climb,
-                None if airborne => Stance::Jump,
+                None if self.roll_t > 0.0 => Stance::Roll,
+                None if self.air_t > self.tuning.air_grace => Stance::Jump,
+                None if self.crouched => Stance::Crouch,
                 None => Stance::Move,
             },
         }
+    }
+
+    /// The crouch ring is a single circle, so the heading only has to be scaled into it
+    /// rather than solved between two rungs.
+    pub fn crouch_radius_for(&self, speed: f32, dir: [f32; 2]) -> f32 {
+        let authored = Self::authored(&CROUCH_GAIT, dir).max(0.01);
+        CROUCH_GAIT.radius * (speed / authored).clamp(0.0, 1.0)
+    }
+
+    /// Under the authored speed the ring pulls toward the crouch idle instead, so only
+    /// the overspeed is taken out on playback.
+    pub fn crouch_time_scale(&self, speed: f32, dir: [f32; 2]) -> f32 {
+        let authored = Self::authored(&CROUCH_GAIT, dir).max(0.01);
+        if speed <= authored {
+            return 1.0;
+        }
+        (speed / authored).clamp(self.tuning.time_scale_min, self.tuning.time_scale_max)
     }
 
     /// Ground speed the blended clip covers in this direction, which is what the ring
@@ -432,19 +549,39 @@ mod tests {
         assert!(settled.blend[1] > 1.9, "settled at {:?}", settled.blend);
     }
 
+    /// Airborne past the grace window, since a single frame off the floor is not a jump.
+    fn airborne(l: &mut Locomotion) -> Stance {
+        let mut stance = Stance::Move;
+        for _ in 0..20 {
+            stance = l.step([0.0; 3], true, 0.016).stance;
+        }
+        stance
+    }
+
     #[test]
     fn airborne_reads_as_jump_but_a_climb_outranks_it() {
         let mut l = loco();
         assert_eq!(l.step([0.0; 3], false, 0.016).stance, Stance::Move);
-        assert_eq!(l.step([0.0; 3], true, 0.016).stance, Stance::Jump);
+        assert_eq!(airborne(&mut l), Stance::Jump);
 
+        l.step([0.0; 3], false, 0.016);
         assert_eq!(l.begin_climb(1.0), Stance::ClimbLow);
-        assert_eq!(l.step([0.0; 3], true, 0.016).stance, Stance::ClimbLow);
+        assert_eq!(airborne(&mut l), Stance::ClimbLow);
         l.end_climb();
-        assert_eq!(l.step([0.0; 3], true, 0.016).stance, Stance::Jump);
+        assert_eq!(airborne(&mut l), Stance::Jump);
 
         assert_eq!(l.begin_climb(2.0), Stance::ClimbHigh);
         l.end_climb();
+    }
+
+    /// A step off a kerb is a frame or two of float, and firing the take-off clip for it
+    /// is exactly the hitch the grace window exists to swallow.
+    #[test]
+    fn a_frame_of_float_is_not_a_jump() {
+        let mut l = loco();
+        for _ in 0..4 {
+            assert_eq!(l.step([0.0; 3], true, 0.016).stance, Stance::Move);
+        }
     }
 
     #[test]
@@ -544,6 +681,7 @@ mod tests {
         let intent = Intent {
             move_axis: [0.0, 0.0],
             jump: true,
+            ..Intent::default()
         };
         let taken = l.step_motion(intent, [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
         assert!(taken.jumped);
@@ -560,7 +698,7 @@ mod tests {
         let moving = l.step_motion(
             Intent {
                 move_axis: FWD,
-                jump: false,
+                ..Intent::default()
             },
             [0.0; 3],
             0.0,
@@ -590,7 +728,7 @@ mod tests {
             let motion = l.step_motion(
                 Intent {
                     move_axis: axis,
-                    jump: false,
+                    ..Intent::default()
                 },
                 [0.0; 3],
                 0.0,
@@ -608,6 +746,150 @@ mod tests {
         }
     }
 
+    fn held(crouch: bool, axis: [f32; 2]) -> Intent {
+        Intent {
+            move_axis: axis,
+            crouch,
+            ..Intent::default()
+        }
+    }
+
+    /// Crouching is a stance, not a speed multiplier bolted on afterwards: the body has
+    /// to actually travel slower for the crouch clips to keep their feet.
+    #[test]
+    fn crouching_slows_the_body_and_switches_the_stance() {
+        let mut l = loco();
+        let standing = l.step_motion(held(false, FWD), [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+        let crouched = l.step_motion(held(true, FWD), [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+        assert!(crouched.velocity[2].abs() < standing.velocity[2].abs());
+        assert!((crouched.velocity[2].abs() - l.tuning.crouch_speed).abs() < 0.001);
+        assert_eq!(l.step([0.0; 3], false, 0.016).stance, Stance::Crouch);
+        assert!(l.is_crouched());
+    }
+
+    #[test]
+    fn crouching_needs_the_floor() {
+        let mut l = loco();
+        l.step_motion(held(true, FWD), [0.0; 3], 0.0, false, -9.8, 1.0 / 60.0);
+        assert!(!l.is_crouched());
+        assert_eq!(airborne(&mut l), Stance::Jump);
+    }
+
+    /// Every crouch heading has to sit inside its own ring, or the space extrapolates
+    /// past the clips it was built from.
+    #[test]
+    fn the_crouch_ring_is_never_left() {
+        let l = loco();
+        for speed in [0.0, 0.3, 0.85, 4.0, 100.0] {
+            for dir in [FWD, BACK, SIDE, [0.707, 0.707]] {
+                let r = l.crouch_radius_for(speed, dir);
+                assert!(
+                    r >= 0.0 && r <= CROUCH_GAIT.radius + 0.001,
+                    "{speed} -> {r}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn a_crouch_clip_at_its_authored_speed_is_not_rescaled() {
+        let l = loco();
+        for (dir, speed) in [
+            (FWD, CROUCH_GAIT.fwd),
+            (BACK, CROUCH_GAIT.back),
+            (SIDE, CROUCH_GAIT.lateral),
+        ] {
+            assert!((l.crouch_time_scale(speed, dir) - 1.0).abs() < 0.001);
+            assert!((l.crouch_radius_for(speed, dir) - CROUCH_GAIT.radius).abs() < 0.001);
+        }
+    }
+
+    /// The crouch top speeds have to stay close enough to the authored ones that the
+    /// rescaling never saturates, since a saturated scale is a skating foot.
+    #[test]
+    fn crouch_top_speeds_do_not_saturate_the_rescaling() {
+        let l = loco();
+        for (dir, speed) in [
+            (FWD, l.tuning.crouch_speed),
+            (BACK, l.tuning.crouch_back_speed),
+            (SIDE, l.tuning.crouch_strafe_speed),
+        ] {
+            let scale = l.crouch_time_scale(speed, dir);
+            assert!(
+                scale < l.tuning.time_scale_max,
+                "{dir:?} saturated at {scale}"
+            );
+        }
+    }
+
+    /// A roll owns the body for its whole length: the stick is ignored, the heading is
+    /// the one it was thrown on, and a jump cannot cut it short.
+    #[test]
+    fn a_roll_keeps_its_heading_and_outranks_the_stick() {
+        let mut l = loco();
+        let start = Intent {
+            move_axis: FWD,
+            roll: true,
+            ..Intent::default()
+        };
+        let first = l.step_motion(start, [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+        assert!(l.is_rolling());
+        assert!((first.velocity[2] + l.tuning.roll_speed).abs() < 0.001);
+        assert_eq!(l.step([0.0; 3], false, 0.016).stance, Stance::Roll);
+
+        let fought = Intent {
+            move_axis: BACK,
+            jump: true,
+            crouch: true,
+            ..Intent::default()
+        };
+        let mid = l.step_motion(fought, first.velocity, 0.0, true, -9.8, 1.0 / 60.0);
+        assert!(!mid.jumped, "a jump cut the roll short");
+        assert!(mid.velocity[2] < 0.0, "the stick turned the roll around");
+        assert!(!l.is_crouched(), "a roll became a crouch mid-way");
+    }
+
+    #[test]
+    fn a_roll_ends_and_can_be_thrown_again() {
+        let mut l = loco();
+        let press = Intent {
+            move_axis: FWD,
+            roll: true,
+            ..Intent::default()
+        };
+        l.step_motion(press, [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+        for _ in 0..60 {
+            l.step_motion(Intent::default(), [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+        }
+        assert!(!l.is_rolling(), "the roll never ended");
+        assert_eq!(l.step([0.0; 3], false, 0.016).stance, Stance::Move);
+        l.step_motion(press, [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+        assert!(l.is_rolling());
+    }
+
+    /// A roll thrown with no stick on it goes where the body faces rather than nowhere.
+    #[test]
+    fn a_standing_roll_goes_forward() {
+        let mut l = loco();
+        let press = Intent {
+            roll: true,
+            ..Intent::default()
+        };
+        let m = l.step_motion(press, [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+        assert!((m.velocity[2] + l.tuning.roll_speed).abs() < 0.001, "{m:?}");
+    }
+
+    #[test]
+    fn a_roll_needs_the_floor() {
+        let mut l = loco();
+        let press = Intent {
+            roll: true,
+            ..Intent::default()
+        };
+        l.step_motion(press, [0.0; 3], 0.0, false, -9.8, 1.0 / 60.0);
+        assert!(!l.is_rolling());
+    }
+
     #[test]
     fn stance_survives_a_byte() {
         for stance in [
@@ -615,6 +897,8 @@ mod tests {
             Stance::Jump,
             Stance::ClimbLow,
             Stance::ClimbHigh,
+            Stance::Crouch,
+            Stance::Roll,
         ] {
             assert_eq!(Stance::from_u8(stance as u8), stance);
         }
