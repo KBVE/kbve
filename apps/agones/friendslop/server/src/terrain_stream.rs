@@ -17,7 +17,7 @@ use std::sync::mpsc::{self, Receiver, Sender};
 use q::rapier::sim3d::{
     BodyDesc, BodyId, BodyKind, Iso, ShapeDesc, SimCommand, SimWorld, TerrainDesc,
 };
-use q::worldgen::{BridgePlan, HeightGen, HeightParams, Window};
+use q::worldgen::{BridgePlan, BridgeSlab, HeightGen, HeightParams, Window};
 
 /// Well clear of the player body space, which starts at a million.
 const BRIDGE_BODY_BASE: u32 = 2_000;
@@ -64,6 +64,10 @@ pub struct TerrainStreamer {
     tx: Sender<(Cell, [f32; 2], Vec<f32>)>,
     rx: Receiver<(Cell, [f32; 2], Vec<f32>)>,
     plan: BridgePlan,
+    /// Deck, kerbs and both approaches, in one list. Baked once: the geometry is a
+    /// function of the seed, and re-deriving it per crossing would re-run the ramp's
+    /// height sampling every time somebody walks near the river.
+    slabs: Vec<BridgeSlab>,
     bridge_in: bool,
 }
 
@@ -71,12 +75,10 @@ impl TerrainStreamer {
     pub fn new(cfg: StreamConfig) -> Self {
         let (tx, rx) = mpsc::channel();
         let window = Window::new(cfg.extent, cfg.stride);
-        let plan = BridgePlan::new(
-            &HeightGen::new(&cfg.params()),
-            cfg.extent,
-            cfg.water_level,
-            cfg.road_width,
-        );
+        let hgen = HeightGen::new(&cfg.params());
+        let plan = BridgePlan::new(&hgen, cfg.extent, cfg.water_level, cfg.road_width);
+        let mut slabs = plan.slabs().to_vec();
+        slabs.extend(plan.ramp_slabs(&hgen));
         Self {
             cfg,
             window,
@@ -85,6 +87,7 @@ impl TerrainStreamer {
             tx,
             rx,
             plan,
+            slabs,
             bridge_in: false,
         }
     }
@@ -131,7 +134,8 @@ impl TerrainStreamer {
         self.sync_bridge(world);
     }
 
-    /// Puts the deck and its kerbs into the solver, or takes them out again.
+    /// Puts the deck, its kerbs and both approaches into the solver, or takes them out
+    /// again.
     ///
     /// The heightfield under a bridge is river, so without this the server holds
     /// water where the client draws planks: the player walks onto the bridge,
@@ -147,7 +151,7 @@ impl TerrainStreamer {
             return;
         }
         self.bridge_in = wanted;
-        for (i, slab) in self.plan.slabs().iter().enumerate() {
+        for (i, slab) in self.slabs.iter().enumerate() {
             let id = BodyId(BRIDGE_BODY_BASE + i as u32);
             if wanted {
                 world.apply(SimCommand::Spawn {
@@ -157,7 +161,10 @@ impl TerrainStreamer {
                         shape: ShapeDesc::Cuboid {
                             half_extents: slab.half_extents,
                         },
-                        iso: Iso::at(slab.centre[0], slab.centre[1], slab.centre[2]),
+                        iso: Iso {
+                            pos: slab.centre,
+                            rot: slab.rot,
+                        },
                         restitution: 0.0,
                         friction: 1.0,
                         linear_damping: 0.0,

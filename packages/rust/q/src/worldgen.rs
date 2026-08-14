@@ -536,7 +536,15 @@ impl BridgePlan {
         for side in [-1.0f32, 1.0] {
             let path = self.ramp_path(hgen, side);
             for pair in path.windows(2) {
-                let (a, b) = (pair[0], pair[1]);
+                // Always taken left to right. A box is symmetric, so the orientation is
+                // the same either way, but the half-thickness is stepped off along the
+                // box's own down axis -- and on the far approach, whose segments run in
+                // -x, that axis is up unless the segment is turned around first.
+                let (a, b) = if pair[1][0] >= pair[0][0] {
+                    (pair[0], pair[1])
+                } else {
+                    (pair[1], pair[0])
+                };
                 let (dx, dy) = (b[0] - a[0], b[1] - a[1]);
                 let len = (dx * dx + dy * dy).sqrt();
                 if len <= f32::EPSILON {
