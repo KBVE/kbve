@@ -9,7 +9,7 @@ repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/embeddb"
 
 [dependencies]
 turso = "0.7.2"
-duckdb = { version = "1", features = ["bundled"] }
+duckdb = { version = "1", features = ["bundled"], optional = true }
 tokio = { workspace = true, features = ["default", "rt", "rt-multi-thread", "macros"] }
 thiserror = { workspace = true }
 embeddb-derive = { version = "0.1.0", path = "../embeddb-derive", optional = true }
@@ -18,8 +18,9 @@ serde = { workspace = true, features = ["derive"], optional = true }
 serde_json = { workspace = true, optional = true }
 
 [features]
-default = ["derive"]
+default = ["derive", "analytics"]
 derive = ["dep:embeddb-derive"]
+analytics = ["dep:duckdb"]
 vector = []
 embed-api = ["vector", "dep:reqwest", "dep:serde", "dep:serde_json"]
 
@@ -31,15 +32,20 @@ criterion = { workspace = true, features = ["default"] }
 [[bench]]
 name = "embeddb_bench"
 harness = false
+required-features = ["analytics"]
 
 [[test]]
 name = "e2e_core"
-required-features = ["derive"]
+required-features = ["derive", "analytics"]
 
 [[test]]
 name = "e2e_vector"
-required-features = ["vector"]
+required-features = ["vector", "analytics"]
 
 [[test]]
 name = "e2e_offline"
-required-features = ["vector"]
+required-features = ["vector", "analytics"]
+
+[[example]]
+name = "basic"
+required-features = ["analytics"]

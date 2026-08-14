@@ -11,7 +11,7 @@ tags:
 key: embeddb_crate
 pipeline: crates
 package_name: embeddb
-version: "0.2.0"
+version: "0.3.0"
 source_path: packages/rust/embeddb
 version_toml: packages/rust/embeddb/version.toml
 author: h0lybyte
@@ -31,6 +31,8 @@ jsonld:
           answer: Parameterized writes and transactions via Turso, a DuckDB reader pool for parallel analytics, streaming row callbacks, batched writes, migrations and config, a rich EmbedValue type set, QueryResult with column names, and a FromEmbedRow derive for mapping rows into structs.
         - question: Can embeddb store and search embeddings?
           answer: Yes, via the optional vector feature. Embeddings are stored as packed f32 blobs in the same single file, normalized on write so similarity search reduces to a dot product, and ranked by brute-force cosine similarity. The feature adds no dependencies and reads through Turso rather than DuckDB, so it works in distroless and egress-restricted images. Embedding model identity is part of each row, and every search filters on it, because vectors from different models do not share a comparable space.
+        - question: Can embeddb be used without DuckDB?
+          answer: Yes. DuckDB sits behind the analytics Cargo feature, which is on by default. Building with default-features = false and features = ["derive"] leaves a pure-Rust dependency tree with the full Turso write path, transactions, migrations and point reads, dropping only the analytics_* methods. This matters for game clients and iOS or Android cross-compiles, where duckdb's bundled feature would otherwise force a C++ build of the DuckDB engine.
         - question: How does concurrency and freshness work?
           answer: Turso owns all writes; DuckDB attaches the same file read-only for analytics. DuckDB replays uncheckpointed WAL frames, so analytics reflect committed writes even before a checkpoint, and concurrent reads stay consistent. The reader pool builds lazily on the first analytics call, so write-only use never loads the analytics engine.
 bento:

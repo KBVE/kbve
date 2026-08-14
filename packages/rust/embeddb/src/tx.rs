@@ -68,7 +68,7 @@ mod tests {
         tx.commit().await.unwrap();
         db.checkpoint().await.unwrap();
         assert_eq!(
-            db.analytics_scalar_i64("SELECT count(*) FROM t")
+            db.query_scalar_i64("SELECT count(*) FROM t", ())
                 .await
                 .unwrap(),
             1
@@ -85,7 +85,7 @@ mod tests {
         tx.rollback().await.unwrap();
         db.checkpoint().await.unwrap();
         assert_eq!(
-            db.analytics_scalar_i64("SELECT count(*) FROM t")
+            db.query_scalar_i64("SELECT count(*) FROM t", ())
                 .await
                 .unwrap(),
             0
