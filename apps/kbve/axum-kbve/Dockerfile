@@ -114,6 +114,12 @@ COPY packages/rust/bevy/bevy_inventory/Cargo.toml packages/rust/bevy/bevy_invent
 COPY packages/rust/bevy/bevy_items/Cargo.toml packages/rust/bevy/bevy_items/Cargo.toml
 COPY packages/rust/bevy/bevy_skills/Cargo.toml packages/rust/bevy/bevy_skills/Cargo.toml
 COPY packages/rust/bevy/bevy_chat/Cargo.toml packages/rust/bevy/bevy_chat/Cargo.toml
+COPY packages/rust/bevy/bevy_dungeon/Cargo.toml packages/rust/bevy/bevy_dungeon/Cargo.toml
+COPY packages/rust/bevy/bevy_battle/Cargo.toml packages/rust/bevy/bevy_battle/Cargo.toml
+COPY packages/rust/bevy/bevy_behavior/Cargo.toml packages/rust/bevy/bevy_behavior/Cargo.toml
+COPY packages/rust/bevy/bevy_mapdb/Cargo.toml packages/rust/bevy/bevy_mapdb/Cargo.toml
+COPY packages/rust/bevy/bevy_quests/Cargo.toml packages/rust/bevy/bevy_quests/Cargo.toml
+COPY packages/rust/bevy/bevy_pathfinder/Cargo.toml packages/rust/bevy/bevy_pathfinder/Cargo.toml
 
 COPY packages/data/proto packages/data/proto
 
@@ -127,7 +133,13 @@ RUN mkdir -p apps/kbve/axum-kbve/src && echo "fn main() {}" > apps/kbve/axum-kbv
     mkdir -p packages/rust/bevy/bevy_inventory/src && echo "" > packages/rust/bevy/bevy_inventory/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_items/src && echo "" > packages/rust/bevy/bevy_items/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_skills/src && echo "" > packages/rust/bevy/bevy_skills/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_chat/src && echo "" > packages/rust/bevy/bevy_chat/src/lib.rs
+    mkdir -p packages/rust/bevy/bevy_chat/src && echo "" > packages/rust/bevy/bevy_chat/src/lib.rs && \
+    mkdir -p packages/rust/bevy/bevy_dungeon/src && echo "" > packages/rust/bevy/bevy_dungeon/src/lib.rs && \
+    mkdir -p packages/rust/bevy/bevy_battle/src && echo "" > packages/rust/bevy/bevy_battle/src/lib.rs && \
+    mkdir -p packages/rust/bevy/bevy_behavior/src && echo "" > packages/rust/bevy/bevy_behavior/src/lib.rs && \
+    mkdir -p packages/rust/bevy/bevy_mapdb/src && echo "" > packages/rust/bevy/bevy_mapdb/src/lib.rs && \
+    mkdir -p packages/rust/bevy/bevy_quests/src && echo "" > packages/rust/bevy/bevy_quests/src/lib.rs && \
+    mkdir -p packages/rust/bevy/bevy_pathfinder/src && echo "" > packages/rust/bevy/bevy_pathfinder/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -187,6 +199,12 @@ COPY packages/rust/bevy/bevy_inventory packages/rust/bevy/bevy_inventory
 COPY packages/rust/bevy/bevy_items packages/rust/bevy/bevy_items
 COPY packages/rust/bevy/bevy_skills packages/rust/bevy/bevy_skills
 COPY packages/rust/bevy/bevy_chat packages/rust/bevy/bevy_chat
+COPY packages/rust/bevy/bevy_dungeon packages/rust/bevy/bevy_dungeon
+COPY packages/rust/bevy/bevy_battle packages/rust/bevy/bevy_battle
+COPY packages/rust/bevy/bevy_behavior packages/rust/bevy/bevy_behavior
+COPY packages/rust/bevy/bevy_mapdb packages/rust/bevy/bevy_mapdb
+COPY packages/rust/bevy/bevy_quests packages/rust/bevy/bevy_quests
+COPY packages/rust/bevy/bevy_pathfinder packages/rust/bevy/bevy_pathfinder
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
@@ -198,7 +216,8 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
             SCCACHE_REDIS_KEY_PREFIX=axum-kbve; \
     fi && \
     cargo-retry cargo build --release -p kbve -p jedi -p holy -p bevy_kbve_net -p bevy_npc -p bevy_tasker \
-        -p bevy_inventory -p bevy_items -p bevy_skills -p bevy_chat && \
+        -p bevy_inventory -p bevy_items -p bevy_skills -p bevy_chat \
+        -p bevy_battle -p bevy_behavior -p bevy_mapdb -p bevy_quests -p bevy_pathfinder -p bevy_dungeon && \
     (sccache --show-stats || true)
 
 # ============================================================================
@@ -226,6 +245,12 @@ COPY packages/rust/bevy/bevy_inventory packages/rust/bevy/bevy_inventory
 COPY packages/rust/bevy/bevy_items packages/rust/bevy/bevy_items
 COPY packages/rust/bevy/bevy_skills packages/rust/bevy/bevy_skills
 COPY packages/rust/bevy/bevy_chat packages/rust/bevy/bevy_chat
+COPY packages/rust/bevy/bevy_dungeon packages/rust/bevy/bevy_dungeon
+COPY packages/rust/bevy/bevy_battle packages/rust/bevy/bevy_battle
+COPY packages/rust/bevy/bevy_behavior packages/rust/bevy/bevy_behavior
+COPY packages/rust/bevy/bevy_mapdb packages/rust/bevy/bevy_mapdb
+COPY packages/rust/bevy/bevy_quests packages/rust/bevy/bevy_quests
+COPY packages/rust/bevy/bevy_pathfinder packages/rust/bevy/bevy_pathfinder
 
 # Application source (most frequently changing — placed last for cache)
 COPY apps/kbve/axum-kbve apps/kbve/axum-kbve
