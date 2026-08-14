@@ -537,6 +537,42 @@ impl QTerrain {
         let b = road.crossing + dir * reach;
         PackedFloat32Array::from(&[a.x, a.y, b.x, b.y, self.road_width * 0.5])
     }
+
+    /// The crossing as a thing with sides, for a flow field.
+    ///
+    /// [`Self::bridge_span`] gives the line to walk and nothing else, which is only
+    /// half the story: the approaches are railed causeways with a skirt down to the
+    /// ground, so most of what the bridge puts in a creature's way is solid. A field
+    /// told only about the line routes bodies through the side of a ramp.
+    ///
+    /// Empty when the world has no crossing. Distances are along world X, which is
+    /// what [`crate::worldgen::BridgePlan`] lays the deck down.
+    #[func]
+    fn bridge_plan(&self) -> VarDictionary {
+        let mut out = VarDictionary::new();
+        let Some(hgen) = self.hgen.as_ref().filter(|_| self.road.is_some()) else {
+            return out;
+        };
+        let plan =
+            crate::worldgen::BridgePlan::new(hgen, self.extent, self.water_level, self.road_width);
+        let [cx, cz] = plan.crossing;
+        out.set("from", Vector3::new(cx - plan.reach(hgen, -1.0), 0.0, cz));
+        out.set("to", Vector3::new(cx + plan.reach(hgen, 1.0), 0.0, cz));
+        out.set("walk_half_width", plan.half_width);
+        // The kerbs sit just inside `half_width` and the abutment flares a little
+        // wider, so the outside of the structure is a touch beyond the deck.
+        out.set("solid_half_width", plan.half_width + 0.25);
+        out.set(
+            "deck_from",
+            Vector3::new(cx - plan.deck_half, plan.deck_y, cz),
+        );
+        out.set(
+            "deck_to",
+            Vector3::new(cx + plan.deck_half, plan.deck_y, cz),
+        );
+        out.set("deck_y", plan.deck_y);
+        out
+    }
 }
 
 impl QTerrain {

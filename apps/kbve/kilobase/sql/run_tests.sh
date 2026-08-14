@@ -13,18 +13,19 @@ echo "============================================"
 echo "[kilobase-test] Starting PostgreSQL..."
 echo "============================================"
 
-# Start PostgreSQL in the background using the official entrypoint
-docker-entrypoint.sh postgres &
+# PGDATA is initialised at image build time, so the server is started directly
+# rather than through the official entrypoint. The entrypoint boots a temporary
+# server and shuts it down before starting the real one, and pg_durable's worker
+# takes ~10s to notice a shutdown when it cannot reach the database over TCP,
+# which the temporary server does not allow. Starting once avoids that cost and
+# means there is no bootstrap server to race.
+postgres -D "${PGDATA:-/pgdata}" &
 PG_PID=$!
 
-# Wait for the *final* server, not the entrypoint's temporary bootstrap server.
-# The bootstrap server listens on the unix socket only (listen_addresses=''),
-# so a successful TCP query is what distinguishes the two. pg_isready alone
-# reports success against the bootstrap server and races the initdb shutdown.
 echo "[kilobase-test] Waiting for PostgreSQL to be ready..."
 READY=0
 for i in $(seq 1 60); do
-    if psql -h 127.0.0.1 -U postgres -d kilobase_test -tAc 'SELECT 1' >/dev/null 2>&1; then
+    if psql -h 127.0.0.1 -U postgres -d postgres -tAc 'SELECT 1' >/dev/null 2>&1; then
         echo "[kilobase-test] PostgreSQL is ready (${i}s)"
         READY=1
         break
@@ -44,7 +45,7 @@ echo ""
 
 # Run the test SQL and capture output
 PSQL_RC=0
-TEST_OUTPUT=$(psql -h 127.0.0.1 -U postgres -d kilobase_test -f /tests/test_kilobase.sql 2>&1) || PSQL_RC=$?
+TEST_OUTPUT=$(psql -h 127.0.0.1 -U postgres -d postgres -f /tests/test_kilobase.sql 2>&1) || PSQL_RC=$?
 if [ "$PSQL_RC" -ne 0 ]; then
     echo "[kilobase-test] psql exited $PSQL_RC while running the suite:"
     echo "$TEST_OUTPUT"
@@ -66,13 +67,14 @@ while IFS= read -r line; do
     fi
 done <<< "$TEST_OUTPUT"
 
-# Stop PostgreSQL
-kill $PG_PID 2>/dev/null || true
+# Stop PostgreSQL. SIGQUIT (immediate shutdown) rather than SIGTERM only to keep
+# teardown quick — a fast shutdown is clean but waits on pg_durable's worker.
+kill -QUIT $PG_PID 2>/dev/null || true
 wait $PG_PID 2>/dev/null || true
 
 echo ""
 echo "============================================"
-if [ "$FAIL_COUNT" -eq 0 ] && [ "$PASS_COUNT" -gt 0 ]; then
+if [ "$FAIL_COUNT" -eq 0 ] && [ "$PASS_COUNT" -gt 0 ] && [ "$PSQL_RC" -eq 0 ]; then
     echo "[kilobase-test] ALL TESTS PASSED"
     echo "  Passed: $PASS_COUNT / $TOTAL"
     STATUS="passed"
@@ -81,6 +83,11 @@ else
     echo "  Passed: $PASS_COUNT / $TOTAL"
     echo "  Failed: $FAIL_COUNT"
     echo "  Failed tests:$FAILED_TESTS"
+    if [ "$PSQL_RC" -ne 0 ]; then
+        # ON_ERROR_STOP aborts the run, so the tests after the error never
+        # report at all. Counting only PASS/FAIL notices would call that a pass.
+        echo "  psql exited $PSQL_RC — suite aborted before completing"
+    fi
     STATUS="failed"
 fi
 echo "============================================"
@@ -89,6 +96,6 @@ echo "============================================"
 echo ""
 echo "test result: $STATUS. $PASS_COUNT passed; $FAIL_COUNT failed; 0 ignored; 0 measured; 0 filtered out"
 
-# A suite that parsed zero tests is a failure, not a pass. Guarding on
-# FAIL_COUNT alone let a suite that never ran exit 0.
-[ "$FAIL_COUNT" -eq 0 ] && [ "$PASS_COUNT" -gt 0 ]
+# A suite that parsed zero tests, or that aborted partway, is a failure rather
+# than a pass. Guarding on FAIL_COUNT alone let both cases exit 0.
+[ "$FAIL_COUNT" -eq 0 ] && [ "$PASS_COUNT" -gt 0 ] && [ "$PSQL_RC" -eq 0 ]

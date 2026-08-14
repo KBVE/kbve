@@ -18,6 +18,7 @@ const MAX_THREADS: i32 = 20;
 const MAX_BODY_CHARS: usize = 6000;
 const CLAIM_POLL: Duration = Duration::from_secs(5);
 const CHAT_SCROLLBACK: usize = 200;
+const SAY_PROMPT_LEN: usize = 5;
 const KEY_ESC: u8 = 0x1B;
 const KEY_CR: u8 = 0x0D;
 const KEY_BS: u8 = 0x08;
@@ -402,8 +403,16 @@ impl Session {
             .clear()
             .banner(&format!("CHAT {}", channel.to_ascii_uppercase()));
         self.screen.nl().ink(Ink::Body);
-        for line in lines.iter().skip(lines.len().saturating_sub(rows)) {
-            self.screen.line(&truncate(line, width));
+        // Wrap rather than clip: a clipped line is a line the caller cannot
+        // read, and the room carries other people's words as well as theirs.
+        // Wrapping first, then taking the last `rows`, keeps the newest text
+        // on screen when one long message spans several lines.
+        let wrapped: Vec<String> = lines
+            .iter()
+            .flat_map(|line| wrap_lines(line, width))
+            .collect();
+        for line in wrapped.iter().skip(wrapped.len().saturating_sub(rows)) {
+            self.screen.line(line);
         }
         self.screen.reset();
         if self.user.is_some() {
@@ -413,7 +422,7 @@ impl Session {
                 .line("[enter] send  [esc] back")
                 .reset()
                 .prompt("say> ")
-                .text(input);
+                .text(tail(input, width.saturating_sub(SAY_PROMPT_LEN)));
         } else {
             self.screen
                 .nl()
@@ -628,6 +637,15 @@ impl Session {
     }
 }
 
+#[cfg(test)]
+impl Session {
+    pub(super) async fn draw_chat_for_tests(&mut self, channel: &str, line: &str) {
+        let mut lines = VecDeque::new();
+        lines.push_back(line.to_string());
+        let _ = self.draw_chat(channel, &lines, "").await;
+    }
+}
+
 impl Drop for Session {
     fn drop(&mut self) {
         presence::leave(self.id);
@@ -647,6 +665,19 @@ fn push_message(lines: &mut VecDeque<String>, msg: &ChatMessage) {
         _ => format!("* {}", msg.content),
     };
     push_line(lines, text);
+}
+
+/// Keep the caret end of a caller's own line visible. A prompt that clips from
+/// the front hides what they are typing right now, which is the one part they
+/// need to see.
+fn tail(input: &str, width: usize) -> &str {
+    if input.len() <= width {
+        return input;
+    }
+    match input.char_indices().nth(input.chars().count() - width) {
+        Some((idx, _)) => &input[idx..],
+        None => input,
+    }
 }
 
 fn clip(body: &str) -> &str {

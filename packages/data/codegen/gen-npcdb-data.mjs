@@ -148,6 +148,10 @@ function main() {
 				'apps/rareicon/unity-rareicon/Assets/StreamingAssets',
 			),
 		},
+		{
+			name: 'friendslop',
+			dir: resolve(repoRoot, 'apps/friendslop/godot-friendslop/assets/npcdb'),
+		},
 	];
 	for (const t of syncTargets) {
 		if (!existsSync(t.dir)) mkdirSync(t.dir, { recursive: true });

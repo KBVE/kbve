@@ -6,6 +6,7 @@ use pgrx::spi::SpiError;
 use std::ffi::CString;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
+mod durable;
 mod jobs;
 mod sql;
 use crate::jobs::JobInfo;
@@ -342,6 +343,78 @@ fn update_unique_index_status(job_id: i32, has_unique: bool) -> Result<(), pgrx:
             ],
         )?;
         Ok(())
+    })
+}
+
+// =============================================================================
+// DURABLE ENTRY POINT
+// =============================================================================
+
+const JOB_COLUMNS: &str = "id, schema_name, view_name, refresh_interval_seconds,
+                           source_table, last_change_count, has_unique_index";
+
+fn load_job(job_id: i32) -> Result<Option<JobInfo>, pgrx::spi::Error> {
+    Spi::connect(|client| {
+        let query = format!(
+            "SELECT {JOB_COLUMNS} FROM matview_refresh_jobs WHERE id = $1 AND is_active = true"
+        );
+        let result = client.select(
+            query.as_str(),
+            None,
+            &[unsafe { DatumWithOid::new(job_id.into_datum().unwrap(), pg_sys::INT4OID) }],
+        )?;
+
+        for row in result {
+            return Ok(Some(crate::jobs::JobInfo::from_tuple(&row)?));
+        }
+        Ok(None)
+    })
+}
+
+/// Run one registered job on demand, returning true when the view was actually
+/// refreshed and false when change detection skipped it.
+///
+/// This is the seam a scheduler outside the extension drives — notably a
+/// pg_durable orchestration, which supplies cron scheduling, checkpointing and
+/// retries that the built-in worker loop does not have. The refresh semantics
+/// (UNIQUE index detection, CONCURRENT strategy, change detection, logging)
+/// stay here rather than being restated in whatever does the scheduling.
+#[pg_extern]
+pub fn kilobase_refresh_job(job_id: i32) -> bool {
+    let job = match load_job(job_id) {
+        Ok(Some(job)) => job,
+        Ok(None) => error!("no active matview refresh job with id {job_id}"),
+        Err(e) => error!("could not load matview refresh job {job_id}: {e}"),
+    };
+
+    match process_single_job(&job) {
+        Ok(JobOutcome::Refreshed) => true,
+        Ok(JobOutcome::Skipped) => false,
+        Err(e) => error!("refresh of job {job_id} failed: {e}"),
+    }
+}
+
+/// Resolve a schema-qualified view to its active job id, for schedulers that
+/// know the view but not the surrogate key.
+#[pg_extern]
+pub fn kilobase_job_id(schema_name: &str, view_name: &str) -> Option<i32> {
+    Spi::connect(|client| {
+        let mut result = client
+            .select(
+                "SELECT id FROM matview_refresh_jobs
+                 WHERE schema_name = $1 AND view_name = $2 AND is_active = true",
+                None,
+                &[
+                    unsafe { DatumWithOid::new(schema_name.into_datum().unwrap(), pg_sys::TEXTOID) },
+                    unsafe { DatumWithOid::new(view_name.into_datum().unwrap(), pg_sys::TEXTOID) },
+                ],
+            )
+            .unwrap_or_else(|e| error!("could not look up job for {schema_name}.{view_name}: {e}"));
+
+        match result.next() {
+            Some(row) => row.get_by_name::<i32, _>("id").unwrap_or(None),
+            None => None,
+        }
     })
 }
 

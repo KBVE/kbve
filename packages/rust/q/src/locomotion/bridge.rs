@@ -23,6 +23,10 @@ impl QLocomotion {
     pub const STANCE_CLIMB_LOW: i64 = Stance::ClimbLow as i64;
     #[constant]
     pub const STANCE_CLIMB_HIGH: i64 = Stance::ClimbHigh as i64;
+    #[constant]
+    pub const STANCE_CROUCH: i64 = Stance::Crouch as i64;
+    #[constant]
+    pub const STANCE_ROLL: i64 = Stance::Roll as i64;
 
     #[func]
     fn create() -> Gd<Self> {
@@ -49,6 +53,8 @@ impl QLocomotion {
         &mut self,
         move_axis: Vector2,
         jump: bool,
+        crouch: bool,
+        roll: bool,
         velocity: Vector3,
         yaw: f32,
         grounded: bool,
@@ -59,6 +65,8 @@ impl QLocomotion {
             Intent {
                 move_axis: [move_axis.x, move_axis.y],
                 jump,
+                crouch,
+                roll,
             },
             [velocity.x, velocity.y, velocity.z],
             yaw,
@@ -105,6 +113,23 @@ impl QLocomotion {
         Vector2::new(self.state.blend[0], self.state.blend[1])
     }
 
+    /// The crouch ring's own position, live even while standing so the two spaces do not
+    /// pop past one another as they cross-fade.
+    #[func]
+    fn crouch_blend(&self) -> Vector2 {
+        Vector2::new(self.state.crouch_blend[0], self.state.crouch_blend[1])
+    }
+
+    #[func]
+    fn is_rolling(&self) -> bool {
+        self.inner.is_rolling()
+    }
+
+    #[func]
+    fn is_crouched(&self) -> bool {
+        self.inner.is_crouched()
+    }
+
     #[func]
     fn time_scale(&self) -> f32 {
         self.state.time_scale
@@ -146,6 +171,29 @@ impl QLocomotion {
     #[func]
     fn set_blend_sharpness(&mut self, value: f32) {
         self.inner.tuning.blend_sharpness = value;
+    }
+
+    #[func]
+    fn set_crouch_speeds(&mut self, forward: f32, backward: f32, strafe: f32) {
+        self.inner.tuning.crouch_speed = forward;
+        self.inner.tuning.crouch_back_speed = backward;
+        self.inner.tuning.crouch_strafe_speed = strafe;
+    }
+
+    #[func]
+    fn set_roll(&mut self, time: f32, speed: f32) {
+        self.inner.tuning.roll_time = time;
+        self.inner.tuning.roll_speed = speed;
+    }
+
+    #[func]
+    fn roll_time(&self) -> f32 {
+        self.inner.tuning.roll_time
+    }
+
+    #[func]
+    fn set_air_grace(&mut self, value: f32) {
+        self.inner.tuning.air_grace = value;
     }
 
     #[func]

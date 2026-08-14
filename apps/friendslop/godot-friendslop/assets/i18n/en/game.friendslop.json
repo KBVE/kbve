@@ -56,5 +56,11 @@
 		"disconnected": "Disconnected: {{reason}}  (Esc to leave)",
 		"roster_you": "{{name}} (you)",
 		"roster": "{{count}} here — {{names}}"
+	},
+	"prompt": {
+		"talk": "Talk to {{name}}"
+	},
+	"dlg": {
+		"continue": "Continue"
 	}
 }

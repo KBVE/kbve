@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use super::guest::{sanitize, unique_guest_name};
 use super::transport::{Delivery, PeerId, Transport};
+use crate::harvest::{HarvestTarget, Ledger, stable_id};
 use crate::proto::{self, PROTOCOL_VERSION};
 use crate::rapier::sim3d::{
     BodyId, CharacterDesc, Iso, SimCommand, SimConfig, SimSnapshot, SimWorld, TerrainDesc,
@@ -111,6 +112,30 @@ pub enum SessionMsg {
         protocol: u32,
         token: String,
     },
+    /// A client says it worked a scattered object.
+    ///
+    /// Carries the cell and ordinal rather than an id: the host derives the id
+    /// itself, so a client cannot name one it could not have reached, and the
+    /// cell is what the reach check is measured against.
+    Harvest {
+        target: HarvestTarget,
+        cell: [i32; 2],
+        ordinal: u32,
+        hits: u8,
+    },
+    /// What the host decided, to everyone. Reliable, because a dropped delta is
+    /// a rock that stands on one client and not the others until it rescatters.
+    HarvestDelta {
+        target: HarvestTarget,
+        id: u64,
+        stage: u8,
+    },
+    /// Everything already harvested, sent once on join so a late arrival does
+    /// not walk into a forest that was felled an hour ago.
+    HarvestLedger {
+        target: HarvestTarget,
+        flat: Vec<u32>,
+    },
 }
 
 /// Turns a bearer token into a display name, or into a reason the player can read.
@@ -155,6 +180,16 @@ pub struct SessionConfig {
     pub water_gravity_scale: f32,
     /// Fastest a body may sink or rise under water.
     pub swim_speed: f32,
+    /// Cell size of each scatter. The host has no scatter of its own, so this is
+    /// how it turns a claimed cell back into somewhere in the world to measure
+    /// against. Must match the matching field's `grid_size` export: a mismatch
+    /// does not corrupt ids, which the client derives, it only makes the reach
+    /// check loose or tight.
+    pub stone_grid_size: f32,
+    pub tree_grid_size: f32,
+    /// How far a player may stand from a cell and still work it. Generous by
+    /// design — this bounds cheating to things nearby, it is not a hit test.
+    pub harvest_reach: f32,
 }
 
 impl Default for SessionConfig {
@@ -179,6 +214,10 @@ impl Default for SessionConfig {
             move_speed: 4.0,
             gravity: -9.81,
             jump_speed: 4.5,
+            // Match QStoneField and QTreeField's exported grid_size.
+            stone_grid_size: 22.0,
+            tree_grid_size: 14.0,
+            harvest_reach: 6.0,
         }
     }
 }
@@ -228,6 +267,11 @@ pub struct HostSession<T: Transport> {
     ground: Option<GroundSampler>,
     hour: f32,
     time_accum: f64,
+    /// What has been mined and felled. The host has no scatter, but damage only
+    /// ever increases, so a ledger is enough to be authoritative about state
+    /// without ever generating the objects it describes.
+    stone_ledger: Ledger,
+    tree_ledger: Ledger,
 }
 
 impl<T: Transport> HostSession<T> {
@@ -253,6 +297,8 @@ impl<T: Transport> HostSession<T> {
             snapshot_accum: 0.0,
             authority: None,
             ground: None,
+            stone_ledger: Ledger::new(),
+            tree_ledger: Ledger::new(),
             hour: config.start_hour,
             time_accum: 0.0,
         }
@@ -407,7 +453,95 @@ impl<T: Transport> HostSession<T> {
                 day_length_minutes: self.config.day_length_minutes,
             },
         );
+        self.send_harvest_ledgers(peer);
         self.broadcast_roster();
+    }
+
+    fn grid_size(&self, target: HarvestTarget) -> f32 {
+        match target {
+            HarvestTarget::Stone => self.config.stone_grid_size,
+            HarvestTarget::Tree => self.config.tree_grid_size,
+        }
+        .max(0.01)
+    }
+
+    fn ledger_mut(&mut self, target: HarvestTarget) -> &mut Ledger {
+        match target {
+            HarvestTarget::Stone => &mut self.stone_ledger,
+            HarvestTarget::Tree => &mut self.tree_ledger,
+        }
+    }
+
+    fn ledger(&self, target: HarvestTarget) -> &Ledger {
+        match target {
+            HarvestTarget::Stone => &self.stone_ledger,
+            HarvestTarget::Tree => &self.tree_ledger,
+        }
+    }
+
+    /// Applies a claimed harvest, if the claimant could plausibly have reached it.
+    ///
+    /// The host cannot check that a rock is really in that cell without running
+    /// the scatter it does not have. What it can check is that the cell is near
+    /// the player, which bounds a forged claim to ground they are standing on
+    /// rather than the whole world. Damage is monotonic, so the worst a bad
+    /// claim does is break something early — it can never repair anything.
+    fn apply_harvest(
+        &mut self,
+        from: PeerId,
+        target: HarvestTarget,
+        cell: [i32; 2],
+        ordinal: u32,
+        hits: u8,
+    ) {
+        if !self.players.contains_key(&from) {
+            return;
+        }
+        let size = self.grid_size(target);
+        let centre = [(cell[0] as f32 + 0.5) * size, (cell[1] as f32 + 0.5) * size];
+        let Some(body) = self.world.snapshot().body(player_body(from)).copied() else {
+            return;
+        };
+        let [px, _, pz] = body.iso.pos;
+        let (dx, dz) = (centre[0] - px, centre[1] - pz);
+        // Half a cell of slack: the claim names a cell, and anywhere in it is a
+        // legitimate place for the object to have stood.
+        let reach = self.config.harvest_reach + size * 0.5;
+        if dx * dx + dz * dz > reach * reach {
+            return;
+        }
+
+        let stages = target.stages();
+        let id = stable_id(self.seed, cell[0], cell[1], ordinal);
+        let current = self.ledger(target).stage(id);
+        if current >= stages {
+            return;
+        }
+        let next = current.saturating_add(hits.clamp(1, stages)).min(stages);
+        self.ledger_mut(target).record(id, next);
+        self.broadcast_harvest(target, id, next);
+    }
+
+    fn broadcast_harvest(&self, target: HarvestTarget, id: u64, stage: u8) {
+        if self.transport.peers().is_empty() {
+            return;
+        }
+        let msg = SessionMsg::HarvestDelta { target, id, stage };
+        if let Ok(bytes) = proto::encode(&msg) {
+            let _ = self.transport.broadcast(Delivery::Reliable, &bytes);
+        }
+    }
+
+    /// Hands a joiner everything already harvested, so they do not walk into a
+    /// forest that was felled before they arrived.
+    fn send_harvest_ledgers(&self, peer: PeerId) {
+        for target in [HarvestTarget::Stone, HarvestTarget::Tree] {
+            let flat = self.ledger(target).to_flat();
+            if flat.is_empty() {
+                continue;
+            }
+            self.reply(peer, &SessionMsg::HarvestLedger { target, flat });
+        }
     }
 
     fn broadcast_world_time(&self) {
@@ -510,10 +644,20 @@ impl<T: Transport> HostSession<T> {
                     player.input = input.sanitized();
                 }
             }
+            SessionMsg::Harvest {
+                target,
+                cell,
+                ordinal,
+                hits,
+            } => {
+                self.apply_harvest(from, target, cell, ordinal, hits);
+            }
             SessionMsg::Welcome { .. }
             | SessionMsg::Reject { .. }
             | SessionMsg::Roster { .. }
             | SessionMsg::WorldTime { .. }
+            | SessionMsg::HarvestDelta { .. }
+            | SessionMsg::HarvestLedger { .. }
             | SessionMsg::Snapshot(_) => {}
         }
     }
@@ -658,6 +802,21 @@ pub struct ClientSession<T: Transport> {
     /// The world contract from `Welcome`, and the clock the host keeps correcting.
     world: Option<WorldInfo>,
     hour: f32,
+    /// The host's view of what has been harvested, replayed on join and kept up
+    /// to date by deltas. Held so a field rescattering mid-session can restore
+    /// from it without asking anyone.
+    stone_ledger: Ledger,
+    tree_ledger: Ledger,
+    /// Deltas since the last drain, for whoever owns the scatter to apply.
+    harvest_events: Vec<HarvestEvent>,
+}
+
+/// One authoritative change to a scattered object.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct HarvestEvent {
+    pub target: HarvestTarget,
+    pub id: u64,
+    pub stage: u8,
 }
 
 /// What the host told us about the world it is simulating.
@@ -714,6 +873,9 @@ impl<T: Transport> ClientSession<T> {
             roster: Vec::new(),
             world: None,
             hour: 0.0,
+            stone_ledger: Ledger::new(),
+            tree_ledger: Ledger::new(),
+            harvest_events: Vec::new(),
         };
         if let Ok(bytes) = proto::encode(&join) {
             let _ = client
@@ -777,6 +939,46 @@ impl<T: Transport> ClientSession<T> {
             .map(|p| p.name.as_str())
     }
 
+    fn harvest_ledger_mut(&mut self, target: HarvestTarget) -> &mut Ledger {
+        match target {
+            HarvestTarget::Stone => &mut self.stone_ledger,
+            HarvestTarget::Tree => &mut self.tree_ledger,
+        }
+    }
+
+    pub fn harvest_ledger(&self, target: HarvestTarget) -> &Ledger {
+        match target {
+            HarvestTarget::Stone => &self.stone_ledger,
+            HarvestTarget::Tree => &self.tree_ledger,
+        }
+    }
+
+    /// Everything the host has ruled on since the last call.
+    pub fn take_harvest_events(&mut self) -> Vec<HarvestEvent> {
+        std::mem::take(&mut self.harvest_events)
+    }
+
+    /// Asks the host to work a scattered object.
+    ///
+    /// Reliable: a dropped swing is a rock that never breaks, and the client
+    /// has no way to notice it was lost.
+    pub fn harvest(&mut self, target: HarvestTarget, cell: [i32; 2], ordinal: u32, hits: u8) {
+        if self.status != ClientStatus::Joined {
+            return;
+        }
+        let msg = SessionMsg::Harvest {
+            target,
+            cell,
+            ordinal,
+            hits: hits.max(1),
+        };
+        if let Ok(bytes) = proto::encode(&msg) {
+            let _ = self
+                .transport
+                .send(PeerId::HOST, Delivery::Reliable, &bytes);
+        }
+    }
+
     pub fn set_input(&mut self, wish_dir: [f32; 2], jump: bool, yaw: f32) {
         self.input.sequence = self.input.sequence.wrapping_add(1);
         self.input.wish_dir = wish_dir;
@@ -834,7 +1036,28 @@ impl<T: Transport> ClientSession<T> {
                         self.snapshot = Some(snapshot);
                     }
                 }
-                SessionMsg::Join { .. } | SessionMsg::JoinAuthed { .. } | SessionMsg::Input(_) => {}
+                SessionMsg::HarvestDelta { target, id, stage } => {
+                    self.harvest_ledger_mut(target).record(id, stage);
+                    self.harvest_events.push(HarvestEvent { target, id, stage });
+                }
+                SessionMsg::HarvestLedger { target, flat } => {
+                    let replay = Ledger::from_flat(&flat);
+                    // Every entry becomes an event too: the fields were built
+                    // before this arrived and have no other way to learn of it.
+                    for c in flat.chunks_exact(3) {
+                        let id = c[0] as u64 | ((c[1] as u64) << 32);
+                        self.harvest_events.push(HarvestEvent {
+                            target,
+                            id,
+                            stage: c[2].min(255) as u8,
+                        });
+                    }
+                    self.harvest_ledger_mut(target).merge(&replay);
+                }
+                SessionMsg::Join { .. }
+                | SessionMsg::JoinAuthed { .. }
+                | SessionMsg::Harvest { .. }
+                | SessionMsg::Input(_) => {}
             }
         }
 
@@ -851,6 +1074,7 @@ impl<T: Transport> ClientSession<T> {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::harvest::{HarvestKind, Stone, Tree};
     use crate::net::transport::Loopback;
     use std::sync::Arc;
 
@@ -880,6 +1104,127 @@ mod tests {
             host.tick();
             client.tick();
         }
+    }
+
+    /// The cell a player is standing in, so a claim is in reach by construction.
+    fn cell_under(host: &mut HostSession<Loopback>, peer: PeerId, size: f32) -> [i32; 2] {
+        let pos = host
+            .world_mut()
+            .snapshot()
+            .body(player_body(peer))
+            .expect("player body")
+            .iso
+            .pos;
+        [
+            (pos[0] / size).floor() as i32,
+            (pos[2] / size).floor() as i32,
+        ]
+    }
+
+    #[test]
+    fn a_harvest_in_reach_is_applied_and_broadcast() {
+        let (mut host, mut client) = host_and_client();
+        run(&mut host, &mut client, 120);
+        let peer = client.peer().expect("joined");
+        let size = SessionConfig::default().tree_grid_size;
+        let cell = cell_under(&mut host, peer, size);
+
+        client.harvest(HarvestTarget::Tree, cell, 0, 1);
+        run(&mut host, &mut client, 4);
+
+        let id = stable_id(42, cell[0], cell[1], 0);
+        assert_eq!(
+            client.harvest_ledger(HarvestTarget::Tree).stage(id),
+            1,
+            "the host did not rule on a claim made from on top of the cell"
+        );
+    }
+
+    /// The one thing the host can check without a scatter of its own.
+    #[test]
+    fn a_harvest_out_of_reach_is_refused() {
+        let (mut host, mut client) = host_and_client();
+        run(&mut host, &mut client, 120);
+        let size = SessionConfig::default().tree_grid_size;
+        let far = [9_000, -9_000];
+
+        client.harvest(HarvestTarget::Tree, far, 0, 1);
+        run(&mut host, &mut client, 4);
+
+        let id = stable_id(42, far[0], far[1], 0);
+        assert_eq!(
+            client.harvest_ledger(HarvestTarget::Tree).stage(id),
+            0,
+            "a claim from {size} units of nowhere was honoured"
+        );
+    }
+
+    /// Damage is monotonic, so a client cannot walk a stage backwards.
+    #[test]
+    fn a_harvest_never_repairs() {
+        let (mut host, mut client) = host_and_client();
+        run(&mut host, &mut client, 120);
+        let peer = client.peer().expect("joined");
+        let size = SessionConfig::default().stone_grid_size;
+        let cell = cell_under(&mut host, peer, size);
+        let id = stable_id(42, cell[0], cell[1], 0);
+
+        client.harvest(HarvestTarget::Stone, cell, 0, Stone::STAGES);
+        run(&mut host, &mut client, 4);
+        assert_eq!(
+            client.harvest_ledger(HarvestTarget::Stone).stage(id),
+            Stone::STAGES
+        );
+
+        // Already broken; another swing must not move it, and must not wrap.
+        client.harvest(HarvestTarget::Stone, cell, 0, 1);
+        run(&mut host, &mut client, 4);
+        assert_eq!(
+            client.harvest_ledger(HarvestTarget::Stone).stage(id),
+            Stone::STAGES
+        );
+    }
+
+    /// Someone arriving after a forest was felled must not see it standing.
+    #[test]
+    fn a_late_joiner_is_told_what_was_already_harvested() {
+        let mesh = Loopback::mesh(3);
+        let mut host = HostSession::new(
+            mesh[0].clone(),
+            SessionConfig::default(),
+            SimConfig::default(),
+            42,
+        );
+        host.set_terrain(flat_terrain());
+        let mut early = ClientSession::connect(mesh[1].clone());
+        run(&mut host, &mut early, 120);
+
+        let peer = early.peer().expect("joined");
+        let size = SessionConfig::default().tree_grid_size;
+        let cell = cell_under(&mut host, peer, size);
+        early.harvest(HarvestTarget::Tree, cell, 0, Tree::STAGES);
+        run(&mut host, &mut early, 4);
+        let id = stable_id(42, cell[0], cell[1], 0);
+        assert_eq!(
+            early.harvest_ledger(HarvestTarget::Tree).stage(id),
+            Tree::STAGES
+        );
+
+        let mut late = ClientSession::connect(mesh[2].clone());
+        for _ in 0..120 {
+            host.tick();
+            early.tick();
+            late.tick();
+        }
+        assert_eq!(
+            late.harvest_ledger(HarvestTarget::Tree).stage(id),
+            Tree::STAGES,
+            "a late joiner was handed a forest that is already down"
+        );
+        assert!(
+            late.take_harvest_events().iter().any(|e| e.id == id),
+            "the replay produced no event, so nothing would apply it"
+        );
     }
 
     #[test]

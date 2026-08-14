@@ -17,6 +17,11 @@ const Mantle := preload("res://src/player/mantle.gd")
 ## How far under the ground the body has to be before it counts as having fallen through
 ## the world rather than standing in a dip the height field smooths over.
 @export var fall_through_slack := 3.0
+## Crouch held for less than this is read as a tap, and a tap rolls. A tap can only be
+## told apart from a hold once the key comes back up, so this is also how long a roll
+## waits before it starts -- short enough not to read as lag, long enough that settling
+## into a crouch never flickers through a roll.
+@export var crouch_tap_time := 0.16
 
 @onready var pivot: Node3D = $Pivot
 @onready var rig: Node3D = $Mesh
@@ -26,6 +31,7 @@ var _terrain: Node
 var _held := false
 
 var _touch := false
+var _talking := false
 var _mantle := Mantle.new()
 ## Q_WALK="x,z" leans on the stick without a hand on it, and "auto" sweeps it through
 ## every heading.
@@ -33,6 +39,10 @@ var _walk := Vector2.ZERO
 var _walk_sweep := false
 var _walk_t := 0.0
 var _debug_t := 0.0
+## How long the crouch key has been down, and whether it has been down long enough to
+## count as a hold rather than the tap that rolls.
+var _crouch_t := -1.0
+var _crouching := false
 
 
 func _ready() -> void:
@@ -101,8 +111,14 @@ func _notification(what: int) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
+## Held mid-conversation: the body stops taking the stick, and a click on a reply is not
+## also a click that recaptures the mouse.
+func set_talking(on: bool) -> void:
+	_talking = on
+
+
 func _unhandled_input(event: InputEvent) -> void:
-	if _touch:
+	if _touch or _talking:
 		return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		_look(event.relative * MOUSE_SENSITIVITY)
@@ -135,26 +151,43 @@ func _physics_process(delta: float) -> void:
 		_settle()
 
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	## Standing and listening, but still falling if the ground goes away underneath.
+	if _talking:
+		input_dir = Vector2.ZERO
 	if _walk_sweep:
 		_walk_t += delta
 		input_dir = Vector2.RIGHT.rotated(_walk_t * 0.8)
 	elif _walk != Vector2.ZERO:
 		input_dir = _walk
 	var jump := Input.is_action_just_pressed("jump")
+	var roll := _read_crouch(delta)
 	var direction: Vector3 = rig.wish_direction(input_dir, global_rotation.y)
 
 	if _mantle.update(delta, direction, jump):
 		_report(delta)
 		return
 
-	velocity = rig.step_motion(input_dir, jump, velocity, global_rotation.y,
-			is_on_floor(), get_gravity().y, delta)
+	velocity = rig.step_motion(input_dir, jump, _crouching and not _talking, roll,
+			velocity, global_rotation.y, is_on_floor(), get_gravity().y, delta)
 	if rig.jumped():
 		Game.events.notify(EventNames.PLAYER_JUMPED, global_position)
 
 	move_and_slide()
 	rig.set_locomotion(global_transform.basis.inverse() * velocity, not is_on_floor(), delta)
 	_report(delta)
+
+
+## One key does both stances: held it crouches, released early it rolls. Returns whether
+## this tick is the one that throws a roll.
+func _read_crouch(delta: float) -> bool:
+	if Input.is_action_pressed("crouch"):
+		_crouch_t = 0.0 if _crouch_t < 0.0 else _crouch_t + delta
+		_crouching = _crouch_t >= crouch_tap_time
+		return false
+	var tapped := _crouch_t >= 0.0 and _crouch_t < crouch_tap_time
+	_crouch_t = -1.0
+	_crouching = false
+	return tapped
 
 
 func _report(delta: float) -> void:

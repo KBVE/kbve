@@ -3,8 +3,13 @@ extends GdUnitTestSuite
 const Rig := preload("res://src/characters/character_rig.gd")
 
 
+## States built out of a blend tree rather than a single clip, so their STATES entry
+## names no clip of its own.
+const COMPOSED := [&"move", &"crouch", &"roll"]
+
+
 func _links() -> Array:
-	return Rig.JUMP_CHAIN + Rig.CLIMB_CHAIN
+	return Rig.JUMP_CHAIN + Rig.CLIMB_CHAIN + Rig.CROUCH_CHAIN + Rig.ROLL_CHAIN
 
 
 ## A state named in a transition but missing from STATES takes the tree build down with
@@ -33,9 +38,10 @@ func test_states_are_fully_specified() -> void:
 		assert_bool(cfg.has(&"ik")).is_true()
 		assert_bool(cfg.has(&"clip")).is_true()
 		assert_float(cfg[&"ik"]).is_between(0.0, 1.0)
-	assert_str(Rig.STATES[&"move"][&"clip"]).is_empty()
 	for state in Rig.STATES:
-		if state != &"move":
+		if COMPOSED.has(state):
+			assert_str(Rig.STATES[state][&"clip"]).is_empty()
+		else:
 			assert_str(Rig.STATES[state][&"clip"]).is_not_empty()
 
 
@@ -43,7 +49,8 @@ func test_states_are_fully_specified() -> void:
 ## stance is a state the rig can be asked to travel to and cannot.
 func test_every_stance_maps_to_a_real_state() -> void:
 	var stances := [QLocomotion.STANCE_MOVE, QLocomotion.STANCE_JUMP,
-			QLocomotion.STANCE_CLIMB_LOW, QLocomotion.STANCE_CLIMB_HIGH]
+			QLocomotion.STANCE_CLIMB_LOW, QLocomotion.STANCE_CLIMB_HIGH,
+			QLocomotion.STANCE_CROUCH, QLocomotion.STANCE_ROLL]
 	for stance in stances:
 		assert_bool(Rig.STANCE_STATES.has(stance)) \
 				.override_failure_message("stance %d is unmapped" % stance).is_true()
@@ -61,13 +68,56 @@ func test_clip_rings_match_the_rust_gait_radii() -> void:
 	assert_float(Rig.GAIT_CLIPS[1].radius).is_equal(2.0)
 
 
-## The locomotion cycle has to survive a round trip through the air.
+## The locomotion cycle has to survive a round trip through the air; a one-shot has to
+## start from its own first frame every time it is played.
 func test_locomotion_resumes_but_one_shots_restart() -> void:
 	assert_bool(Rig.STATES[&"move"][&"reset"]).is_false()
+	assert_bool(Rig.STATES[&"crouch"][&"reset"]).is_false()
 	for state in Rig.STATES:
-		if state != &"move":
-			assert_bool(Rig.STATES[state][&"reset"]) \
-					.override_failure_message("'%s' should restart" % state).is_true()
+		if state == &"move" or state == &"crouch":
+			continue
+		assert_bool(Rig.STATES[state][&"reset"]) \
+				.override_failure_message("'%s' should restart" % state).is_true()
+
+
+## `travel` will not path through a disabled transition, and with no route to the state
+## it was asked for the playback hard-cuts instead of cross-fading. Every link therefore
+## has to be reachable by hand, and only the ones that chain on their own may be AUTO.
+func test_no_transition_is_closed_to_travel() -> void:
+	var rig := Rig.new()
+	for link in _links():
+		var t: AnimationNodeStateMachineTransition = rig._transition(link)
+		assert_int(t.advance_mode) \
+				.override_failure_message("%s -> %s is closed to travel" % [link.from, link.to]) \
+				.is_not_equal(AnimationNodeStateMachineTransition.ADVANCE_MODE_DISABLED)
+		var wanted := AnimationNodeStateMachineTransition.ADVANCE_MODE_AUTO if link.at_end \
+				else AnimationNodeStateMachineTransition.ADVANCE_MODE_ENABLED
+		assert_int(t.advance_mode).is_equal(wanted)
+		assert_float(t.xfade_time) \
+				.override_failure_message("%s -> %s cuts" % [link.from, link.to]).is_greater(0.0)
+	rig.free()
+
+
+## Both stances have to be leavable, or a crouch is a trap.
+func test_crouch_and_roll_return_to_move() -> void:
+	var out := {}
+	for link in _links():
+		out[StringName(link.from)] = true
+	for state in [&"crouch", &"crouch_enter", &"crouch_exit", &"roll"]:
+		assert_bool(out.has(state)) \
+				.override_failure_message("'%s' has no way out" % state).is_true()
+
+
+## Crouch is a ring of its own rather than a rung on the standing ladder, and the radius
+## it is laid out on has to be the one Q solves crouch headings against.
+func test_the_crouch_ring_is_its_own() -> void:
+	assert_int(Rig.CROUCH_GAIT_CLIPS.size()).is_equal(1)
+	assert_float(Rig.CROUCH_GAIT_CLIPS[0].radius).is_equal(1.0)
+	var loco := QLocomotion.create()
+	var walked := loco.gait_speed(Vector2(0.0, 1.0))
+	loco.step_motion(Vector2(0.0, 1.0), false, true, false, Vector3.ZERO, 0.0, true, -9.8, 1.0 / 60.0)
+	assert_float(loco.gait_speed(Vector2(0.0, 1.0))).is_less(walked)
+	assert_bool(loco.is_crouched()).is_true()
 
 
 func test_air_hands_the_legs_back() -> void:

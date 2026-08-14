@@ -471,6 +471,20 @@ impl BridgePlan {
         ]
     }
 
+    /// How far the timber reaches from the crossing on one side, deck and approach
+    /// together.
+    ///
+    /// `deck_half` is only the raised span. The approach carries on well past it as a
+    /// railed causeway with a skirt down to the ground, so anything treating the deck
+    /// as the whole structure -- a flow field, say -- routes bodies into the side of a
+    /// ramp and leaves them grinding there.
+    pub fn reach(&self, hgen: &HeightGen, side: f32) -> f32 {
+        self.ramp_path(hgen, side)
+            .last()
+            .map(|p| (p[0] - self.crossing[0]).abs())
+            .unwrap_or(self.deck_half)
+    }
+
     /// The centreline of one approach, from the deck edge down to the ground, as the
     /// timber surface a player actually walks on.
     ///

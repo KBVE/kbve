@@ -215,6 +215,20 @@ impl Grid {
     /// on this grid at all -- the field says which way to cross, and the deck
     /// and its rails are what keep a body on it.
     pub fn open_path(&mut self, from: Vec2, to: Vec2, half_width: f32, cost: u8) {
+        self.stamp_segment(from, to, half_width, cost);
+    }
+
+    /// Closes a band of cells along a line, for a structure that is mostly wall.
+    ///
+    /// The counterpart to [`Self::open_path`], and it runs before `inflate` rather
+    /// than after: a bridge is a solid causeway with one walkable line along the top
+    /// of it, so the band is closed first, the clearance is grown off its sides, and
+    /// the line is reopened last.
+    pub fn block_path(&mut self, from: Vec2, to: Vec2, half_width: f32) {
+        self.stamp_segment(from, to, half_width, BLOCKED);
+    }
+
+    fn stamp_segment(&mut self, from: Vec2, to: Vec2, half_width: f32, cost: u8) {
         let span = sub(to, from);
         let distance = length(span);
         let steps = ((distance / (self.cell * 0.5)).ceil() as usize).max(1);
@@ -290,6 +304,24 @@ impl PartialOrd for Visit {
     }
 }
 
+/// A raised walkway laid over ground the grid has closed.
+///
+/// The grid is flat, so it cannot tell the top of a bridge from the riverbed
+/// underneath it -- both are the same cell. Everywhere else that costs nothing,
+/// because there is only ever one surface; over a crossing it is the difference
+/// between a body walking the deck and one wading about under it being told to
+/// keep going.
+#[derive(Clone, Copy, Debug)]
+pub struct Deck {
+    pub from: Vec2,
+    pub to: Vec2,
+    pub half_width: f32,
+    pub surface_y: f32,
+    /// How far under the surface still counts as standing on it. Wide enough to
+    /// cover the walkway's own thickness and a body's sag on a slope.
+    pub drop: f32,
+}
+
 /// A grid plus the route to one goal across it.
 #[derive(Clone, Debug)]
 pub struct Field {
@@ -297,6 +329,7 @@ pub struct Field {
     distance: Vec<f32>,
     flow: Vec<Vec2>,
     goal: Vec2,
+    deck: Option<Deck>,
 }
 
 impl Field {
@@ -307,11 +340,40 @@ impl Field {
             distance: vec![f32::INFINITY; cells],
             flow: vec![[0.0, 0.0]; cells],
             goal: [0.0, 0.0],
+            deck: None,
         }
     }
 
     pub fn goal(&self) -> Vec2 {
         self.goal
+    }
+
+    pub fn set_deck(&mut self, deck: Option<Deck>) {
+        self.deck = deck;
+    }
+
+    /// True for a body inside the walkway's footprint but well below its surface,
+    /// which means it is under the thing rather than on it.
+    ///
+    /// Such a body is standing in cells the field calls open, so every 2D answer
+    /// it gets says carry on -- straight into a pier. It has to be told the route
+    /// is not for it, and steered out from under.
+    pub fn under_deck(&self, at: [f32; 3]) -> bool {
+        let Some(deck) = self.deck else {
+            return false;
+        };
+        if at[1] >= deck.surface_y - deck.drop {
+            return false;
+        }
+        let span = sub(deck.to, deck.from);
+        let len2 = span[0] * span[0] + span[1] * span[1];
+        let here = sub([at[0], at[2]], deck.from);
+        let t = if len2 <= 1e-6 {
+            0.0
+        } else {
+            ((here[0] * span[0] + here[1] * span[1]) / len2).clamp(0.0, 1.0)
+        };
+        length(sub(here, scale(span, t))) <= deck.half_width
     }
 
     /// Distance to the goal through the cheapest route, or infinity if the cell

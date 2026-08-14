@@ -1,4 +1,4 @@
-use super::field::{BLOCKED, Field, Grid};
+use super::field::{BLOCKED, Deck, Field, Grid};
 use super::{Vec2, add, length, scale, sub};
 
 fn grid(width: usize, height: usize) -> Grid {
@@ -451,4 +451,89 @@ fn a_bridge_opens_only_its_own_line() {
             assert_eq!(g.cost(x, y), BLOCKED, "opened water at {x},{y}");
         }
     }
+}
+
+/// The half of a bridge the field used to miss entirely.
+///
+/// `open_path` describes the line a body may walk and says nothing about the
+/// structure carrying it. Approaches are railed causeways with a skirt down to
+/// the ground, so most of a crossing is wall, and a field told only about the
+/// line routes bodies into the side of one.
+#[test]
+fn a_causeway_is_a_wall_and_routes_go_round_it() {
+    let mut g = grid(48, 48);
+    g.block_path([8.0, 24.5], [40.0, 24.5], 2.0);
+    let mut field = Field::new(g);
+    field.build([24.5, 42.5]);
+
+    let path = walk(&field, [24.5, 6.5], 900).expect("never got past the causeway");
+    assert!(
+        path.iter().any(|p| p[0] < 8.0 || p[0] > 40.0),
+        "went through the causeway instead of round an end"
+    );
+}
+
+/// The trap in blocking the structure: the clearance is grown off it in every
+/// direction, the ends included, so a walkway reopened to exactly the length
+/// that was closed is a tube with both mouths plugged. Nothing can get on it,
+/// and everything on the far bank is stranded.
+#[test]
+fn a_crossing_reopened_end_to_end_is_sealed() {
+    let build = |mouth: f32| {
+        let mut g = grid(48, 48);
+        for y in 0..48 {
+            for x in 22..26 {
+                g.set_cost(x, y, BLOCKED);
+            }
+        }
+        g.block_path([14.0, 24.5], [34.0, 24.5], 2.0);
+        g.inflate(2.5);
+        g.open_path([14.0 - mouth, 24.5], [34.0 + mouth, 24.5], 1.6, 20);
+        let mut f = Field::new(g);
+        f.build([40.5, 24.5]);
+        f
+    };
+    assert!(
+        build(0.0).distance_at([6.5, 24.5]).is_infinite(),
+        "sealing no longer happens, so this guards nothing"
+    );
+    assert!(
+        build(3.5).distance_at([6.5, 24.5]).is_finite(),
+        "opening past the ends still left the crossing shut"
+    );
+}
+
+/// The one place a flat grid lies: the deck and the riverbed under it are the
+/// same cell, so a body wading about beneath the span is told it is on a
+/// perfectly good route and walks into a pier until something else moves it.
+#[test]
+fn a_body_under_the_deck_is_not_on_it() {
+    let mut field = Field::new(grid(48, 48));
+    field.set_deck(Some(Deck {
+        from: [14.0, 24.5],
+        to: [34.0, 24.5],
+        half_width: 3.0,
+        surface_y: 4.0,
+        drop: 1.5,
+    }));
+
+    assert!(
+        field.under_deck([24.0, -1.0, 24.5]),
+        "in the river under it"
+    );
+    assert!(!field.under_deck([24.0, 4.1, 24.5]), "standing on the deck");
+    assert!(
+        !field.under_deck([24.0, -1.0, 40.0]),
+        "well off to one side, so the deck says nothing about it"
+    );
+    assert!(
+        !field.under_deck([50.0, -1.0, 24.5]),
+        "past the end of the span"
+    );
+
+    field.set_deck(None);
+    assert!(
+        !field.under_deck([24.0, -1.0, 24.5]),
+        "a world with no crossing has nothing to be under"
+    );
 }

@@ -5,11 +5,12 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread::{self, JoinHandle};
 use std::time::{Duration, Instant};
 
-use tokio::sync::watch;
+use tokio::sync::{mpsc, watch};
 
 use super::dual::DualClient;
-use super::session::{ClientSession, ClientStatus, PeerInfo, WorldInfo};
+use super::session::{ClientSession, ClientStatus, HarvestEvent, PeerInfo, WorldInfo};
 use super::ws::WsClient;
+use crate::harvest::HarvestTarget;
 use crate::rapier::sim3d::{BodyId, SimSnapshot};
 
 #[derive(Clone, Debug)]
@@ -65,10 +66,23 @@ pub struct Intent {
     pub yaw: f32,
 }
 
+/// One swing, on its way to the host.
+#[derive(Clone, Copy, Debug)]
+pub struct HarvestRequest {
+    pub target: HarvestTarget,
+    pub cell: [i32; 2],
+    pub ordinal: u32,
+    pub hits: u8,
+}
+
 pub struct NetClientHandle {
     stop: Arc<AtomicBool>,
     intent_tx: watch::Sender<Intent>,
     state_rx: watch::Receiver<Arc<NetClientState>>,
+    /// Queues rather than latest-wins: every swing counts, unlike intent, where
+    /// only the newest matters.
+    harvest_tx: mpsc::UnboundedSender<HarvestRequest>,
+    event_rx: mpsc::UnboundedReceiver<HarvestEvent>,
     join: Option<JoinHandle<()>>,
 }
 
@@ -93,19 +107,45 @@ impl NetClientHandle {
         let stop = Arc::new(AtomicBool::new(false));
         let (intent_tx, intent_rx) = watch::channel(Intent::default());
         let (state_tx, state_rx) = watch::channel(Arc::new(NetClientState::default()));
+        let (harvest_tx, harvest_rx) = mpsc::unbounded_channel();
+        let (event_tx, event_rx) = mpsc::unbounded_channel();
         let stop_t = stop.clone();
 
         let join = thread::Builder::new()
             .name("q-netclient".into())
-            .spawn(move || run(url, tick_hz, credential, stop_t, intent_rx, state_tx))
+            .spawn(move || {
+                run(
+                    url, tick_hz, credential, stop_t, intent_rx, state_tx, harvest_rx, event_tx,
+                )
+            })
             .expect("q: failed to spawn net client thread");
 
         Self {
             stop,
             intent_tx,
             state_rx,
+            harvest_tx,
+            event_rx,
             join: Some(join),
         }
+    }
+
+    /// Asks the host to work a scattered object.
+    pub fn harvest(&self, request: HarvestRequest) {
+        let _ = self.harvest_tx.send(request);
+    }
+
+    /// Everything the host has ruled on since the last call.
+    ///
+    /// Drained rather than published with the rest of the state: state is
+    /// latest-wins, and a delta missed because a frame was slow is a rock that
+    /// stands here and nowhere else.
+    pub fn take_harvest_events(&mut self) -> Vec<HarvestEvent> {
+        let mut out = Vec::new();
+        while let Ok(event) = self.event_rx.try_recv() {
+            out.push(event);
+        }
+        out
     }
 
     /// Latest intent wins; the session thread reads it once per tick.
@@ -153,6 +193,8 @@ fn run(
     stop: Arc<AtomicBool>,
     intent_rx: watch::Receiver<Intent>,
     state_tx: watch::Sender<Arc<NetClientState>>,
+    mut harvest_rx: mpsc::UnboundedReceiver<HarvestRequest>,
+    event_tx: mpsc::UnboundedSender<HarvestEvent>,
 ) {
     let runtime = match tokio::runtime::Builder::new_multi_thread()
         .worker_threads(1)
@@ -194,7 +236,13 @@ fn run(
         transport.pump();
         let intent = *intent_rx.borrow();
         session.set_input(intent.wish_dir, intent.jump, intent.yaw);
+        while let Ok(request) = harvest_rx.try_recv() {
+            session.harvest(request.target, request.cell, request.ordinal, request.hits);
+        }
         session.tick();
+        for event in session.take_harvest_events() {
+            let _ = event_tx.send(event);
+        }
 
         let dropped = !transport.is_connected();
         let _ = state_tx.send(Arc::new(NetClientState {

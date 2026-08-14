@@ -49,6 +49,12 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         stream_stride: env_parse("FS_STREAM_STRIDE", 128.0),
         // Wider than the stride so pacing a boundary does not churn bakes.
         stream_keep_radius: env_parse("FS_STREAM_KEEP", terrain_extent * 1.5),
+        // Must match QStoneField and QTreeField's grid_size. The host has no
+        // scatter, so these are only how it turns a claimed cell back into
+        // somewhere to measure a reach check against.
+        stone_grid_size: env_parse("FS_STONE_GRID", 22.0),
+        tree_grid_size: env_parse("FS_TREE_GRID", 14.0),
+        harvest_reach: env_parse("FS_HARVEST_REACH", 6.0),
     };
 
     tracing::info!(

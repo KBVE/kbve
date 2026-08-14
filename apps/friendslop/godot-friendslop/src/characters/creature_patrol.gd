@@ -187,7 +187,11 @@ func _observe_route() -> void:
 	# A field that cannot route from here is a different answer from no field at
 	# all: it means there is no way through, and walking at the leader anyway is
 	# how a creature ends up leaning on a riverbank.
-	var reachable: bool = field.distance_at(global_position) >= 0.0
+	# Under a bridge rather than on it. The field is flat, so the deck and the
+	# riverbed beneath it share a cell and every route it hands out down there is
+	# for a body one storey up.
+	var reachable: bool = field.distance_at(global_position) >= 0.0 \
+			and not field.under_deck(global_position)
 	if not reachable:
 		# Standing inside the blocked region rather than looking at it from
 		# outside. Reporting that as blocked parks the creature in MODE_WAITING
@@ -212,6 +216,10 @@ func _escape_route(field) -> Vector3:
 		for i in ESCAPE_SAMPLES:
 			var angle := TAU * float(i) / float(ESCAPE_SAMPLES)
 			var at := here + Vector3(cos(angle), 0.0, sin(angle)) * radius
+			# Samples keep this creature's height, so anything still under the
+			# deck is rejected here rather than picked as a way out from under it.
+			if field.under_deck(at):
+				continue
 			var cost: float = field.distance_at(at)
 			if cost >= 0.0 and cost < best_cost:
 				best_cost = cost
