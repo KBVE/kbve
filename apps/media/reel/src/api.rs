@@ -393,6 +393,16 @@ async fn manifest(
                         .into_response();
                 }
             };
+            if !transcode::has_playable_stream(&probe) {
+                tracing::warn!(id = %id, file = %primary.display(), "manifest: source has no audio or video stream");
+                return (
+                    StatusCode::UNPROCESSABLE_ENTITY,
+                    Json(serde_json::json!({
+                        "error": format!("no audio or video stream in {}", primary.display()),
+                    })),
+                )
+                    .into_response();
+            }
             let d = transcode::decide_delivery(&probe);
             crate::telemetry::probe_decided(
                 &id,
