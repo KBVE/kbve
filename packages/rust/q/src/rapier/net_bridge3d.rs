@@ -327,14 +327,18 @@ impl QNetClient3D {
     /// different one puts its players into the floor or above it.
     #[func]
     fn world_extent(&self) -> f32 {
-        self.last.as_ref().map_or(0.0, |s| s.terrain.extent)
+        self.last
+            .as_ref()
+            .and_then(|s| s.world.as_ref())
+            .map_or(0.0, |w| w.terrain_extent)
     }
 
     #[func]
     fn world_resolution(&self) -> i64 {
         self.last
             .as_ref()
-            .map_or(0, |s| s.terrain.resolution as i64)
+            .and_then(|s| s.world.as_ref())
+            .map_or(0, |w| w.terrain_resolution as i64)
     }
 
     #[func]
