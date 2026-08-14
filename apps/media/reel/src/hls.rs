@@ -173,7 +173,14 @@ pub enum StartOutcome {
     RawProgressive,
     Disabled,
     FailedRecently(String),
+    LiveNotReady(String),
 }
+
+/// Marker prefix on the live-prefix guard's error. A source whose header is
+/// not in the downloaded prefix is not a broken stream — it becomes playable
+/// once the file completes and the on-disk path takes over — so the API
+/// answers "too early" instead of a gateway error the player treats as fatal.
+pub const LIVE_PREFIX_UNREADABLE: &str = "live prefix unreadable:";
 
 /// Minimum wait between automatic retries of a Failed HLS job. Without this,
 /// every player manifest poll (~2-5s) respawns ffmpeg against an input that
@@ -201,6 +208,15 @@ pub fn next_hls(current: &HlsStatus, state: &TorrentState, enabled: bool) -> Hls
         HlsStatus::None | HlsStatus::Failed => HlsDecision::Start,
         other => HlsDecision::Reject(StartOutcome::InProgress(other.clone())),
     }
+}
+
+/// The live job feeds ffmpeg a non-seekable `pipe:0`, so a prefix ffprobe
+/// cannot parse (or one carrying no audio and no video) means ffmpeg will not
+/// find streams either: `-map 0:V:0? -map 0:a:0?` selects nothing and the
+/// muxer dies with "No streams to mux were specified". Refuse to start rather
+/// than burn an encode slot on a doomed job.
+pub fn live_prefix_usable(probe: Option<&crate::transcode::ProbeResult>) -> bool {
+    probe.is_some_and(crate::transcode::has_playable_stream)
 }
 
 /// Live (popcorn) HLS runs while the torrent is still Leeching, transcoding
@@ -620,7 +636,12 @@ impl HlsManager {
                 HlsDecision::Reject(outcome) => (outcome, false),
                 HlsDecision::Start if m.hls == HlsStatus::Failed && blocked => {
                     let reason = m.hls_error.clone().unwrap_or_else(|| "hls failed".into());
-                    (StartOutcome::FailedRecently(reason), false)
+                    let outcome = if reason.starts_with(LIVE_PREFIX_UNREADABLE) {
+                        StartOutcome::LiveNotReady(reason)
+                    } else {
+                        StartOutcome::FailedRecently(reason)
+                    };
+                    (outcome, false)
                 }
                 HlsDecision::Start => {
                     m.hls = HlsStatus::Starting;
@@ -692,6 +713,14 @@ impl HlsManager {
             prefix.extend_from_slice(&buf[..n]);
         }
         let probe = self.probe_prefix(&prefix).await;
+        if !live_prefix_usable(probe.as_ref()) {
+            anyhow::bail!(
+                "{LIVE_PREFIX_UNREADABLE} no readable audio or video stream in the first {} MiB of the download \
+                 (moov atom at the end of a non-faststart mp4, or a source ffmpeg cannot demux \
+                 from a pipe); live playback waits for the completed file",
+                PREFIX_MAX / (1024 * 1024)
+            );
+        }
         let video_copy = probe
             .as_ref()
             .map(|p| p.video_codec.as_deref() == Some("h264"))
@@ -943,6 +972,73 @@ mod mgr_tests {
         );
         mgr.abort("unknown-id").await;
         assert!(mgr.take_child("unknown-id").is_none());
+    }
+
+    fn probe_of(video: Option<&str>, audio: Option<&str>) -> crate::transcode::ProbeResult {
+        crate::transcode::ProbeResult {
+            video_codec: video.map(String::from),
+            audio_codec: audio.map(String::from),
+            audio_channels: None,
+            subtitle_codec: None,
+            container: None,
+            duration_secs: None,
+        }
+    }
+
+    #[test]
+    fn live_prefix_needs_a_stream() {
+        assert!(
+            !live_prefix_usable(None),
+            "an unparseable prefix means ffmpeg finds no streams on the pipe either"
+        );
+        assert!(!live_prefix_usable(Some(&probe_of(None, None))));
+        assert!(live_prefix_usable(Some(&probe_of(Some("h264"), None))));
+        assert!(live_prefix_usable(Some(&probe_of(None, Some("aac")))));
+    }
+
+    #[tokio::test]
+    async fn live_prefix_failure_is_too_early_not_failed() {
+        let dir = std::env::temp_dir().join(format!("reel-hls-test-live-{}", std::process::id()));
+        let _ = std::fs::remove_dir_all(&dir);
+        std::fs::create_dir_all(&dir).unwrap();
+        let store = StateStore::load(dir.join("state.json")).unwrap();
+        store
+            .upsert(Metadata {
+                id: "t1".into(),
+                name: "t1".into(),
+                path: dir.display().to_string(),
+                size: 0,
+                completed_at: None,
+                last_access: 0,
+                state: TorrentState::Leeching,
+                error: None,
+                active_path: Some(dir.display().to_string()),
+                transcode: crate::state::TranscodeStatus::None,
+                transcode_path: None,
+                transcode_error: None,
+                hls: HlsStatus::Failed,
+                hls_dir: None,
+                hls_error: Some(format!("{LIVE_PREFIX_UNREADABLE} header not downloaded yet")),
+            })
+            .unwrap();
+        let mgr = HlsManager::new(
+            store,
+            1,
+            "ffmpeg".into(),
+            "ffprobe".into(),
+            4,
+            true,
+            true,
+            3,
+            1,
+            1080,
+        );
+        mgr.mark_failed_now("t1");
+        let reader = Box::new(std::io::Cursor::new(Vec::new()));
+        assert!(matches!(
+            mgr.request_live("t1", reader, dir.clone()).await,
+            StartOutcome::LiveNotReady(_)
+        ));
     }
 
     #[test]
