@@ -1,6 +1,6 @@
 [package]
 name = "embeddb"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2021"
 description = "Single-file embedded DB: Turso write path + DuckDB analytics read path"
 license = "MIT"
