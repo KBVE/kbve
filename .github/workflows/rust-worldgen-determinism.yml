@@ -30,8 +30,14 @@ jobs:
                 os: [ubuntu-latest, windows-latest, macos-latest]
 
         steps:
+            # graphify/dir has colons in filenames; NTFS cannot check it out.
             - name: Checkout repository
               uses: actions/checkout@v7
+              with:
+                  sparse-checkout: |
+                      /*
+                      !/apps/kbve/astro-kbve/public/graphify
+                  sparse-checkout-cone-mode: false
 
             - name: Rust ToolChain (1.96)
               uses: dtolnay/rust-toolchain@stable
