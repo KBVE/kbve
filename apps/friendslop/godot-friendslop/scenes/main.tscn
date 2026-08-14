@@ -173,8 +173,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
 
 [node name="Marlow" type="Node3D" parent="."]
 script = ExtResource("44_npc")
-display_name_key = "npc.marlow.name"
-dialogue_path = "res://assets/dialogue/marlow.json"
+npc_ref = "marlow"
 terrain_path = NodePath("../Terrain")
 body = ExtResource("34_body")
 attachments = Array[PackedScene]([ExtResource("35_hair")])
