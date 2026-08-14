@@ -15869,7 +15869,7 @@ dependencies = [
 
 [[package]]
 name = "reel"
-version = "0.1.40"
+version = "0.1.41"
 dependencies = [
  "anyhow",
  "axum 0.8.9",
