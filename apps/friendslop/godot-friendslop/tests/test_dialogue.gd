@@ -7,6 +7,7 @@ const State := preload("res://src/dialogue/dialogue_state.gd")
 const Runner := preload("res://src/dialogue/dialogue_runner.gd")
 
 const Npcdb := preload("res://src/dialogue/npcdb_dialogue.gd")
+const TalkPanel := preload("res://src/ui/dialogue_panel.gd")
 
 const MARLOW := "marlow"
 
@@ -400,6 +401,74 @@ func test_the_interact_key_is_bound() -> void:
 ## translation.
 func test_the_talk_prompt_names_the_speaker() -> void:
 	assert_str(I18n.t("prompt.talk", {"name": "Marlow"})).contains("Marlow")
+
+
+## Leaving the world has to take the conversation with it. Parented to the tree root the
+## panel outlives a scene swap, and logging off mid-sentence lands on the title screen
+## with Marlow still talking.
+func test_the_panel_belongs_to_the_world_it_was_opened_in() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+	assert_object(panel).is_not_null()
+	assert_object(panel.get_parent()) \
+			.override_failure_message("the panel would survive the scene it was opened in") \
+			.is_same(world)
+	assert_bool(TalkPanel.is_open()).is_true()
+
+	panel.close()
+	_unstage(world, was)
+
+
+## Anything that frees the panel ends the talk, or the player is handed back a world they
+## cannot move in.
+func test_a_panel_freed_out_from_under_the_talk_still_closes_it() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+	var ended := [false]
+	panel.closed.connect(func() -> void: ended[0] = true)
+
+	world.remove_child(panel)
+	panel.free()
+	assert_bool(ended[0]) \
+			.override_failure_message("the world went away and nobody was told the talk had ended") \
+			.is_true()
+	assert_bool(TalkPanel.is_open()) \
+			.override_failure_message("a freed panel still counts as open, so no talk can start again") \
+			.is_false()
+	_unstage(world, was)
+
+
+## One at a time: a second interact while a talk is up would stack panels nothing can
+## dismiss.
+func test_only_one_conversation_is_open_at_a_time() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+
+	var first := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+	assert_object(TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())).is_null()
+	first.close()
+	_unstage(world, was)
+
+
+## The panel hangs off whatever the tree calls the current scene, which only a direct
+## child of the root may be.
+func _stage_world() -> Node3D:
+	var world := Node3D.new()
+	world.name = "StandInWorld"
+	get_tree().root.add_child(world)
+	get_tree().current_scene = world
+	return world
+
+
+func _unstage(world: Node3D, was: Node) -> void:
+	await get_tree().process_frame
+	get_tree().current_scene = was
+	get_tree().root.remove_child(world)
+	world.free()
 
 
 func _offers(runner: DialogueRunner, text_key: String) -> bool:

@@ -17,6 +17,7 @@ var _target: Node3D
 var _prompt: Label
 var _layer: CanvasLayer
 var _body: Node3D
+var _talking := false
 var _state := DialogueState.new()
 
 
@@ -48,6 +49,12 @@ func _process(_delta: float) -> void:
 	if PanelScript.is_open():
 		_prompt.visible = false
 		return
+	## Belt and braces: a panel that went away without saying so would otherwise leave the
+	## player standing there unable to move.
+	if _talking:
+		_talking = false
+		if _body and _body.has_method("set_talking"):
+			_body.set_talking(false)
 	_target = _nearest()
 	_prompt.visible = _target != null
 	if _target:
@@ -107,8 +114,11 @@ func _talk_to(actor: Node3D) -> void:
 		return
 	_prompt.visible = false
 	if _body.has_method("set_talking"):
+		_talking = true
 		_body.set_talking(true)
-		panel.closed.connect(func() -> void: _body.set_talking(false))
+		panel.closed.connect(func() -> void:
+			_talking = false
+			_body.set_talking(false))
 
 
 ## Everything the player has been told and told others, kept on the player so it outlives

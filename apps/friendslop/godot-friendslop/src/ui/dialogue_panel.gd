@@ -44,7 +44,11 @@ static func open(tree: SceneTree, graph: DialogueGraph, state: DialogueState) ->
 	var panel := DialoguePanel.new()
 	panel.name = "DialoguePanel"
 	panel.runner = RunnerScript.new()
-	tree.root.add_child(panel)
+	## Hung off the world rather than the tree root, so leaving the world takes the
+	## conversation with it. On the root it outlives the scene swap and a player who
+	## logged off mid-sentence arrives at the title screen still being talked to.
+	var host: Node = tree.current_scene if tree.current_scene != null else tree.root
+	host.add_child(panel)
 	if not panel.runner.start(graph, state):
 		panel.queue_free()
 		return null
@@ -65,6 +69,7 @@ func _ready() -> void:
 	_was_captured = Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 	if _was_captured:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_set_crosshair(false)
 
 
 func _build() -> void:
@@ -144,9 +149,10 @@ func _take(index: int) -> void:
 		runner.choose(index)
 
 
-## Keys are read here rather than left to the world: a conversation holds the interact key
-## while it is up, or the same press that answers a question also opens the next talk.
-func _unhandled_input(event: InputEvent) -> void:
+## Read at _input rather than left unhandled, because the pause menu reads Escape there
+## too: a conversation has to be the thing Escape leaves, or the menu opens on top of a
+## talk the player is still stuck in.
+func _input(event: InputEvent) -> void:
 	if runner == null or not runner.is_running():
 		return
 	if event.is_action_pressed(&"ui_cancel"):
@@ -154,8 +160,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		close()
 		return
 	if event.is_action_pressed(&"interact") or event.is_action_pressed(&"ui_accept"):
+		get_viewport().set_input_as_handled()
 		if runner.choices().is_empty():
-			get_viewport().set_input_as_handled()
 			runner.advance()
 
 
@@ -168,12 +174,22 @@ func close() -> void:
 		_open = null
 	if runner:
 		runner.stop()
+	_set_crosshair(true)
 	if _was_captured and DisplayServer.window_can_draw():
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	closed.emit()
 	queue_free()
 
 
+## Anything that frees the panel ends the talk, not just close(): the world going away
+## under a conversation still has to hand the player back their controls.
 func _exit_tree() -> void:
-	if _open == self:
-		_open = null
+	close()
+
+
+## The reticle is aimed at whoever is being talked to and reads as targeting them.
+func _set_crosshair(shown: bool) -> void:
+	var scene := get_tree().current_scene if get_tree() else null
+	var hud := scene.get_node_or_null(^"Crosshair") if scene else null
+	if hud:
+		hud.visible = shown
