@@ -434,12 +434,12 @@ fn highlow_tracks_a_streak_and_quits() {
 fn every_catalog_entry_launches() {
     for entry in games::CATALOG {
         assert!(
-            games::launch(entry.key).is_some(),
+            games::launch(entry.key, "tester").is_some(),
             "catalog entry {} does not launch",
             entry.key
         );
     }
-    assert!(games::launch('Z').is_none());
+    assert!(games::launch('Z', "tester").is_none());
 }
 
 #[test]
@@ -467,141 +467,147 @@ fn dungeon_frame_wraps_inside_the_petscii_width() {
     );
 }
 
-fn play(run: &mut run::Run, keys: &str) {
+use super::games::map::{Cell, Grid, Links};
+use bevy_dungeon::types::GamePhase;
+
+/// Visible width of a PETSCII line. Colour codes live in 0x90-0x9F and
+/// reverse/clear are 0x12/0x92/0x93 — all of which are >= 0x20 but occupy no
+/// column, so a naive "printable byte" count overstates the width.
+fn petscii_columns(line: &[u8]) -> usize {
+    line.iter()
+        .filter(|b| {
+            let b = **b;
+            b >= 0x20 && b != 0x92 && b != 0x93 && !(0x90..=0x9F).contains(&b)
+        })
+        .count()
+}
+
+fn drive(game: &mut run::Run, keys: &str) {
     for k in keys.chars() {
-        if run.phase() == run::Phase::Dead {
-            break;
-        }
-        let _ = run.on_key(k);
+        let _ = game.on_key(k);
     }
 }
 
 #[test]
-fn dungeon_run_starts_on_the_first_floor() {
-    let game = run::Run::new(Rng::new(1));
-    assert_eq!(game.depth(), 1);
+fn dungeon_starts_in_the_city_with_a_live_player() {
+    let game = run::Run::new(Rng::new(1), "tester");
+    assert_eq!(game.phase(), GamePhase::City);
     assert!(game.hp() > 0);
-    assert_eq!(game.potions(), 3);
 }
 
 #[test]
-fn dungeon_quit_exits_from_any_phase() {
-    let mut game = run::Run::new(Rng::new(2));
+fn dungeon_quit_exits() {
+    let mut game = run::Run::new(Rng::new(2), "tester");
     assert_eq!(game.on_key('Q'), Flow::Exit);
 }
 
 #[test]
-fn dungeon_descending_increases_depth() {
-    let mut game = run::Run::new(Rng::new(4));
-    let start = game.depth();
-    play(&mut game, "AAAAAAAAAA");
-    if game.phase() == run::Phase::Exploring {
-        let _ = game.on_key('G');
-        assert!(game.depth() > start);
+fn dungeon_uses_real_content_not_hardcoded_monsters() {
+    let mut game = run::Run::new(Rng::new(4), "tester");
+    for _ in 0..40 {
+        drive(&mut game, "NESW");
     }
-}
-
-#[test]
-fn dungeon_potion_heals_and_is_consumed() {
-    let mut game = run::Run::new(Rng::new(5));
-    play(&mut game, "AAAA");
-    if game.phase() != run::Phase::Dead && game.hp() < 40 {
-        let before_hp = game.hp();
-        let before_potions = game.potions();
-        let _ = game.on_key('P');
-        assert_eq!(game.potions(), before_potions - 1);
-        assert!(game.hp() >= before_hp);
-    }
-}
-
-#[test]
-fn dungeon_potion_is_refused_when_empty() {
-    let mut game = run::Run::new(Rng::new(6));
-    for _ in 0..8 {
-        if game.phase() == run::Phase::Dead {
-            break;
-        }
-        let _ = game.on_key('P');
-    }
-    assert_eq!(game.potions(), 0);
     let frame = drain(Term::Ansi, &game);
-    assert!(frame.contains("Potion (0)"));
+    assert!(
+        !frame.contains("Tunnel Grub") && !frame.contains("Cave Rat"),
+        "the retired hardcoded monster table is still reachable"
+    );
 }
 
 #[test]
-fn dungeon_fighting_eventually_resolves() {
-    let mut game = run::Run::new(Rng::new(8));
-    for _ in 0..200 {
-        if game.phase() == run::Phase::Dead {
-            break;
-        }
-        let _ = game.on_key(if game.phase() == run::Phase::Fighting {
-            'A'
-        } else {
-            'G'
-        });
-    }
-    assert!(game.depth() > 1 || game.phase() == run::Phase::Dead);
-}
+fn dungeon_map_view_toggles_and_returns() {
+    let mut game = run::Run::new(Rng::new(5), "tester");
+    let play = drain(Term::Ansi, &game);
+    assert!(play.contains("progress is not saved"));
 
-#[test]
-fn dungeon_death_offers_a_new_run() {
-    let mut game = run::Run::new(Rng::new(3));
-    for _ in 0..400 {
-        if game.phase() == run::Phase::Dead {
-            break;
-        }
-        let _ = game.on_key(if game.phase() == run::Phase::Fighting {
-            'A'
-        } else {
-            'G'
-        });
-    }
-    assert_eq!(game.phase(), run::Phase::Dead);
-    assert_eq!(game.hp(), 0);
+    let _ = game.on_key('M');
+    let map_view = drain(Term::Ansi, &game);
+    assert!(map_view.contains("=you"), "legend missing from map view");
+    assert!(
+        map_view.contains('@'),
+        "player marker missing from map view"
+    );
 
-    let dead_frame = drain(Term::Ansi, &game);
-    assert!(dead_frame.contains("run over"));
-    assert!(dead_frame.contains("New run"));
-
-    let _ = game.on_key('N');
-    assert_ne!(game.phase(), run::Phase::Dead);
-    assert!(game.hp() > 0);
-    assert_eq!(game.depth(), 1);
-    assert_eq!(game.potions(), 3);
-}
-
-#[test]
-fn dungeon_says_progress_is_not_saved() {
-    let game = run::Run::new(Rng::new(9));
+    let _ = game.on_key('Q');
     assert!(drain(Term::Ansi, &game).contains("progress is not saved"));
 }
 
 #[test]
-fn dungeon_run_renders_clean_on_petscii() {
-    let mut game = run::Run::new(Rng::new(10));
-    for _ in 0..30 {
-        let mut screen = Screen::new(Term::Petscii, 40, 25);
-        game.draw(&mut screen);
-        let bytes = screen.take();
-        assert!(
-            !bytes.contains(&b'?'),
-            "petscii fallback in a dungeon frame"
-        );
-        let widest = bytes
-            .split(|b| *b == 0x0D)
-            .map(|line| line.iter().filter(|b| **b >= 0x20).count())
-            .max()
-            .unwrap_or(0);
-        assert!(widest <= 40, "line overflowed 40 columns: {widest}");
+fn dungeon_map_quit_from_map_does_not_leave_the_game() {
+    let mut game = run::Run::new(Rng::new(6), "tester");
+    let _ = game.on_key('M');
+    assert_eq!(game.on_key('Q'), Flow::Continue);
+    assert_eq!(game.on_key('Q'), Flow::Exit);
+}
 
-        if game.phase() == run::Phase::Dead {
-            break;
+#[test]
+fn dungeon_renders_clean_on_petscii_across_a_run() {
+    let mut game = run::Run::new(Rng::new(7), "tester");
+    for step in 0..24 {
+        for view in ["", "M"] {
+            if !view.is_empty() {
+                let _ = game.on_key('M');
+            }
+            let mut screen = Screen::new(Term::Petscii, 40, 25);
+            game.draw(&mut screen);
+            let bytes = screen.take();
+            assert!(!bytes.contains(&b'?'), "petscii fallback at step {step}");
+            let widest = bytes
+                .split(|b| *b == 0x0D)
+                .map(petscii_columns)
+                .max()
+                .unwrap_or(0);
+            assert!(widest <= 40, "line overflowed 40 columns: {widest}");
+            if !view.is_empty() {
+                let _ = game.on_key('Q');
+            }
         }
-        let _ = game.on_key(if game.phase() == run::Phase::Fighting {
-            'A'
-        } else {
-            'G'
-        });
+        let _ = game.on_key(['N', 'E', 'S', 'W', 'A'][step % 5]);
     }
+}
+
+#[test]
+fn map_grid_draws_corridors_and_glyphs_in_ascii() {
+    let mut grid = Grid::new(2, 1);
+    grid.set(
+        0,
+        0,
+        Cell::Current,
+        Links {
+            east: true,
+            ..Links::NONE
+        },
+    );
+    grid.set(1, 0, Cell::Boss, Links::NONE);
+
+    let mut screen = Screen::new(Term::Ansi, 80, 24);
+    super::games::map::draw(&mut screen, &grid);
+    let out = String::from_utf8_lossy(&screen.take()).to_string();
+    assert!(out.contains('@'));
+    assert!(out.contains('B'));
+    assert!(out.contains("---"), "east corridor not drawn");
+}
+
+#[test]
+fn map_grid_uses_petscii_screen_codes_not_ascii() {
+    let mut grid = Grid::new(1, 1);
+    grid.set(0, 0, Cell::Current, Links::NONE);
+
+    let mut screen = Screen::new(Term::Petscii, 40, 25);
+    super::games::map::draw(&mut screen, &grid);
+    let bytes = screen.take();
+    assert!(bytes.contains(&0xD1), "petscii player glyph missing");
+    assert!(!bytes.contains(&b'@'), "ascii glyph leaked into petscii");
+}
+
+#[test]
+fn map_window_shrinks_to_fit_a_forty_column_screen() {
+    let petscii = Screen::new(Term::Petscii, 40, 25);
+    let ansi = Screen::new(Term::Ansi, 100, 40);
+    // Ask for a grid wider than either terminal can hold, so the cap is the
+    // screen rather than the request.
+    assert!(
+        super::games::map::fits(&petscii, 30) < super::games::map::fits(&ansi, 30),
+        "petscii should get a narrower map window than a wide ansi terminal"
+    );
 }

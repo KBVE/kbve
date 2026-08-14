@@ -437,7 +437,8 @@ impl Session {
             if key == 'Q' {
                 return Ok(());
             }
-            if let Some(mut game) = games::launch(key) {
+            let handle = self.handle().to_string();
+            if let Some(mut game) = games::launch(key, &handle) {
                 self.play(game.as_mut()).await?;
             }
         }

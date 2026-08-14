@@ -39,6 +39,7 @@ kbve = { path = "../../../packages/rust/kbve", features = ["supabase", "image-ge
 bevy_items = { path = "../../../packages/rust/bevy/bevy_items", features = ["inventory"] }
 bevy_inventory = { path = "../../../packages/rust/bevy/bevy_inventory", default-features = false }
 bevy_battle = { path = "../../../packages/rust/bevy/bevy_battle" }
+bevy_dungeon = { path = "../../../packages/rust/bevy/bevy_dungeon" }
 bevy_behavior = { path = "../../../packages/rust/bevy/bevy_behavior" }
 bevy_npc = { path = "../../../packages/rust/bevy/bevy_npc" }
 bevy_quests = { path = "../../../packages/rust/bevy/bevy_quests" }
@@ -54,6 +55,7 @@ bevy_db = { path = "../../../packages/rust/bevy/bevy_db", default-features = fal
 tikv-jemallocator = { workspace = true, optional = true }
 
 [dev-dependencies]
+bevy_dungeon = { path = "../../../packages/rust/bevy/bevy_dungeon", features = ["testing"] }
 serial_test = { workspace = true }
 wiremock = "0.6"
 

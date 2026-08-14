@@ -24,9 +24,13 @@ use crate::state::AppState;
 /// sends `embed` + `components` (+ `card_png` if `Some`) to its
 /// channel, then calls [`commit_launch`] with the resulting message id.
 pub struct Launched {
-    /// Fully populated session, except for `message_id` which the
-    /// caller fills in once the public dungeon message has been sent.
+    /// Fully populated session. The Discord message id is supplied to
+    /// `commit_launch` once the public dungeon message has been sent.
     pub session_state: SessionState,
+    /// Channel the dungeon embed lives in.
+    pub channel_id: serenity::ChannelId,
+    /// Profile loaded at launch, kept so the save path can diff against it.
+    pub saved_profile: Option<persistence::DungeonProfile>,
     /// RAII guard for the play-mode lock. `commit_launch` consumes it
     /// once the session is registered.
     pub mode_guard: persistence::ModeLockGuard,
@@ -93,25 +97,22 @@ pub async fn prepare_launch(
     let saved_profile = app.profiles.load(user.get()).await;
     if let Some(ref profile) = saved_profile {
         persistence::apply_profile_to_player(profile, &mut player, &mut quest_journal);
-        player.saved_snapshot = Some(profile.clone());
     }
 
     let session_state = SessionState {
         id,
         short_id: short_id.clone(),
-        owner: user,
+        owner: pid(user),
         party: Vec::new(),
         // Phase 1 of the redesign always launches into Party so the
         // dungeon embed exposes the join button. Solo mode stays in the
         // enum for any internal callers that still need it.
         mode: SessionMode::Party,
         phase,
-        channel_id: channel,
-        message_id: serenity::MessageId::new(1), // placeholder, filled by caller
         created_at: Instant::now(),
         last_action_at: Instant::now(),
         turn: 0,
-        players: HashMap::from([(user, player)]),
+        players: HashMap::from([(pid(user), player)]),
         enemies: Vec::new(),
         room,
         log: vec![
@@ -145,6 +146,8 @@ pub async fn prepare_launch(
 
     Ok(Launched {
         session_state,
+        channel_id: channel,
+        saved_profile,
         mode_guard,
         embed,
         components,
@@ -161,11 +164,17 @@ pub async fn prepare_launch(
 /// guard's `Drop`.
 pub fn commit_launch(
     app: &Arc<AppState>,
-    mut session_state: SessionState,
+    session_state: SessionState,
+    channel_id: serenity::ChannelId,
+    saved_profile: Option<persistence::DungeonProfile>,
     mode_guard: persistence::ModeLockGuard,
     message_id: serenity::MessageId,
 ) {
-    session_state.message_id = message_id;
-    app.sessions.create(session_state);
+    let owner = session_state.owner;
+    let mut session = super::session::BotSession::new(session_state, channel_id, message_id);
+    if let Some(profile) = saved_profile {
+        session.snapshots.insert(owner, profile);
+    }
+    app.sessions.create(session);
     mode_guard.commit();
 }
