@@ -11,6 +11,12 @@ members = [
     "packages/rust/bevy/bevy_items",
     "packages/rust/bevy/bevy_skills",
     "packages/rust/bevy/bevy_chat",
+    "packages/rust/bevy/bevy_dungeon",
+    "packages/rust/bevy/bevy_battle",
+    "packages/rust/bevy/bevy_behavior",
+    "packages/rust/bevy/bevy_mapdb",
+    "packages/rust/bevy/bevy_quests",
+    "packages/rust/bevy/bevy_pathfinder",
 ]
 
 [workspace.package]

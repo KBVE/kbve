@@ -6,16 +6,14 @@ extends Node3D
 ## be given the same reach later.
 
 const PanelScript := preload("res://src/ui/dialogue_panel.gd")
+const Hint := preload("res://src/ui/input_hint.gd")
 
 ## Flat, because a bank a metre below the deck is still arm's reach.
 @export var reach := 3.6
 ## How far off straight ahead a target may sit, as a dot against the camera's heading.
 @export var facing := 0.35
-@export var prompt_font := 18
 
 var _target: Node3D
-var _prompt: Label
-var _layer: CanvasLayer
 var _body: Node3D
 var _talking := false
 var _state := DialogueState.new()
@@ -23,31 +21,11 @@ var _state := DialogueState.new()
 
 func _ready() -> void:
 	_body = get_parent() as Node3D
-	_build_prompt()
-
-
-func _build_prompt() -> void:
-	_layer = CanvasLayer.new()
-	_layer.layer = 60
-	add_child(_layer)
-	_prompt = Label.new()
-	_prompt.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
-	_prompt.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_prompt.offset_top = -140.0
-	_prompt.offset_bottom = -110.0
-	_prompt.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_prompt.add_theme_font_size_override("font_size", prompt_font)
-	_prompt.add_theme_color_override("font_color", MenuStyle.PAPER_HOVER)
-	_prompt.add_theme_color_override("font_outline_color", Color(0.05, 0.04, 0.03))
-	_prompt.add_theme_constant_override("outline_size", 6)
-	_prompt.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_prompt.visible = false
-	_layer.add_child(_prompt)
 
 
 func _process(_delta: float) -> void:
 	if PanelScript.is_open():
-		_prompt.visible = false
+		_aim(null)
 		return
 	## Belt and braces: a panel that went away without saying so would otherwise leave the
 	## player standing there unable to move.
@@ -55,10 +33,18 @@ func _process(_delta: float) -> void:
 		_talking = false
 		if _body and _body.has_method("set_talking"):
 			_body.set_talking(false)
-	_target = _nearest()
-	_prompt.visible = _target != null
-	if _target:
-		_prompt.text = I18n.t("prompt.talk", {"name": _target.display_name()})
+	_aim(_nearest())
+
+
+## The offer is written over whoever it is for, so only one of them may be showing it.
+func _aim(actor: Node3D) -> void:
+	if actor == _target:
+		return
+	if is_instance_valid(_target) and _target.has_method("withdraw_talk"):
+		_target.withdraw_talk()
+	_target = actor
+	if _target and _target.has_method("offer_talk"):
+		_target.offer_talk(Hint.label(&"interact", "E"))
 
 
 ## Nearest of whatever is in reach and roughly ahead. Distance is measured flat so a
@@ -112,7 +98,7 @@ func _talk_to(actor: Node3D) -> void:
 	var panel := PanelScript.open(get_tree(), graph, _state)
 	if panel == null:
 		return
-	_prompt.visible = false
+	_aim(null)
 	if _body.has_method("set_talking"):
 		_talking = true
 		_body.set_talking(true)

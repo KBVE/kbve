@@ -29,6 +29,19 @@ struct Growth {
     up_attract: f32,
 }
 
+const TRUNK_BUCKETS: [f32; 3] = [5.0, 7.5, 10.5];
+const TRUNK_COLLIDER_SPAN: f32 = 0.55;
+
+fn trunk_bucket(scale: f32) -> usize {
+    if scale < 6.2 {
+        0
+    } else if scale < 9.0 {
+        1
+    } else {
+        2
+    }
+}
+
 fn crown_shape(id: u32, f: f32) -> f32 {
     match id {
         0 => 0.55 + 0.45 * (std::f32::consts::PI * (0.15 + 0.85 * f)).sin(),
@@ -50,7 +63,7 @@ struct TreeSpecies {
 const SPECIES: &[TreeSpecies] = &[
     TreeSpecies {
         seed_off: 0,
-        height: (4.2, 8.4),
+        height: (7.0, 12.5),
         crown: 1.3,
         leaf_tex: "res://assets/environment/props/flora/euonymus/euonymus_alpha_0.png",
         bark_color: Color::from_rgba(0.38, 0.28, 0.2, 1.0),
@@ -73,7 +86,7 @@ const SPECIES: &[TreeSpecies] = &[
     },
     TreeSpecies {
         seed_off: 7919,
-        height: (3.4, 6.6),
+        height: (5.5, 10.0),
         crown: 1.0,
         leaf_tex: "res://assets/environment/props/flora/euonymus/euonymus_alpha_5.png",
         bark_color: Color::from_rgba(0.52, 0.47, 0.4, 1.0),
@@ -96,7 +109,7 @@ const SPECIES: &[TreeSpecies] = &[
     },
     TreeSpecies {
         seed_off: 104729,
-        height: (3.0, 5.8),
+        height: (4.5, 8.0),
         crown: 1.1,
         leaf_tex: "res://assets/environment/props/flora/euonymus/euonymus_alpha_11.png",
         bark_color: Color::from_rgba(0.33, 0.24, 0.19, 1.0),
@@ -311,7 +324,7 @@ impl QTreeField {
             let mut terrain = terrain;
             let mut tb = terrain.bind_mut();
             for c in self.candidates.chunks_exact(8) {
-                tb.stamp_clearance(c[0], c[2], 1.1 + c[3] * 0.18);
+                tb.stamp_clearance(c[0], c[2], 0.9 + c[3] * 0.14);
             }
             tb.flush_clearance();
         }
@@ -643,19 +656,12 @@ impl QTreeField {
     /// what a body actually hits are the same thing.
     #[func]
     fn obstacle_discs(&self) -> PackedFloat32Array {
-        let scale_r = self.trunk_collider_radius / 5.0;
+        let scale_r = self.trunk_collider_radius / TRUNK_BUCKETS[1];
         let mut out = PackedFloat32Array::new();
         for c in self.candidates.chunks_exact(8) {
-            let bucket = if c[3] < 4.5 {
-                3.5
-            } else if c[3] < 6.5 {
-                5.5
-            } else {
-                7.5
-            };
             out.push(c[0]);
             out.push(c[2]);
-            out.push(scale_r * bucket);
+            out.push(scale_r * TRUNK_BUCKETS[trunk_bucket(c[3])]);
         }
         out
     }
@@ -696,15 +702,14 @@ impl QTreeField {
         };
         let space = world.get_space();
         let mut ps = PhysicsServer3D::singleton();
-        let scale_r = self.trunk_collider_radius / 5.0;
-        let buckets = [3.5f32, 5.5, 7.5];
-        let shapes: Vec<Rid> = buckets
+        let scale_r = self.trunk_collider_radius / TRUNK_BUCKETS[1];
+        let shapes: Vec<Rid> = TRUNK_BUCKETS
             .iter()
             .map(|s| {
                 let shape = ps.cylinder_shape_create();
                 let mut data = VarDictionary::new();
                 let _ = data.insert("radius", scale_r * s);
-                let _ = data.insert("height", 4.0);
+                let _ = data.insert("height", s * TRUNK_COLLIDER_SPAN);
                 ps.shape_set_data(shape, &data.to_variant());
                 shape
             })
@@ -716,14 +721,9 @@ impl QTreeField {
             if !self.core.alive(*id) {
                 continue;
             }
-            let bi = if c[3] < 4.5 {
-                0
-            } else if c[3] < 6.5 {
-                1
-            } else {
-                2
-            };
-            let t = Transform3D::IDENTITY.translated(Vector3::new(c[0], c[1] + 2.0, c[2]));
+            let bi = trunk_bucket(c[3]);
+            let half = TRUNK_BUCKETS[bi] * TRUNK_COLLIDER_SPAN * 0.5;
+            let t = Transform3D::IDENTITY.translated(Vector3::new(c[0], c[1] + half, c[2]));
             ps.body_add_shape_ex(body, shapes[bi]).transform(t).done();
         }
         self.body = body;
@@ -814,13 +814,33 @@ impl MeshBuilder {
         v: f32,
         col: Color,
     ) -> Vec<i32> {
+        self.ring_fluted(center, t, b, r, sides, v, col, 0.0, 0.0)
+    }
+
+    #[allow(clippy::too_many_arguments)]
+    fn ring_fluted(
+        &mut self,
+        center: Vector3,
+        t: Vector3,
+        b: Vector3,
+        r: f32,
+        sides: u32,
+        v: f32,
+        col: Color,
+        warp: f32,
+        phase: f32,
+    ) -> Vec<i32> {
         let mut out = Vec::with_capacity(sides as usize + 1);
         for i in 0..=sides {
             let a = std::f32::consts::TAU * i as f32 / sides as f32;
             let dir = t * a.cos() + b * a.sin();
+            let lobe = (a * FLUTES + phase).sin();
+            let rr = r * (1.0 + warp * lobe);
             let base = self.verts.len() as i32;
-            self.verts.push(center + dir * r);
-            self.normals.push(dir);
+            self.verts.push(center + dir * rr);
+            let slope = -warp * FLUTES * (a * FLUTES + phase).cos();
+            let tangential = -t * a.sin() + b * a.cos();
+            self.normals.push((dir + tangential * slope).normalized());
             self.colors.push(col);
             self.uvs
                 .push(Vector2::new(i as f32 / sides as f32 * 2.0, v * 6.0));
@@ -882,6 +902,12 @@ fn frame(dir: Vector3) -> (Vector3, Vector3) {
     let b = dir.cross(t).normalized();
     (t, b)
 }
+
+const FLUTES: f32 = 3.0;
+const FLUTE_DEPTH: f32 = 0.13;
+const FLUTE_TOP: f32 = 0.45;
+const FLARE_GAIN: f32 = 1.0;
+const FLARE_SPAN: f32 = 0.14;
 
 /// How far up its twig the card band reaches; 1.0 would close over the tuft's ends.
 const TUFT_BAND: f32 = 0.85;
@@ -947,7 +973,7 @@ fn limb(
     state: &mut u32,
 ) {
     let segs = match depth {
-        0 => 4,
+        0 => 7,
         1 => 3,
         _ => 2,
     };
@@ -984,7 +1010,7 @@ fn limb(
             } else if depth == 0 {
                 let n_lat = (n_children - 2).max(1);
                 let u = c as f32 / (n_lat.saturating_sub(1)).max(1) as f32;
-                (0.58 + 0.3 * u.powf(0.65)).min(0.88)
+                (0.62 + 0.28 * u.powf(0.65)).min(0.9)
             } else {
                 let u = c as f32 / (n_children - 1).max(1) as f32;
                 (0.45 + 0.43 * u.powf(0.65)).min(0.88)
@@ -1043,6 +1069,20 @@ fn limb(
         }
         a.max(r1 * r1 * 0.55).sqrt()
     };
+    let flare = |f: f32| {
+        if depth > 0 {
+            return 1.0;
+        }
+        let u = (1.0 - (f / FLARE_SPAN).min(1.0)).max(0.0);
+        1.0 + FLARE_GAIN * u * u * u
+    };
+    let flute = |f: f32| {
+        if depth > 0 {
+            return 0.0;
+        }
+        FLUTE_DEPTH * (1.0 - (f / FLUTE_TOP).min(1.0)).powf(1.3)
+    };
+    let flute_phase = randf(state) * std::f32::consts::TAU;
     let (mut ft, _) = frame(segd[0]);
     let mut fb;
     let mut prev: Option<Vec<i32>> = None;
@@ -1050,7 +1090,7 @@ fn limb(
     let mut v = 0.0f32;
     for i in 0..=segs {
         let f = i as f32 / segs as f32;
-        let r = r_of(f);
+        let r = r_of(f) * flare(f);
         let n = if i == 0 {
             segd[0]
         } else if i == segs {
@@ -1060,7 +1100,7 @@ fn limb(
         };
         ft = (ft - n * ft.dot(n)).normalized();
         fb = n.cross(ft).normalized();
-        let ring = bark.ring(nodes[i], ft, fb, r, sides, v, col);
+        let ring = bark.ring_fluted(nodes[i], ft, fb, r, sides, v, col, flute(f), flute_phase);
         if let Some(pr) = prev.as_ref() {
             bark.bridge(pr, &ring);
         }
@@ -1086,37 +1126,42 @@ fn limb(
     }
     let tip = nodes[segs];
     if depth == 0 {
-        let n_roots = 5 + (randf(state) * 3.0) as u32;
-        let raz0 = randf(state) * std::f32::consts::TAU;
+        let lobe0 = (std::f32::consts::FRAC_PI_2 - flute_phase) / FLUTES;
+        let per_lobe = 2 + (randf(state) * 2.0) as u32;
+        let n_roots = FLUTES as u32 * per_lobe;
         for i in 0..n_roots {
-            let az = raz0
-                + std::f32::consts::TAU * i as f32 / n_roots as f32
-                + (randf(state) - 0.5) * 0.5;
-            let f = 0.05 + randf(state) * 0.1;
+            let lobe = (i % FLUTES as u32) as f32;
+            let within = (i / FLUTES as u32) as f32 - (per_lobe as f32 - 1.0) * 0.5;
+            let az = lobe0
+                + std::f32::consts::TAU * lobe / FLUTES
+                + within * 0.42
+                + (randf(state) - 0.5) * 0.3;
+            let f = 0.01 + randf(state) * 0.05;
             let ff = f * segs as f32;
             let i0 = (ff as usize).min(segs - 1);
             let bp = nodes[i0] + (nodes[i0 + 1] - nodes[i0]) * (ff - i0 as f32);
             let pd = segd[i0];
             let (t, b) = frame(pd);
             let out = t * az.cos() + b * az.sin();
-            let r_at = r_of(f);
-            let rr = r_at * (0.42 + randf(state) * 0.16);
-            let reach = 0.3 + randf(state) * 0.22;
-            let sink = start.y - 0.07 - randf(state) * 0.05;
+            let r_at = r_of(f) * flare(f);
+            let rr = r_at * (0.34 + randf(state) * 0.2);
+            let reach = r0 * (4.0 + randf(state) * 3.0);
+            let sink = start.y - r0 * (0.9 + randf(state) * 0.7);
             let rd = (out - Vector3::UP * 0.2).normalized();
             let (rt, rb) = frame(rd);
             let wobble = (randf(state) - 0.5) * 0.6;
             let mut prev_ring: Option<Vec<i32>> = None;
-            for k in 0..=4 {
-                let tt = k as f32 / 4.0;
+            for k in 0..=5 {
+                let tt = k as f32 / 5.0;
                 let sway_az = az + wobble * tt;
                 let dirk = t * sway_az.cos() + b * sway_az.sin();
                 let horiz = Vector3::new(dirk.x, 0.0, dirk.z).normalized();
-                let u = ((tt - 0.25) / 0.75).clamp(0.0, 1.0);
+                let u = ((tt - 0.2) / 0.8).clamp(0.0, 1.0);
                 let yk = bp.y + (sink - bp.y) * (u * u * (3.0 - 2.0 * u));
                 let pos = Vector3::new(bp.x, yk, bp.z) + horiz * reach * tt;
-                let rk = (rr * (1.0 - tt).powf(1.8)).max(0.004);
-                let ring = bark.ring(pos, rt, rb, rk, 5, reach * tt, col);
+                let rk = (rr * (1.0 - tt).powf(1.5)).max(0.003);
+                let squash = 1.0 + 1.5 * (1.0 - tt).powi(2);
+                let ring = bark.ring(pos, rt * squash, rb / squash, rk, 5, reach * tt, col);
                 if let Some(pr) = prev_ring.as_ref() {
                     bark.bridge(pr, &ring);
                 }
@@ -1163,7 +1208,7 @@ fn limb(
                 (cr0 * 0.4).max(0.004),
                 1.0,
                 ccurve,
-                sides.saturating_sub(1).max(3),
+                (sides * 2 / 3).max(3),
                 depth + 1,
                 child_sway,
                 crown,
@@ -1177,9 +1222,9 @@ fn limb(
                 leaves,
                 tip,
                 segd[segs - 1],
-                (10.0 * crown) as u32,
-                0.095 * crown,
-                0.044 * crown,
+                (12.0 * crown) as u32,
+                0.10 * crown,
+                0.036 * crown,
                 leaf_aspect,
                 (sway + 0.3).min(0.9),
                 state,
@@ -1191,9 +1236,9 @@ fn limb(
             leaves,
             tip,
             twig,
-            (16.0 * crown) as u32,
-            0.11 * crown,
-            0.045 * crown,
+            (20.0 * crown) as u32,
+            0.115 * crown,
+            0.036 * crown,
             leaf_aspect,
             0.9,
             state,
@@ -1202,9 +1247,9 @@ fn limb(
             leaves,
             start + (tip - start) * 0.78,
             twig,
-            (9.0 * crown) as u32,
-            0.085 * crown,
-            0.041 * crown,
+            (11.0 * crown) as u32,
+            0.088 * crown,
+            0.033 * crown,
             leaf_aspect,
             (sway + 0.25).min(0.9),
             state,
@@ -1213,9 +1258,9 @@ fn limb(
             leaves,
             start + (tip - start) * 0.55,
             twig,
-            (6.0 * crown) as u32,
-            0.07 * crown,
-            0.039 * crown,
+            (7.0 * crown) as u32,
+            0.072 * crown,
+            0.031 * crown,
             leaf_aspect,
             (sway + 0.2).min(0.9),
             state,
@@ -1238,14 +1283,14 @@ fn build_skeleton_tree_mesh(seed: u32, sp: &TreeSpecies, leaf_aspect: f32) -> Gd
     limb(
         &mut bark,
         &mut leaves,
-        Vector3::new(0.0, -0.05, 0.0),
+        Vector3::new(0.0, -0.06, 0.0),
         lean,
-        0.68,
-        0.12,
-        0.028,
-        0.42,
+        0.95,
+        0.048,
+        0.011,
+        0.58,
         Vector3::ZERO,
-        7,
+        9,
         0,
         0.0,
         crown,
@@ -1266,9 +1311,9 @@ fn build_far_tree_mesh(seed: u32, crown: f32) -> Gd<ArrayMesh> {
 
     let trunk = Color::from_rgba(0.36, 0.26, 0.18, 0.0);
     let sides = 6;
-    let r0 = 0.045;
-    let r1 = 0.03;
-    let top = 0.45;
+    let r0 = 0.062;
+    let r1 = 0.026;
+    let top = 1.0;
     for i in 0..sides {
         let a0 = std::f32::consts::TAU * i as f32 / sides as f32;
         let a1 = std::f32::consts::TAU * (i + 1) as f32 / sides as f32;
@@ -1334,20 +1379,20 @@ fn build_far_tree_mesh(seed: u32, crown: f32) -> Gd<ArrayMesh> {
     let cw = crown;
     let blob_defs = [
         (
-            Vector3::new(0.0, 0.6, 0.0),
-            Vector3::new(0.42 * cw, 0.26 * cw, 0.42 * cw),
+            Vector3::new(0.0, 1.24, 0.0),
+            Vector3::new(0.56 * cw, 0.35 * cw, 0.56 * cw),
         ),
         (
-            Vector3::new(0.24 * cw, 0.52, 0.12 * cw),
-            Vector3::new(0.24 * cw, 0.18 * cw, 0.24 * cw),
+            Vector3::new(0.32 * cw, 1.06, 0.16 * cw),
+            Vector3::new(0.32 * cw, 0.24 * cw, 0.32 * cw),
         ),
         (
-            Vector3::new(-0.26 * cw, 0.55, -0.1 * cw),
-            Vector3::new(0.22 * cw, 0.17 * cw, 0.22 * cw),
+            Vector3::new(-0.35 * cw, 1.12, -0.13 * cw),
+            Vector3::new(0.3 * cw, 0.23 * cw, 0.3 * cw),
         ),
         (
-            Vector3::new(0.01, 0.78, -0.03),
-            Vector3::new(0.24 * cw, 0.18 * cw, 0.24 * cw),
+            Vector3::new(0.01, 1.6, -0.04),
+            Vector3::new(0.32 * cw, 0.24 * cw, 0.32 * cw),
         ),
     ];
     for (c, r) in blob_defs {
@@ -1356,7 +1401,7 @@ fn build_far_tree_mesh(seed: u32, crown: f32) -> Gd<ArrayMesh> {
 
     let mut leaves = MeshBuilder::new();
     for (c, r) in blob_defs {
-        let cards = if r.x > 0.25 { 8 } else { 5 };
+        let cards = if r.x > 0.4 { 9 } else { 6 };
         for _ in 0..cards {
             let theta = randf(&mut state) * std::f32::consts::TAU;
             let cosphi = -0.25 + randf(&mut state) * 1.15;
@@ -1367,8 +1412,8 @@ fn build_far_tree_mesh(seed: u32, crown: f32) -> Gd<ArrayMesh> {
             let roll = randf(&mut state) * std::f32::consts::TAU;
             let t = t0 * roll.cos() + b0 * roll.sin();
             let b = dir.cross(t).normalized();
-            let hs = (0.12 + randf(&mut state) * 0.07) * crown;
-            let sway = ((pos.y - 0.4) / 0.6).clamp(0.2, 1.0);
+            let hs = (0.16 + randf(&mut state) * 0.09) * crown;
+            let sway = ((pos.y - 0.9) / 1.0).clamp(0.2, 1.0);
             let col = Color::from_rgba(1.0, 1.0, 1.0, sway);
             leaves.card(
                 [
@@ -1387,7 +1432,7 @@ fn build_far_tree_mesh(seed: u32, crown: f32) -> Gd<ArrayMesh> {
         let w = if c.a < 0.5 {
             0.0
         } else {
-            ((y - 0.4) / 0.6).clamp(0.0, 1.0)
+            ((y - 0.9) / 1.0).clamp(0.0, 1.0)
         };
         c.a = w;
     }

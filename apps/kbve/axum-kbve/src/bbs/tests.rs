@@ -673,6 +673,21 @@ fn dungeon_map_view_toggles_and_returns() {
 }
 
 #[test]
+fn dungeon_map_shows_unmapped_neighbors_from_the_start() {
+    let mut game = run::Run::new(Rng::new(11), "tester");
+    let _ = game.on_key('M');
+    let map_view = drain(Term::Ansi, &game);
+    assert!(
+        map_view.contains('o'),
+        "revealed-but-unvisited rooms should draw as unmapped: {map_view}"
+    );
+    assert!(
+        map_view.contains("=unmapped"),
+        "legend missing unmapped key"
+    );
+}
+
+#[test]
 fn dungeon_map_quit_from_map_does_not_leave_the_game() {
     let mut game = run::Run::new(Rng::new(6), "tester");
     let _ = game.on_key('M');

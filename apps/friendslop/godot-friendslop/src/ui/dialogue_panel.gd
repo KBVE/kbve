@@ -9,6 +9,7 @@ extends CanvasLayer
 
 const PaperButton := preload("res://src/ui/components/paper_button.gd")
 const RunnerScript := preload("res://src/dialogue/dialogue_runner.gd")
+const Hint := preload("res://src/ui/input_hint.gd")
 
 signal closed
 
@@ -17,6 +18,15 @@ const PANEL_MARGIN := Vector2(90.0, 40.0)
 const BACKDROP := Color(0.07, 0.06, 0.05, 0.82)
 const NAME_FONT := 26
 const LINE_FONT := 20
+const CLOSE_FONT := 22
+const CLOSE_SIZE := 34.0
+
+## Characters a second the line is written at. Fast enough to read along with, slow enough
+## that it reads as somebody speaking.
+const TYPING_SPEED := 52.0
+## Punctuation is held on, which is most of what makes typing sound like talking rather
+## than a printer.
+const PAUSE_AFTER := {".": 0.18, "?": 0.18, "!": 0.18, ",": 0.08, ";": 0.1, ":": 0.1, "—": 0.12}
 
 ## One panel at a time, which is also what the player's controls read to know that the
 ## keys belong to a conversation right now.
@@ -30,6 +40,12 @@ var _choices: VBoxContainer
 var _hint: Label
 var _was_captured := false
 var _closing := false
+
+## Characters written so far, as a float so a slow line still moves every frame.
+var _written := 0.0
+var _letters := 0
+## Seconds still owed to a comma or a full stop before the next letter.
+var _held := 0.0
 
 
 static func is_open() -> bool:
@@ -100,10 +116,16 @@ func _build() -> void:
 	column.add_theme_constant_override("separation", 10)
 	frame.add_child(column)
 
+	var header := HBoxContainer.new()
+	column.add_child(header)
+
 	_name_label = Label.new()
 	_name_label.add_theme_font_size_override("font_size", NAME_FONT)
 	_name_label.add_theme_color_override("font_color", MenuStyle.PAPER_HOVER)
-	column.add_child(_name_label)
+	_name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	header.add_child(_name_label)
+
+	header.add_child(_close_button())
 
 	_line_label = Label.new()
 	_line_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -122,6 +144,24 @@ func _build() -> void:
 	column.add_child(_hint)
 
 
+## A way out that does not need the player to know which key leaves. Kept off the focus
+## chain, or the first reply would no longer be what a keyboard lands on.
+func _close_button() -> Button:
+	var out := Button.new()
+	out.name = "Close"
+	out.text = "✕"
+	out.flat = true
+	out.tooltip_text = I18n.t("dlg.close")
+	out.focus_mode = Control.FOCUS_NONE
+	out.custom_minimum_size = Vector2(CLOSE_SIZE, CLOSE_SIZE)
+	out.add_theme_font_size_override("font_size", CLOSE_FONT)
+	out.add_theme_color_override("font_color", MenuStyle.PAPER)
+	out.add_theme_color_override("font_hover_color", MenuStyle.PAPER_HOVER)
+	out.add_theme_color_override("font_pressed_color", MenuStyle.PAPER_PRESSED)
+	out.pressed.connect(close)
+	return out
+
+
 ## Redrawn whenever the runner moves, which is the only thing that changes what is on
 ## screen.
 func _show_node() -> void:
@@ -129,19 +169,71 @@ func _show_node() -> void:
 		return
 	_name_label.text = I18n.t(runner.speaker_key())
 	_line_label.text = I18n.t(runner.line_key())
-	for child in _choices.get_children():
-		child.queue_free()
+	_letters = _line_label.text.length()
+	_written = 0.0
+	_held = 0.0
+	_line_label.visible_characters = 0
 
-	var choices := runner.choices()
-	_hint.text = "" if not choices.is_empty() else I18n.t("dlg.continue")
-	for choice in choices:
+	for child in _choices.get_children():
+		_choices.remove_child(child)
+		child.queue_free()
+	for choice in runner.choices():
 		var index: int = choice[&"index"]
 		var button := PaperButton.make(I18n.t(str(choice[&"text"])),
 				func() -> void: _take(index))
 		button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		_choices.add_child(button)
-	if not choices.is_empty():
+
+	## Held back until the line is out. Replies appearing under a sentence still being
+	## spoken invite an answer to a question that has not been asked yet.
+	_choices.visible = false
+	_hint.text = ""
+
+
+## Writes the line out a letter at a time, holding on the punctuation so it reads as
+## somebody speaking rather than a page being pasted up.
+func _process(delta: float) -> void:
+	if not is_typing():
+		return
+	if _held > 0.0:
+		_held = maxf(_held - delta, 0.0)
+		return
+	_written = minf(_written + TYPING_SPEED * delta, float(_letters))
+	var shown := int(_written)
+	if shown > _line_label.visible_characters:
+		_line_label.visible_characters = shown
+		var last := _line_label.text.substr(maxi(shown - 1, 0), 1)
+		if shown < _letters and PAUSE_AFTER.has(last):
+			_held = PAUSE_AFTER[last]
+	if not is_typing():
+		_finish_line()
+
+
+## Whether the line is still being written, which is also whether a press means "hurry up"
+## rather than "go on".
+func is_typing() -> bool:
+	return _line_label != null and _line_label.visible_characters >= 0 \
+			and _line_label.visible_characters < _letters
+
+
+## Puts the whole line up at once, for a player who reads faster than it types.
+func skip_typing() -> void:
+	if not is_typing():
+		return
+	_written = float(_letters)
+	_line_label.visible_characters = _letters
+	_held = 0.0
+	_finish_line()
+
+
+func _finish_line() -> void:
+	_line_label.visible_characters = -1
+	if _choices.get_child_count() > 0:
+		_choices.visible = true
 		(_choices.get_child(0) as Control).grab_focus()
+		_hint.text = ""
+		return
+	_hint.text = I18n.t("dlg.continue", {"key": Hint.label(&"interact", "E")})
 
 
 func _take(index: int) -> void:
@@ -161,7 +253,11 @@ func _input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed(&"interact") or event.is_action_pressed(&"ui_accept"):
 		get_viewport().set_input_as_handled()
-		if runner.choices().is_empty():
+		## The first press hurries the line up rather than skipping past it, or a player
+		## leaning on the key never sees the half of it they were reading.
+		if is_typing():
+			skip_typing()
+		elif runner.choices().is_empty():
 			runner.advance()
 
 

@@ -8,6 +8,8 @@ const Runner := preload("res://src/dialogue/dialogue_runner.gd")
 
 const Npcdb := preload("res://src/dialogue/npcdb_dialogue.gd")
 const TalkPanel := preload("res://src/ui/dialogue_panel.gd")
+const KeyHint := preload("res://src/ui/input_hint.gd")
+const Interactor := preload("res://src/player/interactor.gd")
 
 const MARLOW := "marlow"
 
@@ -397,10 +399,11 @@ func test_the_interact_key_is_bound() -> void:
 	assert_bool(InputMap.action_get_events("interact").is_empty()).is_false()
 
 
-## The prompt names whoever is in reach, which needs the placeholder to survive
-## translation.
-func test_the_talk_prompt_names_the_speaker() -> void:
-	assert_str(I18n.t("prompt.talk", {"name": "Marlow"})).contains("Marlow")
+## The prompt is written under the speaker's own name, so it says the key rather than
+## repeating who it is for. The placeholder has to survive translation.
+func test_the_talk_prompt_carries_the_key() -> void:
+	assert_str(I18n.t("prompt.talk", {"key": "E"})).contains("E")
+	assert_str(I18n.t("prompt.talk", {"key": "E"})).not_contains("{{")
 
 
 ## Leaving the world has to take the conversation with it. Parented to the tree root the
@@ -452,6 +455,206 @@ func test_only_one_conversation_is_open_at_a_time() -> void:
 	assert_object(TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())).is_null()
 	first.close()
 	_unstage(world, was)
+
+
+## A line goes up a letter at a time, and a player who reads faster than it types can have
+## the rest of it at once.
+func test_a_line_is_typed_out_and_can_be_hurried() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+
+	assert_bool(panel.is_typing()) \
+			.override_failure_message("the whole line went up at once").is_true()
+	panel._process(0.05)
+	var part: int = panel._line_label.visible_characters
+	assert_int(part).is_greater(0)
+	assert_int(part) \
+			.override_failure_message("a fiftieth of a second wrote the whole line") \
+			.is_less(panel._line_label.text.length())
+
+	panel.skip_typing()
+	assert_bool(panel.is_typing()).is_false()
+	assert_int(panel._line_label.visible_characters) \
+			.override_failure_message("hurrying it up left some of the line hidden") \
+			.is_equal(-1)
+
+	panel.close()
+	_unstage(world, was)
+
+
+## Replies under a sentence still being spoken invite an answer to a question that has not
+## been asked yet.
+func test_replies_wait_for_the_line_to_finish() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var state := State.new()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), state)
+
+	## Marlow's first line runs on into the menu, which is the node that has replies.
+	panel.skip_typing()
+	panel.runner.advance()
+	assert_int(panel._choices.get_child_count()).is_greater(0)
+	assert_bool(panel._choices.visible) \
+			.override_failure_message("the replies were up before the question was") \
+			.is_false()
+
+	panel.skip_typing()
+	assert_bool(panel._choices.visible).is_true()
+
+	panel.close()
+	_unstage(world, was)
+
+
+## Typing ends by handing the label back to itself, so a line that is done is never a
+## line with a character count stuck on it.
+func test_a_finished_line_shows_all_of_itself() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+
+	for i in 400:
+		if not panel.is_typing():
+			break
+		panel._process(0.05)
+	assert_bool(panel.is_typing()) \
+			.override_failure_message("the line never finished typing").is_false()
+	assert_str(panel._hint.text) \
+			.override_failure_message("nothing told the player how to go on") \
+			.contains("E")
+
+	panel.close()
+	_unstage(world, was)
+
+
+## The prompt says the key the player actually has bound, so rebinding moves the prompt
+## with it.
+func test_the_prompt_names_the_bound_key() -> void:
+	assert_str(KeyHint.label(&"interact")) \
+			.override_failure_message("interact is bound to E, and the hint should say so") \
+			.is_equal("E")
+	assert_str(KeyHint.label(&"jump")).is_equal("Space")
+	assert_str(KeyHint.label(&"nothing_is_bound_to_this", "?")).is_equal("?")
+
+
+## Escape is not something a player has to know about, so the panel carries a way out that
+## can be clicked.
+func test_a_conversation_can_be_left_by_clicking() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+
+	var shut: Button = panel._name_label.get_parent().get_node("Close")
+	assert_int(shut.focus_mode) \
+			.override_failure_message("the way out takes the focus the first reply wants") \
+			.is_equal(Control.FOCUS_NONE)
+
+	shut.pressed.emit()
+	assert_bool(TalkPanel.is_open()) \
+			.override_failure_message("clicking the way out left the conversation up") \
+			.is_false()
+
+	_unstage(world, was)
+
+
+## The whole point of the prompt: walk up to somebody and be told you can talk to them.
+## It is written over their head, which is where the player is already looking.
+func test_standing_in_front_of_somebody_offers_the_prompt() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var pair := _stage_interactor(world, Vector3(0.0, 0.0, -2.0))
+	var reach: Node3D = pair[0]
+	var actor: NpcActor = pair[1]
+
+	reach._process(0.0)
+	assert_object(reach._target) \
+			.override_failure_message("nobody was found standing two metres straight ahead") \
+			.is_not_null()
+	assert_bool(actor._prompt.visible) \
+			.override_failure_message("somebody was in reach and the prompt stayed hidden") \
+			.is_true()
+	assert_str(actor._prompt.text).contains("E")
+	assert_str(actor._prompt.text) \
+			.override_failure_message("a placeholder was left in the prompt").not_contains("{{")
+
+	_unstage(world, was)
+
+
+## Marlow's name comes from the catalog rather than a local key, and a nameplate that only
+## went up for a local key left him standing there anonymous.
+func test_somebody_named_only_by_the_catalog_still_gets_a_nameplate() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var actor: NpcActor = _stage_interactor(world, Vector3(0.0, 0.0, -2.0))[1]
+
+	assert_object(actor._nameplate) \
+			.override_failure_message("the catalog knows his name and nothing showed it") \
+			.is_not_null()
+	assert_str(actor._nameplate.text).is_equal("Marlow")
+	assert_float(actor._prompt.position.y) \
+			.override_failure_message("the offer to talk is not under the name") \
+			.is_less(actor._nameplate.position.y)
+
+	_unstage(world, was)
+
+
+## Out of reach and behind are both no: a prompt for somebody across the river, or stood
+## at your back, is a prompt for nobody.
+func test_the_prompt_keeps_to_reach_and_to_what_is_ahead() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+
+	var far := _stage_interactor(world, Vector3(0.0, 0.0, -20.0))
+	far[0]._process(0.0)
+	assert_bool(far[1]._prompt.visible) \
+			.override_failure_message("somebody twenty metres off was offered a conversation") \
+			.is_false()
+
+	var behind := _stage_interactor(world, Vector3(0.0, 0.0, 2.0))
+	behind[0]._process(0.0)
+	assert_bool(behind[1]._prompt.visible) \
+			.override_failure_message("the player was offered a talk with somebody at their back") \
+			.is_false()
+
+	_unstage(world, was)
+
+
+## Walking away has to take the offer with it, or every NPC the player ever passed is left
+## advertising a conversation.
+func test_walking_away_withdraws_the_offer() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var pair := _stage_interactor(world, Vector3(0.0, 0.0, -2.0))
+	var reach: Node3D = pair[0]
+	var actor: NpcActor = pair[1]
+
+	reach._process(0.0)
+	assert_bool(actor._prompt.visible).is_true()
+
+	actor.global_position = Vector3(0.0, 0.0, -20.0)
+	reach._process(0.0)
+	assert_bool(actor._prompt.visible) \
+			.override_failure_message("the offer followed the player up the bank") \
+			.is_false()
+
+	_unstage(world, was)
+
+
+## A player, an interactor hung off them, and somebody to talk to placed relative to the
+## player's own heading. Returns both ends of the reach.
+func _stage_interactor(world: Node3D, at: Vector3) -> Array:
+	var body := Node3D.new()
+	world.add_child(body)
+
+	var actor := NpcActor.new()
+	actor.npc_ref = MARLOW
+	world.add_child(actor)
+	actor.global_position = at
+
+	var reach := Node3D.new()
+	reach.set_script(Interactor)
+	body.add_child(reach)
+	return [reach, actor]
 
 
 ## The panel hangs off whatever the tree calls the current scene, which only a direct
