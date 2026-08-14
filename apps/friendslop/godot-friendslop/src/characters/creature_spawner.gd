@@ -121,6 +121,10 @@ func _spawn() -> void:
 		rig.body = load(path)
 		rig.display_name = name
 		rig.snap_to_terrain = false
+		## Absolute, because the rig resolves it from _ready, which runs on add_child
+		## before it is anywhere the terrain can be reached relatively.
+		if terrain is Node:
+			rig.terrain_path = (terrain as Node).get_path()
 		patrol.add_child(rig)
 		patrol.rig = rig
 		spawned.append(patrol)

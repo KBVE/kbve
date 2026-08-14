@@ -68,8 +68,13 @@ impl Session {
         self.conn.write(&bytes).await.map_err(ReadError::Io)
     }
 
-    async fn key(&mut self) -> Result<char, ReadError> {
+    /// One menu command. The Enter that terminated the caller's line is theirs
+    /// to press, not an answer to the next screen, so it dies here.
+    pub(super) async fn key(&mut self) -> Result<char, ReadError> {
         let b = self.conn.read_key().await?;
+        if b != KEY_CR {
+            self.conn.drain_buffered_eol();
+        }
         Ok((b as char).to_ascii_uppercase())
     }
 
@@ -77,6 +82,7 @@ impl Session {
         self.screen.nl().ink(Ink::Dim).text("press any key").reset();
         self.flush().await?;
         self.conn.read_key().await?;
+        self.conn.drain_buffered_eol();
         Ok(())
     }
 

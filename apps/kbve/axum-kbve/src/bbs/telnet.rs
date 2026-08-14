@@ -301,6 +301,20 @@ impl TelnetConn {
         }
     }
 
+    /// Drop an end-of-line already sitting in the buffer from the same burst.
+    ///
+    /// A line-mode client sends `l\r\n` as one segment, so a screen that takes
+    /// a single command key leaves the Enter behind for whatever is drawn next
+    /// — where "press any key" reads it as a keypress and backs straight out.
+    /// Only buffered bytes are touched, never the socket, so a later Enter the
+    /// caller genuinely typed still arrives.
+    pub fn drain_buffered_eol(&mut self) {
+        while matches!(self.pending.front(), Some(&(CR | LF | 0))) {
+            self.pending.pop_front();
+        }
+        self.pending_eol = false;
+    }
+
     pub async fn shutdown(&mut self) {
         let _ = self.stream.shutdown().await;
     }

@@ -11,6 +11,7 @@ use super::claim::{ClaimStore, Redeem};
 use super::games::text::{Rng, bar, meter, strip_markup};
 use super::games::{self, Flow, Game, blackjack, dungeon, hangman, highlow, run, tictactoe};
 use super::render::{Ink, Screen, Term, truncate, wrap_lines};
+use super::session::Session;
 use super::telnet::{DO, IAC, OPT_ECHO, OPT_NAWS, SB, SE, TelnetConn, WILL};
 
 async fn pair() -> (TelnetConn, TcpStream) {
@@ -111,6 +112,36 @@ async fn repeated_enter_is_not_swallowed() {
         assert_eq!(conn.read_key().await.expect("key"), 0x0D);
     }
     assert_eq!(conn.read_key().await.expect("key"), b'z');
+}
+
+#[tokio::test]
+async fn buffered_eol_is_dropped_without_touching_the_socket() {
+    let (mut conn, mut client) = pair().await;
+    client.write_all(b"a\r\nb").await.expect("write");
+
+    assert_eq!(conn.read_key().await.expect("key"), b'a');
+    conn.drain_buffered_eol();
+    assert_eq!(conn.read_key().await.expect("key"), b'b');
+}
+
+#[tokio::test]
+async fn menu_command_does_not_leak_its_enter() {
+    let (conn, mut client) = pair().await;
+    let mut session = Session::new(conn, Term::Ansi, 80, 24);
+    client.write_all(b"l\r\nq\r\n").await.expect("write");
+
+    assert_eq!(session.key().await.expect("key"), 'L');
+    assert_eq!(session.key().await.expect("key"), 'Q');
+}
+
+#[tokio::test]
+async fn menu_still_reports_a_deliberate_enter() {
+    let (conn, mut client) = pair().await;
+    let mut session = Session::new(conn, Term::Ansi, 80, 24);
+    client.write_all(b"\r\nx").await.expect("write");
+
+    assert_eq!(session.key().await.expect("key"), '\r');
+    assert_eq!(session.key().await.expect("key"), 'X');
 }
 
 #[tokio::test]

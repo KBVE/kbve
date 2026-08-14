@@ -5,7 +5,7 @@ use godot::classes::{Engine, QuadMesh, RenderingServer, ShaderMaterial};
 use godot::prelude::*;
 
 use crate::world::flora_compute::{FloraCompute, TerrainOcclusion};
-use crate::world::{TerrainSnapshot, hash32, randf, view_origin, world_aabb};
+use crate::world::{TerrainSnapshot, randf, view_origin, world_aabb};
 
 #[derive(GodotClass)]
 #[class(init, base = Node3D)]
@@ -13,6 +13,7 @@ pub struct QFloraField {
     base: Base<Node3D>,
 
     init_done: bool,
+    origin: Vector2,
 
     #[export]
     terrain_path: NodePath,
@@ -59,6 +60,19 @@ pub struct QFloraField {
 }
 
 impl QFloraField {
+    fn window_moved(&self) -> bool {
+        let node = self.base().clone().upcast::<godot::classes::Node>();
+        crate::world::resolve_terrain(&node, &self.terrain_path)
+            .map(|t| t.bind().window_origin() != self.origin)
+            .unwrap_or(false)
+    }
+
+    fn rescatter(&mut self) {
+        let _t = crate::world::StallTimer::start("flora.rescatter");
+        self.free_all();
+        self.init_done = false;
+    }
+
     fn late_init(&mut self) -> bool {
         let _t = super::ReadyTimer::start("flora");
         self.player = self
@@ -82,12 +96,24 @@ impl QFloraField {
         noise.set_noise_type(Some(NoiseType::OpenSimplex2S));
         noise.set_frequency(Some(self.patch_frequency));
 
-        let attempts = ((extent * 2.0) * (extent * 2.0) * self.density) as usize;
-        let mut state = hash32(self.flora_seed as u32 | 1);
+        // One cell per plant rather than one draw from a running sequence. The
+        // sequence is fine for a world baked once, but it ties every plant to
+        // how many were rolled before it, so a window somewhere else deals a
+        // different hand and the meadow reshuffles when the player walks back.
+        let cell = (1.0f32 / self.density.max(1e-6)).sqrt();
+        let grid = crate::world::ScatterGrid::new(cell, terra.origin, extent);
+        let cells = grid.cells();
+        self.origin = terra.origin;
         let mut cand: Vec<f32> = Vec::new();
-        for _ in 0..attempts {
-            let x = -extent + 2.0 + randf(&mut state) * (extent - 2.0) * 2.0;
-            let z = -extent + 2.0 + randf(&mut state) * (extent - 2.0) * 2.0;
+        for index in 0..(cells * cells) {
+            let (ix, iz) = (index % cells, index / cells);
+            let mut state = grid.seed(self.flora_seed as u32 | 1, ix, iz);
+            let (cx, cz) = grid.centre(ix, iz);
+            let x = cx + (randf(&mut state) - 0.5) * cell;
+            let z = cz + (randf(&mut state) - 0.5) * cell;
+            if !grid.inside(x, z, 2.0) {
+                continue;
+            }
             let rank = randf(&mut state);
             let kind = (randf(&mut state) * self.kind_count as f32).floor();
             let phase = randf(&mut state) * std::f32::consts::TAU;
@@ -151,6 +177,10 @@ impl INode3D for QFloraField {
             if super::q_hidden("flora") || self.late_init() {
                 self.init_done = true;
             }
+            return;
+        }
+        if self.window_moved() {
+            self.rescatter();
             return;
         }
         let Some(origin) = view_origin(

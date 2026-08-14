@@ -973,6 +973,25 @@ pub fn meets_prerequisites(
 mod tests {
     use super::*;
 
+    /// The embedded registries are snapshots of the astro `*.json.ts` endpoints.
+    /// Those endpoints convert string enums to the integers prost expects using a
+    /// hand-maintained `ENUM_FIELDS` whitelist, so a newly added enum field silently
+    /// ships as a string and only surfaces here. Parse each registry directly: the
+    /// `LazyLock` accessors poison on first failure and report that instead of the
+    /// real serde error.
+    #[test]
+    fn embedded_registries_parse() {
+        NpcDb::from_json(NPCDB_JSON).unwrap_or_else(|e| {
+            panic!(
+                "npcdb.json failed to parse: {e}\n\
+                 A string where an integer is expected means the field is missing from \
+                 ENUM_FIELDS in apps/kbve/astro-kbve/src/pages/api/npcdb.json.ts."
+            )
+        });
+        ItemDb::from_json(ITEMDB_JSON).expect("itemdb.json must parse");
+        MapDb::from_json(MAPDB_JSON).expect("mapdb.json must parse");
+    }
+
     #[test]
     fn item_db_loads_successfully() {
         let db = item_db();

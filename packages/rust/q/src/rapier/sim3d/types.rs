@@ -144,7 +144,19 @@ pub struct TerrainDesc {
 
 #[derive(Clone, Debug)]
 pub enum SimCommand {
+    /// Replaces every terrain region with this one, centred on the world origin.
+    /// The single-tile contract everything non-streaming relies on.
     SetTerrain(TerrainDesc),
+    /// Adds or replaces one terrain region, centred on `origin`. Regions from the
+    /// same generator may overlap freely — they agree on height where they meet,
+    /// which is what makes a moving window seamless.
+    AddTerrainRegion {
+        origin: [f32; 2],
+        desc: TerrainDesc,
+    },
+    DropTerrainRegion {
+        origin: [f32; 2],
+    },
     Spawn {
         id: BodyId,
         desc: BodyDesc,

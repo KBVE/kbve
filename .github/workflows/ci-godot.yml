@@ -23,7 +23,7 @@ on:
                 type: string
                 default: '{}'
             publish:
-                description: 'JSON publish config: deploy_to_itch, itch_user, itch_game, itch_channel'
+                description: 'JSON publish config: deploy_to_itch, itch_user, itch_game, itch_channel, notarize'
                 required: false
                 type: string
                 default: '{}'
@@ -54,8 +54,24 @@ jobs:
         outputs:
             should_publish: ${{ steps.check.outputs.should_publish }}
             local_version: ${{ steps.check.outputs.local }}
+            mac_presets: ${{ steps.split.outputs.mac }}
+            other_presets: ${{ steps.split.outputs.other }}
         steps:
             - uses: actions/checkout@v7
+            - name: Split macOS presets out of the build matrix
+              id: split
+              env:
+                  TARGETS: ${{ toJSON(fromJSON(inputs.engine).build_targets) }}
+              run: |
+                  # macOS cannot be exported alongside the others: codesign and
+                  # notarytool only exist on a Mac, and the shared export job runs in a
+                  # Linux container. Expressions can't filter a matrix, so the split
+                  # happens here and each build job consumes one half.
+                  MAC=$(jq -c '[.[] | select(test("mac|osx"; "i"))]' <<<"$TARGETS")
+                  OTHER=$(jq -c '[.[] | select((test("mac|osx"; "i")) | not)]' <<<"$TARGETS")
+                  echo "mac=$MAC" >> "$GITHUB_OUTPUT"
+                  echo "other=$OTHER" >> "$GITHUB_OUTPUT"
+                  echo "::notice::macOS presets: $MAC — other presets: $OTHER"
             - id: check
               run: |
                   LOCAL="${{ fromJSON(inputs.version).manifest }}"
@@ -198,8 +214,7 @@ jobs:
         name: GDExtension (${{ matrix.slot }})
         needs: [version_gate]
         # `engine.gdextension` is optional — projects with no native extension skip
-        # this whole job. macOS is deliberately absent: its signed dylib is committed
-        # (and LFS-tracked) because the export container can't run `codesign`.
+        # this whole job.
         if: ${{ fromJSON(inputs.engine).gdextension.package != '' }}
         runs-on: ${{ matrix.os }}
         timeout-minutes: 60
@@ -219,6 +234,13 @@ jobs:
                       os: ubuntu-latest
                       dest: android/arm64
                       rust_target: aarch64-linux-android
+                    # Two targets, lipo'd into one file: the macOS preset exports
+                    # `universal`, so an arm64-only extension leaves Intel Macs unable
+                    # to load it while the build itself still succeeds.
+                    - slot: macos
+                      os: macos-latest
+                      dest: macos
+                      rust_target: aarch64-apple-darwin,x86_64-apple-darwin
         steps:
             - name: Permit colon paths in the index (Windows)
               if: matrix.slot == 'windows'
@@ -242,6 +264,7 @@ jobs:
                   # come along. The guard below fails loudly if a new workspace
                   # member lands outside this list.
                   sparse-checkout: |
+                      .github/signing
                       packages/rust
                       apps/kbve/kilobase
                       apps/kbve/axum-kbve
@@ -327,9 +350,18 @@ jobs:
                   FEATURES: ${{ join(fromJSON(inputs.engine).features, ',') }}
               run: |
                   echo "::notice::Building $PKG with features: ${FEATURES:-<default>}"
-                  cargo build --release -p "$PKG" \
-                    ${RUST_TARGET:+--target "$RUST_TARGET"} \
-                    ${FEATURES:+--features "$FEATURES"}
+                  if [ -z "$RUST_TARGET" ]; then
+                    cargo build --release -p "$PKG" ${FEATURES:+--features "$FEATURES"}
+                  else
+                    # Comma-separated because macOS needs both architectures to lipo a
+                    # universal dylib; every other slot names a single target or none.
+                    IFS=',' read -ra TARGETS <<< "$RUST_TARGET"
+                    for T in "${TARGETS[@]}"; do
+                      echo "::group::cargo build --target $T"
+                      cargo build --release -p "$PKG" --target "$T" ${FEATURES:+--features "$FEATURES"}
+                      echo "::endgroup::"
+                    done
+                  fi
             - name: Stage artefact
               shell: bash
               env:
@@ -340,24 +372,57 @@ jobs:
                   LIB=$(echo "$PKG" | tr '-' '_')
                   case "${{ matrix.slot }}" in
                     windows) NAME="${LIB}.dll" ;;
+                    macos)   NAME="lib${LIB}.dylib" ;;
                     *)       NAME="lib${LIB}.so" ;;
                   esac
                   # Root .cargo/config.toml redirects target-dir to dist/target, but
                   # the cone sparse-checkout only pulls root-level files, not the
                   # .cargo/ directory — so which one exists depends on the checkout.
                   # Look in both instead of betting on it.
-                  SUB="release/$NAME"
-                  [ -n "$RUST_TARGET" ] && SUB="$RUST_TARGET/$SUB"
-                  for BASE in target dist/target; do
-                    [ -f "$BASE/$SUB" ] && SRC="$BASE/$SUB" && break
-                  done
-                  test -n "$SRC" || { echo "::error::Built library not found at */$SUB"; exit 1; }
+                  find_slice() {
+                    local sub="$1" base
+                    for base in target dist/target; do
+                      if [ -f "$base/$sub" ]; then echo "$base/$sub"; return 0; fi
+                    done
+                    return 1
+                  }
                   # Staged under its addon-relative path so the export job can copy
                   # the tree straight in — android nests one level deeper than the
                   # desktop slots.
                   mkdir -p "stage/$DEST"
-                  cp "$SRC" "stage/$DEST/$NAME"
-                  find stage -type f -printf '%p\t%s bytes\n'
+                  if [ -z "$RUST_TARGET" ]; then
+                    SRC=$(find_slice "release/$NAME") \
+                      || { echo "::error::Built library not found at */release/$NAME"; exit 1; }
+                    cp "$SRC" "stage/$DEST/$NAME"
+                  else
+                    IFS=',' read -ra TARGETS <<< "$RUST_TARGET"
+                    SLICES=()
+                    for T in "${TARGETS[@]}"; do
+                      S=$(find_slice "$T/release/$NAME") \
+                        || { echo "::error::Built library not found at */$T/release/$NAME"; exit 1; }
+                      SLICES+=("$S")
+                    done
+                    if [ "${#SLICES[@]}" -gt 1 ]; then
+                      lipo -create "${SLICES[@]}" -output "stage/$DEST/$NAME"
+                      lipo -info "stage/$DEST/$NAME"
+                    else
+                      cp "${SLICES[0]}" "stage/$DEST/$NAME"
+                    fi
+                  fi
+                  # `find -printf` is GNU-only and this step also runs on macOS.
+                  find stage -type f -exec ls -l {} +
+            - name: Ad-hoc sign the dylib
+              if: matrix.slot == 'macos'
+              env:
+                  DEST: ${{ matrix.dest }}
+                  PKG: ${{ fromJSON(inputs.engine).gdextension.package }}
+              run: |
+                  # cargo's linker-signed signature is rejected by dyld on Apple
+                  # Silicon, and lipo invalidates whatever was there anyway. This is
+                  # only enough to make the artefact runnable by hand — the export job
+                  # re-signs with Developer ID when notarizing.
+                  LIB=$(echo "$PKG" | tr '-' '_')
+                  bash .github/signing/sign-macos-binary.sh "stage/$DEST/lib${LIB}.dylib"
             - name: Upload artefact
               uses: actions/upload-artifact@v7
               with:
@@ -369,7 +434,9 @@ jobs:
         name: Build (${{ matrix.preset }})
         needs: [version_gate, test, gdextension]
         # `always()` so a project with no `engine.gdextension` (job skipped) still builds.
-        if: ${{ always() && needs.test.result == 'success' && needs.gdextension.result != 'failure' && needs.gdextension.result != 'cancelled' && join(fromJSON(inputs.engine).build_targets) != '' }}
+        # macOS presets are excluded here and handled by `build_macos` — signing and
+        # notarizing need a Mac, and this job is a Linux container.
+        if: ${{ always() && needs.test.result == 'success' && needs.gdextension.result != 'failure' && needs.gdextension.result != 'cancelled' && join(fromJSON(needs.version_gate.outputs.other_presets)) != '' }}
         runs-on: ubuntu-latest
         timeout-minutes: 60
         permissions:
@@ -380,7 +447,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                preset: ${{ fromJSON(inputs.engine).build_targets }}
+                preset: ${{ fromJSON(needs.version_gate.outputs.other_presets) }}
         steps:
             - uses: actions/checkout@v7
             - name: Pull LFS assets (Forgejo)
@@ -532,10 +599,232 @@ jobs:
                   path: ${{ fromJSON(inputs.engine).project_path }}/build/${{ steps.san.outputs.name }}
                   if-no-files-found: error
 
+    build_macos:
+        name: Build (${{ matrix.preset }})
+        needs: [version_gate, test, gdextension]
+        # Same gate as `build`, over the other half of the preset split. This job exists
+        # only because `codesign`, `notarytool` and `stapler` are Mac-only tools, so the
+        # Linux export container can produce a macOS .app but can never make it one
+        # Gatekeeper will open.
+        if: ${{ always() && needs.test.result == 'success' && needs.gdextension.result != 'failure' && needs.gdextension.result != 'cancelled' && join(fromJSON(needs.version_gate.outputs.mac_presets)) != '' }}
+        runs-on: macos-latest
+        timeout-minutes: 90
+        permissions:
+            contents: read
+            actions: read
+        strategy:
+            fail-fast: false
+            matrix:
+                preset: ${{ fromJSON(needs.version_gate.outputs.mac_presets) }}
+        steps:
+            - uses: actions/checkout@v7
+            - name: Pull LFS assets (Forgejo)
+              env:
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+                  PROJECT_PATH: ${{ fromJSON(inputs.engine).project_path }}
+              run: |
+                  # Same contract as the Linux export job: a leftover pointer imports as
+                  # ERR_FILE_CORRUPT while the export still "succeeds", so the pull is
+                  # asserted rather than assumed. git-lfs ships on the macOS runner.
+                  git lfs install --local
+                  if ! git lfs ls-files -n | grep -q "^$PROJECT_PATH/"; then
+                    echo "::notice::No LFS-tracked files under $PROJECT_PATH — skipping"
+                    exit 0
+                  fi
+                  if [ -z "$FORGEJO_USER" ] || [ -z "$FORGEJO_TOKEN" ]; then
+                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — LFS assets would ship as pointer stubs"
+                    exit 1
+                  fi
+                  printf 'machine git.kbve.com\nlogin %s\npassword %s\n' \
+                    "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
+                  chmod 600 "$HOME/.netrc"
+                  git lfs pull -I "$PROJECT_PATH/**"
+                  STUBS=$(git lfs ls-files -n | grep "^$PROJECT_PATH/" \
+                    | xargs -r grep -l "^version https://git-lfs" 2>/dev/null | head -5)
+                  if [ -n "$STUBS" ]; then
+                    echo "::error::LFS pointers unresolved after pull:"
+                    echo "$STUBS"
+                    exit 1
+                  fi
+            - name: Download GDExtension binaries
+              if: ${{ fromJSON(inputs.engine).gdextension.package != '' }}
+              uses: actions/download-artifact@v8
+              with:
+                  pattern: gdext-${{ fromJSON(inputs.engine).app_name }}-*
+                  path: gdext
+            - name: Stage GDExtension binaries
+              if: ${{ fromJSON(inputs.engine).gdextension.package != '' }}
+              env:
+                  PROJECT_PATH: ${{ fromJSON(inputs.engine).project_path }}
+                  ADDON_PATH: ${{ fromJSON(inputs.engine).gdextension.addon_path }}
+                  APP: ${{ fromJSON(inputs.engine).app_name }}
+              run: |
+                  # Every platform's lib, not just this one: the .gdextension manifest
+                  # lists a path per platform and the exporter hard-fails on any that is
+                  # missing, whichever preset is being exported.
+                  mkdir -p "$PROJECT_PATH/$ADDON_PATH"
+                  for SRC in gdext/gdext-"${APP}"-*; do
+                    [ -d "$SRC" ] || continue
+                    cp -R "$SRC"/. "$PROJECT_PATH/$ADDON_PATH/"
+                  done
+                  find "$PROJECT_PATH/$ADDON_PATH" -type f -exec ls -l {} +
+            - name: Install Godot and export templates
+              id: godot
+              env:
+                  VER: ${{ fromJSON(inputs.engine).version }}
+                  MONO: ${{ fromJSON(inputs.engine).dotnet_enabled && '_mono' || '' }}
+              run: |
+                  # There is no barichello/godot-ci equivalent to run as a container on a
+                  # Mac runner, so the editor and its templates are fetched directly.
+                  BASE="https://github.com/godotengine/godot/releases/download/${VER}-stable"
+                  curl -fsSL -o "$RUNNER_TEMP/godot.zip" \
+                    "$BASE/Godot_v${VER}-stable${MONO}_macos.universal.zip"
+                  unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
+                  BIN=$(find "$RUNNER_TEMP/godot" -type f -path '*/Contents/MacOS/*' | head -1)
+                  test -n "$BIN" || { echo "::error::No Godot binary in the macOS archive"; exit 1; }
+                  chmod +x "$BIN"
+                  echo "bin=$BIN" >> "$GITHUB_OUTPUT"
+
+                  curl -fsSL -o "$RUNNER_TEMP/templates.tpz" \
+                    "$BASE/Godot_v${VER}-stable${MONO}_export_templates.tpz"
+                  unzip -q "$RUNNER_TEMP/templates.tpz" -d "$RUNNER_TEMP/tpl"
+                  DEST="$HOME/Library/Application Support/Godot/export_templates/${VER}.stable${MONO:+.mono}"
+                  mkdir -p "$DEST"
+                  mv "$RUNNER_TEMP/tpl/templates/"* "$DEST/"
+                  echo "::notice::Godot $VER at $BIN, templates in $DEST"
+            - name: Sanitize preset name for path
+              id: san
+              run: echo "name=$(echo '${{ matrix.preset }}' | tr '/' '-' | tr ' ' '-')" >> "$GITHUB_OUTPUT"
+            - name: Import project
+              working-directory: ${{ fromJSON(inputs.engine).project_path }}
+              run: |
+                  # Texture compression and the shader baker both want a RenderingDevice,
+                  # and --headless never makes one. Metal first, headless as the fallback
+                  # that still produces a build.
+                  "${{ steps.godot.outputs.bin }}" --rendering-driver metal --path . --import \
+                    || "${{ steps.godot.outputs.bin }}" --headless --path . --import \
+                    || true
+            - name: Export .app
+              working-directory: ${{ fromJSON(inputs.engine).project_path }}
+              env:
+                  APP: ${{ fromJSON(inputs.engine).app_name }}
+                  DIR: ${{ steps.san.outputs.name }}
+              run: |
+                  # A bundle, not a .zip: the whole point of this job is to codesign what
+                  # comes out, and a zip cannot be signed or stapled.
+                  mkdir -p "build/$DIR"
+                  OUT="build/$DIR/$APP.app"
+                  if "${{ steps.godot.outputs.bin }}" --rendering-driver metal \
+                       --export-release "${{ matrix.preset }}" "$OUT" \
+                     && [ -d "$OUT" ]; then
+                    echo "::notice::${{ matrix.preset }} exported with a RenderingDevice (shader baker active)"
+                  else
+                    echo "::warning::${{ matrix.preset }} fell back to a headless export — shaders are NOT baked and first launch will compile them"
+                    rm -rf "$OUT"
+                    "${{ steps.godot.outputs.bin }}" --headless \
+                      --export-release "${{ matrix.preset }}" "$OUT"
+                  fi
+                  test -d "$OUT" || { echo "::error::No .app produced at $OUT"; exit 1; }
+            - name: Sign and notarize
+              if: ${{ fromJSON(inputs.publish).notarize }}
+              env:
+                  APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
+                  APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
+                  APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
+                  APPLE_ID: ${{ secrets.APPLE_ID }}
+                  APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
+                  APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+                  PROJECT_PATH: ${{ fromJSON(inputs.engine).project_path }}
+                  DIR: ${{ steps.san.outputs.name }}
+              run: |
+                  set -euo pipefail
+                  if [ -z "$APPLE_SIGNING_IDENTITY" ]; then
+                    echo "::error::notarize is on but APPLE_* secrets are missing"
+                    exit 1
+                  fi
+                  APP=$(find "$PROJECT_PATH/build/$DIR" -maxdepth 1 -name '*.app' | head -1)
+                  [ -n "$APP" ] || { echo "::error::no .app to sign"; exit 1; }
+
+                  KEYCHAIN="${RUNNER_TEMP}/godot-signing.keychain-db"
+                  KCPASS=$(uuidgen)
+                  security create-keychain -p "${KCPASS}" "${KEYCHAIN}"
+                  security set-keychain-settings -lut 21600 "${KEYCHAIN}"
+                  security unlock-keychain -p "${KCPASS}" "${KEYCHAIN}"
+                  printf '%s' "${APPLE_CERTIFICATE}" | base64 --decode > "${RUNNER_TEMP}/cert.p12"
+                  security import "${RUNNER_TEMP}/cert.p12" -k "${KEYCHAIN}" -P "${APPLE_CERTIFICATE_PASSWORD}" -T /usr/bin/codesign
+                  security set-key-partition-list -S apple-tool:,apple:,codesign: -s -k "${KCPASS}" "${KEYCHAIN}" >/dev/null
+                  ORIG_KEYCHAINS=$(security list-keychains -d user | sed -e 's/"//g' -e 's/^ *//')
+                  # Unquoted on purpose: the original list is several paths and each has
+                  # to arrive as its own argument, or the search list collapses to one
+                  # bogus entry and codesign stops finding the system roots.
+                  # shellcheck disable=SC2086
+                  security list-keychains -d user -s "${KEYCHAIN}" ${ORIG_KEYCHAINS}
+                  cleanup() {
+                    security delete-keychain "${KEYCHAIN}" 2>/dev/null || true
+                    rm -f "${RUNNER_TEMP}/cert.p12" "${RUNNER_TEMP}/notarize.zip" 2>/dev/null || true
+                  }
+                  trap cleanup EXIT
+
+                  ENT="${GITHUB_WORKSPACE}/.github/signing/godot-mac-entitlements.plist"
+                  # Inside-out, never --deep: Apple deprecated --deep and it silently
+                  # mis-signs nested code, which notarization then rejects in a log that
+                  # does not name the cause. The GDExtension dylib is the nested code
+                  # that matters here — signing it with the same identity as the bundle
+                  # is what satisfies library validation at launch.
+                  # A read loop rather than xargs: BSD xargs has no --no-run-if-empty, so
+                  # an empty find result would invoke codesign with no path.
+                  NESTED=0
+                  while IFS= read -r -d '' LIB; do
+                    codesign --force --timestamp --options runtime \
+                      -s "${APPLE_SIGNING_IDENTITY}" --keychain "${KEYCHAIN}" "$LIB"
+                    NESTED=$((NESTED + 1))
+                  done < <(find "${APP}" -type f \( -name '*.dylib' -o -name '*.so' \) -print0)
+                  echo "::notice::signed ${NESTED} nested libraries"
+                  codesign --force --timestamp --options runtime --entitlements "${ENT}" \
+                    -s "${APPLE_SIGNING_IDENTITY}" --keychain "${KEYCHAIN}" "${APP}"
+                  codesign --verify --strict --verbose=2 "${APP}"
+
+                  ditto -c -k --keepParent "${APP}" "${RUNNER_TEMP}/notarize.zip"
+                  xcrun notarytool submit "${RUNNER_TEMP}/notarize.zip" \
+                    --apple-id "${APPLE_ID}" --password "${APPLE_PASSWORD}" \
+                    --team-id "${APPLE_TEAM_ID}" --wait
+                  # Staple the bundle, not the zip — the zip was only the transport.
+                  xcrun stapler staple "${APP}"
+                  xcrun stapler validate "${APP}"
+                  echo "::notice::Signed + notarized $(basename "${APP}")"
+            - name: Package
+              env:
+                  PROJECT_PATH: ${{ fromJSON(inputs.engine).project_path }}
+                  APP_NAME: ${{ fromJSON(inputs.engine).app_name }}
+                  DIR: ${{ steps.san.outputs.name }}
+              run: |
+                  set -euo pipefail
+                  APP=$(find "$PROJECT_PATH/build/$DIR" -maxdepth 1 -name '*.app' | head -1)
+                  [ -n "$APP" ] || { echo "::error::no .app to package"; exit 1; }
+                  # ditto, not zip: the artifact upload/download round trip drops symlinks
+                  # and the executable bit, which would leave an unlaunchable bundle even
+                  # though every earlier step passed. A ditto archive survives it, and is
+                  # also the shape the notarization submission wanted.
+                  # Staged outside the project: anything left under the Godot project
+                  # root gets picked up by the next --import.
+                  mkdir -p "$RUNNER_TEMP/artifact"
+                  ditto -c -k --keepParent "$APP" "$RUNNER_TEMP/artifact/$APP_NAME.zip"
+                  ls -l "$RUNNER_TEMP/artifact"
+            - name: Upload artefact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ fromJSON(inputs.engine).app_name }}-${{ steps.san.outputs.name }}
+                  path: ${{ runner.temp }}/artifact
+                  if-no-files-found: error
+
     itch:
         name: Itch.io Publish
-        needs: [version_gate, build]
-        if: needs.version_gate.outputs.should_publish == 'true' && fromJSON(inputs.publish).deploy_to_itch && fromJSON(inputs.publish).itch_user != '' && fromJSON(inputs.publish).itch_game != ''
+        needs: [version_gate, build, build_macos]
+        # `always()` because the preset split leaves one of the two build jobs skipped
+        # whenever a project targets only macOS or only the others, and a skipped need
+        # would otherwise skip publishing entirely.
+        if: ${{ always() && needs.version_gate.outputs.should_publish == 'true' && needs.build.result != 'failure' && needs.build.result != 'cancelled' && needs.build_macos.result != 'failure' && needs.build_macos.result != 'cancelled' && fromJSON(inputs.publish).deploy_to_itch && fromJSON(inputs.publish).itch_user != '' && fromJSON(inputs.publish).itch_game != '' }}
         runs-on: ubuntu-latest
         timeout-minutes: 30
         strategy:
@@ -576,8 +865,8 @@ jobs:
 
     post_publish_sync:
         name: Post-publish version sync
-        needs: [version_gate, build, itch]
-        if: ${{ always() && needs.version_gate.outputs.should_publish == 'true' && needs.build.result == 'success' && (needs.itch.result == 'success' || needs.itch.result == 'skipped') && fromJSON(inputs.version).toml != '' }}
+        needs: [version_gate, build, build_macos, itch]
+        if: ${{ always() && needs.version_gate.outputs.should_publish == 'true' && needs.build.result != 'failure' && needs.build.result != 'cancelled' && needs.build_macos.result != 'failure' && needs.build_macos.result != 'cancelled' && (needs.build.result == 'success' || needs.build_macos.result == 'success') && (needs.itch.result == 'success' || needs.itch.result == 'skipped') && fromJSON(inputs.version).toml != '' }}
         permissions:
             contents: write
             pull-requests: write
@@ -600,6 +889,7 @@ jobs:
                 test,
                 gdextension,
                 build,
+                build_macos,
                 itch,
                 post_publish_sync,
             ]
@@ -624,6 +914,7 @@ jobs:
                 test,
                 gdextension,
                 build,
+                build_macos,
                 itch,
                 post_publish_sync,
             ]

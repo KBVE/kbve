@@ -25,10 +25,20 @@ func _find_player(n: Node) -> AnimationPlayer:
 	return null
 
 
+func _find_skeleton(n: Node) -> Skeleton3D:
+	if n is Skeleton3D:
+		return n
+	for c in n.get_children():
+		var found := _find_skeleton(c)
+		if found:
+			return found
+	return null
+
+
 func test_states_are_fully_specified() -> void:
 	for state in Rig.STATES:
 		var cfg: Dictionary = Rig.STATES[state]
-		for key in [&"clip", &"loop", &"xfade", &"reset", &"returns_to_move"]:
+		for key in [&"clip", &"loop", &"xfade", &"reset", &"returns_to_move", &"ik"]:
 			assert_bool(cfg.has(key)) \
 					.override_failure_message("'%s' missing %s" % [state, key]).is_true()
 		assert_float(cfg[&"xfade"]).is_between(0.0, 1.0)
@@ -79,6 +89,77 @@ func test_attacks_are_one_shots_that_return() -> void:
 func test_death_does_not_return_to_move() -> void:
 	assert_bool(Rig.STATES[&"death"][&"returns_to_move"]).is_false()
 	assert_bool(Rig.STATES[&"death"][&"loop"]).is_false()
+
+
+## Airborne and dead states hand the legs back to the animation.
+func test_offground_states_release_the_foot_solver() -> void:
+	for state in [&"jump", &"death"]:
+		assert_float(Rig.STATES[state][&"ik"]) \
+				.override_failure_message("'%s' still plants the feet" % state).is_equal(0.0)
+	assert_float(Rig.STATES[&"move"][&"ik"]).is_equal(1.0)
+
+
+func test_ground_weight_blends_across_a_crossfade() -> void:
+	var rig := Rig.new()
+	assert_float(rig.ground_weight_for(&"jump", &"move", 0.0)).is_equal_approx(1.0, 0.001)
+	assert_float(rig.ground_weight_for(&"jump", &"move", 0.5)).is_equal_approx(0.5, 0.001)
+	assert_float(rig.ground_weight_for(&"jump", &"move", 1.0)).is_equal_approx(0.0, 0.001)
+	assert_float(rig.ground_weight_for(&"move", &"", 1.0)).is_equal_approx(1.0, 0.001)
+	rig.free()
+
+
+## The pack exports every mech facing +Z, which is why the rig turns them 180 degrees.
+## Godot's forward is -Z, and a body facing +Z carries its left side on +X.
+func test_every_mech_exports_facing_positive_z() -> void:
+	var rig := Rig.new()
+	assert_float(rig.facing_offset_deg).is_equal(180.0)
+	rig.free()
+	for mech in MECHS:
+		var inst := _instance(mech)
+		var skeleton := _find_skeleton(inst)
+		var left := skeleton.find_bone("Foot.L")
+		var right := skeleton.find_bone("Foot.R")
+		assert_int(left).override_failure_message("%s has no Foot.L" % mech).is_greater(-1)
+		assert_float(skeleton.get_bone_global_rest(left).origin.x) \
+				.override_failure_message("%s: Foot.L is not on +X, so it faces -Z" % mech) \
+				.is_greater(0.0)
+		assert_float(skeleton.get_bone_global_rest(right).origin.x).is_less(0.0)
+		inst.free()
+
+
+## The foot solver assumes this rig shape: a two- or three-bone chain down to the shin,
+## with the foot hung off the armature root as a control the chain does not carry.
+func test_every_mech_has_a_solvable_leg() -> void:
+	for mech in MECHS:
+		var inst := _instance(mech)
+		var skeleton := _find_skeleton(inst)
+		for side in ["L", "R"]:
+			var chain: Array[int] = []
+			for part in ["UpperLeg", "MidLeg", "LowerLeg"]:
+				var bone := skeleton.find_bone("%s.%s" % [part, side])
+				if bone >= 0:
+					chain.append(bone)
+			assert_int(chain.size()) \
+					.override_failure_message("%s.%s has no leg chain" % [mech, side]) \
+					.is_greater(1)
+			var foot := skeleton.find_bone("Foot.%s" % side)
+			assert_int(foot) \
+					.override_failure_message("%s has no Foot.%s" % [mech, side]).is_greater(-1)
+			var walk := skeleton.get_bone_parent(foot)
+			while walk >= 0:
+				assert_bool(walk in chain) \
+						.override_failure_message("%s: Foot.%s now hangs off the leg chain, so the solver would move it twice" % [mech, side]) \
+						.is_false()
+				walk = skeleton.get_bone_parent(walk)
+		inst.free()
+
+
+func _instance(mech: String) -> Node:
+	var scene: PackedScene = load("res://assets/characters/creatures/mech/models/%s.glb" % mech)
+	var inst := scene.instantiate()
+	assert_object(_find_skeleton(inst)) \
+			.override_failure_message("%s has no Skeleton3D" % mech).is_not_null()
+	return inst
 
 
 func test_shading_covers_every_mech_material() -> void:
