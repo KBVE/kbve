@@ -342,6 +342,29 @@ impl QTerrain {
         }
         self.bake_clearance(&heights, res);
         self.heights = heights;
+
+        // The road paint, the bridge and the clearance all describe this stretch
+        // of ground, so they are rebuilt with it. Scatter fields read the road
+        // mask when they rescatter, so this has to land before they notice the
+        // window moved -- which it does, because they only look on their own
+        // next frame.
+        if !crate::world::q_hidden("road") {
+            self.clear_road();
+            self.hgen = Some(HeightGen::new(&self.height_params()));
+            self.build_road();
+        }
+    }
+
+    /// Takes down the previous window's road furniture. The carriageway is paint
+    /// and goes with the mask, but the bridge is nodes and has to be freed.
+    fn clear_road(&mut self) {
+        for name in ["BridgeBody", "BridgeAbutment", "Bridge"] {
+            if let Some(mut n) = self.base().get_node_or_null(name) {
+                n.queue_free();
+                self.base_mut().remove_child(&n);
+            }
+        }
+        self.road = None;
     }
 
     fn finish_init(&mut self, heights: Vec<f32>) {

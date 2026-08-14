@@ -100,6 +100,15 @@ func _process(delta: float) -> void:
 	_update_celestial_state()
 
 
+## Adopt a day length after _ready. Only the rate depends on it — the LUT is keyed on
+## light_angle_step_deg — so there is nothing else to rebuild.
+func set_day_length(minutes: float) -> void:
+	if minutes <= 0.0 or is_equal_approx(minutes, day_length_minutes):
+		return
+	day_length_minutes = minutes
+	_hours_per_second = HOURS_PER_DAY / (day_length_minutes * 60.0)
+
+
 func _rebuild_constants() -> void:
 	_hours_per_second = HOURS_PER_DAY / (day_length_minutes * 60.0)
 	_angle_step_rad = deg_to_rad(light_angle_step_deg)

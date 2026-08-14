@@ -212,15 +212,49 @@ impl QNetClient3D {
         self.tracked.remove(&BodyId(id as u32));
     }
 
-    /// Horizontal wish direction; the host decides what it means.
+    /// Horizontal wish direction and facing; the host decides what they mean.
     #[func]
-    fn set_intent(&mut self, wish_dir: Vector2, jump: bool) {
+    fn set_intent(&mut self, wish_dir: Vector2, jump: bool, yaw: f32) {
         if let Some(client) = self.client.as_ref() {
             client.set_intent(Intent {
                 wish_dir: [wish_dir.x, wish_dir.y],
                 jump,
+                yaw,
             });
         }
+    }
+
+    /// Host clock in hours, 0..24. Zero before the first `Welcome`.
+    #[func]
+    fn world_hour(&self) -> f64 {
+        self.last.as_ref().map_or(0.0, |s| s.hour as f64)
+    }
+
+    /// Real-world minutes the host's day takes, or 0 before joining.
+    #[func]
+    fn day_length_minutes(&self) -> f64 {
+        self.last
+            .as_ref()
+            .and_then(|s| s.world)
+            .map_or(0.0, |w| w.day_length_minutes as f64)
+    }
+
+    /// Half-width of the host's terrain. Authoritative — a client that bakes a
+    /// different extent disagrees about ground height and its players sink or hover.
+    #[func]
+    fn terrain_extent(&self) -> f64 {
+        self.last
+            .as_ref()
+            .and_then(|s| s.world)
+            .map_or(0.0, |w| w.terrain_extent as f64)
+    }
+
+    #[func]
+    fn terrain_resolution(&self) -> i64 {
+        self.last
+            .as_ref()
+            .and_then(|s| s.world)
+            .map_or(0, |w| w.terrain_resolution as i64)
     }
 
     #[func]
@@ -287,6 +321,20 @@ impl QNetClient3D {
             .as_ref()
             .and_then(|s| s.seed)
             .map_or(0, |s| s as i64)
+    }
+
+    /// Half-width of the ground the host simulates. A client that bakes a
+    /// different one puts its players into the floor or above it.
+    #[func]
+    fn world_extent(&self) -> f32 {
+        self.last.as_ref().map_or(0.0, |s| s.terrain.extent)
+    }
+
+    #[func]
+    fn world_resolution(&self) -> i64 {
+        self.last
+            .as_ref()
+            .map_or(0, |s| s.terrain.resolution as i64)
     }
 
     #[func]

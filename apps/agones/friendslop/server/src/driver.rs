@@ -101,11 +101,25 @@ pub fn spawn(
         std::thread::Builder::new()
             .name("friendslop-sim".into())
             .spawn(move || {
-                let mut host =
-                    HostSession::dedicated(transport.clone(), SessionConfig::default(), sim, seed);
+                // The terrain contract goes out in Welcome so the client stops having
+                // to agree with the server by convention.
+                let session_config = SessionConfig {
+                    terrain_extent: extent,
+                    terrain_resolution: resolution.max(2) as u32,
+                    ..SessionConfig::default()
+                };
+                let mut host = HostSession::dedicated(transport.clone(), session_config, sim, seed);
                 if let Some(authority) = authority {
                     host = host.with_authority(authority);
                 }
+                // Spawns stand on the ground rather than at a fixed altitude. The host
+                // has no terrain of its own to sample — with streaming on it never sees
+                // a SetTerrain at all — so the generator is handed over directly.
+                let spawn_gen = HeightGen::new(&HeightParams {
+                    seed: seed as i32,
+                    ..Default::default()
+                });
+                host = host.with_ground(Arc::new(move |x, z| spawn_gen.height(x, z)));
 
                 let mut streamer = if stream {
                     let mut s = TerrainStreamer::new(StreamConfig {

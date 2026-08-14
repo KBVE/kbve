@@ -186,6 +186,11 @@ impl TerrainStreamer {
         }
     }
 
+    /// Centres of every region currently laid into the sim.
+    pub fn loaded_origins(&self) -> Vec<[f32; 2]> {
+        self.loaded.iter().map(|c| self.origin_of(*c)).collect()
+    }
+
     pub fn loaded_count(&self) -> usize {
         self.loaded.len()
     }
@@ -327,6 +332,53 @@ mod tests {
             world.terrain_region_count(),
             after_first,
             "pacing a boundary should not churn regions"
+        );
+    }
+
+    /// Every other test settles the bakes before asserting, so they measure where
+    /// the streamer ends up rather than what a player standing there experiences.
+    /// This one asserts at every step of a walk, while bakes are still in flight:
+    /// the ground a player is standing on must never be missing, whatever the
+    /// streamer is busy with.
+    #[test]
+    fn ground_is_never_missing_under_a_walking_player() {
+        let cfg = config();
+        let (extent, stride) = (cfg.extent, cfg.stride);
+        let mut world = SimWorld::new(&SimConfig::default());
+        let mut streamer = TerrainStreamer::new(cfg);
+        streamer.prime(&mut world);
+
+        let covered = |streamer: &TerrainStreamer, at: [f32; 2]| {
+            streamer
+                .loaded_origins()
+                .iter()
+                .any(|o| (at[0] - o[0]).abs() <= extent && (at[1] - o[1]).abs() <= extent)
+        };
+
+        let mut a = [0.0f32, 0.0];
+        let mut b = [0.0f32, 0.0];
+        for step in 0..1200 {
+            // One walking out in a straight line, one wandering the other way, so
+            // the streamer is serving two fronts at once.
+            a[0] += stride * 0.02;
+            b[1] -= stride * 0.015;
+            b[0] += (step as f32 * 0.05).sin() * stride * 0.01;
+            let players = [a, b];
+            streamer.update(&players, &mut world);
+            // A real tick is far longer than this; the point is that the walk does
+            // not wait for bakes it did not ask for in time.
+            std::thread::sleep(Duration::from_millis(1));
+            for p in players {
+                assert!(
+                    covered(&streamer, p),
+                    "step {step}: {p:?} had no ground, loaded {:?}",
+                    streamer.loaded_origins()
+                );
+            }
+        }
+        assert!(
+            streamer.loaded_count() > 2,
+            "the walk never needed new ground, so this proved nothing"
         );
     }
 

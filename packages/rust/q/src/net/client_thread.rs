@@ -8,7 +8,7 @@ use std::time::{Duration, Instant};
 use tokio::sync::watch;
 
 use super::dual::DualClient;
-use super::session::{ClientSession, ClientStatus, PeerInfo};
+use super::session::{ClientSession, ClientStatus, PeerInfo, WorldInfo};
 use super::ws::WsClient;
 use crate::rapier::sim3d::{BodyId, SimSnapshot};
 
@@ -16,6 +16,8 @@ use crate::rapier::sim3d::{BodyId, SimSnapshot};
 pub struct NetClientState {
     pub status: ClientStatus,
     pub seed: Option<u64>,
+    /// The ground the host is simulating, so the client bakes the same shape.
+    pub terrain: crate::net::session::TerrainShape,
     pub local_body: Option<BodyId>,
     pub snapshot: Option<SimSnapshot>,
     /// Set when the socket never came up, or dropped after it did.
@@ -25,6 +27,10 @@ pub struct NetClientState {
     /// Name the host assigned.
     pub name: Option<String>,
     pub roster: Vec<PeerInfo>,
+    /// Terrain and day length the host published on join.
+    pub world: Option<WorldInfo>,
+    /// Host clock, hours 0..24.
+    pub hour: f32,
 }
 
 impl Default for NetClientState {
@@ -32,12 +38,15 @@ impl Default for NetClientState {
         Self {
             status: ClientStatus::Connecting,
             seed: None,
+            terrain: crate::net::session::TerrainShape::default(),
             local_body: None,
             snapshot: None,
             error: None,
             udp_ready: false,
             name: None,
             roster: Vec::new(),
+            world: None,
+            hour: 0.0,
         }
     }
 }
@@ -55,6 +64,8 @@ pub enum Credential {
 pub struct Intent {
     pub wish_dir: [f32; 2],
     pub jump: bool,
+    /// Facing, radians.
+    pub yaw: f32,
 }
 
 pub struct NetClientHandle {
@@ -185,13 +196,14 @@ fn run(
     while !stop.load(Ordering::Relaxed) {
         transport.pump();
         let intent = *intent_rx.borrow();
-        session.set_input(intent.wish_dir, intent.jump);
+        session.set_input(intent.wish_dir, intent.jump, intent.yaw);
         session.tick();
 
         let dropped = !transport.is_connected();
         let _ = state_tx.send(Arc::new(NetClientState {
             status: session.status(),
             seed: session.seed(),
+            terrain: session.terrain(),
             local_body: session.local_body(),
             snapshot: session.latest_snapshot().cloned(),
             error: session
@@ -201,6 +213,8 @@ fn run(
             udp_ready: transport.udp_ready(),
             name: session.name().map(str::to_owned),
             roster: session.roster().to_vec(),
+            world: session.world(),
+            hour: session.hour(),
         }));
 
         if dropped {
@@ -348,6 +362,7 @@ mod tests {
         client.set_intent(Intent {
             wish_dir: [1.0, 0.0],
             jump: false,
+            yaw: 0.0,
         });
 
         let moved = wait_for(
