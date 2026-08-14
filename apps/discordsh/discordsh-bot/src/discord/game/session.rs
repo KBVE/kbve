@@ -5,14 +5,53 @@ use dashmap::DashMap;
 use poise::serenity_prelude as serenity;
 use tokio::sync::Mutex;
 
-use super::types::{GameOverReason, GamePhase, SessionState, ShortSid};
+use super::persistence::DungeonProfile;
+use super::types::{GameOverReason, GamePhase, PlayerId, SessionState, ShortSid};
+
+/// A dungeon session plus the Discord-only bits the rules engine has no
+/// business knowing: where to draw it, and the profile snapshots the save
+/// path diffs against.
+pub struct BotSession {
+    pub state: SessionState,
+    pub channel_id: serenity::ChannelId,
+    pub message_id: serenity::MessageId,
+    pub snapshots: std::collections::HashMap<PlayerId, DungeonProfile>,
+}
+
+impl BotSession {
+    pub fn new(
+        state: SessionState,
+        channel_id: serenity::ChannelId,
+        message_id: serenity::MessageId,
+    ) -> Self {
+        Self {
+            state,
+            channel_id,
+            message_id,
+            snapshots: std::collections::HashMap::new(),
+        }
+    }
+}
+
+impl std::ops::Deref for BotSession {
+    type Target = SessionState;
+    fn deref(&self) -> &SessionState {
+        &self.state
+    }
+}
+
+impl std::ops::DerefMut for BotSession {
+    fn deref_mut(&mut self) -> &mut SessionState {
+        &mut self.state
+    }
+}
 
 /// In-memory session store backed by DashMap.
 ///
 /// Each session is wrapped in `Arc<Mutex<..>>` so the interaction router
 /// can acquire a per-session lock without blocking the entire store.
 pub struct SessionStore {
-    sessions: DashMap<ShortSid, Arc<Mutex<SessionState>>>,
+    sessions: DashMap<ShortSid, Arc<Mutex<BotSession>>>,
 }
 
 impl SessionStore {
@@ -23,15 +62,15 @@ impl SessionStore {
     }
 
     /// Insert a new session and return the shared handle.
-    pub fn create(&self, state: SessionState) -> Arc<Mutex<SessionState>> {
-        let short_id = state.short_id.clone();
-        let handle = Arc::new(Mutex::new(state));
+    pub fn create(&self, session: BotSession) -> Arc<Mutex<BotSession>> {
+        let short_id = session.short_id.clone();
+        let handle = Arc::new(Mutex::new(session));
         self.sessions.insert(short_id, Arc::clone(&handle));
         handle
     }
 
     /// Look up a session by its short ID.
-    pub fn get(&self, short_id: &str) -> Option<Arc<Mutex<SessionState>>> {
+    pub fn get(&self, short_id: &str) -> Option<Arc<Mutex<BotSession>>> {
         self.sessions.get(short_id).map(|r| Arc::clone(r.value()))
     }
 
@@ -54,7 +93,7 @@ impl SessionStore {
     }
 
     /// Find an active session where the user is owner or party member.
-    pub fn find_by_user(&self, user_id: serenity::UserId) -> Option<ShortSid> {
+    pub fn find_by_user(&self, user_id: PlayerId) -> Option<ShortSid> {
         for entry in self.sessions.iter() {
             if let Ok(session) = entry.value().try_lock()
                 && !matches!(session.phase, GamePhase::GameOver(_))
@@ -117,10 +156,18 @@ mod tests {
     use super::*;
     use crate::discord::game::{content, types::*};
 
+    fn wrap(state: SessionState, channel: u64) -> BotSession {
+        BotSession::new(
+            state,
+            serenity::ChannelId::new(channel),
+            serenity::MessageId::new(1),
+        )
+    }
+
     fn test_state(short_id: &str, channel: u64, owner: u64) -> SessionState {
         let mut player = PlayerState::default();
         player.inventory = content::starting_inventory();
-        let owner_id = serenity::UserId::new(owner);
+        let owner_id = PlayerId::new(owner);
 
         SessionState {
             id: uuid::Uuid::new_v4(),
@@ -129,8 +176,6 @@ mod tests {
             party: Vec::new(),
             mode: SessionMode::Solo,
             phase: GamePhase::Exploring,
-            channel_id: serenity::ChannelId::new(channel),
-            message_id: serenity::MessageId::new(1),
             created_at: Instant::now(),
             last_action_at: Instant::now(),
             turn: 0,
@@ -156,7 +201,7 @@ mod tests {
     fn create_and_get() {
         let store = SessionStore::new();
         let state = test_state("abc12345", 100, 1);
-        store.create(state);
+        store.create(wrap(state, 100));
 
         assert!(store.get("abc12345").is_some());
         assert!(store.get("nonexistent").is_none());
@@ -165,7 +210,7 @@ mod tests {
     #[test]
     fn remove_session() {
         let store = SessionStore::new();
-        store.create(test_state("abc12345", 100, 1));
+        store.create(wrap(test_state("abc12345", 100, 1), 100));
         assert_eq!(store.count(), 1);
 
         store.remove("abc12345");
@@ -175,8 +220,8 @@ mod tests {
     #[test]
     fn find_by_channel() {
         let store = SessionStore::new();
-        store.create(test_state("abc12345", 100, 1));
-        store.create(test_state("def67890", 200, 2));
+        store.create(wrap(test_state("abc12345", 100, 1), 100));
+        store.create(wrap(test_state("def67890", 200, 2), 200));
 
         assert_eq!(
             store.find_by_channel(serenity::ChannelId::new(100)),
@@ -192,13 +237,13 @@ mod tests {
     #[test]
     fn find_by_user() {
         let store = SessionStore::new();
-        store.create(test_state("abc12345", 100, 42));
+        store.create(wrap(test_state("abc12345", 100, 42), 100));
 
         assert_eq!(
-            store.find_by_user(serenity::UserId::new(42)),
+            store.find_by_user(PlayerId::new(42)),
             Some("abc12345".to_owned())
         );
-        assert!(store.find_by_user(serenity::UserId::new(99)).is_none());
+        assert!(store.find_by_user(PlayerId::new(99)).is_none());
     }
 
     #[test]
@@ -206,8 +251,8 @@ mod tests {
         let store = SessionStore::new();
         let mut state = test_state("old_one", 100, 1);
         state.last_action_at = Instant::now() - Duration::from_secs(700);
-        store.create(state);
-        store.create(test_state("new_one", 200, 2));
+        store.create(wrap(state, 100));
+        store.create(wrap(test_state("new_one", 200, 2), 200));
 
         assert_eq!(store.count(), 2);
         store.cleanup_expired(Duration::from_secs(600), None);
@@ -221,13 +266,13 @@ mod tests {
         let store = SessionStore::new();
         let mut state = test_state("done", 100, 1);
         state.phase = GamePhase::GameOver(GameOverReason::Defeated);
-        store.create(state);
+        store.create(wrap(state, 100));
 
         assert!(
             store
                 .find_by_channel(serenity::ChannelId::new(100))
                 .is_none()
         );
-        assert!(store.find_by_user(serenity::UserId::new(1)).is_none());
+        assert!(store.find_by_user(PlayerId::new(1)).is_none());
     }
 }

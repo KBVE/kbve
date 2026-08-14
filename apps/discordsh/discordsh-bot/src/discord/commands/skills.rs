@@ -1,3 +1,4 @@
+use crate::discord::game::types::pid;
 use poise::serenity_prelude as serenity;
 
 use crate::discord::bot::{Context, Error};
@@ -70,10 +71,10 @@ fn active_session_skills(
     user: serenity::UserId,
     app: &crate::state::AppState,
 ) -> Option<bevy_skills::SkillProfile> {
-    let sid = app.sessions.find_by_user(user)?;
+    let sid = app.sessions.find_by_user(pid(user))?;
     let session_arc = app.sessions.get(&sid)?;
     let session = session_arc.blocking_lock();
-    let player = session.players.get(&user)?;
+    let player = session.players.get(&pid(user))?;
     Some(player.skills.clone())
 }
 

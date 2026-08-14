@@ -137,6 +137,14 @@ impl Screen {
         self
     }
 
+    /// Emit bytes verbatim. Needed for PETSCII graphics glyphs, which are
+    /// screen codes rather than ASCII and would otherwise be replaced by
+    /// `text`'s non-ASCII fallback.
+    pub fn raw(&mut self, bytes: &[u8]) -> &mut Self {
+        self.buf.extend_from_slice(bytes);
+        self
+    }
+
     pub fn nl(&mut self) -> &mut Self {
         match self.term {
             Term::Petscii => self.buf.push(PET_CR),

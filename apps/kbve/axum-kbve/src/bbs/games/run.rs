@@ -1,294 +1,184 @@
+use bevy_dungeon::types::{
+    ClassType, Direction, GameAction, GamePhase, MapPos, RoomType, SessionState,
+};
+use bevy_dungeon::{PlayerId, logic, start_solo};
+
 use super::dungeon::{Actor, Frame, draw_frame};
+use super::map::{self, Cell, Grid, Links};
 use super::text::Rng;
+use super::text::strip_markup;
 use super::{Flow, Game};
-use crate::bbs::render::{Ink, Screen};
+use crate::bbs::render::{Ink, Screen, wrap_lines};
 
-const START_HP: i32 = 40;
-const START_POTIONS: u32 = 3;
-const POTION_HEAL: i32 = 14;
-const SHRINE_HEAL: i32 = 10;
-const FLEE_IN_CHANCE: usize = 2;
 const LOG_KEPT: usize = 12;
-
-const MONSTERS: [(&str, i32, i32); 6] = [
-    ("Glass Slime", 12, 3),
-    ("Cave Rat", 9, 2),
-    ("Deep Warden", 22, 5),
-    ("Bone Picker", 15, 4),
-    ("Drowned Monk", 18, 4),
-    ("Tunnel Grub", 10, 3),
-];
-
-const ROOMS: [&str; 6] = [
-    "A collapsed aqueduct. Water runs black over broken tiles.",
-    "A pillared hall. Something has scratched every column.",
-    "A flooded stair, ankle deep and colder than it should be.",
-    "A storeroom, shelves stripped bare a long time ago.",
-    "A narrow gallery. Your lamp does not reach the ceiling.",
-    "A shrine to nobody, its name chiselled out.",
-];
+const MAP_SPAN: i16 = 4;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum Phase {
-    Exploring,
-    Fighting,
-    Dead,
+enum View {
+    Play,
+    Map,
 }
 
-struct Foe {
-    name: &'static str,
-    hp: i32,
-    max_hp: i32,
-    atk: i32,
-}
-
-/// One ephemeral dungeon run. Nothing is persisted: closing the session
-/// ends the run, which is intentional while the shared game core is split
-/// out of the discordsh bot.
+/// A dungeon run on the board, driven by the same `bevy_dungeon` rules the
+/// Discord bot uses. Nothing is persisted yet: the run ends with the call.
 pub struct Run {
-    rng: Rng,
-    hp: i32,
-    max_hp: i32,
-    atk: i32,
-    potions: u32,
-    gold: u32,
-    depth: u32,
-    kills: u32,
-    room: &'static str,
-    foe: Option<Foe>,
-    defending: bool,
-    phase: Phase,
-    log: Vec<String>,
+    state: SessionState,
+    actor: PlayerId,
+    view: View,
+    notice: Option<String>,
 }
 
 impl Run {
-    pub fn new(rng: Rng) -> Self {
-        let mut run = Self {
-            rng,
-            hp: START_HP,
-            max_hp: START_HP,
-            atk: 4,
-            potions: START_POTIONS,
-            gold: 0,
-            depth: 0,
-            kills: 0,
-            room: ROOMS[0],
-            foe: None,
-            defending: false,
-            phase: Phase::Exploring,
-            log: Vec::new(),
+    pub fn new(mut rng: Rng, handle: &str) -> Self {
+        let actor = PlayerId::new(rng.next_u64() | 1);
+        let class = match rng.below(3) {
+            0 => ClassType::Warrior,
+            1 => ClassType::Rogue,
+            _ => ClassType::Cleric,
         };
-        run.say("You climb down into the dark.");
-        run.descend();
-        run
+        Self {
+            state: start_solo(actor, handle, class),
+            actor,
+            view: View::Play,
+            notice: None,
+        }
     }
 
     #[cfg(test)]
-    pub fn phase(&self) -> Phase {
-        self.phase
+    pub fn phase(&self) -> GamePhase {
+        self.state.phase.clone()
     }
 
     #[cfg(test)]
     pub fn hp(&self) -> i32 {
-        self.hp
+        self.state.player(self.actor).hp
     }
 
     #[cfg(test)]
     pub fn depth(&self) -> u32 {
-        self.depth
+        self.state.map.position.depth()
     }
 
-    #[cfg(test)]
-    pub fn potions(&self) -> u32 {
-        self.potions
-    }
-
-    fn say(&mut self, line: impl Into<String>) {
-        self.log.push(line.into());
-        if self.log.len() > LOG_KEPT {
-            self.log.remove(0);
-        }
-    }
-
-    fn descend(&mut self) {
-        self.depth += 1;
-        self.room = ROOMS[self.rng.below(ROOMS.len())];
-        self.defending = false;
-
-        match self.rng.below(6) {
-            0 | 1 | 2 | 3 => self.spawn_foe(),
-            4 => {
-                let purse = 5 + self.rng.below(10) as u32 + self.depth;
-                self.gold += purse;
-                self.say(format!("You prise {purse} gold from the silt."));
-                if self.rng.below(3) == 0 {
-                    self.potions += 1;
-                    self.say("A sealed vial, still good. Potion taken.");
+    fn act(&mut self, action: GameAction) {
+        match logic::apply_action(&mut self.state, action, self.actor) {
+            Ok(result) => {
+                self.notice = None;
+                for line in result.logs.iter() {
+                    self.state.log.push(line.clone());
                 }
             }
-            _ => {
-                let before = self.hp;
-                self.hp = (self.hp + SHRINE_HEAL).min(self.max_hp);
-                let gained = self.hp - before;
-                if gained > 0 {
-                    self.say(format!("You rest at the shrine and recover {gained} HP."));
-                } else {
-                    self.say("You rest at the shrine. Nothing left to mend.");
-                }
-            }
+            Err(reason) => self.notice = Some(reason),
+        }
+        let len = self.state.log.len();
+        if len > LOG_KEPT {
+            self.state.log.drain(..len - LOG_KEPT);
         }
     }
 
-    fn spawn_foe(&mut self) {
-        let (name, hp, atk) = MONSTERS[self.rng.below(MONSTERS.len())];
-        let bonus = (self.depth as i32 - 1) / 2;
-        let foe = Foe {
-            name,
-            hp: hp + bonus * 2,
-            max_hp: hp + bonus * 2,
-            atk: atk + bonus,
-        };
-        self.say(format!("A {} blocks the way.", foe.name));
-        self.foe = Some(foe);
-        self.phase = Phase::Fighting;
-    }
-
-    fn strike(&mut self) {
-        let Some(foe) = self.foe.as_mut() else {
-            return;
-        };
-        let dmg = self.atk + self.rng.below(4) as i32;
-        foe.hp -= dmg;
-        let name = foe.name;
-        let dead = foe.hp <= 0;
-        self.say(format!("You hit the {name} for {dmg}."));
-
-        if dead {
-            let purse = 3 + self.rng.below(8) as u32 + self.depth;
-            self.gold += purse;
-            self.kills += 1;
-            self.foe = None;
-            self.phase = Phase::Exploring;
-            self.say(format!("The {name} falls. You take {purse} gold."));
-            if self.kills % 3 == 0 {
-                self.atk += 1;
-                self.max_hp += 4;
-                self.hp += 4;
-                self.say("You feel steadier. Attack and vigour up.");
-            }
-            return;
-        }
-
-        self.foe_turn();
-    }
-
-    fn foe_turn(&mut self) {
-        let Some(foe) = self.foe.as_ref() else {
-            return;
-        };
-        let raw = foe.atk + self.rng.below(3) as i32;
-        let dmg = if self.defending {
-            (raw / 2).max(1)
-        } else {
-            raw
-        };
-        let name = foe.name;
-        self.hp -= dmg;
-        self.defending = false;
-        self.say(format!("The {name} hits you for {dmg}."));
-
-        if self.hp <= 0 {
-            self.hp = 0;
-            self.phase = Phase::Dead;
-            self.say("You go down in the dark.");
-        }
-    }
-
-    fn defend(&mut self) {
-        self.defending = true;
-        self.say("You raise your guard.");
-        self.foe_turn();
-    }
-
-    fn quaff(&mut self) {
-        if self.potions == 0 {
-            self.say("No potions left.");
-            return;
-        }
-        self.potions -= 1;
-        let before = self.hp;
-        self.hp = (self.hp + POTION_HEAL).min(self.max_hp);
-        let gained = self.hp - before;
-        self.say(format!("You drink a potion and recover {gained} HP."));
-        if self.phase == Phase::Fighting {
-            self.foe_turn();
-        }
-    }
-
-    fn flee(&mut self) {
-        if self.rng.below(FLEE_IN_CHANCE) == 0 {
-            let name = self.foe.as_ref().map(|f| f.name).unwrap_or("thing");
-            self.foe = None;
-            self.phase = Phase::Exploring;
-            self.say(format!("You break away from the {name}."));
-            return;
-        }
-        self.say("It cuts you off.");
-        self.foe_turn();
-    }
-
-    fn restart(&mut self) {
-        let seed = self.rng.next_u64();
-        *self = Run::new(Rng::new(seed));
+    /// Exits belong to the map tile, not the room description.
+    fn exits(&self) -> Vec<Direction> {
+        self.state
+            .map
+            .tiles
+            .get(&self.state.map.position)
+            .map(|t| t.exits.clone())
+            .unwrap_or_default()
     }
 
     fn frame(&self) -> Frame {
-        let mut party = vec![Actor {
-            name: "you".to_string(),
-            hp: self.hp,
-            max_hp: self.max_hp,
+        let me = self.state.player(self.actor);
+        let party = vec![Actor {
+            name: me.name.clone(),
+            hp: me.hp,
+            max_hp: me.max_hp,
         }];
-        if self.phase == Phase::Dead {
-            party.clear();
-        }
 
         let enemies = self
-            .foe
-            .as_ref()
-            .map(|f| {
-                vec![Actor {
-                    name: f.name.to_string(),
-                    hp: f.hp,
-                    max_hp: f.max_hp,
-                }]
+            .state
+            .enemies
+            .iter()
+            .filter(|e| e.hp > 0)
+            .map(|e| Actor {
+                name: e.name.clone(),
+                hp: e.hp,
+                max_hp: e.max_hp,
             })
-            .unwrap_or_default();
+            .collect();
 
-        let options = match self.phase {
-            Phase::Fighting => vec![
-                ('A', "Attack".to_string()),
-                ('D', "Defend".to_string()),
-                ('P', format!("Potion ({})", self.potions)),
-                ('F', "Flee".to_string()),
-            ],
-            Phase::Exploring => vec![
-                ('G', "Go deeper".to_string()),
-                ('P', format!("Potion ({})", self.potions)),
-            ],
-            Phase::Dead => vec![('N', "New run".to_string())],
-        };
+        let mut options: Vec<(char, String)> = Vec::new();
+        match self.state.phase {
+            GamePhase::Combat | GamePhase::WaitingForActions => {
+                options.push(('A', "Attack".to_string()));
+                options.push(('D', "Defend".to_string()));
+            }
+            GamePhase::GameOver(_) => {
+                options.push(('N', "New run".to_string()));
+            }
+            _ => {
+                for dir in self.exits() {
+                    let key = match dir {
+                        Direction::North => 'N',
+                        Direction::South => 'S',
+                        Direction::East => 'E',
+                        Direction::West => 'W',
+                    };
+                    options.push((key, format!("Go {}", dir.code())));
+                }
+            }
+        }
+        options.push(('M', "Map".to_string()));
 
         Frame {
-            room: if self.phase == Phase::Dead {
-                String::new()
-            } else {
-                self.room.to_string()
-            },
+            room: format!("{} - {}", self.state.room.name, self.state.room.description),
             party,
             enemies,
-            log: self.log.clone(),
+            log: self.state.log.clone(),
             options,
         }
+    }
+
+    fn grid(&self, span: i16) -> Grid {
+        let here = self.state.map.position;
+        let size = (span * 2 + 1) as usize;
+        let mut grid = Grid::new(size, size);
+
+        for dy in -span..=span {
+            for dx in -span..=span {
+                let pos = MapPos {
+                    x: here.x + dx,
+                    y: here.y + dy,
+                };
+                let Some(tile) = self.state.map.tiles.get(&pos) else {
+                    continue;
+                };
+                if !tile.visited && pos != here {
+                    continue;
+                }
+
+                let cell = if pos == here {
+                    Cell::Current
+                } else {
+                    match tile.room_type {
+                        RoomType::Boss => Cell::Boss,
+                        RoomType::Merchant => Cell::Shop,
+                        RoomType::RestShrine => Cell::Shrine,
+                        RoomType::UndergroundCity => Cell::Exit,
+                        _ if tile.cleared => Cell::Cleared,
+                        _ => Cell::Visited,
+                    }
+                };
+
+                let links = Links {
+                    north: tile.exits.contains(&Direction::North),
+                    south: tile.exits.contains(&Direction::South),
+                    east: tile.exits.contains(&Direction::East),
+                    west: tile.exits.contains(&Direction::West),
+                };
+
+                grid.set((dx + span) as usize, (dy + span) as usize, cell, links);
+            }
+        }
+        grid
     }
 }
 
@@ -298,37 +188,71 @@ impl Game for Run {
     }
 
     fn draw(&self, screen: &mut Screen) {
+        let me = self.state.player(self.actor);
         screen
             .nl()
             .ink(Ink::Dim)
             .line(&format!(
-                "depth {}  gold {}  kills {}",
-                self.depth, self.gold, self.kills
+                "depth {}  gold {}  lv {}",
+                self.state.map.position.depth(),
+                me.gold,
+                me.level
             ))
             .reset();
 
-        draw_frame(screen, &self.frame());
-
-        if self.phase == Phase::Dead {
-            screen.nl().ink(Ink::Warn).line("run over").reset();
+        match self.view {
+            View::Map => {
+                let across = map::fits(screen, (MAP_SPAN * 2 + 1) as usize);
+                let span = ((across as i16 - 1) / 2).max(1);
+                map::draw(screen, &self.grid(span));
+                screen.nl();
+                map::legend(screen);
+                screen.nl();
+                screen.item('Q', "Back");
+            }
+            View::Play => {
+                draw_frame(screen, &self.frame());
+                if let Some(notice) = &self.notice {
+                    let width = screen.width.saturating_sub(1);
+                    screen.nl().ink(Ink::Warn);
+                    for line in wrap_lines(&strip_markup(notice), width) {
+                        screen.line(&line);
+                    }
+                    screen.reset();
+                }
+                screen
+                    .ink(Ink::Dim)
+                    .line("progress is not saved yet")
+                    .reset();
+                screen.item('Q', "Back");
+            }
         }
-        screen
-            .ink(Ink::Dim)
-            .line("progress is not saved yet")
-            .reset();
-        screen.item('Q', "Back");
         screen.prompt("command> ");
     }
 
     fn on_key(&mut self, key: char) -> Flow {
-        match (self.phase, key) {
-            (_, 'Q') => return Flow::Exit,
-            (Phase::Fighting, 'A') => self.strike(),
-            (Phase::Fighting, 'D') => self.defend(),
-            (Phase::Fighting, 'F') => self.flee(),
-            (Phase::Fighting | Phase::Exploring, 'P') => self.quaff(),
-            (Phase::Exploring, 'G') => self.descend(),
-            (Phase::Dead, 'N') => self.restart(),
+        if self.view == View::Map {
+            if matches!(key, 'Q' | 'M') {
+                self.view = View::Play;
+            }
+            return Flow::Continue;
+        }
+
+        match key {
+            'Q' => return Flow::Exit,
+            'M' => self.view = View::Map,
+            'A' => self.act(GameAction::Attack),
+            'D' => self.act(GameAction::Defend),
+            'N' if matches!(self.state.phase, GamePhase::GameOver(_)) => {
+                let me = self.state.player(self.actor);
+                let (name, class) = (me.name.clone(), me.class);
+                self.state = start_solo(self.actor, &name, class);
+                self.notice = None;
+            }
+            'N' => self.act(GameAction::Move(Direction::North)),
+            'S' => self.act(GameAction::Move(Direction::South)),
+            'E' => self.act(GameAction::Move(Direction::East)),
+            'W' => self.act(GameAction::Move(Direction::West)),
             _ => {}
         }
         Flow::Continue
