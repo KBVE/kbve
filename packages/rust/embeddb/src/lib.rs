@@ -2,12 +2,14 @@ extern crate self as embeddb;
 
 mod error;
 mod db;
+#[cfg(feature = "analytics")]
 mod analytics;
 mod tx;
 mod value;
 mod config;
 mod migrate;
 mod query;
+#[cfg(feature = "analytics")]
 mod pool;
 mod convert;
 mod read;

@@ -75,8 +75,9 @@ mod tests {
         db.migrate(&["CREATE TABLE a (id INTEGER)"]).await.unwrap();
         db.checkpoint().await.unwrap();
         let n = db
-            .analytics_scalar_i64(
+            .query_scalar_i64(
                 "SELECT count(*) FROM _embeddb_migrations WHERE applied_at IS NOT NULL",
+                (),
             )
             .await
             .unwrap();

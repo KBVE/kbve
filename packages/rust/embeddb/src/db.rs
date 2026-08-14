@@ -1,4 +1,5 @@
 use std::path::{Path, PathBuf};
+#[cfg(feature = "analytics")]
 use std::sync::Arc;
 use crate::Result;
 
@@ -6,6 +7,7 @@ pub struct EmbedDb {
     path: PathBuf,
     conn: turso::Connection,
     config: crate::EmbedConfig,
+    #[cfg(feature = "analytics")]
     reader: Arc<crate::pool::LazyReaderPool>,
 }
 
@@ -35,11 +37,18 @@ impl EmbedDb {
         let conn = db.connect()?;
         let pragma = format!("PRAGMA journal_mode={}", config.journal_mode);
         conn.execute(&pragma, ()).await.ok();
-        let reader = crate::pool::LazyReaderPool::new(
+        #[cfg(feature = "analytics")]
+        let reader = Arc::new(crate::pool::LazyReaderPool::new(
             config.reader_pool_size,
             config.duckdb_extension_dir.clone(),
-        );
-        Ok(EmbedDb { path, conn, config, reader: Arc::new(reader) })
+        ));
+        Ok(EmbedDb {
+            path,
+            conn,
+            config,
+            #[cfg(feature = "analytics")]
+            reader,
+        })
     }
 
     pub fn path(&self) -> &Path {
@@ -76,7 +85,10 @@ impl EmbedDb {
         while rows.next().await?.is_some() {}
         Ok(())
     }
+}
 
+#[cfg(feature = "analytics")]
+impl EmbedDb {
     pub async fn analytics_scalar_i64(&self, sql: &str) -> Result<i64> {
         let path = self.path.clone();
         let sql = sql.to_string();
@@ -170,7 +182,9 @@ impl EmbedDb {
             .await
             .map_err(|e| crate::EmbedError::Other(e.to_string()))?
     }
+}
 
+impl EmbedDb {
     pub async fn execute_batch<I, P>(&self, sql: &str, params: I) -> Result<u64>
     where
         I: IntoIterator<Item = P>,
@@ -213,7 +227,7 @@ impl EmbedDb {
     }
 }
 
-#[cfg(test)]
+#[cfg(all(test, feature = "analytics"))]
 mod tests {
     use super::*;
 
@@ -937,5 +951,114 @@ mod tests {
         db.checkpoint().await.unwrap();
         assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 2);
         assert_eq!(db.analytics_scalar_i64("SELECT count(*) FROM t").await.unwrap(), 2);
+    }
+}
+
+#[cfg(test)]
+mod core_tests {
+    use super::*;
+
+    async fn open(name: &str) -> (tempfile::TempDir, EmbedDb) {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join(name)).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        (dir, db)
+    }
+
+    #[cfg(unix)]
+    #[tokio::test]
+    async fn open_non_utf8_path_errors() {
+        use std::os::unix::ffi::OsStrExt;
+        use std::ffi::OsStr;
+        let dir = tempfile::tempdir().unwrap();
+        let bad = dir.path().join(OsStr::from_bytes(b"bad\xFFname.db"));
+        let err = EmbedDb::open(&bad).await.unwrap_err();
+        assert!(matches!(err, crate::EmbedError::NonUtf8Path(_)));
+    }
+
+    #[tokio::test]
+    async fn open_creates_file() {
+        let dir = tempfile::tempdir().unwrap();
+        let p = dir.path().join("core_open.db");
+        let db = EmbedDb::open(&p).await.unwrap();
+        assert_eq!(db.path(), p.as_path());
+        assert!(p.exists());
+    }
+
+    #[tokio::test]
+    async fn execute_and_read_back() {
+        let (_d, db) = open("core_exec.db").await;
+        assert_eq!(db.execute("INSERT INTO t VALUES (?)", (1_i64,)).await.unwrap(), 1);
+        assert_eq!(db.query_scalar_i64("SELECT count(*) FROM t", ()).await.unwrap(), 1);
+    }
+
+    #[tokio::test]
+    async fn execute_batch_inserts_all() {
+        let (_d, db) = open("core_batch.db").await;
+        let n = db
+            .execute_batch("INSERT INTO t VALUES (?)", vec![(1_i64,), (2_i64,), (3_i64,)])
+            .await
+            .unwrap();
+        assert_eq!(n, 3);
+        assert_eq!(db.query_scalar_i64("SELECT count(*) FROM t", ()).await.unwrap(), 3);
+    }
+
+    #[tokio::test]
+    async fn tx_commit_persists_and_rollback_discards() {
+        let (_d, db) = open("core_tx.db").await;
+        let tx = db.begin().await.unwrap();
+        tx.execute("INSERT INTO t VALUES (?)", (1_i64,)).await.unwrap();
+        tx.commit().await.unwrap();
+        assert_eq!(db.query_scalar_i64("SELECT count(*) FROM t", ()).await.unwrap(), 1);
+
+        let tx2 = db.begin().await.unwrap();
+        tx2.execute("INSERT INTO t VALUES (?)", (2_i64,)).await.unwrap();
+        tx2.rollback().await.unwrap();
+        assert_eq!(db.query_scalar_i64("SELECT count(*) FROM t", ()).await.unwrap(), 1);
+    }
+
+    #[tokio::test]
+    async fn checkpoint_variants_succeed() {
+        let (_d, db) = open("core_cp.db").await;
+        db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        db.checkpoint_passive().await.unwrap();
+    }
+
+    #[tokio::test]
+    async fn migrate_applies_and_is_idempotent() {
+        let dir = tempfile::tempdir().unwrap();
+        let db = EmbedDb::open(dir.path().join("core_mig.db")).await.unwrap();
+        let m = ["CREATE TABLE a (id INTEGER)", "CREATE TABLE b (id INTEGER)"];
+        db.migrate(&m).await.unwrap();
+        db.migrate(&m).await.unwrap();
+        assert_eq!(db.max_migration_version().await.unwrap(), 1);
+        db.execute("INSERT INTO a VALUES (1)", ()).await.unwrap();
+        assert_eq!(db.query_scalar_i64("SELECT count(*) FROM a", ()).await.unwrap(), 1);
+    }
+
+    #[tokio::test]
+    async fn open_with_custom_config() {
+        let dir = tempfile::tempdir().unwrap();
+        let cfg = crate::EmbedConfig { checkpoint_max_retries: 1, ..Default::default() };
+        let db = EmbedDb::open_with(dir.path().join("core_cfg.db"), cfg).await.unwrap();
+        db.execute("CREATE TABLE t (id INTEGER)", ()).await.unwrap();
+        db.execute("INSERT INTO t VALUES (1)", ()).await.unwrap();
+        db.checkpoint().await.unwrap();
+        assert_eq!(db.query_scalar_i64("SELECT count(*) FROM t", ()).await.unwrap(), 1);
+    }
+
+    #[tokio::test]
+    async fn debug_omits_connection_internals() {
+        let (_d, db) = open("core_dbg.db").await;
+        let s = format!("{db:?}");
+        assert!(s.contains("EmbedDb"));
+        assert!(s.contains("path"));
+    }
+
+    #[tokio::test]
+    async fn close_consumes_db() {
+        let (_d, db) = open("core_close.db").await;
+        db.close().await.unwrap();
     }
 }

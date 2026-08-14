@@ -27,6 +27,23 @@ Turso writes to the file's WAL. DuckDB's `sqlite_scanner` replays uncheckpointed
 
 When done, call `EmbedDb::close` to drop the connection and release the file.
 
+## Cargo features
+
+| Feature | Default | Effect |
+| --- | --- | --- |
+| `derive` | on | `#[derive(FromEmbedRow)]` proc macro via `embeddb-derive` |
+| `analytics` | on | DuckDB read path: the `analytics_*` methods, the reader pool, and `EmbedError::Duck` |
+| `vector` | off | Vector storage and search |
+| `embed-api` | off | HTTP embedder client (implies `vector`) |
+
+`analytics` pulls in `duckdb` with its `bundled` feature, which compiles DuckDB's C++ engine from source. That is fine on a server but expensive-to-impossible for a game client, an iOS/Android cross-compile, or any target without a C++ toolchain. Turning it off leaves a pure-Rust dependency tree:
+
+```toml
+embeddb = { version = "0.2", default-features = false, features = ["derive"] }
+```
+
+In that configuration the write path (`execute`, `execute_batch`, `begin`, `migrate`, `checkpoint`) and the Turso reader (`query`, `query_rows`, `query_one`, `query_as`, `query_for_each`, `query_scalar_*`) are fully available. Only the `analytics_*` methods are gone, and with them the requirement described in the next section.
+
 ## Deployment note: DuckDB sqlite extension
 
 `analytics_scalar_i64` / `analytics_scalar_f64` run `INSTALL sqlite; LOAD sqlite;` against the in-memory DuckDB connection before attaching the file. The `bundled` feature on the `duckdb` crate statically links DuckDB's core engine, but it does **not** include the `sqlite_scanner` extension. On first use, DuckDB downloads `sqlite_scanner.duckdb_extension` from `extensions.duckdb.org` into `~/.duckdb/extensions/...` and caches it there for subsequent calls.
@@ -289,7 +306,7 @@ let rows: Vec<Rec> = db.analytics_query_as("SELECT id, name, note FROM t ORDER B
 
 `FromEmbedValue` is implemented for `i64`, `f64`, `String`, `bool`, `i128`, `Vec<u8>`, and `Option<T>` for any `T: FromEmbedValue` (mapping SQL `NULL` to `None`). A field whose column is missing from the query's result set, or whose value doesn't convert to the field's type, makes the derived `from_row` return an error rather than panicking.
 
-The `derive` Cargo feature is on by default and pulls in `embeddb-derive`. Building with `--no-default-features` drops the proc-macro dependency: `FromEmbedRow` and `FromEmbedValue` (and all other APIs) remain available, but the `#[derive(FromEmbedRow)]` macro itself is not — implement `FromEmbedRow` by hand in that configuration.
+The `derive` Cargo feature is on by default and pulls in `embeddb-derive`. Dropping it (`--no-default-features`, or `default-features = false` without re-adding `derive`) removes the proc-macro dependency: the `FromEmbedRow` and `FromEmbedValue` traits remain available, but the `#[derive(FromEmbedRow)]` macro itself is not — implement `FromEmbedRow` by hand in that configuration. Note that `--no-default-features` also drops `analytics`; see [Cargo features](#cargo-features).
 
 ### WAL-visibility freshness contract
 

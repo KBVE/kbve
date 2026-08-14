@@ -221,8 +221,8 @@ impl QStoneField {
                     let cradius = cscale * 0.85;
                     let az = randf(&mut state) * std::f32::consts::TAU;
                     let dist = (radius + cradius) * (1.15 + randf(&mut state) * 0.5);
-                    let cx = x + az.cos() * dist;
-                    let cz = z + az.sin() * dist;
+                    let cx = x + libm::cosf(az) * dist;
+                    let cz = z + libm::sinf(az) * dist;
                     if !grid.inside(cx, cz, 5.0) {
                         continue;
                     }
@@ -515,7 +515,7 @@ impl QStoneField {
             let rr = e * ring as f32 / 3.0;
             for i in 0..8 {
                 let a = std::f32::consts::TAU * i as f32 / 8.0;
-                let (dx, dz) = (a.cos() * rr, a.sin() * rr);
+                let (dx, dz) = (libm::cosf(a) * rr, libm::sinf(a) * rr);
                 let g = sample(x + dx, z + dz);
                 lowest = lowest.min(g);
                 let plane_drop = (up.x * dx + up.z * dz) / uy;

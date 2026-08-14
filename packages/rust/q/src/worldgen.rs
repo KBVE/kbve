@@ -72,7 +72,7 @@ impl HeightGen {
         let h = self.hills.get_noise_2d(x, z) * self.hill_amplitude + self.hill_base;
         let river_x = self.river.get_noise_2d(z, 0.0) * self.river_wander;
         let d = (x - river_x).abs();
-        let t = (-(d * d) / (2.0 * self.river_width * self.river_width)).exp();
+        let t = libm::expf(-(d * d) / (2.0 * self.river_width * self.river_width));
         let m = (t * 1.15).clamp(0.0, 1.0);
         h + (self.water_level - self.riverbed_depth - h) * m
     }
@@ -311,6 +311,40 @@ mod tests {
         // It would leave ground between two bakes that neither covers.
         let w = Window::new(100.0, 4000.0);
         assert!(w.stride <= w.extent);
+    }
+
+    fn fnv1a(values: &[f32]) -> u64 {
+        let mut h = 0xcbf2_9ce4_8422_2325_u64;
+        for v in values {
+            for byte in v.to_bits().to_le_bytes() {
+                h ^= byte as u64;
+                h = h.wrapping_mul(0x0000_0100_0000_01b3);
+            }
+        }
+        h
+    }
+
+    #[test]
+    fn raw_noise_is_bit_stable_across_platforms() {
+        let p = HeightParams::default();
+        let hills = make_noise(p.seed, p.hill_frequency, 4);
+        let river = make_noise(p.seed + 7, p.river_wander_frequency, 5);
+        let mut samples = Vec::with_capacity(2 * 33 * 33);
+        for iy in 0..33 {
+            for ix in 0..33 {
+                let (x, z) = (-64.0 + ix as f32 * 4.0, -64.0 + iy as f32 * 4.0);
+                samples.push(hills.get_noise_2d(x, z));
+                samples.push(river.get_noise_2d(z, 0.0));
+            }
+        }
+        assert_eq!(fnv1a(&samples), 0xbbff_9590_3d45_c884, "raw noise diverged");
+    }
+
+    #[test]
+    fn baked_heights_are_bit_stable_across_platforms() {
+        let p = HeightParams::default();
+        let grid = HeightGen::new(&p).bake(64.0, 33);
+        assert_eq!(fnv1a(&grid), 0x7709_c812_0bc2_a47c, "baked heights diverged");
     }
 
     #[test]

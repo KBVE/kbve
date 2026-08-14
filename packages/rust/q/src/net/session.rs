@@ -1311,7 +1311,8 @@ mod tests {
         host.set_terrain(flat_terrain());
         let peer = mesh[1].clone();
 
-        for _ in 0..60 {
+        let one_second = SimConfig::default().tick_hz.round() as u32;
+        for _ in 0..one_second {
             host.tick();
         }
         let snapshots = std::iter::from_fn(|| peer.try_recv())
@@ -1373,7 +1374,8 @@ mod tests {
                 jump: false,
             }),
         );
-        for _ in 0..60 {
+        let one_second = SimConfig::default().tick_hz.round() as u32;
+        for _ in 0..one_second {
             host.tick();
         }
 
