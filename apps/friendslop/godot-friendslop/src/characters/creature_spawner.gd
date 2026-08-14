@@ -52,6 +52,9 @@ const MECH_DIR := "res://assets/characters/creatures/mech/models/"
 ## The crossing is narrow and has a drop either side, so it is opened but not
 ## made attractive: a route only takes it when there is no way round.
 @export var bridge_cost := 40
+## How far under the deck still counts as being on it. Covers the walkway's own
+## thickness and a body's sag; anything lower is under the bridge, not on it.
+@export var deck_drop := 1.5
 ## Prints what the built field closed. A field that walled off the whole map
 ## routes nothing and looks exactly like one that was never built at all.
 @export var field_debug := false
@@ -157,14 +160,31 @@ func _build_field(terrain: Node) -> void:
 	if not stones.is_empty():
 		field.stamp_obstacles(stones, stone_block_ratio, stone_cost)
 
+	# The crossing is a causeway with one walkable line along the top: mostly
+	# wall. Closing it before the clearance is what makes the routes go round the
+	# abutments and the railed approaches instead of into the side of them.
+	var bridge := _bridge_plan(terrain)
+	if not bridge.is_empty():
+		field.block_path(bridge["from"], bridge["to"], bridge["solid_half_width"])
+
 	field.inflate(field_clearance)
-	# After the clearance, never before. The terrain under a bridge is water, so
-	# every stamp so far has closed the one place the river can be crossed, and
-	# the clearance grown off the banks would close it again.
-	var span: PackedFloat32Array = _bridge_span(terrain)
-	if span.size() == 5:
-		field.open_path(Vector3(span[0], 0.0, span[1]), Vector3(span[2], 0.0, span[3]),
-				span[4], bridge_cost)
+	# After the clearance, never before. The ground under the deck is water and
+	# the structure itself is now closed, so the crossing has been shut twice
+	# over; this is what cuts it back open.
+	if not bridge.is_empty():
+		# Opened past both ends, not just end to end. The clearance was grown off
+		# the structure in every direction, including beyond its ends, so a walkway
+		# reopened to exactly the length that was closed is a sealed tube nothing
+		# can get into -- which strands everything on the far bank.
+		var mouth: Vector3 = (bridge["to"] - bridge["from"]).normalized() \
+				* (field_clearance + field_cell)
+		field.open_path(bridge["from"] - mouth, bridge["to"] + mouth,
+				bridge["walk_half_width"], bridge_cost)
+		# The grid is flat, so the deck and the riverbed under it are one cell.
+		# Without this a creature that ends up beneath the span is told it is on
+		# a perfectly good route and walks into a pier until something moves it.
+		field.set_deck(bridge["deck_from"], bridge["deck_to"],
+				bridge["walk_half_width"] + field_clearance, bridge["deck_y"], deck_drop)
 
 	if _leader:
 		field.build(_leader.global_position)
@@ -174,14 +194,15 @@ func _build_field(terrain: Node) -> void:
 			s.get("cells", 0), s.get("blocked", 0), s.get("reachable", 0),
 			trees.size() / 3, stones.size() / 3,
 		])
-		print("creature_spawner: bridge span %s" % [span])
+		print("creature_spawner: bridge %s" % [bridge])
 
 
-## The line a bridge lets a body walk, if the terrain built one.
-func _bridge_span(terrain: Node) -> PackedFloat32Array:
-	if terrain == null or not terrain.has_method("bridge_span"):
-		return PackedFloat32Array()
-	return terrain.bridge_span()
+## The crossing as something with sides, if the terrain built one. Empty means
+## this world has no river to cross.
+func _bridge_plan(terrain: Node) -> Dictionary:
+	if terrain == null or not terrain.has_method("bridge_plan"):
+		return {}
+	return terrain.bridge_plan()
 
 
 ## Scatter is grown on the GPU and read back, so it may not exist yet on the
