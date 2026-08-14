@@ -8,9 +8,13 @@ extends Node3D
 
 const CharacterRig := preload("res://src/characters/character_rig.gd")
 const DialogueGraphScript := preload("res://src/dialogue/dialogue_graph.gd")
+const Npcdb := preload("res://src/dialogue/npcdb_dialogue.gd")
 
 const GROUP := &"interactable"
 
+## The NPCDB slug this one is, which is where the conversation and the name come from.
+## A local `dialogue_path` is only read when this is empty.
+@export var npc_ref := ""
 @export var display_name_key := ""
 @export var dialogue_path := ""
 @export var terrain_path: NodePath
@@ -99,8 +103,15 @@ func _refresh_name() -> void:
 		_nameplate.text = display_name()
 
 
+## The catalog knows his name; a key overrides it where a locale has one.
 func display_name() -> String:
-	return I18n.t(display_name_key) if display_name_key != "" else name
+	if display_name_key != "":
+		return I18n.t(display_name_key)
+	if npc_ref != "":
+		var entry := Npcdb.npc(npc_ref)
+		if not entry.is_empty():
+			return str(entry.get("name", npc_ref))
+	return name
 
 
 func _head_height() -> float:
@@ -148,7 +159,7 @@ func _settle() -> void:
 ## Waiting to be talked to. The interactor reads this off everything in reach and picks
 ## the nearest.
 func can_talk() -> bool:
-	return dialogue_path != ""
+	return npc_ref != "" or dialogue_path != ""
 
 
 func talk_range() -> float:
@@ -166,5 +177,9 @@ func face(who: Node3D) -> void:
 	look_at(global_position + to, Vector3.UP)
 
 
+## The catalog first, since that is where a conversation is tracked; a local file is for a
+## talk that has not been written into NPCDB yet.
 func graph() -> DialogueGraph:
+	if npc_ref != "":
+		return Npcdb.graph(npc_ref)
 	return DialogueGraphScript.from_path(dialogue_path)

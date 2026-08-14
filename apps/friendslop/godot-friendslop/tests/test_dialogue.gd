@@ -6,7 +6,16 @@ const Graph := preload("res://src/dialogue/dialogue_graph.gd")
 const State := preload("res://src/dialogue/dialogue_state.gd")
 const Runner := preload("res://src/dialogue/dialogue_runner.gd")
 
-const MARLOW := "res://assets/dialogue/marlow.json"
+const Npcdb := preload("res://src/dialogue/npcdb_dialogue.gd")
+
+const MARLOW := "marlow"
+
+## Replies are matched by the words the catalog carries, since that is what a player
+## clicks on.
+const TOLL := "You want a toll, don't you."
+const MECHS := "What are those walking machines?"
+const PAY := "Pay the toll."
+const LEAVE := "(Walk away.)"
 
 const SIMPLE := {
 	"start": "one",
@@ -221,18 +230,88 @@ func test_a_graph_that_did_not_load_is_refused() -> void:
 	assert_bool(runner.is_running()).is_false()
 
 
-func test_marlow_loads_clean() -> void:
-	var graph := Graph.from_path(MARLOW)
+## The catalog's schema is not this game's, and the translation between them is where a
+## conversation quietly loses a gate or a flag.
+func test_the_catalog_schema_becomes_a_graph() -> void:
+	var graph: Dictionary = Npcdb.to_graph_dict({"name": "Ana"}, {
+		"entryNodeId": "one",
+		"nodes": [
+			{"id": "one", "text": "hello", "nextNodeId": "two",
+					"triggerOnEnter": "set_flag:met"},
+			{"id": "two", "text": "well?", "options": [
+				{"id": "a", "label": "pay", "nextNodeId": "one", "setFlag": "paid",
+						"requiredFlags": ["coin", "!paid"]},
+				{"id": "b", "label": "go", "nextNodeId": ""},
+			]},
+		],
+	})
+
+	assert_str(str(graph["start"])).is_equal("one")
+	assert_str(str(graph["speaker"])).is_equal("Ana")
+	var nodes: Dictionary = graph["nodes"]
+	assert_str(str(nodes["one"]["line"])).is_equal("hello")
+	assert_str(str(nodes["one"]["to"])).is_equal("two")
+	assert_that(nodes["one"]["do"]).is_equal({"set": "met"})
+
+	var choice: Dictionary = (nodes["two"]["choices"] as Array)[0]
+	assert_str(str(choice["text"])).is_equal("pay")
+	assert_that(choice["do"]).is_equal({"set": "paid"})
+	assert_that(choice["if"]).is_equal({"all": [{"flag": "coin"}, {"not": {"flag": "paid"}}]})
+
+
+## There is no else in the schema, so a gated node falls through to the one under it --
+## which is how the MDX reads, the stranger's line and then the regular's.
+func test_a_gated_node_falls_through_to_the_next_one_in_the_list() -> void:
+	var graph: Dictionary = Npcdb.to_graph_dict({}, {
+		"entryNodeId": "greet",
+		"nodes": [
+			{"id": "greet", "text": "first", "condition": "!seen:greet"},
+			{"id": "greet_again", "text": "second"},
+		],
+	})
+	var nodes: Dictionary = graph["nodes"]
+	assert_that(nodes["greet"]["if"]).is_equal({"not": {"seen": "greet"}})
+	assert_str(str(nodes["greet"]["else"])).is_equal("greet_again")
+	assert_bool((nodes["greet_again"] as Dictionary).has("else")) \
+			.override_failure_message("an ungated node was given a fallback it cannot use") \
+			.is_false()
+
+
+func test_condition_strings_become_gates() -> void:
+	var graph: Dictionary = Npcdb.to_graph_dict({}, {
+		"entryNodeId": "a",
+		"nodes": [
+			{"id": "a", "text": "a", "condition": "flag:coin && !seen:b"},
+			{"id": "b", "text": "b", "condition": "bare_flag"},
+		],
+	})
+	var nodes: Dictionary = graph["nodes"]
+	assert_that(nodes["a"]["if"]) \
+			.is_equal({"all": [{"flag": "coin"}, {"not": {"seen": "b"}}]})
+	assert_that(nodes["b"]["if"]) \
+			.override_failure_message("a bare name is a flag, which is how the catalog writes them") \
+			.is_equal({"flag": "bare_flag"})
+
+
+func test_an_npc_the_catalog_does_not_have_is_refused() -> void:
+	var runner := Runner.new()
+	assert_bool(runner.start(Npcdb.graph("nobody"), State.new())).is_false()
+
+
+func test_marlow_loads_clean_out_of_the_catalog() -> void:
+	var graph := Npcdb.graph(MARLOW)
 	assert_str("\n".join(graph.errors())).is_empty()
 
 
-## Every key the graph asks for has to exist in English, or Marlow says a key aloud.
-func test_every_line_marlow_has_is_written_in_english() -> void:
-	var graph := Graph.from_path(MARLOW)
+## The catalog carries prose rather than keys, and I18n hands back whatever it does not
+## know, so every line has to arrive with words in it.
+func test_marlow_speaks_words_rather_than_keys() -> void:
+	var graph := Npcdb.graph(MARLOW)
 	for key in graph.text_keys():
 		assert_str(I18n.t(key)) \
-				.override_failure_message("marlow.json asks for '%s', which English does not have" % key) \
-				.is_not_equal(key)
+				.override_failure_message("'%s' came through empty" % key) \
+				.is_not_empty()
+	assert_str(I18n.t(graph.speaker)).is_equal("Marlow")
 
 
 ## Paying the toll changes what he offers and how he says goodbye, which is the whole
@@ -240,40 +319,40 @@ func test_every_line_marlow_has_is_written_in_english() -> void:
 func test_the_toll_changes_what_marlow_offers_afterwards() -> void:
 	var state := State.new()
 	var runner := Runner.new()
-	runner.start(Graph.from_path(MARLOW), state)
+	runner.start(Npcdb.graph(MARLOW), state)
 
-	assert_str(runner.line_key()).is_equal("npc.marlow.greet")
+	assert_str(runner.node_id()).is_equal("greet")
 	runner.advance()
 	assert_str(runner.node_id()).is_equal("menu")
-	assert_bool(_offers(runner, "dlg.marlow.ask_toll")).is_true()
-	assert_bool(_offers(runner, "dlg.marlow.ask_mechs")).is_false()
+	assert_bool(_offers(runner, TOLL)).is_true()
+	assert_bool(_offers(runner, MECHS)).is_false()
 
-	runner.choose(_index_of(runner, "dlg.marlow.ask_toll"))
-	runner.choose(_index_of(runner, "dlg.marlow.pay"))
+	runner.choose(_index_of(runner, TOLL))
+	runner.choose(_index_of(runner, PAY))
 	assert_bool(state.has_flag("marlow_toll_paid")).is_true()
 	runner.advance()
 
 	assert_str(runner.node_id()).is_equal("menu")
-	assert_bool(_offers(runner, "dlg.marlow.ask_toll")) \
+	assert_bool(_offers(runner, TOLL)) \
 			.override_failure_message("he asked for the toll twice").is_false()
-	assert_bool(_offers(runner, "dlg.marlow.ask_mechs")).is_true()
+	assert_bool(_offers(runner, MECHS)).is_true()
 
-	runner.choose(_index_of(runner, "dlg.leave"))
-	assert_str(runner.line_key()).is_equal("npc.marlow.farewell_paid")
+	runner.choose(_index_of(runner, LEAVE))
+	assert_str(runner.node_id()).is_equal("farewell_paid")
 
 
 ## Second time through he does not introduce himself again.
 func test_marlow_greets_a_stranger_differently_to_a_regular() -> void:
 	var state := State.new()
 	var runner := Runner.new()
-	runner.start(Graph.from_path(MARLOW), state)
-	assert_str(runner.line_key()).is_equal("npc.marlow.greet")
+	runner.start(Npcdb.graph(MARLOW), state)
+	assert_str(runner.node_id()).is_equal("greet")
 
 	var again := Runner.new()
-	again.start(Graph.from_path(MARLOW), state)
-	assert_str(again.line_key()) \
+	again.start(Npcdb.graph(MARLOW), state)
+	assert_str(again.node_id()) \
 			.override_failure_message("he introduced himself to someone he had already met") \
-			.is_equal("npc.marlow.greet_again")
+			.is_equal("greet_again")
 
 
 ## Marlow is placed in the world scene, not spawned by a script, so the wiring is what
@@ -289,8 +368,7 @@ func test_marlow_is_wired_into_the_world() -> void:
 		var props := {}
 		for p in state.get_node_property_count(i):
 			props[state.get_node_property_name(i, p)] = state.get_node_property_value(i, p)
-		assert_str(str(props.get("dialogue_path", ""))).is_equal(MARLOW)
-		assert_str(str(props.get("display_name_key", ""))).is_equal("npc.marlow.name")
+		assert_str(str(props.get("npc_ref", ""))).is_equal(MARLOW)
 		assert_object(props.get("body")) \
 				.override_failure_message("Marlow has no body, so he is an invisible voice") \
 				.is_not_null()
