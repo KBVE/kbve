@@ -226,7 +226,7 @@ pub struct SimConfig {
 impl Default for SimConfig {
     fn default() -> Self {
         Self {
-            tick_hz: 60.0,
+            tick_hz: 20.0,
             gravity: [0.0, -9.81, 0.0],
             max_steps_per_pass: 5,
         }
