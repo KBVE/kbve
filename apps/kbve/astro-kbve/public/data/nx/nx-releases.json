@@ -1,16 +1,16 @@
 {
-  "generated_at": "2026-08-13T03:27:15Z",
+  "generated_at": "2026-08-14T03:24:44Z",
   "summary": {
-    "pending": 3,
+    "pending": 2,
     "behind": 1,
     "unpublished": 3,
-    "published": 26,
+    "published": 27,
     "skipped": 0
   },
   "ecosystems": {
     "crates": {
       "total": 27,
-      "pending": 2
+      "pending": 1
     },
     "npm": {
       "total": 4,
@@ -165,9 +165,9 @@
     {
       "ecosystem": "crates",
       "name": "erust",
-      "local": "0.1.7",
-      "published": "0.1.6",
-      "status": "pending"
+      "local": "0.1.8",
+      "published": "0.1.8",
+      "status": "published"
     },
     {
       "ecosystem": "crates",
@@ -179,8 +179,8 @@
     {
       "ecosystem": "crates",
       "name": "jedi",
-      "local": "0.2.2",
-      "published": "0.2.2",
+      "local": "0.2.3",
+      "published": "0.2.3",
       "status": "published"
     },
     {
@@ -193,8 +193,8 @@
     {
       "ecosystem": "crates",
       "name": "q",
-      "local": "0.1.1",
-      "published": "0.1.1",
+      "local": "0.1.3",
+      "published": "0.1.3",
       "status": "published"
     },
     {
@@ -222,7 +222,7 @@
       "ecosystem": "npm",
       "name": "droid",
       "local": "0.1.2",
-      "published": "0.195.0",
+      "published": "0.196.0",
       "status": "behind"
     },
     {

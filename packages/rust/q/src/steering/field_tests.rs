@@ -200,22 +200,22 @@ fn building_is_deterministic() {
 #[ignore]
 fn bench_build() {
     use std::time::Instant;
-    let mut g = grid(128, 128);
-    for y in 0..100 {
-        g.set_cost(64, y, BLOCKED);
+    let mut out = String::new();
+    for n in [128usize, 256, 512] {
+        let mut g = grid(n, n);
+        for y in 0..(n * 3 / 4) {
+            g.set_cost(n / 2, y, BLOCKED);
+        }
+        let mut field = Field::new(g);
+        let runs = 50;
+        let start = Instant::now();
+        for i in 0..runs {
+            field.build([n as f32 - 8.5, 8.5 + (i % 5) as f32]);
+        }
+        let each = start.elapsed().as_secs_f64() * 1000.0 / runs as f64;
+        out.push_str(&format!("{n}x{n} build: {each:.3} ms\n"));
     }
-    let mut field = Field::new(g);
-    let runs = 200;
-    let start = Instant::now();
-    for i in 0..runs {
-        field.build([120.5, 8.5 + (i % 5) as f32]);
-    }
-    let each = start.elapsed().as_secs_f64() * 1000.0 / runs as f64;
-    std::fs::write(
-        "/tmp/field_bench.txt",
-        format!("128x128 field build: {each:.3} ms\n"),
-    )
-    .ok();
+    std::fs::write("/tmp/field_bench.txt", out).ok();
 }
 
 #[test]
@@ -244,6 +244,120 @@ fn inflating_can_seal_a_gap_too_narrow_to_fit() {
     assert!(field.distance_at([2.5, 8.5]).is_infinite());
 }
 
+/// A trunk is much narrower than a cell, and one of them is not a wall.
+#[test]
+fn a_lone_trunk_costs_rather_than_closes() {
+    let mut g = Grid::new([0.0, 0.0], 4.0, 16, 16);
+    let before = g.cost(8, 8);
+    g.stamp_coverage(&[34.0, 34.0, 0.4], 0.5, 200.0);
+    assert!(g.cost(8, 8) < BLOCKED, "one tree walled off a whole cell");
+    assert!(g.cost(8, 8) > before, "one tree cost nothing at all");
+}
+
+/// The same trunks, packed: coverage adds up and the cell closes.
+#[test]
+fn a_thicket_closes_the_cell() {
+    let mut g = Grid::new([0.0, 0.0], 4.0, 16, 16);
+    let mut discs = Vec::new();
+    for i in 0..5 {
+        for j in 0..5 {
+            discs.extend_from_slice(&[32.4 + i as f32 * 0.8, 32.4 + j as f32 * 0.8, 0.45]);
+        }
+    }
+    g.stamp_coverage(&discs, 0.35, 200.0);
+    assert_eq!(g.cost(8, 8), BLOCKED, "a wood of 25 trunks stayed open");
+}
+
+/// `stamp_disc` tests the cell centre, so an off-centre trunk is invisible to
+/// it. Coverage is the reason this stamp exists.
+#[test]
+fn an_off_centre_trunk_is_not_missed() {
+    let mut g = Grid::new([0.0, 0.0], 4.0, 8, 8);
+    let corner = [16.3f32, 16.3];
+    let mut by_centre = g.clone();
+    by_centre.stamp_disc(corner, 0.5, 60);
+    assert_eq!(by_centre.cost(4, 4), 1, "test no longer measures anything");
+    g.stamp_coverage(&[corner[0], corner[1], 0.5], 0.5, 400.0);
+    assert!(g.cost(4, 4) > 1, "missed the trunk near the cell edge");
+}
+
+#[test]
+fn coverage_off_the_grid_is_ignored() {
+    let mut g = Grid::new([0.0, 0.0], 4.0, 8, 8);
+    g.stamp_coverage(&[-500.0, -500.0, 3.0, 900.0, 12.0, 3.0], 0.2, 400.0);
+    for y in 0..8 {
+        for x in 0..8 {
+            assert_eq!(g.cost(x, y), 1, "cell {x},{y} took cost from off-grid");
+        }
+    }
+}
+
+#[test]
+fn a_rock_wider_than_a_cell_closes_it() {
+    let mut g = Grid::new([0.0, 0.0], 4.0, 16, 16);
+    g.stamp_coverage(&[34.0, 34.0, 5.0], 0.6, 200.0);
+    assert_eq!(g.cost(8, 8), BLOCKED);
+    assert!(g.cost(2, 2) < BLOCKED, "closed ground nowhere near it");
+}
+
+/// Cost from trees must never reach BLOCKED by accident: below the ratio the
+/// ground is walkable, and the field has to keep saying so.
+#[test]
+fn coverage_cost_stays_walkable() {
+    let mut g = Grid::new([0.0, 0.0], 4.0, 8, 8);
+    let mut discs = Vec::new();
+    for i in 0..8 {
+        discs.extend_from_slice(&[15.0 + i as f32 * 0.2, 15.0, 0.5]);
+    }
+    g.stamp_coverage(&discs, 0.9, 100_000.0);
+    assert!(g.cost(3, 3) < BLOCKED, "cost saturated into a wall");
+}
+
+#[test]
+fn coverage_is_deterministic() {
+    let discs: Vec<f32> = (0..60)
+        .flat_map(|i| {
+            let f = i as f32;
+            [
+                10.0 + f * 0.7,
+                12.0 + (f * 0.31).sin() * 6.0,
+                0.3 + f * 0.01,
+            ]
+        })
+        .collect();
+    let build = || {
+        let mut g = Grid::new([0.0, 0.0], 4.0, 24, 24);
+        g.stamp_coverage(&discs, 0.4, 180.0);
+        g
+    };
+    let (a, b) = (build(), build());
+    for y in 0..24 {
+        for x in 0..24 {
+            assert_eq!(a.cost(x, y), b.cost(x, y), "cell {x},{y} differs");
+        }
+    }
+}
+
+/// Trees are not allowed to seal a route the terrain left open unless they
+/// really do fill it, so a scattered wood stays walkable.
+#[test]
+fn a_scattered_wood_can_still_be_walked_through() {
+    let mut g = grid(48, 48);
+    let mut discs = Vec::new();
+    for i in 0..40 {
+        for j in 0..12 {
+            discs.extend_from_slice(&[6.0 + i as f32, 18.0 + j as f32 * 1.5, 0.35]);
+        }
+    }
+    g.stamp_coverage(&discs, 0.5, 150.0);
+    let mut field = Field::new(g);
+    field.build([24.5, 44.5]);
+    assert!(
+        field.distance_at([24.5, 2.5]).is_finite(),
+        "a wood of thin trunks became a wall"
+    );
+}
+
 #[test]
 fn a_body_inside_an_obstacle_is_shown_the_way_out() {
     let mut g = grid(24, 24);
@@ -254,4 +368,87 @@ fn a_body_inside_an_obstacle_is_shown_the_way_out() {
         .direction_at([12.0, 12.0])
         .expect("stranded inside the rock");
     assert!(length(dir) > 0.9, "no way out: {dir:?}");
+}
+
+/// A bridge is a structure the ground under it denies: the terrain says water,
+/// so every other stamp closes the one place the river can be crossed.
+#[test]
+fn a_bridge_reopens_a_crossing_the_water_closed() {
+    let mut g = grid(48, 48);
+    // A river down the middle, blocked as water would be.
+    for y in 0..48 {
+        for x in 22..26 {
+            g.set_cost(x, y, BLOCKED);
+        }
+    }
+    let mut field = Field::new(g);
+    field.build([40.5, 24.5]);
+    assert!(
+        field.distance_at([6.5, 24.5]).is_infinite(),
+        "test river was not a barrier to begin with"
+    );
+
+    field.grid.open_path([18.0, 24.5], [30.0, 24.5], 1.6, 20);
+    field.build([40.5, 24.5]);
+    assert!(
+        field.distance_at([6.5, 24.5]).is_finite(),
+        "the bridge did not reopen the crossing"
+    );
+    let path = walk(&field, [6.5, 24.5], 600).expect("never crossed");
+    assert!(
+        path.iter().any(|p| p[0] > 26.0),
+        "never reached the far bank"
+    );
+}
+
+/// The order matters and is easy to get wrong: clearance grown off the banks
+/// closes a deck narrower than it, so the bridge has to be opened last.
+#[test]
+fn clearance_would_close_a_bridge_opened_too_early() {
+    let build = |bridge_first: bool| {
+        let mut g = grid(48, 48);
+        for y in 0..48 {
+            for x in 22..26 {
+                g.set_cost(x, y, BLOCKED);
+            }
+        }
+        if bridge_first {
+            g.open_path([18.0, 24.5], [30.0, 24.5], 1.6, 20);
+            g.inflate(2.5);
+        } else {
+            g.inflate(2.5);
+            g.open_path([18.0, 24.5], [30.0, 24.5], 1.6, 20);
+        }
+        let mut f = Field::new(g);
+        f.build([40.5, 24.5]);
+        f
+    };
+    assert!(
+        build(true).distance_at([6.5, 24.5]).is_infinite(),
+        "clearance no longer closes an early bridge, so this guards nothing"
+    );
+    assert!(
+        build(false).distance_at([6.5, 24.5]).is_finite(),
+        "opening last still left the crossing shut"
+    );
+}
+
+/// Opening a crossing must not quietly open the water beside it.
+#[test]
+fn a_bridge_opens_only_its_own_line() {
+    let mut g = grid(48, 48);
+    for y in 0..48 {
+        for x in 22..26 {
+            g.set_cost(x, y, BLOCKED);
+        }
+    }
+    g.open_path([18.0, 24.5], [30.0, 24.5], 1.6, 20);
+    for y in 0..48 {
+        if (y as f32 - 24.5).abs() < 3.0 {
+            continue;
+        }
+        for x in 22..26 {
+            assert_eq!(g.cost(x, y), BLOCKED, "opened water at {x},{y}");
+        }
+    }
 }

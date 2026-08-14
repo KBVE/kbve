@@ -76,16 +76,32 @@ impl Rng {
     }
 }
 
+/// Another body worth steering around.
+///
+/// Velocity is the part that matters. Position alone can only push two
+/// creatures apart along the line between them, which for a head-on approach is
+/// pure braking: they close, jam, and wait for the stuck timer. Knowing where
+/// the other one is going is what turns that into stepping aside.
+#[derive(Clone, Copy, Debug, Default)]
+pub struct Neighbour {
+    pub position: Vec2,
+    pub velocity: Vec2,
+    pub radius: f32,
+}
+
 /// Everything the creature is allowed to know about the world this tick.
 #[derive(Clone, Debug, Default)]
 pub struct Sense {
     pub position: Vec2,
     /// Where the body is pointing, flat.
     pub facing: Vec2,
+    /// How the body is actually moving, flat. Needed to predict who it is about
+    /// to run into, which is not the same question as who is nearby.
+    pub velocity: Vec2,
     /// Distance actually travelled since the last tick, after collision.
     pub travelled: f32,
     /// Other creatures, and anything else worth stepping around.
-    pub neighbours: Vec<Vec2>,
+    pub neighbours: Vec<Neighbour>,
     /// The leader, when following. Also an obstacle: a follower that ignores it
     /// walks into it, and a capsule pushed into a capsule climbs.
     pub leader: Option<Vec2>,
@@ -94,6 +110,10 @@ pub struct Sense {
     /// Which way the flow field says to go, when one covers this creature.
     /// `None` means steer straight at the target, which is right in the open.
     pub route: Option<Vec2>,
+    /// The field covers this creature and says the leader cannot be reached at
+    /// all -- across a river, behind a cliff. Distinct from having no field,
+    /// where walking straight at them is the right answer.
+    pub route_blocked: bool,
 }
 
 /// Tuning. Defaults match what the GDScript patrol shipped with.
@@ -105,6 +125,13 @@ pub struct Config {
     pub arrive_distance: f32,
     pub separation: f32,
     pub separation_strength: f32,
+    /// This body's own radius, for working out what counts as a collision.
+    pub radius: f32,
+    /// Seconds ahead the dodge looks. Too short and it reacts after contact;
+    /// too long and it swerves round creatures it was never going to meet.
+    pub look_ahead: f32,
+    /// Clearance wanted on top of the two radii when passing.
+    pub pass_margin: f32,
     /// Nothing may come closer than this to the leader. The bug this fixes is a
     /// follower settling inside the player and riding up over their capsule.
     pub personal_space: f32,
@@ -138,6 +165,9 @@ impl Default for Config {
             arrive_distance: 2.0,
             separation: 9.0,
             separation_strength: 1.6,
+            radius: 1.0,
+            look_ahead: 1.8,
+            pass_margin: 0.8,
             personal_space: 3.0,
             formation_distance: 7.0,
             formation_spacing: 9.0,
@@ -167,6 +197,8 @@ pub enum Mode {
     Holding,
     /// Committed to a sidestep after failing to make progress.
     Unsticking,
+    /// Nowhere to go: the leader is somewhere the field cannot route to.
+    Waiting,
 }
 
 /// The answer Godot acts on.
@@ -260,6 +292,77 @@ impl Patrol {
         )
     }
 
+    /// Steer clear of one neighbour, by where it is going rather than where it is.
+    ///
+    /// Three bands, because one rule cannot cover them. Already touching: shove
+    /// straight out, hard enough to beat a sprint, since prediction has nothing
+    /// left to prevent. On course to touch: step aside, sized by how soon and by
+    /// how badly. Neither: crowd it gently, which is what keeps a formation from
+    /// bunching without anyone being in danger.
+    fn dodge(&self, sense: &Sense, other: &Neighbour) -> Vec2 {
+        let to_other = sub(other.position, sense.position);
+        let distance = length(to_other);
+        if distance >= self.config.separation {
+            return [0.0, 0.0];
+        }
+        let contact = self.config.radius + other.radius + self.config.pass_margin;
+        // A direction is needed even when two bodies are exactly on top of each
+        // other, or neither moves and the engine settles it by climbing.
+        let away = if distance < 1e-3 {
+            normalize(scale(sense.facing, -1.0))
+        } else {
+            scale(to_other, -1.0 / distance)
+        };
+
+        if distance < contact {
+            // Scaled against top speed: the old linear falloff peaked at 1.6
+            // against a sprint of 7.5, so a creature ran straight through it.
+            let overlap = 1.0 - distance / contact;
+            return scale(away, self.config.max_speed * overlap);
+        }
+
+        let relative = sub(sense.velocity, other.velocity);
+        let closing = relative[0] * to_other[0] + relative[1] * to_other[1];
+        let speed_sq = relative[0] * relative[0] + relative[1] * relative[1];
+        if closing <= 0.0 || speed_sq < 1e-4 {
+            // Drifting apart, or both standing still. Neither is a collision.
+            return self.crowd(away, distance);
+        }
+        let when = closing / speed_sq;
+        if when > self.config.look_ahead {
+            return self.crowd(away, distance);
+        }
+        // Where the other body sits, relative to this one, at their closest.
+        let miss = sub(to_other, scale(relative, when));
+        let clearance = length(miss);
+        if clearance >= contact {
+            return self.crowd(away, distance);
+        }
+
+        // Sidestep, not brake. Head-on the miss vector collapses, so the side is
+        // taken from the approach instead: the pair see this vector reversed, so
+        // choosing the same hand of it puts them on opposite sides of each other
+        // rather than mirroring into a deadlock.
+        let side = if clearance < 1e-3 {
+            normalize([to_other[1], -to_other[0]])
+        } else {
+            scale(miss, -1.0 / clearance)
+        };
+        let urgency = (1.0 - when / self.config.look_ahead) * (1.0 - clearance / contact);
+        // Half each: the other one is solving the same problem from its side, and
+        // two full corrections overshoot into a swerve back and forth.
+        scale(side, self.config.max_speed * urgency * 0.5)
+    }
+
+    /// The gentle band: nobody is in danger, they are merely close. This is what
+    /// stops a formation bunching, and it is the only part `separation_strength`
+    /// still tunes -- the other two bands are sized against top speed, because a
+    /// dodge that loses to a sprint is not a dodge.
+    fn crowd(&self, away: Vec2, distance: f32) -> Vec2 {
+        let falloff = 1.0 - distance / self.config.separation;
+        scale(away, falloff * self.config.separation_strength)
+    }
+
     /// Push away from anything too close, including the leader.
     ///
     /// The leader gets its own radius because it is usually the player, and a
@@ -268,18 +371,7 @@ impl Patrol {
     fn avoid(&self, sense: &Sense) -> Vec2 {
         let mut push = [0.0f32, 0.0];
         for other in &sense.neighbours {
-            let away = sub(sense.position, *other);
-            let distance = length(away);
-            if distance < 1e-3 || distance >= self.config.separation {
-                continue;
-            }
-            push = add(
-                push,
-                scale(
-                    scale(away, 1.0 / distance),
-                    1.0 - distance / self.config.separation,
-                ),
-            );
+            push = add(push, self.dodge(sense, other));
         }
         if let Some(leader) = sense.leader {
             let away = sub(sense.position, leader);
@@ -294,8 +386,15 @@ impl Patrol {
                     scale(away, 1.0 / distance)
                 };
                 let urgency = 1.0 - distance / space;
-                push = add(push, scale(out, 1.0 + urgency * 3.0));
+                push = add(push, scale(out, self.config.max_speed * (0.4 + urgency)));
             }
+        }
+        // Several neighbours at once must not sum into a shove faster than the
+        // creature can run, or avoidance becomes its own way of launching a body
+        // across the map.
+        let force = length(push);
+        if force > self.config.max_speed {
+            push = scale(push, self.config.max_speed / force);
         }
         push
     }
@@ -332,7 +431,7 @@ impl Patrol {
 
     /// Advances one tick and says what the body should do.
     pub fn step(&mut self, sense: &Sense, delta: f32) -> Step {
-        let avoid = scale(self.avoid(sense), self.config.separation_strength);
+        let avoid = self.avoid(sense);
 
         if self.unstick_for > 0.0 {
             self.unstick_for -= delta;
@@ -375,6 +474,19 @@ impl Patrol {
                         .max(self.config.hold_radius * 0.5)
         };
 
+        // No way through at all. Pressing on means leaning on whatever is in the
+        // way until the leader moves, so it waits at the distance it got to
+        // instead, facing them.
+        if sense.route_blocked && !self.holding {
+            self.stuck_for = 0.0;
+            self.mode = Mode::Waiting;
+            return Step {
+                wish: avoid,
+                face: normalize(sub(leader, sense.position)),
+                mode: Mode::Waiting,
+            };
+        }
+
         // Crowding the leader overrides holding station: standing still on top
         // of the player is the one outcome that must not survive.
         let crowding = lead_gap < self.config.personal_space;
@@ -398,7 +510,14 @@ impl Patrol {
             };
         }
 
-        let dir = sense.route.unwrap_or_else(|| normalize(to_slot));
+        // The field is integrated to the leader, not to this creature's slot, so
+        // following it all the way in walks the whole group onto one point --
+        // which is a pile, and a pile of capsules climbs. It is a way across the
+        // map, nothing more: once the slot is in reach, the slot is the plan.
+        let dir = match sense.route {
+            Some(route) if gap > self.config.hold_radius => route,
+            _ => normalize(to_slot),
+        };
         if self.update_stuck(sense, delta, true) {
             self.mode = Mode::Unsticking;
             return Step {

@@ -3,8 +3,9 @@ extends Node3D
 
 ## One player's body in a server-driven session — including our own.
 
-## Snapshots land at the network rate, so the raw delta is a staircase — three rendered
-## frames of nothing, then one jump.
+## The extension interpolates the transform, so the frame delta is no longer a staircase.
+## What is left to smooth is the correction at each snapshot boundary, which is small but
+## lands on one frame.
 const VELOCITY_SMOOTHING := 12.0
 ## Below this the blend space is idling anyway, and jitter in the last decimals of a
 ## resting position would otherwise read as a shuffle.

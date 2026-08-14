@@ -347,6 +347,25 @@ impl QTerrain {
     fn river_width_at(&self) -> f32 {
         self.river_width
     }
+
+    /// The bridge as a line to walk: `ax, az, bx, bz, half_width`, empty if
+    /// there is no crossing.
+    ///
+    /// A flow field reading the height grid sees water under the deck and closes
+    /// the only place the river can be crossed, so it needs telling. The ends
+    /// reach past the abutments onto dry land at either bank, or the route stops
+    /// short of the ramps.
+    #[func]
+    fn bridge_span(&self) -> PackedFloat32Array {
+        let Some(road) = self.road.as_ref() else {
+            return PackedFloat32Array::new();
+        };
+        let dir = road.direction.normalized();
+        let reach = road.half_span + 8.0;
+        let a = road.crossing - dir * reach;
+        let b = road.crossing + dir * reach;
+        PackedFloat32Array::from(&[a.x, a.y, b.x, b.y, self.road_width * 0.5])
+    }
 }
 
 impl QTerrain {

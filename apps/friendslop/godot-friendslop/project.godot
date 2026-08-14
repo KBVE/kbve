@@ -104,7 +104,7 @@ sun_direction={
 }
 view_position={
 "type": "vec3",
-"value": Vector3(0, -1e+06, 0)
+"value": Vector3(0, -1000000, 0)
 }
 wind_direction={
 "type": "vec2",

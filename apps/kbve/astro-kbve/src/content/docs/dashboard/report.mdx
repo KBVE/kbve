@@ -33,7 +33,7 @@ import AstroNxReport from '@/components/dashboard/AstroNxReport.astro';
 					<span class="bento-title__accent">report.</span>
 				</h1>
 				<p class="bento-lede">Node <strong>24.18.0</strong> · Nx <strong>23.1.1</strong> · pnpm <strong>11.15.0</strong> on <strong>linux-x64</strong>.</p>
-				<p class="bento-lede">Last generated <strong>2026-08-13T03:27:59Z</strong>.</p>
+				<p class="bento-lede">Last generated <strong>2026-08-14T03:25:22Z</strong>.</p>
 				<div class="bento-cta">
 					<a class="bento-btn bento-btn--primary" href="#insights">
 						View insights
@@ -90,9 +90,9 @@ import AstroNxReport from '@/components/dashboard/AstroNxReport.astro';
 
 ```
 Already up to date
-Done in 428ms using pnpm v11.15.0
+Done in 442ms using pnpm v11.15.0
 Already up to date
-Done in 433ms using pnpm v11.15.0
+Done in 444ms using pnpm v11.15.0
 
  NX   Report complete - copy this into the issue template
 
@@ -136,13 +136,13 @@ Community plugins:
 ---------------------------------------
 Cache Usage: 0.00 B / 14.43 GB
 
+Both esbuild and oxc options were set. oxc options will be used and esbuild options will be ignored. The following esbuild options were set: `{ keepNames: true }`
+The `nxViteTsPaths` plugin from `@nx/vite/plugins/nx-tsconfig-paths.plugin` is deprecated and will be removed in Nx v24. Replace it with `tsconfigPaths()` from the `vite-tsconfig-paths` package. See https://nx.dev/docs/technologies/build-tools/vite/guides/configure-vite for details.
 The `nxViteTsPaths` plugin from `@nx/vite/plugins/nx-tsconfig-paths.plugin` is deprecated and will be removed in Nx v24. Replace it with `tsconfigPaths()` from the `vite-tsconfig-paths` package. See https://nx.dev/docs/technologies/build-tools/vite/guides/configure-vite for details.
 The `nxCopyAssetsPlugin` plugin from `@nx/vite/plugins/nx-copy-assets.plugin` is deprecated and will be removed in Nx v24. Use Vite's native `publicDir` option or the `vite-plugin-static-copy` package instead. See https://nx.dev/docs/technologies/build-tools/vite/guides/configure-vite for details.
 Both esbuild and oxc options were set. oxc options will be used and esbuild options will be ignored. The following esbuild options were set: `{ keepNames: true }`
 Both esbuild and oxc options were set. oxc options will be used and esbuild options will be ignored. The following esbuild options were set: `{ keepNames: true }`
-The `nxViteTsPaths` plugin from `@nx/vite/plugins/nx-tsconfig-paths.plugin` is deprecated and will be removed in Nx v24. Replace it with `tsconfigPaths()` from the `vite-tsconfig-paths` package. See https://nx.dev/docs/technologies/build-tools/vite/guides/configure-vite for details.
 The `nxCopyAssetsPlugin` plugin from `@nx/vite/plugins/nx-copy-assets.plugin` is deprecated and will be removed in Nx v24. Use Vite's native `publicDir` option or the `vite-plugin-static-copy` package instead. See https://nx.dev/docs/technologies/build-tools/vite/guides/configure-vite for details.
-Both esbuild and oxc options were set. oxc options will be used and esbuild options will be ignored. The following esbuild options were set: `{ keepNames: true }`
 Both esbuild and oxc options were set. oxc options will be used and esbuild options will be ignored. The following esbuild options were set: `{ keepNames: true }`
 
 ```
@@ -150,47 +150,47 @@ Both esbuild and oxc options were set. oxc options will be used and esbuild opti
 ### LOC Statistics
 
 ```
-github.com/AlDanial/cloc v 2.06  T=26.72 s (729.7 files/s, 163740.6 lines/s)
+github.com/AlDanial/cloc v 2.06  T=27.33 s (716.6 files/s, 160622.9 lines/s)
 ----------------------------------------------------------------------------------
 Language                        files          blank        comment           code
 ----------------------------------------------------------------------------------
-JSON                              489            136              0        1144385
-Markdown                         9169          67475             33         782679
-TypeScript                       2380          29667          22282         294726
+JSON                              501            138              0        1144794
+Markdown                         9172          67603             33         783581
+TypeScript                       2380          29675          22283         294756
 Python                           1508          72014          95207         288355
+Rust                             1105          29684          32841         267499
 C                                  99          30420          91440         263961
-Rust                             1083          28966          32829         260407
-YAML                              776          10895           3677         101212
+YAML                              777          10897           3736         101340
 C#                                840          13194           7221          80032
-C# Generated                        6           3889           6242          67446
-C/C++ Header                      551          15673          53434          64311
+C# Generated                        6           3916           6296          67863
+C/C++ Header                      551          15683          53434          64342
 SQL                               280           8917          12526          60566
-Astro                             338           5582           1710          57952
-JavaScript                        202           5622          13721          51740
+Astro                             340           5603           1727          58062
+JavaScript                        203           5630          13721          51770
 C++                               329           5725           1416          34584
 XML                                41            235              3          30326
-GDScript                          304           7511           4890          23012
+GDScript                          334           8319           4726          25646
 Cython                             65           2810           1181          10796
 HLSL                               95           1839           1924           9975
-Protocol Buffers                   60           2032           4029           9454
+Protocol Buffers                   60           2036           4035           9477
 CSS                                31            909            417           8725
+Bourne Shell                       98           1256           1573           7001
 HTML                               68            604            105           6992
-Bourne Shell                       96           1243           1559           6903
 Lua                                31            583            179           5502
-TOML                              169            515            387           4900
+TOML                              171            516            392           4910
 Java                               70            884           1217           4445
-Dockerfile                         57            928           1214           3011
+Dockerfile                         57            928           1214           3020
 GLSL                               24            452           1394           2847
-Godot Scene                        20            360              0           2124
+Godot Scene                        24            407              0           2393
 OpenCL                              9            119            240           2109
 Kotlin                             16            225            308           1612
+Text                               93            158              0           1525
 USS                                 2             96            170           1466
-Text                               90            119              0           1366
 SVG                                88            187            241           1010
 WGSL                                6            196            183            748
 INI                                20             68             51            563
+Godot Resource                     18             56              0            560
 Assembly                            4            107            220            438
-Godot Resource                     16             52              0            436
 Gradle                             13             48             27            311
 UXML                                9             53             11            275
 PowerShell                          3             53             62            261
@@ -199,7 +199,7 @@ Swift                               2             34              7            1
 Elixir Script                       1             31             22            132
 reStructuredText                    2              2              0            107
 Fish Shell                          1             20             34             73
-Godot Shaders                      22              0              0             66
+Godot Shaders                      23              0              0             69
 Nushell                             1             11             28             65
 Unity-Prefab                        1              0              0             61
 C Shell                             1             14             27             35
@@ -209,7 +209,7 @@ Ruby                                1              3              0             
 Properties                          1              0              0              7
 Titanium Style Sheet                1              0              0              1
 ----------------------------------------------------------------------------------
-SUM:                            19499         320587         361899        3693037
+SUM:                            19584         322427         361903        3705515
 ----------------------------------------------------------------------------------
 
 One or more files took longer to process than expected.
@@ -235,9 +235,9 @@ Line count, exceeded timeout:  ./apps/vm/firecracker-ctl/src/main.rs
 
 ```
 Already up to date
-Done in 431ms using pnpm v11.15.0
+Done in 444ms using pnpm v11.15.0
 Already up to date
-Done in 426ms using pnpm v11.15.0
+Done in 442ms using pnpm v11.15.0
 
  NX   Running target coverage for 4 projects:
 
@@ -258,11 +258,11 @@ The `nxCopyAssetsPlugin` plugin from `@nx/vite/plugins/nx-copy-assets.plugin` is
  RUN  v4.0.9 /home/runner/work/kbve/kbve/packages/npm/devops
       Coverage enabled with v8
 
- ✓ src/lib/codegen/__tests__/field-mapper.spec.ts (46 tests) 38ms
- ✓ src/lib/codegen/__tests__/emitter.spec.ts (19 tests) 44ms
- ✓ src/lib/client/github/ci-failure.spec.ts (29 tests) 47ms
- ✓ src/lib/codegen/__tests__/enum-mapper.spec.ts (22 tests) 77ms
- ✓ src/lib/codegen/__tests__/topo-sort.spec.ts (15 tests) 39ms
+ ✓ src/lib/codegen/__tests__/emitter.spec.ts (19 tests) 21ms
+ ✓ src/lib/codegen/__tests__/field-mapper.spec.ts (46 tests) 39ms
+ ✓ src/lib/client/github/ci-failure.spec.ts (29 tests) 94ms
+ ✓ src/lib/codegen/__tests__/enum-mapper.spec.ts (22 tests) 91ms
+ ✓ src/lib/codegen/__tests__/topo-sort.spec.ts (15 tests) 66ms
 stderr | src/lib/client/github/issues.spec.ts > issues.createComment > should throw when API call fails
 Error creating issue comment: Error: API Error
     at /home/runner/work/kbve/kbve/packages/npm/devops/src/lib/client/github/issues.spec.ts:63:23
@@ -282,7 +282,7 @@ No matrix labels present. Added label: 0
 stdout | src/lib/client/github/issues.spec.ts > issues.verifyMatrixLabel > should keep highest label and remove lower ones when multiple matrix labels exist
 Removed lower labels, kept highest label: 5
 
- ✓ src/lib/client/github/issues.spec.ts (18 tests) 73ms
+ ✓ src/lib/client/github/issues.spec.ts (18 tests) 124ms
 stdout | src/lib/client/github/pulls.spec.ts > pulls.createOrUpdatePR > should create a new PR when none exists
 GitHub Event Name: undefined
 Using github.ref: feature-branch
@@ -328,16 +328,9 @@ Error creating or updating pull request: Error: Unable to determine the referenc
     at processTicksAndRejections (node:internal/process/task_queues:104:5)
     at runSuite (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1468:8)
 
- ✓ src/lib/client/github/pulls.spec.ts (10 tests) 53ms
- ✓ src/lib/sanitization.spec.ts (54 tests) 1156ms
-     ✓ should convert markdown to JSON-safe string  815ms
-stderr | src/lib/client/yt.spec.ts > fetchYoutubeTitle > should return null for an invalid YouTube URL
-Invalid YouTube URL
-
-stderr | src/lib/client/yt.spec.ts > fetchYoutubeTitle > should return null if the title is not found
-No valid video found on the page
-
- ✓ src/lib/client/yt.spec.ts (10 tests) 268ms
+ ✓ src/lib/client/github/pulls.spec.ts (10 tests) 76ms
+ ✓ src/lib/sanitization.spec.ts (54 tests) 861ms
+     ✓ should convert markdown to JSON-safe string  536ms
 stderr | src/lib/client/github/docker.spec.ts > docker.runContainer > should throw on invalid port
 Error sanitizing input: Error: Invalid port number. Port must be a number between 1 and 65535.
     at sanitizePort (/home/runner/work/kbve/kbve/packages/npm/devops/src/lib/sanitization.ts:137:9)
@@ -454,21 +447,28 @@ Error removing Docker container: Error: Remove failed
     at runSuite (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1468:8)
     at runSuite (file:///home/runner/work/kbve/kbve/node_modules/.pnpm/@vitest+runner@4.0.9/node_modules/@vitest/runner/dist/index.js:1468:8)
 
- ✓ src/lib/client/github/docker.spec.ts (11 tests) 156ms
- ✓ src/lib/codegen/__tests__/argocd-schema.spec.ts (6 tests) 74ms
- ✓ src/lib/client/github/actions.spec.ts (10 tests) 24ms
- ✓ src/lib/client/github/retry.spec.ts (6 tests) 10ms
- ✓ src/lib/ci/manifest.spec.ts (4 tests) 46ms
- ✓ src/index.spec.ts (7 tests) 12ms
- ✓ src/lib/client/github/types.spec.ts (2 tests) 6ms
- ✓ src/lib/api.spec.ts (5 tests) 469ms
-     ✓ _message should sanitize message correctly  453ms
- ✓ src/lib/client/github/gha.spec.ts (3 tests) 11ms
+ ✓ src/lib/client/github/actions.spec.ts (10 tests) 19ms
+ ✓ src/lib/client/github/docker.spec.ts (11 tests) 148ms
+stderr | src/lib/client/yt.spec.ts > fetchYoutubeTitle > should return null for an invalid YouTube URL
+Invalid YouTube URL
+
+stderr | src/lib/client/yt.spec.ts > fetchYoutubeTitle > should return null if the title is not found
+No valid video found on the page
+
+ ✓ src/lib/client/yt.spec.ts (10 tests) 339ms
+ ✓ src/lib/client/github/retry.spec.ts (6 tests) 9ms
+ ✓ src/lib/codegen/__tests__/argocd-schema.spec.ts (6 tests) 78ms
+ ✓ src/lib/ci/manifest.spec.ts (4 tests) 24ms
+ ✓ src/lib/client/github/gha.spec.ts (3 tests) 6ms
+ ✓ src/lib/client/github/types.spec.ts (2 tests) 18ms
+ ✓ src/lib/api.spec.ts (5 tests) 566ms
+     ✓ _message should sanitize message correctly  546ms
+ ✓ src/index.spec.ts (7 tests) 9ms
 
  Test Files  18 passed (18)
       Tests  277 passed (277)
-   Start at  03:29:12
-   Duration  11.91s (transform 1.61s, setup 0ms, collect 19.30s, tests 2.60s, environment 13ms, prepare 1.25s)
+   Start at  03:26:34
+   Duration  12.14s (transform 1.64s, setup 0ms, collect 18.51s, tests 2.59s, environment 4ms, prepare 1.35s)
 
  % Coverage report from v8
 -------------------|---------|----------|---------|---------|-------------------
@@ -530,19 +530,19 @@ The `nxCopyAssetsPlugin` plugin from `@nx/vite/plugins/nx-copy-assets.plugin` is
  RUN  v4.0.9 /home/runner/work/kbve/kbve/packages/npm/droid
       Coverage enabled with v8
 
- ✓ src/lib/sw-recovery.spec.ts (7 tests) 63ms
- ✓ src/lib/workers/events.spec.ts (13 tests) 59ms
- ✓ src/lib/state/ui.spec.ts (16 tests) 86ms
- ✓ src/lib/types/event-schemas.spec.ts (17 tests) 45ms
- ✓ src/lib/gateway/capabilities.spec.ts (10 tests) 28ms
- ✓ src/lib/types/bento.spec.ts (13 tests) 33ms
- ✓ src/lib/types/event-types.spec.ts (11 tests) 15ms
- ✓ src/lib/state/toasts.spec.ts (9 tests) 53ms
- ✓ src/lib/state/welcome-toast.spec.ts (7 tests) 32ms
- ✓ src/lib/state/bento.spec.ts (8 tests) 25ms
- ✓ src/lib/state/auth.spec.ts (5 tests) 8ms
- ✓ src/lib/workers/ws-worker.spec.ts (5 tests) 17ms
- ✓ src/lib/mod/module/supabase/mod-supabase.spec.ts (4 tests) 23ms
+ ✓ src/lib/workers/events.spec.ts (13 tests) 51ms
+ ✓ src/lib/sw-recovery.spec.ts (7 tests) 52ms
+ ✓ src/lib/state/ui.spec.ts (16 tests) 45ms
+ ✓ src/lib/gateway/capabilities.spec.ts (10 tests) 23ms
+ ✓ src/lib/types/event-schemas.spec.ts (17 tests) 35ms
+ ✓ src/lib/types/bento.spec.ts (13 tests) 79ms
+ ✓ src/lib/state/toasts.spec.ts (9 tests) 60ms
+ ✓ src/lib/state/welcome-toast.spec.ts (7 tests) 56ms
+ ✓ src/lib/types/event-types.spec.ts (11 tests) 17ms
+ ✓ src/lib/state/bento.spec.ts (8 tests) 40ms
+ ✓ src/lib/state/auth.spec.ts (5 tests) 12ms
+ ✓ src/lib/workers/ws-worker.spec.ts (5 tests) 19ms
+ ✓ src/lib/mod/module/supabase/mod-supabase.spec.ts (4 tests) 9ms
 stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.kbve
 [DROID]: droid&lt;T>
 
@@ -565,13 +565,13 @@ stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.
 stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.kbve
 [DROID]: droid&lt;T> => await WorkerRefs + URLs
 
- ✓ src/lib/droid.spec.ts (1 test) 531ms
-     ✓ should initialize and attach to window.kbve  525ms
+ ✓ src/lib/droid.spec.ts (1 test) 474ms
+     ✓ should initialize and attach to window.kbve  465ms
 
  Test Files  14 passed (14)
       Tests  126 passed (126)
-   Start at  03:29:12
-   Duration  17.79s (transform 1.58s, setup 2.21s, collect 4.03s, tests 1.02s, environment 30.54s, prepare 2.37s)
+   Start at  03:26:34
+   Duration  17.87s (transform 1.18s, setup 1.62s, collect 3.23s, tests 972ms, environment 31.59s, prepare 2.37s)
 
  % Coverage report from v8
 -------------------|---------|----------|---------|---------|-------------------
@@ -633,23 +633,25 @@ The `nxCopyAssetsPlugin` plugin from `@nx/vite/plugins/nx-copy-assets.plugin` is
  RUN  v4.0.9 /home/runner/work/kbve/kbve/packages/npm/khashvault
       Coverage enabled with v8
 
- ✓ src/lib/pgp/pgp.spec.ts (4 tests) 464ms
- ✓ src/lib/aes/aes.spec.ts (7 tests) 1222ms
-     ✓ should encrypt and decrypt with a password  584ms
-     ✓ should fail with wrong password  597ms
- ✓ src/lib/kdf/kdf.spec.ts (5 tests) 1240ms
-     ✓ should produce same key with same password and salt  361ms
-     ✓ should produce different keys with different passwords  436ms
- ✓ src/lib/storage/storage.spec.ts (7 tests) 53ms
- ✓ src/lib/storage/indexeddb.spec.ts (7 tests) 79ms
- ✓ src/lib/keys/keys.spec.ts (6 tests) 42ms
- ✓ src/lib/hash/hash.spec.ts (7 tests) 11ms
- ✓ src/lib/worker/worker.spec.ts (5 tests) 8ms
+ ✓ src/lib/pgp/pgp.spec.ts (4 tests) 327ms
+ ✓ src/lib/aes/aes.spec.ts (7 tests) 1078ms
+     ✓ should encrypt and decrypt with a password  621ms
+     ✓ should fail with wrong password  431ms
+ ✓ src/lib/kdf/kdf.spec.ts (5 tests) 2000ms
+     ✓ should derive a CryptoKey from a password  462ms
+     ✓ should produce same key with same password and salt  531ms
+     ✓ should produce different keys with different passwords  666ms
+     ✓ should derive raw bits  330ms
+ ✓ src/lib/storage/storage.spec.ts (7 tests) 47ms
+ ✓ src/lib/keys/keys.spec.ts (6 tests) 45ms
+ ✓ src/lib/storage/indexeddb.spec.ts (7 tests) 81ms
+ ✓ src/lib/hash/hash.spec.ts (7 tests) 14ms
+ ✓ src/lib/worker/worker.spec.ts (5 tests) 9ms
 
  Test Files  8 passed (8)
       Tests  48 passed (48)
-   Start at  03:29:28
-   Duration  5.31s (transform 396ms, setup 620ms, collect 710ms, tests 3.12s, environment 6.13s, prepare 600ms)
+   Start at  03:26:51
+   Duration  5.47s (transform 395ms, setup 539ms, collect 774ms, tests 3.60s, environment 6.07s, prepare 413ms)
 
  % Coverage report from v8
 -------------------|---------|----------|---------|---------|--------------------------------
@@ -686,34 +688,34 @@ The `nxCopyAssetsPlugin` plugin from `@nx/vite/plugins/nx-copy-assets.plugin` is
  RUN  v4.0.9 /home/runner/work/kbve/kbve/packages/npm/laser
       Coverage enabled with v8
 
- ✓ src/lib/net/protocol.spec.ts (13 tests) 43ms
- ✓ src/lib/net/postcard-wire.spec.ts (32 tests) 48ms
- ✓ src/lib/core/events.spec.ts (14 tests) 39ms
- ✓ src/lib/phaser/ambient-dust.spec.ts (7 tests) 20ms
- ✓ src/lib/phaser/player-controller.spec.ts (6 tests) 32ms
- ✓ src/lib/auth/game-auth.spec.ts (12 tests) 26ms
- ✓ src/lib/phaser/use-phaser-event.spec.tsx (7 tests) 149ms
- ✓ src/entrypoints.spec.ts (11 tests) 134ms
- ✓ src/lib/spatial/quadtree.spec.ts (8 tests) 27ms
- ✓ src/lib/mecs/sab.spec.ts (10 tests) 29ms
- ✓ src/lib/net/postcard.spec.ts (7 tests) 23ms
- ✓ src/lib/phaser/PhaserGame.spec.tsx (10 tests) 289ms
- ✓ src/lib/phaser/gpu-sprite-layer.spec.ts (4 tests) 30ms
- ✓ src/lib/phaser/monsters/bird.spec.ts (9 tests) 37ms
- ✓ src/lib/ecs/store.spec.ts (7 tests) 19ms
- ✓ src/lib/core/invariant.spec.ts (5 tests) 9ms
- ✓ src/lib/phaser/arrow-projectile.spec.ts (2 tests) 11ms
- ✓ src/lib/i18n/store.spec.ts (8 tests) 8ms
- ✓ src/lib/webgl/pom/uniforms.spec.ts (7 tests) 6ms
- ✓ src/lib/r3f/use-game-loop.spec.tsx (3 tests) 44ms
- ✓ src/lib/phaser/object-pool.spec.ts (3 tests) 9ms
+ ✓ src/lib/net/postcard-wire.spec.ts (32 tests) 63ms
+ ✓ src/lib/net/protocol.spec.ts (13 tests) 75ms
+ ✓ src/lib/core/events.spec.ts (14 tests) 45ms
+ ✓ src/lib/phaser/ambient-dust.spec.ts (7 tests) 62ms
+ ✓ src/lib/phaser/player-controller.spec.ts (6 tests) 15ms
+ ✓ src/entrypoints.spec.ts (11 tests) 139ms
+ ✓ src/lib/auth/game-auth.spec.ts (12 tests) 32ms
+ ✓ src/lib/phaser/use-phaser-event.spec.tsx (7 tests) 109ms
+ ✓ src/lib/spatial/quadtree.spec.ts (8 tests) 17ms
+ ✓ src/lib/mecs/sab.spec.ts (10 tests) 47ms
+ ✓ src/lib/phaser/PhaserGame.spec.tsx (10 tests) 431ms
+ ✓ src/lib/net/postcard.spec.ts (7 tests) 25ms
+ ✓ src/lib/ecs/store.spec.ts (7 tests) 23ms
+ ✓ src/lib/phaser/gpu-sprite-layer.spec.ts (4 tests) 48ms
+ ✓ src/lib/phaser/monsters/bird.spec.ts (9 tests) 29ms
+ ✓ src/lib/core/invariant.spec.ts (5 tests) 16ms
+ ✓ src/lib/phaser/arrow-projectile.spec.ts (2 tests) 8ms
+ ✓ src/lib/i18n/store.spec.ts (8 tests) 9ms
+ ✓ src/lib/r3f/use-game-loop.spec.tsx (3 tests) 39ms
+ ✓ src/lib/webgl/pom/uniforms.spec.ts (7 tests) 8ms
+ ✓ src/lib/phaser/object-pool.spec.ts (3 tests) 10ms
  ✓ src/lib/combat/combat.test.ts (6 tests) 8ms
  ✓ src/lib/determ/heightfield.spec.ts (3 tests) 8ms
- ✓ src/lib/phaser/use-phaser.spec.tsx (3 tests) 34ms
  ✓ src/lib/promo/registry.spec.ts (5 tests) 6ms
- ✓ src/lib/tile/path.spec.ts (5 tests) 33ms
+ ✓ src/lib/phaser/use-phaser.spec.tsx (3 tests) 45ms
+ ✓ src/lib/tile/path.spec.ts (5 tests) 52ms
  ✓ src/lib/phaser/keyboard-map.spec.ts (2 tests) 9ms
- ✓ src/lib/determ/determ.test.ts (5 tests) 7ms
+ ✓ src/lib/determ/determ.test.ts (5 tests) 8ms
 stderr | src/lib/r3f/Stage.spec.tsx > Stage > should render a Canvas wrapper
 &lt;ambientLight /> is using incorrect casing. Use PascalCase for React components, or lowercase for HTML elements.
 The tag &lt;ambientLight> is unrecognized in this browser. If you meant to render a React component, start its name with an uppercase letter.
@@ -725,13 +727,13 @@ stderr | src/lib/r3f/Stage.spec.tsx > Stage > should pass className to Canvas
 stderr | src/lib/r3f/Stage.spec.tsx > Stage > should render children inside Canvas
 &lt;ambientLight /> is using incorrect casing. Use PascalCase for React components, or lowercase for HTML elements.
 
- ✓ src/lib/r3f/Stage.spec.tsx (3 tests) 47ms
- ✓ src/lib/ecs/helpers.spec.ts (4 tests) 115ms
+ ✓ src/lib/r3f/Stage.spec.tsx (3 tests) 43ms
+ ✓ src/lib/ecs/helpers.spec.ts (4 tests) 93ms
 
  Test Files  30 passed (30)
       Tests  221 passed (221)
-   Start at  03:29:12
-   Duration  26.98s (transform 8.29s, setup 0ms, collect 11.67s, tests 1.30s, environment 45.33s, prepare 2.87s)
+   Start at  03:26:34
+   Duration  27.61s (transform 9.02s, setup 0ms, collect 12.69s, tests 1.52s, environment 44.75s, prepare 2.90s)
 
  % Coverage report from v8
 -------------------|---------|----------|---------|---------|-------------------
@@ -798,10 +800,10 @@ All files          |   76.91 |    58.97 |   75.89 |   78.02 |
  NX   Successfully ran target coverage for 4 projects
 
 
-  Run duration:      29.4s
+  Run duration:      30.0s
   Cache:             0/4 hit (0%)
-  Critical path:     29.4s (1 task)
-  Recoverable time:  52ms (0% of the run)
+  Critical path:     29.9s (1 task)
+  Recoverable time:  50ms (0% of the run)
 
 ```
 

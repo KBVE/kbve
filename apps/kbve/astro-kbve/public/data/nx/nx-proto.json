@@ -1,12 +1,12 @@
 {
-	"generated_at": "2026-08-13T03:28:24.358Z",
+	"generated_at": "2026-08-14T03:25:52.440Z",
 	"summary": {
 		"total_protos": 47,
 		"registered": 0,
 		"orphaned": 46,
 		"utility_only": 1,
-		"total_messages": 832,
-		"total_enums": 171
+		"total_messages": 833,
+		"total_enums": 173
 	},
 	"protos": [
 		{
@@ -1402,6 +1402,7 @@
 				"PartyScaling",
 				"PhaseRule",
 				"SpatialProperties",
+				"CreatureConfig",
 				"InteractionFlags",
 				"SpriteClip",
 				"SpriteAtlas",
@@ -1427,11 +1428,13 @@
 				"GrowthRate",
 				"MoveCategory",
 				"MoveTarget",
+				"CreatureRenderKind",
+				"CreatureSchedule",
 				"StatKind",
 				"EquipSlot"
 			],
-			"message_count": 30,
-			"enum_count": 15,
+			"message_count": 31,
+			"enum_count": 17,
 			"codegen": {
 				"registered": false,
 				"name": null,
@@ -1759,7 +1762,7 @@
 		"packages/data/proto/spell/spelldb.proto",
 		"packages/data/proto/wallet/wallet.proto"
 	],
-	"checked_at": "2026-08-13T03:27:56Z",
+	"checked_at": "2026-08-14T03:25:22Z",
 	"drift_detected": true,
 	"drift_files": ["packages/data/codegen/generated/professiondb-schema.ts"]
 }

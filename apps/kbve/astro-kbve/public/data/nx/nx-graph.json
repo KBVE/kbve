@@ -2391,6 +2391,25 @@
 							"configurations": {},
 							"parallelism": true
 						},
+						"i18n:sync": {
+							"executor": "nx:run-commands",
+							"inputs": [
+								"{workspaceRoot}/packages/data/i18n/locales/**/*.json"
+							],
+							"outputs": ["{projectRoot}/assets/i18n"],
+							"cache": true,
+							"options": {
+								"cwd": "",
+								"commands": [
+									"rm -rf apps/friendslop/godot-friendslop/assets/i18n",
+									"mkdir -p apps/friendslop/godot-friendslop/assets/i18n",
+									"cp -R packages/data/i18n/locales/. apps/friendslop/godot-friendslop/assets/i18n/"
+								],
+								"parallel": false
+							},
+							"configurations": {},
+							"parallelism": true
+						},
 						"bake:turf": {
 							"executor": "nx:run-commands",
 							"options": {
@@ -13158,6 +13177,32 @@
 					"implicitDependencies": []
 				}
 			},
+			"data-i18n": {
+				"name": "data-i18n",
+				"type": "lib",
+				"data": {
+					"root": "packages/data/i18n",
+					"name": "data-i18n",
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"projectType": "library",
+					"sourceRoot": "packages/data/i18n",
+					"tags": ["scope:data", "type:i18n"],
+					"targets": {
+						"sync": {
+							"executor": "nx:run-commands",
+							"options": {
+								"commands": [
+									"nx run godot-friendslop:i18n:sync"
+								],
+								"parallel": false
+							},
+							"configurations": {},
+							"parallelism": true
+						}
+					},
+					"implicitDependencies": []
+				}
+			},
 			"droid": {
 				"name": "droid",
 				"type": "lib",
@@ -15341,6 +15386,35 @@
 							"configurations": {},
 							"parallelism": true
 						},
+						"build-linux": {
+							"executor": "nx:run-commands",
+							"outputs": [
+								"{workspaceRoot}/dist/target/q/release/libq.so"
+							],
+							"options": {
+								"cwd": "packages/rust/q",
+								"commands": [
+									"cargo build --release -p q --features net-godot --target-dir ../../../dist/target/q"
+								],
+								"parallel": false
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"deploy-linux": {
+							"executor": "nx:run-commands",
+							"dependsOn": ["build-linux"],
+							"options": {
+								"cwd": "packages/rust/q",
+								"commands": [
+									"mkdir -p ../../../apps/friendslop/godot-friendslop/addons/q/linux",
+									"cp ../../../dist/target/q/release/libq.so ../../../apps/friendslop/godot-friendslop/addons/q/linux/libq.so"
+								],
+								"parallel": false
+							},
+							"configurations": {},
+							"parallelism": true
+						},
 						"build-ios": {
 							"executor": "nx:run-commands",
 							"options": {
@@ -16997,18 +17071,7 @@
 			],
 			"bevy_statemachine": [],
 			"firecracker-node-web": [],
-			"axum-cryptothrone": [
-				{
-					"source": "axum-cryptothrone",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "axum-cryptothrone",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
+			"axum-cryptothrone": [],
 			"bevy_pathfinder": [],
 			"chisel-ubuntu-axum": [],
 			"axum-discordsh-e2e": [
@@ -17029,18 +17092,7 @@
 				}
 			],
 			"bevy_behavior": [],
-			"bevy_kbve_net": [
-				{
-					"source": "bevy_kbve_net",
-					"target": "bevy_npc",
-					"type": "static"
-				},
-				{
-					"source": "bevy_kbve_net",
-					"target": "bevy_tasker",
-					"type": "static"
-				}
-			],
+			"bevy_kbve_net": [],
 			"discordsh-bot-e2e": [
 				{
 					"source": "discordsh-bot-e2e",
@@ -17064,18 +17116,7 @@
 					"type": "implicit"
 				}
 			],
-			"cryptothrone-server": [
-				{
-					"source": "cryptothrone-server",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "cryptothrone-server",
-					"target": "simgrid",
-					"type": "static"
-				}
-			],
+			"cryptothrone-server": [],
 			"notification-bot": [],
 			"steamcmd-ubuntu": [],
 			"unreal-rentearth": [],
@@ -17098,60 +17139,19 @@
 					"type": "static"
 				}
 			],
-			"bevy_battle": [
-				{
-					"source": "bevy_battle",
-					"target": "bevy_behavior",
-					"type": "static"
-				}
-			],
+			"bevy_battle": [],
 			"bevy_player": [],
 			"bevy_quests": [],
-			"bevy_skills": [
-				{
-					"source": "bevy_skills",
-					"target": "bevy_items",
-					"type": "static"
-				}
-			],
+			"bevy_skills": [],
 			"bevy_spells": [],
 			"bevy_tasker": [],
 			"unreal-cleanroom": [],
 			"agones-palworld-savetool": [],
-			"axum-discordsh": [
-				{
-					"source": "axum-discordsh",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "axum-discordsh",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
-			"axum-rentearth": [
-				{
-					"source": "axum-rentearth",
-					"target": "jedi",
-					"type": "static"
-				}
-			],
-			"bevy_items": [
-				{
-					"source": "bevy_items",
-					"target": "bevy_inventory",
-					"type": "static"
-				}
-			],
+			"axum-discordsh": [],
+			"axum-rentearth": [],
+			"bevy_items": [],
 			"bevy_mapdb": [],
-			"friendslop-server": [
-				{
-					"source": "friendslop-server",
-					"target": "q",
-					"type": "static"
-				}
-			],
+			"friendslop-server": [],
 			"astro-chuckrpg": [
 				{
 					"source": "astro-chuckrpg",
@@ -17202,73 +17202,7 @@
 					"type": "static"
 				}
 			],
-			"discordsh-bot": [
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_battle",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_behavior",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_chat",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_db",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_inventory",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_items",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_mapdb",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_npc",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_pathfinder",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_quests",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_skills",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
+			"discordsh-bot": [],
 			"discordsh-e2e": [
 				{
 					"source": "discordsh-e2e",
@@ -17283,32 +17217,9 @@
 			],
 			"embeddb-derive": [],
 			"unity-rareicon": [],
-			"axum-chuckrpg": [
-				{
-					"source": "axum-chuckrpg",
-					"target": "jedi",
-					"type": "static"
-				}
-			],
-			"axum-herbmail": [
-				{
-					"source": "axum-herbmail",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "axum-herbmail",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
-			"axum-rareicon": [
-				{
-					"source": "axum-rareicon",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
+			"axum-chuckrpg": [],
+			"axum-herbmail": [],
+			"axum-rareicon": [],
 			"bevy_cam": [],
 			"bevy_npc": [],
 			"firecracker-ctl-e2e": [
@@ -17325,23 +17236,7 @@
 					"type": "static"
 				}
 			],
-			"herbmail-server": [
-				{
-					"source": "herbmail-server",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "herbmail-server",
-					"target": "simbody3d",
-					"type": "static"
-				},
-				{
-					"source": "herbmail-server",
-					"target": "simgrid",
-					"type": "static"
-				}
-			],
+			"herbmail-server": [],
 			"kbve-react-native": [
 				{
 					"source": "kbve-react-native",
@@ -17376,28 +17271,10 @@
 					"type": "static"
 				}
 			],
-			"agones-factorio-relay": [
-				{
-					"source": "agones-factorio-relay",
-					"target": "jedi",
-					"type": "static"
-				}
-			],
-			"agones-palworld-relay": [
-				{
-					"source": "agones-palworld-relay",
-					"target": "jedi",
-					"type": "static"
-				}
-			],
+			"agones-factorio-relay": [],
+			"agones-palworld-relay": [],
 			"arc-runner": [],
-			"bevy_db": [
-				{
-					"source": "bevy_db",
-					"target": "bevy_tasker",
-					"type": "static"
-				}
-			],
+			"bevy_db": [],
 			"herbmail-e2e": [
 				{
 					"source": "herbmail-e2e",
@@ -17440,28 +17317,7 @@
 					"type": "implicit"
 				}
 			],
-			"uniti": [
-				{
-					"source": "uniti",
-					"target": "bevy_battle",
-					"type": "static"
-				},
-				{
-					"source": "uniti",
-					"target": "bevy_inventory",
-					"type": "static"
-				},
-				{
-					"source": "uniti",
-					"target": "bevy_pathfinder",
-					"type": "static"
-				},
-				{
-					"source": "uniti",
-					"target": "bevy_skills",
-					"type": "static"
-				}
-			],
+			"uniti": [],
 			"aria2-proxy-e2e": [
 				{
 					"source": "aria2-proxy-e2e",
@@ -17469,33 +17325,7 @@
 					"type": "implicit"
 				}
 			],
-			"arpg-server": [
-				{
-					"source": "arpg-server",
-					"target": "bevy_items",
-					"type": "static"
-				},
-				{
-					"source": "arpg-server",
-					"target": "bevy_mapdb",
-					"type": "static"
-				},
-				{
-					"source": "arpg-server",
-					"target": "bevy_spells",
-					"type": "static"
-				},
-				{
-					"source": "arpg-server",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "arpg-server",
-					"target": "simgrid",
-					"type": "static"
-				}
-			],
+			"arpg-server": [],
 			"axum-kbve-e2e": [
 				{
 					"source": "axum-kbve-e2e",
@@ -17520,13 +17350,7 @@
 					"type": "dynamic"
 				}
 			],
-			"firecracker-ctl": [
-				{
-					"source": "firecracker-ctl",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
+			"firecracker-ctl": [],
 			"iot-edge-worker": [],
 			"kbve_wgpu": [],
 			"khashvault": [
@@ -17608,25 +17432,8 @@
 					"type": "static"
 				}
 			],
-			"axum-memes": [
-				{
-					"source": "axum-memes",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "axum-memes",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
-			"embeddb": [
-				{
-					"source": "embeddb",
-					"target": "embeddb-derive",
-					"type": "static"
-				}
-			],
+			"axum-memes": [],
+			"embeddb": [],
 			"rn-astro": [
 				{
 					"source": "rn-astro",
@@ -17641,13 +17448,7 @@
 					"type": "static"
 				}
 			],
-			"simgrid": [
-				{
-					"source": "simgrid",
-					"target": "bevy_spells",
-					"type": "static"
-				}
-			],
+			"simgrid": [],
 			"agones-factorio": [],
 			"agones-palworld": [],
 			"arpg-web": [
@@ -17699,30 +17500,8 @@
 					"type": "static"
 				}
 			],
-			"factorio-ctl": [
-				{
-					"source": "factorio-ctl",
-					"target": "jedi",
-					"type": "static"
-				}
-			],
-			"irc-gateway": [
-				{
-					"source": "irc-gateway",
-					"target": "bevy_chat",
-					"type": "static"
-				},
-				{
-					"source": "irc-gateway",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "irc-gateway",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
+			"factorio-ctl": [],
+			"irc-gateway": [],
 			"memes-e2e": [
 				{
 					"source": "memes-e2e",
@@ -17737,55 +17516,12 @@
 			],
 			"python-kbve": [],
 			"aria2-proxy": [],
-			"axum-kbve": [
-				{
-					"source": "axum-kbve",
-					"target": "bevy_inventory",
-					"type": "static"
-				},
-				{
-					"source": "axum-kbve",
-					"target": "bevy_items",
-					"type": "static"
-				},
-				{
-					"source": "axum-kbve",
-					"target": "bevy_kbve_net",
-					"type": "static"
-				},
-				{
-					"source": "axum-kbve",
-					"target": "bevy_skills",
-					"type": "static"
-				},
-				{
-					"source": "axum-kbve",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "axum-kbve",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
+			"axum-kbve": [],
 			"data-proto": [],
 			"devops": [],
-			"erust": [
-				{
-					"source": "erust",
-					"target": "holy",
-					"type": "static"
-				}
-			],
+			"erust": [],
 			"isometric": [],
-			"kbve-gate": [
-				{
-					"source": "kbve-gate",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
+			"kbve-gate": [],
 			"kubectl-e2e": [
 				{
 					"source": "kubectl-e2e",
@@ -17828,6 +17564,7 @@
 					"type": "static"
 				}
 			],
+			"data-i18n": [],
 			"droid": [],
 			"edge-e2e": [
 				{
@@ -17838,18 +17575,7 @@
 			],
 			"holy": [],
 			"jedi": [],
-			"kbve": [
-				{
-					"source": "kbve",
-					"target": "holy",
-					"type": "static"
-				},
-				{
-					"source": "kbve",
-					"target": "jedi",
-					"type": "static"
-				}
-			],
+			"kbve": [],
 			"kbve-tauri": [],
 			"kilobase": [],
 			"laser": [],
@@ -17896,11 +17622,6 @@
 			"jobboard": [
 				{
 					"source": "jobboard",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "jobboard",
 					"target": "rn",
 					"type": "static"
 				},
@@ -17921,32 +17642,10 @@
 				}
 			],
 			"mc-lobby": [],
-			"met": [
-				{
-					"source": "met",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "met",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
+			"met": [],
 			"pydesk": [],
 			"memes": [],
-			"rows": [
-				{
-					"source": "rows",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "rows",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
+			"rows": [],
 			"irc": [],
 			"mc": [],
 			"@kbve/source": [

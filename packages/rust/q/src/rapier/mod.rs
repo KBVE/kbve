@@ -14,6 +14,10 @@ pub mod sim3d;
 #[cfg(feature = "rapier3d-client")]
 pub mod bridge3d;
 
+/// Render-time interpolation over the snapshot stream.
+#[cfg(feature = "rapier3d-sim")]
+pub mod net_interp;
+
 /// Godot adapter for a networked session, rendering server snapshots.
 #[cfg(feature = "net-godot")]
 pub mod net_bridge3d;

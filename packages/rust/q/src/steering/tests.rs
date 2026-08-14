@@ -1,15 +1,26 @@
 use super::*;
 
+/// A neighbour the size the real mechs measure, 0.6 to 1.1 across the capsule.
+fn near(position: Vec2, velocity: Vec2) -> Neighbour {
+    Neighbour {
+        position,
+        velocity,
+        radius: 1.0,
+    }
+}
+
 fn sense_at(position: Vec2) -> Sense {
     Sense {
         position,
         facing: [0.0, 1.0],
+        velocity: [0.0, 0.0],
         travelled: 1.0,
         neighbours: Vec::new(),
         leader: None,
         leader_facing: [0.0, 1.0],
         leader_speed: 0.0,
         route: None,
+        route_blocked: false,
     }
 }
 
@@ -125,12 +136,14 @@ fn never_settles_inside_the_leader() {
     let mut sense = Sense {
         position: [0.2, 0.1],
         facing: [0.0, 1.0],
+        velocity: [0.0, 0.0],
         travelled: 0.0,
         neighbours: Vec::new(),
         leader: Some([0.0, 0.0]),
         leader_facing: [0.0, 1.0],
         leader_speed: 0.0,
         route: None,
+        route_blocked: false,
     };
     let mut closest = f32::MAX;
     for i in 0..600 {
@@ -154,12 +167,14 @@ fn pushes_out_of_an_exact_overlap() {
     let sense = Sense {
         position: [0.0, 0.0],
         facing: [0.0, 1.0],
+        velocity: [0.0, 0.0],
         travelled: 0.0,
         neighbours: Vec::new(),
         leader: Some([0.0, 0.0]),
         leader_facing: [0.0, 1.0],
         leader_speed: 0.0,
         route: None,
+        route_blocked: false,
     };
     let step = patrol.step(&sense, 1.0 / 60.0);
     assert!(
@@ -178,12 +193,14 @@ fn holds_station_behind_a_standing_leader() {
     let mut sense = Sense {
         position: [0.0, -7.0],
         facing: [0.0, 1.0],
+        velocity: [0.0, 0.0],
         travelled: 0.0,
         neighbours: Vec::new(),
         leader: Some([0.0, 0.0]),
         leader_facing: [0.0, 1.0],
         leader_speed: 0.0,
         route: None,
+        route_blocked: false,
     };
     let mut modes = Vec::new();
     for _ in 0..120 {
@@ -221,11 +238,13 @@ fn separation_pushes_apart_not_together() {
         position: [0.0, 0.0],
         facing: [0.0, 1.0],
         travelled: 0.0,
-        neighbours: vec![[2.0, 0.0]],
+        velocity: [0.0, 0.0],
+        neighbours: vec![near([2.0, 0.0], [0.0, 0.0])],
         leader: None,
         leader_facing: [0.0, 1.0],
         leader_speed: 0.0,
         route: None,
+        route_blocked: false,
     };
     let push = patrol.avoid(&sense);
     assert!(push[0] < 0.0, "pushed toward the neighbour: {push:?}");
@@ -284,4 +303,350 @@ fn without_a_route_it_still_steers_at_the_target() {
     let step = patrol.step(&sense, 1.0 / 60.0);
     let dot = step.face[0] * to[0] + step.face[1] * to[1];
     assert!(dot > 0.9, "did not aim at its waypoint: {dot}");
+}
+
+/// Drives two creatures at once, each seeing the other, and reports the closest
+/// they ever came. This is the shape of the reported bug: they arrive at the
+/// same spot at the same time and the engine resolves it by shoving.
+fn pair(a_from: Vec2, a_to: Vec2, b_from: Vec2, b_to: Vec2, ticks: u32) -> (f32, Vec2, Vec2) {
+    let delta = 1.0 / 60.0;
+    let mut config = Config::default();
+    config.radius = 1.0;
+    let build = |home: Vec2, target: Vec2, seed: u32| {
+        let mut p = Patrol::new(home, seed, config);
+        p.target = target;
+        p
+    };
+    let mut a = build(a_from, a_to, 101);
+    let mut b = build(b_from, b_to, 202);
+    let mut sa = Sense {
+        position: a_from,
+        facing: normalize(sub(a_to, a_from)),
+        velocity: [0.0, 0.0],
+        travelled: 1.0,
+        neighbours: Vec::new(),
+        leader: None,
+        leader_facing: [0.0, 1.0],
+        leader_speed: 0.0,
+        route: None,
+        route_blocked: false,
+    };
+    let mut sb = Sense {
+        position: b_from,
+        facing: normalize(sub(b_to, b_from)),
+        ..sa.clone()
+    };
+    sb.position = b_from;
+    let mut closest = f32::MAX;
+    for _ in 0..ticks {
+        sa.neighbours = vec![near(sb.position, sb.velocity)];
+        sb.neighbours = vec![near(sa.position, sa.velocity)];
+        let step_a = a.step(&sa, delta);
+        let step_b = b.step(&sb, delta);
+        for (sense, step) in [(&mut sa, step_a), (&mut sb, step_b)] {
+            sense.velocity = step.wish;
+            sense.position = add(sense.position, scale(step.wish, delta));
+            sense.travelled = length(scale(step.wish, delta));
+            if length(step.face) > 1e-3 {
+                sense.facing = step.face;
+            }
+        }
+        closest = closest.min(length(sub(sa.position, sb.position)));
+    }
+    (closest, sa.position, sb.position)
+}
+
+/// The reported bug: two creatures walking into each other.
+#[test]
+fn a_head_on_pair_passes_rather_than_collides() {
+    let (closest, a, b) = pair([-20.0, 0.0], [20.0, 0.0], [20.0, 0.0], [-20.0, 0.0], 900);
+    assert!(closest > 2.0, "walked into each other: closest {closest}");
+    assert!(a[0] > 0.0 && b[0] < 0.0, "never got past: {a:?} {b:?}");
+}
+
+/// Head-on is also where a purely positional push deadlocks: both are shoved
+/// straight backwards, so neither ever steps aside.
+#[test]
+fn a_head_on_pair_does_not_deadlock() {
+    let (_, a, b) = pair([-14.0, 0.0], [14.0, 0.0], [14.0, 0.0], [-14.0, 0.0], 600);
+    assert!(length(sub(a, b)) > 8.0, "stalled nose to nose: {a:?} {b:?}");
+}
+
+#[test]
+fn crossing_paths_do_not_meet_in_the_middle() {
+    let (closest, ..) = pair([-20.0, 0.0], [20.0, 0.0], [0.0, -20.0], [0.0, 20.0], 900);
+    assert!(closest > 2.0, "met at the crossing: closest {closest}");
+}
+
+/// Avoidance must not become propulsion: a body wedged in a crowd is pushed
+/// out, not fired out.
+#[test]
+fn a_crowd_cannot_shove_faster_than_a_run() {
+    let config = Config::default();
+    let patrol = Patrol::new([0.0, 0.0], 37, config);
+    let mut sense = sense_at([0.0, 0.0]);
+    sense.neighbours = (0..8)
+        .map(|i| {
+            let angle = i as f32 * std::f32::consts::TAU / 8.0;
+            near([angle.cos() * 0.6, angle.sin() * 0.6], [0.0, 0.0])
+        })
+        .collect();
+    sense.leader = Some([0.1, 0.0]);
+    let push = patrol.avoid(&sense);
+    assert!(
+        length(push) <= config.max_speed + 1e-3,
+        "shoved at {} against a top speed of {}",
+        length(push),
+        config.max_speed
+    );
+}
+
+/// Contact avoidance has to beat a sprint, which is exactly what the linear
+/// falloff it replaced did not do.
+#[test]
+fn touching_pushes_harder_than_the_creature_can_run() {
+    let config = Config::default();
+    let patrol = Patrol::new([0.0, 0.0], 41, config);
+    let mut sense = sense_at([0.0, 0.0]);
+    sense.neighbours = vec![near([1.4, 0.0], [0.0, 0.0])];
+    let push = patrol.avoid(&sense);
+    assert!(push[0] < 0.0, "pushed the wrong way: {push:?}");
+    assert!(
+        length(push) > config.speed,
+        "a touch pushed {} against a walk of {}",
+        length(push),
+        config.speed
+    );
+}
+
+/// Somebody walking away is not a collision, and treating them as one makes a
+/// column of followers refuse to close up.
+#[test]
+fn a_neighbour_walking_away_is_not_dodged() {
+    let patrol = Patrol::new([0.0, 0.0], 43, Config::default());
+    let mut sense = sense_at([0.0, 0.0]);
+    sense.velocity = [2.6, 0.0];
+    sense.neighbours = vec![near([7.0, 0.0], [2.6, 0.0])];
+    let push = patrol.avoid(&sense);
+    let gentle = Patrol::new([0.0, 0.0], 43, Config::default()).crowd([-1.0, 0.0], 7.0);
+    assert!(
+        (length(push) - length(gentle)).abs() < 1e-4,
+        "swerved round somebody it was never going to meet: {push:?}"
+    );
+}
+
+#[test]
+fn avoidance_is_deterministic() {
+    let run = || pair([-20.0, 0.0], [20.0, 0.0], [18.0, 3.0], [-20.0, 1.0], 700);
+    let (ca, aa, ba) = run();
+    let (cb, ab, bb) = run();
+    assert_eq!(ca.to_bits(), cb.to_bits());
+    assert_eq!(aa[0].to_bits(), ab[0].to_bits());
+    assert_eq!(ba[1].to_bits(), bb[1].to_bits());
+}
+
+/// Four creatures following a leader that walks out and then turns round and
+/// comes back through them.
+///
+/// The turn is the point. Formation slots are behind the leader, so reversing
+/// puts every slot on the far side of the group and all four have to cross each
+/// other to reach them. Walking in a straight line never makes them meet, which
+/// is why a straight-line test passes with no avoidance at all.
+fn column(ticks: u32) -> (f32, u32) {
+    let delta = 1.0 / 60.0;
+    let count = 4;
+    let mut patrols: Vec<Patrol> = (0..count)
+        .map(|i| {
+            let mut p = Patrol::new([0.0, 0.0], i as u32, Config::default());
+            p.slot = i;
+            p.count = count;
+            p
+        })
+        .collect();
+    // Started stacked, so avoidance is what has to spread them out.
+    let mut senses: Vec<Sense> = (0..count)
+        .map(|i| Sense {
+            position: [i as f32 * 0.5, -2.0],
+            facing: [0.0, 1.0],
+            velocity: [0.0, 0.0],
+            travelled: 0.0,
+            neighbours: Vec::new(),
+            leader: Some([0.0, 0.0]),
+            leader_facing: [0.0, 1.0],
+            leader_speed: 3.0,
+            route: None,
+            route_blocked: false,
+        })
+        .collect();
+    let mut leader = [0.0f32, 0.0];
+    let mut closest = f32::MAX;
+    let mut contacts = 0u32;
+    let turn = ticks / 2;
+    for tick in 0..ticks {
+        let heading = if tick < turn { 1.0 } else { -1.0 };
+        leader[1] += 3.0 * delta * heading;
+        let snapshot: Vec<(Vec2, Vec2)> = senses.iter().map(|s| (s.position, s.velocity)).collect();
+        for i in 0..count as usize {
+            senses[i].leader = Some(leader);
+            senses[i].leader_facing = [0.0, heading];
+            senses[i].neighbours = snapshot
+                .iter()
+                .enumerate()
+                .filter(|(j, _)| *j != i)
+                .map(|(_, (p, v))| near(*p, *v))
+                .collect();
+        }
+        for i in 0..count as usize {
+            let step = patrols[i].step(&senses[i], delta);
+            senses[i].velocity = step.wish;
+            senses[i].position = add(senses[i].position, scale(step.wish, delta));
+            senses[i].travelled = length(scale(step.wish, delta));
+            if length(step.face) > 1e-3 {
+                senses[i].facing = step.face;
+            }
+        }
+        // The first second is the pile they started in unpicking itself.
+        if tick < 60 {
+            continue;
+        }
+        for i in 0..count as usize {
+            for j in i + 1..count as usize {
+                let gap = length(sub(senses[i].position, senses[j].position));
+                closest = closest.min(gap);
+                if gap < 2.0 {
+                    contacts += 1;
+                }
+            }
+        }
+    }
+    (closest, contacts)
+}
+
+/// The reported bug at the scale it actually happens: a group of followers.
+#[test]
+fn a_following_group_does_not_walk_through_itself() {
+    let (closest, contacts) = column(1200);
+    assert!(
+        contacts == 0,
+        "creatures overlapped on {contacts} ticks, closest {closest}"
+    );
+}
+
+/// Spread out is not the same as settled. A group that never stops shuffling
+/// reads as broken even when nothing overlaps.
+#[test]
+fn a_following_group_settles_instead_of_shuffling() {
+    let (early, _) = column(400);
+    let (late, _) = column(1600);
+    assert!(
+        late >= early - 0.5,
+        "kept jostling: closest was {early} early and {late} late"
+    );
+}
+
+/// The reported bug: with a flow field in play the whole group drove at the
+/// leader, because the field is integrated to the leader and not to each
+/// creature's own slot. Four creatures on one point is a pile, and a pile of
+/// capsules climbs -- which is what walking in the air looks like.
+#[test]
+fn a_route_does_not_collapse_the_formation_onto_the_leader() {
+    let delta = 1.0 / 60.0;
+    let count = 4;
+    let leader = [0.0f32, 0.0];
+    let mut patrols: Vec<Patrol> = (0..count)
+        .map(|i| {
+            let mut p = Patrol::new(leader, i as u32, Config::default());
+            p.slot = i;
+            p.count = count;
+            p
+        })
+        .collect();
+    let mut senses: Vec<Sense> = (0..count)
+        .map(|i| Sense {
+            position: [i as f32 * 0.5, -30.0],
+            facing: [0.0, 1.0],
+            velocity: [0.0, 0.0],
+            travelled: 0.0,
+            neighbours: Vec::new(),
+            leader: Some(leader),
+            leader_facing: [0.0, 1.0],
+            leader_speed: 1.0,
+            // A field pointing flat at the leader the whole way in, which is
+            // exactly what the real one hands back.
+            route: Some([0.0, 1.0]),
+            route_blocked: false,
+        })
+        .collect();
+    for _ in 0..1800 {
+        let snapshot: Vec<(Vec2, Vec2)> = senses.iter().map(|s| (s.position, s.velocity)).collect();
+        for i in 0..count as usize {
+            senses[i].route = Some(normalize(sub(leader, senses[i].position)));
+            senses[i].neighbours = snapshot
+                .iter()
+                .enumerate()
+                .filter(|(j, _)| *j != i)
+                .map(|(_, (p, v))| near(*p, *v))
+                .collect();
+            let step = patrols[i].step(&senses[i], delta);
+            senses[i].velocity = step.wish;
+            senses[i].position = add(senses[i].position, scale(step.wish, delta));
+            senses[i].travelled = length(scale(step.wish, delta));
+        }
+    }
+    // Separated is not the test -- avoidance alone achieves that, by shoving.
+    // Each one has to end up at its own slot, which is what a formation is.
+    for i in 0..count as usize {
+        let slot = patrols[i].formation_slot(leader, [0.0, 1.0]);
+        let off = length(sub(senses[i].position, slot));
+        assert!(
+            off < 5.0,
+            "creature {i} ended {off} from its slot at {slot:?}, at {:?}",
+            senses[i].position
+        );
+    }
+}
+
+/// The other half of the bridge report: told there is no way through, a
+/// creature waits at the distance it reached instead of leaning on the bank.
+#[test]
+fn an_unreachable_leader_is_waited_for_not_walked_at() {
+    let mut patrol = Patrol::new([0.0, 0.0], 53, Config::default());
+    patrol.slot = 0;
+    patrol.count = 1;
+    let mut sense = sense_at([0.0, -20.0]);
+    sense.leader = Some([0.0, 20.0]);
+    sense.leader_speed = 2.0;
+    sense.route = None;
+    sense.route_blocked = true;
+    let start = sense.position;
+    let mut modes = Vec::new();
+    for _ in 0..300 {
+        let step = patrol.step(&sense, 1.0 / 60.0);
+        sense.velocity = step.wish;
+        sense.position = add(sense.position, scale(step.wish, 1.0 / 60.0));
+        sense.travelled = length(scale(step.wish, 1.0 / 60.0));
+        modes.push(step.mode);
+    }
+    assert!(
+        modes.contains(&Mode::Waiting),
+        "kept pressing on: {modes:?}"
+    );
+    assert!(
+        length(sub(sense.position, start)) < 1.0,
+        "walked at an unreachable leader: {:?}",
+        sense.position
+    );
+}
+
+/// A blocked route must not freeze a creature that is being crowded, or a group
+/// waiting at a riverbank piles into itself.
+#[test]
+fn waiting_still_makes_room_for_the_others() {
+    let mut patrol = Patrol::new([0.0, 0.0], 59, Config::default());
+    let mut sense = sense_at([0.0, 0.0]);
+    sense.leader = Some([0.0, 40.0]);
+    sense.route_blocked = true;
+    sense.neighbours = vec![near([1.2, 0.0], [0.0, 0.0])];
+    let step = patrol.step(&sense, 1.0 / 60.0).wish;
+    assert!(step[0] < 0.0, "waited on top of a neighbour: {step:?}");
 }
