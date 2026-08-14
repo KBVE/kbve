@@ -8,6 +8,7 @@ const Runner := preload("res://src/dialogue/dialogue_runner.gd")
 
 const Npcdb := preload("res://src/dialogue/npcdb_dialogue.gd")
 const TalkPanel := preload("res://src/ui/dialogue_panel.gd")
+const KeyHint := preload("res://src/ui/input_hint.gd")
 
 const MARLOW := "marlow"
 
@@ -452,6 +453,95 @@ func test_only_one_conversation_is_open_at_a_time() -> void:
 	assert_object(TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())).is_null()
 	first.close()
 	_unstage(world, was)
+
+
+## A line goes up a letter at a time, and a player who reads faster than it types can have
+## the rest of it at once.
+func test_a_line_is_typed_out_and_can_be_hurried() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+
+	assert_bool(panel.is_typing()) \
+			.override_failure_message("the whole line went up at once").is_true()
+	panel._process(0.05)
+	var part: int = panel._line_label.visible_characters
+	assert_int(part).is_greater(0)
+	assert_int(part) \
+			.override_failure_message("a fiftieth of a second wrote the whole line") \
+			.is_less(panel._line_label.text.length())
+
+	panel.skip_typing()
+	assert_bool(panel.is_typing()).is_false()
+	assert_int(panel._line_label.visible_characters) \
+			.override_failure_message("hurrying it up left some of the line hidden") \
+			.is_equal(-1)
+
+	panel.close()
+	_unstage(world, was)
+
+
+## Replies under a sentence still being spoken invite an answer to a question that has not
+## been asked yet.
+func test_replies_wait_for_the_line_to_finish() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var state := State.new()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), state)
+
+	## Marlow's first line runs on into the menu, which is the node that has replies.
+	panel.skip_typing()
+	panel.runner.advance()
+	assert_int(panel._choices.get_child_count()).is_greater(0)
+	assert_bool(panel._choices.visible) \
+			.override_failure_message("the replies were up before the question was") \
+			.is_false()
+
+	panel.skip_typing()
+	assert_bool(panel._choices.visible).is_true()
+
+	panel.close()
+	_unstage(world, was)
+
+
+## Typing ends by handing the label back to itself, so a line that is done is never a
+## line with a character count stuck on it.
+func test_a_finished_line_shows_all_of_itself() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+
+	for i in 400:
+		if not panel.is_typing():
+			break
+		panel._process(0.05)
+	assert_bool(panel.is_typing()) \
+			.override_failure_message("the line never finished typing").is_false()
+	assert_str(panel._hint.text) \
+			.override_failure_message("nothing told the player how to go on") \
+			.contains("E")
+
+	panel.close()
+	_unstage(world, was)
+
+
+## The prompt says the key the player actually has bound, so rebinding moves the prompt
+## with it.
+func test_the_prompt_names_the_bound_key() -> void:
+	assert_str(KeyHint.label(&"interact")) \
+			.override_failure_message("interact is bound to E, and the hint should say so") \
+			.is_equal("E")
+	assert_str(KeyHint.label(&"jump")).is_equal("Space")
+	assert_str(KeyHint.label(&"nothing_is_bound_to_this", "?")).is_equal("?")
+
+
+func test_the_talk_prompt_reads_as_a_key_and_a_name() -> void:
+	var line := I18n.t("prompt.talk", {"key": KeyHint.label(&"interact", "E"), "name": "Marlow"})
+	assert_str(line).contains("E")
+	assert_str(line).contains("Marlow")
+	assert_str(line) \
+			.override_failure_message("a placeholder was left in the prompt") \
+			.not_contains("{{")
 
 
 ## The panel hangs off whatever the tree calls the current scene, which only a direct

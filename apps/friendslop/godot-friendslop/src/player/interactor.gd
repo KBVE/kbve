@@ -6,6 +6,7 @@ extends Node3D
 ## be given the same reach later.
 
 const PanelScript := preload("res://src/ui/dialogue_panel.gd")
+const Hint := preload("res://src/ui/input_hint.gd")
 
 ## Flat, because a bank a metre below the deck is still arm's reach.
 @export var reach := 3.6
@@ -58,7 +59,10 @@ func _process(_delta: float) -> void:
 	_target = _nearest()
 	_prompt.visible = _target != null
 	if _target:
-		_prompt.text = I18n.t("prompt.talk", {"name": _target.display_name()})
+		_prompt.text = I18n.t("prompt.talk", {
+			"key": Hint.label(&"interact", "E"),
+			"name": _target.display_name(),
+		})
 
 
 ## Nearest of whatever is in reach and roughly ahead. Distance is measured flat so a
