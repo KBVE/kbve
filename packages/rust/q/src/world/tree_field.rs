@@ -706,9 +706,14 @@ fn frame(dir: Vector3) -> (Vector3, Vector3) {
     (t, b)
 }
 
+/// How far a tuft reaches along its twig, and how tightly it hugs it across.
+const TUFT_ALONG: f32 = 1.45;
+const TUFT_ACROSS: f32 = 0.75;
+
 fn leaf_cluster(
     leaves: &mut MeshBuilder,
     pos: Vector3,
+    axis: Vector3,
     n_cards: u32,
     cluster_r: f32,
     card_size: f32,
@@ -717,13 +722,17 @@ fn leaf_cluster(
 ) {
     let golden = 2.399963;
     let spin = randf(state) * std::f32::consts::TAU;
+    let (ax_t, ax_b) = frame(axis);
     for i in 0..n_cards {
         let f = (i as f32 + 0.5) / n_cards as f32;
         let cosphi = (1.0 - 2.0 * f) * 0.6;
         let sinphi = (1.0 - cosphi * cosphi).max(0.0).sqrt();
         let theta = spin + golden * i as f32;
-        let dir = Vector3::new(theta.cos() * sinphi, cosphi, theta.sin() * sinphi);
-        let c = pos + dir * cluster_r * (0.8 + randf(state) * 0.4);
+        let offset = axis * (cosphi * TUFT_ALONG)
+            + ax_t * (theta.cos() * sinphi * TUFT_ACROSS)
+            + ax_b * (theta.sin() * sinphi * TUFT_ACROSS);
+        let dir = offset.normalized();
+        let c = pos + offset * cluster_r * (0.8 + randf(state) * 0.4);
         let (t0, b0) = frame(dir);
         let roll = randf(state) * std::f32::consts::TAU;
         let t = t0 * roll.cos() + b0 * roll.sin();
@@ -989,38 +998,43 @@ fn limb(
             leaf_cluster(
                 leaves,
                 tip,
-                (16.0 * crown) as u32,
+                segd[segs - 1],
+                (10.0 * crown) as u32,
                 0.095 * crown,
-                0.035 * crown,
+                0.044 * crown,
                 (sway + 0.3).min(0.9),
                 state,
             );
         }
     } else {
+        let twig = (tip - start).normalized();
         leaf_cluster(
             leaves,
             tip,
-            (24.0 * crown) as u32,
+            twig,
+            (16.0 * crown) as u32,
             0.11 * crown,
-            0.036 * crown,
+            0.045 * crown,
             0.9,
             state,
         );
         leaf_cluster(
             leaves,
             start + (tip - start) * 0.78,
-            (14.0 * crown) as u32,
+            twig,
+            (9.0 * crown) as u32,
             0.085 * crown,
-            0.033 * crown,
+            0.041 * crown,
             (sway + 0.25).min(0.9),
             state,
         );
         leaf_cluster(
             leaves,
             start + (tip - start) * 0.55,
-            (10.0 * crown) as u32,
+            twig,
+            (6.0 * crown) as u32,
             0.07 * crown,
-            0.031 * crown,
+            0.039 * crown,
             (sway + 0.2).min(0.9),
             state,
         );
