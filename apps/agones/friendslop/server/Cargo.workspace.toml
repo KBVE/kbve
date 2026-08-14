@@ -3,6 +3,7 @@ resolver = "2"
 members = [
     "apps/agones/friendslop/server",
     "packages/rust/q",
+    "packages/rust/jedi",
 ]
 
 [workspace.package]

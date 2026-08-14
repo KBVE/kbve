@@ -1,6 +1,6 @@
-[gd_resource type="ShaderMaterial" load_steps=4 format=3]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://dpi5b8eho1kcd"]
 
-[ext_resource type="Shader" path="res://assets/environment/props/flora/flora.gdshader" id="1_shader"]
+[ext_resource type="Shader" uid="uid://dc7ayydcj7v3" path="res://assets/environment/props/flora/flora.gdshader" id="1_shader"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_wind"]
 frequency = 0.0043
@@ -8,15 +8,21 @@ fractal_type = 2
 fractal_gain = 0.45
 
 [sub_resource type="NoiseTexture2D" id="NoiseTexture2D_wind"]
-seamless = true
 noise = SubResource("FastNoiseLite_wind")
+seamless = true
 
 [resource]
 render_priority = 0
 shader = ExtResource("1_shader")
+shader_parameter/fade_origin = Vector3(0, 0, 0)
 shader_parameter/fade_end = 70.0
-shader_parameter/object_radius = 1.2
 shader_parameter/object_position = Vector3(0, 0, 0)
+shader_parameter/object_radius = 1.2
 shader_parameter/wind_noise = SubResource("NoiseTexture2D_wind")
 shader_parameter/wind_strength = 0.15
 shader_parameter/sway_strength = 0.14
+shader_parameter/petal_a = Color(0.96, 0.93, 0.88, 1)
+shader_parameter/petal_b = Color(0.92, 0.5, 0.6, 1)
+shader_parameter/petal_c = Color(0.68, 0.58, 0.92, 1)
+shader_parameter/center_color = Color(0.95, 0.75, 0.2, 1)
+shader_parameter/stem_color = Color(0.32, 0.55, 0.2, 1)

@@ -8,9 +8,8 @@ const CelShading := preload("res://src/characters/cel_shading.gd")
 @export var body: PackedScene
 @export var terrain_path: NodePath
 @export var snap_to_terrain := true
-## The mech pack already exports facing -Z, unlike the humanoid kit, so this is 0 here
-## and 180 there.
-@export var facing_offset_deg := 0.0
+## The mech pack exports facing +Z, same as the humanoid kit; Godot's forward is -Z.
+@export var facing_offset_deg := 180.0
 @export var tint := Color(1, 1, 1)
 ## Shown on a billboard over the creature.
 @export var display_name := ""

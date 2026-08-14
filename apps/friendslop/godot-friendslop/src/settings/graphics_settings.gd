@@ -25,6 +25,21 @@ const PRESET_NAMES := [
 	"settings.preset_name.custom",
 ]
 
+enum Upscale { BILINEAR, FSR2, METALFX_SPATIAL, METALFX_TEMPORAL }
+
+const UPSCALE_MODES := [
+	Viewport.SCALING_3D_MODE_BILINEAR,
+	Viewport.SCALING_3D_MODE_FSR2,
+	Viewport.SCALING_3D_MODE_METALFX_SPATIAL,
+	Viewport.SCALING_3D_MODE_METALFX_TEMPORAL,
+]
+const UPSCALE_NAMES := [
+	"settings.upscale_name.bilinear",
+	"settings.upscale_name.fsr2",
+	"settings.upscale_name.metalfx_spatial",
+	"settings.upscale_name.metalfx_temporal",
+]
+
 ## pom_strength, pom_layers_max, pom_shadow_strength per detail step.
 const DETAIL_POM := [
 	{"strength": 0.0, "layers": 24.0, "shadow": 0.0},
@@ -114,6 +129,7 @@ var detail := Detail.HIGH
 var shadows := true
 var grass_blades := 150.0
 var postfx := true
+var upscale := Upscale.BILINEAR
 
 var _ground: ShaderMaterial
 var _riverbed: ShaderMaterial
@@ -125,6 +141,29 @@ var _post: CanvasLayer
 ## The tier a fresh install starts on.
 static func default_tier() -> int:
 	return Tier.LOW if OS.has_feature("mobile") else Tier.HIGH
+
+
+static func metal_driver() -> bool:
+	if OS.has_feature("ios"):
+		return true
+	if not OS.has_feature("macos"):
+		return false
+	return str(ProjectSettings.get_setting("rendering/rendering_device/driver.macos", "")) == "metal"
+
+
+static func metalfx_temporal_available() -> bool:
+	if not metal_driver():
+		return false
+	return OS.has_feature("ios") or RenderingServer.get_video_adapter_name().begins_with("Apple")
+
+
+static func available_upscalers() -> Array:
+	var out: Array = [Upscale.BILINEAR, Upscale.FSR2]
+	if metal_driver():
+		out.append(Upscale.METALFX_SPATIAL)
+		if metalfx_temporal_available():
+			out.append(Upscale.METALFX_TEMPORAL)
+	return out
 
 
 ## Read by main.gd during _enter_tree, before this node exists, so it has to work off
@@ -204,6 +243,7 @@ func apply_preset(index: int) -> void:
 func apply() -> void:
 	var vp := get_viewport()
 	vp.scaling_3d_scale = clampf(render_scale, 0.5, 1.0)
+	vp.scaling_3d_mode = UPSCALE_MODES[_upscale_index()]
 	vp.msaa_3d = TIERS[clampi(preset_index(), 0, TIERS.size() - 1)].msaa
 
 	var d: Dictionary = DETAIL_POM[clampi(detail, 0, DETAIL_POM.size() - 1)]
@@ -237,6 +277,16 @@ func apply() -> void:
 	changed.emit()
 
 
+func _upscale_index() -> int:
+	var env := OS.get_environment("Q_UPSCALE")
+	if env != "":
+		var wanted := UPSCALE_NAMES.find("settings.upscale_name.%s" % env)
+		if wanted >= 0 and available_upscalers().has(wanted):
+			return wanted
+		push_warning("[gfx] Q_UPSCALE=%s is not available here" % env)
+	return upscale if available_upscalers().has(upscale) else Upscale.BILINEAR
+
+
 func load_settings() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(CONFIG_PATH) != OK:
@@ -246,6 +296,7 @@ func load_settings() -> void:
 	shadows = cfg.get_value("graphics", "shadows", shadows)
 	grass_blades = cfg.get_value("graphics", "grass_blades", grass_blades)
 	postfx = cfg.get_value("graphics", "postfx", postfx)
+	upscale = cfg.get_value("graphics", "upscale", upscale)
 
 
 func save_settings() -> void:
@@ -256,4 +307,5 @@ func save_settings() -> void:
 	cfg.set_value("graphics", "shadows", shadows)
 	cfg.set_value("graphics", "grass_blades", grass_blades)
 	cfg.set_value("graphics", "postfx", postfx)
+	cfg.set_value("graphics", "upscale", upscale)
 	cfg.save(CONFIG_PATH)

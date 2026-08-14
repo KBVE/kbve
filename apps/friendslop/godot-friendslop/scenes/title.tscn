@@ -1,20 +1,20 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene format=3 uid="uid://co177iif2k6oq"]
 
-[ext_resource type="Script" path="res://src/title_screen.gd" id="1_title"]
+[ext_resource type="Script" uid="uid://cs4tooia67g83" path="res://src/title_screen.gd" id="1_title"]
 [ext_resource type="Material" path="res://assets/biomes/grassland/grass/ground.tres" id="2_ground"]
 [ext_resource type="Material" path="res://assets/biomes/grassland/grass/grass.tres" id="3_grassmat"]
 [ext_resource type="Material" path="res://assets/environment/water/water.tres" id="4_water"]
 [ext_resource type="Material" path="res://assets/environment/water/riverbed.tres" id="5_riverbed"]
-[ext_resource type="Shader" path="res://assets/environment/skyboxes/sky.gdshader" id="6_sky"]
-[ext_resource type="Script" path="res://src/world/day_night.gd" id="7_daynight"]
-[ext_resource type="Script" path="res://src/world/wind.gd" id="8_wind"]
-[ext_resource type="Script" path="res://src/world/title_camera.gd" id="9_orbit"]
-[ext_resource type="Script" path="res://src/ui/title_menu.gd" id="10_menu"]
-[ext_resource type="Script" path="res://src/settings/graphics_settings.gd" id="11_gfx"]
-[ext_resource type="Script" path="res://src/settings/gameplay_settings.gd" id="12_play"]
+[ext_resource type="Shader" uid="uid://bblp78la58qdd" path="res://assets/environment/skyboxes/sky.gdshader" id="6_sky"]
+[ext_resource type="Script" uid="uid://2vmu6i0swu8u" path="res://src/world/day_night.gd" id="7_daynight"]
+[ext_resource type="Script" uid="uid://b30ty67iqxbs0" path="res://src/world/wind.gd" id="8_wind"]
+[ext_resource type="Script" uid="uid://tblger8uyl80" path="res://src/world/title_camera.gd" id="9_orbit"]
+[ext_resource type="Script" uid="uid://es2p4hlek5ni" path="res://src/ui/title_menu.gd" id="10_menu"]
+[ext_resource type="Script" uid="uid://bw48i06kyo0e3" path="res://src/settings/graphics_settings.gd" id="11_gfx"]
+[ext_resource type="Script" uid="uid://bhbvqc8p7bfh1" path="res://src/settings/gameplay_settings.gd" id="12_play"]
 [ext_resource type="Material" path="res://assets/environment/props/bridge/bridge.tres" id="13_bridge"]
 [ext_resource type="Material" path="res://assets/environment/props/bridge/abutment.tres" id="14_abut"]
-[ext_resource type="PackedScene" path="res://assets/environment/props/fauna/lizardfish/lizardfish.glb" id="15_fishmodel"]
+[ext_resource type="PackedScene" uid="uid://chcpqxr2nv1wc" path="res://assets/environment/props/fauna/lizardfish/lizardfish.glb" id="15_fishmodel"]
 [ext_resource type="Material" path="res://assets/environment/props/fauna/lizardfish/fish.tres" id="16_fishmat"]
 [ext_resource type="Material" path="res://assets/environment/props/fauna/lizardfish/fish_shadow.tres" id="17_fishshadowmat"]
 
@@ -25,8 +25,51 @@ subdivide_depth = 511
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_sky"]
 shader = ExtResource("6_sky")
+shader_parameter/day_top_color = Color(0.1, 0.6, 1, 1)
+shader_parameter/day_bottom_color = Color(0.4, 0.8, 1, 1)
+shader_parameter/sunset_top_color = Color(0.7, 0.75, 1, 1)
+shader_parameter/sunset_bottom_color = Color(1, 0.5, 0.7, 1)
+shader_parameter/night_top_color = Color(0.03, 0.05, 0.14, 1)
+shader_parameter/night_bottom_color = Color(0.08, 0.12, 0.3, 1)
+shader_parameter/horizon_color = Color(0, 0.7, 0.8, 1)
+shader_parameter/horizon_blur = 0.05
+shader_parameter/sun_color = Color(10, 8, 1, 1)
+shader_parameter/sun_sunset_color = Color(10, 0, 0, 1)
+shader_parameter/sun_size = 0.2
+shader_parameter/sun_blur = 10.0
+shader_parameter/moon_color = Color(1, 0.95, 0.7, 1)
+shader_parameter/moon_size = 0.06
+shader_parameter/moon_blur = 0.1
+shader_parameter/clouds_edge_color = Color(0.8, 0.8, 0.98, 1)
+shader_parameter/clouds_top_color = Color(1, 1, 1, 1)
+shader_parameter/clouds_middle_color = Color(0.92, 0.92, 0.98, 1)
+shader_parameter/clouds_bottom_color = Color(0.83, 0.83, 0.94, 1)
+shader_parameter/clouds_speed = 2.0
+shader_parameter/clouds_scale = 1.0
+shader_parameter/clouds_cutoff = 0.3
 shader_parameter/clouds_fuzziness = 0.3
+shader_parameter/clouds_weight = 0.0
 shader_parameter/clouds_blur = 0.2
+shader_parameter/clouds_moonlit_color = Color(0.46, 0.56, 0.82, 1)
+shader_parameter/clouds_night_shadow_color = Color(0.16, 0.17, 0.26, 1)
+shader_parameter/clouds_moon_glow = 0.9
+shader_parameter/stars_speed = 1.0
+shader_parameter/star_brightness = 2.6
+shader_parameter/galaxy_normal = Vector3(0.42, 0.28, 0.86)
+shader_parameter/galaxy_width = 13.0
+shader_parameter/galaxy_boost = 1.4
+shader_parameter/nebula_strength = 0.8
+shader_parameter/dust_strength = 1.3
+shader_parameter/neb_col_a = Color(0.2, 0.62, 0.82, 1)
+shader_parameter/neb_col_b = Color(0.99, 0.76, 0.42, 1)
+shader_parameter/neb_col_c = Color(0.78, 0.24, 0.64, 1)
+shader_parameter/neb_col_d = Color(0.24, 0.17, 0.48, 1)
+shader_parameter/neb_core_color = Color(1, 0.34, 0.44, 1)
+shader_parameter/neb_core_strength = 0.9
+shader_parameter/neb_haze_color = Color(0.34, 0.52, 0.95, 1)
+shader_parameter/neb_haze_strength = 0.45
+shader_parameter/dust_contrast = 0.75
+shader_parameter/overwritten_time = 0.0
 
 [sub_resource type="Sky" id="Sky_title"]
 sky_material = SubResource("ShaderMaterial_sky")
@@ -38,23 +81,23 @@ ambient_light_source = 2
 ambient_light_color = Color(0.7, 0.66, 0.6, 1)
 fog_enabled = true
 fog_light_color = Color(0.851974, 0.909539, 1, 1)
-fog_density = 0.008
 fog_sun_scatter = 0.15
+fog_density = 0.008
 fog_aerial_perspective = 0.93
 fog_sky_affect = 0.0
 adjustment_enabled = true
 adjustment_contrast = 1.15
 adjustment_saturation = 1.2
 
-[node name="Title" type="Node3D"]
+[node name="Title" type="Node3D" unique_id=275483512]
 script = ExtResource("1_title")
 
-[node name="Ground" type="MeshInstance3D" parent="."]
+[node name="Ground" type="MeshInstance3D" parent="." unique_id=302696102]
 material_override = ExtResource("2_ground")
-mesh = SubResource("PlaneMesh_ground")
 extra_cull_margin = 16.0
+mesh = SubResource("PlaneMesh_ground")
 
-[node name="Terrain" type="QTerrain" parent="."]
+[node name="Terrain" type="QTerrain" parent="." unique_id=1548925365]
 player_path = NodePath("../CameraRig")
 grass_material = ExtResource("3_grassmat")
 ground_material = ExtResource("2_ground")
@@ -63,11 +106,11 @@ riverbed_material = ExtResource("5_riverbed")
 bridge_material = ExtResource("13_bridge")
 abutment_material = ExtResource("14_abut")
 
-[node name="GrassField" type="QGrassField" parent="."]
+[node name="GrassField" type="QGrassField" parent="." unique_id=1930114439]
 player_path = NodePath("../CameraRig")
 grass_material = ExtResource("3_grassmat")
 
-[node name="FishField" type="QFishField" parent="."]
+[node name="FishField" type="QFishField" parent="." unique_id=1942042549]
 terrain_path = NodePath("../Terrain")
 player_path = NodePath("../CameraRig")
 fish_model = ExtResource("15_fishmodel")
@@ -77,39 +120,39 @@ count = 560
 pods = 52
 school_chance = 0.45
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=91535818]
 environment = SubResource("Environment_title")
 
-[node name="DayNight" type="Node3D" parent="."]
+[node name="DayNight" type="Node3D" parent="." unique_id=1397398083]
 script = ExtResource("7_daynight")
 environment_node = NodePath("../WorldEnvironment")
 
-[node name="Sun" type="DirectionalLight3D" parent="DayNight"]
+[node name="Sun" type="DirectionalLight3D" parent="DayNight" unique_id=256971565]
 shadow_enabled = true
 shadow_blur = 0.3
 
-[node name="Moon" type="DirectionalLight3D" parent="DayNight"]
+[node name="Moon" type="DirectionalLight3D" parent="DayNight" unique_id=915910819]
 light_energy = 0.0
 shadow_blur = 0.5
 
-[node name="Wind" type="Node" parent="."]
+[node name="Wind" type="Node" parent="." unique_id=1693113400]
 script = ExtResource("8_wind")
 grass_material = ExtResource("3_grassmat")
 ground_material = ExtResource("2_ground")
 environment_node = NodePath("../WorldEnvironment")
 
-[node name="CameraRig" type="Node3D" parent="."]
+[node name="CameraRig" type="Node3D" parent="." unique_id=852270634]
 script = ExtResource("9_orbit")
 
-[node name="Camera" type="Camera3D" parent="CameraRig"]
+[node name="Camera" type="Camera3D" parent="CameraRig" unique_id=829666236]
 current = true
 fov = 62.0
 
-[node name="TitleMenu" type="CanvasLayer" parent="."]
+[node name="TitleMenu" type="CanvasLayer" parent="." unique_id=804601636]
 script = ExtResource("10_menu")
 
-[node name="GraphicsSettings" type="Node" parent="."]
+[node name="GraphicsSettings" type="Node" parent="." unique_id=2016152540]
 script = ExtResource("11_gfx")
 
-[node name="GameplaySettings" type="Node" parent="."]
+[node name="GameplaySettings" type="Node" parent="." unique_id=106351663]
 script = ExtResource("12_play")
