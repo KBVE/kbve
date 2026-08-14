@@ -819,6 +819,11 @@ async fn hls_outcome_response(
             Json(serde_json::json!({"state": "hls_failed", "error": reason})),
         )
             .into_response(),
+        hls::StartOutcome::LiveNotReady(reason) => (
+            StatusCode::TOO_EARLY,
+            Json(serde_json::json!({"state": "live_not_ready", "error": reason})),
+        )
+            .into_response(),
     }
 }
 
