@@ -8,7 +8,7 @@ use std::time::{Duration, Instant};
 use tokio::sync::watch;
 
 use super::dual::DualClient;
-use super::session::{ClientSession, ClientStatus, PeerInfo};
+use super::session::{ClientSession, ClientStatus, PeerInfo, WorldInfo};
 use super::ws::WsClient;
 use crate::rapier::sim3d::{BodyId, SimSnapshot};
 
@@ -25,6 +25,10 @@ pub struct NetClientState {
     /// Name the host assigned.
     pub name: Option<String>,
     pub roster: Vec<PeerInfo>,
+    /// Terrain and day length the host published on join.
+    pub world: Option<WorldInfo>,
+    /// Host clock, hours 0..24.
+    pub hour: f32,
 }
 
 impl Default for NetClientState {
@@ -38,6 +42,8 @@ impl Default for NetClientState {
             udp_ready: false,
             name: None,
             roster: Vec::new(),
+            world: None,
+            hour: 0.0,
         }
     }
 }
@@ -55,6 +61,8 @@ pub enum Credential {
 pub struct Intent {
     pub wish_dir: [f32; 2],
     pub jump: bool,
+    /// Facing, radians.
+    pub yaw: f32,
 }
 
 pub struct NetClientHandle {
@@ -185,7 +193,7 @@ fn run(
     while !stop.load(Ordering::Relaxed) {
         transport.pump();
         let intent = *intent_rx.borrow();
-        session.set_input(intent.wish_dir, intent.jump);
+        session.set_input(intent.wish_dir, intent.jump, intent.yaw);
         session.tick();
 
         let dropped = !transport.is_connected();
@@ -201,6 +209,8 @@ fn run(
             udp_ready: transport.udp_ready(),
             name: session.name().map(str::to_owned),
             roster: session.roster().to_vec(),
+            world: session.world(),
+            hour: session.hour(),
         }));
 
         if dropped {
@@ -348,6 +358,7 @@ mod tests {
         client.set_intent(Intent {
             wish_dir: [1.0, 0.0],
             jump: false,
+            yaw: 0.0,
         });
 
         let moved = wait_for(

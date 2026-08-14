@@ -10,8 +10,10 @@ const TITLE_SCENE := "res://scenes/title.tscn"
 @onready var _terrain: Node3D = $Terrain
 @onready var _rig: Node3D = $CameraRig
 @onready var _hud: OnlineHud = $OnlineHud
+@onready var _day_night: Node3D = $DayNight
 
 var _local_avatar: NetAvatar
+var _last_synced_hour := -1.0
 
 
 func _enter_tree() -> void:
@@ -48,8 +50,43 @@ static func server_url() -> String:
 func _on_joined(seed_value: int, assigned_name: String) -> void:
 	if _terrain and int(_terrain.terrain_seed) != seed_value:
 		_terrain.terrain_seed = seed_value
+	_adopt_world()
 	_hud.set_joined(assigned_name)
 	_refresh_nameplates()
+
+
+## The host's terrain and clock win over whatever the scene was authored with. These
+## used to be agreed by convention between two codebases, and disagreeing produced no
+## error — just players standing slightly inside the ground, under their own sun.
+func _adopt_world() -> void:
+	var extent := _client.terrain_extent()
+	var resolution := _client.terrain_resolution()
+	if _terrain and extent > 0.0 and resolution > 1:
+		if not is_equal_approx(float(_terrain.extent), extent):
+			_terrain.extent = extent
+		if int(_terrain.resolution) != resolution:
+			_terrain.resolution = resolution
+
+	# Through the setter, not the export: _hours_per_second is derived once in _ready,
+	# so assigning the field here would leave the sky running at the authored rate and
+	# visibly jump on every sync from the host.
+	var day_length := _client.day_length_minutes()
+	if _day_night and day_length > 0.0:
+		_day_night.set_day_length(day_length)
+
+
+## The host owns the clock but only resends it every couple of seconds. Writing that
+## value every frame would freeze the sky between syncs and then jump it, so DayNight
+## keeps advancing its own hour at frame rate and is corrected only when a new one
+## actually arrives.
+func _process(_delta: float) -> void:
+	if _day_night == null or not _client.is_joined():
+		return
+	var synced := _client.world_hour()
+	if is_equal_approx(synced, _last_synced_hour):
+		return
+	_last_synced_hour = synced
+	_day_night.hour = synced
 
 
 func _on_rejected(reason: String) -> void:

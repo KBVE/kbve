@@ -16,7 +16,6 @@ pub enum WsError {
     Connect(String),
 }
 
-
 pub struct WsHost {
     next_peer: AtomicU32,
     peers: Mutex<BTreeMap<PeerId, UnboundedSender<Vec<u8>>>>,
@@ -134,7 +133,6 @@ pub fn router(host: Arc<WsHost>) -> axum::Router {
         .route("/ws", any(upgrade))
         .with_state(host)
 }
-
 
 pub struct WsClient {
     outbound: UnboundedSender<Vec<u8>>,
@@ -287,7 +285,7 @@ mod tests {
         let body = client.local_body().expect("welcomed");
         let start = host.world_mut().snapshot().body(body).unwrap().iso.pos;
 
-        client.set_input([1.0, 0.0], false);
+        client.set_input([1.0, 0.0], false, 0.0);
         run(&mut host, &mut client, 200).await;
 
         let end = host.world_mut().snapshot().body(body).unwrap().iso.pos;

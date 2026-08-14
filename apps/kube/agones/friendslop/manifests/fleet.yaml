@@ -70,10 +70,9 @@ spec:
                                 value: '1337'
                               - name: FS_TICK_HZ
                                 value: '60'
-                              # Both must match the client's QTerrain exactly. They
-                              # are not sent in the protocol, so a mismatch shows up
-                              # as players sinking into or hovering over the ground
-                              # rather than as an error.
+                              # Sent to clients in Welcome as of protocol 5, so these
+                              # are now authoritative rather than a convention both
+                              # sides had to remember.
                               - name: FS_TERRAIN_EXTENT
                                 value: '256'
                               - name: FS_TERRAIN_RESOLUTION

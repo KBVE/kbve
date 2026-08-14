@@ -3,7 +3,10 @@
 use serde::{Deserialize, Serialize};
 
 /// Bump on any breaking wire change.
-pub const PROTOCOL_VERSION: u32 = 4;
+///
+/// 5: `PlayerInput` carries yaw; `Welcome` carries the world clock and terrain
+///    parameters; adds `WorldTime`.
+pub const PROTOCOL_VERSION: u32 = 5;
 
 /// Maximum players per match (parallel-race default per #11294).
 pub const MAX_PLAYERS: usize = 4;
@@ -45,7 +48,6 @@ pub enum EnemyKind {
     Shielded = 5,
     Regen = 6,
 }
-
 
 /// First message client sends after WS upgrade.
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -98,7 +100,6 @@ pub struct ClientFrame {
     pub client_tick: u32,
     pub inputs: Vec<Input>,
 }
-
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct PlayerView {
@@ -208,7 +209,6 @@ pub enum ServerEvent {
         reason: String,
     },
 }
-
 
 #[cfg(feature = "proto-shared")]
 pub fn encode<T: Serialize>(value: &T) -> Result<Vec<u8>, postcard::Error> {

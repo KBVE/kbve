@@ -20,6 +20,37 @@ pub struct PlayerInput {
     /// Horizontal wish direction in world space, `[x, z]`.
     pub wish_dir: [f32; 2],
     pub jump: bool,
+    /// Facing, radians. The host has no other way to know which way anyone is looking,
+    /// which is what any server-authoritative interaction needs first.
+    pub yaw: f32,
+}
+
+impl PlayerInput {
+    /// Every field here arrived from a client, so none of it can be trusted.
+    ///
+    /// A non-finite `wish_dir` is the dangerous one: `NaN > 1.0` is false, so it slips
+    /// past a magnitude check, multiplies into the character's translation, and lands
+    /// in the rigid body's pose. Rapier has no reason to reject it, and from then on
+    /// that body — and anything the solver pairs it with — is NaN. One packet.
+    fn sanitized(mut self) -> Self {
+        if !self.yaw.is_finite() {
+            self.yaw = 0.0;
+        } else {
+            // Wrapped rather than clamped: yaw is an angle, and a client that
+            // accumulates without wrapping is not misbehaving, just naive.
+            self.yaw = self.yaw.rem_euclid(std::f32::consts::TAU);
+        }
+        let [x, z] = self.wish_dir;
+        if !x.is_finite() || !z.is_finite() {
+            self.wish_dir = [0.0, 0.0];
+            return self;
+        }
+        let len = (x * x + z * z).sqrt();
+        if len > 1.0 {
+            self.wish_dir = [x / len, z / len];
+        }
+        self
+    }
 }
 
 /// One entry of the player list.
@@ -45,6 +76,15 @@ pub enum SessionMsg {
         seed: u64,
         peer: PeerId,
         name: String,
+        /// Everything below describes the world the host is simulating. It used to be
+        /// agreed by convention on both sides, which failed silently: a terrain extent
+        /// or resolution that disagreed showed up as players sinking into or hovering
+        /// over the ground, never as an error.
+        terrain_extent: f32,
+        terrain_resolution: u32,
+        /// Hours, 0..24, at the moment of joining.
+        time_of_day: f32,
+        day_length_minutes: f32,
     },
     Reject {
         reason: String,
@@ -52,6 +92,12 @@ pub enum SessionMsg {
     /// Whole player list, reliably, whenever it changes.
     Roster {
         players: Vec<PeerInfo>,
+    },
+    /// The host's clock, resent periodically. Clients run their own between these and
+    /// correct on arrival; without it two people who joined minutes apart stand in the
+    /// same world under different suns.
+    WorldTime {
+        hour: f32,
     },
     Input(PlayerInput),
     Snapshot(SimSnapshot),
@@ -75,12 +121,50 @@ pub struct SessionConfig {
     pub move_speed: f32,
     pub gravity: f32,
     pub jump_speed: f32,
+    /// Hard ceiling on concurrent players. Snapshots carry every body and go to
+    /// everyone, so bandwidth grows with the square of this — it is a resource bound,
+    /// not a game rule.
+    pub max_players: usize,
+    /// Players are placed within this radius of the origin.
+    pub spawn_radius: f32,
+    /// Fall past this and a body is considered lost rather than falling, and is put
+    /// back. Without it there is no way out of the void but reconnecting.
+    pub void_y: f32,
+    /// Terrain contract, echoed to clients in `Welcome` so it stops being a convention
+    /// two codebases have to remember.
+    pub terrain_extent: f32,
+    pub terrain_resolution: u32,
+    /// World clock. The host owns it so everyone shares one sky.
+    pub start_hour: f32,
+    pub day_length_minutes: f32,
+    /// How often the clock is rebroadcast.
+    pub time_sync_seconds: f64,
+    /// Surface height of the water. Below it, gravity is buoyant and descent is capped.
+    pub water_level: f32,
+    /// Downward pull under water, as a fraction of `gravity`. Negative would push a
+    /// body up; zero leaves it neutrally buoyant.
+    pub water_gravity_scale: f32,
+    /// Fastest a body may sink or rise under water.
+    pub swim_speed: f32,
 }
 
 impl Default for SessionConfig {
     fn default() -> Self {
         Self {
             snapshot_hz: 20.0,
+            max_players: 16,
+            spawn_radius: 12.0,
+            void_y: -100.0,
+            // Match QTerrain's exported defaults; the client is told these on join.
+            terrain_extent: 256.0,
+            terrain_resolution: 513,
+            start_hour: 9.0,
+            day_length_minutes: 45.0,
+            time_sync_seconds: 2.0,
+            // HeightParams::default().water_level.
+            water_level: -1.4,
+            water_gravity_scale: 0.12,
+            swim_speed: 2.0,
             move_speed: 4.0,
             gravity: -9.81,
             jump_speed: 4.5,
@@ -91,6 +175,10 @@ impl Default for SessionConfig {
 /// Longest token the host will look at.
 const MAX_TOKEN_LEN: usize = 8 * 1024;
 
+/// Rejection reason for a session at capacity. A fixed string so a client can tell
+/// "come back later" apart from "you are not welcome".
+pub const FULL: &str = "server is full";
+
 /// Players occupy a reserved id band so world props can never collide with a player
 /// body id, whatever order things spawn in.
 const PLAYER_BODY_BASE: u32 = 1_000_000;
@@ -99,9 +187,16 @@ pub fn player_body(peer: PeerId) -> BodyId {
     BodyId(PLAYER_BODY_BASE + peer.0)
 }
 
+/// Samples ground height at a world position. The host has no terrain of its own —
+/// with streaming on it never even sees a `SetTerrain` — so whoever owns the generator
+/// supplies this.
+pub type GroundSampler = Arc<dyn Fn(f32, f32) -> f32 + Send + Sync>;
+
 #[derive(Default)]
 struct Player {
     last_sequence: u32,
+    /// Position in the spawn ring. Reused when a player leaves, unlike `PeerId`.
+    slot: u32,
     input: PlayerInput,
     /// Integrated separately from the character controller, which resolves motion but
     /// never applies gravity.
@@ -119,6 +214,9 @@ pub struct HostSession<T: Transport> {
     seed: u64,
     snapshot_accum: f64,
     authority: Option<Arc<dyn TokenAuthority>>,
+    ground: Option<GroundSampler>,
+    hour: f32,
+    time_accum: f64,
 }
 
 impl<T: Transport> HostSession<T> {
@@ -143,6 +241,9 @@ impl<T: Transport> HostSession<T> {
             seed,
             snapshot_accum: 0.0,
             authority: None,
+            ground: None,
+            hour: config.start_hour,
+            time_accum: 0.0,
         }
     }
 
@@ -150,6 +251,39 @@ impl<T: Transport> HostSession<T> {
     pub fn with_authority(mut self, authority: Arc<dyn TokenAuthority>) -> Self {
         self.authority = Some(authority);
         self
+    }
+
+    /// Installs the ground sampler used to place spawns. Without one, spawns fall back
+    /// to a fixed height and a player can land inside a hill.
+    pub fn with_ground(mut self, ground: GroundSampler) -> Self {
+        self.ground = Some(ground);
+        self
+    }
+
+    /// Lowest unused ring slot. Peer ids only ever count up, so using them directly
+    /// walks the spawn point away from the origin forever.
+    fn free_slot(&self) -> u32 {
+        let taken: std::collections::HashSet<u32> = self.players.values().map(|p| p.slot).collect();
+        (0..).find(|s| !taken.contains(s)).unwrap_or(0)
+    }
+
+    /// A point on a golden-angle spiral inside `spawn_radius`, lifted to stand on the
+    /// ground rather than at a fixed altitude — terrain runs to roughly 7.5 and the old
+    /// fixed 5.0 buried players on any hill.
+    fn spawn_point(&self, slot: u32) -> Iso {
+        const GOLDEN_ANGLE: f32 = 2.399_963_2;
+        let n = slot as f32;
+        let r = self.config.spawn_radius * (n / self.config.max_players.max(1) as f32).sqrt();
+        let angle = n * GOLDEN_ANGLE;
+        let (x, z) = (r * angle.cos(), r * angle.sin());
+        let y = match self.ground.as_ref() {
+            Some(sample) => {
+                let h = sample(x, z);
+                if h.is_finite() { h + 1.5 } else { 5.0 }
+            }
+            None => 5.0,
+        };
+        Iso::at(x, y, z)
     }
 
     pub fn world_mut(&mut self) -> &mut SimWorld {
@@ -212,20 +346,29 @@ impl<T: Transport> HostSession<T> {
     }
 
     fn spawn_player(&mut self, peer: PeerId, name: String) {
+        let slot = self.free_slot();
+        let iso = self.spawn_point(slot);
         self.players.insert(
             peer,
             Player {
                 name,
+                slot,
                 ..Default::default()
             },
         );
         self.world.apply(SimCommand::SpawnCharacter {
             id: player_body(peer),
             desc: CharacterDesc {
-                iso: Iso::at(peer.0 as f32 * 2.0, 5.0, 0.0),
+                iso,
                 ..Default::default()
             },
         });
+    }
+
+    /// True once the session is full. Checked before a name is even looked at, so a
+    /// full server costs nothing to turn away.
+    fn is_full(&self, peer: PeerId) -> bool {
+        !self.players.contains_key(&peer) && self.players.len() >= self.config.max_players
     }
 
     pub fn remove_player(&mut self, peer: PeerId) {
@@ -245,9 +388,27 @@ impl<T: Transport> HostSession<T> {
                 seed: self.seed,
                 peer,
                 name: assigned,
+                terrain_extent: self.config.terrain_extent,
+                terrain_resolution: self.config.terrain_resolution,
+                time_of_day: self.hour,
+                day_length_minutes: self.config.day_length_minutes,
             },
         );
         self.broadcast_roster();
+    }
+
+    fn broadcast_world_time(&self) {
+        if self.transport.peers().is_empty() {
+            return;
+        }
+        if let Ok(bytes) = proto::encode(&SessionMsg::WorldTime { hour: self.hour }) {
+            let _ = self.transport.broadcast(Delivery::Unreliable, &bytes);
+        }
+    }
+
+    /// Host clock, hours 0..24.
+    pub fn hour(&self) -> f32 {
+        self.hour
     }
 
     fn broadcast_roster(&self) {
@@ -270,6 +431,15 @@ impl<T: Transport> HostSession<T> {
                     self.reply(from, &SessionMsg::Reject { reason });
                     return;
                 }
+                if self.is_full(from) {
+                    self.reply(
+                        from,
+                        &SessionMsg::Reject {
+                            reason: FULL.to_owned(),
+                        },
+                    );
+                    return;
+                }
                 let assigned = self.admit_guest(from);
                 self.welcome(from, assigned);
             }
@@ -277,6 +447,15 @@ impl<T: Transport> HostSession<T> {
                 if protocol != PROTOCOL_VERSION {
                     let reason = format!("protocol {protocol} != {PROTOCOL_VERSION}");
                     self.reply(from, &SessionMsg::Reject { reason });
+                    return;
+                }
+                if self.is_full(from) {
+                    self.reply(
+                        from,
+                        &SessionMsg::Reject {
+                            reason: FULL.to_owned(),
+                        },
+                    );
                     return;
                 }
                 let Some(authority) = self.authority.clone() else {
@@ -315,12 +494,13 @@ impl<T: Transport> HostSession<T> {
                 };
                 if input.sequence >= player.last_sequence {
                     player.last_sequence = input.sequence;
-                    player.input = input;
+                    player.input = input.sanitized();
                 }
             }
             SessionMsg::Welcome { .. }
             | SessionMsg::Reject { .. }
             | SessionMsg::Roster { .. }
+            | SessionMsg::WorldTime { .. }
             | SessionMsg::Snapshot(_) => {}
         }
     }
@@ -341,25 +521,65 @@ impl<T: Transport> HostSession<T> {
 
         let dt = self.sim.timestep() as f32;
         let snapshot = self.world.snapshot();
+
+        // Anyone who has fallen out of the world goes back to their spawn. A body below
+        // the void floor is never coming back on its own — gravity integrates forever
+        // and nothing else resets it — so without this the only way out is reconnecting.
+        // Terrain arrives asynchronously when streaming, which makes the hole reachable
+        // rather than theoretical.
+        let lost: Vec<(PeerId, u32)> = self
+            .players
+            .iter()
+            .filter(|(peer, _)| {
+                snapshot
+                    .body(player_body(**peer))
+                    .is_some_and(|b| b.iso.pos[1] < self.config.void_y)
+            })
+            .map(|(peer, player)| (*peer, player.slot))
+            .collect();
+        for (peer, slot) in lost {
+            let iso = self.spawn_point(slot);
+            self.world.apply(SimCommand::SetKinematicTarget {
+                id: player_body(peer),
+                iso,
+            });
+            if let Some(player) = self.players.get_mut(&peer) {
+                player.vel_y = 0.0;
+            }
+        }
+
         for (peer, player) in &mut self.players {
             let body = player_body(*peer);
             let grounded = snapshot.body(body).is_some_and(|b| b.grounded);
 
+            let submerged = snapshot
+                .body(body)
+                .is_some_and(|b| b.iso.pos[1] < self.config.water_level);
+
             if grounded && player.vel_y < 0.0 {
                 player.vel_y = 0.0;
             }
-            if grounded && player.input.jump {
-                player.vel_y = self.config.jump_speed;
-            }
-            player.vel_y += self.config.gravity * dt;
-
-            let [wx, wz] = player.input.wish_dir;
-            let len = (wx * wx + wz * wz).sqrt();
-            let (nx, nz) = if len > 1.0 {
-                (wx / len, wz / len)
+            if submerged {
+                // Buoyant rather than weightless, and jump becomes swim-up. Capped both
+                // ways so entering water cannot carry a body straight through the bed on
+                // momentum it built in the air.
+                if player.input.jump {
+                    player.vel_y = self.config.swim_speed;
+                } else {
+                    player.vel_y += self.config.gravity * self.config.water_gravity_scale * dt;
+                }
+                player.vel_y = player
+                    .vel_y
+                    .clamp(-self.config.swim_speed, self.config.swim_speed);
             } else {
-                (wx, wz)
-            };
+                if grounded && player.input.jump {
+                    player.vel_y = self.config.jump_speed;
+                }
+                player.vel_y += self.config.gravity * dt;
+            }
+
+            // Already finite and magnitude-clamped on ingest.
+            let [nx, nz] = player.input.wish_dir;
 
             self.world.apply(SimCommand::MoveCharacter {
                 id: body,
@@ -372,6 +592,17 @@ impl<T: Transport> HostSession<T> {
         }
 
         self.world.step();
+
+        // One clock for everyone, advanced by the host and rebroadcast so clients that
+        // joined at different times do not drift into different skies.
+        let day_seconds = (self.config.day_length_minutes as f64 * 60.0).max(1.0);
+        self.hour =
+            (self.hour as f64 + self.sim.timestep() * 24.0 / day_seconds).rem_euclid(24.0) as f32;
+        self.time_accum += self.sim.timestep();
+        if self.time_accum >= self.config.time_sync_seconds.max(0.1) {
+            self.time_accum = 0.0;
+            self.broadcast_world_time();
+        }
 
         self.snapshot_accum += self.sim.timestep();
         let interval = 1.0 / self.config.snapshot_hz.max(1.0);
@@ -411,6 +642,17 @@ pub struct ClientSession<T: Transport> {
     /// Likewise assigned — the requested name is not the granted one.
     name: Option<String>,
     roster: Vec<PeerInfo>,
+    /// The world contract from `Welcome`, and the clock the host keeps correcting.
+    world: Option<WorldInfo>,
+    hour: f32,
+}
+
+/// What the host told us about the world it is simulating.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct WorldInfo {
+    pub terrain_extent: f32,
+    pub terrain_resolution: u32,
+    pub day_length_minutes: f32,
 }
 
 impl<T: Transport> ClientSession<T> {
@@ -454,6 +696,8 @@ impl<T: Transport> ClientSession<T> {
             peer: None,
             name: None,
             roster: Vec::new(),
+            world: None,
+            hour: 0.0,
         };
         if let Ok(bytes) = proto::encode(&join) {
             let _ = client
@@ -496,6 +740,16 @@ impl<T: Transport> ClientSession<T> {
     }
 
     /// Everyone in the session, host included.
+    /// Terrain and day-length the host published, once joined.
+    pub fn world(&self) -> Option<WorldInfo> {
+        self.world
+    }
+
+    /// Host clock as of the last sync, hours 0..24.
+    pub fn hour(&self) -> f32 {
+        self.hour
+    }
+
     pub fn roster(&self) -> &[PeerInfo] {
         &self.roster
     }
@@ -507,10 +761,11 @@ impl<T: Transport> ClientSession<T> {
             .map(|p| p.name.as_str())
     }
 
-    pub fn set_input(&mut self, wish_dir: [f32; 2], jump: bool) {
+    pub fn set_input(&mut self, wish_dir: [f32; 2], jump: bool, yaw: f32) {
         self.input.sequence = self.input.sequence.wrapping_add(1);
         self.input.wish_dir = wish_dir;
         self.input.jump = jump;
+        self.input.yaw = yaw;
     }
 
     pub fn tick(&mut self) {
@@ -520,12 +775,28 @@ impl<T: Transport> ClientSession<T> {
             };
             match msg {
                 SessionMsg::Welcome {
-                    seed, peer, name, ..
+                    seed,
+                    peer,
+                    name,
+                    terrain_extent,
+                    terrain_resolution,
+                    time_of_day,
+                    day_length_minutes,
+                    ..
                 } => {
                     self.status = ClientStatus::Joined;
                     self.seed = Some(seed);
                     self.peer = Some(peer);
                     self.name = Some(name);
+                    self.hour = time_of_day;
+                    self.world = Some(WorldInfo {
+                        terrain_extent,
+                        terrain_resolution,
+                        day_length_minutes,
+                    });
+                }
+                SessionMsg::WorldTime { hour } => {
+                    self.hour = hour;
                 }
                 SessionMsg::Roster { players } => {
                     self.roster = players;
@@ -589,6 +860,316 @@ mod tests {
             host.tick();
             client.tick();
         }
+    }
+
+    #[test]
+    fn a_non_finite_wish_direction_cannot_reach_the_sim() {
+        // One packet, and every arithmetic path downstream is poisoned: NaN > 1.0 is
+        // false, so a magnitude check waves it through into the body's pose.
+        for bad in [f32::NAN, f32::INFINITY, f32::NEG_INFINITY] {
+            let cleaned = PlayerInput {
+                sequence: 1,
+                wish_dir: [bad, 0.5],
+                yaw: 0.0,
+                jump: false,
+            }
+            .sanitized();
+            assert_eq!(cleaned.wish_dir, [0.0, 0.0], "{bad} survived sanitizing");
+        }
+    }
+
+    #[test]
+    fn an_oversized_wish_direction_is_clamped_not_trusted() {
+        let cleaned = PlayerInput {
+            sequence: 1,
+            wish_dir: [1000.0, 0.0],
+            yaw: 0.0,
+            jump: false,
+        }
+        .sanitized();
+        let len = (cleaned.wish_dir[0].powi(2) + cleaned.wish_dir[1].powi(2)).sqrt();
+        assert!((len - 1.0).abs() < 1e-5, "expected unit length, got {len}");
+    }
+
+    #[test]
+    fn a_poisoned_input_leaves_the_body_finite() {
+        let (mut host, mut client) = host_and_client();
+        run(&mut host, &mut client, 2);
+        let peer = client.peer().expect("joined");
+
+        host.handle(
+            peer,
+            SessionMsg::Input(PlayerInput {
+                sequence: 9,
+                wish_dir: [f32::NAN, f32::NAN],
+                yaw: 0.0,
+                jump: false,
+            }),
+        );
+        run(&mut host, &mut client, 10);
+
+        let body = host
+            .world_mut()
+            .snapshot()
+            .body(player_body(peer))
+            .copied()
+            .expect("body still exists");
+        assert!(
+            body.iso.pos.iter().all(|v| v.is_finite()),
+            "body went non-finite: {:?}",
+            body.iso.pos
+        );
+    }
+
+    #[test]
+    fn a_full_session_turns_new_players_away() {
+        let mesh = Loopback::mesh(4);
+        let config = SessionConfig {
+            // The local host peer takes one, leaving room for exactly one guest.
+            max_players: 2,
+            ..SessionConfig::default()
+        };
+        let mut host = HostSession::new(mesh[0].clone(), config, SimConfig::default(), 7);
+        host.set_terrain(flat_terrain());
+
+        let mut first = ClientSession::connect(mesh[1].clone());
+        let mut second = ClientSession::connect(mesh[2].clone());
+        for _ in 0..4 {
+            host.tick();
+            first.tick();
+            second.tick();
+        }
+
+        assert_eq!(first.status(), ClientStatus::Joined);
+        assert_eq!(second.status(), ClientStatus::Rejected);
+        assert_eq!(second.reject_reason(), Some(FULL));
+        assert_eq!(host.player_count(), 2, "the cap must actually bound bodies");
+    }
+
+    #[test]
+    fn spawn_slots_are_reused_rather_than_walking_away_forever() {
+        let (mut host, mut client) = host_and_client();
+        run(&mut host, &mut client, 2);
+        let peer = client.peer().expect("joined");
+        let first = host.spawn_point(host.players[&peer].slot);
+
+        host.remove_player(peer);
+        // A different, much larger peer id — the counter never rewinds in practice.
+        host.admit_guest(PeerId(9_999));
+        let reused = host.spawn_point(host.players[&PeerId(9_999)].slot);
+
+        assert_eq!(
+            first.pos, reused.pos,
+            "a vacated slot should be handed to the next joiner"
+        );
+    }
+
+    #[test]
+    fn every_spawn_point_stays_inside_the_spawn_radius() {
+        let (host, _client) = host_and_client();
+        for slot in 0..host.config.max_players as u32 {
+            let p = host.spawn_point(slot);
+            let r = (p.pos[0] * p.pos[0] + p.pos[2] * p.pos[2]).sqrt();
+            assert!(
+                r <= host.config.spawn_radius + 1e-3,
+                "slot {slot} landed {r} out, past {}",
+                host.config.spawn_radius
+            );
+        }
+    }
+
+    #[test]
+    fn spawns_stand_on_the_ground_when_a_sampler_is_installed() {
+        let mesh = Loopback::mesh(2);
+        let mut host = HostSession::dedicated(
+            mesh[0].clone(),
+            SessionConfig::default(),
+            SimConfig::default(),
+            1,
+        )
+        // Higher than the old hardcoded 5.0, which is exactly the case that buried a
+        // player inside a hill.
+        .with_ground(Arc::new(|_, _| 7.5));
+        host.set_terrain(flat_terrain());
+
+        let p = host.spawn_point(0);
+        assert!(
+            p.pos[1] > 7.5,
+            "expected to stand above ground, got {}",
+            p.pos[1]
+        );
+    }
+
+    #[test]
+    fn falling_out_of_the_world_puts_a_player_back() {
+        let (mut host, mut client) = host_and_client();
+        run(&mut host, &mut client, 2);
+        let peer = client.peer().expect("joined");
+
+        // Straight into the void — reachable for real, because terrain arrives
+        // asynchronously when it streams.
+        host.world_mut().apply(SimCommand::SetKinematicTarget {
+            id: player_body(peer),
+            iso: Iso::at(0.0, -5_000.0, 0.0),
+        });
+        run(&mut host, &mut client, 6);
+
+        let y = host
+            .world_mut()
+            .snapshot()
+            .body(player_body(peer))
+            .expect("body")
+            .iso
+            .pos[1];
+        assert!(
+            y > host.config.void_y,
+            "should have been recovered, still at {y}"
+        );
+    }
+
+    #[test]
+    fn a_client_learns_the_world_contract_on_join() {
+        // Previously agreed by convention on both sides, and wrong silently.
+        let (mut host, mut client) = host_and_client();
+        run(&mut host, &mut client, 2);
+
+        let world = client.world().expect("welcome carries the world");
+        assert_eq!(world.terrain_extent, host.config.terrain_extent);
+        assert_eq!(world.terrain_resolution, host.config.terrain_resolution);
+        assert_eq!(world.day_length_minutes, host.config.day_length_minutes);
+    }
+
+    #[test]
+    fn everyone_shares_one_clock() {
+        let config = SessionConfig {
+            // A minute-long day so the clock visibly moves inside a test.
+            day_length_minutes: 1.0,
+            time_sync_seconds: 0.05,
+            ..SessionConfig::default()
+        };
+        let mesh = Loopback::mesh(3);
+        let mut host = HostSession::new(mesh[0].clone(), config, SimConfig::default(), 3);
+        host.set_terrain(flat_terrain());
+        let mut early = ClientSession::connect(mesh[1].clone());
+        for _ in 0..40 {
+            host.tick();
+            early.tick();
+        }
+
+        // Joins much later — the case that used to leave two players under different
+        // suns, because each ran its own clock from its own scene load.
+        let mut late = ClientSession::connect(mesh[2].clone());
+        for _ in 0..40 {
+            host.tick();
+            early.tick();
+            late.tick();
+        }
+
+        assert!(host.hour() > config.start_hour, "host clock should advance");
+        assert!(
+            (early.hour() - late.hour()).abs() < 0.05,
+            "clients disagree on time: {} vs {}",
+            early.hour(),
+            late.hour()
+        );
+        assert!(
+            (early.hour() - host.hour()).abs() < 0.05,
+            "client drifted from host: {} vs {}",
+            early.hour(),
+            host.hour()
+        );
+    }
+
+    #[test]
+    fn a_non_finite_yaw_cannot_reach_the_sim() {
+        let cleaned = PlayerInput {
+            sequence: 1,
+            wish_dir: [0.0, 0.0],
+            jump: false,
+            yaw: f32::NAN,
+        }
+        .sanitized();
+        assert_eq!(cleaned.yaw, 0.0);
+    }
+
+    #[test]
+    fn an_unwrapped_yaw_is_wrapped_not_rejected() {
+        // A client that accumulates yaw without wrapping is naive, not hostile.
+        let cleaned = PlayerInput {
+            sequence: 1,
+            wish_dir: [0.0, 0.0],
+            jump: false,
+            yaw: std::f32::consts::TAU * 10.5,
+        }
+        .sanitized();
+        assert!(
+            (0.0..std::f32::consts::TAU).contains(&cleaned.yaw),
+            "yaw {} outside one turn",
+            cleaned.yaw
+        );
+    }
+
+    #[test]
+    fn yaw_reaches_the_host() {
+        let (mut host, mut client) = host_and_client();
+        run(&mut host, &mut client, 2);
+        let peer = client.peer().expect("joined");
+
+        client.set_input([0.0, 0.0], false, 1.25);
+        run(&mut host, &mut client, 4);
+
+        assert!(
+            (host.players[&peer].input.yaw - 1.25).abs() < 1e-4,
+            "host never saw the facing: {}",
+            host.players[&peer].input.yaw
+        );
+    }
+
+    #[test]
+    fn a_body_under_water_sinks_slower_than_it_would_in_air() {
+        fn fall_distance(water_level: f32) -> f32 {
+            let mesh = Loopback::mesh(2);
+            let config = SessionConfig {
+                water_level,
+                ..SessionConfig::default()
+            };
+            let mut host = HostSession::new(mesh[0].clone(), config, SimConfig::default(), 5);
+            // No terrain: nothing to land on, so this measures the fall itself.
+            let mut client = ClientSession::connect(mesh[1].clone());
+            for _ in 0..2 {
+                host.tick();
+                client.tick();
+            }
+            let peer = client.peer().expect("joined");
+            let start = host
+                .world_mut()
+                .snapshot()
+                .body(player_body(peer))
+                .expect("body")
+                .iso
+                .pos[1];
+            for _ in 0..120 {
+                host.tick();
+                client.tick();
+            }
+            let end = host
+                .world_mut()
+                .snapshot()
+                .body(player_body(peer))
+                .expect("body")
+                .iso
+                .pos[1];
+            start - end
+        }
+
+        // Water above the spawn means submerged from the first tick; far below means
+        // the same fall happens entirely in air.
+        let wet = fall_distance(1_000.0);
+        let dry = fall_distance(-10_000.0);
+        assert!(
+            wet < dry * 0.5,
+            "buoyancy did nothing: fell {wet} wet vs {dry} dry"
+        );
     }
 
     #[test]
@@ -678,7 +1259,7 @@ mod tests {
             .expect("client should be welcomed by now");
         let start = host.world_mut().snapshot().body(body).unwrap().iso.pos;
 
-        client.set_input([1.0, 0.0], false);
+        client.set_input([1.0, 0.0], false, 0.0);
         run(&mut host, &mut client, 90);
 
         let end = host.world_mut().snapshot().body(body).unwrap().iso.pos;
@@ -693,7 +1274,7 @@ mod tests {
     fn the_client_sees_host_state_through_snapshots() {
         let (mut host, mut client) = host_and_client();
         run(&mut host, &mut client, 120);
-        client.set_input([1.0, 0.0], false);
+        client.set_input([1.0, 0.0], false, 0.0);
         run(&mut host, &mut client, 120);
 
         let snapshot = client.latest_snapshot().expect("should have a snapshot");
@@ -757,11 +1338,13 @@ mod tests {
         let fresh = PlayerInput {
             sequence: 50,
             wish_dir: [1.0, 0.0],
+            yaw: 0.0,
             jump: false,
         };
         let stale = PlayerInput {
             sequence: 5,
             wish_dir: [-1.0, 0.0],
+            yaw: 0.0,
             jump: false,
         };
         host.handle(peer, SessionMsg::Input(fresh));
@@ -786,6 +1369,7 @@ mod tests {
             SessionMsg::Input(PlayerInput {
                 sequence: 1,
                 wish_dir: [1000.0, 0.0],
+                yaw: 0.0,
                 jump: false,
             }),
         );

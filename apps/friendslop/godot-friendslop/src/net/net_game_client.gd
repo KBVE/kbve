@@ -115,7 +115,37 @@ func _process(_delta: float) -> void:
 	if not _client.is_joined():
 		return
 	var wish := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-	_client.set_intent(_world_wish(wish), Input.is_action_pressed("jump"))
+	_client.set_intent(_world_wish(wish), Input.is_action_pressed("jump"), _facing())
+
+
+## Where we are looking, in world terms. The server has no other way to know, and
+## anything it decides on our behalf needs it.
+func _facing() -> float:
+	if intent_basis_path.is_empty():
+		return 0.0
+	var basis_node := get_node_or_null(intent_basis_path) as Node3D
+	return basis_node.global_rotation.y if basis_node else 0.0
+
+
+## Host clock in hours, 0..24. Zero until the first Welcome.
+func world_hour() -> float:
+	return _client.world_hour()
+
+
+## Real-world minutes the host's day takes, or 0 before joining.
+func day_length_minutes() -> float:
+	return _client.day_length_minutes()
+
+
+## Terrain the host is simulating. Authoritative: baking a different extent or
+## resolution means disagreeing about ground height, which reads as players sinking
+## into or hovering over it rather than as any kind of error.
+func terrain_extent() -> float:
+	return _client.terrain_extent()
+
+
+func terrain_resolution() -> int:
+	return _client.terrain_resolution()
 
 
 ## Input is in screen terms — left is left of the camera, not west.
