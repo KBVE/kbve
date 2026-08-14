@@ -70,6 +70,9 @@ pub mod proto;
 #[cfg(any(feature = "client", feature = "rapier3d-sim"))]
 pub mod worldgen;
 
+#[cfg(any(feature = "client", feature = "rapier3d-sim"))]
+pub mod harvest;
+
 /// Gait and stance decisions.
 pub mod locomotion;
 
