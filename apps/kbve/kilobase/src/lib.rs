@@ -1,7 +1,10 @@
 use pgrx::bgworkers::*;
 use pgrx::datum::{DatumWithOid, IntoDatum};
+use pgrx::guc::{GucContext, GucFlags, GucRegistry, GucSetting};
 use pgrx::prelude::*;
 use pgrx::spi::SpiError;
+use std::ffi::CString;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Duration;
 mod jobs;
 mod sql;
@@ -10,11 +13,47 @@ use crate::jobs::JobInfo;
 pgrx::pg_module_magic!();
 
 // =============================================================================
+// CONFIGURATION
+// =============================================================================
+
+pub const DEFAULT_DATABASE: &str = "postgres";
+
+static KILOBASE_DATABASE: GucSetting<Option<CString>> =
+    GucSetting::<Option<CString>>::new(Some(c"postgres"));
+
+static KILOBASE_MAX_SLEEP_SECONDS: GucSetting<i32> = GucSetting::<i32>::new(30);
+
+// =============================================================================
 // BACKGROUND WORKER INITIALIZATION
 // =============================================================================
 
 #[pg_guard]
 pub extern "C-unwind" fn _PG_init() {
+    // Registered unconditionally so `SHOW kilobase.database` works in ordinary
+    // backends, not only when the library is preloaded.
+    GucRegistry::define_string_guc(
+        c"kilobase.database",
+        c"Database the Smart Matview Refresher connects to.",
+        c"The background worker can only see tables in one database. This must \
+          name the database where `CREATE EXTENSION kilobase` was run, otherwise \
+          the worker idles.",
+        &KILOBASE_DATABASE,
+        GucContext::Postmaster,
+        GucFlags::default(),
+    );
+
+    GucRegistry::define_int_guc(
+        c"kilobase.max_sleep_seconds",
+        c"Longest the Smart Matview Refresher sleeps between checks.",
+        c"Upper bound only. When a job is due sooner the worker shortens the \
+          wait to match it.",
+        &KILOBASE_MAX_SLEEP_SECONDS,
+        1,
+        3600,
+        GucContext::Sighup,
+        GucFlags::default(),
+    );
+
     // Background workers can only be registered during shared_preload_libraries
     // processing. If loaded via CREATE EXTENSION alone, skip bgworker registration
     // so the extension installs cleanly (SQL functions/tables still get created).
@@ -25,7 +64,6 @@ pub extern "C-unwind" fn _PG_init() {
     BackgroundWorkerBuilder::new("Smart Matview Refresher")
         .set_function("smart_matview_worker_main")
         .set_library("kilobase")
-        .set_argument(42i32.into_datum())
         .enable_spi_access()
         .load();
 }
@@ -36,21 +74,20 @@ pub extern "C-unwind" fn _PG_init() {
 
 #[pg_guard]
 #[unsafe(no_mangle)]
-pub extern "C-unwind" fn smart_matview_worker_main(arg: pg_sys::Datum) {
-    let max_sleep_secs =
-        unsafe { i32::from_polymorphic_datum(arg, false, pg_sys::INT4OID).unwrap_or(30) };
-
+pub extern "C-unwind" fn smart_matview_worker_main(_arg: pg_sys::Datum) {
     BackgroundWorker::attach_signal_handlers(SignalWakeFlags::SIGHUP | SignalWakeFlags::SIGTERM);
 
-    BackgroundWorker::connect_worker_to_spi(Some("postgres"), None);
+    let database = resolve_database_name(KILOBASE_DATABASE.get());
+    BackgroundWorker::connect_worker_to_spi(Some(&database), None);
 
     log!(
-        "{} started - max sleep between checks: {} seconds (adaptive sleep enabled)",
+        "{} started - database: {}, max sleep between checks: {} seconds (adaptive sleep enabled)",
         BackgroundWorker::get_name(),
-        max_sleep_secs
+        database,
+        KILOBASE_MAX_SLEEP_SECONDS.get()
     );
 
-    run_worker_loop(max_sleep_secs);
+    run_worker_loop(&database);
 
     log!("{} shutting down", BackgroundWorker::get_name());
 }
@@ -59,15 +96,80 @@ pub extern "C-unwind" fn smart_matview_worker_main(arg: pg_sys::Datum) {
 // WORKER HELPER FUNCTIONS
 // =============================================================================
 
-fn run_worker_loop(max_sleep_secs: i32) {
+/// Resolve the configured database name, falling back to [`DEFAULT_DATABASE`]
+/// when the GUC is unset or holds bytes that are not valid UTF-8.
+pub fn resolve_database_name(configured: Option<CString>) -> String {
+    configured
+        .and_then(|value| value.into_string().ok())
+        .map(|value| value.trim().to_string())
+        .filter(|value| !value.is_empty())
+        .unwrap_or_else(|| DEFAULT_DATABASE.to_string())
+}
+
+static SCHEMA_MISSING_LOGGED: AtomicBool = AtomicBool::new(false);
+
+/// True when this database actually carries the extension's tables.
+///
+/// The worker is attached to a single database, so if `CREATE EXTENSION
+/// kilobase` was run elsewhere its queries would raise `relation ... does not
+/// exist`. In a background worker that ERROR unwinds past the caller's
+/// `Result` handling and terminates the process, so the tables have to be
+/// probed with `to_regclass`, which returns NULL instead of raising.
+fn extension_tables_ready() -> bool {
+    BackgroundWorker::transaction(|| {
+        Spi::connect(|client| {
+            let mut result = match client.select(
+                "SELECT to_regclass('matview_refresh_jobs') IS NOT NULL
+                    AND to_regclass('matview_refresh_log') IS NOT NULL AS ready",
+                None,
+                &[],
+            ) {
+                Ok(result) => result,
+                Err(_) => return false,
+            };
+
+            match result.next() {
+                Some(row) => row
+                    .get_by_name::<bool, _>("ready")
+                    .ok()
+                    .flatten()
+                    .unwrap_or(false),
+                None => false,
+            }
+        })
+    })
+}
+
+fn run_worker_loop(database: &str) {
     let mut cycle_count: u64 = 0;
     let maintenance_interval: u64 = 100;
+    let mut max_sleep_secs = KILOBASE_MAX_SLEEP_SECONDS.get();
 
     while BackgroundWorker::wait_latch(Some(Duration::from_secs(max_sleep_secs as u64))) {
         cycle_count += 1;
 
         if BackgroundWorker::sighup_received() {
-            pgrx::log!("SIGHUP received - checking for configuration changes");
+            max_sleep_secs = KILOBASE_MAX_SLEEP_SECONDS.get();
+            pgrx::log!(
+                "SIGHUP received - max sleep between checks is now {} seconds",
+                max_sleep_secs
+            );
+        }
+
+        if !extension_tables_ready() {
+            if !SCHEMA_MISSING_LOGGED.swap(true, Ordering::Relaxed) {
+                log!(
+                    "kilobase tables not found in database '{}' - idling. Run \
+                     CREATE EXTENSION kilobase there, or point kilobase.database \
+                     at the database that has it.",
+                    database
+                );
+            }
+            continue;
+        }
+
+        if SCHEMA_MISSING_LOGGED.swap(false, Ordering::Relaxed) {
+            log!("kilobase tables found in database '{}' - resuming", database);
         }
 
         if let Err(e) = process_refresh_cycle() {
@@ -125,8 +227,8 @@ fn get_seconds_until_next_job() -> Result<Option<i64>, pgrx::spi::Error> {
 
 fn run_maintenance() -> Result<(), pgrx::spi::Error> {
     BackgroundWorker::transaction(|| {
-        Spi::connect(|client| {
-            let result = client.select(
+        Spi::connect_mut(|client| {
+            let result = client.update(
                 "SELECT cleanup_matview_refresh_logs(7) as deleted_count",
                 None,
                 &[],
@@ -170,8 +272,8 @@ fn get_table_change_count(schema: &str, table: &str) -> Result<i64, String> {
 }
 
 fn update_change_count(job_id: i32, new_count: i64) -> Result<(), pgrx::spi::Error> {
-    Spi::connect(|client| {
-        client.select(
+    Spi::connect_mut(|client| {
+        client.update(
             "UPDATE matview_refresh_jobs SET last_change_count = $2, skip_count = 0 WHERE id = $1",
             None,
             &[
@@ -184,8 +286,8 @@ fn update_change_count(job_id: i32, new_count: i64) -> Result<(), pgrx::spi::Err
 }
 
 fn increment_skip_count(job: &JobInfo) -> Result<(), pgrx::spi::Error> {
-    Spi::connect(|client| {
-        client.select(
+    Spi::connect_mut(|client| {
+        client.update(
             "UPDATE matview_refresh_jobs
              SET skip_count = skip_count + 1,
                  next_refresh = NOW() + ($2 * INTERVAL '1 second')
@@ -230,8 +332,8 @@ fn check_has_unique_index(schema: &str, view_name: &str) -> Result<bool, String>
 }
 
 fn update_unique_index_status(job_id: i32, has_unique: bool) -> Result<(), pgrx::spi::Error> {
-    Spi::connect(|client| {
-        client.select(
+    Spi::connect_mut(|client| {
+        client.update(
             "UPDATE matview_refresh_jobs SET has_unique_index = $2 WHERE id = $1",
             None,
             &[
@@ -419,22 +521,19 @@ fn refresh_materialized_view_standalone(
     })
     .map_err(|e: SpiError| e.to_string())?;
 
-    let refresh_strategies =
-        get_refresh_strategies(&job.schema, &job.view_name, is_populated, has_unique_index);
+    let attempts = refresh_attempts(is_populated, has_unique_index);
 
-    // Try refresh strategies
     let mut last_error = String::new();
 
-    for (attempt, refresh_sql) in refresh_strategies.iter().enumerate() {
-        let result = Spi::run(refresh_sql);
-        match result {
-            Ok(_) => {
+    for (attempt, concurrent) in attempts.iter().enumerate() {
+        match try_refresh(&job.schema, &job.view_name, *concurrent) {
+            Ok(None) => {
                 let duration_ms = start_time.elapsed().as_millis() as i32;
                 return Ok(duration_ms);
             }
-            Err(e) => {
-                last_error = e.to_string();
-                if attempt == 0 && refresh_strategies.len() > 1 {
+            Ok(Some(message)) => {
+                last_error = message;
+                if attempt == 0 && attempts.len() > 1 {
                     pgrx::log!(
                         "WARNING: Concurrent refresh failed for {}.{}, trying regular refresh",
                         job.schema,
@@ -442,39 +541,58 @@ fn refresh_materialized_view_standalone(
                     );
                 }
             }
+            Err(e) => {
+                last_error = e.to_string();
+            }
         }
     }
 
     Err(last_error)
 }
 
-/// Quote a SQL identifier to prevent injection (double-quote and escape internal quotes)
-fn quote_ident(ident: &str) -> String {
-    format!("\"{}\"", ident.replace('"', "\"\""))
-}
-
-fn get_refresh_strategies(
+/// Refresh via the PL/pgSQL wrapper, which absorbs the error in a
+/// subtransaction. `Ok(None)` is success; `Ok(Some(message))` is a refresh
+/// that failed without taking the worker down with it.
+fn try_refresh(
     schema: &str,
     view_name: &str,
-    is_populated: bool,
-    has_unique_index: bool,
-) -> Vec<String> {
-    let qualified = format!("{}.{}", quote_ident(schema), quote_ident(view_name));
+    concurrent: bool,
+) -> Result<Option<String>, pgrx::spi::Error> {
+    Spi::connect_mut(|client| {
+        let mut result = client.update(
+            "SELECT kilobase_try_refresh($1, $2, $3) AS error_message",
+            None,
+            &[
+                unsafe { DatumWithOid::new(schema.into_datum().unwrap(), pg_sys::TEXTOID) },
+                unsafe { DatumWithOid::new(view_name.into_datum().unwrap(), pg_sys::TEXTOID) },
+                unsafe { DatumWithOid::new(concurrent.into_datum().unwrap(), pg_sys::BOOLOID) },
+            ],
+        )?;
+
+        match result.next() {
+            Some(row) => row.get_by_name::<String, _>("error_message"),
+            None => Ok(Some("kilobase_try_refresh returned no row".to_string())),
+        }
+    })
+}
+
+/// Which refresh attempts to make, in order, as `concurrent` flags.
+///
+/// CONCURRENTLY requires both a populated view and a UNIQUE index, so it is
+/// only worth attempting when both hold; the plain refresh is kept as a
+/// fallback for the case where the index disappears between the check and the
+/// refresh.
+fn refresh_attempts(is_populated: bool, has_unique_index: bool) -> Vec<bool> {
     if is_populated && has_unique_index {
-        // Safe to try CONCURRENT — view is populated and has UNIQUE index
-        vec![
-            format!("REFRESH MATERIALIZED VIEW CONCURRENTLY {}", qualified),
-            format!("REFRESH MATERIALIZED VIEW {}", qualified),
-        ]
+        vec![true, false]
     } else {
-        // No UNIQUE index or not populated — skip CONCURRENT to avoid unnecessary error
-        vec![format!("REFRESH MATERIALIZED VIEW {}", qualified)]
+        vec![false]
     }
 }
 
 fn update_next_refresh_standalone(job: &JobInfo) -> Result<(), pgrx::spi::Error> {
-    Spi::connect(|client| {
-        client.select(
+    Spi::connect_mut(|client| {
+        client.update(
             "UPDATE matview_refresh_jobs
              SET last_refresh = NOW(),
                  next_refresh = NOW() + ($2 * INTERVAL '1 second')
@@ -492,8 +610,8 @@ fn update_next_refresh_standalone(job: &JobInfo) -> Result<(), pgrx::spi::Error>
 }
 
 fn log_refresh_success_standalone(job_id: i32, duration_ms: i32) -> Result<(), pgrx::spi::Error> {
-    Spi::connect(|client| {
-        client.select(
+    Spi::connect_mut(|client| {
+        client.update(
             "INSERT INTO matview_refresh_log (job_id, status, duration_ms) VALUES ($1, 'Success', $2)",
             None,
             &[
@@ -509,8 +627,8 @@ fn log_refresh_failure_standalone(
     job_id: i32,
     error_message: &str,
 ) -> Result<(), pgrx::spi::Error> {
-    Spi::connect(|client| {
-        client.select(
+    Spi::connect_mut(|client| {
+        client.update(
             "INSERT INTO matview_refresh_log (job_id, status, error_message) VALUES ($1, 'Failed', $2)",
             None,
             &[
@@ -540,184 +658,129 @@ fn log_refresh_failure_standalone(
 mod tests {
     use super::*;
 
-    // ── quote_ident ──
+    // ── refresh_attempts ──
+    //
+    // Identifier quoting moved into kilobase_try_refresh's format(%I), so the
+    // quote_ident/get_refresh_strategies unit tests that used to live here were
+    // removed with the functions. Injection through schema and view names is
+    // covered end-to-end by test_regclass_injection_safety in the SQL suite.
 
     #[test]
-    fn test_quote_ident_simple() {
-        assert_eq!(quote_ident("public"), "\"public\"");
+    fn test_attempts_populated_with_unique_index() {
+        // CONCURRENTLY first, plain refresh as fallback
+        assert_eq!(refresh_attempts(true, true), vec![true, false]);
     }
 
     #[test]
-    fn test_quote_ident_with_internal_quotes() {
-        // A double-quote inside an identifier must be escaped as ""
-        assert_eq!(quote_ident("my\"schema"), "\"my\"\"schema\"");
+    fn test_attempts_populated_without_unique_index() {
+        // CONCURRENTLY would always fail without a UNIQUE index
+        assert_eq!(refresh_attempts(true, false), vec![false]);
     }
 
     #[test]
-    fn test_quote_ident_empty() {
-        assert_eq!(quote_ident(""), "\"\"");
-    }
-
-    // ── get_refresh_strategies ──
-
-    #[test]
-    fn test_strategies_populated_with_unique_index() {
-        let strategies = get_refresh_strategies("public", "my_view", true, true);
-        assert_eq!(strategies.len(), 2);
-        assert!(strategies[0].contains("CONCURRENTLY"));
-        assert!(!strategies[1].contains("CONCURRENTLY"));
+    fn test_attempts_not_populated_with_unique_index() {
+        // An unpopulated view cannot be refreshed concurrently even with an index
+        assert_eq!(refresh_attempts(false, true), vec![false]);
     }
 
     #[test]
-    fn test_strategies_populated_without_unique_index() {
-        let strategies = get_refresh_strategies("public", "my_view", true, false);
-        assert_eq!(strategies.len(), 1);
-        assert!(!strategies[0].contains("CONCURRENTLY"));
+    fn test_attempts_not_populated_without_unique_index() {
+        assert_eq!(refresh_attempts(false, false), vec![false]);
     }
 
     #[test]
-    fn test_strategies_not_populated_with_unique_index() {
-        // Even with a UNIQUE index, unpopulated views can't use CONCURRENT
-        let strategies = get_refresh_strategies("public", "my_view", false, true);
-        assert_eq!(strategies.len(), 1);
-        assert!(!strategies[0].contains("CONCURRENTLY"));
-    }
-
-    #[test]
-    fn test_strategies_not_populated_without_unique_index() {
-        let strategies = get_refresh_strategies("public", "my_view", false, false);
-        assert_eq!(strategies.len(), 1);
-        assert!(!strategies[0].contains("CONCURRENTLY"));
-    }
-
-    #[test]
-    fn test_strategies_use_quoted_identifiers() {
-        let strategies = get_refresh_strategies("my schema", "my view", true, true);
-        // Should properly quote identifiers with spaces
-        assert!(strategies[0].contains("\"my schema\".\"my view\""));
-    }
-
-    #[test]
-    fn test_strategies_escape_quotes_in_identifiers() {
-        let strategies = get_refresh_strategies("sch\"ema", "vi\"ew", true, true);
-        // Internal double-quotes must be escaped
-        assert!(strategies[0].contains("\"sch\"\"ema\".\"vi\"\"ew\""));
-    }
-
-    // ── quote_ident edge cases: SQL injection vectors ──
-
-    #[test]
-    fn test_quote_ident_sql_injection_semicolon() {
-        // Attacker tries to terminate statement and inject new SQL
-        let result = quote_ident("view; DROP TABLE users; --");
-        assert_eq!(result, "\"view; DROP TABLE users; --\"");
-        assert!(!result.contains(r#""""#)); // no unescaped quotes
-    }
-
-    #[test]
-    fn test_quote_ident_sql_injection_single_quotes() {
-        // Single quotes should pass through — double-quoting handles identifiers
-        let result = quote_ident("test' OR '1'='1");
-        assert_eq!(result, "\"test' OR '1'='1\"");
-    }
-
-    #[test]
-    fn test_quote_ident_sql_injection_double_quote_escape() {
-        // Attacker tries to break out of double-quoted identifier
-        let result = quote_ident(r#"view" ; DROP TABLE users; --"#);
-        // Internal " must be escaped as ""
-        assert_eq!(result, r#""view"" ; DROP TABLE users; --""#);
-    }
-
-    #[test]
-    fn test_quote_ident_sql_injection_nested_quotes() {
-        // Multiple layers of quote escaping
-        let result = quote_ident(r#""""#);
-        assert_eq!(result, r#""""""""#); // each " becomes ""
-    }
-
-    #[test]
-    fn test_quote_ident_unicode() {
-        assert_eq!(quote_ident("表名"), "\"表名\"");
-    }
-
-    #[test]
-    fn test_quote_ident_newlines_and_tabs() {
-        let result = quote_ident("view\nname\ttab");
-        assert_eq!(result, "\"view\nname\ttab\"");
-    }
-
-    #[test]
-    fn test_quote_ident_backslash() {
-        let result = quote_ident(r"my\schema");
-        assert_eq!(result, r#""my\schema""#);
-    }
-
-    #[test]
-    fn test_quote_ident_null_byte() {
-        let result = quote_ident("view\0name");
-        assert_eq!(result, "\"view\0name\"");
-    }
-
-    #[test]
-    fn test_quote_ident_sql_keywords() {
-        // SQL reserved words used as identifiers must be safely quoted
-        for keyword in &[
-            "SELECT", "DROP", "INSERT", "DELETE", "UPDATE", "TABLE", "FROM", "WHERE",
-        ] {
-            let result = quote_ident(keyword);
-            assert_eq!(result, format!("\"{}\"", keyword));
+    fn test_attempts_never_empty() {
+        // Every combination must yield at least one attempt, otherwise a job
+        // would silently report success without refreshing anything.
+        for populated in [true, false] {
+            for unique in [true, false] {
+                assert!(!refresh_attempts(populated, unique).is_empty());
+            }
         }
     }
 
     #[test]
-    fn test_quote_ident_long_identifier() {
-        let long_name = "a".repeat(1000);
-        let result = quote_ident(&long_name);
-        assert_eq!(result.len(), 1002); // 1000 chars + 2 surrounding quotes
-    }
-
-    // ── get_refresh_strategies: SQL injection via identifiers ──
-
-    #[test]
-    fn test_strategies_sql_injection_in_schema() {
-        let strategies = get_refresh_strategies(
-            "public\"; DROP TABLE matview_refresh_jobs; --",
-            "my_view",
-            true,
-            true,
-        );
-        // The injected SQL should be safely wrapped inside double quotes
-        assert!(strategies[0].starts_with("REFRESH MATERIALIZED VIEW CONCURRENTLY \"public\"\""));
-        // Should NOT contain a bare semicolon outside quotes
-        let qualified = &strategies[0]["REFRESH MATERIALIZED VIEW CONCURRENTLY ".len()..];
-        // The entire thing should be a single quoted identifier pair
-        assert!(
-            qualified.contains("\"\""),
-            "Internal quotes must be escaped"
-        );
+    fn test_attempts_concurrent_only_when_both_hold() {
+        for populated in [true, false] {
+            for unique in [true, false] {
+                let attempts = refresh_attempts(populated, unique);
+                if attempts.contains(&true) {
+                    assert!(populated && unique);
+                }
+            }
+        }
     }
 
     #[test]
-    fn test_strategies_sql_injection_in_view_name() {
-        let strategies = get_refresh_strategies(
-            "public",
-            "view\"; DELETE FROM matview_refresh_log; --",
-            true,
-            true,
-        );
-        // View name with injection attempt should be properly escaped
-        assert!(strategies[0].contains("\"view\"\""));
+    fn test_attempts_always_end_with_plain_refresh() {
+        for populated in [true, false] {
+            for unique in [true, false] {
+                let attempts = refresh_attempts(populated, unique);
+                assert_eq!(attempts.last(), Some(&false));
+            }
+        }
+    }
+
+    // ── resolve_database_name ──
+
+    fn cstring(value: &str) -> CString {
+        CString::new(value).unwrap()
     }
 
     #[test]
-    fn test_strategies_sql_injection_both_params() {
-        let strategies =
-            get_refresh_strategies("'; DROP TABLE t; --", "\"; DROP TABLE t; --", true, true);
-        // Both should be properly quoted — single quotes in schema pass through,
-        // double quotes in view_name get escaped
-        assert_eq!(strategies.len(), 2);
-        assert!(strategies[0].contains("CONCURRENTLY"));
+    fn test_resolve_database_name_uses_configured_value() {
+        assert_eq!(
+            resolve_database_name(Some(cstring("kilobase_test"))),
+            "kilobase_test"
+        );
+    }
+
+    #[test]
+    fn test_resolve_database_name_defaults_when_unset() {
+        assert_eq!(resolve_database_name(None), DEFAULT_DATABASE);
+    }
+
+    #[test]
+    fn test_resolve_database_name_defaults_when_empty() {
+        assert_eq!(resolve_database_name(Some(cstring(""))), DEFAULT_DATABASE);
+    }
+
+    #[test]
+    fn test_resolve_database_name_defaults_when_only_whitespace() {
+        // A GUC set to "   " must not be handed to connect_worker_to_spi
+        assert_eq!(
+            resolve_database_name(Some(cstring("   "))),
+            DEFAULT_DATABASE
+        );
+    }
+
+    #[test]
+    fn test_resolve_database_name_trims_surrounding_whitespace() {
+        assert_eq!(
+            resolve_database_name(Some(cstring("  analytics  "))),
+            "analytics"
+        );
+    }
+
+    #[test]
+    fn test_resolve_database_name_preserves_internal_characters() {
+        assert_eq!(
+            resolve_database_name(Some(cstring("my-db_01"))),
+            "my-db_01"
+        );
+    }
+
+    #[test]
+    fn test_resolve_database_name_preserves_unicode() {
+        assert_eq!(resolve_database_name(Some(cstring("データ"))), "データ");
+    }
+
+    #[test]
+    fn test_resolve_database_name_defaults_on_invalid_utf8() {
+        // CString accepts arbitrary non-NUL bytes; invalid UTF-8 must fall back
+        // rather than panic inside the worker's startup path.
+        let invalid = CString::new(vec![0xff, 0xfe]).unwrap();
+        assert_eq!(resolve_database_name(Some(invalid)), DEFAULT_DATABASE);
     }
 
     // ── JobOutcome ──

@@ -14,6 +14,9 @@ pub struct DriverConfig {
     pub tick_hz: f64,
     pub terrain_extent: f32,
     pub terrain_resolution: i32,
+    /// Must match the client's QTerrain: the bridge deck is measured from both.
+    pub water_level: f32,
+    pub road_width: f32,
     /// Follow players with a set of baked regions instead of laying one fixed tile at
     /// the origin. Off reproduces the old behaviour exactly, for a client whose own
     /// terrain streaming is switched off and which therefore never leaves the tile.
@@ -124,6 +127,8 @@ pub fn spawn(
                 let mut streamer = if stream {
                     let mut s = TerrainStreamer::new(StreamConfig {
                         seed,
+                        water_level: cfg.water_level,
+                        road_width: cfg.road_width,
                         extent,
                         resolution,
                         stride,

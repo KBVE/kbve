@@ -205,8 +205,9 @@ impl QStoneField {
                 let yaw = randf(&mut state) * std::f32::consts::TAU;
                 let variant = ((randf(&mut state) * VARIANTS as f32) as usize).min(VARIANTS - 1);
                 let (up, seat) = self.bed(&sample, x, z, radius, heights[variant] * scale);
+                let (gx, gz) = grid.global(ix, iz);
                 self.core.insert(Entry {
-                    id: stable_id(seed64, x, z),
+                    id: stable_id(seed64, gx, gz, 0),
                     pos: Vector3::new(x, seat, z),
                     up,
                     scale,
@@ -216,11 +217,20 @@ impl QStoneField {
                     amount: 0,
                 });
                 let companions = (randf(&mut state) * 3.0) as usize;
-                for _ in 0..companions {
+                // Every draw happens before the first rejection test: a companion
+                // refused for being outside this window must not shift the stream
+                // for the ones after it, or the same cell scatters differently
+                // depending on where the player walked in from.
+                for companion in 0..companions {
                     let cscale = scale * (0.28 + randf(&mut state) * 0.27);
-                    let cradius = cscale * 0.85;
                     let az = randf(&mut state) * std::f32::consts::TAU;
-                    let dist = (radius + cradius) * (1.15 + randf(&mut state) * 0.5);
+                    let spread = randf(&mut state);
+                    let cyaw = randf(&mut state) * std::f32::consts::TAU;
+                    let cvariant =
+                        ((randf(&mut state) * VARIANTS as f32) as usize).min(VARIANTS - 1);
+
+                    let cradius = cscale * 0.85;
+                    let dist = (radius + cradius) * (1.15 + spread * 0.5);
                     let cx = x + libm::cosf(az) * dist;
                     let cz = z + libm::sinf(az) * dist;
                     if !grid.inside(cx, cz, 5.0) {
@@ -237,13 +247,10 @@ impl QStoneField {
                         continue;
                     }
                     placed.push((cx, cz, cradius));
-                    let cyaw = randf(&mut state) * std::f32::consts::TAU;
-                    let cvariant =
-                        ((randf(&mut state) * VARIANTS as f32) as usize).min(VARIANTS - 1);
                     let (cup, cseat) =
                         self.bed(&sample, cx, cz, cradius, heights[cvariant] * cscale);
                     self.core.insert(Entry {
-                        id: stable_id(seed64, cx, cz),
+                        id: stable_id(seed64, gx, gz, companion as u32 + 1),
                         pos: Vector3::new(cx, cseat, cz),
                         up: cup,
                         scale: cscale,

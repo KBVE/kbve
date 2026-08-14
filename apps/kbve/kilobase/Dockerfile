@@ -11,7 +11,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     apt-get update && apt-get install -y --no-install-recommends postgresql-server-dev-17 && \
     rm -rf /var/lib/apt/lists/*
 
-RUN cargo install cargo-pgrx --version "=0.16.1" --locked
+RUN cargo install cargo-pgrx --version "=0.19.2" --locked
 
 RUN cargo pgrx init --pg17=/usr/bin/pg_config
 

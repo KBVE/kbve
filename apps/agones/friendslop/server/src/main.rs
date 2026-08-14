@@ -40,6 +40,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         tick_hz: env_parse("FS_TICK_HZ", 60.0),
         terrain_extent,
         terrain_resolution: env_parse("FS_TERRAIN_RESOLUTION", 513),
+        water_level: env_parse("FS_WATER_LEVEL", -1.4),
+        road_width: env_parse("FS_ROAD_WIDTH", 3.2),
         // On by default: a streaming set of regions is a superset of the single tile,
         // so it is correct whether or not the client streams. A client that does not
         // stream simply never walks off the first one.

@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex, OnceLock};
-use std::time::{Duration, Instant};
+use std::time::Duration;
 
 use bevy_chat::{ChatClient, ChatMessage, IrcConfig, IrcTransport};
 use tokio::sync::{RwLock, broadcast};
@@ -16,6 +16,7 @@ pub const PLATFORM: &str = "bbs";
 pub const MAX_CHAT_LEN: usize = 350;
 pub const HISTORY_LEN: usize = 80;
 
+const SUPERVISE_TICK: Duration = Duration::from_secs(5);
 const PING_INTERVAL: Duration = Duration::from_secs(60);
 const STALE_AFTER: Duration = Duration::from_secs(300);
 const RECONNECT_DELAY: Duration = Duration::from_secs(10);
@@ -40,7 +41,6 @@ pub struct ChatHub {
     channel: String,
     tx: broadcast::Sender<ChatMessage>,
     client: RwLock<Option<ChatClient>>,
-    last_rx: Mutex<Instant>,
     history: Mutex<VecDeque<ChatMessage>>,
 }
 
@@ -131,17 +131,16 @@ impl ChatHub {
         }
     }
 
-    fn mark_rx(&self) {
-        if let Ok(mut slot) = self.last_rx.lock() {
-            *slot = Instant::now();
+    /// Dead link, not a quiet room. Subscribers only ever see `PRIVMSG`s, so
+    /// judging by those tore down a healthy connection after five minutes of
+    /// nobody talking — and the next caller to hit enter got `relay offline`.
+    /// `idle_for` counts every inbound line, and the keepalive below draws a
+    /// `PONG` each minute, so a live socket never goes quiet.
+    async fn stale(&self) -> bool {
+        match self.client.read().await.as_ref() {
+            Some(client) => client.idle_for() > STALE_AFTER,
+            None => false,
         }
-    }
-
-    fn stale(&self) -> bool {
-        self.last_rx
-            .lock()
-            .map(|slot| slot.elapsed() > STALE_AFTER)
-            .unwrap_or(false)
     }
 }
 
@@ -186,7 +185,6 @@ pub fn init_chat() -> bool {
         channel,
         tx,
         client: RwLock::new(None),
-        last_rx: Mutex::new(Instant::now()),
         history: Mutex::new(VecDeque::with_capacity(HISTORY_LEN)),
     });
     if HUB.set(hub.clone()).is_err() {
@@ -199,12 +197,21 @@ pub fn init_chat() -> bool {
 
 /// `bevy_chat` never reconnects on its own: its read loop just ends and leaves
 /// a writer pointed at a dead socket. Own that here — rebuild whenever the
-/// connection drops, a keepalive write fails, or the link goes quiet.
+/// connection drops, a keepalive write fails, or the link goes silent.
+///
+/// The loop wakes every few seconds rather than every minute: a failed send
+/// clears the client from under us, and waiting out a whole ping interval to
+/// notice left callers staring at an offline relay long after it could have
+/// been back.
 async fn supervise(hub: Arc<ChatHub>, config: IrcConfig) {
+    let mut since_ping = Duration::ZERO;
     loop {
         if hub.client.read().await.is_none() {
             match connect(&hub, config.clone()).await {
-                Ok(()) => tracing::info!(channel = %hub.channel, "[bbs] chat relay connected"),
+                Ok(()) => {
+                    since_ping = Duration::ZERO;
+                    tracing::info!(channel = %hub.channel, "[bbs] chat relay connected");
+                }
                 Err(e) => {
                     tracing::warn!(error = %e, "[bbs] chat relay connect failed");
                     tokio::time::sleep(RECONNECT_DELAY).await;
@@ -213,13 +220,19 @@ async fn supervise(hub: Arc<ChatHub>, config: IrcConfig) {
             }
         }
 
-        tokio::time::sleep(PING_INTERVAL).await;
+        tokio::time::sleep(SUPERVISE_TICK).await;
 
-        if hub.stale() {
-            tracing::warn!("[bbs] chat relay went quiet, reconnecting");
+        if hub.stale().await {
+            tracing::warn!("[bbs] chat relay went silent, reconnecting");
             hub.client.write().await.take();
             continue;
         }
+
+        since_ping += SUPERVISE_TICK;
+        if since_ping < PING_INTERVAL {
+            continue;
+        }
+        since_ping = Duration::ZERO;
 
         let alive = {
             let guard = hub.client.read().await;
@@ -244,7 +257,6 @@ async fn connect(hub: &Arc<ChatHub>, config: IrcConfig) -> Result<(), String> {
         loop {
             match rx.recv().await {
                 Ok(msg) => {
-                    pump.mark_rx();
                     if msg.channel == pump.channel && msg.platform != PLATFORM {
                         pump.remember(&msg);
                         let _ = pump.tx.send(msg);
@@ -258,7 +270,6 @@ async fn connect(hub: &Arc<ChatHub>, config: IrcConfig) -> Result<(), String> {
         }
     });
 
-    hub.mark_rx();
     *hub.client.write().await = Some(client);
     Ok(())
 }

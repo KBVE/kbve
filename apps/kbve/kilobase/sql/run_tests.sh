@@ -17,19 +17,24 @@ echo "============================================"
 docker-entrypoint.sh postgres &
 PG_PID=$!
 
-# Wait for PostgreSQL to be ready
+# Wait for the *final* server, not the entrypoint's temporary bootstrap server.
+# The bootstrap server listens on the unix socket only (listen_addresses=''),
+# so a successful TCP query is what distinguishes the two. pg_isready alone
+# reports success against the bootstrap server and races the initdb shutdown.
 echo "[kilobase-test] Waiting for PostgreSQL to be ready..."
-for i in $(seq 1 30); do
-    if pg_isready -U postgres -d kilobase_test -q 2>/dev/null; then
+READY=0
+for i in $(seq 1 60); do
+    if psql -h 127.0.0.1 -U postgres -d kilobase_test -tAc 'SELECT 1' >/dev/null 2>&1; then
         echo "[kilobase-test] PostgreSQL is ready (${i}s)"
+        READY=1
         break
-    fi
-    if [ "$i" -eq 30 ]; then
-        echo "[kilobase-test] FATAL: PostgreSQL did not start within 30s"
-        exit 1
     fi
     sleep 1
 done
+if [ "$READY" -ne 1 ]; then
+    echo "[kilobase-test] FATAL: PostgreSQL did not start within 60s"
+    exit 1
+fi
 
 echo ""
 echo "============================================"
@@ -38,7 +43,12 @@ echo "============================================"
 echo ""
 
 # Run the test SQL and capture output
-TEST_OUTPUT=$(psql -U postgres -d kilobase_test -f /tests/test_kilobase.sql 2>&1) || true
+PSQL_RC=0
+TEST_OUTPUT=$(psql -h 127.0.0.1 -U postgres -d kilobase_test -f /tests/test_kilobase.sql 2>&1) || PSQL_RC=$?
+if [ "$PSQL_RC" -ne 0 ]; then
+    echo "[kilobase-test] psql exited $PSQL_RC while running the suite:"
+    echo "$TEST_OUTPUT"
+fi
 
 # Parse PASS/FAIL from NOTICE messages
 while IFS= read -r line; do
@@ -79,4 +89,6 @@ echo "============================================"
 echo ""
 echo "test result: $STATUS. $PASS_COUNT passed; $FAIL_COUNT failed; 0 ignored; 0 measured; 0 filtered out"
 
-[ "$FAIL_COUNT" -eq 0 ]
+# A suite that parsed zero tests is a failure, not a pass. Guarding on
+# FAIL_COUNT alone let a suite that never ran exit 0.
+[ "$FAIL_COUNT" -eq 0 ] && [ "$PASS_COUNT" -gt 0 ]

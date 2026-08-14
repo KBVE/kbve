@@ -14,8 +14,13 @@
 use std::collections::HashSet;
 use std::sync::mpsc::{self, Receiver, Sender};
 
-use q::rapier::sim3d::{SimCommand, SimWorld, TerrainDesc};
-use q::worldgen::{HeightGen, HeightParams, Window};
+use q::rapier::sim3d::{
+    BodyDesc, BodyId, BodyKind, Iso, ShapeDesc, SimCommand, SimWorld, TerrainDesc,
+};
+use q::worldgen::{BridgePlan, HeightGen, HeightParams, Window};
+
+/// Well clear of the player body space, which starts at a million.
+const BRIDGE_BODY_BASE: u32 = 2_000;
 
 /// Region indices, not world coordinates — the snap grid is what makes two players
 /// standing near each other share one region instead of baking two.
@@ -33,6 +38,10 @@ pub struct StreamConfig {
     /// Comfortably beyond `extent` so walking back and forth over a boundary does not
     /// drop and re-bake the same ground repeatedly.
     pub keep_radius: f32,
+    /// Must match the client's terrain: the deck's height is measured from it.
+    pub water_level: f32,
+    /// Must match the client's road width; the deck is a multiple of it.
+    pub road_width: f32,
     /// Concurrent bakes. Each is a full resolution² noise evaluation, so this is a
     /// cap on how much CPU terrain generation may steal from the sim thread's host.
     pub max_inflight: usize,
@@ -54,12 +63,20 @@ pub struct TerrainStreamer {
     pending: HashSet<Cell>,
     tx: Sender<(Cell, [f32; 2], Vec<f32>)>,
     rx: Receiver<(Cell, [f32; 2], Vec<f32>)>,
+    plan: BridgePlan,
+    bridge_in: bool,
 }
 
 impl TerrainStreamer {
     pub fn new(cfg: StreamConfig) -> Self {
         let (tx, rx) = mpsc::channel();
         let window = Window::new(cfg.extent, cfg.stride);
+        let plan = BridgePlan::new(
+            &HeightGen::new(&cfg.params()),
+            cfg.extent,
+            cfg.water_level,
+            cfg.road_width,
+        );
         Self {
             cfg,
             window,
@@ -67,6 +84,8 @@ impl TerrainStreamer {
             pending: HashSet::new(),
             tx,
             rx,
+            plan,
+            bridge_in: false,
         }
     }
 
@@ -109,6 +128,51 @@ impl TerrainStreamer {
             desc: self.desc(heights),
         });
         self.loaded.insert(cell);
+        self.sync_bridge(world);
+    }
+
+    /// Puts the deck and its kerbs into the solver, or takes them out again.
+    ///
+    /// The heightfield under a bridge is river, so without this the server holds
+    /// water where the client draws planks: the player walks onto the bridge,
+    /// their own host drops them in, and the correction yanks them back off. The
+    /// geometry comes from [`BridgePlan`] rather than from the client, which is
+    /// the only reason the two agree on where the deck is.
+    fn sync_bridge(&mut self, world: &mut SimWorld) {
+        let wanted = self
+            .loaded
+            .iter()
+            .any(|c| self.plan.in_window(self.origin_of(*c), self.cfg.extent));
+        if wanted == self.bridge_in {
+            return;
+        }
+        self.bridge_in = wanted;
+        for (i, slab) in self.plan.slabs().iter().enumerate() {
+            let id = BodyId(BRIDGE_BODY_BASE + i as u32);
+            if wanted {
+                world.apply(SimCommand::Spawn {
+                    id,
+                    desc: BodyDesc {
+                        kind: BodyKind::Fixed,
+                        shape: ShapeDesc::Cuboid {
+                            half_extents: slab.half_extents,
+                        },
+                        iso: Iso::at(slab.centre[0], slab.centre[1], slab.centre[2]),
+                        restitution: 0.0,
+                        friction: 1.0,
+                        linear_damping: 0.0,
+                        mass: None,
+                    },
+                });
+            } else {
+                world.apply(SimCommand::Despawn { id });
+            }
+        }
+    }
+
+    /// True while the deck is in the solver.
+    pub fn bridge_loaded(&self) -> bool {
+        self.bridge_in
     }
 
     /// Files completed bakes, requests missing regions, and drops ones nobody is near.
@@ -163,6 +227,8 @@ impl TerrainStreamer {
             });
             self.loaded.remove(&cell);
         }
+
+        self.sync_bridge(world);
     }
 
     fn request(&mut self, cell: Cell) {
@@ -212,6 +278,8 @@ mod tests {
             extent: 64.0,
             resolution: 33,
             stride: 32.0,
+            water_level: -1.4,
+            road_width: 3.2,
             keep_radius: 96.0,
             max_inflight: 2,
         }
@@ -379,6 +447,85 @@ mod tests {
         assert!(
             streamer.loaded_count() > 2,
             "the walk never needed new ground, so this proved nothing"
+        );
+    }
+
+    /// The bug this closes: the heightfield under a bridge is river, so a server
+    /// with no deck drops a player the client is drawing on planks.
+    #[test]
+    fn the_deck_holds_a_body_up_over_the_river() {
+        let cfg = StreamConfig {
+            extent: 256.0,
+            resolution: 129,
+            stride: 128.0,
+            keep_radius: 384.0,
+            ..config()
+        };
+        let plan = BridgePlan::new(
+            &HeightGen::new(&cfg.params()),
+            cfg.extent,
+            cfg.water_level,
+            cfg.road_width,
+        );
+        let mut world = SimWorld::new(&SimConfig::default());
+        let mut streamer = TerrainStreamer::new(cfg);
+        streamer.prime(&mut world);
+        assert!(
+            streamer.bridge_loaded(),
+            "spawn region should carry the deck"
+        );
+
+        // Dropped from just above the deck, right over the middle of the river.
+        let [cx, cz] = plan.crossing;
+        let id = BodyId(77);
+        world.apply(SimCommand::Spawn {
+            id,
+            desc: BodyDesc {
+                kind: BodyKind::Dynamic,
+                shape: ShapeDesc::Ball { radius: 0.3 },
+                iso: Iso::at(cx, plan.deck_y + 2.0, cz),
+                restitution: 0.0,
+                friction: 1.0,
+                linear_damping: 0.0,
+                mass: Some(1.0),
+            },
+        });
+        let start = world.snapshot().body(id).expect("body vanished").iso.pos[1];
+        for _ in 0..240 {
+            world.step();
+        }
+        let y = world.snapshot().body(id).expect("body vanished").iso.pos[1];
+        assert!(y < start, "body never fell at all: {start} -> {y}");
+        assert!(
+            y > plan.deck_y,
+            "fell through the deck: rested at {y}, deck is {}",
+            plan.deck_y
+        );
+        assert!(
+            y < plan.deck_y + 1.0,
+            "hovering at {y}, deck {} rails {}",
+            plan.deck_y,
+            plan.deck_y + 0.62
+        );
+    }
+
+    /// The deck goes away with the ground it spans, or a server keeps colliders
+    /// for a bridge nobody is anywhere near.
+    #[test]
+    fn the_deck_is_dropped_with_its_region() {
+        let cfg = StreamConfig {
+            keep_radius: 96.0,
+            ..config()
+        };
+        let mut world = SimWorld::new(&SimConfig::default());
+        let mut streamer = TerrainStreamer::new(cfg);
+        streamer.prime(&mut world);
+        assert!(streamer.bridge_loaded());
+        // The spawn region is always kept, so the deck stays with it.
+        settle(&mut streamer, &mut world, &[[4000.0, 4000.0]]);
+        assert!(
+            streamer.bridge_loaded(),
+            "the spawn region is kept, so its deck should be too"
         );
     }
 

@@ -344,7 +344,9 @@ impl Session {
                     if text.trim().eq_ignore_ascii_case("/quit") {
                         return Ok(());
                     }
-                    self.say(hub, &text, &mut lines).await;
+                    if !self.say(hub, &text, &mut lines).await {
+                        input = text;
+                    }
                 }
                 Tick::Key(KEY_BS | KEY_DEL) => {
                     input.pop();
@@ -362,19 +364,30 @@ impl Session {
         }
     }
 
-    async fn say(&mut self, hub: &chat::ChatHub, text: &str, lines: &mut VecDeque<String>) {
+    /// `false` when the caller should get their line back to try again, rather
+    /// than watch it vanish into a notice they cannot act on.
+    async fn say(&mut self, hub: &chat::ChatHub, text: &str, lines: &mut VecDeque<String>) -> bool {
         let Some(account) = self.user.as_ref() else {
             push_line(lines, "-- log in to chat --".to_string());
-            return;
+            return false;
         };
         let (user_id, username) = (account.user_id.clone(), account.username.clone());
         match hub.send(&user_id, &username, text).await {
             // The hub rebroadcasts an accepted line to every subscriber, this
             // session included, so it arrives through `rx` like any other.
-            Ok(()) => {}
-            Err(SendError::Empty) => {}
-            Err(SendError::TooFast) => push_line(lines, "-- slow down --".to_string()),
-            Err(SendError::Offline) => push_line(lines, "-- relay offline --".to_string()),
+            Ok(()) => true,
+            Err(SendError::Empty) => true,
+            Err(SendError::TooFast) => {
+                push_line(lines, "-- slow down --".to_string());
+                false
+            }
+            Err(SendError::Offline) => {
+                push_line(
+                    lines,
+                    "-- reconnecting, press enter to retry --".to_string(),
+                );
+                false
+            }
         }
     }
 

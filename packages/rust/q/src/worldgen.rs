@@ -344,7 +344,11 @@ mod tests {
     fn baked_heights_are_bit_stable_across_platforms() {
         let p = HeightParams::default();
         let grid = HeightGen::new(&p).bake(64.0, 33);
-        assert_eq!(fnv1a(&grid), 0x7709_c812_0bc2_a47c, "baked heights diverged");
+        assert_eq!(
+            fnv1a(&grid),
+            0x7709_c812_0bc2_a47c,
+            "baked heights diverged"
+        );
     }
 
     #[test]
@@ -360,5 +364,97 @@ mod tests {
                 assert_eq!(grid[(iy * res + ix) as usize], hgen.height(x, z));
             }
         }
+    }
+}
+
+/// An axis-aligned box of the bridge, in world space.
+///
+/// The deck and its rails are boxes on both sides of the wire: the client draws
+/// planks over them, the server gives them to the solver as cuboids. Both read
+/// the same numbers from [`BridgePlan`], which is the only way they can agree on
+/// where the deck is -- and a disagreement there is a player walking on planks
+/// their own server thinks are river.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct BridgeSlab {
+    pub centre: [f32; 3],
+    pub half_extents: [f32; 3],
+}
+
+/// Where the one river crossing is and how big its deck is.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct BridgePlan {
+    pub crossing: [f32; 2],
+    pub half_span: f32,
+    pub deck_y: f32,
+    pub deck_half: f32,
+    pub half_width: f32,
+}
+
+impl BridgePlan {
+    /// Reproduces the road's own span search, so the deck cannot drift from the
+    /// carriageway that runs onto it.
+    ///
+    /// `extent` bounds the search, so it must be the same on both sides. That is
+    /// what the terrain shape in the join handshake is for.
+    pub fn new(hgen: &HeightGen, extent: f32, water_level: f32, road_width: f32) -> Self {
+        let crossing_z = 0.0;
+        let river_x = hgen.river_x(crossing_z);
+
+        let mut half_span = 4.0;
+        while half_span < extent * 0.25 {
+            let left = hgen.height(river_x - half_span, crossing_z);
+            let right = hgen.height(river_x + half_span, crossing_z);
+            if left > water_level + 0.75 && right > water_level + 0.75 {
+                break;
+            }
+            half_span += 0.5;
+        }
+        half_span += 2.5;
+
+        let mut crest = hgen
+            .height(river_x - half_span, crossing_z)
+            .max(hgen.height(river_x + half_span, crossing_z));
+        let corridor = half_span + 7.0;
+        let mut s = -corridor;
+        while s <= corridor {
+            crest = crest.max(hgen.height(river_x + s, crossing_z));
+            s += 1.5;
+        }
+
+        Self {
+            crossing: [river_x, crossing_z],
+            half_span,
+            deck_y: crest.max(water_level + 1.9) + 0.35,
+            deck_half: half_span + 1.8,
+            half_width: road_width * 0.55,
+        }
+    }
+
+    /// The solid parts, for anything that has to stop a body: the deck itself and
+    /// a kerb down each side so nobody walks off into the river.
+    pub fn slabs(&self) -> [BridgeSlab; 3] {
+        let [cx, cz] = self.crossing;
+        let rail = self.half_width - 0.08;
+        [
+            BridgeSlab {
+                centre: [cx, self.deck_y, cz],
+                half_extents: [self.deck_half, 0.11, self.half_width],
+            },
+            BridgeSlab {
+                centre: [cx, self.deck_y + 0.62, cz - rail],
+                half_extents: [self.deck_half, 0.07, 0.07],
+            },
+            BridgeSlab {
+                centre: [cx, self.deck_y + 0.62, cz + rail],
+                half_extents: [self.deck_half, 0.07, 0.07],
+            },
+        ]
+    }
+
+    /// True when the crossing is close enough to a window to belong to it.
+    pub fn in_window(&self, origin: [f32; 2], extent: f32) -> bool {
+        let reach = self.half_span + 40.0;
+        (self.crossing[0] - origin[0]).abs() <= extent + reach
+            && (self.crossing[1] - origin[1]).abs() <= extent + reach
     }
 }
