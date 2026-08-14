@@ -119,6 +119,8 @@ func _physics_process(delta: float) -> void:
 	travelled.y = 0.0
 	_patrol.observe(global_position, _flat_facing(), travelled.length(), _neighbours())
 
+	_observe_route()
+
 	if _leader:
 		var moved := _leader.global_position - _leader_last
 		moved.y = 0.0
@@ -148,6 +150,18 @@ func _physics_process(delta: float) -> void:
 			_action_t = randf_range(action_interval * 0.6, action_interval * 1.4)
 			var attacks: Array = rig.ATTACKS
 			rig.play_action(attacks[randi() % attacks.size()])
+
+
+## The route out of the shared flow field, when one covers this creature.
+##
+## Only while following: the field is integrated to the leader, and a roaming
+## creature is going somewhere else entirely, so it steers itself.
+func _observe_route() -> void:
+	var spawner := get_parent()
+	if _leader == null or spawner == null or not ("field" in spawner) or spawner.field == null:
+		_patrol.clear_route()
+		return
+	_patrol.observe_route(spawner.field.direction_at(global_position))
 
 
 ## Every other creature, so the solver can steer around them. The leader goes in

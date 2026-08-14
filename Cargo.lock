@@ -7826,7 +7826,7 @@ dependencies = [
 
 [[package]]
 name = "friendslop-server"
-version = "0.0.3"
+version = "0.0.4"
 dependencies = [
  "agones",
  "axum 0.8.9",
@@ -15869,7 +15869,7 @@ dependencies = [
 
 [[package]]
 name = "reel"
-version = "0.1.40"
+version = "0.1.41"
 dependencies = [
  "anyhow",
  "axum 0.8.9",

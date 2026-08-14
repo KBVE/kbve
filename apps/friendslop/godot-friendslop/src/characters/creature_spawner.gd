@@ -21,9 +21,22 @@ const MECH_DIR := "res://assets/characters/creatures/mech/models/"
 ## Seconds between one-shot actions.
 @export var action_interval := 7.0
 
+## Size of a flow field cell. Smaller routes more precisely and costs more to
+## integrate; the whole grid is rebuilt at once.
+@export var field_cell := 4.0
+## Ground steeper than this is not walkable, as a height change per unit across.
+@export var field_max_slope := 1.1
+## Obstacles grow by this so the routes fit a mech rather than a point.
+@export var field_clearance := 2.5
+## The leader has to move this far before the field is integrated again. A full
+## rebuild is far too slow to run every frame.
+@export var field_slack := 6.0
+
 const GROUP := &"creature_spawner"
 
 var spawned: Array[Node3D] = []
+var field: QFlowField
+var _leader: Node3D
 
 
 func _ready() -> void:
@@ -36,6 +49,8 @@ func _spawn() -> void:
 	if terrain == null:
 		terrain = get_tree().current_scene.get_node_or_null("Terrain")
 	var leader := get_node_or_null(leader_path)
+	_leader = leader as Node3D
+	_build_field(terrain)
 	var span := spacing * maxf(mechs.size() - 1.0, 0.0)
 	for i in mechs.size():
 		var name := mechs[i].strip_edges()
@@ -79,3 +94,27 @@ func _spawn() -> void:
 		patrol.add_child(rig)
 		patrol.rig = rig
 		spawned.append(patrol)
+
+
+## One field, shared by everything following the leader. Water and cliffs come
+## out of the terrain the ground is drawn from, so a route never crosses either.
+func _build_field(terrain: Node) -> void:
+	if terrain == null or not terrain.has_method("height_grid"):
+		return
+	var heights: PackedFloat32Array = terrain.height_grid()
+	var res: int = terrain.height_grid_res()
+	if heights.is_empty() or res <= 1:
+		return
+	var extent: float = terrain.extent
+	field = QFlowField.create(extent, field_cell)
+	field.stamp_terrain(heights, res, extent, terrain.water_level, field_max_slope)
+	field.inflate(field_clearance)
+	if _leader:
+		field.build(_leader.global_position)
+
+
+func _physics_process(_delta: float) -> void:
+	# Rebuilt here rather than by each creature, so the cost is paid once no
+	# matter how many are following it.
+	if field and _leader:
+		field.rebuild_if_moved(_leader.global_position, field_slack)

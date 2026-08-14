@@ -2,6 +2,7 @@
 
 use godot::prelude::*;
 
+use super::field::{BLOCKED, Field, Grid};
 use super::{Config, Mode, Patrol, Sense, Vec2};
 
 fn flat(v: Vector3) -> Vec2 {
@@ -140,6 +141,23 @@ impl QPatrol {
         self.sense.leader = None;
     }
 
+    /// The direction a flow field wants this creature to take. Left unset, it
+    /// steers straight at its target, which is right in the open.
+    #[func]
+    fn observe_route(&mut self, route: Vector3) {
+        let flat = flat(route);
+        self.sense.route = if flat[0].abs() + flat[1].abs() > 1e-4 {
+            Some(flat)
+        } else {
+            None
+        };
+    }
+
+    #[func]
+    fn clear_route(&mut self) {
+        self.sense.route = None;
+    }
+
     /// Returns `wish`, `face` and `mode`.
     #[func]
     fn step(&mut self, delta: f32) -> VarDictionary {
@@ -159,5 +177,111 @@ impl QPatrol {
     #[func]
     fn mode(&self) -> i64 {
         mode_id(self.inner.mode())
+    }
+}
+
+/// One goal's flow field, shared by every creature heading for it.
+#[derive(GodotClass)]
+#[class(no_init, base = RefCounted)]
+pub struct QFlowField {
+    base: Base<RefCounted>,
+    inner: Field,
+}
+
+#[godot_api]
+impl QFlowField {
+    /// A grid of `cells` squares of `cell_size`, centred on the world origin.
+    #[func]
+    fn create(extent: f32, cell_size: f32) -> Gd<Self> {
+        let cells = ((extent * 2.0) / cell_size.max(0.1)).ceil().max(1.0) as usize;
+        let grid = Grid::new([-extent, -extent], cell_size, cells, cells);
+        Gd::from_init_fn(|base| Self {
+            base,
+            inner: Field::new(grid),
+        })
+    }
+
+    /// Reads the terrain the field sits on, closing water and anything too steep.
+    #[func]
+    fn stamp_terrain(
+        &mut self,
+        heights: PackedFloat32Array,
+        res: i64,
+        extent: f32,
+        water_level: f32,
+        max_slope: f32,
+    ) {
+        self.inner.stamp_terrain(
+            heights.as_slice(),
+            res.max(0) as usize,
+            extent,
+            water_level,
+            max_slope,
+        );
+    }
+
+    /// Closes a disc, which is how a rock or a tree reaches the field.
+    #[func]
+    fn block_disc(&mut self, centre: Vector3, radius: f32) {
+        self.inner.grid.block_disc(flat(centre), radius);
+    }
+
+    /// Raises cost without closing it: ground that is crossable but unwelcome.
+    #[func]
+    fn stamp_disc(&mut self, centre: Vector3, radius: f32, cost: i64) {
+        self.inner
+            .grid
+            .stamp_disc(flat(centre), radius, cost.clamp(0, 254) as u8);
+    }
+
+    /// Grows every obstacle by a body radius, so the routes it hands out fit
+    /// the thing following them.
+    #[func]
+    fn inflate(&mut self, radius: f32) {
+        self.inner.grid.inflate(radius);
+    }
+
+    #[func]
+    fn clear(&mut self) {
+        self.inner.grid.fill(1);
+    }
+
+    #[func]
+    fn build(&mut self, goal: Vector3) {
+        self.inner.build(flat(goal));
+    }
+
+    /// Rebuilds only when the goal has moved far enough to matter. A full
+    /// integration is far too slow to run every frame for a walking target.
+    #[func]
+    fn rebuild_if_moved(&mut self, goal: Vector3, slack: f32) -> bool {
+        self.inner.rebuild_if_moved(flat(goal), slack)
+    }
+
+    /// Which way to walk from here, or zero where the field cannot help and the
+    /// caller should steer straight at its target instead.
+    #[func]
+    fn direction_at(&self, at: Vector3) -> Vector3 {
+        match self.inner.direction_at(flat(at)) {
+            Some(dir) => wide(dir),
+            None => Vector3::ZERO,
+        }
+    }
+
+    /// Cost-weighted distance to the goal, or -1 where it cannot be reached.
+    #[func]
+    fn distance_at(&self, at: Vector3) -> f32 {
+        let d = self.inner.distance_at(flat(at));
+        if d.is_finite() { d } else { -1.0 }
+    }
+
+    #[func]
+    fn is_blocked(&self, at: Vector3) -> bool {
+        let g = &self.inner.grid;
+        if g.outside(flat(at)) {
+            return true;
+        }
+        let (x, y) = g.cell_of(flat(at));
+        g.cost(x, y) == BLOCKED
     }
 }
