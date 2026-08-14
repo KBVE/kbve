@@ -27,6 +27,7 @@ COPY packages/rust/bevy/bevy_chat/Cargo.toml packages/rust/bevy/bevy_chat/Cargo.
 COPY packages/rust/bevy/bevy_mapdb/Cargo.toml packages/rust/bevy/bevy_mapdb/Cargo.toml
 COPY packages/rust/bevy/bevy_pathfinder/Cargo.toml packages/rust/bevy/bevy_pathfinder/Cargo.toml
 COPY packages/rust/bevy/bevy_db/Cargo.toml packages/rust/bevy/bevy_db/Cargo.toml
+COPY packages/rust/bevy/bevy_dungeon/Cargo.toml packages/rust/bevy/bevy_dungeon/Cargo.toml
 # bevy_db carries an optional path dep on bevy_tasker behind the
 # "bevy-plugin" feature. cargo chef prepare reads every member manifest
 # fully — including optional path deps — so the bevy_tasker manifest
@@ -50,6 +51,7 @@ RUN mkdir -p apps/discordsh/discordsh-bot/src && echo "fn main() {}" > apps/disc
     mkdir -p packages/rust/bevy/bevy_mapdb/src && echo "" > packages/rust/bevy/bevy_mapdb/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_pathfinder/src && echo "" > packages/rust/bevy/bevy_pathfinder/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_db/src && echo "" > packages/rust/bevy/bevy_db/src/lib.rs && \
+    mkdir -p packages/rust/bevy/bevy_dungeon/src && echo "" > packages/rust/bevy/bevy_dungeon/src/lib.rs && \
     mkdir -p packages/rust/bevy/bevy_tasker/src && echo "" > packages/rust/bevy/bevy_tasker/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json
@@ -98,6 +100,7 @@ COPY packages/rust/bevy/bevy_chat packages/rust/bevy/bevy_chat
 COPY packages/rust/bevy/bevy_mapdb packages/rust/bevy/bevy_mapdb
 COPY packages/rust/bevy/bevy_pathfinder packages/rust/bevy/bevy_pathfinder
 COPY packages/rust/bevy/bevy_db packages/rust/bevy/bevy_db
+COPY packages/rust/bevy/bevy_dungeon packages/rust/bevy/bevy_dungeon
 # bevy_db carries an optional path dep on bevy_tasker behind the
 # "bevy-plugin" feature; cargo reads the dep manifest even when the
 # feature is off, so the source must exist on disk in this stage too
@@ -107,7 +110,7 @@ COPY packages/rust/bevy/bevy_tasker packages/rust/bevy/bevy_tasker
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
-    cargo build --release -p kbve -p jedi -p holy -p bevy_inventory -p bevy_items -p bevy_behavior -p bevy_battle -p bevy_npc -p bevy_quests -p bevy_skills -p bevy_chat -p bevy_mapdb -p bevy_pathfinder -p bevy_db
+    cargo build --release -p kbve -p jedi -p holy -p bevy_inventory -p bevy_items -p bevy_behavior -p bevy_battle -p bevy_npc -p bevy_quests -p bevy_skills -p bevy_chat -p bevy_mapdb -p bevy_pathfinder -p bevy_db -p bevy_dungeon
 
 # ============================================================================
 # [STAGE D] - Build Application
@@ -134,6 +137,7 @@ COPY packages/rust/bevy/bevy_chat packages/rust/bevy/bevy_chat
 COPY packages/rust/bevy/bevy_mapdb packages/rust/bevy/bevy_mapdb
 COPY packages/rust/bevy/bevy_pathfinder packages/rust/bevy/bevy_pathfinder
 COPY packages/rust/bevy/bevy_db packages/rust/bevy/bevy_db
+COPY packages/rust/bevy/bevy_dungeon packages/rust/bevy/bevy_dungeon
 # bevy_db -> bevy_tasker (optional path dep, gated on bevy-plugin feature)
 COPY packages/rust/bevy/bevy_tasker packages/rust/bevy/bevy_tasker
 
