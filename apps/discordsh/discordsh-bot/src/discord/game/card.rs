@@ -2,6 +2,7 @@ use askama::Template;
 use bevy_battle::snapshot::CombatSnapshot;
 use kbve::{FontDb, render_svg_to_png};
 
+use super::content::{self, TileVisibility};
 use super::types::*;
 
 // ── Pre-computed display values ─────────────────────────────────────
@@ -846,21 +847,10 @@ pub fn build_map_card_with_route(session: &SessionState, route: &[MapPos]) -> Ma
 
             if let Some(tile) = session.map.tiles.get(&world_pos) {
                 let is_current = world_pos == *pos;
-                let is_visited = tile.visited;
+                let visibility = content::tile_visibility(&session.map, world_pos);
+                let is_visited = visibility == TileVisibility::Explored;
 
-                // A tile is "discovered" if it is adjacent to a visited tile
-                // but hasn't been visited itself.
-                let is_discovered = if !is_visited {
-                    Direction::all().iter().any(|dir| {
-                        let neighbor = world_pos.neighbor(*dir);
-                        session.map.tiles.get(&neighbor).is_some_and(|t| t.visited)
-                    })
-                } else {
-                    false
-                };
-
-                // Only render visited or discovered tiles
-                if !is_visited && !is_discovered {
+                if visibility == TileVisibility::Hidden {
                     continue;
                 }
 
@@ -902,7 +892,7 @@ pub fn build_map_card_with_route(session: &SessionState, route: &[MapPos]) -> Ma
                     icon_color,
                     is_current,
                     is_visited,
-                    is_discovered,
+                    is_discovered: visibility == TileVisibility::Discovered,
                     has_exit_n: tile.exits.contains(&Direction::North),
                     has_exit_s: tile.exits.contains(&Direction::South),
                     has_exit_e: tile.exits.contains(&Direction::East),

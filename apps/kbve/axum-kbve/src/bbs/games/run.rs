@@ -1,3 +1,4 @@
+use bevy_dungeon::content::{self, TileVisibility};
 use bevy_dungeon::types::{
     ClassType, Direction, GameAction, GamePhase, MapPos, RoomType, SessionState,
 };
@@ -151,12 +152,15 @@ impl Run {
                 let Some(tile) = self.state.map.tiles.get(&pos) else {
                     continue;
                 };
-                if !tile.visited && pos != here {
+                let visibility = content::tile_visibility(&self.state.map, pos);
+                if visibility == TileVisibility::Hidden && pos != here {
                     continue;
                 }
 
                 let cell = if pos == here {
                     Cell::Current
+                } else if visibility == TileVisibility::Discovered {
+                    Cell::Discovered
                 } else {
                     match tile.room_type {
                         RoomType::Boss => Cell::Boss,
@@ -168,11 +172,15 @@ impl Run {
                     }
                 };
 
-                let links = Links {
-                    north: tile.exits.contains(&Direction::North),
-                    south: tile.exits.contains(&Direction::South),
-                    east: tile.exits.contains(&Direction::East),
-                    west: tile.exits.contains(&Direction::West),
+                let links = if visibility == TileVisibility::Discovered {
+                    Links::NONE
+                } else {
+                    Links {
+                        north: tile.exits.contains(&Direction::North),
+                        south: tile.exits.contains(&Direction::South),
+                        east: tile.exits.contains(&Direction::East),
+                        west: tile.exits.contains(&Direction::West),
+                    }
                 };
 
                 grid.set((dx + span) as usize, (dy + span) as usize, cell, links);

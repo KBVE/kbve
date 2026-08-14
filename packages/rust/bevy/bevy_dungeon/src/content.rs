@@ -2606,6 +2606,38 @@ pub fn reveal_neighbors(map: &mut MapState, pos: MapPos) {
     }
 }
 
+/// How much of a tile a player is allowed to see.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum TileVisibility {
+    /// Not on the map yet, or too far from anywhere the player has walked.
+    Hidden,
+    /// Adjacent to somewhere the player has been: its position is known, its
+    /// contents are not.
+    Discovered,
+    /// Walked. Room type, clear state and exits are all known.
+    Explored,
+}
+
+/// The single fog-of-war rule, so every front end hides the same things.
+pub fn tile_visibility(map: &MapState, pos: MapPos) -> TileVisibility {
+    let Some(tile) = map.tiles.get(&pos) else {
+        return TileVisibility::Hidden;
+    };
+    if tile.visited {
+        return TileVisibility::Explored;
+    }
+    let adjacent_to_visited = Direction::all().iter().any(|dir| {
+        map.tiles
+            .get(&pos.neighbor(*dir))
+            .is_some_and(|t| t.visited)
+    });
+    if adjacent_to_visited {
+        TileVisibility::Discovered
+    } else {
+        TileVisibility::Hidden
+    }
+}
+
 /// Build a RoomState from a MapTile (bridge to existing combat/merchant/etc systems).
 pub fn room_from_tile(tile: &MapTile) -> RoomState {
     let depth = tile.pos.depth();
@@ -2675,6 +2707,61 @@ pub fn generate_encounter_room(depth: u32) -> RoomState {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn visibility_start_tile_is_explored() {
+        let map = generate_initial_map(&uuid::Uuid::nil());
+        assert_eq!(
+            tile_visibility(&map, map.position),
+            TileVisibility::Explored
+        );
+    }
+
+    #[test]
+    fn visibility_revealed_neighbors_are_discovered_not_explored() {
+        let mut map = generate_initial_map(&uuid::Uuid::nil());
+        let here = map.position;
+        reveal_neighbors(&mut map, here);
+
+        let exits = map.tiles.get(&map.position).unwrap().exits.clone();
+        assert!(!exits.is_empty(), "start tile should have exits");
+
+        for dir in exits {
+            let neighbor = map.position.neighbor(dir);
+            assert_eq!(
+                tile_visibility(&map, neighbor),
+                TileVisibility::Discovered,
+                "neighbor {neighbor:?} should be discovered, not explored"
+            );
+        }
+    }
+
+    #[test]
+    fn visibility_missing_tile_is_hidden() {
+        let map = generate_initial_map(&uuid::Uuid::nil());
+        let far = MapPos {
+            x: map.position.x + 40,
+            y: map.position.y + 40,
+        };
+        assert!(!map.tiles.contains_key(&far));
+        assert_eq!(tile_visibility(&map, far), TileVisibility::Hidden);
+    }
+
+    #[test]
+    fn visibility_two_steps_out_stays_hidden() {
+        let mut map = generate_initial_map(&uuid::Uuid::nil());
+        let here = map.position;
+        reveal_neighbors(&mut map, here);
+
+        let dir = map.tiles.get(&map.position).unwrap().exits[0];
+        let neighbor = map.position.neighbor(dir);
+        reveal_neighbors(&mut map, neighbor);
+
+        let beyond = neighbor.neighbor(dir);
+        if map.tiles.contains_key(&beyond) {
+            assert_eq!(tile_visibility(&map, beyond), TileVisibility::Hidden);
+        }
+    }
 
     #[test]
     fn item_registry_has_17_items() {
