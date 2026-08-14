@@ -474,7 +474,6 @@ impl QTerrain {
         }
 
         const PLANK_T: f32 = 0.18;
-        const RAMP_GRADE: f32 = 0.15;
         let rail_lat = half_w - 0.08;
         let reach = deck_half + 0.6;
         let ground_lo = |p: Vector3| -> f32 {

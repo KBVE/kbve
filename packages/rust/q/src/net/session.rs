@@ -82,6 +82,10 @@ pub enum SessionMsg {
         /// over the ground, never as an error.
         terrain_extent: f32,
         terrain_resolution: u32,
+        /// The two numbers the bridge deck is measured from. They decide `deck_y`, so a
+        /// client holding different ones draws planks where its own server holds river.
+        water_level: f32,
+        road_width: f32,
         /// Hours, 0..24, at the moment of joining.
         time_of_day: f32,
         day_length_minutes: f32,
@@ -140,7 +144,12 @@ pub struct SessionConfig {
     /// How often the clock is rebroadcast.
     pub time_sync_seconds: f64,
     /// Surface height of the water. Below it, gravity is buoyant and descent is capped.
+    /// Also half of what the bridge deck's height is measured from, which is why it is
+    /// echoed to clients rather than authored twice.
     pub water_level: f32,
+    /// Width of the trunk road. The deck is a multiple of it, so it travels with the
+    /// rest of the terrain contract.
+    pub road_width: f32,
     /// Downward pull under water, as a fraction of `gravity`. Negative would push a
     /// body up; zero leaves it neutrally buoyant.
     pub water_gravity_scale: f32,
@@ -163,6 +172,8 @@ impl Default for SessionConfig {
             time_sync_seconds: 2.0,
             // HeightParams::default().water_level.
             water_level: -1.4,
+            // Match QTerrain's exported road_width.
+            road_width: 3.2,
             water_gravity_scale: 0.12,
             swim_speed: 2.0,
             move_speed: 4.0,
@@ -390,6 +401,8 @@ impl<T: Transport> HostSession<T> {
                 name: assigned,
                 terrain_extent: self.config.terrain_extent,
                 terrain_resolution: self.config.terrain_resolution,
+                water_level: self.config.water_level,
+                road_width: self.config.road_width,
                 time_of_day: self.hour,
                 day_length_minutes: self.config.day_length_minutes,
             },
@@ -652,6 +665,9 @@ pub struct ClientSession<T: Transport> {
 pub struct WorldInfo {
     pub terrain_extent: f32,
     pub terrain_resolution: u32,
+    /// The deck's height is derived from these two on both sides.
+    pub water_level: f32,
+    pub road_width: f32,
     pub day_length_minutes: f32,
 }
 
@@ -780,6 +796,8 @@ impl<T: Transport> ClientSession<T> {
                     name,
                     terrain_extent,
                     terrain_resolution,
+                    water_level,
+                    road_width,
                     time_of_day,
                     day_length_minutes,
                     ..
@@ -792,6 +810,8 @@ impl<T: Transport> ClientSession<T> {
                     self.world = Some(WorldInfo {
                         terrain_extent,
                         terrain_resolution,
+                        water_level,
+                        road_width,
                         day_length_minutes,
                     });
                 }

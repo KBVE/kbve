@@ -67,6 +67,17 @@ func _adopt_world() -> void:
 		if int(_terrain.resolution) != resolution:
 			_terrain.resolution = resolution
 
+	# The deck's height comes out of these, so they belong to the host for the same
+	# reason the extent does: a bridge in two places is a player walking on planks
+	# their own server thinks are river.
+	var water := _client.world_water_level()
+	var road := _client.world_road_width()
+	if _terrain and road > 0.0:
+		if not is_equal_approx(float(_terrain.water_level), water):
+			_terrain.water_level = water
+		if not is_equal_approx(float(_terrain.road_width), road):
+			_terrain.road_width = road
+
 	# Through the setter, not the export: _hours_per_second is derived once in _ready,
 	# so assigning the field here would leave the sky running at the authored rate and
 	# visibly jump on every sync from the host.

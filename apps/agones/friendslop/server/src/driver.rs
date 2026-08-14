@@ -99,6 +99,8 @@ pub fn spawn(
     let resolution = cfg.terrain_resolution;
     let stride = cfg.stream_stride;
     let keep_radius = cfg.stream_keep_radius;
+    let water_level = cfg.water_level;
+    let road_width = cfg.road_width;
 
     let thread =
         std::thread::Builder::new()
@@ -109,6 +111,8 @@ pub fn spawn(
                 let session_config = SessionConfig {
                     terrain_extent: extent,
                     terrain_resolution: resolution.max(2) as u32,
+                    water_level,
+                    road_width,
                     ..SessionConfig::default()
                 };
                 let mut host = HostSession::dedicated(transport.clone(), session_config, sim, seed);

@@ -157,6 +157,16 @@ func terrain_resolution() -> int:
 	return _client.terrain_resolution()
 
 
+## The two numbers the bridge deck's height is derived from. Same story as the extent:
+## disagree and the client draws planks over what its own server holds as river.
+func world_water_level() -> float:
+	return _client.world_water_level()
+
+
+func world_road_width() -> float:
+	return _client.world_road_width()
+
+
 ## Input is in screen terms — left is left of the camera, not west.
 func _world_wish(wish: Vector2) -> Vector2:
 	if wish == Vector2.ZERO or intent_basis_path.is_empty():
