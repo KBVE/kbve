@@ -28,7 +28,7 @@ var _side := 0.0
 
 func _ready() -> void:
 	_len = arm_length
-	var scene := get_tree().current_scene
+	var scene := _world_root()
 	_terrain = scene.get_node_or_null("Terrain")
 	_settings = scene.get_node_or_null("GameplaySettings")
 	_body = _player.get_node_or_null("Mesh") as Node3D
@@ -36,6 +36,16 @@ func _ready() -> void:
 		_settings.changed.connect(_read_settings)
 		_read_settings()
 	_apply()
+
+
+## Whatever the player was added under. Mid-swap, and under an additive load, the tree's
+## current scene is either null or somebody else's, and reading the world off it takes the
+## whole rig down with it.
+func _world_root() -> Node:
+	var scene := get_tree().current_scene
+	if scene != null and scene.is_ancestor_of(self):
+		return scene
+	return _player.get_parent()
 
 
 func _read_settings() -> void:

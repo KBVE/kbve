@@ -1,0 +1,66 @@
+name: Worldgen Determinism
+
+on:
+    workflow_dispatch:
+    pull_request:
+        paths:
+            - 'packages/rust/q/src/worldgen.rs'
+            - 'packages/rust/q/src/world/**'
+            - 'packages/rust/q/Cargo.toml'
+            - 'Cargo.toml'
+            - 'Cargo.lock'
+            - '.github/workflows/rust-worldgen-determinism.yml'
+
+env:
+    CARGO_NET_RETRY: '10'
+    CARGO_NET_TIMEOUT: '60'
+    RUSTUP_MAX_RETRIES: '10'
+    CARGO_TERM_COLOR: always
+
+jobs:
+    probe:
+        name: ${{ matrix.os }}
+        runs-on: ${{ matrix.os }}
+        timeout-minutes: 20
+        permissions:
+            contents: read
+        strategy:
+            fail-fast: false
+            matrix:
+                os: [ubuntu-latest, windows-latest, macos-latest]
+
+        steps:
+            # graphify/dir has colons in filenames. Git validates every index
+            # entry, so sparse-checkout alone still aborts the clone.
+            - name: Allow colon paths in the index
+              if: runner.os == 'Windows'
+              run: git config --global core.protectNTFS false
+
+            - name: Checkout repository
+              uses: actions/checkout@v7
+              with:
+                  sparse-checkout: |
+                      /*
+                      !/apps/kbve/astro-kbve/public/graphify
+                  sparse-checkout-cone-mode: false
+
+            - name: Rust ToolChain (1.96)
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                  toolchain: '1.96'
+
+            - name: Cache cargo
+              uses: actions/cache@v6
+              with:
+                  path: |
+                      ~/.cargo/registry
+                      ~/.cargo/git
+                      target
+                  key: ${{ runner.os }}-cargo-worldgen-${{ hashFiles('Cargo.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-cargo-worldgen-
+
+            - name: Bit-exactness probe
+              run: >
+                  cargo test -p q --no-default-features --features server,rapier3d-sim
+                  --lib worldgen::tests -- --nocapture

@@ -99,6 +99,8 @@ tokio = { workspace = true, optional = true, features = ["default", "rt-multi-th
 postcard = { workspace = true, optional = true, features = ["use-std"] }
 bincode = { workspace = true, optional = true, features = ["serde"] }
 
+libm = { workspace = true }
+
 # Physics
 rapier2d = { version = "0.22", optional = true }
 rapier3d = { version = "0.35", optional = true }

@@ -2,6 +2,7 @@
 pub enum EmbedError {
     #[error("turso error: {0}")]
     Turso(#[from] turso::Error),
+    #[cfg(feature = "analytics")]
     #[error("duckdb error: {0}")]
     Duck(#[from] duckdb::Error),
     #[error("io error: {0}")]

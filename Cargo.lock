@@ -15297,6 +15297,7 @@ dependencies = [
  "http 1.4.2",
  "infer",
  "jsonwebtoken",
+ "libm",
  "objc2 0.6.4",
  "postcard",
  "rapier2d",
@@ -15869,7 +15870,7 @@ dependencies = [
 
 [[package]]
 name = "reel"
-version = "0.1.41"
+version = "0.1.42"
 dependencies = [
  "anyhow",
  "axum 0.8.9",
