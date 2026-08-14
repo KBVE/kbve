@@ -12,10 +12,21 @@ pub fn hash64(mut x: u64) -> u64 {
     x
 }
 
-pub fn stable_id(seed: u64, x: f32, z: f32) -> u64 {
-    let qx = (x * 10.0).round() as i64 as u64;
-    let qz = (z * 10.0).round() as i64 as u64;
-    hash64(seed ^ qx.wrapping_mul(0x9e3779b97f4a7c15) ^ qz.rotate_left(32))
+/// Identity for one scattered instance: its global cell, plus which instance of
+/// that cell it is.
+///
+/// Integer in, integer out. An earlier version quantized world position, which
+/// tied identity to float reproducibility -- a last-ULP difference near a
+/// quantization boundary renamed a rock, and one renamed rock is a client and
+/// server disagreeing about what the player just mined.
+pub fn stable_id(seed: u64, cell_x: i32, cell_z: i32, ordinal: u32) -> u64 {
+    let cx = cell_x as u32 as u64;
+    let cz = cell_z as u32 as u64;
+    hash64(
+        seed ^ cx.wrapping_mul(0x9e3779b97f4a7c15)
+            ^ cz.rotate_left(32)
+            ^ (ordinal as u64).wrapping_mul(0xc2b2ae3d27d4eb4f),
+    )
 }
 
 #[derive(Clone, Copy)]
@@ -97,8 +108,9 @@ pub struct HarvestOutcome {
 ///
 /// A sliding world re-scatters ground the player walks back to, so damage
 /// cannot live in the entries -- they are rebuilt. It survives because
-/// [`stable_id`] is derived from position rather than from the order things
-/// were generated in, so the same rock gets the same id every bake.
+/// [`stable_id`] is derived from the global cell rather than from the order
+/// things were generated in, so the same rock gets the same id every bake
+/// wherever the window happens to sit.
 ///
 /// Only what changed is stored. An untouched world costs nothing.
 #[derive(Clone, Debug, Default)]
@@ -296,10 +308,10 @@ const ORE_SALT: u64 = 0x00e5_eed0_0e5e_ed00;
 mod tests {
     use super::*;
 
-    fn rock(x: f32, z: f32) -> Entry {
+    fn rock(cell_x: i32, cell_z: i32) -> Entry {
         Entry {
-            id: stable_id(99, x, z),
-            pos: Vector3::new(x, 0.0, z),
+            id: stable_id(99, cell_x, cell_z, 0),
+            pos: Vector3::new(cell_x as f32 * 8.0, 0.0, cell_z as f32 * 8.0),
             up: Vector3::UP,
             scale: 1.0,
             yaw: 0.0,
@@ -309,14 +321,42 @@ mod tests {
         }
     }
 
-    /// The property persistence rests on: a rock's identity comes from where it
-    /// is, so re-scattering the same ground finds the same rock.
+    /// The property persistence rests on: a rock's identity comes from which
+    /// cell it is in, so re-scattering the same ground finds the same rock.
     #[test]
     fn identity_survives_a_rescatter() {
-        let a = rock(12.5, -40.25);
-        let b = rock(12.5, -40.25);
+        let a = rock(12, -40);
+        let b = rock(12, -40);
         assert_eq!(a.id, b.id);
-        assert_ne!(a.id, rock(12.6, -40.25).id);
+        assert_ne!(a.id, rock(13, -40).id);
+        assert_ne!(a.id, rock(12, -41).id);
+    }
+
+    /// Companions share their parent's cell, so the ordinal is the only thing
+    /// keeping them apart.
+    #[test]
+    fn companions_of_one_cell_do_not_collide() {
+        let mut seen = std::collections::HashSet::new();
+        for ordinal in 0..4 {
+            assert!(
+                seen.insert(stable_id(99, 12, -40, ordinal)),
+                "ordinal {ordinal} collided with an earlier companion"
+            );
+        }
+        assert!(seen.insert(stable_id(99, 13, -40, 0)), "cell ignored");
+    }
+
+    /// Negative cells are common -- the window straddles the origin -- and the
+    /// i32 to u64 widening must not sign-extend two cells onto one id.
+    #[test]
+    fn negative_cells_stay_distinct() {
+        let mut seen = std::collections::HashSet::new();
+        for (cx, cz) in [(-1, -1), (-1, 1), (1, -1), (1, 1), (0, 0), (-1, 0)] {
+            assert!(
+                seen.insert(stable_id(7, cx, cz, 0)),
+                "cell {cx},{cz} collided"
+            );
+        }
     }
 
     /// The reported need: mine a rock, walk away far enough that the ground is
@@ -325,8 +365,8 @@ mod tests {
     fn a_mined_rock_is_still_gone_when_the_ground_comes_back() {
         let mut ledger = Ledger::new();
         let mut core: ScatterCore<Stone> = ScatterCore::new();
-        core.insert(rock(5.0, 5.0));
-        core.insert(rock(30.0, -12.0));
+        core.insert(rock(5, 5));
+        core.insert(rock(30, -12));
         let id = core.entries()[0].id;
         core.apply_damage(id, Stone::STAGES);
         assert!(!core.alive(id));
@@ -336,8 +376,8 @@ mod tests {
         }
         // The player walked off; this ground is generated afresh.
         core.clear();
-        core.insert(rock(5.0, 5.0));
-        core.insert(rock(30.0, -12.0));
+        core.insert(rock(5, 5));
+        core.insert(rock(30, -12));
         assert!(core.alive(id), "test rescatter did not actually reset it");
         core.restore(&ledger);
         assert!(!core.alive(id), "the rock came back from the dead");
@@ -351,14 +391,14 @@ mod tests {
     fn a_part_mined_rock_keeps_its_stage() {
         let mut ledger = Ledger::new();
         let mut core: ScatterCore<Stone> = ScatterCore::new();
-        core.insert(rock(1.0, 1.0));
+        core.insert(rock(1, 1));
         let id = core.entries()[0].id;
         core.apply_damage(id, 1);
         for (id, stage) in core.damage() {
             ledger.record(id, stage);
         }
         core.clear();
-        core.insert(rock(1.0, 1.0));
+        core.insert(rock(1, 1));
         core.restore(&ledger);
         assert_eq!(core.stage(id), 1);
         assert!(core.alive(id));
