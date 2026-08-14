@@ -594,6 +594,29 @@ mod tests {
         assert!(grounded(&world, BodyId(1)), "should still be grounded");
     }
 
+    /// Characters move by `set_next_kinematic_position`, so their velocity is whatever
+    /// rapier derives from the pose delta rather than anything written directly. The
+    /// client extrapolates the local player along this, and would freeze between
+    /// snapshots if it came back zero.
+    #[test]
+    fn a_walking_character_reports_a_velocity() {
+        let mut world = SimWorld::new(&SimConfig::default());
+        world.apply(SimCommand::SetTerrain(terrain(65, 64.0, |_, _| 0.0)));
+        spawn_character(&mut world, BodyId(1), [0.0, 2.0, 0.0]);
+        walk(&mut world, BodyId(1), 0.0, 90);
+
+        walk(&mut world, BodyId(1), 0.0667, 30);
+        let v = world
+            .snapshot()
+            .body(BodyId(1))
+            .expect("character missing")
+            .linvel;
+        assert!(
+            v[0] > 1.0,
+            "expected ~4 u/s along x from a 0.0667/tick walk, got {v:?}"
+        );
+    }
+
     /// KNOWN FAILURE — rapier's autostep does not engage in this setup.
     #[test]
     #[ignore = "rapier autostep does not engage; see doc comment and diag_autostep"]

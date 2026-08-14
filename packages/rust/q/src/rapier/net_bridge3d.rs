@@ -6,6 +6,7 @@ use godot::classes::{Engine, INode3D, Node3D};
 use godot::prelude::*;
 
 use super::bridge3d::apply_iso;
+use super::net_interp::{InterpConfig, SnapshotBuffer};
 use super::sim3d::BodyId;
 use crate::net::client_thread::{Intent, NetClientHandle, NetClientState};
 use crate::net::session::ClientStatus;
@@ -31,10 +32,23 @@ pub struct QNetClient3D {
     #[export]
     autoconnect: bool,
 
+    /// Seconds behind the newest snapshot that other players are drawn. Has to cover one
+    /// snapshot interval plus jitter — under that the buffer runs dry and they stutter;
+    /// over it they are needlessly late.
+    #[export]
+    #[init(val = 0.1)]
+    interp_delay: f64,
+    /// Carry our own body forward from the newest snapshot instead of drawing it in the
+    /// past with everyone else.
+    #[export]
+    #[init(val = true)]
+    lead_local_body: bool,
+
     client: Option<NetClientHandle>,
     tracked: HashMap<BodyId, Gd<Node3D>>,
     known: HashSet<BodyId>,
     last: Option<NetClientState>,
+    buffer: SnapshotBuffer,
 }
 
 #[godot_api]
@@ -48,7 +62,26 @@ impl INode3D for QNetClient3D {
         }
     }
 
-    fn process(&mut self, _delta: f64) {
+    /// Draining the session and drawing it are deliberately separate: state arrives at
+    /// the host's snapshot rate, but the render clock has to move every frame or bodies
+    /// sit still between arrivals, which is the staircase interpolation exists to remove.
+    fn process(&mut self, delta: f64) {
+        // Re-read every frame rather than at connect, so the delay can be tuned against a
+        // live session instead of only across a reconnect.
+        self.buffer.set_config(InterpConfig {
+            delay: self.interp_delay.max(0.0),
+            ..InterpConfig::default()
+        });
+        self.drain_session();
+        self.buffer.advance(delta);
+        self.draw();
+    }
+}
+
+impl QNetClient3D {
+    /// Picks up whatever the session thread has published since the last frame, files any
+    /// new snapshot, and reports what changed.
+    fn drain_session(&mut self) {
         let Some(state) = self.client.as_mut().and_then(|c| c.state_if_changed()) else {
             return;
         };
@@ -76,7 +109,11 @@ impl INode3D for QNetClient3D {
             }
         }
 
-        if let Some(snapshot) = state.snapshot.as_ref() {
+        // The session thread republishes its state every tick whether or not a snapshot
+        // came with it, so most of these are the same one over again.
+        if let Some(snapshot) = state.snapshot.as_ref()
+            && self.buffer.push(snapshot.clone())
+        {
             let live: HashSet<BodyId> = snapshot.bodies.iter().map(|b| b.id).collect();
             let added: Vec<BodyId> = live.difference(&self.known).copied().collect();
             let removed: Vec<BodyId> = self.known.difference(&live).copied().collect();
@@ -89,18 +126,35 @@ impl INode3D for QNetClient3D {
                 self.tracked.remove(&id);
                 self.signals().body_removed().emit(id.0 as i64);
             }
-
-            for body in &snapshot.bodies {
-                if let Some(node) = self.tracked.get_mut(&body.id)
-                    && node.is_instance_valid()
-                {
-                    apply_iso(node, &body.iso);
-                }
-            }
         }
 
         if roster_changed {
             self.signals().roster_changed().emit();
+        }
+    }
+
+    /// Writes the pose the render clock currently reads onto every tracked node.
+    fn draw(&mut self) {
+        let local = match self.local_body() {
+            -1 => None,
+            id => Some(BodyId(id as u32)),
+        };
+        // Collected because sampling borrows the buffer while the nodes are written.
+        let ids: Vec<BodyId> = self.tracked.keys().copied().collect();
+        for id in ids {
+            let pose = if self.lead_local_body && Some(id) == local {
+                self.buffer.sample_leading(id)
+            } else {
+                self.buffer.sample(id)
+            };
+            let Some(pose) = pose else {
+                continue;
+            };
+            if let Some(node) = self.tracked.get_mut(&id)
+                && node.is_instance_valid()
+            {
+                apply_iso(node, &pose);
+            }
         }
     }
 }
@@ -144,6 +198,7 @@ impl QNetClient3D {
         self.tracked.clear();
         self.known.clear();
         self.last = None;
+        self.buffer.clear();
     }
 
     /// Drives `node`'s transform from the body the server publishes under `id`.
@@ -250,14 +305,27 @@ impl QNetClient3D {
         self.known.iter().map(|b| b.0 as i64).collect()
     }
 
+    /// Where the body is being drawn this frame, which is behind the newest snapshot by
+    /// [`interp_delay`](Self::get_interp_delay) for everyone but us.
     #[func]
     fn body_position(&self, id: i64) -> Vector3 {
-        self.last
-            .as_ref()
-            .and_then(|s| s.snapshot.as_ref())
-            .and_then(|s| s.body(BodyId(id as u32)))
-            .map(|b| Vector3::new(b.iso.pos[0], b.iso.pos[1], b.iso.pos[2]))
+        self.buffer
+            .sample(BodyId(id as u32))
+            .map(|iso| Vector3::new(iso.pos[0], iso.pos[1], iso.pos[2]))
             .unwrap_or(Vector3::ZERO)
+    }
+
+    /// Snapshots held for blending. Persistently at one means [`interp_delay`] is too
+    /// short for the link and bodies are being extrapolated rather than interpolated.
+    #[func]
+    fn interp_depth(&self) -> i64 {
+        self.buffer.depth() as i64
+    }
+
+    /// Sim-time the render clock is sampling at.
+    #[func]
+    fn render_time(&self) -> f64 {
+        self.buffer.render_time()
     }
 
     #[func]
