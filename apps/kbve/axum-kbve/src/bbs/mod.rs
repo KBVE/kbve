@@ -128,11 +128,24 @@ async fn serve(
     conn.drain_negotiation(NEGOTIATION_WINDOW).await;
 
     let term = resolve_term(default_term, conn.term_type.as_deref());
-    let (width, height) = (conn.width as usize, conn.height as usize);
+    let (width, height) = window_for(&conn, term);
     let mut session = Session::new(conn, term, width, height);
     let result = session.run().await;
     session.close().await;
     result
+}
+
+/// Plenty of clients never send NAWS. Falling back to the PETSCII 40x25 for
+/// those left ANSI callers reading a C64-shaped board on a modern terminal, so
+/// pick the fallback from the terminal they actually are.
+fn window_for(conn: &TelnetConn, term: Term) -> (usize, usize) {
+    if conn.naws_seen {
+        return (conn.width as usize, conn.height as usize);
+    }
+    match term {
+        Term::Ansi => (80, 24),
+        Term::Petscii => (40, 25),
+    }
 }
 
 fn resolve_term(default_term: Term, term_type: Option<&str>) -> Term {
