@@ -70,10 +70,23 @@ spec:
                                 value: '1337'
                               - name: FS_TICK_HZ
                                 value: '60'
+                              # Both must match the client's QTerrain exactly. They
+                              # are not sent in the protocol, so a mismatch shows up
+                              # as players sinking into or hovering over the ground
+                              # rather than as an error.
                               - name: FS_TERRAIN_EXTENT
                                 value: '256'
                               - name: FS_TERRAIN_RESOLUTION
                                 value: '513'
+                              # Ground follows players as a set of baked regions
+                              # instead of one fixed tile at the origin, so nobody
+                              # walks off the edge of the world. A superset of the
+                              # single-tile behaviour: safe whether or not the
+                              # client's own terrain streaming is switched on.
+                              - name: FS_STREAM_ENABLED
+                                value: 'true'
+                              - name: FS_STREAM_STRIDE
+                                value: '128'
                               # Signed-in players join with a GoTrue token; the
                               # server verifies it against the JWKS published
                               # here and takes the name from its claims. Unset

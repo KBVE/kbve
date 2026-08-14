@@ -1,22 +1,36 @@
 use std::sync::Arc;
-use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
 
 use q::net::dual::DualHost;
 use q::net::session::{HostSession, SessionConfig, TokenAuthority};
-use q::rapier::sim3d::{SimConfig, TerrainDesc};
+use q::rapier::sim3d::{BodyId, SimConfig, SimSnapshot, TerrainDesc};
 use q::worldgen::{HeightGen, HeightParams};
+
+use crate::terrain_stream::{StreamConfig, TerrainStreamer};
 
 pub struct DriverConfig {
     pub seed: u64,
     pub tick_hz: f64,
     pub terrain_extent: f32,
     pub terrain_resolution: i32,
+    /// Follow players with a set of baked regions instead of laying one fixed tile at
+    /// the origin. Off reproduces the old behaviour exactly, for a client whose own
+    /// terrain streaming is switched off and which therefore never leaves the tile.
+    pub stream_enabled: bool,
+    pub stream_stride: f32,
+    pub stream_keep_radius: f32,
 }
+
+/// How often the region set is reconsidered. Every tick would be wasted work — a
+/// player at 4 m/s takes many seconds to cross a stride — and each pass walks the
+/// roster and takes a snapshot.
+const STREAM_INTERVAL_TICKS: u64 = 30;
 
 pub struct Driver {
     stop: Arc<AtomicBool>,
     tick: Arc<AtomicU64>,
+    regions: Arc<AtomicUsize>,
     thread: Option<std::thread::JoinHandle<()>>,
 }
 
@@ -24,6 +38,12 @@ impl Driver {
     /// Shared counter, so a status route can read the sim without owning it.
     pub fn tick_handle(&self) -> Arc<AtomicU64> {
         self.tick.clone()
+    }
+
+    /// Terrain regions currently collidable. The only outward sign that streaming is
+    /// doing anything — a number stuck at 1 while players roam means it is not.
+    pub fn regions_handle(&self) -> Arc<AtomicUsize> {
+        self.regions.clone()
     }
 
     pub fn stop(&mut self) {
@@ -61,50 +81,95 @@ pub fn spawn(
 ) -> Driver {
     let stop = Arc::new(AtomicBool::new(false));
     let tick = Arc::new(AtomicU64::new(0));
-    let (stop_t, tick_t) = (stop.clone(), tick.clone());
+    let regions = Arc::new(AtomicUsize::new(0));
+    let (stop_t, tick_t, regions_t) = (stop.clone(), tick.clone(), regions.clone());
 
     let sim = SimConfig {
         tick_hz: cfg.tick_hz,
         ..Default::default()
     };
-    let terrain = terrain_for(&cfg);
+    // Only baked for the non-streaming path; the streamer bakes its own regions.
+    let terrain = (!cfg.stream_enabled).then(|| terrain_for(&cfg));
     let seed = cfg.seed;
+    let stream = cfg.stream_enabled;
+    let extent = cfg.terrain_extent;
+    let resolution = cfg.terrain_resolution;
+    let stride = cfg.stream_stride;
+    let keep_radius = cfg.stream_keep_radius;
 
-    let thread = std::thread::Builder::new()
-        .name("friendslop-sim".into())
-        .spawn(move || {
-            let mut host =
-                HostSession::dedicated(transport.clone(), SessionConfig::default(), sim, seed);
-            if let Some(authority) = authority {
-                host = host.with_authority(authority);
-            }
-            host.set_terrain(terrain);
-
-            let step = Duration::from_secs_f64(sim.timestep());
-            let mut next = Instant::now();
-
-            while !stop_t.load(Ordering::Relaxed) {
-                transport.pump();
-                for peer in transport.take_disconnects() {
-                    tracing::info!(peer = peer.0, "peer disconnected");
-                    host.remove_player(peer);
+    let thread =
+        std::thread::Builder::new()
+            .name("friendslop-sim".into())
+            .spawn(move || {
+                let mut host =
+                    HostSession::dedicated(transport.clone(), SessionConfig::default(), sim, seed);
+                if let Some(authority) = authority {
+                    host = host.with_authority(authority);
                 }
 
-                host.tick();
-                tick_t.fetch_add(1, Ordering::Relaxed);
+                let mut streamer = if stream {
+                    let mut s = TerrainStreamer::new(StreamConfig {
+                        seed,
+                        extent,
+                        resolution,
+                        stride,
+                        keep_radius,
+                        max_inflight: 2,
+                    });
+                    s.prime(host.world_mut());
+                    tracing::info!(extent, stride, keep_radius, "terrain streaming enabled");
+                    Some(s)
+                } else {
+                    // One tile at the origin, exactly as before.
+                    if let Some(terrain) = terrain {
+                        host.set_terrain(terrain);
+                    }
+                    None
+                };
 
-                next += step;
-                match next.checked_duration_since(Instant::now()) {
-                    Some(wait) => std::thread::sleep(wait),
-                    None => next = Instant::now(),
+                let step = Duration::from_secs_f64(sim.timestep());
+                let mut next = Instant::now();
+                let mut scratch = SimSnapshot::default();
+                let mut players: Vec<[f32; 2]> = Vec::new();
+                let mut ticks: u64 = 0;
+
+                while !stop_t.load(Ordering::Relaxed) {
+                    transport.pump();
+                    for peer in transport.take_disconnects() {
+                        tracing::info!(peer = peer.0, "peer disconnected");
+                        host.remove_player(peer);
+                    }
+
+                    if let Some(streamer) = streamer.as_mut()
+                        && ticks % STREAM_INTERVAL_TICKS == 0
+                    {
+                        let bodies: Vec<BodyId> = host.roster().iter().map(|p| p.body).collect();
+                        host.world_mut().snapshot_into(&mut scratch);
+                        players.clear();
+                        players.extend(bodies.iter().filter_map(|b| {
+                            scratch.body(*b).map(|s| [s.iso.pos[0], s.iso.pos[2]])
+                        }));
+                        streamer.update(&players, host.world_mut());
+                        regions_t.store(host.world_mut().terrain_region_count(), Ordering::Relaxed);
+                    }
+
+                    host.tick();
+                    ticks += 1;
+                    tick_t.fetch_add(1, Ordering::Relaxed);
+
+                    next += step;
+                    match next.checked_duration_since(Instant::now()) {
+                        Some(wait) => std::thread::sleep(wait),
+                        None => next = Instant::now(),
+                    }
                 }
-            }
-        })
-        .expect("spawn sim thread");
+            })
+            .expect("spawn sim thread");
 
     Driver {
         stop,
         tick,
+        regions,
         thread: Some(thread),
     }
 }

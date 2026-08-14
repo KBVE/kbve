@@ -1,6 +1,7 @@
 mod agones;
 mod auth;
 mod driver;
+mod terrain_stream;
 
 use std::net::SocketAddr;
 
@@ -30,11 +31,22 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         .unwrap_or_else(|_| "0.0.0.0:7980".into())
         .parse()?;
 
+    // Extent and resolution have to match the client's QTerrain or the two disagree
+    // on ground height and players sink or float. Same for the seed, which the client
+    // takes from Welcome rather than its own scene.
+    let terrain_extent: f32 = env_parse("FS_TERRAIN_EXTENT", 256.0);
     let cfg = driver::DriverConfig {
         seed: env_parse("FS_SERVER_SEED", 1337),
         tick_hz: env_parse("FS_TICK_HZ", 60.0),
-        terrain_extent: env_parse("FS_TERRAIN_EXTENT", 256.0),
+        terrain_extent,
         terrain_resolution: env_parse("FS_TERRAIN_RESOLUTION", 513),
+        // On by default: a streaming set of regions is a superset of the single tile,
+        // so it is correct whether or not the client streams. A client that does not
+        // stream simply never walks off the first one.
+        stream_enabled: env_parse("FS_STREAM_ENABLED", true),
+        stream_stride: env_parse("FS_STREAM_STRIDE", 128.0),
+        // Wider than the stride so pacing a boundary does not churn bakes.
+        stream_keep_radius: env_parse("FS_STREAM_KEEP", terrain_extent * 1.5),
     };
 
     tracing::info!(
@@ -43,6 +55,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         tick_hz = cfg.tick_hz,
         extent = cfg.terrain_extent,
         resolution = cfg.terrain_resolution,
+        stream = cfg.stream_enabled,
+        stride = cfg.stream_stride,
         "friendslop-server listening"
     );
 
@@ -65,7 +79,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
     };
     let mut sim = driver::spawn(transport.clone(), cfg, authority);
 
-    let app = router(ws).merge(stats_route(transport.clone(), sim.tick_handle()));
+    let app = router(ws).merge(stats_route(
+        transport.clone(),
+        sim.tick_handle(),
+        sim.regions_handle(),
+    ));
 
     let listener = TcpListener::bind(addr).await?;
     let advertise_host = std::env::var("FS_UDP_ADVERTISE_HOST").ok();
@@ -96,6 +114,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
 fn stats_route(
     transport: std::sync::Arc<DualHost>,
     tick: std::sync::Arc<std::sync::atomic::AtomicU64>,
+    regions: std::sync::Arc<std::sync::atomic::AtomicUsize>,
 ) -> axum::Router {
     axum::Router::new().route(
         "/stats",
@@ -106,6 +125,7 @@ fn stats_route(
                 "udp_bound": transport.bound_count(),
                 "udp_port": transport.udp_port(),
                 "udp_oversize": transport.oversize_count(),
+                "terrain_regions": regions.load(std::sync::atomic::Ordering::Relaxed),
             }))
         }),
     )

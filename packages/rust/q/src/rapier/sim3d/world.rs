@@ -51,8 +51,20 @@ pub struct SimWorld {
     physics: PhysicsWorld,
     index: HashMap<BodyId, RigidBodyHandle>,
     characters: HashMap<BodyId, CharacterState>,
-    terrain: Option<RigidBodyHandle>,
+    /// Keyed on the region centre. One entry for the non-streaming single tile,
+    /// several while a window follows players around.
+    terrain: HashMap<[i32; 2], RigidBodyHandle>,
     tick: u64,
+}
+
+/// Region centres are float world coordinates but have to key a map. Quantizing to
+/// centimetres is far finer than any stride a window snaps to and sidesteps float
+/// equality entirely.
+fn terrain_key(origin: [f32; 2]) -> [i32; 2] {
+    [
+        (origin[0] * 100.0).round() as i32,
+        (origin[1] * 100.0).round() as i32,
+    ]
 }
 
 impl SimWorld {
@@ -64,7 +76,7 @@ impl SimWorld {
             physics,
             index: HashMap::new(),
             characters: HashMap::new(),
-            terrain: None,
+            terrain: HashMap::new(),
             tick: 0,
         }
     }
@@ -80,6 +92,8 @@ impl SimWorld {
     pub fn apply(&mut self, cmd: SimCommand) {
         match cmd {
             SimCommand::SetTerrain(desc) => self.set_terrain(&desc),
+            SimCommand::AddTerrainRegion { origin, desc } => self.add_terrain_region(origin, &desc),
+            SimCommand::DropTerrainRegion { origin } => self.drop_terrain_region(origin),
             SimCommand::Spawn { id, desc } => self.spawn(id, &desc),
             SimCommand::Despawn { id } => self.despawn(id),
             SimCommand::SetKinematicTarget { id, iso } => {
@@ -112,13 +126,23 @@ impl SimWorld {
         }
     }
 
-    /// Replaces any previous terrain.
+    /// Replaces every region with a single one at the origin.
     fn set_terrain(&mut self, desc: &TerrainDesc) {
+        for handle in std::mem::take(&mut self.terrain).into_values() {
+            self.physics.remove_body(handle);
+        }
+        self.add_terrain_region([0.0, 0.0], desc);
+    }
+
+    /// Regions are keyed on their centre so a re-bake of the same window replaces
+    /// rather than stacking a second collider on the first.
+    fn add_terrain_region(&mut self, origin: [f32; 2], desc: &TerrainDesc) {
         let res = desc.resolution as usize;
         if res < 2 || desc.heights.len() < res * res {
             return;
         }
-        if let Some(old) = self.terrain.take() {
+        let key = terrain_key(origin);
+        if let Some(old) = self.terrain.remove(&key) {
             self.physics.remove_body(old);
         }
 
@@ -132,10 +156,23 @@ impl SimWorld {
 
         let span = desc.extent * 2.0;
         let (body, _) = self.physics.insert(
-            RigidBodyBuilder::fixed(),
+            RigidBodyBuilder::fixed().pose(Pose::from_translation(Vector::new(
+                origin[0], 0.0, origin[1],
+            ))),
             ColliderBuilder::heightfield(heights, Vector::new(span, 1.0, span)).friction(1.0),
         );
-        self.terrain = Some(body);
+        self.terrain.insert(key, body);
+    }
+
+    fn drop_terrain_region(&mut self, origin: [f32; 2]) {
+        if let Some(handle) = self.terrain.remove(&terrain_key(origin)) {
+            self.physics.remove_body(handle);
+        }
+    }
+
+    /// Regions currently collidable.
+    pub fn terrain_region_count(&self) -> usize {
+        self.terrain.len()
     }
 
     fn spawn(&mut self, id: BodyId, desc: &BodyDesc) {
@@ -519,6 +556,144 @@ mod tests {
 
         let y = pos(&world, BodyId(1))[1];
         assert!((y - 5.5).abs() < 0.3, "expected rest near y=5.5, got {y}");
+    }
+
+    #[test]
+    fn set_terrain_still_collapses_to_one_region() {
+        let mut world = SimWorld::new(&SimConfig::default());
+        world.apply(SimCommand::AddTerrainRegion {
+            origin: [128.0, 0.0],
+            desc: terrain(33, 64.0, |_, _| 0.0),
+        });
+        world.apply(SimCommand::AddTerrainRegion {
+            origin: [-128.0, 0.0],
+            desc: terrain(33, 64.0, |_, _| 0.0),
+        });
+        assert_eq!(world.terrain_region_count(), 2);
+        // The non-streaming path has to keep meaning "this is the whole world".
+        world.apply(SimCommand::SetTerrain(terrain(33, 64.0, |_, _| 0.0)));
+        assert_eq!(world.terrain_region_count(), 1);
+    }
+
+    #[test]
+    fn a_rebaked_region_replaces_rather_than_stacks() {
+        let mut world = SimWorld::new(&SimConfig::default());
+        for h in [0.0, 5.0] {
+            world.apply(SimCommand::AddTerrainRegion {
+                origin: [128.0, 0.0],
+                desc: terrain(33, 64.0, move |_, _| h),
+            });
+        }
+        assert_eq!(world.terrain_region_count(), 1, "same centre, one body");
+
+        drop_ball(&mut world, BodyId(1), [128.0, 12.0, 0.0]);
+        settle(&mut world, 400);
+        let y = pos(&world, BodyId(1))[1];
+        assert!(
+            (y - 5.5).abs() < 0.3,
+            "should rest on the newer region at y=5.5, got {y}"
+        );
+    }
+
+    #[test]
+    fn a_region_holds_bodies_up_away_from_the_origin() {
+        let mut world = SimWorld::new(&SimConfig::default());
+        // Deliberately no region at the origin: proves the collider is placed at the
+        // region centre rather than always at 0,0.
+        world.apply(SimCommand::AddTerrainRegion {
+            origin: [512.0, -256.0],
+            desc: terrain(33, 64.0, |_, _| 3.0),
+        });
+        drop_ball(&mut world, BodyId(1), [512.0, 12.0, -256.0]);
+        settle(&mut world, 400);
+
+        let y = pos(&world, BodyId(1))[1];
+        assert!((y - 3.5).abs() < 0.3, "expected rest near y=3.5, got {y}");
+    }
+
+    #[test]
+    fn dropping_a_region_takes_its_ground_with_it() {
+        let mut world = SimWorld::new(&SimConfig::default());
+        world.apply(SimCommand::AddTerrainRegion {
+            origin: [512.0, 0.0],
+            desc: terrain(33, 64.0, |_, _| 0.0),
+        });
+        drop_ball(&mut world, BodyId(1), [512.0, 2.0, 0.0]);
+        settle(&mut world, 200);
+        assert!(pos(&world, BodyId(1))[1] > -1.0, "should be resting");
+
+        world.apply(SimCommand::DropTerrainRegion {
+            origin: [512.0, 0.0],
+        });
+        assert_eq!(world.terrain_region_count(), 0);
+        settle(&mut world, 200);
+        assert!(
+            pos(&world, BodyId(1))[1] < -5.0,
+            "nothing left to stand on — should be falling"
+        );
+    }
+
+    #[test]
+    fn a_body_resting_in_an_overlap_is_not_fought_over() {
+        let mut world = SimWorld::new(&SimConfig::default());
+        // A moving window overlaps its predecessor rather than tiling against it, so
+        // the crossing case is two colliders covering the same ground. Flat and level
+        // on purpose: on a slope a ball rolls, and the roll would swamp the thing
+        // being measured, which is whether the two colliders shove it.
+        for origin in [[0.0, 0.0], [64.0, 0.0]] {
+            world.apply(SimCommand::AddTerrainRegion {
+                origin,
+                desc: terrain(65, 64.0, |_, _| 2.0),
+            });
+        }
+        assert_eq!(world.terrain_region_count(), 2);
+
+        drop_ball(&mut world, BodyId(1), [32.0, 12.0, 0.0]);
+        settle(&mut world, 400);
+        let p = pos(&world, BodyId(1));
+        assert!(
+            (p[1] - 2.5).abs() < 0.3,
+            "expected rest near y=2.5, got {}",
+            p[1]
+        );
+        assert!(
+            (p[0] - 32.0).abs() < 0.5 && p[2].abs() < 0.5,
+            "double coverage should not push the body along the ground, got ({}, {})",
+            p[0],
+            p[2]
+        );
+    }
+
+    #[test]
+    fn overlapping_regions_carry_the_same_ground_at_the_same_height() {
+        // Two windows onto one sloped world: each is authored in its own local grid,
+        // so this is the check that a body crossing between them does not step.
+        let world_height = |x: f32| x * 0.05;
+        let mut a = SimWorld::new(&SimConfig::default());
+        a.apply(SimCommand::AddTerrainRegion {
+            origin: [0.0, 0.0],
+            desc: terrain(65, 64.0, move |x, _| world_height(x)),
+        });
+        let mut b = SimWorld::new(&SimConfig::default());
+        b.apply(SimCommand::AddTerrainRegion {
+            origin: [64.0, 0.0],
+            desc: terrain(65, 64.0, move |x, _| world_height(x + 64.0)),
+        });
+
+        // Same world point, dropped onto each region in isolation.
+        for at in [16.0f32, 32.0, 48.0] {
+            drop_ball(&mut a, BodyId(1), [at, 12.0, 0.0]);
+            drop_ball(&mut b, BodyId(1), [at, 12.0, 0.0]);
+            settle(&mut a, 200);
+            settle(&mut b, 200);
+            let (ya, yb) = (pos(&a, BodyId(1))[1], pos(&b, BodyId(1))[1]);
+            assert!(
+                (ya - yb).abs() < 0.05,
+                "regions disagree at x={at}: {ya} vs {yb}"
+            );
+            a.apply(SimCommand::Despawn { id: BodyId(1) });
+            b.apply(SimCommand::Despawn { id: BodyId(1) });
+        }
     }
 
     /// Capsule half_height 0.6 + radius 0.35 puts the resting centre 0.95 above
