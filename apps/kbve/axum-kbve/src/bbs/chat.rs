@@ -1,6 +1,6 @@
 use std::collections::VecDeque;
 use std::sync::{Arc, Mutex, OnceLock};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use bevy_chat::{ChatClient, ChatMessage, IrcConfig, IrcTransport};
 use tokio::sync::{RwLock, broadcast};
@@ -23,6 +23,12 @@ const RECONNECT_DELAY: Duration = Duration::from_secs(10);
 const RATE_WINDOW_SECS: u64 = 10;
 const RATE_MAX_PER_WINDOW: u64 = 5;
 
+pub const OUTBOX_LIMIT: usize = 32;
+/// A line that misses its moment is worse than a line that never arrives —
+/// answering a question nobody remembers asking reads as noise. Hold a
+/// reconnect, not a conversation.
+pub const OUTBOX_TTL: Duration = Duration::from_secs(120);
+
 static HUB: OnceLock<Arc<ChatHub>> = OnceLock::new();
 
 #[derive(Debug)]
@@ -30,6 +36,18 @@ pub enum SendError {
     Offline,
     Empty,
     TooFast,
+}
+
+/// Whether a caller's line went out now or is waiting on the relay.
+#[derive(Debug, PartialEq, Eq)]
+pub enum Delivery {
+    Live,
+    Queued,
+}
+
+struct Pending {
+    msg: ChatMessage,
+    queued_at: Instant,
 }
 
 /// Shared bridge between every BBS caller and `#general` on ergo.
@@ -42,6 +60,7 @@ pub struct ChatHub {
     tx: broadcast::Sender<ChatMessage>,
     client: RwLock<Option<ChatClient>>,
     history: Mutex<VecDeque<ChatMessage>>,
+    outbox: Mutex<VecDeque<Pending>>,
 }
 
 impl ChatHub {
@@ -79,7 +98,16 @@ impl ChatHub {
 
     /// Relay one caller line to `#general`. `sender` is the caller's account
     /// username; both it and the body are scrubbed before they reach the wire.
-    pub async fn send(&self, user_id: &str, sender: &str, content: &str) -> Result<(), SendError> {
+    ///
+    /// A relay that is down is usually seconds from being back, so a line that
+    /// cannot go now is held rather than refused — the caller is told it is
+    /// waiting instead of being asked to retype it.
+    pub async fn send(
+        &self,
+        user_id: &str,
+        sender: &str,
+        content: &str,
+    ) -> Result<Delivery, SendError> {
         let content = sanitize_content(content);
         if content.is_empty() {
             return Err(SendError::Empty);
@@ -95,7 +123,7 @@ impl ChatHub {
             let guard = self.client.read().await;
             match guard.as_ref() {
                 Some(client) => client.send(&msg).await,
-                None => return Err(SendError::Offline),
+                None => return self.queue(msg),
             }
         };
 
@@ -103,16 +131,84 @@ impl ChatHub {
             // Ergo never echoes a client's own PRIVMSG, so this is the only
             // point at which one BBS caller's line can reach the others.
             Ok(()) => {
-                self.remember(&msg);
-                let _ = self.tx.send(msg);
-                Ok(())
+                self.publish(msg);
+                Ok(Delivery::Live)
             }
             Err(e) => {
                 tracing::warn!(error = %e, "[bbs] irc send failed, dropping connection");
                 self.client.write().await.take();
-                Err(SendError::Offline)
+                self.queue(msg)
             }
         }
+    }
+
+    /// Hold a line for the supervisor to flush once the link is rebuilt.
+    /// Full means the relay has been down long enough that promising delivery
+    /// would be a lie, so the caller keeps their text and hears about it.
+    fn queue(&self, msg: ChatMessage) -> Result<Delivery, SendError> {
+        let Ok(mut pending) = self.outbox.lock() else {
+            return Err(SendError::Offline);
+        };
+        pending.retain(|item| item.queued_at.elapsed() < OUTBOX_TTL);
+        if pending.len() >= OUTBOX_LIMIT {
+            return Err(SendError::Offline);
+        }
+        pending.push_back(Pending {
+            msg,
+            queued_at: Instant::now(),
+        });
+        Ok(Delivery::Queued)
+    }
+
+    /// Everything a caller's own line needs once it is on the wire: the room
+    /// backscroll, and every other session watching.
+    fn publish(&self, msg: ChatMessage) {
+        self.remember(&msg);
+        let _ = self.tx.send(msg);
+    }
+
+    /// Flush held lines oldest first, stopping at the first refusal so the
+    /// order callers typed in survives. Anything past its window is dropped
+    /// rather than delivered into a conversation that has moved on.
+    async fn flush_outbox(&self) {
+        loop {
+            let next = {
+                let Ok(mut pending) = self.outbox.lock() else {
+                    return;
+                };
+                loop {
+                    match pending.pop_front() {
+                        Some(item) if item.queued_at.elapsed() < OUTBOX_TTL => break Some(item),
+                        Some(_) => continue,
+                        None => break None,
+                    }
+                }
+            };
+            let Some(item) = next else { return };
+
+            let sent = {
+                let guard = self.client.read().await;
+                match guard.as_ref() {
+                    Some(client) => client.send(&item.msg).await,
+                    None => Err("relay offline".to_owned()),
+                }
+            };
+
+            match sent {
+                Ok(()) => self.publish(item.msg),
+                Err(e) => {
+                    tracing::warn!(error = %e, "[bbs] outbox flush stalled, requeueing");
+                    if let Ok(mut pending) = self.outbox.lock() {
+                        pending.push_front(item);
+                    }
+                    return;
+                }
+            }
+        }
+    }
+
+    pub fn queued(&self) -> usize {
+        self.outbox.lock().map(|pending| pending.len()).unwrap_or(0)
     }
 
     /// Fixed-window limiter shared with the rest of the fleet through Valkey.
@@ -141,6 +237,28 @@ impl ChatHub {
             Some(client) => client.idle_for() > STALE_AFTER,
             None => false,
         }
+    }
+}
+
+#[cfg(test)]
+impl ChatHub {
+    pub(super) fn for_tests(channel: &str) -> Self {
+        let (tx, _) = broadcast::channel(256);
+        Self {
+            channel: channel.to_string(),
+            tx,
+            client: RwLock::new(None),
+            history: Mutex::new(VecDeque::with_capacity(HISTORY_LEN)),
+            outbox: Mutex::new(VecDeque::new()),
+        }
+    }
+
+    pub(super) async fn attach_for_tests(&self, client: ChatClient) {
+        *self.client.write().await = Some(client);
+    }
+
+    pub(super) async fn flush_for_tests(&self) {
+        self.flush_outbox().await;
     }
 }
 
@@ -186,6 +304,7 @@ pub fn init_chat() -> bool {
         tx,
         client: RwLock::new(None),
         history: Mutex::new(VecDeque::with_capacity(HISTORY_LEN)),
+        outbox: Mutex::new(VecDeque::new()),
     });
     if HUB.set(hub.clone()).is_err() {
         return true;
@@ -211,6 +330,7 @@ async fn supervise(hub: Arc<ChatHub>, config: IrcConfig) {
                 Ok(()) => {
                     since_ping = Duration::ZERO;
                     tracing::info!(channel = %hub.channel, "[bbs] chat relay connected");
+                    hub.flush_outbox().await;
                 }
                 Err(e) => {
                     tracing::warn!(error = %e, "[bbs] chat relay connect failed");

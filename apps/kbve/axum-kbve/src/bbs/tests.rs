@@ -1,12 +1,15 @@
 use std::time::Duration;
 
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::io::{AsyncBufReadExt, AsyncReadExt, AsyncWriteExt};
 use tokio::net::{TcpListener, TcpStream};
 use uuid::Uuid;
 
-use bevy_chat::ChatMessage;
+use bevy_chat::{ChatClient, ChatMessage, IrcConfig, IrcTransport};
 
-use super::chat::{MAX_CHAT_LEN, PLATFORM, sanitize_content, sanitize_nick};
+use super::chat::{
+    ChatHub, Delivery, MAX_CHAT_LEN, OUTBOX_LIMIT, PLATFORM, SendError, sanitize_content,
+    sanitize_nick,
+};
 use super::claim::{ClaimStore, Redeem};
 use super::games::text::{Rng, bar, meter, strip_markup};
 use super::games::{self, Flow, Game, blackjack, dungeon, hangman, highlow, run, tictactoe};
@@ -142,6 +145,88 @@ async fn menu_still_reports_a_deliberate_enter() {
 
     assert_eq!(session.key().await.expect("key"), '\r');
     assert_eq!(session.key().await.expect("key"), 'X');
+}
+
+#[tokio::test]
+async fn a_line_typed_while_offline_is_held_not_refused() {
+    let hub = ChatHub::for_tests("#general");
+
+    let sent = hub.send("user-1", "bob", "anyone about?").await;
+
+    assert!(matches!(sent, Ok(Delivery::Queued)));
+    assert_eq!(hub.queued(), 1);
+}
+
+#[tokio::test]
+async fn outbox_refuses_once_it_is_full() {
+    let hub = ChatHub::for_tests("#general");
+    for i in 0..OUTBOX_LIMIT {
+        assert!(
+            matches!(
+                hub.send("user-1", "bob", &format!("line {i}")).await,
+                Ok(Delivery::Queued)
+            ),
+            "line {i} should have been held"
+        );
+    }
+
+    let overflow = hub.send("user-1", "bob", "one too many").await;
+
+    assert!(matches!(overflow, Err(SendError::Offline)));
+    assert_eq!(hub.queued(), OUTBOX_LIMIT);
+}
+
+#[tokio::test]
+async fn reconnect_flushes_held_lines_in_the_order_they_were_typed() {
+    let listener = TcpListener::bind("127.0.0.1:0").await.expect("bind");
+    let addr = listener.local_addr().expect("addr");
+    let server = tokio::spawn(async move {
+        let (sock, _) = listener.accept().await.expect("accept");
+        let mut lines = tokio::io::BufReader::new(sock).lines();
+        let mut privmsgs = Vec::new();
+        while let Ok(Some(line)) = lines.next_line().await {
+            if line.starts_with("PRIVMSG") {
+                privmsgs.push(line);
+                if privmsgs.len() == 3 {
+                    break;
+                }
+            }
+        }
+        privmsgs
+    });
+
+    let hub = ChatHub::for_tests("#general");
+    for text in ["first", "second", "third"] {
+        assert!(matches!(
+            hub.send("user-1", "bob", text).await,
+            Ok(Delivery::Queued)
+        ));
+    }
+
+    let mut client = ChatClient::new(IrcConfig {
+        host: "127.0.0.1".to_owned(),
+        port: addr.port(),
+        tls: false,
+        nick: "bbs-bot".to_owned(),
+        channels: vec!["#general".to_owned()],
+        password: None,
+        reconnect_delay_secs: 0,
+        transport: IrcTransport::Tcp,
+        skip_registration: false,
+    });
+    client.connect().await.expect("connect");
+    hub.attach_for_tests(client).await;
+    hub.flush_for_tests().await;
+
+    let delivered = tokio::time::timeout(Duration::from_secs(5), server)
+        .await
+        .expect("server finished")
+        .expect("join");
+
+    assert_eq!(hub.queued(), 0);
+    assert!(delivered[0].ends_with("first"), "got {:?}", delivered[0]);
+    assert!(delivered[1].ends_with("second"), "got {:?}", delivered[1]);
+    assert!(delivered[2].ends_with("third"), "got {:?}", delivered[2]);
 }
 
 #[tokio::test]
