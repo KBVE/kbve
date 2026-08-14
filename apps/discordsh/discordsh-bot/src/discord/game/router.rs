@@ -1,6 +1,7 @@
 use poise::serenity_prelude as serenity;
 use tracing::{error, info};
 
+use super::types::{PlayerId, pid};
 use crate::discord::bot::{Data, Error};
 
 use super::logic;
@@ -119,7 +120,7 @@ pub async fn handle_game_component(
         // Cleric heal ally — user_id from parts[3]
         let uid_str = parts.get(3).unwrap_or(&"0");
         match uid_str.parse::<u64>() {
-            Ok(uid) => GameAction::HealAlly(serenity::UserId::new(uid)),
+            Ok(uid) => GameAction::HealAlly(PlayerId::new(uid)),
             Err(_) => {
                 return send_ephemeral(component, ctx, "Invalid heal target.").await;
             }
@@ -181,7 +182,7 @@ pub async fn handle_game_component(
                 let target_uid = parts_iter
                     .next()
                     .and_then(|s| s.parse::<u64>().ok())
-                    .map(serenity::UserId::new);
+                    .map(PlayerId::new);
                 match target_uid {
                     Some(uid) if !item_id.is_empty() => GameAction::Gift(item_id, uid),
                     _ => {
@@ -245,7 +246,7 @@ pub async fn handle_game_component(
         {
             if let Some(uid_str) = values.first() {
                 match uid_str.parse::<u64>() {
-                    Ok(uid) => GameAction::Revive(serenity::UserId::new(uid)),
+                    Ok(uid) => GameAction::Revive(PlayerId::new(uid)),
                     Err(_) => {
                         return send_ephemeral(component, ctx, "Invalid revive target.").await;
                     }
@@ -265,7 +266,7 @@ pub async fn handle_game_component(
         }
     };
 
-    let actor = component.user.id;
+    let actor = pid(component.user.id);
 
     info!(
         session = sid,

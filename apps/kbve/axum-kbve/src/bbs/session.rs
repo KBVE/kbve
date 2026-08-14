@@ -7,7 +7,7 @@ use uuid::Uuid;
 
 use crate::db::{FeedQuery, SpaceRow, get_forum_service, get_profile_service, get_wallet_client};
 
-use super::chat::{self, SendError};
+use super::chat::{self, Delivery, SendError};
 use super::claim::{CLAIM_TTL, claims};
 use super::games;
 use super::presence;
@@ -375,17 +375,21 @@ impl Session {
         match hub.send(&user_id, &username, text).await {
             // The hub rebroadcasts an accepted line to every subscriber, this
             // session included, so it arrives through `rx` like any other.
-            Ok(()) => true,
+            Ok(Delivery::Live) => true,
+            // Held lines reach the room through `rx` like any other once the
+            // relay is back, so the caller watches their own words land rather
+            // than being handed a receipt.
+            Ok(Delivery::Queued) => {
+                push_line(lines, "-- holding, relay is reconnecting --".to_string());
+                true
+            }
             Err(SendError::Empty) => true,
             Err(SendError::TooFast) => {
                 push_line(lines, "-- slow down --".to_string());
                 false
             }
             Err(SendError::Offline) => {
-                push_line(
-                    lines,
-                    "-- reconnecting, press enter to retry --".to_string(),
-                );
+                push_line(lines, "-- relay down, try again shortly --".to_string());
                 false
             }
         }
@@ -437,7 +441,8 @@ impl Session {
             if key == 'Q' {
                 return Ok(());
             }
-            if let Some(mut game) = games::launch(key) {
+            let handle = self.handle().to_string();
+            if let Some(mut game) = games::launch(key, &handle) {
                 self.play(game.as_mut()).await?;
             }
         }

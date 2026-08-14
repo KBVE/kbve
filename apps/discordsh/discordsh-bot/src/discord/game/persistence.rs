@@ -782,7 +782,7 @@ pub fn extract_save_payload(
 /// Save all players in a session (called on game-over, end, leave, expire).
 pub fn save_all_players(
     profiles: &std::sync::Arc<ProfileStore>,
-    session: &SessionState,
+    session: &super::session::BotSession,
     reason: &GameOverReason,
 ) {
     for (&uid, player) in &session.players {
@@ -791,7 +791,7 @@ pub fn save_all_players(
             profiles.release_mode_async(uid.get(), session.short_id.clone());
             continue;
         }
-        let snapshot = player.saved_snapshot.as_ref();
+        let snapshot = session.snapshots.get(&uid);
         let (profile, run) = extract_save_payload(
             uid.get(),
             &player.name,
@@ -1022,7 +1022,7 @@ mod tests {
         use crate::discord::game::{content, types::*};
         use poise::serenity_prelude as serenity;
 
-        let owner = serenity::UserId::new(1);
+        let owner = PlayerId::new(1);
         let mut player = PlayerState::default();
         player.inventory = content::starting_inventory();
 
@@ -1033,8 +1033,6 @@ mod tests {
             party: Vec::new(),
             mode: SessionMode::Solo,
             phase: GamePhase::Exploring,
-            channel_id: serenity::ChannelId::new(1),
-            message_id: serenity::MessageId::new(1),
             created_at: std::time::Instant::now(),
             last_action_at: std::time::Instant::now(),
             turn: 0,

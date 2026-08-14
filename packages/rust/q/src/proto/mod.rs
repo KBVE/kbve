@@ -6,7 +6,9 @@ use serde::{Deserialize, Serialize};
 ///
 /// 5: `PlayerInput` carries yaw; `Welcome` carries the world clock and terrain
 ///    parameters; adds `WorldTime`.
-pub const PROTOCOL_VERSION: u32 = 5;
+/// 6: `Welcome` carries the water level and road width, which the bridge deck's
+///    height is derived from on both sides.
+pub const PROTOCOL_VERSION: u32 = 6;
 
 /// Maximum players per match (parallel-race default per #11294).
 pub const MAX_PLAYERS: usize = 4;

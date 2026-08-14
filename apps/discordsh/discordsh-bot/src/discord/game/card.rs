@@ -1253,7 +1253,7 @@ mod tests {
     use std::collections::HashMap;
     use std::time::Instant;
 
-    const OWNER: serenity::UserId = serenity::UserId::new(1);
+    const OWNER: PlayerId = PlayerId::new(1);
 
     fn test_fontdb() -> FontDb {
         let mut db = FontDb::new();
@@ -1272,8 +1272,6 @@ mod tests {
             party: Vec::new(),
             mode: SessionMode::Solo,
             phase: GamePhase::Exploring,
-            channel_id: serenity::ChannelId::new(1),
-            message_id: serenity::MessageId::new(1),
             created_at: Instant::now(),
             last_action_at: Instant::now(),
             turn: 3,
@@ -1385,7 +1383,7 @@ mod tests {
         let db = test_fontdb();
         let mut session = test_session();
         session.mode = SessionMode::Party;
-        let member = serenity::UserId::new(2);
+        let member = PlayerId::new(2);
         session.party.push(member);
         session.players.insert(
             member,
@@ -1409,7 +1407,7 @@ mod tests {
         session.mode = SessionMode::Party;
         session.phase = GamePhase::Combat;
         session.enemies = vec![super::super::content::spawn_enemy(0)];
-        let member = serenity::UserId::new(2);
+        let member = PlayerId::new(2);
         session.party.push(member);
         session.players.insert(
             member,
@@ -1537,7 +1535,7 @@ mod tests {
         // 2 players: compact mode, y offsets at 62 and 192
         let mut session2 = test_session();
         session2.mode = SessionMode::Party;
-        let member = serenity::UserId::new(2);
+        let member = PlayerId::new(2);
         session2.party.push(member);
         session2.players.insert(
             member,
@@ -1555,8 +1553,8 @@ mod tests {
         // 3 players: compact mode, y offsets at 62, 152, 242
         let mut session3 = test_session();
         session3.mode = SessionMode::Party;
-        let m2 = serenity::UserId::new(2);
-        let m3 = serenity::UserId::new(3);
+        let m2 = PlayerId::new(2);
+        let m3 = PlayerId::new(3);
         session3.party.push(m2);
         session3.party.push(m3);
         session3.players.insert(
@@ -2111,5 +2109,53 @@ mod tests {
         assert!(png.is_ok(), "Snapshot render failed: {:?}", png.err());
         let bytes = png.unwrap();
         assert_eq!(&bytes[0..4], &[0x89, 0x50, 0x4E, 0x47]);
+    }
+
+    #[test]
+    fn quest_tracker_in_card_template() {
+        let mut session = test_session();
+        let proto = super::super::proto_bridge::find_quest_by_ref("slime-slayer").unwrap();
+        let mut aq = super::super::proto_bridge::build_active_quest(proto);
+        // Simulate partial progress
+        if let Some(step) = aq.steps.get_mut(0) {
+            if let Some(obj) = step.objectives.get_mut(0) {
+                obj.current = 1;
+            }
+        }
+        session.quest_journal.active.push(aq);
+
+        let card = GameCardTemplate::from_session(&session);
+        assert!(card.has_quests);
+        assert_eq!(card.quest_trackers.len(), 1);
+        assert_eq!(card.quest_trackers[0].title, "Slime Slayer");
+        assert!(card.quest_trackers[0].progress.contains("1/3"));
+    }
+
+    #[test]
+    fn quest_tracker_max_two_shown() {
+        let mut session = test_session();
+        for qref in &["slime-slayer", "dungeon-delver", "treasure-seeker"] {
+            let proto = super::super::proto_bridge::find_quest_by_ref(qref).unwrap();
+            session
+                .quest_journal
+                .active
+                .push(super::super::proto_bridge::build_active_quest(proto));
+        }
+
+        let card = GameCardTemplate::from_session(&session);
+        assert!(card.has_quests);
+        assert_eq!(
+            card.quest_trackers.len(),
+            2,
+            "Only 2 quest trackers shown on card"
+        );
+    }
+
+    #[test]
+    fn no_quest_tracker_when_empty() {
+        let session = test_session();
+        let card = GameCardTemplate::from_session(&session);
+        assert!(!card.has_quests);
+        assert!(card.quest_trackers.is_empty());
     }
 }

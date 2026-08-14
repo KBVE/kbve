@@ -474,7 +474,6 @@ impl QTerrain {
         }
 
         const PLANK_T: f32 = 0.18;
-        const RAMP_GRADE: f32 = 0.15;
         let rail_lat = half_w - 0.08;
         let reach = deck_half + 0.6;
         let ground_lo = |p: Vector3| -> f32 {
@@ -485,48 +484,23 @@ impl QTerrain {
             }
             lo
         };
-        let ground_hi = |p: Vector3| -> f32 {
-            let mut hi = f32::MIN;
-            for k in [-1.0f32, -0.5, 0.0, 0.5, 1.0] {
-                let q = p + fwd * half_w * k;
-                hi = hi.max(hgen.height(q.x, q.z));
-            }
-            hi
-        };
         for side in [-1.0f32, 1.0] {
-            let x_start = deck_half * side;
-            let y_start = deck_y + 0.11;
-            let mut ramp_run = 3.0f32;
-            for k in 0..16 {
-                let r = 3.0 + k as f32 * 1.6;
-                let p = center + right * (x_start + side * r);
-                ramp_run = r;
-                if (y_start - hgen.height(p.x, p.z)).max(0.0) / r <= RAMP_GRADE {
-                    break;
-                }
-            }
-            let ramp_steps = ((ramp_run / 1.1).ceil() as i32).clamp(4, 26);
-            let start = center + right * x_start;
-            let mut prev = Vector3::new(start.x, y_start, start.z);
+            // From the plan, not worked out again here: the server puts its ramp
+            // collision under these same points, and a walkable surface in one sim only
+            // is the deck desync moved onto the approach.
+            let path = plan.ramp_path(hgen, side);
+            let ramp_steps = (path.len() - 1) as i32;
+            let first = path[0];
+            let mut prev = Vector3::new(first[0], first[1], first[2]);
             let mut rail_end = prev;
-            let mut prev_ground = ground_lo(start);
-            let mut prev_y = y_start;
+            let mut prev_ground = ground_lo(prev);
+            let mut prev_y = prev.y;
             for i in 1..=ramp_steps {
-                let t = i as f32 / ramp_steps as f32;
                 let last = i == ramp_steps;
-                let x = x_start + side * (t * ramp_run + if last { 0.7 } else { 0.0 });
-                let p = center + right * x;
-                let ground = hgen.height(p.x, p.z);
-                let ground_min = ground_lo(p);
-                let lip = 0.06 * (1.0 - t);
-                let y = if last {
-                    ground - 0.08
-                } else {
-                    (y_start + (ground + lip - y_start) * (t * t * (3.0 - 2.0 * t)))
-                        .min(y_start - 0.01)
-                        .max(ground_hi(p) + 0.09)
-                };
-                let next = Vector3::new(p.x, y, p.z);
+                let point = path[i as usize];
+                let next = Vector3::new(point[0], point[1], point[2]);
+                let ground_min = ground_lo(next);
+                let y = next.y;
                 mb.skirt(
                     prev,
                     next,
@@ -790,6 +764,83 @@ mod plan_tests {
                 s.half_extents.iter().all(|h| *h > 0.0),
                 "a collider with no thickness stops nothing: {s:?}"
             );
+        }
+    }
+
+    #[test]
+    fn the_approach_is_solid_from_the_deck_edge_to_the_ground() {
+        let hgen = HeightGen::new(&HeightParams::default());
+        let plan = BridgePlan::new(&hgen, 256.0, -1.4, 3.2);
+
+        for side in [-1.0f32, 1.0] {
+            let path = plan.ramp_path(&hgen, side);
+            let first = path[0];
+            assert_eq!(
+                first[0].to_bits(),
+                (plan.crossing[0] + plan.deck_half * side).to_bits(),
+                "the approach must start where the deck ends"
+            );
+            assert!(
+                (first[1] - (plan.deck_y + 0.11)).abs() < 1e-5,
+                "the approach must start level with the deck surface"
+            );
+
+            let last = path[path.len() - 1];
+            assert!(
+                last[1] <= hgen.height(last[0], last[2]),
+                "the approach must end in the ground, not above it"
+            );
+            for w in path.windows(2) {
+                let gap = (w[1][0] - w[0][0]).abs();
+                assert!(gap > 0.0 && gap < 2.0, "a step long enough to fall through");
+            }
+        }
+    }
+
+    /// The failure this closes: collision stopped at the deck edge while the client drew
+    /// timber for another 3-27 m, so walking off the bridge dropped you to the
+    /// heightfield half a metre below the planks you could see.
+    #[test]
+    fn the_ramp_collision_lies_under_the_ramp_the_client_draws() {
+        let hgen = HeightGen::new(&HeightParams::default());
+        let plan = BridgePlan::new(&hgen, 256.0, -1.4, 3.2);
+        let slabs = plan.ramp_slabs(&hgen);
+
+        let steps: usize = [-1.0f32, 1.0]
+            .iter()
+            .map(|s| plan.ramp_path(&hgen, *s).len() - 1)
+            .sum();
+        assert_eq!(slabs.len(), steps, "one box per segment, both approaches");
+
+        for s in &slabs {
+            assert!(
+                s.half_extents.iter().all(|h| *h > 0.0),
+                "a collider with no thickness stops nothing: {s:?}"
+            );
+            let q = s.rot;
+            let norm = (q[0] * q[0] + q[1] * q[1] + q[2] * q[2] + q[3] * q[3]).sqrt();
+            assert!(
+                (norm - 1.0).abs() < 1e-4,
+                "rotation is not a unit quaternion"
+            );
+        }
+
+        // The tilt puts each box's top face on the segment, so the surface height at a
+        // box's centre is its centre plus one half-thickness measured back up.
+        for side in [-1.0f32, 1.0] {
+            let path = plan.ramp_path(&hgen, side);
+            for w in path.windows(2) {
+                let mid_x = (w[0][0] + w[1][0]) * 0.5;
+                let mid_y = (w[0][1] + w[1][1]) * 0.5;
+                let near = slabs
+                    .iter()
+                    .find(|s| (s.centre[0] - mid_x).abs() < 0.2)
+                    .expect("every drawn segment has a box under it");
+                assert!(
+                    near.centre[1] < mid_y && mid_y - near.centre[1] <= 0.12,
+                    "the box sits just under the surface, not beside it"
+                );
+            }
         }
     }
 }

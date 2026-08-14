@@ -74,6 +74,8 @@ async fn start(ctx: Context<'_>) -> Result<(), Error> {
 
     let launch::Launched {
         session_state,
+        channel_id,
+        saved_profile,
         mode_guard,
         embed,
         components,
@@ -101,7 +103,14 @@ async fn start(ctx: Context<'_>) -> Result<(), Error> {
     let message_id = msg.id;
 
     let member_status_for_notice = member_status;
-    launch::commit_launch(app, session_state, mode_guard, message_id);
+    launch::commit_launch(
+        app,
+        session_state,
+        channel_id,
+        saved_profile,
+        mode_guard,
+        message_id,
+    );
 
     if let MemberStatus::Guest { notified } = &member_status_for_notice
         && !notified
@@ -172,7 +181,7 @@ async fn join(
             return Ok(());
         }
 
-        if session.owner == user || session.party.contains(&user) {
+        if session.owner == pid(user) || session.party.contains(&pid(user)) {
             ctx.send(
                 poise::CreateReply::default()
                     .content("You're already in this session.")
@@ -237,7 +246,7 @@ async fn join(
     // Re-acquire lock and re-validate (another player may have joined)
     let mut session = handle.lock().await;
 
-    if session.party.contains(&user) {
+    if session.party.contains(&pid(user)) {
         ctx.send(
             poise::CreateReply::default()
                 .content("You're already in this session.")
@@ -257,7 +266,7 @@ async fn join(
         return Ok(());
     }
 
-    session.party.push(user);
+    session.party.push(pid(user));
 
     let joiner_class = match class.as_deref() {
         Some("rogue") => ClassType::Rogue,
@@ -289,10 +298,10 @@ async fn join(
             &mut joiner_player,
             &mut session.quest_journal,
         );
-        joiner_player.saved_snapshot = Some(profile.clone());
+        session.snapshots.insert(pid(user), profile.clone());
     }
 
-    session.players.insert(user, joiner_player);
+    session.players.insert(pid(user), joiner_player);
 
     session
         .log
@@ -336,7 +345,7 @@ async fn join(
 async fn leave(ctx: Context<'_>) -> Result<(), Error> {
     let user = ctx.author().id;
 
-    let sid = match ctx.data().app.sessions.find_by_user(user) {
+    let sid = match ctx.data().app.sessions.find_by_user(pid(user)) {
         Some(s) => s,
         None => {
             ctx.send(
@@ -356,7 +365,7 @@ async fn leave(ctx: Context<'_>) -> Result<(), Error> {
 
     let mut session = handle.lock().await;
 
-    if session.owner == user {
+    if session.owner == pid(user) {
         // Owner leaving ends the session — save all players
         session.phase = GamePhase::GameOver(GameOverReason::Escaped);
         persistence::save_all_players(&ctx.data().app.profiles, &session, &GameOverReason::Escaped);
@@ -366,14 +375,14 @@ async fn leave(ctx: Context<'_>) -> Result<(), Error> {
             .await?;
     } else {
         // Save the leaving player's progress (escaped)
-        if let Some(player) = session.players.get(&user) {
+        if let Some(player) = session.players.get(&pid(user)) {
             let (profile, run) = persistence::extract_save_payload(
                 user.get(),
                 &player.name,
                 player,
                 &session.quest_journal,
                 &GameOverReason::Escaped,
-                player.saved_snapshot.as_ref(),
+                session.snapshots.get(&pid(user)),
                 &session,
             );
             ctx.data().app.profiles.save_async(profile, run);
@@ -383,8 +392,8 @@ async fn leave(ctx: Context<'_>) -> Result<(), Error> {
             .app
             .profiles
             .release_mode_async(user.get(), session.short_id.clone());
-        session.party.retain(|&id| id != user);
-        session.players.remove(&user);
+        session.party.retain(|&id| id != pid(user));
+        session.players.remove(&pid(user));
         session
             .log
             .push(format!("{} left the party.", ctx.author().name));
@@ -402,7 +411,7 @@ async fn leave(ctx: Context<'_>) -> Result<(), Error> {
 async fn status(ctx: Context<'_>) -> Result<(), Error> {
     let user = ctx.author().id;
 
-    let sid = match ctx.data().app.sessions.find_by_user(user) {
+    let sid = match ctx.data().app.sessions.find_by_user(pid(user)) {
         Some(s) => s,
         None => {
             ctx.send(
@@ -448,7 +457,7 @@ async fn status(ctx: Context<'_>) -> Result<(), Error> {
 async fn end(ctx: Context<'_>) -> Result<(), Error> {
     let user = ctx.author().id;
 
-    let sid = match ctx.data().app.sessions.find_by_user(user) {
+    let sid = match ctx.data().app.sessions.find_by_user(pid(user)) {
         Some(s) => s,
         None => {
             ctx.send(
@@ -468,7 +477,7 @@ async fn end(ctx: Context<'_>) -> Result<(), Error> {
 
     let session = handle.lock().await;
 
-    if session.owner != user {
+    if session.owner != pid(user) {
         ctx.send(
             poise::CreateReply::default()
                 .content("Only the session owner can end the dungeon.")
@@ -615,7 +624,7 @@ async fn route(
         }
     };
 
-    let sid = match ctx.data().app.sessions.find_by_user(user) {
+    let sid = match ctx.data().app.sessions.find_by_user(pid(user)) {
         Some(s) => s,
         None => {
             ctx.send(

@@ -44,6 +44,11 @@ const CreatureRig := preload("res://src/characters/creature_rig.gd")
 @export var collider_radius_scale := 0.4
 
 const GROUP := &"creature_patrol"
+
+## Radii searched for walkable ground when a creature is stuck inside a blocked
+## region. The widest has to clear the river plus the field's clearance inflation.
+const ESCAPE_RINGS: Array[float] = [4.0, 8.0, 14.0, 22.0]
+const ESCAPE_SAMPLES := 12
 ## Facing gates forward speed, so a creature leans into its turn rather than
 ## sliding sideways. Never to zero: that was half of why they got stuck.
 const TURN_GATE_FLOOR := 0.35
@@ -183,7 +188,38 @@ func _observe_route() -> void:
 	# all: it means there is no way through, and walking at the leader anyway is
 	# how a creature ends up leaning on a riverbank.
 	var reachable: bool = field.distance_at(global_position) >= 0.0
+	if not reachable:
+		# Standing inside the blocked region rather than looking at it from
+		# outside. Reporting that as blocked parks the creature in MODE_WAITING
+		# facing the leader, and nothing in that state moves it, so it waits there
+		# for the rest of the session. Spawn placement puts mechs in the river on
+		# its own, and anything that shoves one in later does the same.
+		var escape := _escape_route(field)
+		if escape != Vector3.ZERO:
+			_patrol.observe_route(escape, true)
+			return
 	_patrol.observe_route(field.direction_at(global_position), reachable)
+
+
+## Shortest way back to ground the field can route from, or zero if there is none
+## within reach. Rings outward because the gradient inside a blocked region points
+## nowhere useful — there is no route out of a cell the integration never entered.
+func _escape_route(field) -> Vector3:
+	var here := global_position
+	for radius in ESCAPE_RINGS:
+		var best := Vector3.ZERO
+		var best_cost := INF
+		for i in ESCAPE_SAMPLES:
+			var angle := TAU * float(i) / float(ESCAPE_SAMPLES)
+			var at := here + Vector3(cos(angle), 0.0, sin(angle)) * radius
+			var cost: float = field.distance_at(at)
+			if cost >= 0.0 and cost < best_cost:
+				best_cost = cost
+				best = at - here
+		if best != Vector3.ZERO:
+			best.y = 0.0
+			return best.normalized()
+	return Vector3.ZERO
 
 
 ## Every other creature within reach, as the flat `x, z, vx, vz, radius` the

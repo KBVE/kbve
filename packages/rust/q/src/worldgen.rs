@@ -378,7 +378,27 @@ mod tests {
 pub struct BridgeSlab {
     pub centre: [f32; 3],
     pub half_extents: [f32; 3],
+    /// Rotation about the vertical-plane axis, xyzw. The deck is flat, but the
+    /// approaches run downhill, and a stair of axis-aligned boxes under a sloped
+    /// timber surface is a stair the client cannot see.
+    pub rot: [f32; 4],
 }
+
+impl BridgeSlab {
+    fn flat(centre: [f32; 3], half_extents: [f32; 3]) -> Self {
+        Self {
+            centre,
+            half_extents,
+            rot: [0.0, 0.0, 0.0, 1.0],
+        }
+    }
+}
+
+/// Grade the approach is laid down to before it stops descending.
+const RAMP_GRADE: f32 = 0.15;
+
+/// Half-thickness of the deck and of the approach timbers under it.
+const DECK_HALF_T: f32 = 0.11;
 
 /// Where the one river crossing is and how big its deck is.
 #[derive(Clone, Copy, Debug, PartialEq)]
@@ -436,19 +456,114 @@ impl BridgePlan {
         let [cx, cz] = self.crossing;
         let rail = self.half_width - 0.08;
         [
-            BridgeSlab {
-                centre: [cx, self.deck_y, cz],
-                half_extents: [self.deck_half, 0.11, self.half_width],
-            },
-            BridgeSlab {
-                centre: [cx, self.deck_y + 0.62, cz - rail],
-                half_extents: [self.deck_half, 0.07, 0.07],
-            },
-            BridgeSlab {
-                centre: [cx, self.deck_y + 0.62, cz + rail],
-                half_extents: [self.deck_half, 0.07, 0.07],
-            },
+            BridgeSlab::flat(
+                [cx, self.deck_y, cz],
+                [self.deck_half, DECK_HALF_T, self.half_width],
+            ),
+            BridgeSlab::flat(
+                [cx, self.deck_y + 0.62, cz - rail],
+                [self.deck_half, 0.07, 0.07],
+            ),
+            BridgeSlab::flat(
+                [cx, self.deck_y + 0.62, cz + rail],
+                [self.deck_half, 0.07, 0.07],
+            ),
         ]
+    }
+
+    /// The centreline of one approach, from the deck edge down to the ground, as the
+    /// timber surface a player actually walks on.
+    ///
+    /// `side` is -1 or 1. The first point is the deck edge; the last is driven into the
+    /// ground, where the heightfield takes over. Shared rather than derived twice: the
+    /// client lays its planks along these points and the server puts its collision under
+    /// them, so the ramp cannot be solid in one sim and empty in the other.
+    pub fn ramp_path(&self, hgen: &HeightGen, side: f32) -> Vec<[f32; 3]> {
+        let [cx, cz] = self.crossing;
+        let half_w = self.half_width;
+        let ground_hi = |x: f32| -> f32 {
+            let mut hi = f32::MIN;
+            for k in [-1.0f32, -0.5, 0.0, 0.5, 1.0] {
+                hi = hi.max(hgen.height(x, cz + half_w * k));
+            }
+            hi
+        };
+
+        let x_start = self.deck_half * side;
+        let y_start = self.deck_y + DECK_HALF_T;
+
+        let mut ramp_run = 3.0f32;
+        for k in 0..16 {
+            let r = 3.0 + k as f32 * 1.6;
+            ramp_run = r;
+            if (y_start - hgen.height(cx + x_start + side * r, cz)).max(0.0) / r <= RAMP_GRADE {
+                break;
+            }
+        }
+        let steps = ((ramp_run / 1.1).ceil() as i32).clamp(4, 26);
+
+        let mut path = Vec::with_capacity(steps as usize + 1);
+        path.push([cx + x_start, y_start, cz]);
+        for i in 1..=steps {
+            let t = i as f32 / steps as f32;
+            let last = i == steps;
+            let x = x_start + side * (t * ramp_run + if last { 0.7 } else { 0.0 });
+            let px = cx + x;
+            let ground = hgen.height(px, cz);
+            let y = if last {
+                ground - 0.08
+            } else {
+                let lip = 0.06 * (1.0 - t);
+                (y_start + (ground + lip - y_start) * (t * t * (3.0 - 2.0 * t)))
+                    .min(y_start - 0.01)
+                    .max(ground_hi(px) + 0.09)
+            };
+            path.push([px, y, cz]);
+        }
+        path
+    }
+
+    /// Collision for both approaches: one box per segment of [`ramp_path`], tilted onto
+    /// the segment so its top face is the surface the client drew.
+    ///
+    /// Without these the deck ends in mid-air as far as the solver is concerned. The
+    /// ground under an approach is a good half metre below the timber it carries, so a
+    /// player who walked off the deck would be held up by the client and dropped to the
+    /// heightfield by the host — the correction yank the shared deck exists to prevent,
+    /// moved to the ramp.
+    pub fn ramp_slabs(&self, hgen: &HeightGen) -> Vec<BridgeSlab> {
+        let mut slabs = Vec::new();
+        for side in [-1.0f32, 1.0] {
+            let path = self.ramp_path(hgen, side);
+            for pair in path.windows(2) {
+                // Always taken left to right. A box is symmetric, so the orientation is
+                // the same either way, but the half-thickness is stepped off along the
+                // box's own down axis -- and on the far approach, whose segments run in
+                // -x, that axis is up unless the segment is turned around first.
+                let (a, b) = if pair[1][0] >= pair[0][0] {
+                    (pair[0], pair[1])
+                } else {
+                    (pair[1], pair[0])
+                };
+                let (dx, dy) = (b[0] - a[0], b[1] - a[1]);
+                let len = (dx * dx + dy * dy).sqrt();
+                if len <= f32::EPSILON {
+                    continue;
+                }
+                let angle = libm::atan2f(dy, dx);
+                let (s, c) = (libm::sinf(angle), libm::cosf(angle));
+                slabs.push(BridgeSlab {
+                    centre: [
+                        (a[0] + b[0]) * 0.5 + s * DECK_HALF_T,
+                        (a[1] + b[1]) * 0.5 - c * DECK_HALF_T,
+                        a[2],
+                    ],
+                    half_extents: [len * 0.5, DECK_HALF_T, self.half_width],
+                    rot: [0.0, 0.0, libm::sinf(angle * 0.5), libm::cosf(angle * 0.5)],
+                });
+            }
+        }
+        slabs
     }
 
     /// True when the crossing is close enough to a window to belong to it.

@@ -257,6 +257,25 @@ impl QNetClient3D {
             .map_or(0, |w| w.terrain_resolution as i64)
     }
 
+    /// Water surface the host is simulating. The bridge deck is measured up from it, so
+    /// a client holding a different one lays planks where its own server holds river.
+    #[func]
+    fn world_water_level(&self) -> f64 {
+        self.last
+            .as_ref()
+            .and_then(|s| s.world)
+            .map_or(0.0, |w| w.water_level as f64)
+    }
+
+    /// Trunk road width the host is simulating. The deck is a multiple of it.
+    #[func]
+    fn world_road_width(&self) -> f64 {
+        self.last
+            .as_ref()
+            .and_then(|s| s.world)
+            .map_or(0.0, |w| w.road_width as f64)
+    }
+
     #[func]
     fn is_joined(&self) -> bool {
         self.last

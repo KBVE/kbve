@@ -702,7 +702,7 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
 
     // City hospital — revive dead party members
     if in_city && !game_over && session.mode == SessionMode::Party {
-        let dead_members: Vec<(serenity::UserId, &PlayerState)> = session
+        let dead_members: Vec<(PlayerId, &PlayerState)> = session
             .roster()
             .into_iter()
             .filter(|(_, p)| !p.alive)
@@ -976,7 +976,7 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
     // Gift select menu (Party mode, non-combat phases)
     if session.mode == SessionMode::Party && !game_over && !in_combat && rows.len() < 5 {
         let mut gift_options: Vec<serenity::CreateSelectMenuOption> = Vec::new();
-        let party_targets: Vec<(serenity::UserId, String)> = session
+        let party_targets: Vec<(PlayerId, String)> = session
             .roster()
             .iter()
             .filter(|(uid, p)| p.alive && *uid != session.owner)
@@ -1099,7 +1099,7 @@ mod tests {
     use std::collections::HashMap;
     use std::time::Instant;
 
-    const OWNER: serenity::UserId = serenity::UserId::new(1);
+    const OWNER: PlayerId = PlayerId::new(1);
 
     fn test_session() -> SessionState {
         let (id, short_id) = new_short_sid();
@@ -1113,8 +1113,6 @@ mod tests {
             party: Vec::new(),
             mode: SessionMode::Solo,
             phase: GamePhase::Exploring,
-            channel_id: serenity::ChannelId::new(1),
-            message_id: serenity::MessageId::new(1),
             created_at: Instant::now(),
             last_action_at: Instant::now(),
             turn: 0,
@@ -1303,7 +1301,7 @@ mod tests {
             })
             .collect();
         for slot_id in 2u64..=4u64 {
-            let uid = serenity::UserId::new(slot_id);
+            let uid = PlayerId::new(slot_id);
             session.party.push(uid);
             let mut p = PlayerState::default();
             p.class = if slot_id == 2 {
@@ -1645,7 +1643,7 @@ mod tests {
 
     #[test]
     fn render_embed_waiting_for_actions() {
-        let member = serenity::UserId::new(2);
+        let member = PlayerId::new(2);
         let mut session = test_session();
         session.mode = SessionMode::Party;
         session.party = vec![member];
@@ -1692,7 +1690,7 @@ mod tests {
 
     #[test]
     fn render_embed_party_mode_multiple_players() {
-        let member = serenity::UserId::new(2);
+        let member = PlayerId::new(2);
         let mut session = test_session();
         session.mode = SessionMode::Party;
         session.party = vec![member];
@@ -2068,7 +2066,7 @@ mod tests {
         };
 
         // Add party member (guest)
-        let p2 = serenity::UserId::new(2);
+        let p2 = PlayerId::new(2);
         let mut player2 = PlayerState::default();
         player2.name = "GuestBob".to_owned();
         player2.member_status = MemberStatusTag::Guest;
@@ -2076,7 +2074,7 @@ mod tests {
         session.party.push(p2);
 
         // Add party member (member)
-        let p3 = serenity::UserId::new(3);
+        let p3 = PlayerId::new(3);
         let mut player3 = PlayerState::default();
         player3.name = "MemberAlice".to_owned();
         player3.member_status = MemberStatusTag::Member {
@@ -2107,7 +2105,7 @@ mod tests {
     // ── Gift select menu tests ──────────────────────────────────────
 
     fn party_session_for_gift() -> SessionState {
-        let member = serenity::UserId::new(2);
+        let member = PlayerId::new(2);
         let mut session = test_session();
         session.mode = SessionMode::Party;
         session.party = vec![member];
@@ -2230,7 +2228,7 @@ mod tests {
     fn gift_menu_hidden_when_no_other_alive_party_members() {
         let mut session = party_session_for_gift();
         session.phase = GamePhase::Exploring;
-        let member = serenity::UserId::new(2);
+        let member = PlayerId::new(2);
         session.player_mut(member).alive = false;
         let components = render_components(&session);
         let all_json = format!("{:?}", components);
@@ -2247,7 +2245,7 @@ mod tests {
         let components = render_components(&session);
         let all_json = format!("{:?}", components);
         // Value format is "item_id|target_uid"
-        let member_id = serenity::UserId::new(2).get();
+        let member_id = PlayerId::new(2).get();
         let expected_value = format!("potion|{}", member_id);
         assert!(
             all_json.contains(&expected_value),

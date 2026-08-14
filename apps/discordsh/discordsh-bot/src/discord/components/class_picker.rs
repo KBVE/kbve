@@ -169,6 +169,8 @@ pub async fn handle_class_pick(
 
     let launch::Launched {
         session_state,
+        channel_id,
+        saved_profile,
         mode_guard,
         embed,
         components,
@@ -228,7 +230,14 @@ pub async fn handle_class_pick(
         }
     };
 
-    launch::commit_launch(app, session_state, mode_guard, posted.id);
+    launch::commit_launch(
+        app,
+        session_state,
+        channel_id,
+        saved_profile,
+        mode_guard,
+        posted.id,
+    );
 
     if let MemberStatus::Guest { notified } = &member_status
         && !notified

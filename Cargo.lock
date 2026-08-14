@@ -2324,6 +2324,7 @@ dependencies = [
  "base64 0.22.1",
  "bevy",
  "bevy_chat",
+ "bevy_dungeon",
  "bevy_inventory",
  "bevy_items",
  "bevy_kbve_net",
@@ -3009,6 +3010,27 @@ dependencies = [
  "log",
  "serde",
  "sysinfo 0.38.4",
+]
+
+[[package]]
+name = "bevy_dungeon"
+version = "0.1.0"
+dependencies = [
+ "bevy_battle",
+ "bevy_behavior",
+ "bevy_inventory",
+ "bevy_items",
+ "bevy_mapdb",
+ "bevy_npc",
+ "bevy_pathfinder",
+ "bevy_quests",
+ "bevy_skills",
+ "rand 0.10.2",
+ "rand_chacha 0.10.0",
+ "serde",
+ "serde_json",
+ "tracing",
+ "uuid",
 ]
 
 [[package]]
@@ -6503,6 +6525,7 @@ dependencies = [
  "bevy_behavior",
  "bevy_chat",
  "bevy_db",
+ "bevy_dungeon",
  "bevy_inventory",
  "bevy_items",
  "bevy_mapdb",
