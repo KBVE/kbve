@@ -83,7 +83,25 @@ Bodies are authored by the server, so avatars are spawned in response to
 (`wish_dir` + jump) and never applied locally — the server owns movement.
 
 Set `avatar_scene` to control what a body looks like; without it a plain capsule
-mesh is used. Manual end-to-end check against a running server:
+mesh is used.
+
+### Interpolation
+
+Snapshots arrive at the host's `snapshot_hz` (20) while we draw at display rate, so
+poses are not applied as they land. `QNetClient3D` buffers snapshots and samples a
+clock held `interp_delay` (0.1s) behind the newest arrival, blending the two that
+straddle it. Raise `interp_delay` if `interp_depth()` keeps falling to 1 — that
+means the buffer is running dry and bodies are being held at the last snapshot
+instead of blended.
+
+Our own body is the exception: with `lead_local_body` on (the default) it is carried
+forward from the newest snapshot along the velocity that came with it, so our
+movement tracks the key that caused it rather than trailing the buffer by the delay
+on top of the round trip. It is still the server's position — this hides the buffer,
+not the latency. Real prediction needs the movement constants in `Welcome`, which is
+a protocol bump.
+
+Manual end-to-end check against a running server:
 
 ```bash
 FS_URL=ws://127.0.0.1:7980/ws godot --headless -s tests/live_net.gd
