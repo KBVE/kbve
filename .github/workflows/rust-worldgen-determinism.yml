@@ -30,7 +30,12 @@ jobs:
                 os: [ubuntu-latest, windows-latest, macos-latest]
 
         steps:
-            # graphify/dir has colons in filenames; NTFS cannot check it out.
+            # graphify/dir has colons in filenames. Git validates every index
+            # entry, so sparse-checkout alone still aborts the clone.
+            - name: Allow colon paths in the index
+              if: runner.os == 'Windows'
+              run: git config --global core.protectNTFS false
+
             - name: Checkout repository
               uses: actions/checkout@v7
               with:
