@@ -109,6 +109,14 @@ pub fn audio_can_copy(codec: Option<&str>, channels: Option<i64>) -> bool {
     codec == Some("aac") && channels.is_some_and(|c| c <= 2)
 }
 
+/// A source with neither a video nor an audio stream has nothing for the
+/// `-map 0:V:0? -map 0:a:0?` pair to select, and ffmpeg dies on the muxer
+/// ("No streams to mux were specified") only after the job is already running.
+/// Reject it at the decision point instead.
+pub fn has_playable_stream(p: &ProbeResult) -> bool {
+    p.video_codec.is_some() || p.audio_codec.is_some()
+}
+
 pub fn decide_delivery(p: &ProbeResult) -> Delivery {
     if p.video_codec.as_deref() != Some("h264") {
         return Delivery::TranscodeHls;
@@ -135,11 +143,25 @@ pub async fn pick_primary_file_async(dir: PathBuf) -> anyhow::Result<PathBuf> {
         .map_err(|e| anyhow::anyhow!("pick_primary_file task failed: {e}"))?
 }
 
+/// Container extensions ffmpeg can be expected to demux into a playable
+/// stream. Torrents routinely ship larger non-media payloads (archives, disc
+/// images, artwork), so size alone cannot pick the feature.
+pub fn is_media_name(name: &str) -> bool {
+    let lower = name.to_ascii_lowercase();
+    [
+        ".mp4", ".mkv", ".webm", ".avi", ".mov", ".m4v", ".ts", ".m2ts", ".mts", ".flv", ".wmv",
+        ".mpg", ".mpeg", ".3gp", ".ogv",
+    ]
+    .iter()
+    .any(|ext| lower.ends_with(ext))
+}
+
 pub fn pick_primary_file(dir: &Path) -> anyhow::Result<PathBuf> {
     if dir.is_file() {
         return Ok(dir.to_path_buf());
     }
-    let mut best: Option<(u64, PathBuf)> = None;
+    let mut best_media: Option<(u64, PathBuf)> = None;
+    let mut best_any: Option<(u64, PathBuf)> = None;
     let mut stack = vec![dir.to_path_buf()];
     while let Some(d) = stack.pop() {
         for entry in std::fs::read_dir(&d)? {
@@ -156,22 +178,29 @@ pub fn pick_primary_file(dir: &Path) -> anyhow::Result<PathBuf> {
                 }
                 stack.push(path);
             } else {
-                let is_reel_output = path
+                let name = path
                     .file_name()
                     .and_then(|n| n.to_str())
-                    .map(|n| n.ends_with(".reel.mp4"))
-                    .unwrap_or(false);
-                if is_reel_output {
+                    .unwrap_or_default()
+                    .to_owned();
+                if name.ends_with(".reel.mp4") {
                     continue;
                 }
                 let len = entry.metadata()?.len();
-                if best.as_ref().map(|(b, _)| len > *b).unwrap_or(true) {
-                    best = Some((len, path));
+                if best_any.as_ref().map(|(b, _)| len > *b).unwrap_or(true) {
+                    best_any = Some((len, path.clone()));
+                }
+                if is_media_name(&name)
+                    && best_media.as_ref().map(|(b, _)| len > *b).unwrap_or(true)
+                {
+                    best_media = Some((len, path));
                 }
             }
         }
     }
-    best.map(|(_, p)| p)
+    best_media
+        .or(best_any)
+        .map(|(_, p)| p)
         .ok_or_else(|| anyhow::anyhow!("no media file under {}", dir.display()))
 }
 
@@ -551,6 +580,9 @@ impl Transcoder {
         let src_dir = std::path::PathBuf::from(&meta.path);
         let primary = pick_primary_file(&src_dir)?;
         let probe = probe(&self.ffprobe_bin, &primary).await?;
+        if !has_playable_stream(&probe) {
+            anyhow::bail!("no audio or video stream in {}", primary.display());
+        }
 
         // Already directly playable in the browser (h264 + aac + mp4): no
         // transcode, no second copy — serve the original as-is.
@@ -924,6 +956,34 @@ mod tests {
             pick_primary_file(dir.path()).unwrap(),
             dir.path().join("movie.mkv")
         );
+    }
+    #[test]
+    fn prefers_media_extension_over_larger_payload() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("release.rar"), vec![b'a'; 64]).unwrap();
+        std::fs::write(dir.path().join("cover.jpg"), vec![b'a'; 32]).unwrap();
+        std::fs::write(dir.path().join("movie.mkv"), b"aa").unwrap();
+        assert_eq!(
+            pick_primary_file(dir.path()).unwrap(),
+            dir.path().join("movie.mkv"),
+            "size alone must not pick an archive over the feature"
+        );
+    }
+    #[test]
+    fn falls_back_to_largest_when_no_known_extension() {
+        let dir = tempfile::tempdir().unwrap();
+        std::fs::write(dir.path().join("small.bin"), b"aa").unwrap();
+        std::fs::write(dir.path().join("big.bin"), b"aaaaaaaa").unwrap();
+        assert_eq!(
+            pick_primary_file(dir.path()).unwrap(),
+            dir.path().join("big.bin")
+        );
+    }
+    #[test]
+    fn no_streams_is_not_playable() {
+        assert!(!has_playable_stream(&pr(None, None, Some("srt"))));
+        assert!(has_playable_stream(&pr(Some("h264"), None, None)));
+        assert!(has_playable_stream(&pr(None, Some("aac"), None)));
     }
 }
 

@@ -899,15 +899,7 @@ pub struct FileEntry {
     pub len: u64,
 }
 
-fn is_media_name(name: &str) -> bool {
-    let lower = name.to_ascii_lowercase();
-    [
-        ".mp4", ".mkv", ".webm", ".avi", ".mov", ".m4v", ".ts", ".m2ts", ".mts", ".flv", ".wmv",
-        ".mpg", ".mpeg", ".3gp", ".ogv",
-    ]
-    .iter()
-    .any(|ext| lower.ends_with(ext))
-}
+use crate::transcode::is_media_name;
 
 pub fn primary_file_index(files: &[FileEntry]) -> Option<usize> {
     files
