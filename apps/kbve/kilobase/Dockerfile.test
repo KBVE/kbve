@@ -33,29 +33,80 @@ RUN cargo pgrx package --pg-config /usr/bin/pg_config --features pg17
 RUN cargo test --lib --features pg17
 
 ####################
+# Stage 0b: pg_durable (mirrors production Stage 0b)
+####################
+FROM rust:bookworm AS pgdurable
+
+ARG PG_DURABLE_VERSION=v0.2.5
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl gnupg2 lsb-release ca-certificates git \
+    libclang-dev clang pkg-config libssl-dev && \
+    echo "deb http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+    curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg && \
+    apt-get update && apt-get install -y --no-install-recommends postgresql-server-dev-17 && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN cargo install cargo-pgrx --version "=0.16.1" --locked
+RUN cargo pgrx init --pg17=/usr/bin/pg_config
+
+RUN git clone --depth 1 --branch "${PG_DURABLE_VERSION}" \
+        https://github.com/microsoft/pg_durable.git /pgdurable
+
+WORKDIR /pgdurable
+
+RUN cargo pgrx package --pg-config /usr/bin/pg_config
+
+####################
 # Stage 1: Test image — PostgreSQL 17 + kilobase .so + test runner
 ####################
 FROM postgres:17-bookworm
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libssl3 ca-certificates && rm -rf /var/lib/apt/lists/*
 
 # Copy built extension artifacts from builder
 COPY --from=builder /build/target/release/kilobase-pg17/usr/share/postgresql/17/extension/kilobase* /usr/share/postgresql/17/extension/
 COPY --from=builder /build/target/release/kilobase-pg17/usr/lib/postgresql/17/lib/kilobase.so /usr/lib/postgresql/17/lib/kilobase.so
 
+COPY --from=pgdurable /pgdurable/target/release/pg_durable-pg17/usr/share/postgresql/17/extension/ /usr/share/postgresql/17/extension/
+COPY --from=pgdurable /pgdurable/target/release/pg_durable-pg17/usr/lib/postgresql/17/lib/ /usr/lib/postgresql/17/lib/
+
 # Copy the SQL test script to /tests/ (NOT initdb.d — avoid double execution)
 COPY sql/test_kilobase.sql /tests/test_kilobase.sql
 
-# Configure PostgreSQL to preload kilobase. kilobase.database must name the
-# database the suite runs in, otherwise the worker attaches to `postgres`,
-# finds no extension tables there, and never exercises its write paths.
-# max_sleep_seconds is dropped to 1 so a refresh is observable within a test.
-RUN printf "shared_preload_libraries = 'kilobase'\nkilobase.database = 'kilobase_test'\nkilobase.max_sleep_seconds = 1\n" \
-        >> /usr/share/postgresql/postgresql.conf.sample
+# The cluster is initialised at build time and the official entrypoint is not
+# used at all.
+#
+# That entrypoint always boots a temporary server and shuts it down again before
+# starting the real one. pg_durable's background worker opens a TCP connection to
+# its configured database and does not release it on fast shutdown, so the
+# postmaster never finishes that shutdown and the real server never starts. The
+# same cycle is also what made readiness detection racy before pg_durable existed.
+#
+# Initialising here removes the cycle entirely: at runtime the server starts once
+# and stays up. PGDATA is deliberately not /var/lib/postgresql/data — that path is
+# a VOLUME in the base image, so anything written to it during build is discarded.
+#
+# Both workers target `postgres`, which is also the database the extension runs in
+# under Supabase. max_sleep_seconds is dropped to 1 so a refresh is observable
+# within a test.
+ENV PGDATA=/pgdata
+
+RUN mkdir -p /pgdata && chown postgres:postgres /pgdata
+
+USER postgres
+
+RUN initdb -D /pgdata --auth-local=trust --auth-host=trust && \
+    printf "listen_addresses = '127.0.0.1'\nshared_preload_libraries = 'kilobase,pg_durable'\nkilobase.database = 'postgres'\nkilobase.max_sleep_seconds = 1\npg_durable.database = 'postgres'\npg_durable.worker_role = 'postgres'\npg_durable.enable_superuser_instances = on\n" \
+        >> /pgdata/postgresql.conf
+
+USER root
 
 # The test entrypoint script
 COPY sql/run_tests.sh /run_tests.sh
 RUN chmod +x /run_tests.sh
 
-ENV POSTGRES_PASSWORD=testpass
-ENV POSTGRES_DB=kilobase_test
+USER postgres
 
 CMD ["/run_tests.sh"]

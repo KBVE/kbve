@@ -2010,3 +2010,342 @@ BEGIN
 
     RAISE NOTICE 'PASS: test_worker_cleanup';
 END $$;
+
+-- ============================================================
+-- Durable scheduling (pg_durable)
+--
+-- kilobase delegates cron scheduling to pg_durable rather than relying only on
+-- the built-in worker's timer. These assert the wrapper actually drives the
+-- orchestration engine: that a schedule produces a live instance, that the
+-- instance executes kilobase_refresh_job, and that unscheduling stops it.
+-- ============================================================
+
+-- ============================================================
+-- Test 61: pg_durable is installed as a dependency
+-- ============================================================
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'pg_durable') THEN
+        RAISE EXCEPTION 'FAIL: test_pg_durable_installed (extension missing)';
+    END IF;
+
+    IF NOT EXISTS (SELECT 1 FROM pg_namespace WHERE nspname = 'df') THEN
+        RAISE EXCEPTION 'FAIL: test_pg_durable_installed (df schema missing)';
+    END IF;
+
+    RAISE NOTICE 'PASS: test_pg_durable_installed';
+END $$;
+
+-- ============================================================
+-- Test 62: kilobase declares pg_durable as a hard requirement
+-- ============================================================
+DO $$
+DECLARE
+    requires_pgd BOOLEAN;
+BEGIN
+    SELECT EXISTS (
+        SELECT 1
+        FROM pg_depend d
+        JOIN pg_extension e ON e.oid = d.refobjid
+        WHERE d.objid = (SELECT oid FROM pg_extension WHERE extname = 'kilobase')
+          AND e.extname = 'pg_durable'
+    ) INTO requires_pgd;
+
+    IF NOT requires_pgd THEN
+        RAISE EXCEPTION 'FAIL: test_kilobase_requires_pg_durable (no dependency recorded)';
+    END IF;
+
+    RAISE NOTICE 'PASS: test_kilobase_requires_pg_durable';
+END $$;
+
+-- ============================================================
+-- Test 63: kilobase_durable_label is deterministic and qualified
+-- ============================================================
+DO $$
+DECLARE
+    label_a TEXT;
+    label_b TEXT;
+BEGIN
+    label_a := kilobase_durable_label('public', 'my_view');
+    label_b := kilobase_durable_label('public', 'my_view');
+
+    IF label_a IS DISTINCT FROM label_b THEN
+        RAISE EXCEPTION 'FAIL: test_durable_label_deterministic (% vs %)', label_a, label_b;
+    END IF;
+
+    IF label_a NOT LIKE '%public.my_view' THEN
+        RAISE EXCEPTION 'FAIL: test_durable_label_deterministic (unexpected shape: %)', label_a;
+    END IF;
+
+    -- Same view name in different schemas must not collide
+    IF kilobase_durable_label('a', 'v') = kilobase_durable_label('b', 'v') THEN
+        RAISE EXCEPTION 'FAIL: test_durable_label_deterministic (schema not distinguished)';
+    END IF;
+
+    RAISE NOTICE 'PASS: test_durable_label_deterministic (%)', label_a;
+END $$;
+
+-- ============================================================
+-- Test 64: Scheduling an unregistered view is rejected
+-- ============================================================
+DO $$
+BEGIN
+    BEGIN
+        PERFORM kilobase_schedule_matview('public', 'never_registered_xyz', '* * * * *');
+        RAISE EXCEPTION 'FAIL: test_schedule_requires_registration (should have raised)';
+    EXCEPTION
+        WHEN OTHERS THEN
+            IF SQLERRM LIKE 'FAIL:%' THEN
+                RAISE;
+            END IF;
+    END;
+
+    RAISE NOTICE 'PASS: test_schedule_requires_registration';
+END $$;
+
+-- ============================================================
+-- Test 65: Scheduling a registered view starts a durable instance
+-- ============================================================
+CREATE TABLE durable_src (id INTEGER PRIMARY KEY, val TEXT);
+INSERT INTO durable_src VALUES (1, 'one');
+CREATE MATERIALIZED VIEW durable_mv AS SELECT id, val FROM durable_src;
+CREATE UNIQUE INDEX idx_durable_mv_id ON durable_mv(id);
+
+SELECT register_matview_refresh('public', 'durable_mv', 300);
+SELECT kilobase_schedule_matview('public', 'durable_mv', '* * * * *');
+
+DO $$
+DECLARE
+    v_instance TEXT;
+    v_status TEXT;
+BEGIN
+    SELECT instance_id INTO v_instance
+    FROM matview_durable_schedules s
+    JOIN matview_refresh_jobs j ON j.id = s.job_id
+    WHERE j.view_name = 'durable_mv';
+
+    IF v_instance IS NULL THEN
+        RAISE EXCEPTION 'FAIL: test_schedule_creates_instance (no row recorded)';
+    END IF;
+
+    SELECT status INTO v_status FROM df.instances WHERE id = v_instance;
+
+    IF v_status IS NULL THEN
+        RAISE EXCEPTION 'FAIL: test_schedule_creates_instance (instance % not in df.instances)', v_instance;
+    END IF;
+
+    IF v_status NOT IN ('pending', 'running') THEN
+        RAISE EXCEPTION 'FAIL: test_schedule_creates_instance (status % is not live)', v_status;
+    END IF;
+
+    RAISE NOTICE 'PASS: test_schedule_creates_instance (% is %)', v_instance, v_status;
+END $$;
+
+-- ============================================================
+-- Test 66: kilobase_durable_status reports the live instance
+-- ============================================================
+DO $$
+DECLARE
+    v_status TEXT;
+BEGIN
+    v_status := kilobase_durable_status('public', 'durable_mv');
+
+    IF v_status IS NULL THEN
+        RAISE EXCEPTION 'FAIL: test_durable_status_reports (returned NULL for a scheduled view)';
+    END IF;
+
+    IF kilobase_durable_status('public', 'never_scheduled_xyz') IS NOT NULL THEN
+        RAISE EXCEPTION 'FAIL: test_durable_status_reports (unscheduled view reported a status)';
+    END IF;
+
+    RAISE NOTICE 'PASS: test_durable_status_reports (%)', v_status;
+END $$;
+
+-- ============================================================
+-- Test 67: matview_durable_status view joins schedule to instance
+-- ============================================================
+DO $$
+DECLARE
+    v_cron TEXT;
+    v_status TEXT;
+BEGIN
+    SELECT cron_expression, status INTO v_cron, v_status
+    FROM matview_durable_status
+    WHERE view_name = 'durable_mv';
+
+    IF v_cron IS DISTINCT FROM '* * * * *' THEN
+        RAISE EXCEPTION 'FAIL: test_durable_status_view (cron % unexpected)', v_cron;
+    END IF;
+
+    IF v_status IS NULL THEN
+        RAISE EXCEPTION 'FAIL: test_durable_status_view (instance not joined)';
+    END IF;
+
+    RAISE NOTICE 'PASS: test_durable_status_view (% / %)', v_cron, v_status;
+END $$;
+
+-- ============================================================
+-- Test 68: Re-scheduling replaces rather than duplicates the loop
+-- ============================================================
+SELECT kilobase_schedule_matview('public', 'durable_mv', '*/2 * * * *');
+
+DO $$
+DECLARE
+    live_count INTEGER;
+    v_cron TEXT;
+BEGIN
+    SELECT COUNT(*) INTO live_count
+    FROM df.instances
+    WHERE label = kilobase_durable_label('public', 'durable_mv')
+      AND status IN ('pending', 'running');
+
+    IF live_count <> 1 THEN
+        RAISE EXCEPTION 'FAIL: test_reschedule_replaces (% live instances, expected 1)', live_count;
+    END IF;
+
+    SELECT cron_expression INTO v_cron
+    FROM matview_durable_status WHERE view_name = 'durable_mv';
+
+    IF v_cron IS DISTINCT FROM '*/2 * * * *' THEN
+        RAISE EXCEPTION 'FAIL: test_reschedule_replaces (cron not updated: %)', v_cron;
+    END IF;
+
+    RAISE NOTICE 'PASS: test_reschedule_replaces (1 live instance, cron %)', v_cron;
+END $$;
+
+-- ============================================================
+-- Test 69: The durable loop actually executes kilobase_refresh_job
+--
+-- Asserted through df.nodes rather than through matview_refresh_log, because
+-- the built-in worker also refreshes registered jobs — a log row alone would
+-- not prove the orchestration ran. A completed node carrying the
+-- kilobase_refresh_job call is unambiguous.
+-- ============================================================
+SELECT kilobase_schedule_matview('public', 'durable_mv', '* * * * *');
+
+DO $$
+DECLARE
+    deadline TIMESTAMPTZ := clock_timestamp() + INTERVAL '150 seconds';
+    v_instance TEXT;
+    executed INTEGER := 0;
+BEGIN
+    SELECT instance_id INTO v_instance
+    FROM matview_durable_schedules s
+    JOIN matview_refresh_jobs j ON j.id = s.job_id
+    WHERE j.view_name = 'durable_mv';
+
+    LOOP
+        SELECT COUNT(*) INTO executed
+        FROM df.nodes
+        WHERE instance_id = v_instance
+          AND query LIKE '%kilobase_refresh_job%'
+          AND status = 'completed';
+
+        EXIT WHEN executed > 0 OR clock_timestamp() > deadline;
+        PERFORM pg_sleep(5);
+    END LOOP;
+
+    IF executed = 0 THEN
+        RAISE EXCEPTION 'FAIL: test_durable_loop_executes_refresh (no completed refresh node for % after 150s)',
+            v_instance;
+    END IF;
+
+    RAISE NOTICE 'PASS: test_durable_loop_executes_refresh (% completed nodes)', executed;
+END $$;
+
+-- ============================================================
+-- Test 70: Unscheduling cancels the instance
+-- ============================================================
+DO $$
+DECLARE
+    cancelled BOOLEAN;
+    live_count INTEGER;
+    rows_left INTEGER;
+BEGIN
+    cancelled := kilobase_unschedule_matview('public', 'durable_mv');
+
+    IF NOT cancelled THEN
+        RAISE EXCEPTION 'FAIL: test_unschedule_cancels (returned false for a live schedule)';
+    END IF;
+
+    SELECT COUNT(*) INTO live_count
+    FROM df.instances
+    WHERE label = kilobase_durable_label('public', 'durable_mv')
+      AND status IN ('pending', 'running');
+
+    IF live_count <> 0 THEN
+        RAISE EXCEPTION 'FAIL: test_unschedule_cancels (% instances still live)', live_count;
+    END IF;
+
+    SELECT COUNT(*) INTO rows_left
+    FROM matview_durable_schedules s
+    JOIN matview_refresh_jobs j ON j.id = s.job_id
+    WHERE j.view_name = 'durable_mv';
+
+    IF rows_left <> 0 THEN
+        RAISE EXCEPTION 'FAIL: test_unschedule_cancels (schedule row not removed)';
+    END IF;
+
+    RAISE NOTICE 'PASS: test_unschedule_cancels';
+END $$;
+
+-- ============================================================
+-- Test 71: Unscheduling something never scheduled is a no-op
+-- ============================================================
+DO $$
+BEGIN
+    IF kilobase_unschedule_matview('public', 'durable_mv') THEN
+        RAISE EXCEPTION 'FAIL: test_unschedule_idempotent (second call reported a cancellation)';
+    END IF;
+
+    RAISE NOTICE 'PASS: test_unschedule_idempotent';
+END $$;
+
+-- ============================================================
+-- Test 72: Dropping the job removes its schedule row
+-- ============================================================
+DO $$
+DECLARE
+    v_job INTEGER;
+    rows_left INTEGER;
+BEGIN
+    v_job := kilobase_job_id('public', 'durable_mv');
+    PERFORM kilobase_schedule_matview('public', 'durable_mv', '* * * * *');
+
+    -- matview_refresh_log's foreign key has no ON DELETE CASCADE, so a job that
+    -- has ever been refreshed cannot be deleted until its log rows go first.
+    -- Only matview_durable_schedules cascades, which is what this asserts.
+    DELETE FROM matview_refresh_log WHERE job_id = v_job;
+    DELETE FROM matview_refresh_jobs WHERE id = v_job;
+
+    SELECT COUNT(*) INTO rows_left
+    FROM matview_durable_schedules WHERE job_id = v_job;
+
+    IF rows_left <> 0 THEN
+        RAISE EXCEPTION 'FAIL: test_schedule_cascade_delete (% rows survived)', rows_left;
+    END IF;
+
+    RAISE NOTICE 'PASS: test_schedule_cascade_delete';
+END $$;
+
+-- ============================================================
+-- Durable test cleanup
+-- ============================================================
+DO $$
+DECLARE
+    v_instance TEXT;
+BEGIN
+    FOR v_instance IN
+        SELECT id FROM df.instances
+        WHERE label = kilobase_durable_label('public', 'durable_mv')
+          AND status IN ('pending', 'running')
+    LOOP
+        PERFORM df.cancel(v_instance, 'e2e cleanup');
+    END LOOP;
+
+    DROP MATERIALIZED VIEW IF EXISTS durable_mv;
+    DROP TABLE IF EXISTS durable_src CASCADE;
+    DELETE FROM matview_refresh_jobs WHERE view_name = 'durable_mv';
+
+    RAISE NOTICE 'PASS: test_durable_cleanup';
+END $$;
