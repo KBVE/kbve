@@ -395,24 +395,20 @@ impl QTerrain {
         let cx = road.crossing.x;
         let cz = road.crossing.y;
 
-        let bank_l = hgen.height(cx - road.half_span, cz);
-        let bank_r = hgen.height(cx + road.half_span, cz);
-        let corridor = road.half_span + 7.0;
-        let mut crest = bank_l.max(bank_r);
-        let mut s = -corridor;
-        while s <= corridor {
-            let p = road.point_near_x(cx + s);
-            crest = crest.max(hgen.height(p.x, p.y));
-            s += 1.5;
-        }
-        let deck_y = crest.max(self.water_level + 1.9) + 0.35;
+        // Taken from the shared plan rather than worked out again here: the
+        // server builds its collision from the same numbers, and a deck in two
+        // slightly different places is a player walking on planks their own
+        // server thinks are river.
+        let plan =
+            crate::worldgen::BridgePlan::new(hgen, self.extent, self.water_level, self.road_width);
+        let deck_y = plan.deck_y;
         let center = Vector3::new(cx, deck_y, cz);
 
-        let half_w = road.width * 0.55;
+        let half_w = plan.half_width;
         let uvs = 0.5;
         let mut mb = PlankMesh::new();
 
-        let deck_half = road.half_span + 1.8;
+        let deck_half = plan.deck_half;
         mb.box_at(
             center,
             Vector3::new(deck_half, 0.11, half_w),
@@ -711,5 +707,89 @@ mod tests {
         let road = road_at(Vector2::ZERO);
         let near = Vector2::new(road.crossing.x + 250.0, road.crossing.y);
         assert!(road.crossing_in(near, 256.0));
+    }
+}
+
+#[cfg(test)]
+mod plan_tests {
+    use super::*;
+    use crate::worldgen::{BridgePlan, HeightParams};
+
+    /// The road's own span search and the shared plan's must not drift, or the
+    /// carriageway runs onto a deck that starts somewhere else.
+    #[test]
+    fn the_plan_agrees_with_the_road_on_the_crossing() {
+        let hgen = HeightGen::new(&HeightParams::default());
+        for extent in [128.0f32, 256.0, 384.0] {
+            let road = RoadNetwork::build(&hgen, Vector2::ZERO, extent, -1.4, 3.2);
+            let plan = BridgePlan::new(&hgen, extent, -1.4, 3.2);
+            assert_eq!(
+                road.half_span.to_bits(),
+                plan.half_span.to_bits(),
+                "span differs at extent {extent}"
+            );
+            assert_eq!(road.crossing.x.to_bits(), plan.crossing[0].to_bits());
+            assert_eq!(road.crossing.y.to_bits(), plan.crossing[1].to_bits());
+        }
+    }
+
+    /// Both sides bound the span search by their own extent, so a mismatch there
+    /// moves the deck. This is what the terrain shape in the handshake prevents.
+    #[test]
+    fn a_different_extent_can_move_the_deck() {
+        let hgen = HeightGen::new(&HeightParams::default());
+        let a = BridgePlan::new(&hgen, 256.0, -1.4, 3.2);
+        let b = BridgePlan::new(&hgen, 8.0, -1.4, 3.2);
+        assert_ne!(
+            a.half_span, b.half_span,
+            "if this ever passes, agreeing on extent stopped mattering"
+        );
+    }
+
+    #[test]
+    fn the_deck_sits_clear_of_the_water() {
+        let hgen = HeightGen::new(&HeightParams::default());
+        let plan = BridgePlan::new(&hgen, 256.0, -1.4, 3.2);
+        assert!(
+            plan.deck_y > -1.4 + 1.9,
+            "deck at {} is in the river",
+            plan.deck_y
+        );
+        let [cx, cz] = plan.crossing;
+        assert!(
+            hgen.height(cx, cz) < plan.deck_y,
+            "deck is below the riverbed it spans"
+        );
+    }
+
+    /// The deck has to reach dry ground at both ends, or it is a jetty.
+    #[test]
+    fn the_deck_reaches_both_banks() {
+        let hgen = HeightGen::new(&HeightParams::default());
+        let plan = BridgePlan::new(&hgen, 256.0, -1.4, 3.2);
+        let [cx, cz] = plan.crossing;
+        for side in [-1.0f32, 1.0] {
+            let end = cx + side * plan.deck_half;
+            assert!(
+                hgen.height(end, cz) > -1.4,
+                "deck end at {end} is still over water"
+            );
+        }
+    }
+
+    #[test]
+    fn the_solid_parts_are_the_deck_and_a_kerb_each_side() {
+        let hgen = HeightGen::new(&HeightParams::default());
+        let plan = BridgePlan::new(&hgen, 256.0, -1.4, 3.2);
+        let slabs = plan.slabs();
+        assert_eq!(slabs[0].centre[1].to_bits(), plan.deck_y.to_bits());
+        assert!(slabs[1].centre[2] < slabs[0].centre[2], "kerbs on one side");
+        assert!(slabs[2].centre[2] > slabs[0].centre[2]);
+        for s in slabs {
+            assert!(
+                s.half_extents.iter().all(|h| *h > 0.0),
+                "a collider with no thickness stops nothing: {s:?}"
+            );
+        }
     }
 }
