@@ -83,6 +83,43 @@ impl HarvestKind for Stone {
     }
 }
 
+pub struct Tree;
+
+impl HarvestKind for Tree {
+    /// One more than a rock: felling should read as work, and the extra stage
+    /// gives the lean-and-fall animation somewhere to live.
+    const STAGES: u8 = 4;
+
+    fn drop_table() -> &'static [DropEntry] {
+        &[
+            DropEntry {
+                ore: "log",
+                weight: 62,
+                min: 1,
+                max: 3,
+            },
+            DropEntry {
+                ore: "bark",
+                weight: 20,
+                min: 1,
+                max: 2,
+            },
+            DropEntry {
+                ore: "resin",
+                weight: 12,
+                min: 1,
+                max: 2,
+            },
+            DropEntry {
+                ore: "sapling",
+                weight: 6,
+                min: 1,
+                max: 1,
+            },
+        ]
+    }
+}
+
 #[derive(Clone, Copy)]
 pub struct Entry {
     pub id: u64,
@@ -411,6 +448,76 @@ mod tests {
         ledger.record(7, 3);
         ledger.record(7, 1);
         assert_eq!(ledger.stage(7), 3);
+    }
+
+    fn trunk(cell_x: i32, cell_z: i32) -> Entry {
+        Entry {
+            id: stable_id(4242, cell_x, cell_z, 0),
+            pos: Vector3::new(cell_x as f32 * 14.0, 0.0, cell_z as f32 * 14.0),
+            up: Vector3::UP,
+            scale: 6.0,
+            yaw: 0.0,
+            variant: 0,
+            ore: 0,
+            amount: 0,
+        }
+    }
+
+    /// A tree takes more than a rock, and must not fall early.
+    #[test]
+    fn felling_a_tree_takes_every_stage() {
+        let mut core: ScatterCore<Tree> = ScatterCore::new();
+        core.insert(trunk(3, 3));
+        let id = core.entries()[0].id;
+        for hit in 1..Tree::STAGES {
+            let out = core.apply_damage(id, 1).expect("tree should take the hit");
+            assert!(!out.broken, "fell on hit {hit} of {}", Tree::STAGES);
+            assert!(core.alive(id));
+        }
+        let out = core.apply_damage(id, 1).expect("final hit");
+        assert!(out.broken, "did not fall on the last stage");
+        assert!(!core.alive(id));
+    }
+
+    /// Trees and rocks share ScatterCore but must not share a drop table.
+    #[test]
+    fn a_felled_tree_drops_from_the_tree_table() {
+        let wood: Vec<&str> = Tree::drop_table().iter().map(|d| d.ore).collect();
+        let mut core: ScatterCore<Tree> = ScatterCore::new();
+        for cell in 0..40 {
+            core.insert(trunk(cell, cell * 3));
+        }
+        for e in core.entries() {
+            let ore = Tree::drop_table()[e.ore as usize].ore;
+            assert!(wood.contains(&ore), "{ore} is not a tree drop");
+            assert!(e.amount >= 1, "{ore} dropped nothing");
+        }
+    }
+
+    /// The whole point of the ledger, for the kind that regrows slowest.
+    #[test]
+    fn a_felled_tree_is_still_down_when_the_ground_comes_back() {
+        let mut ledger = Ledger::new();
+        let mut core: ScatterCore<Tree> = ScatterCore::new();
+        core.insert(trunk(2, 9));
+        core.insert(trunk(-5, 1));
+        let id = core.entries()[0].id;
+        core.apply_damage(id, Tree::STAGES);
+        assert!(!core.alive(id));
+        for (id, stage) in core.damage() {
+            ledger.record(id, stage);
+        }
+
+        core.clear();
+        core.insert(trunk(2, 9));
+        core.insert(trunk(-5, 1));
+        assert!(core.alive(id), "test rescatter did not actually reset it");
+        core.restore(&ledger);
+        assert!(!core.alive(id), "the tree stood back up");
+        assert!(
+            core.alive(core.entries()[1].id),
+            "restoring felled an untouched tree"
+        );
     }
 
     #[test]

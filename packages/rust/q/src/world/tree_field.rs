@@ -6,7 +6,10 @@ use godot::classes::{ArrayMesh, Engine, PhysicsServer3D, ShaderMaterial, Texture
 use godot::prelude::*;
 use godot::tools::try_load;
 
+use std::collections::HashMap;
+
 use crate::world::flora_compute::{FloraCompute, TerrainOcclusion};
+use crate::world::harvest::{Entry, HarvestKind, Ledger, ScatterCore, Tree, stable_id};
 use crate::world::{TerrainSnapshot, hash32, randf, world_aabb};
 
 struct Growth {
@@ -162,6 +165,13 @@ pub struct QTreeField {
     computes: Vec<FloraCompute>,
     attempts: i32,
     candidates: Vec<f32>,
+    core: ScatterCore<Tree>,
+    ledger: Ledger,
+    /// Id of each stride-8 candidate, in the same order.
+    cand_ids: Vec<u64>,
+    /// Where a tree lives in the GPU buffers: the index of its near compute in
+    /// `computes` (far is the next one), and its slot within that buffer.
+    instance_of: HashMap<u64, (u32, u32)>,
     meshes: Vec<Gd<ArrayMesh>>,
     /// Per-entry triangle count, parallel to `meshes`.
     mesh_tris: Vec<u64>,
@@ -189,10 +199,18 @@ impl QTreeField {
             .unwrap_or(false)
     }
 
+    /// What the player felled goes into the ledger first and is replayed after,
+    /// so ground they walk back to keeps its stumps.
     fn rescatter(&mut self) {
         let _t = crate::world::StallTimer::start("trees.rescatter");
+        let damage: Vec<(u64, u8)> = self.core.damage().collect();
+        for (id, stage) in damage {
+            self.ledger.record(id, stage);
+        }
         self.free_all();
         self.candidates.clear();
+        self.cand_ids.clear();
+        self.instance_of.clear();
         self.meshes.clear();
         self.mesh_tris.clear();
         self.leaf_mats.clear();
@@ -227,7 +245,11 @@ impl QTreeField {
         let grid = crate::world::ScatterGrid::new(self.grid_size, terra.origin, extent);
         let cells = grid.cells();
         self.origin = terra.origin;
+        let seed64 = self.tree_seed as u32 as u64;
         let mut cand: Vec<f32> = Vec::new();
+        let mut cand_ids: Vec<u64> = Vec::new();
+        self.core.clear();
+        self.instance_of.clear();
         for iz in 0..cells {
             for ix in 0..cells {
                 let mut state = grid.seed(self.tree_seed as u32, ix, iz);
@@ -258,7 +280,20 @@ impl QTreeField {
                 let phase = randf(&mut state) * std::f32::consts::TAU;
                 let sp = &SPECIES[kind];
                 let scale = sp.height.0 + randf(&mut state) * (sp.height.1 - sp.height.0);
+                let (gx, gz) = grid.global(ix, iz);
+                let id = stable_id(seed64, gx, gz, 0);
                 cand.extend_from_slice(&[x, h - 0.17, z, scale, rank, kind as f32, phase, 0.0]);
+                cand_ids.push(id);
+                self.core.insert(Entry {
+                    id,
+                    pos: Vector3::new(x, h - 0.17, z),
+                    up: Vector3::UP,
+                    scale,
+                    yaw: phase,
+                    variant: kind as u8,
+                    ore: 0,
+                    amount: 0,
+                });
             }
         }
         if cand.is_empty() {
@@ -266,6 +301,10 @@ impl QTreeField {
             return true;
         }
         self.candidates = cand;
+        self.cand_ids = cand_ids;
+        let ledger = std::mem::take(&mut self.ledger);
+        self.core.restore(&ledger);
+        self.ledger = ledger;
         self.build_colliders();
 
         {
@@ -286,13 +325,21 @@ impl QTreeField {
         let (occl_h, occl_res) = terra.raw_heights();
 
         for (i, sp) in SPECIES.iter().enumerate() {
-            let cands: Vec<f32> = self
-                .candidates
-                .chunks_exact(8)
-                .filter(|c| c[5] as usize == i)
-                .flatten()
-                .copied()
-                .collect();
+            let mut cands: Vec<f32> = Vec::new();
+            let mut ids: Vec<u64> = Vec::new();
+            for (c, id) in self.candidates.chunks_exact(8).zip(self.cand_ids.iter()) {
+                if c[5] as usize != i {
+                    continue;
+                }
+                cands.extend_from_slice(c);
+                // Anything the ledger already felled starts culled, so walking
+                // back to old ground does not stand the trees up again.
+                if !self.core.alive(*id) {
+                    let last = cands.len() - 1;
+                    cands[last] = 1.0;
+                }
+                ids.push(*id);
+            }
             if cands.is_empty() {
                 continue;
             }
@@ -371,6 +418,10 @@ impl QTreeField {
             );
             match (near_c, far_c) {
                 (Some(n), Some(f)) => {
+                    let base = self.computes.len() as u32;
+                    for (slot, id) in ids.iter().enumerate() {
+                        self.instance_of.insert(*id, (base, slot as u32));
+                    }
                     self.computes.push(n);
                     self.computes.push(f);
                     self.mesh_tris.push((near.get_faces().len() / 3) as u64);
@@ -497,6 +548,58 @@ impl INode3D for QTreeField {
 
 #[godot_api]
 impl QTreeField {
+    #[signal]
+    fn tree_felled(id: i64, ore: GString, amount: i64);
+
+    #[func]
+    fn query_radius(&self, pos: Vector3, radius: f32, max: i32) -> PackedInt64Array {
+        let ids = self.core.query_radius(pos, radius, max.max(0) as usize);
+        let mut out = PackedInt64Array::new();
+        for id in ids {
+            out.push(id as i64);
+        }
+        out
+    }
+
+    #[func]
+    fn get_info(&self, id: i64) -> VarDictionary {
+        let mut d = VarDictionary::new();
+        let Some(e) = self.core.get(id as u64) else {
+            return d;
+        };
+        let table = Tree::drop_table();
+        let _ = d.insert("position", e.pos);
+        let _ = d.insert("scale", e.scale);
+        let _ = d.insert("variant", e.variant as i64);
+        let _ = d.insert("stage", self.core.stage(e.id) as i64);
+        let _ = d.insert("alive", self.core.alive(e.id));
+        let _ = d.insert("ore", table[e.ore as usize].ore);
+        let _ = d.insert("amount", e.amount as i64);
+        d
+    }
+
+    #[func]
+    fn apply_damage(&mut self, id: i64, hits: i64) -> VarDictionary {
+        let mut d = VarDictionary::new();
+        let Some(out) = self.core.apply_damage(id as u64, hits.clamp(1, 255) as u8) else {
+            let _ = d.insert("hit", false);
+            return d;
+        };
+        let _ = d.insert("hit", true);
+        let _ = d.insert("stage", out.stage as i64);
+        let _ = d.insert("broken", out.broken);
+        let _ = d.insert("ore", out.ore);
+        let _ = d.insert("amount", out.amount as i64);
+        if out.broken {
+            self.cull_instance(id as u64);
+            self.build_colliders();
+            self.signals()
+                .tree_felled()
+                .emit(id, &GString::from(out.ore), out.amount as i64);
+        }
+        d
+    }
+
     #[func]
     fn get_tree_stats(&mut self) -> VarDictionary {
         let mut d = VarDictionary::new();
@@ -572,7 +675,22 @@ impl QTreeField {
 }
 
 impl QTreeField {
+    /// Frees the trunk body and its shapes, leaving the computes alone.
+    ///
+    /// Felling rebuilds colliders without touching the GPU buffers, so this is
+    /// the physics half of `free_all` on its own.
+    fn free_colliders(&mut self) {
+        let mut ps = PhysicsServer3D::singleton();
+        for rid in std::iter::once(self.body).chain(self.trunk_shapes.drain(..)) {
+            if rid.is_valid() {
+                ps.free_rid(rid);
+            }
+        }
+        self.body = Rid::Invalid;
+    }
+
     fn build_colliders(&mut self) {
+        self.free_colliders();
         let Some(world) = self.base().get_world_3d() else {
             return;
         };
@@ -594,7 +712,10 @@ impl QTreeField {
         let body = ps.body_create();
         ps.body_set_mode(body, BodyMode::STATIC);
         ps.body_set_space(body, space);
-        for c in self.candidates.chunks_exact(8) {
+        for (c, id) in self.candidates.chunks_exact(8).zip(self.cand_ids.iter()) {
+            if !self.core.alive(*id) {
+                continue;
+            }
             let bi = if c[3] < 4.5 {
                 0
             } else if c[3] < 6.5 {
@@ -609,6 +730,18 @@ impl QTreeField {
         self.trunk_shapes = shapes;
     }
 
+    /// Drops a felled tree from both its LOD buffers.
+    fn cull_instance(&mut self, id: u64) {
+        let Some(&(base, slot)) = self.instance_of.get(&id) else {
+            return;
+        };
+        for c in [base, base + 1] {
+            if let Some(fc) = self.computes.get_mut(c as usize) {
+                fc.set_harvested(slot, true);
+            }
+        }
+    }
+
     fn free_computes(&mut self) {
         for mut fc in self.computes.drain(..) {
             fc.free();
@@ -617,13 +750,7 @@ impl QTreeField {
 
     fn free_all(&mut self) {
         self.free_computes();
-        let mut ps = PhysicsServer3D::singleton();
-        for rid in std::iter::once(self.body).chain(self.trunk_shapes.drain(..)) {
-            if rid.is_valid() {
-                ps.free_rid(rid);
-            }
-        }
-        self.body = Rid::Invalid;
+        self.free_colliders();
     }
 }
 
