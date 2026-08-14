@@ -5,6 +5,7 @@ use crate::bbs::render::{Ink, Screen, Term};
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Cell {
     Unknown,
+    Discovered,
     Visited,
     Cleared,
     Current,
@@ -66,6 +67,7 @@ impl Grid {
 fn ascii_glyph(cell: Cell) -> char {
     match cell {
         Cell::Unknown => ' ',
+        Cell::Discovered => 'o',
         Cell::Visited => '.',
         Cell::Cleared => '-',
         Cell::Current => '@',
@@ -81,6 +83,7 @@ fn ascii_glyph(cell: Cell) -> char {
 fn petscii_byte(cell: Cell) -> u8 {
     match cell {
         Cell::Unknown => 0x20,
+        Cell::Discovered => 0xD7,
         Cell::Visited => 0x2E,
         Cell::Cleared => 0xDB,
         Cell::Current => 0xD1,
@@ -99,7 +102,7 @@ fn ink_for(cell: Cell) -> Ink {
         Cell::Exit => Ink::Accent,
         Cell::Cleared => Ink::Body,
         Cell::Visited => Ink::Dim,
-        Cell::Unknown => Ink::Dim,
+        Cell::Discovered | Cell::Unknown => Ink::Dim,
     }
 }
 
@@ -160,7 +163,8 @@ pub fn draw(screen: &mut Screen, grid: &Grid) {
     }
 }
 
-/// One-line key so the glyphs are readable without a manual.
+/// Glyph key, wrapped to the terminal so 40 columns gets two lines rather
+/// than a broken one.
 pub fn legend(screen: &mut Screen) {
     let pairs: &[(Cell, &str)] = &[
         (Cell::Current, "you"),
@@ -168,9 +172,16 @@ pub fn legend(screen: &mut Screen) {
         (Cell::Shop, "shop"),
         (Cell::Shrine, "rest"),
         (Cell::Visited, "seen"),
+        (Cell::Discovered, "unmapped"),
     ];
     screen.ink(Ink::Dim);
+    let mut used = 0usize;
     for (cell, label) in pairs {
+        let entry = label.len() + 3;
+        if used > 0 && used + entry > screen.width {
+            screen.nl();
+            used = 0;
+        }
         match screen.term {
             Term::Petscii => {
                 screen.raw(&[petscii_byte(*cell)]);
@@ -180,6 +191,7 @@ pub fn legend(screen: &mut Screen) {
             }
         }
         screen.text(&format!("={label} "));
+        used += entry;
     }
     screen.reset().nl();
 }
