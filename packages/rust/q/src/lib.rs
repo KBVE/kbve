@@ -76,6 +76,9 @@ pub mod locomotion;
 /// Closed-chain inverse kinematics.
 pub mod ik;
 
+/// Creature steering: waypoints, formation, avoidance, stuck recovery.
+pub mod steering;
+
 #[cfg(any(
     feature = "rapier2d-client",
     feature = "rapier2d-server",

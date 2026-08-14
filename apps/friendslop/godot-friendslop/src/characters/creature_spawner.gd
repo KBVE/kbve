@@ -64,6 +64,7 @@ func _spawn() -> void:
 		patrol.formation_distance = formation_distance
 		patrol.formation_spacing = spacing
 		patrol.formation_columns = formation_columns
+		patrol.seed = i
 		add_child(patrol)
 		if leader:
 			patrol.leader_path = patrol.get_path_to(leader)
