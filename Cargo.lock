@@ -2313,7 +2313,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.283"
+version = "1.0.284"
 dependencies = [
  "anyhow",
  "askama",
@@ -2853,7 +2853,7 @@ dependencies = [
 
 [[package]]
 name = "bevy_chat"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "bevy",
  "crossbeam-channel",
