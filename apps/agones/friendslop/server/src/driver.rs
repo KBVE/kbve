@@ -3,6 +3,7 @@ use std::sync::atomic::{AtomicBool, AtomicU64, AtomicUsize, Ordering};
 use std::time::{Duration, Instant};
 
 use q::net::dual::DualHost;
+use q::net::pets::PetConfig;
 use q::net::session::{HostSession, SessionConfig, TokenAuthority};
 use q::rapier::sim3d::{BodyId, SimConfig, SimSnapshot, TerrainDesc};
 use q::worldgen::{HeightGen, HeightParams};
@@ -29,6 +30,10 @@ pub struct DriverConfig {
     pub tree_grid_size: f32,
     pub harvest_reach: f32,
     pub stream_keep_radius: f32,
+    /// How many pet robots one player may have out, and how many the world holds.
+    /// The second is a bandwidth bound: pets ride in every snapshot to everyone.
+    pub pets_per_player: usize,
+    pub pets_total: usize,
 }
 
 /// How often the region set is reconsidered. Every tick would be wasted work — a
@@ -40,6 +45,7 @@ pub struct Driver {
     stop: Arc<AtomicBool>,
     tick: Arc<AtomicU64>,
     regions: Arc<AtomicUsize>,
+    pets: Arc<AtomicUsize>,
     thread: Option<std::thread::JoinHandle<()>>,
 }
 
@@ -53,6 +59,11 @@ impl Driver {
     /// doing anything — a number stuck at 1 while players roam means it is not.
     pub fn regions_handle(&self) -> Arc<AtomicUsize> {
         self.regions.clone()
+    }
+
+    /// Pets currently deployed, which is the only outward sign the cap is holding.
+    pub fn pets_handle(&self) -> Arc<AtomicUsize> {
+        self.pets.clone()
     }
 
     pub fn stop(&mut self) {
@@ -91,7 +102,13 @@ pub fn spawn(
     let stop = Arc::new(AtomicBool::new(false));
     let tick = Arc::new(AtomicU64::new(0));
     let regions = Arc::new(AtomicUsize::new(0));
-    let (stop_t, tick_t, regions_t) = (stop.clone(), tick.clone(), regions.clone());
+    let pet_count = Arc::new(AtomicUsize::new(0));
+    let (stop_t, tick_t, regions_t, pets_t) = (
+        stop.clone(),
+        tick.clone(),
+        regions.clone(),
+        pet_count.clone(),
+    );
 
     let sim = SimConfig {
         tick_hz: cfg.tick_hz,
@@ -110,6 +127,11 @@ pub fn spawn(
     let stone_grid_size = cfg.stone_grid_size;
     let tree_grid_size = cfg.tree_grid_size;
     let harvest_reach = cfg.harvest_reach;
+    let pets = PetConfig {
+        per_player: cfg.pets_per_player,
+        total: cfg.pets_total,
+        ..PetConfig::default()
+    };
 
     let thread =
         std::thread::Builder::new()
@@ -125,6 +147,7 @@ pub fn spawn(
                     stone_grid_size,
                     tree_grid_size,
                     harvest_reach,
+                    pets,
                     ..SessionConfig::default()
                 };
                 let mut host = HostSession::dedicated(transport.clone(), session_config, sim, seed);
@@ -201,6 +224,9 @@ pub fn spawn(
                     host.tick();
                     ticks += 1;
                     tick_t.fetch_add(1, Ordering::Relaxed);
+                    if ticks % STREAM_INTERVAL_TICKS == 0 {
+                        pets_t.store(host.pet_count(), Ordering::Relaxed);
+                    }
 
                     next += step;
                     match next.checked_duration_since(Instant::now()) {
@@ -215,6 +241,7 @@ pub fn spawn(
         stop,
         tick,
         regions,
+        pets: pet_count,
         thread: Some(thread),
     }
 }
