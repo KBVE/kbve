@@ -132,6 +132,12 @@ pub struct QTerrain {
     wake_energy: f32,
     wake_active: bool,
     wake_origin: Vector2,
+    /// Time banked since the last wake dispatch, and where the player was when it ran.
+    /// The wake is a slow, smeared thing; stepping it at the render rate spends a compute
+    /// dispatch and a texture swap per frame to advance it by a hundredth of what the eye
+    /// can see.
+    wake_accum: f32,
+    wake_last_pos: Vector3,
     last_player_pos: Vector3,
     hgen: Option<HeightGen>,
     gen_rx: Option<std::sync::mpsc::Receiver<Vec<f32>>>,
