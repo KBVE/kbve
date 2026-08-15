@@ -3,6 +3,12 @@ use godot::prelude::*;
 
 use super::QTerrain;
 
+/// Edge length of one water quad. The surface is a strip wide enough for the river to
+/// wander across, so its triangle count is set here rather than by the river's own width:
+/// at one metre the plane was 180k triangles for a seven-metre river. The waves it carries
+/// are ten metres from crest to crest, so two metres still spends five vertices on each.
+const WATER_QUAD: f32 = 2.0;
+
 impl QTerrain {
     pub(super) fn build_river_planes(&mut self) {
         let strip_width = ((self.river_wander * 2.0 + self.river_width * 8.0) / 4.0).ceil() * 4.0;
@@ -88,8 +94,8 @@ impl QTerrain {
     fn build_water_plane(&mut self, strip_width: f32) {
         let mut plane = PlaneMesh::new_gd();
         plane.set_size(Vector2::new(strip_width, self.extent * 2.0));
-        plane.set_subdivide_width((strip_width as i32 - 1).max(1));
-        plane.set_subdivide_depth((self.extent as i32 * 2 - 1).max(1));
+        plane.set_subdivide_width(((strip_width / WATER_QUAD) as i32 - 1).max(1));
+        plane.set_subdivide_depth(((self.extent * 2.0 / WATER_QUAD) as i32 - 1).max(1));
         let mut water = MeshInstance3D::new_alloc();
         water.set_name("Water");
         water.set_mesh(&plane);

@@ -1,4 +1,4 @@
-[gd_scene load_steps=14 format=3]
+[gd_scene load_steps=22 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://src/debug/debug_world.gd" id="2_world"]
@@ -9,6 +9,16 @@
 [ext_resource type="Material" path="res://assets/environment/water/riverbed.tres" id="7_riverbed"]
 [ext_resource type="Material" path="res://assets/environment/props/bridge/bridge.tres" id="8_bridge"]
 [ext_resource type="Material" path="res://assets/environment/props/bridge/abutment.tres" id="9_abut"]
+[ext_resource type="Material" path="res://assets/environment/props/flora/flora.tres" id="10_flora"]
+[ext_resource type="Material" path="res://assets/environment/props/flora/shrub.tres" id="11_shrub"]
+[ext_resource type="Material" path="res://assets/environment/props/flora/tree.tres" id="12_tree"]
+[ext_resource type="Material" path="res://assets/environment/props/flora/tree_bark.tres" id="13_bark"]
+[ext_resource type="Material" path="res://assets/environment/props/flora/tree_leaf.tres" id="14_leaf"]
+[ext_resource type="Material" path="res://assets/environment/props/rocks/rock.tres" id="15_rock"]
+[ext_resource type="PackedScene" path="res://assets/environment/props/fauna/lizardfish/lizardfish.glb" id="16_fishmodel"]
+[ext_resource type="Material" path="res://assets/environment/props/fauna/lizardfish/fish.tres" id="17_fishmat"]
+[ext_resource type="Material" path="res://assets/environment/props/fauna/lizardfish/fish_shadow.tres" id="18_fishshadow"]
+[ext_resource type="Shader" path="res://assets/fx/shaders/film_grade.gdshader" id="19_film"]
 
 [sub_resource type="Environment" id="Environment_debug"]
 background_mode = 1
@@ -25,6 +35,9 @@ size = Vector3(240, 1, 240)
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
 albedo_color = Color(0.42, 0.46, 0.4, 1)
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_film"]
+shader = ExtResource("19_film")
 
 [node name="Debug" type="Node3D"]
 script = ExtResource("2_world")
@@ -56,8 +69,73 @@ riverbed_material = ExtResource("7_riverbed")
 bridge_material = ExtResource("8_bridge")
 abutment_material = ExtResource("9_abut")
 
+[node name="GrassField" type="QGrassField" parent="."]
+visible = false
+process_mode = 4
+player_path = NodePath("../Player")
+grass_material = ExtResource("5_grassmat")
+
+[node name="FloraField" type="QFloraField" parent="."]
+visible = false
+process_mode = 4
+terrain_path = NodePath("../Terrain")
+player_path = NodePath("../Player")
+flora_material = ExtResource("10_flora")
+
+[node name="ShrubField" type="QFloraField" parent="."]
+visible = false
+process_mode = 4
+terrain_path = NodePath("../Terrain")
+player_path = NodePath("../Player")
+flora_material = ExtResource("11_shrub")
+flora_seed = 7777
+density = 0.008
+fade_end = 90.0
+patch_frequency = 0.03
+patch_threshold = 0.4
+scale_min = 0.8
+scale_max = 1.6
+
+[node name="TreeField" type="QTreeField" parent="."]
+visible = false
+process_mode = 4
+terrain_path = NodePath("../Terrain")
+player_path = NodePath("../Player")
+tree_material = ExtResource("12_tree")
+bark_material = ExtResource("13_bark")
+leaf_material = ExtResource("14_leaf")
+
+[node name="StoneField" type="QStoneField" parent="."]
+visible = false
+process_mode = 4
+terrain_path = NodePath("../Terrain")
+player_path = NodePath("../Player")
+stone_material = ExtResource("15_rock")
+
+[node name="FishField" type="QFishField" parent="."]
+visible = false
+process_mode = 4
+terrain_path = NodePath("../Terrain")
+player_path = NodePath("../Player")
+fish_model = ExtResource("16_fishmodel")
+fish_material = ExtResource("17_fishmat")
+shadow_material = ExtResource("18_fishshadow")
+
 [node name="Player" parent="." instance=ExtResource("1_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+
+[node name="PostFX" type="CanvasLayer" parent="."]
+visible = false
+layer = 100
+
+[node name="FilmGrade" type="ColorRect" parent="PostFX"]
+material = SubResource("ShaderMaterial_film")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
 [node name="DebugHud" type="CanvasLayer" parent="."]
 script = ExtResource("3_hud")
