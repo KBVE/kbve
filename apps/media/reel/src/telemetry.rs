@@ -108,6 +108,26 @@ pub fn stream_served(id: &str, bytes: u64, delivery: &str, partial: bool) {
     );
 }
 
+pub fn download_served(id: &str, file: &str, bytes: u64, partial: bool) {
+    tracing::info!(
+        event = "download_served",
+        id,
+        file,
+        bytes,
+        partial,
+        "file download served"
+    );
+}
+
+pub fn archive_served(id: &str, files: usize) {
+    tracing::info!(
+        event = "archive_served",
+        id,
+        files,
+        "zip archive stream started"
+    );
+}
+
 pub fn vpn_leak() {
     tracing::error!(
         event = "vpn_leak",

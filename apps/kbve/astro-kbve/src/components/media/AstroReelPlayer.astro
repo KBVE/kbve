@@ -3,6 +3,7 @@ import BentoShell from '@/components/hero/BentoShell.astro';
 import ReactReelPlayer from '@/components/media/ReactReelPlayer';
 import ReactReelConsole from '@/components/media/ReactReelConsole';
 import ReactReelDiagnostics from '@/components/media/ReactReelDiagnostics';
+import ReactReelFiles from '@/components/media/ReactReelFiles';
 ---
 
 <BentoShell id="reel-player-wrapper" eyebrow="Media" heading="Reel player.">
@@ -13,6 +14,9 @@ import ReactReelDiagnostics from '@/components/media/ReactReelDiagnostics';
 		</div>
 		<div class="reel-dash__console not-content">
 			<ReactReelConsole client:only="react" />
+		</div>
+		<div class="reel-dash__files not-content">
+			<ReactReelFiles client:only="react" />
 		</div>
 	</div>
 </BentoShell>
@@ -522,5 +526,132 @@ import ReactReelDiagnostics from '@/components/media/ReactReelDiagnostics';
 		display: flex;
 		gap: 0.5rem;
 		flex-wrap: wrap;
+	}
+
+	.reel-dash__files {
+		margin-top: 1.5rem;
+	}
+
+	:global(.reel-files__head) {
+		display: flex;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 1rem;
+		flex-wrap: wrap;
+		margin-bottom: 0.75rem;
+	}
+
+	:global(.reel-files__title) {
+		color: #e5e7eb;
+		font-size: 0.9375rem;
+		font-weight: 600;
+	}
+
+	:global(.reel-files__meta) {
+		color: #9ca3af;
+		font-size: 0.75rem;
+	}
+
+	:global(.reel-files__empty) {
+		color: #71717a;
+		font-size: 0.875rem;
+		padding: 0.75rem 0;
+	}
+
+	:global(.reel-files__error) {
+		color: #f87171;
+		font-size: 0.875rem;
+		padding: 0.75rem 0;
+	}
+
+	:global(.reel-files__bulk) {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		flex-wrap: wrap;
+		margin-bottom: 0.75rem;
+	}
+
+	:global(.reel-files__hint) {
+		color: #71717a;
+		font-size: 0.75rem;
+	}
+
+	:global(.reel-files__list) {
+		list-style: none;
+		margin: 0;
+		padding: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	:global(.reel-files__row) {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 1rem;
+		padding: 0.6rem 0.75rem;
+		border: 1px solid #27272a;
+		border-radius: 0.5rem;
+		background: #131316;
+		flex-wrap: wrap;
+	}
+
+	:global(.reel-files__info) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.25rem;
+		min-width: 0;
+	}
+
+	:global(.reel-files__name) {
+		color: #e5e7eb;
+		font-size: 0.875rem;
+		word-break: break-word;
+	}
+
+	:global(.reel-files__sub) {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		color: #9ca3af;
+		font-size: 0.75rem;
+	}
+
+	:global(.reel-files__badge) {
+		padding: 0.05rem 0.5rem;
+		border-radius: 999px;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		background: #27272a;
+		color: #d4d4d8;
+	}
+
+	:global(.reel-files__btn) {
+		padding: 0.35rem 0.7rem;
+		border-radius: 0.4rem;
+		border: 1px solid #3f3f46;
+		background: #1c1c1f;
+		color: #e5e7eb;
+		font-size: 0.75rem;
+		cursor: pointer;
+	}
+
+	:global(.reel-files__btn:hover:not(:disabled)),
+	:global(.reel-files__btn:focus-visible:not(:disabled)) {
+		border-color: #52525b;
+		background: #232327;
+	}
+
+	:global(.reel-files__btn:disabled) {
+		opacity: 0.55;
+		cursor: progress;
+	}
+
+	:global(.reel-files__btn--primary) {
+		border-color: #065f46;
+		background: #064e3b;
+		color: #d1fae5;
 	}
 </style>

@@ -15,6 +15,8 @@ pub struct AppState {
     pub hls: hls::HlsManager,
     pub ffprobe_bin: String,
     pub hls_segment_wait_ms: u64,
+    pub download_enabled: bool,
+    pub ttl_secs: u64,
 }
 
 #[derive(Clone)]
@@ -968,6 +970,191 @@ async fn subtitle_vtt(
         .into_response()
 }
 
+/// Files are only listed and served once the torrent has finished and moved to
+/// the library. While it is still leeching the bytes on disk are sparse, so a
+/// download would hand back a silently truncated file.
+fn downloadable(meta: &state::Metadata) -> Option<axum::response::Response> {
+    match &meta.state {
+        state::TorrentState::Seeding => None,
+        state::TorrentState::Leeching => Some((
+            StatusCode::TOO_EARLY,
+            Json(serde_json::json!({
+                "state": "downloading",
+                "error": "files are still downloading; they can be saved once the torrent completes",
+            })),
+        )
+            .into_response()),
+        other => Some(
+            (
+                StatusCode::CONFLICT,
+                Json(serde_json::json!({ "state": format!("{other:?}").to_lowercase() })),
+            )
+                .into_response(),
+        ),
+    }
+}
+
+async fn listing_for(meta: &state::Metadata) -> Result<Vec<crate::files::FileEntry>, ()> {
+    let dir = std::path::PathBuf::from(&meta.path);
+    match tokio::task::spawn_blocking(move || crate::files::list_files(&dir)).await {
+        Ok(Ok(files)) => Ok(files),
+        Ok(Err(e)) => {
+            tracing::warn!(id = %meta.id, path = %meta.path, error = %e, "files: listing failed");
+            Err(())
+        }
+        Err(e) => {
+            tracing::warn!(id = %meta.id, error = %e, "files: listing task failed");
+            Err(())
+        }
+    }
+}
+
+async fn files_list(
+    State(st): State<AppState>,
+    headers: HeaderMap,
+    Path(id): Path<String>,
+    axum::extract::RawQuery(query): axum::extract::RawQuery,
+) -> impl IntoResponse {
+    if !check_auth_q(&headers, query.as_deref(), &st.token) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    if !st.download_enabled {
+        return StatusCode::SERVICE_UNAVAILABLE.into_response();
+    }
+    let meta = match st.store.get(&id) {
+        Some(m) => m,
+        None => return StatusCode::NOT_FOUND.into_response(),
+    };
+    if let Some(resp) = downloadable(&meta) {
+        return resp;
+    }
+    let files = match listing_for(&meta).await {
+        Ok(f) => f,
+        Err(()) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    };
+    let _ = st.store.touch(&id, now_secs());
+    let total: u64 = files.iter().map(|f| f.size).sum();
+    Json(serde_json::json!({
+        "id": id,
+        "name": meta.name,
+        "archive_name": crate::files::archive_name(&meta.name),
+        "total_bytes": total,
+        "expires_at": meta.last_access + st.ttl_secs,
+        "files": files,
+    }))
+    .into_response()
+}
+
+async fn file_download(
+    State(st): State<AppState>,
+    headers: HeaderMap,
+    Path((id, idx)): Path<(String, usize)>,
+    axum::extract::RawQuery(query): axum::extract::RawQuery,
+    method: axum::http::Method,
+) -> impl IntoResponse {
+    if !check_auth_q(&headers, query.as_deref(), &st.token) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    if !st.download_enabled {
+        return StatusCode::SERVICE_UNAVAILABLE.into_response();
+    }
+    let meta = match st.store.get(&id) {
+        Some(m) => m,
+        None => return StatusCode::NOT_FOUND.into_response(),
+    };
+    if let Some(resp) = downloadable(&meta) {
+        return resp;
+    }
+    let files = match listing_for(&meta).await {
+        Ok(f) => f,
+        Err(()) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    };
+    let entry = match files.into_iter().nth(idx) {
+        Some(e) => e,
+        None => return StatusCode::NOT_FOUND.into_response(),
+    };
+    let path = crate::files::path_for(std::path::Path::new(&meta.path), &entry);
+    let head_only = method == axum::http::Method::HEAD;
+    let range = headers.get("range").and_then(|h| h.to_str().ok());
+    // A download that runs past the TTL would be reaped mid-transfer; every
+    // request keeps the torrent alive for another full window.
+    let _ = st.store.touch(&id, now_secs());
+
+    let file = match tokio::fs::File::open(&path).await {
+        Ok(f) => f,
+        Err(e) => {
+            tracing::warn!(id = %id, path = %path.display(), error = %e, "download: open failed");
+            return StatusCode::NOT_FOUND.into_response();
+        }
+    };
+    let total = match file.metadata().await {
+        Ok(m) => m.len(),
+        Err(e) => {
+            tracing::warn!(id = %id, error = %e, "download: stat failed");
+            return StatusCode::INTERNAL_SERVER_ERROR.into_response();
+        }
+    };
+    let mut resp = if head_only {
+        crate::stream::head_response(total, range, entry.content_type)
+    } else {
+        crate::telemetry::download_served(
+            &id,
+            &entry.name,
+            served_bytes(range, total),
+            range.is_some(),
+        );
+        crate::stream::serve_range(file, total, range, entry.content_type, false).await
+    };
+    if let Ok(v) = crate::files::content_disposition(&entry.name).parse() {
+        resp.headers_mut()
+            .insert(axum::http::header::CONTENT_DISPOSITION, v);
+    }
+    resp
+}
+
+async fn archive(
+    State(st): State<AppState>,
+    headers: HeaderMap,
+    Path(id): Path<String>,
+    axum::extract::RawQuery(query): axum::extract::RawQuery,
+) -> impl IntoResponse {
+    if !check_auth_q(&headers, query.as_deref(), &st.token) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    if !st.download_enabled {
+        return StatusCode::SERVICE_UNAVAILABLE.into_response();
+    }
+    let meta = match st.store.get(&id) {
+        Some(m) => m,
+        None => return StatusCode::NOT_FOUND.into_response(),
+    };
+    if let Some(resp) = downloadable(&meta) {
+        return resp;
+    }
+    let files = match listing_for(&meta).await {
+        Ok(f) => f,
+        Err(()) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    };
+    if files.is_empty() {
+        return StatusCode::NOT_FOUND.into_response();
+    }
+    let _ = st.store.touch(&id, now_secs());
+    crate::telemetry::archive_served(&id, files.len());
+    let root = std::path::PathBuf::from(&meta.path);
+    let disposition = crate::files::content_disposition(&crate::files::archive_name(&meta.name));
+    let body = crate::files::zip_stream(root, files, id.clone());
+    let mut resp = axum::response::Response::builder()
+        .status(StatusCode::OK)
+        .header(axum::http::header::CONTENT_TYPE, "application/zip")
+        .body(body)
+        .unwrap();
+    if let Ok(v) = disposition.parse() {
+        resp.headers_mut()
+            .insert(axum::http::header::CONTENT_DISPOSITION, v);
+    }
+    resp
+}
+
 fn store_scoped_router(state: AppStateStub) -> Router {
     Router::new()
         .route("/torrents", get(list))
@@ -993,6 +1180,12 @@ pub fn router(state: AppState) -> Router {
         )
         .route("/torrents/{id}/subtitles", get(subtitles_list))
         .route("/torrents/{id}/subtitles/{idx}", get(subtitle_vtt))
+        .route("/torrents/{id}/files", get(files_list))
+        .route(
+            "/torrents/{id}/files/{idx}",
+            get(file_download).head(file_download),
+        )
+        .route("/torrents/{id}/archive.zip", get(archive))
         .with_state(state);
     Router::new()
         .route("/healthz", get(|| async { "ok" }))
@@ -1007,6 +1200,41 @@ fn store_router(store: state::StateStore, token: Option<String>) -> Router {
 
 #[cfg(test)]
 mod tests {
+
+    fn dl_meta(state: state::TorrentState) -> Metadata {
+        Metadata {
+            id: "t1".into(),
+            name: "Album (2024) [FLAC]".into(),
+            path: "/lib/t1".into(),
+            size: 10,
+            completed_at: Some(1),
+            last_access: 1,
+            state,
+            error: None,
+            active_path: None,
+            transcode: TranscodeStatus::None,
+            transcode_path: None,
+            transcode_error: None,
+            hls: HlsStatus::None,
+            hls_dir: None,
+            hls_error: None,
+        }
+    }
+
+    #[test]
+    fn downloads_wait_for_a_completed_torrent() {
+        assert!(downloadable(&dl_meta(state::TorrentState::Seeding)).is_none());
+        let err = downloadable(&dl_meta(state::TorrentState::Leeching)).unwrap();
+        assert_eq!(
+            err.status(),
+            StatusCode::TOO_EARLY,
+            "sparse files would download truncated"
+        );
+        let err = downloadable(&dl_meta(state::TorrentState::Reaped)).unwrap();
+        assert_eq!(err.status(), StatusCode::CONFLICT);
+        let err = downloadable(&dl_meta(state::TorrentState::Failed)).unwrap();
+        assert_eq!(err.status(), StatusCode::CONFLICT);
+    }
     use super::*;
     use crate::state::{HlsStatus, Metadata, StateStore, TorrentState, TranscodeStatus};
     use axum::body::Body;
