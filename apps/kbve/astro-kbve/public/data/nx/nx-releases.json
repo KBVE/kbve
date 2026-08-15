@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-14T03:24:44Z",
+  "generated_at": "2026-08-15T02:13:44Z",
   "summary": {
     "pending": 2,
     "behind": 1,
@@ -46,8 +46,8 @@
     {
       "ecosystem": "crates",
       "name": "bevy_chat",
-      "local": "0.1.0",
-      "published": "0.1.0",
+      "local": "0.1.1",
+      "published": "0.1.1",
       "status": "published"
     },
     {
@@ -151,8 +151,8 @@
     {
       "ecosystem": "crates",
       "name": "embeddb",
-      "local": "0.2.0",
-      "published": "0.2.0",
+      "local": "0.3.0",
+      "published": "0.3.0",
       "status": "published"
     },
     {
@@ -193,8 +193,8 @@
     {
       "ecosystem": "crates",
       "name": "q",
-      "local": "0.1.3",
-      "published": "0.1.3",
+      "local": "0.1.5",
+      "published": "0.1.5",
       "status": "published"
     },
     {
@@ -222,7 +222,7 @@
       "ecosystem": "npm",
       "name": "droid",
       "local": "0.1.2",
-      "published": "0.196.0",
+      "published": "0.197.0",
       "status": "behind"
     },
     {
