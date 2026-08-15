@@ -251,6 +251,9 @@ namespace RareIcon
             { "hardpoint-shoulders", ItemId.HardpointShoulders },
             { "grinning-pumpkin-helm", ItemId.GrinningPumpkinHelm },
             { "pickaxe", ItemId.Pickaxe },
+            { "bark", ItemId.Bark },
+            { "resin", ItemId.Resin },
+            { "sapling", ItemId.Sapling },
         };
     }
 }
