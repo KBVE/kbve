@@ -61,6 +61,7 @@ var motion_dot := 1.0
 var _patrol: QPatrol
 var _leader: Node3D
 var _last_pos := Vector3.ZERO
+var _travelled := 0.0
 var _leader_last := Vector3.ZERO
 var _action_t := 0.0
 var _prepared := false
@@ -162,10 +163,8 @@ func _physics_process(delta: float) -> void:
 
 	_measure_reach()
 
-	var travelled := (global_position - _last_pos)
-	travelled.y = 0.0
 	_patrol.observe(global_position, _flat_facing(),
-			Vector3(velocity.x, 0.0, velocity.z), travelled.length(), _crowd())
+			Vector3(velocity.x, 0.0, velocity.z), _travelled, _crowd())
 
 	_observe_route()
 
@@ -301,6 +300,7 @@ func _step(delta: float) -> void:
 	_last_pos = global_position
 	moved.y = 0.0
 	var travelled := moved.length()
+	_travelled = travelled
 	rig.set_speed(travelled / maxf(delta, 0.0001))
 	if travelled > 0.0005:
 		motion_dot = _flat_facing().dot(moved.normalized())

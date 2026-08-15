@@ -318,7 +318,9 @@ impl Patrol {
             // Scaled against top speed: the old linear falloff peaked at 1.6
             // against a sprint of 7.5, so a creature ran straight through it.
             let overlap = 1.0 - distance / contact;
-            return scale(away, self.config.max_speed * overlap);
+            let urgent = scale(away, self.config.max_speed * overlap);
+            let gentle = self.crowd(away, distance);
+            return scale(away, length(urgent).max(length(gentle)));
         }
 
         let relative = sub(sense.velocity, other.velocity);

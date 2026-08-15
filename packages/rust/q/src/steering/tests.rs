@@ -5,7 +5,7 @@ fn near(position: Vec2, velocity: Vec2) -> Neighbour {
     Neighbour {
         position,
         velocity,
-        radius: 1.0,
+        radius: CREATURE_RADIUS,
     }
 }
 
@@ -452,12 +452,23 @@ fn avoidance_is_deterministic() {
 /// puts every slot on the far side of the group and all four have to cross each
 /// other to reach them. Walking in a straight line never makes them meet, which
 /// is why a straight-line test passes with no avoidance at all.
+/// Silhouette radius the creature spawner now hands the solver, rather than the
+/// capsule-sized 1.0 it used to.
+const CREATURE_RADIUS: f32 = 3.2;
+
 fn column(ticks: u32) -> (f32, u32) {
     let delta = 1.0 / 60.0;
     let count = 4;
     let mut patrols: Vec<Patrol> = (0..count)
         .map(|i| {
-            let mut p = Patrol::new([0.0, 0.0], i as u32, Config::default());
+            let mut p = Patrol::new(
+                [0.0, 0.0],
+                i as u32,
+                Config {
+                    radius: CREATURE_RADIUS,
+                    ..Config::default()
+                },
+            );
             p.slot = i;
             p.count = count;
             p
@@ -513,7 +524,7 @@ fn column(ticks: u32) -> (f32, u32) {
             for j in i + 1..count as usize {
                 let gap = length(sub(senses[i].position, senses[j].position));
                 closest = closest.min(gap);
-                if gap < 2.0 {
+                if gap < CREATURE_RADIUS {
                     contacts += 1;
                 }
             }
@@ -649,4 +660,45 @@ fn waiting_still_makes_room_for_the_others() {
     sense.neighbours = vec![near([1.2, 0.0], [0.0, 0.0])];
     let step = patrol.step(&sense, 1.0 / 60.0).wish;
     assert!(step[0] < 0.0, "waited on top of a neighbour: {step:?}");
+}
+
+/// The close band takes over from the gentle one, so it must not hand back less
+/// than the band it replaced.
+///
+/// `overlap` is nearly zero at the contact boundary while `crowd`, measured
+/// against the far wider `separation`, is still pushing hard. Without the floor a
+/// body crossing into contact is shoved *less* rather than more, and settles just
+/// inside it -- and the wider the bodies, the wider that dead band gets.
+#[test]
+fn crossing_into_contact_never_pushes_less() {
+    let mut config = Config::default();
+    config.radius = 3.2;
+    config.pass_margin = 0.8;
+    config.separation = 9.0;
+    config.separation_strength = 1.6;
+    let patrol = Patrol::new([0.0, 0.0], 1, config);
+
+    let contact = config.radius + config.radius + config.pass_margin;
+    let mut sense = Sense::default();
+    sense.facing = [1.0, 0.0];
+
+    // Stepped in across the boundary: the push must never fall as they close.
+    let mut previous = 0.0;
+    let mut distance = contact + 2.0;
+    while distance > 0.5 {
+        sense.position = [0.0, 0.0];
+        let other = Neighbour {
+            position: [distance, 0.0],
+            velocity: [0.0, 0.0],
+            radius: config.radius,
+        };
+        sense.neighbours = vec![other];
+        let push = length(patrol.avoid(&sense));
+        assert!(
+            push >= previous - 1e-4,
+            "push dropped from {previous} to {push} at {distance}, inside contact {contact}"
+        );
+        previous = push;
+        distance -= 0.1;
+    }
 }
