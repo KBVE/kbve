@@ -6,7 +6,9 @@ use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 
 use super::guest::{sanitize, unique_guest_name};
-use super::pets::{DeployError, LeaderState, PetConfig, PetId, PetInfo, PetRegistry};
+use super::pets::{
+    DeployError, FieldConfig, LeaderState, PetConfig, PetFields, PetId, PetInfo, PetRegistry,
+};
 use super::transport::{Delivery, PeerId, Transport};
 use crate::harvest::{HarvestTarget, Ledger, stable_id};
 use crate::proto::{self, PROTOCOL_VERSION};
@@ -219,6 +221,8 @@ pub struct SessionConfig {
     pub harvest_reach: f32,
     /// Caps and tuning for deployed pet robots.
     pub pets: PetConfig,
+    /// Sizing and pacing of the per-owner flow fields those pets route on.
+    pub pet_fields: FieldConfig,
 }
 
 impl Default for SessionConfig {
@@ -248,6 +252,7 @@ impl Default for SessionConfig {
             tree_grid_size: 14.0,
             harvest_reach: 6.0,
             pets: PetConfig::default(),
+            pet_fields: FieldConfig::default(),
         }
     }
 }
@@ -267,10 +272,7 @@ pub fn player_body(peer: PeerId) -> BodyId {
     BodyId(PLAYER_BODY_BASE + peer.0)
 }
 
-/// Samples ground height at a world position. The host has no terrain of its own —
-/// with streaming on it never even sees a `SetTerrain` — so whoever owns the generator
-/// supplies this.
-pub type GroundSampler = Arc<dyn Fn(f32, f32) -> f32 + Send + Sync>;
+pub use super::pets::GroundSampler;
 
 #[derive(Default)]
 struct Player {
@@ -309,6 +311,7 @@ pub struct HostSession<T: Transport> {
     stone_ledger: Ledger,
     tree_ledger: Ledger,
     pets: PetRegistry,
+    pet_fields: PetFields,
 }
 
 impl<T: Transport> HostSession<T> {
@@ -345,6 +348,11 @@ impl<T: Transport> HostSession<T> {
             stone_ledger: Ledger::new(),
             tree_ledger: Ledger::new(),
             pets: PetRegistry::new(pets),
+            pet_fields: PetFields::new(FieldConfig {
+                water_level: config.water_level,
+                clearance: pets.body_radius + 0.3,
+                ..config.pet_fields
+            }),
             hour: config.start_hour,
             time_accum: 0.0,
         }
@@ -359,8 +367,27 @@ impl<T: Transport> HostSession<T> {
     /// Installs the ground sampler used to place spawns. Without one, spawns fall back
     /// to a fixed height and a player can land inside a hill.
     pub fn with_ground(mut self, ground: GroundSampler) -> Self {
+        self.pet_fields.set_ground(ground.clone());
         self.ground = Some(ground);
         self
+    }
+
+    /// Hands the pet fields the rocks currently collidable, as flat `x, z, radius`
+    /// triples. Changing them restamps every field, so this is cheap to call with
+    /// the same set and expensive to churn.
+    pub fn set_pet_obstacles(&mut self, discs: Vec<f32>) {
+        self.pet_fields.set_obstacles(discs);
+    }
+
+    /// Tells the pet fields where the crossing is, so a route may take it rather
+    /// than treating the river as a wall.
+    pub fn set_bridge(&mut self, bridge: Option<crate::worldgen::BridgeFootprint>) {
+        self.pet_fields.set_bridge(bridge);
+    }
+
+    /// How many owners currently have a flow field built.
+    pub fn pet_field_count(&self) -> usize {
+        self.pet_fields.len()
     }
 
     /// Lowest unused ring slot. Peer ids only ever count up, so using them directly
@@ -907,9 +934,16 @@ impl<T: Transport> HostSession<T> {
             });
         }
 
-        if !self.pets.is_empty() {
+        if !self.pets.is_empty() || !self.pet_fields.is_empty() {
             let leaders = self.leader_states();
-            if self.pets.drive(&snapshot, &leaders, dt, &mut self.world) {
+            self.pet_fields.update(&leaders, &self.pets.owners());
+            if self.pets.drive(
+                &snapshot,
+                &leaders,
+                Some(&self.pet_fields),
+                dt,
+                &mut self.world,
+            ) {
                 self.broadcast_pets();
             }
         }
@@ -1688,6 +1722,40 @@ mod tests {
             "pet ids escaped their band: {seen:?}"
         );
         assert_eq!(host.pet_count(), 0);
+    }
+
+    /// The unit tests cover what a field decides; this covers that one is wired up
+    /// at all — built for an owner who deploys, and gone when they recall.
+    #[test]
+    fn an_owner_with_pets_gets_a_flow_field() {
+        let mesh = Loopback::mesh(2);
+        let mut host = HostSession::new(
+            mesh[0].clone(),
+            SessionConfig::default(),
+            SimConfig::default(),
+            42,
+        );
+        host.set_terrain(flat_terrain());
+        host = host.with_ground(Arc::new(|_, _| 5.0));
+        let mut client = ClientSession::connect(mesh[1].clone());
+        run(&mut host, &mut client, 40);
+        assert_eq!(host.pet_field_count(), 0, "a field with nothing to route");
+
+        client.deploy_pet(0);
+        run(&mut host, &mut client, 8);
+        assert_eq!(
+            host.pet_field_count(),
+            1,
+            "a deployed pet got no field to route on"
+        );
+
+        client.recall_pets();
+        run(&mut host, &mut client, 8);
+        assert_eq!(
+            host.pet_field_count(),
+            0,
+            "the field outlived every pet that used it"
+        );
     }
 
     /// The whole point of a pet: it comes with you.

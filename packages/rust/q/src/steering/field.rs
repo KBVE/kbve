@@ -637,6 +637,72 @@ impl Field {
         true
     }
 
+    /// Marks every cell whose ground is too steep or too low to walk, sampling the
+    /// generator rather than a baked grid.
+    ///
+    /// [`Self::stamp_terrain`] reads a square height array centred on the world
+    /// origin, which is the single-tile contract. A field that follows somebody
+    /// around a streamed world sits wherever they are, so it asks for heights at
+    /// the points it actually covers instead.
+    pub fn stamp_ground<F>(&mut self, height: F, water_level: f32, max_slope: f32)
+    where
+        F: Fn(f32, f32) -> f32,
+    {
+        let step = self.grid.cell;
+        for y in 0..self.grid.height {
+            for x in 0..self.grid.width {
+                let at = self.grid.centre_of(x, y);
+                let h = height(at[0], at[1]);
+                if !h.is_finite() || h <= water_level {
+                    self.grid.set_cost(x, y, BLOCKED);
+                    continue;
+                }
+                let dx = (height(at[0] + step, at[1]) - h).abs();
+                let dy = (height(at[0], at[1] + step) - h).abs();
+                let slope = dx.max(dy) / step;
+                if slope >= max_slope {
+                    self.grid.set_cost(x, y, BLOCKED);
+                } else {
+                    let lean = (slope / max_slope).clamp(0.0, 1.0);
+                    let cost = (1.0 + lean * 30.0) as u8;
+                    self.grid.set_cost(x, y, self.grid.cost(x, y).max(cost));
+                }
+            }
+        }
+    }
+
+    /// Shortest way back to ground the field can route from, for a body standing
+    /// somewhere the integration never entered.
+    ///
+    /// Rings outward because the gradient inside a blocked region points nowhere
+    /// useful: there is no route out of a cell that was never reached. Samples keep
+    /// the body's own height, so anything still under a deck is rejected here
+    /// rather than offered as the way out from under it.
+    pub fn escape_route(&self, at: [f32; 3], rings: &[f32], samples: usize) -> Option<Vec2> {
+        let here = [at[0], at[2]];
+        let samples = samples.max(1);
+        for radius in rings {
+            let mut best = None;
+            let mut best_cost = f32::INFINITY;
+            for i in 0..samples {
+                let angle = std::f32::consts::TAU * i as f32 / samples as f32;
+                let probe = add(here, [angle.cos() * radius, angle.sin() * radius]);
+                if self.under_deck([probe[0], at[1], probe[1]]) {
+                    continue;
+                }
+                let cost = self.distance_at(probe);
+                if cost.is_finite() && cost < best_cost {
+                    best_cost = cost;
+                    best = Some(sub(probe, here));
+                }
+            }
+            if let Some(dir) = best {
+                return Some(normalize(dir));
+            }
+        }
+        None
+    }
+
     /// Marks every cell whose ground is too steep or too low to walk.
     ///
     /// `heights` is the square height grid the terrain already keeps on the CPU;
