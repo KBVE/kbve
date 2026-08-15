@@ -1,4 +1,3 @@
-use crate::{kilobase_job_id, kilobase_refresh_job};
 use pgrx::prelude::*;
 
 // Scheduling delegated to pg_durable rather than the built-in worker loop.

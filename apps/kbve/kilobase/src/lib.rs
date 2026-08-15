@@ -358,16 +358,16 @@ fn load_job(job_id: i32) -> Result<Option<JobInfo>, pgrx::spi::Error> {
         let query = format!(
             "SELECT {JOB_COLUMNS} FROM matview_refresh_jobs WHERE id = $1 AND is_active = true"
         );
-        let result = client.select(
+        let mut result = client.select(
             query.as_str(),
             None,
             &[unsafe { DatumWithOid::new(job_id.into_datum().unwrap(), pg_sys::INT4OID) }],
         )?;
 
-        for row in result {
-            return Ok(Some(crate::jobs::JobInfo::from_tuple(&row)?));
+        match result.next() {
+            Some(row) => Ok(Some(crate::jobs::JobInfo::from_tuple(&row)?)),
+            None => Ok(None),
         }
-        Ok(None)
     })
 }
 
