@@ -159,6 +159,32 @@ still `resolving-metadata` (no peers responding at all).
 - `GET /stats` — raw librqbit live snapshot (peers seen/live/connecting, mbps).
 - `GET /torrents` · `GET /torrents/{id}` — persisted metadata only.
 
+### Downloading files
+
+Streaming is not the only reason to fetch something — a FLAC rip, a WAV stem
+pack or a set of stills are meant to be **saved**, not played in a browser tab.
+Once a torrent finishes and moves to the library, its contents are downloadable:
+
+- `GET /torrents/{id}/files` — the listing: every file with a stable `index`,
+  relative `name`, `size` and detected `content_type`, plus the archive name,
+  total bytes and the `expires_at` stamp so the UI can show the reap countdown.
+- `GET /torrents/{id}/files/{index}` — one file, served with range support (so a
+  cancelled download resumes) and a `Content-Disposition: attachment` header
+  carrying both an ASCII fallback and the RFC 6266 UTF-8 name.
+- `GET /torrents/{id}/archive.zip` — the whole torrent as one zip, written
+  straight to the response by a blocking task feeding a duplex pipe. Nothing is
+  staged on disk and entries are **Stored, never deflated** — FLAC, mp4 and jpeg
+  are already compressed, so deflate would cost CPU and save nothing.
+
+Downloads address files **by listing index, never by path**, so no request can
+walk out of the torrent directory. Generated artifacts (`hls/`, the transcoder's
+`*.reel.mp4`) and dotfiles are excluded from the listing. While a torrent is
+still leeching the bytes on disk are sparse, so the routes answer **425 Too
+Early** rather than handing back a silently truncated file; the UI polls through
+that state. Every listing and every download **touches** the entry, so the 6h
+idle TTL restarts on each interaction and a long transfer cannot be reaped out
+from under itself. Set `REEL_DOWNLOAD_ENABLED=false` to turn the routes off.
+
 ### Error surfacing
 
 Failures no longer collapse to an opaque status code. A `failed` torrent returns
@@ -174,7 +200,7 @@ All lifecycle transitions emit a stable `event=` field (JSON on stdout, tailed b
 Vector into ClickHouse): `torrent_added`, `torrent_completed`, `torrent_failed`
 (with `phase` + `reason`), `probe_decided`, `transcode_started`,
 `transcode_ready`, `transcode_failed`, `hls_started`, `hls_ready`, `hls_failed`,
-`stream_served`, `vpn_leak`, `vpn_restored`, `reaped`. A per-torrent leech
+`stream_served`, `download_served`, `archive_served`, `vpn_leak`, `vpn_restored`, `reaped`. A per-torrent leech
 heartbeat logs progress + live peer count each stall-check tick. The default log
 filter is `info` (`reel=debug`) so the happy path is visible without setting
 `RUST_LOG`.

@@ -95,6 +95,8 @@ async fn main() -> anyhow::Result<()> {
         hls,
         ffprobe_bin: cfg.ffprobe_bin.clone(),
         hls_segment_wait_ms: cfg.hls_segment_wait_ms,
+        download_enabled: cfg.download_enabled,
+        ttl_secs: cfg.ttl_secs,
     });
     let listener = tokio::net::TcpListener::bind(&cfg.api_addr).await?;
     tracing::info!(addr = %cfg.api_addr, "reel listening");
