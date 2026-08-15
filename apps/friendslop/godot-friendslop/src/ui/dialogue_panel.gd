@@ -16,6 +16,14 @@ signal closed
 const PANEL_HEIGHT := 0.34
 const PANEL_MARGIN := Vector2(90.0, 40.0)
 const BACKDROP := Color(0.07, 0.06, 0.05, 0.82)
+## Laid over the world behind the panel, so the eye settles on the words rather than on
+## the grass still waving about behind them.
+const DIM := Color(0.02, 0.02, 0.03, 0.35)
+## How long the panel takes to arrive, and how far it rises on the way in.
+const ENTER_TIME := 0.16
+const ENTER_RISE := 26.0
+## Replies are numbered, so a player can answer without reaching for the mouse.
+const REPLY_KEYS := 9
 const NAME_FONT := 26
 const LINE_FONT := 20
 const CLOSE_FONT := 22
@@ -34,12 +42,17 @@ static var _open: DialoguePanel = null
 
 var runner: DialogueRunner
 
+var _root: Control
+var _frame: PanelContainer
 var _name_label: Label
 var _line_label: Label
 var _choices: VBoxContainer
 var _hint: Label
 var _was_captured := false
 var _closing := false
+## Drives the waiting hint's breathing, which is the only thing on screen that moves once
+## the line is out.
+var _pulse := 0.0
 
 ## Characters written so far, as a float so a slow line still moves every frame.
 var _written := 0.0
@@ -86,6 +99,18 @@ func _ready() -> void:
 	if _was_captured:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	_set_crosshair(false)
+	_enter()
+
+
+## Rises into place rather than appearing, which reads as somebody starting to speak
+## instead of a box being switched on. Short enough not to be waited through.
+func _enter() -> void:
+	_root.modulate.a = 0.0
+	_frame.position.y = ENTER_RISE
+	var rise := create_tween().set_parallel(true)
+	rise.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
+	rise.tween_property(_root, "modulate:a", 1.0, ENTER_TIME)
+	rise.tween_property(_frame, "position:y", 0.0, ENTER_TIME)
 
 
 func _build() -> void:
@@ -93,6 +118,12 @@ func _build() -> void:
 	root.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(root)
+
+	var dim := ColorRect.new()
+	dim.set_anchors_preset(Control.PRESET_FULL_RECT)
+	dim.color = DIM
+	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(dim)
 
 	var frame := PanelContainer.new()
 	frame.anchor_left = 0.0
@@ -111,6 +142,8 @@ func _build() -> void:
 	skin.set_content_margin_all(22)
 	frame.add_theme_stylebox_override("panel", skin)
 	root.add_child(frame)
+	_root = root
+	_frame = frame
 
 	var column := VBoxContainer.new()
 	column.add_theme_constant_override("separation", 10)
@@ -177,23 +210,34 @@ func _show_node() -> void:
 	for child in _choices.get_children():
 		_choices.remove_child(child)
 		child.queue_free()
+	var numbered := 0
 	for choice in runner.choices():
 		var index: int = choice[&"index"]
-		var button := PaperButton.make(I18n.t(str(choice[&"text"])),
-				func() -> void: _take(index))
+		var text := I18n.t(str(choice[&"text"]))
+		## Numbered only as far as there are keys for, or the number is a lie.
+		numbered += 1
+		if numbered <= REPLY_KEYS:
+			text = "%d.  %s" % [numbered, text]
+		var button := PaperButton.make(text, func() -> void: _take(index))
 		button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		## The mouse moves the focus rather than fighting it, or the key that answers and
+		## the reply under the pointer are two different replies.
+		button.mouse_entered.connect(button.grab_focus)
 		_choices.add_child(button)
 
 	## Held back until the line is out. Replies appearing under a sentence still being
 	## spoken invite an answer to a question that has not been asked yet.
 	_choices.visible = false
 	_hint.text = ""
+	_pulse = 0.0
+	_hint.modulate.a = 1.0
 
 
 ## Writes the line out a letter at a time, holding on the punctuation so it reads as
 ## somebody speaking rather than a page being pasted up.
 func _process(delta: float) -> void:
 	if not is_typing():
+		_breathe(delta)
 		return
 	if _held > 0.0:
 		_held = maxf(_held - delta, 0.0)
@@ -207,6 +251,15 @@ func _process(delta: float) -> void:
 			_held = PAUSE_AFTER[last]
 	if not is_typing():
 		_finish_line()
+
+
+## The waiting hint breathes, so a line that has finished does not look like a game that
+## has stopped.
+func _breathe(delta: float) -> void:
+	if _hint == null or _hint.text == "":
+		return
+	_pulse += delta
+	_hint.modulate.a = 0.55 + 0.45 * (0.5 + 0.5 * sin(_pulse * 3.4))
 
 
 ## Whether the line is still being written, which is also whether a press means "hurry up"
@@ -236,6 +289,21 @@ func _finish_line() -> void:
 	_hint.text = I18n.t("dlg.continue", {"key": Hint.label(&"interact", "E")})
 
 
+## Which reply a number key asked for, or -1 for anything that was not one. Only answered
+## while the replies are up, or a number typed at a line still being spoken would answer a
+## question the player has not read.
+func _numbered(event: InputEvent) -> int:
+	if not _choices.visible:
+		return -1
+	var key := event as InputEventKey
+	if key == null or not key.pressed or key.echo:
+		return -1
+	var slot := key.keycode - KEY_1
+	if slot < 0 or slot >= mini(REPLY_KEYS, _choices.get_child_count()):
+		return -1
+	return slot
+
+
 func _take(index: int) -> void:
 	if runner and runner.is_running():
 		runner.choose(index)
@@ -250,6 +318,13 @@ func _input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"ui_cancel"):
 		get_viewport().set_input_as_handled()
 		close()
+		return
+	var numbered := _numbered(event)
+	if numbered >= 0:
+		get_viewport().set_input_as_handled()
+		## Pressed rather than chosen, so the key and the button cannot disagree about
+		## which reply the third one down is.
+		(_choices.get_child(numbered) as Button).pressed.emit()
 		return
 	if event.is_action_pressed(&"interact") or event.is_action_pressed(&"ui_accept"):
 		get_viewport().set_input_as_handled()
