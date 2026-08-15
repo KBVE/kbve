@@ -94,8 +94,10 @@ static func button_styles(pad := BUTTON_PAD) -> Dictionary:
 	normal.content_margin_bottom = pad.y
 	normal.set_border_width_all(1)
 	normal.border_color = PAPER_EDGE
+	## Drawn outside the control's own rect, so it eats the gap the container left between
+	## rows. Kept under half the row separation or the stack reads as one welded slab.
 	normal.shadow_color = PAPER_SHADOW
-	normal.shadow_size = 4
+	normal.shadow_size = 3
 	normal.shadow_offset = Vector2(0.0, 2.0)
 
 	var hover := normal.duplicate() as StyleBoxFlat
@@ -104,7 +106,7 @@ static func button_styles(pad := BUTTON_PAD) -> Dictionary:
 	## to catch out of the corner of an eye.
 	hover.expand_margin_left = 3.0
 	hover.expand_margin_right = 3.0
-	hover.shadow_size = 6
+	hover.shadow_size = 5
 
 	var pressed := normal.duplicate() as StyleBoxFlat
 	pressed.bg_color = PAPER_PRESSED

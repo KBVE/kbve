@@ -13,6 +13,13 @@ use super::QTerrain;
 pub(super) const PATTERN_RES: u32 = 256;
 pub(super) const PATTERN_CELLS: f32 = 12.0;
 pub(super) const WAKE_RES: u32 = 256;
+/// How often the wake is stepped. It is advected and decayed by however much time it
+/// banked, so a lower rate moves it exactly as far -- it just does so in fewer, larger
+/// steps. At 120 fps this is a quarter of the dispatches.
+/// Higher than the 30 the first pass settled on: a quarter of the grid costs little
+/// enough per step that the wake can be stepped more often, and stepping it more often is
+/// what stops it reading as a decal that appears and sits there.
+const WAKE_HZ: f32 = 48.0;
 pub(super) const WAKE_WINDOW: f32 = 64.0;
 
 const WAKE_GLSL: &str = r#"
@@ -245,12 +252,25 @@ impl QTerrain {
         if !self.wake_sets[0].is_valid() || !self.wake_sets[1].is_valid() {
             return;
         }
-        let dp = p - self.last_player_pos;
+        self.wake_accum += delta;
+        if self.wake_accum < 1.0 / WAKE_HZ {
+            return;
+        }
+        let delta = self.wake_accum;
+        self.wake_accum = 0.0;
+
+        // Measured against the last dispatch rather than the last frame, so the speed the
+        // wake is drawn from is the speed actually travelled over the step.
+        let dp = p - self.wake_last_pos;
+        self.wake_last_pos = p;
         let speed_h = (Vector2::new(dp.x, dp.z) / delta.max(0.001)).length();
         let in_water = ((self.water_level + 0.15 - p.y) / 0.5).clamp(0.0, 1.0);
         let strength = in_water * (speed_h * 0.22).clamp(0.06, 0.65);
 
-        let idle = in_water <= 0.0;
+        // Standing in the river counted as active, because idle only meant "out of the
+        // water" -- so a player who stopped moving kept paying for a wake that had nothing
+        // left to draw.
+        let idle = in_water <= 0.0 || (speed_h < 0.05 && self.wake_energy < 0.02);
         self.wake_energy = self.wake_energy * (-delta * 2.4).exp()
             + if idle { 0.0 } else { strength * delta * 12.0 };
         if idle && self.wake_energy < 0.004 {

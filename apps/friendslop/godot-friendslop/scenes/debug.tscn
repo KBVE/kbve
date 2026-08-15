@@ -1,0 +1,64 @@
+[gd_scene load_steps=14 format=3]
+
+[ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1_player"]
+[ext_resource type="Script" path="res://src/debug/debug_world.gd" id="2_world"]
+[ext_resource type="Script" path="res://src/debug/debug_hud.gd" id="3_hud"]
+[ext_resource type="Material" path="res://assets/biomes/grassland/grass/ground.tres" id="4_ground"]
+[ext_resource type="Material" path="res://assets/biomes/grassland/grass/grass.tres" id="5_grassmat"]
+[ext_resource type="Material" path="res://assets/environment/water/water.tres" id="6_water"]
+[ext_resource type="Material" path="res://assets/environment/water/riverbed.tres" id="7_riverbed"]
+[ext_resource type="Material" path="res://assets/environment/props/bridge/bridge.tres" id="8_bridge"]
+[ext_resource type="Material" path="res://assets/environment/props/bridge/abutment.tres" id="9_abut"]
+
+[sub_resource type="Environment" id="Environment_debug"]
+background_mode = 1
+background_color = Color(0.44, 0.55, 0.68, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.62, 0.68, 0.78, 1)
+ambient_light_energy = 0.6
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
+size = Vector3(240, 1, 240)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ground"]
+size = Vector3(240, 1, 240)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
+albedo_color = Color(0.42, 0.46, 0.4, 1)
+
+[node name="Debug" type="Node3D"]
+script = ExtResource("2_world")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_debug")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+rotation_degrees = Vector3(-52, 34, 0)
+shadow_enabled = true
+
+[node name="Ground" type="StaticBody3D" parent="."]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_ground")
+
+[node name="MeshInstance3D" type="MeshInstance3D" parent="Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+mesh = SubResource("BoxMesh_ground")
+surface_material_override/0 = SubResource("StandardMaterial3D_ground")
+
+[node name="Terrain" type="QTerrain" parent="."]
+player_path = NodePath("../Player")
+grass_material = ExtResource("5_grassmat")
+ground_material = ExtResource("4_ground")
+water_material = ExtResource("6_water")
+riverbed_material = ExtResource("7_riverbed")
+bridge_material = ExtResource("8_bridge")
+abutment_material = ExtResource("9_abut")
+
+[node name="Player" parent="." instance=ExtResource("1_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+
+[node name="DebugHud" type="CanvasLayer" parent="."]
+script = ExtResource("3_hud")
+player_path = NodePath("../Player")
