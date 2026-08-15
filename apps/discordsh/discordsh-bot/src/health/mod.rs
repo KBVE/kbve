@@ -308,7 +308,8 @@ mod tests {
 
     #[test]
     fn round2_precision() {
-        assert_eq!(round2(3.14159), 3.14);
+        assert_eq!(round2(1.23456), 1.23);
+        assert_eq!(round2(2.34567), 2.35);
         assert_eq!(round2(0.0), 0.0);
         assert_eq!(round2(99.999), 100.0);
     }
