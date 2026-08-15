@@ -2,13 +2,16 @@ use fastnoise_lite::{FastNoiseLite, NoiseType};
 use godot::classes::mesh::PrimitiveType;
 use godot::classes::notify::Node3DNotification;
 use godot::classes::physics_server_3d::BodyMode;
-use godot::classes::{ArrayMesh, Engine, PhysicsServer3D, ShaderMaterial, Texture2D};
+use godot::classes::rendering_server::MultimeshTransformFormat;
+use godot::classes::{
+    ArrayMesh, Engine, PhysicsServer3D, RenderingServer, ShaderMaterial, Texture2D,
+};
 use godot::prelude::*;
 use godot::tools::try_load;
 
 use std::collections::HashMap;
 
-use crate::world::flora_compute::{FloraCompute, TerrainOcclusion};
+use crate::world::flora_compute::{FloraCompute, HarvestPass, TerrainOcclusion};
 use crate::world::harvest::{Entry, HarvestKind, Ledger, ScatterCore, Tree, stable_id};
 use crate::world::{TerrainSnapshot, hash32, randf, world_aabb};
 
@@ -27,6 +30,54 @@ struct Growth {
     shape: u32,
     fork: f32,
     up_attract: f32,
+}
+
+/// Passes per species: near mesh, far mesh, stump.
+const LODS: usize = 3;
+
+/// One felled trunk on its way over.
+///
+/// A single-instance multimesh rather than a MeshInstance3D: the bark and leaf
+/// shaders read kind, yaw and the LOD fade out of INSTANCE_CUSTOM, which only
+/// multimesh custom data feeds. A plain mesh instance would read zeroes there
+/// and discard every fragment.
+struct FallingTree {
+    mm: Rid,
+    inst: Rid,
+    base: Vector3,
+    axis: Vector3,
+    scale: f32,
+    elapsed: f32,
+    fall: f32,
+    linger: f32,
+}
+
+impl FallingTree {
+    fn transform(&self) -> Transform3D {
+        let t = (self.elapsed / self.fall).clamp(0.0, 1.0);
+        let angle = std::f32::consts::FRAC_PI_2 * t * t;
+        let sink = ((self.elapsed - self.fall) / self.linger).clamp(0.0, 1.0);
+        let basis = Basis::from_axis_angle(self.axis, angle).scaled(Vector3::ONE * self.scale);
+        Transform3D::new(
+            basis,
+            self.base - Vector3::UP * sink * sink * self.scale * 0.12,
+        )
+    }
+
+    fn done(&self) -> bool {
+        self.elapsed >= self.fall + self.linger
+    }
+
+    fn free(&mut self) {
+        let mut rs = RenderingServer::singleton();
+        for rid in [self.inst, self.mm] {
+            if rid.is_valid() {
+                rs.free_rid(rid);
+            }
+        }
+        self.inst = Rid::Invalid;
+        self.mm = Rid::Invalid;
+    }
 }
 
 const TRUNK_BUCKETS: [f32; 3] = [5.0, 7.5, 10.5];
@@ -174,6 +225,19 @@ pub struct QTreeField {
     #[export]
     #[init(val = 0.3)]
     trunk_collider_radius: f32,
+    /// Draw distance for stumps, which are small enough to vanish long before a
+    /// standing tree would.
+    #[export]
+    #[init(val = 70.0)]
+    stump_range: f32,
+    /// Seconds a felled trunk takes to go over, and how long it lies there before
+    /// it is cleaned up.
+    #[export]
+    #[init(val = 1.6)]
+    fall_seconds: f32,
+    #[export]
+    #[init(val = 4.0)]
+    fall_linger: f32,
 
     computes: Vec<FloraCompute>,
     attempts: i32,
@@ -198,6 +262,7 @@ pub struct QTreeField {
     #[init(val = Rid::Invalid)]
     body: Rid,
     trunk_shapes: Vec<Rid>,
+    falling: Vec<FallingTree>,
     extent: f32,
     origin: Vector2,
 }
@@ -376,7 +441,14 @@ impl QTreeField {
                 dup
             });
 
-            let mut near = build_skeleton_tree_mesh(seed, sp, leaf_aspect);
+            let (mut near, crown) = build_skeleton_tree_mesh(seed, sp, leaf_aspect);
+            // Wind and canopy shading are normalised against the mesh the shader
+            // is actually drawing, so retuning the generator cannot desync them.
+            for mat in [leaf_mat.as_ref(), bark_mat.as_ref()].into_iter().flatten() {
+                let mut m = mat.clone();
+                m.set_shader_parameter("crown_top", &crown.top.to_variant());
+                m.set_shader_parameter("crown_base", &crown.leaf_lo.to_variant());
+            }
             if let Some(m) = bark_mat.as_ref() {
                 near.surface_set_material(0, m);
             }
@@ -389,6 +461,10 @@ impl QTreeField {
             }
             if let Some(m) = leaf_mat.as_ref() {
                 far.surface_set_material(1, m);
+            }
+            let mut stump = build_stump_mesh(seed);
+            if let Some(m) = bark_mat.as_ref() {
+                stump.surface_set_material(0, m);
             }
 
             let band_lo = self.mesh_range - 8.0;
@@ -408,6 +484,7 @@ impl QTreeField {
                 true,
                 2,
                 TerrainOcclusion::new(occl_h, occl_res, extent, 25.0),
+                HarvestPass::Standing,
             );
             let far_c = FloraCompute::new(
                 scenario,
@@ -428,19 +505,40 @@ impl QTreeField {
                 false,
                 2,
                 TerrainOcclusion::new(occl_h, occl_res, extent, 25.0),
+                HarvestPass::Standing,
             );
-            match (near_c, far_c) {
-                (Some(n), Some(f)) => {
+            let stump_c = FloraCompute::new(
+                scenario,
+                aabb,
+                stump.get_rid(),
+                Rid::Invalid,
+                &cands,
+                count,
+                self.stump_range,
+                0.0,
+                (0.0, 0.0, false),
+                false,
+                false,
+                true,
+                1,
+                TerrainOcclusion::new(occl_h, occl_res, extent, 25.0),
+                HarvestPass::Remains,
+            );
+            match (near_c, far_c, stump_c) {
+                (Some(n), Some(f), Some(s)) => {
                     let base = self.computes.len() as u32;
                     for (slot, id) in ids.iter().enumerate() {
                         self.instance_of.insert(*id, (base, slot as u32));
                     }
                     self.computes.push(n);
                     self.computes.push(f);
+                    self.computes.push(s);
                     self.mesh_tris.push((near.get_faces().len() / 3) as u64);
                     self.mesh_tris.push((far.get_faces().len() / 3) as u64);
+                    self.mesh_tris.push((stump.get_faces().len() / 3) as u64);
                     self.meshes.push(near);
                     self.meshes.push(far);
+                    self.meshes.push(stump);
                     if let Some(lm) = leaf_mat {
                         self.leaf_mats.push(lm);
                     }
@@ -448,8 +546,8 @@ impl QTreeField {
                         self.bark_mats.push(bm);
                     }
                 }
-                (n, f) => {
-                    for mut c in [n, f].into_iter().flatten() {
+                (n, f, s) => {
+                    for mut c in [n, f, s].into_iter().flatten() {
                         c.free();
                     }
                     godot_error!("[QTreeField] compute unavailable for species {i}");
@@ -465,7 +563,7 @@ impl QTreeField {
 
 #[godot_api]
 impl INode3D for QTreeField {
-    fn process(&mut self, _delta: f64) {
+    fn process(&mut self, delta: f64) {
         if Engine::singleton().is_editor_hint() || !self.base().is_visible_in_tree() {
             return;
         }
@@ -475,6 +573,7 @@ impl INode3D for QTreeField {
             }
             return;
         }
+        self.tick_falling(delta as f32);
         if self.window_moved() {
             self.rescatter();
             return;
@@ -604,6 +703,19 @@ impl QTreeField {
         let _ = d.insert("ore", out.ore);
         let _ = d.insert("amount", out.amount as i64);
         if out.broken {
+            let away = self
+                .core
+                .get(id as u64)
+                .map(|e| {
+                    let from = self
+                        .player
+                        .as_ref()
+                        .map(|p| p.get_global_position())
+                        .unwrap_or(e.pos - Vector3::FORWARD);
+                    e.pos - from
+                })
+                .unwrap_or(Vector3::FORWARD);
+            self.spawn_falling(id as u64, away);
             self.cull_instance(id as u64);
             self.build_colliders();
             self.signals()
@@ -620,24 +732,31 @@ impl QTreeField {
         let mut far: i64 = 0;
         let mut near_tris: i64 = 0;
         let mut far_tris: i64 = 0;
+        let mut stumps: i64 = 0;
         for (i, fc) in self.computes.iter_mut().enumerate() {
             let n = fc.survivor_count().min(fc.cap()) as i64;
             let t = n * self.mesh_tris.get(i).copied().unwrap_or(0) as i64;
-            if i % 2 == 0 {
-                near += n;
-                near_tris += t;
-            } else {
-                far += n;
-                far_tris += t;
+            match i % LODS {
+                0 => {
+                    near += n;
+                    near_tris += t;
+                }
+                1 => {
+                    far += n;
+                    far_tris += t;
+                }
+                _ => stumps += n,
             }
         }
         let _ = d.insert("active", !self.computes.is_empty());
         let _ = d.insert("instances", near + far);
         let _ = d.insert("near", near);
         let _ = d.insert("far", far);
+        let _ = d.insert("stumps", stumps);
+        let _ = d.insert("falling", self.falling.len() as i64);
         let _ = d.insert("near_tris", near_tris);
         let _ = d.insert("far_tris", far_tris);
-        let _ = d.insert("species", (self.computes.len() / 2) as i64);
+        let _ = d.insert("species", (self.computes.len() / LODS) as i64);
         let _ = d.insert("candidates", (self.candidates.len() / 8) as i64);
         d
     }
@@ -730,16 +849,98 @@ impl QTreeField {
         self.trunk_shapes = shapes;
     }
 
-    /// Drops a felled tree from both its LOD buffers.
+    /// Flips a tree from standing to felled across every pass at once. The near
+    /// and far LODs read the flag straight and drop it; the stump pass reads it
+    /// inverted and picks it up.
     fn cull_instance(&mut self, id: u64) {
         let Some(&(base, slot)) = self.instance_of.get(&id) else {
             return;
         };
-        for c in [base, base + 1] {
-            if let Some(fc) = self.computes.get_mut(c as usize) {
+        for c in 0..LODS as u32 {
+            if let Some(fc) = self.computes.get_mut((base + c) as usize) {
                 fc.set_harvested(slot, true);
             }
         }
+    }
+
+    /// Stands a copy of the tree up where the instance was, so the cull can drop
+    /// the standing one on the same frame without the trunk blinking out.
+    fn spawn_falling(&mut self, id: u64, toward: Vector3) {
+        let Some(&(base, _)) = self.instance_of.get(&id) else {
+            return;
+        };
+        let Some(mesh) = self.meshes.get(base as usize) else {
+            return;
+        };
+        let Some(e) = self.core.get(id) else {
+            return;
+        };
+        let Some(world) = self.base().get_world_3d() else {
+            return;
+        };
+        let dir = Vector3::new(toward.x, 0.0, toward.z);
+        let dir = if dir.length_squared() < 1e-4 {
+            Vector3::FORWARD
+        } else {
+            dir.normalized()
+        };
+        let axis = Vector3::UP.cross(dir).normalized();
+
+        let mut rs = RenderingServer::singleton();
+        let mm = rs.multimesh_create();
+        rs.multimesh_allocate_data_ex(mm, 1, MultimeshTransformFormat::TRANSFORM_3D)
+            .custom_data_format(true)
+            .done();
+        rs.multimesh_set_mesh(mm, mesh.get_rid());
+        rs.multimesh_instance_set_custom_data(
+            mm,
+            0,
+            Color::from_rgba(0.0, e.variant as f32, e.yaw, 1.0),
+        );
+        let inst = rs.instance_create();
+        rs.instance_set_scenario(inst, world.get_scenario());
+        rs.instance_set_base(inst, mm);
+
+        let f = FallingTree {
+            mm,
+            inst,
+            base: e.pos,
+            axis,
+            scale: e.scale,
+            elapsed: 0.0,
+            fall: self.fall_seconds.max(0.1),
+            linger: self.fall_linger.max(0.1),
+        };
+        rs.multimesh_instance_set_transform(mm, 0, f.transform());
+        rs.instance_set_transform(inst, Transform3D::IDENTITY);
+        self.falling.push(f);
+    }
+
+    fn tick_falling(&mut self, delta: f32) {
+        if self.falling.is_empty() {
+            return;
+        }
+        let mut rs = RenderingServer::singleton();
+        for f in self.falling.iter_mut() {
+            f.elapsed += delta;
+            rs.multimesh_instance_set_transform(f.mm, 0, f.transform());
+        }
+        let mut i = 0;
+        while i < self.falling.len() {
+            if self.falling[i].done() {
+                self.falling[i].free();
+                self.falling.swap_remove(i);
+            } else {
+                i += 1;
+            }
+        }
+    }
+
+    fn free_falling(&mut self) {
+        for f in self.falling.iter_mut() {
+            f.free();
+        }
+        self.falling.clear();
     }
 
     fn free_computes(&mut self) {
@@ -751,6 +952,7 @@ impl QTreeField {
     fn free_all(&mut self) {
         self.free_computes();
         self.free_colliders();
+        self.free_falling();
     }
 }
 
@@ -909,6 +1111,27 @@ const FLUTE_TOP: f32 = 0.45;
 const FLARE_GAIN: f32 = 1.0;
 const FLARE_SPAN: f32 = 0.14;
 
+const BOLE_BASE_Y: f32 = -0.06;
+const BOLE_LEN: f32 = 0.95;
+const BOLE_R0: f32 = 0.048;
+const BOLE_R1: f32 = 0.011;
+const BOLE_TAPER: f32 = 0.58;
+const BOLE_SIDES: u32 = 9;
+const STUMP_CUT: f32 = 0.055;
+
+fn bole_flare(f: f32) -> f32 {
+    let u = (1.0 - (f / FLARE_SPAN).min(1.0)).max(0.0);
+    1.0 + FLARE_GAIN * u * u * u
+}
+
+fn bole_flute(f: f32) -> f32 {
+    FLUTE_DEPTH * (1.0 - (f / FLUTE_TOP).min(1.0)).powf(1.3)
+}
+
+fn bole_radius(f: f32) -> f32 {
+    BOLE_R0 + (BOLE_R1 - BOLE_R0) * f.powf(BOLE_TAPER)
+}
+
 /// How far up its twig the card band reaches; 1.0 would close over the tuft's ends.
 const TUFT_BAND: f32 = 0.85;
 /// Tuft radius along the twig and across it, both in units of `cluster_r`.
@@ -950,6 +1173,65 @@ fn leaf_cluster(
         let sy = b * (hs / stretch);
         let col = Color::from_rgba(1.0, 1.0, 1.0, sway);
         leaves.card([c - sx - sy, c + sx - sy, c + sx + sy, c - sx + sy], col);
+    }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn root_web(
+    bark: &mut MeshBuilder,
+    base_y: f32,
+    nodes: &[Vector3],
+    segd: &[Vector3],
+    r0: f32,
+    radius_at: &dyn Fn(f32) -> f32,
+    flute_phase: f32,
+    col: Color,
+    state: &mut u32,
+) {
+    let segs = segd.len();
+    if segs == 0 {
+        return;
+    }
+    let lobe0 = (std::f32::consts::FRAC_PI_2 - flute_phase) / FLUTES;
+    let per_lobe = 2 + (randf(state) * 2.0) as u32;
+    let n_roots = FLUTES as u32 * per_lobe;
+    for i in 0..n_roots {
+        let lobe = (i % FLUTES as u32) as f32;
+        let within = (i / FLUTES as u32) as f32 - (per_lobe as f32 - 1.0) * 0.5;
+        let az = lobe0
+            + std::f32::consts::TAU * lobe / FLUTES
+            + within * 0.42
+            + (randf(state) - 0.5) * 0.3;
+        let f = 0.01 + randf(state) * 0.05;
+        let ff = f * segs as f32;
+        let i0 = (ff as usize).min(segs - 1);
+        let bp = nodes[i0] + (nodes[i0 + 1] - nodes[i0]) * (ff - i0 as f32);
+        let pd = segd[i0];
+        let (t, b) = frame(pd);
+        let out = t * az.cos() + b * az.sin();
+        let rr = radius_at(f) * (0.34 + randf(state) * 0.2);
+        let reach = r0 * (4.0 + randf(state) * 3.0);
+        let sink = base_y - r0 * (0.9 + randf(state) * 0.7);
+        let rd = (out - Vector3::UP * 0.2).normalized();
+        let (rt, rb) = frame(rd);
+        let wobble = (randf(state) - 0.5) * 0.6;
+        let mut prev_ring: Option<Vec<i32>> = None;
+        for k in 0..=5 {
+            let tt = k as f32 / 5.0;
+            let sway_az = az + wobble * tt;
+            let dirk = t * sway_az.cos() + b * sway_az.sin();
+            let horiz = Vector3::new(dirk.x, 0.0, dirk.z).normalized();
+            let u = ((tt - 0.2) / 0.8).clamp(0.0, 1.0);
+            let yk = bp.y + (sink - bp.y) * (u * u * (3.0 - 2.0 * u));
+            let pos = Vector3::new(bp.x, yk, bp.z) + horiz * reach * tt;
+            let rk = (rr * (1.0 - tt).powf(1.5)).max(0.003);
+            let squash = 1.0 + 1.5 * (1.0 - tt).powi(2);
+            let ring = bark.ring(pos, rt * squash, rb / squash, rk, 5, reach * tt, col);
+            if let Some(pr) = prev_ring.as_ref() {
+                bark.bridge(pr, &ring);
+            }
+            prev_ring = Some(ring);
+        }
     }
 }
 
@@ -1069,19 +1351,8 @@ fn limb(
         }
         a.max(r1 * r1 * 0.55).sqrt()
     };
-    let flare = |f: f32| {
-        if depth > 0 {
-            return 1.0;
-        }
-        let u = (1.0 - (f / FLARE_SPAN).min(1.0)).max(0.0);
-        1.0 + FLARE_GAIN * u * u * u
-    };
-    let flute = |f: f32| {
-        if depth > 0 {
-            return 0.0;
-        }
-        FLUTE_DEPTH * (1.0 - (f / FLUTE_TOP).min(1.0)).powf(1.3)
-    };
+    let flare = |f: f32| if depth > 0 { 1.0 } else { bole_flare(f) };
+    let flute = |f: f32| if depth > 0 { 0.0 } else { bole_flute(f) };
     let flute_phase = randf(state) * std::f32::consts::TAU;
     let (mut ft, _) = frame(segd[0]);
     let mut fb;
@@ -1126,48 +1397,17 @@ fn limb(
     }
     let tip = nodes[segs];
     if depth == 0 {
-        let lobe0 = (std::f32::consts::FRAC_PI_2 - flute_phase) / FLUTES;
-        let per_lobe = 2 + (randf(state) * 2.0) as u32;
-        let n_roots = FLUTES as u32 * per_lobe;
-        for i in 0..n_roots {
-            let lobe = (i % FLUTES as u32) as f32;
-            let within = (i / FLUTES as u32) as f32 - (per_lobe as f32 - 1.0) * 0.5;
-            let az = lobe0
-                + std::f32::consts::TAU * lobe / FLUTES
-                + within * 0.42
-                + (randf(state) - 0.5) * 0.3;
-            let f = 0.01 + randf(state) * 0.05;
-            let ff = f * segs as f32;
-            let i0 = (ff as usize).min(segs - 1);
-            let bp = nodes[i0] + (nodes[i0 + 1] - nodes[i0]) * (ff - i0 as f32);
-            let pd = segd[i0];
-            let (t, b) = frame(pd);
-            let out = t * az.cos() + b * az.sin();
-            let r_at = r_of(f) * flare(f);
-            let rr = r_at * (0.34 + randf(state) * 0.2);
-            let reach = r0 * (4.0 + randf(state) * 3.0);
-            let sink = start.y - r0 * (0.9 + randf(state) * 0.7);
-            let rd = (out - Vector3::UP * 0.2).normalized();
-            let (rt, rb) = frame(rd);
-            let wobble = (randf(state) - 0.5) * 0.6;
-            let mut prev_ring: Option<Vec<i32>> = None;
-            for k in 0..=5 {
-                let tt = k as f32 / 5.0;
-                let sway_az = az + wobble * tt;
-                let dirk = t * sway_az.cos() + b * sway_az.sin();
-                let horiz = Vector3::new(dirk.x, 0.0, dirk.z).normalized();
-                let u = ((tt - 0.2) / 0.8).clamp(0.0, 1.0);
-                let yk = bp.y + (sink - bp.y) * (u * u * (3.0 - 2.0 * u));
-                let pos = Vector3::new(bp.x, yk, bp.z) + horiz * reach * tt;
-                let rk = (rr * (1.0 - tt).powf(1.5)).max(0.003);
-                let squash = 1.0 + 1.5 * (1.0 - tt).powi(2);
-                let ring = bark.ring(pos, rt * squash, rb / squash, rk, 5, reach * tt, col);
-                if let Some(pr) = prev_ring.as_ref() {
-                    bark.bridge(pr, &ring);
-                }
-                prev_ring = Some(ring);
-            }
-        }
+        root_web(
+            bark,
+            start.y,
+            &nodes,
+            &segd,
+            r0,
+            &|f| r_of(f) * flare(f),
+            flute_phase,
+            col,
+            state,
+        );
     }
     if depth < 3 {
         for (frac, leader, az, ang, share, lr) in specs.iter().copied() {
@@ -1268,7 +1508,11 @@ fn limb(
     }
 }
 
-fn build_skeleton_tree_mesh(seed: u32, sp: &TreeSpecies, leaf_aspect: f32) -> Gd<ArrayMesh> {
+fn build_skeleton_tree_mesh(
+    seed: u32,
+    sp: &TreeSpecies,
+    leaf_aspect: f32,
+) -> (Gd<ArrayMesh>, CrownExtent) {
     let crown = sp.crown;
     let mut bark = MeshBuilder::new();
     let mut leaves = MeshBuilder::new();
@@ -1283,14 +1527,14 @@ fn build_skeleton_tree_mesh(seed: u32, sp: &TreeSpecies, leaf_aspect: f32) -> Gd
     limb(
         &mut bark,
         &mut leaves,
-        Vector3::new(0.0, -0.06, 0.0),
+        Vector3::new(0.0, BOLE_BASE_Y, 0.0),
         lean,
-        0.95,
-        0.048,
-        0.011,
-        0.58,
+        BOLE_LEN,
+        BOLE_R0,
+        BOLE_R1,
+        BOLE_TAPER,
         Vector3::ZERO,
-        9,
+        BOLE_SIDES,
         0,
         0.0,
         crown,
@@ -1299,9 +1543,92 @@ fn build_skeleton_tree_mesh(seed: u32, sp: &TreeSpecies, leaf_aspect: f32) -> Gd
         &mut state,
     );
 
+    let mut lo = f32::MAX;
+    let mut hi = f32::MIN;
+    for v in &leaves.verts {
+        lo = lo.min(v.y);
+        hi = hi.max(v.y);
+    }
+    let mut top = hi;
+    for v in &bark.verts {
+        top = top.max(v.y);
+    }
+
     let mut am = ArrayMesh::new_gd();
     am.add_surface_from_arrays(PrimitiveType::TRIANGLES, &bark.arrays(true));
     am.add_surface_from_arrays(PrimitiveType::TRIANGLES, &leaves.arrays(true));
+    (am, CrownExtent { top, leaf_lo: lo })
+}
+
+pub struct CrownExtent {
+    pub top: f32,
+    pub leaf_lo: f32,
+}
+
+fn build_stump_mesh(seed: u32) -> Gd<ArrayMesh> {
+    let mut bark = MeshBuilder::new();
+    let mut state = hash32(seed | 1);
+    let col = Color::from_rgba(1.0, 1.0, 1.0, 0.0);
+    let flute_phase = randf(&mut state) * std::f32::consts::TAU;
+
+    let rings = 4usize;
+    let cut = STUMP_CUT;
+    let mut nodes: Vec<Vector3> = Vec::with_capacity(rings + 1);
+    let mut segd: Vec<Vector3> = Vec::with_capacity(rings);
+    let mut prev: Option<Vec<i32>> = None;
+    let mut top_ring: Vec<i32> = Vec::new();
+    for i in 0..=rings {
+        let t = i as f32 / rings as f32;
+        let f = cut * t;
+        let y = BOLE_BASE_Y + BOLE_LEN * f;
+        let c = Vector3::new(0.0, y, 0.0);
+        nodes.push(c);
+        if i > 0 {
+            segd.push(Vector3::UP);
+        }
+        let r = bole_radius(f) * bole_flare(f);
+        let ring = bark.ring_fluted(
+            c,
+            Vector3::RIGHT,
+            Vector3::BACK,
+            r,
+            BOLE_SIDES,
+            BOLE_LEN * f,
+            col,
+            bole_flute(f),
+            flute_phase,
+        );
+        if let Some(pr) = prev.as_ref() {
+            bark.bridge(pr, &ring);
+        }
+        if i == rings {
+            top_ring = ring.clone();
+        }
+        prev = Some(ring);
+    }
+
+    let cut_y = BOLE_BASE_Y + BOLE_LEN * cut;
+    let centre = Vector3::new(0.0, cut_y - BOLE_R0 * 0.12, 0.0);
+    let pts: Vec<Vector3> = top_ring.iter().map(|i| bark.verts[*i as usize]).collect();
+    let heart = Color::from_rgba(0.0, 1.0, 1.0, 0.0);
+    for w in pts.windows(2) {
+        bark.tri(centre, w[1], w[0], heart);
+    }
+
+    root_web(
+        &mut bark,
+        BOLE_BASE_Y,
+        &nodes,
+        &segd,
+        BOLE_R0,
+        &|f| bole_radius(f * cut) * bole_flare(f * cut),
+        flute_phase,
+        col,
+        &mut state,
+    );
+
+    let mut am = ArrayMesh::new_gd();
+    am.add_surface_from_arrays(PrimitiveType::TRIANGLES, &bark.arrays(true));
     am
 }
 

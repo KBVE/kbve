@@ -32,6 +32,7 @@ const int HRES = %HRES%;
 const float OCCL_START = %OCCL_START%;
 const int OCCL_STEPS = %OCCL_STEPS%;
 const float OCCL_BIAS = %OCCL_BIAS%;
+const bool HARVESTED_SHOWS = %HARVESTED_SHOWS%;
 
 shared uint local_cnt;
 shared uint base_slot;
@@ -92,8 +93,10 @@ void main() {
         float d = distance(vec2(x, z), pc.cam.xz);
         float keep = RANK_FADE > 0.5 ? 1.0 - smoothstep(FADE_END * 0.7, FADE_END, d) : 1.0;
         // Slot 7 is the harvested flag. A felled instance stays in the buffer so
-        // every index after it holds still, and is culled here instead.
-        alive = d >= DIST_MIN && d < FADE_END && rank <= keep && cand.data[src + 7u] < 0.5;
+        // every index after it holds still, and is culled here instead. A stump
+        // pass reads the same flag inverted, so one write moves both.
+        bool cut = cand.data[src + 7u] >= 0.5;
+        alive = d >= DIST_MIN && d < FADE_END && rank <= keep && (cut == HARVESTED_SHOWS);
         if (BAND1 > BAND0) {
             float bf = smoothstep(BAND0, BAND1, d);
             fade = mix(bf, 1.0 - bf, BAND_OUT);
@@ -193,6 +196,14 @@ fn storage_uniform(binding: i32, buffer: Rid) -> Gd<RdUniform> {
     u
 }
 
+/// Which side of the harvested flag a pass draws: the instance while it stands,
+/// or what is left behind once it has been taken.
+#[derive(Clone, Copy, PartialEq, Eq)]
+pub enum HarvestPass {
+    Standing,
+    Remains,
+}
+
 /// Terrain the cull pass tests sight lines against.
 pub struct TerrainOcclusion {
     pub heights: Vec<f32>,
@@ -282,6 +293,7 @@ impl FloraCompute {
         shadows: bool,
         surfaces: u32,
         terrain: TerrainOcclusion,
+        pass: HarvestPass,
     ) -> Option<Self> {
         let count = (candidates.len() / 8) as u32;
         if count == 0 || cap == 0 {
@@ -309,6 +321,14 @@ impl FloraCompute {
             ("%OCCL_START%", format!("{:.6}", terrain.start)),
             ("%OCCL_STEPS%", terrain.steps().to_string()),
             ("%OCCL_BIAS%", format!("{:.6}", terrain.bias)),
+            (
+                "%HARVESTED_SHOWS%",
+                match pass {
+                    HarvestPass::Standing => "false",
+                    HarvestPass::Remains => "true",
+                }
+                .to_string(),
+            ),
         ];
         let cull_src = bake(FLORA_CULL_GLSL, &subs);
         let resolve_src = bake(
