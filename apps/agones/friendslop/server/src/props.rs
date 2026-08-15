@@ -23,9 +23,20 @@ pub struct PropField {
     hgen: HeightGen,
     road: RoadPlan,
     scatter: StoneScatter,
-    loaded: HashMap<Cell, Vec<BodyId>>,
+    loaded: HashMap<Cell, Region>,
     next_id: u32,
     free: Vec<BodyId>,
+    /// Bumped whenever the loaded set changes, so a reader can tell whether the
+    /// discs it last took are still current without comparing them.
+    revision: u64,
+}
+
+struct Region {
+    bodies: Vec<BodyId>,
+    /// Flat `x, z, radius` triples, kept from the placement pass rather than
+    /// scattered again. A flow field wants these every time it restamps, and
+    /// re-running the scatter for that is the same work twice.
+    discs: Vec<f32>,
 }
 
 impl PropField {
@@ -54,7 +65,13 @@ impl PropField {
             loaded: HashMap::new(),
             next_id: STONE_BODY_BASE,
             free: Vec::new(),
+            revision: 0,
         }
+    }
+
+    /// Changes as the loaded region set changes, and not otherwise.
+    pub fn revision(&self) -> u64 {
+        self.revision
     }
 
     fn cell_of(origin: [f32; 2], stride: f32) -> Cell {
@@ -90,12 +107,13 @@ impl PropField {
             .filter(|c| !wanted.contains(c))
             .collect();
         for cell in stale {
-            if let Some(ids) = self.loaded.remove(&cell) {
-                for id in ids {
+            if let Some(region) = self.loaded.remove(&cell) {
+                for id in region.bodies {
                     world.apply(SimCommand::Despawn { id });
                     self.free.push(id);
                 }
             }
+            self.revision += 1;
         }
 
         for (cell, origin) in wanted.iter().zip(regions.iter()) {
@@ -114,6 +132,7 @@ impl PropField {
             self.cfg.extent,
             self.cfg.water_level,
         );
+        let discs = StoneScatter::discs(&placements);
         let mut ids = Vec::with_capacity(placements.len());
         for p in &placements {
             let Some(id) = self.take_id() else {
@@ -138,26 +157,25 @@ impl PropField {
             ids.push(id);
         }
         tracing::debug!(?origin, stones = ids.len(), "stone colliders in");
-        self.loaded.insert(cell, ids);
+        self.loaded.insert(cell, Region { bodies: ids, discs });
+        self.revision += 1;
     }
 
     pub fn stone_count(&self) -> usize {
-        self.loaded.values().map(|v| v.len()).sum()
+        self.loaded.values().map(|r| r.bodies.len()).sum()
     }
 
     /// Flat `x, z, radius` triples for every region loaded, which is the shape a
     /// flow field stamps.
-    pub fn discs(&self, regions: &[[f32; 2]]) -> Vec<f32> {
+    ///
+    /// Sorted by cell so the same loaded set always produces the same order, which
+    /// is what lets a reader skip work when nothing has moved.
+    pub fn discs(&self) -> Vec<f32> {
+        let mut cells: Vec<&Cell> = self.loaded.keys().collect();
+        cells.sort_unstable();
         let mut out = Vec::new();
-        for origin in regions {
-            let placements = self.scatter.place(
-                &self.hgen,
-                Some(&self.road),
-                *origin,
-                self.cfg.extent,
-                self.cfg.water_level,
-            );
-            out.extend(StoneScatter::discs(&placements));
+        for cell in cells {
+            out.extend_from_slice(&self.loaded[cell].discs);
         }
         out
     }

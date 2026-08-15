@@ -752,6 +752,26 @@ pub struct BridgePlan {
     pub half_width: f32,
 }
 
+/// The crossing measured for a flow field: what to close, what to reopen, and how
+/// high the deck a body may be standing under sits.
+///
+/// Derived rather than authored, so the field and the timber cannot drift apart.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct BridgeFootprint {
+    /// Ends of the whole structure, reaching past the abutments onto dry land.
+    pub from: [f32; 2],
+    pub to: [f32; 2],
+    /// The line that may be walked.
+    pub walk_half_width: f32,
+    /// The outside of the structure. The kerbs sit just inside the deck's half
+    /// width and the abutment flares a little wider.
+    pub solid_half_width: f32,
+    /// The raised span alone, which is the part a body can be underneath.
+    pub deck_from: [f32; 2],
+    pub deck_to: [f32; 2],
+    pub deck_y: f32,
+}
+
 impl BridgePlan {
     /// Reproduces the road's own span search, so the deck cannot drift from the
     /// carriageway that runs onto it.
@@ -825,6 +845,24 @@ impl BridgePlan {
             .last()
             .map(|p| (p[0] - self.crossing[0]).abs())
             .unwrap_or(self.deck_half)
+    }
+
+    /// The crossing as a thing with sides, which is what a flow field needs.
+    ///
+    /// A field told only about the line to walk routes bodies through the side of a
+    /// ramp, because the approaches are railed causeways with a skirt down to the
+    /// ground and most of what the bridge puts in the way is solid.
+    pub fn footprint(&self, hgen: &HeightGen) -> BridgeFootprint {
+        let [cx, cz] = self.crossing;
+        BridgeFootprint {
+            from: [cx - self.reach(hgen, -1.0), cz],
+            to: [cx + self.reach(hgen, 1.0), cz],
+            walk_half_width: self.half_width,
+            solid_half_width: self.half_width + 0.25,
+            deck_from: [cx - self.deck_half, cz],
+            deck_to: [cx + self.deck_half, cz],
+            deck_y: self.deck_y,
+        }
     }
 
     /// The centreline of one approach, from the deck edge down to the ground, as the

@@ -95,6 +95,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         sim.tick_handle(),
         sim.regions_handle(),
         sim.pets_handle(),
+        sim.pet_fields_handle(),
     ));
 
     let listener = TcpListener::bind(addr).await?;
@@ -128,6 +129,7 @@ fn stats_route(
     tick: std::sync::Arc<std::sync::atomic::AtomicU64>,
     regions: std::sync::Arc<std::sync::atomic::AtomicUsize>,
     pets: std::sync::Arc<std::sync::atomic::AtomicUsize>,
+    pet_fields: std::sync::Arc<std::sync::atomic::AtomicUsize>,
 ) -> axum::Router {
     axum::Router::new().route(
         "/stats",
@@ -140,6 +142,7 @@ fn stats_route(
                 "udp_oversize": transport.oversize_count(),
                 "terrain_regions": regions.load(std::sync::atomic::Ordering::Relaxed),
                 "pets": pets.load(std::sync::atomic::Ordering::Relaxed),
+                "pet_fields": pet_fields.load(std::sync::atomic::Ordering::Relaxed),
             }))
         }),
     )
