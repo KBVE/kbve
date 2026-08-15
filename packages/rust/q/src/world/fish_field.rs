@@ -35,12 +35,24 @@ struct Fish {
     flee_cd: f32,
 }
 
+/// Squared distance from a point to a chunk's footprint on the xz plane, zero when the
+/// point is inside it.
+fn chunk_dist2(z0: f32, z1: f32, xmin: f32, xmax: f32, fx: f32, fz: f32) -> f32 {
+    let dz = (z0 - fz).max(fz - z1).max(0.0);
+    let dx = (xmin - fx).max(fx - xmax).max(0.0);
+    dx * dx + dz * dz
+}
+
 struct Chunk {
     mm: Rid,
     inst: Rid,
     shadow_mm: Rid,
     shadow_inst: Rid,
     count: i32,
+    z0: f32,
+    z1: f32,
+    xmin: f32,
+    xmax: f32,
 }
 
 #[derive(GodotClass)]
@@ -210,6 +222,11 @@ pub struct QFishField {
     #[export]
     #[init(val = 95.0)]
     sim_radius: f32,
+    /// Fish drift slowly enough that a fixed sim step well under the display rate is
+    /// invisible, and the whole tick plus its buffer rebuild rides on it.
+    #[export]
+    #[init(val = 30.0)]
+    sim_hz: f32,
 
     placed: i32,
     mesh: Option<Gd<Mesh>>,
@@ -221,10 +238,20 @@ pub struct QFishField {
     centroids: Vec<(f32, f32, f32)>,
     headings: Vec<(f32, f32)>,
     chunks: Vec<Chunk>,
+    chunk_active: Vec<bool>,
+    chunk_drawn: Vec<bool>,
     time: f32,
+    accum: f32,
+    prof_age: f32,
+    prof_ms: f64,
+    prof_steps: u32,
+    prof_frames: u32,
     chunk_cap: i32,
     buf: Vec<f32>,
     shadow_buf: Vec<f32>,
+    steer: Vec<(f32, f32)>,
+    respawn_q: Vec<usize>,
+    panic_src: Vec<(f32, f32)>,
     scratch: PackedFloat32Array,
     overflow: i32,
     overflow_warned: bool,
@@ -422,11 +449,65 @@ impl QFishField {
         Vector3::ZERO
     }
 
-    fn tick(&mut self, delta: f32) {
+    /// Flags the chunks close enough to matter and says whether any survived, so a run
+    /// with nothing in reach skips the tick and the buffer rebuild outright rather than
+    /// walking every fish to discover the same thing.
+    ///
+    /// Two reaches, because they answer different questions: `sim_radius` keeps fish
+    /// moving a little past where they can be seen, so nothing is caught mid-freeze as
+    /// it fades in, while the draw reach stops at `fade_end` — pushing MultiMesh buffers
+    /// for chunks the shader has already faded to nothing is pure RenderingServer
+    /// traffic.
+    fn mark_active(&mut self, focus: Vector3) -> bool {
+        let pad = self.half_width + 2.0;
+        let sim_reach = self.sim_radius.max(1.0) + pad;
+        let sim_reach2 = sim_reach * sim_reach;
+        let draw_reach = self.fade_end.max(1.0) + pad;
+        let draw_reach2 = draw_reach * draw_reach;
+        self.chunk_active.clear();
+        self.chunk_drawn.clear();
+        self.chunk_active.reserve(self.chunks.len());
+        self.chunk_drawn.reserve(self.chunks.len());
+        let mut any = false;
+        for c in self.chunks.iter() {
+            let d2 = chunk_dist2(c.z0, c.z1, c.xmin, c.xmax, focus.x, focus.z);
+            let near = d2 <= sim_reach2;
+            any |= near;
+            self.chunk_active.push(near);
+            self.chunk_drawn.push(d2 <= draw_reach2);
+        }
+        any
+    }
+
+    /// Amortised cost, which is what the tick is actually judged on: a step that only
+    /// fires on some frames is invisible to a per-frame stall threshold.
+    fn report_profile(&mut self) {
+        if !super::profiling() || self.prof_age < 5.0 {
+            return;
+        }
+        let frames = self.prof_frames.max(1) as f64;
+        let steps = self.prof_steps.max(1) as f64;
+        godot_print!(
+            "[q] fish {:.3}ms/frame ({:.3}ms/step, {} steps in {} frames) sim={} chunks={}sim/{}drawn/{}",
+            self.prof_ms / frames,
+            self.prof_ms / steps,
+            self.prof_steps,
+            self.prof_frames,
+            self.simulated,
+            self.chunk_active.iter().filter(|a| **a).count(),
+            self.chunk_drawn.iter().filter(|a| **a).count(),
+            self.chunks.len(),
+        );
+        self.prof_age = 0.0;
+        self.prof_ms = 0.0;
+        self.prof_steps = 0;
+        self.prof_frames = 0;
+    }
+
+    fn tick(&mut self, delta: f32, focus: Vector3) {
         let Some(terrain) = self.terrain.clone() else {
             return;
         };
-        let focus = self.focus_point();
         let sim_r = self.sim_radius.max(1.0);
         let sim_r2 = sim_r * sim_r;
         let player = self
@@ -498,7 +579,9 @@ impl QFishField {
             };
         }
 
-        let mut steer = vec![(0.0f32, 0.0f32); self.fish.len()];
+        let mut steer = std::mem::take(&mut self.steer);
+        steer.clear();
+        steer.resize(self.fish.len(), (0.0f32, 0.0f32));
         let sep_r2 = sep_r * sep_r;
         for (pi, (start, len)) in self.pod_ranges.iter().enumerate() {
             let (s, e) = (*start as usize, (*start + *len) as usize);
@@ -545,7 +628,8 @@ impl QFishField {
         }
 
         let t = terrain.bind();
-        let mut respawn: Vec<usize> = Vec::new();
+        let mut respawn = std::mem::take(&mut self.respawn_q);
+        respawn.clear();
         let mut simulated = 0i32;
         for (i, f) in self.fish.iter_mut().enumerate() {
             if !f.alive {
@@ -663,15 +747,18 @@ impl QFishField {
         }
         drop(t);
         self.simulated = simulated;
+        self.steer = steer;
 
         let spread = self.panic_spread_radius;
         if spread > 0.0 {
-            let srcs: Vec<(f32, f32)> = self
-                .fish
-                .iter()
-                .filter(|f| f.alive && f.panic > 0.7)
-                .map(|f| (f.x, f.z))
-                .collect();
+            let mut srcs = std::mem::take(&mut self.panic_src);
+            srcs.clear();
+            srcs.extend(
+                self.fish
+                    .iter()
+                    .filter(|f| f.alive && f.panic > 0.7)
+                    .map(|f| (f.x, f.z)),
+            );
             if !srcs.is_empty() {
                 let r2 = spread * spread;
                 for f in self.fish.iter_mut() {
@@ -688,11 +775,13 @@ impl QFishField {
                     }
                 }
             }
+            self.panic_src = srcs;
         }
 
-        for i in respawn {
-            self.respawn_one(i);
+        for i in 0..respawn.len() {
+            self.respawn_one(respawn[i]);
         }
+        self.respawn_q = respawn;
     }
 
     fn model_mesh(&self) -> Option<Gd<Mesh>> {
@@ -783,6 +872,7 @@ impl QFishField {
         let n = self.chunk_count();
         let cap = ((self.placed as usize / n) as i32 * 3)
             .max(48)
+            .max(self.school_max * 4)
             .min(self.placed);
         self.chunk_cap = cap;
         let len = self.chunk_len.max(4.0);
@@ -859,15 +949,20 @@ impl QFishField {
                 shadow_mm: smm,
                 shadow_inst: sinst,
                 count: 0,
+                z0,
+                z1,
+                xmin,
+                xmax,
             });
         }
 
         self.buf = vec![0.0; cap as usize * 16 * n];
         self.shadow_buf = vec![0.0; cap as usize * 16 * n];
-        self.upload();
+        let focus = self.focus_point();
+        self.upload(focus);
     }
 
-    fn upload(&mut self) {
+    fn upload(&mut self, focus: Vector3) {
         if self.chunks.is_empty() {
             return;
         }
@@ -881,7 +976,6 @@ impl QFishField {
 
         let mut counts = vec![0usize; n];
         let mut active = vec![false; n];
-        let focus = self.focus_point();
         let sim_r = self.sim_radius.max(1.0);
         let sim_r2 = sim_r * sim_r;
         self.overflow = 0;
@@ -897,6 +991,9 @@ impl QFishField {
                 continue;
             }
             let c = self.chunk_of(f.z);
+            if !self.chunk_drawn.get(c).copied().unwrap_or(true) {
+                continue;
+            }
             let slot = counts[c];
             if slot * 16 >= stride {
                 self.overflow += 1;
@@ -962,6 +1059,9 @@ impl QFishField {
             scratch.resize(stride);
         }
         for c in 0..n {
+            if !self.chunk_drawn.get(c).copied().unwrap_or(true) {
+                continue;
+            }
             let used = counts[c];
             if used == 0 && self.chunks[c].count == 0 {
                 continue;
@@ -1025,9 +1125,27 @@ impl INode3D for QFishField {
         if self.chunks.is_empty() || !self.base().is_visible_in_tree() {
             return;
         }
-        let _t = super::StallTimer::start("fish_tick");
-        self.tick(delta as f32);
-        self.upload();
+        self.prof_frames += 1;
+        self.prof_age += delta as f32;
+        let focus = self.focus_point();
+        let any = self.mark_active(focus);
+        if any {
+            let step = 1.0 / self.sim_hz.max(1.0);
+            self.accum += delta as f32;
+            if self.accum >= step {
+                let elapsed = self.accum.min(step * 3.0);
+                self.accum = 0.0;
+                let _t = super::StallTimer::start("fish_tick");
+                let started = std::time::Instant::now();
+                self.tick(elapsed, focus);
+                self.upload(focus);
+                self.prof_ms += started.elapsed().as_secs_f64() * 1000.0;
+                self.prof_steps += 1;
+            }
+        } else {
+            self.accum = 0.0;
+        }
+        self.report_profile();
     }
 
     fn on_notification(&mut self, what: Node3DNotification) {
@@ -1152,5 +1270,47 @@ impl QFishField {
                 f.panic = 1.0;
             }
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::chunk_dist2;
+
+    const Z0: f32 = -30.0;
+    const Z1: f32 = 0.0;
+    const XMIN: f32 = -4.0;
+    const XMAX: f32 = 6.0;
+
+    fn d2(x: f32, z: f32) -> f32 {
+        chunk_dist2(Z0, Z1, XMIN, XMAX, x, z)
+    }
+
+    #[test]
+    fn inside_the_footprint_is_zero() {
+        assert_eq!(d2(0.0, -15.0), 0.0);
+        assert_eq!(d2(XMIN, Z0), 0.0);
+        assert_eq!(d2(XMAX, Z1), 0.0);
+    }
+
+    #[test]
+    fn beyond_one_axis_measures_that_axis_only() {
+        assert_eq!(d2(0.0, 4.0), 16.0);
+        assert_eq!(d2(0.0, -33.0), 9.0);
+        assert_eq!(d2(-9.0, -15.0), 25.0);
+        assert_eq!(d2(8.0, -15.0), 4.0);
+    }
+
+    #[test]
+    fn diagonal_corner_combines_both_axes() {
+        assert_eq!(d2(9.0, 4.0), 25.0);
+    }
+
+    /// A gate that mistakes "outside" for "inside" only wastes work; the reverse hides
+    /// fish, so the boundary has to stay inclusive.
+    #[test]
+    fn reach_boundary_is_inclusive() {
+        let reach = 5.0f32;
+        assert!(d2(0.0, 5.0) <= reach * reach);
     }
 }
