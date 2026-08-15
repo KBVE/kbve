@@ -73,3 +73,61 @@ func test_disconnect_clears_every_avatar() -> void:
 	assert_object(client.get_node_or_null("Body1")).is_null()
 	assert_object(client.get_node_or_null("Body2")).is_null()
 	assert_bool(client.is_joined()).is_false()
+
+
+func test_a_pet_is_spawned_and_freed_with_its_body() -> void:
+	var client := _client()
+	var before := client.get_child_count()
+
+	client._on_pet_added(2000000)
+	assert_int(client.get_child_count()).is_equal(before + 1)
+	assert_object(client.get_node_or_null("Pet2000000")).is_not_null()
+
+	client._on_pet_added(2000000)
+	assert_int(client.get_child_count()).is_equal(before + 1)
+
+	client._on_pet_removed(2000000)
+	await await_idle_frame()
+	assert_object(client.get_node_or_null("Pet2000000")).is_null()
+
+
+## A robot is not an avatar. Drawing one as the other is what happens if the client
+## decides what a body is from the pet list, which arrives after the body does.
+func test_a_pet_body_is_not_given_an_avatar() -> void:
+	var client := _client()
+	client._on_pet_added(2000001)
+	assert_object(client.get_node_or_null("Body2000001")).is_null()
+	assert_object(client.get_node_or_null("Pet2000001")).is_not_null()
+	assert_int(client.pet_count()).is_equal(1)
+
+
+func test_disconnect_clears_every_pet() -> void:
+	var client := _client()
+	client._on_pet_added(2000002)
+	client.disconnect_from_server()
+	await await_idle_frame()
+	assert_object(client.get_node_or_null("Pet2000002")).is_null()
+	assert_int(client.pet_count()).is_equal(0)
+
+
+## The chassis rides on the pet list, which is reliable and later than the body. A
+## robot with no chassis yet must stay unbuilt rather than settle on a wrong one.
+func test_a_pet_waits_for_its_chassis() -> void:
+	var pet := NetPet.new()
+	auto_free(pet)
+	pet.build(-1, "")
+	assert_object(pet.rig).is_null()
+
+	pet.build(1, "Anon")
+	assert_object(pet.rig).is_not_null()
+	var built: Node3D = pet.rig
+
+	pet.build(2, "Anon")
+	assert_object(pet.rig).is_same(built)
+
+
+func test_an_out_of_range_chassis_falls_back_rather_than_failing() -> void:
+	var pet := NetPet.new()
+	auto_free(pet)
+	pet.build(99, "")
+	assert_object(pet.rig).is_not_null()

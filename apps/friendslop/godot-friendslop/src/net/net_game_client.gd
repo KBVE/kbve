@@ -7,6 +7,10 @@ signal joined(seed_value: int, player_name: String)
 signal rejected(reason: String)
 signal avatar_spawned(body_id: int, node: Node3D)
 signal roster_changed()
+signal pet_spawned(body_id: int, node: Node3D)
+signal pets_changed()
+## A deploy the server turned down, with wording to show the player.
+signal pet_denied(reason: String)
 
 ## The deployed fleet.
 const DEPLOYED_URL := "wss://friendslop.kbve.com/ws"
@@ -30,6 +34,7 @@ const DEPLOYED_URL := "wss://friendslop.kbve.com/ws"
 var _client := QNetClient3D.new()
 
 var _avatars: Dictionary[int, Node3D] = {}
+var _pets: Dictionary[int, Node3D] = {}
 
 
 func _ready() -> void:
@@ -46,6 +51,10 @@ func _init() -> void:
 	_client.body_added.connect(_on_body_added)
 	_client.body_removed.connect(_on_body_removed)
 	_client.roster_changed.connect(_on_roster_changed)
+	_client.pet_added.connect(_on_pet_added)
+	_client.pet_removed.connect(_on_pet_removed)
+	_client.pets_changed.connect(_on_pets_changed)
+	_client.pet_denied.connect(_on_pet_denied)
 
 
 func connect_to_server(url: String = "") -> void:
@@ -64,6 +73,9 @@ func disconnect_from_server() -> void:
 	for node in _avatars.values():
 		node.queue_free()
 	_avatars.clear()
+	for node in _pets.values():
+		node.queue_free()
+	_pets.clear()
 	_client.disconnect_from_server()
 
 
@@ -205,6 +217,69 @@ func _on_body_removed(body_id: int) -> void:
 	if node:
 		_avatars.erase(body_id)
 		node.queue_free()
+
+
+## Asks the server to put a robot down beside us. Only the chassis is ours to
+## choose: where it lands, what id it gets and whether we may have it at all are
+## the server's, and it answers a refusal on `pet_denied`.
+func deploy_pet(kind: int = 0) -> void:
+	_client.deploy_pet(kind)
+
+
+## Picks up the pet drawn under `body_id`, if it is ours.
+func recall_pet(body_id: int) -> void:
+	var pet_id: int = _client.pet_id_of(body_id)
+	if pet_id >= 0:
+		_client.recall_pet(pet_id)
+
+
+func recall_all_pets() -> void:
+	_client.recall_pets()
+
+
+## Body ids of the robots we have out, which is what a recall menu lists.
+func my_pet_bodies() -> PackedInt64Array:
+	return _client.my_pet_bodies()
+
+
+func pet_count() -> int:
+	return _pets.size()
+
+
+func _on_pet_added(body_id: int) -> void:
+	if _pets.has(body_id):
+		return
+	var node := NetPet.new()
+	node.name = "Pet%d" % body_id
+	node.build(_client.pet_kind_of(body_id), "")
+	add_child(node)
+	_pets[body_id] = node
+	_client.track(body_id, node)
+	pet_spawned.emit(body_id, node)
+
+
+func _on_pet_removed(body_id: int) -> void:
+	var node: Node3D = _pets.get(body_id)
+	if node:
+		_pets.erase(body_id)
+		node.queue_free()
+
+
+## The pet list is reliable and the bodies are not, so a robot can be on screen for
+## a frame or two before there is anything to say whose it is or what to draw. The
+## chassis is filled in here once it arrives.
+func _on_pets_changed() -> void:
+	for body_id in _pets:
+		var node: NetPet = _pets[body_id]
+		if node == null:
+			continue
+		node.build(_client.pet_kind_of(body_id), "")
+		node.set_display_name(_client.body_name(_client.pet_owner_body(body_id)))
+	pets_changed.emit()
+
+
+func _on_pet_denied(reason: String) -> void:
+	pet_denied.emit(reason)
 
 
 func _make_avatar() -> Node3D:
