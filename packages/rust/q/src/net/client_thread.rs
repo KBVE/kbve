@@ -8,6 +8,7 @@ use std::time::{Duration, Instant};
 use tokio::sync::{mpsc, watch};
 
 use super::dual::DualClient;
+use super::pets::{PetId, PetInfo};
 use super::session::{ClientSession, ClientStatus, HarvestEvent, PeerInfo, WorldInfo};
 use super::ws::WsClient;
 use crate::harvest::HarvestTarget;
@@ -30,6 +31,9 @@ pub struct NetClientState {
     pub world: Option<WorldInfo>,
     /// Host clock, hours 0..24.
     pub hour: f32,
+    /// Every pet deployed in the session, which is what says a body in the
+    /// snapshot is somebody's robot rather than a player.
+    pub pets: Vec<PetInfo>,
 }
 
 impl Default for NetClientState {
@@ -45,8 +49,17 @@ impl Default for NetClientState {
             roster: Vec::new(),
             world: None,
             hour: 0.0,
+            pets: Vec::new(),
         }
     }
+}
+
+/// What the app is asking the host to do with its robots.
+#[derive(Clone, Copy, Debug)]
+pub enum PetCommand {
+    Deploy { kind: u8 },
+    Recall(PetId),
+    RecallAll,
 }
 
 /// How the client asks to be let in.
@@ -83,6 +96,10 @@ pub struct NetClientHandle {
     /// only the newest matters.
     harvest_tx: mpsc::UnboundedSender<HarvestRequest>,
     event_rx: mpsc::UnboundedReceiver<HarvestEvent>,
+    /// Queued like harvests rather than latest-wins: a deploy dropped because a
+    /// frame was slow is a button press that silently did nothing.
+    pet_tx: mpsc::UnboundedSender<PetCommand>,
+    denied_rx: mpsc::UnboundedReceiver<String>,
     join: Option<JoinHandle<()>>,
 }
 
@@ -109,14 +126,25 @@ impl NetClientHandle {
         let (state_tx, state_rx) = watch::channel(Arc::new(NetClientState::default()));
         let (harvest_tx, harvest_rx) = mpsc::unbounded_channel();
         let (event_tx, event_rx) = mpsc::unbounded_channel();
+        let (pet_tx, pet_rx) = mpsc::unbounded_channel();
+        let (denied_tx, denied_rx) = mpsc::unbounded_channel();
         let stop_t = stop.clone();
 
         let join = thread::Builder::new()
             .name("q-netclient".into())
             .spawn(move || {
-                run(
-                    url, tick_hz, credential, stop_t, intent_rx, state_tx, harvest_rx, event_tx,
-                )
+                run(Wiring {
+                    url,
+                    tick_hz,
+                    credential,
+                    stop: stop_t,
+                    intent_rx,
+                    state_tx,
+                    harvest_rx,
+                    event_tx,
+                    pet_rx,
+                    denied_tx,
+                })
             })
             .expect("q: failed to spawn net client thread");
 
@@ -126,8 +154,24 @@ impl NetClientHandle {
             state_rx,
             harvest_tx,
             event_rx,
+            pet_tx,
+            denied_rx,
             join: Some(join),
         }
+    }
+
+    /// Asks the host to put a robot down, pick one up, or pick all of them up.
+    pub fn command_pet(&self, command: PetCommand) {
+        let _ = self.pet_tx.send(command);
+    }
+
+    /// Every deploy the host has turned down since the last call, and why.
+    pub fn take_pet_denials(&mut self) -> Vec<String> {
+        let mut out = Vec::new();
+        while let Ok(reason) = self.denied_rx.try_recv() {
+            out.push(reason);
+        }
+        out
     }
 
     /// Asks the host to work a scattered object.
@@ -186,16 +230,34 @@ fn server_host(url: &str) -> String {
         .to_owned()
 }
 
-fn run(
+/// Everything the session thread is handed at birth, gathered so the signature
+/// stays readable as the channels multiply.
+struct Wiring {
     url: String,
     tick_hz: f64,
     credential: Credential,
     stop: Arc<AtomicBool>,
     intent_rx: watch::Receiver<Intent>,
     state_tx: watch::Sender<Arc<NetClientState>>,
-    mut harvest_rx: mpsc::UnboundedReceiver<HarvestRequest>,
+    harvest_rx: mpsc::UnboundedReceiver<HarvestRequest>,
     event_tx: mpsc::UnboundedSender<HarvestEvent>,
-) {
+    pet_rx: mpsc::UnboundedReceiver<PetCommand>,
+    denied_tx: mpsc::UnboundedSender<String>,
+}
+
+fn run(w: Wiring) {
+    let Wiring {
+        url,
+        tick_hz,
+        credential,
+        stop,
+        intent_rx,
+        state_tx,
+        mut harvest_rx,
+        event_tx,
+        mut pet_rx,
+        denied_tx,
+    } = w;
     let runtime = match tokio::runtime::Builder::new_multi_thread()
         .worker_threads(1)
         .enable_all()
@@ -239,9 +301,19 @@ fn run(
         while let Ok(request) = harvest_rx.try_recv() {
             session.harvest(request.target, request.cell, request.ordinal, request.hits);
         }
+        while let Ok(command) = pet_rx.try_recv() {
+            match command {
+                PetCommand::Deploy { kind } => session.deploy_pet(kind),
+                PetCommand::Recall(pet) => session.recall_pet(pet),
+                PetCommand::RecallAll => session.recall_pets(),
+            }
+        }
         session.tick();
         for event in session.take_harvest_events() {
             let _ = event_tx.send(event);
+        }
+        if let Some(reason) = session.take_pet_denied() {
+            let _ = denied_tx.send(reason);
         }
 
         let dropped = !transport.is_connected();
@@ -259,6 +331,7 @@ fn run(
             roster: session.roster().to_vec(),
             world: session.world(),
             hour: session.hour(),
+            pets: session.pets().to_vec(),
         }));
 
         if dropped {
@@ -427,6 +500,82 @@ mod tests {
             Duration::from_secs(15),
         );
         assert!(ready.is_some(), "udp lane should come up end to end");
+        stop.store(true, Ordering::Relaxed);
+    }
+
+    /// The whole pet path over a real socket: command out, body and roster back.
+    #[test]
+    fn a_deployed_pet_comes_back_as_a_body_and_a_roster_entry() {
+        let (stop, url) = spawn_host();
+        let client = NetClientHandle::spawn(url, 60.0);
+        wait_for(
+            || client.state().local_body.map(|_| ()),
+            Duration::from_secs(10),
+        )
+        .expect("joined");
+
+        client.command_pet(PetCommand::Deploy { kind: 2 });
+
+        let state = wait_for(
+            || {
+                let s = client.state();
+                (!s.pets.is_empty()).then_some(s)
+            },
+            Duration::from_secs(10),
+        )
+        .expect("the deploy never came back");
+
+        let pet = &state.pets[0];
+        assert_eq!(pet.kind, 2, "the chassis we asked for was lost on the way");
+        assert!(
+            state
+                .snapshot
+                .as_ref()
+                .is_some_and(|s| s.body(pet.body).is_some()),
+            "the pet has a roster entry but no body to draw it on"
+        );
+        assert!(
+            pet.body.0 >= crate::net::pets::PET_BODY_BASE,
+            "a pet body outside the band a client uses to tell it from an avatar"
+        );
+
+        client.command_pet(PetCommand::Recall(pet.pet));
+        let gone = wait_for(
+            || client.state().pets.is_empty().then_some(()),
+            Duration::from_secs(10),
+        );
+        assert!(gone.is_some(), "the recall never took");
+        stop.store(true, Ordering::Relaxed);
+    }
+
+    /// A refusal has to reach the app, or the button just stops working.
+    #[test]
+    fn a_refused_deploy_comes_back_with_a_reason() {
+        let (stop, url) = spawn_host();
+        let mut client = NetClientHandle::spawn(url, 60.0);
+        wait_for(
+            || client.state().local_body.map(|_| ()),
+            Duration::from_secs(10),
+        )
+        .expect("joined");
+
+        let cap = SessionConfig::default().pets.per_player;
+        for _ in 0..cap + 2 {
+            client.command_pet(PetCommand::Deploy { kind: 0 });
+        }
+
+        let denial = wait_for(
+            || {
+                let denials = client.take_pet_denials();
+                denials.into_iter().next()
+            },
+            Duration::from_secs(10),
+        );
+        assert!(
+            denial.is_some_and(|r| !r.is_empty()),
+            "the cap was enforced silently"
+        );
+        assert_eq!(client.state().pets.len(), cap, "the cap did not hold");
         stop.store(true, Ordering::Relaxed);
     }
 

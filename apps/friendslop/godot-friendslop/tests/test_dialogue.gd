@@ -537,6 +537,119 @@ func test_the_prompt_names_the_bound_key() -> void:
 	assert_str(KeyHint.label(&"nothing_is_bound_to_this", "?")).is_equal("?")
 
 
+## Replies are numbered and the numbers answer, so a conversation can be held without
+## reaching for the mouse.
+func test_a_number_key_answers_the_reply_it_is_written_on() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+
+	var wanted := 2
+	_to_the_replies(panel)
+	assert_str((panel._choices.get_child(wanted - 1) as Button).text) \
+			.override_failure_message("the reply does not say which key answers it") \
+			.starts_with("%d." % wanted)
+	panel._input(_pressing(KEY_1 + wanted - 1))
+	var by_key := panel.runner.line_key()
+	panel.close()
+
+	## The same reply, taken the other way: whatever the button does, the key must do.
+	var clicked := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+	_to_the_replies(clicked)
+	(clicked._choices.get_child(wanted - 1) as Button).pressed.emit()
+	assert_str(by_key) \
+			.override_failure_message("the number key and the button it is printed on take different replies") \
+			.is_equal(clicked.runner.line_key())
+
+	clicked.close()
+	_unstage(world, was)
+
+
+## A number typed at a line still being spoken would answer a question the player has not
+## finished reading.
+func test_number_keys_do_nothing_until_the_replies_are_up() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+
+	panel.skip_typing()
+	panel.runner.advance()
+	var asked := panel.runner.line_key()
+	assert_bool(panel.is_typing()).is_true()
+
+	panel._input(_pressing(KEY_1))
+	assert_str(panel.runner.line_key()) \
+			.override_failure_message("a number answered a question still being asked") \
+			.is_equal(asked)
+
+	panel.close()
+	_unstage(world, was)
+
+
+## The panel rises into place, and has to finish arriving: one that stalls part way is a
+## conversation the player can half see.
+func test_the_panel_finishes_arriving() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+
+	assert_float(panel._root.modulate.a) \
+			.override_failure_message("the panel was already up, so it never rose").is_less(1.0)
+	await get_tree().create_timer(TalkPanel.ENTER_TIME + 0.1).timeout
+	assert_float(panel._root.modulate.a) \
+			.override_failure_message("the panel never finished fading in").is_equal_approx(1.0, 0.01)
+	assert_float(panel._frame.position.y) \
+			.override_failure_message("the panel stopped short of where it belongs") \
+			.is_equal_approx(0.0, 0.5)
+
+	panel.close()
+	_unstage(world, was)
+
+
+## Words crowded against a rounded edge read as a mistake, and a reply centred in a slab
+## does not line up with the reply under it.
+func test_replies_are_padded_and_line_up() -> void:
+	var reply := PaperButton.reply("Pay the toll.", Callable())
+	auto_free(reply)
+	var skin: StyleBoxFlat = reply.get_theme_stylebox("normal")
+	assert_float(skin.content_margin_left) \
+			.override_failure_message("the text sits flush against the edge").is_greater(0.0)
+	assert_float(skin.content_margin_top).is_greater(0.0)
+	assert_int(reply.alignment) \
+			.override_failure_message("replies are a list, and a list lines up on the left") \
+			.is_equal(HORIZONTAL_ALIGNMENT_LEFT)
+	assert_float(reply.custom_minimum_size.x) \
+			.override_failure_message("a reply stretched to a menu button's width") \
+			.is_equal(0.0)
+
+	## A menu is a stack of equal slabs, which is the opposite call.
+	var menu := PaperButton.make("Play", Callable())
+	auto_free(menu)
+	assert_float(menu.custom_minimum_size.x).is_equal(MenuStyle.BUTTON_MIN.x)
+
+
+## A stylebox margin counts towards a control's minimum height, and the settings rows
+## shrink to ROW_H_RANGE.x on a small window. Padding a menu button as generously as a
+## reply would quietly stop those rows shrinking.
+func test_menu_padding_leaves_the_settings_rows_room_to_shrink() -> void:
+	var row := PaperButton.make("", Callable())
+	auto_free(row)
+	row.add_theme_font_size_override("font_size", MenuStyle.ROW_FONT_RANGE.x)
+	assert_float(row.get_minimum_size().y) \
+			.override_failure_message("a padded menu button no longer fits the smallest row") \
+			.is_less_equal(MenuStyle.ROW_H_RANGE.x)
+
+
+## A reply reached by the keyboard has to look like the reply reached by the mouse, or the
+## one the player is about to take is the one that looks inert.
+func test_a_focused_reply_looks_like_a_hovered_one() -> void:
+	var reply := PaperButton.reply("Pay the toll.", Callable())
+	auto_free(reply)
+	assert_object(reply.get_theme_stylebox("focus")) \
+			.override_failure_message("focus wears the default look, which is a plain outline") \
+			.is_same(reply.get_theme_stylebox("hover"))
+
+
 ## Escape is not something a player has to know about, so the panel carries a way out that
 ## can be clicked.
 func test_a_conversation_can_be_left_by_clicking() -> void:
@@ -638,6 +751,20 @@ func test_walking_away_withdraws_the_offer() -> void:
 			.is_false()
 
 	_unstage(world, was)
+
+
+## Marlow opens with a line that runs on into the menu, which is the node with replies.
+func _to_the_replies(panel: DialoguePanel) -> void:
+	panel.skip_typing()
+	panel.runner.advance()
+	panel.skip_typing()
+
+
+func _pressing(code: Key) -> InputEventKey:
+	var event := InputEventKey.new()
+	event.keycode = code
+	event.pressed = true
+	return event
 
 
 ## A player, an interactor hung off them, and somebody to talk to placed relative to the

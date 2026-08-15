@@ -48,6 +48,7 @@ pub enum Stance {
     ClimbHigh = 3,
     Crouch = 4,
     Roll = 5,
+    Land = 6,
 }
 
 impl Stance {
@@ -58,6 +59,7 @@ impl Stance {
             3 => Self::ClimbHigh,
             4 => Self::Crouch,
             5 => Self::Roll,
+            6 => Self::Land,
             _ => Self::Move,
         }
     }
@@ -93,6 +95,13 @@ pub struct Tuning {
     /// Airborne this long before the rig is told to leave the move state, so a step off
     /// a kerb or a frame of float on a slope does not fire the whole jump chain.
     pub air_grace: f32,
+    /// How long the recovery after a landing holds the body. The landing clip is a
+    /// single pose rather than a ring, so every frame of it spent travelling is a frame
+    /// of skating -- it is deliberately far shorter than the clip was authored at.
+    pub land_time: f32,
+    /// Ground speed that cancels the recovery outright. Walking out of a landing has to
+    /// win over finishing the clip, or the feet slide for as long as it has left.
+    pub land_cancel_speed: f32,
 }
 
 impl Default for Tuning {
@@ -114,6 +123,8 @@ impl Default for Tuning {
             roll_time: 0.85,
             roll_speed: 6.0,
             air_grace: 0.12,
+            land_time: 0.32,
+            land_cancel_speed: 0.5,
         }
     }
 }
@@ -185,6 +196,7 @@ pub struct Locomotion {
     roll_t: f32,
     roll_dir: [f32; 3],
     air_t: f32,
+    land_t: f32,
 }
 
 impl Default for Locomotion {
@@ -204,7 +216,12 @@ impl Locomotion {
             roll_t: 0.0,
             roll_dir: [0.0, 0.0, -1.0],
             air_t: 0.0,
+            land_t: 0.0,
         }
+    }
+
+    pub fn is_landing(&self) -> bool {
+        self.land_t > 0.0
     }
 
     /// Top speed for a heading, in whichever stance the body is currently in.
@@ -348,7 +365,16 @@ impl Locomotion {
             lerp(self.crouch_blend[1], dir[1] * crouch_radius, weight),
         ];
 
+        let landed = !airborne && self.air_t > self.tuning.air_grace;
         self.air_t = if airborne { self.air_t + dt } else { 0.0 };
+        if landed {
+            self.land_t = self.tuning.land_time;
+        } else {
+            self.land_t = (self.land_t - dt).max(0.0);
+        }
+        if speed > self.tuning.land_cancel_speed {
+            self.land_t = 0.0;
+        }
 
         LocomotionState {
             blend: self.blend,
@@ -363,6 +389,7 @@ impl Locomotion {
                 None if self.roll_t > 0.0 => Stance::Roll,
                 None if self.air_t > self.tuning.air_grace => Stance::Jump,
                 None if self.crouched => Stance::Crouch,
+                None if self.land_t > 0.0 => Stance::Land,
                 None => Stance::Move,
             },
         }
@@ -746,6 +773,66 @@ mod tests {
         }
     }
 
+    /// A landing worth recovering from: airborne past the grace window, then floor.
+    fn land(l: &mut Locomotion, local_velocity: [f32; 3]) -> Stance {
+        airborne(l);
+        l.step(local_velocity, false, 1.0 / 60.0).stance
+    }
+
+    #[test]
+    fn a_landing_recovers_then_hands_the_body_back() {
+        let mut l = loco();
+        assert_eq!(land(&mut l, [0.0; 3]), Stance::Land);
+        assert!(l.is_landing());
+        let mut ticks = 0;
+        while l.is_landing() && ticks < 600 {
+            l.step([0.0; 3], false, 1.0 / 60.0);
+            ticks += 1;
+        }
+        let held = ticks as f32 / 60.0;
+        assert!(held <= l.tuning.land_time + 0.02, "recovery ran {held}s");
+        assert_eq!(l.step([0.0; 3], false, 1.0 / 60.0).stance, Stance::Move);
+    }
+
+    /// The landing clip is one pose, not a ring, so any ground covered while it plays is
+    /// covered by a skating foot. Travelling has to end it on the spot.
+    #[test]
+    fn moving_out_of_a_landing_cancels_the_recovery() {
+        let mut l = loco();
+        assert_eq!(land(&mut l, [0.0; 3]), Stance::Land);
+        let stance = l
+            .step([0.0, 0.0, -l.tuning.speed], false, 1.0 / 60.0)
+            .stance;
+        assert_eq!(stance, Stance::Move, "the recovery outlasted the stick");
+        assert!(!l.is_landing());
+    }
+
+    #[test]
+    fn landing_already_running_never_recovers_at_all() {
+        let mut l = loco();
+        let running = l.tuning.speed;
+        assert_eq!(land(&mut l, [0.0, 0.0, -running]), Stance::Move);
+        assert!(!l.is_landing());
+    }
+
+    /// The grace window is what tells a landing from a bump, so a bump must not fire the
+    /// recovery either.
+    #[test]
+    fn a_frame_of_float_lands_without_a_recovery() {
+        let mut l = loco();
+        l.step([0.0; 3], true, 0.016);
+        assert_eq!(l.step([0.0; 3], false, 0.016).stance, Stance::Move);
+        assert!(!l.is_landing());
+    }
+
+    #[test]
+    fn a_crouch_outranks_a_landing() {
+        let mut l = loco();
+        airborne(&mut l);
+        l.step_motion(held(true, [0.0; 2]), [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+        assert_eq!(l.step([0.0; 3], false, 1.0 / 60.0).stance, Stance::Crouch);
+    }
+
     fn held(crouch: bool, axis: [f32; 2]) -> Intent {
         Intent {
             move_axis: axis,
@@ -899,6 +986,7 @@ mod tests {
             Stance::ClimbHigh,
             Stance::Crouch,
             Stance::Roll,
+            Stance::Land,
         ] {
             assert_eq!(Stance::from_u8(stance as u8), stance);
         }

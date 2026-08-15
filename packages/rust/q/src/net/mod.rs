@@ -5,6 +5,9 @@ pub mod transport;
 pub mod guest;
 
 #[cfg(feature = "net-session")]
+pub mod pets;
+
+#[cfg(feature = "net-session")]
 pub mod session;
 
 #[cfg(feature = "net-ws")]

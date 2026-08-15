@@ -273,6 +273,92 @@ function setMediaCookie(token: string): void {
 	document.cookie = `reel_media_token=${token}; Path=${MEDIA_BASE}; Max-Age=${maxAge}; SameSite=Lax${secure}`;
 }
 
+export interface ReelFile {
+	index: number;
+	name: string;
+	size: number;
+	content_type: string;
+}
+
+export interface ReelFileListing {
+	id: string;
+	name: string;
+	archive_name: string;
+	total_bytes: number;
+	/** Unix seconds. Reel reaps a torrent this long after its last access, and
+	 * every listing or download pushes the window forward. */
+	expires_at: number;
+	files: ReelFile[];
+}
+
+export class ReelFilesNotReady extends Error {
+	constructor(message: string) {
+		super(message);
+		this.name = 'ReelFilesNotReady';
+	}
+}
+
+export async function fetchReelFiles(id: string): Promise<ReelFileListing> {
+	try {
+		return await authedApiFetch<ReelFileListing>(
+			`${REEL_PATH}/torrents/${encodeURIComponent(id)}/files`,
+		);
+	} catch (e) {
+		// 425 is the server saying "still downloading", not a failure — the
+		// panel polls through it instead of showing an error.
+		if (e instanceof ApiError && e.status === 425) {
+			throw new ReelFilesNotReady(
+				'still downloading — files can be saved once it completes',
+			);
+		}
+		throw e;
+	}
+}
+
+/// A download is a top-level navigation, so it cannot carry an Authorization
+/// header — the media token rides in the query string exactly like playback.
+async function downloadHref(id: string, suffix: string): Promise<string> {
+	const minted = await mediaToken();
+	if (!minted.token) throw new Error(minted.message || 'sign in to download');
+	setMediaCookie(minted.token);
+	return mediaUrl(id, suffix, minted.token);
+}
+
+export function fileDownloadHref(id: string, index: number): Promise<string> {
+	return downloadHref(id, `/files/${index}`);
+}
+
+export function archiveDownloadHref(id: string): Promise<string> {
+	return downloadHref(id, '/archive.zip');
+}
+
+export function formatBytes(n: number | null | undefined): string {
+	if (n == null || !Number.isFinite(n) || n < 0) return '';
+	if (n < 1024) return `${n} B`;
+	const units = ['KB', 'MB', 'GB', 'TB'];
+	let v = n / 1024;
+	let i = 0;
+	while (v >= 1024 && i < units.length - 1) {
+		v /= 1024;
+		i++;
+	}
+	return `${v.toFixed(v < 10 ? 1 : 0)} ${units[i]}`;
+}
+
+export function formatExpiry(
+	expiresAtSecs: number | null | undefined,
+	nowMs: number = Date.now(),
+): string {
+	if (!expiresAtSecs || !Number.isFinite(expiresAtSecs)) return '';
+	const left = expiresAtSecs * 1000 - nowMs;
+	if (left <= 0) return 'expired';
+	const mins = Math.round(left / 60000);
+	if (mins < 60) return `${mins}m left`;
+	const h = Math.floor(mins / 60);
+	const m = mins % 60;
+	return m > 0 ? `${h}h ${m}m left` : `${h}h left`;
+}
+
 export interface ReelSubtitle {
 	index: number;
 	label: string;
@@ -764,7 +850,10 @@ export class ReelPlayer {
 				manifestLoadingMaxRetry: 8,
 				xhrSetup: (xhr: XMLHttpRequest, url: string) => {
 					xhr.open('GET', url, true);
-					xhr.setRequestHeader('Authorization', `Bearer ${liveToken}`);
+					xhr.setRequestHeader(
+						'Authorization',
+						`Bearer ${liveToken}`,
+					);
 				},
 			});
 			this.hls = hls;
@@ -828,7 +917,8 @@ export class ReelPlayer {
 								if (this.generation !== gen) return;
 								if (r.token) liveToken = r.token;
 								setTimeout(() => {
-									if (this.generation === gen) hls.startLoad();
+									if (this.generation === gen)
+										hls.startLoad();
 								}, 1000);
 							});
 						} else {
@@ -993,7 +1083,11 @@ export class ReelPlayer {
 		}
 		const attempt = this.resurrects;
 		$reelState.set('reconnecting');
-		this.emit('reconnecting', reason, { code, attempt, max: MAX_RESURRECTS });
+		this.emit('reconnecting', reason, {
+			code,
+			attempt,
+			max: MAX_RESURRECTS,
+		});
 		this.stopWatchdog();
 		if (this.tokenTimer) {
 			clearInterval(this.tokenTimer);

@@ -85,19 +85,19 @@ impl HarvestKind for Stone {
                 max: 3,
             },
             DropEntry {
-                ore: "copper",
+                ore: "copper-ore",
                 weight: 12,
                 min: 1,
                 max: 2,
             },
             DropEntry {
-                ore: "iron",
+                ore: "iron-ore",
                 weight: 8,
                 min: 1,
                 max: 2,
             },
             DropEntry {
-                ore: "gold",
+                ore: "crystal-ore",
                 weight: 5,
                 min: 1,
                 max: 1,
@@ -278,5 +278,38 @@ mod merge_tests {
         let before = a.to_flat();
         a.merge(&Ledger::new());
         assert_eq!(a.to_flat(), before);
+    }
+
+    /// Every drop names an item that exists.
+    ///
+    /// Nothing resolves these at runtime yet, so a wrong ref is silent until an
+    /// inventory tries to award it and finds nothing. Reads the generated itemdb
+    /// rather than a copy, and skips rather than fails if it is not there, so a
+    /// checkout without codegen still tests everything else.
+    #[test]
+    fn drop_tables_name_real_items() {
+        let path = concat!(
+            env!("CARGO_MANIFEST_DIR"),
+            "/../../data/codegen/generated/itemdb.json"
+        );
+        let Ok(raw) = std::fs::read_to_string(path) else {
+            return;
+        };
+        let doc: serde_json::Value = serde_json::from_str(&raw).expect("itemdb.json parses");
+        let refs: std::collections::HashSet<&str> = doc["items"]
+            .as_array()
+            .expect("itemdb.json has an items array")
+            .iter()
+            .filter_map(|i| i["ref"].as_str())
+            .collect();
+        assert!(!refs.is_empty(), "itemdb.json yielded no refs");
+        let mut missing: Vec<&str> = Stone::drop_table()
+            .iter()
+            .chain(Tree::drop_table())
+            .map(|d| d.ore)
+            .filter(|r| !refs.contains(r))
+            .collect();
+        missing.sort_unstable();
+        assert!(missing.is_empty(), "drops name no such item: {missing:?}");
     }
 }

@@ -9,8 +9,21 @@ use super::bridge3d::apply_iso;
 use super::net_interp::{InterpConfig, SnapshotBuffer};
 use super::sim3d::BodyId;
 use crate::harvest::HarvestTarget;
-use crate::net::client_thread::{HarvestRequest, Intent, NetClientHandle, NetClientState};
+use crate::net::client_thread::{
+    HarvestRequest, Intent, NetClientHandle, NetClientState, PetCommand,
+};
+use crate::net::pets::{PET_BODY_BASE, PetId};
 use crate::net::session::ClientStatus;
+
+/// True for a body id inside the band the host reserves for pets.
+///
+/// Classified by id rather than by looking it up in the pet roster: bodies arrive
+/// in the snapshot, which is unreliable and frequent, while the roster is reliable
+/// and only sent on change. A pet's body can turn up first, and a client that
+/// waited for the roster to recognise it would spawn a player avatar for a robot.
+fn is_pet(id: BodyId) -> bool {
+    id.0 >= PET_BODY_BASE
+}
 
 #[derive(GodotClass)]
 #[class(init, base = Node3D)]
@@ -75,6 +88,7 @@ impl INode3D for QNetClient3D {
         });
         self.drain_session();
         self.drain_harvest();
+        self.drain_pet_denials();
         self.buffer.advance(delta);
         self.draw();
     }
@@ -93,6 +107,10 @@ impl QNetClient3D {
             .as_ref()
             .is_none_or(|previous| previous.roster != state.roster);
         let status_changed = self.last.as_ref().map(|s| s.status) != Some(state.status);
+        let pets_changed = self
+            .last
+            .as_ref()
+            .is_none_or(|previous| previous.pets != state.pets);
 
         self.last = Some((*state).clone());
 
@@ -122,16 +140,39 @@ impl QNetClient3D {
             self.known = live;
 
             for id in added {
-                self.signals().body_added().emit(id.0 as i64);
+                if is_pet(id) {
+                    self.signals().pet_added().emit(id.0 as i64);
+                } else {
+                    self.signals().body_added().emit(id.0 as i64);
+                }
             }
             for id in removed {
                 self.tracked.remove(&id);
-                self.signals().body_removed().emit(id.0 as i64);
+                if is_pet(id) {
+                    self.signals().pet_removed().emit(id.0 as i64);
+                } else {
+                    self.signals().body_removed().emit(id.0 as i64);
+                }
             }
         }
 
         if roster_changed {
             self.signals().roster_changed().emit();
+        }
+        if pets_changed {
+            self.signals().pets_changed().emit();
+        }
+    }
+
+    /// Reports every deploy the host turned down, so a button that did nothing can
+    /// say why. Drained rather than published with the state, which is latest-wins.
+    fn drain_pet_denials(&mut self) {
+        let denials = match self.client.as_mut() {
+            Some(client) => client.take_pet_denials(),
+            None => return,
+        };
+        for reason in denials {
+            self.signals().pet_denied().emit(&GString::from(&reason));
         }
     }
 
@@ -170,6 +211,13 @@ impl QNetClient3D {
                 .harvest_applied()
                 .emit(target, event.id as i64, event.stage as i64);
         }
+    }
+
+    /// The roster entry for a pet's body, once the reliable list has caught up
+    /// with the body the snapshot already carries.
+    fn pet_info(&self, body_id: i64) -> Option<&crate::net::pets::PetInfo> {
+        let body = BodyId(body_id as u32);
+        self.last.as_ref()?.pets.iter().find(|p| p.body == body)
     }
 
     /// Writes the pose the render clock currently reads onto every tracked node.
@@ -223,6 +271,103 @@ impl QNetClient3D {
     /// tree, matching `harvest_stone` / `harvest_tree`.
     #[signal]
     fn harvest_applied(target: i64, id: i64, stage: i64);
+
+    /// A pet's body appeared in the snapshot. Distinct from `body_added` because
+    /// a robot is not an avatar and must not be drawn as one — and this fires on
+    /// the body alone, which may beat the roster that says whose it is.
+    #[signal]
+    fn pet_added(body_id: i64);
+
+    #[signal]
+    fn pet_removed(body_id: i64);
+
+    /// The pet list changed: somebody deployed, recalled, or left.
+    #[signal]
+    fn pets_changed();
+
+    /// A deploy was turned down, with wording to show the player.
+    #[signal]
+    fn pet_denied(reason: GString);
+
+    /// Asks the host to put a robot down beside us.
+    ///
+    /// Only the chassis is ours to choose. Where it lands, what id it gets and
+    /// whether we may have it at all are the host's.
+    #[func]
+    fn deploy_pet(&self, kind: i64) {
+        if let Some(client) = self.client.as_ref() {
+            client.command_pet(PetCommand::Deploy {
+                kind: kind.clamp(0, 255) as u8,
+            });
+        }
+    }
+
+    #[func]
+    fn recall_pet(&self, pet_id: i64) {
+        if let Some(client) = self.client.as_ref() {
+            client.command_pet(PetCommand::Recall(PetId(pet_id.max(0) as u32)));
+        }
+    }
+
+    #[func]
+    fn recall_pets(&self) {
+        if let Some(client) = self.client.as_ref() {
+            client.command_pet(PetCommand::RecallAll);
+        }
+    }
+
+    /// Body ids of every pet in the session, in a stable order.
+    #[func]
+    fn pet_bodies(&self) -> PackedInt64Array {
+        self.last
+            .as_ref()
+            .map(|s| s.pets.iter().map(|p| p.body.0 as i64).collect())
+            .unwrap_or_default()
+    }
+
+    /// Body ids of the pets we own, which is what a recall menu lists.
+    #[func]
+    fn my_pet_bodies(&self) -> PackedInt64Array {
+        let Some(state) = self.last.as_ref() else {
+            return PackedInt64Array::new();
+        };
+        let Some(me) = state.local_body.map(|b| b.0) else {
+            return PackedInt64Array::new();
+        };
+        state
+            .pets
+            .iter()
+            .filter(|p| crate::net::session::player_body(p.owner).0 == me)
+            .map(|p| p.body.0 as i64)
+            .collect()
+    }
+
+    /// Handle to recall the pet drawn under `body_id` with, or -1 if the roster
+    /// has not caught up with the body yet.
+    #[func]
+    fn pet_id_of(&self, body_id: i64) -> i64 {
+        self.pet_info(body_id).map_or(-1, |p| p.pet.0 as i64)
+    }
+
+    /// Which chassis to draw for `body_id`, or -1 before the roster says.
+    #[func]
+    fn pet_kind_of(&self, body_id: i64) -> i64 {
+        self.pet_info(body_id).map_or(-1, |p| p.kind as i64)
+    }
+
+    /// Body of whoever owns the pet drawn under `body_id`, or -1.
+    #[func]
+    fn pet_owner_body(&self, body_id: i64) -> i64 {
+        self.pet_info(body_id)
+            .map_or(-1, |p| crate::net::session::player_body(p.owner).0 as i64)
+    }
+
+    /// True when we are the one who deployed it.
+    #[func]
+    fn pet_is_mine(&self, body_id: i64) -> bool {
+        let mine = self.local_body();
+        mine >= 0 && self.pet_owner_body(body_id) == mine
+    }
 
     /// Asks the host to mine the stone in a cell. The host derives the id, so
     /// this cannot name something the player is nowhere near.

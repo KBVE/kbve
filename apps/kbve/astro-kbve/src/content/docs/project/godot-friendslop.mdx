@@ -14,7 +14,7 @@ pipeline: godot
 app_name: friendslop
 source_path: apps/friendslop/godot-friendslop
 version_toml: apps/friendslop/godot-friendslop/version.toml
-version: "0.1.3"
+version: "0.1.4"
 runner: ubuntu-latest
 author: h0lybyte
 license: KBVE
@@ -109,7 +109,8 @@ Terrain is never shipped. `Welcome` carries a seed, `online_world.gd` writes it 
 | `src/net/online_world.gd` | Auth → connect, seed → terrain, roster → nameplates |
 | `src/net/net_avatar.gd` | One body: nameplate, and a velocity derived from the position delta so remote players animate |
 | `src/net/net_camera_rig.gd` | Third-person follow; its yaw is the frame movement intent is expressed in |
-| `src/net/online_hud.gd` | Connecting / joined / rejected, and who else is here |
+| `src/net/online_hud.gd` | Connecting / joined / rejected, who else is here, and how many robots you have out |
+| `src/net/net_pet.gd` | One deployed robot: chassis, and a walk cycle and facing derived from how it moved |
 
 Movement stays intent-only: `NetGameClient` rotates the input vector by the camera's yaw and sends a direction, never a translation. Defaults to `wss://friendslop.kbve.com/ws`; `FS_URL` points it at a local server.
 
@@ -117,8 +118,20 @@ Movement stays intent-only: `NetGameClient` rotates the input vector by the came
 FS_URL=ws://127.0.0.1:7980/ws bash scripts/godot.sh res://scenes/online.tscn
 ```
 
+### Pet robots
+
+**G** deploys a robot beside you, **H** recalls the lot. The server owns all of it — where they land, how they steer, and whether you may have another — so the client only picks a chassis and draws what comes back. A refusal arrives in the server's own words and lands on the HUD for a few seconds.
+
+A robot is told from a player by its **body id**, not by looking it up in the pet list. Bodies arrive in the snapshot, which is unreliable and frequent; the list is reliable and only sent on change, so a pet's body can turn up first. A client that waited for the list to recognise one would spawn a player avatar for a robot and then be stuck with it. `QNetClient3D` therefore emits `pet_added` and `pet_removed` separately from `body_added`, decided on the reserved band alone.
+
+What the list *does* carry is the chassis and whose it is, so a robot whose entry has not landed yet stays unbuilt rather than settling on the wrong model and never revisiting it.
+
+Neither the facing nor the walk cycle is on the wire — the character proxy never turns, so its pose says nothing about which way the thing is looking. Both come from how the body actually moved, and the **rig** is turned rather than the node, which the extension overwrites from the snapshot every frame.
+
 ### Local
 
 - `pnpm nx run godot-friendslop:test` — import + gdUnit4 headless suite
 - `pnpm nx run godot-friendslop:test:smoke` — raw SceneTree smoke pass
 - `pnpm nx run godot-friendslop:export` — all three release exports
+
+`scripts/gdext.sh` skips the build when `addons/q/<platform>/libq.*` is already there, and a fresh LFS checkout smudges a *released* one — so a worktree can run the whole suite against an extension that predates whatever you are testing, and fail on parse errors about members that plainly exist. `GDEXT_FORCE=1 bash scripts/gdext.sh` rebuilds it.

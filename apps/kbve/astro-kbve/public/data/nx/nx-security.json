@@ -1,5 +1,5 @@
 {
-	"generated_at": "2026-08-14T03:28:28Z",
+	"generated_at": "2026-08-15T02:17:33Z",
 	"summary": {
 		"critical": 4,
 		"high": 53,
@@ -495,13 +495,6 @@
 					"url": "https://github.com/advisories/GHSA-v56q-mh7h-f735"
 				},
 				{
-					"id": "1124017",
-					"title": "Immutabl: Hash-collision algorithmic complexity denial of service in Immutable.Map/Set",
-					"severity": "high",
-					"package": "immutable",
-					"url": "https://github.com/advisories/GHSA-xvcm-6775-5m9r"
-				},
-				{
 					"id": "1124022",
 					"title": "DOMPurify: `CUSTOM_ELEMENT_HANDLING` bypasses `afterSanitizeElements` for allowed custom elements.",
 					"severity": "low",
@@ -761,13 +754,6 @@
 					"url": "https://github.com/advisories/GHSA-v39h-62p7-jpjc"
 				},
 				{
-					"id": "1139457",
-					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
-					"severity": "high",
-					"package": "fast-uri",
-					"url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
-				},
-				{
 					"id": "1139510",
 					"title": "PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure",
 					"severity": "high",
@@ -801,6 +787,20 @@
 					"severity": "critical",
 					"package": "vitest",
 					"url": "https://github.com/advisories/GHSA-5xrq-8626-4rwp"
+				},
+				{
+					"id": "1144861",
+					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
+					"severity": "high",
+					"package": "fast-uri",
+					"url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
+				},
+				{
+					"id": "1144964",
+					"title": "Immutable: Hash-collision algorithmic complexity denial of service in Immutable.Map/Set",
+					"severity": "high",
+					"package": "immutable",
+					"url": "https://github.com/advisories/GHSA-xvcm-6775-5m9r"
 				}
 			]
 		},
@@ -864,13 +864,6 @@
 					"url": "https://github.com/RustCrypto/RSA/issues/626"
 				},
 				{
-					"id": "RUSTSEC-2026-0098",
-					"title": "Name constraints for URI names were incorrectly accepted",
-					"severity": "medium",
-					"package": "rustls-webpki",
-					"url": null
-				},
-				{
 					"id": "RUSTSEC-2026-0099",
 					"title": "Name constraints were accepted for certificates asserting a wildcard name",
 					"severity": "medium",
@@ -887,6 +880,13 @@
 				{
 					"id": "RUSTSEC-2026-0098",
 					"title": "Name constraints for URI names were incorrectly accepted",
+					"severity": "medium",
+					"package": "rustls-webpki",
+					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0099",
+					"title": "Name constraints were accepted for certificates asserting a wildcard name",
 					"severity": "medium",
 					"package": "rustls-webpki",
 					"url": null
@@ -899,15 +899,15 @@
 					"url": null
 				},
 				{
-					"id": "RUSTSEC-2026-0099",
-					"title": "Name constraints were accepted for certificates asserting a wildcard name",
+					"id": "RUSTSEC-2026-0104",
+					"title": "Reachable panic in certificate revocation list parsing",
 					"severity": "medium",
 					"package": "rustls-webpki",
 					"url": null
 				},
 				{
-					"id": "RUSTSEC-2026-0104",
-					"title": "Reachable panic in certificate revocation list parsing",
+					"id": "RUSTSEC-2026-0098",
+					"title": "Name constraints for URI names were incorrectly accepted",
 					"severity": "medium",
 					"package": "rustls-webpki",
 					"url": null

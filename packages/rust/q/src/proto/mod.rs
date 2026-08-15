@@ -8,7 +8,8 @@ use serde::{Deserialize, Serialize};
 ///    parameters; adds `WorldTime`.
 /// 6: `Welcome` carries the water level and road width, which the bridge deck's
 ///    height is derived from on both sides.
-pub const PROTOCOL_VERSION: u32 = 7;
+/// 8: pet robots — `DeployPet`, `RecallPet`, `RecallPets`, `Pets`, `PetDenied`.
+pub const PROTOCOL_VERSION: u32 = 8;
 
 /// Maximum players per match (parallel-race default per #11294).
 pub const MAX_PLAYERS: usize = 4;

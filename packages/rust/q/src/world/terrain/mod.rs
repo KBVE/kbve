@@ -555,22 +555,20 @@ impl QTerrain {
         };
         let plan =
             crate::worldgen::BridgePlan::new(hgen, self.extent, self.water_level, self.road_width);
-        let [cx, cz] = plan.crossing;
-        out.set("from", Vector3::new(cx - plan.reach(hgen, -1.0), 0.0, cz));
-        out.set("to", Vector3::new(cx + plan.reach(hgen, 1.0), 0.0, cz));
-        out.set("walk_half_width", plan.half_width);
-        // The kerbs sit just inside `half_width` and the abutment flares a little
-        // wider, so the outside of the structure is a touch beyond the deck.
-        out.set("solid_half_width", plan.half_width + 0.25);
+        let f = plan.footprint(hgen);
+        out.set("from", Vector3::new(f.from[0], 0.0, f.from[1]));
+        out.set("to", Vector3::new(f.to[0], 0.0, f.to[1]));
+        out.set("walk_half_width", f.walk_half_width);
+        out.set("solid_half_width", f.solid_half_width);
         out.set(
             "deck_from",
-            Vector3::new(cx - plan.deck_half, plan.deck_y, cz),
+            Vector3::new(f.deck_from[0], f.deck_y, f.deck_from[1]),
         );
         out.set(
             "deck_to",
-            Vector3::new(cx + plan.deck_half, plan.deck_y, cz),
+            Vector3::new(f.deck_to[0], f.deck_y, f.deck_to[1]),
         );
-        out.set("deck_y", plan.deck_y);
+        out.set("deck_y", f.deck_y);
         out
     }
 }

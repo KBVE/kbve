@@ -6,6 +6,9 @@ use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 
 use super::guest::{sanitize, unique_guest_name};
+use super::pets::{
+    DeployError, FieldConfig, LeaderState, PetConfig, PetFields, PetId, PetInfo, PetRegistry,
+};
 use super::transport::{Delivery, PeerId, Transport};
 use crate::harvest::{HarvestTarget, Ledger, stable_id};
 use crate::proto::{self, PROTOCOL_VERSION};
@@ -136,6 +139,32 @@ pub enum SessionMsg {
         target: HarvestTarget,
         flat: Vec<u32>,
     },
+    /// A client asks for one of its pet robots to be put down beside it.
+    ///
+    /// The chassis is all the client gets to choose. Where it lands, which id it
+    /// gets and whether it is allowed at all are the host's to decide, because a
+    /// client that could name any of those could deploy an army into someone
+    /// else's world.
+    DeployPet {
+        kind: u8,
+    },
+    /// A client asks for one of its own pets back.
+    RecallPet {
+        pet: PetId,
+    },
+    /// A client asks for all of its pets back.
+    RecallPets,
+    /// Whole pet list, reliably, whenever it changes.
+    ///
+    /// Pets already ride in the snapshot as ordinary bodies; this is the only
+    /// thing that says which body is a pet, whose it is, and what to draw.
+    Pets {
+        pets: Vec<PetInfo>,
+    },
+    /// Why a deploy did not happen, which is not a `Reject`: that ends a session.
+    PetDenied {
+        reason: String,
+    },
 }
 
 /// Turns a bearer token into a display name, or into a reason the player can read.
@@ -190,6 +219,10 @@ pub struct SessionConfig {
     /// How far a player may stand from a cell and still work it. Generous by
     /// design — this bounds cheating to things nearby, it is not a hit test.
     pub harvest_reach: f32,
+    /// Caps and tuning for deployed pet robots.
+    pub pets: PetConfig,
+    /// Sizing and pacing of the per-owner flow fields those pets route on.
+    pub pet_fields: FieldConfig,
 }
 
 impl Default for SessionConfig {
@@ -218,6 +251,8 @@ impl Default for SessionConfig {
             stone_grid_size: 22.0,
             tree_grid_size: 14.0,
             harvest_reach: 6.0,
+            pets: PetConfig::default(),
+            pet_fields: FieldConfig::default(),
         }
     }
 }
@@ -237,10 +272,7 @@ pub fn player_body(peer: PeerId) -> BodyId {
     BodyId(PLAYER_BODY_BASE + peer.0)
 }
 
-/// Samples ground height at a world position. The host has no terrain of its own —
-/// with streaming on it never even sees a `SetTerrain` — so whoever owns the generator
-/// supplies this.
-pub type GroundSampler = Arc<dyn Fn(f32, f32) -> f32 + Send + Sync>;
+pub use super::pets::GroundSampler;
 
 #[derive(Default)]
 struct Player {
@@ -253,6 +285,12 @@ struct Player {
     vel_y: f32,
     /// Host-assigned display name — see [`crate::net::guest`].
     name: String,
+    /// Where this player stood last tick, which is the only way to tell a player
+    /// walking from one leaning on a wall with the stick pushed forward.
+    last_pos: [f32; 2],
+    /// Ground speed actually achieved last tick, which is what a follower reads to
+    /// decide whether its leader has settled.
+    ground_speed: f32,
 }
 
 pub struct HostSession<T: Transport> {
@@ -272,6 +310,8 @@ pub struct HostSession<T: Transport> {
     /// without ever generating the objects it describes.
     stone_ledger: Ledger,
     tree_ledger: Ledger,
+    pets: PetRegistry,
+    pet_fields: PetFields,
 }
 
 impl<T: Transport> HostSession<T> {
@@ -287,6 +327,14 @@ impl<T: Transport> HostSession<T> {
     /// Dedicated host: authoritative but not a participant, so no body is spawned for
     /// the local peer.
     pub fn dedicated(transport: T, config: SessionConfig, sim: SimConfig, seed: u64) -> Self {
+        let pets = PetConfig {
+            water_level: config.water_level,
+            void_y: config.void_y,
+            gravity: config.gravity,
+            water_gravity_scale: config.water_gravity_scale,
+            swim_speed: config.swim_speed,
+            ..config.pets
+        };
         Self {
             world: SimWorld::new(&sim),
             transport,
@@ -299,6 +347,12 @@ impl<T: Transport> HostSession<T> {
             ground: None,
             stone_ledger: Ledger::new(),
             tree_ledger: Ledger::new(),
+            pets: PetRegistry::new(pets),
+            pet_fields: PetFields::new(FieldConfig {
+                water_level: config.water_level,
+                clearance: pets.body_radius + 0.3,
+                ..config.pet_fields
+            }),
             hour: config.start_hour,
             time_accum: 0.0,
         }
@@ -313,8 +367,27 @@ impl<T: Transport> HostSession<T> {
     /// Installs the ground sampler used to place spawns. Without one, spawns fall back
     /// to a fixed height and a player can land inside a hill.
     pub fn with_ground(mut self, ground: GroundSampler) -> Self {
+        self.pet_fields.set_ground(ground.clone());
         self.ground = Some(ground);
         self
+    }
+
+    /// Hands the pet fields the rocks currently collidable, as flat `x, z, radius`
+    /// triples. Changing them restamps every field, so this is cheap to call with
+    /// the same set and expensive to churn.
+    pub fn set_pet_obstacles(&mut self, discs: Vec<f32>) {
+        self.pet_fields.set_obstacles(discs);
+    }
+
+    /// Tells the pet fields where the crossing is, so a route may take it rather
+    /// than treating the river as a wall.
+    pub fn set_bridge(&mut self, bridge: Option<crate::worldgen::BridgeFootprint>) {
+        self.pet_fields.set_bridge(bridge);
+    }
+
+    /// How many owners currently have a flow field built.
+    pub fn pet_field_count(&self) -> usize {
+        self.pet_fields.len()
     }
 
     /// Lowest unused ring slot. Peer ids only ever count up, so using them directly
@@ -410,6 +483,7 @@ impl<T: Transport> HostSession<T> {
             Player {
                 name,
                 slot,
+                last_pos: [iso.pos[0], iso.pos[2]],
                 ..Default::default()
             },
         );
@@ -428,11 +502,19 @@ impl<T: Transport> HostSession<T> {
         !self.players.contains_key(&peer) && self.players.len() >= self.config.max_players
     }
 
+    /// Removes a player and everything they had deployed.
+    ///
+    /// A leaderless pet has nobody to follow and nobody to recall it, so it would
+    /// stand in the world for the rest of the session holding a slot against
+    /// everybody else's cap.
     pub fn remove_player(&mut self, peer: PeerId) {
         if self.players.remove(&peer).is_some() {
             self.world.apply(SimCommand::Despawn {
                 id: player_body(peer),
             });
+            if self.pets.recall_all(peer, &mut self.world) > 0 {
+                self.broadcast_pets();
+            }
             self.broadcast_roster();
         }
     }
@@ -454,6 +536,14 @@ impl<T: Transport> HostSession<T> {
             },
         );
         self.send_harvest_ledgers(peer);
+        if !self.pets.is_empty() {
+            self.reply(
+                peer,
+                &SessionMsg::Pets {
+                    pets: self.pets.roster(),
+                },
+            );
+        }
         self.broadcast_roster();
     }
 
@@ -558,6 +648,78 @@ impl<T: Transport> HostSession<T> {
         self.hour
     }
 
+    /// Pets currently deployed, in id order.
+    pub fn pet_roster(&self) -> Vec<PetInfo> {
+        self.pets.roster()
+    }
+
+    pub fn pet_count(&self) -> usize {
+        self.pets.len()
+    }
+
+    fn broadcast_pets(&self) {
+        if self.transport.peers().is_empty() {
+            return;
+        }
+        let msg = SessionMsg::Pets {
+            pets: self.pets.roster(),
+        };
+        if let Ok(bytes) = proto::encode(&msg) {
+            let _ = self.transport.broadcast(Delivery::Reliable, &bytes);
+        }
+    }
+
+    /// Places a pet on the ring around its owner, on the ground.
+    ///
+    /// The ring slot is the count they already have out, so pets fan out around a
+    /// standing player instead of stacking inside one another and shoving each
+    /// other apart the moment they exist.
+    pub fn deploy_pet(&mut self, owner: PeerId, kind: u8) -> Result<PetId, DeployError> {
+        if !self.players.contains_key(&owner) {
+            return Err(DeployError::NoOwner);
+        }
+        self.pets.may_deploy(owner)?;
+        let Some(body) = self.world.snapshot().body(player_body(owner)).copied() else {
+            return Err(DeployError::NoOwner);
+        };
+        let offset = self.pets.ring_offset(self.pets.count_of(owner));
+        let (x, z) = (body.iso.pos[0] + offset[0], body.iso.pos[2] + offset[1]);
+        let y = match self.ground.as_ref() {
+            Some(sample) => {
+                let h = sample(x, z);
+                if h.is_finite() {
+                    h + 1.0
+                } else {
+                    body.iso.pos[1]
+                }
+            }
+            None => body.iso.pos[1],
+        };
+        let id = self
+            .pets
+            .deploy(owner, kind, Iso::at(x, y, z), &mut self.world)?;
+        self.broadcast_pets();
+        Ok(id)
+    }
+
+    /// Picks one of a player's own pets back up.
+    pub fn recall_pet(&mut self, owner: PeerId, pet: PetId) -> bool {
+        if self.pets.recall(owner, pet, &mut self.world) {
+            self.broadcast_pets();
+            return true;
+        }
+        false
+    }
+
+    /// Picks up everything a player has out, and says how many that was.
+    pub fn recall_pets(&mut self, owner: PeerId) -> usize {
+        let n = self.pets.recall_all(owner, &mut self.world);
+        if n > 0 {
+            self.broadcast_pets();
+        }
+        n
+    }
+
     fn broadcast_roster(&self) {
         if self.transport.peers().is_empty() {
             return;
@@ -652,12 +814,30 @@ impl<T: Transport> HostSession<T> {
             } => {
                 self.apply_harvest(from, target, cell, ordinal, hits);
             }
+            SessionMsg::DeployPet { kind } => {
+                if let Err(err) = self.deploy_pet(from, kind) {
+                    self.reply(
+                        from,
+                        &SessionMsg::PetDenied {
+                            reason: err.reason(),
+                        },
+                    );
+                }
+            }
+            SessionMsg::RecallPet { pet } => {
+                self.recall_pet(from, pet);
+            }
+            SessionMsg::RecallPets => {
+                self.recall_pets(from);
+            }
             SessionMsg::Welcome { .. }
             | SessionMsg::Reject { .. }
             | SessionMsg::Roster { .. }
             | SessionMsg::WorldTime { .. }
             | SessionMsg::HarvestDelta { .. }
             | SessionMsg::HarvestLedger { .. }
+            | SessionMsg::Pets { .. }
+            | SessionMsg::PetDenied { .. }
             | SessionMsg::Snapshot(_) => {}
         }
     }
@@ -707,6 +887,12 @@ impl<T: Transport> HostSession<T> {
 
         for (peer, player) in &mut self.players {
             let body = player_body(*peer);
+            if let Some(state) = snapshot.body(body) {
+                let at = [state.iso.pos[0], state.iso.pos[2]];
+                let (dx, dz) = (at[0] - player.last_pos[0], at[1] - player.last_pos[1]);
+                player.ground_speed = (dx * dx + dz * dz).sqrt() / dt.max(1e-4);
+                player.last_pos = at;
+            }
             let grounded = snapshot.body(body).is_some_and(|b| b.grounded);
 
             let submerged = snapshot
@@ -748,6 +934,20 @@ impl<T: Transport> HostSession<T> {
             });
         }
 
+        if !self.pets.is_empty() || !self.pet_fields.is_empty() {
+            let leaders = self.leader_states();
+            self.pet_fields.update(&leaders, &self.pets.owners());
+            if self.pets.drive(
+                &snapshot,
+                &leaders,
+                Some(&self.pet_fields),
+                dt,
+                &mut self.world,
+            ) {
+                self.broadcast_pets();
+            }
+        }
+
         self.world.step();
 
         // One clock for everyone, advanced by the host and rebroadcast so clients that
@@ -767,6 +967,28 @@ impl<T: Transport> HostSession<T> {
             self.snapshot_accum = 0.0;
             self.broadcast_snapshot();
         }
+    }
+
+    /// Where every player is and how they are moving, as their pets read it.
+    ///
+    /// Facing comes from the yaw the client reports rather than the body's rotation:
+    /// the character proxy never turns, so the pose in the snapshot says nothing
+    /// about which way anybody is looking.
+    fn leader_states(&self) -> HashMap<PeerId, LeaderState> {
+        self.players
+            .iter()
+            .map(|(peer, player)| {
+                let yaw = player.input.yaw;
+                (
+                    *peer,
+                    LeaderState {
+                        position: player.last_pos,
+                        facing: [-yaw.sin(), -yaw.cos()],
+                        speed: player.ground_speed,
+                    },
+                )
+            })
+            .collect()
     }
 
     fn broadcast_snapshot(&self) {
@@ -809,6 +1031,11 @@ pub struct ClientSession<T: Transport> {
     tree_ledger: Ledger,
     /// Deltas since the last drain, for whoever owns the scatter to apply.
     harvest_events: Vec<HarvestEvent>,
+    /// Every pet in the session, which is what turns bodies in the snapshot into
+    /// something the client knows to draw and whose it is.
+    pets: Vec<PetInfo>,
+    /// Why the last deploy was turned down, drained by whoever shows it.
+    pet_denied: Option<String>,
 }
 
 /// One authoritative change to a scattered object.
@@ -876,6 +1103,8 @@ impl<T: Transport> ClientSession<T> {
             stone_ledger: Ledger::new(),
             tree_ledger: Ledger::new(),
             harvest_events: Vec::new(),
+            pets: Vec::new(),
+            pet_denied: None,
         };
         if let Ok(bytes) = proto::encode(&join) {
             let _ = client
@@ -979,6 +1208,49 @@ impl<T: Transport> ClientSession<T> {
         }
     }
 
+    /// Every pet the host has told us about, sorted by id.
+    pub fn pets(&self) -> &[PetInfo] {
+        &self.pets
+    }
+
+    /// Pets belonging to the local player.
+    pub fn my_pets(&self) -> Vec<&PetInfo> {
+        let Some(me) = self.peer else {
+            return Vec::new();
+        };
+        self.pets.iter().filter(|p| p.owner == me).collect()
+    }
+
+    /// The last refused deploy, cleared by reading it.
+    pub fn take_pet_denied(&mut self) -> Option<String> {
+        self.pet_denied.take()
+    }
+
+    /// Asks the host to put a pet down. Reliable: a dropped deploy is a button
+    /// press that silently did nothing.
+    pub fn deploy_pet(&mut self, kind: u8) {
+        self.request(&SessionMsg::DeployPet { kind });
+    }
+
+    pub fn recall_pet(&mut self, pet: PetId) {
+        self.request(&SessionMsg::RecallPet { pet });
+    }
+
+    pub fn recall_pets(&mut self) {
+        self.request(&SessionMsg::RecallPets);
+    }
+
+    fn request(&self, msg: &SessionMsg) {
+        if self.status != ClientStatus::Joined {
+            return;
+        }
+        if let Ok(bytes) = proto::encode(msg) {
+            let _ = self
+                .transport
+                .send(PeerId::HOST, Delivery::Reliable, &bytes);
+        }
+    }
+
     pub fn set_input(&mut self, wish_dir: [f32; 2], jump: bool, yaw: f32) {
         self.input.sequence = self.input.sequence.wrapping_add(1);
         self.input.wish_dir = wish_dir;
@@ -1054,9 +1326,18 @@ impl<T: Transport> ClientSession<T> {
                     }
                     self.harvest_ledger_mut(target).merge(&replay);
                 }
+                SessionMsg::Pets { pets } => {
+                    self.pets = pets;
+                }
+                SessionMsg::PetDenied { reason } => {
+                    self.pet_denied = Some(reason);
+                }
                 SessionMsg::Join { .. }
                 | SessionMsg::JoinAuthed { .. }
                 | SessionMsg::Harvest { .. }
+                | SessionMsg::DeployPet { .. }
+                | SessionMsg::RecallPet { .. }
+                | SessionMsg::RecallPets
                 | SessionMsg::Input(_) => {}
             }
         }
@@ -1075,6 +1356,7 @@ impl<T: Transport> ClientSession<T> {
 mod tests {
     use super::*;
     use crate::harvest::{HarvestKind, Stone, Tree};
+    use crate::net::pets::pet_body;
     use crate::net::transport::Loopback;
     use std::sync::Arc;
 
@@ -1224,6 +1506,292 @@ mod tests {
         assert!(
             late.take_harvest_events().iter().any(|e| e.id == id),
             "the replay produced no event, so nothing would apply it"
+        );
+    }
+
+    fn pet_host(mesh: &[Loopback], pets: PetConfig) -> HostSession<Loopback> {
+        let mut host = HostSession::new(
+            mesh[0].clone(),
+            SessionConfig {
+                pets,
+                ..SessionConfig::default()
+            },
+            SimConfig::default(),
+            42,
+        );
+        host.set_terrain(flat_terrain());
+        host
+    }
+
+    fn flat_pos(host: &mut HostSession<Loopback>, body: BodyId) -> [f32; 2] {
+        let pos = host
+            .world_mut()
+            .snapshot()
+            .body(body)
+            .expect("body")
+            .iso
+            .pos;
+        [pos[0], pos[2]]
+    }
+
+    fn gap(a: [f32; 2], b: [f32; 2]) -> f32 {
+        ((a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2)).sqrt()
+    }
+
+    #[test]
+    fn a_deployed_pet_gets_a_body_next_to_its_owner() {
+        let mesh = Loopback::mesh(2);
+        let mut host = pet_host(&mesh, PetConfig::default());
+        let mut client = ClientSession::connect(mesh[1].clone());
+        run(&mut host, &mut client, 40);
+        let peer = client.peer().expect("joined");
+
+        client.deploy_pet(3);
+        run(&mut host, &mut client, 4);
+
+        let roster = host.pet_roster();
+        assert_eq!(roster.len(), 1, "the deploy did not produce a pet");
+        assert_eq!(roster[0].owner, peer);
+        assert_eq!(
+            roster[0].kind, 3,
+            "the chassis the client asked for was lost"
+        );
+        assert_eq!(roster[0].body, pet_body(roster[0].pet));
+
+        let owner_at = flat_pos(&mut host, player_body(peer));
+        let pet_at = flat_pos(&mut host, roster[0].body);
+        assert!(
+            gap(owner_at, pet_at) < PetConfig::default().deploy_radius * 2.0,
+            "a pet was put down nowhere near its owner: {owner_at:?} vs {pet_at:?}"
+        );
+        assert_eq!(client.pets().len(), 1, "the client was never told about it");
+        assert_eq!(client.my_pets().len(), 1);
+    }
+
+    /// The cap the whole feature exists to hold.
+    #[test]
+    fn a_player_may_not_exceed_their_own_cap() {
+        let mesh = Loopback::mesh(2);
+        let cfg = PetConfig {
+            per_player: 4,
+            ..PetConfig::default()
+        };
+        let mut host = pet_host(&mesh, cfg);
+        let mut client = ClientSession::connect(mesh[1].clone());
+        run(&mut host, &mut client, 40);
+
+        for _ in 0..cfg.per_player + 3 {
+            client.deploy_pet(0);
+            run(&mut host, &mut client, 2);
+        }
+
+        assert_eq!(
+            host.pet_count(),
+            cfg.per_player,
+            "the per-player cap did not hold"
+        );
+        assert!(
+            client.take_pet_denied().is_some(),
+            "the client was refused silently, so the button just stops working"
+        );
+    }
+
+    /// The other cap, which is a bandwidth bound rather than a game rule: one player
+    /// at their personal limit must not be able to fill the world on their own.
+    #[test]
+    fn the_world_cap_holds_across_players() {
+        let mesh = Loopback::mesh(3);
+        let cfg = PetConfig {
+            per_player: 10,
+            total: 3,
+            ..PetConfig::default()
+        };
+        let mut host = pet_host(&mesh, cfg);
+        let mut one = ClientSession::connect(mesh[1].clone());
+        let mut two = ClientSession::connect(mesh[2].clone());
+        for _ in 0..40 {
+            host.tick();
+            one.tick();
+            two.tick();
+        }
+
+        for _ in 0..6 {
+            one.deploy_pet(0);
+            two.deploy_pet(0);
+            for _ in 0..2 {
+                host.tick();
+                one.tick();
+                two.tick();
+            }
+        }
+
+        assert_eq!(host.pet_count(), cfg.total, "the world cap did not hold");
+    }
+
+    #[test]
+    fn a_pet_may_only_be_recalled_by_its_owner() {
+        let mesh = Loopback::mesh(3);
+        let mut host = pet_host(&mesh, PetConfig::default());
+        let mut owner = ClientSession::connect(mesh[1].clone());
+        let mut other = ClientSession::connect(mesh[2].clone());
+        for _ in 0..40 {
+            host.tick();
+            owner.tick();
+            other.tick();
+        }
+
+        owner.deploy_pet(0);
+        for _ in 0..4 {
+            host.tick();
+            owner.tick();
+            other.tick();
+        }
+        let pet = host.pet_roster()[0].pet;
+
+        other.recall_pet(pet);
+        for _ in 0..4 {
+            host.tick();
+            owner.tick();
+            other.tick();
+        }
+        assert_eq!(
+            host.pet_count(),
+            1,
+            "somebody else's robot answered a stranger"
+        );
+
+        owner.recall_pet(pet);
+        for _ in 0..4 {
+            host.tick();
+            owner.tick();
+            other.tick();
+        }
+        assert_eq!(
+            host.pet_count(),
+            0,
+            "an owner could not recall their own pet"
+        );
+    }
+
+    /// A leaderless pet has nobody to follow and nobody to recall it, so it would
+    /// hold a slot against everyone else's cap for the rest of the session.
+    #[test]
+    fn leaving_takes_your_pets_with_you() {
+        let mesh = Loopback::mesh(2);
+        let mut host = pet_host(&mesh, PetConfig::default());
+        let mut client = ClientSession::connect(mesh[1].clone());
+        run(&mut host, &mut client, 40);
+        let peer = client.peer().expect("joined");
+
+        for _ in 0..3 {
+            client.deploy_pet(0);
+            run(&mut host, &mut client, 2);
+        }
+        assert_eq!(host.pet_count(), 3);
+
+        host.remove_player(peer);
+        run(&mut host, &mut client, 2);
+        assert_eq!(
+            host.pet_count(),
+            0,
+            "pets outlived the player who owned them"
+        );
+    }
+
+    /// Ids come off a free list, so deploy/recall traffic cannot walk them out of
+    /// the band reserved for pets and into the players'.
+    #[test]
+    fn recalled_slots_are_reused() {
+        let mesh = Loopback::mesh(2);
+        let mut host = pet_host(&mesh, PetConfig::default());
+        let mut client = ClientSession::connect(mesh[1].clone());
+        run(&mut host, &mut client, 40);
+
+        let mut seen = Vec::new();
+        for _ in 0..30 {
+            client.deploy_pet(0);
+            run(&mut host, &mut client, 2);
+            let pet = host.pet_roster()[0].pet;
+            seen.push(pet);
+            client.recall_pet(pet);
+            run(&mut host, &mut client, 2);
+        }
+
+        assert!(
+            seen.iter().all(|p| p.0 < PetConfig::default().total as u32),
+            "pet ids escaped their band: {seen:?}"
+        );
+        assert_eq!(host.pet_count(), 0);
+    }
+
+    /// The unit tests cover what a field decides; this covers that one is wired up
+    /// at all — built for an owner who deploys, and gone when they recall.
+    #[test]
+    fn an_owner_with_pets_gets_a_flow_field() {
+        let mesh = Loopback::mesh(2);
+        let mut host = HostSession::new(
+            mesh[0].clone(),
+            SessionConfig::default(),
+            SimConfig::default(),
+            42,
+        );
+        host.set_terrain(flat_terrain());
+        host = host.with_ground(Arc::new(|_, _| 5.0));
+        let mut client = ClientSession::connect(mesh[1].clone());
+        run(&mut host, &mut client, 40);
+        assert_eq!(host.pet_field_count(), 0, "a field with nothing to route");
+
+        client.deploy_pet(0);
+        run(&mut host, &mut client, 8);
+        assert_eq!(
+            host.pet_field_count(),
+            1,
+            "a deployed pet got no field to route on"
+        );
+
+        client.recall_pets();
+        run(&mut host, &mut client, 8);
+        assert_eq!(
+            host.pet_field_count(),
+            0,
+            "the field outlived every pet that used it"
+        );
+    }
+
+    /// The whole point of a pet: it comes with you.
+    #[test]
+    fn a_pet_follows_its_owner() {
+        let mesh = Loopback::mesh(2);
+        let mut host = pet_host(&mesh, PetConfig::default());
+        let mut client = ClientSession::connect(mesh[1].clone());
+        run(&mut host, &mut client, 40);
+        let peer = client.peer().expect("joined");
+
+        client.deploy_pet(0);
+        run(&mut host, &mut client, 4);
+        let body = host.pet_roster()[0].body;
+        let started = flat_pos(&mut host, body);
+
+        client.set_input([1.0, 0.0], false, std::f32::consts::FRAC_PI_2);
+        for _ in 0..400 {
+            client.set_input([1.0, 0.0], false, std::f32::consts::FRAC_PI_2);
+            host.tick();
+            client.tick();
+        }
+
+        let owner_at = flat_pos(&mut host, player_body(peer));
+        let pet_at = flat_pos(&mut host, body);
+        assert!(
+            gap(started, owner_at) > 8.0,
+            "the owner never went anywhere, so this proves nothing"
+        );
+        assert!(
+            gap(started, pet_at) > 5.0,
+            "the pet stood where it was put down"
+        );
+        assert!(
+            gap(owner_at, pet_at) < 14.0,
+            "the pet fell behind: owner {owner_at:?}, pet {pet_at:?}"
         );
     }
 

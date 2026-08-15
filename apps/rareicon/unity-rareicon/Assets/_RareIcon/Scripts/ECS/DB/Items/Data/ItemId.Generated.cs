@@ -247,5 +247,8 @@ namespace RareIcon
         HardpointShoulders = 632,  // hardpoint-shoulders
         GrinningPumpkinHelm = 633,  // grinning-pumpkin-helm
         Pickaxe = 634,  // pickaxe
+        Bark = 635,  // bark
+        Resin = 636,  // resin
+        Sapling = 637,  // sapling
     }
 }
