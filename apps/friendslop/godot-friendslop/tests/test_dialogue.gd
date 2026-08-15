@@ -606,6 +606,50 @@ func test_the_panel_finishes_arriving() -> void:
 	_unstage(world, was)
 
 
+## Words crowded against a rounded edge read as a mistake, and a reply centred in a slab
+## does not line up with the reply under it.
+func test_replies_are_padded_and_line_up() -> void:
+	var reply := PaperButton.reply("Pay the toll.", Callable())
+	auto_free(reply)
+	var skin: StyleBoxFlat = reply.get_theme_stylebox("normal")
+	assert_float(skin.content_margin_left) \
+			.override_failure_message("the text sits flush against the edge").is_greater(0.0)
+	assert_float(skin.content_margin_top).is_greater(0.0)
+	assert_int(reply.alignment) \
+			.override_failure_message("replies are a list, and a list lines up on the left") \
+			.is_equal(HORIZONTAL_ALIGNMENT_LEFT)
+	assert_float(reply.custom_minimum_size.x) \
+			.override_failure_message("a reply stretched to a menu button's width") \
+			.is_equal(0.0)
+
+	## A menu is a stack of equal slabs, which is the opposite call.
+	var menu := PaperButton.make("Play", Callable())
+	auto_free(menu)
+	assert_float(menu.custom_minimum_size.x).is_equal(MenuStyle.BUTTON_MIN.x)
+
+
+## A stylebox margin counts towards a control's minimum height, and the settings rows
+## shrink to ROW_H_RANGE.x on a small window. Padding a menu button as generously as a
+## reply would quietly stop those rows shrinking.
+func test_menu_padding_leaves_the_settings_rows_room_to_shrink() -> void:
+	var row := PaperButton.make("", Callable())
+	auto_free(row)
+	row.add_theme_font_size_override("font_size", MenuStyle.ROW_FONT_RANGE.x)
+	assert_float(row.get_minimum_size().y) \
+			.override_failure_message("a padded menu button no longer fits the smallest row") \
+			.is_less_equal(MenuStyle.ROW_H_RANGE.x)
+
+
+## A reply reached by the keyboard has to look like the reply reached by the mouse, or the
+## one the player is about to take is the one that looks inert.
+func test_a_focused_reply_looks_like_a_hovered_one() -> void:
+	var reply := PaperButton.reply("Pay the toll.", Callable())
+	auto_free(reply)
+	assert_object(reply.get_theme_stylebox("focus")) \
+			.override_failure_message("focus wears the default look, which is a plain outline") \
+			.is_same(reply.get_theme_stylebox("hover"))
+
+
 ## Escape is not something a player has to know about, so the panel carries a way out that
 ## can be clicked.
 func test_a_conversation_can_be_left_by_clicking() -> void:
