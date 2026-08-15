@@ -56,6 +56,8 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         stone_grid_size: env_parse("FS_STONE_GRID", 22.0),
         tree_grid_size: env_parse("FS_TREE_GRID", 14.0),
         harvest_reach: env_parse("FS_HARVEST_REACH", 6.0),
+        pets_per_player: env_parse("FS_PETS_PER_PLAYER", 10),
+        pets_total: env_parse("FS_PETS_TOTAL", 96),
     };
 
     tracing::info!(
@@ -92,6 +94,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         transport.clone(),
         sim.tick_handle(),
         sim.regions_handle(),
+        sim.pets_handle(),
     ));
 
     let listener = TcpListener::bind(addr).await?;
@@ -124,6 +127,7 @@ fn stats_route(
     transport: std::sync::Arc<DualHost>,
     tick: std::sync::Arc<std::sync::atomic::AtomicU64>,
     regions: std::sync::Arc<std::sync::atomic::AtomicUsize>,
+    pets: std::sync::Arc<std::sync::atomic::AtomicUsize>,
 ) -> axum::Router {
     axum::Router::new().route(
         "/stats",
@@ -135,6 +139,7 @@ fn stats_route(
                 "udp_port": transport.udp_port(),
                 "udp_oversize": transport.oversize_count(),
                 "terrain_regions": regions.load(std::sync::atomic::Ordering::Relaxed),
+                "pets": pets.load(std::sync::atomic::Ordering::Relaxed),
             }))
         }),
     )
