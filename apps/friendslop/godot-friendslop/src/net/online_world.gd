@@ -26,6 +26,9 @@ func _ready() -> void:
 	_client.rejected.connect(_on_rejected)
 	_client.avatar_spawned.connect(_on_avatar_spawned)
 	_client.roster_changed.connect(_refresh_nameplates)
+	_client.pets_changed.connect(_refresh_pets)
+	_client.pet_spawned.connect(_on_pet_spawned)
+	_client.pet_denied.connect(_hud.show_notice)
 	_hud.leave_requested.connect(_leave)
 
 	var auth := get_node_or_null(^"/root/Auth")
@@ -125,6 +128,25 @@ func _refresh_nameplates() -> void:
 		var body_id := int(String(avatar.name).trim_prefix("Body"))
 		avatar.set_player_name(_client.body_name(body_id))
 	_hud.set_roster(_client.roster(), _client.local_body())
+
+
+func _on_pet_spawned(_body_id: int, _node: Node3D) -> void:
+	_refresh_pets()
+
+
+func _refresh_pets() -> void:
+	_hud.set_pets(_client.my_pet_bodies().size())
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if not _client.is_joined():
+		return
+	if event.is_action_pressed(&"deploy_pet"):
+		_client.deploy_pet(_client.my_pet_bodies().size() % NetPet.CHASSIS.size())
+		get_viewport().set_input_as_handled()
+	elif event.is_action_pressed(&"recall_pets"):
+		_client.recall_all_pets()
+		get_viewport().set_input_as_handled()
 
 
 func _leave() -> void:

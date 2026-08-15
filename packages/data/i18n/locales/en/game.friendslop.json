@@ -55,6 +55,14 @@
 		"joined": "Joined as {{name}}",
 		"disconnected": "Disconnected: {{reason}}  (Esc to leave)",
 		"roster_you": "{{name}} (you)",
-		"roster": "{{count}} here — {{names}}"
+		"roster": "{{count}} here — {{names}}",
+		"pets": "Robots: {{count}}  ·  [G] deploy  ·  [H] recall all"
+	},
+	"prompt": {
+		"talk": "[{{key}}]  Talk"
+	},
+	"dlg": {
+		"continue": "[{{key}}]  Continue",
+		"close": "Leave the conversation"
 	}
 }
