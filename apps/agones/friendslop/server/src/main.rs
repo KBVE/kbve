@@ -1,6 +1,7 @@
 mod agones;
 mod auth;
 mod driver;
+mod props;
 mod terrain_stream;
 
 use std::net::SocketAddr;

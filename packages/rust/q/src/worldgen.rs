@@ -394,6 +394,348 @@ impl BridgeSlab {
     }
 }
 
+pub const ROAD_SEGMENT_STEP: f32 = 4.0;
+const ROAD_STRAIGHT_APPROACH: f32 = 30.0;
+
+fn seg_distance(p: [f32; 2], a: [f32; 2], b: [f32; 2]) -> f32 {
+    let ab = [b[0] - a[0], b[1] - a[1]];
+    let denom = (ab[0] * ab[0] + ab[1] * ab[1]).max(1e-6);
+    let t = (((p[0] - a[0]) * ab[0] + (p[1] - a[1]) * ab[1]) / denom).clamp(0.0, 1.0);
+    let d = [p[0] - (a[0] + ab[0] * t), p[1] - (a[1] + ab[1] * t)];
+    (d[0] * d[0] + d[1] * d[1]).sqrt()
+}
+
+/// The trunk road across the valley, and how much of the ground it claims.
+#[derive(Clone, Debug)]
+pub struct RoadPlan {
+    segments: Vec<([f32; 2], [f32; 2])>,
+    pub width: f32,
+    pub crossing: [f32; 2],
+    pub half_span: f32,
+    bridge_reach: f32,
+}
+
+impl RoadPlan {
+    pub fn new(
+        hgen: &HeightGen,
+        origin: [f32; 2],
+        extent: f32,
+        water_level: f32,
+        width: f32,
+    ) -> Self {
+        let crossing_z = 0.0;
+        let river_x = hgen.river_x(crossing_z);
+
+        let mut half_span = 4.0;
+        while half_span < extent * 0.25 {
+            let left = hgen.height(river_x - half_span, crossing_z);
+            let right = hgen.height(river_x + half_span, crossing_z);
+            if left > water_level + 0.75 && right > water_level + 0.75 {
+                break;
+            }
+            half_span += 0.5;
+        }
+        half_span += 2.5;
+
+        let limit = extent - 6.0;
+        let mut points: Vec<[f32; 2]> = Vec::new();
+        let from = ((origin[0] - limit) / ROAD_SEGMENT_STEP).floor() * ROAD_SEGMENT_STEP;
+        let to = origin[0] + limit + ROAD_SEGMENT_STEP;
+        let mut x = from;
+        while x <= to {
+            let hold = half_span + ROAD_STRAIGHT_APPROACH;
+            let away = (((x - river_x).abs() - hold) / 18.0).clamp(0.0, 1.0);
+            let bend = away * away * (3.0 - 2.0 * away);
+            points.push([x, crossing_z + hgen.wander(x) * 26.0 * bend]);
+            x += ROAD_SEGMENT_STEP;
+        }
+
+        let segments = points.windows(2).map(|w| (w[0], w[1])).collect();
+        Self {
+            segments,
+            width,
+            crossing: [river_x, crossing_z],
+            half_span,
+            bridge_reach: half_span + 1.0,
+        }
+    }
+
+    pub fn set_bridge_reach(&mut self, reach: f32) {
+        self.bridge_reach = reach;
+    }
+
+    pub fn segments(&self) -> &[([f32; 2], [f32; 2])] {
+        &self.segments
+    }
+
+    pub fn distance(&self, p: [f32; 2]) -> f32 {
+        self.segments
+            .iter()
+            .map(|(a, b)| seg_distance(p, *a, *b))
+            .fold(f32::MAX, f32::min)
+    }
+
+    pub fn on_bridge(&self, p: [f32; 2]) -> bool {
+        (p[0] - self.crossing[0]).abs() < self.bridge_reach
+            && (p[1] - self.crossing[1]).abs() < self.width * 2.2
+    }
+
+    pub fn paint_reach(&self) -> f32 {
+        self.width * 1.9
+    }
+
+    /// How much of the carriageway covers a point, 0 to 1.
+    pub fn paint(&self, hgen: &HeightGen, water_level: f32, p: [f32; 2]) -> f32 {
+        if self.on_bridge(p) {
+            return 0.0;
+        }
+        let reach = self.paint_reach();
+        let d = self.distance(p);
+        if d > reach || hgen.height(p[0], p[1]) < water_level + 0.35 {
+            return 0.0;
+        }
+        let t = 1.0 - (d / reach).clamp(0.0, 1.0);
+        t * t * (3.0 - 2.0 * t)
+    }
+}
+
+pub fn hash32(mut x: u32) -> u32 {
+    x ^= x >> 16;
+    x = x.wrapping_mul(0x7feb352d);
+    x ^= x >> 15;
+    x = x.wrapping_mul(0x846ca68b);
+    x ^= x >> 16;
+    x
+}
+
+pub fn randf(state: &mut u32) -> f32 {
+    *state = hash32(*state);
+    (*state >> 8) as f32 / 16_777_216.0
+}
+
+/// A scatter cell addressed by where it sits in the world rather than by its
+/// place in the current window.
+#[derive(Clone, Copy, Debug)]
+pub struct ScatterGrid {
+    pub size: f32,
+    pub origin: [f32; 2],
+    pub extent: f32,
+}
+
+impl ScatterGrid {
+    pub fn new(size: f32, origin: [f32; 2], extent: f32) -> Self {
+        Self {
+            size: size.max(0.01),
+            origin,
+            extent,
+        }
+    }
+
+    pub fn cells(&self) -> i32 {
+        ((self.extent * 2.0) / self.size).ceil() as i32 + 1
+    }
+
+    fn base(&self) -> (i32, i32) {
+        (
+            ((self.origin[0] - self.extent) / self.size).floor() as i32,
+            ((self.origin[1] - self.extent) / self.size).floor() as i32,
+        )
+    }
+
+    pub fn global(&self, ix: i32, iz: i32) -> (i32, i32) {
+        let (bx, bz) = self.base();
+        (bx + ix, bz + iz)
+    }
+
+    pub fn seed(&self, base: u32, ix: i32, iz: i32) -> u32 {
+        let (gx, gz) = self.global(ix, iz);
+        hash32(
+            base.wrapping_add(hash32(gx as u32).wrapping_mul(31))
+                .wrapping_add(hash32(gz as u32).wrapping_mul(2_654_435_761)),
+        )
+    }
+
+    pub fn centre(&self, ix: i32, iz: i32) -> (f32, f32) {
+        let (gx, gz) = self.global(ix, iz);
+        ((gx as f32 + 0.5) * self.size, (gz as f32 + 0.5) * self.size)
+    }
+
+    pub fn inside(&self, x: f32, z: f32, margin: f32) -> bool {
+        (x - self.origin[0]).abs() <= self.extent - margin
+            && (z - self.origin[1]).abs() <= self.extent - margin
+    }
+}
+
+/// One stone the world put somewhere, before anything decides how to draw it.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct StonePlacement {
+    pub pos: [f32; 2],
+    pub scale: f32,
+    pub yaw: f32,
+    pub variant: u8,
+    /// Footprint used for spacing, and close enough to the drawn hull for a
+    /// flow field to route around.
+    pub radius: f32,
+    pub cell: (i32, i32),
+    pub companion: u32,
+}
+
+/// Defaults must match `QStoneField`'s exported defaults.
+#[derive(Clone, Copy, Debug)]
+pub struct StoneScatter {
+    pub seed: i32,
+    pub variants: usize,
+    pub grid_size: f32,
+    pub patch_threshold: f32,
+    pub patch_frequency: f32,
+    pub scale_min: f32,
+    pub scale_max: f32,
+}
+
+impl Default for StoneScatter {
+    fn default() -> Self {
+        Self {
+            seed: 24601,
+            variants: 12,
+            grid_size: 22.0,
+            patch_threshold: 0.3,
+            patch_frequency: 0.025,
+            scale_min: 1.6,
+            scale_max: 3.2,
+        }
+    }
+}
+
+impl StoneScatter {
+    /// Every stone standing in a window, in the order the field inserts them.
+    ///
+    /// The draw order inside a cell is load bearing: every companion takes its
+    /// numbers from the stream before any rejection test, so a companion refused
+    /// for being outside this window cannot shift the ones after it.
+    pub fn place(
+        &self,
+        hgen: &HeightGen,
+        road: Option<&RoadPlan>,
+        origin: [f32; 2],
+        extent: f32,
+        water_level: f32,
+    ) -> Vec<StonePlacement> {
+        let mut noise = FastNoiseLite::with_seed(self.seed + 3);
+        noise.set_noise_type(Some(NoiseType::OpenSimplex2S));
+        noise.set_frequency(Some(self.patch_frequency));
+
+        let grid = ScatterGrid::new(self.grid_size, origin, extent);
+        let cells = grid.cells();
+        let variants = self.variants.max(1);
+        let mut out: Vec<StonePlacement> = Vec::new();
+        let mut placed: Vec<(f32, f32, f32)> = Vec::new();
+
+        let on_road = |x: f32, z: f32| -> bool {
+            road.is_some_and(|r| r.paint(hgen, water_level, [x, z]) > 0.12)
+        };
+        let overlaps = |placed: &Vec<(f32, f32, f32)>, x: f32, z: f32, r: f32| -> bool {
+            placed.iter().any(|(px, pz, pr)| {
+                let dx = px - x;
+                let dz = pz - z;
+                dx * dx + dz * dz < ((pr + r) * 0.92).powi(2)
+            })
+        };
+
+        for iz in 0..cells {
+            for ix in 0..cells {
+                let mut state = grid.seed(self.seed as u32, ix, iz);
+                let jx = (randf(&mut state) - 0.5) * (self.grid_size - 5.0);
+                let jz = (randf(&mut state) - 0.5) * (self.grid_size - 5.0);
+                let (cx, cz) = grid.centre(ix, iz);
+                let (x, z) = (cx + jx, cz + jz);
+                if !grid.inside(x, z, 5.0) {
+                    continue;
+                }
+                let slope = (hgen.height(x + 1.0, z) - hgen.height(x - 1.0, z))
+                    .abs()
+                    .max((hgen.height(x, z + 1.0) - hgen.height(x, z - 1.0)).abs())
+                    * 0.5;
+                if noise.get_noise_2d(x, z) < self.patch_threshold && slope < 0.32 {
+                    continue;
+                }
+                if on_road(x, z) {
+                    continue;
+                }
+                if hgen.height(x, z) < water_level + 0.4 {
+                    continue;
+                }
+                let scale = self.scale_min + randf(&mut state) * (self.scale_max - self.scale_min);
+                let radius = scale * 0.85;
+                if overlaps(&placed, x, z, radius) {
+                    continue;
+                }
+                placed.push((x, z, radius));
+                let yaw = randf(&mut state) * std::f32::consts::TAU;
+                let variant = ((randf(&mut state) * variants as f32) as usize).min(variants - 1);
+                let cell = grid.global(ix, iz);
+                out.push(StonePlacement {
+                    pos: [x, z],
+                    scale,
+                    yaw,
+                    variant: variant as u8,
+                    radius,
+                    cell,
+                    companion: 0,
+                });
+
+                let companions = (randf(&mut state) * 3.0) as usize;
+                for companion in 0..companions {
+                    let cscale = scale * (0.28 + randf(&mut state) * 0.27);
+                    let az = randf(&mut state) * std::f32::consts::TAU;
+                    let spread = randf(&mut state);
+                    let cyaw = randf(&mut state) * std::f32::consts::TAU;
+                    let cvariant =
+                        ((randf(&mut state) * variants as f32) as usize).min(variants - 1);
+
+                    let cradius = cscale * 0.85;
+                    let dist = (radius + cradius) * (1.15 + spread * 0.5);
+                    let ccx = x + libm::cosf(az) * dist;
+                    let ccz = z + libm::sinf(az) * dist;
+                    if !grid.inside(ccx, ccz, 5.0) {
+                        continue;
+                    }
+                    if on_road(ccx, ccz) {
+                        continue;
+                    }
+                    if hgen.height(ccx, ccz) < water_level + 0.4 {
+                        continue;
+                    }
+                    if overlaps(&placed, ccx, ccz, cradius) {
+                        continue;
+                    }
+                    placed.push((ccx, ccz, cradius));
+                    out.push(StonePlacement {
+                        pos: [ccx, ccz],
+                        scale: cscale,
+                        yaw: cyaw,
+                        variant: cvariant as u8,
+                        radius: cradius,
+                        cell,
+                        companion: companion as u32 + 1,
+                    });
+                }
+            }
+        }
+        out
+    }
+
+    /// Flat `x, z, radius` triples, the shape a flow field stamps.
+    pub fn discs(placements: &[StonePlacement]) -> Vec<f32> {
+        let mut out = Vec::with_capacity(placements.len() * 3);
+        for p in placements {
+            out.push(p.pos[0]);
+            out.push(p.pos[1]);
+            out.push(p.radius);
+        }
+        out
+    }
+}
+
 /// Grade the approach is laid down to before it stops descending.
 const RAMP_GRADE: f32 = 0.15;
 
@@ -585,5 +927,112 @@ impl BridgePlan {
         let reach = self.half_span + 40.0;
         (self.crossing[0] - origin[0]).abs() <= extent + reach
             && (self.crossing[1] - origin[1]).abs() <= extent + reach
+    }
+}
+
+#[cfg(test)]
+mod scatter_tests {
+    use super::*;
+
+    fn hgen() -> HeightGen {
+        HeightGen::new(&HeightParams::default())
+    }
+
+    #[test]
+    fn the_same_seed_places_the_same_stones() {
+        let g = hgen();
+        let s = StoneScatter::default();
+        assert_eq!(
+            s.place(&g, None, [0.0, 0.0], 128.0, -1.4),
+            s.place(&g, None, [0.0, 0.0], 128.0, -1.4),
+            "client and server must agree on where the rocks are"
+        );
+    }
+
+    /// The property a sliding world rests on: walking away and back must not
+    /// rearrange the ground, so a cell keeps its stone whichever window sees it.
+    #[test]
+    fn overlapping_windows_agree_on_shared_stones() {
+        let g = hgen();
+        let s = StoneScatter::default();
+        let a = s.place(&g, None, [0.0, 0.0], 128.0, -1.4);
+        let b = s.place(&g, None, [64.0, 0.0], 128.0, -1.4);
+
+        let mut shared = 0;
+        for from_a in &a {
+            let Some(from_b) = b
+                .iter()
+                .find(|p| p.cell == from_a.cell && p.companion == from_a.companion)
+            else {
+                continue;
+            };
+            assert_eq!(
+                from_a.pos[0].to_bits(),
+                from_b.pos[0].to_bits(),
+                "cell {:?} moved between windows",
+                from_a.cell
+            );
+            assert_eq!(from_a.scale.to_bits(), from_b.scale.to_bits());
+            assert_eq!(from_a.variant, from_b.variant);
+            shared += 1;
+        }
+        assert!(shared > 20, "windows barely overlapped, compared {shared}");
+    }
+
+    #[test]
+    fn a_different_seed_places_different_stones() {
+        let g = hgen();
+        let a = StoneScatter::default();
+        let b = StoneScatter {
+            seed: 4242,
+            ..StoneScatter::default()
+        };
+        assert_ne!(
+            a.place(&g, None, [0.0, 0.0], 128.0, -1.4),
+            b.place(&g, None, [0.0, 0.0], 128.0, -1.4)
+        );
+    }
+
+    #[test]
+    fn stones_keep_off_the_carriageway() {
+        let g = hgen();
+        let road = RoadPlan::new(&g, [0.0, 0.0], 128.0, -1.4, 3.2);
+        let s = StoneScatter::default();
+        for p in s.place(&g, Some(&road), [0.0, 0.0], 128.0, -1.4) {
+            assert!(
+                road.paint(&g, -1.4, p.pos) <= 0.12,
+                "stone at {:?} is standing in the road",
+                p.pos
+            );
+        }
+    }
+
+    #[test]
+    fn stones_stay_out_of_the_river() {
+        let g = hgen();
+        let s = StoneScatter::default();
+        for p in s.place(&g, None, [0.0, 0.0], 128.0, -1.4) {
+            assert!(g.height(p.pos[0], p.pos[1]) >= -1.4 + 0.4);
+        }
+    }
+
+    #[test]
+    fn placed_stones_do_not_sit_inside_each_other() {
+        let g = hgen();
+        let s = StoneScatter::default();
+        let placed = s.place(&g, None, [0.0, 0.0], 128.0, -1.4);
+        for (i, a) in placed.iter().enumerate() {
+            for b in &placed[i + 1..] {
+                let dx = a.pos[0] - b.pos[0];
+                let dz = a.pos[1] - b.pos[1];
+                let gap = (dx * dx + dz * dz).sqrt();
+                assert!(
+                    gap >= (a.radius + b.radius) * 0.92 - 1e-3,
+                    "stones overlap: {gap} against {} and {}",
+                    a.radius,
+                    b.radius
+                );
+            }
+        }
     }
 }

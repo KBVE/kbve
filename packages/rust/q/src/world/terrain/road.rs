@@ -7,29 +7,24 @@ use godot::prelude::*;
 use super::{HeightGen, QTerrain};
 
 const ROAD_RES: i32 = 512;
-const SEGMENT_STEP: f32 = 4.0;
-/// Longest run a ramp may take, so the road can be kept straight over it.
-const STRAIGHT_APPROACH: f32 = 30.0;
-
-fn seg_distance(p: Vector2, a: Vector2, b: Vector2) -> f32 {
-    let ab = b - a;
-    let denom = ab.length_squared().max(1e-6);
-    let t = ((p - a).dot(ab) / denom).clamp(0.0, 1.0);
-    (p - (a + ab * t)).length()
-}
 
 pub(super) struct RoadNetwork {
-    segments: Vec<(Vector2, Vector2)>,
+    plan: crate::worldgen::RoadPlan,
     pub width: f32,
     pub crossing: Vector2,
     pub direction: Vector2,
     pub half_span: f32,
-    bridge_reach: f32,
+}
+
+fn flat(v: Vector2) -> [f32; 2] {
+    [v.x, v.y]
+}
+
+fn wide(v: [f32; 2]) -> Vector2 {
+    Vector2::new(v[0], v[1])
 }
 
 impl RoadNetwork {
-    /// The trunk road runs across the valley and meets the river head-on, so the deck
-    /// can be a straight span.
     pub(super) fn build(
         hgen: &HeightGen,
         origin: Vector2,
@@ -37,88 +32,43 @@ impl RoadNetwork {
         water_level: f32,
         width: f32,
     ) -> Self {
-        // The crossing is a property of the world, not of the window looking at
-        // it. Recomputing it per window would lay a fresh bridge wherever the
-        // player happened to be standing.
-        let crossing_z = 0.0;
-        let river_x = hgen.river_x(crossing_z);
-        let crossing = Vector2::new(river_x, crossing_z);
-
-        let mut half_span = 4.0;
-        while half_span < extent * 0.25 {
-            let left = hgen.height(river_x - half_span, crossing_z);
-            let right = hgen.height(river_x + half_span, crossing_z);
-            if left > water_level + 0.75 && right > water_level + 0.75 {
-                break;
-            }
-            half_span += 0.5;
-        }
-        half_span += 2.5;
-
-        // The carriageway is a function of x, so a window only decides which
-        // stretch of it to lay -- never where it goes.
-        let limit = extent - 6.0;
-        let mut points: Vec<Vector2> = Vec::new();
-        // Snapped out to whole segments at both ends: snapping the start is what
-        // makes two windows lay the carriageway in the same place, and running
-        // one segment past the far edge is what stops it ending short of it.
-        let from = ((origin.x - limit) / SEGMENT_STEP).floor() * SEGMENT_STEP;
-        let to = origin.x + limit + SEGMENT_STEP;
-        let mut x = from;
-        while x <= to {
-            let hold = half_span + STRAIGHT_APPROACH;
-            let away = (((x - river_x).abs() - hold) / 18.0).clamp(0.0, 1.0);
-            let bend = away * away * (3.0 - 2.0 * away);
-            let z = crossing_z + hgen.wander(x) * 26.0 * bend;
-            points.push(Vector2::new(x, z));
-            x += SEGMENT_STEP;
-        }
-
-        let mut segments: Vec<(Vector2, Vector2)> = Vec::with_capacity(points.len());
-        for w in points.windows(2) {
-            segments.push((w[0], w[1]));
-        }
-
+        let plan = crate::worldgen::RoadPlan::new(hgen, flat(origin), extent, water_level, width);
         Self {
-            segments,
-            width,
-            crossing,
+            width: plan.width,
+            crossing: wide(plan.crossing),
             direction: Vector2::new(1.0, 0.0),
-            half_span,
-            bridge_reach: half_span + 1.0,
+            half_span: plan.half_span,
+            plan,
         }
     }
 
-    /// Widened once the ramps are laid out, so road paint stops where the timber
-    /// approach starts instead of running on underneath it.
-    /// True when the bridge belongs to this window at all.
+    pub(super) fn plan(&self) -> &crate::worldgen::RoadPlan {
+        &self.plan
+    }
+
+    pub(super) fn set_bridge_reach(&mut self, reach: f32) {
+        self.plan.set_bridge_reach(reach);
+    }
+
     pub(super) fn crossing_in(&self, origin: Vector2, extent: f32) -> bool {
         let reach = self.half_span + 40.0;
         (self.crossing.x - origin.x).abs() <= extent + reach
             && (self.crossing.y - origin.y).abs() <= extent + reach
     }
 
-    pub(super) fn set_bridge_reach(&mut self, reach: f32) {
-        self.bridge_reach = reach;
-    }
-
     pub(super) fn distance(&self, p: Vector2) -> f32 {
-        let mut best = f32::MAX;
-        for (a, b) in &self.segments {
-            let d = seg_distance(p, *a, *b);
-            if d < best {
-                best = d;
-            }
-        }
-        best
+        self.plan.distance(flat(p))
     }
 
     pub(super) fn points(&self) -> impl Iterator<Item = Vector2> + '_ {
-        self.segments.iter().map(|(a, _)| *a)
+        self.plan.segments().iter().map(|(a, _)| wide(*a))
     }
 
     pub(super) fn segments(&self) -> impl Iterator<Item = (Vector2, Vector2)> + '_ {
-        self.segments.iter().copied()
+        self.plan
+            .segments()
+            .iter()
+            .map(|(a, b)| (wide(*a), wide(*b)))
     }
 
     /// The carriageway drifts in z, so callers wanting a spot "on the road" must take a
@@ -136,8 +86,7 @@ impl RoadNetwork {
 
     /// Skips the span the bridge covers, so road paint never lands on water.
     pub(super) fn on_bridge(&self, p: Vector2) -> bool {
-        (p.x - self.crossing.x).abs() < self.bridge_reach
-            && (p.y - self.crossing.y).abs() < self.width * 2.2
+        self.plan.on_bridge(flat(p))
     }
 }
 
@@ -649,7 +598,8 @@ mod tests {
             let lo = xs.iter().copied().fold(f32::MAX, f32::min);
             // `points` yields segment starts, so the carriageway reaches one
             // segment further than the last of them.
-            let hi = xs.iter().copied().fold(f32::MIN, f32::max) + SEGMENT_STEP;
+            let hi =
+                xs.iter().copied().fold(f32::MIN, f32::max) + crate::worldgen::ROAD_SEGMENT_STEP;
             let edge = 250.0;
             assert!(
                 lo <= origin.x - edge,

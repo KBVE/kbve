@@ -7,6 +7,7 @@ use q::net::session::{HostSession, SessionConfig, TokenAuthority};
 use q::rapier::sim3d::{BodyId, SimConfig, SimSnapshot, TerrainDesc};
 use q::worldgen::{HeightGen, HeightParams};
 
+use crate::props::{PropConfig, PropField};
 use crate::terrain_stream::{StreamConfig, TerrainStreamer};
 
 pub struct DriverConfig {
@@ -139,6 +140,13 @@ pub fn spawn(
                 });
                 host = host.with_ground(Arc::new(move |x, z| spawn_gen.height(x, z)));
 
+                let mut props = PropField::new(PropConfig {
+                    seed,
+                    extent,
+                    stride,
+                    water_level: HeightParams::default().water_level,
+                    road_width: 3.2,
+                });
                 let mut streamer = if stream {
                     let mut s = TerrainStreamer::new(StreamConfig {
                         seed,
@@ -158,6 +166,7 @@ pub fn spawn(
                     if let Some(terrain) = terrain {
                         host.set_terrain(terrain);
                     }
+                    props.sync(&[[0.0, 0.0]], host.world_mut());
                     None
                 };
 
@@ -184,6 +193,8 @@ pub fn spawn(
                             scratch.body(*b).map(|s| [s.iso.pos[0], s.iso.pos[2]])
                         }));
                         streamer.update(&players, host.world_mut());
+                        let regions = streamer.loaded_origins();
+                        props.sync(&regions, host.world_mut());
                         regions_t.store(host.world_mut().terrain_region_count(), Ordering::Relaxed);
                     }
 
