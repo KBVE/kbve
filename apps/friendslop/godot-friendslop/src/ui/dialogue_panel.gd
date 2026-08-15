@@ -15,10 +15,12 @@ signal closed
 
 const PANEL_HEIGHT := 0.34
 const PANEL_MARGIN := Vector2(90.0, 40.0)
-const BACKDROP := Color(0.07, 0.06, 0.05, 0.82)
+## Ink and dusk rather than black: a neutral grey box over a warm world reads as a
+## different game's menu dropped on top of this one.
+const BACKDROP := Color(0.10, 0.075, 0.055, 0.86)
 ## Laid over the world behind the panel, so the eye settles on the words rather than on
 ## the grass still waving about behind them.
-const DIM := Color(0.02, 0.02, 0.03, 0.35)
+const DIM := Color(0.06, 0.045, 0.035, 0.38)
 ## How long the panel takes to arrive, and how far it rises on the way in.
 const ENTER_TIME := 0.16
 const ENTER_RISE := 26.0
@@ -136,10 +138,12 @@ func _build() -> void:
 	frame.mouse_filter = Control.MOUSE_FILTER_STOP
 	var skin := StyleBoxFlat.new()
 	skin.bg_color = BACKDROP
-	skin.border_color = MenuStyle.PAPER
+	skin.border_color = MenuStyle.PAPER_EDGE
 	skin.set_border_width_all(2)
-	skin.set_corner_radius_all(6)
-	skin.set_content_margin_all(22)
+	skin.set_corner_radius_all(12)
+	skin.set_content_margin_all(26)
+	skin.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
+	skin.shadow_size = 10
 	frame.add_theme_stylebox_override("panel", skin)
 	root.add_child(frame)
 	_root = root
@@ -160,15 +164,26 @@ func _build() -> void:
 
 	header.add_child(_close_button())
 
+	## A ruled line under the name, the way a page is headed. Also the only thing telling
+	## the eye where the speaker stops and the speech starts.
+	var rule := Panel.new()
+	rule.custom_minimum_size = Vector2(0.0, 1.0)
+	var ink := StyleBoxFlat.new()
+	ink.bg_color = MenuStyle.PAPER_EDGE
+	rule.add_theme_stylebox_override("panel", ink)
+	column.add_child(rule)
+
 	_line_label = Label.new()
 	_line_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_line_label.add_theme_font_size_override("font_size", LINE_FONT)
 	_line_label.add_theme_color_override("font_color", MenuStyle.PAPER)
+	## Spoken lines are read in one pass, and lines set tight are read twice.
+	_line_label.add_theme_constant_override("line_spacing", 7)
 	_line_label.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	column.add_child(_line_label)
 
 	_choices = VBoxContainer.new()
-	_choices.add_theme_constant_override("separation", 6)
+	_choices.add_theme_constant_override("separation", 8)
 	column.add_child(_choices)
 
 	_hint = Label.new()
@@ -218,7 +233,7 @@ func _show_node() -> void:
 		numbered += 1
 		if numbered <= REPLY_KEYS:
 			text = "%d.  %s" % [numbered, text]
-		var button := PaperButton.make(text, func() -> void: _take(index))
+		var button := PaperButton.reply(text, func() -> void: _take(index))
 		button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 		## The mouse moves the focus rather than fighting it, or the key that answers and
 		## the reply under the pointer are two different replies.

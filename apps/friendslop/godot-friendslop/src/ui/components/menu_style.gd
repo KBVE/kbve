@@ -7,6 +7,19 @@ static var touch := false
 
 const BUTTON_MIN := Vector2(220, 48)
 const BUTTON_FONT := 22
+## Room around the words. Wider than it is tall, because text crowded against a rounded
+## edge reads as a mistake and the corners are what eat the room.
+##
+## Kept shallow: a stylebox margin counts towards a control's minimum height, and the
+## settings rows scale down to ROW_H_RANGE.x on a small window. Generous padding here
+## would quietly stop them shrinking.
+const BUTTON_PAD := Vector2(20.0, 6.0)
+const BUTTON_RADIUS := 8
+## A spoken reply is read at a glance beside the line above it, so it sits a size under the
+## menu's own, takes only the height it needs, and can afford the room a fixed row cannot.
+const REPLY_PAD := Vector2(22.0, 11.0)
+const REPLY_FONT := 19
+const REPLY_MIN_H := 38.0
 
 const INK := Color(0.25, 0.16, 0.08)
 const INK_HOVER := Color(0.45, 0.2, 0.05)
@@ -64,16 +77,37 @@ static func row_metrics(book_height: float, root_height: float) -> Dictionary:
 	}
 
 
+## Ink bled into the edge of the paper, which is what keeps a flat rectangle from reading
+## as a web page.
+const PAPER_EDGE := Color(0.42, 0.31, 0.18, 0.5)
+const PAPER_SHADOW := Color(0.16, 0.11, 0.06, 0.3)
+
+
 ## The paper-and-ink button look, as three styleboxes sharing one shape.
-static func button_styles() -> Dictionary:
+static func button_styles(pad := BUTTON_PAD) -> Dictionary:
 	var normal := StyleBoxFlat.new()
 	normal.bg_color = PAPER
-	normal.corner_radius_top_left = 6
-	normal.corner_radius_top_right = 6
-	normal.corner_radius_bottom_left = 6
-	normal.corner_radius_bottom_right = 6
+	normal.set_corner_radius_all(BUTTON_RADIUS)
+	normal.content_margin_left = pad.x
+	normal.content_margin_right = pad.x
+	normal.content_margin_top = pad.y
+	normal.content_margin_bottom = pad.y
+	normal.set_border_width_all(1)
+	normal.border_color = PAPER_EDGE
+	normal.shadow_color = PAPER_SHADOW
+	normal.shadow_size = 4
+	normal.shadow_offset = Vector2(0.0, 2.0)
+
 	var hover := normal.duplicate() as StyleBoxFlat
 	hover.bg_color = PAPER_HOVER
+	## Lifts a little under the pointer rather than only changing colour, which is easier
+	## to catch out of the corner of an eye.
+	hover.expand_margin_left = 3.0
+	hover.expand_margin_right = 3.0
+	hover.shadow_size = 6
+
 	var pressed := normal.duplicate() as StyleBoxFlat
 	pressed.bg_color = PAPER_PRESSED
+	pressed.shadow_size = 2
+	pressed.shadow_offset = Vector2(0.0, 1.0)
 	return {"normal": normal, "hover": hover, "pressed": pressed}
