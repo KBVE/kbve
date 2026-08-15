@@ -105,6 +105,7 @@ wasm-bindgen-futures = "0.4"
 web-sys = "0.3"
 webpki-roots = "1.0"
 wgpu = "29"
+zip = { version = "6", default-features = false }
 
 [profile.release]
 opt-level = 3
