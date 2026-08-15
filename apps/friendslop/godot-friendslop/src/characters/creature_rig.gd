@@ -161,6 +161,29 @@ func mesh_extents() -> AABB:
 	return _bounds
 
 
+## How far the creature reaches from its own vertical axis in the pose it is
+## standing in, which is the silhouette somebody watching it sees.
+##
+## This is not the collision radius and must not be used as one. The capsule is
+## the hard body -- a torso, sized to fit through the gaps the world leaves --
+## while this is the whole machine, arms and stride included. The mech pack
+## ranges from 1.7 to 3.4 here against capsules of 0.6 to 1.1, and avoidance told
+## only about the capsule walks two of them through each other.
+##
+## Pole targets are IK helper bones parked metres behind the body, so they are
+## skipped: they are not part of the creature and dwarf everything that is.
+func body_reach() -> float:
+	if skeleton == null:
+		return 0.0
+	var reach := 0.0
+	for i in skeleton.get_bone_count():
+		if String(skeleton.get_bone_name(i)).contains("PoleTarget"):
+			continue
+		var at: Vector3 = skeleton.get_bone_global_pose(i).origin
+		reach = maxf(reach, Vector2(at.x, at.z).length())
+	return reach
+
+
 func set_display_name(value: String) -> void:
 	display_name = value
 	if nameplate:
