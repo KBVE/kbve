@@ -13,7 +13,7 @@ tags:
 key: friendslop_server
 pipeline: docker
 app_name: friendslop-server
-version: "0.0.5"
+version: "0.0.6"
 source_path: apps/agones/friendslop/server
 version_toml: apps/agones/friendslop/server/version.toml
 version_target: apps/agones/friendslop/server/Cargo.toml
@@ -119,6 +119,7 @@ The end goal for Friendslop is Steam P2P co-op, where one player hosts. That is 
 - Step the authoritative `SimWorld` at 60 Hz on its own thread, fanning out 20 Hz snapshots.
 - Accept WebSocket peers, assign each a `PeerId` and a display name, and despawn their character when the socket drops.
 - Apply client **intent** — a horizontal wish direction and a jump flag — against server-owned gravity and speed.
+- Own every deployed pet robot: placement, steering, the caps, and the flow field each owner's group routes on.
 - Run the Agones SDK lifecycle (`Ready` / `Health` / `Shutdown`); degrades gracefully outside Agones for local dev.
 
 ### Identity
@@ -135,6 +136,20 @@ A server with no `SUPABASE_URL` (or `SUPABASE_JWKS_URI`) runs guests-only and re
 
 `JoinAuthed` was appended to the message enum rather than folded into `Join`, so postcard's variant numbering did not move and the guest path speaks to older builds unchanged.
 
+### Pet robots
+
+A player asks for a robot; the server decides whether they may have it, puts it down beside them, gives it a rapier character body, and steers it every tick. The client chooses the chassis and nothing else — where it lands, which id it gets and whether it is allowed at all stay here, because a client that could name any of those could deploy an army into somebody else's world.
+
+Two caps, answering different questions. **Ten per player** is the game rule. **Ninety-six per world** is the resource bound behind it: sixteen players at their personal limit is 160 extra bodies in every snapshot, to everyone, twenty times a second. One player at their limit must not be able to fill the world alone, so both are checked.
+
+Replication needed nothing new — a pet is an ordinary body and already rides `SimSnapshot`. What was missing is *identity*, so `SessionMsg::Pets` carries the roster the way `Roster` carries players: which body is a pet, whose it is, which chassis to draw. Bodies sit in a reserved id band above the player range, which is how a client tells a robot from an avatar without waiting for that roster to arrive.
+
+Pets do not outlive their owner. A leaderless pet has nobody to follow and nobody to recall it, so it would stand there for the rest of the session holding a slot against everyone else's cap.
+
+**Routing** — one flow field per owner, not per pet: everything somebody deployed wants the same place, so they share one integration, and ten pets cost the same as one. Each field is a 128-unit window around its owner at two-metre cells rather than a map-sized grid, because pets hold at six metres and sprint at ten. Costs go down in a fixed order — ground, then rocks by coverage, then the crossing closed as the solid causeway it is *before* the clearance is grown, then the walkway cut back out past both ends. Measured against the generator: 2.3 ms to stamp and integrate, 1.0 ms to integrate again after the owner walks. One field's worth of that per tick is the ceiling however many players are on, and the round robin rotates so nobody starves.
+
+`/stats` reports `pets` and `pet_fields`, which is the only outward sign the caps are holding.
+
 ### Layout
 
 ```
@@ -146,9 +161,12 @@ apps/agones/friendslop/server/
 ├── version.toml       # ci-publish version sentinel
 ├── e2e/               # vitest smoke: healthz, tick advance, peer lifecycle
 └── src/
-    ├── main.rs        # tokio entry, /stats route, graceful shutdown
-    ├── driver.rs      # fixed-tick sim thread + seed-baked terrain
-    └── agones.rs      # Agones SDK heartbeat
+    ├── main.rs           # tokio entry, /stats route, graceful shutdown
+    ├── driver.rs         # fixed-tick sim thread + seed-baked terrain
+    ├── auth.rs           # Supabase JWKS verification
+    ├── terrain_stream.rs # heightfield regions that follow players
+    ├── props.rs          # stone colliders for the loaded regions
+    └── agones.rs         # Agones SDK heartbeat
 ```
 
 </BentoProse>
@@ -181,6 +199,8 @@ nx run friendslop-server:e2e
 | `FS_TICK_HZ` | `60` | Sim step rate |
 | `FS_TERRAIN_EXTENT` | `256` | Half-extent of the collision heightfield |
 | `FS_TERRAIN_RESOLUTION` | `513` | Heightfield grid resolution |
+| `FS_PETS_PER_PLAYER` | `10` | Robots one player may have deployed |
+| `FS_PETS_TOTAL` | `96` | Robots the whole session may hold |
 
 **Sim core** — the physics lives in `q::rapier::sim3d`, which is engine-agnostic: pure rapier3d, no Godot, no Bevy. The identical step code compiles into the Godot client's `QPhysics3D` bridge and into this headless binary. Session logic (`q::net::session`) sits on top of the `q::net::transport::Transport` seam, so it is testable in-process over `Loopback` with no socket and no engine anywhere in the test.
 
