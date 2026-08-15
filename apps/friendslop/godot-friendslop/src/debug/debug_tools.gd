@@ -84,6 +84,9 @@ func _unhandled_input(event: InputEvent) -> void:
 		if burst_fx:
 			burst_fx.blackhole_at(_player.global_position + Vector3(0.0, 1.6, 0.0) - _player.global_basis.z * 3.0)
 		return
+	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_K:
+		_chop_nearest()
+		return
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_P:
 		var smoke := _player.get_node_or_null("StatusSmoke")
 		if smoke:
@@ -111,6 +114,18 @@ func _unhandled_input(event: InputEvent) -> void:
 			fly_speed = minf(fly_speed * 1.2, 200.0)
 		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN:
 			fly_speed = maxf(fly_speed / 1.2, 1.0)
+
+
+## Drives one swing through the same API the net path uses, so felling can be
+## looked at before the swing input exists.
+func _chop_nearest() -> void:
+	var trees := get_node_or_null("../TreeField")
+	if trees == null:
+		return
+	var ids: PackedInt64Array = trees.query_radius(_player.global_position, 12.0, 1)
+	if ids.is_empty():
+		return
+	trees.apply_damage(ids[0], 1)
 
 
 func _toggle() -> void:

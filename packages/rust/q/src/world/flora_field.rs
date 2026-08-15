@@ -4,7 +4,7 @@ use godot::classes::rendering_server::{MultimeshTransformFormat, ShadowCastingSe
 use godot::classes::{Engine, QuadMesh, RenderingServer, ShaderMaterial};
 use godot::prelude::*;
 
-use crate::world::flora_compute::{FloraCompute, TerrainOcclusion};
+use crate::world::flora_compute::{FloraCompute, HarvestPass, TerrainOcclusion};
 use crate::world::{TerrainSnapshot, randf, view_origin, world_aabb};
 
 #[derive(GodotClass)]
@@ -277,6 +277,7 @@ impl QFloraField {
             false,
             1,
             TerrainOcclusion::disabled(),
+            HarvestPass::Standing,
         )
     }
 
