@@ -56,6 +56,7 @@ func add_cycler(label: String, names: Callable, get_index: Callable,
 func add_button(text: String, action: Callable) -> PaperButton:
 	var b := PaperButton.make(text, action)
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b.clip_text = true
 	_scaled.append(b)
 	box.add_child(b)
 	return b
@@ -72,7 +73,12 @@ func layout(book: Rect2, metrics: Dictionary) -> void:
 	offset_right = 0.0
 	offset_bottom = 0.0
 	for control in _scaled:
-		control.custom_minimum_size.y = metrics.h
+		## Width is cleared, not just height set. A Control is never drawn smaller than its
+		## own minimum, so a row carrying the menu slab's fixed 220 forces the whole page
+		## wider than the anchors above -- and a page that outgrows its anchors grows to
+		## the right, off the edge of the paper. On a page the row is told how wide it is
+		## by the book, so it must ask for nothing.
+		control.custom_minimum_size = Vector2(0.0, metrics.h)
 		control.add_theme_font_size_override("font_size", metrics.font)
 
 
