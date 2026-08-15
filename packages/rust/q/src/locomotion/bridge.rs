@@ -27,6 +27,8 @@ impl QLocomotion {
     pub const STANCE_CROUCH: i64 = Stance::Crouch as i64;
     #[constant]
     pub const STANCE_ROLL: i64 = Stance::Roll as i64;
+    #[constant]
+    pub const STANCE_LAND: i64 = Stance::Land as i64;
 
     #[func]
     fn create() -> Gd<Self> {
@@ -194,6 +196,19 @@ impl QLocomotion {
     #[func]
     fn set_air_grace(&mut self, value: f32) {
         self.inner.tuning.air_grace = value;
+    }
+
+    /// How long the landing recovery holds the body, and the ground speed that cancels
+    /// it outright.
+    #[func]
+    fn set_landing(&mut self, time: f32, cancel_speed: f32) {
+        self.inner.tuning.land_time = time;
+        self.inner.tuning.land_cancel_speed = cancel_speed;
+    }
+
+    #[func]
+    fn is_landing(&self) -> bool {
+        self.inner.is_landing()
     }
 
     #[func]

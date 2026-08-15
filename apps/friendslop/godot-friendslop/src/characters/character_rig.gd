@@ -25,6 +25,14 @@ extends Node3D
 ## forward walk playing while the character strafes.
 @export var locomotion := false
 @export var foot_ik := false
+## The kit authors its one-shots far longer than the moments they cover -- the landing
+## alone runs 1.27s, which is most of a second of a single pose held while the body is
+## already travelling. Each is replayed at whatever rate fits the window it really owns.
+@export var takeoff_time := 0.28
+@export var landing_time := 0.32
+@export var crouch_shift_time := 0.30
+## Ground speed that abandons a landing recovery outright.
+@export var landing_cancel_speed := 0.5
 ## Left at 0 to keep QLocomotion's own defaults.
 @export var blend_sharpness := 0.0
 ## Playback is rescaled to the ground speed the clip was authored for.
@@ -44,12 +52,19 @@ const IDLE_CLIP := "UAL1/Idle"
 const CROUCH_IDLE_CLIP := "UAL1/Crouch_Idle"
 const ROLL_CLIP := "UAL1/Roll"
 
-## Take-off and landing are one-shots either side of the airborne loop.
+## Take-off and landing are one-shots either side of the airborne loop. Both ends carry
+## a direct route back to move as well as the chained one: a hop can be over before its
+## take-off clip is, and a landing that is walked out of has to be leavable on the frame
+## the stick moves rather than when the clip happens to run out.
 const JUMP_CHAIN := [
 	{"from": "move", "to": "jump_start", "at_end": false, "xfade": 0.08},
+	{"from": "crouch", "to": "jump_start", "at_end": false, "xfade": 0.10},
 	{"from": "jump_start", "to": "jump", "at_end": true, "xfade": 0.05},
+	{"from": "jump_start", "to": "jump_land", "at_end": false, "xfade": 0.08},
+	{"from": "jump_start", "to": "move", "at_end": false, "xfade": 0.12},
 	{"from": "jump", "to": "jump_land", "at_end": false, "xfade": 0.06},
-	{"from": "jump_land", "to": "move", "at_end": true, "xfade": 0.18},
+	{"from": "jump", "to": "move", "at_end": false, "xfade": 0.12},
+	{"from": "jump_land", "to": "move", "at_end": false, "xfade": 0.18},
 ]
 
 ## A climb can start from standing or from mid-air, and always ends on the ground, so it
@@ -68,8 +83,10 @@ const CLIMB_CHAIN := [
 const CROUCH_CHAIN := [
 	{"from": "move", "to": "crouch_enter", "at_end": false, "xfade": 0.10},
 	{"from": "crouch_enter", "to": "crouch", "at_end": true, "xfade": 0.14},
+	{"from": "crouch_enter", "to": "move", "at_end": false, "xfade": 0.12},
 	{"from": "crouch", "to": "crouch_exit", "at_end": false, "xfade": 0.10},
 	{"from": "crouch_exit", "to": "move", "at_end": true, "xfade": 0.16},
+	{"from": "crouch_exit", "to": "crouch", "at_end": false, "xfade": 0.12},
 ]
 
 ## A roll can be thrown from either stance and always ends standing.
@@ -102,6 +119,7 @@ const STANCE_STATES := {
 	QLocomotion.STANCE_CLIMB_HIGH: &"climb_high",
 	QLocomotion.STANCE_CROUCH: &"crouch",
 	QLocomotion.STANCE_ROLL: &"roll",
+	QLocomotion.STANCE_LAND: &"jump_land",
 }
 
 ## Unit ring, counter-clockwise from forward.
@@ -237,7 +255,7 @@ func _build_tree(rig: Node3D) -> void:
 		if clip != "":
 			var node := _clip(clip)
 			if node:
-				machine.add_node(state, node)
+				machine.add_node(state, _rescaled(node))
 	for link in JUMP_CHAIN + CLIMB_CHAIN + CROUCH_CHAIN + ROLL_CHAIN:
 		if not machine.has_node(link.from) or not machine.has_node(link.to):
 			continue
@@ -248,7 +266,12 @@ func _build_tree(rig: Node3D) -> void:
 	rig.add_child(tree)
 	tree.anim_player = tree.get_path_to(animation)
 	tree.active = true
-	_fit_roll()
+	loco.set_landing(landing_time, landing_cancel_speed)
+	_fit(&"roll", ROLL_CLIP, loco.roll_time())
+	_fit(&"jump_start", STATES[&"jump_start"].clip, takeoff_time)
+	_fit(&"jump_land", STATES[&"jump_land"].clip, landing_time)
+	_fit(&"crouch_enter", STATES[&"crouch_enter"].clip, crouch_shift_time)
+	_fit(&"crouch_exit", STATES[&"crouch_exit"].clip, crouch_shift_time)
 
 
 ## `travel` refuses to path through a disabled transition, so a link that is only ever
@@ -299,15 +322,13 @@ func _rescaled(inner: AnimationNode) -> AnimationNodeBlendTree:
 	return tree_node
 
 
-## The roll clip is authored longer than the roll is allowed to own the body, so it is
-## played at whatever rate makes the two end together.
-func _fit_roll() -> void:
-	if not animation.has_animation(ROLL_CLIP):
+## A one-shot is authored for however long the kit felt like; what matters is the window
+## the simulation gives it. Playing it at the rate that makes the two end together keeps
+## the whole clip visible without it outstaying the moment it covers.
+func _fit(state: StringName, clip: String, window: float) -> void:
+	if window <= 0.0 or not animation.has_animation(clip):
 		return
-	var window: float = loco.roll_time()
-	if window <= 0.0:
-		return
-	tree.set("parameters/roll/scale/scale", animation.get_animation(ROLL_CLIP).length / window)
+	tree.set("parameters/%s/scale/scale" % state, animation.get_animation(clip).length / window)
 
 
 ## One curve shared by every transition, since they all want the same easing.

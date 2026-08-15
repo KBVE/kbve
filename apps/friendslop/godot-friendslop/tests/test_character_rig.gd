@@ -50,7 +50,7 @@ func test_states_are_fully_specified() -> void:
 func test_every_stance_maps_to_a_real_state() -> void:
 	var stances := [QLocomotion.STANCE_MOVE, QLocomotion.STANCE_JUMP,
 			QLocomotion.STANCE_CLIMB_LOW, QLocomotion.STANCE_CLIMB_HIGH,
-			QLocomotion.STANCE_CROUCH, QLocomotion.STANCE_ROLL]
+			QLocomotion.STANCE_CROUCH, QLocomotion.STANCE_ROLL, QLocomotion.STANCE_LAND]
 	for stance in stances:
 		assert_bool(Rig.STANCE_STATES.has(stance)) \
 				.override_failure_message("stance %d is unmapped" % stance).is_true()
@@ -95,6 +95,32 @@ func test_no_transition_is_closed_to_travel() -> void:
 		assert_int(t.advance_mode).is_equal(wanted)
 		assert_float(t.xfade_time) \
 				.override_failure_message("%s -> %s cuts" % [link.from, link.to]).is_greater(0.0)
+	rig.free()
+
+
+## The landing clip is a single pose, not a ring, so every frame of it spent travelling
+## is a frame of skating. Unlike a climb or a roll -- which own the body deliberately and
+## must play out -- the air states have to be leavable on the frame they are asked to be,
+## not at a clip boundary.
+func test_the_air_states_are_left_on_demand() -> void:
+	var immediate := {}
+	for link in _links():
+		if link.to == "move" and not link.at_end:
+			immediate[StringName(link.from)] = true
+	for state in [&"jump_land", &"jump", &"jump_start"]:
+		assert_bool(immediate.has(state)) \
+				.override_failure_message("'%s' can only be left at a clip boundary" % state) \
+				.is_true()
+
+
+## A one-shot the kit authored longer than the moment it covers has to be replayed to
+## fit, or the simulation moves on without it.
+func test_every_fitted_one_shot_has_a_window() -> void:
+	var rig := Rig.new()
+	for window in [rig.takeoff_time, rig.landing_time, rig.crouch_shift_time]:
+		assert_float(window).is_greater(0.0)
+	assert_float(rig.landing_time).is_less(1.267)
+	assert_float(rig.takeoff_time).is_less(1.333)
 	rig.free()
 
 
