@@ -17071,7 +17071,18 @@
 			],
 			"bevy_statemachine": [],
 			"firecracker-node-web": [],
-			"axum-cryptothrone": [],
+			"axum-cryptothrone": [
+				{
+					"source": "axum-cryptothrone",
+					"target": "jedi",
+					"type": "static"
+				},
+				{
+					"source": "axum-cryptothrone",
+					"target": "kbve",
+					"type": "static"
+				}
+			],
 			"bevy_pathfinder": [],
 			"chisel-ubuntu-axum": [],
 			"axum-discordsh-e2e": [
@@ -17092,7 +17103,18 @@
 				}
 			],
 			"bevy_behavior": [],
-			"bevy_kbve_net": [],
+			"bevy_kbve_net": [
+				{
+					"source": "bevy_kbve_net",
+					"target": "bevy_npc",
+					"type": "static"
+				},
+				{
+					"source": "bevy_kbve_net",
+					"target": "bevy_tasker",
+					"type": "static"
+				}
+			],
 			"discordsh-bot-e2e": [
 				{
 					"source": "discordsh-bot-e2e",
@@ -17116,7 +17138,18 @@
 					"type": "implicit"
 				}
 			],
-			"cryptothrone-server": [],
+			"cryptothrone-server": [
+				{
+					"source": "cryptothrone-server",
+					"target": "jedi",
+					"type": "static"
+				},
+				{
+					"source": "cryptothrone-server",
+					"target": "simgrid",
+					"type": "static"
+				}
+			],
 			"notification-bot": [],
 			"steamcmd-ubuntu": [],
 			"unreal-rentearth": [],
@@ -17139,19 +17172,65 @@
 					"type": "static"
 				}
 			],
-			"bevy_battle": [],
+			"bevy_battle": [
+				{
+					"source": "bevy_battle",
+					"target": "bevy_behavior",
+					"type": "static"
+				}
+			],
 			"bevy_player": [],
 			"bevy_quests": [],
-			"bevy_skills": [],
+			"bevy_skills": [
+				{
+					"source": "bevy_skills",
+					"target": "bevy_items",
+					"type": "static"
+				}
+			],
 			"bevy_spells": [],
 			"bevy_tasker": [],
 			"unreal-cleanroom": [],
 			"agones-palworld-savetool": [],
-			"axum-discordsh": [],
-			"axum-rentearth": [],
-			"bevy_items": [],
+			"axum-discordsh": [
+				{
+					"source": "axum-discordsh",
+					"target": "jedi",
+					"type": "static"
+				},
+				{
+					"source": "axum-discordsh",
+					"target": "kbve",
+					"type": "static"
+				}
+			],
+			"axum-rentearth": [
+				{
+					"source": "axum-rentearth",
+					"target": "jedi",
+					"type": "static"
+				}
+			],
+			"bevy_items": [
+				{
+					"source": "bevy_items",
+					"target": "bevy_inventory",
+					"type": "static"
+				}
+			],
 			"bevy_mapdb": [],
-			"friendslop-server": [],
+			"friendslop-server": [
+				{
+					"source": "friendslop-server",
+					"target": "jedi",
+					"type": "static"
+				},
+				{
+					"source": "friendslop-server",
+					"target": "q",
+					"type": "static"
+				}
+			],
 			"astro-chuckrpg": [
 				{
 					"source": "astro-chuckrpg",
@@ -17202,7 +17281,73 @@
 					"type": "static"
 				}
 			],
-			"discordsh-bot": [],
+			"discordsh-bot": [
+				{
+					"source": "discordsh-bot",
+					"target": "bevy_battle",
+					"type": "static"
+				},
+				{
+					"source": "discordsh-bot",
+					"target": "bevy_behavior",
+					"type": "static"
+				},
+				{
+					"source": "discordsh-bot",
+					"target": "bevy_chat",
+					"type": "static"
+				},
+				{
+					"source": "discordsh-bot",
+					"target": "bevy_db",
+					"type": "static"
+				},
+				{
+					"source": "discordsh-bot",
+					"target": "bevy_inventory",
+					"type": "static"
+				},
+				{
+					"source": "discordsh-bot",
+					"target": "bevy_items",
+					"type": "static"
+				},
+				{
+					"source": "discordsh-bot",
+					"target": "bevy_mapdb",
+					"type": "static"
+				},
+				{
+					"source": "discordsh-bot",
+					"target": "bevy_npc",
+					"type": "static"
+				},
+				{
+					"source": "discordsh-bot",
+					"target": "bevy_pathfinder",
+					"type": "static"
+				},
+				{
+					"source": "discordsh-bot",
+					"target": "bevy_quests",
+					"type": "static"
+				},
+				{
+					"source": "discordsh-bot",
+					"target": "bevy_skills",
+					"type": "static"
+				},
+				{
+					"source": "discordsh-bot",
+					"target": "jedi",
+					"type": "static"
+				},
+				{
+					"source": "discordsh-bot",
+					"target": "kbve",
+					"type": "static"
+				}
+			],
 			"discordsh-e2e": [
 				{
 					"source": "discordsh-e2e",
@@ -17217,9 +17362,32 @@
 			],
 			"embeddb-derive": [],
 			"unity-rareicon": [],
-			"axum-chuckrpg": [],
-			"axum-herbmail": [],
-			"axum-rareicon": [],
+			"axum-chuckrpg": [
+				{
+					"source": "axum-chuckrpg",
+					"target": "jedi",
+					"type": "static"
+				}
+			],
+			"axum-herbmail": [
+				{
+					"source": "axum-herbmail",
+					"target": "jedi",
+					"type": "static"
+				},
+				{
+					"source": "axum-herbmail",
+					"target": "kbve",
+					"type": "static"
+				}
+			],
+			"axum-rareicon": [
+				{
+					"source": "axum-rareicon",
+					"target": "kbve",
+					"type": "static"
+				}
+			],
 			"bevy_cam": [],
 			"bevy_npc": [],
 			"firecracker-ctl-e2e": [
@@ -17236,7 +17404,23 @@
 					"type": "static"
 				}
 			],
-			"herbmail-server": [],
+			"herbmail-server": [
+				{
+					"source": "herbmail-server",
+					"target": "jedi",
+					"type": "static"
+				},
+				{
+					"source": "herbmail-server",
+					"target": "simbody3d",
+					"type": "static"
+				},
+				{
+					"source": "herbmail-server",
+					"target": "simgrid",
+					"type": "static"
+				}
+			],
 			"kbve-react-native": [
 				{
 					"source": "kbve-react-native",
@@ -17271,10 +17455,28 @@
 					"type": "static"
 				}
 			],
-			"agones-factorio-relay": [],
-			"agones-palworld-relay": [],
+			"agones-factorio-relay": [
+				{
+					"source": "agones-factorio-relay",
+					"target": "jedi",
+					"type": "static"
+				}
+			],
+			"agones-palworld-relay": [
+				{
+					"source": "agones-palworld-relay",
+					"target": "jedi",
+					"type": "static"
+				}
+			],
 			"arc-runner": [],
-			"bevy_db": [],
+			"bevy_db": [
+				{
+					"source": "bevy_db",
+					"target": "bevy_tasker",
+					"type": "static"
+				}
+			],
 			"herbmail-e2e": [
 				{
 					"source": "herbmail-e2e",
@@ -17317,7 +17519,28 @@
 					"type": "implicit"
 				}
 			],
-			"uniti": [],
+			"uniti": [
+				{
+					"source": "uniti",
+					"target": "bevy_battle",
+					"type": "static"
+				},
+				{
+					"source": "uniti",
+					"target": "bevy_inventory",
+					"type": "static"
+				},
+				{
+					"source": "uniti",
+					"target": "bevy_pathfinder",
+					"type": "static"
+				},
+				{
+					"source": "uniti",
+					"target": "bevy_skills",
+					"type": "static"
+				}
+			],
 			"aria2-proxy-e2e": [
 				{
 					"source": "aria2-proxy-e2e",
@@ -17325,7 +17548,33 @@
 					"type": "implicit"
 				}
 			],
-			"arpg-server": [],
+			"arpg-server": [
+				{
+					"source": "arpg-server",
+					"target": "bevy_items",
+					"type": "static"
+				},
+				{
+					"source": "arpg-server",
+					"target": "bevy_mapdb",
+					"type": "static"
+				},
+				{
+					"source": "arpg-server",
+					"target": "bevy_spells",
+					"type": "static"
+				},
+				{
+					"source": "arpg-server",
+					"target": "jedi",
+					"type": "static"
+				},
+				{
+					"source": "arpg-server",
+					"target": "simgrid",
+					"type": "static"
+				}
+			],
 			"axum-kbve-e2e": [
 				{
 					"source": "axum-kbve-e2e",
@@ -17350,7 +17599,13 @@
 					"type": "dynamic"
 				}
 			],
-			"firecracker-ctl": [],
+			"firecracker-ctl": [
+				{
+					"source": "firecracker-ctl",
+					"target": "kbve",
+					"type": "static"
+				}
+			],
 			"iot-edge-worker": [],
 			"kbve_wgpu": [],
 			"khashvault": [
@@ -17432,8 +17687,25 @@
 					"type": "static"
 				}
 			],
-			"axum-memes": [],
-			"embeddb": [],
+			"axum-memes": [
+				{
+					"source": "axum-memes",
+					"target": "jedi",
+					"type": "static"
+				},
+				{
+					"source": "axum-memes",
+					"target": "kbve",
+					"type": "static"
+				}
+			],
+			"embeddb": [
+				{
+					"source": "embeddb",
+					"target": "embeddb-derive",
+					"type": "static"
+				}
+			],
 			"rn-astro": [
 				{
 					"source": "rn-astro",
@@ -17448,7 +17720,13 @@
 					"type": "static"
 				}
 			],
-			"simgrid": [],
+			"simgrid": [
+				{
+					"source": "simgrid",
+					"target": "bevy_spells",
+					"type": "static"
+				}
+			],
 			"agones-factorio": [],
 			"agones-palworld": [],
 			"arpg-web": [
@@ -17500,8 +17778,30 @@
 					"type": "static"
 				}
 			],
-			"factorio-ctl": [],
-			"irc-gateway": [],
+			"factorio-ctl": [
+				{
+					"source": "factorio-ctl",
+					"target": "jedi",
+					"type": "static"
+				}
+			],
+			"irc-gateway": [
+				{
+					"source": "irc-gateway",
+					"target": "bevy_chat",
+					"type": "static"
+				},
+				{
+					"source": "irc-gateway",
+					"target": "jedi",
+					"type": "static"
+				},
+				{
+					"source": "irc-gateway",
+					"target": "kbve",
+					"type": "static"
+				}
+			],
 			"memes-e2e": [
 				{
 					"source": "memes-e2e",
@@ -17516,12 +17816,60 @@
 			],
 			"python-kbve": [],
 			"aria2-proxy": [],
-			"axum-kbve": [],
+			"axum-kbve": [
+				{
+					"source": "axum-kbve",
+					"target": "bevy_chat",
+					"type": "static"
+				},
+				{
+					"source": "axum-kbve",
+					"target": "bevy_inventory",
+					"type": "static"
+				},
+				{
+					"source": "axum-kbve",
+					"target": "bevy_items",
+					"type": "static"
+				},
+				{
+					"source": "axum-kbve",
+					"target": "bevy_kbve_net",
+					"type": "static"
+				},
+				{
+					"source": "axum-kbve",
+					"target": "bevy_skills",
+					"type": "static"
+				},
+				{
+					"source": "axum-kbve",
+					"target": "jedi",
+					"type": "static"
+				},
+				{
+					"source": "axum-kbve",
+					"target": "kbve",
+					"type": "static"
+				}
+			],
 			"data-proto": [],
 			"devops": [],
-			"erust": [],
+			"erust": [
+				{
+					"source": "erust",
+					"target": "holy",
+					"type": "static"
+				}
+			],
 			"isometric": [],
-			"kbve-gate": [],
+			"kbve-gate": [
+				{
+					"source": "kbve-gate",
+					"target": "kbve",
+					"type": "static"
+				}
+			],
 			"kubectl-e2e": [
 				{
 					"source": "kubectl-e2e",
@@ -17575,7 +17923,18 @@
 			],
 			"holy": [],
 			"jedi": [],
-			"kbve": [],
+			"kbve": [
+				{
+					"source": "kbve",
+					"target": "holy",
+					"type": "static"
+				},
+				{
+					"source": "kbve",
+					"target": "jedi",
+					"type": "static"
+				}
+			],
 			"kbve-tauri": [],
 			"kilobase": [],
 			"laser": [],
@@ -17622,6 +17981,11 @@
 			"jobboard": [
 				{
 					"source": "jobboard",
+					"target": "jedi",
+					"type": "static"
+				},
+				{
+					"source": "jobboard",
 					"target": "rn",
 					"type": "static"
 				},
@@ -17642,10 +18006,32 @@
 				}
 			],
 			"mc-lobby": [],
-			"met": [],
+			"met": [
+				{
+					"source": "met",
+					"target": "jedi",
+					"type": "static"
+				},
+				{
+					"source": "met",
+					"target": "kbve",
+					"type": "static"
+				}
+			],
 			"pydesk": [],
 			"memes": [],
-			"rows": [],
+			"rows": [
+				{
+					"source": "rows",
+					"target": "jedi",
+					"type": "static"
+				},
+				{
+					"source": "rows",
+					"target": "kbve",
+					"type": "static"
+				}
+			],
 			"irc": [],
 			"mc": [],
 			"@kbve/source": [
