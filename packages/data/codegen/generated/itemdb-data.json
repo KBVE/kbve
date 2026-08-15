@@ -94,6 +94,18 @@
       "weight": 0.1,
       "tags": [
         "isometric"
+      ],
+      "relatedItemRefs": [
+        "bellflower",
+        "blue-orchid"
+      ],
+      "sources": [
+        {
+          "sourceType": "gather",
+          "sourceName": "Hedge borders",
+          "minQuantity": 1,
+          "maxQuantity": 3
+        }
       ]
     },
     {
@@ -382,6 +394,24 @@
           ]
         }
       ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Bark",
+        "hidden": true
+      },
+      "description": "Curled slabs of outer bark peeled off a felled trunk in strips as long as a forearm, grey and fissured on the weathered face, pale and faintly damp on the side that was against the wood. They keep the curve of the tree no matter how long they are pressed.\n",
+      "lore": "Taken off the log before it goes anywhere near a saw, because the mills charge extra to sharpen a blade that has been through grit-caught bark all morning. Tanners buy it by the cartload and will argue at length about which side of a hill the tree stood on. Everyone else uses it to get a fire going in wet weather, which the tanners consider a waste and the rest of the world considers a Tuesday.\n",
+      "ref": "bark",
+      "key": 635,
+      "id": "01M02S8K00MQE3V89YB4BEG4RE",
+      "name": "Bark",
+      "typeFlags": 384,
+      "rarity": "ITEM_RARITY_COMMON",
+      "stackable": true,
+      "maxStack": 40,
+      "buyPrice": 2
     },
     {
       "template": "splash",
@@ -848,6 +878,7 @@
         "hidden": true
       },
       "description": "A campaign pack of oiled canvas and brass buckles, rigged to sit above the sword arm. Rattles only when empty.\n",
+      "lore": "Issued with the Vanguard kit and almost never returned with it. The pack is sized for a fortnight of marching and gets used for a lifetime of everything else — quartermasters have recovered them full of onions, letters, ferret, and once a complete set of somebody else's armor. The straps are the honest part of the design: they outlast the canvas by years, which is why old packs are patched bodies on original harness.\n",
       "ref": "campaign-pack",
       "key": 603,
       "id": "01KXFBEGM0FHS9EVQTRM0V955G",
@@ -881,6 +912,18 @@
         "width": 2,
         "height": 2
       },
+      "setRef": "vanguard",
+      "tags": [
+        "armor",
+        "vanguard",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Garrison quartermaster"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -980,6 +1023,7 @@
         "hidden": true
       },
       "description": "Reinforced work trousers with more pockets than contents. The waistband hides a wire loop nobody asks about.\n",
+      "lore": "Eleven pockets, of which four are reachable while seated and two have never been opened by their owner. Field crews rate trousers by pocket census and nothing else, which is why the armor rating of one point goes almost entirely unmentioned in reviews.\n",
       "ref": "cargo-slacks",
       "key": 623,
       "id": "01KXFBEGM2NSNMQ0Z3RPFP5SH1",
@@ -1014,6 +1058,18 @@
         "width": 2,
         "height": 2
       },
+      "setRef": "fieldkit",
+      "tags": [
+        "armor",
+        "fieldkit",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Surplus stall"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -1221,6 +1277,7 @@
         "hidden": true
       },
       "description": "A padded utility jacket threaded with dead circuitry that still glows when it rains. Warm, tough, and louder in color than in fact.\n",
+      "lore": "A technician's jacket with conductive thread run through the lining, originally so a wearer could ground themselves against a live panel and later because it looked like someone who could. The genuine article has scorch marks at the cuffs. The imitations have them printed on.\n",
       "ref": "circuit-jacket",
       "key": 619,
       "id": "01KXFBEGM2N7Q99WN237XBRPC1",
@@ -1255,6 +1312,23 @@
         "width": 2,
         "height": 2
       },
+      "setRef": "fieldkit",
+      "tags": [
+        "armor",
+        "fieldkit",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Surplus stall"
+        },
+        {
+          "sourceType": "drop",
+          "sourceName": "Depot cache",
+          "dropRate": 0.1
+        }
+      ],
       "hasImg": true
     },
     {
@@ -1480,6 +1554,7 @@
         "hidden": true
       },
       "description": "An armored helmet with a bristling sensor crest that reads as plumage at parade distance. Full head coverage, minor ego coverage.\n",
+      "lore": "Command-pattern helm from the Hardpoint line, crest and all. The crest is not decoration in any sense the wearer would appreciate: it makes the head findable in a crowd, which is useful to the people following and useful in a different way to everyone else.\n",
       "ref": "crest-helmet",
       "key": 630,
       "id": "01KXFBEGM3DAR9YZKRTK0N9G56",
@@ -1518,6 +1593,23 @@
         "width": 2,
         "height": 2
       },
+      "setRef": "hardpoint",
+      "tags": [
+        "armor",
+        "hardpoint",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Hardpoint outfitter"
+        },
+        {
+          "sourceType": "drop",
+          "sourceName": "Depot cache",
+          "dropRate": 0.04
+        }
+      ],
       "hasImg": true
     },
     {
@@ -2088,6 +2180,7 @@
         "hidden": true
       },
       "description": "A snug half-mask with twin cartridge filters. The air tastes like plastic, which beats tasting like the district.\n",
+      "lore": "Rated for particulates, spores, and the specific smell of a depot that has been sealed for a decade. The cartridge is good for about forty hours and honest for about thirty; every crew has one member who insists on running theirs to exhaustion and one who replaces it early and says nothing.\n",
       "ref": "filter-mask",
       "key": 617,
       "id": "01KXFBEGM2H82QW7QX3GBXGV0V",
@@ -2117,6 +2210,22 @@
           }
         }
       },
+      "setRef": "fieldkit",
+      "tags": [
+        "armor",
+        "fieldkit",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Surplus stall"
+        },
+        {
+          "sourceType": "craft",
+          "sourceName": "Workbench"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -2744,6 +2853,7 @@
         "hidden": true
       },
       "description": "A carved pumpkin helm with a grin that does not move and eyes that seem to. Smells of candle smoke that nobody lit.\n",
+      "lore": "Carved fresh every season by somebody who has clearly done it before and enjoys it more than is comfortable. Two points of armor, structurally speaking, from a vegetable — the enchantment doing the work is not documented, and the smiths who have looked into it have stopped looking into it.\n",
       "ref": "grinning-pumpkin-helm",
       "key": 633,
       "id": "01KXFBEGM39HQA0JPZMWDT98YN",
@@ -2782,6 +2892,17 @@
         "width": 2,
         "height": 2
       },
+      "tags": [
+        "armor",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "drop",
+          "sourceName": "Seasonal event",
+          "dropRate": 0.03
+        }
+      ],
       "hasImg": true
     },
     {
@@ -2791,6 +2912,7 @@
         "hidden": true
       },
       "description": "Fitted work gloves with tacky palms that hold a ladder rung, a thrown line, or a bad idea equally well.\n",
+      "lore": "Tacky polymer palms that hold a rung in the wet and hold a handful of anything else rather more than the wearer intended. New pairs pull hair, paper, and skin. Broken-in pairs are the most valuable thing in a climber's kit and are never, under any circumstance, lent out.\n",
       "ref": "grip-gloves",
       "key": 622,
       "id": "01KXFBEGM2TK9NGT6Z4177DN43",
@@ -2827,6 +2949,18 @@
         "width": 2,
         "height": 1
       },
+      "setRef": "fieldkit",
+      "tags": [
+        "armor",
+        "fieldkit",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Surplus stall"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -2836,6 +2970,7 @@
         "hidden": true
       },
       "description": "Three rigid lockable cases riding the back and both hips. What they hold survives; whether you do is separate.\n",
+      "lore": "Rigid-shell leg pouches, watertight, crushproof, and heavy enough that nobody buys them for convenience. They are bought for the one thing in the kit that must survive whatever happens to its owner.\n",
       "ref": "hardcase-pouches",
       "key": 631,
       "id": "01KXFBEGM3DN76CBB0TYC2F52G",
@@ -2873,6 +3008,18 @@
         "width": 2,
         "height": 2
       },
+      "setRef": "hardpoint",
+      "tags": [
+        "armor",
+        "hardpoint",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Hardpoint outfitter"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -2882,6 +3029,7 @@
         "hidden": true
       },
       "description": "Heavy articulated shoulder armor pair with mounting rails for gear that has not been invented yet.\n",
+      "lore": "Three points of composite over the shoulder line, the heaviest piece in the Hardpoint set and the only one that reliably ends an argument about whether the set is worth its price. Everything above the sternum is expensive to repair and impossible to replace.\n",
       "ref": "hardpoint-shoulders",
       "key": 632,
       "id": "01KXFBEGM36ME6G8NFP92QCCE1",
@@ -2918,6 +3066,23 @@
         "width": 2,
         "height": 1
       },
+      "setRef": "hardpoint",
+      "tags": [
+        "armor",
+        "hardpoint",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Hardpoint outfitter"
+        },
+        {
+          "sourceType": "drop",
+          "sourceName": "Depot cache",
+          "dropRate": 0.05
+        }
+      ],
       "hasImg": true
     },
     {
@@ -3047,6 +3212,7 @@
         "hidden": true
       },
       "description": "Strap-on elbow pair, scuffed white at the point of every lesson learned sliding.\n",
+      "lore": "Riot surplus, sold by the crate to people who move fast through places built for people who move slowly. They do not stop weapons. They stop scaffolding, doorframes, and the specific corner of every stairwell that is placed exactly where an elbow travels.\n",
       "ref": "impact-elbow-pads",
       "key": 628,
       "id": "01KXFBEGM3549STW6B4RYKHDAZ",
@@ -3079,6 +3245,22 @@
           }
         }
       },
+      "setRef": "impact",
+      "tags": [
+        "armor",
+        "impact",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Surplus stall"
+        },
+        {
+          "sourceType": "craft",
+          "sourceName": "Salvaged polymer"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -3088,6 +3270,7 @@
         "hidden": true
       },
       "description": "Ratchet-strap knee pair, the uniform of everyone who works low and gets up slow.\n",
+      "lore": "The piece that turns a controlled drop into a manoeuvre instead of an injury. Gatherers wear them through three seasons and replace the straps twice; the shells outlive the people's interest in the job.\n",
       "ref": "impact-knee-pads",
       "key": 629,
       "id": "01KXFBEGM35YXPYHJSGR3CDAJ6",
@@ -3120,6 +3303,22 @@
           }
         }
       },
+      "setRef": "impact",
+      "tags": [
+        "armor",
+        "impact",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Surplus stall"
+        },
+        {
+          "sourceType": "craft",
+          "sourceName": "Salvaged polymer"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -3129,6 +3328,7 @@
         "hidden": true
       },
       "description": "Molded polymer shoulder pair that turns a doorframe collision into a sound effect.\n",
+      "lore": "Riot-surplus polymer, originally molded for crowd lines and later sold by the crate to anyone who moves fast through narrow places. The pads do not stop weapons and were never asked to. They stop architecture — doorframes, scaffold poles, the corner of a shelf you were sure you had cleared — and they turn each of those into a noise instead of a bruise.\n",
       "ref": "impact-shoulder-pads",
       "key": 627,
       "id": "01KXFBEGM2EGGJYW693H99X0NW",
@@ -3165,6 +3365,28 @@
         "width": 2,
         "height": 1
       },
+      "setRef": "impact",
+      "tags": [
+        "armor",
+        "impact",
+        "herbmail"
+      ],
+      "relatedItemRefs": [
+        "impact-elbow-pads",
+        "impact-knee-pads",
+        "hardpoint-shoulders"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Surplus stall"
+        },
+        {
+          "sourceType": "craft",
+          "sourceName": "Salvaged polymer",
+          "minQuantity": 1
+        }
+      ],
       "hasImg": true
     },
     {
@@ -3212,6 +3434,7 @@
         "hidden": true
       },
       "description": "A swept synth-dyed cut in reactor blue. Holds its shape in wind, rain and moderate decompression.\n",
+      "lore": "A pigment treatment that does nothing whatsoever for survivability and is bought at a steady rate regardless. The blue holds through weather, water, and most of a year. Crews argue about whether it counts as gear; the argument is itself the reason it counts.\n",
       "ref": "ion-blue-hair",
       "key": 615,
       "id": "01KXFBEGM2BBFS0QAZ03PKB2T4",
@@ -3236,6 +3459,18 @@
       "equipment": {
         "slot": "EQUIP_SLOT_HEAD"
       },
+      "setRef": "fieldkit",
+      "tags": [
+        "armor",
+        "fieldkit",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Style booth"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -3920,6 +4155,7 @@
         "hidden": true
       },
       "description": "Low-profile runners with induction soles that grip deck plating. Squeak on tile like anything else.\n",
+      "lore": "Soft-soled with magnetic plates at the ball and heel, so a wearer can hold a steel gantry without hands. The clamp is strong enough to be trusted and weak enough to be escaped, a balance the manufacturer arrived at after a period they no longer discuss.\n",
       "ref": "mag-sneakers",
       "key": 625,
       "id": "01KXFBEGM2C8FT10BWEQDRTV5S",
@@ -3955,6 +4191,23 @@
         "width": 2,
         "height": 1
       },
+      "setRef": "fieldkit",
+      "tags": [
+        "armor",
+        "fieldkit",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Surplus stall"
+        },
+        {
+          "sourceType": "drop",
+          "sourceName": "Depot cache",
+          "dropRate": 0.08
+        }
+      ],
       "hasImg": true
     },
     {
@@ -4369,6 +4622,7 @@
         "hidden": true
       },
       "description": "A wraparound headset with a tinted band that promises augmented readouts and delivers excellent shade.\n",
+      "lore": "Light amplification with a hard ceiling and a soft failure — it does not black out when overloaded, it just quietly stops being better than eyes. Wearers who trust it in daylight develop a distinctive habit of tilting the head to check whether the world is real or rendered.\n",
       "ref": "optic-visor",
       "key": 616,
       "id": "01KXFBEGM2M7Y4YP24AZDBMHC9",
@@ -4403,6 +4657,23 @@
         "width": 2,
         "height": 1
       },
+      "setRef": "fieldkit",
+      "tags": [
+        "armor",
+        "fieldkit",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Surplus stall"
+        },
+        {
+          "sourceType": "drop",
+          "sourceName": "Depot cache",
+          "dropRate": 0.06
+        }
+      ],
       "hasImg": true
     },
     {
@@ -4433,6 +4704,7 @@
         "hidden": true
       },
       "description": "Quilted sleeve pair that clips to any jacket, rated for road rash and low-grade plasma splash.\n",
+      "lore": "Quilted arm covers that add no armor rating and are worn by nearly everyone anyway, because the rating does not measure friction burn, hot pipework, or the temperature of a depot in winter.\n",
       "ref": "padded-sleeves",
       "key": 620,
       "id": "01KXFBEGM26JBWDBNDS4Q24226",
@@ -4468,6 +4740,22 @@
         "width": 1,
         "height": 2
       },
+      "setRef": "fieldkit",
+      "tags": [
+        "armor",
+        "fieldkit",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Surplus stall"
+        },
+        {
+          "sourceType": "craft",
+          "sourceName": "Workbench"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -4622,6 +4910,21 @@
         "width": 2,
         "height": 3
       },
+      "relatedItemRefs": [
+        "ore",
+        "stone"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Mining outfitter"
+        },
+        {
+          "sourceType": "craft",
+          "sourceName": "Forge",
+          "minQuantity": 1
+        }
+      ],
       "hasImg": true
     },
     {
@@ -4833,6 +5136,7 @@
         "hidden": true
       },
       "description": "A four-pouch belt rig — front, back, both hips — for everything a jumpsuit forgot. Contents shift; the rig never does.\n",
+      "lore": "A belt harness with modular pouches, sold empty and never seen that way again. The rig's whole argument is that a thing you can reach is worth more than a thing you own, which is why gatherers pay forty for a belt and argue about the loadout for years.\n",
       "ref": "pouch-rig",
       "key": 626,
       "id": "01KXFBEGM2KZ4CXZKFM2TYEA29",
@@ -4872,6 +5176,18 @@
         "width": 2,
         "height": 2
       },
+      "setRef": "fieldkit",
+      "tags": [
+        "armor",
+        "fieldkit",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Surplus stall"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -5431,6 +5747,25 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Resin",
+        "hidden": true
+      },
+      "description": "A knuckle of hardened sap the colour of weak tea, tacky enough to pick up every thread and wood chip it has ever been near. Held to the light it goes clear at the edges, and it softens in a closed hand faster than anyone expects.\n",
+      "lore": "Bleeds out of a cut trunk on its own and sets where it runs, so the whole trade is a matter of getting to the tree before the rain does. Bowyers glue with it, fletchers seal with it, and every shipwright on the coast swears their own mix of it is the only one that holds. The pitch-boilers who render it down are easy to identify at a distance by smell alone.\n",
+      "ref": "resin",
+      "key": 636,
+      "id": "01M02S8K00BF7AF54D49K7Z38Z",
+      "name": "Resin",
+      "typeFlags": 384,
+      "rarity": "ITEM_RARITY_UNCOMMON",
+      "emoji": "🟠",
+      "stackable": true,
+      "maxStack": 20,
+      "buyPrice": 9
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Retro CRT Monitor",
         "hidden": true
       },
@@ -5774,6 +6109,25 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Sapling",
+        "hidden": true
+      },
+      "description": "A finger-thin young tree lifted with its root ball intact and bound in damp sacking, four leaves at the top and a fifth that has already given up. It weighs nothing and behaves as though it weighs a great deal, catching on every doorway.\n",
+      "lore": "Found in the shade under the tree that dropped it, where it would have spent thirty years losing a fight for light it was never going to win. Foresters working a cut lift them ahead of the saws and replant them at the edge, which is either good practice or superstition depending on which forester is asked. The ones that take are indistinguishable from the ones that were always there, which is rather the point.\n",
+      "ref": "sapling",
+      "key": 637,
+      "id": "01M02S8K00T426KEC2A2MQXB97",
+      "name": "Sapling",
+      "typeFlags": 384,
+      "rarity": "ITEM_RARITY_UNCOMMON",
+      "emoji": "🌱",
+      "stackable": true,
+      "maxStack": 10,
+      "buyPrice": 15
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Sapphire",
         "hidden": true
       },
@@ -5893,6 +6247,7 @@
         "hidden": true
       },
       "description": "Zip-on lower-leg wraps in matched pair, sealing trouser to boot against dust, sparks and opinion.\n",
+      "lore": "Wound fabric, not plate. They stop nettles, gravel, and the slow ruin of walking through undergrowth in soft boots. Twenty coin, replaced every season, missed only when they are not there.\n",
       "ref": "shin-wraps",
       "key": 624,
       "id": "01KXFBEGM200CKKBGYB1X4WF4N",
@@ -5928,6 +6283,22 @@
         "width": 1,
         "height": 2
       },
+      "setRef": "fieldkit",
+      "tags": [
+        "armor",
+        "fieldkit",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Surplus stall"
+        },
+        {
+          "sourceType": "craft",
+          "sourceName": "Workbench"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -6493,6 +6864,7 @@
         "hidden": true
       },
       "description": "A hard-shell backpack humming with a power cell of undocumented provenance. Warm against the spine on cold nights.\n",
+      "lore": "A rigid-frame pack with power routing built into the spine, meant to carry a working kit rather than supplies. The frame is the expensive part. Crews strip failed packs for the frame and rebuild the fabric around it twice before admitting the pack is dead.\n",
       "ref": "tech-pack",
       "key": 618,
       "id": "01KXFBEGM2284DFA2YCTMCHWWW",
@@ -6526,6 +6898,23 @@
         "width": 2,
         "height": 2
       },
+      "setRef": "fieldkit",
+      "tags": [
+        "armor",
+        "fieldkit",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Surplus stall"
+        },
+        {
+          "sourceType": "drop",
+          "sourceName": "Depot cache",
+          "dropRate": 0.05
+        }
+      ],
       "hasImg": true
     },
     {
@@ -6899,6 +7288,7 @@
         "hidden": true
       },
       "description": "Forearm cuff pair with tool loops and a dent where a wrench lives. The left one has a screen that shows the time, occasionally.\n",
+      "lore": "Wrist bands with tool loops and a small hard plate over the ulna, which is either an afterthought or the point, depending on which member of the crew you ask. The loops carry a driver, a light, and whatever fits — the plate carries the one impact per season that nobody plans for.\n",
       "ref": "utility-cuffs",
       "key": 621,
       "id": "01KXFBEGM2X37CN3WC55AK837S",
@@ -6930,6 +7320,18 @@
           }
         }
       },
+      "setRef": "fieldkit",
+      "tags": [
+        "armor",
+        "fieldkit",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Surplus stall"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -7046,6 +7448,7 @@
         "hidden": true
       },
       "description": "Curved plates strapped over both upper arms, hinged to let the shoulders keep their full swing.\n",
+      "lore": "Upper-arm plate, sold in pairs and lost one at a time. It rides the chest slot alongside the breastplate, which is a quartermaster's fiction everybody has agreed to stop arguing about. Cheap, plain, and the first thing a recruit trades away when the weight starts to matter.\n",
       "ref": "vanguard-arm-guards",
       "key": 606,
       "id": "01KXFBEGM1GHQKTS3KR8FXEE4J",
@@ -7082,6 +7485,18 @@
         "width": 1,
         "height": 2
       },
+      "setRef": "vanguard",
+      "tags": [
+        "armor",
+        "vanguard",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Garrison quartermaster"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -7091,6 +7506,7 @@
         "hidden": true
       },
       "description": "Forearm steel worn in pairs, scarred by every parry that would otherwise be a scar of your own.\n",
+      "lore": "The cheapest honest armor in the set. Two points on the forearms — the part of you that goes up first when something comes down, whether or not you decided it should. Recruits are issued bracers before anything else, on the theory that reflex protects itself and the rest can be taught.\n",
       "ref": "vanguard-bracers",
       "key": 608,
       "id": "01KXFBEGM16KN4CNGK1PC2278A",
@@ -7127,6 +7543,22 @@
         "width": 1,
         "height": 2
       },
+      "setRef": "vanguard",
+      "tags": [
+        "armor",
+        "vanguard",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Garrison quartermaster"
+        },
+        {
+          "sourceType": "craft",
+          "sourceName": "Forge"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -7136,6 +7568,7 @@
         "hidden": true
       },
       "description": "A fitted breastplate that turns a spear thrust into a bad bruise. Cold in the morning, an oven by noon, worth it at all hours.\n",
+      "lore": "Four points of plate over the parts that do not grow back. Smiths hammer the Vanguard breastplate from a single sheet where they can afford to and from three where they cannot, and every soldier learns to read the seam lines of their own chest the way a sailor reads weather. A one-piece front is a good year. Three pieces means the war was going badly when it was made.\n",
       "ref": "vanguard-breastplate",
       "key": 604,
       "id": "01KXFBEGM0XYT1VDYGSBAC7W70",
@@ -7171,6 +7604,23 @@
         "width": 2,
         "height": 2
       },
+      "setRef": "vanguard",
+      "tags": [
+        "armor",
+        "vanguard",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Garrison quartermaster"
+        },
+        {
+          "sourceType": "drop",
+          "sourceName": "Patrol wreckage",
+          "dropRate": 0.08
+        }
+      ],
       "hasImg": true
     },
     {
@@ -7180,6 +7630,7 @@
         "hidden": true
       },
       "description": "Small cupped couters for both elbows. The difference between blocking a blow and dropping your sword.\n",
+      "lore": "A joint is a hole in armor that has been given a job. These cover the hole without stopping the job, which is the entire difficulty of plate and the reason elbow guards are shaped by the best smith in a shop and not the newest.\n",
       "ref": "vanguard-elbow-guards",
       "key": 607,
       "id": "01KXFBEGM1SYAKA7HXQ9FSXK80",
@@ -7212,6 +7663,22 @@
           }
         }
       },
+      "setRef": "vanguard",
+      "tags": [
+        "armor",
+        "vanguard",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Garrison quartermaster"
+        },
+        {
+          "sourceType": "craft",
+          "sourceName": "Forge"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -7221,6 +7688,7 @@
         "hidden": true
       },
       "description": "Four hinged plates ringing the hips — front, back and both flanks. They swing with the stride and close ranks when it stops.\n",
+      "lore": "Overlapping steel bands hung from the waist, covering the hip and upper thigh and rattling in a way that no smith has ever managed to fix. Scouts refuse them for exactly that reason. Line infantry keep them for exactly that reason — a rattling company sounds like more company than it is.\n",
       "ref": "vanguard-faulds",
       "key": 611,
       "id": "01KXFBEGM1RHJR3X96YW33PW5E",
@@ -7261,6 +7729,18 @@
         "width": 2,
         "height": 2
       },
+      "setRef": "vanguard",
+      "tags": [
+        "armor",
+        "vanguard",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Garrison quartermaster"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -7270,6 +7750,7 @@
         "hidden": true
       },
       "description": "Articulated steel gloves that let you catch a blade and keep the fingers you did it with.\n",
+      "lore": "Articulated at every knuckle, which means they cost four times the bracers and get worn half as often. A gauntleted hand can hold a blade through a strike that would open a bare one to the bone; it cannot pick up a coin, tie a lace, or be trusted near a cup. Most soldiers carry them and wear them late.\n",
       "ref": "vanguard-gauntlets",
       "key": 609,
       "id": "01KXFBEGM1AXMMEAPSG93Q83PN",
@@ -7306,6 +7787,18 @@
         "width": 2,
         "height": 1
       },
+      "setRef": "vanguard",
+      "tags": [
+        "armor",
+        "vanguard",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Garrison quartermaster"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -7315,6 +7808,7 @@
         "hidden": true
       },
       "description": "Shin-to-thigh plate for both legs. Loud on cobbles, silent on grass, appreciated everywhere in between.\n",
+      "lore": "Four points down the shin, where the low strikes go when a line breaks and everyone starts swinging at whatever is in front of them. Greaves are the piece nobody thinks about until they have watched somebody go down from a blow that would not have killed a standing man.\n",
       "ref": "vanguard-greaves",
       "key": 612,
       "id": "01KXFBEGM1AND3T0XSCAC2WRXZ",
@@ -7351,6 +7845,18 @@
         "width": 2,
         "height": 2
       },
+      "setRef": "vanguard",
+      "tags": [
+        "armor",
+        "vanguard",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Garrison quartermaster"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -7360,6 +7866,7 @@
         "hidden": true
       },
       "description": "A visored steel helm with a padded liner that smells faintly of every soldier who wore it before you. The slit narrows the world to what matters.\n",
+      "lore": "Vanguard plate was never issued to heroes. It was issued in bulk, to the rank that walks in first and is counted afterward, and the helm is the piece that shows it — every surviving example carries a dent nobody bothered to hammer out, because a dent that has already happened is a dent that will not happen again. Quartermasters date a helm by its liner rather than its steel. The steel outlasts three wars; the liner outlasts one owner.\n",
       "ref": "vanguard-helm",
       "key": 601,
       "id": "01KXFBEGKZTW4YXHPW58XM7ZSH",
@@ -7394,6 +7901,31 @@
           }
         }
       },
+      "setRef": "vanguard",
+      "tags": [
+        "armor",
+        "vanguard",
+        "herbmail"
+      ],
+      "relatedItemRefs": [
+        "vanguard-breastplate",
+        "vanguard-pauldrons",
+        "vanguard-gauntlets"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Garrison quartermaster",
+          "levelRequirement": 1
+        },
+        {
+          "sourceType": "drop",
+          "sourceName": "Patrol wreckage",
+          "dropRate": 0.12,
+          "minQuantity": 1,
+          "maxQuantity": 1
+        }
+      ],
       "grid": {
         "width": 2,
         "height": 2
@@ -7407,6 +7939,7 @@
         "hidden": true
       },
       "description": "Poleyn pair for the knees, the joint every low blow is aimed at and every stair regrets.\n",
+      "lore": "Cheap, dented, and disproportionately responsible for people walking home. A knee does not need to be destroyed to end a campaign — it only needs to be convinced, once, that it should not bear weight.\n",
       "ref": "vanguard-knee-guards",
       "key": 613,
       "id": "01KXFBEGM1AKYE9SSRKNW2XR4X",
@@ -7439,6 +7972,22 @@
           }
         }
       },
+      "setRef": "vanguard",
+      "tags": [
+        "armor",
+        "vanguard",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Garrison quartermaster"
+        },
+        {
+          "sourceType": "craft",
+          "sourceName": "Forge"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -7448,6 +7997,7 @@
         "hidden": true
       },
       "description": "Matched shoulder plates that shrug off downward cuts. Sized as a pair; a lone pauldron is a story nobody wants to tell.\n",
+      "lore": "Shoulder plate exists to make an overhead swing skid instead of land, and the Vanguard pattern is shaped for exactly that and nothing else. It is the piece veterans keep when they sell off the rest, because a shoulder heals slower than pride and costs more to replace.\n",
       "ref": "vanguard-pauldrons",
       "key": 605,
       "id": "01KXFBEGM1ETWN528P4482BJCP",
@@ -7484,6 +8034,18 @@
         "width": 2,
         "height": 1
       },
+      "setRef": "vanguard",
+      "tags": [
+        "armor",
+        "vanguard",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Garrison quartermaster"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -7493,6 +8055,7 @@
         "hidden": true
       },
       "description": "Plated boots that make stepping on things a tactic. Break in the leather before the leather breaks you.\n",
+      "lore": "Steel over the foot, which sounds unnecessary until the first time a horse is involved. The Vanguard pattern is jointed at the toe so the wearer can still run, though nobody who has run in them describes it that way afterward.\n",
       "ref": "vanguard-sabatons",
       "key": 614,
       "id": "01KXFBEGM1PWT3E718RFZQ1XAC",
@@ -7529,6 +8092,18 @@
         "width": 2,
         "height": 1
       },
+      "setRef": "vanguard",
+      "tags": [
+        "armor",
+        "vanguard",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Garrison quartermaster"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -7538,6 +8113,7 @@
         "hidden": true
       },
       "description": "A skirted hip harness that guards the belt line, where mail ends and regret begins.\n",
+      "lore": "The plates that hang where the faulds end, guarding the gap a seated rider opens and a walking soldier forgets about. Two points of armor and one point of constant minor annoyance, which is the standing trade for anything that protects the hip.\n",
       "ref": "vanguard-tassets",
       "key": 610,
       "id": "01KXFBEGM12NRWN6TT8FBSMSP9",
@@ -7572,6 +8148,18 @@
         "width": 2,
         "height": 1
       },
+      "setRef": "vanguard",
+      "tags": [
+        "armor",
+        "vanguard",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "vendor",
+          "sourceName": "Garrison quartermaster"
+        }
+      ],
       "hasImg": true
     },
     {
@@ -7998,6 +8586,7 @@
         "hidden": true
       },
       "description": "Boiled leather on a waxed cord. Proof that something happened, and that you are still here to not talk about it.\n",
+      "lore": "Standard-issue for an injury that stopped being standard-issue several centuries ago, which has not slowed production. Most wearers no longer need one. They keep it because a patch reads, at fifty paces, as a completed story about a person who won, and that saves a great deal of talking.\n",
       "ref": "worn-eye-patch",
       "key": 602,
       "id": "01KXFBEGM016HQ7DD3KG84JWB5",
@@ -8027,6 +8616,19 @@
           }
         }
       },
+      "setRef": "vanguard",
+      "tags": [
+        "armor",
+        "vanguard",
+        "herbmail"
+      ],
+      "sources": [
+        {
+          "sourceType": "drop",
+          "sourceName": "Field salvage",
+          "dropRate": 0.2
+        }
+      ],
       "hasImg": true
     },
     {
