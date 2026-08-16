@@ -32,6 +32,7 @@ const LAYER := 130
 var _root: Control
 var _column: VBoxContainer
 var _done := false
+var _elapsed := 0.0
 
 
 ## Puts a card up and hands it back. Parented to the world rather than the tree root, so
@@ -100,21 +101,43 @@ func _rule() -> Panel:
 	return rule
 
 
+## Advanced by hand rather than by a tween.
+##
+## A tween is a second thing that has to keep running for this one to end, and the card is
+## what the conversation behind it is waiting on -- a tween that never reaches its callback
+## leaves the player unable to talk to anybody ever again. Counting the seconds here means
+## the card cannot end in any way except the one that also tells the interactor.
 func _play() -> void:
 	_root.modulate.a = 0.0
 	_column.position.y = DRIFT
-	var run := create_tween()
-	run.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
-	run.set_parallel(true)
-	run.tween_property(_root, "modulate:a", 1.0, RISE)
-	run.tween_property(_column, "position:y", 0.0, RISE)
-	run.set_parallel(false)
-	run.tween_interval(HOLD)
-	run.set_parallel(true)
-	run.tween_property(_root, "modulate:a", 0.0, FALL)
-	run.tween_property(_column, "position:y", -DRIFT, FALL)
-	run.set_parallel(false)
-	run.tween_callback(dismiss)
+	_elapsed = 0.0
+	set_process(true)
+
+
+func _process(delta: float) -> void:
+	if _done:
+		return
+	_elapsed += delta
+	if _elapsed >= RISE + HOLD + FALL:
+		dismiss()
+		return
+	## Up, held, and away, with the drift running against the fade at both ends.
+	var shown := 1.0
+	var lift := 0.0
+	if _elapsed < RISE:
+		shown = _eased(_elapsed / RISE)
+		lift = DRIFT * (1.0 - shown)
+	elif _elapsed > RISE + HOLD:
+		var out := _eased((_elapsed - RISE - HOLD) / FALL)
+		shown = 1.0 - out
+		lift = -DRIFT * out
+	_root.modulate.a = shown
+	_column.position.y = lift
+
+
+static func _eased(t: float) -> float:
+	var at := clampf(t, 0.0, 1.0)
+	return 1.0 - pow(1.0 - at, 3.0)
 
 
 ## How long a card takes start to finish, for anything that would rather wait than listen.

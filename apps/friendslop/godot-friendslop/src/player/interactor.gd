@@ -27,10 +27,11 @@ const MEETING_INK := Color(0.08, 0.06, 0.05, 1.0)
 var _target: Node3D
 var _body: Node3D
 var _talking := false
-## A card is up and the conversation behind it has not opened yet. Nothing else may be
-## started in that gap, or a player leaning on the key introduces themselves to somebody and
-## then immediately talks to whoever else is in reach.
-var _introducing := false
+## The card standing between the key being pressed and the conversation opening. Held as the
+## node rather than as a flag: a flag can only be cleared by the thing that set it, and if
+## that thing dies the player is left unable to talk to anybody for the rest of the session.
+## A node can be asked whether it is still there.
+var _card: Node
 
 
 func _ready() -> void:
@@ -38,7 +39,7 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	if PanelScript.is_open() or _introducing:
+	if busy():
 		_aim(null)
 		return
 	## Belt and braces: a panel that went away without saying so would otherwise leave the
@@ -48,6 +49,16 @@ func _process(_delta: float) -> void:
 		if _body and _body.has_method("set_talking"):
 			_body.set_talking(false)
 	_aim(_nearest())
+
+
+## Whether the player is already in the middle of something and may not start another.
+##
+## Asked of the world rather than remembered: a panel that is up is up, and a card that
+## still exists is still up. Nothing here can be left set by a step that did not finish,
+## which is the failure this is written against -- a stuck flag reads exactly like a player
+## who has permanently lost the ability to talk to anybody.
+func busy() -> bool:
+	return PanelScript.is_open() or is_instance_valid(_card)
 
 
 ## The offer is written over whoever it is for, so only one of them may be showing it.
@@ -97,8 +108,7 @@ func _look_basis() -> Basis:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not event.is_action_pressed(&"interact") or _target == null \
-			or PanelScript.is_open() or _introducing:
+	if not event.is_action_pressed(&"interact") or _target == null or busy():
 		return
 	get_viewport().set_input_as_handled()
 	_talk_to(_target)
@@ -116,13 +126,22 @@ func _talk_to(actor: Node3D) -> void:
 	## caption on a box, a name arriving before it is an introduction.
 	if _first_meeting(actor):
 		actor.meet()
-		_introducing = true
 		var card := CardScript.present(get_tree(), actor.display_name(), actor.role_name())
-		card.finished.connect(func() -> void:
-			_introducing = false
-			_open_talk(actor, graph))
+		_card = card
+		## Hung off the card leaving the tree rather than off its own signal. However the
+		## card ends -- run through, skipped, or the world pulled out from under it -- it
+		## leaves the tree exactly once, and that is the one event that cannot be missed.
+		card.tree_exited.connect(func() -> void: _after_card(actor, graph), CONNECT_ONE_SHOT)
 		return
 	_open_talk(actor, graph)
+
+
+## The card is gone. Whether the conversation behind it can still be opened is a separate
+## question -- the point is that the player is no longer held either way.
+func _after_card(actor: Node3D, graph: DialogueGraph) -> void:
+	_card = null
+	if is_instance_valid(actor) and actor.is_inside_tree():
+		_open_talk(actor, graph)
 
 
 ## Puts the conversation up and ties the speaker to it. Split out because a first meeting
