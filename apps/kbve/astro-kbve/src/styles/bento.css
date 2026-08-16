@@ -1126,16 +1126,48 @@
 		opacity: 0.6;
 	}
 
-	/* Text input sized for cards. Transparent so it reads as part of the
-	   glass rather than a pasted-on form control. */
+	/* Stacked form scaffold. Field wraps a label and its control; the label
+	   is quiet so the input stays the focal point. */
+	.bento-form {
+		display: flex;
+		flex-direction: column;
+		gap: 0.85rem;
+	}
+	.bento-field {
+		display: flex;
+		flex-direction: column;
+		gap: 0.3rem;
+	}
+	.bento-field__label {
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--sl-color-gray-2);
+	}
+
+	/* Positions a control that sits over the input, such as the password
+	   reveal toggle. */
+	.bento-input-wrap {
+		position: relative;
+		display: flex;
+	}
+
+	/* Text input sized for cards and dialogs. */
 	.bento-input {
 		width: 100%;
 		padding: 0.6rem 0.75rem;
-		border-radius: 0.5rem;
-		border: 1px solid color-mix(in oklab, currentColor 25%, transparent);
-		background: transparent;
-		color: inherit;
-		font-size: 1rem;
+		font-size: 0.9rem;
+		color: var(--sl-color-white);
+		background: color-mix(in srgb, var(--sl-color-white) 5%, transparent);
+		border: 1px solid
+			var(--bento-hairline-strong, rgba(255, 255, 255, 0.12));
+		border-radius: 9px;
+		outline: none;
+	}
+	.bento-input::placeholder {
+		color: var(--sl-color-gray-4);
+	}
+	.bento-input:focus {
+		border-color: var(--sl-color-accent);
 	}
 	.bento-input:focus-visible {
 		outline: 2px solid var(--bento-accent);
@@ -1147,5 +1179,69 @@
 		font-size: 1.35rem;
 		letter-spacing: 0.18em;
 		text-transform: uppercase;
+	}
+	.bento-input__peek {
+		position: absolute;
+		right: 0.4rem;
+		top: 50%;
+		transform: translateY(-50%);
+		padding: 0.2rem 0.4rem;
+		background: transparent;
+		border: none;
+		color: var(--sl-color-gray-3);
+		font-size: 0.7rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+	.bento-input__peek:hover {
+		color: var(--sl-color-white);
+	}
+
+	/* Submission failure banner, distinct from .bento-note because it owns a
+	   tinted background rather than sitting inline. */
+	.bento-form__error {
+		padding: 0.5rem 0.7rem;
+		border-radius: 8px;
+		font-size: 0.8rem;
+		color: var(--color-red, #f87171);
+		background: color-mix(
+			in srgb,
+			var(--color-red, #ef4444) 12%,
+			transparent
+		);
+	}
+	.bento-form__submit {
+		padding: 0.7rem 1rem;
+		border: none;
+		border-radius: 9px;
+		font-size: 0.9rem;
+		font-weight: 600;
+		color: var(--sl-color-black);
+		background: var(--sl-color-accent-high, var(--sl-color-accent));
+		cursor: pointer;
+		transition: opacity 160ms ease;
+	}
+	.bento-form__submit.is-disabled {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	/* Labelled rule between a form and its alternatives. Callers set their
+	   own margin; the rules themselves are shared. */
+	.bento-divider {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		color: var(--sl-color-gray-4);
+		font-size: 0.7rem;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+	}
+	.bento-divider::before,
+	.bento-divider::after {
+		content: '';
+		flex: 1;
+		height: 1px;
+		background: var(--bento-hairline, rgba(255, 255, 255, 0.08));
 	}
 }

@@ -87,14 +87,11 @@ export default function ReactAuthGateModal() {
 					wallet, credits, and referrals.
 				</p>
 
-				<form
-					className="auth-gate__form"
-					onSubmit={onSubmit}
-					noValidate>
-					<label className="auth-gate__field">
-						<span className="auth-gate__label">Email</span>
+				<form className="bento-form" onSubmit={onSubmit} noValidate>
+					<label className="bento-field">
+						<span className="bento-field__label">Email</span>
 						<input
-							className="auth-gate__input"
+							className="bento-input"
 							type="email"
 							autoComplete="email"
 							placeholder="you@example.com"
@@ -103,11 +100,11 @@ export default function ReactAuthGateModal() {
 						/>
 					</label>
 
-					<label className="auth-gate__field">
-						<span className="auth-gate__label">Password</span>
-						<div className="auth-gate__inputwrap">
+					<label className="bento-field">
+						<span className="bento-field__label">Password</span>
+						<div className="bento-input-wrap">
 							<input
-								className="auth-gate__input"
+								className="bento-input"
 								type={peek ? 'text' : 'password'}
 								autoComplete="current-password"
 								placeholder="8+ characters"
@@ -116,7 +113,7 @@ export default function ReactAuthGateModal() {
 							/>
 							<button
 								type="button"
-								className="auth-gate__peek"
+								className="bento-input__peek"
 								onClick={() => setPeek((p) => !p)}
 								aria-label={
 									peek ? 'Hide password' : 'Show password'
@@ -138,12 +135,12 @@ export default function ReactAuthGateModal() {
 						/>
 					</div>
 
-					{error && <div className="auth-gate__error">{error}</div>}
+					{error && <div className="bento-form__error">{error}</div>}
 
 					<button
 						type="submit"
 						className={cn(
-							'auth-gate__submit',
+							'bento-form__submit',
 							!canSubmit && 'is-disabled',
 						)}
 						disabled={!canSubmit}>
@@ -151,7 +148,7 @@ export default function ReactAuthGateModal() {
 					</button>
 				</form>
 
-				<div className="auth-gate__divider">
+				<div className="bento-divider">
 					<span>or sign in with</span>
 				</div>
 
@@ -213,49 +210,8 @@ export default function ReactAuthGateModal() {
 					font-size: 0.85rem; line-height: 1.5;
 					color: var(--sl-color-gray-3);
 				}
-				.auth-gate__form { display: flex; flex-direction: column; gap: 0.85rem; }
-				.auth-gate__field { display: flex; flex-direction: column; gap: 0.3rem; }
-				.auth-gate__label { font-size: 0.75rem; font-weight: 600; color: var(--sl-color-gray-2); }
-				.auth-gate__inputwrap { position: relative; display: flex; }
-				.auth-gate__input {
-					width: 100%; padding: 0.6rem 0.75rem; font-size: 0.9rem;
-					color: var(--sl-color-white);
-					background: color-mix(in srgb, var(--sl-color-white) 5%, transparent);
-					border: 1px solid var(--bento-hairline-strong, rgba(255,255,255,0.12));
-					border-radius: 9px; outline: none;
-				}
-				.auth-gate__input::placeholder { color: var(--sl-color-gray-4); }
-				.auth-gate__input:focus { border-color: var(--sl-color-accent); }
-				.auth-gate__peek {
-					position: absolute; right: 0.4rem; top: 50%; transform: translateY(-50%);
-					background: transparent; border: none; color: var(--sl-color-gray-3);
-					font-size: 0.7rem; font-weight: 600; cursor: pointer; padding: 0.2rem 0.4rem;
-				}
-				.auth-gate__peek:hover { color: var(--sl-color-white); }
 				.auth-gate__captcha { display: flex; justify-content: center; min-height: 78px; }
-				.auth-gate__error {
-					font-size: 0.8rem; color: var(--color-red, #f87171);
-					background: color-mix(in srgb, var(--color-red, #ef4444) 12%, transparent);
-					border-radius: 8px; padding: 0.5rem 0.7rem;
-				}
-				.auth-gate__submit {
-					padding: 0.7rem 1rem; font-size: 0.9rem; font-weight: 600;
-					color: var(--sl-color-black);
-					background: var(--sl-color-accent-high, var(--sl-color-accent));
-					border: none; border-radius: 9px; cursor: pointer;
-					transition: opacity 160ms ease;
-				}
-				.auth-gate__submit.is-disabled { opacity: 0.5; cursor: not-allowed; }
-				.auth-gate__divider {
-					display: flex; align-items: center; gap: 0.75rem;
-					margin: 1.1rem 0 0.85rem;
-					color: var(--sl-color-gray-4);
-					font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em;
-				}
-				.auth-gate__divider::before, .auth-gate__divider::after {
-					content: ''; flex: 1; height: 1px;
-					background: var(--bento-hairline, rgba(255,255,255,0.08));
-				}
+				.auth-gate .bento-divider { margin: 1.1rem 0 0.85rem; }
 				.auth-gate .auth-buttons { display: flex; flex-direction: column; gap: 0.5rem; }
 				.auth-gate .auth-button {
 					display: flex; align-items: center; justify-content: center; gap: 0.5rem;
