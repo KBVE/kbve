@@ -89,6 +89,20 @@ const CROUCH_CHAIN := [
 	{"from": "crouch_exit", "to": "crouch", "at_end": false, "xfade": 0.12},
 ]
 
+## Turning on the spot is left the moment there is somewhere to walk, so none of these
+## wait on the clip: a turn that has to finish before the body will move is a turn that
+## eats the first half-second of every input after it.
+const TURN_CHAIN := [
+	{"from": "move", "to": "turn_90_l", "at_end": false, "xfade": 0.12},
+	{"from": "move", "to": "turn_90_r", "at_end": false, "xfade": 0.12},
+	{"from": "move", "to": "turn_180_l", "at_end": false, "xfade": 0.12},
+	{"from": "move", "to": "turn_180_r", "at_end": false, "xfade": 0.12},
+	{"from": "turn_90_l", "to": "move", "at_end": false, "xfade": 0.16},
+	{"from": "turn_90_r", "to": "move", "at_end": false, "xfade": 0.16},
+	{"from": "turn_180_l", "to": "move", "at_end": false, "xfade": 0.16},
+	{"from": "turn_180_r", "to": "move", "at_end": false, "xfade": 0.16},
+]
+
 ## A roll can be thrown from either stance and always ends standing.
 const ROLL_CHAIN := [
 	{"from": "move", "to": "roll", "at_end": false, "xfade": 0.07},
@@ -109,6 +123,10 @@ const STATES := {
 	&"jump_land": {&"clip": "UAL1/Jump_Land", &"reset": true, &"ik": 0.7},
 	&"climb_low": {&"clip": "UAL2/ClimbUp_1m", &"reset": true, &"ik": 0.0},
 	&"climb_high": {&"clip": "UAL2/ClimbUp_2m", &"reset": true, &"ik": 0.0},
+	&"turn_90_l": {&"clip": "UAL1/Turn90_L", &"reset": true, &"ik": 1.0},
+	&"turn_90_r": {&"clip": "UAL1/Turn90_R", &"reset": true, &"ik": 1.0},
+	&"turn_180_l": {&"clip": "UAL2/Turn180_L", &"reset": true, &"ik": 1.0},
+	&"turn_180_r": {&"clip": "UAL2/Turn180_R", &"reset": true, &"ik": 1.0},
 }
 
 ## QLocomotion decides in stances; the state machine is addressed by name.
@@ -120,6 +138,10 @@ const STANCE_STATES := {
 	QLocomotion.STANCE_CROUCH: &"crouch",
 	QLocomotion.STANCE_ROLL: &"roll",
 	QLocomotion.STANCE_LAND: &"jump_land",
+	QLocomotion.STANCE_TURN_90_LEFT: &"turn_90_l",
+	QLocomotion.STANCE_TURN_90_RIGHT: &"turn_90_r",
+	QLocomotion.STANCE_TURN_180_LEFT: &"turn_180_l",
+	QLocomotion.STANCE_TURN_180_RIGHT: &"turn_180_r",
 }
 
 ## Unit ring, counter-clockwise from forward.
@@ -256,7 +278,7 @@ func _build_tree(rig: Node3D) -> void:
 			var node := _clip(clip)
 			if node:
 				machine.add_node(state, _rescaled(node))
-	for link in JUMP_CHAIN + CLIMB_CHAIN + CROUCH_CHAIN + ROLL_CHAIN:
+	for link in JUMP_CHAIN + CLIMB_CHAIN + CROUCH_CHAIN + ROLL_CHAIN + TURN_CHAIN:
 		if not machine.has_node(link.from) or not machine.has_node(link.to):
 			continue
 		machine.add_transition(link.from, link.to, _transition(link))
@@ -399,6 +421,19 @@ func debug_state() -> String:
 			",".join(Array(playback.get_travel_path()).map(func(n): return str(n)))]
 
 
+## Points the body and picks its gait from world-space travel.
+##
+## `aim_yaw` is where whoever is driving the body is looking. It only decides the facing
+## while the body is standing still, which is what lets a turn be taken in preparation for
+## a move rather than trailing one that already happened. A body with nobody behind it
+## passes its own facing and so only ever turns to where it is going.
+func drive(world_velocity: Vector3, aim_yaw: float, airborne: bool, delta: float) -> void:
+	if tree == null:
+		return
+	global_rotation.y = loco.face(world_velocity, aim_yaw, delta)
+	set_locomotion(global_transform.basis.inverse() * world_velocity, airborne, delta)
+
+
 ## local_velocity is in the character's own frame: +x right, +z backward.
 func set_locomotion(local_velocity: Vector3, airborne: bool, delta: float) -> void:
 	if tree == null:
@@ -416,7 +451,22 @@ func set_locomotion(local_velocity: Vector3, airborne: bool, delta: float) -> vo
 		return
 	var want: StringName = STANCE_STATES[loco.stance()]
 	if playback.get_travel_path().is_empty() and playback.get_current_node() != want:
+		_fit_turn(want)
 		playback.travel(want)
+
+
+## The four turn clips cover a quarter and a half circle, but a turn is taken at whatever
+## width the aim happened to be at. Replaying the clip over the time the body will really
+## spend coming round is what keeps the feet under it, and is why this cannot be fitted
+## once at build time the way the other one-shots are.
+func _fit_turn(state: StringName) -> void:
+	var window := loco.turn_window()
+	if window <= 0.0 or not STATES.has(state):
+		return
+	var clip: String = STATES[state].clip
+	if clip == "" or not animation.has_animation(clip):
+		return
+	tree.set("parameters/%s/scale/scale" % state, animation.get_animation(clip).length / window)
 
 
 ## Leg solve weight for the pose that is actually on the skeleton.

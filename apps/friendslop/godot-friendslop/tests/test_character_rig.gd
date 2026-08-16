@@ -9,7 +9,7 @@ const COMPOSED := [&"move", &"crouch", &"roll"]
 
 
 func _links() -> Array:
-	return Rig.JUMP_CHAIN + Rig.CLIMB_CHAIN + Rig.CROUCH_CHAIN + Rig.ROLL_CHAIN
+	return Rig.JUMP_CHAIN + Rig.CLIMB_CHAIN + Rig.CROUCH_CHAIN + Rig.ROLL_CHAIN + Rig.TURN_CHAIN
 
 
 ## A state named in a transition but missing from STATES takes the tree build down with
@@ -50,7 +50,9 @@ func test_states_are_fully_specified() -> void:
 func test_every_stance_maps_to_a_real_state() -> void:
 	var stances := [QLocomotion.STANCE_MOVE, QLocomotion.STANCE_JUMP,
 			QLocomotion.STANCE_CLIMB_LOW, QLocomotion.STANCE_CLIMB_HIGH,
-			QLocomotion.STANCE_CROUCH, QLocomotion.STANCE_ROLL, QLocomotion.STANCE_LAND]
+			QLocomotion.STANCE_CROUCH, QLocomotion.STANCE_ROLL, QLocomotion.STANCE_LAND,
+			QLocomotion.STANCE_TURN_90_LEFT, QLocomotion.STANCE_TURN_90_RIGHT,
+			QLocomotion.STANCE_TURN_180_LEFT, QLocomotion.STANCE_TURN_180_RIGHT]
 	for stance in stances:
 		assert_bool(Rig.STANCE_STATES.has(stance)) \
 				.override_failure_message("stance %d is unmapped" % stance).is_true()
@@ -151,6 +153,40 @@ func test_air_hands_the_legs_back() -> void:
 	assert_float(Rig.STATES[&"climb_low"][&"ik"]).is_equal(0.0)
 	assert_float(Rig.STATES[&"climb_high"][&"ik"]).is_equal(0.0)
 	assert_float(Rig.STATES[&"move"][&"ik"]).is_equal(1.0)
+
+
+## The kit models face +z and Godot's forward is -z, so a heading read the wrong way round
+## is a character that sprints backwards while the ring plays it the backpedal. That is
+## what every online avatar did, and nothing in the tree noticed.
+func test_a_driven_body_faces_the_way_it_travels() -> void:
+	for travel in [Vector3(0, 0, -4), Vector3(4, 0, 0), Vector3(-3, 0, 3)]:
+		var avatar: Node3D = load("res://scenes/net_avatar.tscn").instantiate()
+		add_child(avatar)
+		await get_tree().process_frame
+		for i in 240:
+			avatar.global_position += travel * (1.0 / 60.0)
+			avatar._process(1.0 / 60.0)
+		var rig: Node3D = avatar.get_node("Mesh")
+		var forward: Vector3 = -rig.global_transform.basis.z
+		assert_float(forward.normalized().dot(travel.normalized())) \
+				.override_failure_message("travelling %s the body faced %s" % [travel, forward]) \
+				.is_greater(0.99)
+		assert_float(rig.loco.blend().y) \
+				.override_failure_message("travelling %s the ring played %s" % [travel, rig.loco.blend()]) \
+				.is_greater(0.5)
+		avatar.queue_free()
+
+
+## Standing still and swinging the camera has to turn the body, or there is no way to be
+## ready to move before moving. A glance must not, or looking around drags the feet.
+func test_a_standing_body_turns_to_a_committed_look_but_not_a_glance() -> void:
+	var loco := QLocomotion.create()
+	for i in 120:
+		loco.face(Vector3.ZERO, 0.5, 1.0 / 60.0)
+	assert_float(loco.face(Vector3.ZERO, 0.5, 1.0 / 60.0)).is_equal(0.0)
+	for i in 240:
+		loco.face(Vector3.ZERO, 1.4, 1.0 / 60.0)
+	assert_float(loco.face(Vector3.ZERO, 1.4, 1.0 / 60.0)).is_equal_approx(1.4, 0.02)
 
 
 func test_ground_weight_follows_the_crossfade() -> void:

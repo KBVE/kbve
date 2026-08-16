@@ -49,6 +49,10 @@ pub enum Stance {
     Crouch = 4,
     Roll = 5,
     Land = 6,
+    Turn90Left = 7,
+    Turn90Right = 8,
+    Turn180Left = 9,
+    Turn180Right = 10,
 }
 
 impl Stance {
@@ -60,8 +64,21 @@ impl Stance {
             4 => Self::Crouch,
             5 => Self::Roll,
             6 => Self::Land,
+            7 => Self::Turn90Left,
+            8 => Self::Turn90Right,
+            9 => Self::Turn180Left,
+            10 => Self::Turn180Right,
             _ => Self::Move,
         }
+    }
+
+    /// Whether this stance is a standing turn, which is the one thing that moves the body
+    /// without any velocity under it.
+    pub fn is_turn(self) -> bool {
+        matches!(
+            self,
+            Self::Turn90Left | Self::Turn90Right | Self::Turn180Left | Self::Turn180Right
+        )
     }
 }
 
@@ -102,6 +119,22 @@ pub struct Tuning {
     /// Ground speed that cancels the recovery outright. Walking out of a landing has to
     /// win over finishing the clip, or the feet slide for as long as it has left.
     pub land_cancel_speed: f32,
+    /// How fast the body comes round on the spot, radians per second.
+    pub turn_rate: f32,
+    /// How fast it comes round while travelling. Deliberately far quicker: a run that
+    /// turns at standing pace reads as ice, and the ring is already leaning through it.
+    pub turn_rate_moving: f32,
+    /// Ground speed above which facing follows travel instead of the aim.
+    pub turn_idle_speed: f32,
+    /// How far the aim has to leave the body before a standing turn is worth taking.
+    /// Below it the body holds still, so looking around does not drag the feet with it.
+    pub turn_deadzone: f32,
+    /// Remaining error that finishes a standing turn. Paired with the deadzone this is
+    /// hysteresis: without it the body would chatter in and out of a turn at the
+    /// threshold.
+    pub turn_settle: f32,
+    /// Standing turn wider than this plays the half circle rather than the quarter.
+    pub turn_half_split: f32,
 }
 
 impl Default for Tuning {
@@ -125,6 +158,12 @@ impl Default for Tuning {
             air_grace: 0.12,
             land_time: 0.32,
             land_cancel_speed: 0.5,
+            turn_rate: 3.2,
+            turn_rate_moving: 9.0,
+            turn_idle_speed: 0.35,
+            turn_deadzone: 0.79,
+            turn_settle: 0.06,
+            turn_half_split: 2.36,
         }
     }
 }
@@ -157,6 +196,21 @@ impl Default for Motion {
             jumped: false,
         }
     }
+}
+
+/// Which way the body is pointed, which is its own decision rather than a reading taken
+/// off the last two positions.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Facing {
+    /// World yaw, radians, zero facing -z.
+    pub yaw: f32,
+    /// Signed angle still to come round, positive turning left. What is left of a turn is
+    /// what the ring leans through, so this is the whole of the lean.
+    pub error: f32,
+    /// Seconds the standing turn in progress was committed to, and zero when the body is
+    /// not turning on the spot. A turn clip is authored at one length and used for every
+    /// width of turn, so it only lands on the feet if it is replayed over this.
+    pub window: f32,
 }
 
 /// The decision, as the rig and the wire both want it.
@@ -197,6 +251,12 @@ pub struct Locomotion {
     roll_dir: [f32; 3],
     air_t: f32,
     land_t: f32,
+    facing: f32,
+    /// The standing turn the body has committed to, held until it is turned out so that
+    /// the aim wandering back inside the deadzone cannot abandon it half way round.
+    turning: Option<Stance>,
+    /// How wide that turn was when it was taken, which is what its clip is fitted to.
+    turn_span: f32,
 }
 
 impl Default for Locomotion {
@@ -217,6 +277,9 @@ impl Locomotion {
             roll_dir: [0.0, 0.0, -1.0],
             air_t: 0.0,
             land_t: 0.0,
+            facing: 0.0,
+            turning: None,
+            turn_span: 0.0,
         }
     }
 
@@ -323,6 +386,71 @@ impl Locomotion {
         }
     }
 
+    /// World yaw the body is pointed along.
+    pub fn facing(&self) -> f32 {
+        self.facing
+    }
+
+    /// The yaw that faces `dir`, which is the inverse of [`Self::wish_direction`].
+    pub fn heading_of(dir: [f32; 3]) -> f32 {
+        (-dir[0]).atan2(-dir[2])
+    }
+
+    /// Turns the body toward where it is going, or toward the aim when it is not going
+    /// anywhere, and reports what is left of the turn.
+    ///
+    /// Travel wins over aim while moving because a body that pointed at the camera would
+    /// strafe everywhere and never turn; aim wins while standing because that is the only
+    /// way a turn can be taken before the movement it is preparing for rather than after.
+    pub fn face(&mut self, world_velocity: [f32; 3], aim_yaw: f32, dt: f32) -> Facing {
+        let speed =
+            (world_velocity[0] * world_velocity[0] + world_velocity[2] * world_velocity[2]).sqrt();
+        let moving = speed > self.tuning.turn_idle_speed;
+        let target = if moving {
+            Self::heading_of(world_velocity)
+        } else {
+            aim_yaw
+        };
+        let error = wrap_angle(target - self.facing);
+
+        let mut window = 0.0;
+        if moving {
+            self.turning = None;
+        } else {
+            if self.turning.is_none() {
+                if error.abs() < self.tuning.turn_deadzone {
+                    return Facing {
+                        yaw: self.facing,
+                        error,
+                        window: 0.0,
+                    };
+                }
+                self.turning = Some(turn_stance(error, self.tuning.turn_half_split));
+                self.turn_span = error.abs();
+            } else if error.abs() <= self.tuning.turn_settle {
+                self.turning = None;
+                return Facing {
+                    yaw: self.facing,
+                    error,
+                    window: 0.0,
+                };
+            }
+            window = self.turn_span / self.tuning.turn_rate.max(0.01);
+        }
+
+        let step = if moving {
+            self.tuning.turn_rate_moving
+        } else {
+            self.tuning.turn_rate
+        } * dt;
+        self.facing = wrap_angle(self.facing + error.clamp(-step, step));
+        Facing {
+            yaw: self.facing,
+            error: wrap_angle(target - self.facing),
+            window,
+        }
+    }
+
     /// Latches a climb, so a body the controller reports airborne mid-haul does not
     /// travel back out of the climb it is halfway through.
     pub fn begin_climb(&mut self, rise: f32) -> Stance {
@@ -390,7 +518,7 @@ impl Locomotion {
                 None if self.air_t > self.tuning.air_grace => Stance::Jump,
                 None if self.crouched => Stance::Crouch,
                 None if self.land_t > 0.0 => Stance::Land,
-                None => Stance::Move,
+                None => self.turning.unwrap_or(Stance::Move),
             },
         }
     }
@@ -440,6 +568,23 @@ impl Locomotion {
         let expected = lerp(slow, fast, (radius - GAITS[0].radius).clamp(0.0, 1.0));
         (speed / expected.max(0.01)).clamp(self.tuning.time_scale_min, self.tuning.time_scale_max)
     }
+}
+
+/// Which turn clip covers `error`, by side and by width.
+fn turn_stance(error: f32, half_split: f32) -> Stance {
+    match (error > 0.0, error.abs() >= half_split) {
+        (true, false) => Stance::Turn90Left,
+        (false, false) => Stance::Turn90Right,
+        (true, true) => Stance::Turn180Left,
+        (false, true) => Stance::Turn180Right,
+    }
+}
+
+/// Into -pi..pi, so the body always turns the short way round.
+fn wrap_angle(radians: f32) -> f32 {
+    let turn = std::f32::consts::TAU;
+    let shifted = (radians + std::f32::consts::PI).rem_euclid(turn);
+    shifted - std::f32::consts::PI
 }
 
 fn lerp(from: f32, to: f32, t: f32) -> f32 {
@@ -546,6 +691,103 @@ mod tests {
                 assert!(r >= 0.0 && r <= GAITS[1].radius + 0.001, "{speed} -> {r}");
             }
         }
+    }
+
+    fn drive(l: &mut Locomotion, velocity: [f32; 3], aim: f32, seconds: f32) -> Facing {
+        let dt = 1.0 / 60.0;
+        let mut out = Facing::default();
+        for _ in 0..(seconds / dt) as usize {
+            out = l.face(velocity, aim, dt);
+        }
+        out
+    }
+
+    /// The one that matters: the yaw a body is given has to be the yaw that sends it where
+    /// it is going. Read the other way round by mistake it is off by half a turn, which is
+    /// a character sprinting backwards -- exactly what the online avatar did.
+    #[test]
+    fn the_heading_of_a_direction_faces_that_direction() {
+        let l = loco();
+        for axis in [FWD, BACK, SIDE, [-1.0, 0.0], [0.6, -0.8]] {
+            for yaw in [0.0, 0.7, -2.4, 3.0] {
+                let dir = l.wish_direction(axis, yaw);
+                let round_trip = l.wish_direction(FWD, Locomotion::heading_of(dir));
+                assert!(
+                    dir[0] * round_trip[0] + dir[2] * round_trip[2] > 0.999,
+                    "{axis:?}@{yaw}: {dir:?} came back as {round_trip:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn facing_settles_on_the_way_the_body_travels() {
+        let mut l = loco();
+        let out = drive(&mut l, [5.0, 0.0, 0.0], 0.0, 2.0);
+        let dir = l.wish_direction(FWD, out.yaw);
+        assert!(dir[0] > 0.999, "travelling +x the body faced {dir:?}");
+        assert!(out.error.abs() < 0.01, "left {} to turn", out.error);
+    }
+
+    /// Looking around is not walking around: a small camera move must not drag the feet.
+    #[test]
+    fn a_standing_body_ignores_a_glance() {
+        let mut l = loco();
+        let out = drive(&mut l, [0.0; 3], 0.5, 2.0);
+        assert_eq!(out.yaw, 0.0, "a half-radian glance turned the body");
+        assert_eq!(out.window, 0.0);
+    }
+
+    #[test]
+    fn a_standing_body_turns_to_a_committed_look() {
+        let mut l = loco();
+        let mut state = LocomotionState::default();
+        let mut saw = Stance::Move;
+        for _ in 0..30 {
+            l.face([0.0; 3], 1.4, 1.0 / 60.0);
+            state = l.step([0.0; 3], false, 1.0 / 60.0);
+            if state.stance.is_turn() {
+                saw = state.stance;
+            }
+        }
+        assert_eq!(saw, Stance::Turn90Left, "turning left played {saw:?}");
+        let out = drive(&mut l, [0.0; 3], 1.4, 2.0);
+        assert!((out.yaw - 1.4).abs() < 0.02, "settled at {}", out.yaw);
+        assert!(!state.stance.is_turn() || out.window > 0.0);
+    }
+
+    #[test]
+    fn a_wide_turn_takes_the_half_circle() {
+        let mut l = loco();
+        l.face([0.0; 3], 3.0, 1.0 / 60.0);
+        let state = l.step([0.0; 3], false, 1.0 / 60.0);
+        assert_eq!(state.stance, Stance::Turn180Left);
+    }
+
+    /// The aim wandering back inside the deadzone mid-turn must not abandon it, or the
+    /// body stops half way round and stays there.
+    #[test]
+    fn a_turn_once_taken_is_finished() {
+        let mut l = loco();
+        l.face([0.0; 3], 1.4, 1.0 / 60.0);
+        let out = drive(&mut l, [0.0; 3], 0.6, 2.0);
+        assert!((out.yaw - 0.6).abs() < 0.02, "abandoned at {}", out.yaw);
+    }
+
+    #[test]
+    fn the_body_turns_the_short_way_round() {
+        let mut l = loco();
+        let out = drive(&mut l, [0.0; 3], -3.0, 0.1);
+        assert!(out.yaw < 0.0, "went the long way, reaching {}", out.yaw);
+    }
+
+    /// While the body is still coming round, its travel is across it rather than along it
+    /// -- which is the whole of the lean, and why the ring is fed the facing frame.
+    #[test]
+    fn a_turn_in_progress_leaves_the_body_travelling_sideways() {
+        let mut l = loco();
+        let out = l.face([5.0, 0.0, 0.0], 0.0, 1.0 / 60.0);
+        assert!(out.error.abs() > 1.0, "no lean left: {}", out.error);
     }
 
     /// +z is backward in the input frame.
