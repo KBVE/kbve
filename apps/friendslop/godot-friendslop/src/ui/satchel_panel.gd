@@ -12,6 +12,7 @@ extends CanvasLayer
 const CELL := 46.0
 const GAP := 3.0
 const PAD := 14.0
+const CLOSE := 26.0
 
 @export var open_action := &"inventory"
 @export var grid_color := Color(0.10, 0.09, 0.08, 0.80)
@@ -23,6 +24,8 @@ const PAD := 14.0
 ## Where a stack would land, when that is somewhere it may land.
 @export var drop_ok := Color(0.45, 0.72, 0.42, 0.45)
 @export var drop_bad := Color(0.75, 0.30, 0.26, 0.45)
+@export var close_color := Color(0.28, 0.24, 0.20, 0.90)
+@export var close_hot_color := Color(0.62, 0.28, 0.24, 0.95)
 
 var _root: Control
 var _font: Font
@@ -32,6 +35,7 @@ var _held := -1
 ## Where in the held stack the grab happened, so it does not jump to its own corner.
 var _grab := Vector2i.ZERO
 var _mouse := Vector2.ZERO
+var _close_hot := false
 
 
 func _ready() -> void:
@@ -63,13 +67,21 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseMotion:
 		_mouse = event.position
-		if _held >= 0:
+		var hot := _close_rect().has_point(_mouse)
+		var changed := hot != _close_hot
+		_close_hot = hot
+		if _held >= 0 or changed:
 			_root.queue_redraw()
 		return
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		_mouse = event.position
 		if event.pressed:
-			_pick_up()
+			# The button beats the grid to the click, so a stack under it is not picked
+			# up on the way to closing the bag.
+			if _close_rect().has_point(_mouse):
+				_close()
+			else:
+				_pick_up()
 		else:
 			_put_down()
 		get_viewport().set_input_as_handled()
@@ -97,6 +109,7 @@ func _close() -> void:
 	# Anything still in hand goes back where it came from. The journal was never told
 	# about the move, so there is nothing to undo -- only a redraw.
 	_held = -1
+	_close_hot = false
 	visible = false
 	if _was_captured:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
@@ -107,6 +120,23 @@ func _origin() -> Vector2:
 			Journal.COLS * CELL + (Journal.COLS - 1) * GAP,
 			Journal.ROWS * CELL + (Journal.ROWS - 1) * GAP)
 	return ((_root.size - span) * 0.5).floor()
+
+
+## The drawn bag, pad and all.
+func _panel_rect() -> Rect2:
+	return _cell_rect(Vector2i.ZERO, Vector2i(Journal.COLS, Journal.ROWS)).grow(PAD)
+
+
+## The close button, sat on the panel's top-right corner.
+func _close_rect() -> Rect2:
+	var panel := _panel_rect()
+	return Rect2(Vector2(panel.end.x - CLOSE, panel.position.y - CLOSE - 4.0),
+			Vector2(CLOSE, CLOSE))
+
+
+## Everything the bag occupies. Releasing a stack outside this is what drops it.
+func _chrome_rect() -> Rect2:
+	return _panel_rect().merge(_close_rect())
 
 
 func _cell_rect(at: Vector2i, size := Vector2i.ONE) -> Rect2:
@@ -158,13 +188,35 @@ func _put_down() -> void:
 		# the redraw below shows, so a bad drop reads as the item not going there rather
 		# than as anything having gone wrong.
 		Journal.move_stack(_held, cell - _grab)
+	elif not _chrome_rect().has_point(_mouse):
+		# Off the bag entirely is a deliberate throw. Inside it but between cells is a
+		# fumble, and puts the stack back.
+		_drop_to_world(_held)
 	_held = -1
 	_root.queue_redraw()
 
 
+## Takes a stack out of the bag and leaves it on the floor.
+##
+## The bag lets go only once the world has taken it. A drop with nowhere to land -- no
+## GroundItems in the scene, or a ref the itemdb will not spawn -- puts the stack back,
+## because losing something is a worse answer than refusing to throw it.
+func _drop_to_world(index: int) -> void:
+	var ground := GroundItems.of(get_tree())
+	if ground == null:
+		return
+	var taken := Journal.remove_stack(index)
+	if taken.is_empty():
+		return
+	var ref: StringName = taken["ref"]
+	var count := int(taken["count"])
+	if ground.drop_at_player(ref, count) == null:
+		Journal.gain(ref, count)
+
+
 func _draw_panel() -> void:
-	var span := _cell_rect(Vector2i.ZERO, Vector2i(Journal.COLS, Journal.ROWS))
-	_root.draw_rect(span.grow(PAD), grid_color)
+	_root.draw_rect(_panel_rect(), grid_color)
+	_draw_close()
 	for y in Journal.ROWS:
 		for x in Journal.COLS:
 			_root.draw_rect(_cell_rect(Vector2i(x, y)), cell_color)
@@ -178,6 +230,17 @@ func _draw_panel() -> void:
 	if _held >= 0 and _held < stacks.size():
 		_draw_ghost(stacks[_held])
 		_draw_stack(stacks[_held], true)
+
+
+func _draw_close() -> void:
+	var rect := _close_rect()
+	_root.draw_rect(rect, close_hot_color if _close_hot else close_color)
+	_root.draw_rect(rect, edge_color, false, 2.0)
+	var glyph := "x"
+	var span := _font.get_string_size(glyph, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 16)
+	_root.draw_string(_font, rect.position + Vector2((rect.size.x - span.x) * 0.5,
+			(rect.size.y + span.y) * 0.5 - 3.0), glyph, HORIZONTAL_ALIGNMENT_LEFT, -1.0, 16,
+			text_color)
 
 
 ## Where the held stack would land, coloured by whether it may land there.

@@ -138,3 +138,41 @@ func test_the_ground_holds_only_so_many() -> void:
 
 func test_the_field_can_be_found_from_the_tree() -> void:
 	assert_object(GroundItems.of(get_tree())).is_same(_field)
+
+
+## Something the player put down lands at their feet, inside the radius that picks
+## things up. Without the disarm it would be back in the bag the same frame.
+func test_a_dropped_stack_is_not_picked_straight_back_up() -> void:
+	_player.global_position = Vector3(4.0, 0.0, 0.0)
+	var item := _field.drop_at_player(&"log", 3)
+
+	assert_object(item).is_not_null()
+	assert_bool(item.armed).is_false()
+	for i in 30:
+		_field._process(0.016)
+
+	assert_int(Journal.count_of(&"log")) \
+			.override_failure_message("a stack dropped at the player's feet was vacuumed back in") \
+			.is_equal(0)
+	assert_int(_field.items().size()).is_equal(1)
+
+
+## Once the player has walked off it, it is an ordinary drop again.
+func test_walking_away_arms_a_dropped_stack() -> void:
+	_player.global_position = Vector3(4.0, 0.0, 0.0)
+	var item := _field.drop_at_player(&"log", 3)
+
+	_stand_off()
+	_field._process(0.016)
+	assert_bool(item.armed) \
+			.override_failure_message("stepping off a drop left it inert").is_true()
+	assert_int(Journal.count_of(&"log")).is_equal(0)
+
+	_stand_on(item)
+	_field._process(0.016)
+	assert_int(Journal.count_of(&"log")).is_equal(3)
+
+
+func test_a_drop_is_armed_by_default() -> void:
+	_stand_off()
+	assert_bool(_field.drop(&"log", 1, Vector3(4.0, 0.0, 0.0)).armed).is_true()

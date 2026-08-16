@@ -235,6 +235,26 @@ func spend(ref: StringName, count := 1) -> bool:
 	return true
 
 
+## Lifts one whole stack out of the bag and says what it was, or an empty dictionary
+## when there was no such stack.
+##
+## By index rather than by ref, because a bag can hold the same thing in several places
+## and the player dragged one of them in particular. `spend` answers a different question
+## -- how much of a thing to take, from wherever it sits -- and would empty the wrong
+## cell here.
+func remove_stack(index: int) -> Dictionary:
+	if index < 0 or index >= _satchel.size():
+		return {}
+	var stack := _satchel[index]
+	var out := {"ref": stack["ref"], "count": int(stack["count"])}
+	_satchel.remove_at(index)
+	if _quiet:
+		return out
+	satchel_changed.emit(satchel())
+	save_now()
+	return out
+
+
 ## Whether a stack could be put down at `to`. What a panel asks while dragging, so the
 ## answer it previews and the answer it gets are the same one.
 func can_place(index: int, to: Vector2i) -> bool:

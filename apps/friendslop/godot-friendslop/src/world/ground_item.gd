@@ -19,6 +19,10 @@ var count := 0
 
 var age := 0.0
 var retry_in := 0.0
+## Whether this may be picked up yet. Something the player put down lands inside their
+## own pickup radius, so it waits until they have stepped off it -- otherwise dropping a
+## thing and instantly regaining it is the only outcome.
+var armed := true
 
 var _plate: Label3D
 var _shell: MeshInstance3D
