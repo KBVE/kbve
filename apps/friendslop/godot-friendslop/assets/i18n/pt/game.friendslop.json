@@ -9,7 +9,8 @@
 		"build": "v{version}  ·  protocolo {protocol}",
 		"server_protocol": "protocolo do servidor {protocol}",
 		"protocol_mismatch": "esta versão não pode entrar nesse servidor",
-		"server_unreachable": "servidor inacessível"
+		"server_unreachable": "servidor inacessível",
+		"server_protocol_unknown": "protocolo do servidor desconhecido"
 	},
 	"pause": {
 		"log_off": "Encerrar sessão"
@@ -46,7 +47,9 @@
 			"first_person": "Primeira pessoa",
 			"third_person": "Terceira pessoa",
 			"over_shoulder": "Sobre o ombro"
-		}
+		},
+		"bisect": "Ocultar camadas",
+		"bisect_hint": "Oculta partes do mundo uma de cada vez, para você ver no que o quadro está sendo gasto."
 	},
 	"hud": {
 		"connecting": "Conectando a {{url}}…",
@@ -66,5 +69,9 @@
 		"claim": "Reivindicar",
 		"claiming": "reivindicando…",
 		"taken": "Esse já está em uso."
+	},
+	"toast": {
+		"gained": "+{{count}} {{item}}",
+		"no_room": "Bolsa cheia — sem espaço para {{count}} {{item}}"
 	}
 }

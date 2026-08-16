@@ -9,7 +9,8 @@
 		"build": "v{version}  ·  प्रोटोकॉल {protocol}",
 		"server_protocol": "सर्वर प्रोटोकॉल {protocol}",
 		"protocol_mismatch": "यह बिल्ड उस सर्वर से नहीं जुड़ सकता",
-		"server_unreachable": "सर्वर तक नहीं पहुँच सका"
+		"server_unreachable": "सर्वर तक नहीं पहुँच सका",
+		"server_protocol_unknown": "सर्वर प्रोटोकॉल अज्ञात"
 	},
 	"pause": {
 		"log_off": "लॉग ऑफ"
@@ -46,7 +47,9 @@
 			"first_person": "प्रथम पुरुष",
 			"third_person": "तृतीय पुरुष",
 			"over_shoulder": "कंधे के ऊपर"
-		}
+		},
+		"bisect": "परतें छिपाएँ",
+		"bisect_hint": "दुनिया के हिस्सों को एक-एक करके छिपाता है, ताकि आप देख सकें कि फ़्रेम कहाँ खर्च हो रहा है।"
 	},
 	"hud": {
 		"connecting": "{{url}} से जुड़ रहे हैं…",
@@ -66,5 +69,9 @@
 		"claim": "चुनें",
 		"claiming": "दर्ज किया जा रहा है…",
 		"taken": "वह नाम पहले से लिया गया है।"
+	},
+	"toast": {
+		"gained": "+{{count}} {{item}}",
+		"no_room": "बैग भरा है — {{count}} {{item}} के लिए जगह नहीं"
 	}
 }
