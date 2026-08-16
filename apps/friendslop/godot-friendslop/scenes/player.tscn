@@ -1,8 +1,9 @@
-[gd_scene load_steps=12 format=3]
+[gd_scene load_steps=13 format=3]
 
 [ext_resource type="Script" path="res://src/player/player.gd" id="1_player"]
 [ext_resource type="Script" path="res://src/player/camera_rig.gd" id="5_camrig"]
 [ext_resource type="Script" path="res://src/player/interactor.gd" id="11_interactor"]
+[ext_resource type="Script" path="res://src/player/harvester.gd" id="12_harvester"]
 [ext_resource type="Shader" path="res://assets/fx/shaders/ink_lines.gdshader" id="4_ink"]
 [ext_resource type="Script" path="res://src/characters/character_rig.gd" id="6_rig"]
 [ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/models/Regular_Male_FullBody.glb" id="7_body"]
@@ -56,3 +57,6 @@ cast_shadow = 0
 
 [node name="Interactor" type="Node3D" parent="."]
 script = ExtResource("11_interactor")
+
+[node name="Harvester" type="Node3D" parent="."]
+script = ExtResource("12_harvester")

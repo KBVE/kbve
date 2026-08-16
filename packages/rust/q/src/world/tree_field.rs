@@ -12,7 +12,9 @@ use godot::tools::try_load;
 use std::collections::HashMap;
 
 use crate::world::flora_compute::{FloraCompute, HarvestPass, TerrainOcclusion};
-use crate::world::harvest::{Entry, HarvestKind, Ledger, ScatterCore, Tree, stable_id};
+use crate::world::harvest::{
+    Entry, HarvestKind, HarvestOutcome, Ledger, ScatterCore, Tree, stable_id,
+};
 use crate::world::{TerrainSnapshot, hash32, randf, world_aabb};
 
 struct Growth {
@@ -410,6 +412,8 @@ impl QTreeField {
                     variant: kind as u8,
                     ore: 0,
                     amount: 0,
+                    cell: [gx, gz],
+                    ordinal: 0,
                 });
             }
         }
@@ -726,42 +730,29 @@ impl QTreeField {
         let _ = d.insert("alive", self.core.alive(e.id));
         let _ = d.insert("ore", table[e.ore as usize].ore);
         let _ = d.insert("amount", e.amount as i64);
+        // What the wire wants. The host will not take an id from a client, so a
+        // caller that means to work this tree over the network has to be able to
+        // say which cell it is in.
+        let _ = d.insert("cell", Vector2i::new(e.cell[0], e.cell[1]));
+        let _ = d.insert("ordinal", e.ordinal as i64);
         d
     }
 
     #[func]
     fn apply_damage(&mut self, id: i64, hits: i64) -> VarDictionary {
-        let mut d = VarDictionary::new();
-        let Some(out) = self.core.apply_damage(id as u64, hits.clamp(1, 255) as u8) else {
-            let _ = d.insert("hit", false);
-            return d;
-        };
-        let _ = d.insert("hit", true);
-        let _ = d.insert("stage", out.stage as i64);
-        let _ = d.insert("broken", out.broken);
-        let _ = d.insert("ore", out.ore);
-        let _ = d.insert("amount", out.amount as i64);
-        if out.broken {
-            let away = self
-                .core
-                .get(id as u64)
-                .map(|e| {
-                    let from = self
-                        .player
-                        .as_ref()
-                        .map(|p| p.get_global_position())
-                        .unwrap_or(e.pos - Vector3::FORWARD);
-                    e.pos - from
-                })
-                .unwrap_or(Vector3::FORWARD);
-            self.spawn_falling(id as u64, away);
-            self.cull_instance(id as u64);
-            self.build_colliders();
-            self.signals()
-                .tree_felled()
-                .emit(id, &GString::from(out.ore), out.amount as i64);
-        }
-        d
+        let out = self.core.apply_damage(id as u64, hits.clamp(1, 255) as u8);
+        self.settle(id, out)
+    }
+
+    /// Moves a tree to the stage the server decided on.
+    ///
+    /// What a `harvest_applied` delta is applied through. Absolute rather than
+    /// incremental, because the host is counting for everybody: two clients each
+    /// reporting a hit on the same trunk must not add up to two.
+    #[func]
+    fn set_stage(&mut self, id: i64, stage: i64) -> VarDictionary {
+        let out = self.core.set_stage(id as u64, stage.clamp(0, 255) as u8);
+        self.settle(id, out)
     }
 
     #[func]
@@ -886,6 +877,42 @@ impl QTreeField {
         }
         self.body = body;
         self.trunk_shapes = shapes;
+    }
+
+    /// Everything that follows a stage changing, however it changed: the answer
+    /// for the caller, and the world catching up if that was the last hit.
+    fn settle(&mut self, id: i64, out: Option<HarvestOutcome>) -> VarDictionary {
+        let mut d = VarDictionary::new();
+        let Some(out) = out else {
+            let _ = d.insert("hit", false);
+            return d;
+        };
+        let _ = d.insert("hit", true);
+        let _ = d.insert("stage", out.stage as i64);
+        let _ = d.insert("broken", out.broken);
+        let _ = d.insert("ore", out.ore);
+        let _ = d.insert("amount", out.amount as i64);
+        if out.broken {
+            let away = self
+                .core
+                .get(id as u64)
+                .map(|e| {
+                    let from = self
+                        .player
+                        .as_ref()
+                        .map(|p| p.get_global_position())
+                        .unwrap_or(e.pos - Vector3::FORWARD);
+                    e.pos - from
+                })
+                .unwrap_or(Vector3::FORWARD);
+            self.spawn_falling(id as u64, away);
+            self.cull_instance(id as u64);
+            self.build_colliders();
+            self.signals()
+                .tree_felled()
+                .emit(id, &GString::from(out.ore), out.amount as i64);
+        }
+        d
     }
 
     /// Flips a tree from standing to felled across every pass at once. The near

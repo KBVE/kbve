@@ -11,6 +11,15 @@ signal pet_spawned(body_id: int, node: Node3D)
 signal pets_changed()
 ## A deploy the server turned down, with wording to show the player.
 signal pet_denied(reason: String)
+## The host's word on a rock or tree reaching a stage, for anybody's swing rather
+## than only this player's.
+signal harvest_applied(target: StringName, id: int, stage: int)
+
+const GROUP := &"net_game_client"
+
+## Matches q's HarvestTarget, which is what the wire carries.
+const TARGET_STONE := 0
+const TARGET_TREE := 1
 
 ## The deployed fleet.
 const DEPLOYED_URL := "wss://friendslop.kbve.com/ws"
@@ -38,6 +47,7 @@ var _pets: Dictionary[int, Node3D] = {}
 
 
 func _ready() -> void:
+	add_to_group(GROUP)
 	if _client.get_parent() == null:
 		add_child(_client)
 	if autoconnect:
@@ -55,6 +65,7 @@ func _init() -> void:
 	_client.pet_removed.connect(_on_pet_removed)
 	_client.pets_changed.connect(_on_pets_changed)
 	_client.pet_denied.connect(_on_pet_denied)
+	_client.harvest_applied.connect(_on_harvest_applied)
 
 
 func connect_to_server(url: String = "") -> void:
@@ -81,6 +92,25 @@ func disconnect_from_server() -> void:
 
 func is_joined() -> bool:
 	return _client.is_joined()
+
+
+## Asks the host to work a rock or tree.
+##
+## The cell and ordinal go over rather than the resolved id, so the host derives
+## the id itself: a client that could name an id could name any id, including one
+## on the far side of the map.
+func harvest(kind: StringName, cell: Vector2i, ordinal: int, hits: int) -> void:
+	if not is_joined():
+		return
+	if kind == &"tree":
+		_client.harvest_tree(cell.x, cell.y, ordinal, hits)
+	else:
+		_client.harvest_stone(cell.x, cell.y, ordinal, hits)
+
+
+func _on_harvest_applied(target: int, id: int, stage: int) -> void:
+	harvest_applied.emit(
+			&"tree" if target == TARGET_TREE else &"stone", id, stage)
 
 
 func local_body() -> int:

@@ -4,7 +4,7 @@ use godot::classes::rendering_server::MultimeshTransformFormat;
 use godot::classes::{ArrayMesh, Engine, PhysicsServer3D, RenderingServer, ShaderMaterial};
 use godot::prelude::*;
 
-use crate::world::harvest::{Entry, HarvestKind, ScatterCore, Stone, stable_id};
+use crate::world::harvest::{Entry, HarvestKind, HarvestOutcome, ScatterCore, Stone, stable_id};
 use crate::world::stone_mesh::{
     LOD_LEVELS, SPECIES, build_cracked_mesh, build_rubble_mesh, build_stone_hull, build_stone_lod,
     build_stone_mesh,
@@ -195,6 +195,8 @@ impl QStoneField {
                 variant: p.variant,
                 ore: 0,
                 amount: 0,
+                cell: [p.cell.0, p.cell.1],
+                ordinal: p.companion,
             });
         }
         if self.core.entries().is_empty() {
@@ -337,29 +339,29 @@ impl QStoneField {
         let _ = d.insert("alive", self.core.alive(e.id));
         let _ = d.insert("ore", table[e.ore as usize].ore);
         let _ = d.insert("amount", e.amount as i64);
+        // What the wire wants. The host will not take an id from a client, so a
+        // caller that means to work this rock over the network has to be able to
+        // say which cell it is in.
+        let _ = d.insert("cell", Vector2i::new(e.cell[0], e.cell[1]));
+        let _ = d.insert("ordinal", e.ordinal as i64);
         d
     }
 
     #[func]
     fn apply_damage(&mut self, id: i64, hits: i64) -> VarDictionary {
-        let mut d = VarDictionary::new();
-        let Some(out) = self.core.apply_damage(id as u64, hits.clamp(1, 255) as u8) else {
-            let _ = d.insert("hit", false);
-            return d;
-        };
-        let _ = d.insert("hit", true);
-        let _ = d.insert("stage", out.stage as i64);
-        let _ = d.insert("broken", out.broken);
-        let _ = d.insert("ore", out.ore);
-        let _ = d.insert("amount", out.amount as i64);
-        self.dirty = true;
-        if out.broken {
-            self.rebuild_colliders();
-            let ore = GString::from(out.ore);
-            let amount = out.amount as i64;
-            self.signals().stone_broken().emit(id, &ore, amount);
-        }
-        d
+        let out = self.core.apply_damage(id as u64, hits.clamp(1, 255) as u8);
+        self.settle(id, out)
+    }
+
+    /// Moves a rock to the stage the server decided on.
+    ///
+    /// What a `harvest_applied` delta is applied through. Absolute rather than
+    /// incremental, because the host is counting for everybody: two clients each
+    /// reporting a hit on the same rock must not add up to two.
+    #[func]
+    fn set_stage(&mut self, id: i64, stage: i64) -> VarDictionary {
+        let out = self.core.set_stage(id as u64, stage.clamp(0, 255) as u8);
+        self.settle(id, out)
     }
 
     #[func]
@@ -426,6 +428,29 @@ impl QStoneField {
 }
 
 impl QStoneField {
+    /// Everything that follows a stage changing, however it changed: the answer
+    /// for the caller, and the world catching up if that was the last hit.
+    fn settle(&mut self, id: i64, out: Option<HarvestOutcome>) -> VarDictionary {
+        let mut d = VarDictionary::new();
+        let Some(out) = out else {
+            let _ = d.insert("hit", false);
+            return d;
+        };
+        let _ = d.insert("hit", true);
+        let _ = d.insert("stage", out.stage as i64);
+        let _ = d.insert("broken", out.broken);
+        let _ = d.insert("ore", out.ore);
+        let _ = d.insert("amount", out.amount as i64);
+        self.dirty = true;
+        if out.broken {
+            self.rebuild_colliders();
+            let ore = GString::from(out.ore);
+            let amount = out.amount as i64;
+            self.signals().stone_broken().emit(id, &ore, amount);
+        }
+        d
+    }
+
     /// Seat a stone into the terrain: returns the ground normal to align to and the Y
     /// the instance origin should sit at.
     fn bed<F: Fn(f32, f32) -> f32>(
