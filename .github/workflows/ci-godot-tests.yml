@@ -158,6 +158,13 @@ jobs:
                 include: ${{ fromJSON(needs.discover.outputs.matrix) }}
         container:
             image: barichello/godot-ci:${{ matrix.godot_version }}
+        # A step inside a container runs under `sh -e`, not the `bash -e` a step on the
+        # runner gets, and dash has no `pipefail` -- every step below opens with
+        # `set -euo pipefail` and died on its first line. The image carries bash, so the
+        # shell is named rather than the scripts written down to dash.
+        defaults:
+            run:
+                shell: bash
         steps:
             - uses: actions/checkout@v7
 
