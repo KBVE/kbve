@@ -46,14 +46,20 @@ func _ready() -> void:
 ## world that is generated on another thread, and the player is in the tree well
 ## before any of it exists.
 func _resolve() -> void:
+	## Falls back to the player's own parent, because a player staged on its own -- under
+	## the test runner, or before the world scene is current -- has no current_scene to
+	## look the fields up in.
+	var world: Node = get_tree().current_scene if get_tree() else null
+	if world == null:
+		world = _body.get_parent() if _body else null
 	if _stones == null or not is_instance_valid(_stones):
 		_stones = get_node_or_null(stone_field_path)
-		if _stones == null:
-			_stones = get_tree().current_scene.get_node_or_null(^"StoneField")
+		if _stones == null and world:
+			_stones = world.get_node_or_null(^"StoneField")
 	if _trees == null or not is_instance_valid(_trees):
 		_trees = get_node_or_null(tree_field_path)
-		if _trees == null:
-			_trees = get_tree().current_scene.get_node_or_null(^"TreeField")
+		if _trees == null and world:
+			_trees = world.get_node_or_null(^"TreeField")
 	if _net == null or not is_instance_valid(_net):
 		for node in get_tree().get_nodes_in_group(NetGameClient.GROUP):
 			_net = node as NetGameClient
