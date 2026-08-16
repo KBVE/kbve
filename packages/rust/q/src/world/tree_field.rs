@@ -137,6 +137,9 @@ fn crown_shape(id: u32, f: f32) -> f32 {
         0 => 0.55 + 0.45 * (std::f32::consts::PI * (0.15 + 0.85 * f)).sin(),
         1 => 1.0 - 0.55 * f,
         2 => 0.5 + 0.5 * f,
+        // Excurrent: longest at the bottom, shortest at the top, which is the
+        // spire the other three cannot make.
+        3 => 1.0 - 0.82 * f,
         _ => 1.0,
     }
 }
@@ -220,6 +223,38 @@ const SPECIES: &[TreeSpecies] = &[
             up_attract: 0.08,
         },
     },
+    // Excurrent rather than decurrent: one leader that never gives up, short
+    // whorled laterals off it, and a crown that tapers to a spire. The other
+    // three all fork into a spreading head, so a stand of them reads as one
+    // shape at range no matter how the branch angles are jittered. Height is
+    // the widest of the four for the same reason.
+    TreeSpecies {
+        seed_off: 15_485_863,
+        height: (8.0, 15.0),
+        crown: 0.78,
+        leaf_tex: "res://assets/environment/props/flora/euonymus/euonymus_alpha_7.png",
+        bark_color: Color::from_rgba(0.29, 0.21, 0.17, 1.0),
+        growth: Growth {
+            // Near right angles all the way up, which is what makes the whorls
+            // read as tiers instead of a spreading head.
+            lateral_angle: [(1.15, 0.12), (1.0, 0.16), (0.9, 0.2)],
+            leader_angle: (0.06, 0.05),
+            phyllotaxis: 2.399963,
+            az_jitter: 0.2,
+            length_ratio: (0.4, 0.12),
+            murray: 2.49,
+            lateral_share: (0.12, 0.05),
+            // Almost everything stays in the leader. Splitting it is what turns
+            // a conifer into a broadleaf.
+            leader_share: 0.88,
+            tropism: (-0.28, 0.05),
+            curl: 0.22,
+            children: [9, 3, 2],
+            shape: 3,
+            fork: 0.0,
+            up_attract: 0.02,
+        },
+    },
 ];
 
 #[derive(GodotClass)]
@@ -301,6 +336,9 @@ pub struct QTreeField {
     #[init(val = Rid::Invalid)]
     body: Rid,
     trunk_shapes: Vec<Rid>,
+    /// Which shape on the trunk body belongs to which tree, so felling one is a
+    /// disable rather than a rebuild.
+    shape_of: HashMap<u64, i32>,
     falling: Vec<FallingTree>,
     extent: f32,
     origin: Vector2,
@@ -494,7 +532,7 @@ impl QTreeField {
             if let Some(m) = leaf_mat.as_ref() {
                 near.surface_set_material(1, m);
             }
-            let mut far = build_far_tree_mesh(seed, sp.crown);
+            let mut far = build_far_tree_mesh(seed, sp.crown, sp.growth.shape);
             if let Some(m) = self.tree_material.as_ref() {
                 far.surface_set_material(0, m);
             }
@@ -756,7 +794,7 @@ impl QTreeField {
                 .unwrap_or(Vector3::FORWARD);
             self.spawn_falling(id as u64, away);
             self.cull_instance(id as u64);
-            self.build_colliders();
+            self.disable_collider(id as u64);
             self.signals()
                 .tree_felled()
                 .emit(id, &GString::from(out.ore), out.amount as i64);
@@ -875,17 +913,38 @@ impl QTreeField {
         let body = ps.body_create();
         ps.body_set_mode(body, BodyMode::STATIC);
         ps.body_set_space(body, space);
+        // Every tree gets a shape, felled ones disabled rather than skipped, so a
+        // slot's index is fixed for the life of the body and felling one later is
+        // a single call instead of rebuilding the lot.
+        self.shape_of.clear();
         for (c, id) in self.candidates.chunks_exact(8).zip(self.cand_ids.iter()) {
-            if !self.core.alive(*id) {
-                continue;
-            }
             let bi = trunk_bucket(c[3]);
             let half = TRUNK_BUCKETS[bi] * TRUNK_COLLIDER_SPAN * 0.5;
             let t = Transform3D::IDENTITY.translated(Vector3::new(c[0], c[1] + half, c[2]));
+            let index = ps.body_get_shape_count(body);
             ps.body_add_shape_ex(body, shapes[bi]).transform(t).done();
+            if !self.core.alive(*id) {
+                ps.body_set_shape_disabled(body, index, true);
+            }
+            self.shape_of.insert(*id, index);
         }
         self.body = body;
         self.trunk_shapes = shapes;
+    }
+
+    /// Takes one trunk out of the world without touching the others.
+    ///
+    /// Felling used to rebuild the whole body, which frees and recreates a shape
+    /// for every tree in the streaming window on a keypress. Disabling the one
+    /// shape is the same result for a constant cost.
+    fn disable_collider(&mut self, id: u64) {
+        let Some(&index) = self.shape_of.get(&id) else {
+            return;
+        };
+        if !self.body.is_valid() {
+            return;
+        }
+        PhysicsServer3D::singleton().body_set_shape_disabled(self.body, index, true);
     }
 
     /// Flips a tree from standing to felled across every pass at once. The near
@@ -1671,15 +1730,23 @@ fn build_stump_mesh(seed: u32) -> Gd<ArrayMesh> {
     am
 }
 
-fn build_far_tree_mesh(seed: u32, crown: f32) -> Gd<ArrayMesh> {
+fn build_far_tree_mesh(seed: u32, crown: f32, shape: u32) -> Gd<ArrayMesh> {
     let mut mb = MeshBuilder::new();
     let mut state = hash32(seed | 1);
+    // A spire is most of what a conifer is worth, and past the LOD band the far
+    // mesh is the only thing drawing it. Left on the spreading head the other
+    // species use, the fourth species stops existing at exactly the range where
+    // the silhouette was the point.
+    let spire = shape == 3;
 
     let trunk = Color::from_rgba(0.36, 0.26, 0.18, 0.0);
     let sides = 6;
-    let r0 = 0.062;
-    let r1 = 0.026;
-    let top = 1.0;
+    let r0 = if spire { 0.05 } else { 0.062 };
+    let r1 = if spire { 0.012 } else { 0.026 };
+    // Short of the near mesh's own top, which the tiers then cover: the leader
+    // keeps most of its length in this species, so the spire ends lower than the
+    // spreading heads do.
+    let top = if spire { 1.42 } else { 1.0 };
     for i in 0..sides {
         let a0 = std::f32::consts::TAU * i as f32 / sides as f32;
         let a1 = std::f32::consts::TAU * (i + 1) as f32 / sides as f32;
@@ -1743,24 +1810,46 @@ fn build_far_tree_mesh(seed: u32, crown: f32) -> Gd<ArrayMesh> {
         }
     };
     let cw = crown;
-    let blob_defs = [
-        (
-            Vector3::new(0.0, 1.24, 0.0),
-            Vector3::new(0.56 * cw, 0.35 * cw, 0.56 * cw),
-        ),
-        (
-            Vector3::new(0.32 * cw, 1.06, 0.16 * cw),
-            Vector3::new(0.32 * cw, 0.24 * cw, 0.32 * cw),
-        ),
-        (
-            Vector3::new(-0.35 * cw, 1.12, -0.13 * cw),
-            Vector3::new(0.3 * cw, 0.23 * cw, 0.3 * cw),
-        ),
-        (
-            Vector3::new(0.01, 1.6, -0.04),
-            Vector3::new(0.32 * cw, 0.24 * cw, 0.32 * cw),
-        ),
-    ];
+    let blob_defs = if spire {
+        // Stacked tiers narrowing upward, rather than a head sitting on a stick.
+        [
+            (
+                Vector3::new(0.0, 0.62, 0.0),
+                Vector3::new(0.5 * cw, 0.3 * cw, 0.5 * cw),
+            ),
+            (
+                Vector3::new(0.03 * cw, 1.0, -0.02 * cw),
+                Vector3::new(0.38 * cw, 0.26 * cw, 0.38 * cw),
+            ),
+            (
+                Vector3::new(-0.02 * cw, 1.28, 0.03 * cw),
+                Vector3::new(0.26 * cw, 0.22 * cw, 0.26 * cw),
+            ),
+            (
+                Vector3::new(0.0, 1.5, 0.0),
+                Vector3::new(0.14 * cw, 0.17 * cw, 0.14 * cw),
+            ),
+        ]
+    } else {
+        [
+            (
+                Vector3::new(0.0, 1.24, 0.0),
+                Vector3::new(0.56 * cw, 0.35 * cw, 0.56 * cw),
+            ),
+            (
+                Vector3::new(0.32 * cw, 1.06, 0.16 * cw),
+                Vector3::new(0.32 * cw, 0.24 * cw, 0.32 * cw),
+            ),
+            (
+                Vector3::new(-0.35 * cw, 1.12, -0.13 * cw),
+                Vector3::new(0.3 * cw, 0.23 * cw, 0.3 * cw),
+            ),
+            (
+                Vector3::new(0.01, 1.6, -0.04),
+                Vector3::new(0.32 * cw, 0.24 * cw, 0.32 * cw),
+            ),
+        ]
+    };
     for (c, r) in blob_defs {
         blob(c, r, &mut mb, &mut state);
     }
