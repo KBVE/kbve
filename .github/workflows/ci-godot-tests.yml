@@ -8,6 +8,9 @@ on:
             - 'packages/rust/**'
             - '.github/ci-dispatch-manifest.json'
             - '.github/workflows/ci-godot-tests.yml'
+            # The matrix builder decides what runs, so a change to it has to be
+            # able to trigger the thing it decides for.
+            - '.github/scripts/godot_test_matrix.py'
 
 permissions: {}
 
