@@ -132,6 +132,121 @@ func test_without_a_bare_head_body_the_full_body_is_kept() -> void:
 	assert_object(rig._base_body()).is_same(load(BODY))
 
 
+## What the player has on is kept where everything else the world remembers is kept, so it
+## is still on after quitting.
+func test_what_the_player_wears_survives_a_restart() -> void:
+	var was := Journal.wearing()
+	Journal.forget_everything()
+
+	Journal.wear(HOOD)
+	assert_str(Journal.worn_in(&"head")).is_equal(HOOD)
+	Journal.load_now()
+	assert_str(Journal.worn_in(&"head")) \
+			.override_failure_message("the hood came off overnight").is_equal(HOOD)
+
+	Journal.take_off(&"head")
+	Journal.load_now()
+	assert_str(Journal.worn_in(&"head")) \
+			.override_failure_message("taking the hood off did not stick").is_empty()
+
+	Journal.forget_everything()
+	for slot: Variant in was:
+		Journal.wear(StringName(was[slot]))
+
+
+## A save naming a piece that is no longer in the folder must not come back as a warning
+## every time the player is built.
+func test_a_saved_piece_that_no_longer_exists_is_dropped() -> void:
+	var was := Journal.wearing()
+	Journal.forget_everything()
+
+	Journal._worn[&"head"] = &"male_wizard_head_sombrero"
+	Journal.save_now()
+	Journal.load_now()
+	assert_str(Journal.worn_in(&"head")) \
+			.override_failure_message("a piece that is not in the wardrobe was loaded anyway") \
+			.is_empty()
+
+	Journal.forget_everything()
+	for slot: Variant in was:
+		Journal.wear(StringName(was[slot]))
+
+
+## A rig following the wardrobe wears what it says and nothing else -- a slot emptied in
+## the wardrobe has to come off the body too.
+func test_a_following_rig_wears_exactly_what_the_wardrobe_says() -> void:
+	var rig := await _dressed([])
+	rig.wear_set({&"head": HOOD})
+	assert_str(rig.worn_in(&"head")).is_equal(HOOD)
+
+	rig.wear_set({})
+	await get_tree().process_frame
+	assert_str(rig.worn_in(&"head")) \
+			.override_failure_message("the wardrobe was emptied and the hood stayed on") \
+			.is_empty()
+
+
+## Putting the last piece of an outfit on crosses the line between half-dressed and
+## dressed, and the body underneath has to go with it.
+func test_completing_an_outfit_swaps_the_body_underneath() -> void:
+	var rig := await _dressed([])
+	assert_object(rig._built_base).is_same(load(BODY))
+
+	var whole := {}
+	for id: Variant in RANGER:
+		whole[Wardrobe.slot_of(StringName(id))] = id
+	rig.wear_set(whole)
+	await get_tree().process_frame
+
+	assert_object(rig._built_base) \
+			.override_failure_message("the outfit went on over the whole body") \
+			.is_same(load(HEAD))
+	assert_int(rig.wearing().size()) \
+			.override_failure_message("rebuilding lost the clothes it rebuilt for") \
+			.is_equal(RANGER.size())
+
+
+## Every row of the wardrobe page names a slot, and a missing key shows the player the key
+## itself rather than a word.
+## Cel shading is keyed by material name, and a material with no entry is left drawn the
+## way it was imported -- so a hood would be the one lit thing on a drawn character.
+func test_every_material_the_clothing_uses_is_shaded() -> void:
+	var wanted := {}
+	for id: StringName in Wardrobe.all():
+		var scene: PackedScene = load(Wardrobe.path_of(id))
+		var instance: Node = scene.instantiate()
+		auto_free(instance)
+		for mesh: MeshInstance3D in _mesh_nodes(instance):
+			for i in mesh.mesh.get_surface_count():
+				var mat := mesh.mesh.surface_get_material(i)
+				if mat:
+					wanted[mat.resource_name] = id
+	for name: String in wanted:
+		assert_bool(CharacterRig.SHADING.has(StringName(name))) \
+				.override_failure_message("%s (worn by %s) has no shading entry" % [
+						name, wanted[name]]) \
+				.is_true()
+
+
+func _mesh_nodes(node: Node) -> Array:
+	var out := []
+	if node is MeshInstance3D and (node as MeshInstance3D).mesh:
+		out.append(node)
+	for child in node.get_children():
+		out.append_array(_mesh_nodes(child))
+	return out
+
+
+func test_the_wardrobe_page_has_a_word_for_every_slot() -> void:
+	var keys := ["wardrobe.title", "wardrobe.none", "wardrobe.head", "wardrobe.chest",
+			"wardrobe.hands", "wardrobe.legs", "wardrobe.feet", "wardrobe.neck",
+			"wardrobe.back"]
+	for key: String in keys:
+		assert_str(I18n.t(key)) \
+				.override_failure_message("nothing in the locale for '%s'" % key) \
+				.is_not_equal(key)
+
+
 func _base_for(pieces: Array) -> PackedScene:
 	var rig := CharacterRig.new()
 	auto_free(rig)
