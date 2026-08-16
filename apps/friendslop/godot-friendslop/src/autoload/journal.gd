@@ -12,10 +12,16 @@ extends Node
 
 const PATH := "user://journal.cfg"
 const SECTION := "dialogue"
+const WORN_SECTION := "worn"
 
 signal flag_changed(name: String, on: bool)
+## What the player has on, slot by slot. The rig watches this rather than being told
+## directly, so anything that hands out clothing does not need to know where the body is.
+signal wearing_changed(slots: Dictionary)
 
 var _state := DialogueState.new()
+## Slot to wardrobe piece id.
+var _worn: Dictionary = {}
 ## Held down while loading, so reading a saved file does not read as the player having
 ## just done all of it.
 var _quiet := false
@@ -59,6 +65,43 @@ func _on_seen_changed(_node_id: String) -> void:
 	save_now()
 
 
+## What the player is wearing, slot by slot.
+func wearing() -> Dictionary:
+	return _worn.duplicate()
+
+
+func worn_in(slot: StringName) -> StringName:
+	return _worn.get(slot, &"")
+
+
+## Puts a piece on, or takes the slot's piece off when given nothing. One piece to a slot,
+## which is the wardrobe's rule as much as the rig's.
+func wear(id: StringName) -> void:
+	if id == &"" or not Wardrobe.has(id):
+		push_warning("journal: nothing in the wardrobe called '%s'" % id)
+		return
+	_set_worn(Wardrobe.slot_of(id), id)
+
+
+func take_off(slot: StringName) -> void:
+	_set_worn(slot, &"")
+
+
+func _set_worn(slot: StringName, id: StringName) -> void:
+	if slot == &"":
+		return
+	if _worn.get(slot, &"") == id:
+		return
+	if id == &"":
+		_worn.erase(slot)
+	else:
+		_worn[slot] = id
+	if _quiet:
+		return
+	wearing_changed.emit(wearing())
+	save_now()
+
+
 func load_now() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(PATH) != OK:
@@ -68,7 +111,15 @@ func load_now() -> void:
 		"flags": cfg.get_value(SECTION, "flags", {}),
 		"seen": cfg.get_value(SECTION, "seen", {}),
 	})
+	_worn.clear()
+	for slot: Variant in cfg.get_value(WORN_SECTION, "slots", {}):
+		var id := StringName(cfg.get_value(WORN_SECTION, "slots", {})[slot])
+		## A save naming a piece that is no longer in the folder is dropped rather than
+		## kept, or the rig warns about it every time it is built.
+		if Wardrobe.has(id):
+			_worn[StringName(slot)] = id
 	_quiet = false
+	wearing_changed.emit(wearing())
 
 
 func save_now() -> void:
@@ -76,6 +127,10 @@ func save_now() -> void:
 	var body := _state.to_dict()
 	cfg.set_value(SECTION, "flags", body["flags"])
 	cfg.set_value(SECTION, "seen", body["seen"])
+	var slots := {}
+	for slot: StringName in _worn:
+		slots[String(slot)] = String(_worn[slot])
+	cfg.set_value(WORN_SECTION, "slots", slots)
 	cfg.save(PATH)
 
 
@@ -88,4 +143,6 @@ func _notification(what: int) -> void:
 ## player's memory is not something to clear by accident.
 func forget_everything() -> void:
 	_state.clear()
+	_worn.clear()
 	save_now()
+	wearing_changed.emit(wearing())

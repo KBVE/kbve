@@ -8,6 +8,7 @@
 [ext_resource type="Script" path="res://src/characters/character_rig.gd" id="6_rig"]
 [ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/models/Regular_Male_FullBody.glb" id="7_body"]
 [ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/models/hair/Hair_Ponytail.glb" id="8_hair"]
+[ext_resource type="PackedScene" uid="uid://ysa6ql8yc3b" path="res://assets/characters/quaternius_ubc/models/Regular_Male_OnlyHead.glb" id="11_head"]
 [ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/animations/UAL1.glb" id="9_ual1"]
 [ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/animations/UAL2.glb" id="10_ual2"]
 
@@ -31,6 +32,8 @@ shape = SubResource("CapsuleShape3D_body")
 script = ExtResource("6_rig")
 body = ExtResource("7_body")
 attachments = Array[PackedScene]([ExtResource("8_hair")])
+head_only_body = ExtResource("11_head")
+follow_journal = true
 snap_to_terrain = false
 animation_sources = Array[PackedScene]([ExtResource("9_ual1"), ExtResource("10_ual2")])
 locomotion = true

@@ -8,8 +8,11 @@ const Rig := preload("res://src/characters/character_rig.gd")
 const COMPOSED := [&"move", &"crouch"]
 
 
+## Every chain the rig actually builds the machine from. Missing one here reads as a state
+## nothing can reach, when the truth is a test that was not told about it.
 func _links() -> Array:
-	return Rig.JUMP_CHAIN + Rig.CLIMB_CHAIN + Rig.CROUCH_CHAIN + Rig.roll_chain() + Rig.TURN_CHAIN
+	return Rig.JUMP_CHAIN + Rig.CLIMB_CHAIN + Rig.CROUCH_CHAIN + Rig.roll_chain() \
+			+ Rig.TURN_CHAIN + Rig.work_chain()
 
 
 ## A state named in a transition but missing from STATES takes the tree build down with
