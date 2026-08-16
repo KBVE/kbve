@@ -1303,11 +1303,13 @@ mod tests {
         for slot_id in 2u64..=4u64 {
             let uid = PlayerId::new(slot_id);
             session.party.push(uid);
-            let mut p = PlayerState::default();
-            p.class = if slot_id == 2 {
-                ClassType::Cleric
-            } else {
-                ClassType::Warrior
+            let p = PlayerState {
+                class: if slot_id == 2 {
+                    ClassType::Cleric
+                } else {
+                    ClassType::Warrior
+                },
+                ..Default::default()
             };
             session.players.insert(uid, p);
         }
@@ -2067,16 +2069,20 @@ mod tests {
 
         // Add party member (guest)
         let p2 = PlayerId::new(2);
-        let mut player2 = PlayerState::default();
-        player2.name = "GuestBob".to_owned();
-        player2.member_status = MemberStatusTag::Guest;
+        let player2 = PlayerState {
+            name: "GuestBob".to_owned(),
+            member_status: MemberStatusTag::Guest,
+            ..Default::default()
+        };
         session.players.insert(p2, player2);
         session.party.push(p2);
 
         // Add party member (member)
         let p3 = PlayerId::new(3);
-        let mut player3 = PlayerState::default();
-        player3.name = "MemberAlice".to_owned();
+        let mut player3 = PlayerState {
+            name: "MemberAlice".to_owned(),
+            ..Default::default()
+        };
         player3.member_status = MemberStatusTag::Member {
             username: "alice".to_owned(),
         };

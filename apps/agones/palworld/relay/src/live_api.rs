@@ -122,6 +122,20 @@ async fn landing() -> impl IntoResponse {
     )
 }
 
+pub async fn run(cfg: Config, state: LiveState) -> Result<()> {
+    let app = Router::new()
+        .route("/", get(landing))
+        .route("/live/players", get(players))
+        .route("/live/events", get(events))
+        .route("/live/bases", get(bases))
+        .route("/live/healthz", get(healthz))
+        .with_state(state);
+    let listener = tokio::net::TcpListener::bind(("0.0.0.0", cfg.live_api_port)).await?;
+    info!(port = cfg.live_api_port, "live_api listening");
+    axum::serve(listener, app).await?;
+    Ok(())
+}
+
 #[cfg(test)]
 mod tests {
     use super::parse_intel;
@@ -138,18 +152,4 @@ mod tests {
         assert!(parse_intel("[]").is_none());
         assert!(parse_intel("").is_none());
     }
-}
-
-pub async fn run(cfg: Config, state: LiveState) -> Result<()> {
-    let app = Router::new()
-        .route("/", get(landing))
-        .route("/live/players", get(players))
-        .route("/live/events", get(events))
-        .route("/live/bases", get(bases))
-        .route("/live/healthz", get(healthz))
-        .with_state(state);
-    let listener = tokio::net::TcpListener::bind(("0.0.0.0", cfg.live_api_port)).await?;
-    info!(port = cfg.live_api_port, "live_api listening");
-    axum::serve(listener, app).await?;
-    Ok(())
 }

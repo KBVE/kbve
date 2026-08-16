@@ -854,7 +854,7 @@ pub fn build_label_chart(issues: &[GitHubIssue], repo_name: &str) -> LabelChartT
     }
 
     let mut sorted: Vec<_> = counts.into_iter().collect();
-    sorted.sort_by(|a, b| b.1.0.cmp(&a.1.0));
+    sorted.sort_by_key(|e| std::cmp::Reverse(e.1.0));
     let sorted = &sorted[..sorted.len().min(15)]; // top 15
 
     let max_count = sorted.first().map(|(_, (c, _))| *c).unwrap_or(1);
@@ -1274,7 +1274,7 @@ pub fn build_commit_frequency_chart(
 
     // Top authors
     let mut sorted_authors: Vec<_> = author_counts.into_iter().collect();
-    sorted_authors.sort_by(|a, b| b.1.cmp(&a.1));
+    sorted_authors.sort_by_key(|e| std::cmp::Reverse(e.1));
     let top_authors: Vec<TopAuthor> = sorted_authors
         .iter()
         .take(4)
