@@ -42,6 +42,9 @@ extends Node3D
 ## Ground speed that abandons a swing. The kit has no clip for working a tree while
 ## walking, so stepping away has to end it rather than drag it along.
 @export var work_cancel_speed := 1.2
+## Seconds a working clip outlives the window it was given, so back-to-back swings
+## overlap instead of leaving a frame of daylight between them.
+@export var work_grace := 0.08
 @export var crouch_shift_time := 0.30
 ## Ground speed that abandons a landing recovery outright.
 @export var landing_cancel_speed := 0.5
@@ -592,10 +595,15 @@ func play_action(action: StringName, seconds: float) -> void:
 	var clip: String = STATES[action].clip
 	if clip == "" or not animation.has_animation(clip):
 		return
+	var window := maxf(seconds, 0.05)
 	_work = action
-	_work_t = maxf(seconds, 0.05)
+	# Held a little past the window it was asked for. Swinging is a loop, and the
+	# next swing arms this on the frame the last one ran out -- without the overlap
+	# the graph starts back toward move in the gap between them and the body bobs
+	# out of the chop once a second.
+	_work_t = window + work_grace
 	tree.set("parameters/%s/scale/scale" % action,
-			animation.get_animation(clip).length / _work_t)
+			animation.get_animation(clip).length / window)
 
 
 ## Holds a working clip up for its window. Anything the legs want wins: there is no
