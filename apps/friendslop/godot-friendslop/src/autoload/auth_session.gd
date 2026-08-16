@@ -20,7 +20,7 @@ const ANON_KEY := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlz
 const TIMEOUT_SECONDS := 15.0
 
 ## Providers offered on the title.
-const PROVIDERS := ["discord", "github"]
+const PROVIDERS := ["discord", "github", "twitch"]
 
 ## Refresh this far before the token actually expires, so a join that takes a moment to
 ## travel does not arrive holding something that just went stale.

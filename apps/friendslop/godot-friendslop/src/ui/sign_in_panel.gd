@@ -8,10 +8,25 @@ signal cancelled
 
 const WIDTH := 320.0
 
-## Provider id to how it is written on the button.
-const PROVIDER_NAMES := {
-	"discord": "Discord",
-	"github": "GitHub",
+## How each provider is written, coloured and marked. The colours are the ones the web
+## client already uses, so the same account is offered in the same livery wherever
+## somebody meets it.
+const PROVIDER_BRAND := {
+	"discord": {
+		"name": "Discord",
+		"tint": Color("#5865f2"),
+		"icon": "res://assets/ui/icons/discord.svg",
+	},
+	"github": {
+		"name": "GitHub",
+		"tint": Color("#24292e"),
+		"icon": "res://assets/ui/icons/github.svg",
+	},
+	"twitch": {
+		"name": "Twitch",
+		"tint": Color("#9146ff"),
+		"icon": "res://assets/ui/icons/twitch.svg",
+	},
 }
 
 var provider_buttons: Dictionary[String, PaperButton] = {}
@@ -45,10 +60,12 @@ func _build() -> void:
 	add_child(column)
 
 	for provider in AuthSession.PROVIDERS:
+		var brand: Dictionary = PROVIDER_BRAND.get(provider, {})
 		var label := I18n.t("title.sign_in_with").format({
-			"provider": PROVIDER_NAMES.get(provider, provider.capitalize()),
+			"provider": brand.get("name", provider.capitalize()),
 		})
-		var button := PaperButton.make(label, _submitter(provider))
+		var button := PaperButton.branded(label, _submitter(provider),
+				brand.get("tint", MenuStyle.PAPER_HOVER), _mark(brand.get("icon", "")))
 		button.custom_minimum_size = Vector2(WIDTH, MenuStyle.BUTTON_MIN.y)
 		column.add_child(button)
 		provider_buttons[provider] = button
@@ -62,6 +79,14 @@ func _build() -> void:
 	cancel_button = PaperButton.make(I18n.t("action.cancel"), func() -> void: cancelled.emit())
 	cancel_button.custom_minimum_size = Vector2(WIDTH, MenuStyle.BUTTON_MIN.y)
 	column.add_child(cancel_button)
+
+
+## A missing mark leaves a button that still reads and still works, rather than taking
+## the whole sign-in panel down with it.
+func _mark(path: String) -> Texture2D:
+	if path.is_empty() or not ResourceLoader.exists(path):
+		return null
+	return load(path) as Texture2D
 
 
 ## Bound per provider rather than read back off the pressed button, so the button's

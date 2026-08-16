@@ -19,6 +19,29 @@ static func reply(text: String, action: Callable) -> PaperButton:
 	return b
 
 
+## A slab in somebody else's colours, for the one place a button is not ours to style:
+## a provider's sign-in button is expected to look like that provider, and a row of
+## identically papery ones is a row nobody can tell apart at a glance.
+static func branded(text: String, action: Callable, tint: Color, icon: Texture2D) -> PaperButton:
+	var b := make(text, action)
+	for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
+		b.add_theme_color_override(state, Color(1, 1, 1))
+	for state in ["normal", "hover", "pressed", "focus"]:
+		var box := StyleBoxFlat.new()
+		box.bg_color = tint.lightened(0.08) if state != "normal" else tint
+		box.set_corner_radius_all(6)
+		box.content_margin_left = MenuStyle.BUTTON_PAD.x
+		box.content_margin_right = MenuStyle.BUTTON_PAD.x
+		box.content_margin_top = MenuStyle.BUTTON_PAD.y
+		box.content_margin_bottom = MenuStyle.BUTTON_PAD.y
+		b.add_theme_stylebox_override(state, box)
+	if icon:
+		b.icon = icon
+		b.add_theme_constant_override("h_separation", 10)
+		b.expand_icon = false
+	return b
+
+
 static func _paper(text: String, action: Callable, font: int, pad: Vector2) -> PaperButton:
 	var b := PaperButton.new()
 	b.text = text
