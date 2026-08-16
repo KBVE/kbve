@@ -12,8 +12,10 @@ async fn leech_move_reap_debian_iso() {
 
     let cfg = reel::config::load_from_env().unwrap();
     let store = reel::state::StateStore::load(cfg.state_file.clone()).unwrap();
-    let eng = reel::engine::Engine::start(&cfg, store.clone()).await.unwrap();
-    let id = eng.add(&magnet).await.unwrap();
+    let eng = reel::engine::Engine::start(&cfg, store.clone())
+        .await
+        .unwrap();
+    let id = eng.add(&magnet, None).await.unwrap();
 
     let mut moved = false;
     for _ in 0..600 {

@@ -39,11 +39,7 @@ mod tests {
     fn finalize_appends_endlist_only_to_media_playlists() {
         let dir = tempfile::tempdir().unwrap();
         let d = dir.path();
-        std::fs::write(
-            d.join("index.m3u8"),
-            "#EXTM3U\n#EXTINF:4.0,\nseg00000.ts\n",
-        )
-        .unwrap();
+        std::fs::write(d.join("index.m3u8"), "#EXTM3U\n#EXTINF:4.0,\nseg00000.ts\n").unwrap();
         std::fs::write(
             d.join("master.m3u8"),
             "#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1\nstream_0.m3u8\n",
@@ -326,12 +322,7 @@ impl HlsManager {
     }
 
     fn retry_blocked(&self, id: &str) -> bool {
-        let since = self
-            .failed_at
-            .lock()
-            .unwrap()
-            .get(id)
-            .map(|t| t.elapsed());
+        let since = self.failed_at.lock().unwrap().get(id).map(|t| t.elapsed());
         !retry_allowed(since, HLS_RETRY_COOLDOWN)
     }
 
@@ -1018,7 +1009,15 @@ mod mgr_tests {
                 transcode_error: None,
                 hls: HlsStatus::Failed,
                 hls_dir: None,
-                hls_error: Some(format!("{LIVE_PREFIX_UNREADABLE} header not downloaded yet")),
+                hls_error: Some(format!(
+                    "{LIVE_PREFIX_UNREADABLE} header not downloaded yet"
+                )),
+                added_at: 0,
+                account_id: None,
+                billed_credits: None,
+                billed_at: None,
+                refunded_at: None,
+                billing_error: None,
             })
             .unwrap();
         let mgr = HlsManager::new(
@@ -1072,6 +1071,12 @@ mod mgr_tests {
                 hls: HlsStatus::Failed,
                 hls_dir: None,
                 hls_error: Some("boom".into()),
+                added_at: 0,
+                account_id: None,
+                billed_credits: None,
+                billed_at: None,
+                refunded_at: None,
+                billing_error: None,
             })
             .unwrap();
         let mgr = HlsManager::new(

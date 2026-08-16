@@ -110,11 +110,11 @@ export default function ReactAuthRegister() {
 				One login for every KBVE game, tool, and studio.
 			</p>
 
-			<form className="reg__form" onSubmit={onSubmit} noValidate>
-				<label className="reg__field">
-					<span className="reg__label">Email</span>
+			<form className="bento-form" onSubmit={onSubmit} noValidate>
+				<label className="bento-field">
+					<span className="bento-field__label">Email</span>
 					<input
-						className="reg__input"
+						className="bento-input"
 						type="email"
 						autoComplete="email"
 						placeholder="you@example.com"
@@ -123,10 +123,10 @@ export default function ReactAuthRegister() {
 					/>
 				</label>
 
-				<label className="reg__field">
-					<span className="reg__label">Username</span>
+				<label className="bento-field">
+					<span className="bento-field__label">Username</span>
 					<input
-						className="reg__input"
+						className="bento-input"
 						type="text"
 						autoComplete="username"
 						placeholder="lowercase, 3–20"
@@ -142,11 +142,11 @@ export default function ReactAuthRegister() {
 					</span>
 				</label>
 
-				<label className="reg__field">
-					<span className="reg__label">Password</span>
-					<div className="reg__inputwrap">
+				<label className="bento-field">
+					<span className="bento-field__label">Password</span>
+					<div className="bento-input-wrap">
 						<input
-							className="reg__input"
+							className="bento-input"
 							type={peek ? 'text' : 'password'}
 							autoComplete="new-password"
 							placeholder="8+ characters"
@@ -155,7 +155,7 @@ export default function ReactAuthRegister() {
 						/>
 						<button
 							type="button"
-							className="reg__peek"
+							className="bento-input__peek"
 							onClick={() => setPeek((p) => !p)}
 							aria-label={
 								peek ? 'Hide password' : 'Show password'
@@ -165,10 +165,10 @@ export default function ReactAuthRegister() {
 					</div>
 				</label>
 
-				<label className="reg__field">
-					<span className="reg__label">Confirm password</span>
+				<label className="bento-field">
+					<span className="bento-field__label">Confirm password</span>
 					<input
-						className="reg__input"
+						className="bento-input"
 						type={peek ? 'text' : 'password'}
 						autoComplete="new-password"
 						placeholder="repeat password"
@@ -200,7 +200,9 @@ export default function ReactAuthRegister() {
 				</label>
 
 				<div className="reg__captcha">
-					<span className="reg__label">Verify you’re human</span>
+					<span className="bento-field__label">
+						Verify you’re human
+					</span>
 					<div className="reg__captcha-box">
 						<KbveCaptcha
 							ref={captchaRef}
@@ -226,17 +228,20 @@ export default function ReactAuthRegister() {
 					</span>
 				</div>
 
-				{error && <div className="reg__error">{error}</div>}
+				{error && <div className="bento-form__error">{error}</div>}
 
 				<button
 					type="submit"
-					className={cn('reg__submit', !canSubmit && 'is-disabled')}
+					className={cn(
+						'bento-form__submit',
+						!canSubmit && 'is-disabled',
+					)}
 					disabled={!canSubmit}>
 					{busy ? 'Creating…' : 'Create account'}
 				</button>
 			</form>
 
-			<div className="reg__divider">
+			<div className="bento-divider">
 				<span>or continue with</span>
 			</div>
 
@@ -252,25 +257,6 @@ export default function ReactAuthRegister() {
 				.reg__check { display: inline-flex; margin-bottom: 0.75rem; color: var(--sl-color-green, #22c55e); }
 				.reg__title { color: var(--sl-color-white); font-size: clamp(1.25rem, 3vw, 1.6rem); letter-spacing: -0.02em; margin: 0 0 0.35rem; }
 				.reg__lede { color: var(--sl-color-gray-3); font-size: 0.875rem; line-height: 1.5; margin: 0 0 1.25rem; }
-				.reg__form { display: flex; flex-direction: column; gap: 0.85rem; }
-				.reg__field { display: flex; flex-direction: column; gap: 0.3rem; }
-				.reg__label { font-size: 0.75rem; font-weight: 600; color: var(--sl-color-gray-2); }
-				.reg__inputwrap { position: relative; display: flex; }
-				.reg__input {
-					width: 100%; padding: 0.6rem 0.75rem; font-size: 0.9rem;
-					color: var(--sl-color-white);
-					background: color-mix(in srgb, var(--sl-color-white) 5%, transparent);
-					border: 1px solid var(--bento-hairline-strong, rgba(255,255,255,0.12));
-					border-radius: 9px; outline: none;
-				}
-				.reg__input::placeholder { color: var(--sl-color-gray-4); }
-				.reg__input:focus { border-color: var(--sl-color-accent); }
-				.reg__peek {
-					position: absolute; right: 0.4rem; top: 50%; transform: translateY(-50%);
-					background: transparent; border: none; color: var(--sl-color-gray-3);
-					font-size: 0.7rem; font-weight: 600; cursor: pointer; padding: 0.2rem 0.4rem;
-				}
-				.reg__peek:hover { color: var(--sl-color-white); }
 				.reg__hint { font-size: 0.7rem; min-height: 0.9rem; line-height: 0.9rem; white-space: pre; }
 				.reg__hint--warn { color: var(--color-red, #f87171); }
 				.reg__hint--ok { color: var(--sl-color-green, #22c55e); font-weight: 600; }
@@ -280,19 +266,7 @@ export default function ReactAuthRegister() {
 				.reg__agree { display: flex; align-items: flex-start; gap: 0.5rem; font-size: 0.75rem; color: var(--sl-color-gray-3); line-height: 1.4; }
 				.reg__agree input { margin-top: 0.15rem; accent-color: var(--sl-color-accent); }
 				.reg__agree a { color: var(--sl-color-text-accent, var(--sl-color-accent)); }
-				.reg__error {
-					font-size: 0.8rem; color: var(--color-red, #f87171);
-					background: color-mix(in srgb, var(--color-red, #ef4444) 12%, transparent);
-					border-radius: 8px; padding: 0.5rem 0.7rem;
-				}
-				.reg__submit {
-					padding: 0.7rem 1rem; font-size: 0.9rem; font-weight: 600;
-					color: var(--sl-color-black); background: var(--sl-color-accent-high, var(--sl-color-accent));
-					border: none; border-radius: 9px; cursor: pointer; transition: opacity 160ms ease;
-				}
-				.reg__submit.is-disabled { opacity: 0.5; cursor: not-allowed; }
-				.reg__divider { display: flex; align-items: center; gap: 0.75rem; margin: 1.25rem 0 0.9rem; color: var(--sl-color-gray-4); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.08em; }
-				.reg__divider::before, .reg__divider::after { content: ''; flex: 1; height: 1px; background: var(--bento-hairline, rgba(255,255,255,0.08)); }
+				.reg .bento-divider { margin: 1.25rem 0 0.9rem; }
 				.reg__foot { margin: 1rem 0 0; font-size: 0.8rem; color: var(--sl-color-gray-3); text-align: center; }
 				.reg__foot a { color: var(--sl-color-text-accent, var(--sl-color-accent)); }
 			`}</style>

@@ -1,4 +1,5 @@
 pub mod api;
+pub mod billing;
 pub mod config;
 pub mod engine;
 pub mod files;

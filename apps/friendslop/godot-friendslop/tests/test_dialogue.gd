@@ -512,11 +512,126 @@ func _talkers() -> PackedStringArray:
 	return out
 
 
-## Four people standing on top of each other is one person with three shadows, and the
+## A crossing that is already laid down, which is the state worldgen reaches eventually and
+## the scene never starts in.
+class StubCrossing extends Node3D:
+	signal ground_ready
+
+	## Half the deck's width, which is what standing clear of the road is measured against.
+	const HALF_WIDTH := 3.0
+
+	var laid := true
+
+	func is_ground_ready() -> bool:
+		return laid
+
+	func height_at(_x: float, _z: float) -> float:
+		return 0.0
+
+	func bridge_span() -> PackedFloat32Array:
+		return PackedFloat32Array([0.0, -24.0, 0.0, 24.0, HALF_WIDTH]) if laid \
+				else PackedFloat32Array()
+
+	func lay_the_ground() -> void:
+		laid = true
+		ground_ready.emit()
+
+
+## Everybody standing on top of each other is one person with seven shadows, and the
 ## interactor picks whoever is nearest -- so two in the same spot are not both reachable.
+##
+## Held to where they end up rather than to the numbers they were authored with: the numbers
+## were all different the whole time an empty crossing was landing every one of them on the
+## origin.
 func test_the_talkers_are_not_standing_on_each_other() -> void:
-	var state := (load("res://scenes/main.tscn") as PackedScene).get_state()
+	var spots: Dictionary = await _placed_against_a_crossing()
+	var names := spots.keys()
+	assert_int(names.size()).is_greater(1)
+	for a in names.size():
+		for b in range(a + 1, names.size()):
+			var gap: float = (spots[names[a]] as Vector2).distance_to(spots[names[b]])
+			## Wider than one talk radius: two people close enough to both be in reach make
+			## the prompt jump between them as the player turns.
+			assert_float(gap) \
+					.override_failure_message("%s and %s stand %.1fm apart by the bridge" % [
+							names[a], names[b], gap]) \
+					.is_greater(5.0)
+
+
+## Beside the crossing, not on it. The stub lays its deck along x = 0, so how far off the
+## road somebody is standing is just how far off zero they are.
+func test_nobody_is_standing_in_the_road() -> void:
+	var spots: Dictionary = await _placed_against_a_crossing()
+	for who: String in spots:
+		assert_float(absf((spots[who] as Vector2).x)) \
+				.override_failure_message("%s is standing on the deck rather than beside it" % who) \
+				.is_greater(StubCrossing.HALF_WIDTH)
+
+
+## The race this is really here for: worldgen takes seconds, a deferred call takes a frame,
+## and a crossing that is not down yet answers with nothing. Everybody who asked too early
+## stayed where the scene had them, which is the same spot for all of them.
+func test_somebody_who_asks_before_the_crossing_exists_still_gets_placed() -> void:
+	var world := Node3D.new()
+	add_child(world)
+	auto_free(world)
+	var ground := StubCrossing.new()
+	ground.name = "Ground"
+	ground.laid = false
+	world.add_child(ground)
+
+	var actor := NpcActor.new()
+	actor.npc_ref = MARLOW
+	actor.stand_under_bridge = true
+	actor.bridge_offset = 2.0
+	actor.bridge_along = 9.0
+	actor.terrain_path = NodePath("../Ground")
+	world.add_child(actor)
+	await get_tree().process_frame
+
+	assert_vector(actor.global_position) \
+			.override_failure_message("he was placed against a crossing that did not exist yet") \
+			.is_equal(Vector3.ZERO)
+
+	ground.lay_the_ground()
+	await get_tree().process_frame
+	assert_float(Vector2(actor.global_position.x, actor.global_position.z).length()) \
+			.override_failure_message("the crossing was laid down and nobody moved to it") \
+			.is_greater(1.0)
+
+
+## Everyone in the world scene, stood against a crossing that answers, and where they end up
+## on the flat.
+func _placed_against_a_crossing() -> Dictionary:
+	var world := Node3D.new()
+	add_child(world)
+	auto_free(world)
+	var ground := StubCrossing.new()
+	ground.name = "Ground"
+	world.add_child(ground)
+
+	var actors := {}
+	for stand: Dictionary in _authored_stands():
+		var actor := NpcActor.new()
+		actor.npc_ref = str(stand["ref"])
+		actor.stand_under_bridge = bool(stand["bridge"])
+		actor.bridge_offset = float(stand["offset"])
+		actor.bridge_along = float(stand["along"])
+		actor.terrain_path = NodePath("../Ground")
+		world.add_child(actor)
+		actors[str(stand["ref"])] = actor
+	await get_tree().process_frame
+
 	var spots := {}
+	for who: String in actors:
+		var at: Vector3 = (actors[who] as Node3D).global_position
+		spots[who] = Vector2(at.x, at.z)
+	return spots
+
+
+func _authored_stands() -> Array[Dictionary]:
+	var state := (load("res://scenes/main.tscn") as PackedScene).get_state()
+	var out: Array[Dictionary] = []
 	for i in state.get_node_count():
 		var props := {}
 		for p in state.get_node_property_count(i):
@@ -524,18 +639,13 @@ func test_the_talkers_are_not_standing_on_each_other() -> void:
 		if str(props.get("npc_ref", "")) == "":
 			continue
 		## The defaults are Marlow's, which is what everyone else has to differ from.
-		spots[str(props.get("npc_ref"))] = Vector2(
-				float(props.get("bridge_offset", 2.0)),
-				float(props.get("bridge_along", 9.0)))
-
-	var names := spots.keys()
-	for a in names.size():
-		for b in range(a + 1, names.size()):
-			var gap: float = (spots[names[a]] as Vector2).distance_to(spots[names[b]])
-			assert_float(gap) \
-					.override_failure_message("%s and %s stand %.1fm apart by the bridge" % [
-							names[a], names[b], gap]) \
-					.is_greater(3.0)
+		out.append({
+			"ref": str(props.get("npc_ref")),
+			"bridge": bool(props.get("stand_under_bridge", false)),
+			"offset": float(props.get("bridge_offset", 2.0)),
+			"along": float(props.get("bridge_along", 9.0)),
+		})
+	return out
 
 
 ## Without the interactor on the player there is nobody to notice him.

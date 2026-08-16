@@ -57,13 +57,26 @@ var bisect_step := 0
 
 
 func cycle_bisect() -> String:
-	bisect_step = (bisect_step + 1) % BISECT_STEPS.size()
+	set_bisect((bisect_step + 1) % BISECT_STEPS.size())
+	return bisect_name()
+
+
+## Addressed by index as well as stepped, so the settings page can drive it the same way
+## it drives every other cycled option.
+func set_bisect(index: int) -> void:
+	bisect_step = clampi(index, 0, BISECT_STEPS.size() - 1)
 	var step: Dictionary = BISECT_STEPS[bisect_step]
 	for entry in BISECT_FIELDS + BISECT_GROUND + BISECT_WATER:
 		var node := get_node_or_null(NodePath(entry))
 		if node:
 			node.set("visible", not step.hide.has(entry))
-	return step.name
+
+
+func bisect_names() -> Array:
+	var out: Array = []
+	for step in BISECT_STEPS:
+		out.append(step.name)
+	return out
 
 
 func bisect_name() -> String:

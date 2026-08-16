@@ -45,6 +45,12 @@ async fn hls_transcode_integration() {
         hls: reel::state::HlsStatus::None,
         hls_dir: None,
         hls_error: None,
+        added_at: 0,
+        account_id: None,
+        billed_credits: None,
+        billed_at: None,
+        refunded_at: None,
+        billing_error: None,
     };
     store.upsert(entry).unwrap();
 

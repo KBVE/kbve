@@ -11,12 +11,17 @@ async fn progressive_stream_reads_head_before_complete() {
     std::env::set_var("REEL_STATE_FILE", tmp.path().join("state.json"));
     let cfg = reel::config::load_from_env().unwrap();
     let store = reel::state::StateStore::load(cfg.state_file.clone()).unwrap();
-    let eng = reel::engine::Engine::start(&cfg, store.clone()).await.unwrap();
-    let id = eng.add(&magnet).await.unwrap();
+    let eng = reel::engine::Engine::start(&cfg, store.clone())
+        .await
+        .unwrap();
+    let id = eng.add(&magnet, None).await.unwrap();
 
     let mut files = None;
     for _ in 0..120 {
-        if let Ok(Some(f)) = eng.list_files(&id) { files = Some(f); break; }
+        if let Ok(Some(f)) = eng.list_files(&id) {
+            files = Some(f);
+            break;
+        }
         tokio::time::sleep(Duration::from_secs(1)).await;
     }
     let files = files.expect("metadata resolved");

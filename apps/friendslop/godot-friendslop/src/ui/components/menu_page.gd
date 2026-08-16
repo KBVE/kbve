@@ -44,22 +44,37 @@ func pair_with(other: MenuPage) -> void:
 
 
 func add_cycler(label: String, names: Callable, get_index: Callable,
-		set_index: Callable, count: int) -> SettingCycler:
+		set_index: Callable, count: int, hint: String = "") -> SettingCycler:
 	var row := SettingCycler.make(label, names, get_index, set_index, count)
 	row.cycled.connect(_refresh_spread)
 	_rows.append(row)
 	_scaled.append_array(row.scalables())
 	box.add_child(row)
+	_hint(row, hint)
 	return row
 
 
-func add_button(text: String, action: Callable) -> PaperButton:
+func add_button(text: String, action: Callable, hint: String = "") -> PaperButton:
 	var b := PaperButton.make(text, action)
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b.clip_text = true
 	_scaled.append(b)
 	box.add_child(b)
+	_hint(b, hint)
 	return b
+
+
+## What a row does, for anyone who hovers it or reaches it with the keyboard.
+##
+## A pointer tooltip only: a touch screen has no hover, and a long press to read a label
+## fights the tap that would use the row. Mobile is meant to be told by the label itself,
+## which is why hints are an explanation rather than the only place a row says what it is.
+func _hint(row: Control, text: String) -> void:
+	if text == "" or MenuStyle.touch:
+		return
+	row.tooltip_text = text
+	for child in row.find_children("", "Control", true, false):
+		(child as Control).tooltip_text = text
 
 
 ## Anchors the page onto the projected book and rescales its rows to match.

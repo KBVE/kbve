@@ -774,6 +774,11 @@ fn router(state: AppState) -> Router {
             axum::routing::get(super::proxy::reel_media_token_handler),
         )
         .route(
+            "/api/v1/reel/torrents",
+            axum::routing::post(super::proxy::reel_add_handler)
+                .get(super::proxy::reel_proxy_handler),
+        )
+        .route(
             "/api/v1/reel/{*rest}",
             any(super::proxy::reel_proxy_handler),
         )

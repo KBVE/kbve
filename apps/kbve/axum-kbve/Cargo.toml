@@ -73,7 +73,7 @@ webpki-roots = { workspace = true }
 # Workspace path dependencies
 jedi = { path = "../../../packages/rust/jedi", features = ["aws", "clickhouse", "forgejo", "postgres", "valkey"] }
 kbve = { path = "../../../packages/rust/kbve", features = ["wallet"] }
-uuid = { workspace = true, features = ["v4", "serde"] }
+uuid = { workspace = true, features = ["v4", "v5", "serde"] }
 
 # Referral handler hashes client IP + subnet before any DB write.
 hmac = "0.13"

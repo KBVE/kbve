@@ -720,21 +720,27 @@ fn dungeon_map_quit_from_map_does_not_leave_the_game() {
 fn dungeon_renders_clean_on_petscii_across_a_run() {
     let mut game = run::Run::new(Rng::new(7), "tester");
     for step in 0..24 {
-        for view in ["", "M"] {
-            if !view.is_empty() {
-                let _ = game.on_key('M');
+        for view in ['\0', 'M', 'I', 'B'] {
+            if view != '\0' {
+                let _ = game.on_key(view);
             }
             let mut screen = Screen::new(Term::Petscii, 40, 25);
             game.draw(&mut screen);
             let bytes = screen.take();
-            assert!(!bytes.contains(&b'?'), "petscii fallback at step {step}");
+            assert!(
+                !bytes.contains(&b'?'),
+                "petscii fallback at step {step} in view {view:?}"
+            );
             let widest = bytes
                 .split(|b| *b == 0x0D)
                 .map(petscii_columns)
                 .max()
                 .unwrap_or(0);
-            assert!(widest <= 40, "line overflowed 40 columns: {widest}");
-            if !view.is_empty() {
+            assert!(
+                widest <= 40,
+                "line overflowed 40 columns in view {view:?}: {widest}"
+            );
+            if view != '\0' {
                 let _ = game.on_key('Q');
             }
         }
@@ -801,4 +807,142 @@ async fn idle_allowance_can_be_raised_for_a_caller_who_signs_in() {
 #[test]
 fn authed_idle_defaults_to_an_hour() {
     assert_eq!(super::authed_idle(), Duration::from_secs(3600));
+}
+
+#[test]
+fn dungeon_pack_lists_what_the_player_started_with() {
+    let game = run::Run::new(Rng::new(11), "tester");
+    let pack = game.pack();
+    assert!(
+        pack.iter().any(|l| l.starts_with("Potion")),
+        "starting potions missing from the pack: {pack:?}"
+    );
+}
+
+#[test]
+fn dungeon_using_a_potion_spends_it() {
+    let mut game = run::Run::new(Rng::new(11), "tester");
+    let before = game.pack();
+    let _ = game.on_key('I');
+
+    let view = drain(Term::Ansi, &game);
+    assert!(view.contains("pack"), "pack view did not render: {view}");
+
+    let _ = game.on_key('1');
+
+    let after = game.pack();
+    assert_ne!(before, after, "using a potion did not change the pack");
+    assert!(
+        game.notice().is_none(),
+        "using a carried item was refused: {:?}",
+        game.notice()
+    );
+}
+
+#[test]
+fn dungeon_pack_returns_to_play_without_leaving_the_game() {
+    let mut game = run::Run::new(Rng::new(11), "tester");
+    let _ = game.on_key('I');
+    assert_eq!(game.on_key('Q'), Flow::Continue);
+    assert_eq!(game.on_key('Q'), Flow::Exit);
+}
+
+#[test]
+fn dungeon_city_opens_a_stall_with_stock_on_both_sides() {
+    let game = run::Run::new(Rng::new(11), "tester");
+    let (buy, sell) = game.stall_labels();
+
+    assert!(!buy.is_empty(), "the city merchant had nothing for sale");
+    assert!(
+        buy.iter().all(|(_, l)| l.ends_with('g')),
+        "stock is not priced: {buy:?}"
+    );
+    assert!(
+        sell.iter().any(|(_, l)| l.starts_with("Potion")),
+        "carried potions are not sellable: {sell:?}"
+    );
+}
+
+#[test]
+fn dungeon_selling_a_carried_item_pays_out() {
+    let mut game = run::Run::new(Rng::new(11), "tester");
+    let _ = game.on_key('B');
+    let view = drain(Term::Ansi, &game);
+    assert!(view.contains("for sale"), "stall did not render: {view}");
+
+    let before = game.pack();
+    let _ = game.on_key('A');
+
+    assert_ne!(before, game.pack(), "selling did not change the pack");
+    assert!(
+        game.notice().is_none(),
+        "selling a carried item was refused: {:?}",
+        game.notice()
+    );
+}
+
+#[test]
+fn dungeon_stall_only_keys_what_the_player_can_pay_for() {
+    let game = run::Run::new(Rng::new(11), "tester");
+    let gold = game.gold();
+    let (buy, _) = game.stall_labels();
+
+    let priced = |label: &str| -> i32 {
+        label
+            .rsplit_once(" - ")
+            .and_then(|(_, price)| price.trim_end_matches('g').parse().ok())
+            .expect("every stall row carries a price")
+    };
+
+    for (_, label) in buy.iter().filter(|(key, _)| key.is_some()) {
+        assert!(
+            priced(label) <= gold,
+            "offered {label} with only {gold} gold"
+        );
+    }
+    assert!(
+        buy.iter()
+            .any(|(key, label)| key.is_none() && priced(label) > gold),
+        "expected an unaffordable row listed without a key: {buy:?} (gold {gold})"
+    );
+}
+
+#[test]
+fn dungeon_stall_rows_never_steal_the_navigation_keys() {
+    let game = run::Run::new(Rng::new(11), "tester");
+    let (buy, sell) = game.stall_labels();
+
+    for (key, label) in buy.iter().chain(sell.iter()) {
+        assert!(
+            !matches!(key, Some('B') | Some('Q')),
+            "{label} took a navigation key: {key:?}"
+        );
+    }
+}
+
+#[test]
+fn dungeon_equipping_carried_gear_is_offered_not_refused() {
+    let mut game = run::Run::new(Rng::new(11), "tester");
+    for step in 0..400 {
+        if game
+            .pack()
+            .iter()
+            .any(|l| l.contains("Sword") || l.contains("Vest"))
+        {
+            break;
+        }
+        let keys = game.keys();
+        let _ = game.on_key(keys[step % keys.len()]);
+    }
+
+    let _ = game.on_key('I');
+    let keys: Vec<char> = game.pack_keys();
+    for key in keys {
+        let _ = game.on_key(key);
+        assert!(
+            game.notice().is_none(),
+            "pack offered '{key}' but the engine refused: {:?}",
+            game.notice()
+        );
+    }
 }

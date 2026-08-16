@@ -20,7 +20,7 @@ const ANON_KEY := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlz
 const TIMEOUT_SECONDS := 15.0
 
 ## Providers offered on the title.
-const PROVIDERS := ["discord", "github"]
+const PROVIDERS := ["discord", "github", "twitch"]
 
 ## Refresh this far before the token actually expires, so a join that takes a moment to
 ## travel does not arrive holding something that just went stale.
@@ -197,6 +197,21 @@ func _restore() -> void:
 	if await _refresh() != OK:
 		_forget()
 	changed.emit()
+
+
+## True for an account that exists but has not chosen a handle yet, which is every
+## account on the first sign-in: Supabase creates the row, and the name is a separate
+## claim nothing has written.
+func needs_username() -> bool:
+	return _mode == Mode.ACCOUNT and not _token.is_empty() and username_in(_token).is_empty()
+
+
+## Trades the refresh token in whatever the clock says, which is how a claim written
+## server-side is picked up — the token in hand was minted before it existed.
+func refresh_now() -> Error:
+	if _mode != Mode.ACCOUNT or _refresh_token.is_empty():
+		return ERR_UNAUTHORIZED
+	return await _refresh()
 
 
 ## Supabase access token, or "" for a guest.

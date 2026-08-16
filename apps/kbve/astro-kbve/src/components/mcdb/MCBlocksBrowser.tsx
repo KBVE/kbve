@@ -1,3 +1,8 @@
+/**
+ * @deprecated Superseded by MCBlocksGrid.astro, which renders every block at
+ * build time. Kept for reference only — not mounted on any route. The
+ * /api/mc-blocks.json endpoint it fetched is still live for other consumers.
+ */
 import { useEffect, useMemo, useState } from 'react';
 import { mcTextureUrls } from './texture';
 

@@ -128,6 +128,19 @@ pub fn archive_served(id: &str, files: usize) {
     );
 }
 
+pub fn fetch_billed(id: &str, credits: u64) {
+    tracing::info!(
+        event = "fetch_billed",
+        id,
+        credits,
+        "fetch charged to wallet"
+    );
+}
+
+pub fn fetch_refunded(id: &str) {
+    tracing::info!(event = "fetch_refunded", id, "failed fetch refunded");
+}
+
 pub fn vpn_leak() {
     tracing::error!(
         event = "vpn_leak",

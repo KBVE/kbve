@@ -281,8 +281,8 @@ hair_color = Color(0.35, 0.22, 0.1, 1)
 worn = Array[StringName]([&"female_ranger_body", &"female_ranger_arms", &"female_ranger_legs", &"female_ranger_feet"])
 head_only_body = ExtResource("52_headf")
 stand_under_bridge = true
-bridge_offset = -3.2
-bridge_along = 12.0
+bridge_offset = -3.0
+bridge_along = 15.0
 
 [node name="Tam" type="Node3D" parent="." unique_id=18600843]
 script = ExtResource("44_npc")
@@ -295,8 +295,8 @@ idle_animation = "UAL1/Idle_LookAround"
 skin_color = Color(0.9, 0.76, 0.63, 1)
 hair_color = Color(0.09, 0.07, 0.06, 1)
 stand_under_bridge = true
-bridge_offset = 3.0
-bridge_along = -10.0
+bridge_offset = 2.2
+bridge_along = -13.0
 
 [node name="Sable" type="Node3D" parent="." unique_id=18600844]
 script = ExtResource("44_npc")
@@ -309,8 +309,8 @@ idle_animation = "UAL1/Idle_LookAround"
 skin_color = Color(0.7, 0.55, 0.44, 1)
 hair_color = Color(0.12, 0.1, 0.13, 1)
 stand_under_bridge = true
-bridge_offset = -2.6
-bridge_along = -14.0
+bridge_offset = -3.4
+bridge_along = -17.0
 
 [node name="Merchant" type="Node3D" parent="." unique_id=18600845]
 script = ExtResource("44_npc")
@@ -325,8 +325,8 @@ hair_color = Color(0.28, 0.21, 0.14, 1)
 worn = Array[StringName]([&"male_noble_body", &"male_noble_arms", &"male_noble_legs", &"male_noble_feet"])
 head_only_body = ExtResource("51_headm")
 stand_under_bridge = true
-bridge_offset = 3.4
-bridge_along = 4.0
+bridge_offset = 2.6
+bridge_along = 2.0
 
 [node name="Cleric" type="Node3D" parent="." unique_id=18600846]
 script = ExtResource("44_npc")
@@ -341,8 +341,8 @@ hair_color = Color(0.72, 0.7, 0.66, 1)
 worn = Array[StringName]([&"female_wizard_body", &"female_wizard_arms", &"female_wizard_legs", &"female_wizard_feet"])
 head_only_body = ExtResource("52_headf")
 stand_under_bridge = true
-bridge_offset = -3.6
-bridge_along = 5.5
+bridge_offset = -4.6
+bridge_along = 6.5
 
 [node name="Knight" type="Node3D" parent="." unique_id=18600847]
 script = ExtResource("44_npc")
@@ -357,8 +357,8 @@ hair_color = Color(0.42, 0.3, 0.16, 1)
 worn = Array[StringName]([&"female_knight_body_armor", &"female_knight_arms", &"female_knight_legs", &"female_knight_feet"])
 head_only_body = ExtResource("52_headf")
 stand_under_bridge = true
-bridge_offset = -2.8
-bridge_along = -6.0
+bridge_offset = -2.4
+bridge_along = -3.0
 
 [node name="Mage" type="Node3D" parent="." unique_id=18600848]
 script = ExtResource("44_npc")
@@ -373,8 +373,8 @@ hair_color = Color(0.78, 0.76, 0.72, 1)
 worn = Array[StringName]([&"male_wizard_body", &"male_wizard_arms", &"male_wizard_legs", &"male_wizard_feet"])
 head_only_body = ExtResource("51_headm")
 stand_under_bridge = true
-bridge_offset = 3.6
-bridge_along = -3.0
+bridge_offset = 4.8
+bridge_along = -6.5
 
 [node name="FishField" type="QFishField" parent="." unique_id=2018535568]
 terrain_path = NodePath("../Terrain")

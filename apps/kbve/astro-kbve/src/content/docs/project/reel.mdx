@@ -13,7 +13,7 @@ tags:
 key: reel
 pipeline: docker
 app_name: reel
-version: "0.1.43"
+version: "0.1.44"
 source_path: apps/media/reel
 version_toml: apps/media/reel/version.toml
 version_target: apps/media/reel/Cargo.toml
@@ -185,6 +185,59 @@ that state. Every listing and every download **touches** the entry, so the 6h
 idle TTL restarts on each interaction and a long transfer cannot be reaped out
 from under itself. Set `REEL_DOWNLOAD_ENABLED=false` to turn the routes off.
 
+### Fetch billing
+
+Pulling a torrent costs real bandwidth, so every fetch is charged to the
+caller's wallet — **1 credit per MiB, rounded up, once**. At the $1 = 1,000,000
+credit peg that is about **$1 per TiB**. A 400 MB album costs 400 credits; a
+1080p film around 8,000. Staff are billed like everyone else.
+
+**Charged when the size is known, not when you click.** `POST /torrents` cannot
+price anything — a magnet arrives with no size, and reel writes `size: 0` until
+metadata resolves. The billing sweep waits for the torrent's real byte count
+(live `total_bytes` while leeching, the moved size once seeding) and only then
+debits. An account that can't cover it has the torrent dropped before the bulk
+of the transfer, instead of the cluster eating the bandwidth for free.
+
+**Everything after the fetch is free.** Streams, HLS, per-file downloads, the
+whole-torrent zip, re-downloads — none of them bill. You paid to bring the bytes
+in; serving them back off local disk is nearly free.
+
+**The cache bonus.** Re-adding something reel still holds hits the
+`already_active` check, which returns the existing entry without creating a new
+one — same fetch epoch, same idempotency key, so the wallet no-ops and you are
+not charged twice. Once the entry is reaped, the next add stamps a fresh
+`added_at`, produces a different key, and bills again. The rule reduces to: **you
+pay each time reel actually has to pull the bytes.**
+
+The key is `uuidv5("reel_fetch:{account}:{infohash}:{added_at}")`. The account
+is in it because `wallet.ledger.idempotency_key` is globally unique — an
+account-less key would collide across users and trip the replay-fingerprint
+check rather than billing the second account. `added_at` is persisted in
+`state.json` and carried across the completion rebuild, so a reel restart never
+re-bills a fetch that was already paid for.
+
+**The billing routes are gateway-only.** `/billing/queue` and the settle/refund
+acks are a private channel between reel and axum-kbve — reaching them from the
+edge would let any signed-in user mark their own fetch paid for zero credits. The
+proxy refuses to forward any path containing a `billing` segment (404, so the
+edge does not even confirm the route exists), and a POST to any spelling of the
+add route that misses the billed handler (`torrents/`, `torrents//`) is refused
+the same way. Media tokens are playback credentials that ride in cookies and
+query strings, so they are **read-only**: adding, deleting, transcoding and
+touching all require a real dashboard session.
+
+**Who moves the credits.** Reel never touches the wallet. It records the payer
+and exposes `GET /billing/queue` (what is owed) plus
+`POST /torrents/{id}/billing/settle` and `/billing/refunded` (what was paid).
+axum-kbve owns wallet access: it stamps the caller's account onto the add
+request, then sweeps the queue every `REEL_BILLING_INTERVAL_SECS` (default 20)
+debiting via `wallet.service_debit`. A fetch that fails after being charged is
+refunded automatically; a reaped fetch is not — expiry is the deal, the bytes
+were delivered. Charges use `source_kind = purchase` and refunds `refund`; there
+is deliberately no reel-specific enum variant, since adding one means an enum
+`ALTER` in its own migration.
+
 ### Error surfacing
 
 Failures no longer collapse to an opaque status code. A `failed` torrent returns
@@ -200,7 +253,8 @@ All lifecycle transitions emit a stable `event=` field (JSON on stdout, tailed b
 Vector into ClickHouse): `torrent_added`, `torrent_completed`, `torrent_failed`
 (with `phase` + `reason`), `probe_decided`, `transcode_started`,
 `transcode_ready`, `transcode_failed`, `hls_started`, `hls_ready`, `hls_failed`,
-`stream_served`, `download_served`, `archive_served`, `vpn_leak`, `vpn_restored`, `reaped`. A per-torrent leech
+`stream_served`, `download_served`, `archive_served`, `fetch_billed`,
+`fetch_refunded`, `vpn_leak`, `vpn_restored`, `reaped`. A per-torrent leech
 heartbeat logs progress + live peer count each stall-check tick. The default log
 filter is `info` (`reel=debug`) so the happy path is visible without setting
 `RUST_LOG`.

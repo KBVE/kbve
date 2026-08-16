@@ -3,8 +3,19 @@ import path from 'node:path';
 
 const ROUTE_EXTENSIONS = new Set(['.astro', '.md', '.mdx', '.mdoc', '.html']);
 
+/**
+ * Trailing slashes off, without a regex. `/\/+$/` backtracks quadratically on a
+ * long run of slashes, and both callers here take their input from outside this
+ * module — a URL pathname and the configured base.
+ */
+function stripTrailingSlashes(value) {
+	let end = value.length;
+	while (end > 0 && value.charCodeAt(end - 1) === 47) end -= 1;
+	return end === value.length ? value : value.slice(0, end);
+}
+
 export function routeKey(pathname) {
-	const trimmed = pathname.replace(/\/+$/, '');
+	const trimmed = stripTrailingSlashes(pathname);
 	return trimmed === '' ? '/' : trimmed;
 }
 
@@ -75,7 +86,7 @@ export function pathnameFor(url, base = '/') {
 	} catch {
 		return null;
 	}
-	const prefix = base === '/' ? '' : base.replace(/\/+$/, '');
+	const prefix = base === '/' ? '' : stripTrailingSlashes(base);
 	if (prefix && pathname.startsWith(prefix)) {
 		pathname = pathname.slice(prefix.length) || '/';
 	}
