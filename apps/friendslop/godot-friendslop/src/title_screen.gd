@@ -8,6 +8,8 @@ const PAUSE_MENU := preload("res://src/ui/pause_menu.gd")
 ## title probes whatever the player is actually about to join.
 const ONLINE_WORLD := preload("res://src/net/online_world.gd")
 
+var _api: KbveApi
+
 ## The backdrop runs none of what the world scene runs — no player, no physics step, no
 ## creatures, and none of the tree, flora, shrub or rock fields — so the grass gets the
 ## frame those systems are not spending.
@@ -91,6 +93,7 @@ func _ready() -> void:
 	_menu.quit_requested.connect(_quit)
 	_menu.cancel_requested.connect(_cancel)
 	_menu.locale_requested.connect(_switch_locale)
+	_menu.username_submitted.connect(_claim_username)
 	_probe_server()
 	_ask_language_once()
 
@@ -148,6 +151,7 @@ func _sign_in(provider: String) -> void:
 		return
 	if await auth.sign_in_with_provider(provider) == OK:
 		_menu.sign_in_succeeded()
+		_prompt_for_username_if_new(auth)
 	else:
 		_menu.sign_in_failed(auth.last_error())
 
@@ -156,6 +160,50 @@ func _sign_out() -> void:
 	var auth := get_node_or_null(^"/root/Auth")
 	if auth:
 		auth.sign_out()
+	_menu.close_username()
+
+
+## Supabase makes the account the moment a provider vouches for someone, but the handle
+## is a separate claim nothing has written yet -- so a first sign-in lands here holding a
+## token for an account with no name on it.
+func _prompt_for_username_if_new(auth: Node) -> void:
+	if auth.needs_username():
+		_menu.open_username()
+
+
+## Claims the handle, then trades the token in for one that carries it.
+func _claim_username(username: String) -> void:
+	var auth := get_node_or_null(^"/root/Auth")
+	if auth == null:
+		_menu.username_failed("Accounts are unavailable in this build.")
+		return
+	_api_client().set_username(auth.access_token(), username)
+
+
+## Built once and kept, so the two answers are wired up exactly once. Awaiting the
+## success signal instead would hang forever on a refused name, which is the answer this
+## call is most likely to get.
+func _api_client() -> KbveApi:
+	if _api == null:
+		_api = KbveApi.new()
+		add_child(_api)
+		_api.username_set.connect(_on_username_claimed)
+		_api.username_failed.connect(func(reason: String) -> void: _menu.username_failed(reason))
+	return _api
+
+
+## The refresh is the part that is easy to leave out and hard to see missing: the claim
+## lands server-side, but the token in hand was minted before it existed. Without it the
+## player keeps a nameless session until something else happens to refresh one -- and the
+## prompt they just answered opens again on the next launch.
+func _on_username_claimed(_taken: String) -> void:
+	var auth := get_node_or_null(^"/root/Auth")
+	if auth == null:
+		return
+	if await auth.refresh_now() != OK:
+		_menu.username_failed(auth.last_error())
+		return
+	_menu.close_username()
 
 
 ## The offline world.

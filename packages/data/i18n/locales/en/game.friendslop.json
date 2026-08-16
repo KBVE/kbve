@@ -83,5 +83,13 @@
 	"account": {
 		"loading": "reading balance…",
 		"wallet": "{credits} credits  ·  {khash} khash"
+	},
+	"username": {
+		"prompt": "Pick a username",
+		"placeholder": "username",
+		"rule": "3–24 characters, starting with a letter. Letters, numbers and underscores.",
+		"claim": "Claim it",
+		"claiming": "claiming…",
+		"taken": "That one is taken."
 	}
 }
