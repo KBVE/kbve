@@ -8,14 +8,6 @@ from pathlib import Path
 
 NAME = re.compile(r'^\s*name\s*=\s*"([^"]+)"', re.M)
 
-# Changing the gate takes every project, or the gate is the one thing it never
-# runs against: a pull request that only edits the workflow touches no project
-# path, picks nothing, and goes green having tested none of what it changed.
-#
-# The manifest is deliberately not in here. The sync bot rewrites it on every
-# version bump, so including it would run every Godot suite on routine churn.
-# A change to the parts that decide anything -- features, engine version, addon
-# path -- is rare, and workflow_dispatch runs the lot on demand.
 SELF = (
     ".github/workflows/ci-godot-tests.yml",
     ".github/scripts/godot_test_matrix.py",
