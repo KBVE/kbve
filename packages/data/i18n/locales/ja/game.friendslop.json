@@ -58,5 +58,13 @@
 	"account": {
 		"loading": "残高を読み込み中…",
 		"wallet": "{credits} クレジット  ·  {khash} khash"
+	},
+	"username": {
+		"prompt": "ユーザー名を選んでください",
+		"placeholder": "ユーザー名",
+		"rule": "3〜24文字。英字で始め、英数字とアンダースコアが使えます。",
+		"claim": "決定",
+		"claiming": "登録中…",
+		"taken": "その名前は使われています。"
 	}
 }

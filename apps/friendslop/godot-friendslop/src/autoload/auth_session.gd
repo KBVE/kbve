@@ -199,6 +199,21 @@ func _restore() -> void:
 	changed.emit()
 
 
+## True for an account that exists but has not chosen a handle yet, which is every
+## account on the first sign-in: Supabase creates the row, and the name is a separate
+## claim nothing has written.
+func needs_username() -> bool:
+	return _mode == Mode.ACCOUNT and not _token.is_empty() and username_in(_token).is_empty()
+
+
+## Trades the refresh token in whatever the clock says, which is how a claim written
+## server-side is picked up — the token in hand was minted before it existed.
+func refresh_now() -> Error:
+	if _mode != Mode.ACCOUNT or _refresh_token.is_empty():
+		return ERR_UNAUTHORIZED
+	return await _refresh()
+
+
 ## Supabase access token, or "" for a guest.
 func access_token() -> String:
 	return _token

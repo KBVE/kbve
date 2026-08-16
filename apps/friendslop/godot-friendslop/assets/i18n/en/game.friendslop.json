@@ -89,5 +89,13 @@
 	"toast": {
 		"gained": "+{{count}} {{item}}",
 		"no_room": "Bag full — no room for {{count}} {{item}}"
+	},
+	"username": {
+		"prompt": "Pick a username",
+		"placeholder": "username",
+		"rule": "3–24 characters, starting with a letter. Letters, numbers and underscores.",
+		"claim": "Claim it",
+		"claiming": "claiming…",
+		"taken": "That one is taken."
 	}
 }

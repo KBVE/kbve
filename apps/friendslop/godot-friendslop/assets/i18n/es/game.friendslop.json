@@ -58,5 +58,13 @@
 	"account": {
 		"loading": "leyendo saldo…",
 		"wallet": "{credits} créditos  ·  {khash} khash"
+	},
+	"username": {
+		"prompt": "Elige un nombre de usuario",
+		"placeholder": "usuario",
+		"rule": "3–24 caracteres, empezando por una letra. Letras, números y guiones bajos.",
+		"claim": "Reclamarlo",
+		"claiming": "reclamando…",
+		"taken": "Ese ya está ocupado."
 	}
 }

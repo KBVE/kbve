@@ -14,11 +14,14 @@ signal quit_requested
 signal cancel_requested
 ## The chosen locale code.
 signal locale_requested(code: String)
+## A brand-new account chose its handle.
+signal username_submitted(username: String)
 
 const WORLD_SCENE := "res://scenes/main.tscn"
 const ONLINE_SCENE := "res://scenes/online.tscn"
 
 const SIGN_IN_PANEL := preload("res://src/ui/sign_in_panel.gd")
+const USERNAME_PANEL := preload("res://src/ui/username_panel.gd")
 ## For the Mode enum only — the live object is the `Auth` autoload.
 const AUTH := preload("res://src/autoload/auth_session.gd")
 
@@ -39,6 +42,7 @@ var language_buttons: Array[PaperButton] = []
 var _root: Control
 var _column: VBoxContainer
 var _sign_in: SignInPanel
+var _username: UsernamePanel
 var _api: KbveApi
 
 
@@ -200,6 +204,39 @@ func is_signing_in() -> bool:
 	return _sign_in != null
 
 
+## Opens the handle prompt over everything, including a sign-in form that is still up.
+## Nothing dismisses it but choosing a name or signing out: an account with no handle
+## cannot join, so a title screen that looked signed in and behaved as though nobody was
+## is the one outcome worth ruling out.
+func open_username() -> void:
+	if _username != null:
+		return
+	close_sign_in()
+	_username = USERNAME_PANEL.new()
+	_username.submitted.connect(func(name: String) -> void: username_submitted.emit(name))
+	_username.cancelled.connect(func() -> void: sign_out_requested.emit())
+	_root.add_child(_username)
+	_column.visible = false
+
+
+func close_username() -> void:
+	if _username == null:
+		return
+	_username.queue_free()
+	_username = null
+	_column.visible = true
+
+
+func is_naming() -> bool:
+	return _username != null
+
+
+## The name was refused; the panel stays up holding the reason.
+func username_failed(message: String) -> void:
+	if _username:
+		_username.show_message(message)
+
+
 ## The sign-in failed and the panel stays open holding the reason — closing it would
 ## leave the player with a title screen that simply did nothing.
 func sign_in_failed(message: String) -> void:
@@ -250,7 +287,8 @@ func _show_account(auth: Node) -> void:
 			account_card.show_wallet(credits, khash))
 		_api.wallet_failed.connect(func(reason: String) -> void:
 			account_card.show_wallet_error(reason))
-	_api.fetch_wallet(auth.access_token())
+	if not auth.needs_username():
+		_api.fetch_wallet(auth.access_token())
 
 
 func _refresh_status() -> void:
