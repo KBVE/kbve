@@ -589,6 +589,12 @@ fn validate_action(
     Ok(())
 }
 
+/// What a night at the inn costs here. Front ends price the option with this
+/// rather than restating the formula.
+pub fn inn_cost(session: &SessionState) -> i32 {
+    10 + (session.room.index as i32 * 2)
+}
+
 // ── Main action dispatcher ──────────────────────────────────────────
 
 /// Apply a game action to the session state.
@@ -675,7 +681,7 @@ pub fn apply_action(
         }
         GameAction::Flee => ActionResult::logs_only(resolve_flee(session, actor)),
         GameAction::Rest => {
-            let cost = 10 + (session.room.index as i32 * 2);
+            let cost = inn_cost(session);
             let player = session.player_mut(actor);
             if player.gold < cost {
                 return Err(format!(
