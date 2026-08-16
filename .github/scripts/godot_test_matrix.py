@@ -8,6 +8,11 @@ from pathlib import Path
 
 NAME = re.compile(r'^\s*name\s*=\s*"([^"]+)"', re.M)
 
+SELF = (
+    ".github/workflows/ci-godot-tests.yml",
+    ".github/scripts/godot_test_matrix.py",
+)
+
 
 def crate_dirs() -> dict[str, str]:
     out: dict[str, str] = {}
@@ -42,6 +47,10 @@ def main() -> int:
         if line.strip()
     ]
     take_all = os.environ.get("ALL") == "1"
+    reason_all = "manual run"
+    if not take_all and any(path in SELF for path in changed):
+        take_all = True
+        reason_all = "the gate itself changed"
     crates = crate_dirs() if not take_all else {}
 
     matrix = []
@@ -55,7 +64,7 @@ def main() -> int:
 
         why = ""
         if take_all:
-            why = "manual run"
+            why = reason_all
         elif touched(changed, project_path):
             why = project_path
         elif package and touched(changed, crates.get(package, "")):

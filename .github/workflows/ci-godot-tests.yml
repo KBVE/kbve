@@ -8,6 +8,7 @@ on:
             - 'packages/rust/**'
             - '.github/ci-dispatch-manifest.json'
             - '.github/workflows/ci-godot-tests.yml'
+            - '.github/scripts/godot_test_matrix.py'
 
 permissions: {}
 
