@@ -7,15 +7,25 @@ extends RefCounted
 ## Held apart from the runner because a flag outlives the talk that set it -- the toll is
 ## paid once, and every graph in the world can ask about it afterwards.
 
+## Raised only when a flag actually moves, so a graph that sets the same flag on every
+## pass through a node does not read as news each time.
+signal flag_changed(name: String, on: bool)
+## Raised the first time a node is reached, which is what a greeting that only happens
+## once is keyed off.
+signal seen_changed(node_id: String)
+
 var flags: Dictionary = {}
 var seen: Dictionary = {}
 
 
 func set_flag(name: String, on := true) -> void:
+	if has_flag(name) == on:
+		return
 	if on:
 		flags[name] = true
 	else:
 		flags.erase(name)
+	flag_changed.emit(name, on)
 
 
 func has_flag(name: String) -> bool:
@@ -23,7 +33,10 @@ func has_flag(name: String) -> bool:
 
 
 func mark_seen(node_id: String) -> void:
+	if seen.has(node_id):
+		return
 	seen[node_id] = true
+	seen_changed.emit(node_id)
 
 
 func has_seen(node_id: String) -> bool:
