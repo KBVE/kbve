@@ -4885,7 +4885,7 @@
       "name": "Marlow",
       "typeFlags": 1,
       "rarity": "NPC_RARITY_COMMON",
-      "personality": "PERSONALITY_GRUFF",
+      "personality": "PERSONALITY_STOIC",
       "rank": "NPC_RANK_NORMAL",
       "family": "CREATURE_FAMILY_HUMANOID",
       "level": 1,
@@ -6308,6 +6308,114 @@
       "unitType": 7,
       "defaultWeapon": 0,
       "dialogueTreeId": 0
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Sable",
+        "hidden": true
+      },
+      "description": "Keeps the road on the ridge side of the Friendslop crossing and writes down who uses it. Will not say what she is recording for, and notices what you have already been told.\n",
+      "ref": "sable",
+      "id": "01KSAVZ00000000000000SABLE",
+      "name": "Sable",
+      "typeFlags": 1,
+      "rarity": "NPC_RARITY_COMMON",
+      "personality": "PERSONALITY_MYSTERIOUS",
+      "rank": "NPC_RANK_NORMAL",
+      "family": "CREATURE_FAMILY_HUMANOID",
+      "level": 1,
+      "role": "Road Warden",
+      "tags": [
+        "friendslop",
+        "bridge",
+        "talker"
+      ],
+      "dialogueTree": {
+        "entryNodeId": "greet",
+        "nodes": [
+          {
+            "id": "greet",
+            "text": "Name goes in the book whether you give it or not. Easier if you give it.",
+            "condition": "!seen:greet",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "greet_again",
+            "text": "You're in the book already.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "menu",
+            "text": "Well.",
+            "options": [
+              {
+                "id": "ask_book",
+                "label": "What's the book for?",
+                "nextNodeId": "book"
+              },
+              {
+                "id": "ask_road",
+                "label": "Where does the road go?",
+                "nextNodeId": "road"
+              },
+              {
+                "id": "tell_bend",
+                "label": "There's an old fish in the deep bend.",
+                "nextNodeId": "bend",
+                "requiredFlags": [
+                  "wren_named_the_bend",
+                  "!sable_wrote_the_fish"
+                ]
+              },
+              {
+                "id": "ask_toll",
+                "label": "Marlow takes a toll for the bridge.",
+                "nextNodeId": "toll",
+                "requiredFlags": [
+                  "marlow_toll_paid"
+                ]
+              },
+              {
+                "id": "leave",
+                "label": "(Walk away.)",
+                "nextNodeId": "farewell"
+              }
+            ]
+          },
+          {
+            "id": "book",
+            "text": "Who crosses, and when, and which way. I don't decide what it's for. I only keep it accurate.",
+            "triggerOnEnter": "set_flag:sable_showed_the_book",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "road",
+            "text": "Up the ridge, and then further than I have been. The mechs come down it and go back up it, so it goes somewhere.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "bend",
+            "text": "The forager told you that. She's the only one who says it out loud.",
+            "triggerOnEnter": "set_flag:sable_wrote_the_fish",
+            "nextNodeId": "bend_written"
+          },
+          {
+            "id": "bend_written",
+            "text": "It goes in the book. Most things do.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "toll",
+            "text": "He's kept that bridge standing on small coins for longer than the road has been worth walking. Say what you like about the toll.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "farewell",
+            "text": "Mind the ridge after dark."
+          }
+        ]
+      }
     },
     {
       "template": "splash",
@@ -7948,6 +8056,115 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Tam",
+        "hidden": true
+      },
+      "description": "A boy who sits on the bank counting the mechs that come down from the ridge. Wants to know what they are, and will trade what he has watched for what you have been told.\n",
+      "ref": "tam",
+      "id": "01KSAVZ0000000000000000TAM",
+      "name": "Tam",
+      "typeFlags": 1,
+      "rarity": "NPC_RARITY_COMMON",
+      "personality": "PERSONALITY_CHEERFUL",
+      "rank": "NPC_RANK_NORMAL",
+      "family": "CREATURE_FAMILY_HUMANOID",
+      "level": 1,
+      "role": "Lookout",
+      "tags": [
+        "friendslop",
+        "bridge",
+        "talker"
+      ],
+      "dialogueTree": {
+        "entryNodeId": "greet",
+        "nodes": [
+          {
+            "id": "greet",
+            "text": "Four today. There's usually four. One of them stands further out than the others and I don't know why.",
+            "condition": "!seen:greet",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "greet_again",
+            "text": "Still four.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "menu",
+            "text": "You can sit, if you want. They take a while.",
+            "options": [
+              {
+                "id": "ask_counting",
+                "label": "What are you counting?",
+                "nextNodeId": "counting"
+              },
+              {
+                "id": "tell_mechs",
+                "label": "Marlow told me about them.",
+                "nextNodeId": "told",
+                "requiredFlags": [
+                  "marlow_toll_paid",
+                  "!tam_heard_about_mechs"
+                ]
+              },
+              {
+                "id": "ask_mechs_again",
+                "label": "What do you think they are?",
+                "nextNodeId": "guess",
+                "requiredFlags": [
+                  "tam_heard_about_mechs"
+                ]
+              },
+              {
+                "id": "ask_bridge",
+                "label": "Why not watch from the bridge?",
+                "nextNodeId": "bridge"
+              },
+              {
+                "id": "leave",
+                "label": "(Walk away.)",
+                "nextNodeId": "farewell"
+              }
+            ]
+          },
+          {
+            "id": "counting",
+            "text": "The tall ones. They come down at the same hour and stand in the shallows and then they go back up. I've never seen one cross.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "told",
+            "text": "He says they never explain. That's not the same as not knowing, is it. He watches them as long as I do, he just does it standing up.",
+            "triggerOnEnter": "set_flag:tam_heard_about_mechs",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "guess",
+            "text": "I think they're waiting for something to come back down the river. That's why they stand in it and not next to it.",
+            "triggerOnEnter": "set_flag:tam_guessed_the_mechs",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "bridge",
+            "text": "Marlow charges. And you can't see the shallows from up there anyway, only the tops of them.",
+            "condition": "!marlow_toll_paid",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "bridge_paid",
+            "text": "You've paid him, so you can. I'd still rather be down here — you can't see the shallows from up there, only the tops of them.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "farewell",
+            "text": "If you see one move, come and tell me. I'll be here."
+          }
+        ]
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Tann",
         "hidden": true
       },
@@ -9131,6 +9348,115 @@
       ],
       "lore": "In life, the Executioner served a kingdom long since swallowed by darkness. Tasked with carrying out the sentences of a corrupt court, it executed hundreds — guilty and innocent alike. When the kingdom fell, the Executioner's guilt bound its soul to an eternal sentence of its own: to wander the ruins, forever seeking absolution through the only craft it ever knew. Its phantom axe is said to sever not just flesh, but the ties between a soul and its body — those slain by the Wraith Executioner do not rest easily.\n",
       "credits": "Asset reference: [Undead Executioner by DarkPixel Kronovi](https://darkpixel-kronovi.itch.io/undead-executioner).\nFuture integration: UV-ready shader for apps/kbve/isometric.\n"
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Wren",
+        "hidden": true
+      },
+      "description": "Forager working the far bank of the Friendslop crossing. Reads the river by what grows beside it, and will say what is in the deep bend if you have already heard Marlow wonder about it.\n",
+      "ref": "wren",
+      "id": "01KSAVZ000000000000000WREN",
+      "name": "Wren",
+      "typeFlags": 1,
+      "rarity": "NPC_RARITY_COMMON",
+      "personality": "PERSONALITY_CHEERFUL",
+      "rank": "NPC_RANK_NORMAL",
+      "family": "CREATURE_FAMILY_HUMANOID",
+      "level": 1,
+      "role": "Forager",
+      "tags": [
+        "friendslop",
+        "bridge",
+        "talker"
+      ],
+      "dialogueTree": {
+        "entryNodeId": "greet",
+        "nodes": [
+          {
+            "id": "greet",
+            "text": "Mind where you put your feet — half of what's underfoot here is worth more than the bridge.",
+            "condition": "!seen:greet",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "greet_again",
+            "text": "You again. Careful, the reeds are wet through.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "menu",
+            "text": "Well? The light goes early down here.",
+            "options": [
+              {
+                "id": "ask_doing",
+                "label": "What are you looking for?",
+                "nextNodeId": "doing"
+              },
+              {
+                "id": "ask_bend",
+                "label": "Marlow said something big is in the deep bend.",
+                "nextNodeId": "bend",
+                "requiredFlags": [
+                  "marlow_knows_river",
+                  "!wren_named_the_bend"
+                ]
+              },
+              {
+                "id": "ask_bend_again",
+                "label": "That thing in the bend, again.",
+                "nextNodeId": "bend_again",
+                "requiredFlags": [
+                  "wren_named_the_bend"
+                ]
+              },
+              {
+                "id": "ask_marlow",
+                "label": "You know the bridge keeper?",
+                "nextNodeId": "marlow"
+              },
+              {
+                "id": "leave",
+                "label": "(Walk away.)",
+                "nextNodeId": "farewell"
+              }
+            ]
+          },
+          {
+            "id": "doing",
+            "text": "Bitterroot, mostly. It only takes where the water has been and gone, so it grows in a line and tells you where the river used to sit.",
+            "triggerOnEnter": "set_flag:wren_taught_bitterroot",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "bend",
+            "text": "He would. He watches it from the deck and never goes down to it. It's a fish, and it's old, and it has been there longer than he has kept the crossing.",
+            "triggerOnEnter": "set_flag:wren_named_the_bend",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "bend_again",
+            "text": "Still a fish. Still old. Go and look, if you like — it doesn't mind being looked at.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "marlow",
+            "text": "Everyone knows Marlow. He asks a toll for a bridge nobody built and puts every coin of it back into the planks.",
+            "condition": "!marlow_toll_paid",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "marlow_paid",
+            "text": "You paid him, then. He'll have told you about the third plank — he tells everyone, and he's right.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "farewell",
+            "text": "Go on. Leave me the bitterroot."
+          }
+        ]
+      }
     },
     {
       "template": "splash",

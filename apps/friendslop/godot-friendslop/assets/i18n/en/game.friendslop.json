@@ -58,6 +58,17 @@
 		"roster": "{{count}} here — {{names}}",
 		"pets": "Robots: {{count}}  ·  [G] deploy  ·  [H] recall all"
 	},
+	"wardrobe": {
+		"title": "Wardrobe",
+		"none": "Nothing",
+		"head": "Head",
+		"chest": "Body",
+		"hands": "Arms",
+		"legs": "Legs",
+		"feet": "Feet",
+		"neck": "Neck",
+		"back": "Shoulders"
+	},
 	"prompt": {
 		"talk": "[{{key}}]  Talk"
 	},

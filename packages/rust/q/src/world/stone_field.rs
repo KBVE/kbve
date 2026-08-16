@@ -1,16 +1,16 @@
-use fastnoise_lite::{FastNoiseLite, NoiseType};
 use godot::classes::notify::Node3DNotification;
 use godot::classes::physics_server_3d::BodyMode;
 use godot::classes::rendering_server::MultimeshTransformFormat;
 use godot::classes::{ArrayMesh, Engine, PhysicsServer3D, RenderingServer, ShaderMaterial};
 use godot::prelude::*;
 
-use crate::world::harvest::{Entry, HarvestKind, ScatterCore, Stone, stable_id};
+use crate::world::harvest::{Entry, HarvestKind, HarvestOutcome, ScatterCore, Stone, stable_id};
 use crate::world::stone_mesh::{
     LOD_LEVELS, SPECIES, build_cracked_mesh, build_rubble_mesh, build_stone_hull, build_stone_lod,
     build_stone_mesh,
 };
-use crate::world::{TerrainSnapshot, hash32, randf, world_aabb};
+use crate::world::{TerrainSnapshot, hash32, world_aabb};
+use crate::worldgen::StoneScatter;
 
 const VARIANTS: usize = 12;
 
@@ -153,114 +153,51 @@ impl QStoneField {
 
         let sample = |x: f32, z: f32| -> f32 { terra.height(x, z) };
 
-        let mut noise = FastNoiseLite::with_seed(self.stone_seed + 3);
-        noise.set_noise_type(Some(NoiseType::OpenSimplex2S));
-        noise.set_frequency(Some(self.patch_frequency));
-
         self.build_meshes();
         let heights: Vec<f32> = self.meshes.iter().map(|m| m.height).collect();
 
         let seed64 = self.stone_seed as u64;
-        let grid = crate::world::ScatterGrid::new(self.grid_size, terra.origin, extent);
-        let cells = grid.cells();
         self.origin = terra.origin;
-        let mut placed: Vec<(f32, f32, f32)> = Vec::new();
-        let overlaps = |placed: &Vec<(f32, f32, f32)>, x: f32, z: f32, r: f32| -> bool {
-            placed.iter().any(|(px, pz, pr)| {
-                let dx = px - x;
-                let dz = pz - z;
-                dx * dx + dz * dz < ((pr + r) * 0.92).powi(2)
-            })
-        };
-        for iz in 0..cells {
-            for ix in 0..cells {
-                let mut state = grid.seed(self.stone_seed as u32, ix, iz);
-                let jx = (randf(&mut state) - 0.5) * (self.grid_size - 5.0);
-                let jz = (randf(&mut state) - 0.5) * (self.grid_size - 5.0);
-                let (cx, cz) = grid.centre(ix, iz);
-                let (x, z) = (cx + jx, cz + jz);
-                if !grid.inside(x, z, 5.0) {
-                    continue;
-                }
-                let slope = (sample(x + 1.0, z) - sample(x - 1.0, z))
-                    .abs()
-                    .max((sample(x, z + 1.0) - sample(x, z - 1.0)).abs())
-                    * 0.5;
-                if noise.get_noise_2d(x, z) < self.patch_threshold && slope < 0.32 {
-                    continue;
-                }
-                if terra.on_road(x, z) > 0.12 {
-                    continue;
-                }
-                let h = sample(x, z);
-                if h < water + 0.4 {
-                    continue;
-                }
-                let scale = self.scale_min + randf(&mut state) * (self.scale_max - self.scale_min);
-                let radius = scale * 0.85;
-                if overlaps(&placed, x, z, radius) {
-                    continue;
-                }
-                placed.push((x, z, radius));
-                let yaw = randf(&mut state) * std::f32::consts::TAU;
-                let variant = ((randf(&mut state) * VARIANTS as f32) as usize).min(VARIANTS - 1);
-                let (up, seat) = self.bed(&sample, x, z, radius, heights[variant] * scale);
-                let (gx, gz) = grid.global(ix, iz);
-                self.core.insert(Entry {
-                    id: stable_id(seed64, gx, gz, 0),
-                    pos: Vector3::new(x, seat, z),
-                    up,
-                    scale,
-                    yaw,
-                    variant: variant as u8,
-                    ore: 0,
-                    amount: 0,
-                });
-                let companions = (randf(&mut state) * 3.0) as usize;
-                // Every draw happens before the first rejection test: a companion
-                // refused for being outside this window must not shift the stream
-                // for the ones after it, or the same cell scatters differently
-                // depending on where the player walked in from.
-                for companion in 0..companions {
-                    let cscale = scale * (0.28 + randf(&mut state) * 0.27);
-                    let az = randf(&mut state) * std::f32::consts::TAU;
-                    let spread = randf(&mut state);
-                    let cyaw = randf(&mut state) * std::f32::consts::TAU;
-                    let cvariant =
-                        ((randf(&mut state) * VARIANTS as f32) as usize).min(VARIANTS - 1);
 
-                    let cradius = cscale * 0.85;
-                    let dist = (radius + cradius) * (1.15 + spread * 0.5);
-                    let cx = x + libm::cosf(az) * dist;
-                    let cz = z + libm::sinf(az) * dist;
-                    if !grid.inside(cx, cz, 5.0) {
-                        continue;
-                    }
-                    if terra.on_road(cx, cz) > 0.12 {
-                        continue;
-                    }
-                    let ch = sample(cx, cz);
-                    if ch < water + 0.4 {
-                        continue;
-                    }
-                    if overlaps(&placed, cx, cz, cradius) {
-                        continue;
-                    }
-                    placed.push((cx, cz, cradius));
-                    let (cup, cseat) =
-                        self.bed(&sample, cx, cz, cradius, heights[cvariant] * cscale);
-                    self.core.insert(Entry {
-                        id: stable_id(seed64, gx, gz, companion as u32 + 1),
-                        pos: Vector3::new(cx, cseat, cz),
-                        up: cup,
-                        scale: cscale,
-                        yaw: cyaw,
-                        variant: cvariant as u8,
-                        ore: 0,
-                        amount: 0,
-                    });
-                }
-            }
+        let (hgen, road) = terra.scatter_world();
+        let scatter = StoneScatter {
+            seed: self.stone_seed,
+            variants: VARIANTS,
+            grid_size: self.grid_size,
+            patch_threshold: self.patch_threshold,
+            patch_frequency: self.patch_frequency,
+            scale_min: self.scale_min,
+            scale_max: self.scale_max,
+        };
+        let placements = scatter.place(
+            &hgen,
+            Some(&road),
+            [terra.origin.x, terra.origin.y],
+            extent,
+            water,
+        );
+
+        for p in &placements {
+            let variant = (p.variant as usize).min(VARIANTS - 1);
+            let (up, seat) = self.bed(
+                &sample,
+                p.pos[0],
+                p.pos[1],
+                p.radius,
+                heights[variant] * p.scale,
+            );
+            self.core.insert(Entry {
+                id: stable_id(seed64, p.cell.0, p.cell.1, p.companion),
+                pos: Vector3::new(p.pos[0], seat, p.pos[1]),
+                up,
+                scale: p.scale,
+                yaw: p.yaw,
+                variant: p.variant,
+                ore: 0,
+                amount: 0,
+                cell: [p.cell.0, p.cell.1],
+                ordinal: p.companion,
+            });
         }
         if self.core.entries().is_empty() {
             godot_error!("[QStoneField] no stone candidates survived placement");
@@ -402,29 +339,29 @@ impl QStoneField {
         let _ = d.insert("alive", self.core.alive(e.id));
         let _ = d.insert("ore", table[e.ore as usize].ore);
         let _ = d.insert("amount", e.amount as i64);
+        // What the wire wants. The host will not take an id from a client, so a
+        // caller that means to work this rock over the network has to be able to
+        // say which cell it is in.
+        let _ = d.insert("cell", Vector2i::new(e.cell[0], e.cell[1]));
+        let _ = d.insert("ordinal", e.ordinal as i64);
         d
     }
 
     #[func]
     fn apply_damage(&mut self, id: i64, hits: i64) -> VarDictionary {
-        let mut d = VarDictionary::new();
-        let Some(out) = self.core.apply_damage(id as u64, hits.clamp(1, 255) as u8) else {
-            let _ = d.insert("hit", false);
-            return d;
-        };
-        let _ = d.insert("hit", true);
-        let _ = d.insert("stage", out.stage as i64);
-        let _ = d.insert("broken", out.broken);
-        let _ = d.insert("ore", out.ore);
-        let _ = d.insert("amount", out.amount as i64);
-        self.dirty = true;
-        if out.broken {
-            self.rebuild_colliders();
-            let ore = GString::from(out.ore);
-            let amount = out.amount as i64;
-            self.signals().stone_broken().emit(id, &ore, amount);
-        }
-        d
+        let out = self.core.apply_damage(id as u64, hits.clamp(1, 255) as u8);
+        self.settle(id, out)
+    }
+
+    /// Moves a rock to the stage the server decided on.
+    ///
+    /// What a `harvest_applied` delta is applied through. Absolute rather than
+    /// incremental, because the host is counting for everybody: two clients each
+    /// reporting a hit on the same rock must not add up to two.
+    #[func]
+    fn set_stage(&mut self, id: i64, stage: i64) -> VarDictionary {
+        let out = self.core.set_stage(id as u64, stage.clamp(0, 255) as u8);
+        self.settle(id, out)
     }
 
     #[func]
@@ -491,6 +428,29 @@ impl QStoneField {
 }
 
 impl QStoneField {
+    /// Everything that follows a stage changing, however it changed: the answer
+    /// for the caller, and the world catching up if that was the last hit.
+    fn settle(&mut self, id: i64, out: Option<HarvestOutcome>) -> VarDictionary {
+        let mut d = VarDictionary::new();
+        let Some(out) = out else {
+            let _ = d.insert("hit", false);
+            return d;
+        };
+        let _ = d.insert("hit", true);
+        let _ = d.insert("stage", out.stage as i64);
+        let _ = d.insert("broken", out.broken);
+        let _ = d.insert("ore", out.ore);
+        let _ = d.insert("amount", out.amount as i64);
+        self.dirty = true;
+        if out.broken {
+            self.rebuild_colliders();
+            let ore = GString::from(out.ore);
+            let amount = out.amount as i64;
+            self.signals().stone_broken().emit(id, &ore, amount);
+        }
+        d
+    }
+
     /// Seat a stone into the terrain: returns the ground normal to align to and the Y
     /// the instance origin should sit at.
     fn bed<F: Fn(f32, f32) -> f32>(

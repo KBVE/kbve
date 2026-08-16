@@ -13,6 +13,7 @@ use godot::classes::{Camera3D, Node, Node3D};
 use godot::prelude::*;
 
 use crate::world::terrain::QTerrain;
+use crate::worldgen::{HeightGen, HeightParams, RoadPlan};
 
 pub(crate) fn hash32(mut x: u32) -> u32 {
     x ^= x >> 16;
@@ -136,6 +137,10 @@ pub(crate) fn view_origin(node: &Gd<Node3D>, player: Option<&Gd<Node3D>>) -> Opt
     player.map(|p| p.get_global_position())
 }
 
+/// Vertex spacing of the ground plane, in metres. Placement matches the mesh through
+/// this, so it has to track the `PlaneMesh` in the scenes: size / (subdivide + 1).
+pub(crate) const GROUND_QUAD: f32 = 2.0;
+
 /// The CPU-side terrain data scatter placement needs, lifted out of QTerrain once so
 /// placement loops never bind it per candidate.
 pub(crate) struct TerrainSnapshot {
@@ -148,6 +153,13 @@ pub(crate) struct TerrainSnapshot {
     /// Centre of the baked window. World coordinates map into the height and
     /// road grids relative to this, not to nothing.
     pub origin: Vector2,
+    /// The generator behind the baked grid, and the road width measured from it.
+    ///
+    /// Scatter is placed from these rather than from the grid: the server has no
+    /// grid, so a field that decides where a rock stands by sampling one has
+    /// already agreed to differ from it.
+    params: HeightParams,
+    road_width: f32,
 }
 
 impl TerrainSnapshot {
@@ -168,7 +180,23 @@ impl TerrainSnapshot {
             extent: t.world_extent(),
             water: t.water(),
             origin: t.window_origin(),
+            params: t.generator_params(),
+            road_width: t.road_span(),
         })
+    }
+
+    /// The generator and the carriageway this window was grown from, which is what
+    /// scatter is placed against so both ends of a session agree on it.
+    pub(crate) fn scatter_world(&self) -> (HeightGen, RoadPlan) {
+        let hgen = HeightGen::new(&self.params);
+        let road = RoadPlan::new(
+            &hgen,
+            [self.origin.x, self.origin.y],
+            self.extent,
+            self.water,
+            self.road_width,
+        );
+        (hgen, road)
     }
 
     /// For fields that keep their own copy alive past init — stone marches it for
@@ -177,7 +205,27 @@ impl TerrainSnapshot {
         (&self.heights, self.res)
     }
 
+    /// The drawn ground, not the height data.
+    ///
+    /// The ground plane carries a vertex every [`GROUND_QUAD`] metres and draws flat
+    /// between them, while the height grid holds a sample every metre. Placing on the
+    /// grid puts anything standing in a dip below the surface that is actually drawn,
+    /// so placement reads the chord the mesh interpolates instead.
     pub(crate) fn height(&self, x: f32, z: f32) -> f32 {
+        let gx = (x / GROUND_QUAD).floor() * GROUND_QUAD;
+        let gz = (z / GROUND_QUAD).floor() * GROUND_QUAD;
+        let tx = (x - gx) / GROUND_QUAD;
+        let tz = (z - gz) / GROUND_QUAD;
+        let h00 = self.grid_height(gx, gz);
+        let h10 = self.grid_height(gx + GROUND_QUAD, gz);
+        let h01 = self.grid_height(gx, gz + GROUND_QUAD);
+        let h11 = self.grid_height(gx + GROUND_QUAD, gz + GROUND_QUAD);
+        let a = h00 + (h10 - h00) * tx;
+        let b = h01 + (h11 - h01) * tx;
+        a + (b - a) * tz
+    }
+
+    pub(crate) fn grid_height(&self, x: f32, z: f32) -> f32 {
         let res = self.res;
         let (x, z) = (x - self.origin.x, z - self.origin.y);
         let fx = (((x + self.extent) / (self.extent * 2.0)).clamp(0.001, 0.999) * res as f32 - 0.5)

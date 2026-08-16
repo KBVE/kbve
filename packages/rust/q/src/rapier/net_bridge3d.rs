@@ -10,7 +10,7 @@ use super::net_interp::{InterpConfig, SnapshotBuffer};
 use super::sim3d::BodyId;
 use crate::harvest::HarvestTarget;
 use crate::net::client_thread::{
-    HarvestRequest, Intent, NetClientHandle, NetClientState, PetCommand,
+    HarvestCommand, Intent, NetClientHandle, NetClientState, PetCommand,
 };
 use crate::net::pets::{PET_BODY_BASE, PetId};
 use crate::net::session::ClientStatus;
@@ -176,22 +176,14 @@ impl QNetClient3D {
         }
     }
 
-    fn request_harvest(
-        &self,
-        target: HarvestTarget,
-        cell_x: i64,
-        cell_z: i64,
-        ordinal: i64,
-        hits: i64,
-    ) {
+    fn request_harvest(&self, target: HarvestTarget, cell_x: i64, cell_z: i64, ordinal: i64) {
         let Some(client) = self.client.as_ref() else {
             return;
         };
-        client.harvest(HarvestRequest {
+        client.harvest(HarvestCommand::Begin {
             target,
             cell: [cell_x as i32, cell_z as i32],
             ordinal: ordinal.max(0) as u32,
-            hits: hits.clamp(1, 255) as u8,
         });
     }
 
@@ -369,16 +361,26 @@ impl QNetClient3D {
         mine >= 0 && self.pet_owner_body(body_id) == mine
     }
 
-    /// Asks the host to mine the stone in a cell. The host derives the id, so
-    /// this cannot name something the player is nowhere near.
+    /// Tells the host we have started mining the stone in a cell, and will keep at
+    /// it until told otherwise. The host derives the id, so this cannot name
+    /// something the player is nowhere near, and the host times the stages, so it
+    /// cannot be asked for them faster than they take.
     #[func]
-    fn harvest_stone(&self, cell_x: i64, cell_z: i64, ordinal: i64, hits: i64) {
-        self.request_harvest(HarvestTarget::Stone, cell_x, cell_z, ordinal, hits);
+    fn harvest_stone(&self, cell_x: i64, cell_z: i64, ordinal: i64) {
+        self.request_harvest(HarvestTarget::Stone, cell_x, cell_z, ordinal);
     }
 
     #[func]
-    fn harvest_tree(&self, cell_x: i64, cell_z: i64, ordinal: i64, hits: i64) {
-        self.request_harvest(HarvestTarget::Tree, cell_x, cell_z, ordinal, hits);
+    fn harvest_tree(&self, cell_x: i64, cell_z: i64, ordinal: i64) {
+        self.request_harvest(HarvestTarget::Tree, cell_x, cell_z, ordinal);
+    }
+
+    /// Tells the host we have stopped working whatever we were working.
+    #[func]
+    fn harvest_stop(&self) {
+        if let Some(client) = self.client.as_ref() {
+            client.harvest(HarvestCommand::End);
+        }
     }
 
     #[func]
@@ -429,6 +431,30 @@ impl QNetClient3D {
     #[func]
     fn world_hour(&self) -> f64 {
         self.last.as_ref().map_or(0.0, |s| s.hour as f64)
+    }
+
+    /// Seconds the host has simulated. Monotonic and never wrapped, unlike the hour, so
+    /// it is what anything scheduled against world time should read.
+    #[func]
+    fn world_elapsed(&self) -> f64 {
+        self.last.as_ref().map_or(0.0, |s| s.elapsed)
+    }
+
+    /// Whole days the world has run, counting from the host's first tick.
+    #[func]
+    fn world_day(&self) -> i64 {
+        self.last.as_ref().map_or(0, |s| s.day)
+    }
+
+    /// The hour the host's day started at. With the day length and the elapsed seconds
+    /// this is the whole clock, so the sky is a function of it rather than a free-run
+    /// that gets corrected.
+    #[func]
+    fn world_start_hour(&self) -> f64 {
+        self.last
+            .as_ref()
+            .and_then(|s| s.world)
+            .map_or(0.0, |w| w.start_hour as f64)
     }
 
     /// Real-world minutes the host's day takes, or 0 before joining.

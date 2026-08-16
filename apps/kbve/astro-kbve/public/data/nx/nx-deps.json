@@ -1,7 +1,7 @@
 {
-	"generated_at": "2026-08-15T02:17:36Z",
+	"generated_at": "2026-08-16T02:26:03Z",
 	"node": {
-		"count": 120,
+		"count": 121,
 		"major": 22,
 		"items": [
 			{
@@ -104,7 +104,7 @@
 				"name": "@hookform/resolvers",
 				"current": "5.2.2",
 				"wanted": "5.2.2",
-				"latest": "5.8.0",
+				"latest": "5.9.0",
 				"type": "dependencies",
 				"major": false
 			},
@@ -232,7 +232,7 @@
 				"name": "@swc/core",
 				"current": "1.15.21",
 				"wanted": "1.15.21",
-				"latest": "1.15.47",
+				"latest": "1.16.0",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -280,7 +280,7 @@
 				"name": "@tanstack/react-router",
 				"current": "1.170.16",
 				"wanted": "1.170.16",
-				"latest": "1.170.28",
+				"latest": "1.170.29",
 				"type": "dependencies",
 				"major": false
 			},
@@ -485,6 +485,14 @@
 				"major": false
 			},
 			{
+				"name": "babel-preset-expo",
+				"current": "57.0.6",
+				"wanted": "57.0.6",
+				"latest": "57.0.7",
+				"type": "dependencies",
+				"major": false
+			},
+			{
 				"name": "canvaskit-wasm",
 				"current": "0.41.0",
 				"wanted": "0.41.0",
@@ -512,7 +520,7 @@
 				"name": "dexie",
 				"current": "4.4.2",
 				"wanted": "4.4.2",
-				"latest": "4.4.4",
+				"latest": "4.4.5",
 				"type": "dependencies",
 				"major": false
 			},
@@ -544,7 +552,7 @@
 				"name": "expo",
 				"current": "57.0.9",
 				"wanted": "57.0.9",
-				"latest": "57.0.12",
+				"latest": "57.0.13",
 				"type": "dependencies",
 				"major": false
 			},
@@ -552,7 +560,7 @@
 				"name": "expo-auth-session",
 				"current": "57.0.5",
 				"wanted": "57.0.5",
-				"latest": "57.0.6",
+				"latest": "57.0.7",
 				"type": "dependencies",
 				"major": false
 			},
@@ -560,7 +568,7 @@
 				"name": "expo-build-properties",
 				"current": "57.0.8",
 				"wanted": "57.0.8",
-				"latest": "57.0.10",
+				"latest": "57.0.11",
 				"type": "dependencies",
 				"major": false
 			},
@@ -568,7 +576,7 @@
 				"name": "expo-dev-client",
 				"current": "57.0.10",
 				"wanted": "57.0.10",
-				"latest": "57.0.11",
+				"latest": "57.0.12",
 				"type": "dependencies",
 				"major": false
 			},
@@ -576,7 +584,7 @@
 				"name": "expo-linking",
 				"current": "57.0.4",
 				"wanted": "57.0.4",
-				"latest": "57.0.5",
+				"latest": "57.0.6",
 				"type": "dependencies",
 				"major": false
 			},
@@ -584,7 +592,7 @@
 				"name": "expo-modules-core",
 				"current": "57.0.8",
 				"wanted": "57.0.8",
-				"latest": "57.0.10",
+				"latest": "57.0.11",
 				"type": "dependencies",
 				"major": false
 			},
@@ -967,7 +975,7 @@
 		]
 	},
 	"rust": {
-		"count": 240,
+		"count": 243,
 		"major": 1,
 		"items": [
 			{
@@ -1679,6 +1687,12 @@
 				"major": false
 			},
 			{
+				"name": "const_panic",
+				"current": "0.2.15",
+				"latest": "0.2.16",
+				"major": false
+			},
+			{
 				"name": "cookie",
 				"current": "0.18.1",
 				"latest": "0.18.2",
@@ -1736,6 +1750,12 @@
 				"name": "enum-ordinalize-derive",
 				"current": "4.4.1",
 				"latest": "4.4.2",
+				"major": false
+			},
+			{
+				"name": "error-code",
+				"current": "3.3.2",
+				"latest": "3.4.0",
 				"major": false
 			},
 			{
@@ -2105,6 +2125,12 @@
 				"major": false
 			},
 			{
+				"name": "rapier3d",
+				"current": "0.35.1",
+				"latest": "0.35.2",
+				"major": false
+			},
+			{
 				"name": "redox_syscall",
 				"current": "0.9.0",
 				"latest": "0.9.2",
@@ -2412,6 +2438,6 @@
 			}
 		]
 	},
-	"total": 360,
+	"total": 364,
 	"major_total": 23
 }

@@ -25,6 +25,12 @@ const GROUP := &"interactable"
 @export_group("Body")
 @export var body: PackedScene
 @export var attachments: Array[PackedScene] = []
+## Clothing, as wardrobe pieces. What somebody is wearing belongs with the rest of what
+## they are, rather than being a list of meshes hung off them.
+@export var worn: Array[StringName] = []
+## Used instead of `body` once `worn` covers it -- the clothing replaces the body rather
+## than layering over it.
+@export var head_only_body: PackedScene
 @export var animation_sources: Array[PackedScene] = []
 @export var idle_animation := ""
 @export var skin_color := Color(1, 1, 1)
@@ -68,6 +74,8 @@ func _build_body() -> void:
 	rig = CharacterRig.new()
 	rig.body = body
 	rig.attachments = attachments
+	rig.worn = worn
+	rig.head_only_body = head_only_body
 	rig.animation_sources = animation_sources
 	rig.default_animation = idle_animation
 	rig.skin_color = skin_color

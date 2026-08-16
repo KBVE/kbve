@@ -1,0 +1,368 @@
+---
+import { getCollection } from 'astro:content';
+import type { OSRSExtended } from '@/data/schema';
+import { buildOsrsTags } from '@/data/osrs/tags';
+import { OSRS_CATEGORIES, osrsCategoryHref } from '@/data/osrs/categories';
+import OSRSCategoryRow from './OSRSCategoryRow.astro';
+
+interface Row {
+	id: number;
+	name: string;
+	slug: string;
+	icon: string;
+	members: boolean;
+	value: number;
+	highalch: number | null;
+	limit: number | null;
+	slot?: string;
+	tags: string[];
+}
+
+const docs = await getCollection('docs');
+const rows: Row[] = [];
+for (const entry of docs) {
+	const o = (entry.data as { osrs?: OSRSExtended }).osrs;
+	if (!o || !o.id || !o.slug || !o.name) continue;
+	if (!entry.id.startsWith('osrs/') || entry.id === 'osrs/index') continue;
+	rows.push({
+		id: o.id,
+		name: o.name,
+		slug: o.slug,
+		icon: o.icon,
+		members: !!o.members,
+		value: o.value ?? 0,
+		highalch: o.highalch ?? null,
+		limit: o.limit ?? null,
+		slot: o.equipment?.slot ?? undefined,
+		tags: buildOsrsTags(o),
+	});
+}
+rows.sort((a, b) => a.name.localeCompare(b.name));
+
+const groups = new Map<string, Row[]>();
+for (const row of rows) {
+	const first = row.name.trim().charAt(0).toUpperCase();
+	const key = /[A-Z]/.test(first) ? first : '#';
+	const bucket = groups.get(key);
+	if (bucket) bucket.push(row);
+	else groups.set(key, [row]);
+}
+const letters = [...groups.entries()].sort(([a], [b]) =>
+	a === '#' ? 1 : b === '#' ? -1 : a.localeCompare(b),
+);
+
+const memberCount = rows.filter((r) => r.members).length;
+---
+
+<section class="osrs-grid not-content" id="items">
+	<div class="osrs-grid__bar">
+		<div class="osrs-grid__controls">
+			<input
+				id="osrs-grid-q"
+				type="search"
+				autocomplete="off"
+				placeholder="Search by name or item id…"
+				class="osrs-grid__search"
+			/>
+			<select id="osrs-grid-tag" class="osrs-grid__select">
+				<option value="">All types</option>
+				{
+					OSRS_CATEGORIES.map((c) => (
+						<option value={c.tag}>{c.label}</option>
+					))
+				}
+			</select>
+			<select id="osrs-grid-members" class="osrs-grid__select">
+				<option value="">All worlds</option>
+				<option value="p2p">Members</option>
+				<option value="f2p">Free</option>
+			</select>
+		</div>
+		<nav class="osrs-grid__letters" aria-label="Jump to letter">
+			{
+				letters.map(([letter]) => (
+					<a href={`#osrs-letter-${letter === '#' ? 'num' : letter}`}>
+						{letter}
+					</a>
+				))
+			}
+		</nav>
+		<p class="osrs-grid__count" id="osrs-grid-count" aria-live="polite">
+			{rows.length.toLocaleString()} items · {
+				memberCount.toLocaleString()
+			} members · {(rows.length - memberCount).toLocaleString()} free
+		</p>
+	</div>
+
+	<div class="osrs-grid__cats">
+		{
+			OSRS_CATEGORIES.map((c) => (
+				<a href={osrsCategoryHref(c.slug)} class="osrs-grid__cat">
+					{c.label}
+				</a>
+			))
+		}
+	</div>
+
+	<p class="osrs-grid__empty" id="osrs-grid-empty" hidden>
+		No items match the current filters.
+	</p>
+
+	{
+		letters.map(([letter, entries]) => (
+			<section
+				class="osrs-grid__group"
+				data-letter-group
+				id={`osrs-letter-${letter === '#' ? 'num' : letter}`}>
+				<h2 class="osrs-grid__letter">
+					<span>{letter}</span>
+					<span class="osrs-grid__letter-count" data-group-count>
+						{entries.length}
+					</span>
+				</h2>
+				<div class="osrs-grid__rows">
+					{entries.map((item) => (
+						<OSRSCategoryRow item={item} />
+					))}
+				</div>
+			</section>
+		))
+	}
+</section>
+
+<style>
+	.osrs-grid {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+		padding: 0 0 2rem;
+	}
+
+	.osrs-grid__bar {
+		position: sticky;
+		top: 0;
+		z-index: 5;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding: 0.75rem;
+		border: 1px solid var(--bento-hairline);
+		border-radius: 12px;
+		background: color-mix(in srgb, var(--sl-color-black) 82%, transparent);
+		backdrop-filter: blur(8px);
+	}
+
+	.osrs-grid__controls {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	.osrs-grid__search,
+	.osrs-grid__select {
+		border: 1px solid var(--bento-hairline);
+		border-radius: 8px;
+		background: color-mix(in srgb, var(--sl-color-black) 60%, transparent);
+		color: inherit;
+		font-size: 0.85rem;
+		padding: 0.5rem 0.65rem;
+	}
+
+	.osrs-grid__search {
+		flex: 1 1 16rem;
+		min-width: 0;
+	}
+
+	.osrs-grid__search:focus,
+	.osrs-grid__select:focus {
+		outline: none;
+		border-color: var(--sl-color-accent);
+	}
+
+	.osrs-grid__letters {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.15rem;
+	}
+
+	.osrs-grid__letters a {
+		min-width: 1.5rem;
+		border-radius: 6px;
+		padding: 0.15rem 0.35rem;
+		text-align: center;
+		font-size: 0.72rem;
+		font-weight: 700;
+		color: var(--sl-color-gray-3);
+		text-decoration: none;
+	}
+
+	.osrs-grid__letters a:hover {
+		background: color-mix(in srgb, var(--sl-color-accent) 18%, transparent);
+		color: var(--sl-color-white);
+	}
+
+	.osrs-grid__count {
+		margin: 0;
+		font-size: 0.72rem;
+		letter-spacing: 0.03em;
+		color: var(--sl-color-gray-3);
+	}
+
+	.osrs-grid__cats {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.35rem;
+	}
+
+	.osrs-grid__cat {
+		border: 1px solid var(--bento-hairline);
+		border-radius: 999px;
+		padding: 0.25rem 0.7rem;
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--sl-color-gray-2);
+		text-decoration: none;
+	}
+
+	.osrs-grid__cat:hover {
+		border-color: var(--sl-color-accent);
+		color: var(--sl-color-white);
+	}
+
+	.osrs-grid__group {
+		scroll-margin-top: 9rem;
+	}
+
+	.osrs-grid__group[hidden] {
+		display: none;
+	}
+
+	.osrs-grid__letter {
+		display: flex;
+		align-items: baseline;
+		gap: 0.5rem;
+		margin: 0 0 0.5rem;
+		padding-bottom: 0.35rem;
+		border-bottom: 1px solid var(--bento-hairline);
+		font-size: 1rem;
+		font-weight: 800;
+		color: var(--sl-color-white);
+	}
+
+	.osrs-grid__letter-count {
+		font-size: 0.7rem;
+		font-weight: 600;
+		color: var(--sl-color-gray-3);
+	}
+
+	.osrs-grid__rows {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 19rem), 1fr));
+		gap: 0.4rem;
+	}
+
+	.osrs-grid__empty {
+		margin: 0;
+		padding: 2rem 0;
+		text-align: center;
+		font-size: 0.85rem;
+		color: var(--sl-color-gray-3);
+	}
+
+	.osrs-grid :global(.osrs-cat-row) {
+		content-visibility: auto;
+		contain-intrinsic-size: auto 58px;
+	}
+
+	.osrs-grid :global(.osrs-cat-row[hidden]) {
+		display: none;
+	}
+</style>
+
+<script>
+	import { onMount } from '@kbve/astro/utils/clientRouter';
+
+	const TAGS = new Set([
+		'equipment',
+		'ammo',
+		'food',
+		'potion',
+		'quest',
+		'drop',
+		'farm',
+		'gather',
+		'teleport',
+		'prayer',
+	]);
+
+	onMount(() => {
+		const root = document.querySelector<HTMLElement>('.osrs-grid');
+		if (!root) return;
+
+		const q = root.querySelector<HTMLInputElement>('#osrs-grid-q');
+		const tagSel = root.querySelector<HTMLSelectElement>('#osrs-grid-tag');
+		const memSel =
+			root.querySelector<HTMLSelectElement>('#osrs-grid-members');
+		const count = root.querySelector<HTMLElement>('#osrs-grid-count');
+		const empty = root.querySelector<HTMLElement>('#osrs-grid-empty');
+		if (!q || !tagSel || !memSel || !count || !empty) return;
+
+		const groups = [
+			...root.querySelectorAll<HTMLElement>('[data-letter-group]'),
+		].map((group) => ({
+			el: group,
+			badge: group.querySelector<HTMLElement>('[data-group-count]'),
+			rows: [
+				...group.querySelectorAll<HTMLAnchorElement>('.osrs-cat-row'),
+			],
+		}));
+		const total = groups.reduce((n, g) => n + g.rows.length, 0);
+		const baseLabel = count.textContent ?? '';
+
+		const params = new URLSearchParams(window.location.search);
+		const seedTag = params.get('tag') ?? '';
+		const seedMembers = params.get('members') ?? '';
+		q.value = params.get('q') ?? '';
+		if (TAGS.has(seedTag)) tagSel.value = seedTag;
+		if (seedMembers === 'p2p' || seedMembers === 'f2p')
+			memSel.value = seedMembers;
+
+		const apply = () => {
+			const term = q.value.trim().toLowerCase();
+			const tag = tagSel.value;
+			const members = memSel.value;
+			const idle = term === '' && tag === '' && members === '';
+			let shown = 0;
+
+			for (const group of groups) {
+				let visible = 0;
+				for (const row of group.rows) {
+					const d = row.dataset;
+					const hit =
+						idle ||
+						((!members || d.members === members) &&
+							(!tag || (d.tags ?? '').split(' ').includes(tag)) &&
+							(!term ||
+								(d.name ?? '').includes(term) ||
+								(d.slug ?? '').includes(term) ||
+								d.id === term));
+					if (hit) visible++;
+					row.hidden = !hit;
+				}
+				group.el.hidden = visible === 0;
+				if (group.badge) group.badge.textContent = String(visible);
+				shown += visible;
+			}
+
+			empty.hidden = shown > 0;
+			count.textContent = idle
+				? baseLabel
+				: `${shown.toLocaleString()} of ${total.toLocaleString()} items`;
+		};
+
+		q.addEventListener('input', apply);
+		tagSel.addEventListener('change', apply);
+		memSel.addEventListener('change', apply);
+		if (q.value || tagSel.value || memSel.value) apply();
+	});
+</script>

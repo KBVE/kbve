@@ -9,6 +9,7 @@ interface Row {
 	highalch: number | null;
 	limit: number | null;
 	slot?: string;
+	tags?: string[];
 }
 
 interface Props {
@@ -23,7 +24,14 @@ const formatGP = (v: number | null | undefined): string =>
 	v === null || v === undefined || v === 0 ? '—' : v.toLocaleString();
 ---
 
-<a href={`/osrs/${item.slug}/`} class="osrs-cat-row">
+<a
+	href={`/osrs/${item.slug}/`}
+	class="osrs-cat-row"
+	data-name={item.tags ? item.name.toLowerCase() : undefined}
+	data-id={item.tags ? String(item.id) : undefined}
+	data-slug={item.tags ? item.slug : undefined}
+	data-tags={item.tags ? item.tags.join(' ') : undefined}
+	data-members={item.tags ? (item.members ? 'p2p' : 'f2p') : undefined}>
 	<img
 		src={iconUrl(item.icon)}
 		alt=""

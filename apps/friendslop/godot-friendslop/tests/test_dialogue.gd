@@ -381,6 +381,63 @@ func test_marlow_is_wired_into_the_world() -> void:
 	assert_bool(found).override_failure_message("main.tscn has no Marlow").is_true()
 
 
+## Everyone standing by the crossing, held to the same contract: a catalog entry with a
+## conversation that loads, a body to say it with, and a place to stand that the world seed
+## decides rather than wherever the scene was last saved.
+func test_every_talker_by_the_crossing_is_wired_up() -> void:
+	var state := (load("res://scenes/main.tscn") as PackedScene).get_state()
+	var seen := {}
+	for i in state.get_node_count():
+		var props := {}
+		for p in state.get_node_property_count(i):
+			props[state.get_node_property_name(i, p)] = state.get_node_property_value(i, p)
+		var who := str(props.get("npc_ref", ""))
+		if who == "":
+			continue
+		seen[who] = true
+
+		var graph := Npcdb.graph(who)
+		assert_bool(graph.is_valid()) \
+				.override_failure_message("%s: %s" % [who, "; ".join(graph.errors())]) \
+				.is_true()
+		assert_object(props.get("body")) \
+				.override_failure_message("%s has no body, so they are an invisible voice" % who) \
+				.is_not_null()
+		assert_bool(bool(props.get("stand_under_bridge", false))) \
+				.override_failure_message("%s was left wherever the scene was saved" % who) \
+				.is_true()
+
+	for who: String in [MARLOW, "wren", "tam", "sable"]:
+		assert_bool(seen.has(who)) \
+				.override_failure_message("main.tscn has nobody with npc_ref '%s'" % who).is_true()
+
+
+## Four people standing on top of each other is one person with three shadows, and the
+## interactor picks whoever is nearest -- so two in the same spot are not both reachable.
+func test_the_talkers_are_not_standing_on_each_other() -> void:
+	var state := (load("res://scenes/main.tscn") as PackedScene).get_state()
+	var spots := {}
+	for i in state.get_node_count():
+		var props := {}
+		for p in state.get_node_property_count(i):
+			props[state.get_node_property_name(i, p)] = state.get_node_property_value(i, p)
+		if str(props.get("npc_ref", "")) == "":
+			continue
+		## The defaults are Marlow's, which is what everyone else has to differ from.
+		spots[str(props.get("npc_ref"))] = Vector2(
+				float(props.get("bridge_offset", 2.0)),
+				float(props.get("bridge_along", 9.0)))
+
+	var names := spots.keys()
+	for a in names.size():
+		for b in range(a + 1, names.size()):
+			var gap: float = (spots[names[a]] as Vector2).distance_to(spots[names[b]])
+			assert_float(gap) \
+					.override_failure_message("%s and %s stand %.1fm apart by the bridge" % [
+							names[a], names[b], gap]) \
+					.is_greater(3.0)
+
+
 ## Without the interactor on the player there is nobody to notice him.
 func test_the_player_carries_an_interactor() -> void:
 	var packed := load("res://scenes/player.tscn") as PackedScene

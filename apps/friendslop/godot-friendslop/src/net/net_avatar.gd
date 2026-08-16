@@ -18,6 +18,9 @@ var _velocity := Vector3.ZERO
 var _last_position := Vector3.ZERO
 var _has_last := false
 var _is_local := false
+## Where the player behind this body is looking. Only our own camera is ours to read —
+## nobody else's aim is on the wire — so every other avatar turns to its travel alone.
+var _aim: Node3D
 
 
 func _ready() -> void:
@@ -33,9 +36,10 @@ func set_player_name(value: String) -> void:
 	_plate.visible = not value.is_empty() and not _is_local
 
 
-## Our own avatar.
-func mark_local() -> void:
+## Our own avatar, and the camera whose yaw stands in for where we are looking.
+func mark_local(aim: Node3D = null) -> void:
 	_is_local = true
+	_aim = aim
 	if _plate:
 		_plate.visible = false
 
@@ -50,12 +54,8 @@ func _process(delta: float) -> void:
 	_last_position = here
 	_has_last = true
 
-	if _rig == null or not _rig.has_method(&"set_locomotion"):
+	if _rig == null or not _rig.has_method(&"drive"):
 		return
-	var speed := Vector2(_velocity.x, _velocity.z).length()
-	var local := Vector3.ZERO
-	if speed > REST_SPEED:
-		var heading := atan2(_velocity.x, _velocity.z)
-		rotation.y = lerp_angle(rotation.y, heading, clampf(10.0 * delta, 0.0, 1.0))
-		local = global_transform.basis.inverse() * _velocity
-	_rig.set_locomotion(local, false, delta)
+	var travel := _velocity if Vector2(_velocity.x, _velocity.z).length() > REST_SPEED \
+			else Vector3.ZERO
+	_rig.drive(travel, _aim.global_rotation.y if _aim else _rig.global_rotation.y, false, delta)

@@ -11,6 +11,15 @@ signal pet_spawned(body_id: int, node: Node3D)
 signal pets_changed()
 ## A deploy the server turned down, with wording to show the player.
 signal pet_denied(reason: String)
+## The host's word on a rock or tree reaching a stage, for anybody's swing rather
+## than only this player's.
+signal harvest_applied(target: StringName, id: int, stage: int)
+
+const GROUP := &"net_game_client"
+
+## Matches q's HarvestTarget, which is what the wire carries.
+const TARGET_STONE := 0
+const TARGET_TREE := 1
 
 ## The deployed fleet.
 const DEPLOYED_URL := "wss://friendslop.kbve.com/ws"
@@ -38,6 +47,7 @@ var _pets: Dictionary[int, Node3D] = {}
 
 
 func _ready() -> void:
+	add_to_group(GROUP)
 	if _client.get_parent() == null:
 		add_child(_client)
 	if autoconnect:
@@ -55,6 +65,7 @@ func _init() -> void:
 	_client.pet_removed.connect(_on_pet_removed)
 	_client.pets_changed.connect(_on_pets_changed)
 	_client.pet_denied.connect(_on_pet_denied)
+	_client.harvest_applied.connect(_on_harvest_applied)
 
 
 func connect_to_server(url: String = "") -> void:
@@ -81,6 +92,36 @@ func disconnect_from_server() -> void:
 
 func is_joined() -> bool:
 	return _client.is_joined()
+
+
+## Tells the host we have started working a rock or tree, and will keep at it.
+##
+## Sent once at the top of the job rather than once per swing. The host times the
+## stages from here, so it decides how fast anyone chops and its rulings arrive
+## while the client is already looping its animation.
+##
+## The cell and ordinal go over rather than the resolved id, so the host derives
+## the id itself: a client that could name an id could name any id, including one
+## on the far side of the map.
+func harvest_begin(kind: StringName, cell: Vector2i, ordinal: int) -> void:
+	if not is_joined():
+		return
+	if kind == &"tree":
+		_client.harvest_tree(cell.x, cell.y, ordinal)
+	else:
+		_client.harvest_stone(cell.x, cell.y, ordinal)
+
+
+## Tells the host we have stopped. Walking away ends the job on its own, but this
+## is what makes letting go of the button stop it on the same tick.
+func harvest_end() -> void:
+	if is_joined():
+		_client.harvest_stop()
+
+
+func _on_harvest_applied(target: int, id: int, stage: int) -> void:
+	harvest_applied.emit(
+			&"tree" if target == TARGET_TREE else &"stone", id, stage)
 
 
 func local_body() -> int:
@@ -151,6 +192,22 @@ func _facing() -> float:
 ## Host clock in hours, 0..24. Zero until the first Welcome.
 func world_hour() -> float:
 	return _client.world_hour()
+
+
+## Seconds the host has simulated, never wrapped. The hour says what the sky looks like;
+## this is what anything scheduled against world time has to read.
+func world_elapsed() -> float:
+	return _client.world_elapsed()
+
+
+## Whole days the world has run.
+func world_day() -> int:
+	return _client.world_day()
+
+
+## The hour the host's day began at.
+func world_start_hour() -> float:
+	return _client.world_start_hour()
 
 
 ## Real-world minutes the host's day takes, or 0 before joining.

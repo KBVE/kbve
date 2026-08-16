@@ -39,7 +39,11 @@ func _properties_of(state: SceneState, node_index: int) -> Dictionary:
 ## A QFishField with no model or materials places its fish, simulates them and draws
 ## nothing — the same silent shape as the bridge, and just as invisible outside a
 ## screenshot.
-const FISH_SCENES := ["res://scenes/main.tscn", "res://scenes/title.tscn"]
+const FISH_SCENES := [
+	"res://scenes/main.tscn",
+	"res://scenes/title.tscn",
+	"res://scenes/online.tscn",
+]
 const FISH_RESOURCES := [&"fish_model", &"fish_material", &"shadow_material"]
 
 
@@ -80,6 +84,60 @@ func test_every_terrain_is_handed_all_of_its_materials() -> void:
 		assert_bool(seen_terrain) \
 			.override_failure_message("%s has no QTerrain — update this test" % path) \
 			.is_true()
+
+
+## Scenes whose ground the server also simulates. It spawns a collider for every
+## rock its own scatter places whether or not the client draws them, so a scene with
+## no QStoneField is one where players walk into rocks that are not there.
+const STONE_SCENES := ["res://scenes/main.tscn", "res://scenes/online.tscn"]
+
+## Tuning the server takes from `StoneScatter::default()` and cannot be told about.
+## A scene that overrides any of it scatters rocks the server did not place, which
+## reads as rocks you cannot touch and walls you cannot see.
+const STONE_SHARED_TUNING := [
+	&"stone_seed",
+	&"grid_size",
+	&"patch_threshold",
+	&"patch_frequency",
+	&"scale_min",
+	&"scale_max",
+]
+
+
+func test_every_simulated_scene_draws_the_rocks_it_collides_with() -> void:
+	for path in STONE_SCENES:
+		var state := _state(path)
+		var seen := false
+		for i in state.get_node_count():
+			if state.get_node_type(i) != &"QStoneField":
+				continue
+			seen = true
+			var props := _properties_of(state, i)
+			assert_object(props.get(&"stone_material")) \
+				.override_failure_message("%s: QStoneField has no stone_material" % path) \
+				.is_not_null()
+			assert_bool(props.has(&"terrain_path")) \
+				.override_failure_message("%s: QStoneField has no terrain_path" % path) \
+				.is_true()
+		assert_bool(seen) \
+			.override_failure_message(
+				"%s has no QStoneField — the server still collides with the rocks" % path) \
+			.is_true()
+
+
+func test_no_scene_retunes_the_scatter_the_server_shares() -> void:
+	for path in STONE_SCENES:
+		var state := _state(path)
+		for i in state.get_node_count():
+			if state.get_node_type(i) != &"QStoneField":
+				continue
+			var props := _properties_of(state, i)
+			for key in STONE_SHARED_TUNING:
+				assert_bool(props.has(key)) \
+					.override_failure_message(
+						"%s: QStoneField overrides %s, which the server takes from its own defaults" \
+						% [path, key]) \
+					.is_false()
 
 
 func test_every_world_scene_carries_its_settings_nodes() -> void:

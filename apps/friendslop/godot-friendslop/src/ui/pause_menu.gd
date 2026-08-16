@@ -15,6 +15,8 @@ var _main_panel: VBoxContainer
 var _settings_panel: VBoxContainer
 var _graphics_panel: Control
 var _gameplay_panel: Control
+var _wardrobe_panel: Control
+var _wardrobe_pages: Array[MenuPage] = []
 var _gfx
 var _gfx_pages: Array[MenuPage] = []
 var _play
@@ -78,11 +80,13 @@ func _ready() -> void:
 	_settings_panel = _menu_box(0.60)
 	_add_button(_settings_panel, I18n.t("settings.graphics"), func() -> void: _show(_graphics_panel))
 	_add_button(_settings_panel, I18n.t("settings.gameplay"), func() -> void: _show(_gameplay_panel))
+	_add_button(_settings_panel, I18n.t("wardrobe.title"), func() -> void: _show(_wardrobe_panel))
 	_add_button(_settings_panel, I18n.t("settings.codex"), _open_codex)
 	_add_button(_settings_panel, I18n.t("action.back"), func() -> void: _show(_main_panel))
 
 	_build_graphics()
 	_build_gameplay()
+	_build_wardrobe()
 
 	_codex_panel = HBoxContainer.new()
 	_codex_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -311,6 +315,88 @@ func _build_gameplay() -> void:
 	_page_back(right)
 
 
+## The player's own wardrobe: one row per slot, cycling through what the kit has for it.
+##
+## Pieces are filtered to the set that fits the player's body. They all share one skeleton
+## so any of them would attach, but a woman's cut on a man's frame reads as a mistake
+## rather than a choice.
+const WARDROBE_SEX := "Male"
+const WARDROBE_SLOTS := [
+	[&"head", "wardrobe.head"],
+	[&"chest", "wardrobe.chest"],
+	[&"hands", "wardrobe.hands"],
+	[&"legs", "wardrobe.legs"],
+	[&"feet", "wardrobe.feet"],
+	[&"neck", "wardrobe.neck"],
+	[&"back", "wardrobe.back"],
+]
+
+
+func _build_wardrobe() -> void:
+	_wardrobe_panel = Control.new()
+	_wardrobe_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_wardrobe_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_wardrobe_panel.visible = false
+	_root.add_child(_wardrobe_panel)
+
+	var left := MenuPage.make(MenuStyle.Side.LEFT, _wardrobe_panel)
+	var right := MenuPage.make(MenuStyle.Side.RIGHT, _wardrobe_panel)
+	left.pair_with(right)
+	_wardrobe_pages = [left, right]
+
+	var half := int(ceil(WARDROBE_SLOTS.size() / 2.0))
+	for i in WARDROBE_SLOTS.size():
+		var slot: StringName = WARDROBE_SLOTS[i][0]
+		var page: MenuPage = left if i < half else right
+		var choices := _wardrobe_choices(slot)
+		page.add_cycler(I18n.t(str(WARDROBE_SLOTS[i][1])),
+				func() -> Array: return _wardrobe_names(slot),
+				func() -> int: return maxi(_wardrobe_index(slot, choices), 0),
+				func(pick: int) -> void: _wear(slot, choices[pick] if pick < choices.size() else &""),
+				choices.size())
+	_page_back(right)
+
+
+## Everything the catalog has for the slot, with nothing at the front -- taking a thing off
+## has to be as reachable as putting one on.
+##
+## Drawn from the item catalog rather than the mesh folder: a piece the player can wear is
+## one that exists as an item, and the folder holds plenty that does not yet.
+func _wardrobe_choices(slot: StringName) -> Array[StringName]:
+	var out: Array[StringName] = [&""]
+	for ref: StringName in Itemdb.wearables():
+		var piece := Itemdb.wardrobe_piece(ref, WARDROBE_SEX)
+		if piece != &"" and Wardrobe.slot_of(piece) == slot:
+			out.append(ref)
+	return out
+
+
+## Which row the cycler is showing. The wardrobe records the mesh being worn rather than
+## the item it came from, so the item is found by what it would look like.
+func _wardrobe_index(slot: StringName, choices: Array[StringName]) -> int:
+	var piece := Journal.worn_in(slot)
+	if piece == &"":
+		return 0
+	for i in choices.size():
+		if choices[i] != &"" and Itemdb.wardrobe_piece(choices[i], WARDROBE_SEX) == piece:
+			return i
+	return 0
+
+
+func _wardrobe_names(slot: StringName) -> Array:
+	var out: Array = []
+	for ref: StringName in _wardrobe_choices(slot):
+		out.append(I18n.t("wardrobe.none") if ref == &"" else Itemdb.display_name(ref))
+	return out
+
+
+func _wear(slot: StringName, ref: StringName) -> void:
+	if ref == &"":
+		Journal.take_off(slot)
+	else:
+		Journal.wear_item(ref)
+
+
 func _switch_locale(index: int) -> void:
 	if index == I18n.locale_index():
 		return
@@ -364,7 +450,7 @@ func _layout_pages() -> void:
 		print("[book] rect %s  root %s  vp %s" % [book, _root.size, _book_vp.size])
 
 	var metrics := MenuStyle.row_metrics(book.size.y, _root.size.y)
-	for page in _gfx_pages + _play_pages:
+	for page in _gfx_pages + _play_pages + _wardrobe_pages:
 		page.layout(book, metrics)
 		if debug:
 			print("[book] page %.3f %.3f %.3f %.3f" % [page.anchor_left, page.anchor_top,
@@ -554,9 +640,10 @@ func _show(panel: Control) -> void:
 		_settings_panel.visible = false
 		_graphics_panel.visible = false
 		_gameplay_panel.visible = false
+		_wardrobe_panel.visible = false
 		_codex_panel.visible = false
 		return
-	if panel == _graphics_panel or panel == _gameplay_panel:
+	if panel == _graphics_panel or panel == _gameplay_panel or panel == _wardrobe_panel:
 		_layout_pages()
 	if panel == _graphics_panel:
 		for page in _gfx_pages:
@@ -564,10 +651,14 @@ func _show(panel: Control) -> void:
 	if panel == _gameplay_panel:
 		for page in _play_pages:
 			page.refresh()
+	if panel == _wardrobe_panel:
+		for page in _wardrobe_pages:
+			page.refresh()
 	_main_panel.visible = panel == _main_panel
 	_settings_panel.visible = panel == _settings_panel
 	_graphics_panel.visible = panel == _graphics_panel
 	_gameplay_panel.visible = panel == _gameplay_panel
+	_wardrobe_panel.visible = panel == _wardrobe_panel
 	_codex_panel.visible = panel == _codex_panel
 
 

@@ -49,6 +49,11 @@ pub enum Stance {
     Crouch = 4,
     Roll = 5,
     Land = 6,
+    Turn90Left = 7,
+    Turn90Right = 8,
+    Turn180Left = 9,
+    Turn180Right = 10,
+    Slide = 11,
 }
 
 impl Stance {
@@ -60,9 +65,34 @@ impl Stance {
             4 => Self::Crouch,
             5 => Self::Roll,
             6 => Self::Land,
+            7 => Self::Turn90Left,
+            8 => Self::Turn90Right,
+            9 => Self::Turn180Left,
+            10 => Self::Turn180Right,
+            11 => Self::Slide,
             _ => Self::Move,
         }
     }
+
+    /// Whether this stance is a standing turn, which is the one thing that moves the body
+    /// without any velocity under it.
+    pub fn is_turn(self) -> bool {
+        matches!(
+            self,
+            Self::Turn90Left | Self::Turn90Right | Self::Turn180Left | Self::Turn180Right
+        )
+    }
+}
+
+/// The kit has no backward roll, so the back quarter is drawn with the one clip that
+/// does carry the body away from where it is looking.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(u8)]
+pub enum RollVariant {
+    Forward = 0,
+    Back = 1,
+    Left = 2,
+    Right = 3,
 }
 
 /// Top speeds and blend rates.
@@ -92,6 +122,16 @@ pub struct Tuning {
     /// How long a roll owns the body, and how fast it carries it.
     pub roll_time: f32,
     pub roll_speed: f32,
+    /// A slide is a crouch taken at speed, so it is thrown by the same key and only when
+    /// the body is already running. Below this it is an ordinary crouch.
+    pub slide_min_speed: f32,
+    /// Longest a slide owns the body. It ends early once the body has scrubbed off enough
+    /// speed to stand up, which is what makes a slide out of a jog short and one out of a
+    /// full run long, from one number rather than two.
+    pub slide_time: f32,
+    /// Speed shed per second while sliding, and the speed at which it gives up and stands.
+    pub slide_drag: f32,
+    pub slide_exit_speed: f32,
     /// Airborne this long before the rig is told to leave the move state, so a step off
     /// a kerb or a frame of float on a slope does not fire the whole jump chain.
     pub air_grace: f32,
@@ -102,6 +142,28 @@ pub struct Tuning {
     /// Ground speed that cancels the recovery outright. Walking out of a landing has to
     /// win over finishing the clip, or the feet slide for as long as it has left.
     pub land_cancel_speed: f32,
+    /// How fast the body comes round on the spot, radians per second.
+    pub turn_rate: f32,
+    /// How fast it comes round while travelling. Deliberately far quicker: a run that
+    /// turns at standing pace reads as ice, and the ring is already leaning through it.
+    pub turn_rate_moving: f32,
+    /// Ground speed above which facing follows travel instead of the aim.
+    pub turn_idle_speed: f32,
+    /// How far the aim has to leave the body before a standing turn is worth taking.
+    /// Below it the body holds still, so looking around does not drag the feet with it.
+    pub turn_deadzone: f32,
+    /// Remaining error that finishes a standing turn. Paired with the deadzone this is
+    /// hysteresis: without it the body would chatter in and out of a turn at the
+    /// threshold.
+    pub turn_settle: f32,
+    /// Standing turn wider than this plays the half circle rather than the quarter.
+    pub turn_half_split: f32,
+    /// What a raised guard leaves of the top speeds. A fraction rather than a table of
+    /// its own: the legs stay on the ring they were already on and simply sit further
+    /// down it, so the gait keeps solving itself.
+    pub block_speed_scale: f32,
+    /// How fast the shield comes up and down, per second.
+    pub block_blend_rate: f32,
 }
 
 impl Default for Tuning {
@@ -122,9 +184,21 @@ impl Default for Tuning {
             crouch_strafe_speed: 0.70,
             roll_time: 0.85,
             roll_speed: 6.0,
+            slide_min_speed: 2.6,
+            slide_time: 1.1,
+            slide_drag: 4.2,
+            slide_exit_speed: 1.4,
             air_grace: 0.12,
             land_time: 0.32,
             land_cancel_speed: 0.5,
+            turn_rate: 3.2,
+            turn_rate_moving: 9.0,
+            turn_idle_speed: 0.35,
+            turn_deadzone: 0.79,
+            turn_settle: 0.06,
+            turn_half_split: 2.36,
+            block_speed_scale: 0.55,
+            block_blend_rate: 9.0,
         }
     }
 }
@@ -138,6 +212,9 @@ pub struct Intent {
     pub crouch: bool,
     /// An edge, not a level: the roll it starts runs to its own end.
     pub roll: bool,
+    /// Held. A guard is not a stance of its own: the legs keep whatever gait they were
+    /// in and only the upper body takes the shield, so it costs no state at all.
+    pub block: bool,
 }
 
 /// Velocity the body should carry into its collide-and-slide, plus whatever the step
@@ -159,6 +236,21 @@ impl Default for Motion {
     }
 }
 
+/// Which way the body is pointed, which is its own decision rather than a reading taken
+/// off the last two positions.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Facing {
+    /// World yaw, radians, zero facing -z.
+    pub yaw: f32,
+    /// Signed angle still to come round, positive turning left. What is left of a turn is
+    /// what the ring leans through, so this is the whole of the lean.
+    pub error: f32,
+    /// Seconds the standing turn in progress was committed to, and zero when the body is
+    /// not turning on the spot. A turn clip is authored at one length and used for every
+    /// width of turn, so it only lands on the feet if it is replayed over this.
+    pub window: f32,
+}
+
 /// The decision, as the rig and the wire both want it.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct LocomotionState {
@@ -167,6 +259,8 @@ pub struct LocomotionState {
     /// The same heading solved against the crouch ring. Carried every tick rather than
     /// only while crouched, so the two spaces are both current while they cross-fade.
     pub crouch_blend: [f32; 2],
+    /// How much of the shield pose the upper body is wearing.
+    pub block_weight: f32,
     pub time_scale: f32,
     pub stance: Stance,
 }
@@ -176,6 +270,7 @@ impl Default for LocomotionState {
         Self {
             blend: [0.0, 0.0],
             crouch_blend: [0.0, 0.0],
+            block_weight: 0.0,
             time_scale: 1.0,
             stance: Stance::Move,
         }
@@ -192,11 +287,31 @@ pub struct Locomotion {
     /// Whether the last motion step was taken crouched, which is what decides both the
     /// speed the body travels and the ring the rig reads.
     crouched: bool,
-    /// Time left in the roll that owns the body, and the heading it was launched on.
+    /// Whether the guard is up, and how far up it has actually come.
+    blocking: bool,
+    block_weight: f32,
+    /// Time left in the roll that owns the body, and the heading it was launched on --
+    /// in world space for the travel, and in the body's own frame for the clip.
     roll_t: f32,
     roll_dir: [f32; 3],
+    roll_axis: [f32; 2],
+    /// Time left in the slide, the heading it was launched on, and the speed still in it.
+    /// The heading is latched: a slide cannot be steered, which is the whole reason it is
+    /// a commitment rather than a fast crouch.
+    slide_t: f32,
+    slide_dir: [f32; 3],
+    slide_speed: f32,
+    /// Crouch held last tick, so the slide can be thrown on the press rather than by the
+    /// key being down -- otherwise crouching while running would slide again every tick.
+    crouch_held: bool,
     air_t: f32,
     land_t: f32,
+    facing: f32,
+    /// The standing turn the body has committed to, held until it is turned out so that
+    /// the aim wandering back inside the deadzone cannot abandon it half way round.
+    turning: Option<Stance>,
+    /// How wide that turn was when it was taken, which is what its clip is fitted to.
+    turn_span: f32,
 }
 
 impl Default for Locomotion {
@@ -213,10 +328,20 @@ impl Locomotion {
             crouch_blend: [0.0, 0.0],
             climbing: None,
             crouched: false,
+            blocking: false,
+            block_weight: 0.0,
             roll_t: 0.0,
             roll_dir: [0.0, 0.0, -1.0],
+            roll_axis: [0.0, 1.0],
+            slide_t: 0.0,
+            slide_dir: [0.0, 0.0, -1.0],
+            slide_speed: 0.0,
+            crouch_held: false,
             air_t: 0.0,
             land_t: 0.0,
+            facing: 0.0,
+            turning: None,
+            turn_span: 0.0,
         }
     }
 
@@ -232,10 +357,15 @@ impl Locomotion {
         } else {
             (t.speed, t.back_speed, t.strafe_speed)
         };
-        if dir[1] < 0.0 {
+        let top = if dir[1] < 0.0 {
             lerp(strafe, back, -dir[1])
         } else {
             lerp(strafe, fwd, dir[1])
+        };
+        if self.blocking {
+            top * t.block_speed_scale
+        } else {
+            top
         }
     }
 
@@ -243,8 +373,47 @@ impl Locomotion {
         self.crouched
     }
 
+    pub fn is_blocking(&self) -> bool {
+        self.blocking
+    }
+
+    /// How far the shield has actually come up, which is what the rig blends over the
+    /// upper body. Eased rather than latched, so a tapped guard does not snap.
+    pub fn block_weight(&self) -> f32 {
+        self.block_weight
+    }
+
     pub fn is_rolling(&self) -> bool {
         self.roll_t > 0.0
+    }
+
+    /// Which of the four evasive clips the roll in flight is being drawn with. Latched
+    /// when the roll is thrown, so turning the stick mid-roll cannot swap the clip out
+    /// from under it.
+    pub fn roll_variant(&self) -> RollVariant {
+        let [x, y] = self.roll_axis;
+        if y.abs() >= x.abs() {
+            if y >= 0.0 {
+                RollVariant::Forward
+            } else {
+                RollVariant::Back
+            }
+        } else if x >= 0.0 {
+            RollVariant::Right
+        } else {
+            RollVariant::Left
+        }
+    }
+
+    /// The stick as the body reads it, falling back to straight ahead when there is no
+    /// hand on it.
+    fn roll_facing(move_axis: [f32; 2]) -> [f32; 2] {
+        let length = (move_axis[0] * move_axis[0] + move_axis[1] * move_axis[1]).sqrt();
+        if length < 0.0001 {
+            [0.0, 1.0]
+        } else {
+            [move_axis[0] / length, move_axis[1] / length]
+        }
     }
 
     /// Where the body wants to go, in world space, from an intent and a heading.
@@ -278,15 +447,45 @@ impl Locomotion {
         if intent.roll && grounded && self.roll_t <= 0.0 && self.climbing.is_none() {
             self.roll_t = self.tuning.roll_time;
             self.roll_dir = self.roll_heading(intent.move_axis, yaw);
+            self.roll_axis = Self::roll_facing(intent.move_axis);
         }
         let rolling = self.roll_t > 0.0;
-        self.crouched = intent.crouch && grounded && !rolling;
+
+        let ground_speed = (velocity[0] * velocity[0] + velocity[2] * velocity[2]).sqrt();
+        let crouch_pressed = intent.crouch && !self.crouch_held;
+        self.crouch_held = intent.crouch;
+        self.slide_t = (self.slide_t - dt).max(0.0);
+        if crouch_pressed
+            && grounded
+            && !rolling
+            && self.slide_t <= 0.0
+            && self.climbing.is_none()
+            && ground_speed >= self.tuning.slide_min_speed
+        {
+            self.slide_t = self.tuning.slide_time;
+            self.slide_speed = ground_speed;
+            let inv = 1.0 / ground_speed;
+            self.slide_dir = [velocity[0] * inv, 0.0, velocity[2] * inv];
+        }
+        if self.slide_t > 0.0 {
+            self.slide_speed = (self.slide_speed - self.tuning.slide_drag * dt).max(0.0);
+            // Standing up the moment it stops being a slide, rather than lying in the pose
+            // for the rest of the window: what ends it is the speed running out, and the
+            // clock is only there so it cannot go on forever.
+            if self.slide_speed <= self.tuning.slide_exit_speed || !grounded {
+                self.slide_t = 0.0;
+            }
+        }
+        let sliding = self.slide_t > 0.0;
+
+        self.crouched = intent.crouch && grounded && !rolling && !sliding;
+        self.blocking = intent.block && grounded && !rolling && !sliding && self.climbing.is_none();
 
         if !grounded {
             out[1] += gravity_y * dt;
             out[1] = out[1].max(-self.tuning.terminal_fall);
         }
-        if intent.jump && grounded && !rolling {
+        if intent.jump && grounded && !rolling && !sliding {
             out[1] = self.tuning.jump_velocity;
             jumped = true;
         }
@@ -296,6 +495,9 @@ impl Locomotion {
         if rolling {
             out[0] = self.roll_dir[0] * self.tuning.roll_speed;
             out[2] = self.roll_dir[2] * self.tuning.roll_speed;
+        } else if sliding {
+            out[0] = self.slide_dir[0] * self.slide_speed;
+            out[2] = self.slide_dir[2] * self.slide_speed;
         } else if length > 0.0001 {
             let dir = self.wish_direction(axis, yaw);
             let speed = self.gait_speed([axis[0] / length, axis[1] / length]);
@@ -320,6 +522,71 @@ impl Locomotion {
             dir
         } else {
             self.wish_direction([0.0, 1.0], yaw)
+        }
+    }
+
+    /// World yaw the body is pointed along.
+    pub fn facing(&self) -> f32 {
+        self.facing
+    }
+
+    /// The yaw that faces `dir`, which is the inverse of [`Self::wish_direction`].
+    pub fn heading_of(dir: [f32; 3]) -> f32 {
+        (-dir[0]).atan2(-dir[2])
+    }
+
+    /// Turns the body toward where it is going, or toward the aim when it is not going
+    /// anywhere, and reports what is left of the turn.
+    ///
+    /// Travel wins over aim while moving because a body that pointed at the camera would
+    /// strafe everywhere and never turn; aim wins while standing because that is the only
+    /// way a turn can be taken before the movement it is preparing for rather than after.
+    pub fn face(&mut self, world_velocity: [f32; 3], aim_yaw: f32, dt: f32) -> Facing {
+        let speed =
+            (world_velocity[0] * world_velocity[0] + world_velocity[2] * world_velocity[2]).sqrt();
+        let moving = speed > self.tuning.turn_idle_speed;
+        let target = if moving {
+            Self::heading_of(world_velocity)
+        } else {
+            aim_yaw
+        };
+        let error = wrap_angle(target - self.facing);
+
+        let mut window = 0.0;
+        if moving {
+            self.turning = None;
+        } else {
+            if self.turning.is_none() {
+                if error.abs() < self.tuning.turn_deadzone {
+                    return Facing {
+                        yaw: self.facing,
+                        error,
+                        window: 0.0,
+                    };
+                }
+                self.turning = Some(turn_stance(error, self.tuning.turn_half_split));
+                self.turn_span = error.abs();
+            } else if error.abs() <= self.tuning.turn_settle {
+                self.turning = None;
+                return Facing {
+                    yaw: self.facing,
+                    error,
+                    window: 0.0,
+                };
+            }
+            window = self.turn_span / self.tuning.turn_rate.max(0.01);
+        }
+
+        let step = if moving {
+            self.tuning.turn_rate_moving
+        } else {
+            self.tuning.turn_rate
+        } * dt;
+        self.facing = wrap_angle(self.facing + error.clamp(-step, step));
+        Facing {
+            yaw: self.facing,
+            error: wrap_angle(target - self.facing),
+            window,
         }
     }
 
@@ -376,9 +643,14 @@ impl Locomotion {
             self.land_t = 0.0;
         }
 
+        let guard = if self.blocking { 1.0 } else { 0.0 };
+        let raise = (self.tuning.block_blend_rate * dt).clamp(0.0, 1.0);
+        self.block_weight = lerp(self.block_weight, guard, raise);
+
         LocomotionState {
             blend: self.blend,
             crouch_blend: self.crouch_blend,
+            block_weight: self.block_weight,
             time_scale: if self.crouched {
                 self.crouch_time_scale(speed, dir)
             } else {
@@ -387,10 +659,11 @@ impl Locomotion {
             stance: match self.climbing {
                 Some(climb) => climb,
                 None if self.roll_t > 0.0 => Stance::Roll,
+                None if self.slide_t > 0.0 => Stance::Slide,
                 None if self.air_t > self.tuning.air_grace => Stance::Jump,
                 None if self.crouched => Stance::Crouch,
                 None if self.land_t > 0.0 => Stance::Land,
-                None => Stance::Move,
+                None => self.turning.unwrap_or(Stance::Move),
             },
         }
     }
@@ -440,6 +713,23 @@ impl Locomotion {
         let expected = lerp(slow, fast, (radius - GAITS[0].radius).clamp(0.0, 1.0));
         (speed / expected.max(0.01)).clamp(self.tuning.time_scale_min, self.tuning.time_scale_max)
     }
+}
+
+/// Which turn clip covers `error`, by side and by width.
+fn turn_stance(error: f32, half_split: f32) -> Stance {
+    match (error > 0.0, error.abs() >= half_split) {
+        (true, false) => Stance::Turn90Left,
+        (false, false) => Stance::Turn90Right,
+        (true, true) => Stance::Turn180Left,
+        (false, true) => Stance::Turn180Right,
+    }
+}
+
+/// Into -pi..pi, so the body always turns the short way round.
+fn wrap_angle(radians: f32) -> f32 {
+    let turn = std::f32::consts::TAU;
+    let shifted = (radians + std::f32::consts::PI).rem_euclid(turn);
+    shifted - std::f32::consts::PI
 }
 
 fn lerp(from: f32, to: f32, t: f32) -> f32 {
@@ -546,6 +836,103 @@ mod tests {
                 assert!(r >= 0.0 && r <= GAITS[1].radius + 0.001, "{speed} -> {r}");
             }
         }
+    }
+
+    fn drive(l: &mut Locomotion, velocity: [f32; 3], aim: f32, seconds: f32) -> Facing {
+        let dt = 1.0 / 60.0;
+        let mut out = Facing::default();
+        for _ in 0..(seconds / dt) as usize {
+            out = l.face(velocity, aim, dt);
+        }
+        out
+    }
+
+    /// The one that matters: the yaw a body is given has to be the yaw that sends it where
+    /// it is going. Read the other way round by mistake it is off by half a turn, which is
+    /// a character sprinting backwards -- exactly what the online avatar did.
+    #[test]
+    fn the_heading_of_a_direction_faces_that_direction() {
+        let l = loco();
+        for axis in [FWD, BACK, SIDE, [-1.0, 0.0], [0.6, -0.8]] {
+            for yaw in [0.0, 0.7, -2.4, 3.0] {
+                let dir = l.wish_direction(axis, yaw);
+                let round_trip = l.wish_direction(FWD, Locomotion::heading_of(dir));
+                assert!(
+                    dir[0] * round_trip[0] + dir[2] * round_trip[2] > 0.999,
+                    "{axis:?}@{yaw}: {dir:?} came back as {round_trip:?}"
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn facing_settles_on_the_way_the_body_travels() {
+        let mut l = loco();
+        let out = drive(&mut l, [5.0, 0.0, 0.0], 0.0, 2.0);
+        let dir = l.wish_direction(FWD, out.yaw);
+        assert!(dir[0] > 0.999, "travelling +x the body faced {dir:?}");
+        assert!(out.error.abs() < 0.01, "left {} to turn", out.error);
+    }
+
+    /// Looking around is not walking around: a small camera move must not drag the feet.
+    #[test]
+    fn a_standing_body_ignores_a_glance() {
+        let mut l = loco();
+        let out = drive(&mut l, [0.0; 3], 0.5, 2.0);
+        assert_eq!(out.yaw, 0.0, "a half-radian glance turned the body");
+        assert_eq!(out.window, 0.0);
+    }
+
+    #[test]
+    fn a_standing_body_turns_to_a_committed_look() {
+        let mut l = loco();
+        let mut state = LocomotionState::default();
+        let mut saw = Stance::Move;
+        for _ in 0..30 {
+            l.face([0.0; 3], 1.4, 1.0 / 60.0);
+            state = l.step([0.0; 3], false, 1.0 / 60.0);
+            if state.stance.is_turn() {
+                saw = state.stance;
+            }
+        }
+        assert_eq!(saw, Stance::Turn90Left, "turning left played {saw:?}");
+        let out = drive(&mut l, [0.0; 3], 1.4, 2.0);
+        assert!((out.yaw - 1.4).abs() < 0.02, "settled at {}", out.yaw);
+        assert!(!state.stance.is_turn() || out.window > 0.0);
+    }
+
+    #[test]
+    fn a_wide_turn_takes_the_half_circle() {
+        let mut l = loco();
+        l.face([0.0; 3], 3.0, 1.0 / 60.0);
+        let state = l.step([0.0; 3], false, 1.0 / 60.0);
+        assert_eq!(state.stance, Stance::Turn180Left);
+    }
+
+    /// The aim wandering back inside the deadzone mid-turn must not abandon it, or the
+    /// body stops half way round and stays there.
+    #[test]
+    fn a_turn_once_taken_is_finished() {
+        let mut l = loco();
+        l.face([0.0; 3], 1.4, 1.0 / 60.0);
+        let out = drive(&mut l, [0.0; 3], 0.6, 2.0);
+        assert!((out.yaw - 0.6).abs() < 0.02, "abandoned at {}", out.yaw);
+    }
+
+    #[test]
+    fn the_body_turns_the_short_way_round() {
+        let mut l = loco();
+        let out = drive(&mut l, [0.0; 3], -3.0, 0.1);
+        assert!(out.yaw < 0.0, "went the long way, reaching {}", out.yaw);
+    }
+
+    /// While the body is still coming round, its travel is across it rather than along it
+    /// -- which is the whole of the lean, and why the ring is fed the facing frame.
+    #[test]
+    fn a_turn_in_progress_leaves_the_body_travelling_sideways() {
+        let mut l = loco();
+        let out = l.face([5.0, 0.0, 0.0], 0.0, 1.0 / 60.0);
+        assert!(out.error.abs() > 1.0, "no lean left: {}", out.error);
     }
 
     /// +z is backward in the input frame.
@@ -966,6 +1353,47 @@ mod tests {
         assert!((m.velocity[2] + l.tuning.roll_speed).abs() < 0.001, "{m:?}");
     }
 
+    /// The clip is picked from the stick the roll was thrown on, not from wherever the
+    /// stick drifts to while it is in flight.
+    #[test]
+    fn the_roll_clip_is_latched_at_the_throw() {
+        for (axis, want) in [
+            ([0.0, 1.0], RollVariant::Forward),
+            ([0.0, -1.0], RollVariant::Back),
+            ([-1.0, 0.0], RollVariant::Left),
+            ([1.0, 0.0], RollVariant::Right),
+            ([0.4, 1.0], RollVariant::Forward),
+            ([1.0, 0.4], RollVariant::Right),
+        ] {
+            let mut l = loco();
+            let press = Intent {
+                move_axis: axis,
+                roll: true,
+                ..Intent::default()
+            };
+            l.step_motion(press, [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+            assert_eq!(l.roll_variant(), want, "{axis:?}");
+
+            let turned = Intent {
+                move_axis: [-axis[0], -axis[1]],
+                ..Intent::default()
+            };
+            l.step_motion(turned, [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+            assert_eq!(l.roll_variant(), want, "{axis:?} swapped clip mid-roll");
+        }
+    }
+
+    #[test]
+    fn a_standing_roll_is_drawn_forward() {
+        let mut l = loco();
+        let press = Intent {
+            roll: true,
+            ..Intent::default()
+        };
+        l.step_motion(press, [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+        assert_eq!(l.roll_variant(), RollVariant::Forward);
+    }
+
     #[test]
     fn a_roll_needs_the_floor() {
         let mut l = loco();
@@ -975,6 +1403,94 @@ mod tests {
         };
         l.step_motion(press, [0.0; 3], 0.0, false, -9.8, 1.0 / 60.0);
         assert!(!l.is_rolling());
+    }
+
+    fn guarding(axis: [f32; 2]) -> Intent {
+        Intent {
+            move_axis: axis,
+            block: true,
+            ..Intent::default()
+        }
+    }
+
+    /// A guard costs speed but not a stance: the legs stay on the gait they were on and
+    /// simply sit further down it, which is what lets the shield ride over any of them.
+    #[test]
+    fn a_guard_slows_the_body_without_taking_a_stance() {
+        let mut l = loco();
+        let open = l.step_motion(
+            Intent {
+                move_axis: FWD,
+                ..Intent::default()
+            },
+            [0.0; 3],
+            0.0,
+            true,
+            -9.8,
+            1.0 / 60.0,
+        );
+        let guarded = l.step_motion(guarding(FWD), [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+        assert!(guarded.velocity[2].abs() < open.velocity[2].abs());
+        assert!(
+            (guarded.velocity[2].abs() - l.tuning.speed * l.tuning.block_speed_scale).abs() < 0.001
+        );
+        assert!(l.is_blocking());
+        assert_eq!(l.step([0.0; 3], false, 1.0 / 60.0).stance, Stance::Move);
+    }
+
+    #[test]
+    fn a_guard_can_be_held_while_crouched() {
+        let mut l = loco();
+        let both = Intent {
+            move_axis: FWD,
+            crouch: true,
+            block: true,
+            ..Intent::default()
+        };
+        let m = l.step_motion(both, [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+        assert!(l.is_blocking() && l.is_crouched());
+        let want = l.tuning.crouch_speed * l.tuning.block_speed_scale;
+        assert!((m.velocity[2].abs() - want).abs() < 0.001, "{m:?}");
+        assert_eq!(l.step([0.0; 3], false, 1.0 / 60.0).stance, Stance::Crouch);
+    }
+
+    /// The shield eases up and down rather than snapping, and settles at both ends.
+    #[test]
+    fn the_shield_eases_up_and_back_down() {
+        let mut l = loco();
+        l.step_motion(guarding([0.0; 2]), [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+        let first = l.step([0.0; 3], false, 1.0 / 60.0).block_weight;
+        assert!(first > 0.0 && first < 0.5, "snapped to {first}");
+        for _ in 0..120 {
+            l.step_motion(guarding([0.0; 2]), [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+            l.step([0.0; 3], false, 1.0 / 60.0);
+        }
+        assert!(l.block_weight() > 0.99, "settled at {}", l.block_weight());
+
+        for _ in 0..120 {
+            l.step_motion(Intent::default(), [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+            l.step([0.0; 3], false, 1.0 / 60.0);
+        }
+        assert!(l.block_weight() < 0.01, "stuck at {}", l.block_weight());
+    }
+
+    /// Nothing about a guard survives being off the floor or being rolled through.
+    #[test]
+    fn a_guard_drops_when_the_body_is_busy() {
+        let mut l = loco();
+        l.step_motion(guarding([0.0; 2]), [0.0; 3], 0.0, false, -9.8, 1.0 / 60.0);
+        assert!(!l.is_blocking(), "guarded in mid-air");
+
+        let mut rolled = loco();
+        let throw = Intent {
+            move_axis: FWD,
+            roll: true,
+            block: true,
+            ..Intent::default()
+        };
+        rolled.step_motion(throw, [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+        assert!(rolled.is_rolling());
+        assert!(!rolled.is_blocking(), "guarded through a roll");
     }
 
     #[test]

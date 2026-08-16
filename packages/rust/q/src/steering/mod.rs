@@ -211,6 +211,10 @@ pub struct Step {
     pub mode: Mode,
 }
 
+/// Share of a window's worth of walking a body has to cover to count as making
+/// progress.
+const PROGRESS_SHARE: f32 = 0.6;
+
 /// One creature's steering state.
 #[derive(Clone, Debug)]
 pub struct Patrol {
@@ -224,6 +228,11 @@ pub struct Patrol {
     stuck_for: f32,
     unstick_for: f32,
     unstick_dir: Vec2,
+    /// Where the body was when the current progress window opened, and how long
+    /// it has been open. Speed alone cannot see a body that is moving without
+    /// getting anywhere.
+    progress_from: Vec2,
+    progress_for: f32,
     chasing_for: f32,
     rng: Rng,
     mode: Mode,
@@ -242,6 +251,8 @@ impl Patrol {
             stuck_for: 0.0,
             unstick_for: 0.0,
             unstick_dir: [0.0, 0.0],
+            progress_from: home,
+            progress_for: 0.0,
             chasing_for: 0.0,
             rng: Rng::new(seed),
             mode: Mode::Roaming,
@@ -401,8 +412,15 @@ impl Patrol {
         push
     }
 
-    /// Notices a body that wants to move but is not moving, and commits to a
-    /// sidestep rather than leaning on the obstacle for ever.
+    /// Notices a body that wants to move but is not getting anywhere, and commits
+    /// to a sidestep rather than leaning on the obstacle for ever.
+    ///
+    /// Two ways of failing to get anywhere, and they need separate tests. A body
+    /// leaning on a wall is not moving at all, which instantaneous speed catches
+    /// straight away. A pair trading the same patch of ground is moving the whole
+    /// time -- fast, even -- and covers no ground at all; speed says they are
+    /// fine, and they walk on the spot until something else intervenes. Only net
+    /// displacement over a window sees that one.
     fn update_stuck(&mut self, sense: &Sense, delta: f32, wants_to_move: bool) -> bool {
         if self.unstick_for > 0.0 {
             self.unstick_for -= delta;
@@ -414,8 +432,30 @@ impl Patrol {
         } else {
             self.stuck_for = 0.0;
         }
-        if self.stuck_for >= self.config.stuck_time {
+
+        let mut adrift = false;
+        if wants_to_move {
+            self.progress_for += delta;
+            let window = self.config.stuck_time;
+            if self.progress_for >= window {
+                let moved = length(sub(sense.position, self.progress_from));
+                // Held to a fraction of the window's worth of walking, not the
+                // whole of it: a body squeezing past an obstacle is legitimately
+                // slow, and shoving it sideways for being careful is worse than
+                // letting it through.
+                adrift = moved < self.config.stuck_speed * window * PROGRESS_SHARE;
+                self.progress_from = sense.position;
+                self.progress_for = 0.0;
+            }
+        } else {
+            self.progress_from = sense.position;
+            self.progress_for = 0.0;
+        }
+
+        if self.stuck_for >= self.config.stuck_time || adrift {
             self.stuck_for = 0.0;
+            self.progress_from = sense.position;
+            self.progress_for = 0.0;
             self.unstick_for = self.config.unstick_time;
             // Turn a consistent way for the whole commit, so it clears the
             // obstacle instead of jittering left and right against it.

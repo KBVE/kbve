@@ -1,0 +1,95 @@
+---
+title: 'Wren'
+template: splash
+sidebar:
+    label: 'Wren'
+    hidden: true
+description: |
+    Forager working the far bank of the Friendslop crossing. Reads the river by what grows beside it, and will say what is in the deep bend if you have already heard Marlow wonder about it.
+ref: 'wren'
+id: '01KSAVZ000000000000000WREN'
+name: 'Wren'
+type_flags: 1
+rarity: 'common'
+personality: 'cheerful'
+rank: 'normal'
+family: 'humanoid'
+level: 1
+role: 'Forager'
+tags:
+    - friendslop
+    - bridge
+    - talker
+dialogue_tree:
+    entry_node_id: 'greet'
+    nodes:
+        - id: 'greet'
+          text: "Mind where you put your feet — half of what's underfoot here is worth more than the bridge."
+          condition: '!seen:greet'
+          next_node_id: 'menu'
+        - id: 'greet_again'
+          text: 'You again. Careful, the reeds are wet through.'
+          next_node_id: 'menu'
+        - id: 'menu'
+          text: 'Well? The light goes early down here.'
+          options:
+              - id: 'ask_doing'
+                label: 'What are you looking for?'
+                next_node_id: 'doing'
+              - id: 'ask_bend'
+                label: 'Marlow said something big is in the deep bend.'
+                next_node_id: 'bend'
+                required_flags:
+                    - 'marlow_knows_river'
+                    - '!wren_named_the_bend'
+              - id: 'ask_bend_again'
+                label: 'That thing in the bend, again.'
+                next_node_id: 'bend_again'
+                required_flags:
+                    - 'wren_named_the_bend'
+              - id: 'ask_marlow'
+                label: 'You know the bridge keeper?'
+                next_node_id: 'marlow'
+              - id: 'leave'
+                label: '(Walk away.)'
+                next_node_id: 'farewell'
+        - id: 'doing'
+          text: 'Bitterroot, mostly. It only takes where the water has been and gone, so it grows in a line and tells you where the river used to sit.'
+          trigger_on_enter: 'set_flag:wren_taught_bitterroot'
+          next_node_id: 'menu'
+        - id: 'bend'
+          text: "He would. He watches it from the deck and never goes down to it. It's a fish, and it's old, and it has been there longer than he has kept the crossing."
+          trigger_on_enter: 'set_flag:wren_named_the_bend'
+          next_node_id: 'menu'
+        - id: 'bend_again'
+          text: "Still a fish. Still old. Go and look, if you like — it doesn't mind being looked at."
+          next_node_id: 'menu'
+        - id: 'marlow'
+          text: 'Everyone knows Marlow. He asks a toll for a bridge nobody built and puts every coin of it back into the planks.'
+          condition: '!marlow_toll_paid'
+          next_node_id: 'menu'
+        - id: 'marlow_paid'
+          text: "You paid him, then. He'll have told you about the third plank — he tells everyone, and he's right."
+          next_node_id: 'menu'
+        - id: 'farewell'
+          text: 'Go on. Leave me the bitterroot.'
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<Card title="Wren" icon="star">
+	A forager working the far bank, reading the river by what grows beside it.
+	She will name the thing in the deep bend — but only once Marlow has wondered
+	about it aloud, so the two of them have to be talked to in order.
+</Card>
+
+<CardGrid>
+	<Card title="Where" icon="map">
+		The far side of the Friendslop crossing, downstream of the span.
+	</Card>
+	<Card title="Flags" icon="setting">
+		Reads `marlow_knows_river` to open the question about the deep bend, and
+		`marlow_toll_paid` to change what she says about the keeper. Sets
+		`wren_taught_bitterroot` and `wren_named_the_bend`.
+	</Card>
+</CardGrid>

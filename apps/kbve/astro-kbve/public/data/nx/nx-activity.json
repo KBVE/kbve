@@ -1,16 +1,16 @@
 {
-  "generated_at": "2026-08-15T02:13:44Z",
+  "generated_at": "2026-08-16T02:21:45Z",
   "window": {
     "days": 7,
-    "since": "2026-08-08T02:13:44Z"
+    "since": "2026-08-09T02:21:45Z"
   },
   "commits": {
-    "total": 413,
+    "total": 415,
     "authors": 3,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 292
+        "commits": 294
       },
       {
         "author": "github-actions[bot]",
@@ -23,158 +23,158 @@
     ],
     "recent": [
       {
-        "sha": "0b005f7",
+        "sha": "e4dfee8",
         "author": "h0lybyte",
-        "message": "Merge pull request #15829 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/0b005f7fe763b5748ac6691b39e2551c402d076e",
-        "date": "2026-08-15T01:35:36Z"
+        "message": "Merge pull request #15858 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/e4dfee885a410dd1ac06b3f60c3fcfffbddddbef",
+        "date": "2026-08-15T21:07:00Z"
       },
       {
-        "sha": "0c43a26",
+        "sha": "1b15d1f",
+        "author": "h0lybyte",
+        "message": "fix(friendslop): stop the settings pages growing off the edge of the book (#15861)",
+        "url": "https://github.com/KBVE/kbve/commit/1b15d1f1bcdf59b75852663fd0fee7c7708d6d85",
+        "date": "2026-08-15T20:20:55Z"
+      },
+      {
+        "sha": "4677281",
+        "author": "h0lybyte",
+        "message": "fix(friendslop): adjusting the water shader.",
+        "url": "https://github.com/KBVE/kbve/commit/4677281fd7d743d5551d8d6aa3eb1fc56df325bf",
+        "date": "2026-08-15T20:10:20Z"
+      },
+      {
+        "sha": "da17f61",
         "author": "github-actions[bot]",
-        "message": "chore(axum-kbve): post-publish sync to v1.0.286 (#15832)",
-        "url": "https://github.com/KBVE/kbve/commit/0c43a264e0654e8ba45d2fe6c40c659c2b320518",
-        "date": "2026-08-15T01:03:52Z"
+        "message": "chore(friendslop): post-publish sync to v0.1.4 (#15859)",
+        "url": "https://github.com/KBVE/kbve/commit/da17f61294062750adfc547ca68e73da32c4ffd3",
+        "date": "2026-08-15T19:50:51Z"
       },
       {
-        "sha": "5c1f3d4",
-        "author": "h0lybyte",
-        "message": "fix(kbve): updating the bento hero.",
-        "url": "https://github.com/KBVE/kbve/commit/5c1f3d47f015560828073700bbf8aabe4053fe82",
-        "date": "2026-08-15T01:03:43Z"
-      },
-      {
-        "sha": "2da6814",
-        "author": "h0lybyte",
-        "message": "fix(friendslop): stop the stuck check firing on a permanent loop (#15831)",
-        "url": "https://github.com/KBVE/kbve/commit/2da6814488fc734ec1dc1ca064b7bf7c5dea4f8d",
-        "date": "2026-08-15T01:03:10Z"
-      },
-      {
-        "sha": "91e53e8",
+        "sha": "0079df4",
         "author": "github-actions[bot]",
-        "message": "chore(discordsh-bot): post-publish sync to v0.1.32 (#15830)",
-        "url": "https://github.com/KBVE/kbve/commit/91e53e862c55e2f8a87ce79961832979d7f738e8",
-        "date": "2026-08-15T00:53:37Z"
+        "message": "chore(friendslop-server): post-publish sync to v0.0.6 (#15857)",
+        "url": "https://github.com/KBVE/kbve/commit/0079df4a04a6348398808863a6ec4d3c89abb76f",
+        "date": "2026-08-15T19:40:16Z"
       },
       {
-        "sha": "483d747",
-        "author": "h0lybyte",
-        "message": "docs(journal): updating the daily journal.",
-        "url": "https://github.com/KBVE/kbve/commit/483d747861db6c1c7124f3ea44fe8b6e32d33173",
-        "date": "2026-08-15T00:40:44Z"
+        "sha": "702edcd",
+        "author": "github-actions[bot]",
+        "message": "chore(q): update version.toml to 0.1.6 [skip ci] (#15856)",
+        "url": "https://github.com/KBVE/kbve/commit/702edcd4376d35b7aa4d5990a3391930138ec6a2",
+        "date": "2026-08-15T19:39:31Z"
       },
       {
-        "sha": "cf1c510",
+        "sha": "7d2b336",
         "author": "h0lybyte",
-        "message": "fix(kilobase): take the first job row without a loop that never loops (#15828)",
-        "url": "https://github.com/KBVE/kbve/commit/cf1c51047eebf3685f60c9c4dc0a377fed67944d",
-        "date": "2026-08-15T00:32:51Z"
+        "message": "Merge pull request #15835 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/7d2b336f47d14a23a8d43f8cf820a3f361165283",
+        "date": "2026-08-15T19:26:31Z"
       },
       {
-        "sha": "31976c6",
+        "sha": "652756f",
         "author": "h0lybyte",
-        "message": "Merge pull request #15827 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/31976c6b785c667a6d258634237db38be9d1467b",
-        "date": "2026-08-15T00:32:36Z"
+        "message": "chore(friendslop): cut the client at 0.1.4 and the server at 0.0.6 (#15855)",
+        "url": "https://github.com/KBVE/kbve/commit/652756fae20c0aeee274fa5fa5d9a13702232b70",
+        "date": "2026-08-15T19:26:08Z"
       },
       {
-        "sha": "d0838ef",
+        "sha": "06e079f",
         "author": "h0lybyte",
-        "message": "fix(discordsh-bot): stop round2_precision tripping clippy::approx_constant (#15826)",
-        "url": "https://github.com/KBVE/kbve/commit/d0838ef8320f3987f8f4419dad9e4a258a8a328e",
-        "date": "2026-08-15T00:23:37Z"
+        "message": "feat(friendslop): draw pets on the client, and deploy them from it (#15854)",
+        "url": "https://github.com/KBVE/kbve/commit/06e079fda88fcfe375d0188651e3fceecad99082",
+        "date": "2026-08-15T07:17:49Z"
       },
       {
-        "sha": "dc628d4",
+        "sha": "51997c8",
         "author": "h0lybyte",
-        "message": "fix(npcdb): give Marlow a personality the schema knows (#15825)",
-        "url": "https://github.com/KBVE/kbve/commit/dc628d41037e34f0160581c91d72bbf52e578e01",
-        "date": "2026-08-14T23:28:13Z"
+        "message": "feat(friendslop): give the buttons room, and warm the panel up (#15853)",
+        "url": "https://github.com/KBVE/kbve/commit/51997c8958a3551688645370390ebe2120e02f13",
+        "date": "2026-08-15T07:17:39Z"
       },
       {
-        "sha": "79c8785",
+        "sha": "de6b0c7",
         "author": "h0lybyte",
-        "message": "fix(discordsh-bot): copy bevy_dungeon into docker build (#15824)",
-        "url": "https://github.com/KBVE/kbve/commit/79c878512b8513afccfe1c08cb8db3276faf3ed4",
-        "date": "2026-08-14T23:27:58Z"
+        "message": "perf(q): rate-limit and gate the fish tick (#15852)",
+        "url": "https://github.com/KBVE/kbve/commit/de6b0c7cfa23bf61ef2251150bf9cc46f9c982ce",
+        "date": "2026-08-15T07:17:20Z"
       },
       {
-        "sha": "68b2479",
+        "sha": "f7f5247",
         "author": "h0lybyte",
-        "message": "fix(friendslop): keep creatures out of each other's silhouette (#15822)",
-        "url": "https://github.com/KBVE/kbve/commit/68b2479db71ed8cce1b129cbbeeb08d2b49334b3",
-        "date": "2026-08-14T23:27:44Z"
+        "message": "feat(friendslop): flow fields for pets, so they route round the river (#15851)",
+        "url": "https://github.com/KBVE/kbve/commit/f7f52470763bd8e41d09d33456334f6c2615ca72",
+        "date": "2026-08-15T06:49:57Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 261,
+    "merged": 268,
     "recent": [
       {
-        "number": 15834,
-        "title": "feat(friendslop): number the replies, and let the panel arrive",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15834"
-      },
-      {
-        "number": 15829,
-        "title": "Release: 3 fixes, 1 doc, 2 chores \u2192 Main",
+        "number": 15858,
+        "title": "Release: 2 fixes, 3 chores \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15829"
+        "url": "https://github.com/KBVE/kbve/pull/15858"
       },
       {
-        "number": 15832,
-        "title": "Atomic: axum-kbve v1.0.286 post-publish sync",
+        "number": 15861,
+        "title": "fix(friendslop): stop the settings pages growing off the edge of the book",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/15861"
+      },
+      {
+        "number": 15859,
+        "title": "Atomic: friendslop v0.1.4 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15832"
+        "url": "https://github.com/KBVE/kbve/pull/15859"
       },
       {
-        "number": 15831,
-        "title": "fix(friendslop): stop the stuck check firing on a permanent loop",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15831"
-      },
-      {
-        "number": 15830,
-        "title": "Atomic: discordsh-bot v0.1.32 post-publish sync",
+        "number": 15857,
+        "title": "Atomic: friendslop-server v0.0.6 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15830"
+        "url": "https://github.com/KBVE/kbve/pull/15857"
       },
       {
-        "number": 15828,
-        "title": "fix(kilobase): take the first job row without a loop that never loops",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15828"
-      },
-      {
-        "number": 15827,
-        "title": "Release: 4 fixes, 2 chores \u2192 Main",
+        "number": 15856,
+        "title": "chore(q): update version.toml to 0.1.6",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/15827"
+        "url": "https://github.com/KBVE/kbve/pull/15856"
       },
       {
-        "number": 15826,
-        "title": "fix(discordsh-bot): stop round2_precision tripping clippy::approx_constant",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15826"
+        "number": 15835,
+        "title": "Release: 9 features, 1 fix, 1 perf, 11 chores \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/15835"
       },
       {
-        "number": 15825,
-        "title": "fix(npcdb): give Marlow a personality the schema knows",
+        "number": 15855,
+        "title": "chore(friendslop): cut the client at 0.1.4 and the server at 0.0.6",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15825"
+        "url": "https://github.com/KBVE/kbve/pull/15855"
       },
       {
-        "number": 15824,
-        "title": "fix(discordsh-bot): copy bevy_dungeon into docker build",
+        "number": 15854,
+        "title": "feat(friendslop): draw pets on the client, and deploy them from it",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15824"
+        "url": "https://github.com/KBVE/kbve/pull/15854"
+      },
+      {
+        "number": 15853,
+        "title": "feat(friendslop): give the buttons room, and warm the panel up",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/15853"
+      },
+      {
+        "number": 15852,
+        "title": "perf(q): rate-limit and gate the fish tick",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/15852"
       }
     ]
   },
   "issues": {
-    "opened": 277,
-    "closed": 278
+    "opened": 288,
+    "closed": 285
   }
 }

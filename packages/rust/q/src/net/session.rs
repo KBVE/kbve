@@ -91,8 +91,14 @@ pub enum SessionMsg {
         water_level: f32,
         road_width: f32,
         /// Hours, 0..24, at the moment of joining.
-        time_of_day: f32,
+        /// Hours, 0..24, the host's day started at. Paired with `elapsed` and
+        /// `day_length_minutes` this is the whole clock: every other time in the world is
+        /// derived from the three, so nothing has to be resent to stay in step.
+        start_hour: f32,
         day_length_minutes: f32,
+        /// Seconds the host has simulated. Monotonic and never wrapped, so it can be the
+        /// input to anything scheduled rather than only to a sky.
+        elapsed: f64,
     },
     Reject {
         reason: String,
@@ -104,8 +110,12 @@ pub enum SessionMsg {
     /// The host's clock, resent periodically. Clients run their own between these and
     /// correct on arrival; without it two people who joined minutes apart stand in the
     /// same world under different suns.
+    ///
+    /// Seconds rather than the hour it used to carry: an hour wraps every 24, so it can
+    /// say what the sky should look like and nothing else. Anything that wants to be a
+    /// function of world time needs a number that only goes up.
     WorldTime {
-        hour: f32,
+        elapsed: f64,
     },
     Input(PlayerInput),
     Snapshot(SimSnapshot),
@@ -115,17 +125,28 @@ pub enum SessionMsg {
         protocol: u32,
         token: String,
     },
-    /// A client says it worked a scattered object.
+    /// A client says it has started working a scattered object, and means to keep
+    /// going until it stops or the thing is gone.
+    ///
+    /// An intent, not a swing. The host owns the clock from here: it decides how
+    /// long a stage takes and rules on each one as it falls due, so the rate is
+    /// not something a client can ask for. A swing-shaped message could always be
+    /// sent faster than a swing takes, and no amount of validation on one message
+    /// fixes that, because each one is individually legitimate.
     ///
     /// Carries the cell and ordinal rather than an id: the host derives the id
     /// itself, so a client cannot name one it could not have reached, and the
     /// cell is what the reach check is measured against.
-    Harvest {
+    HarvestBegin {
         target: HarvestTarget,
         cell: [i32; 2],
         ordinal: u32,
-        hits: u8,
     },
+    /// A client says it has stopped. Not required for correctness -- walking away
+    /// ends the job on its own, and so does disconnecting -- but it is what makes
+    /// letting go of the button stop the work on the same tick rather than at the
+    /// next reach check.
+    HarvestEnd,
     /// What the host decided, to everyone. Reliable, because a dropped delta is
     /// a rock that stands on one client and not the others until it rescatters.
     HarvestDelta {
@@ -167,6 +188,25 @@ pub enum SessionMsg {
     },
 }
 
+/// Real seconds one in-world day takes.
+fn day_seconds(day_length_minutes: f32) -> f64 {
+    (day_length_minutes as f64 * 60.0).max(1.0)
+}
+
+/// The hour a world reads after running for `elapsed` seconds.
+///
+/// The only place the mapping lives. A host and a client each keeping their own version
+/// of it is how two people end up standing in the same world under different suns, which
+/// is exactly what the periodic resync was there to paper over.
+pub fn hour_at(start_hour: f32, day_length_minutes: f32, elapsed: f64) -> f32 {
+    (start_hour as f64 + elapsed * 24.0 / day_seconds(day_length_minutes)).rem_euclid(24.0) as f32
+}
+
+/// Whole days the world has been running, counting from the session's first tick.
+pub fn day_at(day_length_minutes: f32, elapsed: f64) -> i64 {
+    (elapsed / day_seconds(day_length_minutes)).floor() as i64
+}
+
 /// Turns a bearer token into a display name, or into a reason the player can read.
 pub trait TokenAuthority: Send + Sync {
     fn verify(&self, token: &str) -> Result<String, String>;
@@ -192,7 +232,9 @@ pub struct SessionConfig {
     /// two codebases have to remember.
     pub terrain_extent: f32,
     pub terrain_resolution: u32,
-    /// World clock. The host owns it so everyone shares one sky.
+    /// World clock. The host owns it so everyone shares one sky. Only the start and the
+    /// length are configured: the time itself is [`hour_at`] of how long the host has
+    /// run, so there is no second copy of it to drift.
     pub start_hour: f32,
     pub day_length_minutes: f32,
     /// How often the clock is rebroadcast.
@@ -219,6 +261,10 @@ pub struct SessionConfig {
     /// How far a player may stand from a cell and still work it. Generous by
     /// design — this bounds cheating to things nearby, it is not a hit test.
     pub harvest_reach: f32,
+    /// Seconds of work one stage costs. The host's clock, not the client's: this
+    /// is the whole reason a chop is a job rather than a stream of swings, and it
+    /// is what a client's animation is paced to rather than the other way round.
+    pub chop_seconds: f32,
     /// Caps and tuning for deployed pet robots.
     pub pets: PetConfig,
     /// Sizing and pacing of the per-owner flow fields those pets route on.
@@ -251,6 +297,9 @@ impl Default for SessionConfig {
             stone_grid_size: 22.0,
             tree_grid_size: 14.0,
             harvest_reach: 6.0,
+            // Match the harvester's exported swing_interval, which is the clip the
+            // player watches while this runs down.
+            chop_seconds: 0.75,
             pets: PetConfig::default(),
             pet_fields: FieldConfig::default(),
         }
@@ -291,6 +340,20 @@ struct Player {
     /// Ground speed actually achieved last tick, which is what a follower reads to
     /// decide whether its leader has settled.
     ground_speed: f32,
+    /// What this player is working on, if anything. One job at a time: a second
+    /// begin replaces the first, because a player has one pair of hands.
+    chop: Option<Chop>,
+}
+
+/// A job in progress, held by the host for as long as the player keeps at it.
+#[derive(Clone, Copy, Debug)]
+struct Chop {
+    target: HarvestTarget,
+    cell: [i32; 2],
+    id: u64,
+    /// Work done toward the next stage. Carried across stages rather than reset,
+    /// so a job does not lose the remainder of a tick every time one falls due.
+    accum: f32,
 }
 
 pub struct HostSession<T: Transport> {
@@ -303,7 +366,9 @@ pub struct HostSession<T: Transport> {
     snapshot_accum: f64,
     authority: Option<Arc<dyn TokenAuthority>>,
     ground: Option<GroundSampler>,
-    hour: f32,
+    /// Seconds simulated. The clock: the hour is derived from it rather than kept
+    /// alongside it, so there is nothing for the two to disagree about.
+    elapsed: f64,
     time_accum: f64,
     /// What has been mined and felled. The host has no scatter, but damage only
     /// ever increases, so a ledger is enough to be authoritative about state
@@ -353,7 +418,7 @@ impl<T: Transport> HostSession<T> {
                 clearance: pets.body_radius + 0.3,
                 ..config.pet_fields
             }),
-            hour: config.start_hour,
+            elapsed: 0.0,
             time_accum: 0.0,
         }
     }
@@ -531,8 +596,9 @@ impl<T: Transport> HostSession<T> {
                 terrain_resolution: self.config.terrain_resolution,
                 water_level: self.config.water_level,
                 road_width: self.config.road_width,
-                time_of_day: self.hour,
+                start_hour: self.config.start_hour,
                 day_length_minutes: self.config.day_length_minutes,
+                elapsed: self.elapsed,
             },
         );
         self.send_harvest_ledgers(peer);
@@ -569,47 +635,123 @@ impl<T: Transport> HostSession<T> {
         }
     }
 
-    /// Applies a claimed harvest, if the claimant could plausibly have reached it.
+    /// Centre of a cell in world terms, which is what a reach check measures to.
+    fn cell_centre(&self, target: HarvestTarget, cell: [i32; 2]) -> [f32; 2] {
+        let size = self.grid_size(target);
+        [(cell[0] as f32 + 0.5) * size, (cell[1] as f32 + 0.5) * size]
+    }
+
+    /// Whether `peer` is standing close enough to `cell` to be working it.
     ///
     /// The host cannot check that a rock is really in that cell without running
     /// the scatter it does not have. What it can check is that the cell is near
     /// the player, which bounds a forged claim to ground they are standing on
     /// rather than the whole world. Damage is monotonic, so the worst a bad
     /// claim does is break something early — it can never repair anything.
-    fn apply_harvest(
-        &mut self,
-        from: PeerId,
-        target: HarvestTarget,
-        cell: [i32; 2],
-        ordinal: u32,
-        hits: u8,
-    ) {
-        if !self.players.contains_key(&from) {
-            return;
-        }
-        let size = self.grid_size(target);
-        let centre = [(cell[0] as f32 + 0.5) * size, (cell[1] as f32 + 0.5) * size];
-        let Some(body) = self.world.snapshot().body(player_body(from)).copied() else {
-            return;
+    ///
+    /// Rechecked every tick a job runs, not only when it starts: otherwise the
+    /// way to fell a forest is to begin on one tree and walk.
+    fn within_reach(&self, peer: PeerId, target: HarvestTarget, cell: [i32; 2]) -> bool {
+        let Some(body) = self.world.snapshot().body(player_body(peer)).copied() else {
+            return false;
         };
+        let centre = self.cell_centre(target, cell);
         let [px, _, pz] = body.iso.pos;
         let (dx, dz) = (centre[0] - px, centre[1] - pz);
         // Half a cell of slack: the claim names a cell, and anywhere in it is a
         // legitimate place for the object to have stood.
-        let reach = self.config.harvest_reach + size * 0.5;
-        if dx * dx + dz * dz > reach * reach {
+        let reach = self.config.harvest_reach + self.grid_size(target) * 0.5;
+        dx * dx + dz * dz <= reach * reach
+    }
+
+    /// Takes up a job, if the claimant could plausibly have reached it.
+    ///
+    /// Nothing is ruled on here. The first stage falls due one `chop_seconds`
+    /// from now, in `advance_chops`, which is the point: the client gets to start
+    /// its animation on the press and the host's answer arrives while it runs.
+    fn begin_harvest(&mut self, from: PeerId, target: HarvestTarget, cell: [i32; 2], ordinal: u32) {
+        if !self.players.contains_key(&from) || !self.within_reach(from, target, cell) {
             return;
+        }
+        let id = stable_id(self.seed, cell[0], cell[1], ordinal);
+        if self.ledger(target).stage(id) >= target.stages() {
+            return;
+        }
+        if let Some(player) = self.players.get_mut(&from) {
+            // A begin naming the job already running is left alone rather than
+            // restarted. Otherwise a client that repeats itself — retrying, or
+            // simply sending on every frame it holds the button — resets its own
+            // progress every time and the tree never falls.
+            if player
+                .chop
+                .is_some_and(|c| c.id == id && c.target == target)
+            {
+                return;
+            }
+            player.chop = Some(Chop {
+                target,
+                cell,
+                id,
+                accum: 0.0,
+            });
+        }
+    }
+
+    fn end_harvest(&mut self, from: PeerId) {
+        if let Some(player) = self.players.get_mut(&from) {
+            player.chop = None;
+        }
+    }
+
+    /// Advances every job in progress by one tick, ruling on the stages that fall
+    /// due. Runs on the host's clock, so how fast anyone can chop is a property of
+    /// the server rather than of how often a client cares to ask.
+    fn advance_chops(&mut self, dt: f32) {
+        let per_stage = self.config.chop_seconds.max(0.05);
+        // Planned first and applied second: the ledgers and the broadcast both want
+        // the session mutably, which a walk over `players` is already holding.
+        let mut plan: Vec<(PeerId, Chop, f32, u8)> = Vec::new();
+        let mut dropped: Vec<PeerId> = Vec::new();
+
+        for (peer, player) in &self.players {
+            let Some(chop) = player.chop else { continue };
+            if !self.within_reach(*peer, chop.target, chop.cell) {
+                dropped.push(*peer);
+                continue;
+            }
+            let mut accum = chop.accum + dt;
+            let mut earned: u8 = 0;
+            while accum >= per_stage {
+                accum -= per_stage;
+                earned = earned.saturating_add(1);
+            }
+            plan.push((*peer, chop, accum, earned));
         }
 
-        let stages = target.stages();
-        let id = stable_id(self.seed, cell[0], cell[1], ordinal);
-        let current = self.ledger(target).stage(id);
-        if current >= stages {
-            return;
+        for (peer, chop, accum, earned) in plan {
+            if let Some(held) = self.players.get_mut(&peer).and_then(|p| p.chop.as_mut()) {
+                held.accum = accum;
+            }
+            if earned == 0 {
+                continue;
+            }
+            let stages = chop.target.stages();
+            let current = self.ledger(chop.target).stage(chop.id);
+            let next = current.saturating_add(earned).min(stages);
+            if next > current {
+                self.ledger_mut(chop.target).record(chop.id, next);
+                self.broadcast_harvest(chop.target, chop.id, next);
+            }
+            // Nothing left to work. The last delta already said so, so this only
+            // stops the job rather than telling anyone anything.
+            if next >= stages {
+                dropped.push(peer);
+            }
         }
-        let next = current.saturating_add(hits.clamp(1, stages)).min(stages);
-        self.ledger_mut(target).record(id, next);
-        self.broadcast_harvest(target, id, next);
+
+        for peer in dropped {
+            self.end_harvest(peer);
+        }
     }
 
     fn broadcast_harvest(&self, target: HarvestTarget, id: u64, stage: u8) {
@@ -638,14 +780,30 @@ impl<T: Transport> HostSession<T> {
         if self.transport.peers().is_empty() {
             return;
         }
-        if let Ok(bytes) = proto::encode(&SessionMsg::WorldTime { hour: self.hour }) {
+        if let Ok(bytes) = proto::encode(&SessionMsg::WorldTime {
+            elapsed: self.elapsed,
+        }) {
             let _ = self.transport.broadcast(Delivery::Unreliable, &bytes);
         }
     }
 
     /// Host clock, hours 0..24.
     pub fn hour(&self) -> f32 {
-        self.hour
+        hour_at(
+            self.config.start_hour,
+            self.config.day_length_minutes,
+            self.elapsed,
+        )
+    }
+
+    /// Seconds the host has simulated, never wrapped.
+    pub fn elapsed(&self) -> f64 {
+        self.elapsed
+    }
+
+    /// Whole days the world has run.
+    pub fn day(&self) -> i64 {
+        day_at(self.config.day_length_minutes, self.elapsed)
     }
 
     /// Pets currently deployed, in id order.
@@ -806,13 +964,15 @@ impl<T: Transport> HostSession<T> {
                     player.input = input.sanitized();
                 }
             }
-            SessionMsg::Harvest {
+            SessionMsg::HarvestBegin {
                 target,
                 cell,
                 ordinal,
-                hits,
             } => {
-                self.apply_harvest(from, target, cell, ordinal, hits);
+                self.begin_harvest(from, target, cell, ordinal);
+            }
+            SessionMsg::HarvestEnd => {
+                self.end_harvest(from);
             }
             SessionMsg::DeployPet { kind } => {
                 if let Err(err) = self.deploy_pet(from, kind) {
@@ -857,6 +1017,7 @@ impl<T: Transport> HostSession<T> {
         }
 
         let dt = self.sim.timestep() as f32;
+        self.advance_chops(dt);
         let snapshot = self.world.snapshot();
 
         // Anyone who has fallen out of the world goes back to their spawn. A body below
@@ -952,9 +1113,7 @@ impl<T: Transport> HostSession<T> {
 
         // One clock for everyone, advanced by the host and rebroadcast so clients that
         // joined at different times do not drift into different skies.
-        let day_seconds = (self.config.day_length_minutes as f64 * 60.0).max(1.0);
-        self.hour =
-            (self.hour as f64 + self.sim.timestep() * 24.0 / day_seconds).rem_euclid(24.0) as f32;
+        self.elapsed += self.sim.timestep();
         self.time_accum += self.sim.timestep();
         if self.time_accum >= self.config.time_sync_seconds.max(0.1) {
             self.time_accum = 0.0;
@@ -1023,7 +1182,9 @@ pub struct ClientSession<T: Transport> {
     roster: Vec<PeerInfo>,
     /// The world contract from `Welcome`, and the clock the host keeps correcting.
     world: Option<WorldInfo>,
-    hour: f32,
+    /// Seconds the host had simulated as of the last clock that arrived. The client
+    /// advances it between them, so this is a correction rather than the only source.
+    elapsed: f64,
     /// The host's view of what has been harvested, replayed on join and kept up
     /// to date by deltas. Held so a field rescattering mid-session can restore
     /// from it without asking anyone.
@@ -1054,6 +1215,9 @@ pub struct WorldInfo {
     /// The deck's height is derived from these two on both sides.
     pub water_level: f32,
     pub road_width: f32,
+    /// The clock's two constants. Everything else about the time is derived from these
+    /// and the elapsed seconds, on both sides, through the same function.
+    pub start_hour: f32,
     pub day_length_minutes: f32,
 }
 
@@ -1099,7 +1263,7 @@ impl<T: Transport> ClientSession<T> {
             name: None,
             roster: Vec::new(),
             world: None,
-            hour: 0.0,
+            elapsed: 0.0,
             stone_ledger: Ledger::new(),
             tree_ledger: Ledger::new(),
             harvest_events: Vec::new(),
@@ -1152,9 +1316,30 @@ impl<T: Transport> ClientSession<T> {
         self.world
     }
 
-    /// Host clock as of the last sync, hours 0..24.
+    /// Host clock, hours 0..24.
     pub fn hour(&self) -> f32 {
-        self.hour
+        self.world.map_or(0.0, |w| {
+            hour_at(w.start_hour, w.day_length_minutes, self.elapsed)
+        })
+    }
+
+    /// Seconds the host has simulated, never wrapped.
+    pub fn elapsed(&self) -> f64 {
+        self.elapsed
+    }
+
+    /// Whole days the world has run.
+    pub fn day(&self) -> i64 {
+        self.world
+            .map_or(0, |w| day_at(w.day_length_minutes, self.elapsed))
+    }
+
+    /// Runs the clock on between the host's corrections, so the sky keeps moving rather
+    /// than stepping once every resync.
+    pub fn advance_clock(&mut self, dt: f64) {
+        if self.world.is_some() {
+            self.elapsed += dt.max(0.0);
+        }
     }
 
     pub fn roster(&self) -> &[PeerInfo] {
@@ -1187,20 +1372,33 @@ impl<T: Transport> ClientSession<T> {
         std::mem::take(&mut self.harvest_events)
     }
 
-    /// Asks the host to work a scattered object.
+    /// Tells the host we have started working a scattered object.
     ///
-    /// Reliable: a dropped swing is a rock that never breaks, and the client
-    /// has no way to notice it was lost.
-    pub fn harvest(&mut self, target: HarvestTarget, cell: [i32; 2], ordinal: u32, hits: u8) {
-        if self.status != ClientStatus::Joined {
-            return;
-        }
-        let msg = SessionMsg::Harvest {
+    /// Sent once, at the top of the job rather than once per swing. The host times
+    /// the stages from here, so the answers arrive while the client is already in
+    /// its loop and there is nothing for the player to wait on.
+    ///
+    /// Reliable: a dropped begin is a tree that never falls, and the client has no
+    /// way to notice it was lost.
+    pub fn harvest_begin(&mut self, target: HarvestTarget, cell: [i32; 2], ordinal: u32) {
+        self.send_harvest(SessionMsg::HarvestBegin {
             target,
             cell,
             ordinal,
-            hits: hits.max(1),
-        };
+        });
+    }
+
+    /// Tells the host we have stopped. Reliable for the same reason: a dropped end
+    /// is a player who keeps chopping a tree they walked away from, until the reach
+    /// check happens to catch it.
+    pub fn harvest_end(&mut self) {
+        self.send_harvest(SessionMsg::HarvestEnd);
+    }
+
+    fn send_harvest(&mut self, msg: SessionMsg) {
+        if self.status != ClientStatus::Joined {
+            return;
+        }
         if let Ok(bytes) = proto::encode(&msg) {
             let _ = self
                 .transport
@@ -1272,25 +1470,27 @@ impl<T: Transport> ClientSession<T> {
                     terrain_resolution,
                     water_level,
                     road_width,
-                    time_of_day,
+                    start_hour,
                     day_length_minutes,
+                    elapsed,
                     ..
                 } => {
                     self.status = ClientStatus::Joined;
                     self.seed = Some(seed);
                     self.peer = Some(peer);
                     self.name = Some(name);
-                    self.hour = time_of_day;
+                    self.elapsed = elapsed;
                     self.world = Some(WorldInfo {
                         terrain_extent,
                         terrain_resolution,
                         water_level,
                         road_width,
+                        start_hour,
                         day_length_minutes,
                     });
                 }
-                SessionMsg::WorldTime { hour } => {
-                    self.hour = hour;
+                SessionMsg::WorldTime { elapsed } => {
+                    self.elapsed = elapsed;
                 }
                 SessionMsg::Roster { players } => {
                     self.roster = players;
@@ -1334,7 +1534,8 @@ impl<T: Transport> ClientSession<T> {
                 }
                 SessionMsg::Join { .. }
                 | SessionMsg::JoinAuthed { .. }
-                | SessionMsg::Harvest { .. }
+                | SessionMsg::HarvestBegin { .. }
+                | SessionMsg::HarvestEnd
                 | SessionMsg::DeployPet { .. }
                 | SessionMsg::RecallPet { .. }
                 | SessionMsg::RecallPets
@@ -1403,35 +1604,49 @@ mod tests {
         ]
     }
 
+    /// Ticks one stage's worth of work takes, at the config the tests run under.
+    fn ticks_per_stage() -> usize {
+        let seconds = SessionConfig::default().chop_seconds as f64;
+        (seconds / SimConfig::default().timestep()).ceil() as usize
+    }
+
     #[test]
-    fn a_harvest_in_reach_is_applied_and_broadcast() {
+    fn a_chop_in_reach_earns_a_stage_once_the_work_is_done() {
         let (mut host, mut client) = host_and_client();
         run(&mut host, &mut client, 120);
         let peer = client.peer().expect("joined");
         let size = SessionConfig::default().tree_grid_size;
         let cell = cell_under(&mut host, peer, size);
-
-        client.harvest(HarvestTarget::Tree, cell, 0, 1);
-        run(&mut host, &mut client, 4);
-
         let id = stable_id(42, cell[0], cell[1], 0);
+        let per_stage = ticks_per_stage();
+
+        client.harvest_begin(HarvestTarget::Tree, cell, 0);
+        // Deliberately short of a full stage. Taking the job is not doing it, and
+        // the host answering the instant it is asked is the thing being ruled out.
+        run(&mut host, &mut client, per_stage / 2);
         assert_eq!(
             client.harvest_ledger(HarvestTarget::Tree).stage(id),
-            1,
-            "the host did not rule on a claim made from on top of the cell"
+            0,
+            "a stage was granted before the work that buys it was done"
+        );
+
+        run(&mut host, &mut client, per_stage);
+        assert!(
+            client.harvest_ledger(HarvestTarget::Tree).stage(id) >= 1,
+            "an uninterrupted chop earned nothing after a full stage of work"
         );
     }
 
     /// The one thing the host can check without a scatter of its own.
     #[test]
-    fn a_harvest_out_of_reach_is_refused() {
+    fn a_chop_out_of_reach_is_refused() {
         let (mut host, mut client) = host_and_client();
         run(&mut host, &mut client, 120);
         let size = SessionConfig::default().tree_grid_size;
         let far = [9_000, -9_000];
 
-        client.harvest(HarvestTarget::Tree, far, 0, 1);
-        run(&mut host, &mut client, 4);
+        client.harvest_begin(HarvestTarget::Tree, far, 0);
+        run(&mut host, &mut client, ticks_per_stage() * 3);
 
         let id = stable_id(42, far[0], far[1], 0);
         assert_eq!(
@@ -1441,9 +1656,68 @@ mod tests {
         );
     }
 
-    /// Damage is monotonic, so a client cannot walk a stage backwards.
+    /// The whole point of a job rather than a stream of swings. Under the old
+    /// shape each message was one hit, so the rate was whatever a client chose to
+    /// send at; now the host holds the clock and asking cannot make it run.
     #[test]
-    fn a_harvest_never_repairs() {
+    fn chopping_cannot_be_hurried_by_asking_more_often() {
+        let ticks = ticks_per_stage() * 3;
+
+        let stage_after = |spam: bool| {
+            let (mut host, mut client) = host_and_client();
+            run(&mut host, &mut client, 120);
+            let peer = client.peer().expect("joined");
+            let size = SessionConfig::default().tree_grid_size;
+            let cell = cell_under(&mut host, peer, size);
+            client.harvest_begin(HarvestTarget::Tree, cell, 0);
+            for _ in 0..ticks {
+                if spam {
+                    client.harvest_begin(HarvestTarget::Tree, cell, 0);
+                }
+                run(&mut host, &mut client, 1);
+            }
+            let id = stable_id(42, cell[0], cell[1], 0);
+            client.harvest_ledger(HarvestTarget::Tree).stage(id)
+        };
+
+        let patient = stage_after(false);
+        assert!(
+            patient > 0,
+            "an uninterrupted chop earned nothing in {ticks} ticks"
+        );
+        assert_eq!(
+            patient,
+            stage_after(true),
+            "asking on every tick was worth more than asking once"
+        );
+    }
+
+    /// Letting go stops the work, rather than leaving it running until the reach
+    /// check happens to catch up.
+    #[test]
+    fn ending_a_chop_stops_the_work() {
+        let (mut host, mut client) = host_and_client();
+        run(&mut host, &mut client, 120);
+        let peer = client.peer().expect("joined");
+        let size = SessionConfig::default().tree_grid_size;
+        let cell = cell_under(&mut host, peer, size);
+        let id = stable_id(42, cell[0], cell[1], 0);
+
+        client.harvest_begin(HarvestTarget::Tree, cell, 0);
+        client.harvest_end();
+        run(&mut host, &mut client, ticks_per_stage() * 3);
+
+        assert_eq!(
+            client.harvest_ledger(HarvestTarget::Tree).stage(id),
+            0,
+            "work carried on after the player stopped"
+        );
+    }
+
+    /// Damage is monotonic and stops at the last stage, so a job left running on
+    /// something already broken cannot wrap it back round.
+    #[test]
+    fn a_chop_stops_at_the_last_stage() {
         let (mut host, mut client) = host_and_client();
         run(&mut host, &mut client, 120);
         let peer = client.peer().expect("joined");
@@ -1451,16 +1725,21 @@ mod tests {
         let cell = cell_under(&mut host, peer, size);
         let id = stable_id(42, cell[0], cell[1], 0);
 
-        client.harvest(HarvestTarget::Stone, cell, 0, Stone::STAGES);
-        run(&mut host, &mut client, 4);
+        client.harvest_begin(HarvestTarget::Stone, cell, 0);
+        // Long enough to earn several times the stages that exist.
+        run(
+            &mut host,
+            &mut client,
+            ticks_per_stage() * (Stone::STAGES as usize + 3),
+        );
         assert_eq!(
             client.harvest_ledger(HarvestTarget::Stone).stage(id),
             Stone::STAGES
         );
 
-        // Already broken; another swing must not move it, and must not wrap.
-        client.harvest(HarvestTarget::Stone, cell, 0, 1);
-        run(&mut host, &mut client, 4);
+        // Already broken; taking the job up again must not move it, and must not wrap.
+        client.harvest_begin(HarvestTarget::Stone, cell, 0);
+        run(&mut host, &mut client, ticks_per_stage() * 2);
         assert_eq!(
             client.harvest_ledger(HarvestTarget::Stone).stage(id),
             Stone::STAGES
@@ -1484,8 +1763,12 @@ mod tests {
         let peer = early.peer().expect("joined");
         let size = SessionConfig::default().tree_grid_size;
         let cell = cell_under(&mut host, peer, size);
-        early.harvest(HarvestTarget::Tree, cell, 0, Tree::STAGES);
-        run(&mut host, &mut early, 4);
+        early.harvest_begin(HarvestTarget::Tree, cell, 0);
+        run(
+            &mut host,
+            &mut early,
+            ticks_per_stage() * (Tree::STAGES as usize + 2),
+        );
         let id = stable_id(42, cell[0], cell[1], 0);
         assert_eq!(
             early.harvest_ledger(HarvestTarget::Tree).stage(id),
@@ -2010,6 +2293,91 @@ mod tests {
             "client drifted from host: {} vs {}",
             early.hour(),
             host.hour()
+        );
+    }
+
+    #[test]
+    fn the_hour_is_derived_rather_than_counted() {
+        assert!((hour_at(9.0, 45.0, 0.0) - 9.0).abs() < 1e-4);
+        assert!((hour_at(9.0, 45.0, 45.0 * 60.0 / 2.0) - 21.0).abs() < 1e-3);
+        assert!(
+            (hour_at(9.0, 45.0, 45.0 * 60.0) - 9.0).abs() < 1e-3,
+            "a whole day is a round trip"
+        );
+        assert!((hour_at(9.0, 45.0, 45.0 * 60.0 * 3.0) - 9.0).abs() < 1e-3);
+    }
+
+    #[test]
+    fn days_are_counted_past_the_wrap() {
+        let day = 45.0 * 60.0;
+        assert_eq!(day_at(45.0, 0.0), 0);
+        assert_eq!(day_at(45.0, day - 1.0), 0);
+        assert_eq!(day_at(45.0, day + 1.0), 1);
+        assert_eq!(day_at(45.0, day * 7.5), 7);
+    }
+
+    /// The clock the wire carries has to survive midnight. An hour cannot: it says 23.9
+    /// then 0.1 and there is no way to tell a new day from a correction backwards, which
+    /// is why nothing could be scheduled against it.
+    #[test]
+    fn the_shared_clock_only_ever_goes_up() {
+        let config = SessionConfig {
+            day_length_minutes: 0.05,
+            time_sync_seconds: 0.05,
+            start_hour: 23.0,
+            ..SessionConfig::default()
+        };
+        let mesh = Loopback::mesh(2);
+        let mut host = HostSession::new(mesh[0].clone(), config, SimConfig::default(), 3);
+        host.set_terrain(flat_terrain());
+        let mut client = ClientSession::connect(mesh[1].clone());
+
+        let mut last = 0.0;
+        let mut wrapped = false;
+        let mut previous_hour = config.start_hour;
+        for _ in 0..400 {
+            host.tick();
+            client.tick();
+            // What the client really does between the host's corrections, and the half
+            // of the clock a test that only ticks would never touch.
+            client.advance_clock(SimConfig::default().timestep());
+            let now = client.elapsed();
+            assert!(now >= last, "clock went backwards: {last} then {now}");
+            last = now;
+            let hour = client.hour();
+            wrapped |= hour < previous_hour;
+            previous_hour = hour;
+        }
+        assert!(
+            wrapped,
+            "the test never crossed midnight, so it proved nothing"
+        );
+        assert!(host.day() > 0, "host never counted a day");
+        assert_eq!(
+            client.day(),
+            host.day(),
+            "client and host disagree on the day"
+        );
+    }
+
+    /// The host holds one number and derives the rest, so there is no second copy of the
+    /// time to fall out of step with the first.
+    #[test]
+    fn the_host_hour_is_its_elapsed_seconds() {
+        let config = SessionConfig {
+            day_length_minutes: 1.0,
+            ..SessionConfig::default()
+        };
+        let mesh = Loopback::mesh(1);
+        let mut host = HostSession::new(mesh[0].clone(), config, SimConfig::default(), 3);
+        host.set_terrain(flat_terrain());
+        for _ in 0..200 {
+            host.tick();
+        }
+        assert!(host.elapsed() > 0.0);
+        assert_eq!(
+            host.hour(),
+            hour_at(config.start_hour, config.day_length_minutes, host.elapsed())
         );
     }
 

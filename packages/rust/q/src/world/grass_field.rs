@@ -15,7 +15,19 @@ const TIER_FRACTIONS: [f32; 4] = [1.0, 0.5, 0.25, 0.125];
 const CARD_TAIL: f32 = 45.0;
 const CARD_FLOOR: f32 = 0.05;
 
+/// Nearest a cell may be and still be retired whole. A cell is wide enough that one
+/// close to the camera almost always has some corner in view, so testing them is cost
+/// without return.
+const CELL_OCCL_START: f32 = 24.0;
+/// Clearance the terrain needs over the sight line before a cell is written off. Wider
+/// than the per-blade margin because this decision covers every blade in the cell.
+const CELL_OCCL_MARGIN: f32 = 0.75;
+/// Headroom over the cell's tallest ground, covering whatever stands on it — the card
+/// layers reach higher than the blades, and they share this test.
+const CELL_OCCL_LIFT: f32 = 2.4;
+
 const DETAILED_MESH: &str = "res://assets/biomes/grassland/grass/grass-stalk.obj";
+const MEDIUM_MESH: &str = "res://assets/biomes/grassland/grass/grass-stalk-medium.obj";
 const SIMPLE_MESH: &str = "res://assets/biomes/grassland/grass/grass-stalk-simple.obj";
 const CARD_SHADER: &str = "res://assets/biomes/grassland/grass/grass_card.gdshader";
 
@@ -126,16 +138,22 @@ pub struct QGrassField {
     #[init(val = 150.0)]
     blades_per_sqm: f32,
     #[export]
-    #[init(val = 6.5)]
+    #[init(val = 4.0)]
     lod_near_enter: f32,
     #[export]
-    #[init(val = 8.0)]
+    #[init(val = 5.5)]
     lod_near_exit: f32,
+    #[export]
+    #[init(val = 10.0)]
+    lod_mid_enter: f32,
+    #[export]
+    #[init(val = 12.0)]
+    lod_mid_exit: f32,
     #[export]
     #[init(val = 25.0)]
     thin_start: f32,
     #[export]
-    #[init(val = 40.0)]
+    #[init(val = 30.0)]
     blade_range: f32,
     #[export]
     #[init(val = 200.0)]
@@ -194,6 +212,7 @@ pub struct QGrassField {
     transition_compute: Option<CardCompute>,
     compute_attempts: i32,
     detailed_tris: u64,
+    medium_tris: u64,
     simple_tris: u64,
     blade_params: Vec<f32>,
     card_params: Vec<f32>,
@@ -267,8 +286,10 @@ impl QGrassField {
         card_mesh.set_center_offset(Vector3::new(0.0, 0.5, 0.0));
 
         let detailed: Gd<Mesh> = load(DETAILED_MESH);
+        let medium: Gd<Mesh> = load(MEDIUM_MESH);
         let simple: Gd<Mesh> = load(SIMPLE_MESH);
         self.detailed_tris = (detailed.get_faces().len() / 3) as u64;
+        self.medium_tris = (medium.get_faces().len() / 3) as u64;
         self.simple_tris = (simple.get_faces().len() / 3) as u64;
 
         let variants = self.layout_variants.max(1) as usize;
@@ -299,6 +320,7 @@ impl QGrassField {
         self.trans_params = trans_params;
         self.kept_resources.push(detailed);
         self.kept_resources.push(simple);
+        self.kept_resources.push(medium);
         self.card_mesh = Some(card_mesh);
 
         let blade_radius_cells = (self.blade_attach_distance() / self.chunk_size).ceil() as i32;
@@ -536,14 +558,20 @@ impl QGrassField {
         let active = self.blade_compute.is_some();
         let mut utils: Vec<i64> = Vec::with_capacity(4);
         if let Some(bc) = self.blade_compute.as_mut() {
-            let (near_raw, far_raw) = bc.survivor_counts();
-            let (cn, cf) = bc.caps();
+            let (near_raw, mid_raw, far_raw) = bc.survivor_counts();
+            let (cn, cm, cf) = bc.caps();
             let near = near_raw.min(cn);
+            let mid = mid_raw.min(cm);
             let far = far_raw.min(cf);
-            instances += (near + far) as u64;
-            tris += near as u64 * self.detailed_tris + far as u64 * self.simple_tris;
-            cap_tris += cn as u64 * self.detailed_tris + cf as u64 * self.simple_tris;
+            instances += (near + mid + far) as u64;
+            tris += near as u64 * self.detailed_tris
+                + mid as u64 * self.medium_tris
+                + far as u64 * self.simple_tris;
+            cap_tris += cn as u64 * self.detailed_tris
+                + cm as u64 * self.medium_tris
+                + cf as u64 * self.simple_tris;
             utils.push((near_raw as u64 * 100 / cn.max(1) as u64) as i64);
+            utils.push((mid_raw as u64 * 100 / cm.max(1) as u64) as i64);
             utils.push((far_raw as u64 * 100 / cf.max(1) as u64) as i64);
         }
         for cc in [self.card_compute.as_mut(), self.transition_compute.as_mut()]
@@ -631,11 +659,17 @@ impl QGrassField {
         let scenario = world.get_scenario();
         let detailed = self.kept_resources.first()?.get_rid();
         let simple = self.kept_resources.get(1)?.get_rid();
+        let medium = self.kept_resources.get(2)?.get_rid();
         let material = self.grass_material.as_ref().map(|m| m.get_rid())?;
         let cell_capacity = self.blade_grid.as_ref()?.offsets.len() as u32;
         let pi = std::f32::consts::PI;
         let cap_near =
             (pi * self.lod_near_exit * self.lod_near_exit * self.blades_per_sqm * 1.25) as u32;
+        let mid_exit = self.lod_mid_exit.max(self.lod_near_exit);
+        let cap_mid = (pi
+            * (mid_exit * mid_exit - self.lod_near_exit * self.lod_near_exit)
+            * self.blades_per_sqm
+            * 1.25) as u32;
         let full_area = pi * self.thin_start * self.thin_start;
         let band_area =
             pi * (self.blade_range * self.blade_range - self.thin_start * self.thin_start);
@@ -653,12 +687,14 @@ impl QGrassField {
             scenario,
             world_aabb,
             detailed,
+            medium,
             simple,
             material,
             blade_layouts,
             blade_count as u32,
             cell_capacity,
             cap_near,
+            cap_mid,
             cap_far,
             heightmap,
             clearance,
@@ -748,27 +784,30 @@ impl QGrassField {
         let planes = [frustum.at(2), frustum.at(3), frustum.at(4), frustum.at(5)];
         let cam_pos = cam.get_global_position();
         let (ts, br, ln) = (self.thin_start, self.blade_range, self.lod_near_enter);
-        let blade_visible = Self::filter_cells(
+        let blade_visible = self.filter_cells(
             &self.blade_cells,
             &self.blade_cell_y,
             &planes,
             self.chunk_size,
+            cam_pos,
         );
-        let card_visible = Self::filter_cells(
+        let card_visible = self.filter_cells(
             &self.card_cells,
             &self.card_cell_y,
             &planes,
             self.card_chunk_size,
+            cam_pos,
         );
-        let trans_visible = Self::filter_cells(
+        let trans_visible = self.filter_cells(
             &self.trans_cells,
             &self.trans_cell_y,
             &planes,
             self.card_chunk_size,
+            cam_pos,
         );
         if let Some(bc) = self.blade_compute.as_mut() {
             bc.update_cells(&blade_visible);
-            bc.dispatch(cam_pos, &planes, ts, br, ln);
+            bc.dispatch(cam_pos, &planes, ts, br, ln, self.lod_mid_enter);
         }
         if let Some(cc) = self.card_compute.as_mut() {
             cc.update_cells(&card_visible);
@@ -851,8 +890,17 @@ impl QGrassField {
         (mn, mx)
     }
 
-    fn filter_cells(cells: &[f32], ys: &[f32], planes: &[Plane; 4], cell: f32) -> Vec<f32> {
+    fn filter_cells(
+        &self,
+        cells: &[f32],
+        ys: &[f32],
+        planes: &[Plane; 4],
+        cell: f32,
+        cam: Vector3,
+    ) -> Vec<f32> {
         let rh = cell * std::f32::consts::FRAC_1_SQRT_2 + 3.0;
+        let occlude = crate::world::grass_compute::occlusion_enabled()
+            && !(self.terrain_heights.is_empty() && self.terrain_image.is_none());
         let mut out = Vec::with_capacity(cells.len());
         for (i, e) in cells.chunks_exact(4).enumerate() {
             let ymin = ys.get(i * 2).copied().unwrap_or(-1.0e4);
@@ -867,11 +915,59 @@ impl QGrassField {
                     break;
                 }
             }
+            if visible && occlude && self.cell_hidden(e[0], e[1], cell, ymax, cam) {
+                visible = false;
+            }
             if visible {
                 out.extend_from_slice(e);
             }
         }
         out
+    }
+
+    /// Whether a whole cell sits behind the terrain.
+    ///
+    /// The per-blade march already drops what the ground hides, but only after a
+    /// compute thread has been spent on every candidate in the cell. Answering it once
+    /// for the cell retires ten thousand blades for the price of five rays, and does it
+    /// before the dispatch is sized rather than inside it.
+    ///
+    /// Conservative on purpose: every corner and the centre have to be blocked, so a
+    /// cell with any part of its skyline showing survives intact.
+    fn cell_hidden(&self, x0: f32, z0: f32, cell: f32, ymax: f32, cam: Vector3) -> bool {
+        let (cx, cz) = (x0 + cell * 0.5, z0 + cell * 0.5);
+        let dx = cx - cam.x;
+        let dz = cz - cam.z;
+        if dx * dx + dz * dz < CELL_OCCL_START * CELL_OCCL_START {
+            return false;
+        }
+        let top = ymax + CELL_OCCL_LIFT;
+        for (px, pz) in [
+            (x0, z0),
+            (x0 + cell, z0),
+            (x0, z0 + cell),
+            (x0 + cell, z0 + cell),
+            (cx, cz),
+        ] {
+            if !self.ray_blocked(Vector3::new(px, top, pz), cam) {
+                return false;
+            }
+        }
+        true
+    }
+
+    /// Marches the sight line back to the camera, clustered at the far end where it
+    /// rides closest to the ground and a ridge is most likely to cut it.
+    fn ray_blocked(&self, from: Vector3, cam: Vector3) -> bool {
+        const STEPS: i32 = 12;
+        for i in 1..=STEPS {
+            let t = (i as f32 / (STEPS + 1) as f32).powf(1.5);
+            let p = from.lerp(cam, t);
+            if self.terrain_sample(p.x, p.z) > p.y + CELL_OCCL_MARGIN {
+                return true;
+            }
+        }
+        false
     }
 
     fn teardown_compute(&mut self) {
@@ -963,11 +1059,11 @@ impl QGrassField {
             occl_start: if !crate::world::grass_compute::occlusion_enabled() {
                 1.0e9
             } else if transition {
-                25.0
+                12.0
             } else {
-                30.0
+                14.0
             },
-            occl_margin: if transition { 1.5 } else { 2.0 },
+            occl_margin: if transition { 0.6 } else { 0.8 },
         };
         let extent = self.world_half_extent + self.grass_fade_out_end + 50.0;
         let world_aabb = Aabb::new(

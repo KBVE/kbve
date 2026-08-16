@@ -62,6 +62,64 @@ fn roams_toward_its_waypoint() {
     assert!(after < before, "got no closer: {before} -> {after}");
 }
 
+/// The reported bug: two creatures trading the same patch of ground move the
+/// whole time and get nowhere, so the speed test never fires and they walk on
+/// the spot for the rest of the session.
+///
+/// Driven directly rather than through `walk`, because the whole point is that
+/// `travelled` stays high: a body oscillating at walking pace looks identical to
+/// one making good progress if speed is all anybody measures.
+#[test]
+fn a_creature_going_back_and_forth_is_noticed_as_stuck() {
+    let mut patrol = Patrol::new([0.0, 0.0], 11, Config::default());
+    let mut sense = sense_at([0.0, 0.0]);
+    let delta = 1.0 / 60.0;
+    let swing = 0.35;
+    let mut modes = Vec::new();
+    for tick in 0..240 {
+        let step = patrol.step(&sense, delta);
+        // Back and forth across the same half metre, at a pace well over
+        // `stuck_speed`, so only net displacement can tell this apart from walking.
+        let side = if (tick / 30) % 2 == 0 { 1.0 } else { -1.0 };
+        let before = sense.position;
+        sense.position = [swing * side, 0.0];
+        sense.travelled = length(sub(sense.position, before)).max(0.02);
+        if length(step.face) > 1e-3 {
+            sense.facing = step.face;
+        }
+        modes.push(step.mode);
+    }
+    assert!(
+        modes.contains(&Mode::Unsticking),
+        "never noticed it was going nowhere"
+    );
+}
+
+/// The other half: a creature actually covering ground must never be shoved for
+/// it, however slowly it is going.
+#[test]
+fn a_creature_making_headway_is_left_alone() {
+    let mut patrol = Patrol::new([0.0, 0.0], 5, Config::default());
+    let mut sense = sense_at([0.0, 0.0]);
+    let delta = 1.0 / 60.0;
+    let crawl = Config::default().stuck_speed * 1.5;
+    let mut modes = Vec::new();
+    for _ in 0..600 {
+        let step = patrol.step(&sense, delta);
+        let heading = normalize(step.face);
+        sense.position = add(sense.position, scale(heading, crawl * delta));
+        sense.travelled = crawl * delta;
+        if length(step.face) > 1e-3 {
+            sense.facing = step.face;
+        }
+        modes.push(step.mode);
+    }
+    assert!(
+        !modes.contains(&Mode::Unsticking),
+        "shoved a creature that was getting somewhere"
+    );
+}
+
 /// The reported bug: a creature pressed into something must stop leaning on it.
 #[test]
 fn a_blocked_creature_stops_pushing_and_turns_away() {

@@ -36,10 +36,22 @@
 			}
 		},
 
+		"test-all": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "packages/rust/q",
+				"commands": [
+					"cargo test --lib --features net-godot",
+					"cargo test --lib --no-default-features --features net-server,net-session"
+				],
+				"parallel": false
+			}
+		},
+
 		"e2e": {
 			"executor": "nx:run-commands",
 			"options": {
-				"commands": ["nx test q"],
+				"commands": ["nx run q:test-all"],
 				"parallel": false
 			}
 		},

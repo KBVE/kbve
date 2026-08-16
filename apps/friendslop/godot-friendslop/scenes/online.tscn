@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3]
+[gd_scene load_steps=35 format=3]
 
 [ext_resource type="Script" path="res://src/net/online_world.gd" id="1_world"]
 [ext_resource type="Material" path="res://assets/biomes/grassland/grass/ground.tres" id="2_ground"]
@@ -16,6 +16,20 @@
 [ext_resource type="Script" path="res://src/net/online_hud.gd" id="14_hud"]
 [ext_resource type="Script" path="res://src/settings/graphics_settings.gd" id="15_gfx"]
 [ext_resource type="Script" path="res://src/settings/gameplay_settings.gd" id="16_play"]
+[ext_resource type="Material" path="res://assets/environment/props/rocks/rock.tres" id="17_rock"]
+[ext_resource type="Script" path="res://src/fx/underwater.gd" id="18_underwater"]
+[ext_resource type="Material" path="res://assets/fx/shaders/underwater.tres" id="19_underwatermat"]
+[ext_resource type="Material" path="res://assets/environment/props/flora/flora.tres" id="20_flora"]
+[ext_resource type="Material" path="res://assets/environment/props/flora/shrub.tres" id="21_shrub"]
+[ext_resource type="Material" path="res://assets/environment/props/flora/tree.tres" id="22_tree"]
+[ext_resource type="Material" path="res://assets/environment/props/flora/tree_leaf.tres" id="23_leaf"]
+[ext_resource type="Material" path="res://assets/environment/props/flora/tree_bark.tres" id="24_bark"]
+[ext_resource type="PackedScene" path="res://assets/environment/props/fauna/lizardfish/lizardfish.glb" id="25_fishmodel"]
+[ext_resource type="Material" path="res://assets/environment/props/fauna/lizardfish/fish.tres" id="26_fishmat"]
+[ext_resource type="Material" path="res://assets/environment/props/fauna/lizardfish/fish_shadow.tres" id="27_fishshadowmat"]
+[ext_resource type="Script" path="res://src/fauna/flock.gd" id="28_ravens"]
+[ext_resource type="Resource" path="res://assets/environment/props/fauna/raven/raven_species.tres" id="29_species"]
+[ext_resource type="Script" path="res://src/world/climate.gd" id="30_climate"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(1024, 1024)
@@ -66,6 +80,51 @@ abutment_material = ExtResource("7_abut")
 player_path = NodePath("../CameraRig")
 grass_material = ExtResource("3_grassmat")
 
+[node name="FloraField" type="QFloraField" parent="."]
+terrain_path = NodePath("../Terrain")
+player_path = NodePath("../CameraRig")
+flora_material = ExtResource("20_flora")
+
+[node name="ShrubField" type="QFloraField" parent="."]
+terrain_path = NodePath("../Terrain")
+player_path = NodePath("../CameraRig")
+flora_material = ExtResource("21_shrub")
+flora_seed = 7777
+density = 0.008
+fade_end = 90.0
+patch_frequency = 0.03
+patch_threshold = 0.4
+scale_min = 0.8
+scale_max = 1.6
+
+[node name="TreeField" type="QTreeField" parent="."]
+terrain_path = NodePath("../Terrain")
+player_path = NodePath("../CameraRig")
+tree_material = ExtResource("22_tree")
+bark_material = ExtResource("24_bark")
+leaf_material = ExtResource("23_leaf")
+
+[node name="StoneField" type="QStoneField" parent="."]
+terrain_path = NodePath("../Terrain")
+stone_material = ExtResource("17_rock")
+
+[node name="FishField" type="QFishField" parent="."]
+terrain_path = NodePath("../Terrain")
+player_path = NodePath("../CameraRig")
+fish_model = ExtResource("25_fishmodel")
+fish_material = ExtResource("26_fishmat")
+shadow_material = ExtResource("27_fishshadowmat")
+
+[node name="Ravens" type="Node3D" parent="."]
+script = ExtResource("28_ravens")
+species = ExtResource("29_species")
+player_path = NodePath("../CameraRig")
+
+[node name="Underwater" type="Node3D" parent="."]
+script = ExtResource("18_underwater")
+terrain_path = NodePath("../Terrain")
+material = ExtResource("19_underwatermat")
+
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_online")
 
@@ -85,6 +144,10 @@ shadow_blur = 0.5
 script = ExtResource("10_wind")
 grass_material = ExtResource("3_grassmat")
 ground_material = ExtResource("2_ground")
+environment_node = NodePath("../WorldEnvironment")
+
+[node name="Climate" type="Node" parent="."]
+script = ExtResource("30_climate")
 environment_node = NodePath("../WorldEnvironment")
 
 [node name="NetGameClient" type="Node3D" parent="."]

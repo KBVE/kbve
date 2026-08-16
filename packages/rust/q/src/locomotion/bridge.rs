@@ -2,7 +2,7 @@
 
 use godot::prelude::*;
 
-use super::{Intent, Locomotion, LocomotionState, Motion, Stance};
+use super::{Facing, Intent, Locomotion, LocomotionState, Motion, Stance};
 
 #[derive(GodotClass)]
 #[class(no_init, base = RefCounted)]
@@ -11,6 +11,7 @@ pub struct QLocomotion {
     inner: Locomotion,
     state: LocomotionState,
     motion: Motion,
+    facing: Facing,
 }
 
 #[godot_api]
@@ -29,6 +30,16 @@ impl QLocomotion {
     pub const STANCE_ROLL: i64 = Stance::Roll as i64;
     #[constant]
     pub const STANCE_LAND: i64 = Stance::Land as i64;
+    #[constant]
+    pub const STANCE_TURN_90_LEFT: i64 = Stance::Turn90Left as i64;
+    #[constant]
+    pub const STANCE_TURN_90_RIGHT: i64 = Stance::Turn90Right as i64;
+    #[constant]
+    pub const STANCE_TURN_180_LEFT: i64 = Stance::Turn180Left as i64;
+    #[constant]
+    pub const STANCE_TURN_180_RIGHT: i64 = Stance::Turn180Right as i64;
+    #[constant]
+    pub const STANCE_SLIDE: i64 = Stance::Slide as i64;
 
     #[func]
     fn create() -> Gd<Self> {
@@ -37,6 +48,7 @@ impl QLocomotion {
             inner: Locomotion::default(),
             state: LocomotionState::default(),
             motion: Motion::default(),
+            facing: Facing::default(),
         })
     }
 
@@ -57,6 +69,7 @@ impl QLocomotion {
         jump: bool,
         crouch: bool,
         roll: bool,
+        block: bool,
         velocity: Vector3,
         yaw: f32,
         grounded: bool,
@@ -69,6 +82,7 @@ impl QLocomotion {
                 jump,
                 crouch,
                 roll,
+                block,
             },
             [velocity.x, velocity.y, velocity.z],
             yaw,
@@ -110,6 +124,45 @@ impl QLocomotion {
         );
     }
 
+    /// Turns the body toward `world_velocity`, or toward `aim_yaw` when it is standing,
+    /// and answers the world yaw to point it at.
+    #[func]
+    fn face(&mut self, world_velocity: Vector3, aim_yaw: f32, delta: f32) -> f32 {
+        self.facing = self.inner.face(
+            [world_velocity.x, world_velocity.y, world_velocity.z],
+            aim_yaw,
+            delta,
+        );
+        self.facing.yaw
+    }
+
+    /// What is left of the turn, radians, positive turning left.
+    #[func]
+    fn facing_error(&self) -> f32 {
+        self.facing.error
+    }
+
+    /// Seconds the standing turn under way was committed to, and zero when there is none.
+    #[func]
+    fn turn_window(&self) -> f32 {
+        self.facing.window
+    }
+
+    /// The yaw that faces `dir`.
+    #[func]
+    fn heading_of(dir: Vector3) -> f32 {
+        Locomotion::heading_of([dir.x, dir.y, dir.z])
+    }
+
+    /// How fast the body comes round standing and travelling, and how far the aim has to
+    /// leave it before a standing turn is taken at all.
+    #[func]
+    fn set_turning(&mut self, rate: f32, moving_rate: f32, deadzone: f32) {
+        self.inner.tuning.turn_rate = rate;
+        self.inner.tuning.turn_rate_moving = moving_rate;
+        self.inner.tuning.turn_deadzone = deadzone;
+    }
+
     #[func]
     fn blend(&self) -> Vector2 {
         Vector2::new(self.state.blend[0], self.state.blend[1])
@@ -125,6 +178,29 @@ impl QLocomotion {
     #[func]
     fn is_rolling(&self) -> bool {
         self.inner.is_rolling()
+    }
+
+    /// Index into the rig's roll clips: 0 forward, 1 back, 2 left, 3 right.
+    #[func]
+    fn roll_variant(&self) -> i64 {
+        self.inner.roll_variant() as i64
+    }
+
+    /// How far the shield has come up, for the rig to blend over the upper body.
+    #[func]
+    fn block_weight(&self) -> f32 {
+        self.state.block_weight
+    }
+
+    #[func]
+    fn is_blocking(&self) -> bool {
+        self.inner.is_blocking()
+    }
+
+    #[func]
+    fn set_block(&mut self, speed_scale: f32, blend_rate: f32) {
+        self.inner.tuning.block_speed_scale = speed_scale;
+        self.inner.tuning.block_blend_rate = blend_rate;
     }
 
     #[func]

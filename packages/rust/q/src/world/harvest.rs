@@ -22,6 +22,14 @@ pub struct Entry {
     pub variant: u8,
     pub ore: u8,
     pub amount: u8,
+    /// The cell and ordinal `id` was derived from.
+    ///
+    /// Kept alongside the id because the wire carries these rather than the id
+    /// itself: a client that could name an id could name any id, so the host
+    /// recomputes it. Without them a caller holding an id has no way to say
+    /// which rock it means.
+    pub cell: [i32; 2],
+    pub ordinal: u32,
 }
 
 pub struct ScatterCore<K: HarvestKind> {
@@ -125,6 +133,31 @@ impl<K: HarvestKind> ScatterCore<K> {
         out.into_iter().map(|(_, id)| id).collect()
     }
 
+    /// Moves an instance to the stage somebody else decided on.
+    ///
+    /// The network counterpart of [`Self::apply_damage`]: the host sends an
+    /// absolute stage rather than a number of hits, because two clients reporting
+    /// two hits each on the same rock must not add up to four. Monotonic like the
+    /// ledger, so a delta that arrives late cannot repair anything, and `None`
+    /// when nothing changed.
+    pub fn set_stage(&mut self, id: u64, stage: u8) -> Option<HarvestOutcome> {
+        let entry = *self.get(id)?;
+        let cur = self.stage(id);
+        let next = stage.min(K::STAGES);
+        if next <= cur {
+            return None;
+        }
+        self.stages.insert(id, next);
+        let broken = next >= K::STAGES;
+        let drop = K::drop_table()[entry.ore as usize];
+        Some(HarvestOutcome {
+            stage: next,
+            broken,
+            ore: if broken { drop.ore } else { "" },
+            amount: if broken { entry.amount } else { 0 },
+        })
+    }
+
     pub fn apply_damage(&mut self, id: u64, hits: u8) -> Option<HarvestOutcome> {
         let entry = *self.get(id)?;
         let cur = self.stage(id);
@@ -160,6 +193,8 @@ mod tests {
             variant: 0,
             ore: 0,
             amount: 0,
+            cell: [cell_x, cell_z],
+            ordinal: 0,
         }
     }
 
@@ -265,6 +300,8 @@ mod tests {
             variant: 0,
             ore: 0,
             amount: 0,
+            cell: [cell_x, cell_z],
+            ordinal: 0,
         }
     }
 

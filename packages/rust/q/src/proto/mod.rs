@@ -9,7 +9,12 @@ use serde::{Deserialize, Serialize};
 /// 6: `Welcome` carries the water level and road width, which the bridge deck's
 ///    height is derived from on both sides.
 /// 8: pet robots — `DeployPet`, `RecallPet`, `RecallPets`, `Pets`, `PetDenied`.
-pub const PROTOCOL_VERSION: u32 = 8;
+/// 9: harvesting is a job rather than a swing — `HarvestBegin` and `HarvestEnd` replace
+///    the per-blow `Harvest`.
+/// 10: the world clock is elapsed seconds rather than an hour — `Welcome` carries
+///    `start_hour` and `elapsed` in place of `time_of_day`, and `WorldTime` carries
+///    `elapsed`.
+pub const PROTOCOL_VERSION: u32 = 10;
 
 /// Maximum players per match (parallel-race default per #11294).
 pub const MAX_PLAYERS: usize = 4;

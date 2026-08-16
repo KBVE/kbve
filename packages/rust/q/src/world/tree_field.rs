@@ -12,7 +12,9 @@ use godot::tools::try_load;
 use std::collections::HashMap;
 
 use crate::world::flora_compute::{FloraCompute, HarvestPass, TerrainOcclusion};
-use crate::world::harvest::{Entry, HarvestKind, Ledger, ScatterCore, Tree, stable_id};
+use crate::world::harvest::{
+    Entry, HarvestKind, HarvestOutcome, Ledger, ScatterCore, Tree, stable_id,
+};
 use crate::world::{TerrainSnapshot, hash32, randf, world_aabb};
 
 struct Growth {
@@ -82,6 +84,45 @@ impl FallingTree {
 
 const TRUNK_BUCKETS: [f32; 3] = [5.0, 7.5, 10.5];
 const TRUNK_COLLIDER_SPAN: f32 = 0.55;
+/// How far the base is pushed into the ground, so the cut of the bole never shows
+/// as a seam floating over the surface. Metres, not scaled: a big tree wants the
+/// same few centimetres of cover a small one does.
+const TRUNK_SINK: f32 = 0.17;
+/// Footprint the flare covers, as a fraction of tree height. Deliberately smaller
+/// than the root reach — the roots dive as they splay, so they stay covered on their
+/// own, and sizing to them instead would perch the trunk on the highest ground for
+/// metres around.
+const TRUNK_FOOT: f32 = 0.05;
+
+/// The ground a trunk rests on, which is the highest point under its footprint
+/// rather than the point at its centre.
+///
+/// Callers still owe the model's own offset: the bole starts at [`BOLE_BASE_Y`] in
+/// model units and the model is scaled by tree height, so seating an instance origin
+/// on the ground buries a tall tree's flare by most of a metre.
+///
+/// A tree seated on the centre sample has its base buried wherever the ground rises
+/// across the flare — every slope, and every local bump the placement grid steps over.
+/// Taking the high point instead leaves the base at or above the surface all round and
+/// lets [`TRUNK_SINK`] hide the seam on the low side.
+fn trunk_rest(sample: &impl Fn(f32, f32) -> f32, x: f32, z: f32, scale: f32) -> f32 {
+    let r = (scale * TRUNK_FOOT).clamp(0.5, 1.6);
+    let d = r * std::f32::consts::FRAC_1_SQRT_2;
+    let mut h = sample(x, z);
+    for (ox, oz) in [
+        (r, 0.0),
+        (-r, 0.0),
+        (0.0, r),
+        (0.0, -r),
+        (d, d),
+        (d, -d),
+        (-d, d),
+        (-d, -d),
+    ] {
+        h = h.max(sample(x + ox, z + oz));
+    }
+    h
+}
 
 fn trunk_bucket(scale: f32) -> usize {
     if scale < 6.2 {
@@ -98,6 +139,9 @@ fn crown_shape(id: u32, f: f32) -> f32 {
         0 => 0.55 + 0.45 * (std::f32::consts::PI * (0.15 + 0.85 * f)).sin(),
         1 => 1.0 - 0.55 * f,
         2 => 0.5 + 0.5 * f,
+        // Excurrent: longest at the bottom, shortest at the top, which is the
+        // spire the other three cannot make.
+        3 => 1.0 - 0.82 * f,
         _ => 1.0,
     }
 }
@@ -181,6 +225,38 @@ const SPECIES: &[TreeSpecies] = &[
             up_attract: 0.08,
         },
     },
+    // Excurrent rather than decurrent: one leader that never gives up, short
+    // whorled laterals off it, and a crown that tapers to a spire. The other
+    // three all fork into a spreading head, so a stand of them reads as one
+    // shape at range no matter how the branch angles are jittered. Height is
+    // the widest of the four for the same reason.
+    TreeSpecies {
+        seed_off: 15_485_863,
+        height: (8.0, 15.0),
+        crown: 0.78,
+        leaf_tex: "res://assets/environment/props/flora/euonymus/euonymus_alpha_7.png",
+        bark_color: Color::from_rgba(0.29, 0.21, 0.17, 1.0),
+        growth: Growth {
+            // Near right angles all the way up, which is what makes the whorls
+            // read as tiers instead of a spreading head.
+            lateral_angle: [(1.15, 0.12), (1.0, 0.16), (0.9, 0.2)],
+            leader_angle: (0.06, 0.05),
+            phyllotaxis: 2.399963,
+            az_jitter: 0.2,
+            length_ratio: (0.4, 0.12),
+            murray: 2.49,
+            lateral_share: (0.12, 0.05),
+            // Almost everything stays in the leader. Splitting it is what turns
+            // a conifer into a broadleaf.
+            leader_share: 0.88,
+            tropism: (-0.28, 0.05),
+            curl: 0.22,
+            children: [9, 3, 2],
+            shape: 3,
+            fork: 0.0,
+            up_attract: 0.02,
+        },
+    },
 ];
 
 #[derive(GodotClass)]
@@ -262,6 +338,9 @@ pub struct QTreeField {
     #[init(val = Rid::Invalid)]
     body: Rid,
     trunk_shapes: Vec<Rid>,
+    /// Which shape on the trunk body belongs to which tree, so felling one is a
+    /// disable rather than a rebuild.
+    shape_of: HashMap<u64, i32>,
     falling: Vec<FallingTree>,
     extent: f32,
     origin: Vector2,
@@ -344,7 +423,6 @@ impl QTreeField {
                 if terra.on_road(x, z) > 0.12 {
                     continue;
                 }
-                let h = sample(x, z);
                 let low = sample(x + 1.5, z)
                     .min(sample(x - 1.5, z))
                     .min(sample(x, z + 1.5))
@@ -358,19 +436,22 @@ impl QTreeField {
                 let phase = randf(&mut state) * std::f32::consts::TAU;
                 let sp = &SPECIES[kind];
                 let scale = sp.height.0 + randf(&mut state) * (sp.height.1 - sp.height.0);
+                let h = trunk_rest(&sample, x, z, scale) - BOLE_BASE_Y * scale - TRUNK_SINK;
                 let (gx, gz) = grid.global(ix, iz);
                 let id = stable_id(seed64, gx, gz, 0);
-                cand.extend_from_slice(&[x, h - 0.17, z, scale, rank, kind as f32, phase, 0.0]);
+                cand.extend_from_slice(&[x, h, z, scale, rank, kind as f32, phase, 0.0]);
                 cand_ids.push(id);
                 self.core.insert(Entry {
                     id,
-                    pos: Vector3::new(x, h - 0.17, z),
+                    pos: Vector3::new(x, h, z),
                     up: Vector3::UP,
                     scale,
                     yaw: phase,
                     variant: kind as u8,
                     ore: 0,
                     amount: 0,
+                    cell: [gx, gz],
+                    ordinal: 0,
                 });
             }
         }
@@ -455,7 +536,7 @@ impl QTreeField {
             if let Some(m) = leaf_mat.as_ref() {
                 near.surface_set_material(1, m);
             }
-            let mut far = build_far_tree_mesh(seed, sp.crown);
+            let mut far = build_far_tree_mesh(seed, sp.crown, sp.growth.shape);
             if let Some(m) = self.tree_material.as_ref() {
                 far.surface_set_material(0, m);
             }
@@ -687,42 +768,29 @@ impl QTreeField {
         let _ = d.insert("alive", self.core.alive(e.id));
         let _ = d.insert("ore", table[e.ore as usize].ore);
         let _ = d.insert("amount", e.amount as i64);
+        // What the wire wants. The host will not take an id from a client, so a
+        // caller that means to work this tree over the network has to be able to
+        // say which cell it is in.
+        let _ = d.insert("cell", Vector2i::new(e.cell[0], e.cell[1]));
+        let _ = d.insert("ordinal", e.ordinal as i64);
         d
     }
 
     #[func]
     fn apply_damage(&mut self, id: i64, hits: i64) -> VarDictionary {
-        let mut d = VarDictionary::new();
-        let Some(out) = self.core.apply_damage(id as u64, hits.clamp(1, 255) as u8) else {
-            let _ = d.insert("hit", false);
-            return d;
-        };
-        let _ = d.insert("hit", true);
-        let _ = d.insert("stage", out.stage as i64);
-        let _ = d.insert("broken", out.broken);
-        let _ = d.insert("ore", out.ore);
-        let _ = d.insert("amount", out.amount as i64);
-        if out.broken {
-            let away = self
-                .core
-                .get(id as u64)
-                .map(|e| {
-                    let from = self
-                        .player
-                        .as_ref()
-                        .map(|p| p.get_global_position())
-                        .unwrap_or(e.pos - Vector3::FORWARD);
-                    e.pos - from
-                })
-                .unwrap_or(Vector3::FORWARD);
-            self.spawn_falling(id as u64, away);
-            self.cull_instance(id as u64);
-            self.build_colliders();
-            self.signals()
-                .tree_felled()
-                .emit(id, &GString::from(out.ore), out.amount as i64);
-        }
-        d
+        let out = self.core.apply_damage(id as u64, hits.clamp(1, 255) as u8);
+        self.settle(id, out)
+    }
+
+    /// Moves a tree to the stage the server decided on.
+    ///
+    /// What a `harvest_applied` delta is applied through. Absolute rather than
+    /// incremental, because the host is counting for everybody: two clients each
+    /// reporting a hit on the same trunk must not add up to two.
+    #[func]
+    fn set_stage(&mut self, id: i64, stage: i64) -> VarDictionary {
+        let out = self.core.set_stage(id as u64, stage.clamp(0, 255) as u8);
+        self.settle(id, out)
     }
 
     #[func]
@@ -836,17 +904,74 @@ impl QTreeField {
         let body = ps.body_create();
         ps.body_set_mode(body, BodyMode::STATIC);
         ps.body_set_space(body, space);
+        // Every tree gets a shape, felled ones disabled rather than skipped, so a
+        // slot's index is fixed for the life of the body and felling one later is
+        // a single call instead of rebuilding the lot.
+        self.shape_of.clear();
         for (c, id) in self.candidates.chunks_exact(8).zip(self.cand_ids.iter()) {
-            if !self.core.alive(*id) {
-                continue;
-            }
             let bi = trunk_bucket(c[3]);
             let half = TRUNK_BUCKETS[bi] * TRUNK_COLLIDER_SPAN * 0.5;
             let t = Transform3D::IDENTITY.translated(Vector3::new(c[0], c[1] + half, c[2]));
+            let index = ps.body_get_shape_count(body);
             ps.body_add_shape_ex(body, shapes[bi]).transform(t).done();
+            if !self.core.alive(*id) {
+                ps.body_set_shape_disabled(body, index, true);
+            }
+            self.shape_of.insert(*id, index);
         }
         self.body = body;
         self.trunk_shapes = shapes;
+    }
+
+    /// Everything that follows a stage changing, however it changed: the answer
+    /// for the caller, and the world catching up if that was the last hit.
+    fn settle(&mut self, id: i64, out: Option<HarvestOutcome>) -> VarDictionary {
+        let mut d = VarDictionary::new();
+        let Some(out) = out else {
+            let _ = d.insert("hit", false);
+            return d;
+        };
+        let _ = d.insert("hit", true);
+        let _ = d.insert("stage", out.stage as i64);
+        let _ = d.insert("broken", out.broken);
+        let _ = d.insert("ore", out.ore);
+        let _ = d.insert("amount", out.amount as i64);
+        if out.broken {
+            let away = self
+                .core
+                .get(id as u64)
+                .map(|e| {
+                    let from = self
+                        .player
+                        .as_ref()
+                        .map(|p| p.get_global_position())
+                        .unwrap_or(e.pos - Vector3::FORWARD);
+                    e.pos - from
+                })
+                .unwrap_or(Vector3::FORWARD);
+            self.spawn_falling(id as u64, away);
+            self.cull_instance(id as u64);
+            self.disable_collider(id as u64);
+            self.signals()
+                .tree_felled()
+                .emit(id, &GString::from(out.ore), out.amount as i64);
+        }
+        d
+    }
+
+    /// Takes one trunk out of the world without touching the others.
+    ///
+    /// Felling used to rebuild the whole body, which frees and recreates a shape
+    /// for every tree in the streaming window on a keypress. Disabling the one
+    /// shape is the same result for a constant cost.
+    fn disable_collider(&mut self, id: u64) {
+        let Some(&index) = self.shape_of.get(&id) else {
+            return;
+        };
+        if !self.body.is_valid() {
+            return;
+        }
+        PhysicsServer3D::singleton().body_set_shape_disabled(self.body, index, true);
     }
 
     /// Flips a tree from standing to felled across every pass at once. The near
@@ -1632,15 +1757,23 @@ fn build_stump_mesh(seed: u32) -> Gd<ArrayMesh> {
     am
 }
 
-fn build_far_tree_mesh(seed: u32, crown: f32) -> Gd<ArrayMesh> {
+fn build_far_tree_mesh(seed: u32, crown: f32, shape: u32) -> Gd<ArrayMesh> {
     let mut mb = MeshBuilder::new();
     let mut state = hash32(seed | 1);
+    // A spire is most of what a conifer is worth, and past the LOD band the far
+    // mesh is the only thing drawing it. Left on the spreading head the other
+    // species use, the fourth species stops existing at exactly the range where
+    // the silhouette was the point.
+    let spire = shape == 3;
 
     let trunk = Color::from_rgba(0.36, 0.26, 0.18, 0.0);
     let sides = 6;
-    let r0 = 0.062;
-    let r1 = 0.026;
-    let top = 1.0;
+    let r0 = if spire { 0.05 } else { 0.062 };
+    let r1 = if spire { 0.012 } else { 0.026 };
+    // Short of the near mesh's own top, which the tiers then cover: the leader
+    // keeps most of its length in this species, so the spire ends lower than the
+    // spreading heads do.
+    let top = if spire { 1.42 } else { 1.0 };
     for i in 0..sides {
         let a0 = std::f32::consts::TAU * i as f32 / sides as f32;
         let a1 = std::f32::consts::TAU * (i + 1) as f32 / sides as f32;
@@ -1704,24 +1837,46 @@ fn build_far_tree_mesh(seed: u32, crown: f32) -> Gd<ArrayMesh> {
         }
     };
     let cw = crown;
-    let blob_defs = [
-        (
-            Vector3::new(0.0, 1.24, 0.0),
-            Vector3::new(0.56 * cw, 0.35 * cw, 0.56 * cw),
-        ),
-        (
-            Vector3::new(0.32 * cw, 1.06, 0.16 * cw),
-            Vector3::new(0.32 * cw, 0.24 * cw, 0.32 * cw),
-        ),
-        (
-            Vector3::new(-0.35 * cw, 1.12, -0.13 * cw),
-            Vector3::new(0.3 * cw, 0.23 * cw, 0.3 * cw),
-        ),
-        (
-            Vector3::new(0.01, 1.6, -0.04),
-            Vector3::new(0.32 * cw, 0.24 * cw, 0.32 * cw),
-        ),
-    ];
+    let blob_defs = if spire {
+        // Stacked tiers narrowing upward, rather than a head sitting on a stick.
+        [
+            (
+                Vector3::new(0.0, 0.62, 0.0),
+                Vector3::new(0.5 * cw, 0.3 * cw, 0.5 * cw),
+            ),
+            (
+                Vector3::new(0.03 * cw, 1.0, -0.02 * cw),
+                Vector3::new(0.38 * cw, 0.26 * cw, 0.38 * cw),
+            ),
+            (
+                Vector3::new(-0.02 * cw, 1.28, 0.03 * cw),
+                Vector3::new(0.26 * cw, 0.22 * cw, 0.26 * cw),
+            ),
+            (
+                Vector3::new(0.0, 1.5, 0.0),
+                Vector3::new(0.14 * cw, 0.17 * cw, 0.14 * cw),
+            ),
+        ]
+    } else {
+        [
+            (
+                Vector3::new(0.0, 1.24, 0.0),
+                Vector3::new(0.56 * cw, 0.35 * cw, 0.56 * cw),
+            ),
+            (
+                Vector3::new(0.32 * cw, 1.06, 0.16 * cw),
+                Vector3::new(0.32 * cw, 0.24 * cw, 0.32 * cw),
+            ),
+            (
+                Vector3::new(-0.35 * cw, 1.12, -0.13 * cw),
+                Vector3::new(0.3 * cw, 0.23 * cw, 0.3 * cw),
+            ),
+            (
+                Vector3::new(0.01, 1.6, -0.04),
+                Vector3::new(0.32 * cw, 0.24 * cw, 0.32 * cw),
+            ),
+        ]
+    };
     for (c, r) in blob_defs {
         blob(c, r, &mut mb, &mut state);
     }
