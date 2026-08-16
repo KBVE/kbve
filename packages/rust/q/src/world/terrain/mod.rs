@@ -89,6 +89,8 @@ pub struct QTerrain {
     #[export]
     ground_material: Option<Gd<ShaderMaterial>>,
     #[export]
+    bank_material: Option<Gd<ShaderMaterial>>,
+    #[export]
     water_material: Option<Gd<ShaderMaterial>>,
     #[export]
     riverbed_material: Option<Gd<ShaderMaterial>>,

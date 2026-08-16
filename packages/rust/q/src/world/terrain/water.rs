@@ -12,7 +12,7 @@ use super::QTerrain;
 
 pub(super) const PATTERN_RES: u32 = 256;
 pub(super) const PATTERN_CELLS: f32 = 12.0;
-pub(super) const WAKE_RES: u32 = 256;
+pub(super) const WAKE_RES: u32 = 128;
 /// How often the wake is stepped. It is advected and decayed by however much time it
 /// banked, so a lower rate moves it exactly as far -- it just does so in fewer, larger
 /// steps. At 120 fps this is a quarter of the dispatches.
@@ -20,7 +20,7 @@ pub(super) const WAKE_RES: u32 = 256;
 /// enough per step that the wake can be stepped more often, and stepping it more often is
 /// what stops it reading as a decal that appears and sits there.
 const WAKE_HZ: f32 = 48.0;
-pub(super) const WAKE_WINDOW: f32 = 64.0;
+pub(super) const WAKE_WINDOW: f32 = 32.0;
 
 const WAKE_GLSL: &str = r#"
 #version 450
@@ -108,7 +108,7 @@ void main() {
 }
 "#;
 
-fn mat_f32(m: &Gd<godot::classes::ShaderMaterial>, name: &str, fallback: f32) -> f32 {
+pub(super) fn mat_f32(m: &Gd<godot::classes::ShaderMaterial>, name: &str, fallback: f32) -> f32 {
     let v = m.get_shader_parameter(name);
     v.try_to::<f32>().unwrap_or(fallback)
 }

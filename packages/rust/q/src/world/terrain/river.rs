@@ -2,11 +2,8 @@ use godot::classes::{MeshInstance3D, PlaneMesh};
 use godot::prelude::*;
 
 use super::QTerrain;
+use super::water::mat_f32;
 
-/// Edge length of one water quad. The surface is a strip wide enough for the river to
-/// wander across, so its triangle count is set here rather than by the river's own width:
-/// at one metre the plane was 180k triangles for a seven-metre river. The waves it carries
-/// are ten metres from crest to crest, so two metres still spends five vertices on each.
 const WATER_QUAD: f32 = 2.0;
 
 impl QTerrain {
@@ -28,9 +25,17 @@ impl QTerrain {
     fn share_bed_bounds(&mut self, strip_width: f32) {
         const EDGE_MARGIN: f32 = 6.0;
         let half = strip_width * 0.5;
+        let mut fade_end = 0.45;
         if let Some(m) = self.riverbed_material.as_mut() {
             m.set_shader_parameter("bed_half_width", &half.to_variant());
             m.set_shader_parameter("bed_edge_margin", &EDGE_MARGIN.to_variant());
+            fade_end = mat_f32(m, "shore_fade_end", fade_end);
+        }
+        let cover_height = self.water_level + fade_end - 0.25;
+        let cover_half = (half - EDGE_MARGIN * 2.0).max(0.0);
+        if let Some(m) = self.ground_material.as_mut() {
+            m.set_shader_parameter("bed_cover_height", &cover_height.to_variant());
+            m.set_shader_parameter("bed_cover_half_width", &cover_half.to_variant());
         }
         self.share_ground_palette();
     }
@@ -51,7 +56,11 @@ impl QTerrain {
             ("detail_tint", "ground_detail_tint"),
             ("detail_normal_strength", "ground_detail_normal_strength"),
         ];
-        let Some(ground) = self.ground_material.clone() else {
+        let Some(ground) = self
+            .bank_material
+            .clone()
+            .or_else(|| self.ground_material.clone())
+        else {
             return;
         };
         let mut values: Vec<(&str, Variant)> = KEYS
