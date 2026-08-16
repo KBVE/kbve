@@ -865,12 +865,135 @@ func test_the_panel_finishes_arriving() -> void:
 	await get_tree().create_timer(TalkPanel.ENTER_TIME + 0.1).timeout
 	assert_float(panel._root.modulate.a) \
 			.override_failure_message("the panel never finished fading in").is_equal_approx(1.0, 0.01)
-	assert_float(panel._frame.position.y) \
+	assert_float(panel._shell.position.y) \
 			.override_failure_message("the panel stopped short of where it belongs") \
 			.is_equal_approx(0.0, 0.5)
 
 	panel.close()
 	_unstage(world, was)
+
+
+## A box sized for a speech with a greeting in it reads as a game waiting for something
+## else. It takes the height of what is being said instead.
+func test_the_box_is_only_as_tall_as_what_is_in_it() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+
+	panel.skip_typing()
+	await get_tree().process_frame
+	var plain := panel._frame.size.y
+
+	## The menu is the same speaker saying a shorter line, and the only difference is the
+	## replies under it.
+	panel.runner.advance()
+	panel.skip_typing()
+	await get_tree().process_frame
+	assert_float(panel._frame.size.y) \
+			.override_failure_message("replies took no more room than no replies, so the box is a fixed slab") \
+			.is_greater(plain)
+
+	var view := panel.get_viewport().get_visible_rect().size
+	assert_float(panel._frame.size.y) \
+			.override_failure_message("a conversation covered half the world it is happening in") \
+			.is_less(view.y * 0.6)
+
+	panel.close()
+	_unstage(world, was)
+
+
+## The box holding the line is measured with room for the replies already in it, or they
+## arrive at the end of the sentence and shove upward the line still being read.
+func test_replies_arriving_do_not_move_the_line() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+
+	panel.skip_typing()
+	panel.runner.advance()
+	await get_tree().process_frame
+	var while_speaking := panel._frame.size.y
+	assert_bool(panel._choices.visible).is_false()
+
+	panel.skip_typing()
+	await get_tree().process_frame
+	assert_float(panel._frame.size.y) \
+			.override_failure_message("the box grew when the replies appeared, moving the line under the reader") \
+			.is_equal_approx(while_speaking, 1.0)
+
+	panel.close()
+	_unstage(world, was)
+
+
+## A phone's USE button is behind the panel, so the box has to be a place to press: without
+## it, a line with nothing to say back to is a line a touch player cannot get past.
+func test_the_box_can_be_tapped_to_go_on() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+
+	var greeting := panel.runner.line_key()
+	panel._frame.gui_input.emit(_tap())
+	assert_bool(panel.is_typing()) \
+			.override_failure_message("the first tap skipped the line instead of finishing it") \
+			.is_false()
+	assert_str(panel.runner.line_key()) \
+			.override_failure_message("the first tap went past the line rather than hurrying it") \
+			.is_equal(greeting)
+
+	panel._frame.gui_input.emit(_tap())
+	assert_str(panel.runner.line_key()) \
+			.override_failure_message("a tap on a finished line went nowhere") \
+			.is_not_equal(greeting)
+
+	panel.close()
+	_unstage(world, was)
+
+
+func _tap() -> InputEventScreenTouch:
+	var touch := InputEventScreenTouch.new()
+	touch.pressed = true
+	return touch
+
+
+## What the shape of the window decides, checked without a window: a handset in landscape
+## is far wider than it is tall, and a line ruled the whole way across it loses the reader.
+func test_a_wide_window_keeps_the_line_readable() -> void:
+	var wide: Dictionary = TalkPanel.metrics(Vector2(2560.0, 720.0))
+	assert_float(wide["width"]) \
+			.override_failure_message("the line was ruled the whole way across an ultrawide window") \
+			.is_less_equal(TalkPanel.MAX_WIDTH)
+	assert_float(wide["side"]) \
+			.override_failure_message("the capped box was not centred, so it hangs off one side") \
+			.is_equal_approx((2560.0 - float(wide["width"])) * 0.5, 0.5)
+
+	var narrow: Dictionary = TalkPanel.metrics(Vector2(640.0, 900.0))
+	assert_float(narrow["side"]) \
+			.override_failure_message("desktop margins on a narrow window leave no room for the words") \
+			.is_less_equal(TalkPanel.SIDE_RANGE.y)
+	assert_float(float(narrow["side"]) * 2.0) \
+			.override_failure_message("the margins ate more of the window than the box got") \
+			.is_less(640.0 * 0.5)
+
+
+## Touch reads at arm's length and answers with a thumb.
+func test_touch_gets_bigger_words_and_a_reply_a_thumb_can_hit() -> void:
+	var view := Vector2(1560.0, 720.0)
+	var pointer: Dictionary = TalkPanel.metrics(view, false)
+	var thumb: Dictionary = TalkPanel.metrics(view, true)
+
+	assert_int(thumb["line_font"]) \
+			.override_failure_message("a phone got the same size words as a monitor an arm closer") \
+			.is_greater(int(pointer["line_font"]))
+	assert_float(thumb["reply_min_h"]) \
+			.override_failure_message("a reply on touch is smaller than a thumb") \
+			.is_greater_equal(44.0)
+	assert_bool(thumb["reply_fill"]) \
+			.override_failure_message("a touch reply is only as wide as its words, so it is a small target") \
+			.is_true()
+	assert_bool(pointer["reply_fill"]) \
+			.override_failure_message("a pointer got full-width slabs, which read as a menu") \
+			.is_false()
 
 
 ## Words crowded against a rounded edge read as a mistake, and a reply centred in a slab
