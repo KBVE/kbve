@@ -34,6 +34,7 @@ shader_parameter/scale1 = 30.0
 shader_parameter/scale2 = 30.0
 shader_parameter/contrast = 6.415
 shader_parameter/brightness = 0.097
+shader_parameter/smoothness = 11.0
 shader_parameter/color_ramp = SubResource("GradientTexture1D_ramp")
 shader_parameter/water_level = -1.4
 shader_parameter/terrain_extent = 256.0

@@ -494,7 +494,7 @@ impl QTerrain {
 
     #[func]
     fn height_at(&self, x: f32, z: f32) -> f32 {
-        self.height(x, z)
+        self.mesh_height(x, z)
     }
 
     #[func]
@@ -659,7 +659,7 @@ impl QTerrain {
     }
 
     pub fn sample_height(&self, x: f32, z: f32) -> f32 {
-        self.height(x, z)
+        self.mesh_height(x, z)
     }
 
     pub fn clearance_texture(&self) -> Option<Gd<ImageTexture>> {
@@ -727,5 +727,52 @@ impl QTerrain {
 
     fn height(&self, x: f32, z: f32) -> f32 {
         self.hgen.as_ref().map(|g| g.height(x, z)).unwrap_or(0.0)
+    }
+
+    /// The drawn ground rather than the height data. See
+    /// [`crate::world::TerrainSnapshot::height`] for why they differ.
+    fn mesh_height(&self, x: f32, z: f32) -> f32 {
+        const Q: f32 = crate::world::GROUND_QUAD;
+        if self.heights.is_empty() {
+            return self.height(x, z);
+        }
+        let gx = (x / Q).floor() * Q;
+        let gz = (z / Q).floor() * Q;
+        let tx = (x - gx) / Q;
+        let tz = (z - gz) / Q;
+        let a = {
+            let h0 = self.grid_height(gx, gz);
+            h0 + (self.grid_height(gx + Q, gz) - h0) * tx
+        };
+        let b = {
+            let h0 = self.grid_height(gx, gz + Q);
+            h0 + (self.grid_height(gx + Q, gz + Q) - h0) * tx
+        };
+        a + (b - a) * tz
+    }
+
+    fn grid_height(&self, x: f32, z: f32) -> f32 {
+        let res = self.resolution.max(2);
+        if self.heights.len() < (res * res) as usize {
+            return self.height(x, z);
+        }
+        let o = self.window_origin();
+        let fx = (((x - o.x + self.extent) / (self.extent * 2.0)).clamp(0.001, 0.999) * res as f32
+            - 0.5)
+            .max(0.0);
+        let fz = (((z - o.y + self.extent) / (self.extent * 2.0)).clamp(0.001, 0.999) * res as f32
+            - 0.5)
+            .max(0.0);
+        let x0 = (fx as i32).clamp(0, res - 2);
+        let z0 = (fz as i32).clamp(0, res - 2);
+        let tx = (fx - x0 as f32).clamp(0.0, 1.0);
+        let tz = (fz - z0 as f32).clamp(0.0, 1.0);
+        let h00 = self.heights[(z0 * res + x0) as usize];
+        let h10 = self.heights[(z0 * res + x0 + 1) as usize];
+        let h01 = self.heights[((z0 + 1) * res + x0) as usize];
+        let h11 = self.heights[((z0 + 1) * res + x0 + 1) as usize];
+        let a = h00 + (h10 - h00) * tx;
+        let b = h01 + (h11 - h01) * tx;
+        a + (b - a) * tz
     }
 }

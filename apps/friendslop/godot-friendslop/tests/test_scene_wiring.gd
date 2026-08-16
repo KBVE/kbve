@@ -39,7 +39,11 @@ func _properties_of(state: SceneState, node_index: int) -> Dictionary:
 ## A QFishField with no model or materials places its fish, simulates them and draws
 ## nothing — the same silent shape as the bridge, and just as invisible outside a
 ## screenshot.
-const FISH_SCENES := ["res://scenes/main.tscn", "res://scenes/title.tscn"]
+const FISH_SCENES := [
+	"res://scenes/main.tscn",
+	"res://scenes/title.tscn",
+	"res://scenes/online.tscn",
+]
 const FISH_RESOURCES := [&"fish_model", &"fish_material", &"shadow_material"]
 
 

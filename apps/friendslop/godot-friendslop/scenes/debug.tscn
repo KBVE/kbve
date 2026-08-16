@@ -1,4 +1,4 @@
-[gd_scene load_steps=22 format=3]
+[gd_scene load_steps=26 format=3]
 
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="1_player"]
 [ext_resource type="Script" path="res://src/debug/debug_world.gd" id="2_world"]
@@ -19,6 +19,8 @@
 [ext_resource type="Material" path="res://assets/environment/props/fauna/lizardfish/fish.tres" id="17_fishmat"]
 [ext_resource type="Material" path="res://assets/environment/props/fauna/lizardfish/fish_shadow.tres" id="18_fishshadow"]
 [ext_resource type="Shader" path="res://assets/fx/shaders/film_grade.gdshader" id="19_film"]
+[ext_resource type="Script" path="res://src/world/wind.gd" id="20_wind"]
+[ext_resource type="Script" path="res://src/debug/debug_panel.gd" id="21_panel"]
 
 [sub_resource type="Environment" id="Environment_debug"]
 background_mode = 1
@@ -38,6 +40,11 @@ albedo_color = Color(0.42, 0.46, 0.4, 1)
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_film"]
 shader = ExtResource("19_film")
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_terrain"]
+size = Vector2(1024, 1024)
+subdivide_width = 511
+subdivide_depth = 511
 
 [node name="Debug" type="Node3D"]
 script = ExtResource("2_world")
@@ -59,6 +66,17 @@ shape = SubResource("BoxShape3D_ground")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
 mesh = SubResource("BoxMesh_ground")
 surface_material_override/0 = SubResource("StandardMaterial3D_ground")
+
+[node name="GroundPlane" type="MeshInstance3D" parent="."]
+material_override = ExtResource("4_ground")
+extra_cull_margin = 16.0
+mesh = SubResource("PlaneMesh_terrain")
+
+[node name="Wind" type="Node" parent="."]
+script = ExtResource("20_wind")
+grass_material = ExtResource("5_grassmat")
+ground_material = ExtResource("4_ground")
+environment_node = NodePath("../WorldEnvironment")
 
 [node name="Terrain" type="QTerrain" parent="."]
 player_path = NodePath("../Player")
@@ -140,3 +158,6 @@ mouse_filter = 2
 [node name="DebugHud" type="CanvasLayer" parent="."]
 script = ExtResource("3_hud")
 player_path = NodePath("../Player")
+
+[node name="DebugPanel" type="CanvasLayer" parent="."]
+script = ExtResource("21_panel")

@@ -157,7 +157,7 @@ def soil_geometry() -> tuple[list[Vector], list[tuple[int, ...]]]:
     return verts, faces
 
 
-def scatter(rng: random.Random) -> tuple[Accum, Accum, float]:
+def scatter(rng: random.Random, rock_count: int = ROCK_COUNT) -> tuple[Accum, Accum, float]:
     """Scatters into the centre tile and repeats it across a 3x3 neighbourhood.
     The bake target covers only the centre, so anything crossing an edge is met
     by its own copy on the far side and the maps wrap."""
@@ -168,7 +168,7 @@ def scatter(rng: random.Random) -> tuple[Accum, Accum, float]:
     z_max = 0.0
 
     placements: list[tuple[bool, Vector, tuple]] = []
-    for _ in range(ROCK_COUNT):
+    for _ in range(rock_count):
         geo = rock_geometry(rng, template)
         loc = Vector((rng.uniform(-half, half), rng.uniform(-half, half), rng.uniform(-0.03, 0.004)))
         placements.append((True, loc, geo))
@@ -312,6 +312,7 @@ def main() -> int:
     seed = int(argv[argv.index("--seed") + 1]) if "--seed" in argv else 7
     prefix = argv[argv.index("--prefix") + 1] if "--prefix" in argv else "turf_baked"
     ao_samples = int(argv[argv.index("--ao-samples") + 1]) if "--ao-samples" in argv else 96
+    rock_count = int(argv[argv.index("--rocks") + 1]) if "--rocks" in argv else ROCK_COUNT
 
     out_dir.mkdir(parents=True, exist_ok=True)
     rng = random.Random(seed)
@@ -323,7 +324,7 @@ def main() -> int:
     scene.cycles.samples = 4
     scene.render.bake.use_selected_to_active = True
 
-    rock_acc, grass_acc, z_max = scatter(rng)
+    rock_acc, grass_acc, z_max = scatter(rng, rock_count)
     soil_acc = Accum()
     soil_acc.add(*soil_geometry(), Vector((0.0, 0.0, 0.0)))
     print(
@@ -396,7 +397,7 @@ def main() -> int:
         "height_range_metres": round(z_max - z_min, 5),
         "resolution": res,
         "seed": seed,
-        "rocks": ROCK_COUNT,
+        "rocks": rock_count,
         "tufts": TUFT_COUNT,
     }
     (out_dir / f"{prefix}.json").write_text(json.dumps(meta, indent=2) + "\n")

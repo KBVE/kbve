@@ -1,17 +1,14 @@
-[gd_resource type="ShaderMaterial" format=3 uid="uid://dt5hlee60lpgv"]
+[gd_resource type="ShaderMaterial" load_steps=11 format=3]
 
 [ext_resource type="Shader" uid="uid://def6td6gxoncm" path="res://assets/biomes/grassland/grass/ground.gdshader" id="1_shader"]
 [ext_resource type="Texture2D" uid="uid://c8fd7qmbj6uyt" path="res://assets/biomes/grassland/grass/grass_normals.png" id="2_normals"]
 [ext_resource type="Texture2D" uid="uid://c1eylu2wm18dc" path="res://assets/biomes/grassland/road/ground_tiles_13_albedo.png" id="3_road_albedo"]
 [ext_resource type="Texture2D" uid="uid://xr8ygn15ypwu" path="res://assets/biomes/grassland/road/ground_tiles_13_normal_gl.png" id="4_road_normal"]
 [ext_resource type="Texture2D" uid="uid://dnub3s5ym8kkt" path="res://assets/biomes/grassland/road/ground_tiles_13_orm.png" id="5_road_orm"]
-[ext_resource type="Texture2D" uid="uid://boxewx8onpty6" path="res://assets/biomes/grassland/textures/grass_with_rocks_01_albedo.png" id="6_dalb"]
-[ext_resource type="Texture2D" uid="uid://7beiumwifpcr" path="res://assets/biomes/grassland/textures/grass_with_rocks_01_normal_gl.png" id="7_dnrm"]
-[ext_resource type="Texture2D" uid="uid://c62ewkp7rql5n" path="res://assets/biomes/grassland/textures/grass_with_rocks_01_orm.png" id="8_dorm"]
-[ext_resource type="Texture2D" uid="uid://8b47md3ewum6" path="res://assets/biomes/grassland/textures/grass_with_rocks_01_height.png" id="9_dhgt"]
-[ext_resource type="Texture2D" uid="uid://bo53125tuiju7" path="res://assets/biomes/grassland/textures/grass_01_albedo.png" id="10_talb"]
-[ext_resource type="Texture2D" uid="uid://dp4k4r5qupj1f" path="res://assets/biomes/grassland/textures/grass_01_normal_gl.png" id="11_tnrm"]
-[ext_resource type="Texture2D" uid="uid://b26gjhr5rj272" path="res://assets/biomes/grassland/textures/grass_01_orm.png" id="12_torm"]
+[ext_resource type="Texture2D" uid="uid://bo53125tuiju7" path="res://assets/biomes/grassland/textures/grass_01_albedo.png" id="6_dalb"]
+[ext_resource type="Texture2D" uid="uid://dp4k4r5qupj1f" path="res://assets/biomes/grassland/textures/grass_01_normal_gl.png" id="7_dnrm"]
+[ext_resource type="Texture2D" uid="uid://b26gjhr5rj272" path="res://assets/biomes/grassland/textures/grass_01_orm.png" id="8_dorm"]
+[ext_resource type="Texture2D" uid="uid://c77a0ifyew065" path="res://assets/biomes/grassland/textures/grass_01_height.png" id="9_dhgt"]
 
 [sub_resource type="FastNoiseLite" id="FastNoiseLite_hf"]
 frequency = 0.1
@@ -71,10 +68,6 @@ shader_parameter/detail_albedo = ExtResource("6_dalb")
 shader_parameter/detail_normal = ExtResource("7_dnrm")
 shader_parameter/detail_orm = ExtResource("8_dorm")
 shader_parameter/detail_height = ExtResource("9_dhgt")
-shader_parameter/turf_albedo = ExtResource("10_talb")
-shader_parameter/turf_normal = ExtResource("11_tnrm")
-shader_parameter/turf_orm = ExtResource("12_torm")
-shader_parameter/turf_detail_mix = 1.0
 shader_parameter/detail_tile_scale = 2.0
 shader_parameter/detail_amount = 0.9
 shader_parameter/detail_normal_strength = 2.0
@@ -84,21 +77,21 @@ shader_parameter/detail_far_amount = 0.55
 shader_parameter/detail_far_blur = 1.5
 shader_parameter/detail_turf_scale = 1.0
 shader_parameter/detail_tint = 0.35
-shader_parameter/pom_strength = 1.0
+shader_parameter/pom_strength = 0.0
 shader_parameter/pom_depth = 0.18
-shader_parameter/pom_fade_start = 1.5
-shader_parameter/pom_fade_end = 8.0
+shader_parameter/pom_fade_start = 6.0
+shader_parameter/pom_fade_end = 14.0
 shader_parameter/pom_layers_min = 4.0
-shader_parameter/pom_layers_max = 16.0
+shader_parameter/pom_layers_max = 48.0
 shader_parameter/pom_samples_per_uv = 900.0
 shader_parameter/pom_grazing_fade = 0.55
 shader_parameter/pom_refine_steps = 4
 shader_parameter/pom_offset_mode = 2
 shader_parameter/pom_shadow_strength = 0.0
-shader_parameter/pom_shadow_samples = 0.0
+shader_parameter/pom_shadow_samples = 12.0
 shader_parameter/pom_shadow_softness = 1.0
 shader_parameter/pom_min_tilt = 0.3
-shader_parameter/pom_turf_scale = 0.25
+shader_parameter/pom_turf_scale = 1.0
 shader_parameter/pom_debug = 0
 shader_parameter/road_albedo = ExtResource("3_road_albedo")
 shader_parameter/road_normal = ExtResource("4_road_normal")

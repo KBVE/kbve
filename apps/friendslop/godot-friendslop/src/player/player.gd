@@ -147,7 +147,7 @@ func _process(_delta: float) -> void:
 func _physics_process(delta: float) -> void:
 	if _held:
 		velocity = Vector3.ZERO
-		rig.set_locomotion(Vector3.ZERO, false, delta)
+		rig.drive(Vector3.ZERO, global_rotation.y, false, delta)
 		return
 	if _fell_through():
 		push_warning("[player] fell through the world at %.1f,%.1f,%.1f; put back on the ground" % [
@@ -177,7 +177,7 @@ func _physics_process(delta: float) -> void:
 		Game.events.notify(EventNames.PLAYER_JUMPED, global_position)
 
 	move_and_slide()
-	rig.set_locomotion(global_transform.basis.inverse() * velocity, not is_on_floor(), delta)
+	rig.drive(velocity, global_rotation.y, not is_on_floor(), delta)
 	_report(delta)
 
 
