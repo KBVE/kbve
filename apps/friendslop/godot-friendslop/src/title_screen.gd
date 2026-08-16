@@ -4,6 +4,9 @@ extends Node3D
 
 const GFX := preload("res://src/settings/graphics_settings.gd")
 const PAUSE_MENU := preload("res://src/ui/pause_menu.gd")
+## For `server_url` only — the same override the online scene itself honours, so the
+## title probes whatever the player is actually about to join.
+const ONLINE_WORLD := preload("res://src/net/online_world.gd")
 
 ## The backdrop runs none of what the world scene runs — no player, no physics step, no
 ## creatures, and none of the tree, flora, shrub or rock fields — so the grass gets the
@@ -88,7 +91,18 @@ func _ready() -> void:
 	_menu.quit_requested.connect(_quit)
 	_menu.cancel_requested.connect(_cancel)
 	_menu.locale_requested.connect(_switch_locale)
+	_probe_server()
 	_ask_language_once()
+
+
+## Asks the host what it speaks while the player is still deciding whether to press play,
+## so a build that cannot join says so on the title rather than after a socket opens.
+func _probe_server() -> void:
+	var probe := ServerProbe.new()
+	add_child(probe)
+	probe.answered.connect(func(protocol: int) -> void: _menu.set_server_protocol(protocol))
+	probe.unreachable.connect(func(_reason: String) -> void: _menu.set_server_protocol(-1))
+	probe.probe(ONLINE_WORLD.server_url())
 
 
 ## First launch only.

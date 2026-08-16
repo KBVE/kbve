@@ -5,7 +5,11 @@
 		"singleplayer": "シングルプレイ",
 		"sign_in": "サインイン",
 		"sign_in_hint": "サインインは準備中です。ゲストの名前はサーバーが決めます。",
-		"guest_status": "ゲストとしてプレイ中"
+		"guest_status": "ゲストとしてプレイ中",
+		"build": "v{version}  ·  プロトコル {protocol}",
+		"server_protocol": "サーバープロトコル {protocol}",
+		"protocol_mismatch": "このビルドではそのサーバーに参加できません",
+		"server_unreachable": "サーバーに接続できません"
 	},
 	"pause": {
 		"log_off": "ログオフ"

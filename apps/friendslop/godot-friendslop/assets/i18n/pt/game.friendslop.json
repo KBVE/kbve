@@ -5,7 +5,11 @@
 		"singleplayer": "Um jogador",
 		"sign_in": "Entrar",
 		"sign_in_hint": "O login está a caminho: o servidor dá nome aos convidados.",
-		"guest_status": "Jogando como convidado"
+		"guest_status": "Jogando como convidado",
+		"build": "v{version}  ·  protocolo {protocol}",
+		"server_protocol": "protocolo do servidor {protocol}",
+		"protocol_mismatch": "esta versão não pode entrar nesse servidor",
+		"server_unreachable": "servidor inacessível"
 	},
 	"pause": {
 		"log_off": "Encerrar sessão"

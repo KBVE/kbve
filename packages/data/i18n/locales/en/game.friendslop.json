@@ -11,7 +11,11 @@
 		"sign_out": "Sign Out",
 		"play_as_account": "Play",
 		"sign_in_with": "Sign in with {provider}",
-		"sign_in_browser": "Your browser will open — come back here when it is done."
+		"sign_in_browser": "Your browser will open — come back here when it is done.",
+		"build": "v{version}  ·  protocol {protocol}",
+		"server_protocol": "server protocol {protocol}",
+		"protocol_mismatch": "this build cannot join that server",
+		"server_unreachable": "server unreachable"
 	},
 	"pause": {
 		"log_off": "Log Off"
@@ -64,5 +68,16 @@
 	"dlg": {
 		"continue": "[{{key}}]  Continue",
 		"close": "Leave the conversation"
+	},
+	"wardrobe": {
+		"title": "Wardrobe",
+		"none": "Nothing",
+		"head": "Head",
+		"chest": "Body",
+		"hands": "Arms",
+		"legs": "Legs",
+		"feet": "Feet",
+		"neck": "Neck",
+		"back": "Shoulders"
 	}
 }

@@ -32,6 +32,7 @@ var sign_in_button: PaperButton
 var settings_button: PaperButton
 var quit_button: PaperButton
 var status_label: Label
+var build_label: Label
 var language_buttons: Array[PaperButton] = []
 
 var _root: Control
@@ -103,6 +104,17 @@ func _build() -> void:
 	status_label.add_theme_constant_override("shadow_offset_x", 1)
 	status_label.add_theme_constant_override("shadow_offset_y", 1)
 	column.add_child(status_label)
+
+	build_label = Label.new()
+	build_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	build_label.add_theme_font_size_override("font_size", 12)
+	build_label.add_theme_color_override("font_color", MenuStyle.PAPER_HOVER)
+	build_label.add_theme_color_override("font_shadow_color", Color(0.05, 0.03, 0.02, 0.9))
+	build_label.add_theme_constant_override("shadow_offset_x", 1)
+	build_label.add_theme_constant_override("shadow_offset_y", 1)
+	build_label.modulate.a = 0.75
+	column.add_child(build_label)
+	set_server_protocol(0)
 
 	_build_languages(column)
 
@@ -192,6 +204,30 @@ func sign_in_failed(message: String) -> void:
 func sign_in_succeeded() -> void:
 	close_sign_in()
 	_refresh_status()
+
+
+## What the host answered, or 0 for "not asked yet", or -1 for "could not be reached".
+##
+## The client's half is known offline and is shown either way. A mismatch is spelled out
+## here rather than left to the join, which only says `protocol n != m` once the player
+## has already pressed play and waited for a socket to open.
+func set_server_protocol(protocol: int) -> void:
+	if build_label == null:
+		return
+	var mine := BuildInfo.protocol()
+	var line := I18n.t("title.build").format({
+		"version": BuildInfo.version(),
+		"protocol": mine,
+	})
+	if protocol > 0:
+		line += "  ·  " + I18n.t("title.server_protocol").format({"protocol": protocol})
+		if protocol != mine:
+			line += "  ·  " + I18n.t("title.protocol_mismatch")
+	elif protocol < 0:
+		line += "  ·  " + I18n.t("title.server_unreachable")
+	build_label.text = line
+	build_label.modulate = Color(1.0, 0.55, 0.45) if protocol > 0 and protocol != mine \
+			else Color(1.0, 1.0, 1.0, 0.75)
 
 
 func _refresh_status() -> void:

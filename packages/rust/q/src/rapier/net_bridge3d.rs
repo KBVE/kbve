@@ -427,6 +427,14 @@ impl QNetClient3D {
         }
     }
 
+    /// The wire version this build speaks. A host that answers a different one will
+    /// turn the join down, so this is what a client has to compare against `/healthz`
+    /// to know that before it asks.
+    #[func]
+    fn protocol_version() -> i64 {
+        crate::proto::PROTOCOL_VERSION as i64
+    }
+
     /// Host clock in hours, 0..24. Zero before the first `Welcome`.
     #[func]
     fn world_hour(&self) -> f64 {

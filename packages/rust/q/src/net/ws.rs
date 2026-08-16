@@ -129,9 +129,22 @@ pub fn router(host: Arc<WsHost>) -> axum::Router {
     }
 
     axum::Router::new()
-        .route("/healthz", get(|| async { "ok" }))
+        .route("/healthz", get(|| async { axum::Json(health()) }))
         .route("/ws", any(upgrade))
         .with_state(host)
+}
+
+/// What `/healthz` answers.
+///
+/// Carries the protocol because it is the only path a deployed host exposes besides the
+/// socket itself, and because a version the client cannot read until after it has been
+/// turned away is a version it may as well not have: the join gate rejects a mismatch
+/// with a bare `protocol n != m`, long after the player pressed play.
+pub fn health() -> serde_json::Value {
+    serde_json::json!({
+        "status": "ok",
+        "protocol": crate::proto::PROTOCOL_VERSION,
+    })
 }
 
 pub struct WsClient {
