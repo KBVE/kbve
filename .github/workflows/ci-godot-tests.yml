@@ -1,0 +1,306 @@
+name: CI - Godot Tests
+
+# Pull-request gate for every Godot project in the dispatch manifest.
+#
+# The suites already ran in ci-godot.yml, but that is workflow_dispatch off the
+# manifest and fires when a build is dispatched -- so on a pull request the tests
+# gated nothing, and a GDScript regression surfaced at release time or on
+# somebody's laptop. This runs them on the change that could break them.
+#
+# Manifest-driven rather than per-project: `discover` reads the same
+# .github/ci-dispatch-manifest.json that ci-godot.yml is dispatched from, works
+# out which projects the pull request actually touched, and fans out. A second
+# Godot app is then a manifest entry and nothing else.
+#
+# A project is touched when the diff hits its `project_path` or the crate behind
+# its `gdextension.package` -- the extension is compiled into the suite's world,
+# so a change to the Rust side can break a GDScript test without a single .gd
+# file moving.
+#
+# Both inputs the suite needs are asserted rather than assumed: the LFS assets
+# (the character, water and dialogue suites load them) and the built extension
+# (a suite naming a Q* class cannot parse without it). Getting either wrong
+# shows up as a signal 11 in the gdUnit scanner with no message at the tail,
+# which reads like a broken test rather than a missing file.
+
+on:
+    workflow_dispatch:
+    pull_request:
+        paths:
+            - 'apps/**'
+            - 'packages/rust/**'
+            - '.github/ci-dispatch-manifest.json'
+            - '.github/workflows/ci-godot-tests.yml'
+
+permissions: {}
+
+concurrency:
+    group: godot-tests-${{ github.event.pull_request.number || github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    discover:
+        name: Discover
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: read
+            pull-requests: read
+        outputs:
+            matrix: ${{ steps.pick.outputs.matrix }}
+            any: ${{ steps.pick.outputs.any }}
+        steps:
+            - uses: actions/checkout@v7
+              with:
+                  sparse-checkout: |
+                      .github
+                      /*
+                  sparse-checkout-cone-mode: false
+
+            - name: Pick the projects this change touches
+              id: pick
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  EVENT: ${{ github.event_name }}
+                  PR: ${{ github.event.pull_request.number }}
+                  REPO: ${{ github.repository }}
+              run: |
+                  set -euo pipefail
+                  # The changed-file list comes from the API rather than a diff, so
+                  # this needs no deep fetch of a repository this size. A manual run
+                  # tests everything.
+                  if [ "$EVENT" = "pull_request" ]; then
+                    gh api "repos/$REPO/pulls/$PR/files" --paginate --jq '.[].filename' > changed.txt
+                    echo "::notice::$(wc -l < changed.txt) files changed"
+                  else
+                    : > changed.txt
+                  fi
+                  ALL=$([ "$EVENT" = "pull_request" ] && echo 0 || echo 1) \
+                    python3 .github/scripts/godot_test_matrix.py \
+                      .github/ci-dispatch-manifest.json changed.txt > matrix.json
+                  cat matrix.json
+                  echo "matrix=$(cat matrix.json)" >> "$GITHUB_OUTPUT"
+                  if [ "$(cat matrix.json)" = "[]" ]; then
+                    echo "any=false" >> "$GITHUB_OUTPUT"
+                    echo "::notice::No Godot project touched by this change"
+                  else
+                    echo "any=true" >> "$GITHUB_OUTPUT"
+                  fi
+
+    gdextension:
+        name: Build ${{ matrix.package }} for ${{ matrix.app_name }}
+        needs: [discover]
+        if: ${{ needs.discover.outputs.any == 'true' }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+        permissions:
+            contents: read
+        strategy:
+            fail-fast: false
+            matrix:
+                include: ${{ fromJSON(needs.discover.outputs.matrix) }}
+        steps:
+            # graphify/dir has colons in its filenames. Git validates every index
+            # entry name before sparse rules get to say the file will not be
+            # written, so the directory is excluded rather than merely unwanted.
+            - uses: actions/checkout@v7
+              if: ${{ matrix.package != '' }}
+              with:
+                  sparse-checkout: |
+                      /*
+                      !/apps/kbve/astro-kbve/public/graphify
+                  sparse-checkout-cone-mode: false
+
+            # q's `client` feature pulls wry, which needs the webkit headers to
+            # link even with the webview turned off.
+            - name: Install build prerequisites
+              if: ${{ matrix.package != '' }}
+              run: |
+                  sudo apt-get update -qq
+                  sudo apt-get install -y --no-install-recommends \
+                    build-essential pkg-config \
+                    libgtk-3-dev libwebkit2gtk-4.1-dev libsoup-3.0-dev \
+                    libjavascriptcoregtk-4.1-dev
+
+            - name: Rust toolchain (1.96)
+              if: ${{ matrix.package != '' }}
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                  toolchain: '1.96'
+
+            - name: Rust cache
+              if: ${{ matrix.package != '' }}
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: '.'
+                  key: godot-tests-${{ matrix.app_name }}-linux
+                  cache-on-failure: true
+
+            # The feature set the manifest names for this project. A suite that
+            # calls into the extension is checking the bridge as it ships, so
+            # building a different half of the crate would test the wrong library.
+            - name: Build cdylib
+              if: ${{ matrix.package != '' }}
+              env:
+                  PKG: ${{ matrix.package }}
+                  FEATURES: ${{ matrix.features }}
+              run: |
+                  set -euo pipefail
+                  echo "::notice::Building $PKG with features: ${FEATURES:-<default>}"
+                  cargo build --release -p "$PKG" ${FEATURES:+--features "$FEATURES"}
+
+            - name: Stage artefact
+              if: ${{ matrix.package != '' }}
+              env:
+                  PKG: ${{ matrix.package }}
+              run: |
+                  set -euo pipefail
+                  LIB="lib$(echo "$PKG" | tr '-' '_').so"
+                  # The root .cargo/config.toml redirects target-dir to
+                  # dist/target; whether that file came down depends on the
+                  # checkout, so look in both rather than betting on it.
+                  mkdir -p stage/linux
+                  for base in target dist/target; do
+                    if [ -f "$base/release/$LIB" ]; then
+                      cp "$base/release/$LIB" "stage/linux/$LIB"
+                      break
+                    fi
+                  done
+                  test -f "stage/linux/$LIB" || {
+                    echo "::error::Built library not found at */release/$LIB"; exit 1;
+                  }
+                  ls -l stage/linux
+
+            - name: Upload artefact
+              if: ${{ matrix.package != '' }}
+              uses: actions/upload-artifact@v7
+              with:
+                  name: godot-tests-gdext-${{ matrix.app_name }}-linux
+                  path: stage
+                  if-no-files-found: error
+
+    test:
+        name: gdUnit4 (${{ matrix.app_name }})
+        needs: [discover, gdextension]
+        # `always()` so a project with no gdextension -- whose build job did
+        # nothing -- still runs its suite.
+        if: ${{ always() && needs.discover.outputs.any == 'true' && needs.gdextension.result != 'failure' && needs.gdextension.result != 'cancelled' && (github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository) }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 40
+        permissions:
+            contents: read
+            actions: read
+        strategy:
+            fail-fast: false
+            matrix:
+                include: ${{ fromJSON(needs.discover.outputs.matrix) }}
+        container:
+            image: barichello/godot-ci:${{ matrix.godot_version }}
+        steps:
+            - uses: actions/checkout@v7
+
+            - name: Pull LFS assets (Forgejo)
+              env:
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+                  PROJECT_PATH: ${{ matrix.project_path }}
+              run: |
+                  set -euo pipefail
+                  command -v git-lfs >/dev/null 2>&1 || {
+                    apt-get update -qq && apt-get install -y -qq --no-install-recommends git-lfs
+                  }
+                  # actions/checkout writes its safe.directory entry under a HOME
+                  # it then restores, so inside the container git does not trust
+                  # the workspace and git-lfs exits 128 "Not in a Git repository".
+                  git config --global --add safe.directory "$PWD"
+                  git lfs install --local
+                  if ! git lfs ls-files -n | grep -q "^$PROJECT_PATH/"; then
+                    echo "::notice::No LFS-tracked files under $PROJECT_PATH — skipping"
+                    exit 0
+                  fi
+                  if [ -z "$FORGEJO_USER" ] || [ -z "$FORGEJO_TOKEN" ]; then
+                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — the asset suites would crash on pointer stubs"
+                    exit 1
+                  fi
+                  printf 'machine git.kbve.com\nlogin %s\npassword %s\n' \
+                    "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
+                  chmod 600 "$HOME/.netrc"
+                  git lfs pull -I "$PROJECT_PATH/**"
+                  # A leftover pointer is a text file starting with the LFS spec
+                  # URL. Godot refuses to load one, and the suite that wanted the
+                  # asset dies in the scanner rather than saying why.
+                  STUBS=$(git lfs ls-files -n | grep "^$PROJECT_PATH/" \
+                    | xargs -r grep -l "^version https://git-lfs" 2>/dev/null | head -5)
+                  if [ -n "$STUBS" ]; then
+                    echo "::error::LFS pointers unresolved after pull:"
+                    echo "$STUBS"
+                    exit 1
+                  fi
+
+            - name: Download GDExtension
+              if: ${{ matrix.package != '' }}
+              uses: actions/download-artifact@v8
+              with:
+                  name: godot-tests-gdext-${{ matrix.app_name }}-linux
+                  path: gdext
+
+            - name: Stage GDExtension
+              if: ${{ matrix.package != '' }}
+              env:
+                  PROJECT_PATH: ${{ matrix.project_path }}
+                  ADDON_PATH: ${{ matrix.addon_path }}
+              run: |
+                  set -euo pipefail
+                  mkdir -p "$PROJECT_PATH/$ADDON_PATH/linux"
+                  cp gdext/linux/*.so "$PROJECT_PATH/$ADDON_PATH/linux/"
+                  ls -l "$PROJECT_PATH/$ADDON_PATH/linux"
+
+            - name: Install GDExtension runtime libraries
+              if: ${{ matrix.package != '' }}
+              env:
+                  PROJECT_PATH: ${{ matrix.project_path }}
+                  ADDON_PATH: ${{ matrix.addon_path }}
+              run: |
+                  set -euo pipefail
+                  # This container is not the machine that built the .so and ships
+                  # none of webkit. q's `client` feature puts a hard DT_NEEDED on
+                  # libwebkit2gtk-4.1.so.0, so without these the extension dlopens
+                  # to "cannot open shared object file", its classes never
+                  # register, and every suite naming one fails at parse time.
+                  # libfontconfig1 is cosmetic -- it silences the system-font error
+                  # spam -- but comes cheap alongside.
+                  apt-get update -qq
+                  apt-get install -y -qq --no-install-recommends \
+                    libwebkit2gtk-4.1-0 libfontconfig1
+                  MISSING=$(find "$PROJECT_PATH/$ADDON_PATH" -name '*.so' -exec ldd {} \; 2>/dev/null \
+                    | awk '/not found/ {print $1}' | sort -u)
+                  if [ -n "$MISSING" ]; then
+                    echo "::error::Staged GDExtension libraries have unresolved sonames in this container:"
+                    echo "$MISSING"
+                    exit 1
+                  fi
+
+            # Prefer the project's own scripts/test.sh: it knows whether the suite
+            # is gdUnit4, GUT or a raw --quit-after pass. GODOT_NO_INSTALL keeps
+            # its resolver from downloading an engine this image already has.
+            - name: Run the suite
+              working-directory: ${{ matrix.project_path }}
+              env:
+                  GODOT_BIN: godot
+                  GODOT_NO_INSTALL: '1'
+              run: |
+                  if [ -x scripts/test.sh ]; then
+                    bash scripts/test.sh
+                  elif [ -d tests ]; then
+                    godot --headless --path . --quit-after 10
+                  else
+                    echo "::notice::No scripts/test.sh or tests/ — nothing to run"
+                  fi
+
+            - name: Upload test reports
+              if: always()
+              uses: actions/upload-artifact@v7
+              with:
+                  name: godot-tests-reports-${{ matrix.app_name }}
+                  path: ${{ matrix.project_path }}/reports
+                  if-no-files-found: ignore
