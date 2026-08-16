@@ -19,8 +19,30 @@ signal closed
 signal speaking
 signal listening
 
-const PANEL_HEIGHT := 0.34
-const PANEL_MARGIN := Vector2(90.0, 40.0)
+## The panel takes the height of what is being said rather than a fixed share of the screen:
+## a one-line greeting in a box sized for a speech reads as a game waiting for something
+## else to arrive.
+##
+## Width is where a phone differs most. The project stretches canvas items against a
+## 1280x720 layout, so a font size means the same thing everywhere and the only thing that
+## really moves is the shape of the window: a handset in landscape is far wider than it is
+## tall, and a line ruled the whole way across it is one the eye loses its place in.
+const MAX_WIDTH := 880.0
+const SIDE_UV := 0.05
+const SIDE_RANGE := Vector2(16.0, 90.0)
+const BOTTOM_UV := 0.035
+const BOTTOM_RANGE := Vector2(12.0, 44.0)
+## Kept off the top of the screen, so whoever is talking is still in shot above the words.
+const TOP_UV := 0.16
+## A floor under the box, or every line resizes it and the reader's eye is dragged about by
+## the frame instead of following the words.
+const MIN_HEIGHT_UV := 0.2
+const MIN_HEIGHT_RANGE := Vector2(120.0, 240.0)
+## Touch reads at arm's length and answers with a thumb: bigger words, and replies that take
+## the full width rather than only as much as they say.
+const TOUCH_FONT := 1.15
+const TOUCH_REPLY_MIN_H := 52.0
+const TOUCH_CLOSE := 46.0
 ## Ink and dusk rather than black: a neutral grey box over a warm world reads as a
 ## different game's menu dropped on top of this one.
 const BACKDROP := Color(0.10, 0.075, 0.055, 0.86)
@@ -36,6 +58,7 @@ const NAME_FONT := 26
 const LINE_FONT := 20
 const CLOSE_FONT := 22
 const CLOSE_SIZE := 34.0
+const HINT_FONT := 14
 
 ## Characters a second the line is written at. Fast enough to read along with, slow enough
 ## that it reads as somebody speaking.
@@ -51,11 +74,20 @@ static var _open: DialoguePanel = null
 var runner: DialogueRunner
 
 var _root: Control
+## Everything but the dimming, moved as one: the rise on the way in cannot be tweened on the
+## frame itself now that a container decides where the frame sits.
+var _shell: MarginContainer
 var _frame: PanelContainer
 var _name_label: Label
 var _line_label: Label
 var _choices: VBoxContainer
 var _hint: Label
+var _close: Button
+## The shortest the box is allowed to be, and how a reply is sized, both settled by the
+## window rather than by the line.
+var _floor := MIN_HEIGHT_RANGE.x
+var _reply_min_h := MenuStyle.REPLY_MIN_H
+var _reply_fill := false
 var _was_captured := false
 var _closing := false
 ## Drives the waiting hint's breathing, which is the only thing on screen that moves once
@@ -122,11 +154,11 @@ func _ready() -> void:
 ## instead of a box being switched on. Short enough not to be waited through.
 func _enter() -> void:
 	_root.modulate.a = 0.0
-	_frame.position.y = ENTER_RISE
+	_shell.position.y = ENTER_RISE
 	var rise := create_tween().set_parallel(true)
 	rise.set_ease(Tween.EASE_OUT).set_trans(Tween.TRANS_CUBIC)
 	rise.tween_property(_root, "modulate:a", 1.0, ENTER_TIME)
-	rise.tween_property(_frame, "position:y", 0.0, ENTER_TIME)
+	rise.tween_property(_shell, "position:y", 0.0, ENTER_TIME)
 
 
 func _build() -> void:
@@ -141,15 +173,26 @@ func _build() -> void:
 	dim.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	root.add_child(dim)
 
+	## Full rect, with the margins doing the sizing: the box then sits at the bottom of what
+	## is left and takes the height of what it holds.
+	var shell := MarginContainer.new()
+	shell.set_anchors_preset(Control.PRESET_FULL_RECT)
+	shell.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	root.add_child(shell)
+
+	var stack := VBoxContainer.new()
+	stack.alignment = BoxContainer.ALIGNMENT_END
+	stack.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	shell.add_child(stack)
+
 	var frame := PanelContainer.new()
-	frame.anchor_left = 0.0
-	frame.anchor_right = 1.0
-	frame.anchor_top = 1.0 - PANEL_HEIGHT
-	frame.anchor_bottom = 1.0
-	frame.offset_left = PANEL_MARGIN.x
-	frame.offset_right = -PANEL_MARGIN.x
-	frame.offset_bottom = -PANEL_MARGIN.y
+	frame.size_flags_vertical = Control.SIZE_SHRINK_END
 	frame.mouse_filter = Control.MOUSE_FILTER_STOP
+	## The box itself is a place to press. On a phone the touch HUD's USE button is behind
+	## this panel, so without it a line with nothing to say back to is a line nobody can get
+	## past. A tap reads the same way on a desktop, where clicking to go on is what a player
+	## tries first anyway.
+	frame.gui_input.connect(_tapped)
 	var skin := StyleBoxFlat.new()
 	skin.bg_color = BACKDROP
 	skin.border_color = MenuStyle.PAPER_EDGE
@@ -159,8 +202,9 @@ func _build() -> void:
 	skin.shadow_color = Color(0.0, 0.0, 0.0, 0.35)
 	skin.shadow_size = 10
 	frame.add_theme_stylebox_override("panel", skin)
-	root.add_child(frame)
+	stack.add_child(frame)
 	_root = root
+	_shell = shell
 	_frame = frame
 
 	var column := VBoxContainer.new()
@@ -176,7 +220,8 @@ func _build() -> void:
 	_name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	header.add_child(_name_label)
 
-	header.add_child(_close_button())
+	_close = _close_button()
+	header.add_child(_close)
 
 	## A ruled line under the name, the way a page is headed. Also the only thing telling
 	## the eye where the speaker stops and the speech starts.
@@ -201,9 +246,75 @@ func _build() -> void:
 	column.add_child(_choices)
 
 	_hint = Label.new()
-	_hint.add_theme_font_size_override("font_size", 14)
+	_hint.add_theme_font_size_override("font_size", HINT_FONT)
 	_hint.add_theme_color_override("font_color", MenuStyle.PAPER)
 	column.add_child(_hint)
+
+	_fit()
+	get_viewport().size_changed.connect(_fit)
+
+
+## Everything the shape of the window decides. Pure, and taken apart from the panel it
+## dresses, so what a phone gets can be checked without a phone.
+static func metrics(view: Vector2, touch := false) -> Dictionary:
+	var side := clampf(view.x * SIDE_UV, SIDE_RANGE.x, SIDE_RANGE.y)
+	## A line ruled from edge to edge of a wide window is hard to read back to the start of,
+	## so past a point the box stops widening and centres instead.
+	var width := minf(maxf(view.x - side * 2.0, 0.0), MAX_WIDTH)
+	var font := TOUCH_FONT if touch else 1.0
+	return {
+		"side": maxf((view.x - width) * 0.5, 0.0),
+		"bottom": clampf(view.y * BOTTOM_UV, BOTTOM_RANGE.x, BOTTOM_RANGE.y),
+		"top": view.y * TOP_UV,
+		"width": width,
+		"min_height": clampf(view.y * MIN_HEIGHT_UV, MIN_HEIGHT_RANGE.x, MIN_HEIGHT_RANGE.y),
+		"name_font": int(round(NAME_FONT * font)),
+		"line_font": int(round(LINE_FONT * font)),
+		"hint_font": int(round(HINT_FONT * font)),
+		"close": TOUCH_CLOSE if touch else CLOSE_SIZE,
+		"reply_min_h": TOUCH_REPLY_MIN_H if touch else MenuStyle.REPLY_MIN_H,
+		## A thumb wants the whole width to aim at; a pointer does not need it and a row of
+		## full-width slabs reads as a menu rather than as something somebody would say.
+		"reply_fill": touch,
+	}
+
+
+## Re-read whenever the window changes, so a phone turned on its side is laid out for the
+## shape it is now rather than the one it started in.
+func _fit() -> void:
+	if _frame == null:
+		return
+	var view := get_viewport().get_visible_rect().size
+	var m := metrics(view, MenuStyle.touch)
+	_shell.add_theme_constant_override("margin_left", int(m["side"]))
+	_shell.add_theme_constant_override("margin_right", int(m["side"]))
+	_shell.add_theme_constant_override("margin_bottom", int(m["bottom"]))
+	_shell.add_theme_constant_override("margin_top", int(m["top"]))
+	_floor = float(m["min_height"])
+	_frame.custom_minimum_size.y = maxf(_frame.custom_minimum_size.y, _floor)
+	_name_label.add_theme_font_size_override("font_size", int(m["name_font"]))
+	_line_label.add_theme_font_size_override("font_size", int(m["line_font"]))
+	_hint.add_theme_font_size_override("font_size", int(m["hint_font"]))
+	_close.custom_minimum_size = Vector2(float(m["close"]), float(m["close"]))
+	_reply_min_h = float(m["reply_min_h"])
+	_reply_fill = bool(m["reply_fill"])
+	for reply in _choices.get_children():
+		_dress_reply(reply as Control)
+
+
+func _dress_reply(reply: Control) -> void:
+	reply.custom_minimum_size.y = _reply_min_h
+	reply.size_flags_horizontal = Control.SIZE_FILL if _reply_fill else Control.SIZE_SHRINK_BEGIN
+
+
+## Holds the box open at the height the replies will want, measured while they are up and
+## before they are hidden again.
+func _reserve() -> void:
+	if _frame == null:
+		return
+	_frame.custom_minimum_size.y = 0.0
+	_choices.visible = true
+	_frame.custom_minimum_size.y = maxf(_frame.get_combined_minimum_size().y, _floor)
 
 
 ## A way out that does not need the player to know which key leaves. Kept off the focus
@@ -248,7 +359,7 @@ func _show_node() -> void:
 		if numbered <= REPLY_KEYS:
 			text = "%d.  %s" % [numbered, text]
 		var button := PaperButton.reply(text, func() -> void: _take(index))
-		button.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+		_dress_reply(button)
 		## The mouse moves the focus rather than fighting it, or the key that answers and
 		## the reply under the pointer are two different replies.
 		button.mouse_entered.connect(button.grab_focus)
@@ -256,6 +367,11 @@ func _show_node() -> void:
 
 	## Held back until the line is out. Replies appearing under a sentence still being
 	## spoken invite an answer to a question that has not been asked yet.
+	##
+	## Their room is kept for them, though. Now the box is only as tall as it needs to be,
+	## replies arriving into a box measured without them would push it upward mid-sentence
+	## and move the line the player is reading.
+	_reserve()
 	_choices.visible = false
 	_hint.text = ""
 	_pulse = 0.0
@@ -426,14 +542,33 @@ func _input(event: InputEvent) -> void:
 		return
 	if event.is_action_pressed(&"interact") or event.is_action_pressed(&"ui_accept"):
 		get_viewport().set_input_as_handled()
-		## The first press hurries the line up rather than skipping past it, or a player
-		## leaning on the key never sees the half of it they were reading.
-		if is_typing():
-			skip_typing()
-		elif _pending >= 0:
-			_answer()
-		elif runner.choices().is_empty():
-			runner.advance()
+		_go_on()
+
+
+## A press on the box. A reply or the close button under the finger takes its own press
+## first, so this is only ever the paper between them.
+func _tapped(event: InputEvent) -> void:
+	var down := false
+	if event is InputEventScreenTouch:
+		down = (event as InputEventScreenTouch).pressed
+	elif event is InputEventMouseButton:
+		var click := event as InputEventMouseButton
+		down = click.pressed and click.button_index == MOUSE_BUTTON_LEFT
+	if not down or runner == null or not runner.is_running():
+		return
+	_frame.accept_event()
+	_go_on()
+
+
+## The first press hurries the line up rather than skipping past it, or a player leaning on
+## the key never sees the half of it they were reading.
+func _go_on() -> void:
+	if is_typing():
+		skip_typing()
+	elif _pending >= 0:
+		_answer()
+	elif runner.choices().is_empty():
+		runner.advance()
 
 
 ## Reentrant: stopping the runner reports it finished, and that is wired back to here.
