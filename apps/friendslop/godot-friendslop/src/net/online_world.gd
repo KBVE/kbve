@@ -113,7 +113,7 @@ func _on_avatar_spawned(body_id: int, node: Node3D) -> void:
 		return
 	if body_id == _client.local_body():
 		_local_avatar = avatar
-		avatar.mark_local()
+		avatar.mark_local(_rig)
 		_rig.follow(avatar)
 	_refresh_nameplates()
 
