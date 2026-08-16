@@ -185,7 +185,8 @@ func test_the_roll_quarter_follows_the_heading() -> void:
 			Vector2(1.0, 0.0): 3}
 	for axis in thrown:
 		var fresh := QLocomotion.create()
-		fresh.step_motion(axis, false, false, true, Vector3.ZERO, 0.0, true, -9.8, 1.0 / 60.0)
+		fresh.step_motion(axis, false, false, true, false, Vector3.ZERO, 0.0, true, -9.8,
+				1.0 / 60.0)
 		assert_int(fresh.roll_variant()) \
 				.override_failure_message("%s picked the wrong quarter" % axis) \
 				.is_equal(thrown[axis])
@@ -210,7 +211,8 @@ func test_the_crouch_ring_is_its_own() -> void:
 	assert_float(Rig.CROUCH_GAIT_CLIPS[0].radius).is_equal(1.0)
 	var loco := QLocomotion.create()
 	var walked := loco.gait_speed(Vector2(0.0, 1.0))
-	loco.step_motion(Vector2(0.0, 1.0), false, true, false, Vector3.ZERO, 0.0, true, -9.8, 1.0 / 60.0)
+	loco.step_motion(Vector2(0.0, 1.0), false, true, false, false, Vector3.ZERO, 0.0, true,
+			-9.8, 1.0 / 60.0)
 	assert_float(loco.gait_speed(Vector2(0.0, 1.0))).is_less(walked)
 	assert_bool(loco.is_crouched()).is_true()
 
@@ -267,3 +269,54 @@ func test_ground_weight_follows_the_crossfade() -> void:
 	assert_float(rig.ground_weight_for(&"move", &"jump_land", -4.0)).is_equal_approx(0.7, 0.001)
 	assert_float(rig.ground_weight_for(&"nonexistent", &"", 0.0)).is_equal(1.0)
 	rig.free()
+
+
+## A guard is a layer, not a stance. It has to leave the state machine alone entirely,
+## or every gait would need a shield twin of its own.
+func test_a_guard_costs_no_state() -> void:
+	for state in Rig.STATES:
+		assert_str(String(state)).is_not_equal("block")
+		assert_str(String(state)).is_not_equal("shield")
+	var loco := QLocomotion.create()
+	loco.step_motion(Vector2(0.0, 1.0), false, false, false, true, Vector3.ZERO, 0.0,
+			true, -9.8, 1.0 / 60.0)
+	assert_bool(loco.is_blocking()).is_true()
+	loco.step(Vector3.ZERO, false, 1.0 / 60.0)
+	assert_int(loco.stance()).is_equal(QLocomotion.STANCE_MOVE)
+
+
+## The shield rides on the states that have legs of their own, and nowhere else.
+func test_the_shield_layers_over_the_gaits() -> void:
+	assert_int(Rig.SHIELD_LAYERS.size()).is_equal(2)
+	for layer in Rig.SHIELD_LAYERS:
+		assert_bool(Rig.STATES.has(layer)) \
+				.override_failure_message("no state '%s' to guard" % layer).is_true()
+		assert_str(Rig.STATES[layer].clip) \
+				.override_failure_message("'%s' is a single clip, not a gait" % layer).is_empty()
+
+
+## The guard hangs off a bone of the *retargeted* skeleton, not of the glb: the importer
+## maps the kit onto the humanoid profile, so `spine_01` becomes `Spine`. Naming a bone
+## that does not survive that fails silently -- an empty filter is a layer that blends
+## nothing -- which is exactly why it is asserted here rather than left to be noticed.
+func test_the_guard_hangs_off_a_bone_the_import_keeps() -> void:
+	var profile := SkeletonProfileHumanoid.new()
+	var names := {}
+	for i in profile.bone_size:
+		names[profile.get_bone_name(i)] = profile.get_bone_parent(i)
+	assert_bool(names.has(Rig.SHIELD_ROOT_BONE)) \
+			.override_failure_message("'%s' is not a humanoid bone, so the filter comes out empty"
+				% Rig.SHIELD_ROOT_BONE).is_true()
+
+	## And the legs must not sit under it, or raising the shield would stop the walk.
+	for leg in [&"LeftUpperLeg", &"RightUpperLeg", &"LeftFoot", &"RightFoot"]:
+		var walker: StringName = leg
+		var guarded := false
+		while names.has(walker) and walker != &"":
+			if walker == Rig.SHIELD_ROOT_BONE:
+				guarded = true
+				break
+			walker = names[walker]
+		assert_bool(guarded) \
+				.override_failure_message("'%s' sits under the guard and would stop walking" % leg) \
+				.is_false()

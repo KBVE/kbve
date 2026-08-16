@@ -146,6 +146,12 @@ pub struct Tuning {
     pub turn_settle: f32,
     /// Standing turn wider than this plays the half circle rather than the quarter.
     pub turn_half_split: f32,
+    /// What a raised guard leaves of the top speeds. A fraction rather than a table of
+    /// its own: the legs stay on the ring they were already on and simply sit further
+    /// down it, so the gait keeps solving itself.
+    pub block_speed_scale: f32,
+    /// How fast the shield comes up and down, per second.
+    pub block_blend_rate: f32,
 }
 
 impl Default for Tuning {
@@ -175,6 +181,8 @@ impl Default for Tuning {
             turn_deadzone: 0.79,
             turn_settle: 0.06,
             turn_half_split: 2.36,
+            block_speed_scale: 0.55,
+            block_blend_rate: 9.0,
         }
     }
 }
@@ -188,6 +196,9 @@ pub struct Intent {
     pub crouch: bool,
     /// An edge, not a level: the roll it starts runs to its own end.
     pub roll: bool,
+    /// Held. A guard is not a stance of its own: the legs keep whatever gait they were
+    /// in and only the upper body takes the shield, so it costs no state at all.
+    pub block: bool,
 }
 
 /// Velocity the body should carry into its collide-and-slide, plus whatever the step
@@ -232,6 +243,8 @@ pub struct LocomotionState {
     /// The same heading solved against the crouch ring. Carried every tick rather than
     /// only while crouched, so the two spaces are both current while they cross-fade.
     pub crouch_blend: [f32; 2],
+    /// How much of the shield pose the upper body is wearing.
+    pub block_weight: f32,
     pub time_scale: f32,
     pub stance: Stance,
 }
@@ -241,6 +254,7 @@ impl Default for LocomotionState {
         Self {
             blend: [0.0, 0.0],
             crouch_blend: [0.0, 0.0],
+            block_weight: 0.0,
             time_scale: 1.0,
             stance: Stance::Move,
         }
@@ -257,6 +271,9 @@ pub struct Locomotion {
     /// Whether the last motion step was taken crouched, which is what decides both the
     /// speed the body travels and the ring the rig reads.
     crouched: bool,
+    /// Whether the guard is up, and how far up it has actually come.
+    blocking: bool,
+    block_weight: f32,
     /// Time left in the roll that owns the body, and the heading it was launched on --
     /// in world space for the travel, and in the body's own frame for the clip.
     roll_t: f32,
@@ -286,6 +303,8 @@ impl Locomotion {
             crouch_blend: [0.0, 0.0],
             climbing: None,
             crouched: false,
+            blocking: false,
+            block_weight: 0.0,
             roll_t: 0.0,
             roll_dir: [0.0, 0.0, -1.0],
             roll_axis: [0.0, 1.0],
@@ -309,15 +328,30 @@ impl Locomotion {
         } else {
             (t.speed, t.back_speed, t.strafe_speed)
         };
-        if dir[1] < 0.0 {
+        let top = if dir[1] < 0.0 {
             lerp(strafe, back, -dir[1])
         } else {
             lerp(strafe, fwd, dir[1])
+        };
+        if self.blocking {
+            top * t.block_speed_scale
+        } else {
+            top
         }
     }
 
     pub fn is_crouched(&self) -> bool {
         self.crouched
+    }
+
+    pub fn is_blocking(&self) -> bool {
+        self.blocking
+    }
+
+    /// How far the shield has actually come up, which is what the rig blends over the
+    /// upper body. Eased rather than latched, so a tapped guard does not snap.
+    pub fn block_weight(&self) -> f32 {
+        self.block_weight
     }
 
     pub fn is_rolling(&self) -> bool {
@@ -388,6 +422,7 @@ impl Locomotion {
         }
         let rolling = self.roll_t > 0.0;
         self.crouched = intent.crouch && grounded && !rolling;
+        self.blocking = intent.block && grounded && !rolling && self.climbing.is_none();
 
         if !grounded {
             out[1] += gravity_y * dt;
@@ -548,9 +583,14 @@ impl Locomotion {
             self.land_t = 0.0;
         }
 
+        let guard = if self.blocking { 1.0 } else { 0.0 };
+        let raise = (self.tuning.block_blend_rate * dt).clamp(0.0, 1.0);
+        self.block_weight = lerp(self.block_weight, guard, raise);
+
         LocomotionState {
             blend: self.blend,
             crouch_blend: self.crouch_blend,
+            block_weight: self.block_weight,
             time_scale: if self.crouched {
                 self.crouch_time_scale(speed, dir)
             } else {
@@ -1302,6 +1342,94 @@ mod tests {
         };
         l.step_motion(press, [0.0; 3], 0.0, false, -9.8, 1.0 / 60.0);
         assert!(!l.is_rolling());
+    }
+
+    fn guarding(axis: [f32; 2]) -> Intent {
+        Intent {
+            move_axis: axis,
+            block: true,
+            ..Intent::default()
+        }
+    }
+
+    /// A guard costs speed but not a stance: the legs stay on the gait they were on and
+    /// simply sit further down it, which is what lets the shield ride over any of them.
+    #[test]
+    fn a_guard_slows_the_body_without_taking_a_stance() {
+        let mut l = loco();
+        let open = l.step_motion(
+            Intent {
+                move_axis: FWD,
+                ..Intent::default()
+            },
+            [0.0; 3],
+            0.0,
+            true,
+            -9.8,
+            1.0 / 60.0,
+        );
+        let guarded = l.step_motion(guarding(FWD), [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+        assert!(guarded.velocity[2].abs() < open.velocity[2].abs());
+        assert!(
+            (guarded.velocity[2].abs() - l.tuning.speed * l.tuning.block_speed_scale).abs() < 0.001
+        );
+        assert!(l.is_blocking());
+        assert_eq!(l.step([0.0; 3], false, 1.0 / 60.0).stance, Stance::Move);
+    }
+
+    #[test]
+    fn a_guard_can_be_held_while_crouched() {
+        let mut l = loco();
+        let both = Intent {
+            move_axis: FWD,
+            crouch: true,
+            block: true,
+            ..Intent::default()
+        };
+        let m = l.step_motion(both, [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+        assert!(l.is_blocking() && l.is_crouched());
+        let want = l.tuning.crouch_speed * l.tuning.block_speed_scale;
+        assert!((m.velocity[2].abs() - want).abs() < 0.001, "{m:?}");
+        assert_eq!(l.step([0.0; 3], false, 1.0 / 60.0).stance, Stance::Crouch);
+    }
+
+    /// The shield eases up and down rather than snapping, and settles at both ends.
+    #[test]
+    fn the_shield_eases_up_and_back_down() {
+        let mut l = loco();
+        l.step_motion(guarding([0.0; 2]), [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+        let first = l.step([0.0; 3], false, 1.0 / 60.0).block_weight;
+        assert!(first > 0.0 && first < 0.5, "snapped to {first}");
+        for _ in 0..120 {
+            l.step_motion(guarding([0.0; 2]), [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+            l.step([0.0; 3], false, 1.0 / 60.0);
+        }
+        assert!(l.block_weight() > 0.99, "settled at {}", l.block_weight());
+
+        for _ in 0..120 {
+            l.step_motion(Intent::default(), [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+            l.step([0.0; 3], false, 1.0 / 60.0);
+        }
+        assert!(l.block_weight() < 0.01, "stuck at {}", l.block_weight());
+    }
+
+    /// Nothing about a guard survives being off the floor or being rolled through.
+    #[test]
+    fn a_guard_drops_when_the_body_is_busy() {
+        let mut l = loco();
+        l.step_motion(guarding([0.0; 2]), [0.0; 3], 0.0, false, -9.8, 1.0 / 60.0);
+        assert!(!l.is_blocking(), "guarded in mid-air");
+
+        let mut rolled = loco();
+        let throw = Intent {
+            move_axis: FWD,
+            roll: true,
+            block: true,
+            ..Intent::default()
+        };
+        rolled.step_motion(throw, [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+        assert!(rolled.is_rolling());
+        assert!(!rolled.is_blocking(), "guarded through a roll");
     }
 
     #[test]

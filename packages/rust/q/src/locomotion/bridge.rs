@@ -67,6 +67,7 @@ impl QLocomotion {
         jump: bool,
         crouch: bool,
         roll: bool,
+        block: bool,
         velocity: Vector3,
         yaw: f32,
         grounded: bool,
@@ -79,6 +80,7 @@ impl QLocomotion {
                 jump,
                 crouch,
                 roll,
+                block,
             },
             [velocity.x, velocity.y, velocity.z],
             yaw,
@@ -180,6 +182,23 @@ impl QLocomotion {
     #[func]
     fn roll_variant(&self) -> i64 {
         self.inner.roll_variant() as i64
+    }
+
+    /// How far the shield has come up, for the rig to blend over the upper body.
+    #[func]
+    fn block_weight(&self) -> f32 {
+        self.state.block_weight
+    }
+
+    #[func]
+    fn is_blocking(&self) -> bool {
+        self.inner.is_blocking()
+    }
+
+    #[func]
+    fn set_block(&mut self, speed_scale: f32, blend_rate: f32) {
+        self.inner.tuning.block_speed_scale = speed_scale;
+        self.inner.tuning.block_blend_rate = blend_rate;
     }
 
     #[func]

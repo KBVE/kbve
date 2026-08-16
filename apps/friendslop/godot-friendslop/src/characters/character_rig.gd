@@ -73,6 +73,17 @@ var loco := QLocomotion.create()
 const IDLE_CLIP := "UAL1/Idle"
 const CROUCH_IDLE_CLIP := "UAL1/Crouch_Idle"
 
+## A raised guard is not a stance. The kit's only shield locomotion is a sprint, which
+## skates at anything short of a run, so the shield is layered over the legs instead:
+## everything from this bone up takes the guard pose and the legs keep their own gait.
+const SHIELD_CLIP := "UAL2/Idle_Shield"
+## The importer retargets the kit onto the humanoid profile, so the bone to hang the
+## guard off is `Spine` -- not the `spine_01` the glb itself carries. Everything above it
+## is torso, arms and head; the legs hang off `Hips` alongside it and are left alone.
+const SHIELD_ROOT_BONE := &"Spine"
+## States carrying the shield layer, at `parameters/<state>/shield/blend_amount`.
+const SHIELD_LAYERS := [&"move", &"crouch"]
+
 ## One clip per quarter, indexed the way QLocomotion reports the roll it threw. The kit
 ## has no backward roll -- BackFlip is the only clip in it that carries the body away
 ## from where it is looking, so the back quarter borrows that.
@@ -132,12 +143,21 @@ const TURN_CHAIN := [
 ## A roll can be thrown from either stance and always ends standing. Nothing here waits
 ## on a clip: QLocomotion decides when the roll is over and the graph is told, which is
 ## the whole point -- see FITTED.
+##
+## Out is as quick as in. The body leaves a roll at the speed it entered on, so a longer
+## blend on the way out is time spent travelling in a pose that is no longer being held
+## -- which reads as a slide out of the roll rather than a step back into the run. The
+## kit has no recovery clip to cover it, so the fix is to spend less time between the
+## two. It also brings the feet back: `_ground_weight` ramps over the fade, so the roll's
+## near-zero IK is what the legs are on until it finishes.
+const ROLL_XFADE := 0.10
+
 static func roll_chain() -> Array:
 	var out: Array = []
 	for state in ROLL_STATES:
 		for from in ["move", "crouch", "crouch_enter"]:
-			out.append({"from": from, "to": String(state), "at_end": false, "xfade": 0.10})
-		out.append({"from": String(state), "to": "move", "at_end": false, "xfade": 0.20})
+			out.append({"from": from, "to": String(state), "at_end": false, "xfade": ROLL_XFADE})
+		out.append({"from": String(state), "to": "move", "at_end": false, "xfade": ROLL_XFADE})
 	return out
 
 ## What each state wants out of a transition into it.
@@ -360,8 +380,8 @@ func _build_animation(rig: Node3D) -> void:
 
 func _build_tree(rig: Node3D) -> void:
 	var machine := AnimationNodeStateMachine.new()
-	machine.add_node("move", _rescaled(_ring(GAIT_CLIPS, IDLE_CLIP, 2.2)))
-	machine.add_node("crouch", _rescaled(_ring(CROUCH_GAIT_CLIPS, CROUCH_IDLE_CLIP, 1.2)))
+	machine.add_node("move", _guarded(_ring(GAIT_CLIPS, IDLE_CLIP, 2.2), rig))
+	machine.add_node("crouch", _guarded(_ring(CROUCH_GAIT_CLIPS, CROUCH_IDLE_CLIP, 1.2), rig))
 	for state in STATES:
 		var clip: String = STATES[state].clip
 		if clip != "":
@@ -444,6 +464,53 @@ func _rescaled(inner: AnimationNode) -> AnimationNodeBlendTree:
 	return tree_node
 
 
+## The same, with the shield pose laid over the upper body. The filter is what makes it a
+## layer rather than a replacement: only the bones named in it take the guard, so the
+## legs go on walking, running or crouching underneath it untouched.
+func _guarded(inner: AnimationNode, rig: Node3D) -> AnimationNodeBlendTree:
+	var shield := _clip(SHIELD_CLIP)
+	var tracks := upper_body_tracks(rig)
+	## No clip or nothing to hang it off -- a stub body in a test, say -- and the layer is
+	## left out rather than built empty, since a filter with nothing in it blends nothing.
+	if shield == null or tracks.is_empty():
+		return _rescaled(inner)
+	var blend := AnimationNodeBlend2.new()
+	blend.filter_enabled = true
+	for path in tracks:
+		blend.set_filter_path(path, true)
+	## Built out rather than wired onto a finished tree, since output takes one connection
+	## and re-making it is an error rather than a replacement.
+	var tree_node := AnimationNodeBlendTree.new()
+	tree_node.add_node("space", inner)
+	tree_node.add_node("scale", AnimationNodeTimeScale.new())
+	tree_node.add_node("guard", shield)
+	tree_node.add_node("shield", blend)
+	tree_node.connect_node("scale", 0, "space")
+	tree_node.connect_node("shield", 0, "scale")
+	tree_node.connect_node("shield", 1, "guard")
+	tree_node.connect_node("output", 0, "shield")
+	return tree_node
+
+
+## Track paths for every bone from SHIELD_ROOT_BONE up, which is the half of the skeleton
+## a guard owns. Anything below it -- the legs, the pelvis, the root -- is left alone.
+func upper_body_tracks(rig: Node3D) -> PackedStringArray:
+	var out := PackedStringArray()
+	if skeleton == null:
+		return out
+	var start := skeleton.find_bone(SHIELD_ROOT_BONE)
+	if start < 0:
+		return out
+	var base := String(rig.get_path_to(skeleton))
+	var stack: Array[int] = [start]
+	while not stack.is_empty():
+		var bone: int = stack.pop_back()
+		out.append("%s:%s" % [base, skeleton.get_bone_name(bone)])
+		for child in skeleton.get_bone_children(bone):
+			stack.append(child)
+	return out
+
+
 ## A one-shot is authored for however long the kit felt like; what matters is the window
 ## the simulation gives it. Playing it at the rate that makes the two end together keeps
 ## the whole clip visible without it outstaying the moment it covers.
@@ -501,12 +568,13 @@ func wish_direction(input_dir: Vector2, yaw: float) -> Vector3:
 	return loco.wish_direction(Vector2(input_dir.x, -input_dir.y), yaw)
 
 
-## Velocity for one tick. `crouch` is held for as long as the stance should last; `roll`
-## is the press that starts one, and is ignored until the roll it started has run out.
-func step_motion(input_dir: Vector2, jump: bool, crouch: bool, roll: bool,
+## Velocity for one tick. `crouch` and `block` are held for as long as they should last;
+## `roll` is the press that starts one, and is ignored until the roll it started has run
+## out.
+func step_motion(input_dir: Vector2, jump: bool, crouch: bool, roll: bool, block: bool,
 		velocity: Vector3, yaw: float, grounded: bool, gravity_y: float,
 		delta: float) -> Vector3:
-	return loco.step_motion(Vector2(input_dir.x, -input_dir.y), jump, crouch, roll,
+	return loco.step_motion(Vector2(input_dir.x, -input_dir.y), jump, crouch, roll, block,
 			velocity, yaw, grounded, gravity_y, delta)
 
 
@@ -545,6 +613,9 @@ func set_locomotion(local_velocity: Vector3, airborne: bool, delta: float) -> vo
 	var scale := loco.time_scale()
 	tree.set("parameters/move/scale/scale", scale)
 	tree.set("parameters/crouch/scale/scale", scale)
+	var guard := loco.block_weight()
+	for layer in SHIELD_LAYERS:
+		tree.set("parameters/%s/shield/blend_amount" % layer, guard)
 	var playback: AnimationNodeStateMachinePlayback = tree.get("parameters/playback")
 	if ik:
 		ik.set_ground_weight(_ground_weight(playback))

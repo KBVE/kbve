@@ -193,6 +193,8 @@ mod tests {
             variant: 0,
             ore: 0,
             amount: 0,
+            cell: [cell_x, cell_z],
+            ordinal: 0,
         }
     }
 
@@ -298,6 +300,8 @@ mod tests {
             variant: 0,
             ore: 0,
             amount: 0,
+            cell: [cell_x, cell_z],
+            ordinal: 0,
         }
     }
 
