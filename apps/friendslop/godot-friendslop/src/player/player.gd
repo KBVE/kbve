@@ -117,6 +117,10 @@ func set_talking(on: bool) -> void:
 	_talking = on
 
 
+func is_talking() -> bool:
+	return _talking
+
+
 func _unhandled_input(event: InputEvent) -> void:
 	if _touch or _talking:
 		return
