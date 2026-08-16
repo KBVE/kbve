@@ -1,0 +1,81 @@
+name: Q Crate Tests
+
+# q is split down the middle by a pair of mutually exclusive features, and
+# `cargo test` on its own compiles only the `client` half. Everything under
+# `net/` -- the session, the wire protocol, the host's authority over harvesting
+# -- is invisible to a bare run, so a compile break there can sit on dev without
+# anything going red. Both halves are run here, on every change to the crate.
+
+on:
+    workflow_dispatch:
+    pull_request:
+        paths:
+            - 'packages/rust/q/**'
+            - 'Cargo.toml'
+            - 'Cargo.lock'
+            - '.github/workflows/rust-q-tests.yml'
+
+env:
+    CARGO_NET_RETRY: '10'
+    CARGO_NET_TIMEOUT: '60'
+    RUSTUP_MAX_RETRIES: '10'
+    CARGO_TERM_COLOR: always
+
+jobs:
+    test:
+        name: ${{ matrix.name }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        permissions:
+            contents: read
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    # The client half, with the Godot bridge, the 3d sim and the
+                    # networked session on top. A superset of the default feature
+                    # set, so this covers plain consumers too.
+                    - name: client (net-godot)
+                      features: '--features net-godot'
+                    # The other side of the compile_error! in lib.rs, which is what
+                    # the dedicated host actually ships as.
+                    - name: server (net-server)
+                      features: '--no-default-features --features net-server,net-session'
+
+        steps:
+            # graphify/dir has colons in filenames. Git validates every index
+            # entry, so sparse-checkout alone still aborts the clone.
+            - name: Checkout repository
+              uses: actions/checkout@v7
+              with:
+                  sparse-checkout: |
+                      /*
+                      !/apps/kbve/astro-kbve/public/graphify
+                  sparse-checkout-cone-mode: false
+
+            # The `client` half pulls godot-rust and the wry stack's headers even
+            # when the webview feature is off.
+            - name: Install system libraries
+              run: |
+                  sudo apt-get update -qq
+                  sudo apt-get install -y --no-install-recommends \
+                    pkg-config libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev
+
+            - name: Rust ToolChain (1.96)
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                  toolchain: '1.96'
+
+            - name: Cache cargo
+              uses: actions/cache@v6
+              with:
+                  path: |
+                      ~/.cargo/registry
+                      ~/.cargo/git
+                      target
+                  key: ${{ runner.os }}-cargo-q-${{ matrix.name }}-${{ hashFiles('Cargo.lock') }}
+                  restore-keys: |
+                      ${{ runner.os }}-cargo-q-${{ matrix.name }}-
+
+            - name: Test
+              run: cargo test -p q --lib ${{ matrix.features }}
