@@ -1,3 +1,9 @@
+/**
+ * @deprecated Superseded by MCItemsGrid.astro, which renders every item at
+ * build time and drives the watch stars from one delegated handler instead of
+ * an island per card. Kept for reference only — not mounted on any route.
+ * The /api/mc-items.json endpoint it fetched is still live for other consumers.
+ */
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { mcTextureUrls } from './texture';
 import { WatchToggle } from '@/components/market/WatchToggle';

@@ -1,0 +1,281 @@
+---
+import { getCollection } from 'astro:content';
+import { mcTextureUrls } from './texture';
+
+interface Props {
+	lockedCategory?: string;
+}
+
+const { lockedCategory } = Astro.props;
+
+interface Row {
+	ref: string;
+	slug: string;
+	display_name: string;
+	category: string;
+	tier: string;
+}
+
+const entries = await getCollection(
+	'docs',
+	(entry: { id: string; data: Record<string, unknown> }) =>
+		entry.id.startsWith('mc/items/') && Boolean(entry.data?.mc_item),
+);
+
+const rows: Row[] = [];
+for (const entry of entries) {
+	const it = (entry.data as { mc_item?: Record<string, unknown> }).mc_item;
+	if (!it) continue;
+	const category = String(it.category ?? '');
+	if (lockedCategory && category !== lockedCategory) continue;
+	rows.push({
+		ref: String(it.ref ?? ''),
+		slug: String(it.slug ?? ''),
+		display_name: String(it.display_name ?? ''),
+		category,
+		tier: it.tier ? String(it.tier) : '',
+	});
+}
+rows.sort((a, b) => a.display_name.localeCompare(b.display_name));
+
+const categories = [...new Set(rows.map((r) => r.category))]
+	.filter(Boolean)
+	.sort();
+const tiers = [...new Set(rows.map((r) => r.tier))].filter(Boolean).sort();
+---
+
+<div class="mcdb-browse" data-mc-grid="item">
+	<div class="mcdb-browse__filters">
+		<label class="mcdb-browse__filter mcdb-browse__filter--search">
+			<span>Search</span>
+			<input
+				type="search"
+				data-mc-q
+				placeholder="diamond, sword, apple…"
+				class="mcdb-browse__input"
+				autocomplete="off"
+			/>
+		</label>
+		{
+			!lockedCategory && (
+				<label class="mcdb-browse__filter">
+					<span>Category</span>
+					<select data-mc-category class="mcdb-browse__input">
+						<option value="all">All</option>
+						{categories.map((c) => (
+							<option value={c}>{c}</option>
+						))}
+					</select>
+				</label>
+			)
+		}
+		<label class="mcdb-browse__filter">
+			<span>Tier</span>
+			<select data-mc-tier class="mcdb-browse__input">
+				<option value="all">All</option>
+				{tiers.map((t) => <option value={t}>{t}</option>)}
+			</select>
+		</label>
+		<button type="button" class="mcdb-browse__reset" data-mc-reset>
+			Reset
+		</button>
+	</div>
+
+	<div class="mcdb-browse__count" data-mc-count>
+		{rows.length.toLocaleString()} / {rows.length.toLocaleString()} items
+	</div>
+
+	<div class="mcdb-browse__status" data-mc-empty hidden>No items match.</div>
+
+	<div class="mcdb-browse__grid">
+		{
+			rows.map((it) => {
+				const tex = mcTextureUrls(it.ref, it.category);
+				return (
+					<a
+						href={`/mc/items/${it.slug}/`}
+						class="mcdb-browse__card"
+						data-mc-tooltip
+						data-mc-ref={it.ref}
+						data-mc-card="item"
+						data-mc-slug={it.slug}
+						data-name={it.display_name.toLowerCase()}
+						data-ref={it.ref}
+						data-category={it.category}
+						data-tier={it.tier}>
+						<div class="mcdb-browse__watch">
+							<button
+								type="button"
+								class="kbve-market__watch kbve-market__watch--sm"
+								data-mc-watch={it.ref}
+								aria-pressed="false"
+								aria-label="Add to watch list"
+								title="Add to watch list">
+								<span aria-hidden="true">☆</span>
+							</button>
+						</div>
+						<div class="mcdb-browse__icon">
+							<img
+								src={tex.primary}
+								data-fallback={tex.fallback}
+								alt={it.display_name}
+								loading="lazy"
+								decoding="async"
+							/>
+						</div>
+						<div class="mcdb-browse__name">{it.display_name}</div>
+						<div class="mcdb-browse__meta">
+							<span class="mcdb-browse__cat">{it.category}</span>
+							{it.tier && (
+								<span class="mcdb-browse__tier">{it.tier}</span>
+							)}
+						</div>
+					</a>
+				);
+			})
+		}
+	</div>
+</div>
+
+<style is:global>
+	.mcdb-browse__card {
+		content-visibility: auto;
+		contain-intrinsic-size: auto 200px;
+	}
+
+	.mcdb-browse__card[hidden] {
+		display: none;
+	}
+</style>
+
+<script>
+	import { onMount } from '@kbve/astro/utils/clientRouter';
+	import {
+		isWatched,
+		subscribe,
+		toggleWatch,
+	} from '@/components/market/watchlist';
+
+	onMount(() => {
+		const root = document.querySelector<HTMLElement>(
+			'[data-mc-grid="item"]',
+		);
+		if (!root) return;
+
+		const q = root.querySelector<HTMLInputElement>('[data-mc-q]');
+		const category =
+			root.querySelector<HTMLSelectElement>('[data-mc-category]');
+		const tier = root.querySelector<HTMLSelectElement>('[data-mc-tier]');
+		const reset = root.querySelector<HTMLButtonElement>('[data-mc-reset]');
+		const count = root.querySelector<HTMLElement>('[data-mc-count]');
+		const empty = root.querySelector<HTMLElement>('[data-mc-empty]');
+		if (!q || !tier || !count || !empty) return;
+
+		const cards = [
+			...root.querySelectorAll<HTMLAnchorElement>('.mcdb-browse__card'),
+		];
+		const total = cards.length;
+
+		const retexture = (img: HTMLImageElement) => {
+			const fb = img.dataset.fallback;
+			if (img.dataset.fb === '1' || !fb) {
+				// Both texture guesses missed; the tile's own backdrop reads
+				// better than a broken-image glyph.
+				img.style.visibility = 'hidden';
+				return;
+			}
+			img.dataset.fb = '1';
+			img.src = fb;
+		};
+
+		root.addEventListener(
+			'error',
+			(ev) => {
+				const img = ev.target;
+				if (img instanceof HTMLImageElement) retexture(img);
+			},
+			true,
+		);
+
+		// Images above the fold start loading while the HTML parses, so the
+		// ones that 404 do so before this script ever runs. Sweep for those
+		// already-failed decodes instead of waiting for an event that fired.
+		for (const img of root.querySelectorAll<HTMLImageElement>(
+			'.mcdb-browse__icon img',
+		)) {
+			if (img.complete && img.naturalWidth === 0) retexture(img);
+		}
+
+		// The watch star was one React island per card. Server-render the
+		// button and drive every one of them from a single delegated click
+		// handler plus one store subscription.
+		const stars = [
+			...root.querySelectorAll<HTMLButtonElement>('[data-mc-watch]'),
+		];
+
+		const paint = () => {
+			for (const star of stars) {
+				const ref = star.dataset.mcWatch;
+				if (!ref) continue;
+				const on = isWatched({ kind: 'mc_item', ref });
+				star.setAttribute('aria-pressed', on ? 'true' : 'false');
+				star.classList.toggle('kbve-market__watch--on', on);
+				const label = on
+					? 'Remove from watch list'
+					: 'Add to watch list';
+				star.setAttribute('aria-label', label);
+				star.title = label;
+				const glyph = star.firstElementChild;
+				if (glyph) glyph.textContent = on ? '★' : '☆';
+			}
+		};
+
+		root.addEventListener('click', (ev) => {
+			const star = (ev.target as HTMLElement).closest<HTMLButtonElement>(
+				'[data-mc-watch]',
+			);
+			if (!star) return;
+			ev.preventDefault();
+			ev.stopPropagation();
+			const ref = star.dataset.mcWatch;
+			if (ref) toggleWatch({ kind: 'mc_item', ref });
+		});
+
+		const unsub = subscribe(paint);
+		paint();
+
+		const apply = () => {
+			const term = q.value.trim().toLowerCase();
+			const cat = category?.value ?? 'all';
+			const tr = tier.value;
+			let shown = 0;
+
+			for (const card of cards) {
+				const d = card.dataset;
+				const hit =
+					(cat === 'all' || d.category === cat) &&
+					(tr === 'all' || d.tier === tr) &&
+					(!term ||
+						(d.name ?? '').includes(term) ||
+						(d.ref ?? '').includes(term));
+				card.hidden = !hit;
+				if (hit) shown++;
+			}
+
+			empty.hidden = shown > 0;
+			count.textContent = `${shown.toLocaleString()} / ${total.toLocaleString()} items`;
+		};
+
+		q.addEventListener('input', apply);
+		tier.addEventListener('change', apply);
+		category?.addEventListener('change', apply);
+		reset?.addEventListener('click', () => {
+			q.value = '';
+			if (category) category.value = 'all';
+			tier.value = 'all';
+			apply();
+		});
+
+		return unsub;
+	});
+</script>

@@ -1,0 +1,228 @@
+---
+import { getCollection } from 'astro:content';
+import { mcTextureUrls } from './texture';
+
+interface Props {
+	lockedMaterial?: string;
+}
+
+const { lockedMaterial } = Astro.props;
+
+interface Row {
+	ref: string;
+	slug: string;
+	display_name: string;
+	material: string;
+	best_tool: string;
+}
+
+const entries = await getCollection(
+	'docs',
+	(entry: { id: string; data: Record<string, unknown> }) =>
+		entry.id.startsWith('mc/blocks/') && Boolean(entry.data?.mc_block),
+);
+
+const rows: Row[] = [];
+for (const entry of entries) {
+	const b = (entry.data as { mc_block?: Record<string, unknown> }).mc_block;
+	if (!b) continue;
+	const material = String(b.material ?? '');
+	if (lockedMaterial && material !== lockedMaterial) continue;
+	rows.push({
+		ref: String(b.ref ?? ''),
+		slug: String(b.slug ?? ''),
+		display_name: String(b.display_name ?? ''),
+		material,
+		best_tool: String(b.best_tool ?? ''),
+	});
+}
+rows.sort((a, b) => a.display_name.localeCompare(b.display_name));
+
+const materials = [...new Set(rows.map((r) => r.material))]
+	.filter(Boolean)
+	.sort();
+const tools = [...new Set(rows.map((r) => r.best_tool))].filter(Boolean).sort();
+---
+
+<div class="mcdb-browse" data-mc-grid="block">
+	<div class="mcdb-browse__filters">
+		<label class="mcdb-browse__filter mcdb-browse__filter--search">
+			<span>Search</span>
+			<input
+				type="search"
+				data-mc-q
+				placeholder="stone, oak, dirt…"
+				class="mcdb-browse__input"
+				autocomplete="off"
+			/>
+		</label>
+		{
+			!lockedMaterial && (
+				<label class="mcdb-browse__filter">
+					<span>Material</span>
+					<select data-mc-material class="mcdb-browse__input">
+						<option value="all">All</option>
+						{materials.map((m) => (
+							<option value={m}>{m}</option>
+						))}
+					</select>
+				</label>
+			)
+		}
+		<label class="mcdb-browse__filter">
+			<span>Tool</span>
+			<select data-mc-tool class="mcdb-browse__input">
+				<option value="all">All</option>
+				{tools.map((t) => <option value={t}>{t}</option>)}
+			</select>
+		</label>
+		<button type="button" class="mcdb-browse__reset" data-mc-reset>
+			Reset
+		</button>
+	</div>
+
+	<div class="mcdb-browse__count" data-mc-count>
+		{rows.length.toLocaleString()} / {rows.length.toLocaleString()} blocks
+	</div>
+
+	<div class="mcdb-browse__status" data-mc-empty hidden>No blocks match.</div>
+
+	<div class="mcdb-browse__grid">
+		{
+			rows.map((b) => {
+				const tex = mcTextureUrls(b.ref, 'block');
+				return (
+					<a
+						href={`/mc/blocks/${b.slug}/`}
+						class="mcdb-browse__card"
+						data-mc-card="block"
+						data-mc-slug={b.slug}
+						data-name={b.display_name.toLowerCase()}
+						data-ref={b.ref}
+						data-material={b.material}
+						data-tool={b.best_tool}>
+						<div class="mcdb-browse__icon">
+							<img
+								src={tex.primary}
+								data-fallback={tex.fallback}
+								alt={b.display_name}
+								loading="lazy"
+								decoding="async"
+							/>
+						</div>
+						<div class="mcdb-browse__name">{b.display_name}</div>
+						<div class="mcdb-browse__meta">
+							<span class="mcdb-browse__cat">{b.material}</span>
+							{b.best_tool && b.best_tool !== 'hand' && (
+								<span class="mcdb-browse__tier">
+									{b.best_tool}
+								</span>
+							)}
+						</div>
+					</a>
+				);
+			})
+		}
+	</div>
+</div>
+
+<style is:global>
+	.mcdb-browse__card {
+		content-visibility: auto;
+		contain-intrinsic-size: auto 200px;
+	}
+
+	.mcdb-browse__card[hidden] {
+		display: none;
+	}
+</style>
+
+<script>
+	import { onMount } from '@kbve/astro/utils/clientRouter';
+
+	onMount(() => {
+		const root = document.querySelector<HTMLElement>(
+			'[data-mc-grid="block"]',
+		);
+		if (!root) return;
+
+		const q = root.querySelector<HTMLInputElement>('[data-mc-q]');
+		const material =
+			root.querySelector<HTMLSelectElement>('[data-mc-material]');
+		const tool = root.querySelector<HTMLSelectElement>('[data-mc-tool]');
+		const reset = root.querySelector<HTMLButtonElement>('[data-mc-reset]');
+		const count = root.querySelector<HTMLElement>('[data-mc-count]');
+		const empty = root.querySelector<HTMLElement>('[data-mc-empty]');
+		if (!q || !tool || !count || !empty) return;
+
+		const cards = [
+			...root.querySelectorAll<HTMLAnchorElement>('.mcdb-browse__card'),
+		];
+		const total = cards.length;
+
+		// One delegated listener instead of an onError per card: texture refs
+		// do not all resolve on the first guess, and the fallback must still
+		// fire for images that decode long after hydration.
+		const retexture = (img: HTMLImageElement) => {
+			const fb = img.dataset.fallback;
+			if (img.dataset.fb === '1' || !fb) {
+				// Both texture guesses missed; the tile's own backdrop reads
+				// better than a broken-image glyph.
+				img.style.visibility = 'hidden';
+				return;
+			}
+			img.dataset.fb = '1';
+			img.src = fb;
+		};
+
+		root.addEventListener(
+			'error',
+			(ev) => {
+				const img = ev.target;
+				if (img instanceof HTMLImageElement) retexture(img);
+			},
+			true,
+		);
+
+		// Images above the fold start loading while the HTML parses, so the
+		// ones that 404 do so before this script ever runs. Sweep for those
+		// already-failed decodes instead of waiting for an event that fired.
+		for (const img of root.querySelectorAll<HTMLImageElement>(
+			'.mcdb-browse__icon img',
+		)) {
+			if (img.complete && img.naturalWidth === 0) retexture(img);
+		}
+
+		const apply = () => {
+			const term = q.value.trim().toLowerCase();
+			const mat = material?.value ?? 'all';
+			const tl = tool.value;
+			let shown = 0;
+
+			for (const card of cards) {
+				const d = card.dataset;
+				const hit =
+					(mat === 'all' || d.material === mat) &&
+					(tl === 'all' || d.tool === tl) &&
+					(!term ||
+						(d.name ?? '').includes(term) ||
+						(d.ref ?? '').includes(term));
+				card.hidden = !hit;
+				if (hit) shown++;
+			}
+
+			empty.hidden = shown > 0;
+			count.textContent = `${shown.toLocaleString()} / ${total.toLocaleString()} blocks`;
+		};
+
+		q.addEventListener('input', apply);
+		tool.addEventListener('change', apply);
+		material?.addEventListener('change', apply);
+		reset?.addEventListener('click', () => {
+			q.value = '';
+			if (material) material.value = 'all';
+			tool.value = 'all';
+			apply();
+		});
+	});
+</script>
