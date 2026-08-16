@@ -249,8 +249,12 @@ func _link(machine: AnimationNodeStateMachine, from: StringName, to: StringName,
 	var t := AnimationNodeStateMachineTransition.new()
 	t.switch_mode = AnimationNodeStateMachineTransition.SWITCH_MODE_AT_END \
 			if at_end else AnimationNodeStateMachineTransition.SWITCH_MODE_IMMEDIATE
+	## Enabled rather than disabled: play_action travels into these, and travel will not
+	## path through a disabled transition -- with no route it hard-cuts to the state
+	## instead, which costs the cross-fade entirely and makes every xfade here dead
+	## weight. What it must not be is AUTO, which would fire the moment move is entered.
 	t.advance_mode = AnimationNodeStateMachineTransition.ADVANCE_MODE_AUTO \
-			if at_end else AnimationNodeStateMachineTransition.ADVANCE_MODE_DISABLED
+			if at_end else AnimationNodeStateMachineTransition.ADVANCE_MODE_ENABLED
 	t.xfade_time = STATES[to].xfade
 	t.xfade_curve = _fade_curve()
 	t.reset = STATES[to].reset
