@@ -194,6 +194,22 @@ func world_hour() -> float:
 	return _client.world_hour()
 
 
+## Seconds the host has simulated, never wrapped. The hour says what the sky looks like;
+## this is what anything scheduled against world time has to read.
+func world_elapsed() -> float:
+	return _client.world_elapsed()
+
+
+## Whole days the world has run.
+func world_day() -> int:
+	return _client.world_day()
+
+
+## The hour the host's day began at.
+func world_start_hour() -> float:
+	return _client.world_start_hour()
+
+
 ## Real-world minutes the host's day takes, or 0 before joining.
 func day_length_minutes() -> float:
 	return _client.day_length_minutes()

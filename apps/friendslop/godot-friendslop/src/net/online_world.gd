@@ -13,7 +13,6 @@ const TITLE_SCENE := "res://scenes/title.tscn"
 @onready var _day_night: Node3D = $DayNight
 
 var _local_avatar: NetAvatar
-var _last_synced_hour := -1.0
 
 
 func _enter_tree() -> void:
@@ -81,26 +80,26 @@ func _adopt_world() -> void:
 		if not is_equal_approx(float(_terrain.road_width), road):
 			_terrain.road_width = road
 
-	# Through the setter, not the export: _hours_per_second is derived once in _ready,
-	# so assigning the field here would leave the sky running at the authored rate and
-	# visibly jump on every sync from the host.
+	# Both constants of the clock, and the day length through the setter rather than the
+	# export because _hours_per_second is derived from it once in _ready. The hour is
+	# derived from the host's elapsed seconds through the same mapping on both sides, so
+	# keeping the scene's own start hour would leave this sky a fixed offset from
+	# everyone else's for the whole session.
 	var day_length := _client.day_length_minutes()
 	if _day_night and day_length > 0.0:
 		_day_night.set_day_length(day_length)
+		_day_night.start_hour = _client.world_start_hour()
 
 
-## The host owns the clock but only resends it every couple of seconds. Writing that
-## value every frame would freeze the sky between syncs and then jump it, so DayNight
-## keeps advancing its own hour at frame rate and is corrected only when a new one
-## actually arrives.
+## The host resends the clock every couple of seconds, and the extension runs it on
+## between those, so what arrives here is already continuous. The sky is written from it
+## every frame rather than corrected on arrival: seconds and an hour derived from them
+## the same way on both sides leave nothing to correct, where an hour on its own could
+## only ever be snapped to.
 func _process(_delta: float) -> void:
 	if _day_night == null or not _client.is_joined():
 		return
-	var synced := _client.world_hour()
-	if is_equal_approx(synced, _last_synced_hour):
-		return
-	_last_synced_hour = synced
-	_day_night.hour = synced
+	_day_night.set_world_time(_client.world_elapsed())
 
 
 func _on_rejected(reason: String) -> void:

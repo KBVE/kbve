@@ -60,6 +60,10 @@ var _lut: PackedFloat32Array
 var _last_hour := -1
 var _last_angle_step := -1
 
+## Seconds of world time when somebody else owns the clock. Negative while nothing does,
+## which is singleplayer, where this node is the clock and runs its own.
+var _elapsed := -1.0
+
 var _sun_shadow_active := false
 var _moon_shadow_active := false
 var _shadows_off := false
@@ -87,10 +91,32 @@ func _ready() -> void:
 	_update_celestial_state(true)
 
 
+## Hands the sky a clock kept elsewhere. Written every frame rather than periodically:
+## the point of taking the host's seconds instead of its hour is that the sky can be a
+## function of them, so there is never a correction to make.
+func set_world_time(elapsed: float) -> void:
+	_elapsed = elapsed
+
+
+## Whether somebody else is keeping the time.
+func is_driven() -> bool:
+	return _elapsed >= 0.0
+
+
+## The hour a world reads after running for `elapsed` seconds. Mirrors `hour_at` in q's
+## session module, and is split out from the frame so the two can be compared without
+## standing a sky up inside a running tree.
+func hour_for(elapsed: float) -> float:
+	return fposmod(start_hour + elapsed * _hours_per_second, HOURS_PER_DAY)
+
+
 func _process(delta: float) -> void:
-	hour += delta * _hours_per_second
-	if hour >= HOURS_PER_DAY:
-		hour -= HOURS_PER_DAY
+	if is_driven():
+		hour = hour_for(_elapsed)
+	else:
+		hour += delta * _hours_per_second
+		if hour >= HOURS_PER_DAY:
+			hour -= HOURS_PER_DAY
 
 	var current_hour := int(hour)
 	if current_hour != _last_hour:
