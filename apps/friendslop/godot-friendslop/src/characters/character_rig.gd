@@ -4,6 +4,12 @@ extends Node3D
 
 @export var body: PackedScene
 @export var attachments: Array[PackedScene] = []
+## Worn from the start. Piece ids out of the Wardrobe rather than scenes, so a character
+## in the scene file says what it is wearing rather than which meshes that amounts to.
+@export var worn: Array[StringName] = []
+## Swapped in once what is worn covers the body. The clothing replaces the body rather
+## than layering over it, so without this the bare torso pokes through the armour.
+@export var head_only_body: PackedScene
 ## Weapon held in the main hand.
 @export var weapon_scene: PackedScene
 @export var weapon_proxy := ""
@@ -47,6 +53,10 @@ static var _library_cache: Dictionary = {}
 var animation: AnimationPlayer
 var tree: AnimationTree
 var ik: SkeletonModifier3D
+## Slot to the meshes standing in for it, which is what makes taking a piece off again
+## exact rather than a guess at which meshes arrived with it.
+var _worn_meshes: Dictionary = {}
+var _worn_ids: Dictionary = {}
 ## Gait and stance decisions, which are simulation rather than presentation and so live
 ## in Q where the authoritative server can reach the same answers.
 var loco := QLocomotion.create()
@@ -245,12 +255,13 @@ var _work_t := 0.0
 func _ready() -> void:
 	if body == null:
 		return
-	var rig := body.instantiate() as Node3D
+	var base := _base_body()
+	var rig := base.instantiate() as Node3D
 	add_child(rig)
 	rig.rotate_y(deg_to_rad(facing_offset_deg))
 	skeleton = _find_skeleton(rig)
 	if skeleton == null:
-		push_error("character_rig: no Skeleton3D in %s" % body.resource_path)
+		push_error("character_rig: no Skeleton3D in %s" % base.resource_path)
 		return
 	if blend_sharpness > 0.0:
 		loco.set_blend_sharpness(blend_sharpness)
@@ -261,6 +272,10 @@ func _ready() -> void:
 	for child in skeleton.get_children():
 		if child is MeshInstance3D:
 			CelShading.apply(child, SHADING, self)
+	## After the shading pass, since equip shades what it grafts -- a piece put on halfway
+	## through a game has to come out looking like one that was there from the start.
+	for id in worn:
+		equip(id)
 	_build_animation(rig)
 	if foot_ik:
 		_build_foot_ik()
@@ -649,20 +664,79 @@ func _find_skeleton(n: Node) -> Skeleton3D:
 	return null
 
 
-func _attach(scene: PackedScene) -> void:
+## The base to build on. A character wearing a whole outfit is given a body that is only a
+## head: the clothing replaces the body rather than covering it, and a full body under it
+## pokes through at the collar and the cuffs.
+func _base_body() -> PackedScene:
+	if head_only_body == null:
+		return body
+	var slots: Array = []
+	for id: StringName in worn:
+		var slot := Wardrobe.slot_of(id)
+		if slot != &"":
+			slots.append(slot)
+	return head_only_body if Wardrobe.covers_the_body(slots) else body
+
+
+## Puts a piece of clothing on. One piece to a slot, so equipping a hood takes off
+## whatever was on the head already -- which is what makes this safe to call from an
+## inventory that has no idea what is already worn.
+func equip(id: StringName) -> bool:
+	if skeleton == null or not Wardrobe.has(id):
+		if skeleton != null:
+			push_warning("character_rig: nothing in the wardrobe called '%s'" % id)
+		return false
+	var slot := Wardrobe.slot_of(id)
+	if _worn_ids.get(slot, &"") == id:
+		return true
+	unequip(slot)
+	var scene: PackedScene = load(Wardrobe.path_of(id))
+	var grafted := _attach(scene)
+	if grafted.is_empty():
+		return false
+	for mesh in grafted:
+		CelShading.apply(mesh, SHADING, self)
+	_worn_meshes[slot] = grafted
+	_worn_ids[slot] = id
+	return true
+
+
+## Takes off whatever is in a slot. Frees the meshes rather than hiding them, since the
+## same slot is about to be filled by something else more often than not.
+func unequip(slot: StringName) -> void:
+	var grafted: Array = _worn_meshes.get(slot, [])
+	for mesh: Variant in grafted:
+		if is_instance_valid(mesh):
+			(mesh as Node).queue_free()
+	_worn_meshes.erase(slot)
+	_worn_ids.erase(slot)
+
+
+## What is on, slot by slot, which is what a save file and a paper doll both want.
+func wearing() -> Dictionary:
+	return _worn_ids.duplicate()
+
+
+func worn_in(slot: StringName) -> StringName:
+	return _worn_ids.get(slot, &"")
+
+
+## Returns the meshes it grafted on, so whoever asked for them can take them off again.
+func _attach(scene: PackedScene) -> Array[MeshInstance3D]:
+	var grafted: Array[MeshInstance3D] = []
 	if scene == null:
-		return
+		return grafted
 	var inst := scene.instantiate()
 	var src := _find_skeleton(inst)
 	if src == null:
 		push_error("character_rig: no Skeleton3D in %s" % scene.resource_path)
 		inst.free()
-		return
+		return grafted
 	if src.get_bone_count() != skeleton.get_bone_count():
 		push_error("character_rig: bone count %d != %d for %s" % [
 				src.get_bone_count(), skeleton.get_bone_count(), scene.resource_path])
 		inst.free()
-		return
+		return grafted
 	for child in src.get_children():
 		if child is not MeshInstance3D:
 			continue
@@ -670,7 +744,9 @@ func _attach(scene: PackedScene) -> void:
 		child.owner = null
 		skeleton.add_child(child)
 		(child as MeshInstance3D).skeleton = NodePath("..")
+		grafted.append(child)
 	inst.free()
+	return grafted
 
 
 func _snap() -> void:
