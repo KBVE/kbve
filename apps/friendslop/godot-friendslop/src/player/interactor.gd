@@ -151,9 +151,19 @@ func _open_talk(actor: Node3D, graph: DialogueGraph) -> DialoguePanel:
 	## pending introduction would otherwise open a conversation with nobody.
 	if not is_instance_valid(actor) or not is_instance_valid(_body):
 		return null
+	## Their standing goes in before the first line is chosen, so a graph can greet a regular
+	## differently to a stranger and a nuisance differently to either.
+	var who := str(actor.npc_ref)
+	Journal.brief(who, state())
+	var read_before := state().seen_count()
+
 	var panel := PanelScript.open(get_tree(), graph, state())
 	if panel == null:
 		return null
+	## Whether the talk was worth having, measured rather than guessed: anything the player
+	## had not read before counts, and going over old ground counts against.
+	panel.closed.connect(func() -> void:
+		Journal.remember_talk(who, state().seen_count() > read_before))
 	## The body follows the words: moving while a line is being written, still while the
 	## line sits there waiting on an answer.
 	panel.speaking.connect(actor.speak)

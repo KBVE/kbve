@@ -12,6 +12,7 @@ extends Node
 
 const PATH := "user://journal.cfg"
 const SECTION := "dialogue"
+const PEOPLE_SECTION := "people"
 const WORN_SECTION := "worn"
 const SATCHEL_SECTION := "satchel"
 
@@ -54,8 +55,73 @@ func _ready() -> void:
 	load_now()
 
 
+## What one person thinks of the player, and how much of it they have had.
+##
+## Kept per person rather than as world flags because it is not a fact about the world: two
+## people can hold different opinions of the same player on the same afternoon, and that
+## difference is the whole point of keeping it at all.
+##
+## `talks` is every conversation opened. `respect` is what they make of the player, moved by
+## whether a conversation went anywhere. `pestered` counts conversations in a row that
+## taught the player nothing, which is what "you again" is measured in.
+const RESPECT_RANGE := Vector2i(-5, 10)
+## One repeat is a person checking something. It is the second and third that are a nuisance,
+## so the first costs nothing.
+const PESTER_GRACE := 1
+
+## `ref` to `{talks, respect, pestered}`.
+var _people: Dictionary = {}
+
+## Somebody's opinion moved. For a HUD, a codex page, or anything else that wants to notice
+## the player wearing out their welcome.
+signal regard_changed(ref: String, record: Dictionary)
+
+
 func state() -> DialogueState:
 	return _state
+
+
+## What `ref` makes of the player. Always answers, so a stranger reads as zeroes rather than
+## as a caller having to check whether they have been met.
+func regard(ref: String) -> Dictionary:
+	var kept: Variant = _people.get(ref, null)
+	if kept is Dictionary:
+		return (kept as Dictionary).duplicate()
+	return {"talks": 0, "respect": 0, "pestered": 0}
+
+
+## Writes down that a conversation happened, and what it was worth.
+##
+## `learned` is whether the player was shown anything they had not already read. A talk that
+## went somewhere raises their standing and clears the slate; one that only went over old
+## ground counts against them, once past the grace.
+func remember_talk(ref: String, learned: bool) -> Dictionary:
+	if ref == "":
+		return {}
+	var record := regard(ref)
+	record["talks"] = int(record["talks"]) + 1
+	if learned:
+		record["pestered"] = 0
+		record["respect"] = mini(int(record["respect"]) + 1, RESPECT_RANGE.y)
+	else:
+		record["pestered"] = int(record["pestered"]) + 1
+		if int(record["pestered"]) > PESTER_GRACE:
+			record["respect"] = maxi(int(record["respect"]) - 1, RESPECT_RANGE.x)
+	_people[ref] = record
+	if not _quiet:
+		regard_changed.emit(ref, record.duplicate())
+		save_now()
+	return record.duplicate()
+
+
+## Puts somebody's standing in front of a conversation, so the graph can gate on it in the
+## same breath as a flag. Pushed in rather than read out, because the state has to stay a
+## thing a test can build without a journal behind it.
+func brief(about: String, into: DialogueState) -> void:
+	var record := regard(about)
+	into.set_number("talks", float(record["talks"]))
+	into.set_number("respect", float(record["respect"]))
+	into.set_number("pestered", float(record["pestered"]))
 
 
 func has_flag(name: String) -> bool:
@@ -317,6 +383,19 @@ func load_now() -> void:
 		"flags": cfg.get_value(SECTION, "flags", {}),
 		"seen": cfg.get_value(SECTION, "seen", {}),
 	})
+	_people.clear()
+	for ref: Variant in cfg.get_value(PEOPLE_SECTION, "regard", {}):
+		var saved: Variant = cfg.get_value(PEOPLE_SECTION, "regard", {})[ref]
+		if saved is not Dictionary:
+			continue
+		var record: Dictionary = saved
+		_people[str(ref)] = {
+			"talks": int(record.get("talks", 0)),
+			## Clamped on the way in as well as on the way out: a save from a build with a
+			## wider range should not hand somebody an opinion this one cannot reach.
+			"respect": clampi(int(record.get("respect", 0)), RESPECT_RANGE.x, RESPECT_RANGE.y),
+			"pestered": maxi(int(record.get("pestered", 0)), 0),
+		}
 	_worn.clear()
 	for slot: Variant in cfg.get_value(WORN_SECTION, "slots", {}):
 		var id := StringName(cfg.get_value(WORN_SECTION, "slots", {})[slot])
@@ -352,6 +431,7 @@ func save_now() -> void:
 	var body := _state.to_dict()
 	cfg.set_value(SECTION, "flags", body["flags"])
 	cfg.set_value(SECTION, "seen", body["seen"])
+	cfg.set_value(PEOPLE_SECTION, "regard", _people.duplicate(true))
 	var slots := {}
 	for slot: StringName in _worn:
 		slots[String(slot)] = String(_worn[slot])
@@ -377,6 +457,7 @@ func _notification(what: int) -> void:
 ## player's memory is not something to clear by accident.
 func forget_everything() -> void:
 	_state.clear()
+	_people.clear()
 	_worn.clear()
 	_satchel.clear()
 	save_now()
