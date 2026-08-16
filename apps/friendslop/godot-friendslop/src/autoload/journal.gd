@@ -83,6 +83,17 @@ func wear(id: StringName) -> void:
 	_set_worn(Wardrobe.slot_of(id), id)
 
 
+## Puts on whatever the catalog says this item looks like. The item decides the slot, so
+## nothing handing one out has to know where it goes.
+func wear_item(ref: StringName) -> bool:
+	var piece := Itemdb.wardrobe_piece(ref)
+	if piece == &"":
+		push_warning("journal: '%s' is not something that can be worn" % ref)
+		return false
+	_set_worn(Wardrobe.slot_of(piece), piece)
+	return true
+
+
 func take_off(slot: StringName) -> void:
 	_set_worn(slot, &"")
 

@@ -250,5 +250,15 @@ namespace RareIcon
         Bark = 635,  // bark
         Resin = 636,  // resin
         Sapling = 637,  // sapling
+        RangerHood = 638,  // ranger-hood
+        RangerJerkin = 639,  // ranger-jerkin
+        RangerBracers = 640,  // ranger-bracers
+        RangerBreeches = 641,  // ranger-breeches
+        RangerBoots = 642,  // ranger-boots
+        RangerMantle = 643,  // ranger-mantle
+        PeasantShirt = 644,  // peasant-shirt
+        PeasantSleeves = 645,  // peasant-sleeves
+        PeasantTrousers = 646,  // peasant-trousers
+        PeasantClogs = 647,  // peasant-clogs
     }
 }

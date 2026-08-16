@@ -79,6 +79,15 @@ const SYNC_TARGETS = [
 			'apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemDBRefMap.Generated.cs',
 		),
 	},
+	{
+		// Godot rather than Unity: it reads the same two files out of its own asset
+		// folder and has no use for the generated C#, so it names no C# paths.
+		name: 'friendslop',
+		streamingAssetsDir: resolve(
+			repoRoot,
+			'apps/friendslop/godot-friendslop/assets/itemdb',
+		),
+	},
 ];
 
 // mdx `ref` slugs whose PascalCase would not match the existing ItemId
@@ -339,11 +348,14 @@ function main() {
 		ensureDir(t.streamingAssetsDir);
 		writeFileSync(resolve(t.streamingAssetsDir, 'itemdb.json'), unityJson);
 		writeFileSync(resolve(t.streamingAssetsDir, 'itemdb.binpb'), wire);
+		console.log(`Synced ${t.name} → ${t.streamingAssetsDir}`);
+		// The generated C# is for the Unity consumers; a target that names no
+		// paths for it is one that reads the data another way.
+		if (!t.itemIdPath || !t.refMapPath) continue;
 		ensureDir(dirname(t.itemIdPath));
 		ensureDir(dirname(t.refMapPath));
 		writeFileSync(t.itemIdPath, itemIdSource);
 		writeFileSync(t.refMapPath, refMapSource);
-		console.log(`Synced ${t.name} → ${t.streamingAssetsDir}`);
 		console.log(`         ${t.itemIdPath}`);
 		console.log(`         ${t.refMapPath}`);
 	}

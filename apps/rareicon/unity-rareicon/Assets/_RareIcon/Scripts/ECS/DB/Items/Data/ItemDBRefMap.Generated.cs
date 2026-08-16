@@ -254,6 +254,16 @@ namespace RareIcon
             { "bark", ItemId.Bark },
             { "resin", ItemId.Resin },
             { "sapling", ItemId.Sapling },
+            { "ranger-hood", ItemId.RangerHood },
+            { "ranger-jerkin", ItemId.RangerJerkin },
+            { "ranger-bracers", ItemId.RangerBracers },
+            { "ranger-breeches", ItemId.RangerBreeches },
+            { "ranger-boots", ItemId.RangerBoots },
+            { "ranger-mantle", ItemId.RangerMantle },
+            { "peasant-shirt", ItemId.PeasantShirt },
+            { "peasant-sleeves", ItemId.PeasantSleeves },
+            { "peasant-trousers", ItemId.PeasantTrousers },
+            { "peasant-clogs", ItemId.PeasantClogs },
         };
     }
 }

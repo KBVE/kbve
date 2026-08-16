@@ -351,44 +351,50 @@ func _build_wardrobe() -> void:
 		var choices := _wardrobe_choices(slot)
 		page.add_cycler(I18n.t(str(WARDROBE_SLOTS[i][1])),
 				func() -> Array: return _wardrobe_names(slot),
-				func() -> int: return maxi(choices.find(Journal.worn_in(slot)), 0),
+				func() -> int: return maxi(_wardrobe_index(slot, choices), 0),
 				func(pick: int) -> void: _wear(slot, choices[pick] if pick < choices.size() else &""),
 				choices.size())
 	_page_back(right)
 
 
-## Everything that fits the slot, with nothing at the front -- taking a thing off has to
-## be as reachable as putting one on.
+## Everything the catalog has for the slot, with nothing at the front -- taking a thing off
+## has to be as reachable as putting one on.
+##
+## Drawn from the item catalog rather than the mesh folder: a piece the player can wear is
+## one that exists as an item, and the folder holds plenty that does not yet.
 func _wardrobe_choices(slot: StringName) -> Array[StringName]:
 	var out: Array[StringName] = [&""]
-	for id: StringName in Wardrobe.all():
-		var piece: Dictionary = Wardrobe.piece(id)
-		if piece[&"slot"] == slot and piece[&"sex"] == WARDROBE_SEX:
-			out.append(id)
+	for ref: StringName in Itemdb.wearables():
+		var piece := Itemdb.wardrobe_piece(ref, WARDROBE_SEX)
+		if piece != &"" and Wardrobe.slot_of(piece) == slot:
+			out.append(ref)
 	return out
+
+
+## Which row the cycler is showing. The wardrobe records the mesh being worn rather than
+## the item it came from, so the item is found by what it would look like.
+func _wardrobe_index(slot: StringName, choices: Array[StringName]) -> int:
+	var piece := Journal.worn_in(slot)
+	if piece == &"":
+		return 0
+	for i in choices.size():
+		if choices[i] != &"" and Itemdb.wardrobe_piece(choices[i], WARDROBE_SEX) == piece:
+			return i
+	return 0
 
 
 func _wardrobe_names(slot: StringName) -> Array:
 	var out: Array = []
-	for id: StringName in _wardrobe_choices(slot):
-		out.append(I18n.t("wardrobe.none") if id == &"" else _wardrobe_label(id))
+	for ref: StringName in _wardrobe_choices(slot):
+		out.append(I18n.t("wardrobe.none") if ref == &"" else Itemdb.display_name(ref))
 	return out
 
 
-## `Male_Ranger_Head_Hood` reads as "Ranger Hood": the set it belongs to, and what it
-## actually is. The slot is already the row's own label.
-func _wardrobe_label(id: StringName) -> String:
-	var piece: Dictionary = Wardrobe.piece(id)
-	var variant := str(piece.get(&"variant", ""))
-	var what := variant if variant != "" else str(piece.get(&"part", ""))
-	return "%s %s" % [piece.get(&"outfit", ""), what.replace("_", " ")]
-
-
-func _wear(slot: StringName, id: StringName) -> void:
-	if id == &"":
+func _wear(slot: StringName, ref: StringName) -> void:
+	if ref == &"":
 		Journal.take_off(slot)
 	else:
-		Journal.wear(id)
+		Journal.wear_item(ref)
 
 
 func _switch_locale(index: int) -> void:

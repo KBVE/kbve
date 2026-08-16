@@ -171,6 +171,10 @@ message EquipmentInfo {
   repeated string enchantment_types = 8; // Accepted enchantment slugs (e.g. "gem", "rune", "sigil")
   optional bool cursed = 9;             // Cannot be unequipped without a remedy
   optional float movement_penalty = 10; // 0.0-1.0 speed reduction when worn (armor weight)
+  // What wearing this looks like, as a wardrobe piece the renderer can resolve
+  // (e.g. "ranger_head_hood"). Named without a sex, because which mesh that
+  // becomes depends on the body wearing it. Empty for items with no worn model.
+  optional string wardrobe = 11;
 }
 
 // Enchantment payload — describes what an enchantment grants when attached to
