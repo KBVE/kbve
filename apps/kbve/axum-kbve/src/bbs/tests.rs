@@ -720,21 +720,27 @@ fn dungeon_map_quit_from_map_does_not_leave_the_game() {
 fn dungeon_renders_clean_on_petscii_across_a_run() {
     let mut game = run::Run::new(Rng::new(7), "tester");
     for step in 0..24 {
-        for view in ["", "M"] {
-            if !view.is_empty() {
-                let _ = game.on_key('M');
+        for view in ['\0', 'M', 'I'] {
+            if view != '\0' {
+                let _ = game.on_key(view);
             }
             let mut screen = Screen::new(Term::Petscii, 40, 25);
             game.draw(&mut screen);
             let bytes = screen.take();
-            assert!(!bytes.contains(&b'?'), "petscii fallback at step {step}");
+            assert!(
+                !bytes.contains(&b'?'),
+                "petscii fallback at step {step} in view {view:?}"
+            );
             let widest = bytes
                 .split(|b| *b == 0x0D)
                 .map(petscii_columns)
                 .max()
                 .unwrap_or(0);
-            assert!(widest <= 40, "line overflowed 40 columns: {widest}");
-            if !view.is_empty() {
+            assert!(
+                widest <= 40,
+                "line overflowed 40 columns in view {view:?}: {widest}"
+            );
+            if view != '\0' {
                 let _ = game.on_key('Q');
             }
         }
@@ -801,4 +807,42 @@ async fn idle_allowance_can_be_raised_for_a_caller_who_signs_in() {
 #[test]
 fn authed_idle_defaults_to_an_hour() {
     assert_eq!(super::authed_idle(), Duration::from_secs(3600));
+}
+
+#[test]
+fn dungeon_pack_lists_what_the_player_started_with() {
+    let game = run::Run::new(Rng::new(11), "tester");
+    let pack = game.pack();
+    assert!(
+        pack.iter().any(|l| l.starts_with("Potion")),
+        "starting potions missing from the pack: {pack:?}"
+    );
+}
+
+#[test]
+fn dungeon_using_a_potion_spends_it() {
+    let mut game = run::Run::new(Rng::new(11), "tester");
+    let before = game.pack();
+    let _ = game.on_key('I');
+
+    let view = drain(Term::Ansi, &game);
+    assert!(view.contains("pack"), "pack view did not render: {view}");
+
+    let _ = game.on_key('1');
+
+    let after = game.pack();
+    assert_ne!(before, after, "using a potion did not change the pack");
+    assert!(
+        game.notice().is_none(),
+        "using a carried item was refused: {:?}",
+        game.notice()
+    );
+}
+
+#[test]
+fn dungeon_pack_returns_to_play_without_leaving_the_game() {
+    let mut game = run::Run::new(Rng::new(11), "tester");
+    let _ = game.on_key('I');
+    assert_eq!(game.on_key('Q'), Flow::Continue);
+    assert_eq!(game.on_key('Q'), Flow::Exit);
 }

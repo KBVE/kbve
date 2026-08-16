@@ -1,6 +1,6 @@
 use bevy_dungeon::content::{self, TileVisibility};
 use bevy_dungeon::types::{
-    ClassType, Direction, GameAction, GamePhase, MapPos, RoomType, SessionState,
+    self, ClassType, Direction, GameAction, GamePhase, MapPos, RoomType, SessionState,
 };
 use bevy_dungeon::{PlayerId, logic, start_solo};
 
@@ -13,11 +13,13 @@ use crate::bbs::render::{Ink, Screen, wrap_lines};
 
 const LOG_KEPT: usize = 12;
 const MAP_SPAN: i16 = 4;
+const INDENT: &str = "    ";
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 enum View {
     Play,
     Map,
+    Items,
 }
 
 /// What a key on the board does: hand something to the rules engine, or start
@@ -69,6 +71,14 @@ impl Run {
     }
 
     #[cfg(test)]
+    pub fn pack(&self) -> Vec<String> {
+        self.items()
+            .into_iter()
+            .map(|(_, label, _)| label)
+            .collect()
+    }
+
+    #[cfg(test)]
     pub fn notice(&self) -> Option<&str> {
         self.notice.as_deref()
     }
@@ -102,6 +112,35 @@ impl Run {
             .get(&self.state.map.position)
             .map(|t| t.exits.clone())
             .unwrap_or_default()
+    }
+
+    /// The carried stacks that do something when used, keyed for the board.
+    /// Gear and quest pieces have no use effect, so they are listed but not
+    /// bound to a key.
+    fn items(&self) -> Vec<(Option<char>, String, String)> {
+        let mut key = '1';
+        types::inv_to_legacy(&self.state.player(self.actor).inventory)
+            .into_iter()
+            .filter(|stack| stack.qty > 0)
+            .map(|stack| {
+                let def = content::find_item(&stack.item_id);
+                let name = def.map(|d| d.name).unwrap_or(stack.item_id.as_str());
+                let label = if stack.qty > 1 {
+                    format!("{name} x{}", stack.qty)
+                } else {
+                    name.to_owned()
+                };
+                let usable = def.is_some_and(|d| d.use_effect.is_some());
+                let bound = if usable && key <= '9' {
+                    let this = key;
+                    key = char::from_u32(key as u32 + 1).unwrap_or('9');
+                    Some(this)
+                } else {
+                    None
+                };
+                (bound, label, stack.item_id)
+            })
+            .collect()
     }
 
     /// Every action the current phase will actually accept, keyed for the
@@ -209,6 +248,19 @@ impl Run {
         out
     }
 
+    /// Whatever the engine last refused, in the caller's width.
+    fn draw_notice(&self, screen: &mut Screen) {
+        let Some(notice) = &self.notice else {
+            return;
+        };
+        let width = screen.width.saturating_sub(1);
+        screen.nl().ink(Ink::Warn);
+        for line in wrap_lines(&strip_markup(notice), width) {
+            screen.line(&line);
+        }
+        screen.reset();
+    }
+
     fn frame(&self) -> Frame {
         let me = self.state.player(self.actor);
         let party = vec![Actor {
@@ -235,6 +287,9 @@ impl Run {
             .map(|(key, label, _)| (key, label))
             .collect();
         options.push(('M', "Map".to_string()));
+        if !self.items().is_empty() {
+            options.push(('I', "Pack".to_string()));
+        }
 
         Frame {
             room: format!("{} - {}", self.state.room.name, self.state.room.description),
@@ -325,16 +380,37 @@ impl Game for Run {
                 screen.nl();
                 screen.item('Q', "Back");
             }
+            View::Items => {
+                let width = screen.width.saturating_sub(1);
+                let items = self.items();
+                screen.nl().ink(Ink::Accent).line("pack").reset();
+                if items.is_empty() {
+                    screen.ink(Ink::Dim).line("nothing carried").reset();
+                }
+                for (key, label, id) in &items {
+                    match key {
+                        Some(key) => screen.item(*key, label),
+                        None => screen
+                            .ink(Ink::Dim)
+                            .line(&format!("{INDENT}{label}"))
+                            .reset(),
+                    };
+                    if let Some(def) = content::find_item(id) {
+                        screen.ink(Ink::Dim);
+                        for line in wrap_lines(&strip_markup(def.description), width - INDENT.len())
+                        {
+                            screen.line(&format!("{INDENT}{line}"));
+                        }
+                        screen.reset();
+                    }
+                }
+                self.draw_notice(screen);
+                screen.nl();
+                screen.item('Q', "Back");
+            }
             View::Play => {
                 draw_frame(screen, &self.frame());
-                if let Some(notice) = &self.notice {
-                    let width = screen.width.saturating_sub(1);
-                    screen.nl().ink(Ink::Warn);
-                    for line in wrap_lines(&strip_markup(notice), width) {
-                        screen.line(&line);
-                    }
-                    screen.reset();
-                }
+                self.draw_notice(screen);
                 screen
                     .ink(Ink::Dim)
                     .line("progress is not saved yet")
@@ -353,9 +429,30 @@ impl Game for Run {
             return Flow::Continue;
         }
 
+        if self.view == View::Items {
+            match key {
+                'Q' | 'I' => {
+                    self.view = View::Play;
+                    self.notice = None;
+                }
+                _ => {
+                    if let Some((_, _, id)) =
+                        self.items().into_iter().find(|(k, _, _)| *k == Some(key))
+                    {
+                        self.act(GameAction::UseItem(id, None));
+                    }
+                }
+            }
+            return Flow::Continue;
+        }
+
         match key {
             'Q' => return Flow::Exit,
             'M' => self.view = View::Map,
+            'I' => {
+                self.view = View::Items;
+                self.notice = None;
+            }
             _ => {
                 let bound = self
                     .actions()
