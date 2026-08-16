@@ -45,13 +45,18 @@ const PANEL_HEIGHT: u16 = 320;
 const COLUMN_OFFSET: u16 = (240 - PANEL_WIDTH) / 2;
 const ROW_OFFSET: u16 = 0;
 
-/// Comfortably readable indoors, and the single biggest lever on how warm the
-/// board runs.
+/// Readable indoors, and past the knee of the heat curve. Coming down from
+/// fully on bought several degrees; halving this again to 20% bought under
+/// one, for half the brightness. Below roughly this point the remaining heat
+/// is the regulator, not the panel.
 const BACKLIGHT_PCT: u8 = 40;
 
 #[main]
 fn main() -> ! {
-    let peripherals = esp_hal::init(esp_hal::Config::default().with_cpu_clock(CpuClock::max()));
+    // 80MHz rather than the 160MHz maximum. Worth about half a degree, which
+    // is small, but nothing here is compute-bound: the loop spends its life in
+    // a blocking delay. Raise it when something actually needs the cycles.
+    let peripherals = esp_hal::init(esp_hal::Config::default().with_cpu_clock(CpuClock::_80MHz));
     let mut delay = Delay::new();
 
     println!("[c6] booting");
