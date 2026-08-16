@@ -158,7 +158,7 @@
 		"@hcaptcha/react-native-hcaptcha": "^4.1.0",
 		"@hookform/resolvers": "^5.2.2",
 		"@phaserjs/rapier-connector": "^1.0.2",
-		"@pixiv/three-vrm": "^3.5.3",
+		"@pixiv/three-vrm": "^3.5.5",
 		"@pixiv/three-vrm-animation": "^3.5.5",
 		"@react-native-async-storage/async-storage": "2.2.0",
 		"@react-spring/web": "^10.0.3",
