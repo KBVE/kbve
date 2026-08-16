@@ -20,6 +20,15 @@ const MECHS := "What are those walking machines?"
 const PAY := "Pay the toll."
 const LEAVE := "(Walk away.)"
 
+## The second tier of the crossing: each of these is only worth talking to because somebody
+## else has already been talked to, and this is the reply that proves it.
+const SECOND_TIER := {
+	"merchant": ["marlow_toll_paid", "I paid Marlow's toll."],
+	"cleric": ["wren_taught_bitterroot", "The forager showed me bitterroot."],
+	"knight": ["sable_showed_the_book", "The warden keeps a book of who crosses."],
+	"mage": ["tam_guessed_the_mechs", "The boy on the bank thinks they are waiting for something."],
+}
+
 const SIMPLE := {
 	"start": "one",
 	"speaker": "npc.test.name",
@@ -407,9 +416,100 @@ func test_every_talker_by_the_crossing_is_wired_up() -> void:
 				.override_failure_message("%s was left wherever the scene was saved" % who) \
 				.is_true()
 
-	for who: String in [MARLOW, "wren", "tam", "sable"]:
+	for who: String in [MARLOW, "wren", "tam", "sable", "merchant", "cleric", "knight", "mage"]:
 		assert_bool(seen.has(who)) \
 				.override_failure_message("main.tscn has nobody with npc_ref '%s'" % who).is_true()
+
+
+## Carrying what one person said to the next is the whole shape of the crossing, so each of
+## the second tier is held to it twice: silent to a stranger, and open to somebody who has
+## already been round the others.
+func test_the_second_tier_opens_only_once_the_first_has_been_talked_to() -> void:
+	for who: String in SECOND_TIER:
+		var flag: String = SECOND_TIER[who][0]
+		var reply: String = SECOND_TIER[who][1]
+		var state := State.new()
+		var runner := Runner.new()
+		assert_bool(runner.start(Npcdb.graph(who), state)) \
+				.override_failure_message("%s has no conversation to start" % who).is_true()
+		runner.advance()
+
+		assert_bool(_offers(runner, reply)) \
+				.override_failure_message("%s offered '%s' to somebody who had never heard it" % [
+						who, reply]) \
+				.is_false()
+		state.set_flag(flag)
+		assert_bool(_offers(runner, reply)) \
+				.override_failure_message("%s ignored '%s', so the reply can never be reached" % [
+						who, flag]) \
+				.is_true()
+
+
+## A gate on a flag nobody sets is a reply that is written, shipped, and unreachable. It
+## looks exactly like a reply the player has not earned yet, so only the whole crossing read
+## together can tell the two apart.
+func test_every_flag_the_crossing_waits_on_is_one_somebody_sets() -> void:
+	var wanted := {}
+	var given := {}
+	for who in _talkers():
+		var graph := Npcdb.graph(who)
+		for id: Variant in graph.nodes:
+			var entry := graph.node(str(id))
+			_flags_set_by(entry, given)
+			_flags_gating(entry.get("if", null), wanted)
+			for choice: Variant in entry.get("choices", []):
+				if choice is Dictionary:
+					_flags_set_by(choice, given)
+					_flags_gating((choice as Dictionary).get("if", null), wanted)
+
+	assert_int(wanted.size()) \
+			.override_failure_message("nothing by the crossing waits on anything") \
+			.is_greater(0)
+	for flag: String in wanted:
+		assert_bool(given.has(flag)) \
+				.override_failure_message("'%s' gates a reply and nobody by the crossing sets it" % flag) \
+				.is_true()
+
+
+func _flags_set_by(entry: Dictionary, into: Dictionary) -> void:
+	var effects: Variant = entry.get("do", null)
+	if effects is Dictionary and (effects as Dictionary).has("set"):
+		into[str((effects as Dictionary)["set"])] = true
+
+
+## `seen` is deliberately not collected: it names a node rather than a flag, and the graph
+## already refuses a jump to a node it does not have.
+func _flags_gating(gate: Variant, into: Dictionary) -> void:
+	if gate is String:
+		into[str(gate)] = true
+		return
+	if gate is not Dictionary:
+		return
+	var terms: Dictionary = gate
+	if terms.has("flag"):
+		into[str(terms["flag"])] = true
+	for key in ["not", "all", "any"]:
+		if not terms.has(key):
+			continue
+		var inner: Variant = terms[key]
+		if inner is Array:
+			for one: Variant in inner:
+				_flags_gating(one, into)
+		else:
+			_flags_gating(inner, into)
+
+
+func _talkers() -> PackedStringArray:
+	var state := (load("res://scenes/main.tscn") as PackedScene).get_state()
+	var out := PackedStringArray()
+	for i in state.get_node_count():
+		for p in state.get_node_property_count(i):
+			if state.get_node_property_name(i, p) != "npc_ref":
+				continue
+			var who := str(state.get_node_property_value(i, p))
+			if who != "" and not out.has(who):
+				out.append(who)
+	return out
 
 
 ## Four people standing on top of each other is one person with three shadows, and the

@@ -57,6 +57,58 @@ name_key: creature.mage
 unit_type: 4
 default_weapon: 0
 dialogue_tree_id: 0
+tags:
+  - friendslop
+  - bridge
+  - talker
+dialogue_tree:
+  entry_node_id: greet
+  nodes:
+    - id: greet
+      text: "Not there — I have been counting the water for an hour and your feet are a variable."
+      condition: '!seen:greet'
+      next_node_id: menu
+    - id: greet_again
+      text: Mind the marks in the mud.
+      next_node_id: menu
+    - id: menu
+      text: Ask quickly. The light is moving.
+      options:
+        - id: ask_measuring
+          label: What are you measuring?
+          next_node_id: measuring
+        - id: tell_boy
+          label: "The boy on the bank thinks they are waiting for something."
+          next_node_id: boy
+          required_flags:
+            - tam_guessed_the_mechs
+            - '!mage_weighed_the_guess'
+        - id: ask_boy_again
+          label: "About the boy's guess."
+          next_node_id: boy_again
+          required_flags:
+            - mage_weighed_the_guess
+        - id: ask_asked
+          label: Have you tried asking them?
+          next_node_id: asked
+        - id: leave
+          label: (Walk away.)
+          next_node_id: farewell
+    - id: measuring
+      text: "Where they stand. Not what they are — I gave that up. Where. They pick the same three feet of river every day and I would like to know what is under it."
+      next_node_id: menu
+    - id: boy
+      text: "The boy is not wrong, and I have spent four years being cleverer than him about it. Waiting is the only word that fits a thing which stands still on purpose."
+      trigger_on_enter: 'set_flag:mage_weighed_the_guess'
+      next_node_id: menu
+    - id: boy_again
+      text: "Tell him I said so, if you like. Tell him I said it slowly."
+      next_node_id: menu
+    - id: asked
+      text: "Every day for a season. They never refuse. Refusing would be an answer."
+      next_node_id: menu
+    - id: farewell
+      text: Go on. You are standing in my light.
 ---
 
 import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
