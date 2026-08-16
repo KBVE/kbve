@@ -97,7 +97,7 @@ impl GameClient {
                 };
 
             // Insert shared components
-            entity_mut.insert((netcode, ReplicationReceiver::default()));
+            entity_mut.insert((netcode, ReplicationReceiver));
 
             // Insert transport-specific IO component — one match arm per
             // transport, each inserts exactly one IO component.

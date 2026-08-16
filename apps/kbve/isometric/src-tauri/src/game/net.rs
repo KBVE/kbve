@@ -1025,7 +1025,7 @@ fn send_auth_on_connect(
         return;
     }
 
-    for (entity, mut sender) in &mut query {
+    if let Some((entity, mut sender)) = query.iter_mut().next() {
         let jwt = pending_auth.jwt.take().unwrap_or_default();
         let jwt_len = jwt.len();
         info!(
@@ -1034,7 +1034,6 @@ fn send_auth_on_connect(
         sender.send::<GameChannel>(AuthMessage { jwt });
         pending_auth.sent = true;
         info!("[net] auth message sent, waiting for AuthResponse before setting IS_CONNECTED");
-        break;
     }
 }
 
@@ -1109,10 +1108,6 @@ fn send_position_updates(
     }
 }
 
-/// Process replicated player entities that haven't been categorised yet.
-/// Defers until `MyPlayerId` is known so we never accidentally spawn a ghost
-/// visual for our own player.
-
 /// Observer: immediately hide any replicated player entity the instant PlayerId
 /// is added. This prevents a visible "ghost" frame before spawn_remote_player_visuals
 /// runs and decides whether to show it or mark it as own.
@@ -1122,6 +1117,9 @@ fn hide_new_replicated_player(trigger: On<Add, PlayerId>, mut commands: Commands
     commands.entity(entity).insert(Visibility::Hidden);
 }
 
+/// Process replicated player entities that haven't been categorised yet.
+/// Defers until `MyPlayerId` is known so we never accidentally spawn a ghost
+/// visual for our own player.
 fn spawn_remote_player_visuals(
     mut commands: Commands,
     my_player_id: Res<MyPlayerId>,
@@ -1836,7 +1834,7 @@ fn connect_to_server(commands: &mut Commands, transport: &ClientTransport, token
                     certificate_digest: digest,
                     target: None,
                 },
-                ReplicationReceiver::default(),
+                ReplicationReceiver,
             ));
 
             #[cfg(target_arch = "wasm32")]
@@ -1907,7 +1905,7 @@ fn connect_to_server(commands: &mut Commands, transport: &ClientTransport, token
                 let ws_io = WebSocketClientIo::from_url(ws_config, url.clone());
 
                 let client_entity = commands
-                    .spawn((netcode, ws_io, ReplicationReceiver::default()))
+                    .spawn((netcode, ws_io, ReplicationReceiver))
                     .id();
 
                 info!("[net] NetcodeClient+WebSocket entity spawned: {client_entity:?}");

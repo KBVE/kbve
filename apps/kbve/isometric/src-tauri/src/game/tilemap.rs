@@ -360,6 +360,7 @@ pub(super) fn lerp3(a: (f32, f32, f32), b: (f32, f32, f32), t: f32) -> (f32, f32
 /// Push exposed faces of a terrain body column. Skips:
 /// - Bottom (-Y): underground, never visible from isometric camera
 /// - Side faces hidden by equal/taller neighbor columns (eliminates z-fighting)
+///
 /// Top (+Y) is kept because the cap has edge insets at cliffs that expose it.
 fn push_terrain_body(
     pos: &mut Vec<[f32; 3]>,
