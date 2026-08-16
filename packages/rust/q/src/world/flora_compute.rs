@@ -277,24 +277,43 @@ pub struct FloraCompute {
     pub growth: f32,
 }
 
+pub struct FloraComputeParams<'a> {
+    pub scenario: Rid,
+    pub world_aabb: Aabb,
+    pub mesh: Rid,
+    pub material: Rid,
+    pub candidates: &'a [f32],
+    pub cap: u32,
+    pub fade_end: f32,
+    pub dist_min: f32,
+    pub band: (f32, f32, bool),
+    pub rank_fade: bool,
+    pub growth_on: bool,
+    pub shadows: bool,
+    pub surfaces: u32,
+    pub terrain: TerrainOcclusion,
+    pub pass: HarvestPass,
+}
+
 impl FloraCompute {
-    pub fn new(
-        scenario: Rid,
-        world_aabb: Aabb,
-        mesh: Rid,
-        material: Rid,
-        candidates: &[f32],
-        cap: u32,
-        fade_end: f32,
-        dist_min: f32,
-        band: (f32, f32, bool),
-        rank_fade: bool,
-        growth_on: bool,
-        shadows: bool,
-        surfaces: u32,
-        terrain: TerrainOcclusion,
-        pass: HarvestPass,
-    ) -> Option<Self> {
+    pub fn new(params: FloraComputeParams<'_>) -> Option<Self> {
+        let FloraComputeParams {
+            scenario,
+            world_aabb,
+            mesh,
+            material,
+            candidates,
+            cap,
+            fade_end,
+            dist_min,
+            band,
+            rank_fade,
+            growth_on,
+            shadows,
+            surfaces,
+            terrain,
+            pass,
+        } = params;
         let count = (candidates.len() / 8) as u32;
         if count == 0 || cap == 0 {
             return None;

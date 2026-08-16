@@ -11,7 +11,9 @@ use godot::tools::try_load;
 
 use std::collections::HashMap;
 
-use crate::world::flora_compute::{FloraCompute, HarvestPass, TerrainOcclusion};
+use crate::world::flora_compute::{
+    FloraCompute, FloraComputeParams, HarvestPass, TerrainOcclusion,
+};
 use crate::world::harvest::{
     Entry, HarvestKind, HarvestOutcome, Ledger, ScatterCore, Tree, stable_id,
 };
@@ -507,14 +509,14 @@ impl QTreeField {
 
             let leaf_mat = self.leaf_material.as_ref().map(|m| m.duplicate_resource());
             let mut leaf_aspect = 1.0f32;
-            if let Some(mut lm) = leaf_mat.clone() {
-                if let Ok(tex) = try_load::<Texture2D>(sp.leaf_tex) {
-                    let size = tex.get_size();
-                    if size.y > 0.0 {
-                        leaf_aspect = size.x / size.y;
-                    }
-                    lm.set_shader_parameter("albedo_tex", &tex.to_variant());
+            if let Some(mut lm) = leaf_mat.clone()
+                && let Ok(tex) = try_load::<Texture2D>(sp.leaf_tex)
+            {
+                let size = tex.get_size();
+                if size.y > 0.0 {
+                    leaf_aspect = size.x / size.y;
                 }
+                lm.set_shader_parameter("albedo_tex", &tex.to_variant());
             }
             let bark_mat = self.bark_material.as_ref().map(|m| {
                 let mut dup = m.duplicate_resource();
@@ -550,61 +552,61 @@ impl QTreeField {
 
             let band_lo = self.mesh_range - 8.0;
             let band_hi = self.mesh_range + 8.0;
-            let near_c = FloraCompute::new(
+            let near_c = FloraCompute::new(FloraComputeParams {
                 scenario,
-                aabb,
-                near.get_rid(),
-                Rid::Invalid,
-                &cands,
-                count,
-                band_hi,
-                0.0,
-                (band_lo, band_hi, true),
-                false,
-                true,
-                true,
-                2,
-                TerrainOcclusion::new(occl_h, occl_res, extent, 25.0),
-                HarvestPass::Standing,
-            );
-            let far_c = FloraCompute::new(
+                world_aabb: aabb,
+                mesh: near.get_rid(),
+                material: Rid::Invalid,
+                candidates: &cands,
+                cap: count,
+                fade_end: band_hi,
+                dist_min: 0.0,
+                band: (band_lo, band_hi, true),
+                rank_fade: false,
+                growth_on: true,
+                shadows: true,
+                surfaces: 2,
+                terrain: TerrainOcclusion::new(occl_h, occl_res, extent, 25.0),
+                pass: HarvestPass::Standing,
+            });
+            let far_c = FloraCompute::new(FloraComputeParams {
                 scenario,
-                aabb,
-                far.get_rid(),
-                Rid::Invalid,
-                &cands,
-                count,
-                if self.far_range > 0.0 {
+                world_aabb: aabb,
+                mesh: far.get_rid(),
+                material: Rid::Invalid,
+                candidates: &cands,
+                cap: count,
+                fade_end: if self.far_range > 0.0 {
                     self.far_range
                 } else {
                     extent * 8.0
                 },
-                band_lo,
-                (band_lo, band_hi, false),
-                false,
-                true,
-                false,
-                2,
-                TerrainOcclusion::new(occl_h, occl_res, extent, 25.0),
-                HarvestPass::Standing,
-            );
-            let stump_c = FloraCompute::new(
+                dist_min: band_lo,
+                band: (band_lo, band_hi, false),
+                rank_fade: false,
+                growth_on: true,
+                shadows: false,
+                surfaces: 2,
+                terrain: TerrainOcclusion::new(occl_h, occl_res, extent, 25.0),
+                pass: HarvestPass::Standing,
+            });
+            let stump_c = FloraCompute::new(FloraComputeParams {
                 scenario,
-                aabb,
-                stump.get_rid(),
-                Rid::Invalid,
-                &cands,
-                count,
-                self.stump_range,
-                0.0,
-                (0.0, 0.0, false),
-                false,
-                false,
-                true,
-                1,
-                TerrainOcclusion::new(occl_h, occl_res, extent, 25.0),
-                HarvestPass::Remains,
-            );
+                world_aabb: aabb,
+                mesh: stump.get_rid(),
+                material: Rid::Invalid,
+                candidates: &cands,
+                cap: count,
+                fade_end: self.stump_range,
+                dist_min: 0.0,
+                band: (0.0, 0.0, false),
+                rank_fade: false,
+                growth_on: false,
+                shadows: true,
+                surfaces: 1,
+                terrain: TerrainOcclusion::new(occl_h, occl_res, extent, 25.0),
+                pass: HarvestPass::Remains,
+            });
             match (near_c, far_c, stump_c) {
                 (Some(n), Some(f), Some(s)) => {
                     let base = self.computes.len() as u32;
@@ -664,13 +666,13 @@ impl INode3D for QTreeField {
             .as_ref()
             .filter(|p| p.is_instance_valid())
             .map(|p| p.get_global_position());
-        if let Some(p) = player_pos {
-            if p.distance_squared_to(self.last_player_pos) > 0.0004 {
-                self.last_player_pos = p;
-                let obj = p + Vector3::new(0.0, 1.1, 0.0);
-                for m in self.leaf_mats.iter_mut().chain(self.bark_mats.iter_mut()) {
-                    m.set_shader_parameter("object_position", &obj.to_variant());
-                }
+        if let Some(p) = player_pos
+            && p.distance_squared_to(self.last_player_pos) > 0.0004
+        {
+            self.last_player_pos = p;
+            let obj = p + Vector3::new(0.0, 1.1, 0.0);
+            for m in self.leaf_mats.iter_mut().chain(self.bark_mats.iter_mut()) {
+                m.set_shader_parameter("object_position", &obj.to_variant());
             }
         }
         if self.computes.is_empty() {
@@ -1131,6 +1133,7 @@ impl MeshBuilder {
             .extend_from_slice(&[base, base + 1, base + 2, base, base + 2, base + 3]);
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn ring(
         &mut self,
         center: Vector3,
@@ -1398,7 +1401,7 @@ fn limb(
             let thin = (k + 1) as f32 / segs as f32;
             let up_amt = 0.06 + g.up_attract * thin * if depth >= 2 { 1.0 } else { 0.25 };
             d = (d * step + jitter + Vector3::UP * step * up_amt + curve * step * 0.5).normalized();
-            p = p + d * step;
+            p += d * step;
             nodes.push(p);
             segd.push(d);
         }

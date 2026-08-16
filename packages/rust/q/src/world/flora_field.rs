@@ -4,7 +4,9 @@ use godot::classes::rendering_server::{MultimeshTransformFormat, ShadowCastingSe
 use godot::classes::{Engine, QuadMesh, RenderingServer, ShaderMaterial};
 use godot::prelude::*;
 
-use crate::world::flora_compute::{FloraCompute, HarvestPass, TerrainOcclusion};
+use crate::world::flora_compute::{
+    FloraCompute, FloraComputeParams, HarvestPass, TerrainOcclusion,
+};
 use crate::world::{TerrainSnapshot, randf, view_origin, world_aabb};
 
 #[derive(GodotClass)]
@@ -156,8 +158,7 @@ impl QFloraField {
         let cap = ((count * visible_area / world_area * 1.6) as u32)
             .clamp(64, (self.candidates.len() / 8) as u32);
 
-        if godot::classes::Os::singleton().get_environment("FLORA_NO_COMPUTE") != GString::from("1")
-        {
+        if godot::classes::Os::singleton().get_environment("FLORA_NO_COMPUTE") != "1" {
             self.compute = self.build_compute(cap);
         }
         if self.compute.is_none() {
@@ -262,23 +263,23 @@ impl QFloraField {
         let scenario = world.get_scenario();
         let mesh = self.quad.as_ref()?.get_rid();
         let material = self.flora_material.as_ref().map(|m| m.get_rid())?;
-        FloraCompute::new(
+        FloraCompute::new(FloraComputeParams {
             scenario,
-            world_aabb(self.extent),
+            world_aabb: world_aabb(self.extent),
             mesh,
             material,
-            &self.candidates,
+            candidates: &self.candidates,
             cap,
-            self.fade_end,
-            0.0,
-            (0.0, 0.0, false),
-            true,
-            false,
-            false,
-            1,
-            TerrainOcclusion::disabled(),
-            HarvestPass::Standing,
-        )
+            fade_end: self.fade_end,
+            dist_min: 0.0,
+            band: (0.0, 0.0, false),
+            rank_fade: true,
+            growth_on: false,
+            shadows: false,
+            surfaces: 1,
+            terrain: TerrainOcclusion::disabled(),
+            pass: HarvestPass::Standing,
+        })
     }
 
     fn build_classic(&mut self) {
