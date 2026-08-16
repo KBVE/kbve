@@ -19,6 +19,7 @@ config/icon="res://icon.svg"
 
 I18n="*res://src/autoload/i18n.gd"
 Game="*res://src/autoload/game.gd"
+Journal="*res://src/autoload/journal.gd"
 Auth="*res://src/autoload/auth_session.gd"
 ViewGlobals="*res://src/autoload/view_globals.gd"
 

@@ -16,7 +16,6 @@ const Hint := preload("res://src/ui/input_hint.gd")
 var _target: Node3D
 var _body: Node3D
 var _talking := false
-var _state := DialogueState.new()
 
 
 func _ready() -> void:
@@ -95,7 +94,7 @@ func _talk_to(actor: Node3D) -> void:
 		push_error("dialogue: %s cannot talk -- %s" % [actor.name, "; ".join(graph.errors())])
 		return
 	actor.face(_body)
-	var panel := PanelScript.open(get_tree(), graph, _state)
+	var panel := PanelScript.open(get_tree(), graph, state())
 	if panel == null:
 		return
 	_aim(null)
@@ -107,7 +106,7 @@ func _talk_to(actor: Node3D) -> void:
 			_body.set_talking(false))
 
 
-## Everything the player has been told and told others, kept on the player so it outlives
-## any one conversation.
+## Everything the player has been told and told others. Kept in the journal rather than on
+## the player: it has to outlive this world, not just this conversation.
 func state() -> DialogueState:
-	return _state
+	return Journal.state()
