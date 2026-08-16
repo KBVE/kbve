@@ -94,18 +94,29 @@ func is_joined() -> bool:
 	return _client.is_joined()
 
 
-## Asks the host to work a rock or tree.
+## Tells the host we have started working a rock or tree, and will keep at it.
+##
+## Sent once at the top of the job rather than once per swing. The host times the
+## stages from here, so it decides how fast anyone chops and its rulings arrive
+## while the client is already looping its animation.
 ##
 ## The cell and ordinal go over rather than the resolved id, so the host derives
 ## the id itself: a client that could name an id could name any id, including one
 ## on the far side of the map.
-func harvest(kind: StringName, cell: Vector2i, ordinal: int, hits: int) -> void:
+func harvest_begin(kind: StringName, cell: Vector2i, ordinal: int) -> void:
 	if not is_joined():
 		return
 	if kind == &"tree":
-		_client.harvest_tree(cell.x, cell.y, ordinal, hits)
+		_client.harvest_tree(cell.x, cell.y, ordinal)
 	else:
-		_client.harvest_stone(cell.x, cell.y, ordinal, hits)
+		_client.harvest_stone(cell.x, cell.y, ordinal)
+
+
+## Tells the host we have stopped. Walking away ends the job on its own, but this
+## is what makes letting go of the button stop it on the same tick.
+func harvest_end() -> void:
+	if is_joined():
+		_client.harvest_stop()
 
 
 func _on_harvest_applied(target: int, id: int, stage: int) -> void:

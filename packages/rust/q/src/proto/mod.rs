@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 /// 6: `Welcome` carries the water level and road width, which the bridge deck's
 ///    height is derived from on both sides.
 /// 8: pet robots — `DeployPet`, `RecallPet`, `RecallPets`, `Pets`, `PetDenied`.
-pub const PROTOCOL_VERSION: u32 = 8;
+pub const PROTOCOL_VERSION: u32 = 9;
 
 /// Maximum players per match (parallel-race default per #11294).
 pub const MAX_PLAYERS: usize = 4;

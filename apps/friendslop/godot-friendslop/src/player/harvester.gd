@@ -7,15 +7,21 @@ extends Node3D
 ## the two agree about what counts as "in front of me" and only differ in what
 ## they are looking for.
 ##
-## A swing is a window rather than a moment. The request goes out when the arm
-## starts moving and the result lands when it connects, which is what buys the
-## host its round trip: offline the two are the same instant and the delay is
-## honesty about the animation, online it is most of a second of cover before the
-## player could notice a wait.
+## Online this announces a job, not a swing. One message says the player has
+## started on a tree and another says they have stopped; everything in between is
+## the host's, which is what makes the animation free to run without waiting on
+## anything. It also means the pace is not ours to set: a message per swing can
+## always be sent faster than a swing takes, and no validation of one message
+## fixes that, because each one is individually legitimate.
+##
+## The swing itself stays a window rather than a moment. The blow lands partway
+## through, with wind-up before it and follow-through after, so the host's rulings
+## have somewhere to arrive that is not in front of the player's eyes.
 ##
 ## Online the field is never damaged here. The host owns the ledger, and a client
 ## that damaged its own copy would show a rock breaking that the server never
-## agreed to and then have to take it back.
+## agreed to and then have to take it back. Offline there is no host, so the same
+## swing clock does the counting locally.
 
 signal swung(target: StringName, id: int)
 signal harvested(target: StringName, ore: StringName, amount: int)
@@ -34,12 +40,16 @@ const TREE := &"tree"
 ## at a thing rather than choosing between two people standing together.
 @export var facing := 0.2
 ## Seconds one swing takes end to end. Also what the animation is given to play in.
+## Online this is presentation only -- the host's `chop_seconds` is what actually
+## decides when a stage falls -- so the two want to agree or the axe and the tree
+## drift out of step.
 @export var swing_interval := 0.75
 ## Where in that window the blow actually connects, as a fraction. The rest is
 ## wind-up before and follow-through after, and the wind-up is what the host's
 ## answer arrives during.
 @export var contact := 0.55
-## Damage per swing, which the host clamps to the stage count anyway.
+## Damage per swing, offline only. Online the host counts, and how much a swing is
+## worth was never something to send it.
 @export var hits := 1
 ## Seconds between target searches, which is what the reticle follows.
 @export var aim_interval := 0.1
@@ -63,6 +73,10 @@ var _landed := false
 ## A stage the host granted before the arm got there. Held back rather than shown,
 ## or a nearby server reads as the tree breaking a beat before it is hit.
 var _held_stage := -1
+## What the host has been told we are working, as the id, or 0 for nothing. Tracked
+## apart from the swing because a job outlives the swings that make it up: telling
+## the host again every swing would be the per-swing message this replaced.
+var _job_id := 0
 
 
 func _ready() -> void:
@@ -149,6 +163,10 @@ func _process(delta: float) -> void:
 		# Polled rather than taken on the press, because holding is the whole point:
 		# a tree is several swings and the player should not have to count them out.
 		_begin()
+	elif not _swinging():
+		# Nothing in flight and nothing asked for, so whatever the host thinks we
+		# are working, we are not.
+		_end_job()
 
 	# Not every frame: the search walks both scatters and builds a dictionary per
 	# candidate, which is far too much to spend on a mark that only has to keep up
@@ -187,10 +205,12 @@ func _can_swing() -> bool:
 
 func _begin() -> void:
 	if not _can_swing():
+		_end_job()
 		return
 	_resolve()
 	var target := _nearest()
 	if target.is_empty():
+		_end_job()
 		return
 	_target = target
 	_swing_t = 0.0
@@ -198,14 +218,27 @@ func _begin() -> void:
 	_held_stage = -1
 
 	var kind: StringName = target["kind"]
+	var id: int = target["id"]
 	_play_swing(kind)
-	swung.emit(kind, int(target["id"]))
+	swung.emit(kind, id)
 
-	# Sent now rather than on contact. The arm moving is the cover the round trip
-	# hides behind, and spending it waiting would be spending it for nothing.
-	if _net and _net.is_joined():
+	# Told once, when the job starts or moves to something else. Every swing after
+	# that is ours to draw and the host's to rule on, and it is already doing so.
+	if _net and _net.is_joined() and _job_id != id:
+		_end_job()
 		var info: Dictionary = target["info"]
-		_net.harvest(kind, info.get("cell", Vector2i.ZERO), info.get("ordinal", 0), hits)
+		_net.harvest_begin(kind, info.get("cell", Vector2i.ZERO), info.get("ordinal", 0))
+		_job_id = id
+
+
+## Puts down whatever the host thinks we are working. Safe to call when there is
+## nothing to put down, which is what lets every path out of a swing end with it.
+func _end_job() -> void:
+	if _job_id == 0:
+		return
+	_job_id = 0
+	if _net and _net.is_joined():
+		_net.harvest_end()
 
 
 func _step(delta: float) -> void:
@@ -218,8 +251,8 @@ func _step(delta: float) -> void:
 
 
 ## The blow connecting. Offline that is when the damage is dealt, since nothing
-## else was ever going to decide it; online the host has usually already answered
-## and this is only where its answer is allowed on screen.
+## else was ever going to decide it; online the host is working to its own clock
+## and this is only where an answer that arrived early is allowed on screen.
 func _land() -> void:
 	var kind: StringName = _target["kind"]
 	var id: int = _target["id"]
