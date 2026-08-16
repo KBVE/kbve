@@ -640,6 +640,16 @@ impl QTerrain {
         self.water_level
     }
 
+    pub fn road_span(&self) -> f32 {
+        self.road_width
+    }
+
+    /// The shape of the ground, for anything that has to derive placement from the
+    /// generator rather than from the baked grid.
+    pub fn generator_params(&self) -> HeightParams {
+        self.height_params()
+    }
+
     pub fn river_center(&self, z: f32) -> f32 {
         self.hgen.as_ref().map(|g| g.river_x(z)).unwrap_or(0.0)
     }

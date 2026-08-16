@@ -13,6 +13,7 @@ use godot::classes::{Camera3D, Node, Node3D};
 use godot::prelude::*;
 
 use crate::world::terrain::QTerrain;
+use crate::worldgen::{HeightGen, HeightParams, RoadPlan};
 
 pub(crate) fn hash32(mut x: u32) -> u32 {
     x ^= x >> 16;
@@ -148,6 +149,13 @@ pub(crate) struct TerrainSnapshot {
     /// Centre of the baked window. World coordinates map into the height and
     /// road grids relative to this, not to nothing.
     pub origin: Vector2,
+    /// The generator behind the baked grid, and the road width measured from it.
+    ///
+    /// Scatter is placed from these rather than from the grid: the server has no
+    /// grid, so a field that decides where a rock stands by sampling one has
+    /// already agreed to differ from it.
+    params: HeightParams,
+    road_width: f32,
 }
 
 impl TerrainSnapshot {
@@ -168,7 +176,23 @@ impl TerrainSnapshot {
             extent: t.world_extent(),
             water: t.water(),
             origin: t.window_origin(),
+            params: t.generator_params(),
+            road_width: t.road_span(),
         })
+    }
+
+    /// The generator and the carriageway this window was grown from, which is what
+    /// scatter is placed against so both ends of a session agree on it.
+    pub(crate) fn scatter_world(&self) -> (HeightGen, RoadPlan) {
+        let hgen = HeightGen::new(&self.params);
+        let road = RoadPlan::new(
+            &hgen,
+            [self.origin.x, self.origin.y],
+            self.extent,
+            self.water,
+            self.road_width,
+        );
+        (hgen, road)
     }
 
     /// For fields that keep their own copy alive past init — stone marches it for
