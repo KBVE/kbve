@@ -98,6 +98,111 @@ pub async fn reel_media_token_handler(req: Request<Body>) -> Response {
     }
 }
 
+/// `POST /api/v1/reel/torrents` — the one reel route that is not a blind
+/// passthrough. Every fetch is billed, staff included, so the gateway resolves
+/// the caller's wallet account and stamps it onto the request body before reel
+/// sees it. Reel has no identity of its own; a body that arrives with its own
+/// `account_id` is overwritten, never trusted.
+pub async fn reel_add_handler(req: Request<Body>) -> Response {
+    let headers = req.headers().clone();
+    let query = req.uri().query().map(str::to_owned);
+    let info = match require_dashboard_view_with_query(&headers, query.as_deref(), "Reel").await {
+        Ok(i) => i,
+        Err(resp) => return resp,
+    };
+    let user_id = match uuid::Uuid::parse_str(&info.user_id) {
+        Ok(u) => u,
+        Err(_) => {
+            return (
+                StatusCode::UNAUTHORIZED,
+                Json(json!({"error": "Session has no usable account"})),
+            )
+                .into_response();
+        }
+    };
+    let wallet = match crate::db::get_wallet_client() {
+        Some(w) => w,
+        None => {
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({"error": "Wallet unavailable; cannot bill this fetch"})),
+            )
+                .into_response();
+        }
+    };
+    // service_account_for_user provisions on first use, so a brand new staff
+    // member can fetch without a manual wallet setup step.
+    let account_id = match wallet.service_account_for_user(user_id).await {
+        Ok(a) => a,
+        Err(e) => {
+            tracing::warn!(error = %e, "reel add: account resolve failed");
+            return (
+                StatusCode::SERVICE_UNAVAILABLE,
+                Json(json!({"error": "Could not resolve a wallet account for this session"})),
+            )
+                .into_response();
+        }
+    };
+
+    let (parts, body) = req.into_parts();
+    let bytes = match axum::body::to_bytes(body, 64 * 1024).await {
+        Ok(b) => b,
+        Err(_) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(json!({"error": "Unreadable request body"})),
+            )
+                .into_response();
+        }
+    };
+    let mut payload: serde_json::Value = match serde_json::from_slice(&bytes) {
+        Ok(v) => v,
+        Err(_) => {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(json!({"error": "Body must be JSON"})),
+            )
+                .into_response();
+        }
+    };
+    match payload.as_object_mut() {
+        Some(obj) => {
+            obj.insert(
+                "account_id".into(),
+                serde_json::Value::String(account_id.to_string()),
+            );
+        }
+        None => {
+            return (
+                StatusCode::BAD_REQUEST,
+                Json(json!({"error": "Body must be a JSON object"})),
+            )
+                .into_response();
+        }
+    }
+    let stamped = match serde_json::to_vec(&payload) {
+        Ok(v) => v,
+        Err(_) => return StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    };
+
+    let mut parts = parts;
+    parts.headers.remove(axum::http::header::CONTENT_LENGTH);
+    let rebuilt = Request::from_parts(parts, Body::from(stamped));
+
+    match REEL.get() {
+        Some(proxy) => {
+            proxy
+                .handle_preauthorized(Some(Path("torrents".to_string())), rebuilt)
+                .await
+        }
+        None => (
+            StatusCode::SERVICE_UNAVAILABLE,
+            Json(json!({"error": "Reel proxy not configured"})),
+        )
+            .into_response(),
+    }
+}
+
 pub async fn reel_proxy_handler(rest: Option<Path<String>>, req: Request<Body>) -> Response {
     let headers = req.headers().clone();
     let query = req.uri().query().map(str::to_owned);
