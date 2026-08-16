@@ -10,6 +10,7 @@ import { unified } from '@astrojs/markdown-remark';
 import rehypeLinkAttrs from './src/lib/rehype-link-attrs.mjs';
 import remarkMermaidBaked from './src/lib/remark-mermaid-baked.mjs';
 import { isIndexableUrl } from './src/lib/noindex-routes.mjs';
+import { createSitemapLastmod } from '../../../tools/astro/sitemap-lastmod.mjs';
 import { readFileSync } from 'node:fs';
 import https from 'node:https';
 import { fileURLToPath } from 'node:url';
@@ -434,6 +435,9 @@ export default defineConfig({
 		react(),
 		sitemap({
 			filter: isIndexableUrl,
+			serialize: createSitemapLastmod({
+				appDir: fileURLToPath(new URL('.', import.meta.url)),
+			}),
 			i18n: {
 				defaultLocale: 'en',
 				locales: {

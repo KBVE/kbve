@@ -3,6 +3,8 @@ import starlight from '@astrojs/starlight';
 import tailwindcss from '@tailwindcss/vite';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
+import { fileURLToPath } from 'node:url';
+import { createSitemapLastmod } from '../../../tools/astro/sitemap-lastmod.mjs';
 import worker from '@astropub/worker';
 
 export default defineConfig({
@@ -269,6 +271,9 @@ export default defineConfig({
 		}),
 		react(),
 		sitemap({
+			serialize: createSitemapLastmod({
+				appDir: fileURLToPath(new URL('.', import.meta.url)),
+			}),
 			i18n: {
 				defaultLocale: 'en',
 				locales: {
