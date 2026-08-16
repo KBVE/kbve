@@ -45,7 +45,8 @@ const GROUP := &"interactable"
 ## Puts him beside the crossing rather than wherever the scene was saved with him, since
 ## the bridge moves with the world seed.
 @export var stand_under_bridge := false
-## How far off the middle of the span he stands, past the deck's own half width.
+## How far clear of the deck's edge he stands. The sign picks the side, so -2 and 2 are the
+## same distance from the rail on opposite banks of the road.
 @export var bridge_offset := 2.0
 ## Along the span, so he is at the bank end rather than out over the water.
 @export var bridge_along := 9.0
@@ -62,10 +63,7 @@ func _ready() -> void:
 	_terrain = get_node_or_null(terrain_path)
 	_build_body()
 	_build_nameplate()
-	if stand_under_bridge:
-		_stand_under_bridge.call_deferred()
-	elif _terrain != null:
-		_settle.call_deferred()
+	_place_when_there_is_ground()
 
 
 func _build_body() -> void:
@@ -156,6 +154,29 @@ func _head_height() -> float:
 	return 1.8
 
 
+## Worldgen runs long enough that a deferred call beats it to the frame, and a crossing that
+## is not laid down yet answers with nothing -- which lands everybody on the spot the scene
+## was saved with, all of them the same spot. So the placing waits for the ground, the same
+## way the player's does.
+func _place_when_there_is_ground() -> void:
+	if _terrain == null:
+		return
+	if not _terrain.has_method("is_ground_ready") or _terrain.is_ground_ready():
+		_place.call_deferred()
+		return
+	if _terrain.has_signal("ground_ready"):
+		_terrain.ground_ready.connect(_place, CONNECT_ONE_SHOT)
+	else:
+		_place.call_deferred()
+
+
+func _place() -> void:
+	if stand_under_bridge:
+		_stand_under_bridge()
+	else:
+		_settle()
+
+
 ## The crossing is placed by the world seed, so where he stands is asked for rather than
 ## saved: beside the span, off to one side of the deck, at the bank end.
 func _stand_under_bridge() -> void:
@@ -177,7 +198,12 @@ func _stand_under_bridge() -> void:
 	along = along.normalized()
 	var side := Vector3(-along.z, 0.0, along.x)
 	var middle := (a + b) * 0.5
-	var at := middle + along * bridge_along + side * (half_width + bridge_offset)
+	## Clearance is measured from the deck's edge outwards, so the sign has to be taken off
+	## the offset first -- added straight to the half width it walks a negative offset back
+	## across the road instead of out to the far side of it.
+	var side_of_road := -1.0 if bridge_offset < 0.0 else 1.0
+	var clear := side_of_road * (half_width + absf(bridge_offset))
+	var at := middle + along * bridge_along + side * clear
 	global_position = Vector3(at.x, 0.0, at.z)
 	_settle()
 	## Facing the deck, so a player coming over the bridge meets his eyes rather than his
