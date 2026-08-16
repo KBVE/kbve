@@ -81,8 +81,4 @@ impl<'d> Button<'d> {
             Some(Press::Short)
         }
     }
-
-    pub fn is_down(&self) -> bool {
-        self.down
-    }
 }
