@@ -1093,4 +1093,59 @@
 			transform: none;
 		}
 	}
+
+	/* Monospace command/code block. Pairs with any card; the tint follows
+	   --bento-accent so retinted pages get a matching block for free. */
+	.bento-pre {
+		margin: 0.75rem 0;
+		padding: 0.6rem 0.75rem;
+		border-radius: 0.5rem;
+		overflow-x: auto;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 0.9rem;
+		background: color-mix(in oklab, var(--bento-accent) 12%, transparent);
+	}
+
+	/* Inline advisory text inside a card. --warn for caution, --err for
+	   failure; both stay legible on glass. */
+	.bento-note {
+		font-size: 0.9rem;
+		line-height: 1.5;
+	}
+	.bento-note--warn {
+		color: #fbbf24;
+	}
+	.bento-note--err {
+		color: #f87171;
+	}
+	.bento-note--ok {
+		color: #4ade80;
+	}
+	.bento-note--muted {
+		font-size: 0.8rem;
+		opacity: 0.6;
+	}
+
+	/* Text input sized for cards. Transparent so it reads as part of the
+	   glass rather than a pasted-on form control. */
+	.bento-input {
+		width: 100%;
+		padding: 0.6rem 0.75rem;
+		border-radius: 0.5rem;
+		border: 1px solid color-mix(in oklab, currentColor 25%, transparent);
+		background: transparent;
+		color: inherit;
+		font-size: 1rem;
+	}
+	.bento-input:focus-visible {
+		outline: 2px solid var(--bento-accent);
+		outline-offset: 2px;
+	}
+	.bento-input--code {
+		max-width: 14rem;
+		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+		font-size: 1.35rem;
+		letter-spacing: 0.18em;
+		text-transform: uppercase;
+	}
 }

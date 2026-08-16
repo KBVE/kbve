@@ -149,7 +149,7 @@ export default function ReactBbsClaim() {
 						</label>
 						<input
 							id="bbs-code"
-							className="bbs-claim__input"
+							className="bento-input bento-input--code"
 							value={format(code)}
 							onChange={(e) =>
 								setCode(
@@ -173,14 +173,14 @@ export default function ReactBbsClaim() {
 							<p
 								className={
 									phase === 'linked'
-										? 'bbs-claim__msg bbs-claim__msg--ok'
-										: 'bbs-claim__msg bbs-claim__msg--err'
+										? 'bento-note bento-note--ok'
+										: 'bento-note bento-note--err'
 								}>
 								{message}
 							</p>
 						) : null}
 						{username ? (
-							<p className="bbs-claim__who">
+							<p className="bento-note bento-note--muted">
 								signed in as {username}
 							</p>
 						) : null}

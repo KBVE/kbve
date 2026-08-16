@@ -81,7 +81,7 @@ const backdrop =
 				<p>
 					Load CCGMS with a Wi-Fi modem on the user port, then dial:
 				</p>
-				<pre class="bbs-pre"><code>ATDTbbs.kbve.com:6400</code></pre>
+				<pre class="bento-pre"><code>ATDTbbs.kbve.com:6400</code></pre>
 				<p>You get PETSCII colours and a 40-column board.</p>
 			</article>
 			<article class="bento-cell bento-card bento-card--glass bbs-step">
@@ -90,7 +90,8 @@ const backdrop =
 					Any telnet client works; the ANSI port adapts to your window
 					size:
 				</p>
-				<pre class="bbs-pre"><code>telnet bbs.kbve.com 6401</code></pre>
+				<pre
+					class="bento-pre"><code>telnet bbs.kbve.com 6401</code></pre>
 				<p>SyncTERM and friends are auto-detected by terminal type.</p>
 			</article>
 			<article class="bento-cell bento-card bento-card--glass bbs-step">
@@ -101,7 +102,7 @@ const backdrop =
 					flips to your account. Codes are single-use and expire in five
 					minutes.
 				</p>
-				<p class="bbs-step__warn">
+				<p class="bento-note bento-note--warn">
 					Only enter a code you are reading off your own screen. A
 					code someone else sends you would hand their terminal your
 					account.
@@ -115,17 +116,6 @@ const backdrop =
 	.bbs-step__title {
 		margin: 0 0 0.5rem;
 		font-size: 1.05rem;
-	}
-	.bbs-step__warn {
-		color: #fbbf24;
-		font-size: 0.9rem;
-	}
-	.bbs-pre {
-		margin: 0.75rem 0;
-		padding: 0.6rem 0.75rem;
-		border-radius: 0.5rem;
-		overflow-x: auto;
-		background: color-mix(in oklab, var(--bento-accent) 12%, transparent);
 	}
 </style>
 
@@ -155,33 +145,5 @@ const backdrop =
 		gap: 0.6rem;
 		justify-items: start;
 		width: 100%;
-	}
-	.bbs-claim__input {
-		width: 100%;
-		max-width: 14rem;
-		padding: 0.6rem 0.75rem;
-		border-radius: 0.5rem;
-		border: 1px solid color-mix(in oklab, currentColor 25%, transparent);
-		background: transparent;
-		color: inherit;
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 1.35rem;
-		letter-spacing: 0.18em;
-		text-transform: uppercase;
-	}
-	.bbs-claim__msg {
-		margin: 0;
-		font-size: 0.9rem;
-	}
-	.bbs-claim__msg--ok {
-		color: #4ade80;
-	}
-	.bbs-claim__msg--err {
-		color: #f87171;
-	}
-	.bbs-claim__who {
-		margin: 0;
-		font-size: 0.8rem;
-		opacity: 0.6;
 	}
 </style>
