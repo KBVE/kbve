@@ -1366,11 +1366,13 @@ mod tests {
         use std::time::Instant;
         let owner = PlayerId::new(42);
         let mut players = HashMap::new();
-        let mut player = PlayerState::default();
-        player.name = "TestHero".to_owned();
-        player.gold = 100;
-        player.weapon = Some("rusty_sword".to_owned());
-        player.armor_gear = Some("leather_vest".to_owned());
+        let mut player = PlayerState {
+            name: "TestHero".to_owned(),
+            gold: 100,
+            weapon: Some("rusty_sword".to_owned()),
+            armor_gear: Some("leather_vest".to_owned()),
+            ..Default::default()
+        };
         player.effects.push(EffectInstance {
             kind: EffectKind::Poison,
             stacks: 2,
