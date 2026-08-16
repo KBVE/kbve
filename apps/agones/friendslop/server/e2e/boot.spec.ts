@@ -20,7 +20,15 @@ describe('friendslop-server boot smoke', () => {
 	});
 
 	it('healthz returns ok', () => {
-		expect(get('/healthz')).toBe('ok');
+		expect(JSON.parse(get('/healthz')).status).toBe('ok');
+	});
+
+	// The only path a deployed host exposes besides the socket, so it is the only
+	// place a client can find out whether it is allowed to join before it tries.
+	it('healthz publishes the protocol it will accept', () => {
+		const protocol = JSON.parse(get('/healthz')).protocol;
+		expect(Number.isInteger(protocol)).toBe(true);
+		expect(protocol).toBeGreaterThan(0);
 	});
 
 	// The sim runs on its own thread; a served /healthz proves only that axum
