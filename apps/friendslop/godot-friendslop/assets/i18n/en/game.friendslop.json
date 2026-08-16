@@ -83,5 +83,9 @@
 	"account": {
 		"loading": "reading balance…",
 		"wallet": "{credits} credits  ·  {khash} khash"
+	},
+	"toast": {
+		"gained": "+{{count}} {{item}}",
+		"no_room": "Bag full — no room for {{count}} {{item}}"
 	}
 }
