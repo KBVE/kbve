@@ -1,0 +1,38 @@
+{
+	"name": "esp32c6-display",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/hardware/esp32c6-display/src",
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/hardware/esp32c6-display",
+				"command": "cargo build --release"
+			}
+		},
+		"flash": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["build"],
+			"options": {
+				"cwd": "apps/hardware/esp32c6-display",
+				"command": "espflash flash --monitor ../../../dist/target/riscv32imac-unknown-none-elf/release/esp32c6-display"
+			}
+		},
+		"monitor": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/hardware/esp32c6-display",
+				"command": "espflash monitor"
+			}
+		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/hardware/esp32c6-display",
+				"command": "cargo clippy --release -- -D warnings"
+			}
+		}
+	},
+	"tags": ["lang:rust", "platform:embedded"]
+}
