@@ -16,6 +16,10 @@ const Harvester := preload("res://src/player/harvester.gd")
 @export var target_gap := 7.0
 ## How quickly the mark opens and closes, as a fraction closed per second.
 @export var settle := 14.0
+## How far the arms draw in as a swing winds up. A swing takes most of a second
+## before it lands, and without a tell that wait reads as the game ignoring the
+## button rather than as an axe being raised.
+@export var wind_pull := 8.0
 
 var _settings: Node
 var _draw_layer: Control
@@ -24,6 +28,9 @@ var _harvester: Node
 ## of flickering between two sizes when a target sits at the edge of the cone.
 var _aim := 0.0
 var _aim_wanted := 0.0
+## Read from the harvester rather than timed here, so the mark cannot drift out of
+## step with the arm it is describing.
+var _wind := 0.0
 
 
 func _ready() -> void:
@@ -46,6 +53,7 @@ func _ready() -> void:
 func _find_harvester() -> void:
 	if _harvester and is_instance_valid(_harvester):
 		return
+	_harvester = null
 	for node in get_tree().get_nodes_in_group(Harvester.GROUP):
 		_harvester = node
 		_harvester.aimed.connect(_on_aimed)
@@ -59,10 +67,14 @@ func _on_aimed(target: StringName, _info: Dictionary) -> void:
 func _process(delta: float) -> void:
 	if _harvester == null or not is_instance_valid(_harvester):
 		_find_harvester()
-	if is_equal_approx(_aim, _aim_wanted):
-		return
-	_aim = move_toward(_aim, _aim_wanted, settle * delta)
-	_draw_layer.queue_redraw()
+	var wind: float = _harvester.swing_tension() if _harvester else 0.0
+	var moved := not is_equal_approx(_wind, wind)
+	_wind = wind
+	if not is_equal_approx(_aim, _aim_wanted):
+		_aim = move_toward(_aim, _aim_wanted, settle * delta)
+		moved = true
+	if moved:
+		_draw_layer.queue_redraw()
 
 
 func _read_settings() -> void:
@@ -71,7 +83,7 @@ func _read_settings() -> void:
 
 func _draw_crosshair() -> void:
 	var c := _draw_layer.size * 0.5
-	var g: float = gap + target_gap * _aim
+	var g: float = maxf(gap + target_gap * _aim - wind_pull * _wind, 1.0)
 	var tint := color.lerp(target_color, _aim)
 	for pass_i in 2:
 		var col := outline if pass_i == 0 else tint
