@@ -13,13 +13,19 @@ use esp_backtrace as _;
 use esp_hal::{
     clock::CpuClock,
     delay::Delay,
-    gpio::{Level, Output, OutputConfig},
+    gpio::{DriveMode, Level, Output, OutputConfig},
+    ledc::{
+        LSGlobalClkSource, Ledc, LowSpeed,
+        channel::{self, ChannelIFace},
+        timer::{self, TimerIFace},
+    },
     main,
     spi::{
         Mode,
         master::{Config as SpiConfig, Spi},
     },
     time::Rate,
+    tsens::{Config as TsensConfig, TemperatureSensor},
 };
 use esp_println::println;
 use mipidsi::{
@@ -39,6 +45,10 @@ const PANEL_HEIGHT: u16 = 320;
 const COLUMN_OFFSET: u16 = (240 - PANEL_WIDTH) / 2;
 const ROW_OFFSET: u16 = 0;
 
+/// Comfortably readable indoors, and the single biggest lever on how warm the
+/// board runs.
+const BACKLIGHT_PCT: u8 = 40;
+
 #[main]
 fn main() -> ! {
     let peripherals = esp_hal::init(esp_hal::Config::default().with_cpu_clock(CpuClock::max()));
@@ -46,9 +56,29 @@ fn main() -> ! {
 
     println!("[c6] booting");
 
-    // Backlight is a plain GPIO on this board, not a PWM channel, so the panel
-    // is either lit or dark until we drive it from LEDC.
-    let _backlight = Output::new(peripherals.GPIO22, Level::High, OutputConfig::default());
+    // Backlight on LEDC rather than a bare GPIO. Held fully on it is the
+    // largest heat source on the board by a wide margin — measured at roughly
+    // +5C on the die, against +0.7C for doubling the CPU clock — and full
+    // brightness is not needed indoors.
+    let mut ledc = Ledc::new(peripherals.LEDC);
+    ledc.set_global_slow_clock(LSGlobalClkSource::APBClk);
+    let mut backlight_timer = ledc.timer::<LowSpeed>(timer::Number::Timer0);
+    backlight_timer
+        .configure(timer::config::Config {
+            duty: timer::config::Duty::Duty8Bit,
+            clock_source: timer::LSClockSource::APBClk,
+            frequency: Rate::from_khz(5),
+        })
+        .expect("backlight timer");
+
+    let mut backlight = ledc.channel(channel::Number::Channel0, peripherals.GPIO22);
+    backlight
+        .configure(channel::config::Config {
+            timer: &backlight_timer,
+            duty_pct: BACKLIGHT_PCT,
+            drive_mode: DriveMode::PushPull,
+        })
+        .expect("backlight channel");
 
     let spi = Spi::new(
         peripherals.SPI2,
@@ -107,10 +137,18 @@ fn main() -> ! {
 
     println!("[c6] drew first frame");
 
+    let tsens = TemperatureSensor::new(peripherals.TSENS, TsensConfig::default()).ok();
+
     let mut ticks: u32 = 0;
     loop {
         delay.delay_millis(1000);
         ticks += 1;
-        println!("[c6] alive {ticks}s");
+        match tsens.as_ref() {
+            Some(sensor) => {
+                let c = sensor.get_temperature().to_celsius();
+                println!("[c6] alive {ticks}s die {c}C");
+            }
+            None => println!("[c6] alive {ticks}s"),
+        }
     }
 }
