@@ -1,0 +1,29 @@
+[package]
+name = "esp32c6-display"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Firmware for the Waveshare ESP32-C6-LCD-1.47 board — 172x320 ST7789 panel over SPI."
+publish = false
+
+[workspace]
+
+[dependencies]
+esp-hal = { version = "1.1.2", features = ["esp32c6", "unstable"] }
+esp-bootloader-esp-idf = { version = "0.5.0", features = ["esp32c6"] }
+esp-backtrace = { version = "0.19.0", features = [
+	"esp32c6",
+	"panic-handler",
+	"println",
+] }
+esp-println = { version = "0.17.0", features = ["esp32c6"] }
+
+embedded-graphics = "0.8.2"
+embedded-hal-bus = "0.3.0"
+mipidsi = "0.10.0"
+
+[profile.release]
+opt-level = "s"
+lto = "fat"
+codegen-units = 1
+debug = 2
