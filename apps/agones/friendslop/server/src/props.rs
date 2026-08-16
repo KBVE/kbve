@@ -161,10 +161,6 @@ impl PropField {
         self.revision += 1;
     }
 
-    pub fn stone_count(&self) -> usize {
-        self.loaded.values().map(|r| r.bodies.len()).sum()
-    }
-
     /// Flat `x, z, radius` triples for every region loaded, which is the shape a
     /// flow field stamps.
     ///

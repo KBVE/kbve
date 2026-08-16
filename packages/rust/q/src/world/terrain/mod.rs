@@ -301,12 +301,12 @@ impl QTerrain {
         }
         let bytes: Vec<u8> = heights.iter().flat_map(|h| h.to_le_bytes()).collect();
         let data = PackedByteArray::from(bytes.as_slice());
-        if let Some(tex) = self.texture.as_mut() {
-            if let Some(img) = Image::create_from_data(res, res, false, ImageFormat::RF, &data) {
-                // Updated in place, so every material still points at the same
-                // texture and none of them need rebinding.
-                tex.update(&img);
-            }
+        if let Some(tex) = self.texture.as_mut()
+            && let Some(img) = Image::create_from_data(res, res, false, ImageFormat::RF, &data)
+        {
+            // Updated in place, so every material still points at the same
+            // texture and none of them need rebinding.
+            tex.update(&img);
         }
         let at = Vector2::new(origin[0], origin[1]);
         for m in [
@@ -429,11 +429,11 @@ impl QTerrain {
         self.ground_shape = Some(shape);
         self.ground_body = Some(body.clone());
 
-        if crate::world::q_hidden("pom") {
-            if let Some(m) = self.riverbed_material.as_mut() {
-                m.set_shader_parameter("pom_depth", &0.0f32.to_variant());
-                m.set_shader_parameter("pom_fade_end", &0.0f32.to_variant());
-            }
+        if crate::world::q_hidden("pom")
+            && let Some(m) = self.riverbed_material.as_mut()
+        {
+            m.set_shader_parameter("pom_depth", &0.0f32.to_variant());
+            m.set_shader_parameter("pom_fade_end", &0.0f32.to_variant());
         }
         self.build_river_planes();
 
@@ -605,10 +605,10 @@ impl QTerrain {
             .and_then(|img| ImageTexture::create_from_image(&img));
         self.clearance = clearance;
         self.clearance_res = cres;
-        if let Some(t) = self.clearance_tex.as_ref() {
-            if let Some(m) = self.ground_material.as_mut() {
-                m.set_shader_parameter("clearance_tex", &t.to_variant());
-            }
+        if let Some(t) = self.clearance_tex.as_ref()
+            && let Some(m) = self.ground_material.as_mut()
+        {
+            m.set_shader_parameter("clearance_tex", &t.to_variant());
         }
     }
 

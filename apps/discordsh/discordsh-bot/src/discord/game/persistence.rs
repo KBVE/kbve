@@ -1020,11 +1020,12 @@ mod tests {
 
     fn make_test_session() -> SessionState {
         use crate::discord::game::{content, types::*};
-        use poise::serenity_prelude as serenity;
 
         let owner = PlayerId::new(1);
-        let mut player = PlayerState::default();
-        player.inventory = content::starting_inventory();
+        let player = PlayerState {
+            inventory: content::starting_inventory(),
+            ..Default::default()
+        };
 
         SessionState {
             id: uuid::Uuid::new_v4(),

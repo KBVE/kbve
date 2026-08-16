@@ -55,8 +55,13 @@ pub fn router() -> Router {
                     ),
                 )
                 .layer(axum::middleware::from_fn(hook_auth))
-                .layer(tower_http::timeout::TimeoutLayer::new(Duration::from_secs(30)))
-                .layer(tower_http::limit::RequestBodyLimitLayer::new(32 * 1024 * 1024)),
+                .layer(tower_http::timeout::TimeoutLayer::with_status_code(
+                    axum::http::StatusCode::REQUEST_TIMEOUT,
+                    Duration::from_secs(30),
+                ))
+                .layer(tower_http::limit::RequestBodyLimitLayer::new(
+                    32 * 1024 * 1024,
+                )),
         )
 }
 

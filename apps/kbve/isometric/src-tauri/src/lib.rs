@@ -1,4 +1,10 @@
 #![cfg_attr(target_arch = "wasm32", feature(thread_local))]
+// A Bevy system's signature is its dependency declaration, so both of these
+// fire on ordinary ECS code: queries carry their filters in the type, and a
+// system asks for every resource it touches. Allowed crate-wide rather than
+// on each of the sixty-odd systems that trip them.
+#![allow(clippy::type_complexity)]
+#![allow(clippy::too_many_arguments)]
 
 use std::sync::atomic::AtomicUsize;
 

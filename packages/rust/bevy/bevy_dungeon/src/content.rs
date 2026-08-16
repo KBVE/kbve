@@ -2973,7 +2973,7 @@ mod tests {
         let consumables: Vec<_> = stock.iter().filter(|o| !o.is_gear).collect();
         let gear: Vec<_> = stock.iter().filter(|o| o.is_gear).collect();
         assert_eq!(consumables.len(), 3);
-        assert!(gear.len() >= 1 && gear.len() <= 2);
+        assert!(!gear.is_empty() && gear.len() <= 2);
         for offer in &consumables {
             assert!(offer.price > 0);
             assert!(find_item(&offer.item_id).is_some());

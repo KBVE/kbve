@@ -673,6 +673,27 @@ fn dungeon_map_view_toggles_and_returns() {
 }
 
 #[test]
+fn dungeon_never_offers_a_key_the_rules_refuse() {
+    for seed in 1..24u64 {
+        let mut game = run::Run::new(Rng::new(seed), "tester");
+        for step in 0..120 {
+            let keys = game.keys();
+            assert!(
+                !keys.is_empty(),
+                "seed {seed} step {step}: no action offered, the run is stuck"
+            );
+            let key = keys[step % keys.len()];
+            let _ = game.on_key(key);
+            assert!(
+                game.notice().is_none(),
+                "seed {seed} step {step}: '{key}' was offered but refused: {:?}",
+                game.notice()
+            );
+        }
+    }
+}
+
+#[test]
 fn dungeon_map_shows_unmapped_neighbors_from_the_start() {
     let mut game = run::Run::new(Rng::new(11), "tester");
     let _ = game.on_key('M');
@@ -765,4 +786,19 @@ fn map_window_shrinks_to_fit_a_forty_column_screen() {
         super::games::map::fits(&petscii, 30) < super::games::map::fits(&ansi, 30),
         "petscii should get a narrower map window than a wide ansi terminal"
     );
+}
+
+#[tokio::test]
+async fn idle_allowance_can_be_raised_for_a_caller_who_signs_in() {
+    let (mut conn, _client) = pair().await;
+    assert_eq!(conn.idle_timeout(), Duration::from_secs(2));
+
+    conn.set_idle_timeout(super::authed_idle());
+
+    assert_eq!(conn.idle_timeout(), Duration::from_secs(3600));
+}
+
+#[test]
+fn authed_idle_defaults_to_an_hour() {
+    assert_eq!(super::authed_idle(), Duration::from_secs(3600));
 }

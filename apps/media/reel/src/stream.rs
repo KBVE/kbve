@@ -10,25 +10,32 @@ pub struct RangeSpec {
     pub end: u64,
 }
 
-pub fn parse_range(header: Option<&str>, total: u64) -> Result<Option<RangeSpec>, ()> {
+/// A Range header the file cannot satisfy, which is always answered with 416.
+#[derive(Debug, PartialEq, Eq)]
+pub struct RangeNotSatisfiable;
+
+pub fn parse_range(
+    header: Option<&str>,
+    total: u64,
+) -> Result<Option<RangeSpec>, RangeNotSatisfiable> {
     let h = match header {
         Some(h) => h,
         None => return Ok(None),
     };
-    let spec = h.strip_prefix("bytes=").ok_or(())?;
-    let (s, e) = spec.split_once('-').ok_or(())?;
+    let spec = h.strip_prefix("bytes=").ok_or(RangeNotSatisfiable)?;
+    let (s, e) = spec.split_once('-').ok_or(RangeNotSatisfiable)?;
     if total == 0 {
-        return Err(());
+        return Err(RangeNotSatisfiable);
     }
     let s = s.trim();
     let e = e.trim();
     if s.is_empty() {
         if e.is_empty() {
-            return Err(());
+            return Err(RangeNotSatisfiable);
         }
-        let suffix_len: u64 = e.parse().map_err(|_| ())?;
+        let suffix_len: u64 = e.parse().map_err(|_| RangeNotSatisfiable)?;
         if suffix_len == 0 {
-            return Err(());
+            return Err(RangeNotSatisfiable);
         }
         let start = total.saturating_sub(suffix_len);
         return Ok(Some(RangeSpec {
@@ -36,14 +43,16 @@ pub fn parse_range(header: Option<&str>, total: u64) -> Result<Option<RangeSpec>
             end: total - 1,
         }));
     }
-    let start: u64 = s.parse().map_err(|_| ())?;
+    let start: u64 = s.parse().map_err(|_| RangeNotSatisfiable)?;
     let end: u64 = if e.is_empty() {
         total - 1
     } else {
-        e.parse::<u64>().map_err(|_| ())?.min(total - 1)
+        e.parse::<u64>()
+            .map_err(|_| RangeNotSatisfiable)?
+            .min(total - 1)
     };
     if start > end || start > total - 1 {
-        return Err(());
+        return Err(RangeNotSatisfiable);
     }
     Ok(Some(RangeSpec { start, end }))
 }
@@ -108,7 +117,7 @@ where
 {
     let spec = match parse_range(range, total) {
         Ok(s) => s,
-        Err(()) => {
+        Err(RangeNotSatisfiable) => {
             return Response::builder()
                 .status(StatusCode::RANGE_NOT_SATISFIABLE)
                 .header(header::ACCEPT_RANGES, "bytes")
@@ -165,7 +174,7 @@ where
 pub fn head_response(total: u64, range: Option<&str>, content_type: &str) -> Response {
     let spec = match parse_range(range, total) {
         Ok(s) => s,
-        Err(()) => {
+        Err(RangeNotSatisfiable) => {
             return Response::builder()
                 .status(StatusCode::RANGE_NOT_SATISFIABLE)
                 .header(header::ACCEPT_RANGES, "bytes")
@@ -231,7 +240,10 @@ mod tests {
     }
     #[test]
     fn start_past_end_is_416() {
-        assert_eq!(parse_range(Some("bytes=100-"), 100), Err(()));
+        assert_eq!(
+            parse_range(Some("bytes=100-"), 100),
+            Err(RangeNotSatisfiable)
+        );
     }
     #[test]
     fn suffix_range_larger_than_total() {
@@ -249,11 +261,11 @@ mod tests {
     }
     #[test]
     fn suffix_range_zero_is_416() {
-        assert_eq!(parse_range(Some("bytes=-0"), 100), Err(()));
+        assert_eq!(parse_range(Some("bytes=-0"), 100), Err(RangeNotSatisfiable));
     }
     #[test]
     fn empty_range_is_416() {
-        assert_eq!(parse_range(Some("bytes=-"), 100), Err(()));
+        assert_eq!(parse_range(Some("bytes=-"), 100), Err(RangeNotSatisfiable));
     }
     #[test]
     fn content_types() {

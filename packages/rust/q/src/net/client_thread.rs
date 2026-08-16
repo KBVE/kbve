@@ -9,7 +9,9 @@ use tokio::sync::{mpsc, watch};
 
 use super::dual::DualClient;
 use super::pets::{PetId, PetInfo};
-use super::session::{ClientSession, ClientStatus, HarvestEvent, PeerInfo, WorldInfo};
+use super::session::{
+    ClientSession, ClientStatus, HarvestEvent, HarvestRewardEvent, PeerInfo, WorldInfo,
+};
 use super::ws::WsClient;
 use crate::harvest::HarvestTarget;
 use crate::rapier::sim3d::{BodyId, SimSnapshot};
@@ -105,6 +107,7 @@ pub struct NetClientHandle {
     /// begin overwritten by the end that followed it is a job that never ran.
     harvest_tx: mpsc::UnboundedSender<HarvestCommand>,
     event_rx: mpsc::UnboundedReceiver<HarvestEvent>,
+    reward_rx: mpsc::UnboundedReceiver<HarvestRewardEvent>,
     /// Queued like harvests rather than latest-wins: a deploy dropped because a
     /// frame was slow is a button press that silently did nothing.
     pet_tx: mpsc::UnboundedSender<PetCommand>,
@@ -135,6 +138,7 @@ impl NetClientHandle {
         let (state_tx, state_rx) = watch::channel(Arc::new(NetClientState::default()));
         let (harvest_tx, harvest_rx) = mpsc::unbounded_channel();
         let (event_tx, event_rx) = mpsc::unbounded_channel();
+        let (reward_tx, reward_rx) = mpsc::unbounded_channel();
         let (pet_tx, pet_rx) = mpsc::unbounded_channel();
         let (denied_tx, denied_rx) = mpsc::unbounded_channel();
         let stop_t = stop.clone();
@@ -151,6 +155,7 @@ impl NetClientHandle {
                     state_tx,
                     harvest_rx,
                     event_tx,
+                    reward_tx,
                     pet_rx,
                     denied_tx,
                 })
@@ -163,6 +168,7 @@ impl NetClientHandle {
             state_rx,
             harvest_tx,
             event_rx,
+            reward_rx,
             pet_tx,
             denied_rx,
             join: Some(join),
@@ -196,6 +202,17 @@ impl NetClientHandle {
     pub fn take_harvest_events(&mut self) -> Vec<HarvestEvent> {
         let mut out = Vec::new();
         while let Ok(event) = self.event_rx.try_recv() {
+            out.push(event);
+        }
+        out
+    }
+
+    /// Everything the host has paid us since the last call. Queued for the same
+    /// reason as the deltas: a reward dropped on a slow frame is loot the player
+    /// worked for and never received.
+    pub fn take_harvest_rewards(&mut self) -> Vec<HarvestRewardEvent> {
+        let mut out = Vec::new();
+        while let Ok(event) = self.reward_rx.try_recv() {
             out.push(event);
         }
         out
@@ -250,6 +267,7 @@ struct Wiring {
     state_tx: watch::Sender<Arc<NetClientState>>,
     harvest_rx: mpsc::UnboundedReceiver<HarvestCommand>,
     event_tx: mpsc::UnboundedSender<HarvestEvent>,
+    reward_tx: mpsc::UnboundedSender<HarvestRewardEvent>,
     pet_rx: mpsc::UnboundedReceiver<PetCommand>,
     denied_tx: mpsc::UnboundedSender<String>,
 }
@@ -264,6 +282,7 @@ fn run(w: Wiring) {
         state_tx,
         mut harvest_rx,
         event_tx,
+        reward_tx,
         mut pet_rx,
         denied_tx,
     } = w;
@@ -328,6 +347,9 @@ fn run(w: Wiring) {
         session.advance_clock(dt.as_secs_f64());
         for event in session.take_harvest_events() {
             let _ = event_tx.send(event);
+        }
+        for reward in session.take_harvest_rewards() {
+            let _ = reward_tx.send(reward);
         }
         if let Some(reason) = session.take_pet_denied() {
             let _ = denied_tx.send(reason);

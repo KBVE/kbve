@@ -18,7 +18,7 @@ fn walk(field: &Field, start: Vec2, steps: usize) -> Option<Vec<Vec2>> {
         // test measures routing rather than how far a point may drift.
         let next = add(at, scale(dir, 0.5));
         let (nx, ny) = field.grid.cell_of(next);
-        if field.grid.cost(nx, ny) >= BLOCKED {
+        if field.grid.cost(nx, ny) == BLOCKED {
             let slide = if field.grid.cost(
                 field.grid.cell_of([next[0], at[1]]).0,
                 field.grid.cell_of([next[0], at[1]]).1,
@@ -29,7 +29,7 @@ fn walk(field: &Field, start: Vec2, steps: usize) -> Option<Vec<Vec2>> {
                 [at[0], next[1]]
             };
             let (sx, sy) = field.grid.cell_of(slide);
-            if field.grid.cost(sx, sy) >= BLOCKED {
+            if field.grid.cost(sx, sy) == BLOCKED {
                 return None;
             }
             at = slide;

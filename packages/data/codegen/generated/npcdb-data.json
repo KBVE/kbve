@@ -1289,7 +1289,97 @@
       "nameKey": "creature.cleric",
       "unitType": 8,
       "defaultWeapon": 0,
-      "dialogueTreeId": 0
+      "dialogueTreeId": 0,
+      "tags": [
+        "friendslop",
+        "bridge",
+        "talker"
+      ],
+      "dialogueTree": {
+        "entryNodeId": "greet",
+        "nodes": [
+          {
+            "id": "greet",
+            "text": "Sit, if you are hurt. Stand if you are not, and let me look at you anyway.",
+            "condition": "!seen:greet",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "greet_again",
+            "text": "Nothing new on you. Good.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "menu",
+            "text": "Well?",
+            "options": [
+              {
+                "id": "ask_here",
+                "label": "What keeps you at a river crossing?",
+                "nextNodeId": "here"
+              },
+              {
+                "id": "tell_bitterroot",
+                "label": "The forager showed me bitterroot.",
+                "nextNodeId": "bitterroot",
+                "requiredFlags": [
+                  "wren_taught_bitterroot",
+                  "!cleric_taught_the_dressing"
+                ]
+              },
+              {
+                "id": "ask_bitterroot_again",
+                "label": "About the bitterroot.",
+                "nextNodeId": "bitterroot_again",
+                "requiredFlags": [
+                  "cleric_taught_the_dressing"
+                ]
+              },
+              {
+                "id": "ask_water",
+                "label": "Is the water safe?",
+                "nextNodeId": "water"
+              },
+              {
+                "id": "leave",
+                "label": "(Walk away.)",
+                "nextNodeId": "farewell"
+              }
+            ]
+          },
+          {
+            "id": "here",
+            "text": "People go into that river faster than they come back out of it. Somebody ought to be standing on the bank when they do.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "bitterroot",
+            "text": "She would. It is good for what she uses it for and useless for what people think it is for. Boil it, do not chew it — chewed, it closes a throat as well as it closes a cut.",
+            "triggerOnEnter": "set_flag:cleric_taught_the_dressing",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "bitterroot_again",
+            "text": "Boiled. Not chewed. I will keep saying it until nobody needs telling.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "water",
+            "text": "Safer than the bridge, whatever the keeper is charging for it today.",
+            "condition": "!marlow_toll_paid",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "water_paid",
+            "text": "You have paid for the dry way over, so it hardly matters. Drink upstream of the shallows regardless.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "farewell",
+            "text": "Go carefully. I would rather be bored."
+          }
+        ]
+      }
     },
     {
       "template": "splash",
@@ -4487,7 +4577,94 @@
       "nameKey": "creature.knight",
       "unitType": 2,
       "defaultWeapon": 0,
-      "dialogueTreeId": 0
+      "dialogueTreeId": 0,
+      "tags": [
+        "friendslop",
+        "bridge",
+        "talker"
+      ],
+      "dialogueTree": {
+        "entryNodeId": "greet",
+        "nodes": [
+          {
+            "id": "greet",
+            "text": "Stand where I can see your hands and we will get on well enough.",
+            "condition": "!seen:greet",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "greet_again",
+            "text": "You again. Hands.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "menu",
+            "text": "Say it, then.",
+            "options": [
+              {
+                "id": "ask_posted",
+                "label": "Who posted you here?",
+                "nextNodeId": "posted"
+              },
+              {
+                "id": "tell_book",
+                "label": "The warden keeps a book of who crosses.",
+                "nextNodeId": "book",
+                "requiredFlags": [
+                  "sable_showed_the_book",
+                  "!knight_named_the_orders"
+                ]
+              },
+              {
+                "id": "ask_book_again",
+                "label": "About that book.",
+                "nextNodeId": "book_again",
+                "requiredFlags": [
+                  "knight_named_the_orders"
+                ]
+              },
+              {
+                "id": "tell_ridge",
+                "label": "A trader says things stand along the ridge road at night.",
+                "nextNodeId": "ridge",
+                "requiredFlags": [
+                  "merchant_named_the_ridge_road"
+                ]
+              },
+              {
+                "id": "leave",
+                "label": "(Walk away.)",
+                "nextNodeId": "farewell"
+              }
+            ]
+          },
+          {
+            "id": "posted",
+            "text": "The order came down the road and I came down after it. That is as much as I was told and more than I was asked.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "book",
+            "text": "It comes to me. I read the names, I send it on, and it goes somewhere I have never been. She knows that. She would rather not say it, and I would rather she did not.",
+            "triggerOnEnter": "set_flag:knight_named_the_orders",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "book_again",
+            "text": "Names go up. Nothing comes back down. That has been the arrangement for two winters.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "ridge",
+            "text": "They stand there in the daylight as well. He only notices at night because at night he is alone with them.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "farewell",
+            "text": "Cross in daylight."
+          }
+        ]
+      }
     },
     {
       "template": "splash",
@@ -4871,7 +5048,91 @@
       "nameKey": "creature.mage",
       "unitType": 4,
       "defaultWeapon": 0,
-      "dialogueTreeId": 0
+      "dialogueTreeId": 0,
+      "tags": [
+        "friendslop",
+        "bridge",
+        "talker"
+      ],
+      "dialogueTree": {
+        "entryNodeId": "greet",
+        "nodes": [
+          {
+            "id": "greet",
+            "text": "Not there — I have been counting the water for an hour and your feet are a variable.",
+            "condition": "!seen:greet",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "greet_again",
+            "text": "Mind the marks in the mud.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "menu",
+            "text": "Ask quickly. The light is moving.",
+            "options": [
+              {
+                "id": "ask_measuring",
+                "label": "What are you measuring?",
+                "nextNodeId": "measuring"
+              },
+              {
+                "id": "tell_boy",
+                "label": "The boy on the bank thinks they are waiting for something.",
+                "nextNodeId": "boy",
+                "requiredFlags": [
+                  "tam_guessed_the_mechs",
+                  "!mage_weighed_the_guess"
+                ]
+              },
+              {
+                "id": "ask_boy_again",
+                "label": "About the boy's guess.",
+                "nextNodeId": "boy_again",
+                "requiredFlags": [
+                  "mage_weighed_the_guess"
+                ]
+              },
+              {
+                "id": "ask_asked",
+                "label": "Have you tried asking them?",
+                "nextNodeId": "asked"
+              },
+              {
+                "id": "leave",
+                "label": "(Walk away.)",
+                "nextNodeId": "farewell"
+              }
+            ]
+          },
+          {
+            "id": "measuring",
+            "text": "Where they stand. Not what they are — I gave that up. Where. They pick the same three feet of river every day and I would like to know what is under it.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "boy",
+            "text": "The boy is not wrong, and I have spent four years being cleverer than him about it. Waiting is the only word that fits a thing which stands still on purpose.",
+            "triggerOnEnter": "set_flag:mage_weighed_the_guess",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "boy_again",
+            "text": "Tell him I said so, if you like. Tell him I said it slowly.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "asked",
+            "text": "Every day for a season. They never refuse. Refusing would be an answer.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "farewell",
+            "text": "Go on. You are standing in my light."
+          }
+        ]
+      }
     },
     {
       "template": "splash",
@@ -5357,7 +5618,102 @@
       "nameKey": "creature.merchant",
       "unitType": 9,
       "defaultWeapon": 0,
-      "dialogueTreeId": 0
+      "dialogueTreeId": 0,
+      "tags": [
+        "friendslop",
+        "bridge",
+        "talker"
+      ],
+      "dialogueTree": {
+        "entryNodeId": "greet",
+        "nodes": [
+          {
+            "id": "greet",
+            "text": "Cart on this side, buyer on that side, and a man in between who wants a coin for the privilege.",
+            "condition": "!seen:greet",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "greet_again",
+            "text": "Still here. Still on the wrong side.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "menu",
+            "text": "Something you need, or are you only passing?",
+            "options": [
+              {
+                "id": "ask_cart",
+                "label": "Why not take the cart over?",
+                "nextNodeId": "cart"
+              },
+              {
+                "id": "tell_toll",
+                "label": "I paid Marlow's toll.",
+                "nextNodeId": "toll",
+                "requiredFlags": [
+                  "marlow_toll_paid",
+                  "!merchant_heard_the_toll"
+                ]
+              },
+              {
+                "id": "ask_toll_again",
+                "label": "You'll pay it eventually.",
+                "nextNodeId": "toll_again",
+                "requiredFlags": [
+                  "merchant_heard_the_toll"
+                ]
+              },
+              {
+                "id": "ask_road",
+                "label": "Where did you come in from?",
+                "nextNodeId": "road"
+              },
+              {
+                "id": "ask_wares",
+                "label": "What are you carrying?",
+                "nextNodeId": "wares"
+              },
+              {
+                "id": "leave",
+                "label": "(Walk away.)",
+                "nextNodeId": "farewell"
+              }
+            ]
+          },
+          {
+            "id": "cart",
+            "text": "The third plank. He tells everyone to mind it. I have to do more than mind it — I have to put a loaded axle over it.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "toll",
+            "text": "Then you are a better customer than I am a merchant. He charges a man his own weight and the cart its own besides.",
+            "triggerOnEnter": "set_flag:merchant_heard_the_toll",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "toll_again",
+            "text": "Eventually. When the ford runs low, or when he stops looking.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "road",
+            "text": "Down the ridge road, and I would not go back up it after dark. There are things standing along it that were not standing there in the morning.",
+            "triggerOnEnter": "set_flag:merchant_named_the_ridge_road",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "wares",
+            "text": "Salt, wire, lamp oil, needles. Nothing anybody wants until the day they want it very badly.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "farewell",
+            "text": "If you are crossing, tell him the cart is still waiting."
+          }
+        ]
+      }
     },
     {
       "template": "splash",

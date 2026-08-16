@@ -246,10 +246,10 @@ impl QGrassField {
             self.base().get_node_or_null(&self.terrain_path)
         }
         .and_then(|n| n.try_cast::<QTerrain>().ok());
-        if let Some(t) = terrain_poll.as_ref() {
-            if t.bind().cpu_heights().is_none() {
-                return false;
-            }
+        if let Some(t) = terrain_poll.as_ref()
+            && t.bind().cpu_heights().is_none()
+        {
+            return false;
         }
         let _t = super::ReadyTimer::start("grass");
         self.last_lod_position = Vector3::new(f32::INFINITY, f32::INFINITY, f32::INFINITY);
@@ -381,8 +381,7 @@ impl QGrassField {
             }
         }
 
-        if godot::classes::Os::singleton().get_environment("GRASS_NO_COMPUTE") == GString::from("1")
-        {
+        if godot::classes::Os::singleton().get_environment("GRASS_NO_COMPUTE") == "1" {
             self.compute_blades = false;
         }
         if self.compute_blades {
@@ -413,20 +412,20 @@ impl QGrassField {
         };
         self.apply_compute_mode(mode);
 
-        if super::q_hidden("blades") {
-            if let Some(bc) = self.blade_compute.as_mut() {
-                bc.set_visible(false);
-            }
+        if super::q_hidden("blades")
+            && let Some(bc) = self.blade_compute.as_mut()
+        {
+            bc.set_visible(false);
         }
-        if super::q_hidden("cards") {
-            if let Some(cc) = self.card_compute.as_mut() {
-                cc.set_visible(false);
-            }
+        if super::q_hidden("cards")
+            && let Some(cc) = self.card_compute.as_mut()
+        {
+            cc.set_visible(false);
         }
-        if super::q_hidden("transition") {
-            if let Some(tc) = self.transition_compute.as_mut() {
-                tc.set_visible(false);
-            }
+        if super::q_hidden("transition")
+            && let Some(tc) = self.transition_compute.as_mut()
+        {
+            tc.set_visible(false);
         }
         true
     }
@@ -749,11 +748,11 @@ impl QGrassField {
         let card_online = self
             .card_compute
             .as_mut()
-            .map_or(true, |c| c.online() || c.try_finalize());
+            .is_none_or(|c| c.online() || c.try_finalize());
         let trans_online = self
             .transition_compute
             .as_mut()
-            .map_or(true, |c| c.online() || c.try_finalize());
+            .is_none_or(|c| c.online() || c.try_finalize());
         if !blade_online || !card_online || !trans_online {
             self.compute_attempts += 1;
             if self.compute_attempts > 300 {
@@ -1236,6 +1235,7 @@ impl QGrassField {
         grid
     }
 
+    #[allow(clippy::too_many_arguments)]
     fn assign_slot(
         rs: &mut Gd<RenderingServer>,
         slot: &mut Slot,
@@ -1771,7 +1771,7 @@ impl QGrassField {
                 }
             }
         }
-        if godot::classes::Os::singleton().get_environment("GRASS_DEBUG") == GString::from("1") {
+        if godot::classes::Os::singleton().get_environment("GRASS_DEBUG") == "1" {
             if let Some(m) = self.grass_material.as_mut() {
                 m.set_shader_parameter("debug_color", &Vector3::new(1.0, 0.1, 0.1).to_variant());
             }

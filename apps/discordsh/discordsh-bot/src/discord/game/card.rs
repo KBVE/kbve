@@ -1239,7 +1239,6 @@ pub async fn render_inventory_card(
 #[cfg(test)]
 mod tests {
     use super::*;
-    use poise::serenity_prelude as serenity;
     use std::collections::HashMap;
     use std::time::Instant;
 
@@ -1731,7 +1730,7 @@ mod tests {
             result.err()
         );
         assert!(
-            db.len() > 0,
+            !db.is_empty(),
             "fontdb should contain at least 1 face after loading alagard.ttf"
         );
     }
@@ -1770,7 +1769,7 @@ mod tests {
             result.err()
         );
         assert!(
-            db.len() > 0,
+            !db.is_empty(),
             "fontdb should contain at least 1 face after loading NotoSansSymbols"
         );
     }
@@ -2107,10 +2106,10 @@ mod tests {
         let proto = super::super::proto_bridge::find_quest_by_ref("slime-slayer").unwrap();
         let mut aq = super::super::proto_bridge::build_active_quest(proto);
         // Simulate partial progress
-        if let Some(step) = aq.steps.get_mut(0) {
-            if let Some(obj) = step.objectives.get_mut(0) {
-                obj.current = 1;
-            }
+        if let Some(step) = aq.steps.get_mut(0)
+            && let Some(obj) = step.objectives.get_mut(0)
+        {
+            obj.current = 1;
         }
         session.quest_journal.active.push(aq);
 

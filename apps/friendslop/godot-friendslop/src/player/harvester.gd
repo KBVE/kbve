@@ -107,6 +107,7 @@ func _resolve() -> void:
 			_net = node as NetGameClient
 			if _net and not _net.harvest_applied.is_connected(_on_harvest_applied):
 				_net.harvest_applied.connect(_on_harvest_applied)
+				_net.harvest_rewarded.connect(_on_harvest_rewarded)
 			break
 
 
@@ -125,8 +126,14 @@ func _on_harvest_applied(target: StringName, id: int, stage: int) -> void:
 	# Deliberately no `harvested` here. The delta says the world changed, not who
 	# earned anything by it, and it arrives for every player in the session -- so
 	# awarding on it would pay this player for everybody else's work. Who gets the
-	# drop is the server's to say, and it has no way to say it yet.
+	# drop is the host's to say, and it says it on `harvest_rewarded`.
 	_apply_stage(target, id, stage)
+
+
+## The host paying us. Only ever about this player, so unlike the delta above it can
+## be banked without asking whose work it was.
+func _on_harvest_rewarded(target: StringName, _id: int, ore: StringName, amount: int) -> void:
+	_receive(target, ore, amount)
 
 
 func _apply_stage(target: StringName, id: int, stage: int) -> void:
@@ -271,7 +278,23 @@ func _land() -> void:
 		return
 	var out: Dictionary = field.apply_damage(id, hits)
 	if out.get("broken", false):
-		harvested.emit(kind, StringName(out.get("ore", "")), int(out.get("amount", 0)))
+		_receive(kind, StringName(out.get("ore", "")), int(out.get("amount", 0)))
+
+
+## Banks a drop, however it was earned.
+##
+## One path for both, because the difference between offline and online is only who
+## decided -- by here the answer is the same shape and the satchel should not have to
+## know which it was.
+func _receive(kind: StringName, ore: StringName, amount: int) -> void:
+	if ore == &"" or amount <= 0:
+		return
+	# Whatever would not fit is left over rather than silently gone. Nothing catches it
+	# yet -- the ground it should fall on does not exist -- so `Journal.refused` is where
+	# it is announced and the player is told, which is better than a tree felled for
+	# nothing and no reason given.
+	var spare := Journal.gain(ore, amount)
+	harvested.emit(kind, ore, amount - spare)
 
 
 ## Nearest rock or tree in reach and roughly ahead, as everything the swing needs

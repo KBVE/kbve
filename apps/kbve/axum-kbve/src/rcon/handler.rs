@@ -141,7 +141,7 @@ pub async fn exec_handler(
     };
 
     let started = Instant::now();
-    let exec_result = exec_rcon(&endpoint, &wire_command).await;
+    let exec_result = exec_rcon(endpoint, &wire_command).await;
     let latency_ms = started.elapsed().as_millis().min(u32::MAX as u128) as u32;
 
     match exec_result {

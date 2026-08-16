@@ -14,6 +14,10 @@ signal pet_denied(reason: String)
 ## The host's word on a rock or tree reaching a stage, for anybody's swing rather
 ## than only this player's.
 signal harvest_applied(target: StringName, id: int, stage: int)
+## What the host paid *us* for finishing something off. Distinct from the delta above,
+## which arrives for everybody's work: this one only ever concerns this player, and is
+## the only thing that says a drop is ours.
+signal harvest_rewarded(target: StringName, id: int, ore: StringName, amount: int)
 
 const GROUP := &"net_game_client"
 
@@ -66,6 +70,7 @@ func _init() -> void:
 	_client.pets_changed.connect(_on_pets_changed)
 	_client.pet_denied.connect(_on_pet_denied)
 	_client.harvest_applied.connect(_on_harvest_applied)
+	_client.harvest_rewarded.connect(_on_harvest_rewarded)
 
 
 func connect_to_server(url: String = "") -> void:
@@ -122,6 +127,11 @@ func harvest_end() -> void:
 func _on_harvest_applied(target: int, id: int, stage: int) -> void:
 	harvest_applied.emit(
 			&"tree" if target == TARGET_TREE else &"stone", id, stage)
+
+
+func _on_harvest_rewarded(target: int, id: int, ore: String, amount: int) -> void:
+	harvest_rewarded.emit(
+			&"tree" if target == TARGET_TREE else &"stone", id, StringName(ore), amount)
 
 
 func local_body() -> int:

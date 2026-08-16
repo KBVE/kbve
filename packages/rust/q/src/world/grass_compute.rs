@@ -514,7 +514,7 @@ impl BladeCompute {
             .storage_buffer_create_ex(layout_bytes.len() as u32)
             .data(&layout_bytes)
             .done();
-        let cells_buf = rd.storage_buffer_create((cell_capacity * 16) as u32);
+        let cells_buf = rd.storage_buffer_create(cell_capacity * 16);
         let counter_buf = rd.storage_buffer_create(12);
 
         let mut rs = RenderingServer::singleton();

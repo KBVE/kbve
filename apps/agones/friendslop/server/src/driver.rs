@@ -223,7 +223,7 @@ pub fn spawn(
                 }
 
                 if let Some(streamer) = streamer.as_mut()
-                    && ticks % STREAM_INTERVAL_TICKS == 0
+                    && ticks.is_multiple_of(STREAM_INTERVAL_TICKS)
                 {
                     let bodies: Vec<BodyId> = host.roster().iter().map(|p| p.body).collect();
                     host.world_mut().snapshot_into(&mut scratch);
@@ -247,7 +247,7 @@ pub fn spawn(
                 host.tick();
                 ticks += 1;
                 tick_t.fetch_add(1, Ordering::Relaxed);
-                if ticks % STREAM_INTERVAL_TICKS == 0 {
+                if ticks.is_multiple_of(STREAM_INTERVAL_TICKS) {
                     pets_t.store(host.pet_count(), Ordering::Relaxed);
                     fields_t.store(host.pet_field_count(), Ordering::Relaxed);
                 }

@@ -100,6 +100,47 @@ func test_every_body_has_something_to_draw() -> void:
 				.override_failure_message("%s has no mesh" % body).is_greater(0)
 
 
+## A material the cel shading has no entry for keeps the pack's own flat look, so it is the
+## one surface on a drawn character that is lit like a photograph. It warns and carries on,
+## which is exactly the kind of failure nobody sees until a screenshot.
+func test_every_surface_the_kit_can_wear_has_a_cel_entry() -> void:
+	var missing: Array[String] = []
+	for body: String in BODIES:
+		_unshaded("%s/%s.glb" % [BODY_DIR, body], missing)
+	for hair: String in HAIR:
+		_unshaded("%s/%s.glb" % [HAIR_DIR, hair], missing)
+	for id: StringName in Wardrobe.all():
+		_unshaded(Wardrobe.path_of(id), missing)
+	assert_array(missing) \
+			.override_failure_message("no cel entry for %s" % ", ".join(missing)) \
+			.is_empty()
+
+
+func _unshaded(path: String, into: Array[String]) -> void:
+	var scene: PackedScene = load(path)
+	if scene == null:
+		return
+	var instance: Node3D = scene.instantiate()
+	auto_free(instance)
+	for mesh in _mesh_nodes(instance):
+		for i in mesh.mesh.get_surface_count():
+			var material := mesh.mesh.surface_get_material(i) as BaseMaterial3D
+			if material == null:
+				continue
+			var name := material.resource_name
+			if not CharacterRig.SHADING.has(StringName(name)) and not into.has(name):
+				into.append(name)
+
+
+func _mesh_nodes(node: Node) -> Array[MeshInstance3D]:
+	var out: Array[MeshInstance3D] = []
+	if node is MeshInstance3D and (node as MeshInstance3D).mesh != null:
+		out.append(node)
+	for child in node.get_children():
+		out.append_array(_mesh_nodes(child))
+	return out
+
+
 func _skeleton(node: Node) -> Skeleton3D:
 	if node is Skeleton3D:
 		return node

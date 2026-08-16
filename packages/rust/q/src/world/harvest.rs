@@ -8,7 +8,7 @@ use std::marker::PhantomData;
 
 use godot::prelude::*;
 
-pub use crate::harvest::{HarvestKind, HarvestOutcome, Ledger, Stone, Tree, hash64, stable_id};
+pub use crate::harvest::{HarvestKind, HarvestOutcome, Ledger, Stone, Tree, roll_drop, stable_id};
 
 #[derive(Clone, Copy)]
 pub struct Entry {
@@ -55,20 +55,10 @@ impl<K: HarvestKind> ScatterCore<K> {
         }
     }
 
+    /// Delegated rather than implemented, so the drop a client shows and the drop
+    /// a host pays out cannot drift apart.
     pub fn roll_ore(id: u64) -> (u8, u8) {
-        let table = K::drop_table();
-        let total: u32 = table.iter().map(|d| d.weight).sum();
-        let r = hash64(id ^ ORE_SALT);
-        let mut pick = (r % total as u64) as u32;
-        for (i, d) in table.iter().enumerate() {
-            if pick < d.weight {
-                let span = (d.max - d.min) as u64 + 1;
-                let amount = d.min + ((r >> 32) % span) as u8;
-                return (i as u8, amount);
-            }
-            pick -= d.weight;
-        }
-        (0, 1)
+        roll_drop(K::drop_table(), id)
     }
 
     /// Replays what the player already did to this ground.
@@ -176,8 +166,6 @@ impl<K: HarvestKind> ScatterCore<K> {
         })
     }
 }
-
-const ORE_SALT: u64 = 0x00e5_eed0_0e5e_ed00;
 
 #[cfg(test)]
 mod tests {
@@ -373,7 +361,7 @@ mod tests {
     fn a_save_survives_a_round_trip() {
         let mut ledger = Ledger::new();
         for i in 0..50u64 {
-            ledger.record(hash64(i) | 1, (i % 3) as u8 + 1);
+            ledger.record(crate::harvest::hash64(i) | 1, (i % 3) as u8 + 1);
         }
         let flat = ledger.to_flat();
         let back = Ledger::from_flat(&flat);

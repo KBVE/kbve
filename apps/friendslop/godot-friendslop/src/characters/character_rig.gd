@@ -316,7 +316,11 @@ static func clip_usage() -> Dictionary:
 const CelShading := preload("res://src/characters/cel_shading.gd")
 
 const SHADING := {
+	## The longer cuts are two surfaces rather than one, and a second material left out of
+	## here is a lock of hair that keeps the pack's colour while the rest of the head takes
+	## the character's.
 	&"MI_Hair_1": {&"tint": &"hair_color"},
+	&"MI_Hair_2": {&"tint": &"hair_color"},
 	&"MI_Eyes": {&"lit": true},
 	&"MI_Regular_Male": {&"tint": &"skin_color", &"body": true, &"sat": 0.7},
 	&"MI_Regular_Female": {&"tint": &"skin_color", &"body": true, &"sat": 0.7},

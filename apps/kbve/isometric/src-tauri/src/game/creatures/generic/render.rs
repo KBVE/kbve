@@ -117,7 +117,8 @@ pub fn render_sprite_creatures(
                 sd.hop_state,
                 SpriteHopState::Idle { .. } | SpriteHopState::Landing { .. }
             ) {
-                let hover = (t * hover_frequency + cr.phase * 6.28).sin() * hover_amplitude;
+                let hover = (t * hover_frequency + cr.phase * std::f32::consts::TAU).sin()
+                    * hover_amplitude;
                 tf.translation.y = cr.anchor.y + hover_base + hover;
             }
         }

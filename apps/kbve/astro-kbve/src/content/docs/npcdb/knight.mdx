@@ -63,6 +63,60 @@ name_key: creature.knight
 unit_type: 2
 default_weapon: 0
 dialogue_tree_id: 0
+tags:
+  - friendslop
+  - bridge
+  - talker
+dialogue_tree:
+  entry_node_id: greet
+  nodes:
+    - id: greet
+      text: "Stand where I can see your hands and we will get on well enough."
+      condition: '!seen:greet'
+      next_node_id: menu
+    - id: greet_again
+      text: You again. Hands.
+      next_node_id: menu
+    - id: menu
+      text: Say it, then.
+      options:
+        - id: ask_posted
+          label: Who posted you here?
+          next_node_id: posted
+        - id: tell_book
+          label: The warden keeps a book of who crosses.
+          next_node_id: book
+          required_flags:
+            - sable_showed_the_book
+            - '!knight_named_the_orders'
+        - id: ask_book_again
+          label: About that book.
+          next_node_id: book_again
+          required_flags:
+            - knight_named_the_orders
+        - id: tell_ridge
+          label: A trader says things stand along the ridge road at night.
+          next_node_id: ridge
+          required_flags:
+            - merchant_named_the_ridge_road
+        - id: leave
+          label: (Walk away.)
+          next_node_id: farewell
+    - id: posted
+      text: "The order came down the road and I came down after it. That is as much as I was told and more than I was asked."
+      next_node_id: menu
+    - id: book
+      text: "It comes to me. I read the names, I send it on, and it goes somewhere I have never been. She knows that. She would rather not say it, and I would rather she did not."
+      trigger_on_enter: 'set_flag:knight_named_the_orders'
+      next_node_id: menu
+    - id: book_again
+      text: "Names go up. Nothing comes back down. That has been the arrangement for two winters."
+      next_node_id: menu
+    - id: ridge
+      text: "They stand there in the daylight as well. He only notices at night because at night he is alone with them."
+      next_node_id: menu
+    - id: farewell
+      text: Cross in daylight.
 ---
 
 import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';

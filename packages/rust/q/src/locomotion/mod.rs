@@ -1258,7 +1258,7 @@ mod tests {
             for dir in [FWD, BACK, SIDE, [0.707, 0.707]] {
                 let r = l.crouch_radius_for(speed, dir);
                 assert!(
-                    r >= 0.0 && r <= CROUCH_GAIT.radius + 0.001,
+                    (0.0..=CROUCH_GAIT.radius + 0.001).contains(&r),
                     "{speed} -> {r}"
                 );
             }

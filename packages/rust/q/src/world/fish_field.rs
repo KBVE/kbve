@@ -594,7 +594,8 @@ impl QFishField {
             if fdx * fdx + fdz * fdz > sim_r2 {
                 continue;
             }
-            for i in s..e {
+            for (offset, out) in steer[s..e].iter_mut().enumerate() {
+                let i = s + offset;
                 let fi = &self.fish[i];
                 if !fi.alive {
                     continue;
@@ -623,7 +624,7 @@ impl QFishField {
                 if ahx != 0.0 {
                     ax += (ahx - fi.yaw.sin()) * alignment;
                 }
-                steer[i] = (ax.clamp(-1.5, 1.5), az.clamp(-1.5, 1.5));
+                *out = (ax.clamp(-1.5, 1.5), az.clamp(-1.5, 1.5));
             }
         }
 
@@ -778,8 +779,8 @@ impl QFishField {
             self.panic_src = srcs;
         }
 
-        for i in 0..respawn.len() {
-            self.respawn_one(respawn[i]);
+        for &idx in &respawn {
+            self.respawn_one(idx);
         }
         self.respawn_q = respawn;
     }
@@ -789,11 +790,11 @@ impl QFishField {
         let mut stack = vec![root.clone()];
         let mut found = None;
         while let Some(node) = stack.pop() {
-            if let Ok(mi) = node.clone().try_cast::<MeshInstance3D>() {
-                if let Some(mesh) = mi.get_mesh() {
-                    found = Some(mesh);
-                    break;
-                }
+            if let Ok(mi) = node.clone().try_cast::<MeshInstance3D>()
+                && let Some(mesh) = mi.get_mesh()
+            {
+                found = Some(mesh);
+                break;
             }
             for child in node.get_children().iter_shared() {
                 stack.push(child);

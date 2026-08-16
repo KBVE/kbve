@@ -61,6 +61,62 @@ name_key: creature.cleric
 unit_type: 8
 default_weapon: 0
 dialogue_tree_id: 0
+tags:
+  - friendslop
+  - bridge
+  - talker
+dialogue_tree:
+  entry_node_id: greet
+  nodes:
+    - id: greet
+      text: "Sit, if you are hurt. Stand if you are not, and let me look at you anyway."
+      condition: '!seen:greet'
+      next_node_id: menu
+    - id: greet_again
+      text: Nothing new on you. Good.
+      next_node_id: menu
+    - id: menu
+      text: Well?
+      options:
+        - id: ask_here
+          label: What keeps you at a river crossing?
+          next_node_id: here
+        - id: tell_bitterroot
+          label: The forager showed me bitterroot.
+          next_node_id: bitterroot
+          required_flags:
+            - wren_taught_bitterroot
+            - '!cleric_taught_the_dressing'
+        - id: ask_bitterroot_again
+          label: About the bitterroot.
+          next_node_id: bitterroot_again
+          required_flags:
+            - cleric_taught_the_dressing
+        - id: ask_water
+          label: Is the water safe?
+          next_node_id: water
+        - id: leave
+          label: (Walk away.)
+          next_node_id: farewell
+    - id: here
+      text: "People go into that river faster than they come back out of it. Somebody ought to be standing on the bank when they do."
+      next_node_id: menu
+    - id: bitterroot
+      text: "She would. It is good for what she uses it for and useless for what people think it is for. Boil it, do not chew it — chewed, it closes a throat as well as it closes a cut."
+      trigger_on_enter: 'set_flag:cleric_taught_the_dressing'
+      next_node_id: menu
+    - id: bitterroot_again
+      text: "Boiled. Not chewed. I will keep saying it until nobody needs telling."
+      next_node_id: menu
+    - id: water
+      text: "Safer than the bridge, whatever the keeper is charging for it today."
+      condition: '!marlow_toll_paid'
+      next_node_id: menu
+    - id: water_paid
+      text: "You have paid for the dry way over, so it hardly matters. Drink upstream of the shallows regardless."
+      next_node_id: menu
+    - id: farewell
+      text: Go carefully. I would rather be bored.
 ---
 
 import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';

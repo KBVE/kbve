@@ -589,6 +589,12 @@ fn validate_action(
     Ok(())
 }
 
+/// What a night at the inn costs here. Front ends price the option with this
+/// rather than restating the formula.
+pub fn inn_cost(session: &SessionState) -> i32 {
+    10 + (session.room.index as i32 * 2)
+}
+
 // ── Main action dispatcher ──────────────────────────────────────────
 
 /// Apply a game action to the session state.
@@ -675,7 +681,7 @@ pub fn apply_action(
         }
         GameAction::Flee => ActionResult::logs_only(resolve_flee(session, actor)),
         GameAction::Rest => {
-            let cost = 10 + (session.room.index as i32 * 2);
+            let cost = inn_cost(session);
             let player = session.player_mut(actor);
             if player.gold < cost {
                 return Err(format!(
@@ -2731,7 +2737,7 @@ fn apply_story_choice(
 
     // Check if player can afford the gold cost
     if outcome.gold_change < 0 {
-        let cost = (-outcome.gold_change);
+        let cost = -outcome.gold_change;
         if session.player(actor).gold < cost {
             session.phase = GamePhase::Exploring;
             return Ok(vec!["You don't have enough gold.".to_owned()]);
@@ -3125,8 +3131,10 @@ mod tests {
 
     fn test_session() -> SessionState {
         let (id, short_id) = new_short_sid();
-        let mut player = PlayerState::default();
-        player.inventory = content::starting_inventory();
+        let player = PlayerState {
+            inventory: content::starting_inventory(),
+            ..Default::default()
+        };
 
         let mut players = HashMap::new();
         players.insert(OWNER, player);
@@ -3329,8 +3337,10 @@ mod tests {
         session.mode = SessionMode::Party;
         let member_id = PlayerId::new(42);
         session.party.push(member_id);
-        let mut member_player = PlayerState::default();
-        member_player.inventory = content::starting_inventory();
+        let member_player = PlayerState {
+            inventory: content::starting_inventory(),
+            ..Default::default()
+        };
         session.players.insert(member_id, member_player);
         let result = apply_action(&mut session, GameAction::Explore, member_id);
         assert!(result.is_ok());
@@ -3653,8 +3663,10 @@ mod tests {
         session.mode = SessionMode::Party;
         let member_id = PlayerId::new(42);
         session.party.push(member_id);
-        let mut dead_player = PlayerState::default();
-        dead_player.alive = false;
+        let dead_player = PlayerState {
+            alive: false,
+            ..Default::default()
+        };
         session.players.insert(member_id, dead_player);
 
         // Only owner is alive, so target should always be owner
@@ -3670,8 +3682,10 @@ mod tests {
         session.mode = SessionMode::Party;
         let member_id = PlayerId::new(42);
         session.party.push(member_id);
-        let mut member_player = PlayerState::default();
-        member_player.inventory = content::starting_inventory();
+        let member_player = PlayerState {
+            inventory: content::starting_inventory(),
+            ..Default::default()
+        };
         session.players.insert(member_id, member_player);
 
         // Kill the owner
@@ -4010,13 +4024,14 @@ mod tests {
         }
 
         // Boss should be enraged if still alive and below 50%
-        if !session.enemies.is_empty() && session.enemies[0].hp > 0 {
-            if session.enemies[0].hp <= session.enemies[0].max_hp / 2 {
-                assert!(
-                    session.enemies[0].enraged,
-                    "Boss should be enraged when below 50% HP"
-                );
-            }
+        if !session.enemies.is_empty()
+            && session.enemies[0].hp > 0
+            && session.enemies[0].hp <= session.enemies[0].max_hp / 2
+        {
+            assert!(
+                session.enemies[0].enraged,
+                "Boss should be enraged when below 50% HP"
+            );
         }
     }
 
@@ -4412,7 +4427,7 @@ mod tests {
         }
         // 50% rate over 200 trials: expect 60-140 (30%-70%)
         assert!(
-            ambush_count >= 60 && ambush_count <= 140,
+            (60..=140).contains(&ambush_count),
             "Rogue ambush rate should be ~50%, got {}/{}",
             ambush_count,
             trials
@@ -4450,7 +4465,7 @@ mod tests {
         }
         // 50% rate over 200 trials: expect 60-140 (30%-70%)
         assert!(
-            charge_count >= 60 && charge_count <= 140,
+            (60..=140).contains(&charge_count),
             "Warrior charge rate should be ~50%, got {}/{}",
             charge_count,
             trials
@@ -4465,9 +4480,11 @@ mod tests {
         session.enemies = vec![test_enemy()];
 
         let cleric_id = PlayerId::new(2);
-        let mut cleric = PlayerState::default();
-        cleric.class = ClassType::Cleric;
-        cleric.name = "TestCleric".to_owned();
+        let cleric = PlayerState {
+            class: ClassType::Cleric,
+            name: "TestCleric".to_owned(),
+            ..Default::default()
+        };
         session.players.insert(cleric_id, cleric);
         session.party.push(cleric_id);
 
@@ -5026,11 +5043,8 @@ mod tests {
 
         // Simulate the hazard application loop from advance_room:
         let hazard = Hazard::Spikes { dmg: 8 };
-        match &hazard {
-            Hazard::Spikes { dmg } => {
-                session.player_mut(OWNER).hp -= dmg;
-            }
-            _ => {}
+        if let Hazard::Spikes { dmg } = &hazard {
+            session.player_mut(OWNER).hp -= dmg;
         }
         assert_eq!(
             session.player(OWNER).hp,
@@ -5044,19 +5058,17 @@ mod tests {
             stacks: 1,
             turns: 3,
         };
-        match &gas {
-            Hazard::Gas {
-                effect,
-                stacks,
-                turns,
-            } => {
-                session.player_mut(OWNER).effects.push(EffectInstance {
-                    kind: effect.clone(),
-                    stacks: *stacks,
-                    turns_left: *turns,
-                });
-            }
-            _ => {}
+        if let Hazard::Gas {
+            effect,
+            stacks,
+            turns,
+        } = &gas
+        {
+            session.player_mut(OWNER).effects.push(EffectInstance {
+                kind: *effect,
+                stacks: *stacks,
+                turns_left: *turns,
+            });
         }
         assert!(session.player(OWNER).has_effect(&EffectKind::Poison));
     }
@@ -5122,7 +5134,7 @@ mod tests {
         let damage_taken = hp_before - session.player(OWNER).hp;
         // Damage should be higher than uncursed (10), expect 15
         assert!(
-            damage_taken >= 14 && damage_taken <= 16,
+            (14..=16).contains(&damage_taken),
             "Cursed 1.5x on 20 dmg with defend should be ~15, got {}",
             damage_taken
         );
@@ -5226,8 +5238,10 @@ mod tests {
         session.mode = SessionMode::Party;
         let member_id = PlayerId::new(42);
         session.party.push(member_id);
-        let mut member_player = PlayerState::default();
-        member_player.inventory = content::starting_inventory();
+        let member_player = PlayerState {
+            inventory: content::starting_inventory(),
+            ..Default::default()
+        };
         session.players.insert(member_id, member_player);
 
         // Kill both players
@@ -5374,7 +5388,7 @@ mod tests {
                     // base_roll = 6..=12, armor = 5
                     // so damage should be 1..=7
                     assert!(
-                        dmg >= 1 && dmg <= 7,
+                        (1..=7).contains(&dmg),
                         "Damage with 5 armor should be 1-7 (base 6-12 minus 5), got {}",
                         dmg
                     );
@@ -5385,7 +5399,7 @@ mod tests {
             let avg = total_damage / attacks;
             // Average base roll = 9, minus 5 armor = 4
             assert!(
-                avg >= 1 && avg <= 7,
+                (1..=7).contains(&avg),
                 "Average damage should reflect armor reduction"
             );
         }
@@ -5462,12 +5476,10 @@ mod tests {
             };
 
             let result = apply_action(&mut session, action, OWNER);
-            if result.is_err() {
-                if matches!(session.phase, GamePhase::Combat) {
-                    let _ = apply_action(&mut session, GameAction::Attack, OWNER);
-                }
-                // Move failed (no exit)? Try next direction
+            if result.is_err() && matches!(session.phase, GamePhase::Combat) {
+                let _ = apply_action(&mut session, GameAction::Attack, OWNER);
             }
+            // Move failed (no exit)? Try next direction
 
             tiles_visited = session.map.tiles_visited;
         }
@@ -5489,11 +5501,13 @@ mod tests {
 
         let member_id = PlayerId::new(42);
         session.party.push(member_id);
-        let mut member_player = PlayerState::default();
-        member_player.name = "PartyMember".to_owned();
-        member_player.inventory = content::starting_inventory();
-        member_player.hp = 200;
-        member_player.max_hp = 200;
+        let member_player = PlayerState {
+            name: "PartyMember".to_owned(),
+            inventory: content::starting_inventory(),
+            hp: 200,
+            max_hp: 200,
+            ..Default::default()
+        };
         session.players.insert(member_id, member_player);
 
         session.player_mut(OWNER).hp = 200;
@@ -6038,11 +6052,13 @@ mod tests {
 
         let member_id = PlayerId::new(42);
         session.party.push(member_id);
-        let mut member = PlayerState::default();
-        member.name = "DeadPlayer".to_owned();
-        member.alive = false;
-        member.hp = 0;
-        member.max_hp = 50;
+        let member = PlayerState {
+            name: "DeadPlayer".to_owned(),
+            alive: false,
+            hp: 0,
+            max_hp: 50,
+            ..Default::default()
+        };
         session.players.insert(member_id, member);
 
         session.player_mut(OWNER).gold = 100;
@@ -6263,10 +6279,10 @@ mod tests {
             player.first_attack_in_combat = true;
 
             let result = apply_action(&mut session, GameAction::Attack, OWNER);
-            if let Ok(logs) = result {
-                if logs.iter().any(|l| l.contains("charges into")) {
-                    charge_count += 1;
-                }
+            if let Ok(logs) = result
+                && logs.iter().any(|l| l.contains("charges into"))
+            {
+                charge_count += 1;
             }
         }
         assert_eq!(
@@ -6296,10 +6312,10 @@ mod tests {
             player.first_attack_in_combat = true;
 
             let result = apply_action(&mut session, GameAction::Attack, OWNER);
-            if let Ok(logs) = result {
-                if logs.iter().any(|l| l.contains("ambush")) {
-                    ambush_count += 1;
-                }
+            if let Ok(logs) = result
+                && logs.iter().any(|l| l.contains("ambush"))
+            {
+                ambush_count += 1;
             }
         }
         assert_eq!(
@@ -6571,7 +6587,7 @@ mod tests {
         // With Sharpened+Weakened: (6+3)*0.7=6 to (12+3)*0.7=10
         for &d in &damages {
             assert!(
-                d >= 1 && d <= 12,
+                (1..=12).contains(&d),
                 "Damage with Sharpened+Weakened should be in expected range, got {}",
                 d
             );
@@ -7663,8 +7679,10 @@ mod tests {
 
         // Add a second player to verify AoE applies DR per-player
         let p2 = PlayerId::new(2);
-        let mut player2 = PlayerState::default();
-        player2.armor = 0;
+        let mut player2 = PlayerState {
+            armor: 0,
+            ..Default::default()
+        };
         player2.armor_gear = Some("dragon_scale".to_owned()); // 10% DR
         session.players.insert(p2, player2);
         session.party.push(p2);
@@ -7697,8 +7715,10 @@ mod tests {
         let mut session = test_session();
         session.mode = SessionMode::Party;
         let p2 = PlayerId::new(2);
-        let mut player2 = PlayerState::default();
-        player2.name = "Bob".to_owned();
+        let player2 = PlayerState {
+            name: "Bob".to_owned(),
+            ..Default::default()
+        };
         session.players.insert(p2, player2);
         session.party.push(p2);
         // Give owner a potion
@@ -8349,10 +8369,12 @@ mod tests {
 
         let p2 = PlayerId::new(2);
         session.party.push(p2);
-        let mut p2_state = PlayerState::default();
-        p2_state.name = "Partner".to_owned();
-        p2_state.hp = 20;
-        p2_state.max_hp = 100;
+        let p2_state = PlayerState {
+            name: "Partner".to_owned(),
+            hp: 20,
+            max_hp: 100,
+            ..Default::default()
+        };
         session.players.insert(p2, p2_state);
 
         session.player_mut(OWNER).hp = 40;
@@ -8482,10 +8504,12 @@ mod tests {
 
         let p2 = PlayerId::new(2);
         session.party.push(p2);
-        let mut p2_state = PlayerState::default();
-        p2_state.hp = 0;
-        p2_state.max_hp = 100;
-        p2_state.alive = false;
+        let p2_state = PlayerState {
+            hp: 0,
+            max_hp: 100,
+            alive: false,
+            ..Default::default()
+        };
         session.players.insert(p2, p2_state);
 
         session.player_mut(OWNER).hp = 50;
@@ -9055,10 +9079,12 @@ mod tests {
 
         let p2 = PlayerId::new(2);
         session.party.push(p2);
-        let mut p2_state = PlayerState::default();
-        p2_state.name = "Ranger".to_owned();
-        p2_state.hp = 30;
-        p2_state.max_hp = 100;
+        let p2_state = PlayerState {
+            name: "Ranger".to_owned(),
+            hp: 30,
+            max_hp: 100,
+            ..Default::default()
+        };
         session.players.insert(p2, p2_state);
 
         session.player_mut(OWNER).hp = 40;
@@ -9106,8 +9132,10 @@ mod tests {
 
         let p2 = PlayerId::new(2);
         session.party.push(p2);
-        let mut p2_state = PlayerState::default();
-        p2_state.name = "Mage".to_owned();
+        let p2_state = PlayerState {
+            name: "Mage".to_owned(),
+            ..Default::default()
+        };
         session.players.insert(p2, p2_state);
 
         inv_add_qty(&mut session.player_mut(OWNER).inventory, "teleport_rune", 1);
@@ -9303,11 +9331,13 @@ mod tests {
 
         let p2 = PlayerId::new(2);
         session.party.push(p2);
-        let mut p2_state = PlayerState::default();
-        p2_state.name = "Fallen".to_owned();
-        p2_state.alive = false;
-        p2_state.hp = 0;
-        p2_state.max_hp = 100;
+        let p2_state = PlayerState {
+            name: "Fallen".to_owned(),
+            alive: false,
+            hp: 0,
+            max_hp: 100,
+            ..Default::default()
+        };
         session.players.insert(p2, p2_state);
 
         inv_add_qty(
@@ -9335,10 +9365,12 @@ mod tests {
 
         let p2 = PlayerId::new(2);
         session.party.push(p2);
-        let mut p2_state = PlayerState::default();
-        p2_state.alive = false;
-        p2_state.hp = 0;
-        p2_state.max_hp = 100;
+        let p2_state = PlayerState {
+            alive: false,
+            hp: 0,
+            max_hp: 100,
+            ..Default::default()
+        };
         session.players.insert(p2, p2_state);
 
         inv_add_qty(
@@ -9368,10 +9400,12 @@ mod tests {
 
         let p2 = PlayerId::new(2);
         session.party.push(p2);
-        let mut p2_state = PlayerState::default();
-        p2_state.alive = false;
-        p2_state.hp = 0;
-        p2_state.max_hp = 100;
+        let mut p2_state = PlayerState {
+            alive: false,
+            hp: 0,
+            max_hp: 100,
+            ..Default::default()
+        };
         p2_state.effects = vec![
             EffectInstance {
                 kind: EffectKind::Poison,
@@ -9428,10 +9462,12 @@ mod tests {
 
         let p2 = PlayerId::new(2);
         session.party.push(p2);
-        let mut p2_state = PlayerState::default();
-        p2_state.alive = true;
-        p2_state.hp = 50;
-        p2_state.max_hp = 100;
+        let p2_state = PlayerState {
+            alive: true,
+            hp: 50,
+            max_hp: 100,
+            ..Default::default()
+        };
         session.players.insert(p2, p2_state);
 
         inv_add_qty(
@@ -9460,18 +9496,22 @@ mod tests {
         session.party.push(p2);
         session.party.push(p3);
 
-        let mut p2_state = PlayerState::default();
-        p2_state.name = "First Dead".to_owned();
-        p2_state.alive = false;
-        p2_state.hp = 0;
-        p2_state.max_hp = 100;
+        let p2_state = PlayerState {
+            name: "First Dead".to_owned(),
+            alive: false,
+            hp: 0,
+            max_hp: 100,
+            ..Default::default()
+        };
         session.players.insert(p2, p2_state);
 
-        let mut p3_state = PlayerState::default();
-        p3_state.name = "Second Dead".to_owned();
-        p3_state.alive = false;
-        p3_state.hp = 0;
-        p3_state.max_hp = 80;
+        let p3_state = PlayerState {
+            name: "Second Dead".to_owned(),
+            alive: false,
+            hp: 0,
+            max_hp: 80,
+            ..Default::default()
+        };
         session.players.insert(p3, p3_state);
 
         inv_add_qty(
@@ -9505,10 +9545,12 @@ mod tests {
 
         let p2 = PlayerId::new(2);
         session.party.push(p2);
-        let mut p2_state = PlayerState::default();
-        p2_state.alive = false;
-        p2_state.hp = 0;
-        p2_state.max_hp = 100;
+        let p2_state = PlayerState {
+            alive: false,
+            hp: 0,
+            max_hp: 100,
+            ..Default::default()
+        };
         session.players.insert(p2, p2_state);
 
         inv_add_qty(
@@ -9534,9 +9576,11 @@ mod tests {
 
         let p2 = PlayerId::new(2);
         session.party.push(p2);
-        let mut p2_state = PlayerState::default();
-        p2_state.alive = false;
-        p2_state.hp = 0;
+        let mut p2_state = PlayerState {
+            alive: false,
+            hp: 0,
+            ..Default::default()
+        };
         p2_state.max_hp = 77; // 30% of 77 = 23.1 → ceil = 24
         session.players.insert(p2, p2_state);
 
@@ -9562,11 +9606,13 @@ mod tests {
 
         let p2 = PlayerId::new(2);
         session.party.push(p2);
-        let mut p2_state = PlayerState::default();
-        p2_state.name = "FallenHero".to_owned();
-        p2_state.alive = false;
-        p2_state.hp = 0;
-        p2_state.max_hp = 100;
+        let p2_state = PlayerState {
+            name: "FallenHero".to_owned(),
+            alive: false,
+            hp: 0,
+            max_hp: 100,
+            ..Default::default()
+        };
         session.players.insert(p2, p2_state);
 
         inv_add_qty(
@@ -9599,11 +9645,13 @@ mod tests {
         // The actor (p2) uses the feather to revive the owner
         let p2 = PlayerId::new(2);
         session.party.push(p2);
-        let mut p2_state = PlayerState::default();
-        p2_state.name = "Alive Hero".to_owned();
-        p2_state.alive = true;
-        p2_state.hp = 50;
-        p2_state.max_hp = 100;
+        let mut p2_state = PlayerState {
+            name: "Alive Hero".to_owned(),
+            alive: true,
+            hp: 50,
+            max_hp: 100,
+            ..Default::default()
+        };
         inv_add_qty(&mut p2_state.inventory, "phoenix_feather", 1);
         session.players.insert(p2, p2_state);
 
@@ -9656,10 +9704,12 @@ mod tests {
 
         let p2 = PlayerId::new(2);
         session.party.push(p2);
-        let mut p2_state = PlayerState::default();
-        p2_state.alive = false;
-        p2_state.hp = 0;
-        p2_state.max_hp = 100;
+        let p2_state = PlayerState {
+            alive: false,
+            hp: 0,
+            max_hp: 100,
+            ..Default::default()
+        };
         session.players.insert(p2, p2_state);
 
         session.player_mut(OWNER).gold = 10; // not enough
@@ -9677,10 +9727,12 @@ mod tests {
 
         let p2 = PlayerId::new(2);
         session.party.push(p2);
-        let mut p2_state = PlayerState::default();
-        p2_state.alive = false;
-        p2_state.hp = 0;
-        p2_state.max_hp = 100;
+        let p2_state = PlayerState {
+            alive: false,
+            hp: 0,
+            max_hp: 100,
+            ..Default::default()
+        };
         session.players.insert(p2, p2_state);
 
         // depth = |x| + |y| = 3 + 2 = 5 → cost = 25 + 5*5 = 50
@@ -9702,10 +9754,12 @@ mod tests {
 
         let p2 = PlayerId::new(2);
         session.party.push(p2);
-        let mut p2_state = PlayerState::default();
-        p2_state.alive = false;
-        p2_state.hp = 0;
-        p2_state.max_hp = 100;
+        let mut p2_state = PlayerState {
+            alive: false,
+            hp: 0,
+            max_hp: 100,
+            ..Default::default()
+        };
         p2_state.effects = vec![EffectInstance {
             kind: EffectKind::Poison,
             stacks: 3,
@@ -9851,10 +9905,12 @@ mod tests {
 
         let p2 = PlayerId::new(2);
         session.party.push(p2);
-        let mut p2_state = PlayerState::default();
-        p2_state.alive = false;
-        p2_state.hp = 0;
-        p2_state.max_hp = 80;
+        let p2_state = PlayerState {
+            alive: false,
+            hp: 0,
+            max_hp: 80,
+            ..Default::default()
+        };
         session.players.insert(p2, p2_state);
 
         session.player_mut(OWNER).gold = 200;
@@ -10410,10 +10466,8 @@ mod tests {
             GamePhase::Rest,
         ] {
             session.phase = phase;
-            if session.phase == GamePhase::Combat {
-                if session.enemies.is_empty() {
-                    session.enemies.push(test_enemy());
-                }
+            if session.phase == GamePhase::Combat && session.enemies.is_empty() {
+                session.enemies.push(test_enemy());
             }
             let result = apply_action(&mut session, GameAction::ViewQuests, OWNER);
             assert!(

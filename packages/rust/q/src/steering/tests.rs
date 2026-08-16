@@ -171,8 +171,10 @@ fn a_creature_that_can_move_is_never_called_stuck() {
 
 #[test]
 fn gives_up_on_a_waypoint_it_never_reaches() {
-    let mut config = Config::default();
-    config.give_up_time = 2.0;
+    let config = Config {
+        give_up_time: 2.0,
+        ..Default::default()
+    };
     // Fast enough to never trip the stuck check, but pinned in place.
     let mut patrol = Patrol::new([0.0, 0.0], 9, config);
     let first = patrol.target();
@@ -368,8 +370,10 @@ fn without_a_route_it_still_steers_at_the_target() {
 /// same spot at the same time and the engine resolves it by shoving.
 fn pair(a_from: Vec2, a_to: Vec2, b_from: Vec2, b_to: Vec2, ticks: u32) -> (f32, Vec2, Vec2) {
     let delta = 1.0 / 60.0;
-    let mut config = Config::default();
-    config.radius = 1.0;
+    let config = Config {
+        radius: 1.0,
+        ..Default::default()
+    };
     let build = |home: Vec2, target: Vec2, seed: u32| {
         let mut p = Patrol::new(home, seed, config);
         p.target = target;
@@ -555,10 +559,10 @@ fn column(ticks: u32) -> (f32, u32) {
         let heading = if tick < turn { 1.0 } else { -1.0 };
         leader[1] += 3.0 * delta * heading;
         let snapshot: Vec<(Vec2, Vec2)> = senses.iter().map(|s| (s.position, s.velocity)).collect();
-        for i in 0..count as usize {
-            senses[i].leader = Some(leader);
-            senses[i].leader_facing = [0.0, heading];
-            senses[i].neighbours = snapshot
+        for (i, sense) in senses.iter_mut().enumerate() {
+            sense.leader = Some(leader);
+            sense.leader_facing = [0.0, heading];
+            sense.neighbours = snapshot
                 .iter()
                 .enumerate()
                 .filter(|(j, _)| *j != i)
@@ -729,16 +733,20 @@ fn waiting_still_makes_room_for_the_others() {
 /// inside it -- and the wider the bodies, the wider that dead band gets.
 #[test]
 fn crossing_into_contact_never_pushes_less() {
-    let mut config = Config::default();
-    config.radius = 3.2;
-    config.pass_margin = 0.8;
-    config.separation = 9.0;
-    config.separation_strength = 1.6;
+    let config = Config {
+        radius: 3.2,
+        pass_margin: 0.8,
+        separation: 9.0,
+        separation_strength: 1.6,
+        ..Default::default()
+    };
     let patrol = Patrol::new([0.0, 0.0], 1, config);
 
     let contact = config.radius + config.radius + config.pass_margin;
-    let mut sense = Sense::default();
-    sense.facing = [1.0, 0.0];
+    let mut sense = Sense {
+        facing: [1.0, 0.0],
+        ..Default::default()
+    };
 
     // Stepped in across the boundary: the push must never fall as they close.
     let mut previous = 0.0;
