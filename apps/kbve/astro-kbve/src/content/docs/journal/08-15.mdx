@@ -55,6 +55,24 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 
 <BentoProse id="2026" heading="2026">
 
+### Friendslop NPC v1
+
+-   07:15PM
+
+    Added a diverse set of NPCs into the game, that way we can test their speech, movement and slowly build out the RPG flavor for the game.
+    I am thinking that we start small with a decent set of characters, then we can build out small camps and villages.
+    Once there is a traveling caravan, we can move towards the idea of a village too.
+    An example quest could be that you meet a couple people that are refugees of the elven raids and that they been traveling around to eventually build a village.
+    The first phase of the quest would be to help them get a caravan, then later on we could implement a way for them to build a small settlement.
+    This way the world building can continue and we can keep the flow going, as for the death and murder aspect, this will be interesting to look into.
+
+### BBS Unit
+
+-   09:13PM
+
+    We go the first part of the bbs hooked up, so that people could in theory message using it, but what I want to see is if I can get a small modular display going.
+    This would pull the information from the kbve bbs and then display it on the board, ideally it be a small device that shows what is going on in realtime within the chat room.
+
 - [ ]
 
 </BentoProse>
@@ -100,7 +118,7 @@ Ideally this would be a test on our ability to utilize the SQL database and also
 It seems thast the FlyIO service also seemed to remove their free service, according to them it was because of abuse.
 For now they have a `pay-as-you-go` plan and will cover about $5 worth of expenses each month.
 Now that I am thinking it would still make sense to at least deploy 3 VMs that would act like cache end points to help offset any heavy load.
-The 256mb should be enough for us to handle around 10000 active connections each, so the cache pool would be around 30,000 active connections. 
+The 256mb should be enough for us to handle around 10000 active connections each, so the cache pool would be around 30,000 active connections.
 I will try to formulate a way to call those cache endpoints without having it affect the main script, we could setup a simple client side algo to help with that.
 As for the flyio deployments, it should still be all done via the github actions?
 We could also make it so that it gets deployed as dev branches, this way we can test case our dev APIs.
@@ -109,7 +127,7 @@ We could also make it so that it gets deployed as dev branches, this way we can 
 
 <BentoProse id="2023" heading="2023">
 
-- 6:00am - Still need to clean a bit of my room up, the only mess that is getting me annoyed is around by work bench. 
+- 6:00am - Still need to clean a bit of my room up, the only mess that is getting me annoyed is around by work bench.
 - 7:27am - Time to clear up the Layout issue with the MDX files. Oh man, the joys :/
 - 8:24am - I should make another patch with the `layout:` killer.
 - 7:23pm - I been at this for almost 12 hours and I am still running into random errors, ugh! This day is extremely lame.

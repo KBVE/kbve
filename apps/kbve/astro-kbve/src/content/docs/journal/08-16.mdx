@@ -77,6 +77,14 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 
 <BentoProse id="2026" heading="2026">
 
+### FriendSlop Physics
+
+-   06:40PM
+
+    The physics for the game is currently ruinning on the main thread, so our goal will be to move that off to a worker.
+    There will be some smoothing that we will need to figure out, but I think this path will give us the best performance in the long term!
+    The biggest upside would be that since the networking is moved off thread, we could keep them close to each other, thus giving the main thread less work to do.
+
 - [ ]
 
 </BentoProse>
