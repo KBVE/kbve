@@ -31,6 +31,22 @@ static func display_name(ref: StringName) -> String:
 	return str(item(ref).get("name", ref))
 
 
+## Cells an item takes up in a grid bag, upright. Absent means one cell, which is the
+## catalog's own rule -- most things are 1x1 and only the awkward ones say otherwise.
+static func grid_size(ref: StringName) -> Vector2i:
+	var grid: Dictionary = item(ref).get("grid", {})
+	return Vector2i(maxi(int(grid.get("width", 1)), 1), maxi(int(grid.get("height", 1)), 1))
+
+
+## How many fit in one stack. Anything not marked stackable sits alone, whatever
+## `max_stack` happens to say.
+static func max_stack(ref: StringName) -> int:
+	var entry := item(ref)
+	if not bool(entry.get("stackable", false)):
+		return 1
+	return maxi(int(entry.get("max_stack", 1)), 1)
+
+
 ## Where an item is worn, or nothing for one that is not worn at all.
 static func slot_of(ref: StringName) -> StringName:
 	var equipment: Dictionary = item(ref).get("equipment", {})

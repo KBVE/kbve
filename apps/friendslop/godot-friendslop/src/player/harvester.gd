@@ -289,8 +289,12 @@ func _land() -> void:
 func _receive(kind: StringName, ore: StringName, amount: int) -> void:
 	if ore == &"" or amount <= 0:
 		return
-	Journal.gain(ore, amount)
-	harvested.emit(kind, ore, amount)
+	# Whatever would not fit is left over rather than silently gone. Nothing catches it
+	# yet -- the ground it should fall on does not exist -- so `Journal.refused` is where
+	# it is announced and the player is told, which is better than a tree felled for
+	# nothing and no reason given.
+	var spare := Journal.gain(ore, amount)
+	harvested.emit(kind, ore, amount - spare)
 
 
 ## Nearest rock or tree in reach and roughly ahead, as everything the swing needs
