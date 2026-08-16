@@ -10,10 +10,17 @@ extends Node
 
 ## The protocol the host answered, or 0 while nothing has.
 signal answered(protocol: int)
-## Nothing was reachable, with wording to show.
+## Nothing answered at all, with wording to show.
 signal unreachable(reason: String)
+## Something answered, but not with a protocol this build can read.
+signal unreadable(reason: String)
 
 const TIMEOUT := 6.0
+
+## Nothing answered.
+const NO_ANSWER := -1
+## Answered, but said nothing this build could read a protocol out of.
+const UNREADABLE := -2
 
 var _request: HTTPRequest
 
@@ -47,18 +54,36 @@ func probe(socket_url: String) -> void:
 		unreachable.emit("probe failed (%d)" % err)
 
 
-## A host that answers something this cannot read is reported unreachable rather than
-## guessed at: a wrong protocol shown confidently is worse than none, because it is the
-## number the player would be told to trust.
-func _on_completed(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+## The protocol in an answer, or `NO_ANSWER` / `UNREADABLE` saying which way it failed.
+##
+## A host that answers something this cannot read is never guessed at: a wrong protocol
+## shown confidently is worse than none, because it is the number the player would be
+## told to trust.
+##
+## The two failures are kept apart because they mean opposite things to whoever is about
+## to press play. Nothing answering means there is no server to join. A 200 without a
+## protocol in it means the server is up and almost certainly joinable — it is just older
+## than the health payload this build expects, which is the ordinary state of things
+## between a merge and the next deploy.
+static func read_health(result: int, code: int, body: PackedByteArray) -> int:
 	if result != HTTPRequest.RESULT_SUCCESS:
-		unreachable.emit("no answer (%d)" % result)
-		return
+		return NO_ANSWER
 	if code != 200:
-		unreachable.emit("http %d" % code)
-		return
+		return NO_ANSWER
 	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
 	if typeof(parsed) != TYPE_DICTIONARY or not parsed.has("protocol"):
-		unreachable.emit("unreadable health")
-		return
-	answered.emit(int(parsed["protocol"]))
+		return UNREADABLE
+	var protocol := int(parsed["protocol"])
+	return protocol if protocol > 0 else UNREADABLE
+
+
+func _on_completed(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	var protocol := read_health(result, code, body)
+	if protocol > 0:
+		answered.emit(protocol)
+	elif protocol == UNREADABLE:
+		unreadable.emit("no protocol in health")
+	elif result != HTTPRequest.RESULT_SUCCESS:
+		unreachable.emit("no answer (%d)" % result)
+	else:
+		unreachable.emit("http %d" % code)

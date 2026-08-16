@@ -104,7 +104,10 @@ func _probe_server() -> void:
 	var probe := ServerProbe.new()
 	add_child(probe)
 	probe.answered.connect(func(protocol: int) -> void: _menu.set_server_protocol(protocol))
-	probe.unreachable.connect(func(_reason: String) -> void: _menu.set_server_protocol(-1))
+	probe.unreachable.connect(func(_reason: String) -> void:
+			_menu.set_server_protocol(ServerProbe.NO_ANSWER))
+	probe.unreadable.connect(func(_reason: String) -> void:
+			_menu.set_server_protocol(ServerProbe.UNREADABLE))
 	probe.probe(ONLINE_WORLD.server_url())
 
 

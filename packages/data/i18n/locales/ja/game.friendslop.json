@@ -9,7 +9,8 @@
 		"build": "v{version}  ·  プロトコル {protocol}",
 		"server_protocol": "サーバープロトコル {protocol}",
 		"protocol_mismatch": "このビルドではそのサーバーに参加できません",
-		"server_unreachable": "サーバーに接続できません"
+		"server_unreachable": "サーバーに接続できません",
+		"server_protocol_unknown": "サーバープロトコル不明"
 	},
 	"pause": {
 		"log_off": "ログオフ"
@@ -46,7 +47,9 @@
 			"first_person": "一人称",
 			"third_person": "三人称",
 			"over_shoulder": "肩越し"
-		}
+		},
+		"bisect": "レイヤーを隠す",
+		"bisect_hint": "世界の一部を一つずつ隠して、フレームが何に使われているかを確認できます。"
 	},
 	"hud": {
 		"connecting": "{{url}} に接続中…",
@@ -66,5 +69,9 @@
 		"claim": "決定",
 		"claiming": "登録中…",
 		"taken": "その名前は使われています。"
+	},
+	"toast": {
+		"gained": "+{{count}} {{item}}",
+		"no_room": "バッグがいっぱい — {{count}} {{item}} を入れる余裕がありません"
 	}
 }

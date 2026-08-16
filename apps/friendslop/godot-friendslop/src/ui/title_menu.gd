@@ -266,6 +266,8 @@ func set_server_protocol(protocol: int) -> void:
 		line += "  ·  " + I18n.t("title.server_protocol").format({"protocol": protocol})
 		if protocol != mine:
 			line += "  ·  " + I18n.t("title.protocol_mismatch")
+	elif protocol == ServerProbe.UNREADABLE:
+		line += "  ·  " + I18n.t("title.server_protocol_unknown")
 	elif protocol < 0:
 		line += "  ·  " + I18n.t("title.server_unreachable")
 	build_label.text = line
