@@ -206,6 +206,49 @@ func test_completing_an_outfit_swaps_the_body_underneath() -> void:
 			.is_equal(RANGER.size())
 
 
+## Everybody in the world who is dressed has to be dressed in things that exist, and a
+## character wearing a whole outfit needs the bare-head body to wear it over -- without
+## one the body stays on underneath and shows through at the collar.
+func test_everybody_dressed_in_the_world_is_dressed_properly() -> void:
+	var state := (load("res://scenes/main.tscn") as PackedScene).get_state()
+	var dressed := 0
+	for i in state.get_node_count():
+		var props := {}
+		for p in state.get_node_property_count(i):
+			props[state.get_node_property_name(i, p)] = state.get_node_property_value(i, p)
+		var pieces: Variant = props.get("worn", [])
+		if pieces is not Array or (pieces as Array).is_empty():
+			continue
+		dressed += 1
+		var who := str(state.get_node_name(i))
+		var slots: Array = []
+		for id: Variant in pieces:
+			assert_bool(Wardrobe.has(StringName(id))) \
+					.override_failure_message("%s wears '%s', which is not in the wardrobe" % [
+							who, id]) \
+					.is_true()
+			slots.append(Wardrobe.slot_of(StringName(id)))
+		assert_int(slots.size()) \
+				.override_failure_message("%s wears two things in one slot" % who) \
+				.is_equal(_unique(slots).size())
+		if Wardrobe.covers_the_body(slots):
+			assert_object(props.get("head_only_body")) \
+					.override_failure_message(
+							"%s wears a whole outfit over a whole body" % who) \
+					.is_not_null()
+	assert_int(dressed) \
+			.override_failure_message("nobody in the world is wearing anything") \
+			.is_greater(0)
+
+
+func _unique(values: Array) -> Array:
+	var out := []
+	for v: Variant in values:
+		if not out.has(v):
+			out.append(v)
+	return out
+
+
 ## Every row of the wardrobe page names a slot, and a missing key shows the player the key
 ## itself rather than a word.
 ## Cel shading is keyed by material name, and a material with no entry is left drawn the
