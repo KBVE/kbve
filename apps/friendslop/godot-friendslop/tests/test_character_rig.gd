@@ -12,7 +12,7 @@ const COMPOSED := [&"move", &"crouch"]
 ## nothing can reach, when the truth is a test that was not told about it.
 func _links() -> Array:
 	return Rig.JUMP_CHAIN + Rig.CLIMB_CHAIN + Rig.CROUCH_CHAIN + Rig.roll_chain() \
-			+ Rig.TURN_CHAIN + Rig.work_chain()
+			+ Rig.TURN_CHAIN + Rig.work_chain() + Rig.slide_chain()
 
 
 ## A state named in a transition but missing from STATES takes the tree build down with
@@ -55,7 +55,8 @@ func test_every_stance_maps_to_a_real_state() -> void:
 			QLocomotion.STANCE_CLIMB_LOW, QLocomotion.STANCE_CLIMB_HIGH,
 			QLocomotion.STANCE_CROUCH, QLocomotion.STANCE_ROLL, QLocomotion.STANCE_LAND,
 			QLocomotion.STANCE_TURN_90_LEFT, QLocomotion.STANCE_TURN_90_RIGHT,
-			QLocomotion.STANCE_TURN_180_LEFT, QLocomotion.STANCE_TURN_180_RIGHT]
+			QLocomotion.STANCE_TURN_180_LEFT, QLocomotion.STANCE_TURN_180_RIGHT,
+			QLocomotion.STANCE_SLIDE]
 	for stance in stances:
 		assert_bool(Rig.STANCE_STATES.has(stance)) \
 				.override_failure_message("stance %d is unmapped" % stance).is_true()

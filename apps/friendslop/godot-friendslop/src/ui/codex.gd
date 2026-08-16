@@ -22,7 +22,13 @@ var _weapons: Array = []
 
 var _info: RichTextLabel
 var _subject_pick: OptionButton
+var _family_pick: OptionButton
 var _clip_pick: OptionButton
+## Clip families in the order they are offered, and the clips in the one on show.
+var _families: Array[String] = []
+var _clips: Array[String] = []
+## Which clips the rig actually puts on a body, and to what end.
+var _usage: Dictionary = {}
 var _weapon_pick: OptionButton
 var _scrub: HSlider
 var _speed: HSlider
@@ -129,6 +135,12 @@ func _build_side() -> void:
 	_speed = _add_slider(side, "speed m/s", 0.0, 6.0, 0.0)
 	_heading = _add_slider(side, "heading", -PI, PI, 0.0)
 
+	## The libraries carry a couple of hundred clips between them, which is not a list
+	## anything can be found in. They are offered a family at a time instead.
+	_family_pick = OptionButton.new()
+	_family_pick.item_selected.connect(_pick_family)
+	side.add_child(_family_pick)
+
 	_clip_pick = OptionButton.new()
 	_clip_pick.item_selected.connect(_play_clip)
 	side.add_child(_clip_pick)
@@ -173,8 +185,8 @@ func _build_side() -> void:
 			on_back.call())
 	side.add_child(back)
 
-	_controls = [_walking, _speed, _heading, _clip_pick, _scrub, _weapon_pick, _footik,
-			_slope, _slope_face]
+	_controls = [_walking, _speed, _heading, _family_pick, _clip_pick, _scrub, _weapon_pick,
+			_footik, _slope, _slope_face]
 	_fixes = [_yaw_fix, _pitch_fix]
 
 
@@ -287,12 +299,67 @@ func _build_model() -> Node3D:
 	return subject
 
 
+## Families first, in the order the kit's own naming suggests: everything the rig wires
+## up together at the top, then the rest of the library alphabetically.
 func _fill_clips() -> void:
+	_family_pick.clear()
 	_clip_pick.clear()
+	_families.clear()
+	_clips.clear()
 	if _rig == null or _rig.animation == null:
 		return
+	_usage = CharacterRig.clip_usage()
+	var seen := {}
 	for name in _rig.animation.get_animation_list():
-		_clip_pick.add_item(name)
+		seen[_family_of(name)] = true
+	_families = [FAMILY_WIRED, FAMILY_ALL]
+	var rest: Array[String] = []
+	for family in seen:
+		rest.append(family)
+	rest.sort()
+	_families.append_array(rest)
+	for family in _families:
+		_family_pick.add_item(family)
+	_pick_family(0)
+
+
+## The kit names a clip for what it belongs to before it says which one it is, so the
+## token in front is the family: Sword_Light_A and Sword_Block are both swordplay.
+static func _family_of(clip: String) -> String:
+	var leaf := clip.get_file() if clip.contains("/") else clip
+	var cut := leaf.find("_")
+	return leaf if cut <= 0 else leaf.substr(0, cut)
+
+
+const FAMILY_WIRED := "-- in the game --"
+const FAMILY_ALL := "-- everything --"
+
+
+func _pick_family(index: int) -> void:
+	if index < 0 or index >= _families.size() or _rig == null or _rig.animation == null:
+		return
+	var family := _families[index]
+	_clips.clear()
+	for name in _rig.animation.get_animation_list():
+		var clip := String(name)
+		var keep := family == FAMILY_ALL \
+				or (family == FAMILY_WIRED and _usage.has(clip)) \
+				or _family_of(clip) == family
+		if keep:
+			_clips.append(clip)
+	_clips.sort()
+	_clip_pick.clear()
+	for clip in _clips:
+		## A wired clip is marked, so the ones the game leans on stand out of the kit.
+		_clip_pick.add_item("%s%s" % ["* " if _usage.has(clip) else "", clip])
+	## Selected but not played: switching family should not take a subject off the
+	## locomotion tree, which is what it is showing by default.
+	if not _clips.is_empty():
+		_clip_pick.selected = 0
+		if not _walking.button_pressed:
+			_play_clip(0)
+		else:
+			_report()
 
 
 func _set_walking(on: bool) -> void:
@@ -302,17 +369,22 @@ func _set_walking(on: bool) -> void:
 		_play_clip(_clip_pick.selected)
 
 
+## Picking a clip means wanting to see that clip, so it takes the rig off the locomotion
+## tree rather than being quietly ignored while the tree drives the bones.
 func _play_clip(index: int) -> void:
-	if _rig == null or _rig.animation == null or index < 0:
+	if _rig == null or _rig.animation == null or index < 0 or index >= _clips.size():
 		return
-	if _walking.button_pressed:
-		return
-	var name := _clip_pick.get_item_text(index)
+	var name := _clips[index]
 	if not _rig.animation.has_animation(name):
 		return
+	_clip_pick.selected = index
+	if _walking.button_pressed:
+		_walking.button_pressed = false
 	_rig.animation.play(name)
+	_rig.animation.speed_scale = 1.0
 	_playing = true
 	_scrub.max_value = maxf(_rig.animation.get_animation(name).length, 0.01)
+	_report()
 
 
 func _toggle_play() -> void:
@@ -390,7 +462,45 @@ func _report() -> void:
 	if _entry.kind == "model":
 		lines.append("model_yaw_fix = %.2f\nmodel_pitch_fix = %.2f" % [
 				_yaw_fix.value, _pitch_fix.value])
+	lines.append_array(_clip_report())
 	_info.text = "\n".join(lines)
+
+
+## What the clip on show is, and what the rig does with it. The second half is the point
+## of listing them here at all: the kit ships several hundred clips and the game leans on
+## a few dozen, and there is otherwise no way to tell which is which.
+func _clip_report() -> Array:
+	if _rig == null or _rig.animation == null:
+		return []
+	var index: int = _clip_pick.selected
+	if index < 0 or index >= _clips.size():
+		return []
+	var clip: String = _clips[index]
+	if not _rig.animation.has_animation(clip):
+		return []
+	var anim: Animation = _rig.animation.get_animation(clip)
+	var out: Array = ["", "[b]%s[/b]" % clip,
+			"%.2fs, %d tracks" % [anim.length, anim.get_track_count()],
+			"loops: %s" % str(anim.loop_mode != Animation.LOOP_NONE)]
+	if _usage.has(clip):
+		out.append("[color=#8fdc7a]in the game:[/color] %s" % _usage[clip])
+		var window: float = _rig.window_for(_state_of(clip))
+		if window > 0.0:
+			## A fitted clip is not seen at the rate it is authored at, so the museum
+			## would otherwise show a slower animation than the game ever plays.
+			out.append("[color=#8fdc7a]fitted to %.2fs (%.2fx)[/color]" % [
+					window, anim.length / window])
+	else:
+		out.append("[color=#9a9aa8]not used by the rig[/color]")
+	return out
+
+
+## The state a wired clip belongs to, so its fitted window can be looked up.
+func _state_of(clip: String) -> StringName:
+	for state in CharacterRig.STATES:
+		if CharacterRig.STATES[state].clip == clip:
+			return state
+	return &""
 
 
 func _aabb(root: Node) -> AABB:

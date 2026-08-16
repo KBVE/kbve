@@ -38,6 +38,8 @@ impl QLocomotion {
     pub const STANCE_TURN_180_LEFT: i64 = Stance::Turn180Left as i64;
     #[constant]
     pub const STANCE_TURN_180_RIGHT: i64 = Stance::Turn180Right as i64;
+    #[constant]
+    pub const STANCE_SLIDE: i64 = Stance::Slide as i64;
 
     #[func]
     fn create() -> Gd<Self> {

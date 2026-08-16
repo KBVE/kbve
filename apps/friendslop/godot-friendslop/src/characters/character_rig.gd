@@ -46,6 +46,10 @@ extends Node3D
 ## overlap instead of leaving a frame of daylight between them.
 @export var work_grace := 0.08
 @export var crouch_shift_time := 0.30
+## Dropping into the slide and standing back out of it. The kit authored both far longer
+## than the moment each covers, so both are replayed to fit.
+@export var slide_enter_time := 0.22
+@export var slide_recover_time := 0.30
 ## Ground speed that abandons a landing recovery outright.
 @export var landing_cancel_speed := 0.5
 ## Left at 0 to keep QLocomotion's own defaults.
@@ -160,6 +164,25 @@ static func roll_chain() -> Array:
 		out.append({"from": String(state), "to": "move", "at_end": false, "xfade": ROLL_XFADE})
 	return out
 
+## A slide is the one move the kit authored as three clips rather than one: it is dropped
+## into, held for as long as there is speed to burn, and stood out of. The loop is what
+## QLocomotion's stance maps to; the two one-shots either side are walked by the rig.
+const SLIDE_STATES := [&"slide_start", &"slide_loop", &"slide_exit"]
+
+## Dropping in is quick and standing up is not, which is the opposite of the roll: the
+## exit clip is a real recovery the body plays through rather than a blend covering its
+## absence, so it is given room.
+static func slide_chain() -> Array:
+	return [
+		{"from": "move", "to": "slide_start", "at_end": false, "xfade": 0.08},
+		{"from": "crouch", "to": "slide_start", "at_end": false, "xfade": 0.08},
+		{"from": "slide_start", "to": "slide_loop", "at_end": false, "xfade": 0.10},
+		{"from": "slide_loop", "to": "slide_exit", "at_end": false, "xfade": 0.10},
+		# A slide short enough to end inside its own entry clip still has to stand up.
+		{"from": "slide_start", "to": "slide_exit", "at_end": false, "xfade": 0.10},
+		{"from": "slide_exit", "to": "move", "at_end": false, "xfade": 0.14},
+	]
+
 ## What each state wants out of a transition into it.
 const STATES := {
 	&"move": {&"clip": "", &"reset": false, &"ik": 1.0},
@@ -179,8 +202,11 @@ const STATES := {
 	&"turn_90_r": {&"clip": "UAL1/Turn90_R", &"reset": true, &"ik": 1.0},
 	&"turn_180_l": {&"clip": "UAL2/Turn180_L", &"reset": true, &"ik": 1.0},
 	&"turn_180_r": {&"clip": "UAL2/Turn180_R", &"reset": true, &"ik": 1.0},
-	&"chop": {&"clip": "UAL2/TreeChopping_Loop", &"reset": true, &"ik": 1.0},
-	&"mine": {&"clip": "UAL2/Mining_Loop", &"reset": true, &"ik": 1.0},
+	&"chop": {&"clip": "UAL2/TreeChopping", &"reset": true, &"ik": 1.0},
+	&"mine": {&"clip": "UAL2/Mining", &"reset": true, &"ik": 1.0},
+	&"slide_start": {&"clip": "UAL2/Slide_Start", &"reset": true, &"ik": 0.2},
+	&"slide_loop": {&"clip": "UAL2/Slide", &"reset": true, &"ik": 0.0},
+	&"slide_exit": {&"clip": "UAL2/Slide_Exit", &"reset": true, &"ik": 0.6},
 }
 
 ## Working a tree or a rock. Both feet stay planted, so unlike the other one-shots
@@ -206,6 +232,8 @@ const FITTED := {
 	&"jump_land": &"landing_time",
 	&"crouch_enter": &"crouch_shift_time",
 	&"crouch_exit": &"crouch_shift_time",
+	&"slide_start": &"slide_enter_time",
+	&"slide_exit": &"slide_recover_time",
 }
 
 ## Fitted states the graph has to be walked out of by hand, since nothing in the
@@ -214,6 +242,8 @@ const SHOT_NEXT := {
 	&"jump_start": &"jump",
 	&"crouch_enter": &"crouch",
 	&"crouch_exit": &"move",
+	&"slide_start": &"slide_loop",
+	&"slide_exit": &"move",
 }
 
 ## QLocomotion decides in stances; the state machine is addressed by name.
@@ -229,6 +259,7 @@ const STANCE_STATES := {
 	QLocomotion.STANCE_TURN_90_RIGHT: &"turn_90_r",
 	QLocomotion.STANCE_TURN_180_LEFT: &"turn_180_l",
 	QLocomotion.STANCE_TURN_180_RIGHT: &"turn_180_r",
+	QLocomotion.STANCE_SLIDE: &"slide_start",
 }
 
 ## Unit ring, counter-clockwise from forward.
@@ -255,6 +286,31 @@ const GAIT_CLIPS := [
 const CROUCH_GAIT_CLIPS := [
 	{"radius": 1.0, "prefix": "UAL1/Crouch_", "side": {"L": "Left", "R": "Right"}},
 ]
+
+## Every clip the rig can put on a body, against what puts it there. The kit ships far
+## more animation than the game wires up, so this is what lets the Codex tell the two
+## apart rather than showing one flat list of everything in the libraries.
+##
+## Built from the same tables the tree is, so a clip cannot be wired in without showing
+## up here, and a name that changes changes in one place.
+static func clip_usage() -> Dictionary:
+	var out := {}
+	for gaits in [[GAIT_CLIPS, "walk / jog ring"], [CROUCH_GAIT_CLIPS, "crouch ring"]]:
+		for gait in gaits[0]:
+			for entry in RING:
+				var suffix: String = entry[1]
+				if gait.side.has(suffix):
+					suffix = gait.side[suffix]
+				out[gait.prefix + suffix] = gaits[1]
+	out[IDLE_CLIP] = "walk / jog ring, standing"
+	out[CROUCH_IDLE_CLIP] = "crouch ring, standing"
+	out[SHIELD_CLIP] = "guard, layered over the upper body"
+	for state in STATES:
+		var clip: String = STATES[state].clip
+		if clip != "":
+			out[clip] = "state '%s'" % state
+	return out
+
 
 ## Per-surface cel shading; see cel_shading.gd for what the fields mean.
 const CelShading := preload("res://src/characters/cel_shading.gd")
@@ -389,7 +445,7 @@ func _build_tree(rig: Node3D) -> void:
 			if node:
 				machine.add_node(state, _rescaled(node))
 	for link in JUMP_CHAIN + CLIMB_CHAIN + CROUCH_CHAIN + roll_chain() + TURN_CHAIN \
-			+ work_chain():
+			+ work_chain() + slide_chain():
 		if not machine.has_node(link.from) or not machine.has_node(link.to):
 			continue
 		machine.add_transition(link.from, link.to, _transition(link))
@@ -625,7 +681,7 @@ func set_locomotion(local_velocity: Vector3, airborne: bool, delta: float) -> vo
 		return
 	if _hold_shot(playback, delta):
 		return
-	var want: StringName = _wanted()
+	var want: StringName = _wanted(playback)
 	if playback.get_travel_path().is_empty() and playback.get_current_node() != want:
 		_fit_turn(want)
 		playback.travel(want)
@@ -647,11 +703,23 @@ func _fit_turn(state: StringName) -> void:
 
 ## The state the stance asks for. Rolling is the one stance drawn by more than one clip,
 ## picked from the heading the roll was thrown on.
-func _wanted() -> StringName:
+func _wanted(playback: AnimationNodeStateMachinePlayback) -> StringName:
 	var stance: int = loco.stance()
 	if stance == QLocomotion.STANCE_ROLL:
 		return ROLL_STATES[clampi(loco.roll_variant(), 0, ROLL_STATES.size() - 1)]
-	return STANCE_STATES[stance]
+	var want: StringName = STANCE_STATES[stance]
+	var current: StringName = playback.get_current_node()
+	if stance == QLocomotion.STANCE_SLIDE:
+		# The stance names the state the slide is entered through, and the graph walks
+		# itself on from there. Asking for the entry again once the loop has it would
+		# travel backwards up a link that does not exist, which hard-cuts.
+		return current if current == &"slide_loop" else want
+	# The stance goes straight back to move when the slide runs out of speed, so nothing
+	# in the simulation asks for the recovery -- it is the rig's job to stand the body up
+	# on the way past rather than cut from lying down to running.
+	if want == &"move" and (current == &"slide_start" or current == &"slide_loop"):
+		return &"slide_exit"
+	return want
 
 
 ## Swings at a tree or a rock for `seconds`, whatever the body was otherwise doing.

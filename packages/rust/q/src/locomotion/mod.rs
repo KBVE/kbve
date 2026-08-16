@@ -53,6 +53,7 @@ pub enum Stance {
     Turn90Right = 8,
     Turn180Left = 9,
     Turn180Right = 10,
+    Slide = 11,
 }
 
 impl Stance {
@@ -68,6 +69,7 @@ impl Stance {
             8 => Self::Turn90Right,
             9 => Self::Turn180Left,
             10 => Self::Turn180Right,
+            11 => Self::Slide,
             _ => Self::Move,
         }
     }
@@ -120,6 +122,16 @@ pub struct Tuning {
     /// How long a roll owns the body, and how fast it carries it.
     pub roll_time: f32,
     pub roll_speed: f32,
+    /// A slide is a crouch taken at speed, so it is thrown by the same key and only when
+    /// the body is already running. Below this it is an ordinary crouch.
+    pub slide_min_speed: f32,
+    /// Longest a slide owns the body. It ends early once the body has scrubbed off enough
+    /// speed to stand up, which is what makes a slide out of a jog short and one out of a
+    /// full run long, from one number rather than two.
+    pub slide_time: f32,
+    /// Speed shed per second while sliding, and the speed at which it gives up and stands.
+    pub slide_drag: f32,
+    pub slide_exit_speed: f32,
     /// Airborne this long before the rig is told to leave the move state, so a step off
     /// a kerb or a frame of float on a slope does not fire the whole jump chain.
     pub air_grace: f32,
@@ -172,6 +184,10 @@ impl Default for Tuning {
             crouch_strafe_speed: 0.70,
             roll_time: 0.85,
             roll_speed: 6.0,
+            slide_min_speed: 2.6,
+            slide_time: 1.1,
+            slide_drag: 4.2,
+            slide_exit_speed: 1.4,
             air_grace: 0.12,
             land_time: 0.32,
             land_cancel_speed: 0.5,
@@ -279,6 +295,15 @@ pub struct Locomotion {
     roll_t: f32,
     roll_dir: [f32; 3],
     roll_axis: [f32; 2],
+    /// Time left in the slide, the heading it was launched on, and the speed still in it.
+    /// The heading is latched: a slide cannot be steered, which is the whole reason it is
+    /// a commitment rather than a fast crouch.
+    slide_t: f32,
+    slide_dir: [f32; 3],
+    slide_speed: f32,
+    /// Crouch held last tick, so the slide can be thrown on the press rather than by the
+    /// key being down -- otherwise crouching while running would slide again every tick.
+    crouch_held: bool,
     air_t: f32,
     land_t: f32,
     facing: f32,
@@ -308,6 +333,10 @@ impl Locomotion {
             roll_t: 0.0,
             roll_dir: [0.0, 0.0, -1.0],
             roll_axis: [0.0, 1.0],
+            slide_t: 0.0,
+            slide_dir: [0.0, 0.0, -1.0],
+            slide_speed: 0.0,
+            crouch_held: false,
             air_t: 0.0,
             land_t: 0.0,
             facing: 0.0,
@@ -421,14 +450,42 @@ impl Locomotion {
             self.roll_axis = Self::roll_facing(intent.move_axis);
         }
         let rolling = self.roll_t > 0.0;
-        self.crouched = intent.crouch && grounded && !rolling;
-        self.blocking = intent.block && grounded && !rolling && self.climbing.is_none();
+
+        let ground_speed = (velocity[0] * velocity[0] + velocity[2] * velocity[2]).sqrt();
+        let crouch_pressed = intent.crouch && !self.crouch_held;
+        self.crouch_held = intent.crouch;
+        self.slide_t = (self.slide_t - dt).max(0.0);
+        if crouch_pressed
+            && grounded
+            && !rolling
+            && self.slide_t <= 0.0
+            && self.climbing.is_none()
+            && ground_speed >= self.tuning.slide_min_speed
+        {
+            self.slide_t = self.tuning.slide_time;
+            self.slide_speed = ground_speed;
+            let inv = 1.0 / ground_speed;
+            self.slide_dir = [velocity[0] * inv, 0.0, velocity[2] * inv];
+        }
+        if self.slide_t > 0.0 {
+            self.slide_speed = (self.slide_speed - self.tuning.slide_drag * dt).max(0.0);
+            // Standing up the moment it stops being a slide, rather than lying in the pose
+            // for the rest of the window: what ends it is the speed running out, and the
+            // clock is only there so it cannot go on forever.
+            if self.slide_speed <= self.tuning.slide_exit_speed || !grounded {
+                self.slide_t = 0.0;
+            }
+        }
+        let sliding = self.slide_t > 0.0;
+
+        self.crouched = intent.crouch && grounded && !rolling && !sliding;
+        self.blocking = intent.block && grounded && !rolling && !sliding && self.climbing.is_none();
 
         if !grounded {
             out[1] += gravity_y * dt;
             out[1] = out[1].max(-self.tuning.terminal_fall);
         }
-        if intent.jump && grounded && !rolling {
+        if intent.jump && grounded && !rolling && !sliding {
             out[1] = self.tuning.jump_velocity;
             jumped = true;
         }
@@ -438,6 +495,9 @@ impl Locomotion {
         if rolling {
             out[0] = self.roll_dir[0] * self.tuning.roll_speed;
             out[2] = self.roll_dir[2] * self.tuning.roll_speed;
+        } else if sliding {
+            out[0] = self.slide_dir[0] * self.slide_speed;
+            out[2] = self.slide_dir[2] * self.slide_speed;
         } else if length > 0.0001 {
             let dir = self.wish_direction(axis, yaw);
             let speed = self.gait_speed([axis[0] / length, axis[1] / length]);
@@ -599,6 +659,7 @@ impl Locomotion {
             stance: match self.climbing {
                 Some(climb) => climb,
                 None if self.roll_t > 0.0 => Stance::Roll,
+                None if self.slide_t > 0.0 => Stance::Slide,
                 None if self.air_t > self.tuning.air_grace => Stance::Jump,
                 None if self.crouched => Stance::Crouch,
                 None if self.land_t > 0.0 => Stance::Land,
