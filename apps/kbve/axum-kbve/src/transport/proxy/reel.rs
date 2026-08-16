@@ -55,11 +55,40 @@ fn media_token_cookie(headers: &HeaderMap) -> Option<&str> {
     })
 }
 
-async fn require_reel_access(headers: &HeaderMap, query: Option<&str>) -> Result<(), Response> {
+/// Reel's `/billing/*` routes are a private channel between reel and this
+/// gateway — they mark a fetch as paid. Reaching them from the edge would let
+/// any signed-in user settle their own fetch for zero credits, so the proxy
+/// refuses to forward them at all. 404, not 403: the edge should not even
+/// confirm the route exists.
+pub(crate) fn is_gateway_only_path(rest: &str) -> bool {
+    rest.split('/').any(|seg| seg == "billing")
+}
+
+/// Adding a torrent must go through `reel_add_handler`, which stamps the payer
+/// so the fetch gets billed. Only the exact path `/api/v1/reel/torrents` is
+/// routed there, so a POST to any spelling that lands on the wildcard instead
+/// (`torrents/`, `torrents//`) would reach reel's add route unbilled. Reel
+/// happens to 404 those today; this makes it independent of upstream routing.
+pub(crate) fn bypasses_billed_add(rest: &str, method: &axum::http::Method) -> bool {
+    method == axum::http::Method::POST && rest.trim_end_matches('/') == "torrents"
+}
+
+/// A media token is minted for playback and rides in a cookie and query string,
+/// where it is exposed to anything that can read a URL. It may only read.
+/// Adding, deleting, transcoding and touching all require a real session.
+pub(crate) fn media_token_allows(method: &axum::http::Method) -> bool {
+    matches!(*method, axum::http::Method::GET | axum::http::Method::HEAD)
+}
+
+async fn require_reel_access(
+    headers: &HeaderMap,
+    query: Option<&str>,
+    method: &axum::http::Method,
+) -> Result<(), Response> {
     let media_tok = extract_auth_token(headers, query)
         .filter(|t| reel_token::is_media_token(t))
         .or_else(|| media_token_cookie(headers));
-    if let Some(tok) = media_tok {
+    if let Some(tok) = media_tok.filter(|_| media_token_allows(method)) {
         if reel_token::is_media_token(tok) {
             return match reel_token::verify_media_token(tok, reel_token::now_unix()) {
                 Some(_) => Ok(()),
@@ -206,7 +235,11 @@ pub async fn reel_add_handler(req: Request<Body>) -> Response {
 pub async fn reel_proxy_handler(rest: Option<Path<String>>, req: Request<Body>) -> Response {
     let headers = req.headers().clone();
     let query = req.uri().query().map(str::to_owned);
-    if let Err(resp) = require_reel_access(&headers, query.as_deref()).await {
+    let path = rest.as_ref().map(|p| p.0.as_str()).unwrap_or_default();
+    if is_gateway_only_path(path) || bypasses_billed_add(path, req.method()) {
+        return StatusCode::NOT_FOUND.into_response();
+    }
+    if let Err(resp) = require_reel_access(&headers, query.as_deref(), req.method()).await {
         return resp;
     }
 
@@ -222,6 +255,66 @@ pub async fn reel_proxy_handler(rest: Option<Path<String>>, req: Request<Body>) 
 
 #[cfg(test)]
 mod tests {
+
+    use axum::http::Method;
+
+    #[test]
+    fn billing_routes_are_never_proxied_from_the_edge() {
+        assert!(is_gateway_only_path("billing/queue"));
+        assert!(is_gateway_only_path("torrents/abc123/billing/settle"));
+        assert!(is_gateway_only_path("torrents/abc123/billing/refunded"));
+    }
+
+    #[test]
+    fn playback_routes_still_pass() {
+        for p in [
+            "torrents",
+            "torrents/abc123/stream",
+            "torrents/abc123/manifest.m3u8",
+            "torrents/abc123/files",
+            "torrents/abc123/files/0",
+            "torrents/abc123/archive.zip",
+            "status",
+            "stats",
+        ] {
+            assert!(!is_gateway_only_path(p), "{p} must still proxy");
+        }
+    }
+
+    #[test]
+    fn a_name_containing_billing_is_not_a_billing_route() {
+        assert!(
+            !is_gateway_only_path("torrents/abc/files/0/billing-statement.pdf"),
+            "match whole segments, not substrings"
+        );
+    }
+
+    #[test]
+    fn no_unbilled_spelling_of_the_add_route() {
+        for p in ["torrents/", "torrents//"] {
+            assert!(
+                bypasses_billed_add(p, &Method::POST),
+                "{p} would reach reel's add without a payer stamp"
+            );
+        }
+        assert!(
+            !bypasses_billed_add("torrents", &Method::GET),
+            "listing is not adding"
+        );
+        assert!(!bypasses_billed_add("torrents/abc/touch", &Method::POST));
+    }
+
+    #[test]
+    fn media_tokens_may_only_read() {
+        assert!(media_token_allows(&Method::GET));
+        assert!(media_token_allows(&Method::HEAD));
+        for m in [Method::POST, Method::DELETE, Method::PUT, Method::PATCH] {
+            assert!(
+                !media_token_allows(&m),
+                "{m} must require a real session, not a URL-borne token"
+            );
+        }
+    }
     use super::*;
     use axum::http::header::COOKIE;
 
