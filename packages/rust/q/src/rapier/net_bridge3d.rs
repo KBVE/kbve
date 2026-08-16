@@ -203,6 +203,23 @@ impl QNetClient3D {
                 .harvest_applied()
                 .emit(target, event.id as i64, event.stage as i64);
         }
+
+        let rewards = match self.client.as_mut() {
+            Some(client) => client.take_harvest_rewards(),
+            None => return,
+        };
+        for reward in rewards {
+            let target = match reward.target {
+                HarvestTarget::Stone => 0,
+                HarvestTarget::Tree => 1,
+            };
+            self.signals().harvest_rewarded().emit(
+                target,
+                reward.id as i64,
+                &GString::from(reward.ore),
+                reward.amount as i64,
+            );
+        }
     }
 
     /// The roster entry for a pet's body, once the reliable list has caught up
@@ -263,6 +280,14 @@ impl QNetClient3D {
     /// tree, matching `harvest_stone` / `harvest_tree`.
     #[signal]
     fn harvest_applied(target: i64, id: i64, stage: i64);
+
+    /// The host paid us for finishing something off. Only ever about this player:
+    /// everybody's rocks break on `harvest_applied`, but only ours pay.
+    ///
+    /// `ore` is the item slug, already resolved out of the drop table, so nothing
+    /// downstream has to know the table exists.
+    #[signal]
+    fn harvest_rewarded(target: i64, id: i64, ore: GString, amount: i64);
 
     /// A pet's body appeared in the snapshot. Distinct from `body_added` because
     /// a robot is not an avatar and must not be drawn as one — and this fires on

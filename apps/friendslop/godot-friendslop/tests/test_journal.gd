@@ -11,17 +11,21 @@ const MARLOW := "marlow"
 const PAID := "marlow_toll_paid"
 
 var _was: Dictionary = {}
+var _was_satchel: Dictionary = {}
 
 
 ## The journal is a real file in user://, and these tests write to it. Put back whatever
 ## the player had afterwards.
 func before_test() -> void:
 	_was = Journal.state().to_dict()
+	_was_satchel = Journal.satchel()
 	Journal.forget_everything()
 
 
 func after_test() -> void:
 	Journal.state().from_dict(_was)
+	for ref: StringName in _was_satchel:
+		Journal.gain(ref, int(_was_satchel[ref]))
 	Journal.save_now()
 
 
@@ -65,6 +69,58 @@ func test_a_paid_toll_survives_the_game_being_shut_down() -> void:
 
 	assert_bool(Journal.has_flag(PAID)) \
 			.override_failure_message("Marlow forgot the toll overnight").is_true()
+
+
+## The other half of the same promise: a morning's chopping is still in the bag at night.
+func test_the_satchel_survives_the_game_being_shut_down() -> void:
+	assert_bool(Journal.gain(&"log", 3)).is_true()
+	assert_int(Journal.count_of(&"log")).is_equal(3)
+
+	## What a restart amounts to: the file is all that carries over.
+	Journal.forget_everything()
+	assert_int(Journal.count_of(&"log")).is_equal(0)
+	Journal.gain(&"log", 3)
+	Journal.load_now()
+
+	assert_int(Journal.count_of(&"log")) \
+			.override_failure_message("the satchel emptied itself overnight").is_equal(3)
+
+
+func test_gaining_the_same_thing_twice_stacks() -> void:
+	Journal.gain(&"log", 2)
+	Journal.gain(&"log", 3)
+	assert_int(Journal.count_of(&"log")).is_equal(5)
+
+
+## A typo'd drop should read as nothing arriving rather than as a phantom item that no
+## UI can draw and no recipe can spend.
+func test_an_item_the_itemdb_never_heard_of_is_refused() -> void:
+	assert_bool(Journal.gain(&"unobtainium", 1)).is_false()
+	assert_int(Journal.count_of(&"unobtainium")).is_equal(0)
+
+
+## All or nothing: a recipe that half-pays for itself is worse than one that does not fire.
+func test_spending_more_than_is_held_takes_nothing() -> void:
+	Journal.gain(&"log", 2)
+	assert_bool(Journal.spend(&"log", 5)).is_false()
+	assert_int(Journal.count_of(&"log")) \
+			.override_failure_message("a refused spend still took some").is_equal(2)
+
+	assert_bool(Journal.spend(&"log", 2)).is_true()
+	assert_int(Journal.count_of(&"log")).is_equal(0)
+
+
+## The news is what arrived, not the running total, so a pickup line can say "+3".
+func test_gaining_announces_what_came_in() -> void:
+	var heard: Array = []
+	Journal.gained.connect(
+			func(ref: StringName, count: int, total: int) -> void: heard.append([ref, count, total]))
+	Journal.gain(&"log", 2)
+	Journal.gain(&"log", 3)
+
+	assert_int(heard.size()).is_equal(2)
+	assert_array(heard[0]).is_equal([&"log", 2, 2])
+	assert_array(heard[1]).is_equal([&"log", 3, 5])
 
 
 func test_nodes_already_heard_survive_too() -> void:

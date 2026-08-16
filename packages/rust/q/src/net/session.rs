@@ -160,6 +160,22 @@ pub enum SessionMsg {
         target: HarvestTarget,
         flat: Vec<u32>,
     },
+    /// What somebody earned by finishing a job, sent only to them.
+    ///
+    /// Separate from `HarvestDelta` because the two say different things and go
+    /// to different people: the delta is the world changing, which everybody has
+    /// to draw, and this is a payout, which is nobody else's business. Everyone
+    /// who put work into the object gets one, in full, rather than the drop being
+    /// split or handed to whoever happened to land the last blow.
+    HarvestReward {
+        target: HarvestTarget,
+        id: u64,
+        /// Index into the target's drop table rather than the name, so the wire
+        /// does not carry a string per rock and the two sides cannot disagree
+        /// about spelling.
+        ore: u8,
+        amount: u8,
+    },
     /// A client asks for one of its pet robots to be put down beside it.
     ///
     /// The chassis is all the client gets to choose. Where it lands, which id it
@@ -375,6 +391,11 @@ pub struct HostSession<T: Transport> {
     /// without ever generating the objects it describes.
     stone_ledger: Ledger,
     tree_ledger: Ledger,
+    /// Who has put work into each unfinished object, so that felling it can pay
+    /// everyone who swung at it rather than whoever happened to land the last
+    /// blow. Entries are dropped as they are paid, so this only ever holds the
+    /// jobs somebody started and nobody has finished.
+    contributors: HashMap<(HarvestTarget, u64), Vec<PeerId>>,
     pets: PetRegistry,
     pet_fields: PetFields,
 }
@@ -412,6 +433,7 @@ impl<T: Transport> HostSession<T> {
             ground: None,
             stone_ledger: Ledger::new(),
             tree_ledger: Ledger::new(),
+            contributors: HashMap::new(),
             pets: PetRegistry::new(pets),
             pet_fields: PetFields::new(FieldConfig {
                 water_level: config.water_level,
@@ -741,16 +763,51 @@ impl<T: Transport> HostSession<T> {
             if next > current {
                 self.ledger_mut(chop.target).record(chop.id, next);
                 self.broadcast_harvest(chop.target, chop.id, next);
+                // Noted for the payout, not for the stage. Work done is what earns
+                // a share, so someone who chopped half a tree and wandered off is
+                // still owed when whoever took over finishes it.
+                let who = self.contributors.entry((chop.target, chop.id)).or_default();
+                if !who.contains(&peer) {
+                    who.push(peer);
+                }
             }
             // Nothing left to work. The last delta already said so, so this only
             // stops the job rather than telling anyone anything.
             if next >= stages {
+                self.pay_out(chop.target, chop.id);
                 dropped.push(peer);
             }
         }
 
         for peer in dropped {
             self.end_harvest(peer);
+        }
+    }
+
+    /// Pays everyone who worked an object once it is finished.
+    ///
+    /// In full, each of them, rather than split: the amounts are small integers,
+    /// so dividing a two-log tree three ways mostly pays nobody, and chopping
+    /// together should be worth more than chopping apart rather than less. The
+    /// drop is rolled from the id, which is the same roll the client makes from
+    /// its own scatter, so nobody has to be told what the object was.
+    fn pay_out(&mut self, target: HarvestTarget, id: u64) {
+        let Some(who) = self.contributors.remove(&(target, id)) else {
+            return;
+        };
+        let (ore, amount) = target.roll_drop(id);
+        let msg = SessionMsg::HarvestReward {
+            target,
+            id,
+            ore,
+            amount,
+        };
+        for peer in who {
+            // Anyone who left is simply not paid. There is nowhere to send it and
+            // nothing yet that would hold it for them.
+            if self.players.contains_key(&peer) {
+                self.reply(peer, &msg);
+            }
         }
     }
 
@@ -996,6 +1053,7 @@ impl<T: Transport> HostSession<T> {
             | SessionMsg::WorldTime { .. }
             | SessionMsg::HarvestDelta { .. }
             | SessionMsg::HarvestLedger { .. }
+            | SessionMsg::HarvestReward { .. }
             | SessionMsg::Pets { .. }
             | SessionMsg::PetDenied { .. }
             | SessionMsg::Snapshot(_) => {}
@@ -1192,6 +1250,7 @@ pub struct ClientSession<T: Transport> {
     tree_ledger: Ledger,
     /// Deltas since the last drain, for whoever owns the scatter to apply.
     harvest_events: Vec<HarvestEvent>,
+    harvest_rewards: Vec<HarvestRewardEvent>,
     /// Every pet in the session, which is what turns bodies in the snapshot into
     /// something the client knows to draw and whose it is.
     pets: Vec<PetInfo>,
@@ -1205,6 +1264,18 @@ pub struct HarvestEvent {
     pub target: HarvestTarget,
     pub id: u64,
     pub stage: u8,
+}
+
+/// What this player earned by finishing something off.
+///
+/// Only ever about us. Everybody's rocks break in `HarvestEvent`; only ours pay.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct HarvestRewardEvent {
+    pub target: HarvestTarget,
+    pub id: u64,
+    /// Drop table slug, resolved from the index the wire carries.
+    pub ore: &'static str,
+    pub amount: u8,
 }
 
 /// What the host told us about the world it is simulating.
@@ -1267,6 +1338,7 @@ impl<T: Transport> ClientSession<T> {
             stone_ledger: Ledger::new(),
             tree_ledger: Ledger::new(),
             harvest_events: Vec::new(),
+            harvest_rewards: Vec::new(),
             pets: Vec::new(),
             pet_denied: None,
         };
@@ -1370,6 +1442,11 @@ impl<T: Transport> ClientSession<T> {
     /// Everything the host has ruled on since the last call.
     pub fn take_harvest_events(&mut self) -> Vec<HarvestEvent> {
         std::mem::take(&mut self.harvest_events)
+    }
+
+    /// Everything the host has paid us since the last call.
+    pub fn take_harvest_rewards(&mut self) -> Vec<HarvestRewardEvent> {
+        std::mem::take(&mut self.harvest_rewards)
     }
 
     /// Tells the host we have started working a scattered object.
@@ -1511,6 +1588,24 @@ impl<T: Transport> ClientSession<T> {
                 SessionMsg::HarvestDelta { target, id, stage } => {
                     self.harvest_ledger_mut(target).record(id, stage);
                     self.harvest_events.push(HarvestEvent { target, id, stage });
+                }
+                SessionMsg::HarvestReward {
+                    target,
+                    id,
+                    ore,
+                    amount,
+                } => {
+                    // An index the host chose out of a table we compiled in, so it
+                    // is checked rather than trusted: a bad one earns nothing
+                    // instead of panicking on the way past.
+                    if let Some(drop) = target.drop_table().get(ore as usize) {
+                        self.harvest_rewards.push(HarvestRewardEvent {
+                            target,
+                            id,
+                            ore: drop.ore,
+                            amount,
+                        });
+                    }
                 }
                 SessionMsg::HarvestLedger { target, flat } => {
                     let replay = Ledger::from_flat(&flat);
@@ -1712,6 +1807,133 @@ mod tests {
             0,
             "work carried on after the player stopped"
         );
+    }
+
+    /// Felling something pays the person who felled it.
+    #[test]
+    fn felling_a_tree_pays_the_player_who_did_it() {
+        let (mut host, mut client) = host_and_client();
+        run(&mut host, &mut client, 120);
+        let peer = client.peer().expect("joined");
+        let size = SessionConfig::default().tree_grid_size;
+        let cell = cell_under(&mut host, peer, size);
+        let id = stable_id(42, cell[0], cell[1], 0);
+
+        client.harvest_begin(HarvestTarget::Tree, cell, 0);
+        run(
+            &mut host,
+            &mut client,
+            ticks_per_stage() * (Tree::STAGES as usize + 2),
+        );
+
+        let paid = client.take_harvest_rewards();
+        assert_eq!(paid.len(), 1, "felling a tree paid {} times", paid.len());
+        assert_eq!(paid[0].id, id);
+        assert!(paid[0].amount > 0, "paid nothing at all");
+        // The same roll the client's own scatter would have made, so a reward can
+        // be trusted without the host describing an object it never generated.
+        let (ore, amount) = HarvestTarget::Tree.roll_drop(id);
+        assert_eq!(paid[0].ore, Tree::drop_table()[ore as usize].ore);
+        assert_eq!(paid[0].amount, amount);
+    }
+
+    /// Nothing is owed until the thing actually comes down.
+    #[test]
+    fn a_half_chopped_tree_pays_nobody() {
+        let (mut host, mut client) = host_and_client();
+        run(&mut host, &mut client, 120);
+        let peer = client.peer().expect("joined");
+        let size = SessionConfig::default().tree_grid_size;
+        let cell = cell_under(&mut host, peer, size);
+
+        client.harvest_begin(HarvestTarget::Tree, cell, 0);
+        run(&mut host, &mut client, ticks_per_stage());
+        client.harvest_end();
+        run(&mut host, &mut client, ticks_per_stage() * 3);
+
+        assert!(
+            client.take_harvest_rewards().is_empty(),
+            "a tree that is still standing paid out"
+        );
+    }
+
+    /// Everyone who worked it is paid, in full, whoever landed the last blow.
+    ///
+    /// The rule the design turns on: chopping together has to be worth more than
+    /// chopping apart, and nobody should be able to take a tree by swooping in on
+    /// the last stage of somebody else's work.
+    #[test]
+    fn everyone_who_worked_a_tree_is_paid_in_full() {
+        let mesh = Loopback::mesh(3);
+        // A spawn ring tight enough that both players are at the same tree. On the
+        // default radius the two slots are further apart than harvest reach, so the
+        // second could not work the first one's cell at all.
+        let config = SessionConfig {
+            spawn_radius: 1.0,
+            ..SessionConfig::default()
+        };
+        let mut host = HostSession::new(mesh[0].clone(), config, SimConfig::default(), 42);
+        host.set_terrain(flat_terrain());
+        let mut early = ClientSession::connect(mesh[1].clone());
+        let mut late = ClientSession::connect(mesh[2].clone());
+
+        let step = |host: &mut HostSession<Loopback>,
+                    a: &mut ClientSession<Loopback>,
+                    b: &mut ClientSession<Loopback>,
+                    ticks: usize| {
+            for _ in 0..ticks {
+                host.tick();
+                a.tick();
+                b.tick();
+            }
+        };
+        step(&mut host, &mut early, &mut late, 120);
+
+        // Both spawn on the ring, so they are not in the same cell. The tree is
+        // the one under the first of them; the second has to be near it to work
+        // it at all, which the spawn radius and the reach slack allow.
+        let peer = early.peer().expect("joined");
+        let size = SessionConfig::default().tree_grid_size;
+        let cell = cell_under(&mut host, peer, size);
+        let id = stable_id(42, cell[0], cell[1], 0);
+
+        // One player starts it and leaves off partway.
+        early.harvest_begin(HarvestTarget::Tree, cell, 0);
+        step(&mut host, &mut early, &mut late, ticks_per_stage() + 2);
+        early.harvest_end();
+
+        // The other finishes it.
+        late.harvest_begin(HarvestTarget::Tree, cell, 0);
+        step(
+            &mut host,
+            &mut early,
+            &mut late,
+            ticks_per_stage() * (Tree::STAGES as usize + 2),
+        );
+
+        assert_eq!(
+            late.harvest_ledger(HarvestTarget::Tree).stage(id),
+            Tree::STAGES,
+            "the tree never came down, so this proves nothing about paying for it"
+        );
+
+        let paid_early = early.take_harvest_rewards();
+        let paid_late = late.take_harvest_rewards();
+        assert_eq!(
+            paid_early.len(),
+            1,
+            "the player who started the tree was not paid"
+        );
+        assert_eq!(
+            paid_late.len(),
+            1,
+            "the player who finished the tree was not paid"
+        );
+        assert_eq!(
+            paid_early[0].amount, paid_late[0].amount,
+            "the drop was split rather than paid to each of them in full"
+        );
+        assert_eq!(paid_early[0].ore, paid_late[0].ore);
     }
 
     /// Damage is monotonic and stops at the last stage, so a job left running on
