@@ -180,7 +180,14 @@ jobs:
                   }
                   git config --global --add safe.directory "$PWD"
                   git lfs install --local
-                  if ! git lfs ls-files -n | grep -q "^$PROJECT_PATH/"; then
+                  # Listed once into a file rather than piped. `git lfs ls-files | grep -q`
+                  # is a trap under pipefail: grep leaves on its first match, git-lfs dies
+                  # of SIGPIPE part way through a listing of every LFS file in the
+                  # monorepo, and the pipeline reports 141 -- read here as "nothing tracked
+                  # under this project" for a project with 268 files, so the pull was
+                  # skipped and the suite met pointer stubs where the fonts should be.
+                  git lfs ls-files -n > /tmp/lfs-files.txt
+                  if ! grep -q "^$PROJECT_PATH/" /tmp/lfs-files.txt; then
                     echo "::notice::No LFS-tracked files under $PROJECT_PATH — skipping"
                     exit 0
                   fi
@@ -192,11 +199,14 @@ jobs:
                     "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
                   chmod 600 "$HOME/.netrc"
                   git lfs pull -I "$PROJECT_PATH/**"
-                  STUBS=$(git lfs ls-files -n | grep "^$PROJECT_PATH/" \
-                    | xargs -r grep -l "^version https://git-lfs" 2>/dev/null | head -5)
+                  # A leftover pointer is a text file starting with the LFS spec URL. Godot
+                  # imports those as ERR_FILE_CORRUPT, and a stubbed font takes the engine
+                  # down with a signal rather than a message worth reading.
+                  STUBS=$(grep "^$PROJECT_PATH/" /tmp/lfs-files.txt \
+                    | xargs -r grep -l "^version https://git-lfs" 2>/dev/null || true)
                   if [ -n "$STUBS" ]; then
                     echo "::error::LFS pointers unresolved after pull:"
-                    echo "$STUBS"
+                    printf '%s\n' "$STUBS" | head -5
                     exit 1
                   fi
 
