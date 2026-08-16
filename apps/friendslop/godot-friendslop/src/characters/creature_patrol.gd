@@ -45,6 +45,21 @@ const CreatureRig := preload("res://src/characters/creature_rig.gd")
 
 const GROUP := &"creature_patrol"
 
+## Creatures sit on their own layer and do not mask it, so they pass through each
+## other in the engine while still colliding with the world and the player.
+##
+## Two separate problems this fixes. Avoidance is already the solver's job, and it
+## has the whole picture -- who is moving where, how soon they meet, which way to
+## step. Depenetration has none of that and shoves along the shortest axis, so the
+## two fought: the solver would open a gap, the engine would close it, and neither
+## could see what the other had done. That fight is what the walking-on-the-spot
+## was made of. The second problem is that the shortest axis between two capsules
+## on any kind of slope is often vertical, which puts one machine on top of
+## another, and a capsule resting on a capsule reports `is_on_floor`, so it stays
+## up there with its gravity cancelled until something moves the one underneath.
+const LAYER_WORLD := 1
+const LAYER_CREATURE := 4
+
 ## Radii searched for walkable ground when a creature is stuck inside a blocked
 ## region. The widest has to clear the river plus the field's clearance inflation.
 const ESCAPE_RINGS: Array[float] = [4.0, 8.0, 14.0, 22.0]
@@ -55,6 +70,9 @@ const TURN_GATE_FLOOR := 0.35
 ## Physics frames the silhouette is sampled over, which has to span a full stride
 ## or it catches the creature mid-step with its legs together.
 const REACH_FRAMES := 120
+## Ground speed change per second. Reaches a sprint in about a quarter second,
+## which is brisk for something this size and still far too slow to buzz.
+const MAX_ACCEL := 28.0
 
 var motion_dot := 1.0
 
@@ -78,6 +96,12 @@ var _reach_frames := 0
 
 func _ready() -> void:
 	add_to_group(GROUP)
+	collision_layer = LAYER_CREATURE
+	collision_mask = LAYER_WORLD
+	# The default snap is 0.1, which a mech at a sprint clears on any downhill it
+	# meets, and it then coasts to the top of an arc before gravity catches it.
+	# Long enough here to hold the body on ground it is walking down.
+	floor_snap_length = 0.6
 
 
 ## Resolved on the first step rather than in _ready, because add_child is what runs
@@ -129,10 +153,16 @@ func _build_collider() -> void:
 			return
 	var radius := collider_radius
 	var height := collider_height
+	# Where the mesh starts above the body origin, which is not always zero: a rig
+	# authored around its hips puts its feet below, one authored on a plinth puts
+	# them above. Sizing the capsule off the extent while placing it as though the
+	# extent began at the origin is what leaves a machine hanging over its own feet.
+	var floor_y := 0.0
 	if (radius <= 0.0 or height <= 0.0) and rig and rig.has_method("mesh_extents"):
 		var box: AABB = rig.mesh_extents()
 		if height <= 0.0:
 			height = box.size.y
+			floor_y = box.position.y
 		if radius <= 0.0:
 			radius = minf(box.size.x, box.size.z) * collider_radius_scale
 	radius = maxf(radius, 0.2)
@@ -144,7 +174,7 @@ func _build_collider() -> void:
 	capsule.height = height
 	var shape := CollisionShape3D.new()
 	shape.shape = capsule
-	shape.position = Vector3(0.0, height * 0.5, 0.0)
+	shape.position = Vector3(0.0, floor_y + height * 0.5, 0.0)
 	add_child(shape)
 	if OS.get_environment("Q_MOVE_DEBUG") != "":
 		print("[creature] %s capsule radius=%.2f height=%.2f" % [
@@ -284,9 +314,18 @@ func _crowd() -> PackedFloat32Array:
 
 ## Applies a horizontal wish, keeps gravity on the vertical, and slides against the
 ## world.
+##
+## The wish is approached rather than assigned. Written straight to velocity it can
+## reverse completely between one frame and the next, which is fine for the solver
+## -- it is describing an intent -- but it means nothing damps a disagreement. Two
+## creatures reading each other's avoidance can settle into a buzz at frame rate,
+## and a machine this size does not change its mind about which way it is walking
+## in a sixtieth of a second anyway.
 func _drive(wish: Vector3, delta: float) -> void:
-	velocity.x = wish.x
-	velocity.z = wish.z
+	var flat := Vector3(velocity.x, 0.0, velocity.z)
+	flat = flat.move_toward(Vector3(wish.x, 0.0, wish.z), MAX_ACCEL * delta)
+	velocity.x = flat.x
+	velocity.z = flat.z
 	if is_on_floor():
 		velocity.y = 0.0
 	else:
