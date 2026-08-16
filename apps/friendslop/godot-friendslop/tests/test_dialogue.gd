@@ -1020,11 +1020,207 @@ func test_walking_away_withdraws_the_offer() -> void:
 	_unstage(world, was)
 
 
+## Half a conversation printed and the other half implied reads as a menu. A reply the
+## player picks is said out loud, under their own name, before anybody answers it.
+func test_a_picked_reply_is_said_in_the_players_own_voice() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+	_to_the_replies(panel)
+
+	var asked := panel.runner.node_id()
+	(panel._choices.get_child(_reply_row(panel, TOLL)) as Button).pressed.emit()
+
+	assert_str(panel._line_label.text) \
+			.override_failure_message("the reply was taken without ever being said") \
+			.is_equal(TOLL)
+	assert_str(panel._name_label.text) \
+			.override_failure_message("the player's own line was put under somebody else's name") \
+			.is_equal(panel._player)
+	assert_str(panel.runner.node_id()) \
+			.override_failure_message("the answer arrived before the question was finished") \
+			.is_equal(asked)
+
+	panel.skip_typing()
+	panel._input(_pressing_action(&"interact"))
+	assert_str(panel.runner.node_id()) \
+			.override_failure_message("finishing the reply did not hand it over") \
+			.is_not_equal(asked)
+
+	panel.close()
+	_unstage(world, was)
+
+
+## What a reply does to the world lands with the reply, not with the click that chose it.
+## Paying a toll while the words are still coming out is the sort of thing a player notices
+## as the world reacting a beat early.
+func test_what_a_reply_sets_waits_until_it_has_been_said() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var state := State.new()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), state)
+
+	_to_the_replies(panel)
+	(panel._choices.get_child(_reply_row(panel, TOLL)) as Button).pressed.emit()
+	panel.skip_typing()
+	panel._input(_pressing_action(&"interact"))
+
+	## Landed on the toll itself, which asks its own question -- so there is a line to
+	## finish but nothing to advance past.
+	panel.skip_typing()
+	(panel._choices.get_child(_reply_row(panel, PAY)) as Button).pressed.emit()
+	assert_bool(state.has_flag("marlow_toll_paid")) \
+			.override_failure_message("the toll was paid before the player finished offering it") \
+			.is_false()
+
+	panel.skip_typing()
+	panel._input(_pressing_action(&"interact"))
+	assert_bool(state.has_flag("marlow_toll_paid")) \
+			.override_failure_message("the reply was said and never acted on") \
+			.is_true()
+
+	panel.close()
+	_unstage(world, was)
+
+
+## Which button carries a given reply, by the words on it -- they are numbered on screen, so
+## the text is not the whole label.
+func _reply_row(panel: DialoguePanel, text: String) -> int:
+	for i in panel._choices.get_child_count():
+		if (panel._choices.get_child(i) as Button).text.ends_with(text):
+			return i
+	return -1
+
+
+## The body has to do what the words are doing. Both halves matter: a speaker who never
+## starts talking is inert, and one who never stops is still gesturing at a line that landed
+## ten seconds ago.
+func test_a_speaker_moves_while_the_line_is_being_written_and_settles_when_it_lands() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+
+	var beats: Array[String] = []
+	panel.speaking.connect(func() -> void: beats.append("speak"))
+	panel.listening.connect(func() -> void: beats.append("listen"))
+
+	panel.runner.advance()
+	assert_array(beats) \
+			.override_failure_message("a new line did not start anybody talking") \
+			.contains(["speak"])
+	assert_bool(beats.has("listen")) \
+			.override_failure_message("they stopped talking before the line was written") \
+			.is_false()
+
+	panel.skip_typing()
+	assert_array(beats) \
+			.override_failure_message("the line landed and nobody was told to stop") \
+			.contains(["listen"])
+
+	panel.close()
+	_unstage(world, was)
+
+
+## The opening line is already being written by the time the panel exists to be connected
+## to, so its `speaking` goes out with nobody listening. Left uncaught, every conversation
+## in the game starts with the speaker standing perfectly still through their own first
+## sentence -- which reads as the feature not working at all.
+func test_the_speaker_is_already_talking_on_the_opening_line() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+
+	var body := Node3D.new()
+	world.add_child(body)
+	var actor := NpcActor.new()
+	actor.npc_ref = MARLOW
+	actor.body = load("res://assets/characters/quaternius_ubc/models/Regular_Male_FullBody.glb")
+	actor.animation_sources = [
+		load("res://assets/characters/quaternius_ubc/animations/UAL1.glb"),
+		load("res://assets/characters/quaternius_ubc/animations/UAL2.glb"),
+	]
+	actor.idle_animation = "UAL1/Idle"
+	world.add_child(actor)
+	actor.global_position = Vector3(0.0, 0.0, -2.0)
+
+	var reach := Node3D.new()
+	reach.set_script(Interactor)
+	body.add_child(reach)
+	await get_tree().process_frame
+
+	## Already met, so the meeting one-shot is out of the way and what is left is the plain
+	## business of opening a conversation.
+	reach.state().set_flag(reach.MET % MARLOW)
+	reach._talk_to(actor)
+	assert_str(actor.rig.animation.current_animation) \
+			.override_failure_message("the speaker stood still through their own opening line") \
+			.is_equal(actor.talk_animation)
+
+	reach.state().set_flag(reach.MET % MARLOW, false)
+	if TalkPanel.is_open():
+		TalkPanel._open.close()
+	_unstage(world, was)
+
+
+## Somebody met is met for good. The flag rides in the journal, so this is also what keeps
+## the flourish from firing every time the player walks back up the bank.
+func test_meeting_somebody_happens_once_and_is_written_down() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var pair := _stage_interactor(world, Vector3(0.0, 0.0, -2.0))
+	var reach: Node3D = pair[0]
+	var flag: String = reach.MET % MARLOW
+
+	reach.state().set_flag(flag, false)
+	assert_bool(reach._first_meeting(pair[1])) \
+			.override_failure_message("meeting somebody for the first time was not a first meeting") \
+			.is_true()
+	assert_bool(reach.state().has_flag(flag)) \
+			.override_failure_message("they were met and nobody wrote it down") \
+			.is_true()
+	assert_bool(reach._first_meeting(pair[1])) \
+			.override_failure_message("the same person was met twice") \
+			.is_false()
+
+	reach.state().set_flag(flag, false)
+	_unstage(world, was)
+
+
+## The performance is a request, never an order: an NPC whose kit does not carry the clip,
+## or who has no body at all, has to go on being talked to rather than taking the game down
+## with it.
+func test_asking_a_bodiless_npc_to_perform_is_harmless() -> void:
+	var actor := NpcActor.new()
+	actor.npc_ref = MARLOW
+	add_child(actor)
+	auto_free(actor)
+	actor.talk_animation = "UAL1/NoSuchClipWasEverAuthored"
+
+	actor.speak()
+	actor.listen()
+	actor.rest()
+	assert_float(actor.meet()) \
+			.override_failure_message("a body that does not exist played an animation") \
+			.is_equal(0.0)
+
+
 ## Marlow opens with a line that runs on into the menu, which is the node with replies.
 func _to_the_replies(panel: DialoguePanel) -> void:
 	panel.skip_typing()
 	panel.runner.advance()
 	panel.skip_typing()
+
+
+## A press of whatever is actually bound to an action. A hand-built key event carries a
+## keycode and nothing else, which is enough for the panel's own number-key reading but not
+## for `is_action_pressed` -- that asks the InputMap, and the InputMap wants the event it
+## was given.
+func _pressing_action(action: StringName) -> InputEvent:
+	var bound := InputMap.action_get_events(action)
+	assert_bool(bound.is_empty()) \
+			.override_failure_message("nothing is bound to %s" % action).is_false()
+	var press := bound[0].duplicate() as InputEvent
+	press.pressed = true
+	return press
 
 
 func _pressing(code: Key) -> InputEventKey:

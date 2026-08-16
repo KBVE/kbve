@@ -12,6 +12,12 @@ const RunnerScript := preload("res://src/dialogue/dialogue_runner.gd")
 const Hint := preload("res://src/ui/input_hint.gd")
 
 signal closed
+## A line has started being written, and whoever is saying it should look like they are
+## saying it. Paired with `listening`, which is the line landing and the turn passing back
+## to the player. The panel does not know there is a body attached; it only says which of
+## the two is happening.
+signal speaking
+signal listening
 
 const PANEL_HEIGHT := 0.34
 const PANEL_MARGIN := Vector2(90.0, 40.0)
@@ -61,6 +67,13 @@ var _written := 0.0
 var _letters := 0
 ## Seconds still owed to a comma or a full stop before the next letter.
 var _held := 0.0
+## A reply the player has picked and is in the middle of saying. The runner is not told
+## until they are finished, so the answer and what it does to the world land together.
+var _pending := -1
+## Who the player is, settled when the conversation opens. Nobody signs in halfway through
+## being talked to, and a name that changed mid-conversation would be a worse answer than a
+## stale one -- the same person would be speaking under two names on consecutive lines.
+var _player := ""
 
 
 static func is_open() -> bool:
@@ -95,6 +108,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	_build()
+	_player = speaker_name()
 	runner.line_changed.connect(_show_node)
 	runner.finished.connect(close)
 	_was_captured = Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
@@ -247,6 +261,13 @@ func _show_node() -> void:
 	_pulse = 0.0
 	_hint.modulate.a = 1.0
 
+	## A line with no letters in it is never typed and so never finishes, which would leave
+	## a speaker talking with their mouth shut for the rest of the conversation.
+	if _letters > 0:
+		speaking.emit()
+	else:
+		listening.emit()
+
 
 ## Writes the line out a letter at a time, holding on the punctuation so it reads as
 ## somebody speaking rather than a page being pasted up.
@@ -296,6 +317,7 @@ func skip_typing() -> void:
 
 func _finish_line() -> void:
 	_line_label.visible_characters = -1
+	listening.emit()
 	if _choices.get_child_count() > 0:
 		_choices.visible = true
 		(_choices.get_child(0) as Control).grab_focus()
@@ -319,7 +341,61 @@ func _numbered(event: InputEvent) -> int:
 	return slot
 
 
+## Who the player is when it is their turn to speak. The account's name once they have
+## signed in, and a plain stand-in while they have not.
+##
+## Not static, however much it looks like it could be: an autoload is not in scope inside a
+## static function, and both of the two things this needs are autoloads. `Auth` is the
+## singleton; `AuthSession` is the class it is an instance of, and naming that one here
+## reads fine and resolves to the script rather than the session.
+func speaker_name() -> String:
+	var who := str(Auth.requested_name()) if Auth else ""
+	return who if who != "" else I18n.t("dlg.player")
+
+
+## A picked reply is said out loud before it is acted on. Half a conversation printed and
+## the other half implied reads as a menu; both halves printed reads as two people talking.
+##
+## The runner is not moved yet -- the answer is still being spoken, and whatever it sets in
+## the world belongs with the moment it lands rather than the moment it was clicked.
 func _take(index: int) -> void:
+	if runner == null or not runner.is_running() or _pending >= 0:
+		return
+	var said := ""
+	for choice in runner.choices():
+		if int(choice[&"index"]) == index:
+			said = I18n.t(str(choice[&"text"]))
+			break
+	if said == "":
+		runner.choose(index)
+		return
+	_pending = index
+	_say(_player, said)
+
+
+## Puts a line up without the runner having moved, which is the player's own turn. Whoever
+## they are talking to settles while it is said: only one of them speaks at a time.
+func _say(who: String, line: String) -> void:
+	_name_label.text = who
+	_line_label.text = line
+	_letters = line.length()
+	_written = 0.0
+	_held = 0.0
+	_line_label.visible_characters = 0
+	for child in _choices.get_children():
+		_choices.remove_child(child)
+		child.queue_free()
+	_choices.visible = false
+	_hint.text = ""
+	_pulse = 0.0
+	_hint.modulate.a = 1.0
+	listening.emit()
+
+
+## Hands the reply to the runner now the player has finished saying it.
+func _answer() -> void:
+	var index := _pending
+	_pending = -1
 	if runner and runner.is_running():
 		runner.choose(index)
 
@@ -347,6 +423,8 @@ func _input(event: InputEvent) -> void:
 		## leaning on the key never sees the half of it they were reading.
 		if is_typing():
 			skip_typing()
+		elif _pending >= 0:
+			_answer()
 		elif runner.choices().is_empty():
 			runner.advance()
 

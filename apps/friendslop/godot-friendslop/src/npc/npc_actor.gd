@@ -32,6 +32,7 @@ const GROUP := &"interactable"
 ## than layering over it.
 @export var head_only_body: PackedScene
 @export var animation_sources: Array[PackedScene] = []
+## What they are doing when nobody is talking to them, and what they go back to afterwards.
 @export var idle_animation := ""
 @export var skin_color := Color(1, 1, 1)
 @export var hair_color := Color(0.214, 0.155, 0.047)
@@ -40,6 +41,17 @@ const GROUP := &"interactable"
 @export var nameplate_range := 40.0
 ## How far under the name the offer to talk sits.
 @export var prompt_drop := 0.28
+
+@export_group("Performance")
+## Held while they are the one talking. Left empty they simply keep their idle, which reads
+## as somebody whose lips are the only thing moving.
+@export var talk_animation := "UAL1/Idle_Talking"
+## Held while the line is out and the turn is the player's. Falls back to the idle, which is
+## usually right -- somebody who sits to talk should sit to listen.
+@export var listen_animation := ""
+## Played once, the first time this person is ever spoken to. Everything after that is a
+## greeting they have already given.
+@export var meeting_animation := "UAL2/Surprise"
 
 @export_group("Placing")
 ## Puts him beside the crossing rather than wherever the scene was saved with him, since
@@ -133,6 +145,49 @@ func offer_talk(key: String) -> void:
 func withdraw_talk() -> void:
 	if _prompt:
 		_prompt.visible = false
+
+
+## What somebody is doing with themselves while they talk. Driven from the panel rather than
+## decided here, so the body is doing what the words are doing: moving while the line is
+## being written, still once it is out and the turn is the player's.
+##
+## Every one of these is a request rather than an order -- a body with no rig, or a rig
+## whose kit does not carry the clip, simply keeps what it was doing.
+func speak() -> void:
+	_perform(talk_animation, idle_animation)
+
+
+func listen() -> void:
+	_perform(listen_animation, idle_animation)
+
+
+func rest() -> void:
+	_perform(idle_animation, "")
+
+
+## The one-off on first meeting. Returns how long it runs, so a caller can let it land
+## before doing anything else, and 0.0 when there was nothing to play.
+func meet() -> float:
+	if meeting_animation == "" or not _can_play(meeting_animation):
+		return 0.0
+	rig.animation.play(meeting_animation)
+	## Queued rather than left to finish into whatever the player last saw: a one-shot that
+	## runs out with nothing behind it holds its last frame.
+	if _can_play(idle_animation):
+		rig.animation.queue(idle_animation)
+	return rig.animation.get_animation(meeting_animation).length
+
+
+func _perform(clip: String, fallback: String) -> void:
+	var wanted := clip if _can_play(clip) else fallback
+	if not _can_play(wanted) or rig.animation.current_animation == wanted:
+		return
+	rig.animation.play(wanted)
+
+
+func _can_play(clip: String) -> bool:
+	return clip != "" and rig != null and rig.animation != null \
+			and rig.animation.has_animation(clip)
 
 
 ## The catalog knows his name; a key overrides it where a locale has one.
