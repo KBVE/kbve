@@ -112,6 +112,11 @@ debug_down={
 ]
 }
 
+[layer_names]
+
+3d_physics/layer_1="world"
+3d_physics/layer_3="creatures"
+
 [rendering]
 
 textures/vram_compression/import_etc2_astc=true

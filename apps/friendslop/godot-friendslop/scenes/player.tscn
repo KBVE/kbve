@@ -19,6 +19,7 @@ shader = ExtResource("4_ink")
 size = Vector2(2, 2)
 
 [node name="Player" type="CharacterBody3D"]
+collision_mask = 5
 script = ExtResource("1_player")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="."]
