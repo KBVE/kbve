@@ -6,6 +6,7 @@ extends Node3D
 ## be given the same reach later.
 
 const PanelScript := preload("res://src/ui/dialogue_panel.gd")
+const CardScript := preload("res://src/ui/meeting_card.gd")
 const Hint := preload("res://src/ui/input_hint.gd")
 
 ## Written down once somebody has been met, so the flourish and the stranger's greeting both
@@ -26,6 +27,10 @@ const MEETING_INK := Color(0.08, 0.06, 0.05, 1.0)
 var _target: Node3D
 var _body: Node3D
 var _talking := false
+## A card is up and the conversation behind it has not opened yet. Nothing else may be
+## started in that gap, or a player leaning on the key introduces themselves to somebody and
+## then immediately talks to whoever else is in reach.
+var _introducing := false
 
 
 func _ready() -> void:
@@ -33,7 +38,7 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	if PanelScript.is_open():
+	if PanelScript.is_open() or _introducing:
 		_aim(null)
 		return
 	## Belt and braces: a panel that went away without saying so would otherwise leave the
@@ -92,7 +97,8 @@ func _look_basis() -> Basis:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not event.is_action_pressed(&"interact") or _target == null or PanelScript.is_open():
+	if not event.is_action_pressed(&"interact") or _target == null \
+			or PanelScript.is_open() or _introducing:
 		return
 	get_viewport().set_input_as_handled()
 	_talk_to(_target)
@@ -104,11 +110,31 @@ func _talk_to(actor: Node3D) -> void:
 		push_error("dialogue: %s cannot talk -- %s" % [actor.name, "; ".join(graph.errors())])
 		return
 	actor.face(_body)
-	var meeting := _first_meeting(actor)
+	_aim(null)
+	## Meeting somebody is its own beat. The frame cuts, the card names them, and only once
+	## it has cleared does the conversation open -- a name arriving with the panel is a
+	## caption on a box, a name arriving before it is an introduction.
+	if _first_meeting(actor):
+		actor.meet()
+		_introducing = true
+		var card := CardScript.present(get_tree(), actor.display_name(), actor.role_name())
+		card.finished.connect(func() -> void:
+			_introducing = false
+			_open_talk(actor, graph))
+		return
+	_open_talk(actor, graph)
+
+
+## Puts the conversation up and ties the speaker to it. Split out because a first meeting
+## reaches it a second and a half later than everybody else does.
+func _open_talk(actor: Node3D, graph: DialogueGraph) -> DialoguePanel:
+	## The world can go away between the card and the talk, and an NPC freed underneath a
+	## pending introduction would otherwise open a conversation with nobody.
+	if not is_instance_valid(actor) or not is_instance_valid(_body):
+		return null
 	var panel := PanelScript.open(get_tree(), graph, state())
 	if panel == null:
-		return
-	_aim(null)
+		return null
 	## The body follows the words: moving while a line is being written, still while the
 	## line sits there waiting on an answer.
 	panel.speaking.connect(actor.speak)
@@ -122,15 +148,13 @@ func _talk_to(actor: Node3D) -> void:
 		actor.speak()
 	else:
 		actor.listen()
-	## Last, so being surprised to see somebody wins over the talking loop underneath it.
-	if meeting:
-		actor.meet()
 	if _body.has_method("set_talking"):
 		_talking = true
 		_body.set_talking(true)
 		panel.closed.connect(func() -> void:
 			_talking = false
 			_body.set_talking(false))
+	return panel
 
 
 ## Meeting somebody for the first time is worth marking, and only happens once ever -- the
