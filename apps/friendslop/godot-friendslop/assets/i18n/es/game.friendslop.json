@@ -54,5 +54,9 @@
 		"disconnected": "Desconectado: {{reason}}  (Esc para salir)",
 		"roster_you": "{{name}} (tú)",
 		"roster": "{{count}} aquí — {{names}}"
+	},
+	"account": {
+		"loading": "leyendo saldo…",
+		"wallet": "{credits} créditos  ·  {khash} khash"
 	}
 }

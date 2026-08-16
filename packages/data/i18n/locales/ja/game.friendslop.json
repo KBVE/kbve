@@ -54,5 +54,9 @@
 		"disconnected": "切断されました: {{reason}}  (Escで退出)",
 		"roster_you": "{{name}}（あなた）",
 		"roster": "{{count}}人 — {{names}}"
+	},
+	"account": {
+		"loading": "残高を読み込み中…",
+		"wallet": "{credits} クレジット  ·  {khash} khash"
 	}
 }
