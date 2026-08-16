@@ -4802,6 +4802,114 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Field Clogs",
+        "hidden": true
+      },
+      "description": "Carved wooden soles under a leather upper, which keeps the mud out and the noise in.\n",
+      "lore": "You hear the village coming in before you see it. Children learn to walk quietly in them as a game and nobody ever quite manages it.\n",
+      "ref": "peasant-clogs",
+      "key": 647,
+      "id": "01KXFBEGM22YA6QDF3P44CCCN2",
+      "name": "Field Clogs",
+      "typeFlags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "ITEM_RARITY_COMMON",
+      "buyPrice": 5,
+      "emoji": "👞",
+      "action": "equip",
+      "equipment": {
+        "slot": "EQUIP_SLOT_FEET",
+        "wardrobe": "peasant_feet",
+        "bonuses": {
+          "armor": 1
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Homespun Shirt",
+        "hidden": true
+      },
+      "description": "Undyed homespun, washed thin at the elbows and comfortable the way only old cloth is.\n",
+      "lore": "Woven at home from what the household had, which means no two are the same weight and every one of them fits somebody exactly. The dye is whatever the last harvest left over, so a village reads as one colour by accident.\n",
+      "ref": "peasant-shirt",
+      "key": 644,
+      "id": "01KXFBEGM2HEAFV5ZC2H986FEA",
+      "name": "Homespun Shirt",
+      "typeFlags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "ITEM_RARITY_COMMON",
+      "buyPrice": 4,
+      "emoji": "👕",
+      "action": "equip",
+      "equipment": {
+        "slot": "EQUIP_SLOT_CHEST",
+        "wardrobe": "peasant_body",
+        "bonuses": {
+          "armor": 1
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Homespun Sleeves",
+        "hidden": true
+      },
+      "description": "Loose sleeves, tied at the wrist with cord so they stay out of the work.\n",
+      "lore": "Tied off with whatever cord came to hand, which is why the knot is the first thing a mother teaches and the last thing a son remembers.\n",
+      "ref": "peasant-sleeves",
+      "key": 645,
+      "id": "01KXFBEGM2HFPK7XJSZJ6CPPVT",
+      "name": "Homespun Sleeves",
+      "typeFlags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "ITEM_RARITY_COMMON",
+      "buyPrice": 3,
+      "emoji": "🧵",
+      "action": "equip",
+      "equipment": {
+        "slot": "EQUIP_SLOT_HANDS",
+        "wardrobe": "peasant_arms",
+        "bonuses": {
+          "armor": 1
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Homespun Trousers",
+        "hidden": true
+      },
+      "description": "Heavy weave, cut wide and belted with rope, and the knees have been mended more than once.\n",
+      "lore": "Mended until the mending is the garment. A pair that has outlived its owner is not unusual and is not thought strange.\n",
+      "ref": "peasant-trousers",
+      "key": 646,
+      "id": "01KXFBEGM2C0305RJ9FZEYP1RM",
+      "name": "Homespun Trousers",
+      "typeFlags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "ITEM_RARITY_COMMON",
+      "buyPrice": 4,
+      "emoji": "👖",
+      "action": "equip",
+      "equipment": {
+        "slot": "EQUIP_SLOT_LEGS",
+        "wardrobe": "peasant_legs",
+        "bonuses": {
+          "armor": 1
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Pet Ball",
         "hidden": true
       },
@@ -5543,6 +5651,168 @@
           ]
         }
       ]
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Ranger's Boots",
+        "hidden": true
+      },
+      "description": "Soft-soled boots that read the ground through the leather, laced high against the wet.\n",
+      "lore": "Thin enough to feel a twig before you break it. Every ranger complains about the sole and every ranger buys the same pair again.\n",
+      "ref": "ranger-boots",
+      "key": 642,
+      "id": "01KXFBEGM2PX47A6KG79J7RCK0",
+      "name": "Ranger's Boots",
+      "typeFlags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "ITEM_RARITY_COMMON",
+      "buyPrice": 22,
+      "emoji": "🥾",
+      "action": "equip",
+      "equipment": {
+        "slot": "EQUIP_SLOT_FEET",
+        "wardrobe": "ranger_feet_boots",
+        "bonuses": {
+          "armor": 2
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Ranger's Bracers",
+        "hidden": true
+      },
+      "description": "Split leather bracers, laced tight enough to take a bowstring without turning the wrist to meat.\n",
+      "lore": "The left is always the worn one. A ranger's left bracer tells you how long they have been shooting more honestly than they will.\n",
+      "ref": "ranger-bracers",
+      "key": 640,
+      "id": "01KXFBEGM2EEEGCF4MX3X5MDZZ",
+      "name": "Ranger's Bracers",
+      "typeFlags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "ITEM_RARITY_COMMON",
+      "buyPrice": 14,
+      "emoji": "🧤",
+      "action": "equip",
+      "equipment": {
+        "slot": "EQUIP_SLOT_HANDS",
+        "wardrobe": "ranger_arms",
+        "bonuses": {
+          "armor": 2
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Ranger's Breeches",
+        "hidden": true
+      },
+      "description": "Reinforced at the knee and the seat, because most of a forester's day is spent kneeling in wet ground.\n",
+      "lore": "Patched rather than replaced, and the patches are a record: bramble at the shin, river stone at the knee, and a long clean tear at the thigh that nobody volunteers the story of.\n",
+      "ref": "ranger-breeches",
+      "key": 641,
+      "id": "01KXFBEGM275J1966ZZP9CED1S",
+      "name": "Ranger's Breeches",
+      "typeFlags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "ITEM_RARITY_COMMON",
+      "buyPrice": 16,
+      "emoji": "👖",
+      "action": "equip",
+      "equipment": {
+        "slot": "EQUIP_SLOT_LEGS",
+        "wardrobe": "ranger_legs",
+        "bonuses": {
+          "armor": 2
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Ranger's Hood",
+        "hidden": true
+      },
+      "description": "A deep oilcloth hood, cut long at the back so rain runs off behind you rather than down your collar.\n",
+      "lore": "Foresters wear them up in all weathers and down in company, which is how you tell a ranger who trusts the room. The cloth is waxed twice a season; the smell never entirely leaves, and neither does the habit of pulling it forward when someone asks a direct question.\n",
+      "ref": "ranger-hood",
+      "key": 638,
+      "id": "01KXFBEGM215CJJ7GBECSC2PGP",
+      "name": "Ranger's Hood",
+      "typeFlags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "ITEM_RARITY_COMMON",
+      "buyPrice": 18,
+      "emoji": "🧥",
+      "action": "equip",
+      "equipment": {
+        "slot": "EQUIP_SLOT_HEAD",
+        "wardrobe": "ranger_head_hood",
+        "bonuses": {
+          "armor": 2
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Ranger's Jerkin",
+        "hidden": true
+      },
+      "description": "A layered leather jerkin, quiet against branches and cut short so it does not catch when you crouch.\n",
+      "lore": "Made to be silent before it is made to be strong. The stitching runs inward so nothing snags, and the dye is chosen to disagree with the eye at dusk rather than to match the wood — a green that is exactly right in summer is a lantern in autumn.\n",
+      "ref": "ranger-jerkin",
+      "key": 639,
+      "id": "01KXFBEGM29D3WCQ2G6GE8SWPM",
+      "name": "Ranger's Jerkin",
+      "typeFlags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "ITEM_RARITY_COMMON",
+      "buyPrice": 26,
+      "emoji": "🥋",
+      "action": "equip",
+      "equipment": {
+        "slot": "EQUIP_SLOT_CHEST",
+        "wardrobe": "ranger_body",
+        "bonuses": {
+          "armor": 2
+        }
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Ranger's Mantle",
+        "hidden": true
+      },
+      "description": "A single shoulder mantle, worn on the draw side to take the strap.\n",
+      "lore": "Only one shoulder, because only one shoulder carries anything. The asymmetry is practical and has been mistaken for a rank for as long as anyone can remember.\n",
+      "ref": "ranger-mantle",
+      "key": 643,
+      "id": "01KXFBEGM2TTZDMAZE37T32CGK",
+      "name": "Ranger's Mantle",
+      "typeFlags": 514,
+      "consumable": false,
+      "stackable": false,
+      "rarity": "ITEM_RARITY_COMMON",
+      "buyPrice": 12,
+      "emoji": "🪶",
+      "action": "equip",
+      "equipment": {
+        "slot": "EQUIP_SLOT_BACK",
+        "wardrobe": "ranger_acc_pauldron",
+        "bonuses": {
+          "armor": 2
+        }
+      }
     },
     {
       "template": "splash",

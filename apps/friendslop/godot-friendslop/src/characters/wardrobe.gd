@@ -61,6 +61,23 @@ static func slot_of(id: StringName) -> StringName:
 
 ## Everything belonging to one set, so a character can be dressed in a whole outfit rather
 ## than a piece at a time.
+## The piece a set's part comes to for a given body, whatever the pack happened to call
+## the variant.
+##
+## The two halves of the pack do not agree with themselves: the male ranger's boots are
+## `Feet_Boots` and the female's are plain `Feet`, and his shoulder is `Acc_Pauldron` to
+## her `Acc_Pauldrons`. An item names one look for everybody, so the exact name is tried
+## first and the set-and-part it belongs to answers when that misses.
+static func match_piece(sex: String, outfit_name: String, part: String) -> StringName:
+	for id: StringName in all():
+		var entry: Dictionary = _pieces[id]
+		if entry[&"sex"] == sex \
+				and str(entry[&"outfit"]).to_lower() == outfit_name.to_lower() \
+				and str(entry[&"part"]).to_lower() == part.to_lower():
+			return id
+	return &""
+
+
 static func outfit(sex: String, outfit_name: String) -> Array[StringName]:
 	var out: Array[StringName] = []
 	for id: StringName in all():
