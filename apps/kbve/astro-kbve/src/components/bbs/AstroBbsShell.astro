@@ -71,23 +71,21 @@ const backdrop =
 	</section>
 
 	<BentoShell id="link" eyebrow="Terminal login" heading="Link a terminal">
-		<div class="bbs-island">
-			<ReactBbsClaim client:only="react" />
-		</div>
+		<ReactBbsClaim client:only="react" />
 	</BentoShell>
 
 	<BentoShell id="how" eyebrow="Connect" heading="How to call in">
-		<div class="bbs-steps">
-			<article class="bento-card bento-card--glass bbs-step">
-				<h3>Commodore 64</h3>
+		<div class="bento-board bento-board--cols-3">
+			<article class="bento-cell bento-card bento-card--glass bbs-step">
+				<h3 class="bbs-step__title">Commodore 64</h3>
 				<p>
 					Load CCGMS with a Wi-Fi modem on the user port, then dial:
 				</p>
 				<pre class="bbs-pre"><code>ATDTbbs.kbve.com:6400</code></pre>
 				<p>You get PETSCII colours and a 40-column board.</p>
 			</article>
-			<article class="bento-card bento-card--glass bbs-step">
-				<h3>Modern terminal</h3>
+			<article class="bento-cell bento-card bento-card--glass bbs-step">
+				<h3 class="bbs-step__title">Modern terminal</h3>
 				<p>
 					Any telnet client works; the ANSI port adapts to your window
 					size:
@@ -95,8 +93,8 @@ const backdrop =
 				<pre class="bbs-pre"><code>telnet bbs.kbve.com 6401</code></pre>
 				<p>SyncTERM and friends are auto-detected by terminal type.</p>
 			</article>
-			<article class="bento-card bento-card--glass bbs-step">
-				<h3>Logging in</h3>
+			<article class="bento-cell bento-card bento-card--glass bbs-step">
+				<h3 class="bbs-step__title">Logging in</h3>
 				<p>
 					Pick <strong>[L]</strong> on the main menu. The board prints a
 					short code; type it above while signed in here and the terminal
@@ -114,18 +112,7 @@ const backdrop =
 </div>
 
 <style>
-	.bbs-island {
-		min-height: 30vh;
-	}
-	.bbs-steps {
-		display: grid;
-		gap: 1rem;
-		grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
-	}
-	.bbs-step {
-		padding: 1.25rem;
-	}
-	.bbs-step h3 {
+	.bbs-step__title {
 		margin: 0 0 0.5rem;
 		font-size: 1.05rem;
 	}
@@ -147,35 +134,27 @@ const backdrop =
 		--bento-accent: #4ade80;
 		--bento-accent-2: #22d3ee;
 		--bento-btn-fg: #05210f;
+		--bento-live: #4ade80;
+	}
+	.bbs-line {
+		display: flex;
+		align-items: center;
+		gap: 0.45rem;
 	}
 	.bbs-claim {
 		display: grid;
-		gap: 1rem;
-		max-width: 34rem;
+		align-content: center;
+		gap: 0.75rem;
+		justify-items: start;
 	}
-	.bbs-claim__dial {
-		display: grid;
-		gap: 0.35rem;
+	.bbs-claim__lede {
+		margin: 0;
 	}
-	.bbs-claim__dial-label {
-		font-size: 0.75rem;
-		text-transform: uppercase;
-		letter-spacing: 0.08em;
-		opacity: 0.7;
-	}
-	.bbs-claim__dial-value {
-		font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-		font-size: 0.95rem;
-	}
-	.bbs-claim__form,
-	.bbs-claim__gate {
+	.bbs-claim__form {
 		display: grid;
 		gap: 0.6rem;
 		justify-items: start;
-	}
-	.bbs-claim__label {
-		font-size: 0.85rem;
-		opacity: 0.8;
+		width: 100%;
 	}
 	.bbs-claim__input {
 		width: 100%;

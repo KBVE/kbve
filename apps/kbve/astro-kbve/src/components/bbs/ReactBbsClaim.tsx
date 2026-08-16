@@ -103,71 +103,90 @@ export default function ReactBbsClaim() {
 
 	if (!ready) return null;
 
+	const host = board?.host ?? 'bbs.kbve.com';
+	const petscii = board?.petscii_port ?? 6400;
+	const ansi = board?.ansi_port ?? 6401;
+
 	return (
-		<div className="bbs-claim">
-			<div className="bbs-claim__dial">
-				<span className="bbs-claim__dial-label">Dial in</span>
-				<code className="bbs-claim__dial-value">
-					{board
-						? `${board.host} ${board.petscii_port} (petscii) · ${board.ansi_port} (ansi)`
-						: 'bbs.kbve.com 6400 (petscii) · 6401 (ansi)'}
-				</code>
-				<span className="bbs-claim__dial-label">
-					{board
-						? `${board.online} caller(s) online`
-						: 'checking the line…'}
+		<div className="bento-board bento-board--cols-2">
+			<div className="bento-cell bento-stat bento-card bento-card--glass">
+				<span className="bento-stat__value">{host}</span>
+				<span className="bento-stat__label">
+					{petscii} petscii · {ansi} ansi
+				</span>
+				<span className="bento-stat__detail bbs-line">
+					{board ? (
+						<>
+							<span
+								className="bento-live-dot"
+								aria-hidden="true"
+							/>
+							{board.online} caller
+							{board.online === 1 ? '' : 's'} online
+						</>
+					) : (
+						'checking the line…'
+					)}
 				</span>
 			</div>
 
-			{!authenticated ? (
-				<div className="bbs-claim__gate">
-					<p>Sign in to link a terminal to your account.</p>
-					<a className="bento-btn bento-btn--primary" href="/login/">
-						Sign in
-					</a>
-				</div>
-			) : (
-				<form className="bbs-claim__form" onSubmit={submit}>
-					<label className="bbs-claim__label" htmlFor="bbs-code">
-						Code shown on the terminal
-					</label>
-					<input
-						id="bbs-code"
-						className="bbs-claim__input"
-						value={format(code)}
-						onChange={(e) =>
-							setCode(
-								normalize((e.target as HTMLInputElement).value),
-							)
-						}
-						placeholder="K7XP-42RM"
-						autoComplete="off"
-						spellCheck={false}
-						inputMode="text"
-					/>
-					<button
-						className="bento-btn bento-btn--primary"
-						type="submit"
-						disabled={phase === 'sending'}>
-						{phase === 'sending' ? 'Linking…' : 'Link terminal'}
-					</button>
-					{message ? (
-						<p
-							className={
-								phase === 'linked'
-									? 'bbs-claim__msg bbs-claim__msg--ok'
-									: 'bbs-claim__msg bbs-claim__msg--err'
-							}>
-							{message}
+			<div className="bento-cell bento-card bento-card--glass bbs-claim">
+				{!authenticated ? (
+					<>
+						<p className="bbs-claim__lede">
+							Sign in to link a terminal to your account.
 						</p>
-					) : null}
-					{username ? (
-						<p className="bbs-claim__who">
-							signed in as {username}
-						</p>
-					) : null}
-				</form>
-			)}
+						<a
+							className="bento-btn bento-btn--primary"
+							href="/login/">
+							Sign in
+						</a>
+					</>
+				) : (
+					<form className="bbs-claim__form" onSubmit={submit}>
+						<label className="bento-eyebrow" htmlFor="bbs-code">
+							Code shown on the terminal
+						</label>
+						<input
+							id="bbs-code"
+							className="bbs-claim__input"
+							value={format(code)}
+							onChange={(e) =>
+								setCode(
+									normalize(
+										(e.target as HTMLInputElement).value,
+									),
+								)
+							}
+							placeholder="K7XP-42RM"
+							autoComplete="off"
+							spellCheck={false}
+							inputMode="text"
+						/>
+						<button
+							className="bento-btn bento-btn--primary"
+							type="submit"
+							disabled={phase === 'sending'}>
+							{phase === 'sending' ? 'Linking…' : 'Link terminal'}
+						</button>
+						{message ? (
+							<p
+								className={
+									phase === 'linked'
+										? 'bbs-claim__msg bbs-claim__msg--ok'
+										: 'bbs-claim__msg bbs-claim__msg--err'
+								}>
+								{message}
+							</p>
+						) : null}
+						{username ? (
+							<p className="bbs-claim__who">
+								signed in as {username}
+							</p>
+						) : null}
+					</form>
+				)}
+			</div>
 		</div>
 	);
 }
