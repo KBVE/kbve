@@ -57,11 +57,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("debug_screenshot"):
 		_screenshot()
 		return
-	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_I:
-		var fx := get_node_or_null("../ImpactFX")
-		if fx:
-			fx.trigger_at(_player.global_position + Vector3(0.0, 1.2, 0.0))
-		return
+	# I used to fire a bare impact frame. It is the satchel key now -- O below still
+	# reaches the same effect with the arc and the burst, which is what it looks like
+	# in play anyway.
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_O:
 		var hit := _player.global_position + Vector3(0.0, 1.2, 0.0) - _player.global_basis.z * 1.2
 		var slash := _player.get_node_or_null("SlashArc")

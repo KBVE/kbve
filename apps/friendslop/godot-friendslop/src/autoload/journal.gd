@@ -23,15 +23,25 @@ signal wearing_changed(slots: Dictionary)
 ## came in rather than the new total, because "+3 Bark" is the news and "you have 11" is
 ## a thing that can be asked for.
 signal gained(ref: StringName, count: int, total: int)
+## Something that would not fit, and how much of it was left over. The bag is finite, so
+## this is the difference between loot vanishing quietly and the player being told.
+signal refused(ref: StringName, count: int)
 ## The whole satchel changed, for anything drawing all of it.
 signal satchel_changed(items: Dictionary)
+
+## A spatial bag, so what you can carry is a question of shape and not only of number.
+## Ten across is the width the panel is drawn to; six down is roomy enough that a
+## morning's chopping does not fill it, while armour at 2x2 still has to be arranged.
+const COLS := 10
+const ROWS := 6
 
 var _state := DialogueState.new()
 ## Slot to wardrobe piece id.
 var _worn: Dictionary = {}
-## Item ref to how many are held. Counts rather than instances: these are logs and ore,
-## and nothing about them differs between two of the same.
-var _satchel: Dictionary = {}
+## Placed stacks, each `{ref, count, x, y}`. A list rather than a ref-to-count map,
+## because the same thing can sit in two places once one stack is full, and where it
+## sits is part of what the player owns.
+var _satchel: Array[Dictionary] = []
 ## Held down while loading, so reading a saved file does not read as the player having
 ## just done all of it.
 var _quiet := false
@@ -123,34 +133,79 @@ func _set_worn(slot: StringName, id: StringName) -> void:
 	save_now()
 
 
-## Everything held, as ref to count. A copy: the caller cannot spend by editing it.
+## Every placed stack, as copies: the caller cannot rearrange the bag by editing them.
+func stacks() -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	for stack in _satchel:
+		out.append(stack.duplicate())
+	return out
+
+
+## Everything held, as ref to total count, for anything that only cares how much.
 func satchel() -> Dictionary:
-	return _satchel.duplicate()
+	var out := {}
+	for stack in _satchel:
+		var ref: StringName = stack["ref"]
+		out[ref] = int(out.get(ref, 0)) + int(stack["count"])
+	return out
 
 
 func count_of(ref: StringName) -> int:
-	return int(_satchel.get(ref, 0))
+	var total := 0
+	for stack in _satchel:
+		if stack["ref"] == ref:
+			total += int(stack["count"])
+	return total
 
 
-## Puts something in the bag.
+## Puts something in the bag, and says how much would not go in.
+##
+## Fills open stacks before opening new ones, so a bag does not fragment into part-full
+## cells of the same thing while there is still room in one.
 ##
 ## Refuses anything the itemdb does not know, rather than inventing a slot for it: a
 ## typo'd ref should read as nothing arriving, not as a phantom item that no UI can draw
 ## and no recipe can spend.
-func gain(ref: StringName, count := 1) -> bool:
+func gain(ref: StringName, count := 1) -> int:
 	if ref == &"" or count <= 0:
-		return false
+		return maxi(count, 0)
 	if not Itemdb.has(ref):
 		push_warning("journal: nothing called '%s' to put in the satchel" % ref)
-		return false
-	var total := count_of(ref) + count
-	_satchel[ref] = total
+		return count
+
+	var left := count
+	var per_stack := Itemdb.max_stack(ref)
+	for stack in _satchel:
+		if left <= 0:
+			break
+		if stack["ref"] != ref:
+			continue
+		var room: int = per_stack - int(stack["count"])
+		if room <= 0:
+			continue
+		var moved := mini(room, left)
+		stack["count"] = int(stack["count"]) + moved
+		left -= moved
+
+	var size := Itemdb.grid_size(ref)
+	while left > 0:
+		var at := _free_cell(size)
+		if at.x < 0:
+			break
+		var moved := mini(per_stack, left)
+		_satchel.append({"ref": ref, "count": moved, "x": at.x, "y": at.y})
+		left -= moved
+
+	var took := count - left
 	if _quiet:
-		return true
-	gained.emit(ref, count, total)
-	satchel_changed.emit(satchel())
-	save_now()
-	return true
+		return left
+	if took > 0:
+		gained.emit(ref, took, count_of(ref))
+		satchel_changed.emit(satchel())
+		save_now()
+	if left > 0:
+		refused.emit(ref, left)
+	return left
 
 
 ## Takes something out, and says whether there was enough to take. All or nothing: a
@@ -158,16 +213,79 @@ func gain(ref: StringName, count := 1) -> bool:
 func spend(ref: StringName, count := 1) -> bool:
 	if count <= 0 or count_of(ref) < count:
 		return false
-	var total := count_of(ref) - count
-	if total == 0:
-		_satchel.erase(ref)
-	else:
-		_satchel[ref] = total
+	var left := count
+	# Emptiest first, so spending tidies the bag up rather than leaving a trail of
+	# part-full stacks behind it.
+	var order := range(_satchel.size())
+	order.sort_custom(func(a: int, b: int) -> bool:
+			return int(_satchel[a]["count"]) < int(_satchel[b]["count"]))
+	for i: int in order:
+		if left <= 0:
+			break
+		if _satchel[i]["ref"] != ref:
+			continue
+		var taken: int = mini(int(_satchel[i]["count"]), left)
+		_satchel[i]["count"] = int(_satchel[i]["count"]) - taken
+		left -= taken
+	_satchel = _satchel.filter(func(s: Dictionary) -> bool: return int(s["count"]) > 0)
 	if _quiet:
 		return true
 	satchel_changed.emit(satchel())
 	save_now()
 	return true
+
+
+## Whether a stack could be put down at `to`. What a panel asks while dragging, so the
+## answer it previews and the answer it gets are the same one.
+func can_place(index: int, to: Vector2i) -> bool:
+	if index < 0 or index >= _satchel.size():
+		return false
+	return _fits(to, Itemdb.grid_size(_satchel[index]["ref"]), index)
+
+
+## Moves a stack to a cell, if it fits there. The stack being moved does not block its
+## own destination, or nothing could ever be nudged one square.
+func move_stack(index: int, to: Vector2i) -> bool:
+	if index < 0 or index >= _satchel.size():
+		return false
+	var stack := _satchel[index]
+	var size := Itemdb.grid_size(stack["ref"])
+	if not _fits(to, size, index):
+		return false
+	stack["x"] = to.x
+	stack["y"] = to.y
+	if _quiet:
+		return true
+	satchel_changed.emit(satchel())
+	save_now()
+	return true
+
+
+## Whether a `size` rectangle at `at` is on the board and clear of everything except
+## `ignore`, which is the stack being moved.
+func _fits(at: Vector2i, size: Vector2i, ignore := -1) -> bool:
+	if at.x < 0 or at.y < 0 or at.x + size.x > COLS or at.y + size.y > ROWS:
+		return false
+	for i in _satchel.size():
+		if i == ignore:
+			continue
+		var other := _satchel[i]
+		var other_size := Itemdb.grid_size(other["ref"])
+		var overlaps_x: bool = at.x < int(other["x"]) + other_size.x and int(other["x"]) < at.x + size.x
+		var overlaps_y: bool = at.y < int(other["y"]) + other_size.y and int(other["y"]) < at.y + size.y
+		if overlaps_x and overlaps_y:
+			return false
+	return true
+
+
+## Topmost-leftmost cell a `size` rectangle fits in, or (-1, -1) when the bag is full.
+## Reading order, so things pile up from the corner the eye starts at.
+func _free_cell(size: Vector2i) -> Vector2i:
+	for y in ROWS:
+		for x in COLS:
+			if _fits(Vector2i(x, y), size):
+				return Vector2i(x, y)
+	return Vector2i(-1, -1)
 
 
 func load_now() -> void:
@@ -187,14 +305,23 @@ func load_now() -> void:
 		if Wardrobe.has(id):
 			_worn[StringName(slot)] = id
 	_satchel.clear()
-	var saved: Dictionary = cfg.get_value(SATCHEL_SECTION, "items", {})
-	for ref: Variant in saved:
+	for row: Variant in cfg.get_value(SATCHEL_SECTION, "stacks", []):
+		var saved: Dictionary = row
+		var id := StringName(saved.get("ref", ""))
+		var count := int(saved.get("count", 0))
 		# Same rule as the wardrobe: a save naming an item the itemdb no longer has is
 		# dropped rather than carried, so a renamed drop does not haunt the bag.
-		var id := StringName(ref)
-		var count := int(saved[ref])
-		if count > 0 and Itemdb.has(id):
-			_satchel[id] = count
+		if count <= 0 or not Itemdb.has(id):
+			continue
+		var at := Vector2i(int(saved.get("x", 0)), int(saved.get("y", 0)))
+		# A stack that no longer fits where it was saved -- the grid shrank, or the item
+		# grew -- is re-placed rather than dropped. Losing the arrangement is a nuisance;
+		# losing the loot is not something a save format change should ever do.
+		if not _fits(at, Itemdb.grid_size(id)):
+			at = _free_cell(Itemdb.grid_size(id))
+			if at.x < 0:
+				continue
+		_satchel.append({"ref": id, "count": count, "x": at.x, "y": at.y})
 	_quiet = false
 	wearing_changed.emit(wearing())
 	satchel_changed.emit(satchel())
@@ -209,10 +336,15 @@ func save_now() -> void:
 	for slot: StringName in _worn:
 		slots[String(slot)] = String(_worn[slot])
 	cfg.set_value(WORN_SECTION, "slots", slots)
-	var items := {}
-	for ref: StringName in _satchel:
-		items[String(ref)] = int(_satchel[ref])
-	cfg.set_value(SATCHEL_SECTION, "items", items)
+	var rows := []
+	for stack in _satchel:
+		rows.append({
+			"ref": String(stack["ref"]),
+			"count": int(stack["count"]),
+			"x": int(stack["x"]),
+			"y": int(stack["y"]),
+		})
+	cfg.set_value(SATCHEL_SECTION, "stacks", rows)
 	cfg.save(PATH)
 
 
