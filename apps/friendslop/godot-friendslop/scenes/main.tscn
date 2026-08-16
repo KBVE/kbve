@@ -48,6 +48,8 @@
 [ext_resource type="PackedScene" uid="uid://bdttr5tlljv6k" path="res://assets/characters/quaternius_ubc/models/hair/Hair_Bob.glb" id="48_hairbob"]
 [ext_resource type="PackedScene" uid="uid://cnd82iitivl2c" path="res://assets/characters/quaternius_ubc/models/hair/Hair_SimpleParted.glb" id="49_hairparted"]
 [ext_resource type="PackedScene" uid="uid://dkytmuel7r634" path="res://assets/characters/quaternius_ubc/models/hair/Hair_Long.glb" id="50_hairlong"]
+[ext_resource type="PackedScene" uid="uid://ysa6ql8yc3b" path="res://assets/characters/quaternius_ubc/models/Regular_Male_OnlyHead.glb" id="51_headm"]
+[ext_resource type="PackedScene" uid="uid://bvr8t2y4easo2" path="res://assets/characters/quaternius_ubc/models/Regular_Female_OnlyHead.glb" id="52_headf"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(1024, 1024)
@@ -258,6 +260,8 @@ animation_sources = Array[PackedScene]([ExtResource("36_ual1"), ExtResource("37_
 idle_animation = "UAL1/Idle_LookAround"
 skin_color = Color(0.94, 0.83, 0.72, 1)
 hair_color = Color(0.16, 0.13, 0.11, 1)
+worn = Array[StringName]([&"male_peasant_body", &"male_peasant_arms", &"male_peasant_legs", &"male_peasant_feet"])
+head_only_body = ExtResource("51_headm")
 stand_under_bridge = true
 
 [node name="Wren" type="Node3D" parent="." unique_id=18600842]
@@ -270,6 +274,8 @@ animation_sources = Array[PackedScene]([ExtResource("36_ual1"), ExtResource("37_
 idle_animation = "UAL1/Idle_LookAround"
 skin_color = Color(0.82, 0.66, 0.52, 1)
 hair_color = Color(0.35, 0.22, 0.1, 1)
+worn = Array[StringName]([&"female_ranger_body", &"female_ranger_arms", &"female_ranger_legs", &"female_ranger_feet"])
+head_only_body = ExtResource("52_headf")
 stand_under_bridge = true
 bridge_offset = -3.2
 bridge_along = 12.0
