@@ -201,6 +201,15 @@ func display_name() -> String:
 	return name
 
 
+## What the catalog calls this one's job, for the card that introduces them. Empty for the
+## archetypes, which are a role already and have no title on top of it.
+func role_name() -> String:
+	if npc_ref == "":
+		return ""
+	var entry := Npcdb.npc(npc_ref)
+	return str(entry.get("role", "")) if not entry.is_empty() else ""
+
+
 func _head_height() -> float:
 	if rig and rig.has_method("mesh_extents"):
 		var box: AABB = rig.mesh_extents()

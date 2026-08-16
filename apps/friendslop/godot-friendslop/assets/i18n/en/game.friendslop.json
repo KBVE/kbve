@@ -71,7 +71,8 @@
 	"dlg": {
 		"continue": "[{{key}}]  Continue",
 		"close": "Leave the conversation",
-		"player": "You"
+		"player": "You",
+		"met": "You just met"
 	},
 	"wardrobe": {
 		"title": "Wardrobe",

@@ -1161,6 +1161,80 @@ func test_the_speaker_is_already_talking_on_the_opening_line() -> void:
 	_unstage(world, was)
 
 
+## Meeting somebody is a beat of its own. The whole point is the order: the card names them
+## while the world is still visible behind it, and the box only opens once it has cleared.
+## Opened together, the name is a caption on a panel rather than an introduction.
+func test_meeting_somebody_names_them_before_the_talk_opens() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var pair := _stage_interactor(world, Vector3(0.0, 0.0, -2.0))
+	var reach: Node3D = pair[0]
+	var actor: NpcActor = pair[1]
+	reach.state().set_flag(reach.MET % MARLOW, false)
+
+	reach._talk_to(actor)
+	var card := world.get_node_or_null(^"MeetingCard") as MeetingCard
+	assert_object(card) \
+			.override_failure_message("meeting somebody put no card up") \
+			.is_not_null()
+	assert_bool(TalkPanel.is_open()) \
+			.override_failure_message("the conversation opened underneath the introduction") \
+			.is_false()
+	assert_str(_card_text(card)) \
+			.override_failure_message("the card does not say who was met") \
+			.contains("Marlow")
+
+	## Skipped rather than waited out, which is also the path a player takes.
+	card.dismiss()
+	assert_bool(TalkPanel.is_open()) \
+			.override_failure_message("the card cleared and no conversation followed") \
+			.is_true()
+
+	reach.state().set_flag(reach.MET % MARLOW, false)
+	if TalkPanel.is_open():
+		TalkPanel._open.close()
+	_unstage(world, was)
+
+
+## Somebody already known is talked to straight away -- an introduction every time is a
+## cutscene between the player and the bridge.
+func test_somebody_already_known_gets_no_card() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var pair := _stage_interactor(world, Vector3(0.0, 0.0, -2.0))
+	var reach: Node3D = pair[0]
+	reach.state().set_flag(reach.MET % MARLOW)
+
+	reach._talk_to(pair[1])
+	assert_object(world.get_node_or_null(^"MeetingCard")) \
+			.override_failure_message("somebody already known was introduced again") \
+			.is_null()
+	assert_bool(TalkPanel.is_open()).is_true()
+
+	reach.state().set_flag(reach.MET % MARLOW, false)
+	if TalkPanel.is_open():
+		TalkPanel._open.close()
+	_unstage(world, was)
+
+
+## Everything the card has on it, so a test can ask what it says without knowing how it is
+## laid out.
+func _card_text(card: MeetingCard) -> String:
+	var words: Array[String] = []
+	for node in _labels(card):
+		words.append(node.text)
+	return " ".join(words)
+
+
+func _labels(node: Node) -> Array[Label]:
+	var out: Array[Label] = []
+	if node is Label:
+		out.append(node)
+	for child in node.get_children():
+		out.append_array(_labels(child))
+	return out
+
+
 ## Somebody met is met for good. The flag rides in the journal, so this is also what keeps
 ## the flourish from firing every time the player walks back up the bank.
 func test_meeting_somebody_happens_once_and_is_written_down() -> void:
