@@ -671,7 +671,12 @@ func _open_codex() -> void:
 func _build_codex() -> void:
 	var codex := HBoxContainer.new()
 	codex.set_script(preload("res://src/ui/codex.gd"))
-	codex.set_anchors_preset(Control.PRESET_FULL_RECT)
+	# Sized by the flags rather than the preset: the page it goes in is a container, so
+	# it lays its children out itself and the anchors are never consulted. Without the
+	# expand the codex is given its minimum width, and since the viewport stretches to
+	# whatever it is handed, the museum collapses to nothing and only the side rail shows.
+	codex.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	codex.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	codex.on_back = func() -> void: _show(_settings_panel)
 	_codex_panel.add_child(codex)
 
