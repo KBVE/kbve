@@ -13,15 +13,25 @@ extends Node
 const PATH := "user://journal.cfg"
 const SECTION := "dialogue"
 const WORN_SECTION := "worn"
+const SATCHEL_SECTION := "satchel"
 
 signal flag_changed(name: String, on: bool)
 ## What the player has on, slot by slot. The rig watches this rather than being told
 ## directly, so anything that hands out clothing does not need to know where the body is.
 signal wearing_changed(slots: Dictionary)
+## One lot of something arriving, for whatever wants to say so on screen. Carries what
+## came in rather than the new total, because "+3 Bark" is the news and "you have 11" is
+## a thing that can be asked for.
+signal gained(ref: StringName, count: int, total: int)
+## The whole satchel changed, for anything drawing all of it.
+signal satchel_changed(items: Dictionary)
 
 var _state := DialogueState.new()
 ## Slot to wardrobe piece id.
 var _worn: Dictionary = {}
+## Item ref to how many are held. Counts rather than instances: these are logs and ore,
+## and nothing about them differs between two of the same.
+var _satchel: Dictionary = {}
 ## Held down while loading, so reading a saved file does not read as the player having
 ## just done all of it.
 var _quiet := false
@@ -113,6 +123,53 @@ func _set_worn(slot: StringName, id: StringName) -> void:
 	save_now()
 
 
+## Everything held, as ref to count. A copy: the caller cannot spend by editing it.
+func satchel() -> Dictionary:
+	return _satchel.duplicate()
+
+
+func count_of(ref: StringName) -> int:
+	return int(_satchel.get(ref, 0))
+
+
+## Puts something in the bag.
+##
+## Refuses anything the itemdb does not know, rather than inventing a slot for it: a
+## typo'd ref should read as nothing arriving, not as a phantom item that no UI can draw
+## and no recipe can spend.
+func gain(ref: StringName, count := 1) -> bool:
+	if ref == &"" or count <= 0:
+		return false
+	if not Itemdb.has(ref):
+		push_warning("journal: nothing called '%s' to put in the satchel" % ref)
+		return false
+	var total := count_of(ref) + count
+	_satchel[ref] = total
+	if _quiet:
+		return true
+	gained.emit(ref, count, total)
+	satchel_changed.emit(satchel())
+	save_now()
+	return true
+
+
+## Takes something out, and says whether there was enough to take. All or nothing: a
+## recipe that half-pays for itself is worse than one that does not fire.
+func spend(ref: StringName, count := 1) -> bool:
+	if count <= 0 or count_of(ref) < count:
+		return false
+	var total := count_of(ref) - count
+	if total == 0:
+		_satchel.erase(ref)
+	else:
+		_satchel[ref] = total
+	if _quiet:
+		return true
+	satchel_changed.emit(satchel())
+	save_now()
+	return true
+
+
 func load_now() -> void:
 	var cfg := ConfigFile.new()
 	if cfg.load(PATH) != OK:
@@ -129,8 +186,18 @@ func load_now() -> void:
 		## kept, or the rig warns about it every time it is built.
 		if Wardrobe.has(id):
 			_worn[StringName(slot)] = id
+	_satchel.clear()
+	var saved: Dictionary = cfg.get_value(SATCHEL_SECTION, "items", {})
+	for ref: Variant in saved:
+		# Same rule as the wardrobe: a save naming an item the itemdb no longer has is
+		# dropped rather than carried, so a renamed drop does not haunt the bag.
+		var id := StringName(ref)
+		var count := int(saved[ref])
+		if count > 0 and Itemdb.has(id):
+			_satchel[id] = count
 	_quiet = false
 	wearing_changed.emit(wearing())
+	satchel_changed.emit(satchel())
 
 
 func save_now() -> void:
@@ -142,6 +209,10 @@ func save_now() -> void:
 	for slot: StringName in _worn:
 		slots[String(slot)] = String(_worn[slot])
 	cfg.set_value(WORN_SECTION, "slots", slots)
+	var items := {}
+	for ref: StringName in _satchel:
+		items[String(ref)] = int(_satchel[ref])
+	cfg.set_value(SATCHEL_SECTION, "items", items)
 	cfg.save(PATH)
 
 
@@ -155,5 +226,7 @@ func _notification(what: int) -> void:
 func forget_everything() -> void:
 	_state.clear()
 	_worn.clear()
+	_satchel.clear()
 	save_now()
 	wearing_changed.emit(wearing())
+	satchel_changed.emit(satchel())

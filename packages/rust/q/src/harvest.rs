@@ -50,6 +50,49 @@ impl HarvestTarget {
             HarvestTarget::Tree => Tree::STAGES,
         }
     }
+
+    pub fn drop_table(self) -> &'static [DropEntry] {
+        match self {
+            HarvestTarget::Stone => Stone::drop_table(),
+            HarvestTarget::Tree => Tree::drop_table(),
+        }
+    }
+
+    /// What this object yields, by id.
+    ///
+    /// Here rather than only on the scatter because the host has no scatter and
+    /// still has to name what it is paying out. Being a pure function of the id
+    /// is what makes that possible: the same rock rolls the same ore on a client
+    /// that can see it and on a server that never generated it.
+    pub fn roll_drop(self, id: u64) -> (u8, u8) {
+        roll_drop(self.drop_table(), id)
+    }
+}
+
+/// Salt keeping the ore roll clear of every other use of an object's id.
+pub const ORE_SALT: u64 = 0x00e5_eed0_0e5e_ed00;
+
+/// Picks a drop out of `table` for `id`, as an index into it and a count.
+///
+/// One implementation for both sides. Two would be two things to keep in step,
+/// and the failure would be a server paying out an ore the client never showed
+/// breaking out of the rock.
+pub fn roll_drop(table: &'static [DropEntry], id: u64) -> (u8, u8) {
+    let total: u32 = table.iter().map(|d| d.weight).sum();
+    if total == 0 {
+        return (0, 1);
+    }
+    let r = hash64(id ^ ORE_SALT);
+    let mut pick = (r % total as u64) as u32;
+    for (i, d) in table.iter().enumerate() {
+        if pick < d.weight {
+            let span = (d.max - d.min) as u64 + 1;
+            let amount = d.min + ((r >> 32) % span) as u8;
+            return (i as u8, amount);
+        }
+        pick -= d.weight;
+    }
+    (0, 1)
 }
 
 #[derive(Clone, Copy)]
