@@ -190,7 +190,7 @@ func _draw() -> void:
 	for button in BUTTONS:
 		var center := _button_center(button)
 		var radius := _button_radius(button)
-		var held := button.action != "" and _button_fingers.values().has(button.action)
+		var held: bool = button.action != "" and _button_fingers.values().has(button.action)
 		draw_circle(center, radius, Color(1.0, 1.0, 1.0, 0.22 if held else 0.10))
 		draw_arc(center, radius, 0.0, TAU, 40, Color(1.0, 1.0, 1.0, 0.35), 3.0)
 		var width := font.get_string_size(button.label, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
