@@ -30,6 +30,9 @@ extends Node3D
 ## already travelling. Each is replayed at whatever rate fits the window it really owns.
 @export var takeoff_time := 0.28
 @export var landing_time := 0.32
+## Ground speed that abandons a swing. The kit has no clip for working a tree while
+## walking, so stepping away has to end it rather than drag it along.
+@export var work_cancel_speed := 1.2
 @export var crouch_shift_time := 0.30
 ## Ground speed that abandons a landing recovery outright.
 @export var landing_cancel_speed := 0.5
@@ -137,7 +140,22 @@ const STATES := {
 	&"turn_90_r": {&"clip": "UAL1/Turn90_R", &"reset": true, &"ik": 1.0},
 	&"turn_180_l": {&"clip": "UAL2/Turn180_L", &"reset": true, &"ik": 1.0},
 	&"turn_180_r": {&"clip": "UAL2/Turn180_R", &"reset": true, &"ik": 1.0},
+	&"chop": {&"clip": "UAL2/TreeChopping_Loop", &"reset": true, &"ik": 1.0},
+	&"mine": {&"clip": "UAL2/Mining_Loop", &"reset": true, &"ik": 1.0},
 }
+
+## Working a tree or a rock. Both feet stay planted, so unlike the other one-shots
+## these keep full foot IK and are left the moment the swing is over rather than
+## when the clip is -- the kit authored both as loops, and a swing that runs to the
+## end of its clip is a swing that starts again.
+const WORK_STATES := [&"chop", &"mine"]
+
+static func work_chain() -> Array:
+	var out: Array = []
+	for state in WORK_STATES:
+		out.append({"from": "move", "to": String(state), "at_end": false, "xfade": 0.12})
+		out.append({"from": String(state), "to": "move", "at_end": false, "xfade": 0.18})
+	return out
 
 ## One-shots replayed to fit a window shorter than the clip was authored for, and the
 ## window each is fitted to. This is why none of them may exit on at_end: the state
@@ -219,6 +237,9 @@ var mount: SkeletonModifier3D
 ## The fitted one-shot on screen, and what is left of the window it was fitted to.
 var _shot: StringName = &""
 var _shot_t := 0.0
+## The working clip being held up, and what is left of its window.
+var _work: StringName = &""
+var _work_t := 0.0
 
 
 func _ready() -> void:
@@ -309,7 +330,8 @@ func _build_tree(rig: Node3D) -> void:
 			var node := _clip(clip)
 			if node:
 				machine.add_node(state, _rescaled(node))
-	for link in JUMP_CHAIN + CLIMB_CHAIN + CROUCH_CHAIN + roll_chain() + TURN_CHAIN:
+	for link in JUMP_CHAIN + CLIMB_CHAIN + CROUCH_CHAIN + roll_chain() + TURN_CHAIN \
+			+ work_chain():
 		if not machine.has_node(link.from) or not machine.has_node(link.to):
 			continue
 		machine.add_transition(link.from, link.to, _transition(link))
@@ -490,6 +512,8 @@ func set_locomotion(local_velocity: Vector3, airborne: bool, delta: float) -> vo
 		ik.set_ground_weight(_ground_weight(playback))
 	if loco.is_climbing():
 		return
+	if _hold_work(playback, local_velocity, airborne, delta):
+		return
 	if _hold_shot(playback, delta):
 		return
 	var want: StringName = _wanted()
@@ -519,6 +543,41 @@ func _wanted() -> StringName:
 	if stance == QLocomotion.STANCE_ROLL:
 		return ROLL_STATES[clampi(loco.roll_variant(), 0, ROLL_STATES.size() - 1)]
 	return STANCE_STATES[stance]
+
+
+## Swings at a tree or a rock for `seconds`, whatever the body was otherwise doing.
+##
+## The kit authored both clips as loops meant to run as long as the job takes, so
+## the clip is rescaled to the window rather than played at its own length: left
+## alone a two second loop in a three quarter second swing shows the wind-up and
+## never the hit.
+func play_action(action: StringName, seconds: float) -> void:
+	if tree == null or animation == null or not STATES.has(action):
+		return
+	var clip: String = STATES[action].clip
+	if clip == "" or not animation.has_animation(clip):
+		return
+	_work = action
+	_work_t = maxf(seconds, 0.05)
+	tree.set("parameters/%s/scale/scale" % action,
+			animation.get_animation(clip).length / _work_t)
+
+
+## Holds a working clip up for its window. Anything the legs want wins: there is no
+## clip for chopping while walking, and dragging one along behind a moving body
+## looks worse than dropping it.
+func _hold_work(playback: AnimationNodeStateMachinePlayback, local_velocity: Vector3,
+		airborne: bool, delta: float) -> bool:
+	if _work_t <= 0.0:
+		return false
+	_work_t -= delta
+	if airborne or loco.stance() != QLocomotion.STANCE_MOVE \
+			or Vector2(local_velocity.x, local_velocity.z).length() > work_cancel_speed:
+		_work_t = 0.0
+		return false
+	if playback.get_travel_path().is_empty() and playback.get_current_node() != _work:
+		playback.travel(_work)
+	return true
 
 
 ## Keeps a fitted one-shot on screen for the window it was fitted to, then steps the

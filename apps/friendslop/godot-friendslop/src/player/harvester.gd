@@ -13,7 +13,11 @@ extends Node3D
 
 signal swung(target: StringName, id: int)
 signal harvested(target: StringName, ore: StringName, amount: int)
+## What the next swing would hit, or an empty kind when there is nothing in reach.
+## Emitted only when the answer changes, so a reticle can listen without polling.
+signal aimed(target: StringName, info: Dictionary)
 
+const GROUP := &"harvester"
 const STONE := &"stone"
 const TREE := &"tree"
 
@@ -27,6 +31,8 @@ const TREE := &"tree"
 @export var swing_interval := 0.75
 ## Damage per swing, which the host clamps to the stage count anyway.
 @export var hits := 1
+## Seconds between target searches, which is what the reticle follows.
+@export var aim_interval := 0.1
 
 @export var stone_field_path: NodePath
 @export var tree_field_path: NodePath
@@ -36,9 +42,13 @@ var _stones: Node
 var _trees: Node
 var _net: NetGameClient
 var _cooldown := 0.0
+var _aim_kind: StringName = &""
+var _aim_id := 0
+var _aim_t := 0.0
 
 
 func _ready() -> void:
+	add_to_group(GROUP)
 	_body = get_parent() as Node3D
 
 
@@ -88,6 +98,28 @@ func _process(delta: float) -> void:
 	# that never harvested anything itself still has to show their rocks breaking.
 	if _stones == null or _trees == null or _net == null:
 		_resolve()
+	# Not every frame: the search walks both scatters and builds a dictionary per
+	# candidate, which is far too much to spend on a mark that only has to keep up
+	# with a walking player.
+	_aim_t -= delta
+	if _aim_t <= 0.0:
+		_aim_t = aim_interval
+		_publish_aim()
+
+
+## Tells anybody drawing a reticle what the next swing would hit.
+##
+## Aimed at the same thing the swing would take, by asking the same question, so
+## the mark cannot promise a target the swing then misses.
+func _publish_aim() -> void:
+	var target := _nearest()
+	var kind: StringName = target.get("kind", &"")
+	var id: int = target.get("id", 0)
+	if kind == _aim_kind and id == _aim_id:
+		return
+	_aim_kind = kind
+	_aim_id = id
+	aimed.emit(kind, target.get("info", {}))
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -142,7 +174,7 @@ func _nearest() -> Dictionary:
 func _swing(target: Dictionary) -> void:
 	var kind: StringName = target["kind"]
 	var id: int = target["id"]
-	_play_swing()
+	_play_swing(kind)
 	swung.emit(kind, id)
 
 	if _net and _net.is_joined():
@@ -159,13 +191,13 @@ func _swing(target: Dictionary) -> void:
 
 
 ## The arc and the animation, both optional: this is worth doing without either.
-func _play_swing() -> void:
+func _play_swing(kind: StringName) -> void:
 	var arc := _body.get_node_or_null(^"SlashArc")
 	if arc and arc.has_method("slash"):
 		arc.slash()
 	var mesh := _body.get_node_or_null(^"Mesh")
 	if mesh and mesh.has_method("play_action"):
-		mesh.play_action(&"swing")
+		mesh.play_action(&"chop" if kind == TREE else &"mine", swing_interval)
 
 
 func _look_basis() -> Basis:
