@@ -70,7 +70,8 @@
 	},
 	"dlg": {
 		"continue": "[{{key}}]  Continue",
-		"close": "Leave the conversation"
+		"close": "Leave the conversation",
+		"player": "You"
 	},
 	"wardrobe": {
 		"title": "Wardrobe",
