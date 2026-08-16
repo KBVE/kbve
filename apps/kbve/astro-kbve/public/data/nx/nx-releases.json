@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-15T02:13:44Z",
+  "generated_at": "2026-08-16T02:21:47Z",
   "summary": {
     "pending": 2,
     "behind": 1,
@@ -193,8 +193,8 @@
     {
       "ecosystem": "crates",
       "name": "q",
-      "local": "0.1.5",
-      "published": "0.1.5",
+      "local": "0.1.6",
+      "published": "0.1.6",
       "status": "published"
     },
     {
