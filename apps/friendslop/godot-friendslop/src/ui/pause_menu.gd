@@ -11,8 +11,10 @@ var captures_mouse_on_close := true
 var shows_session_actions := true
 
 var _root: Control
-var _main_panel: VBoxContainer
-var _settings_panel: VBoxContainer
+var _main_panel: Control
+var _main_pages: Array[MenuPage] = []
+var _settings_panel: Control
+var _settings_pages: Array[MenuPage] = []
 var _graphics_panel: Control
 var _gameplay_panel: Control
 var _wardrobe_panel: Control
@@ -70,19 +72,29 @@ func _ready() -> void:
 
 	_build_book()
 
-	_main_panel = _menu_box(0.40)
-	_add_button(_main_panel, I18n.t("action.play"), _close)
-	_add_button(_main_panel, I18n.t("action.settings"), func() -> void: _show(_settings_panel))
+	_main_panel = _menu_page_panel()
+	var main_left := MenuPage.make(MenuStyle.Side.LEFT, _main_panel)
+	var main_right := MenuPage.make(MenuStyle.Side.RIGHT, _main_panel)
+	main_left.pair_with(main_right)
+	_main_pages = [main_left, main_right]
+	main_left.add_button(I18n.t("action.play"), _close)
+	main_left.add_button(I18n.t("action.settings"), func() -> void: _show(_settings_panel))
+	# Leaving the session sits on the far page from entering it, so quitting is never the
+	# button under the hand that was reaching for play.
 	if shows_session_actions:
-		_add_button(_main_panel, I18n.t("pause.log_off"), _log_off)
-		_add_button(_main_panel, I18n.t("action.quit"), _quit)
+		main_right.add_button(I18n.t("pause.log_off"), _log_off)
+		main_right.add_button(I18n.t("action.quit"), _quit)
 
-	_settings_panel = _menu_box(0.60)
-	_add_button(_settings_panel, I18n.t("settings.graphics"), func() -> void: _show(_graphics_panel))
-	_add_button(_settings_panel, I18n.t("settings.gameplay"), func() -> void: _show(_gameplay_panel))
-	_add_button(_settings_panel, I18n.t("wardrobe.title"), func() -> void: _show(_wardrobe_panel))
-	_add_button(_settings_panel, I18n.t("settings.codex"), _open_codex)
-	_add_button(_settings_panel, I18n.t("action.back"), func() -> void: _show(_main_panel))
+	_settings_panel = _menu_page_panel()
+	var set_left := MenuPage.make(MenuStyle.Side.LEFT, _settings_panel)
+	var set_right := MenuPage.make(MenuStyle.Side.RIGHT, _settings_panel)
+	set_left.pair_with(set_right)
+	_settings_pages = [set_left, set_right]
+	set_left.add_button(I18n.t("settings.graphics"), func() -> void: _show(_graphics_panel))
+	set_left.add_button(I18n.t("settings.gameplay"), func() -> void: _show(_gameplay_panel))
+	set_right.add_button(I18n.t("wardrobe.title"), func() -> void: _show(_wardrobe_panel))
+	set_right.add_button(I18n.t("settings.codex"), _open_codex)
+	set_right.add_button(I18n.t("action.back"), func() -> void: _show(_main_panel))
 
 	_build_graphics()
 	_build_gameplay()
@@ -450,7 +462,7 @@ func _layout_pages() -> void:
 		print("[book] rect %s  root %s  vp %s" % [book, _root.size, _book_vp.size])
 
 	var metrics := MenuStyle.row_metrics(book.size.y, _root.size.y)
-	for page in _gfx_pages + _play_pages + _wardrobe_pages:
+	for page in _main_pages + _settings_pages + _gfx_pages + _play_pages + _wardrobe_pages:
 		page.layout(book, metrics)
 		if debug:
 			print("[book] page %.3f %.3f %.3f %.3f" % [page.anchor_left, page.anchor_top,
@@ -484,45 +496,15 @@ func _nearest(steps: Array, v: float) -> int:
 
 ## One row, cycled by clicking rather than a dropdown: every option here is a short
 ## ordered list, and a Button is already themed to match the book.
-func _menu_box(page_x: float = 0.5, page_y: float = 0.5) -> VBoxContainer:
-	var box := VBoxContainer.new()
-	box.anchor_left = page_x
-	box.anchor_right = page_x
-	box.anchor_top = page_y
-	box.anchor_bottom = page_y
-	box.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	box.grow_vertical = Control.GROW_DIRECTION_BOTH
-	box.alignment = BoxContainer.ALIGNMENT_CENTER
-	box.add_theme_constant_override("separation", 14)
-	box.visible = false
-	_root.add_child(box)
-	return box
-
-
-func _add_button(parent: Container, text: String, action: Callable) -> Button:
-	var b := Button.new()
-	b.text = text
-	b.custom_minimum_size = Vector2(220, 48)
-	b.add_theme_font_size_override("font_size", 22)
-	b.add_theme_color_override("font_color", Color(0.25, 0.16, 0.08))
-	b.add_theme_color_override("font_hover_color", Color(0.45, 0.2, 0.05))
-	b.add_theme_color_override("font_pressed_color", Color(0.1, 0.06, 0.03))
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.93, 0.87, 0.72, 0.55)
-	style.corner_radius_top_left = 6
-	style.corner_radius_top_right = 6
-	style.corner_radius_bottom_left = 6
-	style.corner_radius_bottom_right = 6
-	b.add_theme_stylebox_override("normal", style)
-	var hover := style.duplicate() as StyleBoxFlat
-	hover.bg_color = Color(0.97, 0.9, 0.72, 0.8)
-	b.add_theme_stylebox_override("hover", hover)
-	var pressed := style.duplicate() as StyleBoxFlat
-	pressed.bg_color = Color(0.8, 0.72, 0.55, 0.85)
-	b.add_theme_stylebox_override("pressed", pressed)
-	b.pressed.connect(action)
-	parent.add_child(b)
-	return b
+## A page host: full-rect and transparent to the mouse, so the MenuPages inside it place
+## themselves off the projected book rather than off the window.
+func _menu_page_panel() -> Control:
+	var panel := Control.new()
+	panel.set_anchors_preset(Control.PRESET_FULL_RECT)
+	panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	panel.visible = false
+	_root.add_child(panel)
+	return panel
 
 
 func _input(event: InputEvent) -> void:
@@ -643,7 +625,7 @@ func _show(panel: Control) -> void:
 		_wardrobe_panel.visible = false
 		_codex_panel.visible = false
 		return
-	if panel == _graphics_panel or panel == _gameplay_panel or panel == _wardrobe_panel:
+	if panel != _codex_panel:
 		_layout_pages()
 	if panel == _graphics_panel:
 		for page in _gfx_pages:
