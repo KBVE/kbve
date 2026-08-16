@@ -4,7 +4,6 @@ use godot::classes::control::LayoutPreset;
 use godot::classes::{Button, CanvasLayer, Control};
 use godot::prelude::*;
 
-
 pub trait ControlExt {
     fn with_name(self, name: &str) -> Self;
     fn with_cache(self, prefix: &str, key: &GString) -> Self;
@@ -29,7 +28,6 @@ impl_node_ext_common!(ControlExt, Control {
         self
     }
 });
-
 
 pub trait ButtonExt {
     fn with_name(self, name: &str) -> Self;
@@ -81,7 +79,6 @@ impl_node_ext_common!(ButtonExt, Button {
         self
     }
 });
-
 
 pub trait CanvasLayerExt {
     fn with_name(self, name: &str) -> Self;
