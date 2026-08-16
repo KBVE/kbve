@@ -217,6 +217,16 @@ check rather than billing the second account. `added_at` is persisted in
 `state.json` and carried across the completion rebuild, so a reel restart never
 re-bills a fetch that was already paid for.
 
+**The billing routes are gateway-only.** `/billing/queue` and the settle/refund
+acks are a private channel between reel and axum-kbve — reaching them from the
+edge would let any signed-in user mark their own fetch paid for zero credits. The
+proxy refuses to forward any path containing a `billing` segment (404, so the
+edge does not even confirm the route exists), and a POST to any spelling of the
+add route that misses the billed handler (`torrents/`, `torrents//`) is refused
+the same way. Media tokens are playback credentials that ride in cookies and
+query strings, so they are **read-only**: adding, deleting, transcoding and
+touching all require a real dashboard session.
+
 **Who moves the credits.** Reel never touches the wallet. It records the payer
 and exposes `GET /billing/queue` (what is owed) plus
 `POST /torrents/{id}/billing/settle` and `/billing/refunded` (what was paid).
