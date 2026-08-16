@@ -27,6 +27,8 @@
 		"language": "Language",
 		"preset": "Preset",
 		"quality": "Quality",
+		"bisect": "Hide Layers",
+		"bisect_hint": "Hides parts of the world one at a time, so you can see what the frame is being spent on.",
 		"ground_detail": "Ground Detail",
 		"resolution": "Resolution",
 		"shadows": "Shadows",

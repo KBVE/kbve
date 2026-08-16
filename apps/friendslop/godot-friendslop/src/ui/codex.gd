@@ -29,6 +29,24 @@ var _families: Array[String] = []
 var _clips: Array[String] = []
 ## Which clips the rig actually puts on a body, and to what end.
 var _usage: Dictionary = {}
+
+var _from_pick: OptionButton
+var _to_pick: OptionButton
+var _cross_run: Button
+## States in the order the two pickers offer them.
+var _cross_states: Array[StringName] = []
+## A crossing under way: how long it has run, the states it has actually passed through,
+## and whether any of it was a cross-fade rather than a cut.
+var _crossing := false
+var _cross_t := 0.0
+var _cross_route: Array[String] = []
+## The route the machine planned, as against the one that was seen frame by frame.
+var _cross_plan: Array[String] = []
+## Set between dropping into `from` and asking for the travel, which is a frame later.
+var _cross_pending := false
+var _cross_faded := false
+var _cross_target: StringName = &""
+var _cross_lines: Array = []
 var _weapon_pick: OptionButton
 var _scrub: HSlider
 var _speed: HSlider
@@ -166,6 +184,22 @@ func _build_side() -> void:
 	_pitch_fix = _add_slider(side, "pitch fix", -PI * 0.5, PI * 0.5, 0.0)
 	_pitch_fix.value_changed.connect(func(_v: float) -> void: _apply_fix())
 
+	## Crossing from one state to another is the half of the rig that cannot be seen by
+	## looking at clips one at a time, and it is where every animation bug so far has
+	## actually lived: a route that does not exist, a clip that outstays its window.
+	_from_pick = OptionButton.new()
+	_to_pick = OptionButton.new()
+	for state in CharacterRig.STATES:
+		_from_pick.add_item(String(state))
+		_to_pick.add_item(String(state))
+		_cross_states.append(state)
+	side.add_child(_from_pick)
+	side.add_child(_to_pick)
+	_cross_run = Button.new()
+	_cross_run.text = "cross from -> to"
+	_cross_run.pressed.connect(_run_cross)
+	side.add_child(_cross_run)
+
 	_footik = _add_toggle(side, "foot IK", true, _set_footik)
 	_slope = _add_slider(side, "ground slope deg", 0.0, 40.0, 0.0)
 	_slope.value_changed.connect(func(_v: float) -> void: _set_slope())
@@ -186,7 +220,7 @@ func _build_side() -> void:
 	side.add_child(back)
 
 	_controls = [_walking, _speed, _heading, _family_pick, _clip_pick, _scrub, _weapon_pick,
-			_footik, _slope, _slope_face]
+			_from_pick, _to_pick, _cross_run, _footik, _slope, _slope_face]
 	_fixes = [_yaw_fix, _pitch_fix]
 
 
@@ -229,6 +263,8 @@ func _load(index: int) -> void:
 		return
 	_entry = _entries[index]
 	_rig = null
+	_crossing = false
+	_cross_lines = []
 	if _subject:
 		_subject.queue_free()
 		_subject = null
@@ -362,6 +398,76 @@ func _pick_family(index: int) -> void:
 			_report()
 
 
+## Drops the rig into `from` outright, then asks it to travel to `to` and watches what it
+## actually does about it. The interesting answer is not that it arrives -- it is which
+## way round it went, how long that took, and whether any of it cross-faded: a travel
+## with no route hard-cuts, which looks the same in a still and nothing like it in motion.
+func _run_cross() -> void:
+	if _rig == null or _rig.tree == null:
+		return
+	var from: StringName = _cross_states[_from_pick.selected] if _from_pick.selected >= 0 \
+			else &"move"
+	_cross_target = _cross_states[_to_pick.selected] if _to_pick.selected >= 0 else &"move"
+	## The tree has to be driving for a travel to mean anything, but the locomotion feed
+	## is suspended while watching so the stance does not travel out from under the test.
+	if not _walking.button_pressed:
+		_walking.button_pressed = true
+	var playback: AnimationNodeStateMachinePlayback = _rig.tree.get("parameters/playback")
+	## Dropped into `from` now and travelled next frame: a travel asked for in the same
+	## frame as the start is worked out from the node being left, not the one being
+	## started, and comes back with no route at all.
+	playback.start(from)
+	_cross_plan = []
+	_cross_pending = true
+	_crossing = true
+	_cross_t = 0.0
+	_cross_faded = false
+	_cross_route = [String(from)]
+	_cross_lines = []
+	_report()
+
+
+const CROSS_TIMEOUT := 4.0
+
+
+func _watch_cross(delta: float) -> void:
+	var playback: AnimationNodeStateMachinePlayback = _rig.tree.get("parameters/playback")
+	if _cross_pending:
+		_cross_pending = false
+		playback.travel(_cross_target)
+		return
+	## The route is worked out a tick after it is asked for, so the first non-empty path
+	## seen is the plan. Sampling the current node instead would miss hops passed through
+	## inside one frame, and a plan that never fills is the tell for a state the machine
+	## could not reach -- which it hard-cuts to rather than refusing.
+	if _cross_plan.is_empty():
+		for hop in playback.get_travel_path():
+			_cross_plan.append(String(hop))
+	_cross_t += delta
+	var at := String(playback.get_current_node())
+	if _cross_route.is_empty() or _cross_route[-1] != at:
+		_cross_route.append(at)
+	if playback.get_fading_length() > 0.0:
+		_cross_faded = true
+	var arrived := at == String(_cross_target) and playback.get_travel_path().is_empty()
+	if not arrived and _cross_t < CROSS_TIMEOUT:
+		return
+	_crossing = false
+	_cross_lines = ["", "[b]cross %s[/b]" % " -> ".join(_cross_route),
+			"planned: %s" % (" -> ".join(_cross_plan) if not _cross_plan.is_empty() else "(none)"),
+			"took %.2fs" % _cross_t]
+	if not arrived:
+		_cross_lines.append("[color=#ff6a6a]never arrived at '%s'[/color]" % _cross_target)
+	elif not _cross_faded and _cross_route[0] != String(_cross_target):
+		## Arrived with nothing ever blending. A chain of immediate hops empties its
+		## travel path inside one frame, so the path is no test -- but a real route always
+		## fades through, and a state the machine could not reach is started outright.
+		_cross_lines.append("[color=#ff9a5a]hard cut -- nothing blended[/color]")
+	else:
+		_cross_lines.append("[color=#8fdc7a]cross-faded[/color]")
+	_report()
+
+
 func _set_walking(on: bool) -> void:
 	if _rig and _rig.tree:
 		_rig.tree.active = on
@@ -463,6 +569,7 @@ func _report() -> void:
 		lines.append("model_yaw_fix = %.2f\nmodel_pitch_fix = %.2f" % [
 				_yaw_fix.value, _pitch_fix.value])
 	lines.append_array(_clip_report())
+	lines.append_array(_cross_lines)
 	_info.text = "\n".join(lines)
 
 
@@ -524,6 +631,14 @@ func _process(delta: float) -> void:
 	if _spinning and _spinning.button_pressed and _pivot:
 		_pivot.rotation.y += 0.008
 	if _rig == null:
+		return
+	## A crossing owns the state machine for as long as it runs, so the locomotion feed
+	## does not travel the rig back to its stance halfway through the test.
+	if _crossing:
+		if _rig.tree:
+			_watch_cross(delta)
+		else:
+			_crossing = false
 		return
 	if _walking.button_pressed and _rig.has_method("set_locomotion"):
 		var speed: float = _speed.value

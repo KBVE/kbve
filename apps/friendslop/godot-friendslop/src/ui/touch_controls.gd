@@ -17,10 +17,27 @@ const MOVE_ACTIONS := {
 
 ## Anchors are fractions of the viewport so the layout survives rotation and differing
 ## device aspects.
+## Authored against a 720-tall viewport and scaled from there, so a small phone gets the
+## same layout rather than the same pixel counts -- an offset of 430 from the bottom edge
+## is a comfortable reach on a tablet and off the top of a short screen.
+const LAYOUT_HEIGHT := 720.0
+const LAYOUT_SCALE_RANGE := Vector2(0.55, 1.5)
+
+## An empty action is a tap the HUD handles itself rather than one it holds a key down
+## for: nothing in the input map opens the menu, and a phone has no Escape to press.
+##
+## Held actions need no special case -- crouch, block and harvest all last exactly as long
+## as the finger does, which is what the press/release pair already gives them.
 const BUTTONS := [
-	{"action": "jump", "label": "JUMP", "anchor": Vector2(1.0, 1.0), "offset": Vector2(-200.0, -430.0), "radius": 74.0},
+	{"action": "jump", "label": "JUMP", "anchor": Vector2(1.0, 1.0), "offset": Vector2(-110.0, -150.0), "radius": 64.0},
+	{"action": "harvest", "label": "HIT", "anchor": Vector2(1.0, 1.0), "offset": Vector2(-245.0, -195.0), "radius": 58.0},
+	{"action": "interact", "label": "USE", "anchor": Vector2(1.0, 1.0), "offset": Vector2(-125.0, -290.0), "radius": 58.0},
+	{"action": "crouch", "label": "DUCK", "anchor": Vector2(1.0, 1.0), "offset": Vector2(-375.0, -140.0), "radius": 54.0},
+	{"action": "roll", "label": "ROLL", "anchor": Vector2(1.0, 1.0), "offset": Vector2(-268.0, -340.0), "radius": 54.0},
+	{"action": "block", "label": "GUARD", "anchor": Vector2(1.0, 1.0), "offset": Vector2(-400.0, -280.0), "radius": 54.0},
+	{"action": "inventory", "label": "BAG", "anchor": Vector2(1.0, 0.0), "offset": Vector2(-90.0, 310.0), "radius": 48.0},
 	{"action": "debug_hud", "label": "HUD", "anchor": Vector2(1.0, 0.0), "offset": Vector2(-90.0, 90.0), "radius": 48.0},
-	{"action": "", "label": "BISECT", "anchor": Vector2(1.0, 0.0), "offset": Vector2(-90.0, 200.0), "radius": 48.0},
+	{"action": "", "label": "MENU", "anchor": Vector2(1.0, 0.0), "offset": Vector2(-90.0, 200.0), "radius": 48.0},
 ]
 
 var look_delta := Vector2.ZERO
@@ -54,15 +71,27 @@ func _process(delta: float) -> void:
 	look_delta += _stick_vector(_look) * LOOK_RATE * delta
 
 
+func _ui_scale() -> float:
+	if size.y <= 0.0:
+		return 1.0
+	return clampf(size.y / LAYOUT_HEIGHT, LAYOUT_SCALE_RANGE.x, LAYOUT_SCALE_RANGE.y)
+
+
 func _button_center(button: Dictionary) -> Vector2:
-	return size * button.anchor + button.offset
+	return size * button.anchor + button.offset * _ui_scale()
+
+
+func _button_radius(button: Dictionary) -> float:
+	return button.radius * _ui_scale()
 
 
 func _stick_vector(stick: Dictionary) -> Vector2:
+	var scale := _ui_scale()
 	var offset: Vector2 = stick.position - stick.origin
-	if offset.length() <= STICK_DEADZONE:
+	if offset.length() <= STICK_DEADZONE * scale:
 		return Vector2.ZERO
-	return offset.limit_length(STICK_RADIUS) / STICK_RADIUS
+	var reach := STICK_RADIUS * scale
+	return offset.limit_length(reach) / reach
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -77,11 +106,11 @@ func _unhandled_input(event: InputEvent) -> void:
 
 func _begin_touch(index: int, position: Vector2) -> void:
 	for button in BUTTONS:
-		if position.distance_to(_button_center(button)) <= button.radius:
+		if position.distance_to(_button_center(button)) <= _button_radius(button):
 			if button.action == "":
-				var main := get_tree().current_scene
-				if main and main.has_method("cycle_bisect"):
-					main.cycle_bisect()
+				for menu in get_tree().get_nodes_in_group(&"pause_menu"):
+					menu.toggle()
+					break
 				return
 			if _button_fingers.values().has(button.action):
 				return
@@ -142,24 +171,31 @@ func _release_move_actions() -> void:
 
 
 func _draw_stick(stick: Dictionary, idle_center: Vector2) -> void:
+	var scale := _ui_scale()
+	var reach := STICK_RADIUS * scale
+	var knob_r := KNOB_RADIUS * scale
 	if stick.finger == -1:
-		draw_arc(idle_center, STICK_RADIUS, 0.0, TAU, 48, Color(1.0, 1.0, 1.0, 0.12), 3.0)
-		draw_circle(idle_center, KNOB_RADIUS, Color(1.0, 1.0, 1.0, 0.10))
+		draw_arc(idle_center, reach, 0.0, TAU, 48, Color(1.0, 1.0, 1.0, 0.12), 3.0)
+		draw_circle(idle_center, knob_r, Color(1.0, 1.0, 1.0, 0.10))
 		return
-	draw_arc(stick.origin, STICK_RADIUS, 0.0, TAU, 48, Color(1.0, 1.0, 1.0, 0.30), 3.0)
-	var knob: Vector2 = stick.origin + (stick.position - stick.origin).limit_length(STICK_RADIUS)
-	draw_circle(knob, KNOB_RADIUS, Color(1.0, 1.0, 1.0, 0.35))
+	draw_arc(stick.origin, reach, 0.0, TAU, 48, Color(1.0, 1.0, 1.0, 0.30), 3.0)
+	var knob: Vector2 = stick.origin + (stick.position - stick.origin).limit_length(reach)
+	draw_circle(knob, knob_r, Color(1.0, 1.0, 1.0, 0.35))
 
 
 func _draw() -> void:
 	var font := ThemeDB.fallback_font
+	var scale := _ui_scale()
+	var font_size := int(round(22.0 * scale))
 	for button in BUTTONS:
 		var center := _button_center(button)
-		var held := _button_fingers.values().has(button.action)
-		draw_circle(center, button.radius, Color(1.0, 1.0, 1.0, 0.22 if held else 0.10))
-		draw_arc(center, button.radius, 0.0, TAU, 40, Color(1.0, 1.0, 1.0, 0.35), 3.0)
-		var width := font.get_string_size(button.label, HORIZONTAL_ALIGNMENT_LEFT, -1, 22).x
-		draw_string(font, center + Vector2(-width * 0.5, 8.0), button.label,
-				HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(1.0, 1.0, 1.0, 0.75))
-	_draw_stick(_move, Vector2(200.0, size.y - 200.0))
-	_draw_stick(_look, Vector2(size.x - 200.0, size.y - 200.0))
+		var radius := _button_radius(button)
+		var held := button.action != "" and _button_fingers.values().has(button.action)
+		draw_circle(center, radius, Color(1.0, 1.0, 1.0, 0.22 if held else 0.10))
+		draw_arc(center, radius, 0.0, TAU, 40, Color(1.0, 1.0, 1.0, 0.35), 3.0)
+		var width := font.get_string_size(button.label, HORIZONTAL_ALIGNMENT_LEFT, -1, font_size).x
+		draw_string(font, center + Vector2(-width * 0.5, font_size * 0.36), button.label,
+				HORIZONTAL_ALIGNMENT_LEFT, -1, font_size, Color(1.0, 1.0, 1.0, 0.75))
+	var inset := 200.0 * scale
+	_draw_stick(_move, Vector2(inset, size.y - inset))
+	_draw_stick(_look, Vector2(size.x - inset, size.y - inset))

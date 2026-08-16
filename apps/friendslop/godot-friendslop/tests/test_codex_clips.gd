@@ -119,3 +119,77 @@ func test_the_codex_offers_the_clips_a_family_at_a_time() -> void:
 			assert_str(Codex._family_of(clip)).is_equal("Crouch")
 
 	codex.queue_free()
+
+
+## The crossing view is the only place the transitions themselves can be looked at, and
+## every animation bug so far has lived in one. So it has to report what actually happened
+## rather than that it arrived: a travel with no route hard-cuts, which is invisible in a
+## still and unmistakable in motion.
+func test_the_codex_crosses_between_states() -> void:
+	var codex: Node = Codex.new()
+	add_child(codex)
+	await get_tree().process_frame
+	assert_object(codex._rig).is_not_null()
+	assert_object(codex._rig.tree).is_not_null()
+
+	## Every state the rig has is offered on both sides of the crossing.
+	assert_int(codex._cross_states.size()).is_equal(Rig.STATES.size())
+
+	var route := await _cross(codex, &"move", &"jump")
+	assert_str(route[0]).is_equal("move")
+	assert_str(route[-1]).is_equal("jump")
+	## A chain of immediate hops empties its travel path inside a single frame, so the
+	## path is no test of whether a route existed. Blending is: a real route always fades
+	## through, and a state the machine cannot reach is started outright with no fade.
+	assert_bool(codex._cross_faded) \
+			.override_failure_message("move -> jump never blended, so it hard-cut; plan was %s"
+				% str(codex._cross_plan)).is_true()
+
+	## A crossing that has to go the long way round still gets there, and says so.
+	var back := await _cross(codex, &"jump", &"move")
+	assert_str(back[-1]).is_equal("move")
+	assert_bool(codex._crossing).is_false()
+	codex.queue_free()
+
+
+## Runs one crossing to completion and answers the route it took.
+func _cross(codex: Node, from: StringName, to: StringName) -> Array:
+	codex._from_pick.selected = codex._cross_states.find(from)
+	codex._to_pick.selected = codex._cross_states.find(to)
+	codex._run_cross()
+	assert_bool(codex._crossing).is_true()
+	## The codex is in the tree, so its own _process drives the crossing; this only waits.
+	var guard := 0
+	while codex._crossing and guard < 600:
+		guard += 1
+		await get_tree().process_frame
+	assert_bool(codex._crossing) \
+			.override_failure_message("crossing %s -> %s never settled" % [from, to]).is_false()
+	return codex._cross_route
+
+
+## Sweeps every state the rig can be asked for, from move, and reports the ones that get
+## there without blending. This is the shape the disabled-transition bug took: the graph
+## looked complete, every xfade was set, and travel quietly hard-cut because no route
+## existed. One crossing proves the machinery; only the sweep proves the graph.
+func test_every_state_can_be_crossed_into_from_move() -> void:
+	var codex: Node = Codex.new()
+	add_child(codex)
+	await get_tree().process_frame
+
+	var cut: Array = []
+	var stranded: Array = []
+	for state in codex._cross_states:
+		if state == &"move":
+			continue
+		await _cross(codex, &"move", state)
+		if codex._cross_route[-1] != String(state):
+			stranded.append(String(state))
+		elif not codex._cross_faded:
+			cut.append(String(state))
+	codex.queue_free()
+
+	assert_array(stranded) \
+			.override_failure_message("move never reaches: %s" % str(stranded)).is_empty()
+	assert_array(cut) \
+			.override_failure_message("move hard-cuts into: %s" % str(cut)).is_empty()

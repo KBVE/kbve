@@ -22,6 +22,7 @@ Game="*res://src/autoload/game.gd"
 Journal="*res://src/autoload/journal.gd"
 Auth="*res://src/autoload/auth_session.gd"
 ViewGlobals="*res://src/autoload/view_globals.gd"
+Toast="*res://src/autoload/toast.gd"
 
 [display]
 

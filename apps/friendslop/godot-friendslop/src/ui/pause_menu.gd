@@ -54,7 +54,11 @@ func _open_codex_on_start() -> void:
 	_open_codex()
 
 
+const GROUP := &"pause_menu"
+
+
 func _ready() -> void:
+	add_to_group(GROUP)
 	_open_codex_on_start.call_deferred()
 	layer = 120
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -242,6 +246,8 @@ func _build_graphics() -> void:
 			func(i: int) -> void: _gfx.apply_preset(i),
 			_gfx.TIERS.size())
 
+	_add_bisect(right)
+
 	if _touch:
 		_page_back(right)
 		return
@@ -419,6 +425,22 @@ func _switch_locale(index: int) -> void:
 	get_tree().reload_current_scene()
 
 
+## Hiding the world a layer at a time, to find what a slow device is actually spending
+## its frame on. It lived on the touch HUD as a button of its own, which cost a permanent
+## slot on the one screen with the least room for one; here it is reachable on every
+## platform and costs nothing when unused.
+func _add_bisect(page: MenuPage) -> void:
+	var main := get_tree().current_scene
+	if main == null or not main.has_method("set_bisect"):
+		return
+	page.add_cycler(I18n.t("settings.bisect"),
+			func() -> Array: return main.bisect_names(),
+			func() -> int: return main.bisect_step,
+			func(i: int) -> void: main.set_bisect(i),
+			main.BISECT_STEPS.size(),
+			I18n.t("settings.bisect_hint"))
+
+
 func _page_back(page: MenuPage) -> PaperButton:
 	return page.add_button(I18n.t("action.back"), func() -> void: _show(_settings_panel))
 
@@ -518,6 +540,16 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
+## The same thing Escape does, for anything that has no Escape to press.
+func toggle() -> void:
+	if _root == null:
+		return
+	if _root.visible:
+		_close()
+	else:
+		_open()
+
+
 func is_open() -> bool:
 	return _root != null and _root.visible
 
@@ -614,6 +646,10 @@ func _set_crosshair(shown: bool) -> void:
 	var hud := get_parent().get_node_or_null("Crosshair") if get_parent() else null
 	if hud:
 		hud.visible = shown and (_play == null or _play.crosshair)
+	# The sticks go with it. They sit under the book but still take drags, so leaving them
+	# up means a thumb reaching for a page walks the player around behind it.
+	for pad in get_tree().get_nodes_in_group(&"touch_controls"):
+		pad.visible = shown and MenuStyle.touch
 
 
 func _show(panel: Control) -> void:
