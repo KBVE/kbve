@@ -10,6 +10,7 @@ pub mod discord;
 pub mod discord_conversation;
 pub mod helpers;
 pub mod input;
+pub mod iot;
 pub mod local_llm;
 pub mod local_tts;
 pub mod managers;
@@ -380,6 +381,11 @@ fn specta_builder() -> Builder<tauri::Wry> {
         commands::devops::cleanup_orphaned_containers,
         commands::devops::check_claude_auth_volume,
         commands::devops::launch_claude_auth_setup,
+        commands::iot::iot_scan,
+        commands::iot::iot_connect,
+        commands::iot::iot_disconnect,
+        commands::iot::iot_snapshot,
+        commands::iot::iot_set_backlight,
     ])
 }
 
@@ -447,7 +453,8 @@ pub fn run() {
             ));
     }
 
-    app.manage(auth::init())
+    app.manage(iot::BleSession::new())
+        .manage(auth::init())
         .setup(|app| {
             let handle = app.handle().clone();
             let manager = Arc::new(ViewManager::new(handle));

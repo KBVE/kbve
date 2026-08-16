@@ -99,6 +99,9 @@ rdev = { git = "https://github.com/rustdesk-org/rdev" }
 # Model download + extraction + assorted helpers.
 reqwest = { version = "0.13", features = ["json", "stream", "blocking"] }
 futures-util = "0.3"
+btleplug = "0.12"
+futures = "0.3"
+uuid = { version = "1", features = ["v4", "macro-diagnostics"] }
 tar = "0.4.44"
 flate2 = "1.0"
 anyhow = "1.0"

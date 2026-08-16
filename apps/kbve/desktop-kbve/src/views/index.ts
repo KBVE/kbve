@@ -13,6 +13,7 @@ import { AudioView } from './audio';
 import { ModelsView } from './models';
 import { DevOpsView } from './devops';
 import { DiscordView } from './discord';
+import { IotView } from './iot';
 
 // Loaded on demand: pulls the whole @kbve/rn (react-native-web) stack, which
 // should never gate app boot — a load failure renders an inline notice
@@ -84,6 +85,12 @@ export function initViews() {
 		label: 'Discord',
 		icon: createElement(IconUser),
 		component: DiscordView,
+	});
+	registerView({
+		id: 'iot',
+		label: 'IoT',
+		icon: createElement(IconCpu),
+		component: IotView,
 	});
 	registerView({
 		id: 'devops',
