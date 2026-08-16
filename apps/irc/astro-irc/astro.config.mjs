@@ -5,7 +5,7 @@ import react from '@astrojs/react';
 import worker from '@astropub/worker';
 import sitemap from '@astrojs/sitemap';
 import { fileURLToPath } from 'node:url';
-import { createSitemapLastmod } from '../../../tools/astro/sitemap-lastmod.mjs';
+import { createSitemapLastmod } from '../../../packages/npm/astro/sitemap/lastmod.mjs';
 
 
 export default defineConfig({

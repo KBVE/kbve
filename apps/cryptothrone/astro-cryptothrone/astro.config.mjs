@@ -4,7 +4,7 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import { fileURLToPath } from 'node:url';
-import { createSitemapLastmod } from '../../../tools/astro/sitemap-lastmod.mjs';
+import { createSitemapLastmod } from '../../../packages/npm/astro/sitemap/lastmod.mjs';
 import istanbul from 'vite-plugin-istanbul';
 
 const coverage = process.env.COVERAGE === '1';

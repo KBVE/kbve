@@ -10,7 +10,7 @@ import { unified } from '@astrojs/markdown-remark';
 import rehypeLinkAttrs from './src/lib/rehype-link-attrs.mjs';
 import remarkMermaidBaked from './src/lib/remark-mermaid-baked.mjs';
 import { isIndexableUrl } from './src/lib/noindex-routes.mjs';
-import { createSitemapLastmod } from '../../../tools/astro/sitemap-lastmod.mjs';
+import { createSitemapLastmod } from '../../../packages/npm/astro/sitemap/lastmod.mjs';
 import { readFileSync } from 'node:fs';
 import https from 'node:https';
 import { fileURLToPath } from 'node:url';
@@ -60,7 +60,6 @@ function dashProxyDevIntegration() {
 		},
 	};
 }
-import { fileURLToPath } from 'node:url';
 
 // Inlined into <head> so it runs before the (edge-injected, async) ad script.
 // Neutralizes malvertising forced redirects without removing AdSense.
