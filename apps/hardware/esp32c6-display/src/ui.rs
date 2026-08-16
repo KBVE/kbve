@@ -13,6 +13,7 @@ const GLYPH_WIDTH: i32 = 10;
 const BASELINE: i32 = 20;
 const MARGIN: i32 = 8;
 const LINE_HEIGHT: i32 = 24;
+const ROW_Y: i32 = HEADER_HEIGHT as i32 + LINE_HEIGHT * 3;
 
 fn centred(text: &str) -> i32 {
     (PANEL_WIDTH as i32 - text.len() as i32 * GLYPH_WIDTH) / 2
@@ -44,4 +45,59 @@ where
     }
 
     Ok(())
+}
+
+pub fn backlight_row<D>(target: &mut D, pct: u8, presses: u32) -> Result<(), D::Error>
+where
+    D: DrawTarget<Color = Rgb565>,
+{
+    let mut text = [b' '; 16];
+    let written = render_row(&mut text, pct, presses);
+
+    Rectangle::new(
+        Point::new(0, ROW_Y - LINE_HEIGHT),
+        Size::new(PANEL_WIDTH as u32, LINE_HEIGHT as u32 + 8),
+    )
+    .into_styled(PrimitiveStyle::with_fill(Rgb565::BLACK))
+    .draw(target)?;
+
+    Text::new(
+        written,
+        Point::new(MARGIN, ROW_Y),
+        MonoTextStyle::new(&FONT_10X20, Rgb565::CSS_ORANGE),
+    )
+    .draw(target)?;
+
+    Ok(())
+}
+
+fn render_row(buffer: &mut [u8; 16], pct: u8, presses: u32) -> &str {
+    let mut at = 0;
+    at += write_u32(&mut buffer[at..], pct as u32);
+    buffer[at] = b'%';
+    at += 1;
+    buffer[at] = b' ';
+    at += 1;
+    buffer[at] = b'x';
+    at += 1;
+    at += write_u32(&mut buffer[at..], presses);
+
+    core::str::from_utf8(&buffer[..at]).unwrap_or("?")
+}
+
+fn write_u32(out: &mut [u8], mut value: u32) -> usize {
+    let mut digits = [0u8; 10];
+    let mut count = 0;
+    loop {
+        digits[count] = b'0' + (value % 10) as u8;
+        count += 1;
+        value /= 10;
+        if value == 0 {
+            break;
+        }
+    }
+    for i in 0..count {
+        out[i] = digits[count - 1 - i];
+    }
+    count
 }

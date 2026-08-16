@@ -2,6 +2,7 @@
 #![no_main]
 
 mod board;
+mod input;
 mod ui;
 
 use embedded_hal_bus::spi::ExclusiveDevice;
@@ -9,7 +10,7 @@ use esp_backtrace as _;
 use esp_hal::{
     clock::CpuClock,
     delay::Delay,
-    gpio::{DriveMode, Level, Output, OutputConfig},
+    gpio::{DriveMode, Input, InputConfig, Level, Output, OutputConfig, Pull},
     ledc::{
         LSGlobalClkSource, Ledc, LowSpeed,
         channel::{self, ChannelIFace},
@@ -32,13 +33,14 @@ use mipidsi::{
 };
 
 use board::{
-    BACKLIGHT_KHZ, BACKLIGHT_PCT, COLUMN_OFFSET, DRAW_BUFFER, PANEL_HEIGHT, PANEL_WIDTH,
-    ROW_OFFSET, SPI_MHZ,
+    BACKLIGHT_KHZ, BACKLIGHT_PCT, BACKLIGHT_STEPS, COLUMN_OFFSET, DRAW_BUFFER, HEARTBEAT_TICKS,
+    DEBOUNCE_SAMPLES, LONG_PRESS_TICKS, PANEL_HEIGHT, PANEL_WIDTH, POLL_MS, ROW_OFFSET,
+    SETTLE_TICKS, SPI_MHZ,
 };
+use input::{Button, Press};
 
 esp_bootloader_esp_idf::esp_app_desc!();
 
-const HEARTBEAT_MS: u32 = 1000;
 
 #[main]
 fn main() -> ! {
@@ -103,20 +105,61 @@ fn main() -> ! {
 
     let tsens = TemperatureSensor::new(peripherals.TSENS, TsensConfig::default()).ok();
 
+    let mut button = Button::new(
+        Input::new(peripherals.GPIO9, InputConfig::default().with_pull(Pull::Up)),
+        DEBOUNCE_SAMPLES,
+        LONG_PRESS_TICKS,
+        SETTLE_TICKS,
+    );
+
+    let mut step = BACKLIGHT_STEPS
+        .iter()
+        .position(|pct| *pct == BACKLIGHT_PCT)
+        .unwrap_or(0);
+    let mut presses: u32 = 0;
+    let mut blanked = false;
+    ui::backlight_row(&mut display, BACKLIGHT_STEPS[step], presses).expect("row");
+
     let mut ticks: u32 = 0;
     loop {
-        delay.delay_millis(HEARTBEAT_MS);
+        delay.delay_millis(POLL_MS);
         ticks += 1;
+
+        match button.poll() {
+            Some(Press::Short) => {
+                presses += 1;
+                blanked = false;
+                step = (step + 1) % BACKLIGHT_STEPS.len();
+                let pct = BACKLIGHT_STEPS[step];
+                backlight.set_duty(pct).expect("duty");
+                ui::backlight_row(&mut display, pct, presses).expect("row");
+                println!("[c6] short press {presses} backlight {pct}%");
+            }
+            Some(Press::Long) => {
+                blanked = !blanked;
+                let pct = if blanked { 0 } else { BACKLIGHT_STEPS[step] };
+                backlight.set_duty(pct).expect("duty");
+                println!("[c6] long press blanked {blanked}");
+            }
+            None => {}
+        }
+
+        if !ticks.is_multiple_of(HEARTBEAT_TICKS) {
+            continue;
+        }
+
+        let seconds = ticks / HEARTBEAT_TICKS;
         match tsens.as_ref() {
             Some(sensor) => {
                 let decicelsius = (sensor.get_temperature().to_celsius() * 10.0) as i32;
                 println!(
-                    "[c6] alive {ticks}s die {}.{}C",
+                    "[c6] alive {seconds}s die {}.{}C held {}",
                     decicelsius / 10,
-                    (decicelsius % 10).abs()
+                    (decicelsius % 10).abs(),
+                    button.is_down()
                 );
             }
-            None => println!("[c6] alive {ticks}s"),
+            None => println!("[c6] alive {seconds}s"),
         }
     }
 }
