@@ -1,0 +1,94 @@
+---
+title: 'Sable'
+template: splash
+sidebar:
+    label: 'Sable'
+    hidden: true
+description: |
+    Keeps the road on the ridge side of the Friendslop crossing and writes down who uses it. Will not say what she is recording for, and notices what you have already been told.
+ref: 'sable'
+id: '01KSAVZ00000000000000SABLE'
+name: 'Sable'
+type_flags: 1
+rarity: 'common'
+personality: 'mysterious'
+rank: 'normal'
+family: 'humanoid'
+level: 1
+role: 'Road Warden'
+tags:
+    - friendslop
+    - bridge
+    - talker
+dialogue_tree:
+    entry_node_id: 'greet'
+    nodes:
+        - id: 'greet'
+          text: 'Name goes in the book whether you give it or not. Easier if you give it.'
+          condition: '!seen:greet'
+          next_node_id: 'menu'
+        - id: 'greet_again'
+          text: "You're in the book already."
+          next_node_id: 'menu'
+        - id: 'menu'
+          text: 'Well.'
+          options:
+              - id: 'ask_book'
+                label: "What's the book for?"
+                next_node_id: 'book'
+              - id: 'ask_road'
+                label: 'Where does the road go?'
+                next_node_id: 'road'
+              - id: 'tell_bend'
+                label: "There's an old fish in the deep bend."
+                next_node_id: 'bend'
+                required_flags:
+                    - 'wren_named_the_bend'
+                    - '!sable_wrote_the_fish'
+              - id: 'ask_toll'
+                label: 'Marlow takes a toll for the bridge.'
+                next_node_id: 'toll'
+                required_flags:
+                    - 'marlow_toll_paid'
+              - id: 'leave'
+                label: '(Walk away.)'
+                next_node_id: 'farewell'
+        - id: 'book'
+          text: "Who crosses, and when, and which way. I don't decide what it's for. I only keep it accurate."
+          trigger_on_enter: 'set_flag:sable_showed_the_book'
+          next_node_id: 'menu'
+        - id: 'road'
+          text: 'Up the ridge, and then further than I have been. The mechs come down it and go back up it, so it goes somewhere.'
+          next_node_id: 'menu'
+        - id: 'bend'
+          text: "The forager told you that. She's the only one who says it out loud." 
+          trigger_on_enter: 'set_flag:sable_wrote_the_fish'
+          next_node_id: 'bend_written'
+        - id: 'bend_written'
+          text: 'It goes in the book. Most things do.'
+          next_node_id: 'menu'
+        - id: 'toll'
+          text: "He's kept that bridge standing on small coins for longer than the road has been worth walking. Say what you like about the toll."
+          next_node_id: 'menu'
+        - id: 'farewell'
+          text: 'Mind the ridge after dark.'
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+<Card title="Sable" icon="star">
+	The road warden on the ridge side, writing down who crosses and refusing to
+	say what for. She is the end of the chain: tell her what Wren told you about
+	the deep bend and she writes that down too.
+</Card>
+
+<CardGrid>
+	<Card title="Where" icon="map">
+		The ridge side of the Friendslop crossing, where the road meets the span.
+	</Card>
+	<Card title="Flags" icon="setting">
+		Reads `wren_named_the_bend` and `marlow_toll_paid` — so the chain runs
+		Marlow, then Wren, then Sable. Sets `sable_showed_the_book` and
+		`sable_wrote_the_fish`.
+	</Card>
+</CardGrid>

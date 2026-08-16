@@ -1,0 +1,117 @@
+extends GdUnitTestSuite
+
+## The character kit: every body the game can put an NPC in, and every hairstyle it can
+## put on one.
+##
+## These are imported assets rather than code, and the way they fail is quiet -- a body
+## whose skeleton was not retargeted loads, draws, and then stands in a T-pose while the
+## animation plays into bones that are not there.
+
+const CharacterRig := preload("res://src/characters/character_rig.gd")
+
+const BODY_DIR := "res://assets/characters/quaternius_ubc/models"
+const HAIR_DIR := "res://assets/characters/quaternius_ubc/models/hair"
+const UAL1 := "res://assets/characters/quaternius_ubc/animations/UAL1.glb"
+const UAL2 := "res://assets/characters/quaternius_ubc/animations/UAL2.glb"
+
+const BODIES := [
+	"Regular_Male_FullBody",
+	"Regular_Female_FullBody",
+	"Teen_Male_FullBody",
+	"Teen_Female_FullBody",
+]
+const HAIR := ["Hair_Ponytail", "Hair_SimpleParted", "Hair_Beard", "Hair_Bob", "Hair_Long"]
+
+## Bones the retarget renames things to. An unmapped skeleton keeps the kit's own names
+## and none of these are present.
+const RETARGETED := ["Hips", "Spine", "Head", "LeftHand", "RightHand", "LeftFoot", "RightFoot"]
+
+
+func test_every_body_in_the_kit_loads() -> void:
+	for body: String in BODIES:
+		assert_object(load("%s/%s.glb" % [BODY_DIR, body])) \
+				.override_failure_message("%s did not load" % body).is_not_null()
+
+
+func test_every_hairstyle_in_the_kit_loads() -> void:
+	for hair: String in HAIR:
+		assert_object(load("%s/%s.glb" % [HAIR_DIR, hair])) \
+				.override_failure_message("%s did not load" % hair).is_not_null()
+
+
+## The failure this is really here for: a body imported without the bone map keeps its own
+## bone names, so the shared animations drive nothing and it stands there in its T-pose.
+func test_every_body_was_retargeted_onto_the_shared_skeleton() -> void:
+	for body: String in BODIES:
+		var scene: PackedScene = load("%s/%s.glb" % [BODY_DIR, body])
+		var instance: Node3D = scene.instantiate()
+		auto_free(instance)
+		var skeleton := _skeleton(instance)
+		assert_object(skeleton) \
+				.override_failure_message("%s has no Skeleton3D" % body).is_not_null()
+		for bone: String in RETARGETED:
+			assert_int(skeleton.find_bone(bone)) \
+					.override_failure_message("%s was not retargeted -- no '%s' bone" % [body, bone]) \
+					.is_greater_equal(0)
+
+
+## Hair is parented to a head bone by name, so it has to have been retargeted too or it
+## sits at the character's feet.
+func test_every_hairstyle_was_retargeted() -> void:
+	for hair: String in HAIR:
+		var scene: PackedScene = load("%s/%s.glb" % [HAIR_DIR, hair])
+		var instance: Node3D = scene.instantiate()
+		auto_free(instance)
+		var skeleton := _skeleton(instance)
+		assert_object(skeleton) \
+				.override_failure_message("%s has no Skeleton3D" % hair).is_not_null()
+		assert_int(skeleton.find_bone("Head")) \
+				.override_failure_message("%s was not retargeted -- no 'Head' bone" % hair) \
+				.is_greater_equal(0)
+
+
+## Every body has to take the same animations, since that is the whole point of one kit:
+## a new NPC is a new body and nothing else.
+func test_every_body_takes_the_shared_animations() -> void:
+	for body: String in BODIES:
+		var rig := CharacterRig.new()
+		rig.body = load("%s/%s.glb" % [BODY_DIR, body])
+		rig.animation_sources = [load(UAL1), load(UAL2)]
+		rig.default_animation = CharacterRig.IDLE_CLIP
+		add_child(rig)
+		auto_free(rig)
+		await get_tree().process_frame
+
+		assert_object(rig.animation) \
+				.override_failure_message("%s got no AnimationPlayer" % body).is_not_null()
+		assert_bool(rig.animation.has_animation(CharacterRig.IDLE_CLIP)) \
+				.override_failure_message("%s cannot play %s" % [body, CharacterRig.IDLE_CLIP]) \
+				.is_true()
+
+
+## A body with no mesh is a body that loaded and drew nothing, which reads in game as an
+## NPC who is not there.
+func test_every_body_has_something_to_draw() -> void:
+	for body: String in BODIES:
+		var instance: Node3D = (load("%s/%s.glb" % [BODY_DIR, body]) as PackedScene).instantiate()
+		auto_free(instance)
+		var meshes := _meshes(instance)
+		assert_int(meshes) \
+				.override_failure_message("%s has no mesh" % body).is_greater(0)
+
+
+func _skeleton(node: Node) -> Skeleton3D:
+	if node is Skeleton3D:
+		return node
+	for child in node.get_children():
+		var found := _skeleton(child)
+		if found:
+			return found
+	return null
+
+
+func _meshes(node: Node) -> int:
+	var count := 1 if node is MeshInstance3D else 0
+	for child in node.get_children():
+		count += _meshes(child)
+	return count

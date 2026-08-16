@@ -42,6 +42,12 @@
 [ext_resource type="Material" path="res://assets/fx/shaders/underwater.tres" id="42_underwatermat"]
 [ext_resource type="Material" path="res://assets/environment/props/fauna/lizardfish/fish_shadow.tres" id="43_fishshadowmat"]
 [ext_resource type="Script" uid="uid://bp4pechs6f5jn" path="res://src/npc/npc_actor.gd" id="44_npc"]
+[ext_resource type="PackedScene" uid="uid://doginm5pvgqgn" path="res://assets/characters/quaternius_ubc/models/Regular_Female_FullBody.glb" id="45_bodyf"]
+[ext_resource type="PackedScene" uid="uid://bo841d2rhghde" path="res://assets/characters/quaternius_ubc/models/Teen_Male_FullBody.glb" id="46_bodytm"]
+[ext_resource type="PackedScene" uid="uid://d3o1qblug6mvm" path="res://assets/characters/quaternius_ubc/models/Teen_Female_FullBody.glb" id="47_bodytf"]
+[ext_resource type="PackedScene" uid="uid://bdttr5tlljv6k" path="res://assets/characters/quaternius_ubc/models/hair/Hair_Bob.glb" id="48_hairbob"]
+[ext_resource type="PackedScene" uid="uid://cnd82iitivl2c" path="res://assets/characters/quaternius_ubc/models/hair/Hair_SimpleParted.glb" id="49_hairparted"]
+[ext_resource type="PackedScene" uid="uid://dkytmuel7r634" path="res://assets/characters/quaternius_ubc/models/hair/Hair_Long.glb" id="50_hairlong"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(1024, 1024)
@@ -254,6 +260,48 @@ skin_color = Color(0.94, 0.83, 0.72, 1)
 hair_color = Color(0.16, 0.13, 0.11, 1)
 stand_under_bridge = true
 
+[node name="Wren" type="Node3D" parent="." unique_id=18600842]
+script = ExtResource("44_npc")
+npc_ref = "wren"
+terrain_path = NodePath("../Terrain")
+body = ExtResource("45_bodyf")
+attachments = Array[PackedScene]([ExtResource("48_hairbob")])
+animation_sources = Array[PackedScene]([ExtResource("36_ual1"), ExtResource("37_ual2")])
+idle_animation = "UAL1/Idle_LookAround"
+skin_color = Color(0.82, 0.66, 0.52, 1)
+hair_color = Color(0.35, 0.22, 0.1, 1)
+stand_under_bridge = true
+bridge_offset = -3.2
+bridge_along = 12.0
+
+[node name="Tam" type="Node3D" parent="." unique_id=18600843]
+script = ExtResource("44_npc")
+npc_ref = "tam"
+terrain_path = NodePath("../Terrain")
+body = ExtResource("46_bodytm")
+attachments = Array[PackedScene]([ExtResource("49_hairparted")])
+animation_sources = Array[PackedScene]([ExtResource("36_ual1"), ExtResource("37_ual2")])
+idle_animation = "UAL1/Idle_LookAround"
+skin_color = Color(0.9, 0.76, 0.63, 1)
+hair_color = Color(0.09, 0.07, 0.06, 1)
+stand_under_bridge = true
+bridge_offset = 3.0
+bridge_along = -10.0
+
+[node name="Sable" type="Node3D" parent="." unique_id=18600844]
+script = ExtResource("44_npc")
+npc_ref = "sable"
+terrain_path = NodePath("../Terrain")
+body = ExtResource("47_bodytf")
+attachments = Array[PackedScene]([ExtResource("50_hairlong")])
+animation_sources = Array[PackedScene]([ExtResource("36_ual1"), ExtResource("37_ual2")])
+idle_animation = "UAL1/Idle_LookAround"
+skin_color = Color(0.7, 0.55, 0.44, 1)
+hair_color = Color(0.12, 0.1, 0.13, 1)
+stand_under_bridge = true
+bridge_offset = -2.6
+bridge_along = -14.0
+
 [node name="FishField" type="QFishField" parent="." unique_id=2018535568]
 terrain_path = NodePath("../Terrain")
 player_path = NodePath("../Player")
@@ -264,6 +312,7 @@ shadow_material = ExtResource("43_fishshadowmat")
 [node name="Underwater" type="Node3D" parent="." unique_id=707933400]
 script = ExtResource("41_underwater")
 material = ExtResource("42_underwatermat")
+terrain_path = NodePath("../Terrain")
 
 [node name="Ravens" type="Node3D" parent="." unique_id=1172779891]
 script = ExtResource("14_ravens")
