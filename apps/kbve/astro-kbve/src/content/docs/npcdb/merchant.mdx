@@ -61,6 +61,65 @@ name_key: creature.merchant
 unit_type: 9
 default_weapon: 0
 dialogue_tree_id: 0
+tags:
+  - friendslop
+  - bridge
+  - talker
+dialogue_tree:
+  entry_node_id: greet
+  nodes:
+    - id: greet
+      text: "Cart on this side, buyer on that side, and a man in between who wants a coin for the privilege."
+      condition: '!seen:greet'
+      next_node_id: menu
+    - id: greet_again
+      text: Still here. Still on the wrong side.
+      next_node_id: menu
+    - id: menu
+      text: Something you need, or are you only passing?
+      options:
+        - id: ask_cart
+          label: Why not take the cart over?
+          next_node_id: cart
+        - id: tell_toll
+          label: "I paid Marlow's toll."
+          next_node_id: toll
+          required_flags:
+            - marlow_toll_paid
+            - '!merchant_heard_the_toll'
+        - id: ask_toll_again
+          label: "You'll pay it eventually."
+          next_node_id: toll_again
+          required_flags:
+            - merchant_heard_the_toll
+        - id: ask_road
+          label: Where did you come in from?
+          next_node_id: road
+        - id: ask_wares
+          label: What are you carrying?
+          next_node_id: wares
+        - id: leave
+          label: (Walk away.)
+          next_node_id: farewell
+    - id: cart
+      text: "The third plank. He tells everyone to mind it. I have to do more than mind it — I have to put a loaded axle over it."
+      next_node_id: menu
+    - id: toll
+      text: "Then you are a better customer than I am a merchant. He charges a man his own weight and the cart its own besides."
+      trigger_on_enter: 'set_flag:merchant_heard_the_toll'
+      next_node_id: menu
+    - id: toll_again
+      text: Eventually. When the ford runs low, or when he stops looking.
+      next_node_id: menu
+    - id: road
+      text: "Down the ridge road, and I would not go back up it after dark. There are things standing along it that were not standing there in the morning."
+      trigger_on_enter: 'set_flag:merchant_named_the_ridge_road'
+      next_node_id: menu
+    - id: wares
+      text: "Salt, wire, lamp oil, needles. Nothing anybody wants until the day they want it very badly."
+      next_node_id: menu
+    - id: farewell
+      text: If you are crossing, tell him the cart is still waiting.
 ---
 
 import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
