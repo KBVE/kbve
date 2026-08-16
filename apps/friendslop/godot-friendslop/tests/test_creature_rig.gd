@@ -166,3 +166,36 @@ func test_shading_covers_every_mech_material() -> void:
 	for mech in MECHS:
 		assert_bool(Rig.SHADING.has(StringName("%s_Texture" % mech))) \
 				.override_failure_message("no shading entry for %s_Texture" % mech).is_true()
+
+
+## `travel` will not path through a disabled transition, and with no route to the state it
+## was asked for the playback hard-cuts to it instead of cross-fading -- which makes every
+## xfade on these links dead weight. play_action travels into each of these states, so all
+## of them have to be reachable by hand.
+func test_no_transition_is_closed_to_travel() -> void:
+	var rig: Node = auto_free(Rig.new())
+	var machine := AnimationNodeStateMachine.new()
+	machine.add_node("move", AnimationNodeAnimation.new())
+	for state in Rig.STATES:
+		if state != &"move":
+			machine.add_node(state, AnimationNodeAnimation.new())
+	for state in Rig.STATES:
+		if state == &"move":
+			continue
+		rig._link(machine, &"move", state, false)
+		if Rig.STATES[state].returns_to_move:
+			rig._link(machine, state, &"move", true)
+
+	var checked := 0
+	for i in machine.get_transition_count():
+		if machine.get_transition_from(i) != &"move":
+			continue
+		var into := machine.get_transition(i)
+		var to := machine.get_transition_to(i)
+		checked += 1
+		assert_int(into.advance_mode) \
+				.override_failure_message("move -> %s is closed to travel, so it hard-cuts" % to) \
+				.is_not_equal(AnimationNodeStateMachineTransition.ADVANCE_MODE_DISABLED)
+		assert_float(into.xfade_time) \
+				.override_failure_message("move -> %s cuts" % to).is_greater(0.0)
+	assert_int(checked).is_equal(Rig.STATES.size() - 1)

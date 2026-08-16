@@ -26,12 +26,19 @@ const PROVIDERS := ["discord", "github"]
 ## travel does not arrive holding something that just went stale.
 const REFRESH_MARGIN_SECONDS := 60
 
+## Where the session is kept between runs.
+const STORE_PATH := "user://session.cfg"
+
 var _mode: Mode = Mode.SIGNED_OUT
 var _token := ""
 var _refresh_token := ""
 var _expires_at := 0
 var _username := ""
 var _error := ""
+
+
+func _ready() -> void:
+	_restore()
 
 
 func mode() -> Mode:
@@ -122,7 +129,13 @@ func refresh_if_stale() -> Error:
 		return OK
 	if _expires_at == 0 or Time.get_unix_time_from_system() < _expires_at - REFRESH_MARGIN_SECONDS:
 		return OK
+	return await _refresh()
 
+
+## Trades the refresh token for a new access token, whatever the clock says. Split from
+## the staleness check because a session picked up from disk has no expiry to compare
+## against — it has only the refresh token, and has to spend it to learn anything.
+func _refresh() -> Error:
 	var answer := await _post("/auth/v1/token?grant_type=refresh_token", {
 		"refresh_token": _refresh_token,
 	})
@@ -140,6 +153,49 @@ func sign_out() -> void:
 	_expires_at = 0
 	_username = ""
 	_error = ""
+	_forget()
+	changed.emit()
+
+
+## Keeps the account across runs so signing in is something a player does once rather
+## than every launch.
+##
+## This writes the refresh token to disk in the clear. Godot's `user://` is a plain
+## directory with no OS keychain behind it, so anyone with read access to the machine's
+## profile can take the file and mint access tokens until it is revoked. That is the same
+## exposure every "stay signed in" checkbox carries and it is why only the refresh token
+## and the account's own display fields are kept — never a password.
+func _save() -> void:
+	if _mode != Mode.ACCOUNT or _refresh_token.is_empty():
+		return
+	var store := ConfigFile.new()
+	store.set_value("session", "refresh_token", _refresh_token)
+	store.set_value("session", "username", _username)
+	if store.save(STORE_PATH) != OK:
+		push_warning("[auth] could not write %s; the session will not survive a restart" % STORE_PATH)
+
+
+func _forget() -> void:
+	if FileAccess.file_exists(STORE_PATH):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(STORE_PATH))
+
+
+## Picks the session back up. Only the refresh token is stored, so the access token is
+## always minted fresh at launch and a revoked session simply fails to come back rather
+## than appearing to work until its first call.
+func _restore() -> void:
+	var store := ConfigFile.new()
+	if store.load(STORE_PATH) != OK:
+		return
+	var refresh: String = str(store.get_value("session", "refresh_token", ""))
+	if refresh.is_empty():
+		return
+	_mode = Mode.ACCOUNT
+	_refresh_token = refresh
+	_username = str(store.get_value("session", "username", ""))
+	_expires_at = 0
+	if await _refresh() != OK:
+		_forget()
 	changed.emit()
 
 
@@ -164,30 +220,51 @@ func adopt_account(token: String, username: String, refresh_token := "", expires
 	_expires_at = expires_at
 	_username = username if not username.is_empty() else username_in(token)
 	_error = ""
+	_save()
 	changed.emit()
 
 
-## Reads the `kbve_username` claim out of a token without verifying it — the signature
-## is the server's business, and a name drawn on this machine's own screen is not a
-## security boundary.
-static func username_in(token: String) -> String:
+## Reads a token's claims without verifying it — the signature is the server's business,
+## and nothing drawn on this machine's own screen is a security boundary.
+static func claims_in(token: String) -> Dictionary:
 	var parts := token.split(".")
 	if parts.size() < 2:
-		return ""
+		return {}
 	var payload := parts[1]
 	payload = payload.replace("-", "+").replace("_", "/")
 	while payload.length() % 4 != 0:
 		payload += "="
 	var raw := Marshalls.base64_to_utf8(payload)
-	var claims = JSON.parse_string(raw)
-	if typeof(claims) != TYPE_DICTIONARY:
-		return ""
+	var claims: Variant = JSON.parse_string(raw)
+	return claims if typeof(claims) == TYPE_DICTIONARY else {}
+
+
+static func username_in(token: String) -> String:
+	var claims := claims_in(token)
 	var name: String = claims.get("kbve_username", "")
 	if name.is_empty():
-		var meta = claims.get("user_metadata", {})
+		var meta: Variant = claims.get("user_metadata", {})
 		if typeof(meta) == TYPE_DICTIONARY:
 			name = meta.get("username", "")
 	return name
+
+
+## The account's own id, which is the `sub` claim every Supabase token carries.
+func user_id() -> String:
+	return claims_in(_token).get("sub", "")
+
+
+## Where the provider keeps the player's picture. OAuth writes it into the token's own
+## metadata, so there is no call to make for it.
+func avatar_url() -> String:
+	var meta: Variant = claims_in(_token).get("user_metadata", {})
+	if typeof(meta) != TYPE_DICTIONARY:
+		return ""
+	for key in ["avatar_url", "picture"]:
+		var url: String = str(meta.get(key, ""))
+		if url.begins_with("https://"):
+			return url
+	return ""
 
 
 func _adopt_answer(answer: Dictionary) -> Error:

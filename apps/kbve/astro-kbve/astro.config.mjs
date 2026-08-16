@@ -11,6 +11,7 @@ import rehypeLinkAttrs from './src/lib/rehype-link-attrs.mjs';
 import remarkMermaidBaked from './src/lib/remark-mermaid-baked.mjs';
 import { isIndexableUrl } from './src/lib/noindex-routes.mjs';
 import { createSitemapLastmod } from '../../../packages/npm/astro/sitemap/lastmod.mjs';
+import { createCanonicalFilter } from '../../../packages/npm/astro/sitemap/canonical.mjs';
 import { readFileSync } from 'node:fs';
 import https from 'node:https';
 import { fileURLToPath } from 'node:url';
@@ -21,6 +22,10 @@ const DROID_SRC = fileURLToPath(
 const ASTRO_PKG_SRC = fileURLToPath(
 	new URL('../../../packages/npm/astro/src/index.ts', import.meta.url),
 );
+
+const isCanonicalUrl = createCanonicalFilter({
+	appDir: fileURLToPath(new URL('.', import.meta.url)),
+});
 
 const DASH_PROXY_PREFIX = '/__dashproxy';
 
@@ -433,7 +438,7 @@ export default defineConfig({
 		}),
 		react(),
 		sitemap({
-			filter: isIndexableUrl,
+			filter: (url) => isIndexableUrl(url) && isCanonicalUrl(url),
 			serialize: createSitemapLastmod({
 				appDir: fileURLToPath(new URL('.', import.meta.url)),
 			}),

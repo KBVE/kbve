@@ -1,0 +1,201 @@
+name: Friendslop Godot Tests
+
+# The gdUnit4 suite under apps/friendslop/godot-friendslop/tests/ does run in CI --
+# but only from ci-godot.yml, which is workflow_dispatch and fires when a build is
+# dispatched off the manifest. So on a pull request the whole suite gates nothing,
+# and a GDScript regression only surfaces at release time or on somebody's laptop.
+# This runs it on the change that could break it.
+#
+# The suite needs two things a plain checkout does not have: the LFS assets (the
+# character, water and dialogue suites load them) and a built q GDExtension (a suite
+# that names a Q* class cannot even parse without it). Both are done here, the same
+# way ci-godot.yml does them, because getting either wrong shows up as a signal 11
+# in the scanner rather than as a failing test.
+
+on:
+    workflow_dispatch:
+    pull_request:
+        paths:
+            - 'apps/friendslop/godot-friendslop/**'
+            - 'packages/rust/q/**'
+            - '.github/workflows/ci-godot-friendslop-tests.yml'
+
+permissions: {}
+
+concurrency:
+    group: friendslop-godot-tests-${{ github.event.pull_request.number || github.ref }}
+    cancel-in-progress: true
+
+env:
+    GODOT_VERSION: '4.7.1'
+    PROJECT_PATH: apps/friendslop/godot-friendslop
+    ADDON_PATH: apps/friendslop/godot-friendslop/addons/q
+
+jobs:
+    gdextension:
+        name: Build q (linux)
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+        permissions:
+            contents: read
+        steps:
+            # graphify/dir has colons in its filenames. Git validates every index
+            # entry name before sparse rules get to say the file won't be written,
+            # so excluding the directory is not enough on its own -- but it is
+            # enough here, where the runner is Linux and colons are legal.
+            - name: Checkout repository
+              uses: actions/checkout@v7
+              with:
+                  sparse-checkout: |
+                      /*
+                      !/apps/kbve/astro-kbve/public/graphify
+                  sparse-checkout-cone-mode: false
+
+            # q's `client` feature pulls wry, which needs the webkit headers to link
+            # even with the webview turned off.
+            - name: Install build prerequisites
+              run: |
+                  sudo apt-get update -qq
+                  sudo apt-get install -y --no-install-recommends \
+                    build-essential pkg-config \
+                    libgtk-3-dev libwebkit2gtk-4.1-dev libsoup-3.0-dev \
+                    libjavascriptcoregtk-4.1-dev
+
+            - name: Rust toolchain (1.96)
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                  toolchain: '1.96'
+
+            - name: Rust cache
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: '.'
+                  key: friendslop-gdext-linux
+                  cache-on-failure: true
+
+            # The same feature set the manifest names for this project. A suite that
+            # calls into the extension is checking the bridge as it actually ships,
+            # so building a different half of q here would test the wrong library.
+            - name: Build cdylib
+              run: cargo build --release -p q --features net-godot
+
+            - name: Stage artefact
+              run: |
+                  # The root .cargo/config.toml redirects target-dir to dist/target;
+                  # whether that file is present depends on the checkout, so look in
+                  # both rather than betting on it.
+                  mkdir -p stage/linux
+                  for base in target dist/target; do
+                    if [ -f "$base/release/libq.so" ]; then
+                      cp "$base/release/libq.so" stage/linux/libq.so
+                      break
+                    fi
+                  done
+                  test -f stage/linux/libq.so || {
+                    echo "::error::Built library not found at */release/libq.so"; exit 1;
+                  }
+                  ls -l stage/linux
+
+            - name: Upload artefact
+              uses: actions/upload-artifact@v7
+              with:
+                  name: friendslop-gdext-linux
+                  path: stage
+                  if-no-files-found: error
+
+    test:
+        name: gdUnit4 (godot --headless)
+        needs: [gdextension]
+        # Forks have no Forgejo credentials, so the LFS assets would come down as
+        # pointer stubs and the asset-loading suites would crash in a way that reads
+        # like a broken test. Skipped loudly rather than run misleadingly.
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        permissions:
+            contents: read
+            actions: read
+        container:
+            image: barichello/godot-ci:4.7.1
+        steps:
+            - uses: actions/checkout@v7
+
+            - name: Pull LFS assets (Forgejo)
+              env:
+                  FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+                  FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+              run: |
+                  command -v git-lfs >/dev/null 2>&1 || {
+                    apt-get update -qq && apt-get install -y -qq --no-install-recommends git-lfs
+                  }
+                  # actions/checkout writes its safe.directory entry under a HOME it
+                  # then restores, so inside the container git does not trust the
+                  # workspace and git-lfs exits 128 "Not in a Git repository".
+                  git config --global --add safe.directory "$PWD"
+                  git lfs install --local
+                  if [ -z "$FORGEJO_USER" ] || [ -z "$FORGEJO_TOKEN" ]; then
+                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — the asset suites would crash on pointer stubs"
+                    exit 1
+                  fi
+                  printf 'machine git.kbve.com\nlogin %s\npassword %s\n' \
+                    "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
+                  chmod 600 "$HOME/.netrc"
+                  git lfs pull -I "$PROJECT_PATH/**"
+                  # A leftover pointer is a text file starting with the LFS spec URL.
+                  # Godot refuses to load those, and the suite that wanted the asset
+                  # dies in the scanner with no message rather than saying why.
+                  STUBS=$(git lfs ls-files -n | grep "^$PROJECT_PATH/" \
+                    | xargs -r grep -l "^version https://git-lfs" 2>/dev/null | head -5)
+                  if [ -n "$STUBS" ]; then
+                    echo "::error::LFS pointers unresolved after pull:"
+                    echo "$STUBS"
+                    exit 1
+                  fi
+
+            - name: Download GDExtension
+              uses: actions/download-artifact@v8
+              with:
+                  name: friendslop-gdext-linux
+                  path: gdext
+
+            - name: Stage GDExtension
+              run: |
+                  mkdir -p "$ADDON_PATH/linux"
+                  cp gdext/linux/libq.so "$ADDON_PATH/linux/libq.so"
+                  ls -l "$ADDON_PATH/linux"
+
+            - name: Install GDExtension runtime libraries
+              run: |
+                  # This container is not the machine that built the .so and ships
+                  # none of webkit. q's `client` feature puts a hard DT_NEEDED on
+                  # libwebkit2gtk-4.1.so.0, so without these the extension dlopens to
+                  # "cannot open shared object file", its classes never register, and
+                  # every suite naming one fails at parse time.
+                  apt-get update -qq
+                  apt-get install -y -qq --no-install-recommends \
+                    libwebkit2gtk-4.1-0 libfontconfig1
+                  MISSING=$(ldd "$ADDON_PATH/linux/libq.so" 2>/dev/null \
+                    | awk '/not found/ {print $1}' | sort -u)
+                  if [ -n "$MISSING" ]; then
+                    echo "::error::Staged GDExtension has unresolved sonames in this container:"
+                    echo "$MISSING"
+                    exit 1
+                  fi
+
+            # scripts/test.sh imports the project and then runs the gdUnit4 cmd tool.
+            # GODOT_NO_INSTALL keeps godot.sh from trying to download an engine it
+            # already has in this image, which would be a silent 200MB per run.
+            - name: Run gdUnit4 suite
+              working-directory: apps/friendslop/godot-friendslop
+              env:
+                  GODOT_BIN: godot
+                  GODOT_NO_INSTALL: '1'
+              run: bash scripts/test.sh
+
+            - name: Upload test reports
+              if: always()
+              uses: actions/upload-artifact@v7
+              with:
+                  name: friendslop-gdunit-reports
+                  path: apps/friendslop/godot-friendslop/reports
+                  if-no-files-found: ignore

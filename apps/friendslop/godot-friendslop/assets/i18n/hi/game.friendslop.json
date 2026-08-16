@@ -54,5 +54,9 @@
 		"disconnected": "डिस्कनेक्ट: {{reason}}  (निकलने के लिए Esc)",
 		"roster_you": "{{name}} (आप)",
 		"roster": "{{count}} यहाँ — {{names}}"
+	},
+	"account": {
+		"loading": "शेष राशि पढ़ी जा रही है…",
+		"wallet": "{credits} क्रेडिट  ·  {khash} khash"
 	}
 }

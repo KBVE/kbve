@@ -33,11 +33,13 @@ var settings_button: PaperButton
 var quit_button: PaperButton
 var status_label: Label
 var build_label: Label
+var account_card: AccountCard
 var language_buttons: Array[PaperButton] = []
 
 var _root: Control
 var _column: VBoxContainer
 var _sign_in: SignInPanel
+var _api: KbveApi
 
 
 func _ready() -> void:
@@ -95,6 +97,10 @@ func _build() -> void:
 	sign_in_button = _add_button(column, I18n.t("title.sign_in"), _toggle_sign_in)
 	settings_button = _add_button(column, I18n.t("action.settings"), func() -> void: settings_requested.emit())
 	quit_button = _add_button(column, I18n.t("action.quit"), func() -> void: quit_requested.emit())
+
+	account_card = AccountCard.new()
+	account_card.visible = false
+	column.add_child(account_card)
 
 	status_label = Label.new()
 	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -230,6 +236,23 @@ func set_server_protocol(protocol: int) -> void:
 			else Color(1.0, 1.0, 1.0, 0.75)
 
 
+## The name, id and picture all come out of the token the client is already holding, so
+## the card is filled in without a call. Only the balance needs one.
+func _show_account(auth: Node) -> void:
+	if account_card == null:
+		return
+	account_card.show_account(auth.requested_name(), auth.user_id())
+	account_card.load_avatar(auth.avatar_url())
+	if _api == null:
+		_api = KbveApi.new()
+		add_child(_api)
+		_api.wallet.connect(func(credits: int, khash: int) -> void:
+			account_card.show_wallet(credits, khash))
+		_api.wallet_failed.connect(func(reason: String) -> void:
+			account_card.show_wallet_error(reason))
+	_api.fetch_wallet(auth.access_token())
+
+
 func _refresh_status() -> void:
 	if status_label == null:
 		return
@@ -241,9 +264,12 @@ func _refresh_status() -> void:
 		AUTH.Mode.ACCOUNT:
 			status_label.text = I18n.t("title.signed_in_as").format({"name": auth.requested_name()})
 			sign_in_button.text = I18n.t("title.sign_out")
+			_show_account(auth)
 		AUTH.Mode.GUEST:
 			status_label.text = I18n.t("title.guest_status")
 			sign_in_button.text = I18n.t("title.sign_in")
+			account_card.visible = false
 		_:
 			status_label.text = I18n.t(SIGN_IN_HINT_KEY)
 			sign_in_button.text = I18n.t("title.sign_in")
+			account_card.visible = false

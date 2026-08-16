@@ -289,11 +289,13 @@ func _land() -> void:
 func _receive(kind: StringName, ore: StringName, amount: int) -> void:
 	if ore == &"" or amount <= 0:
 		return
-	# Whatever would not fit is left over rather than silently gone. Nothing catches it
-	# yet -- the ground it should fall on does not exist -- so `Journal.refused` is where
-	# it is announced and the player is told, which is better than a tree felled for
-	# nothing and no reason given.
+	# Whatever would not fit falls at the player's feet rather than being silently gone.
+	# `Journal.refused` says so on screen; this is what makes the saying true.
 	var spare := Journal.gain(ore, amount)
+	if spare > 0 and _body != null:
+		var ground := GroundItems.of(get_tree())
+		if ground != null:
+			ground.drop(ore, spare, _body.global_position)
 	harvested.emit(kind, ore, amount - spare)
 
 

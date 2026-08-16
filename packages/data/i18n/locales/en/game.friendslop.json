@@ -79,5 +79,9 @@
 		"feet": "Feet",
 		"neck": "Neck",
 		"back": "Shoulders"
+	},
+	"account": {
+		"loading": "reading balance…",
+		"wallet": "{credits} credits  ·  {khash} khash"
 	}
 }
