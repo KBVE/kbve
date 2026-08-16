@@ -164,9 +164,11 @@ mod tests {
         )
     }
 
-    fn test_state(short_id: &str, channel: u64, owner: u64) -> SessionState {
-        let mut player = PlayerState::default();
-        player.inventory = content::starting_inventory();
+    fn test_state(short_id: &str, _channel: u64, owner: u64) -> SessionState {
+        let player = PlayerState {
+            inventory: content::starting_inventory(),
+            ..Default::default()
+        };
         let owner_id = PlayerId::new(owner);
 
         SessionState {

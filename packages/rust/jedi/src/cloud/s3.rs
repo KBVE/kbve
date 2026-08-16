@@ -208,7 +208,7 @@ mod tests {
     #[test]
     fn retention_ok_false_when_latest_base_stale() {
         let now = 10 * 86400;
-        let objs = vec![obj("barman/backup/base/old/data.tar.gz", 1, 1 * 86400)];
+        let objs = vec![obj("barman/backup/base/old/data.tar.gz", 1, 86400)];
         let s = summarize(&objs, "barman/backup/", now, 7);
         assert!(!s.retention_ok);
     }

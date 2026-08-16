@@ -147,7 +147,6 @@ pub async fn forwarded_port_watch_loop(
     let interval = Duration::from_secs(interval_secs.max(5));
     let started = now_secs();
     let mut last_forwarded: Option<u16> = engine.forwarded_port();
-    let mut rotations = 0u64;
     let mut mismatches = 0u32;
     tracing::info!(
         initial = ?last_forwarded,
@@ -158,7 +157,7 @@ pub async fn forwarded_port_watch_loop(
         tokio::time::sleep(interval).await;
         let forwarded = engine.forwarded_port();
         if forwarded != last_forwarded {
-            rotations = engine.port_rotations.fetch_add(1, Ordering::Relaxed) + 1;
+            let rotations = engine.port_rotations.fetch_add(1, Ordering::Relaxed) + 1;
             let elapsed = now_secs().saturating_sub(started).max(1);
             let per_hour = (rotations as f64) * 3600.0 / (elapsed as f64);
             tracing::warn!(
