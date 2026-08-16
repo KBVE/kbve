@@ -766,3 +766,18 @@ fn map_window_shrinks_to_fit_a_forty_column_screen() {
         "petscii should get a narrower map window than a wide ansi terminal"
     );
 }
+
+#[tokio::test]
+async fn idle_allowance_can_be_raised_for_a_caller_who_signs_in() {
+    let (mut conn, _client) = pair().await;
+    assert_eq!(conn.idle_timeout(), Duration::from_secs(2));
+
+    conn.set_idle_timeout(super::authed_idle());
+
+    assert_eq!(conn.idle_timeout(), Duration::from_secs(3600));
+}
+
+#[test]
+fn authed_idle_defaults_to_an_hour() {
+    assert_eq!(super::authed_idle(), Duration::from_secs(3600));
+}

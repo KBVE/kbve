@@ -90,6 +90,17 @@ impl TelnetConn {
         }
     }
 
+    /// How long a silent caller is given before the line drops.
+    pub fn idle_timeout(&self) -> Duration {
+        self.idle_timeout
+    }
+
+    /// Re-set the idle allowance mid-call. A caller who signs in earns a
+    /// longer leash than an anonymous one holding a session slot.
+    pub fn set_idle_timeout(&mut self, idle_timeout: Duration) {
+        self.idle_timeout = idle_timeout;
+    }
+
     /// Offer server-side echo plus suppress-go-ahead and ask for window size and terminal type.
     pub async fn negotiate(&mut self) -> io::Result<()> {
         for opt in [OPT_ECHO, OPT_SGA] {

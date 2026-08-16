@@ -35,6 +35,7 @@ pub struct Session {
     screen: Screen,
     id: Uuid,
     user: Option<Account>,
+    guest_idle: Duration,
 }
 
 type Flow = Result<(), ReadError>;
@@ -48,11 +49,13 @@ impl Session {
     pub fn new(conn: TelnetConn, term: Term, width: usize, height: usize) -> Self {
         let id = Uuid::new_v4();
         presence::join(id, term);
+        let guest_idle = conn.idle_timeout();
         Self {
             conn,
             screen: Screen::new(term, width, height),
             id,
             user: None,
+            guest_idle,
         }
     }
 
@@ -587,6 +590,7 @@ impl Session {
             user_id,
             username: username.clone(),
         });
+        self.conn.set_idle_timeout(super::authed_idle());
         self.screen
             .nl()
             .ink(Ink::Prompt)
@@ -597,6 +601,7 @@ impl Session {
 
     async fn logoff(&mut self) -> Flow {
         self.user = None;
+        self.conn.set_idle_timeout(self.guest_idle);
         presence::rename(self.id, "guest");
         self.screen.clear().banner("LOG OFF").nl().ink(Ink::Body);
         self.screen.line("session cleared");
