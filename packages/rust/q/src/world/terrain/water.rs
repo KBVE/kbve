@@ -329,12 +329,12 @@ impl QTerrain {
         rd.compute_list_end();
 
         let widx = if self.wake_tex[0] == written { 0 } else { 1 };
-        if let Some(w) = self.wake_wraps.get(widx).cloned() {
-            if let Some(m) = self.water_material.as_mut() {
-                m.set_shader_parameter("wake_tex", &w.to_variant());
-                m.set_shader_parameter("wake_origin", &org_new.to_variant());
-                m.set_shader_parameter("wake_window", &WAKE_WINDOW.to_variant());
-            }
+        if let Some(w) = self.wake_wraps.get(widx).cloned()
+            && let Some(m) = self.water_material.as_mut()
+        {
+            m.set_shader_parameter("wake_tex", &w.to_variant());
+            m.set_shader_parameter("wake_origin", &org_new.to_variant());
+            m.set_shader_parameter("wake_window", &WAKE_WINDOW.to_variant());
         }
     }
 

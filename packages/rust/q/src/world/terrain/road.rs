@@ -240,6 +240,7 @@ impl PlankMesh {
 
     /// Pitched slab between two points at different heights, used for the approach
     /// ramps.
+    #[allow(clippy::too_many_arguments)]
     fn skirt(
         &mut self,
         a: Vector3,
