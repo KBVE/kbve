@@ -266,6 +266,14 @@ async fn main() -> anyhow::Result<()> {
 
     if transport::proxy::init_reel_proxy() {
         info!("Reel proxy initialized - /api/v1/reel/* enabled (DASHBOARD_VIEW required)");
+        // Every fetch is billed to the caller's wallet, staff included. The
+        // sweep is idempotent, so a restart mid-cycle replays harmlessly.
+        let secs = std::env::var("REEL_BILLING_INTERVAL_SECS")
+            .ok()
+            .and_then(|v| v.parse::<u64>().ok())
+            .unwrap_or(20);
+        tokio::spawn(transport::proxy::reel_billing_loop(secs));
+        info!(interval_secs = secs, "Reel fetch billing sweep started");
     } else {
         info!("Reel proxy not configured");
     }

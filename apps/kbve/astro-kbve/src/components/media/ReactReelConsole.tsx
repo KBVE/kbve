@@ -19,6 +19,7 @@ import {
 	downloadEtaSecs,
 	type ReelTorrent,
 	type ReelLive,
+	formatCredits,
 } from './reelService';
 
 const STATE_BADGE: Record<string, string> = {
@@ -64,7 +65,10 @@ function joinDot(parts: (string | null | undefined)[]): string | undefined {
 	return kept.length ? kept.join(' · ') : undefined;
 }
 
-function rowProgress(t: ReelTorrent, live: ReelLive | undefined): BarModel | null {
+function rowProgress(
+	t: ReelTorrent,
+	live: ReelLive | undefined,
+): BarModel | null {
 	if (t.state === 'Leeching') {
 		if (live && live.total_bytes > 0) {
 			const pct = Math.min(
@@ -302,8 +306,9 @@ export default function ReactReelConsole() {
 						</span>
 					)}
 					<span>
-						{health.counts.seeding} seeding · {health.counts.leeching}{' '}
-						leeching · {health.counts.failed} failed
+						{health.counts.seeding} seeding ·{' '}
+						{health.counts.leeching} leeching ·{' '}
+						{health.counts.failed} failed
 					</span>
 				</p>
 			)}
@@ -324,6 +329,10 @@ export default function ReactReelConsole() {
 				<button type="submit" disabled={adding || !source.trim()}>
 					{adding ? 'Adding…' : 'Add reel'}
 				</button>
+				<span className="reel-console__rate">
+					1 credit per MiB, charged once when the fetch starts.
+					Streams and re-downloads are free while it stays cached.
+				</span>
 			</form>
 
 			{(actionError || listError) && (
@@ -354,6 +363,24 @@ export default function ReactReelConsole() {
 											? (PHASE_LABEL[t.phase] ?? t.phase)
 											: t.state}
 									</span>
+									{t.refunded_at ? (
+										<span
+											className="reel-console__cost"
+											title="This fetch failed, so the credits were returned.">
+											refunded{' '}
+											{formatCredits(t.billed_credits)}
+										</span>
+									) : (
+										t.billed_credits != null && (
+											<span
+												className="reel-console__cost"
+												title="Charged once when reel pulled this fetch. Re-downloads and streams are free while it stays cached.">
+												{formatCredits(
+													t.billed_credits,
+												)}
+											</span>
+										)
+									)}
 								</span>
 								{(() => {
 									const model = rowProgress(t, live[t.id]);

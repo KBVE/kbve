@@ -262,6 +262,10 @@ async fn touch(
 #[derive(serde::Deserialize)]
 struct AddReq {
     source: String,
+    /// Wallet account billed for this fetch, set by the API gateway from the
+    /// caller's session. Reel never resolves identity itself.
+    #[serde(default)]
+    account_id: Option<String>,
 }
 
 async fn add(
@@ -279,7 +283,7 @@ async fn add(
         )
             .into_response();
     }
-    match st.engine.add(&req.source).await {
+    match st.engine.add(&req.source, req.account_id.clone()).await {
         Ok(id) => Json(serde_json::json!({ "id": id })).into_response(),
         Err(e) => (StatusCode::BAD_REQUEST, e.to_string()).into_response(),
     }
@@ -1155,6 +1159,106 @@ async fn archive(
     resp
 }
 
+#[derive(serde::Serialize)]
+struct BillingQueue {
+    charges: Vec<crate::billing::PendingCharge>,
+    refunds: Vec<crate::billing::PendingRefund>,
+}
+
+/// What the gateway owes the wallet right now. Reel is the ledger of intent
+/// (who asked, for how many bytes); axum-kbve is the ledger of money.
+async fn billing_queue(State(st): State<AppState>, headers: HeaderMap) -> impl IntoResponse {
+    if !check_auth(&headers, &st.token) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    let live = st.engine.live_stats_map();
+    let mut charges = Vec::new();
+    let mut refunds = Vec::new();
+    for meta in st.store.list() {
+        let live_total = live.get(&meta.id).map(|l| l.total_bytes);
+        if let Some(c) = crate::billing::pending_charge(&meta, live_total) {
+            charges.push(c);
+        }
+        if let Some(r) = crate::billing::pending_refund(&meta) {
+            refunds.push(r);
+        }
+    }
+    Json(BillingQueue { charges, refunds }).into_response()
+}
+
+#[derive(serde::Deserialize)]
+struct SettleReq {
+    credits: u64,
+    /// Set when the debit could not be taken (no funds, wallet down). Reel
+    /// records the reason and stops re-offering the charge only once it is
+    /// actually paid, so a transient failure retries on the next sweep.
+    #[serde(default)]
+    error: Option<String>,
+}
+
+async fn billing_settle(
+    State(st): State<AppState>,
+    headers: HeaderMap,
+    Path(id): Path<String>,
+    Json(req): Json<SettleReq>,
+) -> impl IntoResponse {
+    if !check_auth(&headers, &st.token) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    let now = now_secs();
+    let updated = st.store.update(&id, |m| match &req.error {
+        Some(e) => {
+            m.billing_error = Some(e.clone());
+            ((), true)
+        }
+        None => {
+            if m.billed_at.is_some() {
+                return ((), false);
+            }
+            m.billed_credits = Some(req.credits);
+            m.billed_at = Some(now);
+            m.billing_error = None;
+            ((), true)
+        }
+    });
+    match updated {
+        Ok(Some(())) => {
+            if req.error.is_none() {
+                crate::telemetry::fetch_billed(&id, req.credits);
+            }
+            StatusCode::NO_CONTENT.into_response()
+        }
+        Ok(None) => StatusCode::NOT_FOUND.into_response(),
+        Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    }
+}
+
+async fn billing_refunded(
+    State(st): State<AppState>,
+    headers: HeaderMap,
+    Path(id): Path<String>,
+) -> impl IntoResponse {
+    if !check_auth(&headers, &st.token) {
+        return StatusCode::UNAUTHORIZED.into_response();
+    }
+    let now = now_secs();
+    let updated = st.store.update(&id, |m| {
+        if m.refunded_at.is_some() {
+            return ((), false);
+        }
+        m.refunded_at = Some(now);
+        ((), true)
+    });
+    match updated {
+        Ok(Some(())) => {
+            crate::telemetry::fetch_refunded(&id);
+            StatusCode::NO_CONTENT.into_response()
+        }
+        Ok(None) => StatusCode::NOT_FOUND.into_response(),
+        Err(_) => StatusCode::INTERNAL_SERVER_ERROR.into_response(),
+    }
+}
+
 fn store_scoped_router(state: AppStateStub) -> Router {
     Router::new()
         .route("/torrents", get(list))
@@ -1186,6 +1290,9 @@ pub fn router(state: AppState) -> Router {
             get(file_download).head(file_download),
         )
         .route("/torrents/{id}/archive.zip", get(archive))
+        .route("/billing/queue", get(billing_queue))
+        .route("/torrents/{id}/billing/settle", post(billing_settle))
+        .route("/torrents/{id}/billing/refunded", post(billing_refunded))
         .with_state(state);
     Router::new()
         .route("/healthz", get(|| async { "ok" }))
@@ -1218,6 +1325,12 @@ mod tests {
             hls: HlsStatus::None,
             hls_dir: None,
             hls_error: None,
+            added_at: 0,
+            account_id: None,
+            billed_credits: None,
+            billed_at: None,
+            refunded_at: None,
+            billing_error: None,
         }
     }
 
@@ -1293,6 +1406,12 @@ mod tests {
             hls: HlsStatus::None,
             hls_dir: None,
             hls_error: None,
+            added_at: 0,
+            account_id: None,
+            billed_credits: None,
+            billed_at: None,
+            refunded_at: None,
+            billing_error: None,
         }
     }
 
@@ -1438,6 +1557,12 @@ mod tests {
             hls: HlsStatus::None,
             hls_dir: None,
             hls_error: None,
+            added_at: 0,
+            account_id: None,
+            billed_credits: None,
+            billed_at: None,
+            refunded_at: None,
+            billing_error: None,
         })
         .unwrap();
         s
@@ -1499,6 +1624,12 @@ mod tests {
             hls: HlsStatus::None,
             hls_dir: None,
             hls_error: None,
+            added_at: 0,
+            account_id: None,
+            billed_credits: None,
+            billed_at: None,
+            refunded_at: None,
+            billing_error: None,
         })
         .unwrap();
         let res = transcode_core(&HeaderMap::new(), &None, &transcoder_with(s), "1").await;
@@ -1657,6 +1788,12 @@ mod tests {
             hls: HlsStatus::None,
             hls_dir: None,
             hls_error: None,
+            added_at: 0,
+            account_id: None,
+            billed_credits: None,
+            billed_at: None,
+            refunded_at: None,
+            billing_error: None,
         })
         .unwrap();
         std::mem::forget(dir);
@@ -1697,6 +1834,12 @@ mod tests {
             hls: HlsStatus::None,
             hls_dir: None,
             hls_error: None,
+            added_at: 0,
+            account_id: None,
+            billed_credits: None,
+            billed_at: None,
+            refunded_at: None,
+            billing_error: None,
         })
         .unwrap();
         let source = FakeSource {
@@ -1744,6 +1887,12 @@ mod tests {
             hls: HlsStatus::None,
             hls_dir: None,
             hls_error: None,
+            added_at: 0,
+            account_id: None,
+            billed_credits: None,
+            billed_at: None,
+            refunded_at: None,
+            billing_error: None,
         })
         .unwrap();
         let res = stream_core(
@@ -1855,6 +2004,12 @@ mod tests {
             hls: HlsStatus::None,
             hls_dir: None,
             hls_error: None,
+            added_at: 0,
+            account_id: None,
+            billed_credits: None,
+            billed_at: None,
+            refunded_at: None,
+            billing_error: None,
         })
         .unwrap();
         let res = manifest_done(
@@ -1884,6 +2039,12 @@ mod tests {
             hls: HlsStatus::None,
             hls_dir: None,
             hls_error: None,
+            added_at: 0,
+            account_id: None,
+            billed_credits: None,
+            billed_at: None,
+            refunded_at: None,
+            billing_error: None,
         })
         .unwrap();
         let step = manifest_status_core(&HeaderMap::new(), None, &None, true, true, &s, "1").await;
@@ -1913,6 +2074,12 @@ mod tests {
             hls: HlsStatus::Ready,
             hls_dir: Some(hls_dir.display().to_string()),
             hls_error: None,
+            added_at: 0,
+            account_id: None,
+            billed_credits: None,
+            billed_at: None,
+            refunded_at: None,
+            billing_error: None,
         })
         .unwrap();
         std::mem::forget(dir);
@@ -1981,6 +2148,12 @@ mod tests {
             hls: HlsStatus::Ready,
             hls_dir: Some(hls_dir.display().to_string()),
             hls_error: None,
+            added_at: 0,
+            account_id: None,
+            billed_credits: None,
+            billed_at: None,
+            refunded_at: None,
+            billing_error: None,
         })
         .unwrap();
         std::mem::forget(dir);
@@ -2023,6 +2196,12 @@ mod tests {
             hls: HlsStatus::Live,
             hls_dir: Some(hls_dir.display().to_string()),
             hls_error: None,
+            added_at: 0,
+            account_id: None,
+            billed_credits: None,
+            billed_at: None,
+            refunded_at: None,
+            billing_error: None,
         })
         .unwrap();
         let seg = hls_dir.join("seg00007.ts");

@@ -320,7 +320,12 @@ fn magnet_with_trackers(source: &str, trackers: &[String]) -> String {
     }
 }
 
-fn leeching_meta(id: &str, name: &str, out_dir: &std::path::Path) -> state::Metadata {
+fn leeching_meta(
+    id: &str,
+    name: &str,
+    out_dir: &std::path::Path,
+    account_id: Option<String>,
+) -> state::Metadata {
     state::Metadata {
         id: id.to_string(),
         name: name.to_string(),
@@ -337,6 +342,12 @@ fn leeching_meta(id: &str, name: &str, out_dir: &std::path::Path) -> state::Meta
         hls: state::HlsStatus::None,
         hls_dir: None,
         hls_error: None,
+        added_at: now_secs(),
+        account_id,
+        billed_credits: None,
+        billed_at: None,
+        refunded_at: None,
+        billing_error: None,
     }
 }
 
@@ -480,7 +491,7 @@ impl Engine {
         is_active_state(self.store.get(id).map(|m| m.state))
     }
 
-    pub async fn add(&self, source: &str) -> anyhow::Result<String> {
+    pub async fn add(&self, source: &str, account_id: Option<String>) -> anyhow::Result<String> {
         if !self.vpn_ok() {
             anyhow::bail!("vpn egress unavailable; refusing to add torrent");
         }
@@ -506,7 +517,8 @@ impl Engine {
                 tracing::info!(id = %id, "add ignored: torrent already active (idempotent)");
                 return Ok(id);
             }
-            self.store.upsert(leeching_meta(&id, &name, &out_dir))?;
+            self.store
+                .upsert(leeching_meta(&id, &name, &out_dir, account_id))?;
             crate::telemetry::torrent_added(&id, "magnet");
             let this = self.clone();
             let source = magnet_with_trackers(source, trackers.as_slice());
@@ -540,7 +552,8 @@ impl Engine {
             return Ok(id);
         }
         let name = handle.name().unwrap_or_else(|| id.clone());
-        self.store.upsert(leeching_meta(&id, &name, &out_dir))?;
+        self.store
+            .upsert(leeching_meta(&id, &name, &out_dir, account_id))?;
         crate::telemetry::torrent_added(&id, "url");
         self.spawn_completion_watcher(handle, out_dir, id.clone(), name);
         Ok(id)
@@ -759,42 +772,60 @@ impl Engine {
                                 tracing::warn!(id = %id, path = %src.display(), error = %e, "adopt: source remove failed");
                             }
                         }
-                        let _ = store.upsert(state::Metadata {
-                            id: id.clone(),
-                            name,
-                            path: moved.dest.display().to_string(),
-                            size: moved.size,
-                            completed_at: Some(now),
-                            last_access: now,
-                            state: state::TorrentState::Seeding,
-                            error: None,
-                            active_path: None,
-                            transcode: state::TranscodeStatus::Ready,
-                            transcode_path: None,
-                            transcode_error: None,
-                            hls: state::HlsStatus::Ready,
-                            hls_dir: Some(hls_dir.display().to_string()),
-                            hls_error: None,
-                        });
+                        let _ = store.upsert(
+                            state::Metadata {
+                                id: id.clone(),
+                                name,
+                                path: moved.dest.display().to_string(),
+                                size: moved.size,
+                                completed_at: Some(now),
+                                last_access: now,
+                                state: state::TorrentState::Seeding,
+                                error: None,
+                                active_path: None,
+                                transcode: state::TranscodeStatus::Ready,
+                                transcode_path: None,
+                                transcode_error: None,
+                                hls: state::HlsStatus::Ready,
+                                hls_dir: Some(hls_dir.display().to_string()),
+                                hls_error: None,
+                                added_at: 0,
+                                account_id: None,
+                                billed_credits: None,
+                                billed_at: None,
+                                refunded_at: None,
+                                billing_error: None,
+                            }
+                            .carry_billing_from(store.get(&id).as_ref()),
+                        );
                         crate::telemetry::live_hls_adopted(&id, &hls_dir.display().to_string());
                     } else {
-                        let _ = store.upsert(state::Metadata {
-                            id: id.clone(),
-                            name,
-                            path: moved.dest.display().to_string(),
-                            size: moved.size,
-                            completed_at: Some(now),
-                            last_access: now,
-                            state: state::TorrentState::Seeding,
-                            error: None,
-                            active_path: None,
-                            transcode: state::TranscodeStatus::None,
-                            transcode_path: None,
-                            transcode_error: None,
-                            hls: state::HlsStatus::None,
-                            hls_dir: None,
-                            hls_error: None,
-                        });
+                        let _ = store.upsert(
+                            state::Metadata {
+                                id: id.clone(),
+                                name,
+                                path: moved.dest.display().to_string(),
+                                size: moved.size,
+                                completed_at: Some(now),
+                                last_access: now,
+                                state: state::TorrentState::Seeding,
+                                error: None,
+                                active_path: None,
+                                transcode: state::TranscodeStatus::None,
+                                transcode_path: None,
+                                transcode_error: None,
+                                hls: state::HlsStatus::None,
+                                hls_dir: None,
+                                hls_error: None,
+                                added_at: 0,
+                                account_id: None,
+                                billed_credits: None,
+                                billed_at: None,
+                                refunded_at: None,
+                                billing_error: None,
+                            }
+                            .carry_billing_from(store.get(&id).as_ref()),
+                        );
                         transcode_wake.notify_one();
                     }
                     wait_leech_drained(&active_leech, &drain, &id).await;

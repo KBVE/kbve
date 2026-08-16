@@ -10,13 +10,33 @@ static PERSIST_SEQ: AtomicU64 = AtomicU64::new(0);
 pub const DEFAULT_STATE_FLUSH_MS: u64 = 1000;
 
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
-pub enum TorrentState { Leeching, Seeding, Reaped, Failed }
+pub enum TorrentState {
+    Leeching,
+    Seeding,
+    Reaped,
+    Failed,
+}
 
 #[derive(Clone, Debug, PartialEq, Default, serde::Serialize, serde::Deserialize)]
-pub enum TranscodeStatus { #[default] None, Pending, Remuxing, Encoding, Ready, Failed }
+pub enum TranscodeStatus {
+    #[default]
+    None,
+    Pending,
+    Remuxing,
+    Encoding,
+    Ready,
+    Failed,
+}
 
 #[derive(Clone, Debug, PartialEq, Default, serde::Serialize, serde::Deserialize)]
-pub enum HlsStatus { #[default] None, Starting, Live, Ready, Failed }
+pub enum HlsStatus {
+    #[default]
+    None,
+    Starting,
+    Live,
+    Ready,
+    Failed,
+}
 
 #[derive(Clone, Debug, PartialEq, serde::Serialize, serde::Deserialize)]
 pub struct Metadata {
@@ -43,6 +63,40 @@ pub struct Metadata {
     pub hls_dir: Option<String>,
     #[serde(default)]
     pub hls_error: Option<String>,
+    /// When this fetch started. Part of the billing idempotency key, so a
+    /// torrent re-added after a reap is a NEW fetch that bills again, while a
+    /// re-add of something still cached reuses the entry and bills nothing.
+    #[serde(default)]
+    pub added_at: u64,
+    /// Wallet account that asked for this fetch, stamped by the API gateway.
+    /// None means nobody is billable (legacy entry, or added out-of-band).
+    #[serde(default)]
+    pub account_id: Option<String>,
+    #[serde(default)]
+    pub billed_credits: Option<u64>,
+    #[serde(default)]
+    pub billed_at: Option<u64>,
+    #[serde(default)]
+    pub refunded_at: Option<u64>,
+    #[serde(default)]
+    pub billing_error: Option<String>,
+}
+
+impl Metadata {
+    /// Carry the billing identity from the entry this one replaces. Completion
+    /// rebuilds Metadata from scratch, so without this a finished download
+    /// looks unbilled and the settle loop charges for it a second time.
+    pub fn carry_billing_from(mut self, prior: Option<&Metadata>) -> Self {
+        if let Some(p) = prior {
+            self.added_at = p.added_at;
+            self.account_id = p.account_id.clone();
+            self.billed_credits = p.billed_credits;
+            self.billed_at = p.billed_at;
+            self.refunded_at = p.refunded_at;
+            self.billing_error = p.billing_error.clone();
+        }
+        self
+    }
 }
 
 #[derive(Clone)]
@@ -175,12 +229,57 @@ mod tests {
 
     fn meta(id: &str, last_access: u64) -> Metadata {
         Metadata {
-            id: id.into(), name: format!("t-{id}"), path: format!("/lib/{id}"),
-            size: 10, completed_at: Some(last_access), last_access,
-            state: TorrentState::Seeding, error: None, active_path: None,
-            transcode: TranscodeStatus::None, transcode_path: None, transcode_error: None,
-            hls: HlsStatus::None, hls_dir: None, hls_error: None,
+            id: id.into(),
+            name: format!("t-{id}"),
+            path: format!("/lib/{id}"),
+            size: 10,
+            completed_at: Some(last_access),
+            last_access,
+            state: TorrentState::Seeding,
+            error: None,
+            active_path: None,
+            transcode: TranscodeStatus::None,
+            transcode_path: None,
+            transcode_error: None,
+            hls: HlsStatus::None,
+            hls_dir: None,
+            hls_error: None,
+            added_at: 0,
+            account_id: None,
+            billed_credits: None,
+            billed_at: None,
+            refunded_at: None,
+            billing_error: None,
         }
+    }
+
+    #[test]
+    fn completion_rebuild_keeps_the_billing_identity() {
+        let prior = Metadata {
+            added_at: 500,
+            account_id: Some("acct-1".into()),
+            billed_credits: Some(400),
+            billed_at: Some(510),
+            ..meta("a", 100)
+        };
+        let rebuilt = meta("a", 900).carry_billing_from(Some(&prior));
+        assert_eq!(
+            rebuilt.added_at, 500,
+            "epoch survives, so the key is stable"
+        );
+        assert_eq!(rebuilt.account_id.as_deref(), Some("acct-1"));
+        assert_eq!(
+            rebuilt.billed_at,
+            Some(510),
+            "a finished fetch is not re-billed"
+        );
+        assert_eq!(rebuilt.last_access, 900, "everything else is the new value");
+    }
+
+    #[test]
+    fn carry_from_nothing_is_a_no_op() {
+        let m = meta("a", 100).carry_billing_from(None);
+        assert_eq!(m.account_id, None);
     }
 
     #[test]
@@ -198,7 +297,10 @@ mod tests {
     fn persists_and_reloads() {
         let dir = tempdir().unwrap();
         let p = dir.path().join("state.json");
-        { let s = StateStore::load(p.clone()).unwrap(); s.upsert(meta("a", 100)).unwrap(); }
+        {
+            let s = StateStore::load(p.clone()).unwrap();
+            s.upsert(meta("a", 100)).unwrap();
+        }
         let s2 = StateStore::load(p).unwrap();
         assert_eq!(s2.get("a").unwrap().name, "t-a");
     }
@@ -222,7 +324,11 @@ mod tests {
         s.touch("a", 999).unwrap();
         assert_eq!(s.get("a").unwrap().last_access, 999);
         assert_eq!(
-            StateStore::load(p.clone()).unwrap().get("a").unwrap().last_access,
+            StateStore::load(p.clone())
+                .unwrap()
+                .get("a")
+                .unwrap()
+                .last_access,
             100,
             "touch must not hit disk inline"
         );
@@ -303,7 +409,14 @@ mod tests {
         let p = dir.path().join("state.json");
         let legacy = r#"{"1":{"id":"1","name":"m","path":"/lib/m","size":3,"completed_at":10,"last_access":10,"state":"Seeding"}}"#;
         std::fs::write(&p, legacy).unwrap();
-        assert!(StateStore::load(p.clone()).unwrap().get("1").unwrap().active_path.is_none());
+        assert!(
+            StateStore::load(p.clone())
+                .unwrap()
+                .get("1")
+                .unwrap()
+                .active_path
+                .is_none()
+        );
         let s = StateStore::load(p.clone()).unwrap();
         s.update("1", |m| {
             m.active_path = Some("/data/active/abc".into());
@@ -311,7 +424,12 @@ mod tests {
         })
         .unwrap();
         assert_eq!(
-            StateStore::load(p).unwrap().get("1").unwrap().active_path.as_deref(),
+            StateStore::load(p)
+                .unwrap()
+                .get("1")
+                .unwrap()
+                .active_path
+                .as_deref(),
             Some("/data/active/abc")
         );
     }

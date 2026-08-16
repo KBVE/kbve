@@ -83,6 +83,11 @@ export interface ReelTorrent {
 	transcode_progress?: ReelTranscodeProgress | null;
 	hls: ReelHlsStatus;
 	hls_error?: string | null;
+	/** Credits charged for pulling this fetch, once the sweep settles it. */
+	billed_credits?: number | null;
+	billed_at?: number | null;
+	refunded_at?: number | null;
+	billing_error?: string | null;
 }
 
 export interface ReelTranscodeProgress {
@@ -330,6 +335,12 @@ export function fileDownloadHref(id: string, index: number): Promise<string> {
 
 export function archiveDownloadHref(id: string): Promise<string> {
 	return downloadHref(id, '/archive.zip');
+}
+
+/** Reel bills one credit per MiB, once, when it has to pull the bytes. */
+export function formatCredits(n: number | null | undefined): string {
+	if (n == null || !Number.isFinite(n) || n < 0) return '';
+	return `${n.toLocaleString()} cr`;
 }
 
 export function formatBytes(n: number | null | undefined): string {
