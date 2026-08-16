@@ -211,6 +211,12 @@ impl ProfessionDb {
         self.gather.len()
     }
 
+    /// Every gatherable item paired with what it takes and pays. Ordering
+    /// follows the underlying map and is not stable — sort if you need it.
+    pub fn gather_iter(&self) -> impl Iterator<Item = (&str, &GatherInfo)> {
+        self.gather.iter().map(|(k, v)| (k.as_str(), v))
+    }
+
     pub fn compress_len(&self) -> usize {
         self.compress.len()
     }

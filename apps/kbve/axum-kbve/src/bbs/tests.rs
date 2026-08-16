@@ -946,3 +946,55 @@ fn dungeon_equipping_carried_gear_is_offered_not_refused() {
         );
     }
 }
+
+#[test]
+fn dungeon_finds_a_resource_room_and_can_work_it() {
+    // Walk until a resource room turns up, then confirm the board offers the
+    // nodes and that working one yields a material.
+    for seed in 1..40u64 {
+        let mut game = run::Run::new(Rng::new(seed), "tester");
+        for step in 0..300 {
+            if game.phase() == bevy_dungeon::types::GamePhase::Gathering {
+                let keys = game.keys();
+                assert!(
+                    !keys.is_empty(),
+                    "seed {seed}: a gathering room offered nothing to work"
+                );
+                let before = game.pack().len();
+                let _ = game.on_key(keys[0]);
+                assert!(
+                    game.notice().is_none(),
+                    "seed {seed}: working an offered node was refused: {:?}",
+                    game.notice()
+                );
+                assert!(
+                    game.pack().len() >= before,
+                    "seed {seed}: working a node took nothing"
+                );
+                return;
+            }
+            let keys = game.keys();
+            if keys.is_empty() {
+                break;
+            }
+            let _ = game.on_key(keys[step % keys.len()]);
+        }
+    }
+    panic!("no resource room generated across 40 seeds");
+}
+
+#[test]
+fn dungeon_log_lines_are_not_printed_twice() {
+    let mut game = run::Run::new(Rng::new(3), "tester");
+    let keys = game.keys();
+    let _ = game.on_key(keys[0]);
+
+    let log = game.log();
+    let mut seen = std::collections::HashSet::new();
+    for line in &log {
+        assert!(
+            seen.insert(line.clone()),
+            "log line repeated: {line:?} in {log:?}"
+        );
+    }
+}

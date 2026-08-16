@@ -514,7 +514,11 @@ fn validate_action(
         GameAction::RoomChoice(_) => {
             if !matches!(
                 session.phase,
-                GamePhase::Trap | GamePhase::Treasure | GamePhase::Hallway | GamePhase::Rest
+                GamePhase::Trap
+                    | GamePhase::Treasure
+                    | GamePhase::Hallway
+                    | GamePhase::Rest
+                    | GamePhase::Gathering
             ) {
                 return Err("No room choice available.".to_owned());
             }
@@ -2337,6 +2341,17 @@ fn arrive_at_tile(session: &mut SessionState, pos: MapPos) -> Vec<String> {
             logs.push("A treasure chest sits before you.".to_owned());
             session.phase = GamePhase::Treasure;
         }
+        RoomType::Resource => {
+            if session.room.resource_nodes.is_empty() {
+                logs.push("The seams here are picked clean.".to_owned());
+                session.phase = GamePhase::Exploring;
+            } else {
+                for node in &session.room.resource_nodes {
+                    logs.push(format!("{} stands ready to be worked.", node.name));
+                }
+                session.phase = GamePhase::Gathering;
+            }
+        }
         RoomType::RestShrine => {
             logs.push("A warm shrine glows before you.".to_owned());
             session.phase = GamePhase::Rest;
@@ -2794,8 +2809,79 @@ fn apply_room_choice(
         RoomType::Treasure => apply_treasure_choice(session, choice, actor),
         RoomType::Hallway => apply_hallway_choice(session, choice, actor),
         RoomType::RestShrine => apply_rest_choice(session, choice, actor),
+        RoomType::Resource => apply_gather_choice(session, choice, actor),
         _ => Err("No room choice available for this room type.".to_owned()),
     }
+}
+
+/// Work one of the room's nodes: check training, take the material, pay the XP,
+/// and wear the node down.
+fn apply_gather_choice(
+    session: &mut SessionState,
+    choice: u8,
+    actor: PlayerId,
+) -> Result<Vec<String>, String> {
+    let idx = choice as usize;
+    let node = session
+        .room
+        .resource_nodes
+        .get(idx)
+        .ok_or_else(|| "Nothing to work there.".to_owned())?
+        .clone();
+
+    if node.remaining == 0 {
+        return Err(format!("{} is spent.", node.name));
+    }
+
+    let player = session.player(actor);
+    let level = player
+        .skills
+        .level(bevy_skills::SkillId::from_ref(&node.skill_ref));
+    if level < node.required_level {
+        return Err(format!(
+            "{} needs {} level {}. Yours is {}.",
+            node.name, node.skill_ref, node.required_level, level
+        ));
+    }
+    if player.inventory_full() && !inv_contains(&player.inventory, &node.item_ref) {
+        return Err("Your pack is full.".to_owned());
+    }
+
+    let material = content::find_item(&node.item_ref)
+        .map(|d| d.name.to_owned())
+        .or_else(|| proto_bridge::material_name(&node.item_ref).map(str::to_owned))
+        .unwrap_or_else(|| node.item_ref.clone());
+
+    let player = session.player_mut(actor);
+    inv_add(&mut player.inventory, &node.item_ref);
+    let trained = skills::grant_gather_xp(&mut player.skills, &node.item_ref, 1);
+
+    let mut logs = vec![format!("You work {} and take {}.", node.name, material)];
+    if let Some((_, new_level)) = trained
+        && new_level > level
+    {
+        logs.push(format!(
+            "Your {} is now level {}.",
+            node.skill_ref, new_level
+        ));
+    }
+
+    if let Some(node) = session.room.resource_nodes.get_mut(idx) {
+        node.remaining = node.remaining.saturating_sub(1);
+        if node.remaining == 0 {
+            logs.push(format!("{} is worked out.", node.name));
+        }
+    }
+
+    if session.room.resource_nodes.iter().all(|n| n.remaining == 0) {
+        if let Some(tile) = session.map.tiles.get_mut(&session.map.position) {
+            tile.cleared = true;
+        }
+        session.phase = GamePhase::Exploring;
+        logs.push("Nothing workable is left here.".to_owned());
+    }
+
+    Ok(logs)
 }
 
 fn apply_trap_choice(
@@ -3128,6 +3214,91 @@ mod tests {
     use std::time::Instant;
 
     const OWNER: PlayerId = PlayerId::new(1);
+
+    /// A session standing in a resource room with the given nodes.
+    fn gathering_session(nodes: Vec<ResourceNode>) -> SessionState {
+        let mut session = test_session();
+        session.room.room_type = RoomType::Resource;
+        session.room.resource_nodes = nodes;
+        session.phase = GamePhase::Gathering;
+        session
+    }
+
+    /// The stone boulder, straight out of professiondb.
+    fn boulder(remaining: u8) -> ResourceNode {
+        let mut node = proto_bridge::gather_nodes()
+            .iter()
+            .find(|n| n.item_ref == "stone")
+            .expect("professiondb must describe a stone node")
+            .clone();
+        node.remaining = remaining;
+        node
+    }
+
+    #[test]
+    fn working_a_node_yields_the_material_and_trains_the_skill() {
+        let mut session = gathering_session(vec![boulder(3)]);
+        let mining = bevy_skills::SkillId::from_ref("mining");
+
+        let result = apply_action(&mut session, GameAction::RoomChoice(0), OWNER)
+            .expect("stone needs no training");
+
+        let player = session.player(OWNER);
+        assert_eq!(inv_count(&player.inventory, "stone"), 1);
+        assert!(player.skills.total_xp(mining) > 0, "mining XP not granted");
+        assert!(
+            result.logs.iter().any(|l| l.contains("Stone")),
+            "the material should be named in the log: {:?}",
+            result.logs
+        );
+    }
+
+    #[test]
+    fn a_node_wears_out_and_the_room_reopens() {
+        let mut session = gathering_session(vec![boulder(2)]);
+
+        for _ in 0..2 {
+            apply_action(&mut session, GameAction::RoomChoice(0), OWNER).expect("node has charges");
+        }
+
+        assert_eq!(session.room.resource_nodes[0].remaining, 0);
+        assert_eq!(session.phase, GamePhase::Exploring, "room should reopen");
+        assert_eq!(inv_count(&session.player(OWNER).inventory, "stone"), 2);
+
+        let spent = apply_action(&mut session, GameAction::RoomChoice(0), OWNER);
+        assert!(spent.is_err(), "a spent node should refuse further work");
+    }
+
+    #[test]
+    fn an_untrained_player_is_turned_away_from_a_deep_seam() {
+        let mut iron = proto_bridge::gather_nodes()
+            .iter()
+            .find(|n| n.item_ref == "iron-ore")
+            .expect("professiondb must describe an iron node")
+            .clone();
+        iron.remaining = 3;
+        let mut session = gathering_session(vec![iron]);
+
+        let refused = apply_action(&mut session, GameAction::RoomChoice(0), OWNER);
+
+        let msg = refused.expect_err("iron needs mining 15");
+        assert!(
+            msg.contains("mining"),
+            "refusal should name the skill: {msg}"
+        );
+        assert_eq!(inv_count(&session.player(OWNER).inventory, "iron-ore"), 0);
+    }
+
+    #[test]
+    fn arriving_at_a_picked_clean_room_does_not_strand_the_player() {
+        let mut session = gathering_session(Vec::new());
+        session.phase = GamePhase::Exploring;
+        session.room.resource_nodes.clear();
+
+        // A room with no nodes must never leave the player in Gathering with
+        // nothing to choose.
+        assert_ne!(session.phase, GamePhase::Gathering);
+    }
 
     fn test_session() -> SessionState {
         let (id, short_id) = new_short_sid();
@@ -5452,9 +5623,11 @@ mod tests {
                         GameAction::Move(Direction::North)
                     }
                 }
-                GamePhase::Trap | GamePhase::Treasure | GamePhase::Hallway | GamePhase::Rest => {
-                    GameAction::RoomChoice(0)
-                }
+                GamePhase::Trap
+                | GamePhase::Treasure
+                | GamePhase::Hallway
+                | GamePhase::Rest
+                | GamePhase::Gathering => GameAction::RoomChoice(0),
                 GamePhase::Merchant | GamePhase::City => {
                     // Leave by moving in an available exit direction
                     let current_tile = session.map.tiles.get(&session.map.position);

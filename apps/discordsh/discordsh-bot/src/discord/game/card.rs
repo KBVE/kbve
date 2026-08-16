@@ -169,6 +169,7 @@ fn phase_label(phase: &GamePhase) -> &'static str {
         GamePhase::Trap => "Trap",
         GamePhase::Treasure => "Treasure",
         GamePhase::Hallway => "Hallway",
+        GamePhase::Gathering => "Gathering",
         GamePhase::GameOver(GameOverReason::Victory) => "Victory",
         GamePhase::GameOver(GameOverReason::Defeated) => "Defeated",
         GamePhase::GameOver(GameOverReason::Escaped) => "Escaped",
@@ -796,6 +797,7 @@ fn room_type_color(room_type: &RoomType) -> &'static str {
         RoomType::UndergroundCity => "#4488ff",
         RoomType::Story => "#ff88ff",
         RoomType::Trap => "#ff8800",
+        RoomType::Resource => "#8899aa",
         RoomType::Hallway => "#666666",
     }
 }
@@ -810,6 +812,7 @@ fn room_type_icon_id(room_type: &RoomType) -> &'static str {
         RoomType::UndergroundCity => "city",
         RoomType::Story => "story",
         RoomType::Trap => "trap",
+        RoomType::Resource => "resource",
         RoomType::Hallway => "hallway",
     }
 }
@@ -1593,8 +1596,8 @@ mod tests {
     fn test_map_card_has_correct_icon_ids() {
         // Verify all icon_ids are valid SVG icon types
         let valid_ids = [
-            "combat", "boss", "treasure", "rest", "merchant", "city", "story", "trap", "hallway",
-            "unknown",
+            "combat", "boss", "treasure", "rest", "merchant", "city", "story", "trap", "resource",
+            "hallway", "unknown",
         ];
         let session = test_session();
         let template = build_map_card(&session);
