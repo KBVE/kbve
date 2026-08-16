@@ -1,6 +1,5 @@
 extends GdUnitTestSuite
 
-## What a full bag does with loot: it puts it on the ground, and the ground gives it back.
 
 const Field := preload("res://src/world/ground_items.gd")
 
@@ -31,7 +30,6 @@ func after_test() -> void:
 	Journal.save_now()
 
 
-## Far enough away that nothing is picked up until a test says so.
 func _stand_off() -> void:
 	_player.global_position = Vector3(100.0, 0.0, 100.0)
 
@@ -51,8 +49,6 @@ func test_a_drop_lands_where_it_was_dropped() -> void:
 			.is_less(1.0)
 
 
-## The catalog is the gate here as much as it is on the bag: a typo'd ref should be
-## nothing arriving, not a plate on the ground that no recipe can spend.
 func test_an_item_nobody_has_heard_of_is_not_dropped() -> void:
 	assert_object(_field.drop(&"unobtainium", 1, Vector3.ZERO)).is_null()
 	assert_int(_field.items().size()).is_equal(0)
@@ -75,8 +71,6 @@ func test_walking_over_a_drop_picks_it_up() -> void:
 			.is_equal(0)
 
 
-## The half-loaf case: room for some of a pile takes some of it, and what is left on the
-## ground still says how much is left.
 func test_a_bag_with_partial_room_takes_what_fits() -> void:
 	var cap := Itemdb.max_stack(&"log")
 	var cells := Journal.COLS * Journal.ROWS
@@ -91,8 +85,6 @@ func test_a_bag_with_partial_room_takes_what_fits() -> void:
 			.override_failure_message("the pile forgot what was left in it").is_equal(3)
 
 
-## Standing on something a full bag will not take must not spend the rest of the
-## afternoon asking, or the notice it raises fires every frame.
 func test_a_refused_drop_is_not_retried_every_frame() -> void:
 	var cap := Itemdb.max_stack(&"log")
 	var cells := Journal.COLS * Journal.ROWS
@@ -101,8 +93,6 @@ func test_a_refused_drop_is_not_retried_every_frame() -> void:
 	var item := _field.drop(&"log", 2, Vector3(4.0, 0.0, 0.0))
 	_stand_on(item)
 
-	# A list rather than a counter: a lambda captures the locals it closes over by value,
-	# so an `int` incremented in here would still read zero out there.
 	var refusals: Array = []
 	var listener := func(_ref: StringName, _count: int) -> void: refusals.append(1)
 	Journal.refused.connect(listener)
@@ -114,8 +104,6 @@ func test_a_refused_drop_is_not_retried_every_frame() -> void:
 			.is_equal(1)
 	assert_int(_field.items().size()).is_equal(1)
 
-	# ...and once the wait is over it does ask again, or a bag emptied while standing
-	# over a drop would never notice.
 	for i in 120:
 		_field._process(0.016)
 	Journal.refused.disconnect(listener)
@@ -136,7 +124,6 @@ func test_a_drop_nobody_came_back_for_goes_away() -> void:
 			.override_failure_message("drops pile up on the ground for ever").is_equal(0)
 
 
-## A clearing cannot fill without bound, and it is the oldest that goes.
 func test_the_ground_holds_only_so_many() -> void:
 	_stand_off()
 	_field.max_items = 3
@@ -149,6 +136,5 @@ func test_the_ground_holds_only_so_many() -> void:
 			.is_equal(4)
 
 
-## Only one field, so anything shedding loot can find it without being handed a reference.
 func test_the_field_can_be_found_from_the_tree() -> void:
 	assert_object(GroundItems.of(get_tree())).is_same(_field)

@@ -1,14 +1,5 @@
 extends CanvasLayer
 
-## Short-lived notices, stacked above the crosshair.
-##
-## What arrived and what would not fit. The second of those is the one that matters: loot
-## that bounces off a full bag has to be loud, because the alternative is a felled tree
-## and no reason given.
-##
-## Repeats merge rather than queue. Chopping is a stream of small drops and a column of
-## eight "+1 Log" lines is less readable than one that says how many -- and a player stood
-## on a drop their bag will not take should be told once, not once a second.
 
 const SECONDS := 3.5
 const FADE := 0.6
@@ -22,7 +13,6 @@ const BACK := Color(0.08, 0.07, 0.06, 0.72)
 
 var _root: Control
 var _font: Font
-## Each `{text, color, left, times}`, newest last.
 var _lines: Array[Dictionary] = []
 
 
@@ -40,8 +30,6 @@ func _ready() -> void:
 	Journal.refused.connect(_on_refused)
 
 
-## Says something. An identical line already up is refreshed and counted rather than
-## repeated, so the stack stays as short as what it has to say.
 func show_toast(text: String, warn := false) -> void:
 	if text == "":
 		return

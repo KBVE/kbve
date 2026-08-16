@@ -1,15 +1,4 @@
 #!/usr/bin/env python3
-"""Which Godot projects a change touches, as a GitHub Actions matrix.
-
-Reads the same dispatch manifest ci-godot.yml is dispatched from, so a second
-Godot app is a manifest entry and nothing else. A project is picked when the
-diff hits its project_path or the crate behind its gdextension.package -- the
-extension is compiled into the suite's world, so a change on the Rust side can
-break a GDScript test without a single .gd file moving.
-
-Usage: godot_test_matrix.py <manifest.json> <changed-files.txt>
-       ALL=1 to take every project regardless of the diff.
-"""
 
 import json
 import os
@@ -21,11 +10,6 @@ NAME = re.compile(r'^\s*name\s*=\s*"([^"]+)"', re.M)
 
 
 def crate_dirs() -> dict[str, str]:
-    """Every workspace crate by name, as a repo-relative directory.
-
-    Read off the manifests rather than out of `cargo metadata`: this runs on a
-    checkout with no toolchain, and the answer is one line of each file.
-    """
     out: dict[str, str] = {}
     for manifest in Path(".").rglob("Cargo.toml"):
         parts = manifest.parts
@@ -35,8 +19,6 @@ def crate_dirs() -> dict[str, str]:
             text = manifest.read_text(encoding="utf-8", errors="replace")
         except OSError:
             continue
-        # `[package]` only. A virtual workspace root has no name, and a
-        # `[dependencies]` entry naming a crate is not that crate.
         head = text.split("[dependencies", 1)[0]
         found = NAME.search(head)
         if found:

@@ -1,6 +1,5 @@
 extends GdUnitTestSuite
 
-## Being told what arrived, and being told louder about what would not fit.
 
 const Toast := preload("res://src/ui/toast.gd")
 
@@ -34,8 +33,6 @@ func test_something_arriving_is_said() -> void:
 	assert_str(str(lines[0]["text"])).contains(Itemdb.display_name(&"log"))
 
 
-## The one that matters: loot bouncing off a full bag has to be loud, or a tree is felled
-## for nothing and no reason is given.
 func test_a_full_bag_says_so_and_says_it_differently() -> void:
 	var cap := Itemdb.max_stack(&"log")
 	var cells := Journal.COLS * Journal.ROWS
@@ -49,8 +46,6 @@ func test_a_full_bag_says_so_and_says_it_differently() -> void:
 	assert_str(str(warned[0]["text"])).contains("3")
 
 
-## Chopping is a stream of small drops, and a column of eight identical lines says less
-## than one line that has been counted.
 func test_the_same_thing_twice_is_one_line_that_counts() -> void:
 	Journal.gain(&"log", 1)
 	Journal.gain(&"log", 1)
@@ -79,8 +74,6 @@ func test_a_notice_goes_away_on_its_own() -> void:
 			.override_failure_message("the notice stayed on screen for ever").is_equal(0)
 
 
-## A repeat that arrives while the first is fading puts the whole line back, or a steady
-## trickle of the same drop would blink out mid-sentence.
 func test_a_repeat_puts_the_clock_back() -> void:
 	_toast.show_toast("something happened")
 	_toast._process(Toast.SECONDS * 0.9)
