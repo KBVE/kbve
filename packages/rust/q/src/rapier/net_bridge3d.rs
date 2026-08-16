@@ -433,6 +433,30 @@ impl QNetClient3D {
         self.last.as_ref().map_or(0.0, |s| s.hour as f64)
     }
 
+    /// Seconds the host has simulated. Monotonic and never wrapped, unlike the hour, so
+    /// it is what anything scheduled against world time should read.
+    #[func]
+    fn world_elapsed(&self) -> f64 {
+        self.last.as_ref().map_or(0.0, |s| s.elapsed)
+    }
+
+    /// Whole days the world has run, counting from the host's first tick.
+    #[func]
+    fn world_day(&self) -> i64 {
+        self.last.as_ref().map_or(0, |s| s.day)
+    }
+
+    /// The hour the host's day started at. With the day length and the elapsed seconds
+    /// this is the whole clock, so the sky is a function of it rather than a free-run
+    /// that gets corrected.
+    #[func]
+    fn world_start_hour(&self) -> f64 {
+        self.last
+            .as_ref()
+            .and_then(|s| s.world)
+            .map_or(0.0, |w| w.start_hour as f64)
+    }
+
     /// Real-world minutes the host's day takes, or 0 before joining.
     #[func]
     fn day_length_minutes(&self) -> f64 {

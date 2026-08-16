@@ -31,6 +31,11 @@ pub struct NetClientState {
     pub world: Option<WorldInfo>,
     /// Host clock, hours 0..24.
     pub hour: f32,
+    /// Seconds the host has simulated, never wrapped, so anything that wants to be a
+    /// function of world time has a number that only goes up.
+    pub elapsed: f64,
+    /// Whole days the world has run.
+    pub day: i64,
     /// Every pet deployed in the session, which is what says a body in the
     /// snapshot is somebody's robot rather than a player.
     pub pets: Vec<PetInfo>,
@@ -49,6 +54,8 @@ impl Default for NetClientState {
             roster: Vec::new(),
             world: None,
             hour: 0.0,
+            elapsed: 0.0,
+            day: 0,
             pets: Vec::new(),
         }
     }
@@ -318,6 +325,7 @@ fn run(w: Wiring) {
             }
         }
         session.tick();
+        session.advance_clock(dt.as_secs_f64());
         for event in session.take_harvest_events() {
             let _ = event_tx.send(event);
         }
@@ -340,6 +348,8 @@ fn run(w: Wiring) {
             roster: session.roster().to_vec(),
             world: session.world(),
             hour: session.hour(),
+            elapsed: session.elapsed(),
+            day: session.day(),
             pets: session.pets().to_vec(),
         }));
 

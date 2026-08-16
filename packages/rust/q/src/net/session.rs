@@ -91,8 +91,14 @@ pub enum SessionMsg {
         water_level: f32,
         road_width: f32,
         /// Hours, 0..24, at the moment of joining.
-        time_of_day: f32,
+        /// Hours, 0..24, the host's day started at. Paired with `elapsed` and
+        /// `day_length_minutes` this is the whole clock: every other time in the world is
+        /// derived from the three, so nothing has to be resent to stay in step.
+        start_hour: f32,
         day_length_minutes: f32,
+        /// Seconds the host has simulated. Monotonic and never wrapped, so it can be the
+        /// input to anything scheduled rather than only to a sky.
+        elapsed: f64,
     },
     Reject {
         reason: String,
@@ -104,8 +110,12 @@ pub enum SessionMsg {
     /// The host's clock, resent periodically. Clients run their own between these and
     /// correct on arrival; without it two people who joined minutes apart stand in the
     /// same world under different suns.
+    ///
+    /// Seconds rather than the hour it used to carry: an hour wraps every 24, so it can
+    /// say what the sky should look like and nothing else. Anything that wants to be a
+    /// function of world time needs a number that only goes up.
     WorldTime {
-        hour: f32,
+        elapsed: f64,
     },
     Input(PlayerInput),
     Snapshot(SimSnapshot),
@@ -178,6 +188,25 @@ pub enum SessionMsg {
     },
 }
 
+/// Real seconds one in-world day takes.
+fn day_seconds(day_length_minutes: f32) -> f64 {
+    (day_length_minutes as f64 * 60.0).max(1.0)
+}
+
+/// The hour a world reads after running for `elapsed` seconds.
+///
+/// The only place the mapping lives. A host and a client each keeping their own version
+/// of it is how two people end up standing in the same world under different suns, which
+/// is exactly what the periodic resync was there to paper over.
+pub fn hour_at(start_hour: f32, day_length_minutes: f32, elapsed: f64) -> f32 {
+    (start_hour as f64 + elapsed * 24.0 / day_seconds(day_length_minutes)).rem_euclid(24.0) as f32
+}
+
+/// Whole days the world has been running, counting from the session's first tick.
+pub fn day_at(day_length_minutes: f32, elapsed: f64) -> i64 {
+    (elapsed / day_seconds(day_length_minutes)).floor() as i64
+}
+
 /// Turns a bearer token into a display name, or into a reason the player can read.
 pub trait TokenAuthority: Send + Sync {
     fn verify(&self, token: &str) -> Result<String, String>;
@@ -203,7 +232,9 @@ pub struct SessionConfig {
     /// two codebases have to remember.
     pub terrain_extent: f32,
     pub terrain_resolution: u32,
-    /// World clock. The host owns it so everyone shares one sky.
+    /// World clock. The host owns it so everyone shares one sky. Only the start and the
+    /// length are configured: the time itself is [`hour_at`] of how long the host has
+    /// run, so there is no second copy of it to drift.
     pub start_hour: f32,
     pub day_length_minutes: f32,
     /// How often the clock is rebroadcast.
@@ -335,7 +366,9 @@ pub struct HostSession<T: Transport> {
     snapshot_accum: f64,
     authority: Option<Arc<dyn TokenAuthority>>,
     ground: Option<GroundSampler>,
-    hour: f32,
+    /// Seconds simulated. The clock: the hour is derived from it rather than kept
+    /// alongside it, so there is nothing for the two to disagree about.
+    elapsed: f64,
     time_accum: f64,
     /// What has been mined and felled. The host has no scatter, but damage only
     /// ever increases, so a ledger is enough to be authoritative about state
@@ -385,7 +418,7 @@ impl<T: Transport> HostSession<T> {
                 clearance: pets.body_radius + 0.3,
                 ..config.pet_fields
             }),
-            hour: config.start_hour,
+            elapsed: 0.0,
             time_accum: 0.0,
         }
     }
@@ -563,8 +596,9 @@ impl<T: Transport> HostSession<T> {
                 terrain_resolution: self.config.terrain_resolution,
                 water_level: self.config.water_level,
                 road_width: self.config.road_width,
-                time_of_day: self.hour,
+                start_hour: self.config.start_hour,
                 day_length_minutes: self.config.day_length_minutes,
+                elapsed: self.elapsed,
             },
         );
         self.send_harvest_ledgers(peer);
@@ -746,14 +780,30 @@ impl<T: Transport> HostSession<T> {
         if self.transport.peers().is_empty() {
             return;
         }
-        if let Ok(bytes) = proto::encode(&SessionMsg::WorldTime { hour: self.hour }) {
+        if let Ok(bytes) = proto::encode(&SessionMsg::WorldTime {
+            elapsed: self.elapsed,
+        }) {
             let _ = self.transport.broadcast(Delivery::Unreliable, &bytes);
         }
     }
 
     /// Host clock, hours 0..24.
     pub fn hour(&self) -> f32 {
-        self.hour
+        hour_at(
+            self.config.start_hour,
+            self.config.day_length_minutes,
+            self.elapsed,
+        )
+    }
+
+    /// Seconds the host has simulated, never wrapped.
+    pub fn elapsed(&self) -> f64 {
+        self.elapsed
+    }
+
+    /// Whole days the world has run.
+    pub fn day(&self) -> i64 {
+        day_at(self.config.day_length_minutes, self.elapsed)
     }
 
     /// Pets currently deployed, in id order.
@@ -1063,9 +1113,7 @@ impl<T: Transport> HostSession<T> {
 
         // One clock for everyone, advanced by the host and rebroadcast so clients that
         // joined at different times do not drift into different skies.
-        let day_seconds = (self.config.day_length_minutes as f64 * 60.0).max(1.0);
-        self.hour =
-            (self.hour as f64 + self.sim.timestep() * 24.0 / day_seconds).rem_euclid(24.0) as f32;
+        self.elapsed += self.sim.timestep();
         self.time_accum += self.sim.timestep();
         if self.time_accum >= self.config.time_sync_seconds.max(0.1) {
             self.time_accum = 0.0;
@@ -1134,7 +1182,9 @@ pub struct ClientSession<T: Transport> {
     roster: Vec<PeerInfo>,
     /// The world contract from `Welcome`, and the clock the host keeps correcting.
     world: Option<WorldInfo>,
-    hour: f32,
+    /// Seconds the host had simulated as of the last clock that arrived. The client
+    /// advances it between them, so this is a correction rather than the only source.
+    elapsed: f64,
     /// The host's view of what has been harvested, replayed on join and kept up
     /// to date by deltas. Held so a field rescattering mid-session can restore
     /// from it without asking anyone.
@@ -1165,6 +1215,9 @@ pub struct WorldInfo {
     /// The deck's height is derived from these two on both sides.
     pub water_level: f32,
     pub road_width: f32,
+    /// The clock's two constants. Everything else about the time is derived from these
+    /// and the elapsed seconds, on both sides, through the same function.
+    pub start_hour: f32,
     pub day_length_minutes: f32,
 }
 
@@ -1210,7 +1263,7 @@ impl<T: Transport> ClientSession<T> {
             name: None,
             roster: Vec::new(),
             world: None,
-            hour: 0.0,
+            elapsed: 0.0,
             stone_ledger: Ledger::new(),
             tree_ledger: Ledger::new(),
             harvest_events: Vec::new(),
@@ -1263,9 +1316,30 @@ impl<T: Transport> ClientSession<T> {
         self.world
     }
 
-    /// Host clock as of the last sync, hours 0..24.
+    /// Host clock, hours 0..24.
     pub fn hour(&self) -> f32 {
-        self.hour
+        self.world.map_or(0.0, |w| {
+            hour_at(w.start_hour, w.day_length_minutes, self.elapsed)
+        })
+    }
+
+    /// Seconds the host has simulated, never wrapped.
+    pub fn elapsed(&self) -> f64 {
+        self.elapsed
+    }
+
+    /// Whole days the world has run.
+    pub fn day(&self) -> i64 {
+        self.world
+            .map_or(0, |w| day_at(w.day_length_minutes, self.elapsed))
+    }
+
+    /// Runs the clock on between the host's corrections, so the sky keeps moving rather
+    /// than stepping once every resync.
+    pub fn advance_clock(&mut self, dt: f64) {
+        if self.world.is_some() {
+            self.elapsed += dt.max(0.0);
+        }
     }
 
     pub fn roster(&self) -> &[PeerInfo] {
@@ -1396,25 +1470,27 @@ impl<T: Transport> ClientSession<T> {
                     terrain_resolution,
                     water_level,
                     road_width,
-                    time_of_day,
+                    start_hour,
                     day_length_minutes,
+                    elapsed,
                     ..
                 } => {
                     self.status = ClientStatus::Joined;
                     self.seed = Some(seed);
                     self.peer = Some(peer);
                     self.name = Some(name);
-                    self.hour = time_of_day;
+                    self.elapsed = elapsed;
                     self.world = Some(WorldInfo {
                         terrain_extent,
                         terrain_resolution,
                         water_level,
                         road_width,
+                        start_hour,
                         day_length_minutes,
                     });
                 }
-                SessionMsg::WorldTime { hour } => {
-                    self.hour = hour;
+                SessionMsg::WorldTime { elapsed } => {
+                    self.elapsed = elapsed;
                 }
                 SessionMsg::Roster { players } => {
                     self.roster = players;
@@ -2217,6 +2293,91 @@ mod tests {
             "client drifted from host: {} vs {}",
             early.hour(),
             host.hour()
+        );
+    }
+
+    #[test]
+    fn the_hour_is_derived_rather_than_counted() {
+        assert!((hour_at(9.0, 45.0, 0.0) - 9.0).abs() < 1e-4);
+        assert!((hour_at(9.0, 45.0, 45.0 * 60.0 / 2.0) - 21.0).abs() < 1e-3);
+        assert!(
+            (hour_at(9.0, 45.0, 45.0 * 60.0) - 9.0).abs() < 1e-3,
+            "a whole day is a round trip"
+        );
+        assert!((hour_at(9.0, 45.0, 45.0 * 60.0 * 3.0) - 9.0).abs() < 1e-3);
+    }
+
+    #[test]
+    fn days_are_counted_past_the_wrap() {
+        let day = 45.0 * 60.0;
+        assert_eq!(day_at(45.0, 0.0), 0);
+        assert_eq!(day_at(45.0, day - 1.0), 0);
+        assert_eq!(day_at(45.0, day + 1.0), 1);
+        assert_eq!(day_at(45.0, day * 7.5), 7);
+    }
+
+    /// The clock the wire carries has to survive midnight. An hour cannot: it says 23.9
+    /// then 0.1 and there is no way to tell a new day from a correction backwards, which
+    /// is why nothing could be scheduled against it.
+    #[test]
+    fn the_shared_clock_only_ever_goes_up() {
+        let config = SessionConfig {
+            day_length_minutes: 0.05,
+            time_sync_seconds: 0.05,
+            start_hour: 23.0,
+            ..SessionConfig::default()
+        };
+        let mesh = Loopback::mesh(2);
+        let mut host = HostSession::new(mesh[0].clone(), config, SimConfig::default(), 3);
+        host.set_terrain(flat_terrain());
+        let mut client = ClientSession::connect(mesh[1].clone());
+
+        let mut last = 0.0;
+        let mut wrapped = false;
+        let mut previous_hour = config.start_hour;
+        for _ in 0..400 {
+            host.tick();
+            client.tick();
+            // What the client really does between the host's corrections, and the half
+            // of the clock a test that only ticks would never touch.
+            client.advance_clock(SimConfig::default().timestep());
+            let now = client.elapsed();
+            assert!(now >= last, "clock went backwards: {last} then {now}");
+            last = now;
+            let hour = client.hour();
+            wrapped |= hour < previous_hour;
+            previous_hour = hour;
+        }
+        assert!(
+            wrapped,
+            "the test never crossed midnight, so it proved nothing"
+        );
+        assert!(host.day() > 0, "host never counted a day");
+        assert_eq!(
+            client.day(),
+            host.day(),
+            "client and host disagree on the day"
+        );
+    }
+
+    /// The host holds one number and derives the rest, so there is no second copy of the
+    /// time to fall out of step with the first.
+    #[test]
+    fn the_host_hour_is_its_elapsed_seconds() {
+        let config = SessionConfig {
+            day_length_minutes: 1.0,
+            ..SessionConfig::default()
+        };
+        let mesh = Loopback::mesh(1);
+        let mut host = HostSession::new(mesh[0].clone(), config, SimConfig::default(), 3);
+        host.set_terrain(flat_terrain());
+        for _ in 0..200 {
+            host.tick();
+        }
+        assert!(host.elapsed() > 0.0);
+        assert_eq!(
+            host.hour(),
+            hour_at(config.start_hour, config.day_length_minutes, host.elapsed())
         );
     }
 
