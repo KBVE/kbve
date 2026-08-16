@@ -82,6 +82,45 @@ impl FallingTree {
 
 const TRUNK_BUCKETS: [f32; 3] = [5.0, 7.5, 10.5];
 const TRUNK_COLLIDER_SPAN: f32 = 0.55;
+/// How far the base is pushed into the ground, so the cut of the bole never shows
+/// as a seam floating over the surface. Metres, not scaled: a big tree wants the
+/// same few centimetres of cover a small one does.
+const TRUNK_SINK: f32 = 0.17;
+/// Footprint the flare covers, as a fraction of tree height. Deliberately smaller
+/// than the root reach — the roots dive as they splay, so they stay covered on their
+/// own, and sizing to them instead would perch the trunk on the highest ground for
+/// metres around.
+const TRUNK_FOOT: f32 = 0.05;
+
+/// The ground a trunk rests on, which is the highest point under its footprint
+/// rather than the point at its centre.
+///
+/// Callers still owe the model's own offset: the bole starts at [`BOLE_BASE_Y`] in
+/// model units and the model is scaled by tree height, so seating an instance origin
+/// on the ground buries a tall tree's flare by most of a metre.
+///
+/// A tree seated on the centre sample has its base buried wherever the ground rises
+/// across the flare — every slope, and every local bump the placement grid steps over.
+/// Taking the high point instead leaves the base at or above the surface all round and
+/// lets [`TRUNK_SINK`] hide the seam on the low side.
+fn trunk_rest(sample: &impl Fn(f32, f32) -> f32, x: f32, z: f32, scale: f32) -> f32 {
+    let r = (scale * TRUNK_FOOT).clamp(0.5, 1.6);
+    let d = r * std::f32::consts::FRAC_1_SQRT_2;
+    let mut h = sample(x, z);
+    for (ox, oz) in [
+        (r, 0.0),
+        (-r, 0.0),
+        (0.0, r),
+        (0.0, -r),
+        (d, d),
+        (d, -d),
+        (-d, d),
+        (-d, -d),
+    ] {
+        h = h.max(sample(x + ox, z + oz));
+    }
+    h
+}
 
 fn trunk_bucket(scale: f32) -> usize {
     if scale < 6.2 {
@@ -344,7 +383,6 @@ impl QTreeField {
                 if terra.on_road(x, z) > 0.12 {
                     continue;
                 }
-                let h = sample(x, z);
                 let low = sample(x + 1.5, z)
                     .min(sample(x - 1.5, z))
                     .min(sample(x, z + 1.5))
@@ -358,13 +396,14 @@ impl QTreeField {
                 let phase = randf(&mut state) * std::f32::consts::TAU;
                 let sp = &SPECIES[kind];
                 let scale = sp.height.0 + randf(&mut state) * (sp.height.1 - sp.height.0);
+                let h = trunk_rest(&sample, x, z, scale) - BOLE_BASE_Y * scale - TRUNK_SINK;
                 let (gx, gz) = grid.global(ix, iz);
                 let id = stable_id(seed64, gx, gz, 0);
-                cand.extend_from_slice(&[x, h - 0.17, z, scale, rank, kind as f32, phase, 0.0]);
+                cand.extend_from_slice(&[x, h, z, scale, rank, kind as f32, phase, 0.0]);
                 cand_ids.push(id);
                 self.core.insert(Entry {
                     id,
-                    pos: Vector3::new(x, h - 0.17, z),
+                    pos: Vector3::new(x, h, z),
                     up: Vector3::UP,
                     scale,
                     yaw: phase,
