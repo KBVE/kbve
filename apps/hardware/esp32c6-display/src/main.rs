@@ -1,13 +1,9 @@
 #![no_std]
 #![no_main]
 
-use embedded_graphics::{
-    mono_font::{MonoTextStyle, ascii::FONT_10X20},
-    pixelcolor::Rgb565,
-    prelude::*,
-    primitives::{PrimitiveStyle, Rectangle},
-    text::Text,
-};
+mod board;
+mod ui;
+
 use embedded_hal_bus::spi::ExclusiveDevice;
 use esp_backtrace as _;
 use esp_hal::{
@@ -35,36 +31,22 @@ use mipidsi::{
     options::{ColorInversion, Orientation, Rotation},
 };
 
+use board::{
+    BACKLIGHT_KHZ, BACKLIGHT_PCT, COLUMN_OFFSET, DRAW_BUFFER, PANEL_HEIGHT, PANEL_WIDTH,
+    ROW_OFFSET, SPI_MHZ,
+};
+
 esp_bootloader_esp_idf::esp_app_desc!();
 
-/// The panel is a 172x320 window on a 240x320 ST7789, centred horizontally,
-/// so every write is shifted by (240 - 172) / 2 columns. Without this the
-/// image is offset and the right edge wraps.
-const PANEL_WIDTH: u16 = 172;
-const PANEL_HEIGHT: u16 = 320;
-const COLUMN_OFFSET: u16 = (240 - PANEL_WIDTH) / 2;
-const ROW_OFFSET: u16 = 0;
-
-/// Readable indoors, and past the knee of the heat curve. Coming down from
-/// fully on bought several degrees; halving this again to 20% bought under
-/// one, for half the brightness. Below roughly this point the remaining heat
-/// is the regulator, not the panel.
-const BACKLIGHT_PCT: u8 = 40;
+const HEARTBEAT_MS: u32 = 1000;
 
 #[main]
 fn main() -> ! {
-    // 80MHz rather than the 160MHz maximum. Worth about half a degree, which
-    // is small, but nothing here is compute-bound: the loop spends its life in
-    // a blocking delay. Raise it when something actually needs the cycles.
     let peripherals = esp_hal::init(esp_hal::Config::default().with_cpu_clock(CpuClock::_80MHz));
     let mut delay = Delay::new();
 
     println!("[c6] booting");
 
-    // Backlight on LEDC rather than a bare GPIO. Held fully on it is the
-    // largest heat source on the board by a wide margin — measured at roughly
-    // +5C on the die, against +0.7C for doubling the CPU clock — and full
-    // brightness is not needed indoors.
     let mut ledc = Ledc::new(peripherals.LEDC);
     ledc.set_global_slow_clock(LSGlobalClkSource::APBClk);
     let mut backlight_timer = ledc.timer::<LowSpeed>(timer::Number::Timer0);
@@ -72,7 +54,7 @@ fn main() -> ! {
         .configure(timer::config::Config {
             duty: timer::config::Duty::Duty8Bit,
             clock_source: timer::LSClockSource::APBClk,
-            frequency: Rate::from_khz(5),
+            frequency: Rate::from_khz(BACKLIGHT_KHZ),
         })
         .expect("backlight timer");
 
@@ -88,7 +70,7 @@ fn main() -> ! {
     let spi = Spi::new(
         peripherals.SPI2,
         SpiConfig::default()
-            .with_frequency(Rate::from_mhz(40))
+            .with_frequency(Rate::from_mhz(SPI_MHZ))
             .with_mode(Mode::_0),
     )
     .expect("spi")
@@ -101,7 +83,7 @@ fn main() -> ! {
 
     let spi_device = ExclusiveDevice::new(spi, cs, delay).expect("spi device");
 
-    let mut buffer = [0u8; 512];
+    let mut buffer = [0u8; DRAW_BUFFER];
     let di = SpiInterface::new(spi_device, dc, &mut buffer);
 
     let mut display = Builder::new(ST7789, di)
@@ -115,30 +97,7 @@ fn main() -> ! {
 
     println!("[c6] display up: {PANEL_WIDTH}x{PANEL_HEIGHT}");
 
-    display.clear(Rgb565::BLACK).expect("clear");
-
-    Rectangle::new(Point::new(0, 0), Size::new(PANEL_WIDTH as u32, 28))
-        .into_styled(PrimitiveStyle::with_fill(Rgb565::CSS_DARK_SLATE_BLUE))
-        .draw(&mut display)
-        .expect("banner");
-
-    // Centred by hand: the font is fixed-pitch, so the width is just the glyph
-    // count times the cell, and the panel is narrow enough that being a few
-    // pixels off reads as crooked.
-    let heading = MonoTextStyle::new(&FONT_10X20, Rgb565::WHITE);
-    let title = "K B V E";
-    let title_x = (PANEL_WIDTH as i32 - (title.len() as i32 * 10)) / 2;
-    Text::new(title, Point::new(title_x, 20), heading)
-        .draw(&mut display)
-        .expect("heading");
-
-    let body = MonoTextStyle::new(&FONT_10X20, Rgb565::CSS_LIGHT_GREEN);
-    Text::new("esp32-c6", Point::new(8, 60), body)
-        .draw(&mut display)
-        .expect("chip");
-    Text::new("172x320", Point::new(8, 84), body)
-        .draw(&mut display)
-        .expect("size");
+    ui::splash(&mut display).expect("splash");
 
     println!("[c6] drew first frame");
 
@@ -146,12 +105,16 @@ fn main() -> ! {
 
     let mut ticks: u32 = 0;
     loop {
-        delay.delay_millis(1000);
+        delay.delay_millis(HEARTBEAT_MS);
         ticks += 1;
         match tsens.as_ref() {
             Some(sensor) => {
-                let c = sensor.get_temperature().to_celsius();
-                println!("[c6] alive {ticks}s die {c}C");
+                let decicelsius = (sensor.get_temperature().to_celsius() * 10.0) as i32;
+                println!(
+                    "[c6] alive {ticks}s die {}.{}C",
+                    decicelsius / 10,
+                    (decicelsius % 10).abs()
+                );
             }
             None => println!("[c6] alive {ticks}s"),
         }
