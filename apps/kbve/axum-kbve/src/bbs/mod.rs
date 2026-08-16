@@ -25,7 +25,22 @@ const DEFAULT_PETSCII_ADDR: &str = "0.0.0.0:6400";
 const DEFAULT_ANSI_ADDR: &str = "0.0.0.0:6401";
 const DEFAULT_MAX_SESSIONS: usize = 64;
 const DEFAULT_IDLE_SECS: u64 = 600;
+const DEFAULT_AUTHED_IDLE_SECS: u64 = 3600;
 const NEGOTIATION_WINDOW: Duration = Duration::from_millis(400);
+
+/// How long a signed-in caller may sit idle. Guests keep the shorter
+/// allowance so anonymous connections cannot squat the session slots.
+pub(super) fn authed_idle() -> Duration {
+    static VALUE: std::sync::OnceLock<Duration> = std::sync::OnceLock::new();
+    *VALUE.get_or_init(|| {
+        Duration::from_secs(
+            std::env::var("BBS_AUTHED_IDLE_SECS")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(DEFAULT_AUTHED_IDLE_SECS),
+        )
+    })
+}
 
 fn env_flag(key: &str, default: bool) -> bool {
     std::env::var(key)
