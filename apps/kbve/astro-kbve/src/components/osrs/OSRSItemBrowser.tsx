@@ -1,3 +1,9 @@
+/**
+ * @deprecated Superseded by OSRSItemGrid.astro, which renders every row at
+ * build time. Kept for reference only — not mounted on any route. The
+ * /api/osrs.json endpoint it fetched is still live for OSRSLinkTooltip and
+ * the search palette.
+ */
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { List, type RowComponentProps } from 'react-window';
 

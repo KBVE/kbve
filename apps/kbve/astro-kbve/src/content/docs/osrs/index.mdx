@@ -18,9 +18,8 @@ next: false
 ---
 
 import BentoShell from '@/components/hero/BentoShell.astro';
-import OSRSItemBrowser from '@/components/osrs/OSRSItemBrowser.tsx';
 import OSRSDisclaimer from '@/components/osrs/OSRSDisclaimer.astro';
-import OSRSStaticIndex from '@/components/osrs/OSRSStaticIndex.astro';
+import OSRSItemGrid from '@/components/osrs/OSRSItemGrid.astro';
 
 <BentoShell
 	eyebrow="Old School RuneScape"
@@ -29,11 +28,9 @@ import OSRSStaticIndex from '@/components/osrs/OSRSStaticIndex.astro';
 
 The KBVE OSRS database tracks every tradeable Old School RuneScape item with
 live Grand Exchange pricing, equipment stats, drop sources, recipes, and more.
-Use the browser below to find an item, then click through to its full page.
+Search or jump to a letter, then click through to an item's full page.
 
-<OSRSItemBrowser client:only="react" />
-
-<OSRSStaticIndex />
+<OSRSItemGrid />
 
 </BentoShell>
 
@@ -43,7 +40,8 @@ Use the browser below to find an item, then click through to its full page.
 - Toggle **Members / Free** to limit by world type.
 - Filter by **Equipment**, **Food**, **Potions**, **Quest**, **Drops**, **Farming**,
   **Gathering**, **Teleport**, **Ammunition**, or **Prayer**.
-- The browser shows item id, GE limit, high alch, and base value at a glance.
+- Deep link with `?q=`, `?tag=`, and `?members=` — for example `/osrs/?tag=potion&members=f2p`.
+- Every row shows item id, GE limit, high alch, and base value at a glance.
 
 </BentoShell>
 

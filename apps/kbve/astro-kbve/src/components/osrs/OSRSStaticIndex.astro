@@ -1,4 +1,9 @@
 ---
+/**
+ * @deprecated OSRSItemGrid.astro renders every item row in static HTML, so the
+ * bare link wall this produced is no longer needed for crawlability. Kept for
+ * reference only — not mounted on any route.
+ */
 import { getCollection } from 'astro:content';
 import type { OSRSExtended } from '@/data/schema';
 import StaticLinkIndex from '@/components/seo/StaticLinkIndex.astro';
@@ -11,7 +16,9 @@ const docs = await getCollection('docs');
 const links = docs
 	.map((entry: { id: string; data: { osrs?: OSRSExtended } }) => {
 		const o = entry.data.osrs;
-		return o?.name && entry.id.startsWith('osrs/') && entry.id !== 'osrs/index'
+		return o?.name &&
+			entry.id.startsWith('osrs/') &&
+			entry.id !== 'osrs/index'
 			? { href: `/${entry.id}/`, label: o.name }
 			: null;
 	})
