@@ -3293,6 +3293,57 @@ export const commands = {
 			else return { status: 'error', error: e as any };
 		}
 	},
+	async iotScan(
+		millis: number | null,
+	): Promise<Result<DeviceSummary[], string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('iot_scan', { millis }),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
+	async iotConnect(deviceId: string): Promise<Result<BoardSnapshot, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('iot_connect', { deviceId }),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
+	async iotDisconnect(): Promise<Result<null, string>> {
+		try {
+			return { status: 'ok', data: await TAURI_INVOKE('iot_disconnect') };
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
+	async iotSnapshot(): Promise<Result<BoardSnapshot, string>> {
+		try {
+			return { status: 'ok', data: await TAURI_INVOKE('iot_snapshot') };
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
+	async iotSetBacklight(pct: number): Promise<Result<null, string>> {
+		try {
+			return {
+				status: 'ok',
+				data: await TAURI_INVOKE('iot_set_backlight', { pct }),
+			};
+		} catch (e) {
+			if (e instanceof Error) throw e;
+			else return { status: 'error', error: e as any };
+		}
+	},
 };
 
 /** user-defined events **/
@@ -3596,6 +3647,20 @@ export type BindingResponse = {
 	binding: ShortcutBinding | null;
 	error: string | null;
 };
+/**
+ * Last known board state. Every field is optional because a characteristic
+ * may not have been read yet, and reporting a stale zero as if it were a
+ * reading is worse than reporting nothing.
+ */
+export type BoardSnapshot = {
+	device_id: string | null;
+	name: string | null;
+	connected: boolean;
+	die_celsius: number | null;
+	uptime_seconds: number | null;
+	presses: number | null;
+	backlight_pct: number | null;
+};
 export type ChannelInfo = { id: string; name: string; kind: string };
 /**
  * Status of the Claude Code authentication volume
@@ -3764,6 +3829,12 @@ export type DevOpsDependencies = {
 	 * Whether sandboxed (Docker) agents are available
 	 */
 	sandbox_available: boolean;
+};
+export type DeviceSummary = {
+	id: string;
+	name: string;
+	rssi: number | null;
+	connectable: boolean;
 };
 /**
  * Discord state for frontend
