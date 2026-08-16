@@ -178,6 +178,7 @@ impl TerrainStreamer {
     }
 
     /// True while the deck is in the solver.
+    #[cfg(test)]
     pub fn bridge_loaded(&self) -> bool {
         self.bridge_in
     }
@@ -264,10 +265,12 @@ impl TerrainStreamer {
         self.loaded.iter().map(|c| self.origin_of(*c)).collect()
     }
 
+    #[cfg(test)]
     pub fn loaded_count(&self) -> usize {
         self.loaded.len()
     }
 
+    #[cfg(test)]
     pub fn pending_count(&self) -> usize {
         self.pending.len()
     }

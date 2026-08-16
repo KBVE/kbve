@@ -189,8 +189,7 @@ impl Grid {
                 }
             }
         }
-        for i in 0..covered.len() {
-            let c = covered[i];
+        for (i, &c) in covered.iter().enumerate() {
             if c <= 0.0 || self.cost[i] == BLOCKED {
                 continue;
             }
