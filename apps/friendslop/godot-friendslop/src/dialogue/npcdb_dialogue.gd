@@ -176,11 +176,19 @@ static func _split(text: String) -> PackedStringArray:
 	return out
 
 
+## Comparisons, longest first: `>=` has to be tried before `>` or it reads as `>` with a
+## stray `=` on the number.
+const OPS := [">=", "<=", "!=", "==", ">", "<"]
+
+
 static func _term(part: String) -> Variant:
 	var body := part
 	var negated := body.begins_with("!")
 	if negated:
 		body = body.substr(1).strip_edges()
+	var counted: Variant = _number_term(body)
+	if counted != null:
+		return {"not": counted} if negated else counted
 	var gate: Variant = null
 	if body.begins_with("seen:"):
 		gate = {"seen": body.substr(5)}
@@ -192,6 +200,21 @@ static func _term(part: String) -> Variant:
 	if gate == null:
 		return null
 	return {"not": gate} if negated else gate
+
+
+## `respect>=3`, `talks>2`, `pestered==0`. Anything that is not a comparison is left alone
+## to be read as a flag, so a name with no operator in it behaves exactly as it always has.
+static func _number_term(body: String) -> Variant:
+	for op: String in OPS:
+		var at := body.find(op)
+		if at <= 0:
+			continue
+		var name := body.substr(0, at).strip_edges()
+		var value := body.substr(at + op.length()).strip_edges()
+		if name == "" or not value.is_valid_float():
+			continue
+		return {"num": name, "op": op, "value": value.to_float()}
+	return null
 
 
 static func _flag_gate(flag: String) -> Dictionary:

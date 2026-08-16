@@ -80,6 +80,9 @@ func test(condition: Variant) -> bool:
 		return not test(body["not"])
 	if body.has("seen"):
 		return has_seen(str(body["seen"]))
+	if body.has("num"):
+		return _compare(number(str(body["num"])), str(body.get("op", ">=")),
+				float(body.get("value", 0.0)))
 	if body.has("all"):
 		for part in _list(body["all"]):
 			if not test(part):
@@ -92,6 +95,41 @@ func test(condition: Variant) -> bool:
 		return false
 	## An empty object gates nothing, which is how a node with `"if": {}` reads.
 	return true
+
+
+## Numbers a conversation is being held against: how well this person thinks of the player,
+## how often they have been talked to, how much of that was the same question again.
+##
+## Not saved with the flags. A flag is something that happened and is true forever; these
+## are the standing of one person, which the journal keeps per person and pushes in here
+## before the talk opens. Keeping them out of `to_dict` is what stops one NPC's regard
+## being written into the save as a fact about the world.
+var numbers: Dictionary = {}
+
+
+func set_number(name: String, value: float) -> void:
+	numbers[name] = value
+
+
+func number(name: String) -> float:
+	return float(numbers.get(name, 0.0))
+
+
+## How much of the conversation has ever been read, which is how a talk that taught the
+## player nothing is told apart from one that did.
+func seen_count() -> int:
+	return seen.size()
+
+
+static func _compare(left: float, op: String, right: float) -> bool:
+	match op:
+		">=": return left >= right
+		"<=": return left <= right
+		">": return left > right
+		"<": return left < right
+		"==": return is_equal_approx(left, right)
+		"!=": return not is_equal_approx(left, right)
+	return false
 
 
 func to_dict() -> Dictionary:

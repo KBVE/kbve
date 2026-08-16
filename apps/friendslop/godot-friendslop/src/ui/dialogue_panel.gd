@@ -230,7 +230,7 @@ func _show_node() -> void:
 	if runner == null or not runner.is_running():
 		return
 	_name_label.text = I18n.t(runner.speaker_key())
-	_line_label.text = I18n.t(runner.line_key())
+	_line_label.text = _spoken(runner.line_key())
 	_letters = _line_label.text.length()
 	_written = 0.0
 	_held = 0.0
@@ -242,7 +242,7 @@ func _show_node() -> void:
 	var numbered := 0
 	for choice in runner.choices():
 		var index: int = choice[&"index"]
-		var text := I18n.t(str(choice[&"text"]))
+		var text := _spoken(str(choice[&"text"]))
 		## Numbered only as far as there are keys for, or the number is a lie.
 		numbered += 1
 		if numbered <= REPLY_KEYS:
@@ -348,6 +348,13 @@ func _numbered(event: InputEvent) -> int:
 ## static function, and both of the two things this needs are autoloads. `Auth` is the
 ## singleton; `AuthSession` is the class it is an instance of, and naming that one here
 ## reads fine and resolves to the script rather than the session.
+## A line as it is said, with the player's name filled in where the catalog asked for it.
+## Somebody who knows you uses your name, which is most of the difference between a greeting
+## and a recording.
+func _spoken(key: String) -> String:
+	return I18n.t(key, {"player": _player})
+
+
 func speaker_name() -> String:
 	var who := str(Auth.requested_name()) if Auth else ""
 	return who if who != "" else I18n.t("dlg.player")
@@ -364,7 +371,7 @@ func _take(index: int) -> void:
 	var said := ""
 	for choice in runner.choices():
 		if int(choice[&"index"]) == index:
-			said = I18n.t(str(choice[&"text"]))
+			said = _spoken(str(choice[&"text"]))
 			break
 	if said == "":
 		runner.choose(index)

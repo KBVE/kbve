@@ -5166,8 +5166,20 @@
             "nextNodeId": "menu"
           },
           {
+            "id": "greet_pestered",
+            "text": "Still here, {{player}}. So is the bridge.",
+            "condition": "pestered>=2",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "greet_known",
+            "text": "Welcome back, {{player}}. The crossing hasn't moved.",
+            "condition": "respect>=2",
+            "nextNodeId": "menu"
+          },
+          {
             "id": "greet_again",
-            "text": "Back again. The crossing hasn't moved.",
+            "text": "Back again, {{player}}. The crossing hasn't moved.",
             "nextNodeId": "menu"
           },
           {

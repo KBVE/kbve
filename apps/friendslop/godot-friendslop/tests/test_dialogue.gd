@@ -1092,6 +1092,162 @@ func _reply_row(panel: DialoguePanel, text: String) -> int:
 	return -1
 
 
+## The catalog carries prose rather than keys, and a placeholder is filled in on the way to
+## the screen. If that ever stops working the failure is not an error -- it is Marlow saying
+## "Welcome back, {{player}}" out loud, which ships.
+func test_every_line_marlow_says_arrives_with_the_placeholder_filled() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+
+	var graph := Npcdb.graph(MARLOW)
+	var found := false
+	for key in graph.text_keys():
+		var said := panel._spoken(key)
+		assert_str(said) \
+				.override_failure_message("'%s' reached the screen with a placeholder in it" % said) \
+				.not_contains("{{")
+		if key.contains("{{player}}"):
+			found = true
+			assert_str(said).contains(panel._player)
+
+	assert_bool(found) \
+			.override_failure_message("nothing he says uses the player's name, so this proves nothing") \
+			.is_true()
+
+	panel.close()
+	_unstage(world, was)
+
+
+## Somebody who knows you should not greet you like a stranger, and somebody worn thin by
+## the same question all afternoon should not greet you warmly. Both are the same mechanism:
+## the journal's count of how a person has been treated, read as a gate.
+func test_marlow_greets_a_regular_and_a_nuisance_differently() -> void:
+	var state := State.new()
+	state.mark_seen("greet")
+
+	var runner := Runner.new()
+	runner.start(Npcdb.graph(MARLOW), state)
+	assert_str(runner.node_id()) \
+			.override_failure_message("somebody with no standing got a regular's welcome") \
+			.is_equal("greet_again")
+
+	state.set_number("respect", 4.0)
+	var known := Runner.new()
+	known.start(Npcdb.graph(MARLOW), state)
+	assert_str(known.node_id()) \
+			.override_failure_message("a regular was greeted like a passer-by") \
+			.is_equal("greet_known")
+
+	## Worn out beats well thought of: the short line is read first.
+	state.set_number("pestered", 3.0)
+	var worn := Runner.new()
+	worn.start(Npcdb.graph(MARLOW), state)
+	assert_str(worn.node_id()) \
+			.override_failure_message("asking the same thing all afternoon cost nothing") \
+			.is_equal("greet_pestered")
+
+
+## A conversation that went somewhere is worth more than one that went over old ground, and
+## the difference is measured rather than guessed.
+func test_going_over_old_ground_costs_standing_and_learning_earns_it() -> void:
+	Journal.forget_everything()
+	var who := "test_regard"
+
+	assert_int(int(Journal.regard(who)["talks"])) \
+			.override_failure_message("a stranger already had a history") \
+			.is_equal(0)
+
+	Journal.remember_talk(who, true)
+	assert_int(int(Journal.regard(who)["respect"])).is_equal(1)
+	assert_int(int(Journal.regard(who)["pestered"])).is_equal(0)
+
+	## The first repeat is somebody checking something, and costs nothing.
+	Journal.remember_talk(who, false)
+	assert_int(int(Journal.regard(who)["respect"])) \
+			.override_failure_message("asking once more was treated as pestering") \
+			.is_equal(1)
+
+	Journal.remember_talk(who, false)
+	Journal.remember_talk(who, false)
+	assert_int(int(Journal.regard(who)["respect"])) \
+			.override_failure_message("nagging cost nothing") \
+			.is_less(1)
+	assert_int(int(Journal.regard(who)["talks"])).is_equal(4)
+
+	## Something new clears the slate, or a player who annoyed somebody once could never
+	## make it up to them.
+	Journal.remember_talk(who, true)
+	assert_int(int(Journal.regard(who)["pestered"])) \
+			.override_failure_message("a talk that went somewhere did not clear the slate") \
+			.is_equal(0)
+	Journal.forget_everything()
+
+
+## Standing has to survive being put down and picked up, or an opinion lasts only as long as
+## the process does.
+func test_what_somebody_makes_of_you_outlives_the_session() -> void:
+	Journal.forget_everything()
+	Journal.remember_talk("test_kept", true)
+	Journal.remember_talk("test_kept", true)
+	Journal.save_now()
+
+	Journal.load_now()
+	assert_int(int(Journal.regard("test_kept")["respect"])) \
+			.override_failure_message("their opinion of the player was forgotten on reload") \
+			.is_equal(2)
+	Journal.forget_everything()
+
+
+## The catalog writes gates as words. A comparison has to survive being read out of the MDX
+## and turned into something the state can answer.
+func test_a_comparison_in_the_catalog_becomes_a_gate() -> void:
+	var graph: Dictionary = Npcdb.to_graph_dict({}, {
+		"entryNodeId": "a",
+		"nodes": [
+			{"id": "a", "text": "a", "condition": "respect>=3"},
+			{"id": "b", "text": "b", "condition": "!pestered>2"},
+			{"id": "c", "text": "c", "condition": "flag:coin"},
+		],
+	})
+	var nodes: Dictionary = graph["nodes"]
+	assert_that(nodes["a"]["if"]).is_equal({"num": "respect", "op": ">=", "value": 3.0})
+	assert_that(nodes["b"]["if"]).is_equal({"not": {"num": "pestered", "op": ">", "value": 2.0}})
+	assert_that(nodes["c"]["if"]) \
+			.override_failure_message("a plain flag stopped reading as a flag") \
+			.is_equal({"flag": "coin"})
+
+
+func test_numbers_answer_comparisons() -> void:
+	var state := State.new()
+	state.set_number("respect", 3.0)
+	assert_bool(state.test({"num": "respect", "op": ">=", "value": 3.0})).is_true()
+	assert_bool(state.test({"num": "respect", "op": ">", "value": 3.0})).is_false()
+	assert_bool(state.test({"num": "respect", "op": "<", "value": 4.0})).is_true()
+	assert_bool(state.test({"num": "respect", "op": "==", "value": 3.0})).is_true()
+	assert_bool(state.test({"num": "respect", "op": "!=", "value": 3.0})).is_false()
+	## Somebody never met reads as nothing rather than as a missing answer.
+	assert_bool(state.test({"num": "nobody", "op": ">=", "value": 1.0})).is_false()
+	assert_bool(state.test({"num": "nobody", "op": "<=", "value": 0.0})).is_true()
+
+
+## Standing is one person's opinion, not a fact about the world, so it must not be written
+## into the save as though the whole world knew it.
+func test_standing_is_not_saved_as_a_world_fact() -> void:
+	var state := State.new()
+	state.set_number("respect", 5.0)
+	state.set_flag("coin")
+	var body := state.to_dict()
+	assert_bool((body["flags"] as Dictionary).has("respect")) \
+			.override_failure_message("one person's opinion was written down as a world flag") \
+			.is_false()
+	var restored := State.new()
+	restored.from_dict(body)
+	assert_float(restored.number("respect")) \
+			.override_failure_message("standing came back from a save it does not belong in") \
+			.is_equal(0.0)
+
+
 ## The body has to do what the words are doing. Both halves matter: a speaker who never
 ## starts talking is inert, and one who never stops is still gesturing at a line that landed
 ## ten seconds ago.

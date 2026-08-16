@@ -29,8 +29,18 @@ dialogue_tree:
           text: "Careful on the bank — it gives way where the reeds are thickest. Marlow. I keep the crossing."
           condition: '!seen:greet'
           next_node_id: 'menu'
+        # Read in order, and each one steps aside for the one under it: a stranger, then
+        # somebody worn thin by being asked the same thing all afternoon, then a regular.
+        - id: 'greet_pestered'
+          text: "Still here, {{player}}. So is the bridge."
+          condition: 'pestered>=2'
+          next_node_id: 'menu'
+        - id: 'greet_known'
+          text: "Welcome back, {{player}}. The crossing hasn't moved."
+          condition: 'respect>=2'
+          next_node_id: 'menu'
         - id: 'greet_again'
-          text: "Back again. The crossing hasn't moved."
+          text: "Back again, {{player}}. The crossing hasn't moved."
           next_node_id: 'menu'
         - id: 'menu'
           text: "Ask, then. The river isn't going anywhere either."
@@ -103,5 +113,11 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 	<Card title="Flags" icon="setting">
 		`marlow_toll_paid` opens the question about the mechs and changes his
 		farewell. `marlow_knows_river` is set once he has talked about the water.
+	</Card>
+	<Card title="Standing" icon="approve-check">
+		He greets a stranger, a regular and a nuisance differently — `respect>=2`
+		for the warm one, `pestered>=2` for the short one. Both are counted by the
+		journal rather than set by the conversation: talks that go somewhere earn
+		standing, talks that go over old ground cost it.
 	</Card>
 </CardGrid>
