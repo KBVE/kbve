@@ -20,6 +20,14 @@ enum View {
     Map,
 }
 
+/// What a key on the board does: hand something to the rules engine, or start
+/// a fresh run once this one is over.
+#[derive(Debug, Clone)]
+enum Act {
+    Do(GameAction),
+    Restart,
+}
+
 /// A dungeon run on the board, driven by the same `bevy_dungeon` rules the
 /// Discord bot uses. Nothing is persisted yet: the run ends with the call.
 pub struct Run {
@@ -56,6 +64,16 @@ impl Run {
     }
 
     #[cfg(test)]
+    pub fn keys(&self) -> Vec<char> {
+        self.actions().into_iter().map(|(k, _, _)| k).collect()
+    }
+
+    #[cfg(test)]
+    pub fn notice(&self) -> Option<&str> {
+        self.notice.as_deref()
+    }
+
+    #[cfg(test)]
     pub fn depth(&self) -> u32 {
         self.state.map.position.depth()
     }
@@ -86,6 +104,111 @@ impl Run {
             .unwrap_or_default()
     }
 
+    /// Every action the current phase will actually accept, keyed for the
+    /// board. Drawing and input both read this, so the menu can never offer a
+    /// move the engine is going to refuse.
+    fn actions(&self) -> Vec<(char, String, Act)> {
+        let mut out: Vec<(char, String, Act)> = Vec::new();
+
+        match self.state.phase {
+            GamePhase::Combat | GamePhase::WaitingForActions => {
+                out.push(('A', "Attack".to_string(), Act::Do(GameAction::Attack)));
+                out.push(('D', "Defend".to_string(), Act::Do(GameAction::Defend)));
+                out.push(('F', "Flee".to_string(), Act::Do(GameAction::Flee)));
+            }
+            GamePhase::GameOver(_) => {}
+            GamePhase::Trap => {
+                out.push((
+                    '1',
+                    "Disarm".to_string(),
+                    Act::Do(GameAction::RoomChoice(0)),
+                ));
+                out.push(('2', "Brace".to_string(), Act::Do(GameAction::RoomChoice(1))));
+            }
+            GamePhase::Treasure => {
+                out.push((
+                    '1',
+                    "Open carefully".to_string(),
+                    Act::Do(GameAction::RoomChoice(0)),
+                ));
+                out.push((
+                    '2',
+                    "Force open".to_string(),
+                    Act::Do(GameAction::RoomChoice(1)),
+                ));
+            }
+            GamePhase::Hallway => {
+                out.push((
+                    '1',
+                    "Move quickly".to_string(),
+                    Act::Do(GameAction::RoomChoice(0)),
+                ));
+                out.push((
+                    '2',
+                    "Search".to_string(),
+                    Act::Do(GameAction::RoomChoice(1)),
+                ));
+            }
+            GamePhase::Rest if self.state.room.room_type == RoomType::RestShrine => {
+                out.push(('1', "Rest".to_string(), Act::Do(GameAction::RoomChoice(0))));
+                out.push((
+                    '2',
+                    "Meditate".to_string(),
+                    Act::Do(GameAction::RoomChoice(1)),
+                ));
+            }
+            GamePhase::Event => {
+                if let Some(event) = &self.state.room.story_event {
+                    for (i, choice) in event.choices.iter().enumerate().take(9) {
+                        let key = char::from_digit(i as u32 + 1, 10).unwrap_or('1');
+                        out.push((
+                            key,
+                            choice.label.clone(),
+                            Act::Do(GameAction::StoryChoice(i)),
+                        ));
+                    }
+                }
+            }
+            _ => {}
+        }
+
+        if matches!(self.state.phase, GamePhase::Exploring | GamePhase::City) {
+            for dir in self.exits() {
+                let key = match dir {
+                    Direction::North => 'N',
+                    Direction::South => 'S',
+                    Direction::East => 'E',
+                    Direction::West => 'W',
+                };
+                out.push((
+                    key,
+                    format!("Go {}", dir.code()),
+                    Act::Do(GameAction::Move(dir)),
+                ));
+            }
+        }
+
+        if self.state.phase == GamePhase::City {
+            let cost = logic::inn_cost(&self.state);
+            if self.state.player(self.actor).gold >= cost {
+                out.push(('R', format!("Rest ({cost}g)"), Act::Do(GameAction::Rest)));
+            }
+        }
+
+        match self.state.phase {
+            GamePhase::GameOver(_) => out.push(('N', "New run".to_string(), Act::Restart)),
+            GamePhase::Exploring => {
+                out.push(('C', "Search".to_string(), Act::Do(GameAction::Explore)))
+            }
+            _ if out.is_empty() => {
+                out.push(('C', "Continue".to_string(), Act::Do(GameAction::Explore)))
+            }
+            _ => {}
+        }
+
+        out
+    }
+
     fn frame(&self) -> Frame {
         let me = self.state.player(self.actor);
         let party = vec![Actor {
@@ -106,27 +229,11 @@ impl Run {
             })
             .collect();
 
-        let mut options: Vec<(char, String)> = Vec::new();
-        match self.state.phase {
-            GamePhase::Combat | GamePhase::WaitingForActions => {
-                options.push(('A', "Attack".to_string()));
-                options.push(('D', "Defend".to_string()));
-            }
-            GamePhase::GameOver(_) => {
-                options.push(('N', "New run".to_string()));
-            }
-            _ => {
-                for dir in self.exits() {
-                    let key = match dir {
-                        Direction::North => 'N',
-                        Direction::South => 'S',
-                        Direction::East => 'E',
-                        Direction::West => 'W',
-                    };
-                    options.push((key, format!("Go {}", dir.code())));
-                }
-            }
-        }
+        let mut options: Vec<(char, String)> = self
+            .actions()
+            .into_iter()
+            .map(|(key, label, _)| (key, label))
+            .collect();
         options.push(('M', "Map".to_string()));
 
         Frame {
@@ -249,19 +356,23 @@ impl Game for Run {
         match key {
             'Q' => return Flow::Exit,
             'M' => self.view = View::Map,
-            'A' => self.act(GameAction::Attack),
-            'D' => self.act(GameAction::Defend),
-            'N' if matches!(self.state.phase, GamePhase::GameOver(_)) => {
-                let me = self.state.player(self.actor);
-                let (name, class) = (me.name.clone(), me.class);
-                self.state = start_solo(self.actor, &name, class);
-                self.notice = None;
+            _ => {
+                let bound = self
+                    .actions()
+                    .into_iter()
+                    .find(|(k, _, _)| *k == key)
+                    .map(|(_, _, act)| act);
+                match bound {
+                    Some(Act::Do(action)) => self.act(action),
+                    Some(Act::Restart) => {
+                        let me = self.state.player(self.actor);
+                        let (name, class) = (me.name.clone(), me.class);
+                        self.state = start_solo(self.actor, &name, class);
+                        self.notice = None;
+                    }
+                    None => {}
+                }
             }
-            'N' => self.act(GameAction::Move(Direction::North)),
-            'S' => self.act(GameAction::Move(Direction::South)),
-            'E' => self.act(GameAction::Move(Direction::East)),
-            'W' => self.act(GameAction::Move(Direction::West)),
-            _ => {}
         }
         Flow::Continue
     }
