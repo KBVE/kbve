@@ -1184,8 +1184,11 @@ func test_meeting_somebody_names_them_before_the_talk_opens() -> void:
 			.override_failure_message("the card does not say who was met") \
 			.contains("Marlow")
 
-	## Skipped rather than waited out, which is also the path a player takes.
+	## Skipped rather than waited out, which is also the path a player takes. The talk
+	## follows the card leaving the tree rather than the card saying it is done -- that is
+	## the one event nothing can miss, and it costs a frame.
 	card.dismiss()
+	await get_tree().process_frame
 	assert_bool(TalkPanel.is_open()) \
 			.override_failure_message("the card cleared and no conversation followed") \
 			.is_true()
@@ -1193,6 +1196,65 @@ func test_meeting_somebody_names_them_before_the_talk_opens() -> void:
 	reach.state().set_flag(reach.MET % MARLOW, false)
 	if TalkPanel.is_open():
 		TalkPanel._open.close()
+	_unstage(world, was)
+
+
+## The card has to end by itself, with nobody helping it.
+##
+## This is the one that was missing. The card was driven by a tween and every test dismissed
+## it by hand, so the path the game actually takes -- put a card up and wait -- was the only
+## path never run. In play the card stayed up, the conversation behind it never opened, and
+## because the interactor was held on a flag the card was supposed to clear, the player
+## could not talk to that NPC or to anybody else for the rest of the session.
+func test_a_card_ends_on_its_own_with_nobody_dismissing_it() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var card := MeetingCard.present(get_tree(), "Marlow", "Bridge Keeper")
+	var ended := [false]
+	card.finished.connect(func() -> void: ended[0] = true)
+
+	await get_tree().create_timer(MeetingCard.length() + 0.4).timeout
+	assert_bool(ended[0]) \
+			.override_failure_message("the card never finished, so nothing behind it can start") \
+			.is_true()
+	_unstage(world, was)
+
+
+## The failure this is really written against: whatever happens to the card, the player has
+## to be able to talk to somebody afterwards. A card that dies without a word -- freed, or
+## the world swapped under it -- must not leave the interactor holding the door shut.
+func test_a_card_that_dies_without_finishing_still_frees_the_player() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var pair := _stage_interactor(world, Vector3(0.0, 0.0, -2.0))
+	var reach: Node3D = pair[0]
+	reach.state().set_flag(reach.MET % MARLOW, false)
+
+	reach._talk_to(pair[1])
+	assert_bool(reach.busy()) \
+			.override_failure_message("a card was up and the player was not held") \
+			.is_true()
+
+	## The speaker goes first, so there is no conversation left to open behind the card --
+	## which is the case that used to leave the player held for good.
+	var actor: NpcActor = pair[1]
+	actor.get_parent().remove_child(actor)
+	actor.queue_free()
+
+	## Pulled out of the tree rather than freed outright: dismissing already queues the card
+	## for deletion, and freeing it twice is a different bug than the one under test.
+	var card := world.get_node_or_null(^"MeetingCard")
+	card.get_parent().remove_child(card)
+	await get_tree().process_frame
+
+	assert_bool(reach.busy()) \
+			.override_failure_message("the card is gone and the player is still held -- they can never talk again") \
+			.is_false()
+	assert_bool(TalkPanel.is_open()) \
+			.override_failure_message("a conversation opened with somebody who is not there") \
+			.is_false()
+
+	reach.state().set_flag(reach.MET % MARLOW, false)
 	_unstage(world, was)
 
 
