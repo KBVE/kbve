@@ -3,9 +3,12 @@ extends GdUnitTestSuite
 ## The bag as the player handles it: opening it, and dragging things around inside it.
 
 const Bag := preload("res://src/ui/satchel_panel.gd")
+const Field := preload("res://src/world/ground_items.gd")
 
 var _was: Dictionary = {}
 var _panel: CanvasLayer
+var _root: Node3D
+var _player: Node3D
 
 
 func before_test() -> void:
@@ -15,6 +18,21 @@ func before_test() -> void:
 	_panel.set_script(Bag)
 	add_child(_panel)
 	auto_free(_panel)
+
+
+## The floor the bag throws things onto. Made on demand, because one of these tests is
+## about what happens when there is nowhere to throw them.
+func _give_it_a_floor() -> GroundItems:
+	_root = Node3D.new()
+	add_child(_root)
+	auto_free(_root)
+	_player = Node3D.new()
+	_player.name = "Player"
+	_root.add_child(_player)
+	var field := Field.new()
+	field.player_path = NodePath("../Player")
+	_root.add_child(field)
+	return field
 
 
 func after_test() -> void:
@@ -139,3 +157,97 @@ func test_closing_while_carrying_something_puts_it_back() -> void:
 	assert_int(int(after["x"])).is_equal(int(start["x"]))
 	assert_int(int(after["y"])).is_equal(int(start["y"]))
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+
+## The corner button, which is the way out for anyone playing with a mouse rather than
+## reaching for a key.
+func test_the_close_button_closes_the_bag() -> void:
+	_panel._open()
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+	press.position = _panel._close_rect().get_center()
+
+	_panel._unhandled_input(press)
+
+	assert_bool(_panel.visible) \
+			.override_failure_message("clicking the close button left the bag open").is_false()
+
+
+## The button sits over the corner of the bag, so it has to beat the grid to the click.
+func test_the_close_button_does_not_pick_up_what_is_under_it() -> void:
+	Journal.gain(&"log", 2)
+	_panel._open()
+	var press := InputEventMouseButton.new()
+	press.button_index = MOUSE_BUTTON_LEFT
+	press.pressed = true
+	press.position = _panel._close_rect().get_center()
+
+	_panel._unhandled_input(press)
+
+	assert_int(_panel._held) \
+			.override_failure_message("closing the bag picked something up on the way out") \
+			.is_equal(-1)
+	assert_int(Journal.count_of(&"log")).is_equal(2)
+
+
+## Dragging a stack clear of the bag is how a thing gets put down in the world.
+func test_dragging_a_stack_off_the_bag_drops_it_on_the_floor() -> void:
+	var field := _give_it_a_floor()
+	Journal.gain(&"log", 3)
+	_panel._open()
+	var step: float = Bag.CELL + Bag.GAP
+	var start: Dictionary = Journal.stacks()[0]
+	_panel._mouse = _panel._origin() \
+			+ Vector2(int(start["x"]) * step + 4.0, int(start["y"]) * step + 4.0)
+	_panel._pick_up()
+
+	_panel._mouse = _panel._chrome_rect().position - Vector2(60.0, 60.0)
+	_panel._put_down()
+
+	assert_int(Journal.count_of(&"log")) \
+			.override_failure_message("the stack was dropped and stayed in the bag").is_equal(0)
+	assert_int(field.items().size()).is_equal(1)
+	assert_int(field.items()[0].count).is_equal(3)
+	assert_int(_panel._held).is_equal(-1)
+
+
+## Inside the bag but between cells is a fumble, not a throw.
+func test_dropping_inside_the_bag_but_off_the_grid_puts_it_back() -> void:
+	var field := _give_it_a_floor()
+	Journal.gain(&"log", 3)
+	_panel._open()
+	var step: float = Bag.CELL + Bag.GAP
+	var start: Dictionary = Journal.stacks()[0]
+	_panel._mouse = _panel._origin() \
+			+ Vector2(int(start["x"]) * step + 4.0, int(start["y"]) * step + 4.0)
+	_panel._pick_up()
+
+	_panel._mouse = _panel._origin() - Vector2(Bag.PAD * 0.5, Bag.PAD * 0.5)
+	assert_vector(_panel._cell_under(_panel._mouse)) \
+			.override_failure_message("the padding was read as part of the grid") \
+			.is_equal(Vector2i(-1, -1))
+	_panel._put_down()
+
+	assert_int(Journal.count_of(&"log")) \
+			.override_failure_message("a fumble inside the bag threw the stack on the floor") \
+			.is_equal(3)
+	assert_int(field.items().size()).is_equal(0)
+
+
+## A bag with no world under it keeps what it is holding rather than deleting it.
+func test_dropping_with_nowhere_to_land_keeps_the_stack() -> void:
+	Journal.gain(&"log", 3)
+	_panel._open()
+	var step: float = Bag.CELL + Bag.GAP
+	var start: Dictionary = Journal.stacks()[0]
+	_panel._mouse = _panel._origin() \
+			+ Vector2(int(start["x"]) * step + 4.0, int(start["y"]) * step + 4.0)
+	_panel._pick_up()
+
+	_panel._mouse = _panel._chrome_rect().position - Vector2(60.0, 60.0)
+	_panel._put_down()
+
+	assert_int(Journal.count_of(&"log")) \
+			.override_failure_message("a stack was thrown into a world that was not there") \
+			.is_equal(3)

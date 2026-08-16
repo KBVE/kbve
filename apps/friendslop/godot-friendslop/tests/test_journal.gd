@@ -279,3 +279,43 @@ func test_marlow_greets_a_stranger_and_a_regular_differently() -> void:
 	assert_str(regular.line_key()) \
 			.override_failure_message("he introduced himself to somebody he had already met") \
 			.is_not_equal(first)
+
+
+## Taking a stack out by index, which is what dragging one onto the floor does.
+func test_removing_a_stack_takes_that_stack_and_says_what_it_was() -> void:
+	var cap := Itemdb.max_stack(&"log")
+	Journal.gain(&"log", cap)
+	Journal.gain(&"log", 2)
+	assert_int(Journal.stacks().size()).is_equal(2)
+
+	var taken := Journal.remove_stack(1)
+
+	assert_str(String(taken["ref"])).is_equal("log")
+	assert_int(int(taken["count"])).is_equal(2)
+	assert_int(Journal.stacks().size()).is_equal(1)
+	assert_int(Journal.count_of(&"log")) \
+			.override_failure_message("removing one stack emptied the other as well").is_equal(cap)
+
+
+## `spend` takes an amount from wherever it sits, and would empty the wrong cell when
+## the player has dragged one stack of several in particular.
+func test_removing_a_stack_leaves_the_stack_that_was_not_dragged() -> void:
+	var cap := Itemdb.max_stack(&"log")
+	Journal.gain(&"log", cap)
+	Journal.gain(&"log", 2)
+	var kept: Dictionary = Journal.stacks()[0]
+
+	Journal.remove_stack(1)
+
+	var after: Dictionary = Journal.stacks()[0]
+	assert_int(int(after["x"])).is_equal(int(kept["x"]))
+	assert_int(int(after["y"])).is_equal(int(kept["y"]))
+	assert_int(int(after["count"])).is_equal(cap)
+
+
+func test_removing_a_stack_that_is_not_there_changes_nothing() -> void:
+	Journal.gain(&"log", 2)
+
+	assert_dict(Journal.remove_stack(7)).is_empty()
+	assert_dict(Journal.remove_stack(-1)).is_empty()
+	assert_int(Journal.count_of(&"log")).is_equal(2)

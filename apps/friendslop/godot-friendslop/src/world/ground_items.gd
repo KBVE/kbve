@@ -27,7 +27,7 @@ static func of(tree: SceneTree) -> GroundItems:
 	return tree.get_first_node_in_group(GROUP) as GroundItems
 
 
-func drop(ref: StringName, count: int, at: Vector3) -> GroundItem:
+func drop(ref: StringName, count: int, at: Vector3, armed := true) -> GroundItem:
 	if count <= 0 or not Itemdb.has(ref):
 		return null
 	while _items.size() >= max_items:
@@ -38,8 +38,20 @@ func drop(ref: StringName, count: int, at: Vector3) -> GroundItem:
 	item.position = to_local(at + Vector3(cos(_phase) * 0.45, 0.0, sin(_phase) * 0.45))
 	add_child(item)
 	item.setup(ref, count, _phase)
+	item.armed = armed
 	_items.append(item)
 	return item
+
+
+## Puts something down where the player is standing, disarmed so it stays there.
+##
+## What the bag calls when a stack is dragged off it: the player asked for this to be on
+## the floor, so it has to survive being on the floor with them stood over it.
+func drop_at_player(ref: StringName, count: int) -> GroundItem:
+	var at := global_position
+	if _player != null and _player.is_inside_tree():
+		at = _player.global_position
+	return drop(ref, count, at, false)
 
 
 func items() -> Array[GroundItem]:
@@ -59,7 +71,16 @@ func _process(delta: float) -> void:
 		if item.age >= despawn_seconds:
 			_forget(item)
 			continue
-		if has_player and item.retry_in <= 0.0 and _within(item, here):
+		if not has_player:
+			continue
+		var near := _within(item, here)
+		if not item.armed:
+			# Arming on the way out rather than on a timer, so standing still over a
+			# dropped thing never takes it back.
+			if not near:
+				item.armed = true
+			continue
+		if item.retry_in <= 0.0 and near:
 			_try_pickup(item)
 
 
