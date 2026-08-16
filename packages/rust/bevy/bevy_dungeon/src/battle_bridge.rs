@@ -1095,6 +1095,7 @@ mod tests {
                 merchant_stock: vec![],
                 story_event: None,
                 available_quests: vec![],
+                resource_nodes: vec![],
             },
             log: vec![],
             show_items: false,

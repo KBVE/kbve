@@ -133,6 +133,28 @@ fn story_rooms() -> &'static [RoomTemplate] {
     ROOMS
 }
 
+fn resource_rooms() -> &'static [RoomTemplate] {
+    static ROOMS: &[RoomTemplate] = &[
+        RoomTemplate {
+            name: "Collapsed Seam",
+            description: "The wall has given way, and something metallic glints in the break.",
+        },
+        RoomTemplate {
+            name: "Quarry Floor",
+            description: "Cut stone lies where the diggers left it. Their tools did not.",
+        },
+        RoomTemplate {
+            name: "Root Cavern",
+            description: "Pale trunks have forced their way through the ceiling and kept growing.",
+        },
+        RoomTemplate {
+            name: "Old Diggings",
+            description: "Someone worked this chamber once. The seams are far from spent.",
+        },
+    ];
+    ROOMS
+}
+
 fn hallway_rooms() -> &'static [RoomTemplate] {
     static ROOMS: &[RoomTemplate] = &[
         RoomTemplate {
@@ -191,6 +213,17 @@ pub fn item_registry() -> &'static [ItemDef] {
 /// Look up an item definition by ID.
 pub fn find_item(id: &str) -> Option<&'static ItemDef> {
     super::proto_bridge::find_item(id)
+}
+
+/// Display name for any item, including gathered materials that carry no
+/// `discordsh` tag and so never appear in [`item_registry`].
+pub fn material_name(item_ref: &str) -> Option<&'static str> {
+    super::proto_bridge::material_name(item_ref)
+}
+
+/// Flavour text for any item, materials included.
+pub fn material_description(item_ref: &str) -> Option<&'static str> {
+    super::proto_bridge::material_description(item_ref)
 }
 
 /// Default starting inventory for a new session.
@@ -1890,6 +1923,7 @@ pub fn generate_room(index: u32) -> RoomState {
         RoomType::Merchant => merchant_rooms(),
         RoomType::Story => story_rooms(),
         RoomType::Hallway => hallway_rooms(),
+        RoomType::Resource => resource_rooms(),
         RoomType::UndergroundCity => city_rooms(),
     };
     let (name, description) = pick_template(pool, &mut rng);
@@ -1906,6 +1940,7 @@ pub fn generate_room(index: u32) -> RoomState {
         merchant_stock: Vec::new(),
         story_event: None,
         available_quests: Vec::new(),
+        resource_nodes: Vec::new(),
     }
 }
 
@@ -1923,6 +1958,7 @@ pub fn generate_hallway_room(index: u32) -> RoomState {
         merchant_stock: Vec::new(),
         story_event: None,
         available_quests: Vec::new(),
+        resource_nodes: Vec::new(),
     }
 }
 
@@ -2452,6 +2488,8 @@ fn tile_type_for_position(
             RoomType::Merchant
         } else if roll < 0.85 {
             RoomType::Treasure
+        } else if roll < 0.93 {
+            RoomType::Resource
         } else {
             RoomType::Story
         }
@@ -2469,6 +2507,8 @@ fn tile_type_for_position(
             RoomType::Merchant
         } else if roll < 0.92 {
             RoomType::Story
+        } else if roll < 0.97 {
+            RoomType::Resource
         } else {
             RoomType::Hallway
         }
@@ -2507,6 +2547,7 @@ fn generate_tile_at(seed: u64, pos: &MapPos, boss_positions: &[MapPos]) -> MapTi
         RoomType::Merchant => merchant_rooms(),
         RoomType::Story => story_rooms(),
         RoomType::Hallway => hallway_rooms(),
+        RoomType::Resource => resource_rooms(),
         RoomType::UndergroundCity => city_rooms(),
     };
     let (template_name, template_description) = pick_template(pool, &mut rng);
@@ -2681,7 +2722,42 @@ pub fn room_from_tile(tile: &MapTile) -> RoomState {
         merchant_stock,
         story_event,
         available_quests: Vec::new(),
+        resource_nodes: generate_resource_nodes(&tile.room_type, depth, &mut rng),
     }
+}
+
+/// Stock a resource room with nodes, deterministically for the tile.
+///
+/// The pool is everything professiondb marks gatherable at or below the depth
+/// the player has reached, so shallow rooms hold stone and timber and deeper
+/// ones start showing ore. Levelling is still what unlocks working them.
+fn generate_resource_nodes(
+    room_type: &RoomType,
+    depth: u32,
+    rng: &mut impl RngExt,
+) -> Vec<ResourceNode> {
+    if *room_type != RoomType::Resource {
+        return Vec::new();
+    }
+
+    let reachable = depth.saturating_mul(2).min(30);
+    let pool = super::proto_bridge::gather_nodes_up_to(reachable);
+    if pool.is_empty() {
+        return Vec::new();
+    }
+
+    let count = rng.random_range(1..=3.min(pool.len()));
+    let mut nodes: Vec<ResourceNode> = Vec::with_capacity(count);
+    for _ in 0..count {
+        let pick = &pool[rng.random_range(0..pool.len())];
+        if nodes.iter().any(|n| n.node_ref == pick.node_ref) {
+            continue;
+        }
+        let mut node = (*pick).clone();
+        node.remaining = rng.random_range(2..=4);
+        nodes.push(node);
+    }
+    nodes
 }
 
 /// Generate a lightweight encounter room for random travel encounters.
@@ -2701,6 +2777,7 @@ pub fn generate_encounter_room(depth: u32) -> RoomState {
         merchant_stock: Vec::new(),
         story_event: None,
         available_quests: Vec::new(),
+        resource_nodes: Vec::new(),
     }
 }
 

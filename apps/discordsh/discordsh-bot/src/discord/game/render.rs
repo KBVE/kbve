@@ -1038,33 +1038,67 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
 
     // Room choice buttons (Trap, Treasure, Rest, Hallway)
     if !game_over {
-        let room_choices: Option<Vec<(&str, serenity::ButtonStyle)>> = match session.phase {
-            GamePhase::Trap => Some(vec![
+        // Each entry carries the choice index it maps to, because a gathering
+        // room hides nodes the player cannot work yet and a positional index
+        // would then point at the wrong seam.
+        let simple = |labels: Vec<(&str, serenity::ButtonStyle)>| {
+            Some(
+                labels
+                    .into_iter()
+                    .enumerate()
+                    .map(|(i, (label, style))| (i as u8, label.to_owned(), style))
+                    .collect::<Vec<_>>(),
+            )
+        };
+        let room_choices: Option<Vec<(u8, String, serenity::ButtonStyle)>> = match session.phase {
+            GamePhase::Trap => simple(vec![
                 ("Disarm", serenity::ButtonStyle::Primary),
                 ("Brace", serenity::ButtonStyle::Secondary),
             ]),
-            GamePhase::Treasure => Some(vec![
+            GamePhase::Treasure => simple(vec![
                 ("Open Carefully", serenity::ButtonStyle::Primary),
                 ("Force Open", serenity::ButtonStyle::Danger),
             ]),
-            GamePhase::Rest if session.room.room_type == RoomType::RestShrine => Some(vec![
+            GamePhase::Rest if session.room.room_type == RoomType::RestShrine => simple(vec![
                 ("Rest", serenity::ButtonStyle::Success),
                 ("Meditate", serenity::ButtonStyle::Primary),
             ]),
-            GamePhase::Hallway => Some(vec![
+            GamePhase::Hallway => simple(vec![
                 ("Move Quickly", serenity::ButtonStyle::Success),
                 ("Search", serenity::ButtonStyle::Primary),
             ]),
+            GamePhase::Gathering => {
+                let skills = &session.player(session.owner).skills;
+                Some(
+                    session
+                        .room
+                        .resource_nodes
+                        .iter()
+                        .enumerate()
+                        .filter(|(_, node)| {
+                            node.remaining > 0
+                                && bevy_dungeon::skills::can_gather(skills, &node.item_ref)
+                        })
+                        .take(5)
+                        .map(|(i, node)| {
+                            (
+                                i as u8,
+                                format!("{} ({})", node.name, node.remaining),
+                                serenity::ButtonStyle::Primary,
+                            )
+                        })
+                        .collect::<Vec<_>>(),
+                )
+            }
             _ => None,
         };
 
         if let Some(choices) = room_choices {
             let choice_buttons: Vec<serenity::CreateButton> = choices
                 .iter()
-                .enumerate()
-                .map(|(i, (label, style))| {
-                    serenity::CreateButton::new(format!("dng|{sid}|room|{i}"))
-                        .label(*label)
+                .map(|(index, label, style)| {
+                    serenity::CreateButton::new(format!("dng|{sid}|room|{index}"))
+                        .label(label)
                         .style(*style)
                 })
                 .collect();
@@ -1100,6 +1134,55 @@ mod tests {
     use std::time::Instant;
 
     const OWNER: PlayerId = PlayerId::new(1);
+
+    /// A session standing at a workable stone node.
+    fn gathering_session() -> SessionState {
+        let mut session = test_session();
+        let mut node = bevy_dungeon::proto_bridge::gather_nodes()
+            .iter()
+            .find(|n| n.item_ref == "stone")
+            .expect("professiondb must describe a stone node")
+            .clone();
+        node.remaining = 3;
+        session.room.room_type = RoomType::Resource;
+        session.room.resource_nodes = vec![node];
+        session.phase = GamePhase::Gathering;
+        session
+    }
+
+    #[test]
+    fn gathering_room_renders_a_button_per_workable_node() {
+        let session = gathering_session();
+
+        let rows = render_components(&session);
+
+        assert!(
+            !rows.is_empty(),
+            "a gathering room must offer something to press"
+        );
+    }
+
+    #[test]
+    fn gathering_room_hides_nodes_the_player_cannot_work() {
+        let mut session = gathering_session();
+        let mut iron = bevy_dungeon::proto_bridge::gather_nodes()
+            .iter()
+            .find(|n| n.item_ref == "iron-ore")
+            .expect("professiondb must describe an iron node")
+            .clone();
+        iron.remaining = 3;
+        session.room.resource_nodes = vec![iron];
+
+        // The only node needs mining 15 and the player is untrained, so the
+        // room must not offer a button that the engine would refuse.
+        let before = render_components(&gathering_session()).len();
+        let after = render_components(&session).len();
+
+        assert!(
+            after < before,
+            "an unworkable node should not be offered ({after} rows vs {before})"
+        );
+    }
 
     fn test_session() -> SessionState {
         let (id, short_id) = new_short_sid();

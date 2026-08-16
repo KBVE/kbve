@@ -60,6 +60,7 @@ struct LandmarkBuckets {
     merchant: Vec<(String, String)>,
     rest: Vec<(String, String)>,
     story: Vec<(String, String)>,
+    resource: Vec<(String, String)>,
     underground_city: Vec<(String, String)>,
 }
 
@@ -69,6 +70,7 @@ static LANDMARK_BUCKETS: LazyLock<LandmarkBuckets> = LazyLock::new(|| {
     let mut merchant = Vec::new();
     let mut rest = Vec::new();
     let mut story = Vec::new();
+    let mut resource = Vec::new();
     let mut underground_city = Vec::new();
 
     for (_id, def) in MAP_DB.object_defs() {
@@ -79,7 +81,7 @@ static LANDMARK_BUCKETS: LazyLock<LandmarkBuckets> = LazyLock::new(|| {
         let pair = || (def.r#ref.clone(), def.name.clone());
         match WorldObjectType::try_from(def.r#type).ok() {
             Some(WorldObjectType::WorldObjectArena) => boss.push(pair()),
-            Some(WorldObjectType::WorldObjectResourceNode) => treasure.push(pair()),
+            Some(WorldObjectType::WorldObjectResourceNode) => resource.push(pair()),
             Some(WorldObjectType::WorldObjectSettlement) => underground_city.push(pair()),
             Some(WorldObjectType::WorldObjectBuilding) => match kind {
                 // Trade-flavored buildings → Merchant rooms
@@ -107,6 +109,7 @@ static LANDMARK_BUCKETS: LazyLock<LandmarkBuckets> = LazyLock::new(|| {
     sort_pairs(&mut merchant);
     sort_pairs(&mut rest);
     sort_pairs(&mut story);
+    sort_pairs(&mut resource);
     sort_pairs(&mut underground_city);
 
     LandmarkBuckets {
@@ -115,9 +118,97 @@ static LANDMARK_BUCKETS: LazyLock<LandmarkBuckets> = LazyLock::new(|| {
         merchant,
         rest,
         story,
+        resource,
         underground_city,
     }
 });
+
+/// Turn a node ref into something readable: `copper-vein` -> `Copper Vein`.
+///
+/// mapdb is the preferred source for these names, but its object defs do not
+/// currently survive the JSON load (the snapshot writes `objectDefs` while the
+/// proto struct expects `object_defs`), so a node would otherwise be shown to
+/// the player as a raw slug.
+fn node_ref_title(node_ref: &str) -> String {
+    node_ref
+        .split('-')
+        .map(|word| {
+            let mut chars = word.chars();
+            match chars.next() {
+                Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+                None => String::new(),
+            }
+        })
+        .collect::<Vec<_>>()
+        .join(" ")
+}
+
+/// Every workable node the dungeon knows about, joining professiondb's gather
+/// actions to the mapdb object that represents them.
+///
+/// professiondb is the authority on what a node costs and pays; mapdb only
+/// supplies the display name. A gather action with no `resourceNodeRef` (loose
+/// pickups like branches and leaves) has nothing to stand in a room, so it is
+/// skipped.
+static GATHER_NODES: LazyLock<Vec<ResourceNode>> = LazyLock::new(|| {
+    let Some(db) = crate::skills::professions() else {
+        return Vec::new();
+    };
+    let mut nodes: Vec<ResourceNode> = db
+        .gather_iter()
+        .filter(|(_, info)| !info.resource_node_ref.is_empty())
+        .map(|(item_ref, info)| {
+            let name = MAP_DB
+                .get_object_def_by_ref(&info.resource_node_ref)
+                .map(|def| def.name.clone())
+                .unwrap_or_else(|| node_ref_title(&info.resource_node_ref));
+            ResourceNode {
+                node_ref: info.resource_node_ref.clone(),
+                item_ref: item_ref.to_owned(),
+                name,
+                skill_ref: info.skill_ref.clone(),
+                required_level: info.required_level,
+                xp_reward: info.xp_reward,
+                remaining: 0,
+            }
+        })
+        .collect();
+    nodes.sort_by(|a, b| {
+        a.required_level
+            .cmp(&b.required_level)
+            .then_with(|| a.node_ref.cmp(&b.node_ref))
+    });
+    nodes
+});
+
+/// Display name for any item in the database.
+///
+/// Raw materials carry no `discordsh` tag, so they never reach
+/// [`item_registry`] and [`find_item`] cannot see them — but a player who
+/// mined one still needs to read its name in their pack.
+pub fn material_name(item_ref: &str) -> Option<&'static str> {
+    ITEM_DB.get_by_ref(item_ref).map(|i| i.name.as_str())
+}
+
+/// Flavour text for any item in the database, materials included.
+pub fn material_description(item_ref: &str) -> Option<&'static str> {
+    ITEM_DB
+        .get_by_ref(item_ref)
+        .and_then(|i| i.description.as_deref())
+}
+
+/// All workable nodes, ordered easiest first.
+pub fn gather_nodes() -> &'static [ResourceNode] {
+    &GATHER_NODES
+}
+
+/// The nodes a player of this level could actually work, easiest first.
+pub fn gather_nodes_up_to(level: u32) -> Vec<&'static ResourceNode> {
+    GATHER_NODES
+        .iter()
+        .filter(|node| node.required_level <= level)
+        .collect()
+}
 
 /// Probability of attaching a curated landmark to a tile of the given room
 /// type. Combat/Trap/Hallway never get landmarks (no fitting catalog buckets).
@@ -127,6 +218,7 @@ fn landmark_attach_chance(room_type: &RoomType) -> f32 {
         RoomType::UndergroundCity => 0.80,
         RoomType::Merchant => 0.60,
         RoomType::RestShrine => 0.50,
+        RoomType::Resource => 0.95,
         RoomType::Treasure => 0.40,
         RoomType::Story => 0.40,
         RoomType::Combat | RoomType::Trap | RoomType::Hallway => 0.0,
@@ -151,6 +243,7 @@ pub fn pick_landmark_for_room_type<R: Rng + ?Sized>(
         RoomType::Merchant => &LANDMARK_BUCKETS.merchant,
         RoomType::RestShrine => &LANDMARK_BUCKETS.rest,
         RoomType::Story => &LANDMARK_BUCKETS.story,
+        RoomType::Resource => &LANDMARK_BUCKETS.resource,
         RoomType::UndergroundCity => &LANDMARK_BUCKETS.underground_city,
         RoomType::Combat | RoomType::Trap | RoomType::Hallway => return None,
     };
@@ -1843,5 +1936,45 @@ mod tests {
         let smoke = rewards.items.iter().find(|i| i.item_ref == "smoke-bomb");
         assert!(smoke.is_some(), "Shadow Hunter should reward smoke bombs");
         assert_eq!(smoke.unwrap().amount, 3);
+    }
+}
+
+#[cfg(test)]
+mod gather_node_tests {
+    use super::*;
+
+    #[test]
+    fn nodes_are_named_for_a_player_to_read() {
+        let nodes = gather_nodes();
+        assert!(!nodes.is_empty(), "no gather nodes built");
+        for node in nodes {
+            assert!(
+                !node.name.contains('-'),
+                "node {} is showing a raw slug: {}",
+                node.node_ref,
+                node.name
+            );
+            assert!(
+                node.name.starts_with(|c: char| c.is_uppercase()),
+                "node {} is not capitalised: {}",
+                node.node_ref,
+                node.name
+            );
+        }
+    }
+
+    #[test]
+    fn every_node_pays_a_skill_that_exists() {
+        for node in gather_nodes() {
+            assert!(
+                crate::skills::professions()
+                    .expect("professiondb loaded")
+                    .profession(&node.skill_ref)
+                    .is_some(),
+                "node {} pays into unknown skill {}",
+                node.node_ref,
+                node.skill_ref
+            );
+        }
     }
 }

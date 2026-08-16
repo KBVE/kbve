@@ -18,12 +18,16 @@ const ITEMDB_DIR = resolve(
 	__dirname,
 	'../../astro-kbve/src/content/docs/itemdb',
 );
-// Both the isometric Tauri build and the axum-kbve server embed the same
-// itemdb.json via `include_str!` — emit to both locations so server-authoritative
-// inventory operations can resolve stack sizes / metadata without a network hop.
+// The isometric Tauri build, the axum-kbve server and the bevy_dungeon rules
+// engine all embed the same itemdb.json via `include_str!` — emit to every
+// location so item lookups resolve identically without a network hop.
 const OUTPUT_TARGETS = [
 	resolve(__dirname, '../src-tauri/src/data/itemdb.json'),
 	resolve(__dirname, '../../axum-kbve/src/data/itemdb.json'),
+	resolve(
+		__dirname,
+		'../../../../packages/rust/bevy/bevy_dungeon/data/itemdb.json',
+	),
 ];
 
 function extractFrontmatter(content) {

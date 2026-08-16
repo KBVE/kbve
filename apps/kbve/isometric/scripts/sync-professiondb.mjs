@@ -9,6 +9,7 @@
  * Outputs:
  *   src-tauri/src/data/professiondb.json   (isometric client)
  *   ../axum-kbve/src/data/professiondb.json (gameserver)
+ *   packages/rust/bevy/bevy_dungeon/data/professiondb.json (dungeon rules engine)
  */
 
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
@@ -23,6 +24,10 @@ const SOURCE = resolve(
 const OUTPUT_TARGETS = [
 	resolve(__dirname, '../src-tauri/src/data/professiondb.json'),
 	resolve(__dirname, '../../axum-kbve/src/data/professiondb.json'),
+	resolve(
+		__dirname,
+		'../../../../packages/rust/bevy/bevy_dungeon/data/professiondb.json',
+	),
 ];
 
 /**
