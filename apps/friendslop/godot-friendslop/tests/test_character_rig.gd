@@ -5,11 +5,11 @@ const Rig := preload("res://src/characters/character_rig.gd")
 
 ## States built out of a blend tree rather than a single clip, so their STATES entry
 ## names no clip of its own.
-const COMPOSED := [&"move", &"crouch", &"roll"]
+const COMPOSED := [&"move", &"crouch"]
 
 
 func _links() -> Array:
-	return Rig.JUMP_CHAIN + Rig.CLIMB_CHAIN + Rig.CROUCH_CHAIN + Rig.ROLL_CHAIN + Rig.TURN_CHAIN
+	return Rig.JUMP_CHAIN + Rig.CLIMB_CHAIN + Rig.CROUCH_CHAIN + Rig.roll_chain() + Rig.TURN_CHAIN
 
 
 ## A state named in a transition but missing from STATES takes the tree build down with
@@ -123,7 +123,71 @@ func test_every_fitted_one_shot_has_a_window() -> void:
 		assert_float(window).is_greater(0.0)
 	assert_float(rig.landing_time).is_less(1.267)
 	assert_float(rig.takeoff_time).is_less(1.333)
+	for state in Rig.FITTED:
+		assert_float(rig.window_for(state)) \
+				.override_failure_message("'%s' is fitted to nothing" % state).is_greater(0.0)
 	rig.free()
+
+
+## The state machine measures a clip at the length it was authored at and knows nothing
+## about the time scale above it, so an at_end exit from a fitted state overstays by the
+## fitted rate -- which is long enough for the clip to come round and play a second time.
+## Every fitted state is therefore walked out of deliberately, never on at_end.
+func test_no_fitted_state_exits_on_a_clip_boundary() -> void:
+	var fitted := Rig.FITTED.keys() + Rig.ROLL_STATES
+	for link in _links():
+		if not fitted.has(StringName(link.from)):
+			continue
+		assert_bool(link.at_end) \
+				.override_failure_message(
+					"'%s' is replayed to fit but exits on at_end, so it plays twice" % link.from) \
+				.is_false()
+
+
+## Every fitted state has to be left by somebody: the rig walks the ones the simulation
+## is not tracking, QLocomotion owns the rest.
+func test_every_fitted_state_has_an_owner() -> void:
+	var owned := {}
+	for state in Rig.SHOT_NEXT:
+		owned[state] = true
+	for state in Rig.ROLL_STATES:
+		owned[state] = true
+	owned[&"jump_land"] = true
+	for state in Rig.FITTED:
+		assert_bool(owned.has(state)) \
+				.override_failure_message("nothing ends '%s'" % state).is_true()
+	for state in Rig.SHOT_NEXT:
+		assert_bool(Rig.STATES.has(Rig.SHOT_NEXT[state])) \
+				.override_failure_message("'%s' steps to a missing state" % state).is_true()
+
+
+## Each quarter is drawn with its own clip, and every one of them has to exist.
+func test_each_roll_quarter_has_its_own_clip() -> void:
+	assert_int(Rig.ROLL_STATES.size()).is_equal(4)
+	var clips := {}
+	for state in Rig.ROLL_STATES:
+		assert_bool(Rig.STATES.has(state)) \
+				.override_failure_message("no STATES entry for '%s'" % state).is_true()
+		var clip: String = Rig.STATES[state].clip
+		assert_str(clip).is_not_empty()
+		clips[clip] = true
+	assert_int(clips.size()).is_equal(4)
+	assert_str(Rig.STATES[Rig.ROLL_STATES[0]].clip).is_equal("UAL1/Roll")
+
+
+## The clip follows the heading the roll was thrown on. Axes here are in Q's own frame,
+## the one character_rig hands it: y forward, x right.
+func test_the_roll_quarter_follows_the_heading() -> void:
+	var thrown := {Vector2(0.0, 1.0): 0, Vector2(0.0, -1.0): 1, Vector2(-1.0, 0.0): 2,
+			Vector2(1.0, 0.0): 3}
+	for axis in thrown:
+		var fresh := QLocomotion.create()
+		fresh.step_motion(axis, false, false, true, Vector3.ZERO, 0.0, true, -9.8, 1.0 / 60.0)
+		assert_int(fresh.roll_variant()) \
+				.override_failure_message("%s picked the wrong quarter" % axis) \
+				.is_equal(thrown[axis])
+	## No stick on it rolls straight ahead.
+	assert_int(QLocomotion.create().roll_variant()).is_equal(0)
 
 
 ## Both stances have to be leavable, or a crouch is a trap.
@@ -131,7 +195,7 @@ func test_crouch_and_roll_return_to_move() -> void:
 	var out := {}
 	for link in _links():
 		out[StringName(link.from)] = true
-	for state in [&"crouch", &"crouch_enter", &"crouch_exit", &"roll"]:
+	for state in [&"crouch", &"crouch_enter", &"crouch_exit"] + Rig.ROLL_STATES:
 		assert_bool(out.has(state)) \
 				.override_failure_message("'%s' has no way out" % state).is_true()
 

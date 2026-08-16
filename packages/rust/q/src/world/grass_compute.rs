@@ -5,15 +5,21 @@ use godot::classes::rendering_server::{MultimeshTransformFormat, ShadowCastingSe
 use godot::classes::{RdSamplerState, RdShaderSource, RdUniform, RenderingDevice, RenderingServer};
 use godot::prelude::*;
 
-const OCCLUSION_START: f32 = 15.0;
-const OCCLUSION_MARGIN: f32 = 1.0;
+/// Nearest a blade may be and still be worth a terrain occlusion march. Close in,
+/// the sight line is too steep for a ridge to hide anything, and the march is pure
+/// cost; the useful range starts about where a hummock can stand between the two.
+const OCCLUSION_START: f32 = 6.0;
+/// How far the terrain has to clear the sight line before the blade is dropped.
+/// Slack, because the march samples a handful of points and a ridge between two of
+/// them would otherwise pop grass back in as the camera moves.
+const OCCLUSION_MARGIN: f32 = 0.3;
 
 pub fn occlusion_enabled() -> bool {
     static V: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
     *V.get_or_init(|| {
         std::env::var("GRASS_OCCL")
-            .map(|v| v == "1")
-            .unwrap_or(false)
+            .map(|v| v != "0")
+            .unwrap_or(true)
     })
 }
 
@@ -27,6 +33,7 @@ layout(set = 0, binding = 3, std430) restrict writeonly buffer OutFar { float da
 layout(set = 0, binding = 4, std430) restrict buffer Counter { uint data[]; } counter;
 layout(set = 0, binding = 5) uniform sampler2D heightmap;
 layout(set = 0, binding = 6) uniform sampler2D clearance;
+layout(set = 0, binding = 7, std430) restrict writeonly buffer OutMid { float data[]; } out_mid;
 layout(push_constant, std430) uniform Params {
     vec4 cam;
     vec4 p0;
@@ -39,13 +46,26 @@ layout(push_constant, std430) uniform Params {
 } pc;
 
 shared uint local_near;
+shared uint local_mid;
 shared uint local_far;
 shared uint base_near;
+shared uint base_mid;
 shared uint base_far;
+
+const float GROUND_QUAD = 2.0;
 
 float terrain_h(vec2 xz) {
     vec2 uv = clamp((xz + pc.terra.x) / (pc.terra.x * 2.0), 0.001, 0.999);
     return textureLod(heightmap, uv, 0.0).r;
+}
+
+float mesh_h(vec2 xz) {
+    vec2 g = floor(xz / GROUND_QUAD) * GROUND_QUAD;
+    vec2 t = (xz - g) / GROUND_QUAD;
+    return mix(
+        mix(terrain_h(g), terrain_h(g + vec2(GROUND_QUAD, 0.0)), t.x),
+        mix(terrain_h(g + vec2(0.0, GROUND_QUAD)), terrain_h(g + vec2(GROUND_QUAD)), t.x),
+        t.y);
 }
 
 float clearance_at(vec2 xz) {
@@ -70,6 +90,7 @@ mat3 axis_rot(vec3 ax, float a) {
 void main() {
     if (gl_LocalInvocationIndex == 0u) {
         local_near = 0u;
+        local_mid = 0u;
         local_far = 0u;
     }
     barrier();
@@ -79,6 +100,7 @@ void main() {
     uint blade = id - cell * blade_count;
     bool alive = cell < uint(pc.cam.w);
     bool near = false;
+    bool mid = false;
     float wx = 0.0;
     float wz = 0.0;
     float rank = 0.0;
@@ -95,30 +117,33 @@ void main() {
         rank = float(blade) / float(blade_count) * 0.95;
         alive = rank < density;
         if (alive) {
-            h = terrain_h(vec2(wx, wz));
+            h = mesh_h(vec2(wx, wz));
             vec3 pos = vec3(wx, h + 0.7, wz);
-            alive = h >= pc.terra.y + 0.6
+            alive = h >= pc.terra.y + 1.5
                 && rank < 1.0 - clearance_at(vec2(wx, wz))
                 && !(outside(pc.p0, pos) || outside(pc.p1, pos) || outside(pc.p2, pos)
                     || outside(pc.p3, pos));
             if (alive && d > pc.terra.z) {
                 vec3 tip = vec3(wx, h + 1.4, wz);
-                for (int i = 1; i <= 5; i++) {
-                    vec3 p = mix(tip, pc.cam.xyz, float(i) / 6.0);
+                for (int i = 1; i <= 8; i++) {
+                    vec3 p = mix(tip, pc.cam.xyz, pow(float(i) / 9.0, 1.5));
                     if (terrain_h(p.xz) > p.y + pc.terra.w) {
                         alive = false;
                         break;
                     }
                 }
             }
-            float lod_j = fract(float(blade) * 0.61803398875);
-            near = d < pc.fade.z * (0.3 + 1.8 * lod_j);
+            float lod_j = 0.75 + 0.5 * fract(float(blade) * 0.61803398875);
+            near = d < pc.fade.z * lod_j;
+            mid = !near && d < pc.caps.w * lod_j;
         }
     }
     uint lslot = 0u;
     if (alive) {
         if (near) {
             lslot = atomicAdd(local_near, 1u);
+        } else if (mid) {
+            lslot = atomicAdd(local_mid, 1u);
         } else {
             lslot = atomicAdd(local_far, 1u);
         }
@@ -127,13 +152,14 @@ void main() {
     if (gl_LocalInvocationIndex == 0u) {
         base_near = atomicAdd(counter.data[0], local_near);
         base_far = atomicAdd(counter.data[1], local_far);
+        base_mid = atomicAdd(counter.data[2], local_mid);
     }
     barrier();
     if (!alive) {
         return;
     }
-    uint slot = (near ? base_near : base_far) + lslot;
-    if (slot >= uint(near ? pc.caps.x : pc.caps.y)) {
+    uint slot = (near ? base_near : (mid ? base_mid : base_far)) + lslot;
+    if (slot >= uint(near ? pc.caps.x : (mid ? pc.caps.z : pc.caps.y))) {
         return;
     }
     float yaw = layouts.data[src + 2u];
@@ -146,40 +172,35 @@ void main() {
     b[2] *= s;
     float shape = fract(float(blade) * 0.75487766 + cells.data[cell].w * 0.618034);
     uint o = slot * 16u;
+    float v[16];
+    v[0] = b[0].x;
+    v[1] = b[1].x;
+    v[2] = b[2].x;
+    v[3] = wx;
+    v[4] = b[0].y;
+    v[5] = b[1].y;
+    v[6] = b[2].y;
+    v[7] = 0.0;
+    v[8] = b[0].z;
+    v[9] = b[1].z;
+    v[10] = b[2].z;
+    v[11] = wz;
+    v[12] = rank;
+    v[13] = shape;
+    v[14] = h;
+    v[15] = 0.0;
     if (near) {
-        out_near.data[o] = b[0].x;
-        out_near.data[o + 1u] = b[1].x;
-        out_near.data[o + 2u] = b[2].x;
-        out_near.data[o + 3u] = wx;
-        out_near.data[o + 4u] = b[0].y;
-        out_near.data[o + 5u] = b[1].y;
-        out_near.data[o + 6u] = b[2].y;
-        out_near.data[o + 7u] = 0.0;
-        out_near.data[o + 8u] = b[0].z;
-        out_near.data[o + 9u] = b[1].z;
-        out_near.data[o + 10u] = b[2].z;
-        out_near.data[o + 11u] = wz;
-        out_near.data[o + 12u] = rank;
-        out_near.data[o + 13u] = shape;
-        out_near.data[o + 14u] = h;
-        out_near.data[o + 15u] = 0.0;
+        for (uint i = 0u; i < 16u; i++) {
+            out_near.data[o + i] = v[i];
+        }
+    } else if (mid) {
+        for (uint i = 0u; i < 16u; i++) {
+            out_mid.data[o + i] = v[i];
+        }
     } else {
-        out_far.data[o] = b[0].x;
-        out_far.data[o + 1u] = b[1].x;
-        out_far.data[o + 2u] = b[2].x;
-        out_far.data[o + 3u] = wx;
-        out_far.data[o + 4u] = b[0].y;
-        out_far.data[o + 5u] = b[1].y;
-        out_far.data[o + 6u] = b[2].y;
-        out_far.data[o + 7u] = 0.0;
-        out_far.data[o + 8u] = b[0].z;
-        out_far.data[o + 9u] = b[1].z;
-        out_far.data[o + 10u] = b[2].z;
-        out_far.data[o + 11u] = wz;
-        out_far.data[o + 12u] = rank;
-        out_far.data[o + 13u] = shape;
-        out_far.data[o + 14u] = h;
-        out_far.data[o + 15u] = 0.0;
+        for (uint i = 0u; i < 16u; i++) {
+            out_far.data[o + i] = v[i];
+        }
     }
 }
 "#;
@@ -190,6 +211,7 @@ layout(local_size_x = 1) in;
 layout(set = 0, binding = 0, std430) restrict readonly buffer Counter { uint data[]; } counter;
 layout(set = 0, binding = 1, std430) restrict buffer CmdNear { uint data[]; } cmd_near;
 layout(set = 0, binding = 2, std430) restrict buffer CmdFar { uint data[]; } cmd_far;
+layout(set = 0, binding = 3, std430) restrict buffer CmdMid { uint data[]; } cmd_mid;
 layout(push_constant, std430) uniform Params {
     vec4 caps;
 } pc;
@@ -197,6 +219,7 @@ layout(push_constant, std430) uniform Params {
 void main() {
     cmd_near.data[1] = min(counter.data[0], uint(pc.caps.x));
     cmd_far.data[1] = min(counter.data[1], uint(pc.caps.y));
+    cmd_mid.data[1] = min(counter.data[2], uint(pc.caps.z));
 }
 "#;
 
@@ -233,9 +256,20 @@ const uint CAP = %CAP%u;
 shared uint local_cnt;
 shared uint base_slot;
 
+const float GROUND_QUAD = 2.0;
+
 float terrain_h(vec2 xz) {
     vec2 uv = clamp((xz + EXTENT) / (EXTENT * 2.0), 0.001, 0.999);
     return textureLod(heightmap, uv, 0.0).r;
+}
+
+float mesh_h(vec2 xz) {
+    vec2 g = floor(xz / GROUND_QUAD) * GROUND_QUAD;
+    vec2 t = (xz - g) / GROUND_QUAD;
+    return mix(
+        mix(terrain_h(g), terrain_h(g + vec2(GROUND_QUAD, 0.0)), t.x),
+        mix(terrain_h(g + vec2(0.0, GROUND_QUAD)), terrain_h(g + vec2(GROUND_QUAD)), t.x),
+        t.y);
 }
 
 float clearance_at(vec2 xz) {
@@ -286,16 +320,16 @@ void main() {
             alive = rank < band_keep * 1.001;
         }
         if (alive) {
-            h = terrain_h(vec2(wx, wz));
+            h = mesh_h(vec2(wx, wz));
             vec3 pos = vec3(wx, h + 1.0, wz);
-            alive = h >= WATER + 0.6
+            alive = h >= WATER + 1.5
                 && rank < 1.0 - clearance_at(vec2(wx, wz))
                 && !(outside(pc.p0, pos) || outside(pc.p1, pos) || outside(pc.p2, pos)
                     || outside(pc.p3, pos));
             if (alive && d > OCCL_START) {
                 vec3 tip = vec3(wx, h + 2.2, wz);
                 for (int i = 1; i <= 8; i++) {
-                    vec3 p = mix(tip, pc.cam.xyz, float(i) / 9.0);
+                    vec3 p = mix(tip, pc.cam.xyz, pow(float(i) / 9.0, 1.5));
                     if (terrain_h(p.xz) > p.y + OCCL_MARGIN) {
                         alive = false;
                         break;
@@ -396,13 +430,16 @@ pub struct BladeCompute {
     cells_buf: Rid,
     counter_buf: Rid,
     mm_near: Rid,
+    mm_mid: Rid,
     mm_far: Rid,
     inst_near: Rid,
+    inst_mid: Rid,
     inst_far: Rid,
     blade_count: u32,
     cell_capacity: u32,
     cell_count: u32,
     cap_near: u32,
+    cap_mid: u32,
     cap_far: u32,
     zero_counter: PackedByteArray,
     heightmap_tex: Rid,
@@ -443,12 +480,14 @@ impl BladeCompute {
         scenario: Rid,
         world_aabb: Aabb,
         detailed_mesh: Rid,
+        medium_mesh: Rid,
         simple_mesh: Rid,
         material: Rid,
         layouts: &[f32],
         blade_count: u32,
         cell_capacity: u32,
         cap_near: u32,
+        cap_mid: u32,
         cap_far: u32,
         heightmap_tex: Rid,
         clearance_tex: Rid,
@@ -476,7 +515,7 @@ impl BladeCompute {
             .data(&layout_bytes)
             .done();
         let cells_buf = rd.storage_buffer_create((cell_capacity * 16) as u32);
-        let counter_buf = rd.storage_buffer_create(8);
+        let counter_buf = rd.storage_buffer_create(12);
 
         let mut rs = RenderingServer::singleton();
         let mut make_mm = |cap: u32, mesh: Rid| {
@@ -489,6 +528,7 @@ impl BladeCompute {
             mm
         };
         let mm_near = make_mm(cap_near, detailed_mesh);
+        let mm_mid = make_mm(cap_mid, medium_mesh);
         let mm_far = make_mm(cap_far, simple_mesh);
 
         let mut make_inst = |mm: Rid| {
@@ -502,10 +542,11 @@ impl BladeCompute {
             inst
         };
         let inst_near = make_inst(mm_near);
+        let inst_mid = make_inst(mm_mid);
         let inst_far = make_inst(mm_far);
 
         let mut zero_counter = PackedByteArray::new();
-        zero_counter.resize(8);
+        zero_counter.resize(12);
 
         Some(Self {
             rd,
@@ -519,13 +560,16 @@ impl BladeCompute {
             cells_buf,
             counter_buf,
             mm_near,
+            mm_mid,
             mm_far,
             inst_near,
+            inst_mid,
             inst_far,
             blade_count,
             cell_capacity,
             cell_count: 0,
             cap_near,
+            cap_mid,
             cap_far,
             zero_counter,
             heightmap_tex,
@@ -546,14 +590,18 @@ impl BladeCompute {
         }
         let rs = RenderingServer::singleton();
         let near_buf = rs.multimesh_get_buffer_rd_rid(self.mm_near);
+        let mid_buf = rs.multimesh_get_buffer_rd_rid(self.mm_mid);
         let far_buf = rs.multimesh_get_buffer_rd_rid(self.mm_far);
         let cmd_near = rs.multimesh_get_command_buffer_rd_rid(self.mm_near);
+        let cmd_mid = rs.multimesh_get_command_buffer_rd_rid(self.mm_mid);
         let cmd_far = rs.multimesh_get_command_buffer_rd_rid(self.mm_far);
         let hm_rd = rs.texture_get_rd_texture(self.heightmap_tex);
         let clr_rd = rs.texture_get_rd_texture(self.clearance_tex);
         if !near_buf.is_valid()
+            || !mid_buf.is_valid()
             || !far_buf.is_valid()
             || !cmd_near.is_valid()
+            || !cmd_mid.is_valid()
             || !cmd_far.is_valid()
             || !hm_rd.is_valid()
             || !clr_rd.is_valid()
@@ -578,6 +626,7 @@ impl BladeCompute {
             storage_uniform(4, self.counter_buf),
             hm_uniform,
             clr_uniform,
+            storage_uniform(7, mid_buf),
         ]
         .into_iter()
         .collect();
@@ -588,6 +637,7 @@ impl BladeCompute {
             storage_uniform(0, self.counter_buf),
             storage_uniform(1, cmd_near),
             storage_uniform(2, cmd_far),
+            storage_uniform(3, cmd_mid),
         ]
         .into_iter()
         .collect();
@@ -616,12 +666,13 @@ impl BladeCompute {
         thin_start: f32,
         blade_range: f32,
         lod_near: f32,
+        lod_mid: f32,
     ) {
         if !self.online() {
             return;
         }
         self.rd
-            .buffer_update(self.counter_buf, 0, 8, &self.zero_counter);
+            .buffer_update(self.counter_buf, 0, 12, &self.zero_counter);
         let mut pc = [0.0f32; 32];
         pc[0] = cam_pos.x;
         pc[1] = cam_pos.y;
@@ -640,6 +691,8 @@ impl BladeCompute {
         pc[23] = self.blade_count as f32;
         pc[24] = self.cap_near as f32;
         pc[25] = self.cap_far as f32;
+        pc[26] = self.cap_mid as f32;
+        pc[27] = lod_mid;
         pc[28] = self.terrain_extent;
         pc[29] = self.water_level;
         pc[30] = if occlusion_enabled() {
@@ -674,12 +727,20 @@ impl BladeCompute {
     pub fn set_visible(&mut self, visible: bool) {
         let mut rs = RenderingServer::singleton();
         rs.instance_set_visible(self.inst_near, visible);
+        rs.instance_set_visible(self.inst_mid, visible);
         rs.instance_set_visible(self.inst_far, visible);
     }
 
     pub fn free(&mut self) {
         let mut rs = RenderingServer::singleton();
-        for rid in [self.inst_near, self.inst_far, self.mm_near, self.mm_far] {
+        for rid in [
+            self.inst_near,
+            self.inst_mid,
+            self.inst_far,
+            self.mm_near,
+            self.mm_mid,
+            self.mm_far,
+        ] {
             if rid.is_valid() {
                 rs.free_rid(rid);
             }
@@ -957,18 +1018,19 @@ impl CardCompute {
 }
 
 impl BladeCompute {
-    pub fn survivor_counts(&mut self) -> (u32, u32) {
+    pub fn survivor_counts(&mut self) -> (u32, u32, u32) {
         if !self.online() {
-            return (0, 0);
+            return (0, 0, 0);
         }
         let data = self.rd.buffer_get_data(self.counter_buf);
         let bytes = data.as_slice();
-        if bytes.len() < 8 {
-            return (0, 0);
+        if bytes.len() < 12 {
+            return (0, 0, 0);
         }
         let near = u32::from_le_bytes([bytes[0], bytes[1], bytes[2], bytes[3]]);
         let far = u32::from_le_bytes([bytes[4], bytes[5], bytes[6], bytes[7]]);
-        (near, far)
+        let mid = u32::from_le_bytes([bytes[8], bytes[9], bytes[10], bytes[11]]);
+        (near, mid, far)
     }
 }
 
@@ -987,8 +1049,8 @@ impl CardCompute {
 }
 
 impl BladeCompute {
-    pub fn caps(&self) -> (u32, u32) {
-        (self.cap_near, self.cap_far)
+    pub fn caps(&self) -> (u32, u32, u32) {
+        (self.cap_near, self.cap_mid, self.cap_far)
     }
 }
 

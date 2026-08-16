@@ -82,6 +82,17 @@ impl Stance {
     }
 }
 
+/// The kit has no backward roll, so the back quarter is drawn with the one clip that
+/// does carry the body away from where it is looking.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(u8)]
+pub enum RollVariant {
+    Forward = 0,
+    Back = 1,
+    Left = 2,
+    Right = 3,
+}
+
 /// Top speeds and blend rates.
 #[derive(Clone, Copy, Debug)]
 pub struct Tuning {
@@ -246,9 +257,11 @@ pub struct Locomotion {
     /// Whether the last motion step was taken crouched, which is what decides both the
     /// speed the body travels and the ring the rig reads.
     crouched: bool,
-    /// Time left in the roll that owns the body, and the heading it was launched on.
+    /// Time left in the roll that owns the body, and the heading it was launched on --
+    /// in world space for the travel, and in the body's own frame for the clip.
     roll_t: f32,
     roll_dir: [f32; 3],
+    roll_axis: [f32; 2],
     air_t: f32,
     land_t: f32,
     facing: f32,
@@ -275,6 +288,7 @@ impl Locomotion {
             crouched: false,
             roll_t: 0.0,
             roll_dir: [0.0, 0.0, -1.0],
+            roll_axis: [0.0, 1.0],
             air_t: 0.0,
             land_t: 0.0,
             facing: 0.0,
@@ -310,6 +324,35 @@ impl Locomotion {
         self.roll_t > 0.0
     }
 
+    /// Which of the four evasive clips the roll in flight is being drawn with. Latched
+    /// when the roll is thrown, so turning the stick mid-roll cannot swap the clip out
+    /// from under it.
+    pub fn roll_variant(&self) -> RollVariant {
+        let [x, y] = self.roll_axis;
+        if y.abs() >= x.abs() {
+            if y >= 0.0 {
+                RollVariant::Forward
+            } else {
+                RollVariant::Back
+            }
+        } else if x >= 0.0 {
+            RollVariant::Right
+        } else {
+            RollVariant::Left
+        }
+    }
+
+    /// The stick as the body reads it, falling back to straight ahead when there is no
+    /// hand on it.
+    fn roll_facing(move_axis: [f32; 2]) -> [f32; 2] {
+        let length = (move_axis[0] * move_axis[0] + move_axis[1] * move_axis[1]).sqrt();
+        if length < 0.0001 {
+            [0.0, 1.0]
+        } else {
+            [move_axis[0] / length, move_axis[1] / length]
+        }
+    }
+
     /// Where the body wants to go, in world space, from an intent and a heading.
     pub fn wish_direction(&self, move_axis: [f32; 2], yaw: f32) -> [f32; 3] {
         let local = [move_axis[0], -move_axis[1]];
@@ -341,6 +384,7 @@ impl Locomotion {
         if intent.roll && grounded && self.roll_t <= 0.0 && self.climbing.is_none() {
             self.roll_t = self.tuning.roll_time;
             self.roll_dir = self.roll_heading(intent.move_axis, yaw);
+            self.roll_axis = Self::roll_facing(intent.move_axis);
         }
         let rolling = self.roll_t > 0.0;
         self.crouched = intent.crouch && grounded && !rolling;
@@ -1206,6 +1250,47 @@ mod tests {
         };
         let m = l.step_motion(press, [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
         assert!((m.velocity[2] + l.tuning.roll_speed).abs() < 0.001, "{m:?}");
+    }
+
+    /// The clip is picked from the stick the roll was thrown on, not from wherever the
+    /// stick drifts to while it is in flight.
+    #[test]
+    fn the_roll_clip_is_latched_at_the_throw() {
+        for (axis, want) in [
+            ([0.0, 1.0], RollVariant::Forward),
+            ([0.0, -1.0], RollVariant::Back),
+            ([-1.0, 0.0], RollVariant::Left),
+            ([1.0, 0.0], RollVariant::Right),
+            ([0.4, 1.0], RollVariant::Forward),
+            ([1.0, 0.4], RollVariant::Right),
+        ] {
+            let mut l = loco();
+            let press = Intent {
+                move_axis: axis,
+                roll: true,
+                ..Intent::default()
+            };
+            l.step_motion(press, [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+            assert_eq!(l.roll_variant(), want, "{axis:?}");
+
+            let turned = Intent {
+                move_axis: [-axis[0], -axis[1]],
+                ..Intent::default()
+            };
+            l.step_motion(turned, [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+            assert_eq!(l.roll_variant(), want, "{axis:?} swapped clip mid-roll");
+        }
+    }
+
+    #[test]
+    fn a_standing_roll_is_drawn_forward() {
+        let mut l = loco();
+        let press = Intent {
+            roll: true,
+            ..Intent::default()
+        };
+        l.step_motion(press, [0.0; 3], 0.0, true, -9.8, 1.0 / 60.0);
+        assert_eq!(l.roll_variant(), RollVariant::Forward);
     }
 
     #[test]

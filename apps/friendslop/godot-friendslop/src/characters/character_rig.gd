@@ -50,7 +50,11 @@ var loco := QLocomotion.create()
 
 const IDLE_CLIP := "UAL1/Idle"
 const CROUCH_IDLE_CLIP := "UAL1/Crouch_Idle"
-const ROLL_CLIP := "UAL1/Roll"
+
+## One clip per quarter, indexed the way QLocomotion reports the roll it threw. The kit
+## has no backward roll -- BackFlip is the only clip in it that carries the body away
+## from where it is looking, so the back quarter borrows that.
+const ROLL_STATES := [&"roll_fwd", &"roll_back", &"roll_left", &"roll_right"]
 
 ## Take-off and landing are one-shots either side of the airborne loop. Both ends carry
 ## a direct route back to move as well as the chained one: a hop can be over before its
@@ -59,7 +63,7 @@ const ROLL_CLIP := "UAL1/Roll"
 const JUMP_CHAIN := [
 	{"from": "move", "to": "jump_start", "at_end": false, "xfade": 0.08},
 	{"from": "crouch", "to": "jump_start", "at_end": false, "xfade": 0.10},
-	{"from": "jump_start", "to": "jump", "at_end": true, "xfade": 0.05},
+	{"from": "jump_start", "to": "jump", "at_end": false, "xfade": 0.05},
 	{"from": "jump_start", "to": "jump_land", "at_end": false, "xfade": 0.08},
 	{"from": "jump_start", "to": "move", "at_end": false, "xfade": 0.12},
 	{"from": "jump", "to": "jump_land", "at_end": false, "xfade": 0.06},
@@ -82,10 +86,10 @@ const CLIMB_CHAIN := [
 ## cross-fading into a pose it never took.
 const CROUCH_CHAIN := [
 	{"from": "move", "to": "crouch_enter", "at_end": false, "xfade": 0.10},
-	{"from": "crouch_enter", "to": "crouch", "at_end": true, "xfade": 0.14},
+	{"from": "crouch_enter", "to": "crouch", "at_end": false, "xfade": 0.14},
 	{"from": "crouch_enter", "to": "move", "at_end": false, "xfade": 0.12},
 	{"from": "crouch", "to": "crouch_exit", "at_end": false, "xfade": 0.10},
-	{"from": "crouch_exit", "to": "move", "at_end": true, "xfade": 0.16},
+	{"from": "crouch_exit", "to": "move", "at_end": false, "xfade": 0.16},
 	{"from": "crouch_exit", "to": "crouch", "at_end": false, "xfade": 0.12},
 ]
 
@@ -103,19 +107,25 @@ const TURN_CHAIN := [
 	{"from": "turn_180_r", "to": "move", "at_end": false, "xfade": 0.16},
 ]
 
-## A roll can be thrown from either stance and always ends standing.
-const ROLL_CHAIN := [
-	{"from": "move", "to": "roll", "at_end": false, "xfade": 0.07},
-	{"from": "crouch", "to": "roll", "at_end": false, "xfade": 0.07},
-	{"from": "crouch_enter", "to": "roll", "at_end": false, "xfade": 0.07},
-	{"from": "roll", "to": "move", "at_end": true, "xfade": 0.18},
-]
+## A roll can be thrown from either stance and always ends standing. Nothing here waits
+## on a clip: QLocomotion decides when the roll is over and the graph is told, which is
+## the whole point -- see FITTED.
+static func roll_chain() -> Array:
+	var out: Array = []
+	for state in ROLL_STATES:
+		for from in ["move", "crouch", "crouch_enter"]:
+			out.append({"from": from, "to": String(state), "at_end": false, "xfade": 0.10})
+		out.append({"from": String(state), "to": "move", "at_end": false, "xfade": 0.20})
+	return out
 
 ## What each state wants out of a transition into it.
 const STATES := {
 	&"move": {&"clip": "", &"reset": false, &"ik": 1.0},
 	&"crouch": {&"clip": "", &"reset": false, &"ik": 1.0},
-	&"roll": {&"clip": "", &"reset": true, &"ik": 0.15},
+	&"roll_fwd": {&"clip": "UAL1/Roll", &"reset": true, &"ik": 0.15},
+	&"roll_back": {&"clip": "UAL1/BackFlip", &"reset": true, &"ik": 0.15},
+	&"roll_left": {&"clip": "UAL1/Dodge_Left", &"reset": true, &"ik": 0.15},
+	&"roll_right": {&"clip": "UAL1/Dodge_Right", &"reset": true, &"ik": 0.15},
 	&"crouch_enter": {&"clip": "UAL1/Crouch_Enter", &"reset": true, &"ik": 0.9},
 	&"crouch_exit": {&"clip": "UAL1/Crouch_Exit", &"reset": true, &"ik": 0.9},
 	&"jump_start": {&"clip": "UAL1/Jump_Start", &"reset": true, &"ik": 0.4},
@@ -129,6 +139,26 @@ const STATES := {
 	&"turn_180_r": {&"clip": "UAL2/Turn180_R", &"reset": true, &"ik": 1.0},
 }
 
+## One-shots replayed to fit a window shorter than the clip was authored for, and the
+## window each is fitted to. This is why none of them may exit on at_end: the state
+## machine measures a clip at its authored length and knows nothing about the time scale
+## sitting above it, so an at_end exit overstays by exactly the fitted rate -- long
+## enough for the clip to come round and play again.
+const FITTED := {
+	&"jump_start": &"takeoff_time",
+	&"jump_land": &"landing_time",
+	&"crouch_enter": &"crouch_shift_time",
+	&"crouch_exit": &"crouch_shift_time",
+}
+
+## Fitted states the graph has to be walked out of by hand, since nothing in the
+## simulation is tracking them. The rest are left when their stance is.
+const SHOT_NEXT := {
+	&"jump_start": &"jump",
+	&"crouch_enter": &"crouch",
+	&"crouch_exit": &"move",
+}
+
 ## QLocomotion decides in stances; the state machine is addressed by name.
 const STANCE_STATES := {
 	QLocomotion.STANCE_MOVE: &"move",
@@ -136,7 +166,7 @@ const STANCE_STATES := {
 	QLocomotion.STANCE_CLIMB_LOW: &"climb_low",
 	QLocomotion.STANCE_CLIMB_HIGH: &"climb_high",
 	QLocomotion.STANCE_CROUCH: &"crouch",
-	QLocomotion.STANCE_ROLL: &"roll",
+	QLocomotion.STANCE_ROLL: &"roll_fwd",
 	QLocomotion.STANCE_LAND: &"jump_land",
 	QLocomotion.STANCE_TURN_90_LEFT: &"turn_90_l",
 	QLocomotion.STANCE_TURN_90_RIGHT: &"turn_90_r",
@@ -185,6 +215,10 @@ const SHADING := {
 
 var skeleton: Skeleton3D
 var mount: SkeletonModifier3D
+
+## The fitted one-shot on screen, and what is left of the window it was fitted to.
+var _shot: StringName = &""
+var _shot_t := 0.0
 
 
 func _ready() -> void:
@@ -269,16 +303,13 @@ func _build_tree(rig: Node3D) -> void:
 	var machine := AnimationNodeStateMachine.new()
 	machine.add_node("move", _rescaled(_ring(GAIT_CLIPS, IDLE_CLIP, 2.2)))
 	machine.add_node("crouch", _rescaled(_ring(CROUCH_GAIT_CLIPS, CROUCH_IDLE_CLIP, 1.2)))
-	var roll := _clip(ROLL_CLIP)
-	if roll:
-		machine.add_node("roll", _rescaled(roll))
 	for state in STATES:
 		var clip: String = STATES[state].clip
 		if clip != "":
 			var node := _clip(clip)
 			if node:
 				machine.add_node(state, _rescaled(node))
-	for link in JUMP_CHAIN + CLIMB_CHAIN + CROUCH_CHAIN + ROLL_CHAIN + TURN_CHAIN:
+	for link in JUMP_CHAIN + CLIMB_CHAIN + CROUCH_CHAIN + roll_chain() + TURN_CHAIN:
 		if not machine.has_node(link.from) or not machine.has_node(link.to):
 			continue
 		machine.add_transition(link.from, link.to, _transition(link))
@@ -289,11 +320,20 @@ func _build_tree(rig: Node3D) -> void:
 	tree.anim_player = tree.get_path_to(animation)
 	tree.active = true
 	loco.set_landing(landing_time, landing_cancel_speed)
-	_fit(&"roll", ROLL_CLIP, loco.roll_time())
-	_fit(&"jump_start", STATES[&"jump_start"].clip, takeoff_time)
-	_fit(&"jump_land", STATES[&"jump_land"].clip, landing_time)
-	_fit(&"crouch_enter", STATES[&"crouch_enter"].clip, crouch_shift_time)
-	_fit(&"crouch_exit", STATES[&"crouch_exit"].clip, crouch_shift_time)
+	for state in FITTED:
+		_fit(state, window_for(state))
+	for state in ROLL_STATES:
+		_fit(state, window_for(state))
+
+
+## How long a fitted one-shot is given, whoever is counting it: the rig for the states it
+## walks itself, QLocomotion for the ones it owns.
+func window_for(state: StringName) -> float:
+	if FITTED.has(state):
+		return get(FITTED[state])
+	if ROLL_STATES.has(state):
+		return loco.roll_time()
+	return 0.0
 
 
 ## `travel` refuses to path through a disabled transition, so a link that is only ever
@@ -347,8 +387,9 @@ func _rescaled(inner: AnimationNode) -> AnimationNodeBlendTree:
 ## A one-shot is authored for however long the kit felt like; what matters is the window
 ## the simulation gives it. Playing it at the rate that makes the two end together keeps
 ## the whole clip visible without it outstaying the moment it covers.
-func _fit(state: StringName, clip: String, window: float) -> void:
-	if window <= 0.0 or not animation.has_animation(clip):
+func _fit(state: StringName, window: float) -> void:
+	var clip: String = STATES.get(state, {}).get(&"clip", "")
+	if window <= 0.0 or clip == "" or not animation.has_animation(clip):
 		return
 	tree.set("parameters/%s/scale/scale" % state, animation.get_animation(clip).length / window)
 
@@ -449,7 +490,9 @@ func set_locomotion(local_velocity: Vector3, airborne: bool, delta: float) -> vo
 		ik.set_ground_weight(_ground_weight(playback))
 	if loco.is_climbing():
 		return
-	var want: StringName = STANCE_STATES[loco.stance()]
+	if _hold_shot(playback, delta):
+		return
+	var want: StringName = _wanted()
 	if playback.get_travel_path().is_empty() and playback.get_current_node() != want:
 		_fit_turn(want)
 		playback.travel(want)
@@ -467,6 +510,33 @@ func _fit_turn(state: StringName) -> void:
 	if clip == "" or not animation.has_animation(clip):
 		return
 	tree.set("parameters/%s/scale/scale" % state, animation.get_animation(clip).length / window)
+
+
+## The state the stance asks for. Rolling is the one stance drawn by more than one clip,
+## picked from the heading the roll was thrown on.
+func _wanted() -> StringName:
+	var stance: int = loco.stance()
+	if stance == QLocomotion.STANCE_ROLL:
+		return ROLL_STATES[clampi(loco.roll_variant(), 0, ROLL_STATES.size() - 1)]
+	return STANCE_STATES[stance]
+
+
+## Keeps a fitted one-shot on screen for the window it was fitted to, then steps the
+## chain on. Nothing else may travel while it runs, or the clip is cut off part-played;
+## nothing waits on the graph's own at_end either, which measures the clip unscaled and
+## would leave it up long enough to come round again.
+func _hold_shot(playback: AnimationNodeStateMachinePlayback, delta: float) -> bool:
+	var current: StringName = playback.get_current_node()
+	if current != _shot:
+		_shot = current
+		_shot_t = window_for(current) if SHOT_NEXT.has(current) else 0.0
+	if _shot_t <= 0.0:
+		return false
+	_shot_t -= delta
+	if _shot_t > 0.0:
+		return true
+	playback.travel(SHOT_NEXT[current])
+	return true
 
 
 ## Leg solve weight for the pose that is actually on the skeleton.

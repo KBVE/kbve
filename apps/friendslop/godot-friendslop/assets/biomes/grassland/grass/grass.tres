@@ -44,4 +44,6 @@ shader_parameter/distance_growth = 1.6
 shader_parameter/total_blades = 10000.0
 shader_parameter/compute_mode = 0.0
 shader_parameter/terrain_extent = 256.0
+shader_parameter/terrain_origin = Vector2(0, 0)
+shader_parameter/blade_lift = 0.04
 shader_parameter/water_level = -1.4

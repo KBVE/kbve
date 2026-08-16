@@ -176,6 +176,12 @@ impl QLocomotion {
         self.inner.is_rolling()
     }
 
+    /// Index into the rig's roll clips: 0 forward, 1 back, 2 left, 3 right.
+    #[func]
+    fn roll_variant(&self) -> i64 {
+        self.inner.roll_variant() as i64
+    }
+
     #[func]
     fn is_crouched(&self) -> bool {
         self.inner.is_crouched()

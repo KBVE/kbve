@@ -1,81 +1,117 @@
-[gd_scene load_steps=44 format=3]
+[gd_scene format=3 uid="uid://un81vfnxpq6t"]
 
-[ext_resource type="Script" path="res://src/main.gd" id="1_main"]
-[ext_resource type="Script" path="res://src/ui/touch_controls.gd" id="28_touch"]
-[ext_resource type="Material" path="res://assets/biomes/grassland/grass/ground.tres" id="3_ground"]
-[ext_resource type="Material" path="res://assets/biomes/grassland/grass/grass.tres" id="4_grassmat"]
+[ext_resource type="Script" uid="uid://dpy81nt8madxt" path="res://src/main.gd" id="1_main"]
+[ext_resource type="Material" uid="uid://dt5hlee60lpgv" path="res://assets/biomes/grassland/grass/ground.tres" id="3_ground"]
+[ext_resource type="Material" uid="uid://3w8w1r737bsd" path="res://assets/biomes/grassland/grass/grass.tres" id="4_grassmat"]
 [ext_resource type="PackedScene" path="res://scenes/player.tscn" id="5_player"]
-[ext_resource type="Shader" path="res://assets/environment/skyboxes/sky.gdshader" id="6_sky"]
-[ext_resource type="Script" path="res://src/world/day_night.gd" id="7_daynight"]
-[ext_resource type="Script" path="res://src/characters/creature_spawner.gd" id="30_creatures"]
-[ext_resource type="Script" path="res://src/npc/npc_actor.gd" id="44_npc"]
-[ext_resource type="Script" path="res://src/world/wind.gd" id="8_wind"]
-[ext_resource type="Script" path="res://src/world/climate.gd" id="9_climate"]
-[ext_resource type="Script" path="res://src/debug/debug_tools.gd" id="10_debug"]
-[ext_resource type="Shader" path="res://assets/fx/shaders/film_grade.gdshader" id="11_film"]
-[ext_resource type="Shader" path="res://assets/fx/shaders/anime_filter.gdshader" id="12_anime"]
-[ext_resource type="Material" path="res://assets/environment/water/water.tres" id="13_water"]
-[ext_resource type="Material" path="res://assets/environment/water/riverbed.tres" id="24_riverbed"]
-[ext_resource type="Material" path="res://assets/environment/props/bridge/bridge.tres" id="25_bridge"]
-[ext_resource type="Material" path="res://assets/environment/props/bridge/abutment.tres" id="26_abut"]
-[ext_resource type="Script" path="res://src/fauna/flock.gd" id="14_ravens"]
+[ext_resource type="Shader" uid="uid://bblp78la58qdd" path="res://assets/environment/skyboxes/sky.gdshader" id="6_sky"]
+[ext_resource type="Script" uid="uid://2vmu6i0swu8u" path="res://src/world/day_night.gd" id="7_daynight"]
+[ext_resource type="Script" uid="uid://b30ty67iqxbs0" path="res://src/world/wind.gd" id="8_wind"]
+[ext_resource type="Script" uid="uid://dqk0ne08836xu" path="res://src/world/climate.gd" id="9_climate"]
+[ext_resource type="Script" uid="uid://856ksb3h1ggf" path="res://src/debug/debug_tools.gd" id="10_debug"]
+[ext_resource type="Shader" uid="uid://kcqe3vkubrw2" path="res://assets/fx/shaders/film_grade.gdshader" id="11_film"]
+[ext_resource type="Shader" uid="uid://dkevb7io37uop" path="res://assets/fx/shaders/anime_filter.gdshader" id="12_anime"]
+[ext_resource type="Material" uid="uid://drga2q4ogubla" path="res://assets/environment/water/water.tres" id="13_water"]
+[ext_resource type="Script" uid="uid://ygvteyxc0w3s" path="res://src/fauna/flock.gd" id="14_ravens"]
 [ext_resource type="Resource" path="res://assets/environment/props/fauna/raven/raven_species.tres" id="15_species"]
-[ext_resource type="Script" path="res://src/ui/pause_menu.gd" id="16_pause"]
-[ext_resource type="Script" path="res://src/debug/debug_hud.gd" id="17_hud"]
-[ext_resource type="Script" path="res://src/debug/frame_watch.gd" id="27_watch"]
-[ext_resource type="Script" path="res://src/debug/debug_stats_server.gd" id="29_stats"]
-[ext_resource type="Script" path="res://src/settings/graphics_settings.gd" id="30_gfx"]
-[ext_resource type="Script" path="res://src/settings/gameplay_settings.gd" id="31_play"]
-[ext_resource type="Script" path="res://src/ui/crosshair.gd" id="32_cross"]
-[ext_resource type="Script" path="res://src/fx/underwater.gd" id="41_underwater"]
-[ext_resource type="Material" path="res://assets/fx/shaders/underwater.tres" id="42_underwatermat"]
-[ext_resource type="PackedScene" path="res://assets/environment/props/fauna/lizardfish/lizardfish.glb" id="39_fishmodel"]
-[ext_resource type="Material" path="res://assets/environment/props/fauna/lizardfish/fish.tres" id="40_fishmat"]
-[ext_resource type="Material" path="res://assets/environment/props/fauna/lizardfish/fish_shadow.tres" id="43_fishshadowmat"]
-[ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/models/Regular_Male_FullBody.glb" id="34_body"]
-[ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/models/hair/Hair_Ponytail.glb" id="35_hair"]
-[ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/animations/UAL1.glb" id="36_ual1"]
-[ext_resource type="PackedScene" path="res://assets/characters/quaternius_ubc/animations/UAL2.glb" id="37_ual2"]
-[ext_resource type="Material" path="res://assets/environment/props/flora/flora.tres" id="18_flora"]
+[ext_resource type="Script" uid="uid://dg7a15i7lvse" path="res://src/ui/pause_menu.gd" id="16_pause"]
+[ext_resource type="Script" uid="uid://5l8dug2w8af2" path="res://src/debug/debug_hud.gd" id="17_hud"]
+[ext_resource type="Material" uid="uid://dpi5b8eho1kcd" path="res://assets/environment/props/flora/flora.tres" id="18_flora"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/tree.tres" id="19_tree"]
-[ext_resource type="Material" path="res://assets/environment/props/flora/shrub.tres" id="20_shrub"]
+[ext_resource type="Material" uid="uid://cupmkxi25r8x3" path="res://assets/environment/props/flora/shrub.tres" id="20_shrub"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/tree_leaf.tres" id="21_leaf"]
 [ext_resource type="Material" path="res://assets/environment/props/flora/tree_bark.tres" id="22_bark"]
 [ext_resource type="Material" path="res://assets/environment/props/rocks/rock.tres" id="23_rock"]
+[ext_resource type="Material" path="res://assets/environment/water/riverbed.tres" id="24_riverbed"]
+[ext_resource type="Material" path="res://assets/environment/props/bridge/bridge.tres" id="25_bridge"]
+[ext_resource type="Material" path="res://assets/environment/props/bridge/abutment.tres" id="26_abut"]
+[ext_resource type="Script" uid="uid://dx2arlk2d4whm" path="res://src/debug/frame_watch.gd" id="27_watch"]
+[ext_resource type="Script" uid="uid://cpwokqc5kv5v1" path="res://src/ui/touch_controls.gd" id="28_touch"]
+[ext_resource type="Script" uid="uid://b3ijptth7616h" path="res://src/debug/debug_stats_server.gd" id="29_stats"]
+[ext_resource type="Script" uid="uid://4j173rvxh8py" path="res://src/characters/creature_spawner.gd" id="30_creatures"]
+[ext_resource type="Script" uid="uid://bw48i06kyo0e3" path="res://src/settings/graphics_settings.gd" id="30_gfx"]
+[ext_resource type="Script" uid="uid://bhbvqc8p7bfh1" path="res://src/settings/gameplay_settings.gd" id="31_play"]
+[ext_resource type="Script" uid="uid://bmg1kiho746xi" path="res://src/ui/crosshair.gd" id="32_cross"]
+[ext_resource type="PackedScene" uid="uid://dk6o1i6lggove" path="res://assets/characters/quaternius_ubc/models/Regular_Male_FullBody.glb" id="34_body"]
+[ext_resource type="PackedScene" uid="uid://cf52ye1y4wtse" path="res://assets/characters/quaternius_ubc/models/hair/Hair_Ponytail.glb" id="35_hair"]
+[ext_resource type="PackedScene" uid="uid://27k2uvg6ywxl" path="res://assets/characters/quaternius_ubc/animations/UAL1.glb" id="36_ual1"]
+[ext_resource type="PackedScene" uid="uid://dqhvcf38xbwiq" path="res://assets/characters/quaternius_ubc/animations/UAL2.glb" id="37_ual2"]
+[ext_resource type="PackedScene" uid="uid://chcpqxr2nv1wc" path="res://assets/environment/props/fauna/lizardfish/lizardfish.glb" id="39_fishmodel"]
+[ext_resource type="Material" path="res://assets/environment/props/fauna/lizardfish/fish.tres" id="40_fishmat"]
+[ext_resource type="Script" uid="uid://comcio6im6fy8" path="res://src/fx/underwater.gd" id="41_underwater"]
+[ext_resource type="Material" path="res://assets/fx/shaders/underwater.tres" id="42_underwatermat"]
+[ext_resource type="Material" path="res://assets/environment/props/fauna/lizardfish/fish_shadow.tres" id="43_fishshadowmat"]
+[ext_resource type="Script" uid="uid://bp4pechs6f5jn" path="res://src/npc/npc_actor.gd" id="44_npc"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(1024, 1024)
 subdivide_width = 511
 subdivide_depth = 511
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_stars"]
-frequency = 0.3
-
 [sub_resource type="Gradient" id="Gradient_stars"]
 offsets = PackedFloat32Array(0.85, 0.92)
-colors = PackedColorArray(0, 0, 0, 1, 1, 1, 1, 1)
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_stars"]
+frequency = 0.3
 
 [sub_resource type="NoiseTexture2D" id="NoiseTexture2D_stars"]
 width = 1024
 height = 1024
-seamless = true
-color_ramp = SubResource("Gradient_stars")
 noise = SubResource("FastNoiseLite_stars")
+color_ramp = SubResource("Gradient_stars")
+seamless = true
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_sky"]
 shader = ExtResource("6_sky")
-shader_parameter/stars_texture = SubResource("NoiseTexture2D_stars")
+shader_parameter/day_top_color = Color(0.1, 0.6, 1, 1)
+shader_parameter/day_bottom_color = Color(0.4, 0.8, 1, 1)
+shader_parameter/sunset_top_color = Color(0.7, 0.75, 1, 1)
+shader_parameter/sunset_bottom_color = Color(1, 0.5, 0.7, 1)
+shader_parameter/night_top_color = Color(0.03, 0.05, 0.14, 1)
+shader_parameter/night_bottom_color = Color(0.08, 0.12, 0.3, 1)
+shader_parameter/horizon_color = Color(0, 0.7, 0.8, 1)
+shader_parameter/horizon_blur = 0.05
+shader_parameter/sun_color = Color(10, 8, 1, 1)
+shader_parameter/sun_sunset_color = Color(10, 0, 0, 1)
+shader_parameter/sun_size = 0.2
+shader_parameter/sun_blur = 10.0
+shader_parameter/moon_color = Color(1, 0.95, 0.7, 1)
+shader_parameter/moon_size = 0.06
+shader_parameter/moon_blur = 0.1
+shader_parameter/clouds_edge_color = Color(0.8, 0.8, 0.98, 1)
+shader_parameter/clouds_top_color = Color(1, 1, 1, 1)
+shader_parameter/clouds_middle_color = Color(0.92, 0.92, 0.98, 1)
+shader_parameter/clouds_bottom_color = Color(0.83, 0.83, 0.94, 1)
+shader_parameter/clouds_speed = 2.0
+shader_parameter/clouds_scale = 1.0
+shader_parameter/clouds_cutoff = 0.3
 shader_parameter/clouds_fuzziness = 0.3
+shader_parameter/clouds_weight = 0.0
 shader_parameter/clouds_blur = 0.2
+shader_parameter/clouds_moonlit_color = Color(0.46, 0.56, 0.82, 1)
+shader_parameter/clouds_night_shadow_color = Color(0.16, 0.17, 0.26, 1)
+shader_parameter/clouds_moon_glow = 0.9
+shader_parameter/stars_texture = SubResource("NoiseTexture2D_stars")
+shader_parameter/stars_speed = 1.0
+shader_parameter/star_brightness = 2.6
+shader_parameter/galaxy_normal = Vector3(0.42, 0.28, 0.86)
+shader_parameter/galaxy_width = 13.0
+shader_parameter/galaxy_boost = 1.4
+shader_parameter/nebula_strength = 0.8
+shader_parameter/dust_strength = 1.3
+shader_parameter/neb_col_a = Color(0.2, 0.62, 0.82, 1)
+shader_parameter/neb_col_b = Color(0.99, 0.76, 0.42, 1)
+shader_parameter/neb_col_c = Color(0.78, 0.24, 0.64, 1)
+shader_parameter/neb_col_d = Color(0.24, 0.17, 0.48, 1)
+shader_parameter/neb_core_color = Color(1, 0.34, 0.44, 1)
+shader_parameter/neb_core_strength = 0.9
+shader_parameter/neb_haze_color = Color(0.34, 0.52, 0.95, 1)
+shader_parameter/neb_haze_strength = 0.45
+shader_parameter/dust_contrast = 0.75
+shader_parameter/overwritten_time = 0.0
 
 [sub_resource type="Sky" id="Sky_world"]
 sky_material = SubResource("ShaderMaterial_sky")
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_film"]
-shader = ExtResource("11_film")
-
-[sub_resource type="ShaderMaterial" id="ShaderMaterial_anime"]
-shader = ExtResource("12_anime")
 
 [sub_resource type="Environment" id="Environment_world"]
 background_mode = 2
@@ -84,23 +120,59 @@ ambient_light_source = 2
 ambient_light_color = Color(0.7, 0.66, 0.6, 1)
 fog_enabled = true
 fog_light_color = Color(0.851974, 0.909539, 1, 1)
-fog_density = 0.008
 fog_sun_scatter = 0.15
+fog_density = 0.008
 fog_aerial_perspective = 0.93
 fog_sky_affect = 0.0
 adjustment_enabled = true
 adjustment_contrast = 1.15
 adjustment_saturation = 1.2
 
-[node name="Main" type="Node3D"]
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_anime"]
+shader = ExtResource("12_anime")
+shader_parameter/downsize_ratio = 0.7
+shader_parameter/chroma_blur = Vector2(15, 5)
+shader_parameter/luma_wash = 0.0225
+shader_parameter/bleed_mix = 1.0
+shader_parameter/ink_radius = 1.5
+shader_parameter/ink_mix = 0.15
+shader_parameter/ink_noise_scale = 60.0
+shader_parameter/remap_dark = Color(0.004, 0.0033, 0.0037, 1)
+shader_parameter/remap_light = Color(0.7157, 0.7084, 0.7913, 1)
+shader_parameter/remap_mix = 0.15
+shader_parameter/grain_scale = 200.0
+shader_parameter/grain_mix = 0.25
+shader_parameter/grain_animate = true
+shader_parameter/ca_shift = 1.0
+shader_parameter/drift_shift = Vector2(0.2, -0.1)
+shader_parameter/unsharp_radius = 4.0
+shader_parameter/unsharp_gain = 12.52
+shader_parameter/ink_gamma = 1.57
+shader_parameter/final_blur = 1.5
+shader_parameter/bloom_threshold = 0.85
+shader_parameter/bloom_radius = 6.0
+shader_parameter/bloom_factor = 1.0
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_film"]
+shader = ExtResource("11_film")
+shader_parameter/black_lift = Color(0.02, 0.02, 0.045, 1)
+shader_parameter/highlight_warmth = Color(1.05, 1, 0.92, 1)
+shader_parameter/film_tint = Color(1.04, 1, 0.93, 1)
+shader_parameter/posterize_levels = 14.0
+shader_parameter/posterize_mix = 0.45
+shader_parameter/grain_amount = 0.025
+shader_parameter/vignette_strength = 0.22
+shader_parameter/vignette_softness = 0.55
+
+[node name="Main" type="Node3D" unique_id=1959689110]
 script = ExtResource("1_main")
 
-[node name="Ground" type="MeshInstance3D" parent="."]
+[node name="Ground" type="MeshInstance3D" parent="." unique_id=1482043597]
 material_override = ExtResource("3_ground")
-mesh = SubResource("PlaneMesh_ground")
 extra_cull_margin = 16.0
+mesh = SubResource("PlaneMesh_ground")
 
-[node name="Terrain" type="QTerrain" parent="."]
+[node name="Terrain" type="QTerrain" parent="." unique_id=1899814162]
 player_path = NodePath("../Player")
 grass_material = ExtResource("4_grassmat")
 ground_material = ExtResource("3_ground")
@@ -109,16 +181,16 @@ riverbed_material = ExtResource("24_riverbed")
 bridge_material = ExtResource("25_bridge")
 abutment_material = ExtResource("26_abut")
 
-[node name="GrassField" type="QGrassField" parent="."]
+[node name="GrassField" type="QGrassField" parent="." unique_id=361934780]
 player_path = NodePath("../Player")
 grass_material = ExtResource("4_grassmat")
 
-[node name="FloraField" type="QFloraField" parent="."]
+[node name="FloraField" type="QFloraField" parent="." unique_id=366246947]
 terrain_path = NodePath("../Terrain")
 player_path = NodePath("../Player")
 flora_material = ExtResource("18_flora")
 
-[node name="ShrubField" type="QFloraField" parent="."]
+[node name="ShrubField" type="QFloraField" parent="." unique_id=1694549810]
 terrain_path = NodePath("../Terrain")
 player_path = NodePath("../Player")
 flora_material = ExtResource("20_shrub")
@@ -130,47 +202,47 @@ patch_threshold = 0.4
 scale_min = 0.8
 scale_max = 1.6
 
-[node name="TreeField" type="QTreeField" parent="."]
+[node name="TreeField" type="QTreeField" parent="." unique_id=559755888]
 terrain_path = NodePath("../Terrain")
 player_path = NodePath("../Player")
 tree_material = ExtResource("19_tree")
 bark_material = ExtResource("22_bark")
 leaf_material = ExtResource("21_leaf")
 
-[node name="StoneField" type="QStoneField" parent="."]
+[node name="StoneField" type="QStoneField" parent="." unique_id=352850412]
 terrain_path = NodePath("../Terrain")
 player_path = NodePath("../Player")
 stone_material = ExtResource("23_rock")
 
-[node name="DayNight" type="Node3D" parent="."]
+[node name="DayNight" type="Node3D" parent="." unique_id=803819433]
 script = ExtResource("7_daynight")
 environment_node = NodePath("../WorldEnvironment")
 
-[node name="Sun" type="DirectionalLight3D" parent="DayNight"]
+[node name="Sun" type="DirectionalLight3D" parent="DayNight" unique_id=815655561]
 shadow_enabled = true
 shadow_blur = 0.3
 
-[node name="Moon" type="DirectionalLight3D" parent="DayNight"]
+[node name="Moon" type="DirectionalLight3D" parent="DayNight" unique_id=469072773]
 light_energy = 0.0
 shadow_blur = 0.5
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=500361862]
 environment = SubResource("Environment_world")
 
-[node name="Wind" type="Node" parent="."]
+[node name="Wind" type="Node" parent="." unique_id=1111080375]
 script = ExtResource("8_wind")
 grass_material = ExtResource("4_grassmat")
 ground_material = ExtResource("3_ground")
 environment_node = NodePath("../WorldEnvironment")
 
-[node name="Climate" type="Node" parent="."]
+[node name="Climate" type="Node" parent="." unique_id=178000603]
 script = ExtResource("9_climate")
 environment_node = NodePath("../WorldEnvironment")
 
-[node name="Player" parent="." instance=ExtResource("5_player")]
+[node name="Player" parent="." unique_id=411482782 instance=ExtResource("5_player")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.1, 0)
 
-[node name="Marlow" type="Node3D" parent="."]
+[node name="Marlow" type="Node3D" parent="." unique_id=18600841]
 script = ExtResource("44_npc")
 npc_ref = "marlow"
 terrain_path = NodePath("../Terrain")
@@ -182,55 +254,55 @@ skin_color = Color(0.94, 0.83, 0.72, 1)
 hair_color = Color(0.16, 0.13, 0.11, 1)
 stand_under_bridge = true
 
-[node name="FishField" type="QFishField" parent="."]
+[node name="FishField" type="QFishField" parent="." unique_id=2018535568]
 terrain_path = NodePath("../Terrain")
 player_path = NodePath("../Player")
 fish_model = ExtResource("39_fishmodel")
 fish_material = ExtResource("40_fishmat")
 shadow_material = ExtResource("43_fishshadowmat")
 
-[node name="Underwater" type="Node3D" parent="."]
+[node name="Underwater" type="Node3D" parent="." unique_id=707933400]
 script = ExtResource("41_underwater")
-terrain_path = NodePath("../Terrain")
 material = ExtResource("42_underwatermat")
 
-[node name="Ravens" type="Node3D" parent="."]
+[node name="Ravens" type="Node3D" parent="." unique_id=1172779891]
 script = ExtResource("14_ravens")
 species = ExtResource("15_species")
 player_path = NodePath("../Player")
 
-[node name="DebugTools" type="Node3D" parent="."]
+[node name="DebugTools" type="Node3D" parent="." unique_id=176070967]
 script = ExtResource("10_debug")
 player_path = NodePath("../Player")
 
-[node name="GraphicsSettings" type="Node" parent="."]
+[node name="GraphicsSettings" type="Node" parent="." unique_id=1628788456]
 script = ExtResource("30_gfx")
 
-[node name="GameplaySettings" type="Node" parent="."]
+[node name="GameplaySettings" type="Node" parent="." unique_id=482649206]
 script = ExtResource("31_play")
 
-[node name="Crosshair" type="CanvasLayer" parent="."]
+[node name="Crosshair" type="CanvasLayer" parent="." unique_id=339662399]
 script = ExtResource("32_cross")
 
-[node name="PauseMenu" type="CanvasLayer" parent="."]
+[node name="PauseMenu" type="CanvasLayer" parent="." unique_id=2146020514]
 script = ExtResource("16_pause")
 species = ExtResource("15_species")
 
-[node name="DebugHud" type="CanvasLayer" parent="."]
+[node name="DebugHud" type="CanvasLayer" parent="." unique_id=1414288408]
 script = ExtResource("17_hud")
 player_path = NodePath("../Player")
 
-[node name="DebugStats" type="Node" parent="."]
+[node name="DebugStats" type="Node" parent="." unique_id=1043223224]
 script = ExtResource("29_stats")
 
-[node name="FrameWatch" type="Node" parent="."]
+[node name="FrameWatch" type="Node" parent="." unique_id=2119556687]
 script = ExtResource("27_watch")
 player_path = NodePath("../Player")
 
-[node name="TouchControls" type="CanvasLayer" parent="."]
+[node name="TouchControls" type="CanvasLayer" parent="." unique_id=648509003]
 layer = 50
 
-[node name="Overlay" type="Control" parent="TouchControls"]
+[node name="Overlay" type="Control" parent="TouchControls" unique_id=759618465]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
@@ -239,16 +311,10 @@ grow_vertical = 2
 mouse_filter = 2
 script = ExtResource("28_touch")
 
-[node name="PostFX" type="CanvasLayer" parent="."]
+[node name="PostFX" type="CanvasLayer" parent="." unique_id=2035310340]
 layer = 100
 
-[node name="ImpactFX" type="QImpactFrame" parent="."]
-layer = 101
-day_night_path = NodePath("../DayNight")
-
-[node name="ImpactBurst" type="QImpactBurst" parent="."]
-
-[node name="AnimeFilter" type="ColorRect" parent="PostFX"]
+[node name="AnimeFilter" type="ColorRect" parent="PostFX" unique_id=540343356]
 visible = false
 material = SubResource("ShaderMaterial_anime")
 anchors_preset = 15
@@ -258,7 +324,7 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="FilmGrade" type="ColorRect" parent="PostFX"]
+[node name="FilmGrade" type="ColorRect" parent="PostFX" unique_id=1979639578]
 material = SubResource("ShaderMaterial_film")
 anchors_preset = 15
 anchor_right = 1.0
@@ -267,7 +333,13 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="Creatures" type="Node3D" parent="."]
+[node name="ImpactFX" type="QImpactFrame" parent="." unique_id=1265003016]
+day_night_path = NodePath("../DayNight")
+layer = 101
+
+[node name="ImpactBurst" type="QImpactBurst" parent="." unique_id=694901698]
+
+[node name="Creatures" type="Node3D" parent="." unique_id=1854842515]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -14)
 script = ExtResource("30_creatures")
 terrain_path = NodePath("../Terrain")
