@@ -79,22 +79,24 @@ pub struct Intent {
     pub yaw: f32,
 }
 
-/// One swing, on its way to the host.
+/// Taking up or putting down a job, on its way to the host.
 #[derive(Clone, Copy, Debug)]
-pub struct HarvestRequest {
-    pub target: HarvestTarget,
-    pub cell: [i32; 2],
-    pub ordinal: u32,
-    pub hits: u8,
+pub enum HarvestCommand {
+    Begin {
+        target: HarvestTarget,
+        cell: [i32; 2],
+        ordinal: u32,
+    },
+    End,
 }
 
 pub struct NetClientHandle {
     stop: Arc<AtomicBool>,
     intent_tx: watch::Sender<Intent>,
     state_rx: watch::Receiver<Arc<NetClientState>>,
-    /// Queues rather than latest-wins: every swing counts, unlike intent, where
-    /// only the newest matters.
-    harvest_tx: mpsc::UnboundedSender<HarvestRequest>,
+    /// Queues rather than latest-wins: starting and stopping are a sequence, and a
+    /// begin overwritten by the end that followed it is a job that never ran.
+    harvest_tx: mpsc::UnboundedSender<HarvestCommand>,
     event_rx: mpsc::UnboundedReceiver<HarvestEvent>,
     /// Queued like harvests rather than latest-wins: a deploy dropped because a
     /// frame was slow is a button press that silently did nothing.
@@ -174,9 +176,9 @@ impl NetClientHandle {
         out
     }
 
-    /// Asks the host to work a scattered object.
-    pub fn harvest(&self, request: HarvestRequest) {
-        let _ = self.harvest_tx.send(request);
+    /// Tells the host we have taken up or put down a job.
+    pub fn harvest(&self, command: HarvestCommand) {
+        let _ = self.harvest_tx.send(command);
     }
 
     /// Everything the host has ruled on since the last call.
@@ -239,7 +241,7 @@ struct Wiring {
     stop: Arc<AtomicBool>,
     intent_rx: watch::Receiver<Intent>,
     state_tx: watch::Sender<Arc<NetClientState>>,
-    harvest_rx: mpsc::UnboundedReceiver<HarvestRequest>,
+    harvest_rx: mpsc::UnboundedReceiver<HarvestCommand>,
     event_tx: mpsc::UnboundedSender<HarvestEvent>,
     pet_rx: mpsc::UnboundedReceiver<PetCommand>,
     denied_tx: mpsc::UnboundedSender<String>,
@@ -298,8 +300,15 @@ fn run(w: Wiring) {
         transport.pump();
         let intent = *intent_rx.borrow();
         session.set_input(intent.wish_dir, intent.jump, intent.yaw);
-        while let Ok(request) = harvest_rx.try_recv() {
-            session.harvest(request.target, request.cell, request.ordinal, request.hits);
+        while let Ok(command) = harvest_rx.try_recv() {
+            match command {
+                HarvestCommand::Begin {
+                    target,
+                    cell,
+                    ordinal,
+                } => session.harvest_begin(target, cell, ordinal),
+                HarvestCommand::End => session.harvest_end(),
+            }
         }
         while let Ok(command) = pet_rx.try_recv() {
             match command {
