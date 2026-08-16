@@ -105,21 +105,6 @@ fn main() -> ! {
         .draw(&mut display)
         .expect("size");
 
-    // Corner marks: if the offset were wrong these would sit off-panel or
-    // wrap, which is the fastest way to see a bad ST7789 window by eye.
-    let corner = PrimitiveStyle::with_fill(Rgb565::CSS_ORANGE);
-    for (x, y) in [
-        (0, 0),
-        (PANEL_WIDTH as i32 - 8, 0),
-        (0, PANEL_HEIGHT as i32 - 8),
-        (PANEL_WIDTH as i32 - 8, PANEL_HEIGHT as i32 - 8),
-    ] {
-        Rectangle::new(Point::new(x, y), Size::new(8, 8))
-            .into_styled(corner)
-            .draw(&mut display)
-            .expect("corner");
-    }
-
     println!("[c6] drew first frame");
 
     let mut ticks: u32 = 0;
