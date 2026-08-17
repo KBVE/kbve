@@ -74,6 +74,14 @@
 		"player": "You",
 		"met": "You just met"
 	},
+	"quest": {
+		"taken": "Taken on: {{title}}",
+		"done": "Finished: {{title}} — go back and say so",
+		"ready": "Ready to hand back",
+		"handed": "Handed back: {{title}}",
+		"reward_xp": "+{{amount}} experience",
+		"tracker": "In hand"
+	},
 	"wardrobe": {
 		"title": "Wardrobe",
 		"none": "Nothing",

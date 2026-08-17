@@ -1,0 +1,78 @@
+---
+id: '01KSAVZ000000000000QFSMECHWCH'
+ref: 'friendslop-mech-watch'
+drafted: false
+title: 'What the Mechs Are Waiting For'
+description: 'The tall ones come down from the ridge and stand in the shallows. A boy on the bank has a guess. The mage has an opinion about the guess.'
+category: 'side'
+tags:
+    - 'friendslop'
+    - 'tam'
+    - 'mage'
+    - 'mechs'
+hidden: false
+repeatable: false
+recommended_level: 2
+giver_npc_refs:
+    - 'tam'
+turn_in_npc_refs:
+    - 'mage'
+required_flags:
+    - 'met_tam'
+steps:
+    - id: 'step-hear-the-guess'
+      title: "Hear the boy's guess"
+      description: 'Tam sits on the bank and watches them for hours. He has had time to think about it.'
+      objectives:
+          - id: 'obj-tam-guessed'
+            description: 'Get Tam to say what he thinks they are waiting for'
+            type: 'custom'
+            target_refs:
+                - 'flag:tam_guessed_the_mechs'
+            required_amount: 1
+      next_step_id: 'step-weigh-it'
+    - id: 'step-weigh-it'
+      title: 'Have it weighed'
+      description: 'The mage will tell you whether a boy watching the shallows has worked out more than the ridge has.'
+      objectives:
+          - id: 'obj-ask-the-mage'
+            description: 'Put the guess to the mage'
+            type: 'custom'
+            target_refs:
+                - 'flag:mage_weighed_the_guess'
+            required_amount: 1
+rewards:
+    xp: 80
+    reputation_amount: 2
+    reputation_faction: 'tam'
+next_quest_ref: null
+---
+
+import { Aside, Card, CardGrid, Steps } from '@astrojs/starlight/components';
+
+<Aside>
+	The mechs are the one thing every person at the crossing has a different
+	answer about. This is the first quest that treats that as a subject rather
+	than as scenery.
+</Aside>
+
+## Quest Overview
+
+<CardGrid>
+	<Card title="Giver" icon="person">
+		Tam on the bank. Turned in to the mage.
+	</Card>
+	<Card title="Reward" icon="star">
+		80 experience, and two points of standing with Tam, who was right to be
+		listened to.
+	</Card>
+</CardGrid>
+
+## Steps to Completion
+
+<Steps>
+1. **Ask Tam about the walking machines**
+   His guess sets `tam_guessed_the_mechs`.
+2. **Put it to the mage**
+   Whose answer sets `mage_weighed_the_guess`.
+</Steps>

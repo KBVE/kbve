@@ -13,6 +13,10 @@ signal flag_changed(name: String, on: bool)
 ## Raised the first time a node is reached, which is what a greeting that only happens
 ## once is keyed off.
 signal seen_changed(node_id: String)
+## Something a conversation asked for that is not a flag: a quest taken on, experience
+## earned, an opinion moved. Carried out rather than acted on, because none of those are
+## facts about the world and this only knows about facts about the world.
+signal asked(verb: String, argument: String)
 
 var flags: Dictionary = {}
 var seen: Dictionary = {}
@@ -60,6 +64,10 @@ func apply(effects: Variant) -> void:
 		set_flag(name, true)
 	for name in _names(body.get("clear", null)):
 		set_flag(name, false)
+	for verb: Variant in body:
+		if str(verb) == "set" or str(verb) == "clear":
+			continue
+		asked.emit(str(verb), str(body[verb]))
 
 
 ## Reads a condition. The shorthand is a bare flag name, because most conditions are one.

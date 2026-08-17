@@ -155,6 +155,12 @@ func _open_talk(actor: Node3D, graph: DialogueGraph) -> DialoguePanel:
 	## differently to a stranger and a nuisance differently to either.
 	var who := str(actor.npc_ref)
 	Journal.brief(who, state())
+	## Where every quest has got to goes in beside their standing, so a line can be gated on
+	## a job already taken on as easily as on a toll already paid.
+	Quests.brief(state())
+	## Who the ask is about, for the length of the conversation: a line worth two points of
+	## standing means with the person saying it.
+	Journal.talking_to(who)
 	var read_before := state().seen_count()
 
 	var panel := PanelScript.open(get_tree(), graph, state())
@@ -163,7 +169,14 @@ func _open_talk(actor: Node3D, graph: DialogueGraph) -> DialoguePanel:
 	## Whether the talk was worth having, measured rather than guessed: anything the player
 	## had not read before counts, and going over old ground counts against.
 	panel.closed.connect(func() -> void:
-		Journal.remember_talk(who, state().seen_count() > read_before))
+		Journal.remember_talk(who, state().seen_count() > read_before)
+		## Something said in the middle of the talk may have finished a job this same
+		## person asked for, so the handing back is tried again on the way out.
+		Quests.hand_back(who)
+		Journal.talking_to(""))
+	## Talking to somebody is an objective in its own right, and it is also how a finished
+	## quest is handed back -- going back to whoever asked is the last step of every one.
+	Quests.met(who)
 	## The body follows the words: moving while a line is being written, still while the
 	## line sits there waiting on an answer.
 	panel.speaking.connect(actor.speak)

@@ -225,13 +225,26 @@ static func _flag_gate(flag: String) -> Dictionary:
 
 ## `trigger_on_enter` is an event name in the schema. The ones this game understands set
 ## or clear a flag; anything else is somebody else's event and is left alone.
+## Verbs a conversation can ask for that are not flags. The state carries them out to
+## whoever owns them rather than acting on them itself -- a quest is not a fact about the
+## world, and neither is what a person thinks of you.
+const ASKS := ["quest_start", "quest_turn_in", "xp", "respect"]
+
+
 static func _effects(trigger: String) -> Dictionary:
 	var out := {}
 	for part in _split(trigger):
 		if part.begins_with("set_flag:"):
 			out["set"] = part.substr(9)
-		elif part.begins_with("clear_flag:"):
+			continue
+		if part.begins_with("clear_flag:"):
 			out["clear"] = part.substr(11)
+			continue
+		for verb: String in ASKS:
+			var head := verb + ":"
+			if part.begins_with(head):
+				out[verb] = part.substr(head.length())
+				break
 	return out
 
 

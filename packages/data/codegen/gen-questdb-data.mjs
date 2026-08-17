@@ -13,6 +13,8 @@
  *   packages/data/codegen/generated/questdb-data.binpb  (wire-format proto binary)
  *   apps/rareicon/unity-rareicon/Assets/StreamingAssets/questdb.json   (mirror)
  *   apps/rareicon/unity-rareicon/Assets/StreamingAssets/questdb.binpb  (mirror)
+ *   apps/friendslop/godot-friendslop/assets/questdb/questdb.json       (mirror)
+ *   apps/friendslop/godot-friendslop/assets/questdb/questdb.binpb      (mirror)
  *
  * Also regenerates apps/rareicon/.../Generated/Proto/Questdb.cs (+ Common.cs)
  * via protoc so the Unity QuestSeedSystem stays aligned with the proto shape.
@@ -60,9 +62,12 @@ const ENUM_PREFIX = {
 	rewardPolicy: 'REWARD_',
 };
 
-const ASTRO_ONLY_FIELDS = new Set([
-	'title',
-]);
+/// Frontmatter keys that belong to the page rather than to the quest. `title` is not one
+/// of them, however much it looks like Starlight's: `quest.Quest` and `quest.QuestStep`
+/// both carry a title of their own, and it is the only human-readable name a quest has.
+/// Dropping it left every quest in the registry — and every step of every quest — with
+/// nothing to call itself but its ref.
+const ASTRO_ONLY_FIELDS = new Set([]);
 
 function snakeToCamel(key) {
 	return key.replace(/_([a-z0-9])/g, (_, c) => c.toUpperCase());
@@ -138,6 +143,10 @@ function main() {
 				repoRoot,
 				'apps/rareicon/unity-rareicon/Assets/StreamingAssets',
 			),
+		},
+		{
+			name: 'friendslop',
+			dir: resolve(repoRoot, 'apps/friendslop/godot-friendslop/assets/questdb'),
 		},
 	];
 	for (const t of syncTargets) {
