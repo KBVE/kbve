@@ -113,7 +113,7 @@ const TIERS := [
 	},
 ]
 
-const MOBILE_GROUND := {"pom_strength": 0.0, "detail_amount": 0.35}
+const MOBILE_GROUND := {"pom_strength": 0.0, "road_pom_strength": 0.0, "detail_amount": 0.35}
 
 var render_scale := 1.0
 var detail := Detail.HIGH
@@ -238,6 +238,11 @@ func apply() -> void:
 		m.set_shader_parameter("pom_strength", d.strength)
 		m.set_shader_parameter("pom_layers_max", d.layers)
 		m.set_shader_parameter("pom_shadow_strength", d.shadow)
+	# The carriageway marches its own height map, so a tier that turns parallax
+	# off has to say so twice or the road keeps raymarching on the low preset.
+	# It has no self-shadow pass of its own to switch, by design.
+	if _ground:
+		_ground.set_shader_parameter("road_pom_strength", d.strength)
 	if _ground and OS.has_feature("mobile"):
 		for key in MOBILE_GROUND:
 			_ground.set_shader_parameter(key, MOBILE_GROUND[key])
