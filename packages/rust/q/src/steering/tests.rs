@@ -53,7 +53,7 @@ fn walk(
 
 #[test]
 fn roams_toward_its_waypoint() {
-    let mut patrol = Patrol::new([0.0, 0.0], 7, Config::default());
+    let mut patrol = Patrol::new([0.0, 0.0], 7, Config::mech());
     let mut sense = sense_at([0.0, 0.0]);
     let target = patrol.target();
     let before = length(sub(target, sense.position));
@@ -71,7 +71,7 @@ fn roams_toward_its_waypoint() {
 /// one making good progress if speed is all anybody measures.
 #[test]
 fn a_creature_going_back_and_forth_is_noticed_as_stuck() {
-    let mut patrol = Patrol::new([0.0, 0.0], 11, Config::default());
+    let mut patrol = Patrol::new([0.0, 0.0], 11, Config::mech());
     let mut sense = sense_at([0.0, 0.0]);
     let delta = 1.0 / 60.0;
     let swing = 0.35;
@@ -99,10 +99,10 @@ fn a_creature_going_back_and_forth_is_noticed_as_stuck() {
 /// it, however slowly it is going.
 #[test]
 fn a_creature_making_headway_is_left_alone() {
-    let mut patrol = Patrol::new([0.0, 0.0], 5, Config::default());
+    let mut patrol = Patrol::new([0.0, 0.0], 5, Config::mech());
     let mut sense = sense_at([0.0, 0.0]);
     let delta = 1.0 / 60.0;
-    let crawl = Config::default().stuck_speed * 1.5;
+    let crawl = Config::mech().stuck_speed * 1.5;
     let mut modes = Vec::new();
     for _ in 0..600 {
         let step = patrol.step(&sense, delta);
@@ -123,7 +123,7 @@ fn a_creature_making_headway_is_left_alone() {
 /// The reported bug: a creature pressed into something must stop leaning on it.
 #[test]
 fn a_blocked_creature_stops_pushing_and_turns_away() {
-    let mut patrol = Patrol::new([0.0, 0.0], 3, Config::default());
+    let mut patrol = Patrol::new([0.0, 0.0], 3, Config::mech());
     let mut sense = sense_at([0.0, 0.0]);
     let heading = sense.facing;
     let modes = walk(&mut patrol, &mut sense, 120, 1.0 / 60.0, true);
@@ -138,7 +138,7 @@ fn a_blocked_creature_stops_pushing_and_turns_away() {
 
 #[test]
 fn unsticking_commits_to_one_direction() {
-    let mut patrol = Patrol::new([0.0, 0.0], 11, Config::default());
+    let mut patrol = Patrol::new([0.0, 0.0], 11, Config::mech());
     let mut sense = sense_at([0.0, 0.0]);
     walk(&mut patrol, &mut sense, 60, 1.0 / 60.0, true);
     let mut seen: Vec<Vec2> = Vec::new();
@@ -160,7 +160,7 @@ fn unsticking_commits_to_one_direction() {
 
 #[test]
 fn a_creature_that_can_move_is_never_called_stuck() {
-    let mut patrol = Patrol::new([0.0, 0.0], 5, Config::default());
+    let mut patrol = Patrol::new([0.0, 0.0], 5, Config::mech());
     let mut sense = sense_at([0.0, 0.0]);
     let modes = walk(&mut patrol, &mut sense, 240, 1.0 / 60.0, false);
     assert!(
@@ -189,7 +189,7 @@ fn gives_up_on_a_waypoint_it_never_reaches() {
 /// The reported bug: Stan walking on top of the player.
 #[test]
 fn never_settles_inside_the_leader() {
-    let config = Config::default();
+    let config = Config::mech();
     let mut patrol = Patrol::new([0.0, 0.0], 13, config);
     patrol.slot = 3;
     patrol.count = 4;
@@ -223,7 +223,7 @@ fn never_settles_inside_the_leader() {
 /// Starting exactly on top of the leader still has to produce a way out.
 #[test]
 fn pushes_out_of_an_exact_overlap() {
-    let mut patrol = Patrol::new([0.0, 0.0], 17, Config::default());
+    let mut patrol = Patrol::new([0.0, 0.0], 17, Config::mech());
     let sense = Sense {
         position: [0.0, 0.0],
         facing: [0.0, 1.0],
@@ -247,7 +247,7 @@ fn pushes_out_of_an_exact_overlap() {
 
 #[test]
 fn holds_station_behind_a_standing_leader() {
-    let mut patrol = Patrol::new([0.0, 0.0], 19, Config::default());
+    let mut patrol = Patrol::new([0.0, 0.0], 19, Config::mech());
     patrol.slot = 0;
     patrol.count = 1;
     let mut sense = Sense {
@@ -274,7 +274,7 @@ fn holds_station_behind_a_standing_leader() {
 
 #[test]
 fn formation_slots_do_not_share_a_spot() {
-    let config = Config::default();
+    let config = Config::mech();
     let mut seen: Vec<Vec2> = Vec::new();
     for slot in 0..4 {
         let mut patrol = Patrol::new([0.0, 0.0], 23, config);
@@ -293,7 +293,7 @@ fn formation_slots_do_not_share_a_spot() {
 
 #[test]
 fn separation_pushes_apart_not_together() {
-    let patrol = Patrol::new([0.0, 0.0], 29, Config::default());
+    let patrol = Patrol::new([0.0, 0.0], 29, Config::mech());
     let sense = Sense {
         position: [0.0, 0.0],
         facing: [0.0, 1.0],
@@ -313,7 +313,7 @@ fn separation_pushes_apart_not_together() {
 #[test]
 fn stepping_is_deterministic() {
     let build = || {
-        let mut p = Patrol::new([0.0, 0.0], 31, Config::default());
+        let mut p = Patrol::new([0.0, 0.0], 31, Config::mech());
         p.slot = 2;
         p.count = 4;
         p
@@ -331,8 +331,8 @@ fn stepping_is_deterministic() {
 /// Spawn index is the seed, so adjacent seeds must not wander as one.
 #[test]
 fn different_seeds_wander_differently() {
-    let mut a = Patrol::new([0.0, 0.0], 0, Config::default());
-    let mut b = Patrol::new([0.0, 0.0], 1, Config::default());
+    let mut a = Patrol::new([0.0, 0.0], 0, Config::mech());
+    let mut b = Patrol::new([0.0, 0.0], 1, Config::mech());
     let mut sa = sense_at([0.0, 0.0]);
     let mut sb = sense_at([0.0, 0.0]);
     walk(&mut a, &mut sa, 300, 1.0 / 60.0, false);
@@ -343,7 +343,7 @@ fn different_seeds_wander_differently() {
 /// A routed creature walks the way the field says, not the way the target is.
 #[test]
 fn a_route_overrides_the_straight_line() {
-    let mut patrol = Patrol::new([0.0, 0.0], 43, Config::default());
+    let mut patrol = Patrol::new([0.0, 0.0], 43, Config::mech());
     let mut sense = sense_at([0.0, 0.0]);
     // Target is somewhere ahead; the field says go hard right instead.
     sense.route = Some([1.0, 0.0]);
@@ -357,7 +357,7 @@ fn a_route_overrides_the_straight_line() {
 
 #[test]
 fn without_a_route_it_still_steers_at_the_target() {
-    let mut patrol = Patrol::new([0.0, 0.0], 43, Config::default());
+    let mut patrol = Patrol::new([0.0, 0.0], 43, Config::mech());
     let sense = sense_at([0.0, 0.0]);
     let to = normalize(sub(patrol.target(), sense.position));
     let step = patrol.step(&sense, 1.0 / 60.0);
@@ -444,7 +444,7 @@ fn crossing_paths_do_not_meet_in_the_middle() {
 /// out, not fired out.
 #[test]
 fn a_crowd_cannot_shove_faster_than_a_run() {
-    let config = Config::default();
+    let config = Config::mech();
     let patrol = Patrol::new([0.0, 0.0], 37, config);
     let mut sense = sense_at([0.0, 0.0]);
     sense.neighbours = (0..8)
@@ -467,7 +467,7 @@ fn a_crowd_cannot_shove_faster_than_a_run() {
 /// falloff it replaced did not do.
 #[test]
 fn touching_pushes_harder_than_the_creature_can_run() {
-    let config = Config::default();
+    let config = Config::mech();
     let patrol = Patrol::new([0.0, 0.0], 41, config);
     let mut sense = sense_at([0.0, 0.0]);
     sense.neighbours = vec![near([1.4, 0.0], [0.0, 0.0])];
@@ -485,12 +485,12 @@ fn touching_pushes_harder_than_the_creature_can_run() {
 /// column of followers refuse to close up.
 #[test]
 fn a_neighbour_walking_away_is_not_dodged() {
-    let patrol = Patrol::new([0.0, 0.0], 43, Config::default());
+    let patrol = Patrol::new([0.0, 0.0], 43, Config::mech());
     let mut sense = sense_at([0.0, 0.0]);
     sense.velocity = [2.6, 0.0];
     sense.neighbours = vec![near([7.0, 0.0], [2.6, 0.0])];
     let push = patrol.avoid(&sense);
-    let gentle = Patrol::new([0.0, 0.0], 43, Config::default()).crowd([-1.0, 0.0], 7.0);
+    let gentle = Patrol::new([0.0, 0.0], 43, Config::mech()).crowd([-1.0, 0.0], 7.0);
     assert!(
         (length(push) - length(gentle)).abs() < 1e-4,
         "swerved round somebody it was never going to meet: {push:?}"
@@ -519,6 +519,10 @@ fn avoidance_is_deterministic() {
 const CREATURE_RADIUS: f32 = 3.2;
 
 fn column(ticks: u32) -> (f32, u32) {
+    column_with(ticks, Config::mech())
+}
+
+fn column_with(ticks: u32, config: Config) -> (f32, u32) {
     let delta = 1.0 / 60.0;
     let count = 4;
     let mut patrols: Vec<Patrol> = (0..count)
@@ -528,7 +532,7 @@ fn column(ticks: u32) -> (f32, u32) {
                 i as u32,
                 Config {
                     radius: CREATURE_RADIUS,
-                    ..Config::default()
+                    ..config
                 },
             );
             p.slot = i;
@@ -628,7 +632,7 @@ fn a_route_does_not_collapse_the_formation_onto_the_leader() {
     let leader = [0.0f32, 0.0];
     let mut patrols: Vec<Patrol> = (0..count)
         .map(|i| {
-            let mut p = Patrol::new(leader, i as u32, Config::default());
+            let mut p = Patrol::new(leader, i as u32, Config::mech());
             p.slot = i;
             p.count = count;
             p
@@ -683,7 +687,7 @@ fn a_route_does_not_collapse_the_formation_onto_the_leader() {
 /// creature waits at the distance it reached instead of leaning on the bank.
 #[test]
 fn an_unreachable_leader_is_waited_for_not_walked_at() {
-    let mut patrol = Patrol::new([0.0, 0.0], 53, Config::default());
+    let mut patrol = Patrol::new([0.0, 0.0], 53, Config::mech());
     patrol.slot = 0;
     patrol.count = 1;
     let mut sense = sense_at([0.0, -20.0]);
@@ -715,7 +719,7 @@ fn an_unreachable_leader_is_waited_for_not_walked_at() {
 /// waiting at a riverbank piles into itself.
 #[test]
 fn waiting_still_makes_room_for_the_others() {
-    let mut patrol = Patrol::new([0.0, 0.0], 59, Config::default());
+    let mut patrol = Patrol::new([0.0, 0.0], 59, Config::mech());
     let mut sense = sense_at([0.0, 0.0]);
     sense.leader = Some([0.0, 40.0]);
     sense.route_blocked = true;

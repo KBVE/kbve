@@ -204,6 +204,57 @@ impl Default for Config {
     }
 }
 
+impl Config {
+    /// Solo mechs, as `creature_spawner.gd` and `creature_patrol.gd` shipped them
+    /// before the numbers moved here.
+    pub fn mech() -> Self {
+        Self {
+            speed: 2.6,
+            max_speed: 7.5,
+            roam_radius: 20.0,
+            separation: 9.0,
+            personal_space: 3.5,
+            formation_distance: 7.0,
+            formation_spacing: 9.0,
+            formation_columns: 2,
+            rank_depth: 9.0,
+            hold_radius: 14.0,
+            sprint_distance: 14.0,
+            ..Self::default()
+        }
+    }
+
+    /// Online pets, which are smaller, keep tighter ranks and stay nearer their
+    /// owner than a mech does.
+    pub fn pet() -> Self {
+        Self {
+            radius: 0.9,
+            speed: 3.2,
+            max_speed: 6.0,
+            separation: 5.0,
+            personal_space: 2.0,
+            formation_distance: 3.5,
+            formation_spacing: 2.4,
+            formation_columns: 3,
+            rank_depth: 2.4,
+            hold_radius: 6.0,
+            sprint_distance: 10.0,
+            roam_radius: 8.0,
+            ..Self::default()
+        }
+    }
+
+    /// The preset a caller outside Rust asks for by name. `None` for a name that
+    /// is not one, so a typo is a refusal rather than silent default tuning.
+    pub fn preset(name: &str) -> Option<Self> {
+        match name {
+            "mech" => Some(Self::mech()),
+            "pet" => Some(Self::pet()),
+            _ => None,
+        }
+    }
+}
+
 /// What the creature is doing, for animation and for tests to assert on.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Mode {

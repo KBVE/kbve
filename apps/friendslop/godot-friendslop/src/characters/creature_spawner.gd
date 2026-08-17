@@ -11,13 +11,12 @@ const MECH_DIR := "res://assets/characters/creatures/mech/models/"
 @export var terrain_path: NodePath
 ## Followed by everything spawned here.
 @export var leader_path: NodePath
-## A mech is over 7 units across, so anything under that spawns them intersecting.
+## Where they are put down, which is placement rather than steering: a mech is over
+## 7 units across, so anything under that spawns them intersecting. How they hold a
+## rank once they are walking comes from the preset.
 @export var spacing := 13.0
-@export var roam_radius := 20.0
-@export var speed := 2.6
-## Rank distance behind the leader, matched to the patrol's own default.
-@export var formation_distance := 7.0
-@export var formation_columns := 2
+## Named tuning for everything spawned here, resolved in Rust.
+@export var preset := &"mech"
 ## Seconds between one-shot actions.
 @export var action_interval := 7.0
 
@@ -90,6 +89,7 @@ func _spawn() -> void:
 	_leader = leader as Node3D
 	_terrain = terrain
 	_build_field(terrain)
+	var rank: Dictionary = QPatrol.preset_info(preset)
 	var span := spacing * maxf(mechs.size() - 1.0, 0.0)
 	for i in mechs.size():
 		var name := mechs[i].strip_edges()
@@ -102,22 +102,20 @@ func _spawn() -> void:
 			var lead := (leader as Node3D).global_transform
 			var back := Vector3(lead.basis.z.x, 0.0, lead.basis.z.z).normalized()
 			var side := Vector3(lead.basis.x.x, 0.0, lead.basis.x.z).normalized()
-			var columns := maxi(formation_columns, 1)
+			var columns := maxi(int(rank.get("formation_columns", 2)), 1)
 			var row := i / columns
 			var col := i % columns
 			var in_row := mini(columns, mechs.size() - row * columns)
-			at = lead.origin + back * (formation_distance + row * 9.0) \
+			at = lead.origin \
+					+ back * (float(rank.get("formation_distance", 7.0)) \
+						+ row * float(rank.get("rank_depth", 9.0))) \
 					+ side * (spacing * (col - (in_row - 1) * 0.5))
 
 		var patrol: Node3D = CreaturePatrol.new()
-		patrol.roam_radius = roam_radius
-		patrol.speed = speed
 		patrol.action_interval = action_interval
 		patrol.formation_slot = i
 		patrol.formation_count = mechs.size()
-		patrol.formation_distance = formation_distance
-		patrol.formation_spacing = spacing
-		patrol.formation_columns = formation_columns
+		patrol.preset = preset
 		patrol.seed = i
 		add_child(patrol)
 		if leader:

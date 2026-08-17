@@ -12,30 +12,17 @@ const CreatureRig := preload("res://src/characters/creature_rig.gd")
 ## is what lets two machines simulate the same creature the same way.
 @export var seed := 0
 
+## Which slot in the rank this one takes. Per-creature, so it stays here.
 @export var formation_slot := 0
 @export var formation_count := 1
-@export var formation_distance := 7.0
-@export var formation_spacing := 9.0
-@export var formation_columns := 2
-@export var rank_depth := 9.0
 
-@export var hold_radius := 14.0
-@export var sprint_distance := 14.0
-@export var max_speed := 7.5
+## Names the steering tuning, which lives in Rust so the numbers the game runs on
+## are the numbers the steering tests run on.
+@export var preset := &"mech"
 
-@export var roam_radius := 22.0
-@export var arrive_distance := 2.0
-@export var speed := 2.6
+## How fast the body turns to face where it is going, which is Godot's own motion
+## rather than steering, so it is not in the preset.
 @export var turn_rate := 2.5
-@export var separation := 9.0
-@export var separation_strength := 1.6
-## Seconds ahead the dodge looks. Short enough and it only reacts after contact;
-## long enough and it swerves round creatures it was never going to meet.
-@export var look_ahead := 1.8
-## Clearance wanted on top of the two capsule radii when passing somebody.
-@export var pass_margin := 0.8
-## Nobody gets closer to the leader than this. The leader is usually the player.
-@export var personal_space := 3.5
 ## Rough seconds between one-shots while moving.
 @export var action_interval := 7.0
 
@@ -64,11 +51,6 @@ const LAYER_CREATURE := 4
 ## region. The widest has to clear the river plus the field's clearance inflation.
 const ESCAPE_RINGS: Array[float] = [4.0, 8.0, 14.0, 22.0]
 const ESCAPE_SAMPLES := 12
-## Facing gates forward speed, so a creature leans into its turn rather than
-## sliding sideways. Never to zero: that was half of why they got stuck. Handed to
-## the solver, which applies it to travel alone -- applied here it scaled the whole
-## wish, avoidance included.
-const TURN_GATE_FLOOR := 0.35
 ## Physics frames the silhouette is sampled over, which has to span a full stride
 ## or it catches the creature mid-step with its legs together.
 const REACH_FRAMES := 120
@@ -128,11 +110,8 @@ func _prepare() -> void:
 
 	_patrol = QPatrol.create(global_position, seed)
 	_patrol.set_slot(formation_slot, formation_count)
-	_patrol.configure(speed, max_speed, roam_radius, arrive_distance, separation,
-			separation_strength, personal_space, formation_distance, formation_spacing,
-			formation_columns, rank_depth, hold_radius)
-	_patrol.set_body(_radius, look_ahead, pass_margin)
-	_patrol.set_turn_gate(TURN_GATE_FLOOR)
+	_patrol.use_preset(preset)
+	_patrol.set_body(_radius)
 
 
 func body_radius() -> float:
@@ -152,7 +131,7 @@ func _measure_reach() -> void:
 	_reach_frames += 1
 	_reach = maxf(_reach, rig.body_reach())
 	if _reach_frames >= REACH_FRAMES and _reach > _radius:
-		_patrol.set_body(_reach, look_ahead, pass_margin)
+		_patrol.set_body(_reach)
 
 
 func _build_collider() -> void:
@@ -302,7 +281,7 @@ func _escape_route(field) -> Vector3:
 func _crowd() -> PackedFloat32Array:
 	var out := PackedFloat32Array()
 	var here := global_position
-	var reach := separation
+	var reach: float = _patrol.separation()
 	for other in get_tree().get_nodes_in_group(GROUP):
 		if other == self:
 			continue

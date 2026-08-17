@@ -162,7 +162,21 @@ Creatures also sit on `LAYER_CREATURE` and deliberately do not mask it, so they 
 
 **Still unknown.** Everything above was flat — slopes, the documented failure case, are untested on both paths. And `step_characters` in `q/src/rapier/sim3d/world.rs` resolves every character against tick-start state and applies afterwards, so nobody sees anyone else's new position that tick; that window gets more crowded the more bodies move in.
 
-Tuning currently lives in three places — `PetConfig`, the `creature_patrol.gd` exports, and `Config::default()`. Every steering test runs the last one, and nothing ships it, which is how a probe comes back clean while the game misbehaves.
+**Tuning is now one source.** `Config::mech()` and `Config::pet()` in `q/src/steering/mod.rs` are the only places the numbers are written; `PetConfig::default()` takes the second, and Godot asks for the first by name through `QPatrol.use_preset("mech")`. The `creature_patrol.gd` and `creature_spawner.gd` tuning exports are gone, and the steering tests run `Config::mech()` rather than `Config::default()`, so a probe and the game exercise the same numbers.
+
+Pointing the tests at the shipped tuning immediately failed `a_following_group_does_not_walk_through_itself` — 45 overlapping ticks out of 1200, closest approach 2.78 against a 3.2 body. Isolated by varying one field at a time:
+
+| tuning | closest | overlapping ticks |
+| --- | --- | --- |
+| `Config::default()` | 3.647 | 0 |
+| as shipped | 2.777 | 45 |
+| shipped, `personal_space` 3.0 | 2.870 | 79 |
+| shipped, `formation_spacing` 9.0 | 3.641 | 0 |
+| shipped, `roam_radius` 22.0 | 2.777 | 45 |
+
+`formation_spacing` alone. `creature_spawner.gd` was assigning its **placement** number to it — `patrol.formation_spacing = spacing`, where `spacing = 13.0` exists only so mechs do not spawn intersecting. Ranks tuned that wide make followers cross each other on a leader turn. Placement and formation are now separate: the spawner keeps `spacing` for putting them down, and the preset carries 9.0 for holding a rank.
+
+One number stays per-creature rather than in the preset: `set_body(radius)`, because Godot builds the capsule off the mesh and so Godot is what knows.
 
 ### Local
 
