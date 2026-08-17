@@ -223,12 +223,13 @@ func _physics_process(delta: float) -> void:
 
 	_airborne_t = 0.0 if grounded else _airborne_t + delta
 
+	var planned := velocity
 	if _sim_id != 0:
 		_sim.move_character(_sim_id, velocity * delta)
 		_adopt_blocked_velocity(delta)
 	else:
 		move_and_slide()
-	rig.drive(velocity, global_rotation.y, _airborne_t > COYOTE_TIME, delta)
+	rig.drive(planned, global_rotation.y, _airborne_t > COYOTE_TIME, delta)
 	_report(delta)
 
 
