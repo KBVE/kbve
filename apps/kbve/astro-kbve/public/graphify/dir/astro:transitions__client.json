@@ -1,0 +1,28 @@
+{
+	"dir": "astro:transitions/client",
+	"center": [1425.73, -2522.32],
+	"r": 74.18,
+	"files": [
+		{
+			"i": 0,
+			"label": "client",
+			"path": "astro:transitions/client",
+			"x": 1425.73,
+			"y": -2522.32,
+			"n": 1
+		}
+	],
+	"symbols": [
+		{
+			"i": 0,
+			"f": 0,
+			"label": "astro:transitions/client",
+			"x": 1425.73,
+			"y": -2522.32,
+			"c": 13006,
+			"loc": ""
+		}
+	],
+	"fileEdges": [],
+	"symbolEdges": []
+}

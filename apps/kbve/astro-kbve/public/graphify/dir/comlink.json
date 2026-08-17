@@ -1,0 +1,28 @@
+{
+	"dir": "comlink",
+	"center": [2925.86, -434.37],
+	"r": 74.18,
+	"files": [
+		{
+			"i": 0,
+			"label": "comlink",
+			"path": "comlink",
+			"x": 2925.86,
+			"y": -434.37,
+			"n": 1
+		}
+	],
+	"symbols": [
+		{
+			"i": 0,
+			"f": 0,
+			"label": "comlink",
+			"x": 2925.86,
+			"y": -434.37,
+			"c": 13007,
+			"loc": ""
+		}
+	],
+	"fileEdges": [],
+	"symbolEdges": []
+}

@@ -1,0 +1,28 @@
+{
+	"dir": "three-mesh-bvh/worker",
+	"center": [342.63, 582.5],
+	"r": 74.18,
+	"files": [
+		{
+			"i": 0,
+			"label": "worker",
+			"path": "three-mesh-bvh/worker",
+			"x": 342.63,
+			"y": 582.5,
+			"n": 1
+		}
+	],
+	"symbols": [
+		{
+			"i": 0,
+			"f": 0,
+			"label": "three-mesh-bvh/worker",
+			"x": 342.63,
+			"y": 582.5,
+			"c": 592,
+			"loc": ""
+		}
+	],
+	"fileEdges": [],
+	"symbolEdges": []
+}

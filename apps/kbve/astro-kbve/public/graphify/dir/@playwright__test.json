@@ -1,0 +1,28 @@
+{
+	"dir": "@playwright/test",
+	"center": [3000.0, 6.62],
+	"r": 74.18,
+	"files": [
+		{
+			"i": 0,
+			"label": "test",
+			"path": "@playwright/test",
+			"x": 3000.0,
+			"y": 6.62,
+			"n": 1
+		}
+	],
+	"symbols": [
+		{
+			"i": 0,
+			"f": 0,
+			"label": "@playwright/test",
+			"x": 3000.0,
+			"y": 6.62,
+			"c": 13014,
+			"loc": ""
+		}
+	],
+	"fileEdges": [],
+	"symbolEdges": []
+}
