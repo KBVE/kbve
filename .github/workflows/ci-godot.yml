@@ -529,19 +529,26 @@ jobs:
                   # rather than confidently quoting a stale number.
                   [ -n "$VERSION" ] || { echo "::notice::No version to stamp."; exit 0; }
                   GODOT_CFG="$PROJECT_PATH/project.godot"
-                  python3 - "$GODOT_CFG" "$VERSION" <<'PY'
-                  import sys, pathlib
-                  cfg, version = pathlib.Path(sys.argv[1]), sys.argv[2]
-                  stamp = f'config/version="{version}"'
-                  lines = cfg.read_text().splitlines()
-                  if any(l.startswith("config/version=") for l in lines):
-                      out = [stamp if l.startswith("config/version=") else l for l in lines]
-                  else:
-                      anchor = next(i for i, l in enumerate(lines) if l.startswith("config/name="))
-                      out = lines[: anchor + 1] + [stamp] + lines[anchor + 1 :]
-                  cfg.write_text("\n".join(out) + "\n")
-                  PY
-                  grep -n 'config/version' "$GODOT_CFG"
+                  # awk, not python3: barichello/godot-ci carries neither python3
+                  # nor python, so this stamped nothing and exited 127 on the two
+                  # jobs that run in it. macOS kept passing because its runner
+                  # happens to ship one, which is why the break looked partial.
+                  #
+                  # Two passes over the same file, because whether to replace a
+                  # line or insert one is settled by a key that may appear after
+                  # the anchor: a single pass would have to commit to inserting
+                  # before it knew there was already a version further down.
+                  awk -v ver="$VERSION" '
+                    NR == FNR { if ($0 ~ /^config\/version=/) found = 1; next }
+                    $0 ~ /^config\/version=/ { print "config/version=\"" ver "\""; next }
+                    { print }
+                    !found && !placed && $0 ~ /^config\/name=/ { print "config/version=\"" ver "\""; placed = 1 }
+                  ' "$GODOT_CFG" "$GODOT_CFG" > "$GODOT_CFG.stamped"
+                  mv "$GODOT_CFG.stamped" "$GODOT_CFG"
+                  # Anchored, and the last word: a project with neither key leaves
+                  # awk with nowhere to write, and this is what turns that from an
+                  # unstamped build into a failed one.
+                  grep -n '^config/version=' "$GODOT_CFG"
             - name: Stage export templates
               run: |
                   mkdir -p ~/.local/share/godot/export_templates
@@ -708,19 +715,26 @@ jobs:
                   # rather than confidently quoting a stale number.
                   [ -n "$VERSION" ] || { echo "::notice::No version to stamp."; exit 0; }
                   GODOT_CFG="$PROJECT_PATH/project.godot"
-                  python3 - "$GODOT_CFG" "$VERSION" <<'PY'
-                  import sys, pathlib
-                  cfg, version = pathlib.Path(sys.argv[1]), sys.argv[2]
-                  stamp = f'config/version="{version}"'
-                  lines = cfg.read_text().splitlines()
-                  if any(l.startswith("config/version=") for l in lines):
-                      out = [stamp if l.startswith("config/version=") else l for l in lines]
-                  else:
-                      anchor = next(i for i, l in enumerate(lines) if l.startswith("config/name="))
-                      out = lines[: anchor + 1] + [stamp] + lines[anchor + 1 :]
-                  cfg.write_text("\n".join(out) + "\n")
-                  PY
-                  grep -n 'config/version' "$GODOT_CFG"
+                  # awk, not python3: barichello/godot-ci carries neither python3
+                  # nor python, so this stamped nothing and exited 127 on the two
+                  # jobs that run in it. macOS kept passing because its runner
+                  # happens to ship one, which is why the break looked partial.
+                  #
+                  # Two passes over the same file, because whether to replace a
+                  # line or insert one is settled by a key that may appear after
+                  # the anchor: a single pass would have to commit to inserting
+                  # before it knew there was already a version further down.
+                  awk -v ver="$VERSION" '
+                    NR == FNR { if ($0 ~ /^config\/version=/) found = 1; next }
+                    $0 ~ /^config\/version=/ { print "config/version=\"" ver "\""; next }
+                    { print }
+                    !found && !placed && $0 ~ /^config\/name=/ { print "config/version=\"" ver "\""; placed = 1 }
+                  ' "$GODOT_CFG" "$GODOT_CFG" > "$GODOT_CFG.stamped"
+                  mv "$GODOT_CFG.stamped" "$GODOT_CFG"
+                  # Anchored, and the last word: a project with neither key leaves
+                  # awk with nowhere to write, and this is what turns that from an
+                  # unstamped build into a failed one.
+                  grep -n '^config/version=' "$GODOT_CFG"
             - name: Install Godot and export templates
               id: godot
               env:

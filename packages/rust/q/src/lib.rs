@@ -74,6 +74,14 @@ pub mod worldgen;
 #[cfg(any(feature = "client", feature = "rapier3d-sim"))]
 pub mod region;
 
+/// Ground cover: climate over a lattice of regions.
+#[cfg(any(feature = "client", feature = "rapier3d-sim"))]
+pub mod biome;
+
+/// Drainage basins, and how much ground drains through a place.
+#[cfg(any(feature = "client", feature = "rapier3d-sim"))]
+pub mod flow;
+
 #[cfg(any(feature = "client", feature = "rapier3d-sim"))]
 pub mod harvest;
 

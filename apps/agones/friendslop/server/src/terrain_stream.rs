@@ -169,6 +169,7 @@ impl TerrainStreamer {
                         friction: 1.0,
                         linear_damping: 0.0,
                         mass: None,
+                        ..Default::default()
                     },
                 });
             } else {
@@ -498,6 +499,7 @@ mod tests {
                 friction: 1.0,
                 linear_damping: 0.0,
                 mass: Some(1.0),
+                ..Default::default()
             },
         });
         let start = world.snapshot().body(id).expect("body vanished").iso.pos[1];
