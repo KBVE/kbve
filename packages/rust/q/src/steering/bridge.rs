@@ -104,6 +104,13 @@ impl QPatrol {
         c.hold_radius = hold_radius;
     }
 
+    /// Least of its pace a body keeps while turning. Its own setter rather than
+    /// another argument on `configure`, which is already twelve wide.
+    #[func]
+    fn set_turn_gate(&mut self, floor: f32) {
+        self.inner.config.turn_gate_floor = floor.clamp(0.0, 1.0);
+    }
+
     #[func]
     fn set_stuck_limits(&mut self, stuck_speed: f32, stuck_time: f32, unstick_time: f32) {
         let c = &mut self.inner.config;

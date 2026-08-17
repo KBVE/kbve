@@ -65,7 +65,9 @@ const LAYER_CREATURE := 4
 const ESCAPE_RINGS: Array[float] = [4.0, 8.0, 14.0, 22.0]
 const ESCAPE_SAMPLES := 12
 ## Facing gates forward speed, so a creature leans into its turn rather than
-## sliding sideways. Never to zero: that was half of why they got stuck.
+## sliding sideways. Never to zero: that was half of why they got stuck. Handed to
+## the solver, which applies it to travel alone -- applied here it scaled the whole
+## wish, avoidance included.
 const TURN_GATE_FLOOR := 0.35
 ## Physics frames the silhouette is sampled over, which has to span a full stride
 ## or it catches the creature mid-step with its legs together.
@@ -130,6 +132,7 @@ func _prepare() -> void:
 			separation_strength, personal_space, formation_distance, formation_spacing,
 			formation_columns, rank_depth, hold_radius)
 	_patrol.set_body(_radius, look_ahead, pass_margin)
+	_patrol.set_turn_gate(TURN_GATE_FLOOR)
 
 
 func body_radius() -> float:
@@ -224,12 +227,6 @@ func _physics_process(delta: float) -> void:
 	_face(face, delta)
 
 	var wish: Vector3 = out["wish"]
-	# Unsticking has to move regardless of where the body is pointing, or the
-	# creature turns away from the obstacle while still leaning on it.
-	if _mode != QPatrol.MODE_UNSTICKING:
-		var facing := _flat_facing()
-		var gate := maxf(facing.dot(face), 0.0)
-		wish *= lerpf(TURN_GATE_FLOOR, 1.0, gate)
 	_drive(wish, delta)
 
 	if action_interval > 0.0 and velocity.length() > 0.5:
