@@ -1,14 +1,12 @@
 class_name OnlineHud
 extends CanvasLayer
 
-## Connection state and who else is here.
 
 signal leave_requested
 
 const INK := Color(0.97, 0.94, 0.85)
 const WARN := Color(1.0, 0.72, 0.55)
 
-## Seconds a refused deploy stays on screen.
 const NOTICE_SECONDS := 4.0
 
 var status_label: Label
@@ -72,8 +70,6 @@ func set_joined(assigned_name: String) -> void:
 	status_label.text = I18n.t("hud.joined", {"name": assigned_name})
 
 
-## A rejection is terminal — the socket is gone and nothing will retry it — so it says
-## why and says what to do about it, rather than leaving an empty world on screen.
 func set_rejected(reason: String) -> void:
 	status_label.add_theme_color_override("font_color", WARN)
 	status_label.text = I18n.t("hud.disconnected", {"reason": reason})
@@ -92,13 +88,12 @@ func set_roster(roster: Dictionary, local_body: int) -> void:
 	roster_label.text = I18n.t("hud.roster", {"count": names.size(), "names": ", ".join(names)})
 
 
-## How many robots we have out, and the keys that change that.
-func set_pets(count: int) -> void:
+func set_pets(count: int, total: int = -1) -> void:
 	pets_label.text = I18n.t("hud.pets", {"count": count})
+	if total >= 0 and total != count:
+		pets_label.text += " (%d)" % total
 
 
-## A refusal from the server, in its own words. Timed out rather than latched: it
-## answers a key that appeared to do nothing, and stops being true once it has.
 func show_notice(text: String) -> void:
 	notice_label.text = text
 	_notice_left = NOTICE_SECONDS

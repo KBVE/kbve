@@ -15,7 +15,11 @@
 		"build": "v{version}  ·  protocol {protocol}",
 		"server_protocol": "server protocol {protocol}",
 		"protocol_mismatch": "this build cannot join that server",
-		"server_unreachable": "server unreachable"
+		"server_unreachable": "server unreachable",
+		"server_protocol_unknown": "server protocol unknown",
+		"welcome": "Welcome!",
+		"welcome_back": "Welcome back, {{name}}!",
+		"welcome_named": "Welcome, {{name}}!"
 	},
 	"pause": {
 		"log_off": "Log Off"
@@ -27,8 +31,6 @@
 		"language": "Language",
 		"preset": "Preset",
 		"quality": "Quality",
-		"bisect": "Hide Layers",
-		"bisect_hint": "Hides parts of the world one at a time, so you can see what the frame is being spent on.",
 		"ground_detail": "Ground Detail",
 		"resolution": "Resolution",
 		"shadows": "Shadows",
@@ -54,7 +56,9 @@
 			"first_person": "First Person",
 			"third_person": "Third Person",
 			"over_shoulder": "Over Shoulder"
-		}
+		},
+		"bisect": "Hide Layers",
+		"bisect_hint": "Hides parts of the world one at a time, so you can see what the frame is being spent on."
 	},
 	"hud": {
 		"connecting": "Connecting to {{url}}…",
@@ -69,7 +73,17 @@
 	},
 	"dlg": {
 		"continue": "[{{key}}]  Continue",
-		"close": "Leave the conversation"
+		"close": "Leave the conversation",
+		"player": "You",
+		"met": "You just met"
+	},
+	"quest": {
+		"taken": "Taken on: {{title}}",
+		"done": "Finished: {{title}} — go back and say so",
+		"ready": "Ready to hand back",
+		"handed": "Handed back: {{title}}",
+		"reward_xp": "+{{amount}} experience",
+		"tracker": "In hand"
 	},
 	"wardrobe": {
 		"title": "Wardrobe",
@@ -86,10 +100,6 @@
 		"loading": "reading balance…",
 		"wallet": "{credits} credits  ·  {khash} khash"
 	},
-	"toast": {
-		"gained": "+{{count}} {{item}}",
-		"no_room": "Bag full — no room for {{count}} {{item}}"
-	},
 	"username": {
 		"prompt": "Pick a username",
 		"placeholder": "username",
@@ -97,5 +107,22 @@
 		"claim": "Claim it",
 		"claiming": "claiming…",
 		"taken": "That one is taken."
+	},
+	"toast": {
+		"gained": "+{{count}} {{item}}",
+		"no_room": "Bag full — no room for {{count}} {{item}}"
+	},
+	"satchel": {
+		"title": "Satchel",
+		"cells": "{used} / {total} cells",
+		"weight": "{weight} kg",
+		"drop": "release to drop",
+		"empty": "empty"
+	},
+	"chat": {
+		"signin_required": "Sign in to use chat.",
+		"reconnecting": "Chat reconnecting…",
+		"send_failed": "Message not sent.",
+		"open": "[Enter] Chat"
 	}
 }

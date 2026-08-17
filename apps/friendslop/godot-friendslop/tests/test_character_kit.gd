@@ -100,6 +100,56 @@ func test_every_body_has_something_to_draw() -> void:
 				.override_failure_message("%s has no mesh" % body).is_greater(0)
 
 
+## What the scene asks its people to do with themselves. The kit spells its loops
+## `Idle_Talking_Loop` and the importer hands them over as `Idle_Talking`, so every one of
+## these is a name that has been rewritten somewhere between Blender and here.
+const PERFORMANCE := ["idle_animation", "talk_animation", "listen_animation",
+		"meeting_animation"]
+
+
+## A clip the rig cannot find is not an error -- the body simply carries on doing whatever
+## it was doing, which is a person standing inert through their own conversation. So the
+## names are held against the libraries rather than trusted.
+func test_every_clip_the_world_asks_for_is_in_the_kit() -> void:
+	var rig := CharacterRig.new()
+	rig.body = load("%s/%s.glb" % [BODY_DIR, BODIES[0]])
+	rig.animation_sources = [load(UAL1), load(UAL2)]
+	add_child(rig)
+	auto_free(rig)
+	await get_tree().process_frame
+	assert_object(rig.animation).is_not_null()
+
+	## Stood up once to be asked what its exports default to, since a property the scene
+	## never wrote is still a clip the actor will reach for.
+	var defaults := NpcActor.new()
+	auto_free(defaults)
+
+	var missing: Array[String] = []
+	var asked := 0
+	var state := (load("res://scenes/main.tscn") as PackedScene).get_state()
+	for i in state.get_node_count():
+		var props := {}
+		for p in state.get_node_property_count(i):
+			props[state.get_node_property_name(i, p)] = state.get_node_property_value(i, p)
+		if str(props.get("npc_ref", "")) == "":
+			continue
+		for field: String in PERFORMANCE:
+			## An unset property is the export's own default, which is a clip too.
+			var clip := str(props.get(field, defaults.get(field)))
+			if clip == "":
+				continue
+			asked += 1
+			if not rig.animation.has_animation(clip) and not missing.has(clip):
+				missing.append(clip)
+
+	assert_int(asked) \
+			.override_failure_message("nobody in the world was given anything to do") \
+			.is_greater(0)
+	assert_array(missing) \
+			.override_failure_message("the kit has no clip called %s" % ", ".join(missing)) \
+			.is_empty()
+
+
 ## A material the cel shading has no entry for keeps the pack's own flat look, so it is the
 ## one surface on a drawn character that is lit like a photograph. It warns and carries on,
 ## which is exactly the kind of failure nobody sees until a screenshot.

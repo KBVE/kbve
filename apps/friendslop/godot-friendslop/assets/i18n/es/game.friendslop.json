@@ -9,7 +9,8 @@
 		"build": "v{version}  ·  protocolo {protocol}",
 		"server_protocol": "protocolo del servidor {protocol}",
 		"protocol_mismatch": "esta versión no puede unirse a ese servidor",
-		"server_unreachable": "servidor inaccesible"
+		"server_unreachable": "servidor inaccesible",
+		"server_protocol_unknown": "protocolo del servidor desconocido"
 	},
 	"pause": {
 		"log_off": "Cerrar sesión"
@@ -46,7 +47,9 @@
 			"first_person": "Primera persona",
 			"third_person": "Tercera persona",
 			"over_shoulder": "Sobre el hombro"
-		}
+		},
+		"bisect": "Ocultar capas",
+		"bisect_hint": "Oculta partes del mundo una a una, para que veas en qué se gasta el fotograma."
 	},
 	"hud": {
 		"connecting": "Conectando a {{url}}…",
@@ -66,5 +69,16 @@
 		"claim": "Reclamarlo",
 		"claiming": "reclamando…",
 		"taken": "Ese ya está ocupado."
+	},
+	"toast": {
+		"gained": "+{{count}} {{item}}",
+		"no_room": "Bolsa llena — no hay espacio para {{count}} {{item}}"
+	},
+	"satchel": {
+		"title": "Zurrón",
+		"cells": "{used} / {total} casillas",
+		"weight": "{weight} kg",
+		"drop": "suelta para tirarlo",
+		"empty": "vacío"
 	}
 }

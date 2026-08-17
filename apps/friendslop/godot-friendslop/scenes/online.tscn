@@ -30,6 +30,7 @@
 [ext_resource type="Script" path="res://src/fauna/flock.gd" id="28_ravens"]
 [ext_resource type="Resource" path="res://assets/environment/props/fauna/raven/raven_species.tres" id="29_species"]
 [ext_resource type="Script" path="res://src/world/climate.gd" id="30_climate"]
+[ext_resource type="Script" path="res://src/ui/chat_panel.gd" id="90_chat"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(1024, 1024)
@@ -164,6 +165,9 @@ fov = 68.0
 
 [node name="OnlineHud" type="CanvasLayer" parent="."]
 script = ExtResource("14_hud")
+
+[node name="ChatPanel" type="CanvasLayer" parent="."]
+script = ExtResource("90_chat")
 
 [node name="GraphicsSettings" type="Node" parent="."]
 script = ExtResource("15_gfx")

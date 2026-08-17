@@ -1,13 +1,11 @@
 class_name NetCameraRig
 extends Node3D
 
-## Third-person camera for a server-driven avatar.
 
 @export var distance := 5.0
 @export var height := 1.6
 @export var sensitivity := 0.0035
 @export var pitch_limits := Vector2(-1.15, 0.6)
-## Snapshots arrive at 20 Hz.
 @export var follow_smoothing := 14.0
 
 var _yaw := 0.0
@@ -21,15 +19,10 @@ func follow(target: Node3D) -> void:
 		global_position = target.global_position + Vector3(0.0, height, 0.0)
 
 
-## Yaw only: movement intent is horizontal, and folding pitch in would make looking down
-## a request to walk into the ground.
 func intent_basis() -> float:
 	return _yaw
 
 
-## Capturing the cursor warps it, and the warp arrives as one enormous relative motion —
-## enough on its own to slam the pitch into its clamp, which is how the camera ends up
-## staring at the ground the moment a session opens.
 const CAPTURE_JUMP_PX := 200.0
 
 
@@ -53,7 +46,6 @@ func _process(delta: float) -> void:
 		camera.position = Vector3(0.0, 0.0, _clear_distance())
 
 
-## Pulls the camera in until nothing is between it and the player.
 func _clear_distance() -> float:
 	var space := get_world_3d().direct_space_state
 	if space == null:

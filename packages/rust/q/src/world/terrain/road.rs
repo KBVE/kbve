@@ -509,6 +509,7 @@ impl QTerrain {
                 col.set_shape(&shape);
                 body.add_child(&col);
             }
+            self.publish_sim_mesh(&stone);
         }
 
         let Some(mesh) = mb.build() else {
@@ -528,9 +529,44 @@ impl QTerrain {
             col.set_shape(&shape);
             body.add_child(&col);
         }
+        self.publish_sim_mesh(&mesh);
 
         self.base_mut().add_child(&body);
         reach
+    }
+}
+
+impl QTerrain {
+    /// Mirrors one bridge surface into the sim as static concave geometry.
+    ///
+    /// The vertices are already world-space -- the bridge is authored where it stands
+    /// rather than placed by a transform -- so this hands them over unmoved.
+    fn publish_sim_mesh(&mut self, mesh: &Gd<ArrayMesh>) {
+        if mesh.get_surface_count() == 0 {
+            return;
+        }
+        let Some(mut phys) = self
+            .base()
+            .get_node_or_null(&self.physics_path)
+            .and_then(|n| n.try_cast::<crate::rapier::bridge3d::QPhysics3D>().ok())
+        else {
+            return;
+        };
+        let arrays = mesh.surface_get_arrays(0);
+        let verts = arrays
+            .at(godot::classes::mesh::ArrayType::VERTEX.ord() as usize)
+            .try_to::<PackedVector3Array>()
+            .unwrap_or_default();
+        let idx = arrays
+            .at(godot::classes::mesh::ArrayType::INDEX.ord() as usize)
+            .try_to::<PackedInt32Array>()
+            .unwrap_or_default();
+        let id = phys
+            .bind_mut()
+            .spawn_static_trimesh(verts, idx, Transform3D::IDENTITY);
+        if id != 0 {
+            self.sim_bridge.push(id);
+        }
     }
 }
 

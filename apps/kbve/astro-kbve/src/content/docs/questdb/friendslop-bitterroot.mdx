@@ -1,0 +1,76 @@
+---
+id: '01KSAVZ00000000000QFSBITTERRT'
+ref: 'friendslop-bitterroot'
+drafted: false
+title: 'Word from the Riverbank'
+description: 'Wren knows which weed on the bank stops a wound going bad. The cleric would rather hear it from somebody who was shown.'
+category: 'side'
+tags:
+    - 'friendslop'
+    - 'wren'
+    - 'cleric'
+hidden: false
+repeatable: false
+recommended_level: 1
+giver_npc_refs:
+    - 'wren'
+turn_in_npc_refs:
+    - 'cleric'
+required_flags:
+    - 'met_wren'
+steps:
+    - id: 'step-be-shown'
+      title: 'Be shown the bitterroot'
+      description: 'Wren forages the bank. Ask her what grows there.'
+      objectives:
+          - id: 'obj-bitterroot-taught'
+            description: 'Have Wren show you bitterroot'
+            type: 'custom'
+            target_refs:
+                - 'flag:wren_taught_bitterroot'
+            required_amount: 1
+      next_step_id: 'step-carry-word'
+    - id: 'step-carry-word'
+      title: 'Carry the word'
+      description: 'The cleric keeps the dressing. What Wren pulls out of the mud is half of it.'
+      objectives:
+          - id: 'obj-tell-cleric'
+            description: 'Talk to the cleric'
+            type: 'interact'
+            target_refs:
+                - 'cleric'
+            required_amount: 1
+rewards:
+    xp: 60
+    reputation_amount: 1
+    reputation_faction: 'cleric'
+next_quest_ref: null
+---
+
+import { Aside, Card, CardGrid, Steps } from '@astrojs/starlight/components';
+
+<Aside>
+	Two people who have never spoken to each other, and a player who has spoken to
+	both. That is the whole shape of it — the second tier of the crossing is only
+	reachable because the first tier was talked to.
+</Aside>
+
+## Quest Overview
+
+<CardGrid>
+	<Card title="Giver" icon="person">
+		Wren, foraging the bank. Turned in to the cleric.
+	</Card>
+	<Card title="Reward" icon="star">
+		60 experience, and a point of standing with the cleric.
+	</Card>
+</CardGrid>
+
+## Steps to Completion
+
+<Steps>
+1. **Ask Wren what grows on the bank**
+   Being shown sets `wren_taught_bitterroot`.
+2. **Take it to the cleric**
+   Who has been waiting for somebody to say it who was actually shown.
+</Steps>

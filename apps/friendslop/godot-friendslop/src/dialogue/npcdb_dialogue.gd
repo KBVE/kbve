@@ -1,30 +1,12 @@
 class_name NpcdbDialogue
 extends RefCounted
 
-## Reads a conversation out of the NPCDB registry, so a talk is tracked with the rest of
-## the NPC catalog rather than in a file only this game knows about.
-##
-## The catalog is authored as MDX and generated into `npcdb.json`, and its dialogue schema
-## is not quite this game's: it carries prose rather than i18n keys, gates as small
-## strings rather than objects, and has no else branch. This turns one into the other.
-##
-## Text is prose and used as written. I18n.t hands back whatever it is given when there is
-## no such key, so a locale can still override any line by defining a key equal to the
-## prose -- English needs nothing.
-##
-## `condition` accepts `flag:name`, `seen:node_id`, either negated with `!`, and several
-## joined by `&&` or `,`, which are read as all-of.
-##
-## There is no else field in the schema, so a gated node that fails falls through to the
-## next node in the list. That is how it reads in the MDX: the line for a stranger, then
-## the line for a regular directly under it.
 
 const DialogueGraphScript := preload("res://src/dialogue/dialogue_graph.gd")
 
 const REGISTRY := "res://assets/npcdb/npcdb.json"
 
 
-## The whole registry, or an empty one when it is missing.
 static func registry(path := REGISTRY) -> Dictionary:
 	var raw: Variant = null
 	if ResourceLoader.exists(path):
@@ -48,9 +30,6 @@ static func npc(ref: String, path := REGISTRY) -> Dictionary:
 	return {}
 
 
-## The conversation `ref` carries, as a graph this game can walk. A graph with the error
-## on it comes back when the NPC or its tree is missing, which the caller reports the same
-## way it reports a broken file.
 static func graph(ref: String, path := REGISTRY) -> DialogueGraph:
 	var entry := npc(ref, path)
 	if entry.is_empty():
@@ -61,7 +40,6 @@ static func graph(ref: String, path := REGISTRY) -> DialogueGraph:
 	return DialogueGraphScript.from_dict(_as_graph(entry, tree))
 
 
-## Kept out of `graph` so a test can read the shape without a file on disk.
 static func to_graph_dict(entry: Dictionary, tree: Dictionary) -> Dictionary:
 	return _as_graph(entry, tree)
 
@@ -86,7 +64,6 @@ static func _as_graph(entry: Dictionary, tree: Dictionary) -> Dictionary:
 	}
 
 
-## The node after this one, which is where a failed gate lands.
 static func _next_id(list: Array, index: int) -> String:
 	for i in range(index + 1, list.size()):
 		var entry: Variant = list[i]
@@ -154,7 +131,6 @@ static func _choices(node: Dictionary) -> Array:
 	return out
 
 
-## A gate, or null where there is nothing to gate on.
 static func _condition(text: String) -> Variant:
 	var parts := _split(text)
 	var gates: Array = []
@@ -176,22 +152,40 @@ static func _split(text: String) -> PackedStringArray:
 	return out
 
 
+const OPS := [">=", "<=", "!=", "==", ">", "<"]
+
+
 static func _term(part: String) -> Variant:
 	var body := part
 	var negated := body.begins_with("!")
 	if negated:
 		body = body.substr(1).strip_edges()
+	var counted: Variant = _number_term(body)
+	if counted != null:
+		return {"not": counted} if negated else counted
 	var gate: Variant = null
 	if body.begins_with("seen:"):
 		gate = {"seen": body.substr(5)}
 	elif body.begins_with("flag:"):
 		gate = {"flag": body.substr(5)}
 	elif body != "":
-		## A bare name is a flag, which is how most of the catalog writes them.
 		gate = {"flag": body}
 	if gate == null:
 		return null
 	return {"not": gate} if negated else gate
+
+
+static func _number_term(body: String) -> Variant:
+	for op: String in OPS:
+		var at := body.find(op)
+		if at <= 0:
+			continue
+		var name := body.substr(0, at).strip_edges()
+		var value := body.substr(at + op.length()).strip_edges()
+		if name == "" or not value.is_valid_float():
+			continue
+		return {"num": name, "op": op, "value": value.to_float()}
+	return null
 
 
 static func _flag_gate(flag: String) -> Dictionary:
@@ -200,15 +194,23 @@ static func _flag_gate(flag: String) -> Dictionary:
 	return {"not": {"flag": name}} if negated else {"flag": name}
 
 
-## `trigger_on_enter` is an event name in the schema. The ones this game understands set
-## or clear a flag; anything else is somebody else's event and is left alone.
+const ASKS := ["quest_start", "quest_turn_in", "xp", "respect"]
+
+
 static func _effects(trigger: String) -> Dictionary:
 	var out := {}
 	for part in _split(trigger):
 		if part.begins_with("set_flag:"):
 			out["set"] = part.substr(9)
-		elif part.begins_with("clear_flag:"):
+			continue
+		if part.begins_with("clear_flag:"):
 			out["clear"] = part.substr(11)
+			continue
+		for verb: String in ASKS:
+			var head := verb + ":"
+			if part.begins_with(head):
+				out[verb] = part.substr(head.length())
+				break
 	return out
 
 

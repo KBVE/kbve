@@ -1,24 +1,15 @@
 extends CanvasLayer
 
-## Short-lived messages, stacked, from anywhere.
-##
-## The one thing that existed before this was OnlineHud.show_notice: a single Label on a
-## scene only the online mode loads, which meant single player had no way to tell the
-## player anything and a second message overwrote the first mid-read.
-##
-## Lives above the pause menu and runs while the tree is paused, since the things worth
-## saying -- a save, a failure, a setting that could not be applied -- happen either side
-## of opening the book.
 
 const MAX_SHOWN := 4
 const SECONDS := 3.2
 const FADE := 0.45
+const RISE := 0.12
 const GAP := 8
 
-## Authored against a 720-tall viewport, like the touch HUD, so a phone gets the same
-## layout rather than the same pixel counts.
 const LAYOUT_HEIGHT := 720.0
 const SCALE_RANGE := Vector2(0.7, 1.4)
+const FONT := 18.0
 
 enum Kind { INFO, GOOD, WARN }
 
@@ -29,6 +20,7 @@ const INK := {
 }
 
 var _column: VBoxContainer
+var _lines: Array[Dictionary] = []
 
 
 func _ready() -> void:
@@ -43,9 +35,6 @@ func _ready() -> void:
 	_column.alignment = BoxContainer.ALIGNMENT_END
 	_column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_column.add_theme_constant_override("separation", GAP)
-	# Anchored to the bottom centre and grown upward: the corners are where the touch HUD
-	# and the debug readout already live, and a toast that lands under a thumb is a toast
-	# nobody reads.
 	_column.anchor_left = 0.5
 	_column.anchor_right = 0.5
 	_column.anchor_top = 1.0
@@ -55,6 +44,8 @@ func _ready() -> void:
 	root.add_child(_column)
 	_reflow()
 	get_viewport().size_changed.connect(_reflow)
+	Journal.gained.connect(_on_gained)
+	Journal.refused.connect(_on_refused)
 
 
 func info(text: String) -> void:
@@ -69,31 +60,95 @@ func warn(text: String) -> void:
 	show_toast(text, Kind.WARN)
 
 
-## Oldest goes first when the stack is full, rather than refusing the new one: the message
-## that just arrived is the one the player is looking for.
 func show_toast(text: String, kind: int = Kind.INFO, seconds: float = SECONDS) -> void:
 	if _column == null or text.strip_edges() == "":
 		return
-	while _column.get_child_count() >= MAX_SHOWN:
-		var oldest := _column.get_child(0)
-		_column.remove_child(oldest)
-		oldest.queue_free()
+	var again := _repeat(text, seconds)
+	if again:
+		return
+
+	while _lines.size() >= MAX_SHOWN:
+		_retire(_lines[0], true)
 
 	var scale := _scale()
 	var label := Label.new()
-	label.text = text
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	label.add_theme_font_size_override("font_size", int(round(18.0 * scale)))
+	label.add_theme_font_size_override("font_size", int(round(FONT * scale)))
 	label.add_theme_color_override("font_color", INK.get(kind, INK[Kind.INFO]))
 	label.add_theme_stylebox_override("normal", _paper(scale))
 	_column.add_child(label)
 
+	var line := {"text": text, "kind": kind, "times": 1, "label": label, "tween": null}
+	label.text = text
+	_lines.append(line)
+	_wind(line, seconds)
+
+
+func lines() -> Array[Dictionary]:
+	_forget_freed()
+	return _lines.duplicate()
+
+
+func clear() -> void:
+	for line in _lines.duplicate():
+		_retire(line, true)
+
+
+func _repeat(text: String, seconds: float) -> bool:
+	_forget_freed()
+	for line in _lines:
+		if str(line["text"]) != text:
+			continue
+		line["times"] = int(line["times"]) + 1
+		(line["label"] as Label).text = "%s  ×%d" % [text, int(line["times"])]
+		_wind(line, seconds)
+		return true
+	return false
+
+
+func _wind(line: Dictionary, seconds: float) -> void:
+	var previous: Variant = line.get("tween", null)
+	if previous is Tween and (previous as Tween).is_valid():
+		(previous as Tween).kill()
+	var label: Label = line["label"]
 	var tw := create_tween()
-	tw.tween_property(label, "modulate:a", 1.0, 0.12).from(0.0)
+	line["tween"] = tw
+	tw.tween_property(label, "modulate:a", 1.0, RISE).from(label.modulate.a)
 	tw.tween_interval(maxf(seconds, 0.2))
 	tw.tween_property(label, "modulate:a", 0.0, FADE)
-	tw.tween_callback(label.queue_free)
+	tw.tween_callback(func() -> void: _retire(line))
+
+
+func _retire(line: Dictionary, now := false) -> void:
+	var at := _lines.find(line)
+	if at >= 0:
+		_lines.remove_at(at)
+	var tween: Variant = line.get("tween", null)
+	if tween is Tween and (tween as Tween).is_valid():
+		(tween as Tween).kill()
+	var label: Variant = line.get("label", null)
+	if label is not Label or not is_instance_valid(label):
+		return
+	_column.remove_child(label)
+	if now:
+		(label as Label).free()
+	else:
+		(label as Label).queue_free()
+
+
+func _forget_freed() -> void:
+	_lines = _lines.filter(func(line: Dictionary) -> bool:
+		var label: Variant = line.get("label", null)
+		return label is Label and is_instance_valid(label))
+
+
+func _on_gained(ref: StringName, count: int, _total: int) -> void:
+	good(I18n.t("toast.gained", {"count": str(count), "item": Itemdb.display_name(ref)}))
+
+
+func _on_refused(ref: StringName, count: int) -> void:
+	warn(I18n.t("toast.no_room", {"count": str(count), "item": Itemdb.display_name(ref)}))
 
 
 func _paper(scale: float) -> StyleBoxFlat:

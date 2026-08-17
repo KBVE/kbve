@@ -865,12 +865,135 @@ func test_the_panel_finishes_arriving() -> void:
 	await get_tree().create_timer(TalkPanel.ENTER_TIME + 0.1).timeout
 	assert_float(panel._root.modulate.a) \
 			.override_failure_message("the panel never finished fading in").is_equal_approx(1.0, 0.01)
-	assert_float(panel._frame.position.y) \
+	assert_float(panel._shell.position.y) \
 			.override_failure_message("the panel stopped short of where it belongs") \
 			.is_equal_approx(0.0, 0.5)
 
 	panel.close()
 	_unstage(world, was)
+
+
+## A box sized for a speech with a greeting in it reads as a game waiting for something
+## else. It takes the height of what is being said instead.
+func test_the_box_is_only_as_tall_as_what_is_in_it() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+
+	panel.skip_typing()
+	await get_tree().process_frame
+	var plain := panel._frame.size.y
+
+	## The menu is the same speaker saying a shorter line, and the only difference is the
+	## replies under it.
+	panel.runner.advance()
+	panel.skip_typing()
+	await get_tree().process_frame
+	assert_float(panel._frame.size.y) \
+			.override_failure_message("replies took no more room than no replies, so the box is a fixed slab") \
+			.is_greater(plain)
+
+	var view := panel.get_viewport().get_visible_rect().size
+	assert_float(panel._frame.size.y) \
+			.override_failure_message("a conversation covered half the world it is happening in") \
+			.is_less(view.y * 0.6)
+
+	panel.close()
+	_unstage(world, was)
+
+
+## The box holding the line is measured with room for the replies already in it, or they
+## arrive at the end of the sentence and shove upward the line still being read.
+func test_replies_arriving_do_not_move_the_line() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+
+	panel.skip_typing()
+	panel.runner.advance()
+	await get_tree().process_frame
+	var while_speaking := panel._frame.size.y
+	assert_bool(panel._choices.visible).is_false()
+
+	panel.skip_typing()
+	await get_tree().process_frame
+	assert_float(panel._frame.size.y) \
+			.override_failure_message("the box grew when the replies appeared, moving the line under the reader") \
+			.is_equal_approx(while_speaking, 1.0)
+
+	panel.close()
+	_unstage(world, was)
+
+
+## A phone's USE button is behind the panel, so the box has to be a place to press: without
+## it, a line with nothing to say back to is a line a touch player cannot get past.
+func test_the_box_can_be_tapped_to_go_on() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+
+	var greeting := panel.runner.line_key()
+	panel._frame.gui_input.emit(_tap())
+	assert_bool(panel.is_typing()) \
+			.override_failure_message("the first tap skipped the line instead of finishing it") \
+			.is_false()
+	assert_str(panel.runner.line_key()) \
+			.override_failure_message("the first tap went past the line rather than hurrying it") \
+			.is_equal(greeting)
+
+	panel._frame.gui_input.emit(_tap())
+	assert_str(panel.runner.line_key()) \
+			.override_failure_message("a tap on a finished line went nowhere") \
+			.is_not_equal(greeting)
+
+	panel.close()
+	_unstage(world, was)
+
+
+func _tap() -> InputEventScreenTouch:
+	var touch := InputEventScreenTouch.new()
+	touch.pressed = true
+	return touch
+
+
+## What the shape of the window decides, checked without a window: a handset in landscape
+## is far wider than it is tall, and a line ruled the whole way across it loses the reader.
+func test_a_wide_window_keeps_the_line_readable() -> void:
+	var wide: Dictionary = TalkPanel.metrics(Vector2(2560.0, 720.0))
+	assert_float(wide["width"]) \
+			.override_failure_message("the line was ruled the whole way across an ultrawide window") \
+			.is_less_equal(TalkPanel.MAX_WIDTH)
+	assert_float(wide["side"]) \
+			.override_failure_message("the capped box was not centred, so it hangs off one side") \
+			.is_equal_approx((2560.0 - float(wide["width"])) * 0.5, 0.5)
+
+	var narrow: Dictionary = TalkPanel.metrics(Vector2(640.0, 900.0))
+	assert_float(narrow["side"]) \
+			.override_failure_message("desktop margins on a narrow window leave no room for the words") \
+			.is_less_equal(TalkPanel.SIDE_RANGE.y)
+	assert_float(float(narrow["side"]) * 2.0) \
+			.override_failure_message("the margins ate more of the window than the box got") \
+			.is_less(640.0 * 0.5)
+
+
+## Touch reads at arm's length and answers with a thumb.
+func test_touch_gets_bigger_words_and_a_reply_a_thumb_can_hit() -> void:
+	var view := Vector2(1560.0, 720.0)
+	var pointer: Dictionary = TalkPanel.metrics(view, false)
+	var thumb: Dictionary = TalkPanel.metrics(view, true)
+
+	assert_int(thumb["line_font"]) \
+			.override_failure_message("a phone got the same size words as a monitor an arm closer") \
+			.is_greater(int(pointer["line_font"]))
+	assert_float(thumb["reply_min_h"]) \
+			.override_failure_message("a reply on touch is smaller than a thumb") \
+			.is_greater_equal(44.0)
+	assert_bool(thumb["reply_fill"]) \
+			.override_failure_message("a touch reply is only as wide as its words, so it is a small target") \
+			.is_true()
+	assert_bool(pointer["reply_fill"]) \
+			.override_failure_message("a pointer got full-width slabs, which read as a menu") \
+			.is_false()
 
 
 ## Words crowded against a rounded edge read as a mistake, and a reply centred in a slab
@@ -1020,11 +1143,499 @@ func test_walking_away_withdraws_the_offer() -> void:
 	_unstage(world, was)
 
 
+## Half a conversation printed and the other half implied reads as a menu. A reply the
+## player picks is said out loud, under their own name, before anybody answers it.
+func test_a_picked_reply_is_said_in_the_players_own_voice() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+	_to_the_replies(panel)
+
+	var asked := panel.runner.node_id()
+	(panel._choices.get_child(_reply_row(panel, TOLL)) as Button).pressed.emit()
+
+	assert_str(panel._line_label.text) \
+			.override_failure_message("the reply was taken without ever being said") \
+			.is_equal(TOLL)
+	assert_str(panel._name_label.text) \
+			.override_failure_message("the player's own line was put under somebody else's name") \
+			.is_equal(panel._player)
+	assert_str(panel.runner.node_id()) \
+			.override_failure_message("the answer arrived before the question was finished") \
+			.is_equal(asked)
+
+	panel.skip_typing()
+	panel._input(_pressing_action(&"interact"))
+	assert_str(panel.runner.node_id()) \
+			.override_failure_message("finishing the reply did not hand it over") \
+			.is_not_equal(asked)
+
+	panel.close()
+	_unstage(world, was)
+
+
+## What a reply does to the world lands with the reply, not with the click that chose it.
+## Paying a toll while the words are still coming out is the sort of thing a player notices
+## as the world reacting a beat early.
+func test_what_a_reply_sets_waits_until_it_has_been_said() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var state := State.new()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), state)
+
+	_to_the_replies(panel)
+	(panel._choices.get_child(_reply_row(panel, TOLL)) as Button).pressed.emit()
+	panel.skip_typing()
+	panel._input(_pressing_action(&"interact"))
+
+	## Landed on the toll itself, which asks its own question -- so there is a line to
+	## finish but nothing to advance past.
+	panel.skip_typing()
+	(panel._choices.get_child(_reply_row(panel, PAY)) as Button).pressed.emit()
+	assert_bool(state.has_flag("marlow_toll_paid")) \
+			.override_failure_message("the toll was paid before the player finished offering it") \
+			.is_false()
+
+	panel.skip_typing()
+	panel._input(_pressing_action(&"interact"))
+	assert_bool(state.has_flag("marlow_toll_paid")) \
+			.override_failure_message("the reply was said and never acted on") \
+			.is_true()
+
+	panel.close()
+	_unstage(world, was)
+
+
+## Which button carries a given reply, by the words on it -- they are numbered on screen, so
+## the text is not the whole label.
+func _reply_row(panel: DialoguePanel, text: String) -> int:
+	for i in panel._choices.get_child_count():
+		if (panel._choices.get_child(i) as Button).text.ends_with(text):
+			return i
+	return -1
+
+
+## The catalog carries prose rather than keys, and a placeholder is filled in on the way to
+## the screen. If that ever stops working the failure is not an error -- it is Marlow saying
+## "Welcome back, {{player}}" out loud, which ships.
+func test_every_line_marlow_says_arrives_with_the_placeholder_filled() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+
+	var graph := Npcdb.graph(MARLOW)
+	var found := false
+	for key in graph.text_keys():
+		var said := panel._spoken(key)
+		assert_str(said) \
+				.override_failure_message("'%s' reached the screen with a placeholder in it" % said) \
+				.not_contains("{{")
+		if key.contains("{{player}}"):
+			found = true
+			assert_str(said).contains(panel._player)
+
+	assert_bool(found) \
+			.override_failure_message("nothing he says uses the player's name, so this proves nothing") \
+			.is_true()
+
+	panel.close()
+	_unstage(world, was)
+
+
+## Somebody who knows you should not greet you like a stranger, and somebody worn thin by
+## the same question all afternoon should not greet you warmly. Both are the same mechanism:
+## the journal's count of how a person has been treated, read as a gate.
+func test_marlow_greets_a_regular_and_a_nuisance_differently() -> void:
+	var state := State.new()
+	state.mark_seen("greet")
+
+	var runner := Runner.new()
+	runner.start(Npcdb.graph(MARLOW), state)
+	assert_str(runner.node_id()) \
+			.override_failure_message("somebody with no standing got a regular's welcome") \
+			.is_equal("greet_again")
+
+	state.set_number("respect", 4.0)
+	var known := Runner.new()
+	known.start(Npcdb.graph(MARLOW), state)
+	assert_str(known.node_id()) \
+			.override_failure_message("a regular was greeted like a passer-by") \
+			.is_equal("greet_known")
+
+	## Worn out beats well thought of: the short line is read first.
+	state.set_number("pestered", 3.0)
+	var worn := Runner.new()
+	worn.start(Npcdb.graph(MARLOW), state)
+	assert_str(worn.node_id()) \
+			.override_failure_message("asking the same thing all afternoon cost nothing") \
+			.is_equal("greet_pestered")
+
+
+## A conversation that went somewhere is worth more than one that went over old ground, and
+## the difference is measured rather than guessed.
+func test_going_over_old_ground_costs_standing_and_learning_earns_it() -> void:
+	Journal.forget_everything()
+	var who := "test_regard"
+
+	assert_int(int(Journal.regard(who)["talks"])) \
+			.override_failure_message("a stranger already had a history") \
+			.is_equal(0)
+
+	Journal.remember_talk(who, true)
+	assert_int(int(Journal.regard(who)["respect"])).is_equal(1)
+	assert_int(int(Journal.regard(who)["pestered"])).is_equal(0)
+
+	## The first repeat is somebody checking something, and costs nothing.
+	Journal.remember_talk(who, false)
+	assert_int(int(Journal.regard(who)["respect"])) \
+			.override_failure_message("asking once more was treated as pestering") \
+			.is_equal(1)
+
+	Journal.remember_talk(who, false)
+	Journal.remember_talk(who, false)
+	assert_int(int(Journal.regard(who)["respect"])) \
+			.override_failure_message("nagging cost nothing") \
+			.is_less(1)
+	assert_int(int(Journal.regard(who)["talks"])).is_equal(4)
+
+	## Something new clears the slate, or a player who annoyed somebody once could never
+	## make it up to them.
+	Journal.remember_talk(who, true)
+	assert_int(int(Journal.regard(who)["pestered"])) \
+			.override_failure_message("a talk that went somewhere did not clear the slate") \
+			.is_equal(0)
+	Journal.forget_everything()
+
+
+## Standing has to survive being put down and picked up, or an opinion lasts only as long as
+## the process does.
+func test_what_somebody_makes_of_you_outlives_the_session() -> void:
+	Journal.forget_everything()
+	Journal.remember_talk("test_kept", true)
+	Journal.remember_talk("test_kept", true)
+	Journal.save_now()
+
+	Journal.load_now()
+	assert_int(int(Journal.regard("test_kept")["respect"])) \
+			.override_failure_message("their opinion of the player was forgotten on reload") \
+			.is_equal(2)
+	Journal.forget_everything()
+
+
+## The catalog writes gates as words. A comparison has to survive being read out of the MDX
+## and turned into something the state can answer.
+func test_a_comparison_in_the_catalog_becomes_a_gate() -> void:
+	var graph: Dictionary = Npcdb.to_graph_dict({}, {
+		"entryNodeId": "a",
+		"nodes": [
+			{"id": "a", "text": "a", "condition": "respect>=3"},
+			{"id": "b", "text": "b", "condition": "!pestered>2"},
+			{"id": "c", "text": "c", "condition": "flag:coin"},
+		],
+	})
+	var nodes: Dictionary = graph["nodes"]
+	assert_that(nodes["a"]["if"]).is_equal({"num": "respect", "op": ">=", "value": 3.0})
+	assert_that(nodes["b"]["if"]).is_equal({"not": {"num": "pestered", "op": ">", "value": 2.0}})
+	assert_that(nodes["c"]["if"]) \
+			.override_failure_message("a plain flag stopped reading as a flag") \
+			.is_equal({"flag": "coin"})
+
+
+func test_numbers_answer_comparisons() -> void:
+	var state := State.new()
+	state.set_number("respect", 3.0)
+	assert_bool(state.test({"num": "respect", "op": ">=", "value": 3.0})).is_true()
+	assert_bool(state.test({"num": "respect", "op": ">", "value": 3.0})).is_false()
+	assert_bool(state.test({"num": "respect", "op": "<", "value": 4.0})).is_true()
+	assert_bool(state.test({"num": "respect", "op": "==", "value": 3.0})).is_true()
+	assert_bool(state.test({"num": "respect", "op": "!=", "value": 3.0})).is_false()
+	## Somebody never met reads as nothing rather than as a missing answer.
+	assert_bool(state.test({"num": "nobody", "op": ">=", "value": 1.0})).is_false()
+	assert_bool(state.test({"num": "nobody", "op": "<=", "value": 0.0})).is_true()
+
+
+## Standing is one person's opinion, not a fact about the world, so it must not be written
+## into the save as though the whole world knew it.
+func test_standing_is_not_saved_as_a_world_fact() -> void:
+	var state := State.new()
+	state.set_number("respect", 5.0)
+	state.set_flag("coin")
+	var body := state.to_dict()
+	assert_bool((body["flags"] as Dictionary).has("respect")) \
+			.override_failure_message("one person's opinion was written down as a world flag") \
+			.is_false()
+	var restored := State.new()
+	restored.from_dict(body)
+	assert_float(restored.number("respect")) \
+			.override_failure_message("standing came back from a save it does not belong in") \
+			.is_equal(0.0)
+
+
+## The body has to do what the words are doing. Both halves matter: a speaker who never
+## starts talking is inert, and one who never stops is still gesturing at a line that landed
+## ten seconds ago.
+func test_a_speaker_moves_while_the_line_is_being_written_and_settles_when_it_lands() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var panel := TalkPanel.open(get_tree(), Npcdb.graph(MARLOW), State.new())
+
+	var beats: Array[String] = []
+	panel.speaking.connect(func() -> void: beats.append("speak"))
+	panel.listening.connect(func() -> void: beats.append("listen"))
+
+	panel.runner.advance()
+	assert_array(beats) \
+			.override_failure_message("a new line did not start anybody talking") \
+			.contains(["speak"])
+	assert_bool(beats.has("listen")) \
+			.override_failure_message("they stopped talking before the line was written") \
+			.is_false()
+
+	panel.skip_typing()
+	assert_array(beats) \
+			.override_failure_message("the line landed and nobody was told to stop") \
+			.contains(["listen"])
+
+	panel.close()
+	_unstage(world, was)
+
+
+## The opening line is already being written by the time the panel exists to be connected
+## to, so its `speaking` goes out with nobody listening. Left uncaught, every conversation
+## in the game starts with the speaker standing perfectly still through their own first
+## sentence -- which reads as the feature not working at all.
+func test_the_speaker_is_already_talking_on_the_opening_line() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+
+	var body := Node3D.new()
+	world.add_child(body)
+	var actor := NpcActor.new()
+	actor.npc_ref = MARLOW
+	actor.body = load("res://assets/characters/quaternius_ubc/models/Regular_Male_FullBody.glb")
+	actor.animation_sources = [
+		load("res://assets/characters/quaternius_ubc/animations/UAL1.glb"),
+		load("res://assets/characters/quaternius_ubc/animations/UAL2.glb"),
+	]
+	actor.idle_animation = "UAL1/Idle"
+	world.add_child(actor)
+	actor.global_position = Vector3(0.0, 0.0, -2.0)
+
+	var reach := Node3D.new()
+	reach.set_script(Interactor)
+	body.add_child(reach)
+	await get_tree().process_frame
+
+	## Already met, so the meeting one-shot is out of the way and what is left is the plain
+	## business of opening a conversation.
+	reach.state().set_flag(reach.MET % MARLOW)
+	reach._talk_to(actor)
+	assert_str(actor.rig.animation.current_animation) \
+			.override_failure_message("the speaker stood still through their own opening line") \
+			.is_equal(actor.talk_animation)
+
+	reach.state().set_flag(reach.MET % MARLOW, false)
+	if TalkPanel.is_open():
+		TalkPanel._open.close()
+	_unstage(world, was)
+
+
+## Meeting somebody is a beat of its own. The whole point is the order: the card names them
+## while the world is still visible behind it, and the box only opens once it has cleared.
+## Opened together, the name is a caption on a panel rather than an introduction.
+func test_meeting_somebody_names_them_before_the_talk_opens() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var pair := _stage_interactor(world, Vector3(0.0, 0.0, -2.0))
+	var reach: Node3D = pair[0]
+	var actor: NpcActor = pair[1]
+	reach.state().set_flag(reach.MET % MARLOW, false)
+
+	reach._talk_to(actor)
+	var card := world.get_node_or_null(^"MeetingCard") as MeetingCard
+	assert_object(card) \
+			.override_failure_message("meeting somebody put no card up") \
+			.is_not_null()
+	assert_bool(TalkPanel.is_open()) \
+			.override_failure_message("the conversation opened underneath the introduction") \
+			.is_false()
+	assert_str(_card_text(card)) \
+			.override_failure_message("the card does not say who was met") \
+			.contains("Marlow")
+
+	## Skipped rather than waited out, which is also the path a player takes. The talk
+	## follows the card leaving the tree rather than the card saying it is done -- that is
+	## the one event nothing can miss, and it costs a frame.
+	card.dismiss()
+	await get_tree().process_frame
+	assert_bool(TalkPanel.is_open()) \
+			.override_failure_message("the card cleared and no conversation followed") \
+			.is_true()
+
+	reach.state().set_flag(reach.MET % MARLOW, false)
+	if TalkPanel.is_open():
+		TalkPanel._open.close()
+	_unstage(world, was)
+
+
+## The card has to end by itself, with nobody helping it.
+##
+## This is the one that was missing. The card was driven by a tween and every test dismissed
+## it by hand, so the path the game actually takes -- put a card up and wait -- was the only
+## path never run. In play the card stayed up, the conversation behind it never opened, and
+## because the interactor was held on a flag the card was supposed to clear, the player
+## could not talk to that NPC or to anybody else for the rest of the session.
+func test_a_card_ends_on_its_own_with_nobody_dismissing_it() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var card := MeetingCard.present(get_tree(), "Marlow", "Bridge Keeper")
+	var ended := [false]
+	card.finished.connect(func() -> void: ended[0] = true)
+
+	await get_tree().create_timer(MeetingCard.length() + 0.4).timeout
+	assert_bool(ended[0]) \
+			.override_failure_message("the card never finished, so nothing behind it can start") \
+			.is_true()
+	_unstage(world, was)
+
+
+## The failure this is really written against: whatever happens to the card, the player has
+## to be able to talk to somebody afterwards. A card that dies without a word -- freed, or
+## the world swapped under it -- must not leave the interactor holding the door shut.
+func test_a_card_that_dies_without_finishing_still_frees_the_player() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var pair := _stage_interactor(world, Vector3(0.0, 0.0, -2.0))
+	var reach: Node3D = pair[0]
+	reach.state().set_flag(reach.MET % MARLOW, false)
+
+	reach._talk_to(pair[1])
+	assert_bool(reach.busy()) \
+			.override_failure_message("a card was up and the player was not held") \
+			.is_true()
+
+	## The speaker goes first, so there is no conversation left to open behind the card --
+	## which is the case that used to leave the player held for good.
+	var actor: NpcActor = pair[1]
+	actor.get_parent().remove_child(actor)
+	actor.queue_free()
+
+	## Pulled out of the tree rather than freed outright: dismissing already queues the card
+	## for deletion, and freeing it twice is a different bug than the one under test.
+	var card := world.get_node_or_null(^"MeetingCard")
+	card.get_parent().remove_child(card)
+	await get_tree().process_frame
+
+	assert_bool(reach.busy()) \
+			.override_failure_message("the card is gone and the player is still held -- they can never talk again") \
+			.is_false()
+	assert_bool(TalkPanel.is_open()) \
+			.override_failure_message("a conversation opened with somebody who is not there") \
+			.is_false()
+
+	reach.state().set_flag(reach.MET % MARLOW, false)
+	_unstage(world, was)
+
+
+## Somebody already known is talked to straight away -- an introduction every time is a
+## cutscene between the player and the bridge.
+func test_somebody_already_known_gets_no_card() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var pair := _stage_interactor(world, Vector3(0.0, 0.0, -2.0))
+	var reach: Node3D = pair[0]
+	reach.state().set_flag(reach.MET % MARLOW)
+
+	reach._talk_to(pair[1])
+	assert_object(world.get_node_or_null(^"MeetingCard")) \
+			.override_failure_message("somebody already known was introduced again") \
+			.is_null()
+	assert_bool(TalkPanel.is_open()).is_true()
+
+	reach.state().set_flag(reach.MET % MARLOW, false)
+	if TalkPanel.is_open():
+		TalkPanel._open.close()
+	_unstage(world, was)
+
+
+## Everything the card has on it, so a test can ask what it says without knowing how it is
+## laid out.
+func _card_text(card: MeetingCard) -> String:
+	var words: Array[String] = []
+	for node in _labels(card):
+		words.append(node.text)
+	return " ".join(words)
+
+
+func _labels(node: Node) -> Array[Label]:
+	var out: Array[Label] = []
+	if node is Label:
+		out.append(node)
+	for child in node.get_children():
+		out.append_array(_labels(child))
+	return out
+
+
+## Somebody met is met for good. The flag rides in the journal, so this is also what keeps
+## the flourish from firing every time the player walks back up the bank.
+func test_meeting_somebody_happens_once_and_is_written_down() -> void:
+	var was := get_tree().current_scene
+	var world := _stage_world()
+	var pair := _stage_interactor(world, Vector3(0.0, 0.0, -2.0))
+	var reach: Node3D = pair[0]
+	var flag: String = reach.MET % MARLOW
+
+	reach.state().set_flag(flag, false)
+	assert_bool(reach._first_meeting(pair[1])) \
+			.override_failure_message("meeting somebody for the first time was not a first meeting") \
+			.is_true()
+	assert_bool(reach.state().has_flag(flag)) \
+			.override_failure_message("they were met and nobody wrote it down") \
+			.is_true()
+	assert_bool(reach._first_meeting(pair[1])) \
+			.override_failure_message("the same person was met twice") \
+			.is_false()
+
+	reach.state().set_flag(flag, false)
+	_unstage(world, was)
+
+
+## The performance is a request, never an order: an NPC whose kit does not carry the clip,
+## or who has no body at all, has to go on being talked to rather than taking the game down
+## with it.
+func test_asking_a_bodiless_npc_to_perform_is_harmless() -> void:
+	var actor := NpcActor.new()
+	actor.npc_ref = MARLOW
+	add_child(actor)
+	auto_free(actor)
+	actor.talk_animation = "UAL1/NoSuchClipWasEverAuthored"
+
+	actor.speak()
+	actor.listen()
+	actor.rest()
+	assert_float(actor.meet()) \
+			.override_failure_message("a body that does not exist played an animation") \
+			.is_equal(0.0)
+
+
 ## Marlow opens with a line that runs on into the menu, which is the node with replies.
 func _to_the_replies(panel: DialoguePanel) -> void:
 	panel.skip_typing()
 	panel.runner.advance()
 	panel.skip_typing()
+
+
+## A press of whatever is actually bound to an action. A hand-built key event carries a
+## keycode and nothing else, which is enough for the panel's own number-key reading but not
+## for `is_action_pressed` -- that asks the InputMap, and the InputMap wants the event it
+## was given.
+func _pressing_action(action: StringName) -> InputEvent:
+	var bound := InputMap.action_get_events(action)
+	assert_bool(bound.is_empty()) \
+			.override_failure_message("nothing is bound to %s" % action).is_false()
+	var press := bound[0].duplicate() as InputEvent
+	press.pressed = true
+	return press
 
 
 func _pressing(code: Key) -> InputEventKey:

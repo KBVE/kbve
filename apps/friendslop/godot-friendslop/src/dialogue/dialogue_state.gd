@@ -1,18 +1,10 @@
 class_name DialogueState
 extends RefCounted
 
-## What a conversation remembers between conversations: the flags it set and the nodes it
-## has already been through.
-##
-## Held apart from the runner because a flag outlives the talk that set it -- the toll is
-## paid once, and every graph in the world can ask about it afterwards.
 
-## Raised only when a flag actually moves, so a graph that sets the same flag on every
-## pass through a node does not read as news each time.
 signal flag_changed(name: String, on: bool)
-## Raised the first time a node is reached, which is what a greeting that only happens
-## once is keyed off.
 signal seen_changed(node_id: String)
+signal asked(verb: String, argument: String)
 
 var flags: Dictionary = {}
 var seen: Dictionary = {}
@@ -48,10 +40,6 @@ func clear() -> void:
 	seen.clear()
 
 
-## Applies a node's or a choice's `do`, which is the only way a conversation writes
-## anything down.
-##
-##     {"set": "toll_paid"}            {"set": ["a", "b"]}            {"clear": "angry"}
 func apply(effects: Variant) -> void:
 	if effects is not Dictionary:
 		return
@@ -60,12 +48,12 @@ func apply(effects: Variant) -> void:
 		set_flag(name, true)
 	for name in _names(body.get("clear", null)):
 		set_flag(name, false)
+	for verb: Variant in body:
+		if str(verb) == "set" or str(verb) == "clear":
+			continue
+		asked.emit(str(verb), str(body[verb]))
 
 
-## Reads a condition. The shorthand is a bare flag name, because most conditions are one.
-##
-##     "toll_paid"        {"flag": "toll_paid"}        {"not": <cond>}
-##     {"all": [<cond>]}  {"any": [<cond>]}            {"seen": "node_id"}
 func test(condition: Variant) -> bool:
 	if condition == null:
 		return true
@@ -80,6 +68,9 @@ func test(condition: Variant) -> bool:
 		return not test(body["not"])
 	if body.has("seen"):
 		return has_seen(str(body["seen"]))
+	if body.has("num"):
+		return _compare(number(str(body["num"])), str(body.get("op", ">=")),
+				float(body.get("value", 0.0)))
 	if body.has("all"):
 		for part in _list(body["all"]):
 			if not test(part):
@@ -90,8 +81,33 @@ func test(condition: Variant) -> bool:
 			if test(part):
 				return true
 		return false
-	## An empty object gates nothing, which is how a node with `"if": {}` reads.
 	return true
+
+
+var numbers: Dictionary = {}
+
+
+func set_number(name: String, value: float) -> void:
+	numbers[name] = value
+
+
+func number(name: String) -> float:
+	return float(numbers.get(name, 0.0))
+
+
+func seen_count() -> int:
+	return seen.size()
+
+
+static func _compare(left: float, op: String, right: float) -> bool:
+	match op:
+		">=": return left >= right
+		"<=": return left <= right
+		">": return left > right
+		"<": return left < right
+		"==": return is_equal_approx(left, right)
+		"!=": return not is_equal_approx(left, right)
+	return false
 
 
 func to_dict() -> Dictionary:

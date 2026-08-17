@@ -1,0 +1,76 @@
+---
+id: '01KSAVZ0000000000000QFSPLANK'
+ref: 'friendslop-third-plank'
+drafted: false
+title: 'Mind the Third Plank'
+description: 'Marlow keeps the river crossing and asks a toll for the bridge rather than for himself. Pay it, and the crossing is yours.'
+category: 'tutorial'
+tags:
+    - 'friendslop'
+    - 'bridge'
+    - 'marlow'
+hidden: false
+repeatable: false
+recommended_level: 1
+giver_npc_refs:
+    - 'marlow'
+turn_in_npc_refs:
+    - 'marlow'
+steps:
+    - id: 'step-hear-him-out'
+      title: 'Hear the keeper out'
+      description: 'Marlow stands at the bank end of the span. He will tell you about the toll if you ask.'
+      objectives:
+          - id: 'obj-talk-to-marlow'
+            description: 'Talk to Marlow at the crossing'
+            type: 'interact'
+            target_refs:
+                - 'marlow'
+            required_amount: 1
+      next_step_id: 'step-pay-the-toll'
+    - id: 'step-pay-the-toll'
+      title: 'Pay the toll'
+      description: 'Not for him. For the bridge, which keeps standing as long as somebody still pays it something.'
+      objectives:
+          - id: 'obj-toll-paid'
+            description: 'Pay Marlow the toll for the bridge'
+            type: 'custom'
+            target_refs:
+                - 'flag:marlow_toll_paid'
+            required_amount: 1
+rewards:
+    xp: 40
+    reputation_amount: 2
+    reputation_faction: 'marlow'
+next_quest_ref: null
+---
+
+import { Aside, Steps, Card, CardGrid } from '@astrojs/starlight/components';
+
+<Aside>
+	The first thing anybody in Friendslop asks you for, and the cheapest lesson in
+	the game: the people here want something, and they will tell you what if you
+	stand still long enough to be told.
+</Aside>
+
+## Quest Overview
+
+<CardGrid>
+	<Card title="Giver" icon="person">
+		Marlow, the bridge keeper, at the bank end of the span.
+	</Card>
+	<Card title="Reward" icon="star">
+		40 experience, and two points of standing with Marlow — enough that he
+		greets you as a regular afterwards.
+	</Card>
+</CardGrid>
+
+## Steps to Completion
+
+<Steps>
+1. **Talk to Marlow**
+   He is beside the crossing, facing the deck.
+2. **Ask about the toll, and pay it**
+   Paying sets `marlow_toll_paid`, which is also what opens his question about
+   the mechs that come down from the ridge.
+</Steps>

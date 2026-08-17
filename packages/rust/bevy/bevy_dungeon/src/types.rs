@@ -200,6 +200,7 @@ pub enum GamePhase {
     Trap,
     Treasure,
     Hallway,
+    Gathering,
     WaitingForActions,
     GameOver(GameOverReason),
 }
@@ -224,6 +225,7 @@ pub enum RoomType {
     Boss,
     Story,
     Hallway,
+    Resource,
     UndergroundCity,
 }
 
@@ -629,6 +631,29 @@ pub struct RoomState {
     pub story_event: Option<StoryEvent>,
     /// Quest refs offered by NPCs in this room (city/merchant).
     pub available_quests: Vec<String>,
+    /// Workable resource nodes standing in this room.
+    pub resource_nodes: Vec<ResourceNode>,
+}
+
+/// A stone outcrop, ore vein or tree the player can work for materials.
+///
+/// Everything but `remaining` comes straight from professiondb, so the
+/// requirements and payouts are the same ones the isometric client and the
+/// game server enforce.
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct ResourceNode {
+    /// professiondb `resourceNodeRef`, e.g. `boulder` or `copper-vein`.
+    pub node_ref: String,
+    /// What working it yields, e.g. `stone`.
+    pub item_ref: String,
+    /// Display name for the node itself.
+    pub name: String,
+    /// The profession that levels from working it.
+    pub skill_ref: String,
+    pub required_level: u32,
+    pub xp_reward: u32,
+    /// Harvests left before the node is spent.
+    pub remaining: u8,
 }
 
 // ── Quest tracking ──────────────────────────────────────────────────

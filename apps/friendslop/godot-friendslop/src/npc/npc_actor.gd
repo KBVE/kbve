@@ -1,10 +1,6 @@
 class_name NpcActor
 extends Node3D
 
-## Somebody standing in the world with something to say.
-##
-## The body is a character_rig, the same one the player wears, and the conversation is a
-## DialogueGraph read off disk. Everything a talker needs and nothing a fighter does.
 
 const CharacterRig := preload("res://src/characters/character_rig.gd")
 const DialogueGraphScript := preload("res://src/dialogue/dialogue_graph.gd")
@@ -12,43 +8,33 @@ const Npcdb := preload("res://src/dialogue/npcdb_dialogue.gd")
 
 const GROUP := &"interactable"
 
-## The NPCDB slug this one is, which is where the conversation and the name come from.
-## A local `dialogue_path` is only read when this is empty.
 @export var npc_ref := ""
 @export var display_name_key := ""
 @export var dialogue_path := ""
 @export var terrain_path: NodePath
-## Reach of the talk prompt, measured flat: a player on the bank and an NPC in the shallows
-## are still within talking distance.
 @export var talk_radius := 3.6
 
 @export_group("Body")
 @export var body: PackedScene
 @export var attachments: Array[PackedScene] = []
-## Clothing, as wardrobe pieces. What somebody is wearing belongs with the rest of what
-## they are, rather than being a list of meshes hung off them.
 @export var worn: Array[StringName] = []
-## Used instead of `body` once `worn` covers it -- the clothing replaces the body rather
-## than layering over it.
 @export var head_only_body: PackedScene
 @export var animation_sources: Array[PackedScene] = []
 @export var idle_animation := ""
 @export var skin_color := Color(1, 1, 1)
 @export var hair_color := Color(0.214, 0.155, 0.047)
-## Clearance over the top of the head for the nameplate.
 @export var nameplate_clearance := 0.35
 @export var nameplate_range := 40.0
-## How far under the name the offer to talk sits.
 @export var prompt_drop := 0.28
 
+@export_group("Performance")
+@export var talk_animation := "UAL1/Idle_Talking"
+@export var listen_animation := ""
+@export var meeting_animation := "UAL2/Surprise"
+
 @export_group("Placing")
-## Puts him beside the crossing rather than wherever the scene was saved with him, since
-## the bridge moves with the world seed.
 @export var stand_under_bridge := false
-## How far clear of the deck's edge he stands. The sign picks the side, so -2 and 2 are the
-## same distance from the rail on opposite banks of the road.
 @export var bridge_offset := 2.0
-## Along the span, so he is at the bank end rather than out over the water.
 @export var bridge_along := 9.0
 
 var rig: Node3D
@@ -64,6 +50,47 @@ func _ready() -> void:
 	_build_body()
 	_build_nameplate()
 	_place_when_there_is_ground()
+	_enlist()
+
+
+func _enlist() -> void:
+	if npc_ref == "":
+		return
+	var stats := _authored_stats()
+	Vitals.enlist(
+		vitals_id(),
+		int(stats.get("strength", 1)),
+		int(stats.get("skill", 1)),
+		int(stats.get("will", 1)))
+
+
+func _authored_stats() -> Dictionary:
+	var entry := Npcdb.npc(npc_ref)
+	if entry.is_empty():
+		return {}
+	var from_level := maxi(int(entry.get("level", 1)), 1)
+	var raw: Variant = entry.get("stats", null)
+	var stats: Dictionary = raw if raw is Dictionary else {}
+	return {
+		"strength": _rank(stats.get("strength", null), from_level),
+		"skill": _rank(stats.get("agility", null), from_level),
+		"will": _rank(stats.get("intelligence", null), from_level),
+	}
+
+
+func _rank(authored: Variant, fallback: int) -> int:
+	if authored == null:
+		return fallback
+	return maxi(int(authored), 1)
+
+
+func vitals_id() -> int:
+	return Vitals.id_for(npc_ref)
+
+
+func _exit_tree() -> void:
+	if npc_ref != "":
+		Vitals.retire(vitals_id())
 
 
 func _build_body() -> void:
@@ -78,7 +105,6 @@ func _build_body() -> void:
 	rig.default_animation = idle_animation
 	rig.skin_color = skin_color
 	rig.hair_color = hair_color
-	## Absolute, because the rig resolves it from its own place a level further down.
 	if _terrain != null:
 		rig.terrain_path = _terrain.get_path()
 		rig.foot_ik = true
@@ -86,8 +112,6 @@ func _build_body() -> void:
 	add_child(rig)
 
 
-## Hung off the actor rather than the rig so it stays put while he turns. Built for anyone
-## with a name to show, which the catalog answers even when no local key was set.
 func _build_nameplate() -> void:
 	if display_name_key == "" and npc_ref == "":
 		return
@@ -121,8 +145,6 @@ func _refresh_name() -> void:
 		_nameplate.text = display_name()
 
 
-## The offer to talk, written where the player is already looking rather than at the foot
-## of the screen. Driven by whoever is doing the reaching, so only the nearest is asked.
 func offer_talk(key: String) -> void:
 	if _prompt == null:
 		return
@@ -135,7 +157,39 @@ func withdraw_talk() -> void:
 		_prompt.visible = false
 
 
-## The catalog knows his name; a key overrides it where a locale has one.
+func speak() -> void:
+	_perform(talk_animation, idle_animation)
+
+
+func listen() -> void:
+	_perform(listen_animation, idle_animation)
+
+
+func rest() -> void:
+	_perform(idle_animation, "")
+
+
+func meet() -> float:
+	if meeting_animation == "" or not _can_play(meeting_animation):
+		return 0.0
+	rig.animation.play(meeting_animation)
+	if _can_play(idle_animation):
+		rig.animation.queue(idle_animation)
+	return rig.animation.get_animation(meeting_animation).length
+
+
+func _perform(clip: String, fallback: String) -> void:
+	var wanted := clip if _can_play(clip) else fallback
+	if not _can_play(wanted) or rig.animation.current_animation == wanted:
+		return
+	rig.animation.play(wanted)
+
+
+func _can_play(clip: String) -> bool:
+	return clip != "" and rig != null and rig.animation != null \
+			and rig.animation.has_animation(clip)
+
+
 func display_name() -> String:
 	if display_name_key != "":
 		return I18n.t(display_name_key)
@@ -146,6 +200,13 @@ func display_name() -> String:
 	return name
 
 
+func role_name() -> String:
+	if npc_ref == "":
+		return ""
+	var entry := Npcdb.npc(npc_ref)
+	return str(entry.get("role", "")) if not entry.is_empty() else ""
+
+
 func _head_height() -> float:
 	if rig and rig.has_method("mesh_extents"):
 		var box: AABB = rig.mesh_extents()
@@ -154,10 +215,6 @@ func _head_height() -> float:
 	return 1.8
 
 
-## Worldgen runs long enough that a deferred call beats it to the frame, and a crossing that
-## is not laid down yet answers with nothing -- which lands everybody on the spot the scene
-## was saved with, all of them the same spot. So the placing waits for the ground, the same
-## way the player's does.
 func _place_when_there_is_ground() -> void:
 	if _terrain == null:
 		return
@@ -177,8 +234,6 @@ func _place() -> void:
 		_settle()
 
 
-## The crossing is placed by the world seed, so where he stands is asked for rather than
-## saved: beside the span, off to one side of the deck, at the bank end.
 func _stand_under_bridge() -> void:
 	if _terrain == null or not _terrain.has_method("bridge_span"):
 		_settle()
@@ -198,16 +253,11 @@ func _stand_under_bridge() -> void:
 	along = along.normalized()
 	var side := Vector3(-along.z, 0.0, along.x)
 	var middle := (a + b) * 0.5
-	## Clearance is measured from the deck's edge outwards, so the sign has to be taken off
-	## the offset first -- added straight to the half width it walks a negative offset back
-	## across the road instead of out to the far side of it.
 	var side_of_road := -1.0 if bridge_offset < 0.0 else 1.0
 	var clear := side_of_road * (half_width + absf(bridge_offset))
 	var at := middle + along * bridge_along + side * clear
 	global_position = Vector3(at.x, 0.0, at.z)
 	_settle()
-	## Facing the deck, so a player coming over the bridge meets his eyes rather than his
-	## back.
 	look_at(Vector3(middle.x, global_position.y, middle.z), Vector3.UP)
 
 
@@ -216,8 +266,6 @@ func _settle() -> void:
 		global_position.y = _terrain.height_at(global_position.x, global_position.z)
 
 
-## Waiting to be talked to. The interactor reads this off everything in reach and picks
-## the nearest.
 func can_talk() -> bool:
 	return npc_ref != "" or dialogue_path != ""
 
@@ -226,7 +274,6 @@ func talk_range() -> float:
 	return talk_radius
 
 
-## Turns to whoever started talking, flat, so he does not tip over on a slope.
 func face(who: Node3D) -> void:
 	if who == null:
 		return
@@ -237,8 +284,6 @@ func face(who: Node3D) -> void:
 	look_at(global_position + to, Vector3.UP)
 
 
-## The catalog first, since that is where a conversation is tracked; a local file is for a
-## talk that has not been written into NPCDB yet.
 func graph() -> DialogueGraph:
 	if npc_ref != "":
 		return Npcdb.graph(npc_ref)

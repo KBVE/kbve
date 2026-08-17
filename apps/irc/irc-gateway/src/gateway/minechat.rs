@@ -116,6 +116,7 @@ const GAME_PROFILES: &[(&str, &str, &str)] = &[
     // (game key, channel, platform)
     ("cryptothrone", "#general", "cryptothrone"),
     ("arpg", "#general", "arpg"),
+    ("friendslop", "#general", "friendslop"),
 ];
 
 fn game_profile(game: &str) -> Option<(&'static str, &'static str)> {
@@ -430,6 +431,28 @@ fn sanitize_sub(sub: &str, max_len: usize) -> String {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// An unregistered game is a 400 before the token is ever looked at, so a missing
+    /// entry reads to the player as "chat is broken" rather than as a permission problem.
+    #[test]
+    fn every_shipping_game_has_a_chat_profile() {
+        for game in ["cryptothrone", "arpg", "friendslop"] {
+            let profile = game_profile(game);
+            assert!(profile.is_some(), "{game} would be refused at the upgrade");
+            let (channel, platform) = profile.unwrap();
+            assert!(
+                channel.starts_with('#'),
+                "{game} has a bad channel: {channel}"
+            );
+            assert!(!platform.is_empty(), "{game} has no platform tag");
+        }
+    }
+
+    #[test]
+    fn an_unknown_game_has_no_profile() {
+        assert!(game_profile("not-a-game").is_none());
+        assert!(game_profile("").is_none());
+    }
 
     #[test]
     fn sanitizes_sub() {

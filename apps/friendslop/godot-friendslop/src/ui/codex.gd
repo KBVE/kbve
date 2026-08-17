@@ -1,13 +1,11 @@
 extends HBoxContainer
 
-## Somewhere to look at a character, a creature or a weapon on its own.
 
 const Entries := preload("res://src/ui/codex_entries.gd")
 const Ground := preload("res://src/ui/codex_ground.gd")
 const WeaponProxy := preload("res://src/items/weapon_proxy.gd")
 const CharacterRig := preload("res://src/characters/character_rig.gd")
 
-## Set by whoever opens the Codex, so it does not have to know what it sits in.
 var on_back := Callable()
 
 var _world: Node3D
@@ -24,25 +22,18 @@ var _info: RichTextLabel
 var _subject_pick: OptionButton
 var _family_pick: OptionButton
 var _clip_pick: OptionButton
-## Clip families in the order they are offered, and the clips in the one on show.
 var _families: Array[String] = []
 var _clips: Array[String] = []
-## Which clips the rig actually puts on a body, and to what end.
 var _usage: Dictionary = {}
 
 var _from_pick: OptionButton
 var _to_pick: OptionButton
 var _cross_run: Button
-## States in the order the two pickers offer them.
 var _cross_states: Array[StringName] = []
-## A crossing under way: how long it has run, the states it has actually passed through,
-## and whether any of it was a cross-fade rather than a cut.
 var _crossing := false
 var _cross_t := 0.0
 var _cross_route: Array[String] = []
-## The route the machine planned, as against the one that was seen frame by frame.
 var _cross_plan: Array[String] = []
-## Set between dropping into `from` and asking for the travel, which is a frame later.
 var _cross_pending := false
 var _cross_faded := false
 var _cross_target: StringName = &""
@@ -60,13 +51,9 @@ var _spinning: CheckButton
 var _footik: CheckButton
 var _controls: Array[Control] = []
 var _fixes: Array[Control] = []
-## Slider to the box holding it and its caption.
 var _rows: Dictionary = {}
 
 var _playing := true
-## Guards the scrub slider against the playhead it is displaying: without it, following
-## the animation moves the slider, which reads as a seek, which stops the playback the
-## slider was following.
 var _syncing := false
 
 
@@ -153,8 +140,6 @@ func _build_side() -> void:
 	_speed = _add_slider(side, "speed m/s", 0.0, 6.0, 0.0)
 	_heading = _add_slider(side, "heading", -PI, PI, 0.0)
 
-	## The libraries carry a couple of hundred clips between them, which is not a list
-	## anything can be found in. They are offered a family at a time instead.
 	_family_pick = OptionButton.new()
 	_family_pick.item_selected.connect(_pick_family)
 	side.add_child(_family_pick)
@@ -184,9 +169,6 @@ func _build_side() -> void:
 	_pitch_fix = _add_slider(side, "pitch fix", -PI * 0.5, PI * 0.5, 0.0)
 	_pitch_fix.value_changed.connect(func(_v: float) -> void: _apply_fix())
 
-	## Crossing from one state to another is the half of the rig that cannot be seen by
-	## looking at clips one at a time, and it is where every animation bug so far has
-	## actually lived: a route that does not exist, a clip that outstays its window.
 	_from_pick = OptionButton.new()
 	_to_pick = OptionButton.new()
 	for state in CharacterRig.STATES:
@@ -224,9 +206,6 @@ func _build_side() -> void:
 	_fixes = [_yaw_fix, _pitch_fix]
 
 
-## Label and slider go in together, so hiding a control that does not apply to the
-## subject takes its caption with it rather than leaving a heading over the control
-## below.
 func _add_slider(parent: Container, label: String, from: float, to: float,
 		value: float) -> HSlider:
 	var row := VBoxContainer.new()
@@ -257,7 +236,6 @@ func _add_toggle(parent: Container, label: String, on: bool,
 	return check
 
 
-## Swaps what is on the turntable.
 func _load(index: int) -> void:
 	if index < 0 or index >= _entries.size():
 		return
@@ -317,7 +295,6 @@ func _build_character() -> Node3D:
 	return rig
 
 
-## A weapon from wherever it came from.
 func _build_weapon(entry: Dictionary) -> Node3D:
 	if entry.has("proxy"):
 		return WeaponProxy.make(entry.proxy)
@@ -335,8 +312,6 @@ func _build_model() -> Node3D:
 	return subject
 
 
-## Families first, in the order the kit's own naming suggests: everything the rig wires
-## up together at the top, then the rest of the library alphabetically.
 func _fill_clips() -> void:
 	_family_pick.clear()
 	_clip_pick.clear()
@@ -359,8 +334,6 @@ func _fill_clips() -> void:
 	_pick_family(0)
 
 
-## The kit names a clip for what it belongs to before it says which one it is, so the
-## token in front is the family: Sword_Light_A and Sword_Block are both swordplay.
 static func _family_of(clip: String) -> String:
 	var leaf := clip.get_file() if clip.contains("/") else clip
 	var cut := leaf.find("_")
@@ -386,10 +359,7 @@ func _pick_family(index: int) -> void:
 	_clips.sort()
 	_clip_pick.clear()
 	for clip in _clips:
-		## A wired clip is marked, so the ones the game leans on stand out of the kit.
 		_clip_pick.add_item("%s%s" % ["* " if _usage.has(clip) else "", clip])
-	## Selected but not played: switching family should not take a subject off the
-	## locomotion tree, which is what it is showing by default.
 	if not _clips.is_empty():
 		_clip_pick.selected = 0
 		if not _walking.button_pressed:
@@ -398,24 +368,15 @@ func _pick_family(index: int) -> void:
 			_report()
 
 
-## Drops the rig into `from` outright, then asks it to travel to `to` and watches what it
-## actually does about it. The interesting answer is not that it arrives -- it is which
-## way round it went, how long that took, and whether any of it cross-faded: a travel
-## with no route hard-cuts, which looks the same in a still and nothing like it in motion.
 func _run_cross() -> void:
 	if _rig == null or _rig.tree == null:
 		return
 	var from: StringName = _cross_states[_from_pick.selected] if _from_pick.selected >= 0 \
 			else &"move"
 	_cross_target = _cross_states[_to_pick.selected] if _to_pick.selected >= 0 else &"move"
-	## The tree has to be driving for a travel to mean anything, but the locomotion feed
-	## is suspended while watching so the stance does not travel out from under the test.
 	if not _walking.button_pressed:
 		_walking.button_pressed = true
 	var playback: AnimationNodeStateMachinePlayback = _rig.tree.get("parameters/playback")
-	## Dropped into `from` now and travelled next frame: a travel asked for in the same
-	## frame as the start is worked out from the node being left, not the one being
-	## started, and comes back with no route at all.
 	playback.start(from)
 	_cross_plan = []
 	_cross_pending = true
@@ -436,10 +397,6 @@ func _watch_cross(delta: float) -> void:
 		_cross_pending = false
 		playback.travel(_cross_target)
 		return
-	## The route is worked out a tick after it is asked for, so the first non-empty path
-	## seen is the plan. Sampling the current node instead would miss hops passed through
-	## inside one frame, and a plan that never fills is the tell for a state the machine
-	## could not reach -- which it hard-cuts to rather than refusing.
 	if _cross_plan.is_empty():
 		for hop in playback.get_travel_path():
 			_cross_plan.append(String(hop))
@@ -459,9 +416,6 @@ func _watch_cross(delta: float) -> void:
 	if not arrived:
 		_cross_lines.append("[color=#ff6a6a]never arrived at '%s'[/color]" % _cross_target)
 	elif not _cross_faded and _cross_route[0] != String(_cross_target):
-		## Arrived with nothing ever blending. A chain of immediate hops empties its
-		## travel path inside one frame, so the path is no test -- but a real route always
-		## fades through, and a state the machine could not reach is started outright.
 		_cross_lines.append("[color=#ff9a5a]hard cut -- nothing blended[/color]")
 	else:
 		_cross_lines.append("[color=#8fdc7a]cross-faded[/color]")
@@ -475,8 +429,6 @@ func _set_walking(on: bool) -> void:
 		_play_clip(_clip_pick.selected)
 
 
-## Picking a clip means wanting to see that clip, so it takes the rig off the locomotion
-## tree rather than being quietly ignored while the tree drives the bones.
 func _play_clip(index: int) -> void:
 	if _rig == null or _rig.animation == null or index < 0 or index >= _clips.size():
 		return
@@ -526,8 +478,6 @@ func _show_control(control: Control, shown: bool) -> void:
 	row.visible = shown
 
 
-## Applied to the model on screen and reported, so the value can be read off and written
-## into the species where it belongs.
 func _apply_fix() -> void:
 	if _syncing or _subject == null or _entry.get("kind") != "model":
 		return
@@ -573,9 +523,6 @@ func _report() -> void:
 	_info.text = "\n".join(lines)
 
 
-## What the clip on show is, and what the rig does with it. The second half is the point
-## of listing them here at all: the kit ships several hundred clips and the game leans on
-## a few dozen, and there is otherwise no way to tell which is which.
 func _clip_report() -> Array:
 	if _rig == null or _rig.animation == null:
 		return []
@@ -593,8 +540,6 @@ func _clip_report() -> Array:
 		out.append("[color=#8fdc7a]in the game:[/color] %s" % _usage[clip])
 		var window: float = _rig.window_for(_state_of(clip))
 		if window > 0.0:
-			## A fitted clip is not seen at the rate it is authored at, so the museum
-			## would otherwise show a slower animation than the game ever plays.
 			out.append("[color=#8fdc7a]fitted to %.2fs (%.2fx)[/color]" % [
 					window, anim.length / window])
 	else:
@@ -602,7 +547,6 @@ func _clip_report() -> Array:
 	return out
 
 
-## The state a wired clip belongs to, so its fitted window can be looked up.
 func _state_of(clip: String) -> StringName:
 	for state in CharacterRig.STATES:
 		if CharacterRig.STATES[state].clip == clip:
@@ -632,8 +576,6 @@ func _process(delta: float) -> void:
 		_pivot.rotation.y += 0.008
 	if _rig == null:
 		return
-	## A crossing owns the state machine for as long as it runs, so the locomotion feed
-	## does not travel the rig back to its stance halfway through the test.
 	if _crossing:
 		if _rig.tree:
 			_watch_cross(delta)

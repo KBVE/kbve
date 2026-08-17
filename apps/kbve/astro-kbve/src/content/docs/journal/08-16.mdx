@@ -77,6 +77,27 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 
 <BentoProse id="2026" heading="2026">
 
+### Voronoi Research
+
+-   11:15AM
+
+    The early morning round of deep research, this time we will be floating around the realm of voronoi!
+    My plan is to expand the biomes, which should include the mountain range and something snow or swamp related.
+    We do need to look eventually into the generation of sea and oceans, but that might be best for later on.
+    I did think about the harbor concept, that will be added later on once we get the oceans out of the way and then  use them as a connection point for the world.
+    I have to keep remembering that we are not building a world, we are building data points that get thrown into various machine functions that then place the procedural realm.
+    Once we get a decent gameplay loop, I think then it should be time to start the marketing around the game, ideally right when I can get a demo out.
+
+### FriendSlop Physics
+
+-   06:40PM
+
+    The physics for the game is currently ruinning on the main thread, so our goal will be to move that off to a worker.
+    There will be some smoothing that we will need to figure out, but I think this path will give us the best performance in the long term!
+    The biggest upside would be that since the networking is moved off thread, we could keep them close to each other, thus giving the main thread less work to do.
+
+
+
 - [ ]
 
 </BentoProse>

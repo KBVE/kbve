@@ -2,7 +2,7 @@ use bevy_dungeon::content::{self, TileVisibility};
 use bevy_dungeon::types::{
     self, ClassType, Direction, GameAction, GamePhase, MapPos, RoomType, SessionState,
 };
-use bevy_dungeon::{PlayerId, logic, start_solo};
+use bevy_dungeon::{PlayerId, logic, skills, start_solo};
 
 use super::dungeon::{Actor, Frame, draw_frame};
 use super::map::{self, Cell, Grid, Links};
@@ -202,18 +202,23 @@ impl Run {
     }
 
     #[cfg(test)]
+    pub fn log(&self) -> Vec<String> {
+        self.state.log.clone()
+    }
+
+    #[cfg(test)]
     pub fn notice(&self) -> Option<&str> {
         self.notice.as_deref()
     }
 
+    /// Hand an action to the rules engine.
+    ///
+    /// `apply_action` already folds its own log lines into `session.log`, so
+    /// the board must not append them a second time — doing so printed every
+    /// line twice.
     fn act(&mut self, action: GameAction) {
         match logic::apply_action(&mut self.state, action, self.actor) {
-            Ok(result) => {
-                self.notice = None;
-                for line in result.logs.iter() {
-                    self.state.log.push(line.clone());
-                }
-            }
+            Ok(_) => self.notice = None,
             Err(reason) => self.notice = Some(reason),
         }
         let len = self.state.log.len();
@@ -246,6 +251,7 @@ impl Run {
                 let name = item
                     .map(|d| d.name)
                     .or(gear.map(|g| g.name))
+                    .or_else(|| content::material_name(&stack.item_id))
                     .unwrap_or(stack.item_id.as_str());
                 let label = if stack.qty > 1 {
                     format!("{name} x{}", stack.qty)
@@ -267,7 +273,10 @@ impl Run {
                     label,
                     detail: item
                         .map(|d| d.description.to_owned())
-                        .or_else(|| gear.map(gear_summary)),
+                        .or_else(|| gear.map(gear_summary))
+                        .or_else(|| {
+                            content::material_description(&stack.item_id).map(str::to_owned)
+                        }),
                     action,
                 }
             })
@@ -390,6 +399,20 @@ impl Run {
                     "Meditate".to_string(),
                     Act::Do(GameAction::RoomChoice(1)),
                 ));
+            }
+            GamePhase::Gathering => {
+                let me = self.state.player(self.actor);
+                for (i, node) in self.state.room.resource_nodes.iter().enumerate().take(9) {
+                    if node.remaining == 0 || !skills::can_gather(&me.skills, &node.item_ref) {
+                        continue;
+                    }
+                    let key = char::from_digit(i as u32 + 1, 10).unwrap_or('1');
+                    out.push((
+                        key,
+                        format!("Work {} ({} left)", node.name, node.remaining),
+                        Act::Do(GameAction::RoomChoice(i as u8)),
+                    ));
+                }
             }
             GamePhase::Event => {
                 if let Some(event) = &self.state.room.story_event {

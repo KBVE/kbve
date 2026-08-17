@@ -1,22 +1,14 @@
 extends RefCounted
 
-## IK for a chain of hinge joints ending in a point the last bone carries, which is how
-## the mech pack rigs a leg: the foot is a sibling control, not a child of the shin, so
-## there is no tip bone to solve to.
 
 const TwoBoneIK := preload("res://src/characters/two_bone_ik.gd")
 
-## Bend swept while bracketing the solution, each way from the posed bend.
 const MAX_BEND := 2.2
-## Samples across the sweep. A chain posed straight gets shorter whichever way it is
-## bent, so the span is not monotonic in the bend and cannot be bisected blind.
 const SAMPLES := 24
 const BISECTIONS := 8
 const EPSILON := 0.000001
 
 
-## Bends every joint below the root by a shared angle until the tip is `goal` away, then
-## swings the root to aim at it. Blended in by `amount`.
 static func solve(skeleton: Skeleton3D, bones: PackedInt32Array, tip_local: Vector3,
 		goal: Vector3, amount: float) -> bool:
 	if bones.size() < 2 or amount <= 0.001:
@@ -52,15 +44,11 @@ static func solve(skeleton: Skeleton3D, bones: PackedInt32Array, tip_local: Vect
 	return true
 
 
-## Where the tip sits right now, in world space.
 static func tip(skeleton: Skeleton3D, bones: PackedInt32Array, tip_local: Vector3,
 		to_world: Transform3D) -> Vector3:
 	return to_world * (skeleton.get_bone_global_pose(bones[bones.size() - 1]) * tip_local)
 
 
-## Joint `j`'s hinge, read off the bend the rest pose was authored with and handed back in
-## the pose the chain is in now. Held in the frame of the bone above the joint, so it
-## follows whatever the joints closer to the root have already been turned by.
 static func axis(skeleton: Skeleton3D, bones: PackedInt32Array, tip_local: Vector3,
 		j: int, to_world: Transform3D) -> Vector3:
 	var above := bones[j - 1]
@@ -80,8 +68,6 @@ static func _rest_tip(skeleton: Skeleton3D, bones: PackedInt32Array,
 	return skeleton.get_bone_global_rest(bones[bones.size() - 1]) * tip_local
 
 
-## Shortest and longest the chain can be from its root, which for a folded leg is nothing
-## like the sum of its bones.
 static func rest_limits(skeleton: Skeleton3D, bones: PackedInt32Array,
 		tip_local: Vector3) -> Vector2:
 	var joints := PackedVector3Array()
@@ -108,9 +94,6 @@ static func _rest_axis(skeleton: Skeleton3D, bones: PackedInt32Array, tip_local:
 	return (above - here).cross(beyond - here)
 
 
-## Shared joint angle that puts the tip `span` from the root: the sweep is sampled, the
-## crossing that moves the pose least is bracketed, and that bracket is bisected. Out of
-## range, the sample that comes closest is as far as the chain goes.
 static func _bend_for(joints: PackedVector3Array, tip: Vector3, axes: PackedVector3Array,
 		span: float) -> float:
 	var step := MAX_BEND * 2.0 / SAMPLES
@@ -146,8 +129,6 @@ static func _bend_for(joints: PackedVector3Array, tip: Vector3, axes: PackedVect
 	return (low + high) * 0.5
 
 
-## Tip distance the chain would have if every joint turned by `bend`, without touching the
-## skeleton.
 static func _reach(joints: PackedVector3Array, tip: Vector3, axes: PackedVector3Array,
 		bend: float) -> float:
 	var points := joints.duplicate()

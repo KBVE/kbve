@@ -1,15 +1,10 @@
 class_name KbveApi
 extends Node
 
-## Reads the signed-in player's account from the KBVE API.
 
-## Balance arrived.
 signal wallet(credits: int, khash: int)
-## Nothing could be read, with wording to show.
 signal wallet_failed(reason: String)
-## The handle is now theirs.
 signal username_set(username: String)
-## It is not, with wording to show.
 signal username_failed(reason: String)
 
 const BASE_URL := "https://kbve.com"
@@ -28,16 +23,12 @@ func _ready() -> void:
 	add_child(_request)
 	_request.request_completed.connect(_on_wallet)
 
-	# Its own request node, so a balance still in flight cannot cancel a claim or be
-	# mistaken for its answer.
 	_username_request = HTTPRequest.new()
 	_username_request.timeout = TIMEOUT
 	add_child(_username_request)
 	_username_request.request_completed.connect(_on_username)
 
 
-## Asks for the balance behind `token`. A guest has no token and no balance, so nothing
-## is sent rather than a call being made that can only come back unauthorized.
 func fetch_wallet(token: String) -> void:
 	if _request == null:
 		return
@@ -53,8 +44,6 @@ func fetch_wallet(token: String) -> void:
 		wallet_failed.emit("request failed (%d)" % err)
 
 
-## Anything unreadable is reported rather than shown as zero. A balance of nothing is a
-## number a player would act on, and it is not the same claim as "could not be read".
 func _on_wallet(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	if result != HTTPRequest.RESULT_SUCCESS:
 		wallet_failed.emit("no answer (%d)" % result)
@@ -75,12 +64,6 @@ func _on_wallet(result: int, code: int, _headers: PackedStringArray, body: Packe
 	wallet.emit(int(parsed["credits"]), int(parsed["khash"]))
 
 
-## Claims `username` for whoever holds `token`.
-##
-## The caller must refresh the session afterwards. The handle lands in the account's
-## `kbve_username` claim, and the token already in hand was minted before it existed — so
-## until it is traded in, the client is holding proof of an account that still looks
-## nameless.
 func set_username(token: String, username: String) -> void:
 	if _username_request == null:
 		return
@@ -99,8 +82,6 @@ func set_username(token: String, username: String) -> void:
 		username_failed.emit("request failed (%d)" % err)
 
 
-## A refused name is reported in the server's own words where it has any: "already taken"
-## is something the player can act on, where a status code is not.
 func _on_username(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	if result != HTTPRequest.RESULT_SUCCESS:
 		username_failed.emit("no answer (%d)" % result)

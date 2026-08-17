@@ -1,16 +1,10 @@
 class_name DialogueRunner
 extends RefCounted
 
-## Walks a DialogueGraph. Holds no UI and draws nothing: it answers what is being said,
-## who says it, and what can be said back, and the panel turns that into something on
-## screen.
 
 signal line_changed
 signal finished
 
-## A gate that sends the walk somewhere else can chain. Past this many hops in a row the
-## graph has a cycle no player input can break, which is a bug in the graph rather than
-## something to hang the game on.
 const MAX_HOPS := 64
 
 var graph: DialogueGraph
@@ -48,9 +42,6 @@ func speaker_key() -> String:
 	return graph.speaker_of(_at) if not _done else ""
 
 
-## The choices whose conditions hold, in the order the graph lists them. Each carries the
-## index to hand back to `choose`, so a caller never has to map a filtered list onto the
-## authored one.
 func choices() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	if _done:
@@ -70,8 +61,6 @@ func choices() -> Array[Dictionary]:
 	return out
 
 
-## Takes the choice at an index `choices` handed out, applies whatever it writes down, and
-## moves on. A choice with no `to` ends the conversation, which is what "leave" is.
 func choose(index: int) -> bool:
 	if _done:
 		return false
@@ -91,8 +80,6 @@ func choose(index: int) -> bool:
 	return _enter(str(choice.get("to", "")))
 
 
-## Moves past a node that is only a line. A node with choices waits for one, because
-## advancing past a question would answer it for the player.
 func advance() -> bool:
 	if _done:
 		return false
@@ -106,9 +93,6 @@ func stop() -> void:
 		_finish()
 
 
-## Walks to a node, applying its gate and its effects. A node whose `if` fails is not
-## entered at all: the walk carries on to its `else`, which is how a line that has already
-## been heard steps aside for the one after it.
 func _enter(id: String) -> bool:
 	var at := id
 	for hop in MAX_HOPS:

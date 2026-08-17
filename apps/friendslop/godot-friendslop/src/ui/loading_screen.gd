@@ -1,21 +1,13 @@
 class_name LoadingScreen
 extends CanvasLayer
 
-## The screen that stands in front of a scene swap.
 
 const BACKDROP := Color(0.07, 0.06, 0.05, 1.0)
 const BAR_SIZE := Vector2(360, 10)
 const BAR_TRACK := Color(0.2, 0.16, 0.12, 0.9)
 
-## Frames to hold after the swap, so the new scene is the current one before it is asked
-## anything.
 const HOLD_FRAMES := 3
-## Longest the cover waits on a scene still building its world. Past this the player gets
-## a world that is still settling, which beats a cover that never lifts.
 const BUILD_TIMEOUT := 25.0
-## The build has no percentage to report -- it is one worker thread landing whenever it
-## lands -- so the bar eases toward full on this many seconds rather than lying about a
-## fraction it does not have.
 const BUILD_PACE := 4.0
 
 var _label: Label
@@ -23,7 +15,6 @@ var _fill: ColorRect
 var _percent: Label
 
 
-## Swaps to `path` behind a cover that keeps drawing while the load runs.
 static func swap(tree: SceneTree, path: String, what: String = "") -> LoadingScreen:
 	var screen := LoadingScreen.new()
 	screen.name = "LoadingScreen"
@@ -135,9 +126,6 @@ func _run(tree: SceneTree, path: String, what: String) -> void:
 	queue_free()
 
 
-## Holds the cover up while the scene builds whatever it cannot build inside _ready. The
-## world bakes its ground on a worker thread, and lifting the cover before that lands
-## drops the player into a scene with no collider under them.
 func _wait_for_world(tree: SceneTree, what: String) -> void:
 	var scene := tree.current_scene
 	if scene == null or not scene.has_method("world_ready") or scene.world_ready():

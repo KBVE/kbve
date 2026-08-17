@@ -4580,6 +4580,67 @@
 					"implicitDependencies": []
 				}
 			},
+			"esp32c6-display": {
+				"name": "esp32c6-display",
+				"type": "app",
+				"data": {
+					"root": "apps/hardware/esp32c6-display",
+					"targets": {
+						"build": {
+							"dependsOn": ["^build"],
+							"inputs": ["production", "^production"],
+							"cache": true,
+							"executor": "nx:run-commands",
+							"options": {
+								"command": "cargo build --release",
+								"cwd": "apps/hardware/esp32c6-display"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"lint": {
+							"inputs": [
+								"default",
+								"{workspaceRoot}/eslint.config.mjs",
+								"{workspaceRoot}/eslint.config.js"
+							],
+							"cache": true,
+							"executor": "nx:run-commands",
+							"options": {
+								"command": "cargo clippy --release -- -D warnings",
+								"cwd": "apps/hardware/esp32c6-display"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"flash": {
+							"executor": "nx:run-commands",
+							"dependsOn": ["build"],
+							"options": {
+								"cwd": "apps/hardware/esp32c6-display",
+								"command": "espflash flash --monitor ../../../dist/target/riscv32imac-unknown-none-elf/release/esp32c6-display"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"monitor": {
+							"executor": "nx:run-commands",
+							"options": {
+								"cwd": "apps/hardware/esp32c6-display",
+								"command": "espflash monitor"
+							},
+							"configurations": {},
+							"parallelism": true
+						}
+					},
+					"name": "esp32c6-display",
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"projectType": "application",
+					"sourceRoot": "apps/hardware/esp32c6-display/src",
+					"tags": ["lang:rust", "platform:embedded"],
+					"implicitDependencies": []
+				}
+			},
 			"friendslop-server": {
 				"name": "friendslop-server",
 				"type": "app",
@@ -12732,6 +12793,15 @@
 									"import": "./astro.es.js",
 									"types": "./index.d.ts"
 								},
+								"./sitemap/lastmod": {
+									"import": "./sitemap/lastmod.mjs"
+								},
+								"./sitemap/canonical": {
+									"import": "./sitemap/canonical.mjs"
+								},
+								"./sitemap/routes": {
+									"import": "./sitemap/routes.mjs"
+								},
 								"./components/DroidProvider.astro": "./components/DroidProvider.astro",
 								"./components/DroidStatus.astro": "./components/DroidStatus.astro",
 								"./components/StepCard.astro": "./components/StepCard.astro",
@@ -15350,7 +15420,7 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"commands": ["nx test q"],
+								"commands": ["nx run q:test-all"],
 								"parallel": false
 							},
 							"configurations": {},
@@ -15367,6 +15437,19 @@
 							"outputs": ["{options.target-dir}"],
 							"options": {
 								"target-dir": "dist/target/q"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"test-all": {
+							"executor": "nx:run-commands",
+							"options": {
+								"cwd": "packages/rust/q",
+								"commands": [
+									"cargo test --lib --features net-godot",
+									"cargo test --lib --no-default-features --features net-server,net-session"
+								],
+								"parallel": false
 							},
 							"configurations": {},
 							"parallelism": true
@@ -17219,6 +17302,7 @@
 				}
 			],
 			"bevy_mapdb": [],
+			"esp32c6-display": [],
 			"friendslop-server": [
 				{
 					"source": "friendslop-server",
@@ -17744,17 +17828,17 @@
 			"astro-kbve": [
 				{
 					"source": "astro-kbve",
+					"target": "astro",
+					"type": "static"
+				},
+				{
+					"source": "astro-kbve",
 					"target": "laser",
 					"type": "static"
 				},
 				{
 					"source": "astro-kbve",
 					"target": "droid",
-					"type": "static"
-				},
-				{
-					"source": "astro-kbve",
-					"target": "astro",
 					"type": "static"
 				},
 				{
@@ -17894,12 +17978,12 @@
 				{
 					"source": "astro-irc",
 					"target": "astro",
-					"type": "dynamic"
+					"type": "static"
 				},
 				{
 					"source": "astro-irc",
 					"target": "astro",
-					"type": "static"
+					"type": "dynamic"
 				},
 				{
 					"source": "astro-irc",

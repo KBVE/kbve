@@ -2,16 +2,12 @@ class_name PaperButton
 extends Button
 
 
-## A menu button: one of a stack of equal slabs, so it takes a set width and centres what
-## it says.
 static func make(text: String, action: Callable) -> PaperButton:
 	var b := _paper(text, action, MenuStyle.BUTTON_FONT, MenuStyle.BUTTON_PAD)
 	b.custom_minimum_size = MenuStyle.BUTTON_MIN
 	return b
 
 
-## A spoken reply: one of a list rather than one of a stack, so it takes only the width of
-## what it says and lines its text up with the replies above and below it.
 static func reply(text: String, action: Callable) -> PaperButton:
 	var b := _paper(text, action, MenuStyle.REPLY_FONT, MenuStyle.REPLY_PAD)
 	b.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -19,9 +15,6 @@ static func reply(text: String, action: Callable) -> PaperButton:
 	return b
 
 
-## A slab in somebody else's colours, for the one place a button is not ours to style:
-## a provider's sign-in button is expected to look like that provider, and a row of
-## identically papery ones is a row nobody can tell apart at a glance.
 static func branded(text: String, action: Callable, tint: Color, icon: Texture2D) -> PaperButton:
 	var b := make(text, action)
 	for state in ["font_color", "font_hover_color", "font_pressed_color", "font_focus_color"]:
@@ -54,8 +47,6 @@ static func _paper(text: String, action: Callable, font: int, pad: Vector2) -> P
 	b.add_theme_stylebox_override("normal", styles.normal)
 	b.add_theme_stylebox_override("hover", styles.hover)
 	b.add_theme_stylebox_override("pressed", styles.pressed)
-	## Focus wears the hover look, or a reply reached by the keyboard is the one reply that
-	## does not light up.
 	b.add_theme_stylebox_override("focus", styles.hover)
 	if action.is_valid():
 		b.pressed.connect(action)

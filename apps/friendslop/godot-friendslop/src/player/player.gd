@@ -1,44 +1,55 @@
 extends CharacterBody3D
 
-## Speeds, the jump impulse, the fall cap and the stopping rate are all QLocomotion's
-## now, so the ring the rig blends over and the speed the body actually travels cannot
-## drift apart -- and an authoritative server reaches the same numbers from the same
-## intent.
 const MOUSE_SENSITIVITY := 0.003
 const PITCH_LIMITS := Vector2(-1.2, 0.6)
 
 const Mantle := preload("res://src/player/mantle.gd")
 
-## The ground is baked on a worker thread, so for the first frames of a scene there is
-## no collider anywhere and gravity has nothing to land on.
 @export var terrain_path: NodePath = ^"../Terrain"
-## Clearance kept above the ground when the body is settled onto it.
+@export var physics_path: NodePath = ^"../Physics"
+const CAPSULE_RADIUS := 0.5
+const CAPSULE_HALF_HEIGHT := 0.5
+const CAPSULE_CENTER := Vector3(0.0, 1.0, 0.0)
+const COYOTE_TIME := 0.12
+const BLOCKED_FRACTION := 0.5
+const BLOCKED_SECONDS := 0.15
 @export var settle_clearance := 1.0
-## How far under the ground the body has to be before it counts as having fallen through
-## the world rather than standing in a dip the height field smooths over.
 @export var fall_through_slack := 3.0
+
+@export_group("Body")
+@export var strength := 3
+@export var skill := 3
+@export var will := 3
+@export var jump_energy := 8.0
+@export var roll_energy := 14.0
 
 @onready var pivot: Node3D = $Pivot
 @onready var rig: Node3D = $Mesh
 
 var _terrain: Node
-## Held until there is ground, so the fall never starts.
 var _held := false
+
+var _sim: Node
+var _sim_id := 0
+var _airborne_t := 0.0
 
 var _touch := false
 var _talking := false
 var _mantle := Mantle.new()
-## Q_WALK="x,z" leans on the stick without a hand on it, and "auto" sweeps it through
-## every heading.
 var _walk := Vector2.ZERO
 var _walk_sweep := false
 var _walk_t := 0.0
 var _debug_t := 0.0
+var _blocked_t := 0.0
+var _debug_grounded := false
+var _debug_state: StringName = &""
+var _debug_held := 0.0
 
 
 func _ready() -> void:
 	_mantle.setup(self, rig)
 	_wait_for_ground()
+	_find_sim()
 	var walk := OS.get_environment("Q_WALK")
 	_walk_sweep = walk == "auto"
 	var axes := walk.split(",", false)
@@ -50,11 +61,64 @@ func _ready() -> void:
 	_touch = DisplayServer.is_touchscreen_available()
 	if OS.has_feature("mobile"):
 		_use_mobile_materials()
+	Vitals.enlist(Vitals.PLAYER, strength, skill, will)
+
+
+func _find_sim() -> void:
+	if OS.get_environment("Q_GODOT_PHYSICS") != "":
+		return
+	if physics_path.is_empty():
+		return
+	var node := get_node_or_null(physics_path)
+	if node == null or not node.has_method("spawn_character"):
+		return
+	_sim = node
+
+
+func _join_sim() -> void:
+	if _sim == null or _sim_id != 0 or not _sim.is_terrain_ready():
+		return
+	_sim_id = _sim.spawn_character(self, CAPSULE_HALF_HEIGHT, CAPSULE_RADIUS, CAPSULE_CENTER,
+			collision_layer, collision_mask)
+
+
+## Gives up on the velocity we planned when the sim says we are not achieving it.
+##
+## The sim publishes one velocity per tick and clears the translation it accumulated,
+## so read once per frame it is both stale and, on any tick that received no command,
+## an outright zero. Against an instantaneous plan that reads as a wall roughly a
+## fifth of the time while simply walking -- measured at 375 of 1860 frames -- and
+## each false positive drops the plan to a standstill for a frame, which the rig
+## animates as a restart. Only a shortfall that persists is a wall.
+func _adopt_blocked_velocity(delta: float) -> void:
+	var actual: Vector3 = _sim.body_velocity(_sim_id)
+	var planned := Vector2(velocity.x, velocity.z)
+	var moved := Vector2(actual.x, actual.z)
+	if planned.length() <= 0.01 or moved.length() >= planned.length() * BLOCKED_FRACTION:
+		_blocked_t = 0.0
+		return
+	_blocked_t += delta
+	if _blocked_t < BLOCKED_SECONDS:
+		return
+	velocity.x = actual.x
+	velocity.z = actual.z
+
+
+## Movement is polled rather than delivered as events, so focus alone does not stop the
+## keys reaching it and a chat line would walk the body across the world as it is typed.
+func _typing() -> bool:
+	for panel in get_tree().get_nodes_in_group(&"chat_panel"):
+		if panel.has_focus_grabbed():
+			return true
+	return false
+
+
+func _grounded() -> bool:
+	return _sim.character_grounded(_sim_id) if _sim_id != 0 else is_on_floor()
 
 
 func _wait_for_ground() -> void:
 	_terrain = get_node_or_null(terrain_path)
-	## Dropped rather than kept, so nothing downstream asks a node that cannot answer.
 	if _terrain != null and not (_terrain.has_method("is_ground_ready")
 			and _terrain.has_method("height_at")):
 		_terrain = null
@@ -67,9 +131,6 @@ func _wait_for_ground() -> void:
 		_terrain.ground_ready.connect(_settle, CONNECT_ONE_SHOT)
 
 
-## Puts the body on the ground and lets it move again. The terrain picks the spawn itself
-## once it has heights, so this only lifts a body that would otherwise start underneath
-## one.
 func _settle() -> void:
 	_held = false
 	velocity = Vector3.ZERO
@@ -77,11 +138,10 @@ func _settle() -> void:
 		return
 	var ground: float = _terrain.height_at(global_position.x, global_position.z)
 	global_position.y = maxf(global_position.y, ground + settle_clearance)
+	if _sim_id != 0:
+		_sim.teleport_character(_sim_id, global_position)
 
 
-## True once the body is under the ground by more than any dip explains, which is the
-## shape a fall through the world takes: a hitch long enough to outrun the collider, or a
-## spawn that beat it.
 func _fell_through() -> bool:
 	if _held or _terrain == null or not _terrain.is_ground_ready():
 		return false
@@ -89,8 +149,6 @@ func _fell_through() -> bool:
 			- fall_through_slack
 
 
-## The screen-space ink pass depends on Forward+ only inputs, so it is dropped under the
-## mobile renderer.
 func _use_mobile_materials() -> void:
 	var ink: Node = get_node_or_null("Pivot/Camera3D/InkLines")
 	if ink:
@@ -102,8 +160,6 @@ func _notification(what: int) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
-## Held mid-conversation: the body stops taking the stick, and a click on a reply is not
-## also a click that recaptures the mouse.
 func set_talking(on: bool) -> void:
 	_talking = on
 
@@ -136,6 +192,7 @@ func _process(_delta: float) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_join_sim()
 	if _held:
 		velocity = Vector3.ZERO
 		rig.drive(Vector3.ZERO, global_rotation.y, false, delta)
@@ -145,8 +202,10 @@ func _physics_process(delta: float) -> void:
 				global_position.x, global_position.y, global_position.z])
 		_settle()
 
+	var typing := _typing()
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-	## Standing and listening, but still falling if the ground goes away underneath.
+	if typing:
+		input_dir = Vector2.ZERO
 	if _talking:
 		input_dir = Vector2.ZERO
 	if _walk_sweep:
@@ -154,34 +213,69 @@ func _physics_process(delta: float) -> void:
 		input_dir = Vector2.RIGHT.rotated(_walk_t * 0.8)
 	elif _walk != Vector2.ZERO:
 		input_dir = _walk
-	var jump := Input.is_action_just_pressed("jump")
-	var roll := Input.is_action_just_pressed("roll") and not _talking
-	var crouch := Input.is_action_pressed("crouch") and not _talking
-	var block := Input.is_action_pressed("block") and not _talking
+	var jump := _afford(Input.is_action_just_pressed("jump") and not typing, jump_energy)
+	var roll := _afford(
+			Input.is_action_just_pressed("roll") and not _talking and not typing, roll_energy)
+	var crouch := Input.is_action_pressed("crouch") and not _talking and not typing
+	var block := Input.is_action_pressed("block") and not _talking and not typing
 	var direction: Vector3 = rig.wish_direction(input_dir, global_rotation.y)
 
 	if _mantle.update(delta, direction, jump):
+		if _sim_id != 0:
+			_sim.teleport_character(_sim_id, global_position)
 		_report(delta)
 		return
 
+	var grounded := _grounded()
+	if grounded and velocity.y < 0.0:
+		velocity.y = 0.0
 	velocity = rig.step_motion(input_dir, jump, crouch, roll, block,
-			velocity, global_rotation.y, is_on_floor(), get_gravity().y, delta)
+			velocity, global_rotation.y, grounded, get_gravity().y, delta)
 	if rig.jumped():
 		Game.events.notify(EventNames.PLAYER_JUMPED, global_position)
 
-	move_and_slide()
-	rig.drive(velocity, global_rotation.y, not is_on_floor(), delta)
+	_airborne_t = 0.0 if grounded else _airborne_t + delta
+
+	var planned := velocity
+	if _sim_id != 0:
+		_sim.move_character(_sim_id, velocity * delta)
+		_adopt_blocked_velocity(delta)
+	else:
+		move_and_slide()
+	rig.drive(planned, global_rotation.y, _airborne_t > COYOTE_TIME, delta)
 	_report(delta)
+
+
+func _afford(wanted: bool, cost: float) -> bool:
+	if not wanted:
+		return false
+	if not Vitals.running():
+		return true
+	if not Vitals.can_afford(Vitals.PLAYER, Vitals.Pool.ENERGY, cost):
+		return false
+	Vitals.drain(Vitals.PLAYER, Vitals.Pool.ENERGY, cost)
+	return true
 
 
 func _report(delta: float) -> void:
 	if OS.get_environment("Q_MOVE_DEBUG") == "":
 		return
+	var grounded := _grounded()
+	var state: StringName = rig.debug_state()
+	var changed := grounded != _debug_grounded or state != _debug_state
 	_debug_t += delta
-	if _debug_t < 0.5:
+	_debug_held += delta
+	if not changed and _debug_t < 0.5:
 		return
+	if changed:
+		print("[move] %s floor=%s->%s anim=%s->%s after=%.3fs vy=%+.2f air=%.3f" % [
+				"CHANGE", str(_debug_grounded), str(grounded),
+				_debug_state, state, _debug_held, velocity.y, _airborne_t])
+		_debug_held = 0.0
+	else:
+		print("[move] at=(%.1f,%.1f,%.1f) floor=%s vy=%+.2f anim=%s" % [
+				global_position.x, global_position.y, global_position.z,
+				str(grounded), velocity.y, state])
 	_debug_t = 0.0
-	print("[move] at=(%.1f,%.1f,%.1f) floor=%s vy=%+.2f slides=%d anim=%s" % [
-			global_position.x, global_position.y, global_position.z,
-			str(is_on_floor()), velocity.y, get_slide_collision_count(),
-			rig.debug_state()])
+	_debug_grounded = grounded
+	_debug_state = state

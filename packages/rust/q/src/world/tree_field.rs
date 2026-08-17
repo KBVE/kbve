@@ -272,6 +272,11 @@ pub struct QTreeField {
     terrain_path: NodePath,
     #[export]
     player_path: NodePath,
+    /// Off-thread sim to mirror the trunk colliders into. Godot keeps its own copy
+    /// either way -- the mantle and camera probes raycast against it.
+    #[export]
+    #[init(val = NodePath::from("../Physics"))]
+    physics_path: NodePath,
     #[export]
     tree_material: Option<Gd<ShaderMaterial>>,
     #[export]
@@ -339,6 +344,9 @@ pub struct QTreeField {
     day_progress: f32,
     #[init(val = Rid::Invalid)]
     body: Rid,
+    /// Sim body ids handed out by `QPhysics3D`, so a rebuild takes the previous set
+    /// down before registering the new one.
+    sim_bodies: PackedInt64Array,
     trunk_shapes: Vec<Rid>,
     /// Which shape on the trunk body belongs to which tree, so felling one is a
     /// disable rather than a rebuild.
@@ -923,6 +931,56 @@ impl QTreeField {
         }
         self.body = body;
         self.trunk_shapes = shapes;
+        self.publish_sim_colliders();
+    }
+
+    /// Mirrors the trunk colliders into the off-thread sim, one batch per bucket so
+    /// each distinct cylinder crosses the channel once rather than once per tree.
+    /// Felled trunks are left out entirely: the sim has no disabled-shape notion, and a
+    /// rebuild is what a felling already triggers.
+    fn publish_sim_colliders(&mut self) {
+        let Some(mut phys) = self
+            .base()
+            .get_node_or_null(&self.physics_path)
+            .and_then(|n| n.try_cast::<crate::rapier::bridge3d::QPhysics3D>().ok())
+        else {
+            return;
+        };
+
+        let taken = std::mem::take(&mut self.sim_bodies);
+        if !taken.is_empty() {
+            phys.bind_mut().despawn_batch(taken);
+        }
+
+        let scale_r = self.trunk_collider_radius / TRUNK_BUCKETS[1];
+        let mut by_bucket: Vec<Array<Transform3D>> = vec![Array::new(); TRUNK_BUCKETS.len()];
+        for (c, id) in self.candidates.chunks_exact(8).zip(self.cand_ids.iter()) {
+            if !self.core.alive(*id) {
+                continue;
+            }
+            let bi = trunk_bucket(c[3]);
+            let half = TRUNK_BUCKETS[bi] * TRUNK_COLLIDER_SPAN * 0.5;
+            by_bucket[bi].push(Transform3D::IDENTITY.translated(Vector3::new(
+                c[0],
+                c[1] + half,
+                c[2],
+            )));
+        }
+
+        let mut ids = PackedInt64Array::new();
+        for (bi, transforms) in by_bucket.into_iter().enumerate() {
+            if transforms.is_empty() {
+                continue;
+            }
+            let s = TRUNK_BUCKETS[bi];
+            let spawned = phys.bind_mut().spawn_static_cylinders(
+                s * TRUNK_COLLIDER_SPAN * 0.5,
+                scale_r * s,
+                transforms,
+            );
+            ids.extend_array(&spawned);
+        }
+        self.sim_bodies = ids;
     }
 
     /// Everything that follows a stage changing, however it changed: the answer
@@ -974,6 +1032,7 @@ impl QTreeField {
             return;
         }
         PhysicsServer3D::singleton().body_set_shape_disabled(self.body, index, true);
+        self.publish_sim_colliders();
     }
 
     /// Flips a tree from standing to felled across every pass at once. The near

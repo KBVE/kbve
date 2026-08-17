@@ -1,13 +1,9 @@
 class_name OAuthLoopback
 extends Node
 
-## One-shot loopback listener for a browser OAuth redirect.
 
-## Long enough to find the tab, log in, and approve; short enough that a forgotten
-## window does not leave a socket open for the session.
 const TIMEOUT_SECONDS := 180.0
 
-## RFC 7636 puts the verifier between 43 and 128 characters.
 const VERIFIER_BYTES := 32
 
 signal finished(answer: Dictionary)
@@ -22,12 +18,10 @@ func _ready() -> void:
 	set_process(false)
 
 
-## A fresh code verifier: base64url, unpadded, cryptographically random.
 static func new_verifier() -> String:
 	return _b64url(Crypto.new().generate_random_bytes(VERIFIER_BYTES))
 
 
-## The challenge derived from a verifier — SHA-256, base64url.
 static func challenge_for(verifier: String) -> String:
 	var ctx := HashingContext.new()
 	ctx.start(HashingContext.HASH_SHA256)
@@ -44,7 +38,6 @@ static func _b64url(bytes: PackedByteArray) -> String:
 	)
 
 
-## Binds an ephemeral port on localhost and returns it, or 0 if nothing was free.
 func listen() -> int:
 	_server = TCPServer.new()
 	if _server.listen(0, "127.0.0.1") != OK:
@@ -53,8 +46,6 @@ func listen() -> int:
 	return _server.get_local_port()
 
 
-## Resolves once the browser comes back: `{"code": "..."}`, or `{"error": "..."}` for a
-## refusal, a timeout, or a request that carried neither.
 func wait_for_code() -> Dictionary:
 	if _server == null:
 		return {"error": "No local port was available for sign-in."}
@@ -90,7 +81,6 @@ func _process(delta: float) -> void:
 	_finish(answer)
 
 
-## Pulls the result out of an HTTP request line.
 static func parse_request(request: String) -> Dictionary:
 	var line := request.split("\r\n")[0]
 	var parts := line.split(" ")
@@ -115,7 +105,6 @@ static func parse_request(request: String) -> Dictionary:
 	return {"error": "Sign-in came back without a code."}
 
 
-## The page the player is left looking at.
 func _reply(answer: Dictionary) -> void:
 	var message := (
 		"You are signed in. Close this tab and return to the game."
@@ -141,7 +130,6 @@ func _finish(answer: Dictionary) -> void:
 	finished.emit(answer)
 
 
-## Idempotent: called on the way out of every path, including cancellation.
 func close() -> void:
 	if _peer:
 		_peer.disconnect_from_host()

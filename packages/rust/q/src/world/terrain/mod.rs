@@ -84,6 +84,12 @@ pub struct QTerrain {
     wake_enabled: bool,
     #[export]
     player_path: NodePath,
+    /// Off-thread sim to mirror the bridge collision into. The heightfield alone puts
+    /// water under the crossing, so without this a body walks onto the deck and drops
+    /// through it.
+    #[export]
+    #[init(val = NodePath::from("../Physics"))]
+    physics_path: NodePath,
     #[export]
     grass_material: Option<Gd<ShaderMaterial>>,
     #[export]
@@ -155,6 +161,9 @@ pub struct QTerrain {
     road_res: i32,
     road: Option<road::RoadNetwork>,
     ground_body: Option<Gd<StaticBody3D>>,
+    /// Sim bodies standing in for the bridge. The structure is rebuilt whenever the
+    /// window moves, so these are taken down with the nodes they mirror.
+    sim_bridge: PackedInt64Array,
     ground_shape: Option<Gd<HeightMapShape3D>>,
     window: Option<crate::worldgen::Window>,
     shift_rx: Option<std::sync::mpsc::Receiver<(Vec<f32>, [f32; 2])>>,
@@ -366,6 +375,15 @@ impl QTerrain {
     /// Takes down the previous window's road furniture. The carriageway is paint
     /// and goes with the mask, but the bridge is nodes and has to be freed.
     fn clear_road(&mut self) {
+        let taken = std::mem::take(&mut self.sim_bridge);
+        if !taken.is_empty()
+            && let Some(mut phys) = self
+                .base()
+                .get_node_or_null(&self.physics_path)
+                .and_then(|n| n.try_cast::<crate::rapier::bridge3d::QPhysics3D>().ok())
+        {
+            phys.bind_mut().despawn_batch(taken);
+        }
         for name in ["BridgeBody", "BridgeAbutment", "Bridge"] {
             if let Some(mut n) = self.base().get_node_or_null(name) {
                 n.queue_free();

@@ -13,8 +13,6 @@ const HIDE_TARGETS := {
 	"ground": "Ground",
 }
 
-## Quality tiers live in graphics_settings.gd so the pre-ready latch here and the
-## runtime setters there can never drift apart.
 const GFX := preload("res://src/settings/graphics_settings.gd")
 
 
@@ -37,11 +35,8 @@ func _enter_tree() -> void:
 			mat.set_shader_parameter(key, GFX.MOBILE_GROUND[key])
 
 
-## On-device bisect.
 const BISECT_FIELDS := ["GrassField", "FloraField", "ShrubField", "StoneField", "TreeField"]
 const BISECT_GROUND := ["Ground", "Terrain"]
-## Water and the riverbed are QTerrain's own children, built in Rust, so they ride along
-## with any step that hides Terrain.
 const BISECT_WATER := ["Terrain/Water", "Terrain/Riverbed"]
 const BISECT_STEPS := [
 	{"name": "all", "hide": []},
@@ -61,8 +56,6 @@ func cycle_bisect() -> String:
 	return bisect_name()
 
 
-## Addressed by index as well as stepped, so the settings page can drive it the same way
-## it drives every other cycled option.
 func set_bisect(index: int) -> void:
 	bisect_step = clampi(index, 0, BISECT_STEPS.size() - 1)
 	var step: Dictionary = BISECT_STEPS[bisect_step]
@@ -128,8 +121,6 @@ func _ready() -> void:
 		_place_player.call_deferred(Vector3(float(pos[0]), float(pos[1]), float(pos[2])))
 
 
-## Whether there is ground to stand on yet. The loading cover reads this, because the
-## heights are baked on a worker thread and nothing before them has a collider.
 func world_ready() -> bool:
 	var terrain := get_node_or_null(^"Terrain")
 	if terrain == null or not terrain.has_method("is_ground_ready"):
@@ -137,9 +128,6 @@ func world_ready() -> bool:
 	return terrain.is_ground_ready()
 
 
-## Deferred, and held for a few frames: the player readies after this node and the
-## terrain settles it again once the collider streams in, so a single assignment during
-## _ready is overwritten before anything is drawn.
 func _place_player(where: Vector3) -> void:
 	var player := get_node_or_null("Player") as Node3D
 	if player == null:
@@ -149,8 +137,6 @@ func _place_player(where: Vector3) -> void:
 		await get_tree().process_frame
 
 
-## Writes the baked road and clearance masks out as images so a gap in the paint can be
-## told apart from a gap in the shading.
 func _dump_road_mask() -> void:
 	var ground := get_node_or_null("Ground") as MeshInstance3D
 	if ground == null or not (ground.material_override is ShaderMaterial):

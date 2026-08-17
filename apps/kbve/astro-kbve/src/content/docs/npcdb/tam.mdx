@@ -50,6 +50,10 @@ dialogue_tree:
               - id: 'ask_bridge'
                 label: 'Why not watch from the bridge?'
                 next_node_id: 'bridge'
+              - id: 'take_the_guess'
+                label: 'Do you want somebody who would know to hear that?'
+                next_node_id: 'take_it_then'
+                condition: 'tam_heard_about_mechs, quest.friendslop-mech-watch<=1'
               - id: 'leave'
                 label: '(Walk away.)'
                 next_node_id: 'farewell'
@@ -63,6 +67,10 @@ dialogue_tree:
         - id: 'guess'
           text: "I think they're waiting for something to come back down the river. That's why they stand in it and not next to it."
           trigger_on_enter: 'set_flag:tam_guessed_the_mechs'
+          next_node_id: 'menu'
+        - id: 'take_it_then'
+          text: "The one with the books. They'll tell me I'm wrong, but they'll say why, and nobody down here ever says why."
+          trigger_on_enter: 'quest_start:friendslop-mech-watch'
           next_node_id: 'menu'
         - id: 'bridge'
           text: "Marlow charges. And you can't see the shallows from up there anyway, only the tops of them."

@@ -1,0 +1,37 @@
+{
+	"dir": ".github/signing",
+	"center": [-1753.33, 2468.23],
+	"r": 75.09,
+	"files": [
+		{
+			"i": 0,
+			"label": "sign-macos-binary.sh",
+			"path": ".github/signing/sign-macos-binary.sh",
+			"x": -1753.33,
+			"y": 2468.23,
+			"n": 2
+		}
+	],
+	"symbols": [
+		{
+			"i": 0,
+			"f": 0,
+			"label": "sign-macos-binary.sh",
+			"x": -1746.5,
+			"y": 2468.23,
+			"c": 4526,
+			"loc": "L1"
+		},
+		{
+			"i": 1,
+			"f": 0,
+			"label": "sign-macos-binary.sh script",
+			"x": -1762.05,
+			"y": 2476.22,
+			"c": 4526,
+			"loc": "L1"
+		}
+	],
+	"fileEdges": [],
+	"symbolEdges": [[0, 1, 1.0, 3]]
+}

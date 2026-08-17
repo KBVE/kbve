@@ -15,7 +15,8 @@
 		"build": "v{version}  ·  protocol {protocol}",
 		"server_protocol": "server protocol {protocol}",
 		"protocol_mismatch": "this build cannot join that server",
-		"server_unreachable": "server unreachable"
+		"server_unreachable": "server unreachable",
+		"server_protocol_unknown": "server protocol unknown"
 	},
 	"pause": {
 		"log_off": "Log Off"
@@ -52,7 +53,9 @@
 			"first_person": "First Person",
 			"third_person": "Third Person",
 			"over_shoulder": "Over Shoulder"
-		}
+		},
+		"bisect": "Hide Layers",
+		"bisect_hint": "Hides parts of the world one at a time, so you can see what the frame is being spent on."
 	},
 	"hud": {
 		"connecting": "Connecting to {{url}}…",
@@ -91,5 +94,16 @@
 		"claim": "Claim it",
 		"claiming": "claiming…",
 		"taken": "That one is taken."
+	},
+	"toast": {
+		"gained": "+{{count}} {{item}}",
+		"no_room": "Bag full — no room for {{count}} {{item}}"
+	},
+	"satchel": {
+		"title": "Satchel",
+		"cells": "{used} / {total} cells",
+		"weight": "{weight} kg",
+		"drop": "release to drop",
+		"empty": "empty"
 	}
 }

@@ -1,0 +1,432 @@
+{
+	"quests": [
+		{
+			"id": "01JX25PM4NR1QEMDFPVCJCNQ89",
+			"ref": "auto-cooker-9000",
+			"drafted": false,
+			"title": "Assemble the Auto Cooker 9000",
+			"description": "A prototype of the Auto Cooker 9000 has surfaced. Retrieve it and unlock its culinary secrets.",
+			"icon": "auto-cooker-icon",
+			"category": "QUEST_CATEGORY_MAIN",
+			"hidden": false,
+			"repeatable": false,
+			"recommendedLevel": 1,
+			"objectives": [
+				{
+					"id": "obj-recover-cooker",
+					"description": "Recover the Auto Cooker 9000",
+					"type": "OBJECTIVE_COLLECT",
+					"targetRefs": ["01JWN7TN1P44J963328VP0YNFF"],
+					"requiredAmount": 1
+				}
+			],
+			"rewards": {
+				"items": [
+					{ "itemRef": "01JWN7TN1P44J963328VP0YNFF", "amount": 1 }
+				],
+				"bonuses": { "cookingSpeed": 5, "recipeDiscovery": 10 },
+				"achievement": {
+					"apiName": "ACH_AUTO_COOKER_TEST",
+					"name": "Auto Cooker 9000",
+					"description": "Retrieve the legendary Auto Cooker.",
+					"iconAchieved": "/assets/icons/achievements/auto-cooker-achieved.png",
+					"iconUnachieved": "/assets/icons/achievements/auto-cooker-unachieved.png",
+					"globalPercent": 3.7,
+					"hidden": false,
+					"minValue": 0,
+					"maxValue": 1
+				},
+				"currency": 500
+			},
+			"triggers": ["player:level:1", "area:kitchen-zone"],
+			"nextQuestRef": null
+		},
+		{
+			"id": "01JX26BB2NDUNGEONDELVER0002",
+			"ref": "dungeon-delver",
+			"drafted": false,
+			"title": "Dungeon Delver",
+			"description": "Venture deep into the dungeon and explore its forgotten corridors.",
+			"category": "QUEST_CATEGORY_MAIN",
+			"tags": ["discordsh", "exploration", "beginner"],
+			"hidden": false,
+			"repeatable": false,
+			"recommendedLevel": 1,
+			"steps": [
+				{
+					"id": "step-explore-rooms",
+					"title": "Explore the Dungeon",
+					"objectives": [
+						{
+							"id": "obj-visit-5-rooms",
+							"description": "Explore 5 different rooms",
+							"type": "OBJECTIVE_EXPLORE",
+							"requiredAmount": 5
+						}
+					]
+				}
+			],
+			"rewards": { "currency": 75, "xp": 50 },
+			"triggers": ["player:level:1", "area:dungeon"],
+			"nextQuestRef": "shadow-hunter"
+		},
+		{
+			"id": "01KSAVZ00000000000QFSBITTERRT",
+			"ref": "friendslop-bitterroot",
+			"drafted": false,
+			"title": "Word from the Riverbank",
+			"description": "Wren knows which weed on the bank stops a wound going bad. The cleric would rather hear it from somebody who was shown.",
+			"category": "QUEST_CATEGORY_SIDE",
+			"tags": ["friendslop", "wren", "cleric"],
+			"hidden": false,
+			"repeatable": false,
+			"recommendedLevel": 1,
+			"giverNpcRefs": ["wren"],
+			"turnInNpcRefs": ["cleric"],
+			"requiredFlags": ["met_wren"],
+			"steps": [
+				{
+					"id": "step-be-shown",
+					"title": "Be shown the bitterroot",
+					"description": "Wren forages the bank. Ask her what grows there.",
+					"objectives": [
+						{
+							"id": "obj-bitterroot-taught",
+							"description": "Have Wren show you bitterroot",
+							"type": "OBJECTIVE_CUSTOM",
+							"targetRefs": ["flag:wren_taught_bitterroot"],
+							"requiredAmount": 1
+						}
+					],
+					"nextStepId": "step-carry-word"
+				},
+				{
+					"id": "step-carry-word",
+					"title": "Carry the word",
+					"description": "The cleric keeps the dressing. What Wren pulls out of the mud is half of it.",
+					"objectives": [
+						{
+							"id": "obj-tell-cleric",
+							"description": "Talk to the cleric",
+							"type": "OBJECTIVE_INTERACT",
+							"targetRefs": ["cleric"],
+							"requiredAmount": 1
+						}
+					]
+				}
+			],
+			"rewards": {
+				"xp": 60,
+				"reputationAmount": 1,
+				"reputationFaction": "cleric"
+			},
+			"nextQuestRef": null
+		},
+		{
+			"id": "01KSAVZ000000000000QFSMECHWCH",
+			"ref": "friendslop-mech-watch",
+			"drafted": false,
+			"title": "What the Mechs Are Waiting For",
+			"description": "The tall ones come down from the ridge and stand in the shallows. A boy on the bank has a guess. The mage has an opinion about the guess.",
+			"category": "QUEST_CATEGORY_SIDE",
+			"tags": ["friendslop", "tam", "mage", "mechs"],
+			"hidden": false,
+			"repeatable": false,
+			"recommendedLevel": 2,
+			"giverNpcRefs": ["tam"],
+			"turnInNpcRefs": ["mage"],
+			"requiredFlags": ["met_tam"],
+			"steps": [
+				{
+					"id": "step-hear-the-guess",
+					"title": "Hear the boy's guess",
+					"description": "Tam sits on the bank and watches them for hours. He has had time to think about it.",
+					"objectives": [
+						{
+							"id": "obj-tam-guessed",
+							"description": "Get Tam to say what he thinks they are waiting for",
+							"type": "OBJECTIVE_CUSTOM",
+							"targetRefs": ["flag:tam_guessed_the_mechs"],
+							"requiredAmount": 1
+						}
+					],
+					"nextStepId": "step-weigh-it"
+				},
+				{
+					"id": "step-weigh-it",
+					"title": "Have it weighed",
+					"description": "The mage will tell you whether a boy watching the shallows has worked out more than the ridge has.",
+					"objectives": [
+						{
+							"id": "obj-ask-the-mage",
+							"description": "Put the guess to the mage",
+							"type": "OBJECTIVE_CUSTOM",
+							"targetRefs": ["flag:mage_weighed_the_guess"],
+							"requiredAmount": 1
+						}
+					]
+				}
+			],
+			"rewards": {
+				"xp": 80,
+				"reputationAmount": 2,
+				"reputationFaction": "tam"
+			},
+			"nextQuestRef": null
+		},
+		{
+			"id": "01KSAVZ0000000000000QFSPLANK",
+			"ref": "friendslop-third-plank",
+			"drafted": false,
+			"title": "Mind the Third Plank",
+			"description": "Marlow keeps the river crossing and asks a toll for the bridge rather than for himself. Pay it, and the crossing is yours.",
+			"category": "QUEST_CATEGORY_TUTORIAL",
+			"tags": ["friendslop", "bridge", "marlow"],
+			"hidden": false,
+			"repeatable": false,
+			"recommendedLevel": 1,
+			"giverNpcRefs": ["marlow"],
+			"turnInNpcRefs": ["marlow"],
+			"steps": [
+				{
+					"id": "step-hear-him-out",
+					"title": "Hear the keeper out",
+					"description": "Marlow stands at the bank end of the span. He will tell you about the toll if you ask.",
+					"objectives": [
+						{
+							"id": "obj-talk-to-marlow",
+							"description": "Talk to Marlow at the crossing",
+							"type": "OBJECTIVE_INTERACT",
+							"targetRefs": ["marlow"],
+							"requiredAmount": 1
+						}
+					],
+					"nextStepId": "step-pay-the-toll"
+				},
+				{
+					"id": "step-pay-the-toll",
+					"title": "Pay the toll",
+					"description": "Not for him. For the bridge, which keeps standing as long as somebody still pays it something.",
+					"objectives": [
+						{
+							"id": "obj-toll-paid",
+							"description": "Pay Marlow the toll for the bridge",
+							"type": "OBJECTIVE_CUSTOM",
+							"targetRefs": ["flag:marlow_toll_paid"],
+							"requiredAmount": 1
+						}
+					]
+				}
+			],
+			"rewards": {
+				"xp": 40,
+				"reputationAmount": 2,
+				"reputationFaction": "marlow"
+			},
+			"nextQuestRef": null
+		},
+		{
+			"id": "01JX26DD4NKINGSDEMISE000004",
+			"ref": "kings-demise",
+			"drafted": false,
+			"title": "The King's Demise",
+			"description": "The Shattered King rules the deepest level of the dungeon. End his reign of terror.",
+			"category": "QUEST_CATEGORY_MAIN",
+			"tags": ["discordsh", "combat", "boss", "endgame"],
+			"hidden": false,
+			"repeatable": false,
+			"recommendedLevel": 5,
+			"prerequisites": {
+				"questRefs": ["shadow-hunter"],
+				"levelRequirement": 3
+			},
+			"steps": [
+				{
+					"id": "step-prepare",
+					"title": "Prepare for the Final Battle",
+					"objectives": [
+						{
+							"id": "obj-kill-10-enemies",
+							"description": "Defeat 10 enemies to prove you are ready",
+							"type": "OBJECTIVE_KILL",
+							"requiredAmount": 10
+						}
+					]
+				},
+				{
+					"id": "step-defeat-king",
+					"title": "Defeat the Shattered King",
+					"objectives": [
+						{
+							"id": "obj-kill-shattered-king",
+							"description": "Defeat the Shattered King",
+							"type": "OBJECTIVE_KILL",
+							"targetRefs": ["the-shattered-king"],
+							"requiredAmount": 1
+						}
+					]
+				}
+			],
+			"rewards": {
+				"currency": 500,
+				"xp": 300,
+				"items": [{ "itemRef": "excalibur", "amount": 1 }],
+				"achievement": {
+					"apiName": "ACH_KINGS_DEMISE",
+					"name": "Kingslayer",
+					"description": "Defeated the Shattered King in the deepest dungeon.",
+					"hidden": false,
+					"minValue": 0,
+					"maxValue": 1
+				}
+			},
+			"triggers": ["quest:complete:shadow-hunter"],
+			"nextQuestRef": null
+		},
+		{
+			"id": "01JX26CC3NSHADOWHUNTER00003",
+			"ref": "shadow-hunter",
+			"drafted": false,
+			"title": "Shadow Hunter",
+			"description": "A powerful shadow wraith has been sighted in the deeper levels. Track it down and destroy it.",
+			"category": "QUEST_CATEGORY_MAIN",
+			"tags": ["discordsh", "combat", "boss"],
+			"hidden": false,
+			"repeatable": false,
+			"recommendedLevel": 3,
+			"prerequisites": {
+				"questRefs": ["dungeon-delver"],
+				"levelRequirement": 2
+			},
+			"steps": [
+				{
+					"id": "step-reach-depth",
+					"title": "Descend to the Depths",
+					"objectives": [
+						{
+							"id": "obj-explore-rooms",
+							"description": "Explore 8 rooms to reach the deeper levels",
+							"type": "OBJECTIVE_EXPLORE",
+							"requiredAmount": 8
+						}
+					]
+				},
+				{
+					"id": "step-slay-boss",
+					"title": "Slay the Shadow Wraith",
+					"objectives": [
+						{
+							"id": "obj-kill-boss",
+							"description": "Defeat a boss enemy",
+							"type": "OBJECTIVE_KILL",
+							"targetRefs": ["shadow-wraith"],
+							"requiredAmount": 1
+						}
+					]
+				}
+			],
+			"rewards": {
+				"currency": 200,
+				"xp": 150,
+				"items": [{ "itemRef": "smoke-bomb", "amount": 3 }]
+			},
+			"triggers": ["quest:complete:dungeon-delver"],
+			"nextQuestRef": "kings-demise"
+		},
+		{
+			"id": "01JX26AA1NSLIMESLAYER000001",
+			"ref": "slime-slayer",
+			"drafted": false,
+			"title": "Slime Slayer",
+			"description": "The dungeon's lower tunnels are overrun with slimes. Clear them out to prove your worth.",
+			"category": "QUEST_CATEGORY_SIDE",
+			"tags": ["discordsh", "combat", "beginner"],
+			"hidden": false,
+			"repeatable": false,
+			"recommendedLevel": 1,
+			"steps": [
+				{
+					"id": "step-kill-slimes",
+					"title": "Exterminate the Slimes",
+					"objectives": [
+						{
+							"id": "obj-kill-3-enemies",
+							"description": "Defeat 3 enemies in the dungeon",
+							"type": "OBJECTIVE_KILL",
+							"requiredAmount": 3
+						}
+					]
+				}
+			],
+			"rewards": { "currency": 50, "xp": 30 },
+			"triggers": ["player:level:1", "area:dungeon"],
+			"nextQuestRef": null
+		},
+		{
+			"id": "01JX26FF6NSURVIVOR00000006",
+			"ref": "survivor",
+			"drafted": false,
+			"title": "Survivor",
+			"description": "The dungeon is merciless. Prove you can endure by clearing rooms without falling in battle.",
+			"category": "QUEST_CATEGORY_CHALLENGE",
+			"tags": ["discordsh", "survival", "challenge"],
+			"hidden": false,
+			"repeatable": true,
+			"recommendedLevel": 2,
+			"steps": [
+				{
+					"id": "step-clear-rooms",
+					"title": "Clear Rooms Without Dying",
+					"objectives": [
+						{
+							"id": "obj-clear-3-rooms",
+							"description": "Clear 3 combat rooms without dying",
+							"type": "OBJECTIVE_EXPLORE",
+							"requiredAmount": 3
+						}
+					]
+				}
+			],
+			"rewards": {
+				"currency": 100,
+				"xp": 75,
+				"items": [{ "itemRef": "campfire-kit", "amount": 1 }]
+			},
+			"triggers": ["player:level:2", "area:dungeon"],
+			"nextQuestRef": null
+		},
+		{
+			"id": "01JX26EE5NTREASURESEEKER005",
+			"ref": "treasure-seeker",
+			"drafted": false,
+			"title": "Treasure Seeker",
+			"description": "The dungeon is filled with hidden riches. Collect gold from treasure rooms and enemy loot.",
+			"category": "QUEST_CATEGORY_SIDE",
+			"tags": ["discordsh", "loot", "beginner"],
+			"hidden": false,
+			"repeatable": true,
+			"recommendedLevel": 1,
+			"steps": [
+				{
+					"id": "step-collect-gold",
+					"title": "Amass a Fortune",
+					"objectives": [
+						{
+							"id": "obj-earn-100-gold",
+							"description": "Earn 100 gold in a single dungeon run",
+							"type": "OBJECTIVE_COLLECT",
+							"requiredAmount": 100
+						}
+					]
+				}
+			],
+			"rewards": {
+				"currency": 25,
+				"xp": 20,
+				"items": [{ "itemRef": "potion", "amount": 2 }]
+			},
+			"triggers": ["player:level:1", "area:dungeon"],
+			"nextQuestRef": null
+		}
+	]
+}

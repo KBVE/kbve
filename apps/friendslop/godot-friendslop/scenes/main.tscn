@@ -33,6 +33,8 @@
 [ext_resource type="Script" uid="uid://bhbvqc8p7bfh1" path="res://src/settings/gameplay_settings.gd" id="31_play"]
 [ext_resource type="Script" uid="uid://bmg1kiho746xi" path="res://src/ui/crosshair.gd" id="32_cross"]
 [ext_resource type="Script" path="res://src/ui/satchel_panel.gd" id="33_satchel"]
+[ext_resource type="Script" path="res://src/ui/vitals_hud.gd" id="33_vitals"]
+[ext_resource type="Script" path="res://src/ui/quest_tracker.gd" id="33_quests"]
 [ext_resource type="PackedScene" uid="uid://dk6o1i6lggove" path="res://assets/characters/quaternius_ubc/models/Regular_Male_FullBody.glb" id="34_body"]
 [ext_resource type="PackedScene" uid="uid://cf52ye1y4wtse" path="res://assets/characters/quaternius_ubc/models/hair/Hair_Ponytail.glb" id="35_hair"]
 [ext_resource type="PackedScene" uid="uid://27k2uvg6ywxl" path="res://assets/characters/quaternius_ubc/animations/UAL1.glb" id="36_ual1"]
@@ -52,8 +54,8 @@
 [ext_resource type="PackedScene" uid="uid://ysa6ql8yc3b" path="res://assets/characters/quaternius_ubc/models/Regular_Male_OnlyHead.glb" id="51_headm"]
 [ext_resource type="PackedScene" uid="uid://bvr8t2y4easo2" path="res://assets/characters/quaternius_ubc/models/Regular_Female_OnlyHead.glb" id="52_headf"]
 [ext_resource type="PackedScene" uid="uid://dq8jku1jb2onh" path="res://assets/characters/quaternius_ubc/models/hair/Hair_Beard.glb" id="53_hairbeard"]
-[ext_resource type="Script" uid="uid://bwxmhira120hk" path="res://src/ui/toast.gd" id="54_toast"]
 [ext_resource type="Script" uid="uid://jjo1717g7eas" path="res://src/world/ground_items.gd" id="55_ground"]
+[ext_resource type="Script" path="res://src/ui/chat_panel.gd" id="56_chat"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(1024, 1024)
@@ -193,6 +195,9 @@ riverbed_material = ExtResource("24_riverbed")
 bridge_material = ExtResource("25_bridge")
 abutment_material = ExtResource("26_abut")
 
+[node name="Physics" type="QPhysics3D" parent="." unique_id=771002451]
+terrain_path = NodePath("../Terrain")
+
 [node name="GrassField" type="QGrassField" parent="." unique_id=361934780]
 player_path = NodePath("../Player")
 grass_material = ExtResource("4_grassmat")
@@ -261,7 +266,7 @@ terrain_path = NodePath("../Terrain")
 body = ExtResource("34_body")
 attachments = Array[PackedScene]([ExtResource("35_hair")])
 animation_sources = Array[PackedScene]([ExtResource("36_ual1"), ExtResource("37_ual2")])
-idle_animation = "UAL1/Idle_LookAround"
+idle_animation = "UAL2/Idle_FoldArms"
 skin_color = Color(0.94, 0.83, 0.72, 1)
 hair_color = Color(0.16, 0.13, 0.11, 1)
 worn = Array[StringName]([&"male_peasant_body", &"male_peasant_arms", &"male_peasant_legs", &"male_peasant_feet"])
@@ -291,7 +296,9 @@ terrain_path = NodePath("../Terrain")
 body = ExtResource("46_bodytm")
 attachments = Array[PackedScene]([ExtResource("49_hairparted")])
 animation_sources = Array[PackedScene]([ExtResource("36_ual1"), ExtResource("37_ual2")])
-idle_animation = "UAL1/Idle_LookAround"
+idle_animation = "UAL1/GroundSit_Idle"
+talk_animation = "UAL1/Sitting_Talking"
+meeting_animation = ""
 skin_color = Color(0.9, 0.76, 0.63, 1)
 hair_color = Color(0.09, 0.07, 0.06, 1)
 stand_under_bridge = true
@@ -305,7 +312,7 @@ terrain_path = NodePath("../Terrain")
 body = ExtResource("47_bodytf")
 attachments = Array[PackedScene]([ExtResource("50_hairlong")])
 animation_sources = Array[PackedScene]([ExtResource("36_ual1"), ExtResource("37_ual2")])
-idle_animation = "UAL1/Idle_LookAround"
+idle_animation = "UAL1/Idle"
 skin_color = Color(0.7, 0.55, 0.44, 1)
 hair_color = Color(0.12, 0.1, 0.13, 1)
 stand_under_bridge = true
@@ -319,7 +326,7 @@ terrain_path = NodePath("../Terrain")
 body = ExtResource("34_body")
 attachments = Array[PackedScene]([ExtResource("49_hairparted")])
 animation_sources = Array[PackedScene]([ExtResource("36_ual1"), ExtResource("37_ual2")])
-idle_animation = "UAL1/Idle_LookAround"
+idle_animation = "UAL1/Idle_Tired"
 skin_color = Color(0.88, 0.72, 0.58, 1)
 hair_color = Color(0.28, 0.21, 0.14, 1)
 worn = Array[StringName]([&"male_noble_body", &"male_noble_arms", &"male_noble_legs", &"male_noble_feet"])
@@ -335,7 +342,7 @@ terrain_path = NodePath("../Terrain")
 body = ExtResource("45_bodyf")
 attachments = Array[PackedScene]([ExtResource("50_hairlong")])
 animation_sources = Array[PackedScene]([ExtResource("36_ual1"), ExtResource("37_ual2")])
-idle_animation = "UAL1/Idle_LookAround"
+idle_animation = "UAL2/Idle_FoldArms"
 skin_color = Color(0.96, 0.87, 0.79, 1)
 hair_color = Color(0.72, 0.7, 0.66, 1)
 worn = Array[StringName]([&"female_wizard_body", &"female_wizard_arms", &"female_wizard_legs", &"female_wizard_feet"])
@@ -351,7 +358,8 @@ terrain_path = NodePath("../Terrain")
 body = ExtResource("45_bodyf")
 attachments = Array[PackedScene]([ExtResource("35_hair")])
 animation_sources = Array[PackedScene]([ExtResource("36_ual1"), ExtResource("37_ual2")])
-idle_animation = "UAL1/Idle_LookAround"
+idle_animation = "UAL1/Idle"
+meeting_animation = "UAL2/Yes"
 skin_color = Color(0.79, 0.62, 0.48, 1)
 hair_color = Color(0.42, 0.3, 0.16, 1)
 worn = Array[StringName]([&"female_knight_body_armor", &"female_knight_arms", &"female_knight_legs", &"female_knight_feet"])
@@ -409,8 +417,14 @@ script = ExtResource("32_cross")
 [node name="SatchelPanel" type="CanvasLayer" parent="."]
 script = ExtResource("33_satchel")
 
-[node name="Toast" type="CanvasLayer" parent="."]
-script = ExtResource("54_toast")
+[node name="VitalsHud" type="CanvasLayer" parent="."]
+script = ExtResource("33_vitals")
+
+[node name="QuestTracker" type="CanvasLayer" parent="."]
+script = ExtResource("33_quests")
+
+[node name="ChatPanel" type="CanvasLayer" parent="."]
+script = ExtResource("56_chat")
 
 [node name="GroundItems" type="Node3D" parent="."]
 script = ExtResource("55_ground")

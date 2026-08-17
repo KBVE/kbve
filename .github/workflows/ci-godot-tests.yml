@@ -1,28 +1,5 @@
 name: CI - Godot Tests
 
-# Pull-request gate for every Godot project in the dispatch manifest.
-#
-# The suites already ran in ci-godot.yml, but that is workflow_dispatch off the
-# manifest and fires when a build is dispatched -- so on a pull request the tests
-# gated nothing, and a GDScript regression surfaced at release time or on
-# somebody's laptop. This runs them on the change that could break them.
-#
-# Manifest-driven rather than per-project: `discover` reads the same
-# .github/ci-dispatch-manifest.json that ci-godot.yml is dispatched from, works
-# out which projects the pull request actually touched, and fans out. A second
-# Godot app is then a manifest entry and nothing else.
-#
-# A project is touched when the diff hits its `project_path` or the crate behind
-# its `gdextension.package` -- the extension is compiled into the suite's world,
-# so a change to the Rust side can break a GDScript test without a single .gd
-# file moving.
-#
-# Both inputs the suite needs are asserted rather than assumed: the LFS assets
-# (the character, water and dialogue suites load them) and the built extension
-# (a suite naming a Q* class cannot parse without it). Getting either wrong
-# shows up as a signal 11 in the gdUnit scanner with no message at the tail,
-# which reads like a broken test rather than a missing file.
-
 on:
     workflow_dispatch:
     pull_request:
@@ -31,6 +8,7 @@ on:
             - 'packages/rust/**'
             - '.github/ci-dispatch-manifest.json'
             - '.github/workflows/ci-godot-tests.yml'
+            - '.github/scripts/godot_test_matrix.py'
 
 permissions: {}
 
@@ -66,9 +44,6 @@ jobs:
                   REPO: ${{ github.repository }}
               run: |
                   set -euo pipefail
-                  # The changed-file list comes from the API rather than a diff, so
-                  # this needs no deep fetch of a repository this size. A manual run
-                  # tests everything.
                   if [ "$EVENT" = "pull_request" ]; then
                     gh api "repos/$REPO/pulls/$PR/files" --paginate --jq '.[].filename' > changed.txt
                     echo "::notice::$(wc -l < changed.txt) files changed"
@@ -100,9 +75,6 @@ jobs:
             matrix:
                 include: ${{ fromJSON(needs.discover.outputs.matrix) }}
         steps:
-            # graphify/dir has colons in its filenames. Git validates every index
-            # entry name before sparse rules get to say the file will not be
-            # written, so the directory is excluded rather than merely unwanted.
             - uses: actions/checkout@v7
               if: ${{ matrix.package != '' }}
               with:
@@ -111,8 +83,6 @@ jobs:
                       !/apps/kbve/astro-kbve/public/graphify
                   sparse-checkout-cone-mode: false
 
-            # q's `client` feature pulls wry, which needs the webkit headers to
-            # link even with the webview turned off.
             - name: Install build prerequisites
               if: ${{ matrix.package != '' }}
               run: |
@@ -136,9 +106,6 @@ jobs:
                   key: godot-tests-${{ matrix.app_name }}-linux
                   cache-on-failure: true
 
-            # The feature set the manifest names for this project. A suite that
-            # calls into the extension is checking the bridge as it ships, so
-            # building a different half of the crate would test the wrong library.
             - name: Build cdylib
               if: ${{ matrix.package != '' }}
               env:
@@ -156,9 +123,6 @@ jobs:
               run: |
                   set -euo pipefail
                   LIB="lib$(echo "$PKG" | tr '-' '_').so"
-                  # The root .cargo/config.toml redirects target-dir to
-                  # dist/target; whether that file came down depends on the
-                  # checkout, so look in both rather than betting on it.
                   mkdir -p stage/linux
                   for base in target dist/target; do
                     if [ -f "$base/release/$LIB" ]; then
@@ -182,8 +146,6 @@ jobs:
     test:
         name: gdUnit4 (${{ matrix.app_name }})
         needs: [discover, gdextension]
-        # `always()` so a project with no gdextension -- whose build job did
-        # nothing -- still runs its suite.
         if: ${{ always() && needs.discover.outputs.any == 'true' && needs.gdextension.result != 'failure' && needs.gdextension.result != 'cancelled' && (github.event_name == 'workflow_dispatch' || github.event.pull_request.head.repo.full_name == github.repository) }}
         runs-on: ubuntu-latest
         timeout-minutes: 40
@@ -196,6 +158,13 @@ jobs:
                 include: ${{ fromJSON(needs.discover.outputs.matrix) }}
         container:
             image: barichello/godot-ci:${{ matrix.godot_version }}
+        # A step inside a container runs under `sh -e`, not the `bash -e` a step on the
+        # runner gets, and dash has no `pipefail` -- every step below opens with
+        # `set -euo pipefail` and died on its first line. The image carries bash, so the
+        # shell is named rather than the scripts written down to dash.
+        defaults:
+            run:
+                shell: bash
         steps:
             - uses: actions/checkout@v7
 
@@ -209,12 +178,16 @@ jobs:
                   command -v git-lfs >/dev/null 2>&1 || {
                     apt-get update -qq && apt-get install -y -qq --no-install-recommends git-lfs
                   }
-                  # actions/checkout writes its safe.directory entry under a HOME
-                  # it then restores, so inside the container git does not trust
-                  # the workspace and git-lfs exits 128 "Not in a Git repository".
                   git config --global --add safe.directory "$PWD"
                   git lfs install --local
-                  if ! git lfs ls-files -n | grep -q "^$PROJECT_PATH/"; then
+                  # Listed once into a file rather than piped. `git lfs ls-files | grep -q`
+                  # is a trap under pipefail: grep leaves on its first match, git-lfs dies
+                  # of SIGPIPE part way through a listing of every LFS file in the
+                  # monorepo, and the pipeline reports 141 -- read here as "nothing tracked
+                  # under this project" for a project with 268 files, so the pull was
+                  # skipped and the suite met pointer stubs where the fonts should be.
+                  git lfs ls-files -n > /tmp/lfs-files.txt
+                  if ! grep -q "^$PROJECT_PATH/" /tmp/lfs-files.txt; then
                     echo "::notice::No LFS-tracked files under $PROJECT_PATH — skipping"
                     exit 0
                   fi
@@ -226,14 +199,14 @@ jobs:
                     "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
                   chmod 600 "$HOME/.netrc"
                   git lfs pull -I "$PROJECT_PATH/**"
-                  # A leftover pointer is a text file starting with the LFS spec
-                  # URL. Godot refuses to load one, and the suite that wanted the
-                  # asset dies in the scanner rather than saying why.
-                  STUBS=$(git lfs ls-files -n | grep "^$PROJECT_PATH/" \
-                    | xargs -r grep -l "^version https://git-lfs" 2>/dev/null | head -5)
+                  # A leftover pointer is a text file starting with the LFS spec URL. Godot
+                  # imports those as ERR_FILE_CORRUPT, and a stubbed font takes the engine
+                  # down with a signal rather than a message worth reading.
+                  STUBS=$(grep "^$PROJECT_PATH/" /tmp/lfs-files.txt \
+                    | xargs -r grep -l "^version https://git-lfs" 2>/dev/null || true)
                   if [ -n "$STUBS" ]; then
                     echo "::error::LFS pointers unresolved after pull:"
-                    echo "$STUBS"
+                    printf '%s\n' "$STUBS" | head -5
                     exit 1
                   fi
 
@@ -262,13 +235,6 @@ jobs:
                   ADDON_PATH: ${{ matrix.addon_path }}
               run: |
                   set -euo pipefail
-                  # This container is not the machine that built the .so and ships
-                  # none of webkit. q's `client` feature puts a hard DT_NEEDED on
-                  # libwebkit2gtk-4.1.so.0, so without these the extension dlopens
-                  # to "cannot open shared object file", its classes never
-                  # register, and every suite naming one fails at parse time.
-                  # libfontconfig1 is cosmetic -- it silences the system-font error
-                  # spam -- but comes cheap alongside.
                   apt-get update -qq
                   apt-get install -y -qq --no-install-recommends \
                     libwebkit2gtk-4.1-0 libfontconfig1
@@ -280,9 +246,6 @@ jobs:
                     exit 1
                   fi
 
-            # Prefer the project's own scripts/test.sh: it knows whether the suite
-            # is gdUnit4, GUT or a raw --quit-after pass. GODOT_NO_INSTALL keeps
-            # its resolver from downloading an engine this image already has.
             - name: Run the suite
               working-directory: ${{ matrix.project_path }}
               env:

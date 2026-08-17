@@ -70,11 +70,18 @@ pub mod proto;
 #[cfg(any(feature = "client", feature = "rapier3d-sim"))]
 pub mod worldgen;
 
+/// Sinks, drainage and the ground derived from them.
+#[cfg(any(feature = "client", feature = "rapier3d-sim"))]
+pub mod region;
+
 #[cfg(any(feature = "client", feature = "rapier3d-sim"))]
 pub mod harvest;
 
 /// Gait and stance decisions.
 pub mod locomotion;
+
+/// What a body has left: health, mana and energy, simulated apart from what draws it.
+pub mod vitals;
 
 /// Closed-chain inverse kinematics.
 pub mod ik;

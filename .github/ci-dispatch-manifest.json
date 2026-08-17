@@ -233,7 +233,7 @@
 		{
 			"key": "discordsh_bot",
 			"app_name": "discordsh-bot",
-			"version": "0.1.32",
+			"version": "0.1.33",
 			"version_toml": "apps/discordsh/discordsh-bot/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/discordsh-bot.mdx",
 			"version_target": "apps/discordsh/discordsh-bot/Cargo.toml",
@@ -332,7 +332,7 @@
 		{
 			"key": "friendslop_server",
 			"app_name": "friendslop-server",
-			"version": "0.0.7",
+			"version": "0.0.8",
 			"version_toml": "apps/agones/friendslop/server/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/friendslop-server.mdx",
 			"version_target": "apps/agones/friendslop/server/Cargo.toml",
@@ -575,7 +575,7 @@
 		{
 			"key": "reel",
 			"app_name": "reel",
-			"version": "0.1.43",
+			"version": "0.1.44",
 			"version_toml": "apps/media/reel/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/reel.mdx",
 			"version_target": "apps/media/reel/Cargo.toml",
@@ -699,7 +699,7 @@
 		{
 			"key": "bevy_items_crate",
 			"package_name": "bevy_items",
-			"version": "0.1.0",
+			"version": "0.1.1",
 			"version_toml": "packages/rust/bevy/bevy_items/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/bevy-items-crate.mdx",
 			"version_target": "packages/rust/bevy/bevy_items/Cargo.toml"
@@ -1316,7 +1316,7 @@
 				}
 			},
 			"source_path": "apps/friendslop/godot-friendslop",
-			"version": "0.1.5",
+			"version": "0.1.6",
 			"version_toml": "apps/friendslop/godot-friendslop/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/godot-friendslop.mdx",
 			"runner": "ubuntu-latest",

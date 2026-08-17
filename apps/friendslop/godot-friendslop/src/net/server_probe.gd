@@ -1,19 +1,15 @@
 class_name ServerProbe
 extends Node
 
-## Asks a host what it speaks, over plain HTTP, before anyone tries to join it.
-##
-## The join gate turns a mismatched client away with a bare `protocol n != m` after the
-## player has already pressed play and waited for a socket. `/healthz` is the only path a
-## deployed host exposes besides the socket itself, so it is the only place that answer
-## can be had in advance.
 
-## The protocol the host answered, or 0 while nothing has.
 signal answered(protocol: int)
-## Nothing was reachable, with wording to show.
 signal unreachable(reason: String)
+signal unreadable(reason: String)
 
 const TIMEOUT := 6.0
+
+const NO_ANSWER := -1
+const UNREADABLE := -2
 
 var _request: HTTPRequest
 
@@ -25,8 +21,6 @@ func _ready() -> void:
 	_request.request_completed.connect(_on_completed)
 
 
-## The health endpoint beside a `ws://`/`wss://` socket URL. Same host and scheme family,
-## since a host reached over TLS serves its health over TLS too.
 static func health_url(socket_url: String) -> String:
 	var url := socket_url.strip_edges()
 	if url.begins_with("wss://"):
@@ -47,18 +41,25 @@ func probe(socket_url: String) -> void:
 		unreachable.emit("probe failed (%d)" % err)
 
 
-## A host that answers something this cannot read is reported unreachable rather than
-## guessed at: a wrong protocol shown confidently is worse than none, because it is the
-## number the player would be told to trust.
-func _on_completed(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+static func read_health(result: int, code: int, body: PackedByteArray) -> int:
 	if result != HTTPRequest.RESULT_SUCCESS:
-		unreachable.emit("no answer (%d)" % result)
-		return
+		return NO_ANSWER
 	if code != 200:
-		unreachable.emit("http %d" % code)
-		return
+		return NO_ANSWER
 	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
 	if typeof(parsed) != TYPE_DICTIONARY or not parsed.has("protocol"):
-		unreachable.emit("unreadable health")
-		return
-	answered.emit(int(parsed["protocol"]))
+		return UNREADABLE
+	var protocol := int(parsed["protocol"])
+	return protocol if protocol > 0 else UNREADABLE
+
+
+func _on_completed(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	var protocol := read_health(result, code, body)
+	if protocol > 0:
+		answered.emit(protocol)
+	elif protocol == UNREADABLE:
+		unreadable.emit("no protocol in health")
+	elif result != HTTPRequest.RESULT_SUCCESS:
+		unreachable.emit("no answer (%d)" % result)
+	else:
+		unreachable.emit("http %d" % code)

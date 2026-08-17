@@ -1,21 +1,22 @@
 extends Node3D
 
-## Watches for somebody worth talking to, offers the prompt, and opens the conversation.
-##
-## Hung off the player rather than built into it, so anything else that walks around can
-## be given the same reach later.
 
 const PanelScript := preload("res://src/ui/dialogue_panel.gd")
+const CardScript := preload("res://src/ui/meeting_card.gd")
 const Hint := preload("res://src/ui/input_hint.gd")
 
-## Flat, because a bank a metre below the deck is still arm's reach.
+const MET := "met_%s"
+const MEETING_OFFSET := 0.2
+const MEETING_TIME := 0.42
+const MEETING_INK := Color(0.08, 0.06, 0.05, 1.0)
+
 @export var reach := 3.6
-## How far off straight ahead a target may sit, as a dot against the camera's heading.
 @export var facing := 0.35
 
 var _target: Node3D
 var _body: Node3D
 var _talking := false
+var _card: Node
 
 
 func _ready() -> void:
@@ -23,11 +24,9 @@ func _ready() -> void:
 
 
 func _process(_delta: float) -> void:
-	if PanelScript.is_open():
+	if busy():
 		_aim(null)
 		return
-	## Belt and braces: a panel that went away without saying so would otherwise leave the
-	## player standing there unable to move.
 	if _talking:
 		_talking = false
 		if _body and _body.has_method("set_talking"):
@@ -35,7 +34,10 @@ func _process(_delta: float) -> void:
 	_aim(_nearest())
 
 
-## The offer is written over whoever it is for, so only one of them may be showing it.
+func busy() -> bool:
+	return PanelScript.is_open() or is_instance_valid(_card)
+
+
 func _aim(actor: Node3D) -> void:
 	if actor == _target:
 		return
@@ -46,8 +48,6 @@ func _aim(actor: Node3D) -> void:
 		_target.offer_talk(Hint.label(&"interact", "E"))
 
 
-## Nearest of whatever is in reach and roughly ahead. Distance is measured flat so a
-## target standing lower in the water does not fall out of reach.
 func _nearest() -> Node3D:
 	if _body == null:
 		return null
@@ -74,15 +74,13 @@ func _nearest() -> Node3D:
 	return best
 
 
-## The camera's heading when there is one, since that is where the player is looking, and
-## the body's own otherwise.
 func _look_basis() -> Basis:
 	var camera := get_viewport().get_camera_3d()
 	return camera.global_basis if camera else _body.global_basis
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if not event.is_action_pressed(&"interact") or _target == null or PanelScript.is_open():
+	if not event.is_action_pressed(&"interact") or _target == null or busy():
 		return
 	get_viewport().set_input_as_handled()
 	_talk_to(_target)
@@ -94,19 +92,76 @@ func _talk_to(actor: Node3D) -> void:
 		push_error("dialogue: %s cannot talk -- %s" % [actor.name, "; ".join(graph.errors())])
 		return
 	actor.face(_body)
+	_aim(null)
+	if _first_meeting(actor):
+		actor.meet()
+		var card := CardScript.present(get_tree(), actor.display_name(), actor.role_name())
+		_card = card
+		card.tree_exited.connect(func() -> void: _after_card(actor, graph), CONNECT_ONE_SHOT)
+		return
+	_open_talk(actor, graph)
+
+
+func _after_card(actor: Node3D, graph: DialogueGraph) -> void:
+	_card = null
+	if is_instance_valid(actor) and actor.is_inside_tree():
+		_open_talk(actor, graph)
+
+
+func _open_talk(actor: Node3D, graph: DialogueGraph) -> DialoguePanel:
+	if not is_instance_valid(actor) or not is_instance_valid(_body):
+		return null
+	var who := str(actor.npc_ref)
+	Journal.brief(who, state())
+	Quests.brief(state())
+	Journal.talking_to(who)
+	var read_before := state().seen_count()
+
 	var panel := PanelScript.open(get_tree(), graph, state())
 	if panel == null:
-		return
-	_aim(null)
+		return null
+	panel.closed.connect(func() -> void:
+		Journal.remember_talk(who, state().seen_count() > read_before)
+		Quests.hand_back(who)
+		Journal.talking_to(""))
+	Quests.met(who)
+	panel.speaking.connect(actor.speak)
+	panel.listening.connect(actor.listen)
+	panel.closed.connect(actor.rest)
+	if panel.is_typing():
+		actor.speak()
+	else:
+		actor.listen()
 	if _body.has_method("set_talking"):
 		_talking = true
 		_body.set_talking(true)
 		panel.closed.connect(func() -> void:
 			_talking = false
 			_body.set_talking(false))
+	return panel
 
 
-## Everything the player has been told and told others. Kept in the journal rather than on
-## the player: it has to outlive this world, not just this conversation.
+func _first_meeting(actor: Node3D) -> bool:
+	var who := str(actor.npc_ref) if actor.get("npc_ref") != null else ""
+	if who == "":
+		return false
+	var flag := MET % who
+	if state().has_flag(flag):
+		return false
+	state().set_flag(flag)
+	_meeting_frame(actor)
+	return true
+
+
+func _meeting_frame(actor: Node3D) -> void:
+	var scene := get_tree().current_scene
+	var fx := scene.get_node_or_null(^"ImpactFX") if scene else null
+	if fx == null or not fx.has_method("nuke"):
+		return
+	var to := actor.global_position - _body.global_position
+	var angle := rad_to_deg(atan2(to.y, Vector2(to.x, to.z).length()))
+	fx.nuke(angle, MEETING_OFFSET, MEETING_INK, MEETING_TIME)
+
+
 func state() -> DialogueState:
 	return Journal.state()

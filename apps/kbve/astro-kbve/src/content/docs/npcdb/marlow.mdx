@@ -23,14 +23,20 @@ tags:
 dialogue_tree:
     entry_node_id: 'greet'
     nodes:
-        # Gated nodes fall through to the node under them, which is how the
-        # stranger line steps aside for the one a regular hears.
         - id: 'greet'
           text: "Careful on the bank — it gives way where the reeds are thickest. Marlow. I keep the crossing."
           condition: '!seen:greet'
           next_node_id: 'menu'
+        - id: 'greet_pestered'
+          text: "Still here, {{player}}. So is the bridge."
+          condition: 'pestered>=2'
+          next_node_id: 'menu'
+        - id: 'greet_known'
+          text: "Welcome back, {{player}}. The crossing hasn't moved."
+          condition: 'respect>=2'
+          next_node_id: 'menu'
         - id: 'greet_again'
-          text: "Back again. The crossing hasn't moved."
+          text: "Back again, {{player}}. The crossing hasn't moved."
           next_node_id: 'menu'
         - id: 'menu'
           text: "Ask, then. The river isn't going anywhere either."
@@ -51,6 +57,10 @@ dialogue_tree:
                 next_node_id: 'mechs'
                 required_flags:
                     - 'marlow_toll_paid'
+              - id: 'take_the_crossing'
+                label: "Is there anything the crossing needs?"
+                next_node_id: 'crossing_work'
+                condition: 'quest.friendslop-third-plank<=1'
               - id: 'leave'
                 label: '(Walk away.)'
                 next_node_id: 'farewell'
@@ -60,6 +70,10 @@ dialogue_tree:
         - id: 'river'
           text: "Fish, mostly. Something bigger in the deep bend, though I've only seen the wake."
           trigger_on_enter: 'set_flag:marlow_knows_river'
+          next_node_id: 'menu'
+        - id: 'crossing_work'
+          text: "It needs what it always needs. Somebody to pay it something, and somebody to mind the third plank."
+          trigger_on_enter: 'quest_start:friendslop-third-plank'
           next_node_id: 'menu'
         - id: 'toll'
           text: 'A toll. Not for me — for the bridge. It keeps standing as long as someone still pays it something.'
@@ -103,5 +117,11 @@ import { Card, CardGrid } from '@astrojs/starlight/components';
 	<Card title="Flags" icon="setting">
 		`marlow_toll_paid` opens the question about the mechs and changes his
 		farewell. `marlow_knows_river` is set once he has talked about the water.
+	</Card>
+	<Card title="Standing" icon="approve-check">
+		He greets a stranger, a regular and a nuisance differently — `respect>=2`
+		for the warm one, `pestered>=2` for the short one. Both are counted by the
+		journal rather than set by the conversation: talks that go somewhere earn
+		standing, talks that go over old ground cost it.
 	</Card>
 </CardGrid>

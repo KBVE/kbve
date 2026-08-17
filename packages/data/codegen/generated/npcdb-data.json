@@ -5166,8 +5166,20 @@
             "nextNodeId": "menu"
           },
           {
+            "id": "greet_pestered",
+            "text": "Still here, {{player}}. So is the bridge.",
+            "condition": "pestered>=2",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "greet_known",
+            "text": "Welcome back, {{player}}. The crossing hasn't moved.",
+            "condition": "respect>=2",
+            "nextNodeId": "menu"
+          },
+          {
             "id": "greet_again",
-            "text": "Back again. The crossing hasn't moved.",
+            "text": "Back again, {{player}}. The crossing hasn't moved.",
             "nextNodeId": "menu"
           },
           {
@@ -5201,6 +5213,12 @@
                 ]
               },
               {
+                "id": "take_the_crossing",
+                "label": "Is there anything the crossing needs?",
+                "nextNodeId": "crossing_work",
+                "condition": "quest.friendslop-third-plank<=1"
+              },
+              {
                 "id": "leave",
                 "label": "(Walk away.)",
                 "nextNodeId": "farewell"
@@ -5216,6 +5234,12 @@
             "id": "river",
             "text": "Fish, mostly. Something bigger in the deep bend, though I've only seen the wake.",
             "triggerOnEnter": "set_flag:marlow_knows_river",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "crossing_work",
+            "text": "It needs what it always needs. Somebody to pay it something, and somebody to mind the third plank.",
+            "triggerOnEnter": "quest_start:friendslop-third-plank",
             "nextNodeId": "menu"
           },
           {
@@ -8477,6 +8501,12 @@
                 "nextNodeId": "bridge"
               },
               {
+                "id": "take_the_guess",
+                "label": "Do you want somebody who would know to hear that?",
+                "nextNodeId": "take_it_then",
+                "condition": "tam_heard_about_mechs, quest.friendslop-mech-watch<=1"
+              },
+              {
                 "id": "leave",
                 "label": "(Walk away.)",
                 "nextNodeId": "farewell"
@@ -8498,6 +8528,12 @@
             "id": "guess",
             "text": "I think they're waiting for something to come back down the river. That's why they stand in it and not next to it.",
             "triggerOnEnter": "set_flag:tam_guessed_the_mechs",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "take_it_then",
+            "text": "The one with the books. They'll tell me I'm wrong, but they'll say why, and nobody down here ever says why.",
+            "triggerOnEnter": "quest_start:friendslop-mech-watch",
             "nextNodeId": "menu"
           },
           {
@@ -9773,6 +9809,12 @@
                 "nextNodeId": "marlow"
               },
               {
+                "id": "carry_word",
+                "label": "Should somebody else know about the bitterroot?",
+                "nextNodeId": "carry_word_yes",
+                "condition": "wren_taught_bitterroot, quest.friendslop-bitterroot<=1"
+              },
+              {
                 "id": "leave",
                 "label": "(Walk away.)",
                 "nextNodeId": "farewell"
@@ -9783,6 +9825,12 @@
             "id": "doing",
             "text": "Bitterroot, mostly. It only takes where the water has been and gone, so it grows in a line and tells you where the river used to sit.",
             "triggerOnEnter": "set_flag:wren_taught_bitterroot",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "carry_word_yes",
+            "text": "The one who keeps the dressing. Tell them where it grows, not what it looks like — everyone gets that part wrong.",
+            "triggerOnEnter": "quest_start:friendslop-bitterroot",
             "nextNodeId": "menu"
           },
           {
