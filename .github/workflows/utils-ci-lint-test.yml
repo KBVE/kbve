@@ -148,5 +148,17 @@ jobs:
             - name: Lint affected projects
               run: pnpm nx affected --target=lint --base=${{ inputs.base-ref }} --head=${{ inputs.head-ref }} --no-cloud
 
+            # Godot suites are excluded because this job checks out with
+            # `lfs: false`, and a Godot project whose assets are pointer stubs
+            # does not fail a test — the asset scan takes a signal partway
+            # through reimport, so the job dies before a single test runs and
+            # reports nothing about why.
+            #
+            # They are not going uncovered: ci-godot.yml runs the same suite on
+            # every PR, with the LFS pull and the Forgejo credentials it needs,
+            # so by the time dev reaches main it has already passed there. Making
+            # this job work instead would mean giving a lint sweep those
+            # credentials and a four-minute gdextension build, to re-run what
+            # already ran.
             - name: Test affected projects
-              run: pnpm nx affected --target=test --base=${{ inputs.base-ref }} --head=${{ inputs.head-ref }} --no-cloud
+              run: pnpm nx affected --target=test --base=${{ inputs.base-ref }} --head=${{ inputs.head-ref }} --no-cloud --exclude='tag:type:godot-app'
