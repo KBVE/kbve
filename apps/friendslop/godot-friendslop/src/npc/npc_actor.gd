@@ -37,6 +37,10 @@ const GROUP := &"interactable"
 @export var bridge_offset := 2.0
 @export var bridge_along := 9.0
 
+const DRY_MARGIN := 0.6
+const DRY_STEP := 0.75
+const DRY_REACH := 60.0
+
 var rig: Node3D
 
 var _terrain: Node
@@ -251,14 +255,48 @@ func _stand_under_bridge() -> void:
 		_settle()
 		return
 	along = along.normalized()
-	var side := Vector3(-along.z, 0.0, along.x)
 	var middle := (a + b) * 0.5
-	var side_of_road := -1.0 if bridge_offset < 0.0 else 1.0
-	var clear := side_of_road * (half_width + absf(bridge_offset))
-	var at := middle + along * bridge_along + side * clear
+	var at := bridge_spot(span, bridge_offset, bridge_along)
+	at = dry_spot(_terrain, at, middle, along)
 	global_position = Vector3(at.x, 0.0, at.z)
 	_settle()
 	look_at(Vector3(middle.x, global_position.y, middle.z), Vector3.UP)
+
+
+static func bridge_spot(span: PackedFloat32Array, offset: float, along_by: float) -> Vector3:
+	if span.size() < 5:
+		return Vector3.ZERO
+	var a := Vector3(span[0], 0.0, span[1])
+	var b := Vector3(span[2], 0.0, span[3])
+	var half_width := span[4]
+	var along := (b - a)
+	if along.length() < 0.001:
+		return a
+	along = along.normalized()
+	var side := Vector3(-along.z, 0.0, along.x)
+	var side_of_road := -1.0 if offset < 0.0 else 1.0
+	var clear := side_of_road * (half_width + absf(offset))
+	return (a + b) * 0.5 + along * along_by + side * clear
+
+
+static func dry_spot(terrain: Node, at: Vector3, middle: Vector3, along: Vector3) -> Vector3:
+	if terrain == null or not terrain.has_method("water_level_at") \
+			or not terrain.has_method("height_at"):
+		return at
+	var dry: float = terrain.water_level_at() + DRY_MARGIN
+	if terrain.height_at(at.x, at.z) > dry:
+		return at
+	var away := signf((at - middle).dot(along))
+	if is_zero_approx(away):
+		away = 1.0
+	var walked := 0.0
+	while walked < DRY_REACH:
+		walked += DRY_STEP
+		var probe := at + along * (away * walked)
+		if terrain.height_at(probe.x, probe.z) > dry:
+			return probe
+	push_warning("npc: no dry ground within %.0fm of the crossing" % DRY_REACH)
+	return at
 
 
 func _settle() -> void:
