@@ -376,14 +376,7 @@ impl QTerrain {
     /// and goes with the mask, but the bridge is nodes and has to be freed.
     fn clear_road(&mut self) {
         let taken = std::mem::take(&mut self.sim_bridge);
-        if !taken.is_empty()
-            && let Some(mut phys) = self
-                .base()
-                .get_node_or_null(&self.physics_path)
-                .and_then(|n| n.try_cast::<crate::rapier::bridge3d::QPhysics3D>().ok())
-        {
-            phys.bind_mut().despawn_batch(taken);
-        }
+        self.despawn_sim_bridge(taken);
         for name in ["BridgeBody", "BridgeAbutment", "Bridge"] {
             if let Some(mut n) = self.base().get_node_or_null(name) {
                 n.queue_free();
@@ -392,6 +385,25 @@ impl QTerrain {
         }
         self.road = None;
     }
+
+    /// The sim bridge only exists in builds that carry the rapier module; `default`
+    /// consumers get the same world without it.
+    #[cfg(feature = "rapier3d-sim")]
+    fn despawn_sim_bridge(&mut self, taken: PackedInt64Array) {
+        if taken.is_empty() {
+            return;
+        }
+        if let Some(mut phys) = self
+            .base()
+            .get_node_or_null(&self.physics_path)
+            .and_then(|n| n.try_cast::<crate::rapier::bridge3d::QPhysics3D>().ok())
+        {
+            phys.bind_mut().despawn_batch(taken);
+        }
+    }
+
+    #[cfg(not(feature = "rapier3d-sim"))]
+    fn despawn_sim_bridge(&mut self, _taken: PackedInt64Array) {}
 
     fn finish_init(&mut self, heights: Vec<f32>) {
         let res = self.resolution.max(2);
