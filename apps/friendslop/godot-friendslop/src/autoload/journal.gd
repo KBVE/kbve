@@ -1,14 +1,5 @@
 extends Node
 
-## Everything the player has been told and agreed to, kept for good.
-##
-## A conversation writes flags and the nodes it has been through; both outlive the talk
-## that set them, and the toll paid last night has to still be paid this morning. This is
-## the one copy: the interactor reads it rather than carrying its own, so anything else
-## that can talk shares the same memory of what was said.
-##
-## Flag changes also go out on the world's event bus, which is what lets something that is
-## not a conversation react to one.
 
 const PATH := "user://journal.cfg"
 const SECTION := "dialogue"
@@ -18,34 +9,17 @@ const WORN_SECTION := "worn"
 const SATCHEL_SECTION := "satchel"
 
 signal flag_changed(name: String, on: bool)
-## What the player has on, slot by slot. The rig watches this rather than being told
-## directly, so anything that hands out clothing does not need to know where the body is.
 signal wearing_changed(slots: Dictionary)
-## One lot of something arriving, for whatever wants to say so on screen. Carries what
-## came in rather than the new total, because "+3 Bark" is the news and "you have 11" is
-## a thing that can be asked for.
 signal gained(ref: StringName, count: int, total: int)
-## Something that would not fit, and how much of it was left over. The bag is finite, so
-## this is the difference between loot vanishing quietly and the player being told.
 signal refused(ref: StringName, count: int)
-## The whole satchel changed, for anything drawing all of it.
 signal satchel_changed(items: Dictionary)
 
-## A spatial bag, so what you can carry is a question of shape and not only of number.
-## Ten across is the width the panel is drawn to; six down is roomy enough that a
-## morning's chopping does not fill it, while armour at 2x2 still has to be arranged.
 const COLS := 10
 const ROWS := 6
 
 var _state := DialogueState.new()
-## Slot to wardrobe piece id.
 var _worn: Dictionary = {}
-## Placed stacks, each `{ref, count, x, y}`. A list rather than a ref-to-count map,
-## because the same thing can sit in two places once one stack is full, and where it
-## sits is part of what the player owns.
 var _satchel: Array[Dictionary] = []
-## Held down while loading, so reading a saved file does not read as the player having
-## just done all of it.
 var _quiet := false
 
 
@@ -57,9 +31,6 @@ func _ready() -> void:
 	load_now()
 
 
-## Who the player is talking to, held only for as long as they are. What a conversation
-## asks for is usually about the person saying it -- "this is worth two points of standing"
-## means with them -- and the state that carries the ask does not know who is speaking.
 var _speaker := ""
 
 
@@ -71,9 +42,6 @@ func speaking_with() -> String:
 	return _speaker
 
 
-## Carries out what a conversation asked for that is not a flag. Routed here because this
-## is the one thing that already knows the quest log, the player's body and what everybody
-## thinks of them; the conversation itself knows none of the three.
 func _on_asked(verb: String, argument: String) -> void:
 	match verb:
 		"quest_start":
@@ -83,31 +51,16 @@ func _on_asked(verb: String, argument: String) -> void:
 		"xp":
 			Vitals.award(Vitals.PLAYER, int(argument))
 		"respect":
-			## Signed, and about whoever is speaking: `respect:-1` is a line that costs you.
 			adjust_regard(_speaker, int(argument))
 		_:
 			push_warning("journal: a conversation asked for '%s', which nothing does" % verb)
 
 
-## What one person thinks of the player, and how much of it they have had.
-##
-## Kept per person rather than as world flags because it is not a fact about the world: two
-## people can hold different opinions of the same player on the same afternoon, and that
-## difference is the whole point of keeping it at all.
-##
-## `talks` is every conversation opened. `respect` is what they make of the player, moved by
-## whether a conversation went anywhere. `pestered` counts conversations in a row that
-## taught the player nothing, which is what "you again" is measured in.
 const RESPECT_RANGE := Vector2i(-5, 10)
-## One repeat is a person checking something. It is the second and third that are a nuisance,
-## so the first costs nothing.
 const PESTER_GRACE := 1
 
-## `ref` to `{talks, respect, pestered}`.
 var _people: Dictionary = {}
 
-## Somebody's opinion moved. For a HUD, a codex page, or anything else that wants to notice
-## the player wearing out their welcome.
 signal regard_changed(ref: String, record: Dictionary)
 
 
@@ -115,8 +68,6 @@ func state() -> DialogueState:
 	return _state
 
 
-## What `ref` makes of the player. Always answers, so a stranger reads as zeroes rather than
-## as a caller having to check whether they have been met.
 func regard(ref: String) -> Dictionary:
 	var kept: Variant = _people.get(ref, null)
 	if kept is Dictionary:
@@ -124,11 +75,6 @@ func regard(ref: String) -> Dictionary:
 	return {"talks": 0, "respect": 0, "pestered": 0}
 
 
-## Writes down that a conversation happened, and what it was worth.
-##
-## `learned` is whether the player was shown anything they had not already read. A talk that
-## went somewhere raises their standing and clears the slate; one that only went over old
-## ground counts against them, once past the grace.
 func remember_talk(ref: String, learned: bool) -> Dictionary:
 	if ref == "":
 		return {}
@@ -148,8 +94,6 @@ func remember_talk(ref: String, learned: bool) -> Dictionary:
 	return record.duplicate()
 
 
-## Moves somebody's opinion by a fixed amount, for the things that are not conversations:
-## a quest handed back, a favour done, a debt paid. Clamped like every other route into it.
 func adjust_regard(ref: String, delta: int) -> Dictionary:
 	if ref == "" or delta == 0:
 		return {}
@@ -163,9 +107,6 @@ func adjust_regard(ref: String, delta: int) -> Dictionary:
 	return record.duplicate()
 
 
-## Where every quest has got to. One record per quest, `{status, step, counts}`, written
-## here rather than kept by the quest log because a quest half-finished has to survive the
-## game being closed exactly as much as a flag does.
 var _quests: Dictionary = {}
 
 
@@ -186,9 +127,6 @@ func quest_records() -> Dictionary:
 	return _quests.duplicate(true)
 
 
-## Puts somebody's standing in front of a conversation, so the graph can gate on it in the
-## same breath as a flag. Pushed in rather than read out, because the state has to stay a
-## thing a test can build without a journal behind it.
 func brief(about: String, into: DialogueState) -> void:
 	var record := regard(about)
 	into.set_number("talks", float(record["talks"]))
@@ -200,8 +138,6 @@ func has_flag(name: String) -> bool:
 	return _state.has_flag(name)
 
 
-## For anything outside a conversation that has news of its own -- a bridge crossed, a
-## fish landed -- so the graphs can ask about it in the same breath as the toll.
 func set_flag(name: String, on := true) -> void:
 	_state.set_flag(name, on)
 
@@ -215,15 +151,12 @@ func _on_flag_changed(name: String, on: bool) -> void:
 	save_now()
 
 
-## A node is only ever seen for the first time once, so this is rare enough to write out
-## on the spot rather than hope the game is closed politely.
 func _on_seen_changed(_node_id: String) -> void:
 	if _quiet:
 		return
 	save_now()
 
 
-## What the player is wearing, slot by slot.
 func wearing() -> Dictionary:
 	return _worn.duplicate()
 
@@ -232,8 +165,6 @@ func worn_in(slot: StringName) -> StringName:
 	return _worn.get(slot, &"")
 
 
-## Puts a piece on, or takes the slot's piece off when given nothing. One piece to a slot,
-## which is the wardrobe's rule as much as the rig's.
 func wear(id: StringName) -> void:
 	if id == &"" or not Wardrobe.has(id):
 		push_warning("journal: nothing in the wardrobe called '%s'" % id)
@@ -241,8 +172,6 @@ func wear(id: StringName) -> void:
 	_set_worn(Wardrobe.slot_of(id), id)
 
 
-## Puts on whatever the catalog says this item looks like. The item decides the slot, so
-## nothing handing one out has to know where it goes.
 func wear_item(ref: StringName) -> bool:
 	var piece := Itemdb.wardrobe_piece(ref)
 	if piece == &"":
@@ -271,7 +200,6 @@ func _set_worn(slot: StringName, id: StringName) -> void:
 	save_now()
 
 
-## Every placed stack, as copies: the caller cannot rearrange the bag by editing them.
 func stacks() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	for stack in _satchel:
@@ -279,7 +207,6 @@ func stacks() -> Array[Dictionary]:
 	return out
 
 
-## Everything held, as ref to total count, for anything that only cares how much.
 func satchel() -> Dictionary:
 	var out := {}
 	for stack in _satchel:
@@ -296,14 +223,6 @@ func count_of(ref: StringName) -> int:
 	return total
 
 
-## Puts something in the bag, and says how much would not go in.
-##
-## Fills open stacks before opening new ones, so a bag does not fragment into part-full
-## cells of the same thing while there is still room in one.
-##
-## Refuses anything the itemdb does not know, rather than inventing a slot for it: a
-## typo'd ref should read as nothing arriving, not as a phantom item that no UI can draw
-## and no recipe can spend.
 func gain(ref: StringName, count := 1) -> int:
 	if ref == &"" or count <= 0:
 		return maxi(count, 0)
@@ -346,14 +265,10 @@ func gain(ref: StringName, count := 1) -> int:
 	return left
 
 
-## Takes something out, and says whether there was enough to take. All or nothing: a
-## recipe that half-pays for itself is worse than one that does not fire.
 func spend(ref: StringName, count := 1) -> bool:
 	if count <= 0 or count_of(ref) < count:
 		return false
 	var left := count
-	# Emptiest first, so spending tidies the bag up rather than leaving a trail of
-	# part-full stacks behind it.
 	var order := range(_satchel.size())
 	order.sort_custom(func(a: int, b: int) -> bool:
 			return int(_satchel[a]["count"]) < int(_satchel[b]["count"]))
@@ -373,13 +288,6 @@ func spend(ref: StringName, count := 1) -> bool:
 	return true
 
 
-## Lifts one whole stack out of the bag and says what it was, or an empty dictionary
-## when there was no such stack.
-##
-## By index rather than by ref, because a bag can hold the same thing in several places
-## and the player dragged one of them in particular. `spend` answers a different question
-## -- how much of a thing to take, from wherever it sits -- and would empty the wrong
-## cell here.
 func remove_stack(index: int) -> Dictionary:
 	if index < 0 or index >= _satchel.size():
 		return {}
@@ -393,16 +301,12 @@ func remove_stack(index: int) -> Dictionary:
 	return out
 
 
-## Whether a stack could be put down at `to`. What a panel asks while dragging, so the
-## answer it previews and the answer it gets are the same one.
 func can_place(index: int, to: Vector2i) -> bool:
 	if index < 0 or index >= _satchel.size():
 		return false
 	return _fits(to, Itemdb.grid_size(_satchel[index]["ref"]), index)
 
 
-## Moves a stack to a cell, if it fits there. The stack being moved does not block its
-## own destination, or nothing could ever be nudged one square.
 func move_stack(index: int, to: Vector2i) -> bool:
 	if index < 0 or index >= _satchel.size():
 		return false
@@ -419,8 +323,6 @@ func move_stack(index: int, to: Vector2i) -> bool:
 	return true
 
 
-## Whether a `size` rectangle at `at` is on the board and clear of everything except
-## `ignore`, which is the stack being moved.
 func _fits(at: Vector2i, size: Vector2i, ignore := -1) -> bool:
 	if at.x < 0 or at.y < 0 or at.x + size.x > COLS or at.y + size.y > ROWS:
 		return false
@@ -436,8 +338,6 @@ func _fits(at: Vector2i, size: Vector2i, ignore := -1) -> bool:
 	return true
 
 
-## Topmost-leftmost cell a `size` rectangle fits in, or (-1, -1) when the bag is full.
-## Reading order, so things pile up from the corner the eye starts at.
 func _free_cell(size: Vector2i) -> Vector2i:
 	for y in ROWS:
 		for x in COLS:
@@ -463,8 +363,6 @@ func load_now() -> void:
 		var record: Dictionary = saved
 		_people[str(ref)] = {
 			"talks": int(record.get("talks", 0)),
-			## Clamped on the way in as well as on the way out: a save from a build with a
-			## wider range should not hand somebody an opinion this one cannot reach.
 			"respect": clampi(int(record.get("respect", 0)), RESPECT_RANGE.x, RESPECT_RANGE.y),
 			"pestered": maxi(int(record.get("pestered", 0)), 0),
 		}
@@ -485,8 +383,6 @@ func load_now() -> void:
 	_worn.clear()
 	for slot: Variant in cfg.get_value(WORN_SECTION, "slots", {}):
 		var id := StringName(cfg.get_value(WORN_SECTION, "slots", {})[slot])
-		## A save naming a piece that is no longer in the folder is dropped rather than
-		## kept, or the rig warns about it every time it is built.
 		if Wardrobe.has(id):
 			_worn[StringName(slot)] = id
 	_satchel.clear()
@@ -494,14 +390,9 @@ func load_now() -> void:
 		var saved: Dictionary = row
 		var id := StringName(saved.get("ref", ""))
 		var count := int(saved.get("count", 0))
-		# Same rule as the wardrobe: a save naming an item the itemdb no longer has is
-		# dropped rather than carried, so a renamed drop does not haunt the bag.
 		if count <= 0 or not Itemdb.has(id):
 			continue
 		var at := Vector2i(int(saved.get("x", 0)), int(saved.get("y", 0)))
-		# A stack that no longer fits where it was saved -- the grid shrank, or the item
-		# grew -- is re-placed rather than dropped. Losing the arrangement is a nuisance;
-		# losing the loot is not something a save format change should ever do.
 		if not _fits(at, Itemdb.grid_size(id)):
 			at = _free_cell(Itemdb.grid_size(id))
 			if at.x < 0:
@@ -540,8 +431,6 @@ func _notification(what: int) -> void:
 		save_now()
 
 
-## Wipes the slate. Kept for a fresh start rather than called anywhere yet -- an existing
-## player's memory is not something to clear by accident.
 func forget_everything() -> void:
 	_state.clear()
 	_people.clear()

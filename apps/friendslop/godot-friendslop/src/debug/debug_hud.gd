@@ -9,10 +9,7 @@ var _accum := 0.0
 var _player: Node3D
 var _grass: Node
 var _trees: Node
-## Per-system counts need buffer_get_data on the compute counters, which is a blocking
-## GPU readback.
 var _detailed := true
-## Worst frame seen since the last readout, plus a slower-decaying peak.
 var _worst_ms := 0.0
 var _peak_ms := 0.0
 var _peak_age := 0.0

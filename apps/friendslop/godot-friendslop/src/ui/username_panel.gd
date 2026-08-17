@@ -1,17 +1,12 @@
 class_name UsernamePanel
 extends Control
 
-## Asks a brand-new account to choose its handle, over the title's world.
 
 signal submitted(username: String)
 signal cancelled
 
 const WIDTH := 320.0
 
-## The same rule the web and mobile clients enforce: three to twenty-four characters,
-## starting with a letter, letters and digits and underscores after it. Checked here so a
-## name that cannot possibly be accepted is never sent, and enforced by the API regardless
-## — this is a courtesy, not the boundary.
 const PATTERN := "^[a-zA-Z][a-zA-Z0-9_]{2,23}$"
 
 var field: LineEdit
@@ -29,7 +24,6 @@ func _ready() -> void:
 	_build()
 
 
-## Whether `name` could be accepted at all.
 static func is_valid(name: String) -> bool:
 	var re := RegEx.new()
 	re.compile(PATTERN)
@@ -84,8 +78,6 @@ func _build() -> void:
 	field.grab_focus()
 
 
-## Lowercased on the way out, the way the other clients send it, so the same person does
-## not end up with two spellings of one handle depending on which client they used.
 func typed() -> String:
 	return field.text.strip_edges().to_lower()
 
@@ -107,8 +99,6 @@ func _submit() -> void:
 	submitted.emit(typed())
 
 
-## Locked while the claim is in flight: the name is taken by whoever asks first, and a
-## second press would race the answer to the first.
 func set_busy(busy: bool) -> void:
 	_busy = busy
 	submit_button.disabled = busy or not is_valid(typed())
@@ -135,9 +125,6 @@ func _caption(text: String, size: int) -> Label:
 	return label
 
 
-## Escape signs out rather than dismissing. An account with no handle cannot do anything,
-## so a modal that could simply be closed would strand the player on a title screen that
-## looks signed in and behaves as though nobody is.
 func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"ui_cancel"):
 		cancelled.emit()

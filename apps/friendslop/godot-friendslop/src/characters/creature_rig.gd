@@ -1,39 +1,23 @@
 extends Node3D
 
-## Assembles one creature from a single glb that already carries its own rig and clips,
-## and drives it from a state machine of locomotion plus one-shot actions.
 
 const CelShading := preload("res://src/characters/cel_shading.gd")
 
 @export var body: PackedScene
 @export var terrain_path: NodePath
 @export var snap_to_terrain := true
-## Plants the feet on the ground the creature is standing on; needs a terrain.
 @export var foot_ik := true
-## The mech pack exports facing +Z, same as the humanoid kit; Godot's forward is -Z.
 @export var facing_offset_deg := 180.0
 @export var tint := Color(1, 1, 1)
-## Shown on a billboard over the creature.
 @export var display_name := ""
-## Clearance above the top of the mesh, so the plate sits off the head rather than at a
-## guessed world height -- the mechs differ by more than a metre in stature.
 @export var nameplate_clearance := 0.9
-## Plates stop drawing past this, so a far-off creature does not leave a speck of
-## unreadable text on the horizon.
 @export var nameplate_range := 90.0
 
-## Ground speed the walk and run clips were authored for.
 @export var walk_speed := 1.6
 @export var run_speed := 5.0
 
-## Locomotion is one axis, not a ring, because the pack has no sideways or backward
-## clips.
 const MOVE_CLIPS := ["Idle", "Walk", "Run"]
 
-## clip is the animation, loop marks the cyclic ones -- the pack imports every clip as
-## LOOP_NONE, so an unmarked Idle plays once and freezes. ik is how much of the legs the
-## state hands to the foot solver, which is none of them wherever the clip takes the feet
-## off the ground.
 const STATES := {
 	&"move": {&"clip": "", &"loop": true, &"xfade": 0.22, &"reset": false, &"returns_to_move": false, &"ik": 1.0},
 	&"jump": {&"clip": "Jump", &"loop": false, &"xfade": 0.10, &"reset": true, &"returns_to_move": true, &"ik": 0.0},
@@ -46,8 +30,6 @@ const STATES := {
 	&"death": {&"clip": "Death", &"loop": false, &"xfade": 0.12, &"reset": true, &"returns_to_move": false, &"ik": 0.0},
 }
 
-## Attacks a fight can ask for by name, so a behaviour tree does not have to know which
-## of them the pack happens to ship.
 const ATTACKS: Array[StringName] = [&"punch", &"kick", &"shoot", &"slash"]
 
 const SHADING := {
@@ -68,7 +50,6 @@ var nameplate: Label3D
 
 var _dead := false
 var _speed := 0.0
-## Top of the mesh in local space, which is where the nameplate hangs from.
 var _height := 0.0
 var _bounds := AABB()
 
@@ -127,7 +108,6 @@ func _process(_delta: float) -> void:
 			playback.get_fading_from_node(), at))
 
 
-## Leg solve weight for the pose that is actually on the skeleton.
 func ground_weight_for(into: StringName, from: StringName, at: float) -> float:
 	var arriving: float = STATES.get(into, {}).get(&"ik", 1.0)
 	if from == &"":
@@ -136,8 +116,6 @@ func ground_weight_for(into: StringName, from: StringName, at: float) -> float:
 	return lerpf(leaving, arriving, clampf(at, 0.0, 1.0))
 
 
-## Billboarded so it reads from any angle, and depth-tested so a plate does not show
-## through the hill the creature is standing behind.
 func _build_nameplate() -> void:
 	nameplate = Label3D.new()
 	nameplate.text = display_name
@@ -155,23 +133,10 @@ func _build_nameplate() -> void:
 	add_child(nameplate)
 
 
-## Combined mesh bounds in local space, for whatever has to size a collider or hang
-## something off the top of the creature.
 func mesh_extents() -> AABB:
 	return _bounds
 
 
-## How far the creature reaches from its own vertical axis in the pose it is
-## standing in, which is the silhouette somebody watching it sees.
-##
-## This is not the collision radius and must not be used as one. The capsule is
-## the hard body -- a torso, sized to fit through the gaps the world leaves --
-## while this is the whole machine, arms and stride included. The mech pack
-## ranges from 1.7 to 3.4 here against capsules of 0.6 to 1.1, and avoidance told
-## only about the capsule walks two of them through each other.
-##
-## Pole targets are IK helper bones parked metres behind the body, so they are
-## skipped: they are not part of the creature and dwarf everything that is.
 func body_reach() -> float:
 	if skeleton == null:
 		return 0.0
@@ -190,7 +155,6 @@ func set_display_name(value: String) -> void:
 		nameplate.text = value
 
 
-## The pack ships every clip as LOOP_NONE, including the cycles.
 func _mark_loops() -> void:
 	var cyclic := MOVE_CLIPS.duplicate()
 	for state in STATES:
@@ -249,10 +213,6 @@ func _link(machine: AnimationNodeStateMachine, from: StringName, to: StringName,
 	var t := AnimationNodeStateMachineTransition.new()
 	t.switch_mode = AnimationNodeStateMachineTransition.SWITCH_MODE_AT_END \
 			if at_end else AnimationNodeStateMachineTransition.SWITCH_MODE_IMMEDIATE
-	## Enabled rather than disabled: play_action travels into these, and travel will not
-	## path through a disabled transition -- with no route it hard-cuts to the state
-	## instead, which costs the cross-fade entirely and makes every xfade here dead
-	## weight. What it must not be is AUTO, which would fire the moment move is entered.
 	t.advance_mode = AnimationNodeStateMachineTransition.ADVANCE_MODE_AUTO \
 			if at_end else AnimationNodeStateMachineTransition.ADVANCE_MODE_ENABLED
 	t.xfade_time = STATES[to].xfade
@@ -278,7 +238,6 @@ func _clip(name: String) -> AnimationNodeAnimation:
 	return node
 
 
-## Ground speed, in metres per second, which is the blend axis directly.
 func set_speed(value: float) -> void:
 	if tree == null:
 		return
@@ -287,8 +246,6 @@ func set_speed(value: float) -> void:
 	tree.set("parameters/move/scale/scale", _time_scale())
 
 
-## Rescales playback to the speed the blended clip was authored for, so the feet slide
-## as little as the unmeasured authored speeds allow.
 func _time_scale() -> float:
 	if _speed < 0.05:
 		return 1.0
@@ -297,7 +254,6 @@ func _time_scale() -> float:
 	return clampf(_speed / maxf(expected, 0.01), 0.6, 1.8)
 
 
-## Plays a one-shot.
 func play_action(state: StringName) -> float:
 	if tree == null or _dead or not STATES.has(state):
 		return 0.0
@@ -342,7 +298,6 @@ func _find_player(n: Node) -> AnimationPlayer:
 	return null
 
 
-## Drops the creature at a spot and settles it onto the ground there.
 func place(at: Vector3) -> void:
 	global_position = at
 	_snap()

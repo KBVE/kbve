@@ -1,10 +1,5 @@
 extends CanvasLayer
 
-## What the player is in the middle of, in the corner of the screen.
-##
-## Redrawn when the quest log says something changed rather than every frame: a quest moves
-## a handful of times an hour, and a list rebuilt at sixty hertz is sixty rebuilds of the
-## same three labels.
 
 const LAYOUT_HEIGHT := 720.0
 const SCALE_RANGE := Vector2(0.7, 1.4)
@@ -17,7 +12,6 @@ const STEP_FONT := 13
 const HEADING := Color(0.93, 0.87, 0.72, 0.55)
 const TITLE := Color(0.97, 0.9, 0.72, 0.92)
 const STEP := Color(0.93, 0.87, 0.72, 0.72)
-## A quest with every objective done and nowhere to hand it back yet.
 const READY := Color(0.72, 0.86, 0.5, 0.95)
 
 var _column: VBoxContainer
@@ -55,8 +49,6 @@ func _fit() -> void:
 	_column.offset_top = MARGIN.y * scale
 
 
-## Said as well as shown. The tracker changing is easy to miss on a screen with a river on
-## it, and a job taken on ought to land.
 func _on_changed(ref: String) -> void:
 	var title := str(Quests.definition(ref).get("title", ref))
 	if Quests.status(ref) == Quests.Status.COMPLETE:
@@ -95,7 +87,6 @@ func _rebuild() -> void:
 		_column.add_child(_line(str(quest["title"]), TITLE_FONT, TITLE))
 		var step := Quests.step(ref)
 		if step.is_empty():
-			## Everything done, nothing left to do but go back to whoever asked.
 			_column.add_child(_line(I18n.t("quest.ready"), STEP_FONT, READY))
 			continue
 		for objective: Dictionary in step["objectives"]:

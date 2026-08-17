@@ -1,6 +1,5 @@
 extends Control
 
-## Dual stick layout.
 
 const STICK_RADIUS := 110.0
 const STICK_DEADZONE := 12.0
@@ -15,19 +14,9 @@ const MOVE_ACTIONS := {
 	"move_back": Vector2(0.0, 1.0),
 }
 
-## Anchors are fractions of the viewport so the layout survives rotation and differing
-## device aspects.
-## Authored against a 720-tall viewport and scaled from there, so a small phone gets the
-## same layout rather than the same pixel counts -- an offset of 430 from the bottom edge
-## is a comfortable reach on a tablet and off the top of a short screen.
 const LAYOUT_HEIGHT := 720.0
 const LAYOUT_SCALE_RANGE := Vector2(0.55, 1.5)
 
-## An empty action is a tap the HUD handles itself rather than one it holds a key down
-## for: nothing in the input map opens the menu, and a phone has no Escape to press.
-##
-## Held actions need no special case -- crouch, block and harvest all last exactly as long
-## as the finger does, which is what the press/release pair already gives them.
 const BUTTONS := [
 	{"action": "jump", "label": "JUMP", "anchor": Vector2(1.0, 1.0), "offset": Vector2(-110.0, -150.0), "radius": 64.0},
 	{"action": "harvest", "label": "HIT", "anchor": Vector2(1.0, 1.0), "offset": Vector2(-245.0, -195.0), "radius": 58.0},
@@ -57,8 +46,6 @@ func _ready() -> void:
 	set_process(touch)
 
 
-## Returns the accumulated look movement and clears it, so a frame that runs long cannot
-## replay the same input twice.
 func consume_look() -> Vector2:
 	var delta := look_delta
 	look_delta = Vector2.ZERO

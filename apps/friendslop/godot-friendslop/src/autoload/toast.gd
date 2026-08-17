@@ -1,22 +1,11 @@
 extends CanvasLayer
 
-## Short-lived messages, stacked, from anywhere.
-##
-## The one thing that existed before this was OnlineHud.show_notice: a single Label on a
-## scene only the online mode loads, which meant single player had no way to tell the
-## player anything and a second message overwrote the first mid-read.
-##
-## Lives above the pause menu and runs while the tree is paused, since the things worth
-## saying -- a save, a failure, a setting that could not be applied -- happen either side
-## of opening the book.
 
 const MAX_SHOWN := 4
 const SECONDS := 3.2
 const FADE := 0.45
 const GAP := 8
 
-## Authored against a 720-tall viewport, like the touch HUD, so a phone gets the same
-## layout rather than the same pixel counts.
 const LAYOUT_HEIGHT := 720.0
 const SCALE_RANGE := Vector2(0.7, 1.4)
 
@@ -43,9 +32,6 @@ func _ready() -> void:
 	_column.alignment = BoxContainer.ALIGNMENT_END
 	_column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_column.add_theme_constant_override("separation", GAP)
-	# Anchored to the bottom centre and grown upward: the corners are where the touch HUD
-	# and the debug readout already live, and a toast that lands under a thumb is a toast
-	# nobody reads.
 	_column.anchor_left = 0.5
 	_column.anchor_right = 0.5
 	_column.anchor_top = 1.0
@@ -69,8 +55,6 @@ func warn(text: String) -> void:
 	show_toast(text, Kind.WARN)
 
 
-## Oldest goes first when the stack is full, rather than refusing the new one: the message
-## that just arrived is the one the player is looking for.
 func show_toast(text: String, kind: int = Kind.INFO, seconds: float = SECONDS) -> void:
 	if _column == null or text.strip_edges() == "":
 		return

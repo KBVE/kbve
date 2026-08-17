@@ -2,12 +2,8 @@ extends CanvasLayer
 
 @export var species: BirdSpecies
 
-## In the world this menu owns the escape key and hands the mouse back to the camera on
-## close.
 var toggles_on_cancel := true
 var captures_mouse_on_close := true
-## Log Off would be a button back to the screen it is already on, so the title screen
-## turns the session pair off and keeps its own Quit.
 var shows_session_actions := true
 
 var _root: Control
@@ -33,9 +29,6 @@ var _book_warm_light: OmniLight3D
 var _book_base: Transform3D
 var _book_start: Transform3D
 var _transition := 0
-## Touch needs a bigger hit target than a mouse cursor, and the book pages are a smaller
-## share of a phone screen, so sizes come from here rather than being hardcoded per
-## control.
 var _touch := false
 
 const TITLE_SCENE := "res://scenes/title.tscn"
@@ -44,8 +37,6 @@ const BOOK_OPEN_POSE := 1.6
 const CLOSE_SPEED := 3.0
 
 
-## Q_CODEX=1 opens straight into it, which is how the Codex gets looked at while it is
-## being worked on.
 func _open_codex_on_start() -> void:
 	if OS.get_environment("Q_CODEX") == "":
 		return
@@ -83,8 +74,6 @@ func _ready() -> void:
 	_main_pages = [main_left, main_right]
 	main_left.add_button(I18n.t("action.play"), _close)
 	main_left.add_button(I18n.t("action.settings"), func() -> void: _show(_settings_panel))
-	# Leaving the session sits on the far page from entering it, so quitting is never the
-	# button under the hand that was reaching for play.
 	if shows_session_actions:
 		main_right.add_button(I18n.t("pause.log_off"), _log_off)
 		main_right.add_button(I18n.t("action.quit"), _quit)
@@ -222,8 +211,6 @@ func _find_anim(node: Node) -> AnimationPlayer:
 	return null
 
 
-## Split across both open pages rather than one tall centred column: six rows grow from
-## the middle in both directions and run off the top of the book.
 func _build_graphics() -> void:
 	_graphics_panel = Control.new()
 	_graphics_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -333,11 +320,6 @@ func _build_gameplay() -> void:
 	_page_back(right)
 
 
-## The player's own wardrobe: one row per slot, cycling through what the kit has for it.
-##
-## Pieces are filtered to the set that fits the player's body. They all share one skeleton
-## so any of them would attach, but a woman's cut on a man's frame reads as a mistake
-## rather than a choice.
 const WARDROBE_SEX := "Male"
 const WARDROBE_SLOTS := [
 	[&"head", "wardrobe.head"],
@@ -375,11 +357,6 @@ func _build_wardrobe() -> void:
 	_page_back(right)
 
 
-## Everything the catalog has for the slot, with nothing at the front -- taking a thing off
-## has to be as reachable as putting one on.
-##
-## Drawn from the item catalog rather than the mesh folder: a piece the player can wear is
-## one that exists as an item, and the folder holds plenty that does not yet.
 func _wardrobe_choices(slot: StringName) -> Array[StringName]:
 	var out: Array[StringName] = [&""]
 	for ref: StringName in Itemdb.wearables():
@@ -389,8 +366,6 @@ func _wardrobe_choices(slot: StringName) -> Array[StringName]:
 	return out
 
 
-## Which row the cycler is showing. The wardrobe records the mesh being worn rather than
-## the item it came from, so the item is found by what it would look like.
 func _wardrobe_index(slot: StringName, choices: Array[StringName]) -> int:
 	var piece := Journal.worn_in(slot)
 	if piece == &"":
@@ -425,10 +400,6 @@ func _switch_locale(index: int) -> void:
 	get_tree().reload_current_scene()
 
 
-## Hiding the world a layer at a time, to find what a slow device is actually spending
-## its frame on. It lived on the touch HUD as a button of its own, which cost a permanent
-## slot on the one screen with the least room for one; here it is reachable on every
-## platform and costs nothing when unused.
 func _add_bisect(page: MenuPage) -> void:
 	var main := get_tree().current_scene
 	if main == null or not main.has_method("set_bisect"):
@@ -451,9 +422,6 @@ func _off_on() -> Array:
 
 const SCALE_STEPS := [0.5, 0.6, 0.7, 0.85, 1.0]
 
-## Page rects, touch padding and row sizing all moved to MenuStyle -- the pages are the
-## only thing that reads them, and MenuPage applies them in its layout pass.
-
 
 func _book_rect() -> Rect2:
 	if _book_cam == null or _book_root == null or _book_vp == null:
@@ -473,8 +441,6 @@ func _book_rect() -> Rect2:
 	return Rect2(mn, mx - mn)
 
 
-## Anchors and row metrics both come off the projected book, so a resize re-flows the
-## pages instead of sliding them off the paper.
 func _layout_pages() -> void:
 	var book := _book_rect()
 	if book.size.x <= 0.0 or book.size.y <= 0.0:
@@ -495,9 +461,6 @@ func _nearest_scale(v: float) -> int:
 	return _nearest(SCALE_STEPS, v)
 
 
-## Blades per square metre, shown as the number rather than a percentage: the field
-## default has already moved 250 -> 150, and a percentage would have meant a different
-## density either side of that.
 func _grass_labels() -> Array:
 	var out: Array = []
 	for v in _gfx.GRASS_STEPS:
@@ -516,10 +479,6 @@ func _nearest(steps: Array, v: float) -> int:
 	return best
 
 
-## One row, cycled by clicking rather than a dropdown: every option here is a short
-## ordered list, and a Button is already themed to match the book.
-## A page host: full-rect and transparent to the mouse, so the MenuPages inside it place
-## themselves off the projected book rather than off the window.
 func _menu_page_panel() -> Control:
 	var panel := Control.new()
 	panel.set_anchors_preset(Control.PRESET_FULL_RECT)
@@ -540,7 +499,6 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-## The same thing Escape does, for anything that has no Escape to press.
 func toggle() -> void:
 	if _root == null:
 		return
@@ -558,7 +516,6 @@ func close() -> void:
 	_close()
 
 
-## Opens straight onto the settings pages.
 func open_settings() -> void:
 	await _open()
 	if _root.visible:
@@ -610,9 +567,6 @@ func _close() -> void:
 	_set_crosshair(true)
 
 
-## Leaves without the book's close animation: the scene it is animating on top of is
-## about to be freed, and an awaited tween there is a tween that resumes against a dead
-## node.
 func _log_off() -> void:
 	_transition += 1
 	_show(null)
@@ -632,8 +586,6 @@ func _quit() -> void:
 	get_tree().quit()
 
 
-## The server keeps a body for a peer that vanished without saying so, so both paths out
-## hand the connection back before the scene or the process goes.
 func _leave_session() -> void:
 	for node in get_tree().root.find_children("*", "NetGameClient", true, false):
 		node.disconnect_from_server()
@@ -646,8 +598,6 @@ func _set_crosshair(shown: bool) -> void:
 	var hud := get_parent().get_node_or_null("Crosshair") if get_parent() else null
 	if hud:
 		hud.visible = shown and (_play == null or _play.crosshair)
-	# The sticks go with it. They sit under the book but still take drags, so leaving them
-	# up means a thumb reaching for a page walks the player around behind it.
 	for pad in get_tree().get_nodes_in_group(&"touch_controls"):
 		pad.visible = shown and MenuStyle.touch
 
@@ -689,10 +639,6 @@ func _open_codex() -> void:
 func _build_codex() -> void:
 	var codex := HBoxContainer.new()
 	codex.set_script(preload("res://src/ui/codex.gd"))
-	# Sized by the flags rather than the preset: the page it goes in is a container, so
-	# it lays its children out itself and the anchors are never consulted. Without the
-	# expand the codex is given its minimum width, and since the viewport stretches to
-	# whatever it is handed, the museum collapses to nothing and only the side rail shows.
 	codex.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	codex.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	codex.on_back = func() -> void: _show(_settings_panel)

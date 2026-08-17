@@ -39,8 +39,6 @@ func _ready() -> void:
 		_spawn_creatures.call_deferred(extra)
 
 
-## Q_CREATURES=all, or a comma-separated pick of George,Leela,Mike,Stan, adds another
-## group in front of the player.
 func _spawn_creatures(which: String) -> void:
 	var spawner: Node3D = CreatureSpawner.new()
 	if which != "all":
@@ -63,9 +61,6 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("debug_screenshot"):
 		_screenshot()
 		return
-	# I used to fire a bare impact frame. It is the satchel key now -- O below still
-	# reaches the same effect with the arc and the burst, which is what it looks like
-	# in play anyway.
 	if event is InputEventKey and event.pressed and not event.echo and event.keycode == KEY_O:
 		var hit := _player.global_position + Vector3(0.0, 1.2, 0.0) - _player.global_basis.z * 1.2
 		var slash := _player.get_node_or_null("SlashArc")
@@ -120,8 +115,6 @@ func _unhandled_input(event: InputEvent) -> void:
 			fly_speed = maxf(fly_speed / 1.2, 1.0)
 
 
-## Drives one swing through the same API the net path uses, so felling can be
-## looked at before the swing input exists.
 func _chop_nearest() -> void:
 	var trees := get_node_or_null("../TreeField")
 	if trees == null:

@@ -1,14 +1,6 @@
 extends CanvasLayer
 
-## Three bars in the corner: what the player has left of their health, their will and their
-## wind.
-##
-## Read straight off the simulation each frame rather than kept in step by signals. The
-## numbers move every tick anyway -- regen alone changes all three -- so a subscription
-## would fire as often as a poll and be wrong in more ways.
 
-## Authored against a 720-tall viewport like the rest of the HUD, so a phone gets the same
-## layout rather than the same pixel counts.
 const LAYOUT_HEIGHT := 720.0
 const SCALE_RANGE := Vector2(0.7, 1.4)
 
@@ -18,20 +10,15 @@ const GAP := 6.0
 const LABEL_FONT := 12
 const RADIUS := 3.0
 
-## Ink and dusk behind, and the bar itself in the colour of the thing it measures: blood,
-## deep water, and the green of getting your breath back.
 const TRACK := Color(0.09, 0.07, 0.05, 0.72)
 const EDGE := Color(0.42, 0.31, 0.18, 0.55)
 const HEALTH := Color(0.72, 0.18, 0.16, 0.95)
 const MANA := Color(0.24, 0.42, 0.74, 0.95)
 const ENERGY := Color(0.42, 0.62, 0.24, 0.95)
-## What a bar goes to while its owner is down, so the reason nothing responds is on screen.
 const SPENT := Color(0.35, 0.31, 0.28, 0.85)
 
 var _draw_layer: Control
 var _shown := PackedFloat32Array([0.0, 0.0, 0.0])
-## Eased towards what the sim reports rather than snapped, since the sim answers at 20Hz
-## and a bar that steps at 20Hz reads as a stutter next to a world drawn at 60.
 @export var settle := 9.0
 @export var id := 1
 

@@ -38,9 +38,6 @@ func _ready() -> void:
 	_apply()
 
 
-## Whatever the player was added under. Mid-swap, and under an additive load, the tree's
-## current scene is either null or somebody else's, and reading the world off it takes the
-## whole rig down with it.
 func _world_root() -> Node:
 	var scene := get_tree().current_scene
 	if scene != null and scene.is_ancestor_of(self):

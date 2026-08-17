@@ -1,10 +1,8 @@
 class_name AccountCard
 extends VBoxContainer
 
-## Who the player is signed in as, on the title screen.
 
 const AVATAR_PX := 64
-## Cached beside the session so a title screen opened offline still has a face on it.
 const AVATAR_CACHE := "user://avatar.png"
 
 var avatar: TextureRect
@@ -53,8 +51,6 @@ func _line(parent: Control, size: int) -> Label:
 	return label
 
 
-## The id is shown in full rather than shortened: the only reason a player reads it is to
-## quote it into a bug report or a support message, and half of one is no use for that.
 func show_account(username: String, user_id: String) -> void:
 	visible = true
 	name_label.text = username if not username.is_empty() else "signed in"
@@ -70,15 +66,11 @@ func show_wallet(credits: int, khash: int) -> void:
 	wallet_label.modulate = Color(1, 1, 1, 1)
 
 
-## A balance that could not be read says so. Showing zero would be a number the player
-## might act on, and it is a different claim from "we could not ask".
 func show_wallet_error(reason: String) -> void:
 	wallet_label.text = reason
 	wallet_label.modulate = Color(1.0, 0.75, 0.55)
 
 
-## Thousands separators, which is the difference between a credit balance being readable
-## and being a wall of digits — they run to millions by design.
 static func _grouped(value: int) -> String:
 	var digits := str(absi(value))
 	var out := ""
@@ -111,9 +103,6 @@ func _show_cached_avatar() -> void:
 		avatar.texture = ImageTexture.create_from_image(image)
 
 
-## Providers serve png or jpg and say which in the URL only sometimes, so the bytes are
-## tried both ways rather than trusted. A picture that will not decode is left as whatever
-## was cached, since a broken image is worse than yesterday's face.
 func _on_avatar(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	if result != HTTPRequest.RESULT_SUCCESS or code != 200 or body.is_empty():
 		return

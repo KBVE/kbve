@@ -1,6 +1,5 @@
 extends Node
 
-## Player-facing graphics options, saved to user:// and applied live.
 
 signal changed
 
@@ -9,8 +8,6 @@ const CONFIG_PATH := "user://graphics.cfg"
 enum Detail { OFF, LOW, HIGH }
 enum Tier { POTATO, LOW, MEDIUM, HIGH, EPIC }
 
-## Keys, not words: the menu translates them on the way to the page, and the tier arrays
-## below are indexed by position either way.
 const DETAIL_NAMES := [
 	"settings.detail_name.off",
 	"settings.detail_name.low",
@@ -40,19 +37,14 @@ const UPSCALE_NAMES := [
 	"settings.upscale_name.metalfx_temporal",
 ]
 
-## pom_strength, pom_layers_max, pom_shadow_strength per detail step.
 const DETAIL_POM := [
 	{"strength": 0.0, "layers": 24.0, "shadow": 0.0},
 	{"strength": 1.0, "layers": 24.0, "shadow": 0.0},
 	{"strength": 1.0, "layers": 48.0, "shadow": 0.7},
 ]
 
-## Blades per square metre, absolute rather than a fraction of whatever the field
-## happens to ship with -- the Rust default has already moved 250 -> 150, and a
-## percentage would have silently meant a different density either side of that change.
 const GRASS_STEPS := [40.0, 80.0, 150.0, 250.0, 400.0]
 
-## One row per tier.
 const TIERS := [
 	{
 		"scale": 0.5, "detail": Detail.OFF, "shadows": false, "shadow_distance": 30.0,
@@ -121,7 +113,6 @@ const TIERS := [
 	},
 ]
 
-## Parallax is desktop-only for now.
 const MOBILE_GROUND := {"pom_strength": 0.0, "detail_amount": 0.35}
 
 var render_scale := 1.0
@@ -138,7 +129,6 @@ var _day: Node
 var _post: CanvasLayer
 
 
-## The tier a fresh install starts on.
 static func default_tier() -> int:
 	return Tier.LOW if OS.has_feature("mobile") else Tier.HIGH
 
@@ -166,8 +156,6 @@ static func available_upscalers() -> Array:
 	return out
 
 
-## Read by main.gd during _enter_tree, before this node exists, so it has to work off
-## the file rather than off instance state.
 static func saved_tier() -> int:
 	var cfg := ConfigFile.new()
 	if cfg.load(CONFIG_PATH) != OK:
@@ -176,9 +164,6 @@ static func saved_tier() -> int:
 	return clampi(t, 0, TIERS.size() - 1)
 
 
-## Field exports only take effect before the field readies, so this is called from
-## main.gd's _enter_tree and again on a tier change (where the live setters re-stream
-## what they can).
 static func apply_fields(main: Node, tier: int) -> void:
 	var row: Dictionary = TIERS[clampi(tier, 0, TIERS.size() - 1)]
 	var grass := main.get_node_or_null(^"GrassField")

@@ -1,7 +1,5 @@
 extends Node3D
 
-## A session on the dedicated server: the world the host is simulating, drawn locally,
-## with everyone in it named.
 
 const GFX := preload("res://src/settings/graphics_settings.gd")
 const TITLE_SCENE := "res://scenes/title.tscn"
@@ -42,8 +40,6 @@ func _ready() -> void:
 	_client.connect_to_server()
 
 
-## `FS_URL` overrides, which is how a local server gets tested against a build that
-## otherwise only knows about the deployed fleet.
 static func server_url() -> String:
 	var override := OS.get_environment("FS_URL")
 	return override if override != "" else NetGameClient.DEPLOYED_URL
@@ -57,9 +53,6 @@ func _on_joined(seed_value: int, assigned_name: String) -> void:
 	_refresh_nameplates()
 
 
-## The host's terrain and clock win over whatever the scene was authored with. These
-## used to be agreed by convention between two codebases, and disagreeing produced no
-## error — just players standing slightly inside the ground, under their own sun.
 func _adopt_world() -> void:
 	var extent := _client.terrain_extent()
 	var resolution := _client.terrain_resolution()
@@ -69,9 +62,6 @@ func _adopt_world() -> void:
 		if int(_terrain.resolution) != resolution:
 			_terrain.resolution = resolution
 
-	# The deck's height comes out of these, so they belong to the host for the same
-	# reason the extent does: a bridge in two places is a player walking on planks
-	# their own server thinks are river.
 	var water := _client.world_water_level()
 	var road := _client.world_road_width()
 	if _terrain and road > 0.0:
@@ -80,22 +70,12 @@ func _adopt_world() -> void:
 		if not is_equal_approx(float(_terrain.road_width), road):
 			_terrain.road_width = road
 
-	# Both constants of the clock, and the day length through the setter rather than the
-	# export because _hours_per_second is derived from it once in _ready. The hour is
-	# derived from the host's elapsed seconds through the same mapping on both sides, so
-	# keeping the scene's own start hour would leave this sky a fixed offset from
-	# everyone else's for the whole session.
 	var day_length := _client.day_length_minutes()
 	if _day_night and day_length > 0.0:
 		_day_night.set_day_length(day_length)
 		_day_night.start_hour = _client.world_start_hour()
 
 
-## The host resends the clock every couple of seconds, and the extension runs it on
-## between those, so what arrives here is already continuous. The sky is written from it
-## every frame rather than corrected on arrival: seconds and an hour derived from them
-## the same way on both sides leave nothing to correct, where an hour on its own could
-## only ever be snapped to.
 func _process(_delta: float) -> void:
 	if _day_night == null or not _client.is_joined():
 		return
@@ -117,8 +97,6 @@ func _on_avatar_spawned(body_id: int, node: Node3D) -> void:
 	_refresh_nameplates()
 
 
-## Names arrive on their own message, so a body can exist for a frame or two before
-## there is anything to write over it.
 func _refresh_nameplates() -> void:
 	for child in _client.get_children():
 		var avatar := child as NetAvatar

@@ -8,28 +8,16 @@ const Harvester := preload("res://src/player/harvester.gd")
 @export var dot := 1.5
 @export var color := Color(1.0, 1.0, 1.0, 0.85)
 @export var outline := Color(0.0, 0.0, 0.0, 0.5)
-## Shown while a rock or tree is in reach and in front. The crosshair is the only
-## thing that says a swing would land, so without this the player finds out by
-## swinging and watching nothing happen.
 @export var target_color := Color(1.0, 0.86, 0.45, 0.95)
-## How far the arms open when something is under the mark.
 @export var target_gap := 7.0
-## How quickly the mark opens and closes, as a fraction closed per second.
 @export var settle := 14.0
-## How far the arms draw in as a swing winds up. A swing takes most of a second
-## before it lands, and without a tell that wait reads as the game ignoring the
-## button rather than as an axe being raised.
 @export var wind_pull := 8.0
 
 var _settings: Node
 var _draw_layer: Control
 var _harvester: Node
-## Eased rather than switched, so the mark reads as opening onto something instead
-## of flickering between two sizes when a target sits at the edge of the cone.
 var _aim := 0.0
 var _aim_wanted := 0.0
-## Read from the harvester rather than timed here, so the mark cannot drift out of
-## step with the arm it is describing.
 var _wind := 0.0
 
 
@@ -48,8 +36,6 @@ func _ready() -> void:
 		_read_settings()
 
 
-## The harvester arrives with the player, which is spawned rather than in the scene,
-## so this is retried until it turns up instead of resolved once.
 func _find_harvester() -> void:
 	if _harvester and is_instance_valid(_harvester):
 		return

@@ -1,6 +1,5 @@
 extends Node
 
-## Every player-facing string, keyed rather than written where it is used.
 
 signal locale_changed
 
@@ -8,7 +7,6 @@ const DIR := "res://assets/i18n"
 const NAMESPACES := ["common", "game.friendslop"]
 const FALLBACK := "en"
 
-## Scripts the engine's built-in font has no glyphs for.
 const FONTS := {
 	"hi": "res://assets/fonts/NotoSansDevanagari-Regular.ttf",
 	"ja": "res://assets/fonts/NotoSansJP.ttf",
@@ -27,8 +25,6 @@ func _ready() -> void:
 	set_locale(saved_locale())
 
 
-## Endonyms, so the picker is readable by someone who cannot yet read the rest of the
-## UI.
 func _read_locales() -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var raw: Variant = _read_json("%s/locales.json" % DIR)
@@ -50,8 +46,6 @@ func _read_locale(code: String) -> Dictionary:
 	return flat
 
 
-## Imported as a JSON resource in an export, a loose file in the editor and in headless
-## test runs -- neither path is present in both, so both are tried.
 func _read_json(path: String) -> Variant:
 	if ResourceLoader.exists(path):
 		var res: Variant = ResourceLoader.load(path)
@@ -77,7 +71,6 @@ func _flatten(node: Dictionary, prefix: String, out: Dictionary) -> void:
 			out[path] = str(value)
 
 
-## Every string the current locale can draw, which is what a font check needs:
 func strings() -> Array:
 	return _current.values()
 
@@ -110,7 +103,6 @@ func set_locale_index(index: int, remember := false) -> void:
 	set_locale(str(_locales[index].get("code", FALLBACK)), remember)
 
 
-## `remember` is what separates a guess from an answer.
 func set_locale(code: String, remember := false) -> void:
 	var wanted := code if _has_locale(code) else FALLBACK
 	if remember:
@@ -124,16 +116,10 @@ func set_locale(code: String, remember := false) -> void:
 	locale_changed.emit()
 
 
-## Hung off the built-in font as a fallback rather than replacing it: the menus keep the
-## face they were designed around, and the extra font is only consulted for the glyphs
-## the built-in one does not have.
 func _apply_font(code: String) -> void:
 	_set_fallbacks(_load_fonts([code]))
 
 
-## The language picker is the one place that has to draw every script at once -- it
-## lists each language in its own -- so it asks for the whole set while it is open and
-## gives it back on the way out.
 func use_all_fonts() -> void:
 	_set_fallbacks(_load_fonts(FONTS.keys()))
 
@@ -169,9 +155,6 @@ func _has_locale(code: String) -> bool:
 	return false
 
 
-## `{{name}}` rather than Godot's own `{name}`, because the same tables are read by the
-## TypeScript helper and a string that renders literally in one of the two is worse than
-## either syntax.
 func t(key: String, vars: Dictionary = {}) -> String:
 	var text: String = _current.get(key, _fallback.get(key, key))
 	if vars.is_empty():
@@ -181,7 +164,6 @@ func t(key: String, vars: Dictionary = {}) -> String:
 	return text
 
 
-## Translates a list of keys in order, which is what the settings cyclers want:
 func t_all(keys: Array) -> Array:
 	var out: Array = []
 	for key: Variant in keys:
@@ -189,7 +171,6 @@ func t_all(keys: Array) -> Array:
 	return out
 
 
-## The player's own language before their first visit to the settings book.
 static func system_locale() -> String:
 	return OS.get_locale_language()
 
@@ -204,8 +185,6 @@ static func saved_locale() -> String:
 	return str(cfg.get_value("gameplay", "locale", system_locale()))
 
 
-## Whether the player has ever answered the question, as opposed to having been guessed
-## at.
 static func has_choice() -> bool:
 	var cfg := ConfigFile.new()
 	if cfg.load(CONFIG_PATH) != OK:

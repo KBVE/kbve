@@ -1,12 +1,10 @@
 class_name AuthSession
 extends Node
 
-## Who the player currently is, for as long as the process lives.
 
 signal changed
 
 enum Mode {
-	## No one has chosen yet — the state the title screen opens in.
 	SIGNED_OUT,
 	GUEST,
 	ACCOUNT,
@@ -14,19 +12,14 @@ enum Mode {
 
 const SUPABASE_URL := "https://supabase.kbve.com"
 
-## Public by design — it identifies the project, it does not authorize anything.
 const ANON_KEY := "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzU1NDAzMjAwLCJleHAiOjE5MTMxNjk2MDB9.oietJI22ZytbghFywvdYMSJp7rcsBdBYbcciJxeGWrg"
 
 const TIMEOUT_SECONDS := 15.0
 
-## Providers offered on the title.
 const PROVIDERS := ["discord", "github", "twitch"]
 
-## Refresh this far before the token actually expires, so a join that takes a moment to
-## travel does not arrive holding something that just went stale.
 const REFRESH_MARGIN_SECONDS := 60
 
-## Where the session is kept between runs.
 const STORE_PATH := "user://session.cfg"
 
 var _mode: Mode = Mode.SIGNED_OUT
@@ -53,12 +46,10 @@ func is_guest() -> bool:
 	return _mode == Mode.GUEST
 
 
-## Why the last sign-in failed, in words a player can act on.
 func last_error() -> String:
 	return _error
 
 
-## Immediate and infallible.
 func sign_in_as_guest() -> void:
 	_mode = Mode.GUEST
 	_token = ""
@@ -69,7 +60,6 @@ func sign_in_as_guest() -> void:
 	changed.emit()
 
 
-## Exchanges credentials for a token.
 func sign_in(email: String, password: String) -> Error:
 	if email.strip_edges().is_empty() or password.is_empty():
 		_error = "Enter an email and password."
@@ -82,8 +72,6 @@ func sign_in(email: String, password: String) -> Error:
 	return _adopt_answer(answer)
 
 
-## Signs in through the player's browser: opens the provider, catches the redirect on a
-## loopback socket, and exchanges the code for a token.
 func sign_in_with_provider(provider: String) -> Error:
 	if not PROVIDERS.has(provider):
 		_error = "Unknown sign-in provider."
@@ -112,7 +100,6 @@ func sign_in_with_provider(provider: String) -> Error:
 	}))
 
 
-## The URL the browser is sent to.
 static func authorize_url(provider: String, port: int, verifier: String) -> String:
 	var redirect := "http://127.0.0.1:%d/callback" % port
 	return "%s/auth/v1/authorize?provider=%s&redirect_to=%s&code_challenge=%s&code_challenge_method=s256" % [
@@ -123,7 +110,6 @@ static func authorize_url(provider: String, port: int, verifier: String) -> Stri
 	]
 
 
-## Renews the access token from the refresh token obtained at sign-in.
 func refresh_if_stale() -> Error:
 	if _mode != Mode.ACCOUNT or _refresh_token.is_empty():
 		return OK
@@ -132,9 +118,6 @@ func refresh_if_stale() -> Error:
 	return await _refresh()
 
 
-## Trades the refresh token for a new access token, whatever the clock says. Split from
-## the staleness check because a session picked up from disk has no expiry to compare
-## against — it has only the refresh token, and has to spend it to learn anything.
 func _refresh() -> Error:
 	var answer := await _post("/auth/v1/token?grant_type=refresh_token", {
 		"refresh_token": _refresh_token,
@@ -157,14 +140,6 @@ func sign_out() -> void:
 	changed.emit()
 
 
-## Keeps the account across runs so signing in is something a player does once rather
-## than every launch.
-##
-## This writes the refresh token to disk in the clear. Godot's `user://` is a plain
-## directory with no OS keychain behind it, so anyone with read access to the machine's
-## profile can take the file and mint access tokens until it is revoked. That is the same
-## exposure every "stay signed in" checkbox carries and it is why only the refresh token
-## and the account's own display fields are kept — never a password.
 func _save() -> void:
 	if _mode != Mode.ACCOUNT or _refresh_token.is_empty():
 		return
@@ -180,9 +155,6 @@ func _forget() -> void:
 		DirAccess.remove_absolute(ProjectSettings.globalize_path(STORE_PATH))
 
 
-## Picks the session back up. Only the refresh token is stored, so the access token is
-## always minted fresh at launch and a revoked session simply fails to come back rather
-## than appearing to work until its first call.
 func _restore() -> void:
 	var store := ConfigFile.new()
 	if store.load(STORE_PATH) != OK:
@@ -199,32 +171,24 @@ func _restore() -> void:
 	changed.emit()
 
 
-## True for an account that exists but has not chosen a handle yet, which is every
-## account on the first sign-in: Supabase creates the row, and the name is a separate
-## claim nothing has written.
 func needs_username() -> bool:
 	return _mode == Mode.ACCOUNT and not _token.is_empty() and username_in(_token).is_empty()
 
 
-## Trades the refresh token in whatever the clock says, which is how a claim written
-## server-side is picked up — the token in hand was minted before it existed.
 func refresh_now() -> Error:
 	if _mode != Mode.ACCOUNT or _refresh_token.is_empty():
 		return ERR_UNAUTHORIZED
 	return await _refresh()
 
 
-## Supabase access token, or "" for a guest.
 func access_token() -> String:
 	return _token
 
 
-## Username from the token's claims — for this screen only.
 func requested_name() -> String:
 	return _username
 
 
-## Adopts a signed-in account directly.
 func adopt_account(token: String, username: String, refresh_token := "", expires_at := 0) -> void:
 	if token.is_empty():
 		push_error("AuthSession.adopt_account: refusing an empty token")
@@ -239,8 +203,6 @@ func adopt_account(token: String, username: String, refresh_token := "", expires
 	changed.emit()
 
 
-## Reads a token's claims without verifying it — the signature is the server's business,
-## and nothing drawn on this machine's own screen is a security boundary.
 static func claims_in(token: String) -> Dictionary:
 	var parts := token.split(".")
 	if parts.size() < 2:
@@ -264,13 +226,10 @@ static func username_in(token: String) -> String:
 	return name
 
 
-## The account's own id, which is the `sub` claim every Supabase token carries.
 func user_id() -> String:
 	return claims_in(_token).get("sub", "")
 
 
-## Where the provider keeps the player's picture. OAuth writes it into the token's own
-## metadata, so there is no call to make for it.
 func avatar_url() -> String:
 	var meta: Variant = claims_in(_token).get("user_metadata", {})
 	if typeof(meta) != TYPE_DICTIONARY:
@@ -305,8 +264,6 @@ func _adopt_answer(answer: Dictionary) -> Error:
 	return OK
 
 
-## GoTrue spells its failures several ways depending on the endpoint and the version; a
-## player only needs the sentence.
 static func _message_in(body: Dictionary, code: int) -> String:
 	if String(body.get("error_code", "")).begins_with("flow_state"):
 		return "Sign-in expired before it finished — try again."

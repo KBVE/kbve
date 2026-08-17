@@ -2,7 +2,6 @@ extends SkeletonModifier3D
 
 const TwoBoneIK := preload("res://src/characters/two_bone_ik.gd")
 
-## Plants feet on the terrain instead of on the flat plane the clips assume.
 
 const FEET := [
 	{"foot": &"LeftFoot", "upper": &"LeftUpperLeg", "lower": &"LeftLowerLeg"},
@@ -10,30 +9,19 @@ const FEET := [
 ]
 
 @export var terrain_path: NodePath
-## Rays start this far above the foot and reach this far below it.
 @export var probe_up := 0.6
 @export var probe_down := 1.2
 @export_flags_3d_physics var probe_mask := 1
-## Ankle bone height in the rest pose, measured against the body mesh's lowest vertex.
 @export var ankle_height := 0.0865
-## How far the hips may drop to keep the trailing foot from over-extending.
 @export var max_hip_drop := 0.45
-## Newton steps used to drive the reach violation to zero.
 @export var solver_iterations := 3
-## Extension the hips are solved to keep the most-stretched planted leg under.
 @export_range(0.7, 1.0) var knee_comfort := 0.94
-## Budget for the comfort part of the drop, on top of whatever reachability demands.
 @export var max_comfort_drop := 0.09
-## Clip lift at which a foot counts as fully mid-stride and is left to the animation.
 @export var plant_height := 0.32
-## Ground normals steeper than this stop steering the foot, so a cliff edge under one
-## toe does not snap the whole foot sideways.
 @export var max_foot_tilt_deg := 35.0
-## How far a foot's ground may sit from the ground the body is standing on.
 @export var max_ground_step := 1.2
 @export var adapt_speed := 10.0
 
-## Added to ankle_height by footwear, whose sole sits below the bare foot.
 var sole_offset := 0.0
 
 var targets: Array[Marker3D] = []
@@ -41,23 +29,17 @@ var targets: Array[Marker3D] = []
 var _terrain: Node
 var _hips := -1
 var _hip_offset := 0.0
-## Fades the whole solve out where there is no ground to stand on.
 var _blend := 1.0
 var _ready_done := false
-## How much of the legs the animation state is handing over, set by the rig from the
-## live crossfade.
 var _want := 1.0
 
-## Ray results, refreshed on the physics tick.
 var _probe_xz: Array[Vector2] = [Vector2.ZERO, Vector2.ZERO]
 var _probe_y: Array[float] = [0.0, 0.0]
 var _hit: Array[bool] = [false, false]
 var _hit_y: Array[float] = [0.0, 0.0]
 var _hit_normal: Array[Vector3] = [Vector3.UP, Vector3.UP]
 var _post_y: Array[float] = [0.0, 0.0]
-## Per-foot confidence that the sampled surface is the one the body stands on.
 var _edge: Array[float] = [1.0, 1.0]
-## Hinge the bend was solved about, in skeleton space, for the debug line.
 var _pole_dbg: Array[Vector3] = [Vector3.ZERO, Vector3.ZERO]
 var _probe_dbg: Array[String] = ["", ""]
 var _exclude: Array[RID] = []
@@ -67,7 +49,6 @@ func set_sole_offset(value: float) -> void:
 	sole_offset = value
 
 
-## Distance the foot mesh extends below the ankle bone.
 func measure_sole(mesh: MeshInstance3D, foot_bone: StringName) -> void:
 	var skeleton := get_skeleton()
 	if skeleton == null or mesh == null:
@@ -123,7 +104,6 @@ func _build() -> void:
 		skeleton.add_child(probe)
 
 
-## Reads the pose back from behind the solver.
 class Tail extends SkeletonModifier3D:
 	var driver
 
@@ -213,8 +193,6 @@ func _process_modification_with_delta(delta: float) -> void:
 			_solve_leg(skeleton, i, goal, normals[i], plant[i] * _blend)
 
 
-## Plants the leg, then lays the ground's tilt over the foot the animation and the solve
-## left it in.
 func _solve_leg(skeleton: Skeleton3D, i: int, goal: Vector3, normal: Vector3,
 		amount: float) -> void:
 	var hip := skeleton.find_bone(FEET[i].upper)
@@ -235,7 +213,6 @@ func _solve_leg(skeleton: Skeleton3D, i: int, goal: Vector3, normal: Vector3,
 			ankle_pose.origin))
 
 
-## Clamps a target into the leg's span.
 func _reachable(skeleton: Skeleton3D, i: int, target: Vector3) -> Vector3:
 	var hip := skeleton.find_bone(FEET[i].upper)
 	var knee := skeleton.find_bone(FEET[i].lower)
@@ -284,7 +261,6 @@ func _debug(skeleton: Skeleton3D, posed: Array[Transform3D], grounds: Array[floa
 	print("[footik] ", out)
 
 
-## Solves the pelvis drop that brings every planted foot inside its leg's reach.
 func _solve_hips(skeleton: Skeleton3D, posed: Array[Transform3D], grounds: Array[float],
 		plant: Array[float]) -> float:
 	if _hips < 0:
@@ -310,8 +286,6 @@ func _solve_hips(skeleton: Skeleton3D, posed: Array[Transform3D], grounds: Array
 	return maxf(eased, needed - max_comfort_drop)
 
 
-## Newton-steps the pelvis down until no planted leg is stretched past `ratio` of its
-## span.
 func _drop_for(socket: Array[Vector3], target: Array[Vector3], reach: Array[float],
 		active: Array[int], ratio: float, limit: float) -> float:
 	var drop := 0.0
@@ -349,8 +323,6 @@ func _apply_hips(skeleton: Skeleton3D) -> void:
 			+ parent_basis.inverse() * Vector3(0.0, _hip_offset, 0.0))
 
 
-## Fallback normal by finite difference, for when the ray missed and only the height
-## field has an answer.
 func _terrain_normal(at: Vector3) -> Vector3:
 	var e := 0.15
 	var hx: float = _terrain.height_at(at.x + e, at.z) - _terrain.height_at(at.x - e, at.z)
@@ -358,7 +330,6 @@ func _terrain_normal(at: Vector3) -> Vector3:
 	return Vector3(-hx, 2.0 * e, -hz).normalized()
 
 
-## The animated basis is tilted onto the ground normal rather than rebuilt from it.
 func _tilt(normal: Vector3, posed: Basis, amount: float) -> Basis:
 	var angle := normal.angle_to(Vector3.UP)
 	if angle < 0.0001 or amount <= 0.001:

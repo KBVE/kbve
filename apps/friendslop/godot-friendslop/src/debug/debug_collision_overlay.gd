@@ -1,19 +1,9 @@
 extends Node3D
 
-## Draws what the physics server was actually given, and what the creature flow field
-## routes around.
-##
-## Neither is visible to Godot's own "visible collision shapes": the scatter fields build
-## their bodies straight on PhysicsServer3D with no CollisionShape3D behind them, so the
-## engine has no node to draw. This asks the fields for the same points they handed the
-## server and draws those, which is the only way the two can be compared.
 
 const HULL_COLOR := Color(0.25, 1.0, 0.45, 0.85)
 const DISC_COLOR := Color(1.0, 0.75, 0.2, 0.7)
 const DISC_SEGMENTS := 20
-## Redrawn on a timer rather than every frame: the hulls only move when something is
-## mined, and rebuilding a few hundred wire meshes per frame costs more than the thing
-## being measured.
 const REFRESH := 0.4
 
 @export var stone_field_path: NodePath
@@ -84,8 +74,6 @@ func _field(path: NodePath, fallback: String) -> Node:
 	return scene.get_node_or_null(NodePath(fallback)) if scene else null
 
 
-## One wire mesh per variant-and-stage, reused across every stone wearing it: the shape is
-## the same object the server holds, so a hull that is wrong here is wrong there.
 func _hull_mesh(field: Node, variant: int, stage: int) -> Mesh:
 	var key := variant * 16 + stage
 	if _shapes.has(key):
@@ -115,8 +103,6 @@ func _draw_hulls(field: Node) -> void:
 		view.global_transform = entry.get("transform", Transform3D.IDENTITY)
 
 
-## The flow field's own view of the world: flat discs, which is all it routes around. A
-## disc that no longer matches its hull is the bug this is here to show.
 func _draw_discs(fields: Array) -> void:
 	var mesh := _discs.mesh as ImmediateMesh
 	mesh.surface_begin(Mesh.PRIMITIVE_LINES)

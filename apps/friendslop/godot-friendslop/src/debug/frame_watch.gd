@@ -1,11 +1,7 @@
 extends Node
 
-## Logs a line whenever a frame takes far longer than its neighbours, with enough
-## engine-side counters to say which subsystem stalled.
 
 const SPIKE_RATIO := 1.8
-## Low enough to stay out of the way at a 16.7ms vsync baseline, where the ratio
-## governs, and still catch stalls when vsync is off and frames are ~4ms.
 const SPIKE_FLOOR_MS := 8.0
 const WARMUP_FRAMES := 120
 const TAIL_FRAMES := 6

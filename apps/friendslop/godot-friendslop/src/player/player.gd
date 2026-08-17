@@ -1,51 +1,24 @@
 extends CharacterBody3D
 
-## Speeds, the jump impulse, the fall cap and the stopping rate are all QLocomotion's
-## now, so the ring the rig blends over and the speed the body actually travels cannot
-## drift apart -- and an authoritative server reaches the same numbers from the same
-## intent.
 const MOUSE_SENSITIVITY := 0.003
 const PITCH_LIMITS := Vector2(-1.2, 0.6)
 
 const Mantle := preload("res://src/player/mantle.gd")
 
-## The ground is baked on a worker thread, so for the first frames of a scene there is
-## no collider anywhere and gravity has nothing to land on.
 @export var terrain_path: NodePath = ^"../Terrain"
-## The off-thread rapier sim. When it is present the body walks there instead of through
-## `move_and_slide`, which takes the sweep-and-resolve work off the main thread. Godot's
-## own collision stays in the scene either way: the camera, the foot IK and the mantle
-## probes are all raycasts against it, and they are cheap where movement is not.
 @export var physics_path: NodePath = ^"../Physics"
-## Matches the CollisionShape3D on this scene. Rapier centres a capsule on its middle
-## while the node origin is at the feet, so the sim body is offset by this much.
 const CAPSULE_RADIUS := 0.5
 const CAPSULE_HALF_HEIGHT := 0.5
 const CAPSULE_CENTER := Vector3(0.0, 1.0, 0.0)
-## How long the rig keeps playing a grounded clip after contact is lost. The sim
-## publishes on its own tick, so a snapshot can be up to one tick old and a single-tick
-## loss of contact on a lip would otherwise flick the animation to a jump and back.
-## Only the animation reads this -- gravity and jumping still see the raw flag, because
-## holding those grounded would stop the body falling.
 const COYOTE_TIME := 0.12
-## Share of the asked-for speed the body has to fall below before the controller's own
-## figure is believed over the intended one. Loose on purpose: walking a slope or brushing
-## a rock costs some speed legitimately, and only being stopped should count.
 const BLOCKED_FRACTION := 0.5
-## Clearance kept above the ground when the body is settled onto it.
 @export var settle_clearance := 1.0
-## How far under the ground the body has to be before it counts as having fallen through
-## the world rather than standing in a dip the height field smooths over.
 @export var fall_through_slack := 3.0
 
 @export_group("Body")
-## What the player starts out made of. Even ranks, so the first points spent are a choice
-## about who to become rather than a correction of who they were dealt.
 @export var strength := 3
 @export var skill := 3
 @export var will := 3
-## What effort costs. Read against the energy the simulation reports, which is a tick old --
-## close enough for a jump, and not close enough for anything that matters to a duel.
 @export var jump_energy := 8.0
 @export var roll_energy := 14.0
 
@@ -53,19 +26,15 @@ const BLOCKED_FRACTION := 0.5
 @onready var rig: Node3D = $Mesh
 
 var _terrain: Node
-## Held until there is ground, so the fall never starts.
 var _held := false
 
 var _sim: Node
-## Sim body id, or 0 while the body is still on Godot physics.
 var _sim_id := 0
 var _airborne_t := 0.0
 
 var _touch := false
 var _talking := false
 var _mantle := Mantle.new()
-## Q_WALK="x,z" leans on the stick without a hand on it, and "auto" sweeps it through
-## every heading.
 var _walk := Vector2.ZERO
 var _walk_sweep := false
 var _walk_t := 0.0
@@ -90,8 +59,6 @@ func _ready() -> void:
 	Vitals.enlist(Vitals.PLAYER, strength, skill, will)
 
 
-## Q_GODOT_PHYSICS=1 keeps the body on `move_and_slide`, so the two paths can be measured
-## against each other in the same build rather than across two.
 func _find_sim() -> void:
 	if OS.get_environment("Q_GODOT_PHYSICS") != "":
 		return
@@ -103,8 +70,6 @@ func _find_sim() -> void:
 	_sim = node
 
 
-## Deferred until the ground exists: a character spawned into an empty sim starts falling
-## and the controller has nothing to catch it on.
 func _join_sim() -> void:
 	if _sim == null or _sim_id != 0 or not _sim.is_terrain_ready():
 		return
@@ -112,14 +77,6 @@ func _join_sim() -> void:
 			collision_layer, collision_mask)
 
 
-## Takes the controller's horizontal result back only when it fell well short of what was
-## asked for, which is what being stopped by geometry looks like.
-##
-## The rig reads this velocity for facing, blend position and the walk cycle's playback
-## rate, and the sim's own figure is derived from a pose delta a tick old and quantised by
-## however the controller resolved that tick. Adopting it every frame wobbles the playback
-## rate and the cycle appears to restart, so on open ground the body keeps the velocity it
-## intended and only a genuine block overrides it.
 func _adopt_blocked_velocity() -> void:
 	var actual: Vector3 = _sim.body_velocity(_sim_id)
 	var planned := Vector2(velocity.x, velocity.z)
@@ -135,7 +92,6 @@ func _grounded() -> bool:
 
 func _wait_for_ground() -> void:
 	_terrain = get_node_or_null(terrain_path)
-	## Dropped rather than kept, so nothing downstream asks a node that cannot answer.
 	if _terrain != null and not (_terrain.has_method("is_ground_ready")
 			and _terrain.has_method("height_at")):
 		_terrain = null
@@ -148,9 +104,6 @@ func _wait_for_ground() -> void:
 		_terrain.ground_ready.connect(_settle, CONNECT_ONE_SHOT)
 
 
-## Puts the body on the ground and lets it move again. The terrain picks the spawn itself
-## once it has heights, so this only lifts a body that would otherwise start underneath
-## one.
 func _settle() -> void:
 	_held = false
 	velocity = Vector3.ZERO
@@ -162,9 +115,6 @@ func _settle() -> void:
 		_sim.teleport_character(_sim_id, global_position)
 
 
-## True once the body is under the ground by more than any dip explains, which is the
-## shape a fall through the world takes: a hitch long enough to outrun the collider, or a
-## spawn that beat it.
 func _fell_through() -> bool:
 	if _held or _terrain == null or not _terrain.is_ground_ready():
 		return false
@@ -172,8 +122,6 @@ func _fell_through() -> bool:
 			- fall_through_slack
 
 
-## The screen-space ink pass depends on Forward+ only inputs, so it is dropped under the
-## mobile renderer.
 func _use_mobile_materials() -> void:
 	var ink: Node = get_node_or_null("Pivot/Camera3D/InkLines")
 	if ink:
@@ -185,8 +133,6 @@ func _notification(what: int) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
-## Held mid-conversation: the body stops taking the stick, and a click on a reply is not
-## also a click that recaptures the mouse.
 func set_talking(on: bool) -> void:
 	_talking = on
 
@@ -230,7 +176,6 @@ func _physics_process(delta: float) -> void:
 		_settle()
 
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-	## Standing and listening, but still falling if the ground goes away underneath.
 	if _talking:
 		input_dir = Vector2.ZERO
 	if _walk_sweep:
@@ -269,11 +214,6 @@ func _physics_process(delta: float) -> void:
 	_report(delta)
 
 
-## An effort the body can pay for, and the paying of it. A player with nothing left does
-## not jump: that is what the energy bar is for, and a cost that is always affordable is a
-## cost nobody ever reads.
-##
-## Nothing is spent unless the movement was actually asked for, so standing still is free.
 func _afford(wanted: bool, cost: float) -> bool:
 	if not wanted:
 		return false

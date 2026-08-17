@@ -1,21 +1,13 @@
 extends Node3D
 
-## Title screen: the seeded world drifting behind a button column.
 
 const GFX := preload("res://src/settings/graphics_settings.gd")
 const PAUSE_MENU := preload("res://src/ui/pause_menu.gd")
-## For `server_url` only — the same override the online scene itself honours, so the
-## title probes whatever the player is actually about to join.
 const ONLINE_WORLD := preload("res://src/net/online_world.gd")
 
 var _api: KbveApi
 
-## The backdrop runs none of what the world scene runs — no player, no physics step, no
-## creatures, and none of the tree, flora, shrub or rock fields — so the grass gets the
-## frame those systems are not spending.
 const GRASS_BOOST := 1.8
-## Distance is the cheaper half of the same effect — the orbit looks out over the
-## valley, so grass that stops short reads as a bald ring around the camera.
 const RANGE_BOOST := 1.35
 
 @onready var _menu: TitleMenu = $TitleMenu
@@ -29,8 +21,6 @@ func _enter_tree() -> void:
 	_boost_grass(GFX.TIERS[tier].grass.blades_per_sqm, tier)
 
 
-## Ranges come from a tier row, but the player may be on Custom — a preset index past
-## the end of the table.
 static func _grass_row(blades: float, tier: int) -> Dictionary:
 	if tier >= 0 and tier < GFX.TIERS.size():
 		return GFX.TIERS[tier].grass
@@ -42,7 +32,6 @@ static func _grass_row(blades: float, tier: int) -> Dictionary:
 	return GFX.TIERS[best].grass
 
 
-## Grass values the title asks for, given what the tier asked for.
 static func boosted_grass(blades: float, tier: int, boost: float, range_boost: float) -> Dictionary:
 	var row: Dictionary = _grass_row(blades, tier)
 	return {
@@ -53,7 +42,6 @@ static func boosted_grass(blades: float, tier: int, boost: float, range_boost: f
 	}
 
 
-## Phones do not have the frame to give away.
 static func boost_factors() -> Array:
 	if OS.has_feature("mobile"):
 		return [1.0, 1.0]
@@ -70,9 +58,6 @@ func _boost_grass(blades: float, tier: int) -> void:
 		grass.set(key, boosted[key])
 
 
-## `GraphicsSettings.apply()` writes the tier's own density straight onto the field, so
-## the boost has to be re-applied after it rather than once at startup — otherwise
-## changing any setting quietly halves the grass.
 func _on_graphics_changed() -> void:
 	var gfx := get_node_or_null(^"GraphicsSettings")
 	if gfx:
@@ -98,8 +83,6 @@ func _ready() -> void:
 	_ask_language_once()
 
 
-## Asks the host what it speaks while the player is still deciding whether to press play,
-## so a build that cannot join says so on the title rather than after a socket opens.
 func _probe_server() -> void:
 	var probe := ServerProbe.new()
 	add_child(probe)
@@ -111,7 +94,6 @@ func _probe_server() -> void:
 	probe.probe(ONLINE_WORLD.server_url())
 
 
-## First launch only.
 func _ask_language_once() -> void:
 	if I18n.has_choice() or I18n.locales().size() < 2:
 		return
@@ -127,8 +109,6 @@ func _on_language_chosen(code: String) -> void:
 	_switch_locale(code)
 
 
-## Reloaded rather than relabelled: the menu, the settings book and the HUD all build
-## their strings once, in whatever language was current at the time.
 func _switch_locale(code: String) -> void:
 	if code == I18n.locale_code():
 		return
@@ -136,8 +116,6 @@ func _switch_locale(code: String) -> void:
 	get_tree().reload_current_scene()
 
 
-## Signs in before the scene swaps so the session scene finds an identity already in
-## place rather than having to invent one on arrival.
 func _play() -> void:
 	var auth := get_node_or_null(^"/root/Auth")
 	if auth and not auth.is_signed_in():
@@ -145,8 +123,6 @@ func _play() -> void:
 	_enter(TitleMenu.ONLINE_SCENE)
 
 
-## Owned here rather than in the menu so the panel stays a panel: it reports a button
-## press and shows what it is told, and never learns what a token is.
 func _sign_in(provider: String) -> void:
 	var auth := get_node_or_null(^"/root/Auth")
 	if auth == null:
@@ -166,15 +142,11 @@ func _sign_out() -> void:
 	_menu.close_username()
 
 
-## Supabase makes the account the moment a provider vouches for someone, but the handle
-## is a separate claim nothing has written yet -- so a first sign-in lands here holding a
-## token for an account with no name on it.
 func _prompt_for_username_if_new(auth: Node) -> void:
 	if auth.needs_username():
 		_menu.open_username()
 
 
-## Claims the handle, then trades the token in for one that carries it.
 func _claim_username(username: String) -> void:
 	var auth := get_node_or_null(^"/root/Auth")
 	if auth == null:
@@ -183,9 +155,6 @@ func _claim_username(username: String) -> void:
 	_api_client().set_username(auth.access_token(), username)
 
 
-## Built once and kept, so the two answers are wired up exactly once. Awaiting the
-## success signal instead would hang forever on a refused name, which is the answer this
-## call is most likely to get.
 func _api_client() -> KbveApi:
 	if _api == null:
 		_api = KbveApi.new()
@@ -195,10 +164,6 @@ func _api_client() -> KbveApi:
 	return _api
 
 
-## The refresh is the part that is easy to leave out and hard to see missing: the claim
-## lands server-side, but the token in hand was minted before it existed. Without it the
-## player keeps a nameless session until something else happens to refresh one -- and the
-## prompt they just answered opens again on the next launch.
 func _on_username_claimed(_taken: String) -> void:
 	var auth := get_node_or_null(^"/root/Auth")
 	if auth == null:
@@ -209,21 +174,15 @@ func _on_username_claimed(_taken: String) -> void:
 	_menu.close_username()
 
 
-## The offline world.
 func _play_solo() -> void:
 	_enter(TitleMenu.WORLD_SCENE)
 
 
-## Leaving the title is where the other languages' fonts stop being worth their memory:
-## the picker was the only thing that needed them all, and the world has no picker.
 func _enter(scene: String) -> void:
 	I18n.use_locale_font()
 	LoadingScreen.swap(get_tree(), scene, "world" if scene == TitleMenu.WORLD_SCENE else "session")
 
 
-## Built on first use: the book is a SubViewport with its own 3D world, and paying for
-## it on a screen the player may walk straight past is the kind of load-time cost that
-## never shows up in a profile of the world itself.
 func _open_settings() -> void:
 	if _settings == null:
 		_settings = CanvasLayer.new()
@@ -236,8 +195,6 @@ func _open_settings() -> void:
 	_settings.open_settings()
 
 
-## Escape backs out of the settings book before it quits — a key that sometimes closes a
-## panel and sometimes exits the process is one nobody presses twice.
 func _cancel() -> void:
 	if _menu.is_signing_in():
 		_menu.close_sign_in()

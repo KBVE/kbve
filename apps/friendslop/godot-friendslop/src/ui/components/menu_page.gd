@@ -1,7 +1,6 @@
 class_name MenuPage
 extends MarginContainer
 
-## One writable page of the open book, and the rows on it.
 
 var uv: Rect2
 var box: VBoxContainer
@@ -37,7 +36,6 @@ static func make(side: int, panel: Control) -> MenuPage:
 	return page
 
 
-## Two pages of one spread share their rows, so a cycle on either refreshes both.
 func pair_with(other: MenuPage) -> void:
 	_spread = [self, other]
 	other._spread = [self, other]
@@ -64,11 +62,6 @@ func add_button(text: String, action: Callable, hint: String = "") -> PaperButto
 	return b
 
 
-## What a row does, for anyone who hovers it or reaches it with the keyboard.
-##
-## A pointer tooltip only: a touch screen has no hover, and a long press to read a label
-## fights the tap that would use the row. Mobile is meant to be told by the label itself,
-## which is why hints are an explanation rather than the only place a row says what it is.
 func _hint(row: Control, text: String) -> void:
 	if text == "" or MenuStyle.touch:
 		return
@@ -77,7 +70,6 @@ func _hint(row: Control, text: String) -> void:
 		(child as Control).tooltip_text = text
 
 
-## Anchors the page onto the projected book and rescales its rows to match.
 func layout(book: Rect2, metrics: Dictionary) -> void:
 	anchor_left = book.position.x + book.size.x * uv.position.x
 	anchor_top = book.position.y + book.size.y * uv.position.y
@@ -88,11 +80,6 @@ func layout(book: Rect2, metrics: Dictionary) -> void:
 	offset_right = 0.0
 	offset_bottom = 0.0
 	for control in _scaled:
-		## Width is cleared, not just height set. A Control is never drawn smaller than its
-		## own minimum, so a row carrying the menu slab's fixed 220 forces the whole page
-		## wider than the anchors above -- and a page that outgrows its anchors grows to
-		## the right, off the edge of the paper. On a page the row is told how wide it is
-		## by the book, so it must ask for nothing.
 		control.custom_minimum_size = Vector2(0.0, metrics.h)
 		control.add_theme_font_size_override("font_size", metrics.font)
 

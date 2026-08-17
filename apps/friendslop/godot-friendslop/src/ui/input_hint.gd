@@ -1,12 +1,7 @@
 class_name InputHint
 extends RefCounted
 
-## What to press, read off the binding rather than written into a string.
-##
-## A prompt that says E because somebody typed E is wrong the moment the key is rebound,
-## and wrong on a keyboard whose layout puts that letter somewhere else.
 
-## Pad faces, which have no name the engine will give out.
 const PAD := {
 	JOY_BUTTON_A: "A",
 	JOY_BUTTON_B: "B",
@@ -17,8 +12,6 @@ const PAD := {
 }
 
 
-## The key bound to `action`, in the layout the player is actually typing on. Falls back to
-## a pad face when nothing on the keyboard is bound, and to `fallback` when nothing is.
 static func label(action: StringName, fallback := "") -> String:
 	if not InputMap.has_action(action):
 		return fallback
@@ -37,8 +30,6 @@ static func label(action: StringName, fallback := "") -> String:
 	return fallback
 
 
-## Physical bindings are stored by position, so the label comes from the layout: the key
-## where QWERTY keeps E is not the letter E everywhere.
 static func _key_label(key: InputEventKey) -> String:
 	if key.physical_keycode != 0:
 		var mapped := DisplayServer.keyboard_get_label_from_physical(key.physical_keycode)

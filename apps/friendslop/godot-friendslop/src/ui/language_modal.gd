@@ -1,7 +1,6 @@
 class_name LanguageModal
 extends CanvasLayer
 
-## The first question the game asks, once, before anything else is legible.
 
 signal chosen(code: String)
 
@@ -64,15 +63,11 @@ func _build() -> void:
 		buttons.append(button)
 
 
-## Written to disk here rather than by the caller: the modal exists precisely to turn a
-## guess into an answer, and an answer that is not saved brings the modal back on the
-## next launch.
 func _choose(code: String) -> void:
 	I18n.set_locale(code, true)
 	chosen.emit(code)
 
 
-## No escape hatch.
 func _input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"ui_cancel"):
 		get_viewport().set_input_as_handled()
