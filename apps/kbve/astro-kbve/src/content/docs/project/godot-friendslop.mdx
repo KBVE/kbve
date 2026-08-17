@@ -140,7 +140,9 @@ Solo and online do not run the same simulation, and most confusing creature beha
 | Neighbours | `_crowd()`, a group scan per creature per frame | one map built per tick, sliced per pet |
 | Formation slot | `@export` written at spawn | recomputed every tick from the roster |
 
-`QPhysics3D` exists in `q/src/rapier/bridge3d.rs` but is instantiated **nowhere in the game** — only in `test_net_game_client.gd`. Online gets its physics because the *server* runs `SimWorld`; the client only interpolates. Solo has no server, so it has no q physics at all.
+Online gets its physics because the *server* runs `SimWorld`; the client only interpolates. Solo has no server, so it has no q physics at all.
+
+`QPhysics3D` in `q/src/rapier/bridge3d.rs` is **not** the way in, and wiring it up is not the migration. It is a rigid-body bridge — `spawn_ball`, `spawn_box`, `spawn_capsule`, `spawn_static_box`, `apply_impulse`, `body_position` — plus `track_capsule`, which registers a proxy for a body *Godot still moves*. There is no `SpawnCharacter` or `MoveCharacter` on it. The character controller lives in `sim3d::SimWorld` and is driven only from the net/host side, so it has no Godot-facing path at all. Moving solo onto it means writing that bridge, not instantiating a node.
 
 The target is one simulation for both, with multiplayer differing only in *where* the registry runs. Staged: collapse tuning to one source; move neighbour indexing and slot assignment into a Rust registry, keeping Godot bodies; then move character motion into `SimWorld`.
 
