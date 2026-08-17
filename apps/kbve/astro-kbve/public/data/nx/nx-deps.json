@@ -1,5 +1,5 @@
 {
-	"generated_at": "2026-08-16T02:26:03Z",
+	"generated_at": "2026-08-17T02:23:45Z",
 	"node": {
 		"count": 121,
 		"major": 22,
@@ -72,7 +72,7 @@
 				"name": "@codemirror/view",
 				"current": "6.41.0",
 				"wanted": "6.41.0",
-				"latest": "6.43.8",
+				"latest": "6.43.9",
 				"type": "dependencies",
 				"major": false
 			},
@@ -130,14 +130,6 @@
 				"wanted": "7.2.3",
 				"latest": "7.3.0",
 				"type": "devDependencies",
-				"major": false
-			},
-			{
-				"name": "@pixiv/three-vrm",
-				"current": "3.5.3",
-				"wanted": "3.5.3",
-				"latest": "3.5.5",
-				"type": "dependencies",
 				"major": false
 			},
 			{
@@ -701,6 +693,14 @@
 				"major": false
 			},
 			{
+				"name": "nanostores",
+				"current": "1.4.2",
+				"wanted": "1.4.2",
+				"latest": "1.5.0",
+				"type": "devDependencies",
+				"major": false
+			},
+			{
 				"name": "postcss",
 				"current": "8.5.14",
 				"wanted": "8.5.14",
@@ -856,7 +856,7 @@
 				"name": "styled-components",
 				"current": "6.4.2",
 				"wanted": "6.4.2",
-				"latest": "6.5.2",
+				"latest": "6.5.3",
 				"type": "dependencies",
 				"major": false
 			},
@@ -975,7 +975,7 @@
 		]
 	},
 	"rust": {
-		"count": 243,
+		"count": 246,
 		"major": 1,
 		"items": [
 			{
@@ -1741,6 +1741,24 @@
 				"major": false
 			},
 			{
+				"name": "encase",
+				"current": "0.12.0",
+				"latest": "0.12.1",
+				"major": false
+			},
+			{
+				"name": "encase_derive",
+				"current": "0.12.0",
+				"latest": "0.12.1",
+				"major": false
+			},
+			{
+				"name": "encase_derive_impl",
+				"current": "0.12.0",
+				"latest": "0.12.1",
+				"major": false
+			},
+			{
 				"name": "enum-ordinalize",
 				"current": "4.4.1",
 				"latest": "4.4.2",
@@ -2433,11 +2451,11 @@
 			{
 				"name": "zvariant_utils",
 				"current": "3.5.0",
-				"latest": "4.0.0",
+				"latest": "4.1.0",
 				"major": true
 			}
 		]
 	},
-	"total": 364,
+	"total": 367,
 	"major_total": 23
 }
