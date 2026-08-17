@@ -4466,12 +4466,6 @@ dependencies = [
 
 [[package]]
 name = "bit-vec"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2c54ff287cfc0a34f38a6b832ea1bd8e448a330b3e40a50859e6488bee07f22"
-
-[[package]]
-name = "bit-vec"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5e764a1d40d510daf35e07be9eb06e75770908c27d411ee6c92109c9840eaaf7"
@@ -12608,22 +12602,6 @@ dependencies = [
 
 [[package]]
 name = "nalgebra"
-version = "0.33.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d43ddcacf343185dfd6de2ee786d9e8b1c2301622afab66b6c73baf9882abfd"
-dependencies = [
- "approx",
- "matrixmultiply",
- "nalgebra-macros 0.2.2",
- "num-complex 0.4.6",
- "num-rational 0.4.2",
- "num-traits",
- "simba 0.9.1",
- "typenum",
-]
-
-[[package]]
-name = "nalgebra"
 version = "0.34.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "df76ea0ff5c7e6b88689085804d6132ded0ddb9de5ca5b8aeb9eeadc0508a70a"
@@ -12648,7 +12626,7 @@ dependencies = [
  "glam 0.31.1",
  "glam 0.32.1",
  "matrixmultiply",
- "nalgebra-macros 0.3.0",
+ "nalgebra-macros",
  "num-complex 0.4.6",
  "num-rational 0.4.2",
  "num-traits",
@@ -12668,23 +12646,12 @@ dependencies = [
  "glam 0.32.1",
  "glam 0.33.2",
  "matrixmultiply",
- "nalgebra-macros 0.3.0",
+ "nalgebra-macros",
  "num-complex 0.4.6",
  "num-rational 0.4.2",
  "num-traits",
  "simba 0.10.2",
  "typenum",
-]
-
-[[package]]
-name = "nalgebra-macros"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "254a5372af8fc138e36684761d3c0cdb758a4410e938babcff1c860ce14ddbfc"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.119",
 ]
 
 [[package]]
@@ -13761,15 +13728,6 @@ dependencies = [
 
 [[package]]
 name = "ordered-float"
-version = "4.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7bb71e1b3fa6ca1c61f383464aaf2bb0e2f8e772a1f01d486832464de363b951"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
-name = "ordered-float"
 version = "5.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b7d950ca161dc355eaf28f82b11345ed76c6e1f6eb1f4f4479e0323b9e2fbd0e"
@@ -13991,31 +13949,6 @@ dependencies = [
 
 [[package]]
 name = "parry2d"
-version = "0.17.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87edd53b1639e011e4765eecfceb0fa2c486da696dcdcfbc9a38bfc3574fb7e0"
-dependencies = [
- "approx",
- "arrayvec",
- "bitflags 2.13.1",
- "downcast-rs 1.2.1",
- "either",
- "ena",
- "log",
- "nalgebra 0.33.3",
- "num-derive",
- "num-traits",
- "ordered-float 4.6.0",
- "rustc-hash 2.1.3",
- "simba 0.9.1",
- "slab",
- "smallvec",
- "spade",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "parry2d"
 version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "64f0ec92e9560ebd24cbdd071e19e07a96df6a6d4970d8719cc898c7dfdc359a"
@@ -14036,6 +13969,32 @@ dependencies = [
  "serde",
  "serde_arrays",
  "simba 0.9.1",
+ "slab",
+ "smallvec",
+ "spade",
+ "thiserror 2.0.19",
+]
+
+[[package]]
+name = "parry2d"
+version = "0.30.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b7637d1087885e0bd9421938e79b66b4eb2e08afcb0c717a312ed917daefa528"
+dependencies = [
+ "approx",
+ "arrayvec",
+ "bitflags 2.13.1",
+ "downcast-rs 2.0.2",
+ "either",
+ "ena",
+ "foldhash 0.2.0",
+ "glamx 0.3.0",
+ "hashbrown 0.17.1",
+ "log",
+ "num-derive",
+ "num-traits",
+ "ordered-float 5.3.0",
+ "simba 0.10.2",
  "slab",
  "smallvec",
  "spade",
@@ -15658,25 +15617,24 @@ dependencies = [
 
 [[package]]
 name = "rapier2d"
-version = "0.22.0"
+version = "0.35.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "643116992c25c96a07e1aae7d59fba207f01979dc9a107c42bcd4c4b83ef78b2"
+checksum = "74bfd393193e08a812ba0c83c7c844dff29979fd30f96de2854cdea507350065"
 dependencies = [
  "approx",
  "arrayvec",
- "bit-vec 0.7.0",
  "bitflags 2.13.1",
- "crossbeam",
- "downcast-rs 1.2.1",
+ "glamx 0.3.0",
  "log",
- "nalgebra 0.33.3",
- "num-derive",
+ "nalgebra 0.35.0",
  "num-traits",
- "ordered-float 4.6.0",
- "parry2d 0.17.6",
- "rustc-hash 2.1.3",
- "simba 0.9.1",
- "thiserror 1.0.69",
+ "parry2d 0.30.2",
+ "profiling",
+ "serde",
+ "simba 0.10.2",
+ "static_assertions",
+ "thiserror 2.0.19",
+ "wide 1.6.1",
 ]
 
 [[package]]
