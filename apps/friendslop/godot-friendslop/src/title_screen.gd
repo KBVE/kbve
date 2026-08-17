@@ -81,6 +81,25 @@ func _ready() -> void:
 	_menu.username_submitted.connect(_claim_username)
 	_probe_server()
 	_ask_language_once()
+	_greet()
+
+
+func _greet() -> void:
+	await get_tree().process_frame
+	var auth := get_node_or_null(^"/root/Auth")
+	var name := str(auth.requested_name()) if auth else ""
+	_say_hello(name, true)
+
+
+static func greeting_key(name: String, returning: bool) -> String:
+	if name.strip_edges() == "":
+		return "title.welcome"
+	return "title.welcome_back" if returning else "title.welcome_named"
+
+
+func _say_hello(name: String, returning: bool) -> void:
+	var key := greeting_key(name, returning)
+	Toast.good(I18n.t(key, {"name": name}))
 
 
 func _probe_server() -> void:
@@ -130,6 +149,7 @@ func _sign_in(provider: String) -> void:
 		return
 	if await auth.sign_in_with_provider(provider) == OK:
 		_menu.sign_in_succeeded()
+		_say_hello(str(auth.requested_name()), false)
 		_prompt_for_username_if_new(auth)
 	else:
 		_menu.sign_in_failed(auth.last_error())
@@ -172,6 +192,7 @@ func _on_username_claimed(_taken: String) -> void:
 		_menu.username_failed(auth.last_error())
 		return
 	_menu.close_username()
+	_say_hello(str(auth.requested_name()), false)
 
 
 func _play_solo() -> void:

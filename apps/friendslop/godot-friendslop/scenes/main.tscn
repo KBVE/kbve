@@ -54,7 +54,6 @@
 [ext_resource type="PackedScene" uid="uid://ysa6ql8yc3b" path="res://assets/characters/quaternius_ubc/models/Regular_Male_OnlyHead.glb" id="51_headm"]
 [ext_resource type="PackedScene" uid="uid://bvr8t2y4easo2" path="res://assets/characters/quaternius_ubc/models/Regular_Female_OnlyHead.glb" id="52_headf"]
 [ext_resource type="PackedScene" uid="uid://dq8jku1jb2onh" path="res://assets/characters/quaternius_ubc/models/hair/Hair_Beard.glb" id="53_hairbeard"]
-[ext_resource type="Script" uid="uid://bwxmhira120hk" path="res://src/ui/toast.gd" id="54_toast"]
 [ext_resource type="Script" uid="uid://jjo1717g7eas" path="res://src/world/ground_items.gd" id="55_ground"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
@@ -422,9 +421,6 @@ script = ExtResource("33_vitals")
 
 [node name="QuestTracker" type="CanvasLayer" parent="."]
 script = ExtResource("33_quests")
-
-[node name="Toast" type="CanvasLayer" parent="."]
-script = ExtResource("54_toast")
 
 [node name="GroundItems" type="Node3D" parent="."]
 script = ExtResource("55_ground")
