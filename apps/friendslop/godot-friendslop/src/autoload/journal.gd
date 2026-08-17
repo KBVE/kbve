@@ -13,6 +13,7 @@ extends Node
 const PATH := "user://journal.cfg"
 const SECTION := "dialogue"
 const PEOPLE_SECTION := "people"
+const QUESTS_SECTION := "quests"
 const WORN_SECTION := "worn"
 const SATCHEL_SECTION := "satchel"
 
@@ -52,7 +53,40 @@ func _ready() -> void:
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_state.flag_changed.connect(_on_flag_changed)
 	_state.seen_changed.connect(_on_seen_changed)
+	_state.asked.connect(_on_asked)
 	load_now()
+
+
+## Who the player is talking to, held only for as long as they are. What a conversation
+## asks for is usually about the person saying it -- "this is worth two points of standing"
+## means with them -- and the state that carries the ask does not know who is speaking.
+var _speaker := ""
+
+
+func talking_to(ref: String) -> void:
+	_speaker = ref
+
+
+func speaking_with() -> String:
+	return _speaker
+
+
+## Carries out what a conversation asked for that is not a flag. Routed here because this
+## is the one thing that already knows the quest log, the player's body and what everybody
+## thinks of them; the conversation itself knows none of the three.
+func _on_asked(verb: String, argument: String) -> void:
+	match verb:
+		"quest_start":
+			Quests.accept(argument)
+		"quest_turn_in":
+			Quests.turn_in(argument)
+		"xp":
+			Vitals.award(Vitals.PLAYER, int(argument))
+		"respect":
+			## Signed, and about whoever is speaking: `respect:-1` is a line that costs you.
+			adjust_regard(_speaker, int(argument))
+		_:
+			push_warning("journal: a conversation asked for '%s', which nothing does" % verb)
 
 
 ## What one person thinks of the player, and how much of it they have had.
@@ -112,6 +146,44 @@ func remember_talk(ref: String, learned: bool) -> Dictionary:
 		regard_changed.emit(ref, record.duplicate())
 		save_now()
 	return record.duplicate()
+
+
+## Moves somebody's opinion by a fixed amount, for the things that are not conversations:
+## a quest handed back, a favour done, a debt paid. Clamped like every other route into it.
+func adjust_regard(ref: String, delta: int) -> Dictionary:
+	if ref == "" or delta == 0:
+		return {}
+	var record := regard(ref)
+	record["respect"] = clampi(
+			int(record["respect"]) + delta, RESPECT_RANGE.x, RESPECT_RANGE.y)
+	_people[ref] = record
+	if not _quiet:
+		regard_changed.emit(ref, record.duplicate())
+		save_now()
+	return record.duplicate()
+
+
+## Where every quest has got to. One record per quest, `{status, step, counts}`, written
+## here rather than kept by the quest log because a quest half-finished has to survive the
+## game being closed exactly as much as a flag does.
+var _quests: Dictionary = {}
+
+
+func quest_record(ref: String) -> Dictionary:
+	var kept: Variant = _quests.get(ref, null)
+	return (kept as Dictionary).duplicate(true) if kept is Dictionary else {}
+
+
+func set_quest_record(ref: String, record: Dictionary) -> void:
+	if ref == "":
+		return
+	_quests[ref] = record.duplicate(true)
+	if not _quiet:
+		save_now()
+
+
+func quest_records() -> Dictionary:
+	return _quests.duplicate(true)
 
 
 ## Puts somebody's standing in front of a conversation, so the graph can gate on it in the
@@ -396,6 +468,20 @@ func load_now() -> void:
 			"respect": clampi(int(record.get("respect", 0)), RESPECT_RANGE.x, RESPECT_RANGE.y),
 			"pestered": maxi(int(record.get("pestered", 0)), 0),
 		}
+	_quests.clear()
+	var saved_quests: Variant = cfg.get_value(QUESTS_SECTION, "records", {})
+	if saved_quests is Dictionary:
+		for ref: Variant in saved_quests:
+			var kept: Variant = (saved_quests as Dictionary)[ref]
+			if kept is not Dictionary:
+				continue
+			var record: Dictionary = kept
+			var counts: Variant = record.get("counts", {})
+			_quests[str(ref)] = {
+				"status": int(record.get("status", 0)),
+				"step": str(record.get("step", "")),
+				"counts": (counts as Dictionary).duplicate() if counts is Dictionary else {},
+			}
 	_worn.clear()
 	for slot: Variant in cfg.get_value(WORN_SECTION, "slots", {}):
 		var id := StringName(cfg.get_value(WORN_SECTION, "slots", {})[slot])
@@ -432,6 +518,7 @@ func save_now() -> void:
 	cfg.set_value(SECTION, "flags", body["flags"])
 	cfg.set_value(SECTION, "seen", body["seen"])
 	cfg.set_value(PEOPLE_SECTION, "regard", _people.duplicate(true))
+	cfg.set_value(QUESTS_SECTION, "records", _quests.duplicate(true))
 	var slots := {}
 	for slot: StringName in _worn:
 		slots[String(slot)] = String(_worn[slot])
@@ -458,6 +545,7 @@ func _notification(what: int) -> void:
 func forget_everything() -> void:
 	_state.clear()
 	_people.clear()
+	_quests.clear()
 	_worn.clear()
 	_satchel.clear()
 	save_now()

@@ -18,6 +18,17 @@ const Mantle := preload("res://src/player/mantle.gd")
 ## the world rather than standing in a dip the height field smooths over.
 @export var fall_through_slack := 3.0
 
+@export_group("Body")
+## What the player starts out made of. Even ranks, so the first points spent are a choice
+## about who to become rather than a correction of who they were dealt.
+@export var strength := 3
+@export var skill := 3
+@export var will := 3
+## What effort costs. Read against the energy the simulation reports, which is a tick old --
+## close enough for a jump, and not close enough for anything that matters to a duel.
+@export var jump_energy := 8.0
+@export var roll_energy := 14.0
+
 @onready var pivot: Node3D = $Pivot
 @onready var rig: Node3D = $Mesh
 
@@ -50,6 +61,7 @@ func _ready() -> void:
 	_touch = DisplayServer.is_touchscreen_available()
 	if OS.has_feature("mobile"):
 		_use_mobile_materials()
+	Vitals.enlist(Vitals.PLAYER, strength, skill, will)
 
 
 func _wait_for_ground() -> void:
@@ -154,8 +166,8 @@ func _physics_process(delta: float) -> void:
 		input_dir = Vector2.RIGHT.rotated(_walk_t * 0.8)
 	elif _walk != Vector2.ZERO:
 		input_dir = _walk
-	var jump := Input.is_action_just_pressed("jump")
-	var roll := Input.is_action_just_pressed("roll") and not _talking
+	var jump := _afford(Input.is_action_just_pressed("jump"), jump_energy)
+	var roll := _afford(Input.is_action_just_pressed("roll") and not _talking, roll_energy)
 	var crouch := Input.is_action_pressed("crouch") and not _talking
 	var block := Input.is_action_pressed("block") and not _talking
 	var direction: Vector3 = rig.wish_direction(input_dir, global_rotation.y)
@@ -172,6 +184,22 @@ func _physics_process(delta: float) -> void:
 	move_and_slide()
 	rig.drive(velocity, global_rotation.y, not is_on_floor(), delta)
 	_report(delta)
+
+
+## An effort the body can pay for, and the paying of it. A player with nothing left does
+## not jump: that is what the energy bar is for, and a cost that is always affordable is a
+## cost nobody ever reads.
+##
+## Nothing is spent unless the movement was actually asked for, so standing still is free.
+func _afford(wanted: bool, cost: float) -> bool:
+	if not wanted:
+		return false
+	if not Vitals.running():
+		return true
+	if not Vitals.can_afford(Vitals.PLAYER, Vitals.Pool.ENERGY, cost):
+		return false
+	Vitals.drain(Vitals.PLAYER, Vitals.Pool.ENERGY, cost)
+	return true
 
 
 func _report(delta: float) -> void:

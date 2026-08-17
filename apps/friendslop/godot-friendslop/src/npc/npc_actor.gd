@@ -76,6 +76,54 @@ func _ready() -> void:
 	_build_body()
 	_build_nameplate()
 	_place_when_there_is_ground()
+	_enlist()
+
+
+## Gives this one a body the simulation knows about, so a person has health, will and wind
+## whether or not anything has yet thought to take some of it off them.
+func _enlist() -> void:
+	if npc_ref == "":
+		return
+	var stats := _authored_stats()
+	Vitals.enlist(
+		vitals_id(),
+		int(stats.get("strength", 1)),
+		int(stats.get("skill", 1)),
+		int(stats.get("will", 1)))
+
+
+## What the catalog says this one is made of. The NPC schema carries an adventurer's
+## vocabulary rather than ours, so agility is read as skill and intelligence as will; where
+## it says nothing, rank follows level, which is the one number every entry has.
+func _authored_stats() -> Dictionary:
+	var entry := Npcdb.npc(npc_ref)
+	if entry.is_empty():
+		return {}
+	var from_level := maxi(int(entry.get("level", 1)), 1)
+	var raw: Variant = entry.get("stats", null)
+	var stats: Dictionary = raw if raw is Dictionary else {}
+	return {
+		"strength": _rank(stats.get("strength", null), from_level),
+		"skill": _rank(stats.get("agility", null), from_level),
+		"will": _rank(stats.get("intelligence", null), from_level),
+	}
+
+
+func _rank(authored: Variant, fallback: int) -> int:
+	if authored == null:
+		return fallback
+	return maxi(int(authored), 1)
+
+
+## The id the simulation knows this one by. Hashed off the catalog slug, so the same person
+## is the same body across a reload rather than whatever was spawned first.
+func vitals_id() -> int:
+	return Vitals.id_for(npc_ref)
+
+
+func _exit_tree() -> void:
+	if npc_ref != "":
+		Vitals.retire(vitals_id())
 
 
 func _build_body() -> void:

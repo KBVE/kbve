@@ -33,6 +33,8 @@
 [ext_resource type="Script" uid="uid://bhbvqc8p7bfh1" path="res://src/settings/gameplay_settings.gd" id="31_play"]
 [ext_resource type="Script" uid="uid://bmg1kiho746xi" path="res://src/ui/crosshair.gd" id="32_cross"]
 [ext_resource type="Script" path="res://src/ui/satchel_panel.gd" id="33_satchel"]
+[ext_resource type="Script" path="res://src/ui/vitals_hud.gd" id="33_vitals"]
+[ext_resource type="Script" path="res://src/ui/quest_tracker.gd" id="33_quests"]
 [ext_resource type="PackedScene" uid="uid://dk6o1i6lggove" path="res://assets/characters/quaternius_ubc/models/Regular_Male_FullBody.glb" id="34_body"]
 [ext_resource type="PackedScene" uid="uid://cf52ye1y4wtse" path="res://assets/characters/quaternius_ubc/models/hair/Hair_Ponytail.glb" id="35_hair"]
 [ext_resource type="PackedScene" uid="uid://27k2uvg6ywxl" path="res://assets/characters/quaternius_ubc/animations/UAL1.glb" id="36_ual1"]
@@ -411,6 +413,12 @@ script = ExtResource("32_cross")
 
 [node name="SatchelPanel" type="CanvasLayer" parent="."]
 script = ExtResource("33_satchel")
+
+[node name="VitalsHud" type="CanvasLayer" parent="."]
+script = ExtResource("33_vitals")
+
+[node name="QuestTracker" type="CanvasLayer" parent="."]
+script = ExtResource("33_quests")
 
 [node name="Toast" type="CanvasLayer" parent="."]
 script = ExtResource("54_toast")
