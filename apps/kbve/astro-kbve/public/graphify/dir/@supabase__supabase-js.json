@@ -1,0 +1,28 @@
+{
+	"dir": "@supabase/supabase-js",
+	"center": [187.2, 47.94],
+	"r": 74.18,
+	"files": [
+		{
+			"i": 0,
+			"label": "supabase-js",
+			"path": "@supabase/supabase-js",
+			"x": 187.2,
+			"y": 47.94,
+			"n": 1
+		}
+	],
+	"symbols": [
+		{
+			"i": 0,
+			"f": 0,
+			"label": "@supabase/supabase-js",
+			"x": 187.2,
+			"y": 47.94,
+			"c": 378,
+			"loc": ""
+		}
+	],
+	"fileEdges": [],
+	"symbolEdges": []
+}

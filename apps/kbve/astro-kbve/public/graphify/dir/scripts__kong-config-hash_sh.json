@@ -1,14 +1,14 @@
 {
 	"dir": "scripts/kong-config-hash.sh",
-	"center": [2848.69, 860.41],
-	"r": 75.19,
+	"center": [2505.32, -1674.86],
+	"r": 75.09,
 	"files": [
 		{
 			"i": 0,
 			"label": "kong-config-hash.sh",
 			"path": "scripts/kong-config-hash.sh",
-			"x": 2848.69,
-			"y": 860.41,
+			"x": 2505.32,
+			"y": -1674.86,
 			"n": 2
 		}
 	],
@@ -17,18 +17,18 @@
 			"i": 0,
 			"f": 0,
 			"label": "kong-config-hash.sh",
-			"x": 2855.52,
-			"y": 860.41,
-			"c": 4593,
+			"x": 2512.15,
+			"y": -1674.86,
+			"c": 4766,
 			"loc": "L1"
 		},
 		{
 			"i": 1,
 			"f": 0,
 			"label": "kong-config-hash.sh script",
-			"x": 2839.97,
-			"y": 868.4,
-			"c": 4593,
+			"x": 2496.6,
+			"y": -1666.87,
+			"c": 4766,
 			"loc": "L1"
 		}
 	],

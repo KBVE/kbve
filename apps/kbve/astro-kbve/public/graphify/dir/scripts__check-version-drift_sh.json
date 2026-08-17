@@ -1,14 +1,14 @@
 {
 	"dir": "scripts/check-version-drift.sh",
-	"center": [1834.31, -2349.56],
-	"r": 78.38,
+	"center": [-2306.27, 1900.15],
+	"r": 78.18,
 	"files": [
 		{
 			"i": 0,
 			"label": "check-version-drift.sh",
 			"path": "scripts/check-version-drift.sh",
-			"x": 1834.31,
-			"y": -2349.56,
+			"x": -2306.27,
+			"y": 1900.15,
 			"n": 8
 		}
 	],
@@ -17,84 +17,84 @@
 			"i": 0,
 			"f": 0,
 			"label": "check-version-drift.sh",
-			"x": 1839.14,
-			"y": -2349.56,
-			"c": 2563,
+			"x": -2301.44,
+			"y": 1900.15,
+			"c": 2663,
 			"loc": "L1"
 		},
 		{
 			"i": 1,
 			"f": 0,
-			"label": "check-version-drift.sh script",
-			"x": 1828.15,
-			"y": -2343.91,
-			"c": 2563,
-			"loc": "L1"
+			"label": "check_item()",
+			"x": -2312.44,
+			"y": 1905.8,
+			"c": 2663,
+			"loc": "L92"
 		},
 		{
 			"i": 2,
 			"f": 0,
 			"label": "extract_version()",
-			"x": 1835.26,
-			"y": -2360.31,
-			"c": 2563,
+			"x": -2305.33,
+			"y": 1889.39,
+			"c": 2663,
 			"loc": "L39"
 		},
 		{
 			"i": 3,
 			"f": 0,
-			"label": "fetch_npm_version()",
-			"x": 1842.09,
-			"y": -2339.42,
-			"c": 2563,
-			"loc": "L54"
+			"label": "fetch_crates_version()",
+			"x": -2298.5,
+			"y": 1910.29,
+			"c": 2663,
+			"loc": "L61"
 		},
 		{
 			"i": 4,
 			"f": 0,
-			"label": "fetch_crates_version()",
-			"x": 1820.05,
-			"y": -2352.08,
-			"c": 2563,
-			"loc": "L61"
+			"label": "fetch_ghcr_version()",
+			"x": -2320.54,
+			"y": 1897.63,
+			"c": 2663,
+			"loc": "L75"
 		},
 		{
 			"i": 5,
 			"f": 0,
-			"label": "fetch_pypi_version()",
-			"x": 1847.83,
-			"y": -2358.15,
-			"c": 2563,
-			"loc": "L68"
+			"label": "fetch_npm_version()",
+			"x": -2292.76,
+			"y": 1891.55,
+			"c": 2663,
+			"loc": "L54"
 		},
 		{
 			"i": 6,
 			"f": 0,
-			"label": "fetch_ghcr_version()",
-			"x": 1829.79,
-			"y": -2332.74,
-			"c": 2563,
-			"loc": "L75"
+			"label": "fetch_pypi_version()",
+			"x": -2310.79,
+			"y": 1916.96,
+			"c": 2663,
+			"loc": "L68"
 		},
 		{
 			"i": 7,
 			"f": 0,
-			"label": "check_item()",
-			"x": 1825.69,
-			"y": -2366.15,
-			"c": 2563,
-			"loc": "L92"
+			"label": "check-version-drift.sh script",
+			"x": -2314.89,
+			"y": 1883.55,
+			"c": 2663,
+			"loc": "L1"
 		}
 	],
 	"fileEdges": [],
 	"symbolEdges": [
+		[7, 1, 1.0, 1],
 		[0, 7, 1.0, 3],
 		[0, 2, 1.0, 3],
-		[0, 4, 1.0, 3],
-		[0, 6, 1.0, 3],
-		[0, 3, 1.0, 3],
 		[0, 5, 1.0, 3],
-		[0, 1, 1.0, 3],
-		[1, 7, 1.0, 1]
+		[0, 3, 1.0, 3],
+		[0, 6, 1.0, 3],
+		[0, 4, 1.0, 3],
+		[0, 1, 1.0, 3]
 	]
 }
