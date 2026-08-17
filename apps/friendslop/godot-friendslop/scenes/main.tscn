@@ -333,7 +333,7 @@ worn = Array[StringName]([&"male_noble_body", &"male_noble_arms", &"male_noble_l
 head_only_body = ExtResource("51_headm")
 stand_under_bridge = true
 bridge_offset = 2.6
-bridge_along = 2.0
+bridge_along = 16.0
 
 [node name="Cleric" type="Node3D" parent="." unique_id=18600846]
 script = ExtResource("44_npc")
@@ -349,7 +349,7 @@ worn = Array[StringName]([&"female_wizard_body", &"female_wizard_arms", &"female
 head_only_body = ExtResource("52_headf")
 stand_under_bridge = true
 bridge_offset = -4.6
-bridge_along = 6.5
+bridge_along = 22.0
 
 [node name="Knight" type="Node3D" parent="." unique_id=18600847]
 script = ExtResource("44_npc")
@@ -366,7 +366,7 @@ worn = Array[StringName]([&"female_knight_body_armor", &"female_knight_arms", &"
 head_only_body = ExtResource("52_headf")
 stand_under_bridge = true
 bridge_offset = -2.4
-bridge_along = -3.0
+bridge_along = -10.0
 
 [node name="Mage" type="Node3D" parent="." unique_id=18600848]
 script = ExtResource("44_npc")
@@ -382,7 +382,7 @@ worn = Array[StringName]([&"male_wizard_body", &"male_wizard_arms", &"male_wizar
 head_only_body = ExtResource("51_headm")
 stand_under_bridge = true
 bridge_offset = 4.8
-bridge_along = -6.5
+bridge_along = -21.0
 
 [node name="FishField" type="QFishField" parent="." unique_id=2018535568]
 terrain_path = NodePath("../Terrain")
