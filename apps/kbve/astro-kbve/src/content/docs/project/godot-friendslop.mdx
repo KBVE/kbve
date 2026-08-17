@@ -128,35 +128,29 @@ What the list *does* carry is the chassis and whose it is, so a robot whose entr
 
 Neither the facing nor the walk cycle is on the wire — the character proxy never turns, so its pose says nothing about which way the thing is looking. Both come from how the body actually moved, and the **rig** is turned rather than the node, which the extension overwrites from the snapshot every frame.
 
-### Two simulations, and the plan to have one
+### One simulation, and what is left of the second
 
-Solo and online do not run the same simulation, and most confusing creature behaviour traces back to that.
+Solo and online used to run different simulations, and most confusing creature behaviour traced back to that. Solo has since moved onto q's `SimWorld` — the player and the creatures both — so the split is mostly closed. What follows is where it stands, because a half-migrated system is the easiest kind to reason about wrongly.
+
+`QPhysics3D` in `q/src/rapier/bridge3d.rs` is the way in. It carries `spawn_character`, `move_character`, `teleport_character` and `character_grounded` alongside the rigid-body spawners, and static collision for the stone, tree and road fields.
 
 | | Solo (`scenes/main.tscn`) | Online (`scenes/online.tscn`) |
 | --- | --- | --- |
-| Bodies | `CharacterBody3D` + `move_and_slide()` | rapier `SimWorld`, host-side |
-| Steering | `QPatrol` per node | `PetRegistry` (`q/src/net/pets.rs`) |
-| Robots | "mechs", `creature_spawner.gd` | "pets", `src/net/net_pet.gd` |
+| Player | `spawn_character` / `move_character` | server-owned |
+| Creatures | `spawn_character` / `move_character` | `PetRegistry` (`q/src/net/pets.rs`), host-side |
+| Steering | `QPatrol` per node | `PetRegistry`, one pass per tick |
 | Neighbours | `_crowd()`, a group scan per creature per frame | one map built per tick, sliced per pet |
 | Formation slot | `@export` written at spawn | recomputed every tick from the roster |
 
-Online gets its physics because the *server* runs `SimWorld`; the client only interpolates. Solo has no server, so it has no q physics at all.
+`Q_GODOT_PHYSICS=1` keeps both the player and the creatures on `move_and_slide`, so the two paths can be run against each other rather than argued about. Keep it working — it is the only way to tell a physics regression from a steering one.
 
-`QPhysics3D` in `q/src/rapier/bridge3d.rs` is **not** the way in, and wiring it up is not the migration. It is a rigid-body bridge — `spawn_ball`, `spawn_box`, `spawn_capsule`, `spawn_static_box`, `apply_impulse`, `body_position` — plus `track_capsule`, which registers a proxy for a body *Godot still moves*. There is no `SpawnCharacter` or `MoveCharacter` on it. The character controller lives in `sim3d::SimWorld` and is driven only from the net/host side, so it has no Godot-facing path at all. Moving solo onto it means writing that bridge, not instantiating a node.
+**Still on the Godot side.** `_crowd()` builds each creature's neighbour list by walking `get_nodes_in_group()` every physics frame, which is O(n²) in GDScript and allocates per creature. `pets.rs` already does the same job once per tick and slices it. Formation slots are still `@export`s written at spawn, so two spawners or anything spawning at runtime will collide or go stale, where the pet path recomputes them from the roster for free.
 
-The target is one simulation for both, with multiplayer differing only in *where* the registry runs. Staged: collapse tuning to one source; move neighbour indexing and slot assignment into a Rust registry, keeping Godot bodies; then move character motion into `SimWorld`.
+Creatures pass `collision_layer` / `collision_mask` into `spawn_character`, and they still sit on `LAYER_CREATURE` without masking it — so they do not collide with each other, in `SimWorld` either. **Do not re-add depenetration.** It was removed because it fought the solver: the solver opens a gap, depenetration closes it along the shortest axis, and on a slope that axis is often vertical, which parks one machine on top of another where it reports `is_on_floor` and stays. Avoidance is the solver's job and it has the whole picture; depenetration has none of it.
 
-**Things Godot only does because it owns motion in solo.** Each is a responsibility to hand back, not a feature to port.
+**Already measured — do not re-derive.** The steering solver was cleared under pet tuning, `Config::default()`, and the solo creature tuning; with the flow field on and off; and with `_crowd()`'s cull box on and off, which changes nothing to the decimal. Host-side pets on flat ground hold 2.2–3.3 m with zero overlaps and no climbing. Two real defects were found elsewhere and fixed: creatures cached `get_gravity()` as zero on their first frame and never fell, and the turn gate scaled the whole wish vector — travel *and* avoidance — so a group all turning at once lost most of its separation at the moment it was converging, measured at 2.75× weaker.
 
-`creature_patrol.gd` scales the whole wish vector by facing alignment, so a mech leans into its turn instead of sliding sideways:
-
-```gdscript
-wish *= lerpf(TURN_GATE_FLOOR, 1.0, gate)   # 0.35 .. 1.0
-```
-
-The intent is right and the placement is not: `wish` is goal **plus** avoidance summed, and Godot cannot tell them apart — so turning damps avoidance to 35% at the moment a group is most likely to converge. Only the solver knows which half is which.
-
-Creatures also sit on `LAYER_CREATURE` and deliberately do not mask it, so they pass through each other. **Do not re-add depenetration.** It was removed because it fought the solver — the solver would open a gap, the engine would close it along the shortest axis, and on a slope that axis is often vertical, which parks one machine on top of another where it reports `is_on_floor` and stays. Unification is what makes separation safe again, because both halves then resolve in one tick against one state.
+**Known weak.** `step_characters` in `q/src/rapier/sim3d/world.rs` resolves every character against the world as it stood at the start of the tick and applies the results afterwards, so no character sees another's new position that tick. That mattered little when only pets were characters; the player and every creature are characters now. And slopes remain the untested case — the measurements above were all flat ground, and the failure this design is most exposed to is specifically a vertical one.
 
 **Already measured — do not re-derive.** Steering was cleared under pet tuning, `Config::default()`, and solo creature tuning; with the flow field on and off; and with `_crowd()`'s cull box on and off, which changes nothing to the decimal. Host-side pets on flat ground hold 2.2–3.3 m with zero overlaps and no climbing.
 
