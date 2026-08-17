@@ -541,6 +541,10 @@ impl QTerrain {
     ///
     /// The vertices are already world-space -- the bridge is authored where it stands
     /// rather than placed by a transform -- so this hands them over unmoved.
+    #[cfg(not(feature = "rapier3d-sim"))]
+    fn publish_sim_mesh(&mut self, _mesh: &Gd<ArrayMesh>) {}
+
+    #[cfg(feature = "rapier3d-sim")]
     fn publish_sim_mesh(&mut self, mesh: &Gd<ArrayMesh>) {
         if mesh.get_surface_count() == 0 {
             return;

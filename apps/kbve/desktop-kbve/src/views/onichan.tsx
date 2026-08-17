@@ -1,17 +1,17 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { listen } from '@tauri-apps/api/event';
-interface FeedMessage {
-	role: string;
-	content: string;
-	speaker?: string;
-	skipped?: boolean;
-}
 import { SettingsCard } from '../components/SettingsCard';
 import { SettingsRow } from '../components/SettingsRow';
 import { ToggleSwitch } from '../components/ToggleSwitch';
 import { commands } from '../bindings';
 import { useAppStore } from '../stores/app';
 import { useSidecarStore } from '../stores/sidecarStore';
+interface FeedMessage {
+	role: string;
+	content: string;
+	speaker?: string;
+	skipped?: boolean;
+}
 
 const muted = { color: 'var(--color-text-muted)' } as const;
 
