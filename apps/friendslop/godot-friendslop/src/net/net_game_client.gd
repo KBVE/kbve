@@ -125,6 +125,15 @@ func body_name(body_id: int) -> String:
 	return _client.body_name(body_id)
 
 
+## Velocity the host published for a body, on the same clock it is drawn at.
+func body_velocity(body_id: int) -> Vector3:
+	return _client.body_velocity(body_id)
+
+
+func interp_depth() -> int:
+	return _client.interp_depth()
+
+
 func roster() -> Dictionary[int, String]:
 	var out: Dictionary[int, String] = {}
 	var bodies := _client.roster_bodies()
