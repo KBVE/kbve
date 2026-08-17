@@ -108,7 +108,8 @@ func _find_sim() -> void:
 func _join_sim() -> void:
 	if _sim == null or _sim_id != 0 or not _sim.is_terrain_ready():
 		return
-	_sim_id = _sim.spawn_character(self, CAPSULE_HALF_HEIGHT, CAPSULE_RADIUS, CAPSULE_CENTER)
+	_sim_id = _sim.spawn_character(self, CAPSULE_HALF_HEIGHT, CAPSULE_RADIUS, CAPSULE_CENTER,
+			collision_layer, collision_mask)
 
 
 ## Takes the controller's horizontal result back only when it fell well short of what was

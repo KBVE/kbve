@@ -337,6 +337,8 @@ impl QPhysics3D {
         half_height: f32,
         radius: f32,
         offset: Vector3,
+        layer: i64,
+        mask: i64,
     ) -> i64 {
         let Some(sim) = self.sim.as_ref() else {
             godot_error!("[QPhysics3D] not started; call this after _ready");
@@ -357,6 +359,7 @@ impl QPhysics3D {
                     radius,
                 },
                 iso,
+                groups: [layer as u32, mask as u32],
                 ..Default::default()
             },
         });

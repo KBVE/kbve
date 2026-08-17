@@ -340,7 +340,8 @@ func _join_sim() -> void:
 	if not node.is_terrain_ready():
 		return
 	_sim = node
-	_sim_id = _sim.spawn_character(self, _capsule_half_height, _radius, _capsule_center)
+	_sim_id = _sim.spawn_character(self, _capsule_half_height, _radius, _capsule_center,
+			collision_layer, collision_mask)
 
 
 func _grounded() -> bool:

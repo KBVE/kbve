@@ -58,9 +58,18 @@ fn shared_shape(shape: &ShapeDesc) -> Option<SharedShape> {
 struct CharacterState {
     controller: KinematicCharacterController,
     shape: SharedShape,
+    groups: InteractionGroups,
     /// Motion requested since the last step.
     desired: Vector,
     grounded: bool,
+}
+
+fn interaction_groups(groups: [u32; 2]) -> InteractionGroups {
+    InteractionGroups::new(
+        Group::from_bits_truncate(groups[0]),
+        Group::from_bits_truncate(groups[1]),
+        InteractionTestMode::And,
+    )
 }
 
 fn to_pose(iso: &Iso) -> Pose {
@@ -251,7 +260,8 @@ impl SimWorld {
 
         let collider = ColliderBuilder::new(shape)
             .restitution(desc.restitution)
-            .friction(desc.friction);
+            .friction(desc.friction)
+            .collision_groups(interaction_groups(desc.groups));
 
         let (handle, _) = self.physics.insert(body, collider);
         self.index.insert(id, handle);
@@ -265,9 +275,10 @@ impl SimWorld {
         let Some(shape) = shared_shape(&desc.shape) else {
             return;
         };
+        let groups = interaction_groups(desc.groups);
         let (handle, _) = self.physics.insert(
             RigidBodyBuilder::kinematic_position_based().pose(to_pose(&desc.iso)),
-            ColliderBuilder::new(shape.clone()),
+            ColliderBuilder::new(shape.clone()).collision_groups(groups),
         );
 
         let controller = KinematicCharacterController {
@@ -289,6 +300,7 @@ impl SimWorld {
             CharacterState {
                 controller,
                 shape,
+                groups,
                 desired: Vector::ZERO,
                 grounded: false,
             },
@@ -319,9 +331,11 @@ impl SimWorld {
                 continue;
             };
             let pose = *rb.position();
-            let queries = self
-                .physics
-                .query_pipeline_with_filter(QueryFilter::new().exclude_rigid_body(*handle));
+            let queries = self.physics.query_pipeline_with_filter(
+                QueryFilter::new()
+                    .exclude_rigid_body(*handle)
+                    .groups(ch.groups),
+            );
             let movement = ch.controller.move_shape(
                 dt,
                 &queries,

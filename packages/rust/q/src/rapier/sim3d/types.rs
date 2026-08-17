@@ -91,6 +91,13 @@ pub struct BodyDesc {
     pub linear_damping: f32,
     /// Dynamic bodies only.
     pub mass: Option<f32>,
+    /// Which layers this body is on, and which it collides with, as Godot's
+    /// `collision_layer` and `collision_mask` bits.
+    ///
+    /// Carried because the sim would otherwise collide everything with everything, and
+    /// the creatures deliberately pass through each other -- the flow field keeps them
+    /// apart, and a solver shoving them as well turns avoidance into a jam.
+    pub groups: [u32; 2],
 }
 
 impl Default for BodyDesc {
@@ -103,6 +110,7 @@ impl Default for BodyDesc {
             friction: 0.7,
             linear_damping: 0.0,
             mass: None,
+            groups: [u32::MAX, u32::MAX],
         }
     }
 }
@@ -140,6 +148,8 @@ pub struct CharacterDesc {
     /// Distance to search downward for ground when walking off a lip, so the character
     /// follows terrain instead of launching off every bump.
     pub snap_to_ground: Option<f32>,
+    /// Layer and mask, as [`BodyDesc::groups`].
+    pub groups: [u32; 2],
 }
 
 impl Default for CharacterDesc {
@@ -155,6 +165,7 @@ impl Default for CharacterDesc {
             min_slope_slide_deg: 30.0,
             autostep: Some(AutostepDesc::default()),
             snap_to_ground: Some(0.4),
+            groups: [u32::MAX, u32::MAX],
         }
     }
 }
