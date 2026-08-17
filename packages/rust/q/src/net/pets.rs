@@ -105,21 +105,7 @@ impl Default for PetConfig {
             water_gravity_scale: 0.12,
             swim_speed: 2.0,
             void_y: -100.0,
-            steering: SteerConfig {
-                radius: 0.9,
-                speed: 3.2,
-                max_speed: 6.0,
-                separation: 5.0,
-                personal_space: 2.0,
-                formation_distance: 3.5,
-                formation_spacing: 2.4,
-                formation_columns: 3,
-                rank_depth: 2.4,
-                hold_radius: 6.0,
-                sprint_distance: 10.0,
-                roam_radius: 8.0,
-                ..SteerConfig::default()
-            },
+            steering: SteerConfig::pet(),
         }
     }
 }

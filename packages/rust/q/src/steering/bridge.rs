@@ -70,45 +70,44 @@ impl QPatrol {
         self.inner.set_home(flat(home));
     }
 
-    /// Applies the exported tuning in one call, so the node stays the one place
-    /// the numbers are written down.
+    /// How far out a neighbour still matters, so the caller gathering them asks
+    /// the same tuning that will judge them.
     #[func]
-    #[allow(clippy::too_many_arguments)]
-    fn configure(
-        &mut self,
-        speed: f32,
-        max_speed: f32,
-        roam_radius: f32,
-        arrive_distance: f32,
-        separation: f32,
-        separation_strength: f32,
-        personal_space: f32,
-        formation_distance: f32,
-        formation_spacing: f32,
-        formation_columns: i64,
-        rank_depth: f32,
-        hold_radius: f32,
-    ) {
-        let c = &mut self.inner.config;
-        c.speed = speed;
-        c.max_speed = max_speed;
-        c.roam_radius = roam_radius;
-        c.arrive_distance = arrive_distance;
-        c.separation = separation;
-        c.separation_strength = separation_strength;
-        c.personal_space = personal_space;
-        c.formation_distance = formation_distance;
-        c.formation_spacing = formation_spacing;
-        c.formation_columns = formation_columns as i32;
-        c.rank_depth = rank_depth;
-        c.hold_radius = hold_radius;
+    fn separation(&self) -> f32 {
+        self.inner.config.separation
     }
 
-    /// Least of its pace a body keeps while turning. Its own setter rather than
-    /// another argument on `configure`, which is already twelve wide.
+    /// A preset's rank shape, for placing a group before any of them are steering
+    /// yet. Empty for a name that is not a preset.
     #[func]
-    fn set_turn_gate(&mut self, floor: f32) {
-        self.inner.config.turn_gate_floor = floor.clamp(0.0, 1.0);
+    fn preset_info(preset: GString) -> VarDictionary {
+        let mut out = VarDictionary::new();
+        if let Some(config) = Config::preset(&preset.to_string()) {
+            out.set("formation_distance", config.formation_distance);
+            out.set("formation_spacing", config.formation_spacing);
+            out.set("formation_columns", config.formation_columns as i64);
+            out.set("rank_depth", config.rank_depth);
+        }
+        out
+    }
+
+    /// Takes the named tuning, so the numbers a creature runs on are the ones the
+    /// steering tests run on. `false` for a name that is not a preset, rather than
+    /// leaving the caller on default tuning it never asked for.
+    #[func]
+    fn use_preset(&mut self, preset: GString) -> bool {
+        match Config::preset(&preset.to_string()) {
+            Some(config) => {
+                let radius = self.inner.config.radius;
+                self.inner.config = config;
+                self.inner.config.radius = radius;
+                true
+            }
+            None => {
+                godot_error!("QPatrol: no steering preset called '{preset}'");
+                false
+            }
+        }
     }
 
     #[func]
@@ -149,12 +148,11 @@ impl QPatrol {
     }
 
     /// This body's own radius, so what counts as a collision is measured rather
-    /// than assumed. Godot builds the capsule, so Godot is what knows.
+    /// than assumed. Godot builds the capsule, so Godot is what knows. Everything
+    /// else about how it dodges comes from the preset.
     #[func]
-    fn set_body(&mut self, radius: f32, look_ahead: f32, pass_margin: f32) {
+    fn set_body(&mut self, radius: f32) {
         self.inner.config.radius = radius.max(0.05);
-        self.inner.config.look_ahead = look_ahead.max(0.0);
-        self.inner.config.pass_margin = pass_margin.max(0.0);
     }
 
     /// The leader is an obstacle as well as a destination.
