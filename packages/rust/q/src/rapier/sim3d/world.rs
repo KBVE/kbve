@@ -11,17 +11,48 @@ use super::types::{
     SimSnapshot, TerrainDesc,
 };
 
-fn shared_shape(shape: &ShapeDesc) -> SharedShape {
-    match *shape {
-        ShapeDesc::Ball { radius } => SharedShape::ball(radius),
+/// `None` when a convex hull cannot be built. Callers drop the body rather than
+/// substituting a stand-in, because a guessed shape is worse than no collider: it is
+/// invisible and wrong.
+///
+/// parry accepts a coplanar cloud and hands back a hull with no thickness, which
+/// collides against nothing reliably, so volume is checked here rather than trusted.
+fn shared_shape(shape: &ShapeDesc) -> Option<SharedShape> {
+    Some(match shape {
+        ShapeDesc::Ball { radius } => SharedShape::ball(*radius),
         ShapeDesc::Cuboid { half_extents } => {
             SharedShape::cuboid(half_extents[0], half_extents[1], half_extents[2])
         }
         ShapeDesc::Capsule {
             half_height,
             radius,
-        } => SharedShape::capsule_y(half_height, radius),
-    }
+        } => SharedShape::capsule_y(*half_height, *radius),
+        ShapeDesc::Cylinder {
+            half_height,
+            radius,
+        } => SharedShape::cylinder(*half_height, *radius),
+        ShapeDesc::TriMesh { vertices, indices } => {
+            if vertices.len() < 3 || indices.is_empty() {
+                return None;
+            }
+            let verts: Vec<Vector> = vertices
+                .iter()
+                .map(|v| Vector::new(v[0], v[1], v[2]))
+                .collect();
+            SharedShape::trimesh(verts, indices.as_ref().clone()).ok()?
+        }
+        ShapeDesc::ConvexHull { points, scale } => {
+            let pts: Vec<Vector> = points
+                .iter()
+                .map(|p| Vector::new(p[0] * scale[0], p[1] * scale[1], p[2] * scale[2]))
+                .collect();
+            let hull = SharedShape::convex_hull(&pts)?;
+            if hull.mass_properties(1.0).mass() <= 1e-6 {
+                return None;
+            }
+            hull
+        }
+    })
 }
 
 struct CharacterState {
@@ -95,7 +126,17 @@ impl SimWorld {
             SimCommand::AddTerrainRegion { origin, desc } => self.add_terrain_region(origin, &desc),
             SimCommand::DropTerrainRegion { origin } => self.drop_terrain_region(origin),
             SimCommand::Spawn { id, desc } => self.spawn(id, &desc),
+            SimCommand::SpawnMany { bodies } => {
+                for (id, desc) in &bodies {
+                    self.spawn(*id, desc);
+                }
+            }
             SimCommand::Despawn { id } => self.despawn(id),
+            SimCommand::DespawnMany { ids } => {
+                for id in ids {
+                    self.despawn(id);
+                }
+            }
             SimCommand::SetKinematicTarget { id, iso } => {
                 if let Some(rb) = self
                     .index
@@ -121,6 +162,20 @@ impl SimWorld {
             SimCommand::MoveCharacter { id, translation } => {
                 if let Some(ch) = self.characters.get_mut(&id) {
                     ch.desired += Vector::new(translation[0], translation[1], translation[2]);
+                }
+            }
+            SimCommand::TeleportCharacter { id, iso } => {
+                let Some(ch) = self.characters.get_mut(&id) else {
+                    return;
+                };
+                ch.desired = Vector::ZERO;
+                if let Some(rb) = self
+                    .index
+                    .get(&id)
+                    .and_then(|h| self.physics.bodies.get_mut(*h))
+                {
+                    rb.set_position(to_pose(&iso), true);
+                    rb.set_next_kinematic_position(to_pose(&iso));
                 }
             }
         }
@@ -176,6 +231,9 @@ impl SimWorld {
     }
 
     fn spawn(&mut self, id: BodyId, desc: &BodyDesc) {
+        let Some(shape) = shared_shape(&desc.shape) else {
+            return;
+        };
         if self.index.contains_key(&id) {
             self.despawn(id);
         }
@@ -191,18 +249,9 @@ impl SimWorld {
             body = body.additional_mass(mass);
         }
 
-        let collider = match desc.shape {
-            ShapeDesc::Ball { radius } => ColliderBuilder::ball(radius),
-            ShapeDesc::Cuboid { half_extents } => {
-                ColliderBuilder::cuboid(half_extents[0], half_extents[1], half_extents[2])
-            }
-            ShapeDesc::Capsule {
-                half_height,
-                radius,
-            } => ColliderBuilder::capsule_y(half_height, radius),
-        }
-        .restitution(desc.restitution)
-        .friction(desc.friction);
+        let collider = ColliderBuilder::new(shape)
+            .restitution(desc.restitution)
+            .friction(desc.friction);
 
         let (handle, _) = self.physics.insert(body, collider);
         self.index.insert(id, handle);
@@ -213,7 +262,9 @@ impl SimWorld {
             self.despawn(id);
         }
 
-        let shape = shared_shape(&desc.shape);
+        let Some(shape) = shared_shape(&desc.shape) else {
+            return;
+        };
         let (handle, _) = self.physics.insert(
             RigidBodyBuilder::kinematic_position_based().pose(to_pose(&desc.iso)),
             ColliderBuilder::new(shape.clone()),
@@ -841,6 +892,93 @@ mod tests {
         );
     }
 
+    /// Mantling and respawns move the body by fiat. A teleport that the solver then
+    /// sweeps back would put the player inside the ledge they just climbed.
+    #[test]
+    fn teleport_moves_a_character_and_drops_queued_motion() {
+        let mut world = SimWorld::new(&SimConfig::default());
+        world.apply(SimCommand::SetTerrain(terrain(65, 64.0, |_, _| 0.0)));
+        spawn_character(&mut world, BodyId(1), [0.0, 2.0, 0.0]);
+        walk(&mut world, BodyId(1), 0.0, 90);
+
+        world.apply(SimCommand::MoveCharacter {
+            id: BodyId(1),
+            translation: [5.0, 0.0, 0.0],
+        });
+        world.apply(SimCommand::TeleportCharacter {
+            id: BodyId(1),
+            iso: Iso::at(-20.0, 8.0, 12.0),
+        });
+        world.step();
+
+        let p = pos(&world, BodyId(1));
+        assert!(
+            (p[0] + 20.0).abs() < 0.1 && (p[2] - 12.0).abs() < 0.1,
+            "should land where it was put, got {p:?}"
+        );
+    }
+
+    /// Pins that a jump clears the ground. rapier already declines to snap-to-ground on
+    /// upward motion, so this passes today without any guard of ours -- it is here so a
+    /// future change to the controller config cannot quietly reintroduce the classic
+    /// kinematic-controller bug where snapping eats every jump.
+    #[test]
+    fn a_character_can_jump_clear_of_the_ground() {
+        let mut world = SimWorld::new(&SimConfig::default());
+        world.apply(SimCommand::SetTerrain(terrain(65, 64.0, |_, _| 0.0)));
+        spawn_character(&mut world, BodyId(1), [0.0, 2.0, 0.0]);
+        walk(&mut world, BodyId(1), 0.0, 90);
+
+        let resting = pos(&world, BodyId(1))[1];
+        assert!(grounded(&world, BodyId(1)), "must start on the floor");
+
+        let dt = 1.0 / SimConfig::default().tick_hz as f32;
+        let mut vy = 5.0f32;
+        let mut peak = resting;
+        for _ in 0..30 {
+            world.apply(SimCommand::MoveCharacter {
+                id: BodyId(1),
+                translation: [0.0, vy * dt, 0.0],
+            });
+            world.step();
+            vy -= 9.81 * dt;
+            peak = peak.max(pos(&world, BodyId(1))[1]);
+        }
+
+        assert!(
+            peak - resting > 0.5,
+            "expected real height off a 5 m/s launch, got {:.3}",
+            peak - resting
+        );
+    }
+
+    /// The other half of the same trade: a character walking downhill must still be held
+    /// to the ground, or it launches off every rise.
+    #[test]
+    fn a_walker_stays_glued_to_a_downward_slope() {
+        let mut world = SimWorld::new(&SimConfig::default());
+        world.apply(SimCommand::SetTerrain(terrain(65, 64.0, |x, _| -x * 0.15)));
+        spawn_character(&mut world, BodyId(1), [-20.0, 6.0, 0.0]);
+        walk(&mut world, BodyId(1), 0.0, 120);
+        assert!(grounded(&world, BodyId(1)), "should have landed");
+
+        let mut airborne = 0;
+        for _ in 0..120 {
+            world.apply(SimCommand::MoveCharacter {
+                id: BodyId(1),
+                translation: [0.0667, -0.05, 0.0],
+            });
+            world.step();
+            if !grounded(&world, BodyId(1)) {
+                airborne += 1;
+            }
+        }
+        assert!(
+            airborne < 12,
+            "walking downhill should stay grounded, lost contact on {airborne}/120 ticks"
+        );
+    }
+
     #[test]
     fn character_in_open_air_is_not_grounded() {
         let mut world = SimWorld::new(&SimConfig::default());
@@ -922,6 +1060,185 @@ mod tests {
             );
             world.step();
         }
+    }
+
+    fn cube_cloud(half: f32) -> Arc<Vec<[f32; 3]>> {
+        let mut pts = Vec::with_capacity(8);
+        for sx in [-half, half] {
+            for sy in [-half, half] {
+                for sz in [-half, half] {
+                    pts.push([sx, sy, sz]);
+                }
+            }
+        }
+        Arc::new(pts)
+    }
+
+    /// The scatter fields hand over raw mesh vertices, not a hull — this is the check
+    /// that the sim hulls them itself and the result actually collides.
+    #[test]
+    fn a_convex_hull_body_rests_on_terrain() {
+        let mut world = SimWorld::new(&SimConfig::default());
+        world.apply(SimCommand::SetTerrain(terrain(33, 64.0, |_, _| 0.0)));
+        world.apply(SimCommand::Spawn {
+            id: BodyId(1),
+            desc: BodyDesc {
+                shape: ShapeDesc::ConvexHull {
+                    points: cube_cloud(0.5),
+                    scale: [1.0; 3],
+                },
+                iso: Iso::at(0.0, 6.0, 0.0),
+                ..Default::default()
+            },
+        });
+        settle(&mut world, 400);
+
+        let y = pos(&world, BodyId(1))[1];
+        assert!((y - 0.5).abs() < 0.2, "expected rest near y=0.5, got {y}");
+    }
+
+    /// A rock whose hull cannot be built must leave nothing behind: a body with no
+    /// collider would be an invisible hole in the world that still replicates.
+    #[test]
+    fn a_degenerate_hull_spawns_no_body() {
+        let mut world = SimWorld::new(&SimConfig::default());
+        let flat = vec![
+            [0.0, 0.0, 0.0],
+            [1.0, 0.0, 0.0],
+            [0.0, 0.0, 1.0],
+            [1.0, 0.0, 1.0],
+        ];
+        for points in [vec![], vec![[0.0, 0.0, 0.0]], flat] {
+            world.apply(SimCommand::Spawn {
+                id: BodyId(1),
+                desc: BodyDesc {
+                    shape: ShapeDesc::ConvexHull {
+                        points: Arc::new(points),
+                        scale: [1.0; 3],
+                    },
+                    ..Default::default()
+                },
+            });
+            assert_eq!(world.body_count(), 0, "degenerate cloud must not spawn");
+        }
+    }
+
+    /// A failed respawn must not take the previous body with it — the field rebuilds
+    /// its colliders on every mining hit, and a bad stage would otherwise silently
+    /// delete the rock that was standing there.
+    #[test]
+    fn a_degenerate_respawn_leaves_the_existing_body_alone() {
+        let mut world = SimWorld::new(&SimConfig::default());
+        drop_ball(&mut world, BodyId(1), [3.0, 1.0, 0.0]);
+        world.apply(SimCommand::Spawn {
+            id: BodyId(1),
+            desc: BodyDesc {
+                shape: ShapeDesc::ConvexHull {
+                    points: Arc::new(vec![]),
+                    scale: [1.0; 3],
+                },
+                ..Default::default()
+            },
+        });
+
+        assert_eq!(world.body_count(), 1);
+        assert!(
+            (pos(&world, BodyId(1))[0] - 3.0).abs() < 0.01,
+            "original kept"
+        );
+    }
+
+    /// A flat two-triangle deck spanning `-half..=half` on both axes at `y`.
+    fn deck(y: f32, half: f32) -> ShapeDesc {
+        ShapeDesc::TriMesh {
+            vertices: Arc::new(vec![
+                [-half, y, -half],
+                [half, y, -half],
+                [half, y, half],
+                [-half, y, half],
+            ]),
+            indices: Arc::new(vec![[0, 1, 2], [0, 2, 3]]),
+        }
+    }
+
+    /// The heightfield puts water under the crossing, so the deck is the only thing
+    /// holding anything up there. This is the check that it does.
+    #[test]
+    fn a_character_stands_on_a_deck_suspended_over_nothing() {
+        let mut world = SimWorld::new(&SimConfig::default());
+        world.apply(SimCommand::Spawn {
+            id: BodyId(9),
+            desc: BodyDesc {
+                kind: BodyKind::Fixed,
+                shape: deck(4.0, 12.0),
+                ..Default::default()
+            },
+        });
+        spawn_character(&mut world, BodyId(1), [0.0, 8.0, 0.0]);
+        walk(&mut world, BodyId(1), 0.0, 120);
+
+        assert!(
+            grounded(&world, BodyId(1)),
+            "should be standing on the deck"
+        );
+        let y = pos(&world, BodyId(1))[1];
+        assert!(
+            (y - (4.0 + CH_RIDE)).abs() < 0.2,
+            "expected to rest on the deck near y={}, got {y}",
+            4.0 + CH_RIDE
+        );
+    }
+
+    /// Walking off the end must drop, or the deck is an invisible floor over the world.
+    #[test]
+    fn walking_off_the_deck_falls() {
+        let mut world = SimWorld::new(&SimConfig::default());
+        world.apply(SimCommand::Spawn {
+            id: BodyId(9),
+            desc: BodyDesc {
+                kind: BodyKind::Fixed,
+                shape: deck(4.0, 4.0),
+                ..Default::default()
+            },
+        });
+        spawn_character(&mut world, BodyId(1), [0.0, 8.0, 0.0]);
+        walk(&mut world, BodyId(1), 0.0, 120);
+        assert!(grounded(&world, BodyId(1)), "should have landed first");
+
+        walk(&mut world, BodyId(1), 0.15, 120);
+        assert!(
+            pos(&world, BodyId(1))[1] < 3.0,
+            "walking off the end should fall, got y={}",
+            pos(&world, BodyId(1))[1]
+        );
+    }
+
+    #[test]
+    fn bulk_spawn_and_despawn_match_their_single_forms() {
+        let mut world = SimWorld::new(&SimConfig::default());
+        let bodies: Vec<_> = (1..=5u32)
+            .map(|i| {
+                (
+                    BodyId(i),
+                    BodyDesc {
+                        kind: BodyKind::Fixed,
+                        shape: ShapeDesc::ConvexHull {
+                            points: cube_cloud(0.5),
+                            scale: [1.0; 3],
+                        },
+                        iso: Iso::at(i as f32 * 4.0, 0.0, 0.0),
+                        ..Default::default()
+                    },
+                )
+            })
+            .collect();
+        world.apply(SimCommand::SpawnMany { bodies });
+        assert_eq!(world.body_count(), 5);
+
+        world.apply(SimCommand::DespawnMany {
+            ids: vec![BodyId(2), BodyId(4)],
+        });
+        assert_eq!(world.body_count(), 3);
     }
 
     #[test]

@@ -58,4 +58,18 @@ func _process(delta: float) -> void:
 		return
 	var travel := _velocity if Vector2(_velocity.x, _velocity.z).length() > REST_SPEED \
 			else Vector3.ZERO
-	_rig.drive(travel, _aim.global_rotation.y if _aim else _rig.global_rotation.y, false, delta)
+	_rig.drive(travel, _aim.global_rotation.y if _aim else _travel_aim(travel), false, delta)
+
+
+## Aim to hand a body whose real one never reached us.
+##
+## Only the local player has an aim node; a remote one is a position stream, and the yaw
+## its owner is looking along is client-to-server only -- it is not on `PlayerView`, so it
+## never comes back down. Reporting the travel heading keeps such a body turning into its
+## travel, which is what it did before facing could hold an aim at all. Feeding it its own
+## facing instead would freeze it: the hold would compare travel against the very angle it
+## is meant to change, and any turn past the strafe arc would never be taken.
+func _travel_aim(travel: Vector3) -> float:
+	if travel.is_zero_approx():
+		return _rig.global_rotation.y
+	return atan2(-travel.x, -travel.z)

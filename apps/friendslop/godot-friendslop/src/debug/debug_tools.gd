@@ -18,13 +18,19 @@ var _place_queued := false
 var _smoke_state := 0
 var _shot_frames := -1
 var _spawners: Array[Node3D] = []
+var _overlay: Node3D
 
 @onready var _player: CharacterBody3D = get_node(player_path)
+
+
+const CollisionOverlay := preload("res://src/debug/debug_collision_overlay.gd")
 
 
 func _ready() -> void:
 	_cam = Camera3D.new()
 	add_child(_cam)
+	_overlay = CollisionOverlay.new()
+	add_child(_overlay)
 	var shot := OS.get_environment("Q_SHOT")
 	if shot != "":
 		_shot_frames = maxi(int(shot), 1)
@@ -131,6 +137,8 @@ func _toggle() -> void:
 	var grass := get_node_or_null("../GrassField")
 	if grass:
 		grass.set_debug_tint(_active)
+	if _overlay:
+		_overlay.set_shown(_active)
 	if _active:
 		_prev_cam = get_viewport().get_camera_3d()
 		_cam.global_transform = _prev_cam.global_transform

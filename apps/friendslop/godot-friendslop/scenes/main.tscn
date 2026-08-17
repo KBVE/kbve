@@ -193,6 +193,9 @@ riverbed_material = ExtResource("24_riverbed")
 bridge_material = ExtResource("25_bridge")
 abutment_material = ExtResource("26_abut")
 
+[node name="Physics" type="QPhysics3D" parent="." unique_id=771002451]
+terrain_path = NodePath("../Terrain")
+
 [node name="GrassField" type="QGrassField" parent="." unique_id=361934780]
 player_path = NodePath("../Player")
 grass_material = ExtResource("4_grassmat")

@@ -149,6 +149,14 @@ pub struct Tuning {
     pub turn_rate_moving: f32,
     /// Ground speed above which facing follows travel instead of the aim.
     pub turn_idle_speed: f32,
+    /// How far travel may leave the aim before the body stops turning into it and holds
+    /// the aim instead, which is what plays the sidestep and backpedal clips.
+    ///
+    /// Both quantities behind this are replicated -- travel comes from the wish
+    /// direction and the aim is the yaw carried on `PlayerInput` -- so every peer
+    /// reaches the same facing from the same input, and single player agrees with the
+    /// server rather than merely resembling it.
+    pub strafe_arc: f32,
     /// How far the aim has to leave the body before a standing turn is worth taking.
     /// Below it the body holds still, so looking around does not drag the feet with it.
     pub turn_deadzone: f32,
@@ -194,6 +202,7 @@ impl Default for Tuning {
             turn_rate: 3.2,
             turn_rate_moving: 9.0,
             turn_idle_speed: 0.35,
+            strafe_arc: std::f32::consts::FRAC_PI_3,
             turn_deadzone: 0.79,
             turn_settle: 0.06,
             turn_half_split: 2.36,
@@ -546,7 +555,12 @@ impl Locomotion {
             (world_velocity[0] * world_velocity[0] + world_velocity[2] * world_velocity[2]).sqrt();
         let moving = speed > self.tuning.turn_idle_speed;
         let target = if moving {
-            Self::heading_of(world_velocity)
+            let travel = Self::heading_of(world_velocity);
+            if wrap_angle(travel - aim_yaw).abs() > self.tuning.strafe_arc {
+                aim_yaw
+            } else {
+                travel
+            }
         } else {
             aim_yaw
         };
@@ -865,13 +879,21 @@ mod tests {
         }
     }
 
+    /// Travel inside the strafe arc: the body comes round onto it rather than holding
+    /// the aim. Outside the arc it holds instead, which is
+    /// `travelling_across_the_aim_holds_the_aim`.
     #[test]
     fn facing_settles_on_the_way_the_body_travels() {
         let mut l = loco();
-        let out = drive(&mut l, [5.0, 0.0, 0.0], 0.0, 2.0);
-        let dir = l.wish_direction(FWD, out.yaw);
-        assert!(dir[0] > 0.999, "travelling +x the body faced {dir:?}");
+        let travel = [5.0 * 0.5, 0.0, -5.0 * 0.866];
+        let out = drive(&mut l, travel, 0.0, 2.0);
         assert!(out.error.abs() < 0.01, "left {} to turn", out.error);
+        assert!(
+            wrap_angle(out.yaw - Locomotion::heading_of(travel)).abs() < 0.01,
+            "faced {} rather than the travel heading {}",
+            out.yaw,
+            Locomotion::heading_of(travel)
+        );
     }
 
     /// Looking around is not walking around: a small camera move must not drag the feet.
@@ -931,8 +953,13 @@ mod tests {
     #[test]
     fn a_turn_in_progress_leaves_the_body_travelling_sideways() {
         let mut l = loco();
-        let out = l.face([5.0, 0.0, 0.0], 0.0, 1.0 / 60.0);
-        assert!(out.error.abs() > 1.0, "no lean left: {}", out.error);
+        // 55 degrees off the aim: inside the arc, so this is a real turn rather than a
+        // hold, and one frame at the moving turn rate cannot finish it.
+        let a = 55.0f32.to_radians();
+        let travel = [5.0 * a.sin(), 0.0, -5.0 * a.cos()];
+        let out = l.face(travel, 0.0, 1.0 / 60.0);
+        let across = wrap_angle(Locomotion::heading_of(travel) - out.yaw);
+        assert!(across.abs() > 0.5, "no lean left: {across}");
     }
 
     /// +z is backward in the input frame.
@@ -945,6 +972,62 @@ mod tests {
         }
         assert!(state.blend[1] > 0.9, "blend {:?}", state.blend);
         assert!(state.blend[0].abs() < 0.01);
+    }
+
+    /// Running sideways while looking forward has to hold the aim, or the body swings
+    /// into the travel direction and the sidestep clip is never reached.
+    #[test]
+    fn travelling_across_the_aim_holds_the_aim() {
+        let mut l = Locomotion::default();
+        let aim = 0.0;
+        // Due east at walking pace, aim due north: a full 90 degrees across.
+        for _ in 0..120 {
+            l.face([4.0, 0.0, 0.0], aim, 1.0 / 60.0);
+        }
+        let facing = l.face([4.0, 0.0, 0.0], aim, 1.0 / 60.0).yaw;
+        assert!(
+            wrap_angle(facing - aim).abs() < 0.05,
+            "should still be facing the aim, got {facing}"
+        );
+    }
+
+    /// The other half: a body that always held the aim would strafe everywhere and
+    /// never turn, which is the thing the arc exists to avoid.
+    #[test]
+    fn travelling_near_the_aim_still_turns_into_travel() {
+        let mut l = Locomotion::default();
+        let aim = 0.0;
+        // 30 degrees off the aim, inside the arc.
+        let travel = [4.0 * 0.5, 0.0, -4.0 * 0.866];
+        let mut facing = 0.0;
+        for _ in 0..120 {
+            facing = l.face(travel, aim, 1.0 / 60.0).yaw;
+        }
+        let heading = Locomotion::heading_of(travel);
+        assert!(
+            wrap_angle(facing - heading).abs() < 0.05,
+            "should have turned into travel at {heading}, got {facing}"
+        );
+    }
+
+    /// The boundary is what decides which clip plays, so it is pinned rather than left
+    /// to whatever the default happens to be.
+    #[test]
+    fn the_strafe_arc_is_the_boundary_between_the_two() {
+        let mut l = Locomotion::default();
+        l.tuning.strafe_arc = std::f32::consts::FRAC_PI_2;
+        let aim = 0.0;
+        // 80 degrees: inside a 90 degree arc, so it must still turn.
+        let a = 80.0f32.to_radians();
+        let travel = [4.0 * a.sin(), 0.0, -4.0 * a.cos()];
+        let mut facing = 0.0;
+        for _ in 0..200 {
+            facing = l.face(travel, aim, 1.0 / 60.0).yaw;
+        }
+        assert!(
+            wrap_angle(facing - Locomotion::heading_of(travel)).abs() < 0.05,
+            "80 degrees is inside a 90 degree arc and must turn, got {facing}"
+        );
     }
 
     #[test]

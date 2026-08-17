@@ -40,7 +40,7 @@ pub enum BodyKind {
     KinematicPosition,
 }
 
-#[derive(Clone, Copy, Debug, PartialEq)]
+#[derive(Clone, Debug, PartialEq)]
 pub enum ShapeDesc {
     Ball {
         radius: f32,
@@ -53,9 +53,34 @@ pub enum ShapeDesc {
         half_height: f32,
         radius: f32,
     },
+    /// Upright cylinder — what a tree trunk is.
+    Cylinder {
+        half_height: f32,
+        radius: f32,
+    },
+    /// Point cloud the sim hulls itself. Shared behind an `Arc` because the scatter
+    /// fields hand the same variant-and-stage cloud to every rock wearing it, and
+    /// copying a few hundred of those per rebuild would cost more than the hulling.
+    ///
+    /// `scale` is carried here rather than in the pose because [`Iso`] has none: every
+    /// scattered rock is a different size, and without this each one would need its own
+    /// pre-scaled copy of the cloud, which is the copying the `Arc` exists to avoid.
+    ConvexHull {
+        points: Arc<Vec<[f32; 3]>>,
+        scale: [f32; 3],
+    },
+    /// Concave static geometry, given as a triangle soup — the bridge deck, its kerbs
+    /// and its abutments, which no single convex hull describes.
+    ///
+    /// Static only in practice: rapier can simulate a trimesh body but it has no
+    /// interior, so anything dynamic wearing one falls through itself.
+    TriMesh {
+        vertices: Arc<Vec<[f32; 3]>>,
+        indices: Arc<Vec<[u32; 3]>>,
+    },
 }
 
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub struct BodyDesc {
     pub kind: BodyKind,
     pub shape: ShapeDesc,
@@ -102,7 +127,7 @@ impl Default for AutostepDesc {
 }
 
 /// A character proxy — the rapier equivalent of a `CharacterBody3D`.
-#[derive(Clone, Copy, Debug)]
+#[derive(Clone, Debug)]
 pub struct CharacterDesc {
     pub shape: ShapeDesc,
     pub iso: Iso,
@@ -161,8 +186,17 @@ pub enum SimCommand {
         id: BodyId,
         desc: BodyDesc,
     },
+    /// The scatter fields register their whole collider set in one go. One command per
+    /// rock would put a few hundred sends through the channel in a single frame, which
+    /// is main-thread work spent on bookkeeping rather than on rendering.
+    SpawnMany {
+        bodies: Vec<(BodyId, BodyDesc)>,
+    },
     Despawn {
         id: BodyId,
+    },
+    DespawnMany {
+        ids: Vec<BodyId>,
     },
     /// Kinematic bodies only.
     SetKinematicTarget {
@@ -183,6 +217,15 @@ pub enum SimCommand {
     MoveCharacter {
         id: BodyId,
         translation: [f32; 3],
+    },
+    /// Puts a character somewhere outright, discarding motion queued for this tick.
+    ///
+    /// Distinct from [`SimCommand::SetKinematicTarget`], which asks the solver to sweep
+    /// there and would be resisted by whatever is in the way. Mantling and respawns move
+    /// the body by fiat and must not be negotiated with.
+    TeleportCharacter {
+        id: BodyId,
+        iso: Iso,
     },
 }
 

@@ -12,6 +12,26 @@ const Mantle := preload("res://src/player/mantle.gd")
 ## The ground is baked on a worker thread, so for the first frames of a scene there is
 ## no collider anywhere and gravity has nothing to land on.
 @export var terrain_path: NodePath = ^"../Terrain"
+## The off-thread rapier sim. When it is present the body walks there instead of through
+## `move_and_slide`, which takes the sweep-and-resolve work off the main thread. Godot's
+## own collision stays in the scene either way: the camera, the foot IK and the mantle
+## probes are all raycasts against it, and they are cheap where movement is not.
+@export var physics_path: NodePath = ^"../Physics"
+## Matches the CollisionShape3D on this scene. Rapier centres a capsule on its middle
+## while the node origin is at the feet, so the sim body is offset by this much.
+const CAPSULE_RADIUS := 0.5
+const CAPSULE_HALF_HEIGHT := 0.5
+const CAPSULE_CENTER := Vector3(0.0, 1.0, 0.0)
+## How long the rig keeps playing a grounded clip after contact is lost. The sim
+## publishes on its own tick, so a snapshot can be up to one tick old and a single-tick
+## loss of contact on a lip would otherwise flick the animation to a jump and back.
+## Only the animation reads this -- gravity and jumping still see the raw flag, because
+## holding those grounded would stop the body falling.
+const COYOTE_TIME := 0.12
+## Share of the asked-for speed the body has to fall below before the controller's own
+## figure is believed over the intended one. Loose on purpose: walking a slope or brushing
+## a rock costs some speed legitimately, and only being stopped should count.
+const BLOCKED_FRACTION := 0.5
 ## Clearance kept above the ground when the body is settled onto it.
 @export var settle_clearance := 1.0
 ## How far under the ground the body has to be before it counts as having fallen through
@@ -24,6 +44,11 @@ const Mantle := preload("res://src/player/mantle.gd")
 var _terrain: Node
 ## Held until there is ground, so the fall never starts.
 var _held := false
+
+var _sim: Node
+## Sim body id, or 0 while the body is still on Godot physics.
+var _sim_id := 0
+var _airborne_t := 0.0
 
 var _touch := false
 var _talking := false
@@ -39,6 +64,7 @@ var _debug_t := 0.0
 func _ready() -> void:
 	_mantle.setup(self, rig)
 	_wait_for_ground()
+	_find_sim()
 	var walk := OS.get_environment("Q_WALK")
 	_walk_sweep = walk == "auto"
 	var axes := walk.split(",", false)
@@ -50,6 +76,48 @@ func _ready() -> void:
 	_touch = DisplayServer.is_touchscreen_available()
 	if OS.has_feature("mobile"):
 		_use_mobile_materials()
+
+
+## Q_GODOT_PHYSICS=1 keeps the body on `move_and_slide`, so the two paths can be measured
+## against each other in the same build rather than across two.
+func _find_sim() -> void:
+	if OS.get_environment("Q_GODOT_PHYSICS") != "":
+		return
+	if physics_path.is_empty():
+		return
+	var node := get_node_or_null(physics_path)
+	if node == null or not node.has_method("spawn_character"):
+		return
+	_sim = node
+
+
+## Deferred until the ground exists: a character spawned into an empty sim starts falling
+## and the controller has nothing to catch it on.
+func _join_sim() -> void:
+	if _sim == null or _sim_id != 0 or not _sim.is_terrain_ready():
+		return
+	_sim_id = _sim.spawn_character(self, CAPSULE_HALF_HEIGHT, CAPSULE_RADIUS, CAPSULE_CENTER)
+
+
+## Takes the controller's horizontal result back only when it fell well short of what was
+## asked for, which is what being stopped by geometry looks like.
+##
+## The rig reads this velocity for facing, blend position and the walk cycle's playback
+## rate, and the sim's own figure is derived from a pose delta a tick old and quantised by
+## however the controller resolved that tick. Adopting it every frame wobbles the playback
+## rate and the cycle appears to restart, so on open ground the body keeps the velocity it
+## intended and only a genuine block overrides it.
+func _adopt_blocked_velocity() -> void:
+	var actual: Vector3 = _sim.body_velocity(_sim_id)
+	var planned := Vector2(velocity.x, velocity.z)
+	var moved := Vector2(actual.x, actual.z)
+	if planned.length() > 0.01 and moved.length() < planned.length() * BLOCKED_FRACTION:
+		velocity.x = actual.x
+		velocity.z = actual.z
+
+
+func _grounded() -> bool:
+	return _sim.character_grounded(_sim_id) if _sim_id != 0 else is_on_floor()
 
 
 func _wait_for_ground() -> void:
@@ -77,6 +145,8 @@ func _settle() -> void:
 		return
 	var ground: float = _terrain.height_at(global_position.x, global_position.z)
 	global_position.y = maxf(global_position.y, ground + settle_clearance)
+	if _sim_id != 0:
+		_sim.teleport_character(_sim_id, global_position)
 
 
 ## True once the body is under the ground by more than any dip explains, which is the
@@ -136,6 +206,7 @@ func _process(_delta: float) -> void:
 
 
 func _physics_process(delta: float) -> void:
+	_join_sim()
 	if _held:
 		velocity = Vector3.ZERO
 		rig.drive(Vector3.ZERO, global_rotation.y, false, delta)
@@ -161,16 +232,27 @@ func _physics_process(delta: float) -> void:
 	var direction: Vector3 = rig.wish_direction(input_dir, global_rotation.y)
 
 	if _mantle.update(delta, direction, jump):
+		if _sim_id != 0:
+			_sim.teleport_character(_sim_id, global_position)
 		_report(delta)
 		return
 
+	var grounded := _grounded()
+	if grounded and velocity.y < 0.0:
+		velocity.y = 0.0
 	velocity = rig.step_motion(input_dir, jump, crouch, roll, block,
-			velocity, global_rotation.y, is_on_floor(), get_gravity().y, delta)
+			velocity, global_rotation.y, grounded, get_gravity().y, delta)
 	if rig.jumped():
 		Game.events.notify(EventNames.PLAYER_JUMPED, global_position)
 
-	move_and_slide()
-	rig.drive(velocity, global_rotation.y, not is_on_floor(), delta)
+	_airborne_t = 0.0 if grounded else _airborne_t + delta
+
+	if _sim_id != 0:
+		_sim.move_character(_sim_id, velocity * delta)
+		_adopt_blocked_velocity()
+	else:
+		move_and_slide()
+	rig.drive(velocity, global_rotation.y, _airborne_t > COYOTE_TIME, delta)
 	_report(delta)
 
 
@@ -183,5 +265,5 @@ func _report(delta: float) -> void:
 	_debug_t = 0.0
 	print("[move] at=(%.1f,%.1f,%.1f) floor=%s vy=%+.2f slides=%d anim=%s" % [
 			global_position.x, global_position.y, global_position.z,
-			str(is_on_floor()), velocity.y, get_slide_collision_count(),
+			str(_grounded()), velocity.y, get_slide_collision_count(),
 			rig.debug_state()])

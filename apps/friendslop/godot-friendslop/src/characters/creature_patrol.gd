@@ -92,6 +92,15 @@ var _radius := 1.0
 var _reach := 0.0
 var _reach_frames := 0
 
+var _sim: Node
+## Sim body id, or 0 while this body is still on Godot physics.
+var _sim_id := 0
+## Capsule handed to the sim, kept from _build_collider so the two describe one body.
+var _capsule_half_height := 0.0
+var _capsule_center := Vector3.ZERO
+## Set once the scene is known to have no sim to join, so the lookup stops repeating.
+var _sim_off := false
+
 
 func _ready() -> void:
 	add_to_group(GROUP)
@@ -113,6 +122,7 @@ func _prepare() -> void:
 		_leader_last = _leader.global_position
 	_action_t = randf_range(action_interval * 0.4, action_interval)
 	_build_collider()
+	_join_sim()
 
 	_patrol = QPatrol.create(global_position, seed)
 	_patrol.set_slot(formation_slot, formation_count)
@@ -167,6 +177,8 @@ func _build_collider() -> void:
 	height = maxf(height, radius * 2.0 + 0.1)
 
 	_radius = radius
+	_capsule_half_height = maxf(height * 0.5 - radius, 0.05)
+	_capsule_center = Vector3(0.0, floor_y + height * 0.5, 0.0)
 	var capsule := CapsuleShape3D.new()
 	capsule.radius = radius
 	capsule.height = height
@@ -184,6 +196,7 @@ func _physics_process(delta: float) -> void:
 		return
 	if not _prepared:
 		_prepare()
+	_join_sim()
 	if rig.has_method("is_dead") and rig.is_dead():
 		velocity = Vector3(0.0, velocity.y, 0.0)
 		_step(delta)
@@ -324,15 +337,51 @@ func _drive(wish: Vector3, delta: float) -> void:
 	flat = flat.move_toward(Vector3(wish.x, 0.0, wish.z), MAX_ACCEL * delta)
 	velocity.x = flat.x
 	velocity.z = flat.z
-	if is_on_floor():
+	if _grounded():
 		velocity.y = 0.0
 	else:
 		velocity.y += get_gravity().y * delta
 	_step(delta)
 
 
+## The off-thread sim, if the scene has one. Each creature otherwise runs its own
+## `move_and_slide` on the main thread, and they are the population that grows.
+##
+## Retried rather than resolved once: a character spawned before the ground exists has
+## nothing to stand on, and creatures are built during the same frames the terrain is
+## still baking.
+func _join_sim() -> void:
+	if _sim_off or _sim_id != 0:
+		return
+	if OS.get_environment("Q_GODOT_PHYSICS") != "":
+		_sim_off = true
+		return
+	var scene := get_tree().current_scene
+	var node: Node = scene.get_node_or_null(^"Physics") if scene else null
+	if node == null or not node.has_method("spawn_character"):
+		_sim_off = true
+		return
+	if not node.is_terrain_ready():
+		return
+	_sim = node
+	_sim_id = _sim.spawn_character(self, _capsule_half_height, _radius, _capsule_center)
+
+
+func _grounded() -> bool:
+	return _sim.character_grounded(_sim_id) if _sim_id != 0 else is_on_floor()
+
+
+func _exit_tree() -> void:
+	if _sim_id != 0 and is_instance_valid(_sim):
+		_sim.despawn(_sim_id)
+		_sim_id = 0
+
+
 func _step(delta: float) -> void:
-	move_and_slide()
+	if _sim_id != 0:
+		_sim.move_character(_sim_id, velocity * delta)
+	else:
+		move_and_slide()
 	var moved := global_position - _last_pos
 	_last_pos = global_position
 	moved.y = 0.0

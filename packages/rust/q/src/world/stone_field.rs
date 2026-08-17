@@ -19,7 +19,11 @@ struct VariantMeshes {
     /// stones are rare and only ever seen up close).
     lods: [Gd<ArrayMesh>; LOD_LEVELS],
     damaged: [Gd<ArrayMesh>; 2],
-    hull: PackedVector3Array,
+    /// One hull per stage, in step with `damaged`: intact, cracked, rubble.
+    ///
+    /// A single hull would be the intact rock's, and a rock mined down to rubble draws
+    /// ankle high while still standing a boulder in the player's way.
+    hulls: [PackedVector3Array; Stone::STAGES as usize],
     /// Measured from the built mesh at unit scale.
     height: f32,
 }
@@ -40,6 +44,12 @@ pub struct QStoneField {
     terrain_path: NodePath,
     #[export]
     player_path: NodePath,
+    /// Off-thread sim to mirror the colliders into. Godot keeps its own copy either
+    /// way -- the mantle and camera probes raycast against it -- but the sim needs
+    /// them too or the character controller walks straight through the rocks.
+    #[export]
+    #[init(val = NodePath::from("../Physics"))]
+    physics_path: NodePath,
     #[export]
     stone_material: Option<Gd<ShaderMaterial>>,
     #[export]
@@ -91,6 +101,9 @@ pub struct QStoneField {
     #[init(val = Rid::Invalid)]
     body: Rid,
     shapes: Vec<Rid>,
+    /// Sim body ids handed out by `QPhysics3D`, so a rebuild can take the previous set
+    /// down before registering the new one.
+    sim_bodies: PackedInt64Array,
     extent: f32,
     origin: Vector2,
     /// What the player has already mined, kept across rescatters.
@@ -301,12 +314,13 @@ impl QStoneField {
         let radii: Vec<f32> = self
             .meshes
             .iter()
-            .map(|m| {
-                m.hull
-                    .as_slice()
-                    .iter()
-                    .map(|p| (p.x * p.x + p.z * p.z).sqrt())
-                    .fold(0.0f32, f32::max)
+            .flat_map(|m| {
+                m.hulls.iter().map(|hull| {
+                    hull.as_slice()
+                        .iter()
+                        .map(|p| (p.x * p.x + p.z * p.z).sqrt())
+                        .fold(0.0f32, f32::max)
+                })
             })
             .collect();
         let mut out = PackedFloat32Array::new();
@@ -314,7 +328,8 @@ impl QStoneField {
             if !self.core.alive(e.id) {
                 continue;
             }
-            let Some(r) = radii.get(e.variant as usize) else {
+            let stage = (self.core.stage(e.id) as usize).min(Stone::STAGES as usize - 1);
+            let Some(r) = radii.get(e.variant as usize * Stone::STAGES as usize + stage) else {
                 continue;
             };
             out.push(e.pos.x);
@@ -362,6 +377,40 @@ impl QStoneField {
     fn set_stage(&mut self, id: i64, stage: i64) -> VarDictionary {
         let out = self.core.set_stage(id as u64, stage.clamp(0, 255) as u8);
         self.settle(id, out)
+    }
+
+    /// The points the physics server was handed for one variant at one stage.
+    ///
+    /// Exposed for the debug overlay only. These colliders are built straight on
+    /// PhysicsServer3D with no CollisionShape3D behind them, so the engine's own shape
+    /// drawing cannot see them and anything that wants to show them has to be given the
+    /// same data the server got.
+    #[func]
+    fn debug_hull_points(&self, variant: i64, stage: i64) -> PackedVector3Array {
+        let v = (variant.max(0) as usize) % self.meshes.len().max(1);
+        let s = (stage.max(0) as usize).min(Stone::STAGES as usize - 1);
+        self.meshes
+            .get(v)
+            .map(|m| m.hulls[s].clone())
+            .unwrap_or_default()
+    }
+
+    /// Every standing stone as the hull to draw and where to draw it: `transform`,
+    /// `variant`, `stage`.
+    #[func]
+    fn debug_colliders(&self) -> Array<VarDictionary> {
+        let mut out = Array::new();
+        for e in self.core.entries() {
+            if !self.core.alive(e.id) {
+                continue;
+            }
+            let mut d = VarDictionary::new();
+            let _ = d.insert("transform", Self::instance_transform(e));
+            let _ = d.insert("variant", e.variant as i64);
+            let _ = d.insert("stage", self.core.stage(e.id) as i64);
+            out.push(&d);
+        }
+        out
     }
 
     #[func]
@@ -442,8 +491,8 @@ impl QStoneField {
         let _ = d.insert("ore", out.ore);
         let _ = d.insert("amount", out.amount as i64);
         self.dirty = true;
+        self.rebuild_colliders();
         if out.broken {
-            self.rebuild_colliders();
             let ore = GString::from(out.ore);
             let amount = out.amount as i64;
             self.signals().stone_broken().emit(id, &ore, amount);
@@ -531,6 +580,18 @@ impl QStoneField {
         )
     }
 
+    /// Collision points for a damage stage, taken off the mesh that stage actually draws.
+    /// The shape is convex, so handing it the vertices is enough — it wraps them itself.
+    fn mesh_hull(mesh: &Gd<ArrayMesh>) -> PackedVector3Array {
+        if mesh.get_surface_count() == 0 {
+            return PackedVector3Array::new();
+        }
+        mesh.surface_get_arrays(0)
+            .at(godot::classes::mesh::ArrayType::VERTEX.ord() as usize)
+            .try_to::<PackedVector3Array>()
+            .unwrap_or_default()
+    }
+
     fn build_meshes(&mut self) {
         let seed = self.stone_seed as u32;
         for v in 0..VARIANTS {
@@ -542,13 +603,19 @@ impl QStoneField {
                 build_stone_lod(s, species, 2),
             ];
             let height = lods[0].get_aabb().size.y.max(0.05);
+            let damaged = [
+                build_cracked_mesh(s, species),
+                build_rubble_mesh(s, species, 5, 0.7),
+            ];
+            let hulls = [
+                build_stone_hull(s, species),
+                Self::mesh_hull(&damaged[0]),
+                Self::mesh_hull(&damaged[1]),
+            ];
             self.meshes.push(VariantMeshes {
                 lods,
-                damaged: [
-                    build_cracked_mesh(s, species),
-                    build_rubble_mesh(s, species, 5, 0.7),
-                ],
-                hull: build_stone_hull(s, species),
+                damaged,
+                hulls,
                 height,
             });
         }
@@ -696,15 +763,18 @@ impl QStoneField {
         let space = world.get_space();
         let mut ps = PhysicsServer3D::singleton();
         for m in &self.meshes {
-            let shape = ps.convex_polygon_shape_create();
-            ps.shape_set_data(shape, &m.hull.to_variant());
-            self.shapes.push(shape);
+            for hull in &m.hulls {
+                let shape = ps.convex_polygon_shape_create();
+                ps.shape_set_data(shape, &hull.to_variant());
+                self.shapes.push(shape);
+            }
         }
         let body = ps.body_create();
         ps.body_set_mode(body, BodyMode::STATIC);
         ps.body_set_space(body, space);
         self.body = body;
         self.fill_collider_shapes();
+        self.publish_sim_colliders();
     }
 
     fn fill_collider_shapes(&mut self) {
@@ -717,7 +787,9 @@ impl QStoneField {
             if !self.core.alive(e.id) {
                 continue;
             }
-            let Some(shape) = self.shapes.get(e.variant as usize) else {
+            let stage = (self.core.stage(e.id) as usize).min(Stone::STAGES as usize - 1);
+            let slot = e.variant as usize * Stone::STAGES as usize + stage;
+            let Some(shape) = self.shapes.get(slot) else {
                 continue;
             };
             ps.body_add_shape_ex(self.body, *shape)
@@ -730,6 +802,54 @@ impl QStoneField {
         if self.body.is_valid() {
             self.fill_collider_shapes();
         }
+        self.publish_sim_colliders();
+    }
+
+    /// Re-registers every live rock with the sim, one batch per variant-and-stage so
+    /// each distinct point cloud crosses the channel once rather than once per rock.
+    fn publish_sim_colliders(&mut self) {
+        let Some(mut phys) = self
+            .base()
+            .get_node_or_null(&self.physics_path)
+            .and_then(|n| n.try_cast::<crate::rapier::bridge3d::QPhysics3D>().ok())
+        else {
+            return;
+        };
+
+        let taken = std::mem::take(&mut self.sim_bodies);
+        if !taken.is_empty() {
+            phys.bind_mut().despawn_batch(taken);
+        }
+
+        let stages = Stone::STAGES as usize;
+        let mut by_slot: Vec<Array<Transform3D>> = vec![Array::new(); self.meshes.len() * stages];
+        for e in self.core.entries() {
+            if !self.core.alive(e.id) {
+                continue;
+            }
+            let stage = (self.core.stage(e.id) as usize).min(stages - 1);
+            let slot = e.variant as usize * stages + stage;
+            if let Some(list) = by_slot.get_mut(slot) {
+                list.push(Self::instance_transform(e));
+            }
+        }
+
+        let mut ids = PackedInt64Array::new();
+        for (slot, transforms) in by_slot.into_iter().enumerate() {
+            if transforms.is_empty() {
+                continue;
+            }
+            let Some(hull) = self
+                .meshes
+                .get(slot / stages)
+                .and_then(|m| m.hulls.get(slot % stages))
+            else {
+                continue;
+            };
+            let spawned = phys.bind_mut().spawn_static_hulls(hull.clone(), transforms);
+            ids.extend_array(&spawned);
+        }
+        self.sim_bodies = ids;
     }
 
     fn all_slots(&self) -> Vec<(Rid, Rid)> {
