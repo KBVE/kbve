@@ -95,13 +95,13 @@ importers:
         version: 10.0.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@react-three/drei':
         specifier: ^10.7.7
-        version: 10.7.7(@react-three/fiber@9.7.0(4637715af25b5c2c3d9ecdb979c35356))(@types/react@19.2.9)(@types/three@0.185.3)(immer@11.1.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.185.1)
+        version: 10.7.7(@react-three/fiber@9.7.0(e016940014e57794f9ce295f8d395b85))(@types/react@19.2.9)(@types/three@0.185.3)(immer@11.1.17)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.185.1)
       '@react-three/fiber':
         specifier: ^9.7.0
-        version: 9.7.0(4637715af25b5c2c3d9ecdb979c35356)
+        version: 9.7.0(e016940014e57794f9ce295f8d395b85)
       '@react-three/flex':
         specifier: ^1.0.1
-        version: 1.0.1(@react-three/fiber@9.7.0(4637715af25b5c2c3d9ecdb979c35356))(react@19.2.3)(three@0.185.1)
+        version: 1.0.1(@react-three/fiber@9.7.0(e016940014e57794f9ce295f8d395b85))(react@19.2.3)(three@0.185.1)
       '@shopify/react-native-skia':
         specifier: 2.6.9
         version: 2.6.9(471a8884dbba7b861d1ace7d12758b73)
@@ -140,7 +140,7 @@ importers:
         version: 3.0.10
       '@xyflow/react':
         specifier: ^12.11.1
-        version: 12.11.1(@types/react-dom@19.1.5(@types/react@19.2.9))(@types/react@19.2.9)(immer@11.1.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
+        version: 12.11.1(@types/react-dom@19.1.5(@types/react@19.2.9))(@types/react@19.2.9)(immer@11.1.17)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       babel-preset-expo:
         specifier: ~57.0.6
         version: 57.0.6(@babel/core@7.26.10(supports-color@10.2.2))(@babel/runtime@7.27.6)(expo@57.0.9)(react-refresh@0.18.0)(supports-color@10.2.2)
@@ -314,7 +314,7 @@ importers:
         version: 0.10.3(@babel/core@7.26.10(supports-color@10.2.2))(@react-native/metro-config@0.86.2(@babel/core@7.26.10(supports-color@10.2.2))(supports-color@10.2.2))(react-native@0.86.2(@babel/core@7.26.10(supports-color@10.2.2))(@react-native-community/cli@15.1.3(supports-color@10.2.2)(typescript@6.0.3))(@react-native/metro-config@0.86.2(@babel/core@7.26.10(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.9)(react@19.2.3)(supports-color@10.2.2))(react@19.2.3)(supports-color@10.2.2)
       react-spring:
         specifier: ^10.0.3
-        version: 10.0.3(@react-three/fiber@9.7.0(4637715af25b5c2c3d9ecdb979c35356))(konva@9.3.15)(react-dom@19.2.3(react@19.2.3))(react-konva@19.2.5(@types/react@19.2.9)(konva@9.3.15)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.2(@babel/core@7.26.10(supports-color@10.2.2))(@react-native-community/cli@15.1.3(supports-color@10.2.2)(typescript@6.0.3))(@react-native/metro-config@0.86.2(@babel/core@7.26.10(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.9)(react@19.2.3)(supports-color@10.2.2))(react-zdog@1.2.2)(react@19.2.3)(three@0.185.1)(zdog@1.1.3)
+        version: 10.0.3(@react-three/fiber@9.7.0(e016940014e57794f9ce295f8d395b85))(konva@9.3.15)(react-dom@19.2.3(react@19.2.3))(react-konva@19.2.5(@types/react@19.2.9)(konva@9.3.15)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.2(@babel/core@7.26.10(supports-color@10.2.2))(@react-native-community/cli@15.1.3(supports-color@10.2.2)(typescript@6.0.3))(@react-native/metro-config@0.86.2(@babel/core@7.26.10(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.9)(react@19.2.3)(supports-color@10.2.2))(react-zdog@1.2.2)(react@19.2.3)(three@0.185.1)(zdog@1.1.3)
       react-unity-webgl:
         specifier: ^10.2.0
         version: 10.2.0(react@19.2.3)
@@ -322,8 +322,8 @@ importers:
         specifier: ^2.2.7
         version: 2.2.7(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       recharts:
-        specifier: ^3.9.2
-        version: 3.9.2(@types/react@19.2.9)(react-dom@19.2.3(react@19.2.3))(react-is@19.2.4)(react@19.2.3)(redux@5.0.1)
+        specifier: ^3.10.1
+        version: 3.10.1(@types/react@19.2.9)(react-dom@19.2.3(react@19.2.3))(react-is@19.2.4)(react@19.2.3)(redux@5.0.1)
       reflect-metadata:
         specifier: ^0.2.2
         version: 0.2.2
@@ -6500,6 +6500,9 @@ packages:
   '@types/d3-array@3.2.1':
     resolution: {integrity: sha512-Y2Jn2idRrLzUfAKV2LyRImR+y4oa2AntrgID95SHJxuMUrkNXmanDSed71sRNZysveJVt1hLLemQZIady0FpEg==}
 
+  '@types/d3-array@3.2.2':
+    resolution: {integrity: sha512-hOLWVbm7uRza0BYXpIIW5pxfrKe0W+D5lrFiAEYR+pb6w3N2SwSMaJbXdUfSEv+dT4MfHBLtn5js0LAWaO6otw==}
+
   '@types/d3-axis@3.0.6':
     resolution: {integrity: sha512-pYeijfZuBd87T0hGn0FO1vQ/cgLk6E1ALJjfkC0oJ8cbwkZl3TpgS8bVBLZN+2jjGgg38epgxb2zmoGtSfvgMw==}
 
@@ -6577,6 +6580,9 @@ packages:
 
   '@types/d3-time@3.0.3':
     resolution: {integrity: sha512-2p6olUZ4w3s+07q3Tm2dbiMZy5pCDfYwtLXXHUnVzXgQlZ/OyPtUz6OL382BkOuGlLXqfT+wqv8Fw2v8/0geBw==}
+
+  '@types/d3-time@3.0.4':
+    resolution: {integrity: sha512-yuzZug1nkAAaBlBBikKZTgzCeA+k1uy4ZFwWANOfKw5z5LRhV0gNA7gNkKm7HoK+HRN0wX3EkxGk0fpbWhmB7g==}
 
   '@types/d3-timer@3.0.2':
     resolution: {integrity: sha512-Ps3T8E8dZDam6fUyNiMkekK3XUsaUEik+idO9/YjPtfj2qruF8tFBXS7XhtE4iIXBLxhmLjP3SXpLhVf21I9Lw==}
@@ -9560,8 +9566,8 @@ packages:
   es-toolkit@1.46.1:
     resolution: {integrity: sha512-5eNtXOs3tbfxXOj04tjjseeWkRWaoCjdEI+96DgwzZoe6c9juL49pXlzAFTI72aWC9Y8p7168g6XIKjh7k6pyQ==}
 
-  es-toolkit@1.49.0:
-    resolution: {integrity: sha512-G5iZ6Pc/FNRY/soKZHC+TxGDD83rHUDXxzaWhGCX44vAv/tMs56WMusnm/KMNK+luUPsgA9U28cGr4RDlSzL2g==}
+  es-toolkit@1.50.0:
+    resolution: {integrity: sha512-OyZKhUVvEep9ITEiwHn8GKnMRQIVqoSIX7WnRbkWgJkllCujilqP2rD0u979tkl8wqyc8ICwlc1UBVv/Sl1G6w==}
 
   esast-util-from-estree@2.0.0:
     resolution: {integrity: sha512-4CyanoAudUSBAn5K13H4JhsMH6L9ZP7XbLVe/dKybkxMO7eDyLsT8UHl9TRNrU2Gr9nz+FovfSIjuXWJ81uVwQ==}
@@ -10882,8 +10888,8 @@ packages:
   immediate@3.0.6:
     resolution: {integrity: sha512-XXOFtyqDjNDAQxVfYxuF7g9Il/IbWmmlQg2MYKOH8ExIT1qg6xc4zyS3HaEEATgs1btfzxq15ciUiY7gjSXRGQ==}
 
-  immer@11.1.11:
-    resolution: {integrity: sha512-qzXuyXAkPySAGYkfsAwodDPWT8Zm7/Uo5BNt4BjhMhG5WlWyZZ4wQqnWwdS8kjlQ1Cwu6gjw3A6+0gTQwlyYtw==}
+  immer@11.1.17:
+    resolution: {integrity: sha512-8Vu44Y0MuMBlTQz/jQ8HEMYNq/bBqk87MnBwYR5mC8AthfhEXidZ5aT/oA/CUqboa8THKltnD9L3xyqhU/Sy1Q==}
 
   immutable@5.1.6:
     resolution: {integrity: sha512-q1swsS8K7L8usSHuOqF2TAoCCkonYz0SG38wLAggaa4Wml70zixIvt2ql4coQ2C2B3hTjltJry4r6bULwgAXLQ==}
@@ -13990,8 +13996,8 @@ packages:
     resolution: {integrity: sha512-Hx/BGIbwj+Des3+xy5uAtAbdCyqK9y9wbBcDFDYanLS9JnMqf7OeF87HQwUimE87OEc72mr6tkKUKMBBL+hF9Q==}
     engines: {node: '>= 4'}
 
-  recharts@3.9.2:
-    resolution: {integrity: sha512-G4fy+Pk46RaXgwWMh+Nzhyo/lbFAVqXo9gtetlyehe6Ehge9CsgDuOTwQDD+i1+llaLktNBiNq4bhnGlDRXFtw==}
+  recharts@3.10.1:
+    resolution: {integrity: sha512-QXFrvt6IVcw7eeZCoyXTwkIJAX3Dv1nyVhMicXJ47GsGDDpcN8z6o644DibE9XjpBTThtsomLKnTV6lc+cVFUA==}
     engines: {node: '>=18'}
     peerDependencies:
       react: 19.2.3
@@ -20955,7 +20961,7 @@ snapshots:
       clipanion: 4.0.0-rc.4(typanion@3.14.0)
       colorette: 2.0.20
       emnapi: 1.11.2(node-addon-api@7.1.1)
-      es-toolkit: 1.49.0
+      es-toolkit: 1.50.0
       js-yaml: 4.3.0
       obug: 2.1.3
       semver: 7.8.5
@@ -22810,13 +22816,13 @@ snapshots:
       '@react-spring/types': 10.0.3
       react: 19.2.3
 
-  '@react-spring/three@10.0.3(@react-three/fiber@9.7.0(4637715af25b5c2c3d9ecdb979c35356))(react@19.2.3)(three@0.185.1)':
+  '@react-spring/three@10.0.3(@react-three/fiber@9.7.0(e016940014e57794f9ce295f8d395b85))(react@19.2.3)(three@0.185.1)':
     dependencies:
       '@react-spring/animated': 10.0.3(react@19.2.3)
       '@react-spring/core': 10.0.3(react@19.2.3)
       '@react-spring/shared': 10.0.3(react@19.2.3)
       '@react-spring/types': 10.0.3
-      '@react-three/fiber': 9.7.0(4637715af25b5c2c3d9ecdb979c35356)
+      '@react-three/fiber': 9.7.0(e016940014e57794f9ce295f8d395b85)
       react: 19.2.3
       three: 0.185.1
 
@@ -22842,12 +22848,12 @@ snapshots:
       react-zdog: 1.2.2
       zdog: 1.1.3
 
-  '@react-three/drei@10.7.7(@react-three/fiber@9.7.0(4637715af25b5c2c3d9ecdb979c35356))(@types/react@19.2.9)(@types/three@0.185.3)(immer@11.1.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.185.1)':
+  '@react-three/drei@10.7.7(@react-three/fiber@9.7.0(e016940014e57794f9ce295f8d395b85))(@types/react@19.2.9)(@types/three@0.185.3)(immer@11.1.17)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)(three@0.185.1)':
     dependencies:
       '@babel/runtime': 7.27.6
       '@mediapipe/tasks-vision': 0.10.17
       '@monogrid/gainmap-js': 3.0.6(three@0.185.1)
-      '@react-three/fiber': 9.7.0(4637715af25b5c2c3d9ecdb979c35356)
+      '@react-three/fiber': 9.7.0(e016940014e57794f9ce295f8d395b85)
       '@use-gesture/react': 10.3.1(react@19.2.3)
       camera-controls: 3.1.2(three@0.185.1)
       cross-env: 7.0.3
@@ -22864,10 +22870,10 @@ snapshots:
       three-mesh-bvh: 0.8.3(three@0.185.1)
       three-stdlib: 2.36.1(three@0.185.1)
       troika-three-text: 0.52.4(three@0.185.1)
-      tunnel-rat: 0.1.2(@types/react@19.2.9)(immer@11.1.11)(react@19.2.3)
+      tunnel-rat: 0.1.2(@types/react@19.2.9)(immer@11.1.17)(react@19.2.3)
       use-sync-external-store: 1.5.0(react@19.2.3)
       utility-types: 3.11.0
-      zustand: 5.0.3(@types/react@19.2.9)(immer@11.1.11)(react@19.2.3)(use-sync-external-store@1.5.0(react@19.2.3))
+      zustand: 5.0.3(@types/react@19.2.9)(immer@11.1.17)(react@19.2.3)(use-sync-external-store@1.5.0(react@19.2.3))
     optionalDependencies:
       react-dom: 19.2.3(react@19.2.3)
     transitivePeerDependencies:
@@ -22875,7 +22881,7 @@ snapshots:
       - '@types/three'
       - immer
 
-  '@react-three/fiber@9.7.0(4637715af25b5c2c3d9ecdb979c35356)':
+  '@react-three/fiber@9.7.0(e016940014e57794f9ce295f8d395b85)':
     dependencies:
       '@babel/runtime': 7.27.6
       '@types/webxr': 0.5.21
@@ -22888,7 +22894,7 @@ snapshots:
       suspend-react: 0.1.3(react@19.2.3)
       three: 0.185.1
       use-sync-external-store: 1.6.0(react@19.2.3)
-      zustand: 5.0.3(@types/react@19.2.9)(immer@11.1.11)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3))
+      zustand: 5.0.3(@types/react@19.2.9)(immer@11.1.17)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3))
     optionalDependencies:
       expo: 57.0.9(405a953b5dfc07ded013f2e71d18507a)
       expo-asset: 57.0.8(expo@57.0.9)(react-native@0.86.2(@babel/core@7.26.10(supports-color@10.2.2))(@react-native-community/cli@15.1.3(supports-color@10.2.2)(typescript@6.0.3))(@react-native/metro-config@0.86.2(@babel/core@7.26.10(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.9)(react@19.2.3)(supports-color@10.2.2))(react@19.2.3)(supports-color@10.2.2)(typescript@6.0.3)
@@ -22899,10 +22905,10 @@ snapshots:
       - '@types/react'
       - immer
 
-  '@react-three/flex@1.0.1(@react-three/fiber@9.7.0(4637715af25b5c2c3d9ecdb979c35356))(react@19.2.3)(three@0.185.1)':
+  '@react-three/flex@1.0.1(@react-three/fiber@9.7.0(e016940014e57794f9ce295f8d395b85))(react@19.2.3)(three@0.185.1)':
     dependencies:
       '@react-pdf/yoga': 2.0.4
-      '@react-three/fiber': 9.7.0(4637715af25b5c2c3d9ecdb979c35356)
+      '@react-three/fiber': 9.7.0(e016940014e57794f9ce295f8d395b85)
       react: 19.2.3
       react-merge-refs: 1.1.0
       three: 0.185.1
@@ -22934,7 +22940,7 @@ snapshots:
     dependencies:
       '@standard-schema/spec': 1.1.0
       '@standard-schema/utils': 0.3.0
-      immer: 11.1.11
+      immer: 11.1.17
       redux: 5.0.1
       redux-thunk: 3.1.0(redux@5.0.1)
       reselect: 5.2.0
@@ -24350,6 +24356,8 @@ snapshots:
 
   '@types/d3-array@3.2.1': {}
 
+  '@types/d3-array@3.2.2': {}
+
   '@types/d3-axis@3.0.6':
     dependencies:
       '@types/d3-selection': 3.0.11
@@ -24364,7 +24372,7 @@ snapshots:
 
   '@types/d3-contour@3.0.6':
     dependencies:
-      '@types/d3-array': 3.2.1
+      '@types/d3-array': 3.2.2
       '@types/geojson': 7946.0.16
 
   '@types/d3-delaunay@6.0.4': {}
@@ -24420,6 +24428,8 @@ snapshots:
   '@types/d3-time-format@4.0.3': {}
 
   '@types/d3-time@3.0.3': {}
+
+  '@types/d3-time@3.0.4': {}
 
   '@types/d3-timer@3.0.2': {}
 
@@ -25646,13 +25656,13 @@ snapshots:
 
   '@xtuc/long@4.2.2': {}
 
-  '@xyflow/react@12.11.1(@types/react-dom@19.1.5(@types/react@19.2.9))(@types/react@19.2.9)(immer@11.1.11)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
+  '@xyflow/react@12.11.1(@types/react-dom@19.1.5(@types/react@19.2.9))(@types/react@19.2.9)(immer@11.1.17)(react-dom@19.2.3(react@19.2.3))(react@19.2.3)':
     dependencies:
       '@xyflow/system': 0.0.78
       classcat: 5.0.5
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
-      zustand: 4.5.6(@types/react@19.2.9)(immer@11.1.11)(react@19.2.3)
+      zustand: 4.5.6(@types/react@19.2.9)(immer@11.1.17)(react@19.2.3)
     optionalDependencies:
       '@types/react': 19.2.9
       '@types/react-dom': 19.1.5(@types/react@19.2.9)
@@ -28274,7 +28284,7 @@ snapshots:
 
   es-toolkit@1.46.1: {}
 
-  es-toolkit@1.49.0: {}
+  es-toolkit@1.50.0: {}
 
   esast-util-from-estree@2.0.0:
     dependencies:
@@ -30079,7 +30089,7 @@ snapshots:
 
   immediate@3.0.6: {}
 
-  immer@11.1.11: {}
+  immer@11.1.17: {}
 
   immutable@5.1.6: {}
 
@@ -33998,12 +34008,12 @@ snapshots:
 
   react-refresh@0.18.0: {}
 
-  react-spring@10.0.3(@react-three/fiber@9.7.0(4637715af25b5c2c3d9ecdb979c35356))(konva@9.3.15)(react-dom@19.2.3(react@19.2.3))(react-konva@19.2.5(@types/react@19.2.9)(konva@9.3.15)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.2(@babel/core@7.26.10(supports-color@10.2.2))(@react-native-community/cli@15.1.3(supports-color@10.2.2)(typescript@6.0.3))(@react-native/metro-config@0.86.2(@babel/core@7.26.10(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.9)(react@19.2.3)(supports-color@10.2.2))(react-zdog@1.2.2)(react@19.2.3)(three@0.185.1)(zdog@1.1.3):
+  react-spring@10.0.3(@react-three/fiber@9.7.0(e016940014e57794f9ce295f8d395b85))(konva@9.3.15)(react-dom@19.2.3(react@19.2.3))(react-konva@19.2.5(@types/react@19.2.9)(konva@9.3.15)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react-native@0.86.2(@babel/core@7.26.10(supports-color@10.2.2))(@react-native-community/cli@15.1.3(supports-color@10.2.2)(typescript@6.0.3))(@react-native/metro-config@0.86.2(@babel/core@7.26.10(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.9)(react@19.2.3)(supports-color@10.2.2))(react-zdog@1.2.2)(react@19.2.3)(three@0.185.1)(zdog@1.1.3):
     dependencies:
       '@react-spring/core': 10.0.3(react@19.2.3)
       '@react-spring/konva': 10.0.3(konva@9.3.15)(react-konva@19.2.5(@types/react@19.2.9)(konva@9.3.15)(react-dom@19.2.3(react@19.2.3))(react@19.2.3))(react@19.2.3)
       '@react-spring/native': 10.0.3(react-native@0.86.2(@babel/core@7.26.10(supports-color@10.2.2))(@react-native-community/cli@15.1.3(supports-color@10.2.2)(typescript@6.0.3))(@react-native/metro-config@0.86.2(@babel/core@7.26.10(supports-color@10.2.2))(supports-color@10.2.2))(@types/react@19.2.9)(react@19.2.3)(supports-color@10.2.2))(react@19.2.3)
-      '@react-spring/three': 10.0.3(@react-three/fiber@9.7.0(4637715af25b5c2c3d9ecdb979c35356))(react@19.2.3)(three@0.185.1)
+      '@react-spring/three': 10.0.3(@react-three/fiber@9.7.0(e016940014e57794f9ce295f8d395b85))(react@19.2.3)(three@0.185.1)
       '@react-spring/web': 10.0.3(react-dom@19.2.3(react@19.2.3))(react@19.2.3)
       '@react-spring/zdog': 10.0.3(react-dom@19.2.3(react@19.2.3))(react-zdog@1.2.2)(react@19.2.3)(zdog@1.1.3)
       react: 19.2.3
@@ -34090,14 +34100,14 @@ snapshots:
       tiny-invariant: 1.3.3
       tslib: 2.8.1
 
-  recharts@3.9.2(@types/react@19.2.9)(react-dom@19.2.3(react@19.2.3))(react-is@19.2.4)(react@19.2.3)(redux@5.0.1):
+  recharts@3.10.1(@types/react@19.2.9)(react-dom@19.2.3(react@19.2.3))(react-is@19.2.4)(react@19.2.3)(redux@5.0.1):
     dependencies:
       '@reduxjs/toolkit': 2.12.0(react-redux@9.3.0(@types/react@19.2.9)(react@19.2.3)(redux@5.0.1))(react@19.2.3)
       clsx: 2.1.1
       decimal.js-light: 2.5.1
-      es-toolkit: 1.49.0
+      es-toolkit: 1.50.0
       eventemitter3: 5.0.4
-      immer: 11.1.11
+      immer: 11.1.17
       react: 19.2.3
       react-dom: 19.2.3(react@19.2.3)
       react-is: 19.2.4
@@ -35879,9 +35889,9 @@ snapshots:
     dependencies:
       safe-buffer: 5.2.1
 
-  tunnel-rat@0.1.2(@types/react@19.2.9)(immer@11.1.11)(react@19.2.3):
+  tunnel-rat@0.1.2(@types/react@19.2.9)(immer@11.1.17)(react@19.2.3):
     dependencies:
-      zustand: 4.5.6(@types/react@19.2.9)(immer@11.1.11)(react@19.2.3)
+      zustand: 4.5.6(@types/react@19.2.9)(immer@11.1.17)(react@19.2.3)
     transitivePeerDependencies:
       - '@types/react'
       - immer
@@ -36372,12 +36382,12 @@ snapshots:
 
   victory-vendor@37.3.6:
     dependencies:
-      '@types/d3-array': 3.2.1
+      '@types/d3-array': 3.2.2
       '@types/d3-ease': 3.0.2
       '@types/d3-interpolate': 3.0.4
       '@types/d3-scale': 4.0.9
       '@types/d3-shape': 3.1.8
-      '@types/d3-time': 3.0.3
+      '@types/d3-time': 3.0.4
       '@types/d3-timer': 3.0.2
       d3-array: 3.2.4
       d3-ease: 3.0.1
@@ -37379,25 +37389,25 @@ snapshots:
 
   zod@4.3.6: {}
 
-  zustand@4.5.6(@types/react@19.2.9)(immer@11.1.11)(react@19.2.3):
+  zustand@4.5.6(@types/react@19.2.9)(immer@11.1.17)(react@19.2.3):
     dependencies:
       use-sync-external-store: 1.6.0(react@19.2.3)
     optionalDependencies:
       '@types/react': 19.2.9
-      immer: 11.1.11
+      immer: 11.1.17
       react: 19.2.3
 
-  zustand@5.0.3(@types/react@19.2.9)(immer@11.1.11)(react@19.2.3)(use-sync-external-store@1.5.0(react@19.2.3)):
+  zustand@5.0.3(@types/react@19.2.9)(immer@11.1.17)(react@19.2.3)(use-sync-external-store@1.5.0(react@19.2.3)):
     optionalDependencies:
       '@types/react': 19.2.9
-      immer: 11.1.11
+      immer: 11.1.17
       react: 19.2.3
       use-sync-external-store: 1.5.0(react@19.2.3)
 
-  zustand@5.0.3(@types/react@19.2.9)(immer@11.1.11)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3)):
+  zustand@5.0.3(@types/react@19.2.9)(immer@11.1.17)(react@19.2.3)(use-sync-external-store@1.6.0(react@19.2.3)):
     optionalDependencies:
       '@types/react': 19.2.9
-      immer: 11.1.11
+      immer: 11.1.17
       react: 19.2.3
       use-sync-external-store: 1.6.0(react@19.2.3)
 
