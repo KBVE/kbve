@@ -206,6 +206,30 @@ impl SnapshotBuffer {
         }
     }
 
+    /// Velocity for a remote body, read off the same clock as [`sample`](Self::sample).
+    pub fn sample_velocity(&self, id: BodyId) -> Option<[f32; 3]> {
+        let clock = self.clock?;
+        let (older, newer) = self.straddling(clock)?;
+        match (older.body(id), newer.body(id)) {
+            (Some(a), Some(b)) => {
+                let span = newer.sim_time - older.sim_time;
+                let t = if span > f64::EPSILON {
+                    (((clock - older.sim_time) / span) as f32).clamp(0.0, 1.0)
+                } else {
+                    1.0
+                };
+                Some([
+                    a.linvel[0] + (b.linvel[0] - a.linvel[0]) * t,
+                    a.linvel[1] + (b.linvel[1] - a.linvel[1]) * t,
+                    a.linvel[2] + (b.linvel[2] - a.linvel[2]) * t,
+                ])
+            }
+            (None, Some(b)) => Some(b.linvel),
+            (Some(a), None) => Some(a.linvel),
+            (None, None) => None,
+        }
+    }
+
     /// Pose for the local body: the newest snapshot carried forward along its own
     /// velocity by however long ago it landed, so our own movement tracks the key that
     /// caused it instead of trailing the buffer.

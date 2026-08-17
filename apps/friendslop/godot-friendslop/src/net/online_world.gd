@@ -90,6 +90,7 @@ func _on_avatar_spawned(body_id: int, node: Node3D) -> void:
 	var avatar := node as NetAvatar
 	if avatar == null:
 		return
+	avatar.bind_body(_client, body_id)
 	if body_id == _client.local_body():
 		_local_avatar = avatar
 		avatar.mark_local(_rig)
@@ -107,7 +108,10 @@ func _refresh_nameplates() -> void:
 	_hud.set_roster(_client.roster(), _client.local_body())
 
 
-func _on_pet_spawned(_body_id: int, _node: Node3D) -> void:
+func _on_pet_spawned(body_id: int, node: Node3D) -> void:
+	var pet := node as NetPet
+	if pet:
+		pet.bind_body(_client, body_id)
 	_refresh_pets()
 
 
