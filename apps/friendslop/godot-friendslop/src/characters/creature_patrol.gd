@@ -83,7 +83,6 @@ var _travelled := 0.0
 var _leader_last := Vector3.ZERO
 var _action_t := 0.0
 var _prepared := false
-var _gravity := -9.8
 var _mode := 0
 ## The capsule this body actually got, which is what avoidance measures against.
 var _radius := 1.0
@@ -112,7 +111,6 @@ func _prepare() -> void:
 	_leader = get_node_or_null(leader_path) as Node3D
 	if _leader:
 		_leader_last = _leader.global_position
-	_gravity = get_gravity().y if has_method("get_gravity") else -9.8
 	_action_t = randf_range(action_interval * 0.4, action_interval)
 	_build_collider()
 
@@ -329,7 +327,7 @@ func _drive(wish: Vector3, delta: float) -> void:
 	if is_on_floor():
 		velocity.y = 0.0
 	else:
-		velocity.y += _gravity * delta
+		velocity.y += get_gravity().y * delta
 	_step(delta)
 
 
