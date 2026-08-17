@@ -15,6 +15,21 @@ var rig: Node3D
 var _velocity := Vector3.ZERO
 var _last_position := Vector3.ZERO
 var _has_last := false
+var _client: Node
+var _body_id := 0
+
+
+## Points this pet at the body the host publishes for it.
+func bind_body(client: Node, body_id: int) -> void:
+	_client = client
+	_body_id = body_id
+
+
+## Velocity the host published, falling back to the drawn motion when it has not said.
+func _reported_velocity(here: Vector3, delta: float) -> Vector3:
+	if _client != null and _body_id != 0:
+		return _client.body_velocity(_body_id)
+	return (here - _last_position) / delta
 
 
 func _ready() -> void:
@@ -48,7 +63,7 @@ func _process(delta: float) -> void:
 		return
 	var here := global_position
 	if _has_last:
-		var instant := (here - _last_position) / delta
+		var instant := _reported_velocity(here, delta)
 		_velocity = _velocity.lerp(instant, clampf(VELOCITY_SMOOTHING * delta, 0.0, 1.0))
 	_last_position = here
 	_has_last = true

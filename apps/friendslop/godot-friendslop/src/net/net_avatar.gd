@@ -13,6 +13,14 @@ var _last_position := Vector3.ZERO
 var _has_last := false
 var _is_local := false
 var _aim: Node3D
+var _client: Node
+var _body_id := 0
+
+
+## Points this avatar at the body the host publishes for it.
+func bind_body(client: Node, body_id: int) -> void:
+	_client = client
+	_body_id = body_id
 
 
 func _ready() -> void:
@@ -39,7 +47,7 @@ func _process(delta: float) -> void:
 		return
 	var here := global_position
 	if _has_last:
-		var instant := (here - _last_position) / delta
+		var instant := _reported_velocity(here, delta)
 		_velocity = _velocity.lerp(instant, clampf(VELOCITY_SMOOTHING * delta, 0.0, 1.0))
 	_last_position = here
 	_has_last = true
@@ -49,6 +57,13 @@ func _process(delta: float) -> void:
 	var travel := _velocity if Vector2(_velocity.x, _velocity.z).length() > REST_SPEED \
 			else Vector3.ZERO
 	_rig.drive(travel, _aim.global_rotation.y if _aim else _travel_aim(travel), false, delta)
+
+
+## Velocity the host published, falling back to the drawn motion when it has not said.
+func _reported_velocity(here: Vector3, delta: float) -> Vector3:
+	if _client != null and _body_id != 0:
+		return _client.body_velocity(_body_id)
+	return (here - _last_position) / delta
 
 
 func _travel_aim(travel: Vector3) -> float:

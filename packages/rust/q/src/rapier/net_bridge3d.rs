@@ -646,6 +646,15 @@ impl QNetClient3D {
             .unwrap_or(Vector3::ZERO)
     }
 
+    /// Velocity the body is being drawn with, on the same clock as `body_position`.
+    #[func]
+    fn body_velocity(&self, id: i64) -> Vector3 {
+        self.buffer
+            .sample_velocity(BodyId(id as u32))
+            .map(|v| Vector3::new(v[0], v[1], v[2]))
+            .unwrap_or(Vector3::ZERO)
+    }
+
     /// Snapshots held for blending. Persistently at one means [`interp_delay`] is too
     /// short for the link and bodies are being extrapolated rather than interpolated.
     #[func]
