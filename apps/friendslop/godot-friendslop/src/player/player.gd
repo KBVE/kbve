@@ -41,6 +41,9 @@ var _walk_sweep := false
 var _walk_t := 0.0
 var _debug_t := 0.0
 var _blocked_t := 0.0
+var _debug_grounded := false
+var _debug_state: StringName = &""
+var _debug_held := 0.0
 
 
 func _ready() -> void:
@@ -243,11 +246,22 @@ func _afford(wanted: bool, cost: float) -> bool:
 func _report(delta: float) -> void:
 	if OS.get_environment("Q_MOVE_DEBUG") == "":
 		return
+	var grounded := _grounded()
+	var state: StringName = rig.debug_state()
+	var changed := grounded != _debug_grounded or state != _debug_state
 	_debug_t += delta
-	if _debug_t < 0.5:
+	_debug_held += delta
+	if not changed and _debug_t < 0.5:
 		return
+	if changed:
+		print("[move] %s floor=%s->%s anim=%s->%s after=%.3fs vy=%+.2f air=%.3f" % [
+				"CHANGE", str(_debug_grounded), str(grounded),
+				_debug_state, state, _debug_held, velocity.y, _airborne_t])
+		_debug_held = 0.0
+	else:
+		print("[move] at=(%.1f,%.1f,%.1f) floor=%s vy=%+.2f anim=%s" % [
+				global_position.x, global_position.y, global_position.z,
+				str(grounded), velocity.y, state])
 	_debug_t = 0.0
-	print("[move] at=(%.1f,%.1f,%.1f) floor=%s vy=%+.2f slides=%d anim=%s" % [
-			global_position.x, global_position.y, global_position.z,
-			str(_grounded()), velocity.y, get_slide_collision_count(),
-			rig.debug_state()])
+	_debug_grounded = grounded
+	_debug_state = state
