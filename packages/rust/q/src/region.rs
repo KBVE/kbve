@@ -35,9 +35,17 @@ const FINE_RINGS: i32 = 2;
 /// the blend, so a second ring could not change the result.
 const COARSE_RINGS: i32 = 1;
 
-const SALT_JITTER: u32 = 0x9e37_79b9;
-const SALT_OCEAN: u32 = 0x85eb_ca6b;
-const SALT_LEVEL: u32 = 0xc2b2_ae35;
+/// Separators that keep the several questions asked of one lattice cell from
+/// answering each other: whether it holds water, where inside itself it sits,
+/// and which scale is asking.
+///
+/// Constant on purpose, and not a secret of any kind. The world *is* the hash,
+/// so these are as much a part of it as the seed -- deriving them from anything
+/// per-run, or hiding them, would mean two machines on one seed no longer agree
+/// on where the sea is.
+const STREAM_JITTER: u32 = 0x9e37_79b9;
+const STREAM_OCEAN: u32 = 0x85eb_ca6b;
+const STREAM_LEVEL: u32 = 0xc2b2_ae35;
 
 /// What a body of water at the bottom of a drainage is.
 ///
@@ -196,9 +204,9 @@ fn hash32(mut x: u32) -> u32 {
     x
 }
 
-fn cell_hash(seed: u32, salt: u32, i: i32, j: i32) -> u32 {
+fn cell_hash(seed: u32, stream: u32, i: i32, j: i32) -> u32 {
     hash32(
-        seed.wrapping_add(salt)
+        seed.wrapping_add(stream)
             .wrapping_add(hash32(i as u32).wrapping_mul(0x27d4_eb2d))
             .wrapping_add(hash32(j as u32).wrapping_mul(0x9e37_79b1)),
     )
@@ -256,8 +264,8 @@ impl RegionGen {
         ]
     }
 
-    fn site(&self, salt: u32, spacing: f32, i: i32, j: i32) -> [f32; 2] {
-        let h = cell_hash(self.seed, salt.wrapping_add(SALT_JITTER), i, j);
+    fn site(&self, stream: u32, spacing: f32, i: i32, j: i32) -> [f32; 2] {
+        let h = cell_hash(self.seed, stream.wrapping_add(STREAM_JITTER), i, j);
         let jx = (unit(h) - 0.5) * 2.0 * self.params.jitter;
         let jz = (unit(hash32(h)) - 0.5) * 2.0 * self.params.jitter;
         [
@@ -276,18 +284,18 @@ impl RegionGen {
             let spacing = self.ocean_spacing[level];
             let rings = if level == 0 { FINE_RINGS } else { COARSE_RINGS };
             let radius = spacing * self.params.ocean_radius_frac;
-            let salt = SALT_OCEAN.wrapping_add(SALT_LEVEL.wrapping_mul(level as u32 + 1));
+            let stream = STREAM_OCEAN.wrapping_add(STREAM_LEVEL.wrapping_mul(level as u32 + 1));
             let ci = (at[0] / spacing).floor() as i32;
             let cj = (at[1] / spacing).floor() as i32;
             for dj in -rings..=rings {
                 for di in -rings..=rings {
                     let (i, j) = (ci + di, cj + dj);
-                    let roll = unit(cell_hash(self.seed, salt, i, j));
+                    let roll = unit(cell_hash(self.seed, stream, i, j));
                     if roll >= self.params.ocean_chance {
                         continue;
                     }
                     f(Sink {
-                        pos: self.site(salt, spacing, i, j),
+                        pos: self.site(stream, spacing, i, j),
                         radius,
                         kind: SinkKind::Ocean,
                         level: level as u8,
@@ -304,7 +312,7 @@ impl RegionGen {
             for di in -FINE_RINGS..=FINE_RINGS {
                 let (i, j) = (ci + di, cj + dj);
                 f(Sink {
-                    pos: self.site(SALT_LEVEL, spacing, i, j),
+                    pos: self.site(STREAM_LEVEL, spacing, i, j),
                     radius: self.params.lake_radius,
                     kind: SinkKind::Lake,
                     level: u8::MAX,
