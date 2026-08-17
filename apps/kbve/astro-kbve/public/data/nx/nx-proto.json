@@ -1,5 +1,5 @@
 {
-	"generated_at": "2026-08-16T02:23:14.408Z",
+	"generated_at": "2026-08-17T02:21:15.793Z",
 	"summary": {
 		"total_protos": 47,
 		"registered": 0,
@@ -1762,7 +1762,10 @@
 		"packages/data/proto/spell/spelldb.proto",
 		"packages/data/proto/wallet/wallet.proto"
 	],
-	"checked_at": "2026-08-16T02:22:39Z",
+	"checked_at": "2026-08-17T02:20:48Z",
 	"drift_detected": true,
-	"drift_files": ["packages/data/codegen/generated/professiondb-schema.ts"]
+	"drift_files": [
+		"packages/data/codegen/generated/itemdb-schema.ts",
+		"packages/data/codegen/generated/professiondb-schema.ts"
+	]
 }
