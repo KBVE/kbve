@@ -128,6 +128,40 @@ What the list *does* carry is the chassis and whose it is, so a robot whose entr
 
 Neither the facing nor the walk cycle is on the wire — the character proxy never turns, so its pose says nothing about which way the thing is looking. Both come from how the body actually moved, and the **rig** is turned rather than the node, which the extension overwrites from the snapshot every frame.
 
+### Two simulations, and the plan to have one
+
+Solo and online do not run the same simulation, and most confusing creature behaviour traces back to that.
+
+| | Solo (`scenes/main.tscn`) | Online (`scenes/online.tscn`) |
+| --- | --- | --- |
+| Bodies | `CharacterBody3D` + `move_and_slide()` | rapier `SimWorld`, host-side |
+| Steering | `QPatrol` per node | `PetRegistry` (`q/src/net/pets.rs`) |
+| Robots | "mechs", `creature_spawner.gd` | "pets", `src/net/net_pet.gd` |
+| Neighbours | `_crowd()`, a group scan per creature per frame | one map built per tick, sliced per pet |
+| Formation slot | `@export` written at spawn | recomputed every tick from the roster |
+
+`QPhysics3D` exists in `q/src/rapier/bridge3d.rs` but is instantiated **nowhere in the game** — only in `test_net_game_client.gd`. Online gets its physics because the *server* runs `SimWorld`; the client only interpolates. Solo has no server, so it has no q physics at all.
+
+The target is one simulation for both, with multiplayer differing only in *where* the registry runs. Staged: collapse tuning to one source; move neighbour indexing and slot assignment into a Rust registry, keeping Godot bodies; then move character motion into `SimWorld`.
+
+**Things Godot only does because it owns motion in solo.** Each is a responsibility to hand back, not a feature to port.
+
+`creature_patrol.gd` scales the whole wish vector by facing alignment, so a mech leans into its turn instead of sliding sideways:
+
+```gdscript
+wish *= lerpf(TURN_GATE_FLOOR, 1.0, gate)   # 0.35 .. 1.0
+```
+
+The intent is right and the placement is not: `wish` is goal **plus** avoidance summed, and Godot cannot tell them apart — so turning damps avoidance to 35% at the moment a group is most likely to converge. Only the solver knows which half is which.
+
+Creatures also sit on `LAYER_CREATURE` and deliberately do not mask it, so they pass through each other. **Do not re-add depenetration.** It was removed because it fought the solver — the solver would open a gap, the engine would close it along the shortest axis, and on a slope that axis is often vertical, which parks one machine on top of another where it reports `is_on_floor` and stays. Unification is what makes separation safe again, because both halves then resolve in one tick against one state.
+
+**Already measured — do not re-derive.** Steering was cleared under pet tuning, `Config::default()`, and solo creature tuning; with the flow field on and off; and with `_crowd()`'s cull box on and off, which changes nothing to the decimal. Host-side pets on flat ground hold 2.2–3.3 m with zero overlaps and no climbing.
+
+**Still unknown.** Everything above was flat — slopes, the documented failure case, are untested on both paths. And `step_characters` in `q/src/rapier/sim3d/world.rs` resolves every character against tick-start state and applies afterwards, so nobody sees anyone else's new position that tick; that window gets more crowded the more bodies move in.
+
+Tuning currently lives in three places — `PetConfig`, the `creature_patrol.gd` exports, and `Config::default()`. Every steering test runs the last one, and nothing ships it, which is how a probe comes back clean while the game misbehaves.
+
 ### Local
 
 - `pnpm nx run godot-friendslop:test` — import + gdUnit4 headless suite
