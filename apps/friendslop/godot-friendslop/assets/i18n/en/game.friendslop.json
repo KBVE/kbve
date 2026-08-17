@@ -118,5 +118,11 @@
 		"weight": "{weight} kg",
 		"drop": "release to drop",
 		"empty": "empty"
+	},
+	"chat": {
+		"signin_required": "Sign in to use chat.",
+		"reconnecting": "Chat reconnecting…",
+		"send_failed": "Message not sent.",
+		"open": "[Enter] Chat"
 	}
 }

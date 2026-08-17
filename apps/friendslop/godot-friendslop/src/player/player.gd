@@ -104,6 +104,15 @@ func _adopt_blocked_velocity(delta: float) -> void:
 	velocity.z = actual.z
 
 
+## Movement is polled rather than delivered as events, so focus alone does not stop the
+## keys reaching it and a chat line would walk the body across the world as it is typed.
+func _typing() -> bool:
+	for panel in get_tree().get_nodes_in_group(&"chat_panel"):
+		if panel.has_focus_grabbed():
+			return true
+	return false
+
+
 func _grounded() -> bool:
 	return _sim.character_grounded(_sim_id) if _sim_id != 0 else is_on_floor()
 
@@ -193,7 +202,10 @@ func _physics_process(delta: float) -> void:
 				global_position.x, global_position.y, global_position.z])
 		_settle()
 
+	var typing := _typing()
 	var input_dir := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	if typing:
+		input_dir = Vector2.ZERO
 	if _talking:
 		input_dir = Vector2.ZERO
 	if _walk_sweep:
@@ -201,10 +213,11 @@ func _physics_process(delta: float) -> void:
 		input_dir = Vector2.RIGHT.rotated(_walk_t * 0.8)
 	elif _walk != Vector2.ZERO:
 		input_dir = _walk
-	var jump := _afford(Input.is_action_just_pressed("jump"), jump_energy)
-	var roll := _afford(Input.is_action_just_pressed("roll") and not _talking, roll_energy)
-	var crouch := Input.is_action_pressed("crouch") and not _talking
-	var block := Input.is_action_pressed("block") and not _talking
+	var jump := _afford(Input.is_action_just_pressed("jump") and not typing, jump_energy)
+	var roll := _afford(
+			Input.is_action_just_pressed("roll") and not _talking and not typing, roll_energy)
+	var crouch := Input.is_action_pressed("crouch") and not _talking and not typing
+	var block := Input.is_action_pressed("block") and not _talking and not typing
 	var direction: Vector3 = rig.wish_direction(input_dir, global_rotation.y)
 
 	if _mantle.update(delta, direction, jump):

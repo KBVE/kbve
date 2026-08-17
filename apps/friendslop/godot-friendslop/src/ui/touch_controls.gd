@@ -27,6 +27,7 @@ const BUTTONS := [
 	{"action": "inventory", "label": "BAG", "anchor": Vector2(1.0, 0.0), "offset": Vector2(-90.0, 310.0), "radius": 48.0},
 	{"action": "debug_hud", "label": "HUD", "anchor": Vector2(1.0, 0.0), "offset": Vector2(-90.0, 90.0), "radius": 48.0},
 	{"action": "", "label": "MENU", "anchor": Vector2(1.0, 0.0), "offset": Vector2(-90.0, 200.0), "radius": 48.0},
+	{"action": "chat", "label": "CHAT", "anchor": Vector2(0.0, 0.0), "offset": Vector2(90.0, 90.0), "radius": 48.0},
 ]
 
 var look_delta := Vector2.ZERO
