@@ -238,7 +238,7 @@
 		"react-spring": "^10.0.3",
 		"react-unity-webgl": "^10.2.0",
 		"react-window": "^2.2.7",
-		"recharts": "^3.9.2",
+		"recharts": "^3.10.1",
 		"reflect-metadata": "^0.2.2",
 		"rollup-plugin-copy": "^3.5.0",
 		"shiki": "^1.22.0",
