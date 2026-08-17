@@ -57,7 +57,10 @@ func _process(delta: float) -> void:
 		return
 	var travel := _velocity if Vector2(_velocity.x, _velocity.z).length() > REST_SPEED \
 			else Vector3.ZERO
-	_rig.drive(travel, _aim.global_rotation.y if _aim else _travel_aim(travel), false, delta)
+	var airborne := false
+	if _client != null and _body_id != 0:
+		airborne = not _client.body_grounded(_body_id)
+	_rig.drive(travel, _aim.global_rotation.y if _aim else _travel_aim(travel), airborne, delta)
 
 
 ## Velocity the host published, falling back to the drawn motion when it has not said.

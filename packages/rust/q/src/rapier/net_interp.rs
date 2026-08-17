@@ -230,6 +230,16 @@ impl SnapshotBuffer {
         }
     }
 
+    /// Whether the host had this body on the ground at the sampled instant.
+    pub fn sample_grounded(&self, id: BodyId) -> Option<bool> {
+        let clock = self.clock?;
+        let (older, newer) = self.straddling(clock)?;
+        newer
+            .body(id)
+            .or_else(|| older.body(id))
+            .map(|b| b.grounded)
+    }
+
     /// Pose for the local body: the newest snapshot carried forward along its own
     /// velocity by however long ago it landed, so our own movement tracks the key that
     /// caused it instead of trailing the buffer.

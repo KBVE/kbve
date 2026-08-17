@@ -130,6 +130,11 @@ func body_velocity(body_id: int) -> Vector3:
 	return _client.body_velocity(body_id)
 
 
+## Whether the host had a body on the ground at the instant it is drawn at.
+func body_grounded(body_id: int) -> bool:
+	return _client.body_grounded(body_id)
+
+
 func interp_depth() -> int:
 	return _client.interp_depth()
 
