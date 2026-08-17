@@ -1,16 +1,12 @@
 class_name SignInPanel
 extends Control
 
-## Which account to sign in with, over the title's world.
 
 signal submitted(provider: String)
 signal cancelled
 
 const WIDTH := 320.0
 
-## How each provider is written, coloured and marked. The colours are the ones the web
-## client already uses, so the same account is offered in the same livery wherever
-## somebody meets it.
 const PROVIDER_BRAND := {
 	"discord": {
 		"name": "Discord",
@@ -81,16 +77,12 @@ func _build() -> void:
 	column.add_child(cancel_button)
 
 
-## A missing mark leaves a button that still reads and still works, rather than taking
-## the whole sign-in panel down with it.
 func _mark(path: String) -> Texture2D:
 	if path.is_empty() or not ResourceLoader.exists(path):
 		return null
 	return load(path) as Texture2D
 
 
-## Bound per provider rather than read back off the pressed button, so the button's
-## label can be translated without changing what it means.
 func _submitter(provider: String) -> Callable:
 	return func() -> void:
 		if _busy:
@@ -109,8 +101,6 @@ func _caption(text: String) -> Label:
 	return label
 
 
-## Locks the buttons while a browser round trip is in flight: a second press would open
-## a second tab against a verifier the first one already owns.
 func set_busy(busy: bool) -> void:
 	_busy = busy
 	for button in provider_buttons.values():

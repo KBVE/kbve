@@ -1,25 +1,14 @@
 class_name ServerProbe
 extends Node
 
-## Asks a host what it speaks, over plain HTTP, before anyone tries to join it.
-##
-## The join gate turns a mismatched client away with a bare `protocol n != m` after the
-## player has already pressed play and waited for a socket. `/healthz` is the only path a
-## deployed host exposes besides the socket itself, so it is the only place that answer
-## can be had in advance.
 
-## The protocol the host answered, or 0 while nothing has.
 signal answered(protocol: int)
-## Nothing answered at all, with wording to show.
 signal unreachable(reason: String)
-## Something answered, but not with a protocol this build can read.
 signal unreadable(reason: String)
 
 const TIMEOUT := 6.0
 
-## Nothing answered.
 const NO_ANSWER := -1
-## Answered, but said nothing this build could read a protocol out of.
 const UNREADABLE := -2
 
 var _request: HTTPRequest
@@ -32,8 +21,6 @@ func _ready() -> void:
 	_request.request_completed.connect(_on_completed)
 
 
-## The health endpoint beside a `ws://`/`wss://` socket URL. Same host and scheme family,
-## since a host reached over TLS serves its health over TLS too.
 static func health_url(socket_url: String) -> String:
 	var url := socket_url.strip_edges()
 	if url.begins_with("wss://"):
@@ -54,17 +41,6 @@ func probe(socket_url: String) -> void:
 		unreachable.emit("probe failed (%d)" % err)
 
 
-## The protocol in an answer, or `NO_ANSWER` / `UNREADABLE` saying which way it failed.
-##
-## A host that answers something this cannot read is never guessed at: a wrong protocol
-## shown confidently is worse than none, because it is the number the player would be
-## told to trust.
-##
-## The two failures are kept apart because they mean opposite things to whoever is about
-## to press play. Nothing answering means there is no server to join. A 200 without a
-## protocol in it means the server is up and almost certainly joinable — it is just older
-## than the health payload this build expects, which is the ordinary state of things
-## between a merge and the next deploy.
 static func read_health(result: int, code: int, body: PackedByteArray) -> int:
 	if result != HTTPRequest.RESULT_SUCCESS:
 		return NO_ANSWER

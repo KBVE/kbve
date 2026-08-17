@@ -1,36 +1,21 @@
 extends Node3D
 
-## Watches for somebody worth talking to, offers the prompt, and opens the conversation.
-##
-## Hung off the player rather than built into it, so anything else that walks around can
-## be given the same reach later.
 
 const PanelScript := preload("res://src/ui/dialogue_panel.gd")
 const CardScript := preload("res://src/ui/meeting_card.gd")
 const Hint := preload("res://src/ui/input_hint.gd")
 
-## Written down once somebody has been met, so the flourish and the stranger's greeting both
-## know the difference between a first meeting and a hundredth.
 const MET := "met_%s"
-## Softer than the one the debug key fires: warm rather than black, and over in a moment.
-## Long enough to read as punctuation on the meeting, short enough not to be sat through
-## every time a new person is found.
 const MEETING_OFFSET := 0.2
 const MEETING_TIME := 0.42
 const MEETING_INK := Color(0.08, 0.06, 0.05, 1.0)
 
-## Flat, because a bank a metre below the deck is still arm's reach.
 @export var reach := 3.6
-## How far off straight ahead a target may sit, as a dot against the camera's heading.
 @export var facing := 0.35
 
 var _target: Node3D
 var _body: Node3D
 var _talking := false
-## The card standing between the key being pressed and the conversation opening. Held as the
-## node rather than as a flag: a flag can only be cleared by the thing that set it, and if
-## that thing dies the player is left unable to talk to anybody for the rest of the session.
-## A node can be asked whether it is still there.
 var _card: Node
 
 
@@ -42,8 +27,6 @@ func _process(_delta: float) -> void:
 	if busy():
 		_aim(null)
 		return
-	## Belt and braces: a panel that went away without saying so would otherwise leave the
-	## player standing there unable to move.
 	if _talking:
 		_talking = false
 		if _body and _body.has_method("set_talking"):
@@ -51,17 +34,10 @@ func _process(_delta: float) -> void:
 	_aim(_nearest())
 
 
-## Whether the player is already in the middle of something and may not start another.
-##
-## Asked of the world rather than remembered: a panel that is up is up, and a card that
-## still exists is still up. Nothing here can be left set by a step that did not finish,
-## which is the failure this is written against -- a stuck flag reads exactly like a player
-## who has permanently lost the ability to talk to anybody.
 func busy() -> bool:
 	return PanelScript.is_open() or is_instance_valid(_card)
 
 
-## The offer is written over whoever it is for, so only one of them may be showing it.
 func _aim(actor: Node3D) -> void:
 	if actor == _target:
 		return
@@ -72,8 +48,6 @@ func _aim(actor: Node3D) -> void:
 		_target.offer_talk(Hint.label(&"interact", "E"))
 
 
-## Nearest of whatever is in reach and roughly ahead. Distance is measured flat so a
-## target standing lower in the water does not fall out of reach.
 func _nearest() -> Node3D:
 	if _body == null:
 		return null
@@ -100,8 +74,6 @@ func _nearest() -> Node3D:
 	return best
 
 
-## The camera's heading when there is one, since that is where the player is looking, and
-## the body's own otherwise.
 func _look_basis() -> Basis:
 	var camera := get_viewport().get_camera_3d()
 	return camera.global_basis if camera else _body.global_basis
@@ -121,71 +93,41 @@ func _talk_to(actor: Node3D) -> void:
 		return
 	actor.face(_body)
 	_aim(null)
-	## Meeting somebody is its own beat. The frame cuts, the card names them, and only once
-	## it has cleared does the conversation open -- a name arriving with the panel is a
-	## caption on a box, a name arriving before it is an introduction.
 	if _first_meeting(actor):
 		actor.meet()
 		var card := CardScript.present(get_tree(), actor.display_name(), actor.role_name())
 		_card = card
-		## Hung off the card leaving the tree rather than off its own signal. However the
-		## card ends -- run through, skipped, or the world pulled out from under it -- it
-		## leaves the tree exactly once, and that is the one event that cannot be missed.
 		card.tree_exited.connect(func() -> void: _after_card(actor, graph), CONNECT_ONE_SHOT)
 		return
 	_open_talk(actor, graph)
 
 
-## The card is gone. Whether the conversation behind it can still be opened is a separate
-## question -- the point is that the player is no longer held either way.
 func _after_card(actor: Node3D, graph: DialogueGraph) -> void:
 	_card = null
 	if is_instance_valid(actor) and actor.is_inside_tree():
 		_open_talk(actor, graph)
 
 
-## Puts the conversation up and ties the speaker to it. Split out because a first meeting
-## reaches it a second and a half later than everybody else does.
 func _open_talk(actor: Node3D, graph: DialogueGraph) -> DialoguePanel:
-	## The world can go away between the card and the talk, and an NPC freed underneath a
-	## pending introduction would otherwise open a conversation with nobody.
 	if not is_instance_valid(actor) or not is_instance_valid(_body):
 		return null
-	## Their standing goes in before the first line is chosen, so a graph can greet a regular
-	## differently to a stranger and a nuisance differently to either.
 	var who := str(actor.npc_ref)
 	Journal.brief(who, state())
-	## Where every quest has got to goes in beside their standing, so a line can be gated on
-	## a job already taken on as easily as on a toll already paid.
 	Quests.brief(state())
-	## Who the ask is about, for the length of the conversation: a line worth two points of
-	## standing means with the person saying it.
 	Journal.talking_to(who)
 	var read_before := state().seen_count()
 
 	var panel := PanelScript.open(get_tree(), graph, state())
 	if panel == null:
 		return null
-	## Whether the talk was worth having, measured rather than guessed: anything the player
-	## had not read before counts, and going over old ground counts against.
 	panel.closed.connect(func() -> void:
 		Journal.remember_talk(who, state().seen_count() > read_before)
-		## Something said in the middle of the talk may have finished a job this same
-		## person asked for, so the handing back is tried again on the way out.
 		Quests.hand_back(who)
 		Journal.talking_to(""))
-	## Talking to somebody is an objective in its own right, and it is also how a finished
-	## quest is handed back -- going back to whoever asked is the last step of every one.
 	Quests.met(who)
-	## The body follows the words: moving while a line is being written, still while the
-	## line sits there waiting on an answer.
 	panel.speaking.connect(actor.speak)
 	panel.listening.connect(actor.listen)
 	panel.closed.connect(actor.rest)
-	## The first line is already being written by the time there is a panel to connect to,
-	## so its `speaking` went out before anybody was listening for it. Caught up by hand
-	## rather than left to the second line, which would have them open every conversation
-	## standing perfectly still through their own opening sentence.
 	if panel.is_typing():
 		actor.speak()
 	else:
@@ -199,11 +141,6 @@ func _open_talk(actor: Node3D, graph: DialogueGraph) -> DialoguePanel:
 	return panel
 
 
-## Meeting somebody for the first time is worth marking, and only happens once ever -- the
-## flag rides in the journal with everything else the player has been told, so somebody met
-## last week is not met again today.
-##
-## Answers whether this was the first time, and writes it down either way.
 func _first_meeting(actor: Node3D) -> bool:
 	var who := str(actor.npc_ref) if actor.get("npc_ref") != null else ""
 	if who == "":
@@ -216,22 +153,15 @@ func _first_meeting(actor: Node3D) -> bool:
 	return true
 
 
-## The impact frame, borrowed off the combat feel and slowed down: a band sweeping the
-## screen as somebody new is framed. Same effect the debug key fires, which is where this
-## started.
 func _meeting_frame(actor: Node3D) -> void:
 	var scene := get_tree().current_scene
 	var fx := scene.get_node_or_null(^"ImpactFX") if scene else null
 	if fx == null or not fx.has_method("nuke"):
 		return
 	var to := actor.global_position - _body.global_position
-	## Swept along the line between the two of them, so the band lies across the meeting
-	## rather than at a fixed angle the camera happens to be at.
 	var angle := rad_to_deg(atan2(to.y, Vector2(to.x, to.z).length()))
 	fx.nuke(angle, MEETING_OFFSET, MEETING_INK, MEETING_TIME)
 
 
-## Everything the player has been told and told others. Kept in the journal rather than on
-## the player: it has to outlive this world, not just this conversation.
 func state() -> DialogueState:
 	return Journal.state()

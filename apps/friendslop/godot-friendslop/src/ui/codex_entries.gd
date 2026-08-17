@@ -1,11 +1,9 @@
 extends RefCounted
 
-## What the Codex can show, found by looking rather than listed.
 
 const CHARACTER_DIR := "res://assets/characters/quaternius_ubc/models"
 const HAIR_DIR := "res://assets/characters/quaternius_ubc/models/hair"
 const FAUNA_DIR := "res://assets/environment/props/fauna"
-## Real weapons live here once they have been exported.
 const WEAPON_DIR := "res://assets/items/weapons"
 const ANIMATIONS := [
 	"res://assets/characters/quaternius_ubc/animations/UAL1.glb",
@@ -15,7 +13,6 @@ const ANIMATIONS := [
 const WeaponProxy := preload("res://src/items/weapon_proxy.gd")
 
 
-## kind is what the viewer has to build, not what the thing is:
 static func all() -> Array:
 	var out: Array = []
 	var hair := _scan(HAIR_DIR, ["glb", "gltf"])
@@ -36,7 +33,6 @@ static func all() -> Array:
 	return out
 
 
-## Weapons on their own, and the same list the character's hand is offered.
 static func weapons() -> Array:
 	var out: Array = []
 	for path in _scan(WEAPON_DIR, ["glb", "gltf", "tscn"], true):

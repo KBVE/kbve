@@ -1,10 +1,6 @@
 extends RefCounted
 
-## Two-bone IK for a limb whose middle joint is a hinge, which is both of the ones a
-## person has: a knee and an elbow differ in where they point, not in how they work.
 
-
-## Puts `tip` on `goal` by bending `mid` and swinging `root`, blended in by `amount`.
 static func solve(skeleton: Skeleton3D, root: int, mid: int, tip: int,
 		goal: Vector3, amount: float) -> bool:
 	if root < 0 or mid < 0 or tip < 0:
@@ -53,7 +49,6 @@ static func solve(skeleton: Skeleton3D, root: int, mid: int, tip: int,
 	return true
 
 
-## Turns a bone about its own origin, carrying everything below it.
 static func spin(skeleton: Skeleton3D, bone: int, to_world: Transform3D,
 		rotation: Quaternion, amount: float) -> void:
 	var turn := Quaternion.IDENTITY.slerp(rotation, amount)
@@ -63,8 +58,6 @@ static func spin(skeleton: Skeleton3D, bone: int, to_world: Transform3D,
 			Transform3D(to_world.basis.inverse() * (Basis(turn) * world_basis), pose.origin))
 
 
-## The joint's hinge: read off the bend the rest pose was authored with, held in the
-## root bone's frame, and handed back in the pose the limb is in now.
 static func hinge_axis(skeleton: Skeleton3D, root: int, mid: int, tip: int,
 		to_world: Transform3D) -> Vector3:
 	var root_rest := skeleton.get_bone_global_rest(root)

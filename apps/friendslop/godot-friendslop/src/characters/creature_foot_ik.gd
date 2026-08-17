@@ -1,36 +1,22 @@
 extends SkeletonModifier3D
 
-## Plants mech feet on the terrain instead of on the flat plane the clips assume.
-##
-## The pack rigs a leg as a chain that ends at the shin, with the foot hung off the
-## armature root as a control bone, so the chain is solved to the ankle and the foot is
-## carried after it. Chains are two bones on Mike and Stan and three on the digitigrade
-## George and Leela, and everything is sized off leg reach because the mechs differ by
-## metres in stature.
 
 const ChainIK := preload("res://src/characters/hinge_chain_ik.gd")
 
 const SIDES := ["L", "R"]
-## Chain from hip to shin; the middle one is only in the digitigrade legs.
 const CHAIN := ["UpperLeg", "MidLeg", "LowerLeg"]
 
 @export var terrain_path: NodePath
-## Hip parent, dropped to keep a stretched leg under the body.
 @export var root_bone := &"Body"
 @export_flags_3d_physics var probe_mask := 1
-## Every distance below is a fraction of leg reach.
 @export var probe_up_ratio := 0.35
 @export var probe_down_ratio := 0.8
-## Clip lift at which a foot counts as mid-stride and is left to the animation.
 @export var plant_height_ratio := 0.22
 @export var max_root_drop_ratio := 0.25
-## How far a foot's ground may sit from the ground the body stands on.
 @export var max_ground_step_ratio := 0.7
-## Ground normals steeper than this stop steering the foot.
 @export var max_foot_tilt_deg := 35.0
 @export var adapt_speed := 10.0
 @export var solver_iterations := 3
-## Extension the root is solved to keep the most-stretched planted leg under.
 @export_range(0.7, 1.0) var knee_comfort := 0.94
 
 var legs: Array[Dictionary] = []
@@ -38,7 +24,6 @@ var legs: Array[Dictionary] = []
 var _terrain: Node
 var _root := -1
 var _root_offset := 0.0
-## Fades the whole solve out where the animation owns the legs.
 var _blend := 1.0
 var _want := 1.0
 var _built := false
@@ -46,7 +31,6 @@ var _reach := 0.0
 var _exclude: Array[RID] = []
 
 var _probe: Array[Vector3] = []
-## Where each ankle ended up once the solve ran, for the debug residual.
 var _post: Array[Vector3] = []
 var _hit: Array[bool] = []
 var _hit_y: Array[float] = []
@@ -85,8 +69,6 @@ func _build() -> void:
 		var ankle := skeleton.get_bone_global_rest(foot).origin
 		var last := chain[chain.size() - 1]
 		var tip_local := skeleton.get_bone_global_rest(last).affine_inverse() * ankle
-		## However far the hinges can actually carry the ankle, which on a leg that folds
-		## the other way at the hock is far short of the bones laid end to end.
 		var reach := ChainIK.rest_limits(skeleton, chain, tip_local).y
 		legs.append({
 			&"chain": chain,
@@ -181,8 +163,6 @@ func _process_modification_with_delta(delta: float) -> void:
 	_debug(delta, plant, grounds)
 
 
-## Carries the foot control onto the ankle the chain ended up at, since it hangs off the
-## armature root and no amount of leg solving moves it.
 func _place_foot(skeleton: Skeleton3D, leg: Dictionary, to_world: Transform3D,
 		normal: Vector3, amount: float) -> void:
 	var foot: int = leg[&"foot"]
@@ -194,7 +174,6 @@ func _place_foot(skeleton: Skeleton3D, leg: Dictionary, to_world: Transform3D,
 			to_world.affine_inverse() * ankle))
 
 
-## Solves the drop that brings every planted foot inside its leg's reach.
 func _solve_root(skeleton: Skeleton3D, to_world: Transform3D, ankles: Array[Vector3],
 		grounds: Array[float], plant: Array[float]) -> float:
 	if _root < 0:
@@ -217,7 +196,6 @@ func _solve_root(skeleton: Skeleton3D, to_world: Transform3D, ankles: Array[Vect
 	return maxf(eased, needed - limit * 0.2)
 
 
-## Newton-steps the root down until no planted leg is stretched past `ratio` of its span.
 func _drop_for(socket: Array[Vector3], target: Array[Vector3], reach: Array[float],
 		active: Array[int], ratio: float, limit: float) -> float:
 	var drop := 0.0
@@ -243,8 +221,6 @@ func _apply_root(skeleton: Skeleton3D) -> void:
 			+ parent_basis.inverse() * Vector3(0.0, _root_offset, 0.0))
 
 
-## Fallback normal by finite difference, for when the ray missed and only the height field
-## has an answer.
 func _terrain_normal(at: Vector3) -> Vector3:
 	var e := _reach * 0.06
 	var hx: float = _terrain.height_at(at.x + e, at.z) - _terrain.height_at(at.x - e, at.z)
@@ -252,7 +228,6 @@ func _terrain_normal(at: Vector3) -> Vector3:
 	return Vector3(-hx, 2.0 * e, -hz).normalized()
 
 
-## The animated basis is tilted onto the ground normal rather than rebuilt from it.
 func _tilt(normal: Vector3, posed: Basis, amount: float) -> Basis:
 	var angle := normal.angle_to(Vector3.UP)
 	if angle < 0.0001 or amount <= 0.001:

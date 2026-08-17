@@ -1,14 +1,9 @@
 extends Node3D
 
-## Slow orbit over the seeded world, for the title screen backdrop.
 
-## Metres from the centre of the orbit.
 @export var radius := 34.0
-## A full circle in a little under three minutes — slow enough to read as drift rather
-## than motion, which is the difference between a backdrop and a demo.
 @export var degrees_per_second := 2.2
 @export var height := 9.0
-## How far below the rig the camera aims.
 @export var look_down := 4.0
 @export var start_degrees := 0.0
 

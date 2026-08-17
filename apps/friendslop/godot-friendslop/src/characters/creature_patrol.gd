@@ -1,29 +1,18 @@
 extends CharacterBody3D
 
-## Drives a creature from the steering QPatrol decides, and reports back what the
-## collision actually allowed.
 
 const CreatureRig := preload("res://src/characters/creature_rig.gd")
 
 @export var rig: Node3D
-## Followed when set.
 @export var leader_path: NodePath
-## Decides this creature's wander. Spawn index is enough, and keeping it explicit
-## is what lets two machines simulate the same creature the same way.
 @export var seed := 0
 
-## Which slot in the rank this one takes. Per-creature, so it stays here.
 @export var formation_slot := 0
 @export var formation_count := 1
 
-## Names the steering tuning, which lives in Rust so the numbers the game runs on
-## are the numbers the steering tests run on.
 @export var preset := &"mech"
 
-## How fast the body turns to face where it is going, which is Godot's own motion
-## rather than steering, so it is not in the preset.
 @export var turn_rate := 2.5
-## Rough seconds between one-shots while moving.
 @export var action_interval := 7.0
 
 @export var collider_radius := 0.0
@@ -32,30 +21,12 @@ const CreatureRig := preload("res://src/characters/creature_rig.gd")
 
 const GROUP := &"creature_patrol"
 
-## Creatures sit on their own layer and do not mask it, so they pass through each
-## other in the engine while still colliding with the world and the player.
-##
-## Two separate problems this fixes. Avoidance is already the solver's job, and it
-## has the whole picture -- who is moving where, how soon they meet, which way to
-## step. Depenetration has none of that and shoves along the shortest axis, so the
-## two fought: the solver would open a gap, the engine would close it, and neither
-## could see what the other had done. That fight is what the walking-on-the-spot
-## was made of. The second problem is that the shortest axis between two capsules
-## on any kind of slope is often vertical, which puts one machine on top of
-## another, and a capsule resting on a capsule reports `is_on_floor`, so it stays
-## up there with its gravity cancelled until something moves the one underneath.
 const LAYER_WORLD := 1
 const LAYER_CREATURE := 4
 
-## Radii searched for walkable ground when a creature is stuck inside a blocked
-## region. The widest has to clear the river plus the field's clearance inflation.
 const ESCAPE_RINGS: Array[float] = [4.0, 8.0, 14.0, 22.0]
 const ESCAPE_SAMPLES := 12
-## Physics frames the silhouette is sampled over, which has to span a full stride
-## or it catches the creature mid-step with its legs together.
 const REACH_FRAMES := 120
-## Ground speed change per second. Reaches a sprint in about a quarter second,
-## which is brisk for something this size and still far too slow to buzz.
 const MAX_ACCEL := 28.0
 
 var motion_dot := 1.0
@@ -68,21 +39,14 @@ var _leader_last := Vector3.ZERO
 var _action_t := 0.0
 var _prepared := false
 var _mode := 0
-## The capsule this body actually got, which is what avoidance measures against.
 var _radius := 1.0
-## The silhouette avoidance keeps clear of, which is the whole machine rather
-## than the capsule. Sampled over the first stride, because the rest pose has the
-## arms out and the answer only means anything once the walk cycle is playing.
 var _reach := 0.0
 var _reach_frames := 0
 
 var _sim: Node
-## Sim body id, or 0 while this body is still on Godot physics.
 var _sim_id := 0
-## Capsule handed to the sim, kept from _build_collider so the two describe one body.
 var _capsule_half_height := 0.0
 var _capsule_center := Vector3.ZERO
-## Set once the scene is known to have no sim to join, so the lookup stops repeating.
 var _sim_off := false
 
 
@@ -90,14 +54,9 @@ func _ready() -> void:
 	add_to_group(GROUP)
 	collision_layer = LAYER_CREATURE
 	collision_mask = LAYER_WORLD
-	# The default snap is 0.1, which a mech at a sprint clears on any downhill it
-	# meets, and it then coasts to the top of an arc before gravity catches it.
-	# Long enough here to hold the body on ground it is walking down.
 	floor_snap_length = 0.6
 
 
-## Resolved on the first step rather than in _ready, because add_child is what runs
-## _ready and a spawner naturally sets the paths and the position after that.
 func _prepare() -> void:
 	_prepared = true
 	_last_pos = global_position
@@ -118,13 +77,6 @@ func body_radius() -> float:
 	return _radius
 
 
-## Widest the creature gets over one stride, handed to the solver as the distance
-## to keep from its neighbours.
-##
-## Deliberately not the capsule: that is the hard body and has to stay small
-## enough to cross a three metre bridge deck. This is what a viewer sees, and
-## avoidance sized off the capsule instead let two of the wider mechs walk
-## through each other for one frame in six.
 func _measure_reach() -> void:
 	if _reach_frames >= REACH_FRAMES or rig == null or not rig.has_method("body_reach"):
 		return
@@ -143,10 +95,6 @@ func _build_collider() -> void:
 			return
 	var radius := collider_radius
 	var height := collider_height
-	# Where the mesh starts above the body origin, which is not always zero: a rig
-	# authored around its hips puts its feet below, one authored on a plinth puts
-	# them above. Sizing the capsule off the extent while placing it as though the
-	# extent began at the origin is what leaves a machine hanging over its own feet.
 	var floor_y := 0.0
 	if (radius <= 0.0 or height <= 0.0) and rig and rig.has_method("mesh_extents"):
 		var box: AABB = rig.mesh_extents()
@@ -216,30 +164,15 @@ func _physics_process(delta: float) -> void:
 			rig.play_action(attacks[randi() % attacks.size()])
 
 
-## The route out of the shared flow field, when one covers this creature.
-##
-## Only while following: the field is integrated to the leader, and a roaming
-## creature is going somewhere else entirely, so it steers itself.
 func _observe_route() -> void:
 	var spawner := get_parent()
 	if _leader == null or spawner == null or not ("field" in spawner) or spawner.field == null:
 		_patrol.clear_route()
 		return
 	var field = spawner.field
-	# A field that cannot route from here is a different answer from no field at
-	# all: it means there is no way through, and walking at the leader anyway is
-	# how a creature ends up leaning on a riverbank.
-	# Under a bridge rather than on it. The field is flat, so the deck and the
-	# riverbed beneath it share a cell and every route it hands out down there is
-	# for a body one storey up.
 	var reachable: bool = field.distance_at(global_position) >= 0.0 \
 			and not field.under_deck(global_position)
 	if not reachable:
-		# Standing inside the blocked region rather than looking at it from
-		# outside. Reporting that as blocked parks the creature in MODE_WAITING
-		# facing the leader, and nothing in that state moves it, so it waits there
-		# for the rest of the session. Spawn placement puts mechs in the river on
-		# its own, and anything that shoves one in later does the same.
 		var escape := _escape_route(field)
 		if escape != Vector3.ZERO:
 			_patrol.observe_route(escape, true)
@@ -247,9 +180,6 @@ func _observe_route() -> void:
 	_patrol.observe_route(field.direction_at(global_position), reachable)
 
 
-## Shortest way back to ground the field can route from, or zero if there is none
-## within reach. Rings outward because the gradient inside a blocked region points
-## nowhere useful — there is no route out of a cell the integration never entered.
 func _escape_route(field) -> Vector3:
 	var here := global_position
 	for radius in ESCAPE_RINGS:
@@ -258,8 +188,6 @@ func _escape_route(field) -> Vector3:
 		for i in ESCAPE_SAMPLES:
 			var angle := TAU * float(i) / float(ESCAPE_SAMPLES)
 			var at := here + Vector3(cos(angle), 0.0, sin(angle)) * radius
-			# Samples keep this creature's height, so anything still under the
-			# deck is rejected here rather than picked as a way out from under it.
 			if field.under_deck(at):
 				continue
 			var cost: float = field.distance_at(at)
@@ -272,12 +200,6 @@ func _escape_route(field) -> Vector3:
 	return Vector3.ZERO
 
 
-## Every other creature within reach, as the flat `x, z, vx, vz, radius` the
-## solver reads. The leader goes in separately: it is avoided harder than a peer.
-##
-## Velocity and radius are here because position alone only says who is nearby.
-## Whether this creature is about to walk into them is a different question, and
-## the one that decides whether it steps aside or brakes into a jam.
 func _crowd() -> PackedFloat32Array:
 	var out := PackedFloat32Array()
 	var here := global_position
@@ -299,15 +221,6 @@ func _crowd() -> PackedFloat32Array:
 	return out
 
 
-## Applies a horizontal wish, keeps gravity on the vertical, and slides against the
-## world.
-##
-## The wish is approached rather than assigned. Written straight to velocity it can
-## reverse completely between one frame and the next, which is fine for the solver
-## -- it is describing an intent -- but it means nothing damps a disagreement. Two
-## creatures reading each other's avoidance can settle into a buzz at frame rate,
-## and a machine this size does not change its mind about which way it is walking
-## in a sixtieth of a second anyway.
 func _drive(wish: Vector3, delta: float) -> void:
 	var flat := Vector3(velocity.x, 0.0, velocity.z)
 	flat = flat.move_toward(Vector3(wish.x, 0.0, wish.z), MAX_ACCEL * delta)
@@ -320,12 +233,6 @@ func _drive(wish: Vector3, delta: float) -> void:
 	_step(delta)
 
 
-## The off-thread sim, if the scene has one. Each creature otherwise runs its own
-## `move_and_slide` on the main thread, and they are the population that grows.
-##
-## Retried rather than resolved once: a character spawned before the ground exists has
-## nothing to stand on, and creatures are built during the same frames the terrain is
-## still baking.
 func _join_sim() -> void:
 	if _sim_off or _sim_id != 0:
 		return

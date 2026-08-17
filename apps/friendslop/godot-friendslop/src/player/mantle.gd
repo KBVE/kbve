@@ -1,41 +1,23 @@
 extends RefCounted
 
-## Gets the player over, or out of, whatever the movement code cannot resolve on its
-## own.
 
-## How high a ledge any entry will take, measured from the feet.
 const REACH_HEIGHT := 1.7
-## Under this it is a step, and the body walks up it unaided.
 const MIN_HEIGHT := 0.3
-## How far below the feet a ledge can still be caught on the way past.
 const CATCH_BELOW := -0.8
-## How far past the blocking face the ground is looked for.
 const LEDGE_REACH := 0.5
-## Ledge has to be at least this deep to be worth standing on.
 const LEDGE_DEPTH := 0.35
-## How long the body has to make no progress, while pushing, before the jam is treated
-## as real rather than as a graze on a corner.
 const STUCK_TIME := 0.35
 const STUCK_SPEED := 0.8
-## Burial is answered faster than a jam: nothing about it improves with waiting, and
-## every frame spent in it is a frame of falling animation.
 const BURIED_TIME := 0.15
-## Steps taken out along the escape direction, and how far the search runs before giving
-## up on that direction and trying straight up.
 const ESCAPE_STEP := 0.08
 const ESCAPE_REACH := 2.0
-## Used only when the rig has no climb clip to take a length from.
 const FALLBACK_CLIMB := 0.45
-## Fraction of the climb spent rising.
 const RISE_PHASE := 0.6
 
 var _body: CharacterBody3D
 var _rig: Node
 var _shape: CapsuleShape3D
-## Copy of the body's own capsule, shrunk so a test standing exactly on a surface does
-## not report itself as buried in it.
 var _probe_shape: CapsuleShape3D
-## Grown instead of shrunk, for the escape.
 var _escape_shape: CapsuleShape3D
 var _radius := 0.5
 var _height := 2.0
@@ -47,7 +29,6 @@ var _span := FALLBACK_CLIMB
 var _from := Vector3.ZERO
 var _to := Vector3.ZERO
 var active := false
-## Why the last attempt was turned down, for Q_MANTLE_DEBUG.
 var _why := ""
 
 
@@ -68,8 +49,6 @@ func setup(body: CharacterBody3D, rig: Node) -> void:
 	_escape_shape.height = _height + 0.06
 
 
-## Returns true while a climb or an escape owns the body, which is the caller's cue to
-## leave gravity and move_and_slide alone.
 func update(delta: float, wish: Vector3, jump: bool) -> bool:
 	if _body == null or _shape == null:
 		return false
@@ -136,7 +115,6 @@ func update(delta: float, wish: Vector3, jump: bool) -> bool:
 	return false
 
 
-## Pushes the body back out of the geometry it is inside of.
 func _dig_out() -> bool:
 	var out := Vector3.ZERO
 	for i in _body.get_slide_collision_count():
@@ -170,8 +148,6 @@ func _dig_out() -> bool:
 	return false
 
 
-## Ledge found by looking, for when there is no contact to hang the probe off, which is
-## every mid-air case.
 func _reach_out(dir: Vector3) -> Vector3:
 	var space := _body.get_world_3d().direct_space_state
 	var mask := _body.collision_mask
@@ -196,8 +172,6 @@ func _refuse(reason: String) -> Vector3:
 	return Vector3.INF
 
 
-## Where the body would stand after climbing, or INF if there is nowhere it could safely
-## end up.
 func _find_ledge(dir: Vector3, against: Vector3, low: float, high: float) -> Vector3:
 	var space := _body.get_world_3d().direct_space_state
 	var feet := _body.global_position
@@ -256,7 +230,6 @@ func _start(dir: Vector3, landing: Vector3) -> bool:
 	return true
 
 
-## Whether the body's own capsule fits at a spot, with its feet on it.
 func _clear(space: PhysicsDirectSpaceState3D, feet: Vector3, mask: int,
 		skip: Array[RID], shape: CapsuleShape3D = null) -> bool:
 	var query := PhysicsShapeQueryParameters3D.new()
@@ -267,7 +240,6 @@ func _clear(space: PhysicsDirectSpaceState3D, feet: Vector3, mask: int,
 	return space.intersect_shape(query, 1).is_empty()
 
 
-## Up first, across second.
 func _advance(delta: float) -> void:
 	_time += delta
 	var t := clampf(_time / _span, 0.0, 1.0)

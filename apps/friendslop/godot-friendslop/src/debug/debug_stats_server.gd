@@ -1,7 +1,5 @@
 extends Node
 
-## Serves the debug HUD's numbers as JSON over loopback so a profiling pass can read
-## them directly instead of going through a screenshot of the overlay.
 
 const WINDOW := 2.0
 

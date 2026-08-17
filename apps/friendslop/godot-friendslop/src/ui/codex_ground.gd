@@ -1,6 +1,5 @@
 extends Node3D
 
-## Ground for the Codex, standing in for the terrain the foot IK expects.
 
 var tilt := 0.0
 var facing := 0.0
@@ -27,7 +26,6 @@ func set_slope(degrees: float, heading: float) -> void:
 		_plane.transform = Transform3D(_basis(), Vector3.ZERO)
 
 
-## Height of the tilted plane through the origin.
 func height_at(x: float, z: float) -> float:
 	var normal := _basis() * Vector3.UP
 	if absf(normal.y) < 0.0001:

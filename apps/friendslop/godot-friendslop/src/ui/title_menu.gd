@@ -1,20 +1,15 @@
 class_name TitleMenu
 extends CanvasLayer
 
-## The title screen's buttons, over whatever the scene renders behind them.
 
 signal play_requested
 signal solo_requested
-## Which provider the player chose.
 signal sign_in_requested(provider: String)
 signal sign_out_requested
 signal settings_requested
 signal quit_requested
-## Escape.
 signal cancel_requested
-## The chosen locale code.
 signal locale_requested(code: String)
-## A brand-new account chose its handle.
 signal username_submitted(username: String)
 
 const WORLD_SCENE := "res://scenes/main.tscn"
@@ -22,11 +17,9 @@ const ONLINE_SCENE := "res://scenes/online.tscn"
 
 const SIGN_IN_PANEL := preload("res://src/ui/sign_in_panel.gd")
 const USERNAME_PANEL := preload("res://src/ui/username_panel.gd")
-## For the Mode enum only — the live object is the `Auth` autoload.
 const AUTH := preload("res://src/autoload/auth_session.gd")
 
 const TITLE_KEY := "title.name"
-## Shown under the button column when nobody is signed in.
 const SIGN_IN_HINT_KEY := "title.sign_in_hint"
 
 var play_button: PaperButton
@@ -129,7 +122,6 @@ func _build() -> void:
 	_build_languages(column)
 
 
-## On the title itself rather than behind Settings.
 func _build_languages(column: VBoxContainer) -> void:
 	var locales := I18n.locales()
 	if locales.size() < 2:
@@ -170,8 +162,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-## Opens the form, or signs out if there is an account to sign out of — the button is
-## the one place the state is visible, so it is where leaving it lives.
 func _toggle_sign_in() -> void:
 	var auth := get_node_or_null(^"/root/Auth")
 	if auth and auth.mode() == AUTH.Mode.ACCOUNT:
@@ -204,10 +194,6 @@ func is_signing_in() -> bool:
 	return _sign_in != null
 
 
-## Opens the handle prompt over everything, including a sign-in form that is still up.
-## Nothing dismisses it but choosing a name or signing out: an account with no handle
-## cannot join, so a title screen that looked signed in and behaved as though nobody was
-## is the one outcome worth ruling out.
 func open_username() -> void:
 	if _username != null:
 		return
@@ -231,14 +217,11 @@ func is_naming() -> bool:
 	return _username != null
 
 
-## The name was refused; the panel stays up holding the reason.
 func username_failed(message: String) -> void:
 	if _username:
 		_username.show_message(message)
 
 
-## The sign-in failed and the panel stays open holding the reason — closing it would
-## leave the player with a title screen that simply did nothing.
 func sign_in_failed(message: String) -> void:
 	if _sign_in:
 		_sign_in.show_message(message)
@@ -249,11 +232,6 @@ func sign_in_succeeded() -> void:
 	_refresh_status()
 
 
-## What the host answered, or 0 for "not asked yet", or -1 for "could not be reached".
-##
-## The client's half is known offline and is shown either way. A mismatch is spelled out
-## here rather than left to the join, which only says `protocol n != m` once the player
-## has already pressed play and waited for a socket to open.
 func set_server_protocol(protocol: int) -> void:
 	if build_label == null:
 		return
@@ -275,8 +253,6 @@ func set_server_protocol(protocol: int) -> void:
 			else Color(1.0, 1.0, 1.0, 0.75)
 
 
-## The name, id and picture all come out of the token the client is already holding, so
-## the card is filled in without a call. Only the balance needs one.
 func _show_account(auth: Node) -> void:
 	if account_card == null:
 		return

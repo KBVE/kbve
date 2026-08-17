@@ -1,15 +1,6 @@
 class_name QuestdbQuests
 extends RefCounted
 
-## Reads quests out of the QUESTDB registry, the same way conversations are read out of
-## NPCDB: authored as MDX on the site, generated into `questdb.json`, and mirrored here.
-##
-## The registry is shared with other games, so everything in it is not ours. A quest is
-## this game's if it carries the `friendslop` tag, which is also how a quest is retired --
-## by dropping a tag rather than by deleting a file somebody else's game is reading.
-##
-## The generated JSON is proto-canonical: camelCase keys and enum values spelled
-## `OBJECTIVE_INTERACT`. That vocabulary stops here; everything above this reads `interact`.
 
 const REGISTRY := "res://assets/questdb/questdb.json"
 const TAG := "friendslop"
@@ -17,9 +8,6 @@ const TAG := "friendslop"
 const CATEGORY_PREFIX := "QUEST_CATEGORY_"
 const OBJECTIVE_PREFIX := "OBJECTIVE_"
 
-## A `custom` objective whose target reads `flag:x` is done when the world says so. It is
-## how a quest hangs off something a conversation already sets, rather than every graph
-## having to learn about quests.
 const FLAG_TARGET := "flag:"
 
 
@@ -36,7 +24,6 @@ static func registry(path := REGISTRY) -> Dictionary:
 	return raw if raw is Dictionary else {}
 
 
-## Every quest this game owns, in the order the registry lists them.
 static func all(path := REGISTRY) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var raw: Variant = registry(path).get("quests", [])
@@ -116,8 +103,6 @@ static func _objectives(step: Dictionary) -> Array[Dictionary]:
 			"description": str(objective.get("description", "")),
 			"type": _plain(str(objective.get("type", "")), OBJECTIVE_PREFIX),
 			"targets": _refs(objective.get("targetRefs", objective.get("target_refs", null))),
-			## One, where the catalog forgot to say: an objective nobody can ever finish is
-			## a worse answer than one finished at the first sign of it.
 			"amount": maxi(int(objective.get("requiredAmount",
 					objective.get("required_amount", 1))), 1),
 			"optional": bool(objective.get("optional", false)),
@@ -134,8 +119,6 @@ static func _rewards(raw: Variant) -> Dictionary:
 	}
 
 
-## `OBJECTIVE_INTERACT` as `interact`. Proto spells enums in shouting; nothing above this
-## should have to.
 static func _plain(value: String, prefix: String) -> String:
 	var body := value.trim_prefix(prefix)
 	return body.to_lower()
@@ -151,7 +134,6 @@ static func _refs(raw: Variant) -> PackedStringArray:
 	return out
 
 
-## Whether this objective is one the world answers rather than one the player counts up.
 static func flag_of(objective: Dictionary) -> String:
 	for target: String in objective.get("targets", PackedStringArray()):
 		if target.begins_with(FLAG_TARGET):

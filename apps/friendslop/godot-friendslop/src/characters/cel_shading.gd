@@ -1,6 +1,5 @@
 extends RefCounted
 
-## Puts the cel shader over an imported mesh's surfaces, keyed by material name.
 
 const SHADER := preload("res://assets/fx/shaders/anime.gdshader")
 

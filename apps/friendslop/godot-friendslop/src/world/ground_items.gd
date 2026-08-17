@@ -43,10 +43,6 @@ func drop(ref: StringName, count: int, at: Vector3, armed := true) -> GroundItem
 	return item
 
 
-## Puts something down where the player is standing, disarmed so it stays there.
-##
-## What the bag calls when a stack is dragged off it: the player asked for this to be on
-## the floor, so it has to survive being on the floor with them stood over it.
 func drop_at_player(ref: StringName, count: int) -> GroundItem:
 	var at := global_position
 	if _player != null and _player.is_inside_tree():
@@ -75,8 +71,6 @@ func _process(delta: float) -> void:
 			continue
 		var near := _within(item, here)
 		if not item.armed:
-			# Arming on the way out rather than on a timer, so standing still over a
-			# dropped thing never takes it back.
 			if not near:
 				item.armed = true
 			continue

@@ -1,13 +1,10 @@
 extends RefCounted
 
-## Stand-in weapons, built from primitives, so combat can be worked on before any art
-## exists and without waiting on an export.
 
 const HANDLE := Color(0.24, 0.16, 0.11)
 const STEEL := Color(0.72, 0.74, 0.78)
 const BRASS := Color(0.65, 0.5, 0.22)
 
-## grip/off are heights along the handle.
 const KINDS := {
 	"dagger": {
 		"two_handed": false, "grip": -0.02, "off": 0.0,

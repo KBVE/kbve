@@ -1,45 +1,16 @@
 class_name DialogueGraph
 extends RefCounted
 
-## A conversation as a graph of nodes, read from JSON.
-##
-## Every string in here is an i18n key rather than a line: the graph says what is said
-## where, and the locale files say it in a language. A node carries the line, an optional
-## gate, effects applied on entry, and either a `to` to continue on or the choices to
-## offer.
-##
-##     {
-##       "start": "greet",
-##       "speaker": "npc.marlow.name",
-##       "nodes": {
-##         "greet": {
-##           "line": "npc.marlow.greet",
-##           "choices": [
-##             {"text": "dlg.marlow.ask_toll", "to": "toll"},
-##             {"text": "dlg.leave", "to": ""}
-##           ]
-##         },
-##         "toll": {
-##           "line": "npc.marlow.toll",
-##           "if": {"not": "toll_paid"},
-##           "else": "toll_done",
-##           "choices": [{"text": "dlg.marlow.pay", "to": "thanks", "do": {"set": "toll_paid"}}]
-##         }
-##       }
-##     }
 
 const DEFAULT_START := "start"
 
 var start := DEFAULT_START
-## Speaker key used by any node that does not name its own.
 var speaker := ""
 var nodes: Dictionary = {}
 
 var _errors: PackedStringArray = []
 
 
-## Reads a graph off disk. Imported as a JSON resource in an export and a loose file in
-## the editor and in headless runs, so both are tried -- the same split i18n lives with.
 static func from_path(path: String) -> DialogueGraph:
 	var raw: Variant = null
 	if ResourceLoader.exists(path):
@@ -87,14 +58,10 @@ func node(id: String) -> Dictionary:
 	return found if found is Dictionary else {}
 
 
-## The speaker a node is said by, which is the graph's unless the node says otherwise --
-## a passer-by cutting in, say.
 func speaker_of(id: String) -> String:
 	return str(node(id).get("speaker", speaker))
 
 
-## Everything wrong with the graph, which is what a test asserts on: a jump to a node that
-## does not exist is silent at runtime and reads as a conversation that just stops.
 func errors() -> PackedStringArray:
 	return _errors
 
@@ -103,7 +70,6 @@ func is_valid() -> bool:
 	return _errors.is_empty()
 
 
-## Every i18n key the graph asks for, so a test can hold the locale files to it.
 func text_keys() -> PackedStringArray:
 	var keys := PackedStringArray()
 	if speaker != "":
@@ -151,7 +117,6 @@ func _validate() -> void:
 			_check_jump("%s choice %d" % [key, i], "to", choice)
 
 
-## An empty jump is the end of the conversation, which is a real answer and not a typo.
 func _check_jump(where: String, field: String, entry: Dictionary) -> void:
 	var target := str(entry.get(field, ""))
 	if target != "" and not nodes.has(target):

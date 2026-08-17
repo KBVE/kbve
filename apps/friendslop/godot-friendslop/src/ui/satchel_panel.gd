@@ -1,13 +1,5 @@
 extends CanvasLayer
 
-## The bag, as a grid you can rearrange.
-##
-## Stacks occupy whole rectangles rather than single slots, so where a thing sits is part
-## of what the player owns and a full bag is a question of shape as well as of number.
-## The journal holds all of that; this only draws it and hands moves back.
-##
-## Deliberately not a pause. The world carries on behind an open bag, which is what makes
-## deciding whether to keep chopping a decision rather than a menu.
 
 const CELL := 46.0
 const GAP := 3.0
@@ -27,7 +19,6 @@ const TIP_PAD := 10.0
 @export var held_color := Color(0.58, 0.47, 0.31, 0.85)
 @export var edge_color := Color(0.05, 0.04, 0.03, 0.9)
 @export var text_color := Color(0.94, 0.90, 0.82)
-## Where a stack would land, when that is somewhere it may land.
 @export var drop_ok := Color(0.45, 0.72, 0.42, 0.45)
 @export var drop_bad := Color(0.75, 0.30, 0.26, 0.45)
 @export var close_color := Color(0.28, 0.24, 0.20, 0.90)
@@ -36,7 +27,6 @@ const TIP_PAD := 10.0
 @export var hover_color := Color(0.32, 0.29, 0.24, 0.90)
 @export var faint_color := Color(0.66, 0.61, 0.53)
 @export var tip_color := Color(0.07, 0.06, 0.05, 0.96)
-## The held stack, once letting go would put it on the floor rather than back in a cell.
 @export var throw_color := Color(0.72, 0.52, 0.24, 0.95)
 
 const RARITY := {
@@ -51,16 +41,11 @@ const RARITY := {
 var _root: Control
 var _font: Font
 var _was_captured := false
-## Index into the journal's stacks, or -1 when nothing is being carried.
 var _held := -1
-## Where in the held stack the grab happened, so it does not jump to its own corner.
 var _grab := Vector2i.ZERO
 var _mouse := Vector2.ZERO
 var _close_hot := false
-## Stack under the cursor, or -1. What the tooltip describes.
 var _hover := -1
-## Icons are looked up once per ref and kept, misses included, so a bag full of things
-## with no art does not retry the filesystem every redraw.
 var _icons: Dictionary = {}
 
 
@@ -85,8 +70,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if not visible:
 		return
-	# Closing with the same key that closes everything else, but only when this is the
-	# thing on top: a dialogue or a pause menu over it has the better claim.
 	if event.is_action_pressed(&"ui_cancel"):
 		_close()
 		get_viewport().set_input_as_handled()
@@ -104,8 +87,6 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		_mouse = event.position
 		if event.pressed:
-			# The button beats the grid to the click, so a stack under it is not picked
-			# up on the way to closing the bag.
 			if _close_rect().has_point(_mouse):
 				_close()
 			else:
@@ -123,8 +104,6 @@ func _toggle() -> void:
 
 
 func _open() -> void:
-	# Remembered rather than assumed, so closing the bag on a menu that already had the
-	# cursor free does not steal it back into the camera.
 	_was_captured = Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 	if _was_captured:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -134,8 +113,6 @@ func _open() -> void:
 
 
 func _close() -> void:
-	# Anything still in hand goes back where it came from. The journal was never told
-	# about the move, so there is nothing to undo -- only a redraw.
 	_held = -1
 	_close_hot = false
 	_hover = -1
@@ -151,7 +128,6 @@ func _origin() -> Vector2:
 	return ((_root.size - span) * 0.5).floor()
 
 
-## The drawn bag: the grid, its padding, and the title and tally that bracket it.
 func _panel_rect() -> Rect2:
 	var grid := _cell_rect(Vector2i.ZERO, Vector2i(Journal.COLS, Journal.ROWS)).grow(PAD)
 	return Rect2(grid.position - Vector2(0.0, HEAD),
@@ -168,14 +144,12 @@ func _foot_rect() -> Rect2:
 	return Rect2(Vector2(panel.position.x, panel.end.y - FOOT), Vector2(panel.size.x, FOOT))
 
 
-## The close button, in the title bar's right-hand end.
 func _close_rect() -> Rect2:
 	var head := _head_rect()
 	return Rect2(Vector2(head.end.x - CLOSE - (HEAD - CLOSE) * 0.5,
 			head.position.y + (HEAD - CLOSE) * 0.5), Vector2(CLOSE, CLOSE))
 
 
-## Everything the bag occupies. Releasing a stack outside this is what drops it.
 func _chrome_rect() -> Rect2:
 	return _panel_rect()
 
@@ -187,7 +161,6 @@ func _cell_rect(at: Vector2i, size := Vector2i.ONE) -> Rect2:
 			Vector2(size.x * CELL + (size.x - 1) * GAP, size.y * CELL + (size.y - 1) * GAP))
 
 
-## Which cell the cursor is over, or (-1, -1) when it is off the board.
 func _cell_under(pos: Vector2) -> Vector2i:
 	var local := (pos - _origin()) / (CELL + GAP)
 	var at := Vector2i(floori(local.x), floori(local.y))
@@ -196,8 +169,6 @@ func _cell_under(pos: Vector2) -> Vector2i:
 	return at
 
 
-## The stack under a screen position, or -1. Unlike `_stack_at` this takes pixels and
-## answers -1 off the board, which is what hovering needs.
 func _stack_under(pos: Vector2) -> int:
 	var cell := _cell_under(pos)
 	if cell.x < 0:
@@ -205,9 +176,6 @@ func _stack_under(pos: Vector2) -> int:
 	return _stack_at(cell)
 
 
-## The art for a ref, or null when there is none. Most of the itemdb has no icon yet,
-## and a missing one is an ordinary answer rather than a problem: the tile falls back to
-## its plate and reads by name.
 func _icon(ref: StringName) -> Texture2D:
 	if _icons.has(ref):
 		return _icons[ref]
@@ -224,7 +192,6 @@ func _rarity_of(ref: StringName) -> Color:
 	return RARITY.get(tier, RARITY[&"common"])
 
 
-## Cells spoken for, which is area rather than stack count: a bag is full by shape.
 func _cells_used() -> int:
 	var used := 0
 	for stack in Journal.stacks():
@@ -269,23 +236,13 @@ func _put_down() -> void:
 		return
 	var cell := _cell_under(_mouse)
 	if cell.x >= 0:
-		# Refused moves are simply not made. The stack stays where it was, which is what
-		# the redraw below shows, so a bad drop reads as the item not going there rather
-		# than as anything having gone wrong.
 		Journal.move_stack(_held, cell - _grab)
 	elif not _chrome_rect().has_point(_mouse):
-		# Off the bag entirely is a deliberate throw. Inside it but between cells is a
-		# fumble, and puts the stack back.
 		_drop_to_world(_held)
 	_held = -1
 	_root.queue_redraw()
 
 
-## Takes a stack out of the bag and leaves it on the floor.
-##
-## The bag lets go only once the world has taken it. A drop with nowhere to land -- no
-## GroundItems in the scene, or a ref the itemdb will not spawn -- puts the stack back,
-## because losing something is a worse answer than refusing to throw it.
 func _drop_to_world(index: int) -> void:
 	var ground := GroundItems.of(get_tree())
 	if ground == null:
@@ -320,8 +277,6 @@ func _draw_panel() -> void:
 					HORIZONTAL_ALIGNMENT_CENTER, 120.0, 13, throw_color)
 
 	_draw_foot(stacks)
-	# The tooltip reads the bag rather than acting on it, so it stands down while
-	# something is in hand: a card under the cursor would hide the drop it is aimed at.
 	if _held < 0 and _hover >= 0 and _hover < stacks.size():
 		_draw_tip(stacks[_hover])
 
@@ -349,7 +304,6 @@ func _draw_frame() -> void:
 			15, text_color)
 
 
-## What the bag is carrying, in the two terms that decide whether more will fit.
 func _draw_foot(stacks: Array[Dictionary]) -> void:
 	var foot := _foot_rect()
 	var used := _cells_used()
@@ -378,10 +332,6 @@ func _draw_close() -> void:
 			text_color)
 
 
-## What the hovered stack is, in the terms the itemdb keeps it.
-##
-## Kept on screen rather than beside the cursor: the card is wider than a cell and would
-## otherwise hang off the edge for anything held in the right-hand columns.
 func _draw_tip(stack: Dictionary) -> void:
 	var ref: StringName = stack["ref"]
 	var label := Itemdb.display_name(ref)
@@ -408,7 +358,6 @@ func _draw_tip(stack: Dictionary) -> void:
 			HORIZONTAL_ALIGNMENT_LEFT, TIP_WIDE - TIP_PAD * 2.0, 12, -1, faint_color)
 
 
-## Where the held stack would land, coloured by whether it may land there.
 func _draw_ghost(stack: Dictionary) -> void:
 	var cell := _cell_under(_mouse)
 	if cell.x < 0:
@@ -425,14 +374,10 @@ func _draw_stack(stack: Dictionary, held: bool, hot: bool) -> void:
 	var size := Itemdb.grid_size(ref)
 	var rect := _cell_rect(Vector2i(int(stack["x"]), int(stack["y"])), size)
 	if held:
-		# Drawn under the cursor rather than in its cell, so the bag reads as something
-		# being carried across it.
 		rect.position = _mouse - Vector2(_grab) * (CELL + GAP) - Vector2(CELL, CELL) * 0.5
 
 	var fill := stack_color
 	if held:
-		# Letting go out here throws it, so the thing in hand says so before it happens
-		# rather than the player finding out by watching it land.
 		fill = throw_color if _throwing() else held_color
 	elif hot:
 		fill = hover_color
@@ -452,13 +397,10 @@ func _draw_stack(stack: Dictionary, held: bool, hot: bool) -> void:
 				HORIZONTAL_ALIGNMENT_RIGHT, rect.size.x - 8.0, 14, text_color)
 
 
-## Whether releasing now would put the held stack on the floor.
 func _throwing() -> bool:
 	return _held >= 0 and _cell_under(_mouse).x < 0 and not _chrome_rect().has_point(_mouse)
 
 
-## Art fitted inside a tile without distorting it, since the icons are not all square
-## and a stack can be more than one cell.
 func _draw_icon(art: Texture2D, rect: Rect2) -> void:
 	var box := rect.grow(-5.0)
 	var art_size := Vector2(art.get_size())
