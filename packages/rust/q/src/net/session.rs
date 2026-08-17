@@ -2043,6 +2043,97 @@ mod tests {
         ((a[0] - b[0]).powi(2) + (a[1] - b[1]).powi(2)).sqrt()
     }
 
+    /// Two players, a pet each. Everyone has to see both: the roster is what says which
+    /// body is a pet and what chassis to draw, so a client missing the other's entry draws
+    /// nothing at all and the pet is invisible rather than merely wrong.
+    #[test]
+    fn each_client_sees_every_players_pets() {
+        let mesh = Loopback::mesh(3);
+        let mut host = pet_host(&mesh, PetConfig::default());
+        let mut a = ClientSession::connect(mesh[1].clone());
+        let mut b = ClientSession::connect(mesh[2].clone());
+        for _ in 0..60 {
+            host.tick();
+            a.tick();
+            b.tick();
+        }
+        let pa = a.peer().expect("a joined");
+        let pb = b.peer().expect("b joined");
+        assert_ne!(pa, pb);
+
+        a.deploy_pet(1);
+        b.deploy_pet(2);
+        for _ in 0..20 {
+            host.tick();
+            a.tick();
+            b.tick();
+        }
+
+        assert_eq!(host.pet_roster().len(), 2, "host lost a deploy");
+        for (who, client) in [("a", &a), ("b", &b)] {
+            assert_eq!(
+                client.pets().len(),
+                2,
+                "{who} was only told about {} of the 2 pets",
+                client.pets().len()
+            );
+            assert_eq!(client.my_pets().len(), 1, "{who} should own exactly one");
+        }
+
+        let snapshot = host.world_mut().snapshot();
+        for info in host.pet_roster() {
+            assert!(
+                snapshot.body(info.body).is_some(),
+                "pet {:?} has no body to replicate",
+                info.pet
+            );
+        }
+
+        // The roster only names the pets. What actually draws one is its body arriving
+        // in the client's own snapshot, and a roster entry with no body behind it is an
+        // invisible pet rather than a missing one.
+        for (who, client) in [("a", &a), ("b", &b)] {
+            let seen = client.latest_snapshot().expect("no snapshot yet");
+            for info in host.pet_roster() {
+                assert!(
+                    seen.body(info.body).is_some(),
+                    "{who} never received a body for pet {:?} owned by {:?}",
+                    info.pet,
+                    info.owner
+                );
+            }
+        }
+    }
+
+    /// Joining after the fact must not miss what is already down: the roster rides a
+    /// reliable message on join, and without it a late joiner sees bodies it cannot draw.
+    #[test]
+    fn a_late_joiner_is_told_about_pets_already_deployed() {
+        let mesh = Loopback::mesh(3);
+        let mut host = pet_host(&mesh, PetConfig::default());
+        let mut early = ClientSession::connect(mesh[1].clone());
+        run(&mut host, &mut early, 40);
+
+        early.deploy_pet(2);
+        run(&mut host, &mut early, 10);
+        assert_eq!(host.pet_roster().len(), 1);
+
+        let mut late = ClientSession::connect(mesh[2].clone());
+        for _ in 0..60 {
+            host.tick();
+            early.tick();
+            late.tick();
+        }
+
+        assert_eq!(
+            late.pets().len(),
+            1,
+            "a late joiner was never told about the pet already out"
+        );
+        assert_eq!(late.my_pets().len(), 0, "it is not theirs");
+        assert_eq!(late.pets()[0].kind, 2, "chassis lost on the join replay");
+    }
+
     #[test]
     fn a_deployed_pet_gets_a_body_next_to_its_owner() {
         let mesh = Loopback::mesh(2);

@@ -116,7 +116,7 @@ func _on_pet_spawned(body_id: int, node: Node3D) -> void:
 
 
 func _refresh_pets() -> void:
-	_hud.set_pets(_client.my_pet_bodies().size())
+	_hud.set_pets(_client.my_pet_bodies().size(), _client.pet_count())
 
 
 func _unhandled_input(event: InputEvent) -> void:

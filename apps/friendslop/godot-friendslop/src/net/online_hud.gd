@@ -88,8 +88,10 @@ func set_roster(roster: Dictionary, local_body: int) -> void:
 	roster_label.text = I18n.t("hud.roster", {"count": names.size(), "names": ", ".join(names)})
 
 
-func set_pets(count: int) -> void:
+func set_pets(count: int, total: int = -1) -> void:
 	pets_label.text = I18n.t("hud.pets", {"count": count})
+	if total >= 0 and total != count:
+		pets_label.text += " (%d)" % total
 
 
 func show_notice(text: String) -> void:
