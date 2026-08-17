@@ -73,5 +73,12 @@
 	"toast": {
 		"gained": "+{{count}} {{item}}",
 		"no_room": "Bolsa cheia — sem espaço para {{count}} {{item}}"
+	},
+	"satchel": {
+		"title": "Bolsa",
+		"cells": "{used} / {total} espaços",
+		"weight": "{weight} kg",
+		"drop": "solte para largar",
+		"empty": "vazia"
 	}
 }

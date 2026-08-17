@@ -70,9 +70,7 @@
 	},
 	"dlg": {
 		"continue": "[{{key}}]  Continue",
-		"close": "Leave the conversation",
-		"player": "You",
-		"met": "You just met"
+		"close": "Leave the conversation"
 	},
 	"quest": {
 		"taken": "Taken on: {{title}}",
@@ -108,5 +106,12 @@
 	"toast": {
 		"gained": "+{{count}} {{item}}",
 		"no_room": "Bag full — no room for {{count}} {{item}}"
+	},
+	"satchel": {
+		"title": "Satchel",
+		"cells": "{used} / {total} cells",
+		"weight": "{weight} kg",
+		"drop": "release to drop",
+		"empty": "empty"
 	}
 }

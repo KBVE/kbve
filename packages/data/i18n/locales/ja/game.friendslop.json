@@ -73,5 +73,12 @@
 	"toast": {
 		"gained": "+{{count}} {{item}}",
 		"no_room": "バッグがいっぱい — {{count}} {{item}} を入れる余裕がありません"
+	},
+	"satchel": {
+		"title": "かばん",
+		"cells": "{used} / {total} マス",
+		"weight": "{weight} kg",
+		"drop": "離すと置く",
+		"empty": "からっぽ"
 	}
 }
