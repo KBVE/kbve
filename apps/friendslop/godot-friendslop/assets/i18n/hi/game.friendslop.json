@@ -73,5 +73,12 @@
 	"toast": {
 		"gained": "+{{count}} {{item}}",
 		"no_room": "बैग भरा है — {{count}} {{item}} के लिए जगह नहीं"
+	},
+	"satchel": {
+		"title": "झोला",
+		"cells": "{used} / {total} खाने",
+		"weight": "{weight} किग्रा",
+		"drop": "गिराने के लिए छोड़ें",
+		"empty": "खाली"
 	}
 }

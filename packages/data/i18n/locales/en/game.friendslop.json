@@ -98,5 +98,12 @@
 	"toast": {
 		"gained": "+{{count}} {{item}}",
 		"no_room": "Bag full — no room for {{count}} {{item}}"
+	},
+	"satchel": {
+		"title": "Satchel",
+		"cells": "{used} / {total} cells",
+		"weight": "{weight} kg",
+		"drop": "release to drop",
+		"empty": "empty"
 	}
 }

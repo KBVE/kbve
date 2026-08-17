@@ -73,5 +73,12 @@
 	"toast": {
 		"gained": "+{{count}} {{item}}",
 		"no_room": "Bolsa llena — no hay espacio para {{count}} {{item}}"
+	},
+	"satchel": {
+		"title": "Zurrón",
+		"cells": "{used} / {total} casillas",
+		"weight": "{weight} kg",
+		"drop": "suelta para tirarlo",
+		"empty": "vacío"
 	}
 }
