@@ -3,6 +3,22 @@ extends GdUnitTestSuite
 ## The title's wiring, not its looks.
 
 
+## The menu reads `/root/Auth` to decide whether its sign-in button signs in or
+## signs out, and that autoload restores a real session on `_ready`. So a
+## developer who is signed in ran a different menu than CI did, and the suite
+## failed for them alone.
+##
+## The store is pointed at a scratch file *before* signing out, so `_forget`
+## deletes that and never the real session: a test suite must not log anybody out
+## of the actual game.
+func before_test() -> void:
+	var auth := get_node_or_null(^"/root/Auth")
+	if auth == null:
+		return
+	auth.store_path = "user://test_title_menu_session.cfg"
+	auth.sign_out()
+
+
 func _menu() -> TitleMenu:
 	var menu := TitleMenu.new()
 	add_child(menu)

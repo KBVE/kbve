@@ -5,9 +5,20 @@ extends GdUnitTestSuite
 const AuthSessionScript = preload("res://src/autoload/auth_session.gd")
 
 
+var _store_seq := 0
+
+
+## A session that keeps its state somewhere nothing else will find it.
+##
+## Pointed off the real store before it enters the tree, because `_ready`
+## restores from that path: left alone, every test below reads whoever happens to
+## be signed in on the machine running it. That is why this suite passed on CI,
+## where nobody is signed in, and failed on a developer who was.
 func _auth() -> Node:
 	var node := Node.new()
 	node.set_script(AuthSessionScript)
+	_store_seq += 1
+	node.store_path = "user://test_auth_session_%d_%d.cfg" % [_store_seq, Time.get_ticks_usec()]
 	add_child(node)
 	auto_free(node)
 	return node
