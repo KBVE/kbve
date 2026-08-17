@@ -185,4 +185,4 @@ spec:
                       name: kilobase-s3-secret
                       key: accessKey
               wal:
-                  compression: gzip
+                  compression: zstd
