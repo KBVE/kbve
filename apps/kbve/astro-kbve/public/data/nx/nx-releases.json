@@ -1,16 +1,16 @@
 {
-  "generated_at": "2026-08-16T02:21:47Z",
+  "generated_at": "2026-08-17T02:20:06Z",
   "summary": {
-    "pending": 2,
+    "pending": 3,
     "behind": 1,
     "unpublished": 3,
-    "published": 27,
+    "published": 26,
     "skipped": 0
   },
   "ecosystems": {
     "crates": {
       "total": 27,
-      "pending": 1
+      "pending": 2
     },
     "npm": {
       "total": 4,
@@ -67,9 +67,9 @@
     {
       "ecosystem": "crates",
       "name": "bevy_items",
-      "local": "0.1.0",
+      "local": "0.1.1",
       "published": "0.1.0",
-      "status": "published"
+      "status": "pending"
     },
     {
       "ecosystem": "crates",
@@ -193,8 +193,8 @@
     {
       "ecosystem": "crates",
       "name": "q",
-      "local": "0.1.6",
-      "published": "0.1.6",
+      "local": "0.1.7",
+      "published": "0.1.7",
       "status": "published"
     },
     {
