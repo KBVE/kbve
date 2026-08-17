@@ -7,6 +7,7 @@ const MECH_DIR := "res://assets/characters/creatures/mech/models/"
 const CHASSIS: Array[String] = ["George", "Leela", "Mike", "Stan"]
 
 const VELOCITY_SMOOTHING := 12.0
+const REPORTED_FLOOR := 0.01
 const REST_SPEED := 0.05
 const TURN_RATE := 8.0
 
@@ -27,9 +28,13 @@ func bind_body(client: Node, body_id: int) -> void:
 
 ## Velocity the host published, falling back to the drawn motion when it has not said.
 func _reported_velocity(here: Vector3, delta: float) -> Vector3:
-	if _client != null and _body_id != 0:
-		return _client.body_velocity(_body_id)
-	return (here - _last_position) / delta
+	var drawn := (here - _last_position) / delta
+	if _client == null or _body_id == 0:
+		return drawn
+	var told: Vector3 = _client.body_velocity(_body_id)
+	if Vector2(told.x, told.z).length() > REPORTED_FLOOR:
+		return told
+	return drawn
 
 
 func _ready() -> void:
