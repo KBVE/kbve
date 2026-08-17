@@ -768,3 +768,111 @@ fn crossing_into_contact_never_pushes_less() {
         distance -= 0.1;
     }
 }
+
+/// The whole point of moving the gate inside: `wish` is travel plus avoidance
+/// summed, so scaling it whole -- which is what the GDScript did -- damps the shove
+/// as hard as the stride. A group following a leader who turns all turn at once, so
+/// they all lose most of their separation on the same frame, which is the frame they
+/// are converging on new slots.
+#[test]
+fn turning_does_not_damp_avoidance() {
+    let cfg = Config::default();
+    let mut apart = Patrol::new([0.0, 0.0], 1, cfg);
+    apart.slot = 0;
+    apart.count = 2;
+
+    // Pointed hard away from where it wants to go, with somebody right on top of it.
+    let mut sense = sense_at([0.0, 0.0]);
+    sense.facing = [0.0, -1.0];
+    sense.leader = Some([0.0, 20.0]);
+    sense.leader_speed = 2.0;
+    sense.neighbours = vec![near([0.4, 0.0], [0.0, 0.0])];
+    let turning = apart.step(&sense, 1.0 / 60.0);
+
+    let mut aligned = Patrol::new([0.0, 0.0], 1, cfg);
+    aligned.slot = 0;
+    aligned.count = 2;
+    let mut facing_it = sense.clone();
+    facing_it.facing = [0.0, 1.0];
+    let straight = aligned.step(&facing_it, 1.0 / 60.0);
+
+    // The push away from the neighbour is on -X. Turning must not weaken it.
+    assert!(
+        turning.wish[0] <= straight.wish[0] + 1e-3,
+        "turning weakened the shove: {} against {}",
+        turning.wish[0],
+        straight.wish[0]
+    );
+}
+
+/// The gate still has to do its job, or a machine slides sideways through its turn.
+#[test]
+fn turning_slows_travel() {
+    let cfg = Config::default();
+    let mut patrol = Patrol::new([0.0, 0.0], 1, cfg);
+    patrol.slot = 0;
+    patrol.count = 1;
+    let mut sense = sense_at([0.0, 0.0]);
+    sense.leader = Some([0.0, 30.0]);
+    sense.leader_speed = 2.0;
+
+    sense.facing = [0.0, 1.0];
+    let ahead = patrol.step(&sense, 1.0 / 60.0).wish[1];
+    sense.facing = [0.0, -1.0];
+    let behind = patrol.step(&sense, 1.0 / 60.0).wish[1];
+
+    assert!(
+        behind < ahead * 0.6,
+        "a body pointed backwards travelled {behind}, barely under the {ahead} it makes facing forward"
+    );
+}
+
+/// Never to zero. A body that cannot move until it has finished turning can be held
+/// in place by anything it happens to be pointed away from.
+#[test]
+fn a_body_pointed_backwards_still_moves() {
+    let cfg = Config::default();
+    let mut patrol = Patrol::new([0.0, 0.0], 1, cfg);
+    patrol.slot = 0;
+    patrol.count = 1;
+    let mut sense = sense_at([0.0, 0.0]);
+    sense.leader = Some([0.0, 30.0]);
+    sense.leader_speed = 2.0;
+    sense.facing = [0.0, -1.0];
+    let step = patrol.step(&sense, 1.0 / 60.0);
+    assert!(
+        step.wish[1] > 0.0,
+        "a backwards-facing body was gated to a standstill: {:?}",
+        step.wish
+    );
+}
+
+/// Unsticking is exempt, the same as it was in GDScript: a creature that has given up
+/// on going straight has to move regardless of where it is pointed, or it turns away
+/// from the obstacle while still leaning on it.
+#[test]
+fn unsticking_is_not_gated() {
+    let cfg = Config::default();
+    let mut patrol = Patrol::new([0.0, 0.0], 1, cfg);
+    patrol.slot = 0;
+    patrol.count = 1;
+    let mut sense = sense_at([0.0, 0.0]);
+    sense.leader = Some([0.0, 30.0]);
+    sense.leader_speed = 2.0;
+    sense.travelled = 0.0;
+    for _ in 0..200 {
+        let step = patrol.step(&sense, 1.0 / 60.0);
+        if step.mode == Mode::Unsticking {
+            sense.facing = scale(normalize(step.face), -1.0);
+            let again = patrol.step(&sense, 1.0 / 60.0);
+            assert_eq!(again.mode, Mode::Unsticking);
+            assert!(
+                length(again.wish) >= cfg.speed * 0.99,
+                "unsticking was gated down to {}",
+                length(again.wish)
+            );
+            return;
+        }
+    }
+    panic!("never reached unsticking");
+}

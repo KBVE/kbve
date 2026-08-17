@@ -41,6 +41,10 @@ fn normalize(v: Vec2) -> Vec2 {
     }
 }
 
+fn dot(a: Vec2, b: Vec2) -> f32 {
+    a[0] * b[0] + a[1] * b[1]
+}
+
 fn rotate(v: Vec2, angle: f32) -> Vec2 {
     let (s, c) = angle.sin_cos();
     [v[0] * c - v[1] * s, v[0] * s + v[1] * c]
@@ -154,6 +158,17 @@ pub struct Config {
     pub unstick_time: f32,
     /// Waypoints further than this from home are abandoned rather than chased.
     pub give_up_time: f32,
+    /// Least of its pace a body keeps while turning away from where it is pointed.
+    ///
+    /// A machine this size leans into a turn rather than sliding sideways, so travel
+    /// is scaled by how well it already faces where it wants to go. Only travel:
+    /// avoidance is not a direction the body chose and must not be damped with it,
+    /// or a group all turning at once -- which is what following a turning leader
+    /// is -- loses most of its separation at the moment it is converging.
+    ///
+    /// Never zero. A body that cannot move until it has finished turning is a body
+    /// that can be held still by anything it is pointed away from.
+    pub turn_gate_floor: f32,
 }
 
 impl Default for Config {
@@ -184,6 +199,7 @@ impl Default for Config {
             stuck_time: 0.9,
             unstick_time: 1.2,
             give_up_time: 12.0,
+            turn_gate_floor: 0.35,
         }
     }
 }
@@ -575,10 +591,22 @@ impl Patrol {
         let wanted = self.config.speed + (self.config.max_speed - self.config.speed) * ramp;
         self.mode = Mode::Following;
         Step {
-            wish: add(scale(dir, wanted), avoid),
+            wish: add(
+                scale(dir, wanted * self.turn_gate(sense.facing, dir)),
+                avoid,
+            ),
             face: dir,
             mode: Mode::Following,
         }
+    }
+
+    /// How much of its pace a body keeps while turning from `facing` towards `dir`.
+    ///
+    /// Applied to travel alone by every caller. Avoidance is added after it, because
+    /// being shoved out of somebody's way is not a direction the body chose to face.
+    fn turn_gate(&self, facing: Vec2, dir: Vec2) -> f32 {
+        let aligned = dot(normalize(facing), dir).max(0.0);
+        self.config.turn_gate_floor + (1.0 - self.config.turn_gate_floor) * aligned
     }
 
     fn roam(&mut self, sense: &Sense, avoid: Vec2, delta: f32) -> Step {
@@ -624,7 +652,10 @@ impl Patrol {
         let dir = sense.route.unwrap_or_else(|| normalize(to));
         self.mode = Mode::Roaming;
         Step {
-            wish: add(scale(dir, self.config.speed), avoid),
+            wish: add(
+                scale(dir, self.config.speed * self.turn_gate(sense.facing, dir)),
+                avoid,
+            ),
             face: dir,
             mode: Mode::Roaming,
         }
