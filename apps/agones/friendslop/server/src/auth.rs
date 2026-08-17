@@ -32,17 +32,34 @@ impl SupabaseAuthority {
             })
         })?;
 
+        // Read rather than hardcoded, and unset by default, which is what every
+        // other service that verifies these tokens already does.
+        //
+        // It used to pin `supabase`, and that was true of the legacy HS256 keys
+        // -- the anon key the client still carries decodes to exactly that. The
+        // move to ES256 changed what GoTrue stamps: `GOTRUE_JWT_ISSUER` is the
+        // project URL now, so every real account token carried an issuer this
+        // server refused. The verifier only checks the claim when it is given
+        // one, so a stale literal here rejected every signed-in player while
+        // guests, who verify nothing, walked straight in.
+        let issuer = std::env::var("SUPABASE_JWT_ISSUER")
+            .ok()
+            .filter(|s| !s.trim().is_empty());
         let verifier = JwtVerifier::new(
             jwks_uri.clone(),
             std::env::var("SUPABASE_JWT_SECRET")
                 .ok()
                 .as_deref()
                 .map(str::as_bytes),
-            Some("supabase".to_owned()),
+            issuer.clone(),
             None,
         );
         verifier.start(Duration::from_secs(3600)).await;
-        tracing::info!(%jwks_uri, "account joins enabled");
+        tracing::info!(
+            %jwks_uri,
+            issuer = issuer.as_deref().unwrap_or("<any>"),
+            "account joins enabled"
+        );
         Some(Self { verifier })
     }
 
@@ -87,6 +104,82 @@ mod tests {
         Claims {
             kbve_username: username.to_owned(),
         }
+    }
+
+    /// What GoTrue puts in `iss`, from `GOTRUE_JWT_ISSUER` in the auth manifest.
+    const GOTRUE_ISSUER: &str = "https://supabase.kbve.com/auth/v1";
+    /// What the legacy HS256 keys carried, and what this file used to demand.
+    const LEGACY_ISSUER: &str = "supabase";
+    const SECRET: &[u8] = b"a-test-secret-that-is-long-enough-for-hs256";
+
+    /// An HS256 token, so the verifier needs neither JWKS nor a network.
+    fn token(issuer: &str) -> String {
+        #[derive(serde::Serialize)]
+        struct Body {
+            iss: String,
+            exp: i64,
+            kbve_username: String,
+        }
+        jsonwebtoken::encode(
+            &jsonwebtoken::Header::new(jsonwebtoken::Algorithm::HS256),
+            &Body {
+                iss: issuer.to_owned(),
+                exp: 4_102_444_800,
+                kbve_username: "h0lybyte".to_owned(),
+            },
+            &jsonwebtoken::EncodingKey::from_secret(SECRET),
+        )
+        .expect("failed to mint a test token")
+    }
+
+    fn verifier(issuer: Option<&str>) -> JwtVerifier {
+        JwtVerifier::new(
+            "https://example.invalid/jwks.json".to_owned(),
+            Some(SECRET),
+            issuer.map(str::to_owned),
+            None,
+        )
+    }
+
+    /// The bug this file had: a real account token was refused because the issuer
+    /// it carries stopped being the one pinned here.
+    ///
+    /// Guests never reach a verifier, so the whole failure landed on signed-in
+    /// players only -- which is what made it read as accounts being unsupported
+    /// rather than as a claim mismatch.
+    #[test]
+    fn pinning_the_legacy_issuer_refuses_a_real_token() {
+        let refused = verifier(Some(LEGACY_ISSUER)).verify::<Claims>(&token(GOTRUE_ISSUER));
+        assert!(
+            refused.is_err(),
+            "this is the regression: pinning `{LEGACY_ISSUER}` has to reject a \
+             token issued by `{GOTRUE_ISSUER}`, or the test proves nothing"
+        );
+    }
+
+    /// Unset is the default, and matches every other service that verifies these
+    /// tokens.
+    #[test]
+    fn leaving_the_issuer_unset_accepts_what_gotrue_issues() {
+        let got: Claims = verifier(None)
+            .verify(&token(GOTRUE_ISSUER))
+            .expect("a token GoTrue would issue must verify");
+        assert_eq!(got.kbve_username, "h0lybyte");
+    }
+
+    /// Pinning still has to work, or the env knob is decoration.
+    #[test]
+    fn pinning_the_issuer_gotrue_uses_accepts_it() {
+        let got: Claims = verifier(Some(GOTRUE_ISSUER))
+            .verify(&token(GOTRUE_ISSUER))
+            .expect("pinning the issuer GoTrue uses must accept its tokens");
+        assert_eq!(got.kbve_username, "h0lybyte");
+        assert!(
+            verifier(Some(GOTRUE_ISSUER))
+                .verify::<Claims>(&token("https://somewhere.else/auth/v1"))
+                .is_err(),
+            "a pinned issuer that accepts anything is not pinned"
+        );
     }
 
     #[test]

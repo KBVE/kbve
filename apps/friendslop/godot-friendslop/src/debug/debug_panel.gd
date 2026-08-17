@@ -23,6 +23,7 @@ const FLAGS: Array[Dictionary] = [
 
 const MAT_FLAGS: Array[Dictionary] = [
 	{"node": ^"../GroundPlane", "param": "pom_strength", "label": "ground POM"},
+	{"node": ^"../GroundPlane", "param": "road_pom_strength", "label": "road POM"},
 	{"node": ^"../Terrain/Riverbed", "param": "pom_strength", "label": "riverbed POM"},
 ]
 

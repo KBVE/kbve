@@ -5,6 +5,7 @@
 [ext_resource type="Texture2D" uid="uid://c1eylu2wm18dc" path="res://assets/biomes/grassland/road/ground_tiles_13_albedo.png" id="3_road_albedo"]
 [ext_resource type="Texture2D" uid="uid://xr8ygn15ypwu" path="res://assets/biomes/grassland/road/ground_tiles_13_normal_gl.png" id="4_road_normal"]
 [ext_resource type="Texture2D" uid="uid://dnub3s5ym8kkt" path="res://assets/biomes/grassland/road/ground_tiles_13_orm.png" id="5_road_orm"]
+[ext_resource type="Texture2D" uid="uid://wyb51jrm6n5k" path="res://assets/biomes/grassland/road/ground_tiles_13_height.png" id="5_road_height"]
 [ext_resource type="Texture2D" uid="uid://boxewx8onpty6" path="res://assets/biomes/grassland/textures/grass_with_rocks_01_albedo.png" id="6_dalb"]
 [ext_resource type="Texture2D" uid="uid://7beiumwifpcr" path="res://assets/biomes/grassland/textures/grass_with_rocks_01_normal_gl.png" id="7_dnrm"]
 [ext_resource type="Texture2D" uid="uid://c62ewkp7rql5n" path="res://assets/biomes/grassland/textures/grass_with_rocks_01_orm.png" id="8_dorm"]
@@ -103,6 +104,9 @@ shader_parameter/pom_debug = 0
 shader_parameter/road_albedo = ExtResource("3_road_albedo")
 shader_parameter/road_normal = ExtResource("4_road_normal")
 shader_parameter/road_orm = ExtResource("5_road_orm")
+shader_parameter/road_height = ExtResource("5_road_height")
+shader_parameter/road_pom_strength = 1.0
+shader_parameter/road_pom_depth = 0.05
 shader_parameter/road_tile_scale = 1.4
 shader_parameter/road_edge_break = 0.35
 shader_parameter/road_tint = Color(0.86, 0.83, 0.78, 1)
