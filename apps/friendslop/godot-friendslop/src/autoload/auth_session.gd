@@ -22,6 +22,14 @@ const REFRESH_MARGIN_SECONDS := 60
 
 const STORE_PATH := "user://session.cfg"
 
+## Where this session is kept. Settable before the node enters the tree, because
+## `_ready` restores from it.
+##
+## A test that leaves this alone reads whoever is signed in on the machine
+## running it: the suite passed on CI, where nobody is, and failed on a developer
+## who was. A test whose result depends on that is testing the machine.
+var store_path := STORE_PATH
+
 var _mode: Mode = Mode.SIGNED_OUT
 var _token := ""
 var _refresh_token := ""
@@ -146,18 +154,18 @@ func _save() -> void:
 	var store := ConfigFile.new()
 	store.set_value("session", "refresh_token", _refresh_token)
 	store.set_value("session", "username", _username)
-	if store.save(STORE_PATH) != OK:
-		push_warning("[auth] could not write %s; the session will not survive a restart" % STORE_PATH)
+	if store.save(store_path) != OK:
+		push_warning("[auth] could not write %s; the session will not survive a restart" % store_path)
 
 
 func _forget() -> void:
-	if FileAccess.file_exists(STORE_PATH):
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(STORE_PATH))
+	if FileAccess.file_exists(store_path):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(store_path))
 
 
 func _restore() -> void:
 	var store := ConfigFile.new()
-	if store.load(STORE_PATH) != OK:
+	if store.load(store_path) != OK:
 		return
 	var refresh: String = str(store.get_value("session", "refresh_token", ""))
 	if refresh.is_empty():

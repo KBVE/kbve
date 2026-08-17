@@ -21,3 +21,8 @@ agones = { workspace = true }
 serde_json = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 jedi = { path = "../../../../packages/rust/jedi" }
+
+[dev-dependencies]
+# Mints tokens for the issuer tests. HS256 verifies against a shared secret, so
+# those tests need no JWKS and no network.
+jsonwebtoken = { workspace = true, features = ["default", "rust_crypto"] }

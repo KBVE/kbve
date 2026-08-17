@@ -7855,6 +7855,7 @@ dependencies = [
  "agones",
  "axum 0.8.9",
  "jedi",
+ "jsonwebtoken",
  "q",
  "serde",
  "serde_json",
