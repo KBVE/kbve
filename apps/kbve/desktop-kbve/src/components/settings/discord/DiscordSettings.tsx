@@ -232,8 +232,8 @@ export const DiscordSettings: React.FC = () => {
 		if (!quickConfigLoaded || selectedGuild || guilds.length === 0) return;
 		if (!lastDiscordGuildId) return;
 		if (!guilds.some((g) => g.id === lastDiscordGuildId)) return;
-		setSelectedGuild(lastDiscordGuildId);
 		commands.discordGetChannels(lastDiscordGuildId).then((result) => {
+			setSelectedGuild(lastDiscordGuildId);
 			if (result.status !== 'ok') return;
 			setChannels(result.data);
 			if (

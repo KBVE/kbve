@@ -807,6 +807,10 @@ impl QStoneField {
 
     /// Re-registers every live rock with the sim, one batch per variant-and-stage so
     /// each distinct point cloud crosses the channel once rather than once per rock.
+    #[cfg(not(feature = "rapier3d-sim"))]
+    fn publish_sim_colliders(&mut self) {}
+
+    #[cfg(feature = "rapier3d-sim")]
     fn publish_sim_colliders(&mut self) {
         let Some(mut phys) = self
             .base()
