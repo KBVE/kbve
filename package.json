@@ -76,7 +76,7 @@
 		"@vitest/coverage-v8": "4.0.9",
 		"@vitest/ui": "4.0.9",
 		"@vitest/web-worker": "4.0.9",
-		"astro": "7.1.6",
+		"astro": "7.2.2",
 		"astro-compressor": "^1.2.0",
 		"astro-vtbot": "^2.1.11",
 		"autoprefixer": "^10.5.0",
