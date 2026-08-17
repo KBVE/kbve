@@ -16,7 +16,10 @@
 		"server_protocol": "server protocol {protocol}",
 		"protocol_mismatch": "this build cannot join that server",
 		"server_unreachable": "server unreachable",
-		"server_protocol_unknown": "server protocol unknown"
+		"server_protocol_unknown": "server protocol unknown",
+		"welcome": "Welcome!",
+		"welcome_back": "Welcome back, {{name}}!",
+		"welcome_named": "Welcome, {{name}}!"
 	},
 	"pause": {
 		"log_off": "Log Off"
@@ -70,7 +73,9 @@
 	},
 	"dlg": {
 		"continue": "[{{key}}]  Continue",
-		"close": "Leave the conversation"
+		"close": "Leave the conversation",
+		"player": "You",
+		"met": "You just met"
 	},
 	"quest": {
 		"taken": "Taken on: {{title}}",
