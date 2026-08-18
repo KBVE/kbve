@@ -19,5 +19,5 @@ animation_sources = Array[PackedScene]([ExtResource("4_ual1"), ExtResource("5_ua
 idle_animation = "UAL2/Idle_FoldArms"
 skin_color = Color(0.88, 0.74, 0.6, 1)
 hair_color = Color(0.18, 0.15, 0.12, 1)
-worn = Array[StringName]([&"male_knight_body", &"male_knight_arms", &"male_knight_legs", &"male_knight_feet"])
+worn = Array[StringName]([&"male_knight_body_armor", &"male_knight_arms", &"male_knight_legs_armor", &"male_knight_feet_armor"])
 head_only_body = ExtResource("6_head")
