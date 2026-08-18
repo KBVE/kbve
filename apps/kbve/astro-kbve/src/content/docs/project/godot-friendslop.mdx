@@ -76,6 +76,12 @@ Signing in happens **in the player's own browser**. GoTrue runs with `GOTRUE_SEC
 3. The provider redirects back to the loopback port with `?code=…`; the socket serves a small "close this tab" page and shuts down.
 4. `POST /auth/v1/token?grant_type=pkce` with `{auth_code, code_verifier}` returns the session. The verifier never leaves the process until this step, so a code caught by anything else on the machine is worthless.
 
+Which providers appear is the server's call, not a list in the client. `enabled_providers()` reads `GET /auth/v1/settings` once and the panel drops any button GoTrue reports as disabled, so a provider turned off upstream stops offering a sign-in that could only fail. Every failure path — no autoload, a transport error, a non-200, a body that is not a dictionary, an empty `external` map — prunes nothing and leaves the full list standing. A provider still has to be in `PROVIDERS` to appear at all, because each one needs a name, a tint and an icon the game ships; enabling one upstream will not conjure a button.
+
+Google and Apple are the two the store builds will need. Apple requires an equivalent privacy-preserving login wherever an app offers social sign-in, which in practice means Sign in with Apple on iOS, and Google sign-in is what Play users expect. Both are currently `false` in GoTrue, and neither has brand art here yet.
+
+Neither is only a matter of switching them on. The loopback flow above cannot survive the trip to a phone: `OAuthLoopback` binds a `127.0.0.1` port and waits, which assumes a desktop that keeps the process running and lets a browser reach its own machine. iOS backgrounds the app the moment Safari takes over and expects `ASWebAuthenticationSession`; Android expects a Custom Tab returning to a registered deep link. The mobile work is a second redirect path — a custom URL scheme the app claims, added to `GOTRUE_URI_ALLOW_LIST` beside `http://127.0.0.1:**` — and the loopback stays for desktop. `export_presets.cfg` already carries iOS and Android presets; sign-in is what is not ready for them.
+
 Tokens live in memory only — a refresh token in `user://` on a shared machine is a login. `adopt_account` is the same seam a stored session would land on.
 
 The token is what the **server** verifies; the username decoded on this side is only for what the title prints before the join. See [friendslop-server](/project/friendslop-server) for the verification half.
