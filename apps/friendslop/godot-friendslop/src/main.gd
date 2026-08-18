@@ -88,7 +88,7 @@ func _load_harvest() -> void:
 		var field := get_node_or_null(NodePath(field_name))
 		if field == null or not field.has_method("import_harvest"):
 			continue
-		var path := SAVE_DIR + "/" + SAVE_FIELDS[field_name]
+		var path: String = SAVE_DIR + "/" + str(SAVE_FIELDS[field_name])
 		if not FileAccess.file_exists(path):
 			continue
 		var bytes := FileAccess.get_file_as_bytes(path)
