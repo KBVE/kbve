@@ -27,6 +27,13 @@ const BLOCKED_SECONDS := 0.15
 @onready var rig: Node3D = $Mesh
 
 var _terrain: Node
+## How long a Q_WALK heading is given to prove it is getting somewhere, how far it has
+## to travel in that time to count, and how far aside to turn when it does not.
+const WALK_PROGRESS_WINDOW := 1.0
+const WALK_PROGRESS_MIN := 0.8
+const WALK_DODGE := 0.7
+const WALK_DODGE_HOLD := 2.0
+
 var _held := false
 
 var _sim: Node
@@ -39,6 +46,10 @@ var _mantle := Mantle.new()
 var _walk := Vector2.ZERO
 var _walk_sweep := false
 var _walk_t := 0.0
+var _walk_dodge := 0.0
+var _walk_dodge_t := 0.0
+var _walk_from := Vector3.ZERO
+var _walk_check := 0.0
 var _debug_t := 0.0
 var _blocked_t := 0.0
 var _debug_grounded := false
@@ -52,6 +63,7 @@ func _ready() -> void:
 	_find_sim()
 	var walk := OS.get_environment("Q_WALK")
 	_walk_sweep = walk == "auto"
+	_walk_from = global_position
 	var axes := walk.split(",", false)
 	if axes.size() == 2:
 		_walk = Vector2(float(axes[0]), float(axes[1]))
@@ -94,6 +106,35 @@ func _adopt_blocked_velocity(delta: float) -> void:
 		return
 	velocity.x = actual.x
 	velocity.z = actual.z
+
+
+## The held heading for Q_WALK, turned aside when it stops getting anywhere.
+##
+## The controller slides along what it hits, so walking a fixed heading into a boulder
+## is not a wedge -- it is a very slow crawl round the rock, re-pushing into it every
+## frame. Over a profiling run that is the same thing as being stuck: the window never
+## moves, and a walk meant to cross a kilometre covers seven metres.
+##
+## So progress along the heading is measured, and when there is none the input is
+## turned aside until there is again, alternating which way so a rock in a corner does
+## not trade one dead end for another. Debug-only: nothing steers a real player.
+func _steered_walk(delta: float) -> Vector2:
+	_walk_check += delta
+	if _walk_check >= WALK_PROGRESS_WINDOW:
+		var moved := global_position - _walk_from
+		moved.y = 0.0
+		if moved.length() < WALK_PROGRESS_MIN:
+			# Turn further each time this fails, so a shallow nudge that was not enough
+			# becomes a real detour rather than the same nudge forever.
+			_walk_dodge = WALK_DODGE if is_zero_approx(_walk_dodge) else -_walk_dodge * 1.4
+			_walk_dodge = clampf(_walk_dodge, -PI, PI)
+			_walk_dodge_t = WALK_DODGE_HOLD
+		elif _walk_dodge_t <= 0.0:
+			_walk_dodge = 0.0
+		_walk_from = global_position
+		_walk_check = 0.0
+	_walk_dodge_t = maxf(_walk_dodge_t - delta, 0.0)
+	return _walk.rotated(_walk_dodge)
 
 
 func _typing() -> bool:
@@ -217,7 +258,7 @@ func _physics_process(delta: float) -> void:
 		_walk_t += delta
 		input_dir = Vector2.RIGHT.rotated(_walk_t * 0.8)
 	elif _walk != Vector2.ZERO:
-		input_dir = _walk
+		input_dir = _steered_walk(delta)
 	var jump := _afford(Input.is_action_just_pressed("jump") and not typing, jump_energy)
 	var roll := _afford(
 			Input.is_action_just_pressed("roll") and not _talking and not typing, roll_energy)
