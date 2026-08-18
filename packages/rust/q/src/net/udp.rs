@@ -40,7 +40,6 @@ struct Binding {
     last_seen: Instant,
 }
 
-
 pub struct UdpLane {
     socket: Arc<UdpSocket>,
     port: u16,
@@ -205,7 +204,6 @@ impl UdpLane {
         });
     }
 }
-
 
 pub struct UdpClient {
     socket: Arc<UdpSocket>,

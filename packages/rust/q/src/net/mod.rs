@@ -10,6 +10,9 @@ pub mod pets;
 #[cfg(feature = "net-session")]
 pub mod session;
 
+#[cfg(feature = "net-session")]
+pub mod predict;
+
 #[cfg(feature = "net-ws")]
 pub mod ws;
 
