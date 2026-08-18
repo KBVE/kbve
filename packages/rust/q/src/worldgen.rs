@@ -77,6 +77,11 @@ impl HeightGen {
         h + (self.water_level - self.riverbed_depth - h) * m
     }
 
+    /// Height every water surface in this field sits at.
+    pub fn water_level(&self) -> f32 {
+        self.water_level
+    }
+
     pub fn river_x(&self, z: f32) -> f32 {
         self.river.get_noise_2d(z, 0.0) * self.river_wander
     }

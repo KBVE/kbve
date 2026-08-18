@@ -8,6 +8,14 @@ const WATER_QUAD: f32 = 2.0;
 
 impl QTerrain {
     pub(super) fn build_river_planes(&mut self) {
+        // A world with no river has water wherever the ground falls below sea
+        // level, which is anywhere in the window rather than a band down the
+        // middle of it. The strip that fits a river leaves every lake and every
+        // sea past its edge dry.
+        if !self.has_river() {
+            self.build_water_plane(self.extent * 2.0);
+            return;
+        }
         let strip_width = ((self.river_wander * 2.0 + self.river_width * 8.0) / 4.0).ceil() * 4.0;
 
         if crate::world::q_hidden("riverbed") {

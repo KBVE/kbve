@@ -67,6 +67,18 @@ pub struct QTerrain {
     #[export]
     #[init(val = 513)]
     resolution: i32,
+    /// Which field the ground comes from: `authored` for the hills and the one
+    /// river everything is built around, `region` for sinks with the ground
+    /// derived from them.
+    ///
+    /// The region field is what an endless world wants -- bounded relief and
+    /// guaranteed drainage however far out you walk -- but it has seas and lakes
+    /// where the authored field has a river, so the road, the bridge and the
+    /// fishing have nothing to attach to and are not built. It is reachable so
+    /// it can be walked around in, not because anything depends on it yet.
+    #[export]
+    #[init(val = GString::from("authored"))]
+    ground_source: GString,
     /// Re-bakes the ground around the player as they walk, so the world does not
     /// end at `extent`.
     ///
@@ -155,6 +167,12 @@ pub struct QTerrain {
     wake_accum: f32,
     wake_last_pos: Vector3,
     last_player_pos: Vector3,
+    /// The height field the world is baked from, whichever was selected.
+    ground: Option<crate::ground::Ground>,
+    /// The authored field, and only when that is the one in use. The road, the
+    /// bridge and the river all read detail that exists nowhere else, so this
+    /// being `None` is what stops them being built over ground that has no river
+    /// to cross.
     hgen: Option<HeightGen>,
     gen_rx: Option<std::sync::mpsc::Receiver<Vec<f32>>>,
     gen_t0: Option<std::time::Instant>,
@@ -191,14 +209,18 @@ impl INode3D for QTerrain {
             godot::classes::DisplayServer::singleton()
                 .window_set_vsync_mode(godot::classes::display_server::VSyncMode::DISABLED);
         }
-        self.hgen = Some(HeightGen::new(&self.height_params()));
+        let source = crate::ground::GroundSource::parse(&self.ground_source.to_string());
+        let params = self.height_params();
+        self.ground = Some(crate::ground::Ground::new(source, params.seed, &params));
+        self.hgen =
+            (source == crate::ground::GroundSource::Authored).then(|| HeightGen::new(&params));
         self.gen_t0 = Some(std::time::Instant::now());
         self.window = Some(crate::worldgen::Window::aligned(
             self.extent,
             self.stream_stride,
             self.resolution.max(2),
         ));
-        let worker_gen = HeightGen::new(&self.height_params());
+        let worker_gen = crate::ground::Ground::new(source, params.seed, &params);
         let extent = self.extent;
         let res = self.resolution.max(2);
         let (tx, rx) = std::sync::mpsc::channel();
@@ -287,7 +309,9 @@ impl QTerrain {
         let Some(next) = window.next_origin([player.x, player.z]) else {
             return;
         };
-        let worker_gen = HeightGen::new(&self.height_params());
+        let params = self.height_params();
+        let source = crate::ground::GroundSource::parse(&self.ground_source.to_string());
+        let worker_gen = crate::ground::Ground::new(source, params.seed, &params);
         let (extent, res) = (self.extent, self.resolution.max(2));
         let (tx, rx) = std::sync::mpsc::channel();
         let job = move || {
@@ -376,7 +400,12 @@ impl QTerrain {
         // next frame.
         if !crate::world::q_hidden("road") {
             self.clear_road();
-            self.hgen = Some(HeightGen::new(&self.height_params()));
+            let params = self.height_params();
+            if crate::ground::GroundSource::parse(&self.ground_source.to_string())
+                == crate::ground::GroundSource::Authored
+            {
+                self.hgen = Some(HeightGen::new(&params));
+            }
             self.build_road();
         }
     }
@@ -689,6 +718,17 @@ impl QTerrain {
         self.height_params()
     }
 
+    /// Whether this world has the one authored river running through it.
+    ///
+    /// False on the region field, which has seas and lakes but no river, and so
+    /// nothing for the road, the bridge or a shoal of fish to be placed along.
+    pub fn has_river(&self) -> bool {
+        self.ground
+            .as_ref()
+            .map(|g| g.river_centre(0.0).is_some())
+            .unwrap_or(false)
+    }
+
     pub fn river_center(&self, z: f32) -> f32 {
         self.hgen.as_ref().map(|g| g.river_x(z)).unwrap_or(0.0)
     }
@@ -772,7 +812,7 @@ impl QTerrain {
     }
 
     fn height(&self, x: f32, z: f32) -> f32 {
-        self.hgen.as_ref().map(|g| g.height(x, z)).unwrap_or(0.0)
+        self.ground.as_ref().map(|g| g.height(x, z)).unwrap_or(0.0)
     }
 
     /// The drawn ground rather than the height data. See
