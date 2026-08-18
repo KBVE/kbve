@@ -172,7 +172,11 @@ func _process(_delta: float) -> void:
 	if not _client.is_joined():
 		return
 	var wish := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
-	_client.set_intent(_world_wish(wish), Input.is_action_pressed("jump"), _facing())
+	var facing := _facing()
+	_client.set_intent(_world_wish(wish), Input.is_action_pressed("jump"), facing)
+	var mine := local_avatar()
+	if mine and mine.has_method(&"push_intent"):
+		mine.push_intent(wish, Input.is_action_just_pressed("jump"), facing)
 
 
 func _facing() -> float:
