@@ -573,6 +573,9 @@ export const RoutineStopSchema = z.object({
 	hour: z.number(),
 	offset_x: z.number(),
 	offset_z: z.number(),
+	task: z.string().optional(),
+	yield_item: z.string().optional(),
+	yield_minutes: z.number().optional(),
 });
 
 export type RoutineStop = z.infer<typeof RoutineStopSchema>;

@@ -171,7 +171,7 @@ impl QTerrain {
     }
 }
 
-struct PlankMesh {
+pub(super) struct PlankMesh {
     verts: Vec<Vector3>,
     normals: Vec<Vector3>,
     uvs: Vec<Vector2>,
@@ -179,7 +179,7 @@ struct PlankMesh {
 }
 
 impl PlankMesh {
-    fn new() -> Self {
+    pub(super) fn new() -> Self {
         Self {
             verts: Vec::new(),
             normals: Vec::new(),
@@ -210,7 +210,14 @@ impl PlankMesh {
     }
 
     /// Axis-aligned box in the road frame.
-    fn box_at(&mut self, center: Vector3, half: Vector3, right: Vector3, fwd: Vector3, uvs: f32) {
+    pub(super) fn box_at(
+        &mut self,
+        center: Vector3,
+        half: Vector3,
+        right: Vector3,
+        fwd: Vector3,
+        uvs: f32,
+    ) {
         let up = Vector3::UP;
         let faces: [(Vector3, Vector3, Vector3, f32, f32, f32); 6] = [
             (up, right, fwd, half.y, half.x, half.z),
@@ -305,7 +312,7 @@ impl PlankMesh {
         }
     }
 
-    fn build(&self) -> Option<Gd<ArrayMesh>> {
+    pub(super) fn build(&self) -> Option<Gd<ArrayMesh>> {
         if self.verts.is_empty() {
             return None;
         }
@@ -536,9 +543,9 @@ impl QTerrain {
     /// every baluster and pier a few hundred triangles of collision the host had never
     /// heard of. These are the boxes the server already builds from the same plan, so
     /// the two now stop bodies in the same places.
-    fn fit_slab_shapes(
+    pub(super) fn fit_slab_shapes(
         body: &mut Gd<StaticBody3D>,
-        slabs: &[crate::worldgen::BridgeSlab],
+        slabs: &[crate::worldgen::Slab],
     ) -> Vec<Gd<CollisionShape3D>> {
         slabs
             .iter()
@@ -573,19 +580,19 @@ impl QTerrain {
     /// The vertices are already world-space -- the bridge is authored where it stands
     /// rather than placed by a transform -- so this hands them over unmoved.
     #[cfg(not(feature = "rapier3d-sim"))]
-    fn publish_sim_slabs(
+    pub(super) fn publish_sim_slabs(
         &mut self,
         _shapes: &[Gd<CollisionShape3D>],
-        _slabs: &[crate::worldgen::BridgeSlab],
+        _slabs: &[crate::worldgen::Slab],
     ) {
     }
 
     /// Mirrors the bridge's boxes into the sim, which has no Godot collision of its own.
     #[cfg(feature = "rapier3d-sim")]
-    fn publish_sim_slabs(
+    pub(super) fn publish_sim_slabs(
         &mut self,
         shapes: &[Gd<CollisionShape3D>],
-        slabs: &[crate::worldgen::BridgeSlab],
+        slabs: &[crate::worldgen::Slab],
     ) {
         let Some(mut phys) = self
             .base()
@@ -667,6 +674,65 @@ mod tests {
 
     /// A window has to have road under the whole of it, or the carriageway stops
     /// in mid air partway across.
+    /// The trunk goes nowhere the moment you leave `z = 0`, so the roads that matter
+    /// out in the world are the ones joining a capital to its harbour. If they are not
+    /// laid, every landmark is a place with no way to it.
+    #[test]
+    fn a_capital_has_a_road_to_its_harbour() {
+        let g = hgen();
+        let mark = crate::landmark::nearest(g.seed(), &g, [0.0, 0.0])
+            .into_iter()
+            .find(|m| m.kind == crate::landmark::LandmarkKind::Capital)
+            .expect("no capital near the origin");
+
+        let road = road_at(Vector2::new(mark.centre[0], mark.centre[1]));
+        let mouth = mark.gate_mouth();
+        assert!(
+            road.distance(Vector2::new(mouth[0], mouth[1])) < road.width * 1.9,
+            "no carriageway outside the gateway at {mouth:?}"
+        );
+    }
+
+    /// The road out of a capital is longer than any one window, so which capitals a
+    /// window considers cannot be "the ones inside it" -- a window in the middle of a
+    /// long road contains none of its endpoints. Two windows overlapping the same
+    /// stretch have to paint it in the same place or there is a seam in the road at
+    /// every boundary.
+    #[test]
+    fn two_windows_lay_a_landmark_road_in_the_same_place() {
+        let g = hgen();
+        let mark = crate::landmark::nearest(g.seed(), &g, [0.0, 0.0])
+            .into_iter()
+            .find(|m| m.kind == crate::landmark::LandmarkKind::Capital)
+            .expect("no capital near the origin");
+
+        // Straddling the halfway point of the road, from either side of it.
+        let side = if mark.centre[0] < 0.0 { -1.0 } else { 1.0 };
+        let quay = crate::landmark::nearest_harbour_on_side(g.seed(), &g, mark.centre, side).centre;
+        let mid = Vector2::new(
+            (mark.centre[0] + quay[0]) * 0.5,
+            (mark.centre[1] + quay[1]) * 0.5,
+        );
+
+        let a = road_at(mid - Vector2::new(96.0, 0.0));
+        let b = road_at(mid + Vector2::new(96.0, 0.0));
+        let mut on_road = 0;
+        for k in -6..=6 {
+            for j in -6..=6 {
+                let p = mid + Vector2::new(k as f32 * 8.0, j as f32 * 8.0);
+                let (da, db) = (a.distance(p), b.distance(p));
+                if da.min(db) < a.width * 1.9 {
+                    on_road += 1;
+                    assert!(
+                        (da - db).abs() < 0.01,
+                        "the two windows disagree about the road at {p:?}: {da} against {db}"
+                    );
+                }
+            }
+        }
+        assert!(on_road > 0, "the sampled patch was nowhere near the road");
+    }
+
     #[test]
     fn the_road_spans_the_window_it_was_built_for() {
         for origin in [Vector2::ZERO, Vector2::new(3000.0, 0.0)] {

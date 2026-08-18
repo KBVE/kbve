@@ -11,16 +11,41 @@
 //! makes crossing between them seamless, and is also why the client and server agree
 //! as long as they share seed, extent and resolution.
 
-use std::collections::HashSet;
+use std::collections::{HashMap, HashSet};
 use std::sync::mpsc::{self, Receiver, Sender};
 
+use q::ground::{Ground, GroundSource};
+use q::landmark::{Landmark, LandmarkKind};
 use q::rapier::sim3d::{
     BodyDesc, BodyId, BodyKind, Iso, ShapeDesc, SimCommand, SimWorld, TerrainDesc,
 };
-use q::worldgen::{BridgePlan, BridgeSlab, HeightGen, HeightParams, Window};
+use q::worldgen::{BridgePlan, HeightGen, HeightParams, Slab, Window};
 
 /// Well clear of the player body space, which starts at a million.
 const BRIDGE_BODY_BASE: u32 = 2_000;
+
+/// Clear of the bridge's own range. Each landmark standing in the world is given a
+/// block of this many consecutive ids, which is comfortably more boxes than either
+/// kind is built from.
+const LANDMARK_BODY_BASE: u32 = 100_000;
+const LANDMARK_BODY_STRIDE: u32 = 64;
+
+/// How far past a region a landmark still counts as reaching into it. Matches the
+/// client's, so the two stand the same buildings up at the same moment.
+const LANDMARK_MARGIN: f32 = 80.0;
+
+/// Which landmark a block of bodies belongs to. Kind and cell rather than position:
+/// two regions overlapping the same capital must recognise it as the one they have
+/// already stood up.
+type MarkKey = (u8, i32, i32);
+
+fn key_of(mark: &Landmark) -> MarkKey {
+    let kind = match mark.kind {
+        LandmarkKind::Capital => 0,
+        LandmarkKind::Harbour => 1,
+    };
+    (kind, mark.cell[0], mark.cell[1])
+}
 
 /// Region indices, not world coordinates — the snap grid is what makes two players
 /// standing near each other share one region instead of baking two.
@@ -28,6 +53,8 @@ type Cell = [i32; 2];
 
 pub struct StreamConfig {
     pub seed: u64,
+    /// Which field the ground comes from. Must match the client's.
+    pub ground_source: GroundSource,
     /// Half-width of one baked region. Must match the client's terrain extent.
     pub extent: f32,
     /// Samples per side. Must match the client's terrain resolution.
@@ -67,8 +94,14 @@ pub struct TerrainStreamer {
     /// Deck, kerbs and both approaches, in one list. Baked once: the geometry is a
     /// function of the seed, and re-deriving it per crossing would re-run the ramp's
     /// height sampling every time somebody walks near the river.
-    slabs: Vec<BridgeSlab>,
+    slabs: Vec<Slab>,
     bridge_in: bool,
+    /// Landmarks currently in the solver, and the id block each was given.
+    marks_in: HashMap<MarkKey, u32>,
+    /// Id blocks handed back when a landmark was taken down, so walking past the same
+    /// capital all afternoon does not exhaust the range.
+    free_slots: Vec<u32>,
+    next_slot: u32,
 }
 
 impl TerrainStreamer {
@@ -92,6 +125,9 @@ impl TerrainStreamer {
             plan,
             slabs,
             bridge_in: false,
+            marks_in: HashMap::new(),
+            free_slots: Vec::new(),
+            next_slot: 0,
         }
     }
 
@@ -111,7 +147,12 @@ impl TerrainStreamer {
     }
 
     fn bake(&self, origin: [f32; 2]) -> Vec<f32> {
-        HeightGen::new(&self.cfg.params()).bake_at(origin, self.cfg.extent, self.cfg.resolution)
+        Ground::new(
+            self.cfg.ground_source,
+            self.cfg.seed as i32,
+            &self.cfg.params(),
+        )
+        .bake_at(origin, self.cfg.extent, self.cfg.resolution)
     }
 
     fn desc(&self, heights: Vec<f32>) -> TerrainDesc {
@@ -135,6 +176,7 @@ impl TerrainStreamer {
         });
         self.loaded.insert(cell);
         self.sync_bridge(world);
+        self.sync_landmarks(world);
     }
 
     /// Puts the deck, its kerbs and both approaches into the solver, or takes them out
@@ -185,6 +227,101 @@ impl TerrainStreamer {
     #[cfg(test)]
     pub fn bridge_loaded(&self) -> bool {
         self.bridge_in
+    }
+
+    /// Stands up the walls, keeps and quays of every landmark reaching a loaded
+    /// region, and takes down the ones nobody is near any more.
+    ///
+    /// The client draws these from the seed without being told, so a server that did
+    /// not do the same would let a player walk through a capital wall on their own
+    /// screen and be shoved back out by a correction. Which landmark is where is not
+    /// on the wire at all: both sides derive it, the same way they derive the crossing.
+    ///
+    /// Only the authored field has them. The region field has no river for a harbour
+    /// to stand on, so it has neither kind.
+    fn sync_landmarks(&mut self, world: &mut SimWorld) {
+        if self.cfg.ground_source != GroundSource::Authored {
+            return;
+        }
+        let hgen = HeightGen::new(&self.cfg.params());
+        let reach = self.cfg.extent + LANDMARK_MARGIN;
+
+        let mut wanted: HashMap<MarkKey, Landmark> = HashMap::new();
+        for cell in &self.loaded {
+            for mark in
+                q::landmark::in_window(self.cfg.seed as u32, &hgen, self.origin_of(*cell), reach)
+            {
+                wanted.insert(key_of(&mark), mark);
+            }
+        }
+
+        let gone: Vec<MarkKey> = self
+            .marks_in
+            .keys()
+            .copied()
+            .filter(|k| !wanted.contains_key(k))
+            .collect();
+        for key in gone {
+            let Some(slot) = self.marks_in.remove(&key) else {
+                continue;
+            };
+            for i in 0..LANDMARK_BODY_STRIDE {
+                world.apply(SimCommand::Despawn {
+                    id: BodyId(LANDMARK_BODY_BASE + slot * LANDMARK_BODY_STRIDE + i),
+                });
+            }
+            self.free_slots.push(slot);
+        }
+
+        for (key, mark) in wanted {
+            if self.marks_in.contains_key(&key) {
+                continue;
+            }
+            let slot = self.free_slots.pop().unwrap_or_else(|| {
+                let s = self.next_slot;
+                self.next_slot += 1;
+                s
+            });
+            let slabs = mark.slabs(&hgen);
+            debug_assert!(
+                slabs.len() as u32 <= LANDMARK_BODY_STRIDE,
+                "a landmark outgrew its id block"
+            );
+            for (i, slab) in slabs.iter().enumerate() {
+                world.apply(SimCommand::Spawn {
+                    id: BodyId(LANDMARK_BODY_BASE + slot * LANDMARK_BODY_STRIDE + i as u32),
+                    desc: BodyDesc {
+                        kind: BodyKind::Fixed,
+                        shape: ShapeDesc::Cuboid {
+                            half_extents: slab.half_extents,
+                        },
+                        iso: Iso {
+                            pos: slab.centre,
+                            rot: slab.rot,
+                        },
+                        restitution: 0.0,
+                        friction: 1.0,
+                        linear_damping: 0.0,
+                        mass: None,
+                        ..Default::default()
+                    },
+                });
+            }
+            self.marks_in.insert(key, slot);
+        }
+    }
+
+    /// Landmarks currently standing in the solver.
+    #[cfg(test)]
+    pub fn landmarks_loaded(&self) -> usize {
+        self.marks_in.len()
+    }
+
+    /// How many id blocks have ever been handed out, which is what tells a leak from
+    /// honest reuse.
+    #[cfg(test)]
+    pub fn slot_high_water(&self) -> usize {
+        self.next_slot as usize
     }
 
     /// Files completed bakes, requests missing regions, and drops ones nobody is near.
@@ -241,17 +378,19 @@ impl TerrainStreamer {
         }
 
         self.sync_bridge(world);
+        self.sync_landmarks(world);
     }
 
     fn request(&mut self, cell: Cell) {
         let origin = self.origin_of(cell);
         let params = self.cfg.params();
         let (extent, res) = (self.cfg.extent, self.cfg.resolution);
+        let (source, seed) = (self.cfg.ground_source, self.cfg.seed as i32);
         let tx = self.tx.clone();
         let spawned = std::thread::Builder::new()
             .name("fs-terrain-bake".into())
             .spawn(move || {
-                let heights = HeightGen::new(&params).bake_at(origin, extent, res);
+                let heights = Ground::new(source, seed, &params).bake_at(origin, extent, res);
                 let _ = tx.send((cell, origin, heights));
             });
         match spawned {
@@ -289,6 +428,7 @@ mod tests {
     fn config() -> StreamConfig {
         StreamConfig {
             seed: 1337,
+            ground_source: GroundSource::default(),
             extent: 64.0,
             resolution: 33,
             stride: 32.0,
@@ -297,6 +437,35 @@ mod tests {
             keep_radius: 96.0,
             max_inflight: 2,
         }
+    }
+
+    /// The streamer bakes its regions on worker threads that build their own
+    /// field, so a source that is not carried through is a server quietly
+    /// serving the shipped world while it reports another one.
+    #[test]
+    fn the_selected_ground_is_what_gets_baked() {
+        let authored = TerrainStreamer::new(config()).bake([0.0, 0.0]);
+        let region = TerrainStreamer::new(StreamConfig {
+            ground_source: GroundSource::Region,
+            ..config()
+        })
+        .bake([0.0, 0.0]);
+
+        assert_eq!(authored.len(), region.len());
+        assert_ne!(
+            authored, region,
+            "the region source baked the authored field"
+        );
+
+        let same = TerrainStreamer::new(StreamConfig {
+            ground_source: GroundSource::Region,
+            ..config()
+        })
+        .bake([0.0, 0.0]);
+        assert_eq!(
+            region, same,
+            "the same source and seed must bake the same ground"
+        );
     }
 
     /// Bakes land on worker threads, so anything asserting on them has to wait.
@@ -466,6 +635,116 @@ mod tests {
 
     /// The bug this closes: the heightfield under a bridge is river, so a server
     /// with no deck drops a player the client is drawing on planks.
+    /// The client raises these from the seed whether the server does or not. A server
+    /// that skipped them would let a player walk into a capital's keep on their own
+    /// screen and be shoved back out by a correction they did nothing to earn.
+    #[test]
+    fn a_capitals_wall_is_a_wall_on_the_server_too() {
+        let cfg = StreamConfig {
+            extent: 256.0,
+            resolution: 129,
+            stride: 128.0,
+            keep_radius: 384.0,
+            ..config()
+        };
+        let hgen = HeightGen::new(&cfg.params());
+        let mark = q::landmark::nearest(cfg.seed as u32, &hgen, [0.0, 0.0])
+            .into_iter()
+            .find(|m| m.kind == LandmarkKind::Capital)
+            .expect("no capital anywhere near the origin");
+
+        let mut world = SimWorld::new(&SimConfig::default());
+        let mut streamer = TerrainStreamer::new(cfg);
+        streamer.prime(&mut world);
+        settle(&mut streamer, &mut world, &[mark.centre]);
+        assert!(
+            streamer.landmarks_loaded() > 0,
+            "walked into a capital and the server had not built it"
+        );
+
+        // Dropped over the middle of the keep, which is the tallest thing inside.
+        let id = BodyId(78);
+        world.apply(SimCommand::Spawn {
+            id,
+            desc: BodyDesc {
+                kind: BodyKind::Dynamic,
+                shape: ShapeDesc::Ball { radius: 0.3 },
+                iso: Iso::at(mark.centre[0], mark.pad_y + 24.0, mark.centre[1]),
+                restitution: 0.0,
+                friction: 1.0,
+                linear_damping: 0.0,
+                mass: Some(1.0),
+                ..Default::default()
+            },
+        });
+        let start = world.snapshot().body(id).expect("body vanished").iso.pos[1];
+        for _ in 0..360 {
+            world.step();
+        }
+        let y = world.snapshot().body(id).expect("body vanished").iso.pos[1];
+        assert!(y < start, "body never fell at all: {start} -> {y}");
+        assert!(
+            y > mark.pad_y + 16.0,
+            "fell through the keep: rested at {y}, courtyard is {}",
+            mark.pad_y
+        );
+    }
+
+    /// Landmarks are given blocks of body ids from a free list. Walk past the same
+    /// capital repeatedly and the list has to come back, or the range runs out and a
+    /// later landmark silently overwrites an earlier one's bodies.
+    #[test]
+    fn walking_past_a_capital_twice_does_not_leak_its_bodies() {
+        let cfg = StreamConfig {
+            extent: 256.0,
+            resolution: 65,
+            stride: 128.0,
+            keep_radius: 300.0,
+            ..config()
+        };
+        let hgen = HeightGen::new(&cfg.params());
+        let mark = q::landmark::nearest(cfg.seed as u32, &hgen, [0.0, 0.0])
+            .into_iter()
+            .find(|m| m.kind == LandmarkKind::Capital)
+            .expect("no capital near the origin");
+
+        let mut world = SimWorld::new(&SimConfig::default());
+        let mut streamer = TerrainStreamer::new(cfg);
+        streamer.prime(&mut world);
+
+        let away = [mark.centre[0] + 4000.0, mark.centre[1] + 4000.0];
+        settle(&mut streamer, &mut world, &[mark.centre]);
+        let first = streamer.landmarks_loaded();
+        assert!(first > 0, "the capital never went in");
+
+        settle(&mut streamer, &mut world, &[away]);
+        settle(&mut streamer, &mut world, &[mark.centre]);
+        assert_eq!(
+            streamer.landmarks_loaded(),
+            first,
+            "coming back stood up a different number of landmarks"
+        );
+        assert!(
+            streamer.slot_high_water() <= first * 2,
+            "id blocks are not being handed back: {} allocated for {first} landmarks",
+            streamer.slot_high_water()
+        );
+    }
+
+    /// The region field has no river, so it has nothing for a harbour to stand on and
+    /// none of this applies to it.
+    #[test]
+    fn the_region_field_has_no_landmarks() {
+        let mut world = SimWorld::new(&SimConfig::default());
+        let mut streamer = TerrainStreamer::new(StreamConfig {
+            ground_source: GroundSource::Region,
+            ..config()
+        });
+        streamer.prime(&mut world);
+        settle(&mut streamer, &mut world, &[[1200.0, 400.0]]);
+        assert_eq!(streamer.landmarks_loaded(), 0);
+    }
+
     #[test]
     fn the_deck_holds_a_body_up_over_the_river() {
         let cfg = StreamConfig {

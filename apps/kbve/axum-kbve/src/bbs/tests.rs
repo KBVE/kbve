@@ -998,3 +998,38 @@ fn dungeon_log_lines_are_not_printed_twice() {
         );
     }
 }
+
+#[test]
+fn dungeon_workbench_makes_something_from_gathered_materials() {
+    let mut game = run::Run::new(Rng::new(11), "tester");
+    game.give("log", 3);
+    game.give("stone", 1);
+
+    let play = drain(Term::Ansi, &game);
+    assert!(
+        play.contains("Craft"),
+        "the city should advertise a workbench: {play}"
+    );
+
+    let _ = game.on_key('K');
+    let view = drain(Term::Ansi, &game);
+    assert!(
+        view.contains("workbench"),
+        "craft view did not render: {view}"
+    );
+
+    let recipe_keys = game.recipe_keys();
+    assert!(!recipe_keys.is_empty(), "no recipe offered");
+    let _ = game.on_key(recipe_keys[0]);
+
+    assert!(
+        game.notice().is_none(),
+        "an offered recipe was refused: {:?}",
+        game.notice()
+    );
+    assert!(
+        game.pack().iter().any(|l| l.contains("Campfire")),
+        "the crafted item is not in the pack: {:?}",
+        game.pack()
+    );
+}

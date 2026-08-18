@@ -1,6 +1,5 @@
 extends GdUnitTestSuite
 
-## Clothing as something worn rather than something baked in.
 
 const CharacterRig := preload("res://src/characters/character_rig.gd")
 
@@ -20,7 +19,6 @@ func test_the_wardrobe_reads_the_whole_folder() -> void:
 			.is_greater_equal(64)
 
 
-## The file name is the data, so a piece has to land in the slot its name says.
 func test_a_piece_lands_in_the_slot_its_name_says() -> void:
 	assert_str(Wardrobe.slot_of(HOOD)).is_equal("head")
 	assert_str(Wardrobe.slot_of(&"male_ranger_body")).is_equal("chest")
@@ -29,8 +27,6 @@ func test_a_piece_lands_in_the_slot_its_name_says() -> void:
 	assert_str(Wardrobe.slot_of(&"male_ranger_arms")).is_equal("hands")
 
 
-## Pauldrons and a scarf are both called accessories and are not worn in the same place.
-## Sharing one slot would mean a knight could not have both.
 func test_a_scarf_and_a_pauldron_are_not_the_same_slot() -> void:
 	assert_str(Wardrobe.slot_of(&"male_knight_acc_scarf")).is_equal("neck")
 	assert_str(Wardrobe.slot_of(&"male_noble_acc_gorget")).is_equal("neck")
@@ -53,7 +49,6 @@ func test_the_five_sets_are_all_there() -> void:
 					.override_failure_message("no %s set for %s" % [wanted, sex]).is_true()
 
 
-## A hood alone must not strip the body, or the character is a floating head in a hood.
 func test_the_body_is_only_swapped_once_the_clothing_covers_it() -> void:
 	assert_bool(Wardrobe.covers_the_body([&"head"])).is_false()
 	assert_bool(Wardrobe.covers_the_body([&"chest", &"legs"])).is_false()
@@ -78,8 +73,6 @@ func test_putting_a_piece_on_adds_meshes_and_taking_it_off_removes_them() -> voi
 	assert_str(rig.worn_in(&"head")).is_empty()
 
 
-## One piece to a slot. An inventory that does not track what is already on would
-## otherwise stack a helmet inside a hood.
 func test_a_second_piece_in_one_slot_replaces_the_first() -> void:
 	var rig := await _dressed([])
 	rig.equip(HOOD)
@@ -106,24 +99,18 @@ func test_a_piece_that_is_not_in_the_wardrobe_is_refused() -> void:
 	assert_bool(rig.equip(&"male_wizard_head_sombrero")).is_false()
 
 
-## The reason head_only_body exists: worn from the start, a full outfit has to take the
-## body with it or the bare torso shows through the cloth.
 func test_a_fully_dressed_character_is_built_on_a_bare_head() -> void:
 	assert_object(_base_for(RANGER)) \
 			.override_failure_message("a fully dressed character kept its whole body underneath") \
 			.is_same(load(HEAD))
 
 
-## The other half of the same rule: anything short of a full outfit keeps its body, or a
-## hood on its own leaves a head floating in it.
 func test_a_partly_dressed_character_keeps_its_body() -> void:
 	assert_object(_base_for([HOOD])).is_same(load(BODY))
 	assert_object(_base_for([])).is_same(load(BODY))
 	assert_object(_base_for(["male_ranger_body", "male_ranger_legs"])).is_same(load(BODY))
 
 
-## A character with no bare-head body to fall back on wears its outfit over its body
-## rather than being built out of nothing.
 func test_without_a_bare_head_body_the_full_body_is_kept() -> void:
 	var rig := CharacterRig.new()
 	auto_free(rig)
@@ -132,8 +119,6 @@ func test_without_a_bare_head_body_the_full_body_is_kept() -> void:
 	assert_object(rig._base_body()).is_same(load(BODY))
 
 
-## What the player has on is kept where everything else the world remembers is kept, so it
-## is still on after quitting.
 func test_what_the_player_wears_survives_a_restart() -> void:
 	var was := Journal.wearing()
 	Journal.forget_everything()
@@ -154,8 +139,6 @@ func test_what_the_player_wears_survives_a_restart() -> void:
 		Journal.wear(StringName(was[slot]))
 
 
-## A save naming a piece that is no longer in the folder must not come back as a warning
-## every time the player is built.
 func test_a_saved_piece_that_no_longer_exists_is_dropped() -> void:
 	var was := Journal.wearing()
 	Journal.forget_everything()
@@ -172,8 +155,6 @@ func test_a_saved_piece_that_no_longer_exists_is_dropped() -> void:
 		Journal.wear(StringName(was[slot]))
 
 
-## A rig following the wardrobe wears what it says and nothing else -- a slot emptied in
-## the wardrobe has to come off the body too.
 func test_a_following_rig_wears_exactly_what_the_wardrobe_says() -> void:
 	var rig := await _dressed([])
 	rig.wear_set({&"head": HOOD})
@@ -186,8 +167,6 @@ func test_a_following_rig_wears_exactly_what_the_wardrobe_says() -> void:
 			.is_empty()
 
 
-## Putting the last piece of an outfit on crosses the line between half-dressed and
-## dressed, and the body underneath has to go with it.
 func test_completing_an_outfit_swaps_the_body_underneath() -> void:
 	var rig := await _dressed([])
 	assert_object(rig._built_base).is_same(load(BODY))
@@ -206,9 +185,6 @@ func test_completing_an_outfit_swaps_the_body_underneath() -> void:
 			.is_equal(RANGER.size())
 
 
-## Everybody in the world who is dressed has to be dressed in things that exist, and a
-## character wearing a whole outfit needs the bare-head body to wear it over -- without
-## one the body stays on underneath and shows through at the collar.
 func test_everybody_dressed_in_the_world_is_dressed_properly() -> void:
 	var state := (load("res://scenes/main.tscn") as PackedScene).get_state()
 	var dressed := 0
@@ -249,10 +225,6 @@ func _unique(values: Array) -> Array:
 	return out
 
 
-## Every row of the wardrobe page names a slot, and a missing key shows the player the key
-## itself rather than a word.
-## Cel shading is keyed by material name, and a material with no entry is left drawn the
-## way it was imported -- so a hood would be the one lit thing on a drawn character.
 func test_every_material_the_clothing_uses_is_shaded() -> void:
 	var wanted := {}
 	for id: StringName in Wardrobe.all():

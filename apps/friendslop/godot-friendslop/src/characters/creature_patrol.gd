@@ -276,18 +276,6 @@ func _step(delta: float) -> void:
 		motion_dot = _flat_facing().dot(moved.normalized())
 
 
-## Horizontal speed for the rig to animate at.
-##
-## Under the sim this node's position is written by the interpolator rather than by
-## the step above, so differencing it measures the ramp between two 20 Hz poses and
-## not the body's motion. That aliases into a staircase -- measured at a 3.5x swing
-## between neighbouring frames -- which the blend space and the time scale both read
-## as a speed changing several times a second.
-##
-## The velocity the solver asked for is the smooth signal, and it is the same one the
-## player's rig animates from. The sim's own published velocity is not usable here: it
-## consumes and clears its accumulated translation every tick, so a tick that happened
-## to receive no command reports a standstill.
 func _ground_speed(travelled: float, delta: float) -> float:
 	if _sim_id == 0:
 		return travelled / maxf(delta, 0.0001)

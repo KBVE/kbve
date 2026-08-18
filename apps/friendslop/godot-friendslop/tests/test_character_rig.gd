@@ -3,20 +3,14 @@ extends GdUnitTestSuite
 const Rig := preload("res://src/characters/character_rig.gd")
 
 
-## States built out of a blend tree rather than a single clip, so their STATES entry
-## names no clip of its own.
 const COMPOSED := [&"move", &"crouch"]
 
 
-## Every chain the rig actually builds the machine from. Missing one here reads as a state
-## nothing can reach, when the truth is a test that was not told about it.
 func _links() -> Array:
 	return Rig.JUMP_CHAIN + Rig.CLIMB_CHAIN + Rig.CROUCH_CHAIN + Rig.roll_chain() \
 			+ Rig.TURN_CHAIN + Rig.work_chain() + Rig.slide_chain()
 
 
-## A state named in a transition but missing from STATES takes the tree build down with
-## it, since the build reads reset off the entry.
 func test_every_transition_endpoint_is_described() -> void:
 	for link in _links():
 		assert_bool(Rig.STATES.has(StringName(link.from))) \
@@ -48,8 +42,6 @@ func test_states_are_fully_specified() -> void:
 			assert_str(Rig.STATES[state][&"clip"]).is_not_empty()
 
 
-## QLocomotion decides in stances and the machine is addressed by name, so an unmapped
-## stance is a state the rig can be asked to travel to and cannot.
 func test_every_stance_maps_to_a_real_state() -> void:
 	var stances := [QLocomotion.STANCE_MOVE, QLocomotion.STANCE_JUMP,
 			QLocomotion.STANCE_CLIMB_LOW, QLocomotion.STANCE_CLIMB_HIGH,
@@ -65,7 +57,6 @@ func test_every_stance_maps_to_a_real_state() -> void:
 	assert_int(Rig.STANCE_STATES.size()).is_equal(stances.size())
 
 
-## The ring the clips are laid out on has to be the ring Q solves radii against.
 func test_clip_rings_match_the_rust_gait_radii() -> void:
 	var loco := QLocomotion.create()
 	assert_float(loco.gait_speed(Vector2(0.0, 1.0))).is_greater(0.0)
@@ -74,8 +65,6 @@ func test_clip_rings_match_the_rust_gait_radii() -> void:
 	assert_float(Rig.GAIT_CLIPS[1].radius).is_equal(2.0)
 
 
-## The locomotion cycle has to survive a round trip through the air; a one-shot has to
-## start from its own first frame every time it is played.
 func test_locomotion_resumes_but_one_shots_restart() -> void:
 	assert_bool(Rig.STATES[&"move"][&"reset"]).is_false()
 	assert_bool(Rig.STATES[&"crouch"][&"reset"]).is_false()
@@ -86,9 +75,6 @@ func test_locomotion_resumes_but_one_shots_restart() -> void:
 				.override_failure_message("'%s' should restart" % state).is_true()
 
 
-## `travel` will not path through a disabled transition, and with no route to the state
-## it was asked for the playback hard-cuts instead of cross-fading. Every link therefore
-## has to be reachable by hand, and only the ones that chain on their own may be AUTO.
 func test_no_transition_is_closed_to_travel() -> void:
 	var rig := Rig.new()
 	for link in _links():
@@ -104,10 +90,6 @@ func test_no_transition_is_closed_to_travel() -> void:
 	rig.free()
 
 
-## The landing clip is a single pose, not a ring, so every frame of it spent travelling
-## is a frame of skating. Unlike a climb or a roll -- which own the body deliberately and
-## must play out -- the air states have to be leavable on the frame they are asked to be,
-## not at a clip boundary.
 func test_the_air_states_are_left_on_demand() -> void:
 	var immediate := {}
 	for link in _links():
@@ -119,8 +101,6 @@ func test_the_air_states_are_left_on_demand() -> void:
 				.is_true()
 
 
-## A one-shot the kit authored longer than the moment it covers has to be replayed to
-## fit, or the simulation moves on without it.
 func test_every_fitted_one_shot_has_a_window() -> void:
 	var rig := Rig.new()
 	for window in [rig.takeoff_time, rig.landing_time, rig.crouch_shift_time]:
@@ -133,10 +113,6 @@ func test_every_fitted_one_shot_has_a_window() -> void:
 	rig.free()
 
 
-## The state machine measures a clip at the length it was authored at and knows nothing
-## about the time scale above it, so an at_end exit from a fitted state overstays by the
-## fitted rate -- which is long enough for the clip to come round and play a second time.
-## Every fitted state is therefore walked out of deliberately, never on at_end.
 func test_no_fitted_state_exits_on_a_clip_boundary() -> void:
 	var fitted := Rig.FITTED.keys() + Rig.ROLL_STATES
 	for link in _links():
@@ -148,8 +124,6 @@ func test_no_fitted_state_exits_on_a_clip_boundary() -> void:
 				.is_false()
 
 
-## Every fitted state has to be left by somebody: the rig walks the ones the simulation
-## is not tracking, QLocomotion owns the rest.
 func test_every_fitted_state_has_an_owner() -> void:
 	var owned := {}
 	for state in Rig.SHOT_NEXT:
@@ -165,7 +139,6 @@ func test_every_fitted_state_has_an_owner() -> void:
 				.override_failure_message("'%s' steps to a missing state" % state).is_true()
 
 
-## Each quarter is drawn with its own clip, and every one of them has to exist.
 func test_each_roll_quarter_has_its_own_clip() -> void:
 	assert_int(Rig.ROLL_STATES.size()).is_equal(4)
 	var clips := {}
@@ -179,8 +152,6 @@ func test_each_roll_quarter_has_its_own_clip() -> void:
 	assert_str(Rig.STATES[Rig.ROLL_STATES[0]].clip).is_equal("UAL1/Roll")
 
 
-## The clip follows the heading the roll was thrown on. Axes here are in Q's own frame,
-## the one character_rig hands it: y forward, x right.
 func test_the_roll_quarter_follows_the_heading() -> void:
 	var thrown := {Vector2(0.0, 1.0): 0, Vector2(0.0, -1.0): 1, Vector2(-1.0, 0.0): 2,
 			Vector2(1.0, 0.0): 3}
@@ -191,11 +162,9 @@ func test_the_roll_quarter_follows_the_heading() -> void:
 		assert_int(fresh.roll_variant()) \
 				.override_failure_message("%s picked the wrong quarter" % axis) \
 				.is_equal(thrown[axis])
-	## No stick on it rolls straight ahead.
 	assert_int(QLocomotion.create().roll_variant()).is_equal(0)
 
 
-## Both stances have to be leavable, or a crouch is a trap.
 func test_crouch_and_roll_return_to_move() -> void:
 	var out := {}
 	for link in _links():
@@ -205,8 +174,6 @@ func test_crouch_and_roll_return_to_move() -> void:
 				.override_failure_message("'%s' has no way out" % state).is_true()
 
 
-## Crouch is a ring of its own rather than a rung on the standing ladder, and the radius
-## it is laid out on has to be the one Q solves crouch headings against.
 func test_the_crouch_ring_is_its_own() -> void:
 	assert_int(Rig.CROUCH_GAIT_CLIPS.size()).is_equal(1)
 	assert_float(Rig.CROUCH_GAIT_CLIPS[0].radius).is_equal(1.0)
@@ -225,9 +192,6 @@ func test_air_hands_the_legs_back() -> void:
 	assert_float(Rig.STATES[&"move"][&"ik"]).is_equal(1.0)
 
 
-## The kit models face +z and Godot's forward is -z, so a heading read the wrong way round
-## is a character that sprints backwards while the ring plays it the backpedal. That is
-## what every online avatar did, and nothing in the tree noticed.
 func test_a_driven_body_faces_the_way_it_travels() -> void:
 	for travel in [Vector3(0, 0, -4), Vector3(4, 0, 0), Vector3(-3, 0, 3)]:
 		var avatar: Node3D = load("res://scenes/net_avatar.tscn").instantiate()
@@ -247,8 +211,6 @@ func test_a_driven_body_faces_the_way_it_travels() -> void:
 		avatar.queue_free()
 
 
-## Standing still and swinging the camera has to turn the body, or there is no way to be
-## ready to move before moving. A glance must not, or looking around drags the feet.
 func test_a_standing_body_turns_to_a_committed_look_but_not_a_glance() -> void:
 	var loco := QLocomotion.create()
 	for i in 120:
@@ -272,8 +234,6 @@ func test_ground_weight_follows_the_crossfade() -> void:
 	rig.free()
 
 
-## A guard is a layer, not a stance. It has to leave the state machine alone entirely,
-## or every gait would need a shield twin of its own.
 func test_a_guard_costs_no_state() -> void:
 	for state in Rig.STATES:
 		assert_str(String(state)).is_not_equal("block")
@@ -286,7 +246,6 @@ func test_a_guard_costs_no_state() -> void:
 	assert_int(loco.stance()).is_equal(QLocomotion.STANCE_MOVE)
 
 
-## The shield rides on the states that have legs of their own, and nowhere else.
 func test_the_shield_layers_over_the_gaits() -> void:
 	assert_int(Rig.SHIELD_LAYERS.size()).is_equal(2)
 	for layer in Rig.SHIELD_LAYERS:
@@ -296,10 +255,6 @@ func test_the_shield_layers_over_the_gaits() -> void:
 				.override_failure_message("'%s' is a single clip, not a gait" % layer).is_empty()
 
 
-## The guard hangs off a bone of the *retargeted* skeleton, not of the glb: the importer
-## maps the kit onto the humanoid profile, so `spine_01` becomes `Spine`. Naming a bone
-## that does not survive that fails silently -- an empty filter is a layer that blends
-## nothing -- which is exactly why it is asserted here rather than left to be noticed.
 func test_the_guard_hangs_off_a_bone_the_import_keeps() -> void:
 	var profile := SkeletonProfileHumanoid.new()
 	var names := {}
@@ -309,7 +264,6 @@ func test_the_guard_hangs_off_a_bone_the_import_keeps() -> void:
 			.override_failure_message("'%s' is not a humanoid bone, so the filter comes out empty"
 				% Rig.SHIELD_ROOT_BONE).is_true()
 
-	## And the legs must not sit under it, or raising the shield would stop the walk.
 	for leg in [&"LeftUpperLeg", &"RightUpperLeg", &"LeftFoot", &"RightFoot"]:
 		var walker: StringName = leg
 		var guarded := false

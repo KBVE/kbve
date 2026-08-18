@@ -1,16 +1,6 @@
 extends GdUnitTestSuite
 
-## The title's wiring, not its looks.
 
-
-## The menu reads `/root/Auth` to decide whether its sign-in button signs in or
-## signs out, and that autoload restores a real session on `_ready`. So a
-## developer who is signed in ran a different menu than CI did, and the suite
-## failed for them alone.
-##
-## The store is pointed at a scratch file *before* signing out, so `_forget`
-## deletes that and never the real session: a test suite must not log anybody out
-## of the actual game.
 func before_test() -> void:
 	var auth := get_node_or_null(^"/root/Auth")
 	if auth == null:
@@ -33,8 +23,6 @@ func test_it_offers_guest_play_first() -> void:
 	assert_bool(menu.play_button.disabled).is_false()
 
 
-## The row is on the title rather than behind Settings because a player who cannot read
-## the menu cannot navigate the menu to reach it.
 func test_language_row_is_on_the_title_itself() -> void:
 	var menu := _menu()
 	assert_int(menu.language_buttons.size()).is_equal(I18n.locales().size())
@@ -44,8 +32,6 @@ func test_language_row_is_on_the_title_itself() -> void:
 	assert_array(labels).contains_exactly_in_any_order(I18n.locale_names())
 
 
-## Written in its own language, not the current one: the label is the only part of the
-## screen a player who does not read the current language can use.
 func test_language_labels_do_not_change_with_the_locale() -> void:
 	var before := I18n.locale_code()
 	I18n.set_locale("ja")
@@ -70,8 +56,6 @@ func test_choosing_a_language_asks_rather_than_switching_itself() -> void:
 	assert_str(asked[0]).is_not_equal(I18n.locale_code())
 
 
-## The row doubles as the readout of which language is on, so the current one is shown
-## unavailable rather than dropped from the list.
 func test_the_current_language_is_not_offered_again() -> void:
 	var menu := _menu()
 	var disabled: Array = []
@@ -89,8 +73,6 @@ func test_sign_in_opens_a_form_rather_than_signing_anyone_in() -> void:
 	assert_bool(menu.is_signing_in()).is_true()
 
 
-## The menu reports which provider was chosen; it never calls Auth itself, which is what
-## lets the flow be tested without a browser.
 func test_the_panel_reports_the_provider_that_was_chosen() -> void:
 	var menu := _menu()
 	var seen := []
@@ -100,15 +82,12 @@ func test_the_panel_reports_the_provider_that_was_chosen() -> void:
 	assert_array(seen).is_equal(["discord"])
 
 
-## Every provider Auth will accept has a button, and no button names one it would refuse
-## to start.
 func test_every_offered_provider_can_actually_be_started() -> void:
 	var menu := _menu()
 	menu.open_sign_in()
 	assert_array(menu._sign_in.provider_buttons.keys()).is_equal(AuthSession.PROVIDERS)
 
 
-## A second press would open a second tab against a verifier the first one already owns.
 func test_a_sign_in_in_flight_ignores_further_presses() -> void:
 	var menu := _menu()
 	var seen := []
@@ -119,8 +98,6 @@ func test_a_sign_in_in_flight_ignores_further_presses() -> void:
 	assert_array(seen).is_equal(["discord"])
 
 
-## A failed sign-in leaves the form open holding the reason — closing it would leave the
-## player guessing which half was wrong.
 func test_a_failed_sign_in_keeps_the_panel_and_the_reason() -> void:
 	var menu := _menu()
 	menu.open_sign_in()
@@ -146,8 +123,6 @@ func test_play_asks_rather_than_loading_the_world_itself() -> void:
 	assert_int(asked[0]).is_equal(1)
 
 
-## Two ways in, and they are not the same thing: guest play joins the dedicated server,
-## singleplayer runs this machine's own sim.
 func test_the_two_play_paths_are_separate() -> void:
 	var menu := _menu()
 	var online := [0]
@@ -171,8 +146,6 @@ func test_settings_and_quit_are_wired() -> void:
 	assert_int(quit[0]).is_equal(1)
 
 
-## Escape is "back out of what is open", which is only "quit" when nothing is — so it
-## gets its own signal and the title decides which one it meant.
 func test_escape_is_a_cancel_not_a_quit() -> void:
 	var menu := _menu()
 	var cancelled := [0]
@@ -194,15 +167,12 @@ func test_the_scenes_it_points_at_exist() -> void:
 	assert_bool(ResourceLoader.exists(TitleMenu.ONLINE_SCENE)).is_true()
 
 
-## Base64url with the padding stripped, which is the shape a real token arrives in.
 func _token(claims: Dictionary) -> String:
 	var payload := Marshalls.utf8_to_base64(JSON.stringify(claims))
 	payload = payload.replace("+", "-").replace("/", "_").rstrip("=")
 	return "header." + payload + ".signature"
 
 
-## The button is the last thing read before joining, so a signed-in player seeing
-## "Play as Guest" reads it as the sign-in having been dropped.
 func test_a_signed_in_player_is_offered_their_own_name() -> void:
 	var auth := get_node_or_null(^"/root/Auth")
 	if auth == null:
@@ -216,8 +186,6 @@ func test_a_signed_in_player_is_offered_their_own_name() -> void:
 	auth.sign_out()
 
 
-## Signing out has to put the guest label back, or the menu keeps offering a name
-## it no longer holds a token for.
 func test_signing_out_returns_the_guest_label() -> void:
 	var auth := get_node_or_null(^"/root/Auth")
 	if auth == null:
@@ -230,8 +198,6 @@ func test_signing_out_returns_the_guest_label() -> void:
 	assert_str(menu.play_button.text).is_equal(I18n.t("title.play_guest"))
 
 
-## An account that has not claimed a username yet gets the plain verb rather than a
-## dangling "Play as ".
 func test_an_account_without_a_username_gets_the_plain_verb() -> void:
 	var auth := get_node_or_null(^"/root/Auth")
 	if auth == null:
@@ -244,8 +210,6 @@ func test_an_account_without_a_username_gets_the_plain_verb() -> void:
 	auth.sign_out()
 
 
-## Every locale has to carry the placeholder, or a translated build shows the label
-## with no name in it at all.
 func test_every_locale_fills_the_name_in() -> void:
 	var before := I18n.locale_code()
 	for entry: Dictionary in I18n.locales():
@@ -255,3 +219,36 @@ func test_every_locale_fills_the_name_in() -> void:
 				"%s drops the name" % I18n.locale_code()).contains("h0lybyte")
 		assert_str(text).not_contains("{{")
 	I18n.set_locale(before)
+
+
+## A tooltip that resolves to its own key is worse than none, and the row is the first
+## thing a new player reads.
+func test_every_button_carries_a_translated_tooltip() -> void:
+	var menu := _menu()
+	var buttons: Array[PaperButton] = [menu.play_button, menu.solo_button,
+			menu.sign_in_button, menu.settings_button, menu.quit_button]
+	for button in buttons:
+		assert_str(button.tooltip_text).override_failure_message(
+				"%s has no tooltip" % button.text).is_not_empty()
+		assert_str(button.tooltip_text).not_contains("tip.")
+	for button in menu.language_buttons:
+		assert_str(button.tooltip_text).is_not_empty()
+		assert_str(button.tooltip_text).not_contains("tip.")
+
+
+## The menu is sized against a 1280x720 design, so a phone viewport has to scale it up or
+## it renders at roughly one device pixel per unit.
+func test_the_menu_scales_up_for_a_taller_viewport() -> void:
+	var menu := _menu()
+	assert_float(menu.ui_scale()).is_greater(0.0)
+	assert_float(menu.ui_scale()).is_less_equal(MenuStyle.SCALE_RANGE.y)
+	assert_float(menu.ui_scale()).is_greater_equal(MenuStyle.SCALE_RANGE.x)
+
+
+## Buttons must not run past the edge on a narrow screen, whatever the scale says.
+func test_a_button_never_exceeds_the_viewport_width() -> void:
+	var menu := _menu()
+	var view := menu.get_viewport().get_visible_rect().size
+	for button in [menu.play_button, menu.solo_button, menu.quit_button]:
+		assert_float(button.custom_minimum_size.x).override_failure_message(
+				"%s is wider than the screen" % button.text).is_less_equal(view.x)

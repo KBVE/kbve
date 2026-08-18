@@ -1,6 +1,5 @@
 extends GdUnitTestSuite
 
-## The first-run picker, and the rule that decides whether it appears.
 
 const CONFIG_PATH := "user://gameplay.cfg"
 
@@ -13,9 +12,6 @@ func before_test() -> void:
 	_saved = cfg.get_value("gameplay", "locale", null) if cfg.has_section_key("gameplay", "locale") else null
 
 
-## The suite writes to the same file the game does, so the machine it runs on keeps
-## whatever it had -- and the locale is a live global, so the running autoload is put
-## back too.
 func after_test() -> void:
 	var cfg := ConfigFile.new()
 	cfg.load(CONFIG_PATH)
@@ -41,7 +37,6 @@ func _modal() -> LanguageModal:
 	return modal
 
 
-## Booting in the device's language is a guess.
 func test_a_guessed_locale_is_not_a_choice() -> void:
 	_clear_choice()
 	I18n.set_locale("es")
@@ -63,8 +58,6 @@ func test_it_offers_every_locale_in_its_own_script() -> void:
 	assert_array(labels).contains_exactly_in_any_order(I18n.locale_names())
 
 
-## Tapping a language has to be the end of the question: an answer that is not written
-## down brings the modal back on the next launch.
 func test_tapping_a_language_saves_it() -> void:
 	_clear_choice()
 	var modal := _modal()
@@ -80,8 +73,6 @@ func test_tapping_a_language_saves_it() -> void:
 	assert_str(I18n.locale_code()).is_equal("ja")
 
 
-## Every button is a different script, so the modal is the one screen that has to have
-## them all loaded before it draws.
 func test_its_own_labels_are_drawable() -> void:
 	var modal := _modal()
 	var font := ThemeDB.fallback_font

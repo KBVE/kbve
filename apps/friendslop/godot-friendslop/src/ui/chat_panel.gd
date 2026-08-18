@@ -1,17 +1,8 @@
 class_name ChatPanel
 extends CanvasLayer
 
-## In-game chat, sized off the viewport so one layout serves desktop and phone.
-##
-## Only ever visible to an account. Chat rides a JWT the gateway validates on upgrade, so
-## a guest has nothing to connect with -- the panel says so rather than offering an input
-## that could never send.
 
 const GROUP := &"chat_panel"
-const LAYOUT_HEIGHT := 720.0
-const SCALE_RANGE := Vector2(0.7, 1.6)
-## Share of the viewport the log may take. Portrait phones get a taller slice because
-## there is no room beside it, landscape a shorter one so it does not cover the world.
 const LOG_FRACTION_WIDE := 0.32
 const LOG_FRACTION_TALL := 0.42
 const WIDE_ASPECT := 1.2
@@ -81,10 +72,8 @@ func _build() -> void:
 	_entry.text_submitted.connect(_on_submit)
 	column.add_child(_entry)
 
-
 func _ui_scale() -> float:
-	var view := get_viewport().get_visible_rect().size
-	return clampf(view.y / LAYOUT_HEIGHT, SCALE_RANGE.x, SCALE_RANGE.y)
+	return MenuStyle.ui_scale(get_viewport())
 
 
 func _layout() -> void:
@@ -100,8 +89,6 @@ func _layout() -> void:
 
 	var wide := view.x / maxf(view.y, 1.0) > WIDE_ASPECT
 	var fraction := LOG_FRACTION_WIDE if wide else LOG_FRACTION_TALL
-	## Half width in landscape so the log never sits over the middle of the screen, full
-	## width in portrait because there is nowhere else for it to go.
 	var width := view.x * (0.42 if wide else 1.0) - float(pad * 2)
 	_log.custom_minimum_size = Vector2(width, view.y * fraction)
 	_log.add_theme_font_size_override("normal_font_size", int(17.0 * s))
@@ -110,7 +97,6 @@ func _layout() -> void:
 	_entry.custom_minimum_size = Vector2(width, 34.0 * s)
 
 
-## Chat exists for accounts only, so a guest gets the reason rather than a dead input.
 func _refresh_access() -> void:
 	if Auth.is_signed_in():
 		_notice.visible = false

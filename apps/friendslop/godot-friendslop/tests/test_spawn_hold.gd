@@ -1,7 +1,5 @@
 extends GdUnitTestSuite
 
-## The ground is baked on a worker thread, so a scene runs for a while with no collider
-## anywhere in it. Anything that falls during that window falls forever.
 
 const PLAYER := "res://scenes/player.tscn"
 const MainScene := preload("res://src/main.gd")
@@ -9,8 +7,6 @@ const MainScene := preload("res://src/main.gd")
 const GROUND := 12.0
 
 
-## Stands in for QTerrain, which cannot be built without the GDExtension and bakes on a
-## thread besides.
 class FakeTerrain extends Node3D:
 	signal ground_ready
 
@@ -28,8 +24,6 @@ class FakeTerrain extends Node3D:
 		ground_ready.emit()
 
 
-## A world whose terrain never grew the method at all, which is every scene that has no
-## QTerrain in it.
 class BareNode extends Node3D:
 	pass
 
@@ -65,7 +59,6 @@ func test_the_player_is_held_until_there_is_ground() -> void:
 			.is_equal_approx(GROUND + player.settle_clearance, 0.001)
 
 
-## Ground that arrived before the player readied leaves nothing to wait for.
 func test_a_player_that_readies_onto_finished_ground_is_never_held() -> void:
 	var root := Node3D.new()
 	add_child(root)
@@ -84,8 +77,6 @@ func test_a_player_that_readies_onto_finished_ground_is_never_held() -> void:
 			.is_greater(GROUND)
 
 
-## Nothing to ask means nothing to wait for, or the player never moves again in a scene
-## that has no terrain.
 func test_a_world_without_terrain_does_not_hold_the_player() -> void:
 	var made := _world(false)
 	var player: CharacterBody3D = made[2]
@@ -96,8 +87,6 @@ func test_a_world_without_terrain_does_not_hold_the_player() -> void:
 			.is_false()
 
 
-## A hitch long enough to outrun the collider drops the body under the world; it gets put
-## back rather than falling out of the level.
 func test_a_player_under_the_world_is_put_back_on_it() -> void:
 	var made := _world(true)
 	var terrain: FakeTerrain = made[1]
@@ -111,7 +100,6 @@ func test_a_player_under_the_world_is_put_back_on_it() -> void:
 			.is_greater_equal(GROUND)
 
 
-## Standing in a dip the height field smooths over is not falling through it.
 func test_a_dip_shallower_than_the_slack_is_left_alone() -> void:
 	var made := _world(true)
 	var terrain: FakeTerrain = made[1]
@@ -126,7 +114,6 @@ func test_a_dip_shallower_than_the_slack_is_left_alone() -> void:
 			.is_less(GROUND)
 
 
-## What the loading cover reads to know the world can be walked on.
 func test_the_world_reports_when_it_has_ground() -> void:
 	var world := Node3D.new()
 	world.set_script(MainScene)

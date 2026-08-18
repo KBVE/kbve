@@ -46,6 +46,7 @@ impl Default for HeightParams {
 pub struct HeightGen {
     hills: FastNoiseLite,
     river: FastNoiseLite,
+    seed: u32,
     hill_amplitude: f32,
     hill_base: f32,
     river_wander: f32,
@@ -59,6 +60,7 @@ impl HeightGen {
         Self {
             hills: make_noise(p.seed, p.hill_frequency, 4),
             river: make_noise(p.seed + 7, p.river_wander_frequency, 5),
+            seed: p.seed as u32,
             hill_amplitude: p.hill_amplitude,
             hill_base: p.hill_base,
             river_wander: p.river_wander,
@@ -68,13 +70,46 @@ impl HeightGen {
         }
     }
 
-    pub fn height(&self, x: f32, z: f32) -> f32 {
+    /// The ground before anything was built on it.
+    ///
+    /// Landmarks level the ground they stand on, and they work out what to level it
+    /// to by sampling it. That has to be this rather than [`Self::height`], or the
+    /// question of how high a capital's floor is answers itself with itself.
+    pub fn base_height(&self, x: f32, z: f32) -> f32 {
         let h = self.hills.get_noise_2d(x, z) * self.hill_amplitude + self.hill_base;
         let river_x = self.river.get_noise_2d(z, 0.0) * self.river_wander;
         let d = (x - river_x).abs();
         let t = libm::expf(-(d * d) / (2.0 * self.river_width * self.river_width));
         let m = (t * 1.15).clamp(0.0, 1.0);
         h + (self.water_level - self.riverbed_depth - h) * m
+    }
+
+    /// The ground as it stands, levelled where something was built on it.
+    ///
+    /// Every consumer of the world reads this one function -- the client's mesh, the
+    /// server's heightfield, the scatter, the water, the flow field -- so putting the
+    /// levelling here is the only way a capital's courtyard is flat in all of them
+    /// without any of them being told a capital is there.
+    pub fn height(&self, x: f32, z: f32) -> f32 {
+        let h = self.base_height(x, z);
+        match crate::landmark::pad_at(self.seed, self, x, z) {
+            Some((pad_y, w)) => h + (pad_y - h) * w,
+            None => h,
+        }
+    }
+
+    pub fn seed(&self) -> u32 {
+        self.seed
+    }
+
+    /// How far the channel ever strays from `x = 0`.
+    pub fn river_wander(&self) -> f32 {
+        self.river_wander
+    }
+
+    /// Height every water surface in this field sits at.
+    pub fn water_level(&self) -> f32 {
+        self.water_level
     }
 
     pub fn river_x(&self, z: f32) -> f32 {
@@ -236,7 +271,10 @@ mod tests {
                 w.stride
             );
             assert!(w.stride >= step, "stride collapsed to nothing");
-            assert!(w.stride <= extent, "stride wider than the window leaves gaps");
+            assert!(
+                w.stride <= extent,
+                "stride wider than the window leaves gaps"
+            );
         }
     }
 
@@ -298,9 +336,8 @@ mod tests {
             let mut worst = 0.0f32;
             for iy in 0..res {
                 for ix in 0..(res - cols) {
-                    let d = (a[(iy * res + ix + cols) as usize]
-                        - b[(iy * res + ix) as usize])
-                        .abs();
+                    let d =
+                        (a[(iy * res + ix + cols) as usize] - b[(iy * res + ix) as usize]).abs();
                     worst = worst.max(d);
                 }
             }
@@ -481,15 +518,16 @@ mod tests {
     }
 }
 
-/// An axis-aligned box of the bridge, in world space.
+/// A box of built structure, in world space.
 ///
-/// The deck and its rails are boxes on both sides of the wire: the client draws
-/// planks over them, the server gives them to the solver as cuboids. Both read
-/// the same numbers from [`BridgePlan`], which is the only way they can agree on
-/// where the deck is -- and a disagreement there is a player walking on planks
-/// their own server thinks are river.
+/// Everything the world puts on top of the ground -- a bridge deck, a city wall, a
+/// quay -- is a list of these on both sides of the wire: the client draws timber and
+/// stone over them, the server gives them to the solver as cuboids. Both read the
+/// same numbers from the plan that produced them, which is the only way they can
+/// agree on where the structure is -- and a disagreement there is a player walking
+/// on planks their own server thinks are river.
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct BridgeSlab {
+pub struct Slab {
     pub centre: [f32; 3],
     pub half_extents: [f32; 3],
     /// Rotation about the vertical-plane axis, xyzw. The deck is flat, but the
@@ -498,8 +536,8 @@ pub struct BridgeSlab {
     pub rot: [f32; 4],
 }
 
-impl BridgeSlab {
-    fn flat(centre: [f32; 3], half_extents: [f32; 3]) -> Self {
+impl Slab {
+    pub fn flat(centre: [f32; 3], half_extents: [f32; 3]) -> Self {
         Self {
             centre,
             half_extents,
@@ -564,7 +602,9 @@ impl RoadPlan {
             x += ROAD_SEGMENT_STEP;
         }
 
-        let segments = points.windows(2).map(|w| (w[0], w[1])).collect();
+        let mut segments: Vec<([f32; 2], [f32; 2])> =
+            points.windows(2).map(|w| (w[0], w[1])).collect();
+        segments.extend(landmark_roads(hgen, origin, extent));
         Self {
             segments,
             width,
@@ -611,6 +651,64 @@ impl RoadPlan {
         let t = 1.0 - (d / reach).clamp(0.0, 1.0);
         t * t * (3.0 - 2.0 * t)
     }
+}
+
+/// The roads that exist because somebody built something at both ends.
+///
+/// The trunk is one line across the valley with one crossing on it, which is a road
+/// that goes nowhere the moment you walk away from `z = 0`. These are the ones that
+/// answer for the rest of the world: every capital is joined to the nearest harbour
+/// standing on its own bank, so a road always runs between a place that makes things
+/// and the water they leave by.
+///
+/// Same bank deliberately. There is one crossing in the whole world and it is not
+/// where these are, so a road to the far side would be a road into the river.
+///
+/// Which capitals are considered is a fixed radius rather than the window: a road is
+/// long, and a capital whose gateway is well outside a window still lays carriageway
+/// across the middle of it. Segments are then kept by how near they come to the ground
+/// being baked, which is a question about the segment and the ground and not about
+/// which window asked -- so two windows overlapping the same stretch of road paint it
+/// in the same place.
+const SPUR_SCAN_CELLS: i32 = 5;
+
+fn landmark_roads(hgen: &HeightGen, origin: [f32; 2], extent: f32) -> Vec<([f32; 2], [f32; 2])> {
+    let scan = crate::landmark::CELL * SPUR_SCAN_CELLS as f32;
+    let near = extent + ROAD_SEGMENT_STEP * 2.0;
+    let mut out = Vec::new();
+
+    for mark in crate::landmark::in_window(hgen.seed(), hgen, origin, scan) {
+        if mark.kind != crate::landmark::LandmarkKind::Capital {
+            continue;
+        }
+        let from = mark.gate_mouth();
+        let side = if mark.centre[0] < 0.0 { -1.0 } else { 1.0 };
+        let to =
+            crate::landmark::nearest_harbour_on_side(hgen.seed(), hgen, mark.centre, side).centre;
+
+        let run = ((to[0] - from[0]).powi(2) + (to[1] - from[1]).powi(2)).sqrt();
+        if run < ROAD_SEGMENT_STEP {
+            continue;
+        }
+        let steps = (run / ROAD_SEGMENT_STEP).ceil() as i32;
+        let mut prev = from;
+        for i in 1..=steps {
+            let t = i as f32 / steps as f32;
+            // Bowed rather than ruled, and pinned straight at both ends so it meets
+            // the gateway and the quay square on rather than at an angle.
+            let bow = (t * std::f32::consts::PI).sin() * hgen.wander(from[0] + run * t) * 40.0;
+            let nx = from[0] + (to[0] - from[0]) * t - (to[1] - from[1]) / run * bow;
+            let nz = from[1] + (to[1] - from[1]) * t + (to[0] - from[0]) / run * bow;
+            let next = [nx, nz];
+            let touches =
+                |p: [f32; 2]| (p[0] - origin[0]).abs() <= near && (p[1] - origin[1]).abs() <= near;
+            if touches(prev) || touches(next) {
+                out.push((prev, next));
+            }
+            prev = next;
+        }
+    }
+    out
 }
 
 pub fn hash32(mut x: u32) -> u32 {
@@ -934,19 +1032,19 @@ impl BridgePlan {
 
     /// The solid parts, for anything that has to stop a body: the deck itself and
     /// a kerb down each side so nobody walks off into the river.
-    pub fn slabs(&self) -> [BridgeSlab; 3] {
+    pub fn slabs(&self) -> [Slab; 3] {
         let [cx, cz] = self.crossing;
         let rail = self.half_width - 0.08;
         [
-            BridgeSlab::flat(
+            Slab::flat(
                 [cx, self.deck_y, cz],
                 [self.deck_half, DECK_HALF_T, self.half_width],
             ),
-            BridgeSlab::flat(
+            Slab::flat(
                 [cx, self.deck_y + RAIL_UP, cz - rail],
                 [self.deck_half, 0.07, 0.07],
             ),
-            BridgeSlab::flat(
+            Slab::flat(
                 [cx, self.deck_y + RAIL_UP, cz + rail],
                 [self.deck_half, 0.07, 0.07],
             ),
@@ -1045,7 +1143,7 @@ impl BridgePlan {
     /// player who walked off the deck would be held up by the client and dropped to the
     /// heightfield by the host — the correction yank the shared deck exists to prevent,
     /// moved to the ramp.
-    pub fn ramp_slabs(&self, hgen: &HeightGen) -> Vec<BridgeSlab> {
+    pub fn ramp_slabs(&self, hgen: &HeightGen) -> Vec<Slab> {
         let mut slabs = Vec::new();
         for side in [-1.0f32, 1.0] {
             let path = self.ramp_path(hgen, side);
@@ -1066,7 +1164,7 @@ impl BridgePlan {
                 }
                 let angle = libm::atan2f(dy, dx);
                 let (s, c) = (libm::sinf(angle), libm::cosf(angle));
-                slabs.push(BridgeSlab {
+                slabs.push(Slab {
                     centre: [
                         (a[0] + b[0]) * 0.5 + s * DECK_HALF_T,
                         (a[1] + b[1]) * 0.5 - c * DECK_HALF_T,
@@ -1086,7 +1184,7 @@ impl BridgePlan {
     /// of it. The client draws the approach as a solid-sided embankment buried in the
     /// ground, so with the surface alone the whole interior is a room a body can walk
     /// into from the side and stand inside the drawn timber.
-    pub fn ramp_skirt_slabs(&self, hgen: &HeightGen) -> Vec<BridgeSlab> {
+    pub fn ramp_skirt_slabs(&self, hgen: &HeightGen) -> Vec<Slab> {
         let [_, cz] = self.crossing;
         let mut slabs = Vec::new();
         for side in [-1.0f32, 1.0] {
@@ -1102,7 +1200,7 @@ impl BridgePlan {
                 if top <= floor {
                     continue;
                 }
-                slabs.push(BridgeSlab::flat(
+                slabs.push(Slab::flat(
                     [(a[0] + b[0]) * 0.5, (top + floor) * 0.5, cz],
                     [hx, (top - floor) * 0.5, self.half_width],
                 ));
@@ -1125,12 +1223,12 @@ impl BridgePlan {
     /// The raised span is railed by [`slabs`](Self::slabs) but the causeways leading
     /// onto it never were, so a body could walk off the side of an approach the client
     /// had drawn a railing along.
-    pub fn ramp_rail_slabs(&self, hgen: &HeightGen) -> Vec<BridgeSlab> {
+    pub fn ramp_rail_slabs(&self, hgen: &HeightGen) -> Vec<Slab> {
         let rail = self.half_width - 0.08;
         let mut slabs = Vec::new();
         for deck in self.ramp_slabs(hgen) {
             for side in [-1.0f32, 1.0] {
-                slabs.push(BridgeSlab {
+                slabs.push(Slab {
                     centre: [
                         deck.centre[0],
                         deck.centre[1] + RAIL_UP,
@@ -1145,15 +1243,15 @@ impl BridgePlan {
     }
 
     /// The stone abutment each approach lands on, as one box per bank.
-    pub fn abutment_slabs(&self, hgen: &HeightGen) -> [BridgeSlab; 2] {
+    pub fn abutment_slabs(&self, hgen: &HeightGen) -> [Slab; 2] {
         let [cx, cz] = self.crossing;
         let hx = (self.deck_half - self.half_span) * 0.5;
-        let mut out = [BridgeSlab::flat([0.0; 3], [0.0; 3]); 2];
+        let mut out = [Slab::flat([0.0; 3], [0.0; 3]); 2];
         for (i, side) in [-1.0f32, 1.0].into_iter().enumerate() {
             let x = cx + (self.half_span + hx) * side;
             let top = self.deck_y - 0.1;
             let h = ((top - (hgen.height(x, cz) - 1.4)) * 0.5).max(0.3);
-            out[i] = BridgeSlab::flat([x, top - h, cz], [hx, h, self.half_width + 0.22]);
+            out[i] = Slab::flat([x, top - h, cz], [hx, h, self.half_width + 0.22]);
         }
         out
     }

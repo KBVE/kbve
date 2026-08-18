@@ -774,9 +774,11 @@ pub struct ResolvedRecipe {
 
 /// Find all craftable recipes for items tagged "discordsh".
 /// Filters by player inventory (has all ingredients) and skill level.
+/// Recipes the player could make right now: they hold every ingredient and
+/// meet the skill requirement.
 pub fn available_recipes(
     inventory: &super::types::GameInventory,
-    _skills: &bevy_skills::SkillProfile,
+    skills: &bevy_skills::SkillProfile,
 ) -> Vec<ResolvedRecipe> {
     let db = item_db();
     let mut recipes = Vec::new();
@@ -825,9 +827,19 @@ pub fn available_recipes(
                 "woodcutting" => Some("Woodcutting"),
                 "mining" => Some("Mining"),
                 "foraging" => Some("Foraging"),
+                "fletching" => Some("Fletching"),
                 _ => None,
             });
             let skill_level = recipe.skill_level.unwrap_or(0) as u32;
+
+            // A recipe the player is not trained for is not available; listing
+            // it would only earn a refusal from execute_craft.
+            if let Some(skill) = recipe.skill.as_deref()
+                && skill_level > ENTRY_TIER
+                && skills.level(bevy_skills::SkillId::from_ref(skill)) < skill_level
+            {
+                continue;
+            }
 
             recipes.push(ResolvedRecipe {
                 output_ref,
@@ -840,43 +852,135 @@ pub fn available_recipes(
             });
         }
     }
+    // The registry iterates a hash map, so without this the list reorders
+    // between renders — and a front end that keys by position would craft
+    // something other than the row the player pressed.
+    recipes.sort_by(|a, b| a.output_name.cmp(b.output_name));
     recipes
 }
 
 /// Execute a craft: consume ingredients, return the output item ref + qty.
 /// Returns Err if the recipe isn't found or ingredients are missing.
+/// The highest requirement an untrained player can still meet.
+///
+/// Every recipe in the catalog asks for at least level 1 while a fresh
+/// `SkillProfile` reads 0, and no skill here earns XP from anything but
+/// crafting — so enforcing level 1 literally would lock the whole ladder shut.
+/// Level 1 is the entry tier; level 5 and up is where training starts to
+/// matter. Gathering is unaffected: its entry nodes genuinely ask for 0.
+const ENTRY_TIER: u32 = 1;
+
+/// What a successful craft produced.
+#[derive(Debug, Clone)]
+pub struct CraftOutcome {
+    pub output_name: &'static str,
+    pub output_qty: u32,
+    pub xp: u32,
+    /// The skill the recipe trains, e.g. `smithing`. `None` when the recipe
+    /// names no skill.
+    pub skill_ref: Option<&'static str>,
+}
+
+/// Why a craft was refused.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum CraftError {
+    UnknownItem(String),
+    NoRecipe(String),
+    SkillTooLow {
+        skill: &'static str,
+        required: u32,
+        current: u32,
+    },
+    MissingIngredient {
+        item_ref: String,
+        required: u32,
+        have: u32,
+    },
+}
+
+impl std::fmt::Display for CraftError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            CraftError::UnknownItem(id) => write!(f, "Item '{id}' not found"),
+            CraftError::NoRecipe(id) => write!(f, "No recipe for '{id}'"),
+            CraftError::SkillTooLow {
+                skill,
+                required,
+                current,
+            } => write!(f, "Needs {skill} level {required}. Yours is {current}."),
+            CraftError::MissingIngredient {
+                item_ref,
+                required,
+                have,
+            } => write!(f, "Missing ingredient: {item_ref} ({have}/{required})"),
+        }
+    }
+}
+
+/// Craft an item, consuming its ingredients.
+///
+/// Every ingredient is checked before any is taken. Consuming as it went meant
+/// a craft that failed on the last ingredient still ate the earlier ones.
 pub fn execute_craft(
     inventory: &mut super::types::GameInventory,
+    skills: &bevy_skills::SkillProfile,
     output_game_id: &str,
-) -> Result<(&'static str, u32, u32), String> {
+) -> Result<CraftOutcome, CraftError> {
     let db = item_db();
     let slug = output_game_id.replace('_', "-");
     let item = db
         .get_by_ref(&slug)
-        .ok_or_else(|| format!("Item '{}' not found", output_game_id))?;
+        .ok_or_else(|| CraftError::UnknownItem(output_game_id.to_owned()))?;
     let recipe = item
         .recipes
         .first()
-        .ok_or_else(|| format!("No recipe for '{}'", output_game_id))?;
+        .ok_or_else(|| CraftError::NoRecipe(output_game_id.to_owned()))?;
 
-    // Verify and consume ingredients
-    for ing in &recipe.ingredients {
-        let game_id = &ing.item_ref.replace('-', "_");
-        let required = ing.amount.max(1) as u32;
-        let consumed = ing.consumed.unwrap_or(true);
-        if consumed && !super::types::inv_remove_qty(inventory, game_id, required) {
-            return Err(format!("Missing ingredient: {}", ing.item_ref));
+    let skill_ref = recipe.skill.as_deref().map(|s| leak(s.to_owned()));
+    if let Some(skill) = skill_ref {
+        let required = recipe.skill_level.unwrap_or(0) as u32;
+        let current = skills.level(bevy_skills::SkillId::from_ref(skill));
+        if required > ENTRY_TIER && current < required {
+            return Err(CraftError::SkillTooLow {
+                skill,
+                required,
+                current,
+            });
         }
     }
 
-    // Add output
+    // Check everything first, then take it.
+    let mut to_consume: Vec<(&'static str, u32)> = Vec::new();
+    for ing in &recipe.ingredients {
+        let game_id = leak(ing.item_ref.replace('-', "_"));
+        let required = ing.amount.max(1) as u32;
+        let have = super::types::inv_count(inventory, game_id);
+        if have < required {
+            return Err(CraftError::MissingIngredient {
+                item_ref: ing.item_ref.clone(),
+                required,
+                have,
+            });
+        }
+        if ing.consumed.unwrap_or(true) {
+            to_consume.push((game_id, required));
+        }
+    }
+    for (game_id, required) in to_consume {
+        super::types::inv_remove_qty(inventory, game_id, required);
+    }
+
     let output_ref = slug_to_game_id(&item.r#ref);
     let output_name = leak(item.name.clone());
     let output_qty = recipe.output_quantity.unwrap_or(1).max(1) as u32;
     super::types::inv_add_qty(inventory, output_ref, output_qty);
 
-    let xp = recipe.xp_reward.unwrap_or(0.0) as u32;
-    Ok((output_name, output_qty, xp))
+    Ok(CraftOutcome {
+        output_name,
+        output_qty,
+        xp: recipe.xp_reward.unwrap_or(0.0) as u32,
+        skill_ref,
+    })
 }
 
 // ── Proto-driven initial intent ───────────────────────────────────────
@@ -2056,6 +2160,148 @@ mod landmark_tests {
                 }
             }
             assert!(drew, "{room_type:?} never draws a landmark");
+        }
+    }
+}
+
+#[cfg(test)]
+mod craft_tests {
+    use super::*;
+    use crate::types::{inv_add_qty, inv_count, inv_from_pairs};
+
+    #[test]
+    fn the_catalog_actually_carries_recipes() {
+        let with_recipes = item_db()
+            .iter()
+            .filter(|(_, i)| !i.recipes.is_empty())
+            .count();
+        assert!(
+            with_recipes > 0,
+            "no recipes baked — execute_craft can only ever fail"
+        );
+    }
+
+    #[test]
+    fn a_failed_craft_consumes_nothing() {
+        // campfire-kit wants log x3 + stone x1; give it the stone and one log.
+        let mut inv = inv_from_pairs(&[("log", 1), ("stone", 1)]);
+        let skills = bevy_skills::SkillProfile::default();
+
+        let err =
+            execute_craft(&mut inv, &skills, "campfire_kit").expect_err("three logs are required");
+
+        assert!(
+            matches!(err, CraftError::MissingIngredient { .. }),
+            "{err:?}"
+        );
+        assert_eq!(
+            inv_count(&inv, "log"),
+            1,
+            "the log was eaten by a failed craft"
+        );
+        assert_eq!(
+            inv_count(&inv, "stone"),
+            1,
+            "the stone was eaten by a failed craft"
+        );
+    }
+
+    #[test]
+    fn a_successful_craft_takes_its_ingredients_and_yields_the_output() {
+        let mut inv = inv_from_pairs(&[("log", 3), ("stone", 1)]);
+        let skills = bevy_skills::SkillProfile::default();
+
+        let outcome = execute_craft(&mut inv, &skills, "campfire_kit").expect("entry tier recipe");
+
+        assert_eq!(outcome.skill_ref, Some("crafting"));
+        assert!(outcome.xp > 0);
+        assert_eq!(inv_count(&inv, "log"), 0);
+        assert_eq!(inv_count(&inv, "stone"), 0);
+        assert_eq!(inv_count(&inv, "campfire_kit"), outcome.output_qty);
+    }
+
+    #[test]
+    fn a_deeper_recipe_needs_training() {
+        // ward wants crystal-ore + lavender at crafting 15.
+        let mut inv = inv_from_pairs(&[("crystal-ore", 4), ("lavender", 4)]);
+        let skills = bevy_skills::SkillProfile::default();
+
+        let err = execute_craft(&mut inv, &skills, "ward").expect_err("crafting 15 is required");
+
+        assert!(
+            matches!(err, CraftError::SkillTooLow { required: 15, .. }),
+            "{err:?}"
+        );
+        assert_eq!(
+            inv_count(&inv, "crystal-ore"),
+            4,
+            "a refused craft took materials"
+        );
+    }
+
+    #[test]
+    fn available_recipes_hides_what_the_player_cannot_make() {
+        let mut inv = inv_from_pairs(&[("crystal-ore", 4), ("lavender", 4)]);
+        inv_add_qty(&mut inv, "log", 3);
+        inv_add_qty(&mut inv, "stone", 1);
+        let skills = bevy_skills::SkillProfile::default();
+
+        let listed = available_recipes(&inv, &skills);
+        let names: Vec<&str> = listed.iter().map(|r| r.output_ref).collect();
+
+        assert!(
+            names.contains(&"campfire_kit"),
+            "an entry-tier recipe with ingredients should be listed: {names:?}"
+        );
+        assert!(
+            !names.contains(&"ward"),
+            "a recipe needing crafting 15 should not be offered: {names:?}"
+        );
+    }
+
+    #[test]
+    fn fletching_recipes_are_named_not_dropped() {
+        let mut inv = inv_from_pairs(&[("log", 4), ("cacti-needle", 4), ("stone", 4)]);
+        inv_add_qty(&mut inv, "timber", 4);
+        let skills = bevy_skills::SkillProfile::default();
+
+        let listed = available_recipes(&inv, &skills);
+        let arrow = listed.iter().find(|r| r.output_ref == "arrow");
+
+        if let Some(arrow) = arrow {
+            assert_eq!(
+                arrow.skill_name,
+                Some("Fletching"),
+                "fletching was missing from the skill display table"
+            );
+        }
+    }
+}
+
+#[cfg(test)]
+mod recipe_order_tests {
+    use super::*;
+    use crate::types::inv_from_pairs;
+
+    #[test]
+    fn the_recipe_list_is_stable_across_calls() {
+        let inv = inv_from_pairs(&[("log", 6), ("stone", 4), ("wildflower", 4), ("porcini", 4)]);
+        let skills = bevy_skills::SkillProfile::default();
+
+        let first: Vec<&str> = available_recipes(&inv, &skills)
+            .iter()
+            .map(|r| r.output_ref)
+            .collect();
+
+        for _ in 0..8 {
+            let again: Vec<&str> = available_recipes(&inv, &skills)
+                .iter()
+                .map(|r| r.output_ref)
+                .collect();
+            assert_eq!(
+                first, again,
+                "recipe order changed between calls — a positional key would craft the wrong row"
+            );
         }
     }
 }

@@ -9,48 +9,109 @@ unsplash: 1522071820081-009f0129c71c
 img: https://images.unsplash.com/photo-1522071820081-009f0129c71c?fit=crop&w=1400&h=700&q=75
 tags:
     - tools
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What does a webmaster actually do?
+          answer: A webmaster keeps a site online, fast, and discoverable — DNS, deploys, SEO, monitoring, backups, and compliance. On small teams it is one person; on larger teams the checklist splits across SRE, marketing, and platform engineering.
+        - question: Is the KBVE webmaster tool free?
+          answer: Yes. Drop a domain in the box and one-click into Google Search Console, Bing Webmaster, PageSpeed, SSL Labs, Wayback, and a few dozen other audits. Recent domains are remembered locally — no account, no tracking, no server round-trip.
+        - question: What Core Web Vitals targets should I aim for?
+          answer: LCP under 2.5 seconds, CLS under 0.1, and INP under 200 milliseconds on a mid-tier Android over 4G. That is the "good" threshold and the only one Search Console grades you on.
+        - question: Does robots.txt protect private files?
+          answer: No. Files and directories listed in robots.txt can still be accessed directly through their URLs, and malicious bots ignore the file entirely. It manages crawler traffic, not security.
+        - question: Which structured data format should I use?
+          answer: JSON-LD is the only format Google fully supports. Drop it in a script tag of type application/ld+json in the head, mark up only what the user sees, and validate with validator.schema.org.
+        - question: Do I need an XML sitemap?
+          answer: Yes for anything beyond a handful of pages. It lists your URLs with lastmod metadata so search engines discover updates quickly. Submit it through Google Search Console and Bing Webmaster Tools.
+bento:
+    badge: tools · seo · operations
+    title: Keep the site fast, found, and
+    accent: online
+    lede: >-
+        The webmaster's job is DNS, deploys, SEO, backups, and the 2 AM incident —
+        this page is the toolbox and the checklist. Drop a domain in the box and
+        one-click into twenty-six audits, then work through the guide below.
+    ctas:
+        - label: Open the toolbox
+          href: '#tool'
+          primary: true
+        - label: SEO guide
+          href: '#seo'
+        - label: Page speed
+          href: '#pagespeed'
+    aside:
+        icon: bolt
+        title: One box, every audit
+        body: >-
+            Enter a domain once and every tool link on the page lights up —
+            Search Console, PageSpeed, SSL Labs, Wayback, Whois, and more.
+        points:
+            - <strong>No account</strong> — recent domains are remembered locally.
+            - <strong>No tracking</strong> — no server round-trip, ever.
+            - <strong>26 tools</strong> — SEO, performance, security, DNS, tech, validators.
+    stats:
+        - { label: Audit tools, value: '26', icon: bolt }
+        - { label: Categories, value: '6', icon: gears }
+        - { label: LCP target, value: '< 2.5 s', icon: activity }
+        - { label: Data stored, value: Local only, icon: shield }
+    related:
+        - title: Developer tools
+          href: /tools/
+          copy: The rest of the KBVE tool belt — utilities, references, and calculators.
+          icon: gears
+        - title: Applications
+          href: /application/
+          copy: Guides for the languages and frameworks behind the sites you run.
+          icon: code
+    theme:
+        accent: '#38bdf8'
+        accent2: '#818cf8'
+        btn_fg: '#051018'
 ---
 
-import {
-	Card,
-	CardGrid,
-	LinkCard,
-	Steps,
-	Aside,
-	Tabs,
-	TabItem,
-} from '@astrojs/starlight/components';
+import { Steps, Aside } from '@astrojs/starlight/components';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+import BentoShell from '@/components/hero/BentoShell.astro';
 import AstroWebmasterTool from '@/components/webmaster/AstroWebmasterTool.astro';
 import AdsterraAds from '@/components/kbve/AdsterraAds.astro';
-import Adsense from '@/components/ads/Adsense.astro';
 
-<AstroWebmasterTool />
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
 
-<Aside>
+<BentoShell
+	id="tool"
+	eyebrow="Launchpad"
+	heading="Webmaster tools"
+	sub="Enter a domain and launch SEO, performance, security, and tech audits in one click.">
+	<AstroWebmasterTool />
+</BentoShell>
 
-Drop a domain in the box and one-click into Google Search Console, Bing Webmaster, PageSpeed, SSL Labs, Wayback, and a few dozen other audits.
-Recent domains are remembered locally — no account, no tracking, no server round-trip.
-
-</Aside>
-
-## Webmaster
+<BentoProse id="role" eyebrow="The job" heading="Webmaster">
 
 "Webmaster" is the catch-all for whoever keeps a site online, fast, and discoverable.
 On a small team that's one person juggling DNS, deploys, SEO, and the inevitable 2 AM incident.
 On a larger team it splits across SRE, marketing, and platform engineering — but the checklist below is what someone has to own end-to-end.
 
-## Website Management
+### Website Management
 
 Site management is the boring-but-load-bearing work: deploys don't break, links don't 404, certs don't expire, backups actually restore, and someone notices when traffic drops.
 The tools below are the ones we keep coming back to — most are free, all are linkable straight from the box above.
 
-### Page Speed
+</BentoProse>
+
+<BentoProse id="pagespeed" eyebrow="Performance" heading="Page Speed">
 
 Time-to-interactive is the metric Google cares about and the one users feel.
 Aim for **LCP under 2.5 s**, **CLS under 0.1**, and **INP under 200 ms** on a mid-tier Android over 4G — that's the Core Web Vitals "good" threshold, and the only one Search Console grades you on.
 Most slow pages are slow for one of three reasons: too much JavaScript, unoptimized images, or render-blocking third-party scripts (ads, analytics, A/B testing). Fix those first; the rest is rounding.
 
-#### PageSpeed CheckList
+### PageSpeed CheckList
 
 <Steps>
 
@@ -119,11 +180,15 @@ Additionally, experiment with the network "throttling" feature to simulate how y
 
 </Aside>
 
----
+</BentoProse>
 
-<AdsterraAds label="Sponsored" />
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<AdsterraAds label="Sponsored" />
+	</div>
+</section>
 
-## SEO
+<BentoProse id="seo" eyebrow="Search" heading="SEO">
 
 Two-thirds of SEO is "don't shoot yourself in the foot": correct canonicals, no accidental `noindex`, fast pages, real content, and internal links that actually go somewhere.
 The other third is the work — keyword research, building backlinks worth having, and producing pages a human would actually want to read.
@@ -390,9 +455,9 @@ Proper understanding and usage of these elements can significantly influence how
 
 </Aside>
 
----
+</BentoProse>
 
-## UXUI
+<BentoProse id="uxui" eyebrow="Design" heading="UX & UI">
 
 User Experience (UX) and User Interface (UI) are two critical components in web design that focus on optimizing a site’s usability and the user interaction experience.
 In the context of webmasters, these elements play a pivotal role in ensuring that a website not only functions efficiently but also engages and retains users effectively.
@@ -419,17 +484,17 @@ It's about creating an aesthetically pleasing interface that is aligned with the
 Webmasters must ensure that the UI is consistent across the website, reinforcing the brand’s identity through visual elements, which in turn enhances user trust and site credibility.
 Important considerations include color scheme, font choice, and element placement, which should all contribute to a harmonious and effective user interface.
 
----
+</BentoProse>
 
-## Marketing
+<BentoProse id="marketing" eyebrow="Growth" heading="Marketing">
 
 The honest version: organic search is slow but compounds, paid search converts the people already looking for you, content marketing pays back over months not days, and social mostly drives brand recall, not clicks.
 Pick two channels, measure them properly (UTM tags + a single analytics tool, not five), and iterate.
 Most "growth hacks" are either dead, banned, or never worked at scale — focus on a useful product and predictable distribution.
 
----
+</BentoProse>
 
-## Compliance
+<BentoProse id="compliance" eyebrow="Legal" heading="Compliance">
 
 Compliance is a critical aspect of web management that ensures a website adheres to legal and regulatory standards, which can vary widely depending on geography, industry, and the type of data a website handles.
 For our webmasters at KBVE, it is paramount to stay informed and compliant with an array of regulations such as the General Data Protection Regulation (GDPR) for privacy and data protection in the EU, the Americans with Disabilities Act (ADA) for website accessibility, and other local and international laws affecting online activities.
@@ -472,9 +537,9 @@ Staying compliant not only fosters trust with users but also fortifies the websi
 
 </Aside>
 
----
+</BentoProse>
 
-## Accessibility
+<BentoProse id="accessibility" eyebrow="Inclusive by default" heading="Accessibility">
 
 Accessibility stands as a fundamental component in web design and development, ensuring that every user, including those with disabilities, can effectively navigate and interact with websites.
 Strict adherence to the Web Content Accessibility Guidelines (WCAG) plays a pivotal role in this process.
@@ -599,9 +664,9 @@ Such thorough and proactive practices not only broaden the audience reach but al
 
 </Steps>
 
----
+</BentoProse>
 
-## Robots
+<BentoProse id="robots" eyebrow="Crawlers" heading="Robots">
 
 The Robots Exclusion Standard, commonly known as "robots.txt," is a fundamental component of website management and search engine optimization.
 It is a text file placed in the root directory of a website to instruct web crawlers (robots) about which parts of the site should not be processed or scanned.
@@ -672,9 +737,9 @@ Here is the rewritten text in a markdown table format:
 
 Understanding these user agents is crucial for webmasters when creating rules in `robots.txt` files or tailoring website content and experience based on the user's browser.
 
----
+</BentoProse>
 
-## Sitemap
+<BentoProse id="sitemap" eyebrow="Indexing" heading="Sitemap">
 
 Sitemaps are essential tools that guide search engines in effectively crawling and indexing a website.
 A sitemap provides a structured overview of all the pages on a site, ensuring that search engines can discover and understand the site's content and structure.
@@ -767,9 +832,9 @@ The structure of a Sitemap Index file includes a root tag `<sitemapindex>` and i
 
 </Aside>
 
----
+</BentoProse>
 
-## Mobile
+<BentoProse id="mobile" eyebrow="Small screens first" heading="Mobile">
 
 Over half of traffic on most sites is mobile and Google indexes mobile-first — meaning your phone render is the canonical version, not the desktop one.
 Three things matter more than the rest:
@@ -785,9 +850,9 @@ Other gotchas worth knowing:
 -   `@media (hover: none)` is the right gate for hover effects; otherwise tapping leaves stuck `:hover` state.
 -   Test with real devices, not just dev-tools throttle. The latency model in Chrome's mobile emulation is generous.
 
----
+</BentoProse>
 
-## Schema
+<BentoProse id="schema" eyebrow="Structured data" heading="Schema">
 
 Schema.org is a collaborative, community-driven initiative launched by major search engines such as Google, Microsoft, Yahoo, and Yandex, aimed at creating, maintaining, and promoting schemas for structured data on the Internet.
 The schemas provided by Schema.org help webmasters and developers to markup their pages in ways that can be recognized by major search providers, enhancing the display of search results through rich snippets and improving search relevance.
@@ -796,7 +861,7 @@ Implementing Schema.org markup can significantly impact a site's SEO performance
 
 
 | Schema.org Option              | Description                                                                                                                                                                                                                                                                             |
-| ------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | RDFa (RDFa 1.1)                | RDFa (Resource Description Framework in attributes) is a W3C standard that embeds rich metadata within HTML tags using additional attributes. It supports a range of vocabularies and enables complex representations of data relationships, enhancing semantic clarity in web content. |
 | Microdata                      | Microdata, a W3C standard similar to RDFa, integrates semantic annotations directly into HTML tags. It's used to define specific parts of HTML documents, like names or addresses, with a syntax that is simpler and more straightforward, ideal for basic annotations.                 |
 | JSON-LD (JSON for Linked Data) | JSON-LD is a lightweight, JavaScript-based format designed for representing structured data. As a preferred format for its separation from HTML, it facilitates the addition of semantic meaning to web pages, enhancing content understandability for search engines and apps.         |
@@ -837,9 +902,9 @@ Practical rules:
 
 The schema types worth implementing first: `Article` for posts, `Product` + `Offer` + `AggregateRating` for shop pages, `FAQPage` for support docs, `BreadcrumbList` everywhere, `Organization` + `WebSite` site-wide.
 
----
+</BentoProse>
 
-## Languages
+<BentoProse id="languages" eyebrow="i18n" heading="Languages">
 
 Most sites serve one audience well rather than ten audiences poorly.
 Don't translate unless you can keep translations fresh, hire native reviewers, and accept the operational cost (search consoles per language, hreflang upkeep, ToS in each jurisdiction).
@@ -878,11 +943,9 @@ The boring parts are usually what break in production:
 <link rel="alternate" hreflang="x-default" href="https://kbve.com/" />
 ```
 
----
+</BentoProse>
 
-<Adsense />
-
-## Hosting
+<BentoProse id="hosting" eyebrow="Infrastructure" heading="Hosting">
 
 For a brochure site: Cloudflare Pages, Netlify, or Vercel will be free or near-free and faster than anything you'd self-host.
 For an app with a real backend: a small VPS (Hetzner, DigitalOcean, Linode) at $5–20/mo handles more traffic than people assume, and gives you root.
@@ -911,9 +974,9 @@ These tips will help ensure that your hosting setup optimizes your website’s p
 
 </Aside>
 
----
+</BentoProse>
 
-## Recovery
+<BentoProse id="recovery" eyebrow="Backups" heading="Recovery">
 
 A backup you've never restored is not a backup.
 Schedule restore drills at least quarterly — pull last night's snapshot into a scratch environment, run the smoke tests, time how long it takes.
@@ -937,3 +1000,7 @@ The number you write down (RTO, recovery-time-objective) is the only number that
 These risks underline the importance of a comprehensive, well-tested recovery strategy to safeguard website operations and maintain continuity.
 
 </Aside>
+
+</BentoProse>
+
+</BentoDoc>

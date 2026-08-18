@@ -1,10 +1,5 @@
 extends GdUnitTestSuite
 
-## Guards the sky against the clock the host actually keeps.
-##
-## The host sends elapsed seconds and both sides turn those into an hour. If the two
-## mappings ever drift apart nothing errors — everyone stands in the same world under a
-## slightly different sun, which is the failure this clock exists to stop.
 
 const DayNight := preload("res://src/world/day_night.gd")
 
@@ -26,8 +21,6 @@ func _sky() -> Node3D:
 	return node
 
 
-## Spelled out rather than called, so this compares two independent statements of the
-## mapping instead of taking one of them on trust.
 func _hour_at(elapsed: float) -> float:
 	return fposmod(START_HOUR + elapsed * 24.0 / (DAY_MINUTES * 60.0), 24.0)
 
@@ -42,7 +35,6 @@ func test_a_driven_sky_reads_the_hour_the_host_would() -> void:
 	sky.queue_free()
 
 
-## A mapping that quietly lost its wrap still passes everything inside the first day.
 func test_the_sky_turns_over_at_midnight() -> void:
 	var sky := _sky()
 	assert_float(sky.hour_for(DAY_MINUTES * 60.0 * 0.625)).is_equal_approx(0.0, 0.01)
@@ -55,8 +47,6 @@ func test_the_sky_turns_over_at_midnight() -> void:
 	sky.queue_free()
 
 
-## Singleplayer has no host to take the time from, so the same node has to still be its
-## own clock rather than sitting wherever it was last told.
 func test_a_sky_is_its_own_clock_until_a_host_takes_it_over() -> void:
 	var sky := _sky()
 	assert_bool(sky.is_driven()) \

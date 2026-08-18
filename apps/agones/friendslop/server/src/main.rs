@@ -46,6 +46,9 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // On by default: a streaming set of regions is a superset of the single tile,
         // so it is correct whether or not the client streams. A client that does not
         // stream simply never walks off the first one.
+        ground_source: q::ground::GroundSource::parse(
+            &std::env::var("FS_GROUND_SOURCE").unwrap_or_default(),
+        ),
         stream_enabled: env_parse("FS_STREAM_ENABLED", true),
         stream_stride: env_parse("FS_STREAM_STRIDE", 128.0),
         // Wider than the stride so pacing a boundary does not churn bakes.
@@ -66,6 +69,7 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         tick_hz = cfg.tick_hz,
         extent = cfg.terrain_extent,
         resolution = cfg.terrain_resolution,
+        ground = cfg.ground_source.as_str(),
         stream = cfg.stream_enabled,
         stride = cfg.stream_stride,
         "friendslop-server listening"

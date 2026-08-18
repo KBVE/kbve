@@ -1,11 +1,6 @@
 class_name ChatClient
 extends Node
 
-## Game chat over the KBVE gateway's `/gamechat` socket.
-##
-## Accounts only. The gateway validates the JWT on upgrade and derives the nick from it,
-## so a guest has nothing to present and is never connected rather than being connected
-## anonymously.
 
 signal message(kind: String, sender: String, content: String)
 signal state_changed(connected: bool)
@@ -16,13 +11,9 @@ const GAME := "friendslop"
 const CHANNEL := "#general"
 const PLATFORM := "friendslop"
 
-## Gateway ceiling is 64 KiB a frame; this is a chat line, not a payload.
 const MAX_CONTENT := 400
 const RECONNECT_SECONDS := 5.0
 const MAX_BACKOFF := 60.0
-## A handshake that never reaches STATE_OPEN is the gateway spelling a refusal in HTTP
-## rather than a link that dropped, so retrying it forever just repeats the refusal at
-## the engine's own log level. The gateway answers 400 to a game key it does not carry.
 const MAX_HANDSHAKE_FAILURES := 3
 
 var _socket: WebSocketPeer
@@ -43,7 +34,6 @@ func is_connected_to_chat() -> bool:
 	return _connected
 
 
-## Opens the socket if there is an account to open it with. Safe to call repeatedly.
 func start() -> void:
 	_want = true
 	if not Auth.is_signed_in():
@@ -143,8 +133,6 @@ func _process(delta: float) -> void:
 			if _connected:
 				_connected = false
 				state_changed.emit(false)
-			## 1008 is the gateway refusing the token rather than the link dropping, and
-			## retrying a rejected token just repeats the rejection.
 			if code == 1008 or not Auth.is_signed_in():
 				failed.emit("chat.signin_required")
 				_want = false

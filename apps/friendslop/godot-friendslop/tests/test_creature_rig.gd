@@ -45,8 +45,6 @@ func test_states_are_fully_specified() -> void:
 	assert_str(Rig.STATES[&"move"][&"clip"]).is_empty()
 
 
-## Every clip the rig names has to exist in the pack, or the state is added to the
-## machine as a null node.
 func test_every_named_clip_exists_in_every_mech() -> void:
 	var wanted: Array[String] = []
 	wanted.append_array(Rig.MOVE_CLIPS)
@@ -61,8 +59,6 @@ func test_every_named_clip_exists_in_every_mech() -> void:
 					.override_failure_message("%s has no clip '%s'" % [mech, clip]).is_true()
 
 
-## The pack imports every clip as LOOP_NONE, cycles included, so the rig has to mark
-## them or Idle plays once and holds its last frame forever.
 func test_locomotion_clips_import_unlooped() -> void:
 	var scene: PackedScene = load("res://assets/characters/creatures/mech/models/George.glb")
 	var inst := scene.instantiate()
@@ -85,13 +81,11 @@ func test_attacks_are_one_shots_that_return() -> void:
 				.override_failure_message("attack '%s' should not loop" % attack).is_false()
 
 
-## Death is the one state that keeps the body, so a corpse does not stand back up.
 func test_death_does_not_return_to_move() -> void:
 	assert_bool(Rig.STATES[&"death"][&"returns_to_move"]).is_false()
 	assert_bool(Rig.STATES[&"death"][&"loop"]).is_false()
 
 
-## Airborne and dead states hand the legs back to the animation.
 func test_offground_states_release_the_foot_solver() -> void:
 	for state in [&"jump", &"death"]:
 		assert_float(Rig.STATES[state][&"ik"]) \
@@ -108,8 +102,6 @@ func test_ground_weight_blends_across_a_crossfade() -> void:
 	rig.free()
 
 
-## The pack exports every mech facing +Z, which is why the rig turns them 180 degrees.
-## Godot's forward is -Z, and a body facing +Z carries its left side on +X.
 func test_every_mech_exports_facing_positive_z() -> void:
 	var rig := Rig.new()
 	assert_float(rig.facing_offset_deg).is_equal(180.0)
@@ -127,8 +119,6 @@ func test_every_mech_exports_facing_positive_z() -> void:
 		inst.free()
 
 
-## The foot solver assumes this rig shape: a two- or three-bone chain down to the shin,
-## with the foot hung off the armature root as a control the chain does not carry.
 func test_every_mech_has_a_solvable_leg() -> void:
 	for mech in MECHS:
 		var inst := _instance(mech)
@@ -168,10 +158,6 @@ func test_shading_covers_every_mech_material() -> void:
 				.override_failure_message("no shading entry for %s_Texture" % mech).is_true()
 
 
-## `travel` will not path through a disabled transition, and with no route to the state it
-## was asked for the playback hard-cuts to it instead of cross-fading -- which makes every
-## xfade on these links dead weight. play_action travels into each of these states, so all
-## of them have to be reachable by hand.
 func test_no_transition_is_closed_to_travel() -> void:
 	var rig: Node = auto_free(Rig.new())
 	var machine := AnimationNodeStateMachine.new()

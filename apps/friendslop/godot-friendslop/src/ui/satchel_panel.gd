@@ -282,13 +282,7 @@ func _draw_panel() -> void:
 
 
 func _plate(fill: Color, radius: int, shadow := 0) -> StyleBoxFlat:
-	var box := StyleBoxFlat.new()
-	box.bg_color = fill
-	box.set_corner_radius_all(radius)
-	if shadow > 0:
-		box.shadow_size = shadow
-		box.shadow_color = Color(0.0, 0.0, 0.0, 0.45)
-	return box
+	return MenuStyle.plate(fill, radius, shadow)
 
 
 func _draw_frame() -> void:

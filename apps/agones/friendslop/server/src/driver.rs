@@ -10,6 +10,7 @@ use q::worldgen::{BridgePlan, HeightGen, HeightParams};
 
 use crate::props::{PropConfig, PropField};
 use crate::terrain_stream::{StreamConfig, TerrainStreamer};
+use q::ground::{Ground, GroundSource};
 
 pub struct DriverConfig {
     pub seed: u64,
@@ -19,6 +20,11 @@ pub struct DriverConfig {
     /// Must match the client's QTerrain: the bridge deck is measured from both.
     pub water_level: f32,
     pub road_width: f32,
+    /// Which field the ground comes from. Must match the client's QTerrain, the
+    /// same way the terrain shape in the join handshake must: two sides on
+    /// different fields is every player standing at a height the other does not
+    /// agree with.
+    pub ground_source: GroundSource,
     /// Follow players with a set of baked regions instead of laying one fixed tile at
     /// the origin. Off reproduces the old behaviour exactly, for a client whose own
     /// terrain streaming is switched off and which therefore never leaves the tile.
@@ -91,7 +97,8 @@ pub fn terrain_for(cfg: &DriverConfig) -> TerrainDesc {
         seed: cfg.seed as i32,
         ..Default::default()
     };
-    let heights = HeightGen::new(&params).bake(cfg.terrain_extent, cfg.terrain_resolution);
+    let heights = Ground::new(cfg.ground_source, params.seed, &params)
+        .bake(cfg.terrain_extent, cfg.terrain_resolution);
     TerrainDesc {
         heights: Arc::new(heights),
         resolution: cfg.terrain_resolution as u32,
@@ -126,6 +133,7 @@ pub fn spawn(
     let terrain = (!cfg.stream_enabled).then(|| terrain_for(&cfg));
     let seed = cfg.seed;
     let stream = cfg.stream_enabled;
+    let ground_source = cfg.ground_source;
     let extent = cfg.terrain_extent;
     let resolution = cfg.terrain_resolution;
     let stride = cfg.stream_stride;
@@ -188,6 +196,7 @@ pub fn spawn(
             let mut streamer = if stream {
                 let mut s = TerrainStreamer::new(StreamConfig {
                     seed,
+                    ground_source,
                     water_level: cfg.water_level,
                     road_width: cfg.road_width,
                     extent,

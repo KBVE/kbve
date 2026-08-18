@@ -126,5 +126,14 @@
 		"open": "[Enter] Chat",
 		"unreachable": "Chat server unreachable.",
 		"unavailable": "Chat is unavailable right now."
+	},
+	"tip": {
+		"play": "Join the online world with other players.",
+		"singleplayer": "Play on your own, offline.",
+		"sign_in": "Sign in with your KBVE account.",
+		"sign_out": "Sign out of this account.",
+		"settings": "Graphics, gameplay and language.",
+		"quit": "Close the game.",
+		"language": "Change the menu language."
 	}
 }

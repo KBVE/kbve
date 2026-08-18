@@ -30,6 +30,7 @@ pub struct Where {
     pub heading: Vec2,
     pub walking: bool,
     pub stop: usize,
+    pub stood: f32,
 }
 
 #[derive(Clone, Debug, Default)]
@@ -81,22 +82,25 @@ impl Day {
 
         let step = [to[0] - from[0], to[1] - from[1]];
         let far = (step[0] * step[0] + step[1] * step[1]).sqrt();
+        let since = self.since(hour, heading_for.hour);
         if far < 1e-4 {
             return Some(Where {
                 at: to,
                 heading: [0.0, 0.0],
                 walking: false,
                 stop,
+                stood: since,
             });
         }
 
-        let walked = self.since(hour, heading_for.hour) * self.speed;
+        let walked = since * self.speed;
         if walked >= far {
             return Some(Where {
                 at: to,
                 heading: [0.0, 0.0],
                 walking: false,
                 stop,
+                stood: since - far / self.speed,
             });
         }
         let heading = [step[0] / far, step[1] / far];
@@ -105,6 +109,7 @@ impl Day {
             heading,
             walking: true,
             stop,
+            stood: 0.0,
         })
     }
 

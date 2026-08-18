@@ -18,16 +18,12 @@ const TIMEOUT_SECONDS := 15.0
 
 const PROVIDERS := ["discord", "github", "twitch"]
 
+const TODO_PROVIDERS := ["google", "apple"]
+
 const REFRESH_MARGIN_SECONDS := 60
 
 const STORE_PATH := "user://session.cfg"
 
-## Where this session is kept. Settable before the node enters the tree, because
-## `_ready` restores from it.
-##
-## A test that leaves this alone reads whoever is signed in on the machine
-## running it: the suite passed on CI, where nobody is, and failed on a developer
-## who was. A test whose result depends on that is testing the machine.
 var store_path := STORE_PATH
 
 var _mode: Mode = Mode.SIGNED_OUT

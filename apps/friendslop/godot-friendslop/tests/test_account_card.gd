@@ -1,12 +1,10 @@
 extends GdUnitTestSuite
 
-## Guards what the title screen says about the signed-in player.
 
 const Card := preload("res://src/ui/account_card.gd")
 const Auth := preload("res://src/autoload/auth_session.gd")
 
 
-## Base64url with the padding stripped, which is the shape a real token arrives in.
 func _token(claims: Dictionary) -> String:
 	var payload := Marshalls.utf8_to_base64(JSON.stringify(claims))
 	payload = payload.replace("+", "-").replace("/", "_").rstrip("=")
@@ -26,8 +24,6 @@ func test_the_account_id_comes_out_of_the_token() -> void:
 	auth.queue_free()
 
 
-## Discord and GitHub write the picture into the token's own metadata, so there is no
-## call to make for it.
 func test_the_avatar_comes_out_of_the_token() -> void:
 	var auth: Node = Auth.new()
 	add_child(auth)
@@ -40,8 +36,6 @@ func test_the_avatar_comes_out_of_the_token() -> void:
 	auth.queue_free()
 
 
-## An avatar URL is fetched, so anything that is not plainly https is refused rather than
-## handed to HTTPRequest — a token is attacker-influenced data once an account is.
 func test_a_non_https_avatar_is_refused() -> void:
 	var auth: Node = Auth.new()
 	add_child(auth)
@@ -62,7 +56,6 @@ func test_a_token_that_is_not_one_says_nothing() -> void:
 	assert_str(Auth.username_in("nonsense")).is_equal("")
 
 
-## Credits run to millions by design, so they are grouped or they are a wall of digits.
 func test_balances_are_grouped() -> void:
 	assert_str(Card._grouped(0)).is_equal("0")
 	assert_str(Card._grouped(999)).is_equal("999")
@@ -71,8 +64,19 @@ func test_balances_are_grouped() -> void:
 	assert_str(Card._grouped(-4200)).is_equal("-4,200")
 
 
-## A balance that could not be read must not read as zero: that is a number a player
-## would act on, and it is a different claim from "we could not ask".
+func test_large_balances_are_abbreviated() -> void:
+	assert_str(Card._abbreviated(0)).is_equal("0")
+	assert_str(Card._abbreviated(999)).is_equal("999")
+	assert_str(Card._abbreviated(1000)).is_equal("1K")
+	assert_str(Card._abbreviated(900907)).is_equal("900K")
+	assert_str(Card._abbreviated(1500000)).is_equal("1500K")
+	assert_str(Card._abbreviated(9999999)).is_equal("9999K")
+	assert_str(Card._abbreviated(10000000)).is_equal("10M")
+	assert_str(Card._abbreviated(15000000)).is_equal("15M")
+	assert_str(Card._abbreviated(15400000)).is_equal("15.4M")
+	assert_str(Card._abbreviated(-2500000)).is_equal("-2500K")
+
+
 func test_an_unread_balance_is_not_shown_as_zero() -> void:
 	var card: AccountCard = Card.new()
 	add_child(card)
@@ -83,8 +87,6 @@ func test_an_unread_balance_is_not_shown_as_zero() -> void:
 	card.queue_free()
 
 
-## The title refreshes on every auth change and signing in emits more than once, so an
-## unguarded second fetch hits HTTPRequest mid-flight and returns ERR_BUSY.
 func test_a_repeated_avatar_load_does_not_start_a_second_request() -> void:
 	var card := Card.new()
 	add_child(card)
@@ -100,8 +102,6 @@ func test_a_repeated_avatar_load_does_not_start_a_second_request() -> void:
 			.is_true()
 
 
-## A blank or non-https picture is not fetched at all, so it never occupies the slot and
-## blocks the real one that arrives after it.
 func test_a_url_that_is_not_https_is_never_fetched() -> void:
 	var card := Card.new()
 	add_child(card)
@@ -112,8 +112,6 @@ func test_a_url_that_is_not_https_is_never_fetched() -> void:
 	assert_bool(card.load_avatar("https://example.invalid/a.png")).is_true()
 
 
-## Two accounts on one machine must not share a cache file, or the second one signs in
-## wearing the first one's face until its own picture arrives.
 func test_two_accounts_do_not_share_a_cache_file() -> void:
 	var mine := Card.cache_path("https://cdn.example.invalid/me.png")
 	var theirs := Card.cache_path("https://cdn.example.invalid/them.png")
@@ -122,8 +120,6 @@ func test_two_accounts_do_not_share_a_cache_file() -> void:
 	assert_str(Card.cache_path("https://cdn.example.invalid/me.png")).is_equal(mine)
 
 
-## The cached picture is drawn without asking the network, which is the whole point of
-## keeping it: a returning player sees their face before any request is made.
 func test_a_cached_picture_is_used_instead_of_a_request() -> void:
 	var url := "https://cdn.example.invalid/cached.png"
 	var path := Card.cache_path(url)
@@ -142,9 +138,6 @@ func test_a_cached_picture_is_used_instead_of_a_request() -> void:
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
 
 
-## The account UUID identifies the account and is no use to the person reading it, so no
-## part of the card may render it -- the title screen is the most likely thing on screen
-## while streaming or being screenshotted.
 func test_the_card_never_shows_the_account_uuid() -> void:
 	var uuid := "8b1f7c22-0000-4aaa-9999-1c2d3e4f5a6b"
 	var card := Card.new()

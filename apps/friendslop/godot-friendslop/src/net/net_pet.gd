@@ -20,13 +20,11 @@ var _client: Node
 var _body_id := 0
 
 
-## Points this pet at the body the host publishes for it.
 func bind_body(client: Node, body_id: int) -> void:
 	_client = client
 	_body_id = body_id
 
 
-## Velocity the host published, falling back to the drawn motion when it has not said.
 func _reported_velocity(here: Vector3, delta: float) -> Vector3:
 	var drawn := (here - _last_position) / delta
 	if _client == null or _body_id == 0:

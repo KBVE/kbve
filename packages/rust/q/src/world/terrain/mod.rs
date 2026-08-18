@@ -1,3 +1,4 @@
+mod landmark;
 mod river;
 mod road;
 mod water;
@@ -67,6 +68,18 @@ pub struct QTerrain {
     #[export]
     #[init(val = 513)]
     resolution: i32,
+    /// Which field the ground comes from: `authored` for the hills and the one
+    /// river everything is built around, `region` for sinks with the ground
+    /// derived from them.
+    ///
+    /// The region field is what an endless world wants -- bounded relief and
+    /// guaranteed drainage however far out you walk -- but it has seas and lakes
+    /// where the authored field has a river, so the road, the bridge and the
+    /// fishing have nothing to attach to and are not built. It is reachable so
+    /// it can be walked around in, not because anything depends on it yet.
+    #[export]
+    #[init(val = GString::from("authored"))]
+    ground_source: GString,
     /// Re-bakes the ground around the player as they walk, so the world does not
     /// end at `extent`.
     ///
@@ -155,6 +168,12 @@ pub struct QTerrain {
     wake_accum: f32,
     wake_last_pos: Vector3,
     last_player_pos: Vector3,
+    /// The height field the world is baked from, whichever was selected.
+    ground: Option<crate::ground::Ground>,
+    /// The authored field, and only when that is the one in use. The road, the
+    /// bridge and the river all read detail that exists nowhere else, so this
+    /// being `None` is what stops them being built over ground that has no river
+    /// to cross.
     hgen: Option<HeightGen>,
     gen_rx: Option<std::sync::mpsc::Receiver<Vec<f32>>>,
     gen_t0: Option<std::time::Instant>,
@@ -172,6 +191,14 @@ pub struct QTerrain {
     /// Sim bodies standing in for the bridge. The structure is rebuilt whenever the
     /// window moves, so these are taken down with the nodes they mirror.
     sim_bridge: PackedInt64Array,
+    /// What is built in the window currently baked. Derived from the seed, never
+    /// received, so the client and the server hold the same list without agreeing on
+    /// it.
+    landmarks: Vec<crate::landmark::Landmark>,
+    /// Cleared once the world has said where its built places are, which is worth
+    /// saying exactly once and not on every window.
+    #[init(val = true)]
+    landmark_log: bool,
     ground_shape: Option<Gd<HeightMapShape3D>>,
     window: Option<crate::worldgen::Window>,
     shift_rx: Option<std::sync::mpsc::Receiver<(Vec<f32>, [f32; 2])>>,
@@ -191,14 +218,18 @@ impl INode3D for QTerrain {
             godot::classes::DisplayServer::singleton()
                 .window_set_vsync_mode(godot::classes::display_server::VSyncMode::DISABLED);
         }
-        self.hgen = Some(HeightGen::new(&self.height_params()));
+        let source = crate::ground::GroundSource::parse(&self.ground_source.to_string());
+        let params = self.height_params();
+        self.ground = Some(crate::ground::Ground::new(source, params.seed, &params));
+        self.hgen =
+            (source == crate::ground::GroundSource::Authored).then(|| HeightGen::new(&params));
         self.gen_t0 = Some(std::time::Instant::now());
         self.window = Some(crate::worldgen::Window::aligned(
             self.extent,
             self.stream_stride,
             self.resolution.max(2),
         ));
-        let worker_gen = HeightGen::new(&self.height_params());
+        let worker_gen = crate::ground::Ground::new(source, params.seed, &params);
         let extent = self.extent;
         let res = self.resolution.max(2);
         let (tx, rx) = std::sync::mpsc::channel();
@@ -287,7 +318,9 @@ impl QTerrain {
         let Some(next) = window.next_origin([player.x, player.z]) else {
             return;
         };
-        let worker_gen = HeightGen::new(&self.height_params());
+        let params = self.height_params();
+        let source = crate::ground::GroundSource::parse(&self.ground_source.to_string());
+        let worker_gen = crate::ground::Ground::new(source, params.seed, &params);
         let (extent, res) = (self.extent, self.resolution.max(2));
         let (tx, rx) = std::sync::mpsc::channel();
         let job = move || {
@@ -376,8 +409,14 @@ impl QTerrain {
         // next frame.
         if !crate::world::q_hidden("road") {
             self.clear_road();
-            self.hgen = Some(HeightGen::new(&self.height_params()));
+            let params = self.height_params();
+            if crate::ground::GroundSource::parse(&self.ground_source.to_string())
+                == crate::ground::GroundSource::Authored
+            {
+                self.hgen = Some(HeightGen::new(&params));
+            }
             self.build_road();
+            self.build_landmarks();
         }
     }
 
@@ -386,6 +425,7 @@ impl QTerrain {
     fn clear_road(&mut self) {
         let taken = std::mem::take(&mut self.sim_bridge);
         self.despawn_sim_bridge(taken);
+        self.clear_landmarks();
         for name in ["BridgeBody", "BridgeAbutment", "Bridge"] {
             if let Some(mut n) = self.base().get_node_or_null(name) {
                 n.queue_free();
@@ -480,6 +520,7 @@ impl QTerrain {
 
         if !crate::world::q_hidden("road") {
             self.build_road();
+            self.build_landmarks();
         }
 
         let player = self
@@ -618,6 +659,50 @@ impl QTerrain {
         out.set("deck_y", f.deck_y);
         out
     }
+
+    /// Everything built in this window, as lines a flow field can be told about.
+    ///
+    /// `solid` is what to close, `open` is what to reopen afterwards -- a gateway and
+    /// the piers -- and `decks` are the raised walkways a body can stand underneath.
+    /// Each is a flat run of `ax, az, bx, bz, half_width`.
+    ///
+    /// Empty where nothing is built, which is nearly everywhere.
+    #[func]
+    fn landmark_plan(&self) -> VarDictionary {
+        let mut out = VarDictionary::new();
+        let Some(hgen) = self.hgen.as_ref().filter(|_| !self.landmarks.is_empty()) else {
+            return out;
+        };
+        let (solid, open, decks, deck_y) = self.landmark_bars(hgen);
+        out.set("solid", &PackedFloat32Array::from(solid.as_slice()));
+        out.set("open", &PackedFloat32Array::from(open.as_slice()));
+        out.set("decks", &PackedFloat32Array::from(decks.as_slice()));
+        out.set("deck_y", deck_y);
+        out
+    }
+
+    /// Where the nearest built place of each kind is, for pointing somebody at one.
+    ///
+    /// Reads the world rather than the window, so it answers for landmarks far
+    /// outside anything currently baked.
+    #[func]
+    fn nearest_landmarks(&self, from: Vector3) -> VarDictionary {
+        let mut out = VarDictionary::new();
+        let Some(hgen) = self.hgen.as_ref() else {
+            return out;
+        };
+        for mark in crate::landmark::nearest(hgen.seed(), hgen, [from.x, from.z]) {
+            let name = match mark.kind {
+                crate::landmark::LandmarkKind::Capital => "capital",
+                crate::landmark::LandmarkKind::Harbour => "harbour",
+            };
+            out.set(
+                name,
+                Vector3::new(mark.centre[0], mark.pad_y, mark.centre[1]),
+            );
+        }
+        out
+    }
 }
 
 impl QTerrain {
@@ -687,6 +772,17 @@ impl QTerrain {
     /// generator rather than from the baked grid.
     pub fn generator_params(&self) -> HeightParams {
         self.height_params()
+    }
+
+    /// Whether this world has the one authored river running through it.
+    ///
+    /// False on the region field, which has seas and lakes but no river, and so
+    /// nothing for the road, the bridge or a shoal of fish to be placed along.
+    pub fn has_river(&self) -> bool {
+        self.ground
+            .as_ref()
+            .map(|g| g.river_centre(0.0).is_some())
+            .unwrap_or(false)
     }
 
     pub fn river_center(&self, z: f32) -> f32 {
@@ -772,7 +868,7 @@ impl QTerrain {
     }
 
     fn height(&self, x: f32, z: f32) -> f32 {
-        self.hgen.as_ref().map(|g| g.height(x, z)).unwrap_or(0.0)
+        self.ground.as_ref().map(|g| g.height(x, z)).unwrap_or(0.0)
     }
 
     /// The drawn ground rather than the height data. See

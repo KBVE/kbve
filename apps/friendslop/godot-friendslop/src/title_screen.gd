@@ -79,9 +79,16 @@ func _ready() -> void:
 	_menu.cancel_requested.connect(_cancel)
 	_menu.locale_requested.connect(_switch_locale)
 	_menu.username_submitted.connect(_claim_username)
+	Toast.place(Toast.Corner.TOP_RIGHT)
 	_probe_server()
 	_ask_language_once()
 	_greet()
+
+
+## Toast is an autoload and outlives this scene, so the title has to hand the corner back
+## or the world keeps showing its messages up beside the compass.
+func _exit_tree() -> void:
+	Toast.place(Toast.Corner.BOTTOM_CENTER)
 
 
 func _greet() -> void:

@@ -1,8 +1,5 @@
 extends GdUnitTestSuite
 
-## Covers the GDScript side of the obstacle stamp: the scatter fields hand out
-## discs in the shape the field expects, and a wall of rocks routes around
-## rather than through.
 
 const EXTENT := 64.0
 const CELL := 4.0
@@ -32,8 +29,6 @@ func test_rocks_close_ground_and_trunks_only_cost() -> void:
 
 func test_a_route_goes_round_a_line_of_rocks() -> void:
 	var rocks := PackedFloat32Array()
-	# A wall from the south edge to just short of the middle, so the only way
-	# past is round the north end of it.
 	for i in 14:
 		rocks.append_array(PackedFloat32Array([0.0, -60.0 + i * 4.0, 2.5]))
 	var field := _open_field()
@@ -61,8 +56,6 @@ func test_a_route_goes_round_a_line_of_rocks() -> void:
 
 
 func test_scatter_fields_hand_out_triples() -> void:
-	# The shape of the answer is what the spawner relies on: three floats per
-	# obstacle. An unscattered field has none, and must still say so cleanly.
 	var field := QTreeField.new()
 	var discs: PackedFloat32Array = field.obstacle_discs()
 	assert_int(discs.size() % 3).is_equal(0)

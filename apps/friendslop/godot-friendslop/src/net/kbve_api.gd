@@ -30,11 +30,6 @@ func _ready() -> void:
 	_username_request.request_completed.connect(_on_username)
 
 
-## Asks for the balance, at most one request at a time.
-##
-## The title calls this on every `auth.changed` and signing in emits more than once. A
-## second call while the first is open returns ERR_BUSY, which used to be reported as a
-## failed wallet even though the request already running was about to answer.
 func fetch_wallet(token: String) -> void:
 	if _request == null or _fetching_wallet:
 		return

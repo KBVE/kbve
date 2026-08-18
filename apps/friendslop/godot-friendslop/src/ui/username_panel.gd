@@ -22,6 +22,8 @@ func _ready() -> void:
 	_regex.compile(PATTERN)
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_build()
+	_layout()
+	get_viewport().size_changed.connect(_layout)
 
 
 static func is_valid(name: String) -> bool:
@@ -129,3 +131,32 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed(&"ui_cancel"):
 		cancelled.emit()
 		get_viewport().set_input_as_handled()
+
+
+## Resizes to the viewport rather than the 1280x720 design, and re-runs whenever that
+## changes so a phone rotating does not keep the old measurements. The width is capped
+## against the safe area so the field clears a notch in landscape.
+func _layout() -> void:
+	if submit_button == null:
+		return
+	var s := MenuStyle.ui_scale(get_viewport())
+	var width := _panel_width(s)
+	var height := MenuStyle.BUTTON_MIN.y * s
+	if field:
+		field.custom_minimum_size = Vector2(width, height * 0.8)
+		field.add_theme_font_size_override("font_size", int(MenuStyle.BUTTON_FONT * s))
+	submit_button.custom_minimum_size = Vector2(width, height)
+	submit_button.add_theme_font_size_override("font_size", int(MenuStyle.BUTTON_FONT * s))
+	if cancel_button:
+		cancel_button.custom_minimum_size = Vector2(width, height)
+		cancel_button.add_theme_font_size_override("font_size", int(MenuStyle.BUTTON_FONT * s))
+	if message_label:
+		message_label.custom_minimum_size = Vector2(width, 0)
+		message_label.add_theme_font_size_override("font_size", int(13.0 * s))
+
+
+func _panel_width(s: float) -> float:
+	var view := get_viewport().get_visible_rect().size
+	var safe := MenuStyle.safe_insets(get_viewport())
+	var usable := maxf(view.x - safe.x - safe.z, 1.0)
+	return minf(WIDTH * s, usable * 0.88)

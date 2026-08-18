@@ -112,13 +112,8 @@ func _build_view() -> void:
 func _build_side() -> void:
 	var panel := PanelContainer.new()
 	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.09, 0.08, 0.12, 0.95)
-	style.content_margin_left = 14.0
-	style.content_margin_right = 14.0
-	style.content_margin_top = 10.0
-	style.content_margin_bottom = 10.0
-	panel.add_theme_stylebox_override("panel", style)
+	panel.add_theme_stylebox_override("panel",
+			MenuStyle.plate(Color(0.09, 0.08, 0.12, 0.95), 0, 0, Vector2(14.0, 10.0)))
 	add_child(panel)
 
 	var scroll := ScrollContainer.new()

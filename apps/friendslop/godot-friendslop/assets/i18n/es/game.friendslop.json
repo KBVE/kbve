@@ -89,5 +89,14 @@
 		"open": "[Enter] Chat",
 		"unreachable": "Servidor de chat inaccesible.",
 		"unavailable": "El chat no está disponible ahora."
+	},
+	"tip": {
+		"play": "Únete al mundo en línea con otros jugadores.",
+		"singleplayer": "Juega por tu cuenta, sin conexión.",
+		"sign_in": "Inicia sesión con tu cuenta de KBVE.",
+		"sign_out": "Cierra la sesión de esta cuenta.",
+		"settings": "Gráficos, juego e idioma.",
+		"quit": "Cierra el juego.",
+		"language": "Cambia el idioma del menú."
 	}
 }

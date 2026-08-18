@@ -1,9 +1,6 @@
 extends CanvasLayer
 
 
-const LAYOUT_HEIGHT := 720.0
-const SCALE_RANGE := Vector2(0.7, 1.4)
-
 const MARGIN := Vector2(26.0, 26.0)
 const BAR := Vector2(168.0, 9.0)
 const GAP := 6.0
@@ -50,10 +47,7 @@ func _process(delta: float) -> void:
 
 
 func _scale() -> float:
-	var h := _draw_layer.size.y
-	if h <= 0.0:
-		return 1.0
-	return clampf(h / LAYOUT_HEIGHT, SCALE_RANGE.x, SCALE_RANGE.y)
+	return MenuStyle.ui_scale(get_viewport())
 
 
 func _draw_bars() -> void:
@@ -61,7 +55,8 @@ func _draw_bars() -> void:
 		return
 	var scale := _scale()
 	var size := BAR * scale
-	var at := Vector2(MARGIN.x * scale, _draw_layer.size.y - MARGIN.y * scale - size.y)
+	var safe := MenuStyle.safe_insets(get_viewport())
+	var at := Vector2(MARGIN.x * scale + safe.x, _draw_layer.size.y - MARGIN.y * scale - size.y - safe.w)
 	var down := Vitals.is_down(id)
 	var inks := [HEALTH, MANA, ENERGY]
 	for i in range(2, -1, -1):
