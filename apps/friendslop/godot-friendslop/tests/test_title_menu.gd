@@ -241,8 +241,8 @@ func test_every_button_carries_a_translated_tooltip() -> void:
 func test_the_menu_scales_up_for_a_taller_viewport() -> void:
 	var menu := _menu()
 	assert_float(menu.ui_scale()).is_greater(0.0)
-	assert_float(menu.ui_scale()).is_less_equal(menu.SCALE_RANGE.y)
-	assert_float(menu.ui_scale()).is_greater_equal(menu.SCALE_RANGE.x)
+	assert_float(menu.ui_scale()).is_less_equal(MenuStyle.SCALE_RANGE.y)
+	assert_float(menu.ui_scale()).is_greater_equal(MenuStyle.SCALE_RANGE.x)
 
 
 ## Buttons must not run past the edge on a narrow screen, whatever the scale says.

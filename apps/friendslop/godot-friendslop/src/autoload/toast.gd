@@ -199,6 +199,7 @@ func _reflow() -> void:
 	var scale := _scale()
 	var width := COLUMN_WIDTH * scale
 	var pad := EDGE_PAD * scale
+	var safe := MenuStyle.safe_insets(get_viewport())
 	if _corner == Corner.TOP_RIGHT:
 		_column.alignment = BoxContainer.ALIGNMENT_BEGIN
 		_column.anchor_left = 1.0
@@ -207,10 +208,10 @@ func _reflow() -> void:
 		_column.anchor_bottom = 0.0
 		_column.grow_horizontal = Control.GROW_DIRECTION_BEGIN
 		_column.grow_vertical = Control.GROW_DIRECTION_END
-		_column.offset_left = -(width + pad)
-		_column.offset_right = -pad
-		_column.offset_top = pad
-		_column.offset_bottom = pad
+		_column.offset_left = -(width + pad + safe.z)
+		_column.offset_right = -(pad + safe.z)
+		_column.offset_top = pad + safe.y
+		_column.offset_bottom = pad + safe.y
 		return
 	_column.alignment = BoxContainer.ALIGNMENT_END
 	_column.anchor_left = 0.5
@@ -220,6 +221,6 @@ func _reflow() -> void:
 	_column.grow_horizontal = Control.GROW_DIRECTION_BOTH
 	_column.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	_column.offset_top = 0.0
-	_column.offset_bottom = -90.0 * scale
+	_column.offset_bottom = -(90.0 * scale + safe.w)
 	_column.offset_left = -260.0 * scale
 	_column.offset_right = 260.0 * scale

@@ -22,9 +22,6 @@ const AUTH := preload("res://src/autoload/auth_session.gd")
 const TITLE_KEY := "title.name"
 const SIGN_IN_HINT_KEY := "title.sign_in_hint"
 
-const LAYOUT_HEIGHT := 720.0
-const SCALE_RANGE := Vector2(0.8, 1.7)
-const TOUCH_MIN_SCALE := 1.25
 const TITLE_FONT := 64.0
 const STATUS_FONT := 14.0
 const BUILD_FONT := 12.0
@@ -182,9 +179,7 @@ func _add_button(parent: Control, text: String, action: Callable) -> PaperButton
 
 
 func ui_scale() -> float:
-	var view := get_viewport().get_visible_rect().size
-	var s := clampf(view.y / LAYOUT_HEIGHT, SCALE_RANGE.x, SCALE_RANGE.y)
-	return maxf(s, TOUCH_MIN_SCALE) if MenuStyle.touch else s
+	return MenuStyle.ui_scale(get_viewport())
 
 
 func _layout() -> void:
@@ -192,7 +187,9 @@ func _layout() -> void:
 		return
 	var view := get_viewport().get_visible_rect().size
 	var s := ui_scale()
-	var width := minf(MenuStyle.BUTTON_MIN.x * 1.2 * s, view.x * BUTTON_WIDTH_FRACTION)
+	var safe := MenuStyle.safe_insets(get_viewport())
+	var usable := maxf(view.x - safe.x - safe.z, 1.0)
+	var width := minf(MenuStyle.BUTTON_MIN.x * 1.2 * s, usable * BUTTON_WIDTH_FRACTION)
 	var height := MenuStyle.BUTTON_MIN.y * s
 
 	_column.add_theme_constant_override("separation", int(12.0 * s))
@@ -209,7 +206,7 @@ func _layout() -> void:
 			button.custom_minimum_size = Vector2(0, height * 0.7)
 			button.add_theme_font_size_override("font_size", int(LANGUAGE_FONT * s))
 	if _language_row:
-		_language_row.custom_minimum_size = Vector2(minf(view.x * BUTTON_WIDTH_FRACTION,
+		_language_row.custom_minimum_size = Vector2(minf(usable * BUTTON_WIDTH_FRACTION,
 				MenuStyle.BUTTON_MIN.x * 1.6 * s), 0)
 	if status_label:
 		status_label.add_theme_font_size_override("font_size", int(STATUS_FONT * s))
