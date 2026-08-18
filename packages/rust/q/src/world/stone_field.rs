@@ -142,7 +142,11 @@ impl QStoneField {
         }
         self.free_all();
         self.core.clear();
-        self.meshes.clear();
+        // The meshes stay. Every one of them is a function of the stone seed
+        // and the variant table -- three lods, two damage states and three
+        // hulls per variant -- and a window shift changes which rocks stand
+        // where, not what a rock is. Rebuilding all thirty-two on the main
+        // thread each stride was the bulk of a stone rescatter.
         self.slots.clear();
         self.init_done = false;
     }
@@ -166,7 +170,9 @@ impl QStoneField {
 
         let sample = |x: f32, z: f32| -> f32 { terra.height(x, z) };
 
-        self.build_meshes();
+        if self.meshes.is_empty() {
+            self.build_meshes();
+        }
         let heights: Vec<f32> = self.meshes.iter().map(|m| m.height).collect();
 
         let seed64 = self.stone_seed as u64;

@@ -337,6 +337,14 @@ pub struct QTreeField {
     mesh_tris: Vec<u64>,
     leaf_mats: Vec<Gd<ShaderMaterial>>,
     bark_mats: Vec<Gd<ShaderMaterial>>,
+    /// Everything about a species that does not depend on where the window is:
+    /// its three meshes, its two materials, its triangle counts. Built the first
+    /// time the species is placed and kept across rescatters, because a window
+    /// shift changes which trees stand where -- it does not change what a
+    /// species looks like, and regrowing every skeleton, recopying every face
+    /// list and reduplicating every material on the main thread each stride was
+    /// most of what a tree rescatter cost.
+    species_assets: Vec<Option<SpeciesAssets>>,
     player: Option<Gd<Node3D>>,
     last_player_pos: Vector3,
     #[init(val = -1.0)]
@@ -517,50 +525,17 @@ impl QTreeField {
                 continue;
             }
             let count = (cands.len() / 8) as u32;
-            let seed = (self.tree_seed as u32).wrapping_add(sp.seed_off);
 
-            let leaf_mat = self.leaf_material.as_ref().map(|m| m.duplicate_resource());
-            let mut leaf_aspect = 1.0f32;
-            if let Some(mut lm) = leaf_mat.clone()
-                && let Ok(tex) = try_load::<Texture2D>(sp.leaf_tex)
-            {
-                let size = tex.get_size();
-                if size.y > 0.0 {
-                    leaf_aspect = size.x / size.y;
-                }
-                lm.set_shader_parameter("albedo_tex", &tex.to_variant());
+            if self.species_assets.len() < SPECIES.len() {
+                self.species_assets.resize_with(SPECIES.len(), || None);
             }
-            let bark_mat = self.bark_material.as_ref().map(|m| {
-                let mut dup = m.duplicate_resource();
-                dup.set_shader_parameter("bark_color", &sp.bark_color.to_variant());
-                dup
-            });
-
-            let (mut near, crown) = build_skeleton_tree_mesh(seed, sp, leaf_aspect);
-            // Wind and canopy shading are normalised against the mesh the shader
-            // is actually drawing, so retuning the generator cannot desync them.
-            for mat in [leaf_mat.as_ref(), bark_mat.as_ref()].into_iter().flatten() {
-                let mut m = mat.clone();
-                m.set_shader_parameter("crown_top", &crown.top.to_variant());
-                m.set_shader_parameter("crown_base", &crown.leaf_lo.to_variant());
+            if self.species_assets[i].is_none() {
+                self.species_assets[i] = Some(self.build_species_assets(sp));
             }
-            if let Some(m) = bark_mat.as_ref() {
-                near.surface_set_material(0, m);
-            }
-            if let Some(m) = leaf_mat.as_ref() {
-                near.surface_set_material(1, m);
-            }
-            let mut far = build_far_tree_mesh(seed, sp.crown, sp.growth.shape);
-            if let Some(m) = self.tree_material.as_ref() {
-                far.surface_set_material(0, m);
-            }
-            if let Some(m) = leaf_mat.as_ref() {
-                far.surface_set_material(1, m);
-            }
-            let mut stump = build_stump_mesh(seed);
-            if let Some(m) = bark_mat.as_ref() {
-                stump.surface_set_material(0, m);
-            }
+            let assets = self.species_assets[i].as_ref().expect("just built");
+            let (near, far, stump) = (assets.near.clone(), assets.far.clone(), assets.stump.clone());
+            let (leaf_mat, bark_mat) = (assets.leaf_mat.clone(), assets.bark_mat.clone());
+            let tris = assets.tris;
 
             let band_lo = self.mesh_range - 8.0;
             let band_hi = self.mesh_range + 8.0;
@@ -628,9 +603,7 @@ impl QTreeField {
                     self.computes.push(n);
                     self.computes.push(f);
                     self.computes.push(s);
-                    self.mesh_tris.push((near.get_faces().len() / 3) as u64);
-                    self.mesh_tris.push((far.get_faces().len() / 3) as u64);
-                    self.mesh_tris.push((stump.get_faces().len() / 3) as u64);
+                    self.mesh_tris.extend_from_slice(&tris);
                     self.meshes.push(near);
                     self.meshes.push(far);
                     self.meshes.push(stump);
@@ -1143,11 +1116,83 @@ impl QTreeField {
         }
     }
 
+    /// Grows the window-independent half of one species: meshes, materials,
+    /// triangle counts. Everything in here is a function of the tree seed and
+    /// the species table alone, which is what makes caching it sound.
+    fn build_species_assets(&self, sp: &'static TreeSpecies) -> SpeciesAssets {
+        let seed = (self.tree_seed as u32).wrapping_add(sp.seed_off);
+
+        let leaf_mat = self.leaf_material.as_ref().map(|m| m.duplicate_resource());
+        let mut leaf_aspect = 1.0f32;
+        if let Some(mut lm) = leaf_mat.clone()
+            && let Ok(tex) = try_load::<Texture2D>(sp.leaf_tex)
+        {
+            let size = tex.get_size();
+            if size.y > 0.0 {
+                leaf_aspect = size.x / size.y;
+            }
+            lm.set_shader_parameter("albedo_tex", &tex.to_variant());
+        }
+        let bark_mat = self.bark_material.as_ref().map(|m| {
+            let mut dup = m.duplicate_resource();
+            dup.set_shader_parameter("bark_color", &sp.bark_color.to_variant());
+            dup
+        });
+
+        let (mut near, crown) = build_skeleton_tree_mesh(seed, sp, leaf_aspect);
+        // Wind and canopy shading are normalised against the mesh the shader
+        // is actually drawing, so retuning the generator cannot desync them.
+        for mat in [leaf_mat.as_ref(), bark_mat.as_ref()].into_iter().flatten() {
+            let mut m = mat.clone();
+            m.set_shader_parameter("crown_top", &crown.top.to_variant());
+            m.set_shader_parameter("crown_base", &crown.leaf_lo.to_variant());
+        }
+        if let Some(m) = bark_mat.as_ref() {
+            near.surface_set_material(0, m);
+        }
+        if let Some(m) = leaf_mat.as_ref() {
+            near.surface_set_material(1, m);
+        }
+        let mut far = build_far_tree_mesh(seed, sp.crown, sp.growth.shape);
+        if let Some(m) = self.tree_material.as_ref() {
+            far.surface_set_material(0, m);
+        }
+        if let Some(m) = leaf_mat.as_ref() {
+            far.surface_set_material(1, m);
+        }
+        let mut stump = build_stump_mesh(seed);
+        if let Some(m) = bark_mat.as_ref() {
+            stump.surface_set_material(0, m);
+        }
+        SpeciesAssets {
+            tris: [
+                (near.get_faces().len() / 3) as u64,
+                (far.get_faces().len() / 3) as u64,
+                (stump.get_faces().len() / 3) as u64,
+            ],
+            near,
+            far,
+            stump,
+            leaf_mat,
+            bark_mat,
+        }
+    }
+
     fn free_all(&mut self) {
         self.free_computes();
         self.free_colliders();
         self.free_falling();
     }
+}
+
+/// The window-independent half of one species, cached across rescatters.
+struct SpeciesAssets {
+    near: Gd<ArrayMesh>,
+    far: Gd<ArrayMesh>,
+    stump: Gd<ArrayMesh>,
+    leaf_mat: Option<Gd<ShaderMaterial>>,
+    bark_mat: Option<Gd<ShaderMaterial>>,
+    tris: [u64; 3],
 }
 
 struct MeshBuilder {
