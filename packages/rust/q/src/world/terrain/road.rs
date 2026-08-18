@@ -32,7 +32,15 @@ impl RoadNetwork {
         water_level: f32,
         width: f32,
     ) -> Self {
+        let t = std::time::Instant::now();
         let plan = crate::worldgen::RoadPlan::new(hgen, flat(origin), extent, water_level, width);
+        if std::env::var("Q_SHIFT_PROFILE").is_ok() {
+            godot_print!(
+                "[q]   road plan {:.1}ms, {} segments",
+                (std::time::Instant::now() - t).as_secs_f32() * 1000.0,
+                plan.segments().len()
+            );
+        }
         Self {
             width: plan.width,
             crossing: wide(plan.crossing),
@@ -117,27 +125,57 @@ impl QTerrain {
         let mut mask = vec![0u8; (res * res) as usize];
         let paint_reach = road.width * 1.9;
 
-        for iy in 0..res {
-            let z = origin.y - self.extent + iy as f32 * step;
-            for ix in 0..res {
-                let x = origin.x - self.extent + ix as f32 * step;
-                let p = Vector2::new(x, z);
-                if road.on_bridge(p) {
-                    continue;
+        // Painted by walking the carriageway rather than by asking every texel how
+        // far the carriageway is. The road covers a thin band of a wide window, so
+        // the second way spends nearly all of its time proving that ground nowhere
+        // near a road is nowhere near a road -- and it costs the whole window times
+        // every segment, which is what made a window shift a visible hitch.
+        //
+        // Coverage falls off with distance, so the most any segment gives a texel is
+        // what the nearest segment gives it. Taking the greatest is the same answer
+        // the minimum distance gave.
+        let t_mask = std::time::Instant::now();
+        let lo = Vector2::new(origin.x - self.extent, origin.y - self.extent);
+        for (a, b) in road.segments() {
+            let min_x = a.x.min(b.x) - paint_reach;
+            let max_x = a.x.max(b.x) + paint_reach;
+            let min_z = a.y.min(b.y) - paint_reach;
+            let max_z = a.y.max(b.y) + paint_reach;
+            let ix0 = (((min_x - lo.x) / step).floor() as i32).clamp(0, res - 1);
+            let ix1 = (((max_x - lo.x) / step).ceil() as i32).clamp(0, res - 1);
+            let iz0 = (((min_z - lo.y) / step).floor() as i32).clamp(0, res - 1);
+            let iz1 = (((max_z - lo.y) / step).ceil() as i32).clamp(0, res - 1);
+
+            for iy in iz0..=iz1 {
+                let z = lo.y + iy as f32 * step;
+                for ix in ix0..=ix1 {
+                    let x = lo.x + ix as f32 * step;
+                    let p = Vector2::new(x, z);
+                    let d = crate::worldgen::seg_distance(flat(p), flat(a), flat(b));
+                    if d > paint_reach {
+                        continue;
+                    }
+                    let slot = (iy * res + ix) as usize;
+                    let t = 1.0 - (d / paint_reach).clamp(0.0, 1.0);
+                    let v = ((t * t * (3.0 - 2.0 * t)) * 255.0) as u8;
+                    if v <= mask[slot] {
+                        continue;
+                    }
+                    if road.on_bridge(p) || hgen.height(x, z) < self.water_level + 0.35 {
+                        continue;
+                    }
+                    mask[slot] = v;
                 }
-                let d = road.distance(p);
-                if d > paint_reach {
-                    continue;
-                }
-                if hgen.height(x, z) < self.water_level + 0.35 {
-                    continue;
-                }
-                let t = 1.0 - (d / paint_reach).clamp(0.0, 1.0);
-                let v = t * t * (3.0 - 2.0 * t);
-                mask[(iy * res + ix) as usize] = (v * 255.0) as u8;
             }
         }
 
+        if std::env::var("Q_SHIFT_PROFILE").is_ok() {
+            godot_print!(
+                "[q]   road mask {:.1}ms",
+                (std::time::Instant::now() - t_mask).as_secs_f32() * 1000.0
+            );
+        }
+        let t_stamp = std::time::Instant::now();
         let data = PackedByteArray::from(mask.as_slice());
         let tex =
             Image::create_from_data(res, res, false, ImageFormat::R8, &data).and_then(|mut img| {
@@ -165,6 +203,12 @@ impl QTerrain {
             self.stamp_clearance_band(p.x, p.y, hard, hard + 1.8);
         }
         self.flush_clearance();
+        if std::env::var("Q_SHIFT_PROFILE").is_ok() {
+            godot_print!(
+                "[q]   road clearance {:.1}ms",
+                (std::time::Instant::now() - t_stamp).as_secs_f32() * 1000.0
+            );
+        }
 
         self.hgen = Some(hgen);
         self.road = Some(road);
@@ -674,6 +718,50 @@ mod tests {
 
     /// A window has to have road under the whole of it, or the carriageway stops
     /// in mid air partway across.
+    /// The carriageway is painted by walking each segment and keeping the greatest
+    /// coverage, where it used to be painted by asking every texel for its distance
+    /// to the whole road. That is only the same picture because coverage falls off
+    /// with distance -- so the most any segment gives a point is what the nearest one
+    /// gives it. If that ever stops holding, the road grows seams at segment joins.
+    #[test]
+    fn walking_the_road_paints_what_measuring_every_texel_did() {
+        let g = hgen();
+        let road = road_at(Vector2::ZERO);
+        let reach = road.width * 1.9;
+        let coverage = |d: f32| {
+            let t = 1.0 - (d / reach).clamp(0.0, 1.0);
+            t * t * (3.0 - 2.0 * t)
+        };
+
+        let mut painted = 0;
+        for iz in -60..=60 {
+            for ix in -60..=60 {
+                let p = Vector2::new(ix as f32 * 4.0, iz as f32 * 4.0);
+                let nearest = coverage(road.distance(p));
+                let greatest = road
+                    .segments()
+                    .map(|(a, b)| {
+                        coverage(crate::worldgen::seg_distance(
+                            [p.x, p.y],
+                            [a.x, a.y],
+                            [b.x, b.y],
+                        ))
+                    })
+                    .fold(0.0f32, f32::max);
+                assert_eq!(
+                    nearest.to_bits(),
+                    greatest.to_bits(),
+                    "the two ways disagree at {p:?}"
+                );
+                if nearest > 0.0 {
+                    painted += 1;
+                }
+            }
+        }
+        assert!(painted > 100, "sampled nowhere near the road: {painted}");
+        let _ = g;
+    }
+
     /// The trunk goes nowhere the moment you leave `z = 0`, so the roads that matter
     /// out in the world are the ones joining a capital to its harbour. If they are not
     /// laid, every landmark is a place with no way to it.

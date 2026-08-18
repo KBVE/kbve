@@ -549,7 +549,8 @@ impl Slab {
 pub const ROAD_SEGMENT_STEP: f32 = 4.0;
 const ROAD_STRAIGHT_APPROACH: f32 = 30.0;
 
-fn seg_distance(p: [f32; 2], a: [f32; 2], b: [f32; 2]) -> f32 {
+/// Distance from a point to a segment, which is the road's whole shape.
+pub fn seg_distance(p: [f32; 2], a: [f32; 2], b: [f32; 2]) -> f32 {
     let ab = [b[0] - a[0], b[1] - a[1]];
     let denom = (ab[0] * ab[0] + ab[1] * ab[1]).max(1e-6);
     let t = (((p[0] - a[0]) * ab[0] + (p[1] - a[1]) * ab[1]) / denom).clamp(0.0, 1.0);
@@ -672,6 +673,9 @@ impl RoadPlan {
 /// in the same place.
 const SPUR_SCAN_CELLS: i32 = 5;
 
+/// How far a road may bow off the straight line between its two ends.
+const SPUR_BOW: f32 = 40.0;
+
 fn landmark_roads(hgen: &HeightGen, origin: [f32; 2], extent: f32) -> Vec<([f32; 2], [f32; 2])> {
     let scan = crate::landmark::CELL * SPUR_SCAN_CELLS as f32;
     let near = extent + ROAD_SEGMENT_STEP * 2.0;
@@ -690,13 +694,20 @@ fn landmark_roads(hgen: &HeightGen, origin: [f32; 2], extent: f32) -> Vec<([f32;
         if run < ROAD_SEGMENT_STEP {
             continue;
         }
+        // Most roads in the scan radius pass nowhere near this window, and stepping
+        // one is a noise sample every four metres over kilometres. The road bows off
+        // its straight line by at most SPUR_BOW, so a straight line that clears the
+        // window by more than that plus the window's own corner cannot reach it.
+        if seg_distance(origin, from, to) > near * std::f32::consts::SQRT_2 + SPUR_BOW {
+            continue;
+        }
         let steps = (run / ROAD_SEGMENT_STEP).ceil() as i32;
         let mut prev = from;
         for i in 1..=steps {
             let t = i as f32 / steps as f32;
             // Bowed rather than ruled, and pinned straight at both ends so it meets
             // the gateway and the quay square on rather than at an angle.
-            let bow = (t * std::f32::consts::PI).sin() * hgen.wander(from[0] + run * t) * 40.0;
+            let bow = (t * std::f32::consts::PI).sin() * hgen.wander(from[0] + run * t) * SPUR_BOW;
             let nx = from[0] + (to[0] - from[0]) * t - (to[1] - from[1]) / run * bow;
             let nz = from[1] + (to[1] - from[1]) * t + (to[0] - from[0]) / run * bow;
             let next = [nx, nz];

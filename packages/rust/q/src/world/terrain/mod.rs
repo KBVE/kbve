@@ -288,6 +288,55 @@ impl INode3D for QTerrain {
     }
 }
 
+/// Times the stages of a window swap, which all run on the main thread while the
+/// bake that fed them ran off it.
+///
+/// A swap is one frame's work and a frame is 16ms, so anything here that is tens of
+/// milliseconds is a visible hitch every time the player crosses a stride. Off unless
+/// `Q_SHIFT_PROFILE` is set, because the timing itself is not free.
+struct ShiftTimer {
+    t0: Option<std::time::Instant>,
+    last: std::cell::Cell<std::time::Instant>,
+    parts: std::cell::RefCell<Vec<(&'static str, f32)>>,
+}
+
+impl ShiftTimer {
+    fn start() -> Self {
+        let on = std::env::var("Q_SHIFT_PROFILE").is_ok();
+        let now = std::time::Instant::now();
+        Self {
+            t0: on.then_some(now),
+            last: std::cell::Cell::new(now),
+            parts: std::cell::RefCell::new(Vec::new()),
+        }
+    }
+
+    fn mark(&self, name: &'static str) {
+        if self.t0.is_none() {
+            return;
+        }
+        let now = std::time::Instant::now();
+        self.parts
+            .borrow_mut()
+            .push((name, (now - self.last.get()).as_secs_f32() * 1000.0));
+        self.last.set(now);
+    }
+
+    fn finish(&self) {
+        let Some(t0) = self.t0 else {
+            return;
+        };
+        let total = (std::time::Instant::now() - t0).as_secs_f32() * 1000.0;
+        let parts: Vec<String> = self
+            .parts
+            .borrow()
+            .iter()
+            .map(|(n, ms)| format!("{n} {ms:.1}"))
+            .collect();
+        godot_print!("[q] window shift {total:.1}ms -- {}", parts.join(", "));
+    }
+}
+
 impl QTerrain {
     /// Moves the baked window after the player, one re-bake at a time.
     ///
@@ -347,6 +396,7 @@ impl QTerrain {
         if heights.len() != (res * res) as usize {
             return;
         }
+        let stage = ShiftTimer::start();
         if let Some(w) = self.window.as_mut() {
             w.origin = origin;
         }
@@ -399,8 +449,10 @@ impl QTerrain {
             let keep = ground.get_position();
             ground.set_position(Vector3::new(at.x, keep.y, at.z));
         }
+        stage.mark("upload");
         self.bake_clearance(&heights, res);
         self.heights = heights;
+        stage.mark("clearance");
 
         // The road paint, the bridge and the clearance all describe this stretch
         // of ground, so they are rebuilt with it. Scatter fields read the road
@@ -415,9 +467,13 @@ impl QTerrain {
             {
                 self.hgen = Some(HeightGen::new(&params));
             }
+            stage.mark("clear");
             self.build_road();
+            stage.mark("road");
             self.build_landmarks();
+            stage.mark("landmarks");
         }
+        stage.finish();
     }
 
     /// Takes down the previous window's road furniture. The carriageway is paint
