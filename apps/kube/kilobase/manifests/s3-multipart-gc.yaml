@@ -1,0 +1,214 @@
+# s3-multipart-gc — aborts incomplete S3 multipart uploads left behind by
+# failed barman backups. Parts from a failed upload are not objects: they are
+# invisible to s3 ls and to barman's retention sweep, but bill as storage
+# forever (found in #16009: seven failed backups from Mar/Apr/Jul 2026 left
+# orphaned parts with no cleanup path). Uses the same kilobase-s3-secret as
+# the barman plugin. If the bucket has no lifecycle configuration at all, the
+# job also installs an AbortIncompleteMultipartUpload rule so S3 handles
+# future orphans itself; if a lifecycle config exists it is left untouched.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: s3-multipart-gc-script
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: kilobase
+        app.kubernetes.io/component: s3-hygiene
+        app.kubernetes.io/managed-by: argocd
+data:
+    gc.sh: |
+        #!/bin/sh
+        set -eu
+
+        BUCKET="kilobase"
+        MAX_AGE_SECONDS=$((2 * 86400))
+
+        echo "=== S3 Multipart Upload GC ==="
+        echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+        echo ""
+
+        REGION=$(aws s3api get-bucket-location --bucket "${BUCKET}" \
+            --query LocationConstraint --output text --region us-east-1)
+        if [ "${REGION}" = "None" ] || [ -z "${REGION}" ]; then
+            REGION="us-east-1"
+        fi
+        export AWS_DEFAULT_REGION="${REGION}"
+        echo "Bucket region: ${REGION}"
+
+        NOW=$(date +%s)
+        FOUND=0
+        ABORTED=0
+
+        aws s3api list-multipart-uploads --bucket "${BUCKET}" \
+            --query 'Uploads[].[Key,UploadId,Initiated]' --output text \
+            > /tmp/uploads.tsv 2>/dev/null || true
+
+        if [ -s /tmp/uploads.tsv ] && ! grep -q '^None$' /tmp/uploads.tsv; then
+            while IFS="$(printf '\t')" read -r KEY UPLOAD_ID INITIATED; do
+                [ -z "${KEY}" ] && continue
+                FOUND=$((FOUND + 1))
+                INIT_EPOCH=$(date -d "${INITIATED}" +%s 2>/dev/null || echo 0)
+                AGE=$((NOW - INIT_EPOCH))
+                if [ "${AGE}" -ge "${MAX_AGE_SECONDS}" ]; then
+                    echo "Aborting: ${KEY} (initiated ${INITIATED}, $((AGE / 86400))d old)"
+                    aws s3api abort-multipart-upload --bucket "${BUCKET}" \
+                        --key "${KEY}" --upload-id "${UPLOAD_ID}"
+                    ABORTED=$((ABORTED + 1))
+                else
+                    echo "Keeping (in progress): ${KEY} (initiated ${INITIATED})"
+                fi
+            done < /tmp/uploads.tsv
+        fi
+
+        echo ""
+        echo "Incomplete uploads found: ${FOUND}, aborted: ${ABORTED}"
+
+        if aws s3api get-bucket-lifecycle-configuration --bucket "${BUCKET}" \
+            > /tmp/lifecycle.json 2>/tmp/lifecycle.err; then
+            if grep -q 'AbortIncompleteMultipartUpload' /tmp/lifecycle.json; then
+                echo "Lifecycle abort rule present."
+            else
+                echo "WARNING: lifecycle config exists WITHOUT an abort rule."
+                echo "Merge AbortIncompleteMultipartUpload into it manually;"
+                echo "this job will not overwrite existing rules."
+            fi
+        elif grep -q 'NoSuchLifecycleConfiguration' /tmp/lifecycle.err; then
+            echo "No lifecycle config - installing abort rule..."
+            aws s3api put-bucket-lifecycle-configuration --bucket "${BUCKET}" \
+                --lifecycle-configuration '{
+                  "Rules": [{
+                    "ID": "abort-incomplete-multipart",
+                    "Status": "Enabled",
+                    "Filter": {},
+                    "AbortIncompleteMultipartUpload": {"DaysAfterInitiation": 7}
+                  }]
+                }'
+            echo "Abort rule installed (7 days after initiation)."
+        else
+            echo "WARNING: could not read lifecycle config:"
+            cat /tmp/lifecycle.err
+        fi
+
+        echo ""
+        echo "=== GC complete ==="
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: s3-multipart-gc
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: kilobase
+        app.kubernetes.io/component: s3-hygiene
+        app.kubernetes.io/managed-by: argocd
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
+spec:
+    schedule: '15 5 * * *'
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 1
+    failedJobsHistoryLimit: 3
+    jobTemplate:
+        metadata:
+            labels:
+                app.kubernetes.io/name: kilobase
+                app.kubernetes.io/component: s3-hygiene
+        spec:
+            activeDeadlineSeconds: 300
+            backoffLimit: 1
+            ttlSecondsAfterFinished: 172800
+            template:
+                metadata:
+                    labels:
+                        app.kubernetes.io/name: kilobase
+                        app.kubernetes.io/component: s3-hygiene
+                spec:
+                    restartPolicy: Never
+                    automountServiceAccountToken: false
+                    securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 1000
+                        runAsGroup: 1000
+                        fsGroup: 1000
+                        seccompProfile:
+                            type: RuntimeDefault
+                    containers:
+                        - name: gc
+                          image: amazon/aws-cli:2.22.35
+                          command:
+                              - /bin/sh
+                              - /scripts/gc.sh
+                          env:
+                              - name: AWS_ACCESS_KEY_ID
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: kilobase-s3-secret
+                                        key: keyId
+                              - name: AWS_SECRET_ACCESS_KEY
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: kilobase-s3-secret
+                                        key: accessKey
+                              - name: HOME
+                                value: /tmp
+                          volumeMounts:
+                              - name: script
+                                mountPath: /scripts
+                                readOnly: true
+                              - name: tmp
+                                mountPath: /tmp
+                          resources:
+                              requests:
+                                  cpu: 50m
+                                  memory: 64Mi
+                              limits:
+                                  cpu: 200m
+                                  memory: 128Mi
+                          securityContext:
+                              allowPrivilegeEscalation: false
+                              readOnlyRootFilesystem: true
+                              capabilities:
+                                  drop:
+                                      - ALL
+                    volumes:
+                        - name: script
+                          configMap:
+                              name: s3-multipart-gc-script
+                              defaultMode: 365
+                        - name: tmp
+                          emptyDir: {}
+---
+# Egress for the GC pod: DNS plus HTTPS to S3. The cronjob-egress-apiserver-only
+# policy does not select this component; without an explicit allow the pod
+# would be unconstrained, so pin it to what the AWS API actually needs.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+    name: s3-hygiene-egress
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: kilobase
+        app.kubernetes.io/component: network-policy
+        app.kubernetes.io/managed-by: argocd
+spec:
+    endpointSelector:
+        matchLabels:
+            app.kubernetes.io/component: s3-hygiene
+    egress:
+        - toEntities:
+              - world
+          toPorts:
+              - ports:
+                    - port: '443'
+                      protocol: TCP
+        - toEndpoints:
+              - matchLabels:
+                    k8s:io.kubernetes.pod.namespace: kube-system
+                    k8s-app: kube-dns
+          toPorts:
+              - ports:
+                    - port: '53'
+                      protocol: UDP
+                    - port: '53'
+                      protocol: TCP
