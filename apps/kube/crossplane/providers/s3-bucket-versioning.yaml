@@ -1,0 +1,19 @@
+# Observe-only read of the kilobase bucket's versioning state (#16067).
+# managementPolicies: [Observe] means Crossplane never writes to AWS — it
+# imports the current state into .status.atProvider so the answer lives in
+# the cluster instead of requiring anyone to run aws login. Once the state
+# is known, this MR graduates to a full declaration (drop Observe, set the
+# desired status) in a follow-up PR.
+apiVersion: s3.aws.m.upbound.io/v1beta1
+kind: BucketVersioning
+metadata:
+    name: kilobase-backup-versioning
+    annotations:
+        argocd.argoproj.io/sync-wave: '10'
+        argocd.argoproj.io/sync-options: SkipDryRunOnMissingResource=true
+spec:
+    managementPolicies:
+        - Observe
+    forProvider:
+        bucket: kilobase
+        region: us-east-1
