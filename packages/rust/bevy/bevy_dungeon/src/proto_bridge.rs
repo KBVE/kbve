@@ -56,7 +56,6 @@ static MAP_DB: LazyLock<MapDb> =
 /// Built once from `MAP_DB` at first use; ordered by ref for determinism.
 struct LandmarkBuckets {
     boss: Vec<(String, String)>,
-    treasure: Vec<(String, String)>,
     merchant: Vec<(String, String)>,
     rest: Vec<(String, String)>,
     story: Vec<(String, String)>,
@@ -66,7 +65,6 @@ struct LandmarkBuckets {
 
 static LANDMARK_BUCKETS: LazyLock<LandmarkBuckets> = LazyLock::new(|| {
     let mut boss = Vec::new();
-    let mut treasure = Vec::new();
     let mut merchant = Vec::new();
     let mut rest = Vec::new();
     let mut story = Vec::new();
@@ -82,6 +80,12 @@ static LANDMARK_BUCKETS: LazyLock<LandmarkBuckets> = LazyLock::new(|| {
         match WorldObjectType::try_from(def.r#type).ok() {
             Some(WorldObjectType::WorldObjectArena) => boss.push(pair()),
             Some(WorldObjectType::WorldObjectResourceNode) => resource.push(pair()),
+            // Trading posts are marked as NPC positions rather than buildings.
+            Some(WorldObjectType::WorldObjectNpcMarker) => merchant.push(pair()),
+            Some(WorldObjectType::WorldObjectProp) => match kind {
+                "shrine" => rest.push(pair()),
+                _ => story.push(pair()),
+            },
             Some(WorldObjectType::WorldObjectSettlement) => underground_city.push(pair()),
             Some(WorldObjectType::WorldObjectBuilding) => match kind {
                 // Trade-flavored buildings → Merchant rooms
@@ -105,7 +109,6 @@ static LANDMARK_BUCKETS: LazyLock<LandmarkBuckets> = LazyLock::new(|| {
 
     let sort_pairs = |v: &mut Vec<(String, String)>| v.sort_by(|a, b| a.0.cmp(&b.0));
     sort_pairs(&mut boss);
-    sort_pairs(&mut treasure);
     sort_pairs(&mut merchant);
     sort_pairs(&mut rest);
     sort_pairs(&mut story);
@@ -114,7 +117,6 @@ static LANDMARK_BUCKETS: LazyLock<LandmarkBuckets> = LazyLock::new(|| {
 
     LandmarkBuckets {
         boss,
-        treasure,
         merchant,
         rest,
         story,
@@ -219,9 +221,10 @@ fn landmark_attach_chance(room_type: &RoomType) -> f32 {
         RoomType::Merchant => 0.60,
         RoomType::RestShrine => 0.50,
         RoomType::Resource => 0.95,
-        RoomType::Treasure => 0.40,
         RoomType::Story => 0.40,
-        RoomType::Combat | RoomType::Trap | RoomType::Hallway => 0.0,
+        // Treasure draws nothing: the catalog has no chest-like objects, and
+        // the resource nodes it used to borrow now belong to resource rooms.
+        RoomType::Treasure | RoomType::Combat | RoomType::Trap | RoomType::Hallway => 0.0,
     }
 }
 
@@ -239,13 +242,14 @@ pub fn pick_landmark_for_room_type<R: Rng + ?Sized>(
     }
     let bucket: &[(String, String)] = match room_type {
         RoomType::Boss => &LANDMARK_BUCKETS.boss,
-        RoomType::Treasure => &LANDMARK_BUCKETS.treasure,
         RoomType::Merchant => &LANDMARK_BUCKETS.merchant,
         RoomType::RestShrine => &LANDMARK_BUCKETS.rest,
         RoomType::Story => &LANDMARK_BUCKETS.story,
         RoomType::Resource => &LANDMARK_BUCKETS.resource,
         RoomType::UndergroundCity => &LANDMARK_BUCKETS.underground_city,
-        RoomType::Combat | RoomType::Trap | RoomType::Hallway => return None,
+        RoomType::Treasure | RoomType::Combat | RoomType::Trap | RoomType::Hallway => {
+            return None;
+        }
     };
     if bucket.is_empty() {
         return None;
@@ -1975,6 +1979,83 @@ mod gather_node_tests {
                 node.node_ref,
                 node.skill_ref
             );
+        }
+    }
+}
+
+#[cfg(test)]
+mod landmark_tests {
+    use super::*;
+
+    #[test]
+    fn the_embedded_mapdb_actually_yields_object_defs() {
+        assert!(
+            MAP_DB.object_defs().count() > 0,
+            "mapdb loaded zero object defs — the snapshot silently deserialized to defaults"
+        );
+    }
+
+    #[test]
+    fn resource_nodes_take_their_names_from_mapdb() {
+        let node = gather_nodes()
+            .iter()
+            .find(|n| n.node_ref == "copper-vein")
+            .expect("copper-vein must be a known node");
+        assert_eq!(
+            node.name, "Copper Vein",
+            "node name should come from mapdb, not the slug fallback"
+        );
+    }
+
+    /// A nonzero attach chance with an empty bucket is a silent dead end: the
+    /// roll succeeds and then finds nothing, which is how treasure rooms came
+    /// to advertise landmarks they could never show.
+    #[test]
+    fn no_room_type_promises_a_landmark_it_cannot_supply() {
+        for room_type in [
+            RoomType::Combat,
+            RoomType::Treasure,
+            RoomType::Trap,
+            RoomType::RestShrine,
+            RoomType::Merchant,
+            RoomType::Boss,
+            RoomType::Story,
+            RoomType::Hallway,
+            RoomType::Resource,
+            RoomType::UndergroundCity,
+        ] {
+            if landmark_attach_chance(&room_type) <= 0.0 {
+                continue;
+            }
+            let mut rng = rand::rng();
+            let drew =
+                (0..200).any(|_| pick_landmark_for_room_type(&room_type, &mut rng).is_some());
+            assert!(
+                drew,
+                "{room_type:?} has a landmark chance but an empty bucket"
+            );
+        }
+    }
+
+    #[test]
+    fn every_room_type_with_a_landmark_chance_has_a_bucket_to_draw_from() {
+        for room_type in [
+            RoomType::Boss,
+            RoomType::UndergroundCity,
+            RoomType::Merchant,
+            RoomType::RestShrine,
+            RoomType::Story,
+            RoomType::Resource,
+        ] {
+            let mut rng = rand::rng();
+            let mut drew = false;
+            for _ in 0..200 {
+                if pick_landmark_for_room_type(&room_type, &mut rng).is_some() {
+                    drew = true;
+                    break;
+                }
+            }
+            assert!(drew, "{room_type:?} never draws a landmark");
         }
     }
 }
