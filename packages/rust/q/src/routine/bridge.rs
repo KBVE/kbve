@@ -57,6 +57,7 @@ impl QRoutine {
         out.set("heading", wide(here.heading));
         out.set("walking", here.walking);
         out.set("stop", here.stop as i64);
+        out.set("stood", here.stood);
         out
     }
 }

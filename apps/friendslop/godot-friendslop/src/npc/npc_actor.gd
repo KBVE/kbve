@@ -49,6 +49,7 @@ const DRY_REACH := 60.0
 
 const LEFT_BEHIND := 3.0
 const CATCH_UP := 2.5
+const WORK_PREFIX := "UAL2/"
 
 var rig: Node3D
 
@@ -59,6 +60,9 @@ var _routine: QRoutine
 var _clock: Node
 var _stand := Vector3.ZERO
 var _attending: Node3D
+var _stops: Array = []
+var _worked_at := -1
+var _worked := -1
 
 
 func _ready() -> void:
@@ -326,6 +330,9 @@ func _lay_route() -> void:
 	var stops := _authored_stops()
 	if stops.is_empty() or _clock == null or not ClassDB.class_exists("QRoutine"):
 		return
+	stops.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
+		return float(a.get("hour", 0.0)) < float(b.get("hour", 0.0)))
+	_stops = stops
 	_routine = QRoutine.create(_clock.hour_seconds())
 	_routine.set_speed(walk_speed)
 	for stop: Dictionary in stops:
@@ -394,12 +401,49 @@ func _physics_process(delta: float) -> void:
 	_settle()
 
 	var walking: bool = here["walking"]
-	var facing: Vector3 = here["heading"] if walking else step
 	if not walking and behind <= reach:
-		_perform(idle_animation, "")
+		_stand_at(int(here["stop"]), float(here["stood"]))
 		return
-	_turn_toward(facing, delta)
+	_turn_toward(here["heading"] if walking else step, delta)
 	_perform(walk_animation, idle_animation)
+
+
+func _stand_at(stop: int, stood: float) -> void:
+	var task := _task_of(stop)
+	if task == "" or not _can_play(task):
+		_perform(idle_animation, "")
+	elif rig.animation.current_animation != task or not rig.animation.is_playing():
+		rig.animation.play(task)
+	_produce(stop, stood)
+
+
+func _task_of(stop: int) -> String:
+	if stop < 0 or stop >= _stops.size():
+		return ""
+	var task := str(_stops[stop].get("task", ""))
+	return WORK_PREFIX + task if task != "" and not task.contains("/") else task
+
+
+func _produce(stop: int, stood: float) -> void:
+	if stop < 0 or stop >= _stops.size():
+		return
+	var entry: Dictionary = _stops[stop]
+	var item := str(entry.get("yieldItem", ""))
+	var minutes := float(entry.get("yieldMinutes", 0.0))
+	if item == "" or minutes <= 0.0:
+		return
+	var period: float = minutes / 60.0 * _clock.hour_seconds()
+	var done := int(stood / period)
+	if stop != _worked_at:
+		_worked_at = stop
+		_worked = done
+		return
+	if done <= _worked:
+		return
+	_worked = done
+	var ground := GroundItems.of(get_tree())
+	if ground != null:
+		ground.drop(StringName(item), 1, global_position)
 
 
 func _turn_toward(dir: Vector3, delta: float) -> void:
