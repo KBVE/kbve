@@ -37,15 +37,29 @@ const GROUP := &"interactable"
 @export var bridge_offset := 2.0
 @export var bridge_along := 9.0
 
+@export_group("Routine")
+@export var route: Array[Vector3] = []
+@export_enum("Loop", "Ping-pong", "Once") var route_style := 1
+@export var route_dwell := 8.0
+@export var walk_speed := 1.0
+@export var turn_rate := 4.0
+@export var walk_animation := "UAL2/Walk_Fwd"
+
 const DRY_MARGIN := 0.6
 const DRY_STEP := 0.75
 const DRY_REACH := 60.0
+
+const ARRIVE := 0.4
+const LEFT_BEHIND := 3.0
 
 var rig: Node3D
 
 var _terrain: Node
 var _nameplate: Label3D
 var _prompt: Label3D
+var _routine: QRoutine
+var _stand := Vector3.ZERO
+var _attending: Node3D
 
 
 func _ready() -> void:
@@ -170,6 +184,7 @@ func listen() -> void:
 
 
 func rest() -> void:
+	attend(null)
 	_perform(idle_animation, "")
 
 
@@ -221,6 +236,7 @@ func _head_height() -> float:
 
 func _place_when_there_is_ground() -> void:
 	if _terrain == null:
+		_lay_route.call_deferred()
 		return
 	if not _terrain.has_method("is_ground_ready") or _terrain.is_ground_ready():
 		_place.call_deferred()
@@ -236,6 +252,7 @@ func _place() -> void:
 		_stand_under_bridge()
 	else:
 		_settle()
+	_lay_route()
 
 
 func _stand_under_bridge() -> void:
@@ -304,6 +321,74 @@ func _settle() -> void:
 		global_position.y = _terrain.height_at(global_position.x, global_position.z)
 
 
+func _lay_route() -> void:
+	_stand = global_position
+	if route.is_empty() or not ClassDB.class_exists("QRoutine"):
+		return
+	_routine = QRoutine.create()
+	_routine.set_style(route_style)
+	_routine.set_arrive(ARRIVE)
+	_routine.add_post(_stand, route_dwell)
+	for step in route:
+		_routine.add_post(_post_at(step), route_dwell)
+
+
+func _post_at(step: Vector3) -> Vector3:
+	var span := _span()
+	if span.size() < 5 or not stand_under_bridge:
+		return _dry(_stand + Vector3(step.x, 0.0, step.z))
+	return _dry(bridge_spot(span, bridge_offset + step.x, bridge_along + step.z))
+
+
+func _dry(wanted: Vector3) -> Vector3:
+	var away := wanted - _stand
+	away.y = 0.0
+	if _terrain == null or away.length() < 0.001:
+		return wanted
+	return dry_spot(_terrain, wanted, _stand, away.normalized())
+
+
+func _span() -> PackedFloat32Array:
+	if _terrain == null or not _terrain.has_method("bridge_span"):
+		return PackedFloat32Array()
+	return _terrain.bridge_span()
+
+
+func _physics_process(delta: float) -> void:
+	if _routine == null:
+		return
+	_check_attention()
+	var out: Dictionary = _routine.step(global_position, delta)
+	var wish: Vector3 = out["wish"]
+	if wish.length_squared() < 0.0001:
+		_perform(idle_animation, "")
+		return
+	global_position += wish * walk_speed * delta
+	_settle()
+	_turn_toward(wish, delta)
+	_perform(walk_animation, idle_animation)
+
+
+func _turn_toward(dir: Vector3, delta: float) -> void:
+	rotation.y = lerp_angle(rotation.y, atan2(-dir.x, -dir.z),
+			clampf(turn_rate * delta, 0.0, 1.0))
+
+
+func _check_attention() -> void:
+	if not _routine.is_held():
+		return
+	if _attending == null or not is_instance_valid(_attending) \
+			or _attending.global_position.distance_to(global_position) \
+					> talk_radius * LEFT_BEHIND:
+		attend(null)
+
+
+func attend(who: Node3D) -> void:
+	_attending = who
+	if _routine:
+		_routine.hold(who != null)
+
+
 func can_talk() -> bool:
 	return npc_ref != "" or dialogue_path != ""
 
@@ -315,6 +400,7 @@ func talk_range() -> float:
 func face(who: Node3D) -> void:
 	if who == null:
 		return
+	attend(who)
 	var to := who.global_position - global_position
 	to.y = 0.0
 	if to.length_squared() < 0.0001:

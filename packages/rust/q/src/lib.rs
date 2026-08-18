@@ -97,6 +97,8 @@ pub mod ik;
 /// Creature steering: waypoints, formation, avoidance, stuck recovery.
 pub mod steering;
 
+pub mod routine;
+
 #[cfg(any(
     feature = "rapier2d-client",
     feature = "rapier2d-server",
