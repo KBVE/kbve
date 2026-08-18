@@ -6,221 +6,127 @@ mod tests;
 
 pub type Vec2 = [f32; 2];
 
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Style {
-    Loop,
-    PingPong,
-    Once,
-}
+pub const HOURS_PER_DAY: f32 = 24.0;
+pub const WALK_SPEED: f32 = 1.0;
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Post {
+pub struct Stop {
     pub at: Vec2,
-    pub dwell: f32,
+    pub hour: f32,
 }
 
-impl Post {
-    pub fn new(at: Vec2, dwell: f32) -> Self {
+impl Stop {
+    pub fn new(at: Vec2, hour: f32) -> Self {
         Self {
             at,
-            dwell: dwell.max(0.0),
+            hour: hour.rem_euclid(HOURS_PER_DAY),
         }
     }
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Doing {
-    Walking,
-    Dwelling,
-    Held,
-    Done,
 }
 
 #[derive(Clone, Copy, Debug, PartialEq)]
-pub struct Step {
-    pub wish: Vec2,
-    pub target: Vec2,
-    pub doing: Doing,
-    pub post: usize,
-    pub arrived: bool,
+pub struct Where {
+    pub at: Vec2,
+    pub heading: Vec2,
+    pub walking: bool,
+    pub stop: usize,
 }
 
-pub const ARRIVE: f32 = 0.45;
-
-#[derive(Clone, Debug)]
-pub struct Walk {
-    posts: Vec<Post>,
-    style: Style,
-    arrive: f32,
-    post: usize,
-    forward: bool,
-    waiting: f32,
-    held: bool,
-    done: bool,
+#[derive(Clone, Debug, Default)]
+pub struct Day {
+    stops: Vec<Stop>,
+    speed: f32,
+    hour_seconds: f32,
 }
 
-impl Default for Walk {
-    fn default() -> Self {
-        Self::new(Vec::new(), Style::Loop)
-    }
-}
-
-impl Walk {
-    pub fn new(posts: Vec<Post>, style: Style) -> Self {
+impl Day {
+    pub fn new(hour_seconds: f32) -> Self {
         Self {
-            posts,
-            style,
-            arrive: ARRIVE,
-            post: 0,
-            forward: true,
-            waiting: 0.0,
-            held: false,
-            done: false,
+            stops: Vec::new(),
+            speed: WALK_SPEED,
+            hour_seconds: hour_seconds.max(0.001),
         }
     }
 
-    pub fn push(&mut self, post: Post) {
-        self.posts.push(post);
-        self.done = false;
+    pub fn push(&mut self, stop: Stop) {
+        self.stops.push(stop);
+        self.stops.sort_by(|a, b| {
+            a.hour
+                .partial_cmp(&b.hour)
+                .unwrap_or(std::cmp::Ordering::Equal)
+        });
     }
 
-    pub fn posts(&self) -> &[Post] {
-        &self.posts
+    pub fn stops(&self) -> &[Stop] {
+        &self.stops
     }
 
-    pub fn set_style(&mut self, style: Style) {
-        self.style = style;
-        if style != Style::Once {
-            self.done = false;
+    pub fn set_speed(&mut self, speed: f32) {
+        self.speed = speed.max(0.01);
+    }
+
+    pub fn set_hour_seconds(&mut self, seconds: f32) {
+        self.hour_seconds = seconds.max(0.001);
+    }
+
+    pub fn at(&self, hour: f32) -> Option<Where> {
+        if self.stops.is_empty() {
+            return None;
         }
-    }
+        let hour = hour.rem_euclid(HOURS_PER_DAY);
+        let stop = self.current(hour);
+        let heading_for = self.stops[stop];
+        let from = self.stops[self.before(stop)].at;
+        let to = heading_for.at;
 
-    pub fn set_arrive(&mut self, radius: f32) {
-        self.arrive = radius.max(0.01);
-    }
-
-    pub fn hold(&mut self, held: bool) {
-        self.held = held;
-    }
-
-    pub fn is_held(&self) -> bool {
-        self.held
-    }
-
-    pub fn head_for(&mut self, post: usize) {
-        if post >= self.posts.len() {
-            return;
+        let step = [to[0] - from[0], to[1] - from[1]];
+        let far = (step[0] * step[0] + step[1] * step[1]).sqrt();
+        if far < 1e-4 {
+            return Some(Where {
+                at: to,
+                heading: [0.0, 0.0],
+                walking: false,
+                stop,
+            });
         }
-        self.post = post;
-        self.waiting = 0.0;
-        self.done = false;
-    }
 
-    pub fn post(&self) -> usize {
-        self.post
-    }
-
-    pub fn target(&self) -> Option<Vec2> {
-        self.posts.get(self.post).map(|p| p.at)
-    }
-
-    pub fn step(&mut self, position: Vec2, delta: f32) -> Step {
-        let Some(post) = self.posts.get(self.post).copied() else {
-            return self.standing(position, Doing::Done);
-        };
-        if self.done {
-            return self.standing(post.at, Doing::Done);
+        let walked = self.since(hour, heading_for.hour) * self.speed;
+        if walked >= far {
+            return Some(Where {
+                at: to,
+                heading: [0.0, 0.0],
+                walking: false,
+                stop,
+            });
         }
-        if self.held {
-            return self.standing(post.at, Doing::Held);
-        }
-        if self.waiting > 0.0 {
-            self.waiting = (self.waiting - delta.max(0.0)).max(0.0);
-            if self.waiting > 0.0 {
-                return self.standing(post.at, Doing::Dwelling);
+        let heading = [step[0] / far, step[1] / far];
+        Some(Where {
+            at: [from[0] + heading[0] * walked, from[1] + heading[1] * walked],
+            heading,
+            walking: true,
+            stop,
+        })
+    }
+
+    fn since(&self, hour: f32, from_hour: f32) -> f32 {
+        (hour - from_hour).rem_euclid(HOURS_PER_DAY) * self.hour_seconds
+    }
+
+    fn current(&self, hour: f32) -> usize {
+        let mut found = self.stops.len() - 1;
+        for (i, stop) in self.stops.iter().enumerate() {
+            if stop.hour <= hour {
+                found = i;
             }
-            self.advance();
-            let target = self.target().unwrap_or(post.at);
-            return self.standing(target, self.moving_or_done());
         }
-
-        let to = [post.at[0] - position[0], post.at[1] - position[1]];
-        let far = (to[0] * to[0] + to[1] * to[1]).sqrt();
-        if far <= self.arrive {
-            self.waiting = post.dwell;
-            if self.waiting <= 0.0 {
-                self.advance();
-            }
-            return Step {
-                wish: [0.0, 0.0],
-                target: post.at,
-                doing: if self.done {
-                    Doing::Done
-                } else {
-                    Doing::Dwelling
-                },
-                post: self.post,
-                arrived: true,
-            };
-        }
-
-        Step {
-            wish: [to[0] / far, to[1] / far],
-            target: post.at,
-            doing: Doing::Walking,
-            post: self.post,
-            arrived: false,
-        }
+        found
     }
 
-    fn moving_or_done(&self) -> Doing {
-        if self.done {
-            Doing::Done
+    fn before(&self, stop: usize) -> usize {
+        if stop == 0 {
+            self.stops.len() - 1
         } else {
-            Doing::Walking
-        }
-    }
-
-    fn standing(&self, target: Vec2, doing: Doing) -> Step {
-        Step {
-            wish: [0.0, 0.0],
-            target,
-            doing,
-            post: self.post,
-            arrived: false,
-        }
-    }
-
-    fn advance(&mut self) {
-        let last = self.posts.len().saturating_sub(1);
-        if last == 0 {
-            self.done = self.style == Style::Once;
-            return;
-        }
-        match self.style {
-            Style::Loop => self.post = (self.post + 1) % self.posts.len(),
-            Style::Once => {
-                if self.post >= last {
-                    self.done = true;
-                } else {
-                    self.post += 1;
-                }
-            }
-            Style::PingPong => {
-                if self.forward {
-                    if self.post >= last {
-                        self.forward = false;
-                        self.post = last - 1;
-                    } else {
-                        self.post += 1;
-                    }
-                } else if self.post == 0 {
-                    self.forward = true;
-                    self.post = 1;
-                } else {
-                    self.post -= 1;
-                }
-            }
+            stop - 1
         }
     }
 }

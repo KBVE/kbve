@@ -128,6 +128,22 @@ What the list *does* carry is the chassis and whose it is, so a robot whose entr
 
 Neither the facing nor the walk cycle is on the wire — the character proxy never turns, so its pose says nothing about which way the thing is looking. Both come from how the body actually moved, and the **rig** is turned rather than the node, which the extension overwrites from the snapshot every frame.
 
+### The villagers' day
+
+The eight people at the crossing have a timetable rather than a walk. A routine is a list of stops — an hour, and an offset from wherever the world placed them — authored in each NPC's `npcdb` MDX and codegen'd into `assets/npcdb/npcdb.json` with the rest of them. `q/src/routine` answers one question from it: *given the hour, where is this person and are they walking?*
+
+That shape is deliberate, and it is what makes the crossing safe to put online. A stepped walk is local state, so two clients drift and a late joiner starts at stop one while everybody else is mid-afternoon — the same failure as two players under different suns. A routine derived from the clock has no state to disagree about: every machine reads the same hour and computes the same answer, a late joiner lands in phase, and nothing has to be sent. The protocol has carried `elapsed` for exactly this since the sky needed it.
+
+`day_night.gd` therefore keeps monotonic world seconds in both modes — accumulated locally when solo, taken from the host when driven — and `hour_seconds()` converts a day length into how long an hour lasts, so a longer day stretches the walk rather than teleporting people.
+
+The engine's half is small on purpose: an NPC walks toward wherever the clock says they should be, at up to a small multiple of their speed. On schedule that tracks it exactly. Off schedule — held for a conversation, or spawned mid-morning — the same rule catches them up without a second code path.
+
+A conversation stops the walk. It is released when the talk ends, and also when whoever started it walks away, because `rest()` is wired to the dialogue panel closing: a talk that never opens would otherwise leave somebody standing still for the session.
+
+Stops get the same rescue stands do — a stop that lands under the waterline is walked out to dry ground before anybody is sent to it. Offsets are relative, so the same `+6` is dry beside one person and midstream beside another.
+
+Not yet done: NPCs are still only in `main.tscn`, and they have no colliders in either scene. The moment one of them *does* something — produces goods, takes damage, holds a quest item — the clock stops being enough and the host has to own them, because that depends on what players did rather than what time it is.
+
 ### One simulation, and what is left of the second
 
 Solo and online used to run different simulations, and most confusing creature behaviour traced back to that. Solo has since moved onto q's `SimWorld` — the player and the creatures both — so the split is mostly closed. What follows is where it stands, because a half-migrated system is the easiest kind to reason about wrongly.
