@@ -10,7 +10,8 @@ use tokio::sync::{mpsc, watch};
 use super::dual::DualClient;
 use super::pets::{PetId, PetInfo};
 use super::session::{
-    ClientSession, ClientStatus, HarvestEvent, HarvestRewardEvent, PeerInfo, WorldInfo,
+    ClientSession, ClientStatus, HarvestEvent, HarvestRewardEvent, MovementConfig, PeerInfo,
+    WorldInfo,
 };
 use super::ws::WsClient;
 use crate::harvest::HarvestTarget;
@@ -41,6 +42,12 @@ pub struct NetClientState {
     /// Every pet deployed in the session, which is what says a body in the
     /// snapshot is somebody's robot rather than a player.
     pub pets: Vec<PetInfo>,
+    /// The constants the host integrates movement with, so a predictor on this side
+    /// advances the local body the same way rather than from its own numbers.
+    pub movement: Option<MovementConfig>,
+    /// Newest input sequence the host has confirmed simulating for us. Inputs after it
+    /// are the ones still to be replayed on top of `snapshot`.
+    pub acked_input: u32,
 }
 
 impl Default for NetClientState {
@@ -59,6 +66,8 @@ impl Default for NetClientState {
             elapsed: 0.0,
             day: 0,
             pets: Vec::new(),
+            movement: None,
+            acked_input: 0,
         }
     }
 }
@@ -373,6 +382,8 @@ fn run(w: Wiring) {
             elapsed: session.elapsed(),
             day: session.day(),
             pets: session.pets().to_vec(),
+            movement: session.movement(),
+            acked_input: session.acked_input(),
         }));
 
         if dropped {

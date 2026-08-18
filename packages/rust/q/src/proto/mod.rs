@@ -14,7 +14,11 @@ use serde::{Deserialize, Serialize};
 /// 10: the world clock is elapsed seconds rather than an hour — `Welcome` carries
 ///    `start_hour` and `elapsed` in place of `time_of_day`, and `WorldTime` carries
 ///    `elapsed`.
-pub const PROTOCOL_VERSION: u32 = 10;
+/// 11: what a client needs to predict its own movement — `Welcome` carries the
+///    movement constants and the host's timestep, and `Snapshot` carries the input
+///    sequence each player has been simulated up to. Both were host-only, which is
+///    what made prediction unimplementable rather than merely unimplemented.
+pub const PROTOCOL_VERSION: u32 = 11;
 
 /// Maximum players per match (parallel-race default per #11294).
 pub const MAX_PLAYERS: usize = 4;
