@@ -12,6 +12,7 @@ pub const WONT: u8 = 252;
 pub const WILL: u8 = 251;
 pub const SB: u8 = 250;
 pub const SE: u8 = 240;
+pub const NOP: u8 = 241;
 
 pub const OPT_BINARY: u8 = 0;
 pub const OPT_ECHO: u8 = 1;
@@ -69,6 +70,11 @@ pub struct TelnetConn {
     /// fallback, and an ANSI terminal ends up laid out for a C64.
     pub naws_seen: bool,
     idle_timeout: Duration,
+    keepalive: Duration,
+    /// Set once the caller sends an `IAC` of their own. Raw `nc` users never
+    /// do, and painting `FF F1` into their scrollback every minute would be
+    /// worse than the dropped link the heartbeat is there to prevent.
+    peer_telnet: bool,
     pending_eol: bool,
 }
 
@@ -86,6 +92,8 @@ impl TelnetConn {
             term_type: None,
             naws_seen: false,
             idle_timeout,
+            keepalive: super::keepalive(),
+            peer_telnet: false,
             pending_eol: false,
         }
     }
@@ -99,6 +107,25 @@ impl TelnetConn {
     /// longer leash than an anonymous one holding a session slot.
     pub fn set_idle_timeout(&mut self, idle_timeout: Duration) {
         self.idle_timeout = idle_timeout;
+    }
+
+    /// Shorten the heartbeat so a test need not sit through a real minute.
+    #[cfg(test)]
+    pub fn set_keepalive(&mut self, keepalive: Duration) {
+        self.keepalive = keepalive;
+    }
+
+    /// `IAC NOP` — a byte pair every telnet client discards. It costs nothing
+    /// to read but keeps NAT and load-balancer flow tables from reaping a
+    /// connection whose caller is reading rather than typing, and it is what
+    /// turns a peer that vanished into a write error we can act on.
+    async fn heartbeat(&mut self) -> Result<(), ReadError> {
+        if !self.peer_telnet {
+            return Ok(());
+        }
+        self.stream.write_all(&[IAC, NOP]).await?;
+        self.stream.flush().await?;
+        Ok(())
     }
 
     /// Offer server-side echo plus suppress-go-ahead and ask for window size and terminal type.
@@ -172,15 +199,37 @@ impl TelnetConn {
             if let Some(b) = self.pending.pop_front() {
                 return Ok(b);
             }
-            let mut buf = [0u8; READ_CHUNK];
-            let n = match tokio::time::timeout(self.idle_timeout, self.stream.read(&mut buf)).await
-            {
-                Err(_) => return Err(ReadError::Timeout),
-                Ok(Ok(0)) => return Err(ReadError::Closed),
-                Ok(Ok(n)) => n,
-                Ok(Err(e)) => return Err(ReadError::Io(e)),
+            self.fill().await?;
+        }
+    }
+
+    /// Wait for inbound bytes, heartbeating through the silence. The idle
+    /// allowance is spent across the whole wait rather than reset by each
+    /// nudge, so a signed-in caller still times out on schedule — the
+    /// heartbeat keeps the socket from dying early, it does not make the
+    /// session immortal.
+    async fn fill(&mut self) -> Result<(), ReadError> {
+        let mut waited = Duration::ZERO;
+        loop {
+            let remaining = self.idle_timeout.saturating_sub(waited);
+            if remaining.is_zero() {
+                return Err(ReadError::Timeout);
+            }
+            let slice = if self.keepalive.is_zero() {
+                remaining
+            } else {
+                self.keepalive.min(remaining)
             };
-            self.consume(&buf[..n]).await?;
+            let mut buf = [0u8; READ_CHUNK];
+            match tokio::time::timeout(slice, self.stream.read(&mut buf)).await {
+                Err(_) => {
+                    waited += slice;
+                    self.heartbeat().await?;
+                }
+                Ok(Ok(0)) => return Err(ReadError::Closed),
+                Ok(Ok(n)) => return self.consume(&buf[..n]).await,
+                Ok(Err(e)) => return Err(ReadError::Io(e)),
+            }
         }
     }
 
@@ -188,7 +237,10 @@ impl TelnetConn {
         for &b in chunk {
             match self.state {
                 State::Data => match b {
-                    IAC => self.state = State::Iac,
+                    IAC => {
+                        self.peer_telnet = true;
+                        self.state = State::Iac;
+                    }
                     _ => self.pending.push_back(b),
                 },
                 State::Iac => match b {
