@@ -531,6 +531,31 @@ impl RegionGen {
     pub fn max_relief(&self) -> f32 {
         self.params.slope * self.sink_reach()
     }
+
+    /// Row-major `res * res` heights over `[-extent, extent]` on both axes.
+    pub fn bake(&self, extent: f32, res: i32) -> Vec<f32> {
+        self.bake_at([0.0, 0.0], extent, res)
+    }
+
+    /// The same grid, centred anywhere.
+    ///
+    /// Sampled pointwise from [`height`](Self::height), which is stateless and
+    /// unbounded, so a window is only ever a view: two windows overlapping the
+    /// same ground agree on it exactly. That is the property the streaming world
+    /// rests on, and it is what lets this stand in for the single authored field
+    /// without the seam becoming a cliff.
+    pub fn bake_at(&self, origin: [f32; 2], extent: f32, res: i32) -> Vec<f32> {
+        let step = extent * 2.0 / (res - 1).max(1) as f32;
+        let mut heights = vec![0.0f32; (res.max(1) * res.max(1)) as usize];
+        for iy in 0..res {
+            let z = origin[1] - extent + iy as f32 * step;
+            for ix in 0..res {
+                let x = origin[0] - extent + ix as f32 * step;
+                heights[(iy * res + ix) as usize] = self.height(x, z);
+            }
+        }
+        heights
+    }
 }
 
 #[cfg(test)]
@@ -550,6 +575,58 @@ mod tests {
             let z = (unit(hash32(h)) - 0.5) * 40_000.0;
             (x, z)
         })
+    }
+
+    /// The property the streaming world rests on. Two windows that overlap must
+    /// agree on the ground they share exactly, or the seam between them is a
+    /// cliff a body falls off.
+    ///
+    /// Compared on bits, not on an epsilon: the client and the server bake these
+    /// grids independently and a heightmap that agrees only to a tolerance is a
+    /// player standing at a slightly different height on each machine.
+    #[test]
+    fn overlapping_windows_agree_on_shared_ground() {
+        let g = field();
+        let (extent, res) = (256.0f32, 129);
+        let step = extent * 2.0 / (res - 1) as f32;
+        let shift = step * 32.0;
+
+        let a = g.bake_at([0.0, 0.0], extent, res);
+        let b = g.bake_at([shift, 0.0], extent, res);
+
+        let overlap = res - 32;
+        let mut checked = 0;
+        for iy in 0..res {
+            for ix in 0..overlap {
+                let from_a = a[(iy * res + ix + 32) as usize];
+                let from_b = b[(iy * res + ix) as usize];
+                assert_eq!(
+                    from_a.to_bits(),
+                    from_b.to_bits(),
+                    "windows disagree at ({ix}, {iy})"
+                );
+                checked += 1;
+            }
+        }
+        assert!(checked > 10_000, "overlap too small to prove anything");
+    }
+
+    /// A bake must be the height function and nothing else, so that anything
+    /// sampling the ground directly and anything reading the baked texture land
+    /// a body in the same place.
+    #[test]
+    fn a_bake_matches_the_field_it_came_from() {
+        let g = field();
+        let (origin, extent, res) = ([512.0f32, -768.0], 128.0f32, 65);
+        let grid = g.bake_at(origin, extent, res);
+        let step = extent * 2.0 / (res - 1) as f32;
+        for iy in 0..res {
+            let z = origin[1] - extent + iy as f32 * step;
+            for ix in 0..res {
+                let x = origin[0] - extent + ix as f32 * step;
+                assert_eq!(grid[(iy * res + ix) as usize].to_bits(), g.height(x, z).to_bits());
+            }
+        }
     }
 
     #[test]
