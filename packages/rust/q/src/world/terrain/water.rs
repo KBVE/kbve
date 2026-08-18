@@ -382,6 +382,16 @@ impl QTerrain {
     }
 
     pub(super) fn free_water_fx(&mut self) {
+        if let Some(m) = self.water_material.as_mut() {
+            m.set_shader_parameter("pattern_tex", &Variant::nil());
+            m.set_shader_parameter("wake_tex", &Variant::nil());
+        }
+        if let Some(w) = self.pattern_wrap.as_mut() {
+            w.set_texture_rd_rid(Rid::Invalid);
+        }
+        for w in self.wake_wraps.iter_mut() {
+            w.set_texture_rd_rid(Rid::Invalid);
+        }
         let Some(rd) = self.water_rd.as_mut() else {
             return;
         };
