@@ -261,10 +261,25 @@ import ReactReelFiles from '@/components/media/ReactReelFiles';
 
 	:global(.reel-console__header) {
 		display: flex;
-		align-items: center;
+		align-items: flex-start;
 		justify-content: space-between;
 		gap: 1rem;
+		padding-bottom: 0.85rem;
 		margin-bottom: 1rem;
+		border-bottom: 1px solid #27272a;
+	}
+
+	:global(.reel-console__titles h3) {
+		margin: 0;
+		font-size: 1rem;
+		color: #e5e7eb;
+	}
+
+	:global(.reel-console__tagline) {
+		margin: 0.25rem 0 0;
+		color: #71717a;
+		font-size: 0.8125rem;
+		max-width: 44ch;
 	}
 
 	:global(.reel-console__header h3) {
@@ -280,9 +295,83 @@ import ReactReelFiles from '@/components/media/ReactReelFiles';
 	}
 
 	:global(.reel-console__add) {
+		display: grid;
+		grid-template-columns: 1fr auto;
+		gap: 0.5rem 0.75rem;
+		align-items: end;
+		padding: 0.9rem;
+		margin-bottom: 1.25rem;
+		border: 1px solid #27272a;
+		border-radius: 0.6rem;
+		background: #131316;
+	}
+
+	:global(.reel-console__field) {
 		display: flex;
-		gap: 0.5rem;
-		margin-bottom: 1rem;
+		flex-direction: column;
+		gap: 0.3rem;
+		min-width: 0;
+	}
+
+	:global(.reel-console__label) {
+		color: #9ca3af;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+	}
+
+	:global(.reel-console__submit) {
+		padding: 0.5rem 1.1rem;
+		border-radius: 0.4rem;
+		border: 1px solid #065f46;
+		background: #064e3b;
+		color: #d1fae5;
+		font-size: 0.8125rem;
+		font-weight: 600;
+		cursor: pointer;
+	}
+
+	:global(.reel-console__submit:hover:not(:disabled)) {
+		background: #065f46;
+	}
+
+	:global(.reel-console__submit:disabled) {
+		opacity: 0.5;
+		cursor: not-allowed;
+	}
+
+	:global(.reel-console__rate) {
+		grid-column: 1 / -1;
+		margin: 0;
+		color: #71717a;
+		font-size: 0.75rem;
+		line-height: 1.5;
+	}
+
+	:global(.reel-console__rate strong) {
+		color: #93c5fd;
+		font-weight: 600;
+	}
+
+	:global(.reel-console__pill) {
+		padding: 0.15rem 0.55rem;
+		border-radius: 999px;
+		border: 1px solid #27272a;
+		background: #131316;
+		color: #9ca3af;
+		font-size: 0.6875rem;
+		white-space: nowrap;
+	}
+
+	:global(.reel-console__pill--ok) {
+		border-color: #14532d;
+		color: #6ee7b7;
+	}
+
+	:global(.reel-console__pill--bad) {
+		border-color: #7f1d1d;
+		color: #fca5a5;
 	}
 
 	:global(.reel-console__add input) {
@@ -340,11 +429,9 @@ import ReactReelFiles from '@/components/media/ReactReelFiles';
 	:global(.reel-console__health) {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.25rem 1rem;
+		gap: 0.4rem;
 		align-items: center;
-		color: #9ca3af;
-		font-size: 0.75rem;
-		margin: 0 0 0.75rem;
+		margin: 0 0 1rem;
 	}
 
 	:global(.reel-console__health-ok) {
@@ -449,9 +536,27 @@ import ReactReelFiles from '@/components/media/ReactReelFiles';
 	}
 
 	:global(.reel-console__empty) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.35rem;
+		align-items: center;
+		text-align: center;
+		padding: 2.5rem 1rem;
+		border: 1px dashed #27272a;
+		border-radius: 0.6rem;
+	}
+
+	:global(.reel-console__empty-title) {
+		color: #d4d4d8;
+		font-size: 0.9375rem;
+		font-weight: 600;
+	}
+
+	:global(.reel-console__empty-hint) {
 		color: #71717a;
-		font-size: 0.875rem;
-		padding: 0.75rem 0;
+		font-size: 0.8125rem;
+		max-width: 42ch;
+		line-height: 1.5;
 	}
 
 	:global(.reel-console__row) {
@@ -459,11 +564,25 @@ import ReactReelFiles from '@/components/media/ReactReelFiles';
 		align-items: center;
 		justify-content: space-between;
 		gap: 1rem;
-		padding: 0.75rem;
+		padding: 0.85rem 0.9rem;
 		border: 1px solid #27272a;
-		border-radius: 0.5rem;
+		border-radius: 0.6rem;
 		background: #131316;
 		flex-wrap: wrap;
+		transition:
+			border-color 0.15s ease,
+			background 0.15s ease;
+	}
+
+	:global(.reel-console__row:hover) {
+		border-color: #3f3f46;
+		background: #17171b;
+	}
+
+	:global(.reel-console__cost--pending) {
+		background: transparent;
+		border: 1px dashed #334155;
+		color: #7d92b3;
 	}
 
 	:global(.reel-console__meta) {
