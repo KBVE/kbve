@@ -1,18 +1,18 @@
 {
-	"generated_at": "2026-08-17T02:23:21Z",
+	"generated_at": "2026-08-18T02:19:41Z",
 	"summary": {
 		"critical": 4,
-		"high": 53,
+		"high": 54,
 		"medium": 61,
 		"low": 11,
 		"info": 32
 	},
 	"ecosystems": {
 		"npm": {
-			"total": 112,
+			"total": 113,
 			"severities": {
 				"critical": 4,
-				"high": 53,
+				"high": 54,
 				"medium": 44,
 				"low": 11,
 				"info": 0
@@ -801,6 +801,13 @@
 					"severity": "high",
 					"package": "immutable",
 					"url": "https://github.com/advisories/GHSA-xvcm-6775-5m9r"
+				},
+				{
+					"id": "1145093",
+					"title": "DeepmergeTS has stack exhaustion when merging recursive object graphs",
+					"severity": "high",
+					"package": "deepmerge-ts",
+					"url": "https://github.com/advisories/GHSA-ggr8-5vv4-36mx"
 				}
 			]
 		},
