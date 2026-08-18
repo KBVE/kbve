@@ -1,144 +1,120 @@
 use super::*;
 
-fn route(style: Style) -> Walk {
-    Walk::new(
-        vec![
-            Post::new([0.0, 0.0], 1.0),
-            Post::new([10.0, 0.0], 1.0),
-            Post::new([10.0, 10.0], 1.0),
-        ],
-        style,
-    )
-}
+const HOUR: f32 = 60.0;
 
-fn travel(walk: &mut Walk, from: Vec2, ticks: usize, speed: f32) -> (Vec2, Vec<usize>) {
-    let delta = 0.1;
-    let mut at = from;
-    let mut stops = Vec::new();
-    for _ in 0..ticks {
-        let step = walk.step(at, delta);
-        if step.arrived {
-            stops.push(step.post);
-        }
-        at[0] += step.wish[0] * speed * delta;
-        at[1] += step.wish[1] * speed * delta;
-    }
-    (at, stops)
+fn day() -> Day {
+    let mut day = Day::new(HOUR);
+    day.set_speed(1.0);
+    day.push(Stop::new([0.0, 0.0], 6.0));
+    day.push(Stop::new([30.0, 0.0], 12.0));
+    day.push(Stop::new([30.0, 30.0], 18.0));
+    day
 }
 
 #[test]
-fn an_empty_route_asks_for_nothing() {
-    let mut walk = Walk::default();
-    let step = walk.step([3.0, 4.0], 0.1);
-    assert_eq!(step.wish, [0.0, 0.0]);
-    assert_eq!(step.doing, Doing::Done);
+fn a_day_with_no_stops_asks_for_nothing() {
+    assert_eq!(Day::new(HOUR).at(9.0), None);
 }
 
 #[test]
-fn the_wish_points_at_the_post() {
-    let mut walk = Walk::new(vec![Post::new([0.0, 6.0], 0.0)], Style::Once);
-    let step = walk.step([0.0, 0.0], 0.1);
-    assert_eq!(step.doing, Doing::Walking);
+fn stops_are_kept_in_the_order_of_the_clock() {
+    let mut day = Day::new(HOUR);
+    day.push(Stop::new([0.0, 0.0], 18.0));
+    day.push(Stop::new([1.0, 0.0], 6.0));
+    assert_eq!(day.stops()[0].hour, 6.0);
+}
+
+#[test]
+fn setting_off_walks_from_the_last_place_toward_the_next() {
+    let out = day().at(12.0 + 10.0 / 60.0).unwrap();
+    assert!(out.walking);
     assert!(
-        (step.wish[1] - 1.0).abs() < 1e-5,
-        "wish was {:?}",
-        step.wish
+        (out.at[0] - 10.0).abs() < 0.5,
+        "ten minutes at a metre a second is ten metres, got {:?}",
+        out.at
     );
-    assert_eq!(step.target, [0.0, 6.0]);
+    assert!((out.heading[0] - 1.0).abs() < 1e-4);
 }
 
 #[test]
-fn arriving_is_reported_once_and_then_waited_out() {
-    let mut walk = Walk::new(vec![Post::new([0.0, 0.0], 2.0)], Style::Loop);
-    let first = walk.step([0.1, 0.0], 0.1);
-    assert!(first.arrived);
-    assert_eq!(first.doing, Doing::Dwelling);
-    let second = walk.step([0.1, 0.0], 0.1);
-    assert!(!second.arrived, "arrival was reported twice");
-    assert_eq!(second.doing, Doing::Dwelling);
+fn arriving_early_means_standing_there_until_the_next_hour() {
+    let out = day().at(14.0).unwrap();
+    assert!(!out.walking);
+    assert_eq!(out.at, [30.0, 0.0]);
+    assert_eq!(out.heading, [0.0, 0.0]);
 }
 
 #[test]
-fn a_looping_route_comes_back_round() {
-    let mut walk = route(Style::Loop);
-    let (_, stops) = travel(&mut walk, [0.0, 0.0], 900, 4.0);
+fn the_small_hours_are_spent_at_the_last_stop_of_the_day() {
+    let out = day().at(3.0).unwrap();
+    assert!(!out.walking);
+    assert_eq!(out.at, [30.0, 30.0]);
+}
+
+#[test]
+fn the_first_stop_is_walked_to_from_the_last_one() {
+    let out = day().at(6.0 + 1.0 / 60.0).unwrap();
+    assert!(out.walking, "nobody set off for the first stop of the day");
     assert!(
-        stops.len() > 3,
-        "only stopped at {stops:?}, so it never came round"
+        out.at[1] < 30.0 && out.at[1] > 25.0,
+        "should be a minute out of the overnight stop, got {:?}",
+        out.at
     );
-    assert_eq!(&stops[..4], &[0, 1, 2, 0], "stopped at {stops:?}");
 }
 
 #[test]
-fn a_ping_pong_route_turns_back_at_the_end() {
-    let mut walk = route(Style::PingPong);
-    let (_, stops) = travel(&mut walk, [0.0, 0.0], 900, 4.0);
-    assert!(stops.len() > 4, "only stopped at {stops:?}");
-    assert_eq!(&stops[..5], &[0, 1, 2, 1, 0], "stopped at {stops:?}");
-}
-
-#[test]
-fn a_once_route_stops_at_the_last_post() {
-    let mut walk = route(Style::Once);
-    let (at, _) = travel(&mut walk, [0.0, 0.0], 2000, 4.0);
-    let last = walk.posts()[2].at;
-    assert!(
-        (at[0] - last[0]).abs() < 1.0 && (at[1] - last[1]).abs() < 1.0,
-        "ended at {at:?}, not at {last:?}"
-    );
-    assert_eq!(walk.step(at, 0.1).doing, Doing::Done);
-}
-
-#[test]
-fn a_held_body_stays_where_it_is() {
-    let mut walk = route(Style::Loop);
-    walk.hold(true);
-    let (at, stops) = travel(&mut walk, [0.0, 5.0], 200, 4.0);
-    assert_eq!(at, [0.0, 5.0], "a held body moved");
-    assert!(stops.is_empty(), "a held body reached {stops:?}");
-}
-
-#[test]
-fn releasing_a_hold_resumes_the_wait_rather_than_restarting_it() {
-    let mut walk = Walk::new(vec![Post::new([0.0, 0.0], 2.0)], Style::Loop);
-    walk.step([0.0, 0.0], 0.1);
-    for _ in 0..15 {
-        walk.step([0.0, 0.0], 0.1);
-    }
-    walk.hold(true);
-    for _ in 0..100 {
-        assert_eq!(walk.step([0.0, 0.0], 0.1).doing, Doing::Held);
-    }
-    walk.hold(false);
-    let mut left = 0;
-    while walk.step([0.0, 0.0], 0.1).doing == Doing::Dwelling {
-        left += 1;
-        assert!(left < 50, "the wait restarted from the top");
+fn two_machines_asking_at_the_same_hour_get_the_same_answer() {
+    let mine = day();
+    let theirs = day();
+    for step in 0..(24 * 12) {
+        let hour = step as f32 / 12.0;
+        assert_eq!(mine.at(hour), theirs.at(hour), "disagreed at hour {hour}");
     }
 }
 
 #[test]
-fn heading_for_a_post_abandons_the_one_under_way() {
-    let mut walk = route(Style::Loop);
-    walk.head_for(2);
-    let step = walk.step([0.0, 0.0], 0.1);
-    assert_eq!(step.target, [10.0, 10.0]);
-    assert_eq!(step.post, 2);
+fn joining_late_does_not_change_where_anybody_is() {
+    let day = day();
+    let mut walked = day.at(0.0).unwrap();
+    for step in 1..(24 * 60) {
+        walked = day.at(step as f32 / 60.0).unwrap();
+    }
+    assert_eq!(walked, day.at(23.0 + 59.0 / 60.0).unwrap());
 }
 
 #[test]
-fn a_post_that_is_not_there_is_refused() {
-    let mut walk = route(Style::Loop);
-    walk.head_for(9);
-    assert_eq!(walk.post(), 0);
+fn a_faster_walker_is_further_along() {
+    let mut quick = day();
+    quick.set_speed(4.0);
+    let hour = 12.0 + 5.0 / 60.0;
+    assert!(quick.at(hour).unwrap().at[0] > day().at(hour).unwrap().at[0]);
 }
 
 #[test]
-fn the_same_deltas_walk_the_same_path() {
-    let mut one = route(Style::PingPong);
-    let mut two = route(Style::PingPong);
-    assert_eq!(
-        travel(&mut one, [1.0, 2.0], 600, 3.0),
-        travel(&mut two, [1.0, 2.0], 600, 3.0)
-    );
+fn a_longer_day_stretches_the_walk() {
+    let mut slow = day();
+    slow.set_hour_seconds(HOUR * 4.0);
+    let hour = 12.0 + 5.0 / 60.0;
+    assert!(slow.at(hour).unwrap().at[0] > day().at(hour).unwrap().at[0]);
+}
+
+#[test]
+fn a_stop_in_the_same_place_as_the_last_is_stood_at_not_walked_to() {
+    let mut day = Day::new(HOUR);
+    day.push(Stop::new([4.0, 4.0], 6.0));
+    day.push(Stop::new([4.0, 4.0], 18.0));
+    let out = day.at(18.0 + 1.0 / 60.0).unwrap();
+    assert!(!out.walking);
+    assert_eq!(out.at, [4.0, 4.0]);
+}
+
+#[test]
+fn one_stop_is_a_place_to_stand_all_day() {
+    let mut day = Day::new(HOUR);
+    day.push(Stop::new([2.0, 7.0], 9.0));
+    for step in 0..24 {
+        let out = day.at(step as f32).unwrap();
+        assert_eq!(out.at, [2.0, 7.0]);
+        assert!(!out.walking);
+    }
 }

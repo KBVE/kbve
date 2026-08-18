@@ -76,7 +76,7 @@ func test_balances_are_grouped() -> void:
 func test_an_unread_balance_is_not_shown_as_zero() -> void:
 	var card: AccountCard = Card.new()
 	add_child(card)
-	card.show_account("holy", "abc")
+	card.show_account("holy")
 	card.show_wallet_error("session expired")
 	assert_str(card.wallet_label.text).is_equal("session expired")
 	assert_str(card.wallet_label.text).not_contains("0")
@@ -140,3 +140,29 @@ func test_a_cached_picture_is_used_instead_of_a_request() -> void:
 			"a picture already on disk must not be fetched again").is_false()
 	assert_object(card.avatar.texture).is_not_null()
 	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+
+
+## The account UUID identifies the account and is no use to the person reading it, so no
+## part of the card may render it -- the title screen is the most likely thing on screen
+## while streaming or being screenshotted.
+func test_the_card_never_shows_the_account_uuid() -> void:
+	var uuid := "8b1f7c22-0000-4aaa-9999-1c2d3e4f5a6b"
+	var card := Card.new()
+	add_child(card)
+	auto_free(card)
+	await await_idle_frame()
+	card.show_account("holy")
+	card.show_wallet(10, 20)
+	for label: Label in _labels_in(card):
+		assert_str(label.text).override_failure_message(
+				"a label on the card is rendering the account id").not_contains(uuid)
+		assert_str(label.text).not_contains("8b1f7c22")
+
+
+func _labels_in(node: Node) -> Array[Label]:
+	var found: Array[Label] = []
+	if node is Label:
+		found.append(node)
+	for child in node.get_children():
+		found.append_array(_labels_in(child))
+	return found

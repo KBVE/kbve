@@ -594,7 +594,6 @@ impl QTerrain {
         else {
             return;
         };
-        godot::global::godot_print!("[bridgeprobe] slabs={}", slabs.len());
         for (shape, slab) in shapes.iter().zip(slabs) {
             let half = Vector3::new(
                 slab.half_extents[0],
@@ -606,11 +605,8 @@ impl QTerrain {
                 .spawn_static_box(shape.clone().upcast(), half);
             if id != 0 {
                 self.sim_bridge.push(id);
-            } else {
-                godot::global::godot_print!("[bridgeprobe] slab rejected");
             }
         }
-        godot::global::godot_print!("[bridgeprobe] spawned={}", self.sim_bridge.len());
     }
 }
 

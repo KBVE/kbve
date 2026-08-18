@@ -38,9 +38,7 @@ const GROUP := &"interactable"
 @export var bridge_along := 9.0
 
 @export_group("Routine")
-@export var route: Array[Vector3] = []
-@export_enum("Loop", "Ping-pong", "Once") var route_style := 1
-@export var route_dwell := 8.0
+@export var clock_path: NodePath = ^"../DayNight"
 @export var walk_speed := 1.0
 @export var turn_rate := 4.0
 @export var walk_animation := "UAL2/Walk_Fwd"
@@ -49,8 +47,8 @@ const DRY_MARGIN := 0.6
 const DRY_STEP := 0.75
 const DRY_REACH := 60.0
 
-const ARRIVE := 0.4
 const LEFT_BEHIND := 3.0
+const CATCH_UP := 2.5
 
 var rig: Node3D
 
@@ -58,6 +56,7 @@ var _terrain: Node
 var _nameplate: Label3D
 var _prompt: Label3D
 var _routine: QRoutine
+var _clock: Node
 var _stand := Vector3.ZERO
 var _attending: Node3D
 
@@ -323,14 +322,32 @@ func _settle() -> void:
 
 func _lay_route() -> void:
 	_stand = global_position
-	if route.is_empty() or not ClassDB.class_exists("QRoutine"):
+	_clock = get_node_or_null(clock_path)
+	var stops := _authored_stops()
+	if stops.is_empty() or _clock == null or not ClassDB.class_exists("QRoutine"):
 		return
-	_routine = QRoutine.create()
-	_routine.set_style(route_style)
-	_routine.set_arrive(ARRIVE)
-	_routine.add_post(_stand, route_dwell)
-	for step in route:
-		_routine.add_post(_post_at(step), route_dwell)
+	_routine = QRoutine.create(_clock.hour_seconds())
+	_routine.set_speed(walk_speed)
+	for stop: Dictionary in stops:
+		_routine.add_stop(
+				_post_at(Vector3(float(stop.get("offsetX", 0.0)), 0.0,
+						float(stop.get("offsetZ", 0.0)))),
+				float(stop.get("hour", 0.0)))
+
+
+func _authored_stops() -> Array:
+	if npc_ref == "":
+		return []
+	var entry := Npcdb.npc(npc_ref)
+	var raw: Variant = entry.get("routine", null)
+	if not (raw is Dictionary):
+		return []
+	var routine: Dictionary = raw
+	var speed: Variant = routine.get("walkSpeed", null)
+	if speed != null:
+		walk_speed = float(speed)
+	var stops: Variant = routine.get("stops", null)
+	return stops if stops is Array else []
 
 
 func _post_at(step: Vector3) -> Vector3:
@@ -358,14 +375,30 @@ func _physics_process(delta: float) -> void:
 	if _routine == null:
 		return
 	_check_attention()
-	var out: Dictionary = _routine.step(global_position, delta)
-	var wish: Vector3 = out["wish"]
-	if wish.length_squared() < 0.0001:
+	if _attending != null:
 		_perform(idle_animation, "")
 		return
-	global_position += wish * walk_speed * delta
+	_routine.set_hour_seconds(_clock.hour_seconds())
+	var here: Dictionary = _routine.at(_clock.hour)
+	if here.is_empty():
+		return
+	var wanted: Vector3 = here["at"]
+	var step := Vector3(wanted.x - global_position.x, 0.0, wanted.z - global_position.z)
+	var reach := walk_speed * CATCH_UP * delta
+	var behind := step.length()
+	if behind <= reach:
+		global_position.x = wanted.x
+		global_position.z = wanted.z
+	else:
+		global_position += step / behind * reach
 	_settle()
-	_turn_toward(wish, delta)
+
+	var walking: bool = here["walking"]
+	var facing: Vector3 = here["heading"] if walking else step
+	if not walking and behind <= reach:
+		_perform(idle_animation, "")
+		return
+	_turn_toward(facing, delta)
 	_perform(walk_animation, idle_animation)
 
 
@@ -375,9 +408,9 @@ func _turn_toward(dir: Vector3, delta: float) -> void:
 
 
 func _check_attention() -> void:
-	if not _routine.is_held():
+	if _attending == null:
 		return
-	if _attending == null or not is_instance_valid(_attending) \
+	if not is_instance_valid(_attending) \
 			or _attending.global_position.distance_to(global_position) \
 					> talk_radius * LEFT_BEHIND:
 		attend(null)
@@ -385,8 +418,6 @@ func _check_attention() -> void:
 
 func attend(who: Node3D) -> void:
 	_attending = who
-	if _routine:
-		_routine.hold(who != null)
 
 
 func can_talk() -> bool:

@@ -568,6 +568,23 @@ export const CreatureConfigSchema = z.object({
 
 export type CreatureConfig = z.infer<typeof CreatureConfigSchema>;
 
+// RoutineStop
+export const RoutineStopSchema = z.object({
+	hour: z.number(),
+	offset_x: z.number(),
+	offset_z: z.number(),
+});
+
+export type RoutineStop = z.infer<typeof RoutineStopSchema>;
+
+// DailyRoutine
+export const DailyRoutineSchema = z.object({
+	stops: z.array(RoutineStopSchema).optional(),
+	walk_speed: z.number().optional(),
+});
+
+export type DailyRoutine = z.infer<typeof DailyRoutineSchema>;
+
 // PetMovepoolEntry
 export const PetMovepoolEntrySchema = z.object({
 	level: z.number(),
@@ -671,6 +688,7 @@ export const NpcSchema = z.object({
 	spatial: SpatialPropertiesSchema.optional(),
 	interaction: InteractionFlagsSchema.optional(),
 	creature_config: CreatureConfigSchema.optional(),
+	routine: DailyRoutineSchema.optional(),
 	pet: PetInfoSchema.optional(),
 	extensions: z.array(NpcExtensionSchema).optional(),
 	credits: z.string().optional(),

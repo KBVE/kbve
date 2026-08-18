@@ -137,6 +137,25 @@ impl Window {
         }
     }
 
+    /// A window whose stride is a whole number of samples of the grid it bakes.
+    ///
+    /// [`snap`](Self::snap) quantises origins so the same ground bakes the same
+    /// way however it is approached, but that only holds if the quantum is a
+    /// multiple of the sample spacing. Off by a fraction of a sample, the new
+    /// grid interleaves with the old one and every shift steps the ground under
+    /// anyone standing on it.
+    ///
+    /// The stride is rounded to the nearest whole number of samples rather than
+    /// rejected, so a caller may ask in metres without knowing the resolution.
+    pub fn aligned(extent: f32, stride: f32, res: i32) -> Self {
+        let step = extent * 2.0 / (res - 1).max(1) as f32;
+        let wanted = stride.clamp(step, extent);
+        let samples = (wanted / step).round().max(1.0);
+        let mut w = Self::new(extent, samples * step);
+        w.stride = (samples * step).min(extent);
+        w
+    }
+
     /// Nearest origin a window is allowed to sit on.
     pub fn snap(&self, at: [f32; 2]) -> [f32; 2] {
         [
@@ -192,6 +211,101 @@ mod tests {
             HeightGen::new(&a).bake(64.0, 33),
             HeightGen::new(&b).bake(64.0, 33)
         );
+    }
+
+    /// A stride that is not a whole number of samples lands the new grid between
+    /// the old one's rows, so the same ground bakes to different heights either
+    /// side of a shift and the seam is a step. `Window::new` is the only place
+    /// that can catch it, because by the time a bake happens the stride is long
+    /// since chosen.
+    #[test]
+    fn a_window_stride_is_a_whole_number_of_samples() {
+        for (extent, res, asked) in [
+            (256.0f32, 513, 128.0f32),
+            (256.0, 512, 128.0),
+            (256.0, 513, 100.0),
+            (128.0, 257, 48.0),
+            (200.0, 401, 33.0),
+        ] {
+            let w = Window::aligned(extent, asked, res);
+            let step = extent * 2.0 / (res - 1).max(1) as f32;
+            let samples = w.stride / step;
+            assert!(
+                (samples - samples.round()).abs() < 1e-4,
+                "extent {extent} res {res} asked {asked} gave stride {} = {samples} samples",
+                w.stride
+            );
+            assert!(w.stride >= step, "stride collapsed to nothing");
+            assert!(w.stride <= extent, "stride wider than the window leaves gaps");
+        }
+    }
+
+    /// Whole-sample alignment is necessary but not sufficient. The two windows
+    /// reach a shared sample by different arithmetic -- one adds the shift into
+    /// the origin, the other walks further along the row -- and those agree to
+    /// the bit only when the sample step and the stride are exactly
+    /// representable. They are at the shipped shape, where `extent * 2 / (res-1)`
+    /// is 1.0 and the stride is 128, both exact.
+    ///
+    /// This is what pins that shape down. A resolution that makes the step a
+    /// repeating fraction still draws a sound world -- the disagreement is a
+    /// couple of ULPs, far under a millimetre -- but it is no longer bit-exact,
+    /// and bit-exactness is what lets the client and the server bake the ground
+    /// separately and trust each other's.
+    #[test]
+    fn an_aligned_shift_lands_on_the_old_samples_to_the_bit() {
+        let g = HeightGen::new(&HeightParams::default());
+        let (extent, res) = (256.0f32, 513);
+        let step = extent * 2.0 / (res - 1) as f32;
+        assert_eq!(step, 1.0, "the shipped grid must have an exact sample step");
+
+        let w = Window::aligned(extent, 128.0, res);
+        assert_eq!(w.stride, 128.0);
+        let shifted = w.snap([300.0, 0.0]);
+        let cols = (shifted[0] / step).round() as i32;
+        assert!(cols > 0 && cols < res);
+
+        let a = g.bake_at([0.0, 0.0], extent, res);
+        let b = g.bake_at(shifted, extent, res);
+        let mut checked = 0;
+        for iy in 0..res {
+            for ix in 0..(res - cols) {
+                assert_eq!(
+                    a[(iy * res + ix + cols) as usize].to_bits(),
+                    b[(iy * res + ix) as usize].to_bits(),
+                    "seam at ({ix}, {iy}) after a {}m shift",
+                    shifted[0]
+                );
+                checked += 1;
+            }
+        }
+        assert!(checked > 10_000);
+    }
+
+    /// Off the exact shape the seam must still be far below anything a body can
+    /// stand on, or a resolution change is a trap rather than a tuning knob.
+    #[test]
+    fn an_aligned_shift_is_sound_at_any_resolution() {
+        let g = HeightGen::new(&HeightParams::default());
+        for res in [256, 512, 401, 333] {
+            let extent = 256.0f32;
+            let step = extent * 2.0 / (res - 1) as f32;
+            let w = Window::aligned(extent, 100.0, res);
+            let shifted = w.snap([300.0, 0.0]);
+            let cols = (shifted[0] / step).round() as i32;
+            let a = g.bake_at([0.0, 0.0], extent, res);
+            let b = g.bake_at(shifted, extent, res);
+            let mut worst = 0.0f32;
+            for iy in 0..res {
+                for ix in 0..(res - cols) {
+                    let d = (a[(iy * res + ix + cols) as usize]
+                        - b[(iy * res + ix) as usize])
+                        .abs();
+                    worst = worst.max(d);
+                }
+            }
+            assert!(worst < 1e-3, "res {res} seams by {worst}m");
+        }
     }
 
     /// The property the whole sliding world rests on: two windows that overlap

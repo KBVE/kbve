@@ -16,6 +16,24 @@ use crate::rapier::sim3d::{
     BodyId, CharacterDesc, Iso, SimCommand, SimConfig, SimSnapshot, SimWorld, TerrainDesc,
 };
 
+/// The constants a body's motion is integrated with, sent to every client at join.
+///
+/// This is a copy of the subset of [`SessionConfig`] that `step_players` reads, rather
+/// than a borrow of it: the host holds far more than a client should know, and a client
+/// predicting with anything the host does not actually use would drift.
+#[derive(Clone, Copy, Debug, PartialEq, Serialize, Deserialize)]
+pub struct MovementConfig {
+    pub move_speed: f32,
+    pub gravity: f32,
+    pub jump_speed: f32,
+    pub swim_speed: f32,
+    pub water_gravity_scale: f32,
+    /// The host's fixed timestep. Predicting with a different one integrates gravity at
+    /// a different rate, which reads as the local body falling faster or slower than the
+    /// one the server eventually confirms.
+    pub timestep: f64,
+}
+
 /// What a client reports it is trying to do this tick.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct PlayerInput {
@@ -99,6 +117,12 @@ pub enum SessionMsg {
         /// Seconds the host has simulated. Monotonic and never wrapped, so it can be the
         /// input to anything scheduled rather than only to a sky.
         elapsed: f64,
+        /// Everything a client needs to advance its own body the way the host will.
+        /// These were host-only, so a client could not predict a step without guessing
+        /// at the numbers -- and a prediction built on a guess is worse than none,
+        /// because it disagrees with the authority in a way reconciliation then has to
+        /// undo every tick.
+        movement: MovementConfig,
     },
     Reject {
         reason: String,
@@ -118,7 +142,18 @@ pub enum SessionMsg {
         elapsed: f64,
     },
     Input(PlayerInput),
-    Snapshot(SimSnapshot),
+    Snapshot {
+        sim: SimSnapshot,
+        /// The input sequence each player has been simulated up to, so a client can tell
+        /// which of its own inputs this state already accounts for and replay only the
+        /// rest. Broadcast rather than addressed because one snapshot is encoded once
+        /// for every peer; at `max_players` the whole list is cheaper than per-peer
+        /// encoding.
+        ///
+        /// Kept out of `SimSnapshot` deliberately -- that type is the sim's, and input
+        /// sequences are the session's.
+        acks: Vec<(PeerId, u32)>,
+    },
     /// Join carrying a bearer token from an external identity provider (Supabase
     /// GoTrue, in practice).
     JoinAuthed {
@@ -621,6 +656,7 @@ impl<T: Transport> HostSession<T> {
                 start_hour: self.config.start_hour,
                 day_length_minutes: self.config.day_length_minutes,
                 elapsed: self.elapsed,
+                movement: self.movement_config(),
             },
         );
         self.send_harvest_ledgers(peer);
@@ -1056,7 +1092,7 @@ impl<T: Transport> HostSession<T> {
             | SessionMsg::HarvestReward { .. }
             | SessionMsg::Pets { .. }
             | SessionMsg::PetDenied { .. }
-            | SessionMsg::Snapshot(_) => {}
+            | SessionMsg::Snapshot { .. } => {}
         }
     }
 
@@ -1208,11 +1244,31 @@ impl<T: Transport> HostSession<T> {
             .collect()
     }
 
+    /// The slice of the host's config a client integrates its own body with. Derived
+    /// rather than stored so it cannot fall out of step with what `step_players` reads.
+    fn movement_config(&self) -> MovementConfig {
+        MovementConfig {
+            move_speed: self.config.move_speed,
+            gravity: self.config.gravity,
+            jump_speed: self.config.jump_speed,
+            swim_speed: self.config.swim_speed,
+            water_gravity_scale: self.config.water_gravity_scale,
+            timestep: self.sim.timestep(),
+        }
+    }
+
     fn broadcast_snapshot(&self) {
         if self.transport.peers().is_empty() {
             return;
         }
-        let msg = SessionMsg::Snapshot(self.world.snapshot());
+        let msg = SessionMsg::Snapshot {
+            sim: self.world.snapshot(),
+            acks: self
+                .players
+                .iter()
+                .map(|(peer, player)| (*peer, player.last_sequence))
+                .collect(),
+        };
         if let Ok(bytes) = proto::encode(&msg) {
             let _ = self.transport.broadcast(Delivery::Unreliable, &bytes);
         }
@@ -1240,6 +1296,13 @@ pub struct ClientSession<T: Transport> {
     roster: Vec<PeerInfo>,
     /// The world contract from `Welcome`, and the clock the host keeps correcting.
     world: Option<WorldInfo>,
+    /// The host's movement constants, from `Welcome`. `None` until welcomed, which is
+    /// the only honest answer -- a default here would be a guess that silently disagrees
+    /// with the authority.
+    movement: Option<MovementConfig>,
+    /// The newest input sequence the host has confirmed simulating for us. Everything
+    /// after it is still ours to replay.
+    acked_input: u32,
     /// Seconds the host had simulated as of the last clock that arrived. The client
     /// advances it between them, so this is a correction rather than the only source.
     elapsed: f64,
@@ -1334,6 +1397,8 @@ impl<T: Transport> ClientSession<T> {
             name: None,
             roster: Vec::new(),
             world: None,
+            movement: None,
+            acked_input: 0,
             elapsed: 0.0,
             stone_ledger: Ledger::new(),
             tree_ledger: Ledger::new(),
@@ -1375,6 +1440,23 @@ impl<T: Transport> ClientSession<T> {
     /// `None` until welcomed; guessing would render another player's character.
     pub fn local_body(&self) -> Option<BodyId> {
         self.peer.map(player_body)
+    }
+
+    /// The host's movement constants. `None` until welcomed.
+    pub fn movement(&self) -> Option<MovementConfig> {
+        self.movement
+    }
+
+    /// Newest input sequence the host has confirmed simulating for us. Inputs after this
+    /// are the ones a predictor replays on top of the authoritative state.
+    pub fn acked_input(&self) -> u32 {
+        self.acked_input
+    }
+
+    /// Sequence of the most recent [`Self::set_input`], so a predictor can file what it
+    /// applied under the same number the host will ack it by.
+    pub fn input_sequence(&self) -> u32 {
+        self.input.sequence
     }
 
     /// Name the host assigned us.
@@ -1550,6 +1632,7 @@ impl<T: Transport> ClientSession<T> {
                     start_hour,
                     day_length_minutes,
                     elapsed,
+                    movement,
                     ..
                 } => {
                     self.status = ClientStatus::Joined;
@@ -1557,6 +1640,7 @@ impl<T: Transport> ClientSession<T> {
                     self.peer = Some(peer);
                     self.name = Some(name);
                     self.elapsed = elapsed;
+                    self.movement = Some(movement);
                     self.world = Some(WorldInfo {
                         terrain_extent,
                         terrain_resolution,
@@ -1576,13 +1660,21 @@ impl<T: Transport> ClientSession<T> {
                     self.status = ClientStatus::Rejected;
                     self.reject_reason = Some(reason);
                 }
-                SessionMsg::Snapshot(snapshot) => {
+                SessionMsg::Snapshot { sim, acks } => {
                     let newer = self
                         .snapshot
                         .as_ref()
-                        .is_none_or(|current| snapshot.tick > current.tick);
+                        .is_none_or(|current| sim.tick > current.tick);
                     if newer {
-                        self.snapshot = Some(snapshot);
+                        // Only from a newer snapshot: these arrive unreliably and out of
+                        // order, and an ack from a stale one would walk the replay point
+                        // backwards, re-applying inputs the host has already consumed.
+                        self.acked_input = self
+                            .peer
+                            .and_then(|me| acks.iter().find(|(p, _)| *p == me))
+                            .map(|(_, seq)| *seq)
+                            .unwrap_or(self.acked_input);
+                        self.snapshot = Some(sim);
                     }
                 }
                 SessionMsg::HarvestDelta { target, id, stage } => {
@@ -2855,6 +2947,91 @@ mod tests {
     }
 
     #[test]
+    fn welcome_carries_the_movement_the_host_integrates_with() {
+        let (mut host, mut client) = host_and_client();
+        assert_eq!(client.movement(), None, "unknown before Welcome");
+        run(&mut host, &mut client, 2);
+
+        let movement = client.movement().expect("welcomed");
+        let config = SessionConfig::default();
+        assert_eq!(movement.move_speed, config.move_speed);
+        assert_eq!(movement.gravity, config.gravity);
+        assert_eq!(movement.jump_speed, config.jump_speed);
+        assert_eq!(movement.swim_speed, config.swim_speed);
+        assert_eq!(movement.water_gravity_scale, config.water_gravity_scale);
+        assert_eq!(
+            movement.timestep,
+            SimConfig::default().timestep(),
+            "predicting on a different step integrates gravity at a different rate"
+        );
+    }
+
+    /// Without this the client cannot tell which of its inputs the state it just
+    /// received already accounts for, which is the whole of reconciliation.
+    #[test]
+    fn snapshots_ack_the_input_they_were_simulated_from() {
+        let (mut host, mut client) = host_and_client();
+        run(&mut host, &mut client, 2);
+        assert_eq!(client.acked_input(), 0, "nothing sent yet");
+
+        for _ in 0..8 {
+            client.set_input([1.0, 0.0], false, 0.0);
+            run(&mut host, &mut client, 1);
+        }
+
+        let acked = client.acked_input();
+        assert!(acked > 0, "host never acknowledged an input");
+        assert!(
+            acked <= client.input_sequence(),
+            "acked {acked} is ahead of anything we have sent ({})",
+            client.input_sequence()
+        );
+    }
+
+    /// Snapshots ride an unreliable lane, so a stale one can land after a newer one.
+    /// Taking its ack would walk the replay point backwards and re-apply inputs the
+    /// host has already consumed.
+    #[test]
+    fn a_stale_snapshot_does_not_walk_the_ack_backwards() {
+        let mesh = Loopback::mesh(2);
+        let mut host = HostSession::new(
+            mesh[0].clone(),
+            SessionConfig::default(),
+            SimConfig::default(),
+            42,
+        );
+        host.set_terrain(flat_terrain());
+        let mut client = ClientSession::connect(mesh[1].clone());
+        run(&mut host, &mut client, 2);
+        let me = client.peer().expect("welcomed");
+
+        // Ticks far above anything the host has reached, so the real broadcasts already
+        // in flight cannot decide this.
+        let mut deliver = |client: &mut ClientSession<Loopback>, tick: u64, seq: u32| {
+            let bytes = proto::encode(&SessionMsg::Snapshot {
+                sim: SimSnapshot {
+                    tick,
+                    ..Default::default()
+                },
+                acks: vec![(me, seq)],
+            })
+            .unwrap();
+            mesh[0].send(me, Delivery::Unreliable, &bytes).unwrap();
+            client.tick();
+        };
+
+        deliver(&mut client, 10_000, 50);
+        assert_eq!(client.acked_input(), 50);
+
+        deliver(&mut client, 9_999, 20);
+        assert_eq!(
+            client.acked_input(),
+            50,
+            "an ack from an older snapshot must not undo a newer one"
+        );
+    }
+
+    #[test]
     fn the_host_assigns_the_client_its_peer_id() {
         let (mut host, mut client) = host_and_client();
         assert_eq!(client.peer(), None, "unknown before Welcome");
@@ -2934,7 +3111,7 @@ mod tests {
                 let mut payload = e.payload.clone();
                 matches!(
                     proto::decode::<SessionMsg>(&mut payload),
-                    Ok(SessionMsg::Snapshot(_))
+                    Ok(SessionMsg::Snapshot { .. })
                 )
             })
             .count();
@@ -3019,12 +3196,18 @@ mod tests {
     /// an MTU.
     #[test]
     fn snapshot_wire_cost_per_body_stays_bounded() {
-        let small = proto::encode(&SessionMsg::Snapshot(snapshot_of(8)))
-            .unwrap()
-            .len();
-        let large = proto::encode(&SessionMsg::Snapshot(snapshot_of(72)))
-            .unwrap()
-            .len();
+        let small = proto::encode(&SessionMsg::Snapshot {
+            sim: snapshot_of(8),
+            acks: Vec::new(),
+        })
+        .unwrap()
+        .len();
+        let large = proto::encode(&SessionMsg::Snapshot {
+            sim: snapshot_of(72),
+            acks: Vec::new(),
+        })
+        .unwrap()
+        .len();
         let per_body = (large - small) / 64;
 
         assert!(

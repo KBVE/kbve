@@ -17,7 +17,7 @@ use crate::world::flora_compute::{
 use crate::world::harvest::{
     Entry, HarvestKind, HarvestOutcome, Ledger, ScatterCore, Tree, stable_id,
 };
-use crate::world::{TerrainSnapshot, hash32, randf, world_aabb};
+use crate::world::{TerrainSnapshot, hash32, randf, world_aabb_at};
 
 struct Growth {
     lateral_angle: [(f32, f32); 3],
@@ -490,7 +490,11 @@ impl QTreeField {
             return true;
         };
         let scenario = world.get_scenario();
-        let aabb = world_aabb(extent);
+        // Around the window, not the origin. The instances inside it move with
+        // every rescatter, and a box left at the origin culls the whole species
+        // away as soon as the player walks a window's width from the middle of
+        // the world.
+        let aabb = world_aabb_at(extent, terra.origin);
         let (occl_h, occl_res) = terra.raw_heights();
 
         for (i, sp) in SPECIES.iter().enumerate() {

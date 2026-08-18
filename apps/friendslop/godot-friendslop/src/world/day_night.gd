@@ -61,6 +61,7 @@ var _last_hour := -1
 var _last_angle_step := -1
 
 var _elapsed := -1.0
+var _seconds := 0.0
 
 var _sun_shadow_active := false
 var _moon_shadow_active := false
@@ -91,6 +92,7 @@ func _ready() -> void:
 
 func set_world_time(elapsed: float) -> void:
 	_elapsed = elapsed
+	_seconds = elapsed
 
 
 func is_driven() -> bool:
@@ -101,13 +103,20 @@ func hour_for(elapsed: float) -> float:
 	return fposmod(start_hour + elapsed * _hours_per_second, HOURS_PER_DAY)
 
 
+func world_seconds() -> float:
+	return _seconds
+
+
+func hour_seconds() -> float:
+	return day_length_minutes * 60.0 / HOURS_PER_DAY
+
+
 func _process(delta: float) -> void:
 	if is_driven():
 		hour = hour_for(_elapsed)
 	else:
-		hour += delta * _hours_per_second
-		if hour >= HOURS_PER_DAY:
-			hour -= HOURS_PER_DAY
+		_seconds += delta
+		hour = hour_for(_seconds)
 
 	var current_hour := int(hour)
 	if current_hour != _last_hour:
