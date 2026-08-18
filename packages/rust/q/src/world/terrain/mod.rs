@@ -645,6 +645,16 @@ impl QTerrain {
 
     /// The CPU height grid, for anything that needs to read the ground in bulk
     /// rather than a point at a time.
+    /// Middle of the ground currently baked, for anything building spatial
+    /// structure over [`height_grid`](Self::height_grid). While the world was
+    /// one tile this was always zero; with streaming on, a consumer that
+    /// centres itself on the origin is building over ground the window has
+    /// long since left.
+    #[func]
+    fn world_origin(&self) -> Vector2 {
+        self.window_origin()
+    }
+
     #[func]
     fn height_grid(&self) -> PackedFloat32Array {
         match self.cpu_heights() {
@@ -765,10 +775,7 @@ impl QTerrain {
                 }
                 let mut one = VarDictionary::new();
                 one.set("role", post.role.as_str());
-                one.set(
-                    "at",
-                    Vector3::new(post.at[0], mark.pad_y, post.at[1]),
-                );
+                one.set("at", Vector3::new(post.at[0], mark.pad_y, post.at[1]));
                 one.set(
                     "facing",
                     Vector3::new(post.facing[0], mark.pad_y, post.facing[1]),

@@ -110,11 +110,19 @@ impl TerrainStreamer {
         let window = Window::aligned(cfg.extent, cfg.stride, cfg.resolution.max(2));
         let hgen = HeightGen::new(&cfg.params());
         let plan = BridgePlan::new(&hgen, cfg.extent, cfg.water_level, cfg.road_width);
-        let mut slabs = plan.slabs().to_vec();
-        slabs.extend(plan.ramp_slabs(&hgen));
-        slabs.extend(plan.ramp_skirt_slabs(&hgen));
-        slabs.extend(plan.ramp_rail_slabs(&hgen));
-        slabs.extend(plan.abutment_slabs(&hgen));
+        // The bridge is measured against the authored river. On the region
+        // field there is no river, so the deck the plan describes would stand
+        // in open country as collision nothing draws — a wall a body walks
+        // into. No slabs on that ground; the plan itself stays, inert, so the
+        // bridge bookkeeping needs no second code path.
+        let mut slabs = Vec::new();
+        if cfg.ground_source == GroundSource::Authored {
+            slabs = plan.slabs().to_vec();
+            slabs.extend(plan.ramp_slabs(&hgen));
+            slabs.extend(plan.ramp_skirt_slabs(&hgen));
+            slabs.extend(plan.ramp_rail_slabs(&hgen));
+            slabs.extend(plan.abutment_slabs(&hgen));
+        }
         Self {
             cfg,
             window,
