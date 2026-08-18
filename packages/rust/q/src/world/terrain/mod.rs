@@ -1,3 +1,4 @@
+mod landmark;
 mod river;
 mod road;
 mod water;
@@ -190,6 +191,14 @@ pub struct QTerrain {
     /// Sim bodies standing in for the bridge. The structure is rebuilt whenever the
     /// window moves, so these are taken down with the nodes they mirror.
     sim_bridge: PackedInt64Array,
+    /// What is built in the window currently baked. Derived from the seed, never
+    /// received, so the client and the server hold the same list without agreeing on
+    /// it.
+    landmarks: Vec<crate::landmark::Landmark>,
+    /// Cleared once the world has said where its built places are, which is worth
+    /// saying exactly once and not on every window.
+    #[init(val = true)]
+    landmark_log: bool,
     ground_shape: Option<Gd<HeightMapShape3D>>,
     window: Option<crate::worldgen::Window>,
     shift_rx: Option<std::sync::mpsc::Receiver<(Vec<f32>, [f32; 2])>>,
@@ -407,6 +416,7 @@ impl QTerrain {
                 self.hgen = Some(HeightGen::new(&params));
             }
             self.build_road();
+            self.build_landmarks();
         }
     }
 
@@ -415,6 +425,7 @@ impl QTerrain {
     fn clear_road(&mut self) {
         let taken = std::mem::take(&mut self.sim_bridge);
         self.despawn_sim_bridge(taken);
+        self.clear_landmarks();
         for name in ["BridgeBody", "BridgeAbutment", "Bridge"] {
             if let Some(mut n) = self.base().get_node_or_null(name) {
                 n.queue_free();
@@ -509,6 +520,7 @@ impl QTerrain {
 
         if !crate::world::q_hidden("road") {
             self.build_road();
+            self.build_landmarks();
         }
 
         let player = self
@@ -645,6 +657,50 @@ impl QTerrain {
             Vector3::new(f.deck_to[0], f.deck_y, f.deck_to[1]),
         );
         out.set("deck_y", f.deck_y);
+        out
+    }
+
+    /// Everything built in this window, as lines a flow field can be told about.
+    ///
+    /// `solid` is what to close, `open` is what to reopen afterwards -- a gateway and
+    /// the piers -- and `decks` are the raised walkways a body can stand underneath.
+    /// Each is a flat run of `ax, az, bx, bz, half_width`.
+    ///
+    /// Empty where nothing is built, which is nearly everywhere.
+    #[func]
+    fn landmark_plan(&self) -> VarDictionary {
+        let mut out = VarDictionary::new();
+        let Some(hgen) = self.hgen.as_ref().filter(|_| !self.landmarks.is_empty()) else {
+            return out;
+        };
+        let (solid, open, decks, deck_y) = self.landmark_bars(hgen);
+        out.set("solid", &PackedFloat32Array::from(solid.as_slice()));
+        out.set("open", &PackedFloat32Array::from(open.as_slice()));
+        out.set("decks", &PackedFloat32Array::from(decks.as_slice()));
+        out.set("deck_y", deck_y);
+        out
+    }
+
+    /// Where the nearest built place of each kind is, for pointing somebody at one.
+    ///
+    /// Reads the world rather than the window, so it answers for landmarks far
+    /// outside anything currently baked.
+    #[func]
+    fn nearest_landmarks(&self, from: Vector3) -> VarDictionary {
+        let mut out = VarDictionary::new();
+        let Some(hgen) = self.hgen.as_ref() else {
+            return out;
+        };
+        for mark in crate::landmark::nearest(hgen.seed(), hgen, [from.x, from.z]) {
+            let name = match mark.kind {
+                crate::landmark::LandmarkKind::Capital => "capital",
+                crate::landmark::LandmarkKind::Harbour => "harbour",
+            };
+            out.set(
+                name,
+                Vector3::new(mark.centre[0], mark.pad_y, mark.centre[1]),
+            );
+        }
         out
     }
 }
