@@ -742,6 +742,12 @@ const RAMP_GRADE: f32 = 0.15;
 /// Half-thickness of the deck and of the approach timbers under it.
 const DECK_HALF_T: f32 = 0.11;
 
+/// Thickness of the timber the approach is decked with.
+const PLANK_T: f32 = 0.18;
+
+/// How far a kerb rail sits above the middle of the timber it guards.
+const RAIL_UP: f32 = 0.62;
+
 /// Where the one river crossing is and how big its deck is.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct BridgePlan {
@@ -823,11 +829,11 @@ impl BridgePlan {
                 [self.deck_half, DECK_HALF_T, self.half_width],
             ),
             BridgeSlab::flat(
-                [cx, self.deck_y + 0.62, cz - rail],
+                [cx, self.deck_y + RAIL_UP, cz - rail],
                 [self.deck_half, 0.07, 0.07],
             ),
             BridgeSlab::flat(
-                [cx, self.deck_y + 0.62, cz + rail],
+                [cx, self.deck_y + RAIL_UP, cz + rail],
                 [self.deck_half, 0.07, 0.07],
             ),
         ]
@@ -958,6 +964,84 @@ impl BridgePlan {
             }
         }
         slabs
+    }
+
+    /// Fills the causeway under each approach, from its timber down into the bank.
+    ///
+    /// [`ramp_slabs`](Self::ramp_slabs) is only the walking surface, a plank's thickness
+    /// of it. The client draws the approach as a solid-sided embankment buried in the
+    /// ground, so with the surface alone the whole interior is a room a body can walk
+    /// into from the side and stand inside the drawn timber.
+    pub fn ramp_skirt_slabs(&self, hgen: &HeightGen) -> Vec<BridgeSlab> {
+        let [_, cz] = self.crossing;
+        let mut slabs = Vec::new();
+        for side in [-1.0f32, 1.0] {
+            let path = self.ramp_path(hgen, side);
+            for pair in path.windows(2) {
+                let (a, b) = (pair[0], pair[1]);
+                let hx = (b[0] - a[0]).abs() * 0.5;
+                if hx <= f32::EPSILON {
+                    continue;
+                }
+                let top = a[1].min(b[1]) - DECK_HALF_T;
+                let floor = self.skirt_floor(hgen, a).min(self.skirt_floor(hgen, b));
+                if top <= floor {
+                    continue;
+                }
+                slabs.push(BridgeSlab::flat(
+                    [(a[0] + b[0]) * 0.5, (top + floor) * 0.5, cz],
+                    [hx, (top - floor) * 0.5, self.half_width],
+                ));
+            }
+        }
+        slabs
+    }
+
+    /// How far below a point on the approach the drawn embankment reaches.
+    fn skirt_floor(&self, hgen: &HeightGen, at: [f32; 3]) -> f32 {
+        let mut lo = f32::MAX;
+        for k in [-1.0f32, -0.5, 0.0, 0.5, 1.0] {
+            lo = lo.min(hgen.height(at[0], at[2] + (self.half_width + 0.2) * k));
+        }
+        (at[1] - PLANK_T).min(lo - 0.2)
+    }
+
+    /// Kerb rails down both sides of both approaches, matching the deck's own.
+    ///
+    /// The raised span is railed by [`slabs`](Self::slabs) but the causeways leading
+    /// onto it never were, so a body could walk off the side of an approach the client
+    /// had drawn a railing along.
+    pub fn ramp_rail_slabs(&self, hgen: &HeightGen) -> Vec<BridgeSlab> {
+        let rail = self.half_width - 0.08;
+        let mut slabs = Vec::new();
+        for deck in self.ramp_slabs(hgen) {
+            for side in [-1.0f32, 1.0] {
+                slabs.push(BridgeSlab {
+                    centre: [
+                        deck.centre[0],
+                        deck.centre[1] + RAIL_UP,
+                        deck.centre[2] + rail * side,
+                    ],
+                    half_extents: [deck.half_extents[0], 0.07, 0.07],
+                    rot: deck.rot,
+                });
+            }
+        }
+        slabs
+    }
+
+    /// The stone abutment each approach lands on, as one box per bank.
+    pub fn abutment_slabs(&self, hgen: &HeightGen) -> [BridgeSlab; 2] {
+        let [cx, cz] = self.crossing;
+        let hx = (self.deck_half - self.half_span) * 0.5;
+        let mut out = [BridgeSlab::flat([0.0; 3], [0.0; 3]); 2];
+        for (i, side) in [-1.0f32, 1.0].into_iter().enumerate() {
+            let x = cx + (self.half_span + hx) * side;
+            let top = self.deck_y - 0.1;
+            let h = ((top - (hgen.height(x, cz) - 1.4)) * 0.5).max(0.3);
+            out[i] = BridgeSlab::flat([x, top - h, cz], [hx, h, self.half_width + 0.22]);
+        }
+        out
     }
 
     /// True when the crossing is close enough to a window to belong to it.

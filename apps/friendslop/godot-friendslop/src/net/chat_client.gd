@@ -20,12 +20,18 @@ const PLATFORM := "friendslop"
 const MAX_CONTENT := 400
 const RECONNECT_SECONDS := 5.0
 const MAX_BACKOFF := 60.0
+## A handshake that never reaches STATE_OPEN is the gateway spelling a refusal in HTTP
+## rather than a link that dropped, so retrying it forever just repeats the refusal at
+## the engine's own log level. The gateway answers 400 to a game key it does not carry.
+const MAX_HANDSHAKE_FAILURES := 3
 
 var _socket: WebSocketPeer
 var _connected := false
 var _retry := 0.0
 var _backoff := RECONNECT_SECONDS
 var _want := false
+var _opened := false
+var _handshake_failures := 0
 
 
 func _ready() -> void:
@@ -85,6 +91,7 @@ func _open() -> void:
 		failed.emit("chat.signin_required")
 		return
 	_socket = WebSocketPeer.new()
+	_opened = false
 	var url := "%s?game=%s&token=%s" % [HOST, GAME, token.uri_encode()]
 	if _socket.connect_to_url(url) != OK:
 		_socket = null
@@ -124,6 +131,8 @@ func _process(delta: float) -> void:
 		WebSocketPeer.STATE_OPEN:
 			if not _connected:
 				_connected = true
+				_opened = true
+				_handshake_failures = 0
 				_backoff = RECONNECT_SECONDS
 				state_changed.emit(true)
 			while _socket.get_available_packet_count() > 0:
@@ -140,8 +149,15 @@ func _process(delta: float) -> void:
 				failed.emit("chat.signin_required")
 				_want = false
 				set_process(false)
-			else:
-				_arm_retry()
+				return
+			if not _opened:
+				_handshake_failures += 1
+				if _handshake_failures >= MAX_HANDSHAKE_FAILURES:
+					failed.emit("chat.unavailable")
+					_want = false
+					set_process(false)
+					return
+			_arm_retry()
 
 
 func _read(text: String) -> void:

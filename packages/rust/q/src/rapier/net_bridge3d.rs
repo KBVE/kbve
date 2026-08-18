@@ -658,9 +658,14 @@ impl QNetClient3D {
     /// Whether the host had this body on the ground at the instant it is drawn at.
     #[func]
     fn body_grounded(&self, id: i64) -> bool {
-        self.buffer
-            .sample_grounded(BodyId(id as u32))
-            .unwrap_or(true)
+        let body = BodyId(id as u32);
+        let leading = self.lead_local_body && self.local_body() == id;
+        let sampled = if leading {
+            self.buffer.leading_grounded(body)
+        } else {
+            self.buffer.sample_grounded(body)
+        };
+        sampled.unwrap_or(true)
     }
 
     /// Snapshots held for blending. Persistently at one means [`interp_delay`] is too

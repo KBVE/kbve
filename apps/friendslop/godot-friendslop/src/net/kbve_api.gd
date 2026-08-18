@@ -15,6 +15,7 @@ const TIMEOUT := 10.0
 var _request: HTTPRequest
 var _username_request: HTTPRequest
 var _claimed := ""
+var _fetching_wallet := false
 
 
 func _ready() -> void:
@@ -29,8 +30,13 @@ func _ready() -> void:
 	_username_request.request_completed.connect(_on_username)
 
 
+## Asks for the balance, at most one request at a time.
+##
+## The title calls this on every `auth.changed` and signing in emits more than once. A
+## second call while the first is open returns ERR_BUSY, which used to be reported as a
+## failed wallet even though the request already running was about to answer.
 func fetch_wallet(token: String) -> void:
-	if _request == null:
+	if _request == null or _fetching_wallet:
 		return
 	if token.is_empty():
 		wallet_failed.emit("not signed in")
@@ -42,9 +48,12 @@ func fetch_wallet(token: String) -> void:
 	var err := _request.request(BASE_URL + WALLET_PATH, headers)
 	if err != OK:
 		wallet_failed.emit("request failed (%d)" % err)
+		return
+	_fetching_wallet = true
 
 
 func _on_wallet(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
+	_fetching_wallet = false
 	if result != HTTPRequest.RESULT_SUCCESS:
 		wallet_failed.emit("no answer (%d)" % result)
 		return

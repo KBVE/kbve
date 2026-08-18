@@ -192,3 +192,66 @@ func test_escape_is_a_cancel_not_a_quit() -> void:
 func test_the_scenes_it_points_at_exist() -> void:
 	assert_bool(ResourceLoader.exists(TitleMenu.WORLD_SCENE)).is_true()
 	assert_bool(ResourceLoader.exists(TitleMenu.ONLINE_SCENE)).is_true()
+
+
+## Base64url with the padding stripped, which is the shape a real token arrives in.
+func _token(claims: Dictionary) -> String:
+	var payload := Marshalls.utf8_to_base64(JSON.stringify(claims))
+	payload = payload.replace("+", "-").replace("/", "_").rstrip("=")
+	return "header." + payload + ".signature"
+
+
+## The button is the last thing read before joining, so a signed-in player seeing
+## "Play as Guest" reads it as the sign-in having been dropped.
+func test_a_signed_in_player_is_offered_their_own_name() -> void:
+	var auth := get_node_or_null(^"/root/Auth")
+	if auth == null:
+		return
+	var menu := _menu()
+	auth.adopt_account(_token({"sub": "abc", "kbve_username": "h0lybyte"}), "", "refresh", 0)
+	await await_idle_frame()
+	assert_str(menu.play_button.text).is_equal(
+			I18n.t("title.play_as_account", {"name": "h0lybyte"}))
+	assert_str(menu.play_button.text).contains("h0lybyte")
+	auth.sign_out()
+
+
+## Signing out has to put the guest label back, or the menu keeps offering a name
+## it no longer holds a token for.
+func test_signing_out_returns_the_guest_label() -> void:
+	var auth := get_node_or_null(^"/root/Auth")
+	if auth == null:
+		return
+	var menu := _menu()
+	auth.adopt_account(_token({"sub": "abc", "kbve_username": "h0lybyte"}), "", "refresh", 0)
+	await await_idle_frame()
+	auth.sign_out()
+	await await_idle_frame()
+	assert_str(menu.play_button.text).is_equal(I18n.t("title.play_guest"))
+
+
+## An account that has not claimed a username yet gets the plain verb rather than a
+## dangling "Play as ".
+func test_an_account_without_a_username_gets_the_plain_verb() -> void:
+	var auth := get_node_or_null(^"/root/Auth")
+	if auth == null:
+		return
+	var menu := _menu()
+	auth.adopt_account(_token({"sub": "abc"}), "", "refresh", 0)
+	await await_idle_frame()
+	assert_str(menu.play_button.text).is_equal(I18n.t("action.play"))
+	assert_str(menu.play_button.text).not_contains("{{")
+	auth.sign_out()
+
+
+## Every locale has to carry the placeholder, or a translated build shows the label
+## with no name in it at all.
+func test_every_locale_fills_the_name_in() -> void:
+	var before := I18n.locale_code()
+	for entry: Dictionary in I18n.locales():
+		I18n.set_locale(str(entry.get("code", "en")))
+		var text := I18n.t("title.play_as_account", {"name": "h0lybyte"})
+		assert_str(text).override_failure_message(
+				"%s drops the name" % I18n.locale_code()).contains("h0lybyte")
+		assert_str(text).not_contains("{{")
+	I18n.set_locale(before)

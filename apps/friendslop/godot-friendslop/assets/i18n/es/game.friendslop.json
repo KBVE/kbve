@@ -2,6 +2,7 @@
 	"title": {
 		"name": "Friendslop",
 		"play_guest": "Jugar como invitado",
+		"play_as_account": "Jugar como {{name}}",
 		"singleplayer": "Un jugador",
 		"sign_in": "Iniciar sesión",
 		"sign_in_hint": "El inicio de sesión llegará pronto: el servidor nombra a los invitados.",
@@ -80,5 +81,13 @@
 		"weight": "{weight} kg",
 		"drop": "suelta para tirarlo",
 		"empty": "vacío"
+	},
+	"chat": {
+		"signin_required": "Inicia sesión para usar el chat.",
+		"reconnecting": "Reconectando el chat…",
+		"send_failed": "Mensaje no enviado.",
+		"open": "[Enter] Chat",
+		"unreachable": "Servidor de chat inaccesible.",
+		"unavailable": "El chat no está disponible ahora."
 	}
 }

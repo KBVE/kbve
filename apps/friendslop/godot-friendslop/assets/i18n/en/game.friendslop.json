@@ -9,7 +9,7 @@
 		"signing_in": "Waiting for your browser…",
 		"signed_in_as": "Signed in as {name}",
 		"sign_out": "Sign Out",
-		"play_as_account": "Play",
+		"play_as_account": "Play as {{name}}",
 		"sign_in_with": "Sign in with {provider}",
 		"sign_in_browser": "Your browser will open — come back here when it is done.",
 		"build": "v{version}  ·  protocol {protocol}",
@@ -123,6 +123,8 @@
 		"signin_required": "Sign in to use chat.",
 		"reconnecting": "Chat reconnecting…",
 		"send_failed": "Message not sent.",
-		"open": "[Enter] Chat"
+		"open": "[Enter] Chat",
+		"unreachable": "Chat server unreachable.",
+		"unavailable": "Chat is unavailable right now."
 	}
 }

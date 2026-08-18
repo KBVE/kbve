@@ -272,6 +272,8 @@ hair_color = Color(0.16, 0.13, 0.11, 1)
 worn = Array[StringName]([&"male_peasant_body", &"male_peasant_arms", &"male_peasant_legs", &"male_peasant_feet"])
 head_only_body = ExtResource("51_headm")
 stand_under_bridge = true
+route = Array[Vector3]([Vector3(0, 0, 6), Vector3(1.4, 0, -4)])
+route_dwell = 9.0
 
 [node name="Wren" type="Node3D" parent="." unique_id=18600842]
 script = ExtResource("44_npc")
@@ -288,6 +290,8 @@ head_only_body = ExtResource("52_headf")
 stand_under_bridge = true
 bridge_offset = -3.0
 bridge_along = 15.0
+route = Array[Vector3]([Vector3(-2.5, 0, 5), Vector3(-5, 0, 11)])
+route_dwell = 12.0
 
 [node name="Tam" type="Node3D" parent="." unique_id=18600843]
 script = ExtResource("44_npc")
@@ -304,6 +308,8 @@ hair_color = Color(0.09, 0.07, 0.06, 1)
 stand_under_bridge = true
 bridge_offset = 2.2
 bridge_along = -13.0
+route = Array[Vector3]([Vector3(1.2, 0, -5)])
+route_dwell = 14.0
 
 [node name="Sable" type="Node3D" parent="." unique_id=18600844]
 script = ExtResource("44_npc")
@@ -334,6 +340,8 @@ head_only_body = ExtResource("51_headm")
 stand_under_bridge = true
 bridge_offset = 2.6
 bridge_along = 16.0
+route = Array[Vector3]([Vector3(0, 0, -4)])
+route_dwell = 16.0
 
 [node name="Cleric" type="Node3D" parent="." unique_id=18600846]
 script = ExtResource("44_npc")

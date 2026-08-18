@@ -240,6 +240,11 @@ impl SnapshotBuffer {
             .map(|b| b.grounded)
     }
 
+    /// Ground contact from the newest snapshot, for the body drawn on the leading clock.
+    pub fn leading_grounded(&self, id: BodyId) -> Option<bool> {
+        Some(self.frames.back()?.body(id)?.grounded)
+    }
+
     /// Pose for the local body: the newest snapshot carried forward along its own
     /// velocity by however long ago it landed, so our own movement tracks the key that
     /// caused it instead of trailing the buffer.

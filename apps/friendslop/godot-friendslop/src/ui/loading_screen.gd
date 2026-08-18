@@ -10,6 +10,10 @@ const HOLD_FRAMES := 3
 const BUILD_TIMEOUT := 25.0
 const BUILD_PACE := 4.0
 
+const WARM_TIMEOUT := 30.0
+const WARM_SPIKE_MS := 24.0
+const WARM_CALM_FRAMES := 45
+
 var _label: Label
 var _fill: ColorRect
 var _percent: Label
@@ -18,10 +22,16 @@ var _percent: Label
 static func swap(tree: SceneTree, path: String, what: String = "") -> LoadingScreen:
 	var screen := LoadingScreen.new()
 	screen.name = "LoadingScreen"
-	tree.root.add_child(screen)
 	screen._build()
-	screen._run(tree, path, what)
+	screen._attach(tree, path, what)
 	return screen
+
+
+func _attach(tree: SceneTree, path: String, what: String) -> void:
+	tree.root.add_child.call_deferred(self)
+	if not is_node_ready():
+		await ready
+	_run(tree, path, what)
 
 
 func _init() -> void:
@@ -123,6 +133,7 @@ func _run(tree: SceneTree, path: String, what: String) -> void:
 	for _i in HOLD_FRAMES:
 		await tree.process_frame
 	await _wait_for_world(tree, what)
+	await _warm_shaders(tree)
 	queue_free()
 
 
@@ -140,6 +151,29 @@ func _wait_for_world(tree: SceneTree, what: String) -> void:
 			return
 		_set_progress(1.0 - exp(-waited / BUILD_PACE))
 		await tree.process_frame
+	_set_progress(1.0)
+
+
+func _warm_shaders(tree: SceneTree) -> void:
+	_label.text = "Compiling shaders"
+	_set_progress(0.0)
+	var started := Time.get_ticks_usec()
+	var last := started
+	var calm := 0
+	while calm < WARM_CALM_FRAMES:
+		await tree.process_frame
+		var now := Time.get_ticks_usec()
+		var frame_ms := float(now - last) / 1000.0
+		last = now
+		if frame_ms > WARM_SPIKE_MS:
+			calm = 0
+		else:
+			calm += 1
+		var waited := float(now - started) / 1000000.0
+		if waited >= WARM_TIMEOUT:
+			push_warning("[LoadingScreen] shaders still compiling after %.0fs; going in anyway" % waited)
+			return
+		_set_progress(float(calm) / float(WARM_CALM_FRAMES))
 	_set_progress(1.0)
 
 

@@ -53,6 +53,17 @@ function fmtSize(bytes: number): string {
 	return `${v.toFixed(v < 10 && i > 0 ? 1 : 0)} ${units[i]}`;
 }
 
+/** What this fetch will cost, shown before the sweep settles it. Reel bills
+ * `ceil(bytes / MiB)`, so mirror that exactly rather than approximating. */
+function estimatedCredits(
+	t: ReelTorrent,
+	live: ReelLive | undefined,
+): number | null {
+	const bytes = t.size > 0 ? t.size : (live?.total_bytes ?? 0);
+	if (bytes <= 0) return null;
+	return Math.ceil(bytes / (1024 * 1024));
+}
+
 interface BarModel {
 	variant: 'download' | 'transcode' | 'hls';
 	pct: number | null; // null → indeterminate
@@ -260,7 +271,13 @@ export default function ReactReelConsole() {
 	return (
 		<div className="reel-console">
 			<div className="reel-console__header">
-				<h3>Reel manager</h3>
+				<div className="reel-console__titles">
+					<h3>Reel manager</h3>
+					<p className="reel-console__tagline">
+						Fetch a torrent, stream it, save the files. Cache clears
+						itself after 6 idle hours.
+					</p>
+				</div>
 				<button
 					type="button"
 					className="reel-console__refresh"
@@ -273,42 +290,46 @@ export default function ReactReelConsole() {
 			{health && (
 				<p className="reel-console__health">
 					<span
-						className={
+						className={`reel-console__pill ${
 							health.vpn_ok
-								? 'reel-console__health-ok'
-								: 'reel-console__health-bad'
-						}>
-						{health.vpn_ok ? '● VPN ok' : '● VPN down'}
+								? 'reel-console__pill--ok'
+								: 'reel-console__pill--bad'
+						}`}>
+						{health.vpn_ok ? 'VPN ok' : 'VPN down'}
 					</span>
-					<span>{health.trackers} trackers</span>
+					<span className="reel-console__pill">
+						{health.trackers} trackers
+					</span>
 					<span
-						className={
+						className={`reel-console__pill${
 							health.inbound_ready
-								? 'reel-console__health-ok'
-								: undefined
-						}>
+								? ' reel-console__pill--ok'
+								: ''
+						}`}>
 						{health.inbound_ready
-							? `● inbound :${health.forwarded_port}`
-							: '○ outbound-only'}
+							? `inbound :${health.forwarded_port}`
+							: 'outbound-only'}
 					</span>
 					{health.port_rotations > 0 && (
 						<span
-							className="reel-console__health-bad"
+							className="reel-console__pill reel-console__pill--bad"
 							title="Each VPN port rotation wipes the peer swarm — a likely cause of peers dropping.">
-							⟳ {health.port_rotations} port rotations
+							{health.port_rotations} port rotations
 						</span>
 					)}
 					{health.vpn_fail_streak > 0 && (
 						<span
-							className="reel-console__health-bad"
+							className="reel-console__pill reel-console__pill--bad"
 							title="Consecutive failed VPN checks — the swarm pauses while the VPN is unverified.">
-							⚠ VPN checks failing ×{health.vpn_fail_streak}
+							VPN checks failing ×{health.vpn_fail_streak}
 						</span>
 					)}
-					<span>
-						{health.counts.seeding} seeding ·{' '}
-						{health.counts.leeching} leeching ·{' '}
-						{health.counts.failed} failed
+					<span className="reel-console__pill">
+						{health.counts.seeding} cached ·{' '}
+						{health.counts.leeching} fetching
+						{health.counts.failed > 0
+							? ` · ${health.counts.failed} failed`
+							: ''}
 					</span>
 				</p>
 			)}
@@ -319,20 +340,27 @@ export default function ReactReelConsole() {
 					e.preventDefault();
 					void add();
 				}}>
-				<input
-					type="text"
-					value={source}
-					placeholder="magnet:?xt=… or https://…/file.torrent"
-					onChange={(e) => setSource(e.target.value)}
-					disabled={adding}
-				/>
-				<button type="submit" disabled={adding || !source.trim()}>
-					{adding ? 'Adding…' : 'Add reel'}
+				<label className="reel-console__field">
+					<span className="reel-console__label">Source</span>
+					<input
+						type="text"
+						value={source}
+						placeholder="magnet:?xt=… or https://…/file.torrent"
+						onChange={(e) => setSource(e.target.value)}
+						disabled={adding}
+					/>
+				</label>
+				<button
+					type="submit"
+					className="reel-console__submit"
+					disabled={adding || !source.trim()}>
+					{adding ? 'Adding…' : 'Fetch'}
 				</button>
-				<span className="reel-console__rate">
-					1 credit per MiB, charged once when the fetch starts.
-					Streams and re-downloads are free while it stays cached.
-				</span>
+				<p className="reel-console__rate">
+					<strong>1 credit per MiB</strong>, charged once when the
+					fetch starts — about 1,024 credits a GiB. Streaming,
+					downloads and re-adds are free while it stays cached.
+				</p>
 			</form>
 
 			{(actionError || listError) && (
@@ -343,7 +371,16 @@ export default function ReactReelConsole() {
 
 			<ul className="reel-console__list">
 				{list.length === 0 && !loading && (
-					<li className="reel-console__empty">No reels yet.</li>
+					<li className="reel-console__empty">
+						<span className="reel-console__empty-title">
+							Nothing cached
+						</span>
+						<span className="reel-console__empty-hint">
+							Paste a magnet link or a .torrent URL above to pull
+							one in. It stays available for six idle hours, then
+							clears itself.
+						</span>
+					</li>
 				)}
 				{list.map((t) => {
 					const playable =
@@ -370,13 +407,24 @@ export default function ReactReelConsole() {
 											refunded{' '}
 											{formatCredits(t.billed_credits)}
 										</span>
+									) : t.billed_credits != null ? (
+										<span
+											className="reel-console__cost"
+											title="Charged once when reel pulled this fetch. Re-downloads and streams are free while it stays cached.">
+											{formatCredits(t.billed_credits)}
+										</span>
 									) : (
-										t.billed_credits != null && (
+										estimatedCredits(t, live[t.id]) !=
+											null && (
 											<span
-												className="reel-console__cost"
-												title="Charged once when reel pulled this fetch. Re-downloads and streams are free while it stays cached.">
+												className="reel-console__cost reel-console__cost--pending"
+												title="Estimated from the torrent size. The charge lands once the fetch is settled.">
+												~
 												{formatCredits(
-													t.billed_credits,
+													estimatedCredits(
+														t,
+														live[t.id],
+													),
 												)}
 											</span>
 										)

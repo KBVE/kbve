@@ -280,12 +280,34 @@ func _refresh_status() -> void:
 		AUTH.Mode.ACCOUNT:
 			status_label.text = I18n.t("title.signed_in_as").format({"name": auth.requested_name()})
 			sign_in_button.text = I18n.t("title.sign_out")
+			_name_play_button(auth.requested_name())
 			_show_account(auth)
 		AUTH.Mode.GUEST:
 			status_label.text = I18n.t("title.guest_status")
 			sign_in_button.text = I18n.t("title.sign_in")
+			_guest_play_button()
 			account_card.visible = false
 		_:
 			status_label.text = I18n.t(SIGN_IN_HINT_KEY)
 			sign_in_button.text = I18n.t("title.sign_in")
+			_guest_play_button()
 			account_card.visible = false
+
+
+## Says who is about to play, because the button is the last thing read before joining and
+## a stale "Play as Guest" on a signed-in account reads as the sign-in having been dropped.
+##
+## An account is not guaranteed to carry a username yet -- the panel that asks for one opens
+## over this menu -- so a nameless account gets the plain verb rather than a dangling "as".
+func _name_play_button(account: String) -> void:
+	if play_button == null:
+		return
+	if account.is_empty():
+		play_button.text = I18n.t("action.play")
+		return
+	play_button.text = I18n.t("title.play_as_account", {"name": account})
+
+
+func _guest_play_button() -> void:
+	if play_button:
+		play_button.text = I18n.t("title.play_guest")

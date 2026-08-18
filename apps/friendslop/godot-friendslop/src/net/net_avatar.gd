@@ -5,6 +5,7 @@ extends Node3D
 const VELOCITY_SMOOTHING := 12.0
 const REPORTED_FLOOR := 0.01
 const REST_SPEED := 0.05
+const COYOTE_TIME := 0.12
 
 @onready var _rig: Node3D = $Mesh
 @onready var _plate: Label3D = $Nameplate
@@ -16,6 +17,12 @@ var _is_local := false
 var _aim: Node3D
 var _client: Node
 var _body_id := 0
+var _wish := Vector2.ZERO
+var _jump := false
+var _yaw := 0.0
+var _planned := Vector3.ZERO
+var _airborne_t := 0.0
+var _leaping := false
 
 
 ## Points this avatar at the body the host publishes for it.
@@ -43,26 +50,65 @@ func mark_local(aim: Node3D = null) -> void:
 		_plate.visible = false
 
 
+## Hands this avatar the input its owner is producing, before the host has echoed it.
+func push_intent(wish: Vector2, jump: bool, yaw: float) -> void:
+	_wish = wish
+	_jump = jump
+	_yaw = yaw
+
+
 func _process(delta: float) -> void:
 	if delta <= 0.0:
 		return
 	var here := global_position
-	if _has_last:
-		var instant := _reported_velocity(here, delta)
-		_velocity = _velocity.lerp(instant, clampf(VELOCITY_SMOOTHING * delta, 0.0, 1.0))
+	var prev := _last_position if _has_last else here
 	_last_position = here
 	_has_last = true
-
 	if _rig == null or not _rig.has_method(&"drive"):
 		return
+	var grounded := true
+	if _client != null and _body_id != 0:
+		grounded = _client.body_grounded(_body_id)
+	if _is_local:
+		_drive_predicted(grounded, delta)
+		return
+	var instant := _reported_velocity(prev, here, delta)
+	_velocity = _velocity.lerp(instant, clampf(VELOCITY_SMOOTHING * delta, 0.0, 1.0))
 	var travel := _velocity if Vector2(_velocity.x, _velocity.z).length() > REST_SPEED \
 			else Vector3.ZERO
-	_rig.drive(travel, _aim.global_rotation.y if _aim else _travel_aim(travel), false, delta)
+	_rig.drive(travel, _travel_aim(travel), not grounded, delta)
+
+
+## Animates our own avatar from the input we just produced rather than the host's echo.
+##
+## The host publishes velocity on the delayed interpolation clock while our body is drawn
+## on the leading one, so reading it back puts the legs a whole interp_delay behind the
+## motion they are meant to describe. Stepping the same locomotion the solo player steps
+## costs nothing and stays in phase; the host still owns where the body actually is.
+## Leaving the ground is taken from our own jump rather than the host's grounded flag,
+## which only arrives a round trip and up to a tick later.
+func _drive_predicted(grounded: bool, delta: float) -> void:
+	var yaw := _aim.global_rotation.y if _aim else _yaw
+	var footed := grounded and not _leaping
+	if footed and _planned.y < 0.0:
+		_planned.y = 0.0
+	_planned = _rig.step_motion(_wish, _jump, false, false, false,
+			_planned, yaw, footed, _gravity(), delta)
+	if _rig.jumped():
+		_leaping = true
+	elif _leaping and grounded and _planned.y <= 0.0:
+		_leaping = false
+	_airborne_t = 0.0 if grounded else _airborne_t + delta
+	_rig.drive(_planned, yaw, _leaping or _airborne_t > COYOTE_TIME, delta)
+
+
+func _gravity() -> float:
+	return -float(ProjectSettings.get_setting("physics/3d/default_gravity", 9.8))
 
 
 ## Velocity the host published, falling back to the drawn motion when it has not said.
-func _reported_velocity(here: Vector3, delta: float) -> Vector3:
-	var drawn := (here - _last_position) / delta
+func _reported_velocity(prev: Vector3, here: Vector3, delta: float) -> Vector3:
+	var drawn := (here - prev) / delta
 	if _client == null or _body_id == 0:
 		return drawn
 	var told: Vector3 = _client.body_velocity(_body_id)
