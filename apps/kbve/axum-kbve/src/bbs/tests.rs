@@ -13,7 +13,7 @@ use super::chat::{
 use super::claim::{ClaimStore, Redeem};
 use super::door::{self, DoorContext};
 use super::games::text::{Rng, bar, meter, strip_markup};
-use super::games::{Flow, Game, blackjack, dungeon, hangman, highlow, run, tictactoe};
+use super::games::{Flow, Game, blackjack, dopewars, dungeon, hangman, highlow, run, tictactoe};
 use super::render::{Ink, Screen, Term, truncate, wrap_lines};
 use super::session::Session;
 use super::telnet::{DO, IAC, OPT_ECHO, OPT_NAWS, ReadError, SB, SE, TelnetConn, WILL};
@@ -1278,4 +1278,258 @@ async fn the_door_menu_fits_a_forty_column_screen() {
         .unwrap_or(0);
 
     assert!(widest <= 40, "door menu overflowed 40 columns: {widest}");
+}
+
+/// The keys a door actually drew, scraped from the frame rather than from a
+/// second list the door would have to keep in step with what it paints.
+fn offered_keys(game: &dyn Game) -> Vec<char> {
+    let mut screen = Screen::new(Term::Ansi, 80, 24);
+    game.draw(&mut screen);
+    let painted = String::from_utf8_lossy(&screen.take()).to_string();
+    let plain = strip_ansi(&painted);
+    let chars: Vec<char> = plain.chars().collect();
+    let mut keys = Vec::new();
+    for window in chars.windows(3) {
+        if window[0] == '[' && window[2] == ']' && window[1] != ' ' {
+            keys.push(window[1]);
+        }
+    }
+    keys
+}
+
+fn strip_ansi(s: &str) -> String {
+    let mut out = String::with_capacity(s.len());
+    let mut chars = s.chars();
+    while let Some(c) = chars.next() {
+        if c != '\x1b' {
+            out.push(c);
+            continue;
+        }
+        for c in chars.by_ref() {
+            if c.is_ascii_alphabetic() {
+                break;
+            }
+        }
+    }
+    out
+}
+
+/// Walk the boroughs until one has something the wallet can reach, then leave
+/// the door sitting in its buy list. A broke first day is a legitimate hand to
+/// be dealt, so a test about buying has to find a day where buying is on.
+fn ready_to_buy(game: &mut dopewars::DopeWars) -> char {
+    for _ in 0..DAYS_IN_A_MONTH {
+        game.on_key('B');
+        if let Some(key) = offered_keys(game).into_iter().find(|k| k.is_ascii_digit()) {
+            return key;
+        }
+        game.on_key('Q');
+        game.on_key('T');
+        let stops: Vec<char> = offered_keys(game)
+            .into_iter()
+            .filter(|k| k.is_ascii_digit())
+            .collect();
+        game.on_key(stops[0]);
+    }
+    panic!("no borough had anything affordable in a whole month");
+}
+
+const DAYS_IN_A_MONTH: usize = 30;
+
+#[test]
+fn dope_wars_only_draws_keys_it_will_accept() {
+    for seed in 1..16u64 {
+        let mut game = dopewars::DopeWars::new(Rng::new(seed));
+        for step in 0..200 {
+            // The board never feeds a key while a door is asking for a line,
+            // so neither does this.
+            if game.prompt().is_some() {
+                let answer = ["max", "1", "", "7"][step % 4];
+                game.on_line(answer);
+                continue;
+            }
+            let keys = offered_keys(&game);
+            assert!(
+                !keys.is_empty(),
+                "seed {seed} step {step}: no key offered, the door is stuck"
+            );
+            let key = keys[step % keys.len()];
+            if key == 'Q' {
+                continue;
+            }
+            game.on_key(key);
+            assert!(
+                game.cash() >= 0,
+                "seed {seed} step {step}: cash went negative"
+            );
+            assert!(
+                game.held() <= game.coat(),
+                "seed {seed} step {step}: coat overfilled"
+            );
+        }
+    }
+}
+
+#[test]
+fn dope_wars_max_spends_what_there_is_and_no_more() {
+    let mut game = dopewars::DopeWars::new(Rng::new(4));
+    let good = ready_to_buy(&mut game);
+    let before = game.cash();
+
+    game.on_key(good);
+    assert!(
+        game.prompt().is_some(),
+        "picking a good did not ask for a quantity"
+    );
+    game.on_line("max");
+
+    assert!(game.cash() >= 0, "max overdrew the wallet");
+    assert!(game.cash() < before, "max bought nothing");
+    assert!(game.held() <= game.coat(), "max overfilled the coat");
+}
+
+#[test]
+fn dope_wars_refuses_a_quantity_beyond_reach() {
+    let mut game = dopewars::DopeWars::new(Rng::new(4));
+    let good = ready_to_buy(&mut game);
+    let before = game.cash();
+    let carried = game.held();
+
+    game.on_key(good);
+    game.on_line("999999");
+
+    assert_eq!(game.cash(), before, "an unaffordable buy still moved money");
+    assert_eq!(
+        game.held(),
+        carried,
+        "an unaffordable buy still filled the coat"
+    );
+}
+
+#[test]
+fn dope_wars_escape_drops_the_trade() {
+    let mut game = dopewars::DopeWars::new(Rng::new(4));
+    let good = ready_to_buy(&mut game);
+    let before = game.cash();
+
+    game.on_key(good);
+    game.on_line("");
+
+    assert_eq!(game.cash(), before, "escape still bought something");
+    assert!(game.prompt().is_none(), "escape left the prompt up");
+}
+
+#[test]
+fn dope_wars_sells_only_what_is_carried() {
+    let mut game = dopewars::DopeWars::new(Rng::new(4));
+    game.on_key('S');
+
+    let keys = offered_keys(&game);
+
+    assert!(
+        !keys.iter().any(|k| k.is_ascii_digit()),
+        "an empty coat still offered something to sell: {keys:?}"
+    );
+}
+
+#[test]
+fn dope_wars_debt_compounds_until_the_month_runs_out() {
+    let mut game = dopewars::DopeWars::new(Rng::new(2));
+    let opening = game.debt();
+    let mut hops = 0;
+
+    while game.prompt().is_none() && !game.finished() && hops < 200 {
+        let keys = offered_keys(&game);
+        if keys.contains(&'T') {
+            game.on_key('T');
+            let stops: Vec<char> = offered_keys(&game)
+                .into_iter()
+                .filter(|k| k.is_ascii_digit())
+                .collect();
+            game.on_key(stops[hops % stops.len()]);
+            hops += 1;
+        } else {
+            break;
+        }
+    }
+
+    assert!(
+        game.finished(),
+        "thirty days never elapsed after {hops} hops"
+    );
+    assert!(
+        game.debt() > opening,
+        "the shark never charged interest: {} vs {}",
+        game.debt(),
+        opening
+    );
+    assert_eq!(
+        game.on_key('Q'),
+        Flow::Exit,
+        "the closing screen would not close"
+    );
+}
+
+#[test]
+fn dope_wars_pays_the_shark_only_where_he_collects() {
+    let mut game = dopewars::DopeWars::new(Rng::new(4));
+    let owed = game.debt();
+    let cash = game.cash();
+
+    game.on_key('P');
+
+    assert_eq!(
+        game.debt(),
+        owed - cash,
+        "paying in the bronx did not reduce the debt"
+    );
+    assert_eq!(game.cash(), 0, "paying the shark did not cost cash");
+
+    game.on_key('T');
+    let stop = offered_keys(&game)
+        .into_iter()
+        .find(|k| k.is_ascii_digit())
+        .expect("nowhere to travel");
+    game.on_key(stop);
+    let elsewhere = game.debt();
+    game.on_key('P');
+
+    assert_eq!(
+        game.debt(),
+        elsewhere,
+        "the shark collected outside the bronx"
+    );
+}
+
+#[test]
+fn dope_wars_renders_clean_on_petscii_across_a_run() {
+    let mut game = dopewars::DopeWars::new(Rng::new(5));
+    for step in 0..120 {
+        let mut screen = Screen::new(Term::Petscii, 40, 25);
+        game.draw(&mut screen);
+        let bytes = screen.take();
+        assert!(!bytes.contains(&b'?'), "petscii fallback at step {step}");
+        let widest = bytes
+            .split(|b| *b == 0x0D)
+            .map(petscii_columns)
+            .max()
+            .unwrap_or(0);
+        assert!(
+            widest <= 40,
+            "line overflowed 40 columns at step {step}: {widest}"
+        );
+
+        if game.prompt().is_some() {
+            game.on_line("max");
+            continue;
+        }
+        let keys: Vec<char> = offered_keys(&game)
+            .into_iter()
+            .filter(|k| *k != 'Q')
+            .collect();
+        if keys.is_empty() {
+            break;
+        }
+        game.on_key(keys[step % keys.len()]);
+    }
 }
