@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
@@ -98,7 +99,9 @@ describe('MonorepoGraphExplorer', () => {
 			render(<MonorepoGraphExplorer />);
 
 			expect(
-				screen.getByText(/Scroll\/pinch to zoom · Drag to pan · Click nodes to explore/),
+				screen.getByText(
+					/Scroll\/pinch to zoom · Drag to pan · Click nodes to explore/,
+				),
 			).toBeInTheDocument();
 		});
 
@@ -181,7 +184,9 @@ describe('MonorepoGraphExplorer', () => {
 
 			const controls = container.querySelector('.mgx__controls');
 			expect(controls).toHaveClass('is-expanded');
-			expect(screen.getByLabelText('Collapse controls')).toBeInTheDocument();
+			expect(
+				screen.getByLabelText('Collapse controls'),
+			).toBeInTheDocument();
 		});
 
 		it('collapses controls when close button is clicked', () => {
@@ -204,7 +209,8 @@ describe('MonorepoGraphExplorer', () => {
 		it('shows search results when query matches directories', async () => {
 			render(<MonorepoGraphExplorer />);
 
-			const searchInput = screen.getByPlaceholderText('Search directory…');
+			const searchInput =
+				screen.getByPlaceholderText('Search directory…');
 			fireEvent.change(searchInput, { target: { value: 'kbve' } });
 
 			await waitFor(() => {
@@ -230,7 +236,13 @@ describe('MonorepoGraphExplorer', () => {
 
 			mockHook.mockReturnValue({
 				overview: {
-					meta: { dirs: 10, files: 100, symbols: 1000, dirEdges: 0, built_at_commit: 'test' },
+					meta: {
+						dirs: 10,
+						files: 100,
+						symbols: 1000,
+						dirEdges: 0,
+						built_at_commit: 'test',
+					},
 					dirs: manyDirs,
 					dirEdges: [],
 				},
@@ -242,11 +254,14 @@ describe('MonorepoGraphExplorer', () => {
 
 			render(<MonorepoGraphExplorer />);
 
-			const searchInput = screen.getByPlaceholderText('Search directory…');
+			const searchInput =
+				screen.getByPlaceholderText('Search directory…');
 			fireEvent.change(searchInput, { target: { value: 'test' } });
 
 			await waitFor(() => {
-				const results = screen.getAllByRole('button', { name: /test-/ });
+				const results = screen.getAllByRole('button', {
+					name: /test-/,
+				});
 				expect(results.length).toBeLessThanOrEqual(8);
 			});
 		});
@@ -297,7 +312,8 @@ describe('MonorepoGraphExplorer', () => {
 		it('ignores keyboard shortcuts when typing in input', () => {
 			render(<MonorepoGraphExplorer />);
 
-			const searchInput = screen.getByPlaceholderText('Search directory…');
+			const searchInput =
+				screen.getByPlaceholderText('Search directory…');
 			searchInput.focus();
 
 			fireEvent.keyDown(searchInput, { key: '+' });
@@ -355,7 +371,9 @@ describe('MonorepoGraphExplorer', () => {
 
 			render(<MonorepoGraphExplorer />);
 
-			expect(screen.getByText('Loading monorepo graph…')).toBeInTheDocument();
+			expect(
+				screen.getByText('Loading monorepo graph…'),
+			).toBeInTheDocument();
 		});
 
 		it('shows error message when loading fails', async () => {
@@ -372,7 +390,9 @@ describe('MonorepoGraphExplorer', () => {
 
 			render(<MonorepoGraphExplorer />);
 
-			expect(screen.getByText(/Failed to load graph: Network error/)).toBeInTheDocument();
+			expect(
+				screen.getByText(/Failed to load graph: Network error/),
+			).toBeInTheDocument();
 		});
 	});
 
