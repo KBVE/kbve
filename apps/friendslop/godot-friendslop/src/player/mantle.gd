@@ -24,6 +24,7 @@ var _height := 2.0
 
 var _stuck := 0.0
 var _sunk := 0.0
+var _sunk_from := Vector3.INF
 var _time := 0.0
 var _span := FALLBACK_CLIMB
 var _from := Vector3.ZERO
@@ -63,12 +64,21 @@ func update(delta: float, wish: Vector3, jump: bool) -> bool:
 	var grounded := _body.is_on_floor()
 	var touching := _body.get_slide_collision_count() > 0
 
-	if not grounded and touching and not moving:
+	# Buried is judged by progress, not by velocity. A capsule pinched between
+	# two rocks is depenetrated back and forth every frame, and that jitter
+	# reads as metres per second of real velocity while the body goes nowhere
+	# -- which is exactly the state that used to keep this from ever firing.
+	if not grounded and touching:
+		if _body.global_position.distance_to(_sunk_from) > 0.25:
+			_sunk_from = _body.global_position
+			_sunk = 0.0
 		_sunk += delta
 		if _sunk >= BURIED_TIME and _dig_out():
+			_sunk_from = Vector3.INF
 			return true
 	else:
 		_sunk = 0.0
+		_sunk_from = Vector3.INF
 
 	if flat == Vector3.ZERO:
 		_stuck = 0.0
