@@ -13,6 +13,14 @@ const FONT := 18.0
 
 enum Kind { INFO, GOOD, WARN }
 
+## Where the stack sits. In the world it rises from the bottom middle, under the player's
+## eye but clear of the HUD; on the title there is nothing in the top right and plenty in
+## the middle, so it moves out of the menu's way.
+enum Corner { BOTTOM_CENTER, TOP_RIGHT }
+
+const EDGE_PAD := 18.0
+const COLUMN_WIDTH := 320.0
+
 const INK := {
 	Kind.INFO: Color(0.25, 0.16, 0.08),
 	Kind.GOOD: Color(0.13, 0.32, 0.14),
@@ -21,6 +29,7 @@ const INK := {
 
 var _column: VBoxContainer
 var _lines: Array[Dictionary] = []
+var _corner := Corner.BOTTOM_CENTER
 
 
 func _ready() -> void:
@@ -32,15 +41,8 @@ func _ready() -> void:
 	add_child(root)
 
 	_column = VBoxContainer.new()
-	_column.alignment = BoxContainer.ALIGNMENT_END
 	_column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_column.add_theme_constant_override("separation", GAP)
-	_column.anchor_left = 0.5
-	_column.anchor_right = 0.5
-	_column.anchor_top = 1.0
-	_column.anchor_bottom = 1.0
-	_column.grow_horizontal = Control.GROW_DIRECTION_BOTH
-	_column.grow_vertical = Control.GROW_DIRECTION_BEGIN
 	root.add_child(_column)
 	_reflow()
 	get_viewport().size_changed.connect(_reflow)
@@ -73,7 +75,7 @@ func show_toast(text: String, kind: int = Kind.INFO, seconds: float = SECONDS) -
 	var scale := _scale()
 	var label := Label.new()
 	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	label.horizontal_alignment = _text_align()
 	label.add_theme_font_size_override("font_size", int(round(FONT * scale)))
 	label.add_theme_color_override("font_color", INK.get(kind, INK[Kind.INFO]))
 	label.add_theme_stylebox_override("normal", _paper(scale))
@@ -169,10 +171,55 @@ func _scale() -> float:
 	return clampf(h / LAYOUT_HEIGHT, SCALE_RANGE.x, SCALE_RANGE.y)
 
 
+## Moves the stack to a corner. Existing lines move with it rather than being cleared, so
+## a message raised a moment before a scene change is still readable after it.
+func place(corner: int) -> void:
+	if _corner == corner:
+		return
+	_corner = corner
+	_reflow()
+	for line in _lines:
+		var label: Variant = line.get("label", null)
+		if label is Label:
+			(label as Label).horizontal_alignment = _text_align()
+
+
+func corner() -> int:
+	return _corner
+
+
+func _text_align() -> int:
+	return HORIZONTAL_ALIGNMENT_RIGHT if _corner == Corner.TOP_RIGHT \
+			else HORIZONTAL_ALIGNMENT_CENTER
+
+
 func _reflow() -> void:
 	if _column == null:
 		return
 	var scale := _scale()
+	var width := COLUMN_WIDTH * scale
+	var pad := EDGE_PAD * scale
+	if _corner == Corner.TOP_RIGHT:
+		_column.alignment = BoxContainer.ALIGNMENT_BEGIN
+		_column.anchor_left = 1.0
+		_column.anchor_right = 1.0
+		_column.anchor_top = 0.0
+		_column.anchor_bottom = 0.0
+		_column.grow_horizontal = Control.GROW_DIRECTION_BEGIN
+		_column.grow_vertical = Control.GROW_DIRECTION_END
+		_column.offset_left = -(width + pad)
+		_column.offset_right = -pad
+		_column.offset_top = pad
+		_column.offset_bottom = pad
+		return
+	_column.alignment = BoxContainer.ALIGNMENT_END
+	_column.anchor_left = 0.5
+	_column.anchor_right = 0.5
+	_column.anchor_top = 1.0
+	_column.anchor_bottom = 1.0
+	_column.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	_column.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_column.offset_top = 0.0
 	_column.offset_bottom = -90.0 * scale
 	_column.offset_left = -260.0 * scale
 	_column.offset_right = 260.0 * scale

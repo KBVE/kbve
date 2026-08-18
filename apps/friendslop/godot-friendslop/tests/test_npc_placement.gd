@@ -75,9 +75,6 @@ func test_a_dry_spot_is_left_where_it_was_authored() -> void:
 			.is_equal(bank)
 
 
-## Read out of the world scene rather than listed here, so this is held against what the
-## game actually loads. The last time placement broke, the test compared the numbers an
-## author typed with the numbers an author typed and passed the whole way through.
 func _authored_stands() -> Dictionary:
 	var text := FileAccess.get_file_as_string(WORLD)
 	var out := {}

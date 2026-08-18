@@ -1,6 +1,5 @@
 extends GdUnitTestSuite
 
-## Covers the identity the title screen hands the game.
 
 const AuthSessionScript = preload("res://src/autoload/auth_session.gd")
 
@@ -8,12 +7,6 @@ const AuthSessionScript = preload("res://src/autoload/auth_session.gd")
 var _store_seq := 0
 
 
-## A session that keeps its state somewhere nothing else will find it.
-##
-## Pointed off the real store before it enters the tree, because `_ready`
-## restores from that path: left alone, every test below reads whoever happens to
-## be signed in on the machine running it. That is why this suite passed on CI,
-## where nobody is signed in, and failed on a developer who was.
 func _auth() -> Node:
 	var node := Node.new()
 	node.set_script(AuthSessionScript)
@@ -38,8 +31,6 @@ func test_guest_sign_in_needs_no_credentials() -> void:
 	assert_bool(auth.is_signed_in()).is_true()
 
 
-## A guest asks the server for nothing and carries no token; the server is what names
-## them.
 func test_a_guest_carries_no_token_and_no_name() -> void:
 	var auth := _auth()
 	auth.sign_in_as_guest()
@@ -47,8 +38,6 @@ func test_a_guest_carries_no_token_and_no_name() -> void:
 	assert_str(auth.requested_name()).is_empty()
 
 
-## No round trip for a form that cannot possibly succeed, and no state change either — a
-## blank password must not sign anybody out of anything.
 func test_empty_credentials_never_reach_the_network() -> void:
 	var auth := _auth()
 	var code: int = await auth.sign_in("", "")
@@ -57,7 +46,6 @@ func test_empty_credentials_never_reach_the_network() -> void:
 	assert_str(auth.last_error()).is_not_empty()
 
 
-## Nothing opens a browser for a provider GoTrue has not got.
 func test_an_unknown_provider_opens_nothing() -> void:
 	var auth := _auth()
 	var code: int = await auth.sign_in_with_provider("myspace")
@@ -65,8 +53,6 @@ func test_an_unknown_provider_opens_nothing() -> void:
 	assert_bool(auth.is_signed_in()).is_false()
 
 
-## The username the title draws comes out of the token itself, so the claim has to
-## survive base64url without padding — which is what a JWT always is.
 func test_the_username_is_read_out_of_the_token() -> void:
 	var token := _token({"kbve_username": "h0lybyte", "sub": "abc"})
 	assert_str(AuthSessionScript.username_in(token)).is_equal("h0lybyte")
@@ -77,23 +63,18 @@ func test_a_token_without_the_claim_falls_back_to_user_metadata() -> void:
 	assert_str(AuthSessionScript.username_in(token)).is_equal("fallback_guy")
 
 
-## Garbage in the token field is a bug somewhere else; it must not be a crash here, and
-## it must not produce a name.
 func test_an_unreadable_token_yields_no_name() -> void:
 	assert_str(AuthSessionScript.username_in("")).is_empty()
 	assert_str(AuthSessionScript.username_in("not-a-jwt")).is_empty()
 	assert_str(AuthSessionScript.username_in("a.b.c")).is_empty()
 
 
-## Adopting a token with no explicit username reads the claim rather than leaving the
-## player nameless until the server answers.
 func test_adopting_a_token_learns_the_name_from_it() -> void:
 	var auth := _auth()
 	auth.adopt_account(_token({"kbve_username": "claimed"}), "")
 	assert_str(auth.requested_name()).is_equal("claimed")
 
 
-## A guest has no token to refresh, and refreshing must not turn them into one.
 func test_refresh_is_a_no_op_for_a_guest() -> void:
 	var auth := _auth()
 	auth.sign_in_as_guest()
@@ -101,7 +82,6 @@ func test_refresh_is_a_no_op_for_a_guest() -> void:
 	assert_bool(auth.is_guest()).is_true()
 
 
-## Base64url, unpadded — exactly the shape GoTrue emits.
 func _token(claims: Dictionary) -> String:
 	var payload := Marshalls.utf8_to_base64(JSON.stringify(claims))
 	payload = payload.replace("+", "-").replace("/", "_").rstrip("=")
@@ -116,8 +96,6 @@ func test_an_account_carries_its_token_and_name() -> void:
 	assert_str(auth.requested_name()).is_equal("h0lybyte")
 
 
-## An empty token would look signed-in to every caller while authenticating as nobody,
-## which is worse than staying signed out.
 func test_an_empty_token_is_refused() -> void:
 	var auth := _auth()
 	auth.adopt_account("", "h0lybyte")

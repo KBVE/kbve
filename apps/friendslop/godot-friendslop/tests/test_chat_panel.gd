@@ -15,8 +15,6 @@ func test_the_chat_action_exists_so_the_panel_can_be_opened() -> void:
 	assert_bool(InputMap.has_action(&"chat")).is_true()
 
 
-## Chat rides a JWT the gateway validates on upgrade. A guest has none, so the entry must
-## never open -- an input that cannot send is worse than no input.
 func test_a_guest_cannot_open_the_entry() -> void:
 	Auth.sign_in_as_guest()
 	var panel: ChatPanel = await _panel()
@@ -25,7 +23,6 @@ func test_a_guest_cannot_open_the_entry() -> void:
 	panel.queue_free()
 
 
-## The client refuses to open a socket without a token rather than connecting anonymously.
 func test_the_client_reports_signin_required_without_an_account() -> void:
 	Auth.sign_in_as_guest()
 	var client: ChatClient = ChatClientScript.new()
@@ -40,7 +37,6 @@ func test_the_client_reports_signin_required_without_an_account() -> void:
 	client.queue_free()
 
 
-## One layout serves both, so the log is measured against the viewport rather than fixed.
 func test_the_log_resizes_with_the_viewport() -> void:
 	var panel: ChatPanel = await _panel()
 	var view := panel.get_viewport().get_visible_rect().size
@@ -57,7 +53,6 @@ func test_every_chat_string_is_translated() -> void:
 				"%s has no translation" % key).is_not_equal(key)
 
 
-## Sending is refused while disconnected instead of being dropped silently.
 func test_send_is_refused_while_disconnected() -> void:
 	var client: ChatClient = ChatClientScript.new()
 	add_child(client)
@@ -66,7 +61,6 @@ func test_send_is_refused_while_disconnected() -> void:
 	client.queue_free()
 
 
-## Every string the client can emit has to resolve, or the notice shows the raw key.
 func test_every_failure_reason_is_translated() -> void:
 	for key in ["chat.signin_required", "chat.unreachable", "chat.unavailable",
 			"chat.reconnecting", "chat.send_failed"]:
@@ -74,8 +68,6 @@ func test_every_failure_reason_is_translated() -> void:
 				"%s has no translation" % key).is_not_equal(key)
 
 
-## A gateway that answers the upgrade with an HTTP error is refusing, not flapping, so
-## the client stops instead of reopening the socket forever.
 func test_the_client_gives_up_on_a_refused_handshake() -> void:
 	var client: ChatClient = ChatClientScript.new()
 	assert_int(client.MAX_HANDSHAKE_FAILURES).is_greater(0)

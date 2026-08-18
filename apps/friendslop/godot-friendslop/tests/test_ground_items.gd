@@ -140,8 +140,6 @@ func test_the_field_can_be_found_from_the_tree() -> void:
 	assert_object(GroundItems.of(get_tree())).is_same(_field)
 
 
-## Something the player put down lands at their feet, inside the radius that picks
-## things up. Without the disarm it would be back in the bag the same frame.
 func test_a_dropped_stack_is_not_picked_straight_back_up() -> void:
 	_player.global_position = Vector3(4.0, 0.0, 0.0)
 	var item := _field.drop_at_player(&"log", 3)
@@ -157,7 +155,6 @@ func test_a_dropped_stack_is_not_picked_straight_back_up() -> void:
 	assert_int(_field.items().size()).is_equal(1)
 
 
-## Once the player has walked off it, it is an ordinary drop again.
 func test_walking_away_arms_a_dropped_stack() -> void:
 	_player.global_position = Vector3(4.0, 0.0, 0.0)
 	var item := _field.drop_at_player(&"log", 3)

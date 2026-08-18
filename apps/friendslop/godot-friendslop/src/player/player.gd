@@ -82,14 +82,6 @@ func _join_sim() -> void:
 			collision_layer, collision_mask)
 
 
-## Gives up on the velocity we planned when the sim says we are not achieving it.
-##
-## The sim publishes one velocity per tick and clears the translation it accumulated,
-## so read once per frame it is both stale and, on any tick that received no command,
-## an outright zero. Against an instantaneous plan that reads as a wall roughly a
-## fifth of the time while simply walking -- measured at 375 of 1860 frames -- and
-## each false positive drops the plan to a standstill for a frame, which the rig
-## animates as a restart. Only a shortfall that persists is a wall.
 func _adopt_blocked_velocity(delta: float) -> void:
 	var actual: Vector3 = _sim.body_velocity(_sim_id)
 	var planned := Vector2(velocity.x, velocity.z)
@@ -104,8 +96,6 @@ func _adopt_blocked_velocity(delta: float) -> void:
 	velocity.z = actual.z
 
 
-## Movement is polled rather than delivered as events, so focus alone does not stop the
-## keys reaching it and a chat line would walk the body across the world as it is typed.
 func _typing() -> bool:
 	for panel in get_tree().get_nodes_in_group(&"chat_panel"):
 		if panel.has_focus_grabbed():

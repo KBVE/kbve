@@ -1,11 +1,5 @@
 extends GdUnitTestSuite
 
-## The character kit: every body the game can put an NPC in, and every hairstyle it can
-## put on one.
-##
-## These are imported assets rather than code, and the way they fail is quiet -- a body
-## whose skeleton was not retargeted loads, draws, and then stands in a T-pose while the
-## animation plays into bones that are not there.
 
 const CharacterRig := preload("res://src/characters/character_rig.gd")
 
@@ -22,8 +16,6 @@ const BODIES := [
 ]
 const HAIR := ["Hair_Ponytail", "Hair_SimpleParted", "Hair_Beard", "Hair_Bob", "Hair_Long"]
 
-## Bones the retarget renames things to. An unmapped skeleton keeps the kit's own names
-## and none of these are present.
 const RETARGETED := ["Hips", "Spine", "Head", "LeftHand", "RightHand", "LeftFoot", "RightFoot"]
 
 
@@ -39,8 +31,6 @@ func test_every_hairstyle_in_the_kit_loads() -> void:
 				.override_failure_message("%s did not load" % hair).is_not_null()
 
 
-## The failure this is really here for: a body imported without the bone map keeps its own
-## bone names, so the shared animations drive nothing and it stands there in its T-pose.
 func test_every_body_was_retargeted_onto_the_shared_skeleton() -> void:
 	for body: String in BODIES:
 		var scene: PackedScene = load("%s/%s.glb" % [BODY_DIR, body])
@@ -55,8 +45,6 @@ func test_every_body_was_retargeted_onto_the_shared_skeleton() -> void:
 					.is_greater_equal(0)
 
 
-## Hair is parented to a head bone by name, so it has to have been retargeted too or it
-## sits at the character's feet.
 func test_every_hairstyle_was_retargeted() -> void:
 	for hair: String in HAIR:
 		var scene: PackedScene = load("%s/%s.glb" % [HAIR_DIR, hair])
@@ -70,8 +58,6 @@ func test_every_hairstyle_was_retargeted() -> void:
 				.is_greater_equal(0)
 
 
-## Every body has to take the same animations, since that is the whole point of one kit:
-## a new NPC is a new body and nothing else.
 func test_every_body_takes_the_shared_animations() -> void:
 	for body: String in BODIES:
 		var rig := CharacterRig.new()
@@ -89,8 +75,6 @@ func test_every_body_takes_the_shared_animations() -> void:
 				.is_true()
 
 
-## A body with no mesh is a body that loaded and drew nothing, which reads in game as an
-## NPC who is not there.
 func test_every_body_has_something_to_draw() -> void:
 	for body: String in BODIES:
 		var instance: Node3D = (load("%s/%s.glb" % [BODY_DIR, body]) as PackedScene).instantiate()
@@ -100,16 +84,10 @@ func test_every_body_has_something_to_draw() -> void:
 				.override_failure_message("%s has no mesh" % body).is_greater(0)
 
 
-## What the scene asks its people to do with themselves. The kit spells its loops
-## `Idle_Talking_Loop` and the importer hands them over as `Idle_Talking`, so every one of
-## these is a name that has been rewritten somewhere between Blender and here.
 const PERFORMANCE := ["idle_animation", "talk_animation", "listen_animation",
 		"meeting_animation"]
 
 
-## A clip the rig cannot find is not an error -- the body simply carries on doing whatever
-## it was doing, which is a person standing inert through their own conversation. So the
-## names are held against the libraries rather than trusted.
 func test_every_clip_the_world_asks_for_is_in_the_kit() -> void:
 	var rig := CharacterRig.new()
 	rig.body = load("%s/%s.glb" % [BODY_DIR, BODIES[0]])
@@ -119,8 +97,6 @@ func test_every_clip_the_world_asks_for_is_in_the_kit() -> void:
 	await get_tree().process_frame
 	assert_object(rig.animation).is_not_null()
 
-	## Stood up once to be asked what its exports default to, since a property the scene
-	## never wrote is still a clip the actor will reach for.
 	var defaults := NpcActor.new()
 	auto_free(defaults)
 
@@ -134,7 +110,6 @@ func test_every_clip_the_world_asks_for_is_in_the_kit() -> void:
 		if str(props.get("npc_ref", "")) == "":
 			continue
 		for field: String in PERFORMANCE:
-			## An unset property is the export's own default, which is a clip too.
 			var clip := str(props.get(field, defaults.get(field)))
 			if clip == "":
 				continue
@@ -150,9 +125,6 @@ func test_every_clip_the_world_asks_for_is_in_the_kit() -> void:
 			.is_empty()
 
 
-## A material the cel shading has no entry for keeps the pack's own flat look, so it is the
-## one surface on a drawn character that is lit like a photograph. It warns and carries on,
-## which is exactly the kind of failure nobody sees until a screenshot.
 func test_every_surface_the_kit_can_wear_has_a_cel_entry() -> void:
 	var missing: Array[String] = []
 	for body: String in BODIES:

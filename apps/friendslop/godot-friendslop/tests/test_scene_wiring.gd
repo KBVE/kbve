@@ -1,6 +1,5 @@
 extends GdUnitTestSuite
 
-## Guards the wiring every playable scene needs but nothing enforces.
 
 const SCENES := [
 	"res://scenes/main.tscn",
@@ -8,7 +7,6 @@ const SCENES := [
 	"res://scenes/online.tscn",
 ]
 
-## Every material QTerrain draws with.
 const TERRAIN_MATERIALS := [
 	&"ground_material",
 	&"water_material",
@@ -17,9 +15,6 @@ const TERRAIN_MATERIALS := [
 	&"abutment_material",
 ]
 
-## Settings nodes are looked up by name from the pause menu's parent, so a scene that
-## omits them silently loses the graphics and gameplay pages — which is how the title
-## screen ended up with a settings book that had nothing in it.
 const SETTINGS_NODES := ["GraphicsSettings", "GameplaySettings"]
 
 
@@ -36,9 +31,6 @@ func _properties_of(state: SceneState, node_index: int) -> Dictionary:
 	return out
 
 
-## A QFishField with no model or materials places its fish, simulates them and draws
-## nothing — the same silent shape as the bridge, and just as invisible outside a
-## screenshot.
 const FISH_SCENES := [
 	"res://scenes/main.tscn",
 	"res://scenes/title.tscn",
@@ -86,14 +78,8 @@ func test_every_terrain_is_handed_all_of_its_materials() -> void:
 			.is_true()
 
 
-## Scenes whose ground the server also simulates. It spawns a collider for every
-## rock its own scatter places whether or not the client draws them, so a scene with
-## no QStoneField is one where players walk into rocks that are not there.
 const STONE_SCENES := ["res://scenes/main.tscn", "res://scenes/online.tscn"]
 
-## Tuning the server takes from `StoneScatter::default()` and cannot be told about.
-## A scene that overrides any of it scatters rocks the server did not place, which
-## reads as rocks you cannot touch and walls you cannot see.
 const STONE_SHARED_TUNING := [
 	&"stone_seed",
 	&"grid_size",

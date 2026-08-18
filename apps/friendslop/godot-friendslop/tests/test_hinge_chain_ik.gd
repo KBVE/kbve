@@ -2,12 +2,9 @@ extends GdUnitTestSuite
 
 const ChainIK := preload("res://src/characters/hinge_chain_ik.gd")
 
-## Ankle offset from the last bone, standing in for the mech pack's sibling foot control.
 const ANKLE := Vector3(0.0, -0.9, 0.15)
 
 
-## Straight is the awkward case: bending a straight chain either way shortens it, so the
-## span is not monotonic in the bend and a blind bisection walks off the wrong side.
 func _leg(bent: bool, joints: int) -> Skeleton3D:
 	var skeleton := Skeleton3D.new()
 	add_child(skeleton)
@@ -40,8 +37,6 @@ func _tip_local(skeleton: Skeleton3D, bones: PackedInt32Array) -> Vector3:
 			* (skeleton.get_bone_global_rest(last).origin + ANKLE)
 
 
-## Goals are pulled into the chain's own span, since a leg that cannot reach is a
-## different case with its own test.
 func _lands_on_goal(bent: bool, joints: int, drop: float, side: float) -> void:
 	var skeleton := _leg(bent, joints)
 	var bones := _chain(skeleton)
@@ -76,15 +71,11 @@ func test_a_straight_three_bone_leg_reaches_its_goal() -> void:
 	_lands_on_goal(false, 3, -0.6, 0.3)
 
 
-## Stepping up shortens the leg, which is the half of the range a solver that only ever
-## straightens gets wrong.
 func test_a_leg_folds_to_reach_a_step_up() -> void:
 	_lands_on_goal(true, 3, 0.5, 0.2)
 	_lands_on_goal(true, 2, 0.4, 0.2)
 
 
-## Past its span the chain goes as far as it can, in the right direction, instead of
-## flipping or giving up.
 func test_an_unreachable_goal_extends_toward_it() -> void:
 	var skeleton := _leg(true, 3)
 	var bones := _chain(skeleton)
@@ -99,7 +90,6 @@ func test_an_unreachable_goal_extends_toward_it() -> void:
 	assert_float(landed.distance_to(goal)).is_less(before.distance_to(goal))
 
 
-## What the leg can span, which the foot solver reads to know when to drop the body.
 func test_rest_limits_bracket_the_pose_it_was_authored_in() -> void:
 	for joints in [2, 3]:
 		for bent in [true, false]:

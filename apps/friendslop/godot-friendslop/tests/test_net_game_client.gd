@@ -1,7 +1,5 @@
 extends GdUnitTestSuite
 
-## Covers the client wiring, not the network.
-
 
 func _client() -> NetGameClient:
 	var node := NetGameClient.new()
@@ -22,8 +20,6 @@ func test_starts_disconnected() -> void:
 	assert_object(client.local_avatar()).is_null()
 
 
-## Guest mode asks for nothing and the server answers; anything shown before that would
-## be a name the server never granted.
 func test_guest_mode_requests_no_name() -> void:
 	var client := _client()
 	assert_str(client.player_name).is_empty()
@@ -35,8 +31,6 @@ func test_body_name_is_empty_for_an_unknown_body() -> void:
 	assert_str(_client().body_name(1000042)).is_empty()
 
 
-## Before the host welcomes us there is no body, and guessing one would render another
-## player's character.
 func test_local_body_is_unassigned_until_welcomed() -> void:
 	assert_int(_client().local_body()).is_equal(-1)
 
@@ -91,8 +85,6 @@ func test_a_pet_is_spawned_and_freed_with_its_body() -> void:
 	assert_object(client.get_node_or_null("Pet2000000")).is_null()
 
 
-## A robot is not an avatar. Drawing one as the other is what happens if the client
-## decides what a body is from the pet list, which arrives after the body does.
 func test_a_pet_body_is_not_given_an_avatar() -> void:
 	var client := _client()
 	client._on_pet_added(2000001)
@@ -110,8 +102,6 @@ func test_disconnect_clears_every_pet() -> void:
 	assert_int(client.pet_count()).is_equal(0)
 
 
-## The chassis rides on the pet list, which is reliable and later than the body. A
-## robot with no chassis yet must stay unbuilt rather than settle on a wrong one.
 func test_a_pet_waits_for_its_chassis() -> void:
 	var pet := NetPet.new()
 	auto_free(pet)

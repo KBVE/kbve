@@ -125,12 +125,10 @@ func body_name(body_id: int) -> String:
 	return _client.body_name(body_id)
 
 
-## Velocity the host published for a body, on the same clock it is drawn at.
 func body_velocity(body_id: int) -> Vector3:
 	return _client.body_velocity(body_id)
 
 
-## Whether the host had a body on the ground at the instant it is drawn at.
 func body_grounded(body_id: int) -> bool:
 	return _client.body_grounded(body_id)
 

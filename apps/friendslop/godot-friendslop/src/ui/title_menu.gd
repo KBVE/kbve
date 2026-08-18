@@ -22,6 +22,15 @@ const AUTH := preload("res://src/autoload/auth_session.gd")
 const TITLE_KEY := "title.name"
 const SIGN_IN_HINT_KEY := "title.sign_in_hint"
 
+const LAYOUT_HEIGHT := 720.0
+const SCALE_RANGE := Vector2(0.8, 1.7)
+const TOUCH_MIN_SCALE := 1.25
+const TITLE_FONT := 64.0
+const STATUS_FONT := 14.0
+const BUILD_FONT := 12.0
+const LANGUAGE_FONT := 18.0
+const BUTTON_WIDTH_FRACTION := 0.86
+
 var play_button: PaperButton
 var solo_button: PaperButton
 var sign_in_button: PaperButton
@@ -34,6 +43,10 @@ var language_buttons: Array[PaperButton] = []
 
 var _root: Control
 var _column: VBoxContainer
+var _title_label: Label
+var _title_gap: Control
+var _language_row: HFlowContainer
+var _buttons: Array[PaperButton] = []
 var _sign_in: SignInPanel
 var _username: UsernamePanel
 var _api: KbveApi
@@ -45,6 +58,8 @@ func _ready() -> void:
 	MenuStyle.detect()
 	I18n.use_all_fonts()
 	_build()
+	_layout()
+	get_viewport().size_changed.connect(_layout)
 	_refresh_status()
 	var auth := get_node_or_null(^"/root/Auth")
 	if auth:
@@ -76,9 +91,10 @@ func _build() -> void:
 	_root.add_child(column)
 
 	var title := Label.new()
+	_title_label = title
 	title.text = I18n.t(TITLE_KEY)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title.add_theme_font_size_override("font_size", 64)
+	title.add_theme_font_size_override("font_size", int(TITLE_FONT))
 	title.add_theme_color_override("font_color", MenuStyle.PAPER_HOVER)
 	title.add_theme_color_override("font_shadow_color", Color(0.05, 0.03, 0.02, 0.85))
 	title.add_theme_constant_override("shadow_offset_x", 2)
@@ -86,14 +102,19 @@ func _build() -> void:
 	column.add_child(title)
 
 	var spacer := Control.new()
+	_title_gap = spacer
 	spacer.custom_minimum_size = Vector2(0, 24)
 	column.add_child(spacer)
 
 	play_button = _add_button(column, I18n.t("title.play_guest"), func() -> void: play_requested.emit())
+	play_button.tooltip_text = I18n.t("tip.play")
 	solo_button = _add_button(column, I18n.t("title.singleplayer"), func() -> void: solo_requested.emit())
+	solo_button.tooltip_text = I18n.t("tip.singleplayer")
 	sign_in_button = _add_button(column, I18n.t("title.sign_in"), _toggle_sign_in)
 	settings_button = _add_button(column, I18n.t("action.settings"), func() -> void: settings_requested.emit())
+	settings_button.tooltip_text = I18n.t("tip.settings")
 	quit_button = _add_button(column, I18n.t("action.quit"), func() -> void: quit_requested.emit())
+	quit_button.tooltip_text = I18n.t("tip.quit")
 
 	account_card = AccountCard.new()
 	account_card.visible = false
@@ -131,9 +152,11 @@ func _build_languages(column: VBoxContainer) -> void:
 	spacer.custom_minimum_size = Vector2(0, 18)
 	column.add_child(spacer)
 
-	var row := HBoxContainer.new()
-	row.alignment = BoxContainer.ALIGNMENT_CENTER
-	row.add_theme_constant_override("separation", 6)
+	var row := HFlowContainer.new()
+	_language_row = row
+	row.alignment = FlowContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("h_separation", 6)
+	row.add_theme_constant_override("v_separation", 6)
 	column.add_child(row)
 
 	var current := I18n.locale_code()
@@ -144,6 +167,7 @@ func _build_languages(column: VBoxContainer) -> void:
 		button.add_theme_font_size_override("font_size", MenuStyle.BUTTON_FONT - 4)
 		button.custom_minimum_size = Vector2(0, MenuStyle.BUTTON_MIN.y * 0.7)
 		button.disabled = code == current
+		button.tooltip_text = I18n.t("tip.language")
 		row.add_child(button)
 		language_buttons.append(button)
 
@@ -153,7 +177,44 @@ func _add_button(parent: Control, text: String, action: Callable) -> PaperButton
 	button.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	button.custom_minimum_size = Vector2(MenuStyle.BUTTON_MIN.x * 1.2, MenuStyle.BUTTON_MIN.y)
 	parent.add_child(button)
+	_buttons.append(button)
 	return button
+
+
+func ui_scale() -> float:
+	var view := get_viewport().get_visible_rect().size
+	var s := clampf(view.y / LAYOUT_HEIGHT, SCALE_RANGE.x, SCALE_RANGE.y)
+	return maxf(s, TOUCH_MIN_SCALE) if MenuStyle.touch else s
+
+
+func _layout() -> void:
+	if _column == null:
+		return
+	var view := get_viewport().get_visible_rect().size
+	var s := ui_scale()
+	var width := minf(MenuStyle.BUTTON_MIN.x * 1.2 * s, view.x * BUTTON_WIDTH_FRACTION)
+	var height := MenuStyle.BUTTON_MIN.y * s
+
+	_column.add_theme_constant_override("separation", int(12.0 * s))
+	if _title_label:
+		_title_label.add_theme_font_size_override("font_size", int(TITLE_FONT * s))
+	if _title_gap:
+		_title_gap.custom_minimum_size = Vector2(0, 24.0 * s)
+	for button in _buttons:
+		if is_instance_valid(button):
+			button.custom_minimum_size = Vector2(width, height)
+			button.add_theme_font_size_override("font_size", int(MenuStyle.BUTTON_FONT * s))
+	for button in language_buttons:
+		if is_instance_valid(button):
+			button.custom_minimum_size = Vector2(0, height * 0.7)
+			button.add_theme_font_size_override("font_size", int(LANGUAGE_FONT * s))
+	if _language_row:
+		_language_row.custom_minimum_size = Vector2(minf(view.x * BUTTON_WIDTH_FRACTION,
+				MenuStyle.BUTTON_MIN.x * 1.6 * s), 0)
+	if status_label:
+		status_label.add_theme_font_size_override("font_size", int(STATUS_FONT * s))
+	if build_label:
+		build_label.add_theme_font_size_override("font_size", int(BUILD_FONT * s))
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -280,25 +341,23 @@ func _refresh_status() -> void:
 		AUTH.Mode.ACCOUNT:
 			status_label.text = I18n.t("title.signed_in_as").format({"name": auth.requested_name()})
 			sign_in_button.text = I18n.t("title.sign_out")
+			sign_in_button.tooltip_text = I18n.t("tip.sign_out")
 			_name_play_button(auth.requested_name())
 			_show_account(auth)
 		AUTH.Mode.GUEST:
 			status_label.text = I18n.t("title.guest_status")
 			sign_in_button.text = I18n.t("title.sign_in")
+			sign_in_button.tooltip_text = I18n.t("tip.sign_in")
 			_guest_play_button()
 			account_card.visible = false
 		_:
 			status_label.text = I18n.t(SIGN_IN_HINT_KEY)
 			sign_in_button.text = I18n.t("title.sign_in")
+			sign_in_button.tooltip_text = I18n.t("tip.sign_in")
 			_guest_play_button()
 			account_card.visible = false
 
 
-## Says who is about to play, because the button is the last thing read before joining and
-## a stale "Play as Guest" on a signed-in account reads as the sign-in having been dropped.
-##
-## An account is not guaranteed to carry a username yet -- the panel that asks for one opens
-## over this menu -- so a nameless account gets the plain verb rather than a dangling "as".
 func _name_play_button(account: String) -> void:
 	if play_button == null:
 		return

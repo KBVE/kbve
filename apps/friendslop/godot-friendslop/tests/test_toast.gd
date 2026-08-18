@@ -123,3 +123,29 @@ func test_the_greetings_are_written_and_use_the_name() -> void:
 		assert_str(I18n.t(key, {"name": "h0lybyte"})) \
 				.override_failure_message("%s never used the name it was given" % key) \
 				.contains("h0lybyte")
+
+
+## The title has its menu down the middle, so its messages go to a corner instead; the
+## world keeps them centred under the player's eye.
+func test_the_stack_can_move_to_a_corner() -> void:
+	Toast.clear()
+	Toast.place(Toast.Corner.BOTTOM_CENTER)
+	assert_int(Toast.corner()).is_equal(Toast.Corner.BOTTOM_CENTER)
+	Toast.place(Toast.Corner.TOP_RIGHT)
+	assert_int(Toast.corner()).is_equal(Toast.Corner.TOP_RIGHT)
+	Toast.place(Toast.Corner.BOTTOM_CENTER)
+
+
+## A message raised just before the corner changes has to travel with it rather than be
+## left behind reading off the wrong edge.
+func test_lines_already_up_follow_the_corner() -> void:
+	Toast.clear()
+	Toast.place(Toast.Corner.BOTTOM_CENTER)
+	Toast.info("still here")
+	Toast.place(Toast.Corner.TOP_RIGHT)
+	var lines := Toast.lines()
+	assert_int(lines.size()).is_equal(1)
+	var label: Label = lines[0]["label"]
+	assert_int(label.horizontal_alignment).is_equal(HORIZONTAL_ALIGNMENT_RIGHT)
+	Toast.place(Toast.Corner.BOTTOM_CENTER)
+	Toast.clear()

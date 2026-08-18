@@ -1,18 +1,10 @@
 extends GdUnitTestSuite
 
-## What the mech pack actually measures, and whether the capsule derived from it stands
-## where the machine does.
-##
-## The collider is sized from `CreatureRig.mesh_extents()`, which merges the bind-pose
-## AABB of every mesh under the skeleton. Nothing else checks that those bounds describe
-## the standing pose, so a model authored around a different origin produces a capsule
-## that is plausible in isolation and wrong in the world.
 
 const CreatureRig := preload("res://src/characters/creature_rig.gd")
 const MECH_DIR := "res://assets/characters/creatures/mech/models/"
 const MECHS := ["George", "Leela", "Mike", "Stan"]
 
-## Mirrors CreaturePatrol._build_collider.
 const RADIUS_SCALE := 0.4
 const MIN_RADIUS := 0.2
 
@@ -55,9 +47,6 @@ func test_every_mech_reports_bounds_that_stand_on_the_ground() -> void:
 		rig.queue_free()
 
 
-## A machine's feet belong at its own origin. A bind pose authored around the hips puts
-## the bounds below zero and the capsule ends up buried; one on a plinth puts them above
-## and the capsule floats, which reads in game as the body standing off its own collider.
 func test_every_mech_stands_on_its_own_origin() -> void:
 	for name in MECHS:
 		var rig: Node3D = await _rig_for(name)
@@ -69,9 +58,6 @@ func test_every_mech_stands_on_its_own_origin() -> void:
 		rig.queue_free()
 
 
-## The capsule is the hard body a machine squeezes through gaps with, and the pack was
-## authored so those run 0.6 to 1.1. One that falls outside is either a model whose bind
-## pose is a different shape from its stance, or a scale that never got applied.
 func test_capsule_radii_stay_inside_the_packs_range() -> void:
 	for name in MECHS:
 		var rig: Node3D = await _rig_for(name)

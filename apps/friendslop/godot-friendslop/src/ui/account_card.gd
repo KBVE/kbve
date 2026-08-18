@@ -4,12 +4,10 @@ extends VBoxContainer
 
 const AVATAR_PX := 64
 const AVATAR_DIR := "user://avatars"
-## Superseded by the per-account files in AVATAR_DIR; deleted on sight.
 const LEGACY_AVATAR_CACHE := "user://avatar.png"
-## Pictures worth keeping on disk. Small enough that a shared machine does not accumulate
-## every face that ever signed in, large enough that swapping between accounts is free.
 const CACHE_KEEP := 4
 const CACHE_MAX_AGE := 604800
+const M_THRESHOLD := 10000000
 
 var avatar: TextureRect
 var name_label: Label
@@ -43,6 +41,7 @@ func _build() -> void:
 
 	name_label = _line(column, 18)
 	wallet_label = _line(column, 13)
+	wallet_label.mouse_filter = Control.MOUSE_FILTER_STOP
 
 
 func _line(parent: Control, size: int) -> Label:
@@ -56,9 +55,6 @@ func _line(parent: Control, size: int) -> Label:
 	return label
 
 
-## Names the signed-in player. Deliberately not given the account UUID: it identifies the
-## account, is no use to the person reading it, and the title screen is the one place most
-## likely to be on screen while streaming or being screenshotted.
 func show_account(username: String) -> void:
 	visible = true
 	name_label.text = username if not username.is_empty() else "signed in"
@@ -67,6 +63,10 @@ func show_account(username: String) -> void:
 
 func show_wallet(credits: int, khash: int) -> void:
 	wallet_label.text = I18n.t("account.wallet").format({
+		"credits": _abbreviated(credits),
+		"khash": _abbreviated(khash),
+	})
+	wallet_label.tooltip_text = I18n.t("account.wallet").format({
 		"credits": _grouped(credits),
 		"khash": _grouped(khash),
 	})
@@ -75,7 +75,23 @@ func show_wallet(credits: int, khash: int) -> void:
 
 func show_wallet_error(reason: String) -> void:
 	wallet_label.text = reason
+	wallet_label.tooltip_text = ""
 	wallet_label.modulate = Color(1.0, 0.75, 0.55)
+
+
+static func _abbreviated(value: int) -> String:
+	var size := absi(value)
+	if size < 1000:
+		return _grouped(value)
+	var sign_text := "-" if value < 0 else ""
+	if size < M_THRESHOLD:
+		return sign_text + str(size / 1000) + "K"
+	return sign_text + _trimmed(snappedf(float(size) / 1000000.0, 0.1)) + "M"
+
+
+static func _trimmed(value: float) -> String:
+	var text := "%.1f" % value
+	return text.trim_suffix(".0")
 
 
 static func _grouped(value: int) -> String:
@@ -90,15 +106,6 @@ static func _grouped(value: int) -> String:
 	return ("-" if value < 0 else "") + out
 
 
-## Shows the account's picture, fetching it only when it is not already on disk.
-##
-## Cached under a hash of its own URL rather than one shared file, so a second account
-## signing in on the same machine never inherits the first one's face while its own
-## request is in flight. A picture already on screen is left alone -- the title refreshes
-## on every `auth.changed`, and re-reading and re-decoding a PNG for each of those is
-## work that changes nothing.
-##
-## Returns whether this call actually opened a request.
 func load_avatar(url: String) -> bool:
 	if url.is_empty() or not url.begins_with("https://"):
 		return false
@@ -120,11 +127,6 @@ func load_avatar(url: String) -> bool:
 	return _request.request(url) == OK
 
 
-## Where a picture fetched from `url` is kept. The name is a digest of the URL, so two
-## accounts cannot collide and the same account re-uses its file across launches.
-##
-## The extension is load-bearing: `Image.load` picks its decoder from it, so a cache
-## written as PNG under any other suffix is written and then never read back.
 static func cache_path(url: String) -> String:
 	return "%s/%s.png" % [AVATAR_DIR, url.sha256_text().substr(0, 16)]
 
@@ -150,8 +152,6 @@ static func _age_of(path: String) -> int:
 	return maxi(0, int(Time.get_unix_time_from_system()) - stamp)
 
 
-## Keeps the newest few pictures and drops the rest, so a machine many people sign in on
-## does not keep every face forever.
 static func _prune() -> void:
 	var dir := DirAccess.open(AVATAR_DIR)
 	if dir == null:
@@ -183,7 +183,6 @@ func _on_avatar(result: int, code: int, _headers: PackedStringArray, body: Packe
 	_write_cache(image, url)
 
 
-## Saves the picture so the next sign-in draws it without asking the network at all.
 func _write_cache(image: Image, url: String) -> void:
 	if url.is_empty():
 		return

@@ -25,7 +25,6 @@ var _airborne_t := 0.0
 var _leaping := false
 
 
-## Points this avatar at the body the host publishes for it.
 func bind_body(client: Node, body_id: int) -> void:
 	_client = client
 	_body_id = body_id
@@ -50,7 +49,6 @@ func mark_local(aim: Node3D = null) -> void:
 		_plate.visible = false
 
 
-## Hands this avatar the input its owner is producing, before the host has echoed it.
 func push_intent(wish: Vector2, jump: bool, yaw: float) -> void:
 	_wish = wish
 	_jump = jump
@@ -79,14 +77,6 @@ func _process(delta: float) -> void:
 	_rig.drive(travel, _travel_aim(travel), not grounded, delta)
 
 
-## Animates our own avatar from the input we just produced rather than the host's echo.
-##
-## The host publishes velocity on the delayed interpolation clock while our body is drawn
-## on the leading one, so reading it back puts the legs a whole interp_delay behind the
-## motion they are meant to describe. Stepping the same locomotion the solo player steps
-## costs nothing and stays in phase; the host still owns where the body actually is.
-## Leaving the ground is taken from our own jump rather than the host's grounded flag,
-## which only arrives a round trip and up to a tick later.
 func _drive_predicted(grounded: bool, delta: float) -> void:
 	var yaw := _aim.global_rotation.y if _aim else _yaw
 	var footed := grounded and not _leaping
@@ -106,7 +96,6 @@ func _gravity() -> float:
 	return -float(ProjectSettings.get_setting("physics/3d/default_gravity", 9.8))
 
 
-## Velocity the host published, falling back to the drawn motion when it has not said.
 func _reported_velocity(prev: Vector3, here: Vector3, delta: float) -> Vector3:
 	var drawn := (here - prev) / delta
 	if _client == null or _body_id == 0:

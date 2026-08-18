@@ -1,6 +1,5 @@
 extends SceneTree
 
-## Manual end-to-end check against a running friendslop-server.
 
 const DEPLOYED_URL := "wss://friendslop.kbve.com/ws"
 

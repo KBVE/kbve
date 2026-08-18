@@ -1,6 +1,5 @@
 extends GdUnitTestSuite
 
-## What the world remembers of what was said to it.
 
 const Graph := preload("res://src/dialogue/dialogue_graph.gd")
 const State := preload("res://src/dialogue/dialogue_state.gd")
@@ -14,8 +13,6 @@ var _was: Dictionary = {}
 var _was_satchel: Dictionary = {}
 
 
-## The journal is a real file in user://, and these tests write to it. Put back whatever
-## the player had afterwards.
 func before_test() -> void:
 	_was = Journal.state().to_dict()
 	_was_satchel = Journal.satchel()
@@ -29,8 +26,6 @@ func after_test() -> void:
 	Journal.save_now()
 
 
-## A flag that only moved is not news, or a graph that re-sets the same flag on every pass
-## through a node reports it each time.
 func test_only_a_flag_that_moves_is_announced() -> void:
 	var state := State.new()
 	var heard: Array = []
@@ -57,12 +52,10 @@ func test_a_node_is_only_ever_first_seen_once() -> void:
 	assert_int(heard.size()).is_equal(1)
 
 
-## The point of the whole thing: a toll paid last night is still paid this morning.
 func test_a_paid_toll_survives_the_game_being_shut_down() -> void:
 	Journal.set_flag(PAID)
 	assert_bool(Journal.has_flag(PAID)).is_true()
 
-	## What a restart amounts to: the file is all that carries over.
 	Journal.state().clear()
 	assert_bool(Journal.has_flag(PAID)).is_false()
 	Journal.load_now()
@@ -71,12 +64,10 @@ func test_a_paid_toll_survives_the_game_being_shut_down() -> void:
 			.override_failure_message("Marlow forgot the toll overnight").is_true()
 
 
-## The other half of the same promise: a morning's chopping is still in the bag at night.
 func test_the_satchel_survives_the_game_being_shut_down() -> void:
 	assert_int(Journal.gain(&"log", 3)).is_equal(0)
 	assert_int(Journal.count_of(&"log")).is_equal(3)
 
-	## What a restart amounts to: the file is all that carries over.
 	Journal.forget_everything()
 	assert_int(Journal.count_of(&"log")).is_equal(0)
 	Journal.gain(&"log", 3)
@@ -92,15 +83,12 @@ func test_gaining_the_same_thing_twice_stacks() -> void:
 	assert_int(Journal.count_of(&"log")).is_equal(5)
 
 
-## A typo'd drop should read as nothing arriving rather than as a phantom item that no
-## UI can draw and no recipe can spend.
 func test_an_item_the_itemdb_never_heard_of_is_refused() -> void:
 	assert_int(Journal.gain(&"unobtainium", 1)) \
 			.override_failure_message("an item nobody has heard of was taken anyway").is_equal(1)
 	assert_int(Journal.count_of(&"unobtainium")).is_equal(0)
 
 
-## All or nothing: a recipe that half-pays for itself is worse than one that does not fire.
 func test_spending_more_than_is_held_takes_nothing() -> void:
 	Journal.gain(&"log", 2)
 	assert_bool(Journal.spend(&"log", 5)).is_false()
@@ -111,7 +99,6 @@ func test_spending_more_than_is_held_takes_nothing() -> void:
 	assert_int(Journal.count_of(&"log")).is_equal(0)
 
 
-## The news is what arrived, not the running total, so a pickup line can say "+3".
 func test_gaining_announces_what_came_in() -> void:
 	var heard: Array = []
 	Journal.gained.connect(
@@ -124,8 +111,6 @@ func test_gaining_announces_what_came_in() -> void:
 	assert_array(heard[1]).is_equal([&"log", 3, 5])
 
 
-## Stacks fill before new ones open, or a bag fragments into part-full cells of the same
-## thing while there is still room in one.
 func test_a_part_full_stack_is_topped_up_before_a_new_one_opens() -> void:
 	var cap := Itemdb.max_stack(&"log")
 	Journal.gain(&"log", cap - 1)
@@ -138,12 +123,9 @@ func test_a_part_full_stack_is_topped_up_before_a_new_one_opens() -> void:
 			.is_equal(2)
 
 
-## The bag is finite, which is the point of a grid. What will not fit comes back rather
-## than disappearing.
 func test_what_will_not_fit_is_handed_back() -> void:
 	var cap := Itemdb.max_stack(&"log")
 	var cells := Journal.COLS * Journal.ROWS
-	# One more stack than there are cells to put stacks in.
 	var spare := Journal.gain(&"log", cap * (cells + 1))
 
 	assert_int(spare) \
@@ -165,7 +147,6 @@ func test_a_refused_gain_says_what_bounced() -> void:
 	assert_array(heard[0]).is_equal([&"log", cap])
 
 
-## Every stack sits somewhere, and nothing sits on top of anything else.
 func test_stacks_never_overlap() -> void:
 	for i in 12:
 		Journal.gain(&"log", Itemdb.max_stack(&"log"))
@@ -196,7 +177,6 @@ func test_a_stack_can_be_moved_to_a_free_cell_but_not_onto_another() -> void:
 	assert_int(first["count"]).is_equal(cap)
 
 
-## Where things sit is part of what the player owns, so it survives with the rest.
 func test_the_arrangement_survives_a_restart() -> void:
 	Journal.gain(&"log", Itemdb.max_stack(&"log"))
 	Journal.move_stack(0, Vector2i(4, 3))
@@ -217,7 +197,6 @@ func test_nodes_already_heard_survive_too() -> void:
 			.is_true()
 
 
-## Loading is not the player doing all of it again, so nothing goes out on the bus for it.
 func test_loading_the_journal_is_not_announced() -> void:
 	Journal.set_flag(PAID)
 	var heard: Array = []
@@ -229,7 +208,6 @@ func test_loading_the_journal_is_not_announced() -> void:
 			.is_empty()
 
 
-## Anything that is not a conversation can hear about one.
 func test_a_flag_set_in_a_talk_reaches_the_event_bus() -> void:
 	var heard: Array = []
 	var listener := func(payload: Variant) -> void: heard.append(payload)
@@ -248,7 +226,6 @@ func test_a_flag_set_in_a_talk_reaches_the_event_bus() -> void:
 			.contains(PAID)
 
 
-## One journal, so a second talker is talking to somebody who remembers the first.
 func test_the_interactor_reads_the_shared_journal() -> void:
 	var body := Node3D.new()
 	add_child(body)
@@ -262,8 +239,6 @@ func test_the_interactor_reads_the_shared_journal() -> void:
 			.is_same(Journal.state())
 
 
-## Marlow's opening is gated on having heard it, so the flags surviving a restart is what
-## makes him greet a regular differently.
 func test_marlow_greets_a_stranger_and_a_regular_differently() -> void:
 	var graph := Npcdb.graph(MARLOW)
 	var stranger := Runner.new()
@@ -281,7 +256,6 @@ func test_marlow_greets_a_stranger_and_a_regular_differently() -> void:
 			.is_not_equal(first)
 
 
-## Taking a stack out by index, which is what dragging one onto the floor does.
 func test_removing_a_stack_takes_that_stack_and_says_what_it_was() -> void:
 	var cap := Itemdb.max_stack(&"log")
 	Journal.gain(&"log", cap)
@@ -297,8 +271,6 @@ func test_removing_a_stack_takes_that_stack_and_says_what_it_was() -> void:
 			.override_failure_message("removing one stack emptied the other as well").is_equal(cap)
 
 
-## `spend` takes an amount from wherever it sits, and would empty the wrong cell when
-## the player has dragged one stack of several in particular.
 func test_removing_a_stack_leaves_the_stack_that_was_not_dragged() -> void:
 	var cap := Itemdb.max_stack(&"log")
 	Journal.gain(&"log", cap)

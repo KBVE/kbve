@@ -1,6 +1,5 @@
 extends GdUnitTestSuite
 
-## Foliage discards must not run while the shadow map is being drawn.
 
 const FLORA := "res://assets/environment/props/flora/"
 const CUTOUT_SHADERS: Array[String] = ["tree.gdshader", "tree_leaf.gdshader"]

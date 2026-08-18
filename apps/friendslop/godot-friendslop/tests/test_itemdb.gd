@@ -1,6 +1,5 @@
 extends GdUnitTestSuite
 
-## The item catalog, and the link between an item and what wearing it looks like.
 
 const HOOD := &"ranger-hood"
 const SHIRT := &"peasant-shirt"
@@ -17,21 +16,16 @@ func test_a_worn_item_knows_where_it_goes() -> void:
 	assert_str(Itemdb.slot_of(SHIRT)).is_equal("chest")
 
 
-## The catalog names a look without a sex, because the same hood is a different mesh on a
-## different frame. Resolving it is what turns an item into something to draw.
 func test_an_item_resolves_to_a_piece_of_the_wardrobe() -> void:
 	assert_str(Itemdb.wardrobe_piece(HOOD, "Male")).is_equal("male_ranger_head_hood")
 	assert_str(Itemdb.wardrobe_piece(HOOD, "Female")).is_equal("female_ranger_head_hood")
 
 
-## An item that is not clothing has no look, and asking for one must not invent a piece.
 func test_an_item_that_is_not_worn_has_no_look() -> void:
 	assert_str(Itemdb.wardrobe_piece(&"arrow")).is_empty()
 	assert_str(Itemdb.wardrobe_piece(&"not-a-real-item")).is_empty()
 
 
-## Every wearable the catalog offers has to resolve to a mesh that is actually there, or
-## the wardrobe lists a thing the player cannot put on.
 func test_every_wearable_item_resolves_to_a_real_piece() -> void:
 	var wearables := Itemdb.wearables()
 	assert_int(wearables.size()) \
@@ -49,9 +43,6 @@ func test_every_wearable_item_resolves_to_a_real_piece() -> void:
 					.is_equal(Itemdb.slot_of(ref))
 
 
-## The pack does not name its two halves alike: his boots are `Feet_Boots` and hers are
-## plain `Feet`, his shoulder `Acc_Pauldron` to her `Acc_Pauldrons`. One item names one
-## look for everybody, so the lookup has to land on both.
 func test_an_item_lands_on_both_bodies_despite_the_pack_naming_them_differently() -> void:
 	assert_str(Itemdb.wardrobe_piece(&"ranger-boots", "Male")).is_equal("male_ranger_feet_boots")
 	assert_str(Itemdb.wardrobe_piece(&"ranger-boots", "Female")) \
@@ -62,7 +53,6 @@ func test_an_item_lands_on_both_bodies_despite_the_pack_naming_them_differently(
 			.is_equal("female_ranger_acc_pauldrons")
 
 
-## The item decides the slot, so nothing handing one out has to know where it goes.
 func test_wearing_an_item_puts_it_in_the_right_slot() -> void:
 	var was := Journal.wearing()
 	Journal.forget_everything()
@@ -79,8 +69,6 @@ func test_wearing_an_item_puts_it_in_the_right_slot() -> void:
 		Journal.wear(StringName(was[slot]))
 
 
-## What the player has on is saved as the mesh, and the catalog is what turns an item into
-## one -- so an item worn now is still on after a restart.
 func test_an_item_worn_now_is_still_on_after_a_restart() -> void:
 	var was := Journal.wearing()
 	Journal.forget_everything()
