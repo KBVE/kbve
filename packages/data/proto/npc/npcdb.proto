@@ -557,6 +557,22 @@ message NpcExtension {
 // Core NPC Definition
 // =============================================================================
 
+// A day of places to be. `hour` is when the NPC sets off for `offset`, which is
+// measured from wherever the world places them, so the same routine reads the same
+// whether they stand by a bridge or a market.
+message RoutineStop {
+  float hour = 1;                   // 0-24, when they leave for this place
+  float offset_x = 2;               // Sideways from their placed stand
+  float offset_z = 3;               // Forward from their placed stand
+}
+
+// Where somebody is meant to be through the day. Derived from the world clock rather
+// than stepped, so every machine simulating the world agrees without sending anything.
+message DailyRoutine {
+  repeated RoutineStop stops = 1;
+  optional float walk_speed = 2;    // Metres per second between stops
+}
+
 message Npc {
   // Identity
   string id = 1;                    // ULID
@@ -649,6 +665,9 @@ message Npc {
 
   // Ambient population / scatter config (isometric + 3D creature spawners)
   optional CreatureConfig creature_config = 58;
+
+  // Daily routine — where they walk and when
+  optional DailyRoutine routine = 59;
 
   // Pet — catchable/trainable creature metadata for JRPG-style capture & battles
   optional PetInfo pet = 53;
