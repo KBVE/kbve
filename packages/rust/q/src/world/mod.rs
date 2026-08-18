@@ -273,6 +273,24 @@ pub(crate) fn q_hidden(name: &str) -> bool {
 
 /// Times a block that runs on the main thread only occasionally — streaming rebuilds
 /// and the like — and reports it when it is slow enough to be seen as a hitch.
+pub(crate) fn spawn_job<F>(job: F)
+where
+    F: FnOnce() + Send + 'static,
+{
+    use godot::classes::Engine;
+    let rt = Engine::singleton()
+        .get_singleton(crate::threads::runtime::RuntimeManager::SINGLETON)
+        .and_then(|s| s.try_cast::<crate::threads::runtime::RuntimeManager>().ok());
+    match rt {
+        Some(rt) => {
+            rt.bind().spawn_blocking(job);
+        }
+        None => {
+            std::thread::spawn(job);
+        }
+    }
+}
+
 pub(crate) struct StallTimer(&'static str, std::time::Instant);
 
 fn profiling() -> bool {

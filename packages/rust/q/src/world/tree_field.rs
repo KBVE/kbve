@@ -362,6 +362,20 @@ pub struct QTreeField {
     falling: Vec<FallingTree>,
     extent: f32,
     origin: Vector2,
+    plan_rx: Option<std::sync::mpsc::Receiver<TreePlan>>,
+    stage: Option<TreeStage>,
+}
+
+struct TreePlan {
+    terra: TerrainSnapshot,
+    cand: Vec<f32>,
+    cand_ids: Vec<u64>,
+    entries: Vec<Entry>,
+}
+
+struct TreeStage {
+    terra: TerrainSnapshot,
+    next: usize,
 }
 
 impl QTreeField {
@@ -378,6 +392,8 @@ impl QTreeField {
     /// so ground they walk back to keeps its stumps.
     fn rescatter(&mut self) {
         let _t = crate::world::StallTimer::start("trees.rescatter");
+        self.plan_rx = None;
+        self.stage = None;
         let damage: Vec<(u64, u8)> = self.core.damage().collect();
         for (id, stage) in damage {
             self.ledger.record(id, stage);
@@ -394,7 +410,12 @@ impl QTreeField {
     }
 
     fn late_init(&mut self) -> bool {
-        let _t = super::ReadyTimer::start("trees");
+        if self.stage.is_some() {
+            return self.stage_species();
+        }
+        if self.plan_rx.is_some() {
+            return self.adopt_plan();
+        }
         self.player = self
             .base()
             .get_node_or_null(&self.player_path)
@@ -407,75 +428,53 @@ impl QTreeField {
         let Some(terra) = TerrainSnapshot::take(&terrain) else {
             return false;
         };
-        let extent = terra.extent;
-        let water = terra.water;
-        self.extent = extent;
-
-        let sample = |x: f32, z: f32| -> f32 { terra.height(x, z) };
-
-        let mut noise = FastNoiseLite::with_seed(self.tree_seed + 5);
-        noise.set_noise_type(Some(NoiseType::OpenSimplex2S));
-        noise.set_frequency(Some(self.grove_frequency));
-
-        let grid = crate::world::ScatterGrid::new(self.grid_size, terra.origin, extent);
-        let cells = grid.cells();
+        self.extent = terra.extent;
         self.origin = terra.origin;
-        let seed64 = self.tree_seed as u32 as u64;
-        let mut cand: Vec<f32> = Vec::new();
-        let mut cand_ids: Vec<u64> = Vec::new();
-        self.core.clear();
-        self.instance_of.clear();
-        for iz in 0..cells {
-            for ix in 0..cells {
-                let mut state = grid.seed(self.tree_seed as u32, ix, iz);
-                let jx = (randf(&mut state) - 0.5) * (self.grid_size - 4.0);
-                let jz = (randf(&mut state) - 0.5) * (self.grid_size - 4.0);
-                let (cx, cz) = grid.centre(ix, iz);
-                let (x, z) = (cx + jx, cz + jz);
-                if !grid.inside(x, z, 4.0) {
-                    continue;
-                }
-                if noise.get_noise_2d(x, z) < self.grove_threshold {
-                    continue;
-                }
-                if terra.on_road(x, z) > 0.12 {
-                    continue;
-                }
-                let low = sample(x + 1.5, z)
-                    .min(sample(x - 1.5, z))
-                    .min(sample(x, z + 1.5))
-                    .min(sample(x, z - 1.5));
-                if low < water + 0.6 {
-                    continue;
-                }
-                let rank = randf(&mut state);
-                let kind =
-                    ((randf(&mut state) * SPECIES.len() as f32) as usize).min(SPECIES.len() - 1);
-                let phase = randf(&mut state) * std::f32::consts::TAU;
-                let sp = &SPECIES[kind];
-                let scale = sp.height.0 + randf(&mut state) * (sp.height.1 - sp.height.0);
-                let h = trunk_rest(&sample, x, z, scale) - BOLE_BASE_Y * scale - TRUNK_SINK;
-                let (gx, gz) = grid.global(ix, iz);
-                let id = stable_id(seed64, gx, gz, 0);
-                cand.extend_from_slice(&[x, h, z, scale, rank, kind as f32, phase, 0.0]);
-                cand_ids.push(id);
-                self.core.insert(Entry {
-                    id,
-                    pos: Vector3::new(x, h, z),
-                    up: Vector3::UP,
-                    scale,
-                    yaw: phase,
-                    variant: kind as u8,
-                    ore: 0,
-                    amount: 0,
-                    cell: [gx, gz],
-                    ordinal: 0,
-                });
+        let tree_seed = self.tree_seed;
+        let grid_size = self.grid_size;
+        let grove_frequency = self.grove_frequency;
+        let grove_threshold = self.grove_threshold;
+        let (tx, rx) = std::sync::mpsc::channel();
+        crate::world::spawn_job(move || {
+            let plan = plan_trees(
+                tree_seed,
+                grid_size,
+                grove_frequency,
+                grove_threshold,
+                terra,
+            );
+            let _ = tx.send(plan);
+        });
+        self.plan_rx = Some(rx);
+        false
+    }
+
+    fn adopt_plan(&mut self) -> bool {
+        let plan = match self.plan_rx.as_ref().map(|rx| rx.try_recv()) {
+            Some(Ok(plan)) => plan,
+            Some(Err(std::sync::mpsc::TryRecvError::Empty)) => return false,
+            _ => {
+                godot_error!("[QTreeField] the placement worker died; trees disabled");
+                self.plan_rx = None;
+                return true;
             }
-        }
+        };
+        self.plan_rx = None;
+        let _t = crate::world::StallTimer::start("trees.adopt");
+        let TreePlan {
+            terra,
+            cand,
+            cand_ids,
+            entries,
+        } = plan;
         if cand.is_empty() {
             godot_error!("[QTreeField] no tree candidates survived placement");
             return true;
+        }
+        self.core.clear();
+        self.instance_of.clear();
+        for e in entries {
+            self.core.insert(e);
         }
         self.candidates = cand;
         self.cand_ids = cand_ids;
@@ -485,7 +484,10 @@ impl QTreeField {
         self.build_colliders();
 
         {
-            let mut terrain = terrain;
+            let node = self.base().clone().upcast::<godot::classes::Node>();
+            let Some(mut terrain) = crate::world::resolve_terrain(&node, &self.terrain_path) else {
+                return true;
+            };
             let mut tb = terrain.bind_mut();
             for c in self.candidates.chunks_exact(8) {
                 tb.stamp_clearance(c[0], c[2], 0.9 + c[3] * 0.14);
@@ -493,6 +495,16 @@ impl QTreeField {
             tb.flush_clearance();
         }
 
+        self.stage = Some(TreeStage { terra, next: 0 });
+        false
+    }
+
+    fn stage_species(&mut self) -> bool {
+        let Some(TreeStage { terra, next }) = self.stage.take() else {
+            return true;
+        };
+        let _t = crate::world::StallTimer::start("trees.stage");
+        let extent = terra.extent;
         let world = self.base().get_world_3d();
         let Some(world) = world else {
             return true;
@@ -505,127 +517,152 @@ impl QTreeField {
         let aabb = world_aabb_at(extent, terra.origin);
         let (occl_h, occl_res) = terra.raw_heights();
 
-        for (i, sp) in SPECIES.iter().enumerate() {
-            let mut cands: Vec<f32> = Vec::new();
-            let mut ids: Vec<u64> = Vec::new();
-            for (c, id) in self.candidates.chunks_exact(8).zip(self.cand_ids.iter()) {
-                if c[5] as usize != i {
-                    continue;
-                }
-                cands.extend_from_slice(c);
-                // Anything the ledger already felled starts culled, so walking
-                // back to old ground does not stand the trees up again.
-                if !self.core.alive(*id) {
-                    let last = cands.len() - 1;
-                    cands[last] = 1.0;
-                }
-                ids.push(*id);
-            }
-            if cands.is_empty() {
+        let i = next;
+        let sp = &SPECIES[i];
+
+        let mut cands: Vec<f32> = Vec::new();
+        let mut ids: Vec<u64> = Vec::new();
+        for (c, id) in self.candidates.chunks_exact(8).zip(self.cand_ids.iter()) {
+            if c[5] as usize != i {
                 continue;
             }
-            let count = (cands.len() / 8) as u32;
-
-            if self.species_assets.len() < SPECIES.len() {
-                self.species_assets.resize_with(SPECIES.len(), || None);
+            cands.extend_from_slice(c);
+            // Anything the ledger already felled starts culled, so walking
+            // back to old ground does not stand the trees up again.
+            if !self.core.alive(*id) {
+                let last = cands.len() - 1;
+                cands[last] = 1.0;
             }
-            if self.species_assets[i].is_none() {
-                self.species_assets[i] = Some(self.build_species_assets(sp));
+            ids.push(*id);
+        }
+        if cands.is_empty() {
+            if next + 1 >= SPECIES.len() {
+                self.stage = None;
+                if self.computes.is_empty() {
+                    godot_error!("[QTreeField] no tree computes online; trees disabled");
+                }
+                return true;
             }
-            let assets = self.species_assets[i].as_ref().expect("just built");
-            let (near, far, stump) = (assets.near.clone(), assets.far.clone(), assets.stump.clone());
-            let (leaf_mat, bark_mat) = (assets.leaf_mat.clone(), assets.bark_mat.clone());
-            let tris = assets.tris;
+            self.stage = Some(TreeStage {
+                terra,
+                next: next + 1,
+            });
+            return false;
+        }
+        let count = (cands.len() / 8) as u32;
 
-            let band_lo = self.mesh_range - 8.0;
-            let band_hi = self.mesh_range + 8.0;
-            let near_c = FloraCompute::new(FloraComputeParams {
-                scenario,
-                world_aabb: aabb,
-                mesh: near.get_rid(),
-                material: Rid::Invalid,
-                candidates: &cands,
-                cap: count,
-                fade_end: band_hi,
-                dist_min: 0.0,
-                band: (band_lo, band_hi, true),
-                rank_fade: false,
-                growth_on: true,
-                shadows: true,
-                surfaces: 2,
-                terrain: TerrainOcclusion::new(occl_h, occl_res, extent, 25.0),
-                pass: HarvestPass::Standing,
-            });
-            let far_c = FloraCompute::new(FloraComputeParams {
-                scenario,
-                world_aabb: aabb,
-                mesh: far.get_rid(),
-                material: Rid::Invalid,
-                candidates: &cands,
-                cap: count,
-                fade_end: if self.far_range > 0.0 {
-                    self.far_range
-                } else {
-                    extent * 8.0
-                },
-                dist_min: band_lo,
-                band: (band_lo, band_hi, false),
-                rank_fade: false,
-                growth_on: true,
-                shadows: false,
-                surfaces: 2,
-                terrain: TerrainOcclusion::new(occl_h, occl_res, extent, 25.0),
-                pass: HarvestPass::Standing,
-            });
-            let stump_c = FloraCompute::new(FloraComputeParams {
-                scenario,
-                world_aabb: aabb,
-                mesh: stump.get_rid(),
-                material: Rid::Invalid,
-                candidates: &cands,
-                cap: count,
-                fade_end: self.stump_range,
-                dist_min: 0.0,
-                band: (0.0, 0.0, false),
-                rank_fade: false,
-                growth_on: false,
-                shadows: true,
-                surfaces: 1,
-                terrain: TerrainOcclusion::new(occl_h, occl_res, extent, 25.0),
-                pass: HarvestPass::Remains,
-            });
-            match (near_c, far_c, stump_c) {
-                (Some(n), Some(f), Some(s)) => {
-                    let base = self.computes.len() as u32;
-                    for (slot, id) in ids.iter().enumerate() {
-                        self.instance_of.insert(*id, (base, slot as u32));
-                    }
-                    self.computes.push(n);
-                    self.computes.push(f);
-                    self.computes.push(s);
-                    self.mesh_tris.extend_from_slice(&tris);
-                    self.meshes.push(near);
-                    self.meshes.push(far);
-                    self.meshes.push(stump);
-                    if let Some(lm) = leaf_mat {
-                        self.leaf_mats.push(lm);
-                    }
-                    if let Some(bm) = bark_mat {
-                        self.bark_mats.push(bm);
-                    }
+        // The slice's cost was never the placement -- it is growing meshes and
+        // duplicating materials, and those are functions of the seed and the
+        // species table alone. Cached, a species' first slice pays for its
+        // assets once and every later rescatter's slice reuses them.
+        if self.species_assets.len() < SPECIES.len() {
+            self.species_assets.resize_with(SPECIES.len(), || None);
+        }
+        if self.species_assets[next].is_none() {
+            self.species_assets[next] = Some(self.build_species_assets(sp));
+        }
+        let assets = self.species_assets[next].as_ref().expect("just built");
+        let (near, far, stump) = (assets.near.clone(), assets.far.clone(), assets.stump.clone());
+        let (leaf_mat, bark_mat) = (assets.leaf_mat.clone(), assets.bark_mat.clone());
+        let tris = assets.tris;
+
+        let band_lo = self.mesh_range - 8.0;
+        let band_hi = self.mesh_range + 8.0;
+        let near_c = FloraCompute::new(FloraComputeParams {
+            scenario,
+            world_aabb: aabb,
+            mesh: near.get_rid(),
+            material: Rid::Invalid,
+            candidates: &cands,
+            cap: count,
+            fade_end: band_hi,
+            dist_min: 0.0,
+            band: (band_lo, band_hi, true),
+            rank_fade: false,
+            growth_on: true,
+            shadows: true,
+            surfaces: 2,
+            terrain: TerrainOcclusion::new(occl_h, occl_res, extent, 25.0),
+            pass: HarvestPass::Standing,
+        });
+        let far_c = FloraCompute::new(FloraComputeParams {
+            scenario,
+            world_aabb: aabb,
+            mesh: far.get_rid(),
+            material: Rid::Invalid,
+            candidates: &cands,
+            cap: count,
+            fade_end: if self.far_range > 0.0 {
+                self.far_range
+            } else {
+                extent * 8.0
+            },
+            dist_min: band_lo,
+            band: (band_lo, band_hi, false),
+            rank_fade: false,
+            growth_on: true,
+            shadows: false,
+            surfaces: 2,
+            terrain: TerrainOcclusion::new(occl_h, occl_res, extent, 25.0),
+            pass: HarvestPass::Standing,
+        });
+        let stump_c = FloraCompute::new(FloraComputeParams {
+            scenario,
+            world_aabb: aabb,
+            mesh: stump.get_rid(),
+            material: Rid::Invalid,
+            candidates: &cands,
+            cap: count,
+            fade_end: self.stump_range,
+            dist_min: 0.0,
+            band: (0.0, 0.0, false),
+            rank_fade: false,
+            growth_on: false,
+            shadows: true,
+            surfaces: 1,
+            terrain: TerrainOcclusion::new(occl_h, occl_res, extent, 25.0),
+            pass: HarvestPass::Remains,
+        });
+        match (near_c, far_c, stump_c) {
+            (Some(n), Some(f), Some(s)) => {
+                let base = self.computes.len() as u32;
+                for (slot, id) in ids.iter().enumerate() {
+                    self.instance_of.insert(*id, (base, slot as u32));
                 }
-                (n, f, s) => {
-                    for mut c in [n, f, s].into_iter().flatten() {
-                        c.free();
-                    }
-                    godot_error!("[QTreeField] compute unavailable for species {i}");
+                self.computes.push(n);
+                self.computes.push(f);
+                self.computes.push(s);
+                self.mesh_tris.extend_from_slice(&tris);
+                self.meshes.push(near);
+                self.meshes.push(far);
+                self.meshes.push(stump);
+                if let Some(lm) = leaf_mat {
+                    self.leaf_mats.push(lm);
                 }
+                if let Some(bm) = bark_mat {
+                    self.bark_mats.push(bm);
+                }
+            }
+            (n, f, s) => {
+                for mut c in [n, f, s].into_iter().flatten() {
+                    c.free();
+                }
+                godot_error!("[QTreeField] compute unavailable for species {i}");
             }
         }
-        if self.computes.is_empty() {
-            godot_error!("[QTreeField] no tree computes online; trees disabled");
+
+        if next + 1 >= SPECIES.len() {
+            self.stage = None;
+            if self.computes.is_empty() {
+                godot_error!("[QTreeField] no tree computes online; trees disabled");
+            }
+            return true;
         }
-        true
+        self.stage = Some(TreeStage {
+            terra,
+            next: next + 1,
+        });
+        false
     }
 }
 
@@ -2067,4 +2104,80 @@ fn build_far_tree_mesh(seed: u32, crown: f32, shape: u32) -> Gd<ArrayMesh> {
     am.add_surface_from_arrays(PrimitiveType::TRIANGLES, &mb.arrays(false));
     am.add_surface_from_arrays(PrimitiveType::TRIANGLES, &leaves.arrays(true));
     am
+}
+
+fn plan_trees(
+    tree_seed: i32,
+    grid_size: f32,
+    grove_frequency: f32,
+    grove_threshold: f32,
+    terra: TerrainSnapshot,
+) -> TreePlan {
+    let extent = terra.extent;
+    let water = terra.water;
+    let mut entries: Vec<Entry> = Vec::new();
+    let sample = |x: f32, z: f32| -> f32 { terra.height(x, z) };
+
+    let mut noise = FastNoiseLite::with_seed(tree_seed + 5);
+    noise.set_noise_type(Some(NoiseType::OpenSimplex2S));
+    noise.set_frequency(Some(grove_frequency));
+
+    let grid = crate::world::ScatterGrid::new(grid_size, terra.origin, extent);
+    let cells = grid.cells();
+    let seed64 = tree_seed as u32 as u64;
+    let mut cand: Vec<f32> = Vec::new();
+    let mut cand_ids: Vec<u64> = Vec::new();
+    for iz in 0..cells {
+        for ix in 0..cells {
+            let mut state = grid.seed(tree_seed as u32, ix, iz);
+            let jx = (randf(&mut state) - 0.5) * (grid_size - 4.0);
+            let jz = (randf(&mut state) - 0.5) * (grid_size - 4.0);
+            let (cx, cz) = grid.centre(ix, iz);
+            let (x, z) = (cx + jx, cz + jz);
+            if !grid.inside(x, z, 4.0) {
+                continue;
+            }
+            if noise.get_noise_2d(x, z) < grove_threshold {
+                continue;
+            }
+            if terra.on_road(x, z) > 0.12 {
+                continue;
+            }
+            let low = sample(x + 1.5, z)
+                .min(sample(x - 1.5, z))
+                .min(sample(x, z + 1.5))
+                .min(sample(x, z - 1.5));
+            if low < water + 0.6 {
+                continue;
+            }
+            let rank = randf(&mut state);
+            let kind = ((randf(&mut state) * SPECIES.len() as f32) as usize).min(SPECIES.len() - 1);
+            let phase = randf(&mut state) * std::f32::consts::TAU;
+            let sp = &SPECIES[kind];
+            let scale = sp.height.0 + randf(&mut state) * (sp.height.1 - sp.height.0);
+            let h = trunk_rest(&sample, x, z, scale) - BOLE_BASE_Y * scale - TRUNK_SINK;
+            let (gx, gz) = grid.global(ix, iz);
+            let id = stable_id(seed64, gx, gz, 0);
+            cand.extend_from_slice(&[x, h, z, scale, rank, kind as f32, phase, 0.0]);
+            cand_ids.push(id);
+            entries.push(Entry {
+                id,
+                pos: Vector3::new(x, h, z),
+                up: Vector3::UP,
+                scale,
+                yaw: phase,
+                variant: kind as u8,
+                ore: 0,
+                amount: 0,
+                cell: [gx, gz],
+                ordinal: 0,
+            });
+        }
+    }
+    TreePlan {
+        terra,
+        cand,
+        cand_ids,
+        entries,
+    }
 }
