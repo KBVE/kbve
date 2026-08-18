@@ -144,7 +144,9 @@ Stops now carry work. A stop may name a `task` — the animation performed while
 
 Stops get the same rescue stands do — a stop that lands under the waterline is walked out to dry ground before anybody is sent to it. Offsets are relative, so the same `+6` is dry beside one person and midstream beside another.
 
-Not yet done: NPCs are still only in `main.tscn`, and they have no colliders in either scene. The moment one of them *does* something — produces goods, takes damage, holds a quest item — the clock stops being enough and the host has to own them, because that depends on what players did rather than what time it is.
+Villagers now take a body in the simulation: the same `spawn_character` capsule the player and the creatures use, on the creature layer, masked against the world and everything with a body. Walking goes through `move_character` and the sim owns the ground under them, so nobody walks through a villager and a villager walks around whatever is in the way. Without a sim -- tests, `Q_GODOT_PHYSICS` -- the direct walk remains, so the timetable does not depend on the physics being there. While spoken to they turn to face whoever is talking.
+
+Not yet done: NPCs are still only in `main.tscn`. The moment one of them *does* something — produces goods, takes damage, holds a quest item — the clock stops being enough and the host has to own them, because that depends on what players did rather than what time it is.
 
 ### One simulation, and what is left of the second
 
