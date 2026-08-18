@@ -1,4 +1,5 @@
 pub mod blackjack;
+pub mod dopewars;
 pub mod dungeon;
 pub mod hangman;
 pub mod highlow;
