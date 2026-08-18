@@ -57,7 +57,7 @@ spec:
                             type: RuntimeDefault
                     containers:
                         - name: friendslop-server
-                          image: ghcr.io/kbve/friendslop-server:0.0.10
+                          image: ghcr.io/kbve/friendslop-server:0.0.12
                           imagePullPolicy: IfNotPresent
                           env:
                               - name: FS_SERVER_ADDR
