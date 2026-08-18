@@ -82,6 +82,10 @@ pub mod region;
 #[cfg(any(feature = "client", feature = "rapier3d-sim"))]
 pub mod biome;
 
+/// Built places the world puts down on its own: a capital, and a harbour on the river.
+#[cfg(any(feature = "client", feature = "rapier3d-sim"))]
+pub mod landmark;
+
 /// Drainage basins, and how much ground drains through a place.
 #[cfg(any(feature = "client", feature = "rapier3d-sim"))]
 pub mod flow;

@@ -120,7 +120,13 @@ func _build_field(terrain: Node) -> void:
 	if not bridge.is_empty():
 		field.block_path(bridge["from"], bridge["to"], bridge["solid_half_width"])
 
+	var marks := _landmark_plan(terrain)
+	_stamp_bars(marks.get("solid", PackedFloat32Array()), true)
+
 	field.inflate(field_clearance)
+	# After the inflate, or the clearance around the walls closes the gateway they
+	# were given. Same order the crossing needs, for the same reason.
+	_stamp_bars(marks.get("open", PackedFloat32Array()), false)
 	if not bridge.is_empty():
 		var mouth: Vector3 = (bridge["to"] - bridge["from"]).normalized() \
 				* (field_clearance + field_cell)
@@ -138,12 +144,39 @@ func _build_field(terrain: Node) -> void:
 			trees.size() / 3, stones.size() / 3,
 		])
 		print("creature_spawner: bridge %s" % [bridge])
+		print("creature_spawner: landmarks %d solid, %d open" % [
+			marks.get("solid", PackedFloat32Array()).size() / 5,
+			marks.get("open", PackedFloat32Array()).size() / 5,
+		])
 
 
 func _bridge_plan(terrain: Node) -> Dictionary:
 	if terrain == null or not terrain.has_method("bridge_plan"):
 		return {}
 	return terrain.bridge_plan()
+
+
+func _landmark_plan(terrain: Node) -> Dictionary:
+	if terrain == null or not terrain.has_method("landmark_plan"):
+		return {}
+	return terrain.landmark_plan()
+
+
+## Closes or reopens a flat run of `ax, az, bx, bz, half_width`.
+##
+## The levelled ground a landmark stands on reads to the field as open and walkable,
+## because that is exactly what the height grid says it is. Every wall, keep and
+## warehouse has to be put back in the way by hand.
+func _stamp_bars(bars: PackedFloat32Array, solid: bool) -> void:
+	var i := 0
+	while i + 4 < bars.size():
+		var from := Vector3(bars[i], 0.0, bars[i + 1])
+		var to := Vector3(bars[i + 2], 0.0, bars[i + 3])
+		if solid:
+			field.block_path(from, to, bars[i + 4])
+		else:
+			field.open_path(from, to, bars[i + 4], bridge_cost)
+		i += 5
 
 
 func _obstacle_discs(path: NodePath, fallback: String) -> PackedFloat32Array:
