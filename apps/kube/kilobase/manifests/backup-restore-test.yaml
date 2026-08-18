@@ -170,13 +170,9 @@ data:
         \                  name: supabase-jwt\n                  key: secret\n       \
         \ - name: JWT_EXP\n          value: '3600'\n\n    bootstrap:\n        recovery:\n\
         \            source: kilobase-postgres-backup\n\n    externalClusters:\n     \
-        \   - name: kilobase-postgres-backup\n          barmanObjectStore:\n         \
-        \     destinationPath: s3://kilobase/barman/backup\n              serverName:\
-        \ kilobase-postgres-backup\n              s3Credentials:\n                  accessKeyId:\n\
-        \                      name: kilobase-s3-secret\n                      key: keyId\n\
-        \                  secretAccessKey:\n                      name: kilobase-s3-secret\n\
-        \                      key: accessKey\n              wal:\n                  compression:\
-        \ gzip\n"
+        \   - name: kilobase-postgres-backup\n          plugin:\n              name: barman-cloud.cloudnative-pg.io\n\
+        \              parameters:\n                  barmanObjectName: kilobase-backup-store\n\
+        \                  serverName: kilobase-postgres-backup\n"
 ---
 apiVersion: batch/v1
 kind: CronJob
