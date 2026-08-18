@@ -302,7 +302,7 @@ impl QPhysics3D {
 
     /// Immovable collision, e.g. baked level geometry the sim must respect.
     #[func]
-    fn spawn_static_box(&mut self, node: Gd<Node3D>, half_extents: Vector3) -> i64 {
+    pub(crate) fn spawn_static_box(&mut self, node: Gd<Node3D>, half_extents: Vector3) -> i64 {
         self.insert(
             node,
             ShapeDesc::Cuboid {

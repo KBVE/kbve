@@ -1,6 +1,6 @@
 use godot::classes::image::Format as ImageFormat;
 use godot::classes::{
-    ArrayMesh, CollisionShape3D, Image, ImageTexture, MeshInstance3D, StaticBody3D,
+    ArrayMesh, BoxShape3D, CollisionShape3D, Image, ImageTexture, MeshInstance3D, StaticBody3D,
 };
 use godot::prelude::*;
 
@@ -504,12 +504,6 @@ impl QTerrain {
                 si.set_material_override(m);
             }
             self.base_mut().add_child(&si);
-            if let Some(shape) = stone.create_trimesh_shape() {
-                let mut col = CollisionShape3D::new_alloc();
-                col.set_shape(&shape);
-                body.add_child(&col);
-            }
-            self.publish_sim_mesh(&stone);
         }
 
         let Some(mesh) = mb.build() else {
@@ -524,15 +518,52 @@ impl QTerrain {
         }
         self.base_mut().add_child(&inst);
 
-        if let Some(shape) = mesh.create_trimesh_shape() {
-            let mut col = CollisionShape3D::new_alloc();
-            col.set_shape(&shape);
-            body.add_child(&col);
-        }
-        self.publish_sim_mesh(&mesh);
+        let mut slabs = plan.slabs().to_vec();
+        slabs.extend(plan.ramp_slabs(hgen));
+        slabs.extend(plan.ramp_skirt_slabs(hgen));
+        slabs.extend(plan.ramp_rail_slabs(hgen));
+        slabs.extend(plan.abutment_slabs(hgen));
+        let shapes = Self::fit_slab_shapes(&mut body, &slabs);
 
         self.base_mut().add_child(&body);
+        self.publish_sim_slabs(&shapes, &slabs);
         reach
+    }
+
+    /// Hangs one box collider under `body` per slab, returning them in the same order.
+    ///
+    /// The whole structure was previously a trimesh of its own visual mesh, which gave
+    /// every baluster and pier a few hundred triangles of collision the host had never
+    /// heard of. These are the boxes the server already builds from the same plan, so
+    /// the two now stop bodies in the same places.
+    fn fit_slab_shapes(
+        body: &mut Gd<StaticBody3D>,
+        slabs: &[crate::worldgen::BridgeSlab],
+    ) -> Vec<Gd<CollisionShape3D>> {
+        slabs
+            .iter()
+            .map(|slab| {
+                let mut shape = BoxShape3D::new_gd();
+                shape.set_size(Vector3::new(
+                    slab.half_extents[0] * 2.0,
+                    slab.half_extents[1] * 2.0,
+                    slab.half_extents[2] * 2.0,
+                ));
+                let mut col = CollisionShape3D::new_alloc();
+                col.set_shape(&shape);
+                col.set_transform(Transform3D::new(
+                    Basis::from_quaternion(Quaternion::new(
+                        slab.rot[0],
+                        slab.rot[1],
+                        slab.rot[2],
+                        slab.rot[3],
+                    )),
+                    Vector3::new(slab.centre[0], slab.centre[1], slab.centre[2]),
+                ));
+                body.add_child(&col);
+                col
+            })
+            .collect()
     }
 }
 
@@ -542,13 +573,20 @@ impl QTerrain {
     /// The vertices are already world-space -- the bridge is authored where it stands
     /// rather than placed by a transform -- so this hands them over unmoved.
     #[cfg(not(feature = "rapier3d-sim"))]
-    fn publish_sim_mesh(&mut self, _mesh: &Gd<ArrayMesh>) {}
+    fn publish_sim_slabs(
+        &mut self,
+        _shapes: &[Gd<CollisionShape3D>],
+        _slabs: &[crate::worldgen::BridgeSlab],
+    ) {
+    }
 
+    /// Mirrors the bridge's boxes into the sim, which has no Godot collision of its own.
     #[cfg(feature = "rapier3d-sim")]
-    fn publish_sim_mesh(&mut self, mesh: &Gd<ArrayMesh>) {
-        if mesh.get_surface_count() == 0 {
-            return;
-        }
+    fn publish_sim_slabs(
+        &mut self,
+        shapes: &[Gd<CollisionShape3D>],
+        slabs: &[crate::worldgen::BridgeSlab],
+    ) {
         let Some(mut phys) = self
             .base()
             .get_node_or_null(&self.physics_path)
@@ -556,21 +594,23 @@ impl QTerrain {
         else {
             return;
         };
-        let arrays = mesh.surface_get_arrays(0);
-        let verts = arrays
-            .at(godot::classes::mesh::ArrayType::VERTEX.ord() as usize)
-            .try_to::<PackedVector3Array>()
-            .unwrap_or_default();
-        let idx = arrays
-            .at(godot::classes::mesh::ArrayType::INDEX.ord() as usize)
-            .try_to::<PackedInt32Array>()
-            .unwrap_or_default();
-        let id = phys
-            .bind_mut()
-            .spawn_static_trimesh(verts, idx, Transform3D::IDENTITY);
-        if id != 0 {
-            self.sim_bridge.push(id);
+        godot::global::godot_print!("[bridgeprobe] slabs={}", slabs.len());
+        for (shape, slab) in shapes.iter().zip(slabs) {
+            let half = Vector3::new(
+                slab.half_extents[0],
+                slab.half_extents[1],
+                slab.half_extents[2],
+            );
+            let id = phys
+                .bind_mut()
+                .spawn_static_box(shape.clone().upcast(), half);
+            if id != 0 {
+                self.sim_bridge.push(id);
+            } else {
+                godot::global::godot_print!("[bridgeprobe] slab rejected");
+            }
         }
+        godot::global::godot_print!("[bridgeprobe] spawned={}", self.sim_bridge.len());
     }
 }
 
@@ -755,6 +795,95 @@ mod plan_tests {
                 s.half_extents.iter().all(|h| *h > 0.0),
                 "a collider with no thickness stops nothing: {s:?}"
             );
+        }
+    }
+
+    /// The failure this closes: the deck was railed and the causeway leading onto it
+    /// was not, so a body could walk off the side of an approach the client had drawn
+    /// a railing along.
+    #[test]
+    fn every_approach_segment_is_railed_on_both_sides() {
+        let hgen = HeightGen::new(&HeightParams::default());
+        let plan = BridgePlan::new(&hgen, 256.0, -1.4, 3.2);
+        let deck = plan.ramp_slabs(&hgen);
+        let rails = plan.ramp_rail_slabs(&hgen);
+        assert_eq!(
+            rails.len(),
+            deck.len() * 2,
+            "two rails per approach segment"
+        );
+
+        for (i, seg) in deck.iter().enumerate() {
+            let left = &rails[i * 2];
+            let right = &rails[i * 2 + 1];
+            assert!(
+                left.centre[2] < seg.centre[2],
+                "rails straddle the causeway"
+            );
+            assert!(right.centre[2] > seg.centre[2]);
+            for rail in [left, right] {
+                assert!(
+                    rail.centre[1] > seg.centre[1],
+                    "a rail level with the timber is a kerb nobody can be stopped by"
+                );
+                assert_eq!(rail.rot, seg.rot, "rails follow the grade they guard");
+                assert!(rail.half_extents.iter().all(|h| *h > 0.0));
+            }
+        }
+    }
+
+    /// The failure this closes: the approach was collidable only as the plank you walk
+    /// on, so a body could step in from the side and stand inside the embankment the
+    /// client had drawn as solid.
+    #[test]
+    fn the_approach_is_filled_in_beneath_its_surface() {
+        let hgen = HeightGen::new(&HeightParams::default());
+        let plan = BridgePlan::new(&hgen, 256.0, -1.4, 3.2);
+        let skirt = plan.ramp_skirt_slabs(&hgen);
+        assert!(!skirt.is_empty(), "the approaches have no fill at all");
+
+        for slab in &skirt {
+            let top = slab.centre[1] + slab.half_extents[1];
+            let ground = hgen.height(slab.centre[0], slab.centre[2]);
+            assert!(
+                slab.centre[1] - slab.half_extents[1] < ground,
+                "fill stopping above the bank leaves the gap it exists to close"
+            );
+            assert!(
+                top <= plan.deck_y,
+                "fill standing proud of the deck is a step"
+            );
+            assert!(slab.half_extents.iter().all(|h| *h > 0.0));
+        }
+
+        for surface in plan.ramp_slabs(&hgen) {
+            assert!(
+                skirt.iter().any(|s| {
+                    (s.centre[0] - surface.centre[0]).abs() <= s.half_extents[0] + 0.01
+                }),
+                "a stretch of approach with nothing under it: {surface:?}"
+            );
+        }
+    }
+
+    /// The abutments carry the approach where it meets the bank, and the client drew
+    /// them long before anything collided with them.
+    #[test]
+    fn an_abutment_stands_under_each_bank() {
+        let hgen = HeightGen::new(&HeightParams::default());
+        let plan = BridgePlan::new(&hgen, 256.0, -1.4, 3.2);
+        let [cx, cz] = plan.crossing;
+        let piers = plan.abutment_slabs(&hgen);
+
+        assert!(piers[0].centre[0] < cx, "one abutment per bank");
+        assert!(piers[1].centre[0] > cx);
+        for pier in piers {
+            assert_eq!(pier.centre[2].to_bits(), cz.to_bits());
+            assert!(
+                pier.centre[1] + pier.half_extents[1] <= plan.deck_y,
+                "an abutment through the deck is a step in the road"
+            );
+            assert!(pier.half_extents.iter().all(|h| *h > 0.0));
         }
     }
 

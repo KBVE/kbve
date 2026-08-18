@@ -81,3 +81,62 @@ func test_an_unread_balance_is_not_shown_as_zero() -> void:
 	assert_str(card.wallet_label.text).is_equal("session expired")
 	assert_str(card.wallet_label.text).not_contains("0")
 	card.queue_free()
+
+
+## The title refreshes on every auth change and signing in emits more than once, so an
+## unguarded second fetch hits HTTPRequest mid-flight and returns ERR_BUSY.
+func test_a_repeated_avatar_load_does_not_start_a_second_request() -> void:
+	var card := Card.new()
+	add_child(card)
+	auto_free(card)
+	await await_idle_frame()
+	var url := "https://example.invalid/avatar.png"
+	assert_bool(card.load_avatar(url)).is_true()
+	assert_bool(card.load_avatar(url)).is_false()
+	assert_bool(card.load_avatar(url)).is_false()
+	assert_bool(card.load_avatar("https://example.invalid/other.png")) \
+			.override_failure_message(
+					"a new picture must cancel the open request, not collide with it") \
+			.is_true()
+
+
+## A blank or non-https picture is not fetched at all, so it never occupies the slot and
+## blocks the real one that arrives after it.
+func test_a_url_that_is_not_https_is_never_fetched() -> void:
+	var card := Card.new()
+	add_child(card)
+	auto_free(card)
+	await await_idle_frame()
+	assert_bool(card.load_avatar("")).is_false()
+	assert_bool(card.load_avatar("http://example.invalid/a.png")).is_false()
+	assert_bool(card.load_avatar("https://example.invalid/a.png")).is_true()
+
+
+## Two accounts on one machine must not share a cache file, or the second one signs in
+## wearing the first one's face until its own picture arrives.
+func test_two_accounts_do_not_share_a_cache_file() -> void:
+	var mine := Card.cache_path("https://cdn.example.invalid/me.png")
+	var theirs := Card.cache_path("https://cdn.example.invalid/them.png")
+	assert_str(mine).is_not_equal(theirs)
+	assert_str(mine).starts_with(Card.AVATAR_DIR)
+	assert_str(Card.cache_path("https://cdn.example.invalid/me.png")).is_equal(mine)
+
+
+## The cached picture is drawn without asking the network, which is the whole point of
+## keeping it: a returning player sees their face before any request is made.
+func test_a_cached_picture_is_used_instead_of_a_request() -> void:
+	var url := "https://cdn.example.invalid/cached.png"
+	var path := Card.cache_path(url)
+	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(Card.AVATAR_DIR))
+	var image := Image.create(8, 8, false, Image.FORMAT_RGBA8)
+	image.fill(Color.RED)
+	assert_int(image.save_png(ProjectSettings.globalize_path(path))).is_equal(OK)
+
+	var card := Card.new()
+	add_child(card)
+	auto_free(card)
+	await await_idle_frame()
+	assert_bool(card.load_avatar(url)).override_failure_message(
+			"a picture already on disk must not be fetched again").is_false()
+	assert_object(card.avatar.texture).is_not_null()
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(path))

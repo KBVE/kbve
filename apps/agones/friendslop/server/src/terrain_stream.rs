@@ -79,6 +79,9 @@ impl TerrainStreamer {
         let plan = BridgePlan::new(&hgen, cfg.extent, cfg.water_level, cfg.road_width);
         let mut slabs = plan.slabs().to_vec();
         slabs.extend(plan.ramp_slabs(&hgen));
+        slabs.extend(plan.ramp_skirt_slabs(&hgen));
+        slabs.extend(plan.ramp_rail_slabs(&hgen));
+        slabs.extend(plan.abutment_slabs(&hgen));
         Self {
             cfg,
             window,

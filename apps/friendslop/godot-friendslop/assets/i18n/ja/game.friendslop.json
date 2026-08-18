@@ -2,6 +2,7 @@
 	"title": {
 		"name": "Friendslop",
 		"play_guest": "ゲストでプレイ",
+		"play_as_account": "{{name}} としてプレイ",
 		"singleplayer": "シングルプレイ",
 		"sign_in": "サインイン",
 		"sign_in_hint": "サインインは準備中です。ゲストの名前はサーバーが決めます。",
@@ -80,5 +81,13 @@
 		"weight": "{weight} kg",
 		"drop": "離すと置く",
 		"empty": "からっぽ"
+	},
+	"chat": {
+		"signin_required": "チャットを使うにはサインインしてください。",
+		"reconnecting": "チャットに再接続中…",
+		"send_failed": "メッセージを送信できませんでした。",
+		"open": "[Enter] チャット",
+		"unreachable": "チャットサーバーに接続できません。",
+		"unavailable": "現在チャットを利用できません。"
 	}
 }

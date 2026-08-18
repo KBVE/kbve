@@ -2,6 +2,7 @@
 	"title": {
 		"name": "Friendslop",
 		"play_guest": "अतिथि के रूप में खेलें",
+		"play_as_account": "{{name}} के रूप में खेलें",
 		"singleplayer": "एकल खिलाड़ी",
 		"sign_in": "साइन इन",
 		"sign_in_hint": "साइन इन जल्द आ रहा है — अतिथियों के नाम सर्वर देता है।",
@@ -80,5 +81,13 @@
 		"weight": "{weight} किग्रा",
 		"drop": "गिराने के लिए छोड़ें",
 		"empty": "खाली"
+	},
+	"chat": {
+		"signin_required": "चैट के लिए साइन इन करें।",
+		"reconnecting": "चैट फिर से जुड़ रही है…",
+		"send_failed": "संदेश नहीं भेजा गया।",
+		"open": "[Enter] चैट",
+		"unreachable": "चैट सर्वर तक नहीं पहुँच सके।",
+		"unavailable": "चैट अभी उपलब्ध नहीं है।"
 	}
 }

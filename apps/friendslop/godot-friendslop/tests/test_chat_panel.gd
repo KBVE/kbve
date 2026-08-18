@@ -64,3 +64,19 @@ func test_send_is_refused_while_disconnected() -> void:
 	await await_idle_frame()
 	assert_bool(client.send_chat("hello")).is_false()
 	client.queue_free()
+
+
+## Every string the client can emit has to resolve, or the notice shows the raw key.
+func test_every_failure_reason_is_translated() -> void:
+	for key in ["chat.signin_required", "chat.unreachable", "chat.unavailable",
+			"chat.reconnecting", "chat.send_failed"]:
+		assert_str(I18n.t(key)).override_failure_message(
+				"%s has no translation" % key).is_not_equal(key)
+
+
+## A gateway that answers the upgrade with an HTTP error is refusing, not flapping, so
+## the client stops instead of reopening the socket forever.
+func test_the_client_gives_up_on_a_refused_handshake() -> void:
+	var client: ChatClient = ChatClientScript.new()
+	assert_int(client.MAX_HANDSHAKE_FAILURES).is_greater(0)
+	client.free()
