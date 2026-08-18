@@ -282,6 +282,12 @@ impl QFishField {
             if t.cpu_heights().is_none() {
                 return false;
             }
+            // Fish are laid out along the one authored river. A world without
+            // one has nothing to lay them along, and placing them down the line
+            // the river would have taken puts a shoal in dry hillside.
+            if !t.has_river() {
+                return true;
+            }
             (t.water(), t.river_width_value())
         };
 

@@ -70,6 +70,10 @@ pub mod proto;
 #[cfg(any(feature = "client", feature = "rapier3d-sim"))]
 pub mod worldgen;
 
+/// Which field a world's ground comes from.
+#[cfg(any(feature = "client", feature = "rapier3d-sim"))]
+pub mod ground;
+
 /// Sinks, drainage and the ground derived from them.
 #[cfg(any(feature = "client", feature = "rapier3d-sim"))]
 pub mod region;

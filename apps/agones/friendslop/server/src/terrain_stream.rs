@@ -17,6 +17,7 @@ use std::sync::mpsc::{self, Receiver, Sender};
 use q::rapier::sim3d::{
     BodyDesc, BodyId, BodyKind, Iso, ShapeDesc, SimCommand, SimWorld, TerrainDesc,
 };
+use q::ground::{Ground, GroundSource};
 use q::worldgen::{BridgePlan, BridgeSlab, HeightGen, HeightParams, Window};
 
 /// Well clear of the player body space, which starts at a million.
@@ -28,6 +29,8 @@ type Cell = [i32; 2];
 
 pub struct StreamConfig {
     pub seed: u64,
+    /// Which field the ground comes from. Must match the client's.
+    pub ground_source: GroundSource,
     /// Half-width of one baked region. Must match the client's terrain extent.
     pub extent: f32,
     /// Samples per side. Must match the client's terrain resolution.
@@ -111,7 +114,11 @@ impl TerrainStreamer {
     }
 
     fn bake(&self, origin: [f32; 2]) -> Vec<f32> {
-        HeightGen::new(&self.cfg.params()).bake_at(origin, self.cfg.extent, self.cfg.resolution)
+        Ground::new(self.cfg.ground_source, self.cfg.seed as i32, &self.cfg.params()).bake_at(
+            origin,
+            self.cfg.extent,
+            self.cfg.resolution,
+        )
     }
 
     fn desc(&self, heights: Vec<f32>) -> TerrainDesc {
@@ -247,11 +254,12 @@ impl TerrainStreamer {
         let origin = self.origin_of(cell);
         let params = self.cfg.params();
         let (extent, res) = (self.cfg.extent, self.cfg.resolution);
+        let (source, seed) = (self.cfg.ground_source, self.cfg.seed as i32);
         let tx = self.tx.clone();
         let spawned = std::thread::Builder::new()
             .name("fs-terrain-bake".into())
             .spawn(move || {
-                let heights = HeightGen::new(&params).bake_at(origin, extent, res);
+                let heights = Ground::new(source, seed, &params).bake_at(origin, extent, res);
                 let _ = tx.send((cell, origin, heights));
             });
         match spawned {
@@ -289,6 +297,7 @@ mod tests {
     fn config() -> StreamConfig {
         StreamConfig {
             seed: 1337,
+            ground_source: GroundSource::default(),
             extent: 64.0,
             resolution: 33,
             stride: 32.0,
@@ -297,6 +306,29 @@ mod tests {
             keep_radius: 96.0,
             max_inflight: 2,
         }
+    }
+
+    /// The streamer bakes its regions on worker threads that build their own
+    /// field, so a source that is not carried through is a server quietly
+    /// serving the shipped world while it reports another one.
+    #[test]
+    fn the_selected_ground_is_what_gets_baked() {
+        let authored = TerrainStreamer::new(config()).bake([0.0, 0.0]);
+        let region = TerrainStreamer::new(StreamConfig {
+            ground_source: GroundSource::Region,
+            ..config()
+        })
+        .bake([0.0, 0.0]);
+
+        assert_eq!(authored.len(), region.len());
+        assert_ne!(authored, region, "the region source baked the authored field");
+
+        let same = TerrainStreamer::new(StreamConfig {
+            ground_source: GroundSource::Region,
+            ..config()
+        })
+        .bake([0.0, 0.0]);
+        assert_eq!(region, same, "the same source and seed must bake the same ground");
     }
 
     /// Bakes land on worker threads, so anything asserting on them has to wait.
