@@ -149,7 +149,7 @@ fn capital_site(seed: u32, hgen: &HeightGen, cx: i32, cz: i32) -> Option<[f32; 2
         return None;
     }
     let h = cell_hash(seed, CAPITAL_LATTICE, cx, cz);
-    if h % 2 != 0 {
+    if !h.is_multiple_of(2) {
         return None;
     }
     // Kept clear of the cell's own edges so a pad never leaves the cell it was
