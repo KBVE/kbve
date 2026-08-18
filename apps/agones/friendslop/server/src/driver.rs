@@ -245,6 +245,10 @@ pub fn spawn(
                     streamer.update(&players, host.world_mut());
                     let regions = streamer.loaded_origins();
                     props.sync(&regions, host.world_mut());
+                    // The solver stops a body at a wall, but a pet steers by a field,
+                    // and a landmark levels its own ground -- so without this a field
+                    // reads a walled capital as the flattest country for miles.
+                    host.set_landmarks(streamer.footprints(&field_gen));
                     regions_t.store(host.world_mut().terrain_region_count(), Ordering::Relaxed);
                 }
 

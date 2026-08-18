@@ -6,6 +6,7 @@ use std::sync::Arc;
 use serde::{Deserialize, Serialize};
 
 use super::transport::PeerId;
+use crate::landmark::LandmarkFootprint;
 use crate::rapier::sim3d::{
     BodyId, CharacterDesc, Iso, ShapeDesc, SimCommand, SimSnapshot, SimWorld,
 };
@@ -211,6 +212,13 @@ pub struct PetFields {
     /// Flat `x, z, radius` triples for every rock currently collidable.
     obstacles: Vec<f32>,
     bridge: Option<BridgeFootprint>,
+    /// The built places reaching the ground these fields cover.
+    ///
+    /// Needed for the same reason the crossing is, and more urgently. A landmark
+    /// levels the ground it stands on, so a field reading only the height sampler
+    /// sees a keep as the flattest, most inviting country for miles and routes
+    /// straight through the wall.
+    landmarks: Vec<LandmarkFootprint>,
     /// Where the round robin got to, so no owner starves behind another.
     cursor: usize,
 }
@@ -223,6 +231,7 @@ impl PetFields {
             ground: None,
             obstacles: Vec::new(),
             bridge: None,
+            landmarks: Vec::new(),
             cursor: 0,
         }
     }
@@ -252,6 +261,15 @@ impl PetFields {
             return;
         }
         self.bridge = bridge;
+        self.restamp_all();
+    }
+
+    /// Replaces the built places these fields have to route around.
+    pub fn set_landmarks(&mut self, landmarks: Vec<LandmarkFootprint>) {
+        if landmarks == self.landmarks {
+            return;
+        }
+        self.landmarks = landmarks;
         self.restamp_all();
     }
 
@@ -314,7 +332,29 @@ impl PetFields {
                 .block_path(bridge.from, bridge.to, bridge.solid_half_width);
         }
 
+        for mark in &self.landmarks {
+            for bar in &mark.solid {
+                owner
+                    .field
+                    .grid
+                    .block_path(bar.from, bar.to, bar.half_width);
+            }
+        }
+
         owner.field.grid.inflate(self.cfg.clearance);
+
+        // After the inflate. A gateway reopened before it is a gateway the clearance
+        // grown off the walls beside it closes again.
+        for mark in &self.landmarks {
+            for bar in &mark.open {
+                owner.field.grid.open_path(
+                    bar.from,
+                    bar.to,
+                    bar.half_width,
+                    self.cfg.bridge_cost.clamp(1, 254),
+                );
+            }
+        }
 
         if let Some(bridge) = self.bridge {
             let span = [bridge.to[0] - bridge.from[0], bridge.to[1] - bridge.from[1]];
@@ -861,6 +901,113 @@ mod tests {
             deck_to: [10.0, 0.0],
             deck_y: 2.0,
         }
+    }
+
+    fn wall_bar(half_z: f32) -> crate::landmark::Bar {
+        crate::landmark::Bar {
+            from: [0.0, -half_z],
+            to: [0.0, half_z],
+            half_width: 1.2,
+        }
+    }
+
+    /// Walks a route to its end, returning every place it stood.
+    ///
+    /// A single direction proves nothing about a wall: steepest descent is local, so
+    /// something eighteen metres out from a long wall correctly heads straight at it
+    /// and only turns when it arrives. What the wall has to change is where the walk
+    /// goes, not where the first step points.
+    fn walk(f: &PetFields, peer: PeerId, from: [f32; 2], to: [f32; 2]) -> Vec<[f32; 2]> {
+        let mut at = from;
+        let mut path = vec![at];
+        for _ in 0..600 {
+            if (at[0] - to[0]).hypot(at[1] - to[1]) < 3.0 {
+                break;
+            }
+            let Some(route) = f.route(peer, [at[0], LAND, at[1]]) else {
+                break;
+            };
+            let d = route.direction;
+            if d[0] == 0.0 && d[1] == 0.0 {
+                break;
+            }
+            at = [at[0] + d[0] * 0.5, at[1] + d[1] * 0.5];
+            path.push(at);
+        }
+        path
+    }
+
+    /// A landmark levels the ground it stands on, which is the whole point of it and
+    /// also the trap: the height sampler then reports a walled capital as the
+    /// flattest, most inviting country for miles. Told nothing, a pet walks through
+    /// the wall.
+    #[test]
+    fn a_pet_goes_round_a_capital_wall_rather_than_through_it() {
+        let peer = PeerId(1);
+        let leaders = one_leader(peer, [20.0, 0.0]);
+        let owners = HashSet::from([peer]);
+
+        let mut open = fields(|_, _| LAND, FieldConfig::default());
+        settle(&mut open, &leaders, &owners);
+        let straight = walk(&open, peer, [-20.0, 0.0], [20.0, 0.0]);
+        assert!(
+            straight.iter().any(|p| p[0] > 10.0),
+            "flat ground has to be walkable, or this test proves nothing"
+        );
+        assert!(
+            straight.iter().all(|p| p[1].abs() < 2.0),
+            "with nothing in the way the walk should be a straight line"
+        );
+
+        let mut walled = fields(|_, _| LAND, FieldConfig::default());
+        walled.set_landmarks(vec![LandmarkFootprint {
+            solid: vec![wall_bar(30.0)],
+            open: Vec::new(),
+            decks: Vec::new(),
+            deck_y: 0.0,
+        }]);
+        settle(&mut walled, &leaders, &owners);
+
+        let round = walk(&walled, peer, [-20.0, 0.0], [20.0, 0.0]);
+        assert!(
+            round.iter().any(|p| p[0] > 10.0),
+            "never got past the wall at all"
+        );
+        assert!(
+            !round.iter().any(|p| p[0].abs() < 1.5 && p[1].abs() < 30.0),
+            "walked through the wall"
+        );
+    }
+
+    /// A gateway has to survive the clearance grown off the walls beside it, which
+    /// means being reopened after the inflate and not before. Reopened first, the
+    /// only way into a capital is closed by its own walls.
+    #[test]
+    fn a_pet_comes_in_through_the_gateway() {
+        let peer = PeerId(1);
+        let leaders = one_leader(peer, [20.0, 0.0]);
+        let owners = HashSet::from([peer]);
+
+        let mut f = fields(|_, _| LAND, FieldConfig::default());
+        f.set_landmarks(vec![LandmarkFootprint {
+            solid: vec![wall_bar(30.0)],
+            open: vec![crate::landmark::Bar {
+                from: [-8.0, 0.0],
+                to: [8.0, 0.0],
+                half_width: 1.8,
+            }],
+            decks: Vec::new(),
+            deck_y: 0.0,
+        }]);
+        settle(&mut f, &leaders, &owners);
+
+        let path = walk(&f, peer, [-20.0, 0.0], [20.0, 0.0]);
+        assert!(path.iter().any(|p| p[0] > 10.0), "never got in");
+        let through_the_gate = path.iter().any(|p| p[0].abs() < 1.0 && p[1].abs() < 4.0);
+        assert!(
+            through_the_gate,
+            "went the long way round instead of through the gateway it was given"
+        );
     }
 
     /// The regression that cost the most last time: the walkway is closed by the
