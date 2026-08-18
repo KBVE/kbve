@@ -84,6 +84,7 @@ spec:
             pg_net.database_name: supabase
             vault.getkey_script: /projected/postgresql-custom/pgsodium_getkey.sh
             pgsodium.getkey_script: /projected/postgresql-custom/pgsodium_getkey.sh
+            archive_timeout: 30min
             max_slot_wal_keep_size: 10GB
             wal_compression: lz4
             auto_explain.log_min_duration: 10s
@@ -185,4 +186,4 @@ spec:
                       name: kilobase-s3-secret
                       key: accessKey
               wal:
-                  compression: gzip
+                  compression: zstd
