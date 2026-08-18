@@ -6,9 +6,7 @@ metadata:
 spec:
     retentionPolicy: '7d'
     instanceSidecarConfiguration:
-        # Run retention cleanup every 30 minutes — deletes base backups AND WAL
-        # files older than the retention window (7 days)
-        retentionPolicyIntervalSeconds: 1800
+        retentionPolicyIntervalSeconds: 86400
     configuration:
         destinationPath: s3://kilobase/barman/backup
         s3Credentials:
@@ -19,4 +17,4 @@ spec:
                 name: kilobase-s3-secret
                 key: accessKey
         wal:
-            compression: gzip
+            compression: zstd

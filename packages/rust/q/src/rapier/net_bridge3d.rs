@@ -655,6 +655,14 @@ impl QNetClient3D {
             .unwrap_or(Vector3::ZERO)
     }
 
+    /// Whether the host had this body on the ground at the instant it is drawn at.
+    #[func]
+    fn body_grounded(&self, id: i64) -> bool {
+        self.buffer
+            .sample_grounded(BodyId(id as u32))
+            .unwrap_or(true)
+    }
+
     /// Snapshots held for blending. Persistently at one means [`interp_delay`] is too
     /// short for the link and bodies are being extrapolated rather than interpolated.
     #[func]

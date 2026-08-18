@@ -17,23 +17,35 @@ metadata:
         policies.kyverno.io/category: Security
         policies.kyverno.io/severity: high
         policies.kyverno.io/description: >-
-            Restricts Jobs created in the kilobase namespace to ones
-            that match the dbmate-runner contract: must use the
-            dbmate-runner ServiceAccount, must drop ALL capabilities,
-            must run as non-root with a read-only rootfs, and must
-            mount only the dbmate-migrations ConfigMap + dbmate-creds
-            Secret. Applies on CREATE; UPDATE on existing Jobs is not
-            covered (Job specs are immutable post-create anyway).
+            Restricts Jobs created in the kilobase namespace by the
+            arc-runner-set ServiceAccount to ones that match the
+            dbmate-runner contract: must use the dbmate-runner
+            ServiceAccount, must drop ALL capabilities, must run as
+            non-root with a read-only rootfs, and must mount only the
+            dbmate-migrations ConfigMap + dbmate-creds Secret. Applies
+            on CREATE; UPDATE on existing Jobs is not covered (Job
+            specs are immutable post-create anyway). Jobs created by
+            other principals (cronjob-controller, operators) are out
+            of scope.
 spec:
     validationFailureAction: Enforce
     background: false
     rules:
         - name: kilobase-job-must-use-dbmate-runner-sa
+          # Scoped to the arc-runner SA: this policy exists to stop a
+          # stolen runner token from creating arbitrary Jobs, not to
+          # constrain the cronjob-controller. An unscoped match blocked
+          # every Job in the namespace and silently killed the
+          # backup-watchdog / backup-restore-test CronJobs (#16009).
           match:
               any:
                   - resources:
                         kinds: ['Job']
                         namespaces: ['kilobase']
+                    subjects:
+                        - kind: ServiceAccount
+                          name: arc-runner-set-gha-rs-no-permission
+                          namespace: arc-runners
           # Skip CNPG operator-managed Jobs (backups, restores) so we
           # don't break the database itself. They live in cnpg-system
           # but operator-spawned Jobs land in kilobase under the
@@ -89,6 +101,10 @@ spec:
                   - resources:
                         kinds: ['Job']
                         namespaces: ['kilobase']
+                    subjects:
+                        - kind: ServiceAccount
+                          name: arc-runner-set-gha-rs-no-permission
+                          namespace: arc-runners
           exclude:
               any:
                   - resources:
