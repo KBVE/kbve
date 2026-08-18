@@ -10,12 +10,12 @@ import {
 
 const inputClass = cn(
 	'w-full pl-9 pr-10 py-2.5 rounded-md text-base',
-	'bg-[var(--sl-color-gray-6,#161b22)]',
-	'border border-[var(--sl-color-gray-5,#30363d)]',
+	'bg-[var(--bento-glass-bg,#161b22)]',
+	'border border-[var(--bento-hairline-strong,#30363d)]',
 	'text-[var(--sl-color-text,#e6edf3)]',
 	'placeholder:text-[var(--sl-color-gray-4,#6e7681)]',
-	'focus:outline-none focus:border-[var(--sl-color-accent,#1f6feb)]',
-	'focus:ring-1 focus:ring-[var(--sl-color-accent,#1f6feb)]',
+	'focus:outline-none focus:border-[var(--bento-accent,#1f6feb)]',
+	'focus:ring-1 focus:ring-[var(--bento-accent,#1f6feb)]',
 );
 
 const labelClass =
@@ -23,8 +23,8 @@ const labelClass =
 
 const chipClass = cn(
 	'inline-flex items-center gap-1 px-2 py-1 rounded-full',
-	'bg-[var(--sl-color-gray-6,#161b22)]',
-	'border border-[var(--sl-color-gray-5,#30363d)]',
+	'bg-[var(--bento-glass-bg,#161b22)]',
+	'border border-[var(--bento-hairline-strong,#30363d)]',
 	'text-sm text-[var(--sl-color-text,#e6edf3)]',
 );
 
