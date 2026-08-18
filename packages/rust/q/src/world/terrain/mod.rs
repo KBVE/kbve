@@ -68,10 +68,18 @@ pub struct QTerrain {
     #[init(val = 513)]
     resolution: i32,
     /// Re-bakes the ground around the player as they walk, so the world does not
-    /// end at `extent`. Off leaves the world exactly as it was: one bake at the
-    /// origin, which is what everything downstream still assumes.
+    /// end at `extent`.
+    ///
+    /// On by default, and the server has been streaming its own regions by
+    /// default for as long as this has existed (`FS_STREAM_ENABLED`). While this
+    /// was off the client held the whole world to the one tile it baked at the
+    /// origin, so the pair only agreed because the client never walked far
+    /// enough to disagree.
+    ///
+    /// Off still reproduces that: one bake at the origin, and a player who
+    /// leaves it walks off the edge of the drawn world.
     #[export]
-    #[init(val = false)]
+    #[init(val = true)]
     stream_enabled: bool,
     /// How far the window may jump at a time. Smaller re-bakes more often for
     /// less work each; it also has to divide the sample spacing evenly or the
@@ -185,9 +193,10 @@ impl INode3D for QTerrain {
         }
         self.hgen = Some(HeightGen::new(&self.height_params()));
         self.gen_t0 = Some(std::time::Instant::now());
-        self.window = Some(crate::worldgen::Window::new(
+        self.window = Some(crate::worldgen::Window::aligned(
             self.extent,
             self.stream_stride,
+            self.resolution.max(2),
         ));
         let worker_gen = HeightGen::new(&self.height_params());
         let extent = self.extent;
@@ -717,15 +726,22 @@ impl QTerrain {
             return;
         }
         let texel = self.extent * 2.0 / (cres - 1) as f32;
+        // The clearance map covers the window, not the world, so a world point
+        // has to come back to the window before it can be a texel. While the
+        // window sat at the origin these were the same number; once it follows
+        // the player, stamping in world coordinates lands every mark a window's
+        // offset away from the thing that asked for it, or off the map entirely.
+        let origin = self.window_origin();
+        let (lx, lz) = (x - origin.x, z - origin.y);
         let to_px = |w: f32| ((w + self.extent) / texel).round() as i32;
         let r_px = (radius / texel).ceil() as i32 + 1;
-        let cx = to_px(x);
-        let cz = to_px(z);
+        let cx = to_px(lx);
+        let cz = to_px(lz);
         for py in (cz - r_px).max(0)..=(cz + r_px).min(cres - 1) {
             let wz = -self.extent + py as f32 * texel;
             for px in (cx - r_px).max(0)..=(cx + r_px).min(cres - 1) {
                 let wx = -self.extent + px as f32 * texel;
-                let d = ((wx - x) * (wx - x) + (wz - z) * (wz - z)).sqrt();
+                let d = ((wx - lx) * (wx - lx) + (wz - lz) * (wz - lz)).sqrt();
                 if d >= radius {
                     continue;
                 }
