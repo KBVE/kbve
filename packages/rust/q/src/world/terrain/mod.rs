@@ -737,6 +737,50 @@ impl QTerrain {
         out
     }
 
+    /// Where the people of the built places in this window stand.
+    ///
+    /// One dictionary each: `role`, `at` and `facing`. The client decides what a
+    /// `gate_guard` looks like and what it says; nothing here knows.
+    ///
+    /// `at` carries the levelled floor as its `y`, so a caller placing somebody does
+    /// not have to sample the ground to find out they are standing on a courtyard.
+    #[func]
+    fn landmark_posts(&self) -> VarArray {
+        let mut out = VarArray::new();
+        let Some(hgen) = self.hgen.as_ref() else {
+            return out;
+        };
+        // A landmark is raised while its middle is still outside the window, so that a
+        // wall straddling the boundary is not missing half of itself. Its people are a
+        // different matter: whoever stands them up settles them onto the ground mesh,
+        // and outside the baked grid there is no ground mesh to settle onto. A post out
+        // there is somewhere nobody can be put, so it is not offered until it is inside.
+        let origin = self.window_origin();
+        for mark in &self.landmarks {
+            for post in mark.posts(hgen) {
+                if (post.at[0] - origin.x).abs() > self.extent
+                    || (post.at[1] - origin.y).abs() > self.extent
+                {
+                    continue;
+                }
+                let mut one = VarDictionary::new();
+                one.set("role", post.role.as_str());
+                one.set(
+                    "at",
+                    Vector3::new(post.at[0], mark.pad_y, post.at[1]),
+                );
+                one.set(
+                    "facing",
+                    Vector3::new(post.facing[0], mark.pad_y, post.facing[1]),
+                );
+                one.set("landmark", mark.kind_name());
+                one.set("cell", Vector2i::new(mark.cell[0], mark.cell[1]));
+                out.push(&one.to_variant());
+            }
+        }
+        out
+    }
+
     /// Where the nearest built place of each kind is, for pointing somebody at one.
     ///
     /// Reads the world rather than the window, so it answers for landmarks far

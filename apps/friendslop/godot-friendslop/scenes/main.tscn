@@ -56,6 +56,12 @@
 [ext_resource type="PackedScene" uid="uid://dq8jku1jb2onh" path="res://assets/characters/quaternius_ubc/models/hair/Hair_Beard.glb" id="53_hairbeard"]
 [ext_resource type="Script" uid="uid://jjo1717g7eas" path="res://src/world/ground_items.gd" id="55_ground"]
 [ext_resource type="Script" path="res://src/ui/chat_panel.gd" id="56_chat"]
+[ext_resource type="Script" path="res://src/npc/landmark_folk.gd" id="57_folk"]
+[ext_resource type="PackedScene" path="res://src/npc/roles/gate_guard.tscn" id="58_guard"]
+[ext_resource type="PackedScene" path="res://src/npc/roles/trader.tscn" id="59_trader"]
+[ext_resource type="PackedScene" path="res://src/npc/roles/steward.tscn" id="60_steward"]
+[ext_resource type="PackedScene" path="res://src/npc/roles/dockhand.tscn" id="61_dockhand"]
+[ext_resource type="PackedScene" path="res://src/npc/roles/harbourmaster.tscn" id="62_harbour"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(1024, 1024)
@@ -492,3 +498,12 @@ script = ExtResource("30_creatures")
 terrain_path = NodePath("../Terrain")
 leader_path = NodePath("../Player")
 action_interval = 0.0
+
+[node name="LandmarkFolk" type="Node3D" parent="." unique_id=1854842516]
+script = ExtResource("57_folk")
+terrain_path = NodePath("../Terrain")
+gate_guard = ExtResource("58_guard")
+trader = ExtResource("59_trader")
+steward = ExtResource("60_steward")
+dockhand = ExtResource("61_dockhand")
+harbourmaster = ExtResource("62_harbour")

@@ -1,0 +1,77 @@
+---
+title: 'Dockhand'
+template: splash
+sidebar:
+    label: "Dockhand"
+    hidden: true
+description: |
+    Works a harbour quay. Has carried everything the river brings and formed opinions
+    about most of it.
+ref: 'dockhand'
+id: '01KSAVZ0000000000000DOCKHD'
+name: 'Dockhand'
+type_flags: 1
+rarity: 'common'
+personality: 'gruff'
+rank: 'normal'
+family: 'humanoid'
+level: 1
+role: 'Dockhand'
+tags:
+    - friendslop
+    - harbour
+    - talker
+routine:
+    stops:
+        - hour: 5.0
+          offset_x: 0.0
+          offset_z: 0.0
+        - hour: 10.0
+          offset_x: 0.0
+          offset_z: -4.0
+        - hour: 15.0
+          offset_x: 2.5
+          offset_z: 0.0
+        - hour: 20.0
+          offset_x: 0.0
+          offset_z: 0.0
+    walk_speed: 1.0
+dialogue_tree:
+    entry_node_id: 'greet'
+    nodes:
+        - id: 'greet'
+          text: "Mind the edge. Everyone says they're minding the edge right up until they aren't."
+          condition: '!seen:greet'
+          next_node_id: 'menu'
+        - id: 'greet_again'
+          text: "Still dry, I see. Good."
+          next_node_id: 'menu'
+        - id: 'menu'
+          text: "You want something or you want to stand there?"
+          options:
+              - id: 'ask_river'
+                label: "What's the river like?"
+                next_node_id: 'river'
+              - id: 'ask_work'
+                label: "What do you shift?"
+                next_node_id: 'work'
+              - id: 'leave'
+                label: "Stand there, mostly."
+                next_node_id: 'bye'
+        - id: 'river'
+          text: "Moves. That's the whole of it. Where it ran last year there's grass, and where there was grass I've lost a boot."
+          next_node_id: 'menu'
+        - id: 'work'
+          text: "Whatever comes off the piers and up the road. Ask again when my back's better."
+          next_node_id: 'menu'
+        - id: 'bye'
+          text: "Suit yourself. Mind the edge."
+---
+
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
+
+<NpcLeaf data={frontmatter}>
+
+Stands on the quay between the warehouses, facing the water. The world places two per harbour.
+
+</NpcLeaf>

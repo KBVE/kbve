@@ -1,0 +1,77 @@
+---
+title: 'Gate Warden'
+template: splash
+sidebar:
+    label: "Gate Warden"
+    hidden: true
+description: |
+    Stands the gateway of a walled capital. Has watched the road long enough to know
+    who is on it before they arrive, and says so whether or not you asked.
+ref: 'gate-warden'
+id: '01KSAVZ0000000000000WARDEN'
+name: 'Gate Warden'
+type_flags: 1
+rarity: 'common'
+personality: 'stoic'
+rank: 'normal'
+family: 'humanoid'
+level: 1
+role: 'Warden'
+tags:
+    - friendslop
+    - capital
+    - talker
+routine:
+    stops:
+        - hour: 6.0
+          offset_x: 0.0
+          offset_z: 0.0
+        - hour: 12.0
+          offset_x: 0.0
+          offset_z: 3.0
+        - hour: 18.0
+          offset_x: 0.0
+          offset_z: 0.0
+        - hour: 22.0
+          offset_x: -2.0
+          offset_z: 0.0
+    walk_speed: 0.9
+dialogue_tree:
+    entry_node_id: 'greet'
+    nodes:
+        - id: 'greet'
+          text: "Road's long and the gate's open. Wipe your feet or don't, I'm not the one sweeping."
+          condition: '!seen:greet'
+          next_node_id: 'menu'
+        - id: 'greet_again'
+          text: "Back through, then."
+          next_node_id: 'menu'
+        - id: 'menu'
+          text: "Something you wanted, or just the shade?"
+          options:
+              - id: 'ask_city'
+                label: "What is this place?"
+                next_node_id: 'city'
+              - id: 'ask_road'
+                label: "Where does the road go?"
+                next_node_id: 'road'
+              - id: 'leave'
+                label: "Nothing. Carry on."
+                next_node_id: 'bye'
+        - id: 'city'
+          text: "Walls, a keep, and everyone inside them convinced the walls are for somebody else's benefit."
+          next_node_id: 'menu'
+        - id: 'road'
+          text: "Down to the water, same as every road here. Follow it far enough and you'll smell the quay before you see it."
+          next_node_id: 'menu'
+        - id: 'bye'
+          text: "Mm."
+---
+
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
+
+<NpcLeaf data={frontmatter}>
+
+Posted at the gateway of every walled capital. The world places two of them, one either side of the opening, both looking out along the road.
+
+</NpcLeaf>
