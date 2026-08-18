@@ -87,6 +87,19 @@ static func plate(fill: Color, radius: int, shadow := 0, pad := Vector2.ZERO) ->
 	return box
 
 
+static func tooltip(text: String, scale: float) -> Control:
+	var panel := PanelContainer.new()
+	panel.add_theme_stylebox_override("panel", plate(
+			Color(PAPER_HOVER.r, PAPER_HOVER.g, PAPER_HOVER.b, 0.97),
+			BUTTON_RADIUS, 6, Vector2(12.0, 7.0) * scale))
+	var label := Label.new()
+	label.text = text
+	label.add_theme_font_size_override("font_size", int(round(14.0 * scale)))
+	label.add_theme_color_override("font_color", INK)
+	panel.add_child(label)
+	return panel
+
+
 static func page_uv(side: int) -> Rect2:
 	var uv: Rect2 = PAGE_LEFT_UV if side == Side.LEFT else PAGE_RIGHT_UV
 	if touch:
