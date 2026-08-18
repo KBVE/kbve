@@ -1,24 +1,10 @@
 import { useEffect } from 'react';
+import type { CSSProperties } from 'react';
 import { useStore } from '@nanostores/react';
-import { homeService, statusColor, type ServiceStatus } from './homeService';
-import { Activity, RefreshCw, Clock } from 'lucide-react';
-
-function StatusDot({ status }: { status: ServiceStatus }) {
-	const color = statusColor(status);
-	return (
-		<span
-			style={{
-				display: 'inline-block',
-				width: 8,
-				height: 8,
-				borderRadius: '50%',
-				background: color,
-				boxShadow: status === 'ok' ? `0 0 6px ${color}` : 'none',
-				flexShrink: 0,
-			}}
-		/>
-	);
-}
+import { homeService } from './homeService';
+import { StatusDot } from './homeServiceCard';
+import { RefreshCw, Clock } from 'lucide-react';
+import './homeStatusBanner.css';
 
 export default function ReactHomeStatusBanner() {
 	const isStaff = useStore(homeService.$isStaff);
@@ -40,6 +26,16 @@ export default function ReactHomeStatusBanner() {
 			homeService.fetchAll();
 		}
 	}, [authState, isStaff]);
+
+	useEffect(() => {
+		if (!isStaff) return;
+		const title = document.getElementById('dashboard-home-title');
+		const subtitle = document.getElementById('dashboard-home-subtitle');
+		if (title) title.textContent = 'Infrastructure Dashboard';
+		if (subtitle)
+			subtitle.textContent =
+				'Real-time cluster monitoring, deployment status, and service health';
+	}, [isStaff]);
 
 	const overallColor = anyLoading
 		? '#94a3b8'
@@ -70,160 +66,46 @@ export default function ReactHomeStatusBanner() {
 	];
 
 	return (
-		<>
-			{/* Header */}
-			<header style={{ marginBottom: '0.25rem' }}>
-				<h1
-					style={{
-						color: 'var(--sl-color-text, #e6edf3)',
-						margin: 0,
-						fontSize: '1.5rem',
-						fontWeight: 700,
-						letterSpacing: '-0.01em',
-						display: 'flex',
-						alignItems: 'center',
-					}}>
-					<Activity
-						size={22}
-						style={{
-							color: 'var(--sl-color-accent-high, #06b6d4)',
-							marginRight: 8,
-							verticalAlign: 'middle',
-						}}
-					/>
-					{isStaff ? 'Infrastructure Dashboard' : 'Dashboard'}
-				</h1>
-				<p
-					style={{
-						color: 'var(--sl-color-gray-3, #8b949e)',
-						margin: '0.25rem 0 0',
-						fontSize: '0.85rem',
-					}}>
-					{isStaff
-						? 'Real-time cluster monitoring, deployment status, and service health'
-						: 'Project status, service health, and workspace overview'}
-				</p>
-			</header>
-
-			{/* System Status Banner */}
-			<div
-				style={{
-					display: 'flex',
-					alignItems: 'center',
-					justifyContent: 'space-between',
-					padding: '0.75rem 1rem',
-					borderRadius: 'var(--bento-radius, 0.625rem)',
-					border: '1px solid var(--bento-hairline-strong)',
-					background: 'var(--bento-glass-bg, var(--sl-color-black))',
-					backdropFilter: 'blur(8px)',
-					WebkitBackdropFilter: 'blur(8px)',
-					boxShadow: 'var(--bento-shadow)',
-					gap: '1rem',
-					flexWrap: 'wrap',
-				}}>
-				{/* Left: overall status */}
-				<div
-					style={{
-						display: 'flex',
-						alignItems: 'center',
-						gap: '0.5rem',
-					}}>
-					<span
-						style={{
-							display: 'inline-block',
-							width: 10,
-							height: 10,
-							borderRadius: '50%',
-							background: overallColor,
-							boxShadow: allOk
-								? `0 0 8px ${overallColor}`
-								: 'none',
-						}}
-					/>
-					<span
-						style={{
-							fontWeight: 600,
-							fontSize: '0.85rem',
-							color: 'var(--sl-color-text, #e6edf3)',
-						}}>
-						{overallLabel}
-					</span>
-				</div>
-
-				{/* Center: per-service dots */}
-				<div
-					style={{
-						display: 'flex',
-						alignItems: 'center',
-						gap: '1rem',
-					}}>
-					{services.map((s) => (
-						<div
-							key={s.name}
-							style={{
-								display: 'flex',
-								alignItems: 'center',
-								gap: 4,
-								fontSize: '0.75rem',
-								color: 'var(--sl-color-gray-3, #8b949e)',
-							}}>
-							<StatusDot status={s.status} />
-							{s.name}
-						</div>
-					))}
-				</div>
-
-				{/* Right: timestamp + refresh */}
-				<div
-					style={{
-						display: 'flex',
-						alignItems: 'center',
-						gap: '0.75rem',
-					}}>
-					{lastUpdated && (
-						<span
-							style={{
-								fontSize: '0.7rem',
-								color: 'var(--sl-color-gray-4, #6b7280)',
-								display: 'flex',
-								alignItems: 'center',
-								gap: 4,
-							}}>
-							<Clock size={10} />
-							{lastUpdated.toLocaleTimeString([], {
-								hour: '2-digit',
-								minute: '2-digit',
-							})}
-						</span>
-					)}
-					<button
-						onClick={() => homeService.fetchAll()}
-						disabled={loading}
-						title="Refresh all"
-						style={{
-							display: 'flex',
-							alignItems: 'center',
-							justifyContent: 'center',
-							width: 28,
-							height: 28,
-							borderRadius: 8,
-							border: '1px solid var(--bento-hairline-strong)',
-							background: 'transparent',
-							color: 'var(--sl-color-gray-3, #8b949e)',
-							cursor: loading ? 'not-allowed' : 'pointer',
-							transition: 'border-color 0.2s',
-						}}>
-						<RefreshCw
-							size={13}
-							style={
-								loading
-									? { animation: 'spin 1s linear infinite' }
-									: undefined
-							}
-						/>
-					</button>
-				</div>
+		<div
+			className="hsb"
+			style={{ '--hsb-overall': overallColor } as CSSProperties}>
+			<div className="hsb__overall">
+				<span
+					className={`hsb__overall-dot${allOk ? ' hsb__overall-dot--ok' : ''}`}
+				/>
+				<span className="hsb__overall-label">{overallLabel}</span>
 			</div>
-		</>
+
+			<div className="hsb__services">
+				{services.map((s) => (
+					<div key={s.name} className="hsb__service">
+						<StatusDot status={s.status} />
+						{s.name}
+					</div>
+				))}
+			</div>
+
+			<div className="hsb__meta">
+				{lastUpdated && (
+					<span className="hsb__timestamp">
+						<Clock size={10} />
+						{lastUpdated.toLocaleTimeString([], {
+							hour: '2-digit',
+							minute: '2-digit',
+						})}
+					</span>
+				)}
+				<button
+					onClick={() => homeService.fetchAll()}
+					disabled={loading}
+					title="Refresh all"
+					className="hsb__refresh">
+					<RefreshCw
+						size={13}
+						className={loading ? 'svc-spin' : undefined}
+					/>
+				</button>
+			</div>
+		</div>
 	);
 }

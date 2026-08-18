@@ -1,5 +1,7 @@
 ---
+import { iconMarkup } from '../icons/Icon';
 import ReactHomeAuth from './ReactHomeAuth';
+import ReactAlertsCompact from './ReactAlertsCompact';
 import ReactHomeStatusBanner from './ReactHomeStatusBanner';
 import ReactHomeServiceCards from './ReactHomeServiceCards';
 ---
@@ -9,15 +11,48 @@ import ReactHomeServiceCards from './ReactHomeServiceCards';
 	class="dashboard-home bento-section not-content"
 	aria-label="Dashboard home">
 	<div class="dashboard-home__inner bento-frame">
-		<ReactHomeAuth client:only="react">
-			<div class="dashboard-home__stack not-content">
-				<div id="home-status-banner">
-					<ReactHomeStatusBanner client:only="react" />
-				</div>
+		<header class="dashboard-home__header">
+			<h1 class="dashboard-home__title">
+				<span
+					class="dashboard-home__title-icon"
+					set:html={iconMarkup('activity', { size: 22 })}
+				/>
+				<span id="dashboard-home-title">Dashboard</span>
+			</h1>
+			<p id="dashboard-home-subtitle" class="dashboard-home__subtitle">
+				Project status, service health, and workspace overview
+			</p>
+		</header>
 
-				<div id="home-service-cards">
-					<ReactHomeServiceCards client:only="react" />
+		<div
+			id="dashboard-home-skeleton"
+			class="dashboard-home__stack"
+			aria-hidden="true">
+			<div class="dashboard-home__ghost dashboard-home__ghost--alerts">
+			</div>
+			<div class="dashboard-home__ghost dashboard-home__ghost--banner">
+			</div>
+			<div class="dashboard-home__ghost-grid">
+				<div class="dashboard-home__ghost dashboard-home__ghost--card">
 				</div>
+				<div class="dashboard-home__ghost dashboard-home__ghost--card">
+				</div>
+				<div class="dashboard-home__ghost dashboard-home__ghost--card">
+				</div>
+				<div class="dashboard-home__ghost dashboard-home__ghost--card">
+				</div>
+				<div class="dashboard-home__ghost dashboard-home__ghost--card">
+				</div>
+				<div class="dashboard-home__ghost dashboard-home__ghost--card">
+				</div>
+			</div>
+		</div>
+
+		<ReactHomeAuth client:only="react" skeletonId="dashboard-home-skeleton">
+			<div class="dashboard-home__stack not-content">
+				<ReactAlertsCompact client:only="react" />
+				<ReactHomeStatusBanner client:only="react" />
+				<ReactHomeServiceCards client:only="react" />
 			</div>
 		</ReactHomeAuth>
 	</div>
@@ -34,10 +69,84 @@ import ReactHomeServiceCards from './ReactHomeServiceCards';
 		}
 	}
 
+	.dashboard-home__header {
+		margin-bottom: 1.25rem;
+	}
+
+	.dashboard-home__title {
+		display: flex;
+		align-items: center;
+		margin: 0;
+		font-size: 1.5rem;
+		font-weight: 700;
+		letter-spacing: -0.01em;
+		color: var(--sl-color-text, #e6edf3);
+	}
+
+	.dashboard-home__title-icon {
+		display: inline-flex;
+		margin-right: 0.5rem;
+		color: var(--sl-color-accent-high, #06b6d4);
+	}
+
+	.dashboard-home__subtitle {
+		margin: 0.25rem 0 0;
+		font-size: 0.85rem;
+		color: var(--sl-color-gray-3, #8b949e);
+	}
+
 	.dashboard-home__stack {
 		display: flex;
 		min-height: 60vh;
 		flex-direction: column;
 		gap: 1.25rem;
+	}
+
+	.dashboard-home__ghost {
+		border-radius: var(--bento-radius, 0.625rem);
+		border: 1px solid var(--bento-hairline, var(--sl-color-gray-5));
+		background: color-mix(
+			in srgb,
+			var(--sl-color-gray-5, #30363d) 35%,
+			transparent
+		);
+		animation: dashboard-home-pulse 1.6s ease-in-out infinite;
+	}
+
+	.dashboard-home__ghost--alerts {
+		height: 2.875rem;
+	}
+
+	.dashboard-home__ghost--banner {
+		height: 3.25rem;
+	}
+
+	.dashboard-home__ghost--card {
+		height: 12.5rem;
+	}
+
+	.dashboard-home__ghost-grid {
+		display: grid;
+		grid-template-columns: repeat(
+			auto-fit,
+			minmax(min(100%, 18.75rem), 1fr)
+		);
+		gap: 1rem;
+	}
+
+	@keyframes dashboard-home-pulse {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.55;
+		}
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.dashboard-home__ghost {
+			animation: none;
+		}
 	}
 </style>

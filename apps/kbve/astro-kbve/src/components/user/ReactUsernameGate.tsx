@@ -68,5 +68,29 @@ export default function ReactUsernameGate() {
 
 	if (phase !== 'needed' || !token) return null;
 
-	return <KbveUsernameSetup accessToken={token} onComplete={onComplete} />;
+	return (
+		<div
+			role="dialog"
+			aria-modal="true"
+			aria-label="Choose your username"
+			style={{
+				position: 'fixed',
+				inset: 0,
+				zIndex: 1000,
+				display: 'flex',
+				alignItems: 'center',
+				justifyContent: 'center',
+				padding: '1rem',
+				background: 'rgba(0, 0, 0, 0.6)',
+				backdropFilter: 'blur(4px)',
+				WebkitBackdropFilter: 'blur(4px)',
+			}}>
+			<div style={{ width: '100%', maxWidth: '28rem' }}>
+				<KbveUsernameSetup
+					accessToken={token}
+					onComplete={onComplete}
+				/>
+			</div>
+		</div>
+	);
 }

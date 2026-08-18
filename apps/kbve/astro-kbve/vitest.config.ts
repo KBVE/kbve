@@ -5,7 +5,15 @@ export default defineConfig({
 	test: {
 		globals: true,
 		environment: 'node',
-		include: ['src/**/*.test.ts', 'src/**/*.spec.ts'],
+		include: [
+			'src/**/*.test.ts',
+			'src/**/*.spec.ts',
+			'src/**/*.test.tsx',
+			'src/**/*.spec.tsx',
+		],
+		// graphExplorer suites predate tsx inclusion and no longer match the
+		// components; re-enable once rewritten.
+		exclude: ['**/node_modules/**', '**/graphExplorer/*.test.tsx'],
 		testTimeout: 20000,
 		hookTimeout: 20000,
 	},

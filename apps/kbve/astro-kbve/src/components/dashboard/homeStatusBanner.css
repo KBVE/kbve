@@ -1,0 +1,99 @@
+/* Dashboard home status banner. Paired with ReactHomeStatusBanner.tsx. */
+
+.hsb {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 1rem;
+	flex-wrap: wrap;
+	min-height: 3.25rem;
+	padding: 0.75rem 1rem;
+	border-radius: var(--bento-radius, 0.625rem);
+	border: 1px solid var(--bento-hairline-strong);
+	background: var(--bento-glass-bg, var(--sl-color-black));
+	backdrop-filter: blur(8px);
+	-webkit-backdrop-filter: blur(8px);
+	box-shadow: var(--bento-shadow);
+}
+
+.hsb__overall {
+	display: flex;
+	align-items: center;
+	gap: 0.5rem;
+}
+
+.hsb__overall-dot {
+	display: inline-block;
+	width: 0.625rem;
+	height: 0.625rem;
+	flex-shrink: 0;
+	border-radius: 50%;
+	background: var(--hsb-overall);
+}
+
+.hsb__overall-dot--ok {
+	box-shadow: 0 0 8px var(--hsb-overall);
+}
+
+.hsb__overall-label {
+	font-weight: 600;
+	font-size: 0.85rem;
+	color: var(--sl-color-text, #e6edf3);
+}
+
+.hsb__services {
+	display: flex;
+	align-items: center;
+	flex-wrap: wrap;
+	gap: 1rem;
+}
+
+.hsb__service {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+	font-size: 0.75rem;
+	color: var(--sl-color-gray-3, #8b949e);
+}
+
+.hsb__meta {
+	display: flex;
+	align-items: center;
+	gap: 0.75rem;
+}
+
+.hsb__timestamp {
+	display: flex;
+	align-items: center;
+	gap: 0.25rem;
+	font-size: 0.7rem;
+	color: var(--sl-color-gray-4, #6b7280);
+}
+
+.hsb__refresh {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 1.75rem;
+	height: 1.75rem;
+	border-radius: 0.5rem;
+	border: 1px solid var(--bento-hairline-strong);
+	background: transparent;
+	color: var(--sl-color-gray-3, #8b949e);
+	cursor: pointer;
+	transition: border-color 0.2s;
+}
+
+.hsb__refresh:hover:not(:disabled) {
+	border-color: var(--sl-color-accent-high, #06b6d4);
+}
+
+.hsb__refresh:disabled {
+	cursor: not-allowed;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.hsb__refresh {
+		transition: none;
+	}
+}
