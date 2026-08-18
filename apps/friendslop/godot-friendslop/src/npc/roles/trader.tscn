@@ -1,0 +1,23 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" uid="uid://bp4pechs6f5jn" path="res://src/npc/npc_actor.gd" id="1_npc"]
+[ext_resource type="PackedScene" uid="uid://doginm5pvgqgn" path="res://assets/characters/quaternius_ubc/models/Regular_Female_FullBody.glb" id="2_body"]
+[ext_resource type="PackedScene" uid="uid://bdttr5tlljv6k" path="res://assets/characters/quaternius_ubc/models/hair/Hair_Bob.glb" id="3_hair"]
+[ext_resource type="PackedScene" uid="uid://27k2uvg6ywxl" path="res://assets/characters/quaternius_ubc/animations/UAL1.glb" id="4_ual1"]
+[ext_resource type="PackedScene" uid="uid://dqhvcf38xbwiq" path="res://assets/characters/quaternius_ubc/animations/UAL2.glb" id="5_ual2"]
+[ext_resource type="PackedScene" uid="uid://bvr8t2y4easo2" path="res://assets/characters/quaternius_ubc/models/Regular_Female_OnlyHead.glb" id="6_head"]
+
+[node name="MarketTrader" type="Node3D"]
+script = ExtResource("1_npc")
+npc_ref = "market-trader"
+terrain_path = NodePath("../../Terrain")
+clock_path = NodePath("../../DayNight")
+physics_path = NodePath("../../Physics")
+body = ExtResource("2_body")
+attachments = Array[PackedScene]([ExtResource("3_hair")])
+animation_sources = Array[PackedScene]([ExtResource("4_ual1"), ExtResource("5_ual2")])
+idle_animation = "UAL1/Idle_LookAround"
+skin_color = Color(0.82, 0.66, 0.52, 1)
+hair_color = Color(0.35, 0.22, 0.1, 1)
+worn = Array[StringName]([&"female_noble_body", &"female_noble_arms", &"female_noble_legs", &"female_noble_feet"])
+head_only_body = ExtResource("6_head")

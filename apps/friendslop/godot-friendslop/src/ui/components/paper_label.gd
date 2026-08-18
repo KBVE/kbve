@@ -22,3 +22,7 @@ static func card(font: int, tint: Color = MenuStyle.PAPER_HOVER) -> PaperLabel:
 	label.add_theme_constant_override("shadow_offset_x", 1)
 	label.add_theme_constant_override("shadow_offset_y", 1)
 	return label
+
+
+func _make_custom_tooltip(for_text: String) -> Object:
+	return MenuStyle.tooltip(for_text, MenuStyle.ui_scale(get_viewport()))

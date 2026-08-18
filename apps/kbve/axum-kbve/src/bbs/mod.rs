@@ -1,5 +1,6 @@
 mod chat;
 pub mod claim;
+mod door;
 mod games;
 mod presence;
 mod render;
@@ -12,7 +13,7 @@ use std::net::SocketAddr;
 use std::sync::Arc;
 use std::time::Duration;
 
-use tokio::net::TcpListener;
+use tokio::net::{TcpListener, TcpStream};
 use tokio::sync::Semaphore;
 
 use render::Term;
@@ -25,8 +26,47 @@ const DEFAULT_PETSCII_ADDR: &str = "0.0.0.0:6400";
 const DEFAULT_ANSI_ADDR: &str = "0.0.0.0:6401";
 const DEFAULT_MAX_SESSIONS: usize = 64;
 const DEFAULT_IDLE_SECS: u64 = 600;
-const DEFAULT_AUTHED_IDLE_SECS: u64 = 3600;
+const DEFAULT_AUTHED_IDLE_SECS: u64 = 14400;
+const DEFAULT_KEEPALIVE_SECS: u64 = 60;
 const NEGOTIATION_WINDOW: Duration = Duration::from_millis(400);
+
+/// How often a silent link is nudged, at both the TCP and the telnet layer.
+/// Home NAT and cloud load balancers reap idle flows well inside the hour a
+/// signed-in caller is allowed, so without this the leash granted at login was
+/// longer than the connection underneath it could survive. `0` disables it.
+pub(super) fn keepalive() -> Duration {
+    static VALUE: std::sync::OnceLock<Duration> = std::sync::OnceLock::new();
+    *VALUE.get_or_init(|| {
+        Duration::from_secs(
+            std::env::var("BBS_KEEPALIVE_SECS")
+                .ok()
+                .and_then(|v| v.parse().ok())
+                .unwrap_or(DEFAULT_KEEPALIVE_SECS),
+        )
+    })
+}
+
+/// Keep the kernel probing too. The telnet heartbeat only fires while a
+/// session is parked in a read; this covers the gaps and gives the socket a
+/// death certificate the read loop can act on.
+fn tune_socket(stream: &TcpStream) {
+    let _ = stream.set_nodelay(true);
+    let ka = keepalive();
+    if ka.is_zero() {
+        return;
+    }
+    let sock = socket2::SockRef::from(stream);
+    if sock.set_keepalive(true).is_err() {
+        return;
+    }
+    #[cfg(any(target_os = "linux", target_os = "android", target_vendor = "apple"))]
+    {
+        let params = socket2::TcpKeepalive::new()
+            .with_time(ka)
+            .with_interval(ka / 4);
+        let _ = sock.set_tcp_keepalive(&params);
+    }
+}
 
 /// How long a signed-in caller may sit idle. Guests keep the shorter
 /// allowance so anonymous connections cannot squat the session slots.
@@ -114,7 +154,7 @@ async fn listen(addr: SocketAddr, term: Term, permits: Arc<Semaphore>, idle: Dur
                 continue;
             }
         };
-        let _ = stream.set_nodelay(true);
+        tune_socket(&stream);
 
         let Ok(permit) = permits.clone().try_acquire_owned() else {
             tracing::debug!(%peer, "[bbs] rejecting caller, board full");
@@ -134,7 +174,7 @@ async fn listen(addr: SocketAddr, term: Term, permits: Arc<Semaphore>, idle: Dur
 }
 
 async fn serve(
-    stream: tokio::net::TcpStream,
+    stream: TcpStream,
     default_term: Term,
     idle: Duration,
 ) -> Result<(), telnet::ReadError> {

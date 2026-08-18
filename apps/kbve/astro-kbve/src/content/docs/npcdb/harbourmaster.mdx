@@ -1,0 +1,78 @@
+---
+title: 'Harbourmaster'
+template: splash
+sidebar:
+    label: "Harbourmaster"
+    hidden: true
+description: |
+    Runs a harbour and the ledger that says what came off it. Knows the channel has
+    moved and has decided the paperwork will not acknowledge that.
+ref: 'harbourmaster'
+id: '01KSAVZ0000000000000HARBRM'
+name: 'Harbourmaster'
+type_flags: 1
+rarity: 'common'
+personality: 'cunning'
+rank: 'normal'
+family: 'humanoid'
+level: 1
+role: 'Harbourmaster'
+tags:
+    - friendslop
+    - harbour
+    - talker
+    - merchant
+routine:
+    stops:
+        - hour: 6.0
+          offset_x: 0.0
+          offset_z: 0.0
+        - hour: 11.0
+          offset_x: -3.0
+          offset_z: 3.0
+        - hour: 16.0
+          offset_x: 0.0
+          offset_z: 0.0
+        - hour: 21.0
+          offset_x: 2.0
+          offset_z: -2.5
+    walk_speed: 0.95
+dialogue_tree:
+    entry_node_id: 'greet'
+    nodes:
+        - id: 'greet'
+          text: "If you're here about the channel, it hasn't moved. If you're here about anything else, come in."
+          condition: '!seen:greet'
+          next_node_id: 'menu'
+        - id: 'greet_again'
+          text: "It still hasn't moved."
+          next_node_id: 'menu'
+        - id: 'menu'
+          text: "Go on, then."
+          options:
+              - id: 'ask_channel'
+                label: "The channel has moved."
+                next_node_id: 'channel'
+              - id: 'ask_capital'
+                label: "Where does the cargo go?"
+                next_node_id: 'capital'
+              - id: 'leave'
+                label: "Nothing at all."
+                next_node_id: 'bye'
+        - id: 'channel'
+          text: "The channel is where the map says it is. The water is somewhere else. Those are two separate problems and only one of them is mine."
+          next_node_id: 'menu'
+        - id: 'capital'
+          text: "Up the road to the walls, and back down as something dearer. That's trade. I take a slice of both directions."
+          next_node_id: 'menu'
+        - id: 'bye'
+          text: "Then we agree the channel hasn't moved."
+---
+
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
+
+<NpcLeaf data={frontmatter}>
+
+Stands on the quay by the largest warehouse, facing the water.
+
+</NpcLeaf>

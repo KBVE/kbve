@@ -16,6 +16,10 @@ layout(push_constant, std430) uniform Params {
     vec4 p1;
     vec4 p2;
     vec4 p3;
+    // How many candidates there are and how many may survive. Sent rather than
+    // baked: these are the only two numbers in this shader that change when the
+    // window slides, and baking them meant a fresh GLSL compile every rescatter.
+    vec4 lim;
 } pc;
 
 const float FADE_END = %FADE_END%;
@@ -25,8 +29,6 @@ const float GROWTH_ON = %GROWTH_ON%;
 const float BAND0 = %BAND0%;
 const float BAND1 = %BAND1%;
 const float BAND_OUT = %BAND_OUT%;
-const uint COUNT = %COUNT%u;
-const uint CAP = %CAP%u;
 const float EXTENT = %EXTENT%;
 const int HRES = %HRES%;
 const float OCCL_START = %OCCL_START%;
@@ -73,7 +75,7 @@ void main() {
     }
     barrier();
     uint id = gl_GlobalInvocationID.x;
-    bool alive = id < COUNT;
+    bool alive = id < uint(pc.lim.x);
     float x = 0.0;
     float y = 0.0;
     float z = 0.0;
@@ -124,7 +126,7 @@ void main() {
         return;
     }
     uint slot = base_slot + lslot;
-    if (slot >= CAP) {
+    if (slot >= uint(pc.lim.y)) {
         return;
     }
     float kind = cand.data[src + 5u];
@@ -155,8 +157,19 @@ layout(local_size_x = 1) in;
 layout(set = 0, binding = 0, std430) restrict readonly buffer Counter { uint data[]; } counter;
 layout(set = 0, binding = 1, std430) restrict buffer Cmd { uint data[]; } cmd;
 
+// Laid out exactly as the cull shader's, so one push constant serves both pipelines
+// in the same compute list.
+layout(push_constant, std430) uniform Params {
+    vec4 cam;
+    vec4 p0;
+    vec4 p1;
+    vec4 p2;
+    vec4 p3;
+    vec4 lim;
+} pc;
+
 void main() {
-    uint n = min(counter.data[0], %CAP%u);
+    uint n = min(counter.data[0], uint(pc.lim.y));
     for (uint i = 0u; i < %SURF%u; i++) {
         cmd.data[i * 5u + 1u] = n;
     }
@@ -169,6 +182,35 @@ fn bake(src: &str, subs: &[(&str, String)]) -> String {
         out = out.replace(key, val);
     }
     out
+}
+
+thread_local! {
+    /// Compiled cull and resolve programs, by the source they were built from.
+    ///
+    /// Every one of these is a GLSL to SPIR-V compile on the main thread, and there
+    /// are six per tree species per rescatter. Once the numbers that change with the
+    /// window were sent rather than baked, the source stopped varying -- so the same
+    /// handful of programs are wanted over and over, and building them once each is
+    /// most of what a window shift used to cost.
+    ///
+    /// Never freed. They are handles to a few programs the world keeps asking for, and
+    /// the render device outlives every field that uses them.
+    static PROGRAMS: std::cell::RefCell<std::collections::HashMap<String, (Rid, Rid)>> =
+        std::cell::RefCell::new(std::collections::HashMap::new());
+}
+
+/// The compiled program and pipeline for a source, building it only the first time.
+fn program(rd: &mut Gd<RenderingDevice>, src: &str) -> Option<(Rid, Rid)> {
+    if let Some(hit) = PROGRAMS.with(|c| c.borrow().get(src).copied()) {
+        return Some(hit);
+    }
+    let _t = crate::world::StallTimer::start("flora.compile");
+    let shader = compile(rd, src)?;
+    let pipeline = rd.compute_pipeline_create(shader);
+    PROGRAMS.with(|c| {
+        c.borrow_mut().insert(src.to_string(), (shader, pipeline));
+    });
+    Some((shader, pipeline))
 }
 
 fn compile(rd: &mut Gd<RenderingDevice>, src: &str) -> Option<Rid> {
@@ -333,8 +375,6 @@ impl FloraCompute {
                 "%GROWTH_ON%",
                 if growth_on { "1.0" } else { "0.0" }.to_string(),
             ),
-            ("%COUNT%", count.to_string()),
-            ("%CAP%", cap.to_string()),
             ("%EXTENT%", format!("{:.6}", terrain.extent.max(1.0))),
             ("%HRES%", terrain.res().to_string()),
             ("%OCCL_START%", format!("{:.6}", terrain.start)),
@@ -352,15 +392,11 @@ impl FloraCompute {
         let cull_src = bake(FLORA_CULL_GLSL, &subs);
         let resolve_src = bake(
             FLORA_RESOLVE_GLSL,
-            &[
-                ("%CAP%", cap.to_string()),
-                ("%SURF%", surfaces.max(1).to_string()),
-            ],
+            &[("%SURF%", surfaces.max(1).to_string())],
         );
-        let cull_shader = compile(&mut rd, &cull_src)?;
-        let resolve_shader = compile(&mut rd, &resolve_src)?;
-        let cull_pipeline = rd.compute_pipeline_create(cull_shader);
-        let resolve_pipeline = rd.compute_pipeline_create(resolve_shader);
+        let (cull_shader, cull_pipeline) = program(&mut rd, &cull_src)?;
+        let (resolve_shader, resolve_pipeline) = program(&mut rd, &resolve_src)?;
+        let _tb = crate::world::StallTimer::start("flora.buffers");
 
         let cand_bytes = PackedFloat32Array::from(candidates).to_byte_array();
         let cand_buf = rd
@@ -465,7 +501,7 @@ impl FloraCompute {
         }
         self.rd
             .buffer_update(self.counter_buf, 0, 4, &self.zero_counter);
-        let mut pc = [0.0f32; 20];
+        let mut pc = [0.0f32; 24];
         pc[0] = cam_pos.x;
         pc[1] = cam_pos.y;
         pc[2] = cam_pos.z;
@@ -477,6 +513,9 @@ impl FloraCompute {
             pc[o + 2] = p.normal.z;
             pc[o + 3] = p.d;
         }
+        // The two the shader used to have baked into it.
+        pc[20] = self.count as f32;
+        pc[21] = self.cap as f32;
         let pc_bytes = PackedFloat32Array::from(&pc[..]).to_byte_array();
         let cl = self.rd.compute_list_begin();
         let groups = self.count.div_ceil(64);
@@ -490,6 +529,10 @@ impl FloraCompute {
             .compute_list_bind_compute_pipeline(cl, self.resolve_pipeline);
         self.rd
             .compute_list_bind_uniform_set(cl, self.resolve_set, 0);
+        // Set again for the second pipeline: it reads the same limits, and a compute
+        // list does not carry a push constant across a pipeline change.
+        self.rd
+            .compute_list_set_push_constant(cl, &pc_bytes, pc_bytes.len() as u32);
         self.rd.compute_list_dispatch(cl, 1, 1, 1);
         self.rd.compute_list_end();
     }
@@ -536,15 +579,9 @@ impl FloraCompute {
                 rs.free_rid(rid);
             }
         }
-        for rid in [
-            self.cand_buf,
-            self.counter_buf,
-            self.height_buf,
-            self.cull_pipeline,
-            self.cull_shader,
-            self.resolve_pipeline,
-            self.resolve_shader,
-        ] {
+        // The programs are shared and cached, so they are deliberately not freed here.
+        // Only what this field allocated for itself goes.
+        for rid in [self.cand_buf, self.counter_buf, self.height_buf] {
             if rid.is_valid() {
                 self.rd.free_rid(rid);
             }

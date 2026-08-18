@@ -721,8 +721,12 @@ impl Field {
         for y in 0..self.grid.height {
             for x in 0..self.grid.width {
                 let at = self.grid.centre_of(x, y);
-                let u = ((at[0] + extent) / (extent * 2.0)).clamp(0.0, 1.0);
-                let v = ((at[1] + extent) / (extent * 2.0)).clamp(0.0, 1.0);
+                // Relative to the grid's own corner, not the world origin: the
+                // heightmap covers the same square the grid does, wherever that
+                // square is. Bit-identical for a grid at the origin, which is
+                // what every existing caller builds.
+                let u = ((at[0] - self.grid.origin[0]) / (extent * 2.0)).clamp(0.0, 1.0);
+                let v = ((at[1] - self.grid.origin[1]) / (extent * 2.0)).clamp(0.0, 1.0);
                 let px = ((u * (res - 1) as f32) as usize).min(res - 1);
                 let py = ((v * (res - 1) as f32) as usize).min(res - 1);
                 let h = heights[py * res + px];

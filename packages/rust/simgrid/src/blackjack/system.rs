@@ -17,7 +17,9 @@ use crate::sim::{
     coin_balance, send_inventory, spend_coins,
 };
 
-fn table_salt(table_ref: &str) -> u64 {
+/// Turns a table's name into the number that separates its shoe from every other
+/// table's on the same tick.
+fn table_stream(table_ref: &str) -> u64 {
     let mut h: u64 = 0xcbf2_9ce4_8422_2325;
     for b in table_ref.bytes() {
         h ^= b as u64;
@@ -112,9 +114,9 @@ pub fn apply_blackjack(
                 if ptile.chebyshev(def.tile) > BJ_PROXIMITY {
                     continue;
                 }
-                let salt = table_salt(&table_ref);
+                let table = table_stream(&table_ref);
                 let session = reg.sessions.entry(table_ref.clone()).or_insert_with(|| {
-                    TableSession::create(def, blackjack::Rng::seed(seed.0, salt, tick as u64), tick)
+                    TableSession::create(def, blackjack::Rng::seed(seed.0, table, tick as u64), tick)
                 });
                 if let Some(i) = session.first_free() {
                     session.seats[i] = Some(Seat::new(slot, username));

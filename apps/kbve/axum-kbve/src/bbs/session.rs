@@ -9,6 +9,7 @@ use crate::db::{FeedQuery, SpaceRow, get_forum_service, get_profile_service, get
 
 use super::chat::{self, Delivery, SendError};
 use super::claim::{CLAIM_TTL, claims};
+use super::door::{self, DoorContext};
 use super::games;
 use super::presence;
 use super::render::{Ink, Screen, Term, truncate, wrap_lines};
@@ -18,6 +19,7 @@ const MAX_THREADS: i32 = 20;
 const MAX_BODY_CHARS: usize = 6000;
 const CLAIM_POLL: Duration = Duration::from_secs(5);
 const CHAT_SCROLLBACK: usize = 200;
+const MAX_DOOR_INPUT: usize = 64;
 const SAY_PROMPT_LEN: usize = 5;
 const KEY_ESC: u8 = 0x1B;
 const KEY_CR: u8 = 0x0D;
@@ -144,7 +146,7 @@ impl Session {
         if chat::hub().is_some() {
             self.screen.item('C', "Chat");
         }
-        self.screen.item('G', "Games");
+        self.screen.item('G', "Game doors");
         self.screen.item('W', "Who's online");
         self.screen.item('A', "Account");
         if self.user.is_some() {
@@ -437,38 +439,84 @@ impl Session {
         self.flush().await
     }
 
-    /// `[G] Games` — pick a title, then drive it one keypress per redraw.
-    async fn games(&mut self) -> Flow {
+    /// What the board hands a door about the caller. Rebuilt per open, so a
+    /// door entered before signing in never holds a stale guest identity.
+    fn door_context(&self) -> DoorContext {
+        DoorContext::new(self.handle(), self.user.as_ref().map(|u| u.user_id.clone()))
+    }
+
+    /// `[G] Games` — the door menu.
+    pub(super) async fn games(&mut self) -> Flow {
+        const BLURB_INDENT: &str = "      ";
         loop {
-            self.screen.clear().banner("GAMES");
+            self.screen.clear().banner("DOORS");
             self.screen.nl();
-            for entry in games::CATALOG {
-                self.screen.item(entry.key, entry.label);
+            for entry in door::CATALOG {
+                self.screen.item(entry.key, entry.name);
+                let room = self.screen.width.saturating_sub(BLURB_INDENT.len() + 1);
+                self.screen
+                    .ink(Ink::Dim)
+                    .text(BLURB_INDENT)
+                    .line(&truncate(entry.blurb, room))
+                    .reset();
             }
             self.screen.item('Q', "Back");
-            self.screen.prompt("game> ");
+            self.screen.prompt("door> ");
             self.flush().await?;
 
             let key = self.key().await?;
             if key == 'Q' {
                 return Ok(());
             }
-            let handle = self.handle().to_string();
-            if let Some(mut game) = games::launch(key, &handle) {
+            if let Some(entry) = door::find(key) {
+                let mut game = entry.open(&self.door_context());
                 self.play(game.as_mut()).await?;
             }
         }
     }
 
-    async fn play(&mut self, game: &mut (dyn games::Game + Send)) -> Flow {
+    /// One keypress per redraw, unless the door asks for a line. A door that
+    /// wants a quantity gets the caller's editing here rather than each door
+    /// growing its own digit buffer.
+    pub(super) async fn play(&mut self, game: &mut (dyn games::Game + Send)) -> Flow {
+        let mut input = String::new();
         loop {
             let title = game.title().to_string();
             self.screen.clear().banner(&title);
             game.draw(&mut self.screen);
+            let prompt = game.prompt().map(str::to_string);
+            if let Some(label) = &prompt {
+                let room = self.screen.width.saturating_sub(label.len() + 1);
+                self.screen.prompt(label).text(tail(&input, room));
+            }
             self.flush().await?;
 
-            if game.on_key(self.key().await?) == games::Flow::Exit {
-                return Ok(());
+            if prompt.is_none() {
+                input.clear();
+                if game.on_key(self.key().await?) == games::Flow::Exit {
+                    return Ok(());
+                }
+                continue;
+            }
+
+            match self.conn.read_key().await? {
+                KEY_CR => {
+                    let line = std::mem::take(&mut input);
+                    if game.on_line(line.trim()) == games::Flow::Exit {
+                        return Ok(());
+                    }
+                }
+                KEY_ESC => {
+                    input.clear();
+                    if game.on_line("") == games::Flow::Exit {
+                        return Ok(());
+                    }
+                }
+                KEY_BS | KEY_DEL => {
+                    input.pop();
+                }
+                b @ 0x20..=0x7E if input.len() < MAX_DOOR_INPUT => input.push(b as char),
+                _ => {}
             }
         }
     }

@@ -1,0 +1,23 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" uid="uid://bp4pechs6f5jn" path="res://src/npc/npc_actor.gd" id="1_npc"]
+[ext_resource type="PackedScene" uid="uid://dk6o1i6lggove" path="res://assets/characters/quaternius_ubc/models/Regular_Male_FullBody.glb" id="2_body"]
+[ext_resource type="PackedScene" uid="uid://cnd82iitivl2c" path="res://assets/characters/quaternius_ubc/models/hair/Hair_SimpleParted.glb" id="3_hair"]
+[ext_resource type="PackedScene" uid="uid://27k2uvg6ywxl" path="res://assets/characters/quaternius_ubc/animations/UAL1.glb" id="4_ual1"]
+[ext_resource type="PackedScene" uid="uid://dqhvcf38xbwiq" path="res://assets/characters/quaternius_ubc/animations/UAL2.glb" id="5_ual2"]
+[ext_resource type="PackedScene" uid="uid://ysa6ql8yc3b" path="res://assets/characters/quaternius_ubc/models/Regular_Male_OnlyHead.glb" id="6_head"]
+
+[node name="KeepSteward" type="Node3D"]
+script = ExtResource("1_npc")
+npc_ref = "keep-steward"
+terrain_path = NodePath("../../Terrain")
+clock_path = NodePath("../../DayNight")
+physics_path = NodePath("../../Physics")
+body = ExtResource("2_body")
+attachments = Array[PackedScene]([ExtResource("3_hair")])
+animation_sources = Array[PackedScene]([ExtResource("4_ual1"), ExtResource("5_ual2")])
+idle_animation = "UAL1/Idle_LookAround"
+skin_color = Color(0.94, 0.83, 0.72, 1)
+hair_color = Color(0.55, 0.55, 0.58, 1)
+worn = Array[StringName]([&"male_noble_body", &"male_noble_arms", &"male_noble_legs", &"male_noble_feet"])
+head_only_body = ExtResource("6_head")

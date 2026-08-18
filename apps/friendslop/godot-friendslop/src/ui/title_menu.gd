@@ -126,15 +126,14 @@ func _build() -> void:
 	status_label.add_theme_constant_override("shadow_offset_y", 1)
 	column.add_child(status_label)
 
-	build_label = Label.new()
-	build_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	build_label.add_theme_font_size_override("font_size", 12)
-	build_label.add_theme_color_override("font_color", MenuStyle.PAPER_HOVER)
-	build_label.add_theme_color_override("font_shadow_color", Color(0.05, 0.03, 0.02, 0.9))
-	build_label.add_theme_constant_override("shadow_offset_x", 1)
-	build_label.add_theme_constant_override("shadow_offset_y", 1)
+	build_label = PaperLabel.card(12)
 	build_label.modulate.a = 0.75
-	column.add_child(build_label)
+	build_label.visible = not MenuStyle.touch
+	build_label.set_anchors_preset(Control.PRESET_BOTTOM_LEFT)
+	build_label.grow_horizontal = Control.GROW_DIRECTION_END
+	build_label.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	build_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_root.add_child(build_label)
 	set_server_protocol(0)
 
 	_build_languages(column)
@@ -212,6 +211,9 @@ func _layout() -> void:
 		status_label.add_theme_font_size_override("font_size", int(STATUS_FONT * s))
 	if build_label:
 		build_label.add_theme_font_size_override("font_size", int(BUILD_FONT * s))
+		build_label.offset_left = 12.0 * s + safe.x
+		build_label.offset_bottom = -(8.0 * s + safe.w)
+		build_label.reset_size()
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -307,6 +309,7 @@ func set_server_protocol(protocol: int) -> void:
 	elif protocol < 0:
 		line += "  ·  " + I18n.t("title.server_unreachable")
 	build_label.text = line
+	build_label.reset_size()
 	build_label.modulate = Color(1.0, 0.55, 0.45) if protocol > 0 and protocol != mine \
 			else Color(1.0, 1.0, 1.0, 0.75)
 

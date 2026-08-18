@@ -37,6 +37,7 @@ func _ready() -> void:
 	_build()
 	_layout()
 	get_viewport().size_changed.connect(_layout)
+	_drop_disabled_providers()
 
 
 func _build() -> void:
@@ -77,6 +78,27 @@ func _build() -> void:
 	cancel_button = PaperButton.make(I18n.t("action.cancel"), func() -> void: cancelled.emit())
 	cancel_button.custom_minimum_size = Vector2(WIDTH, MenuStyle.BUTTON_MIN.y)
 	column.add_child(cancel_button)
+
+
+## The buttons are built from the full provider list so the panel is never empty
+## while the server is still answering. Anything the server reports as disabled is
+## then dropped, so a provider that has been turned off upstream stops offering a
+## sign-in that could only fail. A failed lookup drops nothing.
+func _drop_disabled_providers() -> void:
+	var auth := get_node_or_null(^"/root/Auth")
+	if auth == null:
+		return
+	var live: PackedStringArray = await auth.enabled_providers()
+	if not is_inside_tree():
+		return
+	for provider in provider_buttons.keys():
+		if live.has(provider):
+			continue
+		var button: PaperButton = provider_buttons[provider]
+		if is_instance_valid(button):
+			button.queue_free()
+		provider_buttons.erase(provider)
+	_layout()
 
 
 func _mark(path: String) -> Texture2D:

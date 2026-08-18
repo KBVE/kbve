@@ -118,6 +118,15 @@ pub struct QStoneField {
     dirty: bool,
     #[init(val = Vector3::new(1.0e9, 0.0, 0.0))]
     last_lod_origin: Vector3,
+    plan_rx: Option<std::sync::mpsc::Receiver<Vec<Entry>>>,
+}
+
+#[derive(Clone, Copy)]
+struct BedTuning {
+    ground_align: f32,
+    max_tilt_degrees: f32,
+    seat_bias: f32,
+    burial: f32,
 }
 
 impl QStoneField {
@@ -142,13 +151,20 @@ impl QStoneField {
         }
         self.free_all();
         self.core.clear();
-        self.meshes.clear();
+        // The meshes stay. Every one of them is a function of the stone seed
+        // and the variant table -- three lods, two damage states and three
+        // hulls per variant -- and a window shift changes which rocks stand
+        // where, not what a rock is. Rebuilding all thirty-two on the main
+        // thread each stride was the bulk of a stone rescatter.
         self.slots.clear();
+        self.plan_rx = None;
         self.init_done = false;
     }
 
     fn late_init(&mut self) -> bool {
-        let _t = super::ReadyTimer::start("stones");
+        if self.plan_rx.is_some() {
+            return self.adopt_plan();
+        }
         let node = self.base().clone().upcast::<godot::classes::Node>();
         let Some(terrain) = crate::world::resolve_terrain(&node, &self.terrain_path) else {
             godot_error!("[QStoneField] no QTerrain found; stones disabled");
@@ -164,15 +180,14 @@ impl QStoneField {
         self.terrain_heights = raw.to_vec();
         self.terrain_res = raw_res;
 
-        let sample = |x: f32, z: f32| -> f32 { terra.height(x, z) };
-
-        self.build_meshes();
+        if self.meshes.is_empty() {
+            self.build_meshes();
+        }
         let heights: Vec<f32> = self.meshes.iter().map(|m| m.height).collect();
 
         let seed64 = self.stone_seed as u64;
         self.origin = terra.origin;
 
-        let (hgen, road) = terra.scatter_world();
         let scatter = StoneScatter {
             seed: self.stone_seed,
             variants: VARIANTS,
@@ -182,48 +197,54 @@ impl QStoneField {
             scale_min: self.scale_min,
             scale_max: self.scale_max,
         };
-        let placements = scatter.place(
-            &hgen,
-            Some(&road),
-            [terra.origin.x, terra.origin.y],
-            extent,
-            water,
-        );
+        let bed = BedTuning {
+            ground_align: self.ground_align,
+            max_tilt_degrees: self.max_tilt_degrees,
+            seat_bias: self.seat_bias,
+            burial: self.burial,
+        };
+        let (tx, rx) = std::sync::mpsc::channel();
+        crate::world::spawn_job(move || {
+            let started = std::time::Instant::now();
+            let entries = plan_stones(&scatter, &terra, &heights, bed, seed64, extent, water);
+            let ms = started.elapsed().as_millis();
+            godot::global::godot_print!("[q] stones planned off-thread {}ms", ms);
+            let _ = tx.send(entries);
+        });
+        self.plan_rx = Some(rx);
+        false
+    }
 
-        for p in &placements {
-            let variant = (p.variant as usize).min(VARIANTS - 1);
-            let (up, seat) = self.bed(
-                &sample,
-                p.pos[0],
-                p.pos[1],
-                p.radius,
-                heights[variant] * p.scale,
-            );
-            self.core.insert(Entry {
-                id: stable_id(seed64, p.cell.0, p.cell.1, p.companion),
-                pos: Vector3::new(p.pos[0], seat, p.pos[1]),
-                up,
-                scale: p.scale,
-                yaw: p.yaw,
-                variant: p.variant,
-                ore: 0,
-                amount: 0,
-                cell: [p.cell.0, p.cell.1],
-                ordinal: p.companion,
-            });
-        }
-        if self.core.entries().is_empty() {
+    fn adopt_plan(&mut self) -> bool {
+        let entries = match self.plan_rx.as_ref().map(|rx| rx.try_recv()) {
+            Some(Ok(entries)) => entries,
+            Some(Err(std::sync::mpsc::TryRecvError::Empty)) => return false,
+            _ => {
+                godot_error!("[QStoneField] the placement worker died; stones disabled");
+                self.plan_rx = None;
+                return true;
+            }
+        };
+        self.plan_rx = None;
+        let _t = super::ReadyTimer::start("stones");
+        if entries.is_empty() {
             godot_error!("[QStoneField] no stone candidates survived placement");
             return true;
         }
+        self.core.clear();
+        for e in entries {
+            self.core.insert(e);
+        }
 
         if self.clearance_radius > 0.0 {
-            let mut terrain = terrain;
-            let mut tb = terrain.bind_mut();
-            for e in self.core.entries() {
-                tb.stamp_clearance(e.pos.x, e.pos.z, self.clearance_radius * e.scale);
+            let node = self.base().clone().upcast::<godot::classes::Node>();
+            if let Some(mut terrain) = crate::world::resolve_terrain(&node, &self.terrain_path) {
+                let mut tb = terrain.bind_mut();
+                for e in self.core.entries() {
+                    tb.stamp_clearance(e.pos.x, e.pos.z, self.clearance_radius * e.scale);
+                }
+                tb.flush_clearance();
             }
-            tb.flush_clearance();
         }
 
         // Before anything is drawn or given a collider: a rock the player
@@ -237,6 +258,51 @@ impl QStoneField {
         self.dirty = true;
         true
     }
+}
+
+fn plan_stones(
+    scatter: &StoneScatter,
+    terra: &TerrainSnapshot,
+    heights: &[f32],
+    bed: BedTuning,
+    seed64: u64,
+    extent: f32,
+    water: f32,
+) -> Vec<Entry> {
+    let sample = |x: f32, z: f32| -> f32 { terra.height(x, z) };
+    let (hgen, road) = terra.scatter_world();
+    let placements = scatter.place(
+        &hgen,
+        Some(&road),
+        [terra.origin.x, terra.origin.y],
+        extent,
+        water,
+    );
+    let mut out = Vec::with_capacity(placements.len());
+    for p in &placements {
+        let variant = (p.variant as usize).min(VARIANTS - 1);
+        let (up, seat) = QStoneField::bed_into(
+            bed,
+            &sample,
+            p.pos[0],
+            p.pos[1],
+            p.radius,
+            heights[variant] * p.scale,
+        );
+        out.push(Entry {
+            id: stable_id(seed64, p.cell.0, p.cell.1, p.companion),
+            pos: Vector3::new(p.pos[0], seat, p.pos[1]),
+            up,
+            scale: p.scale,
+            yaw: p.yaw,
+            variant: p.variant,
+            ore: 0,
+            amount: 0,
+            cell: [p.cell.0, p.cell.1],
+            ordinal: p.companion,
+        });
+    }
+    out
 }
 
 #[godot_api]
@@ -366,6 +432,35 @@ impl QStoneField {
     fn apply_damage(&mut self, id: i64, hits: i64) -> VarDictionary {
         let out = self.core.apply_damage(id as u64, hits.clamp(1, 255) as u8);
         self.settle(id, out)
+    }
+
+    /// The ledger as bytes for a save file, live damage folded in.
+    ///
+    /// The ledger alone only knows what past rescatters recorded; anything
+    /// broken since lives in the core. A save taken between strides has to
+    /// carry both or quitting right after felling a tree forgets it.
+    #[func]
+    fn export_harvest(&self) -> PackedByteArray {
+        let mut ledger = self.ledger.clone();
+        for (id, stage) in self.core.damage() {
+            ledger.record(id, stage);
+        }
+        PackedByteArray::from(ledger.to_save(self.stone_seed as u32).as_slice())
+    }
+
+    /// Replays a save file into the world. False means the file was not this
+    /// world's -- wrong magic or wrong seed -- and nothing was touched.
+    ///
+    /// Merge, not replace: damage only ever worsens, so loading a stale save
+    /// over a live world cannot repair anything the player just broke.
+    #[func]
+    fn import_harvest(&mut self, bytes: PackedByteArray) -> bool {
+        let Some(replay) = crate::world::harvest::Ledger::from_save(bytes.as_slice(), self.stone_seed as u32) else {
+            return false;
+        };
+        self.ledger.merge(&replay);
+        self.core.restore(&self.ledger);
+        true
     }
 
     /// Moves a rock to the stage the server decided on.
@@ -502,8 +597,8 @@ impl QStoneField {
 
     /// Seat a stone into the terrain: returns the ground normal to align to and the Y
     /// the instance origin should sit at.
-    fn bed<F: Fn(f32, f32) -> f32>(
-        &self,
+    fn bed_into<F: Fn(f32, f32) -> f32>(
+        bed: BedTuning,
         sample: &F,
         x: f32,
         z: f32,
@@ -514,9 +609,9 @@ impl QStoneField {
         let hx = sample(x + e, z) - sample(x - e, z);
         let hz = sample(x, z + e) - sample(x, z - e);
         let normal = Vector3::new(-hx, 2.0 * e, -hz).normalized();
-        let mut blend = self.ground_align.clamp(0.0, 1.0);
+        let mut blend = bed.ground_align.clamp(0.0, 1.0);
         let angle = normal.dot(Vector3::UP).clamp(-1.0, 1.0).acos();
-        let max_tilt = self.max_tilt_degrees.to_radians();
+        let max_tilt = bed.max_tilt_degrees.to_radians();
         if angle > 1.0e-4 {
             blend = blend.min(max_tilt / angle);
         }
@@ -539,10 +634,10 @@ impl QStoneField {
                 rest = rest.max(g + plane_drop);
             }
         }
-        let seat = sunk + (rest - sunk) * self.seat_bias.clamp(0.0, 1.0);
+        let seat = sunk + (rest - sunk) * bed.seat_bias.clamp(0.0, 1.0);
         let seat = seat.min(sunk + stone_height * 0.05);
         let floor = lowest - stone_height * 0.6;
-        let seat = (seat - stone_height * self.burial).max(floor);
+        let seat = (seat - stone_height * bed.burial).max(floor);
         (up, seat)
     }
 

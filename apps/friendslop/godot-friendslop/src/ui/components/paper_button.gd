@@ -51,3 +51,7 @@ static func _paper(text: String, action: Callable, font: int, pad: Vector2) -> P
 	if action.is_valid():
 		b.pressed.connect(action)
 	return b
+
+
+func _make_custom_tooltip(for_text: String) -> Object:
+	return MenuStyle.tooltip(for_text, MenuStyle.ui_scale(get_viewport()))

@@ -172,19 +172,30 @@ pub fn spawn(
             // Spawns stand on the ground rather than at a fixed altitude. The host
             // has no terrain of its own to sample — with streaming on it never sees
             // a SetTerrain at all — so the generator is handed over directly.
-            let spawn_gen = HeightGen::new(&HeightParams {
+            //
+            // The selected ground, not the authored one. Sampling the authored
+            // field under a region world hands every join a height from a
+            // landscape nobody is standing in — buried on its hills, dropped
+            // over its seas.
+            let spawn_gen = Ground::new(ground_source, seed as i32, &HeightParams {
                 seed: seed as i32,
                 ..Default::default()
             });
             host = host.with_ground(Arc::new(move |x, z| spawn_gen.height(x, z)));
 
+            // The bridge exists where the river does, which is only on the
+            // authored field. A region world gets no footprint rather than one
+            // measured against a river it does not have.
             let field_gen = HeightGen::new(&HeightParams {
                 seed: seed as i32,
                 ..Default::default()
             });
-            host.set_bridge(Some(
-                BridgePlan::new(&field_gen, extent, water_level, road_width).footprint(&field_gen),
-            ));
+            if ground_source == GroundSource::Authored {
+                host.set_bridge(Some(
+                    BridgePlan::new(&field_gen, extent, water_level, road_width)
+                        .footprint(&field_gen),
+                ));
+            }
 
             let mut props = PropField::new(PropConfig {
                 seed,
@@ -245,6 +256,10 @@ pub fn spawn(
                     streamer.update(&players, host.world_mut());
                     let regions = streamer.loaded_origins();
                     props.sync(&regions, host.world_mut());
+                    // The solver stops a body at a wall, but a pet steers by a field,
+                    // and a landmark levels its own ground -- so without this a field
+                    // reads a walled capital as the flattest country for miles.
+                    host.set_landmarks(streamer.footprints(&field_gen));
                     regions_t.store(host.world_mut().terrain_region_count(), Ordering::Relaxed);
                 }
 

@@ -34,6 +34,60 @@ pub struct MovementConfig {
     pub timestep: f64,
 }
 
+/// One player's vertical state between ticks. The character controller resolves motion
+/// but never accumulates gravity, so this is carried alongside it on both sides.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Motion {
+    pub vel_y: f32,
+}
+
+/// Advances one player's vertical velocity and returns the translation to hand the
+/// character controller.
+///
+/// The host calls this, and so does a predicting client. That is the entire point of it
+/// being a function: a predictor that reimplements the host's arithmetic drifts from it
+/// the first time either side is edited, and the drift shows up as a correction every
+/// tick rather than as an obvious break.
+///
+/// `grounded` and `submerged` come from the state at the start of the tick, which is what
+/// the host has and therefore all a client may use if it wants the same answer.
+pub fn step_motion(
+    motion: &mut Motion,
+    input: &PlayerInput,
+    grounded: bool,
+    submerged: bool,
+    config: &MovementConfig,
+    dt: f32,
+) -> [f32; 3] {
+    if grounded && motion.vel_y < 0.0 {
+        motion.vel_y = 0.0;
+    }
+    if submerged {
+        // Buoyant rather than weightless, and jump becomes swim-up. Capped both ways so
+        // entering water cannot carry a body straight through the bed on momentum it
+        // built in the air.
+        if input.jump {
+            motion.vel_y = config.swim_speed;
+        } else {
+            motion.vel_y += config.gravity * config.water_gravity_scale * dt;
+        }
+        motion.vel_y = motion.vel_y.clamp(-config.swim_speed, config.swim_speed);
+    } else {
+        if grounded && input.jump {
+            motion.vel_y = config.jump_speed;
+        }
+        motion.vel_y += config.gravity * dt;
+    }
+
+    // Already finite and magnitude-clamped on ingest.
+    let [nx, nz] = input.wish_dir;
+    [
+        nx * config.move_speed * dt,
+        motion.vel_y * dt,
+        nz * config.move_speed * dt,
+    ]
+}
+
 /// What a client reports it is trying to do this tick.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct PlayerInput {
@@ -302,6 +356,11 @@ pub struct SessionConfig {
     pub water_gravity_scale: f32,
     /// Fastest a body may sink or rise under water.
     pub swim_speed: f32,
+    /// How long a disconnected player's place is held for them, in seconds of world
+    /// time. A drop is usually a network event rather than a decision to leave, and
+    /// putting someone back where they were is the difference between a blip and losing
+    /// the walk they just made.
+    pub reconnect_grace_seconds: f64,
     /// Cell size of each scatter. The host has no scatter of its own, so this is
     /// how it turns a claimed cell back into somewhere in the world to measure
     /// against. Must match the matching field's `grid_size` export: a mismatch
@@ -340,6 +399,7 @@ impl Default for SessionConfig {
             // Match QTerrain's exported road_width.
             road_width: 3.2,
             water_gravity_scale: 0.12,
+            reconnect_grace_seconds: 120.0,
             swim_speed: 2.0,
             move_speed: 4.0,
             gravity: -9.81,
@@ -368,11 +428,35 @@ pub const FULL: &str = "server is full";
 /// body id, whatever order things spawn in.
 const PLAYER_BODY_BASE: u32 = 1_000_000;
 
+/// How long a peer may be silent before a join under its name treats it as dead.
+///
+/// A joined client sends `Input` every tick whether or not anything changed, so silence
+/// is liveness rather than idleness -- an afk player still stamps this. Input rides the
+/// unreliable lane, but five seconds of unbroken loss is a dead connection by any other
+/// name. Transport membership is deliberately not consulted: players can be admitted
+/// outside it (guests, a listen server's own host), and those would read as ghosts.
+const GHOST_SILENCE_SECONDS: f64 = 5.0;
+
+/// Ceiling on unacknowledged inputs a client keeps for replay. At 60 inputs a second
+/// this is several seconds of round trip, far past anything playable.
+const MAX_PENDING_INPUTS: usize = 256;
+
 pub fn player_body(peer: PeerId) -> BodyId {
     BodyId(PLAYER_BODY_BASE + peer.0)
 }
 
 pub use super::pets::GroundSampler;
+
+/// A disconnected player's place, held so they can be put back where they were.
+///
+/// Keyed by the account name because `PeerId` is not stable across a reconnect -- it is a
+/// monotonic counter, and the socket that comes back is a new one by definition.
+struct Reserved {
+    name: String,
+    iso: Iso,
+    /// World time this stops being honoured, after which the account spawns fresh.
+    expires_at: f64,
+}
 
 #[derive(Default)]
 struct Player {
@@ -394,6 +478,10 @@ struct Player {
     /// What this player is working on, if anything. One job at a time: a second
     /// begin replaces the first, because a player has one pair of hands.
     chop: Option<Chop>,
+    /// World time anything was last heard from this peer. A socket that has died
+    /// without the host noticing goes quiet here first, which is what separates a
+    /// player reconnecting from one genuinely signed in twice.
+    last_seen: f64,
 }
 
 /// A job in progress, held by the host for as long as the player keeps at it.
@@ -413,6 +501,8 @@ pub struct HostSession<T: Transport> {
     config: SessionConfig,
     sim: SimConfig,
     players: HashMap<PeerId, Player>,
+    /// Places held for players who dropped, honoured until they expire.
+    reserved: Vec<Reserved>,
     seed: u64,
     snapshot_accum: f64,
     authority: Option<Arc<dyn TokenAuthority>>,
@@ -462,6 +552,7 @@ impl<T: Transport> HostSession<T> {
             config,
             sim,
             players: HashMap::new(),
+            reserved: Vec::new(),
             seed,
             snapshot_accum: 0.0,
             authority: None,
@@ -507,6 +598,14 @@ impl<T: Transport> HostSession<T> {
         self.pet_fields.set_bridge(bridge);
     }
 
+    /// Tells the pet fields what is built on the ground they cover.
+    ///
+    /// A landmark levels its own ground, so a field reading only the height sampler
+    /// reads a walled capital as the most walkable country for miles.
+    pub fn set_landmarks(&mut self, marks: Vec<crate::landmark::LandmarkFootprint>) {
+        self.pet_fields.set_landmarks(marks);
+    }
+
     /// How many owners currently have a flow field built.
     pub fn pet_field_count(&self) -> usize {
         self.pet_fields.len()
@@ -522,20 +621,38 @@ impl<T: Transport> HostSession<T> {
     /// A point on a golden-angle spiral inside `spawn_radius`, lifted to stand on the
     /// ground rather than at a fixed altitude — terrain runs to roughly 7.5 and the old
     /// fixed 5.0 buried players on any hill.
+    ///
+    /// Wet ground is walked past, not spawned into. The river wanders sixty-odd
+    /// metres either side of the world's middle and the spawn disc is twelve, so
+    /// on essentially every seed the plain spiral put somebody in the riverbed —
+    /// measured at five hundred seeds out of five hundred. The escape continues
+    /// the same spiral outward, one full ring of slots at a time, so it stays a
+    /// pure function of the slot and two players can never be walked onto the
+    /// same point. Bounded, because on a world whose middle is open sea there is
+    /// no dry ground within any reasonable reach and standing in water beats
+    /// spawning at a point the search never returned from.
     fn spawn_point(&self, slot: u32) -> Iso {
         const GOLDEN_ANGLE: f32 = 2.399_963_2;
-        let n = slot as f32;
-        let r = self.config.spawn_radius * (n / self.config.max_players.max(1) as f32).sqrt();
-        let angle = n * GOLDEN_ANGLE;
-        let (x, z) = (r * angle.cos(), r * angle.sin());
-        let y = match self.ground.as_ref() {
-            Some(sample) => {
-                let h = sample(x, z);
-                if h.is_finite() { h + 1.5 } else { 5.0 }
+        let ring = self.config.max_players.max(1) as u32;
+        let mut fallback = None;
+        for round in 0..24u32 {
+            let n = (slot + round * ring) as f32;
+            let r = self.config.spawn_radius * (n / ring as f32).sqrt();
+            let angle = n * GOLDEN_ANGLE;
+            let (x, z) = (r * angle.cos(), r * angle.sin());
+            let Some(sample) = self.ground.as_ref() else {
+                return Iso::at(x, 5.0, z);
+            };
+            let h = sample(x, z);
+            if !h.is_finite() {
+                return Iso::at(x, 5.0, z);
             }
-            None => 5.0,
-        };
-        Iso::at(x, y, z)
+            if h > self.config.water_level + 0.4 {
+                return Iso::at(x, h + 1.5, z);
+            }
+            fallback.get_or_insert(Iso::at(x, h + 1.5, z));
+        }
+        fallback.expect("first round always records a fallback")
     }
 
     pub fn world_mut(&mut self) -> &mut SimWorld {
@@ -590,16 +707,52 @@ impl<T: Transport> HostSession<T> {
             return Ok(player.name.clone());
         }
         let name = sanitize(username).ok_or("account has no usable display name")?;
-        if self.players.values().any(|p| p.name == name) {
-            return Err("that account is already in this session".to_owned());
+
+        // The same name on another peer is either a player coming back on a new socket
+        // or a genuine second sign-in, and the two want opposite answers. Two bodies
+        // wearing one name is worse than a refused second session, so a peer that is
+        // still there is still refused; but a peer the transport has already dropped, or
+        // one that has gone silent past the point a live client could, is a ghost, and
+        // refusing on its behalf locks a player out of their own account. Retiring it
+        // also reserves its place, so the spawn below restores rather than restarts.
+        if let Some((stale, silent_for)) = self
+            .players
+            .iter()
+            .find(|(p, player)| **p != peer && player.name == name)
+            .map(|(p, player)| (*p, self.elapsed - player.last_seen))
+        {
+            if silent_for < GHOST_SILENCE_SECONDS {
+                return Err("that account is already in this session".to_owned());
+            }
+            self.remove_player(stale);
         }
+
         self.spawn_player(peer, name.clone());
         Ok(name)
     }
 
+    /// Drops reservations nobody came back for. Called on the world clock rather than a
+    /// wall clock so a paused or slowed host holds places for the time its players
+    /// actually experienced.
+    fn expire_reservations(&mut self) {
+        let now = self.elapsed;
+        self.reserved.retain(|r| r.expires_at > now);
+    }
+
     fn spawn_player(&mut self, peer: PeerId, name: String) {
         let slot = self.free_slot();
-        let iso = self.spawn_point(slot);
+        // A held place wins over the spawn ring. The slot is freshly allocated either
+        // way: it only feeds the spawn point and void recovery, and handing back a slot
+        // somebody else has since taken would put two players on the same ring point.
+        let resumed = self
+            .reserved
+            .iter()
+            .position(|r| r.name == name && r.expires_at > self.elapsed)
+            .map(|i| self.reserved.remove(i));
+        let iso = match resumed {
+            Some(place) => place.iso,
+            None => self.spawn_point(slot),
+        };
         self.players.insert(
             peer,
             Player {
@@ -630,7 +783,21 @@ impl<T: Transport> HostSession<T> {
     /// stand in the world for the rest of the session holding a slot against
     /// everybody else's cap.
     pub fn remove_player(&mut self, peer: PeerId) {
-        if self.players.remove(&peer).is_some() {
+        if let Some(player) = self.players.remove(&peer) {
+            // Hold where they stood before the body goes, so a reconnect inside the
+            // grace window is a blip rather than a walk back from the spawn ring. Guests
+            // are not held: the name is assigned per join, so there is nothing stable to
+            // match a returning one against.
+            if !player.name.is_empty()
+                && let Some(state) = self.world.snapshot().body(player_body(peer))
+            {
+                self.reserved.retain(|r| r.name != player.name);
+                self.reserved.push(Reserved {
+                    name: player.name.clone(),
+                    iso: state.iso,
+                    expires_at: self.elapsed + self.config.reconnect_grace_seconds,
+                });
+            }
             self.world.apply(SimCommand::Despawn {
                 id: player_body(peer),
             });
@@ -984,6 +1151,10 @@ impl<T: Transport> HostSession<T> {
     }
 
     fn handle(&mut self, from: PeerId, msg: SessionMsg) {
+        let now = self.elapsed;
+        if let Some(player) = self.players.get_mut(&from) {
+            player.last_seen = now;
+        }
         match msg {
             SessionMsg::Join { protocol, name: _ } => {
                 if protocol != PROTOCOL_VERSION {
@@ -1112,6 +1283,7 @@ impl<T: Transport> HostSession<T> {
 
         let dt = self.sim.timestep() as f32;
         self.advance_chops(dt);
+        self.expire_reservations();
         let snapshot = self.world.snapshot();
 
         // Anyone who has fallen out of the world goes back to their spawn. A body below
@@ -1140,6 +1312,7 @@ impl<T: Transport> HostSession<T> {
             }
         }
 
+        let movement = self.movement_config();
         for (peer, player) in &mut self.players {
             let body = player_body(*peer);
             if let Some(state) = snapshot.body(body) {
@@ -1154,38 +1327,22 @@ impl<T: Transport> HostSession<T> {
                 .body(body)
                 .is_some_and(|b| b.iso.pos[1] < self.config.water_level);
 
-            if grounded && player.vel_y < 0.0 {
-                player.vel_y = 0.0;
-            }
-            if submerged {
-                // Buoyant rather than weightless, and jump becomes swim-up. Capped both
-                // ways so entering water cannot carry a body straight through the bed on
-                // momentum it built in the air.
-                if player.input.jump {
-                    player.vel_y = self.config.swim_speed;
-                } else {
-                    player.vel_y += self.config.gravity * self.config.water_gravity_scale * dt;
-                }
-                player.vel_y = player
-                    .vel_y
-                    .clamp(-self.config.swim_speed, self.config.swim_speed);
-            } else {
-                if grounded && player.input.jump {
-                    player.vel_y = self.config.jump_speed;
-                }
-                player.vel_y += self.config.gravity * dt;
-            }
-
-            // Already finite and magnitude-clamped on ingest.
-            let [nx, nz] = player.input.wish_dir;
+            let mut motion = Motion {
+                vel_y: player.vel_y,
+            };
+            let translation = step_motion(
+                &mut motion,
+                &player.input,
+                grounded,
+                submerged,
+                &movement,
+                dt,
+            );
+            player.vel_y = motion.vel_y;
 
             self.world.apply(SimCommand::MoveCharacter {
                 id: body,
-                translation: [
-                    nx * self.config.move_speed * dt,
-                    player.vel_y * dt,
-                    nz * self.config.move_speed * dt,
-                ],
+                translation,
             });
         }
 
@@ -1303,6 +1460,9 @@ pub struct ClientSession<T: Transport> {
     /// The newest input sequence the host has confirmed simulating for us. Everything
     /// after it is still ours to replay.
     acked_input: u32,
+    /// Inputs sent but not yet confirmed, oldest first. These are exactly what a
+    /// predictor replays on top of an authoritative state to get back to now.
+    pending: Vec<PlayerInput>,
     /// Seconds the host had simulated as of the last clock that arrived. The client
     /// advances it between them, so this is a correction rather than the only source.
     elapsed: f64,
@@ -1399,6 +1559,7 @@ impl<T: Transport> ClientSession<T> {
             world: None,
             movement: None,
             acked_input: 0,
+            pending: Vec::new(),
             elapsed: 0.0,
             stone_ledger: Ledger::new(),
             tree_ledger: Ledger::new(),
@@ -1457,6 +1618,12 @@ impl<T: Transport> ClientSession<T> {
     /// applied under the same number the host will ack it by.
     pub fn input_sequence(&self) -> u32 {
         self.input.sequence
+    }
+
+    /// Inputs sent but not yet confirmed by the host, oldest first. Replaying these on
+    /// top of the newest authoritative state is what puts a predicted body back at now.
+    pub fn pending_inputs(&self) -> &[PlayerInput] {
+        &self.pending
     }
 
     /// Name the host assigned us.
@@ -1613,6 +1780,14 @@ impl<T: Transport> ClientSession<T> {
         self.input.wish_dir = wish_dir;
         self.input.jump = jump;
         self.input.yaw = yaw;
+        self.pending.push(self.input);
+        // A host that stops acking must not be able to grow this without bound. The cap
+        // is far past any real round trip, and dropping the oldest is the right loss:
+        // those are the inputs the authoritative state is most likely to already hold.
+        if self.pending.len() > MAX_PENDING_INPUTS {
+            let excess = self.pending.len() - MAX_PENDING_INPUTS;
+            self.pending.drain(..excess);
+        }
     }
 
     pub fn tick(&mut self) {
@@ -1674,6 +1849,10 @@ impl<T: Transport> ClientSession<T> {
                             .and_then(|me| acks.iter().find(|(p, _)| *p == me))
                             .map(|(_, seq)| *seq)
                             .unwrap_or(self.acked_input);
+                        // Everything the host has confirmed is now its problem, not
+                        // ours; what is left is exactly the replay set.
+                        let acked = self.acked_input;
+                        self.pending.retain(|input| input.sequence > acked);
                         self.snapshot = Some(sim);
                     }
                 }
@@ -2621,6 +2800,87 @@ mod tests {
         );
     }
 
+    /// The guarantee a join rests on, sworn across seeds rather than at one:
+    /// nobody's first moment in the world is underwater.
+    ///
+    /// Before the spiral learned to walk past wet ground this failed on five
+    /// hundred seeds out of five hundred -- the river wanders sixty-odd metres
+    /// either side of the world's middle and the spawn disc is twelve, so the
+    /// plain spiral stood somebody in the riverbed on essentially every world.
+    #[test]
+    fn every_seed_spawns_every_slot_on_dry_ground() {
+        use crate::worldgen::{HeightGen, HeightParams};
+        for seed in 0..200 {
+            let sampler = HeightGen::new(&HeightParams {
+                seed,
+                ..Default::default()
+            });
+            let mesh = Loopback::mesh(2);
+            let host = HostSession::dedicated(
+                mesh[0].clone(),
+                SessionConfig::default(),
+                SimConfig::default(),
+                seed as u64,
+            )
+            .with_ground(Arc::new(move |x, z| sampler.height(x, z)));
+            let probe = HeightGen::new(&HeightParams {
+                seed,
+                ..Default::default()
+            });
+            for slot in 0..host.config.max_players as u32 {
+                let p = host.spawn_point(slot);
+                let ground = probe.height(p.pos[0], p.pos[2]);
+                assert!(
+                    ground > host.config.water_level + 0.35,
+                    "seed {seed} slot {slot} spawned on wet ground ({ground:.2}) at \
+                     ({:.1}, {:.1})",
+                    p.pos[0],
+                    p.pos[2]
+                );
+                assert!(
+                    (p.pos[1] - (ground + 1.5)).abs() < 1e-3,
+                    "seed {seed} slot {slot} does not stand on its own ground"
+                );
+            }
+        }
+    }
+
+    /// Two players may never be walked onto the same point, however far the
+    /// escape had to go, and the point a slot gets must not depend on who asked
+    /// first -- it is re-derived on every respawn.
+    #[test]
+    fn escaped_spawns_stay_distinct_and_deterministic() {
+        use crate::worldgen::{HeightGen, HeightParams};
+        for seed in [0i32, 7, 1337, 4242] {
+            let sampler = HeightGen::new(&HeightParams {
+                seed,
+                ..Default::default()
+            });
+            let mesh = Loopback::mesh(2);
+            let host = HostSession::dedicated(
+                mesh[0].clone(),
+                SessionConfig::default(),
+                SimConfig::default(),
+                seed as u64,
+            )
+            .with_ground(Arc::new(move |x, z| sampler.height(x, z)));
+            let mut seen: Vec<[f32; 3]> = Vec::new();
+            for slot in 0..host.config.max_players as u32 {
+                let a = host.spawn_point(slot);
+                let b = host.spawn_point(slot);
+                assert_eq!(a.pos, b.pos, "seed {seed} slot {slot} is not deterministic");
+                for (other, q) in seen.iter().enumerate() {
+                    let d = ((a.pos[0] - q[0]).powi(2) + (a.pos[2] - q[2]).powi(2)).sqrt();
+                    assert!(
+                        d > 0.5,
+                        "seed {seed} slots {other} and {slot} spawn {d:.2}m apart"
+                    );
+                }
+                seen.push(a.pos);
+            }
+        }
+    }
+
     #[test]
     fn falling_out_of_the_world_puts_a_player_back() {
         let (mut host, mut client) = host_and_client();
@@ -3007,7 +3267,7 @@ mod tests {
 
         // Ticks far above anything the host has reached, so the real broadcasts already
         // in flight cannot decide this.
-        let mut deliver = |client: &mut ClientSession<Loopback>, tick: u64, seq: u32| {
+        let deliver = |client: &mut ClientSession<Loopback>, tick: u64, seq: u32| {
             let bytes = proto::encode(&SessionMsg::Snapshot {
                 sim: SimSnapshot {
                     tick,
@@ -3435,6 +3695,150 @@ mod tests {
         assert_eq!(a.name(), Some("h0lybyte"));
         assert_eq!(b.status(), ClientStatus::Rejected);
         assert_eq!(host.player_count(), 1);
+    }
+
+    /// A drop is usually the network, not a decision to leave. Coming back inside the
+    /// grace window should put a player where they were, not at the spawn ring.
+    #[test]
+    fn a_reconnecting_account_is_put_back_where_it_stood() {
+        let mesh = Loopback::mesh(3);
+        let mut host = authed_host(&mesh);
+        let mut first = ClientSession::connect_with_token(mesh[1].clone(), "valid:h0lybyte");
+
+        for _ in 0..4 {
+            host.tick();
+            first.tick();
+        }
+        let peer = first.peer().expect("welcomed");
+        for _ in 0..90 {
+            first.set_input([1.0, 0.0], false, 0.0);
+            host.tick();
+            first.tick();
+        }
+        let walked = host
+            .world_mut()
+            .snapshot()
+            .body(player_body(peer))
+            .expect("a body")
+            .iso
+            .pos;
+        assert!(walked[0] > 1.0, "player never left the spawn point");
+
+        host.remove_player(peer);
+
+        let mut again = ClientSession::connect_with_token(mesh[2].clone(), "valid:h0lybyte");
+        for _ in 0..4 {
+            host.tick();
+            again.tick();
+        }
+        let back = again.peer().expect("welcomed again");
+        assert_ne!(back, peer, "a reconnect is a new socket and a new peer");
+
+        let resumed = host
+            .world_mut()
+            .snapshot()
+            .body(player_body(back))
+            .expect("a body for the returning player")
+            .iso
+            .pos;
+        let (dx, dz) = (resumed[0] - walked[0], resumed[2] - walked[2]);
+        assert!(
+            (dx * dx + dz * dz).sqrt() < 0.5,
+            "resumed at {resumed:?}, walked to {walked:?}"
+        );
+    }
+
+    /// The place is held, not kept forever. Past the window it is an ordinary join.
+    #[test]
+    fn a_reservation_past_its_window_spawns_fresh() {
+        let mesh = Loopback::mesh(3);
+        let mut host = HostSession::dedicated(
+            mesh[0].clone(),
+            SessionConfig {
+                reconnect_grace_seconds: 0.25,
+                ..Default::default()
+            },
+            SimConfig::default(),
+            1,
+        )
+        .with_authority(Arc::new(StubAuthority));
+        host.set_terrain(flat_terrain());
+        let mut first = ClientSession::connect_with_token(mesh[1].clone(), "valid:h0lybyte");
+        for _ in 0..4 {
+            host.tick();
+            first.tick();
+        }
+        let peer = first.peer().expect("welcomed");
+        for _ in 0..90 {
+            first.set_input([1.0, 0.0], false, 0.0);
+            host.tick();
+            first.tick();
+        }
+        let walked = host
+            .world_mut()
+            .snapshot()
+            .body(player_body(peer))
+            .expect("a body")
+            .iso
+            .pos;
+        host.remove_player(peer);
+
+        // Age the host past the window it was built with. Its clock only moves on tick,
+        // so the config carries a short grace rather than this looping for two minutes.
+        for _ in 0..40 {
+            host.tick();
+        }
+
+        let mut again = ClientSession::connect_with_token(mesh[2].clone(), "valid:h0lybyte");
+        for _ in 0..4 {
+            host.tick();
+            again.tick();
+        }
+        let back = again.peer().expect("welcomed again");
+        let spawned = host
+            .world_mut()
+            .snapshot()
+            .body(player_body(back))
+            .expect("a body")
+            .iso
+            .pos;
+        assert!(
+            (spawned[0] - walked[0]).abs() > 1.0,
+            "expired reservation still resumed: {spawned:?} against {walked:?}"
+        );
+    }
+
+    /// A socket that dies without the host noticing leaves a player holding their own
+    /// name against themselves. They must still be able to get back in.
+    #[test]
+    fn a_silent_peer_does_not_lock_its_account_out() {
+        let mesh = Loopback::mesh(3);
+        let mut host = authed_host(&mesh);
+        let mut first = ClientSession::connect_with_token(mesh[1].clone(), "valid:h0lybyte");
+        for _ in 0..4 {
+            host.tick();
+            first.tick();
+        }
+        assert_eq!(host.player_count(), 1);
+
+        // The client is never ticked again: its socket is up as far as the host knows,
+        // but nothing arrives from it.
+        for _ in 0..((GHOST_SILENCE_SECONDS / SimConfig::default().timestep()) as usize + 30) {
+            host.tick();
+        }
+
+        let mut again = ClientSession::connect_with_token(mesh[2].clone(), "valid:h0lybyte");
+        for _ in 0..4 {
+            host.tick();
+            again.tick();
+        }
+        assert_eq!(
+            again.status(),
+            ClientStatus::Joined,
+            "a ghost held the account: {:?}",
+            again.reject_reason()
+        );
+        assert_eq!(host.player_count(), 1, "the ghost should have been retired");
     }
 
     /// Guests and accounts share one namespace, and the guest arrived first.

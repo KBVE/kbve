@@ -12,6 +12,7 @@ signal listening
 
 const MAX_WIDTH := 880.0
 const SIDE_UV := 0.05
+const SIDE_BIAS := 0.35
 const SIDE_RANGE := Vector2(16.0, 90.0)
 const BOTTOM_UV := 0.035
 const BOTTOM_RANGE := Vector2(12.0, 44.0)
@@ -215,8 +216,9 @@ func _fit() -> void:
 		return
 	var view := get_viewport().get_visible_rect().size
 	var m := metrics(view, MenuStyle.touch)
-	_shell.add_theme_constant_override("margin_left", int(m["side"]))
-	_shell.add_theme_constant_override("margin_right", int(m["side"]))
+	var bias := 0.0 if MenuStyle.touch else float(m["side"]) * SIDE_BIAS
+	_shell.add_theme_constant_override("margin_left", int(float(m["side"]) + bias))
+	_shell.add_theme_constant_override("margin_right", int(maxf(float(m["side"]) - bias, 8.0)))
 	_shell.add_theme_constant_override("margin_bottom", int(m["bottom"]))
 	_shell.add_theme_constant_override("margin_top", int(m["top"]))
 	_floor = float(m["min_height"])

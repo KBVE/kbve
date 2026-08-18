@@ -37,6 +37,7 @@ var _terrain: Node
 var _scatter_tries := 20
 var _scatter_wait := 0.0
 var _field_tries := 60
+var _field_origin := Vector2.INF
 
 
 func _ready() -> void:
@@ -106,7 +107,17 @@ func _build_field(terrain: Node) -> void:
 	if heights.is_empty() or res <= 1:
 		return
 	var extent: float = terrain.extent
-	field = QFlowField.create(extent, field_cell)
+	# Centred on the ground the terrain actually has baked, not on the world
+	# origin. With streaming on, the window walks off with the player and a
+	# field left at the origin goes stale behind them: past its edge every
+	# query answers nothing, and a creature with no field walks a straight
+	# line into whatever stands in the way -- which is how the mechs ended up
+	# shouldering through stone colliders.
+	var origin := Vector2.ZERO
+	if terrain.has_method("world_origin"):
+		origin = terrain.world_origin()
+	field = QFlowField.create_at(origin, extent, field_cell)
+	_field_origin = origin
 	field.stamp_terrain(heights, res, extent, terrain.water_level, field_max_slope)
 
 	var trees := _obstacle_discs(tree_field_path, "TreeField")
@@ -202,9 +213,26 @@ func _physics_process(delta: float) -> void:
 		if _scatter_wait <= 0.0:
 			_scatter_wait = 0.5
 			_scatter_tries -= 1
-			if not _obstacle_discs(tree_field_path, "TreeField").is_empty() \
-					or not _obstacle_discs(stone_field_path, "StoneField").is_empty():
+			# Both fields, not either. Trees and stones finish placing on
+			# their own schedules, and a field built the moment the first
+			# reported in was a field with no rocks in it -- creatures
+			# steered clean around every tree and straight into the stones.
+			var trees_ready := not _obstacle_discs(tree_field_path, "TreeField").is_empty()
+			var stones_ready := not _obstacle_discs(stone_field_path, "StoneField").is_empty()
+			if (trees_ready and stones_ready) or _scatter_tries == 0:
 				_scatter_tries = 0
+				_build_field(_terrain)
+	elif _terrain and _terrain.has_method("world_origin") \
+			and _terrain.world_origin() != _field_origin:
+		_scatter_wait -= delta
+		if _scatter_wait <= 0.0:
+			_scatter_wait = 0.5
+			# The window moved and the scatter has rescattered for it; the
+			# field follows. Discs read empty for the frames the fields are
+			# still replacing themselves, and building then would bake an
+			# empty world in -- wait for both, same as first boot.
+			if not _obstacle_discs(tree_field_path, "TreeField").is_empty() \
+					and not _obstacle_discs(stone_field_path, "StoneField").is_empty():
 				_build_field(_terrain)
 	if field and _leader:
 		field.rebuild_if_moved(_leader.global_position, field_slack)

@@ -288,6 +288,55 @@ impl INode3D for QTerrain {
     }
 }
 
+/// Times the stages of a window swap, which all run on the main thread while the
+/// bake that fed them ran off it.
+///
+/// A swap is one frame's work and a frame is 16ms, so anything here that is tens of
+/// milliseconds is a visible hitch every time the player crosses a stride. Off unless
+/// `Q_SHIFT_PROFILE` is set, because the timing itself is not free.
+struct ShiftTimer {
+    t0: Option<std::time::Instant>,
+    last: std::cell::Cell<std::time::Instant>,
+    parts: std::cell::RefCell<Vec<(&'static str, f32)>>,
+}
+
+impl ShiftTimer {
+    fn start() -> Self {
+        let on = std::env::var("Q_SHIFT_PROFILE").is_ok();
+        let now = std::time::Instant::now();
+        Self {
+            t0: on.then_some(now),
+            last: std::cell::Cell::new(now),
+            parts: std::cell::RefCell::new(Vec::new()),
+        }
+    }
+
+    fn mark(&self, name: &'static str) {
+        if self.t0.is_none() {
+            return;
+        }
+        let now = std::time::Instant::now();
+        self.parts
+            .borrow_mut()
+            .push((name, (now - self.last.get()).as_secs_f32() * 1000.0));
+        self.last.set(now);
+    }
+
+    fn finish(&self) {
+        let Some(t0) = self.t0 else {
+            return;
+        };
+        let total = (std::time::Instant::now() - t0).as_secs_f32() * 1000.0;
+        let parts: Vec<String> = self
+            .parts
+            .borrow()
+            .iter()
+            .map(|(n, ms)| format!("{n} {ms:.1}"))
+            .collect();
+        godot_print!("[q] window shift {total:.1}ms -- {}", parts.join(", "));
+    }
+}
+
 impl QTerrain {
     /// Moves the baked window after the player, one re-bake at a time.
     ///
@@ -347,6 +396,7 @@ impl QTerrain {
         if heights.len() != (res * res) as usize {
             return;
         }
+        let stage = ShiftTimer::start();
         if let Some(w) = self.window.as_mut() {
             w.origin = origin;
         }
@@ -399,8 +449,10 @@ impl QTerrain {
             let keep = ground.get_position();
             ground.set_position(Vector3::new(at.x, keep.y, at.z));
         }
+        stage.mark("upload");
         self.bake_clearance(&heights, res);
         self.heights = heights;
+        stage.mark("clearance");
 
         // The road paint, the bridge and the clearance all describe this stretch
         // of ground, so they are rebuilt with it. Scatter fields read the road
@@ -415,9 +467,13 @@ impl QTerrain {
             {
                 self.hgen = Some(HeightGen::new(&params));
             }
+            stage.mark("clear");
             self.build_road();
+            stage.mark("road");
             self.build_landmarks();
+            stage.mark("landmarks");
         }
+        stage.finish();
     }
 
     /// Takes down the previous window's road furniture. The carriageway is paint
@@ -589,6 +645,16 @@ impl QTerrain {
 
     /// The CPU height grid, for anything that needs to read the ground in bulk
     /// rather than a point at a time.
+    /// Middle of the ground currently baked, for anything building spatial
+    /// structure over [`height_grid`](Self::height_grid). While the world was
+    /// one tile this was always zero; with streaming on, a consumer that
+    /// centres itself on the origin is building over ground the window has
+    /// long since left.
+    #[func]
+    fn world_origin(&self) -> Vector2 {
+        self.window_origin()
+    }
+
     #[func]
     fn height_grid(&self) -> PackedFloat32Array {
         match self.cpu_heights() {
@@ -678,6 +744,47 @@ impl QTerrain {
         out.set("open", &PackedFloat32Array::from(open.as_slice()));
         out.set("decks", &PackedFloat32Array::from(decks.as_slice()));
         out.set("deck_y", deck_y);
+        out
+    }
+
+    /// Where the people of the built places in this window stand.
+    ///
+    /// One dictionary each: `role`, `at` and `facing`. The client decides what a
+    /// `gate_guard` looks like and what it says; nothing here knows.
+    ///
+    /// `at` carries the levelled floor as its `y`, so a caller placing somebody does
+    /// not have to sample the ground to find out they are standing on a courtyard.
+    #[func]
+    fn landmark_posts(&self) -> VarArray {
+        let mut out = VarArray::new();
+        let Some(hgen) = self.hgen.as_ref() else {
+            return out;
+        };
+        // A landmark is raised while its middle is still outside the window, so that a
+        // wall straddling the boundary is not missing half of itself. Its people are a
+        // different matter: whoever stands them up settles them onto the ground mesh,
+        // and outside the baked grid there is no ground mesh to settle onto. A post out
+        // there is somewhere nobody can be put, so it is not offered until it is inside.
+        let origin = self.window_origin();
+        for mark in &self.landmarks {
+            for post in mark.posts(hgen) {
+                if (post.at[0] - origin.x).abs() > self.extent
+                    || (post.at[1] - origin.y).abs() > self.extent
+                {
+                    continue;
+                }
+                let mut one = VarDictionary::new();
+                one.set("role", post.role.as_str());
+                one.set("at", Vector3::new(post.at[0], mark.pad_y, post.at[1]));
+                one.set(
+                    "facing",
+                    Vector3::new(post.facing[0], mark.pad_y, post.facing[1]),
+                );
+                one.set("landmark", mark.kind_name());
+                one.set("cell", Vector2i::new(mark.cell[0], mark.cell[1]));
+                out.push(&one.to_variant());
+            }
+        }
         out
     }
 

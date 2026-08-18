@@ -225,6 +225,129 @@ fn the_gate_is_a_hole_in_the_wall() {
     );
 }
 
+/// Somebody standing inside a keep is somebody who can never walk out of it, and the
+/// blockout is solid boxes rather than buildings with doors.
+#[test]
+fn nobody_is_posted_inside_a_building() {
+    let g = hgen();
+    let mut checked = 0;
+    for mark in in_window(seed(), &g, [0.0, 0.0], 3000.0) {
+        let slabs = mark.slabs(&g);
+        for post in mark.posts(&g) {
+            checked += 1;
+            for slab in &slabs {
+                let inside = (post.at[0] - slab.centre[0]).abs() < slab.half_extents[0]
+                    && (post.at[1] - slab.centre[2]).abs() < slab.half_extents[2];
+                assert!(
+                    !inside,
+                    "{:?} at {:?} is standing inside a {:?} of {:?}",
+                    post.role, post.at, slab.half_extents, mark.kind
+                );
+            }
+        }
+    }
+    assert!(checked > 8, "too few posts to have tested anything: {checked}");
+}
+
+/// The ground under a pier is river. Somebody put on the deck is put on the water the
+/// moment anything asks the terrain how high it is there, so the dockhands stand at
+/// the landward end of the timber rather than out on it.
+#[test]
+fn nobody_is_posted_on_the_water() {
+    let g = hgen();
+    for cz in -4..=4 {
+        let mark = harbour_in_row(seed(), &g, cz);
+        for post in mark.posts(&g) {
+            let h = g.height(post.at[0], post.at[1]);
+            assert!(
+                h > g.water_level(),
+                "{:?} at {:?} is standing in the river at {h}",
+                post.role,
+                post.at
+            );
+        }
+    }
+}
+
+/// The point of levelling the ground is that what stands on it stands level. A post on
+/// the feathered edge of a pad is on a slope somebody slides down.
+#[test]
+fn everybody_is_posted_on_the_levelled_ground() {
+    let g = hgen();
+    for mark in in_window(seed(), &g, [0.0, 0.0], 3000.0) {
+        for post in mark.posts(&g) {
+            let h = g.height(post.at[0], post.at[1]);
+            assert!(
+                (h - mark.pad_y).abs() < 0.05,
+                "{:?} at {:?} stands at {h}, but the floor is {}",
+                post.role,
+                post.at,
+                mark.pad_y
+            );
+        }
+    }
+}
+
+/// Facing has to mean something. Somebody looking at where they already stand has no
+/// direction at all and the client spins them arbitrarily.
+#[test]
+fn everybody_is_looking_somewhere_else() {
+    let g = hgen();
+    for mark in in_window(seed(), &g, [0.0, 0.0], 3000.0) {
+        for post in mark.posts(&g) {
+            let d = [
+                post.facing[0] - post.at[0],
+                post.facing[1] - post.at[1],
+            ];
+            assert!(
+                (d[0] * d[0] + d[1] * d[1]).sqrt() > 1.0,
+                "{:?} is looking at its own feet",
+                post.role
+            );
+        }
+    }
+}
+
+/// Both kinds have to be occupied, or half the world's built places are empty rooms.
+#[test]
+fn both_kinds_are_lived_in() {
+    let g = hgen();
+    let capital = in_window(seed(), &g, [0.0, 0.0], 3000.0)
+        .into_iter()
+        .find(|m| m.kind == LandmarkKind::Capital)
+        .expect("no capital");
+    let harbour = harbour_in_row(seed(), &g, 0);
+
+    let roles: Vec<Role> = capital.posts(&g).iter().map(|p| p.role).collect();
+    assert!(roles.contains(&Role::GateGuard));
+    assert!(roles.contains(&Role::Trader));
+    assert!(roles.contains(&Role::Steward));
+
+    let roles: Vec<Role> = harbour.posts(&g).iter().map(|p| p.role).collect();
+    assert!(roles.contains(&Role::Dockhand));
+    assert!(roles.contains(&Role::Harbourmaster));
+}
+
+/// Posts are derived, so they must not move for the window that found them -- somebody
+/// who shifts when the ground under them is re-baked is somebody who walks on the spot.
+#[test]
+fn a_post_does_not_move_with_the_window() {
+    let g = hgen();
+    let home = in_window(seed(), &g, [0.0, 0.0], 512.0);
+    for origin in [[256.0f32, 0.0], [-128.0, 320.0]] {
+        let away = in_window(seed(), &g, origin, 512.0);
+        for mark in &home {
+            let Some(same) = away
+                .iter()
+                .find(|m| m.kind == mark.kind && m.cell == mark.cell)
+            else {
+                continue;
+            };
+            assert_eq!(same.posts(&g), mark.posts(&g));
+        }
+    }
+}
+
 /// The flow field is told about a landmark as lines. Every solid box has to produce
 /// one, or a building the client draws is a building creatures walk through.
 #[test]

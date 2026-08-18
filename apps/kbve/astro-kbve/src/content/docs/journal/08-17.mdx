@@ -19,7 +19,7 @@ tasks:
       - config
       - update
     assignee: 'Self'
-  
+
 template: splash
 tableOfContents: false
 editUrl: false
@@ -68,6 +68,14 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 
 <BentoProse id="2026" heading="2026">
 
+### Shader Issues with V1 FriendSlop
+
+-   08:10PM
+
+    The shaders that we ship via pre bake might be breaking our production game, thus I am thinking we shrink them down and have the first run of the game just build them.
+    This will require some careful test casing but I think it will help resolve some of the missing visuals?
+    Maybe in the title screen, we also add trees to the flow and make sure that the sky is rendering correctly.
+
 - [ ]
 
 </BentoProse>
@@ -109,9 +117,9 @@ I had to plan around this issue and find a cleaner that was way too far from my 
 **Worker**
 The next library that we want to release would be the worker library, which will take the place of `khashvault` and `db`.
 We will be moving all the indexeddb actions into this library, but also extend it out to do websockets, sse and a couple more advance techniques.
-The worker library will be deployed using this command: 
+The worker library will be deployed using this command:
 
-```shell 
+```shell
 pnpm nx g @nx/js:lib worker --importPath="@kbve/worker" --publishable=true
 ```
 

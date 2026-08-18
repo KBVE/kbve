@@ -15,7 +15,7 @@ use std::collections::{HashMap, HashSet};
 use std::sync::mpsc::{self, Receiver, Sender};
 
 use q::ground::{Ground, GroundSource};
-use q::landmark::{Landmark, LandmarkKind};
+use q::landmark::{Landmark, LandmarkFootprint, LandmarkKind};
 use q::rapier::sim3d::{
     BodyDesc, BodyId, BodyKind, Iso, ShapeDesc, SimCommand, SimWorld, TerrainDesc,
 };
@@ -97,7 +97,7 @@ pub struct TerrainStreamer {
     slabs: Vec<Slab>,
     bridge_in: bool,
     /// Landmarks currently in the solver, and the id block each was given.
-    marks_in: HashMap<MarkKey, u32>,
+    marks_in: HashMap<MarkKey, (u32, Landmark)>,
     /// Id blocks handed back when a landmark was taken down, so walking past the same
     /// capital all afternoon does not exhaust the range.
     free_slots: Vec<u32>,
@@ -110,11 +110,19 @@ impl TerrainStreamer {
         let window = Window::aligned(cfg.extent, cfg.stride, cfg.resolution.max(2));
         let hgen = HeightGen::new(&cfg.params());
         let plan = BridgePlan::new(&hgen, cfg.extent, cfg.water_level, cfg.road_width);
-        let mut slabs = plan.slabs().to_vec();
-        slabs.extend(plan.ramp_slabs(&hgen));
-        slabs.extend(plan.ramp_skirt_slabs(&hgen));
-        slabs.extend(plan.ramp_rail_slabs(&hgen));
-        slabs.extend(plan.abutment_slabs(&hgen));
+        // The bridge is measured against the authored river. On the region
+        // field there is no river, so the deck the plan describes would stand
+        // in open country as collision nothing draws — a wall a body walks
+        // into. No slabs on that ground; the plan itself stays, inert, so the
+        // bridge bookkeeping needs no second code path.
+        let mut slabs = Vec::new();
+        if cfg.ground_source == GroundSource::Authored {
+            slabs = plan.slabs().to_vec();
+            slabs.extend(plan.ramp_slabs(&hgen));
+            slabs.extend(plan.ramp_skirt_slabs(&hgen));
+            slabs.extend(plan.ramp_rail_slabs(&hgen));
+            slabs.extend(plan.abutment_slabs(&hgen));
+        }
         Self {
             cfg,
             window,
@@ -262,7 +270,7 @@ impl TerrainStreamer {
             .filter(|k| !wanted.contains_key(k))
             .collect();
         for key in gone {
-            let Some(slot) = self.marks_in.remove(&key) else {
+            let Some((slot, _)) = self.marks_in.remove(&key) else {
                 continue;
             };
             for i in 0..LANDMARK_BODY_STRIDE {
@@ -307,7 +315,7 @@ impl TerrainStreamer {
                     },
                 });
             }
-            self.marks_in.insert(key, slot);
+            self.marks_in.insert(key, (slot, mark));
         }
     }
 
@@ -315,6 +323,22 @@ impl TerrainStreamer {
     #[cfg(test)]
     pub fn landmarks_loaded(&self) -> usize {
         self.marks_in.len()
+    }
+
+    /// What is built on the loaded ground, as lines a flow field can be told about.
+    ///
+    /// The solver stops a body at a wall, but a pet steers by a field rather than by
+    /// walking into things, and a field reading only the height sampler sees a
+    /// levelled courtyard as the most walkable country for miles.
+    ///
+    /// Ordered, so an unchanged world compares equal and does not restamp every
+    /// field on every pass.
+    pub fn footprints(&self, hgen: &HeightGen) -> Vec<LandmarkFootprint> {
+        let mut keys: Vec<&MarkKey> = self.marks_in.keys().collect();
+        keys.sort_unstable();
+        keys.into_iter()
+            .map(|k| self.marks_in[k].1.footprint(hgen))
+            .collect()
     }
 
     /// How many id blocks have ever been handed out, which is what tells a leak from

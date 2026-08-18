@@ -70,6 +70,50 @@ pub struct Landmark {
     pub cell: [i32; 2],
 }
 
+/// Somebody's place in a landmark: where they stand and which way they face.
+///
+/// Derived beside the walls rather than authored against them, so a guard is at the
+/// gateway of whichever capital this is instead of at fixed coordinates that only
+/// happen to be a gateway in one of them.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Post {
+    pub role: Role,
+    pub at: [f32; 2],
+    /// A point to face. Somewhere to look rather than an angle, because what a guard
+    /// should be looking at is a place -- out of the gate, down the quay -- and the
+    /// angle that means depends on which way the landmark was laid out.
+    pub facing: [f32; 2],
+}
+
+/// What somebody at a landmark is there for. The client picks a body and a
+/// conversation from this; nothing here knows what either looks like.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Role {
+    /// Either side of the gateway, looking out at whoever is coming.
+    GateGuard,
+    /// At the market hall, facing the courtyard.
+    Trader,
+    /// At the keep door.
+    Steward,
+    /// At the landward end of a pier, facing the water.
+    Dockhand,
+    /// By the big warehouse, facing the quay.
+    Harbourmaster,
+}
+
+impl Role {
+    /// A stable name, for a client to look a body and a conversation up by.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::GateGuard => "gate_guard",
+            Self::Trader => "trader",
+            Self::Steward => "steward",
+            Self::Dockhand => "dockhand",
+            Self::Harbourmaster => "harbourmaster",
+        }
+    }
+}
+
 /// What a flow field needs: what to close, and the line through it that stays open.
 #[derive(Clone, Debug, PartialEq)]
 pub struct LandmarkFootprint {
@@ -89,8 +133,23 @@ fn cell_of(v: f32) -> i32 {
     (v / CELL).floor() as i32
 }
 
-fn seeded(seed: u32, salt: u32, a: i32, b: i32) -> u32 {
-    hash32(seed ^ salt ^ hash32(a as u32).wrapping_add(hash32((b as u32).wrapping_mul(0x9e37))))
+/// Which lattice a cell was drawn from. Harbours are indexed along the river and
+/// capitals across the whole plane, so without this the harbour in row 3 and the
+/// capital in cell (3, 0) would be handed the same number and jitter alike.
+///
+/// The values are arbitrary and only have to differ. They are what they are because
+/// changing them moves every landmark in the world, and there is no reason to.
+const HARBOUR_LATTICE: u32 = 0x48_41_52_42;
+const CAPITAL_LATTICE: u32 = 0x43_41_50_54;
+
+/// The number a cell of a lattice is built from.
+///
+/// Constant on purpose, and it has to be: two machines derive the same world from the
+/// seed alone and never speak about it, so anything unpredictable mixed in here is a
+/// client and a server disagreeing about where a city is. Nothing about this protects
+/// anything -- it spreads cell indices out so neighbouring cells do not land in a row.
+fn cell_hash(seed: u32, lattice: u32, a: i32, b: i32) -> u32 {
+    hash32(seed ^ lattice ^ hash32(a as u32).wrapping_add(hash32((b as u32).wrapping_mul(0x9e37))))
 }
 
 /// The harbour on one row of the river, which every row has.
@@ -100,9 +159,7 @@ fn seeded(seed: u32, salt: u32, a: i32, b: i32) -> u32 {
 /// indexed by how far along it you are and nothing else -- there is no second river
 /// for a second column of them to stand on.
 pub fn harbour_in_row(seed: u32, hgen: &HeightGen, cz: i32) -> Landmark {
-    let h = seeded(seed, 0x48_41_52_42, cz, 0);
-    let z = cz as f32 * CELL + HARBOUR_Z + ((h >> 8) % 512) as f32;
-    let side = if h & 1 == 0 { 1.0 } else { -1.0 };
+    let (z, side) = harbour_row_site(seed, cz);
     let x = hgen.river_x(z) + side * (QUAY_IN + QUAY_W * 0.5);
     Landmark {
         kind: LandmarkKind::Harbour,
@@ -114,16 +171,29 @@ pub fn harbour_in_row(seed: u32, hgen: &HeightGen, cz: i32) -> Landmark {
     }
 }
 
-/// The capital in one cell, if it has one.
+/// Where along the river a row's harbour sits, and which bank it is on.
 ///
-/// Never in the river's own column: a walled square dropped on the channel would dam
-/// it, and the ground it needs levelled is the ground the water is in.
-pub fn capital_in_cell(seed: u32, hgen: &HeightGen, cx: i32, cz: i32) -> Option<Landmark> {
+/// Split out from the harbour itself because it costs nothing: the height function
+/// asks about every sample it takes, and everything else about a harbour -- where the
+/// channel is at that `z`, how high the quay was levelled -- is a noise evaluation.
+/// Asking the cheap question first is what keeps the levelling from doubling the cost
+/// of the whole river corridor.
+fn harbour_row_site(seed: u32, cz: i32) -> (f32, f32) {
+    let h = cell_hash(seed, HARBOUR_LATTICE, cz, 0);
+    (
+        cz as f32 * CELL + HARBOUR_Z + ((h >> 8) % 512) as f32,
+        if h & 1 == 0 { 1.0 } else { -1.0 },
+    )
+}
+
+/// Where a cell's capital stands, if it has one. Costs no noise, for the same reason
+/// [`harbour_row_site`] does not.
+fn capital_site(seed: u32, hgen: &HeightGen, cx: i32, cz: i32) -> Option<[f32; 2]> {
     if cx == 0 {
         return None;
     }
-    let h = seeded(seed, 0x43_41_50_54, cx, cz);
-    if h % 2 != 0 {
+    let h = cell_hash(seed, CAPITAL_LATTICE, cx, cz);
+    if !h.is_multiple_of(2) {
         return None;
     }
     // Kept clear of the cell's own edges so a pad never leaves the cell it was
@@ -146,9 +216,19 @@ pub fn capital_in_cell(seed: u32, hgen: &HeightGen, cx: i32, cz: i32) -> Option<
         return None;
     }
 
-    let x = lo + ((h >> 7) % (hi - lo) as u32) as f32;
     let z_span = CELL - inset * 2.0;
-    let z = cz as f32 * CELL + inset + ((h >> 17) % z_span as u32) as f32;
+    Some([
+        lo + ((h >> 7) % (hi - lo) as u32) as f32,
+        cz as f32 * CELL + inset + ((h >> 17) % z_span as u32) as f32,
+    ])
+}
+
+/// The capital in one cell, if it has one.
+///
+/// Never in the river's own column: a walled square dropped on the channel would dam
+/// it, and the ground it needs levelled is the ground the water is in.
+pub fn capital_in_cell(seed: u32, hgen: &HeightGen, cx: i32, cz: i32) -> Option<Landmark> {
+    let [x, z] = capital_site(seed, hgen, cx, cz)?;
     Some(Landmark {
         kind: LandmarkKind::Capital,
         centre: [x, z],
@@ -175,30 +255,47 @@ fn harbour_band(hgen: &HeightGen) -> f32 {
 /// height function, so it must not call back into it: everything here reads the
 /// unlevelled ground.
 pub fn pad_at(seed: u32, hgen: &HeightGen, x: f32, z: f32) -> Option<(f32, f32)> {
-    let mut best: Option<(f32, f32)> = None;
-    let mut take = |pad: Option<(f32, f32)>| {
-        if let Some((y, w)) = pad
-            && w > 0.0
-            && best.is_none_or(|(_, bw)| w > bw)
-        {
-            best = Some((y, w));
-        }
-    };
+    let cz = cell_of(z);
 
-    if x.abs() <= harbour_band(hgen) {
-        // A harbour's length is short against a row, but its jitter can push it over
-        // a row edge, so both neighbours are read.
-        let cz = cell_of(z);
-        for row in [cz - 1, cz, cz + 1] {
-            let mark = harbour_in_row(seed, hgen, row);
-            take(mark.pad(hgen, x, z));
+    // Every test here is arithmetic on a hash until something is actually covered.
+    // This runs per sample of every bake, mask and scatter in the world, so a noise
+    // evaluation spent ruling a landmark out is one paid across the whole map to
+    // describe ground that has nothing built on it.
+    if let Some(site) = capital_site(seed, hgen, cell_of(x), cz) {
+        let inside = WALL_HALF + 6.0;
+        let out = (x - site[0]).abs().max((z - site[1]).abs());
+        let w = smooth((inside + PAD_FEATHER - out) / PAD_FEATHER);
+        if w > 0.0 {
+            let pad_y = hgen.base_height(site[0], site[1]).max(hgen.water_level() + 2.4);
+            return Some((pad_y, w));
         }
     }
 
-    if let Some(mark) = capital_in_cell(seed, hgen, cell_of(x), cell_of(z)) {
-        take(mark.pad(hgen, x, z));
+    if x.abs() > harbour_band(hgen) {
+        return None;
     }
-    best
+    // A harbour's length is short against a row, but its jitter can push it over a
+    // row edge, so both neighbours are read.
+    for row in [cz - 1, cz, cz + 1] {
+        let (site_z, side) = harbour_row_site(seed, row);
+        let dz = (z - site_z).abs();
+        if dz > HARBOUR_Z + PAD_FEATHER {
+            continue;
+        }
+        // The quay follows the channel, so its inner edge is measured from where the
+        // water is at this z rather than from the middle of the harbour.
+        let u = (x - hgen.river_x(z)) * side;
+        let along = smooth((HARBOUR_Z + PAD_FEATHER - dz) / PAD_FEATHER);
+        let out = smooth((QUAY_IN + QUAY_W + PAD_FEATHER - u) / PAD_FEATHER);
+        let in_ = smooth((u - QUAY_IN) / PAD_FEATHER);
+        let w = along * out * in_;
+        if w > 0.0 {
+            let cx = hgen.river_x(site_z) + side * (QUAY_IN + QUAY_W * 0.5);
+            let pad_y = hgen.base_height(cx, site_z).max(hgen.water_level() + 1.6);
+            return Some((pad_y, w));
+        }
+    }
+    None
 }
 
 /// Every landmark whose structure falls in a window.
@@ -297,6 +394,14 @@ pub fn nearest(seed: u32, hgen: &HeightGen, at: [f32; 2]) -> Vec<Landmark> {
 }
 
 impl Landmark {
+    /// A stable name for the kind, for anything outside this crate to key on.
+    pub fn kind_name(&self) -> &'static str {
+        match self.kind {
+            LandmarkKind::Capital => "capital",
+            LandmarkKind::Harbour => "harbour",
+        }
+    }
+
     pub fn distance(&self, at: [f32; 2]) -> f32 {
         let d = [at[0] - self.centre[0], at[1] - self.centre[1]];
         (d[0] * d[0] + d[1] * d[1]).sqrt()
@@ -386,15 +491,36 @@ impl Landmark {
         out
     }
 
+    /// A point on the quay, measured out from the channel rather than across from the
+    /// middle of the harbour.
+    ///
+    /// The pad follows the river, because the river moves and a quay that did not
+    /// follow it would be levelled ground with water running through one end. So
+    /// anything standing on the quay has to be placed the same way. Measured across
+    /// from a fixed middle instead, a warehouse twenty metres along is a warehouse the
+    /// channel has wandered out from under -- the levelling is somewhere else by then,
+    /// and the building is up a hillside or buried in one.
+    fn quay(&self, hgen: &HeightGen, out: f32, z: f32) -> [f32; 2] {
+        [hgen.river_x(z) + self.side * out, z]
+    }
+
     fn harbour_slabs(&self, hgen: &HeightGen) -> Vec<Slab> {
-        let [hx, hz] = self.centre;
+        let [_, hz] = self.centre;
         let y = self.pad_y;
         let s = self.side;
-        let mut out = vec![
-            Slab::flat([hx + s * 2.0, y + 4.0, hz - 18.0], [8.0, 4.0, 10.0]),
-            Slab::flat([hx - s * 4.0, y + 3.5, hz + 20.0], [6.0, 3.5, 7.0]),
-            Slab::flat([hx - s * 9.0, y + 2.5, hz + 2.0], [3.0, 2.5, 3.0]),
-        ];
+
+        // Everything sits inside the fully levelled band, which is `QUAY_IN` plus the
+        // feather out to `QUAY_IN + QUAY_W`. Half-widths count: a warehouse centred on
+        // the flat with one wall over the feather is a warehouse standing on a slope.
+        let mut out = Vec::new();
+        for (out_at, z, half, high) in [
+            (40.0f32, hz - 18.0, [8.0f32, 4.0, 10.0], 4.0f32),
+            (38.0, hz + 20.0, [6.0, 3.5, 7.0], 3.5),
+            (34.0, hz + 2.0, [3.0, 2.5, 3.0], 2.5),
+        ] {
+            let [x, z] = self.quay(hgen, out_at, z);
+            out.push(Slab::flat([x, y + high, z], half));
+        }
 
         let deck_y = self.deck_y(hgen);
         for k in [-1.0f32, 0.0, 1.0] {
@@ -417,6 +543,77 @@ impl Landmark {
     /// The height the piers are decked at, which is the one thing a body can be under.
     pub fn deck_y(&self, hgen: &HeightGen) -> f32 {
         hgen.water_level() + 1.0
+    }
+
+    /// Where the people who live here stand.
+    ///
+    /// Every post is on the levelled ground and outside the walls and buildings, which
+    /// is what stops somebody being placed inside a keep they can never walk out of --
+    /// and the ground under them is flat, so they stand rather than sink.
+    pub fn posts(&self, hgen: &HeightGen) -> Vec<Post> {
+        match self.kind {
+            LandmarkKind::Capital => self.capital_posts(),
+            LandmarkKind::Harbour => self.harbour_posts(hgen),
+        }
+    }
+
+    fn capital_posts(&self) -> Vec<Post> {
+        let [cx, cz] = self.centre;
+        let gate = [cx + (WALL_HALF + 3.0) * self.gate, cz];
+        let mut out = Vec::new();
+        // Just outside the gateway and clear of the opening, so the way in is not
+        // blocked by the people watching it.
+        for side in [-1.0f32, 1.0] {
+            out.push(Post {
+                role: Role::GateGuard,
+                at: [gate[0], cz + (GATE_HALF + 2.2) * side],
+                facing: [gate[0] + self.gate * 20.0, cz],
+            });
+        }
+        // Beside the market hall and the keep door, both facing the courtyard.
+        out.push(Post {
+            role: Role::Trader,
+            at: [cx - 24.0, cz + 29.0],
+            facing: [cx, cz],
+        });
+        out.push(Post {
+            role: Role::Steward,
+            at: [cx + 9.5, cz],
+            facing: [cx + 20.0, cz],
+        });
+        out
+    }
+
+    fn harbour_posts(&self, hgen: &HeightGen) -> Vec<Post> {
+        let [_, hz] = self.centre;
+        let mut out = Vec::new();
+        // On the quay looking at the water, in the gaps between the warehouses, and
+        // well inside the flat rather than near either edge of it.
+        //
+        // Being on the levelled ground is not enough on its own. What anybody stands on
+        // is the ground mesh, which carries a vertex every couple of metres and
+        // interpolates a baked grid coarser still, so the pad's edges arrive rounded
+        // off. A post a stride inside the flat is analytically level and visibly on a
+        // slope. These sit a good eight metres clear of both edges.
+        //
+        // Not on the piers either: the ground under one is river, and somebody put on
+        // the deck is put in the water the moment anything asks the terrain how high it
+        // is where they are standing.
+        for dz in [-5.0f32, 9.0] {
+            let z = hz + dz;
+            out.push(Post {
+                role: Role::Dockhand,
+                at: self.quay(hgen, 38.0, z),
+                facing: self.quay(hgen, 0.0, z),
+            });
+        }
+        let z = hz - 5.0;
+        out.push(Post {
+            role: Role::Harbourmaster,
+            at: self.quay(hgen, 44.0, z),
+            facing: self.quay(hgen, 0.0, z),
+        });
+        out
     }
 
     /// The structure as lines, which is what a flow field can be told about.

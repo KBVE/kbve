@@ -226,8 +226,23 @@ impl QFlowField {
     /// A grid of `cells` squares of `cell_size`, centred on the world origin.
     #[func]
     fn create(extent: f32, cell_size: f32) -> Gd<Self> {
+        Self::create_at(Vector2::ZERO, extent, cell_size)
+    }
+
+    /// The same grid centred anywhere, which is what a streaming world needs:
+    /// the ground the creatures walk moves with the terrain window, and a field
+    /// pinned to the origin goes stale the moment the window shifts -- past its
+    /// edge every query returns nothing, and a creature with no field walks a
+    /// straight line into whatever is in the way.
+    #[func]
+    fn create_at(centre: Vector2, extent: f32, cell_size: f32) -> Gd<Self> {
         let cells = ((extent * 2.0) / cell_size.max(0.1)).ceil().max(1.0) as usize;
-        let grid = Grid::new([-extent, -extent], cell_size, cells, cells);
+        let grid = Grid::new(
+            [centre.x - extent, centre.y - extent],
+            cell_size,
+            cells,
+            cells,
+        );
         Gd::from_init_fn(|base| Self {
             base,
             inner: Field::new(grid),

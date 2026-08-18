@@ -44,12 +44,20 @@ const GROUP := &"interactable"
 @export var turn_rate := 4.0
 @export var walk_animation := "UAL2/Walk_Fwd"
 
+const ANIM_BLEND := 0.3
+const ANIM_HOLD_MS := 400
+
+var _hold_until := 0
+
 const DRY_MARGIN := 0.6
 const DRY_STEP := 0.75
 const DRY_REACH := 60.0
 
 const LEFT_BEHIND := 3.0
 const CATCH_UP := 2.5
+const BLOCKED_FRACTION := 0.3
+const BLOCKED_AFTER := 0.5
+const SIDESTEP_FOR := 1.1
 const WORK_PREFIX := "UAL2/"
 
 const GRAVITY := -9.8
@@ -75,6 +83,10 @@ var _sim: Node
 var _sim_id := 0
 var _sim_off := false
 var _fall := 0.0
+var _last_spot := Vector3.ZERO
+var _blocked_t := 0.0
+var _sidestep_t := 0.0
+var _side := 1.0
 
 
 func _ready() -> void:
@@ -209,9 +221,11 @@ func rest() -> void:
 func meet() -> float:
 	if meeting_animation == "" or not _can_play(meeting_animation):
 		return 0.0
-	rig.animation.play(meeting_animation)
+	rig.animation.play(meeting_animation, ANIM_BLEND)
 	if _can_play(idle_animation):
 		rig.animation.queue(idle_animation)
+	_hold_until = Time.get_ticks_msec() + int(
+			rig.animation.get_animation(meeting_animation).length * 1000.0)
 	return rig.animation.get_animation(meeting_animation).length
 
 
@@ -219,7 +233,11 @@ func _perform(clip: String, fallback: String) -> void:
 	var wanted := clip if _can_play(clip) else fallback
 	if not _can_play(wanted) or rig.animation.current_animation == wanted:
 		return
-	rig.animation.play(wanted)
+	var now := Time.get_ticks_msec()
+	if now < _hold_until:
+		return
+	_hold_until = now + ANIM_HOLD_MS
+	rig.animation.play(wanted, ANIM_BLEND)
 
 
 func _can_play(clip: String) -> bool:
@@ -432,14 +450,37 @@ func _physics_process(delta: float) -> void:
 	var wish := Vector3.ZERO
 	if behind > reach * delta:
 		wish = step / behind * minf(reach, behind / delta)
+	wish = _steer_around(wish, delta)
 	_carry(wish, delta)
 
 	var walking: bool = here["walking"]
 	if wish == Vector3.ZERO and not walking:
 		_stand_at(int(here["stop"]), float(here["stood"]))
 		return
-	_turn_toward(here["heading"] if walking else step, delta)
+	_turn_toward(wish if wish != Vector3.ZERO else step, delta)
 	_perform(walk_animation, idle_animation)
+
+
+func _steer_around(wish: Vector3, delta: float) -> Vector3:
+	if _sim_id == 0 or wish == Vector3.ZERO:
+		_blocked_t = 0.0
+		_sidestep_t = 0.0
+		return wish
+	if _sidestep_t > 0.0:
+		_sidestep_t -= delta
+		return Vector3(-wish.z, 0.0, wish.x).normalized() * wish.length() * _side
+	var moved := global_position.distance_to(_last_spot)
+	_last_spot = global_position
+	if moved < wish.length() * delta * BLOCKED_FRACTION:
+		_blocked_t += delta
+	else:
+		_blocked_t = 0.0
+	if _blocked_t >= BLOCKED_AFTER:
+		_blocked_t = 0.0
+		_sidestep_t = SIDESTEP_FOR
+		_side = -_side
+		return Vector3(-wish.z, 0.0, wish.x).normalized() * wish.length() * _side
+	return wish
 
 
 func _carry(wish: Vector3, delta: float) -> void:

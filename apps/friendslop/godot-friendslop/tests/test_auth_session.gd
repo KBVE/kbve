@@ -118,3 +118,22 @@ func test_every_transition_announces_itself() -> void:
 	auth.sign_in_as_guest()
 	auth.sign_out()
 	assert_int(seen[0]).is_equal(2)
+
+
+func test_providers_follow_the_server_settings() -> void:
+	var live := AuthSessionScript.providers_in({
+		"external": {"discord": true, "github": false, "twitch": true, "google": true},
+	})
+	assert_array(live).contains_exactly(["discord", "twitch"])
+
+
+func test_providers_ignore_a_server_provider_the_game_cannot_brand() -> void:
+	var live := AuthSessionScript.providers_in({"external": {"google": true, "apple": true}})
+	assert_array(live).is_empty()
+
+
+func test_providers_fall_back_when_the_settings_are_unusable() -> void:
+	assert_array(AuthSessionScript.providers_in({})).contains_exactly(AuthSessionScript.PROVIDERS)
+	assert_array(AuthSessionScript.providers_in({"external": "nope"})).contains_exactly(
+		AuthSessionScript.PROVIDERS
+	)

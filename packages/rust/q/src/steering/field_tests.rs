@@ -173,6 +173,45 @@ fn water_and_cliffs_are_stamped_out() {
     assert!(blocked_at(18, 22), "cliff stayed walkable");
 }
 
+/// The same trench and cliff, in a grid nowhere near the world origin. The
+/// streaming world hands this exact shape to the field: a heightmap covering
+/// the terrain window, wherever the window is. A mapping that quietly assumed
+/// the origin read the wrong heights for every relocated cell -- ground here
+/// was judged by ground a kilometre away.
+#[test]
+fn terrain_stamps_the_same_wherever_the_grid_sits() {
+    let res = 32usize;
+    let extent = 16.0f32;
+    let centre = [1024.0f32, -512.0];
+    let mut heights = vec![5.0f32; res * res];
+    for y in 0..res {
+        heights[y * res + 8] = -1.0;
+        heights[y * res + 20] = 60.0;
+    }
+    let mut field = Field::new(Grid::new(
+        [centre[0] - extent, centre[1] - extent],
+        1.0,
+        32,
+        32,
+    ));
+    field.stamp_terrain(&heights, res, extent, 0.0, 4.0);
+    let (_, row) = field.grid.cell_of(centre);
+    let blocked_at =
+        |from: usize, to: usize| (from..=to).any(|x| field.grid.cost(x, row) == BLOCKED);
+    assert!(blocked_at(7, 9), "water stayed walkable in a moved window");
+    assert!(
+        blocked_at(18, 22),
+        "cliff stayed walkable in a moved window"
+    );
+    let open = (0..32)
+        .filter(|x| field.grid.cost(*x, row) != BLOCKED)
+        .count();
+    assert!(
+        open > 20,
+        "a moved window closed ground that is flat and dry"
+    );
+}
+
 #[test]
 fn building_is_deterministic() {
     let build = || {

@@ -9,6 +9,7 @@ use super::map::{self, Cell, Grid, Links};
 use super::text::Rng;
 use super::text::strip_markup;
 use super::{Flow, Game};
+use crate::bbs::door::DoorContext;
 use crate::bbs::render::{Ink, Screen, wrap_lines};
 
 const LOG_KEPT: usize = 12;
@@ -145,10 +146,11 @@ pub struct Run {
     actor: PlayerId,
     view: View,
     notice: Option<String>,
+    guest: bool,
 }
 
 impl Run {
-    pub fn new(mut rng: Rng, handle: &str) -> Self {
+    pub fn new(mut rng: Rng, ctx: &DoorContext) -> Self {
         let actor = PlayerId::new(rng.next_u64() | 1);
         let class = match rng.below(3) {
             0 => ClassType::Warrior,
@@ -156,10 +158,11 @@ impl Run {
             _ => ClassType::Cleric,
         };
         Self {
-            state: start_solo(actor, handle, class),
+            state: start_solo(actor, &ctx.handle, class),
             actor,
             view: View::Play,
             notice: None,
+            guest: !ctx.authed(),
         }
     }
 
@@ -721,10 +724,12 @@ impl Game for Run {
             View::Play => {
                 draw_frame(screen, &self.frame());
                 self.draw_notice(screen);
-                screen
-                    .ink(Ink::Dim)
-                    .line("progress is not saved yet")
-                    .reset();
+                let footer = if self.guest {
+                    "guest run - progress is not saved"
+                } else {
+                    "progress is not saved yet"
+                };
+                screen.ink(Ink::Dim).line(footer).reset();
                 screen.item('Q', "Back");
             }
         }

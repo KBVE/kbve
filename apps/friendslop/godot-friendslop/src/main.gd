@@ -76,7 +76,52 @@ func bisect_name() -> String:
 	return BISECT_STEPS[bisect_step].name
 
 
+const SAVE_DIR := "user://world"
+const SAVE_FIELDS: Dictionary[String, String] = {"TreeField": "trees.hrv", "StoneField": "stones.hrv"}
+const SAVE_INTERVAL := 20.0
+
+var _save_clock := 0.0
+
+
+func _load_harvest() -> void:
+	for field_name in SAVE_FIELDS:
+		var field := get_node_or_null(NodePath(field_name))
+		if field == null or not field.has_method("import_harvest"):
+			continue
+		var path: String = SAVE_DIR + "/" + str(SAVE_FIELDS[field_name])
+		if not FileAccess.file_exists(path):
+			continue
+		var bytes := FileAccess.get_file_as_bytes(path)
+		if bytes.is_empty() or not field.import_harvest(bytes):
+			push_warning("[q] harvest save ignored (wrong world?): " + path)
+
+
+func _save_harvest() -> void:
+	DirAccess.make_dir_recursive_absolute(SAVE_DIR)
+	for field_name in SAVE_FIELDS:
+		var field := get_node_or_null(NodePath(field_name))
+		if field == null or not field.has_method("export_harvest"):
+			continue
+		var file := FileAccess.open(SAVE_DIR + "/" + SAVE_FIELDS[field_name], FileAccess.WRITE)
+		if file:
+			file.store_buffer(field.export_harvest())
+			file.close()
+
+
+func _process(delta: float) -> void:
+	_save_clock += delta
+	if _save_clock >= SAVE_INTERVAL:
+		_save_clock = 0.0
+		_save_harvest()
+
+
+func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST or what == NOTIFICATION_EXIT_TREE:
+		_save_harvest()
+
+
 func _ready() -> void:
+	_load_harvest()
 	var scale_override := OS.get_environment("Q_SCALE")
 	if scale_override != "":
 		get_viewport().scaling_3d_scale = clampf(float(scale_override), 0.1, 2.0)

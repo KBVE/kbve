@@ -18,8 +18,6 @@ const TIMEOUT_SECONDS := 15.0
 
 const PROVIDERS := ["discord", "github", "twitch"]
 
-const TODO_PROVIDERS := ["google", "apple"]
-
 const REFRESH_MARGIN_SECONDS := 60
 
 const STORE_PATH := "user://session.cfg"
@@ -32,6 +30,8 @@ var _refresh_token := ""
 var _expires_at := 0
 var _username := ""
 var _error := ""
+var _providers := PackedStringArray(PROVIDERS)
+var _providers_checked := false
 
 
 func _ready() -> void:
@@ -102,6 +102,26 @@ func sign_in_with_provider(provider: String) -> Error:
 		"auth_code": answer["code"],
 		"code_verifier": verifier,
 	}))
+
+
+func enabled_providers() -> PackedStringArray:
+	if not _providers_checked:
+		_providers_checked = true
+		var answer := await _fetch("/auth/v1/settings")
+		if answer.get("code", 0) == 200:
+			_providers = providers_in(answer.get("body", {}))
+	return _providers
+
+
+static func providers_in(settings: Dictionary) -> PackedStringArray:
+	var external: Variant = settings.get("external", {})
+	if typeof(external) != TYPE_DICTIONARY or (external as Dictionary).is_empty():
+		return PackedStringArray(PROVIDERS)
+	var live := PackedStringArray()
+	for provider in PROVIDERS:
+		if external.get(provider, false) == true:
+			live.append(provider)
+	return live
 
 
 static func authorize_url(provider: String, port: int, verifier: String) -> String:
@@ -278,6 +298,35 @@ static func _message_in(body: Dictionary, code: int) -> String:
 				return "Sign-in from the game is not available yet — play as a guest."
 			return value
 	return "Sign-in failed (%d)." % code
+
+
+func _fetch(path: String) -> Dictionary:
+	var request := HTTPRequest.new()
+	request.timeout = TIMEOUT_SECONDS
+	add_child(request)
+
+	var headers := PackedStringArray([
+		"apikey: " + ANON_KEY,
+		"Authorization: Bearer " + ANON_KEY,
+	])
+	var err := request.request(SUPABASE_URL + path, headers, HTTPClient.METHOD_GET)
+	if err != OK:
+		request.queue_free()
+		return {"code": 0, "error": "Could not start the request (%d)." % err}
+
+	var answer: Array = await request.request_completed
+	request.queue_free()
+
+	var result: int = answer[0]
+	var code: int = answer[1]
+	if result != HTTPRequest.RESULT_SUCCESS:
+		return {"code": 0, "error": "Could not reach the sign-in server."}
+
+	var parsed = JSON.parse_string((answer[3] as PackedByteArray).get_string_from_utf8())
+	return {
+		"code": code,
+		"body": parsed if typeof(parsed) == TYPE_DICTIONARY else {},
+	}
 
 
 func _post(path: String, payload: Dictionary) -> Dictionary:

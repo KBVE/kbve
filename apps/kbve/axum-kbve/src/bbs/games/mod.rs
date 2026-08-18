@@ -16,49 +16,23 @@ pub enum Flow {
     Exit,
 }
 
-/// A single-key, full-redraw game. Kept free of I/O so every game is
-/// testable by feeding it keys and reading the buffer back.
+/// What runs behind a door. Kept free of I/O so every game is testable by
+/// feeding it keys and reading the buffer back.
 pub trait Game {
     fn title(&self) -> &str;
     fn draw(&self, screen: &mut Screen);
     fn on_key(&mut self, key: char) -> Flow;
-}
 
-pub struct Entry {
-    pub key: char,
-    pub label: &'static str,
-}
+    /// A door that needs more than one keystroke — a quantity, a name — draws
+    /// its prompt here. While this is `Some` the board collects a line and
+    /// delivers it to `on_line`, and `on_key` is not called at all.
+    fn prompt(&self) -> Option<&str> {
+        None
+    }
 
-pub const CATALOG: &[Entry] = &[
-    Entry {
-        key: '1',
-        label: "Dungeons",
-    },
-    Entry {
-        key: '2',
-        label: "Blackjack",
-    },
-    Entry {
-        key: '3',
-        label: "Tic-tac-toe",
-    },
-    Entry {
-        key: '4',
-        label: "Hangman",
-    },
-    Entry {
-        key: '5',
-        label: "High-low",
-    },
-];
-
-pub fn launch(key: char, handle: &str) -> Option<Box<dyn Game + Send>> {
-    match key {
-        '1' => Some(Box::new(run::Run::new(text::Rng::from_clock(), handle))),
-        '2' => Some(Box::new(blackjack::Blackjack::new(text::Rng::from_clock()))),
-        '3' => Some(Box::new(tictactoe::TicTacToe::new(text::Rng::from_clock()))),
-        '4' => Some(Box::new(hangman::Hangman::new(text::Rng::from_clock()))),
-        '5' => Some(Box::new(highlow::HighLow::new(text::Rng::from_clock()))),
-        _ => None,
+    /// The caller's line, already trimmed of the terminator. Empty means they
+    /// pressed escape, which every prompt has to accept as a way out.
+    fn on_line(&mut self, _line: &str) -> Flow {
+        Flow::Continue
     }
 }
