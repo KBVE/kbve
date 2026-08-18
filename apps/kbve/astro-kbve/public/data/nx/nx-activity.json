@@ -1,180 +1,180 @@
 {
-  "generated_at": "2026-08-17T02:20:04Z",
+  "generated_at": "2026-08-18T02:16:08Z",
   "window": {
     "days": 7,
-    "since": "2026-08-10T02:20:04Z"
+    "since": "2026-08-11T02:16:08Z"
   },
   "commits": {
-    "total": 463,
+    "total": 496,
     "authors": 3,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 336
+        "commits": 354
       },
       {
         "author": "github-actions[bot]",
-        "commits": 124
+        "commits": 136
       },
       {
         "author": "dependabot[bot]",
-        "commits": 3
+        "commits": 6
       }
     ],
     "recent": [
       {
-        "sha": "d8c8abe",
+        "sha": "a7d6097",
         "author": "h0lybyte",
-        "message": "Merge pull request #15919 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/d8c8abea942013888cfaedd37856fd23547cdde8",
-        "date": "2026-08-16T20:46:04Z"
+        "message": "Merge pull request #16006 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/a7d609755b69b18c4917af82a7553f838f34e5a9",
+        "date": "2026-08-18T00:40:32Z"
       },
       {
-        "sha": "0d79620",
+        "sha": "02eae9a",
+        "author": "h0lybyte",
+        "message": "fix(kilobase): scope job policy to runner SA, zstd WAL compression (#16009) (#16010)",
+        "url": "https://github.com/KBVE/kbve/commit/02eae9a68b3472774100b962aa24374bfe6f74d3",
+        "date": "2026-08-18T00:37:56Z"
+      },
+      {
+        "sha": "4a0ecfe",
+        "author": "h0lybyte",
+        "message": "fix(kilobase): run barman retention sweep daily not every 30m (#16008)",
+        "url": "https://github.com/KBVE/kbve/commit/4a0ecfe6013a60d033c402d2b59d61f54bede811",
+        "date": "2026-08-17T23:20:02Z"
+      },
+      {
+        "sha": "2be0860",
+        "author": "h0lybyte",
+        "message": "revert(friendslop): stop driving remote avatars airborne from the host's grounded (#16007)",
+        "url": "https://github.com/KBVE/kbve/commit/2be08601488d656c6ba0190b2d34021f26b92589",
+        "date": "2026-08-17T21:35:27Z"
+      },
+      {
+        "sha": "351384f",
+        "author": "h0lybyte",
+        "message": "fix(friendslop): tell remote avatars when the host has them off the ground (#16005)",
+        "url": "https://github.com/KBVE/kbve/commit/351384f5f8355e571c534671270436cd460b7b82",
+        "date": "2026-08-17T21:27:14Z"
+      },
+      {
+        "sha": "9ee5989",
+        "author": "h0lybyte",
+        "message": "Merge pull request #16004 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/9ee5989c7bbdace0c1d90191234cb63e9c59d47d",
+        "date": "2026-08-17T10:53:01Z"
+      },
+      {
+        "sha": "faba5cb",
         "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#15928)",
-        "url": "https://github.com/KBVE/kbve/commit/0d796208efafb04b971227c421d2e1cc774e2055",
-        "date": "2026-08-16T20:45:41Z"
+        "message": "chore(friendslop-server): post-publish sync to v0.0.9 (#16003)",
+        "url": "https://github.com/KBVE/kbve/commit/faba5cb8829549c0620b18884a1585d9ab5378d5",
+        "date": "2026-08-17T10:45:33Z"
       },
       {
-        "sha": "724a8f5",
+        "sha": "aa7398a",
         "author": "h0lybyte",
-        "message": "chore(kbve): preparing reel release of v0.1.44",
-        "url": "https://github.com/KBVE/kbve/commit/724a8f597bd22c9c908fc05f2e56f294385a5ec8",
-        "date": "2026-08-16T20:44:00Z"
+        "message": "fix(ci): keep the Godot suite out of the LFS-less affected sweep (#16002)",
+        "url": "https://github.com/KBVE/kbve/commit/aa7398a081e43136050a2f25a730204b365fbe4e",
+        "date": "2026-08-17T10:45:26Z"
       },
       {
-        "sha": "d515363",
+        "sha": "7294c1c",
         "author": "h0lybyte",
-        "message": "chore(kbve): preparing the release of v1.0.287",
-        "url": "https://github.com/KBVE/kbve/commit/d5153633fb9f72077579d5ce51b691692432cf9b",
-        "date": "2026-08-16T20:43:18Z"
+        "message": "Merge pull request #15999 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/7294c1c8de93e315ddc1d537c40ccc7747f7d186",
+        "date": "2026-08-17T10:31:59Z"
       },
       {
-        "sha": "f35bec2",
+        "sha": "e45beae",
         "author": "h0lybyte",
-        "message": "chore(godot): resolving some missing import files.",
-        "url": "https://github.com/KBVE/kbve/commit/f35bec26f97d2009a2fe836ed2564a6f2aad07b8",
-        "date": "2026-08-16T20:42:17Z"
+        "message": "release(friendslop-server): 0.0.9 (#16001)",
+        "url": "https://github.com/KBVE/kbve/commit/e45beae00e8a007d5f8fac86e8f8379faecbd9a4",
+        "date": "2026-08-17T10:31:42Z"
       },
       {
-        "sha": "799c480",
+        "sha": "f2fbec2",
         "author": "h0lybyte",
-        "message": "refactor(astro-kbve): share one form primitive set between the auth screens (#15926)",
-        "url": "https://github.com/KBVE/kbve/commit/799c480d4301c8d8ad95d7039b74eef8c8228704",
-        "date": "2026-08-16T20:21:29Z"
+        "message": "fix(friendslop): accept the issuer GoTrue actually signs with (#16000)",
+        "url": "https://github.com/KBVE/kbve/commit/f2fbec2e8d2701f89fa0d8b939e6b3b8de8f1352",
+        "date": "2026-08-17T10:24:39Z"
       },
       {
-        "sha": "c5e8c54",
+        "sha": "deaf674",
         "author": "h0lybyte",
-        "message": "fix(reel): keep the billing channel off the public edge (#15925)",
-        "url": "https://github.com/KBVE/kbve/commit/c5e8c548d0c131132c06a32f4325c9b790806a63",
-        "date": "2026-08-16T20:18:51Z"
-      },
-      {
-        "sha": "b5eed09",
-        "author": "h0lybyte",
-        "message": "feat(friendslop): offer Twitch, and put each provider in its own colours (#15924)",
-        "url": "https://github.com/KBVE/kbve/commit/b5eed091352682ac9c69aa249f256d6ea9599cbd",
-        "date": "2026-08-16T20:13:50Z"
-      },
-      {
-        "sha": "6dc2c25",
-        "author": "h0lybyte",
-        "message": "fix(godot): resolving the touch controls.",
-        "url": "https://github.com/KBVE/kbve/commit/6dc2c2590fdcf694296382453a1590802e09ce6d",
-        "date": "2026-08-16T20:13:00Z"
-      },
-      {
-        "sha": "3dc73f3",
-        "author": "h0lybyte",
-        "message": "feat(friendslop): ask a brand-new account to pick a handle (#15923)",
-        "url": "https://github.com/KBVE/kbve/commit/3dc73f3053de70c6d0822a228d69c61376bcb8e6",
-        "date": "2026-08-16T20:11:27Z"
-      },
-      {
-        "sha": "ec8a94d",
-        "author": "h0lybyte",
-        "message": "fix(astro): trim trailing slashes without a quadratic regex (#15911)",
-        "url": "https://github.com/KBVE/kbve/commit/ec8a94dfacf642a9c57d81b3661ae0b1901efa75",
-        "date": "2026-08-16T20:11:14Z"
-      },
-      {
-        "sha": "1cc5d36",
-        "author": "h0lybyte",
-        "message": "feat(reel): bill fetches to the caller's wallet at 1 credit per MiB (#15922)",
-        "url": "https://github.com/KBVE/kbve/commit/1cc5d36a1a1275d049c51b4e742b559ca9bce43a",
-        "date": "2026-08-16T20:10:01Z"
+        "message": "fix(godot): updating the ground shader.",
+        "url": "https://github.com/KBVE/kbve/commit/deaf674c39f6eba81a3fa978d935b6712a948b04",
+        "date": "2026-08-17T09:45:36Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 339,
+    "merged": 380,
     "recent": [
       {
-        "number": 15949,
-        "title": "refactor(friendslop): put the creature tuning in one place",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15949"
+        "number": 16013,
+        "title": "chore(ci): sync ci-dispatch-manifest",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16013"
       },
       {
-        "number": 15951,
-        "title": "feat(friendslop): give the satchel a face",
+        "number": 16011,
+        "title": "feat(astro-kbve): rebuild the reel console layout",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15951"
+        "url": "https://github.com/KBVE/kbve/pull/16011"
       },
       {
-        "number": 15950,
-        "title": "feat(friendslop): give everybody a body and something to do with it",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15950"
+        "number": 16006,
+        "title": "Release: 3 fixes \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16006"
       },
       {
-        "number": 15948,
-        "title": "fix(q): gate travel on the turn, not the shove",
+        "number": 16010,
+        "title": "fix(kilobase): scope job policy to runner SA, zstd WAL compression (#16009)",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15948"
+        "url": "https://github.com/KBVE/kbve/pull/16010"
       },
       {
-        "number": 15947,
-        "title": "fix(friendslop): give the creatures their gravity back",
+        "number": 16008,
+        "title": "fix(kilobase): run barman retention sweep daily not every 30m",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15947"
+        "url": "https://github.com/KBVE/kbve/pull/16008"
       },
       {
-        "number": 15946,
-        "title": "docs(friendslop): write down that solo and online are two different simulations",
+        "number": 16007,
+        "title": "revert(friendslop): stop driving remote avatars airborne from the host's grounded",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15946"
+        "url": "https://github.com/KBVE/kbve/pull/16007"
       },
       {
-        "number": 15945,
-        "title": "fix(ci): name the shell the Godot test container runs its steps under",
+        "number": 16005,
+        "title": "fix(friendslop): tell remote avatars when the host has them off the ground",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15945"
+        "url": "https://github.com/KBVE/kbve/pull/16005"
       },
       {
-        "number": 15944,
-        "title": "feat(friendslop): size the dialogue box to what is being said",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15944"
+        "number": 16004,
+        "title": "Release: 1 fix, 1 chore \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16004"
       },
       {
-        "number": 15943,
-        "title": "feat(friendslop): let people form an opinion of the player and greet them by it",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15943"
+        "number": 16003,
+        "title": "Atomic: friendslop-server v0.0.9 post-publish sync",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16003"
       },
       {
-        "number": 15942,
-        "title": "fix(friendslop): stop an introduction that never ends from ending the game",
+        "number": 16002,
+        "title": "fix(ci): keep the Godot suite out of the LFS-less affected sweep",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/15942"
+        "url": "https://github.com/KBVE/kbve/pull/16002"
       }
     ]
   },
   "issues": {
-    "opened": 356,
-    "closed": 356
+    "opened": 397,
+    "closed": 398
   }
 }
