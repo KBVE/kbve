@@ -82,7 +82,7 @@
 		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
-			"version": "1.0.287",
+			"version": "1.0.288",
 			"version_toml": "apps/kbve/axum-kbve/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/api.mdx",
 			"version_target": "apps/kbve/axum-kbve/Cargo.toml",
@@ -575,7 +575,7 @@
 		{
 			"key": "reel",
 			"app_name": "reel",
-			"version": "0.1.44",
+			"version": "0.1.45",
 			"version_toml": "apps/media/reel/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/reel.mdx",
 			"version_target": "apps/media/reel/Cargo.toml",
