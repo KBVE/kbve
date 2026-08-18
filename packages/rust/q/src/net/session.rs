@@ -530,20 +530,38 @@ impl<T: Transport> HostSession<T> {
     /// A point on a golden-angle spiral inside `spawn_radius`, lifted to stand on the
     /// ground rather than at a fixed altitude — terrain runs to roughly 7.5 and the old
     /// fixed 5.0 buried players on any hill.
+    ///
+    /// Wet ground is walked past, not spawned into. The river wanders sixty-odd
+    /// metres either side of the world's middle and the spawn disc is twelve, so
+    /// on essentially every seed the plain spiral put somebody in the riverbed —
+    /// measured at five hundred seeds out of five hundred. The escape continues
+    /// the same spiral outward, one full ring of slots at a time, so it stays a
+    /// pure function of the slot and two players can never be walked onto the
+    /// same point. Bounded, because on a world whose middle is open sea there is
+    /// no dry ground within any reasonable reach and standing in water beats
+    /// spawning at a point the search never returned from.
     fn spawn_point(&self, slot: u32) -> Iso {
         const GOLDEN_ANGLE: f32 = 2.399_963_2;
-        let n = slot as f32;
-        let r = self.config.spawn_radius * (n / self.config.max_players.max(1) as f32).sqrt();
-        let angle = n * GOLDEN_ANGLE;
-        let (x, z) = (r * angle.cos(), r * angle.sin());
-        let y = match self.ground.as_ref() {
-            Some(sample) => {
-                let h = sample(x, z);
-                if h.is_finite() { h + 1.5 } else { 5.0 }
+        let ring = self.config.max_players.max(1) as u32;
+        let mut fallback = None;
+        for round in 0..24u32 {
+            let n = (slot + round * ring) as f32;
+            let r = self.config.spawn_radius * (n / ring as f32).sqrt();
+            let angle = n * GOLDEN_ANGLE;
+            let (x, z) = (r * angle.cos(), r * angle.sin());
+            let Some(sample) = self.ground.as_ref() else {
+                return Iso::at(x, 5.0, z);
+            };
+            let h = sample(x, z);
+            if !h.is_finite() {
+                return Iso::at(x, 5.0, z);
             }
-            None => 5.0,
-        };
-        Iso::at(x, y, z)
+            if h > self.config.water_level + 0.4 {
+                return Iso::at(x, h + 1.5, z);
+            }
+            fallback.get_or_insert(Iso::at(x, h + 1.5, z));
+        }
+        fallback.expect("first round always records a fallback")
     }
 
     pub fn world_mut(&mut self) -> &mut SimWorld {
@@ -2629,6 +2647,87 @@ mod tests {
         );
     }
 
+    /// The guarantee a join rests on, sworn across seeds rather than at one:
+    /// nobody's first moment in the world is underwater.
+    ///
+    /// Before the spiral learned to walk past wet ground this failed on five
+    /// hundred seeds out of five hundred -- the river wanders sixty-odd metres
+    /// either side of the world's middle and the spawn disc is twelve, so the
+    /// plain spiral stood somebody in the riverbed on essentially every world.
+    #[test]
+    fn every_seed_spawns_every_slot_on_dry_ground() {
+        use crate::worldgen::{HeightGen, HeightParams};
+        for seed in 0..200 {
+            let sampler = HeightGen::new(&HeightParams {
+                seed,
+                ..Default::default()
+            });
+            let mesh = Loopback::mesh(2);
+            let host = HostSession::dedicated(
+                mesh[0].clone(),
+                SessionConfig::default(),
+                SimConfig::default(),
+                seed as u64,
+            )
+            .with_ground(Arc::new(move |x, z| sampler.height(x, z)));
+            let probe = HeightGen::new(&HeightParams {
+                seed,
+                ..Default::default()
+            });
+            for slot in 0..host.config.max_players as u32 {
+                let p = host.spawn_point(slot);
+                let ground = probe.height(p.pos[0], p.pos[2]);
+                assert!(
+                    ground > host.config.water_level + 0.35,
+                    "seed {seed} slot {slot} spawned on wet ground ({ground:.2}) at \
+                     ({:.1}, {:.1})",
+                    p.pos[0],
+                    p.pos[2]
+                );
+                assert!(
+                    (p.pos[1] - (ground + 1.5)).abs() < 1e-3,
+                    "seed {seed} slot {slot} does not stand on its own ground"
+                );
+            }
+        }
+    }
+
+    /// Two players may never be walked onto the same point, however far the
+    /// escape had to go, and the point a slot gets must not depend on who asked
+    /// first -- it is re-derived on every respawn.
+    #[test]
+    fn escaped_spawns_stay_distinct_and_deterministic() {
+        use crate::worldgen::{HeightGen, HeightParams};
+        for seed in [0i32, 7, 1337, 4242] {
+            let sampler = HeightGen::new(&HeightParams {
+                seed,
+                ..Default::default()
+            });
+            let mesh = Loopback::mesh(2);
+            let host = HostSession::dedicated(
+                mesh[0].clone(),
+                SessionConfig::default(),
+                SimConfig::default(),
+                seed as u64,
+            )
+            .with_ground(Arc::new(move |x, z| sampler.height(x, z)));
+            let mut seen: Vec<[f32; 3]> = Vec::new();
+            for slot in 0..host.config.max_players as u32 {
+                let a = host.spawn_point(slot);
+                let b = host.spawn_point(slot);
+                assert_eq!(a.pos, b.pos, "seed {seed} slot {slot} is not deterministic");
+                for (other, q) in seen.iter().enumerate() {
+                    let d = ((a.pos[0] - q[0]).powi(2) + (a.pos[2] - q[2]).powi(2)).sqrt();
+                    assert!(
+                        d > 0.5,
+                        "seed {seed} slots {other} and {slot} spawn {d:.2}m apart"
+                    );
+                }
+                seen.push(a.pos);
+            }
+        }
+    }
+
     #[test]
     fn falling_out_of_the_world_puts_a_player_back() {
         let (mut host, mut client) = host_and_client();
@@ -3015,7 +3114,7 @@ mod tests {
 
         // Ticks far above anything the host has reached, so the real broadcasts already
         // in flight cannot decide this.
-        let mut deliver = |client: &mut ClientSession<Loopback>, tick: u64, seq: u32| {
+        let deliver = |client: &mut ClientSession<Loopback>, tick: u64, seq: u32| {
             let bytes = proto::encode(&SessionMsg::Snapshot {
                 sim: SimSnapshot {
                     tick,
