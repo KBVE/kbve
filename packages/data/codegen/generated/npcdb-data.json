@@ -2273,6 +2273,105 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Dockhand",
+        "hidden": true
+      },
+      "description": "Works a harbour quay. Has carried everything the river brings and formed opinions\nabout most of it.\n",
+      "ref": "dockhand",
+      "id": "01KSAVZ0000000000000DOCKHD",
+      "name": "Dockhand",
+      "typeFlags": 1,
+      "rarity": "NPC_RARITY_COMMON",
+      "personality": "PERSONALITY_GRUFF",
+      "rank": "NPC_RANK_NORMAL",
+      "family": "CREATURE_FAMILY_HUMANOID",
+      "level": 1,
+      "role": "Dockhand",
+      "tags": [
+        "friendslop",
+        "harbour",
+        "talker"
+      ],
+      "routine": {
+        "stops": [
+          {
+            "hour": 5,
+            "offsetX": 0,
+            "offsetZ": 0
+          },
+          {
+            "hour": 10,
+            "offsetX": 0,
+            "offsetZ": -4
+          },
+          {
+            "hour": 15,
+            "offsetX": 2.5,
+            "offsetZ": 0
+          },
+          {
+            "hour": 20,
+            "offsetX": 0,
+            "offsetZ": 0
+          }
+        ],
+        "walkSpeed": 1
+      },
+      "dialogueTree": {
+        "entryNodeId": "greet",
+        "nodes": [
+          {
+            "id": "greet",
+            "text": "Mind the edge. Everyone says they're minding the edge right up until they aren't.",
+            "condition": "!seen:greet",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "greet_again",
+            "text": "Still dry, I see. Good.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "menu",
+            "text": "You want something or you want to stand there?",
+            "options": [
+              {
+                "id": "ask_river",
+                "label": "What's the river like?",
+                "nextNodeId": "river"
+              },
+              {
+                "id": "ask_work",
+                "label": "What do you shift?",
+                "nextNodeId": "work"
+              },
+              {
+                "id": "leave",
+                "label": "Stand there, mostly.",
+                "nextNodeId": "bye"
+              }
+            ]
+          },
+          {
+            "id": "river",
+            "text": "Moves. That's the whole of it. Where it ran last year there's grass, and where there was grass I've lost a boot.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "work",
+            "text": "Whatever comes off the piers and up the road. Ask again when my back's better.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "bye",
+            "text": "Suit yourself. Mind the edge."
+          }
+        ]
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Duskwing",
         "hidden": true
       },
@@ -3429,6 +3528,105 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Gate Warden",
+        "hidden": true
+      },
+      "description": "Stands the gateway of a walled capital. Has watched the road long enough to know\nwho is on it before they arrive, and says so whether or not you asked.\n",
+      "ref": "gate-warden",
+      "id": "01KSAVZ0000000000000WARDEN",
+      "name": "Gate Warden",
+      "typeFlags": 1,
+      "rarity": "NPC_RARITY_COMMON",
+      "personality": "PERSONALITY_STOIC",
+      "rank": "NPC_RANK_NORMAL",
+      "family": "CREATURE_FAMILY_HUMANOID",
+      "level": 1,
+      "role": "Warden",
+      "tags": [
+        "friendslop",
+        "capital",
+        "talker"
+      ],
+      "routine": {
+        "stops": [
+          {
+            "hour": 6,
+            "offsetX": 0,
+            "offsetZ": 0
+          },
+          {
+            "hour": 12,
+            "offsetX": 0,
+            "offsetZ": 3
+          },
+          {
+            "hour": 18,
+            "offsetX": 0,
+            "offsetZ": 0
+          },
+          {
+            "hour": 22,
+            "offsetX": -2,
+            "offsetZ": 0
+          }
+        ],
+        "walkSpeed": 0.9
+      },
+      "dialogueTree": {
+        "entryNodeId": "greet",
+        "nodes": [
+          {
+            "id": "greet",
+            "text": "Road's long and the gate's open. Wipe your feet or don't, I'm not the one sweeping.",
+            "condition": "!seen:greet",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "greet_again",
+            "text": "Back through, then.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "menu",
+            "text": "Something you wanted, or just the shade?",
+            "options": [
+              {
+                "id": "ask_city",
+                "label": "What is this place?",
+                "nextNodeId": "city"
+              },
+              {
+                "id": "ask_road",
+                "label": "Where does the road go?",
+                "nextNodeId": "road"
+              },
+              {
+                "id": "leave",
+                "label": "Nothing. Carry on.",
+                "nextNodeId": "bye"
+              }
+            ]
+          },
+          {
+            "id": "city",
+            "text": "Walls, a keep, and everyone inside them convinced the walls are for somebody else's benefit.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "road",
+            "text": "Down to the water, same as every road here. Follow it far enough and you'll smell the quay before you see it.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "bye",
+            "text": "Mm."
+          }
+        ]
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Glacierfang",
         "hidden": true
       },
@@ -4410,6 +4608,200 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Harbourmaster",
+        "hidden": true
+      },
+      "description": "Runs a harbour and the ledger that says what came off it. Knows the channel has\nmoved and has decided the paperwork will not acknowledge that.\n",
+      "ref": "harbourmaster",
+      "id": "01KSAVZ0000000000000HARBRM",
+      "name": "Harbourmaster",
+      "typeFlags": 1,
+      "rarity": "NPC_RARITY_COMMON",
+      "personality": "PERSONALITY_CUNNING",
+      "rank": "NPC_RANK_NORMAL",
+      "family": "CREATURE_FAMILY_HUMANOID",
+      "level": 1,
+      "role": "Harbourmaster",
+      "tags": [
+        "friendslop",
+        "harbour",
+        "talker",
+        "merchant"
+      ],
+      "routine": {
+        "stops": [
+          {
+            "hour": 6,
+            "offsetX": 0,
+            "offsetZ": 0
+          },
+          {
+            "hour": 11,
+            "offsetX": -3,
+            "offsetZ": 3
+          },
+          {
+            "hour": 16,
+            "offsetX": 0,
+            "offsetZ": 0
+          },
+          {
+            "hour": 21,
+            "offsetX": 2,
+            "offsetZ": -2.5
+          }
+        ],
+        "walkSpeed": 0.95
+      },
+      "dialogueTree": {
+        "entryNodeId": "greet",
+        "nodes": [
+          {
+            "id": "greet",
+            "text": "If you're here about the channel, it hasn't moved. If you're here about anything else, come in.",
+            "condition": "!seen:greet",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "greet_again",
+            "text": "It still hasn't moved.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "menu",
+            "text": "Go on, then.",
+            "options": [
+              {
+                "id": "ask_channel",
+                "label": "The channel has moved.",
+                "nextNodeId": "channel"
+              },
+              {
+                "id": "ask_capital",
+                "label": "Where does the cargo go?",
+                "nextNodeId": "capital"
+              },
+              {
+                "id": "leave",
+                "label": "Nothing at all.",
+                "nextNodeId": "bye"
+              }
+            ]
+          },
+          {
+            "id": "channel",
+            "text": "The channel is where the map says it is. The water is somewhere else. Those are two separate problems and only one of them is mine.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "capital",
+            "text": "Up the road to the walls, and back down as something dearer. That's trade. I take a slice of both directions.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "bye",
+            "text": "Then we agree the channel hasn't moved."
+          }
+        ]
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
+        "label": "Keep Steward",
+        "hidden": true
+      },
+      "description": "Keeps the door of the keep and the ledger behind it. Considers the walls a filing\nproblem that got out of hand.\n",
+      "ref": "keep-steward",
+      "id": "01KSAVZ0000000000000STEWRD",
+      "name": "Keep Steward",
+      "typeFlags": 1,
+      "rarity": "NPC_RARITY_COMMON",
+      "personality": "PERSONALITY_SERIOUS",
+      "rank": "NPC_RANK_NORMAL",
+      "family": "CREATURE_FAMILY_HUMANOID",
+      "level": 1,
+      "role": "Steward",
+      "tags": [
+        "friendslop",
+        "capital",
+        "talker"
+      ],
+      "routine": {
+        "stops": [
+          {
+            "hour": 7,
+            "offsetX": 0,
+            "offsetZ": 0
+          },
+          {
+            "hour": 13,
+            "offsetX": -2.5,
+            "offsetZ": 2
+          },
+          {
+            "hour": 20,
+            "offsetX": 0,
+            "offsetZ": 0
+          }
+        ],
+        "walkSpeed": 0.85
+      },
+      "dialogueTree": {
+        "entryNodeId": "greet",
+        "nodes": [
+          {
+            "id": "greet",
+            "text": "The keep is not open. I say that first because it saves us both the walk.",
+            "condition": "!seen:greet",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "greet_again",
+            "text": "Still not open.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "menu",
+            "text": "Was there something else?",
+            "options": [
+              {
+                "id": "ask_keep",
+                "label": "What's inside?",
+                "nextNodeId": "keep"
+              },
+              {
+                "id": "ask_who",
+                "label": "Who runs this place?",
+                "nextNodeId": "who"
+              },
+              {
+                "id": "leave",
+                "label": "No. Thank you.",
+                "nextNodeId": "bye"
+              }
+            ]
+          },
+          {
+            "id": "keep",
+            "text": "Grain, records, and a great deal of dust that has outlasted three stewards. I intend to be the fourth.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "who",
+            "text": "Officially, the seat. In practice, whoever is holding the ledger. Currently me.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "bye",
+            "text": "Mind the flagstones."
+          }
+        ]
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "King",
         "hidden": true
       },
@@ -5137,6 +5529,106 @@
     {
       "template": "splash",
       "sidebar": {
+        "label": "Market Trader",
+        "hidden": true
+      },
+      "description": "Works the market hall inside the walls. Buys what comes up the road from the quay\nand sells it back to the people who watched it arrive.\n",
+      "ref": "market-trader",
+      "id": "01KSAVZ0000000000000TRADER",
+      "name": "Market Trader",
+      "typeFlags": 1,
+      "rarity": "NPC_RARITY_COMMON",
+      "personality": "PERSONALITY_CHEERFUL",
+      "rank": "NPC_RANK_NORMAL",
+      "family": "CREATURE_FAMILY_HUMANOID",
+      "level": 1,
+      "role": "Trader",
+      "tags": [
+        "friendslop",
+        "capital",
+        "talker",
+        "merchant"
+      ],
+      "routine": {
+        "stops": [
+          {
+            "hour": 6,
+            "offsetX": 0,
+            "offsetZ": 0
+          },
+          {
+            "hour": 9,
+            "offsetX": 3,
+            "offsetZ": -2
+          },
+          {
+            "hour": 14,
+            "offsetX": 0,
+            "offsetZ": 0
+          },
+          {
+            "hour": 19,
+            "offsetX": -3,
+            "offsetZ": 1.5
+          }
+        ],
+        "walkSpeed": 1.1
+      },
+      "dialogueTree": {
+        "entryNodeId": "greet",
+        "nodes": [
+          {
+            "id": "greet",
+            "text": "Fresh face! Good. The regulars have stopped pretending to be surprised by my prices.",
+            "condition": "!seen:greet",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "greet_again",
+            "text": "Back again. I knew you had the look.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "menu",
+            "text": "Well? Everything here came a long way to meet you.",
+            "options": [
+              {
+                "id": "ask_wares",
+                "label": "What have you got?",
+                "nextNodeId": "wares"
+              },
+              {
+                "id": "ask_where",
+                "label": "Where does it come from?",
+                "nextNodeId": "where"
+              },
+              {
+                "id": "leave",
+                "label": "Just passing.",
+                "nextNodeId": "bye"
+              }
+            ]
+          },
+          {
+            "id": "wares",
+            "text": "Less than I'd like and more than I can shift. Come back when the boats have been.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "where",
+            "text": "Up the road from the harbour, every last crate. Ask the harbourmaster and she'll tell you it walks itself.",
+            "nextNodeId": "menu"
+          },
+          {
+            "id": "bye",
+            "text": "Passing's how it starts."
+          }
+        ]
+      }
+    },
+    {
+      "template": "splash",
+      "sidebar": {
         "label": "Marlow",
         "hidden": true
       },
@@ -5156,6 +5648,36 @@
         "bridge",
         "talker"
       ],
+      "routine": {
+        "stops": [
+          {
+            "hour": 6,
+            "offsetX": 0,
+            "offsetZ": 0
+          },
+          {
+            "hour": 10,
+            "offsetX": 0,
+            "offsetZ": 6
+          },
+          {
+            "hour": 14,
+            "offsetX": 0,
+            "offsetZ": 0
+          },
+          {
+            "hour": 19,
+            "offsetX": 1.4,
+            "offsetZ": -4,
+            "task": "Idle_Lantern"
+          },
+          {
+            "hour": 22,
+            "offsetX": 0,
+            "offsetZ": 0
+          }
+        ]
+      },
       "dialogueTree": {
         "entryNodeId": "greet",
         "nodes": [
@@ -5648,6 +6170,26 @@
         "bridge",
         "talker"
       ],
+      "routine": {
+        "stops": [
+          {
+            "hour": 8,
+            "offsetX": 0,
+            "offsetZ": 0
+          },
+          {
+            "hour": 12,
+            "offsetX": 0,
+            "offsetZ": -4,
+            "task": "Idle_FoldArms"
+          },
+          {
+            "hour": 18,
+            "offsetX": 0,
+            "offsetZ": 0
+          }
+        ]
+      },
       "dialogueTree": {
         "entryNodeId": "greet",
         "nodes": [
@@ -8455,6 +8997,28 @@
         "bridge",
         "talker"
       ],
+      "routine": {
+        "stops": [
+          {
+            "hour": 7,
+            "offsetX": 0,
+            "offsetZ": 0
+          },
+          {
+            "hour": 13,
+            "offsetX": 1.2,
+            "offsetZ": -5,
+            "task": "TreeChopping",
+            "yieldItem": "log",
+            "yieldMinutes": 50
+          },
+          {
+            "hour": 20,
+            "offsetX": 0,
+            "offsetZ": 0
+          }
+        ]
+      },
       "dialogueTree": {
         "entryNodeId": "greet",
         "nodes": [
@@ -9763,6 +10327,37 @@
         "bridge",
         "talker"
       ],
+      "routine": {
+        "stops": [
+          {
+            "hour": 5,
+            "offsetX": 0,
+            "offsetZ": 0
+          },
+          {
+            "hour": 8,
+            "offsetX": -2.5,
+            "offsetZ": 5,
+            "task": "Farm_Harvest",
+            "yieldItem": "herb",
+            "yieldMinutes": 45
+          },
+          {
+            "hour": 12,
+            "offsetX": -5,
+            "offsetZ": 11,
+            "task": "Farm_Harvest",
+            "yieldItem": "bellflower",
+            "yieldMinutes": 60
+          },
+          {
+            "hour": 17,
+            "offsetX": 0,
+            "offsetZ": 0
+          }
+        ],
+        "walkSpeed": 1.15
+      },
       "dialogueTree": {
         "entryNodeId": "greet",
         "nodes": [

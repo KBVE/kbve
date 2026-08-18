@@ -1,0 +1,78 @@
+---
+title: 'Market Trader'
+template: splash
+sidebar:
+    label: "Market Trader"
+    hidden: true
+description: |
+    Works the market hall inside the walls. Buys what comes up the road from the quay
+    and sells it back to the people who watched it arrive.
+ref: 'market-trader'
+id: '01KSAVZ0000000000000TRADER'
+name: 'Market Trader'
+type_flags: 1
+rarity: 'common'
+personality: 'cheerful'
+rank: 'normal'
+family: 'humanoid'
+level: 1
+role: 'Trader'
+tags:
+    - friendslop
+    - capital
+    - talker
+    - merchant
+routine:
+    stops:
+        - hour: 6.0
+          offset_x: 0.0
+          offset_z: 0.0
+        - hour: 9.0
+          offset_x: 3.0
+          offset_z: -2.0
+        - hour: 14.0
+          offset_x: 0.0
+          offset_z: 0.0
+        - hour: 19.0
+          offset_x: -3.0
+          offset_z: 1.5
+    walk_speed: 1.1
+dialogue_tree:
+    entry_node_id: 'greet'
+    nodes:
+        - id: 'greet'
+          text: "Fresh face! Good. The regulars have stopped pretending to be surprised by my prices."
+          condition: '!seen:greet'
+          next_node_id: 'menu'
+        - id: 'greet_again'
+          text: "Back again. I knew you had the look."
+          next_node_id: 'menu'
+        - id: 'menu'
+          text: "Well? Everything here came a long way to meet you."
+          options:
+              - id: 'ask_wares'
+                label: "What have you got?"
+                next_node_id: 'wares'
+              - id: 'ask_where'
+                label: "Where does it come from?"
+                next_node_id: 'where'
+              - id: 'leave'
+                label: "Just passing."
+                next_node_id: 'bye'
+        - id: 'wares'
+          text: "Less than I'd like and more than I can shift. Come back when the boats have been."
+          next_node_id: 'menu'
+        - id: 'where'
+          text: "Up the road from the harbour, every last crate. Ask the harbourmaster and she'll tell you it walks itself."
+          next_node_id: 'menu'
+        - id: 'bye'
+          text: "Passing's how it starts."
+---
+
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
+
+<NpcLeaf data={frontmatter}>
+
+Stands beside the market hall in a capital's courtyard, facing the middle of it.
+
+</NpcLeaf>

@@ -1,0 +1,74 @@
+---
+title: 'Keep Steward'
+template: splash
+sidebar:
+    label: "Keep Steward"
+    hidden: true
+description: |
+    Keeps the door of the keep and the ledger behind it. Considers the walls a filing
+    problem that got out of hand.
+ref: 'keep-steward'
+id: '01KSAVZ0000000000000STEWRD'
+name: 'Keep Steward'
+type_flags: 1
+rarity: 'common'
+personality: 'serious'
+rank: 'normal'
+family: 'humanoid'
+level: 1
+role: 'Steward'
+tags:
+    - friendslop
+    - capital
+    - talker
+routine:
+    stops:
+        - hour: 7.0
+          offset_x: 0.0
+          offset_z: 0.0
+        - hour: 13.0
+          offset_x: -2.5
+          offset_z: 2.0
+        - hour: 20.0
+          offset_x: 0.0
+          offset_z: 0.0
+    walk_speed: 0.85
+dialogue_tree:
+    entry_node_id: 'greet'
+    nodes:
+        - id: 'greet'
+          text: "The keep is not open. I say that first because it saves us both the walk."
+          condition: '!seen:greet'
+          next_node_id: 'menu'
+        - id: 'greet_again'
+          text: "Still not open."
+          next_node_id: 'menu'
+        - id: 'menu'
+          text: "Was there something else?"
+          options:
+              - id: 'ask_keep'
+                label: "What's inside?"
+                next_node_id: 'keep'
+              - id: 'ask_who'
+                label: "Who runs this place?"
+                next_node_id: 'who'
+              - id: 'leave'
+                label: "No. Thank you."
+                next_node_id: 'bye'
+        - id: 'keep'
+          text: "Grain, records, and a great deal of dust that has outlasted three stewards. I intend to be the fourth."
+          next_node_id: 'menu'
+        - id: 'who'
+          text: "Officially, the seat. In practice, whoever is holding the ledger. Currently me."
+          next_node_id: 'menu'
+        - id: 'bye'
+          text: "Mind the flagstones."
+---
+
+import NpcLeaf from '@/components/npcdb/NpcLeaf.astro';
+
+<NpcLeaf data={frontmatter}>
+
+Stands at the keep door in the middle of a capital's courtyard.
+
+</NpcLeaf>

@@ -1,0 +1,23 @@
+[gd_scene load_steps=7 format=3]
+
+[ext_resource type="Script" uid="uid://bp4pechs6f5jn" path="res://src/npc/npc_actor.gd" id="1_npc"]
+[ext_resource type="PackedScene" uid="uid://dk6o1i6lggove" path="res://assets/characters/quaternius_ubc/models/Regular_Male_FullBody.glb" id="2_body"]
+[ext_resource type="PackedScene" uid="uid://cnd82iitivl2c" path="res://assets/characters/quaternius_ubc/models/hair/Hair_SimpleParted.glb" id="3_hair"]
+[ext_resource type="PackedScene" uid="uid://27k2uvg6ywxl" path="res://assets/characters/quaternius_ubc/animations/UAL1.glb" id="4_ual1"]
+[ext_resource type="PackedScene" uid="uid://dqhvcf38xbwiq" path="res://assets/characters/quaternius_ubc/animations/UAL2.glb" id="5_ual2"]
+[ext_resource type="PackedScene" uid="uid://ysa6ql8yc3b" path="res://assets/characters/quaternius_ubc/models/Regular_Male_OnlyHead.glb" id="6_head"]
+
+[node name="GateWarden" type="Node3D"]
+script = ExtResource("1_npc")
+npc_ref = "gate-warden"
+terrain_path = NodePath("../../Terrain")
+clock_path = NodePath("../../DayNight")
+physics_path = NodePath("../../Physics")
+body = ExtResource("2_body")
+attachments = Array[PackedScene]([ExtResource("3_hair")])
+animation_sources = Array[PackedScene]([ExtResource("4_ual1"), ExtResource("5_ual2")])
+idle_animation = "UAL2/Idle_FoldArms"
+skin_color = Color(0.88, 0.74, 0.6, 1)
+hair_color = Color(0.18, 0.15, 0.12, 1)
+worn = Array[StringName]([&"male_knight_body", &"male_knight_arms", &"male_knight_legs", &"male_knight_feet"])
+head_only_body = ExtResource("6_head")

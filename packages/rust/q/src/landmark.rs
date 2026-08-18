@@ -70,6 +70,50 @@ pub struct Landmark {
     pub cell: [i32; 2],
 }
 
+/// Somebody's place in a landmark: where they stand and which way they face.
+///
+/// Derived beside the walls rather than authored against them, so a guard is at the
+/// gateway of whichever capital this is instead of at fixed coordinates that only
+/// happen to be a gateway in one of them.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct Post {
+    pub role: Role,
+    pub at: [f32; 2],
+    /// A point to face. Somewhere to look rather than an angle, because what a guard
+    /// should be looking at is a place -- out of the gate, down the quay -- and the
+    /// angle that means depends on which way the landmark was laid out.
+    pub facing: [f32; 2],
+}
+
+/// What somebody at a landmark is there for. The client picks a body and a
+/// conversation from this; nothing here knows what either looks like.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Role {
+    /// Either side of the gateway, looking out at whoever is coming.
+    GateGuard,
+    /// At the market hall, facing the courtyard.
+    Trader,
+    /// At the keep door.
+    Steward,
+    /// At the landward end of a pier, facing the water.
+    Dockhand,
+    /// By the big warehouse, facing the quay.
+    Harbourmaster,
+}
+
+impl Role {
+    /// A stable name, for a client to look a body and a conversation up by.
+    pub fn as_str(self) -> &'static str {
+        match self {
+            Self::GateGuard => "gate_guard",
+            Self::Trader => "trader",
+            Self::Steward => "steward",
+            Self::Dockhand => "dockhand",
+            Self::Harbourmaster => "harbourmaster",
+        }
+    }
+}
+
 /// What a flow field needs: what to close, and the line through it that stays open.
 #[derive(Clone, Debug, PartialEq)]
 pub struct LandmarkFootprint {
@@ -350,6 +394,14 @@ pub fn nearest(seed: u32, hgen: &HeightGen, at: [f32; 2]) -> Vec<Landmark> {
 }
 
 impl Landmark {
+    /// A stable name for the kind, for anything outside this crate to key on.
+    pub fn kind_name(&self) -> &'static str {
+        match self.kind {
+            LandmarkKind::Capital => "capital",
+            LandmarkKind::Harbour => "harbour",
+        }
+    }
+
     pub fn distance(&self, at: [f32; 2]) -> f32 {
         let d = [at[0] - self.centre[0], at[1] - self.centre[1]];
         (d[0] * d[0] + d[1] * d[1]).sqrt()
@@ -439,15 +491,36 @@ impl Landmark {
         out
     }
 
+    /// A point on the quay, measured out from the channel rather than across from the
+    /// middle of the harbour.
+    ///
+    /// The pad follows the river, because the river moves and a quay that did not
+    /// follow it would be levelled ground with water running through one end. So
+    /// anything standing on the quay has to be placed the same way. Measured across
+    /// from a fixed middle instead, a warehouse twenty metres along is a warehouse the
+    /// channel has wandered out from under -- the levelling is somewhere else by then,
+    /// and the building is up a hillside or buried in one.
+    fn quay(&self, hgen: &HeightGen, out: f32, z: f32) -> [f32; 2] {
+        [hgen.river_x(z) + self.side * out, z]
+    }
+
     fn harbour_slabs(&self, hgen: &HeightGen) -> Vec<Slab> {
-        let [hx, hz] = self.centre;
+        let [_, hz] = self.centre;
         let y = self.pad_y;
         let s = self.side;
-        let mut out = vec![
-            Slab::flat([hx + s * 2.0, y + 4.0, hz - 18.0], [8.0, 4.0, 10.0]),
-            Slab::flat([hx - s * 4.0, y + 3.5, hz + 20.0], [6.0, 3.5, 7.0]),
-            Slab::flat([hx - s * 9.0, y + 2.5, hz + 2.0], [3.0, 2.5, 3.0]),
-        ];
+
+        // Everything sits inside the fully levelled band, which is `QUAY_IN` plus the
+        // feather out to `QUAY_IN + QUAY_W`. Half-widths count: a warehouse centred on
+        // the flat with one wall over the feather is a warehouse standing on a slope.
+        let mut out = Vec::new();
+        for (out_at, z, half, high) in [
+            (40.0f32, hz - 18.0, [8.0f32, 4.0, 10.0], 4.0f32),
+            (38.0, hz + 20.0, [6.0, 3.5, 7.0], 3.5),
+            (34.0, hz + 2.0, [3.0, 2.5, 3.0], 2.5),
+        ] {
+            let [x, z] = self.quay(hgen, out_at, z);
+            out.push(Slab::flat([x, y + high, z], half));
+        }
 
         let deck_y = self.deck_y(hgen);
         for k in [-1.0f32, 0.0, 1.0] {
@@ -470,6 +543,77 @@ impl Landmark {
     /// The height the piers are decked at, which is the one thing a body can be under.
     pub fn deck_y(&self, hgen: &HeightGen) -> f32 {
         hgen.water_level() + 1.0
+    }
+
+    /// Where the people who live here stand.
+    ///
+    /// Every post is on the levelled ground and outside the walls and buildings, which
+    /// is what stops somebody being placed inside a keep they can never walk out of --
+    /// and the ground under them is flat, so they stand rather than sink.
+    pub fn posts(&self, hgen: &HeightGen) -> Vec<Post> {
+        match self.kind {
+            LandmarkKind::Capital => self.capital_posts(),
+            LandmarkKind::Harbour => self.harbour_posts(hgen),
+        }
+    }
+
+    fn capital_posts(&self) -> Vec<Post> {
+        let [cx, cz] = self.centre;
+        let gate = [cx + (WALL_HALF + 3.0) * self.gate, cz];
+        let mut out = Vec::new();
+        // Just outside the gateway and clear of the opening, so the way in is not
+        // blocked by the people watching it.
+        for side in [-1.0f32, 1.0] {
+            out.push(Post {
+                role: Role::GateGuard,
+                at: [gate[0], cz + (GATE_HALF + 2.2) * side],
+                facing: [gate[0] + self.gate * 20.0, cz],
+            });
+        }
+        // Beside the market hall and the keep door, both facing the courtyard.
+        out.push(Post {
+            role: Role::Trader,
+            at: [cx - 24.0, cz + 29.0],
+            facing: [cx, cz],
+        });
+        out.push(Post {
+            role: Role::Steward,
+            at: [cx + 9.5, cz],
+            facing: [cx + 20.0, cz],
+        });
+        out
+    }
+
+    fn harbour_posts(&self, hgen: &HeightGen) -> Vec<Post> {
+        let [_, hz] = self.centre;
+        let mut out = Vec::new();
+        // On the quay looking at the water, in the gaps between the warehouses, and
+        // well inside the flat rather than near either edge of it.
+        //
+        // Being on the levelled ground is not enough on its own. What anybody stands on
+        // is the ground mesh, which carries a vertex every couple of metres and
+        // interpolates a baked grid coarser still, so the pad's edges arrive rounded
+        // off. A post a stride inside the flat is analytically level and visibly on a
+        // slope. These sit a good eight metres clear of both edges.
+        //
+        // Not on the piers either: the ground under one is river, and somebody put on
+        // the deck is put in the water the moment anything asks the terrain how high it
+        // is where they are standing.
+        for dz in [-5.0f32, 9.0] {
+            let z = hz + dz;
+            out.push(Post {
+                role: Role::Dockhand,
+                at: self.quay(hgen, 38.0, z),
+                facing: self.quay(hgen, 0.0, z),
+            });
+        }
+        let z = hz - 5.0;
+        out.push(Post {
+            role: Role::Harbourmaster,
+            at: self.quay(hgen, 44.0, z),
+            facing: self.quay(hgen, 0.0, z),
+        });
+        out
     }
 
     /// The structure as lines, which is what a flow field can be told about.

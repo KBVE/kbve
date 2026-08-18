@@ -83,13 +83,18 @@ pub fn is_blackjack(cards: &[u8]) -> bool {
     cards.len() == 2 && card_points(cards[0]) + card_points(cards[1]) == 21
 }
 
-/// Deterministic splitmix64-based PRNG seeded from the sim seed + a table salt + tick.
-/// Mirrors the `hash3` mixer used elsewhere in the sim so shuffles are reproducible.
+/// Deterministic splitmix64-based PRNG seeded from the sim seed, which table, and the
+/// tick. Mirrors the `hash3` mixer used elsewhere in the sim so shuffles are
+/// reproducible.
 pub struct Rng(u64);
 
 impl Rng {
-    pub fn seed(seed: u64, salt: u64, tick: u64) -> Self {
-        let mut x = seed ^ salt.rotate_left(17) ^ tick.rotate_left(31);
+    /// `table` separates one table's shoe from another's on the same tick. It is a
+    /// discriminator rather than a secret -- the round seed is published so a client
+    /// can replay the shuffle and check the deal, which is what makes the game
+    /// auditable and is the opposite of something being kept back.
+    pub fn seed(seed: u64, table: u64, tick: u64) -> Self {
+        let mut x = seed ^ table.rotate_left(17) ^ tick.rotate_left(31);
         x = (x ^ (x >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
         x = (x ^ (x >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);
         Self(x ^ (x >> 31))
