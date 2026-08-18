@@ -1,5 +1,5 @@
 {
-	"generated_at": "2026-08-17T02:21:15.793Z",
+	"generated_at": "2026-08-18T02:17:17.784Z",
 	"summary": {
 		"total_protos": 47,
 		"registered": 0,
@@ -1762,7 +1762,7 @@
 		"packages/data/proto/spell/spelldb.proto",
 		"packages/data/proto/wallet/wallet.proto"
 	],
-	"checked_at": "2026-08-17T02:20:48Z",
+	"checked_at": "2026-08-18T02:16:47Z",
 	"drift_detected": true,
 	"drift_files": [
 		"packages/data/codegen/generated/itemdb-schema.ts",

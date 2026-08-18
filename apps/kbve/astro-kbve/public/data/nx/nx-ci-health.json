@@ -1,194 +1,182 @@
 {
-  "generated_at": "2026-08-17T02:20:10Z",
+  "generated_at": "2026-08-18T02:16:08Z",
   "window": {
     "days": 7,
-    "since": "2026-08-10"
+    "since": "2026-08-11"
   },
   "totals": {
     "runs": 1000,
-    "success": 778,
-    "failure": 71,
-    "cancelled": 144,
+    "success": 781,
+    "failure": 62,
+    "cancelled": 151,
     "skipped": 0,
-    "other": 7,
+    "other": 6,
     "flaky": 0,
-    "success_rate": 91.6,
-    "avg_duration_s": 261
+    "success_rate": 92.6,
+    "avg_duration_s": 308
   },
   "totals_24h": {
-    "runs": 878,
-    "success": 674,
-    "failure": 61,
-    "success_rate": 91.7
+    "runs": 426,
+    "success": 355,
+    "failure": 19,
+    "success_rate": 94.9
   },
   "workflows": [
     {
       "name": "CI - CodeQL",
-      "runs": 303,
-      "success": 259,
+      "runs": 279,
+      "success": 240,
       "failure": 0,
-      "cancelled": 43,
+      "cancelled": 38,
       "skipped": 0,
       "other": 1,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 233
+      "avg_duration_s": 237
     },
     {
       "name": "CI - Dev",
-      "runs": 217,
-      "success": 114,
-      "failure": 45,
-      "cancelled": 56,
+      "runs": 192,
+      "success": 107,
+      "failure": 32,
+      "cancelled": 51,
       "skipped": 0,
       "other": 2,
       "flaky": 0,
-      "success_rate": 71.7,
-      "avg_duration_s": 405
-    },
-    {
-      "name": "CI - Manifest Guard",
-      "runs": 96,
-      "success": 84,
-      "failure": 0,
-      "cancelled": 11,
-      "skipped": 0,
-      "other": 1,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 132
-    },
-    {
-      "name": "Worldgen Determinism",
-      "runs": 93,
-      "success": 93,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 161
+      "success_rate": 77.0,
+      "avg_duration_s": 493
     },
     {
       "name": "CI - Godot Tests",
-      "runs": 63,
-      "success": 19,
-      "failure": 23,
-      "cancelled": 20,
+      "runs": 120,
+      "success": 57,
+      "failure": 24,
+      "cancelled": 37,
       "skipped": 0,
-      "other": 1,
+      "other": 2,
       "flaky": 0,
-      "success_rate": 45.2,
-      "avg_duration_s": 263
-    },
-    {
-      "name": "CI - Actionlint",
-      "runs": 62,
-      "success": 50,
-      "failure": 0,
-      "cancelled": 11,
-      "skipped": 0,
-      "other": 1,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 44
+      "success_rate": 70.4,
+      "avg_duration_s": 345
     },
     {
       "name": "Q Crate Tests",
-      "runs": 59,
-      "success": 59,
+      "runs": 84,
+      "success": 83,
+      "failure": 0,
+      "cancelled": 1,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 319
+    },
+    {
+      "name": "CI - Manifest Guard",
+      "runs": 71,
+      "success": 63,
+      "failure": 0,
+      "cancelled": 8,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 136
+    },
+    {
+      "name": "Worldgen Determinism",
+      "runs": 71,
+      "success": 71,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 285
+      "avg_duration_s": 174
+    },
+    {
+      "name": "CI - Actionlint",
+      "runs": 68,
+      "success": 54,
+      "failure": 0,
+      "cancelled": 14,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 52
     },
     {
       "name": "Auto-merge bot PRs",
-      "runs": 24,
-      "success": 24,
+      "runs": 29,
+      "success": 29,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 38
+      "avg_duration_s": 37
     },
     {
       "name": "CI - Manifest Sync",
-      "runs": 22,
-      "success": 22,
+      "runs": 19,
+      "success": 19,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 152
-    },
-    {
-      "name": "CI - Cargo Workspace Stub Guard",
-      "runs": 7,
-      "success": 5,
-      "failure": 0,
-      "cancelled": 2,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 18
+      "avg_duration_s": 153
     },
     {
       "name": "CI - Bevy",
-      "runs": 6,
-      "success": 6,
+      "runs": 9,
+      "success": 9,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 268
+      "avg_duration_s": 478
     },
     {
       "name": "CI - Forgejo Mirror",
-      "runs": 6,
-      "success": 6,
+      "runs": 9,
+      "success": 9,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 82
+      "avg_duration_s": 81
     },
     {
       "name": "CI - Main",
-      "runs": 6,
-      "success": 6,
+      "runs": 9,
+      "success": 9,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 135
+      "avg_duration_s": 138
     },
     {
       "name": "CI - Docker / axum-kbve",
-      "runs": 5,
-      "success": 5,
+      "runs": 7,
+      "success": 7,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 1756
+      "avg_duration_s": 1749
     },
     {
       "name": "Friendslop Godot Tests",
@@ -203,76 +191,52 @@
       "avg_duration_s": 404
     },
     {
-      "name": "CI - Docker / axum-chuckrpg",
-      "runs": 2,
-      "success": 2,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 882
-    },
-    {
-      "name": "CI - Docker / cryptothrone",
-      "runs": 2,
-      "success": 0,
-      "failure": 2,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 0.0,
-      "avg_duration_s": 746
-    },
-    {
       "name": "CI - Docker / discordsh",
-      "runs": 2,
-      "success": 2,
+      "runs": 3,
+      "success": 3,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 996
+      "avg_duration_s": 978
     },
     {
       "name": "CI - Docker / discordsh-bot",
-      "runs": 2,
-      "success": 2,
+      "runs": 3,
+      "success": 3,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 1045
+      "avg_duration_s": 1092
     },
     {
       "name": "CI - Docker / friendslop-server",
-      "runs": 2,
+      "runs": 3,
       "success": 2,
-      "failure": 0,
+      "failure": 1,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 707
+      "success_rate": 66.7,
+      "avg_duration_s": 624
     },
     {
-      "name": "CI - Docker / herbmail",
-      "runs": 2,
+      "name": "Daily Content",
+      "runs": 3,
       "success": 2,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
-      "other": 0,
+      "other": 1,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 892
+      "avg_duration_s": 748
     },
     {
       "name": "CI - Docker / irc-gateway",
@@ -301,41 +265,17 @@
     {
       "name": "CI - Godot / friendslop",
       "runs": 2,
-      "success": 2,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 1490
-    },
-    {
-      "name": "CI - Publish / crates / q",
-      "runs": 2,
-      "success": 2,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 662
-    },
-    {
-      "name": "Daily Content",
-      "runs": 2,
       "success": 1,
-      "failure": 0,
+      "failure": 1,
       "cancelled": 0,
       "skipped": 0,
-      "other": 1,
+      "other": 0,
       "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 204
+      "success_rate": 50.0,
+      "avg_duration_s": 2090
     },
     {
-      "name": "CI - Docker / memes",
+      "name": "CI - Docker / axum-chuckrpg",
       "runs": 1,
       "success": 1,
       "failure": 0,
@@ -344,7 +284,55 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 877
+      "avg_duration_s": 882
+    },
+    {
+      "name": "CI - Docker / cryptothrone",
+      "runs": 1,
+      "success": 0,
+      "failure": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 0.0,
+      "avg_duration_s": 748
+    },
+    {
+      "name": "CI - Docker / herbmail",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 903
+    },
+    {
+      "name": "CI - E2E / main",
+      "runs": 1,
+      "success": 0,
+      "failure": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 0.0,
+      "avg_duration_s": 2939
+    },
+    {
+      "name": "CI - Publish / crates / bevy_items",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 582
     },
     {
       "name": "CI - Publish / crates / bevy_kbve_net",
@@ -359,19 +347,19 @@
       "avg_duration_s": 767
     },
     {
-      "name": "CI - Publish / python / python-kbve",
+      "name": "cargo in /. - Update #1528144672",
       "runs": 1,
-      "success": 1,
-      "failure": 0,
+      "success": 0,
+      "failure": 1,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 312
+      "success_rate": 0.0,
+      "avg_duration_s": 1061
     },
     {
-      "name": "CI - Registry Cleanup (GHCR)",
+      "name": "github_actions in /. - Update #1528144660",
       "runs": 1,
       "success": 1,
       "failure": 0,
@@ -380,7 +368,31 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 45
+      "avg_duration_s": 240
+    },
+    {
+      "name": "npm_and_yarn in / for astro - Update #1528415217",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 94
+    },
+    {
+      "name": "npm_and_yarn in /. - Update #1528144657",
+      "runs": 1,
+      "success": 0,
+      "failure": 0,
+      "cancelled": 1,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 0.0,
+      "avg_duration_s": 3308
     }
   ],
   "recent_failures": [
@@ -388,106 +400,106 @@
       "name": "CI - Dev",
       "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/31984005595",
-      "finished_at": "2026-08-17T01:38:27Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/32020032633",
+      "finished_at": "2026-08-17T10:40:23Z"
     },
     {
       "name": "CI - Dev",
       "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/31983862063",
-      "finished_at": "2026-08-17T01:23:11Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/32011937470",
+      "finished_at": "2026-08-17T09:58:08Z"
     },
     {
       "name": "CI - Dev",
       "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/31981516895",
-      "finished_at": "2026-08-17T01:06:26Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/32014728850",
+      "finished_at": "2026-08-17T09:43:40Z"
     },
     {
       "name": "CI - Dev",
       "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/31978446200",
-      "finished_at": "2026-08-17T00:19:48Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/32008933683",
+      "finished_at": "2026-08-17T09:42:14Z"
     },
     {
       "name": "CI - Dev",
       "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/31977100359",
-      "finished_at": "2026-08-16T23:31:41Z"
-    },
-    {
-      "name": "CI - Godot Tests",
-      "branch": "worktree-godot-ci-shell",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/31978655780",
-      "finished_at": "2026-08-16T23:22:34Z"
-    },
-    {
-      "name": "CI - Godot Tests",
-      "branch": "dev",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/31978446051",
-      "finished_at": "2026-08-16T23:18:07Z"
-    },
-    {
-      "name": "CI - Godot Tests",
-      "branch": "worktree-friendslop-dialogue-fit",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/31978058588",
-      "finished_at": "2026-08-16T23:09:34Z"
-    },
-    {
-      "name": "CI - Godot Tests",
-      "branch": "dev",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/31977100250",
-      "finished_at": "2026-08-16T22:48:20Z"
-    },
-    {
-      "name": "CI - Godot Tests",
-      "branch": "worktree-friendslop-regard",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/31977025305",
-      "finished_at": "2026-08-16T22:47:10Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/32007073730",
+      "finished_at": "2026-08-17T08:44:52Z"
     },
     {
       "name": "CI - Dev",
       "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/31974637757",
-      "finished_at": "2026-08-16T22:45:44Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/32007475263",
+      "finished_at": "2026-08-17T08:41:11Z"
     },
     {
-      "name": "CI - Godot Tests",
+      "name": "CI - Godot / friendslop",
+      "branch": "main",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/KBVE/kbve/actions/runs/32007259158",
+      "finished_at": "2026-08-17T08:24:23Z"
+    },
+    {
+      "name": "CI - Docker / friendslop-server",
+      "branch": "main",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/KBVE/kbve/actions/runs/32007247042",
+      "finished_at": "2026-08-17T07:53:52Z"
+    },
+    {
+      "name": "CI - Dev",
       "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/31975801757",
-      "finished_at": "2026-08-16T22:20:17Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/32004362713",
+      "finished_at": "2026-08-17T07:46:56Z"
     },
     {
-      "name": "CI - Godot Tests",
-      "branch": "worktree-friendslop-card-lockout",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/31975701194",
-      "finished_at": "2026-08-16T22:18:22Z"
+      "name": "CI - E2E / main",
+      "branch": "main",
+      "event": "schedule",
+      "url": "https://github.com/KBVE/kbve/actions/runs/32003460237",
+      "finished_at": "2026-08-17T07:42:29Z"
     },
     {
-      "name": "CI - Godot Tests",
+      "name": "CI - Dev",
       "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/31975254071",
-      "finished_at": "2026-08-16T22:10:00Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/32004348900",
+      "finished_at": "2026-08-17T07:28:56Z"
     },
     {
-      "name": "CI - Godot Tests",
-      "branch": "worktree-friendslop-meeting-card",
+      "name": "CI - Dev",
+      "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/31975216159",
-      "finished_at": "2026-08-16T22:07:20Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/32002368397",
+      "finished_at": "2026-08-17T07:03:49Z"
+    },
+    {
+      "name": "CI - Dev",
+      "branch": "dev",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/32001947317",
+      "finished_at": "2026-08-17T06:48:45Z"
+    },
+    {
+      "name": "CI - Dev",
+      "branch": "dev",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/32000892369",
+      "finished_at": "2026-08-17T06:32:39Z"
+    },
+    {
+      "name": "cargo in /. - Update #1528144672",
+      "branch": "dev",
+      "event": "dynamic",
+      "url": "https://github.com/KBVE/kbve/actions/runs/31999551756",
+      "finished_at": "2026-08-17T06:12:02Z"
     }
   ]
 }
