@@ -44,6 +44,11 @@ const GROUP := &"interactable"
 @export var turn_rate := 4.0
 @export var walk_animation := "UAL2/Walk_Fwd"
 
+const ANIM_BLEND := 0.3
+const ANIM_HOLD_MS := 400
+
+var _hold_until := 0
+
 const DRY_MARGIN := 0.6
 const DRY_STEP := 0.75
 const DRY_REACH := 60.0
@@ -216,9 +221,11 @@ func rest() -> void:
 func meet() -> float:
 	if meeting_animation == "" or not _can_play(meeting_animation):
 		return 0.0
-	rig.animation.play(meeting_animation)
+	rig.animation.play(meeting_animation, ANIM_BLEND)
 	if _can_play(idle_animation):
 		rig.animation.queue(idle_animation)
+	_hold_until = Time.get_ticks_msec() + int(
+			rig.animation.get_animation(meeting_animation).length * 1000.0)
 	return rig.animation.get_animation(meeting_animation).length
 
 
@@ -226,7 +233,11 @@ func _perform(clip: String, fallback: String) -> void:
 	var wanted := clip if _can_play(clip) else fallback
 	if not _can_play(wanted) or rig.animation.current_animation == wanted:
 		return
-	rig.animation.play(wanted)
+	var now := Time.get_ticks_msec()
+	if now < _hold_until:
+		return
+	_hold_until = now + ANIM_HOLD_MS
+	rig.animation.play(wanted, ANIM_BLEND)
 
 
 func _can_play(clip: String) -> bool:

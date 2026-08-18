@@ -77,7 +77,7 @@ func bisect_name() -> String:
 
 
 const SAVE_DIR := "user://world"
-const SAVE_FIELDS := {"TreeField": "trees.hrv", "StoneField": "stones.hrv"}
+const SAVE_FIELDS: Dictionary[String, String] = {"TreeField": "trees.hrv", "StoneField": "stones.hrv"}
 const SAVE_INTERVAL := 20.0
 
 var _save_clock := 0.0

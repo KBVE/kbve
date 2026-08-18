@@ -150,8 +150,23 @@ func _notification(what: int) -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
+const TALK_CAMERA_SHIFT := 0.85
+const TALK_CAMERA_EASE := 0.5
+
+var _talk_tween: Tween
+
+
 func set_talking(on: bool) -> void:
 	_talking = on
+	var camera := get_node_or_null(^"Pivot/Camera3D") as Camera3D
+	if camera == null:
+		return
+	if _talk_tween:
+		_talk_tween.kill()
+	_talk_tween = create_tween()
+	_talk_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_talk_tween.tween_property(camera, ^"h_offset",
+			TALK_CAMERA_SHIFT if on else 0.0, TALK_CAMERA_EASE)
 
 
 func is_talking() -> bool:
