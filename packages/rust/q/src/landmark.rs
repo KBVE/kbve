@@ -89,8 +89,23 @@ fn cell_of(v: f32) -> i32 {
     (v / CELL).floor() as i32
 }
 
-fn seeded(seed: u32, salt: u32, a: i32, b: i32) -> u32 {
-    hash32(seed ^ salt ^ hash32(a as u32).wrapping_add(hash32((b as u32).wrapping_mul(0x9e37))))
+/// Which lattice a cell was drawn from. Harbours are indexed along the river and
+/// capitals across the whole plane, so without this the harbour in row 3 and the
+/// capital in cell (3, 0) would be handed the same number and jitter alike.
+///
+/// The values are arbitrary and only have to differ. They are what they are because
+/// changing them moves every landmark in the world, and there is no reason to.
+const HARBOUR_LATTICE: u32 = 0x48_41_52_42;
+const CAPITAL_LATTICE: u32 = 0x43_41_50_54;
+
+/// The number a cell of a lattice is built from.
+///
+/// Constant on purpose, and it has to be: two machines derive the same world from the
+/// seed alone and never speak about it, so anything unpredictable mixed in here is a
+/// client and a server disagreeing about where a city is. Nothing about this protects
+/// anything -- it spreads cell indices out so neighbouring cells do not land in a row.
+fn cell_hash(seed: u32, lattice: u32, a: i32, b: i32) -> u32 {
+    hash32(seed ^ lattice ^ hash32(a as u32).wrapping_add(hash32((b as u32).wrapping_mul(0x9e37))))
 }
 
 /// The harbour on one row of the river, which every row has.
@@ -120,7 +135,7 @@ pub fn harbour_in_row(seed: u32, hgen: &HeightGen, cz: i32) -> Landmark {
 /// Asking the cheap question first is what keeps the levelling from doubling the cost
 /// of the whole river corridor.
 fn harbour_row_site(seed: u32, cz: i32) -> (f32, f32) {
-    let h = seeded(seed, 0x48_41_52_42, cz, 0);
+    let h = cell_hash(seed, HARBOUR_LATTICE, cz, 0);
     (
         cz as f32 * CELL + HARBOUR_Z + ((h >> 8) % 512) as f32,
         if h & 1 == 0 { 1.0 } else { -1.0 },
@@ -133,7 +148,7 @@ fn capital_site(seed: u32, hgen: &HeightGen, cx: i32, cz: i32) -> Option<[f32; 2
     if cx == 0 {
         return None;
     }
-    let h = seeded(seed, 0x43_41_50_54, cx, cz);
+    let h = cell_hash(seed, CAPITAL_LATTICE, cx, cz);
     if h % 2 != 0 {
         return None;
     }
