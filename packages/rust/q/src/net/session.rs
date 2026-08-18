@@ -34,6 +34,60 @@ pub struct MovementConfig {
     pub timestep: f64,
 }
 
+/// One player's vertical state between ticks. The character controller resolves motion
+/// but never accumulates gravity, so this is carried alongside it on both sides.
+#[derive(Clone, Copy, Debug, Default, PartialEq)]
+pub struct Motion {
+    pub vel_y: f32,
+}
+
+/// Advances one player's vertical velocity and returns the translation to hand the
+/// character controller.
+///
+/// The host calls this, and so does a predicting client. That is the entire point of it
+/// being a function: a predictor that reimplements the host's arithmetic drifts from it
+/// the first time either side is edited, and the drift shows up as a correction every
+/// tick rather than as an obvious break.
+///
+/// `grounded` and `submerged` come from the state at the start of the tick, which is what
+/// the host has and therefore all a client may use if it wants the same answer.
+pub fn step_motion(
+    motion: &mut Motion,
+    input: &PlayerInput,
+    grounded: bool,
+    submerged: bool,
+    config: &MovementConfig,
+    dt: f32,
+) -> [f32; 3] {
+    if grounded && motion.vel_y < 0.0 {
+        motion.vel_y = 0.0;
+    }
+    if submerged {
+        // Buoyant rather than weightless, and jump becomes swim-up. Capped both ways so
+        // entering water cannot carry a body straight through the bed on momentum it
+        // built in the air.
+        if input.jump {
+            motion.vel_y = config.swim_speed;
+        } else {
+            motion.vel_y += config.gravity * config.water_gravity_scale * dt;
+        }
+        motion.vel_y = motion.vel_y.clamp(-config.swim_speed, config.swim_speed);
+    } else {
+        if grounded && input.jump {
+            motion.vel_y = config.jump_speed;
+        }
+        motion.vel_y += config.gravity * dt;
+    }
+
+    // Already finite and magnitude-clamped on ingest.
+    let [nx, nz] = input.wish_dir;
+    [
+        nx * config.move_speed * dt,
+        motion.vel_y * dt,
+        nz * config.move_speed * dt,
+    ]
+}
+
 /// What a client reports it is trying to do this tick.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Serialize, Deserialize)]
 pub struct PlayerInput {
@@ -367,6 +421,10 @@ pub const FULL: &str = "server is full";
 /// Players occupy a reserved id band so world props can never collide with a player
 /// body id, whatever order things spawn in.
 const PLAYER_BODY_BASE: u32 = 1_000_000;
+
+/// Ceiling on unacknowledged inputs a client keeps for replay. At 60 inputs a second
+/// this is several seconds of round trip, far past anything playable.
+const MAX_PENDING_INPUTS: usize = 256;
 
 pub fn player_body(peer: PeerId) -> BodyId {
     BodyId(PLAYER_BODY_BASE + peer.0)
@@ -1148,6 +1206,7 @@ impl<T: Transport> HostSession<T> {
             }
         }
 
+        let movement = self.movement_config();
         for (peer, player) in &mut self.players {
             let body = player_body(*peer);
             if let Some(state) = snapshot.body(body) {
@@ -1162,38 +1221,22 @@ impl<T: Transport> HostSession<T> {
                 .body(body)
                 .is_some_and(|b| b.iso.pos[1] < self.config.water_level);
 
-            if grounded && player.vel_y < 0.0 {
-                player.vel_y = 0.0;
-            }
-            if submerged {
-                // Buoyant rather than weightless, and jump becomes swim-up. Capped both
-                // ways so entering water cannot carry a body straight through the bed on
-                // momentum it built in the air.
-                if player.input.jump {
-                    player.vel_y = self.config.swim_speed;
-                } else {
-                    player.vel_y += self.config.gravity * self.config.water_gravity_scale * dt;
-                }
-                player.vel_y = player
-                    .vel_y
-                    .clamp(-self.config.swim_speed, self.config.swim_speed);
-            } else {
-                if grounded && player.input.jump {
-                    player.vel_y = self.config.jump_speed;
-                }
-                player.vel_y += self.config.gravity * dt;
-            }
-
-            // Already finite and magnitude-clamped on ingest.
-            let [nx, nz] = player.input.wish_dir;
+            let mut motion = Motion {
+                vel_y: player.vel_y,
+            };
+            let translation = step_motion(
+                &mut motion,
+                &player.input,
+                grounded,
+                submerged,
+                &movement,
+                dt,
+            );
+            player.vel_y = motion.vel_y;
 
             self.world.apply(SimCommand::MoveCharacter {
                 id: body,
-                translation: [
-                    nx * self.config.move_speed * dt,
-                    player.vel_y * dt,
-                    nz * self.config.move_speed * dt,
-                ],
+                translation,
             });
         }
 
@@ -1311,6 +1354,9 @@ pub struct ClientSession<T: Transport> {
     /// The newest input sequence the host has confirmed simulating for us. Everything
     /// after it is still ours to replay.
     acked_input: u32,
+    /// Inputs sent but not yet confirmed, oldest first. These are exactly what a
+    /// predictor replays on top of an authoritative state to get back to now.
+    pending: Vec<PlayerInput>,
     /// Seconds the host had simulated as of the last clock that arrived. The client
     /// advances it between them, so this is a correction rather than the only source.
     elapsed: f64,
@@ -1407,6 +1453,7 @@ impl<T: Transport> ClientSession<T> {
             world: None,
             movement: None,
             acked_input: 0,
+            pending: Vec::new(),
             elapsed: 0.0,
             stone_ledger: Ledger::new(),
             tree_ledger: Ledger::new(),
@@ -1465,6 +1512,12 @@ impl<T: Transport> ClientSession<T> {
     /// applied under the same number the host will ack it by.
     pub fn input_sequence(&self) -> u32 {
         self.input.sequence
+    }
+
+    /// Inputs sent but not yet confirmed by the host, oldest first. Replaying these on
+    /// top of the newest authoritative state is what puts a predicted body back at now.
+    pub fn pending_inputs(&self) -> &[PlayerInput] {
+        &self.pending
     }
 
     /// Name the host assigned us.
@@ -1621,6 +1674,14 @@ impl<T: Transport> ClientSession<T> {
         self.input.wish_dir = wish_dir;
         self.input.jump = jump;
         self.input.yaw = yaw;
+        self.pending.push(self.input);
+        // A host that stops acking must not be able to grow this without bound. The cap
+        // is far past any real round trip, and dropping the oldest is the right loss:
+        // those are the inputs the authoritative state is most likely to already hold.
+        if self.pending.len() > MAX_PENDING_INPUTS {
+            let excess = self.pending.len() - MAX_PENDING_INPUTS;
+            self.pending.drain(..excess);
+        }
     }
 
     pub fn tick(&mut self) {
@@ -1682,6 +1743,10 @@ impl<T: Transport> ClientSession<T> {
                             .and_then(|me| acks.iter().find(|(p, _)| *p == me))
                             .map(|(_, seq)| *seq)
                             .unwrap_or(self.acked_input);
+                        // Everything the host has confirmed is now its problem, not
+                        // ours; what is left is exactly the replay set.
+                        let acked = self.acked_input;
+                        self.pending.retain(|input| input.sequence > acked);
                         self.snapshot = Some(sim);
                     }
                 }
@@ -3015,7 +3080,7 @@ mod tests {
 
         // Ticks far above anything the host has reached, so the real broadcasts already
         // in flight cannot decide this.
-        let mut deliver = |client: &mut ClientSession<Loopback>, tick: u64, seq: u32| {
+        let deliver = |client: &mut ClientSession<Loopback>, tick: u64, seq: u32| {
             let bytes = proto::encode(&SessionMsg::Snapshot {
                 sim: SimSnapshot {
                     tick,
