@@ -374,6 +374,35 @@ impl QStoneField {
         self.settle(id, out)
     }
 
+    /// The ledger as bytes for a save file, live damage folded in.
+    ///
+    /// The ledger alone only knows what past rescatters recorded; anything
+    /// broken since lives in the core. A save taken between strides has to
+    /// carry both or quitting right after felling a tree forgets it.
+    #[func]
+    fn export_harvest(&self) -> PackedByteArray {
+        let mut ledger = self.ledger.clone();
+        for (id, stage) in self.core.damage() {
+            ledger.record(id, stage);
+        }
+        PackedByteArray::from(ledger.to_save(self.stone_seed as u32).as_slice())
+    }
+
+    /// Replays a save file into the world. False means the file was not this
+    /// world's -- wrong magic or wrong seed -- and nothing was touched.
+    ///
+    /// Merge, not replace: damage only ever worsens, so loading a stale save
+    /// over a live world cannot repair anything the player just broke.
+    #[func]
+    fn import_harvest(&mut self, bytes: PackedByteArray) -> bool {
+        let Some(replay) = crate::world::harvest::Ledger::from_save(bytes.as_slice(), self.stone_seed as u32) else {
+            return false;
+        };
+        self.ledger.merge(&replay);
+        self.core.restore(&self.ledger);
+        true
+    }
+
     /// Moves a rock to the stage the server decided on.
     ///
     /// What a `harvest_applied` delta is applied through. Absolute rather than

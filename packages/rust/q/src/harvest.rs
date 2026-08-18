@@ -269,13 +269,101 @@ impl Ledger {
         }
         out
     }
+
+    /// The ledger as a save file: magic, the seed it was cut against, then the
+    /// flat triples, all little-endian.
+    ///
+    /// The seed is in the header because an id is `stable_id(seed, ...)` -- a
+    /// ledger replayed against ground grown from any other seed would mark
+    /// whatever happens to hash to the same ids, which is not damage the player
+    /// did, it is vandalism by coincidence. [`from_save`](Self::from_save)
+    /// refuses rather than guesses.
+    pub fn to_save(&self, seed: u32) -> Vec<u8> {
+        let flat = self.to_flat();
+        let mut out = Vec::with_capacity(8 + flat.len() * 4);
+        out.extend_from_slice(SAVE_MAGIC);
+        out.extend_from_slice(&seed.to_le_bytes());
+        for w in flat {
+            out.extend_from_slice(&w.to_le_bytes());
+        }
+        out
+    }
+
+    /// `None` for the wrong magic or the wrong seed, which are a file from
+    /// something else and a file from another world. A truncated body still
+    /// loads what it can, the same promise [`from_flat`](Self::from_flat)
+    /// makes: a bad shutdown costs the tail of the save, not all of it.
+    pub fn from_save(bytes: &[u8], seed: u32) -> Option<Self> {
+        let body = bytes.strip_prefix(SAVE_MAGIC)?;
+        let (head, body) = body.split_at_checked(4)?;
+        if u32::from_le_bytes(head.try_into().ok()?) != seed {
+            return None;
+        }
+        let words: Vec<u32> = body
+            .chunks_exact(4)
+            .map(|c| u32::from_le_bytes(c.try_into().expect("chunks_exact(4)")))
+            .collect();
+        Some(Self::from_flat(&words))
+    }
 }
+
+/// First bytes of a harvest save. The 1 is a version; a format change bumps it
+/// and old files simply fail the prefix and are discarded.
+const SAVE_MAGIC: &[u8; 4] = b"QHV1";
 
 #[cfg(test)]
 mod merge_tests {
     use super::*;
 
     /// Two clients mining different rocks must end up agreeing on both.
+    #[test]
+    fn a_save_rejects_another_worlds_file() {
+        let mut ledger = Ledger::new();
+        ledger.record(42, 3);
+        let bytes = ledger.to_save(1337);
+        assert!(Ledger::from_save(&bytes, 1337).is_some());
+        assert!(
+            Ledger::from_save(&bytes, 4242).is_none(),
+            "a ledger cut against one seed replayed into another world"
+        );
+        assert!(Ledger::from_save(b"JUNKJUNKJUNK", 1337).is_none());
+        assert!(
+            Ledger::from_save(b"QHV1", 1337).is_none(),
+            "magic alone is not a save"
+        );
+    }
+
+    #[test]
+    fn a_save_file_round_trips() {
+        let mut ledger = Ledger::new();
+        ledger.record(7, 2);
+        ledger.record(u64::MAX - 3, 255);
+        let back = Ledger::from_save(&ledger.to_save(99), 99).expect("valid save");
+        assert_eq!(back.stage(7), 2);
+        assert_eq!(back.stage(u64::MAX - 3), 255);
+        assert_eq!(back.len(), 2);
+    }
+
+    /// The promise from_flat makes, kept through the file framing: a bad
+    /// shutdown costs the tail of the save, never the whole file.
+    #[test]
+    fn a_torn_save_loads_what_it_can() {
+        let mut ledger = Ledger::new();
+        ledger.record(1, 1);
+        ledger.record(2, 2);
+        let bytes = ledger.to_save(5);
+        let torn = &bytes[..bytes.len() - 5];
+        let back = Ledger::from_save(torn, 5).expect("torn body is still a save");
+        assert_eq!(back.len(), 1, "a cut-off save should not invent an entry");
+    }
+
+    #[test]
+    fn an_untouched_world_costs_eight_bytes_to_save() {
+        let bytes = Ledger::new().to_save(0);
+        assert_eq!(bytes.len(), 8);
+        assert_eq!(Ledger::from_save(&bytes, 0).expect("valid").len(), 0);
+    }
+
     #[test]
     fn merging_keeps_everybody_s_damage() {
         let mut host = Ledger::new();
