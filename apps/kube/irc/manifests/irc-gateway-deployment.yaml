@@ -23,7 +23,7 @@ spec:
         spec:
             containers:
                 - name: irc-gateway
-                  image: ghcr.io/kbve/irc-gateway:0.1.29
+                  image: ghcr.io/kbve/irc-gateway:0.1.30
                   imagePullPolicy: Always
                   ports:
                       - containerPort: 4321
