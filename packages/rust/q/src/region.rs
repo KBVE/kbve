@@ -44,6 +44,7 @@ const COARSE_RINGS: i32 = 1;
 /// per-run, or hiding them, would mean two machines on one seed no longer agree
 /// on where the sea is.
 const STREAM_JITTER: u32 = 0x9e37_79b9;
+const STREAM_LAKE_SIZE: u32 = 0x27d4_eb2f;
 const STREAM_OCEAN: u32 = 0x85eb_ca6b;
 const STREAM_LEVEL: u32 = 0xc2b2_ae35;
 
@@ -105,15 +106,33 @@ pub struct RegionParams {
     pub ocean_cell: f32,
     /// Spacing multiplier between ocean levels.
     pub level_scale: f32,
-    /// Odds a cell on any ocean level holds water, 0 to 1.
-    pub ocean_chance: f32,
+    /// Odds a cell holds water, per ocean level, 0 to 1.
+    ///
+    /// Indexed fine to coarse, and deliberately not one number: a flat chance
+    /// makes a 30 km sea as likely per cell as a 900 m cove, and since fine
+    /// cells outnumber coarse ones by the square of `level_scale`, the coves
+    /// then outnumber the seas by that same factor. The coast that results is
+    /// all inlets and no ocean. Rising with level is what buys the occasional
+    /// genuine sea without carpeting the fine lattice in ponds.
+    pub ocean_chance: [f32; OCEAN_LEVELS],
     /// Ocean radius as a fraction of its level's spacing, so a coarse sea is
     /// wide in the same proportion its lattice is.
     pub ocean_radius_frac: f32,
     /// Spacing of the lattice that guarantees a sink, metres. This is the `R`
     /// that bounds both basin size and relief.
     pub lake_cell: f32,
-    pub lake_radius: f32,
+    /// Smallest and largest a guaranteed lake may be, metres. Each cell rolls
+    /// its own radius between these from the seed; identical radii everywhere
+    /// read as a world stamped with one pond.
+    ///
+    /// The span is safe to widen downward only so far. A cone is
+    /// `sea_level + slope * (d - radius)`, so shrinking a radius raises the
+    /// ground everywhere on that cone -- still under [`max_relief`]
+    /// (RegionGen::max_relief), which assumes a radius of zero, but locally
+    /// higher. And the pond has to survive detail noise roughening its
+    /// shoreline, which needs `slope * radius` comfortably above
+    /// `detail_amplitude`; the floor here keeps that ratio near four.
+    pub lake_radius: [f32; 2],
     /// Site displacement inside a cell, as a fraction of spacing. At 0 the
     /// lattice is visible as a grid; at 0.5 sites from non-adjacent cells can
     /// out-compete the near ones and the ring scan has to widen.
@@ -148,10 +167,10 @@ impl Default for RegionParams {
             slope: 0.35,
             ocean_cell: 900.0,
             level_scale: 6.0,
-            ocean_chance: 0.22,
+            ocean_chance: [0.14, 0.28, 0.34],
             ocean_radius_frac: 0.28,
             lake_cell: 1200.0,
-            lake_radius: 70.0,
+            lake_radius: [45.0, 110.0],
             jitter: 0.42,
             blend: 26.0,
             detail_guard: 34.0,
@@ -291,7 +310,7 @@ impl RegionGen {
                 for di in -rings..=rings {
                     let (i, j) = (ci + di, cj + dj);
                     let roll = unit(cell_hash(self.seed, stream, i, j));
-                    if roll >= self.params.ocean_chance {
+                    if roll >= self.params.ocean_chance[level] {
                         continue;
                     }
                     f(Sink {
@@ -311,9 +330,11 @@ impl RegionGen {
         for dj in -FINE_RINGS..=FINE_RINGS {
             for di in -FINE_RINGS..=FINE_RINGS {
                 let (i, j) = (ci + di, cj + dj);
+                let [lo, hi] = self.params.lake_radius;
+                let roll = unit(cell_hash(self.seed, STREAM_LAKE_SIZE, i, j));
                 f(Sink {
                     pos: self.site(STREAM_LEVEL, spacing, i, j),
-                    radius: self.params.lake_radius,
+                    radius: lo + (hi - lo) * roll,
                     kind: SinkKind::Lake,
                     level: u8::MAX,
                     cell: (i, j),
@@ -825,6 +846,55 @@ mod tests {
         assert!(pond > 50, "every basin found sea, so lakes are dead code: {pond}");
     }
 
+    /// Every guaranteed lake rolls its own size from the seed. Uniform radii
+    /// read as one pond stamped across the world; a roll that quietly collapsed
+    /// to one value would pass every drainage test and still look wrong, so the
+    /// spread itself is the assertion.
+    #[test]
+    fn lakes_come_in_sizes() {
+        let g = field();
+        let [lo, hi] = g.params.lake_radius;
+        let mut radii: Vec<f32> = Vec::new();
+        let mut cells = std::collections::HashSet::new();
+        for (x, z) in probes(400) {
+            for s in g.sinks_near(x, z) {
+                if s.kind == SinkKind::Lake && cells.insert(s.cell) {
+                    radii.push(s.radius);
+                }
+            }
+        }
+        assert!(radii.len() > 100, "too few lakes sampled: {}", radii.len());
+        for r in &radii {
+            assert!((lo..=hi).contains(r), "radius {r} outside [{lo}, {hi}]");
+        }
+        let (min, max) = radii
+            .iter()
+            .fold((f32::MAX, f32::MIN), |(a, b), r| (a.min(*r), b.max(*r)));
+        assert!(
+            max - min > (hi - lo) * 0.5,
+            "radii span only {min}..{max}; the roll is not reaching its range"
+        );
+    }
+
+    /// The chance per cell rises with level, and it has to: fine cells outnumber
+    /// coarse ones by the square of the spacing ratio, so a flat chance makes
+    /// coves outnumber seas by that same factor and the coast is all inlets.
+    /// This pins the shape of the defaults, not the values.
+    #[test]
+    fn seas_are_rarer_per_cell_but_not_per_world() {
+        let p = RegionParams::default();
+        for w in p.ocean_chance.windows(2) {
+            assert!(
+                w[0] < w[1],
+                "ocean chance {:?} does not rise with level",
+                p.ocean_chance
+            );
+        }
+        for c in p.ocean_chance {
+            assert!((0.0..0.6).contains(&c), "chance {c} out of range");
+        }
+    }
+
     /// Relief is bounded because the lake lattice bounds how far a sink can be.
     /// Unbounded here would mean mountains that grow forever inland, which is
     /// the failure mode of drainage built on distance to ocean alone.
@@ -883,7 +953,7 @@ mod tests {
         }
         assert_eq!(
             fnv1a(&samples),
-            0x7e0d_c1aa_6f3d_19dd,
+            0x67f0_2c21_74f6_d0c2,
             "region field diverged"
         );
     }
