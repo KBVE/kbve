@@ -455,6 +455,62 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
 /// Each direction is Primary if the current tile has that exit, otherwise disabled Secondary.
 /// The Map button toggles the map overlay.
 /// Build an unequip select menu from currently equipped weapon/armor.
+/// Offer the recipes the player can actually make here.
+///
+/// The router has always parsed this menu's interactions; nothing ever drew
+/// it, so crafting was reachable only by forging a custom id.
+fn build_craft_menu(
+    session: &SessionState,
+    owner: &PlayerState,
+    sid: &str,
+    rows: &mut Vec<serenity::CreateActionRow>,
+) {
+    if !matches!(session.phase, GamePhase::Merchant | GamePhase::City) {
+        return;
+    }
+
+    let options: Vec<serenity::CreateSelectMenuOption> =
+        bevy_dungeon::proto_bridge::available_recipes(&owner.inventory, &owner.skills)
+            .into_iter()
+            .take(25)
+            .map(|recipe| {
+                let label = if recipe.output_qty > 1 {
+                    format!("{} x{}", recipe.output_name, recipe.output_qty)
+                } else {
+                    recipe.output_name.to_owned()
+                };
+                let parts: Vec<String> = recipe
+                    .ingredients
+                    .iter()
+                    .map(|(_, name, amount)| format!("{name} x{amount}"))
+                    .collect();
+                serenity::CreateSelectMenuOption::new(label, recipe.output_ref)
+                    .description(truncate_description(&parts.join(", ")))
+            })
+            .collect();
+
+    if options.is_empty() {
+        return;
+    }
+
+    let menu = serenity::CreateSelectMenu::new(
+        format!("dng|{sid}|craft"),
+        serenity::CreateSelectMenuKind::String { options },
+    )
+    .placeholder("Craft an item...");
+    rows.push(serenity::CreateActionRow::SelectMenu(menu));
+}
+
+/// Discord rejects a select option description over 100 characters.
+fn truncate_description(text: &str) -> String {
+    if text.chars().count() <= 100 {
+        return text.to_owned();
+    }
+    let mut out: String = text.chars().take(97).collect();
+    out.push_str("...");
+    out
+}
+
 fn build_unequip_menu(owner: &PlayerState, sid: &str, rows: &mut Vec<serenity::CreateActionRow>) {
     let mut options = Vec::new();
 
@@ -1036,6 +1092,11 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
         }
     }
 
+    // Crafting menu — city and merchant rooms only, matching the engine gate.
+    if !game_over && rows.len() < 5 {
+        build_craft_menu(session, owner, sid, &mut rows);
+    }
+
     // Room choice buttons (Trap, Treasure, Rest, Hallway)
     if !game_over {
         // Each entry carries the choice index it maps to, because a gathering
@@ -1136,6 +1197,46 @@ mod tests {
     const OWNER: PlayerId = PlayerId::new(1);
 
     /// A session standing at a workable stone node.
+    /// A city session holding the makings of a campfire kit.
+    fn crafting_session() -> SessionState {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        session.room.room_type = RoomType::UndergroundCity;
+        let player = session.players.get_mut(&OWNER).unwrap();
+        player.inventory = bevy_dungeon::types::inv_from_pairs(&[("log", 3), ("stone", 1)]);
+        session
+    }
+
+    #[test]
+    fn a_city_offers_the_recipes_the_player_can_make() {
+        let with_materials = render_components(&crafting_session()).len();
+
+        let mut empty_handed = crafting_session();
+        empty_handed.players.get_mut(&OWNER).unwrap().inventory =
+            bevy_dungeon::types::inv_from_pairs(&[]);
+        let without = render_components(&empty_handed).len();
+
+        assert!(
+            with_materials > without,
+            "carrying ingredients should add a craft menu ({with_materials} vs {without})"
+        );
+    }
+
+    #[test]
+    fn crafting_is_not_offered_out_in_the_dungeon() {
+        let mut session = crafting_session();
+        let in_city = render_components(&session).len();
+        session.phase = GamePhase::Exploring;
+        session.room.room_type = RoomType::Combat;
+
+        let exploring = render_components(&session).len();
+
+        assert_ne!(
+            in_city, exploring,
+            "the craft menu must not follow the player out of the city"
+        );
+    }
+
     fn gathering_session() -> SessionState {
         let mut session = test_session();
         let mut node = bevy_dungeon::proto_bridge::gather_nodes()

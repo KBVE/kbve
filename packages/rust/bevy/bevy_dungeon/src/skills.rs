@@ -155,6 +155,21 @@ pub fn grant_gather_xp(
     Some((id, level))
 }
 
+/// Grant XP to a skill by ref, on whichever curve that skill levels on.
+///
+/// Returns the new level when it went up, so a caller can say so.
+pub fn grant_skill_xp(profile: &mut SkillProfile, skill_ref: &str, xp: u64) -> Option<u32> {
+    if xp == 0 {
+        return None;
+    }
+    let id = SkillId::from_ref(skill_ref);
+    let before = profile.level(id);
+    let total = profile.grant_xp_direct(id, xp);
+    let after = curve_for(id).level_for_xp(total);
+    profile.set_level_direct(id, after);
+    (after > before).then_some(after)
+}
+
 /// Whether the player is trained enough to work a given gatherable.
 pub fn can_gather(profile: &SkillProfile, item_ref: &str) -> bool {
     match gather_info(item_ref) {

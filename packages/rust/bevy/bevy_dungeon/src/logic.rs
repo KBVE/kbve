@@ -228,17 +228,29 @@ fn check_quest_completions(session: &mut SessionState, logs: &mut Vec<String>) {
 fn handle_craft(session: &mut SessionState, item_ref: &str, actor: PlayerId) -> Vec<String> {
     let mut logs = Vec::new();
     let player = session.player_mut(actor);
+    let skills_snapshot = player.skills.clone();
 
-    match proto_bridge::execute_craft(&mut player.inventory, item_ref) {
-        Ok((output_name, qty, xp)) => {
-            if qty > 1 {
-                logs.push(format!("\u{2692} Crafted {}x {}!", qty, output_name));
+    match proto_bridge::execute_craft(&mut player.inventory, &skills_snapshot, item_ref) {
+        Ok(outcome) => {
+            if outcome.output_qty > 1 {
+                logs.push(format!(
+                    "\u{2692} Crafted {}x {}!",
+                    outcome.output_qty, outcome.output_name
+                ));
             } else {
-                logs.push(format!("\u{2692} Crafted {}!", output_name));
+                logs.push(format!("\u{2692} Crafted {}!", outcome.output_name));
             }
-            if xp > 0 {
-                skills::grant_foraging_xp(&mut player.skills, xp);
-                logs.push(format!("+{} crafting XP", xp));
+            // XP belongs to the skill the recipe names. It used to be handed to
+            // grant_foraging_xp, which takes an item count and multiplies by
+            // eight — so every craft paid 8x the recipe's XP into foraging.
+            if outcome.xp > 0 {
+                let skill_ref = outcome.skill_ref.unwrap_or(skills::FORAGING_REF);
+                let level =
+                    skills::grant_skill_xp(&mut player.skills, skill_ref, outcome.xp as u64);
+                logs.push(format!("+{} {} XP", outcome.xp, skill_ref));
+                if let Some(level) = level {
+                    logs.push(format!("Your {skill_ref} is now level {level}."));
+                }
             }
         }
         Err(e) => {
