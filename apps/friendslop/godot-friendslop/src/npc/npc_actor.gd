@@ -39,6 +39,7 @@ const GROUP := &"interactable"
 
 @export_group("Routine")
 @export var clock_path: NodePath = ^"../DayNight"
+@export var physics_path: NodePath = ^"../Physics"
 @export var walk_speed := 1.0
 @export var turn_rate := 4.0
 @export var walk_animation := "UAL2/Walk_Fwd"
@@ -50,6 +51,13 @@ const DRY_REACH := 60.0
 const LEFT_BEHIND := 3.0
 const CATCH_UP := 2.5
 const WORK_PREFIX := "UAL2/"
+
+const GRAVITY := -9.8
+const CAPSULE_RADIUS := 0.4
+const CAPSULE_HALF_HEIGHT := 0.5
+const CAPSULE_CENTER := Vector3(0.0, 1.0, 0.0)
+const LAYER_CREATURE := 4
+const MASK_WORLD_AND_BODIES := 5
 
 var rig: Node3D
 
@@ -63,6 +71,10 @@ var _attending: Node3D
 var _stops: Array = []
 var _worked_at := -1
 var _worked := -1
+var _sim: Node
+var _sim_id := 0
+var _sim_off := false
+var _fall := 0.0
 
 
 func _ready() -> void:
@@ -112,6 +124,9 @@ func vitals_id() -> int:
 func _exit_tree() -> void:
 	if npc_ref != "":
 		Vitals.retire(vitals_id())
+	if _sim_id != 0 and is_instance_valid(_sim):
+		_sim.despawn(_sim_id)
+		_sim_id = 0
 
 
 func _build_body() -> void:
@@ -378,34 +393,75 @@ func _span() -> PackedFloat32Array:
 	return _terrain.bridge_span()
 
 
+func _join_sim() -> void:
+	if _sim_off or _sim_id != 0:
+		return
+	if OS.get_environment("Q_GODOT_PHYSICS") != "":
+		_sim_off = true
+		return
+	var node := get_node_or_null(physics_path)
+	if node == null or not node.has_method("spawn_character"):
+		_sim_off = true
+		return
+	if not node.is_terrain_ready():
+		return
+	_sim = node
+	_sim_id = _sim.spawn_character(self, CAPSULE_HALF_HEIGHT, CAPSULE_RADIUS,
+			CAPSULE_CENTER, LAYER_CREATURE, MASK_WORLD_AND_BODIES)
+
+
 func _physics_process(delta: float) -> void:
 	if _routine == null:
 		return
+	_join_sim()
 	_check_attention()
 	if _attending != null:
+		_face_softly(_attending, delta)
+		_carry(Vector3.ZERO, delta)
 		_perform(idle_animation, "")
 		return
 	_routine.set_hour_seconds(_clock.hour_seconds())
 	var here: Dictionary = _routine.at(_clock.hour)
 	if here.is_empty():
+		_carry(Vector3.ZERO, delta)
 		return
 	var wanted: Vector3 = here["at"]
 	var step := Vector3(wanted.x - global_position.x, 0.0, wanted.z - global_position.z)
-	var reach := walk_speed * CATCH_UP * delta
+	var reach := walk_speed * CATCH_UP
 	var behind := step.length()
-	if behind <= reach:
-		global_position.x = wanted.x
-		global_position.z = wanted.z
-	else:
-		global_position += step / behind * reach
-	_settle()
+	var wish := Vector3.ZERO
+	if behind > reach * delta:
+		wish = step / behind * minf(reach, behind / delta)
+	_carry(wish, delta)
 
 	var walking: bool = here["walking"]
-	if not walking and behind <= reach:
+	if wish == Vector3.ZERO and not walking:
 		_stand_at(int(here["stop"]), float(here["stood"]))
 		return
 	_turn_toward(here["heading"] if walking else step, delta)
 	_perform(walk_animation, idle_animation)
+
+
+func _carry(wish: Vector3, delta: float) -> void:
+	if _sim_id == 0:
+		if wish != Vector3.ZERO:
+			global_position += wish * delta
+			_settle()
+		return
+	if _sim.character_grounded(_sim_id):
+		_fall = 0.0
+	else:
+		_fall += GRAVITY * delta
+	_sim.move_character(_sim_id, (wish + Vector3(0.0, _fall, 0.0)) * delta)
+
+
+func _face_softly(who: Node3D, delta: float) -> void:
+	if not is_instance_valid(who):
+		return
+	var to := who.global_position - global_position
+	to.y = 0.0
+	if to.length_squared() > 0.0001:
+		_turn_toward(to, delta)
 
 
 func _stand_at(stop: int, stood: float) -> void:
