@@ -256,7 +256,7 @@ func set_server_protocol(protocol: int) -> void:
 func _show_account(auth: Node) -> void:
 	if account_card == null:
 		return
-	account_card.show_account(auth.requested_name(), auth.user_id())
+	account_card.show_account(auth.requested_name())
 	account_card.load_avatar(auth.avatar_url())
 	if _api == null:
 		_api = KbveApi.new()

@@ -13,7 +13,6 @@ const CACHE_MAX_AGE := 604800
 
 var avatar: TextureRect
 var name_label: Label
-var id_label: Label
 var wallet_label: Label
 
 var _request: HTTPRequest
@@ -43,9 +42,7 @@ func _build() -> void:
 	row.add_child(column)
 
 	name_label = _line(column, 18)
-	id_label = _line(column, 11)
 	wallet_label = _line(column, 13)
-	id_label.modulate.a = 0.6
 
 
 func _line(parent: Control, size: int) -> Label:
@@ -59,10 +56,12 @@ func _line(parent: Control, size: int) -> Label:
 	return label
 
 
-func show_account(username: String, user_id: String) -> void:
+## Names the signed-in player. Deliberately not given the account UUID: it identifies the
+## account, is no use to the person reading it, and the title screen is the one place most
+## likely to be on screen while streaming or being screenshotted.
+func show_account(username: String) -> void:
 	visible = true
 	name_label.text = username if not username.is_empty() else "signed in"
-	id_label.text = user_id
 	wallet_label.text = I18n.t("account.loading")
 
 
