@@ -509,8 +509,8 @@ data:
             source: |-
               start_ns = to_int(.start_time_unix_nano) ?? 0
               end_ns = to_int(.end_time_unix_nano) ?? 0
-              duration = end_ns - start_ns
-              if duration < 0 { duration = 0 }
+              span_dur = end_ns - start_ns
+              if span_dur < 0 { span_dur = 0 }
 
               resource = object(.resources) ?? object(.resource) ?? {}
               attrs = object(.attributes) ?? {}
@@ -540,7 +540,7 @@ data:
                 "service": service,
                 "span_name": string(.name) ?? "",
                 "span_kind": span_kind,
-                "duration_ns": duration,
+                "duration_ns": span_dur,
                 "status_code": status_code,
                 "status_message": string(status.message) ?? "",
                 "attributes": encode_json(attrs),
