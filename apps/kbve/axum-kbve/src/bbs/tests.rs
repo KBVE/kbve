@@ -11,11 +11,17 @@ use super::chat::{
     sanitize_nick,
 };
 use super::claim::{ClaimStore, Redeem};
+use super::door::{self, DoorContext};
 use super::games::text::{Rng, bar, meter, strip_markup};
-use super::games::{self, Flow, Game, blackjack, dungeon, hangman, highlow, run, tictactoe};
+use super::games::{Flow, Game, blackjack, dungeon, hangman, highlow, run, tictactoe};
 use super::render::{Ink, Screen, Term, truncate, wrap_lines};
 use super::session::Session;
 use super::telnet::{DO, IAC, OPT_ECHO, OPT_NAWS, ReadError, SB, SE, TelnetConn, WILL};
+
+/// The caller a door sees when nobody has signed in.
+fn guest() -> DoorContext {
+    DoorContext::new("tester", None)
+}
 
 /// Everything the board painted, until it goes quiet.
 async fn read_paint(client: &mut TcpStream) -> String {
@@ -571,15 +577,70 @@ fn highlow_tracks_a_streak_and_quits() {
 }
 
 #[test]
-fn every_catalog_entry_launches() {
-    for entry in games::CATALOG {
+fn every_door_in_the_catalog_opens() {
+    let ctx = guest();
+    for entry in door::CATALOG {
+        let mut game = entry.open(&ctx);
         assert!(
-            games::launch(entry.key, "tester").is_some(),
-            "catalog entry {} does not launch",
+            !game.title().is_empty(),
+            "door {} opened onto an untitled game",
+            entry.key
+        );
+        assert!(
+            !entry.blurb.is_empty(),
+            "door {} has no blurb for the menu",
+            entry.key
+        );
+        assert_eq!(
+            game.on_key('Q'),
+            Flow::Exit,
+            "door {} will not close",
             entry.key
         );
     }
-    assert!(games::launch('Z', "tester").is_none());
+}
+
+#[test]
+fn door_keys_are_unique_and_leave_the_back_key_alone() {
+    let mut seen: Vec<char> = Vec::new();
+    for entry in door::CATALOG {
+        assert_ne!(entry.key, 'Q', "door {} shadows the back key", entry.name);
+        assert!(
+            !seen.contains(&entry.key),
+            "two doors answer to {}",
+            entry.key
+        );
+        seen.push(entry.key);
+    }
+}
+
+#[test]
+fn only_a_listed_key_finds_a_door() {
+    for entry in door::CATALOG {
+        assert_eq!(door::find(entry.key).map(|d| d.name), Some(entry.name));
+    }
+    assert!(door::find('Z').is_none());
+}
+
+#[test]
+fn a_guest_is_told_the_run_is_theirs_alone() {
+    let mut screen = Screen::new(Term::Ansi, 80, 24);
+    run::Run::new(Rng::new(11), &guest()).draw(&mut screen);
+    let out = String::from_utf8_lossy(&screen.take()).to_string();
+    assert!(out.contains("guest run"), "guest footer missing:\n{out}");
+}
+
+#[test]
+fn a_member_is_not_called_a_guest() {
+    let ctx = DoorContext::new("h0lyMac", Some("user-1".to_string()));
+    let mut screen = Screen::new(Term::Ansi, 80, 24);
+    run::Run::new(Rng::new(11), &ctx).draw(&mut screen);
+    let out = String::from_utf8_lossy(&screen.take()).to_string();
+    assert!(
+        !out.contains("guest"),
+        "member was drawn as a guest:\n{out}"
+    );
+    assert!(out.contains("not saved yet"), "save notice missing:\n{out}");
 }
 
 #[test]
@@ -630,20 +691,20 @@ fn drive(game: &mut run::Run, keys: &str) {
 
 #[test]
 fn dungeon_starts_in_the_city_with_a_live_player() {
-    let game = run::Run::new(Rng::new(1), "tester");
+    let game = run::Run::new(Rng::new(1), &guest());
     assert_eq!(game.phase(), GamePhase::City);
     assert!(game.hp() > 0);
 }
 
 #[test]
 fn dungeon_quit_exits() {
-    let mut game = run::Run::new(Rng::new(2), "tester");
+    let mut game = run::Run::new(Rng::new(2), &guest());
     assert_eq!(game.on_key('Q'), Flow::Exit);
 }
 
 #[test]
 fn dungeon_uses_real_content_not_hardcoded_monsters() {
-    let mut game = run::Run::new(Rng::new(4), "tester");
+    let mut game = run::Run::new(Rng::new(4), &guest());
     for _ in 0..40 {
         drive(&mut game, "NESW");
     }
@@ -656,7 +717,7 @@ fn dungeon_uses_real_content_not_hardcoded_monsters() {
 
 #[test]
 fn dungeon_map_view_toggles_and_returns() {
-    let mut game = run::Run::new(Rng::new(5), "tester");
+    let mut game = run::Run::new(Rng::new(5), &guest());
     let play = drain(Term::Ansi, &game);
     assert!(play.contains("progress is not saved"));
 
@@ -675,7 +736,7 @@ fn dungeon_map_view_toggles_and_returns() {
 #[test]
 fn dungeon_never_offers_a_key_the_rules_refuse() {
     for seed in 1..24u64 {
-        let mut game = run::Run::new(Rng::new(seed), "tester");
+        let mut game = run::Run::new(Rng::new(seed), &guest());
         for step in 0..120 {
             let keys = game.keys();
             assert!(
@@ -695,7 +756,7 @@ fn dungeon_never_offers_a_key_the_rules_refuse() {
 
 #[test]
 fn dungeon_map_shows_unmapped_neighbors_from_the_start() {
-    let mut game = run::Run::new(Rng::new(11), "tester");
+    let mut game = run::Run::new(Rng::new(11), &guest());
     let _ = game.on_key('M');
     let map_view = drain(Term::Ansi, &game);
     assert!(
@@ -710,7 +771,7 @@ fn dungeon_map_shows_unmapped_neighbors_from_the_start() {
 
 #[test]
 fn dungeon_map_quit_from_map_does_not_leave_the_game() {
-    let mut game = run::Run::new(Rng::new(6), "tester");
+    let mut game = run::Run::new(Rng::new(6), &guest());
     let _ = game.on_key('M');
     assert_eq!(game.on_key('Q'), Flow::Continue);
     assert_eq!(game.on_key('Q'), Flow::Exit);
@@ -718,7 +779,7 @@ fn dungeon_map_quit_from_map_does_not_leave_the_game() {
 
 #[test]
 fn dungeon_renders_clean_on_petscii_across_a_run() {
-    let mut game = run::Run::new(Rng::new(7), "tester");
+    let mut game = run::Run::new(Rng::new(7), &guest());
     for step in 0..24 {
         for view in ['\0', 'M', 'I', 'B'] {
             if view != '\0' {
@@ -888,7 +949,7 @@ async fn the_heartbeat_does_not_extend_the_idle_allowance() {
 
 #[test]
 fn dungeon_pack_lists_what_the_player_started_with() {
-    let game = run::Run::new(Rng::new(11), "tester");
+    let game = run::Run::new(Rng::new(11), &guest());
     let pack = game.pack();
     assert!(
         pack.iter().any(|l| l.starts_with("Potion")),
@@ -898,7 +959,7 @@ fn dungeon_pack_lists_what_the_player_started_with() {
 
 #[test]
 fn dungeon_using_a_potion_spends_it() {
-    let mut game = run::Run::new(Rng::new(11), "tester");
+    let mut game = run::Run::new(Rng::new(11), &guest());
     let before = game.pack();
     let _ = game.on_key('I');
 
@@ -918,7 +979,7 @@ fn dungeon_using_a_potion_spends_it() {
 
 #[test]
 fn dungeon_pack_returns_to_play_without_leaving_the_game() {
-    let mut game = run::Run::new(Rng::new(11), "tester");
+    let mut game = run::Run::new(Rng::new(11), &guest());
     let _ = game.on_key('I');
     assert_eq!(game.on_key('Q'), Flow::Continue);
     assert_eq!(game.on_key('Q'), Flow::Exit);
@@ -926,7 +987,7 @@ fn dungeon_pack_returns_to_play_without_leaving_the_game() {
 
 #[test]
 fn dungeon_city_opens_a_stall_with_stock_on_both_sides() {
-    let game = run::Run::new(Rng::new(11), "tester");
+    let game = run::Run::new(Rng::new(11), &guest());
     let (buy, sell) = game.stall_labels();
 
     assert!(!buy.is_empty(), "the city merchant had nothing for sale");
@@ -942,7 +1003,7 @@ fn dungeon_city_opens_a_stall_with_stock_on_both_sides() {
 
 #[test]
 fn dungeon_selling_a_carried_item_pays_out() {
-    let mut game = run::Run::new(Rng::new(11), "tester");
+    let mut game = run::Run::new(Rng::new(11), &guest());
     let _ = game.on_key('B');
     let view = drain(Term::Ansi, &game);
     assert!(view.contains("for sale"), "stall did not render: {view}");
@@ -960,7 +1021,7 @@ fn dungeon_selling_a_carried_item_pays_out() {
 
 #[test]
 fn dungeon_stall_only_keys_what_the_player_can_pay_for() {
-    let game = run::Run::new(Rng::new(11), "tester");
+    let game = run::Run::new(Rng::new(11), &guest());
     let gold = game.gold();
     let (buy, _) = game.stall_labels();
 
@@ -986,7 +1047,7 @@ fn dungeon_stall_only_keys_what_the_player_can_pay_for() {
 
 #[test]
 fn dungeon_stall_rows_never_steal_the_navigation_keys() {
-    let game = run::Run::new(Rng::new(11), "tester");
+    let game = run::Run::new(Rng::new(11), &guest());
     let (buy, sell) = game.stall_labels();
 
     for (key, label) in buy.iter().chain(sell.iter()) {
@@ -999,7 +1060,7 @@ fn dungeon_stall_rows_never_steal_the_navigation_keys() {
 
 #[test]
 fn dungeon_equipping_carried_gear_is_offered_not_refused() {
-    let mut game = run::Run::new(Rng::new(11), "tester");
+    let mut game = run::Run::new(Rng::new(11), &guest());
     for step in 0..400 {
         if game
             .pack()
@@ -1029,7 +1090,7 @@ fn dungeon_finds_a_resource_room_and_can_work_it() {
     // Walk until a resource room turns up, then confirm the board offers the
     // nodes and that working one yields a material.
     for seed in 1..40u64 {
-        let mut game = run::Run::new(Rng::new(seed), "tester");
+        let mut game = run::Run::new(Rng::new(seed), &guest());
         for step in 0..300 {
             if game.phase() == bevy_dungeon::types::GamePhase::Gathering {
                 let keys = game.keys();
@@ -1062,7 +1123,7 @@ fn dungeon_finds_a_resource_room_and_can_work_it() {
 
 #[test]
 fn dungeon_log_lines_are_not_printed_twice() {
-    let mut game = run::Run::new(Rng::new(3), "tester");
+    let mut game = run::Run::new(Rng::new(3), &guest());
     let keys = game.keys();
     let _ = game.on_key(keys[0]);
 
@@ -1078,7 +1139,7 @@ fn dungeon_log_lines_are_not_printed_twice() {
 
 #[test]
 fn dungeon_workbench_makes_something_from_gathered_materials() {
-    let mut game = run::Run::new(Rng::new(11), "tester");
+    let mut game = run::Run::new(Rng::new(11), &guest());
     game.give("log", 3);
     game.give("stone", 1);
 
@@ -1109,4 +1170,112 @@ fn dungeon_workbench_makes_something_from_gathered_materials() {
         "the crafted item is not in the pack: {:?}",
         game.pack()
     );
+}
+
+/// A door that wants a number before it will do anything, which is the shape
+/// every buy/sell door takes and the one the single-key contract could not
+/// express.
+struct Quantity {
+    got: Option<String>,
+}
+
+impl Game for Quantity {
+    fn title(&self) -> &str {
+        "Quantity"
+    }
+
+    fn draw(&self, _screen: &mut Screen) {}
+
+    fn on_key(&mut self, _key: char) -> Flow {
+        Flow::Exit
+    }
+
+    fn prompt(&self) -> Option<&str> {
+        self.got.is_none().then_some("how many> ")
+    }
+
+    fn on_line(&mut self, line: &str) -> Flow {
+        self.got = Some(line.to_string());
+        Flow::Continue
+    }
+}
+
+#[tokio::test]
+async fn a_door_that_asks_for_a_line_is_handed_the_whole_line() {
+    let (conn, mut client) = pair().await;
+    let mut session = Session::new(conn, Term::Ansi, 80, 24);
+    let mut door = Quantity { got: None };
+    // The trailing key answers the redraw that follows, where the door is
+    // back to taking single keys and exits on the first one.
+    client.write_all(b"12\r\nx").await.expect("write");
+
+    session.play(&mut door).await.expect("play");
+
+    assert_eq!(door.got.as_deref(), Some("12"));
+}
+
+#[tokio::test]
+async fn escaping_a_prompt_hands_the_door_an_empty_line() {
+    let (conn, mut client) = pair().await;
+    let mut session = Session::new(conn, Term::Ansi, 80, 24);
+    let mut door = Quantity { got: None };
+    client.write_all(b"99\x1bx").await.expect("write");
+
+    session.play(&mut door).await.expect("play");
+
+    assert_eq!(
+        door.got.as_deref(),
+        Some(""),
+        "escape should abandon the typed digits, not deliver them"
+    );
+}
+
+#[tokio::test]
+async fn the_door_menu_lists_every_door_with_its_blurb() {
+    let (conn, mut client) = pair().await;
+    let mut session = Session::new(conn, Term::Ansi, 80, 24);
+    client.write_all(b"q\r\n").await.expect("write");
+
+    session.games().await.expect("menu");
+
+    let painted = read_paint(&mut client).await;
+    for entry in door::CATALOG {
+        assert!(
+            painted.contains(entry.name),
+            "door {} missing from the menu:\n{painted}",
+            entry.key
+        );
+        assert!(
+            painted.contains(entry.blurb),
+            "door {} drew no blurb:\n{painted}",
+            entry.key
+        );
+    }
+}
+
+#[tokio::test]
+async fn the_door_menu_fits_a_forty_column_screen() {
+    let (conn, mut client) = pair().await;
+    let mut session = Session::new(conn, Term::Petscii, 40, 25);
+    client.write_all(b"q\r\n").await.expect("write");
+
+    session.games().await.expect("menu");
+
+    let mut painted = Vec::new();
+    let mut buf = [0u8; 2048];
+    while let Ok(Ok(n)) =
+        tokio::time::timeout(Duration::from_millis(200), client.read(&mut buf)).await
+    {
+        if n == 0 {
+            break;
+        }
+        painted.extend_from_slice(&buf[..n]);
+    }
+    let widest = painted
+        .split(|b| *b == 0x0D)
+        .map(petscii_columns)
+        .max()
+        .unwrap_or(0);
+
+    assert!(widest <= 40, "door menu overflowed 40 columns: {widest}");
 }
