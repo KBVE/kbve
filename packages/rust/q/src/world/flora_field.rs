@@ -59,6 +59,7 @@ pub struct QFloraField {
     quad: Option<Gd<QuadMesh>>,
     last_shader_origin: Vector3,
     extent: f32,
+    plan_rx: Option<std::sync::mpsc::Receiver<Vec<f32>>>,
 }
 
 impl QFloraField {
@@ -72,11 +73,14 @@ impl QFloraField {
     fn rescatter(&mut self) {
         let _t = crate::world::StallTimer::start("flora.rescatter");
         self.free_all();
+        self.plan_rx = None;
         self.init_done = false;
     }
 
     fn late_init(&mut self) -> bool {
-        let _t = super::ReadyTimer::start("flora");
+        if self.plan_rx.is_some() {
+            return self.adopt_plan();
+        }
         self.player = self
             .base()
             .get_node_or_null(&self.player_path)
@@ -90,52 +94,49 @@ impl QFloraField {
         let Some(terra) = TerrainSnapshot::take(&terrain) else {
             return false;
         };
-        let extent = terra.extent;
-        let water = terra.water;
-        self.extent = extent;
-
-        let mut noise = FastNoiseLite::with_seed(self.flora_seed + 13);
-        noise.set_noise_type(Some(NoiseType::OpenSimplex2S));
-        noise.set_frequency(Some(self.patch_frequency));
-
-        // One cell per plant rather than one draw from a running sequence. The
-        // sequence is fine for a world baked once, but it ties every plant to
-        // how many were rolled before it, so a window somewhere else deals a
-        // different hand and the meadow reshuffles when the player walks back.
-        let cell = (1.0f32 / self.density.max(1e-6)).sqrt();
-        let grid = crate::world::ScatterGrid::new(cell, terra.origin, extent);
-        let cells = grid.cells();
+        self.extent = terra.extent;
         self.origin = terra.origin;
-        let mut cand: Vec<f32> = Vec::new();
-        for index in 0..(cells * cells) {
-            let (ix, iz) = (index % cells, index / cells);
-            let mut state = grid.seed(self.flora_seed as u32 | 1, ix, iz);
-            let (cx, cz) = grid.centre(ix, iz);
-            let x = cx + (randf(&mut state) - 0.5) * cell;
-            let z = cz + (randf(&mut state) - 0.5) * cell;
-            if !grid.inside(x, z, 2.0) {
-                continue;
+        let seed = self.flora_seed;
+        let density = self.density;
+        let patch_frequency = self.patch_frequency;
+        let patch_threshold = self.patch_threshold;
+        let scale_min = self.scale_min;
+        let scale_max = self.scale_max;
+        let kind_count = self.kind_count;
+        let (tx, rx) = std::sync::mpsc::channel();
+        crate::world::spawn_job(move || {
+            let started = std::time::Instant::now();
+            let cand = plan_flora(
+                seed,
+                density,
+                patch_frequency,
+                patch_threshold,
+                scale_min,
+                scale_max,
+                kind_count,
+                &terra,
+            );
+            let ms = started.elapsed().as_millis();
+            godot::global::godot_print!("[q] flora planned off-thread {}ms", ms);
+            let _ = tx.send(cand);
+        });
+        self.plan_rx = Some(rx);
+        false
+    }
+
+    fn adopt_plan(&mut self) -> bool {
+        let cand = match self.plan_rx.as_ref().map(|rx| rx.try_recv()) {
+            Some(Ok(cand)) => cand,
+            Some(Err(std::sync::mpsc::TryRecvError::Empty)) => return false,
+            _ => {
+                godot_error!("[QFloraField] the placement worker died; flora disabled");
+                self.plan_rx = None;
+                return true;
             }
-            let rank = randf(&mut state);
-            let kind = (randf(&mut state) * self.kind_count as f32).floor();
-            let phase = randf(&mut state) * std::f32::consts::TAU;
-            let scale = self.scale_min + randf(&mut state) * (self.scale_max - self.scale_min);
-            if noise.get_noise_2d(x, z) < self.patch_threshold {
-                continue;
-            }
-            if terra.on_road(x, z) > 0.45 {
-                continue;
-            }
-            let h = terra.height(x, z);
-            if h < water + 0.35 {
-                continue;
-            }
-            let edge = terra.height(x + 1.2, z).min(terra.height(x - 1.2, z));
-            if edge < water + 0.35 {
-                continue;
-            }
-            cand.extend_from_slice(&[x, h, z, scale, rank, kind, phase, 0.0]);
-        }
+        };
+        self.plan_rx = None;
+        let _t = super::ReadyTimer::start("flora");
+        let extent = self.extent;
         if cand.is_empty() {
             godot_error!("[QFloraField] no candidates survived placement");
             return true;
@@ -369,4 +370,57 @@ impl QFloraField {
         self.classic_inst = Rid::Invalid;
         self.classic_mm = Rid::Invalid;
     }
+}
+
+#[allow(clippy::too_many_arguments)]
+fn plan_flora(
+    seed: i32,
+    density: f32,
+    patch_frequency: f32,
+    patch_threshold: f32,
+    scale_min: f32,
+    scale_max: f32,
+    kind_count: i32,
+    terra: &TerrainSnapshot,
+) -> Vec<f32> {
+    let extent = terra.extent;
+    let water = terra.water;
+    let mut noise = FastNoiseLite::with_seed(seed + 13);
+    noise.set_noise_type(Some(NoiseType::OpenSimplex2S));
+    noise.set_frequency(Some(patch_frequency));
+
+    let cell = (1.0f32 / density.max(1e-6)).sqrt();
+    let grid = crate::world::ScatterGrid::new(cell, terra.origin, extent);
+    let cells = grid.cells();
+    let mut cand: Vec<f32> = Vec::new();
+    for index in 0..(cells * cells) {
+        let (ix, iz) = (index % cells, index / cells);
+        let mut state = grid.seed(seed as u32 | 1, ix, iz);
+        let (cx, cz) = grid.centre(ix, iz);
+        let x = cx + (randf(&mut state) - 0.5) * cell;
+        let z = cz + (randf(&mut state) - 0.5) * cell;
+        if !grid.inside(x, z, 2.0) {
+            continue;
+        }
+        let rank = randf(&mut state);
+        let kind = (randf(&mut state) * kind_count as f32).floor();
+        let phase = randf(&mut state) * std::f32::consts::TAU;
+        let scale = scale_min + randf(&mut state) * (scale_max - scale_min);
+        if noise.get_noise_2d(x, z) < patch_threshold {
+            continue;
+        }
+        if terra.on_road(x, z) > 0.45 {
+            continue;
+        }
+        let h = terra.height(x, z);
+        if h < water + 0.35 {
+            continue;
+        }
+        let edge = terra.height(x + 1.2, z).min(terra.height(x - 1.2, z));
+        if edge < water + 0.35 {
+            continue;
+        }
+        cand.extend_from_slice(&[x, h, z, scale, rank, kind, phase, 0.0]);
+    }
+    cand
 }
