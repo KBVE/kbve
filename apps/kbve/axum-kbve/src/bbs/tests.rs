@@ -15,7 +15,7 @@ use super::games::text::{Rng, bar, meter, strip_markup};
 use super::games::{self, Flow, Game, blackjack, dungeon, hangman, highlow, run, tictactoe};
 use super::render::{Ink, Screen, Term, truncate, wrap_lines};
 use super::session::Session;
-use super::telnet::{DO, IAC, OPT_ECHO, OPT_NAWS, SB, SE, TelnetConn, WILL};
+use super::telnet::{DO, IAC, OPT_ECHO, OPT_NAWS, ReadError, SB, SE, TelnetConn, WILL};
 
 /// Everything the board painted, until it goes quiet.
 async fn read_paint(client: &mut TcpStream) -> String {
@@ -801,12 +801,89 @@ async fn idle_allowance_can_be_raised_for_a_caller_who_signs_in() {
 
     conn.set_idle_timeout(super::authed_idle());
 
-    assert_eq!(conn.idle_timeout(), Duration::from_secs(3600));
+    assert_eq!(conn.idle_timeout(), super::authed_idle());
 }
 
 #[test]
-fn authed_idle_defaults_to_an_hour() {
-    assert_eq!(super::authed_idle(), Duration::from_secs(3600));
+fn authed_idle_outlasts_the_hour_a_long_session_needs() {
+    assert!(
+        super::authed_idle() > Duration::from_secs(3600),
+        "a signed-in caller should keep the board past an hour"
+    );
+}
+
+/// Read from `client` until the telnet no-op shows up, or give up. The server
+/// answers the opening WILL with its own DO, so the heartbeat is never the
+/// first thing on the wire.
+async fn wait_for_nop(client: &mut TcpStream, window: Duration) -> bool {
+    let deadline = tokio::time::Instant::now() + window;
+    let mut seen: Vec<u8> = Vec::new();
+    loop {
+        let mut buf = [0u8; 32];
+        let remaining = deadline.saturating_duration_since(tokio::time::Instant::now());
+        if remaining.is_zero() {
+            return false;
+        }
+        match tokio::time::timeout(remaining, client.read(&mut buf)).await {
+            Ok(Ok(0)) | Ok(Err(_)) | Err(_) => return false,
+            Ok(Ok(n)) => seen.extend_from_slice(&buf[..n]),
+        }
+        if seen.windows(2).any(|w| w == [IAC, super::telnet::NOP]) {
+            return true;
+        }
+    }
+}
+
+#[tokio::test]
+async fn a_silent_telnet_caller_is_nudged_rather_than_dropped() {
+    let (mut conn, mut client) = pair().await;
+    conn.set_keepalive(Duration::from_millis(30));
+    client
+        .write_all(&[IAC, WILL, OPT_NAWS])
+        .await
+        .expect("write");
+
+    let nudged = tokio::select! {
+        _ = conn.read_byte() => panic!("read_byte returned without the client sending data"),
+        seen = wait_for_nop(&mut client, Duration::from_millis(800)) => seen,
+    };
+
+    assert!(nudged, "no IAC NOP reached a silent telnet caller");
+}
+
+#[tokio::test]
+async fn a_raw_caller_is_never_shown_the_heartbeat() {
+    let (mut conn, mut client) = pair().await;
+    conn.set_keepalive(Duration::from_millis(30));
+    // No IAC from this one, so it is a plain socket. FF F1 in its scrollback
+    // would be worse than the drop the heartbeat is guarding against.
+    client.write_all(b"h").await.expect("write");
+    assert_eq!(conn.read_byte().await.expect("byte"), b'h');
+
+    let nudged = tokio::select! {
+        _ = conn.read_byte() => panic!("read_byte returned without the client sending data"),
+        seen = wait_for_nop(&mut client, Duration::from_millis(300)) => seen,
+    };
+
+    assert!(!nudged, "a raw caller was sent telnet bytes");
+}
+
+#[tokio::test]
+async fn the_heartbeat_does_not_extend_the_idle_allowance() {
+    let (mut conn, mut client) = pair().await;
+    conn.set_idle_timeout(Duration::from_millis(200));
+    conn.set_keepalive(Duration::from_millis(30));
+    client
+        .write_all(&[IAC, WILL, OPT_NAWS])
+        .await
+        .expect("write");
+
+    let outcome = tokio::time::timeout(Duration::from_secs(2), conn.read_byte()).await;
+
+    assert!(
+        matches!(outcome, Ok(Err(ReadError::Timeout))),
+        "idle allowance should still expire while the link is being nudged"
+    );
 }
 
 #[test]
