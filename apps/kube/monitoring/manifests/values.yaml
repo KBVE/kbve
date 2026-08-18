@@ -75,3 +75,12 @@ prometheus-node-exporter:
 prometheusOperator:
     admissionWebhooks:
         enabled: false
+
+kubeProxy:
+    enabled: false
+
+kubeScheduler:
+    enabled: false
+
+kubeControllerManager:
+    enabled: false
