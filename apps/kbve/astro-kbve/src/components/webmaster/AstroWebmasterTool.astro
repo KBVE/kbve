@@ -7,13 +7,13 @@ const buttonClass = cn(
 	'group inline-flex items-center justify-between gap-2',
 	'px-3 py-2 rounded-md text-sm font-medium',
 	'border transition-colors',
-	'border-[var(--sl-color-gray-5,#30363d)]',
-	'bg-[var(--sl-color-gray-6,#161b22)]',
+	'border-[var(--bento-hairline-strong,#30363d)]',
+	'bg-[var(--bento-glass-bg,#161b22)]',
 	'text-[var(--sl-color-text,#e6edf3)]',
 	'opacity-50 cursor-not-allowed',
 	'data-[disabled=false]:opacity-100 data-[disabled=false]:cursor-pointer',
-	'data-[disabled=false]:hover:bg-[var(--sl-color-accent-low,#1f6feb33)]',
-	'data-[disabled=false]:hover:border-[var(--sl-color-accent,#1f6feb)]',
+	'data-[disabled=false]:hover:bg-[color-mix(in_srgb,var(--bento-accent,#1f6feb)_12%,transparent)]',
+	'data-[disabled=false]:hover:border-[var(--bento-accent,#1f6feb)]',
 );
 
 const gridClass = cn(
@@ -27,26 +27,14 @@ const sectionLabelClass = cn(
 	'text-[var(--sl-color-gray-3,#8b949e)]',
 );
 
-const dividerClass = 'h-px bg-[var(--sl-color-gray-5,#30363d)]';
+const dividerClass = 'h-px bg-[var(--bento-hairline-strong,#30363d)]';
 ---
 
 <section
 	id="webmaster-tool-wrapper"
 	aria-label="Webmaster tools"
 	class="relative w-full bg-transparent">
-	<div
-		class="mx-auto max-w-[1100px] flex flex-col gap-6 px-4 py-6 md:px-6 md:py-8">
-		<header class="not-content flex flex-col gap-1">
-			<h2
-				class="m-0 text-2xl font-bold text-[var(--sl-color-text,#e6edf3)]">
-				Webmaster Tools
-			</h2>
-			<p class="m-0 text-sm text-[var(--sl-color-gray-3,#8b949e)]">
-				Enter a domain and launch SEO, performance, security, and tech
-				audits in one click.
-			</p>
-		</header>
-
+	<div class="flex flex-col gap-6 px-4 pb-8 md:px-6 md:pb-10">
 		<div id="webmaster-tool-mount">
 			<ReactWebmaster client:only="react" />
 		</div>
