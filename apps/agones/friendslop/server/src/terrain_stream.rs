@@ -74,7 +74,7 @@ pub struct TerrainStreamer {
 impl TerrainStreamer {
     pub fn new(cfg: StreamConfig) -> Self {
         let (tx, rx) = mpsc::channel();
-        let window = Window::new(cfg.extent, cfg.stride);
+        let window = Window::aligned(cfg.extent, cfg.stride, cfg.resolution.max(2));
         let hgen = HeightGen::new(&cfg.params());
         let plan = BridgePlan::new(&hgen, cfg.extent, cfg.water_level, cfg.road_width);
         let mut slabs = plan.slabs().to_vec();

@@ -235,6 +235,9 @@ pub struct QGrassField {
     terrain_clearance_rid: Rid,
     clearance_fallback: Option<Gd<godot::classes::ImageTexture>>,
     terrain_extent_cached: f32,
+    /// Middle of the ground the terrain currently has baked. Zero until the
+    /// terrain has been polled, which is also where the window starts.
+    terrain_origin_cached: Vector2,
     water_cached: f32,
 }
 
@@ -355,6 +358,7 @@ impl QGrassField {
                 self.terrain_res = res;
             }
             self.terrain_extent_cached = t.world_extent();
+            self.terrain_origin_cached = t.window_origin();
             self.water_cached = t.water();
             self.terrain_heightmap_rid = t
                 .heightmap_texture()
@@ -1179,9 +1183,16 @@ impl QGrassField {
         h.rem_euclid(self.layout_variants.max(1)) as usize
     }
 
+    /// Whether a cell sits on ground the terrain has actually baked.
+    ///
+    /// Measured from the terrain's window rather than from the world origin.
+    /// While the window was pinned there the two were the same thing, so this
+    /// read as a fixed box around the middle of the world; once the window
+    /// follows the player, a fixed box means the ground streams on and the grass
+    /// stops dead at the old tile's edge.
     fn in_world(&self, coord: (i32, i32), size: f32) -> bool {
-        let min_x = coord.0 as f32 * size;
-        let min_z = coord.1 as f32 * size;
+        let min_x = coord.0 as f32 * size - self.terrain_origin_cached.x;
+        let min_z = coord.1 as f32 * size - self.terrain_origin_cached.y;
         min_x >= -self.world_half_extent
             && min_x + size <= self.world_half_extent
             && min_z >= -self.world_half_extent

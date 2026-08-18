@@ -9,7 +9,7 @@ use crate::world::stone_mesh::{
     LOD_LEVELS, SPECIES, build_cracked_mesh, build_rubble_mesh, build_stone_hull, build_stone_lod,
     build_stone_mesh,
 };
-use crate::world::{TerrainSnapshot, hash32, world_aabb};
+use crate::world::{TerrainSnapshot, hash32, world_aabb_at};
 use crate::worldgen::StoneScatter;
 
 const VARIANTS: usize = 12;
@@ -631,7 +631,7 @@ impl QStoneField {
         if material.is_valid() {
             rs.instance_geometry_set_material_override(inst, material);
         }
-        rs.instance_set_custom_aabb(inst, world_aabb(self.extent));
+        rs.instance_set_custom_aabb(inst, world_aabb_at(self.extent, self.origin));
         rs.instance_set_transform(inst, Transform3D::IDENTITY);
         MmSlot { mm, inst }
     }
