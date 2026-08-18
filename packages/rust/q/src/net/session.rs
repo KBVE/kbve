@@ -507,6 +507,14 @@ impl<T: Transport> HostSession<T> {
         self.pet_fields.set_bridge(bridge);
     }
 
+    /// Tells the pet fields what is built on the ground they cover.
+    ///
+    /// A landmark levels its own ground, so a field reading only the height sampler
+    /// reads a walled capital as the most walkable country for miles.
+    pub fn set_landmarks(&mut self, marks: Vec<crate::landmark::LandmarkFootprint>) {
+        self.pet_fields.set_landmarks(marks);
+    }
+
     /// How many owners currently have a flow field built.
     pub fn pet_field_count(&self) -> usize {
         self.pet_fields.len()
