@@ -114,6 +114,20 @@ pub struct BiomeParams {
     /// wherever the temperature field happens to dip, which is to say nowhere in
     /// particular, and mountains are as warm as the coast below them.
     pub lapse_rate: f32,
+    /// The height the heat field is written for, in metres above sea level.
+    ///
+    /// The lapse rate has to be measured from somewhere, and measuring it from
+    /// sea level does not cool the high ground -- it cools everything, by the
+    /// height of the ground under it. Land here sits around 85 m, so that came
+    /// to nearly half a unit off the temperature everywhere at once, against a
+    /// heat field that only ranges about a unit either side of zero and a tundra
+    /// threshold at -0.42. Half the world was tundra, including its hollows.
+    ///
+    /// Measured from here instead, the lapse redistributes temperature rather
+    /// than removing it: ground above this is colder than the field says, ground
+    /// below it warmer, and the world as a whole is the climate that was
+    /// written.
+    pub temperate_elevation: f32,
     /// How much wetter it is beside open water, and how far that reaches.
     pub coastal_moisture: f32,
     pub moisture_reach: f32,
@@ -142,6 +156,7 @@ impl Default for BiomeParams {
             warp_frequency: 0.0007,
             climate_frequency: 0.00035,
             lapse_rate: 0.0055,
+            temperate_elevation: 85.0,
             coastal_moisture: 0.55,
             moisture_reach: 260.0,
             shore_band: 6.0,
@@ -265,7 +280,8 @@ impl BiomeGen {
             None => 0.0,
         };
         Climate {
-            temperature: self.heat.get_noise_2d(x, z) - above * self.params.lapse_rate,
+            temperature: self.heat.get_noise_2d(x, z)
+                - (above - self.params.temperate_elevation) * self.params.lapse_rate,
             moisture: self.damp.get_noise_2d(x, z) + wet,
             elevation: above,
         }
@@ -441,11 +457,39 @@ mod tests {
         for (kind, count) in &seen {
             let share = *count as f32 / total as f32;
             assert!(
-                share < 0.75,
+                share < 0.35,
                 "{kind:?} covers {:.0}% of the world",
                 share * 100.0
             );
         }
+    }
+
+    /// The heat field ranges about a unit either side of zero, and the lapse
+    /// rate subtracts from it. Measured from sea level rather than from the
+    /// height land actually sits at, that subtraction is not a gradient across
+    /// the world -- it is an offset applied to all of it, and a world uniformly
+    /// colder than its own climate field is a world of tundra including its
+    /// hollows.
+    ///
+    /// So: the median land temperature has to stay near the middle of the field
+    /// that produced it, rather than drifting to one end.
+    #[test]
+    fn the_climate_is_not_shifted_off_its_own_scale() {
+        let (r, b) = world();
+        let mut temps: Vec<f32> = probes(8_000)
+            .filter(|(x, z)| !r.is_water(*x, *z))
+            .map(|(x, z)| b.climate(&r, x, z).temperature)
+            .collect();
+        temps.sort_by(|a, c| a.partial_cmp(c).unwrap());
+        let median = temps[temps.len() / 2];
+        assert!(
+            median.abs() < 0.25,
+            "median land temperature {median:.2} is not near the middle of the heat field;              the lapse rate is being applied as an offset rather than a gradient"
+        );
+        assert!(
+            median > b.params().tundra_below,
+            "the median land point is colder than the tundra threshold"
+        );
     }
 
     /// A blend outside this range is a caller drawing the wrong biome at full
