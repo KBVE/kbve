@@ -564,6 +564,9 @@ message RoutineStop {
   float hour = 1;                   // 0-24, when they leave for this place
   float offset_x = 2;               // Sideways from their placed stand
   float offset_z = 3;               // Forward from their placed stand
+  optional string task = 4;         // Animation played while standing here
+  optional string yield_item = 5;   // itemdb ref the task produces
+  optional float yield_minutes = 6; // Game-minutes of work per item
 }
 
 // Where somebody is meant to be through the day. Derived from the world clock rather

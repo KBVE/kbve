@@ -118,3 +118,31 @@ fn one_stop_is_a_place_to_stand_all_day() {
         assert!(!out.walking);
     }
 }
+
+#[test]
+fn standing_time_is_counted_from_arrival_not_from_setting_off() {
+    let day = day();
+    let there = day.at(12.0 + 40.0 / 60.0).unwrap();
+    assert!(!there.walking);
+    assert!(
+        (there.stood - 10.0).abs() < 0.1,
+        "forty game-minutes is 40s here, the walk takes 30, stood {}s",
+        there.stood
+    );
+}
+
+#[test]
+fn nobody_accrues_standing_time_while_walking() {
+    let out = day().at(12.0 + 10.0 / 60.0).unwrap();
+    assert!(out.walking);
+    assert_eq!(out.stood, 0.0);
+}
+
+#[test]
+fn standing_time_at_a_repeated_place_runs_from_its_own_hour() {
+    let mut day = Day::new(HOUR);
+    day.push(Stop::new([4.0, 4.0], 6.0));
+    day.push(Stop::new([4.0, 4.0], 18.0));
+    let out = day.at(19.0).unwrap();
+    assert!((out.stood - HOUR).abs() < 1.0, "stood {}s", out.stood);
+}
