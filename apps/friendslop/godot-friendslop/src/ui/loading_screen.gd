@@ -11,7 +11,6 @@ const BUILD_TIMEOUT := 25.0
 const BUILD_PACE := 4.0
 
 const WARM_TIMEOUT := 30.0
-const WARM_SPIKE_MS := 24.0
 const WARM_CALM_FRAMES := 45
 
 var _label: Label
@@ -158,23 +157,33 @@ func _warm_shaders(tree: SceneTree) -> void:
 	_label.text = "Compiling shaders"
 	_set_progress(0.0)
 	var started := Time.get_ticks_usec()
-	var last := started
+	var seen := _pipeline_compiles()
 	var calm := 0
 	while calm < WARM_CALM_FRAMES:
 		await tree.process_frame
-		var now := Time.get_ticks_usec()
-		var frame_ms := float(now - last) / 1000.0
-		last = now
-		if frame_ms > WARM_SPIKE_MS:
+		var compiled := _pipeline_compiles()
+		if compiled > seen:
+			seen = compiled
 			calm = 0
 		else:
 			calm += 1
-		var waited := float(now - started) / 1000000.0
+		var waited := float(Time.get_ticks_usec() - started) / 1000000.0
 		if waited >= WARM_TIMEOUT:
 			push_warning("[LoadingScreen] shaders still compiling after %.0fs; going in anyway" % waited)
 			return
 		_set_progress(float(calm) / float(WARM_CALM_FRAMES))
 	_set_progress(1.0)
+
+
+func _pipeline_compiles() -> int:
+	var total := 0
+	for source in [RenderingServer.RENDERING_INFO_PIPELINE_COMPILATIONS_CANVAS,
+			RenderingServer.RENDERING_INFO_PIPELINE_COMPILATIONS_MESH,
+			RenderingServer.RENDERING_INFO_PIPELINE_COMPILATIONS_SURFACE,
+			RenderingServer.RENDERING_INFO_PIPELINE_COMPILATIONS_DRAW,
+			RenderingServer.RENDERING_INFO_PIPELINE_COMPILATIONS_SPECIALIZATION]:
+		total += RenderingServer.get_rendering_info(source)
+	return total
 
 
 func _set_progress(ratio: float) -> void:

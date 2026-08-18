@@ -154,14 +154,8 @@ func _on_refused(ref: StringName, count: int) -> void:
 
 
 func _paper(scale: float) -> StyleBoxFlat:
-	var style := StyleBoxFlat.new()
-	style.bg_color = MenuStyle.PAPER
-	style.set_corner_radius_all(MenuStyle.BUTTON_RADIUS)
-	style.content_margin_left = 18.0 * scale
-	style.content_margin_right = 18.0 * scale
-	style.content_margin_top = 8.0 * scale
-	style.content_margin_bottom = 8.0 * scale
-	return style
+	return MenuStyle.plate(MenuStyle.PAPER, MenuStyle.BUTTON_RADIUS, 0,
+			Vector2(18.0, 8.0) * scale)
 
 
 func _scale() -> float:

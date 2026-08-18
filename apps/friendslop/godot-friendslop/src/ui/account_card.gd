@@ -45,12 +45,7 @@ func _build() -> void:
 
 
 func _line(parent: Control, size: int) -> Label:
-	var label := Label.new()
-	label.add_theme_font_size_override("font_size", size)
-	label.add_theme_color_override("font_color", MenuStyle.PAPER_HOVER)
-	label.add_theme_color_override("font_shadow_color", Color(0.05, 0.03, 0.02, 0.9))
-	label.add_theme_constant_override("shadow_offset_x", 1)
-	label.add_theme_constant_override("shadow_offset_y", 1)
+	var label := PaperLabel.card(size)
 	parent.add_child(label)
 	return label
 

@@ -3,8 +3,6 @@ extends CanvasLayer
 
 
 const GROUP := &"chat_panel"
-const LAYOUT_HEIGHT := 720.0
-const SCALE_RANGE := Vector2(0.7, 1.6)
 const LOG_FRACTION_WIDE := 0.32
 const LOG_FRACTION_TALL := 0.42
 const WIDE_ASPECT := 1.2
@@ -74,10 +72,8 @@ func _build() -> void:
 	_entry.text_submitted.connect(_on_submit)
 	column.add_child(_entry)
 
-
 func _ui_scale() -> float:
-	var view := get_viewport().get_visible_rect().size
-	return clampf(view.y / LAYOUT_HEIGHT, SCALE_RANGE.x, SCALE_RANGE.y)
+	return MenuStyle.ui_scale(get_viewport())
 
 
 func _layout() -> void:

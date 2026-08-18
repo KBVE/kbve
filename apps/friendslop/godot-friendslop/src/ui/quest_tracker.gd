@@ -1,8 +1,6 @@
 extends CanvasLayer
 
 
-const LAYOUT_HEIGHT := 720.0
-const SCALE_RANGE := Vector2(0.7, 1.4)
 const MARGIN := Vector2(24.0, 92.0)
 const WIDTH := 260.0
 const HEADING_FONT := 13
@@ -42,11 +40,11 @@ func _ready() -> void:
 
 
 func _fit() -> void:
-	var view := get_viewport().get_visible_rect().size
-	var scale := clampf(view.y / LAYOUT_HEIGHT, SCALE_RANGE.x, SCALE_RANGE.y)
-	_column.offset_left = -(WIDTH + MARGIN.x) * scale
-	_column.offset_right = -MARGIN.x * scale
-	_column.offset_top = MARGIN.y * scale
+	var scale := MenuStyle.ui_scale(get_viewport())
+	var safe := MenuStyle.safe_insets(get_viewport())
+	_column.offset_left = -(WIDTH + MARGIN.x) * scale - safe.z
+	_column.offset_right = -MARGIN.x * scale - safe.z
+	_column.offset_top = MARGIN.y * scale + safe.y
 
 
 func _on_changed(ref: String) -> void:
@@ -99,13 +97,6 @@ func _rebuild() -> void:
 
 
 func _line(text: String, font: int, tint: Color) -> Label:
-	var label := Label.new()
-	label.text = text
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	var label := PaperLabel.hud(text, font, tint)
 	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	label.add_theme_font_size_override("font_size", font)
-	label.add_theme_color_override("font_color", tint)
-	label.add_theme_constant_override("outline_size", 4)
-	label.add_theme_color_override("font_outline_color", Color(0.06, 0.045, 0.035, 0.85))
 	return label
