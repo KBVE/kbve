@@ -21,6 +21,7 @@ enum View {
     Map,
     Items,
     Shop,
+    Craft,
 }
 
 /// What a key on the board does: hand something to the rules engine, or start
@@ -202,6 +203,17 @@ impl Run {
     }
 
     #[cfg(test)]
+    pub fn give(&mut self, item_ref: &str, qty: u32) {
+        let actor = self.actor;
+        types::inv_add_qty(&mut self.state.player_mut(actor).inventory, item_ref, qty);
+    }
+
+    #[cfg(test)]
+    pub fn recipe_keys(&self) -> Vec<char> {
+        self.recipes().into_iter().filter_map(|r| r.key).collect()
+    }
+
+    #[cfg(test)]
     pub fn log(&self) -> Vec<String> {
         self.state.log.clone()
     }
@@ -285,6 +297,37 @@ impl Run {
 
     fn has_living_enemy(&self) -> bool {
         self.state.enemies.iter().any(|e| e.hp > 0)
+    }
+
+    /// Recipes the player could make here, keyed for the board. The engine
+    /// only allows crafting in a city or at a merchant, so the list is empty
+    /// anywhere else rather than offered and refused.
+    fn recipes(&self) -> Vec<Offer> {
+        if !matches!(self.state.phase, GamePhase::Merchant | GamePhase::City) {
+            return Vec::new();
+        }
+        let me = self.state.player(self.actor);
+        let mut keys = KeyRun::digits();
+        bevy_dungeon::proto_bridge::available_recipes(&me.inventory, &me.skills)
+            .into_iter()
+            .map(|recipe| {
+                let qty = if recipe.output_qty > 1 {
+                    format!(" x{}", recipe.output_qty)
+                } else {
+                    String::new()
+                };
+                let parts: Vec<String> = recipe
+                    .ingredients
+                    .iter()
+                    .map(|(_, name, amount)| format!("{name} x{amount}"))
+                    .collect();
+                Offer {
+                    key: keys.next(),
+                    label: format!("{}{qty} - {}", recipe.output_name, parts.join(", ")),
+                    id: recipe.output_ref.to_owned(),
+                }
+            })
+            .collect()
     }
 
     /// Whether there is a counter to stand at. Buying and selling are legal in
@@ -466,6 +509,20 @@ impl Run {
         out
     }
 
+    /// What the engine last said, for views that do not draw the log. Without
+    /// this a purchase or a craft looks like it did nothing at all.
+    fn draw_last_log(&self, screen: &mut Screen) {
+        let Some(entry) = self.state.log.last() else {
+            return;
+        };
+        let width = screen.width.saturating_sub(1);
+        screen.nl().ink(Ink::Body);
+        for line in wrap_lines(&strip_markup(entry), width) {
+            screen.line(&line);
+        }
+        screen.reset();
+    }
+
     /// Whatever the engine last refused, in the caller's width.
     fn draw_notice(&self, screen: &mut Screen) {
         let Some(notice) = &self.notice else {
@@ -510,6 +567,9 @@ impl Run {
         }
         if self.trading() {
             options.push(('B', "Trade".to_string()));
+        }
+        if !self.recipes().is_empty() {
+            options.push(('K', "Craft".to_string()));
         }
 
         Frame {
@@ -619,6 +679,23 @@ impl Game for Run {
                 screen.nl();
                 screen.item('Q', "Back");
             }
+            View::Craft => {
+                let recipes = self.recipes();
+                screen.nl().ink(Ink::Accent).line("workbench").reset();
+                if recipes.is_empty() {
+                    screen
+                        .ink(Ink::Dim)
+                        .line("nothing you can make from what you carry")
+                        .reset();
+                }
+                for recipe in &recipes {
+                    draw_row(screen, recipe.key, &recipe.label, None);
+                }
+                self.draw_last_log(screen);
+                self.draw_notice(screen);
+                screen.nl();
+                screen.item('Q', "Back");
+            }
             View::Shop => {
                 let (buy, sell) = self.stall();
                 screen.nl().ink(Ink::Accent).line("for sale").reset();
@@ -636,6 +713,7 @@ impl Game for Run {
                     }
                 }
 
+                self.draw_last_log(screen);
                 self.draw_notice(screen);
                 screen.nl();
                 screen.item('Q', "Back");
@@ -681,6 +759,21 @@ impl Game for Run {
             return Flow::Continue;
         }
 
+        if self.view == View::Craft {
+            match key {
+                'Q' | 'K' => {
+                    self.view = View::Play;
+                    self.notice = None;
+                }
+                _ => {
+                    if let Some(recipe) = self.recipes().into_iter().find(|r| r.key == Some(key)) {
+                        self.act(GameAction::Craft(recipe.id));
+                    }
+                }
+            }
+            return Flow::Continue;
+        }
+
         if self.view == View::Shop {
             match key {
                 'Q' | 'B' => {
@@ -702,6 +795,10 @@ impl Game for Run {
         match key {
             'Q' => return Flow::Exit,
             'M' => self.view = View::Map,
+            'K' if !self.recipes().is_empty() => {
+                self.view = View::Craft;
+                self.notice = None;
+            }
             'B' if self.trading() => {
                 self.view = View::Shop;
                 self.notice = None;
