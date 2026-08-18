@@ -35,10 +35,13 @@ const GROUP := &"landmark_folk"
 var _terrain: Node
 var _wait := 0.0
 var _folk: Dictionary = {}
+var _warming: Array[String] = []
+var _warm: Array[Resource] = []
 
 
 func _ready() -> void:
 	add_to_group(GROUP)
+	_warm_the_wardrobe()
 	_terrain = get_node_or_null(terrain_path)
 	if _terrain != null:
 		return
@@ -51,17 +54,24 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	_collect_warm()
 	if _terrain == null or not _terrain.has_method("landmark_posts"):
 		return
 	_wait -= delta
 	if _wait > 0.0:
 		return
-	_wait = settle_interval
-	_settle()
+	_wait = 0.0 if _settle() else settle_interval
 
 
-## Brings the roster in line with the posts the world currently has.
-func _settle() -> void:
+## Brings the roster in line with the posts the world currently has, one arrival at a
+## time. Returns whether anybody is still waiting to be stood up.
+##
+## Building a body is tens of milliseconds -- a rig, its wardrobe and an animation tree --
+## so raising a capital's whole roster in the pass that first sees it is a hitch the player
+## walks into every time they approach one. Only one person arrives per pass, and a pass
+## with a queue behind it comes back on the next frame rather than the next interval, so
+## the place still fills up promptly while no single frame pays for more than one of them.
+func _settle() -> bool:
 	var posts: Array = _terrain.landmark_posts()
 	var wanted := {}
 	for post: Dictionary in posts:
@@ -75,15 +85,26 @@ func _settle() -> void:
 		if is_instance_valid(who):
 			who.queue_free()
 
+	var waiting := 0
 	for key: String in wanted:
 		if _folk.has(key):
 			continue
+		waiting += 1
+		if waiting > 1:
+			continue
 		var who := _raise(wanted[key])
-		if who != null:
-			_folk[key] = who
+		if who == null:
+			# Nothing will ever stand here -- no body is authored for the role -- so it
+			# is not a backlog and must not hold the pass on the next frame forever.
+			waiting -= 1
+			continue
+		_folk[key] = who
 
 	if debug:
-		print("landmark_folk: %d posts, %d standing" % [posts.size(), _folk.size()])
+		print("landmark_folk: %d posts, %d standing, %d waiting" % [
+			posts.size(), _folk.size(), maxi(waiting - 1, 0),
+		])
+	return waiting > 1
 
 
 ## A post's name in the world, which has to survive the window moving over it.
@@ -129,3 +150,52 @@ func _body_for(role: String) -> PackedScene:
 		"harbourmaster":
 			return harbourmaster
 	return null
+
+
+## Asks for every garment these people will wear, off the main thread, long before any of
+## them is stood up.
+##
+## A rig loads its wardrobe when it enters the tree -- one blocking [method @GDScript.load]
+## per worn piece, four heavy meshes a body. The loads are cached, so only the first of a
+## kind costs anything, but the first of a kind is exactly the one the player is walking
+## towards when it happens. Requesting them at boot moves that cost onto a loader thread
+## during the minutes of walking it takes to reach anywhere built.
+##
+## The results are kept, not just requested: a resource nobody holds a reference to is free
+## to leave the cache again, and then the rig pays for it after all.
+func _warm_the_wardrobe() -> void:
+	for scene: PackedScene in [gate_guard, trader, steward, dockhand, harbourmaster]:
+		for id: StringName in _worn_by(scene):
+			var path := Wardrobe.path_of(id)
+			if path.is_empty() or _warming.has(path):
+				continue
+			if ResourceLoader.load_threaded_request(path) == OK:
+				_warming.append(path)
+
+
+## What a role wears, read off the packed scene rather than out of an instance of it,
+## because instantiating one to find out is the cost this is trying to avoid.
+func _worn_by(scene: PackedScene) -> Array:
+	if scene == null:
+		return []
+	var state := scene.get_state()
+	for node in state.get_node_count():
+		for prop in state.get_node_property_count(node):
+			if state.get_node_property_name(node, prop) == &"worn":
+				return state.get_node_property_value(node, prop)
+	return []
+
+
+## Takes delivery of whatever the loader threads have finished, and stops looking once
+## the last one is in.
+func _collect_warm() -> void:
+	if _warming.is_empty():
+		return
+	var still: Array[String] = []
+	for path in _warming:
+		match ResourceLoader.load_threaded_get_status(path):
+			ResourceLoader.THREAD_LOAD_IN_PROGRESS:
+				still.append(path)
+			ResourceLoader.THREAD_LOAD_LOADED:
+				_warm.append(ResourceLoader.load_threaded_get(path))
+	_warming = still
