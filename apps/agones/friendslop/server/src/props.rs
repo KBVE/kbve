@@ -18,6 +18,10 @@ pub struct PropConfig {
     pub road_width: f32,
     /// Must match `QStoneField`'s grid size, for the same reason the tree grid must.
     pub stone_grid_size: f32,
+    /// What the scatters draw from. Not the world seed: only the ground beneath a rock
+    /// moves with that. These are the client's, sent to it on join.
+    pub stone_seed: i32,
+    pub tree_seed: i32,
     /// Must match `QTreeField`'s grid size, or the host and the client stand their
     /// trees in different places and a player walks through one while being stopped
     /// by another that is not there.
@@ -61,15 +65,17 @@ impl PropField {
             cfg.road_width,
         );
         // The scatter seeds are deliberately not the world seed. The client's fields
-        // carry their own, fixed, independent of which world they are drawing -- only
-        // the ground under them moves with the seed -- and the scatter defaults are
-        // that contract written down. Substituting the world seed here scatters a
-        // second forest nobody can see.
+        // carry their own, independent of which world they are drawing -- only the
+        // ground under them moves with the seed. These come from config and go out in
+        // Welcome, so the client scatters what the host stood up rather than what it
+        // would have assumed.
         let scatter = StoneScatter {
+            seed: cfg.stone_seed,
             grid_size: cfg.stone_grid_size,
             ..StoneScatter::default()
         };
         let trees = TreeScatter {
+            seed: cfg.tree_seed,
             grid_size: cfg.tree_grid_size,
             ..TreeScatter::default()
         };
@@ -264,6 +270,8 @@ mod tests {
             road_width: 3.2,
             stone_grid_size: 22.0,
             tree_grid_size: 14.0,
+            stone_seed: StoneScatter::DEFAULT_SEED,
+            tree_seed: TreeScatter::DEFAULT_SEED,
         })
     }
 
@@ -359,6 +367,71 @@ mod tests {
             drawn.iter().map(|p| p.pos).collect::<Vec<_>>(),
             stood.iter().map(|p| p.pos).collect::<Vec<_>>(),
             "the host is standing its trunks somewhere the client is not drawing them"
+        );
+    }
+
+    /// A rotated seed has to reach the colliders, not only the handshake.
+    ///
+    /// Telling a client the world scatters from 4242 while standing the host's own
+    /// trunks at 24601 is the original bug wearing the fix's clothes.
+    #[test]
+    fn a_rotated_scatter_seed_moves_what_the_host_stands_up() {
+        let rotated = PropField::new(PropConfig {
+            seed: 1234,
+            extent: 128.0,
+            stride: 64.0,
+            water_level: HeightParams::default().water_level,
+            road_width: 3.2,
+            stone_grid_size: 22.0,
+            tree_grid_size: 14.0,
+            stone_seed: 4242,
+            tree_seed: 4243,
+        });
+        let default = field();
+        let window = (
+            [0.0f32, 0.0f32],
+            128.0f32,
+            HeightParams::default().water_level,
+        );
+
+        let one = rotated.scatter.place(
+            &rotated.hgen,
+            Some(&rotated.road),
+            window.0,
+            window.1,
+            window.2,
+        );
+        let two = default.scatter.place(
+            &default.hgen,
+            Some(&default.road),
+            window.0,
+            window.1,
+            window.2,
+        );
+        assert_ne!(
+            one.iter().map(|p| p.pos).collect::<Vec<_>>(),
+            two.iter().map(|p| p.pos).collect::<Vec<_>>(),
+            "the configured stone seed never reached the scatter"
+        );
+
+        let one = rotated.trees.place(
+            &rotated.hgen,
+            Some(&rotated.road),
+            window.0,
+            window.1,
+            window.2,
+        );
+        let two = default.trees.place(
+            &default.hgen,
+            Some(&default.road),
+            window.0,
+            window.1,
+            window.2,
+        );
+        assert_ne!(
+            one.iter().map(|p| p.pos).collect::<Vec<_>>(),
+            two.iter().map(|p| p.pos).collect::<Vec<_>>(),
+            "the configured tree seed never reached the scatter"
         );
     }
 

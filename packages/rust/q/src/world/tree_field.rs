@@ -308,6 +308,9 @@ pub struct QTreeField {
     falling: Vec<FallingTree>,
     extent: f32,
     origin: Vector2,
+    /// The terrain generation this scatter was planned against, so ground replaced
+    /// where it stood is noticed as well as ground walked off.
+    seen_generation: i64,
     plan_rx: Option<std::sync::mpsc::Receiver<TreePlan>>,
     stage: Option<TreeStage>,
 }
@@ -330,7 +333,13 @@ impl QTreeField {
     fn window_moved(&self) -> bool {
         let node = self.base().clone().upcast::<godot::classes::Node>();
         crate::world::resolve_terrain(&node, &self.terrain_path)
-            .map(|t| t.bind().window_origin() != self.origin)
+            .map(|t| {
+                let t = t.bind();
+                // Either the ground moved under the scatter, or it was replaced where
+                // it stood. A reseed does the second without the first, and a scatter
+                // planned against the old field describes nothing that is there.
+                t.window_origin() != self.origin || t.ground_generation() != self.seen_generation
+            })
             .unwrap_or(false)
     }
 
@@ -376,6 +385,7 @@ impl QTreeField {
         };
         self.extent = terra.extent;
         self.origin = terra.origin;
+        self.seen_generation = terrain.bind().ground_generation();
         let tree_seed = self.tree_seed;
         let grid_size = self.grid_size;
         let grove_frequency = self.grove_frequency;
@@ -715,6 +725,25 @@ impl INode3D for QTreeField {
 
 #[godot_api]
 impl QTreeField {
+    /// Takes the scatter the host is holding, and grows the wood again if it differs
+    /// from the one already drawn. See `QStoneField::adopt_scatter`.
+    #[func]
+    pub fn adopt_scatter(&mut self, seed: i64, grid_size: f64) {
+        let seed = seed as i32;
+        let grid_size = if grid_size > 0.0 {
+            grid_size as f32
+        } else {
+            self.grid_size
+        };
+        if seed == self.tree_seed && (grid_size - self.grid_size).abs() < f32::EPSILON {
+            return;
+        }
+        self.tree_seed = seed;
+        self.grid_size = grid_size;
+        self.rescatter();
+        self.ledger = Ledger::new();
+    }
+
     #[signal]
     fn tree_felled(id: i64, ore: GString, amount: i64);
 
