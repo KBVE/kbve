@@ -92,6 +92,10 @@ func _join_sim() -> void:
 		return
 	_sim_id = _sim.spawn_character(self, CAPSULE_HALF_HEIGHT, CAPSULE_RADIUS, CAPSULE_CENTER,
 			collision_layer, collision_mask)
+	# The roster follows a body rather than a node, and this is the body it follows.
+	# Online the host already knows which one that is; solo has to say.
+	if _sim_id != 0 and _sim.has_method(&"set_pet_leader"):
+		_sim.set_pet_leader(_sim_id)
 
 
 func _adopt_blocked_velocity(delta: float) -> void:

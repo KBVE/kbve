@@ -14,6 +14,23 @@ use crate::steering::field::{Deck, Field, Grid};
 use crate::steering::{Config as SteerConfig, Mode, Neighbour, Patrol, Sense, Vec2};
 use crate::worldgen::BridgeFootprint;
 
+/// Where a registry's decisions go.
+///
+/// The registry never reads the world, only tells it things: three commands, to stand a
+/// pet up, take one away, and move one. That is the whole of its dependency on the
+/// simulation, and naming it is what lets the same roster run on either side of the
+/// wire. The host owns its world and applies straight into it; a solo client's world
+/// lives on the physics thread and takes the same commands through a queue.
+pub trait PetSink {
+    fn apply(&mut self, cmd: SimCommand);
+}
+
+impl PetSink for SimWorld {
+    fn apply(&mut self, cmd: SimCommand) {
+        SimWorld::apply(self, cmd);
+    }
+}
+
 /// Samples ground height at a world position.
 ///
 /// The host has no terrain of its own — with streaming on it never even sees a
@@ -595,7 +612,7 @@ impl PetRegistry {
         owner: PeerId,
         kind: u8,
         iso: Iso,
-        world: &mut SimWorld,
+        sink: &mut impl PetSink,
     ) -> Result<PetId, DeployError> {
         self.may_deploy(owner)?;
         let Some(id) = self.take_slot() else {
@@ -615,7 +632,7 @@ impl PetRegistry {
                 mode: Mode::Following,
             },
         );
-        world.apply(SimCommand::SpawnCharacter {
+        sink.apply(SimCommand::SpawnCharacter {
             id: pet_body(id),
             desc: CharacterDesc {
                 iso,
@@ -630,26 +647,26 @@ impl PetRegistry {
     }
 
     /// Picks one pet back up, if it belongs to the claimant.
-    pub fn recall(&mut self, owner: PeerId, id: PetId, world: &mut SimWorld) -> bool {
+    pub fn recall(&mut self, owner: PeerId, id: PetId, sink: &mut impl PetSink) -> bool {
         if self.pets.get(&id).map(|p| p.owner) != Some(owner) {
             return false;
         }
-        self.drop_pet(id, world);
+        self.drop_pet(id, sink);
         true
     }
 
     /// Picks up everything this player has out, and says how many that was.
-    pub fn recall_all(&mut self, owner: PeerId, world: &mut SimWorld) -> usize {
+    pub fn recall_all(&mut self, owner: PeerId, sink: &mut impl PetSink) -> usize {
         let ids = self.ids_of(owner);
         for id in &ids {
-            self.drop_pet(*id, world);
+            self.drop_pet(*id, sink);
         }
         ids.len()
     }
 
-    fn drop_pet(&mut self, id: PetId, world: &mut SimWorld) {
+    fn drop_pet(&mut self, id: PetId, sink: &mut impl PetSink) {
         if self.pets.remove(&id).is_some() {
-            world.apply(SimCommand::Despawn { id: pet_body(id) });
+            sink.apply(SimCommand::Despawn { id: pet_body(id) });
             self.free.push(id.0);
         }
     }
@@ -667,7 +684,7 @@ impl PetRegistry {
         leaders: &HashMap<PeerId, LeaderState>,
         fields: Option<&PetFields>,
         dt: f32,
-        world: &mut SimWorld,
+        sink: &mut impl PetSink,
     ) -> bool {
         let mut ids: Vec<PetId> = self.pets.keys().copied().collect();
         ids.sort_unstable();
@@ -693,7 +710,7 @@ impl PetRegistry {
         }
 
         for id in &lost {
-            self.drop_pet(*id, world);
+            self.drop_pet(*id, sink);
         }
 
         let mut groups: HashMap<PeerId, Vec<PetId>> = HashMap::new();
@@ -780,7 +797,7 @@ impl PetRegistry {
                 pet.vel_y += self.cfg.gravity * dt;
             }
 
-            world.apply(SimCommand::MoveCharacter {
+            sink.apply(SimCommand::MoveCharacter {
                 id: pet_body(*id),
                 translation: [step.wish[0] * dt, pet.vel_y * dt, step.wish[1] * dt],
             });

@@ -7,10 +7,32 @@ use godot::classes::{Engine, INode3D, Node3D};
 use godot::prelude::*;
 
 use super::sim3d::{
-    BodyDesc, BodyId, BodyKind, CharacterDesc, PhysicsHandle, ShapeDesc, SimCommand, SimConfig,
-    TerrainDesc,
+    BodyDesc, BodyId, BodyKind, CharacterDesc, Iso, PhysicsHandle, ShapeDesc, SimCommand,
+    SimConfig, TerrainDesc,
 };
+use crate::net::pets::{LeaderState, PetConfig, PetRegistry, PetSink};
+use crate::net::transport::PeerId;
+use crate::steering::Vec2;
 use crate::world::terrain::QTerrain;
+
+/// Whoever is playing this copy of the game. Solo has exactly one of them, and the
+/// registry only ever compares owners, so which number it is does not matter -- only
+/// that it is the same one every time.
+const SOLO_OWNER: PeerId = PeerId(1);
+
+/// Collects what the registry decides so it can be posted to the physics thread.
+///
+/// The host hands the registry its own world and the commands land immediately. A
+/// client's world is on another thread, so they are gathered here and queued instead --
+/// the registry cannot tell the difference, which is the point.
+#[derive(Default)]
+struct Queued(Vec<SimCommand>);
+
+impl PetSink for Queued {
+    fn apply(&mut self, cmd: SimCommand) {
+        self.0.push(cmd);
+    }
+}
 
 #[derive(Clone, Copy, PartialEq)]
 enum Drive {
@@ -92,6 +114,11 @@ pub struct QPhysics3D {
     /// Seconds of render time since the last snapshot landed, which is what places the
     /// node between the two poses it is being rendered between.
     since_snapshot: f64,
+    /// The same roster the host runs, driven here instead, so a solo player's robots
+    /// are the online ones rather than something that resembles them.
+    pets: Option<PetRegistry>,
+    /// Whose robots these are, in the sim -- the player's own body.
+    pet_leader: Option<BodyId>,
 }
 
 #[godot_api]
@@ -114,6 +141,7 @@ impl INode3D for QPhysics3D {
         self.try_send_terrain();
         self.push_proxies();
         self.pull_snapshot();
+        self.drive_pets();
         self.since_snapshot += delta;
         self.render_tracked();
     }
@@ -178,6 +206,57 @@ impl QPhysics3D {
             iso.pos[1] += tracked.offset.y;
             iso.pos[2] += tracked.offset.z;
             sim.send(SimCommand::SetKinematicTarget { id: *id, iso });
+        }
+    }
+
+    /// Steps the roster once per published snapshot.
+    ///
+    /// Driven from the frame rather than the physics thread because the registry only
+    /// ever emits commands: it reads the state the sim published and posts what it
+    /// decided back, so it does not need to be inside the tick to be correct. It does
+    /// need the tick's own step, not the frame's, or the steering integrates against a
+    /// clock the world it is steering does not share.
+    fn drive_pets(&mut self) {
+        let Some(pets) = self.pets.as_mut() else {
+            return;
+        };
+        let Some(sim) = self.sim.as_ref() else {
+            return;
+        };
+        let Some(leader_body) = self.pet_leader else {
+            return;
+        };
+        let snapshot = sim.latest();
+        let Some(leader) = snapshot.body(leader_body) else {
+            return;
+        };
+        let velocity: Vec2 = [leader.linvel[0], leader.linvel[2]];
+        let speed = (velocity[0] * velocity[0] + velocity[1] * velocity[1]).sqrt();
+        let mut leaders = HashMap::new();
+        leaders.insert(
+            SOLO_OWNER,
+            LeaderState {
+                position: [leader.iso.pos[0], leader.iso.pos[2]],
+                // A leader standing still still faces somewhere, and the ring is laid
+                // out around that facing, so a fallback is needed rather than a zero.
+                facing: if speed > 0.01 {
+                    [velocity[0] / speed, velocity[1] / speed]
+                } else {
+                    [0.0, 1.0]
+                },
+                speed,
+            },
+        );
+        let mut queued = Queued::default();
+        pets.drive(
+            &snapshot,
+            &leaders,
+            None,
+            (1.0 / self.tick_hz) as f32,
+            &mut queued,
+        );
+        for cmd in queued.0 {
+            sim.send(cmd);
         }
     }
 
@@ -264,6 +343,163 @@ impl QPhysics3D {
 
 #[godot_api]
 impl QPhysics3D {
+    /// Whose robots to keep, and where they follow from.
+    ///
+    /// Solo has one player and the host has many; the roster is the same either way, so
+    /// the only thing a client has to say is which body is the one being followed.
+    #[func]
+    fn set_pet_leader(&mut self, body: i64) {
+        self.pet_leader = if body > 0 {
+            self.pets
+                .get_or_insert_with(|| PetRegistry::new(PetConfig::default()));
+            Some(BodyId(body as u32))
+        } else {
+            None
+        };
+    }
+
+    /// Puts one robot down beside its owner. Returns its id, or 0 if the roster refused.
+    #[func]
+    fn deploy_pet(&mut self, kind: i64) -> i64 {
+        let Some(leader_body) = self.pet_leader else {
+            return 0;
+        };
+        let Some(sim) = self.sim.as_ref() else {
+            return 0;
+        };
+        let Some(leader) = sim.latest().body(leader_body).map(|b| b.iso) else {
+            return 0;
+        };
+        // Laid out exactly as the host lays it out: the ring offset already carries the
+        // deploy radius, and the robot is put down on the ground rather than at the
+        // owner's own height -- which on any slope is either buried or in the air, and
+        // in the air it falls until the roster gives up on it.
+        let Some((ring, _)) = self
+            .pets
+            .as_ref()
+            .map(|p| (p.ring_offset(p.count_of(SOLO_OWNER)), ()))
+        else {
+            return 0;
+        };
+        let (x, z) = (leader.pos[0] + ring[0], leader.pos[2] + ring[1]);
+        let at = Iso::at(x, self.ground_at(x, z).unwrap_or(leader.pos[1]), z);
+        let Some(pets) = self.pets.as_mut() else {
+            return 0;
+        };
+        let mut queued = Queued::default();
+        let id = match pets.deploy(SOLO_OWNER, kind.clamp(0, 255) as u8, at, &mut queued) {
+            Ok(id) => id,
+            Err(err) => {
+                godot_warn!("[QPhysics3D] {}", err.reason());
+                return 0;
+            }
+        };
+        for cmd in queued.0 {
+            sim.send(cmd);
+        }
+        i64::from(id.0)
+    }
+
+    /// Picks every robot back up. Returns how many went.
+    #[func]
+    fn recall_all_pets(&mut self) -> i64 {
+        let Some(sim) = self.sim.as_ref() else {
+            return 0;
+        };
+        let Some(pets) = self.pets.as_mut() else {
+            return 0;
+        };
+        let mut queued = Queued::default();
+        let gone = pets.recall_all(SOLO_OWNER, &mut queued);
+        for cmd in queued.0 {
+            sim.send(cmd);
+        }
+        gone as i64
+    }
+
+    /// Ground height a robot is put down on, a metre clear of it as the host does.
+    ///
+    /// The host samples the generator because it has no terrain node; here the terrain
+    /// is right there and already answers the question, and it is the surface the
+    /// player is standing on rather than the one the seed describes.
+    fn ground_at(&self, x: f32, z: f32) -> Option<f32> {
+        let mut terrain = self
+            .base()
+            .get_node_or_null(&self.terrain_path)
+            .and_then(|n| n.try_cast::<QTerrain>().ok())?;
+        // Through the script call rather than the Rust method, which is private to the
+        // node: the two are the same function and this one does not need the field.
+        if !terrain.call("is_ground_ready", &[]).booleanize() {
+            return None;
+        }
+        let h = terrain
+            .call("height_at", &[x.to_variant(), z.to_variant()])
+            .try_to::<f32>()
+            .ok()?;
+        h.is_finite().then_some(h + 1.0)
+    }
+
+    /// Where a chassis sits relative to the capsule the roster spawns.
+    ///
+    /// Asked for rather than written down in the scene, because the capsule is the
+    /// roster's and a number copied out of it is a number that drifts from it. rapier
+    /// centres a capsule on its middle and measures its half height between the
+    /// hemispheres, so the feet are a radius further down again.
+    #[func]
+    fn pet_chassis_offset(&self) -> Vector3 {
+        let cfg = PetConfig::default();
+        Vector3::new(0.0, cfg.capsule_half_height + cfg.capsule_radius, 0.0)
+    }
+
+    /// Hangs a node on a body the sim already has.
+    ///
+    /// Every other spawner makes the body and the node together. A robot's body is made
+    /// by the roster, which knows nothing about scenes, so the chassis is put on
+    /// afterwards -- and put on this way rather than by polling a position, so it is
+    /// interpolated between published poses like everything else the sim drives.
+    #[func]
+    fn follow_body(&mut self, node: Gd<Node3D>, id: i64, offset: Vector3) {
+        if id <= 0 {
+            return;
+        }
+        let body = BodyId(id as u32);
+        let iso = self
+            .sim
+            .as_ref()
+            .and_then(|s| s.latest().body(body).map(|b| b.iso))
+            .unwrap_or(Iso::at(0.0, 0.0, 0.0));
+        self.tracked.insert(
+            body,
+            Tracked {
+                node,
+                drive: Drive::Sim,
+                offset,
+                // A capsule is symmetric and the roster turns the chassis itself, so
+                // letting the sim write rotation would fight whoever set the facing.
+                drives_rotation: false,
+                prev: iso,
+                cur: iso,
+            },
+        );
+    }
+
+    /// Every standing robot as `pet id, body id` pairs, so the scene can put a chassis
+    /// on each and follow it.
+    #[func]
+    fn pet_bodies(&self) -> PackedInt64Array {
+        let mut out = PackedInt64Array::new();
+        let Some(pets) = self.pets.as_ref() else {
+            return out;
+        };
+        let mut ids = pets.ids_of(SOLO_OWNER);
+        ids.sort_unstable();
+        for id in ids {
+            out.push(i64::from(id.0));
+            out.push(i64::from(crate::net::pets::pet_body(id).0));
+        }
+        out
+    }
+
     #[func]
     fn spawn_ball(&mut self, node: Gd<Node3D>, radius: f32) -> i64 {
         self.insert(
