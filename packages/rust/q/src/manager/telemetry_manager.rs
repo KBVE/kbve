@@ -48,14 +48,14 @@ fn install_hook() {
                 .map(|l| format!("{}:{}:{}", l.file(), l.line(), l.column()))
                 .unwrap_or_default();
             let stack = Backtrace::force_capture().to_string();
-            if let Ok(mut queue) = panic_sink().lock() {
-                if queue.len() < MAX_QUEUE {
-                    queue.push(PanicRecord {
-                        message,
-                        location,
-                        stack,
-                    });
-                }
+            if let Ok(mut queue) = panic_sink().lock()
+                && queue.len() < MAX_QUEUE
+            {
+                queue.push(PanicRecord {
+                    message,
+                    location,
+                    stack,
+                });
             }
             // Chained rather than replaced: gdext's own hook is what turns a panic
             // into a readable Godot error instead of an abort, and dropping it
@@ -82,6 +82,12 @@ struct ErrorEvent {
 #[derive(Serialize)]
 struct ErrorBatch {
     events: Vec<ErrorEvent>,
+}
+
+#[derive(serde::Deserialize)]
+struct IngestReply {
+    accepted: u64,
+    dropped: u64,
 }
 
 /// Maps to the ingest service's `PLATFORMS` allow-list. Anything outside it is
@@ -286,9 +292,26 @@ impl TelemetryManager {
         _result: i32,
         response_code: i32,
         _headers: PackedStringArray,
-        _body: PackedByteArray,
+        body: PackedByteArray,
     ) {
         self.in_flight = false;
+        // The service answers 202 with {"accepted":N,"dropped":M} and drops
+        // sanitized-away events silently — an empty message returns 202 with
+        // accepted:0, so a client that only checks the status code believes it
+        // reported something it did not. Surfaced here instead.
+        if (200..300).contains(&response_code) {
+            if let Ok(text) = std::str::from_utf8(body.as_slice())
+                && let Ok(reply) = serde_json::from_str::<IngestReply>(text)
+                && reply.dropped > 0
+            {
+                godot_warn!(
+                    "telemetry ingest dropped {} of {} events",
+                    reply.dropped,
+                    reply.dropped + reply.accepted
+                );
+            }
+            return;
+        }
         if response_code >= 400 {
             // godot_warn, not report: a failed telemetry post must never become
             // an event that triggers another telemetry post.
