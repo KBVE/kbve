@@ -23,16 +23,44 @@ func intent_basis() -> float:
 	return _yaw
 
 
+## How far the pointer can appear to have moved in the first report after the window
+## takes it. Capturing warps the pointer, and the warp arrives as a motion event that
+## would otherwise spin the camera on the spot.
 const CAPTURE_JUMP_PX := 200.0
+
+var _had_pointer := false
+
+
+## Turns by one pointer report.
+##
+## The capture jump is skipped only on the first report after the window takes the
+## pointer, which is the only report it can be. Applied to every report instead, it also
+## throws away real turns: Godot merges pending motion into one event, so a fast flick --
+## or an ordinary turn across a frame that ran long -- arrives as a single large delta
+## and the camera does not move at all. That reads as the camera lagging behind the
+## mouse, and it reads worst exactly when the frame rate is already poor.
+func apply_pointer(relative: Vector2) -> void:
+	if not _had_pointer:
+		_had_pointer = true
+		if relative.length() > CAPTURE_JUMP_PX:
+			return
+	_yaw -= relative.x * sensitivity
+	_pitch = clampf(_pitch - relative.y * sensitivity, pitch_limits.x, pitch_limits.y)
+
+
+## Forgets that the pointer was ever held, so the next report is treated as a warp
+## again. Letting go and taking it back warps it a second time.
+func release_pointer() -> void:
+	_had_pointer = false
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		var motion := event as InputEventMouseMotion
-		if motion.relative.length() > CAPTURE_JUMP_PX:
-			return
-		_yaw -= motion.relative.x * sensitivity
-		_pitch = clampf(_pitch - motion.relative.y * sensitivity, pitch_limits.x, pitch_limits.y)
+	if not (event is InputEventMouseMotion):
+		return
+	if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+		release_pointer()
+		return
+	apply_pointer((event as InputEventMouseMotion).relative)
 
 
 func _process(delta: float) -> void:
