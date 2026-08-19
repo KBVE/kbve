@@ -15,12 +15,20 @@ var pets_label: Label
 var notice_label: Label
 
 var _notice_left := 0.0
+var _status_key := ""
+var _status_arg := ""
+var _roster: Dictionary = {}
+var _local_body := 0
+var _pets := 0
+var _pets_total := -1
+var _pets_shown := false
 
 
 func _ready() -> void:
 	layer = 90
 	MenuStyle.detect()
 	_build()
+	I18n.locale_changed.connect(retranslate)
 
 
 func _build() -> void:
@@ -60,38 +68,78 @@ func _label(size: int) -> Label:
 
 
 func set_connecting(url: String) -> void:
-	status_label.add_theme_color_override("font_color", INK)
-	status_label.text = I18n.t("hud.connecting", {"url": url})
+	_status_key = "hud.connecting"
+	_status_arg = url
+	_show_status()
+	_roster = {}
 	roster_label.text = ""
 
 
 func set_joined(assigned_name: String) -> void:
-	status_label.add_theme_color_override("font_color", INK)
-	status_label.text = I18n.t("hud.joined", {"name": assigned_name})
+	_status_key = "hud.joined"
+	_status_arg = assigned_name
+	_show_status()
 
 
 func set_rejected(reason: String) -> void:
-	status_label.add_theme_color_override("font_color", WARN)
-	status_label.text = I18n.t("hud.disconnected", {"reason": reason})
+	_status_key = "hud.disconnected"
+	_status_arg = reason
+	_show_status()
+	_roster = {}
 	roster_label.text = ""
 
 
+func _show_status() -> void:
+	if _status_key == "":
+		return
+	var warns := _status_key == "hud.disconnected"
+	status_label.add_theme_color_override("font_color", WARN if warns else INK)
+	match _status_key:
+		"hud.connecting":
+			status_label.text = I18n.t(_status_key, {"url": _status_arg})
+		"hud.joined":
+			status_label.text = I18n.t(_status_key, {"name": _status_arg})
+		"hud.disconnected":
+			status_label.text = I18n.t(_status_key, {"reason": _status_arg})
+
+
 func set_roster(roster: Dictionary, local_body: int) -> void:
-	if roster.is_empty():
+	_roster = roster
+	_local_body = local_body
+	_show_roster()
+
+
+func _show_roster() -> void:
+	if _roster.is_empty():
 		roster_label.text = ""
 		return
 	var names: Array[String] = []
-	for body_id: int in roster:
-		var entry: String = roster[body_id]
-		names.append(I18n.t("hud.roster_you", {"name": entry}) if body_id == local_body else entry)
+	for body_id: int in _roster:
+		var entry: String = _roster[body_id]
+		names.append(I18n.t("hud.roster_you", {"name": entry}) if body_id == _local_body else entry)
 	names.sort()
 	roster_label.text = I18n.t("hud.roster", {"count": names.size(), "names": ", ".join(names)})
 
 
 func set_pets(count: int, total: int = -1) -> void:
-	pets_label.text = I18n.t("hud.pets", {"count": count})
-	if total >= 0 and total != count:
-		pets_label.text += " (%d)" % total
+	_pets = count
+	_pets_total = total
+	_pets_shown = true
+	_show_pets()
+
+
+func _show_pets() -> void:
+	if not _pets_shown:
+		return
+	pets_label.text = I18n.t("hud.pets", {"count": _pets})
+	if _pets_total >= 0 and _pets_total != _pets:
+		pets_label.text += " (%d)" % _pets_total
+
+
+func retranslate() -> void:
+	_show_status()
+	_show_roster()
+	_show_pets()
 
 
 func show_notice(text: String) -> void:

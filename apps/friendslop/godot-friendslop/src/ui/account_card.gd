@@ -2,6 +2,13 @@ class_name AccountCard
 extends VBoxContainer
 
 
+enum Wallet {
+	LOADING,
+	READY,
+	FAILED,
+}
+
+
 const AVATAR_PX := 64
 const AVATAR_DIR := "user://avatars"
 const LEGACY_AVATAR_CACHE := "user://avatar.png"
@@ -16,6 +23,10 @@ var wallet_label: Label
 var _request: HTTPRequest
 var _avatar_url := ""
 var _shown_url := ""
+var _username := ""
+var _credits := 0
+var _khash := 0
+var _wallet_state: Wallet = Wallet.LOADING
 
 
 func _ready() -> void:
@@ -52,11 +63,29 @@ func _line(parent: Control, size: int) -> Label:
 
 func show_account(username: String) -> void:
 	visible = true
-	name_label.text = username if not username.is_empty() else I18n.t("account.signed_in")
+	_username = username
+	_wallet_state = Wallet.LOADING
+	_show_name()
 	wallet_label.text = I18n.t("account.loading")
 
 
+func _show_name() -> void:
+	name_label.text = _username if not _username.is_empty() else I18n.t("account.signed_in")
+
+
+func retranslate() -> void:
+	_show_name()
+	match _wallet_state:
+		Wallet.READY:
+			show_wallet(_credits, _khash)
+		Wallet.LOADING:
+			wallet_label.text = I18n.t("account.loading")
+
+
 func show_wallet(credits: int, khash: int) -> void:
+	_credits = credits
+	_khash = khash
+	_wallet_state = Wallet.READY
 	wallet_label.text = I18n.t("account.wallet").format({
 		"credits": _abbreviated(credits),
 		"khash": _abbreviated(khash),
@@ -69,6 +98,7 @@ func show_wallet(credits: int, khash: int) -> void:
 
 
 func show_wallet_error(reason: String) -> void:
+	_wallet_state = Wallet.FAILED
 	wallet_label.text = reason
 	wallet_label.tooltip_text = ""
 	wallet_label.modulate = Color(1.0, 0.75, 0.55)

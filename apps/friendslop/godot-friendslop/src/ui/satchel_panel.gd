@@ -60,6 +60,7 @@ func _ready() -> void:
 	_root.draw.connect(_draw_panel)
 	add_child(_root)
 	get_window().size_changed.connect(_root.queue_redraw)
+	I18n.locale_changed.connect(_root.queue_redraw)
 	Journal.satchel_changed.connect(func(_items: Dictionary) -> void: _root.queue_redraw())
 
 

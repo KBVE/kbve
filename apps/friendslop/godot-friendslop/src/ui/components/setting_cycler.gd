@@ -8,13 +8,15 @@ var _names: Callable
 var _get_index: Callable
 var _set_index: Callable
 var _count := 0
+var _label_key := ""
 var _label: Label
 var _value: PaperButton
 
 
-static func make(label: String, names: Callable, get_index: Callable,
+static func make(label_key: String, names: Callable, get_index: Callable,
 		set_index: Callable, count: int) -> SettingCycler:
 	var row := SettingCycler.new()
+	row._label_key = label_key
 	row._names = names
 	row._get_index = get_index
 	row._set_index = set_index
@@ -23,7 +25,7 @@ static func make(label: String, names: Callable, get_index: Callable,
 	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 
 	var name_label := Label.new()
-	name_label.text = label
+	name_label.text = I18n.t(label_key)
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	name_label.size_flags_stretch_ratio = 1.1
 	name_label.add_theme_color_override("font_color", MenuStyle.INK)
@@ -47,6 +49,11 @@ func refresh() -> void:
 		return
 	var i: int = clampi(_get_index.call(), 0, list.size() - 1)
 	_value.text = str(list[i])
+
+
+func retranslate() -> void:
+	_label.text = I18n.t(_label_key)
+	refresh()
 
 
 func scalables() -> Array[Control]:

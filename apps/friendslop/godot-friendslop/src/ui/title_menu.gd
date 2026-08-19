@@ -22,11 +22,6 @@ const AUTH := preload("res://src/autoload/auth_session.gd")
 const TITLE_KEY := "title.name"
 
 ## The game's own name, and only that.
-##
-## Alagard is a pixel face with no ellipsis, dash or accented Latin in it, so as the
-## project-wide fallback it left a hole wherever a string used one -- every locale for
-## the punctuation, and Spanish and Portuguese for most of their vowels. The title is
-## "Friendslop" in all five locales and is the one place the lettering is wanted.
 const TITLE_TYPEFACE := preload("res://assets/fonts/Alagard.ttf")
 const SIGN_IN_HINT_KEY := "title.sign_in_hint"
 
@@ -55,6 +50,7 @@ var _buttons: Array[PaperButton] = []
 var _sign_in: SignInPanel
 var _username: UsernamePanel
 var _api: KbveApi
+var _protocol := 0
 
 
 func _ready() -> void:
@@ -66,6 +62,7 @@ func _ready() -> void:
 	_layout()
 	get_viewport().size_changed.connect(_layout)
 	_refresh_status()
+	I18n.locale_changed.connect(_retranslate)
 	var auth := get_node_or_null(^"/root/Auth")
 	if auth:
 		auth.changed.connect(_refresh_status)
@@ -302,6 +299,7 @@ func sign_in_succeeded() -> void:
 
 
 func set_server_protocol(protocol: int) -> void:
+	_protocol = protocol
 	if build_label == null:
 		return
 	var mine := BuildInfo.protocol()
@@ -323,6 +321,39 @@ func set_server_protocol(protocol: int) -> void:
 			else Color(1.0, 1.0, 1.0, 0.75)
 
 
+func _retranslate() -> void:
+	if _title_label:
+		_title_label.text = I18n.t(TITLE_KEY)
+	if play_button:
+		play_button.tooltip_text = I18n.t("tip.play")
+	if solo_button:
+		solo_button.text = I18n.t("title.singleplayer")
+		solo_button.tooltip_text = I18n.t("tip.singleplayer")
+	if settings_button:
+		settings_button.text = I18n.t("action.settings")
+		settings_button.tooltip_text = I18n.t("tip.settings")
+	if quit_button:
+		quit_button.text = I18n.t("action.quit")
+		quit_button.tooltip_text = I18n.t("tip.quit")
+	var current := I18n.locale_code()
+	var locales := I18n.locales()
+	for i in language_buttons.size():
+		var button := language_buttons[i]
+		if not is_instance_valid(button) or i >= locales.size():
+			continue
+		button.tooltip_text = I18n.t("tip.language")
+		button.disabled = str(locales[i].get("code", "")) == current
+	set_server_protocol(_protocol)
+	_refresh_status(false)
+	if account_card:
+		account_card.retranslate()
+	if _sign_in:
+		_sign_in.retranslate()
+	if _username:
+		_username.retranslate()
+	_layout()
+
+
 func _show_account(auth: Node) -> void:
 	if account_card == null:
 		return
@@ -339,7 +370,7 @@ func _show_account(auth: Node) -> void:
 		_api.fetch_wallet(auth.access_token())
 
 
-func _refresh_status() -> void:
+func _refresh_status(refresh_account := true) -> void:
 	if status_label == null:
 		return
 	var auth := get_node_or_null(^"/root/Auth")
@@ -352,7 +383,8 @@ func _refresh_status() -> void:
 			sign_in_button.text = I18n.t("title.sign_out")
 			sign_in_button.tooltip_text = I18n.t("tip.sign_out")
 			_name_play_button(auth.requested_name())
-			_show_account(auth)
+			if refresh_account:
+				_show_account(auth)
 		AUTH.Mode.GUEST:
 			status_label.text = I18n.t("title.guest_status")
 			sign_in_button.text = I18n.t("title.sign_in")

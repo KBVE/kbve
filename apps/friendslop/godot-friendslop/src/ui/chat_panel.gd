@@ -16,6 +16,7 @@ var _notice: Label
 var _client: ChatClient
 var _open := false
 var _idle := 0.0
+var _notice_key := ""
 
 
 func _ready() -> void:
@@ -29,6 +30,7 @@ func _ready() -> void:
 	_client.state_changed.connect(_on_state)
 	_client.failed.connect(_on_failed)
 	Auth.changed.connect(_refresh_access)
+	I18n.locale_changed.connect(retranslate)
 	get_viewport().size_changed.connect(_layout)
 	_refresh_access()
 	_layout()
@@ -44,8 +46,6 @@ func _build() -> void:
 	var column := VBoxContainer.new()
 	column.name = "Column"
 	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	## Fills the height to sit at the bottom, but only as wide as the log asks for.
-	## Filling horizontally too spreads the panel across the whole screen.
 	column.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	column.alignment = BoxContainer.ALIGNMENT_END
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -57,8 +57,6 @@ func _build() -> void:
 	_log.scroll_following = true
 	_log.fit_content = false
 	_log.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	## No expand: the column already owns the height, and a log that claims the
-	## leftover takes the screen with it. Its height is the fraction set in _layout.
 	_log.add_theme_color_override("default_color", Color(0.96, 0.93, 0.85))
 	column.add_child(_log)
 
@@ -107,13 +105,21 @@ func _refresh_access() -> void:
 		_client.start()
 	else:
 		_close_entry()
-		_notice.text = I18n.t("chat.signin_required")
+		_set_notice("chat.signin_required")
 		_notice.visible = true
 		_client.stop()
 
 
 func has_focus_grabbed() -> bool:
 	return _open
+
+
+## True while any chat entry holds focus; Input polling cannot see that on its own.
+static func anyone_typing(tree: SceneTree) -> bool:
+	for panel in tree.get_nodes_in_group(GROUP):
+		if panel.has_focus_grabbed():
+			return true
+	return false
 
 
 func toggle() -> void:
@@ -141,6 +147,9 @@ func _close_entry() -> void:
 
 
 func _on_submit(text: String) -> void:
+	if text.strip_edges().is_empty():
+		_close_entry()
+		return
 	if not _client.send_chat(text):
 		_append("system", "", I18n.t("chat.send_failed"))
 	_close_entry()
@@ -149,13 +158,23 @@ func _on_submit(text: String) -> void:
 func _on_state(connected: bool) -> void:
 	_notice.visible = not connected and Auth.is_signed_in()
 	if not connected:
-		_notice.text = I18n.t("chat.reconnecting")
+		_set_notice("chat.reconnecting")
 		_close_entry()
 
 
 func _on_failed(reason: String) -> void:
-	_notice.text = I18n.t(reason)
+	_set_notice(reason)
 	_notice.visible = true
+
+
+func _set_notice(key: String) -> void:
+	_notice_key = key
+	_notice.text = I18n.t(key)
+
+
+func retranslate() -> void:
+	if _notice_key != "":
+		_notice.text = I18n.t(_notice_key)
 
 
 func _on_message(kind: String, sender: String, content: String) -> void:

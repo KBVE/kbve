@@ -72,22 +72,22 @@ func _ready() -> void:
 	var main_right := MenuPage.make(MenuStyle.Side.RIGHT, _main_panel)
 	main_left.pair_with(main_right)
 	_main_pages = [main_left, main_right]
-	main_left.add_button(I18n.t("action.play"), _close)
-	main_left.add_button(I18n.t("action.settings"), func() -> void: _show(_settings_panel))
+	main_left.add_button("action.play", _close)
+	main_left.add_button("action.settings", func() -> void: _show(_settings_panel))
 	if shows_session_actions:
-		main_right.add_button(I18n.t("pause.log_off"), _log_off)
-		main_right.add_button(I18n.t("action.quit"), _quit)
+		main_right.add_button("pause.log_off", _log_off)
+		main_right.add_button("action.quit", _quit)
 
 	_settings_panel = _menu_page_panel()
 	var set_left := MenuPage.make(MenuStyle.Side.LEFT, _settings_panel)
 	var set_right := MenuPage.make(MenuStyle.Side.RIGHT, _settings_panel)
 	set_left.pair_with(set_right)
 	_settings_pages = [set_left, set_right]
-	set_left.add_button(I18n.t("settings.graphics"), func() -> void: _show(_graphics_panel))
-	set_left.add_button(I18n.t("settings.gameplay"), func() -> void: _show(_gameplay_panel))
-	set_right.add_button(I18n.t("wardrobe.title"), func() -> void: _show(_wardrobe_panel))
-	set_right.add_button(I18n.t("settings.codex"), _open_codex)
-	set_right.add_button(I18n.t("action.back"), func() -> void: _show(_main_panel))
+	set_left.add_button("settings.graphics", func() -> void: _show(_graphics_panel))
+	set_left.add_button("settings.gameplay", func() -> void: _show(_gameplay_panel))
+	set_right.add_button("wardrobe.title", func() -> void: _show(_wardrobe_panel))
+	set_right.add_button("settings.codex", _open_codex)
+	set_right.add_button("action.back", func() -> void: _show(_main_panel))
 
 	_build_graphics()
 	_build_gameplay()
@@ -97,6 +97,8 @@ func _ready() -> void:
 	_codex_panel.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_codex_panel.visible = false
 	_root.add_child(_codex_panel)
+
+	I18n.locale_changed.connect(_retranslate)
 
 
 func _build_book() -> void:
@@ -227,7 +229,7 @@ func _build_graphics() -> void:
 		_page_back(right)
 		return
 
-	left.add_cycler(I18n.t("settings.quality" if _touch else "settings.preset"),
+	left.add_cycler("settings.quality" if _touch else "settings.preset",
 			func() -> Array: return I18n.t_all(_gfx.PRESET_NAMES),
 			func() -> int: return _gfx.preset_index(),
 			func(i: int) -> void: _gfx.apply_preset(i),
@@ -239,7 +241,7 @@ func _build_graphics() -> void:
 		_page_back(right)
 		return
 
-	left.add_cycler(I18n.t("settings.ground_detail"),
+	left.add_cycler("settings.ground_detail",
 			func() -> Array: return I18n.t_all(_gfx.DETAIL_NAMES),
 			func() -> int: return _gfx.detail,
 			func(i: int) -> void:
@@ -247,7 +249,7 @@ func _build_graphics() -> void:
 				_gfx.apply(),
 			_gfx.DETAIL_NAMES.size())
 
-	left.add_cycler(I18n.t("settings.resolution"),
+	left.add_cycler("settings.resolution",
 			func() -> Array: return ["50%", "60%", "70%", "85%", "100%"],
 			func() -> int: return _nearest_scale(_gfx.render_scale),
 			func(i: int) -> void:
@@ -255,7 +257,7 @@ func _build_graphics() -> void:
 				_gfx.apply(),
 			SCALE_STEPS.size())
 
-	right.add_cycler(I18n.t("settings.shadows"),
+	right.add_cycler("settings.shadows",
 			func() -> Array: return _off_on(),
 			func() -> int: return 1 if _gfx.shadows else 0,
 			func(i: int) -> void:
@@ -263,7 +265,7 @@ func _build_graphics() -> void:
 				_gfx.apply(),
 			2)
 
-	right.add_cycler(I18n.t("settings.grass"),
+	right.add_cycler("settings.grass",
 			func() -> Array: return _grass_labels(),
 			func() -> int: return _nearest(_gfx.GRASS_STEPS, _gfx.grass_blades),
 			func(i: int) -> void:
@@ -271,7 +273,7 @@ func _build_graphics() -> void:
 				_gfx.apply(),
 			_gfx.GRASS_STEPS.size())
 
-	right.add_cycler(I18n.t("settings.post_fx"),
+	right.add_cycler("settings.post_fx",
 			func() -> Array: return _off_on(),
 			func() -> int: return 1 if _gfx.postfx else 0,
 			func(i: int) -> void:
@@ -298,20 +300,20 @@ func _build_gameplay() -> void:
 		_page_back(right)
 		return
 
-	left.add_cycler(I18n.t("settings.camera"),
+	left.add_cycler("settings.camera",
 			func() -> Array: return I18n.t_all(_play.CAMERA_NAMES),
 			func() -> int: return _play.camera_mode,
 			func(i: int) -> void: _play.set_camera_mode(i),
 			_play.CAMERA_NAMES.size())
 
-	right.add_cycler(I18n.t("settings.crosshair"),
+	right.add_cycler("settings.crosshair",
 			func() -> Array: return _off_on(),
 			func() -> int: return 1 if _play.crosshair else 0,
 			func(i: int) -> void: _play.set_crosshair(i == 1),
 			2)
 
 	if not shows_session_actions:
-		left.add_cycler(I18n.t("settings.language"),
+		left.add_cycler("settings.language",
 				func() -> Array: return I18n.locale_names(),
 				func() -> int: return I18n.locale_index(),
 				func(i: int) -> void: _switch_locale(i),
@@ -349,7 +351,7 @@ func _build_wardrobe() -> void:
 		var slot: StringName = WARDROBE_SLOTS[i][0]
 		var page: MenuPage = left if i < half else right
 		var choices := _wardrobe_choices(slot)
-		page.add_cycler(I18n.t(str(WARDROBE_SLOTS[i][1])),
+		page.add_cycler(str(WARDROBE_SLOTS[i][1]),
 				func() -> Array: return _wardrobe_names(slot),
 				func() -> int: return maxi(_wardrobe_index(slot, choices), 0),
 				func(pick: int) -> void: _wear(slot, choices[pick] if pick < choices.size() else &""),
@@ -394,26 +396,32 @@ func _switch_locale(index: int) -> void:
 	if index == I18n.locale_index():
 		return
 	I18n.set_locale_index(index, true)
-	_transition += 1
-	get_tree().paused = false
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	get_tree().reload_current_scene()
+
+
+func _all_pages() -> Array[MenuPage]:
+	return _main_pages + _settings_pages + _gfx_pages + _play_pages + _wardrobe_pages
+
+
+func _retranslate() -> void:
+	for page in _all_pages():
+		page.retranslate()
+	_layout_pages()
 
 
 func _add_bisect(page: MenuPage) -> void:
 	var main := get_tree().current_scene
 	if main == null or not main.has_method("set_bisect"):
 		return
-	page.add_cycler(I18n.t("settings.bisect"),
+	page.add_cycler("settings.bisect",
 			func() -> Array: return main.bisect_names(),
 			func() -> int: return main.bisect_step,
 			func(i: int) -> void: main.set_bisect(i),
 			main.BISECT_STEPS.size(),
-			I18n.t("settings.bisect_hint"))
+			"settings.bisect_hint")
 
 
 func _page_back(page: MenuPage) -> PaperButton:
-	return page.add_button(I18n.t("action.back"), func() -> void: _show(_settings_panel))
+	return page.add_button("action.back", func() -> void: _show(_settings_panel))
 
 
 func _off_on() -> Array:
@@ -450,7 +458,7 @@ func _layout_pages() -> void:
 		print("[book] rect %s  root %s  vp %s" % [book, _root.size, _book_vp.size])
 
 	var metrics := MenuStyle.row_metrics(book.size.y, _root.size.y)
-	for page in _main_pages + _settings_pages + _gfx_pages + _play_pages + _wardrobe_pages:
+	for page in _all_pages():
 		page.layout(book, metrics)
 		if debug:
 			print("[book] page %.3f %.3f %.3f %.3f" % [page.anchor_left, page.anchor_top,

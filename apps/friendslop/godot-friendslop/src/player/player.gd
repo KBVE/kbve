@@ -27,8 +27,7 @@ const BLOCKED_SECONDS := 0.15
 @onready var rig: Node3D = $Mesh
 
 var _terrain: Node
-## How long a Q_WALK heading is given to prove it is getting somewhere, how far it has
-## to travel in that time to count, and how far aside to turn when it does not.
+## How long a Q_WALK heading is given to prove it is getting somewhere, how far it has to travel in that time to count, and how far aside to turn when it does not.
 const WALK_PROGRESS_WINDOW := 1.0
 const WALK_PROGRESS_MIN := 0.8
 const WALK_DODGE := 0.7
@@ -92,8 +91,6 @@ func _join_sim() -> void:
 		return
 	_sim_id = _sim.spawn_character(self, CAPSULE_HALF_HEIGHT, CAPSULE_RADIUS, CAPSULE_CENTER,
 			collision_layer, collision_mask)
-	# The roster follows a body rather than a node, and this is the body it follows.
-	# Online the host already knows which one that is; solo has to say.
 	if _sim_id != 0 and _sim.has_method(&"set_pet_leader"):
 		_sim.set_pet_leader(_sim_id)
 
@@ -113,23 +110,12 @@ func _adopt_blocked_velocity(delta: float) -> void:
 
 
 ## The held heading for Q_WALK, turned aside when it stops getting anywhere.
-##
-## The controller slides along what it hits, so walking a fixed heading into a boulder
-## is not a wedge -- it is a very slow crawl round the rock, re-pushing into it every
-## frame. Over a profiling run that is the same thing as being stuck: the window never
-## moves, and a walk meant to cross a kilometre covers seven metres.
-##
-## So progress along the heading is measured, and when there is none the input is
-## turned aside until there is again, alternating which way so a rock in a corner does
-## not trade one dead end for another. Debug-only: nothing steers a real player.
 func _steered_walk(delta: float) -> Vector2:
 	_walk_check += delta
 	if _walk_check >= WALK_PROGRESS_WINDOW:
 		var moved := global_position - _walk_from
 		moved.y = 0.0
 		if moved.length() < WALK_PROGRESS_MIN:
-			# Turn further each time this fails, so a shallow nudge that was not enough
-			# becomes a real detour rather than the same nudge forever.
 			_walk_dodge = WALK_DODGE if is_zero_approx(_walk_dodge) else -_walk_dodge * 1.4
 			_walk_dodge = clampf(_walk_dodge, -PI, PI)
 			_walk_dodge_t = WALK_DODGE_HOLD
@@ -142,10 +128,7 @@ func _steered_walk(delta: float) -> Vector2:
 
 
 func _typing() -> bool:
-	for panel in get_tree().get_nodes_in_group(&"chat_panel"):
-		if panel.has_focus_grabbed():
-			return true
-	return false
+	return ChatPanel.anyone_typing(get_tree())
 
 
 func _grounded() -> bool:

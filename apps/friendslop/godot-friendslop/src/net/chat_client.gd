@@ -54,14 +54,32 @@ func send_chat(text: String) -> bool:
 		return false
 	if body.length() > MAX_CONTENT:
 		body = body.substr(0, MAX_CONTENT)
+	var sender := Auth.username_in(Auth.access_token())
 	var frame := {
 		"kind": "chat",
-		"sender": Auth.username_in(Auth.access_token()),
+		"sender": sender,
 		"platform": PLATFORM,
 		"channel": CHANNEL,
 		"content": body,
 	}
-	return _socket.send_text(JSON.stringify(frame)) == OK
+	if not _transmit(frame):
+		return false
+	message.emit("chat", sender, body)
+	return true
+
+
+## The only call that touches the socket; tests stand in for it.
+func _transmit(frame: Dictionary) -> bool:
+	if _socket == null:
+		push_warning("chat: send with no socket while _connected=%s" % _connected)
+		return false
+	var state := _socket.get_ready_state()
+	var err := _socket.send_text(JSON.stringify(frame))
+	if err != OK:
+		push_warning("chat: send_text failed err=%d state=%d outbound=%d" % [
+			err, state, _socket.get_current_outbound_buffered_amount()])
+		return false
+	return true
 
 
 func _on_auth_changed() -> void:

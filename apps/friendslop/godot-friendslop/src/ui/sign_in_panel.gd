@@ -30,6 +30,7 @@ var cancel_button: PaperButton
 var message_label: Label
 
 var _busy := false
+var _message_key := "title.sign_in_browser"
 
 
 func _ready() -> void:
@@ -69,7 +70,7 @@ func _build() -> void:
 		column.add_child(button)
 		provider_buttons[provider] = button
 
-	message_label = _caption(I18n.t("title.sign_in_browser"))
+	message_label = _caption(I18n.t(_message_key))
 	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	message_label.custom_minimum_size = Vector2(WIDTH, 0)
 	message_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -80,10 +81,7 @@ func _build() -> void:
 	column.add_child(cancel_button)
 
 
-## The buttons are built from the full provider list so the panel is never empty
-## while the server is still answering. Anything the server reports as disabled is
-## then dropped, so a provider that has been turned off upstream stops offering a
-## sign-in that could only fail. A failed lookup drops nothing.
+## The buttons are built from the full provider list so the panel is never empty while the server is still answering.
 func _drop_disabled_providers() -> void:
 	var auth := get_node_or_null(^"/root/Auth")
 	if auth == null:
@@ -130,12 +128,26 @@ func set_busy(busy: bool) -> void:
 	for button in provider_buttons.values():
 		button.disabled = busy
 	if busy:
-		message_label.text = I18n.t("title.signing_in")
+		_message_key = "title.signing_in"
+		message_label.text = I18n.t(_message_key)
 
 
 func show_message(text: String) -> void:
 	set_busy(false)
+	_message_key = ""
 	message_label.text = text
+
+
+func retranslate() -> void:
+	for provider: String in provider_buttons:
+		var brand: Dictionary = PROVIDER_BRAND.get(provider, {})
+		provider_buttons[provider].text = I18n.t("title.sign_in_with").format({
+			"provider": brand.get("name", provider.capitalize()),
+		})
+	if cancel_button:
+		cancel_button.text = I18n.t("action.cancel")
+	if _message_key != "":
+		message_label.text = I18n.t(_message_key)
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -144,9 +156,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-## Resizes to the viewport rather than the 1280x720 design, and re-runs whenever that
-## changes so a phone rotating does not keep the old measurements. The width is capped
-## against the safe area so the buttons clear a notch in landscape.
+## Resizes to the viewport rather than the 1280x720 design, and re-runs whenever that changes so a phone rotating does not keep the old measurements.
 func _layout() -> void:
 	if cancel_button == null:
 		return

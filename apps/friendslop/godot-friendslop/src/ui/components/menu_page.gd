@@ -6,6 +6,8 @@ var uv: Rect2
 var box: VBoxContainer
 
 var _rows: Array[SettingCycler] = []
+var _buttons: Array[Dictionary] = []
+var _hints: Array[Dictionary] = []
 var _scaled: Array[Control] = []
 var _spread: Array[MenuPage] = []
 
@@ -41,30 +43,36 @@ func pair_with(other: MenuPage) -> void:
 	other._spread = [self, other]
 
 
-func add_cycler(label: String, names: Callable, get_index: Callable,
-		set_index: Callable, count: int, hint: String = "") -> SettingCycler:
-	var row := SettingCycler.make(label, names, get_index, set_index, count)
+func add_cycler(label_key: String, names: Callable, get_index: Callable,
+		set_index: Callable, count: int, hint_key: String = "") -> SettingCycler:
+	var row := SettingCycler.make(label_key, names, get_index, set_index, count)
 	row.cycled.connect(_refresh_spread)
 	_rows.append(row)
 	_scaled.append_array(row.scalables())
 	box.add_child(row)
-	_hint(row, hint)
+	_hint(row, hint_key)
 	return row
 
 
-func add_button(text: String, action: Callable, hint: String = "") -> PaperButton:
-	var b := PaperButton.make(text, action)
+func add_button(key: String, action: Callable, hint_key: String = "") -> PaperButton:
+	var b := PaperButton.make(I18n.t(key), action)
 	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	b.clip_text = true
+	_buttons.append({"button": b, "key": key})
 	_scaled.append(b)
 	box.add_child(b)
-	_hint(b, hint)
+	_hint(b, hint_key)
 	return b
 
 
-func _hint(row: Control, text: String) -> void:
-	if text == "" or MenuStyle.touch:
+func _hint(row: Control, key: String) -> void:
+	if key == "" or MenuStyle.touch:
 		return
+	_hints.append({"row": row, "key": key})
+	_apply_hint(row, I18n.t(key))
+
+
+func _apply_hint(row: Control, text: String) -> void:
 	row.tooltip_text = text
 	for child in row.find_children("", "Control", true, false):
 		(child as Control).tooltip_text = text
@@ -87,6 +95,19 @@ func layout(book: Rect2, metrics: Dictionary) -> void:
 func refresh() -> void:
 	for row in _rows:
 		row.refresh()
+
+
+func retranslate() -> void:
+	for row in _rows:
+		row.retranslate()
+	for entry in _buttons:
+		var button: PaperButton = entry["button"]
+		if is_instance_valid(button):
+			button.text = I18n.t(str(entry["key"]))
+	for entry in _hints:
+		var row: Control = entry["row"]
+		if is_instance_valid(row):
+			_apply_hint(row, I18n.t(str(entry["key"])))
 
 
 func _refresh_spread() -> void:
