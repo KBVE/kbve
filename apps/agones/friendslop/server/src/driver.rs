@@ -203,6 +203,7 @@ pub fn spawn(
                 stride,
                 water_level: HeightParams::default().water_level,
                 road_width: 3.2,
+                tree_grid_size,
             });
             let mut streamer = if stream {
                 let mut s = TerrainStreamer::new(StreamConfig {
