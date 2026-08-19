@@ -415,7 +415,7 @@ jobs:
                   # `install --with-deps` path as a last resort.
                   install_deps() {
                     echo "::group::playwright install-deps ($1)"
-                    sudo apt-get update || true
+                    sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update || true
                     pnpm exec playwright install-deps ${BROWSERS}
                     local rc=$?
                     echo "::endgroup::"
@@ -438,8 +438,8 @@ jobs:
                     echo "protoc already present: $(protoc --version)"
                     exit 0
                   fi
-                  sudo apt-get update -qq \
-                    && sudo apt-get install -y --no-install-recommends protobuf-compiler \
+                  sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq \
+                    && sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y --no-install-recommends protobuf-compiler \
                     && protoc --version \
                     || echo "::warning::protoc install failed; Rust e2e projects that need it will fail with a clear prost-build error"
 

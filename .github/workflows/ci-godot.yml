@@ -117,7 +117,7 @@ jobs:
                   # (no blobs, no attributes to match) — which skipped the pull and
                   # shipped a 132-byte pointer as the macOS dylib.
                   command -v git-lfs >/dev/null 2>&1 || {
-                    apt-get update -qq && apt-get install -y -qq --no-install-recommends git-lfs
+                    apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq && apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y -qq --no-install-recommends git-lfs
                   }
                   # actions/checkout writes its safe.directory entry under a HOME it
                   # then restores, so inside the container git doesn't trust the
@@ -182,8 +182,8 @@ jobs:
                   # time with an unrelated-looking gdUnit4 crash.
                   # libfontconfig1 is cosmetic (kills the system-font error spam)
                   # but comes cheap alongside.
-                  apt-get update -qq
-                  apt-get install -y -qq --no-install-recommends \
+                  apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq
+                  apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y -qq --no-install-recommends \
                     libwebkit2gtk-4.1-0 libfontconfig1
                   # Assert every soname resolves. Without this a future dependency
                   # regresses into the same signal-11 mystery rather than saying so.
@@ -237,8 +237,12 @@ jobs:
                     # Two targets, lipo'd into one file: the macOS preset exports
                     # `universal`, so an arm64-only extension leaves Intel Macs unable
                     # to load it while the build itself still succeeds.
+                    # The in-house MacBook Air rather than macos-latest: the hosted
+                    # mac image is a shared 3-core M1, and this is the only slot that
+                    # builds two targets, which made it the slowest of the four.
+                    # Same label the Unreal mac jobs already use.
                     - slot: macos
-                      os: macos-latest
+                      os: [self-hosted, macOS, ARM64]
                       dest: macos
                       rust_target: aarch64-apple-darwin,x86_64-apple-darwin
         steps:
@@ -308,12 +312,35 @@ jobs:
                   fi
             - name: Install Linux build prerequisites
               if: matrix.slot == 'linux'
+              timeout-minutes: 10
               run: |
-                  sudo apt-get update -qq
-                  sudo apt-get install -y --no-install-recommends \
+                  # unattended-upgrades holds the dpkg lock on a fresh runner and
+                  # apt waits on it forever with no output, so the step ate the whole
+                  # 60-minute job budget, got cancelled, and every publish job below
+                  # failed on a missing linux artefact instead of naming the cause.
+                  export DEBIAN_FRONTEND=noninteractive
+                  for i in 1 2 3; do
+                    sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq && break
+                    echo "::warning::apt-get update failed (attempt $i); retrying"
+                    sleep $((i * 10))
+                  done
+                  sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y --no-install-recommends \
                     build-essential pkg-config \
                     libgtk-3-dev libwebkit2gtk-4.1-dev libsoup-3.0-dev \
                     libjavascriptcoregtk-4.1-dev
+            - name: Ensure rustup exists (self-hosted mac)
+              if: matrix.slot == 'macos'
+              run: |
+                  set -euo pipefail
+                  # dtolnay/rust-toolchain drives rustup, it does not install it. The
+                  # hosted images ship one; the in-house Air is provisioned for Unreal
+                  # and need not, so bootstrap rather than fail on a missing binary
+                  # that nothing in this repo would otherwise put there.
+                  if ! command -v rustup >/dev/null 2>&1; then
+                    curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs \
+                      | sh -s -- -y --default-toolchain none --no-modify-path
+                  fi
+                  echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
             - name: Setup Rust (stable)
               uses: dtolnay/rust-toolchain@stable
               with:
@@ -462,7 +489,7 @@ jobs:
                   # (no blobs, no attributes to match) — which skipped the pull and
                   # shipped a 132-byte pointer as the macOS dylib.
                   command -v git-lfs >/dev/null 2>&1 || {
-                    apt-get update -qq && apt-get install -y -qq --no-install-recommends git-lfs
+                    apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq && apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y -qq --no-install-recommends git-lfs
                   }
                   # actions/checkout writes its safe.directory entry under a HOME it
                   # then restores, so inside the container git doesn't trust the
@@ -573,8 +600,8 @@ jobs:
               # silently skips them.
               continue-on-error: true
               run: |
-                  apt-get update -qq
-                  apt-get install -y -qq --no-install-recommends \
+                  apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq
+                  apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y -qq --no-install-recommends \
                     mesa-vulkan-drivers xvfb libfontconfig1 libxcursor1 \
                     libxinerama1 libxrandr2 libxi6 libxext6 libx11-6 libgl1 libxkbcommon0
             - name: Import project
@@ -640,7 +667,14 @@ jobs:
         # Linux export container can produce a macOS .app but can never make it one
         # Gatekeeper will open.
         if: ${{ always() && needs.test.result == 'success' && needs.gdextension.result != 'failure' && needs.gdextension.result != 'cancelled' && join(fromJSON(needs.version_gate.outputs.mac_presets)) != '' }}
-        runs-on: macos-latest
+        # The in-house MacBook Air. This job was the longest in the workflow at
+        # 16-23 minutes, essentially all of it inside Godot's import and export,
+        # and a shared 3-core hosted VM is the reason: the same project exports on
+        # the Linux container in 7-8 minutes total. A persistent runner also lets
+        # the import cache and the editor install survive between runs. Only
+        # workflow_dispatch triggers this workflow, which needs write access to
+        # the repo, so no fork can reach the runner.
+        runs-on: [self-hosted, macOS, ARM64]
         timeout-minutes: 90
         permissions:
             contents: read
@@ -741,27 +775,73 @@ jobs:
                   VER: ${{ fromJSON(inputs.engine).version }}
                   MONO: ${{ fromJSON(inputs.engine).dotnet_enabled && '_mono' || '' }}
               run: |
+                  set -euo pipefail
                   # There is no barichello/godot-ci equivalent to run as a container on a
                   # Mac runner, so the editor and its templates are fetched directly.
+                  # Both land under $HOME rather than $RUNNER_TEMP, which the runner
+                  # wipes between jobs: this is a persistent machine, so a version it
+                  # has already fetched is simply there on the next run.
                   BASE="https://github.com/godotengine/godot/releases/download/${VER}-stable"
-                  curl -fsSL -o "$RUNNER_TEMP/godot.zip" \
-                    "$BASE/Godot_v${VER}-stable${MONO}_macos.universal.zip"
-                  unzip -q "$RUNNER_TEMP/godot.zip" -d "$RUNNER_TEMP/godot"
-                  BIN=$(find "$RUNNER_TEMP/godot" -type f -path '*/Contents/MacOS/*' | head -1)
+                  GODOT_DIR="$HOME/.cache/godot-ci/${VER}-stable${MONO}"
+                  if [ ! -d "$GODOT_DIR" ]; then
+                    curl -fsSL -o "$RUNNER_TEMP/godot.zip" \
+                      "$BASE/Godot_v${VER}-stable${MONO}_macos.universal.zip"
+                    # Unpacked beside the destination and moved into place, so an
+                    # interrupted run cannot leave a half-extracted editor that the
+                    # next run then trusts because the directory exists.
+                    rm -rf "$GODOT_DIR.partial"
+                    mkdir -p "$GODOT_DIR.partial"
+                    unzip -q "$RUNNER_TEMP/godot.zip" -d "$GODOT_DIR.partial"
+                    mkdir -p "$(dirname "$GODOT_DIR")"
+                    mv "$GODOT_DIR.partial" "$GODOT_DIR"
+                  else
+                    echo "::notice::Reusing the cached Godot $VER editor at $GODOT_DIR"
+                  fi
+                  BIN=$(find "$GODOT_DIR" -type f -path '*/Contents/MacOS/*' | head -1)
                   test -n "$BIN" || { echo "::error::No Godot binary in the macOS archive"; exit 1; }
                   chmod +x "$BIN"
                   echo "bin=$BIN" >> "$GITHUB_OUTPUT"
 
-                  curl -fsSL -o "$RUNNER_TEMP/templates.tpz" \
-                    "$BASE/Godot_v${VER}-stable${MONO}_export_templates.tpz"
-                  unzip -q "$RUNNER_TEMP/templates.tpz" -d "$RUNNER_TEMP/tpl"
                   DEST="$HOME/Library/Application Support/Godot/export_templates/${VER}.stable${MONO:+.mono}"
-                  mkdir -p "$DEST"
-                  mv "$RUNNER_TEMP/tpl/templates/"* "$DEST/"
+                  # `ls -A`, not just -d: an aborted extraction leaves the directory
+                  # behind, and an empty template dir fails the export much later with
+                  # a message about the preset rather than about the templates.
+                  if [ -z "$(ls -A "$DEST" 2>/dev/null)" ]; then
+                    curl -fsSL -o "$RUNNER_TEMP/templates.tpz" \
+                      "$BASE/Godot_v${VER}-stable${MONO}_export_templates.tpz"
+                    unzip -q "$RUNNER_TEMP/templates.tpz" -d "$RUNNER_TEMP/tpl"
+                    mkdir -p "$DEST"
+                    mv "$RUNNER_TEMP/tpl/templates/"* "$DEST/"
+                  else
+                    echo "::notice::Reusing the cached export templates in $DEST"
+                  fi
                   echo "::notice::Godot $VER at $BIN, templates in $DEST"
             - name: Sanitize preset name for path
               id: san
               run: echo "name=$(echo '${{ matrix.preset }}' | tr '/' '-' | tr ' ' '-')" >> "$GITHUB_OUTPUT"
+            - name: Restore the import cache
+              working-directory: ${{ fromJSON(inputs.engine).project_path }}
+              env:
+                  APP: ${{ fromJSON(inputs.engine).app_name }}
+                  DIR: ${{ steps.san.outputs.name }}
+              run: |
+                  set -euo pipefail
+                  # `.godot/` is gitignored, so actions/checkout's clean deletes it and
+                  # every run re-imported the whole project cold — 7.6 minutes of the 23
+                  # this job used to take. Kept outside the workspace instead, where the
+                  # clean cannot reach it. Staleness is Godot's problem, not ours: it
+                  # writes an .md5 beside each imported asset and re-imports anything
+                  # whose source changed, so an out-of-date cache costs time, never
+                  # correctness. Keyed per preset because nothing serialises two presets
+                  # of one app if this machine ever hosts two runners.
+                  SRC="$HOME/.cache/godot-import/${APP}-${DIR}"
+                  if [ -d "$SRC" ]; then
+                    mkdir -p .godot
+                    rsync -a "$SRC/" .godot/
+                    echo "::notice::Import cache restored from $SRC ($(du -sh "$SRC" | cut -f1))"
+                  else
+                    echo "::notice::No import cache at $SRC — this run imports cold"
+                  fi
             - name: Import project
               working-directory: ${{ fromJSON(inputs.engine).project_path }}
               run: |
@@ -792,6 +872,22 @@ jobs:
                       --export-release "${{ matrix.preset }}" "$OUT"
                   fi
                   test -d "$OUT" || { echo "::error::No .app produced at $OUT"; exit 1; }
+            - name: Save the import cache
+              if: always()
+              working-directory: ${{ fromJSON(inputs.engine).project_path }}
+              env:
+                  APP: ${{ fromJSON(inputs.engine).app_name }}
+                  DIR: ${{ steps.san.outputs.name }}
+              run: |
+                  set -euo pipefail
+                  # `always()`, because a run that imported and then failed to export
+                  # still did the expensive half, and throwing that away would make
+                  # every retry after a bad export pay the cold-import cost again.
+                  [ -d .godot ] || exit 0
+                  DEST="$HOME/.cache/godot-import/${APP}-${DIR}"
+                  mkdir -p "$DEST"
+                  rsync -a --delete .godot/ "$DEST/"
+                  echo "::notice::Import cache saved to $DEST ($(du -sh "$DEST" | cut -f1))"
             - name: Sign and notarize
               if: ${{ fromJSON(inputs.publish).notarize }}
               env:
@@ -827,6 +923,12 @@ jobs:
                   # shellcheck disable=SC2086
                   security list-keychains -d user -s "${KEYCHAIN}" ${ORIG_KEYCHAINS}
                   cleanup() {
+                    # The search list is restored, not just abandoned: this runner is a
+                    # real machine that keeps its user keychain list between jobs, so a
+                    # run that ended without putting it back would leave every later
+                    # codesign on the box pointing at a keychain that no longer exists.
+                    # shellcheck disable=SC2086
+                    security list-keychains -d user -s ${ORIG_KEYCHAINS} 2>/dev/null || true
                     security delete-keychain "${KEYCHAIN}" 2>/dev/null || true
                     rm -f "${RUNNER_TEMP}/cert.p12" "${RUNNER_TEMP}/notarize.zip" 2>/dev/null || true
                   }
@@ -883,6 +985,12 @@ jobs:
                   name: ${{ fromJSON(inputs.engine).app_name }}-${{ steps.san.outputs.name }}
                   path: ${{ runner.temp }}/artifact
                   if-no-files-found: error
+            - name: Wipe Forgejo netrc
+              if: always()
+              # The LFS step writes the Forgejo token to $HOME/.netrc, which was
+              # discarded with the VM on a hosted runner and now outlives the job on
+              # a real machine. Same wipe ci-unity already does for the same reason.
+              run: rm -f "$HOME/.netrc"
 
     itch:
         name: Itch.io Publish

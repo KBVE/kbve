@@ -133,7 +133,7 @@ jobs:
               run: |
                   set -euo pipefail
                   if ! command -v cc &>/dev/null; then
-                    apt-get update -qq && apt-get install -y -qq build-essential pkg-config libssl-dev
+                    apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq && apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y -qq build-essential pkg-config libssl-dev
                   fi
                   if ! command -v cargo-audit &>/dev/null; then
                     cargo install cargo-audit --locked
