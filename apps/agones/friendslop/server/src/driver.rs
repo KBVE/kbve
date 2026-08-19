@@ -34,6 +34,11 @@ pub struct DriverConfig {
     /// far a player may stand from a cell and still work it.
     pub stone_grid_size: f32,
     pub tree_grid_size: f32,
+    /// What the props are scattered from. Sent to every client on join, so a world can
+    /// run a forest that is not the client's default one and still be the same forest
+    /// on both sides.
+    pub stone_seed: i32,
+    pub tree_seed: i32,
     pub harvest_reach: f32,
     pub stream_keep_radius: f32,
     /// How many pet robots one player may have out, and how many the world holds.
@@ -142,6 +147,8 @@ pub fn spawn(
     let road_width = cfg.road_width;
     let stone_grid_size = cfg.stone_grid_size;
     let tree_grid_size = cfg.tree_grid_size;
+    let stone_seed = cfg.stone_seed;
+    let tree_seed = cfg.tree_seed;
     let harvest_reach = cfg.harvest_reach;
     let pets = PetConfig {
         per_player: cfg.pets_per_player,
@@ -161,6 +168,8 @@ pub fn spawn(
                 road_width,
                 stone_grid_size,
                 tree_grid_size,
+                stone_seed,
+                tree_seed,
                 harvest_reach,
                 pets,
                 ..SessionConfig::default()
@@ -205,6 +214,8 @@ pub fn spawn(
                 road_width,
                 stone_grid_size,
                 tree_grid_size,
+                stone_seed,
+                tree_seed,
             });
             let mut streamer = if stream {
                 let mut s = TerrainStreamer::new(StreamConfig {

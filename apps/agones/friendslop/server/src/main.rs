@@ -58,6 +58,11 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         // somewhere to measure a reach check against.
         stone_grid_size: env_parse("FS_STONE_GRID", 22.0),
         tree_grid_size: env_parse("FS_TREE_GRID", 14.0),
+        // What the rocks and trees are scattered from, which is not the world seed:
+        // the seed moves the ground, these move the things standing on it. Sent to
+        // every client on join, so rotating one here rotates it everywhere.
+        stone_seed: env_parse("FS_STONE_SEED", q::worldgen::StoneScatter::DEFAULT_SEED),
+        tree_seed: env_parse("FS_TREE_SEED", q::worldgen::TreeScatter::DEFAULT_SEED),
         harvest_reach: env_parse("FS_HARVEST_REACH", 6.0),
         pets_per_player: env_parse("FS_PETS_PER_PLAYER", 10),
         pets_total: env_parse("FS_PETS_TOTAL", 96),

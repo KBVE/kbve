@@ -536,6 +536,41 @@ impl QNetClient3D {
             .map_or(0.0, |w| w.road_width as f64)
     }
 
+    /// What the host scattered its rocks from. A field drawing from anything else
+    /// draws a forest the host is not holding: every trunk the player can see is walked
+    /// through, and every one they cannot is walked into.
+    #[func]
+    fn world_stone_seed(&self) -> i64 {
+        self.last
+            .as_ref()
+            .and_then(|s| s.world)
+            .map_or(0, |w| w.stone_seed as i64)
+    }
+
+    #[func]
+    fn world_tree_seed(&self) -> i64 {
+        self.last
+            .as_ref()
+            .and_then(|s| s.world)
+            .map_or(0, |w| w.tree_seed as i64)
+    }
+
+    #[func]
+    fn world_stone_grid(&self) -> f64 {
+        self.last
+            .as_ref()
+            .and_then(|s| s.world)
+            .map_or(0.0, |w| w.stone_grid_size as f64)
+    }
+
+    #[func]
+    fn world_tree_grid(&self) -> f64 {
+        self.last
+            .as_ref()
+            .and_then(|s| s.world)
+            .map_or(0.0, |w| w.tree_grid_size as f64)
+    }
+
     #[func]
     fn is_joined(&self) -> bool {
         self.last
