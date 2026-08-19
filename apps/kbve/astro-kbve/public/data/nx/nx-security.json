@@ -1,9 +1,9 @@
 {
-	"generated_at": "2026-08-18T02:19:41Z",
+	"generated_at": "2026-08-19T02:21:38Z",
 	"summary": {
 		"critical": 4,
 		"high": 54,
-		"medium": 61,
+		"medium": 63,
 		"low": 11,
 		"info": 32
 	},
@@ -812,11 +812,11 @@
 			]
 		},
 		"cargo": {
-			"total": 49,
+			"total": 51,
 			"severities": {
 				"critical": 0,
 				"high": 0,
-				"medium": 17,
+				"medium": 19,
 				"low": 0,
 				"info": 32
 			},
@@ -827,6 +827,20 @@
 					"severity": "medium",
 					"package": "ammonia",
 					"url": null
+				},
+				{
+					"id": "RUSTSEC-2026-0258",
+					"title": "h2 unbounded empty DATA frames",
+					"severity": "medium",
+					"package": "h2",
+					"url": "https://github.com/hyperium/hyper/security/advisories/GHSA-q83h-524g-xf6h"
+				},
+				{
+					"id": "RUSTSEC-2026-0258",
+					"title": "h2 unbounded empty DATA frames",
+					"severity": "medium",
+					"package": "h2",
+					"url": "https://github.com/hyperium/hyper/security/advisories/GHSA-q83h-524g-xf6h"
 				},
 				{
 					"id": "RUSTSEC-2026-0194",

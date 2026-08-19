@@ -1,9 +1,41 @@
 {
-	"generated_at": "2026-08-18T02:19:51Z",
+	"generated_at": "2026-08-19T02:22:09Z",
 	"node": {
-		"count": 117,
+		"count": 122,
 		"major": 21,
 		"items": [
+			{
+				"name": "@astrojs/markdown-remark",
+				"current": "7.2.2",
+				"wanted": "7.2.2",
+				"latest": "7.2.3",
+				"type": "devDependencies",
+				"major": false
+			},
+			{
+				"name": "@astrojs/mdx",
+				"current": "7.0.5",
+				"wanted": "7.0.5",
+				"latest": "7.0.6",
+				"type": "devDependencies",
+				"major": false
+			},
+			{
+				"name": "@astrojs/react",
+				"current": "6.0.2",
+				"wanted": "6.0.2",
+				"latest": "6.0.3",
+				"type": "devDependencies",
+				"major": false
+			},
+			{
+				"name": "@astrojs/ts-plugin",
+				"current": "1.10.10",
+				"wanted": "1.10.10",
+				"latest": "1.10.11",
+				"type": "devDependencies",
+				"major": false
+			},
 			{
 				"name": "@axe-core/playwright",
 				"current": "4.11.3",
@@ -296,7 +328,7 @@
 				"name": "@testing-library/user-event",
 				"current": "14.6.1",
 				"wanted": "14.6.1",
-				"latest": "14.6.4",
+				"latest": "14.6.5",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -416,7 +448,7 @@
 				"name": "@vitest/web-worker",
 				"current": "4.0.9",
 				"wanted": "4.0.9",
-				"latest": "4.1.10",
+				"latest": "4.1.11",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -434,6 +466,14 @@
 				"wanted": "12.11.1",
 				"latest": "12.11.3",
 				"type": "dependencies",
+				"major": false
+			},
+			{
+				"name": "astro",
+				"current": "7.2.2",
+				"wanted": "7.2.2",
+				"latest": "7.2.3",
+				"type": "devDependencies",
 				"major": false
 			},
 			{
@@ -624,7 +664,7 @@
 				"name": "lucide",
 				"current": "0.575.0",
 				"wanted": "0.575.0",
-				"latest": "1.31.0",
+				"latest": "1.32.0",
 				"type": "dependencies",
 				"major": true
 			},
@@ -632,7 +672,7 @@
 				"name": "lucide-react",
 				"current": "0.575.0",
 				"wanted": "0.575.0",
-				"latest": "1.31.0",
+				"latest": "1.32.0",
 				"type": "dependencies",
 				"major": true
 			},
@@ -640,7 +680,7 @@
 				"name": "marked",
 				"current": "18.0.2",
 				"wanted": "18.0.2",
-				"latest": "18.0.9",
+				"latest": "18.0.10",
 				"type": "dependencies",
 				"major": false
 			},
@@ -760,7 +800,7 @@
 				"name": "react-native-safe-area-context",
 				"current": "5.7.0",
 				"wanted": "5.7.0",
-				"latest": "5.9.0",
+				"latest": "5.9.1",
 				"type": "dependencies",
 				"major": false
 			},
@@ -880,7 +920,7 @@
 				"name": "verdaccio",
 				"current": "6.5.1",
 				"wanted": "6.5.1",
-				"latest": "6.9.2",
+				"latest": "6.10.0",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -1819,7 +1859,7 @@
 			{
 				"name": "glam",
 				"current": "0.33.2",
-				"latest": "0.33.3",
+				"latest": "0.33.4",
 				"major": false
 			},
 			{
@@ -2413,23 +2453,23 @@
 			{
 				"name": "zvariant",
 				"current": "5.13.1",
-				"latest": "5.14.0",
+				"latest": "5.15.0",
 				"major": false
 			},
 			{
 				"name": "zvariant_derive",
 				"current": "5.13.1",
-				"latest": "5.14.0",
+				"latest": "5.15.0",
 				"major": false
 			},
 			{
 				"name": "zvariant_utils",
 				"current": "3.5.0",
-				"latest": "4.1.0",
+				"latest": "4.2.0",
 				"major": true
 			}
 		]
 	},
-	"total": 364,
+	"total": 369,
 	"major_total": 22
 }

@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-08-18T02:16:06Z",
+  "generated_at": "2026-08-19T02:18:35Z",
   "summary": {
     "pending": 2,
     "behind": 1,
@@ -81,8 +81,8 @@
     {
       "ecosystem": "crates",
       "name": "bevy_mapdb",
-      "local": "0.1.0",
-      "published": "0.1.0",
+      "local": "0.1.1",
+      "published": "0.1.1",
       "status": "published"
     },
     {
@@ -222,7 +222,7 @@
       "ecosystem": "npm",
       "name": "droid",
       "local": "0.1.2",
-      "published": "0.198.0",
+      "published": "0.199.0",
       "status": "behind"
     },
     {
