@@ -37,6 +37,10 @@ window/stretch/aspect="expand"
 
 enabled=PackedStringArray("res://addons/gdUnit4/plugin.cfg")
 
+[gui]
+
+theme/custom_font="res://assets/fonts/Alagard.ttf"
+
 [input]
 
 move_left={
