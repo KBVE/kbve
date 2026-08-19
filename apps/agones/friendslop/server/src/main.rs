@@ -2,6 +2,9 @@ mod agones;
 mod auth;
 mod driver;
 mod props;
+/// Not compiled into the server: a bench that happens to be shaped like a test.
+#[cfg(test)]
+mod scaling_probe;
 mod terrain_stream;
 
 use std::net::SocketAddr;
