@@ -815,10 +815,20 @@ pub struct StoneScatter {
     pub scale_max: f32,
 }
 
+impl StoneScatter {
+    /// Shared with `QStoneField`'s exported default, and sent to every client on join.
+    ///
+    /// Deliberately not the world seed: what moves between worlds is the ground a rock
+    /// stands on, not the stream the scatter draws from. Two sides holding different
+    /// numbers here scatter two disjoint fields of rock, with nothing in common to
+    /// walk into.
+    pub const DEFAULT_SEED: i32 = 24601;
+}
+
 impl Default for StoneScatter {
     fn default() -> Self {
         Self {
-            seed: 24601,
+            seed: Self::DEFAULT_SEED,
             variants: 12,
             grid_size: 22.0,
             patch_threshold: 0.3,
@@ -1367,12 +1377,15 @@ impl TreeScatter {
     /// builds its trunks from this, and a project that never touches the property gets
     /// a client collider the same size.
     pub const DEFAULT_TRUNK_RADIUS: f32 = 0.3;
+
+    /// As [`StoneScatter::DEFAULT_SEED`], for the forest.
+    pub const DEFAULT_SEED: i32 = 9001;
 }
 
 impl Default for TreeScatter {
     fn default() -> Self {
         Self {
-            seed: 9001,
+            seed: Self::DEFAULT_SEED,
             grid_size: 14.0,
             grove_threshold: 0.15,
             grove_frequency: 0.02,

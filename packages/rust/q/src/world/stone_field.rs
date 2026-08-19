@@ -106,6 +106,9 @@ pub struct QStoneField {
     sim_bodies: PackedInt64Array,
     extent: f32,
     origin: Vector2,
+    /// The terrain generation this scatter was planned against, so ground replaced
+    /// where it stood is noticed as well as ground walked off.
+    seen_generation: i64,
     /// What the player has already mined, kept across rescatters.
     ledger: crate::world::harvest::Ledger,
     /// Snapshot of the terrain used to test sight lines during LOD rebucketing.
@@ -135,7 +138,13 @@ impl QStoneField {
     fn window_moved(&self) -> bool {
         let node = self.base().clone().upcast::<godot::classes::Node>();
         crate::world::resolve_terrain(&node, &self.terrain_path)
-            .map(|t| t.bind().window_origin() != self.origin)
+            .map(|t| {
+                let t = t.bind();
+                // Either the ground moved under the scatter, or it was replaced where
+                // it stood. A reseed does the second without the first, and a scatter
+                // planned against the old field describes nothing that is there.
+                t.window_origin() != self.origin || t.ground_generation() != self.seen_generation
+            })
             .unwrap_or(false)
     }
 
@@ -187,6 +196,7 @@ impl QStoneField {
 
         let seed64 = self.stone_seed as u64;
         self.origin = terra.origin;
+        self.seen_generation = terrain.bind().ground_generation();
 
         let scatter = StoneScatter {
             seed: self.stone_seed,
@@ -355,6 +365,33 @@ impl INode3D for QStoneField {
 
 #[godot_api]
 impl QStoneField {
+    /// Takes the scatter the host is holding, and stands the rocks again if it differs
+    /// from the one already drawn.
+    ///
+    /// Online the world's numbers arrive a round trip after this field has already
+    /// planned from its own exported defaults. Applying them is what lets a host run a
+    /// forest that is not the default one -- a rotated seed for a new story, say --
+    /// without every client quietly drawing a different world and walking through it.
+    ///
+    /// The damage ledger goes with the old scatter. Its ids are derived from the seed,
+    /// so nothing in it describes a rock in the new field.
+    #[func]
+    pub fn adopt_scatter(&mut self, seed: i64, grid_size: f64) {
+        let seed = seed as i32;
+        let grid_size = if grid_size > 0.0 {
+            grid_size as f32
+        } else {
+            self.grid_size
+        };
+        if seed == self.stone_seed && (grid_size - self.grid_size).abs() < f32::EPSILON {
+            return;
+        }
+        self.stone_seed = seed;
+        self.grid_size = grid_size;
+        self.rescatter();
+        self.ledger = crate::world::harvest::Ledger::new();
+    }
+
     #[signal]
     fn stone_broken(id: i64, ore: GString, amount: i64);
 

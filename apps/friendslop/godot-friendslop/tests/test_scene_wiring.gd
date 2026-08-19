@@ -136,3 +136,37 @@ func test_every_world_scene_carries_its_settings_nodes() -> void:
 			assert_array(names) \
 				.override_failure_message("%s is missing the %s node" % [path, wanted]) \
 				.contains([wanted])
+
+
+## The online world adopts the host's scatter rather than drawing its own.
+##
+## Rocks and trees are never sent over the wire: both sides derive them from a seed and
+## the ground. That holds only while both hold the same seed, and the client's fields
+## plan from their exported defaults a round trip before anyone says what world this is.
+## The join has to hand them the host's numbers -- and if any of these names drift, the
+## call fails at runtime in a scene nobody loads under test.
+func test_the_online_world_takes_its_scatter_from_the_host() -> void:
+	var terrain: Object = ClassDB.instantiate(&"QTerrain")
+	assert_bool(terrain.has_method(&"adopt_seed")) \
+		.override_failure_message("QTerrain cannot be told which world it is baking") \
+		.is_true()
+	assert_bool(terrain.has_method(&"ground_generation")) \
+		.override_failure_message("nothing tells a scatter its ground was replaced") \
+		.is_true()
+
+	terrain.free()
+
+	for kind: StringName in [&"QStoneField", &"QTreeField"]:
+		var field: Object = ClassDB.instantiate(kind)
+		assert_bool(field.has_method(&"adopt_scatter")) \
+			.override_failure_message("%s cannot adopt the host's scatter" % kind) \
+			.is_true()
+		field.free()
+
+	var source := FileAccess.get_file_as_string("res://src/net/online_world.gd")
+	for handover: String in ["adopt_seed(", "adopt_scatter("]:
+		assert_bool(source.contains(handover)) \
+			.override_failure_message(
+				"online_world never calls %s — the client draws its own world again"
+				% handover) \
+			.is_true()

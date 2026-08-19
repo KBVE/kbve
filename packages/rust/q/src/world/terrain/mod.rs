@@ -202,6 +202,11 @@ pub struct QTerrain {
     ground_shape: Option<Gd<HeightMapShape3D>>,
     window: Option<crate::worldgen::Window>,
     shift_rx: Option<std::sync::mpsc::Receiver<(Vec<f32>, [f32; 2])>>,
+    /// Bumped whenever the ground itself is replaced rather than merely shifted, which
+    /// today means the seed changed under it. Scatter fields watch it: a reseed leaves
+    /// the window origin exactly where it was, so nothing else tells them the rock they
+    /// planned is standing on ground that no longer exists.
+    generation: i64,
 }
 
 #[godot_api]
@@ -620,6 +625,60 @@ impl QTerrain {
     /// spawn into an empty world waits for this.
     #[signal]
     fn ground_ready();
+
+    /// Bakes the world the host is actually simulating, if that is not the one already
+    /// under our feet.
+    ///
+    /// The seed arrives a round trip after this node has baked from its own exported
+    /// default, so assigning `terrain_seed` on join was doing nothing: the ground was
+    /// already made. It agreed only because both defaults happened to read 1337. A host
+    /// that rotates its seed would have had every client standing on a different
+    /// landscape, sinking into its hills and hovering over its seas.
+    ///
+    /// Rebaked through the same path a window shift takes, so the road, the bridge, the
+    /// landmarks and the clearance are all rebuilt from the new field rather than left
+    /// describing the old one.
+    #[func]
+    pub fn adopt_seed(&mut self, seed: i64) {
+        let seed = seed as i32;
+        if seed == self.terrain_seed || self.heights.is_empty() {
+            return;
+        }
+        self.terrain_seed = seed;
+        self.generation += 1;
+
+        let params = self.height_params();
+        let source = crate::ground::GroundSource::parse(&self.ground_source.to_string());
+        self.ground = Some(crate::ground::Ground::new(source, params.seed, &params));
+        self.hgen =
+            (source == crate::ground::GroundSource::Authored).then(|| HeightGen::new(&params));
+
+        let origin = self.window.map(|w| w.origin).unwrap_or([0.0, 0.0]);
+        let worker_gen = crate::ground::Ground::new(source, params.seed, &params);
+        let (extent, res) = (self.extent, self.resolution.max(2));
+        let (tx, rx) = std::sync::mpsc::channel();
+        let job = move || {
+            let _ = tx.send((worker_gen.bake_at(origin, extent, res), origin));
+        };
+        match Engine::singleton()
+            .get_singleton(crate::threads::runtime::RuntimeManager::SINGLETON)
+            .and_then(|s| s.try_cast::<crate::threads::runtime::RuntimeManager>().ok())
+        {
+            Some(rt) => {
+                rt.bind().spawn_blocking(job);
+            }
+            None => {
+                std::thread::spawn(job);
+            }
+        }
+        self.shift_rx = Some(rx);
+    }
+
+    /// How many times the ground has been replaced under a standing window.
+    #[func]
+    pub fn ground_generation(&self) -> i64 {
+        self.generation
+    }
 
     /// Whether the collider exists yet, for whatever readied before the signal
     /// went out.

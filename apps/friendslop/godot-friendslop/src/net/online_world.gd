@@ -9,6 +9,8 @@ const TITLE_SCENE := "res://scenes/title.tscn"
 @onready var _rig: Node3D = $CameraRig
 @onready var _hud: OnlineHud = $OnlineHud
 @onready var _day_night: Node3D = $DayNight
+@onready var _stones: Node3D = $StoneField
+@onready var _trees: Node3D = $TreeField
 
 var _local_avatar: NetAvatar
 
@@ -46,9 +48,11 @@ static func server_url() -> String:
 
 
 func _on_joined(seed_value: int, assigned_name: String) -> void:
-	if _terrain and int(_terrain.terrain_seed) != seed_value:
-		_terrain.terrain_seed = seed_value
+	# The world contract first, the seed last: adopting the seed rebakes the ground, and
+	# it bakes at whatever extent and resolution it is holding when it runs.
 	_adopt_world()
+	if _terrain:
+		_terrain.adopt_seed(seed_value)
 	_hud.set_joined(assigned_name)
 	_refresh_nameplates()
 
@@ -69,6 +73,15 @@ func _adopt_world() -> void:
 			_terrain.water_level = water
 		if not is_equal_approx(float(_terrain.road_width), road):
 			_terrain.road_width = road
+
+	# Rocks and trees are never sent: both sides scatter them from a seed and the
+	# ground alone. That only holds while both scatter from the same numbers, and this
+	# field planned from its own defaults a round trip ago -- before anyone had said
+	# what world this is.
+	if _stones:
+		_stones.adopt_scatter(_client.world_stone_seed(), _client.world_stone_grid())
+	if _trees:
+		_trees.adopt_scatter(_client.world_tree_seed(), _client.world_tree_grid())
 
 	var day_length := _client.day_length_minutes()
 	if _day_night and day_length > 0.0:
