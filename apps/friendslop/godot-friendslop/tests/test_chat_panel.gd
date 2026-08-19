@@ -47,6 +47,22 @@ func test_the_log_resizes_with_the_viewport() -> void:
 	panel.queue_free()
 
 
+## The minimum size was always right; the size the panel actually took was the
+## whole screen, because the log expanded into every pixel the column owned.
+func test_the_log_does_not_swallow_the_screen() -> void:
+	var panel: ChatPanel = await _panel()
+	await await_idle_frame()
+	var view := panel.get_viewport().get_visible_rect().size
+	var column: VBoxContainer = panel.get_node("Root/Column")
+	var log_node: RichTextLabel = panel.get_node("Root/Column/Log")
+	assert_float(log_node.size.y).override_failure_message(
+			"log is %s tall of %s" % [log_node.size.y, view.y]).is_less(view.y * 0.6)
+	if view.x / maxf(view.y, 1.0) > ChatPanel.WIDE_ASPECT:
+		assert_float(column.size.x).override_failure_message(
+				"column is %s wide of %s" % [column.size.x, view.x]).is_less(view.x * 0.6)
+	panel.queue_free()
+
+
 func test_every_chat_string_is_translated() -> void:
 	for key in ["chat.signin_required", "chat.reconnecting", "chat.send_failed"]:
 		assert_str(I18n.t(key)).override_failure_message(
