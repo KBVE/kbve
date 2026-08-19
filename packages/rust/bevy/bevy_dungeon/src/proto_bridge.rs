@@ -258,6 +258,22 @@ pub fn pick_landmark_for_room_type<R: Rng + ?Sized>(
     Some(bucket[idx].clone())
 }
 
+/// Pick the curated settlement that names a session's origin hub.
+///
+/// Unlike [`pick_landmark_for_room_type`] this never rolls to skip: the hub
+/// always carries a mapdb settlement so every run opens somewhere named. The
+/// choice is keyed off the session seed alone, so the same session always
+/// reopens in the same city.
+pub fn pick_origin_settlement(seed: u64) -> Option<(String, String)> {
+    let bucket = &LANDMARK_BUCKETS.underground_city;
+    if bucket.is_empty() {
+        return None;
+    }
+    let mix = seed.wrapping_mul(0x9E37_79B9_7F4A_7C15) >> 33;
+    let idx = (mix as usize) % bucket.len();
+    Some(bucket[idx].clone())
+}
+
 /// Look up a landmark's display name by ref. Used by `/dungeon route
 /// landmark:<slug>` to surface the curated mapdb name in the result.
 pub fn landmark_name(r#ref: &str) -> Option<&'static str> {
