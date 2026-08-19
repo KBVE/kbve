@@ -16,6 +16,8 @@ pub struct PropConfig {
     pub stride: f32,
     pub water_level: f32,
     pub road_width: f32,
+    /// Must match `QStoneField`'s grid size, for the same reason the tree grid must.
+    pub stone_grid_size: f32,
     /// Must match `QTreeField`'s grid size, or the host and the client stand their
     /// trees in different places and a player walks through one while being stopped
     /// by another that is not there.
@@ -58,12 +60,16 @@ impl PropField {
             cfg.water_level,
             cfg.road_width,
         );
+        // The scatter seeds are deliberately not the world seed. The client's fields
+        // carry their own, fixed, independent of which world they are drawing -- only
+        // the ground under them moves with the seed -- and the scatter defaults are
+        // that contract written down. Substituting the world seed here scatters a
+        // second forest nobody can see.
         let scatter = StoneScatter {
-            seed: cfg.seed as i32,
-            ..Default::default()
+            grid_size: cfg.stone_grid_size,
+            ..StoneScatter::default()
         };
         let trees = TreeScatter {
-            seed: cfg.seed as i32,
             grid_size: cfg.tree_grid_size,
             ..TreeScatter::default()
         };
@@ -256,6 +262,7 @@ mod tests {
             stride: 64.0,
             water_level: HeightParams::default().water_level,
             road_width: 3.2,
+            stone_grid_size: 22.0,
             tree_grid_size: 14.0,
         })
     }
@@ -300,6 +307,58 @@ mod tests {
         assert!(
             props.discs().len() / 3 >= trees,
             "the trunks are not in the discs"
+        );
+    }
+
+    /// The host's rocks and trees have to be the ones the client is drawing.
+    ///
+    /// Both sides scatter from the seed alone rather than being told where anything is,
+    /// which only works while they scatter from the *same* seed. The client's fields
+    /// carry their own exported scatter seeds, independent of which world is being
+    /// generated, and `StoneScatter`/`TreeScatter`'s defaults are that contract written
+    /// down. A host that substitutes the world seed here stands its colliders in a
+    /// forest nobody can see: the player walks through every tree they can see and is
+    /// stopped by ones that are not there.
+    #[test]
+    fn the_host_scatters_the_same_props_the_client_draws() {
+        let props = field();
+        let window = ([0.0f32, 0.0f32], props.cfg.extent, props.cfg.water_level);
+
+        let drawn = StoneScatter {
+            grid_size: props.scatter.grid_size,
+            ..StoneScatter::default()
+        }
+        .place(&props.hgen, Some(&props.road), window.0, window.1, window.2);
+        let stood =
+            props
+                .scatter
+                .place(&props.hgen, Some(&props.road), window.0, window.1, window.2);
+        assert!(
+            !drawn.is_empty(),
+            "this seed was supposed to have rocks in it"
+        );
+        assert_eq!(
+            drawn.iter().map(|p| p.pos).collect::<Vec<_>>(),
+            stood.iter().map(|p| p.pos).collect::<Vec<_>>(),
+            "the host is standing its rocks somewhere the client is not drawing them"
+        );
+
+        let drawn = TreeScatter {
+            grid_size: props.trees.grid_size,
+            ..TreeScatter::default()
+        }
+        .place(&props.hgen, Some(&props.road), window.0, window.1, window.2);
+        let stood = props
+            .trees
+            .place(&props.hgen, Some(&props.road), window.0, window.1, window.2);
+        assert!(
+            !drawn.is_empty(),
+            "this seed was supposed to have trees in it"
+        );
+        assert_eq!(
+            drawn.iter().map(|p| p.pos).collect::<Vec<_>>(),
+            stood.iter().map(|p| p.pos).collect::<Vec<_>>(),
+            "the host is standing its trunks somewhere the client is not drawing them"
         );
     }
 
