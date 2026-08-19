@@ -153,8 +153,8 @@ jobs:
               run: |
                   set -euo pipefail
                   if ! command -v jq >/dev/null 2>&1 || ! command -v zip >/dev/null 2>&1; then
-                    apt-get update -qq
-                    apt-get install -y --no-install-recommends curl jq zip
+                    apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq
+                    apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y --no-install-recommends curl jq zip
                   fi
 
             - name: Checkout
@@ -823,8 +823,8 @@ jobs:
                   MOD_VERSION: ${{ steps.meta.outputs.mod_version }}
               run: |
                   set -euo pipefail
-                  sudo apt-get update -qq
-                  sudo apt-get install -y --no-install-recommends jq zip
+                  sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq
+                  sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y --no-install-recommends jq zip
                   WORK=$(mktemp -d)
                   INNER="${MOD_NAME}_${MOD_VERSION}"
                   cp -R "${MOD_DIR}" "${WORK}/${INNER}"

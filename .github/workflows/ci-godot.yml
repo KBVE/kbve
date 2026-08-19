@@ -117,7 +117,7 @@ jobs:
                   # (no blobs, no attributes to match) — which skipped the pull and
                   # shipped a 132-byte pointer as the macOS dylib.
                   command -v git-lfs >/dev/null 2>&1 || {
-                    apt-get update -qq && apt-get install -y -qq --no-install-recommends git-lfs
+                    apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq && apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y -qq --no-install-recommends git-lfs
                   }
                   # actions/checkout writes its safe.directory entry under a HOME it
                   # then restores, so inside the container git doesn't trust the
@@ -182,8 +182,8 @@ jobs:
                   # time with an unrelated-looking gdUnit4 crash.
                   # libfontconfig1 is cosmetic (kills the system-font error spam)
                   # but comes cheap alongside.
-                  apt-get update -qq
-                  apt-get install -y -qq --no-install-recommends \
+                  apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq
+                  apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y -qq --no-install-recommends \
                     libwebkit2gtk-4.1-0 libfontconfig1
                   # Assert every soname resolves. Without this a future dependency
                   # regresses into the same signal-11 mystery rather than saying so.
@@ -315,13 +315,12 @@ jobs:
                   # 60-minute job budget, got cancelled, and every publish job below
                   # failed on a missing linux artefact instead of naming the cause.
                   export DEBIAN_FRONTEND=noninteractive
-                  APT_OPTS="-o DPkg::Lock::Timeout=120 -o Acquire::Retries=3"
                   for i in 1 2 3; do
-                    sudo apt-get $APT_OPTS update -qq && break
+                    sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq && break
                     echo "::warning::apt-get update failed (attempt $i); retrying"
                     sleep $((i * 10))
                   done
-                  sudo apt-get $APT_OPTS install -y --no-install-recommends \
+                  sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y --no-install-recommends \
                     build-essential pkg-config \
                     libgtk-3-dev libwebkit2gtk-4.1-dev libsoup-3.0-dev \
                     libjavascriptcoregtk-4.1-dev
@@ -473,7 +472,7 @@ jobs:
                   # (no blobs, no attributes to match) — which skipped the pull and
                   # shipped a 132-byte pointer as the macOS dylib.
                   command -v git-lfs >/dev/null 2>&1 || {
-                    apt-get update -qq && apt-get install -y -qq --no-install-recommends git-lfs
+                    apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq && apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y -qq --no-install-recommends git-lfs
                   }
                   # actions/checkout writes its safe.directory entry under a HOME it
                   # then restores, so inside the container git doesn't trust the
@@ -584,8 +583,8 @@ jobs:
               # silently skips them.
               continue-on-error: true
               run: |
-                  apt-get update -qq
-                  apt-get install -y -qq --no-install-recommends \
+                  apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq
+                  apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y -qq --no-install-recommends \
                     mesa-vulkan-drivers xvfb libfontconfig1 libxcursor1 \
                     libxinerama1 libxrandr2 libxi6 libxext6 libx11-6 libgl1 libxkbcommon0
             - name: Import project

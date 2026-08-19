@@ -69,8 +69,8 @@ jobs:
             - name: Install envsubst
               run: |
                   # gettext-base ships envsubst; runner image lacks it.
-                  sudo apt-get update -qq
-                  sudo apt-get install -y --no-install-recommends gettext-base
+                  sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq
+                  sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y --no-install-recommends gettext-base
 
             - name: Build migrations ConfigMap (gzipped tarball)
               run: |
@@ -126,8 +126,8 @@ jobs:
             - name: Install envsubst
               run: |
                   # gettext-base ships envsubst; runner image lacks it.
-                  sudo apt-get update -qq
-                  sudo apt-get install -y --no-install-recommends gettext-base
+                  sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq
+                  sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y --no-install-recommends gettext-base
 
             - name: Render + run the up Job
               env:
