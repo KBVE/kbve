@@ -312,22 +312,41 @@ jobs:
                   fi
             - name: Install Linux build prerequisites
               if: matrix.slot == 'linux'
-              timeout-minutes: 10
+              timeout-minutes: 25
               run: |
-                  # unattended-upgrades holds the dpkg lock on a fresh runner and
-                  # apt waits on it forever with no output, so the step ate the whole
-                  # 60-minute job budget, got cancelled, and every publish job below
-                  # failed on a missing linux artefact instead of naming the cause.
+                  set -euo pipefail
                   export DEBIAN_FRONTEND=noninteractive
+                  # This step hung twice for the full job budget with no output at all.
+                  # The dpkg lock was the wrong suspect: DPkg::Lock::Timeout changed
+                  # nothing, and the stall is in the acquire stage, before a package is
+                  # ever unpacked. ForceIPv4 is the lever that matters — the hosted
+                  # runners resolve azure.archive.ubuntu.com to an AAAA record that
+                  # sometimes completes a TCP handshake and then delivers nothing, and
+                  # apt has no overall deadline of its own, so it waits forever.
+                  #
+                  # `timeout` is the belt to that braces: whatever the next silent
+                  # network fault turns out to be, apt gets killed and retried instead
+                  # of holding the runner. No -qq any more either, because a stalled
+                  # run that prints nothing is a run nobody can diagnose.
+                  APT=(sudo apt-get
+                       -o Acquire::ForceIPv4=true
+                       -o Acquire::http::Timeout=30
+                       -o Acquire::https::Timeout=30
+                       -o Acquire::Retries=3
+                       -o DPkg::Lock::Timeout=120)
                   for i in 1 2 3; do
-                    sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq && break
-                    echo "::warning::apt-get update failed (attempt $i); retrying"
-                    sleep $((i * 10))
+                    if timeout 180 "${APT[@]}" update \
+                       && timeout 420 "${APT[@]}" install -y --no-install-recommends \
+                            build-essential pkg-config \
+                            libgtk-3-dev libwebkit2gtk-4.1-dev libsoup-3.0-dev \
+                            libjavascriptcoregtk-4.1-dev; then
+                      exit 0
+                    fi
+                    echo "::warning::apt attempt $i stalled or failed; retrying"
+                    sleep $((i * 15))
                   done
-                  sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y --no-install-recommends \
-                    build-essential pkg-config \
-                    libgtk-3-dev libwebkit2gtk-4.1-dev libsoup-3.0-dev \
-                    libjavascriptcoregtk-4.1-dev
+                  echo "::error::apt could not install the linux build prerequisites in 3 attempts"
+                  exit 1
             - name: Ensure rustup exists (self-hosted mac)
               if: matrix.slot == 'macos'
               run: |
