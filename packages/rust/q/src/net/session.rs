@@ -15,6 +15,7 @@ use crate::proto::{self, PROTOCOL_VERSION};
 use crate::rapier::sim3d::{
     BodyId, CharacterDesc, Iso, SimCommand, SimConfig, SimSnapshot, SimWorld, TerrainDesc,
 };
+use crate::worldgen::{StoneScatter, TreeScatter};
 
 /// The constants a body's motion is integrated with, sent to every client at join.
 ///
@@ -162,6 +163,15 @@ pub enum SessionMsg {
         /// client holding different ones draws planks where its own server holds river.
         water_level: f32,
         road_width: f32,
+        /// How the world's props are scattered. Both sides derive every rock and tree
+        /// from these and the ground alone, so neither is ever told where one is --
+        /// which only works while both scatter from the same numbers. They were the
+        /// client's own exported defaults, matched here by convention, and a host that
+        /// moved one stood its colliders in a forest nobody could see.
+        stone_seed: i32,
+        tree_seed: i32,
+        stone_grid_size: f32,
+        tree_grid_size: f32,
         /// Hours, 0..24, at the moment of joining.
         /// Hours, 0..24, the host's day started at. Paired with `elapsed` and
         /// `day_length_minutes` this is the whole clock: every other time in the world is
@@ -377,6 +387,11 @@ pub struct SessionConfig {
     pub chop_seconds: f32,
     /// Caps and tuning for deployed pet robots.
     pub pets: PetConfig,
+    /// Scatter seeds for the world's props, sent on join. Fixed rather than derived
+    /// from the world seed: only the ground under a rock moves with the seed, and the
+    /// client's fields carry their own.
+    pub stone_seed: i32,
+    pub tree_seed: i32,
     /// Sizing and pacing of the per-owner flow fields those pets route on.
     pub pet_fields: FieldConfig,
 }
@@ -404,9 +419,13 @@ impl Default for SessionConfig {
             move_speed: 4.0,
             gravity: -9.81,
             jump_speed: 4.5,
-            // Match QStoneField and QTreeField's exported grid_size.
+            // Match QStoneField and QTreeField's exported grid_size and seeds. The
+            // client is told all four on join, so these are the world's numbers rather
+            // than an agreement each side has to keep on its own.
             stone_grid_size: 22.0,
             tree_grid_size: 14.0,
+            stone_seed: StoneScatter::DEFAULT_SEED,
+            tree_seed: TreeScatter::DEFAULT_SEED,
             harvest_reach: 6.0,
             // Match the harvester's exported swing_interval, which is the clip the
             // player watches while this runs down.
@@ -820,6 +839,10 @@ impl<T: Transport> HostSession<T> {
                 terrain_resolution: self.config.terrain_resolution,
                 water_level: self.config.water_level,
                 road_width: self.config.road_width,
+                stone_seed: self.config.stone_seed,
+                tree_seed: self.config.tree_seed,
+                stone_grid_size: self.config.stone_grid_size,
+                tree_grid_size: self.config.tree_grid_size,
                 start_hour: self.config.start_hour,
                 day_length_minutes: self.config.day_length_minutes,
                 elapsed: self.elapsed,
@@ -1509,6 +1532,12 @@ pub struct WorldInfo {
     /// The deck's height is derived from these two on both sides.
     pub water_level: f32,
     pub road_width: f32,
+    /// What the host scattered its rocks and trees from, so the client can scatter the
+    /// same ones instead of agreeing by convention.
+    pub stone_seed: i32,
+    pub tree_seed: i32,
+    pub stone_grid_size: f32,
+    pub tree_grid_size: f32,
     /// The clock's two constants. Everything else about the time is derived from these
     /// and the elapsed seconds, on both sides, through the same function.
     pub start_hour: f32,
@@ -1804,6 +1833,10 @@ impl<T: Transport> ClientSession<T> {
                     terrain_resolution,
                     water_level,
                     road_width,
+                    stone_seed,
+                    tree_seed,
+                    stone_grid_size,
+                    tree_grid_size,
                     start_hour,
                     day_length_minutes,
                     elapsed,
@@ -1821,6 +1854,10 @@ impl<T: Transport> ClientSession<T> {
                         terrain_resolution,
                         water_level,
                         road_width,
+                        stone_seed,
+                        tree_seed,
+                        stone_grid_size,
+                        tree_grid_size,
                         start_hour,
                         day_length_minutes,
                     });
@@ -2282,6 +2319,56 @@ mod tests {
         assert!(
             late.take_harvest_events().iter().any(|e| e.id == id),
             "the replay produced no event, so nothing would apply it"
+        );
+    }
+
+    /// Everyone standing there watches the same tree come down.
+    ///
+    /// The late joiner gets the ledger, which is a different mechanism and a different
+    /// test. This is the bystander: already joined, listening, and holding a tree that
+    /// somebody else is felling. If the delta does not reach them they keep a whole
+    /// tree standing where the world has a stump, and they keep it until they rejoin --
+    /// harvest is not a snapshot, and nothing later corrects it.
+    #[test]
+    fn a_bystander_sees_the_tree_the_other_player_fells() {
+        let mesh = Loopback::mesh(3);
+        let mut host = HostSession::new(
+            mesh[0].clone(),
+            SessionConfig::default(),
+            SimConfig::default(),
+            42,
+        );
+        host.set_terrain(flat_terrain());
+        let mut chopper = ClientSession::connect(mesh[1].clone());
+        let mut bystander = ClientSession::connect(mesh[2].clone());
+        for _ in 0..120 {
+            host.tick();
+            chopper.tick();
+            bystander.tick();
+        }
+        // Whatever the ledger replay handed out on join, so what is left is only what
+        // arrives from here on.
+        bystander.take_harvest_events();
+
+        let peer = chopper.peer().expect("joined");
+        let size = SessionConfig::default().tree_grid_size;
+        let cell = cell_under(&mut host, peer, size);
+        chopper.harvest_begin(HarvestTarget::Tree, cell, 0);
+        for _ in 0..ticks_per_stage() * (Tree::STAGES as usize + 2) {
+            host.tick();
+            chopper.tick();
+            bystander.tick();
+        }
+
+        let id = stable_id(42, cell[0], cell[1], 0);
+        assert_eq!(
+            bystander.harvest_ledger(HarvestTarget::Tree).stage(id),
+            Tree::STAGES,
+            "the tree is down for whoever swung and standing for everyone watching"
+        );
+        assert!(
+            bystander.take_harvest_events().iter().any(|e| e.id == id),
+            "the stage arrived with no event, so nothing on that side would draw it"
         );
     }
 
@@ -2918,6 +3005,49 @@ mod tests {
         assert_eq!(world.terrain_extent, host.config.terrain_extent);
         assert_eq!(world.terrain_resolution, host.config.terrain_resolution);
         assert_eq!(world.day_length_minutes, host.config.day_length_minutes);
+    }
+
+    /// A host running rotated scatter seeds has to be able to say so.
+    ///
+    /// The seeds started as a convention: both sides held the same constants and neither
+    /// mentioned them. That holds exactly as long as nobody ever changes one -- and the
+    /// moment a world wants a different forest, a client that was never told keeps
+    /// drawing the old one and walks through everything it can see. Sending them makes
+    /// the host's numbers the world's numbers.
+    #[test]
+    fn a_client_learns_which_forest_the_host_scattered() {
+        let config = SessionConfig {
+            stone_seed: 7,
+            tree_seed: 8,
+            stone_grid_size: 19.0,
+            tree_grid_size: 11.0,
+            ..SessionConfig::default()
+        };
+        let mesh = Loopback::mesh(2);
+        let mut host = HostSession::new(mesh[0].clone(), config, SimConfig::default(), 42);
+        host.set_terrain(flat_terrain());
+        let mut client = ClientSession::connect(mesh[1].clone());
+        run(&mut host, &mut client, 2);
+
+        let world = client.world().expect("welcome carries the world");
+        assert_eq!(world.stone_seed, 7);
+        assert_eq!(world.tree_seed, 8);
+        assert_eq!(world.stone_grid_size, 19.0);
+        assert_eq!(world.tree_grid_size, 11.0);
+    }
+
+    /// And a client joining a host that changed nothing gets what it would have
+    /// assumed, so the wire agrees with the constants rather than replacing them.
+    #[test]
+    fn the_default_forest_on_the_wire_is_the_one_the_fields_draw() {
+        let (mut host, mut client) = host_and_client();
+        run(&mut host, &mut client, 2);
+
+        let world = client.world().expect("welcome carries the world");
+        assert_eq!(world.stone_seed, StoneScatter::default().seed);
+        assert_eq!(world.tree_seed, TreeScatter::default().seed);
+        assert_eq!(world.stone_grid_size, StoneScatter::default().grid_size);
+        assert_eq!(world.tree_grid_size, TreeScatter::default().grid_size);
     }
 
     #[test]

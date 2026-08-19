@@ -2,6 +2,7 @@ mod chat;
 pub mod claim;
 mod door;
 mod games;
+mod post;
 mod presence;
 mod render;
 mod session;

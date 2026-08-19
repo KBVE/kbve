@@ -94,6 +94,15 @@ func harvest_begin(kind: StringName, cell: Vector2i, ordinal: int) -> void:
 		_client.harvest_stone(cell.x, cell.y, ordinal)
 
 
+## Every harvest this session has heard about, said again.
+##
+## The host says each once. A tool that attached after the ledger arrived -- which is
+## every tool, since it is built on an avatar the ledger precedes -- would otherwise
+## stand in a wood that was felled before it got here.
+func replay_harvest() -> void:
+	_client.replay_harvest()
+
+
 func harvest_end() -> void:
 	if is_joined():
 		_client.harvest_stop()

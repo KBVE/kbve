@@ -2,6 +2,11 @@ class_name NetAvatar
 extends Node3D
 
 
+## The same tool the solo player swings. Built only for the avatar we are driving:
+## it reads local input and answers the local camera, so every remote body carrying
+## one would swing at whatever this player is looking at.
+const Harvester := preload("res://src/player/harvester.gd")
+
 const VELOCITY_SMOOTHING := 12.0
 const REPORTED_FLOOR := 0.01
 const REST_SPEED := 0.05
@@ -47,6 +52,18 @@ func mark_local(aim: Node3D = null) -> void:
 	_aim = aim
 	if _plate:
 		_plate.visible = false
+	_take_up_tools()
+
+
+## Online the fields are drawn from the seed like everything else, and the host holds
+## the ledger. Without this the world's rocks and trees are scenery: nothing sends a
+## chop, and nothing applies the ones other players land.
+func _take_up_tools() -> void:
+	if get_node_or_null(^"Harvester") != null:
+		return
+	var tool: Node3D = Harvester.new()
+	tool.name = &"Harvester"
+	add_child(tool)
 
 
 func push_intent(wish: Vector2, jump: bool, yaw: float) -> void:

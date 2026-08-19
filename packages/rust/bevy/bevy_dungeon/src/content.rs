@@ -2583,16 +2583,21 @@ pub fn generate_initial_map(session_id: &uuid::Uuid) -> MapState {
 
     let mut tiles = std::collections::HashMap::new();
 
-    // Origin tile = UndergroundCity
+    // Origin tile = UndergroundCity, named after a curated mapdb settlement.
+    let settlement = super::proto_bridge::pick_origin_settlement(seed);
+    let (name, landmark_ref) = match settlement {
+        Some((r#ref, display_name)) => (display_name, Some(r#ref)),
+        None => ("The Underground City".to_owned(), None),
+    };
     let origin_tile = MapTile {
         pos: origin,
         room_type: RoomType::UndergroundCity,
-        name: "The Underground City".to_owned(),
+        name,
         description: "A bustling settlement beneath the earth. Merchants hawk wares and a hospital offers healing.".to_owned(),
         exits: vec![Direction::North, Direction::South, Direction::East, Direction::West],
         visited: true,
         cleared: true,
-        landmark_ref: None,
+        landmark_ref,
     };
     tiles.insert(origin, origin_tile);
 
@@ -3295,6 +3300,28 @@ mod tests {
     // ── Map generation tests ─────────────────────────────────────
 
     #[test]
+    fn origin_hub_varies_by_seed_but_is_stable_per_session() {
+        let mut names = std::collections::HashSet::new();
+        for _ in 0..64 {
+            let id = uuid::Uuid::new_v4();
+            let map = generate_initial_map(&id);
+            let tile = map.tiles.get(&MapPos::new(0, 0)).unwrap();
+            let again = generate_initial_map(&id);
+            assert_eq!(
+                tile.name,
+                again.tiles.get(&MapPos::new(0, 0)).unwrap().name,
+                "same session must reopen in the same hub"
+            );
+            names.insert(tile.name.clone());
+        }
+        assert!(
+            names.len() > 1,
+            "hub name never varied across seeds: {:?}",
+            names
+        );
+    }
+
+    #[test]
     fn test_generate_initial_map() {
         let id = uuid::Uuid::new_v4();
         let map = generate_initial_map(&id);
@@ -3303,6 +3330,10 @@ mod tests {
         // Origin must exist and be an UndergroundCity
         let origin_tile = map.tiles.get(&origin).unwrap();
         assert_eq!(origin_tile.room_type, RoomType::UndergroundCity);
+        assert!(
+            origin_tile.landmark_ref.is_some(),
+            "origin hub should carry a curated mapdb settlement"
+        );
         assert!(origin_tile.visited);
         assert!(origin_tile.cleared);
         assert_eq!(origin_tile.exits.len(), 4);

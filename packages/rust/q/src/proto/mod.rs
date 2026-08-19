@@ -18,7 +18,7 @@ use serde::{Deserialize, Serialize};
 ///    movement constants and the host's timestep, and `Snapshot` carries the input
 ///    sequence each player has been simulated up to. Both were host-only, which is
 ///    what made prediction unimplementable rather than merely unimplemented.
-pub const PROTOCOL_VERSION: u32 = 11;
+pub const PROTOCOL_VERSION: u32 = 12;
 
 /// Maximum players per match (parallel-race default per #11294).
 pub const MAX_PLAYERS: usize = 4;

@@ -37,7 +37,6 @@ window/stretch/aspect="expand"
 
 enabled=PackedStringArray("res://addons/gdUnit4/plugin.cfg")
 
-
 [input]
 
 move_left={
