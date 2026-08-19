@@ -20,6 +20,14 @@ const USERNAME_PANEL := preload("res://src/ui/username_panel.gd")
 const AUTH := preload("res://src/autoload/auth_session.gd")
 
 const TITLE_KEY := "title.name"
+
+## The game's own name, and only that.
+##
+## Alagard is a pixel face with no ellipsis, dash or accented Latin in it, so as the
+## project-wide fallback it left a hole wherever a string used one -- every locale for
+## the punctuation, and Spanish and Portuguese for most of their vowels. The title is
+## "Friendslop" in all five locales and is the one place the lettering is wanted.
+const TITLE_TYPEFACE := preload("res://assets/fonts/Alagard.ttf")
 const SIGN_IN_HINT_KEY := "title.sign_in_hint"
 
 const TITLE_FONT := 64.0
@@ -91,6 +99,7 @@ func _build() -> void:
 	_title_label = title
 	title.text = I18n.t(TITLE_KEY)
 	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title.add_theme_font_override("font", TITLE_TYPEFACE)
 	title.add_theme_font_size_override("font_size", int(TITLE_FONT))
 	title.add_theme_color_override("font_color", MenuStyle.PAPER_HOVER)
 	title.add_theme_color_override("font_shadow_color", Color(0.05, 0.03, 0.02, 0.85))
