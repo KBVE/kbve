@@ -229,6 +229,22 @@ func world_road_width() -> float:
 	return _client.world_road_width()
 
 
+func world_stone_seed() -> int:
+	return _client.world_stone_seed()
+
+
+func world_tree_seed() -> int:
+	return _client.world_tree_seed()
+
+
+func world_stone_grid() -> float:
+	return _client.world_stone_grid()
+
+
+func world_tree_grid() -> float:
+	return _client.world_tree_grid()
+
+
 func _world_wish(wish: Vector2) -> Vector2:
 	if wish == Vector2.ZERO or intent_basis_path.is_empty():
 		return wish

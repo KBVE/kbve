@@ -1649,3 +1649,112 @@ async fn the_composer_refuses_to_send_an_empty_post() {
 
     assert!(composed.is_err(), "an empty post was accepted");
 }
+
+#[test]
+fn dungeon_bench_equips_carried_gear() {
+    let mut game = run::Run::new(Rng::new(11), &guest());
+    game.give("vampiric_blade", 1);
+    let _ = game.on_key('G');
+
+    let key = *game
+        .wearable_keys()
+        .first()
+        .expect("the blade should be keyed");
+    let _ = game.on_key(key);
+
+    let worn = game.worn_labels();
+    assert!(
+        worn.iter().any(|l| l.contains("(weapon)")),
+        "the blade was not worn: {worn:?}"
+    );
+    assert!(
+        game.wearable_keys().is_empty(),
+        "worn gear is still offered as carried"
+    );
+}
+
+#[test]
+fn dungeon_bench_takes_gear_back_off() {
+    let mut game = run::Run::new(Rng::new(11), &guest());
+    game.give("crystal_armor", 1);
+    let _ = game.on_key('G');
+    let key = *game.wearable_keys().first().expect("armor keyed");
+    let _ = game.on_key(key);
+    assert_eq!(game.worn_keys(), vec!['A'], "armor did not go on");
+
+    let _ = game.on_key('A');
+
+    assert!(
+        game.worn_labels().is_empty(),
+        "armor stayed on: {:?}",
+        game.worn_labels()
+    );
+    assert!(
+        game.pack().iter().any(|l| l.contains("Crystal")),
+        "unequipped armor never came back to the pack: {:?}",
+        game.pack()
+    );
+    assert!(
+        game.notice().is_none(),
+        "taking gear off was refused: {:?}",
+        game.notice()
+    );
+}
+
+#[test]
+fn dungeon_bench_draws_both_slots_and_the_loadout() {
+    let mut game = run::Run::new(Rng::new(11), &guest());
+    game.give("crystal_armor", 1);
+    let _ = game.on_key('G');
+    let key = *game.wearable_keys().first().expect("armor keyed");
+    let _ = game.on_key(key);
+
+    let view = drain(Term::Ansi, &game);
+
+    assert!(view.contains("worn"), "no worn block: {view}");
+    assert!(view.contains("no weapon"), "empty slot not drawn: {view}");
+    assert!(
+        view.contains("+6 armor") && view.contains("loadout"),
+        "loadout total missing: {view}"
+    );
+    assert_eq!(game.worn_keys(), vec!['A'], "no unequip key offered");
+}
+
+#[test]
+fn dungeon_offers_the_bench_while_only_gear_is_worn() {
+    let mut game = run::Run::new(Rng::new(11), &guest());
+    game.give("crystal_armor", 1);
+    let _ = game.on_key('G');
+    let key = *game.wearable_keys().first().expect("armor keyed");
+    let _ = game.on_key(key);
+    let _ = game.on_key('Q');
+
+    assert!(
+        drain(Term::Ansi, &game).contains("Gear"),
+        "the bench key vanished while gear was worn"
+    );
+}
+
+#[test]
+fn dungeon_pack_leaves_gear_to_the_bench() {
+    let mut game = run::Run::new(Rng::new(11), &guest());
+    let before = game.pack_keys();
+
+    game.give("crystal_armor", 1);
+    let _ = game.on_key('I');
+
+    assert_eq!(
+        game.pack_keys(),
+        before,
+        "carrying gear added a key to the pack"
+    );
+    assert!(
+        game.pack().iter().any(|l| l.contains("Crystal")),
+        "gear vanished from the pack listing: {:?}",
+        game.pack()
+    );
+    assert!(
+        drain(Term::Ansi, &game).contains("bench"),
+        "the pack never points at the bench"
+    );
+}
