@@ -98,15 +98,21 @@ func test_the_roster_marks_which_one_is_us() -> void:
 	assert_str(hud.roster_label.text).contains("Anon-K7QF")
 
 
-func test_leaving_is_asked_for_not_done_here() -> void:
+func test_the_hud_does_not_take_escape() -> void:
+	# Escape used to leave the server outright from here. It belongs to the pause
+	# menu now, so the HUD must not be listening for it at all — a handler that
+	# merely stopped emitting would still swallow the key from whatever does.
 	var hud := _hud()
-	var asked := [0]
-	hud.leave_requested.connect(func() -> void: asked[0] += 1)
-	var escape := InputEventAction.new()
-	escape.action = &"ui_cancel"
-	escape.pressed = true
-	hud._unhandled_input(escape)
-	assert_int(asked[0]).is_equal(1)
+	assert_bool(hud.has_method("_unhandled_input")).is_false()
+	assert_bool(hud.has_signal("leave_requested")).is_false()
+
+
+func test_the_online_world_has_a_pause_menu_for_escape_to_open() -> void:
+	# Structural, against the scene file: instancing the online world stands up
+	# terrain and a net client, which a unit test has no business doing.
+	var text := FileAccess.get_file_as_string("res://scenes/online.tscn")
+	assert_str(text).contains('[node name="PauseMenu" type="CanvasLayer" parent="."]')
+	assert_str(text).contains("res://src/ui/pause_menu.gd")
 
 
 func test_the_default_server_is_the_deployed_one() -> void:
