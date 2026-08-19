@@ -32,6 +32,7 @@ const KEYS := [
 
 const GFX := preload("res://src/settings/graphics_settings.gd")
 const PLAY := preload("res://src/settings/gameplay_settings.gd")
+const TitleMenu := preload("res://src/ui/title_menu.gd")
 
 
 func test_every_key_resolves() -> void:
@@ -63,6 +64,27 @@ func test_every_locale_has_glyphs_for_its_own_strings() -> void:
 		var missing := _uncovered_glyphs(I18n.strings(), ThemeDB.fallback_font)
 		assert_array(missing).override_failure_message(
 				"%s has no glyph for: %s" % [code, ", ".join(missing)]).is_empty()
+	I18n.set_locale(before)
+
+
+## The title is the one place the pixel face is used, so it is the one place a string
+## has to fit the face rather than the face fitting the string.
+##
+## It was the project-wide fallback for a while, which left a hole wherever any string
+## reached for a character it does not have -- the punctuation everywhere, and most of
+## the vowels in Spanish and Portuguese. Scoped to the title that cannot happen again,
+## unless the title itself is localised into something Alagard cannot spell.
+func test_the_title_face_can_spell_the_title_in_every_locale() -> void:
+	var face: Font = TitleMenu.TITLE_TYPEFACE
+	var before := I18n.locale_code()
+	for entry: Dictionary in I18n.locales():
+		var code: String = entry["code"]
+		I18n.set_locale(code)
+		var title := I18n.t(TitleMenu.TITLE_KEY)
+		assert_array(_uncovered_glyphs([title], face)).override_failure_message(
+				"the %s title \"%s\" has characters the title face cannot draw: %s"
+						% [code, title, ", ".join(_uncovered_glyphs([title], face))]
+		).is_empty()
 	I18n.set_locale(before)
 
 
