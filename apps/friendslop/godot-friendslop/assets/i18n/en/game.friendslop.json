@@ -98,6 +98,7 @@
 	},
 	"account": {
 		"loading": "reading balance…",
+		"signed_in": "signed in",
 		"wallet": "{credits} credits  ·  {khash} khash"
 	},
 	"username": {

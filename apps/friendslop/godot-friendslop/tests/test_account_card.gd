@@ -77,6 +77,15 @@ func test_large_balances_are_abbreviated() -> void:
 	assert_str(Card._abbreviated(-2500000)).is_equal("-2500K")
 
 
+func test_a_nameless_account_falls_back_to_a_translated_label() -> void:
+	var card: AccountCard = Card.new()
+	add_child(card)
+	auto_free(card)
+	card.show_account("")
+	assert_str(card.name_label.text).is_equal(I18n.t("account.signed_in"))
+	assert_str(card.name_label.text).is_not_equal("account.signed_in")
+
+
 func test_an_unread_balance_is_not_shown_as_zero() -> void:
 	var card: AccountCard = Card.new()
 	add_child(card)

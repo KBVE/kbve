@@ -61,6 +61,7 @@
 	},
 	"account": {
 		"loading": "lendo saldo…",
+		"signed_in": "sessão iniciada",
 		"wallet": "{credits} créditos  ·  {khash} khash"
 	},
 	"username": {

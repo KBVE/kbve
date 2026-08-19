@@ -52,7 +52,7 @@ func _line(parent: Control, size: int) -> Label:
 
 func show_account(username: String) -> void:
 	visible = true
-	name_label.text = username if not username.is_empty() else "signed in"
+	name_label.text = username if not username.is_empty() else I18n.t("account.signed_in")
 	wallet_label.text = I18n.t("account.loading")
 
 
