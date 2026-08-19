@@ -57,6 +57,9 @@ func _resolve() -> void:
 			if _net and not _net.harvest_applied.is_connected(_on_harvest_applied):
 				_net.harvest_applied.connect(_on_harvest_applied)
 				_net.harvest_rewarded.connect(_on_harvest_rewarded)
+				# Whatever was felled before this tool existed, which includes the
+				# whole ledger the host replays on join.
+				_net.replay_harvest()
 			break
 
 

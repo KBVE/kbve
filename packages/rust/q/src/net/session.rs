@@ -2322,6 +2322,56 @@ mod tests {
         );
     }
 
+    /// Everyone standing there watches the same tree come down.
+    ///
+    /// The late joiner gets the ledger, which is a different mechanism and a different
+    /// test. This is the bystander: already joined, listening, and holding a tree that
+    /// somebody else is felling. If the delta does not reach them they keep a whole
+    /// tree standing where the world has a stump, and they keep it until they rejoin --
+    /// harvest is not a snapshot, and nothing later corrects it.
+    #[test]
+    fn a_bystander_sees_the_tree_the_other_player_fells() {
+        let mesh = Loopback::mesh(3);
+        let mut host = HostSession::new(
+            mesh[0].clone(),
+            SessionConfig::default(),
+            SimConfig::default(),
+            42,
+        );
+        host.set_terrain(flat_terrain());
+        let mut chopper = ClientSession::connect(mesh[1].clone());
+        let mut bystander = ClientSession::connect(mesh[2].clone());
+        for _ in 0..120 {
+            host.tick();
+            chopper.tick();
+            bystander.tick();
+        }
+        // Whatever the ledger replay handed out on join, so what is left is only what
+        // arrives from here on.
+        bystander.take_harvest_events();
+
+        let peer = chopper.peer().expect("joined");
+        let size = SessionConfig::default().tree_grid_size;
+        let cell = cell_under(&mut host, peer, size);
+        chopper.harvest_begin(HarvestTarget::Tree, cell, 0);
+        for _ in 0..ticks_per_stage() * (Tree::STAGES as usize + 2) {
+            host.tick();
+            chopper.tick();
+            bystander.tick();
+        }
+
+        let id = stable_id(42, cell[0], cell[1], 0);
+        assert_eq!(
+            bystander.harvest_ledger(HarvestTarget::Tree).stage(id),
+            Tree::STAGES,
+            "the tree is down for whoever swung and standing for everyone watching"
+        );
+        assert!(
+            bystander.take_harvest_events().iter().any(|e| e.id == id),
+            "the stage arrived with no event, so nothing on that side would draw it"
+        );
+    }
+
     fn pet_host(mesh: &[Loopback], pets: PetConfig) -> HostSession<Loopback> {
         let mut host = HostSession::new(
             mesh[0].clone(),
