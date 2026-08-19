@@ -7,17 +7,17 @@ use uuid::Uuid;
 use bevy_chat::{ChatClient, ChatMessage, IrcConfig, IrcTransport};
 
 use super::chat::{
-    ChatHub, Delivery, MAX_CHAT_LEN, OUTBOX_LIMIT, PLATFORM, SendError, sanitize_content,
-    sanitize_nick,
+    sanitize_content, sanitize_nick, ChatHub, Delivery, SendError, MAX_CHAT_LEN, OUTBOX_LIMIT,
+    PLATFORM,
 };
 use super::claim::{ClaimStore, Redeem};
 use super::door::{self, DoorContext};
-use super::games::text::{Rng, bar, meter, strip_markup};
-use super::games::{Flow, Game, blackjack, dopewars, dungeon, hangman, highlow, run, tictactoe};
+use super::games::text::{bar, meter, strip_markup, Rng};
+use super::games::{blackjack, dopewars, dungeon, hangman, highlow, run, tictactoe, Flow, Game};
 use super::post;
-use super::render::{Ink, Screen, Term, truncate, wrap_lines};
+use super::render::{truncate, wrap_lines, Ink, Screen, Term};
 use super::session::{self, Session};
-use super::telnet::{DO, IAC, OPT_ECHO, OPT_NAWS, ReadError, SB, SE, TelnetConn, WILL};
+use super::telnet::{ReadError, TelnetConn, DO, IAC, OPT_ECHO, OPT_NAWS, SB, SE, WILL};
 
 /// The caller a door sees when nobody has signed in.
 fn guest() -> DoorContext {
