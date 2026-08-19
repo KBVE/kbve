@@ -308,9 +308,20 @@ jobs:
                   fi
             - name: Install Linux build prerequisites
               if: matrix.slot == 'linux'
+              timeout-minutes: 10
               run: |
-                  sudo apt-get update -qq
-                  sudo apt-get install -y --no-install-recommends \
+                  # unattended-upgrades holds the dpkg lock on a fresh runner and
+                  # apt waits on it forever with no output, so the step ate the whole
+                  # 60-minute job budget, got cancelled, and every publish job below
+                  # failed on a missing linux artefact instead of naming the cause.
+                  export DEBIAN_FRONTEND=noninteractive
+                  APT_OPTS="-o DPkg::Lock::Timeout=120 -o Acquire::Retries=3"
+                  for i in 1 2 3; do
+                    sudo apt-get $APT_OPTS update -qq && break
+                    echo "::warning::apt-get update failed (attempt $i); retrying"
+                    sleep $((i * 10))
+                  done
+                  sudo apt-get $APT_OPTS install -y --no-install-recommends \
                     build-essential pkg-config \
                     libgtk-3-dev libwebkit2gtk-4.1-dev libsoup-3.0-dev \
                     libjavascriptcoregtk-4.1-dev
