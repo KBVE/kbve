@@ -16,11 +16,15 @@ layout(push_constant, std430) uniform Params {
     vec4 p1;
     vec4 p2;
     vec4 p3;
-    // How many candidates there are and how many may survive. Sent rather than
-    // baked: these are the only two numbers in this shader that change when the
-    // window slides, and baking them meant a fresh GLSL compile every rescatter.
-    vec4 lim;
 } pc;
+
+// How many candidates there are and how many may survive, read from the counter
+// buffer rather than baked into the source. They are the only two numbers here that
+// change when the window slides, and baking them meant a fresh GLSL compile every
+// rescatter. They travel in a buffer rather than the push constant so that the
+// resolve pass, which needs the cap too, does not need a push constant at all.
+#define COUNT counter.data[2]
+#define CAP counter.data[1]
 
 const float FADE_END = %FADE_END%;
 const float DIST_MIN = %DIST_MIN%;
@@ -75,7 +79,7 @@ void main() {
     }
     barrier();
     uint id = gl_GlobalInvocationID.x;
-    bool alive = id < uint(pc.lim.x);
+    bool alive = id < COUNT;
     float x = 0.0;
     float y = 0.0;
     float z = 0.0;
@@ -126,7 +130,7 @@ void main() {
         return;
     }
     uint slot = base_slot + lslot;
-    if (slot >= uint(pc.lim.y)) {
+    if (slot >= CAP) {
         return;
     }
     float kind = cand.data[src + 5u];
@@ -157,24 +161,22 @@ layout(local_size_x = 1) in;
 layout(set = 0, binding = 0, std430) restrict readonly buffer Counter { uint data[]; } counter;
 layout(set = 0, binding = 1, std430) restrict buffer Cmd { uint data[]; } cmd;
 
-// Laid out exactly as the cull shader's, so one push constant serves both pipelines
-// in the same compute list.
-layout(push_constant, std430) uniform Params {
-    vec4 cam;
-    vec4 p0;
-    vec4 p1;
-    vec4 p2;
-    vec4 p3;
-    vec4 lim;
-} pc;
-
 void main() {
-    uint n = min(counter.data[0], uint(pc.lim.y));
+    uint n = min(counter.data[0], counter.data[1]);
     for (uint i = 0u; i < %SURF%u; i++) {
         cmd.data[i * 5u + 1u] = n;
     }
 }
 "#;
+
+/// The survivor counter, the cap and the candidate count, in that order, with a fourth
+/// word of padding so the buffer is a round sixteen bytes.
+///
+/// Both are fixed for the life of one compute -- a window slide builds a new one -- so
+/// the reset that zeroes the counter carries them along unchanged. They live here rather
+/// than in the push constant because the resolve pass needs the cap, and a pass with no
+/// push constant cannot be handed one that does not match its own pipeline.
+const COUNTER_BYTES: u32 = 16;
 
 fn bake(src: &str, subs: &[(&str, String)]) -> String {
     let mut out = src.to_string();
@@ -315,7 +317,7 @@ pub struct FloraCompute {
     inst: Rid,
     count: u32,
     cap: u32,
-    zero_counter: PackedByteArray,
+    counter_reset: PackedByteArray,
     pub growth: f32,
 }
 
@@ -403,7 +405,7 @@ impl FloraCompute {
             .storage_buffer_create_ex(cand_bytes.len() as u32)
             .data(&cand_bytes)
             .done();
-        let counter_buf = rd.storage_buffer_create(4);
+        let counter_buf = rd.storage_buffer_create(COUNTER_BYTES);
         let height_bytes = PackedFloat32Array::from(terrain.sample_data()).to_byte_array();
         let height_buf = rd
             .storage_buffer_create_ex(height_bytes.len() as u32)
@@ -435,8 +437,8 @@ impl FloraCompute {
         rs.instance_set_custom_aabb(inst, world_aabb);
         rs.instance_set_transform(inst, Transform3D::IDENTITY);
 
-        let mut zero_counter = PackedByteArray::new();
-        zero_counter.resize(4);
+        let counter_reset =
+            PackedInt32Array::from(&[0, cap as i32, count as i32, 0]).to_byte_array();
 
         Some(Self {
             rd,
@@ -453,7 +455,7 @@ impl FloraCompute {
             inst,
             count,
             cap,
-            zero_counter,
+            counter_reset,
             growth: 0.5,
         })
     }
@@ -500,8 +502,8 @@ impl FloraCompute {
             return;
         }
         self.rd
-            .buffer_update(self.counter_buf, 0, 4, &self.zero_counter);
-        let mut pc = [0.0f32; 24];
+            .buffer_update(self.counter_buf, 0, COUNTER_BYTES, &self.counter_reset);
+        let mut pc = [0.0f32; 20];
         pc[0] = cam_pos.x;
         pc[1] = cam_pos.y;
         pc[2] = cam_pos.z;
@@ -513,9 +515,6 @@ impl FloraCompute {
             pc[o + 2] = p.normal.z;
             pc[o + 3] = p.d;
         }
-        // The two the shader used to have baked into it.
-        pc[20] = self.count as f32;
-        pc[21] = self.cap as f32;
         let pc_bytes = PackedFloat32Array::from(&pc[..]).to_byte_array();
         let cl = self.rd.compute_list_begin();
         let groups = self.count.div_ceil(64);
@@ -529,10 +528,6 @@ impl FloraCompute {
             .compute_list_bind_compute_pipeline(cl, self.resolve_pipeline);
         self.rd
             .compute_list_bind_uniform_set(cl, self.resolve_set, 0);
-        // Set again for the second pipeline: it reads the same limits, and a compute
-        // list does not carry a push constant across a pipeline change.
-        self.rd
-            .compute_list_set_push_constant(cl, &pc_bytes, pc_bytes.len() as u32);
         self.rd.compute_list_dispatch(cl, 1, 1, 1);
         self.rd.compute_list_end();
     }
