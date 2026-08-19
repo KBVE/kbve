@@ -6,6 +6,12 @@ var toggles_on_cancel := true
 var captures_mouse_on_close := true
 var shows_session_actions := true
 
+## Lets a scene own what leaving means. The online world goes back to the title
+## through the loading screen rather than a bare scene swap, and it is the only
+## thing that knows that, so it hands the menu a callable instead of the menu
+## growing a second idea of how to exit.
+var log_off_override := Callable()
+
 var _root: Control
 var _main_panel: Control
 var _main_pages: Array[MenuPage] = []
@@ -581,6 +587,9 @@ func _log_off() -> void:
 	_root.visible = false
 	get_tree().paused = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	if log_off_override.is_valid():
+		log_off_override.call()
+		return
 	_leave_session()
 	get_tree().change_scene_to_file(TITLE_SCENE)
 

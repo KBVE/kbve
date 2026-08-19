@@ -1,4 +1,4 @@
-[gd_scene load_steps=57 format=3]
+[gd_scene load_steps=58 format=3]
 
 [ext_resource type="Script" path="res://src/net/online_world.gd" id="1_world"]
 [ext_resource type="Material" path="res://assets/biomes/grassland/grass/ground.tres" id="2_ground"]
@@ -53,6 +53,7 @@
 [ext_resource type="PackedScene" path="res://src/npc/roles/steward.tscn" id="60_steward"]
 [ext_resource type="PackedScene" path="res://src/npc/roles/dockhand.tscn" id="61_dockhand"]
 [ext_resource type="PackedScene" path="res://src/npc/roles/harbourmaster.tscn" id="62_harbour"]
+[ext_resource type="Script" uid="uid://dg7a15i7lvse" path="res://src/ui/pause_menu.gd" id="63_pause"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(1024, 1024)
@@ -191,6 +192,10 @@ player_path = NodePath("../CameraRig")
 
 [node name="OnlineHud" type="CanvasLayer" parent="."]
 script = ExtResource("14_hud")
+
+[node name="PauseMenu" type="CanvasLayer" parent="."]
+script = ExtResource("63_pause")
+species = ExtResource("29_species")
 
 [node name="ChatPanel" type="CanvasLayer" parent="."]
 script = ExtResource("90_chat")

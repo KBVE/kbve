@@ -2,8 +2,6 @@ class_name OnlineHud
 extends CanvasLayer
 
 
-signal leave_requested
-
 const INK := Color(0.97, 0.94, 0.85)
 const WARN := Color(1.0, 0.72, 0.55)
 
@@ -155,7 +153,7 @@ func _process(delta: float) -> void:
 		notice_label.text = ""
 
 
-func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed(&"ui_cancel"):
-		leave_requested.emit()
-		get_viewport().set_input_as_handled()
+## Escape belongs to the pause menu, which is the only thing in the scene that
+## should decide what it means. The HUD used to take it and leave the server
+## outright, so the key that everywhere else in the game opens a menu was the one
+## key that ended the session — with no confirmation and no way back.
