@@ -1,11 +1,11 @@
 {
-	"generated_at": "2026-08-18T02:17:17.784Z",
+	"generated_at": "2026-08-19T02:19:37.847Z",
 	"summary": {
 		"total_protos": 47,
 		"registered": 0,
 		"orphaned": 46,
 		"utility_only": 1,
-		"total_messages": 833,
+		"total_messages": 835,
 		"total_enums": 173
 	},
 	"protos": [
@@ -1411,6 +1411,8 @@
 				"PetEvolution",
 				"PetInfo",
 				"NpcExtension",
+				"RoutineStop",
+				"DailyRoutine",
 				"Npc",
 				"NpcRegistry"
 			],
@@ -1433,7 +1435,7 @@
 				"StatKind",
 				"EquipSlot"
 			],
-			"message_count": 31,
+			"message_count": 33,
 			"enum_count": 17,
 			"codegen": {
 				"registered": false,
@@ -1762,7 +1764,7 @@
 		"packages/data/proto/spell/spelldb.proto",
 		"packages/data/proto/wallet/wallet.proto"
 	],
-	"checked_at": "2026-08-18T02:16:47Z",
+	"checked_at": "2026-08-19T02:19:14Z",
 	"drift_detected": true,
 	"drift_files": [
 		"packages/data/codegen/generated/itemdb-schema.ts",
