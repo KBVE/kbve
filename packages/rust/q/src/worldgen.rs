@@ -1011,6 +1011,17 @@ pub struct BridgeFootprint {
     pub deck_y: f32,
 }
 
+impl BridgeFootprint {
+    /// Whether a point on the ground is under or inside the structure.
+    ///
+    /// Measured against the full run rather than the raised span, because the
+    /// abutments and their ramps are just as solid as the deck: a body placed on
+    /// the ground anywhere along here is inside geometry, not standing on it.
+    pub fn covers(&self, p: [f32; 2]) -> bool {
+        seg_distance(p, self.from, self.to) < self.solid_half_width
+    }
+}
+
 impl BridgePlan {
     /// Reproduces the road's own span search, so the deck cannot drift from the
     /// carriageway that runs onto it.
