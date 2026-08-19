@@ -347,23 +347,41 @@ jobs:
                   done
                   echo "::error::apt could not install the linux build prerequisites in 3 attempts"
                   exit 1
-            - name: Ensure rustup exists (self-hosted mac)
-              if: matrix.slot == 'macos'
-              run: |
-                  set -euo pipefail
-                  # dtolnay/rust-toolchain drives rustup, it does not install it. The
-                  # hosted images ship one; the in-house Air is provisioned for Unreal
-                  # and need not, so bootstrap rather than fail on a missing binary
-                  # that nothing in this repo would otherwise put there.
-                  if ! command -v rustup >/dev/null 2>&1; then
-                    curl --proto '=https' --tlsv1.2 -fsSL https://sh.rustup.rs \
-                      | sh -s -- -y --default-toolchain none --no-modify-path
-                  fi
-                  echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
             - name: Setup Rust (stable)
               uses: dtolnay/rust-toolchain@stable
               with:
                   targets: ${{ matrix.rust_target }}
+            - name: Assert every target's std is really on disk
+              if: matrix.rust_target != ''
+              shell: bash
+              env:
+                  RUST_TARGET: ${{ matrix.rust_target }}
+              run: |
+                  set -euo pipefail
+                  # rustup's own answer is not evidence. On the self-hosted mac it
+                  # reported "component rust-std for target x86_64-apple-darwin is up
+                  # to date" and rustc then failed with E0463 "can't find crate for
+                  # `core`" — the manifest listed a component whose files were not
+                  # there. A hosted runner starts clean every time and cannot get into
+                  # that state; a persistent one can, and stays there until something
+                  # notices. So ask rustc where the target's libdir is and look.
+                  IFS=',' read -ra TARGETS <<< "$RUST_TARGET"
+                  for T in "${TARGETS[@]}"; do
+                    LIBDIR=$(rustc --print target-libdir --target "$T")
+                    if [ ! -d "$LIBDIR" ]; then
+                      echo "::warning::rust-std for $T is registered but missing from $LIBDIR — reinstalling"
+                      # remove-then-add, because `rustup component add` alone is a
+                      # no-op against exactly the stale metadata that caused this.
+                      rustup component remove rust-std --target "$T" 2>/dev/null || true
+                      rustup component add rust-std --target "$T"
+                    fi
+                    LIBDIR=$(rustc --print target-libdir --target "$T")
+                    if [ ! -d "$LIBDIR" ]; then
+                      echo "::error::rust-std for $T is still absent from $LIBDIR after reinstalling"
+                      exit 1
+                    fi
+                    echo "$T: $(find "$LIBDIR" -maxdepth 1 -name 'libcore-*.rlib' | head -1)"
+                  done
             - name: Point cargo at the Android NDK linker
               if: matrix.slot == 'android'
               run: |
