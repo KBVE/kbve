@@ -44,6 +44,9 @@ func _build() -> void:
 	var column := VBoxContainer.new()
 	column.name = "Column"
 	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	## Fills the height to sit at the bottom, but only as wide as the log asks for.
+	## Filling horizontally too spreads the panel across the whole screen.
+	column.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	column.alignment = BoxContainer.ALIGNMENT_END
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(column)
@@ -54,7 +57,8 @@ func _build() -> void:
 	_log.scroll_following = true
 	_log.fit_content = false
 	_log.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_log.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	## No expand: the column already owns the height, and a log that claims the
+	## leftover takes the screen with it. Its height is the fraction set in _layout.
 	_log.add_theme_color_override("default_color", Color(0.96, 0.93, 0.85))
 	column.add_child(_log)
 
