@@ -201,8 +201,9 @@ pub fn spawn(
                 seed,
                 extent,
                 stride,
-                water_level: HeightParams::default().water_level,
-                road_width: 3.2,
+                water_level,
+                road_width,
+                stone_grid_size,
                 tree_grid_size,
             });
             let mut streamer = if stream {
