@@ -351,6 +351,21 @@ jobs:
               uses: dtolnay/rust-toolchain@stable
               with:
                   targets: ${{ matrix.rust_target }}
+            - name: Put the rustup toolchain ahead of any system rust
+              if: matrix.slot == 'macos'
+              run: |
+                  set -euo pipefail
+                  # The Air carries Homebrew's `rust` formula next to rustup, and
+                  # /opt/homebrew/bin sits ahead of the cargo shims, so `rustc` was
+                  # Homebrew's 1.96.0 — which ships std for the host and nothing else.
+                  # dtolnay installed both targets into rustup's 1.97.1 and the build
+                  # still died with E0463 for x86_64, because the compiler that ran was
+                  # never the one they were installed for. Point PATH at the toolchain's
+                  # own bin directory rather than at the shims, so neither Homebrew nor
+                  # shim resolution gets a say in which rustc this job means.
+                  BIN=$(dirname "$(rustup which rustc)")
+                  echo "$BIN" >> "$GITHUB_PATH"
+                  echo "::notice::rust for this job: $BIN"
             - name: Assert every target's std is really on disk
               if: matrix.rust_target != ''
               shell: bash
@@ -358,6 +373,10 @@ jobs:
                   RUST_TARGET: ${{ matrix.rust_target }}
               run: |
                   set -euo pipefail
+                  # Named explicitly, because the failure this guards against was a
+                  # compiler nobody meant to run, and "which rustc" is the one line
+                  # that would have said so immediately.
+                  echo "rustc: $(command -v rustc) — $(rustc --version)"
                   # rustup's own answer is not evidence. On the self-hosted mac it
                   # reported "component rust-std for target x86_64-apple-darwin is up
                   # to date" and rustc then failed with E0463 "can't find crate for
