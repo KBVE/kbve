@@ -1,4 +1,3 @@
-use fastnoise_lite::{FastNoiseLite, NoiseType};
 use godot::classes::mesh::PrimitiveType;
 use godot::classes::notify::Node3DNotification;
 use godot::classes::physics_server_3d::BodyMode;
@@ -14,10 +13,9 @@ use std::collections::HashMap;
 use crate::world::flora_compute::{
     FloraCompute, FloraComputeParams, HarvestPass, TerrainOcclusion,
 };
-use crate::world::harvest::{
-    Entry, HarvestKind, HarvestOutcome, Ledger, ScatterCore, Tree, stable_id,
-};
+use crate::world::harvest::{Entry, HarvestKind, HarvestOutcome, Ledger, ScatterCore, Tree};
 use crate::world::{TerrainSnapshot, hash32, randf, world_aabb_at};
+use crate::worldgen::{BOLE_BASE_Y, TRUNK_BUCKETS, TRUNK_COLLIDER_SPAN, trunk_bucket};
 
 struct Growth {
     lateral_angle: [(f32, f32); 3],
@@ -81,58 +79,6 @@ impl FallingTree {
         }
         self.inst = Rid::Invalid;
         self.mm = Rid::Invalid;
-    }
-}
-
-const TRUNK_BUCKETS: [f32; 3] = [5.0, 7.5, 10.5];
-const TRUNK_COLLIDER_SPAN: f32 = 0.55;
-/// How far the base is pushed into the ground, so the cut of the bole never shows
-/// as a seam floating over the surface. Metres, not scaled: a big tree wants the
-/// same few centimetres of cover a small one does.
-const TRUNK_SINK: f32 = 0.17;
-/// Footprint the flare covers, as a fraction of tree height. Deliberately smaller
-/// than the root reach — the roots dive as they splay, so they stay covered on their
-/// own, and sizing to them instead would perch the trunk on the highest ground for
-/// metres around.
-const TRUNK_FOOT: f32 = 0.05;
-
-/// The ground a trunk rests on, which is the highest point under its footprint
-/// rather than the point at its centre.
-///
-/// Callers still owe the model's own offset: the bole starts at [`BOLE_BASE_Y`] in
-/// model units and the model is scaled by tree height, so seating an instance origin
-/// on the ground buries a tall tree's flare by most of a metre.
-///
-/// A tree seated on the centre sample has its base buried wherever the ground rises
-/// across the flare — every slope, and every local bump the placement grid steps over.
-/// Taking the high point instead leaves the base at or above the surface all round and
-/// lets [`TRUNK_SINK`] hide the seam on the low side.
-fn trunk_rest(sample: &impl Fn(f32, f32) -> f32, x: f32, z: f32, scale: f32) -> f32 {
-    let r = (scale * TRUNK_FOOT).clamp(0.5, 1.6);
-    let d = r * std::f32::consts::FRAC_1_SQRT_2;
-    let mut h = sample(x, z);
-    for (ox, oz) in [
-        (r, 0.0),
-        (-r, 0.0),
-        (0.0, r),
-        (0.0, -r),
-        (d, d),
-        (d, -d),
-        (-d, d),
-        (-d, -d),
-    ] {
-        h = h.max(sample(x + ox, z + oz));
-    }
-    h
-}
-
-fn trunk_bucket(scale: f32) -> usize {
-    if scale < 6.2 {
-        0
-    } else if scale < 9.0 {
-        1
-    } else {
-        2
     }
 }
 
@@ -306,7 +252,7 @@ pub struct QTreeField {
     #[init(val = 0.08)]
     growth_per_day: f32,
     #[export]
-    #[init(val = 0.3)]
+    #[init(val = crate::worldgen::TreeScatter::DEFAULT_TRUNK_RADIUS)]
     trunk_collider_radius: f32,
     /// Draw distance for stumps, which are small enough to vanish long before a
     /// standing tree would.
@@ -562,7 +508,11 @@ impl QTreeField {
             self.species_assets[next] = Some(self.build_species_assets(sp));
         }
         let assets = self.species_assets[next].as_ref().expect("just built");
-        let (near, far, stump) = (assets.near.clone(), assets.far.clone(), assets.stump.clone());
+        let (near, far, stump) = (
+            assets.near.clone(),
+            assets.far.clone(),
+            assets.stump.clone(),
+        );
         let (leaf_mat, bark_mat) = (assets.leaf_mat.clone(), assets.bark_mat.clone());
         let tris = assets.tris;
 
@@ -1417,7 +1367,6 @@ const FLUTE_TOP: f32 = 0.45;
 const FLARE_GAIN: f32 = 1.0;
 const FLARE_SPAN: f32 = 0.14;
 
-const BOLE_BASE_Y: f32 = -0.06;
 const BOLE_LEN: f32 = 0.95;
 const BOLE_R0: f32 = 0.048;
 const BOLE_R1: f32 = 0.011;
@@ -2113,71 +2062,80 @@ fn plan_trees(
     grove_threshold: f32,
     terra: TerrainSnapshot,
 ) -> TreePlan {
-    let extent = terra.extent;
-    let water = terra.water;
-    let mut entries: Vec<Entry> = Vec::new();
-    let sample = |x: f32, z: f32| -> f32 { terra.height(x, z) };
+    let scatter = crate::worldgen::TreeScatter {
+        seed: tree_seed,
+        grid_size,
+        grove_threshold,
+        grove_frequency,
+        ..crate::worldgen::TreeScatter::default()
+    };
+    let (hgen, road) = terra.scatter_world();
+    let placed = scatter.place(
+        &hgen,
+        Some(&road),
+        [terra.origin.x, terra.origin.y],
+        terra.extent,
+        terra.water,
+    );
 
-    let mut noise = FastNoiseLite::with_seed(tree_seed + 5);
-    noise.set_noise_type(Some(NoiseType::OpenSimplex2S));
-    noise.set_frequency(Some(grove_frequency));
-
-    let grid = crate::world::ScatterGrid::new(grid_size, terra.origin, extent);
-    let cells = grid.cells();
-    let seed64 = tree_seed as u32 as u64;
-    let mut cand: Vec<f32> = Vec::new();
-    let mut cand_ids: Vec<u64> = Vec::new();
-    for iz in 0..cells {
-        for ix in 0..cells {
-            let mut state = grid.seed(tree_seed as u32, ix, iz);
-            let jx = (randf(&mut state) - 0.5) * (grid_size - 4.0);
-            let jz = (randf(&mut state) - 0.5) * (grid_size - 4.0);
-            let (cx, cz) = grid.centre(ix, iz);
-            let (x, z) = (cx + jx, cz + jz);
-            if !grid.inside(x, z, 4.0) {
-                continue;
-            }
-            if noise.get_noise_2d(x, z) < grove_threshold {
-                continue;
-            }
-            if terra.on_road(x, z) > 0.12 {
-                continue;
-            }
-            let low = sample(x + 1.5, z)
-                .min(sample(x - 1.5, z))
-                .min(sample(x, z + 1.5))
-                .min(sample(x, z - 1.5));
-            if low < water + 0.6 {
-                continue;
-            }
-            let rank = randf(&mut state);
-            let kind = ((randf(&mut state) * SPECIES.len() as f32) as usize).min(SPECIES.len() - 1);
-            let phase = randf(&mut state) * std::f32::consts::TAU;
-            let sp = &SPECIES[kind];
-            let scale = sp.height.0 + randf(&mut state) * (sp.height.1 - sp.height.0);
-            let h = trunk_rest(&sample, x, z, scale) - BOLE_BASE_Y * scale - TRUNK_SINK;
-            let (gx, gz) = grid.global(ix, iz);
-            let id = stable_id(seed64, gx, gz, 0);
-            cand.extend_from_slice(&[x, h, z, scale, rank, kind as f32, phase, 0.0]);
-            cand_ids.push(id);
-            entries.push(Entry {
-                id,
-                pos: Vector3::new(x, h, z),
-                up: Vector3::UP,
-                scale,
-                yaw: phase,
-                variant: kind as u8,
-                ore: 0,
-                amount: 0,
-                cell: [gx, gz],
-                ordinal: 0,
-            });
-        }
+    let mut cand: Vec<f32> = Vec::with_capacity(placed.len() * 8);
+    let mut cand_ids: Vec<u64> = Vec::with_capacity(placed.len());
+    let mut entries: Vec<Entry> = Vec::with_capacity(placed.len());
+    for p in placed {
+        cand.extend_from_slice(&[
+            p.pos[0],
+            p.base_y,
+            p.pos[1],
+            p.scale,
+            p.rank,
+            p.variant as f32,
+            p.yaw,
+            0.0,
+        ]);
+        cand_ids.push(p.id);
+        entries.push(Entry {
+            id: p.id,
+            pos: Vector3::new(p.pos[0], p.base_y, p.pos[1]),
+            up: Vector3::UP,
+            scale: p.scale,
+            yaw: p.yaw,
+            variant: p.variant,
+            ore: 0,
+            amount: 0,
+            cell: [p.cell.0, p.cell.1],
+            ordinal: 0,
+        });
     }
     TreePlan {
         terra,
         cand,
         cand_ids,
         entries,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    /// The host grows the same forest the client draws, out of the same numbers. It has
+    /// no species table of its own -- only the heights, because the height is all a
+    /// trunk needs -- so the two tables have to stay in step or the two sides stand
+    /// their trees in different places and a player is stopped by nothing and walks
+    /// through something.
+    #[test]
+    fn the_shared_heights_are_the_ones_the_species_grow_to() {
+        let shared = crate::worldgen::TREE_HEIGHTS;
+        assert_eq!(
+            SPECIES.len(),
+            shared.len(),
+            "a species was added or removed without telling the host"
+        );
+        for (i, sp) in SPECIES.iter().enumerate() {
+            assert_eq!(
+                sp.height, shared[i],
+                "species {i} grows to a height the host does not know about"
+            );
+        }
     }
 }

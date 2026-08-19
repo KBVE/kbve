@@ -1275,12 +1275,266 @@ impl BridgePlan {
     }
 }
 
+/// The height range each tree species grows through, in the order `QTreeField`
+/// lists them.
+///
+/// Here rather than beside the rest of a species -- its bark, its leaves, the way it
+/// branches -- because the height is the only part of it the world has to agree on.
+/// A tree is placed and given a trunk before anything decides how to draw it, and the
+/// host draws nothing at all.
+pub const TREE_HEIGHTS: &[(f32, f32)] = &[(7.0, 12.5), (5.5, 10.0), (4.5, 8.0), (8.0, 15.0)];
+
+/// Trunk sizes the collider snaps to, so a window of trees needs three cylinders
+/// rather than one per tree.
+pub const TRUNK_BUCKETS: [f32; 3] = [5.0, 7.5, 10.5];
+/// A trunk's height as a fraction of its bucket -- the part of a tree a body can
+/// walk into, which is the bole and not the crown.
+pub const TRUNK_COLLIDER_SPAN: f32 = 0.55;
+/// How far the base is pushed into the ground so the cut of the bole never floats.
+pub const TRUNK_SINK: f32 = 0.17;
+/// Where the bole starts in model units, before the model is scaled by tree height.
+pub const BOLE_BASE_Y: f32 = -0.06;
+/// Footprint the flare covers, as a fraction of tree height.
+const TRUNK_FOOT: f32 = 0.05;
+
+/// The ground a trunk rests on: the highest point under its footprint rather than
+/// the point at its centre.
+///
+/// A tree seated on the centre sample has its base buried wherever the ground rises
+/// across the flare. Taking the high point leaves the base at or above the surface all
+/// round and lets [`TRUNK_SINK`] hide the seam on the low side.
+pub fn trunk_rest(hgen: &HeightGen, x: f32, z: f32, scale: f32) -> f32 {
+    let r = (scale * TRUNK_FOOT).clamp(0.5, 1.6);
+    let d = r * std::f32::consts::FRAC_1_SQRT_2;
+    let mut h = hgen.height(x, z);
+    for (ox, oz) in [
+        (r, 0.0),
+        (-r, 0.0),
+        (0.0, r),
+        (0.0, -r),
+        (d, d),
+        (d, -d),
+        (-d, d),
+        (-d, -d),
+    ] {
+        h = h.max(hgen.height(x + ox, z + oz));
+    }
+    h
+}
+
+/// Which trunk cylinder a tree of this height wears.
+pub fn trunk_bucket(scale: f32) -> usize {
+    if scale < 6.2 {
+        0
+    } else if scale < 9.0 {
+        1
+    } else {
+        2
+    }
+}
+
+/// One tree the world put somewhere, before anything decides how to draw it.
+#[derive(Clone, Copy, Debug, PartialEq)]
+pub struct TreePlacement {
+    pub pos: [f32; 2],
+    /// Where the instance origin sits, which is already sunk by [`TRUNK_SINK`] and
+    /// offset for the bole. The trunk collider stands on this.
+    pub base_y: f32,
+    pub scale: f32,
+    pub yaw: f32,
+    pub variant: u8,
+    /// Drawn per tree and carried through to the cull pass, which fades trees out by
+    /// rank so a thinning wood loses the same trees every frame rather than shimmering.
+    pub rank: f32,
+    pub cell: (i32, i32),
+    /// Stable across windows, because the cell it came from is.
+    pub id: u64,
+}
+
+/// Defaults must match `QTreeField`'s exported defaults.
+#[derive(Clone, Copy, Debug)]
+pub struct TreeScatter {
+    pub seed: i32,
+    pub grid_size: f32,
+    pub grove_threshold: f32,
+    pub grove_frequency: f32,
+    /// Radius of the middle bucket's cylinder; the other two scale off it.
+    pub trunk_radius: f32,
+}
+
+impl TreeScatter {
+    /// Shared with `QTreeField`'s exported default so the two cannot drift: the host
+    /// builds its trunks from this, and a project that never touches the property gets
+    /// a client collider the same size.
+    pub const DEFAULT_TRUNK_RADIUS: f32 = 0.3;
+}
+
+impl Default for TreeScatter {
+    fn default() -> Self {
+        Self {
+            seed: 9001,
+            grid_size: 14.0,
+            grove_threshold: 0.15,
+            grove_frequency: 0.02,
+            trunk_radius: Self::DEFAULT_TRUNK_RADIUS,
+        }
+    }
+}
+
+impl TreeScatter {
+    /// Every tree standing in a window.
+    ///
+    /// Derived from the seed and the ground alone, so the host and every client reach
+    /// the same forest without any of them being told. Nothing about a window but its
+    /// bounds is consulted: a tree found from one origin is the same tree, at the same
+    /// place, when a shifted window finds it again.
+    pub fn place(
+        &self,
+        hgen: &HeightGen,
+        road: Option<&RoadPlan>,
+        origin: [f32; 2],
+        extent: f32,
+        water_level: f32,
+    ) -> Vec<TreePlacement> {
+        let mut noise = FastNoiseLite::with_seed(self.seed + 5);
+        noise.set_noise_type(Some(NoiseType::OpenSimplex2S));
+        noise.set_frequency(Some(self.grove_frequency));
+
+        let grid = ScatterGrid::new(self.grid_size, origin, extent);
+        let cells = grid.cells();
+        let species = TREE_HEIGHTS.len();
+        let seed64 = self.seed as u32 as u64;
+        let mut out: Vec<TreePlacement> = Vec::new();
+
+        for iz in 0..cells {
+            for ix in 0..cells {
+                let mut state = grid.seed(self.seed as u32, ix, iz);
+                let jx = (randf(&mut state) - 0.5) * (self.grid_size - 4.0);
+                let jz = (randf(&mut state) - 0.5) * (self.grid_size - 4.0);
+                let (cx, cz) = grid.centre(ix, iz);
+                let (x, z) = (cx + jx, cz + jz);
+                if !grid.inside(x, z, 4.0) {
+                    continue;
+                }
+                if noise.get_noise_2d(x, z) < self.grove_threshold {
+                    continue;
+                }
+                if road.is_some_and(|r| r.paint(hgen, water_level, [x, z]) > 0.12) {
+                    continue;
+                }
+                let low = hgen
+                    .height(x + 1.5, z)
+                    .min(hgen.height(x - 1.5, z))
+                    .min(hgen.height(x, z + 1.5))
+                    .min(hgen.height(x, z - 1.5));
+                if low < water_level + 0.6 {
+                    continue;
+                }
+                let rank = randf(&mut state);
+                let kind = ((randf(&mut state) * species as f32) as usize).min(species - 1);
+                let yaw = randf(&mut state) * std::f32::consts::TAU;
+                let (lo, hi) = TREE_HEIGHTS[kind];
+                let scale = lo + randf(&mut state) * (hi - lo);
+                let base_y = trunk_rest(hgen, x, z, scale) - BOLE_BASE_Y * scale - TRUNK_SINK;
+                let (gx, gz) = grid.global(ix, iz);
+                out.push(TreePlacement {
+                    pos: [x, z],
+                    base_y,
+                    scale,
+                    yaw,
+                    variant: kind as u8,
+                    rank,
+                    cell: (gx, gz),
+                    id: crate::harvest::stable_id(seed64, gx, gz, 0),
+                });
+            }
+        }
+        out
+    }
+
+    /// The cylinder a tree of this height wears: half height, then radius.
+    pub fn trunk(&self, scale: f32) -> (f32, f32) {
+        let bucket = TRUNK_BUCKETS[trunk_bucket(scale)];
+        (
+            bucket * TRUNK_COLLIDER_SPAN * 0.5,
+            self.trunk_radius / TRUNK_BUCKETS[1] * bucket,
+        )
+    }
+}
+
 #[cfg(test)]
 mod scatter_tests {
     use super::*;
 
     fn hgen() -> HeightGen {
         HeightGen::new(&HeightParams::default())
+    }
+
+    #[test]
+    fn the_same_seed_places_the_same_trees() {
+        let g = hgen();
+        let t = TreeScatter::default();
+        assert_eq!(
+            t.place(&g, None, [0.0, 0.0], 128.0, -1.4),
+            t.place(&g, None, [0.0, 0.0], 128.0, -1.4),
+            "client and server must agree on where the trees are"
+        );
+    }
+
+    /// The property the streaming rests on, and the one a player feels when it
+    /// breaks: a tree they can see is a tree they cannot walk through, whichever
+    /// window either side happened to derive it from.
+    #[test]
+    fn overlapping_windows_agree_on_shared_trees() {
+        let g = hgen();
+        let t = TreeScatter::default();
+        let a = t.place(&g, None, [0.0, 0.0], 128.0, -1.4);
+        let b = t.place(&g, None, [64.0, 0.0], 128.0, -1.4);
+        let shared: Vec<_> = a
+            .iter()
+            .filter(|p| b.iter().any(|q| q.id == p.id))
+            .collect();
+        assert!(
+            !shared.is_empty(),
+            "two windows this close have to overlap, or the test proves nothing"
+        );
+        for p in shared {
+            let q = b.iter().find(|q| q.id == p.id).expect("just filtered");
+            assert_eq!(
+                p, q,
+                "the same tree came out differently in a shifted window"
+            );
+        }
+    }
+
+    /// A trunk is the only part of a tree the host builds, so its size has to come
+    /// out of the placement rather than out of anything that draws.
+    #[test]
+    fn a_trunk_grows_with_the_tree_it_belongs_to() {
+        let t = TreeScatter::default();
+        let (small_h, small_r) = t.trunk(TREE_HEIGHTS[2].0);
+        let (big_h, big_r) = t.trunk(TREE_HEIGHTS[3].1);
+        assert!(
+            small_h > 0.0 && small_r > 0.0,
+            "a trunk with no size stops nobody"
+        );
+        assert!(big_h > small_h, "a taller tree wants a taller trunk");
+        assert!(big_r > small_r, "a taller tree wants a thicker trunk");
+    }
+
+    /// Trees stand out of the water, because a trunk collider bobbing in a river is
+    /// something a swimmer walks into with nothing there to see.
+    #[test]
+    fn no_tree_stands_in_the_water() {
+        let g = hgen();
+        let t = TreeScatter::default();
+        for p in t.place(&g, None, [0.0, 0.0], 256.0, -1.4) {
+            assert!(
+                g.height(p.pos[0], p.pos[1]) > -1.4,
+                "a tree at {:?} is standing in the river",
+                p.pos
+            );
+        }
     }
 
     #[test]
