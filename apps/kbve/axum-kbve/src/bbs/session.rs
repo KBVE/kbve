@@ -6,11 +6,13 @@ use tokio::sync::broadcast::error::RecvError;
 use uuid::Uuid;
 
 use crate::db::{FeedQuery, SpaceRow, get_forum_service, get_profile_service, get_wallet_client};
+use crate::transport::https::forum_render_ctx;
 
 use super::chat::{self, Delivery, SendError};
 use super::claim::{CLAIM_TTL, claims};
 use super::door::{self, DoorContext};
 use super::games;
+use super::post;
 use super::presence;
 use super::render::{Ink, Screen, Term, truncate, wrap_lines};
 use super::telnet::{ReadError, TelnetConn};
@@ -41,6 +43,11 @@ pub struct Session {
 }
 
 type Flow = Result<(), ReadError>;
+
+enum Paged {
+    Back,
+    Reply,
+}
 
 enum Tick {
     Incoming(Result<ChatMessage, RecvError>),
@@ -202,40 +209,42 @@ impl Session {
     }
 
     async fn threads(&mut self, space: &SpaceRow) -> Flow {
-        let Some(forum) = get_forum_service() else {
-            return self.unavailable("message boards").await;
-        };
-        let query = FeedQuery {
-            space_id: Some(&space.id),
-            sort: "new",
-            limit: MAX_THREADS,
-            ..Default::default()
-        };
-        let threads = match forum.fetch_feed(&query).await {
-            Ok(rows) => rows,
-            Err(e) => {
-                tracing::warn!(error = %e, "[bbs] fetch_feed failed");
-                return self.unavailable("this board").await;
-            }
-        };
-        if threads.is_empty() {
-            self.screen
-                .clear()
-                .banner(&space.name.to_ascii_uppercase())
-                .nl()
-                .ink(Ink::Dim)
-                .line("no posts yet")
-                .reset();
-            return self.pause().await;
-        }
         loop {
+            let Some(forum) = get_forum_service() else {
+                return self.unavailable("message boards").await;
+            };
+            let query = FeedQuery {
+                space_id: Some(&space.id),
+                sort: "new",
+                limit: MAX_THREADS,
+                ..Default::default()
+            };
+            let threads = match forum.fetch_feed(&query).await {
+                Ok(rows) => rows,
+                Err(e) => {
+                    tracing::warn!(error = %e, "[bbs] fetch_feed failed");
+                    return self.unavailable("this board").await;
+                }
+            };
+
             self.screen.clear().banner(&space.name.to_ascii_uppercase());
             self.screen.nl();
             let width = self.screen.width.saturating_sub(8);
+            if threads.is_empty() {
+                self.screen.ink(Ink::Dim).line("  no posts yet").reset();
+            }
             for (i, thread) in threads.iter().take(9).enumerate() {
                 let label = truncate(&thread.title, width);
                 self.screen
                     .item(char::from_digit(i as u32 + 1, 10).unwrap_or('?'), &label);
+            }
+            if self.user.is_some() {
+                self.screen.item('N', "New post");
+            } else {
+                self.screen
+                    .ink(Ink::Dim)
+                    .line("  log in from the main menu to post")
+                    .reset();
             }
             self.screen.item('Q', "Back");
             self.screen.prompt("read> ");
@@ -243,6 +252,10 @@ impl Session {
             let k = self.key().await?;
             if k == 'Q' {
                 return Ok(());
+            }
+            if k == 'N' && self.user.is_some() {
+                self.new_thread(space).await?;
+                continue;
             }
             if let Some(idx) = k.to_digit(10).and_then(|d| d.checked_sub(1)) {
                 if let Some(thread) = threads.get(idx as usize) {
@@ -255,38 +268,246 @@ impl Session {
     }
 
     async fn read_thread(&mut self, thread_id: &str, title: &str) -> Flow {
+        loop {
+            let Some(forum) = get_forum_service() else {
+                return self.unavailable("message boards").await;
+            };
+            let thread = match forum.get_thread_by_slug_or_id(None, thread_id).await {
+                Ok(Some((row, _))) => row,
+                Ok(None) => return self.unavailable("that thread").await,
+                Err(e) => {
+                    tracing::warn!(error = %e, "[bbs] get_thread failed");
+                    return self.unavailable("that thread").await;
+                }
+            };
+            let comments = forum
+                .get_comments_for_thread(thread_id)
+                .await
+                .unwrap_or_default();
+
+            let width = self.screen.width.saturating_sub(1);
+            let mut lines: Vec<String> = Vec::new();
+            let author = self.name_for(&thread.author_id).await;
+            lines.push(format!("by {author}"));
+            lines.push(String::new());
+            lines.extend(wrap_lines(clip(&thread.body), width));
+            for comment in comments.iter().take(50) {
+                let who = self.name_for(&comment.author_id).await;
+                lines.push(String::new());
+                lines.push(format!("--- {who}"));
+                lines.extend(wrap_lines(clip(&comment.body), width));
+            }
+            match self.pager(title, &lines).await? {
+                Paged::Back => return Ok(()),
+                // Fall back through the loop so the caller's own reply is on
+                // screen when the thread redraws, rather than the copy that
+                // was fetched before they wrote it.
+                Paged::Reply => self.reply(&thread.id, title).await?,
+            }
+        }
+    }
+
+    /// A comment on an existing thread. Guests never reach here — the reply
+    /// key is only offered once an account is claimed.
+    async fn reply(&mut self, thread_id: &str, title: &str) -> Flow {
+        let Some(account) = self.user.as_ref() else {
+            return self.notice("log in to post").await;
+        };
+        let user_id = account.user_id.clone();
+        let Some(body) = self.compose(&format!("REPLY: {title}")).await? else {
+            return Ok(());
+        };
+        let body = post::sanitize_body(&body);
+        if body.is_empty() {
+            return self.notice("nothing to post").await;
+        }
+        if post::throttled(&user_id).await {
+            return self.notice("slow down - try again in a minute").await;
+        }
         let Some(forum) = get_forum_service() else {
             return self.unavailable("message boards").await;
         };
-        let thread = match forum.get_thread_by_slug_or_id(None, thread_id).await {
-            Ok(Some((row, _))) => row,
-            Ok(None) => return self.unavailable("that thread").await,
+        match forum.create_comment(&user_id, thread_id, &body, None).await {
+            Ok(_) => self.notice("posted").await,
             Err(e) => {
-                tracing::warn!(error = %e, "[bbs] get_thread failed");
-                return self.unavailable("that thread").await;
+                tracing::warn!(error = %e, "[bbs] create_comment failed");
+                self.notice(&rpc_reason(&e)).await
             }
-        };
-        let comments = forum
-            .get_comments_for_thread(thread_id)
-            .await
-            .unwrap_or_default();
-
-        let width = self.screen.width.saturating_sub(1);
-        let mut lines: Vec<String> = Vec::new();
-        let author = self.name_for(&thread.author_id).await;
-        lines.push(format!("by {author}"));
-        lines.push(String::new());
-        lines.extend(wrap_lines(clip(&thread.body), width));
-        for comment in comments.iter().take(50) {
-            let who = self.name_for(&comment.author_id).await;
-            lines.push(String::new());
-            lines.push(format!("--- {who}"));
-            lines.extend(wrap_lines(clip(&comment.body), width));
         }
-        self.pager(title, &lines).await
     }
 
-    async fn pager(&mut self, title: &str, lines: &[String]) -> Flow {
+    /// A new thread in the board the caller is standing in.
+    async fn new_thread(&mut self, space: &SpaceRow) -> Flow {
+        let Some(account) = self.user.as_ref() else {
+            return self.notice("log in to post").await;
+        };
+        let user_id = account.user_id.clone();
+        let banner = format!("NEW POST: {}", space.name);
+        let Some(title) = self
+            .ask_line(&banner, "title> ", post::MAX_TITLE_LEN)
+            .await?
+        else {
+            return Ok(());
+        };
+        let title = post::sanitize_title(&title);
+        if title.is_empty() {
+            return self.notice("a post needs a title").await;
+        }
+        let Some(body) = self.compose(&banner).await? else {
+            return Ok(());
+        };
+        let body = post::sanitize_body(&body);
+        if body.is_empty() {
+            return self.notice("nothing to post").await;
+        }
+        if post::throttled(&user_id).await {
+            return self.notice("slow down - try again in a minute").await;
+        }
+        let Some(forum) = get_forum_service() else {
+            return self.unavailable("message boards").await;
+        };
+        // Same hashtag pass the web writer runs, so a `#tag` typed over telnet
+        // files the thread where the site would have filed it.
+        let rendered = kbve::markdown::render(&body, &forum_render_ctx());
+        let tag_ids = if rendered.hashtags.is_empty() {
+            Vec::new()
+        } else {
+            forum
+                .resolve_or_create_tag_slugs(&rendered.hashtags, &user_id)
+                .await
+                .unwrap_or_default()
+        };
+        match forum
+            .create_thread(
+                &user_id,
+                &space.id,
+                &title,
+                &body,
+                post::THREAD_TYPE,
+                None,
+                &tag_ids,
+            )
+            .await
+        {
+            Ok(_) => self.notice("posted").await,
+            Err(e) => {
+                tracing::warn!(error = %e, "[bbs] create_thread failed");
+                self.notice(&rpc_reason(&e)).await
+            }
+        }
+    }
+
+    /// One line of text, edited in place. `None` when the caller backs out.
+    async fn ask_line(
+        &mut self,
+        title: &str,
+        label: &str,
+        max: usize,
+    ) -> Result<Option<String>, ReadError> {
+        let mut input = String::new();
+        loop {
+            self.screen.clear().banner(&title.to_ascii_uppercase());
+            self.screen
+                .nl()
+                .ink(Ink::Dim)
+                .line("[enter] accept  [esc] cancel")
+                .reset();
+            let room = self.screen.width.saturating_sub(label.len() + 1);
+            self.screen.prompt(label).text(tail(&input, room));
+            self.flush().await?;
+            match self.conn.read_key().await? {
+                KEY_ESC => return Ok(None),
+                KEY_CR => return Ok(Some(input)),
+                KEY_BS | KEY_DEL => {
+                    input.pop();
+                }
+                b @ 0x20..=0x7E if input.len() < max => input.push(b as char),
+                _ => {}
+            }
+        }
+    }
+
+    /// A line-at-a-time body editor, the shape every board has used since
+    /// callers typed into one at 300 baud. `None` when the post is abandoned.
+    async fn compose(&mut self, title: &str) -> Result<Option<String>, ReadError> {
+        let mut lines: Vec<String> = Vec::new();
+        let mut input = String::new();
+        let mut status = String::new();
+        loop {
+            self.draw_compose(title, &lines, &input, &status).await?;
+            match self.conn.read_key().await? {
+                KEY_ESC => return Ok(None),
+                KEY_CR => {
+                    status.clear();
+                    let line = std::mem::take(&mut input);
+                    match line.trim() {
+                        "/a" | "/abort" => return Ok(None),
+                        "/s" | "/send" | "." => {
+                            let body = lines.join("\n");
+                            if body.trim().is_empty() {
+                                status = "nothing written yet".to_string();
+                                continue;
+                            }
+                            return Ok(Some(body));
+                        }
+                        "/d" | "/del" => {
+                            if lines.pop().is_none() {
+                                status = "nothing to undo".to_string();
+                            }
+                        }
+                        _ => {
+                            let used: usize = lines.iter().map(|l| l.len() + 1).sum();
+                            if used + line.len() > post::MAX_POST_LEN {
+                                status = "post is full".to_string();
+                            } else {
+                                lines.push(line);
+                            }
+                        }
+                    }
+                }
+                KEY_BS | KEY_DEL => {
+                    input.pop();
+                }
+                b @ 0x20..=0x7E if input.len() < post::MAX_LINE_LEN => input.push(b as char),
+                _ => {}
+            }
+        }
+    }
+
+    async fn draw_compose(
+        &mut self,
+        title: &str,
+        lines: &[String],
+        input: &str,
+        status: &str,
+    ) -> Flow {
+        const EDIT_PROMPT: &str = "> ";
+        let width = self.screen.width.saturating_sub(1);
+        let rows = self.screen.height_hint().saturating_sub(9).max(4);
+        self.screen.clear().banner(&title.to_ascii_uppercase());
+        self.screen.nl().ink(Ink::Body);
+        let wrapped: Vec<String> = lines
+            .iter()
+            .flat_map(|line| wrap_lines(line, width))
+            .collect();
+        for line in wrapped.iter().skip(wrapped.len().saturating_sub(rows)) {
+            self.screen.line(line);
+        }
+        self.screen.reset();
+        if !status.is_empty() {
+            self.screen.nl().warn(status);
+        }
+        self.screen
+            .nl()
+            .ink(Ink::Dim)
+            .line("[/s] send  [/d] undo line  [/a] or [esc] abort")
+            .reset();
+        let room = self.screen.width.saturating_sub(EDIT_PROMPT.len() + 1);
+        self.screen.prompt(EDIT_PROMPT).text(tail(input, room));
+        self.flush().await
+    }
+
+    async fn pager(&mut self, title: &str, lines: &[String]) -> Result<Paged, ReadError> {
         let per_page = self.screen.height_hint().saturating_sub(6).max(6);
         let mut offset = 0usize;
         loop {
@@ -297,16 +518,19 @@ impl Session {
             }
             self.screen.reset();
             let more = offset + per_page < lines.len();
-            if more {
-                self.screen.prompt("-more- [space] / [q] back ");
-            } else {
-                self.screen.prompt("[q] back ");
-            }
+            let can_reply = self.user.is_some();
+            match (more, can_reply) {
+                (true, true) => self.screen.prompt("-more- [space] / [r] reply / [q] back "),
+                (true, false) => self.screen.prompt("-more- [space] / [q] back "),
+                (false, true) => self.screen.prompt("[r] reply / [q] back "),
+                (false, false) => self.screen.prompt("[q] back "),
+            };
             self.flush().await?;
             match self.key().await? {
-                'Q' => return Ok(()),
+                'Q' => return Ok(Paged::Back),
+                'R' if can_reply => return Ok(Paged::Reply),
                 _ if more => offset += per_page,
-                _ => return Ok(()),
+                _ => return Ok(Paged::Back),
             }
         }
     }
@@ -668,6 +892,17 @@ impl Session {
         self.flush().await
     }
 
+    /// A one-screen result the caller acknowledges, used by the write paths
+    /// where the outcome is the only thing worth drawing.
+    async fn notice(&mut self, what: &str) -> Flow {
+        self.screen.clear().banner("NOTICE").nl().ink(Ink::Body);
+        for line in wrap_lines(what, self.screen.width.saturating_sub(1)) {
+            self.screen.line(&line);
+        }
+        self.screen.reset();
+        self.pause().await
+    }
+
     async fn unavailable(&mut self, what: &str) -> Flow {
         self.screen
             .clear()
@@ -692,6 +927,21 @@ impl Session {
 
 #[cfg(test)]
 impl Session {
+    pub(super) fn sign_in_for_tests(&mut self, user_id: &str, username: &str) {
+        self.user = Some(Account {
+            user_id: user_id.to_string(),
+            username: username.to_string(),
+        });
+    }
+
+    pub(super) async fn pager_for_tests(&mut self, title: &str, lines: &[String]) {
+        let _ = self.pager(title, lines).await;
+    }
+
+    pub(super) async fn compose_for_tests(&mut self, title: &str) -> Option<String> {
+        self.compose(title).await.ok().flatten()
+    }
+
     pub(super) async fn draw_chat_for_tests(&mut self, channel: &str, line: &str) {
         let mut lines = VecDeque::new();
         lines.push_back(line.to_string());
@@ -730,6 +980,27 @@ fn tail(input: &str, width: usize) -> &str {
     match input.char_indices().nth(input.chars().count() - width) {
         Some((idx, _)) => &input[idx..],
         None => input,
+    }
+}
+
+/// The forum RPCs answer with a PostgREST envelope. A caller who tripped a
+/// rule wants the rule, not the transport wrapper around it.
+pub(super) fn rpc_reason(error: &str) -> String {
+    let message = serde_json::from_str::<serde_json::Value>(
+        error
+            .rsplit_once("\u{2192} ")
+            .map(|(_, tail)| tail)
+            .unwrap_or(error),
+    )
+    .ok()
+    .and_then(|v| {
+        v.get("message")
+            .and_then(|m| m.as_str())
+            .map(str::to_string)
+    });
+    match message {
+        Some(reason) if !reason.is_empty() => reason,
+        _ => "the board refused that post".to_string(),
     }
 }
 

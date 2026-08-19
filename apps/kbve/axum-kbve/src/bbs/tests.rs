@@ -14,8 +14,9 @@ use super::claim::{ClaimStore, Redeem};
 use super::door::{self, DoorContext};
 use super::games::text::{Rng, bar, meter, strip_markup};
 use super::games::{Flow, Game, blackjack, dopewars, dungeon, hangman, highlow, run, tictactoe};
+use super::post;
 use super::render::{Ink, Screen, Term, truncate, wrap_lines};
-use super::session::Session;
+use super::session::{self, Session};
 use super::telnet::{DO, IAC, OPT_ECHO, OPT_NAWS, ReadError, SB, SE, TelnetConn, WILL};
 
 /// The caller a door sees when nobody has signed in.
@@ -1532,4 +1533,119 @@ fn dope_wars_renders_clean_on_petscii_across_a_run() {
         }
         game.on_key(keys[step % keys.len()]);
     }
+}
+
+#[test]
+fn a_post_title_loses_its_control_bytes_and_extra_space() {
+    let title = post::sanitize_title("  hello\r\n\tthere   caller \x07 ");
+
+    assert_eq!(title, "hello there caller");
+}
+
+#[test]
+fn a_post_title_is_clamped() {
+    let title = post::sanitize_title(&"a".repeat(post::MAX_TITLE_LEN + 50));
+
+    assert_eq!(title.chars().count(), post::MAX_TITLE_LEN);
+}
+
+#[test]
+fn a_post_body_keeps_its_line_breaks() {
+    let body = post::sanitize_body("first line\r\nsecond line\n\nthird");
+
+    assert_eq!(body, "first line\nsecond line\n\nthird");
+}
+
+#[test]
+fn a_post_body_drops_control_bytes_and_clamps() {
+    let body = post::sanitize_body(&format!("\x1b[2Jwipe{}", "b".repeat(post::MAX_POST_LEN)));
+
+    assert!(!body.contains('\x1b'), "escape survived: {body:?}");
+    assert_eq!(body.chars().count(), post::MAX_POST_LEN);
+}
+
+#[test]
+fn a_refused_post_reports_the_rule_not_the_envelope() {
+    let raw = r#"forum.service_create_comment 400 → {"code":"P0001","message":"body is required"}"#;
+
+    assert_eq!(session::rpc_reason(raw), "body is required");
+}
+
+#[test]
+fn an_unparseable_refusal_still_says_something_useful() {
+    assert_eq!(
+        session::rpc_reason("forum.service_create_comment network: connection reset"),
+        "the board refused that post"
+    );
+}
+
+#[tokio::test]
+async fn a_guest_reading_a_thread_is_not_offered_a_reply_key() {
+    let (conn, mut client) = pair().await;
+    client.write_all(b"q").await.expect("write");
+    let mut session = Session::new(conn, Term::Ansi, 80, 24);
+
+    session
+        .pager_for_tests("thread", &["a post".to_string()])
+        .await;
+    let painted = read_paint(&mut client).await;
+
+    assert!(!painted.contains("reply"), "guest was offered: {painted}");
+    assert!(painted.contains("back"), "no way out: {painted}");
+}
+
+#[tokio::test]
+async fn a_signed_in_caller_reading_a_thread_is_offered_a_reply_key() {
+    let (conn, mut client) = pair().await;
+    client.write_all(b"q").await.expect("write");
+    let mut session = Session::new(conn, Term::Ansi, 80, 24);
+    session.sign_in_for_tests(&Uuid::new_v4().to_string(), "h0lybyte");
+
+    session
+        .pager_for_tests("thread", &["a post".to_string()])
+        .await;
+    let painted = read_paint(&mut client).await;
+
+    assert!(painted.contains("[r] reply"), "no reply key: {painted}");
+}
+
+#[tokio::test]
+async fn the_composer_returns_the_lines_it_was_given() {
+    let (conn, mut client) = pair().await;
+    client
+        .write_all(b"first line\rsecond\r/s\r")
+        .await
+        .expect("write");
+    let mut session = Session::new(conn, Term::Ansi, 80, 24);
+
+    let body = session.compose_for_tests("new post").await;
+
+    assert_eq!(body.as_deref(), Some("first line\nsecond"));
+}
+
+#[tokio::test]
+async fn the_composer_can_undo_a_line_and_abort() {
+    let (conn, mut client) = pair().await;
+    client
+        .write_all(b"keep\rdrop\r/d\r/a\r")
+        .await
+        .expect("write");
+    let mut session = Session::new(conn, Term::Ansi, 80, 24);
+
+    assert!(session.compose_for_tests("new post").await.is_none());
+}
+
+#[tokio::test]
+async fn the_composer_refuses_to_send_an_empty_post() {
+    let (conn, mut client) = pair().await;
+    client.write_all(b"/s\r").await.expect("write");
+    let mut session = Session::new(conn, Term::Ansi, 80, 24);
+
+    let composed = tokio::time::timeout(
+        Duration::from_millis(400),
+        session.compose_for_tests("new post"),
+    )
+    .await;
+
+    assert!(composed.is_err(), "an empty post was accepted");
 }

@@ -2446,7 +2446,7 @@ const FORUM_IMG_HOSTS: &[&str] = &[];
 const FEED_BODY_EXCERPT_CHARS: usize = 280;
 const META_DESCRIPTION_CHARS: usize = 200;
 
-fn forum_render_ctx() -> kbve::markdown::RenderCtx<'static> {
+pub(crate) fn forum_render_ctx() -> kbve::markdown::RenderCtx<'static> {
     kbve::markdown::RenderCtx {
         allowed_image_hosts: FORUM_IMG_HOSTS,
         extract_mentions: true,
