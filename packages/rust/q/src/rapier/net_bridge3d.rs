@@ -59,6 +59,13 @@ pub struct QNetClient3D {
     lead_local_body: bool,
 
     client: Option<NetClientHandle>,
+    /// Every stage this session has been told about, keyed by target and prop.
+    ///
+    /// The host says each of these exactly once -- as a delta when it happens, or in the
+    /// ledger replayed on join -- and whoever is listening at that moment is whoever
+    /// hears it. The listener is a tool on the local avatar, which does not exist until
+    /// a body arrives, which is after the ledger. Keeping them lets it ask.
+    harvest_seen: HashMap<(i64, i64), i64>,
     tracked: HashMap<BodyId, Gd<Node3D>>,
     known: HashSet<BodyId>,
     last: Option<NetClientState>,
@@ -199,6 +206,8 @@ impl QNetClient3D {
                 HarvestTarget::Stone => 0,
                 HarvestTarget::Tree => 1,
             };
+            self.harvest_seen
+                .insert((target, event.id as i64), event.stage as i64);
             self.signals()
                 .harvest_applied()
                 .emit(target, event.id as i64, event.stage as i64);
@@ -539,6 +548,19 @@ impl QNetClient3D {
     /// What the host scattered its rocks from. A field drawing from anything else
     /// draws a forest the host is not holding: every trunk the player can see is walked
     /// through, and every one they cannot is walked into.
+    /// Says every harvest this session has heard about, again.
+    ///
+    /// For a listener that attached after the fact. The stages are absolute, so hearing
+    /// one twice lands on the same answer as hearing it once.
+    #[func]
+    fn replay_harvest(&mut self) {
+        let seen: Vec<((i64, i64), i64)> =
+            self.harvest_seen.iter().map(|(k, v)| (*k, *v)).collect();
+        for ((target, id), stage) in seen {
+            self.signals().harvest_applied().emit(target, id, stage);
+        }
+    }
+
     #[func]
     fn world_stone_seed(&self) -> i64 {
         self.last
