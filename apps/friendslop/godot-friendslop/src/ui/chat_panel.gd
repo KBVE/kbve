@@ -8,12 +8,13 @@ const LOG_FRACTION_TALL := 0.42
 const WIDE_ASPECT := 1.2
 const HISTORY := 80
 const FADE_SECONDS := 12.0
+const MAX_CONTENT := 400
 
 var _root: MarginContainer
 var _log: RichTextLabel
 var _entry: LineEdit
 var _notice: Label
-var _client: ChatClient
+var _client: QChatClient
 var _open := false
 var _idle := 0.0
 var _notice_key := ""
@@ -24,7 +25,8 @@ func _ready() -> void:
 	layer = 120
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build()
-	_client = ChatClient.new()
+	_client = QChatClient.new()
+	_client.name = &"ChatClient"
 	add_child(_client)
 	_client.message.connect(_on_message)
 	_client.state_changed.connect(_on_state)
@@ -69,7 +71,7 @@ func _build() -> void:
 	_entry = LineEdit.new()
 	_entry.name = "Entry"
 	_entry.placeholder_text = "Say something"
-	_entry.max_length = ChatClient.MAX_CONTENT
+	_entry.max_length = MAX_CONTENT
 	_entry.visible = false
 	_entry.text_submitted.connect(_on_submit)
 	column.add_child(_entry)
@@ -102,7 +104,8 @@ func _layout() -> void:
 func _refresh_access() -> void:
 	if Auth.is_signed_in():
 		_notice.visible = false
-		_client.start()
+		var token := Auth.access_token()
+		_client.start(token, Auth.username_in(token))
 	else:
 		_close_entry()
 		_set_notice("chat.signin_required")
