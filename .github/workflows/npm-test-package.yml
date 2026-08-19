@@ -122,7 +122,7 @@ jobs:
               timeout-minutes: 10
               run: |
                   set -uo pipefail
-                  sudo apt-get update || true
+                  sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update || true
                   pnpm exec playwright install-deps chromium || pnpm exec playwright install --with-deps chromium
 
             - name: Nx e2e ${{ inputs.project }}

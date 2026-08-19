@@ -155,8 +155,8 @@ jobs:
                   if command -v git-lfs >/dev/null 2>&1; then
                     git-lfs version
                   else
-                    apt-get update -qq
-                    apt-get install -y -qq --no-install-recommends git-lfs
+                    apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq
+                    apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y -qq --no-install-recommends git-lfs
                     git-lfs version
                   fi
 
@@ -281,8 +281,8 @@ jobs:
                   if command -v git-lfs >/dev/null 2>&1; then
                     git-lfs version
                   else
-                    apt-get update -qq
-                    apt-get install -y -qq --no-install-recommends git-lfs
+                    apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq
+                    apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y -qq --no-install-recommends git-lfs
                     git-lfs version
                   fi
 
@@ -367,7 +367,7 @@ jobs:
                   MARKER="$CACHE_DIR/.cache-valid"
                   mkdir -p "$LIB_DIR"
                   if ! command -v rsync >/dev/null 2>&1; then
-                      apt-get update -qq && apt-get install -y -qq --no-install-recommends rsync
+                      apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq && apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y -qq --no-install-recommends rsync
                   fi
                   if [ -f "$MARKER" ]; then
                       rsync -a --delete "$CACHE_DIR"/ "$LIB_DIR"/
