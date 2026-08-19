@@ -5,16 +5,16 @@ use bevy_chat::{ChatMessage, MessageKind};
 use tokio::sync::broadcast::error::RecvError;
 use uuid::Uuid;
 
-use crate::db::{get_forum_service, get_profile_service, get_wallet_client, FeedQuery, SpaceRow};
+use crate::db::{FeedQuery, SpaceRow, get_forum_service, get_profile_service, get_wallet_client};
 use crate::transport::https::forum_render_ctx;
 
 use super::chat::{self, Delivery, SendError};
-use super::claim::{claims, CLAIM_TTL};
+use super::claim::{CLAIM_TTL, claims};
 use super::door::{self, DoorContext};
 use super::games;
 use super::post;
 use super::presence;
-use super::render::{truncate, wrap_lines, Ink, Screen, Term};
+use super::render::{Ink, Screen, Term, truncate, wrap_lines};
 use super::telnet::{ReadError, TelnetConn};
 
 const MAX_THREADS: i32 = 20;
