@@ -332,7 +332,7 @@
 		{
 			"key": "friendslop_server",
 			"app_name": "friendslop-server",
-			"version": "0.0.13",
+			"version": "0.0.14",
 			"version_toml": "apps/agones/friendslop/server/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/friendslop-server.mdx",
 			"version_target": "apps/agones/friendslop/server/Cargo.toml",
