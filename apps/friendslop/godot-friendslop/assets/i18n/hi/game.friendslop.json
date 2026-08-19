@@ -61,6 +61,7 @@
 	},
 	"account": {
 		"loading": "शेष राशि पढ़ी जा रही है…",
+		"signed_in": "साइन इन",
 		"wallet": "{credits} क्रेडिट  ·  {khash} khash"
 	},
 	"username": {

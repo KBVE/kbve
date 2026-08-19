@@ -61,6 +61,7 @@
 	},
 	"account": {
 		"loading": "残高を読み込み中…",
+		"signed_in": "サインイン済み",
 		"wallet": "{credits} クレジット  ·  {khash} khash"
 	},
 	"username": {
