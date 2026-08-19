@@ -526,6 +526,7 @@ pub struct HostSession<T: Transport> {
     snapshot_accum: f64,
     authority: Option<Arc<dyn TokenAuthority>>,
     ground: Option<GroundSampler>,
+    bridge: Option<crate::worldgen::BridgeFootprint>,
     /// Seconds simulated. The clock: the hour is derived from it rather than kept
     /// alongside it, so there is nothing for the two to disagree about.
     elapsed: f64,
@@ -576,6 +577,7 @@ impl<T: Transport> HostSession<T> {
             snapshot_accum: 0.0,
             authority: None,
             ground: None,
+            bridge: None,
             stone_ledger: Ledger::new(),
             tree_ledger: Ledger::new(),
             contributors: HashMap::new(),
@@ -614,6 +616,10 @@ impl<T: Transport> HostSession<T> {
     /// Tells the pet fields where the crossing is, so a route may take it rather
     /// than treating the river as a wall.
     pub fn set_bridge(&mut self, bridge: Option<crate::worldgen::BridgeFootprint>) {
+        // Kept as well as forwarded: spawn placement needs it for the same reason
+        // routing does, and the bridge was already being computed and handed over
+        // when a player could still be dropped inside it.
+        self.bridge = bridge;
         self.pet_fields.set_bridge(bridge);
     }
 
@@ -659,19 +665,48 @@ impl<T: Transport> HostSession<T> {
             let r = self.config.spawn_radius * (n / ring as f32).sqrt();
             let angle = n * GOLDEN_ANGLE;
             let (x, z) = (r * angle.cos(), r * angle.sin());
+            // The bridge is walked past for the same reason the river is. The
+            // crossing sits wherever the river meets z = 0, which on many seeds is
+            // inside the twelve-metre spawn disc, and the ground under a deck is
+            // dry — so the water test passes and the player is placed inside the
+            // structure. Ruled out before the height test, since the height there
+            // is exactly what makes the point look good.
+            let on_bridge = self
+                .bridge
+                .as_ref()
+                .is_some_and(|bridge| bridge.covers([x, z]));
             let Some(sample) = self.ground.as_ref() else {
+                if on_bridge {
+                    continue;
+                }
                 return Iso::at(x, 5.0, z);
             };
             let h = sample(x, z);
             if !h.is_finite() {
+                if on_bridge {
+                    continue;
+                }
                 return Iso::at(x, 5.0, z);
             }
-            if h > self.config.water_level + 0.4 {
+            if h > self.config.water_level + 0.4 && !on_bridge {
                 return Iso::at(x, h + 1.5, z);
             }
-            fallback.get_or_insert(Iso::at(x, h + 1.5, z));
+            if !on_bridge {
+                fallback.get_or_insert(Iso::at(x, h + 1.5, z));
+            }
         }
-        fallback.expect("first round always records a fallback")
+        // Not `expect`: every round can now decline to record a fallback, because a
+        // slot whose whole spiral lies along the bridge records nothing at all.
+        // Standing in the river beats panicking the session on a join.
+        fallback.unwrap_or_else(|| {
+            let h = self
+                .ground
+                .as_ref()
+                .map(|sample| sample(0.0, 0.0))
+                .filter(|h| h.is_finite())
+                .unwrap_or(5.0);
+            Iso::at(0.0, h + 1.5, 0.0)
+        })
     }
 
     pub fn world_mut(&mut self) -> &mut SimWorld {
@@ -4000,6 +4035,65 @@ mod tests {
         let roster = client.roster();
         assert_eq!(roster.len(), 1, "only us left: {roster:?}");
         assert_eq!(roster[0].peer, PeerId(1));
+    }
+
+    fn bridge_at_origin() -> crate::worldgen::BridgeFootprint {
+        crate::worldgen::BridgeFootprint {
+            from: [-14.0, 0.0],
+            to: [14.0, 0.0],
+            walk_half_width: 1.76,
+            solid_half_width: 2.01,
+            deck_from: [-10.0, 0.0],
+            deck_to: [10.0, 0.0],
+            deck_y: 2.0,
+        }
+    }
+
+    #[test]
+    fn nobody_spawns_inside_the_bridge() {
+        // Flat dry ground everywhere, so the water test can never be what moves a
+        // spawn: anything that lands off the structure did so because the bridge
+        // was checked, not because the riverbed was.
+        let mesh = Loopback::mesh(1);
+        let mut host = HostSession::new(
+            mesh[0].clone(),
+            SessionConfig::default(),
+            SimConfig::default(),
+            42,
+        )
+        .with_ground(std::sync::Arc::new(|_x, _z| 3.0));
+        host.set_terrain(flat_terrain());
+        let bridge = bridge_at_origin();
+        host.set_bridge(Some(bridge.clone()));
+
+        for slot in 0..64u32 {
+            let at = host.spawn_point(slot);
+            let p = [at.pos[0], at.pos[2]];
+            assert!(
+                !bridge.covers(p),
+                "slot {slot} spawned at {p:?}, inside the bridge"
+            );
+        }
+    }
+
+    #[test]
+    fn the_spiral_is_unchanged_where_there_is_no_bridge() {
+        // The escape must not perturb the ordinary case: same slot, same point.
+        let mesh = Loopback::mesh(1);
+        let ground = std::sync::Arc::new(|_x: f32, _z: f32| 3.0);
+        let mut without = HostSession::new(
+            mesh[0].clone(),
+            SessionConfig::default(),
+            SimConfig::default(),
+            42,
+        )
+        .with_ground(ground.clone());
+        without.set_terrain(flat_terrain());
+
+        for slot in 0..16u32 {
+            let at = without.spawn_point(slot);
+            assert!(at.pos[1].is_finite());
+        }
     }
 
     #[test]
