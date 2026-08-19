@@ -25,6 +25,7 @@ Quests="*res://src/autoload/quests.gd"
 Auth="*res://src/autoload/auth_session.gd"
 ViewGlobals="*res://src/autoload/view_globals.gd"
 Toast="*res://src/autoload/toast.gd"
+Telemetry="*res://src/autoload/telemetry.gd"
 
 [display]
 
