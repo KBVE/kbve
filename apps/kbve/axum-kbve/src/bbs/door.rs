@@ -1,4 +1,4 @@
-use super::games::{Game, blackjack, hangman, highlow, run, text, tictactoe};
+use super::games::{Game, blackjack, dopewars, hangman, highlow, run, text, tictactoe};
 
 /// What the board tells a door about the caller before handing over the
 /// screen. The DOS-era stack wrote this to a `DOOR.SYS` drop file and hoped
@@ -79,6 +79,12 @@ pub const CATALOG: &[Door] = &[
         name: "High-low",
         blurb: "Call the next card higher or lower",
         open: |_| Box::new(highlow::HighLow::new(text::Rng::from_clock())),
+    },
+    Door {
+        key: '6',
+        name: "Dope Wars",
+        blurb: "Thirty days, six boroughs, one loan shark",
+        open: |_| Box::new(dopewars::DopeWars::new(text::Rng::from_clock())),
     },
 ];
 

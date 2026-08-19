@@ -1,5 +1,7 @@
+// @vitest-environment jsdom
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { render, screen } from '@testing-library/react';
+import '@testing-library/jest-dom/vitest';
 import { atom } from 'nanostores';
 import { AuthGate } from './dashboard-ui';
 
@@ -52,5 +54,35 @@ describe('AuthGate', () => {
 	it('fires initAuth() exactly once on mount', () => {
 		const { initAuth } = renderGate('loading');
 		expect(initAuth).toHaveBeenCalledTimes(1);
+	});
+
+	it('renders the fallback instead of the spinner when loading', () => {
+		const $authState = atom<AuthState>('loading');
+		render(
+			<AuthGate
+				$authState={$authState}
+				initAuth={vi.fn()}
+				serviceName="Argo"
+				fallback={<div data-testid="skeleton">ghost</div>}>
+				<div data-testid="children-tree">child-content</div>
+			</AuthGate>,
+		);
+		expect(screen.getByTestId('skeleton')).toBeInTheDocument();
+		expect(screen.queryByText(/Authenticating/i)).not.toBeInTheDocument();
+		expect(screen.queryByTestId('children-tree')).not.toBeInTheDocument();
+	});
+
+	it('renders nothing while loading when fallback is null', () => {
+		const $authState = atom<AuthState>('loading');
+		const { container } = render(
+			<AuthGate
+				$authState={$authState}
+				initAuth={vi.fn()}
+				serviceName="Argo"
+				fallback={null}>
+				<div data-testid="children-tree">child-content</div>
+			</AuthGate>,
+		);
+		expect(container).toBeEmptyDOMElement();
 	});
 });

@@ -86,15 +86,34 @@ func test_folk_arrive_for_the_posts_and_leave_with_them() -> void:
 	auto_free(folk)
 	folk._terrain = terrain
 
-	folk._settle()
 	var wanted: int = terrain.landmark_posts().size()
+	assert_int(wanted).override_failure_message(
+		"this window was supposed to reach a place with more than one person in it"
+	).is_greater(1)
+
+	# One arrival per pass. Building a body costs tens of milliseconds, so a pass that
+	# stood a whole capital up would be a hitch the player walks into on approach.
+	assert_bool(folk._settle()).override_failure_message(
+		"the pass claimed nobody was left to arrive"
+	).is_true()
 	assert_int(folk.get_child_count()).override_failure_message(
-		"nobody turned up for %d posts" % wanted
+		"a pass stood up more than one person"
+	).is_equal(1)
+
+	# And a queue drains: passes keep reporting a backlog until everybody is standing,
+	# and then stop, so nobody is left permanently un-raised.
+	for pass_no in wanted + 4:
+		if not folk._settle():
+			break
+	assert_int(folk.get_child_count()).override_failure_message(
+		"only %d of %d posts were ever filled" % [folk.get_child_count(), wanted]
 	).is_equal(wanted)
 
 	# Settling again must not stand a second set up beside the first. The roster is
 	# keyed by which post, so the same post has to recognise the person already on it.
-	folk._settle()
+	assert_bool(folk._settle()).override_failure_message(
+		"a full roster still reported a backlog, so the pass would never rest"
+	).is_false()
 	assert_int(folk.get_child_count()).override_failure_message(
 		"a second shift arrived and nobody went home"
 	).is_equal(wanted)
@@ -131,8 +150,12 @@ func test_a_role_with_no_body_is_left_unfilled() -> void:
 	add_child(folk)
 	auto_free(folk)
 	folk._terrain = terrain
-	folk._settle()
 
+	# Also has to report no backlog: a post nobody can fill is not somebody waiting, and
+	# treating it as one would have every pass come back on the next frame forever.
+	assert_bool(folk._settle()).override_failure_message(
+		"unfillable posts were counted as a queue, so the roster never settles"
+	).is_false()
 	assert_int(folk.get_child_count()).override_failure_message(
 		"placeholders were stood up for roles with no body"
 	).is_equal(0)

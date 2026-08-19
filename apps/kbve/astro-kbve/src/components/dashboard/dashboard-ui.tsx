@@ -61,17 +61,21 @@ interface AuthGateProps {
 	$authState: ReadableAtom<AuthState>;
 	initAuth: () => void;
 	serviceName: string;
+	fallback?: ReactNode;
 	children: ReactNode;
 }
 
 /**
  * Wraps dashboard content with auth checks. Renders loading, sign-in,
  * or forbidden states without the child vDOM tree ever mounting.
+ * `fallback` replaces the default centered spinner during the loading
+ * state — pass `null` when the page paints its own static skeleton.
  */
 export function AuthGate({
 	$authState,
 	initAuth,
 	serviceName,
+	fallback,
 	children,
 }: AuthGateProps) {
 	const authState = useStore($authState);
@@ -81,6 +85,9 @@ export function AuthGate({
 	}, [initAuth]);
 
 	if (authState === 'loading') {
+		if (fallback !== undefined) {
+			return <>{fallback}</>;
+		}
 		return (
 			<div className="not-content" style={styles.fullCenter}>
 				<Loader2
