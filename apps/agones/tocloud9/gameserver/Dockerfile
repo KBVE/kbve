@@ -118,6 +118,11 @@ RUN mkdir -p /repo/modules/mod-playerbots && cd /repo/modules/mod-playerbots && 
     git fetch --depth 1 origin "${PLAYERBOTS_REF}" && \
     git checkout FETCH_HEAD
 
+# Vendored rather than cloned: this one lives in the monorepo, so it arrives as
+# a named build context instead of a git fetch. Must land before cmake runs --
+# AzerothCore enumerates modules/ at configure time, not build time.
+COPY --from=modules mod-underbarrel-bootlegger /repo/modules/mod-underbarrel-bootlegger
+
 COPY --from=build-sidecar /build/libsidecar-cpp/build/libsidecar.so ./repo/deps/libsidecar/libsidecar.so
 
 # Header set matches ToCloud9 as of the pinned commit. Deliberately NO
@@ -234,6 +239,8 @@ COPY --from=build-core /repo/modules/mod-playerbots/conf/playerbots.conf.dist /r
 # present in the runtime image or startup fails with
 #   Directory ".../data/sql/playerbots/base/" not exist
 COPY --from=build-core /repo/modules/mod-playerbots/data/sql /repo/modules/mod-playerbots/data/sql
+
+COPY --from=modules mod-underbarrel-bootlegger/kbve/mod_bootlegger.conf /repo/bin/etc/modules/mod_bootlegger.conf
 
 COPY --from=build-core /repo/bin/bin/worldserver /repo/bin/worldserver
 

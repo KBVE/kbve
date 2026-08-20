@@ -11,13 +11,28 @@ Source is byte-identical to upstream at that commit, except:
 
 - `CLAUDE.md` and `AGENTS.md` are not vendored. They are upstream's agent
   instructions and would be read as project instructions inside this repo.
-- This file.
+- `src/mod_bootlegger.cpp`: the entry point is renamed
+  `Addmod_bootleggerScripts` -> `Addmod_underbarrel_bootleggerScripts`.
+  Required by the directory name; see below.
+- This file, and everything under `kbve/`.
 
 The directory is named `mod-underbarrel-bootlegger` after the NPC (Fizzik
-Underbarrel). Everything inside keeps upstream's `mod_bootlegger` naming —
-the config filename is read from the source, and AzerothCore discovers a
-module by directory, not by internal name, so the rename is safe and keeps
-diffs against upstream readable.
+Underbarrel).
+
+**The directory name is not free.** AzerothCore's generated `ModulesLoader`
+derives an entry-point symbol from the directory, replacing dashes with
+underscores, and calls it from `AddModulesScripts()`. A directory named
+`mod-underbarrel-bootlegger` therefore requires the module to define
+`Addmod_underbarrel_bootleggerScripts()`. Leaving upstream's
+`Addmod_bootleggerScripts()` in place fails at link time with:
+
+```
+undefined reference to `Addmod_underbarrel_bootleggerScripts()'
+```
+
+That one function name is the only source change. Everything else — config
+keys, filenames, class names — keeps upstream's `mod_bootlegger` naming, so
+diffs against upstream stay readable.
 
 ## Status
 
