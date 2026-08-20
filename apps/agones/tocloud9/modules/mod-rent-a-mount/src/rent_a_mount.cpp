@@ -2,8 +2,10 @@
 #include "Config.h"
 #include "Creature.h"
 #include "DatabaseEnv.h"
+#include "Log.h"
 #include "Player.h"
 #include "ScriptMgr.h"
+#include "ScriptedGossip.h"
 #include "SpellAuras.h"
 #include "WorldSession.h"
 
@@ -90,9 +92,16 @@ namespace
 
         RentOffer const* Find(TeamId team, uint32 id) const
         {
-            for (RentOffer const& offer : For(team))
-                if (offer.id == id)
-                    return &offer;
+            for (uint8 key : { static_cast<uint8>(team), static_cast<uint8>(TEAM_NEUTRAL) })
+            {
+                auto it = _offers.find(key);
+                if (it == _offers.end())
+                    continue;
+
+                for (RentOffer const& offer : it->second)
+                    if (offer.id == id)
+                        return &offer;
+            }
 
             return nullptr;
         }
@@ -135,6 +144,8 @@ public:
             CloseGossipMenuFor(player);
             return true;
         }
+
+        ClearGossipMenuFor(player);
 
         for (RentOffer const& offer : offers)
             AddGossipItemFor(player, GOSSIP_ICON_MONEY_BAG, offer.label, GOSSIP_SENDER_MAIN, offer.id);
