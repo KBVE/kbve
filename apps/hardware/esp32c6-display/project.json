@@ -8,7 +8,7 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"cwd": "apps/hardware/esp32c6-display",
-				"command": "cargo build --release"
+				"command": "set -a; [ -f wifi.env ] && . ./wifi.env; set +a; cargo build --release"
 			}
 		},
 		"flash": {
@@ -30,7 +30,7 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"cwd": "apps/hardware/esp32c6-display",
-				"command": "cargo clippy --release -- -D warnings"
+				"command": "set -a; [ -f wifi.env ] && . ./wifi.env; set +a; cargo clippy --release -- -D warnings"
 			}
 		}
 	},

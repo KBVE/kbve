@@ -2,16 +2,24 @@
 	"title": {
 		"name": "Friendslop",
 		"play_guest": "Jugar como invitado",
-		"play_as_account": "Jugar como {{name}}",
 		"singleplayer": "Un jugador",
 		"sign_in": "Iniciar sesión",
 		"sign_in_hint": "El inicio de sesión llegará pronto: el servidor nombra a los invitados.",
 		"guest_status": "Jugando como invitado",
+		"signing_in": "Esperando a tu navegador…",
+		"signed_in_as": "Sesión iniciada como {name}",
+		"sign_out": "Cerrar sesión",
+		"play_as_account": "Jugar como {{name}}",
+		"sign_in_with": "Entrar con {provider}",
+		"sign_in_browser": "Se abrirá tu navegador — vuelve aquí cuando termine.",
 		"build": "v{version}  ·  protocolo {protocol}",
 		"server_protocol": "protocolo del servidor {protocol}",
 		"protocol_mismatch": "esta versión no puede unirse a ese servidor",
 		"server_unreachable": "servidor inaccesible",
-		"server_protocol_unknown": "protocolo del servidor desconocido"
+		"server_protocol_unknown": "protocolo del servidor desconocido",
+		"welcome": "¡Bienvenido!",
+		"welcome_back": "¡Bienvenido de nuevo, {{name}}!",
+		"welcome_named": "¡Bienvenido, {{name}}!"
 	},
 	"pause": {
 		"log_off": "Cerrar sesión"
@@ -57,7 +65,36 @@
 		"joined": "Conectado como {{name}}",
 		"disconnected": "Desconectado: {{reason}}  (Esc para salir)",
 		"roster_you": "{{name}} (tú)",
-		"roster": "{{count}} aquí — {{names}}"
+		"roster": "{{count}} aquí — {{names}}",
+		"pets": "Robots: {{count}}  ·  [G] desplegar  ·  [H] recoger todos"
+	},
+	"prompt": {
+		"talk": "[{{key}}]  Hablar"
+	},
+	"dlg": {
+		"continue": "[{{key}}]  Continuar",
+		"close": "Salir de la conversación",
+		"player": "Tú",
+		"met": "Acabas de conocer a"
+	},
+	"quest": {
+		"taken": "Aceptada: {{title}}",
+		"done": "Terminada: {{title}} — vuelve y avisa",
+		"ready": "Lista para entregar",
+		"handed": "Entregada: {{title}}",
+		"reward_xp": "+{{amount}} de experiencia",
+		"tracker": "En curso"
+	},
+	"wardrobe": {
+		"title": "Vestuario",
+		"none": "Nada",
+		"head": "Cabeza",
+		"chest": "Cuerpo",
+		"hands": "Brazos",
+		"legs": "Piernas",
+		"feet": "Pies",
+		"neck": "Cuello",
+		"back": "Hombros"
 	},
 	"account": {
 		"loading": "leyendo saldo…",
@@ -99,5 +136,13 @@
 		"settings": "Gráficos, juego e idioma.",
 		"quit": "Cierra el juego.",
 		"language": "Cambia el idioma del menú."
+	},
+	"api": {
+		"not_signed_in": "sesión no iniciada",
+		"request_failed": "falló la petición ({{code}})",
+		"no_answer": "sin respuesta ({{code}})",
+		"session_expired": "la sesión ha caducado",
+		"http_error": "http {{code}}",
+		"unreadable_balance": "saldo ilegible"
 	}
 }

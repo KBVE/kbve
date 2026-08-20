@@ -8,6 +8,17 @@ const LOG_FRACTION_TALL := 0.42
 const WIDE_ASPECT := 1.2
 const HISTORY := 80
 const FADE_SECONDS := 12.0
+
+## #general is shared with the other games and the relays, and plain chat crosses
+## it as a bare PRIVMSG, so the bot's nick is the only thing that says where a
+## line came from.
+const SOURCES := {
+	&"discordsh-bot": "Discord",
+	&"bbs-bot": "BBS",
+	&"palworld-bot": "Palworld",
+	&"factorio-bot": "Factorio",
+	&"hist-general": "History",
+}
 const MAX_CONTENT := 400
 
 var _root: MarginContainer
@@ -192,7 +203,11 @@ func _append(kind: String, sender: String, content: String) -> void:
 		"join", "part":
 			line = "[color=#8fa9c4]%s %s[/color]" % [sender, content]
 		_:
-			line = "[color=#b9d98f]%s[/color]: %s" % [sender, content]
+			var source: String = SOURCES.get(StringName(sender), "")
+			if source.is_empty():
+				line = "[color=#b9d98f]%s[/color]: %s" % [sender, content]
+			else:
+				line = "[color=#7f8c9b][%s][/color] %s" % [source, content]
 	_log.append_text(line + "\n")
 	while _log.get_line_count() > HISTORY:
 		_log.remove_paragraph(0)

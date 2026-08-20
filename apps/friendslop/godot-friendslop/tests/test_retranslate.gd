@@ -190,3 +190,29 @@ func test_the_title_language_row_marks_the_live_locale() -> void:
 		assert_bool(menu.language_buttons[i].disabled) \
 				.override_failure_message("%s is the wrong button to disable while Spanish is live" % codes[i]) \
 				.is_equal(codes[i] == "es")
+
+
+func _glyph_reachable(font: Font, c: int) -> bool:
+	if font.has_char(c):
+		return true
+	for fallback: Font in font.fallbacks:
+		if fallback != null and _glyph_reachable(fallback, c):
+			return true
+	return false
+
+
+func test_the_title_language_row_keeps_its_glyphs_after_a_switch() -> void:
+	var menu := TitleMenu.new()
+	add_child(menu)
+	auto_free(menu)
+
+	I18n.set_locale("es")
+
+	var font := ThemeDB.fallback_font
+	for button: PaperButton in menu.language_buttons:
+		for i in button.text.length():
+			var c := button.text.unicode_at(i)
+			if c <= 32:
+				continue
+			assert_bool(_glyph_reachable(font, c)).override_failure_message(
+					"no glyph for %s in %s after switching language" % [String.chr(c), button.text]).is_true()

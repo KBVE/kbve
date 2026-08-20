@@ -416,6 +416,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "embassy-net"
+version = "0.7.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0558a231a47e7d4a06a28b5278c92e860f1200f24821d2f365a2f40fe3f3c7b2"
+dependencies = [
+ "document-features",
+ "embassy-net-driver",
+ "embassy-sync 0.7.2",
+ "embassy-time",
+ "embedded-io-async 0.6.1",
+ "embedded-nal-async",
+ "heapless 0.8.0",
+ "managed",
+ "smoltcp",
+]
+
+[[package]]
+name = "embassy-net-driver"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "524eb3c489760508f71360112bca70f6e53173e6fe48fc5f0efd0f5ab217751d"
+
+[[package]]
 name = "embassy-sync"
 version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -587,6 +610,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2564b9f813c544241430e147d8bc454815ef9ac998878d30cc3055449f7fd4c0"
 dependencies = [
  "embedded-io 0.7.1",
+]
+
+[[package]]
+name = "embedded-nal"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c56a28be191a992f28f178ec338a0bf02f63d7803244add736d026a471e6ed77"
+dependencies = [
+ "nb 1.1.0",
+]
+
+[[package]]
+name = "embedded-nal-async"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "76959917cd2b86f40a98c28dd5624eddd1fa69d746241c8257eac428d83cb211"
+dependencies = [
+ "embedded-io-async 0.6.1",
+ "embedded-nal",
 ]
 
 [[package]]
@@ -808,11 +850,13 @@ dependencies = [
  "cfg-if",
  "docsplay",
  "document-features",
+ "embassy-net-driver",
  "embassy-sync 0.8.0",
  "embedded-io 0.6.1",
  "embedded-io 0.7.1",
  "embedded-io-async 0.6.1",
  "embedded-io-async 0.7.0",
+ "enumset",
  "esp-alloc",
  "esp-config",
  "esp-hal",
@@ -955,6 +999,7 @@ dependencies = [
  "bt-hci",
  "embassy-executor",
  "embassy-futures",
+ "embassy-net",
  "embassy-sync 0.7.2",
  "embassy-time",
  "embedded-graphics",
@@ -966,6 +1011,7 @@ dependencies = [
  "esp-println",
  "esp-radio",
  "esp-rtos",
+ "heapless 0.8.0",
  "mipidsi",
  "static_cell",
  "trouble-host",
@@ -1313,6 +1359,12 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
 ]
+
+[[package]]
+name = "managed"
+version = "0.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ca88d725a0a943b096803bd34e73a4437208b6077654cc4ecb2947a5f91618d"
 
 [[package]]
 name = "matchers"
@@ -1679,6 +1731,19 @@ name = "smallvec"
 version = "1.15.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8ed6a63f02c8539c91a8685a86f4099661ba3da017932f6ebbea6de3f0fa7c90"
+
+[[package]]
+name = "smoltcp"
+version = "0.12.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "dad095989c1533c1c266d9b1e8d70a1329dd3723c3edac6d03bbd67e7bf6f4bb"
+dependencies = [
+ "bitflags 1.3.2",
+ "byteorder",
+ "cfg-if",
+ "heapless 0.8.0",
+ "managed",
+]
 
 [[package]]
 name = "somni-expr"

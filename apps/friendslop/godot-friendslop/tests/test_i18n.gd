@@ -28,6 +28,12 @@ const KEYS := [
 	"settings.post_fx",
 	"settings.camera",
 	"settings.crosshair",
+	"api.not_signed_in",
+	"api.request_failed",
+	"api.no_answer",
+	"api.session_expired",
+	"api.http_error",
+	"api.unreadable_balance",
 ]
 
 const GFX := preload("res://src/settings/graphics_settings.gd")
@@ -135,3 +141,65 @@ func test_offered_locales_have_tables_on_disk() -> void:
 	for entry: Dictionary in I18n.locales():
 		assert_bool(DirAccess.dir_exists_absolute("%s/%s" % [I18n.DIR, entry["code"]])).is_true()
 	assert_int(I18n.locale_names().size()).is_equal(I18n.locales().size())
+
+
+## English is the fallback, so a key missing from another locale never errors -- it
+## quietly serves English. These two keep that silence from hiding a gap.
+func _table(code: String) -> Dictionary:
+	return I18n._read_locale(code)
+
+
+func test_every_locale_carries_every_english_key() -> void:
+	var english := _table("en")
+	for entry: Dictionary in I18n.locales():
+		var code := str(entry["code"])
+		if code == "en":
+			continue
+		var missing: Array[String] = []
+		for key: String in english:
+			if not _table(code).has(key):
+				missing.append(key)
+		missing.sort()
+		assert_array(missing).override_failure_message(
+				"%s falls back to English for %d key(s): %s"
+						% [code, missing.size(), ", ".join(missing)]).is_empty()
+
+
+func test_no_translation_drops_a_placeholder() -> void:
+	var english := _table("en")
+	var re := RegEx.new()
+	re.compile("\\{\\{?\\w+\\}?\\}")
+	for entry: Dictionary in I18n.locales():
+		var code := str(entry["code"])
+		if code == "en":
+			continue
+		var table := _table(code)
+		for key: String in english:
+			if not table.has(key):
+				continue
+			assert_array(_slots(re, str(table[key]))).override_failure_message(
+					"%s %s does not fill the same slots as English" % [code, key]) \
+					.is_equal(_slots(re, str(english[key])))
+
+
+func _slots(re: RegEx, text: String) -> Array[String]:
+	var out: Array[String] = []
+	for hit in re.search_all(text):
+		out.append(hit.get_string())
+	out.sort()
+	return out
+
+
+func test_a_locale_table_is_read_from_disk_once() -> void:
+	var first := I18n._read_locale("es")
+	var second := I18n._read_locale("es")
+	assert_bool(is_same(first, second)).override_failure_message(
+			"the Spanish table was parsed and flattened a second time").is_true()
+
+
+func test_an_api_failure_is_not_left_in_english() -> void:
+	var before := I18n.locale_code()
+	I18n.set_locale("es")
+	assert_str(I18n.t("api.session_expired")).is_not_equal("session expired")
+	assert_str(I18n.t("api.http_error", {"code": 503})).contains("503")
+	I18n.set_locale(before)

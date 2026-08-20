@@ -7,6 +7,7 @@ use embedded_graphics::{
 };
 
 use crate::board::PANEL_WIDTH;
+use crate::state::{Bbs, Link};
 
 const HEADER_HEIGHT: u32 = 28;
 const GLYPH_WIDTH: i32 = 10;
@@ -100,4 +101,68 @@ fn write_u32(out: &mut [u8], mut value: u32) -> usize {
         out[i] = digits[count - 1 - i];
     }
     count
+}
+
+const NET_Y: i32 = ROW_Y + LINE_HEIGHT;
+
+pub fn net_rows<D>(target: &mut D, link: Link, bbs: Bbs, ip: [u8; 4]) -> Result<(), D::Error>
+where
+    D: DrawTarget<Color = Rgb565>,
+{
+    Rectangle::new(
+        Point::new(0, NET_Y - LINE_HEIGHT),
+        Size::new(PANEL_WIDTH as u32, LINE_HEIGHT as u32 * 3),
+    )
+    .into_styled(PrimitiveStyle::with_fill(Rgb565::BLACK))
+    .draw(target)?;
+
+    let link_ink = match link {
+        Link::Up => Rgb565::CSS_LIGHT_GREEN,
+        Link::Failed => Rgb565::CSS_ORANGE_RED,
+        _ => Rgb565::CSS_GOLD,
+    };
+    let bbs_ink = match bbs {
+        Bbs::Online => Rgb565::CSS_LIGHT_GREEN,
+        Bbs::Failed => Rgb565::CSS_ORANGE_RED,
+        _ => Rgb565::CSS_GOLD,
+    };
+
+    Text::new(
+        link.label(),
+        Point::new(MARGIN, NET_Y),
+        MonoTextStyle::new(&FONT_10X20, link_ink),
+    )
+    .draw(target)?;
+
+    Text::new(
+        bbs.label(),
+        Point::new(MARGIN, NET_Y + LINE_HEIGHT),
+        MonoTextStyle::new(&FONT_10X20, bbs_ink),
+    )
+    .draw(target)?;
+
+    if ip != [0; 4] {
+        let mut buffer = [0u8; 16];
+        let text = render_ip(&mut buffer, ip);
+        Text::new(
+            text,
+            Point::new(MARGIN, NET_Y + LINE_HEIGHT * 2),
+            MonoTextStyle::new(&FONT_10X20, Rgb565::CSS_LIGHT_SKY_BLUE),
+        )
+        .draw(target)?;
+    }
+
+    Ok(())
+}
+
+fn render_ip(buffer: &mut [u8; 16], ip: [u8; 4]) -> &str {
+    let mut at = 0;
+    for (index, octet) in ip.iter().enumerate() {
+        if index > 0 {
+            buffer[at] = b'.';
+            at += 1;
+        }
+        at += write_u32(&mut buffer[at..], *octet as u32);
+    }
+    core::str::from_utf8(&buffer[..at]).unwrap_or("?")
 }

@@ -2,16 +2,24 @@
 	"title": {
 		"name": "Friendslop",
 		"play_guest": "ゲストでプレイ",
-		"play_as_account": "{{name}} としてプレイ",
 		"singleplayer": "シングルプレイ",
 		"sign_in": "サインイン",
 		"sign_in_hint": "サインインは準備中です。ゲストの名前はサーバーが決めます。",
 		"guest_status": "ゲストとしてプレイ中",
+		"signing_in": "ブラウザを待っています…",
+		"signed_in_as": "{name} でサインイン中",
+		"sign_out": "サインアウト",
+		"play_as_account": "{{name}} としてプレイ",
+		"sign_in_with": "{provider} でサインイン",
+		"sign_in_browser": "ブラウザが開きます — 終わったらここに戻ってください。",
 		"build": "v{version}  ·  プロトコル {protocol}",
 		"server_protocol": "サーバープロトコル {protocol}",
 		"protocol_mismatch": "このビルドではそのサーバーに参加できません",
 		"server_unreachable": "サーバーに接続できません",
-		"server_protocol_unknown": "サーバープロトコル不明"
+		"server_protocol_unknown": "サーバープロトコル不明",
+		"welcome": "ようこそ！",
+		"welcome_back": "おかえりなさい、{{name}}！",
+		"welcome_named": "ようこそ、{{name}}！"
 	},
 	"pause": {
 		"log_off": "ログオフ"
@@ -57,7 +65,36 @@
 		"joined": "{{name}} として参加しました",
 		"disconnected": "切断されました: {{reason}}  (Escで退出)",
 		"roster_you": "{{name}}（あなた）",
-		"roster": "{{count}}人 — {{names}}"
+		"roster": "{{count}}人 — {{names}}",
+		"pets": "ロボット: {{count}}  ·  [G] 配置  ·  [H] 全回収"
+	},
+	"prompt": {
+		"talk": "[{{key}}]  はなす"
+	},
+	"dlg": {
+		"continue": "[{{key}}]  つづける",
+		"close": "会話を終える",
+		"player": "あなた",
+		"met": "出会った"
+	},
+	"quest": {
+		"taken": "受注: {{title}}",
+		"done": "完了: {{title}} — 報告に戻ろう",
+		"ready": "報告できます",
+		"handed": "報告済み: {{title}}",
+		"reward_xp": "+{{amount}} 経験値",
+		"tracker": "進行中"
+	},
+	"wardrobe": {
+		"title": "衣装",
+		"none": "なし",
+		"head": "頭",
+		"chest": "体",
+		"hands": "腕",
+		"legs": "脚",
+		"feet": "足",
+		"neck": "首",
+		"back": "肩"
 	},
 	"account": {
 		"loading": "残高を読み込み中…",
@@ -99,5 +136,13 @@
 		"settings": "グラフィック、ゲームプレイ、言語。",
 		"quit": "ゲームを終了します。",
 		"language": "メニューの言語を変更します。"
+	},
+	"api": {
+		"not_signed_in": "サインインしていません",
+		"request_failed": "リクエスト失敗 ({{code}})",
+		"no_answer": "応答なし ({{code}})",
+		"session_expired": "セッションの有効期限が切れました",
+		"http_error": "http {{code}}",
+		"unreadable_balance": "残高を読み取れません"
 	}
 }

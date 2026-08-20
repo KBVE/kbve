@@ -2,16 +2,24 @@
 	"title": {
 		"name": "Friendslop",
 		"play_guest": "Jogar como convidado",
-		"play_as_account": "Jogar como {{name}}",
 		"singleplayer": "Um jogador",
 		"sign_in": "Entrar",
 		"sign_in_hint": "O login está a caminho: o servidor dá nome aos convidados.",
 		"guest_status": "Jogando como convidado",
+		"signing_in": "Aguardando seu navegador…",
+		"signed_in_as": "Conectado como {name}",
+		"sign_out": "Sair da conta",
+		"play_as_account": "Jogar como {{name}}",
+		"sign_in_with": "Entrar com {provider}",
+		"sign_in_browser": "Seu navegador vai abrir — volte aqui quando terminar.",
 		"build": "v{version}  ·  protocolo {protocol}",
 		"server_protocol": "protocolo do servidor {protocol}",
 		"protocol_mismatch": "esta versão não pode entrar nesse servidor",
 		"server_unreachable": "servidor inacessível",
-		"server_protocol_unknown": "protocolo do servidor desconhecido"
+		"server_protocol_unknown": "protocolo do servidor desconhecido",
+		"welcome": "Bem-vindo!",
+		"welcome_back": "Bem-vindo de volta, {{name}}!",
+		"welcome_named": "Bem-vindo, {{name}}!"
 	},
 	"pause": {
 		"log_off": "Encerrar sessão"
@@ -57,7 +65,36 @@
 		"joined": "Conectado como {{name}}",
 		"disconnected": "Desconectado: {{reason}}  (Esc para sair)",
 		"roster_you": "{{name}} (você)",
-		"roster": "{{count}} aqui — {{names}}"
+		"roster": "{{count}} aqui — {{names}}",
+		"pets": "Robôs: {{count}}  ·  [G] enviar  ·  [H] recolher todos"
+	},
+	"prompt": {
+		"talk": "[{{key}}]  Falar"
+	},
+	"dlg": {
+		"continue": "[{{key}}]  Continuar",
+		"close": "Sair da conversa",
+		"player": "Você",
+		"met": "Você acabou de conhecer"
+	},
+	"quest": {
+		"taken": "Aceita: {{title}}",
+		"done": "Concluída: {{title}} — volte e avise",
+		"ready": "Pronta para entregar",
+		"handed": "Entregue: {{title}}",
+		"reward_xp": "+{{amount}} de experiência",
+		"tracker": "Em andamento"
+	},
+	"wardrobe": {
+		"title": "Guarda-roupa",
+		"none": "Nada",
+		"head": "Cabeça",
+		"chest": "Corpo",
+		"hands": "Braços",
+		"legs": "Pernas",
+		"feet": "Pés",
+		"neck": "Pescoço",
+		"back": "Ombros"
 	},
 	"account": {
 		"loading": "lendo saldo…",
@@ -99,5 +136,13 @@
 		"settings": "Gráficos, jogabilidade e idioma.",
 		"quit": "Fechar o jogo.",
 		"language": "Mudar o idioma do menu."
+	},
+	"api": {
+		"not_signed_in": "sessão não iniciada",
+		"request_failed": "falha na requisição ({{code}})",
+		"no_answer": "sem resposta ({{code}})",
+		"session_expired": "a sessão expirou",
+		"http_error": "http {{code}}",
+		"unreadable_balance": "saldo ilegível"
 	}
 }
