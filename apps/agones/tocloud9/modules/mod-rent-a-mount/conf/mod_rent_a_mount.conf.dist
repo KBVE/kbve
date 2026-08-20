@@ -1,0 +1,9 @@
+[worldserver]
+
+RentAMount.Enable = 1
+
+RentAMount.DefaultPriceCopper = 50
+
+RentAMount.DefaultDurationSeconds = 300
+
+RentAMount.AllowBots = 0

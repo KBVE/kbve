@@ -1,0 +1,5 @@
+* text=auto
+
+*.cpp text eol=lf
+*.h text eol=lf
+*.sql text eol=lf
