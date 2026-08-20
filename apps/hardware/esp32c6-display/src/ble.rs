@@ -3,8 +3,8 @@
 use bt_hci::controller::ExternalController;
 use embassy_futures::{join::join, select::select};
 use embassy_time::{Duration, Timer};
-use esp_radio::ble::controller::BleConnector;
 use esp_println::println;
+use esp_radio::ble::controller::BleConnector;
 use trouble_host::prelude::*;
 
 use crate::state;
@@ -20,7 +20,6 @@ const NOTIFY_PERIOD: Duration = Duration::from_secs(2);
 pub struct Server {
     pub board: BoardService,
 }
-
 
 #[gatt_service(uuid = "6b76e000-4b0f-4c0e-9d3a-9b7e0c1a5a01")]
 pub struct BoardService {
