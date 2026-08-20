@@ -30,6 +30,11 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
 import {
+	takeI18n,
+	collectLocales,
+	encodeLocaleTables,
+} from './lib/i18n-slice.mjs';
+import {
 	fromBinary,
 	toBinary,
 	fromJson,
@@ -119,7 +124,7 @@ function transform(node, parentFieldCamel, grandparentFieldCamel) {
 	return node;
 }
 
-function loadObjectDefsFromMdx() {
+function loadObjectDefsFromMdx(locales) {
 	const files = readdirSync(mapdbDir).filter(
 		(f) => f.endsWith('.mdx') && f !== 'index.mdx',
 	);
@@ -127,15 +132,19 @@ function loadObjectDefsFromMdx() {
 	for (const file of files) {
 		const full = resolve(mapdbDir, file);
 		const { data } = matter(readFileSync(full, 'utf8'));
+		// Lift translations before the entry is read, so they never reach the registry.
+		const i18n = takeI18n(data);
 		if (!data.id || !data.ref || !data.name || !data.type) continue;
 		if (data.drafted === true) continue;
+		locales.add(String(data.ref), i18n);
 		objectDefs.push(transform(data));
 	}
 	return objectDefs;
 }
 
 function main() {
-	const objectDefs = loadObjectDefsFromMdx();
+	const locales = collectLocales();
+	const objectDefs = loadObjectDefsFromMdx(locales);
 	console.log(`Loaded ${objectDefs.length} world object defs from MDX`);
 
 	// 1. JSON artifact — canonical MapRegistry shape
@@ -165,6 +174,8 @@ function main() {
 	// Per-game sync targets — each Unity game mirrors the two artifacts into
 	// its StreamingAssets so the runtime loader finds them at boot. Add a new
 	// entry here when a second game starts consuming the mapdb.
+	const localeArtifacts = encodeLocaleTables(locales, 'mapdb');
+
 	const syncTargets = [
 		{
 			name: 'rareicon',
@@ -178,6 +189,13 @@ function main() {
 		if (!existsSync(t.dir)) mkdirSync(t.dir, { recursive: true });
 		writeFileSync(resolve(t.dir, 'mapdb.json'), JSON.stringify(registryJson));
 		writeFileSync(resolve(t.dir, 'mapdb.binpb'), wire);
+		for (const { table, encoded } of localeArtifacts) {
+			writeFileSync(
+				resolve(t.dir, `mapdb.${table.locale}.json`),
+				JSON.stringify(table),
+			);
+			writeFileSync(resolve(t.dir, `mapdb.${table.locale}.binpb`), encoded);
+		}
 		console.log(`Synced ${t.name} → ${t.dir}`);
 	}
 

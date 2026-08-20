@@ -22,6 +22,11 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
 import {
+	takeI18n,
+	collectLocales,
+	encodeLocaleTables,
+} from './lib/i18n-slice.mjs';
+import {
 	toBinary,
 	fromJson,
 	fromBinary,
@@ -76,7 +81,7 @@ function transform(node, parentFieldCamel) {
 	return node;
 }
 
-function loadSpellsFromMdx() {
+function loadSpellsFromMdx(locales) {
 	const files = readdirSync(spelldbDir).filter(
 		(f) => f.endsWith('.mdx') && f !== 'index.mdx',
 	);
@@ -84,15 +89,19 @@ function loadSpellsFromMdx() {
 	for (const file of files) {
 		const full = resolve(spelldbDir, file);
 		const { data } = matter(readFileSync(full, 'utf8'));
+		// Lift translations before the entry is read, so they never reach the registry.
+		const i18n = takeI18n(data);
 		if (!data.id || !data.ref || !data.name) continue;
 		if (data.drafted === true) continue;
+		locales.add(String(data.ref), i18n);
 		spells.push(transform(data));
 	}
 	return spells;
 }
 
 function main() {
-	const spells = loadSpellsFromMdx();
+	const locales = collectLocales();
+	const spells = loadSpellsFromMdx(locales);
 	console.log(`Loaded ${spells.length} spell defs from MDX`);
 
 	const registryJson = { spells };
@@ -116,6 +125,15 @@ function main() {
 	const wire = toBinary(spellRegistryDesc, msg);
 	writeFileSync(outputBinPath, wire);
 	console.log(`Wrote ${outputBinPath} (${wire.length} bytes)`);
+
+	// spelldb has no per-game mirrors; the tables sit beside the registry.
+	for (const { table, encoded } of encodeLocaleTables(locales, 'spelldb')) {
+		writeFileSync(
+			resolve(generatedDir, `spelldb.${table.locale}.json`),
+			JSON.stringify(table),
+		);
+		writeFileSync(resolve(generatedDir, `spelldb.${table.locale}.binpb`), encoded);
+	}
 }
 
 main();

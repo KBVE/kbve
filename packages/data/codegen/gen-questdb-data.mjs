@@ -35,6 +35,11 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
 import {
+	takeI18n,
+	collectLocales,
+	encodeLocaleTables,
+} from './lib/i18n-slice.mjs';
+import {
 	fromBinary,
 	toBinary,
 	fromJson,
@@ -95,7 +100,7 @@ function transform(node, parentFieldCamel) {
 	return node;
 }
 
-function loadQuestsFromMdx() {
+function loadQuestsFromMdx(locales) {
 	const files = readdirSync(questdbDir).filter(
 		(f) => f.endsWith('.mdx') && f !== 'index.mdx',
 	);
@@ -103,15 +108,19 @@ function loadQuestsFromMdx() {
 	for (const file of files) {
 		const full = resolve(questdbDir, file);
 		const { data } = matter(readFileSync(full, 'utf8'));
+		// Lift translations before the entry is read, so they never reach the registry.
+		const i18n = takeI18n(data);
 		if (!data.id || !data.ref || !data.title) continue;
 		if (data.drafted === true) continue;
+		locales.add(String(data.ref), i18n);
 		quests.push(transform(data));
 	}
 	return quests;
 }
 
 function main() {
-	const quests = loadQuestsFromMdx();
+	const locales = collectLocales();
+	const quests = loadQuestsFromMdx(locales);
 	console.log(`Loaded ${quests.length} quest defs from MDX`);
 
 	const registryJson = { quests };
@@ -136,6 +145,8 @@ function main() {
 	writeFileSync(outputBinPath, wire);
 	console.log(`Wrote ${outputBinPath} (${wire.length} bytes)`);
 
+	const localeArtifacts = encodeLocaleTables(locales, 'questdb');
+
 	const syncTargets = [
 		{
 			name: 'rareicon',
@@ -153,6 +164,13 @@ function main() {
 		if (!existsSync(t.dir)) mkdirSync(t.dir, { recursive: true });
 		writeFileSync(resolve(t.dir, 'questdb.json'), JSON.stringify(registryJson));
 		writeFileSync(resolve(t.dir, 'questdb.binpb'), wire);
+		for (const { table, encoded } of localeArtifacts) {
+			writeFileSync(
+				resolve(t.dir, `questdb.${table.locale}.json`),
+				JSON.stringify(table),
+			);
+			writeFileSync(resolve(t.dir, `questdb.${table.locale}.binpb`), encoded);
+		}
 		console.log(`Synced ${t.name} → ${t.dir}`);
 	}
 

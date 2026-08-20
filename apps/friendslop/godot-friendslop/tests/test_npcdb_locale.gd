@@ -64,3 +64,30 @@ func test_no_translation_leaked_into_the_canonical_registry() -> void:
 	assert_str(body).override_failure_message(
 			"an i18n block reached npcdb.json; it must be stripped before the registry is written") \
 			.not_contains("\"i18n\"")
+
+
+func test_a_dialogue_line_is_translated_inside_a_real_graph() -> void:
+	I18n.set_locale("es")
+	var graph = Npcdb.graph("cleric")
+	assert_bool(graph.is_valid()).is_true()
+	assert_str(graph.speaker).is_equal("Clériga")
+	assert_str(str(graph.node("greet").get("line"))).contains("Siéntate")
+
+
+func test_a_choice_label_is_translated_by_its_id_not_its_position() -> void:
+	I18n.set_locale("ja")
+	var graph = Npcdb.graph("cleric")
+	var choices: Array = graph.node("menu").get("choices", [])
+	var labels: Array = []
+	for choice: Dictionary in choices:
+		labels.append(str(choice.get("text", "")))
+	assert_array(labels).contains(["なぜ渡し場に留まっている？"])
+
+
+func test_an_untranslated_line_in_a_translated_graph_stays_english() -> void:
+	I18n.set_locale("es")
+	var graph = Npcdb.graph("cleric")
+	var here := str(graph.node("here").get("line", ""))
+	assert_str(here).override_failure_message(
+			"a node with no translation must keep its English line, not blank out") \
+			.is_not_empty()

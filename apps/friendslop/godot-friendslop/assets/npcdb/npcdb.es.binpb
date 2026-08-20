@@ -5,4 +5,11 @@
 aetherfang.lore�El brillo es medible y no obedece ninguna ley que nadie haya escrito. Dos de ellos en una sala se sincronizan en menos de una hora.
 
 aetherfang.name
-Aetherfang
+Aetherfang�
+%cleric.dialogue_tree.nodes.greet.textYSiéntate, si estás herido. Y si no lo estás, quédate de pie y deja que te mire igual.F
++cleric.dialogue_tree.nodes.greet_again.textNada nuevo en ti. Bien.\
+Bcleric.dialogue_tree.nodes.menu.options.ask_bitterroot_again.labelSobre la raíz amarga.W
+6cleric.dialogue_tree.nodes.menu.options.ask_here.label¿Qué te retiene en un vado?i
+=cleric.dialogue_tree.nodes.menu.options.tell_bitterroot.label(La forrajera me mostró la raíz amarga.1
+$cleric.dialogue_tree.nodes.menu.text	¿Y bien?
+cleric.nameClériga

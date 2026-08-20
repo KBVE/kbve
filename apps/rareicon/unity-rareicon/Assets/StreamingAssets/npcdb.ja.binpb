@@ -4,4 +4,11 @@
 �
 aetherfang.lore�その輝きは計測できるが、誰も書き記していない法則に従う。二体が同じ部屋にいれば一時間以内に同調する。
 +
-aetherfang.nameエーテルファング
+aetherfang.nameエーテルファング�
+%cleric.dialogue_tree.nodes.greet.text~怪我をしているなら座りなさい。していないなら立ったままで結構、それでも診せてもらう。P
++cleric.dialogue_tree.nodes.greet_again.text!変わりはないな。結構。^
+Bcleric.dialogue_tree.nodes.menu.options.ask_bitterroot_again.label苦根のことだが。a
+6cleric.dialogue_tree.nodes.menu.options.ask_here.label'なぜ渡し場に留まっている？n
+=cleric.dialogue_tree.nodes.menu.options.tell_bitterroot.label-採集者に苦根を見せてもらった。4
+$cleric.dialogue_tree.nodes.menu.textそれで？
+cleric.name	聖職者

@@ -58,7 +58,7 @@ static func _as_graph(entry: Dictionary, tree: Dictionary) -> Dictionary:
 		var id := str(node.get("id", ""))
 		if id == "":
 			continue
-		nodes[id] = _as_node(node, _next_id(list, i), ref, i)
+		nodes[id] = _as_node(node, _next_id(list, i), ref, id)
 	return {
 		"start": str(tree.get("entryNodeId", tree.get("entry_node_id", ""))),
 		"speaker": LocaleScript.t("%s.name" % ref, str(entry.get("name", ""))),
@@ -76,8 +76,10 @@ static func _next_id(list: Array, index: int) -> String:
 	return ""
 
 
-static func _as_node(node: Dictionary, fallback: String, ref := "", index := 0) -> Dictionary:
-	var stem := "%s.dialogue_tree.nodes.%d" % [ref, index]
+## Keyed by the node's own id rather than its position: reordering the English
+## dialogue must not silently repoint every translation at the wrong line.
+static func _as_node(node: Dictionary, fallback: String, ref := "", id := "") -> Dictionary:
+	var stem := "%s.dialogue_tree.nodes.%s" % [ref, id]
 	var out := {"line": LocaleScript.t("%s.text" % stem, str(node.get("text", "")))}
 	var speaker := str(node.get("speakerOverride", node.get("speaker_override", "")))
 	if speaker != "":
@@ -107,12 +109,12 @@ static func _choices(node: Dictionary, stem := "") -> Array:
 	if raw is not Array:
 		return []
 	var out: Array = []
-	for i in (raw as Array).size():
-		var entry: Variant = (raw as Array)[i]
+	for entry: Variant in raw:
 		if entry is not Dictionary:
 			continue
 		var option: Dictionary = entry
-		var choice := {"text": LocaleScript.t("%s.options.%d.label" % [stem, i],
+		var choice := {"text": LocaleScript.t(
+				"%s.options.%s.label" % [stem, str(option.get("id", ""))],
 				str(option.get("label", "")))}
 		var next := str(option.get("nextNodeId", option.get("next_node_id", "")))
 		if next != "":
