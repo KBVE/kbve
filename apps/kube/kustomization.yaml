@@ -80,6 +80,11 @@ resources:
     - agones/friendslop/application.yaml
     - agones/factorio/application.yaml
     - agones/palworld/application.yaml
+    # ToCloud9 — clustered AzerothCore (WoW 3.3.5a), test case for the raw-TCP
+    # hostPort lane and Agones fleet semantics. Namespace runs privileged because
+    # PodSecurity baseline forbids hostPorts; players reach 3724/8085 on the node
+    # (tocloud9.kbve.com -> talos.kbve.com), not the shared LoadBalancer IP.
+    - agones/tocloud9/application.yaml
     - chuckrpg/application.yaml
     # RareIcon — bullet-hell roguelite website + API
     - rareicon/application.yaml
