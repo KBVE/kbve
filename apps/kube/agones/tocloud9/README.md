@@ -167,6 +167,21 @@ keeps them there, so no per-fleet affinity is needed.
 Players then use `set realmlist tocloud9.kbve.com` and log in with the
 `admin` / `admin` account seeded by the SQL deltas.
 
+### Player accounts
+
+Everyone else gets an account from <https://kbve.com/wow/>. The browser derives
+the SRP6 salt and verifier locally and posts only those to the `wow` edge
+function, which reserves the username in Postgres (`wow.account`) and then
+writes `acore_auth.account` over TCP. The plaintext password never leaves the
+device, and Postgres never holds a credential — it only records who owns which
+game username.
+
+That write is the one path from the `kilobase` namespace into this one, and it
+needs a MySQL user with `INSERT`/`UPDATE` on `acore_auth.account` exposed to the
+functions deployment as `TC9_MYSQL_USER` / `TC9_MYSQL_PASSWORD`. Until that
+secret exists the edge function answers `503` and the page says provisioning is
+unconfigured — it does not half-create anything.
+
 ### Three constraints that follow
 
 **Neither port is privileged.** Both are above 1024, so no

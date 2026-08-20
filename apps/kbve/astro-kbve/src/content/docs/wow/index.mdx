@@ -1,0 +1,197 @@
+---
+title: World of Warcraft
+template: splash
+description: The KBVE World of Warcraft realm — a 3.3.5a WotLK server on ToCloud9, how to connect, and how to make your game account.
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+next: false
+prev: false
+sidebar:
+    label: Overview
+    order: 1
+tags:
+    - wow
+    - warcraft
+    - mmorpg
+ogTitle: KBVE World of Warcraft — 3.3.5a Realm on ToCloud9
+ogDescription: Play on the KBVE WotLK realm. Create a game account in the browser, point your 3.3.5a client at tocloud9.kbve.com, and log in.
+ogImage: https://images.unsplash.com/photo-1581276879432-15e50529f34b?fit=crop&w=1400&h=700&q=75
+jsonld:
+    type: WebPage
+    breadcrumb:
+        - name: Home
+          path: /
+        - name: World of Warcraft
+          path: /wow/
+---
+
+import BentoShell from '@/components/hero/BentoShell.astro';
+import AstroWowAccount from '@/components/wow/wow-account/AstroWowAccount.astro';
+
+export const backdrop = 'https://images.unsplash.com/photo-1581276879432-15e50529f34b?q=80&w=2400&auto=format&fit=crop';
+
+export const stats = [
+	{ label: 'Client version', value: '3.3.5a', icon: 'M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5' },
+	{ label: 'Expansion', value: 'WotLK', icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
+	{ label: 'Core', value: 'ToCloud9', icon: 'M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z' },
+	{ label: 'Fleet', value: 'Agones', icon: 'M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.7-.84.7-2.13-.1-2.91a2.18 2.18 0 0 0-2.9-.09zM12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z' },
+];
+
+export const steps = [
+	{ n: '01', title: 'Create a game account', desc: 'Sign in to KBVE and pick a game username and password below. The password is turned into an SRP6 verifier in your browser — the plaintext never leaves the device.', icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM19 8v6M22 11h-6' },
+	{ n: '02', title: 'Point your client', desc: 'Open Data/enUS/realmlist.wtf in your 3.3.5a install and replace its contents with set realmlist tocloud9.kbve.com — one line, nothing else.', icon: 'M4 17l6-6-6-6M12 19h8' },
+	{ n: '03', title: 'Log in', desc: 'Launch Wow.exe and sign in with the game username and password from step 1 — not your KBVE credentials. The realm is named KBVE.', icon: 'M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3' },
+	{ n: '04', title: 'Roll a character', desc: 'Every class and race through Wrath of the Lich King is open. Character data lives on the ToCloud9 charserver, so your roster follows you across gateway restarts.', icon: 'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zM2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z' },
+];
+
+export const features = [
+	{ n: '01', title: 'ToCloud9, not vanilla AzerothCore', desc: 'The realm runs on ToCloud9 — a sharded fork that splits the monolith into authserver, gateway, world, chat, mail and character services so pieces can roll independently.', icon: 'M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z' },
+	{ n: '02', title: 'Gateways roll without downtime', desc: 'Realms report as online based on live gateway registration, not a static row, so a gateway can be replaced under load without stranding the realm list.', icon: 'M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15' },
+	{ n: '03', title: 'Custom modules', desc: 'Vendored AzerothCore modules ship with the worldserver — rent-a-mount gates rentals on level and riding skill, and the underbarrel bootlegger adds its own vendor loop.', icon: 'M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5' },
+	{ n: '04', title: 'One game account per KBVE account', desc: 'The link is keyed on your auth UUID, so changing your email keeps the game account. Usernames are reserved before the game database is touched and freed again if that write fails.', icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' },
+];
+
+export const related = [
+	{ href: '/gaming/wow/', title: 'Macros & addons', copy: 'The general World of Warcraft guide — addon setup and the macro library.', icon: 'M4 19.5A2.5 2.5 0 0 1 6.5 17H20M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z' },
+	{ href: '/project/tocloud9-gameserver/', title: 'Gameserver notes', copy: 'How the authserver, gateway and worldserver fleets are built and rolled.', icon: 'M20 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 2 8v8' },
+	{ href: '/project/tocloud9-services/', title: 'Service topology', copy: 'The microservice split — chat, mail, characters, servers-registry, NATS and Redis.', icon: 'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zM2 12h20' },
+];
+
+<div class="wow-hub" style={`--bento-hero-bg: url('${backdrop}')`} data-wow-hub>
+
+<section class="bento-hero bento-section not-content" aria-label="KBVE World of Warcraft realm">
+	<div class="bento-hero__bg" aria-hidden="true"></div>
+	<div class="bento-hero__frame bento-frame">
+		<div class="bento-board bento-board--hero">
+			<div class="bento-cell bento-hero-copy bento-card bento-card--glass">
+				<span class="bento-badge bento-chip">
+					<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /></svg>
+					<span>kbve wow · 3.3.5a realm</span>
+				</span>
+				<h1 class="bento-title">
+					Play on the
+					<span class="bento-title__accent">KBVE Warcraft realm.</span>
+				</h1>
+				<p class="bento-lede">
+					A Wrath of the Lich King realm running on ToCloud9, fleet-managed
+					by Agones. Make a game account in the browser, point a 3.3.5a
+					client at <strong>tocloud9.kbve.com</strong>, and log in.
+				</p>
+				<div class="bento-cta">
+					<a class="bento-btn bento-btn--primary" href="#account">
+						Create a game account
+						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
+					</a>
+					<a class="bento-btn bento-btn--ghost" href="#connect">How to connect</a>
+					<a class="bento-btn bento-btn--ghost" href="/gaming/wow/">Macros</a>
+				</div>
+			</div>
+
+			{stats.map((s) => (
+				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={s.icon} /></svg>
+					</span>
+					<span class="bento-stat__value">{s.value}</span>
+					<span class="bento-stat__label">{s.label}</span>
+				</div>
+			))}
+		</div>
+
+		<nav class="bento-jump" aria-label="On this page">
+			<a class="bento-chip" href="#account">Game account</a>
+			<a class="bento-chip" href="#connect">Connect</a>
+			<a class="bento-chip" href="#realm">The realm</a>
+			<a class="bento-chip" href="#related">Dig deeper</a>
+		</nav>
+	</div>
+</section>
+
+<BentoShell id="account" eyebrow="Separate from your KBVE login" heading="Create a game account">
+	<div class="bento-board bento-board--cols-2">
+		<AstroWowAccount />
+		<div class="bento-cell bento-card bento-card--glass wow-howto">
+			<h3 class="bento-rulecard__title">Why a second password</h3>
+			<p class="bento-rulecard__desc">
+				The 3.3.5a client authenticates with SRP6, so the realm stores a
+				salt and a verifier rather than anything reversible. Your browser
+				derives that pair locally and posts only the result — the game
+				password never reaches KBVE, and it cannot be recovered, only
+				replaced.
+			</p>
+			<p class="bento-rulecard__desc">
+				The protocol uppercases the username and password before hashing
+				them, which makes both case-insensitive and limits the password to
+				16 characters. Treat it as a throwaway credential and never reuse
+				a password that matters.
+			</p>
+		</div>
+	</div>
+</BentoShell>
+
+<BentoShell id="connect" eyebrow="Four steps" heading="Getting in">
+	<div class="bento-board bento-board--cols-2">
+		{steps.map((s) => (
+			<div class="bento-cell bento-rulecard bento-card bento-card--glass bento-card--interactive">
+				<div class="bento-rulecard__top">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={s.icon} /></svg>
+					</span>
+					<span class="bento-rulecard__num">{s.n}</span>
+				</div>
+				<h3 class="bento-rulecard__title">{s.title}</h3>
+				<p class="bento-rulecard__desc">{s.desc}</p>
+			</div>
+		))}
+	</div>
+</BentoShell>
+
+<BentoShell id="realm" eyebrow="What runs underneath" heading="The realm">
+	<div class="bento-board bento-board--cols-2">
+		{features.map((f) => (
+			<div class="bento-cell bento-rulecard bento-card bento-card--glass bento-card--interactive">
+				<div class="bento-rulecard__top">
+					<span class="bento-icon-tile">
+						<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={f.icon} /></svg>
+					</span>
+					<span class="bento-rulecard__num">{f.n}</span>
+				</div>
+				<h3 class="bento-rulecard__title">{f.title}</h3>
+				<p class="bento-rulecard__desc">{f.desc}</p>
+			</div>
+		))}
+	</div>
+</BentoShell>
+
+<BentoShell id="related" eyebrow="Keep going" heading="Dig deeper">
+	<div class="bento-board bento-board--cols-3">
+		{related.map((r) => (
+			<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href={r.href}>
+				<span class="bento-icon-tile">
+					<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d={r.icon} /></svg>
+				</span>
+				<span class="bento-linkcard__title">{r.title}</span>
+				<span class="bento-linkcard__copy">{r.copy}</span>
+				<span class="bento-linkcard__go" aria-hidden="true">
+					<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+				</span>
+			</a>
+		))}
+	</div>
+</BentoShell>
+
+</div>
+
+<style is:global>{`
+	.wow-hub {
+		--bento-accent: #c8a04a;
+		--bento-accent-2: #4a9fd8;
+	}
+	.wow-hub .wow-howto {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		justify-content: center;
+	}
+`}</style>

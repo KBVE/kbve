@@ -55,6 +55,13 @@ CREATE TABLE IF NOT EXISTS wow.account (
 CREATE UNIQUE INDEX IF NOT EXISTS idx_wow_account_username
     ON wow.account (username);
 
+-- A claim that never reached MySQL holds its username forever unless something
+-- sweeps it. Partial, because status = 0 is a transient state and the index
+-- should stay small enough that a reaper scan is cheap.
+CREATE INDEX IF NOT EXISTS idx_wow_account_stale_claim
+    ON wow.account (created_at)
+    WHERE status = 0;
+
 -- ---------- triggers ----------
 
 CREATE OR REPLACE FUNCTION wow.trg_account_updated_at()
@@ -64,6 +71,10 @@ BEGIN
     RETURN NEW;
 END;
 $$;
+
+-- Every other function here revokes PUBLIC explicitly; this one needs it too,
+-- because PostgreSQL grants EXECUTE to PUBLIC on newly created functions.
+REVOKE ALL ON FUNCTION wow.trg_account_updated_at() FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_wow_account_updated_at ON wow.account;
 CREATE TRIGGER trg_wow_account_updated_at
@@ -83,10 +94,10 @@ CREATE POLICY "service_role_full_access" ON wow.account
 -- ---------- grants ----------
 
 GRANT USAGE ON SCHEMA wow TO service_role;
-GRANT ALL ON ALL TABLES    IN SCHEMA wow TO service_role;
-GRANT ALL ON ALL SEQUENCES IN SCHEMA wow TO service_role;
-GRANT ALL ON ALL FUNCTIONS IN SCHEMA wow TO service_role;
 
+-- Default privileges cover objects created after this point, which is what
+-- carries the grants into wow_rpcs.sql. The ON ALL forms only touch what
+-- already exists, so anything named there has to be spelled out by hand.
 ALTER DEFAULT PRIVILEGES IN SCHEMA wow
     GRANT ALL ON TABLES    TO service_role;
 ALTER DEFAULT PRIVILEGES IN SCHEMA wow
@@ -94,6 +105,6 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA wow
 ALTER DEFAULT PRIVILEGES IN SCHEMA wow
     GRANT ALL ON FUNCTIONS TO service_role;
 
-REVOKE ALL ON ALL TABLES    IN SCHEMA wow FROM PUBLIC, anon, authenticated;
+GRANT ALL ON TABLE wow.account TO service_role;
+REVOKE ALL ON TABLE wow.account FROM PUBLIC, anon, authenticated;
 REVOKE ALL ON ALL SEQUENCES IN SCHEMA wow FROM PUBLIC, anon, authenticated;
-REVOKE ALL ON ALL FUNCTIONS IN SCHEMA wow FROM PUBLIC, anon, authenticated;

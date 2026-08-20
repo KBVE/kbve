@@ -42,6 +42,15 @@ functions/
 │   ├── transfer.ts      Item transfer tracking (record, history) — service_role only
 │   ├── character.ts     RPG character sheets (save, load, add_xp) — service_role only
 │   └── skill.ts         Skill progression (save, load, add_xp) — service_role only
+├── wow/               ToCloud9 (AzerothCore 3.3.5a) game accounts
+│   ├── _shared.ts       Re-exports from _shared/supabase.ts + WoW validators
+│   │                    (WowRequest, normalizeUsername, validateHex32)
+│   ├── index.ts         Router: "module.action" commands
+│   ├── account.ts       status, create, set_password, release
+│   ├── acore.ts         acore_auth.account writes (INSERT / credential update)
+│   └── mysql.ts         Minimal MySQL 8.4 client — caching_sha2_password only,
+│                         because 8.4 drops mysql_native_password and no
+│                         deno.land driver completes that handshake
 └── types.d.ts         Deno/EdgeRuntime type declarations
 ```
 
@@ -74,6 +83,17 @@ JWT: HS256 signed with `JWT_SECRET` env var.
 | `SUPABASE_URL`              | Yes      | Supabase project URL                                    |
 | `SUPABASE_ANON_KEY`         | Yes      | Supabase anon/public key (used for user-scoped clients) |
 | `SUPABASE_SERVICE_ROLE_KEY` | Yes      | Supabase service role key (used for elevated RPC calls) |
+| `TC9_MYSQL_HOST`            | No       | ToCloud9 MySQL host (default `mysql.tocloud9.svc.cluster.local`) |
+| `TC9_MYSQL_PORT`            | No       | ToCloud9 MySQL port (default `3306`)                    |
+| `TC9_MYSQL_USER`            | No       | ToCloud9 MySQL user with INSERT/UPDATE on `acore_auth.account` |
+| `TC9_MYSQL_PASSWORD`        | No       | Password for the above                                  |
+
+`wow` account creation stays disabled until `TC9_MYSQL_USER` and
+`TC9_MYSQL_PASSWORD` are both set — `account.create` and `account.set_password`
+answer `503` rather than half-provisioning. The credentials live in the
+`tocloud9` namespace today, so they need a sealed secret in the functions
+namespace before the flow goes live; adding a `secretKeyRef` to a secret that
+does not exist yet would leave the deployment unschedulable.
 
 ## Build & Run
 
