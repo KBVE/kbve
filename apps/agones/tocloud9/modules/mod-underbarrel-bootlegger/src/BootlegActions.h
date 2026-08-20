@@ -1,0 +1,15 @@
+#ifndef BOOTLEG_ACTIONS_H
+#define BOOTLEG_ACTIONS_H
+
+#include "Common.h"
+
+enum BootlegAction : uint32
+{
+    BOOTLEG_ROOT_REFRESH   = 1,
+    BOOTLEG_BLOCK_SIZE     = 100,
+    BOOTLEG_UTILITIES_BASE = 1000,
+    BOOTLEG_PROFESSIONS_BASE = 1100,
+    BOOTLEG_INSTANCES_BASE = 1200,
+};
+
+#endif

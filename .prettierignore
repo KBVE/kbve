@@ -29,3 +29,10 @@ apps/discordsh/discordsh-bot/data/mapdb.json
 # Vendored upstream KubeVirt release manifest — kept byte-identical to the
 # GitHub release asset so version bumps stay a clean file swap
 apps/kube/kubevirt/manifests/kubevirt-operator.yaml
+
+# Vendored AzerothCore module — kept byte-identical to upstream at the commit
+# recorded in VENDOR.md, so refreshes stay a clean file swap. Our own layer
+# under kbve/ is still formatted.
+apps/agones/tocloud9/modules/mod-underbarrel-bootlegger/**
+!apps/agones/tocloud9/modules/mod-underbarrel-bootlegger/kbve/**
+!apps/agones/tocloud9/modules/mod-underbarrel-bootlegger/VENDOR.md
