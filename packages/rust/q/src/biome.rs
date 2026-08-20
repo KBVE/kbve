@@ -621,7 +621,10 @@ mod tests {
                 _ => {}
             }
         }
-        assert!(dry_n > 20 && wet_n > 20, "too few: {dry_n} desert, {wet_n} swamp");
+        assert!(
+            dry_n > 20 && wet_n > 20,
+            "too few: {dry_n} desert, {wet_n} swamp"
+        );
         assert!(
             wet / wet_n as f64 > dry / dry_n as f64,
             "swamps average {:.2} moisture against deserts at {:.2}",

@@ -492,7 +492,9 @@ impl QStoneField {
     /// over a live world cannot repair anything the player just broke.
     #[func]
     fn import_harvest(&mut self, bytes: PackedByteArray) -> bool {
-        let Some(replay) = crate::world::harvest::Ledger::from_save(bytes.as_slice(), self.stone_seed as u32) else {
+        let Some(replay) =
+            crate::world::harvest::Ledger::from_save(bytes.as_slice(), self.stone_seed as u32)
+        else {
             return false;
         };
         self.ledger.merge(&replay);

@@ -266,7 +266,9 @@ pub fn pad_at(seed: u32, hgen: &HeightGen, x: f32, z: f32) -> Option<(f32, f32)>
         let out = (x - site[0]).abs().max((z - site[1]).abs());
         let w = smooth((inside + PAD_FEATHER - out) / PAD_FEATHER);
         if w > 0.0 {
-            let pad_y = hgen.base_height(site[0], site[1]).max(hgen.water_level() + 2.4);
+            let pad_y = hgen
+                .base_height(site[0], site[1])
+                .max(hgen.water_level() + 2.4);
             return Some((pad_y, w));
         }
     }
