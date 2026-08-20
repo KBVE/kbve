@@ -568,14 +568,22 @@ mod tests {
 
         client.command_pet(PetCommand::Deploy { kind: 2 });
 
+        // The roster is reliable and the snapshot is not, so they do not arrive
+        // together: waiting only for the roster entry and then asserting on the
+        // snapshot is a race that a loaded machine loses. Wait for both.
         let state = wait_for(
             || {
                 let s = client.state();
-                (!s.pets.is_empty()).then_some(s)
+                let pet = s.pets.first()?;
+                let drawn = s
+                    .snapshot
+                    .as_ref()
+                    .is_some_and(|snap| snap.body(pet.body).is_some());
+                drawn.then_some(s)
             },
             Duration::from_secs(10),
         )
-        .expect("the deploy never came back");
+        .expect("the deploy never came back with both a roster entry and a body");
 
         let pet = &state.pets[0];
         assert_eq!(pet.kind, 2, "the chassis we asked for was lost on the way");
