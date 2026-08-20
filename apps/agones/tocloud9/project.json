@@ -76,6 +76,53 @@
 				"command": "docker compose --profile ac --profile setup down -v"
 			}
 		},
+		"playerbots:build": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"dependsOn": ["env"],
+			"options": {
+				"cwd": "apps/agones/tocloud9",
+				"parallel": false,
+				"commands": [
+					"echo 'Building the full 3kynox stack: 12 Go services (fast) plus AzerothCore + mod-playerbots + libsidecar (slow). Expect tens of minutes and every core pegged.'",
+					"docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile ac --profile setup build"
+				]
+			}
+		},
+		"playerbots:setup": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["playerbots:build"],
+			"options": {
+				"cwd": "apps/agones/tocloud9",
+				"parallel": false,
+				"commands": [
+					"docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile setup up --abort-on-container-failure --exit-code-from tc9-sql download-miscs tc9-sql",
+					"docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile setup down"
+				]
+			}
+		},
+		"playerbots:up": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["env"],
+			"options": {
+				"cwd": "apps/agones/tocloud9",
+				"command": "docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile ac up -d"
+			}
+		},
+		"playerbots:logs": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/agones/tocloud9",
+				"command": "docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile ac logs -f --tail=200 gameserver-ac"
+			}
+		},
+		"playerbots:down": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/agones/tocloud9",
+				"command": "docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile ac --profile setup down"
+			}
+		},
 		"e2e": {
 			"executor": "nx:run-commands",
 			"cache": false,

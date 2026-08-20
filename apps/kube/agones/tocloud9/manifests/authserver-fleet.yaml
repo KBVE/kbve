@@ -68,7 +68,7 @@ spec:
                             type: RuntimeDefault
                     containers:
                         - name: authserver
-                          image: ghcr.io/walkline/authserver:master
+                          image: ghcr.io/walkline/authserver:master@sha256:f4f16d0ce2a8951a95fc64a12002e23dc8fd0967d046e3291bf7932fbd1587b5
                           imagePullPolicy: IfNotPresent
                           env:
                               - name: PORT
@@ -100,7 +100,7 @@ spec:
                                   drop:
                                       - ALL
                         - name: agones-bridge
-                          image: busybox:1.36
+                          image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
                           imagePullPolicy: IfNotPresent
                           env:
                               - name: AGONES_SDK_HTTP

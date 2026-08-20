@@ -46,7 +46,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: nats
-                  image: nats:2.10-alpine
+                  image: nats:2.10-alpine@sha256:b83efabe3e7def1e0a4a31ec6e078999bb17c80363f881df35edc70fcb6bb927
                   ports:
                       - name: client
                         containerPort: 4222
@@ -128,7 +128,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: redis
-                  image: redis:7.2-alpine
+                  image: redis:7.2-alpine@sha256:05a97a479bc73de66f087dc05b569010772880f778cc8671fa6b8aadee32e5c6
                   command:
                       [
                           'redis-server',
