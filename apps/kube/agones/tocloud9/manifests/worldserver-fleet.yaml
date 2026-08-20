@@ -91,7 +91,7 @@ spec:
                               sizeLimit: 512Mi
                     containers:
                         - name: worldserver
-                          image: ghcr.io/walkline/gameserver-ac:master
+                          image: ghcr.io/walkline/gameserver-ac:master@sha256:6917a00ac1b8b9197a9b7e9bd4555d6f7cc107595a1c8f85e39c5f5be07378e7
                           imagePullPolicy: IfNotPresent
                           env:
                               # AzerothCore's own settings. AC_* overrides the
@@ -195,7 +195,7 @@ spec:
                                   drop:
                                       - ALL
                         - name: agones-bridge
-                          image: busybox:1.36
+                          image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
                           imagePullPolicy: IfNotPresent
                           env:
                               - name: AGONES_SDK_HTTP

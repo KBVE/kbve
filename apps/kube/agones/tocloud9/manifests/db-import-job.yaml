@@ -45,7 +45,7 @@ spec:
                     type: RuntimeDefault
             initContainers:
                 - name: wait-for-mysql
-                  image: busybox:1.36
+                  image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
                   command: ['/bin/sh', '-c']
                   args:
                       - |
@@ -68,7 +68,7 @@ spec:
                           drop:
                               - ALL
                 - name: ac-db-import
-                  image: acore/ac-wotlk-db-import:16.0.0-dev
+                  image: acore/ac-wotlk-db-import:16.0.0-dev@sha256:ce45c34b5c4ea5a58bdfce0d33282d7de82316793b0d6a6cb961287bca4de395
                   env:
                       - name: AC_UPDATES_ENABLE_DATABASES
                         value: '7'
@@ -103,7 +103,7 @@ spec:
                               - ALL
             containers:
                 - name: tc9-sql
-                  image: mysql:8.4
+                  image: mysql:8.4@sha256:b3b90af2a6552ae30c266fdb7d5dd55f3afb72404bb78d37fe8a23eb857fd3fb
                   env:
                       - name: MYSQL_PWD
                         valueFrom:
