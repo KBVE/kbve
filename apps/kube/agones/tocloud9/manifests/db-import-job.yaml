@@ -68,12 +68,17 @@ spec:
                           drop:
                               - ALL
                 - name: ac-db-import
-                  image: acore/ac-wotlk-db-import:16.0.0-dev@sha256:ce45c34b5c4ea5a58bdfce0d33282d7de82316793b0d6a6cb961287bca4de395
+                  # Built from the same tree as the worldserver. Upstream's
+                  # importer produces a different schema lineage, and the
+                  # playerbots core cannot apply its updates on top of it.
+                  image: ghcr.io/kbve/tocloud9-db-import-playerbots:0.0.2
                   env:
                       - name: AC_UPDATES_ENABLE_DATABASES
                         value: '7'
                       - name: AC_DATA_DIR
-                        value: '/azerothcore/env/dist/data'
+                        # ToCloud9's db-import stage hardcodes this path,
+                        # unlike the upstream acore image.
+                        value: '/repo/data'
                       - name: AC_LOGIN_DATABASE_INFO
                         valueFrom:
                             secretKeyRef:

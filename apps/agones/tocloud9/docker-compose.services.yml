@@ -1,0 +1,70 @@
+# Runs the Go microservices from the single combined image built by
+# services/Dockerfile instead of one image per service.
+#
+# This is the shape the kube manifests use: one image, and each workload picks
+# its service with an explicit command. Layer it on top of the playerbots
+# overlay to exercise locally exactly what the cluster will run:
+#
+#   docker compose -f docker-compose.yml \
+#                  -f docker-compose.playerbots.yml \
+#                  -f docker-compose.services.yml ...
+#
+# Without this file the playerbots overlay builds each service from its own
+# upstream Dockerfile, which is useful for isolating a single service but is
+# not what gets deployed.
+
+x-svc: &svc
+    image: kbve/tocloud9-services-playerbots:${PLAYERBOTS_TAG:-dev}
+    platform: ${PLAYERBOTS_PLATFORM:-linux/arm64}
+    build:
+        context: ./services
+        dockerfile: Dockerfile
+
+services:
+    servers-registry:
+        <<: *svc
+        command: ['/app/servers-registry']
+
+    authserver:
+        <<: *svc
+        command: ['/app/authserver']
+
+    charserver:
+        <<: *svc
+        command: ['/app/charserver']
+
+    chatserver:
+        <<: *svc
+        command: ['/app/chatserver']
+
+    guildserver:
+        <<: *svc
+        command: ['/app/guildserver']
+
+    guidserver:
+        <<: *svc
+        command: ['/app/guidserver']
+
+    mailserver:
+        <<: *svc
+        command: ['/app/mailserver']
+
+    auctionhouse:
+        <<: *svc
+        command: ['/app/auctionhouse']
+
+    groupserver:
+        <<: *svc
+        command: ['/app/groupserver']
+
+    matchmakingserver:
+        <<: *svc
+        command: ['/app/matchmakingserver']
+
+    gateway:
+        <<: *svc
+        command: ['/app/gateway']
+
+    gateway-second:
+        <<: *svc
+        command: ['/app/gateway']

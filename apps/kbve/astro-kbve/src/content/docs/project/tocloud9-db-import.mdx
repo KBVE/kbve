@@ -1,0 +1,79 @@
+---
+title: ToCloud9 DB Import — Schema Importer for the Playerbots Lineage
+description: AzerothCore dbimport built from the same tree as the clustered playerbots worldserver, so the schema it creates matches the core that reads it.
+sem: 1
+sidebar:
+    label: ToCloud9 DB Import
+    order: 464
+tags:
+    - agones
+    - tocloud9
+    - azerothcore
+    - mysql
+    - docker
+key: tocloud9_db_import
+pipeline: docker
+app_name: tocloud9-db-import
+version: "0.0.2"
+source_path: apps/agones/tocloud9/db-import
+version_toml: apps/agones/tocloud9/db-import/version.toml
+runner: ubuntu-latest
+image: kbve/tocloud9-db-import-playerbots
+nx_project: agones-tocloud9
+target: container-db-import
+deployment_yaml: apps/kube/agones/tocloud9/manifests/db-import-job.yaml
+has_test: false
+author: h0lybyte
+license: KBVE
+status: active
+kube:
+    stack: agones
+    environment: prod
+    tier: server
+    owner: h0lybyte
+    criticality: high
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+---
+
+## Why this exists
+
+The stock stack imports its schema with `acore/ac-wotlk-db-import`. That does
+not work for the playerbots lineage: 3kynox's branch carries its own chain of
+database updates, and applying it on top of a database built by upstream's
+importer fails. The schema has to come from the same tree as the worldserver
+that reads it.
+
+Built from the `db-import` stage of
+[`gameserver/Dockerfile`](https://github.com/KBVE/kbve/blob/main/apps/agones/tocloud9/gameserver/Dockerfile),
+sharing the AzerothCore compile with the worldserver rather than compiling the
+core twice. It versions separately because the two move for different reasons —
+the worldserver when the core or module moves, this when the SQL lineage does.
+
+## The clean-install patch
+
+Two migrations are removed at build time. Both re-key `petition_sign` onto
+`(petition_id, playerguid)` and then `DROP INDEX idx_petition_id_player` — but
+the base dump already ships the post-migration schema and never creates that
+index, so the statement always fails:
+
+```
+ERROR 1091 (42000): Can't DROP 'idx_petition_id_player'; check that column/key exists
+```
+
+They are duplicates of each other, left in `updates/` when the base was
+regenerated, and a clean install of that branch cannot get past them.
+Relocating them to `archive/` is not enough — `dbimport` replays `archive/` on
+a fresh setup too, which only moves the path in the error message. The removal
+is guarded so it becomes a no-op once upstream fixes it.
+
+## Scope
+
+This importer builds `acore_auth`, `acore_world` and `acore_characters` only.
+It never opens a playerbots pool, so the updater bitmask stays at `7`;
+`acore_playerbots` is created and migrated by `worldserver` at startup from
+the module's own SQL.

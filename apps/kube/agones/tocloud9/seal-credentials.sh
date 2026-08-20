@@ -57,6 +57,9 @@ kubectl create secret generic tocloud9-db \
     --from-literal="AC_LOGIN_DATABASE_INFO=mysql;3306;${DB_USER};${DB_PASS};acore_auth" \
     --from-literal="AC_CHARACTER_DATABASE_INFO=mysql;3306;${DB_USER};${DB_PASS};acore_characters" \
     --from-literal="AC_WORLD_DATABASE_INFO=mysql;3306;${DB_USER};${DB_PASS};acore_world" \
+    `# mod-playerbots keeps its own database. worldserver creates and` \
+    `# migrates it at startup, so nothing pre-creates acore_playerbots.` \
+    --from-literal="AC_PLAYERBOTS_DATABASE_INFO=mysql;3306;${DB_USER};${DB_PASS};acore_playerbots" \
     --dry-run=client -o yaml \
 | kubeseal \
     --controller-namespace="${CONTROLLER_NS}" \
