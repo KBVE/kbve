@@ -236,3 +236,66 @@ fn bench_two_arm_loop() {
     let each = start.elapsed().as_secs_f64() * 1000.0 / runs as f64;
     println!("two-arm loop: {each:.3} ms per solve (12 dof, 1 goal, 1 closure)");
 }
+
+/// Rotating a vector and rotating it back must land where it started; a transpose
+/// that is not the inverse turns a limb inside out and nothing else notices.
+#[test]
+fn a_rotation_undone_by_its_transpose_is_the_original() {
+    let basis = math::Mat3::from_axis_angle(math::normalize([0.3, 1.0, -0.2]), 0.7);
+    let v = [1.5, -2.0, 0.25];
+    let there = basis.rotate(v);
+    let back = basis.transpose().rotate(there);
+    for i in 0..3 {
+        assert!((back[i] - v[i]).abs() < EPS, "{back:?} != {v:?}");
+    }
+}
+
+#[test]
+fn a_rotation_keeps_the_length_it_was_given() {
+    let basis = math::Mat3::from_axis_angle([0.0, 1.0, 0.0], 1.2);
+    let v = [0.0, 3.0, 4.0];
+    assert!((math::length(basis.rotate(v)) - 5.0).abs() < EPS);
+}
+
+#[test]
+fn normalize_answers_a_unit_vector_and_never_divides_by_nothing() {
+    let n = math::normalize([0.0, 3.0, 4.0]);
+    assert!((math::length(n) - 1.0).abs() < EPS);
+    assert_eq!(math::normalize([0.0, 0.0, 0.0]), [0.0, 0.0, 1.0]);
+    assert_eq!(math::normalize([1e-12, 0.0, 0.0]), [0.0, 0.0, 1.0]);
+}
+
+#[test]
+fn scale_multiplies_every_component() {
+    assert_eq!(math::scale([1.0, -2.0, 0.5], 3.0), [3.0, -6.0, 1.5]);
+    assert_eq!(math::scale([1.0, -2.0, 0.5], 0.0), [0.0, 0.0, 0.0]);
+}
+
+/// The damped solve is what turns a desired foot position into joint angles, so a
+/// wrong answer here is a leg in the wrong place with nothing reporting an error.
+#[test]
+fn the_damped_solve_answers_the_system_it_was_given() {
+    let mut a = [4.0f32, 1.0, 1.0, 3.0];
+    let mut b = [1.0f32, 2.0];
+    assert!(math::solve_spd(&mut a, &mut b, 2, 0.0));
+    // 4x + y = 1, x + 3y = 2  ->  x = 1/11, y = 7/11
+    assert!((b[0] - 1.0 / 11.0).abs() < EPS, "{b:?}");
+    assert!((b[1] - 7.0 / 11.0).abs() < EPS, "{b:?}");
+}
+
+#[test]
+fn the_damped_solve_refuses_a_matrix_it_cannot_factor() {
+    let mut singular = [0.0f32, 0.0, 0.0, 0.0];
+    let mut b = [1.0f32, 1.0];
+    assert!(!math::solve_spd(&mut singular, &mut b, 2, 0.0));
+}
+
+/// Damping is the whole point of the "damped" solve: it is what keeps a singular
+/// configuration -- a fully straight leg -- from being unsolvable.
+#[test]
+fn damping_makes_a_singular_system_solvable() {
+    let mut singular = [0.0f32, 0.0, 0.0, 0.0];
+    let mut b = [1.0f32, 1.0];
+    assert!(math::solve_spd(&mut singular, &mut b, 2, 0.5));
+    assert!(b.iter().all(|v| v.is_finite()), "{b:?}");
+}
