@@ -88,6 +88,23 @@ pub fn next_backoff(current: f64) -> f64 {
     (current * 2.0).min(MAX_BACKOFF)
 }
 
+/// Spreads a wait across +/-25%, given a roll in `0.0..1.0`.
+///
+/// Every client climbs the same ladder from the same event, so without this a
+/// gateway restart is answered by the whole population reconnecting in step, at
+/// the moment it has least to spare.
+pub fn with_jitter(seconds: f64, roll: f64) -> f64 {
+    seconds * (0.75 + 0.5 * roll.clamp(0.0, 1.0))
+}
+
+/// A roll in `0.0..1.0` from the clock, which is enough to break a lockstep.
+fn roll() -> f64 {
+    let nanos = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map_or(0, |d| d.subsec_nanos() as u64);
+    (nanos % 1_000) as f64 / 1_000.0
+}
+
 #[derive(Clone, Debug)]
 pub struct ChatConfig {
     pub host: String,
@@ -255,13 +272,13 @@ fn run(
                             continue;
                         }
                         let _ = events.send(ChatEvent::Failed("chat.unreachable".into()));
-                        sleep_or_stop(backoff, &mut commands).await;
+                        sleep_or_stop(with_jitter(backoff, roll()), &mut commands).await;
                         backoff = next_backoff(backoff);
                     }
                     Disconnect::Dropped => {
                         handshake_failures = 0;
                         let _ = events.send(ChatEvent::Failed("chat.reconnecting".into()));
-                        sleep_or_stop(backoff, &mut commands).await;
+                        sleep_or_stop(with_jitter(backoff, roll()), &mut commands).await;
                         backoff = next_backoff(backoff);
                     }
                 },
@@ -415,6 +432,28 @@ mod tests {
         }
         assert_eq!(b, MAX_BACKOFF);
         assert_eq!(next_backoff(RECONNECT_SECONDS), 10.0);
+    }
+
+    #[test]
+    fn a_wait_is_spread_so_clients_do_not_return_in_step() {
+        assert_eq!(with_jitter(20.0, 0.0), 15.0);
+        assert_eq!(with_jitter(20.0, 1.0), 25.0);
+        assert_eq!(with_jitter(20.0, 0.5), 20.0);
+        for step in 0..=100 {
+            let spread = with_jitter(MAX_BACKOFF, step as f64 / 100.0);
+            assert!(
+                (MAX_BACKOFF * 0.75..=MAX_BACKOFF * 1.25).contains(&spread),
+                "{spread} left the band"
+            );
+        }
+    }
+
+    #[test]
+    fn the_clock_gives_a_roll_inside_the_band() {
+        for _ in 0..64 {
+            let r = roll();
+            assert!((0.0..1.0).contains(&r), "{r} is not a roll");
+        }
     }
 
     #[test]
