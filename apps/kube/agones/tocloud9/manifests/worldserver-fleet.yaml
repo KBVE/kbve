@@ -49,6 +49,14 @@ spec:
             # to be told which one the ports and health checks belong to, and
             # rejects the Fleet outright without it.
             container: worldserver
+            # Declared here because the SDK can only update a Counter that
+            # already exists -- set_counter_count on an undeclared name fails.
+            # agones-shim fills this from libsidecar's active_connections, so it
+            # tracks real gateway sessions rather than bots.
+            counters:
+                players:
+                    count: 0
+                    capacity: 1000
             ports:
                 - name: world
                   portPolicy: None
@@ -242,31 +250,26 @@ spec:
                                   drop:
                                       - ALL
                         - name: agones-bridge
-                          image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
+                          image: ghcr.io/kbve/agones-shim:0.0.2
                           imagePullPolicy: IfNotPresent
                           env:
-                              - name: AGONES_SDK_HTTP
-                                value: 'http://127.0.0.1:9358'
-                              - name: WORLD_PORT
-                                value: '8085'
-                          command: ['/bin/sh', '-c']
-                          args:
-                              - |
-                                  set -u
-                                  echo "waiting for worldserver to bind 127.0.0.1:${WORLD_PORT}"
-                                  until nc -z -w 2 127.0.0.1 "${WORLD_PORT}"; do sleep 5; done
-                                  echo "world socket is up, marking GameServer Ready"
-                                  wget -q -O- --post-data='{}' --header='Content-Type: application/json' \
-                                      "${AGONES_SDK_HTTP}/ready" >/dev/null
-                                  while true; do
-                                      if ! nc -z -w 2 127.0.0.1 "${WORLD_PORT}"; then
-                                          echo "world socket closed, stopping health beats"
-                                          exit 1
-                                      fi
-                                      wget -q -O- --post-data='{}' --header='Content-Type: application/json' \
-                                          "${AGONES_SDK_HTTP}/health" >/dev/null || true
-                                      sleep 5
-                                  done
+                            # An HTTP 200 here means libsidecar is up, which happens within
+                            # milliseconds of registration with servers-registry and well after
+                            # the world socket binds. That is 'registered and routable' -- a
+                            # stronger signal than the socket check this replaces, which marked
+                            # the server Ready while the gateway still could not route to it.
+                            - name: AGONES_SHIM_READY_HTTP
+                              value: 'http://127.0.0.1:8901/healthcheck'
+                            - name: AGONES_SHIM_LIVE_TCP
+                              value: '8085'
+                            # active_connections counts gateway sessions, so this is real players;
+                            # bots are server-side and never appear here.
+                            - name: AGONES_SHIM_COUNTER_NAME
+                              value: 'players'
+                            - name: AGONES_SHIM_COUNTER_METRICS_URL
+                              value: 'http://127.0.0.1:8901/metrics'
+                            - name: AGONES_SHIM_COUNTER_METRIC
+                              value: 'active_connections'
                           resources:
                               requests:
                                   cpu: '10m'
@@ -278,5 +281,4 @@ spec:
                               allowPrivilegeEscalation: false
                               readOnlyRootFilesystem: true
                               capabilities:
-                                  drop:
-                                      - ALL
+                                  drop: ['ALL']

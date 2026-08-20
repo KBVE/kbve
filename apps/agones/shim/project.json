@@ -1,0 +1,53 @@
+{
+	"name": "agones-shim",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/agones/shim/src",
+	"tags": ["scope:agones", "rust", "sidecar"],
+	"targets": {
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/agones/shim",
+				"command": "cargo build --release -p agones-shim"
+			}
+		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/agones/shim",
+				"command": "cargo test -p agones-shim"
+			}
+		},
+		"lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/agones/shim",
+				"command": "cargo clippy -p agones-shim -- -D warnings"
+			}
+		},
+		"container": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/agones/shim/Dockerfile",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/agones-shim:latest"]
+				},
+				"production": {
+					"push": true,
+					"tags": ["ghcr.io/kbve/agones-shim:latest"],
+					"cache-from": ["type=registry,ref=ghcr.io/kbve/agones-shim:buildcache"],
+					"cache-to": ["type=registry,ref=ghcr.io/kbve/agones-shim:buildcache,mode=max"]
+				}
+			}
+		}
+	}
+}

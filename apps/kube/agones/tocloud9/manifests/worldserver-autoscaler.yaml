@@ -1,0 +1,48 @@
+# Scale the worldserver fleet on real player load.
+#
+# The fleet was pinned at replicas: 2 because Agones had no idea how busy a
+# worldserver was. Nothing here is Allocated -- ToCloud9's own servers-registry
+# assigns maps and routes players, so the usual Buffer policy, which counts
+# Allocated GameServers, would sit at zero forever and never scale.
+#
+# The Counter policy works instead, because it scales on a number the game
+# server reports about itself. agones-shim publishes `players` from libsidecar's
+# active_connections, which counts gateway sessions -- real players. Bots are
+# server-side and never appear in it, so a fleet full of bots does not scale
+# itself up chasing its own tail.
+apiVersion: autoscaling.agones.dev/v1
+kind: FleetAutoscaler
+metadata:
+    name: tocloud9-worldserver-autoscaler
+    namespace: tocloud9
+    labels:
+        app: tocloud9-worldserver
+        app.kubernetes.io/part-of: tocloud9
+    annotations:
+        # After the fleet itself (wave 2), so the autoscaler never targets a
+        # fleet that does not exist yet.
+        argocd.argoproj.io/sync-wave: '3'
+spec:
+    fleetName: tocloud9-worldserver
+    policy:
+        type: Counter
+        counter:
+            key: players
+            # Keep room for this many more players across the fleet. A
+            # worldserver takes a long time to come up -- map grid preload runs
+            # into minutes -- so the buffer has to cover the players who arrive
+            # during that window, not just the ones already here.
+            bufferSize: 100
+            # Two is the floor the stack needs: map layering assigns overlapping
+            # sets across shards, and dropping to one removes the redundancy the
+            # registry relies on when a worldserver dies.
+            minCapacity: 2000
+            maxCapacity: 8000
+    sync:
+        type: FixedInterval
+        fixedInterval:
+            # Slower than the default 30s on purpose. Scaling up costs a full
+            # grid preload, and reacting to a brief spike would spend minutes of
+            # CPU on a worldserver that is no longer needed by the time it is
+            # ready.
+            seconds: 60

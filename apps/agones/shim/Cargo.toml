@@ -1,0 +1,21 @@
+[package]
+name = "agones-shim"
+version = "0.0.0"
+edition = "2021"
+license = "MIT"
+description = "Agones lifecycle sidecar for game servers that have no Agones SDK integration of their own."
+publish = false
+
+[dependencies]
+# Workspace dep, already used by apps/mc/mc_auth. The lock resolves to 1.58.0,
+# which matches the controller in apps/kube/agones/application.yaml.
+agones = { workspace = true }
+tokio = { workspace = true, features = ["macros", "rt-multi-thread", "signal", "time", "net"] }
+reqwest = { workspace = true, default-features = false, features = ["rustls"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["env-filter", "fmt", "std"] }
+anyhow = { workspace = true }
+
+[[bin]]
+name = "agones-shim"
+path = "src/main.rs"
