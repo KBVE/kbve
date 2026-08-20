@@ -54,7 +54,9 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: servers-registry
-                  image: ghcr.io/walkline/servers-registry:master@sha256:6346cbf8a3281d36cf9fd8b1a42d83cdcf17b554a0b179f0a24d07abef622907
+                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
+                  # One image carries every ToCloud9 service; pick this one.
+                  command: ["/app/servers-registry"]
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PORT
@@ -126,7 +128,9 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: charserver
-                  image: ghcr.io/walkline/charserver:master@sha256:73c74de6c7e64c5c4fb660872988b85ee18e41f6827812eb8068366d5acaf836
+                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
+                  # One image carries every ToCloud9 service; pick this one.
+                  command: ["/app/charserver"]
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PORT
@@ -206,7 +210,9 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: chatserver
-                  image: ghcr.io/walkline/chatserver:master@sha256:af5dd75530495d72fdb12aa5e95b2235615ebf2ac30f7f461fcec34b7d4d707c
+                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
+                  # One image carries every ToCloud9 service; pick this one.
+                  command: ["/app/chatserver"]
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PORT
@@ -283,7 +289,9 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: guildserver
-                  image: ghcr.io/walkline/guildserver:master@sha256:b4cb8c592e44b4b7dcb6f221e34af6340cb72fea02dd0fcea60c2cb056aec3e6
+                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
+                  # One image carries every ToCloud9 service; pick this one.
+                  command: ["/app/guildserver"]
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PORT
@@ -359,7 +367,9 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: guidserver
-                  image: ghcr.io/walkline/guidserver:master@sha256:47da52ae1326a3832ef86daf21a64ccc515aeb72dce87408af315ed69366b318
+                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
+                  # One image carries every ToCloud9 service; pick this one.
+                  command: ["/app/guidserver"]
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PORT
@@ -434,7 +444,9 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: mailserver
-                  image: ghcr.io/walkline/mailserver:master@sha256:e392a04e3838c6c6da43ed66e242337978a7bdf58dae2cc8e71a09aab283dbec
+                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
+                  # One image carries every ToCloud9 service; pick this one.
+                  command: ["/app/mailserver"]
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PORT
@@ -509,7 +521,9 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: auctionhouse
-                  image: ghcr.io/walkline/auctionhouse:master@sha256:1fdd4e1ab8332076cbdaf6350df205fa3cb56247f4671a85bfdce64502499999
+                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
+                  # One image carries every ToCloud9 service; pick this one.
+                  command: ["/app/auctionhouse"]
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PORT
@@ -593,7 +607,9 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: groupserver
-                  image: ghcr.io/walkline/groupserver:master@sha256:972ff25acd77283a82438a99460b130447f27e6c5580bde0a73c076b747485ec
+                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
+                  # One image carries every ToCloud9 service; pick this one.
+                  command: ["/app/groupserver"]
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PORT
@@ -668,7 +684,9 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: matchmakingserver
-                  image: ghcr.io/walkline/matchmakingserver:master@sha256:e239aeb697d6d44c14d5b28e4499b8bbd6baf289bcde43bf8bbe0fba2d2cb865
+                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
+                  # One image carries every ToCloud9 service; pick this one.
+                  command: ["/app/matchmakingserver"]
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PORT

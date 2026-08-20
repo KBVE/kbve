@@ -1,0 +1,90 @@
+---
+title: ToCloud9 Gameserver — Clustered AzerothCore with Playerbots
+description: AzerothCore worldserver built from 3kynox's integration of mod-playerbots with ToCloud9 cluster mode, carrying libsidecar for NATS and gRPC so bots run on a sharded world.
+sem: 1
+sidebar:
+    label: ToCloud9 Gameserver
+    order: 462
+tags:
+    - agones
+    - tocloud9
+    - azerothcore
+    - playerbots
+    - gameserver
+    - docker
+key: tocloud9_gameserver
+pipeline: docker
+app_name: tocloud9-gameserver
+version: "0.0.2"
+source_path: apps/agones/tocloud9/gameserver
+version_toml: apps/agones/tocloud9/gameserver/version.toml
+runner: ubuntu-latest
+image: kbve/tocloud9-gameserver-playerbots
+nx_project: agones-tocloud9
+target: container-gameserver
+deployment_yaml: apps/kube/agones/tocloud9/manifests/worldserver-fleet.yaml
+has_test: false
+author: h0lybyte
+license: KBVE
+status: active
+kube:
+    stack: agones
+    environment: prod
+    tier: server
+    owner: h0lybyte
+    criticality: high
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+---
+
+## What this image is
+
+The AzerothCore `worldserver` for the ToCloud9 cluster, with `mod-playerbots`
+compiled in. No published image carries both, so this one is built from
+[3kynox's three-repo integration](https://github.com/3kynox/azerothcore-wotlk):
+
+| Piece | Source | Pin |
+| --- | --- | --- |
+| Core | `3kynox/azerothcore-wotlk` | `35a34b6a` |
+| Module | `3kynox/mod-playerbots` | `d9c80b3b` |
+| libsidecar | `3kynox/ToCloud9` | `f8784657` |
+
+All three are pinned by commit SHA rather than branch. They are personal
+integration branches that get rebased and deleted as work lands upstream, so a
+branch ref would silently change what gets built — or vanish.
+
+## Why a fork of a fork
+
+Putting `mod-playerbots` and a cluster-mode core in the same tree does not
+produce working bots. Upstream `mod-playerbots` targets a standalone
+worldserver by design; making bots cluster-aware — per-shard bot pool
+partitioning, cross-shard handoff, group invite accept, follow-when-grouped —
+is roughly eighty commits of module work plus matching core changes. That is
+what these branches carry.
+
+Two couplings are load-bearing and must move together:
+
+- The module sits on `feature/new_rpg_and_nav_5_bash`, and the core carries the
+  matching mmaps changes from PR #204. Bumping one ref without the other breaks
+  navigation.
+- The mmaps generator version is a property of the **core**, not the data. This
+  core expects generator **v20**; the stock `gameserver-ac` image expects v19.
+  Deploying this image requires flipping the client-data job to v20 in the same
+  change, or every tile is rejected and nothing moves.
+
+## Operational notes
+
+`PreloadAllNonInstancedMapGrids` is required by the module — bots operate on
+grids no real player has activated. It costs a lot of memory and a much slower
+start: a single worldserver with twenty bots measured **6.35 GiB**, which is
+why the Fleet is sized well above the stock limit and its health timings are
+loosened.
+
+`acore_playerbots` is created and migrated by `worldserver` at startup, not by
+`dbimport`, and it reads that SQL from the image at runtime. The module config
+must be mounted at `etc/modules/playerbots.conf`; AzerothCore silently ignores
+a module conf placed in `etc/` and falls back to compiled-in defaults.

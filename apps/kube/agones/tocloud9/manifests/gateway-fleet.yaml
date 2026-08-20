@@ -78,7 +78,9 @@ spec:
                             type: RuntimeDefault
                     containers:
                         - name: gateway
-                          image: ghcr.io/walkline/gateway:master@sha256:99d11dbf36b0859b290b2cdeaa53242a53faadd718a27bd5813b93d712f25055
+                          image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
+                          # One image carries every ToCloud9 service; pick this one.
+                          command: ["/app/gateway"]
                           imagePullPolicy: IfNotPresent
                           env:
                               - name: PORT

@@ -3,7 +3,11 @@
 	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "application",
 	"sourceRoot": "apps/agones/tocloud9",
-	"tags": ["scope:agones", "tocloud9", "game"],
+	"tags": [
+		"scope:agones",
+		"tocloud9",
+		"game"
+	],
 	"targets": {
 		"env": {
 			"executor": "nx:run-commands",
@@ -14,7 +18,9 @@
 		},
 		"setup": {
 			"executor": "nx:run-commands",
-			"dependsOn": ["env"],
+			"dependsOn": [
+				"env"
+			],
 			"options": {
 				"cwd": "apps/agones/tocloud9",
 				"parallel": false,
@@ -27,7 +33,9 @@
 		},
 		"up": {
 			"executor": "nx:run-commands",
-			"dependsOn": ["env"],
+			"dependsOn": [
+				"env"
+			],
 			"options": {
 				"cwd": "apps/agones/tocloud9",
 				"command": "docker compose --profile ac up -d"
@@ -35,7 +43,9 @@
 		},
 		"dev": {
 			"executor": "nx:run-commands",
-			"dependsOn": ["env"],
+			"dependsOn": [
+				"env"
+			],
 			"options": {
 				"cwd": "apps/agones/tocloud9",
 				"command": "trap 'docker compose --profile ac down' EXIT INT TERM; docker compose --profile ac up"
@@ -79,7 +89,9 @@
 		"playerbots:build": {
 			"executor": "nx:run-commands",
 			"cache": false,
-			"dependsOn": ["env"],
+			"dependsOn": [
+				"env"
+			],
 			"options": {
 				"cwd": "apps/agones/tocloud9",
 				"parallel": false,
@@ -91,7 +103,9 @@
 		},
 		"playerbots:setup": {
 			"executor": "nx:run-commands",
-			"dependsOn": ["playerbots:build"],
+			"dependsOn": [
+				"playerbots:build"
+			],
 			"options": {
 				"cwd": "apps/agones/tocloud9",
 				"parallel": false,
@@ -103,7 +117,9 @@
 		},
 		"playerbots:up": {
 			"executor": "nx:run-commands",
-			"dependsOn": ["env"],
+			"dependsOn": [
+				"env"
+			],
 			"options": {
 				"cwd": "apps/agones/tocloud9",
 				"command": "docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile ac up -d"
@@ -133,6 +149,101 @@
 					"echo 'Waiting for a worldserver to register with servers-registry (<=600s; AzerothCore map loading is slow)...' && for i in $(seq 1 600); do if [ -n \"$(docker compose --profile ac exec -T redis redis-cli --raw KEYS 'ws:*' 2>/dev/null | tr -d '[:space:]')\" ]; then echo \"worldserver registered after ${i}s\"; break; fi; if [ $(( i % 30 )) -eq 0 ]; then echo \"--- [${i}s] still waiting ---\"; docker compose --profile ac logs --tail=5 gameserver-ac 2>&1 | sed 's/^/  | /'; fi; if [ $i -eq 600 ]; then echo 'FAIL: no worldserver registered in 600s'; docker compose --profile ac logs --tail=80 gameserver-ac servers-registry 2>&1 | sed 's/^/  | /'; exit 1; fi; sleep 1; done",
 					"npx vitest run"
 				]
+			}
+		},
+		"container-gameserver": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/agones/tocloud9/gameserver/Dockerfile",
+				"load": true,
+				"target": "gameserver"
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": [
+						"kbve/tocloud9-gameserver-playerbots:latest"
+					]
+				},
+				"production": {
+					"push": true,
+					"tags": [
+						"ghcr.io/kbve/tocloud9-gameserver-playerbots:latest"
+					],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/tocloud9-gameserver-playerbots:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/tocloud9-gameserver-playerbots:buildcache,mode=max"
+					]
+				}
+			}
+		},
+		"container-db-import": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/agones/tocloud9/gameserver/Dockerfile",
+				"load": true,
+				"target": "db-import"
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": [
+						"kbve/tocloud9-db-import-playerbots:latest"
+					]
+				},
+				"production": {
+					"push": true,
+					"tags": [
+						"ghcr.io/kbve/tocloud9-db-import-playerbots:latest"
+					],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/tocloud9-db-import-playerbots:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/tocloud9-db-import-playerbots:buildcache,mode=max"
+					]
+				}
+			}
+		},
+		"container-services": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/agones/tocloud9/services/Dockerfile",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": [
+						"kbve/tocloud9-services-playerbots:latest"
+					]
+				},
+				"production": {
+					"push": true,
+					"tags": [
+						"ghcr.io/kbve/tocloud9-services-playerbots:latest"
+					],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/tocloud9-services-playerbots:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/tocloud9-services-playerbots:buildcache,mode=max"
+					]
+				}
 			}
 		}
 	}

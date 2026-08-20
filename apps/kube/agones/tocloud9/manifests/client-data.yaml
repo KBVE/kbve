@@ -56,9 +56,17 @@ spec:
                   image: python:3.12-slim@sha256:2c941e860699f878900b0edc2403613c234d4b32eda3cc9fa7036991a2a63c4a
                   env:
                       - name: CLIENT_DATA_URL
-                        value: 'https://github.com/wowgaming/client-data/releases/download/v19/Data.zip'
+                        # v20, not v19: the mmaps generator version is a property of the
+                        # CORE binary. The playerbots worldserver carries the nav5
+                        # mmaps changes and expects v20; v19 tiles are rejected
+                        # per-tile and creatures lose their navmesh. This must move
+                        # in lockstep with the worldserver image.
+                        value: 'https://github.com/wowgaming/client-data/releases/download/v20.0/Data.zip'
                       - name: WORLDSERVER_CONF_URL
-                        value: 'https://raw.githubusercontent.com/walkline/azerothcore-wotlk/cluster-mode/src/server/apps/worldserver/worldserver.conf.dist'
+                        # Pinned to the same core the worldserver image is built from.
+                        # walkline's cluster-mode branch is a different core, and this
+                        # file is mounted over the image's own worldserver.conf.
+                        value: 'https://raw.githubusercontent.com/3kynox/azerothcore-wotlk/35a34b6aaf1cd662c8ac164532a0d8ff1cbbf0cb/src/server/apps/worldserver/worldserver.conf.dist'
                   command: ['/bin/sh', '-c']
                   args:
                       - |
