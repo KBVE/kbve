@@ -82,6 +82,25 @@ spec:
                             secretKeyRef:
                                 name: supabase-shared
                                 key: jwt-secret
+                      # The staff check is a PostgREST RPC, and the schema it asks
+                      # for arrives as Accept-Profile. Unset, StaffAuth defaults to
+                      # "forum", where no is_staff exists — PostgREST 404s, the gate
+                      # reports AuthError::Upstream, and the dashboard shows a 502
+                      # that reads like ClickHouse is broken when nothing has
+                      # touched ClickHouse yet. The function is authz.is_staff.
+                      - name: METRICS_STAFF_SCHEMA
+                        value: authz
+                      - name: METRICS_STAFF_RPC
+                        value: is_staff
+                      # Without this the gate falls back to sending the caller's own
+                      # bearer as the apikey, which works only for as long as
+                      # PostgREST is lenient about it. Same secret and key every
+                      # other gate consumer uses.
+                      - name: SUPABASE_ANON_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: anon-key
                   livenessProbe:
                       httpGet:
                           path: /health
