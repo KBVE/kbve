@@ -19,6 +19,7 @@ var _percent: Label
 
 
 static func swap(tree: SceneTree, path: String, what: String = "") -> LoadingScreen:
+	Telemetry.set_scene(path)
 	var screen := LoadingScreen.new()
 	screen.name = "LoadingScreen"
 	screen._build()
@@ -101,7 +102,7 @@ func _run(tree: SceneTree, path: String, what: String) -> void:
 
 	var err := ResourceLoader.load_threaded_request(path, "PackedScene")
 	if err != OK:
-		push_error("[LoadingScreen] cannot request %s (%d); loading it blocking" % [path, err])
+		Telemetry.error("scene_load", "cannot request %s (%d)" % [path, err])
 		tree.change_scene_to_file(path)
 		queue_free()
 		return
@@ -115,7 +116,7 @@ func _run(tree: SceneTree, path: String, what: String) -> void:
 			continue
 		if status == ResourceLoader.THREAD_LOAD_LOADED:
 			break
-		push_error("[LoadingScreen] load of %s failed (status %d)" % [path, status])
+		Telemetry.error("scene_load", "load of %s failed (status %d)" % [path, status])
 		tree.change_scene_to_file(path)
 		queue_free()
 		return
@@ -123,7 +124,7 @@ func _run(tree: SceneTree, path: String, what: String) -> void:
 	_set_progress(1.0)
 	var packed := ResourceLoader.load_threaded_get(path) as PackedScene
 	if packed == null:
-		push_error("[LoadingScreen] %s did not load as a PackedScene" % path)
+		Telemetry.error("scene_load", "%s did not load as a PackedScene" % path)
 		tree.change_scene_to_file(path)
 		queue_free()
 		return

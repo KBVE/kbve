@@ -62,7 +62,7 @@ func _ready() -> void:
 	rig.rotate_y(deg_to_rad(facing_offset_deg))
 	skeleton = _find_skeleton(rig)
 	if skeleton == null:
-		push_error("creature_rig: no Skeleton3D in %s" % body.resource_path)
+		Telemetry.error("rig_missing", "no Skeleton3D in %s" % body.resource_path)
 		return
 	for child in skeleton.get_children():
 		if child is MeshInstance3D:
@@ -74,7 +74,7 @@ func _ready() -> void:
 		_build_nameplate()
 	animation = _find_player(rig)
 	if animation == null:
-		push_error("creature_rig: no AnimationPlayer in %s" % body.resource_path)
+		Telemetry.error("rig_missing", "no AnimationPlayer in %s" % body.resource_path)
 		return
 	_mark_loops()
 	_build_tree(rig)

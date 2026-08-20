@@ -6,7 +6,10 @@ extends Node
 ## to a no-op rather than a crash when the extension failed to load, which is
 ## exactly the situation you most want the rest of the game to survive.
 
+signal reported(error_type: String, message: String)
+
 var _manager: Node
+var _scene := ""
 
 
 func _ready() -> void:
@@ -24,6 +27,7 @@ func is_active() -> bool:
 
 ## An error the game saw coming and dealt with.
 func report(error_type: String, message: String, stack: String = "") -> void:
+	reported.emit(error_type, message)
 	if _manager == null:
 		return
 	_manager.report(error_type, message, _stack_or_current(stack))
@@ -31,6 +35,7 @@ func report(error_type: String, message: String, stack: String = "") -> void:
 
 ## An error nothing handled. Same pipe, flagged so the dashboard can tell them apart.
 func report_unhandled(error_type: String, message: String, stack: String = "") -> void:
+	reported.emit(error_type, message)
 	if _manager == null:
 		return
 	_manager.report_unhandled(error_type, message, _stack_or_current(stack))
@@ -47,9 +52,15 @@ func error(error_type: String, message: String) -> void:
 ## dashboard, not part of the grouping, so moving between scenes never splits an
 ## existing error group.
 func set_scene(scene: String) -> void:
+	_scene = scene
 	if _manager == null:
 		return
 	_manager.set_scene(scene)
+
+
+## Which scene reports are being filtered under.
+func current_scene() -> String:
+	return _scene
 
 
 func set_enabled(enabled: bool) -> void:
