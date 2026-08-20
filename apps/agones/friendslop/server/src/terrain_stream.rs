@@ -122,6 +122,7 @@ impl TerrainStreamer {
             slabs.extend(plan.ramp_skirt_slabs(&hgen));
             slabs.extend(plan.ramp_rail_slabs(&hgen));
             slabs.extend(plan.abutment_slabs(&hgen));
+            slabs.extend(plan.ramp_post_slabs(&hgen));
         }
         Self {
             cfg,

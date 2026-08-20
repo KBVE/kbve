@@ -1,4 +1,4 @@
-[gd_scene load_steps=58 format=3]
+[gd_scene load_steps=59 format=3]
 
 [ext_resource type="Script" path="res://src/net/online_world.gd" id="1_world"]
 [ext_resource type="Material" path="res://assets/biomes/grassland/grass/ground.tres" id="2_ground"]
@@ -54,6 +54,7 @@
 [ext_resource type="PackedScene" path="res://src/npc/roles/dockhand.tscn" id="61_dockhand"]
 [ext_resource type="PackedScene" path="res://src/npc/roles/harbourmaster.tscn" id="62_harbour"]
 [ext_resource type="Script" uid="uid://dg7a15i7lvse" path="res://src/ui/pause_menu.gd" id="63_pause"]
+[ext_resource type="Script" uid="uid://5l8dug2w8af2" path="res://src/debug/debug_hud.gd" id="99_hud"]
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_ground"]
 size = Vector2(1024, 1024)
@@ -342,3 +343,6 @@ script = ExtResource("15_gfx")
 
 [node name="GameplaySettings" type="Node" parent="."]
 script = ExtResource("16_play")
+
+[node name="DebugHud" type="CanvasLayer" parent="."]
+script = ExtResource("99_hud")

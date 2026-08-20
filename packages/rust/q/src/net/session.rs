@@ -514,6 +514,13 @@ struct Chop {
     accum: f32,
 }
 
+/// Room left between a spawned body and any prop it would otherwise be standing in.
+const SPAWN_CLEARANCE: f32 = 0.8;
+
+/// How far under the surface a body has to be before the host decides it is inside
+/// the ground rather than merely standing on a slope the sampler reads generously.
+const BURIED_SLACK: f32 = 3.0;
+
 pub struct HostSession<T: Transport> {
     transport: T,
     world: SimWorld,
@@ -527,6 +534,8 @@ pub struct HostSession<T: Transport> {
     authority: Option<Arc<dyn TokenAuthority>>,
     ground: Option<GroundSampler>,
     bridge: Option<crate::worldgen::BridgeFootprint>,
+    /// Flat `x, z, radius` triples for the props standing right now.
+    obstacles: Vec<f32>,
     /// Seconds simulated. The clock: the hour is derived from it rather than kept
     /// alongside it, so there is nothing for the two to disagree about.
     elapsed: f64,
@@ -578,6 +587,7 @@ impl<T: Transport> HostSession<T> {
             authority: None,
             ground: None,
             bridge: None,
+            obstacles: Vec::new(),
             stone_ledger: Ledger::new(),
             tree_ledger: Ledger::new(),
             contributors: HashMap::new(),
@@ -610,7 +620,20 @@ impl<T: Transport> HostSession<T> {
     /// triples. Changing them restamps every field, so this is cheap to call with
     /// the same set and expensive to churn.
     pub fn set_pet_obstacles(&mut self, discs: Vec<f32>) {
+        // Kept as well as forwarded, for the same reason the bridge is: a spawn
+        // point that only checks water and the deck is free to put a player
+        // inside a boulder.
+        self.obstacles = discs.clone();
         self.pet_fields.set_obstacles(discs);
+    }
+
+    /// True where a prop stands, with room for the body that would be put there.
+    fn blocked(&self, x: f32, z: f32) -> bool {
+        self.obstacles.chunks_exact(3).any(|disc| {
+            let clearance = disc[2] + SPAWN_CLEARANCE;
+            let (dx, dz) = (x - disc[0], z - disc[1]);
+            dx * dx + dz * dz < clearance * clearance
+        })
     }
 
     /// Tells the pet fields where the crossing is, so a route may take it rather
@@ -674,7 +697,8 @@ impl<T: Transport> HostSession<T> {
             let on_bridge = self
                 .bridge
                 .as_ref()
-                .is_some_and(|bridge| bridge.covers([x, z]));
+                .is_some_and(|bridge| bridge.covers([x, z]))
+                || self.blocked(x, z);
             let Some(sample) = self.ground.as_ref() else {
                 if on_bridge {
                     continue;
@@ -1367,6 +1391,35 @@ impl<T: Transport> HostSession<T> {
             });
             if let Some(player) = self.players.get_mut(&peer) {
                 player.vel_y = 0.0;
+            }
+        }
+
+        // Buried rather than lost: above the void floor, under the ground. The solo
+        // player has been put back on the surface for this since it could happen at
+        // all, but online nothing did, so a body that ended up inside a hill stayed
+        // there until it had fallen far enough to count as out of the world. Lifted
+        // where it stands, because a spawn teleport for a metre of sinking is a
+        // bigger interruption than the sinking.
+        if let Some(ground) = self.ground.clone() {
+            let buried: Vec<(PeerId, Iso)> = self
+                .players
+                .keys()
+                .filter_map(|peer| {
+                    let body = snapshot.body(player_body(*peer))?;
+                    let [x, y, z] = body.iso.pos;
+                    let h = ground(x, z);
+                    (h.is_finite() && y >= self.config.void_y && y < h - BURIED_SLACK)
+                        .then(|| (*peer, Iso::at(x, h + 1.0, z)))
+                })
+                .collect();
+            for (peer, iso) in buried {
+                self.world.apply(SimCommand::SetKinematicTarget {
+                    id: player_body(peer),
+                    iso,
+                });
+                if let Some(player) = self.players.get_mut(&peer) {
+                    player.vel_y = 0.0;
+                }
             }
         }
 
@@ -2929,6 +2982,55 @@ mod tests {
     /// hundred seeds out of five hundred -- the river wanders sixty-odd metres
     /// either side of the world's middle and the spawn disc is twelve, so the
     /// plain spiral stood somebody in the riverbed on essentially every world.
+    /// The bridge was ruled out of spawn placement because a player could be put
+    /// inside it. Rocks are the same shape of problem: the ground under one is dry
+    /// and at a perfectly reasonable height, so every earlier test passed while a
+    /// player stood in the middle of a boulder.
+    #[test]
+    fn nobody_is_spawned_inside_a_rock() {
+        use crate::worldgen::{HeightGen, HeightParams, StoneScatter};
+        for seed in 0..40 {
+            let sampler = HeightGen::new(&HeightParams {
+                seed,
+                ..Default::default()
+            });
+            let scatter = StoneScatter {
+                seed,
+                ..StoneScatter::default()
+            };
+            let water = HeightParams::default().water_level;
+            let mut discs: Vec<f32> = Vec::new();
+            for stone in scatter.place(&sampler, None, [0.0, 0.0], 48.0, water) {
+                discs.extend_from_slice(&[stone.pos[0], stone.pos[1], stone.radius]);
+            }
+            if discs.is_empty() {
+                continue;
+            }
+
+            let mesh = Loopback::mesh(2);
+            let mut host = HostSession::dedicated(
+                mesh[0].clone(),
+                SessionConfig::default(),
+                SimConfig::default(),
+                seed as u64,
+            )
+            .with_ground(Arc::new(move |x, z| sampler.height(x, z)));
+            host.set_pet_obstacles(discs.clone());
+
+            for slot in 0..host.config.max_players as u32 {
+                let p = host.spawn_point(slot);
+                for disc in discs.chunks_exact(3) {
+                    let (dx, dz) = (p.pos[0] - disc[0], p.pos[2] - disc[1]);
+                    assert!(
+                        dx * dx + dz * dz >= disc[2] * disc[2],
+                        "seed {seed} slot {slot} spawned inside a rock at {:?}",
+                        p.pos
+                    );
+                }
+            }
+        }
+    }
+
     #[test]
     fn every_seed_spawns_every_slot_on_dry_ground() {
         use crate::worldgen::{HeightGen, HeightParams};
@@ -3001,6 +3103,49 @@ mod tests {
                 seen.push(a.pos);
             }
         }
+    }
+
+    /// Above the void floor and under the ground is a state the host had no answer
+    /// for: the solo player is lifted the moment they are under the surface, but
+    /// online a buried body stayed buried until it had fallen far enough to count as
+    /// out of the world. Lifted where it stands, not sent back to spawn.
+    #[test]
+    fn a_buried_player_is_lifted_where_they_stand() {
+        let ground = 7.5_f32;
+        let mesh = Loopback::mesh(2);
+        let mut host = HostSession::new(
+            mesh[0].clone(),
+            SessionConfig::default(),
+            SimConfig::default(),
+            42,
+        )
+        .with_ground(Arc::new(move |_, _| ground));
+        host.set_terrain(flat_terrain());
+        let mut client = ClientSession::connect(mesh[1].clone());
+        run(&mut host, &mut client, 2);
+        let peer = client.peer().expect("joined");
+        host.world_mut().apply(SimCommand::SetKinematicTarget {
+            id: player_body(peer),
+            iso: Iso::at(12.0, ground - 40.0, -9.0),
+        });
+        run(&mut host, &mut client, 6);
+
+        let iso = host
+            .world_mut()
+            .snapshot()
+            .body(player_body(peer))
+            .expect("body")
+            .iso;
+        assert!(
+            iso.pos[1] >= ground,
+            "still buried at {:?}, ground is {ground}",
+            iso.pos
+        );
+        assert!(
+            (iso.pos[0] - 12.0).abs() < 1.0 && (iso.pos[2] + 9.0).abs() < 1.0,
+            "lifted, but carried off to {:?} instead of standing up where it was",
+            iso.pos
+        );
     }
 
     #[test]
