@@ -3,11 +3,7 @@
 	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "application",
 	"sourceRoot": "apps/agones/tocloud9",
-	"tags": [
-		"scope:agones",
-		"tocloud9",
-		"game"
-	],
+	"tags": ["scope:agones", "tocloud9", "game"],
 	"targets": {
 		"env": {
 			"executor": "nx:run-commands",
@@ -18,9 +14,7 @@
 		},
 		"setup": {
 			"executor": "nx:run-commands",
-			"dependsOn": [
-				"env"
-			],
+			"dependsOn": ["env"],
 			"options": {
 				"cwd": "apps/agones/tocloud9",
 				"parallel": false,
@@ -33,9 +27,7 @@
 		},
 		"up": {
 			"executor": "nx:run-commands",
-			"dependsOn": [
-				"env"
-			],
+			"dependsOn": ["env"],
 			"options": {
 				"cwd": "apps/agones/tocloud9",
 				"command": "docker compose --profile ac up -d"
@@ -43,9 +35,7 @@
 		},
 		"dev": {
 			"executor": "nx:run-commands",
-			"dependsOn": [
-				"env"
-			],
+			"dependsOn": ["env"],
 			"options": {
 				"cwd": "apps/agones/tocloud9",
 				"command": "trap 'docker compose --profile ac down' EXIT INT TERM; docker compose --profile ac up"
@@ -89,9 +79,7 @@
 		"playerbots:build": {
 			"executor": "nx:run-commands",
 			"cache": false,
-			"dependsOn": [
-				"env"
-			],
+			"dependsOn": ["env"],
 			"options": {
 				"cwd": "apps/agones/tocloud9",
 				"parallel": false,
@@ -103,9 +91,7 @@
 		},
 		"playerbots:setup": {
 			"executor": "nx:run-commands",
-			"dependsOn": [
-				"playerbots:build"
-			],
+			"dependsOn": ["playerbots:build"],
 			"options": {
 				"cwd": "apps/agones/tocloud9",
 				"parallel": false,
@@ -117,9 +103,7 @@
 		},
 		"playerbots:up": {
 			"executor": "nx:run-commands",
-			"dependsOn": [
-				"env"
-			],
+			"dependsOn": ["env"],
 			"options": {
 				"cwd": "apps/agones/tocloud9",
 				"command": "docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile ac up -d"
@@ -159,15 +143,14 @@
 				"context": ".",
 				"file": "apps/agones/tocloud9/gameserver/Dockerfile",
 				"load": true,
-				"target": "gameserver"
+				"target": "gameserver",
+				"build-contexts": ["modules=apps/agones/tocloud9/modules"]
 			},
 			"configurations": {
 				"local": {
 					"load": true,
 					"push": false,
-					"tags": [
-						"kbve/tocloud9-gameserver-playerbots:latest"
-					]
+					"tags": ["kbve/tocloud9-gameserver-playerbots:latest"]
 				},
 				"production": {
 					"push": true,
@@ -191,15 +174,14 @@
 				"context": ".",
 				"file": "apps/agones/tocloud9/gameserver/Dockerfile",
 				"load": true,
-				"target": "db-import"
+				"target": "db-import",
+				"build-contexts": ["modules=apps/agones/tocloud9/modules"]
 			},
 			"configurations": {
 				"local": {
 					"load": true,
 					"push": false,
-					"tags": [
-						"kbve/tocloud9-db-import-playerbots:latest"
-					]
+					"tags": ["kbve/tocloud9-db-import-playerbots:latest"]
 				},
 				"production": {
 					"push": true,
@@ -228,9 +210,7 @@
 				"local": {
 					"load": true,
 					"push": false,
-					"tags": [
-						"kbve/tocloud9-services-playerbots:latest"
-					]
+					"tags": ["kbve/tocloud9-services-playerbots:latest"]
 				},
 				"production": {
 					"push": true,
