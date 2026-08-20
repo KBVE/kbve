@@ -427,9 +427,9 @@ dependencies = [
 
 [[package]]
 name = "agones"
-version = "1.59.0"
+version = "1.58.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ee179ef6eda87782f5d85fd157d5f470272ccb17635cb393150bc23cf2d86d3d"
+checksum = "59c286e5b5f350248a65665d42e6ab38392d9a9a5315422f40b75df61e282816"
 dependencies = [
  "async-stream",
  "http 1.4.2",
@@ -482,6 +482,18 @@ dependencies = [
  "tracing-subscriber",
  "uuid",
  "webpki-roots 1.0.9",
+]
+
+[[package]]
+name = "agones-shim"
+version = "0.0.0"
+dependencies = [
+ "agones",
+ "anyhow",
+ "reqwest 0.13.4",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

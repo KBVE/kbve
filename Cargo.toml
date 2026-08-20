@@ -13,6 +13,7 @@ members = [
 'apps/herbmail/axum-herbmail',
 	'apps/memes/axum-memes',
 	'apps/irc/irc-gateway',
+	'apps/agones/shim',
 	'apps/discordsh/axum-discordsh',
 	'apps/discordsh/discordsh-bot',
 	'apps/kbve/axum-kbve',

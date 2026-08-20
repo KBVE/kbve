@@ -147,29 +147,11 @@ spec:
                                   drop:
                                       - ALL
                         - name: agones-bridge
-                          image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
+                          image: ghcr.io/kbve/agones-shim:0.0.2
                           imagePullPolicy: IfNotPresent
                           env:
-                              - name: AGONES_SDK_HTTP
-                                value: 'http://127.0.0.1:9358'
-                              - name: WATCH_PORT
-                                value: '8085'
-                          command: ['/bin/sh', '-c']
-                          args:
-                              - |
-                                  set -u
-                                  until nc -z -w 2 127.0.0.1 "${WATCH_PORT}"; do sleep 2; done
-                                  wget -q -O- --post-data='{}' --header='Content-Type: application/json' \
-                                      "${AGONES_SDK_HTTP}/ready" >/dev/null
-                                  while true; do
-                                      if ! nc -z -w 2 127.0.0.1 "${WATCH_PORT}"; then
-                                          echo "listener closed, stopping health beats"
-                                          exit 1
-                                      fi
-                                      wget -q -O- --post-data='{}' --header='Content-Type: application/json' \
-                                          "${AGONES_SDK_HTTP}/health" >/dev/null || true
-                                      sleep 5
-                                  done
+                            - name: AGONES_SHIM_READY_TCP
+                              value: '8085'
                           resources:
                               requests:
                                   cpu: '10m'
@@ -181,5 +163,4 @@ spec:
                               allowPrivilegeEscalation: false
                               readOnlyRootFilesystem: true
                               capabilities:
-                                  drop:
-                                      - ALL
+                                  drop: ['ALL']

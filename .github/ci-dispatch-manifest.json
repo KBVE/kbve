@@ -80,6 +80,24 @@
 			"has_test": true
 		},
 		{
+			"key": "agones_shim",
+			"app_name": "agones-shim",
+			"version": "0.0.2",
+			"version_toml": "apps/agones/shim/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/agones-shim.mdx",
+			"source_path": "apps/agones/shim",
+			"runner": "ubuntu-latest",
+			"image": "kbve/agones-shim",
+			"deployment_yamls": [
+				"apps/kube/agones/tocloud9/manifests/worldserver-fleet.yaml",
+				"apps/kube/agones/tocloud9/manifests/gateway-fleet.yaml",
+				"apps/kube/agones/tocloud9/manifests/authserver-fleet.yaml"
+			],
+			"has_test": false,
+			"target": "container",
+			"nx_project": "agones-shim"
+		},
+		{
 			"key": "astro_kbve",
 			"app_name": "axum-kbve",
 			"version": "1.0.295",
@@ -1520,7 +1538,7 @@
 		}
 	],
 	"summary": {
-		"docker": 45,
+		"docker": 46,
 		"npm": 4,
 		"crates": 27,
 		"python": 2,
@@ -1531,6 +1549,6 @@
 		"unreal_game": 4,
 		"bevy_game": 0,
 		"vite_game": 1,
-		"total": 113
+		"total": 114
 	}
 }
