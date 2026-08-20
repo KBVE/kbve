@@ -5,6 +5,8 @@ CREATE TABLE IF NOT EXISTS `mod_rent_a_mount_offers` (
     `price_copper` INT UNSIGNED NOT NULL DEFAULT 0,
     `duration_seconds` INT UNSIGNED NOT NULL DEFAULT 0,
     `label` VARCHAR(100) NOT NULL,
+    `min_level` TINYINT UNSIGNED NOT NULL DEFAULT 0,
+    `min_riding_skill` SMALLINT UNSIGNED NOT NULL DEFAULT 0,
     `enabled` TINYINT UNSIGNED NOT NULL DEFAULT 1,
     PRIMARY KEY (`id`),
     KEY `idx_team_enabled` (`team`, `enabled`)

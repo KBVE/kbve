@@ -2,8 +2,10 @@
 #include "Config.h"
 #include "Creature.h"
 #include "DatabaseEnv.h"
+#include "Log.h"
 #include "Player.h"
 #include "ScriptMgr.h"
+#include "ScriptedGossip.h"
 #include "SpellAuras.h"
 #include "WorldSession.h"
 
@@ -20,6 +22,8 @@ namespace
         uint32 spellId = 0;
         uint32 priceCopper = 0;
         uint32 durationSeconds = 0;
+        uint8 minLevel = 0;
+        uint16 minRidingSkill = 0;
         std::string label;
     };
 
@@ -37,7 +41,8 @@ namespace
             _offers.clear();
 
             QueryResult result = WorldDatabase.Query(
-                "SELECT `id`, `team`, `spell`, `price_copper`, `duration_seconds`, `label` "
+                "SELECT `id`, `team`, `spell`, `price_copper`, `duration_seconds`, `label`, "
+                "`min_level`, `min_riding_skill` "
                 "FROM `mod_rent_a_mount_offers` WHERE `enabled` = 1 ORDER BY `id`");
 
             if (!result)
@@ -58,6 +63,8 @@ namespace
                 offer.priceCopper = fields[3].Get<uint32>();
                 offer.durationSeconds = fields[4].Get<uint32>();
                 offer.label = fields[5].Get<std::string>();
+                offer.minLevel = fields[6].Get<uint8>();
+                offer.minRidingSkill = fields[7].Get<uint16>();
 
                 if (!offer.spellId)
                     continue;
@@ -90,9 +97,16 @@ namespace
 
         RentOffer const* Find(TeamId team, uint32 id) const
         {
-            for (RentOffer const& offer : For(team))
-                if (offer.id == id)
-                    return &offer;
+            for (uint8 key : { static_cast<uint8>(team), static_cast<uint8>(TEAM_NEUTRAL) })
+            {
+                auto it = _offers.find(key);
+                if (it == _offers.end())
+                    continue;
+
+                for (RentOffer const& offer : it->second)
+                    if (offer.id == id)
+                        return &offer;
+            }
 
             return nullptr;
         }
@@ -104,6 +118,17 @@ namespace
     bool Enabled()
     {
         return sConfigMgr->GetOption<bool>("RentAMount.Enable", true);
+    }
+
+    bool MeetsRequirements(Player* player, RentOffer const& offer)
+    {
+        if (offer.minLevel && player->GetLevel() < offer.minLevel)
+            return false;
+
+        if (offer.minRidingSkill && player->GetSkillValue(SKILL_RIDING) < offer.minRidingSkill)
+            return false;
+
+        return true;
     }
 
     bool SessionAllowed(Player* player)
@@ -136,8 +161,24 @@ public:
             return true;
         }
 
+        ClearGossipMenuFor(player);
+
+        uint32 shown = 0;
         for (RentOffer const& offer : offers)
+        {
+            if (!MeetsRequirements(player, offer))
+                continue;
+
             AddGossipItemFor(player, GOSSIP_ICON_MONEY_BAG, offer.label, GOSSIP_SENDER_MAIN, offer.id);
+            ++shown;
+        }
+
+        if (!shown)
+        {
+            ChatHandler(player->GetSession()).PSendSysMessage("You are not experienced enough to ride anything I have.");
+            CloseGossipMenuFor(player);
+            return true;
+        }
 
         SendGossipMenuFor(player, GOSSIP_TEXT_RENT, creature->GetGUID());
         return true;
@@ -153,6 +194,12 @@ public:
         RentOffer const* offer = RentAMountStore::instance().Find(player->GetTeamId(), action);
         if (!offer)
             return true;
+
+        if (!MeetsRequirements(player, *offer))
+        {
+            ChatHandler(player->GetSession()).PSendSysMessage("You are not experienced enough to ride that.");
+            return true;
+        }
 
         if (player->IsInCombat() || player->isDead() || player->IsMounted())
         {

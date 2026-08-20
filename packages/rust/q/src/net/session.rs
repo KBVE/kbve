@@ -517,8 +517,8 @@ struct Chop {
 /// Room left between a spawned body and any prop it would otherwise be standing in.
 const SPAWN_CLEARANCE: f32 = 0.8;
 
-/// How far under the surface a body has to be before the host decides it is inside
-/// the ground rather than merely standing on a slope the sampler reads generously.
+/// How far under the surface a body has to be before the host stops treating it as
+/// standing on ground the sampler reads generously and starts treating it as a fall.
 const BURIED_SLACK: f32 = 3.0;
 
 pub struct HostSession<T: Transport> {
@@ -1394,13 +1394,17 @@ impl<T: Transport> HostSession<T> {
             }
         }
 
-        // Buried rather than lost: above the void floor, under the ground. The solo
-        // player has been put back on the surface for this since it could happen at
-        // all, but online nothing did, so a body that ended up inside a hill stayed
-        // there until it had fallen far enough to count as out of the world. Lifted
-        // where it stands, because a spawn teleport for a metre of sinking is a
-        // bigger interruption than the sinking.
-        if let Some(ground) = self.ground.clone() {
+        // Under the ground but not yet past the void floor. A heightfield is a
+        // surface rather than a solid, so a body that ends up beneath one is in open
+        // space and falling -- and the only thing that catches it is a hundred metre
+        // drop, after which it is put back at spawn. The sampler knows where the
+        // surface is now, so the fall can be ended where it started instead.
+        //
+        // Only where terrain exists: a world with a sampler and no collider is one
+        // where falling is the correct outcome, not a hole to be rescued from.
+        if self.world.terrain_region_count() > 0
+            && let Some(ground) = self.ground.clone()
+        {
             let buried: Vec<(PeerId, Iso)> = self
                 .players
                 .keys()
@@ -1413,7 +1417,10 @@ impl<T: Transport> HostSession<T> {
                 })
                 .collect();
             for (peer, iso) in buried {
-                self.world.apply(SimCommand::SetKinematicTarget {
+                // A sweep up out of the ground is negotiated with the ground it is
+                // sweeping out of. The crate documents the distinction; this has to
+                // be by fiat.
+                self.world.apply(SimCommand::TeleportCharacter {
                     id: player_body(peer),
                     iso,
                 });
@@ -3105,13 +3112,13 @@ mod tests {
         }
     }
 
-    /// Above the void floor and under the ground is a state the host had no answer
-    /// for: the solo player is lifted the moment they are under the surface, but
-    /// online a buried body stayed buried until it had fallen far enough to count as
-    /// out of the world. Lifted where it stands, not sent back to spawn.
+    /// Under the surface but nowhere near the void floor. A heightfield is a
+    /// surface, not a solid, so a body that ends up beneath one is in open space
+    /// falling -- and the only thing that caught it was a hundred metre drop ending
+    /// at spawn. The sampler already knows where the surface is, so the fall ends
+    /// where it began.
     #[test]
-    fn a_buried_player_is_lifted_where_they_stand() {
-        let ground = 7.5_f32;
+    fn a_player_under_the_surface_is_put_back_on_it() {
         let mesh = Loopback::mesh(2);
         let mut host = HostSession::new(
             mesh[0].clone(),
@@ -3119,16 +3126,18 @@ mod tests {
             SimConfig::default(),
             42,
         )
-        .with_ground(Arc::new(move |_, _| ground));
+        // Agrees with `flat_terrain`, so nothing standing on the ground looks buried.
+        .with_ground(Arc::new(|_, _| 0.0));
         host.set_terrain(flat_terrain());
         let mut client = ClientSession::connect(mesh[1].clone());
         run(&mut host, &mut client, 2);
         let peer = client.peer().expect("joined");
-        host.world_mut().apply(SimCommand::SetKinematicTarget {
+
+        host.world_mut().apply(SimCommand::TeleportCharacter {
             id: player_body(peer),
-            iso: Iso::at(12.0, ground - 40.0, -9.0),
+            iso: Iso::at(12.0, -30.0, -9.0),
         });
-        run(&mut host, &mut client, 6);
+        run(&mut host, &mut client, 4);
 
         let iso = host
             .world_mut()
@@ -3137,13 +3146,13 @@ mod tests {
             .expect("body")
             .iso;
         assert!(
-            iso.pos[1] >= ground,
-            "still buried at {:?}, ground is {ground}",
+            iso.pos[1] > -3.0,
+            "still under the surface at {:?}",
             iso.pos
         );
         assert!(
-            (iso.pos[0] - 12.0).abs() < 1.0 && (iso.pos[2] + 9.0).abs() < 1.0,
-            "lifted, but carried off to {:?} instead of standing up where it was",
+            (iso.pos[0] - 12.0).abs() < 1.5 && (iso.pos[2] + 9.0).abs() < 1.5,
+            "put back, but carried off to {:?} rather than stood up where it fell",
             iso.pos
         );
     }
