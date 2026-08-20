@@ -36,14 +36,19 @@ spec:
     strategy:
         type: RollingUpdate
         rollingUpdate:
+            # Agones rejects 0 here ("must be at least 1"), unlike a Deployment.
             maxSurge: 1
-            maxUnavailable: 0
+            maxUnavailable: 1
     template:
         metadata:
             labels:
                 app: tocloud9-worldserver
                 app.kubernetes.io/part-of: tocloud9
         spec:
+            # Mandatory once the pod holds more than one container: Agones has
+            # to be told which one the ports and health checks belong to, and
+            # rejects the Fleet outright without it.
+            container: worldserver
             ports:
                 - name: world
                   portPolicy: None

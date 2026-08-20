@@ -78,6 +78,18 @@ Against the running compose stack and the same images:
   maps between them with no overlap, **unevenly** — 24/95, not round-robin.
   Do not size the fleet assuming an even split.
 
+Since confirmed against the cluster itself, with a real 3.3.5a client:
+
+- A full SRP6 logon against `tocloud9.kbve.com:3724` completes — challenge,
+  proof accepted, realm list returned — and the realm it advertises is
+  `tocloud9.kbve.com:8085`.
+- The `acore_auth.realmlist` row still reads `127.0.0.1:8085` and is **inert**.
+  The authserver answers out of servers-registry, not that table, so the stale
+  row is not worth chasing.
+- A character created and entered the world on map 530, which the registry had
+  assigned to the second worldserver — so the map split routes real traffic,
+  not just registrations.
+
 ## Pins that must not drift
 
 - **`acore/ac-wotlk-db-import:16.0.0-dev` — do not move to `:master`.**
@@ -110,12 +122,24 @@ influence on these manifests ends.
 
 ## Known gaps
 
-- **Node addresses must be publicly routable.** `PREFERRED_HOSTNAME` is taken
-  from `status.hostIP`, so each gateway advertises the node it landed on. If
-  node addresses are private, override it with an explicit public value.
+- **`PREFERRED_HOSTNAME` is a literal, not `status.hostIP`.** On Talos the
+  node's InternalIP can be private, and a gateway that advertised one would
+  hand every client an unroutable address. The Fleet pins `tocloud9.kbve.com`
+  instead. Verified live: the registry record reads
+  `{"Address":"tocloud9.kbve.com:8085"}`, and that is the address the authserver
+  returns in the realm list. Repoint the DNS record if the fleet moves nodes.
 - **The fleets are capped by node count.** A static hostPort binds once per
   node, so `replicas` above the number of eligible nodes leaves GameServers
   stuck unscheduled.
+- **The pod ceiling bites before CPU or memory does.** The worldserver fleet sat
+  Pending on `0/1 nodes are available: 1 Too many pods` while the node was at
+  77% CPU requests and 13% memory — the kubelet's `maxPods` was the only limit
+  in play. It is raised to 250 by
+  `apps/kube/talos/patches/kubelet-max-pods.yaml`, and 250 is close to the real
+  ceiling: Cilium runs `ipam: kubernetes`, so pod IPs come out of the node's
+  single `/24` podCIDR, or 254 usable addresses. Going higher means widening
+  `--node-cidr-mask-size` on kube-controller-manager, which is a control plane
+  change.
 - Longhorn RWX routes through a share-manager, a single point of failure for
   the whole fleet. If this ever carries players, bake the client data into the
   worldserver image instead — it is immutable and identical per pod.
@@ -154,12 +178,15 @@ needed _only_ because PodSecurity baseline forbids the `hostPort` field itself.
 fleet is capped by the number of dedicated-server nodes. Set higher and the
 extra GameServers sit unschedulable forever. Raise it only alongside node count.
 
-**Rollouts are `maxSurge: 0` / `maxUnavailable: 1`.** Inverted from the usual
-surge-first rollout, because a replacement pod cannot bind the hostPort until
-the old one releases it. Surging first deadlocks on a single node. This means a
-brief connection outage on every gateway/authserver update — acceptable here,
-and the reason the worldserver fleet (which has no hostPort) keeps the normal
-surge-first strategy.
+**Rollouts are `strategy.type: Recreate`.** A replacement pod cannot bind the
+hostPort until the old one releases it, so surging first deadlocks on a single
+node. The obvious spelling — `RollingUpdate` with `maxSurge: 0` — is rejected by
+the Agones webhook, which requires both `maxSurge` and `maxUnavailable` to be at
+least 1 (unlike a Deployment, where 0 is legal on one side). `Recreate` deletes
+the old GameServer before creating its replacement, which is the ordering the
+hostPort needs. This means a brief connection outage on every gateway/authserver
+update — acceptable here, and the reason the worldserver fleet (which has no
+hostPort) keeps a normal `RollingUpdate`, `maxSurge: 1` / `maxUnavailable: 1`.
 
 ### Why Static and not Dynamic
 
