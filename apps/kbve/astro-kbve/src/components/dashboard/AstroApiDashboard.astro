@@ -119,11 +119,16 @@ const {
 		--scalar-button-1-color: var(--sl-color-black);
 	}
 
-	#scalar-app .scalar-api-client__container,
-	#scalar-app .scalar-api-references__client,
-	#scalar-app [data-scalar-modal],
 	#scalar-app .scalar-app-layout {
 		z-index: 100;
+	}
+	/* The Try-it client and modals must always paint above the reference
+	   layout — sharing its z-index let the sticky sidebar win by DOM order
+	   and clip over the tester. */
+	#scalar-app .scalar-api-client__container,
+	#scalar-app .scalar-api-references__client,
+	#scalar-app [data-scalar-modal] {
+		z-index: 200;
 	}
 
 	.scalar-host {
