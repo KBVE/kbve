@@ -98,6 +98,10 @@ spec:
                               # matching worldserver.conf key.
                               - name: AC_CLUSTER_ENABLED
                                 value: '1'
+                              # 1 = PVP. Pairs with realmlist.icon, which only
+                              # sets the label the client shows.
+                              - name: AC_GAME_TYPE
+                                value: '1'
                               - name: AC_DATA_DIR
                                 value: '/data'
                               - name: AC_LOGS_DIR
