@@ -1,0 +1,55 @@
+# Scrape wiring for the two fleets that expose Prometheus endpoints.
+#
+# The `release: monitoring` label is mandatory: this Prometheus selects
+# PodMonitors on podMonitorSelector.matchLabels.release=monitoring, and one
+# without it is silently never scraped — no error, just zero targets.
+#
+# Verified endpoints (curled against the compose stack):
+#   worldserver :8901/metrics  active_connections, delay_95_percentile,
+#                              delay_99_percentile, delay_max
+#   gateway     :8900/metrics  active_connections + Go runtime metrics
+#
+# The worldserver's delay_* gauges are the server tick time, which is the real
+# health signal for a fleet — a worldserver that has not crashed but is falling
+# behind on its tick is invisible to the Agones health check, since that only
+# proves the socket still accepts.
+#
+# active_connections is also what a future FleetAutoscaler would key on. Note
+# that scaling on it only adds capacity for *new* map assignments: the
+# servers-registry hands maps out at registration, so an existing map does not
+# migrate to a fresh worldserver just because one appeared.
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+    name: tocloud9-worldserver-scrape
+    namespace: tocloud9
+    labels:
+        release: monitoring
+        app.kubernetes.io/part-of: tocloud9
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+spec:
+    selector:
+        matchLabels:
+            app: tocloud9-worldserver
+    podMetricsEndpoints:
+        - port: health
+          path: /metrics
+---
+apiVersion: monitoring.coreos.com/v1
+kind: PodMonitor
+metadata:
+    name: tocloud9-gateway-scrape
+    namespace: tocloud9
+    labels:
+        release: monitoring
+        app.kubernetes.io/part-of: tocloud9
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+spec:
+    selector:
+        matchLabels:
+            app: tocloud9-gateway
+    podMetricsEndpoints:
+        - port: health
+          path: /metrics
