@@ -53,16 +53,10 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: fetch
-                  image: alpine/curl:8.14.1
+                  image: python:3.12-slim
                   env:
-                      # v20.0 matches upstream ToCloud9. Its mmaps are built
-                      # with generator v20 while the pinned core expects v19,
-                      # so the worldserver logs a mismatch per tile and runs
-                      # without server-side pathfinding. Harmless for a
-                      # networking test, wrong for real gameplay; v19 is the
-                      # matching release but is untested here.
                       - name: CLIENT_DATA_URL
-                        value: 'https://github.com/wowgaming/client-data/releases/download/v20.0/Data.zip'
+                        value: 'https://github.com/wowgaming/client-data/releases/download/v19/Data.zip'
                       - name: WORLDSERVER_CONF_URL
                         value: 'https://raw.githubusercontent.com/walkline/azerothcore-wotlk/cluster-mode/src/server/apps/worldserver/worldserver.conf.dist'
                   command: ['/bin/sh', '-c']
@@ -71,16 +65,21 @@ spec:
                           set -eu
                           mkdir -p /data/etc
                           echo "fetching cluster-mode worldserver.conf"
-                          curl -fsSL "$WORLDSERVER_CONF_URL" -o /data/etc/worldserver.conf
-                          if [ -d /data/dbc ] && [ -d /data/maps ]; then
-                              echo "client data already present, skipping download"
+                          python -c "import os,urllib.request;urllib.request.urlretrieve(os.environ['WORLDSERVER_CONF_URL'],'/data/etc/worldserver.conf')"
+                          STAMP=/data/.client-data-url
+                          if [ -d /data/dbc ] && [ -d /data/maps ] && [ -d /data/vmaps ] && [ -d /data/mmaps ] \
+                              && [ "$(cat "$STAMP" 2>/dev/null || true)" = "$CLIENT_DATA_URL" ]; then
+                              echo "client data already present at $CLIENT_DATA_URL, skipping download"
                               exit 0
                           fi
-                          echo "downloading client data (~4GB), this takes a while"
+                          echo "removing any previous client data"
+                          rm -rf /data/Cameras /data/dbc /data/maps /data/mmaps /data/vmaps "$STAMP"
+                          echo "downloading client data (1.2GB zipped, ~3.1GB unpacked), this takes a while"
                           cd /data
-                          curl -fL -o data.zip "$CLIENT_DATA_URL"
-                          unzip -q data.zip
+                          python -c "import os,urllib.request;urllib.request.urlretrieve(os.environ['CLIENT_DATA_URL'],'data.zip')"
+                          python -m zipfile -e data.zip .
                           rm -f data.zip
+                          printf '%s' "$CLIENT_DATA_URL" > "$STAMP"
                           echo "client data ready"
                           ls -1 /data
                   volumeMounts:
