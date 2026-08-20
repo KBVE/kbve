@@ -10229,6 +10229,153 @@
 					"implicitDependencies": []
 				}
 			},
+			"agones-tocloud9": {
+				"name": "agones-tocloud9",
+				"type": "app",
+				"data": {
+					"root": "apps/agones/tocloud9",
+					"projectType": "application",
+					"metadata": {},
+					"targets": {
+						"test": {
+							"cache": true,
+							"inputs": ["default", "^production"],
+							"outputs": [
+								"{workspaceRoot}/coverage/{projectRoot}"
+							],
+							"metadata": {
+								"technologies": ["vitest"],
+								"description": "Run Vitest tests",
+								"help": {
+									"command": "pnpm exec vitest --help",
+									"example": {
+										"options": {
+											"bail": 1,
+											"coverage": true
+										}
+									}
+								}
+							},
+							"executor": "nx:run-commands",
+							"options": {
+								"cwd": "apps/agones/tocloud9",
+								"command": "vitest"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"e2e": {
+							"inputs": ["default", "^production"],
+							"cache": false,
+							"executor": "nx:run-commands",
+							"options": {
+								"commands": [
+									"echo 'Waiting for a worldserver to register with servers-registry (<=600s; AzerothCore map loading is slow)...' && for i in $(seq 1 600); do if [ -n \"$(docker compose --profile ac exec -T redis redis-cli --raw KEYS 'ws:*' 2>/dev/null | tr -d '[:space:]')\" ]; then echo \"worldserver registered after ${i}s\"; break; fi; if [ $(( i % 30 )) -eq 0 ]; then echo \"--- [${i}s] still waiting ---\"; docker compose --profile ac logs --tail=5 gameserver-ac 2>&1 | sed 's/^/  | /'; fi; if [ $i -eq 600 ]; then echo 'FAIL: no worldserver registered in 600s'; docker compose --profile ac logs --tail=80 gameserver-ac servers-registry 2>&1 | sed 's/^/  | /'; exit 1; fi; sleep 1; done",
+									"npx vitest run"
+								],
+								"cwd": "apps/agones/tocloud9",
+								"parallel": false
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"env": {
+							"executor": "nx:run-commands",
+							"options": {
+								"cwd": "apps/agones/tocloud9",
+								"command": "[ -f .env ] || cp .env.example .env; echo 'apps/agones/tocloud9/.env ready'"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"setup": {
+							"executor": "nx:run-commands",
+							"dependsOn": ["env"],
+							"options": {
+								"cwd": "apps/agones/tocloud9",
+								"parallel": false,
+								"commands": [
+									"echo 'Downloading ~3.5GB of WoW 3.3.5a client data and importing the AzerothCore schema. First run takes a long while.'",
+									"docker compose --profile setup up --abort-on-container-failure --exit-code-from tc9-sql download-miscs tc9-sql",
+									"docker compose --profile setup down"
+								]
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"up": {
+							"executor": "nx:run-commands",
+							"dependsOn": ["env"],
+							"options": {
+								"cwd": "apps/agones/tocloud9",
+								"command": "docker compose --profile ac up -d"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"dev": {
+							"executor": "nx:run-commands",
+							"dependsOn": ["env"],
+							"options": {
+								"cwd": "apps/agones/tocloud9",
+								"command": "trap 'docker compose --profile ac down' EXIT INT TERM; docker compose --profile ac up"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"scale": {
+							"executor": "nx:run-commands",
+							"options": {
+								"cwd": "apps/agones/tocloud9",
+								"command": "docker compose --profile ac up -d --scale gameserver-ac=${TC9_WORLDSERVERS:-2} --no-recreate"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"logs": {
+							"executor": "nx:run-commands",
+							"options": {
+								"cwd": "apps/agones/tocloud9",
+								"command": "docker compose --profile ac logs -f --tail=200"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"ps": {
+							"executor": "nx:run-commands",
+							"options": {
+								"cwd": "apps/agones/tocloud9",
+								"command": "docker compose --profile ac ps"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"down": {
+							"executor": "nx:run-commands",
+							"options": {
+								"cwd": "apps/agones/tocloud9",
+								"command": "docker compose --profile ac --profile setup down"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"nuke": {
+							"executor": "nx:run-commands",
+							"options": {
+								"cwd": "apps/agones/tocloud9",
+								"command": "docker compose --profile ac --profile setup down -v"
+							},
+							"configurations": {},
+							"parallelism": true
+						}
+					},
+					"name": "agones-tocloud9",
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"sourceRoot": "apps/agones/tocloud9",
+					"tags": ["scope:agones", "tocloud9", "game"],
+					"implicitDependencies": []
+				}
+			},
 			"arpg-web": {
 				"name": "arpg-web",
 				"type": "app",
@@ -17813,6 +17960,7 @@
 			],
 			"agones-factorio": [],
 			"agones-palworld": [],
+			"agones-tocloud9": [],
 			"arpg-web": [
 				{
 					"source": "arpg-web",
