@@ -339,12 +339,17 @@ export default defineConfig({
 							collapsed: true,
 							items: [{ autogenerate: { directory: 'palworld' } }],
 						},
+						{
+							label: 'World of Warcraft',
+							collapsed: true,
+							items: [{ autogenerate: { directory: 'wow' } }],
+						},
 						
 						{ label: 'BitCraft', link: '/gaming/bitcraft/' },
 						{ label: 'League of Legends', link: '/gaming/lol/' },
 						{ label: 'RimWorld', link: '/gaming/rimworld/' },
 						{ label: 'Titanfall', link: '/gaming/titanfall/' },
-						{ label: 'World of Warcraft', link: '/gaming/wow/' },
+						{ label: 'WoW macros', link: '/gaming/wow/' },
 						{ label: 'OSRS', link: '/osrs/' },
 
 					],

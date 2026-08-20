@@ -35,7 +35,7 @@ BEGIN
 END;
 $$;
 
-REVOKE ALL ON FUNCTION wow.assert_user_has_username(UUID) FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION wow.assert_user_has_username(UUID) FROM PUBLIC, anon, authenticated;
 
 -- ---------- service RPCs ----------
 
@@ -90,9 +90,12 @@ GRANT EXECUTE ON FUNCTION wow.service_claim_account(UUID, TEXT) TO service_role;
 CREATE OR REPLACE FUNCTION wow.service_mark_provisioned(p_user_id UUID)
 RETURNS BOOLEAN LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 BEGIN
+    -- Scoped to status = 0 so this can only ever complete a claim. Without the
+    -- guard, a replayed provisioning call would silently reactivate a disabled
+    -- account (status = 2) and rewrite provisioned_at on an already-live row.
     UPDATE wow.account
        SET status = 1, provisioned_at = NOW()
-     WHERE user_id = p_user_id;
+     WHERE user_id = p_user_id AND status = 0;
     RETURN FOUND;
 END;
 $$;
