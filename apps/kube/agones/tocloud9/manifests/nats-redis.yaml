@@ -1,0 +1,185 @@
+# NATS carries cross-service events; Redis backs servers-registry (the ws:* /
+# gw:* records the fleet self-registers into) and guidserver's GUID pools.
+# Neither holds anything that cannot be rebuilt by restarting the stack, so
+# both stay single-replica with modest footprints.
+apiVersion: v1
+kind: Service
+metadata:
+    name: nats
+    namespace: tocloud9
+    labels:
+        app: nats
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    selector:
+        app: nats
+    ports:
+        - name: client
+          port: 4222
+          targetPort: 4222
+          protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: nats
+    namespace: tocloud9
+    labels:
+        app: nats
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: nats
+    template:
+        metadata:
+            labels:
+                app: nats
+                app.kubernetes.io/part-of: tocloud9
+        spec:
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                runAsGroup: 1000
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: nats
+                  image: nats:2.10-alpine
+                  ports:
+                      - name: client
+                        containerPort: 4222
+                        protocol: TCP
+                      - name: monitor
+                        containerPort: 8222
+                        protocol: TCP
+                  args: ['-m', '8222']
+                  readinessProbe:
+                      httpGet:
+                          path: /healthz
+                          port: 8222
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
+                  livenessProbe:
+                      httpGet:
+                          path: /healthz
+                          port: 8222
+                      initialDelaySeconds: 15
+                      periodSeconds: 30
+                  resources:
+                      requests:
+                          cpu: '50m'
+                          memory: '64Mi'
+                      limits:
+                          cpu: '500m'
+                          memory: '256Mi'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: redis
+    namespace: tocloud9
+    labels:
+        app: redis
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    selector:
+        app: redis
+    ports:
+        - name: redis
+          port: 6379
+          targetPort: 6379
+          protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: redis
+    namespace: tocloud9
+    labels:
+        app: redis
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    replicas: 1
+    strategy:
+        type: Recreate
+    selector:
+        matchLabels:
+            app: redis
+    template:
+        metadata:
+            labels:
+                app: redis
+                app.kubernetes.io/part-of: tocloud9
+        spec:
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 999
+                runAsGroup: 999
+                fsGroup: 999
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: redis
+                  image: redis:7.2-alpine
+                  command:
+                      [
+                          'redis-server',
+                          '--save',
+                          '20',
+                          '1',
+                          '--loglevel',
+                          'warning',
+                      ]
+                  ports:
+                      - name: redis
+                        containerPort: 6379
+                        protocol: TCP
+                  volumeMounts:
+                      - name: data
+                        mountPath: /data
+                  readinessProbe:
+                      exec:
+                          command: ['redis-cli', 'ping']
+                      initialDelaySeconds: 5
+                      periodSeconds: 10
+                  resources:
+                      requests:
+                          cpu: '50m'
+                          memory: '64Mi'
+                      limits:
+                          cpu: '500m'
+                          memory: '512Mi'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+            volumes:
+                - name: data
+                  persistentVolumeClaim:
+                      claimName: tocloud9-redis
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: tocloud9-redis
+    namespace: tocloud9
+    labels:
+        app: redis
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    accessModes:
+        - ReadWriteOnce
+    storageClassName: longhorn
+    resources:
+        requests:
+            storage: 2Gi

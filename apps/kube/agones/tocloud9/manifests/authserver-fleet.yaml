@@ -1,0 +1,135 @@
+# First contact for the client. `set realmlist <host>` in the client points
+# here, and 3.3.5a always dials 3724 — the port is not negotiable, so this is
+# Static and must be free on every node that runs it.
+#
+# authserver answers the logon challenge, then serves the realm list. Note that
+# the realm *address* it hands back does not come from the acore_auth.realmlist
+# row: it comes from whichever gateways are registered in servers-registry
+# (authserver/service/realm.go). A realm with no live gateway is flagged
+# offline automatically, which is the behaviour that makes the gateway fleet
+# safe to roll.
+apiVersion: agones.dev/v1
+kind: Fleet
+metadata:
+    name: tocloud9-authserver
+    namespace: tocloud9
+    labels:
+        app: tocloud9-authserver
+        app.kubernetes.io/part-of: tocloud9
+    annotations:
+        argocd.argoproj.io/sync-wave: '2'
+spec:
+    # A static hostPort binds once per node, so this cannot exceed the number
+    # of `node.kbve.com/type: dedicated-server` nodes. Above that, the extra
+    # GameServers sit unschedulable forever. Start at 1 and raise it only
+    # alongside node count.
+    replicas: 1
+    scheduling: Packed
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            # Inverted from the usual surge-first rollout: a replacement cannot
+            # bind the hostPort until the old pod releases it, so the old one
+            # must go first. This is a brief outage by design.
+            maxSurge: 0
+            maxUnavailable: 1
+    template:
+        metadata:
+            labels:
+                app: tocloud9-authserver
+                app.kubernetes.io/part-of: tocloud9
+        spec:
+            ports:
+                - name: auth
+                  portPolicy: Static
+                  hostPort: 3724
+                  containerPort: 3724
+                  protocol: TCP
+            health:
+                initialDelaySeconds: 30
+                periodSeconds: 15
+                failureThreshold: 5
+            sdkServer:
+                logLevel: Info
+            template:
+                metadata:
+                    labels:
+                        app: tocloud9-authserver
+                        app.kubernetes.io/part-of: tocloud9
+                spec:
+                    securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 10001
+                        runAsGroup: 10001
+                        seccompProfile:
+                            type: RuntimeDefault
+                    containers:
+                        - name: authserver
+                          image: ghcr.io/walkline/authserver:master
+                          imagePullPolicy: IfNotPresent
+                          env:
+                              - name: PORT
+                                value: '3724'
+                              - name: DB_SCHEMA_TYPE
+                                value: 'ac'
+                              - name: SERVERS_REGISTRY_SERVICE_ADDRESS
+                                value: 'servers-registry:8999'
+                              - name: AUTH_DB_CONNECTION
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: tocloud9-db
+                                        key: AUTH_DB_CONNECTION
+                          ports:
+                              - name: auth
+                                containerPort: 3724
+                                protocol: TCP
+                          resources:
+                              requests:
+                                  cpu: '100m'
+                                  memory: '64Mi'
+                              limits:
+                                  cpu: '1'
+                                  memory: '256Mi'
+                          securityContext:
+                              allowPrivilegeEscalation: false
+                              readOnlyRootFilesystem: true
+                              capabilities:
+                                  drop:
+                                      - ALL
+                        - name: agones-bridge
+                          image: busybox:1.36
+                          imagePullPolicy: IfNotPresent
+                          env:
+                              - name: AGONES_SDK_HTTP
+                                value: 'http://127.0.0.1:9358'
+                              - name: WATCH_PORT
+                                value: '3724'
+                          command: ['/bin/sh', '-c']
+                          args:
+                              - |
+                                  set -u
+                                  until nc -z -w 2 127.0.0.1 "${WATCH_PORT}"; do sleep 2; done
+                                  wget -q -O- --post-data='{}' --header='Content-Type: application/json' \
+                                      "${AGONES_SDK_HTTP}/ready" >/dev/null
+                                  while true; do
+                                      if ! nc -z -w 2 127.0.0.1 "${WATCH_PORT}"; then
+                                          echo "listener closed, stopping health beats"
+                                          exit 1
+                                      fi
+                                      wget -q -O- --post-data='{}' --header='Content-Type: application/json' \
+                                          "${AGONES_SDK_HTTP}/health" >/dev/null || true
+                                      sleep 5
+                                  done
+                          resources:
+                              requests:
+                                  cpu: '10m'
+                                  memory: '16Mi'
+                              limits:
+                                  cpu: '100m'
+                                  memory: '64Mi'
+                          securityContext:
+                              allowPrivilegeEscalation: false
+                              readOnlyRootFilesystem: true
+                              capabilities:
+                                  drop:
+                                      - ALL

@@ -1,0 +1,708 @@
+# The nine stateless ToCloud9 microservices. These are plain Deployments on
+# purpose: they are not game servers, hold no per-match state, and must not be
+# Agones-managed. Only the worldserver belongs in a Fleet.
+#
+# Images are pinned to :master rather than the chart's :v0.0.4 default. That is
+# the tag combination verified end to end by apps/agones/tocloud9 — the Go
+# services read bare env names (PORT, NATS_URL), while the chart's TC9_* names
+# belong to the worldserver's C++ libsidecar, which is configured separately in
+# fleet.yaml.
+# Service discovery. Holds the ws:* / gw:* records that worldservers and
+# gateways self-register into, and assigns maps across the fleet. This is
+# ToCloud9's allocator — Agones deliberately does not allocate here.
+apiVersion: v1
+kind: Service
+metadata:
+    name: servers-registry
+    namespace: tocloud9
+    labels:
+        app: servers-registry
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    selector:
+        app: servers-registry
+    ports:
+        - name: grpc
+          port: 8999
+          targetPort: 8999
+          protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: servers-registry
+    namespace: tocloud9
+    labels:
+        app: servers-registry
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: servers-registry
+    template:
+        metadata:
+            labels:
+                app: servers-registry
+                app.kubernetes.io/part-of: tocloud9
+        spec:
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: servers-registry
+                  image: ghcr.io/walkline/servers-registry:master
+                  imagePullPolicy: IfNotPresent
+                  env:
+                      - name: PORT
+                        value: '8999'
+                      - name: REDIS_URL
+                        value: 'redis://:@redis:6379/0'
+                      - name: LAYER_MAPS
+                        value: ''
+                  ports:
+                      - name: grpc
+                        containerPort: 8999
+                        protocol: TCP
+                  resources:
+                      requests:
+                          cpu: '250m'
+                          memory: '256Mi'
+                      limits:
+                          cpu: '1'
+                          memory: '512Mi'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+---
+# Character list and creation.
+apiVersion: v1
+kind: Service
+metadata:
+    name: charserver
+    namespace: tocloud9
+    labels:
+        app: charserver
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    selector:
+        app: charserver
+    ports:
+        - name: grpc
+          port: 8087
+          targetPort: 8087
+          protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: charserver
+    namespace: tocloud9
+    labels:
+        app: charserver
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: charserver
+    template:
+        metadata:
+            labels:
+                app: charserver
+                app.kubernetes.io/part-of: tocloud9
+        spec:
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: charserver
+                  image: ghcr.io/walkline/charserver:master
+                  imagePullPolicy: IfNotPresent
+                  env:
+                      - name: PORT
+                        value: '8087'
+                      - name: CHAR_DB_CONNECTION
+                        valueFrom:
+                            secretKeyRef:
+                                name: tocloud9-db
+                                key: CHAR_DB_CONNECTION
+                      - name: WORLD_DB_CONNECTION
+                        valueFrom:
+                            secretKeyRef:
+                                name: tocloud9-db
+                                key: WORLD_DB_CONNECTION
+                      - name: GUILDS_SERVICE_ADDRESS
+                        value: 'guildserver:8995'
+                  ports:
+                      - name: grpc
+                        containerPort: 8087
+                        protocol: TCP
+                  resources:
+                      requests:
+                          cpu: '100m'
+                          memory: '128Mi'
+                      limits:
+                          cpu: '1'
+                          memory: '512Mi'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+---
+# Global channels and whispers across the cluster.
+apiVersion: v1
+kind: Service
+metadata:
+    name: chatserver
+    namespace: tocloud9
+    labels:
+        app: chatserver
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    selector:
+        app: chatserver
+    ports:
+        - name: grpc
+          port: 8992
+          targetPort: 8992
+          protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: chatserver
+    namespace: tocloud9
+    labels:
+        app: chatserver
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: chatserver
+    template:
+        metadata:
+            labels:
+                app: chatserver
+                app.kubernetes.io/part-of: tocloud9
+        spec:
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: chatserver
+                  image: ghcr.io/walkline/chatserver:master
+                  imagePullPolicy: IfNotPresent
+                  env:
+                      - name: PORT
+                        value: '8992'
+                      - name: CHAR_DB_CONNECTION
+                        valueFrom:
+                            secretKeyRef:
+                                name: tocloud9-db
+                                key: CHAR_DB_CONNECTION
+                      - name: SERVERS_REGISTRY_SERVICE_ADDRESS
+                        value: 'servers-registry:8999'
+                      - name: NATS_URL
+                        value: 'nats://nats:4222'
+                  ports:
+                      - name: grpc
+                        containerPort: 8992
+                        protocol: TCP
+                  resources:
+                      requests:
+                          cpu: '100m'
+                          memory: '128Mi'
+                      limits:
+                          cpu: '1'
+                          memory: '512Mi'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+---
+# Guild membership and events.
+apiVersion: v1
+kind: Service
+metadata:
+    name: guildserver
+    namespace: tocloud9
+    labels:
+        app: guildserver
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    selector:
+        app: guildserver
+    ports:
+        - name: grpc
+          port: 8995
+          targetPort: 8995
+          protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: guildserver
+    namespace: tocloud9
+    labels:
+        app: guildserver
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: guildserver
+    template:
+        metadata:
+            labels:
+                app: guildserver
+                app.kubernetes.io/part-of: tocloud9
+        spec:
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: guildserver
+                  image: ghcr.io/walkline/guildserver:master
+                  imagePullPolicy: IfNotPresent
+                  env:
+                      - name: PORT
+                        value: '8995'
+                      - name: CHAR_DB_CONNECTION
+                        valueFrom:
+                            secretKeyRef:
+                                name: tocloud9-db
+                                key: CHAR_DB_CONNECTION
+                      - name: NATS_URL
+                        value: 'nats://nats:4222'
+                  ports:
+                      - name: grpc
+                        containerPort: 8995
+                        protocol: TCP
+                  resources:
+                      requests:
+                          cpu: '100m'
+                          memory: '128Mi'
+                      limits:
+                          cpu: '1'
+                          memory: '512Mi'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+---
+# Shared pool of player/item/instance GUIDs. Every worldserver draws from
+# this, which is what keeps IDs unique across the fleet.
+apiVersion: v1
+kind: Service
+metadata:
+    name: guidserver
+    namespace: tocloud9
+    labels:
+        app: guidserver
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    selector:
+        app: guidserver
+    ports:
+        - name: grpc
+          port: 8996
+          targetPort: 8996
+          protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: guidserver
+    namespace: tocloud9
+    labels:
+        app: guidserver
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: guidserver
+    template:
+        metadata:
+            labels:
+                app: guidserver
+                app.kubernetes.io/part-of: tocloud9
+        spec:
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: guidserver
+                  image: ghcr.io/walkline/guidserver:master
+                  imagePullPolicy: IfNotPresent
+                  env:
+                      - name: PORT
+                        value: '8996'
+                      - name: CHAR_DB_CONNECTION
+                        valueFrom:
+                            secretKeyRef:
+                                name: tocloud9-db
+                                key: CHAR_DB_CONNECTION
+                      - name: REDIS_URL
+                        value: 'redis://:@redis:6379/0'
+                  ports:
+                      - name: grpc
+                        containerPort: 8996
+                        protocol: TCP
+                  resources:
+                      requests:
+                          cpu: '100m'
+                          memory: '128Mi'
+                      limits:
+                          cpu: '1'
+                          memory: '512Mi'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+---
+# In-game mail.
+apiVersion: v1
+kind: Service
+metadata:
+    name: mailserver
+    namespace: tocloud9
+    labels:
+        app: mailserver
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    selector:
+        app: mailserver
+    ports:
+        - name: grpc
+          port: 8997
+          targetPort: 8997
+          protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: mailserver
+    namespace: tocloud9
+    labels:
+        app: mailserver
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: mailserver
+    template:
+        metadata:
+            labels:
+                app: mailserver
+                app.kubernetes.io/part-of: tocloud9
+        spec:
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: mailserver
+                  image: ghcr.io/walkline/mailserver:master
+                  imagePullPolicy: IfNotPresent
+                  env:
+                      - name: PORT
+                        value: '8997'
+                      - name: CHAR_DB_CONNECTION
+                        valueFrom:
+                            secretKeyRef:
+                                name: tocloud9-db
+                                key: CHAR_DB_CONNECTION
+                      - name: NATS_URL
+                        value: 'nats://nats:4222'
+                  ports:
+                      - name: grpc
+                        containerPort: 8997
+                        protocol: TCP
+                  resources:
+                      requests:
+                          cpu: '100m'
+                          memory: '128Mi'
+                      limits:
+                          cpu: '1'
+                          memory: '512Mi'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+---
+# Auction house, cluster-wide.
+apiVersion: v1
+kind: Service
+metadata:
+    name: auctionhouse
+    namespace: tocloud9
+    labels:
+        app: auctionhouse
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    selector:
+        app: auctionhouse
+    ports:
+        - name: grpc
+          port: 8993
+          targetPort: 8993
+          protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: auctionhouse
+    namespace: tocloud9
+    labels:
+        app: auctionhouse
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: auctionhouse
+    template:
+        metadata:
+            labels:
+                app: auctionhouse
+                app.kubernetes.io/part-of: tocloud9
+        spec:
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: auctionhouse
+                  image: ghcr.io/walkline/auctionhouse:master
+                  imagePullPolicy: IfNotPresent
+                  env:
+                      - name: PORT
+                        value: '8993'
+                      - name: CHAR_DB_CONNECTION
+                        valueFrom:
+                            secretKeyRef:
+                                name: tocloud9-db
+                                key: CHAR_DB_CONNECTION
+                      - name: WORLD_DB_CONNECTION
+                        valueFrom:
+                            secretKeyRef:
+                                name: tocloud9-db
+                                key: WORLD_DB_CONNECTION
+                      - name: MAIL_SERVICE_ADDRESS
+                        value: 'mailserver:8997'
+                      - name: NATS_URL
+                        value: 'nats://nats:4222'
+                      - name: EXPIRED_AUCTIONS_CHECK_SECS_DELAY
+                        value: '60'
+                  ports:
+                      - name: grpc
+                        containerPort: 8993
+                        protocol: TCP
+                  resources:
+                      requests:
+                          cpu: '100m'
+                          memory: '128Mi'
+                      limits:
+                          cpu: '1'
+                          memory: '512Mi'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+---
+# Parties and raids spanning worldservers.
+apiVersion: v1
+kind: Service
+metadata:
+    name: groupserver
+    namespace: tocloud9
+    labels:
+        app: groupserver
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    selector:
+        app: groupserver
+    ports:
+        - name: grpc
+          port: 8998
+          targetPort: 8998
+          protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: groupserver
+    namespace: tocloud9
+    labels:
+        app: groupserver
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: groupserver
+    template:
+        metadata:
+            labels:
+                app: groupserver
+                app.kubernetes.io/part-of: tocloud9
+        spec:
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: groupserver
+                  image: ghcr.io/walkline/groupserver:master
+                  imagePullPolicy: IfNotPresent
+                  env:
+                      - name: PORT
+                        value: '8998'
+                      - name: CHAR_DB_CONNECTION
+                        valueFrom:
+                            secretKeyRef:
+                                name: tocloud9-db
+                                key: CHAR_DB_CONNECTION
+                      - name: NATS_URL
+                        value: 'nats://nats:4222'
+                  ports:
+                      - name: grpc
+                        containerPort: 8998
+                        protocol: TCP
+                  resources:
+                      requests:
+                          cpu: '100m'
+                          memory: '128Mi'
+                      limits:
+                          cpu: '1'
+                          memory: '512Mi'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
+---
+# Battleground queues, including cross-realm.
+apiVersion: v1
+kind: Service
+metadata:
+    name: matchmakingserver
+    namespace: tocloud9
+    labels:
+        app: matchmakingserver
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    selector:
+        app: matchmakingserver
+    ports:
+        - name: grpc
+          port: 8994
+          targetPort: 8994
+          protocol: TCP
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: matchmakingserver
+    namespace: tocloud9
+    labels:
+        app: matchmakingserver
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: matchmakingserver
+    template:
+        metadata:
+            labels:
+                app: matchmakingserver
+                app.kubernetes.io/part-of: tocloud9
+        spec:
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 10001
+                runAsGroup: 10001
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: matchmakingserver
+                  image: ghcr.io/walkline/matchmakingserver:master
+                  imagePullPolicy: IfNotPresent
+                  env:
+                      - name: PORT
+                        value: '8994'
+                      - name: CHAR_DB_CONNECTION
+                        valueFrom:
+                            secretKeyRef:
+                                name: tocloud9-db
+                                key: CHAR_DB_CONNECTION
+                      - name: WORLD_DB_CONNECTION
+                        valueFrom:
+                            secretKeyRef:
+                                name: tocloud9-db
+                                key: WORLD_DB_CONNECTION
+                      - name: SERVERS_REGISTRY_SERVICE_ADDRESS
+                        value: 'servers-registry:8999'
+                      - name: BATTLE_GROUPS
+                        value: '1:1'
+                      - name: NATS_URL
+                        value: 'nats://nats:4222'
+                  ports:
+                      - name: grpc
+                        containerPort: 8994
+                        protocol: TCP
+                  resources:
+                      requests:
+                          cpu: '100m'
+                          memory: '128Mi'
+                      limits:
+                          cpu: '1'
+                          memory: '512Mi'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
