@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-08-19T02:18:35Z",
+  "generated_at": "2026-08-20T02:17:37Z",
   "window": {
     "days": 7,
-    "since": "2026-08-12T02:18:35Z"
+    "since": "2026-08-13T02:17:37Z"
   },
   "commits": {
-    "total": 555,
+    "total": 563,
     "authors": 3,
     "leaderboard": [
       {
@@ -14,7 +14,7 @@
       },
       {
         "author": "github-actions[bot]",
-        "commits": 155
+        "commits": 163
       },
       {
         "author": "dependabot[bot]",
@@ -23,158 +23,158 @@
     ],
     "recent": [
       {
-        "sha": "a88097f",
+        "sha": "bb7f261",
         "author": "h0lybyte",
-        "message": "Merge pull request #16081 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/a88097f2175bfd9fb44619bf0dd74483abedeb7f",
-        "date": "2026-08-19T00:48:09Z"
+        "message": "Merge pull request #16131 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/bb7f26194284a0056be6c87503186a662b40654c",
+        "date": "2026-08-19T20:25:05Z"
       },
       {
-        "sha": "77178ae",
-        "author": "h0lybyte",
-        "message": "fix(q): give the resolve pass its cap without a push constant (#16086)",
-        "url": "https://github.com/KBVE/kbve/commit/77178ae149aa815dc64d1716a808b24ef2cf3de8",
-        "date": "2026-08-19T00:40:42Z"
-      },
-      {
-        "sha": "106346e",
+        "sha": "2cfcab9",
         "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#16085)",
-        "url": "https://github.com/KBVE/kbve/commit/106346efc0527a790be4fa1d010188e364e6eb58",
-        "date": "2026-08-18T23:18:05Z"
+        "message": "chore(friendslop-server): post-publish sync to v0.0.14 (#16130)",
+        "url": "https://github.com/KBVE/kbve/commit/2cfcab9e419c150bb7391786a74f7149ae5e129a",
+        "date": "2026-08-19T20:09:41Z"
       },
       {
-        "sha": "f74207b",
+        "sha": "b40c668",
         "author": "h0lybyte",
-        "message": "perf(friendslop): let a city fill up one person at a time (#16083)",
-        "url": "https://github.com/KBVE/kbve/commit/f74207bea2261d4bb66460fe9260a1b08cbcbb8c",
-        "date": "2026-08-18T23:17:45Z"
+        "message": "Merge pull request #16126 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/b40c668d1c6a6851571a1957ae4f513d66bbeb12",
+        "date": "2026-08-19T19:56:02Z"
       },
       {
-        "sha": "70a4964",
-        "author": "h0lybyte",
-        "message": "feat(bbs): add the Dope Wars door (#16078)",
-        "url": "https://github.com/KBVE/kbve/commit/70a4964f0b8323b87210a1b2ef132b39fbf5556c",
-        "date": "2026-08-18T23:15:52Z"
-      },
-      {
-        "sha": "37e12d2",
+        "sha": "e967b44",
         "author": "github-actions[bot]",
-        "message": "chore(friendslop): post-publish sync to v0.1.9 (#16084)",
-        "url": "https://github.com/KBVE/kbve/commit/37e12d28cee05e11fad64507b3b1e3fd32f032ba",
-        "date": "2026-08-18T23:01:03Z"
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#16129)",
+        "url": "https://github.com/KBVE/kbve/commit/e967b447936514033c5aff3bf2b9668f4e2fc039",
+        "date": "2026-08-19T19:55:14Z"
       },
       {
-        "sha": "bca5c42",
+        "sha": "335c45a",
         "author": "h0lybyte",
-        "message": "perf(astro-kbve): kill dashboard home layout shifts (#16077)",
-        "url": "https://github.com/KBVE/kbve/commit/bca5c42dba7f306fd682b8ae129bd988a0cf34bf",
-        "date": "2026-08-18T22:52:11Z"
+        "message": "feat(friendslop): report client errors to metrics.kbve.com (#16128)",
+        "url": "https://github.com/KBVE/kbve/commit/335c45af9bb83268c1cfd6fb87b0d55e9369191e",
+        "date": "2026-08-19T19:52:47Z"
       },
       {
-        "sha": "3cd16cc",
+        "sha": "6c5f368",
+        "author": "h0lybyte",
+        "message": "chore(friendslop-server): preparing the next release. (#16127)",
+        "url": "https://github.com/KBVE/kbve/commit/6c5f36875bb858f4633596008c21af17efce14d9",
+        "date": "2026-08-19T19:52:37Z"
+      },
+      {
+        "sha": "2a60cfa",
+        "author": "h0lybyte",
+        "message": "feat(godot): updating the account card.",
+        "url": "https://github.com/KBVE/kbve/commit/2a60cfad591824266d7bf5daf8b025698cc638f6",
+        "date": "2026-08-19T19:49:13Z"
+      },
+      {
+        "sha": "1506edf",
+        "author": "h0lybyte",
+        "message": "Merge pull request #16123 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/1506edffb6a9dea953ce8fe4eaf9ddb4451e081f",
+        "date": "2026-08-19T19:29:32Z"
+      },
+      {
+        "sha": "7c95f2d",
         "author": "github-actions[bot]",
-        "message": "chore(irc-gateway): post-publish sync to v0.1.30 (#16082)",
-        "url": "https://github.com/KBVE/kbve/commit/3cd16cc53f92e5b15373a9895170669ab4fdfa45",
-        "date": "2026-08-18T22:41:32Z"
+        "message": "chore(axum-kbve): post-publish sync to v1.0.294 (#16125)",
+        "url": "https://github.com/KBVE/kbve/commit/7c95f2d55a3c7a1b326cabc94d01df8d1a7c6fbf",
+        "date": "2026-08-19T10:59:19Z"
       },
       {
-        "sha": "be9a5c4",
+        "sha": "18fe911",
         "author": "github-actions[bot]",
-        "message": "chore(friendslop-server): post-publish sync to v0.0.12 (#16080)",
-        "url": "https://github.com/KBVE/kbve/commit/be9a5c48ef5e9bf6c03ad2321633556e7a10765c",
-        "date": "2026-08-18T22:32:30Z"
+        "message": "chore(friendslop): post-publish sync to v0.1.10 (#16124)",
+        "url": "https://github.com/KBVE/kbve/commit/18fe9117b97a84b15b6a6b6e4ce2a7f7686d0692",
+        "date": "2026-08-19T10:48:19Z"
       },
       {
-        "sha": "969c962",
+        "sha": "420613a",
         "author": "h0lybyte",
-        "message": "Merge pull request #16054 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/969c962a10e8de093c32d5f9997a0afa0a409831",
-        "date": "2026-08-18T22:19:12Z"
+        "message": "test(friendslop-server): measure what a full house costs the sim thread (#16122)",
+        "url": "https://github.com/KBVE/kbve/commit/420613a89aac71b3ba58e7211036d72a7e25d572",
+        "date": "2026-08-19T10:34:29Z"
       },
       {
-        "sha": "9c01947",
-        "author": "h0lybyte",
-        "message": "perf(q): compile a flora program once instead of every rescatter (#16073)",
-        "url": "https://github.com/KBVE/kbve/commit/9c01947d32d09cd0bd6bcedac5d8edf12e915ed8",
-        "date": "2026-08-18T21:40:41Z"
-      },
-      {
-        "sha": "103cbb4",
-        "author": "h0lybyte",
-        "message": "feat(q): predict the local player, and let a dropped one come back (#16071)",
-        "url": "https://github.com/KBVE/kbve/commit/103cbb4cc4342a0fa2eeae94303f8c996245940a",
-        "date": "2026-08-18T21:40:28Z"
+        "sha": "516b25c",
+        "author": "github-actions[bot]",
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#16121)",
+        "url": "https://github.com/KBVE/kbve/commit/516b25c817e250ac5d1b92355a25db0c4244edd6",
+        "date": "2026-08-19T10:28:16Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 432,
+    "merged": 465,
     "recent": [
       {
-        "number": 16089,
-        "title": "Atomic: axum-kbve v1.0.293 post-publish sync",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16089"
-      },
-      {
-        "number": 16081,
-        "title": "Release: 1 feature, 1 fix, 2 perfs, 4 chores \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16081"
-      },
-      {
-        "number": 16086,
-        "title": "fix(q): give the resolve pass its cap without a push constant",
+        "number": 16139,
+        "title": "feat(friendslop): report the tree and flora failures, with the renderer",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16086"
+        "url": "https://github.com/KBVE/kbve/pull/16139"
       },
       {
-        "number": 16085,
-        "title": "chore(ci): sync ci-dispatch-manifest",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16085"
-      },
-      {
-        "number": 16083,
-        "title": "perf(friendslop): let a city fill up one person at a time",
+        "number": 16138,
+        "title": "feat(friendslop): run chat on its own thread, in the same net stack as the game",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16083"
+        "url": "https://github.com/KBVE/kbve/pull/16138"
       },
       {
-        "number": 16078,
-        "title": "feat(bbs): add the Dope Wars door",
+        "number": 16137,
+        "title": "fix(friendslop): stop spawning players inside the bridge",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16078"
+        "url": "https://github.com/KBVE/kbve/pull/16137"
       },
       {
-        "number": 16084,
-        "title": "Atomic: friendslop v0.1.9 post-publish sync",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16084"
-      },
-      {
-        "number": 16077,
-        "title": "perf(astro-kbve): kill dashboard home layout shifts",
+        "number": 16136,
+        "title": "fix(friendslop): escape opens the pause menu online instead of leaving",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16077"
+        "url": "https://github.com/KBVE/kbve/pull/16136"
       },
       {
-        "number": 16082,
-        "title": "Atomic: irc-gateway v0.1.30 post-publish sync",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16082"
+        "number": 16135,
+        "title": "fix(metrics): give the PostSync hook a delete policy so it can finish",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16135"
       },
       {
-        "number": 16080,
-        "title": "Atomic: friendslop-server v0.0.12 post-publish sync",
+        "number": 16134,
+        "title": "fix(ci-godot): name the desktop triples instead of taking the host's",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16134"
+      },
+      {
+        "number": 16128,
+        "title": "feat(friendslop): report client errors to metrics.kbve.com",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16128"
+      },
+      {
+        "number": 16132,
+        "title": "fix(friendslop): give the chat log a corner instead of the whole screen",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16132"
+      },
+      {
+        "number": 16131,
+        "title": "Release: 1 chore \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16080"
+        "url": "https://github.com/KBVE/kbve/pull/16131"
+      },
+      {
+        "number": 16130,
+        "title": "Atomic: friendslop-server v0.0.14 post-publish sync",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16130"
       }
     ]
   },
   "issues": {
-    "opened": 447,
-    "closed": 451
+    "opened": 484,
+    "closed": 484
   }
 }
