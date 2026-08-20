@@ -517,10 +517,6 @@ struct Chop {
 /// Room left between a spawned body and any prop it would otherwise be standing in.
 const SPAWN_CLEARANCE: f32 = 0.8;
 
-/// How far under the surface a body has to be before the host decides it is inside
-/// the ground rather than merely standing on a slope the sampler reads generously.
-const BURIED_SLACK: f32 = 3.0;
-
 pub struct HostSession<T: Transport> {
     transport: T,
     world: SimWorld,
@@ -1391,35 +1387,6 @@ impl<T: Transport> HostSession<T> {
             });
             if let Some(player) = self.players.get_mut(&peer) {
                 player.vel_y = 0.0;
-            }
-        }
-
-        // Buried rather than lost: above the void floor, under the ground. The solo
-        // player has been put back on the surface for this since it could happen at
-        // all, but online nothing did, so a body that ended up inside a hill stayed
-        // there until it had fallen far enough to count as out of the world. Lifted
-        // where it stands, because a spawn teleport for a metre of sinking is a
-        // bigger interruption than the sinking.
-        if let Some(ground) = self.ground.clone() {
-            let buried: Vec<(PeerId, Iso)> = self
-                .players
-                .keys()
-                .filter_map(|peer| {
-                    let body = snapshot.body(player_body(*peer))?;
-                    let [x, y, z] = body.iso.pos;
-                    let h = ground(x, z);
-                    (h.is_finite() && y >= self.config.void_y && y < h - BURIED_SLACK)
-                        .then(|| (*peer, Iso::at(x, h + 1.0, z)))
-                })
-                .collect();
-            for (peer, iso) in buried {
-                self.world.apply(SimCommand::SetKinematicTarget {
-                    id: player_body(peer),
-                    iso,
-                });
-                if let Some(player) = self.players.get_mut(&peer) {
-                    player.vel_y = 0.0;
-                }
             }
         }
 
@@ -3103,49 +3070,6 @@ mod tests {
                 seen.push(a.pos);
             }
         }
-    }
-
-    /// Above the void floor and under the ground is a state the host had no answer
-    /// for: the solo player is lifted the moment they are under the surface, but
-    /// online a buried body stayed buried until it had fallen far enough to count as
-    /// out of the world. Lifted where it stands, not sent back to spawn.
-    #[test]
-    fn a_buried_player_is_lifted_where_they_stand() {
-        let ground = 7.5_f32;
-        let mesh = Loopback::mesh(2);
-        let mut host = HostSession::new(
-            mesh[0].clone(),
-            SessionConfig::default(),
-            SimConfig::default(),
-            42,
-        )
-        .with_ground(Arc::new(move |_, _| ground));
-        host.set_terrain(flat_terrain());
-        let mut client = ClientSession::connect(mesh[1].clone());
-        run(&mut host, &mut client, 2);
-        let peer = client.peer().expect("joined");
-        host.world_mut().apply(SimCommand::SetKinematicTarget {
-            id: player_body(peer),
-            iso: Iso::at(12.0, ground - 40.0, -9.0),
-        });
-        run(&mut host, &mut client, 6);
-
-        let iso = host
-            .world_mut()
-            .snapshot()
-            .body(player_body(peer))
-            .expect("body")
-            .iso;
-        assert!(
-            iso.pos[1] >= ground,
-            "still buried at {:?}, ground is {ground}",
-            iso.pos
-        );
-        assert!(
-            (iso.pos[0] - 12.0).abs() < 1.0 && (iso.pos[2] + 9.0).abs() < 1.0,
-            "lifted, but carried off to {:?} instead of standing up where it was",
-            iso.pos
-        );
     }
 
     #[test]
