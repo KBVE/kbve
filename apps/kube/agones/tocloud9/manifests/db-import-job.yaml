@@ -114,6 +114,13 @@ spec:
                   args:
                       - |
                           set -eu
+                          # Applied on every sync, ahead of the skip below: it is an
+                          # idempotent UPDATE, and the skip would otherwise stop realm
+                          # changes from ever reaching an already-migrated database.
+                          echo "acore_auth <- 000002_configure_realm.sql"
+                          mysql -h mysql -P 3306 -u acore acore_auth \
+                              < /sql/auth__000002_configure_realm.sql
+
                           # This Job is a Sync hook, so it re-runs on every ArgoCD
                           # sync. The vendored deltas are not idempotent: the auth
                           # delta INSERTs a fixed account id and 000005 ADDs columns.
