@@ -188,6 +188,23 @@ production services (`kbve-gateway`, `arpg-game-udp`, `friendslop-game-udp`) —
 and an inconsistent sharing list is what causes LB-IPAM address theft. The
 hostPort lane needs none of that.
 
+## Metrics
+
+Both fleets serve Prometheus on their health port, scraped by the PodMonitors in
+`manifests/podmonitor.yaml`:
+
+| Source      | Endpoint        | Series                                                                          |
+| ----------- | --------------- | ------------------------------------------------------------------------------- |
+| worldserver | `:8901/metrics` | `active_connections`, `delay_95_percentile`, `delay_99_percentile`, `delay_max` |
+| gateway     | `:8900/metrics` | `active_connections` plus Go runtime metrics                                    |
+
+The `release: monitoring` label on each PodMonitor is mandatory — Prometheus
+selects on it, and one without it is never scraped, with no error to show for it.
+
+The worldserver's `delay_*` gauges are server tick time, and they are the only
+signal that catches a worldserver which has not crashed but is falling behind.
+The Agones health check cannot see that: it only proves the socket still accepts.
+
 ## Registering with Agones
 
 `tocloud9` must appear in `gameservers.namespaces` in
