@@ -114,6 +114,21 @@ spec:
                   args:
                       - |
                           set -eu
+                          # This Job is a Sync hook, so it re-runs on every ArgoCD
+                          # sync. The vendored deltas are not idempotent: the auth
+                          # delta INSERTs a fixed account id and 000005 ADDs columns.
+                          # A second run therefore fails, and since the fleets sit in
+                          # wave 2 behind this Job, that failure blocks the entire
+                          # rollout. Skip when the last delta is already present.
+                          APPLIED=$(mysql -h mysql -P 3306 -u acore -N -B acore_characters \
+                              -e "SELECT COUNT(*) FROM information_schema.columns \
+                                  WHERE table_schema='acore_characters' \
+                                    AND table_name='group_invites' \
+                                    AND column_name='inviterGameServerId';")
+                          if [ "$APPLIED" = "1" ]; then
+                              echo "ToCloud9 deltas already applied, nothing to do"
+                              exit 0
+                          fi
                           for f in /sql/auth__*.sql; do
                               echo "acore_auth <- $(basename "$f")"
                               mysql -h mysql -P 3306 -u acore acore_auth < "$f"
