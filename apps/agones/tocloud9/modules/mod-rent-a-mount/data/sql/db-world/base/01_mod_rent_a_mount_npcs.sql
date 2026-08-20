@@ -22,5 +22,5 @@ INSERT INTO `creature`
 DELETE FROM `mod_rent_a_mount_offers` WHERE `id` BETWEEN 1 AND 2;
 INSERT INTO `mod_rent_a_mount_offers`
 (`id`, `team`, `spell`, `price_copper`, `duration_seconds`, `label`, `min_level`, `min_riding_skill`, `enabled`) VALUES
-(1, 0, 458, 50, 300, 'Rent a horse (5 minutes)', 20, 75, 1),
-(2, 1, 580, 50, 300, 'Rent a wolf (5 minutes)', 20, 75, 1);
+(1, 0, 458, 50, 900, 'Rent a horse (15 minutes)', 20, 75, 1),
+(2, 1, 580, 50, 900, 'Rent a wolf (15 minutes)', 20, 75, 1);
