@@ -97,6 +97,8 @@ func _process(delta: float) -> void:
 				t.get("far", 0), _fmt_count(t.get("far_tris", 0)),
 			])
 	lines.append("VRAM %.1f MB  Mem %.1f MB" % [vram / 1048576.0, mem / 1048576.0])
+	if _player == null:
+		_player = _late_player()
 	if _player:
 		var p := _player.global_position
 		lines.append("Pos %.1f, %.1f, %.1f" % [p.x, p.y, p.z])
@@ -104,6 +106,15 @@ func _process(delta: float) -> void:
 		lines.append("Speed %.1f m/s" % vel.length())
 	lines.append("Nodes %d  Orphans %d" % [get_tree().get_node_count(), Performance.get_monitor(Performance.OBJECT_ORPHAN_NODE_COUNT)])
 	_label.text = "\n".join(lines)
+
+
+## Online there is no Player node in the scene: the body this client drives is
+## spawned by the net client once the host has accepted the join.
+func _late_player() -> Node3D:
+	for client in get_tree().get_nodes_in_group(&"net_game_client"):
+		if client.has_method(&"local_avatar"):
+			return client.local_avatar() as Node3D
+	return null
 
 
 func _fmt_count(n: int) -> String:

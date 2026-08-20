@@ -251,6 +251,15 @@ jobs:
             version_source: ${{ needs.config.outputs.version_source }}
             version_target: ${{ needs.config.outputs.version_target }}
             source_path: ${{ needs.config.outputs.source_path }}
+            # Publish used to be pinned to ubuntu-latest while `runner` fed only
+            # the test job. For an app with has_test: false that made the
+            # manifest's runner choice dead config, and a full AzerothCore
+            # compile was cancelled at the 60 minute limit on a 2-core runner.
+            runner: ${{ needs.config.outputs.runner }}
+            # Self-hosted runners are declared for builds that do not fit the
+            # default budget, so give them a proportionate ceiling rather than
+            # raising it for every app.
+            timeout_minutes: ${{ needs.config.outputs.runner == 'ubuntu-latest' && 60 || 240 }}
         secrets:
             MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
             FORGEJO_USER: ${{ secrets.FORGEJO_USER }}

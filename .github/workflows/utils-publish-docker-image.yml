@@ -37,6 +37,16 @@ on:
                 required: false
                 type: string
                 default: ''
+            runner:
+                description: 'Runner label for the publish build. Defaults to ubuntu-latest; heavy compiles (AzerothCore) need a self-hosted runner with real core count.'
+                required: false
+                type: string
+                default: 'ubuntu-latest'
+            timeout_minutes:
+                description: 'Job timeout. The 60 minute default is ample for Go and Rust images but not for a full AzerothCore compile.'
+                required: false
+                type: number
+                default: 60
         secrets:
             MY_GITHUB_TOKEN:
                 required: true
@@ -47,8 +57,8 @@ on:
 
 jobs:
     publish:
-        runs-on: ubuntu-latest
-        timeout-minutes: 60
+        runs-on: ${{ inputs.runner }}
+        timeout-minutes: ${{ inputs.timeout_minutes }}
         env:
             NX_NO_CLOUD: true
         permissions:

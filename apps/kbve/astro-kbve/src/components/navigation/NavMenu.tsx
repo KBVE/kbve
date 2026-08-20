@@ -359,7 +359,7 @@ export default function NavMenu({
 						left: auto;
 						right: 0;
 						height: auto;
-						max-height: min(70vh, 32rem);
+						max-height: none;
 						width: 17rem;
 						border-radius: 0.75rem;
 						box-shadow: var(--bento-shadow, 0 8px 20px rgba(0,0,0,0.3));

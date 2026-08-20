@@ -981,6 +981,12 @@ const PLANK_T: f32 = 0.18;
 /// How far a kerb rail sits above the middle of the timber it guards.
 const RAIL_UP: f32 = 0.62;
 
+/// Half-extents and lift of the post that caps a rail, matching the box the client
+/// draws at the end of each approach.
+const POST_HALF: f32 = 0.12;
+const POST_HALF_TALL: f32 = 0.44;
+const POST_UP: f32 = 0.3;
+
 /// Where the one river crossing is and how big its deck is.
 #[derive(Clone, Copy, Debug, PartialEq)]
 pub struct BridgePlan {
@@ -1269,6 +1275,28 @@ impl BridgePlan {
                     half_extents: [deck.half_extents[0], 0.07, 0.07],
                     rot: deck.rot,
                 });
+            }
+        }
+        slabs
+    }
+
+    /// The stout post that caps each approach rail.
+    ///
+    /// The rails themselves are slabbed, but the post that finishes one is thicker
+    /// and taller than the rail it caps, and stands past the last ramp segment --
+    /// so the client drew something solid where the sim had nothing at all.
+    pub fn ramp_post_slabs(&self, hgen: &HeightGen) -> Vec<Slab> {
+        let rail = self.half_width - 0.08;
+        let mut slabs = Vec::new();
+        for side in [-1.0f32, 1.0] {
+            let Some(end) = self.ramp_path(hgen, side).last().copied() else {
+                continue;
+            };
+            for lat in [-1.0f32, 1.0] {
+                slabs.push(Slab::flat(
+                    [end[0], end[1] + POST_UP, end[2] + rail * lat],
+                    [POST_HALF, POST_HALF_TALL, POST_HALF],
+                ));
             }
         }
         slabs

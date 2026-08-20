@@ -574,6 +574,7 @@ impl QTerrain {
         slabs.extend(plan.ramp_skirt_slabs(hgen));
         slabs.extend(plan.ramp_rail_slabs(hgen));
         slabs.extend(plan.abutment_slabs(hgen));
+        slabs.extend(plan.ramp_post_slabs(hgen));
         let shapes = Self::fit_slab_shapes(&mut body, &slabs);
 
         self.base_mut().add_child(&body);
@@ -1018,6 +1019,38 @@ mod plan_tests {
 
     /// The abutments carry the approach where it meets the bank, and the client drew
     /// them long before anything collided with them.
+
+    /// The client caps each approach rail with a post thicker and taller than the
+    /// rail itself. Nothing put collision under it, so it was scenery a body walked
+    /// through wherever it looked most solid.
+    #[test]
+    fn a_post_stands_where_each_rail_ends() {
+        let hgen = HeightGen::new(&HeightParams::default());
+        let plan = BridgePlan::new(&hgen, 256.0, HeightParams::default().water_level, 3.2);
+        let posts = plan.ramp_post_slabs(&hgen);
+        assert_eq!(posts.len(), 4, "two banks, two rails each");
+
+        let rail = plan.half_width - 0.08;
+        for side in [-1.0f32, 1.0] {
+            let end = *plan.ramp_path(&hgen, side).last().expect("ramp has a path");
+            for lat in [-1.0f32, 1.0] {
+                let want = [end[0], end[1] + 0.3, end[2] + rail * lat];
+                let found = posts.iter().any(|p| {
+                    (p.centre[0] - want[0]).abs() < 1e-3
+                        && (p.centre[1] - want[1]).abs() < 1e-3
+                        && (p.centre[2] - want[2]).abs() < 1e-3
+                });
+                assert!(found, "no post at {want:?} in {posts:?}");
+            }
+        }
+        for post in &posts {
+            assert!(
+                post.half_extents[1] > 0.4,
+                "a post shorter than the rail it caps: {post:?}"
+            );
+        }
+    }
+
     #[test]
     fn an_abutment_stands_under_each_bank() {
         let hgen = HeightGen::new(&HeightParams::default());
