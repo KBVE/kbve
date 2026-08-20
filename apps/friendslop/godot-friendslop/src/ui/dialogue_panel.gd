@@ -92,6 +92,7 @@ func _ready() -> void:
 	_player = speaker_name()
 	runner.line_changed.connect(_show_node)
 	runner.finished.connect(close)
+	I18n.locale_changed.connect(retranslate)
 	_was_captured = Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 	if _was_captured:
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -244,6 +245,13 @@ func _reserve() -> void:
 	_frame.custom_minimum_size.y = 0.0
 	_choices.visible = true
 	_frame.custom_minimum_size.y = maxf(_frame.get_combined_minimum_size().y, _floor)
+
+
+func retranslate() -> void:
+	if _close:
+		_close.tooltip_text = I18n.t("dlg.close")
+	if runner and runner.is_running():
+		_name_label.text = I18n.t(runner.speaker_key())
 
 
 func _close_button() -> Button:

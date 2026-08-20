@@ -10,11 +10,13 @@ const WIDTH := 320.0
 const PATTERN := "^[a-zA-Z][a-zA-Z0-9_]{2,23}$"
 
 var field: LineEdit
+var _heading: Label
 var submit_button: PaperButton
 var cancel_button: PaperButton
 var message_label: Label
 
 var _busy := false
+var _message_key := "username.rule"
 var _regex := RegEx.new()
 
 
@@ -50,9 +52,9 @@ func _build() -> void:
 	column.grow_vertical = Control.GROW_DIRECTION_BOTH
 	add_child(column)
 
-	var heading := _caption(I18n.t("username.prompt"), 20)
-	heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	column.add_child(heading)
+	_heading = _caption(I18n.t("username.prompt"), 20)
+	_heading.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	column.add_child(_heading)
 
 	field = LineEdit.new()
 	field.placeholder_text = I18n.t("username.placeholder")
@@ -62,7 +64,7 @@ func _build() -> void:
 	field.text_submitted.connect(func(_t: String) -> void: _submit())
 	column.add_child(field)
 
-	message_label = _caption(I18n.t("username.rule"), 13)
+	message_label = _caption(I18n.t(_message_key), 13)
 	message_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	message_label.custom_minimum_size = Vector2(WIDTH, 0)
 	message_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -88,7 +90,8 @@ func _on_typed(_text: String) -> void:
 	var name := typed()
 	submit_button.disabled = _busy or not is_valid(name)
 	if name.is_empty() or is_valid(name):
-		message_label.text = I18n.t("username.rule")
+		_message_key = "username.rule"
+		message_label.text = I18n.t(_message_key)
 		message_label.modulate = Color(1, 1, 1, 1)
 	else:
 		message_label.modulate = Color(1.0, 0.75, 0.55)
@@ -106,14 +109,29 @@ func set_busy(busy: bool) -> void:
 	submit_button.disabled = busy or not is_valid(typed())
 	field.editable = not busy
 	if busy:
-		message_label.text = I18n.t("username.claiming")
+		_message_key = "username.claiming"
+		message_label.text = I18n.t(_message_key)
 		message_label.modulate = Color(1, 1, 1, 1)
 
 
 func show_message(text: String) -> void:
 	set_busy(false)
+	_message_key = ""
 	message_label.text = text
 	message_label.modulate = Color(1.0, 0.75, 0.55)
+
+
+func retranslate() -> void:
+	if field:
+		field.placeholder_text = I18n.t("username.placeholder")
+	if _heading:
+		_heading.text = I18n.t("username.prompt")
+	if submit_button:
+		submit_button.text = I18n.t("username.claim")
+	if cancel_button:
+		cancel_button.text = I18n.t("title.sign_out")
+	if _message_key != "":
+		message_label.text = I18n.t(_message_key)
 
 
 func _caption(text: String, size: int) -> Label:
@@ -133,9 +151,7 @@ func _unhandled_input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 
-## Resizes to the viewport rather than the 1280x720 design, and re-runs whenever that
-## changes so a phone rotating does not keep the old measurements. The width is capped
-## against the safe area so the field clears a notch in landscape.
+## Resizes to the viewport rather than the 1280x720 design, and re-runs whenever that changes so a phone rotating does not keep the old measurements.
 func _layout() -> void:
 	if submit_button == null:
 		return

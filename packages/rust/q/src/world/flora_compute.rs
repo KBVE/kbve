@@ -222,7 +222,10 @@ fn compile(rd: &mut Gd<RenderingDevice>, src: &str) -> Option<Rid> {
     let spirv = rd.shader_compile_spirv_from_source(&source)?;
     let err = spirv.get_stage_compile_error(ShaderStage::COMPUTE);
     if !err.is_empty() {
-        godot_error!("[QFloraField] compute compile failed: {err}");
+        crate::q_error!(
+            "FloraCompute",
+            "[QFloraField] compute compile failed: {err}"
+        );
         return None;
     }
     let shader = rd.shader_create_from_spirv(&spirv);

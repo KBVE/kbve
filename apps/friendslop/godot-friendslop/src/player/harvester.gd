@@ -57,8 +57,6 @@ func _resolve() -> void:
 			if _net and not _net.harvest_applied.is_connected(_on_harvest_applied):
 				_net.harvest_applied.connect(_on_harvest_applied)
 				_net.harvest_rewarded.connect(_on_harvest_rewarded)
-				# Whatever was felled before this tool existed, which includes the
-				# whole ledger the host replays on join.
 				_net.replay_harvest()
 			break
 
@@ -99,7 +97,8 @@ func _process(delta: float) -> void:
 
 	if _swinging():
 		_step(delta)
-	if not _swinging() and Input.is_action_pressed(&"harvest"):
+	if not _swinging() and Input.is_action_pressed(&"harvest") \
+			and not ChatPanel.anyone_typing(get_tree()):
 		_begin()
 	elif not _swinging():
 		_end_job()

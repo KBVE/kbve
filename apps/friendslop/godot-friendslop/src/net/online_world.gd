@@ -28,7 +28,10 @@ func _ready() -> void:
 	_client.pets_changed.connect(_refresh_pets)
 	_client.pet_spawned.connect(_on_pet_spawned)
 	_client.pet_denied.connect(_hud.show_notice)
-	_hud.leave_requested.connect(_leave)
+
+	var pause := get_node_or_null(^"PauseMenu")
+	if pause:
+		pause.log_off_override = _leave
 
 	var auth := get_node_or_null(^"/root/Auth")
 	if auth:

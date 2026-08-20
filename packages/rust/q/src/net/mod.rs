@@ -16,6 +16,12 @@ pub mod predict;
 #[cfg(feature = "net-ws")]
 pub mod ws;
 
+#[cfg(feature = "net-ws")]
+pub mod chat;
+
+#[cfg(feature = "net-godot")]
+pub mod chat_node;
+
 #[cfg(feature = "net-udp")]
 pub mod udp;
 

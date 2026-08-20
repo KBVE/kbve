@@ -78,6 +78,16 @@ metadata:
         kbve.com/managed-by: argocd
     annotations:
         argocd.argoproj.io/hook: PostSync
+        # Without a delete policy the completed hook Job stays put under its fixed
+        # name, and the next sync cannot recreate it — a Job's pod template and
+        # selector are immutable — so the PostSync hook never reaches a terminal
+        # state and the application sits in Progressing indefinitely. Every other
+        # hook Job in this repo sets one; this was the only one that did not.
+        # BeforeHookCreation rather than HookSucceeded, matching the sibling
+        # ClickHouse setup job in apps/kube/kbve: the finished Job survives until
+        # the next sync needs the name, so its logs are still there to read when
+        # the setup is what went wrong.
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
     ttlSecondsAfterFinished: 86400
     backoffLimit: 3

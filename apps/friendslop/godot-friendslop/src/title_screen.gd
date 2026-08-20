@@ -13,6 +13,7 @@ const RANGE_BOOST := 1.35
 @onready var _menu: TitleMenu = $TitleMenu
 
 var _settings: CanvasLayer
+var _language_modal: LanguageModal
 
 
 func _enter_tree() -> void:
@@ -85,8 +86,7 @@ func _ready() -> void:
 	_greet()
 
 
-## Toast is an autoload and outlives this scene, so the title has to hand the corner back
-## or the world keeps showing its messages up beside the compass.
+## Toast is an autoload and outlives this scene, so the title has to hand the corner back or the world keeps showing its messages up beside the compass.
 func _exit_tree() -> void:
 	Toast.place(Toast.Corner.BOTTOM_CENTER)
 
@@ -124,22 +124,20 @@ func _ask_language_once() -> void:
 	if I18n.has_choice() or I18n.locales().size() < 2:
 		return
 	var modal := LanguageModal.new()
+	_language_modal = modal
 	modal.chosen.connect(_on_language_chosen)
 	add_child(modal)
 
 
 func _on_language_chosen(code: String) -> void:
-	if code == I18n.locale_code():
-		get_tree().reload_current_scene()
-		return
 	_switch_locale(code)
+	if _language_modal:
+		_language_modal.queue_free()
+		_language_modal = null
 
 
 func _switch_locale(code: String) -> void:
-	if code == I18n.locale_code():
-		return
 	I18n.set_locale(code, true)
-	get_tree().reload_current_scene()
 
 
 func _play() -> void:

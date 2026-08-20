@@ -95,10 +95,6 @@ func harvest_begin(kind: StringName, cell: Vector2i, ordinal: int) -> void:
 
 
 ## Every harvest this session has heard about, said again.
-##
-## The host says each once. A tool that attached after the ledger arrived -- which is
-## every tool, since it is built on an avatar the ledger precedes -- would otherwise
-## stand in a wood that was felled before it got here.
 func replay_harvest() -> void:
 	_client.replay_harvest()
 
@@ -178,12 +174,15 @@ func snapshot_tick() -> int:
 func _process(_delta: float) -> void:
 	if not _client.is_joined():
 		return
-	var wish := Input.get_vector("move_left", "move_right", "move_forward", "move_back")
+	var typing := ChatPanel.anyone_typing(get_tree())
+	var wish := Vector2.ZERO if typing else Input.get_vector(
+			"move_left", "move_right", "move_forward", "move_back")
+	var jump := not typing and Input.is_action_pressed("jump")
 	var facing := _facing()
-	_client.set_intent(_world_wish(wish), Input.is_action_pressed("jump"), facing)
+	_client.set_intent(_world_wish(wish), jump, facing)
 	var mine := local_avatar()
 	if mine and mine.has_method(&"push_intent"):
-		mine.push_intent(wish, Input.is_action_just_pressed("jump"), facing)
+		mine.push_intent(wish, not typing and Input.is_action_just_pressed("jump"), facing)
 
 
 func _facing() -> float:
@@ -227,6 +226,22 @@ func world_water_level() -> float:
 
 func world_road_width() -> float:
 	return _client.world_road_width()
+
+
+func world_stone_seed() -> int:
+	return _client.world_stone_seed()
+
+
+func world_tree_seed() -> int:
+	return _client.world_tree_seed()
+
+
+func world_stone_grid() -> float:
+	return _client.world_stone_grid()
+
+
+func world_tree_grid() -> float:
+	return _client.world_tree_grid()
 
 
 func _world_wish(wish: Vector2) -> Vector2:

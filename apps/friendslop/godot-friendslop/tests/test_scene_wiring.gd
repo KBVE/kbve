@@ -145,6 +145,40 @@ func test_every_world_scene_carries_its_settings_nodes() -> void:
 ## plan from their exported defaults a round trip before anyone says what world this is.
 ## The join has to hand them the host's numbers -- and if any of these names drift, the
 ## call fails at runtime in a scene nobody loads under test.
+## NetGameClient is a GDScript wrapper around the Rust QNetClient3D: every binding
+## the world calls has to be forwarded by hand. Adding the Rust #[func] and the call
+## site without the forwarder in between fails only at runtime, on join.
+##
+## Read as source rather than instantiated: the wrapper builds a QNetClient3D on
+## construction, and a wrapper freed outside the tree leaves it orphaned.
+func test_the_world_only_asks_the_client_for_what_it_forwards() -> void:
+	var world := FileAccess.get_file_as_string("res://src/net/online_world.gd")
+	var wrapper := FileAccess.get_file_as_string("res://src/net/net_game_client.gd")
+	assert_str(world).override_failure_message("online_world.gd is unreadable").is_not_empty()
+	assert_str(wrapper).override_failure_message("net_game_client.gd is unreadable").is_not_empty()
+
+	var declared := RegEx.new()
+	declared.compile("(?m)^func ([a-z_0-9]+)\\(")
+	var forwarded: Array[String] = []
+	for hit in declared.search_all(wrapper):
+		forwarded.append(hit.get_string(1))
+
+	var called := RegEx.new()
+	called.compile("_client\\.([a-z_0-9]+)\\(")
+	var missing: Array[String] = []
+	for hit in called.search_all(world):
+		var method := hit.get_string(1)
+		if forwarded.has(method) or missing.has(method):
+			continue
+		if ClassDB.class_has_method(&"Node3D", method):
+			continue
+		missing.append(method)
+
+	assert_array(missing).override_failure_message(
+			"online_world.gd calls %s on NetGameClient, which does not forward them"
+			% str(missing)).is_empty()
+
+
 func test_the_online_world_takes_its_scatter_from_the_host() -> void:
 	var terrain: Object = ClassDB.instantiate(&"QTerrain")
 	assert_bool(terrain.has_method(&"adopt_seed")) \

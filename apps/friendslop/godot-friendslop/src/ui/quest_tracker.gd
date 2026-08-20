@@ -35,6 +35,7 @@ func _ready() -> void:
 	Quests.advanced.connect(_on_step)
 	Quests.completed.connect(_on_changed)
 	Quests.turned_in.connect(_on_handed)
+	I18n.locale_changed.connect(_rebuild)
 	_fit()
 	_rebuild()
 

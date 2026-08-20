@@ -8,14 +8,16 @@ const LOG_FRACTION_TALL := 0.42
 const WIDE_ASPECT := 1.2
 const HISTORY := 80
 const FADE_SECONDS := 12.0
+const MAX_CONTENT := 400
 
 var _root: MarginContainer
 var _log: RichTextLabel
 var _entry: LineEdit
 var _notice: Label
-var _client: ChatClient
+var _client: QChatClient
 var _open := false
 var _idle := 0.0
+var _notice_key := ""
 
 
 func _ready() -> void:
@@ -23,12 +25,14 @@ func _ready() -> void:
 	layer = 120
 	process_mode = Node.PROCESS_MODE_ALWAYS
 	_build()
-	_client = ChatClient.new()
+	_client = QChatClient.new()
+	_client.name = &"ChatClient"
 	add_child(_client)
 	_client.message.connect(_on_message)
 	_client.state_changed.connect(_on_state)
 	_client.failed.connect(_on_failed)
 	Auth.changed.connect(_refresh_access)
+	I18n.locale_changed.connect(retranslate)
 	get_viewport().size_changed.connect(_layout)
 	_refresh_access()
 	_layout()
@@ -44,6 +48,7 @@ func _build() -> void:
 	var column := VBoxContainer.new()
 	column.name = "Column"
 	column.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	column.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
 	column.alignment = BoxContainer.ALIGNMENT_END
 	column.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_root.add_child(column)
@@ -54,7 +59,6 @@ func _build() -> void:
 	_log.scroll_following = true
 	_log.fit_content = false
 	_log.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_log.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_log.add_theme_color_override("default_color", Color(0.96, 0.93, 0.85))
 	column.add_child(_log)
 
@@ -67,7 +71,7 @@ func _build() -> void:
 	_entry = LineEdit.new()
 	_entry.name = "Entry"
 	_entry.placeholder_text = "Say something"
-	_entry.max_length = ChatClient.MAX_CONTENT
+	_entry.max_length = MAX_CONTENT
 	_entry.visible = false
 	_entry.text_submitted.connect(_on_submit)
 	column.add_child(_entry)
@@ -100,16 +104,25 @@ func _layout() -> void:
 func _refresh_access() -> void:
 	if Auth.is_signed_in():
 		_notice.visible = false
-		_client.start()
+		var token := Auth.access_token()
+		_client.start(token, Auth.username_in(token))
 	else:
 		_close_entry()
-		_notice.text = I18n.t("chat.signin_required")
+		_set_notice("chat.signin_required")
 		_notice.visible = true
 		_client.stop()
 
 
 func has_focus_grabbed() -> bool:
 	return _open
+
+
+## True while any chat entry holds focus; Input polling cannot see that on its own.
+static func anyone_typing(tree: SceneTree) -> bool:
+	for panel in tree.get_nodes_in_group(GROUP):
+		if panel.has_focus_grabbed():
+			return true
+	return false
 
 
 func toggle() -> void:
@@ -137,6 +150,9 @@ func _close_entry() -> void:
 
 
 func _on_submit(text: String) -> void:
+	if text.strip_edges().is_empty():
+		_close_entry()
+		return
 	if not _client.send_chat(text):
 		_append("system", "", I18n.t("chat.send_failed"))
 	_close_entry()
@@ -145,13 +161,23 @@ func _on_submit(text: String) -> void:
 func _on_state(connected: bool) -> void:
 	_notice.visible = not connected and Auth.is_signed_in()
 	if not connected:
-		_notice.text = I18n.t("chat.reconnecting")
+		_set_notice("chat.reconnecting")
 		_close_entry()
 
 
 func _on_failed(reason: String) -> void:
-	_notice.text = I18n.t(reason)
+	_set_notice(reason)
 	_notice.visible = true
+
+
+func _set_notice(key: String) -> void:
+	_notice_key = key
+	_notice.text = I18n.t(key)
+
+
+func retranslate() -> void:
+	if _notice_key != "":
+		_notice.text = I18n.t(_notice_key)
 
 
 func _on_message(kind: String, sender: String, content: String) -> void:

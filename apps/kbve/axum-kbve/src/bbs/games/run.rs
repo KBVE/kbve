@@ -21,6 +21,7 @@ enum View {
     Play,
     Map,
     Items,
+    Gear,
     Shop,
     Craft,
 }
@@ -34,6 +35,7 @@ enum Act {
 }
 
 /// One line of the pack.
+#[derive(Clone)]
 struct Carried {
     key: Option<char>,
     label: String,
@@ -120,6 +122,14 @@ fn needs_enemy(effect: &bevy_dungeon::types::UseEffect) -> bool {
     )
 }
 
+fn slot_name(slot: &bevy_dungeon::types::EquipSlot) -> &'static str {
+    use bevy_dungeon::types::EquipSlot;
+    match slot {
+        EquipSlot::Weapon => "weapon",
+        EquipSlot::Armor => "armor",
+    }
+}
+
 /// A one-line reminder of what a piece of gear is worth wearing for.
 fn gear_summary(gear: &bevy_dungeon::types::GearDef) -> String {
     let mut parts = Vec::new();
@@ -184,6 +194,21 @@ impl Run {
     #[cfg(test)]
     pub fn pack_keys(&self) -> Vec<char> {
         self.items().into_iter().filter_map(|c| c.key).collect()
+    }
+
+    #[cfg(test)]
+    pub fn wearable_keys(&self) -> Vec<char> {
+        self.wearable().into_iter().filter_map(|c| c.key).collect()
+    }
+
+    #[cfg(test)]
+    pub fn worn_keys(&self) -> Vec<char> {
+        self.worn().into_iter().filter_map(|c| c.key).collect()
+    }
+
+    #[cfg(test)]
+    pub fn worn_labels(&self) -> Vec<String> {
+        self.worn().into_iter().map(|c| c.label).collect()
     }
 
     #[cfg(test)]
@@ -252,6 +277,79 @@ impl Run {
             .unwrap_or_default()
     }
 
+    /// What the caller is wearing right now, keyed to take it back off.
+    fn worn(&self) -> Vec<Carried> {
+        let me = self.state.player(self.actor);
+        [
+            ('W', "weapon", me.weapon.as_deref()),
+            ('A', "armor", me.armor_gear.as_deref()),
+        ]
+        .into_iter()
+        .filter_map(|(key, slot, equipped)| {
+            let gear_id = equipped?;
+            let gear = content::find_gear(gear_id);
+            let name = gear.map(|g| g.name).unwrap_or(gear_id);
+            Some(Carried {
+                key: Some(key),
+                label: format!("{name} ({slot})"),
+                detail: gear.map(gear_summary),
+                action: Some(GameAction::Unequip(slot.to_owned())),
+            })
+        })
+        .collect()
+    }
+
+    /// The two slots as the bench draws them, worn or bare. An empty slot is
+    /// still a row: a caller who owns nothing for it should see the gap rather
+    /// than wonder whether the board forgot to list it.
+    fn slots(&self) -> Vec<(char, &'static str, Option<Carried>)> {
+        let worn = self.worn();
+        [('W', "weapon"), ('A', "armor")]
+            .into_iter()
+            .map(|(key, slot)| {
+                let row = worn.iter().find(|c| c.key == Some(key)).cloned();
+                (key, slot, row)
+            })
+            .collect()
+    }
+
+    /// Carried gear, keyed to put on. Anything already worn is in the slot
+    /// above rather than in this list — the engine moved it out of the pack.
+    fn wearable(&self) -> Vec<Carried> {
+        let mut key = KeyRun::digits();
+        types::inv_to_legacy(&self.state.player(self.actor).inventory)
+            .into_iter()
+            .filter(|stack| stack.qty > 0)
+            .filter_map(|stack| {
+                let gear = content::find_gear(&stack.item_id)?;
+                Some(Carried {
+                    key: key.next(),
+                    label: format!("{} ({})", gear.name, slot_name(&gear.slot)),
+                    detail: Some(gear_summary(gear)),
+                    action: Some(GameAction::Equip(gear.id.to_owned())),
+                })
+            })
+            .collect()
+    }
+
+    /// What the worn pieces are worth together, so the bench answers "am I
+    /// better off in this?" without the caller adding the rows up themselves.
+    fn loadout(&self) -> String {
+        let me = self.state.player(self.actor);
+        let (mut damage, mut armor, mut hp) = (0, 0, 0);
+        for id in [me.weapon.as_deref(), me.armor_gear.as_deref()]
+            .into_iter()
+            .flatten()
+        {
+            if let Some(gear) = content::find_gear(id) {
+                damage += gear.bonus_damage;
+                armor += gear.bonus_armor;
+                hp += gear.bonus_hp;
+            }
+        }
+        format!("loadout  {damage:+} damage  {armor:+} armor  {hp:+} HP")
+    }
+
     /// The carried stacks, keyed by what the board can do with each: drink it,
     /// wear it, or neither. Quest pieces and anything with no use effect are
     /// listed without a key rather than offered and then refused.
@@ -277,11 +375,7 @@ impl Run {
                 let usable = item
                     .and_then(|d| d.use_effect.as_ref())
                     .is_some_and(|effect| !needs_enemy(effect) || self.has_living_enemy());
-                let action = if usable {
-                    Some(GameAction::UseItem(stack.item_id.clone(), None))
-                } else {
-                    gear.map(|g| GameAction::Equip(g.id.to_owned()))
-                };
+                let action = usable.then(|| GameAction::UseItem(stack.item_id.clone(), None));
 
                 Carried {
                     key: action.as_ref().and_then(|_| key.next()),
@@ -568,6 +662,9 @@ impl Run {
         if !self.items().is_empty() {
             options.push(('I', "Pack".to_string()));
         }
+        if !self.wearable().is_empty() || !self.worn().is_empty() {
+            options.push(('G', "Gear".to_string()));
+        }
         if self.trading() {
             options.push(('B', "Trade".to_string()));
         }
@@ -678,6 +775,46 @@ impl Game for Run {
                         carried.detail.as_deref(),
                     );
                 }
+                if !self.wearable().is_empty() {
+                    screen
+                        .ink(Ink::Dim)
+                        .line("gear is worn from the bench - [G]")
+                        .reset();
+                }
+                self.draw_notice(screen);
+                screen.nl();
+                screen.item('Q', "Back");
+            }
+            View::Gear => {
+                let wearable = self.wearable();
+                screen
+                    .nl()
+                    .ink(Ink::Dim)
+                    .line(&self.loadout())
+                    .ink(Ink::Accent)
+                    .line("worn")
+                    .reset();
+                for (key, slot, row) in self.slots() {
+                    match row {
+                        Some(carried) => {
+                            draw_row(screen, Some(key), &carried.label, carried.detail.as_deref())
+                        }
+                        None => draw_row(screen, None, &format!("no {slot}"), None),
+                    }
+                }
+                screen.nl().ink(Ink::Accent).line("carried gear").reset();
+                if wearable.is_empty() {
+                    screen.ink(Ink::Dim).line("nothing to put on").reset();
+                }
+                for carried in &wearable {
+                    draw_row(
+                        screen,
+                        carried.key,
+                        &carried.label,
+                        carried.detail.as_deref(),
+                    );
+                }
+                self.draw_last_log(screen);
                 self.draw_notice(screen);
                 screen.nl();
                 screen.item('Q', "Back");
@@ -764,6 +901,27 @@ impl Game for Run {
             return Flow::Continue;
         }
 
+        if self.view == View::Gear {
+            match key {
+                'Q' | 'G' => {
+                    self.view = View::Play;
+                    self.notice = None;
+                }
+                _ => {
+                    if let Some(action) = self
+                        .worn()
+                        .into_iter()
+                        .chain(self.wearable())
+                        .find(|c| c.key == Some(key))
+                        .and_then(|c| c.action)
+                    {
+                        self.act(action);
+                    }
+                }
+            }
+            return Flow::Continue;
+        }
+
         if self.view == View::Craft {
             match key {
                 'Q' | 'K' => {
@@ -810,6 +968,10 @@ impl Game for Run {
             }
             'I' => {
                 self.view = View::Items;
+                self.notice = None;
+            }
+            'G' => {
+                self.view = View::Gear;
                 self.notice = None;
             }
             _ => {

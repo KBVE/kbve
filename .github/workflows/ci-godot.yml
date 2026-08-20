@@ -224,12 +224,22 @@ jobs:
             fail-fast: false
             matrix:
                 include:
+                    # Both desktop slots name their triple rather than taking the
+                    # runner's host default. `q.gdextension` declares each library
+                    # under a fixed architecture (`windows.release.x86_64`,
+                    # `linux.release.x86_64`), so a runner image that moved to arm64
+                    # — GitHub is rolling those out — would build an arm64 library,
+                    # stage it under the x86_64 path, pass every CI check, and ship
+                    # a game that cannot load its own extension. Naming the triple
+                    # turns that into a build failure instead of a shipped one.
                     - slot: linux
                       os: ubuntu-latest
                       dest: linux
+                      rust_target: x86_64-unknown-linux-gnu
                     - slot: windows
                       os: windows-latest
                       dest: windows
+                      rust_target: x86_64-pc-windows-msvc
                     - slot: android
                       os: ubuntu-latest
                       dest: android/arm64

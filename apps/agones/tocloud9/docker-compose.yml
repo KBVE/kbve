@@ -1,0 +1,315 @@
+name: tocloud9
+
+x-tc9-image-tag: &tag ${TC9_IMAGE_TAG:-master}
+
+x-char-db: &char_db 1:${CHAR_DB_USER}:${CHAR_DB_PASS}@tcp(${CHAR_DB_HOST}:${CHAR_DB_PORT})/${CHAR_DB_NAME}
+x-world-db: &world_db ${WORLD_DB_USER}:${WORLD_DB_PASS}@tcp(${WORLD_DB_HOST}:${WORLD_DB_PORT})/${WORLD_DB_NAME}
+x-auth-db: &auth_db ${AUTH_DB_USER}:${AUTH_DB_PASS}@tcp(${AUTH_DB_HOST}:${AUTH_DB_PORT})/${AUTH_DB_NAME}
+
+services:
+    mysql:
+        image: mysql:8.4
+        command: --log-bin-trust-function-creators=1
+        ports:
+            - '3306:3306'
+        environment:
+            MYSQL_ROOT_PASSWORD: password
+        volumes:
+            - database:/var/lib/mysql
+            - ./sql/init:/docker-entrypoint-initdb.d:ro
+        healthcheck:
+            test:
+                [
+                    'CMD-SHELL',
+                    'mysql --user=root --password=password --execute "SHOW DATABASES;"',
+                ]
+            interval: 5s
+            timeout: 10s
+            retries: 60
+        profiles: [setup, ac]
+
+    ac-db-import:
+        image: ${AC_DB_IMPORT_IMAGE:-acore/ac-wotlk-db-import:master}
+        platform: linux/amd64
+        depends_on:
+            mysql:
+                condition: service_healthy
+        environment:
+            AC_LOGIN_DATABASE_INFO: '${AUTH_DB_HOST};${AUTH_DB_PORT};${AUTH_DB_USER};${AUTH_DB_PASS};${AUTH_DB_NAME}'
+            AC_WORLD_DATABASE_INFO: '${WORLD_DB_HOST};${WORLD_DB_PORT};${WORLD_DB_USER};${WORLD_DB_PASS};${WORLD_DB_NAME}'
+            AC_CHARACTER_DATABASE_INFO: '${CHAR_DB_HOST};${CHAR_DB_PORT};${CHAR_DB_USER};${CHAR_DB_PASS};${CHAR_DB_NAME}'
+            AC_UPDATES_ENABLE_DATABASES: '7'
+            AC_DATA_DIR: /azerothcore/env/dist/data
+        profiles: [setup]
+
+    tc9-sql:
+        image: mysql:8.4
+        depends_on:
+            ac-db-import:
+                condition: service_completed_successfully
+        volumes:
+            - ./sql:/tc9-sql:ro
+        entrypoint: ['/bin/sh', '-c']
+        command:
+            - |
+                set -e
+                for f in /tc9-sql/auth/*.sql; do
+                  echo "auth <- $$f"
+                  mysql -h "${AUTH_DB_HOST}" -P "${AUTH_DB_PORT}" -u "${AUTH_DB_USER}" -p"${AUTH_DB_PASS}" "${AUTH_DB_NAME}" < "$$f"
+                done
+                for f in /tc9-sql/characters/*.up.sql; do
+                  echo "characters <- $$f"
+                  mysql -h "${CHAR_DB_HOST}" -P "${CHAR_DB_PORT}" -u "${CHAR_DB_USER}" -p"${CHAR_DB_PASS}" "${CHAR_DB_NAME}" < "$$f"
+                done
+                echo "ToCloud9 SQL deltas applied"
+        profiles: [setup]
+
+    download-miscs:
+        image: alpine/curl:8.14.1
+        volumes:
+            - core_etc:/config
+            - client_data:/data
+        environment:
+            CLIENT_DATA_URL: ${CLIENT_DATA_URL:-https://github.com/wowgaming/client-data/releases/download/v20.0/Data.zip}
+            WORLDSERVER_CONF_URL: ${WORLDSERVER_CONF_URL:-https://raw.githubusercontent.com/walkline/azerothcore-wotlk/cluster-mode/src/server/apps/worldserver/worldserver.conf.dist}
+        command: >
+            sh -c "curl -L \"$${WORLDSERVER_CONF_URL}\" -o /config/worldserver.conf &&
+            mkdir -p /data && cd /data &&
+            if [ -z \"$$(ls -A /data)\" ]; then
+              curl -L -o data.zip \"$${CLIENT_DATA_URL}\" &&
+              unzip -q data.zip &&
+              rm -f data.zip;
+            else echo 'client data already present, skipping download'; fi"
+        profiles: [setup]
+
+    nats:
+        image: nats:2.10-alpine
+        hostname: nats-server
+        profiles: [ac]
+
+    redis:
+        image: redis:7.2-alpine
+        command: redis-server --save 20 1 --loglevel warning
+        volumes:
+            - cache:/data
+        profiles: [ac]
+
+    servers-registry:
+        image: ghcr.io/walkline/servers-registry:${TC9_IMAGE_TAG:-master}
+        depends_on: [redis]
+        ports:
+            - '8999:8999'
+        environment:
+            PORT: 8999
+            REDIS_URL: redis://:@redis:6379/0
+            LAYER_MAPS: ${LAYER_MAPS:-}
+        profiles: [ac]
+
+    authserver:
+        image: ghcr.io/walkline/authserver:${TC9_IMAGE_TAG:-master}
+        depends_on:
+            mysql:
+                condition: service_healthy
+        ports:
+            - '3724:3724'
+        environment:
+            PORT: 3724
+            AUTH_DB_CONNECTION: *auth_db
+            DB_SCHEMA_TYPE: ${DATABASE_SCHEMA_TYPE}
+            SERVERS_REGISTRY_SERVICE_ADDRESS: servers-registry:8999
+        profiles: [ac]
+
+    gateway:
+        image: ghcr.io/walkline/gateway:${TC9_IMAGE_TAG:-master}
+        depends_on:
+            servers-registry:
+                condition: service_started
+            mysql:
+                condition: service_healthy
+        ports:
+            - '8085:8085'
+            - '8333:8333'
+            - '8900:8900'
+            - '4000:4000'
+        environment: &gateway_env
+            SERVERS_REGISTRY_SERVICE_ADDRESS: servers-registry:8999
+            CHAR_SERVICE_ADDRESS: charserver:8087
+            CHAT_SERVICE_ADDRESS: chatserver:8992
+            GUILDS_SERVICE_ADDRESS: guildserver:8995
+            MAIL_SERVICE_ADDRESS: mailserver:8997
+            GROUP_SERVICE_ADDRESS: groupserver:8998
+            MATCHMAKING_SERVICE_ADDRESS: matchmakingserver:8994
+            AUCTION_HOUSE_SERVICE_ADDRESS: auctionhouse:8993
+            AUTH_DB_CONNECTION: *auth_db
+            DB_SCHEMA_TYPE: ${DATABASE_SCHEMA_TYPE}
+            PREFERRED_HOSTNAME: ${EXTERNAL_ADDRESS}
+            LOG_LEVEL: 0
+            PORT: 8085
+            NATS_URL: nats://nats:4222
+        profiles: [ac]
+
+    gateway-second:
+        image: ghcr.io/walkline/gateway:${TC9_IMAGE_TAG:-master}
+        depends_on:
+            servers-registry:
+                condition: service_started
+            mysql:
+                condition: service_healthy
+        ports:
+            - '8045:8045'
+        environment:
+            <<: *gateway_env
+            PORT: 8045
+        profiles: [ac]
+
+    charserver:
+        image: ghcr.io/walkline/charserver:${TC9_IMAGE_TAG:-master}
+        depends_on:
+            servers-registry:
+                condition: service_started
+            mysql:
+                condition: service_healthy
+        ports:
+            - '8087:8087'
+        environment:
+            PORT: 8087
+            CHAR_DB_CONNECTION: *char_db
+            WORLD_DB_CONNECTION: *world_db
+            GUILDS_SERVICE_ADDRESS: guildserver:8995
+        profiles: [ac]
+
+    chatserver:
+        image: ghcr.io/walkline/chatserver:${TC9_IMAGE_TAG:-master}
+        depends_on:
+            nats:
+                condition: service_started
+            mysql:
+                condition: service_healthy
+        environment:
+            CHAR_DB_CONNECTION: *char_db
+            SERVERS_REGISTRY_SERVICE_ADDRESS: servers-registry:8999
+            NATS_URL: nats://nats:4222
+            PORT: 8992
+        profiles: [ac]
+
+    guildserver:
+        image: ghcr.io/walkline/guildserver:${TC9_IMAGE_TAG:-master}
+        depends_on:
+            nats:
+                condition: service_started
+            mysql:
+                condition: service_healthy
+        environment:
+            CHAR_DB_CONNECTION: *char_db
+            NATS_URL: nats://nats:4222
+            PORT: 8995
+        profiles: [ac]
+
+    guidserver:
+        image: ghcr.io/walkline/guidserver:${TC9_IMAGE_TAG:-master}
+        depends_on:
+            redis:
+                condition: service_started
+            mysql:
+                condition: service_healthy
+        ports:
+            - '8996:8996'
+        environment:
+            CHAR_DB_CONNECTION: *char_db
+            REDIS_URL: redis://:@redis:6379/0
+            PORT: 8996
+        profiles: [ac]
+
+    mailserver:
+        image: ghcr.io/walkline/mailserver:${TC9_IMAGE_TAG:-master}
+        depends_on:
+            mysql:
+                condition: service_healthy
+        ports:
+            - '8997:8997'
+        environment:
+            CHAR_DB_CONNECTION: *char_db
+            NATS_URL: nats://nats:4222
+            PORT: 8997
+        profiles: [ac]
+
+    auctionhouse:
+        image: ghcr.io/walkline/auctionhouse:${TC9_IMAGE_TAG:-master}
+        depends_on:
+            mysql:
+                condition: service_healthy
+        ports:
+            - '8993:8993'
+        environment:
+            CHAR_DB_CONNECTION: *char_db
+            WORLD_DB_CONNECTION: *world_db
+            MAIL_SERVICE_ADDRESS: mailserver:8997
+            NATS_URL: nats://nats:4222
+            PORT: 8993
+            EXPIRED_AUCTIONS_CHECK_SECS_DELAY: 60
+        profiles: [ac]
+
+    groupserver:
+        image: ghcr.io/walkline/groupserver:${TC9_IMAGE_TAG:-master}
+        depends_on:
+            mysql:
+                condition: service_healthy
+        ports:
+            - '8998:8998'
+        environment:
+            CHAR_DB_CONNECTION: *char_db
+            NATS_URL: nats://nats:4222
+            PORT: 8998
+        profiles: [ac]
+
+    matchmakingserver:
+        image: ghcr.io/walkline/matchmakingserver:${TC9_IMAGE_TAG:-master}
+        depends_on:
+            mysql:
+                condition: service_healthy
+        ports:
+            - '8994:8994'
+        environment:
+            CHAR_DB_CONNECTION: *char_db
+            WORLD_DB_CONNECTION: *world_db
+            SERVERS_REGISTRY_SERVICE_ADDRESS: servers-registry:8999
+            BATTLE_GROUPS: 1:1
+            NATS_URL: nats://nats:4222
+            PORT: 8994
+        profiles: [ac]
+
+    gameserver-ac:
+        image: ghcr.io/walkline/gameserver-ac:${TC9_IMAGE_TAG:-master}
+        depends_on:
+            mysql:
+                condition: service_healthy
+            servers-registry:
+                condition: service_started
+            guidserver:
+                condition: service_started
+        volumes:
+            - core_etc:/repo/bin/etc
+            - client_data:/data
+        environment:
+            AC_LOGIN_DATABASE_INFO: '${AUTH_DB_HOST};${AUTH_DB_PORT};${AUTH_DB_USER};${AUTH_DB_PASS};${AUTH_DB_NAME}'
+            AC_WORLD_DATABASE_INFO: '${WORLD_DB_HOST};${WORLD_DB_PORT};${WORLD_DB_USER};${WORLD_DB_PASS};${WORLD_DB_NAME}'
+            AC_CHARACTER_DATABASE_INFO: '${CHAR_DB_HOST};${CHAR_DB_PORT};${CHAR_DB_USER};${CHAR_DB_PASS};${CHAR_DB_NAME}'
+            AC_CONSOLE_ENABLE: 0
+            AC_RA_ENABLE: 0
+            AC_SOAP_ENABLE: 0
+            AC_DATA_DIR: /data
+            AC_CLUSTER_ENABLED: 1
+            CHARACTER_GUIDS_BUFFER_SIZE: 5
+            ITEM_GUIDS_BUFFER_SIZE: 50
+            NATS_URL: nats://nats:4222
+            GRPC_PORT: 9509
+            GUID_PROVIDER_SERVICE_ADDRESS: guidserver:8996
+            SERVERS_REGISTRY_SERVICE_ADDRESS: servers-registry:8999
+            MATCHMAKING_SERVICE_ADDRESS: matchmakingserver:8994
+        profiles: [ac]
+
+volumes:
+    database:
+    client_data:
+    core_etc:
+    cache:
