@@ -20,6 +20,9 @@ mod fx;
 mod macros;
 #[cfg(feature = "client")]
 mod manager;
+/// Where a failure is recorded, separate from what sends it.
+#[cfg(feature = "client")]
+pub mod telemetry;
 #[cfg(feature = "client")]
 mod threads;
 #[cfg(feature = "client")]

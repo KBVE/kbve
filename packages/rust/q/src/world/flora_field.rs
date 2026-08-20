@@ -88,7 +88,10 @@ impl QFloraField {
 
         let node = self.base().clone().upcast::<godot::classes::Node>();
         let Some(terrain) = crate::world::resolve_terrain(&node, &self.terrain_path) else {
-            godot_error!("[QFloraField] no QTerrain found; flora disabled");
+            crate::q_error!(
+                "FloraField",
+                "[QFloraField] no QTerrain found; flora disabled"
+            );
             return true;
         };
         let Some(terra) = TerrainSnapshot::take(&terrain) else {
@@ -129,7 +132,10 @@ impl QFloraField {
             Some(Ok(cand)) => cand,
             Some(Err(std::sync::mpsc::TryRecvError::Empty)) => return false,
             _ => {
-                godot_error!("[QFloraField] the placement worker died; flora disabled");
+                crate::q_error!(
+                    "FloraField",
+                    "[QFloraField] the placement worker died; flora disabled"
+                );
                 self.plan_rx = None;
                 return true;
             }
@@ -138,7 +144,10 @@ impl QFloraField {
         let _t = super::ReadyTimer::start("flora");
         let extent = self.extent;
         if cand.is_empty() {
-            godot_error!("[QFloraField] no candidates survived placement");
+            crate::q_error!(
+                "FloraField",
+                "[QFloraField] no candidates survived placement"
+            );
             return true;
         }
         self.candidates = cand;
@@ -335,7 +344,10 @@ impl QFloraField {
                 if let Some(mut fc) = self.compute.take() {
                     fc.free();
                 }
-                godot_warn!("[QFloraField] compute never came online; classic fallback");
+                crate::q_error!(
+                    "FloraField",
+                    "[QFloraField] compute never came online; classic fallback"
+                );
                 self.build_classic();
             }
             return;

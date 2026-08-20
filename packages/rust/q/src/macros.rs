@@ -1,4 +1,13 @@
 #[macro_export]
+macro_rules! q_error {
+    ($kind:expr, $($arg:tt)*) => {{
+        let msg = format!($($arg)*);
+        godot_error!("{}", msg);
+        $crate::telemetry::report($kind, msg);
+    }};
+}
+
+#[macro_export]
 macro_rules! debug_print {
     ($($arg:tt)*) => {
         #[cfg(debug_assertions)]

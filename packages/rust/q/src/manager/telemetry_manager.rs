@@ -1,6 +1,3 @@
-use std::backtrace::Backtrace;
-use std::panic;
-use std::sync::{Mutex, OnceLock};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use godot::classes::http_client::Method;
@@ -17,54 +14,6 @@ const MAX_QUEUE: usize = 64;
 const FLUSH_AT: usize = 8;
 const FLUSH_EVERY: f64 = 15.0;
 
-/// Panics are caught by a hook that can run on any thread, including one with no
-/// Godot bindings, so nothing in the hook may touch a `Gd<T>`. It parks the
-/// record here and the node drains it from `process` on the main thread.
-static PANICS: OnceLock<Mutex<Vec<PanicRecord>>> = OnceLock::new();
-static HOOK: OnceLock<()> = OnceLock::new();
-
-struct PanicRecord {
-    message: String,
-    location: String,
-    stack: String,
-}
-
-fn panic_sink() -> &'static Mutex<Vec<PanicRecord>> {
-    PANICS.get_or_init(|| Mutex::new(Vec::new()))
-}
-
-fn install_hook() {
-    HOOK.get_or_init(|| {
-        let previous = panic::take_hook();
-        panic::set_hook(Box::new(move |info| {
-            let message = info
-                .payload()
-                .downcast_ref::<&str>()
-                .map(|s| (*s).to_string())
-                .or_else(|| info.payload().downcast_ref::<String>().cloned())
-                .unwrap_or_else(|| "panic".to_string());
-            let location = info
-                .location()
-                .map(|l| format!("{}:{}:{}", l.file(), l.line(), l.column()))
-                .unwrap_or_default();
-            let stack = Backtrace::force_capture().to_string();
-            if let Ok(mut queue) = panic_sink().lock() {
-                if queue.len() < MAX_QUEUE {
-                    queue.push(PanicRecord {
-                        message,
-                        location,
-                        stack,
-                    });
-                }
-            }
-            // Chained rather than replaced: gdext's own hook is what turns a panic
-            // into a readable Godot error instead of an abort, and dropping it
-            // would trade a crash report for a silent process death.
-            previous(info);
-        }));
-    });
-}
-
 #[derive(Serialize)]
 struct ErrorEvent {
     project: String,
@@ -77,6 +26,12 @@ struct ErrorEvent {
     url: String,
     session_id: String,
     handled: bool,
+    /// Free-form dimensions the service keeps but does not fingerprint on, so
+    /// they can be filtered without splitting an error into one group per
+    /// machine. The renderer and adapter live here: a failure that only happens
+    /// on one graphics backend is invisible otherwise, since `platform` collapses
+    /// every desktop OS into one value.
+    extra: std::collections::BTreeMap<String, String>,
 }
 
 #[derive(Serialize)]
@@ -96,6 +51,33 @@ fn platform_for(os_name: &str) -> &'static str {
     }
 }
 
+/// What the client is drawing with. Collected once, attached to every event.
+///
+/// `platform` is limited to the ingest service's allow-list, which folds Windows,
+/// macOS and Linux into "desktop", so without this a backend-specific failure —
+/// the shape of the tree field not loading on one OS and not another — reads as
+/// the same error everywhere and there is nothing to filter on.
+fn collect_device() -> std::collections::BTreeMap<String, String> {
+    let mut out = std::collections::BTreeMap::new();
+    let os = Os::singleton();
+    out.insert("os".to_string(), os.get_name().to_string());
+    out.insert("os_version".to_string(), os.get_version().to_string());
+    let rs = godot::classes::RenderingServer::singleton();
+    out.insert(
+        "adapter".to_string(),
+        rs.get_video_adapter_name().to_string(),
+    );
+    out.insert(
+        "renderer".to_string(),
+        ProjectSettings::singleton()
+            .get_setting("rendering/renderer/rendering_method")
+            .try_to::<GString>()
+            .map(|v| v.to_string())
+            .unwrap_or_default(),
+    );
+    out
+}
+
 #[derive(GodotClass)]
 #[class(base = Node)]
 pub struct TelemetryManager {
@@ -112,6 +94,7 @@ pub struct TelemetryManager {
     platform: String,
     session_id: String,
     scene: String,
+    device: std::collections::BTreeMap<String, String>,
 }
 
 #[godot_api]
@@ -131,6 +114,7 @@ impl INode for TelemetryManager {
             platform: String::new(),
             session_id: String::new(),
             scene: String::new(),
+            device: std::collections::BTreeMap::new(),
         }
     }
 
@@ -164,11 +148,13 @@ impl INode for TelemetryManager {
         self.base_mut().add_child(&http);
         self.http = Some(http);
 
-        install_hook();
+        self.device = collect_device();
+
+        crate::telemetry::install_panic_hook();
     }
 
     fn process(&mut self, delta: f64) {
-        self.drain_panics();
+        self.drain_reports();
         if self.queue.is_empty() {
             return;
         }
@@ -316,26 +302,18 @@ impl TelemetryManager {
             url: self.scene.clone(),
             session_id: self.session_id.clone(),
             handled,
+            extra: self.device.clone(),
         });
     }
 
-    fn drain_panics(&mut self) {
-        let records: Vec<PanicRecord> = match panic_sink().lock() {
-            Ok(mut queue) => {
-                if queue.is_empty() {
-                    return;
-                }
-                std::mem::take(&mut *queue)
-            }
-            Err(_) => return,
-        };
-        for record in records {
-            let message = if record.location.is_empty() {
-                record.message
-            } else {
-                format!("{} ({})", record.message, record.location)
-            };
-            self.push("RustPanic".to_string(), message, record.stack, false);
+    fn drain_reports(&mut self) {
+        for report in crate::telemetry::drain() {
+            self.push(
+                report.error_type,
+                report.message,
+                report.stack,
+                report.handled,
+            );
         }
     }
 }

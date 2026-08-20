@@ -377,7 +377,10 @@ impl QTreeField {
             .and_then(|n| n.try_cast::<Node3D>().ok());
         let node = self.base().clone().upcast::<godot::classes::Node>();
         let Some(terrain) = crate::world::resolve_terrain(&node, &self.terrain_path) else {
-            godot_error!("[QTreeField] no QTerrain found; trees disabled");
+            crate::q_error!(
+                "TreeField",
+                "[QTreeField] no QTerrain found; trees disabled"
+            );
             return true;
         };
         let Some(terra) = TerrainSnapshot::take(&terrain) else {
@@ -410,7 +413,10 @@ impl QTreeField {
             Some(Ok(plan)) => plan,
             Some(Err(std::sync::mpsc::TryRecvError::Empty)) => return false,
             _ => {
-                godot_error!("[QTreeField] the placement worker died; trees disabled");
+                crate::q_error!(
+                    "TreeField",
+                    "[QTreeField] the placement worker died; trees disabled"
+                );
                 self.plan_rx = None;
                 return true;
             }
@@ -424,7 +430,10 @@ impl QTreeField {
             entries,
         } = plan;
         if cand.is_empty() {
-            godot_error!("[QTreeField] no tree candidates survived placement");
+            crate::q_error!(
+                "TreeField",
+                "[QTreeField] no tree candidates survived placement"
+            );
             return true;
         }
         self.core.clear();
@@ -495,7 +504,10 @@ impl QTreeField {
             if next + 1 >= SPECIES.len() {
                 self.stage = None;
                 if self.computes.is_empty() {
-                    godot_error!("[QTreeField] no tree computes online; trees disabled");
+                    crate::q_error!(
+                        "TreeField",
+                        "[QTreeField] no tree computes online; trees disabled"
+                    );
                 }
                 return true;
             }
@@ -607,7 +619,10 @@ impl QTreeField {
                 for mut c in [n, f, s].into_iter().flatten() {
                     c.free();
                 }
-                godot_error!("[QTreeField] compute unavailable for species {i}");
+                crate::q_error!(
+                    "TreeField",
+                    "[QTreeField] compute unavailable for species {i}"
+                );
             }
         }
 
@@ -686,7 +701,7 @@ impl INode3D for QTreeField {
         if !all_online {
             self.attempts += 1;
             if self.attempts > 300 {
-                godot_warn!("[QTreeField] compute never came online");
+                crate::q_error!("TreeField", "[QTreeField] compute never came online");
                 self.free_computes();
             }
             return;
