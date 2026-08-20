@@ -26,19 +26,22 @@ spec:
     replicas: 1
     scheduling: Packed
     strategy:
-        type: RollingUpdate
-        rollingUpdate:
-            # Inverted from the usual surge-first rollout: a replacement cannot
-            # bind the hostPort until the old pod releases it, so the old one
-            # must go first. This is a brief outage by design.
-            maxSurge: 0
-            maxUnavailable: 1
+        # Not RollingUpdate: a replacement cannot bind the hostPort until the
+        # old pod releases it, and Agones rejects maxSurge: 0 ("must be at
+        # least 1"), so a surge-free rolling update is not expressible. Recreate
+        # deletes the old GameServer first, which is the ordering this needs.
+        # A brief outage on every update is by design.
+        type: Recreate
     template:
         metadata:
             labels:
                 app: tocloud9-authserver
                 app.kubernetes.io/part-of: tocloud9
         spec:
+            # Mandatory once the pod holds more than one container: Agones has
+            # to be told which one the ports and health checks belong to, and
+            # rejects the Fleet outright without it.
+            container: authserver
             ports:
                 - name: auth
                   portPolicy: Static
