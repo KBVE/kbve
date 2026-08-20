@@ -68,14 +68,40 @@ mod-playerbots fork. Building against stock AzerothCore needs that call removed.
 `RentAMount.AllowBots = 1` skips the check at runtime but does not remove the
 compile-time dependency.
 
+## Verified
+
+Both checks were run against the same pinned refs the playerbots image builds
+from, not against assumptions:
+
+**It compiles.** `3kynox/azerothcore-wotlk@35a34b6` plus
+`3kynox/mod-playerbots@d9c80b3` were checked out in a container, this module was
+copied into `modules/`, and cmake was configured with `-DMODULES=static`. Both
+translation units appear in `compile_commands.json` — which also confirms
+AzerothCore auto-discovers this layout — and both pass `-fsyntax-only` with no
+errors and no warnings. That exercises the includes, the gossip API, the
+`Field::Get<>` calls, `Aura::SetDuration`/`SetMaxDuration`, `TeamId`, and the
+`Addmod_rent_a_mountScripts` symbol name.
+
+**The seeded spell IDs are right.** Read out of the client's own `Spell.dbc` on
+the RWX client-data volume — 49,839 records, 234 fields, name at field 136:
+
+| Spell | Name        |
+| ----- | ----------- |
+| 458   | Brown Horse |
+| 580   | Timber Wolf |
+
+Nearby alternates, should more offers be wanted: 472 Pinto, 6648 Chestnut Mare,
+6777 Gray Ram, 6653 Dire Wolf.
+
 ## Still open
 
-- The C++ has never been compiled — there is no AzerothCore checkout in this
-  repo to build against, so the API usage is unverified.
 - No cleanup hook for teleport. Upstream added one specifically
   (`Prevent rental mount restoration after teleports`), so this needs the same
   treatment before it is trusted in a real world.
 - No uninstall script.
+- Compiling is not the same as running: no rental has been performed in-game, so
+  the gossip flow, the money charge, and the aura duration are still untested at
+  runtime.
 - Four spawns (Stormwind, Ironforge, Orgrimmar, Undercity), positioned from
   stable master coordinates already in the live database.
 
