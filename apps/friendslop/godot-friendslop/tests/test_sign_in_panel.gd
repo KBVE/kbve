@@ -86,3 +86,27 @@ func test_every_provider_button_says_what_it_does() -> void:
 				.contains(str(brand["name"]))
 	panel.queue_free()
 
+
+## A StyleBoxFlat shadow is drawn outside the box it belongs to, and the tooltip
+## window is sized to the control's minimum size, which does not count it. Without
+## room reserved the shadow ran into the window edge and was clipped at the sides.
+func test_a_tooltip_leaves_room_for_its_own_shadow() -> void:
+	var MenuStyle := preload("res://src/ui/components/menu_style.gd")
+	var tip: Control = MenuStyle.tooltip("Sign in using your Discord account.", 1.0)
+	add_child(tip)
+	await await_idle_frame()
+
+	var shadow: int = MenuStyle.TOOLTIP_SHADOW
+	for side in ["left", "right", "top", "bottom"]:
+		assert_int(tip.get_theme_constant("margin_" + side)).override_failure_message(
+				"nothing reserved on the %s for a %spx shadow" % [side, shadow]) \
+				.is_greater_equal(shadow)
+
+	var plate: Control = tip.get_child(0)
+	assert_object(plate).is_not_null()
+	assert_float(plate.size.x).override_failure_message(
+			"the plate is as wide as the window, so the shadow has nowhere to go") \
+			.is_less(tip.size.x)
+	assert_float(plate.size.y).is_less(tip.size.y)
+	tip.queue_free()
+
