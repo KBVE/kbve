@@ -222,6 +222,7 @@ async fn session(client_ws: WebSocket, nick: String, channels: Vec<String>, plat
     let (pulse_tx, mut pulse_rx) = tokio::sync::mpsc::unbounded_channel::<()>();
     let (notice_tx, mut notice_rx) = tokio::sync::mpsc::unbounded_channel::<ChatMessage>();
 
+    let channels_i2c = channels.clone();
     let nick_c2i = nick.clone();
     let ergo_w_c2i = Arc::clone(&ergo_w);
     let pulse_tx_c2i = pulse_tx.clone();
@@ -268,6 +269,10 @@ async fn session(client_ws: WebSocket, nick: String, channels: Vec<String>, plat
                 crate::gateway::ratelimit::Verdict::Allow => {}
                 crate::gateway::ratelimit::Verdict::Throttle => {
                     debug!(user = %nick_c2i, "rate-limited; dropping message");
+                    let _ = notice_tx_c2i.send(gateway_notice(
+                        &parsed.channel,
+                        "sending too fast; that one was dropped",
+                    ));
                     continue;
                 }
                 crate::gateway::ratelimit::Verdict::Kick => {
@@ -284,15 +289,10 @@ async fn session(client_ws: WebSocket, nick: String, channels: Vec<String>, plat
                     crate::gateway::filter::check(&nick_c2i, &parsed.content)
                 {
                     debug!(user = %nick_c2i, reason, "message blocked by content filter");
-                    let notice = ChatMessage::event(
-                        MessageKind::Notice,
-                        "system",
-                        "gateway",
+                    let _ = notice_tx_c2i.send(gateway_notice(
                         &parsed.channel,
                         &format!("message blocked: {reason}"),
-                        None,
-                    );
-                    let _ = notice_tx_c2i.send(notice);
+                    ));
                     continue;
                 }
             }
@@ -334,6 +334,7 @@ async fn session(client_ws: WebSocket, nick: String, channels: Vec<String>, plat
     let ergo_w_i2c = Arc::clone(&ergo_w);
     let i2c = async move {
         let mut line = String::new();
+        let mut taken = 0u32;
         let mut ping_timer = interval(WS_PING_INTERVAL);
         ping_timer.tick().await;
         loop {
@@ -349,6 +350,27 @@ async fn session(client_ws: WebSocket, nick: String, channels: Vec<String>, plat
                     };
                     let raw = line[..n].trim_end_matches(['\r', '\n']).to_string();
                     line.clear();
+                    // Nothing else reads a numeric, so an ignored 433 leaves this
+                    // session registered under no nick at all: joined to nothing,
+                    // heard by nobody, with the socket still open.
+                    if nick_in_use(&raw) {
+                        taken += 1;
+                        if taken > MAX_NICK_ATTEMPTS {
+                            warn!(user = %nick_i2c, "nick taken and no alternative left");
+                            break;
+                        }
+                        let retry = alternative_nick(&nick_i2c, taken);
+                        warn!(user = %nick_i2c, retry, "nick in use; trying another");
+                        if write_irc_line(&ergo_w_i2c, &format!("NICK {retry}")).await.is_err() {
+                            break;
+                        }
+                        for ch in &channels_i2c {
+                            if write_irc_line(&ergo_w_i2c, &format!("JOIN {ch}")).await.is_err() {
+                                break;
+                            }
+                        }
+                        continue;
+                    }
                     if let Some(rest) = raw.strip_prefix("PING ") {
                         let pong = format!("PONG {rest}");
                         if let Err(e) = write_irc_line(&ergo_w_i2c, &pong).await {
@@ -428,12 +450,75 @@ fn sanitize_sub(sub: &str, max_len: usize) -> String {
         .to_ascii_lowercase()
 }
 
+/// How many alternatives to try before giving up on registering at all.
+const MAX_NICK_ATTEMPTS: u32 = 3;
+
+/// True for `ERR_NICKNAMEINUSE`, the reply that says somebody already has this name.
+fn nick_in_use(line: &str) -> bool {
+    let body = line.strip_prefix(':').map_or(line, |rest| {
+        rest.split_once(' ').map_or(rest, |(_, after)| after)
+    });
+    body.split(' ').next() == Some("433")
+}
+
+/// `bob` -> `bob2`, staying inside what ergo accepts for a nick.
+fn alternative_nick(nick: &str, attempt: u32) -> String {
+    let suffix = (attempt + 1).to_string();
+    let room = 30usize.saturating_sub(suffix.len());
+    let stem: String = nick.chars().take(room).collect();
+    format!("{stem}{suffix}")
+}
+
+/// A line the gateway says to one client about their own message, never relayed.
+fn gateway_notice(channel: &str, text: &str) -> ChatMessage {
+    ChatMessage::event(
+        MessageKind::Notice,
+        "system",
+        "gateway",
+        channel,
+        text,
+        None,
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
 
     /// An unregistered game is a 400 before the token is ever looked at, so a missing
     /// entry reads to the player as "chat is broken" rather than as a permission problem.
+    /// A throttled message is dropped before it reaches ergo, so nobody else ever
+    /// sees it. The sender's client shows it locally the moment they hit enter, which
+    /// without a notice leaves them believing they said something they did not.
+    #[test]
+    fn a_taken_nick_is_recognised_however_the_server_phrases_it() {
+        assert!(nick_in_use(
+            ":irc.example.net 433 * bob :Nickname is already in use"
+        ));
+        assert!(nick_in_use("433 * bob :Nickname is already in use"));
+        assert!(!nick_in_use(":irc.example.net 001 bob :Welcome"));
+        assert!(!nick_in_use(":bob!u@h PRIVMSG #general :433 is a number"));
+    }
+
+    #[test]
+    fn an_alternative_nick_stays_inside_what_ergo_accepts() {
+        assert_eq!(alternative_nick("bob", 1), "bob2");
+        assert_eq!(alternative_nick("bob", 2), "bob3");
+        let long = "a".repeat(40);
+        let alt = alternative_nick(&long, 1);
+        assert!(alt.len() <= 30, "{alt} is too long to register");
+        assert!(alt.ends_with('2'));
+    }
+
+    #[test]
+    fn a_dropped_message_is_something_the_sender_is_told_about() {
+        let notice = gateway_notice("#general", "sending too fast; that one was dropped");
+        assert!(matches!(notice.kind, MessageKind::Notice));
+        assert_eq!(notice.channel, "#general");
+        assert_eq!(notice.sender, "system");
+        assert!(notice.content.contains("too fast"));
+    }
+
     #[test]
     fn every_shipping_game_has_a_chat_profile() {
         for game in ["cryptothrone", "arpg", "friendslop"] {

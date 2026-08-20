@@ -134,6 +134,20 @@
 			},
 			"cache": true
 		},
+		"steam:assets": {
+			"executor": "nx:run-commands",
+			"dependsOn": [
+				{
+					"projects": ["q"],
+					"target": "deploy-mac"
+				}
+			],
+			"options": {
+				"command": "bash scripts/steam.sh",
+				"cwd": "apps/friendslop/godot-friendslop"
+			},
+			"outputs": ["{projectRoot}/screenshots/steam"]
+		},
 		"bake:turf": {
 			"executor": "nx:run-commands",
 			"options": {

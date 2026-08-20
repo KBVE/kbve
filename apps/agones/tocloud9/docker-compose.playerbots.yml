@@ -1,0 +1,138 @@
+# Playerbots overlay. Layered on top of docker-compose.yml:
+#
+#   docker compose -f docker-compose.yml -f docker-compose.playerbots.yml ...
+#
+# Rebuilds the WHOLE ToCloud9 stack from 3kynox's integration fork, not just the
+# worldserver. That is not optional: their integration changes api/proto
+# (guilds, worldserver) and shared/events, so it is a wire-protocol change. The
+# published ghcr.io/walkline/* images cannot talk to this worldserver, and
+# mixing them produces protocol errors rather than a clean failure.
+#
+# Only mysql / nats / redis stay on their pinned upstream images.
+#
+# Everything is pinned to the 20260728 snapshot -- a strict superset of the nav5
+# set named in 3kynox's README. Refs are commit SHAs, not branches: these are
+# personal integration branches that get rebased and deleted as work lands
+# upstream, so a branch ref would silently change what we build.
+#
+# Go services use a git build context, so nothing needs cloning locally.
+# Bump TC9_FORK_REF and PLAYERBOTS_* together -- the module's mmaps work and the
+# core that reads it are a matched pair.
+
+x-tc9-fork: &tc9_fork
+    context: https://github.com/3kynox/ToCloud9.git#f878465721200739eaae27633f70f378ac280411
+
+services:
+    # --- core (compiled from AC + module + libsidecar) ---
+
+    ac-db-import:
+        image: kbve/tocloud9-db-import-playerbots:${PLAYERBOTS_TAG:-dev}
+        # Base compose forces linux/amd64 for the upstream image. We compile
+        # natively instead -- emulating a full AzerothCore build under QEMU is
+        # not worth the hours. CI sets this to linux/amd64.
+        platform: ${PLAYERBOTS_PLATFORM:-linux/arm64}
+        build:
+            context: ./gameserver
+            dockerfile: Dockerfile
+            target: db-import
+        environment:
+            AC_PLAYERBOTS_DATABASE_INFO: '${PLAYERBOTS_DB_HOST};${PLAYERBOTS_DB_PORT};${PLAYERBOTS_DB_USER};${PLAYERBOTS_DB_PASS};${PLAYERBOTS_DB_NAME}'
+            # auth|world|characters|playerbots
+            AC_UPDATES_ENABLE_DATABASES: '15'
+            AC_UPDATES_AUTO_SETUP: '1'
+            # ToCloud9's db-import stage hardcodes this, unlike the upstream image.
+            AC_DATA_DIR: /repo/data
+
+    gameserver-ac:
+        image: kbve/tocloud9-gameserver-playerbots:${PLAYERBOTS_TAG:-dev}
+        platform: ${PLAYERBOTS_PLATFORM:-linux/arm64}
+        build:
+            context: ./gameserver
+            dockerfile: Dockerfile
+            target: gameserver
+        environment:
+            AC_PLAYERBOTS_DATABASE_INFO: '${PLAYERBOTS_DB_HOST};${PLAYERBOTS_DB_PORT};${PLAYERBOTS_DB_USER};${PLAYERBOTS_DB_PASS};${PLAYERBOTS_DB_NAME}'
+            # ConfigMgr applies AC_* env overrides to module configs too, using the
+            # same camelCase split as the core (LoginDatabaseInfo ->
+            # AC_LOGIN_DATABASE_INFO). Keeps playerbots.conf's 2699 lines as the
+            # baseline while letting us tune the few knobs that matter.
+            AC_AI_PLAYERBOT_ENABLED: '${AI_PLAYERBOT_ENABLED:-1}'
+            # Deliberately low for a first run. The upstream default is 500, which
+            # would swamp a laptop and make it impossible to tell a bot bug from
+            # simple CPU starvation.
+            AC_AI_PLAYERBOT_MAX_RANDOM_BOTS: '${AI_PLAYERBOT_MAX_RANDOM_BOTS:-20}'
+            AC_AI_PLAYERBOT_RANDOM_BOT_AUTOLOGIN: '${AI_PLAYERBOT_RANDOM_BOT_AUTOLOGIN:-1}'
+
+    # --- Go services, rebuilt from the same fork for protocol parity ---
+
+    servers-registry:
+        image: kbve/tocloud9-servers-registry-playerbots:${PLAYERBOTS_TAG:-dev}
+        build:
+            <<: *tc9_fork
+            dockerfile: apps/servers-registry/Dockerfile
+
+    authserver:
+        image: kbve/tocloud9-authserver-playerbots:${PLAYERBOTS_TAG:-dev}
+        build:
+            <<: *tc9_fork
+            dockerfile: apps/authserver/Dockerfile
+
+    charserver:
+        image: kbve/tocloud9-charserver-playerbots:${PLAYERBOTS_TAG:-dev}
+        build:
+            <<: *tc9_fork
+            dockerfile: apps/charserver/Dockerfile
+
+    chatserver:
+        image: kbve/tocloud9-chatserver-playerbots:${PLAYERBOTS_TAG:-dev}
+        build:
+            <<: *tc9_fork
+            dockerfile: apps/chatserver/Dockerfile
+
+    guildserver:
+        image: kbve/tocloud9-guildserver-playerbots:${PLAYERBOTS_TAG:-dev}
+        build:
+            <<: *tc9_fork
+            dockerfile: apps/guildserver/Dockerfile
+
+    guidserver:
+        image: kbve/tocloud9-guidserver-playerbots:${PLAYERBOTS_TAG:-dev}
+        build:
+            <<: *tc9_fork
+            dockerfile: apps/guidserver/Dockerfile
+
+    mailserver:
+        image: kbve/tocloud9-mailserver-playerbots:${PLAYERBOTS_TAG:-dev}
+        build:
+            <<: *tc9_fork
+            dockerfile: apps/mailserver/Dockerfile
+
+    auctionhouse:
+        image: kbve/tocloud9-auctionhouse-playerbots:${PLAYERBOTS_TAG:-dev}
+        build:
+            <<: *tc9_fork
+            dockerfile: apps/auctionhouse/Dockerfile
+
+    groupserver:
+        image: kbve/tocloud9-groupserver-playerbots:${PLAYERBOTS_TAG:-dev}
+        build:
+            <<: *tc9_fork
+            dockerfile: apps/groupserver/Dockerfile
+
+    matchmakingserver:
+        image: kbve/tocloud9-matchmakingserver-playerbots:${PLAYERBOTS_TAG:-dev}
+        build:
+            <<: *tc9_fork
+            dockerfile: apps/matchmakingserver/Dockerfile
+
+    gateway:
+        image: kbve/tocloud9-gateway-playerbots:${PLAYERBOTS_TAG:-dev}
+        build:
+            <<: *tc9_fork
+            dockerfile: apps/gateway/Dockerfile
+
+    gateway-second:
+        image: kbve/tocloud9-gateway-playerbots:${PLAYERBOTS_TAG:-dev}
+        build:
+            <<: *tc9_fork
+            dockerfile: apps/gateway/Dockerfile

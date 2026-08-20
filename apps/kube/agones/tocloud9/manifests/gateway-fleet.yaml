@@ -36,19 +36,22 @@ spec:
     replicas: 1
     scheduling: Packed
     strategy:
-        type: RollingUpdate
-        rollingUpdate:
-            # Inverted from the usual surge-first rollout: a replacement cannot
-            # bind the hostPort until the old pod releases it, so the old one
-            # must go first. This is a brief outage by design.
-            maxSurge: 0
-            maxUnavailable: 1
+        # Not RollingUpdate: a replacement cannot bind the hostPort until the
+        # old pod releases it, and Agones rejects maxSurge: 0 ("must be at
+        # least 1"), so a surge-free rolling update is not expressible. Recreate
+        # deletes the old GameServer first, which is the ordering this needs.
+        # A brief outage on every update is by design.
+        type: Recreate
     template:
         metadata:
             labels:
                 app: tocloud9-gateway
                 app.kubernetes.io/part-of: tocloud9
         spec:
+            # Mandatory once the pod holds more than one container: Agones has
+            # to be told which one the ports and health checks belong to, and
+            # rejects the Fleet outright without it.
+            container: gateway
             ports:
                 - name: world
                   portPolicy: Static
@@ -75,7 +78,7 @@ spec:
                             type: RuntimeDefault
                     containers:
                         - name: gateway
-                          image: ghcr.io/walkline/gateway:master
+                          image: ghcr.io/walkline/gateway:master@sha256:99d11dbf36b0859b290b2cdeaa53242a53faadd718a27bd5813b93d712f25055
                           imagePullPolicy: IfNotPresent
                           env:
                               - name: PORT
@@ -142,7 +145,7 @@ spec:
                                   drop:
                                       - ALL
                         - name: agones-bridge
-                          image: busybox:1.36
+                          image: busybox:1.36@sha256:73aaf090f3d85aa34ee199857f03fa3a95c8ede2ffd4cc2cdb5b94e566b11662
                           imagePullPolicy: IfNotPresent
                           env:
                               - name: AGONES_SDK_HTTP

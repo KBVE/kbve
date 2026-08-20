@@ -1,0 +1,21 @@
+## Talos machine config patch — raise the kubelet pod ceiling to 250
+## Apply: talosctl patch machineconfig --nodes <node> --patch @kubelet-max-pods.yaml
+##
+## The cluster is a single node, and the kubelet default of 110 was already
+## raised to 200 — which it then hit. Workloads sat Pending with
+## "0/1 nodes are available: 1 Too many pods" while the node itself was at 77%
+## CPU requests and 13% memory, so the ceiling was the pod count alone.
+##
+## 250 is the practical maximum here, not a round number: Cilium runs with
+## ipam: kubernetes, so pod IPs come from the node's podCIDR — a single
+## 10.244.0.0/24, or 254 usable addresses. hostNetwork pods consume none, so
+## 250 fits, but with little headroom. Going beyond it means widening the
+## podCIDR via --node-cidr-mask-size on kube-controller-manager, which is a
+## control plane change and a different conversation.
+##
+## Talos restarts the kubelet to pick this up. Running containers survive that.
+
+machine:
+    kubelet:
+        extraConfig:
+            maxPods: 250
