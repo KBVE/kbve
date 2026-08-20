@@ -1,0 +1,17 @@
+# mod-bootlegger reserved IDs — 7M band (2026-07-14).
+#
+# Cross-module layout on this server:
+#   mod-uac capital trainer spawns     creature.guid 6005000–6009999
+#   mod-bootlegger (this module)       7000000+ (see below)
+#   mod-guildhall                      8000000+ templates, 8100000+ spawns
+version: 1
+
+bands:
+  creature_template: 7000000   # 7000000–7000099
+  creature_spawn_guid: 7000100 # 7000100–7000199 (10 capitals today)
+  npc_text: 7000200            # 7000200–7000299
+
+npc:
+  fizzik_entry: 7000000
+  fizzik_greeting_text: 7000200
+  fizzik_spawn_guid_base: 7000100  # ..7000109

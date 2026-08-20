@@ -1,0 +1,92 @@
+[worldserver]
+
+#
+# mod-bootlegger — paid convenience services (costs in gold unless noted)
+#
+
+# Bootleg.Enable — master switch. When 0, the NPC shows greeting only (no services).
+Bootleg.Enable = 1
+
+# ---- Utilities ----
+
+# Bootleg.Utilities.Enable — character utility services (at-login flags).
+Bootleg.Utilities.Enable = 1
+
+# Bootleg.Utilities.NameChange.Cost — gold charged for a rename token.
+Bootleg.Utilities.NameChange.Cost = 10
+
+# Bootleg.Utilities.Customize.Cost — gold charged for appearance change.
+Bootleg.Utilities.Customize.Cost = 50
+
+# Bootleg.Utilities.RaceChange.Cost — gold charged for race change.
+Bootleg.Utilities.RaceChange.Cost = 500
+
+# Bootleg.Utilities.FactionChange.Cost — gold charged for faction change.
+Bootleg.Utilities.FactionChange.Cost = 1000
+
+# ---- Professions (per-tier enable + cost in gold) ----
+
+# Bootleg.Professions.Enable — profession tier advancement service.
+Bootleg.Professions.Enable = 1
+
+# Bootleg.Professions.Journeyman.Enable
+Bootleg.Professions.Journeyman.Enable = 1
+
+# Bootleg.Professions.Journeyman.Cost
+Bootleg.Professions.Journeyman.Cost = 100
+
+# Bootleg.Professions.Journeyman.RequiredLevel — 0 = no gate.
+Bootleg.Professions.Journeyman.RequiredLevel = 0
+
+# Bootleg.Professions.Expert.Enable
+Bootleg.Professions.Expert.Enable = 1
+
+# Bootleg.Professions.Expert.Cost
+Bootleg.Professions.Expert.Cost = 250
+
+# Bootleg.Professions.Expert.RequiredLevel
+Bootleg.Professions.Expert.RequiredLevel = 0
+
+# Bootleg.Professions.Artisan.Enable
+Bootleg.Professions.Artisan.Enable = 1
+
+# Bootleg.Professions.Artisan.Cost
+Bootleg.Professions.Artisan.Cost = 750
+
+# Bootleg.Professions.Artisan.RequiredLevel
+Bootleg.Professions.Artisan.RequiredLevel = 0
+
+# Bootleg.Professions.Master.Enable
+Bootleg.Professions.Master.Enable = 0
+
+# Bootleg.Professions.Master.Cost
+Bootleg.Professions.Master.Cost = 1250
+
+# Bootleg.Professions.Master.RequiredLevel
+Bootleg.Professions.Master.RequiredLevel = 0
+
+# Bootleg.Professions.GrandMaster.Enable
+Bootleg.Professions.GrandMaster.Enable = 0
+
+# Bootleg.Professions.GrandMaster.Cost
+Bootleg.Professions.GrandMaster.Cost = 2500
+
+# Bootleg.Professions.GrandMaster.RequiredLevel
+Bootleg.Professions.GrandMaster.RequiredLevel = 0
+
+# ---- Instance reset ----
+
+# Bootleg.Instances.Enable — heroic/raid lock reset service.
+Bootleg.Instances.Enable = 1
+
+# Bootleg.Instances.Heroic.Enable — reset heroic dungeon locks.
+Bootleg.Instances.Heroic.Enable = 1
+
+# Bootleg.Instances.Heroic.Cost
+Bootleg.Instances.Heroic.Cost = 10
+
+# Bootleg.Instances.Raid.Enable — reset raid locks.
+Bootleg.Instances.Raid.Enable = 1
+
+# Bootleg.Instances.Raid.Cost
+Bootleg.Instances.Raid.Cost = 100
