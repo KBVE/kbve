@@ -69,6 +69,38 @@
 			}
 		},
 
+		"build-mac-steam": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "packages/rust/q",
+				"commands": [
+					"cargo +nightly build -Z build-std=std,panic_abort  -Z unstable-options --features net-godot,steam --target aarch64-apple-darwin --artifact-dir dist/macos-steam --release",
+					"mkdir -p release/addons/q/macos",
+					"cp dist/macos-steam/*.dylib release/addons/q/macos/",
+					"cp $HOME/.cargo/registry/src/*/steamworks-sys-0.12.2/lib/steam/redistributable_bin/osx/libsteam_api.dylib release/addons/q/macos/",
+					"bash scripts/sign-dylib.sh release/addons/q/macos/libq.dylib",
+					"bash scripts/sign-dylib.sh release/addons/q/macos/libsteam_api.dylib"
+				],
+				"parallel": false
+			}
+		},
+
+		"deploy-mac-steam": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["build-mac-steam"],
+			"options": {
+				"cwd": "packages/rust/q",
+				"commands": [
+					"mkdir -p ../../../apps/friendslop/godot-friendslop/addons/q/macos",
+					"cp dist/macos-steam/libq.dylib ../../../apps/friendslop/godot-friendslop/addons/q/macos/libq.dylib",
+					"cp $HOME/.cargo/registry/src/*/steamworks-sys-0.12.2/lib/steam/redistributable_bin/osx/libsteam_api.dylib ../../../apps/friendslop/godot-friendslop/addons/q/macos/libsteam_api.dylib",
+					"bash scripts/sign-dylib.sh ../../../apps/friendslop/godot-friendslop/addons/q/macos/libq.dylib",
+					"bash scripts/sign-dylib.sh ../../../apps/friendslop/godot-friendslop/addons/q/macos/libsteam_api.dylib"
+				],
+				"parallel": false
+			}
+		},
+
 		"build-linux": {
 			"executor": "nx:run-commands",
 			"options": {

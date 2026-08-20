@@ -26,6 +26,7 @@ Auth="*res://src/autoload/auth_session.gd"
 ViewGlobals="*res://src/autoload/view_globals.gd"
 Toast="*res://src/autoload/toast.gd"
 Telemetry="*res://src/autoload/telemetry.gd"
+Steam="*res://src/autoload/steam.gd"
 
 [display]
 

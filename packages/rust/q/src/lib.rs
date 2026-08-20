@@ -20,6 +20,10 @@ mod fx;
 mod macros;
 #[cfg(feature = "client")]
 mod manager;
+/// Steamworks bridge — the class registers on every client build; the `steam`
+/// feature is what makes it answer.
+#[cfg(feature = "client")]
+mod steam;
 /// Where a failure is recorded, separate from what sends it.
 #[cfg(feature = "client")]
 pub mod telemetry;
