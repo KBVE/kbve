@@ -18,6 +18,8 @@ data:
         INSERT INTO acore_auth.account_access (id, gmlevel, RealmID, comment) VALUES (1, 3, -1, '');
     auth__000002_configure_realm.sql: |
         UPDATE acore_auth.realmlist SET name = 'KBVE', icon = 1 WHERE id = 1;
+
+        UPDATE acore_auth.motd SET text = 'Welcome to KBVE WoW' WHERE realmid IN (-1, 1);
     characters__000001_create_guild_invites_table.up.sql: |
         CREATE TABLE IF NOT EXISTS `guild_invites` (
             `charGuid` int unsigned NOT NULL DEFAULT '0',
