@@ -38,6 +38,7 @@ import {
 	createFileRegistry,
 } from '@bufbuild/protobuf';
 import { FileDescriptorSetSchema } from '@bufbuild/protobuf/wkt';
+import { takeI18n, collectLocales, encodeLocaleTables } from './lib/i18n-slice.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');
@@ -49,6 +50,8 @@ const descriptorPath = resolve(__dirname, 'descriptors/npcdb.binpb');
 const generatedDir = resolve(__dirname, 'generated');
 const outputJsonPath = resolve(generatedDir, 'npcdb-data.json');
 const outputBinPath = resolve(generatedDir, 'npcdb-data.binpb');
+
+const DB = 'npcdb';
 
 const ENUM_PREFIX = {
 	personality:      'PERSONALITY_',
@@ -99,7 +102,7 @@ function transform(node, parentFieldCamel) {
 	return node;
 }
 
-function loadNpcsFromMdx() {
+function loadNpcsFromMdx(locales) {
 	const files = readdirSync(npcdbDir).filter(
 		(f) => f.endsWith('.mdx') && f !== 'index.mdx',
 	);
@@ -107,15 +110,20 @@ function loadNpcsFromMdx() {
 	for (const file of files) {
 		const full = resolve(npcdbDir, file);
 		const { data } = matter(readFileSync(full, 'utf8'));
+		// Lift translations before anything else reads the entry, so they can never
+		// reach the canonical registry.
+		const i18n = takeI18n(data);
 		if (!data.id || !data.ref || !data.name) continue;
 		if (data.drafted === true) continue;
+		locales.add(String(data.ref), i18n);
 		npcs.push(transform(data));
 	}
 	return npcs;
 }
 
 function main() {
-	const npcs = loadNpcsFromMdx();
+	const locales = collectLocales();
+	const npcs = loadNpcsFromMdx(locales);
 	console.log(`Loaded ${npcs.length} npc defs from MDX`);
 
 	const registryJson = { npcs };
@@ -140,6 +148,10 @@ function main() {
 	writeFileSync(outputBinPath, wire);
 	console.log(`Wrote ${outputBinPath} (${wire.length} bytes)`);
 
+	// Locale tables ride alongside the registry: same mirrors, one file per language,
+	// so a runtime loads only the language it is showing.
+	const localeArtifacts = encodeLocaleTables(locales, DB);
+
 	const syncTargets = [
 		{
 			name: 'rareicon',
@@ -157,6 +169,13 @@ function main() {
 		if (!existsSync(t.dir)) mkdirSync(t.dir, { recursive: true });
 		writeFileSync(resolve(t.dir, 'npcdb.json'), JSON.stringify(registryJson));
 		writeFileSync(resolve(t.dir, 'npcdb.binpb'), wire);
+		for (const { table, encoded } of localeArtifacts) {
+			writeFileSync(
+				resolve(t.dir, `npcdb.${table.locale}.json`),
+				JSON.stringify(table),
+			);
+			writeFileSync(resolve(t.dir, `npcdb.${table.locale}.binpb`), encoded);
+		}
 		console.log(`Synced ${t.name} → ${t.dir}`);
 	}
 

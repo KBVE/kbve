@@ -246,7 +246,10 @@ fn nobody_is_posted_inside_a_building() {
             }
         }
     }
-    assert!(checked > 8, "too few posts to have tested anything: {checked}");
+    assert!(
+        checked > 8,
+        "too few posts to have tested anything: {checked}"
+    );
 }
 
 /// The ground under a pier is river. Somebody put on the deck is put on the water the
@@ -295,10 +298,7 @@ fn everybody_is_looking_somewhere_else() {
     let g = hgen();
     for mark in in_window(seed(), &g, [0.0, 0.0], 3000.0) {
         for post in mark.posts(&g) {
-            let d = [
-                post.facing[0] - post.at[0],
-                post.facing[1] - post.at[1],
-            ];
+            let d = [post.facing[0] - post.at[0], post.facing[1] - post.at[1]];
             assert!(
                 (d[0] * d[0] + d[1] * d[1]).sqrt() > 1.0,
                 "{:?} is looking at its own feet",

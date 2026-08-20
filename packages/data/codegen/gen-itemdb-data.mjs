@@ -34,6 +34,7 @@ import {
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
+import { takeI18n, collectLocales, encodeLocaleTables } from './lib/i18n-slice.mjs';
 import {
 	fromBinary,
 	toBinary,
@@ -161,7 +162,7 @@ function protoTransform(node, parentFieldCamel, coerceLeafToString = false) {
 	return node;
 }
 
-function loadAllMdx() {
+function loadAllMdx(locales) {
 	const files = readdirSync(MDX_DIR)
 		.filter((f) => f.endsWith('.mdx') && f !== 'index.mdx')
 		.sort();
@@ -169,8 +170,12 @@ function loadAllMdx() {
 	for (const file of files) {
 		const { data } = matter(readFileSync(resolve(MDX_DIR, file), 'utf8'));
 		if (!data || typeof data !== 'object') continue;
+		// Lift translations before any field survey runs, so they can never reach
+		// the registry, the web bundle or the generated C#.
+		const i18n = takeI18n(data);
 		if (!data.ref || !data.name || data.key === undefined || !data.id) continue;
 		if (data.drafted === true) continue;
+		if (locales) locales.add(String(data.ref), i18n);
 		records.push(data);
 	}
 	return records;
@@ -288,7 +293,8 @@ function emitRefMapSource(members) {
 }
 
 function main() {
-	const records = loadAllMdx();
+	const locales = collectLocales();
+	const records = loadAllMdx(locales);
 	console.log(`Loaded ${records.length} items from MDX`);
 
 	// 1. Unity-friendly bundle (raw snake_case, wrapped).
@@ -344,10 +350,21 @@ function main() {
 	);
 
 	// 6. Sync per-game.
+	const localeArtifacts = encodeLocaleTables(locales, 'itemdb');
 	for (const t of SYNC_TARGETS) {
 		ensureDir(t.streamingAssetsDir);
 		writeFileSync(resolve(t.streamingAssetsDir, 'itemdb.json'), unityJson);
 		writeFileSync(resolve(t.streamingAssetsDir, 'itemdb.binpb'), wire);
+		for (const { table, encoded } of localeArtifacts) {
+			writeFileSync(
+				resolve(t.streamingAssetsDir, `itemdb.${table.locale}.json`),
+				JSON.stringify(table),
+			);
+			writeFileSync(
+				resolve(t.streamingAssetsDir, `itemdb.${table.locale}.binpb`),
+				encoded,
+			);
+		}
 		console.log(`Synced ${t.name} → ${t.streamingAssetsDir}`);
 		// The generated C# is for the Unity consumers; a target that names no
 		// paths for it is one that reads the data another way.

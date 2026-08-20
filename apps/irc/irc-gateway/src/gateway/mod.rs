@@ -7,3 +7,4 @@ pub mod minechat;
 pub mod ratelimit;
 pub mod rest;
 pub mod websocket;
+pub mod wowchat;

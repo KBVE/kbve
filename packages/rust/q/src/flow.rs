@@ -541,7 +541,10 @@ mod tests {
             );
             checked += 1;
         }
-        assert!(checked > 100, "basin too small to prove anything: {checked}");
+        assert!(
+            checked > 100,
+            "basin too small to prove anything: {checked}"
+        );
     }
 
     /// The claim the whole module rests on: a basin is finite, because the
@@ -558,7 +561,10 @@ mod tests {
                 biggest = biggest.max(b.len());
             }
         }
-        assert!(biggest > 200, "never found a basin worth the name: {biggest}");
+        assert!(
+            biggest > 200,
+            "never found a basin worth the name: {biggest}"
+        );
         assert!(
             biggest < FlowParams::default().max_basin_cells,
             "largest basin was {biggest} cells"
@@ -607,7 +613,11 @@ mod tests {
         let mut f = flow();
         let (fattest, mouth_area) = fattest_cell(&mut f, 200);
         let basin = f.basin_at(fattest).expect("no basin").clone();
-        assert!(basin.len() > 200, "basin too small to have a shape: {}", basin.len());
+        assert!(
+            basin.len() > 200,
+            "basin too small to have a shape: {}",
+            basin.len()
+        );
 
         // Around a tenth of cells are headwater, not the third a branching tree
         // would give. The flow here is closer to parallel than to dendritic:

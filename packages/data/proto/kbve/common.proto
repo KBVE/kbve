@@ -80,3 +80,21 @@ message KeyValue {
     bool bool_value = 5;
   }
 }
+
+// One translated string, addressed by "<entry ref>.<field path>".
+// Repeated rather than map<string, string> on purpose: proto map ordering is
+// unspecified, and these tables are committed as .binpb, so a map would rewrite
+// the bytes on every regeneration. Entries are emitted sorted by key.
+message LocaleEntry {
+  string key = 1;
+  string value = 2;
+}
+
+// Every translated string for one database in one language, generated from the
+// i18n block of the MDX entries and shipped beside the canonical registry.
+// English stays in the registry itself and is the fallback for a missing key.
+message LocaleTable {
+  string locale = 1;
+  string db = 2;
+  repeated LocaleEntry entries = 3;
+}

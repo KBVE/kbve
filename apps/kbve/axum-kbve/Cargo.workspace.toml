@@ -28,6 +28,7 @@ ammonia = "4.1.2"
 anyhow = "1.0"
 argon2 = "0.5.0"
 askama = "0.16.0"
+async-nats = { version = "0.50", default-features = false }
 async-trait = "0.1.88"
 avian3d = { version = "0.7", default-features = false }
 axum = { version = "0.8.9", default-features = false }
@@ -51,7 +52,7 @@ http = "1.4.0"
 http-body-util = "0.1"
 jni = "0.21"
 js-sys = { version = "0.3", default-features = false }
-jsonwebtoken = { version = "10.3.0", default-features = false }
+jsonwebtoken = { version = "11.0.0", default-features = false, features = ["rust_crypto"] }
 k8s-openapi = "0.28"
 kube = { version = "4", default-features = false }
 libm = "0.2"

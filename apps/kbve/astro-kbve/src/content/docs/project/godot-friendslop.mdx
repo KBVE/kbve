@@ -41,17 +41,87 @@ engine:
     gdextension:
         package: q
         addon_path: addons/q
+jsonld:
+    faq:
+        - question: What is Friendslop?
+          answer: A Godot 4.7 co-op game built on a lightweight GDScript ECS with a Rust gdext core, featuring deterministic procedural grassland, toon-shaded rendering, and server-owned online sessions.
+        - question: Where can I play Friendslop?
+          answer: Windows, macOS, and Linux builds ship to itch.io at kbve.itch.io/friendslop through the CI godot pipeline; a Steam release is in preparation.
+        - question: How does Friendslop handle multiplayer terrain?
+          answer: Terrain is never shipped — the server sends a seed and every client bakes the identical heightmap from the deterministic generator, so all machines agree on the world.
+bento:
+    badge: godot · co-op · grassland
+    title: Co-op slop in a living
+    accent: grassland
+    lede: >-
+        A Godot 4.7 co-op game on a lightweight GDScript ECS with a Rust gdext
+        core — deterministic worldgen, GPU-streamed grass, toon shading, and
+        server-owned online sessions — shipping Windows, macOS, and Linux to
+        itch.io on every release.
+    ctas:
+        - label: Play on itch.io
+          href: https://kbve.itch.io/friendslop
+          primary: true
+          external: true
+        - label: Steam art
+          href: "#steam"
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/apps/friendslop/godot-friendslop
+          external: true
+    aside:
+        icon: server
+        title: Q — the Rust core
+        body: >-
+            The <code>q</code> gdext crate owns terrain, grass, physics, netcode
+            and now the Steamworks bridge — <code>QSteam</code> registers on every
+            build and simply answers unavailable outside the Steam flavor.
+        points:
+            - <strong>Deterministic worldgen</strong> — seed in, same hills out, on every machine.
+            - <strong>One simulation</strong> — solo and online step the same Rust sim.
+    stats:
+        - { label: Engine, value: Godot 4.7.1, icon: box }
+        - { label: Platforms, value: Win · macOS · Linux, icon: package }
+        - { label: Status, value: beta, icon: activity }
+        - { label: License, value: KBVE, icon: license }
+    features:
+        - title: GDScript ECS
+          icon: zap
+          body: <code>addons/GodotECS</code> — observer hubs and entity relations driving gameplay.
+        - title: Procedural grassland
+          icon: book
+          body: GPU-streamed grass, flora and trees over deterministic terrain from the <code>q</code> crate.
+        - title: Server-owned online
+          icon: network
+          body: Intent-only movement against an authoritative server; the seed is the only terrain ever shipped.
+        - title: Steam-ready art
+          icon: shield
+          body: Every capsule renders from the live game world in one <code>nx</code> pass — see the gallery below.
+    related:
+        - title: Friendslop Server
+          href: /project/friendslop-server/
+          copy: The authoritative half — session, sim and verification.
+          icon: server
+    related_heading: Related
 ---
 
-## Friendslop
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="overview" eyebrow="What it is" heading="Overview">
 
 A Godot 4.7 game driven by a small GDScript ECS (`addons/GodotECS`) with observer hubs and entity relations, toon-shaded rendering, and procedural grassland biomes.
 
-### Build & Ship
+</BentoProse>
+
+<BentoProse id="build" eyebrow="CI" heading="Build & Ship">
 
 `ci-main.yml` reads the CI dispatch manifest and hands this entry to `ci-godot.yml` whenever the MDX `version` outpaces `version.toml`. The godot pipeline runs the gdUnit4 suite headless via `scripts/test.sh`, exports the `Windows Desktop`, `macOS`, and `Linux` presets in the `barichello/godot-ci` container, and pushes each build to `kbve/friendslop` on itch.io with butler. gdUnit4 and the `tests/` directory are excluded from exports via the preset `exclude_filter`, so the test harness never ships in the finished product.
 
-### Title screen & identity
+</BentoProse>
+
+<BentoProse id="identity" eyebrow="Front door" heading="Title screen & identity">
 
 `scenes/title.tscn` is the front door: the real world generator drifting behind a paper button column, not a render of one — same `QTerrain`, same materials, same sky, so it costs what the game costs. The orbit rig doubles as the streaming anchor the terrain and grass fields normally take a player for.
 
@@ -88,7 +158,9 @@ The token is what the **server** verifies; the username decoded on this side is 
 
 `scenes/title.tscn` is now the boot scene (`run/main_scene`). The pause menu's Log Off already returns here from either world.
 
-### Shadows & foliage
+</BentoProse>
+
+<BentoProse id="foliage" eyebrow="Rendering" heading="Shadows & foliage">
 
 Daylight shadows crawled across every surface while the player stood still. The sun's rotation was written from the raw hour angle each frame while `light_angle_step_deg` only gated the energy lookup, and a directional shadow map is reprojected from the light's rotation with no texel snapping — a hundredth of a degree per frame reshuffles every edge. The rotation now derives from the same quantized step the lookup does, and the day runs 45 minutes rather than 10, which is 0.13°/s of sun instead of 0.6.
 
@@ -104,7 +176,9 @@ Lighting is foliage lighting rather than surface lighting: backfaces are flipped
 
 Characters got the same class of fix. `cel_shading.gd` builds `lit` materials with `shadow_threshold = 0.0`, putting the toon terminator exactly at `dot(NORMAL, LIGHT) == 0` — the lighting silhouette, where the normal turns fastest per pixel — and `shadow_softness` of 0.005 made that band a fraction of a pixel wide on a limb. A boundary narrower than a pixel cannot be sampled stably. It now widens to the screen-space derivative of N·L when that is larger, so camera-facing surfaces keep the authored hard edge and only grazing and distant ones open up.
 
-### Online sessions
+</BentoProse>
+
+<BentoProse id="online" eyebrow="Multiplayer" heading="Online sessions">
 
 **Play as Guest** enters `scenes/online.tscn`; **Singleplayer** enters `scenes/main.tscn`. The split is authority, not content — online, the server owns both where bodies end up *and* what the world looks like.
 
@@ -124,7 +198,9 @@ Movement stays intent-only: `NetGameClient` rotates the input vector by the came
 FS_URL=ws://127.0.0.1:7980/ws bash scripts/godot.sh res://scenes/online.tscn
 ```
 
-### Pet robots
+</BentoProse>
+
+<BentoProse id="pets" eyebrow="Companions" heading="Pet robots">
 
 **G** deploys a robot beside you, **H** recalls the lot. The server owns all of it — where they land, how they steer, and whether you may have another — so the client only picks a chassis and draws what comes back. A refusal arrives in the server's own words and lands on the HUD for a few seconds.
 
@@ -134,7 +210,9 @@ What the list *does* carry is the chassis and whose it is, so a robot whose entr
 
 Neither the facing nor the walk cycle is on the wire — the character proxy never turns, so its pose says nothing about which way the thing is looking. Both come from how the body actually moved, and the **rig** is turned rather than the node, which the extension overwrites from the snapshot every frame.
 
-### The villagers' day
+</BentoProse>
+
+<BentoProse id="villagers" eyebrow="NPCs" heading="The villagers' day">
 
 The eight people at the crossing have a timetable rather than a walk. A routine is a list of stops — an hour, and an offset from wherever the world placed them — authored in each NPC's `npcdb` MDX and codegen'd into `assets/npcdb/npcdb.json` with the rest of them. `q/src/routine` answers one question from it: *given the hour, where is this person and are they walking?*
 
@@ -154,7 +232,9 @@ Villagers now take a body in the simulation: the same `spawn_character` capsule 
 
 Not yet done: NPCs are still only in `main.tscn`. The moment one of them *does* something — produces goods, takes damage, holds a quest item — the clock stops being enough and the host has to own them, because that depends on what players did rather than what time it is.
 
-### One simulation, and what is left of the second
+</BentoProse>
+
+<BentoProse id="simulation" eyebrow="Physics" heading="One simulation, and what is left of the second">
 
 Solo and online used to run different simulations, and most confusing creature behaviour traced back to that. Solo has since moved onto q's `SimWorld` — the player and the creatures both — so the split is mostly closed. What follows is where it stands, because a half-migrated system is the easiest kind to reason about wrongly.
 
@@ -198,7 +278,9 @@ Pointing the tests at the shipped tuning immediately failed `a_following_group_d
 
 One number stays per-creature rather than in the preset: `set_body(radius)`, because Godot builds the capsule off the mesh and so Godot is what knows.
 
-### Local
+</BentoProse>
+
+<BentoProse id="local" eyebrow="Dev loop" heading="Local">
 
 - `pnpm nx run godot-friendslop:test` — import + gdUnit4 headless suite
 - `pnpm nx run godot-friendslop:test:smoke` — raw SceneTree smoke pass
@@ -206,7 +288,9 @@ One number stays per-creature rather than in the preset: `set_body(radius)`, bec
 
 `scripts/gdext.sh` skips the build when `addons/q/<platform>/libq.*` is already there, and a fresh LFS checkout smudges a *released* one — so a worktree can run the whole suite against an extension that predates whatever you are testing, and fail on parse errors about members that plainly exist. `GDEXT_FORCE=1 bash scripts/gdext.sh` rebuilds it.
 
-### Steam page assets
+</BentoProse>
+
+<BentoProse id="steam" eyebrow="Store art" heading="Steam page assets">
 
 Every image below is rendered from the live game world by `src/ui/steam/page_assets.gd` — pinned seed, real terrain, real foliage — and regenerated in one pass with `pnpm nx run godot-friendslop:steam:assets`. Each figure is anchored, so feedback can point at a slot by its link. The title art is drawn at render time from the Alagard face, so the whole set re-exports under a new name with one argument.
 
@@ -281,3 +365,7 @@ Every image below is rendered from the live game world by `src/ui/steam/page_ass
 		<figcaption>Screenshot 5 — 1920×1080, grove vista over the river valley</figcaption>
 	</figure>
 </div>
+
+</BentoProse>
+
+</BentoDoc>

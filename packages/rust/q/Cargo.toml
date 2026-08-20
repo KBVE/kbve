@@ -81,6 +81,11 @@ bevy-server = ["server", "dep:bevy"]
 # Supabase JWT verification — used by the server flavor to admit players.
 supabase-auth = ["server", "dep:jsonwebtoken"]
 
+# Steamworks — desktop only, opt-in. QSteam registers on every client build;
+# without this feature it reports unavailable, so the class list never varies
+# between the itch and Steam flavors of the same platform.
+steam = ["client", "dep:steamworks"]
+
 # -----------------------------------------------------------------------------
 # Dependencies
 # -----------------------------------------------------------------------------
@@ -128,6 +133,7 @@ fastnoise-lite = "1.1.1"
 # waits for `webview`.
 # -----------------------------------------------------------------------------
 [target."cfg(all(target_os = \"macos\", not(target_family = \"wasm\")))".dependencies]
+steamworks = { version = "0.12", optional = true }
 objc2 = { workspace = true, optional = true }
 wry = { version = "0.55.1", optional = true, features = ["transparent", "devtools"] }
 raw-window-handle = { workspace = true, optional = true }
@@ -135,6 +141,7 @@ http = { workspace = true, optional = true }
 infer = { version = "0.19.0", optional = true }
 
 [target."cfg(all(target_os = \"windows\", not(target_family = \"wasm\")))".dependencies]
+steamworks = { version = "0.12", optional = true }
 windows = { version = "0.62.2", optional = true, features = [
     "Data_Xml_Dom",
     "Win32_Security",
@@ -147,6 +154,7 @@ http = { workspace = true, optional = true }
 infer = { version = "0.19.0", optional = true }
 
 [target."cfg(all(target_os = \"linux\", not(target_family = \"wasm\")))".dependencies]
+steamworks = { version = "0.12", optional = true }
 wry = { version = "0.55.1", optional = true, features = ["transparent", "devtools"] }
 raw-window-handle = { workspace = true, optional = true }
 http = { workspace = true, optional = true }

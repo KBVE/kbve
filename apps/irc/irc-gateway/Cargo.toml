@@ -24,6 +24,7 @@ dotenvy = { workspace = true }
 tokio-tungstenite = { workspace = true, features = ["default"] }
 jsonwebtoken = { workspace = true, features = ["default", "rust_crypto"] }
 futures-util = { workspace = true, features = ["sink"] }
+async-nats = { workspace = true }
 
 # Workspace path dependencies
 jedi = { path = "../../../packages/rust/jedi", features = ["valkey"] }

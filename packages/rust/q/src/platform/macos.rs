@@ -41,7 +41,6 @@ pub fn enable_mac_always_on_top() {
     }
 }
 
-
 #[cfg(all(feature = "webview", target_os = "macos"))]
 use std::ffi::c_void;
 #[cfg(all(feature = "webview", target_os = "macos"))]

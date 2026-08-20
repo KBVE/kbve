@@ -545,7 +545,8 @@ impl RegionGen {
     /// and so adds its full amplitude.
     pub fn sink_reach(&self) -> f32 {
         let spacing = self.params.lake_cell.max(1.0);
-        spacing * (0.5 + self.params.jitter) * core::f32::consts::SQRT_2 + self.params.warp_amplitude
+        spacing * (0.5 + self.params.jitter) * core::f32::consts::SQRT_2
+            + self.params.warp_amplitude
     }
 
     /// Highest ground the region layer can produce before detail.
@@ -645,7 +646,10 @@ mod tests {
             let z = origin[1] - extent + iy as f32 * step;
             for ix in 0..res {
                 let x = origin[0] - extent + ix as f32 * step;
-                assert_eq!(grid[(iy * res + ix) as usize].to_bits(), g.height(x, z).to_bits());
+                assert_eq!(
+                    grid[(iy * res + ix) as usize].to_bits(),
+                    g.height(x, z).to_bits()
+                );
             }
         }
     }
@@ -705,10 +709,20 @@ mod tests {
             here = next;
             steps += 1;
             if g.is_water(px, pz) {
-                return Descent { at: (px, pz), height: here, wet: true, steps };
+                return Descent {
+                    at: (px, pz),
+                    height: here,
+                    wet: true,
+                    steps,
+                };
             }
         }
-        Descent { at: (px, pz), height: here, wet: g.is_water(px, pz), steps }
+        Descent {
+            at: (px, pz),
+            height: here,
+            wet: g.is_water(px, pz),
+            steps,
+        }
     }
 
     struct Descent {
@@ -735,11 +749,7 @@ mod tests {
                 end.wet,
                 "stranded: from ({x:.1}, {z:.1}) descent stopped at ({:.1}, {:.1}) \
                  at height {:.2} after {} steps, with sea at {:.2}",
-                end.at.0,
-                end.at.1,
-                end.height,
-                end.steps,
-                g.params.sea_level
+                end.at.0, end.at.1, end.height, end.steps, g.params.sea_level
             );
         }
         assert!(walked > 500, "almost every probe started wet: {walked}");
@@ -825,7 +835,10 @@ mod tests {
         let reach = g.sink_reach();
         for (x, z) in probes(1_000) {
             let (_, d) = g.nearest_sink(x, z).expect("no sink at all");
-            assert!(d <= reach, "nearest sink is {d:.1} away, reach is {reach:.1}");
+            assert!(
+                d <= reach,
+                "nearest sink is {d:.1} away, reach is {reach:.1}"
+            );
         }
     }
 
@@ -843,7 +856,10 @@ mod tests {
             }
         }
         assert!(sea > 50, "no ocean reached anywhere: {sea}");
-        assert!(pond > 50, "every basin found sea, so lakes are dead code: {pond}");
+        assert!(
+            pond > 50,
+            "every basin found sea, so lakes are dead code: {pond}"
+        );
     }
 
     /// Every guaranteed lake rolls its own size from the seed. Uniform radii
@@ -904,7 +920,10 @@ mod tests {
         let ceiling = g.max_relief() + g.params.detail_amplitude + g.params.sea_level;
         for (x, z) in probes(2_000) {
             let h = g.height(x, z);
-            assert!(h <= ceiling, "ground reached {h:.1} against a ceiling of {ceiling:.1}");
+            assert!(
+                h <= ceiling,
+                "ground reached {h:.1} against a ceiling of {ceiling:.1}"
+            );
         }
     }
 
@@ -984,7 +1003,9 @@ mod sweep {
             let mut step = 8.0f32;
             let mut wet = false;
             for _ in 0..20_000 {
-                let Some(d) = g.downhill(px, pz, 1.0) else { break };
+                let Some(d) = g.downhill(px, pz, 1.0) else {
+                    break;
+                };
                 let (nx, nz) = (px + d[0] * step, pz + d[1] * step);
                 let next = g.height(nx, nz);
                 if next >= here {
@@ -1011,6 +1032,9 @@ mod sweep {
             }
         }
         println!("land {land}, stranded {stranded}, worst height {worst:.2}");
-        assert_eq!(stranded, 0, "{stranded} of {land} descents never reached water");
+        assert_eq!(
+            stranded, 0,
+            "{stranded} of {land} descents never reached water"
+        );
     }
 }

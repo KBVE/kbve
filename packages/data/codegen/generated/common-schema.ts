@@ -17,6 +17,23 @@ export const GUIDSchema = z
 	.string()
 	.regex(/^[a-f0-9]{32}$/, 'must be 32-char lowercase hex GUID');
 
+// LocaleEntry
+export const LocaleEntrySchema = z.object({
+	key: z.string(),
+	value: z.string(),
+});
+
+export type LocaleEntry = z.infer<typeof LocaleEntrySchema>;
+
+// LocaleTable
+export const LocaleTableSchema = z.object({
+	locale: z.string(),
+	db: z.string(),
+	entries: z.array(LocaleEntrySchema).optional(),
+});
+
+export type LocaleTable = z.infer<typeof LocaleTableSchema>;
+
 // KeyValue
 export const KeyValueSchema = z.object({
 	key: z.string(),

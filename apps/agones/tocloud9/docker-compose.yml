@@ -53,6 +53,20 @@ services:
         command:
             - |
                 set -e
+                # The vendored deltas are not individually idempotent
+                # (000001 plain-INSERTs the admin account, 000005 ADD COLUMNs),
+                # so re-running setup on an existing database fails. Guard the
+                # whole batch on the last delta, same sentinel the kube
+                # db-import Job uses.
+                APPLIED=$(mysql -h "${CHAR_DB_HOST}" -P "${CHAR_DB_PORT}" -u "${CHAR_DB_USER}" -p"${CHAR_DB_PASS}" -N -B \
+                    -e "SELECT COUNT(*) FROM information_schema.columns \
+                        WHERE table_schema='${CHAR_DB_NAME}' \
+                          AND table_name='group_invites' \
+                          AND column_name='inviterGameServerId';")
+                if [ "$$APPLIED" = "1" ]; then
+                  echo "ToCloud9 deltas already applied, nothing to do"
+                  exit 0
+                fi
                 for f in /tc9-sql/auth/*.sql; do
                   echo "auth <- $$f"
                   mysql -h "${AUTH_DB_HOST}" -P "${AUTH_DB_PORT}" -u "${AUTH_DB_USER}" -p"${AUTH_DB_PASS}" "${AUTH_DB_NAME}" < "$$f"

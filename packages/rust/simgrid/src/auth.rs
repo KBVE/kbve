@@ -91,3 +91,65 @@ pub fn verify_supabase_jwt(token: &str, secret: &[u8]) -> Result<SupabaseClaims,
     }
     Ok(data.claims)
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use jsonwebtoken::{EncodingKey, Header, encode};
+
+    const SECRET: &[u8] = b"a-test-secret-that-is-long-enough";
+
+    fn in_seconds(offset: i64) -> i64 {
+        let now = std::time::SystemTime::now()
+            .duration_since(std::time::UNIX_EPOCH)
+            .unwrap()
+            .as_secs() as i64;
+        now + offset
+    }
+
+    fn token(claims: serde_json::Value) -> String {
+        encode(
+            &Header::new(jsonwebtoken::Algorithm::HS256),
+            &claims,
+            &EncodingKey::from_secret(SECRET),
+        )
+        .expect("sign")
+    }
+
+    fn claims() -> serde_json::Value {
+        serde_json::json!({
+            "sub": "user-1",
+            "exp": in_seconds(3600),
+            "kbve_username": "someone",
+            "role": "authenticated",
+            "aud": "authenticated",
+        })
+    }
+
+    /// Nothing here decoded a token before, so the crate could not have noticed that
+    /// `jsonwebtoken` panics rather than returning when no crypto backend is selected.
+    #[test]
+    fn a_signed_token_verifies_without_a_provider_installed_by_hand() {
+        let verified = verify_supabase_jwt(&token(claims()), SECRET);
+        assert!(verified.is_ok(), "{verified:?}");
+    }
+
+    #[test]
+    fn a_token_signed_with_another_secret_is_refused() {
+        assert!(verify_supabase_jwt(&token(claims()), b"another-secret-entirely").is_err());
+    }
+
+    #[test]
+    fn an_expired_token_is_refused() {
+        let mut expired = claims();
+        expired["exp"] = serde_json::json!(in_seconds(-3600));
+        assert!(verify_supabase_jwt(&token(expired), SECRET).is_err());
+    }
+
+    #[test]
+    fn nonsense_is_refused_without_panicking() {
+        for junk in ["", "...", "not-a-token", "a.b.c"] {
+            assert!(verify_supabase_jwt(junk, SECRET).is_err());
+        }
+    }
+}
