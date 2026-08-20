@@ -36,12 +36,24 @@ services:
             dockerfile: Dockerfile
             target: db-import
         environment:
-            AC_PLAYERBOTS_DATABASE_INFO: '${PLAYERBOTS_DB_HOST};${PLAYERBOTS_DB_PORT};${PLAYERBOTS_DB_USER};${PLAYERBOTS_DB_PASS};${PLAYERBOTS_DB_NAME}'
-            # auth|world|characters|playerbots
-            AC_UPDATES_ENABLE_DATABASES: '15'
+            # dbimport only ever opens auth/world/characters pools -- it never registers
+            # PlayerbotsDatabase, so 15 has no 4th bit to act on and behaves as 7.
+            # acore_playerbots is created and migrated by the module inside
+            # worldserver instead, from modules/mod-playerbots/data/sql.
+            AC_UPDATES_ENABLE_DATABASES: '7'
             AC_UPDATES_AUTO_SETUP: '1'
             # ToCloud9's db-import stage hardcodes this, unlike the upstream image.
             AC_DATA_DIR: /repo/data
+
+    # The base stack pins v19 because the OLD gameserver-ac image (2026-04-29,
+    # Go libsidecar) expected generator v19 mmaps. 3kynox's nav5 core carries
+    # the mmaps changes from mod-playerbots PR #204 and expects v20 -- v19 tiles
+    # are rejected per-tile with
+    #   MMAP:loadMap: <tile>.mmtile was built with generator v19, expected v20
+    # which leaves bots (and players) without navmesh on those tiles.
+    download-miscs:
+        environment:
+            CLIENT_DATA_URL: ${PLAYERBOTS_CLIENT_DATA_URL:-https://github.com/wowgaming/client-data/releases/download/v20.0/Data.zip}
 
     gameserver-ac:
         image: kbve/tocloud9-gameserver-playerbots:${PLAYERBOTS_TAG:-dev}
@@ -51,15 +63,47 @@ services:
             dockerfile: Dockerfile
             target: gameserver
         environment:
+            # The C++ libsidecar reads ONLY TC9_*-prefixed variables. The bare
+            # names in the base compose (NATS_URL, SERVERS_REGISTRY_SERVICE_ADDRESS,
+            # ...) are leftovers from the Go libsidecar and are silently ignored,
+            # so the sidecar falls back to localhost defaults and fails with
+            #   RegisterGameServer RPC failed: ipv4:127.0.0.1:8999: Connection refused
+            # The kube manifests already set both spellings; compose did not.
+            TC9_NATS_URL: nats://nats:4222
+            TC9_SERVERS_REGISTRY_ADDRESS: servers-registry:8999
+            TC9_GUID_PROVIDER_ADDRESS: guidserver:8996
+            TC9_MATCHMAKING_ADDRESS: matchmakingserver:8994
+            TC9_GROUP_SERVICE_ADDRESS: groupserver:8998
+            TC9_GUILD_SERVICE_ADDRESS: guildserver:8995
+            TC9_GRPC_PORT: 9509
+            TC9_PREFERRED_HOSTNAME: gameserver-ac
+            TC9_CHARACTER_GUIDS_BUFFER_SIZE: 5
+            TC9_ITEM_GUIDS_BUFFER_SIZE: 50
             AC_PLAYERBOTS_DATABASE_INFO: '${PLAYERBOTS_DB_HOST};${PLAYERBOTS_DB_PORT};${PLAYERBOTS_DB_USER};${PLAYERBOTS_DB_PASS};${PLAYERBOTS_DB_NAME}'
             # ConfigMgr applies AC_* env overrides to module configs too, using the
             # same camelCase split as the core (LoginDatabaseInfo ->
             # AC_LOGIN_DATABASE_INFO). Keeps playerbots.conf's 2699 lines as the
             # baseline while letting us tune the few knobs that matter.
+            # Without this the module opens the pool, finds no database and
+            # gives up -- it will not self-populate acore_playerbots.
+            AC_PLAYERBOTS_UPDATES_ENABLE_DATABASES: '1'
+            # Required by mod-playerbots. worldserver.conf ships this at 0, and
+            # bots run on grids no real player has activated, so without the
+            # preload they operate against unloaded terrain. Costs a lot of RAM
+            # and a slower startup, since every non-instanced grid loads up front.
+            AC_PRELOAD_ALL_NON_INSTANCED_MAP_GRIDS: '1'
             AC_AI_PLAYERBOT_ENABLED: '${AI_PLAYERBOT_ENABLED:-1}'
             # Deliberately low for a first run. The upstream default is 500, which
             # would swamp a laptop and make it impossible to tell a bot bug from
             # simple CPU starvation.
+            #
+            # Min AND Max must move together. playerbots.conf ships both at 500,
+            # and lowering only Max leaves the pair inverted -- the bot manager
+            # calls urand(min, max), which trips
+            #   ASSERTION FAILED  Random.cpp:46  urand  Condition: max >= min
+            # and the worldserver aborts with SIGSEGV (exit 139) seconds after
+            # reaching "ready", well after startup looks clean.
+            AC_AI_PLAYERBOT_MIN_RANDOM_BOTS: '${AI_PLAYERBOT_MAX_RANDOM_BOTS:-20}'
             AC_AI_PLAYERBOT_MAX_RANDOM_BOTS: '${AI_PLAYERBOT_MAX_RANDOM_BOTS:-20}'
             AC_AI_PLAYERBOT_RANDOM_BOT_AUTOLOGIN: '${AI_PLAYERBOT_RANDOM_BOT_AUTOLOGIN:-1}'
 
