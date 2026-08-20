@@ -43,6 +43,14 @@ spec:
                         value: ergo-irc-service.irc.svc.cluster.local
                       - name: ERGO_IRC_PORT
                         value: '6667'
+                      - name: TOCLOUD9_NATS_URL
+                        value: nats://nats.tocloud9.svc.cluster.local:4222
+                      - name: WOW_IRC_CHANNEL
+                        value: '#general'
+                      - name: WOW_CHAT_CHANNELS
+                        value: world
+                      - name: WOW_REALM_ID
+                        value: '1'
                       - name: JWT_SECRET
                         valueFrom:
                             secretKeyRef:

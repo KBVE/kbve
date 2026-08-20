@@ -37,6 +37,7 @@ async fn main() -> anyhow::Result<()> {
 
     gateway::history::spawn_listeners();
     gateway::filter::spawn_blocklist_refresher();
+    gateway::wowchat::spawn();
 
     // Drop idle anti-spam buckets every minute so memory stays bounded.
     tokio::spawn(async {
