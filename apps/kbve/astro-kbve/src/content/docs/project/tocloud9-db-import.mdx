@@ -14,10 +14,10 @@ tags:
 key: tocloud9_db_import
 pipeline: docker
 app_name: tocloud9-db-import
-version: "0.0.2"
+version: "0.0.3"
 source_path: apps/agones/tocloud9/db-import
 version_toml: apps/agones/tocloud9/db-import/version.toml
-runner: ubuntu-latest
+runner: arc-runner-set-kbve
 image: kbve/tocloud9-db-import-playerbots
 nx_project: agones-tocloud9
 target: container-db-import
