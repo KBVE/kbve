@@ -177,6 +177,8 @@ func _on_state(connected: bool) -> void:
 
 
 func _on_failed(reason: String) -> void:
+	if reason != "chat.reconnecting":
+		Telemetry.report("chat", reason)
 	_set_notice(reason)
 	_notice.visible = true
 

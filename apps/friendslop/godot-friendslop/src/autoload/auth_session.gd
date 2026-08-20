@@ -171,6 +171,7 @@ func _save() -> void:
 	store.set_value("session", "refresh_token", _refresh_token)
 	store.set_value("session", "username", _username)
 	if store.save(store_path) != OK:
+		Telemetry.report("auth_store", "could not write %s" % store_path)
 		push_warning("[auth] could not write %s; the session will not survive a restart" % store_path)
 
 
@@ -215,7 +216,7 @@ func requested_name() -> String:
 
 func adopt_account(token: String, username: String, refresh_token := "", expires_at := 0) -> void:
 	if token.is_empty():
-		push_error("AuthSession.adopt_account: refusing an empty token")
+		Telemetry.error("auth", "adopt_account refused an empty token")
 		return
 	_mode = Mode.ACCOUNT
 	_token = token

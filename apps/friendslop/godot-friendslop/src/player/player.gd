@@ -231,7 +231,7 @@ func _physics_process(delta: float) -> void:
 		rig.drive(Vector3.ZERO, global_rotation.y, false, delta)
 		return
 	if _fell_through():
-		push_warning("[player] fell through the world at %.1f,%.1f,%.1f; put back on the ground" % [
+		Telemetry.report("fell_through_world", "at %.1f,%.1f,%.1f" % [
 				global_position.x, global_position.y, global_position.z])
 		_settle()
 

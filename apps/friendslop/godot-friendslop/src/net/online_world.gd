@@ -99,6 +99,7 @@ func _process(_delta: float) -> void:
 
 
 func _on_rejected(reason: String) -> void:
+	Telemetry.report("session_rejected", reason)
 	_hud.set_rejected(reason)
 
 
