@@ -35,6 +35,8 @@ services:
             context: ./gameserver
             dockerfile: Dockerfile
             target: db-import
+            additional_contexts:
+                modules: ./modules
         environment:
             # dbimport only ever opens auth/world/characters pools -- it never registers
             # PlayerbotsDatabase, so 15 has no 4th bit to act on and behaves as 7.
@@ -62,6 +64,8 @@ services:
             context: ./gameserver
             dockerfile: Dockerfile
             target: gameserver
+            additional_contexts:
+                modules: ./modules
         environment:
             # The C++ libsidecar reads ONLY TC9_*-prefixed variables. The bare
             # names in the base compose (NATS_URL, SERVERS_REGISTRY_SERVICE_ADDRESS,
