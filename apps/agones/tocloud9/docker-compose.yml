@@ -53,6 +53,11 @@ services:
         command:
             - |
                 set -e
+                # Applied on every run, ahead of the guard below: it is an
+                # idempotent UPDATE, and the guard would otherwise stop realm
+                # changes from reaching an already-migrated database.
+                echo "auth <- 000002_configure_realm.sql"
+                mysql -h "${AUTH_DB_HOST}" -P "${AUTH_DB_PORT}" -u "${AUTH_DB_USER}" -p"${AUTH_DB_PASS}" "${AUTH_DB_NAME}" < /tc9-sql/auth/000002_configure_realm.sql
                 # The vendored deltas are not individually idempotent
                 # (000001 plain-INSERTs the admin account, 000005 ADD COLUMNs),
                 # so re-running setup on an existing database fails. Guard the
@@ -318,6 +323,7 @@ services:
             AC_SOAP_ENABLE: 0
             AC_DATA_DIR: /data
             AC_CLUSTER_ENABLED: 1
+            AC_GAME_TYPE: 1
             CHARACTER_GUIDS_BUFFER_SIZE: 5
             ITEM_GUIDS_BUFFER_SIZE: 50
             NATS_URL: nats://nats:4222

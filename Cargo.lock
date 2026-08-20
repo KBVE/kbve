@@ -2341,7 +2341,7 @@ dependencies = [
 
 [[package]]
 name = "axum-kbve"
-version = "1.0.294"
+version = "1.0.295"
 dependencies = [
  "anyhow",
  "askama",
@@ -10072,7 +10072,7 @@ dependencies = [
 
 [[package]]
 name = "irc-gateway"
-version = "0.1.30"
+version = "0.1.31"
 dependencies = [
  "anyhow",
  "async-nats",
