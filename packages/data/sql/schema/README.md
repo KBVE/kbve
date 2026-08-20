@@ -22,6 +22,7 @@ Hand-authored reference DDL grouped by Postgres schema. This tree is the **revie
 | [`tracker/`](./tracker/)     | `tracker`       | Activity / metrics tracking.                                                                       |
 | [`vault/`](./vault/)         | `vault`         | Encrypted secret storage helpers.                                                                  |
 | [`wallet/`](./wallet/)       | `wallet`        | Multi-currency ledger + coupons + khash marketplace (listings, bids, treasury fee).                |
+| [`wow/`](./wow/)             | `wow`           | Links a KBVE account to a ToCloud9 game account. Link ledger only — the credential lives in MySQL. |
 
 ## File layout convention
 
