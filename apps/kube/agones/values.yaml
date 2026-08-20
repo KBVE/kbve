@@ -69,6 +69,7 @@ gameservers:
         - arpg
         - palworld
         - friendslop
+        - tocloud9
 
     # Port range for game server host ports.
     minPort: 7000
