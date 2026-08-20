@@ -65,21 +65,26 @@ services:
         profiles: [setup]
 
     download-miscs:
-        image: alpine/curl:8.14.1
+        image: python:3.12-slim
         volumes:
             - core_etc:/config
             - client_data:/data
         environment:
-            CLIENT_DATA_URL: ${CLIENT_DATA_URL:-https://github.com/wowgaming/client-data/releases/download/v20.0/Data.zip}
+            CLIENT_DATA_URL: ${CLIENT_DATA_URL:-https://github.com/wowgaming/client-data/releases/download/v19/Data.zip}
             WORLDSERVER_CONF_URL: ${WORLDSERVER_CONF_URL:-https://raw.githubusercontent.com/walkline/azerothcore-wotlk/cluster-mode/src/server/apps/worldserver/worldserver.conf.dist}
         command: >
-            sh -c "curl -L \"$${WORLDSERVER_CONF_URL}\" -o /config/worldserver.conf &&
+            sh -c "python -c \"import os,urllib.request;urllib.request.urlretrieve(os.environ['WORLDSERVER_CONF_URL'],'/config/worldserver.conf')\" &&
             mkdir -p /data && cd /data &&
-            if [ -z \"$$(ls -A /data)\" ]; then
-              curl -L -o data.zip \"$${CLIENT_DATA_URL}\" &&
-              unzip -q data.zip &&
-              rm -f data.zip;
-            else echo 'client data already present, skipping download'; fi"
+            if [ -d /data/dbc ] && [ -d /data/maps ] && [ -d /data/vmaps ] && [ -d /data/mmaps ] &&
+               [ \"$$(cat /data/.client-data-url 2>/dev/null || true)\" = \"$${CLIENT_DATA_URL}\" ]; then
+              echo 'client data already present, skipping download';
+            else
+              rm -rf /data/Cameras /data/dbc /data/maps /data/mmaps /data/vmaps /data/.client-data-url &&
+              python -c \"import os,urllib.request;urllib.request.urlretrieve(os.environ['CLIENT_DATA_URL'],'data.zip')\" &&
+              python -m zipfile -e data.zip . &&
+              rm -f data.zip &&
+              printf '%s' \"$${CLIENT_DATA_URL}\" > /data/.client-data-url;
+            fi"
         profiles: [setup]
 
     nats:
