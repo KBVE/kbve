@@ -62,3 +62,27 @@ func test_a_sign_in_in_flight_locks_every_provider() -> void:
 		assert_bool(panel.provider_buttons[provider].disabled) \
 			.override_failure_message("'%s' was still pressable" % provider).is_true()
 	panel.queue_free()
+
+
+## The buttons carried no tooltip text, and PaperButton builds a custom tooltip
+## whichever way it is asked -- so hovering Discord, Twitch or GitHub popped an
+## empty panel instead of saying what the button does.
+func test_every_provider_button_says_what_it_does() -> void:
+	var panel: Node = SignIn.new()
+	add_child(panel)
+	await await_idle_frame()
+	assert_int(panel.provider_buttons.size()).is_greater(0)
+	for provider: String in panel.provider_buttons:
+		var button: Control = panel.provider_buttons[provider]
+		var tip := button.tooltip_text
+		assert_str(tip).override_failure_message(
+				"'%s' hovers with an empty tooltip" % provider).is_not_empty()
+		assert_str(tip).override_failure_message(
+				"'%s' tooltip left a placeholder unfilled: %s" % [provider, tip]) \
+				.not_contains("{")
+		var brand: Dictionary = SignIn.PROVIDER_BRAND[provider]
+		assert_str(tip).override_failure_message(
+				"'%s' tooltip never names the provider: %s" % [provider, tip]) \
+				.contains(str(brand["name"]))
+	panel.queue_free()
+

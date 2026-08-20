@@ -34,6 +34,7 @@ const KEYS := [
 	"api.session_expired",
 	"api.http_error",
 	"api.unreadable_balance",
+	"tip.sign_in_with",
 ]
 
 const GFX := preload("res://src/settings/graphics_settings.gd")

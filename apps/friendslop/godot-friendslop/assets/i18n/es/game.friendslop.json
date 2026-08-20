@@ -135,7 +135,8 @@
 		"sign_out": "Cierra la sesión de esta cuenta.",
 		"settings": "Gráficos, juego e idioma.",
 		"quit": "Cierra el juego.",
-		"language": "Cambia el idioma del menú."
+		"language": "Cambia el idioma del menú.",
+		"sign_in_with": "Inicia sesión con tu cuenta de {provider}."
 	},
 	"api": {
 		"not_signed_in": "sesión no iniciada",
