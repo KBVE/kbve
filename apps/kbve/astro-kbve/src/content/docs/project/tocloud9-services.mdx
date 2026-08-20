@@ -1,0 +1,83 @@
+---
+title: ToCloud9 Services — Combined Microservice Image
+description: All twelve ToCloud9 Go microservices in one image, each Kubernetes workload selecting its binary with an explicit command instead of publishing a dozen near-identical images.
+sem: 1
+sidebar:
+    label: ToCloud9 Services
+    order: 463
+tags:
+    - agones
+    - tocloud9
+    - golang
+    - microservices
+    - docker
+key: tocloud9_services
+pipeline: docker
+app_name: tocloud9-services
+version: "0.0.2"
+source_path: apps/agones/tocloud9/services
+version_toml: apps/agones/tocloud9/services/version.toml
+runner: ubuntu-latest
+image: kbve/tocloud9-services-playerbots
+nx_project: agones-tocloud9
+target: container-services
+deployment_yamls:
+    - apps/kube/agones/tocloud9/manifests/microservices.yaml
+    - apps/kube/agones/tocloud9/manifests/gateway-fleet.yaml
+    - apps/kube/agones/tocloud9/manifests/authserver-fleet.yaml
+has_test: false
+author: h0lybyte
+license: KBVE
+status: active
+kube:
+    stack: agones
+    environment: prod
+    tier: api
+    owner: h0lybyte
+    criticality: high
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+---
+
+## One image, twelve services
+
+Upstream ships a Dockerfile per service, but every one is the same three lines
+against the same Go module: `go build apps/<svc>/cmd/<svc>/main.go` into a
+static `CGO_ENABLED=0` binary on Alpine. Publishing twelve near-identical
+images would mean twelve manifest entries, twelve `version.toml` files and
+twelve `go mod download` passes in CI.
+
+This image builds every binary in a single pass — one module download, one
+shared build cache — and each workload picks its service explicitly:
+
+```yaml
+command: ['/app/gateway']
+```
+
+Contents: `auctionhouse`, `authserver`, `charserver`, `chatserver`, `gateway`,
+`groupserver`, `guidserver`, `guildserver`, `mailserver`, `matchmakingserver`,
+`mysqlreverseproxy`, `servers-registry`. Roughly 176 MB for all twelve.
+
+There is deliberately **no default entrypoint**. A workload that forgets its
+`command:` fails immediately and prints the available binaries, rather than
+silently starting the wrong service.
+
+`apps/perun` is excluded: it carries its own `go.mod`, so it is a separate
+module the root build cannot resolve, and it is not part of this stack.
+
+## Why not the upstream images
+
+These are built from `3kynox/ToCloud9` at `f8784657`, not `walkline/ToCloud9`.
+The playerbots integration adds RPCs upstream does not implement — cluster-mode
+guild creation and the guild bank. Both proto changes are purely additive
+(`+238/-0` and `+71/-0`), so protobuf wire compatibility holds and a mixed
+stack degrades rather than breaks. But the worldserver does call `CreateGuild`,
+which upstream answers `UNIMPLEMENTED`, so the services are built from the same
+tree as the libsidecar compiled into the worldserver.
+
+Keep this pin in lockstep with the gameserver image: libsidecar and these
+services speak the gRPC contract defined in that tree's `api/proto`.

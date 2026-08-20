@@ -68,7 +68,9 @@ spec:
                             type: RuntimeDefault
                     containers:
                         - name: authserver
-                          image: ghcr.io/walkline/authserver:master@sha256:f4f16d0ce2a8951a95fc64a12002e23dc8fd0967d046e3291bf7932fbd1587b5
+                          image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
+                          # One image carries every ToCloud9 service; pick this one.
+                          command: ["/app/authserver"]
                           imagePullPolicy: IfNotPresent
                           env:
                               - name: PORT

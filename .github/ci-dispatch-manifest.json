@@ -611,6 +611,52 @@
 			"runner": "ubuntu-latest",
 			"image": "kbve/steamcmd-ubuntu",
 			"has_test": false
+		},
+		{
+			"key": "tocloud9_db_import",
+			"app_name": "tocloud9-db-import",
+			"version": "0.0.2",
+			"version_toml": "apps/agones/tocloud9/db-import/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/tocloud9-db-import.mdx",
+			"source_path": "apps/agones/tocloud9/db-import",
+			"runner": "ubuntu-latest",
+			"image": "kbve/tocloud9-db-import-playerbots",
+			"deployment_yaml": "apps/kube/agones/tocloud9/manifests/db-import-job.yaml",
+			"has_test": false,
+			"target": "container-db-import",
+			"nx_project": "agones-tocloud9"
+		},
+		{
+			"key": "tocloud9_gameserver",
+			"app_name": "tocloud9-gameserver",
+			"version": "0.0.2",
+			"version_toml": "apps/agones/tocloud9/gameserver/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/tocloud9-gameserver.mdx",
+			"source_path": "apps/agones/tocloud9/gameserver",
+			"runner": "ubuntu-latest",
+			"image": "kbve/tocloud9-gameserver-playerbots",
+			"deployment_yaml": "apps/kube/agones/tocloud9/manifests/worldserver-fleet.yaml",
+			"has_test": false,
+			"target": "container-gameserver",
+			"nx_project": "agones-tocloud9"
+		},
+		{
+			"key": "tocloud9_services",
+			"app_name": "tocloud9-services",
+			"version": "0.0.2",
+			"version_toml": "apps/agones/tocloud9/services/version.toml",
+			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/tocloud9-services.mdx",
+			"source_path": "apps/agones/tocloud9/services",
+			"runner": "ubuntu-latest",
+			"image": "kbve/tocloud9-services-playerbots",
+			"deployment_yamls": [
+				"apps/kube/agones/tocloud9/manifests/microservices.yaml",
+				"apps/kube/agones/tocloud9/manifests/gateway-fleet.yaml",
+				"apps/kube/agones/tocloud9/manifests/authserver-fleet.yaml"
+			],
+			"has_test": false,
+			"target": "container-services",
+			"nx_project": "agones-tocloud9"
 		}
 	],
 	"npm": [
@@ -1474,7 +1520,7 @@
 		}
 	],
 	"summary": {
-		"docker": 42,
+		"docker": 45,
 		"npm": 4,
 		"crates": 27,
 		"python": 2,
@@ -1485,6 +1531,6 @@
 		"unreal_game": 4,
 		"bevy_game": 0,
 		"vite_game": 1,
-		"total": 110
+		"total": 113
 	}
 }

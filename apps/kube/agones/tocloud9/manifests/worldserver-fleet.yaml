@@ -91,7 +91,7 @@ spec:
                               sizeLimit: 512Mi
                     containers:
                         - name: worldserver
-                          image: ghcr.io/walkline/gameserver-ac:master@sha256:6917a00ac1b8b9197a9b7e9bd4555d6f7cc107595a1c8f85e39c5f5be07378e7
+                          image: ghcr.io/kbve/tocloud9-gameserver-playerbots:0.0.2
                           imagePullPolicy: IfNotPresent
                           env:
                               # AzerothCore's own settings. AC_* overrides the
@@ -127,6 +127,36 @@ spec:
                                     secretKeyRef:
                                         name: tocloud9-db
                                         key: AC_CHARACTER_DATABASE_INFO
+                              # mod-playerbots keeps its own database. Unlike the
+                              # other three this one is NOT created by db-import:
+                              # worldserver opens the pool and migrates it at
+                              # startup from the module SQL baked into the image.
+                              - name: AC_PLAYERBOTS_DATABASE_INFO
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: tocloud9-db
+                                        key: AC_PLAYERBOTS_DATABASE_INFO
+                              # Without this the module opens the pool, finds no
+                              # database and gives up rather than creating it.
+                              - name: AC_PLAYERBOTS_UPDATES_ENABLE_DATABASES
+                                value: '1'
+                              # Required by mod-playerbots: bots act on grids no
+                              # real player has activated. This is what makes the
+                              # worldserver slow to start and memory-hungry.
+                              - name: AC_PRELOAD_ALL_NON_INSTANCED_MAP_GRIDS
+                                value: '1'
+                              - name: AC_AI_PLAYERBOT_ENABLED
+                                value: '1'
+                              # Min and Max must move together. playerbots.conf
+                              # ships both at 500, and an inverted pair trips an
+                              # assertion in urand(min, max) that aborts the
+                              # worldserver with SIGSEGV well after it logs ready.
+                              - name: AC_AI_PLAYERBOT_MIN_RANDOM_BOTS
+                                value: '200'
+                              - name: AC_AI_PLAYERBOT_MAX_RANDOM_BOTS
+                                value: '200'
+                              - name: AC_AI_PLAYERBOT_RANDOM_BOT_AUTOLOGIN
+                                value: '1'
                               # Cluster wiring. The bare names are what the
                               # AzerothCore cluster patch reads and are the set
                               # verified working in apps/agones/tocloud9; the
@@ -153,6 +183,10 @@ spec:
                                 value: 'servers-registry:8999'
                               - name: TC9_GUID_PROVIDER_ADDRESS
                                 value: 'guidserver:8996'
+                              - name: TC9_GROUP_SERVICE_ADDRESS
+                                value: 'groupserver:8998'
+                              - name: TC9_GUILD_SERVICE_ADDRESS
+                                value: 'guildserver:8995'
                               - name: TC9_MATCHMAKING_ADDRESS
                                 value: 'matchmakingserver:8994'
                               - name: TC9_GRPC_PORT
@@ -187,12 +221,21 @@ spec:
                               - name: logs
                                 mountPath: /logs
                           resources:
+                              # Sized from a measured run, not a guess. One
+                              # worldserver with PreloadAllNonInstancedMapGrids
+                              # and only 20 bots used 6.35Gi, which already
+                              # exceeds the previous 6Gi limit -- that would
+                              # OOMKill on the first pod and read as an Agones
+                              # crashloop rather than a memory problem. The
+                              # cluster default is 500 bots, so headroom is
+                              # deliberate. Playerbots is CPU-bound before it is
+                              # memory-bound.
                               requests:
-                                  cpu: '1'
-                                  memory: '3Gi'
+                                  cpu: '2'
+                                  memory: '8Gi'
                               limits:
-                                  cpu: '4'
-                                  memory: '6Gi'
+                                  cpu: '8'
+                                  memory: '24Gi'
                           securityContext:
                               allowPrivilegeEscalation: false
                               capabilities:
