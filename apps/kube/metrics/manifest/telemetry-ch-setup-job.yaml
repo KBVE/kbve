@@ -77,7 +77,14 @@ metadata:
         kbve.com/stack: core
         kbve.com/managed-by: argocd
     annotations:
-        argocd.argoproj.io/hook: PostSync
+        # PreSync, not PostSync: this job *is* the schema the service needs, so
+        # running it after the deployment meant the app could come up, be marked
+        # healthy, accept events and drop every one of them into a database with
+        # no tables in it. Argo waits for a PreSync hook to succeed before it
+        # syncs anything else, which is the ordering that was always intended.
+        # Idempotent by construction — every statement is CREATE IF NOT EXISTS —
+        # so running it on each sync costs a few metadata queries.
+        argocd.argoproj.io/hook: PreSync
         # Without a delete policy the completed hook Job stays put under its fixed
         # name, and the next sync cannot recreate it — a Job's pod template and
         # selector are immutable — so the PostSync hook never reaches a terminal

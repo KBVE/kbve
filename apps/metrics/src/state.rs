@@ -1,6 +1,6 @@
 use std::hash::{Hash, Hasher};
 use std::sync::Arc;
-use std::sync::atomic::{AtomicU32, AtomicU64, Ordering};
+use std::sync::atomic::{AtomicBool, AtomicU32, AtomicU64, Ordering};
 use std::time::{Duration, Instant};
 
 use ahash::AHashMap;
@@ -25,6 +25,10 @@ pub struct AppState {
     project_limiter: Sharded,
     global_count: AtomicU32,
     global_window_ms: AtomicU64,
+    /// Latched once the errors table has been seen. The schema is applied by a
+    /// one-shot setup job and never goes away afterwards, so re-querying on every
+    /// kubelet probe would buy nothing and cost a ClickHouse round trip each time.
+    schema_ready: AtomicBool,
 }
 
 struct Bucket {
@@ -96,7 +100,28 @@ impl AppState {
             project_limiter: Sharded::new(),
             global_count: AtomicU32::new(0),
             global_window_ms: AtomicU64::new(0),
+            schema_ready: AtomicBool::new(false),
         }
+    }
+
+    /// Whether the errors table actually exists.
+    ///
+    /// `SELECT 1` passes against a ClickHouse with no telemetry schema at all,
+    /// which is how a wedged setup job stayed invisible: ingest answered 202,
+    /// the flusher failed asynchronously and dropped every row, and the only
+    /// complaint was a 502 on a dashboard nobody had open. This asks the
+    /// question the probe was supposed to be asking.
+    pub async fn schema_ready(&self) -> bool {
+        if self.schema_ready.load(Ordering::Relaxed) {
+            return true;
+        }
+        // LIMIT 0 so this stays a metadata check rather than reading rows.
+        let sql = format!("SELECT 1 FROM {} LIMIT 0", self.cfg.errors_table);
+        let ok = self.ch.execute_select(&sql).await.is_ok();
+        if ok {
+            self.schema_ready.store(true, Ordering::Relaxed);
+        }
+        ok
     }
 
     /// Per-client-IP request cap.
@@ -236,6 +261,50 @@ async fn flush(
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// A ClickHouse that cannot be reached, so a query can only fail. Port 1 is
+    /// unroutable rather than merely closed, which keeps the test off the network
+    /// stack's slow path.
+    fn unreachable_state() -> AppState {
+        let (tx, _rx) = mpsc::channel(8);
+        AppState::new(
+            Config::from_env(),
+            ClickHouseConfig {
+                url: "http://127.0.0.1:1".to_string(),
+                user: "test".to_string(),
+                password: String::new(),
+                database: "telemetry".to_string(),
+            },
+            tx,
+            None,
+        )
+    }
+
+    #[tokio::test]
+    async fn a_missing_errors_table_is_not_ready() {
+        let app = unreachable_state();
+        assert!(
+            !app.schema_ready().await,
+            "a database the service cannot even query must not read as ready"
+        );
+        assert!(
+            !app.schema_ready.load(Ordering::Relaxed),
+            "a failed check must not latch, or one bad probe would poison every later one"
+        );
+    }
+
+    #[tokio::test]
+    async fn the_check_latches_once_the_table_has_been_seen() {
+        // Standing in for a successful first probe. After that the answer is
+        // returned without touching ClickHouse — which is the point, since this
+        // runs on every kubelet readiness probe for the life of the pod.
+        let app = unreachable_state();
+        app.schema_ready.store(true, Ordering::Relaxed);
+        assert!(
+            app.schema_ready().await,
+            "the latch must short-circuit rather than re-query a now-unreachable server"
+        );
+    }
 
     #[test]
     fn sharded_limiter_enforces_and_isolates_keys() {
