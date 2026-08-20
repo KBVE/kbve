@@ -17,3 +17,6 @@ pub const LONG_PRESS_TICKS: u32 = 80;
 
 pub const SPI_MHZ: u32 = 40;
 pub const DRAW_BUFFER: usize = 2048;
+
+pub const TERM_COLS: u16 = 28;
+pub const TERM_ROWS: u16 = 32;

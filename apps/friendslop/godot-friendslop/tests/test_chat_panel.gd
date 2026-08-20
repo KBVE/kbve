@@ -105,3 +105,19 @@ func test_the_panel_builds_the_extension_client() -> void:
 			"the panel did not stand up a chat client").is_not_null()
 	assert_str(client.get_class()).is_equal("QChatClient")
 	panel.queue_free()
+
+
+func test_a_relayed_line_says_where_it_came_from() -> void:
+	var panel: ChatPanel = await _panel()
+	var log_node: RichTextLabel = panel.get_node("Root/Column/Log")
+	panel._append("chat", "discordsh-bot", "<alice> hey")
+	panel._append("chat", "someplayer", "hey back")
+	await await_idle_frame()
+	var text := log_node.get_parsed_text()
+	assert_str(text).override_failure_message(
+			"a relayed line did not name its source: %s" % text).contains("[Discord]")
+	assert_str(text).override_failure_message(
+			"the bot nick should not be shown as the speaker").not_contains("discordsh-bot")
+	assert_str(text).override_failure_message(
+			"a player line should still name the player").contains("someplayer")
+	panel.queue_free()

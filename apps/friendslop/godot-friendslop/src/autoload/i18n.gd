@@ -16,6 +16,8 @@ var _locales: Array[Dictionary] = []
 var _fallback: Dictionary = {}
 var _current: Dictionary = {}
 var _current_code := FALLBACK
+var _all_fonts := false
+var _tables: Dictionary[String, Dictionary] = {}
 
 
 func _ready() -> void:
@@ -37,12 +39,17 @@ func _read_locales() -> Array[Dictionary]:
 	return out
 
 
+## The tables never change once read, so a switch back to a locale already visited
+## costs a lookup instead of a fresh parse and flatten of both namespaces.
 func _read_locale(code: String) -> Dictionary:
+	if _tables.has(code):
+		return _tables[code]
 	var flat: Dictionary = {}
 	for ns: String in NAMESPACES:
 		var raw: Variant = _read_json("%s/%s/%s.json" % [DIR, code, ns])
 		if raw is Dictionary:
 			_flatten(raw, "", flat)
+	_tables[code] = flat
 	return flat
 
 
@@ -112,20 +119,26 @@ func set_locale(code: String, remember := false) -> void:
 	_current_code = wanted
 	_current = _fallback if wanted == FALLBACK else _read_locale(wanted)
 	TranslationServer.set_locale(wanted)
-	_apply_font(wanted)
+	_refresh_fonts()
 	locale_changed.emit()
 
 
-func _apply_font(code: String) -> void:
-	_set_fallbacks(_load_fonts([code]))
+## A screen that shows several languages at once -- the title's language row, the
+## first-run modal -- asks for every font and must keep them across a switch. Picking
+## a language used to narrow the chain back to one font, which was invisible only
+## because the screen was reloaded from scratch straight afterwards.
+func _refresh_fonts() -> void:
+	_set_fallbacks(_load_fonts(FONTS.keys() if _all_fonts else [_current_code]))
 
 
 func use_all_fonts() -> void:
-	_set_fallbacks(_load_fonts(FONTS.keys()))
+	_all_fonts = true
+	_refresh_fonts()
 
 
 func use_locale_font() -> void:
-	_apply_font(_current_code)
+	_all_fonts = false
+	_refresh_fonts()
 
 
 func _load_fonts(codes: Array) -> Array[Font]:

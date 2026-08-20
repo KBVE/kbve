@@ -43,6 +43,38 @@ alone does flashing, logging and debugging. No external probe. It enumerates on
 macOS as `/dev/cu.usbmodem*` with no driver, VID `0x303A` PID `0x1001`, and its
 USB serial number is the board's MAC — handy once more than one is plugged in.
 
+## Wi-Fi and the BBS
+
+The board can join a network and dial the KBVE BBS over telnet. Credentials are
+baked in at compile time, so copy the sample and fill it in — `wifi.env` is
+gitignored:
+
+```bash
+cp wifi.env.example wifi.env
+```
+
+| Variable        | Default        | Meaning                          |
+| --------------- | -------------- | -------------------------------- |
+| `WIFI_SSID`     | _(empty)_      | Network to join. Empty = offline |
+| `WIFI_PASSWORD` | _(empty)_      | WPA2/WPA3 passphrase             |
+| `BBS_HOST`      | `bbs.kbve.com` | Telnet host                      |
+
+The nx targets source `wifi.env` before handing off to cargo, and `build.rs`
+re-runs the build when any of those change.
+
+With no `WIFI_SSID` the firmware stays offline and advertises over BLE as
+before. With one set it skips BLE entirely — the crate does not enable
+`esp-radio`'s `coex` feature, so the two radios never run at once.
+
+Port `6401` is the BBS's ANSI listener; `6400` speaks PETSCII, which would mean
+shipping C64 glyphs. The client announces a `28x32` window over NAWS and calls
+itself `ansi` over TTYPE, so the server lays its screens out for the panel
+rather than assuming a 40x25 C64.
+
+Logging in is a device-code claim, not a token the board holds: the BBS prints
+a code, you enter it at <https://kbve.com/bbs/> from any other device, and the
+session upgrades in place.
+
 ## Why this is its own cargo workspace
 
 The crate carries an empty `[workspace]` table. Folded into the root workspace,

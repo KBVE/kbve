@@ -1,0 +1,230 @@
+# The worldserver fleet — the only part of ToCloud9 that belongs in Agones.
+#
+# Two things make this unusual, and both are deliberate:
+#
+# 1. portPolicy: None. Players never connect to a worldserver directly; they
+#    reach `gateway`, which forwards to whichever worldserver owns their map.
+#    So these pods need no hostPort and stay compatible with baseline
+#    PodSecurity, the same shape as the herbmail fleet.
+#
+# 2. No GameServerAllocation anywhere. ToCloud9's own servers-registry is the
+#    allocator: each worldserver self-registers its pod IP and the registry
+#    assigns maps across the fleet and redirects players when one dies. Adding
+#    an Agones allocation policy on top would fight it. Agones owns the pod
+#    pool and nothing else.
+#
+# AzerothCore has no Agones SDK integration, so it can never call Ready() or
+# Health() itself. The agones-bridge sidecar does it: it waits for the world
+# socket to accept — the only honest readiness signal, since libsidecar's
+# /ready is a hardcoded {"ready":true} that says nothing about map loading —
+# then marks the GameServer Ready and beats Health until the socket dies.
+apiVersion: agones.dev/v1
+kind: Fleet
+metadata:
+    name: tocloud9-worldserver
+    namespace: tocloud9
+    labels:
+        app: tocloud9-worldserver
+        app.kubernetes.io/part-of: tocloud9
+    annotations:
+        # After the db-import and client-data hooks (wave 1). Scaling the fleet
+        # before the schema exists produces a crashloop, not a useful error.
+        argocd.argoproj.io/sync-wave: '2'
+spec:
+    replicas: 2
+    scheduling: Packed
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            maxSurge: 1
+            maxUnavailable: 0
+    template:
+        metadata:
+            labels:
+                app: tocloud9-worldserver
+                app.kubernetes.io/part-of: tocloud9
+        spec:
+            ports:
+                - name: world
+                  portPolicy: None
+                  containerPort: 8085
+                  protocol: TCP
+            health:
+                # A cold worldserver spends a long time loading maps before it
+                # binds the world socket — over ten minutes was observed
+                # locally, and Longhorn RWX reads will not make that faster.
+                # Health checking must not start until well past that.
+                initialDelaySeconds: 1800
+                periodSeconds: 15
+                failureThreshold: 5
+            sdkServer:
+                logLevel: Info
+            template:
+                metadata:
+                    labels:
+                        app: tocloud9-worldserver
+                        app.kubernetes.io/part-of: tocloud9
+                spec:
+                    terminationGracePeriodSeconds: 120
+                    securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 1000
+                        runAsGroup: 1000
+                        fsGroup: 1000
+                        seccompProfile:
+                            type: RuntimeDefault
+                    volumes:
+                        - name: client-data
+                          persistentVolumeClaim:
+                              claimName: tocloud9-client-data
+                              readOnly: true
+                        # /repo/bin is root-owned 0755 in the image, so a
+                        # non-root worldserver cannot write its logs beside the
+                        # binary. Give it somewhere writable instead.
+                        - name: logs
+                          emptyDir:
+                              sizeLimit: 512Mi
+                    containers:
+                        - name: worldserver
+                          image: ghcr.io/walkline/gameserver-ac:master
+                          imagePullPolicy: IfNotPresent
+                          env:
+                              # AzerothCore's own settings. AC_* overrides the
+                              # matching worldserver.conf key.
+                              - name: AC_CLUSTER_ENABLED
+                                value: '1'
+                              - name: AC_DATA_DIR
+                                value: '/data'
+                              - name: AC_LOGS_DIR
+                                value: '/logs'
+                              - name: AC_CONSOLE_ENABLE
+                                value: '0'
+                              - name: AC_RA_ENABLE
+                                value: '0'
+                              - name: AC_SOAP_ENABLE
+                                value: '0'
+                              - name: AC_LOGIN_DATABASE_INFO
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: tocloud9-db
+                                        key: AC_LOGIN_DATABASE_INFO
+                              - name: AC_WORLD_DATABASE_INFO
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: tocloud9-db
+                                        key: AC_WORLD_DATABASE_INFO
+                              - name: AC_CHARACTER_DATABASE_INFO
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: tocloud9-db
+                                        key: AC_CHARACTER_DATABASE_INFO
+                              # Cluster wiring. The bare names are what the
+                              # AzerothCore cluster patch reads and are the set
+                              # verified working in apps/agones/tocloud9; the
+                              # TC9_* names are what the C++ libsidecar reads.
+                              # Both are set so neither path falls back to its
+                              # localhost default.
+                              - name: NATS_URL
+                                value: 'nats://nats:4222'
+                              - name: SERVERS_REGISTRY_SERVICE_ADDRESS
+                                value: 'servers-registry:8999'
+                              - name: GUID_PROVIDER_SERVICE_ADDRESS
+                                value: 'guidserver:8996'
+                              - name: MATCHMAKING_SERVICE_ADDRESS
+                                value: 'matchmakingserver:8994'
+                              - name: GRPC_PORT
+                                value: '9509'
+                              - name: CHARACTER_GUIDS_BUFFER_SIZE
+                                value: '5'
+                              - name: ITEM_GUIDS_BUFFER_SIZE
+                                value: '50'
+                              - name: TC9_NATS_URL
+                                value: 'nats://nats:4222'
+                              - name: TC9_SERVERS_REGISTRY_ADDRESS
+                                value: 'servers-registry:8999'
+                              - name: TC9_GUID_PROVIDER_ADDRESS
+                                value: 'guidserver:8996'
+                              - name: TC9_MATCHMAKING_ADDRESS
+                                value: 'matchmakingserver:8994'
+                              - name: TC9_GRPC_PORT
+                                value: '9509'
+                              - name: TC9_HEALTH_CHECK_PORT
+                                value: '8901'
+                              # What this worldserver advertises to
+                              # servers-registry. Must be the pod IP: the
+                              # gateway dials it directly, in-cluster.
+                              - name: TC9_PREFERRED_HOSTNAME
+                                valueFrom:
+                                    fieldRef:
+                                        fieldPath: status.podIP
+                          ports:
+                              - name: world
+                                containerPort: 8085
+                                protocol: TCP
+                              - name: grpc
+                                containerPort: 9509
+                                protocol: TCP
+                              - name: health
+                                containerPort: 8901
+                                protocol: TCP
+                          volumeMounts:
+                              - name: client-data
+                                mountPath: /data
+                                readOnly: true
+                              - name: client-data
+                                mountPath: /repo/bin/etc/worldserver.conf
+                                subPath: etc/worldserver.conf
+                                readOnly: true
+                              - name: logs
+                                mountPath: /logs
+                          resources:
+                              requests:
+                                  cpu: '1'
+                                  memory: '3Gi'
+                              limits:
+                                  cpu: '4'
+                                  memory: '6Gi'
+                          securityContext:
+                              allowPrivilegeEscalation: false
+                              capabilities:
+                                  drop:
+                                      - ALL
+                        - name: agones-bridge
+                          image: busybox:1.36
+                          imagePullPolicy: IfNotPresent
+                          env:
+                              - name: AGONES_SDK_HTTP
+                                value: 'http://127.0.0.1:9358'
+                              - name: WORLD_PORT
+                                value: '8085'
+                          command: ['/bin/sh', '-c']
+                          args:
+                              - |
+                                  set -u
+                                  echo "waiting for worldserver to bind 127.0.0.1:${WORLD_PORT}"
+                                  until nc -z -w 2 127.0.0.1 "${WORLD_PORT}"; do sleep 5; done
+                                  echo "world socket is up, marking GameServer Ready"
+                                  wget -q -O- --post-data='{}' --header='Content-Type: application/json' \
+                                      "${AGONES_SDK_HTTP}/ready" >/dev/null
+                                  while true; do
+                                      if ! nc -z -w 2 127.0.0.1 "${WORLD_PORT}"; then
+                                          echo "world socket closed, stopping health beats"
+                                          exit 1
+                                      fi
+                                      wget -q -O- --post-data='{}' --header='Content-Type: application/json' \
+                                          "${AGONES_SDK_HTTP}/health" >/dev/null || true
+                                      sleep 5
+                                  done
+                          resources:
+                              requests:
+                                  cpu: '10m'
+                                  memory: '16Mi'
+                              limits:
+                                  cpu: '100m'
+                                  memory: '64Mi'
+                          securityContext:
+                              allowPrivilegeEscalation: false
+                              readOnlyRootFilesystem: true
+                              capabilities:
+                                  drop:
+                                      - ALL

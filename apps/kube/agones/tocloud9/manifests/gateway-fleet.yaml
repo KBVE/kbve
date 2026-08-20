@@ -1,0 +1,180 @@
+# The player-facing lane. A WoW 3.3.5a client speaks raw TCP, never HTTP, so
+# neither of these can ride the Cilium HTTPRoute the rest of the repo uses.
+# They take static hostPorts and players connect straight to the node address —
+# the factorio/palworld model — which avoids the single shared LoadBalancer IP
+# entirely.
+#
+# Why Static and not Dynamic: the gateway advertises itself to servers-registry
+# as PREFERRED_HOSTNAME + ":" + PORT, where PORT is the port it *listens* on,
+# not any hostPort mapping. Under Dynamic, Agones would map nodePort 7xxx to
+# containerPort 8085 and the gateway would still advertise 8085 — clients would
+# be handed a port nothing is listening on. Static with hostPort == containerPort
+# keeps the advertised address honest.
+#
+# Both are Fleets rather than Deployments because a static hostPort can only be
+# bound once per node. Agones understands that and will not schedule two
+# GameServers onto the same node for the same port; a Deployment would happily
+# place two replicas together and the second would fail to bind.
+apiVersion: agones.dev/v1
+kind: Fleet
+metadata:
+    name: tocloud9-gateway
+    namespace: tocloud9
+    labels:
+        app: tocloud9-gateway
+        app.kubernetes.io/part-of: tocloud9
+    annotations:
+        argocd.argoproj.io/sync-wave: '2'
+spec:
+    # Gateways register under gw:* independently of the worldserver fleet, so
+    # this scales separately. Capped by the number of nodes, since each needs
+    # its own node to bind 8085.
+    # A static hostPort binds once per node, so this cannot exceed the number
+    # of `node.kbve.com/type: dedicated-server` nodes. Above that, the extra
+    # GameServers sit unschedulable forever. Start at 1 and raise it only
+    # alongside node count.
+    replicas: 1
+    scheduling: Packed
+    strategy:
+        type: RollingUpdate
+        rollingUpdate:
+            # Inverted from the usual surge-first rollout: a replacement cannot
+            # bind the hostPort until the old pod releases it, so the old one
+            # must go first. This is a brief outage by design.
+            maxSurge: 0
+            maxUnavailable: 1
+    template:
+        metadata:
+            labels:
+                app: tocloud9-gateway
+                app.kubernetes.io/part-of: tocloud9
+        spec:
+            ports:
+                - name: world
+                  portPolicy: Static
+                  hostPort: 8085
+                  containerPort: 8085
+                  protocol: TCP
+            health:
+                initialDelaySeconds: 30
+                periodSeconds: 15
+                failureThreshold: 5
+            sdkServer:
+                logLevel: Info
+            template:
+                metadata:
+                    labels:
+                        app: tocloud9-gateway
+                        app.kubernetes.io/part-of: tocloud9
+                spec:
+                    securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 10001
+                        runAsGroup: 10001
+                        seccompProfile:
+                            type: RuntimeDefault
+                    containers:
+                        - name: gateway
+                          image: ghcr.io/walkline/gateway:master
+                          imagePullPolicy: IfNotPresent
+                          env:
+                              - name: PORT
+                                value: '8085'
+                              - name: HEALTH_CHECK_PORT
+                                value: '8900'
+                              - name: LOG_LEVEL
+                                value: '0'
+                              # Handed to the client by authserver after
+                              # realm selection, so it must be something the
+                              # player can resolve and reach on 8085.
+                              #
+                              # Deliberately a DNS name, not status.hostIP: on
+                              # Talos the node's InternalIP may be a private
+                              # address, which would hand clients an
+                              # unroutable host. Same discovery model as
+                              # factorio.kbve.com — an A record pointing at the
+                              # dedicated-server node this fleet lands on.
+                              - name: PREFERRED_HOSTNAME
+                                value: 'tocloud9.kbve.com'
+                              - name: NATS_URL
+                                value: 'nats://nats:4222'
+                              - name: DB_SCHEMA_TYPE
+                                value: 'ac'
+                              - name: SERVERS_REGISTRY_SERVICE_ADDRESS
+                                value: 'servers-registry:8999'
+                              - name: CHAR_SERVICE_ADDRESS
+                                value: 'charserver:8087'
+                              - name: CHAT_SERVICE_ADDRESS
+                                value: 'chatserver:8992'
+                              - name: GUILDS_SERVICE_ADDRESS
+                                value: 'guildserver:8995'
+                              - name: MAIL_SERVICE_ADDRESS
+                                value: 'mailserver:8997'
+                              - name: GROUP_SERVICE_ADDRESS
+                                value: 'groupserver:8998'
+                              - name: MATCHMAKING_SERVICE_ADDRESS
+                                value: 'matchmakingserver:8994'
+                              - name: AUCTION_HOUSE_SERVICE_ADDRESS
+                                value: 'auctionhouse:8993'
+                              - name: AUTH_DB_CONNECTION
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: tocloud9-db
+                                        key: AUTH_DB_CONNECTION
+                          ports:
+                              - name: world
+                                containerPort: 8085
+                                protocol: TCP
+                              - name: health
+                                containerPort: 8900
+                                protocol: TCP
+                          resources:
+                              requests:
+                                  cpu: '200m'
+                                  memory: '128Mi'
+                              limits:
+                                  cpu: '2'
+                                  memory: '1Gi'
+                          securityContext:
+                              allowPrivilegeEscalation: false
+                              readOnlyRootFilesystem: true
+                              capabilities:
+                                  drop:
+                                      - ALL
+                        - name: agones-bridge
+                          image: busybox:1.36
+                          imagePullPolicy: IfNotPresent
+                          env:
+                              - name: AGONES_SDK_HTTP
+                                value: 'http://127.0.0.1:9358'
+                              - name: WATCH_PORT
+                                value: '8085'
+                          command: ['/bin/sh', '-c']
+                          args:
+                              - |
+                                  set -u
+                                  until nc -z -w 2 127.0.0.1 "${WATCH_PORT}"; do sleep 2; done
+                                  wget -q -O- --post-data='{}' --header='Content-Type: application/json' \
+                                      "${AGONES_SDK_HTTP}/ready" >/dev/null
+                                  while true; do
+                                      if ! nc -z -w 2 127.0.0.1 "${WATCH_PORT}"; then
+                                          echo "listener closed, stopping health beats"
+                                          exit 1
+                                      fi
+                                      wget -q -O- --post-data='{}' --header='Content-Type: application/json' \
+                                          "${AGONES_SDK_HTTP}/health" >/dev/null || true
+                                      sleep 5
+                                  done
+                          resources:
+                              requests:
+                                  cpu: '10m'
+                                  memory: '16Mi'
+                              limits:
+                                  cpu: '100m'
+                                  memory: '64Mi'
+                          securityContext:
+                              allowPrivilegeEscalation: false
+                              readOnlyRootFilesystem: true
+                              capabilities:
+                                  drop:
+                                      - ALL

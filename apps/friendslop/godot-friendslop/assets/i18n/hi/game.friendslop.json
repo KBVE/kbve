@@ -2,16 +2,24 @@
 	"title": {
 		"name": "Friendslop",
 		"play_guest": "अतिथि के रूप में खेलें",
-		"play_as_account": "{{name}} के रूप में खेलें",
 		"singleplayer": "एकल खिलाड़ी",
 		"sign_in": "साइन इन",
 		"sign_in_hint": "साइन इन जल्द आ रहा है — अतिथियों के नाम सर्वर देता है।",
 		"guest_status": "अतिथि के रूप में खेल रहे हैं",
+		"signing_in": "आपके ब्राउज़र की प्रतीक्षा…",
+		"signed_in_as": "{name} के रूप में साइन इन",
+		"sign_out": "साइन आउट",
+		"play_as_account": "{{name}} के रूप में खेलें",
+		"sign_in_with": "{provider} से साइन इन",
+		"sign_in_browser": "आपका ब्राउज़र खुलेगा — पूरा होने पर यहाँ लौटें।",
 		"build": "v{version}  ·  प्रोटोकॉल {protocol}",
 		"server_protocol": "सर्वर प्रोटोकॉल {protocol}",
 		"protocol_mismatch": "यह बिल्ड उस सर्वर से नहीं जुड़ सकता",
 		"server_unreachable": "सर्वर तक नहीं पहुँच सका",
-		"server_protocol_unknown": "सर्वर प्रोटोकॉल अज्ञात"
+		"server_protocol_unknown": "सर्वर प्रोटोकॉल अज्ञात",
+		"welcome": "स्वागत है!",
+		"welcome_back": "वापसी पर स्वागत है, {{name}}!",
+		"welcome_named": "स्वागत है, {{name}}!"
 	},
 	"pause": {
 		"log_off": "लॉग ऑफ"
@@ -57,7 +65,36 @@
 		"joined": "{{name}} के रूप में जुड़े",
 		"disconnected": "डिस्कनेक्ट: {{reason}}  (निकलने के लिए Esc)",
 		"roster_you": "{{name}} (आप)",
-		"roster": "{{count}} यहाँ — {{names}}"
+		"roster": "{{count}} यहाँ — {{names}}",
+		"pets": "रोबोट: {{count}}  ·  [G] भेजें  ·  [H] सब वापस"
+	},
+	"prompt": {
+		"talk": "[{{key}}]  बात करें"
+	},
+	"dlg": {
+		"continue": "[{{key}}]  आगे",
+		"close": "बातचीत छोड़ें",
+		"player": "आप",
+		"met": "आप अभी मिले"
+	},
+	"quest": {
+		"taken": "स्वीकार: {{title}}",
+		"done": "पूर्ण: {{title}} — लौटकर बताएं",
+		"ready": "सौंपने को तैयार",
+		"handed": "सौंपी: {{title}}",
+		"reward_xp": "+{{amount}} अनुभव",
+		"tracker": "जारी"
+	},
+	"wardrobe": {
+		"title": "पोशाक",
+		"none": "कुछ नहीं",
+		"head": "सिर",
+		"chest": "शरीर",
+		"hands": "बाहें",
+		"legs": "टाँगें",
+		"feet": "पैर",
+		"neck": "गर्दन",
+		"back": "कंधे"
 	},
 	"account": {
 		"loading": "शेष राशि पढ़ी जा रही है…",
@@ -99,5 +136,13 @@
 		"settings": "ग्राफ़िक्स, गेमप्ले और भाषा।",
 		"quit": "गेम बंद करें।",
 		"language": "मेनू की भाषा बदलें।"
+	},
+	"api": {
+		"not_signed_in": "साइन इन नहीं है",
+		"request_failed": "अनुरोध विफल ({{code}})",
+		"no_answer": "कोई उत्तर नहीं ({{code}})",
+		"session_expired": "सत्र समाप्त हो गया",
+		"http_error": "http {{code}}",
+		"unreadable_balance": "शेष राशि पढ़ी नहीं जा सकी"
 	}
 }

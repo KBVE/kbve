@@ -1,0 +1,128 @@
+# ToCloud9 is MySQL-only and cannot use kilobase/CNPG: the AzerothCore
+# worldserver is C++ against libmysqlclient, every ToCloud9 Go repo is
+# `*_mysql.go`, and apps/mysqlreverseproxy parses the MySQL wire protocol
+# directly. This is the first MySQL workload in the cluster.
+#
+# Deliberately a plain StatefulSet rather than an operator: the thing under
+# test is the Agones fleet and the raw-TCP lane, not database HA. All three
+# databases are shared by every worldserver, so the DB sits outside the fleet
+# and does not scale with it.
+apiVersion: v1
+kind: Service
+metadata:
+    name: mysql
+    namespace: tocloud9
+    labels:
+        app: mysql
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    clusterIP: None
+    selector:
+        app: mysql
+    ports:
+        - name: mysql
+          port: 3306
+          targetPort: 3306
+          protocol: TCP
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+    name: mysql
+    namespace: tocloud9
+    labels:
+        app: mysql
+        app.kubernetes.io/part-of: tocloud9
+spec:
+    serviceName: mysql
+    replicas: 1
+    selector:
+        matchLabels:
+            app: mysql
+    template:
+        metadata:
+            labels:
+                app: mysql
+                app.kubernetes.io/part-of: tocloud9
+        spec:
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 999
+                runAsGroup: 999
+                fsGroup: 999
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: mysql
+                  image: mysql:8.4
+                  args:
+                      - --log-bin-trust-function-creators=1
+                  env:
+                      - name: MYSQL_ROOT_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: tocloud9-mysql
+                                key: root_password
+                      - name: MYSQL_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: tocloud9-mysql
+                                key: username
+                      - name: MYSQL_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: tocloud9-mysql
+                                key: password
+                  ports:
+                      - name: mysql
+                        containerPort: 3306
+                        protocol: TCP
+                  volumeMounts:
+                      - name: data
+                        mountPath: /var/lib/mysql
+                      - name: initdb
+                        mountPath: /docker-entrypoint-initdb.d
+                  readinessProbe:
+                      exec:
+                          command:
+                              - sh
+                              - -c
+                              - mysqladmin ping -h 127.0.0.1 -u root -p"$MYSQL_ROOT_PASSWORD"
+                      initialDelaySeconds: 15
+                      periodSeconds: 10
+                      failureThreshold: 6
+                  livenessProbe:
+                      exec:
+                          command:
+                              - sh
+                              - -c
+                              - mysqladmin ping -h 127.0.0.1 -u root -p"$MYSQL_ROOT_PASSWORD"
+                      initialDelaySeconds: 60
+                      periodSeconds: 30
+                      failureThreshold: 5
+                  resources:
+                      requests:
+                          cpu: '500m'
+                          memory: '1Gi'
+                      limits:
+                          cpu: '2'
+                          memory: '4Gi'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                          drop:
+                              - ALL
+            volumes:
+                - name: initdb
+                  configMap:
+                      name: tocloud9-mysql-initdb
+    volumeClaimTemplates:
+        - metadata:
+              name: data
+          spec:
+              accessModes:
+                  - ReadWriteOnce
+              storageClassName: longhorn
+              resources:
+                  requests:
+                      storage: 20Gi

@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+    name: tocloud9
+    labels:
+        app.kubernetes.io/part-of: tocloud9
+        kbve.com/stack: agones
+        # The gateway and authserver fleets bind static hostPorts so players
+        # reach them on the node address, the same model factorio and palworld
+        # use. PodSecurity baseline forbids hostPorts outright, so this
+        # namespace has to run privileged — that is the cost of the hostPort
+        # lane, and it is why the fleets that avoid hostPorts (friendslop,
+        # arpg, herbmail) stay on baseline.
+        pod-security.kubernetes.io/enforce: privileged

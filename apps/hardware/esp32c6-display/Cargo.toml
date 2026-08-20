@@ -23,7 +23,7 @@ embedded-hal-bus = "0.3.0"
 mipidsi = "0.10.0"
 
 esp-alloc = "0.10.0"
-esp-radio = { version = "0.18.0", features = ["ble", "esp32c6", "unstable"] }
+esp-radio = { version = "0.18.0", features = ["ble", "wifi", "esp32c6", "unstable"] }
 esp-rtos = { version = "0.3.0", features = ["embassy", "esp32c6", "esp-radio"] }
 embassy-executor = "0.10.0"
 embassy-futures = "0.1.2"
@@ -32,6 +32,14 @@ embassy-time = "0.5.0"
 trouble-host = { version = "0.6.0", features = ["gatt", "peripheral"] }
 bt-hci = "0.8.0"
 static_cell = "2.1.1"
+embassy-net = { version = "0.7", features = [
+	"dhcpv4",
+	"dns",
+	"medium-ethernet",
+	"proto-ipv4",
+	"tcp",
+] }
+heapless = "0.8"
 
 [profile.release]
 opt-level = "s"

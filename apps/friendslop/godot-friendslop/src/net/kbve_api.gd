@@ -34,7 +34,7 @@ func fetch_wallet(token: String) -> void:
 	if _request == null or _fetching_wallet:
 		return
 	if token.is_empty():
-		wallet_failed.emit("not signed in")
+		wallet_failed.emit(I18n.t("api.not_signed_in"))
 		return
 	var headers := PackedStringArray([
 		"Authorization: Bearer " + token,
@@ -42,7 +42,7 @@ func fetch_wallet(token: String) -> void:
 	])
 	var err := _request.request(BASE_URL + WALLET_PATH, headers)
 	if err != OK:
-		wallet_failed.emit("request failed (%d)" % err)
+		wallet_failed.emit(I18n.t("api.request_failed", {"code": err}))
 		return
 	_fetching_wallet = true
 
@@ -50,20 +50,20 @@ func fetch_wallet(token: String) -> void:
 func _on_wallet(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	_fetching_wallet = false
 	if result != HTTPRequest.RESULT_SUCCESS:
-		wallet_failed.emit("no answer (%d)" % result)
+		wallet_failed.emit(I18n.t("api.no_answer", {"code": result}))
 		return
 	if code == 401 or code == 403:
-		wallet_failed.emit("session expired")
+		wallet_failed.emit(I18n.t("api.session_expired"))
 		return
 	if code != 200:
-		wallet_failed.emit("http %d" % code)
+		wallet_failed.emit(I18n.t("api.http_error", {"code": code}))
 		return
 	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
 	if typeof(parsed) != TYPE_DICTIONARY:
-		wallet_failed.emit("unreadable balance")
+		wallet_failed.emit(I18n.t("api.unreadable_balance"))
 		return
 	if not parsed.has("credits") or not parsed.has("khash"):
-		wallet_failed.emit("unreadable balance")
+		wallet_failed.emit(I18n.t("api.unreadable_balance"))
 		return
 	wallet.emit(int(parsed["credits"]), int(parsed["khash"]))
 
@@ -72,7 +72,7 @@ func set_username(token: String, username: String) -> void:
 	if _username_request == null:
 		return
 	if token.is_empty():
-		username_failed.emit("not signed in")
+		username_failed.emit(I18n.t("api.not_signed_in"))
 		return
 	_claimed = username
 	var headers := PackedStringArray([
@@ -83,12 +83,12 @@ func set_username(token: String, username: String) -> void:
 	var body := JSON.stringify({"username": username})
 	var err := _username_request.request(BASE_URL + USERNAME_PATH, headers, HTTPClient.METHOD_POST, body)
 	if err != OK:
-		username_failed.emit("request failed (%d)" % err)
+		username_failed.emit(I18n.t("api.request_failed", {"code": err}))
 
 
 func _on_username(result: int, code: int, _headers: PackedStringArray, body: PackedByteArray) -> void:
 	if result != HTTPRequest.RESULT_SUCCESS:
-		username_failed.emit("no answer (%d)" % result)
+		username_failed.emit(I18n.t("api.no_answer", {"code": result}))
 		return
 	var parsed: Variant = JSON.parse_string(body.get_string_from_utf8())
 	if code == 200 or code == 201:
@@ -106,4 +106,4 @@ func _on_username(result: int, code: int, _headers: PackedStringArray, body: Pac
 	if code == 409:
 		username_failed.emit(I18n.t("username.taken"))
 		return
-	username_failed.emit("http %d" % code)
+	username_failed.emit(I18n.t("api.http_error", {"code": code}))

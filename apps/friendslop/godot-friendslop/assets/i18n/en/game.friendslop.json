@@ -136,5 +136,13 @@
 		"settings": "Graphics, gameplay and language.",
 		"quit": "Close the game.",
 		"language": "Change the menu language."
+	},
+	"api": {
+		"not_signed_in": "not signed in",
+		"request_failed": "request failed ({{code}})",
+		"no_answer": "no answer ({{code}})",
+		"session_expired": "session expired",
+		"http_error": "http {{code}}",
+		"unreadable_balance": "unreadable balance"
 	}
 }

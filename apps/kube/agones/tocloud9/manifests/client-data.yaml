@@ -1,0 +1,104 @@
+# ~4GB of WoW 3.3.5a client data (dbc/maps/mmaps/vmaps), shared read-only by
+# every worldserver in the fleet, plus the cluster-mode worldserver.conf.
+#
+# ReadWriteMany because the whole fleet mounts the same copy. That routes
+# through Longhorn's share-manager, which is a single point of failure for the
+# fleet — acceptable for a test case. If this ever carries real players, bake
+# the data into the worldserver image instead: it is immutable and identical
+# per pod, so an image layer scales better than an NFS export.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+    name: tocloud9-client-data
+    namespace: tocloud9
+    labels:
+        app.kubernetes.io/part-of: tocloud9
+    annotations:
+        argocd.argoproj.io/sync-wave: '0'
+spec:
+    accessModes:
+        - ReadWriteMany
+    storageClassName: longhorn
+    resources:
+        requests:
+            storage: 20Gi
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: tocloud9-client-data
+    namespace: tocloud9
+    labels:
+        app.kubernetes.io/part-of: tocloud9
+    annotations:
+        argocd.argoproj.io/hook: Sync
+        # Without a delete policy the Job is immutable on resync and the whole
+        # Application wedges.
+        argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+        argocd.argoproj.io/sync-wave: '1'
+spec:
+    backoffLimit: 3
+    template:
+        metadata:
+            labels:
+                app.kubernetes.io/part-of: tocloud9
+        spec:
+            restartPolicy: OnFailure
+            securityContext:
+                runAsNonRoot: true
+                runAsUser: 1000
+                runAsGroup: 1000
+                fsGroup: 1000
+                seccompProfile:
+                    type: RuntimeDefault
+            containers:
+                - name: fetch
+                  image: alpine/curl:8.14.1
+                  env:
+                      # v20.0 matches upstream ToCloud9. Its mmaps are built
+                      # with generator v20 while the pinned core expects v19,
+                      # so the worldserver logs a mismatch per tile and runs
+                      # without server-side pathfinding. Harmless for a
+                      # networking test, wrong for real gameplay; v19 is the
+                      # matching release but is untested here.
+                      - name: CLIENT_DATA_URL
+                        value: 'https://github.com/wowgaming/client-data/releases/download/v20.0/Data.zip'
+                      - name: WORLDSERVER_CONF_URL
+                        value: 'https://raw.githubusercontent.com/walkline/azerothcore-wotlk/cluster-mode/src/server/apps/worldserver/worldserver.conf.dist'
+                  command: ['/bin/sh', '-c']
+                  args:
+                      - |
+                          set -eu
+                          mkdir -p /data/etc
+                          echo "fetching cluster-mode worldserver.conf"
+                          curl -fsSL "$WORLDSERVER_CONF_URL" -o /data/etc/worldserver.conf
+                          if [ -d /data/dbc ] && [ -d /data/maps ]; then
+                              echo "client data already present, skipping download"
+                              exit 0
+                          fi
+                          echo "downloading client data (~4GB), this takes a while"
+                          cd /data
+                          curl -fL -o data.zip "$CLIENT_DATA_URL"
+                          unzip -q data.zip
+                          rm -f data.zip
+                          echo "client data ready"
+                          ls -1 /data
+                  volumeMounts:
+                      - name: client-data
+                        mountPath: /data
+                  resources:
+                      requests:
+                          cpu: '250m'
+                          memory: '256Mi'
+                      limits:
+                          cpu: '2'
+                          memory: '1Gi'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      capabilities:
+                          drop:
+                              - ALL
+            volumes:
+                - name: client-data
+                  persistentVolumeClaim:
+                      claimName: tocloud9-client-data

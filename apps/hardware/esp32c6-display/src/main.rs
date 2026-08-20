@@ -1,37 +1,40 @@
 #![no_std]
 #![no_main]
 
+mod bbs;
 mod ble;
 mod board;
 mod input;
 mod state;
+mod telnet;
 mod ui;
+mod wifi;
 
 extern crate alloc;
 
+use embassy_executor::Spawner;
+use embassy_net::Stack;
+use embassy_time::{Duration, Timer};
 use embedded_hal_bus::spi::ExclusiveDevice;
 use esp_backtrace as _;
 use esp_hal::{
     clock::CpuClock,
     delay::Delay,
     gpio::{DriveMode, Input, InputConfig, Level, Output, OutputConfig, Pull},
+    interrupt::software::SoftwareInterruptControl,
     ledc::{
         LSGlobalClkSource, Ledc, LowSpeed,
         channel::{self, ChannelIFace},
         timer::{self, TimerIFace},
     },
-
-    interrupt::software::SoftwareInterruptControl,
-    timer::timg::TimerGroup,
     spi::{
         Mode,
         master::{Config as SpiConfig, Spi},
     },
     time::Rate,
+    timer::timg::TimerGroup,
     tsens::{Config as TsensConfig, TemperatureSensor},
 };
-use embassy_executor::Spawner;
-use embassy_time::{Duration, Timer};
 use esp_println::println;
 use esp_radio::ble::controller::BleConnector;
 use mipidsi::{
@@ -42,25 +45,39 @@ use mipidsi::{
 };
 
 use board::{
-    BACKLIGHT_KHZ, BACKLIGHT_PCT, BACKLIGHT_STEPS, COLUMN_OFFSET, DRAW_BUFFER, HEARTBEAT_TICKS,
-    DEBOUNCE_SAMPLES, LONG_PRESS_TICKS, PANEL_HEIGHT, PANEL_WIDTH, POLL_MS, ROW_OFFSET,
+    BACKLIGHT_KHZ, BACKLIGHT_PCT, BACKLIGHT_STEPS, COLUMN_OFFSET, DEBOUNCE_SAMPLES, DRAW_BUFFER,
+    HEARTBEAT_TICKS, LONG_PRESS_TICKS, PANEL_HEIGHT, PANEL_WIDTH, POLL_MS, ROW_OFFSET,
     SETTLE_TICKS, SPI_MHZ,
 };
 use input::{Button, Press};
 
 esp_bootloader_esp_idf::esp_app_desc!();
 
-const HEAP_BYTES: usize = 72 * 1024;
+const HEAP_BYTES: usize = 148 * 1024;
 
 #[embassy_executor::task]
 async fn radio(connector: BleConnector<'static>) {
     ble::run(connector).await
 }
 
+#[embassy_executor::task]
+async fn net(runner: embassy_net::Runner<'static, esp_radio::wifi::Interface<'static>>) {
+    wifi::net_task(runner).await
+}
+
+#[embassy_executor::task]
+async fn join(controller: esp_radio::wifi::WifiController<'static>, stack: Stack<'static>) {
+    wifi::connect(controller, stack).await
+}
+
+#[embassy_executor::task]
+async fn dial(stack: Stack<'static>) {
+    bbs::run(stack).await
+}
 
 #[esp_rtos::main]
 async fn main(spawner: Spawner) {
-    let peripherals = esp_hal::init(esp_hal::Config::default().with_cpu_clock(CpuClock::_80MHz));
+    let peripherals = esp_hal::init(esp_hal::Config::default().with_cpu_clock(CpuClock::_160MHz));
     let mut delay = Delay::new();
 
     esp_alloc::heap_allocator!(size: HEAP_BYTES);
@@ -127,18 +144,46 @@ async fn main(spawner: Spawner) {
 
     let tsens = TemperatureSensor::new(peripherals.TSENS, TsensConfig::default()).ok();
 
-    match BleConnector::new(peripherals.BT, Default::default()) {
-        Ok(connector) => {
-            match radio(connector) {
+    if wifi::configured() {
+        println!("[ble] skipped, wifi owns the radio");
+    } else {
+        match BleConnector::new(peripherals.BT, Default::default()) {
+            Ok(connector) => match radio(connector) {
                 Ok(token) => spawner.spawn(token),
                 Err(e) => println!("[ble] spawn failed: {e:?}"),
-            }
+            },
+            Err(e) => println!("[ble] connector failed: {e:?}"),
         }
-        Err(e) => println!("[ble] connector failed: {e:?}"),
+    }
+
+    if wifi::configured() {
+        match wifi::init(peripherals.WIFI) {
+            Some(parts) => {
+                match net(parts.runner) {
+                    Ok(token) => spawner.spawn(token),
+                    Err(e) => println!("[wifi] net task spawn failed: {e:?}"),
+                }
+                match join(parts.controller, parts.stack) {
+                    Ok(token) => spawner.spawn(token),
+                    Err(e) => println!("[wifi] join task spawn failed: {e:?}"),
+                }
+                match dial(parts.stack) {
+                    Ok(token) => spawner.spawn(token),
+                    Err(e) => println!("[bbs] dial task spawn failed: {e:?}"),
+                }
+            }
+            None => println!("[wifi] unavailable"),
+        }
+    } else {
+        println!("[wifi] no WIFI_SSID baked in, staying offline");
+        state::set_link(state::Link::Failed);
     }
 
     let mut button = Button::new(
-        Input::new(peripherals.GPIO9, InputConfig::default().with_pull(Pull::Up)),
+        Input::new(
+            peripherals.GPIO9,
+            InputConfig::default().with_pull(Pull::Up),
+        ),
         DEBOUNCE_SAMPLES,
         LONG_PRESS_TICKS,
         SETTLE_TICKS,
@@ -151,6 +196,11 @@ async fn main(spawner: Spawner) {
     let mut presses: u32 = 0;
     let mut blanked = false;
     ui::backlight_row(&mut display, BACKLIGHT_STEPS[step], presses).expect("row");
+
+    let mut shown_link = state::link();
+    let mut shown_bbs = state::bbs();
+    let mut shown_ip = state::ip();
+    ui::net_rows(&mut display, shown_link, shown_bbs, shown_ip).expect("net rows");
 
     let mut ticks: u32 = 0;
     loop {
@@ -184,6 +234,16 @@ async fn main(spawner: Spawner) {
             backlight.set_duty(pct).expect("duty");
             ui::backlight_row(&mut display, pct, presses).expect("row");
             println!("[c6] remote backlight {pct}%");
+        }
+
+        let link = state::link();
+        let bbs_state = state::bbs();
+        let ip = state::ip();
+        if link != shown_link || bbs_state != shown_bbs || ip != shown_ip {
+            shown_link = link;
+            shown_bbs = bbs_state;
+            shown_ip = ip;
+            ui::net_rows(&mut display, link, bbs_state, ip).expect("net rows");
         }
 
         if !ticks.is_multiple_of(HEARTBEAT_TICKS) {
