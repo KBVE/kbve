@@ -517,6 +517,10 @@ struct Chop {
 /// Room left between a spawned body and any prop it would otherwise be standing in.
 const SPAWN_CLEARANCE: f32 = 0.8;
 
+/// How far under the surface a body has to be before the host stops treating it as
+/// standing on ground the sampler reads generously and starts treating it as a fall.
+const BURIED_SLACK: f32 = 3.0;
+
 pub struct HostSession<T: Transport> {
     transport: T,
     world: SimWorld,
@@ -1387,6 +1391,42 @@ impl<T: Transport> HostSession<T> {
             });
             if let Some(player) = self.players.get_mut(&peer) {
                 player.vel_y = 0.0;
+            }
+        }
+
+        // Under the ground but not yet past the void floor. A heightfield is a
+        // surface rather than a solid, so a body that ends up beneath one is in open
+        // space and falling -- and the only thing that catches it is a hundred metre
+        // drop, after which it is put back at spawn. The sampler knows where the
+        // surface is now, so the fall can be ended where it started instead.
+        //
+        // Only where terrain exists: a world with a sampler and no collider is one
+        // where falling is the correct outcome, not a hole to be rescued from.
+        if self.world.terrain_region_count() > 0
+            && let Some(ground) = self.ground.clone()
+        {
+            let buried: Vec<(PeerId, Iso)> = self
+                .players
+                .keys()
+                .filter_map(|peer| {
+                    let body = snapshot.body(player_body(*peer))?;
+                    let [x, y, z] = body.iso.pos;
+                    let h = ground(x, z);
+                    (h.is_finite() && y >= self.config.void_y && y < h - BURIED_SLACK)
+                        .then(|| (*peer, Iso::at(x, h + 1.0, z)))
+                })
+                .collect();
+            for (peer, iso) in buried {
+                // A sweep up out of the ground is negotiated with the ground it is
+                // sweeping out of. The crate documents the distinction; this has to
+                // be by fiat.
+                self.world.apply(SimCommand::TeleportCharacter {
+                    id: player_body(peer),
+                    iso,
+                });
+                if let Some(player) = self.players.get_mut(&peer) {
+                    player.vel_y = 0.0;
+                }
             }
         }
 
@@ -3070,6 +3110,51 @@ mod tests {
                 seen.push(a.pos);
             }
         }
+    }
+
+    /// Under the surface but nowhere near the void floor. A heightfield is a
+    /// surface, not a solid, so a body that ends up beneath one is in open space
+    /// falling -- and the only thing that caught it was a hundred metre drop ending
+    /// at spawn. The sampler already knows where the surface is, so the fall ends
+    /// where it began.
+    #[test]
+    fn a_player_under_the_surface_is_put_back_on_it() {
+        let mesh = Loopback::mesh(2);
+        let mut host = HostSession::new(
+            mesh[0].clone(),
+            SessionConfig::default(),
+            SimConfig::default(),
+            42,
+        )
+        // Agrees with `flat_terrain`, so nothing standing on the ground looks buried.
+        .with_ground(Arc::new(|_, _| 0.0));
+        host.set_terrain(flat_terrain());
+        let mut client = ClientSession::connect(mesh[1].clone());
+        run(&mut host, &mut client, 2);
+        let peer = client.peer().expect("joined");
+
+        host.world_mut().apply(SimCommand::TeleportCharacter {
+            id: player_body(peer),
+            iso: Iso::at(12.0, -30.0, -9.0),
+        });
+        run(&mut host, &mut client, 4);
+
+        let iso = host
+            .world_mut()
+            .snapshot()
+            .body(player_body(peer))
+            .expect("body")
+            .iso;
+        assert!(
+            iso.pos[1] > -3.0,
+            "still under the surface at {:?}",
+            iso.pos
+        );
+        assert!(
+            (iso.pos[0] - 12.0).abs() < 1.5 && (iso.pos[2] + 9.0).abs() < 1.5,
+            "put back, but carried off to {:?} rather than stood up where it fell",
+            iso.pos
+        );
     }
 
     #[test]
