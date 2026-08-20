@@ -61,6 +61,30 @@ them in-game before trusting them.
 `team` is `0` Alliance, `1` Horde, `2` either. A zero `price_copper` or
 `duration_seconds` falls back to the config default.
 
+## Pricing and eligibility
+
+Both seeded offers are **50 copper for 300 seconds**. That is deliberately cheap
+because renting is a convenience, not a shortcut — the renter is someone who
+could already mount and simply has not bought one.
+
+That only holds if the gates are enforced, so they are. `min_level` and
+`min_riding_skill` on each offer default the seed rows to **level 20 and Riding
+75**, which is what the stock mounts themselves require:
+
+| Item                           | RequiredLevel | RequiredSkill | Rank |
+| ------------------------------ | ------------- | ------------- | ---- |
+| Brown Horse Bridle (5656)      | 20            | 762 Riding    | 75   |
+| Horn of the Timber Wolf (1132) | 20            | 762 Riding    | 75   |
+
+Without them the price would be a problem rather than a bargain: those items
+cost 10,000 copper (1 gold) to own permanently, so an ungated 50 copper rental
+is 1/200th the price of the real thing, and a level 1 with no Riding skill could
+ride one. `Player::CastSpell` is called triggered, which skips the engine's own
+skill and level checks, so nothing else would stop it.
+
+Set either column to `0` to disable that check for an offer. Both are database
+columns rather than config so they can be relaxed per offer without a rebuild.
+
 ## Playerbots dependency
 
 `SessionAllowed()` calls `WorldSession::IsBot()`, which only exists on the
