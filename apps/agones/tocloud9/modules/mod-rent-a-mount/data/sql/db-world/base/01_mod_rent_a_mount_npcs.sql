@@ -20,6 +20,7 @@ INSERT INTO `creature`
 (9003003, 900301, 0, 1, 1, 1634.60, 223.10, -43.02, 4.17, 300, 0, 0, 'mod-rent-a-mount Undercity');
 
 DELETE FROM `mod_rent_a_mount_offers` WHERE `id` BETWEEN 1 AND 2;
-INSERT INTO `mod_rent_a_mount_offers` (`id`, `team`, `spell`, `price_copper`, `duration_seconds`, `label`, `enabled`) VALUES
-(1, 0, 458, 50, 300, 'Rent a horse (5 minutes)', 1),
-(2, 1, 580, 50, 300, 'Rent a wolf (5 minutes)', 1);
+INSERT INTO `mod_rent_a_mount_offers`
+(`id`, `team`, `spell`, `price_copper`, `duration_seconds`, `label`, `min_level`, `min_riding_skill`, `enabled`) VALUES
+(1, 0, 458, 50, 300, 'Rent a horse (5 minutes)', 20, 75, 1),
+(2, 1, 580, 50, 300, 'Rent a wolf (5 minutes)', 20, 75, 1);
