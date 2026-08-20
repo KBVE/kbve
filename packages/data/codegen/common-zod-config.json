@@ -10,7 +10,9 @@
 		"kbve.common.Transform",
 		"kbve.common.Timestamp",
 		"kbve.common.Result",
-		"kbve.common.KeyValue"
+		"kbve.common.KeyValue",
+		"kbve.common.LocaleEntry",
+		"kbve.common.LocaleTable"
 	],
 
 	"schemaNames": {

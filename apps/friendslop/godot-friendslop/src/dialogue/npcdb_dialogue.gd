@@ -3,6 +3,7 @@ extends RefCounted
 
 
 const DialogueGraphScript := preload("res://src/dialogue/dialogue_graph.gd")
+const LocaleScript := preload("res://src/dialogue/npcdb_locale.gd")
 
 const REGISTRY := "res://assets/npcdb/npcdb.json"
 
@@ -47,6 +48,7 @@ static func to_graph_dict(entry: Dictionary, tree: Dictionary) -> Dictionary:
 static func _as_graph(entry: Dictionary, tree: Dictionary) -> Dictionary:
 	var raw: Variant = tree.get("nodes", [])
 	var list: Array = raw if raw is Array else []
+	var ref := str(entry.get("ref", ""))
 	var nodes := {}
 	for i in list.size():
 		var source: Variant = list[i]
@@ -56,10 +58,10 @@ static func _as_graph(entry: Dictionary, tree: Dictionary) -> Dictionary:
 		var id := str(node.get("id", ""))
 		if id == "":
 			continue
-		nodes[id] = _as_node(node, _next_id(list, i))
+		nodes[id] = _as_node(node, _next_id(list, i), ref, i)
 	return {
 		"start": str(tree.get("entryNodeId", tree.get("entry_node_id", ""))),
-		"speaker": str(entry.get("name", "")),
+		"speaker": LocaleScript.t("%s.name" % ref, str(entry.get("name", ""))),
 		"nodes": nodes,
 	}
 
@@ -74,8 +76,9 @@ static func _next_id(list: Array, index: int) -> String:
 	return ""
 
 
-static func _as_node(node: Dictionary, fallback: String) -> Dictionary:
-	var out := {"line": str(node.get("text", ""))}
+static func _as_node(node: Dictionary, fallback: String, ref := "", index := 0) -> Dictionary:
+	var stem := "%s.dialogue_tree.nodes.%d" % [ref, index]
+	var out := {"line": LocaleScript.t("%s.text" % stem, str(node.get("text", "")))}
 	var speaker := str(node.get("speakerOverride", node.get("speaker_override", "")))
 	if speaker != "":
 		out["speaker"] = speaker
@@ -93,22 +96,24 @@ static func _as_node(node: Dictionary, fallback: String) -> Dictionary:
 	if not effects.is_empty():
 		out["do"] = effects
 
-	var choices := _choices(node)
+	var choices := _choices(node, stem)
 	if not choices.is_empty():
 		out["choices"] = choices
 	return out
 
 
-static func _choices(node: Dictionary) -> Array:
+static func _choices(node: Dictionary, stem := "") -> Array:
 	var raw: Variant = node.get("options", [])
 	if raw is not Array:
 		return []
 	var out: Array = []
-	for entry: Variant in raw:
+	for i in (raw as Array).size():
+		var entry: Variant = (raw as Array)[i]
 		if entry is not Dictionary:
 			continue
 		var option: Dictionary = entry
-		var choice := {"text": str(option.get("label", ""))}
+		var choice := {"text": LocaleScript.t("%s.options.%d.label" % [stem, i],
+				str(option.get("label", "")))}
 		var next := str(option.get("nextNodeId", option.get("next_node_id", "")))
 		if next != "":
 			choice["to"] = next
