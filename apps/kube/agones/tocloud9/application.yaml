@@ -13,6 +13,7 @@ metadata:
         kbve.com/schema-version: v1
         kbve.com/category: game-server
         kbve.com/stack: agones
+        argocd.argoproj.io/compare-options: ServerSideDiff=true,IncludeMutationWebhook=true
 spec:
     project: default
     source:
