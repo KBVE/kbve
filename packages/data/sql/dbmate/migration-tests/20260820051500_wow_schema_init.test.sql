@@ -187,6 +187,52 @@ BEGIN
     IF v_count <> 0 THEN
         RAISE EXCEPTION 'fail: WOWBOB still reserved after release';
     END IF;
+
+    -- ---- behaviour: provisioning cannot resurrect a disabled account ----
+    -- status = 2 is how a banned or retired account keeps its username
+    -- reserved. A replayed provisioning call must not quietly flip it live
+    -- again, which is why service_mark_provisioned is scoped to status = 0.
+    PERFORM public.service_claim_wow_account(
+        'a0000000-0000-4000-8000-000000000002', 'WOWBOB');
+    PERFORM public.service_mark_wow_provisioned(
+        'a0000000-0000-4000-8000-000000000002');
+    UPDATE wow.account SET status = 2
+     WHERE user_id = 'a0000000-0000-4000-8000-000000000002';
+
+    IF public.service_mark_wow_provisioned(
+        'a0000000-0000-4000-8000-000000000002') THEN
+        RAISE EXCEPTION 'fail: provisioning reactivated a disabled account';
+    END IF;
+
+    SELECT status INTO v_status
+      FROM wow.account WHERE user_id = 'a0000000-0000-4000-8000-000000000002';
+    IF v_status <> 2 THEN
+        RAISE EXCEPTION 'fail: disabled account moved to status % ', v_status;
+    END IF;
+
+    -- ---- grants: the table itself is unreachable from the browser roles ----
+    -- The schema-wide REVOKE ... ON ALL TABLES form only covers tables that
+    -- already exist when it runs, so this asserts the outcome rather than
+    -- trusting the statement's position in the file.
+    IF has_table_privilege('authenticated', 'wow.account', 'SELECT') THEN
+        RAISE EXCEPTION 'fail: authenticated can read wow.account directly';
+    END IF;
+
+    IF has_table_privilege('anon', 'wow.account', 'SELECT') THEN
+        RAISE EXCEPTION 'fail: anon can read wow.account directly';
+    END IF;
+
+    IF NOT has_table_privilege('service_role', 'wow.account', 'INSERT') THEN
+        RAISE EXCEPTION 'fail: service_role cannot write wow.account';
+    END IF;
+
+    -- ---- structure: the reaper index for abandoned claims ----
+    IF NOT EXISTS (
+        SELECT 1 FROM pg_indexes
+        WHERE schemaname = 'wow' AND indexname = 'idx_wow_account_stale_claim'
+    ) THEN
+        RAISE EXCEPTION 'fail: idx_wow_account_stale_claim missing';
+    END IF;
 END;
 $$;
 

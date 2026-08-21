@@ -30,6 +30,11 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
 import {
+	takeI18n,
+	collectLocales,
+	encodeLocaleTables,
+} from './lib/i18n-slice.mjs';
+import {
 	toBinary,
 	fromJson,
 	fromBinary,
@@ -103,7 +108,7 @@ function walkMdx(dir) {
 	return out;
 }
 
-function loadProfessionsFromMdx() {
+function loadProfessionsFromMdx(locales) {
 	const files = walkMdx(professiondbDir);
 	const professions = new Map();
 	const actionsByProfession = new Map();
@@ -112,12 +117,16 @@ function loadProfessionsFromMdx() {
 
 	for (const full of files) {
 		const { data } = matter(readFileSync(full, 'utf8'));
+		// Lift translations before the entry is read, so they never reach the registry.
+		// Professions and their actions both carry refs, so both can be translated.
+		const i18n = takeI18n(data);
 		if (data.drafted === true) continue;
 		const folder = full.split('/').slice(-2, -1)[0];
 
 		if (data.kind === 'profession') {
 			if (!data.id || !data.ref || !data.name) continue;
 			const { kind: _kind, ...rest } = data;
+			locales.add(String(data.ref), i18n);
 			professions.set(data.ref, transform(rest));
 		} else if (data.kind === 'action') {
 			if (data.profession !== folder) {
@@ -139,6 +148,7 @@ function loadProfessionsFromMdx() {
 			seenActionKeys.add(data.key);
 			const list = actionsByProfession.get(data.profession) ?? [];
 			const { kind: _kind, profession: _profession, ...rest } = data;
+			locales.add(String(data.ref), i18n);
 			list.push(transform(rest));
 			actionsByProfession.set(data.profession, list);
 		}
@@ -203,7 +213,8 @@ function buildRuntimeView(professions, nodeWeights) {
 }
 
 function main() {
-	const professions = loadProfessionsFromMdx();
+	const locales = collectLocales();
+	const professions = loadProfessionsFromMdx(locales);
 	console.log(`Loaded ${professions.length} profession defs from MDX`);
 
 	const registryJson = { professions };
@@ -228,6 +239,19 @@ function main() {
 	writeFileSync(outputBinPath, wire);
 	console.log(`Wrote ${outputBinPath} (${wire.length} bytes)`);
 
+	// Tables sit beside the registry and follow the runtime view to every mirror.
+	const localeArtifacts = encodeLocaleTables(locales, 'professiondb');
+	for (const { table, encoded } of localeArtifacts) {
+		writeFileSync(
+			resolve(generatedDir, `professiondb.${table.locale}.json`),
+			JSON.stringify(table),
+		);
+		writeFileSync(
+			resolve(generatedDir, `professiondb.${table.locale}.binpb`),
+			encoded,
+		);
+	}
+
 	const nodeWeights = loadNodeHarvestWeights();
 	const runtimeView = buildRuntimeView(professions, nodeWeights);
 	const runtimeJson = JSON.stringify(runtimeView, null, 2) + '\n';
@@ -238,6 +262,16 @@ function main() {
 		const dest = resolve(dir, runtimeFileName);
 		writeFileSync(dest, runtimeJson);
 		console.log(`Synced ${dest}`);
+		for (const { table, encoded } of localeArtifacts) {
+			writeFileSync(
+				resolve(dir, `professiondb.${table.locale}.json`),
+				JSON.stringify(table),
+			);
+			writeFileSync(
+				resolve(dir, `professiondb.${table.locale}.binpb`),
+				encoded,
+			);
+		}
 	}
 
 	generateXref();

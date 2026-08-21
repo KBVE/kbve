@@ -1,0 +1,29 @@
+---
+import { ReactWowAccount } from './ReactWowAccount';
+---
+
+<div class="kbve-wow-account-shell" data-kbve-wow-account-shell>
+	<noscript>
+		<div class="kbve-wow-account-shell__nojs">
+			Enable JavaScript to create a World of Warcraft game account.
+		</div>
+	</noscript>
+	<ReactWowAccount client:only="react" />
+</div>
+
+<style>
+	.kbve-wow-account-shell {
+		min-height: 260px;
+		margin-bottom: 1.5rem;
+		display: block;
+		contain: layout;
+	}
+	.kbve-wow-account-shell__nojs {
+		padding: 1rem 1.25rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		color: var(--sl-color-gray-3);
+		font-size: 0.9rem;
+	}
+</style>

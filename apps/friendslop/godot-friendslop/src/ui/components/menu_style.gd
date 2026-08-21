@@ -88,16 +88,25 @@ static func plate(fill: Color, radius: int, shadow := 0, pad := Vector2.ZERO) ->
 
 
 static func tooltip(text: String, scale: float) -> Control:
+	var shadow := maxi(1, int(round(TOOLTIP_SHADOW * scale)))
 	var panel := PanelContainer.new()
 	panel.add_theme_stylebox_override("panel", plate(
 			Color(PAPER_HOVER.r, PAPER_HOVER.g, PAPER_HOVER.b, 0.97),
-			BUTTON_RADIUS, 6, Vector2(12.0, 7.0) * scale))
+			BUTTON_RADIUS, shadow, Vector2(12.0, 7.0) * scale))
 	var label := Label.new()
 	label.text = text
 	label.add_theme_font_size_override("font_size", int(round(14.0 * scale)))
 	label.add_theme_color_override("font_color", INK)
 	panel.add_child(label)
-	return panel
+
+	# A StyleBoxFlat shadow is drawn outside the box, and the tooltip window is sized
+	# to the control's minimum -- which does not count the shadow. Without room set
+	# aside for it the shadow meets the window edge and is cut off along the sides.
+	var frame := MarginContainer.new()
+	for side in ["left", "right", "top", "bottom"]:
+		frame.add_theme_constant_override("margin_" + side, shadow)
+	frame.add_child(panel)
+	return frame
 
 
 static func page_uv(side: int) -> Rect2:
@@ -118,6 +127,9 @@ static func row_metrics(book_height: float, root_height: float) -> Dictionary:
 		"font": clampi(int(round(h * font_ratio)), ROW_FONT_RANGE.x, ROW_FONT_RANGE.y),
 	}
 
+
+## Drop shadow under a tooltip plate, in unscaled pixels.
+const TOOLTIP_SHADOW := 6
 
 const PAPER_EDGE := Color(0.42, 0.31, 0.18, 0.5)
 const PAPER_SHADOW := Color(0.16, 0.11, 0.06, 0.3)

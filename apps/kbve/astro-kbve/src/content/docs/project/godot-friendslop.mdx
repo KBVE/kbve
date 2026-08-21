@@ -294,7 +294,7 @@ One number stays per-creature rather than in the preset: `set_body(radius)`, bec
 
 Every image below is rendered from the live game world by `src/ui/steam/page_assets.gd` — pinned seed, real terrain, real foliage — and regenerated in one pass with `pnpm nx run godot-friendslop:steam:assets`. Each figure is anchored, so feedback can point at a slot by its link. The title art is drawn at render time from the Alagard face, so the whole set re-exports under a new name with one argument.
 
-<div class="grid gap-6 md:grid-cols-2 not-content">
+<div class="steam-gallery not-content" style="display:flex;flex-direction:column;gap:2rem">
 	<figure id="steam-header-capsule">
 		<a href="/assets/images/brand/rentearth/steam/header_capsule.png"><img src="/assets/images/brand/rentearth/steam/header_capsule.png" alt="Header capsule" loading="lazy" /></a>
 		<figcaption>Header capsule — 920×430, store page top</figcaption>
@@ -303,7 +303,7 @@ Every image below is rendered from the live game world by `src/ui/steam/page_ass
 		<a href="/assets/images/brand/rentearth/steam/small_capsule.png"><img src="/assets/images/brand/rentearth/steam/small_capsule.png" alt="Small capsule" loading="lazy" /></a>
 		<figcaption>Small capsule — 462×174, search &amp; lists (Steam derives 231×87 and 120×45 from it)</figcaption>
 	</figure>
-	<figure id="steam-main-capsule" class="md:col-span-2">
+	<figure id="steam-main-capsule">
 		<a href="/assets/images/brand/rentearth/steam/main_capsule.png"><img src="/assets/images/brand/rentearth/steam/main_capsule.png" alt="Main capsule" loading="lazy" /></a>
 		<figcaption>Main capsule — 1232×706, front-page features &amp; big picture</figcaption>
 	</figure>
@@ -323,11 +323,11 @@ Every image below is rendered from the live game world by `src/ui/steam/page_ass
 		<a href="/assets/images/brand/rentearth/steam/library_logo.png"><img src="/assets/images/brand/rentearth/steam/library_logo.png" alt="Library logo" loading="lazy" /></a>
 		<figcaption>Library logo — transparent, Steam overlays it on the hero</figcaption>
 	</figure>
-	<figure id="steam-library-hero" class="md:col-span-2">
+	<figure id="steam-library-hero">
 		<a href="/assets/images/brand/rentearth/steam/library_hero.png"><img src="/assets/images/brand/rentearth/steam/library_hero.png" alt="Library hero" loading="lazy" /></a>
 		<figcaption>Library hero — 3840×1240, library detail banner; no title baked in by design</figcaption>
 	</figure>
-	<figure id="steam-page-background" class="md:col-span-2">
+	<figure id="steam-page-background">
 		<a href="/assets/images/brand/rentearth/steam/page_background.png"><img src="/assets/images/brand/rentearth/steam/page_background.png" alt="Store page background" loading="lazy" /></a>
 		<figcaption>Store page background — 1438×810, sits behind the store page</figcaption>
 	</figure>
@@ -344,23 +344,23 @@ Every image below is rendered from the live game world by `src/ui/steam/page_ass
 		<a href="/assets/images/brand/rentearth/steam/app_icon_184.jpg"><img src="/assets/images/brand/rentearth/steam/app_icon_184.jpg" alt="App icon" style="max-width:4rem" loading="lazy" /></a>
 		<figcaption>Icons — 512×512 shortcut PNG, 184×184 app JPG</figcaption>
 	</figure>
-	<figure id="steam-screenshot-01" class="md:col-span-2">
+	<figure id="steam-screenshot-01">
 		<a href="/assets/images/brand/rentearth/steam/screenshot_01.png"><img src="/assets/images/brand/rentearth/steam/screenshot_01.png" alt="Screenshot: river crossing" loading="lazy" /></a>
 		<figcaption>Screenshot 1 — 1920×1080, the crossing: bridge, mech, riverbank</figcaption>
 	</figure>
-	<figure id="steam-screenshot-02" class="md:col-span-2">
+	<figure id="steam-screenshot-02">
 		<a href="/assets/images/brand/rentearth/steam/screenshot_02.png"><img src="/assets/images/brand/rentearth/steam/screenshot_02.png" alt="Screenshot: mechs on the hill" loading="lazy" /></a>
 		<figcaption>Screenshot 2 — 1920×1080, mechs walking the hillside, river winding out</figcaption>
 	</figure>
-	<figure id="steam-screenshot-03" class="md:col-span-2">
+	<figure id="steam-screenshot-03">
 		<a href="/assets/images/brand/rentearth/steam/screenshot_03.png"><img src="/assets/images/brand/rentearth/steam/screenshot_03.png" alt="Screenshot: meadow" loading="lazy" /></a>
 		<figcaption>Screenshot 3 — 1920×1080, meadow with tree shadows and flowers</figcaption>
 	</figure>
-	<figure id="steam-screenshot-04" class="md:col-span-2">
+	<figure id="steam-screenshot-04">
 		<a href="/assets/images/brand/rentearth/steam/screenshot_04.png"><img src="/assets/images/brand/rentearth/steam/screenshot_04.png" alt="Screenshot: bridge from downstream" loading="lazy" /></a>
 		<figcaption>Screenshot 4 — 1920×1080, the bridge from downstream</figcaption>
 	</figure>
-	<figure id="steam-screenshot-05" class="md:col-span-2">
+	<figure id="steam-screenshot-05">
 		<a href="/assets/images/brand/rentearth/steam/screenshot_05.png"><img src="/assets/images/brand/rentearth/steam/screenshot_05.png" alt="Screenshot: grove vista" loading="lazy" /></a>
 		<figcaption>Screenshot 5 — 1920×1080, grove vista over the river valley</figcaption>
 	</figure>

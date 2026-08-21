@@ -66,6 +66,9 @@ func _build() -> void:
 		})
 		var button := PaperButton.branded(label, _submitter(provider),
 				brand.get("tint", MenuStyle.PAPER_HOVER), _mark(brand.get("icon", "")))
+		button.tooltip_text = I18n.t("tip.sign_in_with").format({
+			"provider": brand.get("name", provider.capitalize()),
+		})
 		button.custom_minimum_size = Vector2(WIDTH, MenuStyle.BUTTON_MIN.y)
 		column.add_child(button)
 		provider_buttons[provider] = button
@@ -142,6 +145,9 @@ func retranslate() -> void:
 	for provider: String in provider_buttons:
 		var brand: Dictionary = PROVIDER_BRAND.get(provider, {})
 		provider_buttons[provider].text = I18n.t("title.sign_in_with").format({
+			"provider": brand.get("name", provider.capitalize()),
+		})
+		provider_buttons[provider].tooltip_text = I18n.t("tip.sign_in_with").format({
 			"provider": brand.get("name", provider.capitalize()),
 		})
 	if cancel_button:

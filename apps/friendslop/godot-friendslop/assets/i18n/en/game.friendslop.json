@@ -135,7 +135,8 @@
 		"sign_out": "Sign out of this account.",
 		"settings": "Graphics, gameplay and language.",
 		"quit": "Close the game.",
-		"language": "Change the menu language."
+		"language": "Change the menu language.",
+		"sign_in_with": "Sign in using your {provider} account."
 	},
 	"api": {
 		"not_signed_in": "not signed in",

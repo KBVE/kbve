@@ -7,6 +7,8 @@
 #include "ScriptMgr.h"
 #include "ScriptedGossip.h"
 #include "SpellAuras.h"
+#include "SpellInfo.h"
+#include "SpellMgr.h"
 #include "WorldSession.h"
 
 #include <unordered_map>
@@ -131,6 +133,35 @@ namespace
         return true;
     }
 
+    char const* StateError(Player* player)
+    {
+        if (!player->IsAlive())
+            return "You must be alive to rent a mount.";
+
+        if (player->IsInCombat())
+            return "You cannot rent a mount while in combat.";
+
+        if (player->IsMounted())
+            return "Dismount before renting a mount.";
+
+        if (player->IsInFlight())
+            return "You cannot rent a mount while in flight.";
+
+        if (player->GetVehicle())
+            return "Leave your vehicle before renting a mount.";
+
+        if (player->IsInDisallowedMountForm())
+            return "Leave your current form before renting a mount.";
+
+        if (player->IsBeingTeleported())
+            return "Finish teleporting before renting a mount.";
+
+        if (player->IsNonMeleeSpellCast(false))
+            return "Finish casting before renting a mount.";
+
+        return nullptr;
+    }
+
     bool SessionAllowed(Player* player)
     {
         if (sConfigMgr->GetOption<bool>("RentAMount.AllowBots", false))
@@ -150,6 +181,13 @@ public:
     {
         if (!Enabled() || !SessionAllowed(player))
         {
+            CloseGossipMenuFor(player);
+            return true;
+        }
+
+        if (char const* error = StateError(player))
+        {
+            ChatHandler(player->GetSession()).PSendSysMessage(error);
             CloseGossipMenuFor(player);
             return true;
         }
@@ -201,9 +239,9 @@ public:
             return true;
         }
 
-        if (player->IsInCombat() || player->isDead() || player->IsMounted())
+        if (char const* error = StateError(player))
         {
-            ChatHandler(player->GetSession()).PSendSysMessage("You cannot rent a mount right now.");
+            ChatHandler(player->GetSession()).PSendSysMessage(error);
             return true;
         }
 
@@ -213,7 +251,11 @@ public:
             return true;
         }
 
-        player->CastSpell(player, offer->spellId, true);
+        if (player->CastSpell(player, offer->spellId, TRIGGERED_FULL_MASK) != SPELL_CAST_OK)
+        {
+            ChatHandler(player->GetSession()).PSendSysMessage("The stablemaster could not ready that mount.");
+            return true;
+        }
 
         Aura* aura = player->GetAura(offer->spellId);
         if (!aura)
@@ -226,7 +268,13 @@ public:
         aura->SetMaxDuration(durationMs);
         aura->SetDuration(durationMs);
 
-        player->ModifyMoney(-static_cast<int32>(offer->priceCopper));
+        if (!player->ModifyMoney(-static_cast<int32>(offer->priceCopper), false))
+        {
+            player->RemoveAurasDueToSpell(offer->spellId);
+            ChatHandler(player->GetSession()).PSendSysMessage("You cannot afford that mount.");
+            return true;
+        }
+
         return true;
     }
 };

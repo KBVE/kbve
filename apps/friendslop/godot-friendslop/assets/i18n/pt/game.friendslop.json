@@ -135,7 +135,8 @@
 		"sign_out": "Sair desta conta.",
 		"settings": "Gráficos, jogabilidade e idioma.",
 		"quit": "Fechar o jogo.",
-		"language": "Mudar o idioma do menu."
+		"language": "Mudar o idioma do menu.",
+		"sign_in_with": "Entre com a sua conta {provider}."
 	},
 	"api": {
 		"not_signed_in": "sessão não iniciada",

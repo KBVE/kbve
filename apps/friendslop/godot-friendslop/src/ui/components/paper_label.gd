@@ -24,5 +24,9 @@ static func card(font: int, tint: Color = MenuStyle.PAPER_HOVER) -> PaperLabel:
 	return label
 
 
+## Godot asks for a custom tooltip whether or not there is anything to say, and a
+## panel built around an empty string is an empty panel that still pops up.
 func _make_custom_tooltip(for_text: String) -> Object:
+	if for_text.strip_edges().is_empty():
+		return null
 	return MenuStyle.tooltip(for_text, MenuStyle.ui_scale(get_viewport()))

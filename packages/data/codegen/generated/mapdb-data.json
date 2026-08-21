@@ -2135,7 +2135,7 @@
         "label": "The Still Pool",
         "hidden": true
       },
-      "description": "A dark pool of water fills the center of the room. Its surface is perfectly still. Shapes move beneath, watching.",
+      "description": "A perfectly still pool of obsidian-dark water lies at the chamber's center; something moves beneath its polished surface, slowly and deliberately, watching from below.\n",
       "type": "WORLD_OBJECT_LANDMARK",
       "subKind": "landmark",
       "interactable": true,
