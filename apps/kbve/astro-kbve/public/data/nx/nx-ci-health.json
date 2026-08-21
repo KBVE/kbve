@@ -1,125 +1,137 @@
 {
-  "generated_at": "2026-08-20T02:17:05Z",
+  "generated_at": "2026-08-21T02:23:28Z",
   "window": {
     "days": 7,
-    "since": "2026-08-13"
+    "since": "2026-08-14"
   },
   "totals": {
     "runs": 1000,
-    "success": 816,
-    "failure": 20,
-    "cancelled": 151,
+    "success": 824,
+    "failure": 29,
+    "cancelled": 142,
     "skipped": 0,
-    "other": 13,
+    "other": 5,
     "flaky": 0,
-    "success_rate": 97.6,
-    "avg_duration_s": 418
+    "success_rate": 96.6,
+    "avg_duration_s": 367
   },
   "totals_24h": {
-    "runs": 444,
-    "success": 357,
-    "failure": 6,
-    "success_rate": 98.3
+    "runs": 653,
+    "success": 541,
+    "failure": 23,
+    "success_rate": 95.9
   },
   "workflows": [
     {
       "name": "CI - CodeQL",
-      "runs": 254,
-      "success": 226,
-      "failure": 0,
-      "cancelled": 25,
+      "runs": 270,
+      "success": 240,
+      "failure": 1,
+      "cancelled": 28,
       "skipped": 0,
-      "other": 3,
+      "other": 1,
       "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 236
+      "success_rate": 99.6,
+      "avg_duration_s": 250
     },
     {
       "name": "CI - Dev",
-      "runs": 186,
-      "success": 131,
-      "failure": 5,
-      "cancelled": 47,
+      "runs": 198,
+      "success": 147,
+      "failure": 7,
+      "cancelled": 43,
       "skipped": 0,
-      "other": 3,
+      "other": 1,
       "flaky": 0,
-      "success_rate": 96.3,
-      "avg_duration_s": 791
+      "success_rate": 95.5,
+      "avg_duration_s": 621
     },
     {
       "name": "CI - Godot Tests",
-      "runs": 133,
-      "success": 72,
-      "failure": 10,
-      "cancelled": 48,
+      "runs": 126,
+      "success": 86,
+      "failure": 0,
+      "cancelled": 39,
       "skipped": 0,
-      "other": 3,
+      "other": 1,
       "flaky": 0,
-      "success_rate": 87.8,
-      "avg_duration_s": 527
+      "success_rate": 100.0,
+      "avg_duration_s": 332
     },
     {
       "name": "Q Crate Tests",
-      "runs": 100,
-      "success": 85,
-      "failure": 1,
-      "cancelled": 13,
+      "runs": 62,
+      "success": 45,
+      "failure": 7,
+      "cancelled": 10,
       "skipped": 0,
-      "other": 1,
+      "other": 0,
       "flaky": 0,
-      "success_rate": 98.8,
-      "avg_duration_s": 588
-    },
-    {
-      "name": "Worldgen Determinism",
-      "runs": 85,
-      "success": 84,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 1,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 176
+      "success_rate": 86.5,
+      "avg_duration_s": 574
     },
     {
       "name": "CI - Manifest Guard",
-      "runs": 67,
-      "success": 59,
+      "runs": 54,
+      "success": 47,
       "failure": 0,
       "cancelled": 7,
       "skipped": 0,
-      "other": 1,
+      "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 142
+      "avg_duration_s": 140
     },
     {
-      "name": "Auto-merge bot PRs",
-      "runs": 37,
-      "success": 37,
+      "name": "Worldgen Determinism",
+      "runs": 41,
+      "success": 41,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 68
+      "avg_duration_s": 166
     },
     {
       "name": "CI - Actionlint",
-      "runs": 27,
-      "success": 21,
+      "runs": 30,
+      "success": 24,
       "failure": 0,
       "cancelled": 6,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 50
+      "avg_duration_s": 49
     },
     {
-      "name": "CI - Manifest Sync",
+      "name": "Auto-merge bot PRs",
+      "runs": 28,
+      "success": 28,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 59
+    },
+    {
+      "name": "CI - Cargo Workspace Stub Guard",
+      "runs": 24,
+      "success": 18,
+      "failure": 5,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 1,
+      "flaky": 0,
+      "success_rate": 78.3,
+      "avg_duration_s": 21
+    },
+    {
+      "name": "CI - Bevy",
       "runs": 22,
       "success": 22,
       "failure": 0,
@@ -128,34 +140,58 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 161
-    },
-    {
-      "name": "CI - Bevy",
-      "runs": 12,
-      "success": 12,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 33
+      "avg_duration_s": 29
     },
     {
       "name": "CI - Forgejo Mirror",
-      "runs": 12,
-      "success": 12,
+      "runs": 22,
+      "success": 22,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 111
+      "avg_duration_s": 97
     },
     {
       "name": "CI - Main",
+      "runs": 22,
+      "success": 22,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 132
+    },
+    {
+      "name": "CI - Manifest Sync",
+      "runs": 20,
+      "success": 19,
+      "failure": 0,
+      "cancelled": 1,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 150
+    },
+    {
+      "name": "CI - dbmate validate",
+      "runs": 17,
+      "success": 15,
+      "failure": 0,
+      "cancelled": 2,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 364
+    },
+    {
+      "name": "CI - Docker / axum-kbve",
       "runs": 12,
       "success": 12,
       "failure": 0,
@@ -164,94 +200,70 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 146
+      "avg_duration_s": 1664
     },
     {
-      "name": "CI - Docker / axum-kbve",
-      "runs": 9,
-      "success": 8,
+      "name": "CI - Atomic Branches",
+      "runs": 6,
+      "success": 5,
       "failure": 1,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
-      "success_rate": 88.9,
-      "avg_duration_s": 1546
+      "success_rate": 83.3,
+      "avg_duration_s": 512
+    },
+    {
+      "name": "CI - Docker / tocloud9-db-import",
+      "runs": 5,
+      "success": 1,
+      "failure": 2,
+      "cancelled": 2,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 33.3,
+      "avg_duration_s": 2088
+    },
+    {
+      "name": "CI - Docker / tocloud9-gameserver",
+      "runs": 5,
+      "success": 1,
+      "failure": 2,
+      "cancelled": 2,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 33.3,
+      "avg_duration_s": 2080
     },
     {
       "name": "CI - Godot / friendslop",
-      "runs": 7,
-      "success": 3,
+      "runs": 5,
+      "success": 2,
       "failure": 3,
-      "cancelled": 1,
+      "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
-      "success_rate": 50.0,
-      "avg_duration_s": 1500
+      "success_rate": 40.0,
+      "avg_duration_s": 764
     },
     {
       "name": "CI - MC Smoke",
-      "runs": 7,
-      "success": 5,
-      "failure": 0,
-      "cancelled": 2,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 622
-    },
-    {
-      "name": "CI - dbmate validate",
-      "runs": 6,
-      "success": 4,
-      "failure": 0,
-      "cancelled": 2,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 495
-    },
-    {
-      "name": "CI - Uniti",
-      "runs": 5,
-      "success": 5,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 615
-    },
-    {
-      "name": "CI - Unreal Plugins (verify)",
-      "runs": 5,
-      "success": 5,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 93
-    },
-    {
-      "name": "CI - Docker / friendslop-server",
       "runs": 4,
-      "success": 4,
+      "success": 2,
       "failure": 0,
-      "cancelled": 0,
+      "cancelled": 2,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 689
+      "avg_duration_s": 952
     },
     {
-      "name": "CI - Docker / discordsh-bot",
+      "name": "CI - Docker / irc-gateway",
       "runs": 3,
       "success": 3,
       "failure": 0,
@@ -260,7 +272,31 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 1121
+      "avg_duration_s": 973
+    },
+    {
+      "name": "CI - Unreal Plugins (verify)",
+      "runs": 3,
+      "success": 3,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 98
+    },
+    {
+      "name": "Organize Labels",
+      "runs": 3,
+      "success": 3,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 22
     },
     {
       "name": "CI - Docker / discordsh",
@@ -272,10 +308,10 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 1043
+      "avg_duration_s": 1029
     },
     {
-      "name": "CI - Docker / irc-gateway",
+      "name": "CI - Docker / discordsh-bot",
       "runs": 2,
       "success": 2,
       "failure": 0,
@@ -284,7 +320,31 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 1092
+      "avg_duration_s": 954
+    },
+    {
+      "name": "CI - Docker / friendslop-server",
+      "runs": 2,
+      "success": 2,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 662
+    },
+    {
+      "name": "CI - Uniti",
+      "runs": 2,
+      "success": 2,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 653
     },
     {
       "name": "Daily Content",
@@ -296,10 +356,10 @@
       "other": 1,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 182
+      "avg_duration_s": 208
     },
     {
-      "name": "CI - Publish / crates / bevy_mapdb",
+      "name": "CI - Docker / agones-shim",
       "runs": 1,
       "success": 1,
       "failure": 0,
@@ -308,7 +368,91 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 535
+      "avg_duration_s": 435
+    },
+    {
+      "name": "CI - Docker / axum-chuckrpg",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 920
+    },
+    {
+      "name": "CI - Docker / cryptothrone",
+      "runs": 1,
+      "success": 0,
+      "failure": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 0.0,
+      "avg_duration_s": 863
+    },
+    {
+      "name": "CI - Docker / edge",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 316
+    },
+    {
+      "name": "CI - Docker / herbmail",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 838
+    },
+    {
+      "name": "CI - Docker / memes",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 849
+    },
+    {
+      "name": "CI - Docker / tocloud9-services",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 327
+    },
+    {
+      "name": "cargo in / for async-trait - Update #1533914059",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 94
     }
   ],
   "recent_failures": [
@@ -316,106 +460,106 @@
       "name": "CI - Dev",
       "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32315826174",
-      "finished_at": "2026-08-20T00:48:27Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/32434061113",
+      "finished_at": "2026-08-21T01:12:40Z"
     },
     {
-      "name": "CI - Godot / friendslop",
-      "branch": "main",
-      "event": "workflow_dispatch",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32234594778",
-      "finished_at": "2026-08-19T08:55:05Z"
-    },
-    {
-      "name": "CI - Godot / friendslop",
-      "branch": "main",
-      "event": "workflow_dispatch",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32229240238",
-      "finished_at": "2026-08-19T07:50:32Z"
-    },
-    {
-      "name": "CI - Godot / friendslop",
-      "branch": "main",
-      "event": "workflow_dispatch",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32226856851",
-      "finished_at": "2026-08-19T07:25:14Z"
-    },
-    {
-      "name": "CI - Godot Tests",
-      "branch": "fix/16105-godot-linux-apt-hang",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32222757414",
-      "finished_at": "2026-08-19T06:26:35Z"
-    },
-    {
-      "name": "CI - Godot Tests",
+      "name": "CI - Dev",
       "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32219214823",
-      "finished_at": "2026-08-19T05:35:11Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/32430515408",
+      "finished_at": "2026-08-21T00:10:18Z"
     },
     {
-      "name": "CI - Docker / axum-kbve",
+      "name": "CI - Cargo Workspace Stub Guard",
+      "branch": "dev",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/32430515197",
+      "finished_at": "2026-08-20T23:55:11Z"
+    },
+    {
+      "name": "CI - Cargo Workspace Stub Guard",
+      "branch": "dev",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/32430486644",
+      "finished_at": "2026-08-20T23:53:41Z"
+    },
+    {
+      "name": "CI - Cargo Workspace Stub Guard",
+      "branch": "feat/agones-shim",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/32430248312",
+      "finished_at": "2026-08-20T23:50:01Z"
+    },
+    {
+      "name": "CI - Docker / tocloud9-db-import",
       "branch": "main",
       "event": "workflow_dispatch",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32192274870",
-      "finished_at": "2026-08-18T22:26:28Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/32428545639",
+      "finished_at": "2026-08-20T23:31:22Z"
     },
     {
-      "name": "CI - Godot Tests",
-      "branch": "feat/net-client-prediction",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32182646692",
-      "finished_at": "2026-08-18T20:39:43Z"
+      "name": "CI - Docker / tocloud9-gameserver",
+      "branch": "main",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/KBVE/kbve/actions/runs/32428548565",
+      "finished_at": "2026-08-20T23:31:21Z"
     },
     {
-      "name": "CI - Godot Tests",
+      "name": "CI - Docker / tocloud9-db-import",
+      "branch": "main",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/KBVE/kbve/actions/runs/32427389850",
+      "finished_at": "2026-08-20T23:14:53Z"
+    },
+    {
+      "name": "CI - Docker / tocloud9-gameserver",
+      "branch": "main",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/KBVE/kbve/actions/runs/32427392921",
+      "finished_at": "2026-08-20T23:14:51Z"
+    },
+    {
+      "name": "CI - Dev",
       "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32182154537",
-      "finished_at": "2026-08-18T20:33:45Z"
-    },
-    {
-      "name": "CI - Godot Tests",
-      "branch": "dev",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32180350131",
-      "finished_at": "2026-08-18T20:15:44Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/32426079235",
+      "finished_at": "2026-08-20T23:06:46Z"
     },
     {
       "name": "Q Crate Tests",
       "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32178916653",
-      "finished_at": "2026-08-18T19:55:44Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/32426079027",
+      "finished_at": "2026-08-20T22:55:24Z"
     },
     {
-      "name": "CI - Godot Tests",
-      "branch": "fix/friendslop-npc-avoid",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32176476310",
-      "finished_at": "2026-08-18T19:43:19Z"
-    },
-    {
-      "name": "CI - Godot Tests",
-      "branch": "perf/friendslop-offthread",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32176464867",
-      "finished_at": "2026-08-18T19:39:41Z"
-    },
-    {
-      "name": "CI - Godot Tests",
-      "branch": "trunk/friendslop-landmark-life",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32176265663",
-      "finished_at": "2026-08-18T19:37:15Z"
-    },
-    {
-      "name": "CI - Godot Tests",
+      "name": "Q Crate Tests",
       "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32176094970",
-      "finished_at": "2026-08-18T19:37:03Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/32419648240",
+      "finished_at": "2026-08-20T21:34:14Z"
+    },
+    {
+      "name": "Q Crate Tests",
+      "branch": "dev",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/32419131041",
+      "finished_at": "2026-08-20T21:27:46Z"
+    },
+    {
+      "name": "Q Crate Tests",
+      "branch": "dev",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/32418359333",
+      "finished_at": "2026-08-20T21:19:14Z"
+    },
+    {
+      "name": "CI - Docker / cryptothrone",
+      "branch": "main",
+      "event": "workflow_dispatch",
+      "url": "https://github.com/KBVE/kbve/actions/runs/32365783572",
+      "finished_at": "2026-08-20T12:04:54Z"
     }
   ]
 }
