@@ -1,11 +1,11 @@
 {
-	"generated_at": "2026-08-20T02:18:20.303Z",
+	"generated_at": "2026-08-21T02:24:29.174Z",
 	"summary": {
 		"total_protos": 47,
 		"registered": 0,
 		"orphaned": 46,
 		"utility_only": 1,
-		"total_messages": 835,
+		"total_messages": 837,
 		"total_enums": 173
 	},
 	"protos": [
@@ -517,10 +517,12 @@
 				"Transform",
 				"Timestamp",
 				"Result",
-				"KeyValue"
+				"KeyValue",
+				"LocaleEntry",
+				"LocaleTable"
 			],
 			"enums": [],
-			"message_count": 11,
+			"message_count": 13,
 			"enum_count": 0,
 			"codegen": {
 				"registered": false,
@@ -1764,7 +1766,7 @@
 		"packages/data/proto/spell/spelldb.proto",
 		"packages/data/proto/wallet/wallet.proto"
 	],
-	"checked_at": "2026-08-20T02:17:54Z",
+	"checked_at": "2026-08-21T02:24:04Z",
 	"drift_detected": true,
 	"drift_files": [
 		"packages/data/codegen/generated/itemdb-schema.ts",
