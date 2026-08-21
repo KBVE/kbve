@@ -192,6 +192,7 @@ export const EquipmentInfoSchema = z.object({
 	enchantment_types: z.array(z.string()).optional(),
 	cursed: z.boolean().optional(),
 	movement_penalty: z.number().optional(),
+	wardrobe: z.string().optional(),
 });
 
 export type EquipmentInfo = z.infer<typeof EquipmentInfoSchema>;
