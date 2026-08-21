@@ -96,6 +96,12 @@ services:
             # preload they operate against unloaded terrain. Costs a lot of RAM
             # and a slower startup, since every non-instanced grid loads up front.
             AC_PRELOAD_ALL_NON_INSTANCED_MAP_GRIDS: '1'
+            # Matches worldserver-fleet.yaml. worldserver.conf ships
+            # MapUpdate.Threads = 1, so without this the compose stack measures a
+            # single-threaded world loop and kube runs a four-threaded one --
+            # exactly the drift that makes a tick budget verified here mean
+            # nothing there. Overridable so a laptop can pin it back to 1.
+            AC_MAP_UPDATE_THREADS: '${AI_MAP_UPDATE_THREADS:-4}'
             AC_AI_PLAYERBOT_ENABLED: '${AI_PLAYERBOT_ENABLED:-1}'
             # Deliberately low for a first run. The upstream default is 500, which
             # would swamp a laptop and make it impossible to tell a bot bug from
