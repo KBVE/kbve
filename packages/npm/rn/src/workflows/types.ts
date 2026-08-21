@@ -18,6 +18,7 @@ export interface WorkflowNode {
 	id: string;
 	backend: Backend;
 	ref: string;
+	label?: string;
 	x: number;
 	y: number;
 	status: NodeStatus;

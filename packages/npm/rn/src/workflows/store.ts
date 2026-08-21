@@ -6,6 +6,7 @@ export interface WorkflowsStore {
 	addNode: (p: {
 		backend: Backend;
 		ref: string;
+		label?: string;
 		x: number;
 		y: number;
 	}) => string;
@@ -38,12 +39,13 @@ export function createWorkflowsStore(): WorkflowsStore {
 			listeners.add(fn);
 			return () => listeners.delete(fn);
 		},
-		addNode: ({ backend, ref, x, y }) => {
+		addNode: ({ backend, ref, label, x, y }) => {
 			const id = nextId();
 			const node: WorkflowNode = {
 				id,
 				backend,
 				ref,
+				label,
 				x,
 				y,
 				status: 'idle',

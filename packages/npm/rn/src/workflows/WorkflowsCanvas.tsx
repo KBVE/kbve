@@ -43,7 +43,8 @@ export function WorkflowsCanvas({ config }: { config: ServiceConfig }) {
 			store.addNode({
 				backend: w.backend,
 				ref: w.path,
-				x: 260,
+				label: w.label,
+				x: 300,
 				y: 40 + i * 140,
 			});
 		});

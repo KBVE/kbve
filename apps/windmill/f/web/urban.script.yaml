@@ -1,0 +1,18 @@
+summary: Urban Dictionary lookup (web dashboard)
+description: >-
+    Web-surface wrapper for the workflows canvas. Imports fetchDefinition() from
+    the shared core and returns the entry as a plain dashboard shape. USER tier —
+    the proxy allows browser invokes under f/web/*. Bun, no dependencies.
+kind: script
+lock: ''
+schema:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    type: object
+    order:
+        - term
+    properties:
+        term:
+            type: string
+            description: Optional term to define; blank returns a random entry.
+            default: ''
+    required: []
