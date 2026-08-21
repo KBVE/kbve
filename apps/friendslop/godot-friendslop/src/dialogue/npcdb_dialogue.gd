@@ -4,6 +4,7 @@ extends RefCounted
 
 const DialogueGraphScript := preload("res://src/dialogue/dialogue_graph.gd")
 const LocaleScript := preload("res://src/dialogue/npcdb_locale.gd")
+const AbilityLocaleScript := preload("res://src/dialogue/ability_locale.gd")
 
 const REGISTRY := "res://assets/npcdb/npcdb.json"
 
@@ -29,6 +30,11 @@ static func npc(ref: String, path := REGISTRY) -> Dictionary:
 		if entry is Dictionary and str((entry as Dictionary).get("ref", "")) == ref:
 			return entry
 	return {}
+
+
+## Abilities of one npc with their name and description in the active language.
+static func abilities(ref: String, path := REGISTRY) -> Array:
+	return AbilityLocaleScript.resolve(npc(ref, path))
 
 
 static func graph(ref: String, path := REGISTRY) -> DialogueGraph:
