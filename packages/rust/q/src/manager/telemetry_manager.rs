@@ -14,6 +14,14 @@ const MAX_QUEUE: usize = 64;
 const FLUSH_AT: usize = 8;
 const FLUSH_EVERY: f64 = 15.0;
 
+/// The ingest service rejects a batch larger than its `METRICS_MAX_BATCH`
+/// (default 50) with a 413 — the whole batch, not the excess — and this client
+/// drops what it has already taken from the queue. The queue can reach
+/// `MAX_QUEUE` while a request is in flight, so without a chunk smaller than the
+/// server's cap the first error storm posts 64 events, gets a 413, and loses all
+/// of them. Kept well under 50 so raising the queue never silently re-crosses it.
+const MAX_PER_POST: usize = 32;
+
 #[derive(Serialize)]
 struct ErrorEvent {
     project: String,
@@ -242,8 +250,11 @@ impl TelemetryManager {
         let Some(http) = self.http.clone() else {
             return;
         };
+        // Drained, not taken: anything beyond one post's worth stays queued and
+        // goes out on the next flush rather than being thrown away.
+        let take = self.queue.len().min(MAX_PER_POST);
         let batch = ErrorBatch {
-            events: std::mem::take(&mut self.queue),
+            events: self.queue.drain(..take).collect(),
         };
         let Ok(body) = serde_json::to_string(&batch) else {
             return;
@@ -325,4 +336,31 @@ fn new_session_id() -> String {
         .unwrap_or(0);
     let pid = std::process::id() as u128;
     format!("{:032x}", nanos ^ (pid << 64))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{MAX_PER_POST, MAX_QUEUE};
+
+    /// The ingest service's default `METRICS_MAX_BATCH`, which the deployment does
+    /// not override. Duplicated as a literal because the service is a separate
+    /// crate this one must not depend on — so the coupling is asserted here
+    /// instead of being left to whoever next raises a constant.
+    const SERVICE_MAX_BATCH: usize = 50;
+
+    #[test]
+    fn a_post_never_exceeds_the_services_batch_cap() {
+        assert!(
+            MAX_PER_POST <= SERVICE_MAX_BATCH,
+            "a batch over the service cap is rejected whole, and this client drops \
+             what it has already dequeued — every event in it is lost"
+        );
+    }
+
+    #[test]
+    fn a_full_queue_takes_more_than_one_post_to_drain() {
+        // The queue is allowed to outgrow one post; that is the case the chunking
+        // exists for. If these ever became equal, chunking would be untested.
+        assert!(MAX_QUEUE > MAX_PER_POST);
+    }
 }
