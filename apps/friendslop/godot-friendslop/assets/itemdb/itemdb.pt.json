@@ -1,11 +1,1 @@
-{
-	"locale": "pt",
-	"db": "itemdb",
-	"entries": [
-		{
-			"key": "iron-skin-potion.description",
-			"value": "Líquido cinza-escuro com um brilho metálico fosco, espesso o bastante para grudar na parede do frasco por um instante depois de inclinado.\nO gosto é o de lamber uma frigideira de ferro fundido, o que ninguém recomenda como prévia.\n"
-		},
-		{ "key": "iron-skin-potion.name", "value": "Poção de Pele de Ferro" }
-	]
-}
+{"locale":"pt","db":"itemdb","entries":[{"key":"iron-skin-potion.description","value":"Líquido cinza-escuro com um brilho metálico fosco, espesso o bastante para grudar na parede do frasco por um instante depois de inclinado.\nO gosto é o de lamber uma frigideira de ferro fundido, o que ninguém recomenda como prévia.\n"},{"key":"iron-skin-potion.name","value":"Poção de Pele de Ferro"}]}

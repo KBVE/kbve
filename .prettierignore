@@ -19,10 +19,18 @@ apps/kbve/edge/
 
 pnpm-lock.yaml
 
+# Generated data artifacts — every <db>.json / <db>.<locale>.json emitted by
+# packages/data/codegen/gen-*-data.mjs from the MDX source of truth, plus the
+# copies mirrored into each game's asset folder. They must stay byte-identical
+# to what the generator writes: check-data-artifacts.mjs compares them byte for
+# byte, so a prettier reflow would both fail that check and bury real content
+# drift under a whole-file indentation diff. Cover every mirror when a new one
+# is added.
 packages/data/codegen/generated/*.json
 apps/rareicon/unity-rareicon/Assets/StreamingAssets/*.json
-apps/friendslop/godot-friendslop/assets/npcdb/*.json
-apps/discordsh/discordsh-bot/data/mapdb.json
+apps/friendslop/godot-friendslop/assets/*db/*.json
+apps/discordsh/discordsh-bot/data/*.json
+
 # Generated CI dispatch manifest (raw nx sync output; prettier must not reflow it)
 .github/ci-dispatch-manifest.json
 
