@@ -1,14 +1,14 @@
 {
-	"generated_at": "2026-08-20T02:21:05Z",
+	"generated_at": "2026-08-21T02:27:04Z",
 	"node": {
-		"count": 122,
+		"count": 123,
 		"major": 21,
 		"items": [
 			{
 				"name": "@astrojs/markdown-remark",
 				"current": "7.2.2",
 				"wanted": "7.2.2",
-				"latest": "7.2.3",
+				"latest": "7.2.4",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -16,7 +16,7 @@
 				"name": "@astrojs/mdx",
 				"current": "7.0.5",
 				"wanted": "7.0.5",
-				"latest": "7.0.6",
+				"latest": "7.0.7",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -24,7 +24,7 @@
 				"name": "@astrojs/react",
 				"current": "6.0.2",
 				"wanted": "6.0.2",
-				"latest": "6.0.3",
+				"latest": "6.0.4",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -424,7 +424,7 @@
 				"name": "@vitejs/plugin-react",
 				"current": "6.0.2",
 				"wanted": "6.0.2",
-				"latest": "6.0.5",
+				"latest": "6.1.0",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -472,7 +472,7 @@
 				"name": "astro",
 				"current": "7.2.2",
 				"wanted": "7.2.2",
-				"latest": "7.2.3",
+				"latest": "7.2.4",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -560,7 +560,7 @@
 				"name": "expo",
 				"current": "57.0.9",
 				"wanted": "57.0.9",
-				"latest": "57.0.14",
+				"latest": "57.0.15",
 				"type": "dependencies",
 				"major": false
 			},
@@ -568,7 +568,7 @@
 				"name": "expo-auth-session",
 				"current": "57.0.5",
 				"wanted": "57.0.5",
-				"latest": "57.0.7",
+				"latest": "57.0.8",
 				"type": "dependencies",
 				"major": false
 			},
@@ -576,7 +576,7 @@
 				"name": "expo-build-properties",
 				"current": "57.0.8",
 				"wanted": "57.0.8",
-				"latest": "57.0.12",
+				"latest": "57.0.13",
 				"type": "dependencies",
 				"major": false
 			},
@@ -584,7 +584,7 @@
 				"name": "expo-dev-client",
 				"current": "57.0.10",
 				"wanted": "57.0.10",
-				"latest": "57.0.13",
+				"latest": "57.0.14",
 				"type": "dependencies",
 				"major": false
 			},
@@ -592,7 +592,7 @@
 				"name": "expo-linking",
 				"current": "57.0.4",
 				"wanted": "57.0.4",
-				"latest": "57.0.6",
+				"latest": "57.0.7",
 				"type": "dependencies",
 				"major": false
 			},
@@ -600,7 +600,7 @@
 				"name": "expo-modules-core",
 				"current": "57.0.8",
 				"wanted": "57.0.8",
-				"latest": "57.0.11",
+				"latest": "57.0.12",
 				"type": "dependencies",
 				"major": false
 			},
@@ -613,10 +613,18 @@
 				"major": false
 			},
 			{
+				"name": "framer-motion",
+				"current": "13.1.0",
+				"wanted": "13.1.0",
+				"latest": "13.1.1",
+				"type": "dependencies",
+				"major": false
+			},
+			{
 				"name": "happy-dom",
 				"current": "20.10.6",
 				"wanted": "20.10.6",
-				"latest": "20.11.2",
+				"latest": "20.11.6",
 				"type": "dependencies",
 				"major": false
 			},
@@ -624,7 +632,7 @@
 				"name": "hls.js",
 				"current": "1.6.16",
 				"wanted": "1.6.16",
-				"latest": "1.7.0",
+				"latest": "1.7.1",
 				"type": "dependencies",
 				"major": false
 			},
@@ -928,7 +936,7 @@
 				"name": "vite",
 				"current": "8.0.9",
 				"wanted": "8.0.9",
-				"latest": "8.2.1",
+				"latest": "8.2.2",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -983,7 +991,7 @@
 		]
 	},
 	"rust": {
-		"count": 249,
+		"count": 250,
 		"major": 1,
 		"items": [
 			{
@@ -1006,7 +1014,7 @@
 			},
 			{
 				"name": "agones",
-				"current": "1.59.0",
+				"current": "1.58.0",
 				"latest": "1.60.0",
 				"major": false
 			},
@@ -1145,7 +1153,7 @@
 			{
 				"name": "aws-config",
 				"current": "1.9.0",
-				"latest": "1.10.1",
+				"latest": "1.11.0",
 				"major": false
 			},
 			{
@@ -1169,25 +1177,25 @@
 			{
 				"name": "aws-sdk-s3",
 				"current": "1.138.1",
-				"latest": "1.142.0",
+				"latest": "1.143.0",
 				"major": false
 			},
 			{
 				"name": "aws-sdk-sso",
 				"current": "1.103.0",
-				"latest": "1.106.0",
+				"latest": "1.107.0",
 				"major": false
 			},
 			{
 				"name": "aws-sdk-ssooidc",
 				"current": "1.105.0",
-				"latest": "1.108.0",
+				"latest": "1.109.0",
 				"major": false
 			},
 			{
 				"name": "aws-sdk-sts",
 				"current": "1.108.0",
-				"latest": "1.111.0",
+				"latest": "1.112.0",
 				"major": false
 			},
 			{
@@ -1643,7 +1651,7 @@
 			{
 				"name": "blake3",
 				"current": "1.8.5",
-				"latest": "1.8.6",
+				"latest": "1.8.7",
 				"major": false
 			},
 			{
@@ -1733,7 +1741,7 @@
 			{
 				"name": "either",
 				"current": "1.16.0",
-				"latest": "1.17.0",
+				"latest": "1.18.0",
 				"major": false
 			},
 			{
@@ -1877,7 +1885,7 @@
 			{
 				"name": "h2",
 				"current": "0.4.15",
-				"latest": "0.4.17",
+				"latest": "0.4.18",
 				"major": false
 			},
 			{
@@ -1901,7 +1909,7 @@
 			{
 				"name": "icu_collator",
 				"current": "2.2.1",
-				"latest": "2.3.0",
+				"latest": "2.3.1",
 				"major": false
 			},
 			{
@@ -1919,7 +1927,7 @@
 			{
 				"name": "icu_locale",
 				"current": "2.2.0",
-				"latest": "2.3.0",
+				"latest": "2.3.1",
 				"major": false
 			},
 			{
@@ -1961,7 +1969,7 @@
 			{
 				"name": "icu_provider",
 				"current": "2.2.0",
-				"latest": "2.3.0",
+				"latest": "2.3.1",
 				"major": false
 			},
 			{
@@ -2259,6 +2267,12 @@
 				"major": false
 			},
 			{
+				"name": "swift-rs",
+				"current": "1.0.7",
+				"latest": "1.0.8",
+				"major": false
+			},
+			{
 				"name": "syn",
 				"current": "3.0.2",
 				"latest": "3.0.3",
@@ -2447,7 +2461,7 @@
 			{
 				"name": "zerovec-derive",
 				"current": "0.11.3",
-				"latest": "0.11.5",
+				"latest": "0.11.6",
 				"major": false
 			},
 			{
@@ -2482,6 +2496,6 @@
 			}
 		]
 	},
-	"total": 371,
+	"total": 373,
 	"major_total": 22
 }
