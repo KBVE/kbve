@@ -9,8 +9,8 @@ import {
 } from 'react-native';
 import { Badge, Select, Stack, Surface, Text, tokens } from '../_ui';
 import { commandsForServer } from './commands';
-import type { CommandDef, Tier } from './commands';
-import type { RconExecFn } from './rconExec';
+import type { ConsoleCommandDef, Tier } from './commands';
+import type { RconExecFn, RconExecResponse } from './rconExec';
 
 export interface LogEntry {
 	id: number;
@@ -21,6 +21,8 @@ export interface LogEntry {
 	output: string;
 	error?: string;
 	latency_ms: number;
+	/** Non-error qualifier on the result (e.g. it reached one node, not the realm). */
+	caveat?: string;
 }
 
 let entryId = 0;
@@ -53,21 +55,34 @@ const TIER_LABEL: Record<Tier, string> = {
 	destructive: 'Destructive',
 };
 
+export interface RconConsoleProps {
+	server: string;
+	exec: RconExecFn;
+	/** Overrides the Minecraft table so other protocols (e.g. AzerothCore SOAP) reuse this console. */
+	commands?: readonly ConsoleCommandDef[];
+	protocolLabel?: string;
+	/** Qualifies an otherwise-successful result; rendered as a warning, not an error. */
+	resultCaveat?: (res: RconExecResponse) => string | null;
+}
+
 export function RconConsole({
 	server,
 	exec,
-}: {
-	server: string;
-	exec: RconExecFn;
-}) {
-	const commands = useMemo(() => commandsForServer(server), [server]);
+	commands: commandsProp,
+	protocolLabel = 'RCON',
+	resultCaveat,
+}: RconConsoleProps) {
+	const commands = useMemo(
+		() => commandsProp ?? commandsForServer(server),
+		[commandsProp, server],
+	);
 	const [tier, setTier] = useState<Tier>('read');
 	const visible = useMemo(
 		() => commands.filter((c) => c.tier === tier),
 		[commands, tier],
 	);
 	const [selectedName, setSelectedName] = useState('');
-	const selected: CommandDef | undefined =
+	const selected: ConsoleCommandDef | undefined =
 		visible.find((c) => c.name === selectedName) ?? visible[0];
 	const [args, setArgs] = useState<string[]>([]);
 	const [pending, setPending] = useState(false);
@@ -111,6 +126,7 @@ export function RconConsole({
 				output: res.output,
 				error: res.error,
 				latency_ms: res.latency_ms,
+				caveat: resultCaveat?.(res) ?? undefined,
 			}),
 		);
 		setPending(false);
@@ -120,7 +136,7 @@ export function RconConsole({
 		<Surface style={styles.root}>
 			<Stack gap="sm">
 				<Text variant="caption" tone="muted">
-					RCON · {server}
+					{protocolLabel} · {server}
 				</Text>
 				<Stack direction="row" gap="xs">
 					{TIERS.map((t) =>
@@ -144,7 +160,9 @@ export function RconConsole({
 				<Select
 					value={selected?.name ?? ''}
 					options={visible.map((c) => ({
-						label: `${c.label} (${c.name})`,
+						label: c.note
+							? `${c.label} (${c.name}) · ${c.note}`
+							: `${c.label} (${c.name})`,
 						value: c.name,
 					}))}
 					placeholder="command"
@@ -157,6 +175,16 @@ export function RconConsole({
 					<Text variant="caption" tone="faint">
 						{selected.description}
 					</Text>
+				)}
+				{selected?.note && (
+					<View style={styles.notice}>
+						<Badge label={selected.note} tone="warning" />
+						{selected.noteDetail ? (
+							<Text variant="caption" tone="muted">
+								{selected.noteDetail}
+							</Text>
+						) : null}
+					</View>
 				)}
 				{selected?.args.map((arg, i) => (
 					<View key={`${selected.name}:${i}`} style={styles.argRow}>
@@ -224,6 +252,17 @@ export function RconConsole({
 										? entry.output || '(empty)'
 										: (entry.error ?? 'failed')}
 								</Text>
+								{entry.caveat ? (
+									<View style={styles.caveat}>
+										<Badge
+											label="partial scope"
+											tone="warning"
+										/>
+										<Text variant="caption" tone="muted">
+											{entry.caveat}
+										</Text>
+									</View>
+								) : null}
 							</View>
 						))
 					)}
@@ -247,6 +286,23 @@ const styles = StyleSheet.create({
 		borderColor: tokens.color.primary,
 	},
 	argRow: { gap: 4 },
+	notice: {
+		gap: 4,
+		padding: tokens.space.sm,
+		borderWidth: 1,
+		borderColor: tokens.color.warning,
+		borderRadius: tokens.radius.sm,
+		backgroundColor: tokens.color.surfaceAlt,
+	},
+	caveat: {
+		gap: 4,
+		marginTop: 4,
+		padding: tokens.space.sm,
+		borderWidth: 1,
+		borderColor: tokens.color.warning,
+		borderRadius: tokens.radius.sm,
+		backgroundColor: tokens.color.surfaceAlt,
+	},
 	input: {
 		borderWidth: 1,
 		borderColor: tokens.color.border,

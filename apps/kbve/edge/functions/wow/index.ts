@@ -8,12 +8,15 @@ import {
 } from "../_shared/validators.ts";
 import { AuthError, extractToken, jsonResponse, parseJwt } from "./_shared.ts";
 import { ACCOUNT_ACTIONS, handleAccount } from "./account.ts";
+import { handleStaff, STAFF_ACTIONS } from "./staff.ts";
 
 // ---------------------------------------------------------------------------
 // WoW Edge Function — Unified Router
 //
 // Command format: "module.action"
 //   account: status, create, set_password, release
+//   staff:   realm_status, online_characters, accounts, set_gm_level,
+//            ban_account, unban_account
 // ---------------------------------------------------------------------------
 
 const MODULES: Record<
@@ -24,6 +27,7 @@ const MODULES: Record<
   }
 > = {
   account: { handler: handleAccount, actions: ACCOUNT_ACTIONS },
+  staff: { handler: handleStaff, actions: STAFF_ACTIONS },
 };
 
 serve(async (req) => {

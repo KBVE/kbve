@@ -195,6 +195,32 @@ spec:
                             secretKeyRef:
                                 name: mc-rcon-credentials
                                 key: rcon-password
+                      # The SOAP endpoint is a load balancer over the whole
+                      # worldserver fleet, not one server -- realm-global
+                      # commands only. worldserver-soap-service.yaml in the
+                      # tocloud9 manifests explains what that rules out.
+                      - name: SOAP_WOW_MAIN_HOST
+                        value: tocloud9-worldserver-soap.tocloud9.svc.cluster.local
+                      - name: SOAP_WOW_MAIN_PORT
+                        value: '7878'
+                      # SOAP has no service accounts: these are the login and
+                      # password of a real GM account in acore_auth, and the
+                      # secret cannot exist until someone creates that account.
+                      # Marked optional so the pod still starts without it --
+                      # the SOAP lane stays dark, everything else runs. Seal
+                      # them with apps/kube/kbve/seal-wow-soap.sh.
+                      - name: SOAP_WOW_MAIN_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: wow-soap-credentials
+                                key: username
+                                optional: true
+                      - name: SOAP_WOW_MAIN_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: wow-soap-credentials
+                                key: password
+                                optional: true
                       - name: CLICKHOUSE_ENDPOINT
                         valueFrom:
                             secretKeyRef:

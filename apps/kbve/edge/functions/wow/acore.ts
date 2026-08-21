@@ -26,7 +26,15 @@ export function isConfigured(): boolean {
   return USER !== "" && PASSWORD !== "";
 }
 
-async function withConnection<T>(
+/**
+ * Opens a connection with `database` already selected by the handshake.
+ *
+ * acore_auth and acore_characters are separate schemas, and the schema is
+ * fixed at connect time here, so callers that need both take a connection per
+ * schema rather than leaning on a cross-schema join.
+ */
+export async function withDatabase<T>(
+  database: string,
   fn: (conn: MysqlConnection) => Promise<T>,
 ): Promise<T> {
   const conn = await MysqlConnection.connect({
@@ -34,13 +42,19 @@ async function withConnection<T>(
     port: PORT,
     username: USER,
     password: PASSWORD,
-    database: "acore_auth",
+    database,
   });
   try {
     return await fn(conn);
   } finally {
     conn.close();
   }
+}
+
+function withConnection<T>(
+  fn: (conn: MysqlConnection) => Promise<T>,
+): Promise<T> {
+  return withDatabase("acore_auth", fn);
 }
 
 export class UsernameTakenError extends Error {

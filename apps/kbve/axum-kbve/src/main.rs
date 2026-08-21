@@ -11,6 +11,7 @@ mod openapi;
 mod proto;
 mod rcon;
 mod s3backup;
+mod soap;
 mod telemetry;
 mod transport;
 pub mod version;
@@ -103,6 +104,15 @@ async fn main() -> anyhow::Result<()> {
             reg.endpoint_count()
         ),
         Err(e) => warn!(error = %e, "RCON registry init failed — /api/v1/rcon/* will 503"),
+    }
+
+    match soap::init_soap_registry() {
+        Ok(reg) => info!(
+            "SOAP registry initialized — {} commands, {} endpoints configured",
+            reg.command_count(),
+            reg.endpoint_count()
+        ),
+        Err(e) => warn!(error = %e, "SOAP registry init failed — /api/v1/wow/soap/* will 503"),
     }
 
     if db::init_forum_service() {
