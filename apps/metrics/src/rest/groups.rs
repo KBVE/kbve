@@ -113,15 +113,34 @@ pub async fn groups(
         .as_deref()
         .map(|pr| format!("WHERE project = {}", quote(pr)))
         .unwrap_or_default();
-    let sql = format!(
+    let sql = groups_sql(&app.cfg.groups_view, &where_clause, clamp(p.limit, 100));
+    query(&app, sql, "groups").await
+}
+
+
+/// Ordered inside, stringified outside. ClickHouse resolves ORDER BY against the
+/// SELECT alias, so ordering by `last_seen` in the same projection that aliases
+/// `toString(last_seen) AS last_seen` sorts the *text* — which only happens to be
+/// chronological because the format is fixed width, and stops being so the moment
+/// a value renders at a different precision.
+fn groups_sql(view: &str, where_clause: &str, limit: u32) -> String {
+    format!(
         "SELECT project, fingerprint, error_type, sample_message, \
          toString(events) AS events, toString(sessions) AS sessions, \
          toString(first_seen) AS first_seen, toString(last_seen) AS last_seen \
-         FROM error_groups {} ORDER BY last_seen DESC LIMIT {}",
-        where_clause,
-        clamp(p.limit, 100)
-    );
-    query(&app, sql, "groups").await
+         FROM (SELECT * FROM {view} {where_clause} ORDER BY last_seen DESC LIMIT {limit})"
+    )
+}
+
+/// `timestamp` is selected, not merely ordered by: without it the client is handed
+/// a list of errors with no indication of when any of them happened.
+fn events_sql(table: &str, conds: &str, limit: u32) -> String {
+    format!(
+        "SELECT toString(timestamp) AS timestamp, \
+         project, platform, release, environment, error_type, message, \
+         stack, url, user_id, session_id, handled, extra \
+         FROM {table} WHERE {conds} ORDER BY timestamp DESC LIMIT {limit}"
+    )
 }
 
 pub async fn events(
@@ -139,19 +158,50 @@ pub async fn events(
     if let Some(pr) = cap_project(p.project).as_deref() {
         conds.push(format!("project = {}", quote(pr)));
     }
-    let sql = format!(
-        "SELECT project, platform, release, environment, error_type, message, \
-         stack, url, user_id, session_id, handled, extra \
-         FROM errors_distributed WHERE {} ORDER BY timestamp DESC LIMIT {}",
-        conds.join(" AND "),
-        clamp(p.limit, 50)
-    );
+    let sql = events_sql(&app.cfg.errors_table, &conds.join(" AND "), clamp(p.limit, 50));
     query(&app, sql, "events").await
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn groups_orders_by_the_timestamp_not_its_text() {
+        let sql = groups_sql("error_groups", "WHERE project = 'friendslop'", 100);
+        // The ORDER BY must sit in the inner projection, where last_seen is still a
+        // DateTime. If it ever moves out beside `toString(last_seen) AS last_seen`
+        // the sort silently becomes lexicographic over the rendered string.
+        let inner = sql.split("FROM (").nth(1).expect("inner projection");
+        assert!(inner.contains("ORDER BY last_seen DESC"));
+        assert!(
+            !sql.starts_with("SELECT project, fingerprint, error_type, sample_message, ORDER BY"),
+            "sanity"
+        );
+        let outer = sql.split("FROM (").next().unwrap();
+        assert!(
+            !outer.contains("ORDER BY"),
+            "the outer projection aliases last_seen to a String; ordering there sorts text"
+        );
+    }
+
+    #[test]
+    fn both_reads_honour_the_configured_names() {
+        // Ingest and the readiness probe already honoured METRICS_ERRORS_TABLE while
+        // the read path hardcoded its own names, so a redirected ingest left reads
+        // querying a table nothing was written to — with readiness green.
+        assert!(groups_sql("other_groups", "", 10).contains("FROM other_groups"));
+        assert!(events_sql("other_errors", "fingerprint = 'ab'", 10).contains("FROM other_errors"));
+    }
+
+    #[test]
+    fn events_returns_when_each_error_happened() {
+        let sql = events_sql("errors_distributed", "fingerprint = 'ab'", 50);
+        assert!(
+            sql.contains("toString(timestamp) AS timestamp"),
+            "a list of errors with no time on any of them is not much of a list"
+        );
+    }
 
     #[test]
     fn fingerprint_validation() {

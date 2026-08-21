@@ -5,6 +5,7 @@ pub struct Config {
     pub host: String,
     pub port: u16,
     pub errors_table: String,
+    pub groups_view: String,
     pub allowed_origins: Vec<String>,
     pub max_body_bytes: usize,
     pub max_batch: usize,
@@ -37,6 +38,11 @@ impl Config {
             host: get("HTTP_HOST", "0.0.0.0"),
             port: get("HTTP_PORT", "5500").parse().unwrap_or(5500),
             errors_table: get("METRICS_ERRORS_TABLE", "errors_distributed"),
+            // Configurable alongside the table it aggregates: the read path used
+            // to hardcode both names while ingest and the readiness probe honoured
+            // METRICS_ERRORS_TABLE, so pointing ingest elsewhere left reads
+            // querying a table nothing was being written to, with readiness green.
+            groups_view: get("METRICS_GROUPS_VIEW", "error_groups"),
             allowed_origins,
             max_body_bytes: get("METRICS_MAX_BODY_BYTES", "262144")
                 .parse()
