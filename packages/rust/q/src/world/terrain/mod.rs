@@ -426,9 +426,11 @@ impl QTerrain {
         {
             m.set_shader_parameter("terrain_origin", &at.to_variant());
         }
+        stage.mark("heightmap");
         if let Some(shape) = self.ground_shape.as_mut() {
             shape.set_map_data(&PackedFloat32Array::from(heights.as_slice()));
         }
+        stage.mark("collision");
         // Everything drawn flat over the window travels with it: the ground
         // plane, the riverbed and the water. Left behind, the player walks off
         // the edge of the visible world while still standing on collider.
@@ -454,7 +456,7 @@ impl QTerrain {
             let keep = ground.get_position();
             ground.set_position(Vector3::new(at.x, keep.y, at.z));
         }
-        stage.mark("upload");
+        stage.mark("nodes");
         self.bake_clearance(&heights, res);
         self.heights = heights;
         stage.mark("clearance");
