@@ -1,0 +1,40 @@
+---
+import BentoShell from '@/components/hero/BentoShell.astro';
+import ReactTelemetryDashRN from '@/components/rnweb/ReactTelemetryDashRN';
+import RnDashSkeleton from '@/components/dashboard/RnDashSkeleton.astro';
+---
+
+<BentoShell
+	id="telemetry-dashboard-wrapper"
+	eyebrow="Observability"
+	heading="Client error telemetry.">
+	<div class="svc-dash not-content">
+		<div class="svc-dash__stream not-content">
+			<ReactTelemetryDashRN client:only="react">
+				<RnDashSkeleton slot="fallback" />
+			</ReactTelemetryDashRN>
+		</div>
+	</div>
+</BentoShell>
+
+<style>
+	.svc-dash {
+		padding: 1.5rem 1rem 3rem;
+	}
+
+	@media (min-width: 640px) {
+		.svc-dash {
+			padding-inline: 1.5rem;
+		}
+	}
+
+	.svc-dash__stream {
+		min-height: 60vh;
+	}
+
+	:global(@keyframes spin) {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+</style>
