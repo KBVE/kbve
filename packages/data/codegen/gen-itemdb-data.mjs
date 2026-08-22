@@ -163,6 +163,8 @@ function protoTransform(node, parentFieldCamel, coerceLeafToString = false) {
 }
 
 function loadAllMdx(locales) {
+	// readdir order is filesystem-dependent; sort so the artifacts come out
+	// byte-identical on a contributor's macOS and in Linux CI.
 	const files = readdirSync(MDX_DIR)
 		.filter((f) => f.endsWith('.mdx') && f !== 'index.mdx')
 		.sort();

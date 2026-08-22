@@ -108,9 +108,11 @@ function transform(node, parentFieldCamel) {
 }
 
 function loadNpcsFromMdx(locales) {
-	const files = readdirSync(npcdbDir).filter(
-		(f) => f.endsWith('.mdx') && f !== 'index.mdx',
-	);
+	// readdir order is filesystem-dependent; sort so the artifacts come out
+	// byte-identical on a contributor's macOS and in Linux CI.
+	const files = readdirSync(npcdbDir)
+		.filter((f) => f.endsWith('.mdx') && f !== 'index.mdx')
+		.sort();
 	const npcs = [];
 	for (const file of files) {
 		const full = resolve(npcdbDir, file);
