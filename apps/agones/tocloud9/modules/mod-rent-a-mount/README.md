@@ -8,9 +8,12 @@ Rentals survive logout on purpose. The core saves auras with their remaining
 duration and does not dismount on the way out, so paid time carries into the
 next session instead of being lost.
 
-**Scaffold only — not wired into any build yet.** Nothing clones this into
-`/repo/modules`, no SQL has been applied to any database, and the gameserver
-image does not know it exists. Integration is a separate step.
+Wired into the gameserver build. `mod-rent-a-mount` arrives through the
+`modules` build context, so the C++ compiles into the worldserver, the conf
+lands in `etc/modules/`, and the world SQL ships only in the `db-import` image.
+
+**Never run in-game.** Nothing here has executed against a live worldserver:
+the gossip flow, the money charge, and the aura duration are untested.
 
 ## Why this exists rather than the upstream module
 
@@ -203,8 +206,6 @@ riding a mount they bought.
 
 ## Still open
 
-- Not integrated. Nothing clones this into `/repo/modules`, so the C++ is not
-  compiled into the worldserver and no SQL has reached a database.
 - No cleanup hook for teleport. Upstream added one specifically
   (`Prevent rental mount restoration after teleports`), and their comment says
   delayed return-teleport processing can otherwise recreate the mount spell with
