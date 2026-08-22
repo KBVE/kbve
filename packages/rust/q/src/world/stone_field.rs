@@ -111,6 +111,8 @@ pub struct QStoneField {
     seen_generation: i64,
     /// What the player has already mined, kept across rescatters.
     ledger: crate::world::harvest::Ledger,
+    /// Set while a replacement scatter is planned and the standing one is still drawn.
+    swap_pending: bool,
     /// Snapshot of the terrain used to test sight lines during LOD rebucketing.
     terrain_heights: Vec<f32>,
     terrain_res: i32,
@@ -148,7 +150,8 @@ impl QStoneField {
             .unwrap_or(false)
     }
 
-    /// Throws the scatter away and builds it again for the new window.
+    /// Plans the scatter again for the new window; the standing one stays up
+    /// until the replacement is ready.
     ///
     /// What the player mined goes into the ledger first and is replayed after,
     /// so a rock broken before walking away is still broken on the way back.
@@ -158,14 +161,12 @@ impl QStoneField {
         for (id, stage) in damage {
             self.ledger.record(id, stage);
         }
-        self.free_all();
-        self.core.clear();
+        self.swap_pending = true;
         // The meshes stay. Every one of them is a function of the stone seed
         // and the variant table -- three lods, two damage states and three
         // hulls per variant -- and a window shift changes which rocks stand
         // where, not what a rock is. Rebuilding all thirty-two on the main
         // thread each stride was the bulk of a stone rescatter.
-        self.slots.clear();
         self.plan_rx = None;
         self.init_done = false;
     }
@@ -240,6 +241,10 @@ impl QStoneField {
         if entries.is_empty() {
             godot_error!("[QStoneField] no stone candidates survived placement");
             return true;
+        }
+        if self.swap_pending {
+            self.free_all();
+            self.swap_pending = false;
         }
         self.core.clear();
         for e in entries {
@@ -848,9 +853,9 @@ impl QStoneField {
         if res < 2 || self.terrain_heights.len() < (res * res) as usize {
             return f32::MIN;
         }
-        let e = self.extent.max(1.0);
-        let fx = (((x + e) / (e * 2.0)).clamp(0.0, 1.0) * (res - 1) as f32).max(0.0);
-        let fz = (((z + e) / (e * 2.0)).clamp(0.0, 1.0) * (res - 1) as f32).max(0.0);
+        let (u, v) = crate::world::window_uv(x, z, self.origin, self.extent);
+        let fx = (u.clamp(0.0, 1.0) * (res - 1) as f32).max(0.0);
+        let fz = (v.clamp(0.0, 1.0) * (res - 1) as f32).max(0.0);
         let x0 = (fx as i32).clamp(0, res - 2);
         let z0 = (fz as i32).clamp(0, res - 2);
         let tx = fx - x0 as f32;

@@ -60,6 +60,8 @@ pub struct QFloraField {
     last_shader_origin: Vector3,
     extent: f32,
     plan_rx: Option<std::sync::mpsc::Receiver<Vec<f32>>>,
+    /// See [`super::stone_field::QStoneField`]'s field of the same name.
+    swap_pending: bool,
 }
 
 impl QFloraField {
@@ -72,7 +74,7 @@ impl QFloraField {
 
     fn rescatter(&mut self) {
         let _t = crate::world::StallTimer::start("flora.rescatter");
-        self.free_all();
+        self.swap_pending = true;
         self.plan_rx = None;
         self.init_done = false;
     }
@@ -149,6 +151,10 @@ impl QFloraField {
                 "[QFloraField] no candidates survived placement"
             );
             return true;
+        }
+        if self.swap_pending {
+            self.free_all();
+            self.swap_pending = false;
         }
         self.candidates = cand;
 
