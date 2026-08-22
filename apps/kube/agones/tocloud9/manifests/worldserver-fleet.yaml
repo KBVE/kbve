@@ -267,6 +267,14 @@ spec:
                               # splits, so MapUpdate.Threads -> MAP_UPDATE_THREADS.
                               # Only keys already present in the conf are
                               # overridable, and this one is.
+                              # 8 is upstream's ceiling, not an arbitrary
+                              # number: the installation guide calls this "the
+                              # single most impactful performance setting for
+                              # playerbots", recommends 4-6, and says benefit is
+                              # unlikely past 8 because AzerothCore is bound by
+                              # single-core performance. Raising the cpu limit
+                              # further therefore buys nothing on its own -- the
+                              # map loop cannot spread past these threads.
                               - name: AC_MAP_UPDATE_THREADS
                                 value: '8'
                               - name: AC_AI_PLAYERBOT_ENABLED
@@ -281,30 +289,36 @@ spec:
                               # them, not 40, because they coordinate through the
                               # shared acore_playerbots database.
                               #
-                              # 250, measured rather than guessed. On one
-                              # shard with 4 map threads, 39 bots cost 2.84
-                              # cores and 6.52GiB, with the world update tail at
-                              # p99 28ms against a 50ms tick. Subtracting the
-                              # ~0.6 core the server burns with no bots gives
-                              # roughly 0.057 cores per bot, so 250 lands near
-                              # 14 cores -- inside the 16 core limit below and
-                              # inside the ~17 cores the node has unrequested.
+                              # 250 as a deliberate step, not a ceiling.
                               #
-                              # 1000 was the ask and the node cannot hold it:
-                              # ~58 cores of a 64 core box already 72% claimed.
-                              # Reclaiming longhorn and the idle ARC runners
-                              # would reach roughly 500, still not 1000. Getting
-                              # past that is a second machine, not a config
-                              # value, so this is the first step of a ramp --
-                              # raise it again once the numbers below hold.
+                              # The honest position on cost is that it is not
+                              # known yet. One shard with 39 bots draws 3.53
+                              # cores and 6.52GiB with the world update tail at
+                              # p99 28ms against a 50ms tick -- but there is no
+                              # bot-free window to compare against, because the
+                              # world reaches ready and begins seating bots
+                              # immediately, so none of that separates the fixed
+                              # cost of PreloadAllNonInstancedMapGrids from the
+                              # marginal cost of a bot. Preload updates every
+                              # grid on every map whether or not anyone is on
+                              # it, and is very likely the larger term.
                               #
-                              # Watch the tick, not the memory. Bots are cpu
-                              # bound long before they are memory bound: 6.52GiB
-                              # against a 64GiB limit. The signal that matters is
-                              # delay_99_percentile on :8901/metrics approaching
-                              # 50ms, because a tick collapse costs a full grid
-                              # preload to recover -- which is why health
-                              # initialDelaySeconds is 1800.
+                              # Upstream runs 5000 bots on a six core 5700x
+                              # (mod-playerbots wiki), which is roughly fifty
+                              # times cheaper per bot than a naive read of the
+                              # number above would suggest. That gap is the
+                              # reason this is a step: going 39 -> 250 gives the
+                              # slope, and the slope decides whether 1000 is a
+                              # config change or a second machine.
+                              #
+                              # Watch the tick, not the memory. 6.52GiB against
+                              # a 64GiB limit is nowhere near binding; the signal
+                              # is delay_99_percentile on :8901/metrics
+                              # approaching 50ms. A tick collapse costs a full
+                              # grid preload to recover, which is why health
+                              # initialDelaySeconds is 1800. Upstream's own
+                              # advice is the same shape: start at 50-200 and
+                              # scale up while monitoring.
                               - name: AC_AI_PLAYERBOT_MIN_RANDOM_BOTS
                                 value: '250'
                               - name: AC_AI_PLAYERBOT_MAX_RANDOM_BOTS
