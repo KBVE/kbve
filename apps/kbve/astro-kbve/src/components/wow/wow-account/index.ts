@@ -1,8 +1,9 @@
 export { ReactWowAccount } from './ReactWowAccount';
 export {
 	createAccount,
-	getAccount,
+	getStatus,
 	releaseClaim,
 	setPassword,
 	type WowAccount,
+	type WowAccountStatus,
 } from './wowAccountService';

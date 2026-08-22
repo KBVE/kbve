@@ -14,7 +14,7 @@ import { handleStaff, STAFF_ACTIONS } from "./staff.ts";
 // WoW Edge Function — Unified Router
 //
 // Command format: "module.action"
-//   account: status, create, set_password, release
+//   account: status, reserve, provision, set_password, release
 //   staff:   realm_status, online_characters, accounts, set_gm_level,
 //            ban_account, unban_account
 // ---------------------------------------------------------------------------

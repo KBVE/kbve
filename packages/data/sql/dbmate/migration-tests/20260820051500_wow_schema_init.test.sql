@@ -17,16 +17,20 @@ ON CONFLICT (id) DO NOTHING;
 
 -- carol deliberately gets no profile.username row: she is the fixture for the
 -- "must set a KBVE username first" gate.
+-- alice and bob share the first 16 characters on purpose: the game name is
+-- derived from the KBVE username and truncated to 16, so these two collide and
+-- exercise the suffix path.
 INSERT INTO profile.username (user_id, username)
 VALUES
-    ('a0000000-0000-4000-8000-000000000001', 'wowtest-alice'),
-    ('a0000000-0000-4000-8000-000000000002', 'wowtest-bob')
-ON CONFLICT (user_id) DO NOTHING;
+    ('a0000000-0000-4000-8000-000000000001', 'wowtest-collider-alice'),
+    ('a0000000-0000-4000-8000-000000000002', 'wowtest-collider-bob')
+ON CONFLICT (user_id) DO UPDATE SET username = EXCLUDED.username;
 
 -- ASSERT_AFTER_UP
 DO $$
 DECLARE
     v_username TEXT;
+    v_suggested TEXT;
     v_status INTEGER;
     v_created BOOLEAN;
     v_count INTEGER;
@@ -76,32 +80,38 @@ BEGIN
 
     IF has_function_privilege(
         'authenticated',
-        'public.service_claim_wow_account(uuid, text)',
+        'public.service_claim_wow_account(uuid)',
         'EXECUTE'
     ) THEN
         RAISE EXCEPTION 'fail: authenticated must not execute the service claim RPC';
     END IF;
 
-    -- ---- behaviour: a fresh claim ----
+    -- ---- behaviour: the name is derived, not chosen ----
+    -- 'wowtest-collider-alice' uppercases and truncates to the 16 characters
+    -- the 3.3.5a login box accepts.
     SELECT username, status, was_created
       INTO v_username, v_status, v_created
       FROM public.service_claim_wow_account(
-          'a0000000-0000-4000-8000-000000000001', 'WOWALICE');
+          'a0000000-0000-4000-8000-000000000001');
 
-    IF v_username <> 'WOWALICE' OR v_status <> 0 OR NOT v_created THEN
+    IF v_username <> 'WOWTEST-COLLIDER' OR v_status <> 0 OR NOT v_created THEN
         RAISE EXCEPTION 'fail: fresh claim returned (%, %, %)', v_username, v_status, v_created;
     END IF;
 
+    IF char_length(v_username) > 16 THEN
+        RAISE EXCEPTION 'fail: derived name % exceeds the 16-char client limit', v_username;
+    END IF;
+
     -- ---- behaviour: one account per user ----
-    -- Re-claiming under a different name must return the ORIGINAL row rather
-    -- than creating a second one or renaming the first.
+    -- Re-claiming must return the ORIGINAL row rather than creating a second
+    -- one or renaming the first.
     SELECT username, was_created
       INTO v_username, v_created
       FROM public.service_claim_wow_account(
-          'a0000000-0000-4000-8000-000000000001', 'DIFFERENTNAME');
+          'a0000000-0000-4000-8000-000000000001');
 
-    IF v_username <> 'WOWALICE' OR v_created THEN
-        RAISE EXCEPTION 'fail: second claim should return existing WOWALICE, got (%, %)',
+    IF v_username <> 'WOWTEST-COLLIDER' OR v_created THEN
+        RAISE EXCEPTION 'fail: second claim should return the existing row, got (%, %)',
             v_username, v_created;
     END IF;
 
@@ -111,33 +121,78 @@ BEGIN
         RAISE EXCEPTION 'fail: user holds % accounts, expected exactly 1', v_count;
     END IF;
 
-    -- ---- behaviour: username uniqueness across users ----
-    BEGIN
-        PERFORM public.service_claim_wow_account(
-            'a0000000-0000-4000-8000-000000000002', 'WOWALICE');
-        RAISE EXCEPTION 'fail: bob was allowed to claim a taken username';
-    EXCEPTION
-        WHEN unique_violation THEN NULL;
-    END;
+    -- ---- behaviour: a collision takes a suffix, it does not fail ----
+    -- Bob truncates to the same 16 characters as alice. He must still get an
+    -- account, under a distinct name that still fits the client limit.
+    SELECT username, was_created
+      INTO v_username, v_created
+      FROM public.service_claim_wow_account(
+          'a0000000-0000-4000-8000-000000000002');
+
+    IF NOT v_created THEN
+        RAISE EXCEPTION 'fail: colliding claim was not created';
+    END IF;
+
+    IF v_username = 'WOWTEST-COLLIDER' THEN
+        RAISE EXCEPTION 'fail: colliding claim reused the taken name';
+    END IF;
+
+    IF v_username <> 'WOWTEST-COLLIDE2' THEN
+        RAISE EXCEPTION 'fail: expected the suffixed name, got %', v_username;
+    END IF;
+
+    IF char_length(v_username) > 16 THEN
+        RAISE EXCEPTION 'fail: suffixed name % exceeds 16 chars', v_username;
+    END IF;
 
     -- ---- behaviour: KBVE username gate ----
     BEGIN
         PERFORM public.service_claim_wow_account(
-            'a0000000-0000-4000-8000-000000000003', 'WOWCAROL');
+            'a0000000-0000-4000-8000-000000000003');
         RAISE EXCEPTION 'fail: user without a profile.username was allowed to claim';
     EXCEPTION
         WHEN raise_exception THEN
             IF SQLERRM LIKE 'fail:%' THEN RAISE; END IF;
     END;
 
-    -- ---- behaviour: username format ----
-    BEGIN
-        PERFORM public.service_claim_wow_account(
-            'a0000000-0000-4000-8000-000000000002', 'bad name!');
-        RAISE EXCEPTION 'fail: invalid username format was accepted';
-    EXCEPTION
-        WHEN invalid_parameter_value THEN NULL;
-    END;
+    -- ---- behaviour: the proxy answers as the JWT subject ----
+    -- Carol has no KBVE username, so she must get no row at all rather than a
+    -- blank one — that is the signal the UI uses to send her to set one first.
+    -- Both GUCs: the local kilobase stub reads request.jwt.claim.sub, while
+    -- the deployed auth.uid() coalesces that with the request.jwt.claims JSON.
+    PERFORM set_config(
+        'request.jwt.claim.sub', 'a0000000-0000-4000-8000-000000000003', true);
+    PERFORM set_config(
+        'request.jwt.claims',
+        '{"sub":"a0000000-0000-4000-8000-000000000003","role":"authenticated"}',
+        true);
+    SELECT COUNT(*) INTO v_count FROM public.proxy_get_wow_account();
+    IF v_count <> 0 THEN
+        RAISE EXCEPTION 'fail: user without a KBVE username got a suggestion row';
+    END IF;
+
+    -- Bob has a KBVE username and a claim, so both names come back: what he
+    -- holds, and what a fresh derivation would suggest. They differ here
+    -- precisely because his first choice collided with alice.
+    PERFORM set_config(
+        'request.jwt.claim.sub', 'a0000000-0000-4000-8000-000000000002', true);
+    PERFORM set_config(
+        'request.jwt.claims',
+        '{"sub":"a0000000-0000-4000-8000-000000000002","role":"authenticated"}',
+        true);
+    SELECT username, suggested_username
+      INTO v_username, v_suggested
+      FROM public.proxy_get_wow_account();
+
+    IF v_username <> 'WOWTEST-COLLIDE2' THEN
+        RAISE EXCEPTION 'fail: proxy returned % for bob', v_username;
+    END IF;
+    IF v_suggested <> 'WOWTEST-COLLIDER' THEN
+        RAISE EXCEPTION 'fail: suggestion was %, expected the plain truncation', v_suggested;
+    END IF;
+
+    PERFORM set_config('request.jwt.claim.sub', '', true);
+    PERFORM set_config('request.jwt.claims', '', true);
 
     -- ---- behaviour: provisioning flips status and stamps the time ----
     IF NOT public.service_mark_wow_provisioned(
@@ -175,17 +230,17 @@ BEGIN
     END IF;
 
     -- ---- behaviour: an unprovisioned claim IS released ----
-    PERFORM public.service_claim_wow_account(
-        'a0000000-0000-4000-8000-000000000002', 'WOWBOB');
+    -- Bob's claim from the collision case above is still unprovisioned.
     IF NOT public.service_release_wow_claim(
         'a0000000-0000-4000-8000-000000000002') THEN
         RAISE EXCEPTION 'fail: release did not free an unprovisioned claim';
     END IF;
 
     -- Freeing the claim must also free the name for someone else.
-    SELECT COUNT(*) INTO v_count FROM wow.account WHERE username = 'WOWBOB';
+    SELECT COUNT(*) INTO v_count
+      FROM wow.account WHERE username = 'WOWTEST-COLLIDE2';
     IF v_count <> 0 THEN
-        RAISE EXCEPTION 'fail: WOWBOB still reserved after release';
+        RAISE EXCEPTION 'fail: WOWTEST-COLLIDE2 still reserved after release';
     END IF;
 
     -- ---- behaviour: provisioning cannot resurrect a disabled account ----
@@ -193,7 +248,7 @@ BEGIN
     -- reserved. A replayed provisioning call must not quietly flip it live
     -- again, which is why service_mark_provisioned is scoped to status = 0.
     PERFORM public.service_claim_wow_account(
-        'a0000000-0000-4000-8000-000000000002', 'WOWBOB');
+        'a0000000-0000-4000-8000-000000000002');
     PERFORM public.service_mark_wow_provisioned(
         'a0000000-0000-4000-8000-000000000002');
     UPDATE wow.account SET status = 2

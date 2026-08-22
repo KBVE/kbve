@@ -22,8 +22,9 @@ export interface WowRequest {
 }
 
 // AzerothCore uppercases the account name before folding it into the SRP6
-// identity, so anything we accept here has to already be in the form the
-// server will hash. Bounds match wow.account's CHECK constraint.
+// identity, so anything that reaches MySQL has to already be in the form the
+// server will hash. Bounds match wow.account's CHECK constraint, whose upper
+// bound is the 3.3.5a login box rather than acore's varchar(32).
 const USERNAME_RE = /^[A-Z0-9_-]{3,16}$/;
 
 // salt and verifier are both 32 bytes, hex-encoded uppercase — the shape
@@ -34,16 +35,6 @@ export function normalizeUsername(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const upper = value.trim().toUpperCase();
   return USERNAME_RE.test(upper) ? upper : null;
-}
-
-export function validateUsername(value: unknown): Response | null {
-  if (normalizeUsername(value) === null) {
-    return jsonResponse(
-      { error: "username must be 3-16 characters of A-Z, 0-9, _ or -" },
-      400,
-    );
-  }
-  return null;
 }
 
 export function validateHex32(value: unknown, field: string): Response | null {
