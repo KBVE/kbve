@@ -70,7 +70,7 @@ spec:
                         - name: authserver
                           image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
                           # One image carries every ToCloud9 service; pick this one.
-                          command: ["/app/authserver"]
+                          command: ['/app/authserver']
                           imagePullPolicy: IfNotPresent
                           env:
                               - name: PORT
@@ -105,8 +105,17 @@ spec:
                           image: ghcr.io/kbve/agones-shim:0.0.2
                           imagePullPolicy: IfNotPresent
                           env:
-                            - name: AGONES_SHIM_READY_TCP
-                              value: '3724'
+                              # Without a deadline the shim waits for readiness forever. When the
+                              # game container died on 2026-08-22 the shim kept probing, the pod
+                              # stayed Running because the sidecar was alive, and Agones left the
+                              # GameServer in Scheduled and never replaced it -- a dead server that
+                              # is never recycled, with no crashloop and nothing to alert on.
+                              # Past this the shim exits non-zero so Agones can replace the pod.
+                              # 300s because the authserver binds in seconds; anything past five minutes is a failure, not a slow start.
+                              - name: AGONES_SHIM_READY_TIMEOUT_SECS
+                                value: '300'
+                              - name: AGONES_SHIM_READY_TCP
+                                value: '3724'
                           resources:
                               requests:
                                   cpu: '10m'

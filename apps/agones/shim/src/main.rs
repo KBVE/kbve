@@ -66,9 +66,20 @@ struct Config {
     live: Vec<Probe>,
     ready_interval: Duration,
     health_interval: Duration,
-    /// Give up waiting for readiness after this long. Zero means never, which
-    /// is right for a worldserver that legitimately spends many minutes
-    /// preloading map grids before it binds anything.
+    /// Give up waiting for readiness after this long, and exit non-zero so
+    /// Agones replaces the pod.
+    ///
+    /// This defaulted to zero -- wait forever -- which produced a failure with
+    /// no symptom. When a worldserver died on startup on 2026-08-22 the shim
+    /// kept probing a process that was never coming back; because the sidecar
+    /// was still alive the pod stayed Running, so Agones left the GameServer in
+    /// Scheduled and never replaced it. Two dead servers sat that way for over
+    /// an hour with no restarts, no crashloop and nothing to alert on.
+    ///
+    /// A finite default is the safer wrong answer: a server slower than this
+    /// gets recycled once and the deadline gets raised, which is noisy but
+    /// visible. Zero is still honoured when set explicitly, for the rare server
+    /// whose startup genuinely has no upper bound.
     ready_timeout: Duration,
     /// Optional Counter published to the GameServer status, sourced from a
     /// Prometheus text endpoint.
@@ -163,7 +174,7 @@ impl Config {
             live,
             ready_interval: env_secs("AGONES_SHIM_READY_INTERVAL_SECS", 5),
             health_interval: env_secs("AGONES_SHIM_HEALTH_INTERVAL_SECS", 5),
-            ready_timeout: env_secs("AGONES_SHIM_READY_TIMEOUT_SECS", 0),
+            ready_timeout: env_secs("AGONES_SHIM_READY_TIMEOUT_SECS", 900),
             counter,
         })
     }
@@ -224,8 +235,7 @@ async fn wait_until_ready(cfg: &Config, client: &reqwest::Client) -> Result<()> 
 async fn main() -> Result<()> {
     tracing_subscriber::fmt()
         .with_env_filter(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| "info".into()),
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| "info".into()),
         )
         .init();
 
