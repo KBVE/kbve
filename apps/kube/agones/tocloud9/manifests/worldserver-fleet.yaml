@@ -257,6 +257,35 @@ spec:
                                 value: '100'
                               - name: AC_AI_PLAYERBOT_MAX_RANDOM_BOTS
                                 value: '100'
+                              # Both shards log this every ten seconds, and the
+                              # number never moves:
+                              #
+                              #   Can't log-in all the requested bots. Try
+                              #   increasing RandomBotAccountCount in your conf
+                              #   file. 6 more accounts needed.
+                              #
+                              # RandomPlayerbotMgr derives that from the bots it
+                              # could not seat: ceil(remaining / charsPerAccount)
+                              # with 10 characters per account, so six accounts
+                              # short is roughly fifty-five bots short of the
+                              # hundred asked for above.
+                              #
+                              # The conf ships this at 0, meaning automatic, and
+                              # RandomPlayerbotFactory sizes it as
+                              # ceil(maxRandomBots / 10) + AddClassAccountPoolSize
+                              # -- 10 + 50, so about 60. The pool has been stuck
+                              # a few accounts under that, and an explicit value
+                              # is honoured whenever it is at or above the
+                              # calculated one, so 70 both clears the shortfall
+                              # and leaves room to raise the bot count later
+                              # without landing back here.
+                              #
+                              # The cost is one-time: roughly a hundred and fifty
+                              # more characters generated at startup, after the
+                              # world is already up, so it does not delay
+                              # readiness.
+                              - name: AC_AI_PLAYERBOT_RANDOM_BOT_ACCOUNT_COUNT
+                                value: '70'
                               - name: AC_AI_PLAYERBOT_RANDOM_BOT_AUTOLOGIN
                                 value: '1'
                               # Cluster wiring. The bare names are what the
