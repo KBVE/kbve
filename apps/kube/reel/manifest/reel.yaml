@@ -46,6 +46,13 @@ spec:
                       - { name: SERVER_CITIES, value: 'Frankfurt' }
                   volumeMounts:
                       - { name: gluetun-run, mountPath: /tmp/gluetun }
+                  # Had no resources at all, so the scheduler accounted it as
+                  # zero while it carries every byte of reel's traffic and can
+                  # take as much of the node as it likes. Sized from the same
+                  # 7-day window: p99 0.002 cores, peak 0.005, 0.06Gi memory.
+                  resources:
+                      requests: { cpu: '50m', memory: 128Mi }
+                      limits: { cpu: '2', memory: 1Gi }
                 - name: reel
                   image: ghcr.io/kbve/reel:0.1.45
                   env:
@@ -85,8 +92,32 @@ spec:
                       periodSeconds: 20
                       timeoutSeconds: 5
                       failureThreshold: 6
+                  # requests are a reservation, not a ceiling: whatever is
+                  # requested is unavailable to every other pod whether or not
+                  # this one touches it. reel is a transcoder, so it is idle
+                  # almost always and wants many cores briefly -- which is what
+                  # limits are for. Requesting the burst permanently parked 8 of
+                  # the node's 64 cores against measured usage of a rounding
+                  # error, on a node already at 81% cpu requested.
+                  #
+                  # Measured over 7 days from the cluster's own Prometheus:
+                  #
+                  #             p99        peak       requested
+                  #   cpu       0.005      0.372      8
+                  #   memory               0.24Gi     8Gi
+                  #
+                  # Requests now sit above the observed peak with room to spare;
+                  # limits are untouched, so a real encode still takes 16 cores
+                  # when the node has them. The tradeoff is that under contention
+                  # reel is throttled toward its request rather than holding
+                  # cores nothing else can use -- correct for a background
+                  # transcoder, and it is not latency-sensitive.
+                  #
+                  # Caveat worth keeping: that 7-day window caught no meaningful
+                  # encode, so the peak reflects an idle service. If encoding
+                  # becomes routine, re-measure rather than assuming 500m holds.
                   resources:
-                      requests: { cpu: '8', memory: 8Gi }
+                      requests: { cpu: '500m', memory: 1Gi }
                       limits: { cpu: '16', memory: 8Gi }
                   volumeMounts:
                       - { name: data, mountPath: /data }
