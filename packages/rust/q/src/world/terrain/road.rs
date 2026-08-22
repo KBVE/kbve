@@ -113,12 +113,21 @@ impl QTerrain {
         );
         // Only where it actually is. A window that does not reach the crossing
         // gets no bridge, rather than one built under the player.
-        let reach = if road.crossing_in(origin, self.extent) {
+        let t_bridge = std::time::Instant::now();
+        let crossing = road.crossing_in(origin, self.extent);
+        let reach = if crossing {
             self.build_bridge(&hgen, &road)
         } else {
             road.half_span + 1.0
         };
         road.set_bridge_reach(reach);
+        if std::env::var("Q_SHIFT_PROFILE").is_ok() {
+            godot_print!(
+                "[q]   bridge {:.1}ms ({})",
+                (std::time::Instant::now() - t_bridge).as_secs_f32() * 1000.0,
+                if crossing { "built" } else { "no crossing" }
+            );
+        }
 
         let res = ROAD_RES;
         let step = self.extent * 2.0 / (res - 1) as f32;
