@@ -22,6 +22,7 @@ export function NodeCard({
 	screenY: number;
 	onRun: (id: string) => void;
 }) {
+	const done = node.status === 'ok' || node.status === 'err';
 	return (
 		<View
 			style={[
@@ -30,8 +31,10 @@ export function NodeCard({
 			]}>
 			<Surface>
 				<Stack>
-					<Text>{node.backend}</Text>
-					<Text>{node.ref}</Text>
+					<Text variant="label">{node.label ?? node.ref}</Text>
+					<Text variant="caption" numberOfLines={1}>
+						{node.backend} · {node.ref}
+					</Text>
 					<View style={styles.row}>
 						<Pressable
 							onPress={() => onRun(node.id)}
@@ -40,6 +43,11 @@ export function NodeCard({
 						</Pressable>
 						<Badge tone={TONE[node.status]} label={node.status} />
 					</View>
+					{done && node.result ? (
+						<Text variant="caption" numberOfLines={2}>
+							{node.result}
+						</Text>
+					) : null}
 				</Stack>
 			</Surface>
 		</View>

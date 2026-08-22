@@ -1,37 +1,30 @@
 ---
+import BentoShell from '@/components/hero/BentoShell.astro';
 import ReactHomeAuth from './ReactHomeAuth';
 import ReactAlerts from './ReactAlerts';
 ---
 
-<section
+<BentoShell
 	id="alerts-wrapper"
-	class="alerts-wrapper kbve-dashboard-page"
-	aria-label="Prometheus Alerts — ClickHouse-backed history">
-	<div id="alerts-content" class="alerts-content">
+	eyebrow="Monitoring"
+	heading="Alerts — Alertmanager history.">
+	<div class="alerts-dash not-content">
 		<ReactHomeAuth client:only="react">
-			<div class="not-content alerts-panel">
+			<div class="alerts-panel not-content">
 				<ReactAlerts client:only="react" />
 			</div>
 		</ReactHomeAuth>
 	</div>
-</section>
+</BentoShell>
 
 <style>
-	.alerts-wrapper {
-		background: transparent;
-		position: relative;
-		width: 100%;
+	.alerts-dash {
+		padding: 1.5rem 1rem 3rem;
 	}
 
-	.alerts-content {
-		max-width: 1200px;
-		margin: 0 auto;
-		padding: 0 1rem 2rem;
-	}
-
-	@media (min-width: 768px) {
-		.alerts-content {
-			padding: 0 1.5rem 2rem;
+	@media (min-width: 640px) {
+		.alerts-dash {
+			padding-inline: 1.5rem;
 		}
 	}
 

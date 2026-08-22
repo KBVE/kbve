@@ -1,5 +1,5 @@
 {
-	"generated_at": "2026-08-20T02:21:41Z",
+	"generated_at": "2026-08-21T02:27:13Z",
 	"summary": {
 		"critical": 4,
 		"high": 54,
@@ -789,21 +789,21 @@
 					"url": "https://github.com/advisories/GHSA-ggr8-5vv4-36mx"
 				},
 				{
-					"id": "1145454",
+					"id": "1145555",
 					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
 					"severity": "high",
 					"package": "fast-uri",
 					"url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
 				},
 				{
-					"id": "1145462",
+					"id": "1145559",
 					"title": "fast-uri vulnerable to path traversal via percent-encoded dot segments",
 					"severity": "high",
 					"package": "fast-uri",
 					"url": "https://github.com/advisories/GHSA-q3j6-qgpj-74h6"
 				},
 				{
-					"id": "1145464",
+					"id": "1145561",
 					"title": "fast-uri vulnerable to host confusion via percent-encoded authority delimiters",
 					"severity": "high",
 					"package": "fast-uri",

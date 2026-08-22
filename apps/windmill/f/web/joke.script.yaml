@@ -1,0 +1,18 @@
+summary: Fetch a joke (web dashboard)
+description: >-
+    Web-surface wrapper for the workflows canvas. Imports fetchJoke() from the
+    shared core and returns a plain dashboard shape. USER tier — the proxy allows
+    browser invokes under f/web/*. Bun, no dependencies.
+kind: script
+lock: ''
+schema:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    type: object
+    order:
+        - source
+    properties:
+        source:
+            type: string
+            description: Optional source (dad, chuck, twopart); blank rotates randomly.
+            default: ''
+    required: []

@@ -1,0 +1,21 @@
+-- mod-rent-a-mount uninstall (characters database: acore_characters)
+--
+-- Stop the worldserver before running this. A running worldserver holds auras
+-- in memory and rewrites them on save, which would undo these deletes.
+--
+-- Run this BEFORE extras/uninstall.sql. Removing the module without it leaves
+-- rented mount auras on characters with no server-side way to expire them.
+--
+-- The spell list must match every `spell` value the offers table has ever held,
+-- not only the currently enabled rows. Recover the full list first:
+--
+--     SELECT GROUP_CONCAT(DISTINCT `spell`) FROM `mod_rent_a_mount_offers`;
+--
+-- The default below covers the two seeded offers.
+--
+-- `maxDuration > 0` is what separates a rental from a mount the player owns.
+-- The module stamps a finite duration onto the aura; a mount cast from a known
+-- spell is permanent. Without that predicate this would also dismount every
+-- player who logged out riding a mount they bought.
+
+DELETE FROM `character_aura` WHERE `spell` IN (458, 580) AND `maxDuration` > 0;

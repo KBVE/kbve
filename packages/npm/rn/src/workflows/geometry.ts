@@ -6,8 +6,8 @@ export interface Viewport {
 	scale: number;
 }
 
-export const NODE_W = 160;
-export const NODE_H = 64;
+export const NODE_W = 200;
+export const NODE_H = 96;
 
 export function screenToWorld(
 	px: number,

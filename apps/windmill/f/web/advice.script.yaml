@@ -1,0 +1,18 @@
+summary: Fetch advice (web dashboard)
+description: >-
+    Web-surface wrapper for the workflows canvas. Imports fetchAdvice() from the
+    shared core and returns a plain dashboard shape. USER tier — the proxy allows
+    browser invokes under f/web/*. Bun, no dependencies.
+kind: script
+lock: ''
+schema:
+    $schema: https://json-schema.org/draft/2020-12/schema
+    type: object
+    order:
+        - query
+    properties:
+        query:
+            type: string
+            description: Optional search query; blank returns random advice.
+            default: ''
+    required: []

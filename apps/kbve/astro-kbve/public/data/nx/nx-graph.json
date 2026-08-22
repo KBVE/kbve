@@ -2410,6 +2410,22 @@
 							"configurations": {},
 							"parallelism": true
 						},
+						"steam:assets": {
+							"executor": "nx:run-commands",
+							"dependsOn": [
+								{
+									"projects": ["q"],
+									"target": "deploy-mac"
+								}
+							],
+							"outputs": ["{projectRoot}/screenshots/steam"],
+							"options": {
+								"command": "bash scripts/steam.sh",
+								"cwd": "apps/friendslop/godot-friendslop"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
 						"bake:turf": {
 							"executor": "nx:run-commands",
 							"options": {
@@ -4592,7 +4608,7 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"command": "cargo build --release",
+								"command": "set -a; [ -f wifi.env ] && . ./wifi.env; set +a; cargo build --release",
 								"cwd": "apps/hardware/esp32c6-display"
 							},
 							"configurations": {},
@@ -4607,7 +4623,7 @@
 							"cache": true,
 							"executor": "nx:run-commands",
 							"options": {
-								"command": "cargo clippy --release -- -D warnings",
+								"command": "set -a; [ -f wifi.env ] && . ./wifi.env; set +a; cargo clippy --release -- -D warnings",
 								"cwd": "apps/hardware/esp32c6-display"
 							},
 							"configurations": {},
@@ -10367,6 +10383,167 @@
 							},
 							"configurations": {},
 							"parallelism": true
+						},
+						"playerbots:build": {
+							"executor": "nx:run-commands",
+							"cache": false,
+							"dependsOn": ["env"],
+							"options": {
+								"cwd": "apps/agones/tocloud9",
+								"parallel": false,
+								"commands": [
+									"echo 'Building the full 3kynox stack: 12 Go services (fast) plus AzerothCore + mod-playerbots + libsidecar (slow). Expect tens of minutes and every core pegged.'",
+									"docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile ac --profile setup build"
+								]
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"playerbots:setup": {
+							"executor": "nx:run-commands",
+							"dependsOn": ["playerbots:build"],
+							"options": {
+								"cwd": "apps/agones/tocloud9",
+								"parallel": false,
+								"commands": [
+									"docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile setup up --abort-on-container-failure --exit-code-from tc9-sql download-miscs tc9-sql",
+									"docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile setup down"
+								]
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"playerbots:up": {
+							"executor": "nx:run-commands",
+							"dependsOn": ["env"],
+							"options": {
+								"cwd": "apps/agones/tocloud9",
+								"command": "docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile ac up -d"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"playerbots:logs": {
+							"executor": "nx:run-commands",
+							"options": {
+								"cwd": "apps/agones/tocloud9",
+								"command": "docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile ac logs -f --tail=200 gameserver-ac"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"playerbots:down": {
+							"executor": "nx:run-commands",
+							"options": {
+								"cwd": "apps/agones/tocloud9",
+								"command": "docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile ac --profile setup down"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"container-gameserver": {
+							"executor": "@nx-tools/nx-container:build",
+							"defaultConfiguration": "local",
+							"options": {
+								"engine": "docker",
+								"context": ".",
+								"file": "apps/agones/tocloud9/gameserver/Dockerfile",
+								"load": true,
+								"target": "gameserver",
+								"build-contexts": [
+									"modules=apps/agones/tocloud9/modules"
+								]
+							},
+							"configurations": {
+								"local": {
+									"load": true,
+									"push": false,
+									"tags": [
+										"kbve/tocloud9-gameserver-playerbots:latest"
+									]
+								},
+								"production": {
+									"push": true,
+									"tags": [
+										"ghcr.io/kbve/tocloud9-gameserver-playerbots:latest"
+									],
+									"cache-from": [
+										"type=registry,ref=ghcr.io/kbve/tocloud9-gameserver-playerbots:buildcache"
+									],
+									"cache-to": [
+										"type=registry,ref=ghcr.io/kbve/tocloud9-gameserver-playerbots:buildcache,mode=max"
+									]
+								}
+							},
+							"parallelism": true
+						},
+						"container-db-import": {
+							"executor": "@nx-tools/nx-container:build",
+							"defaultConfiguration": "local",
+							"options": {
+								"engine": "docker",
+								"context": ".",
+								"file": "apps/agones/tocloud9/gameserver/Dockerfile",
+								"load": true,
+								"target": "db-import",
+								"build-contexts": [
+									"modules=apps/agones/tocloud9/modules"
+								]
+							},
+							"configurations": {
+								"local": {
+									"load": true,
+									"push": false,
+									"tags": [
+										"kbve/tocloud9-db-import-playerbots:latest"
+									]
+								},
+								"production": {
+									"push": true,
+									"tags": [
+										"ghcr.io/kbve/tocloud9-db-import-playerbots:latest"
+									],
+									"cache-from": [
+										"type=registry,ref=ghcr.io/kbve/tocloud9-db-import-playerbots:buildcache"
+									],
+									"cache-to": [
+										"type=registry,ref=ghcr.io/kbve/tocloud9-db-import-playerbots:buildcache,mode=max"
+									]
+								}
+							},
+							"parallelism": true
+						},
+						"container-services": {
+							"executor": "@nx-tools/nx-container:build",
+							"defaultConfiguration": "local",
+							"options": {
+								"engine": "docker",
+								"context": ".",
+								"file": "apps/agones/tocloud9/services/Dockerfile",
+								"load": true
+							},
+							"configurations": {
+								"local": {
+									"load": true,
+									"push": false,
+									"tags": [
+										"kbve/tocloud9-services-playerbots:latest"
+									]
+								},
+								"production": {
+									"push": true,
+									"tags": [
+										"ghcr.io/kbve/tocloud9-services-playerbots:latest"
+									],
+									"cache-from": [
+										"type=registry,ref=ghcr.io/kbve/tocloud9-services-playerbots:buildcache"
+									],
+									"cache-to": [
+										"type=registry,ref=ghcr.io/kbve/tocloud9-services-playerbots:buildcache,mode=max"
+									]
+								}
+							},
+							"parallelism": true
 						}
 					},
 					"name": "agones-tocloud9",
@@ -14968,6 +15145,87 @@
 					"implicitDependencies": []
 				}
 			},
+			"agones-shim": {
+				"name": "agones-shim",
+				"type": "app",
+				"data": {
+					"root": "apps/agones/shim",
+					"targets": {
+						"build": {
+							"dependsOn": ["^build"],
+							"inputs": ["production", "^production"],
+							"cache": true,
+							"executor": "nx:run-commands",
+							"options": {
+								"command": "cargo build --release -p agones-shim",
+								"cwd": "apps/agones/shim"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"test": {
+							"inputs": ["default", "^production"],
+							"cache": true,
+							"executor": "nx:run-commands",
+							"options": {
+								"command": "cargo test -p agones-shim",
+								"cwd": "apps/agones/shim"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"lint": {
+							"inputs": [
+								"default",
+								"{workspaceRoot}/eslint.config.mjs",
+								"{workspaceRoot}/eslint.config.js"
+							],
+							"cache": true,
+							"executor": "nx:run-commands",
+							"options": {
+								"command": "cargo clippy -p agones-shim -- -D warnings",
+								"cwd": "apps/agones/shim"
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"container": {
+							"executor": "@nx-tools/nx-container:build",
+							"defaultConfiguration": "local",
+							"options": {
+								"engine": "docker",
+								"context": ".",
+								"file": "apps/agones/shim/Dockerfile",
+								"load": true
+							},
+							"configurations": {
+								"local": {
+									"load": true,
+									"push": false,
+									"tags": ["kbve/agones-shim:latest"]
+								},
+								"production": {
+									"push": true,
+									"tags": ["ghcr.io/kbve/agones-shim:latest"],
+									"cache-from": [
+										"type=registry,ref=ghcr.io/kbve/agones-shim:buildcache"
+									],
+									"cache-to": [
+										"type=registry,ref=ghcr.io/kbve/agones-shim:buildcache,mode=max"
+									]
+								}
+							},
+							"parallelism": true
+						}
+					},
+					"name": "agones-shim",
+					"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+					"projectType": "application",
+					"sourceRoot": "apps/agones/shim/src",
+					"tags": ["scope:agones", "rust", "sidecar"],
+					"implicitDependencies": []
+				}
+			},
 			"angelscript": {
 				"name": "angelscript",
 				"type": "app",
@@ -15610,6 +15868,40 @@
 									"mkdir -p release/addons/q/macos",
 									"cp dist/macos/*.dylib release/addons/q/macos/",
 									"bash scripts/sign-dylib.sh release/addons/q/macos/libq.dylib"
+								],
+								"parallel": false
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"build-mac-steam": {
+							"executor": "nx:run-commands",
+							"options": {
+								"cwd": "packages/rust/q",
+								"commands": [
+									"cargo +nightly build -Z build-std=std,panic_abort  -Z unstable-options --features net-godot,steam --target aarch64-apple-darwin --artifact-dir dist/macos-steam --release",
+									"mkdir -p release/addons/q/macos",
+									"cp dist/macos-steam/*.dylib release/addons/q/macos/",
+									"cp $HOME/.cargo/registry/src/*/steamworks-sys-0.12.2/lib/steam/redistributable_bin/osx/libsteam_api.dylib release/addons/q/macos/",
+									"bash scripts/sign-dylib.sh release/addons/q/macos/libq.dylib",
+									"bash scripts/sign-dylib.sh release/addons/q/macos/libsteam_api.dylib"
+								],
+								"parallel": false
+							},
+							"configurations": {},
+							"parallelism": true
+						},
+						"deploy-mac-steam": {
+							"executor": "nx:run-commands",
+							"dependsOn": ["build-mac-steam"],
+							"options": {
+								"cwd": "packages/rust/q",
+								"commands": [
+									"mkdir -p ../../../apps/friendslop/godot-friendslop/addons/q/macos",
+									"cp dist/macos-steam/libq.dylib ../../../apps/friendslop/godot-friendslop/addons/q/macos/libq.dylib",
+									"cp $HOME/.cargo/registry/src/*/steamworks-sys-0.12.2/lib/steam/redistributable_bin/osx/libsteam_api.dylib ../../../apps/friendslop/godot-friendslop/addons/q/macos/libsteam_api.dylib",
+									"bash scripts/sign-dylib.sh ../../../apps/friendslop/godot-friendslop/addons/q/macos/libq.dylib",
+									"bash scripts/sign-dylib.sh ../../../apps/friendslop/godot-friendslop/addons/q/macos/libsteam_api.dylib"
 								],
 								"parallel": false
 							},
@@ -17301,18 +17593,7 @@
 			],
 			"bevy_statemachine": [],
 			"firecracker-node-web": [],
-			"axum-cryptothrone": [
-				{
-					"source": "axum-cryptothrone",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "axum-cryptothrone",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
+			"axum-cryptothrone": [],
 			"bevy_pathfinder": [],
 			"chisel-ubuntu-axum": [],
 			"axum-discordsh-e2e": [
@@ -17333,18 +17614,7 @@
 				}
 			],
 			"bevy_behavior": [],
-			"bevy_kbve_net": [
-				{
-					"source": "bevy_kbve_net",
-					"target": "bevy_npc",
-					"type": "static"
-				},
-				{
-					"source": "bevy_kbve_net",
-					"target": "bevy_tasker",
-					"type": "static"
-				}
-			],
+			"bevy_kbve_net": [],
 			"discordsh-bot-e2e": [
 				{
 					"source": "discordsh-bot-e2e",
@@ -17368,18 +17638,7 @@
 					"type": "implicit"
 				}
 			],
-			"cryptothrone-server": [
-				{
-					"source": "cryptothrone-server",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "cryptothrone-server",
-					"target": "simgrid",
-					"type": "static"
-				}
-			],
+			"cryptothrone-server": [],
 			"notification-bot": [],
 			"steamcmd-ubuntu": [],
 			"unreal-rentearth": [],
@@ -17402,66 +17661,20 @@
 					"type": "static"
 				}
 			],
-			"bevy_battle": [
-				{
-					"source": "bevy_battle",
-					"target": "bevy_behavior",
-					"type": "static"
-				}
-			],
+			"bevy_battle": [],
 			"bevy_player": [],
 			"bevy_quests": [],
-			"bevy_skills": [
-				{
-					"source": "bevy_skills",
-					"target": "bevy_items",
-					"type": "static"
-				}
-			],
+			"bevy_skills": [],
 			"bevy_spells": [],
 			"bevy_tasker": [],
 			"unreal-cleanroom": [],
 			"agones-palworld-savetool": [],
-			"axum-discordsh": [
-				{
-					"source": "axum-discordsh",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "axum-discordsh",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
-			"axum-rentearth": [
-				{
-					"source": "axum-rentearth",
-					"target": "jedi",
-					"type": "static"
-				}
-			],
-			"bevy_items": [
-				{
-					"source": "bevy_items",
-					"target": "bevy_inventory",
-					"type": "static"
-				}
-			],
+			"axum-discordsh": [],
+			"axum-rentearth": [],
+			"bevy_items": [],
 			"bevy_mapdb": [],
 			"esp32c6-display": [],
-			"friendslop-server": [
-				{
-					"source": "friendslop-server",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "friendslop-server",
-					"target": "q",
-					"type": "static"
-				}
-			],
+			"friendslop-server": [],
 			"astro-chuckrpg": [
 				{
 					"source": "astro-chuckrpg",
@@ -17512,73 +17725,7 @@
 					"type": "static"
 				}
 			],
-			"discordsh-bot": [
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_battle",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_behavior",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_chat",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_db",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_inventory",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_items",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_mapdb",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_npc",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_pathfinder",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_quests",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "bevy_skills",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "discordsh-bot",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
+			"discordsh-bot": [],
 			"discordsh-e2e": [
 				{
 					"source": "discordsh-e2e",
@@ -17593,32 +17740,9 @@
 			],
 			"embeddb-derive": [],
 			"unity-rareicon": [],
-			"axum-chuckrpg": [
-				{
-					"source": "axum-chuckrpg",
-					"target": "jedi",
-					"type": "static"
-				}
-			],
-			"axum-herbmail": [
-				{
-					"source": "axum-herbmail",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "axum-herbmail",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
-			"axum-rareicon": [
-				{
-					"source": "axum-rareicon",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
+			"axum-chuckrpg": [],
+			"axum-herbmail": [],
+			"axum-rareicon": [],
 			"bevy_cam": [],
 			"bevy_npc": [],
 			"firecracker-ctl-e2e": [
@@ -17635,23 +17759,7 @@
 					"type": "static"
 				}
 			],
-			"herbmail-server": [
-				{
-					"source": "herbmail-server",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "herbmail-server",
-					"target": "simbody3d",
-					"type": "static"
-				},
-				{
-					"source": "herbmail-server",
-					"target": "simgrid",
-					"type": "static"
-				}
-			],
+			"herbmail-server": [],
 			"kbve-react-native": [
 				{
 					"source": "kbve-react-native",
@@ -17686,28 +17794,10 @@
 					"type": "static"
 				}
 			],
-			"agones-factorio-relay": [
-				{
-					"source": "agones-factorio-relay",
-					"target": "jedi",
-					"type": "static"
-				}
-			],
-			"agones-palworld-relay": [
-				{
-					"source": "agones-palworld-relay",
-					"target": "jedi",
-					"type": "static"
-				}
-			],
+			"agones-factorio-relay": [],
+			"agones-palworld-relay": [],
 			"arc-runner": [],
-			"bevy_db": [
-				{
-					"source": "bevy_db",
-					"target": "bevy_tasker",
-					"type": "static"
-				}
-			],
+			"bevy_db": [],
 			"herbmail-e2e": [
 				{
 					"source": "herbmail-e2e",
@@ -17750,28 +17840,7 @@
 					"type": "implicit"
 				}
 			],
-			"uniti": [
-				{
-					"source": "uniti",
-					"target": "bevy_battle",
-					"type": "static"
-				},
-				{
-					"source": "uniti",
-					"target": "bevy_inventory",
-					"type": "static"
-				},
-				{
-					"source": "uniti",
-					"target": "bevy_pathfinder",
-					"type": "static"
-				},
-				{
-					"source": "uniti",
-					"target": "bevy_skills",
-					"type": "static"
-				}
-			],
+			"uniti": [],
 			"aria2-proxy-e2e": [
 				{
 					"source": "aria2-proxy-e2e",
@@ -17779,33 +17848,7 @@
 					"type": "implicit"
 				}
 			],
-			"arpg-server": [
-				{
-					"source": "arpg-server",
-					"target": "bevy_items",
-					"type": "static"
-				},
-				{
-					"source": "arpg-server",
-					"target": "bevy_mapdb",
-					"type": "static"
-				},
-				{
-					"source": "arpg-server",
-					"target": "bevy_spells",
-					"type": "static"
-				},
-				{
-					"source": "arpg-server",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "arpg-server",
-					"target": "simgrid",
-					"type": "static"
-				}
-			],
+			"arpg-server": [],
 			"axum-kbve-e2e": [
 				{
 					"source": "axum-kbve-e2e",
@@ -17830,13 +17873,7 @@
 					"type": "dynamic"
 				}
 			],
-			"firecracker-ctl": [
-				{
-					"source": "firecracker-ctl",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
+			"firecracker-ctl": [],
 			"iot-edge-worker": [],
 			"kbve_wgpu": [],
 			"khashvault": [
@@ -17918,25 +17955,8 @@
 					"type": "static"
 				}
 			],
-			"axum-memes": [
-				{
-					"source": "axum-memes",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "axum-memes",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
-			"embeddb": [
-				{
-					"source": "embeddb",
-					"target": "embeddb-derive",
-					"type": "static"
-				}
-			],
+			"axum-memes": [],
+			"embeddb": [],
 			"rn-astro": [
 				{
 					"source": "rn-astro",
@@ -17951,13 +17971,7 @@
 					"type": "static"
 				}
 			],
-			"simgrid": [
-				{
-					"source": "simgrid",
-					"target": "bevy_spells",
-					"type": "static"
-				}
-			],
+			"simgrid": [],
 			"agones-factorio": [],
 			"agones-palworld": [],
 			"agones-tocloud9": [],
@@ -18010,30 +18024,8 @@
 					"type": "static"
 				}
 			],
-			"factorio-ctl": [
-				{
-					"source": "factorio-ctl",
-					"target": "jedi",
-					"type": "static"
-				}
-			],
-			"irc-gateway": [
-				{
-					"source": "irc-gateway",
-					"target": "bevy_chat",
-					"type": "static"
-				},
-				{
-					"source": "irc-gateway",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "irc-gateway",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
+			"factorio-ctl": [],
+			"irc-gateway": [],
 			"memes-e2e": [
 				{
 					"source": "memes-e2e",
@@ -18048,60 +18040,12 @@
 			],
 			"python-kbve": [],
 			"aria2-proxy": [],
-			"axum-kbve": [
-				{
-					"source": "axum-kbve",
-					"target": "bevy_chat",
-					"type": "static"
-				},
-				{
-					"source": "axum-kbve",
-					"target": "bevy_inventory",
-					"type": "static"
-				},
-				{
-					"source": "axum-kbve",
-					"target": "bevy_items",
-					"type": "static"
-				},
-				{
-					"source": "axum-kbve",
-					"target": "bevy_kbve_net",
-					"type": "static"
-				},
-				{
-					"source": "axum-kbve",
-					"target": "bevy_skills",
-					"type": "static"
-				},
-				{
-					"source": "axum-kbve",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "axum-kbve",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
+			"axum-kbve": [],
 			"data-proto": [],
 			"devops": [],
-			"erust": [
-				{
-					"source": "erust",
-					"target": "holy",
-					"type": "static"
-				}
-			],
+			"erust": [],
 			"isometric": [],
-			"kbve-gate": [
-				{
-					"source": "kbve-gate",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
+			"kbve-gate": [],
 			"kubectl-e2e": [
 				{
 					"source": "kubectl-e2e",
@@ -18155,18 +18099,7 @@
 			],
 			"holy": [],
 			"jedi": [],
-			"kbve": [
-				{
-					"source": "kbve",
-					"target": "holy",
-					"type": "static"
-				},
-				{
-					"source": "kbve",
-					"target": "jedi",
-					"type": "static"
-				}
-			],
+			"kbve": [],
 			"kbve-tauri": [],
 			"kilobase": [],
 			"laser": [],
@@ -18174,6 +18107,7 @@
 			"core": [],
 			"cryptothrone": [],
 			"data-sql": [],
+			"agones-shim": [],
 			"angelscript": [],
 			"arpg": [],
 			"irc-e2e": [
@@ -18213,11 +18147,6 @@
 			"jobboard": [
 				{
 					"source": "jobboard",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "jobboard",
 					"target": "rn",
 					"type": "static"
 				},
@@ -18238,32 +18167,10 @@
 				}
 			],
 			"mc-lobby": [],
-			"met": [
-				{
-					"source": "met",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "met",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
+			"met": [],
 			"pydesk": [],
 			"memes": [],
-			"rows": [
-				{
-					"source": "rows",
-					"target": "jedi",
-					"type": "static"
-				},
-				{
-					"source": "rows",
-					"target": "kbve",
-					"type": "static"
-				}
-			],
+			"rows": [],
 			"irc": [],
 			"mc": [],
 			"@kbve/source": [

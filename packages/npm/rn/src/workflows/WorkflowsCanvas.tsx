@@ -15,6 +15,7 @@ import {
 	type Viewport,
 } from './geometry';
 import { invokeNode, type ServiceConfig } from './workflowsService';
+import { WORKFLOWS } from './constants';
 import { NodeCard } from './NodeCard';
 
 export function WorkflowsCanvas({ config }: { config: ServiceConfig }) {
@@ -37,13 +38,16 @@ export function WorkflowsCanvas({ config }: { config: ServiceConfig }) {
 
 	if (state.order.length === 0) {
 		store.addNode({ backend: 'edge', ref: 'health', x: 40, y: 40 });
-		store.addNode({
-			backend: 'windmill',
-			ref: 'u/admin/hello',
-			x: 260,
-			y: 40,
+		store.addNode({ backend: 'firecracker', ref: 'ping', x: 40, y: 180 });
+		WORKFLOWS.forEach((w, i) => {
+			store.addNode({
+				backend: w.backend,
+				ref: w.path,
+				label: w.label,
+				x: 300,
+				y: 40 + i * 140,
+			});
 		});
-		store.addNode({ backend: 'firecracker', ref: 'ping', x: 150, y: 180 });
 	}
 
 	const nodes = store.nodes();
