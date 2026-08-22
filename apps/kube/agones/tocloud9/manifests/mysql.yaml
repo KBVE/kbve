@@ -75,6 +75,16 @@ spec:
                       # handful of shards -- and it fails as connection refused
                       # during a rollout, which reads like a network fault.
                       - --max-connections=500
+                      # From the mod-playerbots installation guide, which pairs
+                      # these with the buffer pool above for bot-heavy servers.
+                      # MySQL defaults io_capacity to 200, sized for a spinning
+                      # disk; this cluster is on Longhorn-backed SSD and a few
+                      # hundred bots write position, inventory and quest state
+                      # continuously, so the default throttles background flush
+                      # and lets the redo log back up under exactly the load we
+                      # are about to add.
+                      - --innodb-io-capacity=500
+                      - --innodb-io-capacity-max=2500
                   env:
                       - name: MYSQL_ROOT_PASSWORD
                         valueFrom:

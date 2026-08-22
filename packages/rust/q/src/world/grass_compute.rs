@@ -54,8 +54,11 @@ shared uint base_far;
 
 const float GROUND_QUAD = 2.0;
 
+const float OCCL_START = %OCCL_START%;
+const float OCCL_MARGIN = %OCCL_MARGIN%;
+
 float terrain_h(vec2 xz) {
-    vec2 uv = clamp((xz + pc.terra.x) / (pc.terra.x * 2.0), 0.001, 0.999);
+    vec2 uv = clamp((xz - pc.terra.zw + pc.terra.x) / (pc.terra.x * 2.0), 0.001, 0.999);
     return textureLod(heightmap, uv, 0.0).r;
 }
 
@@ -69,7 +72,7 @@ float mesh_h(vec2 xz) {
 }
 
 float clearance_at(vec2 xz) {
-    vec2 uv = clamp((xz + pc.terra.x) / (pc.terra.x * 2.0), 0.001, 0.999);
+    vec2 uv = clamp((xz - pc.terra.zw + pc.terra.x) / (pc.terra.x * 2.0), 0.001, 0.999);
     return textureLod(clearance, uv, 0.0).r;
 }
 
@@ -123,11 +126,11 @@ void main() {
                 && rank < 1.0 - clearance_at(vec2(wx, wz))
                 && !(outside(pc.p0, pos) || outside(pc.p1, pos) || outside(pc.p2, pos)
                     || outside(pc.p3, pos));
-            if (alive && d > pc.terra.z) {
+            if (alive && d > OCCL_START) {
                 vec3 tip = vec3(wx, h + 1.4, wz);
                 for (int i = 1; i <= 8; i++) {
                     vec3 p = mix(tip, pc.cam.xyz, pow(float(i) / 9.0, 1.5));
-                    if (terrain_h(p.xz) > p.y + pc.terra.w) {
+                    if (terrain_h(p.xz) > p.y + OCCL_MARGIN) {
                         alive = false;
                         break;
                     }
@@ -238,6 +241,7 @@ layout(push_constant, std430) uniform Params {
     vec4 p1;
     vec4 p2;
     vec4 p3;
+    vec4 terra;
 } pc;
 
 const float BLADE_RANGE = %BLADE_RANGE%;
@@ -259,7 +263,7 @@ shared uint base_slot;
 const float GROUND_QUAD = 2.0;
 
 float terrain_h(vec2 xz) {
-    vec2 uv = clamp((xz + EXTENT) / (EXTENT * 2.0), 0.001, 0.999);
+    vec2 uv = clamp((xz - pc.terra.xy + EXTENT) / (EXTENT * 2.0), 0.001, 0.999);
     return textureLod(heightmap, uv, 0.0).r;
 }
 
@@ -273,7 +277,7 @@ float mesh_h(vec2 xz) {
 }
 
 float clearance_at(vec2 xz) {
-    vec2 uv = clamp((xz + EXTENT) / (EXTENT * 2.0), 0.001, 0.999);
+    vec2 uv = clamp((xz - pc.terra.xy + EXTENT) / (EXTENT * 2.0), 0.001, 0.999);
     return textureLod(clearance, uv, 0.0).r;
 }
 
@@ -447,6 +451,7 @@ pub struct BladeCompute {
     sampler: Rid,
     terrain_extent: f32,
     water_level: f32,
+    terrain_origin: Vector2,
 }
 
 fn compile(rd: &mut Gd<RenderingDevice>, src: &str) -> Option<Rid> {
@@ -504,7 +509,18 @@ impl BladeCompute {
         sampler_state.set_repeat_u(SamplerRepeatMode::CLAMP_TO_EDGE);
         sampler_state.set_repeat_v(SamplerRepeatMode::CLAMP_TO_EDGE);
         let sampler = rd.sampler_create(&sampler_state);
-        let cull_shader = compile(&mut rd, CULL_GLSL)?;
+        let occl_on = occlusion_enabled();
+        let cull_src = bake(
+            CULL_GLSL,
+            &[
+                (
+                    "%OCCL_START%",
+                    glsl_f(if occl_on { OCCLUSION_START } else { 1.0e9 }),
+                ),
+                ("%OCCL_MARGIN%", glsl_f(OCCLUSION_MARGIN)),
+            ],
+        );
+        let cull_shader = compile(&mut rd, &cull_src)?;
         let resolve_shader = compile(&mut rd, RESOLVE_GLSL)?;
         let cull_pipeline = rd.compute_pipeline_create(cull_shader);
         let resolve_pipeline = rd.compute_pipeline_create(resolve_shader);
@@ -577,6 +593,7 @@ impl BladeCompute {
             sampler,
             terrain_extent,
             water_level,
+            terrain_origin: Vector2::ZERO,
         })
     }
 
@@ -695,12 +712,8 @@ impl BladeCompute {
         pc[27] = lod_mid;
         pc[28] = self.terrain_extent;
         pc[29] = self.water_level;
-        pc[30] = if occlusion_enabled() {
-            OCCLUSION_START
-        } else {
-            1.0e9
-        };
-        pc[31] = OCCLUSION_MARGIN;
+        pc[30] = self.terrain_origin.x;
+        pc[31] = self.terrain_origin.y;
         let pc_bytes = PackedFloat32Array::from(&pc[..]).to_byte_array();
         let caps_bytes = PackedFloat32Array::from(&pc[24..28]).to_byte_array();
         let cl = self.rd.compute_list_begin();
@@ -722,6 +735,12 @@ impl BladeCompute {
             .compute_list_set_push_constant(cl, &caps_bytes, caps_bytes.len() as u32);
         self.rd.compute_list_dispatch(cl, 1, 1, 1);
         self.rd.compute_list_end();
+    }
+
+    /// Where the terrain's baked window sits, so the kernel can turn a world
+    /// position into a heightmap texel.
+    pub fn set_terrain_origin(&mut self, origin: Vector2) {
+        self.terrain_origin = origin;
     }
 
     pub fn set_visible(&mut self, visible: bool) {
@@ -785,6 +804,7 @@ pub struct CardCompute {
     clearance_tex: Rid,
     sampler: Rid,
     zero_counter: PackedByteArray,
+    terrain_origin: Vector2,
 }
 
 impl CardCompute {
@@ -882,6 +902,7 @@ impl CardCompute {
             clearance_tex,
             sampler,
             zero_counter,
+            terrain_origin: Vector2::ZERO,
         })
     }
 
@@ -948,13 +969,18 @@ impl CardCompute {
             .buffer_update(self.cells_buf, 0, bytes.len() as u32, &bytes);
     }
 
+    /// See [`BladeCompute::set_terrain_origin`].
+    pub fn set_terrain_origin(&mut self, origin: Vector2) {
+        self.terrain_origin = origin;
+    }
+
     pub fn dispatch(&mut self, cam_pos: Vector3, planes: &[Plane; 4]) {
         if !self.online() {
             return;
         }
         self.rd
             .buffer_update(self.counter_buf, 0, 4, &self.zero_counter);
-        let mut pc = [0.0f32; 20];
+        let mut pc = [0.0f32; 24];
         pc[0] = cam_pos.x;
         pc[1] = cam_pos.y;
         pc[2] = cam_pos.z;
@@ -966,6 +992,8 @@ impl CardCompute {
             pc[o + 2] = p.normal.z;
             pc[o + 3] = p.d;
         }
+        pc[20] = self.terrain_origin.x;
+        pc[21] = self.terrain_origin.y;
         let pc_bytes = PackedFloat32Array::from(&pc[..]).to_byte_array();
         let cl = self.rd.compute_list_begin();
         if self.cell_count > 0 {

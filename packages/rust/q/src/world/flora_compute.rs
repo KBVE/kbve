@@ -34,6 +34,7 @@ const float BAND0 = %BAND0%;
 const float BAND1 = %BAND1%;
 const float BAND_OUT = %BAND_OUT%;
 const float EXTENT = %EXTENT%;
+const vec2 ORIGIN = vec2(%ORIGIN_X%, %ORIGIN_Z%);
 const int HRES = %HRES%;
 const float OCCL_START = %OCCL_START%;
 const int OCCL_STEPS = %OCCL_STEPS%;
@@ -48,7 +49,7 @@ bool outside(vec4 plane, vec3 pos, float m) {
 }
 
 float terrain_at(vec2 p) {
-    vec2 uv = clamp((p + EXTENT) / (EXTENT * 2.0), 0.0, 1.0) * float(HRES - 1);
+    vec2 uv = clamp((p - ORIGIN + EXTENT) / (EXTENT * 2.0), 0.0, 1.0) * float(HRES - 1);
     ivec2 i0 = ivec2(uv);
     ivec2 i1 = min(i0 + 1, ivec2(HRES - 1));
     vec2 f = fract(uv);
@@ -256,17 +257,20 @@ pub struct TerrainOcclusion {
     pub heights: Vec<f32>,
     pub res: i32,
     pub extent: f32,
+    /// Middle of the window the heights were baked for.
+    pub origin: [f32; 2],
     pub start: f32,
     pub steps: i32,
     pub bias: f32,
 }
 
 impl TerrainOcclusion {
-    pub fn new(heights: &[f32], res: i32, extent: f32, start: f32) -> Self {
+    pub fn new(heights: &[f32], res: i32, extent: f32, origin: [f32; 2], start: f32) -> Self {
         Self {
             heights: heights.to_vec(),
             res,
             extent,
+            origin,
             start,
             steps: 12,
             bias: 0.75,
@@ -278,6 +282,7 @@ impl TerrainOcclusion {
             heights: Vec::new(),
             res: 0,
             extent: 1.0,
+            origin: [0.0, 0.0],
             start: 0.0,
             steps: 0,
             bias: 0.0,
@@ -381,6 +386,8 @@ impl FloraCompute {
                 if growth_on { "1.0" } else { "0.0" }.to_string(),
             ),
             ("%EXTENT%", format!("{:.6}", terrain.extent.max(1.0))),
+            ("%ORIGIN_X%", format!("{:.6}", terrain.origin[0])),
+            ("%ORIGIN_Z%", format!("{:.6}", terrain.origin[1])),
             ("%HRES%", terrain.res().to_string()),
             ("%OCCL_START%", format!("{:.6}", terrain.start)),
             ("%OCCL_STEPS%", terrain.steps().to_string()),

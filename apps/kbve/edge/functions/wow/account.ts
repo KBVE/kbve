@@ -5,7 +5,6 @@ import {
   normalizeUsername,
   requireUserToken,
   validateHex32,
-  validateUsername,
   type WowRequest,
 } from "./_shared.ts";
 import { safeRpcError } from "../_shared/validators.ts";
@@ -22,28 +21,42 @@ import { logError } from "../_shared/logging.ts";
 //
 // Actions:
 //   status        — read the caller's game account row
-//   create        — claim a username, then write acore_auth.account
+//   reserve       — claim the derived game username, return what was taken
+//   provision     — write acore_auth.account for a reserved name
 //   set_password  — replace the SRP6 credential on a live account
 //   release       — drop a claim that never finished provisioning
 //
-// The password never appears here. The browser derives the SRP6 salt and
-// verifier locally and posts only those, which is exactly what the auth
-// server stores, so a compromised edge worker still cannot learn a password.
+// The name is never supplied by the client. It is derived server-side from
+// profile.username, and reserve returns the name that was actually taken —
+// which may carry a collision suffix. That ordering is not cosmetic: SRP6
+// hashes UPPER(name):UPPER(password), so a client that hashed against a
+// guessed name would produce a verifier the auth server can never validate.
 //
-// create is claim-then-write across two databases with no shared transaction.
-// The ordering is chosen so the recoverable failure is the likely one: a
-// Postgres claim with no MySQL row can be released and retried, whereas a
-// MySQL row with no claim would be an orphaned game account nothing owns.
+// The password never appears here either. The browser derives the salt and
+// verifier locally and posts only those, which is exactly what the auth server
+// stores, so a compromised edge worker still cannot learn a password.
+//
+// provision is claim-then-write across two databases with no shared
+// transaction. The ordering is chosen so the recoverable failure is the likely
+// one: a Postgres claim with no MySQL row can be released and retried, whereas
+// a MySQL row with no claim would be an orphaned game account nothing owns.
 // ---------------------------------------------------------------------------
 
 type Handler = (wowReq: WowRequest) => Promise<Response>;
 
 interface AccountRow {
-  username: string;
-  status: number;
+  username: string | null;
+  suggested_username: string;
+  status: number | null;
   is_provisioned: boolean;
   provisioned_at: string | null;
-  created_at: string;
+  created_at: string | null;
+}
+
+interface ClaimRow {
+  username: string;
+  status: number;
+  was_created: boolean;
 }
 
 async function readAccount(
@@ -56,94 +69,127 @@ async function readAccount(
   return rows.length > 0 ? rows[0] : null;
 }
 
+function requireProvisioning(): Response | null {
+  if (isConfigured()) return null;
+  return jsonResponse(
+    { error: "Game account provisioning is not configured" },
+    503,
+  );
+}
+
 const handlers: Record<string, Handler> = {
   async status({ claims, token }) {
     const denied = requireUserToken(claims);
     if (denied) return denied;
 
-    const account = await readAccount(token);
-    if (account instanceof Response) return account;
+    const row = await readAccount(token);
+    if (row instanceof Response) return row;
 
-    return jsonResponse({ found: account !== null, account });
+    // No row at all means no KBVE username, which is a different problem from
+    // having no game account — there is nothing to derive a name from yet.
+    if (row === null) {
+      return jsonResponse({
+        found: false,
+        needs_kbve_username: true,
+        account: null,
+        suggested_username: null,
+      });
+    }
+
+    return jsonResponse({
+      found: row.username !== null,
+      needs_kbve_username: false,
+      account: row.username === null ? null : row,
+      suggested_username: row.suggested_username,
+    });
   },
 
-  async create({ claims, body }) {
+  async reserve({ claims }) {
     const denied = requireUserToken(claims);
     if (denied) return denied;
 
-    if (!isConfigured()) {
-      return jsonResponse(
-        { error: "Game account provisioning is not configured" },
-        503,
-      );
-    }
-
-    const nameErr = validateUsername(body.username);
-    if (nameErr) return nameErr;
-    const saltErr = validateHex32(body.salt, "salt");
-    if (saltErr) return saltErr;
-    const verifierErr = validateHex32(body.verifier, "verifier");
-    if (verifierErr) return verifierErr;
-
-    const username = normalizeUsername(body.username)!;
-    const salt = (body.salt as string).toUpperCase();
-    const verifier = (body.verifier as string).toUpperCase();
-    const userId = claims.sub;
+    const unconfigured = requireProvisioning();
+    if (unconfigured) return unconfigured;
 
     const service = createServiceClient();
     const { data, error } = await service.rpc("service_claim_wow_account", {
-      p_user_id: userId,
-      p_username: username,
+      p_user_id: claims.sub,
     });
     if (error) return safeRpcError(error, "service_claim_wow_account");
 
-    const claim = ((data ?? []) as {
-      username: string;
-      status: number;
-      was_created: boolean;
-    }[])[0];
+    const claim = ((data ?? []) as ClaimRow[])[0];
     if (!claim) {
       return jsonResponse({ error: "Claim did not return a row" }, 500);
-    }
-
-    // Already live. Re-running create must not touch the existing credential —
-    // that is what set_password is for.
-    if (claim.status === 1) {
-      return jsonResponse(
-        { error: "You already have a game account", username: claim.username },
-        409,
-      );
     }
     if (claim.status === 2) {
       return jsonResponse({ error: "This game account is disabled" }, 403);
     }
 
-    // A claim already exists under a different name. Provisioning it now would
-    // hand the user an account they did not ask for, so surface the reserved
-    // name and let them either keep it or release it first.
-    if (!claim.was_created && claim.username !== username) {
+    return jsonResponse({
+      username: claim.username,
+      // Already live. The caller must not overwrite the credential through
+      // provision — set_password is the path for that.
+      provisioned: claim.status === 1,
+    });
+  },
+
+  async provision({ claims, token, body }) {
+    const denied = requireUserToken(claims);
+    if (denied) return denied;
+
+    const unconfigured = requireProvisioning();
+    if (unconfigured) return unconfigured;
+
+    const saltErr = validateHex32(body.salt, "salt");
+    if (saltErr) return saltErr;
+    const verifierErr = validateHex32(body.verifier, "verifier");
+    if (verifierErr) return verifierErr;
+
+    const row = await readAccount(token);
+    if (row instanceof Response) return row;
+    if (!row || row.username === null) {
       return jsonResponse(
-        {
-          error:
-            `You already reserved the name ${claim.username}. Release it before choosing another.`,
-          username: claim.username,
-        },
+        { error: "Reserve a game username before provisioning" },
         409,
       );
     }
+    if (row.status === 1) {
+      return jsonResponse(
+        { error: "You already have a game account", username: row.username },
+        409,
+      );
+    }
+    if (row.status === 2) {
+      return jsonResponse({ error: "This game account is disabled" }, 403);
+    }
 
-    // status 0 covers both a fresh claim and a retry after a failed write. The
-    // credential posted now wins in either case, since nothing has used the
-    // earlier one to log in.
+    // The name comes from the ledger, never from the request. A caller that
+    // hashed against something else gets an account it cannot log into, but it
+    // cannot touch anyone else's row.
+    const username = normalizeUsername(row.username);
+    if (!username) {
+      return jsonResponse({ error: "Reserved game username is invalid" }, 500);
+    }
+
+    const userId = claims.sub;
+    const service = createServiceClient();
+
     try {
-      await createAccount(claim.username, salt, verifier);
+      await createAccount(
+        username,
+        (body.salt as string).toUpperCase(),
+        (body.verifier as string).toUpperCase(),
+      );
     } catch (err) {
       if (err instanceof UsernameTakenError) {
         // MySQL holds the name but Postgres does not — the two got out of sync,
-        // or someone made the account outside this flow. Free our claim so the
-        // user can pick a different name.
+        // or the account was made outside this flow. Free the claim so the next
+        // reserve derives a suffixed name instead of retrying into the same wall.
         await service.rpc("service_release_wow_claim", { p_user_id: userId });
-        return jsonResponse({ error: "Game username already taken" }, 409);
+        return jsonResponse(
+          { error: "That game name is already taken — try again" },
+          409,
+        );
       }
       logError("wow", err);
       await service.rpc("service_release_wow_claim", { p_user_id: userId });
@@ -163,34 +209,28 @@ const handlers: Record<string, Handler> = {
       logError("wow", markErr);
     }
 
-    return jsonResponse({ success: true, username: claim.username });
+    return jsonResponse({ success: true, username });
   },
 
   async set_password({ claims, token, body }) {
     const denied = requireUserToken(claims);
     if (denied) return denied;
 
-    if (!isConfigured()) {
-      return jsonResponse(
-        { error: "Game account provisioning is not configured" },
-        503,
-      );
-    }
+    const unconfigured = requireProvisioning();
+    if (unconfigured) return unconfigured;
 
     const saltErr = validateHex32(body.salt, "salt");
     if (saltErr) return saltErr;
     const verifierErr = validateHex32(body.verifier, "verifier");
     if (verifierErr) return verifierErr;
 
-    const account = await readAccount(token);
-    if (account instanceof Response) return account;
-    if (!account || !account.is_provisioned) {
+    const row = await readAccount(token);
+    if (row instanceof Response) return row;
+    if (!row || !row.is_provisioned || row.username === null) {
       return jsonResponse({ error: "No provisioned game account" }, 404);
     }
 
-    // The name comes from the ledger, never from the request, so a caller
-    // cannot rewrite someone else's credential by naming their account.
-    const username = normalizeUsername(account.username);
+    const username = normalizeUsername(row.username);
     if (!username) {
       return jsonResponse({ error: "Stored game username is invalid" }, 500);
     }

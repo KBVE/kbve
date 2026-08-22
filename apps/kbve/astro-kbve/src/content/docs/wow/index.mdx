@@ -39,7 +39,7 @@ export const stats = [
 ];
 
 export const steps = [
-	{ n: '01', title: 'Create a game account', desc: 'Sign in to KBVE and pick a game username and password below. The password is turned into an SRP6 verifier in your browser — the plaintext never leaves the device.', icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM19 8v6M22 11h-6' },
+	{ n: '01', title: 'Create a game account', desc: 'Sign in to KBVE and pick a password below. The account name is your KBVE username; the password is turned into an SRP6 verifier in your browser, so the plaintext never leaves the device.', icon: 'M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM19 8v6M22 11h-6' },
 	{ n: '02', title: 'Point your client', desc: 'Open Data/enUS/realmlist.wtf in your 3.3.5a install and replace its contents with set realmlist tocloud9.kbve.com — one line, nothing else.', icon: 'M4 17l6-6-6-6M12 19h8' },
 	{ n: '03', title: 'Log in', desc: 'Launch Wow.exe and sign in with the game username and password from step 1 — not your KBVE credentials. The realm is named KBVE.', icon: 'M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4M10 17l5-5-5-5M15 12H3' },
 	{ n: '04', title: 'Roll a character', desc: 'Every class and race through Wrath of the Lich King is open. Character data lives on the ToCloud9 charserver, so your roster follows you across gateway restarts.', icon: 'M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zM2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z' },
@@ -49,7 +49,7 @@ export const features = [
 	{ n: '01', title: 'ToCloud9, not vanilla AzerothCore', desc: 'The realm runs on ToCloud9 — a sharded fork that splits the monolith into authserver, gateway, world, chat, mail and character services so pieces can roll independently.', icon: 'M18 10h-1.26A8 8 0 1 0 9 20h9a5 5 0 0 0 0-10z' },
 	{ n: '02', title: 'Gateways roll without downtime', desc: 'Realms report as online based on live gateway registration, not a static row, so a gateway can be replaced under load without stranding the realm list.', icon: 'M23 4v6h-6M1 20v-6h6M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15' },
 	{ n: '03', title: 'Custom modules', desc: 'Vendored AzerothCore modules ship with the worldserver — rent-a-mount gates rentals on level and riding skill, and the underbarrel bootlegger adds its own vendor loop.', icon: 'M12 2 2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5' },
-	{ n: '04', title: 'One game account per KBVE account', desc: 'The link is keyed on your auth UUID, so changing your email keeps the game account. Usernames are reserved before the game database is touched and freed again if that write fails.', icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' },
+	{ n: '04', title: 'One game account per KBVE account', desc: 'The name is derived from your KBVE username and the link is keyed on your auth UUID, so changing your email keeps the account. Names are reserved before the game database is touched and freed again if that write fails.', icon: 'M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z' },
 ];
 
 export const related = [
@@ -112,7 +112,13 @@ export const related = [
 	<div class="bento-board bento-board--cols-2">
 		<AstroWowAccount />
 		<div class="bento-cell bento-card bento-card--glass wow-howto">
-			<h3 class="bento-rulecard__title">Why a second password</h3>
+			<h3 class="bento-rulecard__title">Your name, one password</h3>
+			<p class="bento-rulecard__desc">
+				The account name is not something you pick — it is your KBVE
+				username, uppercased and cut to the 16 characters the 3.3.5a
+				login box accepts. Two accounts that shorten to the same name
+				can't both have it, so the later one picks up a number.
+			</p>
 			<p class="bento-rulecard__desc">
 				The 3.3.5a client authenticates with SRP6, so the realm stores a
 				salt and a verifier rather than anything reversible. Your browser

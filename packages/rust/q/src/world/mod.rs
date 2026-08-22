@@ -331,9 +331,65 @@ impl Drop for ReadyTimer {
     }
 }
 
+/// Where a world position lands inside the terrain's baked window, as the 0..1
+/// pair the heightmap and every map cut from it are indexed by.
+pub(crate) fn window_uv(x: f32, z: f32, origin: Vector2, extent: f32) -> (f32, f32) {
+    let e = extent.max(1.0);
+    (
+        (x - origin.x + e) / (e * 2.0),
+        (z - origin.y + e) / (e * 2.0),
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    /// The middle of the window is the middle of the map it bakes, wherever it stands.
+    #[test]
+    fn the_centre_of_the_window_is_the_centre_of_the_map() {
+        for origin in [
+            Vector2::ZERO,
+            Vector2::new(128.0, -64.0),
+            Vector2::new(-4096.0, 2048.0),
+        ] {
+            let (u, v) = window_uv(origin.x, origin.y, origin, 256.0);
+            assert!(
+                (u - 0.5).abs() < 1e-4 && (v - 0.5).abs() < 1e-4,
+                "window at {origin:?} sampled {u},{v}"
+            );
+        }
+    }
+
+    /// A point that travels with the window keeps the texel it started on.
+    #[test]
+    fn a_point_that_travels_with_the_window_keeps_its_texel() {
+        let extent = 256.0;
+        let here = window_uv(10.0, -20.0, Vector2::ZERO, extent);
+        let there = window_uv(
+            10.0 + 512.0,
+            -20.0 + 512.0,
+            Vector2::new(512.0, 512.0),
+            extent,
+        );
+        assert!(
+            (here.0 - there.0).abs() < 1e-4 && (here.1 - there.1).abs() < 1e-4,
+            "{here:?} != {there:?}"
+        );
+    }
+
+    /// Dropping the origin reads a moved window's own centre from the map's edge.
+    #[test]
+    fn ignoring_the_window_misreads_the_ground() {
+        let extent = 256.0;
+        let origin = Vector2::new(512.0, 0.0);
+        let (u, _) = window_uv(origin.x, origin.y, origin, extent);
+        let naive = (origin.x + extent) / (extent * 2.0);
+        assert!(
+            (u - naive).abs() > 0.5,
+            "the origin has to change the answer, or it is not being used"
+        );
+    }
 
     /// The property a walkable world rests on: ground generated from two
     /// different windows has to come out the same, or leaving and returning

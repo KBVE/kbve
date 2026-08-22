@@ -218,6 +218,8 @@ pub struct QTreeField {
     terrain_path: NodePath,
     #[export]
     player_path: NodePath,
+    /// Set while a replacement scatter is planned and the standing one is still drawn.
+    swap_pending: bool,
     /// Off-thread sim to mirror the trunk colliders into. Godot keeps its own copy
     /// either way -- the mantle and camera probes raycast against it.
     #[export]
@@ -353,15 +355,23 @@ impl QTreeField {
         for (id, stage) in damage {
             self.ledger.record(id, stage);
         }
-        self.free_all();
+        self.swap_pending = true;
         self.candidates.clear();
         self.cand_ids.clear();
-        self.instance_of.clear();
+        self.init_done = false;
+    }
+
+    /// Drops what the previous scatter still draws, once its replacement can take over.
+    fn retire_scatter(&mut self) {
+        if !self.swap_pending {
+            return;
+        }
+        self.swap_pending = false;
+        self.free_computes();
         self.meshes.clear();
         self.mesh_tris.clear();
         self.leaf_mats.clear();
         self.bark_mats.clear();
-        self.init_done = false;
     }
 
     fn late_init(&mut self) -> bool {
@@ -481,6 +491,7 @@ impl QTreeField {
         // the world.
         let aabb = world_aabb_at(extent, terra.origin);
         let (occl_h, occl_res) = terra.raw_heights();
+        let occl_origin = [terra.origin.x, terra.origin.y];
 
         let i = next;
         let sp = &SPECIES[i];
@@ -502,6 +513,7 @@ impl QTreeField {
         }
         if cands.is_empty() {
             if next + 1 >= SPECIES.len() {
+                self.retire_scatter();
                 self.stage = None;
                 if self.computes.is_empty() {
                     crate::q_error!(
@@ -554,7 +566,7 @@ impl QTreeField {
             growth_on: true,
             shadows: true,
             surfaces: 2,
-            terrain: TerrainOcclusion::new(occl_h, occl_res, extent, 25.0),
+            terrain: TerrainOcclusion::new(occl_h, occl_res, extent, occl_origin, 25.0),
             pass: HarvestPass::Standing,
         });
         let far_c = FloraCompute::new(FloraComputeParams {
@@ -575,7 +587,7 @@ impl QTreeField {
             growth_on: true,
             shadows: false,
             surfaces: 2,
-            terrain: TerrainOcclusion::new(occl_h, occl_res, extent, 25.0),
+            terrain: TerrainOcclusion::new(occl_h, occl_res, extent, occl_origin, 25.0),
             pass: HarvestPass::Standing,
         });
         let stump_c = FloraCompute::new(FloraComputeParams {
@@ -592,11 +604,12 @@ impl QTreeField {
             growth_on: false,
             shadows: true,
             surfaces: 1,
-            terrain: TerrainOcclusion::new(occl_h, occl_res, extent, 25.0),
+            terrain: TerrainOcclusion::new(occl_h, occl_res, extent, occl_origin, 25.0),
             pass: HarvestPass::Remains,
         });
         match (near_c, far_c, stump_c) {
             (Some(n), Some(f), Some(s)) => {
+                self.retire_scatter();
                 let base = self.computes.len() as u32;
                 for (slot, id) in ids.iter().enumerate() {
                     self.instance_of.insert(*id, (base, slot as u32));
@@ -1239,6 +1252,7 @@ impl QTreeField {
     }
 
     fn free_all(&mut self) {
+        self.swap_pending = false;
         self.free_computes();
         self.free_colliders();
         self.free_falling();
