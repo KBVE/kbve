@@ -367,23 +367,32 @@ spec:
                           image: ghcr.io/kbve/agones-shim:0.0.2
                           imagePullPolicy: IfNotPresent
                           env:
-                            # An HTTP 200 here means libsidecar is up, which happens within
-                            # milliseconds of registration with servers-registry and well after
-                            # the world socket binds. That is 'registered and routable' -- a
-                            # stronger signal than the socket check this replaces, which marked
-                            # the server Ready while the gateway still could not route to it.
-                            - name: AGONES_SHIM_READY_HTTP
-                              value: 'http://127.0.0.1:8901/healthcheck'
-                            - name: AGONES_SHIM_LIVE_TCP
-                              value: '8085'
-                            # active_connections counts gateway sessions, so this is real players;
-                            # bots are server-side and never appear here.
-                            - name: AGONES_SHIM_COUNTER_NAME
-                              value: 'players'
-                            - name: AGONES_SHIM_COUNTER_METRICS_URL
-                              value: 'http://127.0.0.1:8901/metrics'
-                            - name: AGONES_SHIM_COUNTER_METRIC
-                              value: 'active_connections'
+                              # An HTTP 200 here means libsidecar is up, which happens within
+                              # milliseconds of registration with servers-registry and well after
+                              # the world socket binds. That is 'registered and routable' -- a
+                              # stronger signal than the socket check this replaces, which marked
+                              # the server Ready while the gateway still could not route to it.
+                              # Without a deadline the shim waits for readiness forever. When the
+                              # game container died on 2026-08-22 the shim kept probing, the pod
+                              # stayed Running because the sidecar was alive, and Agones left the
+                              # GameServer in Scheduled and never replaced it -- a dead server that
+                              # is never recycled, with no crashloop and nothing to alert on.
+                              # Past this the shim exits non-zero so Agones can replace the pod.
+                              # 2400s because a cold worldserver preloads every non-instanced map grid; over ten minutes observed locally, and health initialDelaySeconds is already 1800.
+                              - name: AGONES_SHIM_READY_TIMEOUT_SECS
+                                value: '2400'
+                              - name: AGONES_SHIM_READY_HTTP
+                                value: 'http://127.0.0.1:8901/healthcheck'
+                              - name: AGONES_SHIM_LIVE_TCP
+                                value: '8085'
+                              # active_connections counts gateway sessions, so this is real players;
+                              # bots are server-side and never appear here.
+                              - name: AGONES_SHIM_COUNTER_NAME
+                                value: 'players'
+                              - name: AGONES_SHIM_COUNTER_METRICS_URL
+                                value: 'http://127.0.0.1:8901/metrics'
+                              - name: AGONES_SHIM_COUNTER_METRIC
+                                value: 'active_connections'
                           resources:
                               requests:
                                   cpu: '10m'
