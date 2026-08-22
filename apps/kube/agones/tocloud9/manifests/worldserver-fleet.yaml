@@ -289,40 +289,51 @@ spec:
                               # them, not 40, because they coordinate through the
                               # shared acore_playerbots database.
                               #
-                              # 250 as a deliberate step, not a ceiling.
+                              # 500 as the second measured step.
                               #
-                              # The honest position on cost is that it is not
-                              # known yet. One shard with 39 bots draws 3.53
-                              # cores and 6.52GiB with the world update tail at
-                              # p99 28ms against a 50ms tick -- but there is no
-                              # bot-free window to compare against, because the
-                              # world reaches ready and begins seating bots
-                              # immediately, so none of that separates the fixed
-                              # cost of PreloadAllNonInstancedMapGrids from the
-                              # marginal cost of a bot. Preload updates every
-                              # grid on every map whether or not anyone is on
-                              # it, and is very likely the larger term.
+                              # The per-bot cpu cost is now measured, and it is
+                              # near zero in this range. One shard at 39 bots
+                              # drew 3.53 cores and 6.52GiB; the same shard at
+                              # 250 drew 3.16 cores and 6.43GiB. 211 extra bots
+                              # cost no cpu at all -- slightly less, within
+                              # noise. That confirms the load here is dominated
+                              # by PreloadAllNonInstancedMapGrids, which updates
+                              # every grid on every map whether or not anyone is
+                              # standing on it, and it is consistent with
+                              # upstream running 5000 bots on a six core 5700x.
                               #
-                              # Upstream runs 5000 bots on a six core 5700x
-                              # (mod-playerbots wiki), which is roughly fifty
-                              # times cheaper per bot than a naive read of the
-                              # number above would suggest. That gap is the
-                              # reason this is a step: going 39 -> 250 gives the
-                              # slope, and the slope decides whether 1000 is a
-                              # config change or a second machine.
+                              # cpu is therefore not the constraint: 3.16 cores
+                              # against a limit of 16. The constraint is the
+                              # tick tail, p99 37ms against a 50ms budget.
                               #
-                              # Watch the tick, not the memory. 6.52GiB against
+                              # Those two points do not give a slope, because
+                              # the 39-bot sample was taken at MapUpdate.Threads
+                              # 4 and the 250-bot sample at 8. This step is the
+                              # first pair measured under identical config: if
+                              # p99 holds near 37ms at 500 there is room for
+                              # 1000, and if it climbs toward 50ms this is the
+                              # ceiling for one shard -- threads are already at
+                              # upstream's maximum, so the answer past that is a
+                              # second shard, not a bigger box.
+                              #
+                              # Watch the tick, not the memory. 6.43GiB against
                               # a 64GiB limit is nowhere near binding; the signal
                               # is delay_99_percentile on :8901/metrics
                               # approaching 50ms. A tick collapse costs a full
                               # grid preload to recover, which is why health
                               # initialDelaySeconds is 1800. Upstream's own
-                              # advice is the same shape: start at 50-200 and
-                              # scale up while monitoring.
+                              # advice is the same shape: scale up while
+                              # monitoring.
+                              #
+                              # Startup is longer at this size. With
+                              # RandomBotAccountCount 0 the factory sizes its own
+                              # pool, and going 250 -> 500 takes it from 75 to
+                              # 100 accounts, so roughly 250 new characters get
+                              # generated on first boot at this value.
                               - name: AC_AI_PLAYERBOT_MIN_RANDOM_BOTS
-                                value: '250'
+                                value: '500'
                               - name: AC_AI_PLAYERBOT_MAX_RANDOM_BOTS
-                                value: '250'
+                                value: '500'
                               # 0 means automatic, which is correct and was
                               # not before. This pool is NOT sized by this
                               # setting: RandomPlayerbotMgr allocates
