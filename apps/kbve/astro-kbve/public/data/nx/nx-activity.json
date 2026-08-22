@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-08-21T02:23:20Z",
+  "generated_at": "2026-08-22T02:15:33Z",
   "window": {
     "days": 7,
-    "since": "2026-08-14T02:23:20Z"
+    "since": "2026-08-15T02:15:33Z"
   },
   "commits": {
-    "total": 541,
+    "total": 469,
     "authors": 3,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 381
+        "commits": 332
       },
       {
         "author": "github-actions[bot]",
-        "commits": 157
+        "commits": 134
       },
       {
         "author": "dependabot[bot]",
@@ -23,158 +23,158 @@
     ],
     "recent": [
       {
-        "sha": "468c995",
+        "sha": "2be5bd6",
         "author": "h0lybyte",
-        "message": "Merge pull request #16206 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/468c995f4388329d053b097f23737e68af1bf6e1",
-        "date": "2026-08-21T00:07:20Z"
+        "message": "Merge pull request #16240 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/2be5bd6de2e0338d05f5ad7e728fb74ead5208fc",
+        "date": "2026-08-22T01:14:22Z"
       },
       {
-        "sha": "81141ec",
-        "author": "h0lybyte",
-        "message": "fix(discordsh): updating its mapdb json.",
-        "url": "https://github.com/KBVE/kbve/commit/81141ecdf57aad1e29031f58d3220fa9a8e50f90",
-        "date": "2026-08-20T23:53:41Z"
+        "sha": "444960d",
+        "author": "github-actions[bot]",
+        "message": "chore(axum-kbve): post-publish sync to v1.0.296 (#16239)",
+        "url": "https://github.com/KBVE/kbve/commit/444960dc83a8f69f1dcbd1de4ac843e0f0df26f4",
+        "date": "2026-08-22T00:37:55Z"
       },
       {
-        "sha": "9d9de78",
+        "sha": "4e67cad",
         "author": "h0lybyte",
-        "message": "feat(agones): replace the busybox shims with a real lifecycle sidecar (#16208)",
-        "url": "https://github.com/KBVE/kbve/commit/9d9de786cf5a40604aae2088925d6cb58ec28baa",
-        "date": "2026-08-20T23:53:17Z"
+        "message": "Merge pull request #16236 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/4e67cad844e393f12c6bd31faaa8dbc265ba5305",
+        "date": "2026-08-22T00:17:42Z"
       },
       {
-        "sha": "90eca22",
+        "sha": "136847f",
         "author": "h0lybyte",
-        "message": "fix(metrics): point the staff check at the schema that has is_staff (#16207)",
-        "url": "https://github.com/KBVE/kbve/commit/90eca224b5109ec4264da1e8270ec693dae1d215",
-        "date": "2026-08-20T23:53:08Z"
+        "message": "perf(reel): request the steady state, burst to the limit (#16237)",
+        "url": "https://github.com/KBVE/kbve/commit/136847fae06c0600297d8be3f3e761d3f6308279",
+        "date": "2026-08-22T00:17:00Z"
       },
       {
-        "sha": "ae5dbc7",
+        "sha": "aed8022",
         "author": "h0lybyte",
-        "message": "feat(kbve): add /wow/ hub with ToCloud9 account creation (#16205)",
-        "url": "https://github.com/KBVE/kbve/commit/ae5dbc7eef1a5e20432d0c17acebf85cbadd0bfd",
-        "date": "2026-08-20T23:52:53Z"
+        "message": "fix(codegen): stop prettier reflowing data artifacts, fail CI when they go stale (#16233)",
+        "url": "https://github.com/KBVE/kbve/commit/aed8022d48c32c4e22a3dad03ba60de76500d46a",
+        "date": "2026-08-22T00:16:07Z"
       },
       {
-        "sha": "9ed42a0",
+        "sha": "e153bc9",
         "author": "h0lybyte",
-        "message": "feat(godot): updaitng the i18n integration for npcdb, itemdb and questdb.",
-        "url": "https://github.com/KBVE/kbve/commit/9ed42a05eea2d3d17a12dd1de1a81cd34fbb1bc5",
-        "date": "2026-08-20T23:52:38Z"
+        "message": "feat(npcdb): key shared ability text by ability id, not by npc (#16235)",
+        "url": "https://github.com/KBVE/kbve/commit/e153bc91b1bc9d4315a8b43c299735384044b89b",
+        "date": "2026-08-22T00:15:57Z"
       },
       {
-        "sha": "8363ac2",
+        "sha": "4a7d7e2",
         "author": "h0lybyte",
-        "message": "fix(agones): pass the modules build context to the Nx image builds (#16204)",
-        "url": "https://github.com/KBVE/kbve/commit/8363ac2a36db17013a95a4bd8967376205f06ed8",
-        "date": "2026-08-20T23:51:57Z"
+        "message": "fix(data-proto): make zod regeneration a no-op, restore two stale schemas (#16234)",
+        "url": "https://github.com/KBVE/kbve/commit/4a7d7e23c60f17a0b605eb8589fee070d6a7c5f2",
+        "date": "2026-08-22T00:15:47Z"
       },
       {
-        "sha": "d0a172d",
+        "sha": "8d056c8",
         "author": "h0lybyte",
-        "message": "feat(tocloud9): guard rent-a-mount against invalid states and extend rentals to 15 minutes (#16203)",
-        "url": "https://github.com/KBVE/kbve/commit/d0a172dd132013e4563808fdb32d42a37170f199",
-        "date": "2026-08-20T23:51:46Z"
+        "message": "feat(gameops): staff-only WoW dashboard at /dashboard/gameops/wow/ (#16219)",
+        "url": "https://github.com/KBVE/kbve/commit/8d056c8612723489be26eba7fba080d0d9468de3",
+        "date": "2026-08-22T00:15:17Z"
       },
       {
-        "sha": "088ef1a",
+        "sha": "dde2813",
         "author": "h0lybyte",
-        "message": "docs(journal): updating the daily journal.",
-        "url": "https://github.com/KBVE/kbve/commit/088ef1a80087ac2425d9e303fd16b3933149e9f9",
-        "date": "2026-08-20T23:49:25Z"
+        "message": "Merge pull request #16210 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/dde2813584ac857977840546d0300f7cda490eb2",
+        "date": "2026-08-22T00:07:04Z"
       },
       {
-        "sha": "55a0421",
+        "sha": "808a4e2",
         "author": "h0lybyte",
-        "message": "fix(godot): resolving the shadow issue with the tooltip.",
-        "url": "https://github.com/KBVE/kbve/commit/55a0421894be03e02f1f2a0606c01f3f76fef572",
-        "date": "2026-08-20T23:49:11Z"
+        "message": "fix(tocloud9): unblock the fleet rollout and give the map loop more than one thread (#16231)",
+        "url": "https://github.com/KBVE/kbve/commit/808a4e261fc796582d5b241036e823b426ef7a7d",
+        "date": "2026-08-22T00:05:10Z"
       },
       {
-        "sha": "9de4ab3",
+        "sha": "fa9fe55",
         "author": "h0lybyte",
-        "message": "fix(godot): resolving the i18n tooltip issue.",
-        "url": "https://github.com/KBVE/kbve/commit/9de4ab3fa2291b93150f45f2c2b6d1e3f22cd289",
-        "date": "2026-08-20T23:44:53Z"
+        "message": "fix(irc): decode ToCloud9 chat events and make injection survive a restart (#16218)",
+        "url": "https://github.com/KBVE/kbve/commit/fa9fe553c481ef6bbdbf01d39c4102aec5d52d0d",
+        "date": "2026-08-21T13:17:12Z"
       },
       {
-        "sha": "988ec88",
+        "sha": "1120de0",
         "author": "h0lybyte",
-        "message": "Merge pull request #16202 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/988ec88f56831a5f38d81d199d0706e3c16aa1ca",
-        "date": "2026-08-20T23:23:25Z"
+        "message": "fix(metrics): sort groups by time, and say when an event happened (#16215)",
+        "url": "https://github.com/KBVE/kbve/commit/1120de04c159771672396a16cebee8c3f5473328",
+        "date": "2026-08-21T13:16:47Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 450,
+    "merged": 387,
     "recent": [
       {
-        "number": 16217,
-        "title": "Atomic: tocloud9-db-import v0.0.3 post-publish sync",
+        "number": 16240,
+        "title": "Release: 1 chore \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16217"
+        "url": "https://github.com/KBVE/kbve/pull/16240"
       },
       {
-        "number": 16216,
-        "title": "Atomic: tocloud9-gameserver v0.0.3 post-publish sync",
+        "number": 16239,
+        "title": "Atomic: axum-kbve v1.0.296 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16216"
+        "url": "https://github.com/KBVE/kbve/pull/16239"
       },
       {
-        "number": 16203,
-        "title": "feat(tocloud9): guard rent-a-mount states and extend rentals to 15 minutes",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16203"
-      },
-      {
-        "number": 16212,
-        "title": "chore(ci): sync ci-dispatch-manifest",
+        "number": 16236,
+        "title": "Release: 2 features, 2 fixes, 1 perf \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16212"
+        "url": "https://github.com/KBVE/kbve/pull/16236"
       },
       {
-        "number": 16211,
-        "title": "Atomic: agones-shim v0.0.2 post-publish sync",
+        "number": 16237,
+        "title": "perf(reel): request the steady state, burst to the limit",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16237"
+      },
+      {
+        "number": 16233,
+        "title": "fix(codegen): stop prettier reflowing data artifacts, fail CI when they go stale",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16233"
+      },
+      {
+        "number": 16235,
+        "title": "feat(npcdb): key shared ability text by ability id so it is translated once",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16235"
+      },
+      {
+        "number": 16234,
+        "title": "fix(data-proto): make zod regeneration a no-op, restore two stale schemas",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16234"
+      },
+      {
+        "number": 16219,
+        "title": "feat(gameops): staff-only WoW dashboard at /dashboard/gameops/wow/",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16219"
+      },
+      {
+        "number": 16210,
+        "title": "Release: 1 feature, 8 fixes, 15 chores \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16211"
+        "url": "https://github.com/KBVE/kbve/pull/16210"
       },
       {
-        "number": 16206,
-        "title": "Release: 4 features, 5 fixes, 1 doc \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16206"
-      },
-      {
-        "number": 16208,
-        "title": "feat(agones): replace the busybox shims with a real lifecycle sidecar",
+        "number": 16231,
+        "title": "fix(tocloud9): unblock the fleet rollout and give the map loop more than one thread",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16208"
-      },
-      {
-        "number": 16207,
-        "title": "fix(metrics): point the staff check at the schema that has is_staff",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16207"
-      },
-      {
-        "number": 16205,
-        "title": "feat(kbve): add /wow/ hub with ToCloud9 account creation",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16205"
-      },
-      {
-        "number": 16204,
-        "title": "fix(agones): pass the modules build context to the Nx image builds",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16204"
+        "url": "https://github.com/KBVE/kbve/pull/16231"
       }
     ]
   },
   "issues": {
-    "opened": 460,
-    "closed": 453
+    "opened": 394,
+    "closed": 389
   }
 }
