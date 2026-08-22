@@ -1,6 +1,10 @@
-# Runs once, on an empty data directory only. Creates the three AzerothCore
+# Runs once, on an empty data directory only. Creates the four AzerothCore
 # databases and grants the acore user across all of them — MYSQL_USER alone
 # only ever gets rights on a single database.
+#
+# acore_playerbots is here for fresh installs, and again as an init container on
+# the db-import hook for clusters that already exist — this file can never
+# repair one, because MySQL ignores it once the data directory is populated.
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -14,7 +18,9 @@ data:
         CREATE DATABASE IF NOT EXISTS `acore_auth` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
         CREATE DATABASE IF NOT EXISTS `acore_characters` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
         CREATE DATABASE IF NOT EXISTS `acore_world` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+        CREATE DATABASE IF NOT EXISTS `acore_playerbots` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
         GRANT ALL PRIVILEGES ON `acore_auth`.* TO 'acore'@'%';
         GRANT ALL PRIVILEGES ON `acore_characters`.* TO 'acore'@'%';
         GRANT ALL PRIVILEGES ON `acore_world`.* TO 'acore'@'%';
+        GRANT ALL PRIVILEGES ON `acore_playerbots`.* TO 'acore'@'%';
         FLUSH PRIVILEGES;

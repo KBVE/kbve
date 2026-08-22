@@ -28,6 +28,11 @@ export * from './cube';
 export * from './S3BackupPanel';
 export { McView, ServerCard, RconConsole, createRconExec } from './mc';
 export type { McViewProps, RconExecFn } from './mc';
+// Named, not `export *`: the root barrel already star-exports ./clickhouse, and
+// an ambiguous name is dropped from the barrel silently rather than erroring
+// here, surfacing as "has no exported member" at some unrelated import site.
+export { TelemetryView, telemetryGroupsLens } from './telemetry';
+export type { TelemetryViewProps, TelemetryGroupItem, TelemetryEventItem } from './telemetry';
 export {
 	WowView,
 	NodeCard,

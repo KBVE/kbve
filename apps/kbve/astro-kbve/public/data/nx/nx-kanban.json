@@ -1,9 +1,9 @@
 {
-	"generated_at": "2026-08-21T02:23:20Z",
+	"generated_at": "2026-08-22T02:15:35Z",
 	"project": {
 		"title": "KBVE",
 		"url": "https://github.com/orgs/KBVE/projects/5",
-		"total_items": 492
+		"total_items": 476
 	},
 	"summary": {
 		"Theory": 73,
@@ -13,8 +13,8 @@
 		"Error": 22,
 		"Support": 0,
 		"Staging": 1,
-		"Review": 3,
-		"Done": 352
+		"Review": 2,
+		"Done": 337
 	},
 	"columns": {
 		"Theory": [
@@ -2107,444 +2107,9 @@
 				"matrix": null,
 				"date": null,
 				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16210,
-				"title": "Release: 4 fixes, 5 chores → Main",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/pull/16210",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
 			}
 		],
 		"Done": [
-			{
-				"type": "ISSUE",
-				"number": 10980,
-				"title": "isometric: upgrade Bevy 0.18 → 0.19 + wgpu 27 → 29",
-				"state": "CLOSED",
-				"url": "https://github.com/KBVE/kbve/issues/10980",
-				"assignees": [],
-				"labels": [
-					"enhancement"
-				],
-				"matrix": null,
-				"date": "2026-05-15",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
-				"number": 13099,
-				"title": "[HIGH] Vector ClickHouse sinks use in-memory buffers",
-				"state": "CLOSED",
-				"url": "https://github.com/KBVE/kbve/issues/13099",
-				"assignees": [],
-				"labels": [
-					"bug"
-				],
-				"matrix": null,
-				"date": "2026-06-22",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
-				"number": 15270,
-				"title": "fix(bevy_supa): wasm silently drops the HTTP timeout",
-				"state": "CLOSED",
-				"url": "https://github.com/KBVE/kbve/issues/15270",
-				"assignees": [],
-				"labels": [
-					"enhancement",
-					"rust"
-				],
-				"matrix": null,
-				"date": "2026-08-03",
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15468,
-				"title": "Atomic: reel v0.1.38 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15468",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15470,
-				"title": "Atomic: edge v0.1.49 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15470",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15473,
-				"title": "Atomic: axum-kbve v1.0.277 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15473",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15474,
-				"title": "Release: 1 feature, 5 fixes, 4 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15474",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15475,
-				"title": "Release: 0 commits → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15475",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15476,
-				"title": "chore(ci): sync ci-dispatch-manifest",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15476",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15483,
-				"title": "chore(content): daily releases scaffold",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15483",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15484,
-				"title": "chore(content): daily activity scaffold",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15484",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15485,
-				"title": "chore(content): daily kanban scaffold",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15485",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15486,
-				"title": "chore(content): daily ci-health scaffold",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15486",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15487,
-				"title": "chore(content): daily proto scaffold",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15487",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15488,
-				"title": "chore(content): daily graph scaffold",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15488",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15489,
-				"title": "chore(content): daily report scaffold",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15489",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15490,
-				"title": "chore(content): daily deps scaffold",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15490",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15491,
-				"title": "chore(content): daily security scaffold",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15491",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15494,
-				"title": "chore(ci): sync ci-dispatch-manifest",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15494",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15500,
-				"title": "Atomic: herbmail-game v0.1.21 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15500",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15501,
-				"title": "Release: 1 feature, 1 doc, 2 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15501",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15503,
-				"title": "Atomic: axum-kbve v1.0.278 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15503",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15507,
-				"title": "Release: 2 features, 2 fixes, 2 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15507",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15508,
-				"title": "chore(ci): sync ci-dispatch-manifest",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15508",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15509,
-				"title": "chore(ci): sync ci-dispatch-manifest",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15509",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15510,
-				"title": "Atomic: reel v0.1.39 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15510",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15511,
-				"title": "Release: 2 chores → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15511",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15512,
-				"title": "Atomic: axum-kbve v1.0.279 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15512",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 15513,
-				"title": "Release: 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/15513",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
 			{
 				"type": "PULL_REQUEST",
 				"number": 15515,
@@ -7143,6 +6708,21 @@
 			},
 			{
 				"type": "PULL_REQUEST",
+				"number": 16210,
+				"title": "Release: 1 feature, 8 fixes, 15 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16210",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
 				"number": 16211,
 				"title": "Atomic: agones-shim v0.0.2 post-publish sync",
 				"state": "MERGED",
@@ -7195,6 +6775,191 @@
 				"labels": [
 					"auto-pr",
 					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16221,
+				"title": "chore(content): daily journal scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16221",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16222,
+				"title": "chore(content): daily activity scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16222",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16223,
+				"title": "chore(content): daily kanban scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16223",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16224,
+				"title": "chore(content): daily releases scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16224",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16225,
+				"title": "chore(content): daily ci-health scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16225",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16226,
+				"title": "chore(content): daily graph scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16226",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16227,
+				"title": "chore(content): daily proto scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16227",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16228,
+				"title": "chore(content): daily report scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16228",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16229,
+				"title": "chore(content): daily deps scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16229",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16230,
+				"title": "chore(content): daily security scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16230",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16236,
+				"title": "Release: 2 features, 2 fixes, 1 perf → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16236",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16239,
+				"title": "Atomic: axum-kbve v1.0.296 post-publish sync",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16239",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16240,
+				"title": "Release: 1 chore → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16240",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
 				],
 				"matrix": null,
 				"date": null,

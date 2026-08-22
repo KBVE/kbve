@@ -14,6 +14,11 @@ metadata:
         argocd.argoproj.io/hook: Sync
         argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
+    # ArgoCD blocks the whole sync until this hook completes, and backoffLimit
+    # only counts pods that ran and failed -- a pod stuck pulling a bad image
+    # never fails, so it retries forever and pins the app to a stale revision.
+    # 900s because seeds a tenant database.
+    activeDeadlineSeconds: 900
     backoffLimit: 3
     ttlSecondsAfterFinished: 600
     template:

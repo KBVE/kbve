@@ -12,6 +12,11 @@ metadata:
         kbve.com/managed-by: argocd
 spec:
     ttlSecondsAfterFinished: 120
+    # ArgoCD blocks the whole sync until this hook completes, and backoffLimit
+    # only counts pods that ran and failed -- a pod stuck pulling a bad image
+    # never fails, so it retries forever and pins the app to a stale revision.
+    # 300s because one Cloudflare API call.
+    activeDeadlineSeconds: 300
     backoffLimit: 1
     template:
         spec:

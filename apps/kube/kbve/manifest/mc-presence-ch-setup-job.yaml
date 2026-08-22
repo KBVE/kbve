@@ -50,6 +50,11 @@ metadata:
         argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
 spec:
     ttlSecondsAfterFinished: 86400
+    # ArgoCD blocks the whole sync until this hook completes, and backoffLimit
+    # only counts pods that ran and failed -- a pod stuck pulling a bad image
+    # never fails, so it retries forever and pins the app to a stale revision.
+    # 600s because creates ClickHouse tables.
+    activeDeadlineSeconds: 600
     backoffLimit: 3
     template:
         metadata:
