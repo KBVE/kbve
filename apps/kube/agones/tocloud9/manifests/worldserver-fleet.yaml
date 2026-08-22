@@ -223,8 +223,27 @@ spec:
                                         key: password
                               - name: AC_PLAYERBOTS_DATABASE_INFO
                                 value: 'mysql;3306;$(TC9_DB_USER);$(TC9_DB_PASS);acore_playerbots'
-                              # Without this the module opens the pool, finds no
-                              # database and gives up rather than creating it.
+                              # Redundant, and kept only as documentation.
+                              # playerbots.conf.dist already ships this at 1 and
+                              # PlayerbotsDatabaseScript defaults it to true, so
+                              # the module migrates acore_playerbots on every
+                              # path whether or not this is set.
+                              #
+                              # It is spelled out because the flag is easy to
+                              # assume is load-bearing and is not: the module
+                              # builds its own DatabaseLoader and reads only
+                              # Playerbots.Updates.EnableDatabases, never the
+                              # main Updates.EnableDatabases bitmask -- which
+                              # this worldserver does not set at all, leaving it
+                              # at the conf's 7, a mask with no playerbots bit.
+                              #
+                              # An earlier version of this comment claimed the
+                              # module would "find no database and give up"
+                              # without it. That was wrong. What was actually
+                              # missing was the GRANT on acore_playerbots, added
+                              # in #16254 -- until then the pool failed to open
+                              # and the worldserver died with SIGSEGV, which had
+                              # nothing to do with this flag.
                               - name: AC_PLAYERBOTS_UPDATES_ENABLE_DATABASES
                                 value: '1'
                               # Required by mod-playerbots: bots act on grids no
