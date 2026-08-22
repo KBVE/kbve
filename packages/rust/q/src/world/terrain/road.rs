@@ -177,16 +177,23 @@ impl QTerrain {
         }
         let t_stamp = std::time::Instant::now();
         let data = PackedByteArray::from(mask.as_slice());
-        let tex =
-            Image::create_from_data(res, res, false, ImageFormat::R8, &data).and_then(|mut img| {
+        let img =
+            Image::create_from_data(res, res, false, ImageFormat::R8, &data).map(|mut img| {
                 img.generate_mipmaps();
-                ImageTexture::create_from_image(&img)
+                img
             });
-        if let (Some(t), Some(m)) = (tex.as_ref(), self.ground_material.as_mut()) {
-            m.set_shader_parameter("road_tex", &t.to_variant());
-            m.set_shader_parameter("road_tile_scale", &self.road_tile_scale.to_variant());
+        match (img, self.road_res == res, self.road_tex.as_mut()) {
+            (Some(img), true, Some(tex)) => tex.update(&img),
+            (Some(img), _, _) => {
+                self.road_tex = ImageTexture::create_from_image(&img);
+                if let (Some(t), Some(m)) = (self.road_tex.as_ref(), self.ground_material.as_mut())
+                {
+                    m.set_shader_parameter("road_tex", &t.to_variant());
+                    m.set_shader_parameter("road_tile_scale", &self.road_tile_scale.to_variant());
+                }
+            }
+            (None, _, _) => {}
         }
-        self.road_tex = tex;
         self.road_res = res;
         self.road_mask = mask;
 
