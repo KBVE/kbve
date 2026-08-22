@@ -57,6 +57,24 @@ spec:
                   image: mysql:8.4@sha256:b3b90af2a6552ae30c266fdb7d5dd55f3afb72404bb78d37fe8a23eb857fd3fb
                   args:
                       - --log-bin-trust-function-creators=1
+                      # MySQL ships a 128M buffer pool. AzerothCore's world
+                      # database alone is larger than that, so every worldserver
+                      # start and every bot that wanders into a new zone was
+                      # reading creature and gameobject templates off disk. The
+                      # node is at 14% memory with ~480G unrequested, so this is
+                      # the cheapest throughput available to the stack.
+                      #
+                      # Half the container limit below. The rest is deliberate:
+                      # connection buffers, sort and temp tables all live outside
+                      # the pool, and sizing the pool to the limit is how MySQL
+                      # gets OOMKilled rather than merely slow.
+                      - --innodb-buffer-pool-size=8G
+                      # 151 is the stock ceiling. Each worldserver opens pooled
+                      # connections for four databases and there are twelve Go
+                      # services besides, so the ceiling is reachable with a
+                      # handful of shards -- and it fails as connection refused
+                      # during a rollout, which reads like a network fault.
+                      - --max-connections=500
                   env:
                       - name: MYSQL_ROOT_PASSWORD
                         valueFrom:
@@ -103,10 +121,10 @@ spec:
                   resources:
                       requests:
                           cpu: '500m'
-                          memory: '1Gi'
+                          memory: '4Gi'
                       limits:
                           cpu: '2'
-                          memory: '4Gi'
+                          memory: '16Gi'
                   securityContext:
                       allowPrivilegeEscalation: false
                       capabilities:
