@@ -1,9 +1,9 @@
 {
-	"generated_at": "2026-08-21T02:27:13Z",
+	"generated_at": "2026-08-22T02:19:43Z",
 	"summary": {
 		"critical": 4,
-		"high": 54,
-		"medium": 63,
+		"high": 55,
+		"medium": 62,
 		"low": 11,
 		"info": 32
 	},
@@ -12,8 +12,8 @@
 			"total": 113,
 			"severities": {
 				"critical": 4,
-				"high": 54,
-				"medium": 44,
+				"high": 55,
+				"medium": 43,
 				"low": 11,
 				"info": 0
 			},
@@ -516,13 +516,6 @@
 					"url": "https://github.com/advisories/GHSA-f88m-g3jw-g9cj"
 				},
 				{
-					"id": "1124287",
-					"title": "node-tar: Uncontrolled recursion in mapHas/filesFilter allows uncatchable stack-overflow DoS via crafted long-path tar with member selection",
-					"severity": "medium",
-					"package": "tar",
-					"url": "https://github.com/advisories/GHSA-r292-9mhp-454m"
-				},
-				{
 					"id": "1130588",
 					"title": "brace-expansion: DoS via unbounded expansion length causing an out-of-memory process crash",
 					"severity": "high",
@@ -789,13 +782,6 @@
 					"url": "https://github.com/advisories/GHSA-ggr8-5vv4-36mx"
 				},
 				{
-					"id": "1145555",
-					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
-					"severity": "high",
-					"package": "fast-uri",
-					"url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
-				},
-				{
 					"id": "1145559",
 					"title": "fast-uri vulnerable to path traversal via percent-encoded dot segments",
 					"severity": "high",
@@ -808,6 +794,20 @@
 					"severity": "high",
 					"package": "fast-uri",
 					"url": "https://github.com/advisories/GHSA-v39h-62p7-jpjc"
+				},
+				{
+					"id": "1145636",
+					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
+					"severity": "high",
+					"package": "fast-uri",
+					"url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
+				},
+				{
+					"id": "1145647",
+					"title": "node-tar: Uncontrolled recursion in mapHas/filesFilter allows uncatchable stack-overflow DoS via crafted long-path tar with member selection",
+					"severity": "high",
+					"package": "tar",
+					"url": "https://github.com/advisories/GHSA-r292-9mhp-454m"
 				}
 			]
 		},
