@@ -289,51 +289,57 @@ spec:
                               # them, not 40, because they coordinate through the
                               # shared acore_playerbots database.
                               #
-                              # 500 as the second measured step.
+                              # 1000, which is the measured step this ramp was
+                              # built to justify.
                               #
-                              # The per-bot cpu cost is now measured, and it is
-                              # near zero in this range. One shard at 39 bots
-                              # drew 3.53 cores and 6.52GiB; the same shard at
-                              # 250 drew 3.16 cores and 6.43GiB. 211 extra bots
-                              # cost no cpu at all -- slightly less, within
-                              # noise. That confirms the load here is dominated
-                              # by PreloadAllNonInstancedMapGrids, which updates
+                              # cpu does not respond to bot count in this range
+                              # at all. One shard drew 3.53 cores at 39 bots,
+                              # 3.16 at 250 and 3.06 at 500, against a limit of
+                              # 16. Memory is equally flat: 6.52, 6.43, 6.47GiB
+                              # against 64. The load is dominated by
+                              # PreloadAllNonInstancedMapGrids, which updates
                               # every grid on every map whether or not anyone is
-                              # standing on it, and it is consistent with
+                              # standing on it, and that is consistent with
                               # upstream running 5000 bots on a six core 5700x.
                               #
-                              # cpu is therefore not the constraint: 3.16 cores
-                              # against a limit of 16. The constraint is the
-                              # tick tail, p99 37ms against a 50ms budget.
+                              # The tick tail is the real constraint, and unlike
+                              # cpu it does respond. Measured at MapUpdate.Threads
+                              # 8 throughout: p99 was 37ms at 250 and 40ms at 500
+                              # once the bots had spread out and gone active,
+                              # against a 50ms budget. A freshly booted shard
+                              # reads about 3ms better than a settled one, so
+                              # only settled numbers are comparable.
                               #
-                              # Those two points do not give a slope, because
-                              # the 39-bot sample was taken at MapUpdate.Threads
-                              # 4 and the 250-bot sample at 8. This step is the
-                              # first pair measured under identical config: if
-                              # p99 holds near 37ms at 500 there is room for
-                              # 1000, and if it climbs toward 50ms this is the
-                              # ceiling for one shard -- threads are already at
-                              # upstream's maximum, so the answer past that is a
-                              # second shard, not a bigger box.
+                              # That is roughly 3ms of p99 per doubling. If it
+                              # holds, 1000 lands near 43ms -- inside the budget
+                              # but no longer comfortable, and the margin is thin
+                              # enough that this is the step where the tail has
+                              # to be watched rather than assumed. If p99 settles
+                              # past ~45ms, this is the ceiling for one shard:
+                              # threads are already at upstream's stated maximum
+                              # of 8, so the answer beyond that is a second shard
+                              # rather than a bigger box.
                               #
-                              # Watch the tick, not the memory. 6.43GiB against
-                              # a 64GiB limit is nowhere near binding; the signal
-                              # is delay_99_percentile on :8901/metrics
-                              # approaching 50ms. A tick collapse costs a full
-                              # grid preload to recover, which is why health
-                              # initialDelaySeconds is 1800. Upstream's own
-                              # advice is the same shape: scale up while
-                              # monitoring.
+                              # Watch the tick, not the memory. The signal is
+                              # delay_99_percentile on :8901/metrics approaching
+                              # 50ms, plus "Update time diff" lines in the log,
+                              # which were 0 across the whole 500 run. A tick
+                              # collapse costs a full grid preload to recover,
+                              # which is why health initialDelaySeconds is 1800.
                               #
-                              # Startup is longer at this size. With
-                              # RandomBotAccountCount 0 the factory sizes its own
-                              # pool, and going 250 -> 500 takes it from 75 to
-                              # 100 accounts, so roughly 250 new characters get
-                              # generated on first boot at this value.
+                              # Startup is longer again. With RandomBotAccountCount
+                              # 0 the factory sizes its own pool: RNDbot accounts
+                              # are ceil(maxRandomBots / charsPerAccount) and
+                              # charsPerAccount is 10 here, so this takes the pool
+                              # from 100 accounts to 150 and generates roughly 500
+                              # new characters on first boot. The 250-character
+                              # boot at 500 bots took about 10 minutes to fully
+                              # seat, well inside the 1800s health delay and the
+                              # shim's 2400s ready timeout.
                               - name: AC_AI_PLAYERBOT_MIN_RANDOM_BOTS
-                                value: '500'
+                                value: '1000'
                               - name: AC_AI_PLAYERBOT_MAX_RANDOM_BOTS
-                                value: '500'
+                                value: '1000'
                               # 0 means automatic, which is correct and was
                               # not before. This pool is NOT sized by this
                               # setting: RandomPlayerbotMgr allocates
