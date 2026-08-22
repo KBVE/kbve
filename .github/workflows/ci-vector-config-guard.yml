@@ -1,0 +1,54 @@
+name: CI - Vector Config Guard
+
+# On 2026-08-07 the supabase-vector DaemonSet began crashlooping and stayed that
+# way for two weeks, taking every log and trace bound for ClickHouse with it.
+# The config had not changed. The Vector image had: `duration` became a reserved
+# VRL keyword between the version running before and the one pinned now, so a
+# file that was valid when written became invalid when it ran.
+#
+# Nothing between the editor and the cluster ever asked Vector whether it could
+# load the file. ArgoCD then made it worse -- it applied the DaemonSet and
+# blocked the sync waiting for a health it could never reach, which pinned the
+# app to a stale revision and stopped the fix from ever being delivered.
+#
+# So this asks the question early, using the image the DaemonSet actually pins.
+
+on:
+    pull_request:
+        branches:
+            - main
+            - dev
+        paths:
+            - 'apps/kube/vector/manifests/vector-config.yaml'
+            - 'apps/kube/vector/manifests/vector-daemonset.yaml'
+            - 'scripts/validate-vector-config.py'
+            - '.github/workflows/ci-vector-config-guard.yml'
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions:
+    contents: read
+
+jobs:
+    validate:
+        name: Vector loads the config it will be given
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            - uses: actions/checkout@v7
+
+            - uses: actions/setup-python@v7
+              with:
+                  python-version: '3.12'
+
+            - name: Install PyYAML
+              run: pip install --quiet pyyaml
+
+            # Runs the pinned image from vector-daemonset.yaml, so bumping
+            # Vector re-validates the config against the new version rather
+            # than discovering the incompatibility in the cluster.
+            - name: Validate Vector config
+              run: python3 scripts/validate-vector-config.py
