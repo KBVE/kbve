@@ -200,7 +200,7 @@
 		"expo": "^57.0.9",
 		"expo-auth-session": "~57.0.5",
 		"expo-build-properties": "~57.0.8",
-		"expo-dev-client": "~57.0.10",
+		"expo-dev-client": "~57.0.11",
 		"expo-linking": "~57.0.4",
 		"expo-modules-core": "~57.0.8",
 		"expo-status-bar": "~57.0.1",
