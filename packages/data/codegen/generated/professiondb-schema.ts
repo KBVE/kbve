@@ -30,6 +30,26 @@ export type CurveKindValue = (typeof CurveKinds)[number];
 
 export const CurveKindSchema = z.enum(CurveKinds);
 
+// KeyList
+export const KeyListSchema = z.object({
+	keys: z.array(z.number()).optional(),
+});
+
+export type KeyList = z.infer<typeof KeyListSchema>;
+
+// XrefIndex
+export const XrefIndexSchema = z.object({
+	content_version: z.string(),
+	slug_to_key: z.record(z.string(), z.number()).optional(),
+	produced_by: z.record(z.number(), KeyListSchema).optional(),
+	input_to: z.record(z.number(), KeyListSchema).optional(),
+	tool_for: z.record(z.number(), KeyListSchema).optional(),
+	node_links: z.record(z.number(), z.string()).optional(),
+	node_by_ref: z.record(z.string(), z.number()).optional(),
+});
+
+export type XrefIndex = z.infer<typeof XrefIndexSchema>;
+
 // ExperienceCurve
 export const ExperienceCurveSchema = z.object({
 	kind: CurveKindSchema,

@@ -118,8 +118,39 @@ spec:
                                 value: '0'
                               - name: AC_RA_ENABLE
                                 value: '0'
-                              - name: AC_SOAP_ENABLE
-                                value: '0'
+                              # SOAP is the only remote command channel this
+                              # build has: console and RA are both off above
+                              # because neither is reachable from another pod.
+                              #
+                              # The var is AC_SOAP_ENABLED, with the D. The
+                              # AC_* override is the config key uppercased
+                              # with dots as underscores, and the key here is
+                              # SOAP.Enabled -- unlike its neighbours
+                              # Console.Enable and Ra.Enable, which have no D.
+                              # This file carried AC_SOAP_ENABLE for a long
+                              # time; that name maps to no key at all, so
+                              # setting it to '1' is a silent no-op. Verified
+                              # against a running pod: worldserver.conf on
+                              # disk still reads Console.Enable = 1 while
+                              # AC_CONSOLE_ENABLE=0 wins, which is what proves
+                              # the override is live and name-sensitive.
+                              #
+                              # SOAP.IP must be set explicitly. AzerothCore
+                              # defaults it to 127.0.0.1, so flipping Enabled
+                              # alone binds the listener to container loopback
+                              # and every cross-pod dial gets connection
+                              # refused with no log line to explain it.
+                              #
+                              # Reaching this port is a separate problem from
+                              # opening it -- see worldserver-soap-service.yaml
+                              # for why a Service in front of a Fleet only
+                              # half-solves it.
+                              - name: AC_SOAP_ENABLED
+                                value: '1'
+                              - name: AC_SOAP_IP
+                                value: '0.0.0.0'
+                              - name: AC_SOAP_PORT
+                                value: '7878'
                               - name: AC_LOGIN_DATABASE_INFO
                                 valueFrom:
                                     secretKeyRef:
@@ -280,6 +311,9 @@ spec:
                                 protocol: TCP
                               - name: health
                                 containerPort: 8901
+                                protocol: TCP
+                              - name: soap
+                                containerPort: 7878
                                 protocol: TCP
                           volumeMounts:
                               - name: client-data

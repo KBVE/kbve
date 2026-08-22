@@ -5,6 +5,7 @@ import {
 	Gamepad2,
 	Factory,
 	Pickaxe,
+	Swords,
 	ArrowRight,
 } from 'lucide-react';
 import { $auth, $isStaff } from '@kbve/droid';
@@ -52,6 +53,16 @@ const TILES: Tile[] = [
 		icon: Pickaxe,
 		status: 'planned',
 		statusNote: 'Planned · Deployed in cluster, not yet wired to dashboard',
+	},
+	{
+		key: 'wow',
+		label: 'World of Warcraft',
+		description:
+			'ToCloud9 / AzerothCore realm on Agones. Fleet metrics read live off Prometheus; the MySQL account lane and the SOAP command lane both wait on cluster secrets and a GM account.',
+		href: '/dashboard/gameops/wow/',
+		icon: Swords,
+		status: 'phase-0',
+		statusNote: 'Partial · Metrics live, MySQL + SOAP lanes blocked',
 	},
 ];
 

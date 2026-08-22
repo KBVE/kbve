@@ -2,7 +2,7 @@ export { McView } from './McView';
 export type { McViewProps } from './McView';
 export { ServerCard } from './ServerCard';
 export { RconConsole, appendLog, confirmDestructive } from './RconConsole';
-export type { LogEntry } from './RconConsole';
+export type { LogEntry, RconConsoleProps } from './RconConsole';
 export { createMcStream, mapPlayerList } from './mcStream';
 export type { McPlayer, McServerItem, McStreamOptions, RawMcPlayerList } from './mcStream';
 export { createRconExec } from './rconExec';

@@ -1,0 +1,62 @@
+# SOAP entry point for the worldserver fleet — read this before trusting it.
+#
+# This Service works mechanically. Agones does not own the pod network: a
+# GameServer pod is an ordinary pod carrying app=tocloud9-worldserver, so
+# kube-proxy programs endpoints from it exactly as it would for a Deployment,
+# and pod churn from a fleet scale or RollingUpdate is handled by endpoint
+# updates like anywhere else. There is no Agones-specific reason a ClusterIP
+# cannot sit in front of these pods.
+#
+# What it does NOT give you is a *correct* target, and that is the part that
+# matters:
+#
+# 1. It load-balances. replicas is 2 and the autoscaler moves it. Two SOAP
+#    calls in a row can land on different worldservers, and there is no
+#    affinity to pin them together. Anything stateful across two calls is
+#    already wrong here.
+#
+# 2. Commands are node-scoped. ToCloud9 splits maps across the fleet via
+#    servers-registry, so a worldserver only knows about the players on the
+#    maps it was assigned. `.kick`, `.tele`, `.revive`, any `.character *` on
+#    an online target — these silently report "player not found" whenever the
+#    call lands on a node that does not hold that player. Broadcast is the
+#    same trap: `.announce` reaches that one node's sessions, not the realm.
+#    Only commands whose whole effect is a shared-database write (the
+#    `.account *` family, `.server info`) behave identically on every node,
+#    and those are better served by the MySQL lane than by SOAP.
+#
+# 3. Endpoints go hot long before SOAP listens. Neither worldserver container
+#    declares a readinessProbe, so the pod is Ready as soon as the process
+#    starts — while AzerothCore is still loading maps, which was measured at
+#    over ten minutes cold with PreloadAllNonInstancedMapGrids. During that
+#    window this Service has endpoints that refuse connections. Callers must
+#    treat ECONNREFUSED as "still booting", not as "SOAP is broken".
+#
+# The honest conclusion: a stable Service can front worldserver SOAP, but only
+# for realm-global, DB-backed commands. Per-player commands need per-pod
+# addressing — enumerate GameServers in the tocloud9 namespace (or ask
+# servers-registry which node owns the target's map) and dial that pod IP on
+# 7878 directly. That path needs the caller to hold Agones API read access and
+# to sit inside the cluster network; axum-kbve has neither today. Until it
+# does, treat the SOAP lane as realm-global only.
+apiVersion: v1
+kind: Service
+metadata:
+    name: tocloud9-worldserver-soap
+    namespace: tocloud9
+    labels:
+        app: tocloud9-worldserver
+        app.kubernetes.io/part-of: tocloud9
+        kbve.com/category: game-server
+        kbve.com/stack: agones
+    annotations:
+        argocd.argoproj.io/sync-wave: '2'
+spec:
+    type: ClusterIP
+    selector:
+        app: tocloud9-worldserver
+    ports:
+        - name: soap
+          port: 7878
+          targetPort: soap
+          protocol: TCP

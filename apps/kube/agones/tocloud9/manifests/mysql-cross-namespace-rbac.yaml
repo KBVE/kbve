@@ -1,0 +1,53 @@
+# Lets the Supabase edge-functions pod read the acore MySQL credentials.
+#
+# The `wow` edge function writes acore_auth.account directly — Postgres holds
+# only the ownership ledger, so account creation is not real until a row lands
+# in MySQL. That means the functions pod, which runs in `kilobase`, needs the
+# same username/password the worldserver uses out of `tocloud9-mysql`.
+#
+# A secretKeyRef cannot cross a namespace. Kubernetes resolves it against the
+# pod's own namespace only, and there is no field to point it elsewhere — a
+# reference to `tocloud9-mysql` from kilobase does not fail loudly, it just
+# never resolves. The repo's answer to this is external-secrets, not a second
+# sealed copy of the same password: see agones/mc/manifests/gameserver-secrets
+# .yaml, functions/manifests/mc-rcon-externalsecret.yaml and kbve/manifest/mc-
+# rcon-externalsecret.yaml, all of which fan one secret out the same way.
+#
+# Sealing a duplicate would have been the worse option regardless of effort:
+# two ciphertexts of one password drift the moment seal-credentials.sh is re-
+# run to rotate, and the drift shows up as an auth failure in the edge function
+# long after the rotation that caused it.
+#
+# resourceNames pins this to the one secret. The functions pod gets the acore
+# credentials and nothing else in the namespace.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: tocloud9-mysql-reader-for-functions
+    namespace: tocloud9
+    annotations:
+        argocd.argoproj.io/sync-wave: '-1'
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      resourceNames: ['tocloud9-mysql']
+      verbs: ['get', 'list', 'watch']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: functions-read-tocloud9-mysql
+    namespace: tocloud9
+    annotations:
+        argocd.argoproj.io/sync-wave: '-1'
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: tocloud9-mysql-reader-for-functions
+subjects:
+    # Already declared in functions/manifests/mc-rcon-externalsecret.yaml.
+    # Reused rather than duplicated: one ServiceAccount per consuming
+    # namespace, bound wherever it needs to read.
+    - kind: ServiceAccount
+      name: functions-mc-external-secrets
+      namespace: kilobase

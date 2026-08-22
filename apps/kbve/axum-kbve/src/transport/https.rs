@@ -390,6 +390,10 @@ fn router(state: AppState) -> Router {
             "/api/v1/rcon/{game}/{server}/exec",
             post(crate::rcon::exec_handler),
         )
+        .route(
+            "/api/v1/wow/soap/{server}/exec",
+            post(crate::soap::exec_handler),
+        )
         .route("/@{username}", get(profile_handler))
         .route("/osrs/{item}", get(osrs_item_handler))
         .route("/osrs/{item}/", get(osrs_item_handler_trailing))

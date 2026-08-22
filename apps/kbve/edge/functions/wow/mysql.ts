@@ -8,9 +8,15 @@
 // implements the two auth paths 8.4 actually offers over a plaintext socket —
 // the cached fast path, and the RSA public-key exchange for a cold cache.
 //
-// Scope is deliberate. There is no prepared-statement support because every
-// caller validates its inputs down to a fixed character class first, so the
-// statements built on top of this contain no free text at all.
+// Scope is deliberate. `execute` carries no bindings because every caller on
+// that path validates its inputs down to a fixed character class first, so the
+// statements built on top of it contain no free text at all.
+//
+// The staff console broke that assumption: an operator-supplied search term is
+// free text, and admin reads need result sets. Hence the second lane below —
+// COM_STMT_PREPARE / COM_STMT_EXECUTE with binary rows. Binding, not escaping,
+// is what keeps that term out of the statement, so anything carrying caller
+// text must go through `prepared` and never through `execute`.
 // ---------------------------------------------------------------------------
 
 const CLIENT_LONG_PASSWORD = 0x00000001;
@@ -46,7 +52,7 @@ export function isDuplicateKey(err: unknown): boolean {
   return err instanceof MysqlError && err.code === 1062;
 }
 
-class Reader {
+export class Reader {
   private pos = 0;
   constructor(private readonly buf: Uint8Array) {}
 
@@ -95,9 +101,22 @@ class Reader {
   restString(): string {
     return new TextDecoder().decode(this.buf.subarray(this.pos));
   }
+
+  lenencInt(): number {
+    return readLenencInt(this);
+  }
+
+  /** Length-encoded string. A NULL column (0xfb prefix) reads back as null. */
+  lenencString(): string | null {
+    if (this.buf[this.pos] === 0xfb) {
+      this.pos++;
+      return null;
+    }
+    return new TextDecoder().decode(this.bytes(readLenencInt(this)));
+  }
 }
 
-class Writer {
+export class Writer {
   private parts: Uint8Array[] = [];
 
   u8(v: number): this {
@@ -138,6 +157,33 @@ class Writer {
       throw new MysqlError("length-encoded payload too large for auth packet");
     }
     return this.u8(b.length).raw(b);
+  }
+
+  lenencInt(v: number): this {
+    if (v < 0xfb) return this.u8(v);
+    if (v <= 0xffff) return this.u8(0xfc).u8(v & 0xff).u8((v >> 8) & 0xff);
+    if (v <= 0xffffff) {
+      return this.u8(0xfd).u8(v & 0xff).u8((v >> 8) & 0xff).u8(
+        (v >> 16) & 0xff,
+      );
+    }
+    return this.u8(0xfe).u32(v >>> 0).u32(Math.floor(v / 0x100000000));
+  }
+
+  lenencString(s: string): this {
+    const b = new TextEncoder().encode(s);
+    return this.lenencInt(b.length).raw(b);
+  }
+
+  u16(v: number): this {
+    return this.u8(v & 0xff).u8((v >> 8) & 0xff);
+  }
+
+  i64(v: number): this {
+    const big = BigInt(Math.trunc(v));
+    const out = new Uint8Array(8);
+    new DataView(out.buffer).setBigInt64(0, big, true);
+    return this.raw(out);
   }
 
   build(): Uint8Array {
@@ -228,11 +274,24 @@ export interface MysqlConfig {
   database: string;
 }
 
+/** The slice of Deno.Conn this client actually uses. */
+export type MysqlDuplex = Pick<Deno.Conn, "read" | "write" | "close">;
+
 export class MysqlConnection {
   private seq = 0;
   private buffered = new Uint8Array(0);
 
-  private constructor(private readonly conn: Deno.Conn) {}
+  private constructor(private readonly conn: MysqlDuplex) {}
+
+  /**
+   * Wraps an already-open duplex, skipping connect and handshake. The codec
+   * below is pure byte work that cannot otherwise be exercised without a live
+   * MySQL 8.4 server, which is exactly the thing this deployment does not have
+   * yet — this is how the statement lanes get tested against captured packets.
+   */
+  static fromDuplex(conn: MysqlDuplex): MysqlConnection {
+    return new MysqlConnection(conn);
+  }
 
   static async connect(cfg: MysqlConfig): Promise<MysqlConnection> {
     const conn = await Promise.race([
@@ -415,9 +474,245 @@ export class MysqlConnection {
     r.u8();
     return readLenencInt(r);
   }
+
+  /**
+   * Runs a statement with server-side bound parameters and decodes any result
+   * set. Parameters travel in their own packet section, so a value can never
+   * be reparsed as SQL no matter what characters it contains.
+   */
+  async prepared(sql: string, params: Param[] = []): Promise<PreparedResult> {
+    const stmtId = await this.prepare(sql, params.length);
+    try {
+      return await this.executePrepared(stmtId, params);
+    } finally {
+      // COM_STMT_CLOSE draws no reply, so there is nothing to await or check.
+      this.seq = -1;
+      await this.writePacket(
+        new Writer().u8(0x19).u32(stmtId).build(),
+      ).catch(() => {});
+    }
+  }
+
+  private async prepare(sql: string, paramCount: number): Promise<number> {
+    this.seq = -1;
+    await this.writePacket(
+      new Writer().u8(0x16).raw(new TextEncoder().encode(sql)).build(),
+    );
+    const packet = await this.readPacket();
+    if (packet[0] === 0xff) throw this.decodeError(packet);
+    if (packet[0] !== 0x00) {
+      throw new MysqlError("unexpected COM_STMT_PREPARE response");
+    }
+
+    const r = new Reader(packet);
+    r.u8();
+    const stmtId = r.u32();
+    const columnCount = r.u16();
+    const declaredParams = r.u16();
+    if (declaredParams !== paramCount) {
+      throw new MysqlError(
+        `statement expects ${declaredParams} parameters, got ${paramCount}`,
+      );
+    }
+
+    // Definition packets for the placeholders and the columns are sent up
+    // front and repeated by COM_STMT_EXECUTE, so drain them and use the
+    // execute-time copy instead.
+    for (let i = 0; i < declaredParams + columnCount; i++) {
+      await this.readPacket();
+    }
+    return stmtId;
+  }
+
+  private async executePrepared(
+    stmtId: number,
+    params: Param[],
+  ): Promise<PreparedResult> {
+    const w = new Writer()
+      .u8(0x17)
+      .u32(stmtId)
+      .u8(0x00)
+      .u32(1);
+
+    if (params.length > 0) {
+      const nullBitmap = new Uint8Array((params.length + 7) >> 3);
+      params.forEach((v, i) => {
+        if (v === null || v === undefined) nullBitmap[i >> 3] |= 1 << (i & 7);
+      });
+      w.raw(nullBitmap).u8(1);
+      for (const v of params) w.u16(paramType(v));
+      for (const v of params) {
+        if (v === null || v === undefined) continue;
+        if (typeof v === "number") w.i64(v);
+        else w.lenencString(v);
+      }
+    }
+
+    this.seq = -1;
+    await this.writePacket(w.build());
+
+    const first = await this.readPacket();
+    if (first[0] === 0xff) throw this.decodeError(first);
+    if (first[0] === 0x00) {
+      const r = new Reader(first);
+      r.u8();
+      return { rows: [], affectedRows: readLenencInt(r) };
+    }
+
+    const columnCount = readLenencInt(new Reader(first));
+    const columns: ColumnDef[] = [];
+    for (let i = 0; i < columnCount; i++) {
+      columns.push(parseColumnDef(await this.readPacket()));
+    }
+
+    const rows: Row[] = [];
+    for (;;) {
+      const packet = await this.readPacket();
+      if (packet[0] === 0xff) throw this.decodeError(packet);
+      if (packet[0] === 0xfe && packet.length < 9) break;
+      rows.push(decodeBinaryRow(packet, columns));
+    }
+    return { rows, affectedRows: 0 };
+  }
 }
 
-function readLenencInt(r: Reader): number {
+export type Param = string | number | null;
+export type Value = string | number | null;
+export type Row = Record<string, Value>;
+
+export interface PreparedResult {
+  rows: Row[];
+  affectedRows: number;
+}
+
+export interface ColumnDef {
+  name: string;
+  type: number;
+  unsigned: boolean;
+}
+
+const TYPE_LONGLONG = 0x08;
+const TYPE_VAR_STRING = 0xfd;
+const TYPE_NULL = 0x06;
+const UNSIGNED_FLAG = 0x20;
+
+function paramType(v: Param): number {
+  if (v === null || v === undefined) return TYPE_NULL;
+  return typeof v === "number" ? TYPE_LONGLONG : TYPE_VAR_STRING;
+}
+
+export function parseColumnDef(packet: Uint8Array): ColumnDef {
+  const r = new Reader(packet);
+  r.lenencString(); // catalog
+  r.lenencString(); // schema
+  r.lenencString(); // table
+  r.lenencString(); // org_table
+  const name = r.lenencString() ?? "";
+  r.lenencString(); // org_name
+  r.lenencInt(); // fixed-length field marker
+  r.u16(); // charset
+  r.u32(); // column length
+  const type = r.u8();
+  const flags = r.u16();
+  return { name, type, unsigned: (flags & UNSIGNED_FLAG) !== 0 };
+}
+
+/**
+ * Binary result rows carry a NULL bitmap offset by two bits, then values laid
+ * out per column type with no delimiters — so the column definitions are the
+ * only thing that makes the payload parseable.
+ */
+export function decodeBinaryRow(packet: Uint8Array, columns: ColumnDef[]): Row {
+  const bitmapLen = (columns.length + 9) >> 3;
+  const bitmap = packet.subarray(1, 1 + bitmapLen);
+  const r = new Reader(packet.subarray(1 + bitmapLen));
+  const row: Row = {};
+
+  columns.forEach((col, i) => {
+    const nullBit = i + 2;
+    if ((bitmap[nullBit >> 3] >> (nullBit & 7)) & 1) {
+      row[col.name] = null;
+      return;
+    }
+    row[col.name] = decodeBinaryValue(r, col);
+  });
+  return row;
+}
+
+export function decodeBinaryValue(r: Reader, col: ColumnDef): Value {
+  switch (col.type) {
+    case 0x01: {
+      const b = r.u8();
+      return col.unsigned ? b : (b << 24) >> 24;
+    }
+    case 0x02:
+    case 0x0d: {
+      const v = r.u16();
+      return col.unsigned ? v : (v << 16) >> 16;
+    }
+    case 0x03:
+    case 0x09: {
+      const v = r.u32();
+      return col.unsigned ? v : v | 0;
+    }
+    case TYPE_LONGLONG: {
+      const b = r.bytes(8);
+      const dv = new DataView(b.buffer, b.byteOffset, 8);
+      const big = col.unsigned
+        ? dv.getBigUint64(0, true)
+        : dv.getBigInt64(0, true);
+      // Counts and ids stay well inside the safe range; anything past it would
+      // silently lose precision as a number, so hand it back as text.
+      return big <= BigInt(Number.MAX_SAFE_INTEGER) &&
+          big >= BigInt(Number.MIN_SAFE_INTEGER)
+        ? Number(big)
+        : big.toString();
+    }
+    case 0x04: {
+      const b = r.bytes(4);
+      return new DataView(b.buffer, b.byteOffset, 4).getFloat32(0, true);
+    }
+    case 0x05: {
+      const b = r.bytes(8);
+      return new DataView(b.buffer, b.byteOffset, 8).getFloat64(0, true);
+    }
+    case 0x07:
+    case 0x0a:
+    case 0x0c:
+      return decodeBinaryDateTime(r);
+    default:
+      return r.lenencString();
+  }
+}
+
+function pad(n: number, width = 2): string {
+  return String(n).padStart(width, "0");
+}
+
+/**
+ * Emitted as MySQL's own text form rather than an ISO instant: AzerothCore
+ * stores server-local wall-clock time with no offset, so stamping a Z on it
+ * would be a claim we cannot back up.
+ */
+export function decodeBinaryDateTime(r: Reader): string | null {
+  const len = r.u8();
+  if (len === 0) return null;
+  const year = r.u16();
+  const month = r.u8();
+  const day = r.u8();
+  let hour = 0, minute = 0, second = 0;
+  if (len >= 7) {
+    hour = r.u8();
+    minute = r.u8();
+    second = r.u8();
+  }
+  if (len >= 11) r.u32();
+  return `${pad(year, 4)}-${pad(month)}-${pad(day)} ${pad(hour)}:${
+    pad(minute)
+  }:${pad(second)}`;
+}
+
+export function readLenencInt(r: Reader): number {
   const first = r.u8();
   if (first < 0xfb) return first;
   if (first === 0xfc) return r.u16();

@@ -1,14 +1,26 @@
 export type Tier = 'read' | 'write' | 'destructive';
 export type Scope = 'velocity' | 'backend' | 'shared';
 
-export interface CommandDef {
+/**
+ * The protocol-agnostic half of a command, so RconConsole can drive tables
+ * whose scope vocabulary is not Minecraft's (AzerothCore SOAP scopes by realm
+ * vs. worldserver node, not by proxy vs. backend).
+ */
+export interface ConsoleCommandDef {
 	name: string;
 	label: string;
 	template: string;
 	args: { label: string; placeholder?: string }[];
 	tier: Tier;
-	scope: Scope;
 	description: string;
+	/** Short marker rendered in the picker before the command is run. */
+	note?: string;
+	/** Longer caveat shown under the picker whenever `note` is set. */
+	noteDetail?: string;
+}
+
+export interface CommandDef extends ConsoleCommandDef {
+	scope: Scope;
 }
 
 export const MC_COMMANDS: CommandDef[] = [

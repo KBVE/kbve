@@ -38,7 +38,12 @@ import {
 	createFileRegistry,
 } from '@bufbuild/protobuf';
 import { FileDescriptorSetSchema } from '@bufbuild/protobuf/wkt';
-import { takeI18n, collectLocales, encodeLocaleTables } from './lib/i18n-slice.mjs';
+import {
+	takeI18n,
+	collectLocales,
+	encodeLocaleTables,
+	assertLocaleParity,
+} from './lib/i18n-slice.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');
@@ -103,9 +108,11 @@ function transform(node, parentFieldCamel) {
 }
 
 function loadNpcsFromMdx(locales) {
-	const files = readdirSync(npcdbDir).filter(
-		(f) => f.endsWith('.mdx') && f !== 'index.mdx',
-	);
+	// readdir order is filesystem-dependent; sort so the artifacts come out
+	// byte-identical on a contributor's macOS and in Linux CI.
+	const files = readdirSync(npcdbDir)
+		.filter((f) => f.endsWith('.mdx') && f !== 'index.mdx')
+		.sort();
 	const npcs = [];
 	for (const file of files) {
 		const full = resolve(npcdbDir, file);
@@ -125,6 +132,7 @@ function main() {
 	const locales = collectLocales();
 	const npcs = loadNpcsFromMdx(locales);
 	console.log(`Loaded ${npcs.length} npc defs from MDX`);
+	assertLocaleParity(locales, DB);
 
 	const registryJson = { npcs };
 	writeFileSync(outputJsonPath, JSON.stringify(registryJson, null, 2));
