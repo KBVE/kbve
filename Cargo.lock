@@ -12373,7 +12373,7 @@ dependencies = [
 
 [[package]]
 name = "met"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "ahash 0.8.12",
  "anyhow",
