@@ -33,7 +33,7 @@
  *   node packages/data/codegen/check-data-artifacts.mjs
  */
 
-import { execFileSync } from 'node:child_process';
+import { execFileSync, spawnSync } from 'node:child_process';
 import {
 	existsSync,
 	readFileSync,
@@ -104,6 +104,36 @@ function artifactPattern(db) {
 	return new RegExp(`^${db}(?:[-.][A-Za-z0-9_-]+)*\\.(?:json|binpb)$`);
 }
 
+/// Paths git is told to ignore are declared build outputs, not committed artifacts.
+/// rareicon's StreamingAssets/itemdb.{json,binpb} are the case: ci-unity regenerates them
+/// before it builds the bundle, so they are absent from a fresh clone and present on any
+/// machine that has run the generator once. Comparing them reports "generated but never
+/// committed" on every CI run and never locally, which is a property of the clone rather
+/// than of the MDX.
+function ignoredByGit(paths) {
+	if (paths.length === 0) return new Set();
+	const res = spawnSync('git', ['check-ignore', '--stdin'], {
+		cwd: repoRoot,
+		input: paths.join('\n'),
+		encoding: 'utf8',
+	});
+	// 0 = some path is ignored, 1 = none are. Anything else is git failing, and silently
+	// treating that as "nothing ignored" would resurrect the false positive.
+	if (res.status !== 0 && res.status !== 1) {
+		throw new Error(
+			`git check-ignore failed (${res.status}): ${(res.stderr || '').trim()}`,
+		);
+	}
+	return new Set(
+		res.stdout
+			.split('\n')
+			.filter(Boolean)
+			.map((p) => resolve(repoRoot, p)),
+	);
+}
+
+const skipped = new Set();
+
 function collect({ db, dirs, extraFiles = [] }) {
 	const pattern = artifactPattern(db);
 	const paths = new Set(extraFiles);
@@ -113,7 +143,10 @@ function collect({ db, dirs, extraFiles = [] }) {
 			if (pattern.test(name)) paths.add(resolve(dir, name));
 		}
 	}
-	return [...paths].sort();
+	const all = [...paths].sort();
+	const ignored = ignoredByGit(all);
+	for (const path of all) if (ignored.has(path)) skipped.add(path);
+	return all.filter((path) => !ignored.has(path));
 }
 
 function snapshot(paths) {
@@ -261,6 +294,17 @@ for (const spec of DATABASES) {
 
 	restore(before);
 	if (lines.length > 0) failures.push({ db: spec.db, generator, lines });
+}
+
+// Named rather than counted: a path that quietly stops being checked because someone
+// added a .gitignore rule is the failure mode this whole script exists to catch.
+if (skipped.size > 0) {
+	console.log(
+		`skipped ${skipped.size} gitignored build output(s), regenerated at build time:`,
+	);
+	for (const path of [...skipped].sort()) {
+		console.log(`  ${rel(path)}`);
+	}
 }
 
 if (failures.length === 0) {
