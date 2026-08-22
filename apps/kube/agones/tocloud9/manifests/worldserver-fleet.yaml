@@ -361,6 +361,27 @@ spec:
                               # TC9_* names are what the C++ libsidecar reads.
                               # Both are set so neither path falls back to its
                               # localhost default.
+                              # mod-group-xp. Stock AzerothCore splits kill XP
+                              # across the party -- total XP times a small group
+                              # rate (1.4 at five members) divided by the summed
+                              # levels present -- so a full group nets about 28%
+                              # of solo XP each and grouping is a straight loss.
+                              # SoloParity floors that rate at 1.0 so every
+                              # member earns what they would have earned alone;
+                              # Bonus is the extra paid on top for grouping.
+                              #
+                              # Names follow Config.cpp's IniKeyToEnvVarKey: '.'
+                              # becomes '_' and a lower-to-upper transition
+                              # splits, so GroupXP.SoloParity ->
+                              # GROUP_XP_SOLO_PARITY. Bound to the keys in
+                              # etc/modules/mod_group_xp.conf, which the runtime
+                              # image copies from the module's conf.dist.
+                              - name: AC_GROUP_XP_ENABLE
+                                value: '1'
+                              - name: AC_GROUP_XP_SOLO_PARITY
+                                value: '1'
+                              - name: AC_GROUP_XP_BONUS
+                                value: '0.1'
                               - name: NATS_URL
                                 value: 'nats://nats:4222'
                               - name: SERVERS_REGISTRY_SERVICE_ADDRESS

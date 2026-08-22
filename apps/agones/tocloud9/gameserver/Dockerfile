@@ -123,6 +123,7 @@ RUN mkdir -p /repo/modules/mod-playerbots && cd /repo/modules/mod-playerbots && 
 # AzerothCore enumerates modules/ at configure time, not build time.
 COPY --from=modules mod-underbarrel-bootlegger /repo/modules/mod-underbarrel-bootlegger
 COPY --from=modules mod-rent-a-mount /repo/modules/mod-rent-a-mount
+COPY --from=modules mod-group-xp /repo/modules/mod-group-xp
 
 COPY --from=build-sidecar /build/libsidecar-cpp/build/libsidecar.so ./repo/deps/libsidecar/libsidecar.so
 
@@ -253,6 +254,11 @@ COPY --from=modules mod-underbarrel-bootlegger/kbve/mod_bootlegger.conf /repo/bi
 # Conf only. This module's data/sql must NOT be copied here -- see the db-import
 # stage for why.
 COPY --from=modules mod-rent-a-mount/conf/mod_rent_a_mount.conf.dist /repo/bin/etc/modules/mod_rent_a_mount.conf
+
+# Same reason cmake's install is not enough: module confs land in the build
+# stage only, and an option absent from a loaded conf is not env-overridable, so
+# AC_GROUP_XP_* would bind to nothing.
+COPY --from=modules mod-group-xp/conf/mod_group_xp.conf.dist /repo/bin/etc/modules/mod_group_xp.conf
 
 COPY --from=build-core /repo/bin/bin/worldserver /repo/bin/worldserver
 
