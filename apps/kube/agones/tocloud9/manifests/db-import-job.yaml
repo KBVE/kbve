@@ -67,6 +67,56 @@ spec:
                       capabilities:
                           drop:
                               - ALL
+                # mod-playerbots keeps its own database, and the worldserver
+                # expects to create it on first start. It cannot: MYSQL_USER
+                # only ever grants rights on one database, and
+                # tocloud9-mysql-initdb covers the other three but never this
+                # one -- and that ConfigMap runs only on an empty data
+                # directory, so it can never repair a cluster that already
+                # exists.
+                #
+                # Without this the worldserver reports
+                #   Access denied for user 'acore'@'%' to database 'acore_playerbots'
+                #   DatabasePool Playerbots NOT opened
+                # and then dies with SIGSEGV in the same second -- AzerothCore
+                # segfaults on a failed pool rather than exiting cleanly, so it
+                # reads as a crashloop rather than a permissions problem.
+                #
+                # Runs as root because GRANT requires it, and every statement is
+                # idempotent, which matters because this is a Sync hook that
+                # re-runs on every single ArgoCD sync.
+                - name: ensure-playerbots-db
+                  image: mysql:8.4@sha256:b3b90af2a6552ae30c266fdb7d5dd55f3afb72404bb78d37fe8a23eb857fd3fb
+                  command: ['/bin/sh', '-c']
+                  args:
+                      - |
+                          set -eu
+                          mysql -h mysql -u root <<'SQL'
+                          CREATE DATABASE IF NOT EXISTS `acore_playerbots`
+                              DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+                          GRANT ALL PRIVILEGES ON `acore_playerbots`.* TO 'acore'@'%';
+                          FLUSH PRIVILEGES;
+                          SQL
+                          echo "acore_playerbots present and granted to acore"
+                  env:
+                      - name: MYSQL_PWD
+                        valueFrom:
+                            secretKeyRef:
+                                name: tocloud9-mysql
+                                key: root_password
+                  resources:
+                      requests:
+                          cpu: '10m'
+                          memory: '32Mi'
+                      limits:
+                          cpu: '200m'
+                          memory: '256Mi'
+                  securityContext:
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
                 - name: ac-db-import
                   # Built from the same tree as the worldserver. Upstream's
                   # importer produces a different schema lineage, and the
