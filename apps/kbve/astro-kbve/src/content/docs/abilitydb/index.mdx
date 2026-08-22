@@ -1,0 +1,28 @@
+---
+title: Ability Text
+description: >
+  Shared display text for NPC abilities that more than one creature uses, authored
+  once per ability and translated once per language.
+sidebar:
+  label: Ability Text
+---
+
+`abilitydb` is not a registry. It ships no canonical artifact and no consumer
+decodes it as data — the English name and description of every ability still live
+inline on `npc.NpcAbility` inside `npcdb`, exactly where Unity, the arpg Rust
+server, cryptothrone and Godot already read them.
+
+What it ships is translations. An ability such as `tackle` appears on 19 different
+NPCs with the same name and the same sentence; authoring Spanish for it inside each
+of those 19 NPC entries would mean writing the same line 19 times and watching the
+copies drift. One file here holds it once, and the generator emits
+`abilitydb.<locale>.binpb` — a `kbve.common.LocaleTable` keyed by ability id, the
+same shape and the same loader as every other translated database.
+
+The English `name` and `description` in these files are a contract, not a second
+source of truth. `gen-abilitydb-data.mjs` refuses to build unless every `npcdb`
+use of that ability id carries exactly the same English, which is what makes
+"translate it once" a sound claim rather than an assumption.
+
+An ability only needs a file here when it is worth sharing. Anything without one is
+untouched and stays English.
