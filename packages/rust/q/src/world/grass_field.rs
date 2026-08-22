@@ -238,10 +238,50 @@ pub struct QGrassField {
     /// Middle of the ground the terrain currently has baked. Zero until the
     /// terrain has been polled, which is also where the window starts.
     terrain_origin_cached: Vector2,
+    /// Which bake of the ground the cached heights came from.
+    seen_generation: i64,
     water_cached: f32,
 }
 
 impl QGrassField {
+    /// Re-reads the terrain once its window has walked somewhere else.
+    fn sync_terrain_window(&mut self) {
+        let node = self.base().clone().upcast::<godot::classes::Node>();
+        let Some(terrain) = super::resolve_terrain(&node, &self.terrain_path) else {
+            return;
+        };
+        let (origin, generation) = {
+            let t = terrain.bind();
+            (t.window_origin(), t.ground_generation())
+        };
+        if origin == self.terrain_origin_cached && generation == self.seen_generation {
+            return;
+        }
+        let _t = super::StallTimer::start("grass.window");
+        {
+            let t = terrain.bind();
+            if let Some((heights, res)) = t.cpu_heights() {
+                self.terrain_heights = heights.to_vec();
+                self.terrain_res = res;
+            }
+            self.terrain_extent_cached = t.world_extent();
+            self.water_cached = t.water();
+        }
+        self.terrain_origin_cached = origin;
+        self.seen_generation = generation;
+        if let Some(c) = self.blade_compute.as_mut() {
+            c.set_terrain_origin(origin);
+        }
+        if let Some(c) = self.card_compute.as_mut() {
+            c.set_terrain_origin(origin);
+        }
+        if let Some(c) = self.transition_compute.as_mut() {
+            c.set_terrain_origin(origin);
+        }
+        self.last_blade_center = None;
+        self.last_card_center = None;
+    }
+
     fn late_init(&mut self) -> bool {
         let terrain_poll = if self.terrain_path.is_empty() {
             self.base().get_node_or_null("../Terrain")
@@ -359,6 +399,7 @@ impl QGrassField {
             }
             self.terrain_extent_cached = t.world_extent();
             self.terrain_origin_cached = t.window_origin();
+            self.seen_generation = t.ground_generation();
             self.water_cached = t.water();
             self.terrain_heightmap_rid = t
                 .heightmap_texture()
@@ -405,6 +446,16 @@ impl QGrassField {
             if self.blade_compute.is_none() || cards_failed {
                 self.teardown_compute();
             }
+            let at = self.terrain_origin_cached;
+            if let Some(c) = self.blade_compute.as_mut() {
+                c.set_terrain_origin(at);
+            }
+            if let Some(c) = self.card_compute.as_mut() {
+                c.set_terrain_origin(at);
+            }
+            if let Some(c) = self.transition_compute.as_mut() {
+                c.set_terrain_origin(at);
+            }
         }
         if self.blade_compute.is_none() {
             self.ensure_classic();
@@ -447,6 +498,7 @@ impl INode3D for QGrassField {
             }
             return;
         }
+        self.sync_terrain_window();
         let origin = match self.view_origin() {
             Some(o) => o,
             None => return,
@@ -856,9 +908,8 @@ impl QGrassField {
     }
 
     fn terrain_sample(&self, x: f32, z: f32) -> f32 {
-        let e = self.terrain_extent_cached.max(1.0);
-        let u = ((x + e) / (e * 2.0)).clamp(0.001, 0.999);
-        let v = ((z + e) / (e * 2.0)).clamp(0.001, 0.999);
+        let (u, v) = super::window_uv(x, z, self.terrain_origin_cached, self.terrain_extent_cached);
+        let (u, v) = (u.clamp(0.001, 0.999), v.clamp(0.001, 0.999));
         if !self.terrain_heights.is_empty() {
             let res = self.terrain_res.max(2);
             let px = ((u * res as f32) as i32).clamp(0, res - 1);

@@ -891,15 +891,25 @@ impl QTerrain {
             }
         }
         let cdata = PackedByteArray::from(clearance.as_slice());
-        self.clearance_tex = Image::create_from_data(cres, cres, false, ImageFormat::R8, &cdata)
-            .and_then(|img| ImageTexture::create_from_image(&img));
+        let img = Image::create_from_data(cres, cres, false, ImageFormat::R8, &cdata);
+        // Updated in place once it exists. The grass cull kernels resolve this
+        // texture to an RD rid when they come online and hold it for the life of
+        // the pipeline, so handing them a new ImageTexture every stride leaves
+        // them sampling one that has been freed.
+        match (img, self.clearance_res == cres, self.clearance_tex.as_mut()) {
+            (Some(img), true, Some(tex)) => tex.update(&img),
+            (Some(img), _, _) => {
+                self.clearance_tex = ImageTexture::create_from_image(&img);
+                if let Some(t) = self.clearance_tex.as_ref()
+                    && let Some(m) = self.ground_material.as_mut()
+                {
+                    m.set_shader_parameter("clearance_tex", &t.to_variant());
+                }
+            }
+            (None, _, _) => {}
+        }
         self.clearance = clearance;
         self.clearance_res = cres;
-        if let Some(t) = self.clearance_tex.as_ref()
-            && let Some(m) = self.ground_material.as_mut()
-        {
-            m.set_shader_parameter("clearance_tex", &t.to_variant());
-        }
     }
 
     pub fn cpu_heights(&self) -> Option<(&[f32], i32)> {
