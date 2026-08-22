@@ -50,8 +50,65 @@ of upstream's 900100-900199 so both modules could coexist:
 | `src/MP_loader.cpp`               | `Addmod_rent_a_mountScripts()`, the entry point AzerothCore generates a call to |
 | `src/rent_a_mount.cpp`            | gossip NPC script, offer store, aura duration handling                          |
 | `conf/mod_rent_a_mount.conf.dist` | `RentAMount.*` options                                                          |
-| `data/sql/db-world/base/`         | ordered world migrations                                                        |
+| `data/sql/db-world/base/`         | first-install schema and seed data                                              |
+| `data/sql/db-world/updates/`      | every schema change made after the first deploy                                 |
 | `extras/`                         | manual uninstall scripts, one per database                                      |
+
+## How this SQL actually gets applied
+
+Worth writing down, because the mechanics are not what the directory names
+suggest. Read out of `UpdateFetcher.cpp` rather than assumed:
+
+`ReceiveIncludedDirectories()` registers `modules/<name>/data/sql/db-world` as
+one directory with state `MODULE`, then `FillFileListRecursively()` walks it to
+a depth of 10. So `base/` and `updates/` are collected identically and both are
+tracked by sha1 in the `updates` table. The split is a convention for humans,
+not a mechanism.
+
+Three rules follow from that, and all three bite:
+
+**A changed file is re-applied.** The fetcher compares the file's sha1 against
+the stored hash and reruns it when they differ. Every file here has to stay safe
+to run twice, which is why they lead with `DELETE` before `INSERT`.
+
+**Never edit a shipped file to change the schema.** `00_..._schema.sql` opens
+with `CREATE TABLE IF NOT EXISTS`. Adding a column to it does change the hash
+and does trigger a re-apply, but `IF NOT EXISTS` then short-circuits and the
+column never appears. The change has to be a new file in `updates/` carrying an
+`ALTER TABLE`. This is the one that looks like it worked and did not.
+
+**Filenames are globally unique across every loaded module.** Ordering is by
+filename alone and a collision is `LOG_FATAL`, taking the worldserver down at
+startup. Hence the `mod_rent_a_mount` infix on every file — checked clear
+against `mod-underbarrel-bootlegger`, the only other module in the tree.
+
+## Where the SQL must live at integration time
+
+Module SQL is applied by whichever binary can see it on disk. The Dockerfile
+copies `mod-playerbots/data/sql` into the `gameserver` stage because the
+worldserver itself creates and migrates `acore_playerbots`.
+
+**Do not do that for this module.** Its SQL belongs in the `db-import` stage
+only.
+
+The worldserver fleet runs `replicas: 2`, `Updates.EnableDatabases` is unset so
+it defaults to `7`, and `DBUpdater.cpp` has no `GET_LOCK` or table lock of any
+kind — it is written for a single worldserver. Two pods that can both see this
+module's SQL would both apply it, concurrently, on cold start.
+
+That race is not live today. Verified from a running worldserver:
+
+```
+DBUpdater: Given update include directory "/repo/data/sql/updates/db_auth" does not exist, skipped!
+>> The file '2026_07_19_00.sql' was applied to the database, but is missing in your update directory now!
+```
+
+The `gameserver` stage never copies `/repo/data/sql`, so the updater finds
+nothing to apply and only warns about dead references. Copying this module's
+`data/sql` into that stage is precisely what would arm it.
+
+Keeping the SQL in `db-import` leaves a single writer: the Job is an ArgoCD Sync
+hook in wave 1, ahead of the fleet in wave 2.
 
 ## Offers live in the database
 
@@ -146,6 +203,8 @@ riding a mount they bought.
 
 ## Still open
 
+- Not integrated. Nothing clones this into `/repo/modules`, so the C++ is not
+  compiled into the worldserver and no SQL has reached a database.
 - No cleanup hook for teleport. Upstream added one specifically
   (`Prevent rental mount restoration after teleports`), and their comment says
   delayed return-teleport processing can otherwise recreate the mount spell with
