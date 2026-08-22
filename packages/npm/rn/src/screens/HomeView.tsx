@@ -20,12 +20,13 @@ import { createIsometricPlugin } from '../examples/isometricPlugin';
 import { openExternal } from '../platform/openExternal';
 import { ClickHouseScreen } from './ClickHouseScreen';
 import { McScreen } from './McScreen';
+import { TelemetryScreen } from './TelemetryScreen';
 import { S3BackupScreen } from './S3BackupScreen';
 import { MarketsScreen } from './MarketsScreen';
 
 const open = (url: string) => openExternal(url);
 
-type PanelId = 'clickhouse' | 'mc' | 's3' | 'markets';
+type PanelId = 'clickhouse' | 'mc' | 's3' | 'markets' | 'telemetry';
 
 interface Panel {
 	id: PanelId;
@@ -58,6 +59,16 @@ const PANELS: Panel[] = [
 		heading: 'Minecraft · GameOps',
 		staff: true,
 		Screen: McScreen,
+	},
+	{
+		id: 'telemetry',
+		icon: 'warn',
+		title: 'Telemetry',
+		blurb: 'Client error groups',
+		accent: '#ef4444',
+		heading: 'Telemetry · Errors',
+		staff: true,
+		Screen: TelemetryScreen,
 	},
 	{
 		id: 's3',
