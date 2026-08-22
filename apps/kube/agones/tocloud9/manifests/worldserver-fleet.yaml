@@ -31,7 +31,34 @@ metadata:
         # before the schema exists produces a crashloop, not a useful error.
         argocd.argoproj.io/sync-wave: '2'
 spec:
-    replicas: 2
+    # One, deliberately, until cross-shard bot handoff is proven.
+    #
+    # servers-registry bin-packs maps across every worldserver that advertises
+    # Cluster.AvailableMaps="" (which this fleet does), so two replicas own
+    # disjoint halves of the world. mod-playerbots then teleports bots across
+    # all of AiPlayerbot.RandomBotMaps = 0,1,530,571, so roughly every other
+    # teleport lands a bot on a map this shard does not own. It is logged out,
+    # handed to the owner over NATS, logged back in, and teleported again --
+    # observed in production as the same bots handed off eighteen times in
+    # forty minutes, burning ~2.9 cores per shard while never actually playing.
+    #
+    # Upstream hit this and wrote it down: 3kynox/mod-playerbots f3d819fc says
+    # each worldserver "kept logging in characters owned by other shards, which
+    # C2 then kicked and handed off, looping forever". Their fix benches bots
+    # whose saved map belongs elsewhere -- correct, and it is in our pin -- but
+    # benching is also why the pool can never seat all 100 bots on a partition.
+    #
+    # With a single worldserver every map is assigned to it, so nothing is ever
+    # foreign, the handoff path is never entered rather than merely tuned, and
+    # no bot is benched.
+    #
+    # Sharding is not abandoned. The way back is a second Fleet declaring an
+    # explicit Cluster.AvailableMaps for instances and battlegrounds: the
+    # distributor hands an explicit list to that server verbatim and drops those
+    # maps from the balancer, so open world stays whole while instanced content
+    # scales. That is the follow-up; this change is what makes bots work now and
+    # proves the diagnosis before anything larger gets built on it.
+    replicas: 1
     scheduling: Packed
     strategy:
         type: RollingUpdate

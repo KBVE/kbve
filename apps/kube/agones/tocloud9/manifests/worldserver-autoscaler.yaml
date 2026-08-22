@@ -40,27 +40,23 @@ spec:
         type: Counter
         counter:
             key: players
-            # Keep room for this many more players across the fleet. A
-            # worldserver takes a long time to come up -- map grid preload runs
-            # into minutes -- so the buffer has to cover the players who arrive
-            # during that window, not just the ones already here.
+            # Moot while min == max, but kept as the sizing that applies the
+            # moment this policy moves to a fleet that can actually scale: a
+            # worldserver takes minutes to preload map grids, so the buffer has
+            # to cover the players who arrive during that window.
             bufferSize: 100
-            # Two is the floor the stack needs: map layering assigns overlapping
-            # sets across shards, and dropping to one removes the redundancy the
-            # registry relies on when a worldserver dies.
-            minCapacity: 2000
-            # 3000, not 8000. Capacity is 1000 per shard, so 8000 asked for eight
-            # replicas -- and at requests.cpu 4 that is 32 cores on a node with
-            # roughly 12 unrequested (52 of 64 already claimed, largely by reel,
-            # longhorn and the ARC runners). The autoscaler would have created
-            # GameServers that sat Pending forever while reporting a scaled
-            # fleet. Memory is not the limit here and never was: the node is at
-            # 14% of 593G.
+            # Pinned: min == max, so this cannot change the replica count.
             #
-            # Three is honest rather than comfortable -- two fit today and the
-            # third lands only if something else gives cpu back. Raise this when
-            # the node does, not when the fleet looks busy.
-            maxCapacity: 3000
+            # Scaling this fleet re-runs the map bin-packer, which splits the
+            # world across shards and puts bots straight back into the handoff
+            # loop this fleet was just taken out of -- so an autoscaler that
+            # works is actively harmful here until the open world stops being
+            # partitioned. Left in place rather than deleted because the policy
+            # and the Counter behind it are still the right ones; they belong on
+            # the instances fleet once that exists, where scaling does not move
+            # a continent out from under a bot.
+            minCapacity: 1000
+            maxCapacity: 1000
     sync:
         type: FixedInterval
         fixedInterval:
