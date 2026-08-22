@@ -147,7 +147,7 @@ spec:
                                   drop:
                                       - ALL
                         - name: agones-bridge
-                          image: ghcr.io/kbve/agones-shim:0.0.2
+                          image: ghcr.io/kbve/agones-shim:0.0.3
                           imagePullPolicy: IfNotPresent
                           env:
                               # Without a deadline the shim waits for readiness forever. When the
