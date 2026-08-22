@@ -44,14 +44,34 @@ REVOKE ALL ON FUNCTION wow.assert_user_has_username(UUID) FROM PUBLIC, anon, aut
 -- query. Idempotent per user: re-claiming returns the row already held rather
 -- than creating a second account or renaming the first, which is what makes a
 -- retry after a failed MySQL insert safe.
-CREATE OR REPLACE FUNCTION wow.service_claim_account(
-    p_user_id UUID,
-    p_username TEXT
-)
+-- ---------- derivation ----------
+
+-- The game username is not chosen; it is the KBVE username, uppercased.
+-- profile.username is ^[a-z0-9_-]+$ so the character class always survives the
+-- fold, but it allows up to 63 characters while the 3.3.5a login box caps the
+-- account field at 16 — so the name has to be shortened, and shortening
+-- collides. Attempt 1 is the plain truncation; later attempts trade trailing
+-- characters for a numeric suffix, which keeps the result inside 16 without
+-- ever dropping below the 3-character floor.
+CREATE OR REPLACE FUNCTION wow.derive_username(p_base TEXT, p_attempt INTEGER)
+RETURNS TEXT LANGUAGE sql IMMUTABLE SET search_path = '' AS $$
+    SELECT CASE
+        WHEN p_attempt <= 1 THEN left(p_base, 16)
+        ELSE left(p_base, 16 - length(p_attempt::TEXT)) || p_attempt::TEXT
+    END;
+$$;
+
+REVOKE ALL ON FUNCTION wow.derive_username(TEXT, INTEGER) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION wow.derive_username(TEXT, INTEGER) TO service_role;
+
+CREATE OR REPLACE FUNCTION wow.service_claim_account(p_user_id UUID)
 RETURNS TABLE (username TEXT, status INTEGER, was_created BOOLEAN)
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 DECLARE
     v_existing wow.account%ROWTYPE;
+    v_base TEXT;
+    v_candidate TEXT;
+    v_attempt INTEGER := 1;
 BEGIN
     PERFORM wow.assert_user_has_username(p_user_id);
 
@@ -64,27 +84,49 @@ BEGIN
         RETURN;
     END IF;
 
-    BEGIN
-        INSERT INTO wow.account (user_id, username, status)
-        VALUES (p_user_id, upper(p_username), 0);
-    EXCEPTION
-        WHEN unique_violation THEN
-            RAISE EXCEPTION 'game username already taken'
-                USING ERRCODE = '23505';
-        WHEN check_violation THEN
-            RAISE EXCEPTION 'invalid game username: must be 3-16 chars of A-Z, 0-9, _ or -'
-                USING ERRCODE = '22023';
-    END;
+    SELECT upper(u.username) INTO v_base
+      FROM profile.username AS u WHERE u.user_id = p_user_id;
 
-    RETURN QUERY SELECT upper(p_username), 0, TRUE;
+    -- Walking candidates inside the transaction is what makes the reserved
+    -- name authoritative. The caller hashes its SRP6 verifier against whatever
+    -- comes back from here, so a name suggested before the insert would be
+    -- wrong the moment two users with similar handles claim at once.
+    WHILE v_attempt <= 999 LOOP
+        v_candidate := wow.derive_username(v_base, v_attempt);
+        BEGIN
+            INSERT INTO wow.account (user_id, username, status)
+            VALUES (p_user_id, v_candidate, 0);
+
+            RETURN QUERY SELECT v_candidate, 0, TRUE;
+            RETURN;
+        EXCEPTION
+            WHEN unique_violation THEN
+                -- Could be the username index or the user_id primary key. The
+                -- latter means a concurrent claim by this same user won the
+                -- race, and that row is the answer rather than a retry.
+                SELECT * INTO v_existing FROM wow.account WHERE user_id = p_user_id;
+                IF FOUND THEN
+                    RETURN QUERY SELECT v_existing.username, v_existing.status, FALSE;
+                    RETURN;
+                END IF;
+                v_attempt := v_attempt + 1;
+            WHEN check_violation THEN
+                RAISE EXCEPTION 'KBVE username % cannot be used as a game name', v_base
+                    USING ERRCODE = '22023';
+        END;
+    END LOOP;
+
+    RAISE EXCEPTION 'no free game username derivable from %', v_base
+        USING ERRCODE = '23505',
+              HINT = 'Every suffix through 999 is taken; change the KBVE username.';
 END;
 $$;
 
-COMMENT ON FUNCTION wow.service_claim_account(UUID, TEXT) IS
-    'Reserves a game username for a KBVE user before the provisioner writes acore_auth.account. service_role only.';
+COMMENT ON FUNCTION wow.service_claim_account(UUID) IS
+    'Reserves the game username derived from profile.username before the provisioner writes acore_auth.account. Returns the name actually reserved. service_role only.';
 
-REVOKE ALL ON FUNCTION wow.service_claim_account(UUID, TEXT) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION wow.service_claim_account(UUID, TEXT) TO service_role;
+REVOKE ALL ON FUNCTION wow.service_claim_account(UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION wow.service_claim_account(UUID) TO service_role;
 
 -- Flips a claim to live once the MySQL row exists.
 CREATE OR REPLACE FUNCTION wow.service_mark_provisioned(p_user_id UUID)
@@ -123,6 +165,7 @@ GRANT EXECUTE ON FUNCTION wow.service_release_claim(UUID) TO service_role;
 CREATE OR REPLACE FUNCTION wow.proxy_get_account()
 RETURNS TABLE (
     username TEXT,
+    suggested_username TEXT,
     status INTEGER,
     is_provisioned BOOLEAN,
     provisioned_at TIMESTAMPTZ,
@@ -136,10 +179,23 @@ BEGIN
         RAISE EXCEPTION 'not authenticated' USING ERRCODE = '28000';
     END IF;
 
+    -- Driven from profile.username, not wow.account, so a user with no game
+    -- account still gets a row telling them what theirs will be called. No
+    -- KBVE username means no row at all, which is the signal the UI needs to
+    -- send them to set one first.
+    --
+    -- suggested_username is for display only. It is attempt 1 and ignores
+    -- collisions; the authoritative name comes back from the claim.
     RETURN QUERY
-        SELECT a.username, a.status, a.status = 1, a.provisioned_at, a.created_at
-          FROM wow.account AS a
-         WHERE a.user_id = v_user_id;
+        SELECT a.username,
+               wow.derive_username(upper(p.username), 1),
+               a.status,
+               COALESCE(a.status = 1, FALSE),
+               a.provisioned_at,
+               a.created_at
+          FROM profile.username AS p
+          LEFT JOIN wow.account AS a ON a.user_id = v_user_id
+         WHERE p.user_id = v_user_id;
 END;
 $$;
 
@@ -154,6 +210,7 @@ GRANT EXECUTE ON FUNCTION wow.proxy_get_account() TO authenticated, service_role
 CREATE OR REPLACE FUNCTION public.proxy_get_wow_account()
 RETURNS TABLE (
     username TEXT,
+    suggested_username TEXT,
     status INTEGER,
     is_provisioned BOOLEAN,
     provisioned_at TIMESTAMPTZ,
@@ -172,20 +229,17 @@ REVOKE ALL ON FUNCTION public.proxy_get_wow_account() FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION public.proxy_get_wow_account() TO authenticated, service_role;
 ALTER FUNCTION public.proxy_get_wow_account() OWNER TO service_role;
 
-CREATE OR REPLACE FUNCTION public.service_claim_wow_account(
-    p_user_id UUID,
-    p_username TEXT
-)
+CREATE OR REPLACE FUNCTION public.service_claim_wow_account(p_user_id UUID)
 RETURNS TABLE (username TEXT, status INTEGER, was_created BOOLEAN)
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = '' AS $$
 BEGIN
-    RETURN QUERY SELECT * FROM wow.service_claim_account(p_user_id, p_username);
+    RETURN QUERY SELECT * FROM wow.service_claim_account(p_user_id);
 END;
 $$;
 
-REVOKE ALL ON FUNCTION public.service_claim_wow_account(UUID, TEXT) FROM PUBLIC, anon, authenticated;
-GRANT EXECUTE ON FUNCTION public.service_claim_wow_account(UUID, TEXT) TO service_role;
-ALTER FUNCTION public.service_claim_wow_account(UUID, TEXT) OWNER TO service_role;
+REVOKE ALL ON FUNCTION public.service_claim_wow_account(UUID) FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION public.service_claim_wow_account(UUID) TO service_role;
+ALTER FUNCTION public.service_claim_wow_account(UUID) OWNER TO service_role;
 
 CREATE OR REPLACE FUNCTION public.service_mark_wow_provisioned(p_user_id UUID)
 RETURNS BOOLEAN

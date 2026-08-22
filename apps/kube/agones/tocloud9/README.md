@@ -175,12 +175,18 @@ Players then use `set realmlist tocloud9.kbve.com` and log in with the
 
 ### Player accounts
 
-Everyone else gets an account from <https://kbve.com/wow/>. The browser derives
-the SRP6 salt and verifier locally and posts only those to the `wow` edge
-function, which reserves the username in Postgres (`wow.account`) and then
-writes `acore_auth.account` over TCP. The plaintext password never leaves the
-device, and Postgres never holds a credential — it only records who owns which
-game username.
+Everyone else gets an account from <https://kbve.com/wow/>. The name is not
+chosen: it is the KBVE username, uppercased and truncated to 16 characters (the
+3.3.5a login box cap), with a numeric suffix when two handles shorten to the
+same thing.
+
+The `wow` edge function reserves that name in Postgres (`wow.account`) and
+returns whichever one it took; only then does the browser derive the SRP6 salt
+and verifier and post them back, and the function writes `acore_auth.account`
+over TCP. Reserve-before-derive is required, not tidiness — SRP6 folds the
+account name into the verifier, so hashing against a guessed name produces an
+account the auth server can never validate. The plaintext password never leaves
+the device, and Postgres never holds a credential.
 
 That write is the one path from the `kilobase` namespace into this one, and it
 needs a MySQL user with `INSERT`/`UPDATE` on `acore_auth.account` exposed to the

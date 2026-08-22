@@ -17,8 +17,7 @@ const SUPABASE_ANON_KEY = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
 // Accept-both for the HS256 -> ES256 migration: ES256 tokens validate against
 // GoTrue's JWKS (SUPABASE_JWKS_URI, else derived from SUPABASE_URL); legacy
 // HS256 against the shared secret. JWKS absent -> HS256 only.
-const JWKS_URI =
-  Deno.env.get("SUPABASE_JWKS_URI") ||
+const JWKS_URI = Deno.env.get("SUPABASE_JWKS_URI") ||
   (SUPABASE_URL
     ? `${SUPABASE_URL.replace(/\/+$/, "")}/auth/v1/.well-known/jwks.json`
     : "");
@@ -200,6 +199,12 @@ serve(async (req: Request) => {
     ows: ["FIRECRACKER_URL"],
     irc: ["ERGO_IRC_HOST", "ERGO_IRC_PORT"],
     logs: ["CLICKHOUSE_ENDPOINT", "CLICKHOUSE_USER", "CLICKHOUSE_PASSWORD"],
+    wow: [
+      "TC9_MYSQL_HOST",
+      "TC9_MYSQL_PORT",
+      "TC9_MYSQL_USER",
+      "TC9_MYSQL_PASSWORD",
+    ],
     health: [],
   };
   const allowedKeys = new Set([

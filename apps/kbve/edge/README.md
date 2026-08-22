@@ -46,7 +46,7 @@ functions/
 │   ├── _shared.ts       Re-exports from _shared/supabase.ts + WoW validators
 │   │                    (WowRequest, normalizeUsername, validateHex32)
 │   ├── index.ts         Router: "module.action" commands
-│   ├── account.ts       status, create, set_password, release
+│   ├── account.ts       status, reserve, provision, set_password, release
 │   ├── acore.ts         acore_auth.account writes (INSERT / credential update)
 │   └── mysql.ts         Minimal MySQL 8.4 client — caching_sha2_password only,
 │                         because 8.4 drops mysql_native_password and no

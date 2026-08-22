@@ -6,10 +6,19 @@ const FETCH_TIMEOUT_MS = 15_000;
 
 export interface WowAccount {
 	username: string;
+	suggested_username: string;
 	status: number;
 	is_provisioned: boolean;
 	provisioned_at: string | null;
 	created_at: string;
+}
+
+export interface WowAccountStatus {
+	account: WowAccount | null;
+	/** Name a fresh derivation would produce. Display only — never hashed against. */
+	suggestedUsername: string | null;
+	/** True when the user has no KBVE username, so no game name can be derived. */
+	needsKbveUsername: boolean;
 }
 
 async function postWow<T>(
@@ -36,32 +45,56 @@ async function postWow<T>(
 	return json as T;
 }
 
-export async function getAccount(
+export async function getStatus(
 	accessToken: string,
-): Promise<WowAccount | null> {
-	const data = await postWow<{ found: boolean; account?: WowAccount | null }>(
-		'account.status',
-		{},
-		accessToken,
-	);
-	return data.found && data.account ? data.account : null;
+): Promise<WowAccountStatus> {
+	const data = await postWow<{
+		found: boolean;
+		needs_kbve_username: boolean;
+		account: WowAccount | null;
+		suggested_username: string | null;
+	}>('account.status', {}, accessToken);
+
+	return {
+		account: data.found ? data.account : null,
+		suggestedUsername: data.suggested_username,
+		needsKbveUsername: data.needs_kbve_username,
+	};
 }
 
 /**
- * The password is turned into an SRP6 salt/verifier pair here, in the browser,
- * and only that pair is sent. Nothing upstream — edge worker, Postgres, logs —
- * ever sees the plaintext, which is the whole reason this runs client-side.
+ * Creates the game account in two calls, and the order is load-bearing.
+ *
+ * The game name is derived from the KBVE username, truncated to the 16
+ * characters the 3.3.5a login box accepts, and may carry a collision suffix.
+ * Only the server knows which name it actually took, and SRP6 folds that name
+ * into the verifier — so the reservation has to come back before the password
+ * is turned into anything. Deriving against a guessed name would produce an
+ * account nobody can log into.
+ *
+ * The password is consumed here, in the browser. Nothing upstream — edge
+ * worker, Postgres, logs — ever sees the plaintext.
  */
 export async function createAccount(
-	username: string,
 	password: string,
 	accessToken: string,
 ): Promise<string> {
-	const upper = username.trim().toUpperCase();
-	const { salt, verifier } = await buildCredential(upper, password);
+	const reserved = await postWow<{ username: string; provisioned: boolean }>(
+		'account.reserve',
+		{},
+		accessToken,
+	);
+	if (reserved.provisioned) {
+		throw new Error('You already have a game account');
+	}
+
+	const { salt, verifier } = await buildCredential(
+		reserved.username,
+		password,
+	);
 	const data = await postWow<{ success: boolean; username: string }>(
-		'account.create',
-		{ username: upper, salt, verifier },
+		'account.provision',
+		{ salt, verifier },
 		accessToken,
 	);
 	return data.username;
@@ -72,10 +105,7 @@ export async function setPassword(
 	password: string,
 	accessToken: string,
 ): Promise<void> {
-	const { salt, verifier } = await buildCredential(
-		username.toUpperCase(),
-		password,
-	);
+	const { salt, verifier } = await buildCredential(username, password);
 	await postWow<{ success: boolean }>(
 		'account.set_password',
 		{ salt, verifier },

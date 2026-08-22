@@ -3,7 +3,7 @@ import { useSession, getAccessToken } from '@kbve/astro';
 import { initSupa } from '@/lib/supa';
 import {
 	createAccount,
-	getAccount,
+	getStatus,
 	releaseClaim,
 	setPassword,
 	type WowAccount,
@@ -12,13 +12,11 @@ import {
 type Phase =
 	| 'init'
 	| 'anon'
+	| 'no-kbve-username'
 	| 'none'
 	| 'claimed'
-	| 'creating'
 	| 'provisioned'
 	| 'resetting';
-
-const USERNAME_RE = /^[A-Z0-9_-]{3,16}$/;
 
 // 3.3.5a uppercases both halves of the credential before hashing, so the
 // password is effectively case-insensitive and capped by the client's own
@@ -136,11 +134,7 @@ const styles = {
 	} as React.CSSProperties,
 };
 
-function validate(username: string, password: string, confirm: string) {
-	const upper = username.trim().toUpperCase();
-	if (!USERNAME_RE.test(upper)) {
-		return 'Username must be 3-16 characters of A-Z, 0-9, _ or -.';
-	}
+function validatePassword(password: string, confirm: string) {
 	if (password.length < PASSWORD_MIN || password.length > PASSWORD_MAX) {
 		return `Password must be ${PASSWORD_MIN}-${PASSWORD_MAX} characters.`;
 	}
@@ -154,7 +148,7 @@ export function ReactWowAccount() {
 	const { ready, authenticated } = useSession();
 	const [phase, setPhase] = useState<Phase>('init');
 	const [account, setAccount] = useState<WowAccount | null>(null);
-	const [username, setUsername] = useState('');
+	const [suggested, setSuggested] = useState<string | null>(null);
 	const [password, setPasswordValue] = useState('');
 	const [confirm, setConfirm] = useState('');
 	const [error, setError] = useState<string | null>(null);
@@ -172,15 +166,20 @@ export function ReactWowAccount() {
 		const token = await getAccessToken();
 		if (!token) return;
 		try {
-			const found = await getAccount(token);
-			setAccount(found);
-			// A row that exists but is not provisioned is a username reserved by
-			// a create that never finished. It blocks a second name, so it gets
-			// its own state rather than being folded into 'none'.
+			const status = await getStatus(token);
+			setAccount(status.account);
+			setSuggested(status.suggestedUsername);
+			if (status.needsKbveUsername) {
+				setPhase('no-kbve-username');
+				return;
+			}
+			// A row that exists but is not provisioned is a name reserved by a
+			// create that never finished. It decides the next name the user can
+			// get, so it gets its own state rather than being folded into 'none'.
 			setPhase(
-				found === null
+				status.account === null
 					? 'none'
-					: found.is_provisioned
+					: status.account.is_provisioned
 						? 'provisioned'
 						: 'claimed',
 			);
@@ -205,7 +204,7 @@ export function ReactWowAccount() {
 	}, []);
 
 	const onCreate = useCallback(async () => {
-		const invalid = validate(username, password, confirm);
+		const invalid = validatePassword(password, confirm);
 		if (invalid) {
 			setError(invalid);
 			return;
@@ -215,19 +214,17 @@ export function ReactWowAccount() {
 		setError(null);
 		setNotice(null);
 		setBusy(true);
-		setPhase('creating');
 		try {
-			const created = await createAccount(username, password, token);
+			const created = await createAccount(password, token);
 			clearSecrets();
 			setNotice(`Game account ${created} is ready. Log in and play.`);
-			await refresh();
 		} catch (err) {
 			setError(err instanceof Error ? err.message : 'create failed');
-			await refresh();
 		} finally {
 			setBusy(false);
+			await refresh();
 		}
-	}, [username, password, confirm, clearSecrets, refresh]);
+	}, [password, confirm, clearSecrets, refresh]);
 
 	const onRelease = useCallback(async () => {
 		const token = await getAccessToken();
@@ -237,7 +234,6 @@ export function ReactWowAccount() {
 		setBusy(true);
 		try {
 			await releaseClaim(token);
-			setUsername('');
 			clearSecrets();
 			await refresh();
 		} catch (err) {
@@ -249,14 +245,9 @@ export function ReactWowAccount() {
 
 	const onReset = useCallback(async () => {
 		if (!account) return;
-		if (password.length < PASSWORD_MIN || password.length > PASSWORD_MAX) {
-			setError(
-				`Password must be ${PASSWORD_MIN}-${PASSWORD_MAX} characters.`,
-			);
-			return;
-		}
-		if (password !== confirm) {
-			setError('Passwords do not match.');
+		const invalid = validatePassword(password, confirm);
+		if (invalid) {
+			setError(invalid);
 			return;
 		}
 		const token = await getAccessToken();
@@ -277,6 +268,38 @@ export function ReactWowAccount() {
 	}, [account, password, confirm, clearSecrets]);
 
 	const live = phase === 'provisioned' || phase === 'resetting';
+
+	// Shown while choosing a password. The reservation has not happened yet, so
+	// a collision can still push the final name to a suffixed form — hence
+	// "usually", rather than promising a name the server has not committed to.
+	const passwordFields = (idPrefix: string) => (
+		<>
+			<label style={styles.label} htmlFor={`${idPrefix}-password`}>
+				Game password
+			</label>
+			<input
+				id={`${idPrefix}-password`}
+				style={styles.input}
+				type="password"
+				value={password}
+				maxLength={PASSWORD_MAX}
+				autoComplete="new-password"
+				onChange={(e) => setPasswordValue(e.target.value)}
+			/>
+			<label style={styles.label} htmlFor={`${idPrefix}-confirm`}>
+				Confirm password
+			</label>
+			<input
+				id={`${idPrefix}-confirm`}
+				style={styles.input}
+				type="password"
+				value={confirm}
+				maxLength={PASSWORD_MAX}
+				autoComplete="new-password"
+				onChange={(e) => setConfirm(e.target.value)}
+			/>
+		</>
+	);
 
 	return (
 		<div style={styles.container}>
@@ -302,79 +325,27 @@ export function ReactWowAccount() {
 			{phase === 'anon' && (
 				<p style={styles.muted}>
 					Sign in to your KBVE account to create a World of Warcraft
-					login. You need a KBVE username set before the game account
-					can be created.
+					login. Your game account name comes from your KBVE username.
 				</p>
 			)}
 
-			{phase === 'claimed' && account && (
-				<div style={styles.stack}>
-					<span style={styles.name}>{account.username}</span>
-					<p style={styles.muted}>
-						This name is reserved for you, but the account was never
-						finished — the realm database could not be reached on
-						the last attempt. Retrying is safe.
-					</p>
-					<div style={styles.row}>
-						<button
-							style={styles.buttonGhost}
-							disabled={busy}
-							onClick={() => {
-								setUsername(account.username);
-								setPhase('none');
-							}}>
-							Retry with this name
-						</button>
-						<button
-							style={styles.buttonGhost}
-							disabled={busy}
-							onClick={() => void onRelease()}>
-							{busy ? 'Releasing…' : 'Release the name'}
-						</button>
-					</div>
-				</div>
+			{phase === 'no-kbve-username' && (
+				<p style={styles.muted}>
+					Set a KBVE username first — the game account name is derived
+					from it, so there is nothing to build one out of yet.
+				</p>
 			)}
 
-			{(phase === 'none' || phase === 'creating') && (
+			{phase === 'none' && (
 				<div style={styles.stack}>
-					<label style={styles.label} htmlFor="wow-username">
-						Game username
-					</label>
-					<input
-						id="wow-username"
-						style={styles.input}
-						value={username}
-						maxLength={16}
-						autoComplete="off"
-						placeholder="ARTHAS"
-						onChange={(e) =>
-							setUsername(e.target.value.toUpperCase())
-						}
-					/>
-					<label style={styles.label} htmlFor="wow-password">
-						Game password
-					</label>
-					<input
-						id="wow-password"
-						style={styles.input}
-						type="password"
-						value={password}
-						maxLength={PASSWORD_MAX}
-						autoComplete="new-password"
-						onChange={(e) => setPasswordValue(e.target.value)}
-					/>
-					<label style={styles.label} htmlFor="wow-confirm">
-						Confirm password
-					</label>
-					<input
-						id="wow-confirm"
-						style={styles.input}
-						type="password"
-						value={confirm}
-						maxLength={PASSWORD_MAX}
-						autoComplete="new-password"
-						onChange={(e) => setConfirm(e.target.value)}
-					/>
+					<span style={styles.name}>{suggested ?? '—'}</span>
+					<p style={styles.muted}>
+						Your game account name comes from your KBVE username,
+						uppercased and cut to the 16 characters the 3.3.5a login
+						box accepts. If someone shortened to the same name
+						first, yours picks up a number.
+					</p>
+					{passwordFields('wow-new-account')}
 					<div style={styles.row}>
 						<button
 							style={styles.button}
@@ -390,6 +361,32 @@ export function ReactWowAccount() {
 						{PASSWORD_MAX} characters — do not reuse a password that
 						matters.
 					</p>
+				</div>
+			)}
+
+			{phase === 'claimed' && account && (
+				<div style={styles.stack}>
+					<span style={styles.name}>{account.username}</span>
+					<p style={styles.muted}>
+						This name is reserved for you, but the account was never
+						finished — the realm database could not be reached on
+						the last attempt. Retrying is safe.
+					</p>
+					{passwordFields('wow-retry')}
+					<div style={styles.row}>
+						<button
+							style={styles.button}
+							disabled={busy}
+							onClick={() => void onCreate()}>
+							{busy ? 'Creating…' : 'Finish setup'}
+						</button>
+						<button
+							style={styles.buttonGhost}
+							disabled={busy}
+							onClick={() => void onRelease()}>
+							Release the name
+						</button>
+					</div>
 				</div>
 			)}
 
@@ -417,32 +414,7 @@ export function ReactWowAccount() {
 
 					{phase === 'resetting' && (
 						<>
-							<label style={styles.label} htmlFor="wow-new">
-								New password
-							</label>
-							<input
-								id="wow-new"
-								style={styles.input}
-								type="password"
-								value={password}
-								maxLength={PASSWORD_MAX}
-								autoComplete="new-password"
-								onChange={(e) =>
-									setPasswordValue(e.target.value)
-								}
-							/>
-							<label style={styles.label} htmlFor="wow-new-2">
-								Confirm new password
-							</label>
-							<input
-								id="wow-new-2"
-								style={styles.input}
-								type="password"
-								value={confirm}
-								maxLength={PASSWORD_MAX}
-								autoComplete="new-password"
-								onChange={(e) => setConfirm(e.target.value)}
-							/>
+							{passwordFields('wow-reset')}
 							<div style={styles.row}>
 								<button
 									style={styles.button}
