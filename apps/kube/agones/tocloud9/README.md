@@ -143,6 +143,12 @@ influence on these manifests ends.
 - Longhorn RWX routes through a share-manager, a single point of failure for
   the whole fleet. If this ever carries players, bake the client data into the
   worldserver image instead — it is immutable and identical per pod.
+- **SOAP is realm-global only.** `AC_SOAP_ENABLED` is on and
+  `worldserver-soap-service.yaml` fronts it, but that Service load-balances
+  across the fleet and ToCloud9 splits maps between worldservers, so any
+  command targeting an online player hits the wrong node most of the time and
+  reports "player not found" rather than failing. `WOW_GAMEOPS.md` has the full
+  reasoning and the human steps still outstanding.
 - MySQL is a plain StatefulSet with no backups. It is also the first MySQL
   workload in the cluster; ToCloud9 cannot use kilobase/CNPG, because the
   worldserver is C++ against libmysqlclient, every Go repo is `*_mysql.go`, and

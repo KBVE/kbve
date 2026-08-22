@@ -7,7 +7,9 @@ export {
   type JwtClaims,
   parseJwt,
   requireServiceRole,
+  requireStaffOrServiceRole,
   requireUserToken,
+  staffPerm,
 } from "../_shared/supabase.ts";
 
 import { jsonResponse } from "../_shared/supabase.ts";

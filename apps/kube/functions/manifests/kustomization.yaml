@@ -9,3 +9,4 @@ resources:
     - functions-externalsecret.yaml
     - sealed-clickhouse-logs.yaml
     - mc-rcon-externalsecret.yaml
+    - tc9-mysql-externalsecret.yaml

@@ -298,6 +298,7 @@ export default defineConfig({
 								{ label: 'ROWS', link: '/dashboard/gameops/rows/', attrs: { 'data-auth-visibility': 'staff' } },
 								{ label: 'Factorio', link: '/dashboard/gameops/factorio/', attrs: { 'data-auth-visibility': 'staff' } },
 								{ label: 'Minecraft', link: '/dashboard/gameops/mc/', attrs: { 'data-auth-visibility': 'staff' } },
+								{ label: 'WoW', link: '/dashboard/gameops/wow/', attrs: { 'data-auth-visibility': 'staff' } },
 							],
 						},
 					],

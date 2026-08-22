@@ -100,6 +100,18 @@ spec:
                             secretKeyRef:
                                 name: mc-rcon-credentials
                                 key: rcon-password
+                      - name: TC9_MYSQL_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: tc9-mysql-credentials
+                                key: username
+                                optional: true
+                      - name: TC9_MYSQL_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: tc9-mysql-credentials
+                                key: password
+                                optional: true
                   resources:
                       requests:
                           memory: 384Mi

@@ -1,0 +1,140 @@
+# Shared SOAP allowlist — one source of truth consumed by axum-kbve
+# (POST /api/v1/wow/soap/{server}/exec).
+#
+# AzerothCore / ToCloud9 worldservers do NOT speak Source RCON. They expose
+# a SOAP endpoint (SOAP.Enabled, default port 7878) that runs the in-game GM
+# command set with the leading dot stripped. This file is the allowlist for
+# that command set — it is baked into the binary via include_str!, so a
+# policy change is a rebuild, not a config edit.
+#
+# Fields per entry:
+#   name             — canonical command id, snake_case
+#   staff_only       — true gates against the JWT `is_staff` claim
+#   scope            — "realm" or "node"; REQUIRED, no default
+#   template         — GM command line rendered with positional {N} args,
+#                       dot-stripped (`.server info` -> `server info`)
+#   arg_validators   — per-arg validator names; resolved by the server
+#                       (currently: "name", "text", "uint", "duration")
+#
+# ## scope — the blast radius of a command under an Agones Fleet
+#
+# The worldserver runs as an Agones Fleet at replicas: 2 (autoscaled) behind a
+# ClusterIP Service with no session affinity, so consecutive calls can land on
+# different worldservers. ToCloud9 assigns maps per-worldserver via
+# servers-registry, so a command touching an online player only works if the
+# call happened to reach the node holding that player's map.
+#
+#   realm — the effect is a shared-database write. Any node produces the
+#           identical result, so which pod answered does not matter.
+#   node  — the result depends on which pod answered. A `kick` that lands on
+#           the wrong node reports "player not found"; an `announce` reaches
+#           one node's sessions while reporting success. These fail by
+#           returning a WRONG ANSWER, not an error, which is why the scope is
+#           carried all the way out to the exec response — the UI warns on it.
+#
+# Validators are the real security boundary here: an argument lands inside a
+# GM command line, so every validator rejects newlines, control characters and
+# a leading `.` (which would let a caller chain a second, non-allowlisted GM
+# command), and every validator is length-bounded.
+#
+# UI tiers (front-end groups commands by name, NOT a server-side concept):
+#   read:        server_info, server_motd, gm_list
+#   write:       announce, notify, account_set_gmlevel, reload_config
+#   destructive: kick, ban_account, unban_account
+
+commands:
+    # =========================================================================
+    # Read — status surface
+    # =========================================================================
+
+    - name: server_info
+      staff_only: true
+      scope: node
+      template: server info
+      arg_validators: []
+
+    - name: server_motd
+      staff_only: true
+      scope: node
+      template: server motd
+      arg_validators: []
+
+    - name: gm_list
+      staff_only: true
+      scope: node
+      template: gm list
+      arg_validators: []
+
+    # =========================================================================
+    # Write — broadcast + account administration
+    # =========================================================================
+
+    - name: announce
+      staff_only: true
+      scope: node
+      template: 'announce {0}'
+      arg_validators:
+          - text
+
+    - name: notify
+      staff_only: true
+      scope: node
+      template: 'notify {0}'
+      arg_validators:
+          - text
+
+    # {1} is the target seclevel (0-3), {2} the realm id (-1 = all realms is
+    # deliberately NOT reachable — realm must be named explicitly).
+    - name: account_set_gmlevel
+      staff_only: true
+      scope: realm
+      template: 'account set gmlevel {0} {1} {2}'
+      arg_validators:
+          - name
+          - uint
+          - uint
+
+    - name: reload_config
+      staff_only: true
+      scope: node
+      template: reload config
+      arg_validators: []
+
+    # =========================================================================
+    # Destructive — player + fleet control
+    # =========================================================================
+
+    - name: kick
+      staff_only: true
+      scope: node
+      template: 'kick {0} {1}'
+      arg_validators:
+          - name
+          - text
+
+    # {1} is an AzerothCore duration string (`1d`, `30m`, `-1` = permanent).
+    - name: ban_account
+      staff_only: true
+      scope: realm
+      template: 'ban account {0} {1} {2}'
+      arg_validators:
+          - name
+          - duration
+          - text
+
+    - name: unban_account
+      staff_only: true
+      scope: realm
+      template: 'unban account {0}'
+      arg_validators:
+          - name
+
+    # DELIBERATELY ABSENT: `server shutdown` / `server restart`.
+    #
+    # Under an Agones Fleet these fight the orchestrator. Stopping a
+    # worldserver is the GameServer lifecycle's job — Agones recreates the pod
+    # underneath, and because the ClusterIP picks a backend at random the
+    # command's only observable effect is "a random one of N worldservers
+    # bounced". Fleet lifecycle is a kubectl/Agones operation (scale the
+    # Fleet, delete a GameServer, roll the fleet), never a SOAP one.
+    # Do not re-add these.

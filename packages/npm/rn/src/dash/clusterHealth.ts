@@ -54,7 +54,7 @@ export interface ClusterHealth {
 
 let cachedDatasourceId: number | null = null;
 
-async function findDatasourceId(
+export async function findDatasourceId(
 	base: string,
 	token: string,
 	signal: AbortSignal,
@@ -87,7 +87,7 @@ async function findDatasourceId(
 	}
 }
 
-async function promQuery(
+export async function promQuery(
 	base: string,
 	token: string,
 	dsId: number,
@@ -127,7 +127,7 @@ async function promQuery(
 	}
 }
 
-async function promRange(
+export async function promRange(
 	base: string,
 	token: string,
 	dsId: number,
