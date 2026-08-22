@@ -268,7 +268,7 @@ spec:
                               # Only keys already present in the conf are
                               # overridable, and this one is.
                               - name: AC_MAP_UPDATE_THREADS
-                                value: '4'
+                                value: '8'
                               - name: AC_AI_PLAYERBOT_ENABLED
                                 value: '1'
                               # Min and Max must move together. playerbots.conf
@@ -281,57 +281,47 @@ spec:
                               # them, not 40, because they coordinate through the
                               # shared acore_playerbots database.
                               #
-                              # 50 rather than the 200 this previously carried.
-                              # 200 was never measured; the only sizing evidence
-                              # is 20 bots at 6.7GiB and ~0.85 core per shard.
-                              # Overshooting is the expensive direction -- an
-                              # OOMKill or a tick collapse costs a full grid
-                              # preload to recover, which is why health
-                              # initialDelaySeconds is 1800. Raise this once the
-                              # players Counter and the delay percentiles on
-                              # :8901/metrics show headroom.
+                              # 250, measured rather than guessed. On one
+                              # shard with 4 map threads, 39 bots cost 2.84
+                              # cores and 6.52GiB, with the world update tail at
+                              # p99 28ms against a 50ms tick. Subtracting the
+                              # ~0.6 core the server burns with no bots gives
+                              # roughly 0.057 cores per bot, so 250 lands near
+                              # 14 cores -- inside the 16 core limit below and
+                              # inside the ~17 cores the node has unrequested.
                               #
-                              # 100 with the memory headroom below and four map
-                              # threads instead of one. Note that the extra RAM
-                              # is not what allows this -- at 20 bots the process
-                              # held 6.7GiB and ~0.85 core, so bots are cpu-bound
-                              # long before they are memory-bound, and the node
-                              # is the tight side on cpu. The threads are what
-                              # bought the room; the memory only makes
-                              # overshooting survivable.
+                              # 1000 was the ask and the node cannot hold it:
+                              # ~58 cores of a 64 core box already 72% claimed.
+                              # Reclaiming longhorn and the idle ARC runners
+                              # would reach roughly 500, still not 1000. Getting
+                              # past that is a second machine, not a config
+                              # value, so this is the first step of a ramp --
+                              # raise it again once the numbers below hold.
+                              #
+                              # Watch the tick, not the memory. Bots are cpu
+                              # bound long before they are memory bound: 6.52GiB
+                              # against a 64GiB limit. The signal that matters is
+                              # delay_99_percentile on :8901/metrics approaching
+                              # 50ms, because a tick collapse costs a full grid
+                              # preload to recover -- which is why health
+                              # initialDelaySeconds is 1800.
                               - name: AC_AI_PLAYERBOT_MIN_RANDOM_BOTS
-                                value: '100'
+                                value: '250'
                               - name: AC_AI_PLAYERBOT_MAX_RANDOM_BOTS
-                                value: '100'
-                              # Both shards log this every ten seconds, and the
-                              # number never moves:
-                              #
-                              #   Can't log-in all the requested bots. Try
-                              #   increasing RandomBotAccountCount in your conf
-                              #   file. 6 more accounts needed.
-                              #
-                              # RandomPlayerbotMgr derives that from the bots it
-                              # could not seat: ceil(remaining / charsPerAccount)
-                              # with 10 characters per account, so six accounts
-                              # short is roughly fifty-five bots short of the
-                              # hundred asked for above.
-                              #
-                              # The conf ships this at 0, meaning automatic, and
-                              # RandomPlayerbotFactory sizes it as
-                              # ceil(maxRandomBots / 10) + AddClassAccountPoolSize
-                              # -- 10 + 50, so about 60. The pool has been stuck
-                              # a few accounts under that, and an explicit value
-                              # is honoured whenever it is at or above the
-                              # calculated one, so 70 both clears the shortfall
-                              # and leaves room to raise the bot count later
-                              # without landing back here.
-                              #
-                              # The cost is one-time: roughly a hundred and fifty
-                              # more characters generated at startup, after the
-                              # world is already up, so it does not delay
-                              # readiness.
+                                value: '250'
+                              # 0 means automatic, which is correct and was
+                              # not before. This pool is NOT sized by this
+                              # setting: RandomPlayerbotMgr allocates
+                              # ceil(maxRandomBots / charsPerAccount) RNDbot
+                              # accounts and addClassAccountPoolSize AddClass
+                              # accounts, and anything beyond that is left
+                              # "unassigned" -- dead weight. The previous 70
+                              # produced 10 RNDbot / 50 AddClass / 10 unassigned
+                              # while maxRandomBots was 100, so raising it did
+                              # nothing for the bot pool. Raising maxRandomBots
+                              # below is what grows it; auto then follows.
                               - name: AC_AI_PLAYERBOT_RANDOM_BOT_ACCOUNT_COUNT
-                                value: '70'
+                                value: '0'
                               - name: AC_AI_PLAYERBOT_RANDOM_BOT_AUTOLOGIN
                                 value: '1'
                               # Cluster wiring. The bare names are what the
@@ -428,10 +418,10 @@ spec:
                               # is no reason to run close to the line when ~480G
                               # is unrequested.
                               requests:
-                                  cpu: '4'
+                                  cpu: '8'
                                   memory: '16Gi'
                               limits:
-                                  cpu: '8'
+                                  cpu: '16'
                                   memory: '64Gi'
                           securityContext:
                               allowPrivilegeEscalation: false
