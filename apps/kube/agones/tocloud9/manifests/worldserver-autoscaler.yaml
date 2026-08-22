@@ -49,7 +49,18 @@ spec:
             # sets across shards, and dropping to one removes the redundancy the
             # registry relies on when a worldserver dies.
             minCapacity: 2000
-            maxCapacity: 8000
+            # 3000, not 8000. Capacity is 1000 per shard, so 8000 asked for eight
+            # replicas -- and at requests.cpu 4 that is 32 cores on a node with
+            # roughly 12 unrequested (52 of 64 already claimed, largely by reel,
+            # longhorn and the ARC runners). The autoscaler would have created
+            # GameServers that sat Pending forever while reporting a scaled
+            # fleet. Memory is not the limit here and never was: the node is at
+            # 14% of 593G.
+            #
+            # Three is honest rather than comfortable -- two fit today and the
+            # third lands only if something else gives cpu back. Raise this when
+            # the node does, not when the fleet looks busy.
+            maxCapacity: 3000
     sync:
         type: FixedInterval
         fixedInterval:

@@ -213,10 +213,19 @@ spec:
                               # initialDelaySeconds is 1800. Raise this once the
                               # players Counter and the delay percentiles on
                               # :8901/metrics show headroom.
+                              #
+                              # 100 with the memory headroom below and four map
+                              # threads instead of one. Note that the extra RAM
+                              # is not what allows this -- at 20 bots the process
+                              # held 6.7GiB and ~0.85 core, so bots are cpu-bound
+                              # long before they are memory-bound, and the node
+                              # is the tight side on cpu. The threads are what
+                              # bought the room; the memory only makes
+                              # overshooting survivable.
                               - name: AC_AI_PLAYERBOT_MIN_RANDOM_BOTS
-                                value: '50'
+                                value: '100'
                               - name: AC_AI_PLAYERBOT_MAX_RANDOM_BOTS
-                                value: '50'
+                                value: '100'
                               - name: AC_AI_PLAYERBOT_RANDOM_BOT_AUTOLOGIN
                                 value: '1'
                               # Cluster wiring. The bare names are what the
@@ -300,12 +309,21 @@ spec:
                               # throttling -- a rising world diff with no obvious
                               # cause. The limit stays at 8 to leave room for the
                               # network and database threads alongside them.
+                              #
+                              # Memory is the resource this cluster has spare:
+                              # the node sits at 14% of 593G requested, while cpu
+                              # is at 81%. So memory is sized for the failure
+                              # cost rather than the measurement -- an OOMKill
+                              # costs a full grid preload to come back, which is
+                              # thirty minutes of a shard being gone, and there
+                              # is no reason to run close to the line when ~480G
+                              # is unrequested.
                               requests:
                                   cpu: '4'
-                                  memory: '8Gi'
+                                  memory: '16Gi'
                               limits:
                                   cpu: '8'
-                                  memory: '24Gi'
+                                  memory: '64Gi'
                           securityContext:
                               allowPrivilegeEscalation: false
                               capabilities:
