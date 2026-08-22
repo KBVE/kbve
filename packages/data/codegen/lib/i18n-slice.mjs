@@ -98,14 +98,52 @@ export function flattenTranslations(ref, node, prefix = '', out = {}) {
 /// Collect flattened tables for every locale seen across a run.
 export function collectLocales() {
 	const byLocale = new Map();
+	// ref -> locale -> Set of field paths, kept alongside the flat tables so the
+	// parity guard can reason per entry instead of over one undifferentiated pile
+	// of keys.
+	const byRef = new Map();
 	return {
 		add(ref, block) {
 			if (!ref || !block) return;
 			for (const [locale, fields] of Object.entries(block)) {
 				if (!fields || typeof fields !== 'object') continue;
 				if (!byLocale.has(locale)) byLocale.set(locale, {});
-				flattenTranslations(ref, fields, '', byLocale.get(locale));
+				const flat = flattenTranslations(ref, fields, '', {});
+				Object.assign(byLocale.get(locale), flat);
+				if (!byRef.has(ref)) byRef.set(ref, new Map());
+				const perLocale = byRef.get(ref);
+				if (!perLocale.has(locale)) perLocale.set(locale, new Set());
+				const paths = perLocale.get(locale);
+				for (const key of Object.keys(flat)) {
+					paths.add(key.slice(ref.length + 1));
+				}
 			}
+		},
+		/// Fields an entry translates in at least one of its own locales but not in
+		/// all of them.
+		///
+		/// Scope is per entry, and it is the entry's own declared locale set. An
+		/// entry with no i18n block constrains nothing, and a field left in English
+		/// across every locale of an entry is not in scope either -- only a field
+		/// someone has already started translating is. That is what lets a guard
+		/// exist at all while ~90 of 93 npcs are untranslated: it locks in the work
+		/// that is done without demanding the work that is not.
+		parityGaps() {
+			const gaps = [];
+			for (const [ref, perLocale] of [...byRef].sort()) {
+				const locales = [...perLocale.keys()].sort();
+				if (locales.length < 2) continue;
+				const inScope = new Set();
+				for (const paths of perLocale.values()) {
+					for (const p of paths) inScope.add(p);
+				}
+				for (const locale of locales) {
+					const have = perLocale.get(locale);
+					const missing = [...inScope].filter((p) => !have.has(p)).sort();
+					if (missing.length > 0) gaps.push({ ref, locale, missing });
+				}
+			}
+			return gaps;
 		},
 		/// One kbve.common.LocaleTable per locale, entries sorted by key so the
 		/// encoded bytes are stable across regenerations.
@@ -122,4 +160,21 @@ export function collectLocales() {
 			return [...byLocale.keys()].sort();
 		},
 	};
+}
+
+/// Fail the generation rather than shipping a table that is half a language behind
+/// its siblings. Silence here would surface as one Spanish ability sitting in a
+/// Japanese tooltip, which nothing downstream can detect.
+export function assertLocaleParity(locales, db) {
+	const gaps = locales.parityGaps();
+	if (gaps.length === 0) return;
+	const lines = gaps.map(
+		({ ref, locale, missing }) =>
+			`  ${ref} [${locale}] is missing: ${missing.join(', ')}`,
+	);
+	throw new Error(
+		`${db}: ${gaps.length} ${gaps.length === 1 ? 'entry translates' : 'entries translate'} a field in one language but not in another they also declare.\n` +
+			`${lines.join('\n')}\n` +
+			'Translate the listed fields, or drop the language from that entry entirely.',
+	);
 }

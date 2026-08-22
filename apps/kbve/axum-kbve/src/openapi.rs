@@ -71,6 +71,7 @@ impl Modify for SecurityAddon {
         (name = "mc-lot-staff", description = "Staff-only ops surface for the MC lot system: failed-job triage, retry, forced user-lot release, orphan-transitional repair."),
         (name = "mc-lot-service", description = "service_role-only worker surface for the MC mod: claim job batches, mark applied/failed, requeue stale claims."),
         (name = "rcon", description = "Generic RCON exec — staff-gated, allowlist-driven, MC + Factorio backends."),
+        (name = "soap", description = "WoW GM-command exec over the AzerothCore worldserver SOAP endpoint — staff-gated, allowlist-driven."),
         (name = "telemetry", description = "Client-side error reporting from WASM/JS."),
         (name = "dashboard", description = "Staff-only routes powering kbve.com/dashboard. Gated on DASHBOARD_VIEW."),
         (name = "wallet", description = "Authenticated wallet surface: balance, coupons, claim flows."),
@@ -97,6 +98,8 @@ impl Modify for SecurityAddon {
         crate::transport::https::mc_texture_handler,
         // rcon (generic exec)
         crate::rcon::handler::exec_handler,
+        // soap (wow gm exec)
+        crate::soap::handler::exec_handler,
         // forum
         crate::transport::https::api_me,
         crate::transport::https::api_me_staff,
@@ -232,6 +235,10 @@ impl Modify for SecurityAddon {
             // rcon
             crate::rcon::handler::RconExecRequest,
             crate::rcon::handler::RconExecResponse,
+            // soap
+            crate::soap::handler::SoapExecRequest,
+            crate::soap::handler::SoapExecResponse,
+            crate::soap::registry::SoapScope,
             // marketplace
             crate::transport::market::MarketListingDto,
             crate::transport::market::MarketListingDetailDto,

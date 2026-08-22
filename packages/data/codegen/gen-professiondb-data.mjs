@@ -97,7 +97,9 @@ function transform(node, parentFieldCamel) {
 
 function walkMdx(dir) {
 	const out = [];
-	for (const name of readdirSync(dir)) {
+	// readdir order is filesystem-dependent; sort so the artifacts come out
+	// byte-identical on a contributor's macOS and in Linux CI.
+	for (const name of readdirSync(dir).sort()) {
 		const full = resolve(dir, name);
 		if (statSync(full).isDirectory()) {
 			out.push(...walkMdx(full));

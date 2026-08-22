@@ -1,11 +1,1 @@
-{
-	"locale": "ja",
-	"db": "itemdb",
-	"entries": [
-		{
-			"key": "iron-skin-potion.description",
-			"value": "鈍い金属光沢を帯びた濃い灰色の液体で、傾けたあともしばらく瓶の内側にまとわりつくほど粘る。\n味は鋳鉄の鍋を舐めたときのそれで、前味見として勧められるものではない。\n"
-		},
-		{ "key": "iron-skin-potion.name", "value": "鉄肌の秘薬" }
-	]
-}
+{"locale":"ja","db":"itemdb","entries":[{"key":"iron-skin-potion.description","value":"鈍い金属光沢を帯びた濃い灰色の液体で、傾けたあともしばらく瓶の内側にまとわりつくほど粘る。\n味は鋳鉄の鍋を舐めたときのそれで、前味見として勧められるものではない。\n"},{"key":"iron-skin-potion.name","value":"鉄肌の秘薬"}]}

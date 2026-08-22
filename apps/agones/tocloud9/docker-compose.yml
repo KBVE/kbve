@@ -314,13 +314,22 @@ services:
         volumes:
             - core_etc:/repo/bin/etc
             - client_data:/data
+        # Published so the SOAP lane can be exercised against the compose stack
+        # before it is trusted in-cluster. Single container here, so this is the
+        # one place SOAP addressing is unambiguous -- the fleet is not.
+        ports:
+            - '7878:7878'
         environment:
             AC_LOGIN_DATABASE_INFO: '${AUTH_DB_HOST};${AUTH_DB_PORT};${AUTH_DB_USER};${AUTH_DB_PASS};${AUTH_DB_NAME}'
             AC_WORLD_DATABASE_INFO: '${WORLD_DB_HOST};${WORLD_DB_PORT};${WORLD_DB_USER};${WORLD_DB_PASS};${WORLD_DB_NAME}'
             AC_CHARACTER_DATABASE_INFO: '${CHAR_DB_HOST};${CHAR_DB_PORT};${CHAR_DB_USER};${CHAR_DB_PASS};${CHAR_DB_NAME}'
             AC_CONSOLE_ENABLE: 0
             AC_RA_ENABLE: 0
-            AC_SOAP_ENABLE: 0
+            # AC_SOAP_IP is not optional: AzerothCore defaults SOAP.IP to
+            # 127.0.0.1, which is container loopback here, not the host.
+            AC_SOAP_ENABLED: 1
+            AC_SOAP_IP: 0.0.0.0
+            AC_SOAP_PORT: 7878
             AC_DATA_DIR: /data
             AC_CLUSTER_ENABLED: 1
             AC_GAME_TYPE: 1

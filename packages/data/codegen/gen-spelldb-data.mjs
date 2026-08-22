@@ -82,9 +82,11 @@ function transform(node, parentFieldCamel) {
 }
 
 function loadSpellsFromMdx(locales) {
-	const files = readdirSync(spelldbDir).filter(
-		(f) => f.endsWith('.mdx') && f !== 'index.mdx',
-	);
+	// readdir order is filesystem-dependent; sort so the artifacts come out
+	// byte-identical on a contributor's macOS and in Linux CI.
+	const files = readdirSync(spelldbDir)
+		.filter((f) => f.endsWith('.mdx') && f !== 'index.mdx')
+		.sort();
 	const spells = [];
 	for (const file of files) {
 		const full = resolve(spelldbDir, file);

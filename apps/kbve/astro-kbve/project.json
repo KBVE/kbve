@@ -517,6 +517,7 @@
 		},
 		"sync:npcdb": {
 			"executor": "nx:run-commands",
+			"dependsOn": ["sync:abilitydb"],
 			"inputs": [
 				"{projectRoot}/src/content/docs/npcdb/*.mdx",
 				"{workspaceRoot}/packages/data/codegen/gen-npcdb-data.mjs",
@@ -530,6 +531,27 @@
 			],
 			"options": {
 				"command": "node packages/data/codegen/gen-npcdb-data.mjs",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"sync:abilitydb": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{projectRoot}/src/content/docs/abilitydb/*.mdx",
+				"{projectRoot}/src/content/docs/npcdb/*.mdx",
+				"{workspaceRoot}/packages/data/codegen/gen-abilitydb-data.mjs",
+				"{workspaceRoot}/packages/data/codegen/descriptors/common.binpb"
+			],
+			"outputs": [
+				"{workspaceRoot}/packages/data/codegen/generated/abilitydb.es.json",
+				"{workspaceRoot}/packages/data/codegen/generated/abilitydb.es.binpb",
+				"{workspaceRoot}/packages/data/codegen/generated/abilitydb.ja.json",
+				"{workspaceRoot}/packages/data/codegen/generated/abilitydb.ja.binpb",
+				"{workspaceRoot}/apps/friendslop/godot-friendslop/assets/abilitydb"
+			],
+			"options": {
+				"command": "node packages/data/codegen/gen-abilitydb-data.mjs",
 				"cwd": "{workspaceRoot}"
 			},
 			"cache": true

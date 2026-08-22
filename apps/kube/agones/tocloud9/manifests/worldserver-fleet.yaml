@@ -118,8 +118,39 @@ spec:
                                 value: '0'
                               - name: AC_RA_ENABLE
                                 value: '0'
-                              - name: AC_SOAP_ENABLE
-                                value: '0'
+                              # SOAP is the only remote command channel this
+                              # build has: console and RA are both off above
+                              # because neither is reachable from another pod.
+                              #
+                              # The var is AC_SOAP_ENABLED, with the D. The
+                              # AC_* override is the config key uppercased
+                              # with dots as underscores, and the key here is
+                              # SOAP.Enabled -- unlike its neighbours
+                              # Console.Enable and Ra.Enable, which have no D.
+                              # This file carried AC_SOAP_ENABLE for a long
+                              # time; that name maps to no key at all, so
+                              # setting it to '1' is a silent no-op. Verified
+                              # against a running pod: worldserver.conf on
+                              # disk still reads Console.Enable = 1 while
+                              # AC_CONSOLE_ENABLE=0 wins, which is what proves
+                              # the override is live and name-sensitive.
+                              #
+                              # SOAP.IP must be set explicitly. AzerothCore
+                              # defaults it to 127.0.0.1, so flipping Enabled
+                              # alone binds the listener to container loopback
+                              # and every cross-pod dial gets connection
+                              # refused with no log line to explain it.
+                              #
+                              # Reaching this port is a separate problem from
+                              # opening it -- see worldserver-soap-service.yaml
+                              # for why a Service in front of a Fleet only
+                              # half-solves it.
+                              - name: AC_SOAP_ENABLED
+                                value: '1'
+                              - name: AC_SOAP_IP
+                                value: '0.0.0.0'
+                              - name: AC_SOAP_PORT
+                                value: '7878'
                               - name: AC_LOGIN_DATABASE_INFO
                                 valueFrom:
                                     secretKeyRef:
@@ -139,11 +170,32 @@ spec:
                               # other three this one is NOT created by db-import:
                               # worldserver opens the pool and migrates it at
                               # startup from the module SQL baked into the image.
-                              - name: AC_PLAYERBOTS_DATABASE_INFO
+                              #
+                              # Composed here rather than sealed as a fourth DSN.
+                              # seal-credentials.sh generates a fresh password on
+                              # every run, so adding a key to tocloud9-db meant
+                              # rotating credentials the live MySQL still expects
+                              # -- there was no way to append one value without
+                              # breaking the other three. Building it from the
+                              # MySQL secret removes that bind and makes a
+                              # playerbots DSN that disagrees with the actual
+                              # password impossible.
+                              #
+                              # $(VAR) expands from env vars defined EARLIER in
+                              # this same container, so these two must stay above
+                              # the line that uses them.
+                              - name: TC9_DB_USER
                                 valueFrom:
                                     secretKeyRef:
-                                        name: tocloud9-db
-                                        key: AC_PLAYERBOTS_DATABASE_INFO
+                                        name: tocloud9-mysql
+                                        key: username
+                              - name: TC9_DB_PASS
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: tocloud9-mysql
+                                        key: password
+                              - name: AC_PLAYERBOTS_DATABASE_INFO
+                                value: 'mysql;3306;$(TC9_DB_USER);$(TC9_DB_PASS);acore_playerbots'
                               # Without this the module opens the pool, finds no
                               # database and gives up rather than creating it.
                               - name: AC_PLAYERBOTS_UPDATES_ENABLE_DATABASES
@@ -153,16 +205,58 @@ spec:
                               # worldserver slow to start and memory-hungry.
                               - name: AC_PRELOAD_ALL_NON_INSTANCED_MAP_GRIDS
                                 value: '1'
+                              # worldserver.conf ships MapUpdate.Threads = 1, so
+                              # every loaded grid on every map is updated by a
+                              # single thread and the cpu limit below is mostly
+                              # unreachable. Grid preload makes that worse: the
+                              # thread walks all non-instanced grids whether or
+                              # not anyone is standing on them. Measured on the
+                              # compose stack with 20 bots and threads = 1, the
+                              # world update tail sat at p99 45ms / max 50ms
+                              # against a 50ms tick -- already at the budget with
+                              # a fraction of the intended bot count.
+                              #
+                              # Name derived from Config.cpp's IniKeyToEnvVarKey:
+                              # '.' becomes '_' and a lower-to-upper transition
+                              # splits, so MapUpdate.Threads -> MAP_UPDATE_THREADS.
+                              # Only keys already present in the conf are
+                              # overridable, and this one is.
+                              - name: AC_MAP_UPDATE_THREADS
+                                value: '4'
                               - name: AC_AI_PLAYERBOT_ENABLED
                                 value: '1'
                               # Min and Max must move together. playerbots.conf
                               # ships both at 500, and an inverted pair trips an
                               # assertion in urand(min, max) that aborts the
                               # worldserver with SIGSEGV well after it logs ready.
+                              #
+                              # The pool is fleet-wide, not per-server: two
+                              # shards configured at 20 hold 20 bots between
+                              # them, not 40, because they coordinate through the
+                              # shared acore_playerbots database.
+                              #
+                              # 50 rather than the 200 this previously carried.
+                              # 200 was never measured; the only sizing evidence
+                              # is 20 bots at 6.7GiB and ~0.85 core per shard.
+                              # Overshooting is the expensive direction -- an
+                              # OOMKill or a tick collapse costs a full grid
+                              # preload to recover, which is why health
+                              # initialDelaySeconds is 1800. Raise this once the
+                              # players Counter and the delay percentiles on
+                              # :8901/metrics show headroom.
+                              #
+                              # 100 with the memory headroom below and four map
+                              # threads instead of one. Note that the extra RAM
+                              # is not what allows this -- at 20 bots the process
+                              # held 6.7GiB and ~0.85 core, so bots are cpu-bound
+                              # long before they are memory-bound, and the node
+                              # is the tight side on cpu. The threads are what
+                              # bought the room; the memory only makes
+                              # overshooting survivable.
                               - name: AC_AI_PLAYERBOT_MIN_RANDOM_BOTS
-                                value: '200'
+                                value: '100'
                               - name: AC_AI_PLAYERBOT_MAX_RANDOM_BOTS
-                                value: '200'
+                                value: '100'
                               - name: AC_AI_PLAYERBOT_RANDOM_BOT_AUTOLOGIN
                                 value: '1'
                               # Cluster wiring. The bare names are what the
@@ -218,6 +312,9 @@ spec:
                               - name: health
                                 containerPort: 8901
                                 protocol: TCP
+                              - name: soap
+                                containerPort: 7878
+                                protocol: TCP
                           volumeMounts:
                               - name: client-data
                                 mountPath: /data
@@ -238,12 +335,29 @@ spec:
                               # cluster default is 500 bots, so headroom is
                               # deliberate. Playerbots is CPU-bound before it is
                               # memory-bound.
+                              #
+                              # requests.cpu tracks MapUpdate.Threads above: with
+                              # 4 map threads a request of 2 means the scheduler
+                              # reserves half of what the process is configured
+                              # to run, and the shortfall shows up as cfs
+                              # throttling -- a rising world diff with no obvious
+                              # cause. The limit stays at 8 to leave room for the
+                              # network and database threads alongside them.
+                              #
+                              # Memory is the resource this cluster has spare:
+                              # the node sits at 14% of 593G requested, while cpu
+                              # is at 81%. So memory is sized for the failure
+                              # cost rather than the measurement -- an OOMKill
+                              # costs a full grid preload to come back, which is
+                              # thirty minutes of a shard being gone, and there
+                              # is no reason to run close to the line when ~480G
+                              # is unrequested.
                               requests:
-                                  cpu: '2'
-                                  memory: '8Gi'
+                                  cpu: '4'
+                                  memory: '16Gi'
                               limits:
                                   cpu: '8'
-                                  memory: '24Gi'
+                                  memory: '64Gi'
                           securityContext:
                               allowPrivilegeEscalation: false
                               capabilities:

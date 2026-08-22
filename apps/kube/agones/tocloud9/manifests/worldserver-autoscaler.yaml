@@ -6,10 +6,22 @@
 # Allocated GameServers, would sit at zero forever and never scale.
 #
 # The Counter policy works instead, because it scales on a number the game
-# server reports about itself. agones-shim publishes `players` from libsidecar's
-# active_connections, which counts gateway sessions -- real players. Bots are
-# server-side and never appear in it, so a fleet full of bots does not scale
-# itself up chasing its own tail.
+# server reports about itself: agones-shim publishes `players` from libsidecar's
+# active_connections.
+#
+# That bots do not appear in it is measured, not assumed, and the source reads
+# the other way -- TC9Sidecar.cpp fills connectedPlayers from
+# sWorldSessionMgr->GetActiveSessionCount(), which is _sessions.size() minus the
+# queue and looks like it would count a bot's session. On the compose stack with
+# bots demonstrably live (newest playerbots_random_bots event 7s old, 12 events
+# in 120s) both worldservers reported active_connections 0 while the delay
+# percentiles from the same collector moved, so the endpoint was awake and the
+# zero was real. mod-playerbots keeps its sessions out of that map.
+#
+# This matters more than it looks: if bots did register, the fleet would scale
+# up, each new shard would pull its share of a fleet-wide bot pool, and the
+# autoscaler would chase its own tail across 24Gi pods. Re-check this after any
+# mod-playerbots bump.
 apiVersion: autoscaling.agones.dev/v1
 kind: FleetAutoscaler
 metadata:
@@ -37,7 +49,18 @@ spec:
             # sets across shards, and dropping to one removes the redundancy the
             # registry relies on when a worldserver dies.
             minCapacity: 2000
-            maxCapacity: 8000
+            # 3000, not 8000. Capacity is 1000 per shard, so 8000 asked for eight
+            # replicas -- and at requests.cpu 4 that is 32 cores on a node with
+            # roughly 12 unrequested (52 of 64 already claimed, largely by reel,
+            # longhorn and the ARC runners). The autoscaler would have created
+            # GameServers that sat Pending forever while reporting a scaled
+            # fleet. Memory is not the limit here and never was: the node is at
+            # 14% of 593G.
+            #
+            # Three is honest rather than comfortable -- two fit today and the
+            # third lands only if something else gives cpu back. Raise this when
+            # the node does, not when the fleet looks busy.
+            maxCapacity: 3000
     sync:
         type: FixedInterval
         fixedInterval:

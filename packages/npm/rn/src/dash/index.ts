@@ -33,3 +33,25 @@ export type { McViewProps, RconExecFn } from './mc';
 // here, surfacing as "has no exported member" at some unrelated import site.
 export { TelemetryView, telemetryGroupsLens } from './telemetry';
 export type { TelemetryViewProps, TelemetryGroupItem, TelemetryEventItem } from './telemetry';
+export {
+	WowView,
+	NodeCard,
+	CharacterTable,
+	createWowMetricsStream,
+	createWowRealmStream,
+	createWowCharacterStream,
+	createSoapExec,
+	WOW_COMMANDS,
+	WOW_NOT_PROVISIONED,
+	isNotProvisioned,
+	tickTone,
+} from './wow';
+export type {
+	WowViewProps,
+	WowNodeItem,
+	WowRealm,
+	WowRealmCounts,
+	WowCharacter,
+	WowAccountRow,
+	SoapExecFn,
+} from './wow';
