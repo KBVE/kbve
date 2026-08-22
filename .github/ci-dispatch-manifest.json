@@ -564,7 +564,7 @@
 		{
 			"key": "metrics",
 			"app_name": "metrics",
-			"version": "0.1.5",
+			"version": "0.1.6",
 			"version_toml": "apps/metrics/version.toml",
 			"version_source": "apps/kbve/astro-kbve/src/content/docs/project/metrics.mdx",
 			"version_target": "apps/metrics/Cargo.toml",
