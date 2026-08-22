@@ -24,7 +24,14 @@ RUN cd apps/jobboard/web && npx vite build
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
 ENV CARGO_INCREMENTAL=0
 
-RUN printf '[workspace]\nmembers = ["apps/jobboard", "packages/rust/jedi", "packages/rust/holy", "packages/rust/kbve"]\nresolver = "2"\n' > Cargo.toml
+# The real workspace root, with `members` narrowed to the crates this image builds.
+# A hand-written stub root used to be enough, but since #15165 every member inherits
+# `rust-version` from `[workspace.package]` and its dependency versions from
+# `[workspace.dependencies]`, and a stub has neither — `cargo metadata` then fails
+# before a single crate is compiled.
+COPY Cargo.toml /tmp/workspace-root.toml
+RUN sed -e '/^members = \[/,/^\]/c\members = ["apps/jobboard", "packages/rust/jedi", "packages/rust/holy", "packages/rust/kbve"]' \
+        /tmp/workspace-root.toml > Cargo.toml
 
 COPY Cargo.lock Cargo.lock
 
@@ -44,7 +51,14 @@ RUN cargo chef prepare --recipe-path recipe.json
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS cook
 ENV CARGO_INCREMENTAL=0
 
-RUN printf '[workspace]\nmembers = ["apps/jobboard", "packages/rust/jedi", "packages/rust/holy", "packages/rust/kbve"]\nresolver = "2"\n' > Cargo.toml
+# The real workspace root, with `members` narrowed to the crates this image builds.
+# A hand-written stub root used to be enough, but since #15165 every member inherits
+# `rust-version` from `[workspace.package]` and its dependency versions from
+# `[workspace.dependencies]`, and a stub has neither — `cargo metadata` then fails
+# before a single crate is compiled.
+COPY Cargo.toml /tmp/workspace-root.toml
+RUN sed -e '/^members = \[/,/^\]/c\members = ["apps/jobboard", "packages/rust/jedi", "packages/rust/holy", "packages/rust/kbve"]' \
+        /tmp/workspace-root.toml > Cargo.toml
 
 COPY Cargo.lock Cargo.lock
 
