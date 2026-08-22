@@ -122,6 +122,7 @@ RUN mkdir -p /repo/modules/mod-playerbots && cd /repo/modules/mod-playerbots && 
 # a named build context instead of a git fetch. Must land before cmake runs --
 # AzerothCore enumerates modules/ at configure time, not build time.
 COPY --from=modules mod-underbarrel-bootlegger /repo/modules/mod-underbarrel-bootlegger
+COPY --from=modules mod-rent-a-mount /repo/modules/mod-rent-a-mount
 
 COPY --from=build-sidecar /build/libsidecar-cpp/build/libsidecar.so ./repo/deps/libsidecar/libsidecar.so
 
@@ -212,6 +213,13 @@ COPY --from=build-core /repo/bin/etc/dbimport.conf.dist /repo/bin/etc/dbimport.c
 # modules/mod-playerbots/data/sql/playerbots into acore_playerbots.
 COPY --from=build-core /repo/modules/mod-playerbots/data/sql /repo/modules/mod-playerbots/data/sql
 
+# mod-rent-a-mount's world SQL is applied HERE and nowhere else. It is
+# deliberately absent from the gameserver stage: that fleet can surge to two
+# pods during a rollout and DBUpdater carries no lock of any kind, so a
+# worldserver able to see this SQL could race another applying it. This Job is
+# an ArgoCD Sync hook in wave 1, ahead of the fleet, leaving a single writer.
+COPY --from=build-core /repo/modules/mod-rent-a-mount/data/sql /repo/modules/mod-rent-a-mount/data/sql
+
 WORKDIR /repo/bin
 
 ENTRYPOINT ["./dbimport"]
@@ -241,6 +249,10 @@ COPY --from=build-core /repo/modules/mod-playerbots/conf/playerbots.conf.dist /r
 COPY --from=build-core /repo/modules/mod-playerbots/data/sql /repo/modules/mod-playerbots/data/sql
 
 COPY --from=modules mod-underbarrel-bootlegger/kbve/mod_bootlegger.conf /repo/bin/etc/modules/mod_bootlegger.conf
+
+# Conf only. This module's data/sql must NOT be copied here -- see the db-import
+# stage for why.
+COPY --from=modules mod-rent-a-mount/conf/mod_rent_a_mount.conf.dist /repo/bin/etc/modules/mod_rent_a_mount.conf
 
 COPY --from=build-core /repo/bin/bin/worldserver /repo/bin/worldserver
 
