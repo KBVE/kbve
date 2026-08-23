@@ -205,6 +205,49 @@ to be load-bearing:
 | `creature_template_spell`           | 5 spells  | the action bar, matched to kit 8's seat                                                   |
 | `smart_scripts` 29 + 27             | `SET_FLY` | flight is granted at runtime, never by template data                                      |
 
+### Action bar
+
+| Slot | Spell               | Effect                          | Works on players |
+| ---- | ------------------- | ------------------------------- | ---------------- |
+| 0    | 43799 Machine Gun   | channeled, tracks target        | no               |
+| 1    | 43769 Rockets       | damage                          | no               |
+| 2    | 56896 Rhino Strike  | 2374 direct damage, no cooldown | yes              |
+| 3    | 54170 Soar          | flight speed +350%, 8s          | self             |
+| 4    | 57092 Blazing Speed | flight speed +499%, 30s         | self             |
+| 5    | 44009 Boosters      | flight speed +99%, 15s          | self             |
+
+Picking these is harder than it looks. Four separate things silently disqualify
+a spell, and each one presents as "nothing happens":
+
+**`SPELL_ATTR5_NOT_ON_PLAYER`.** `SpellInfo::CheckTarget` returns
+`SPELL_FAILED_TARGET_IS_PLAYER` — "Cannot target players". Both quest weapons in
+slots 0 and 1 carry it, so they are PvE only. Nothing in the database changes
+that; it would take a module clearing the attribute at spell load.
+
+**`conditions` target locks.** `SourceTypeOrReferenceId` 13 and 17 pin a spell to
+specific creature entries. The original slot 0 was 43770 Grappling Hook, locked
+to creature 24439 "Sack of Relics", so it answered "Invalid target" on
+everything else forever. 49840 Shock Lance is locked to four Oculus creatures
+the same way.
+
+**Power cost.** The plane has no energy pool, so anything costing energy can
+never fire. 57665 Frostbolt and 56091 Flame Spike are both 10 energy.
+
+**`SPELL_EFFECT_TRIGGER_MISSILE` (32).** The launcher carries no damage; a
+triggered spell does. 66518 Airship Cannon triggers 66655, and its payload
+selects targets with implicit target 87, `TARGET_UNIT_DEST_AREA_ENEMY`, relative
+to the caster. It reads as a purely visual effect when nothing qualifies.
+
+Direct `SPELL_EFFECT_SCHOOL_DAMAGE` with implicit target 6
+(`TARGET_UNIT_TARGET_ENEMY`) avoids all four. That is how slot 2 was chosen.
+
+Also worth knowing: 44009 Boosters is aura 210,
+`MOD_FLIGHT_SPEED_NOT_STACKING`, while Soar and Blazing Speed are aura 206,
+`MOD_INCREASE_FLIGHT_SPEED`. Different types, so Boosters stacks with either.
+
+68505 Thrust passes every test above and deals 7999 with a one second cooldown,
+which is roughly eight times slot 2. Deliberately not used.
+
 ### Two traps worth remembering
 
 **Seat order decides everything.** Kit 129 (Vic's Flying Machine) has a far
