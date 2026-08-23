@@ -3,6 +3,7 @@
 #include "Log.h"
 #include "ScriptMgr.h"
 #include "SharedDefines.h"
+#include "SpellAuraDefines.h"
 #include "SpellInfo.h"
 
 namespace
@@ -31,6 +32,9 @@ public:
             return;
 
         if (!spell->HasAttribute(SPELL_ATTR4_ONLY_FLYING_AREAS))
+            return;
+
+        if (!spell->HasAura(SPELL_AURA_MOUNTED) && !spell->HasAura(SPELL_AURA_FLY))
             return;
 
         spell->AttributesEx4 &= ~SPELL_ATTR4_ONLY_FLYING_AREAS;

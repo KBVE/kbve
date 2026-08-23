@@ -52,10 +52,23 @@ spell's area check, not the client refusing to leave the ground.
 
 ## Scope
 
-Every spell carrying `SPELL_ATTR4_ONLY_FLYING_AREAS` is affected, not only mount
-spells. That attribute exists to mark Outland/Northrend-only spells, so the set
-is coherent with "allow these everywhere", but it is broader than flying mounts
-alone. Startup logs the count.
+Only spells that actually grant flight are touched. Carrying
+`SPELL_ATTR4_ONLY_FLYING_AREAS` is not enough; the spell must also apply
+`SPELL_AURA_MOUNTED` or `SPELL_AURA_FLY`.
+
+Counted against the client's own `Spell.dbc` (49,839 records):
+
+| Set                                                          | Count   |
+| ------------------------------------------------------------ | ------- |
+| carry `SPELL_ATTR4_ONLY_FLYING_AREAS`                        | 118     |
+| of those, apply `SPELL_AURA_MOUNTED`                         | 107     |
+| plus flight forms via `SPELL_AURA_FLY` (33943, 40120, 67795) | 3       |
+| **modified**                                                 | **110** |
+| left alone                                                   | 8       |
+
+The eight untouched are area-restricted for reasons unrelated to flying, and
+nothing here needs them changed. Startup logs the count so the number can be
+checked against this table rather than assumed.
 
 ## Config
 
