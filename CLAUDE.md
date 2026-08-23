@@ -35,3 +35,5 @@
 - When making changes that affect multiple projects, use `nx affected` to validate impact
 
 <!-- nx configuration end-->
+
+@AGENTS.md
