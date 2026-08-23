@@ -16,6 +16,7 @@ layout(push_constant, std430) uniform Params {
     vec4 p1;
     vec4 p2;
     vec4 p3;
+    vec4 terra;
 } pc;
 
 // How many candidates there are and how many may survive, read from the counter
@@ -34,7 +35,7 @@ const float BAND0 = %BAND0%;
 const float BAND1 = %BAND1%;
 const float BAND_OUT = %BAND_OUT%;
 const float EXTENT = %EXTENT%;
-const vec2 ORIGIN = vec2(%ORIGIN_X%, %ORIGIN_Z%);
+#define ORIGIN pc.terra.xy
 const int HRES = %HRES%;
 const float OCCL_START = %OCCL_START%;
 const int OCCL_STEPS = %OCCL_STEPS%;
@@ -326,6 +327,9 @@ pub struct FloraCompute {
     count: u32,
     cap: u32,
     counter_reset: PackedByteArray,
+    /// Middle of the terrain window the heights were baked for, sent rather than
+    /// baked so a window slide does not compile a new program.
+    origin: [f32; 2],
     pub growth: f32,
 }
 
@@ -386,8 +390,6 @@ impl FloraCompute {
                 if growth_on { "1.0" } else { "0.0" }.to_string(),
             ),
             ("%EXTENT%", format!("{:.6}", terrain.extent.max(1.0))),
-            ("%ORIGIN_X%", format!("{:.6}", terrain.origin[0])),
-            ("%ORIGIN_Z%", format!("{:.6}", terrain.origin[1])),
             ("%HRES%", terrain.res().to_string()),
             ("%OCCL_START%", format!("{:.6}", terrain.start)),
             ("%OCCL_STEPS%", terrain.steps().to_string()),
@@ -466,6 +468,7 @@ impl FloraCompute {
             count,
             cap,
             counter_reset,
+            origin: terrain.origin,
             growth: 0.5,
         })
     }
@@ -513,7 +516,7 @@ impl FloraCompute {
         }
         self.rd
             .buffer_update(self.counter_buf, 0, COUNTER_BYTES, &self.counter_reset);
-        let mut pc = [0.0f32; 20];
+        let mut pc = [0.0f32; 24];
         pc[0] = cam_pos.x;
         pc[1] = cam_pos.y;
         pc[2] = cam_pos.z;
@@ -525,6 +528,8 @@ impl FloraCompute {
             pc[o + 2] = p.normal.z;
             pc[o + 3] = p.d;
         }
+        pc[20] = self.origin[0];
+        pc[21] = self.origin[1];
         let pc_bytes = PackedFloat32Array::from(&pc[..]).to_byte_array();
         let cl = self.rd.compute_list_begin();
         let groups = self.count.div_ceil(64);
