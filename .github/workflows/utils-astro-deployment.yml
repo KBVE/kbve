@@ -50,6 +50,10 @@ jobs:
         steps:
             - name: Checkout the repository
               uses: actions/checkout@v7
+              with:
+                  # Full history: the sitemap lastmod serializer skips every
+                  # URL on a shallow clone (packages/npm/astro/sitemap/lastmod.mjs).
+                  fetch-depth: 0
 
             - name: Setup Node.js ${{ inputs.node_version }}
               uses: actions/setup-node@v7
