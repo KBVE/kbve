@@ -68,6 +68,14 @@ x-shard-env: &shard-env
     TC9_ITEM_GUIDS_BUFFER_SIZE: 50
     AC_PLAYERBOTS_UPDATES_ENABLE_DATABASES: '1'
     AC_PRELOAD_ALL_NON_INSTANCED_MAP_GRIDS: '1'
+    # Stock is 5 (worldserver.conf: AccountInstancesPerHour). Raised for the
+    # harness only: a cross-shard dungeon entry appears to mint a new instance
+    # rather than joining the existing one, so a single attempt burns two or
+    # three entries and a tester is locked out after two runs. Keep the stock
+    # value in kube -- if sharded instance entry really does consume the quota
+    # this fast, that is a finding about the design, not something to paper
+    # over in production.
+    AC_ACCOUNT_INSTANCES_PER_HOUR: '50'
     AC_MAP_UPDATE_THREADS: '${AI_MAP_UPDATE_THREADS:-4}'
     # Cluster-wide set of maps that have bots. NOT per-shard ownership: it is
     # what IsMapServedByClusterBots() checks to decide handoff vs re-randomize.
@@ -81,6 +89,11 @@ x-shard-env: &shard-env
     AC_AI_PLAYERBOT_MIN_RANDOM_BOTS: '${AI_PLAYERBOT_MAX_RANDOM_BOTS:-20}'
     AC_AI_PLAYERBOT_MAX_RANDOM_BOTS: '${AI_PLAYERBOT_MAX_RANDOM_BOTS:-20}'
     AC_AI_PLAYERBOT_RANDOM_BOT_ACCOUNT_COUNT: '0'
+    # RandomBotJoinBG only PERMITS bots to take part; this is what makes them
+    # queue on their own, so a player queueing alone actually gets a match.
+    # Off by default upstream. Note AV and IC stay empty -- their
+    # RandomBotAutoJoinBG*Count values ship at 0.
+    AC_AI_PLAYERBOT_RANDOM_BOT_AUTO_JOIN_BG: '1'
     AC_AI_PLAYERBOT_RANDOM_BOT_AUTOLOGIN: '${AI_PLAYERBOT_RANDOM_BOT_AUTOLOGIN:-1}'
 
 services:
@@ -97,7 +110,25 @@ services:
         environment:
             <<: *shard-env
             TC9_PREFERRED_HOSTNAME: gameserver-ac-a
-            AC_CLUSTER_AVAILABLE_MAPS: '1,571'
+            # Below what this shard can actually seat. A shard only reaches its
+            # target from characters saved on maps it OWNS, and Kalimdor +
+            # Northrend hold fewer than Eastern Kingdoms + Outland: measured
+            # 1940/2000 here against 2000/2000 on b. That 60-bot shortfall is
+            # not cosmetic -- bots only auto-queue battlegrounds once
+            # playerBots.size() >= the target, so an unreachable target keeps
+            # the BG gate shut forever (and logs a shortfall error every cycle).
+            AC_AI_PLAYERBOT_MIN_RANDOM_BOTS: '1900'
+            AC_AI_PLAYERBOT_MAX_RANDOM_BOTS: '1900'
+            # Deliberately EMPTY, not '1,571'. An explicit list removes a shard
+            # from the registry's balancer, so with b explicit and c gone the
+            # instance and battleground maps would be owned by nobody: dungeon
+            # entry returns instanceNotFound, and the cluster BG fill path bails
+            # on !IsMapAssigned(bgMap). Empty means this shard takes everything b
+            # does not claim -- Kalimdor, Northrend, and all the instanced maps --
+            # while RandomBotMaps below keeps its grind population on the
+            # continents. Unlike the retired shard c, this one HAS bots, which is
+            # what lets it fill a player's battleground queue.
+            AC_CLUSTER_AVAILABLE_MAPS: ''
             # MUST match AvailableMaps. RandomTeleportForLevel filters
             # destinations by RandomBotMaps and never checks IsMapAssigned, so
             # leaving the stock 0,1,530,571 here makes this shard teleport its
@@ -117,13 +148,17 @@ services:
             # seat and leave but are never teleported back in.
             AC_AI_PLAYERBOT_RANDOM_BOT_MAPS: '0,530'
 
+    # Retired. The instance/battleground shard was a mistake: a shard that owns
+    # BG maps but holds no bots CANNOT fill a matchmaking queue -- the cluster
+    # fill path returns early unless IsMapAssigned(bgMap) is true, so only the
+    # BG map owner may fill, and it fills from its OWN local bots. With every
+    # bot on a and b, and every BG map here, player queues could never be
+    # populated by anyone. Dropping this shard lets a and b bin-pack the
+    # unclaimed maps, putting BG ownership on the shards that have the bots.
+    #
+    # Dungeons are NOT fixed by this: instance maps still split across a and b,
+    # so a player can still be transferred away from their party. That needs the
+    # gateway to stop transferring for instance maps.
     gameserver-ac-c:
         <<: *shard
-        environment:
-            <<: *shard-env
-            TC9_PREFERRED_HOSTNAME: gameserver-ac-c
-            AC_CLUSTER_AVAILABLE_MAPS: ''
-            # No bot pool here: instances only. Bots reach dungeons by handoff
-            # from a and b, and ClusterBotMaps above keeps them from being sent
-            # here in the first place.
-            AC_AI_PLAYERBOT_ENABLED: '0'
+        scale: 0
