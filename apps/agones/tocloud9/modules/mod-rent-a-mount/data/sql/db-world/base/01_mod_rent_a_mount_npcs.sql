@@ -1,3 +1,15 @@
+-- `creature`.`id`, not `id1`. Upstream AzerothCore split that column into
+-- id1/id2/id3 for spawn randomisation, but the core this stack builds from
+-- (3kynox/azerothcore-wotlk) still ships the single-`id` schema, and the base
+-- dump is what defines the live table. Writing `id1` here fails the whole file
+-- with "Unknown column 'id1' in 'field list'" after the two statements above
+-- have already committed, which leaves the module half-installed and the
+-- ArgoCD sync hook failing on every retry.
+--
+-- The same mistake is latent in mod-underbarrel-bootlegger's kbve/sql/ spawn
+-- scripts; those are reference scripts outside data/sql/db-world/, so
+-- db-import never runs them and nobody has hit it.
+
 DELETE FROM `creature_template` WHERE `entry` BETWEEN 900300 AND 900301;
 INSERT INTO `creature_template`
 (`entry`, `name`, `subname`, `minlevel`, `maxlevel`, `faction`, `npcflag`, `speed_walk`, `speed_run`,
@@ -12,7 +24,7 @@ INSERT INTO `creature_template_model` (`CreatureID`, `Idx`, `CreatureDisplayID`,
 
 DELETE FROM `creature` WHERE `guid` BETWEEN 9003000 AND 9003003;
 INSERT INTO `creature`
-(`guid`, `id1`, `map`, `spawnMask`, `phaseMask`, `position_x`, `position_y`, `position_z`, `orientation`,
+(`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `position_x`, `position_y`, `position_z`, `orientation`,
  `spawntimesecs`, `wander_distance`, `MovementType`, `Comment`) VALUES
 (9003000, 900300, 0, 1, 1, -8735.20, 979.40, 97.60, 0.61, 300, 0, 0, 'mod-rent-a-mount Stormwind'),
 (9003001, 900300, 0, 1, 1, -5007.10, -1258.30, 507.80, 3.77, 300, 0, 0, 'mod-rent-a-mount Ironforge'),
