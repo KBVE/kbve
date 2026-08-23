@@ -1,0 +1,129 @@
+# Three-shard local harness for the ToCloud9 map partition.
+#
+# The `ac` profile normally runs one gameserver-ac service scaled to N
+# replicas, which cannot test a partition: scaled replicas share one
+# environment, so every replica advertises the same Cluster.AvailableMaps and
+# the registry bin-packs maps across them arbitrarily. Shards need DIFFERENT
+# map lists, so they have to be different services.
+#
+# Layout mirrors the kube design under discussion:
+#   a  -> Kalimdor + Northrend        (717 of 1509 bot characters, 47%)
+#   b  -> Eastern Kingdoms + Outland + Ebon Hold (793, 53%)
+#   c  -> everything else: instances, raids, battlegrounds
+#
+# c carries an EMPTY AvailableMaps on purpose. binpack/distributor.go assigns
+# an explicit list verbatim and removes those maps from the balancer, so a
+# server advertising "" picks up the entire remainder. Without one, no shard
+# serves instances and players cannot enter a dungeon.
+#
+# Usage:
+#   docker compose -f docker-compose.yml -f docker-compose.playerbots.yml \
+#                  -f docker-compose.shards.yml --profile ac up -d
+
+x-shard: &shard
+    image: kbve/tocloud9-gameserver-playerbots:${PLAYERBOTS_TAG:-dev}
+    platform: ${PLAYERBOTS_PLATFORM:-linux/arm64}
+    depends_on:
+        mysql:
+            condition: service_healthy
+        servers-registry:
+            condition: service_started
+        guidserver:
+            condition: service_started
+    volumes:
+        # client_data only. Deliberately NOT core_etc, unlike the stock
+        # gameserver-ac. That named volume is created by download-miscs holding
+        # just worldserver.conf, so by the time a worldserver mounts it the
+        # volume is non-empty and docker never seeds it from the image --
+        # /repo/bin/etc/modules/ then does not exist and every module conf,
+        # including AiPlayerbot.ClusterBotMaps, silently disappears. Whether it
+        # works at all depends on which container mounts the volume first.
+        #
+        # The image already ships worldserver.conf and every module conf, and
+        # the kube fleet mounts only the single worldserver.conf file rather
+        # than the whole directory, so using the image's etc matches
+        # production and removes three containers sharing one mutable etc.
+        - client_data:/data
+    profiles: [ac]
+
+x-shard-env: &shard-env
+    AC_LOGIN_DATABASE_INFO: '${AUTH_DB_HOST};${AUTH_DB_PORT};${AUTH_DB_USER};${AUTH_DB_PASS};${AUTH_DB_NAME}'
+    AC_WORLD_DATABASE_INFO: '${WORLD_DB_HOST};${WORLD_DB_PORT};${WORLD_DB_USER};${WORLD_DB_PASS};${WORLD_DB_NAME}'
+    AC_CHARACTER_DATABASE_INFO: '${CHAR_DB_HOST};${CHAR_DB_PORT};${CHAR_DB_USER};${CHAR_DB_PASS};${CHAR_DB_NAME}'
+    AC_PLAYERBOTS_DATABASE_INFO: '${PLAYERBOTS_DB_HOST};${PLAYERBOTS_DB_PORT};${PLAYERBOTS_DB_USER};${PLAYERBOTS_DB_PASS};${PLAYERBOTS_DB_NAME}'
+    AC_CONSOLE_ENABLE: 0
+    AC_RA_ENABLE: 0
+    AC_SOAP_ENABLED: 0
+    AC_DATA_DIR: /data
+    AC_CLUSTER_ENABLED: 1
+    AC_GAME_TYPE: 1
+    TC9_NATS_URL: nats://nats:4222
+    TC9_SERVERS_REGISTRY_ADDRESS: servers-registry:8999
+    TC9_GUID_PROVIDER_ADDRESS: guidserver:8996
+    TC9_MATCHMAKING_ADDRESS: matchmakingserver:8994
+    TC9_GROUP_SERVICE_ADDRESS: groupserver:8998
+    TC9_GUILD_SERVICE_ADDRESS: guildserver:8995
+    TC9_GRPC_PORT: 9509
+    TC9_CHARACTER_GUIDS_BUFFER_SIZE: 5
+    TC9_ITEM_GUIDS_BUFFER_SIZE: 50
+    AC_PLAYERBOTS_UPDATES_ENABLE_DATABASES: '1'
+    AC_PRELOAD_ALL_NON_INSTANCED_MAP_GRIDS: '1'
+    AC_MAP_UPDATE_THREADS: '${AI_MAP_UPDATE_THREADS:-4}'
+    # Cluster-wide set of maps that have bots. NOT per-shard ownership: it is
+    # what IsMapServedByClusterBots() checks to decide handoff vs re-randomize.
+    # Empty (the stock default) makes every map count as served, so a bot that
+    # steps into a dungeon is handed to the instance shard, which has no pool
+    # for it. Requires the key to exist in playerbots.conf -- see the Dockerfile.
+    AC_AI_PLAYERBOT_CLUSTER_BOT_MAPS: '0,1,530,571,609'
+    # Fleet-wide target. Each shard seats only characters saved on maps it
+    # owns (ShouldSkipPoolCandidate), so the total is split by where bots grind.
+    AC_AI_PLAYERBOT_ENABLED: '${AI_PLAYERBOT_ENABLED:-1}'
+    AC_AI_PLAYERBOT_MIN_RANDOM_BOTS: '${AI_PLAYERBOT_MAX_RANDOM_BOTS:-20}'
+    AC_AI_PLAYERBOT_MAX_RANDOM_BOTS: '${AI_PLAYERBOT_MAX_RANDOM_BOTS:-20}'
+    AC_AI_PLAYERBOT_RANDOM_BOT_ACCOUNT_COUNT: '0'
+    AC_AI_PLAYERBOT_RANDOM_BOT_AUTOLOGIN: '${AI_PLAYERBOT_RANDOM_BOT_AUTOLOGIN:-1}'
+
+services:
+    # The stock single/scaled worldserver is scaled to zero so the two layouts
+    # cannot run at once and fight over the same characters. NOT done with
+    # `profiles:` -- compose unions profile lists across files rather than
+    # replacing them, so overriding it here would leave the service in `ac`
+    # anyway and silently start a fourth, unpartitioned worldserver.
+    gameserver-ac:
+        scale: 0
+
+    gameserver-ac-a:
+        <<: *shard
+        environment:
+            <<: *shard-env
+            TC9_PREFERRED_HOSTNAME: gameserver-ac-a
+            AC_CLUSTER_AVAILABLE_MAPS: '1,571'
+            # MUST match AvailableMaps. RandomTeleportForLevel filters
+            # destinations by RandomBotMaps and never checks IsMapAssigned, so
+            # leaving the stock 0,1,530,571 here makes this shard teleport its
+            # own bots onto maps it does not own, which trips the handoff path
+            # immediately. Measured with the stock list: 122 handoffs from this
+            # shard in ~40s at 2000 bots, bouncing the same bots against b.
+            AC_AI_PLAYERBOT_RANDOM_BOT_MAPS: '1,571'
+
+    gameserver-ac-b:
+        <<: *shard
+        environment:
+            <<: *shard-env
+            TC9_PREFERRED_HOSTNAME: gameserver-ac-b
+            AC_CLUSTER_AVAILABLE_MAPS: '0,530,609'
+            # See the note on shard a. 609 is deliberately absent: it is the
+            # Death Knight start, not a grind destination, so bots saved there
+            # seat and leave but are never teleported back in.
+            AC_AI_PLAYERBOT_RANDOM_BOT_MAPS: '0,530'
+
+    gameserver-ac-c:
+        <<: *shard
+        environment:
+            <<: *shard-env
+            TC9_PREFERRED_HOSTNAME: gameserver-ac-c
+            AC_CLUSTER_AVAILABLE_MAPS: ''
+            # No bot pool here: instances only. Bots reach dungeons by handoff
+            # from a and b, and ClusterBotMaps above keeps them from being sent
+            # here in the first place.
+            AC_AI_PLAYERBOT_ENABLED: '0'
