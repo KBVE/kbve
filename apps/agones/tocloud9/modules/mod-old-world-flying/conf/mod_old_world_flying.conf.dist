@@ -1,0 +1,5 @@
+[worldserver]
+
+OldWorldFlying.Enable = 1
+
+OldWorldFlying.IgnoreColdWeatherFlying = 1
