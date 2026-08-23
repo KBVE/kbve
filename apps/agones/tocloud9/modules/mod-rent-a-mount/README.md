@@ -186,6 +186,54 @@ the RWX client-data volume — 49,839 records, 234 fields, name at field 136:
 Nearby alternates, should more offers be wanted: 472 Pinto, 6648 Chestnut Mare,
 6777 Gray Ram, 6653 Dire Wolf.
 
+## The Wintergrasp Fighter Plane (27838)
+
+A pilotable flying vehicle, defined in
+`data/sql/db-world/updates/02_mod_rent_a_mount_fighter_plane.sql`. Not rentable
+yet — it is spawned with `.npc add 27838`.
+
+Blizzard shipped 27838 as scenery: `VehicleId 0`, `npcflag 0`, no movement row,
+no seats. Everything that makes it fly was authored, and every piece turned out
+to be load-bearing:
+
+| Piece                               | Value     | Why                                                                                       |
+| ----------------------------------- | --------- | ----------------------------------------------------------------------------------------- |
+| `VehicleId`                         | `8`       | Steel Gate Flying Machine. Seat 0 is the **control** seat, and the kit lacks `NO_JUMPING` |
+| `creature_template_movement.Flight` | `2`       | the enum is `None, DisableGravity, CanFly` — `1` only hovers                              |
+| `Ground`                            | `1`       | `0` is `None`, which stops it moving on the ground at all                                 |
+| `npc_spellclick_spells`             | `46598`   | how a player boards it                                                                    |
+| `creature_template_spell`           | 5 spells  | the action bar, matched to kit 8's seat                                                   |
+| `smart_scripts` 29 + 27             | `SET_FLY` | flight is granted at runtime, never by template data                                      |
+
+### Two traps worth remembering
+
+**Seat order decides everything.** Kit 129 (Vic's Flying Machine) has a far
+better pitch range, but its control seat is seat _1_ — spellclick puts a player
+in the first free seat, so they land in seat 0 as a passenger, with no control
+and no action bar. Read `VehicleSeat.dbc` flag `0x800` before picking a kit.
+
+**Template data never grants flight.** `Flight = 2` alone does nothing for a
+piloted vehicle. `SMART_ACTION_SET_FLY` calls `Unit::SetCanFly`, which branches:
+
+```cpp
+if (isClientControlled)  // SMSG_MOVE_SET_CAN_FLY -> the pilot, enables ascend
+else                     // SMSG_SPLINE_MOVE_SET_FLYING -> AI flight only
+```
+
+Firing it on `SMART_EVENT_CHARMED` (29) alone took the wrong branch: gravity off,
+so it hovered and moved but could not climb — altitude only came from driving up
+slopes. `SMART_EVENT_PASSENGER_BOARDED` (27) fires after control is established
+and takes the client branch. Both rows are kept.
+
+Kits with aircraft-like pitch are all either fixed gun turrets or carry
+`NO_JUMPING`, which disables ascend. Kit 8 is the compromise: it climbs.
+
+### This one modifies stock data
+
+Unlike the rest of this module, 27838 is a creature AzerothCore ships, so these
+are `UPDATE`s rather than inserts into a reserved range. `extras/uninstall.sql`
+restores it to scenery.
+
 ## Uninstall
 
 Two scripts under `extras/`, because they target different databases. Stop the
