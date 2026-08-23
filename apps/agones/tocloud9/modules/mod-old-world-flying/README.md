@@ -52,23 +52,29 @@ spell's area check, not the client refusing to leave the ground.
 
 ## Scope
 
-Only spells that actually grant flight are touched. Carrying
-`SPELL_ATTR4_ONLY_FLYING_AREAS` is not enough; the spell must also apply
-`SPELL_AURA_MOUNTED` or `SPELL_AURA_FLY`.
+An allowlist, not a blanket change. A spell is only touched if it clears three
+tests: it carries `SPELL_ATTR4_ONLY_FLYING_AREAS`, it actually grants flight
+(`SPELL_AURA_MOUNTED` or `SPELL_AURA_FLY`), and its id is named in
+`OldWorldFlying.Spells`.
 
-Counted against the client's own `Spell.dbc` (49,839 records):
+The default list is `64681,64761` — **Loaned Gryphon** and **Loaned Wind Rider**.
+They are the only two mount spells in `Spell.dbc` already flagged
+`SPELL_ATTR7_IGNORES_COLD_WEATHER_FLYING_REQUIREMENT`, which `SharedDefines.h`
+describes as "set for loaner mounts". Blizzard built them to be handed out
+temporarily, they are faction-paired, and no player owns one, so unrestricting
+them changes nothing about anyone's own mounts.
 
-| Set                                                          | Count   |
-| ------------------------------------------------------------ | ------- |
-| carry `SPELL_ATTR4_ONLY_FLYING_AREAS`                        | 118     |
-| of those, apply `SPELL_AURA_MOUNTED`                         | 107     |
-| plus flight forms via `SPELL_AURA_FLY` (33943, 40120, 67795) | 3       |
-| **modified**                                                 | **110** |
-| left alone                                                   | 8       |
+For reference, the wider sets in `Spell.dbc` (49,839 records):
 
-The eight untouched are area-restricted for reasons unrelated to flying, and
-nothing here needs them changed. Startup logs the count so the number can be
-checked against this table rather than assumed.
+| Set                                   | Count |
+| ------------------------------------- | ----- |
+| carry `SPELL_ATTR4_ONLY_FLYING_AREAS` | 118   |
+| of those, grant flight                | 110   |
+| unrestricted by default here          | 2     |
+
+`OldWorldFlying.AllFlightSpells = 1` widens it to all 110, which frees every
+player's own flying mounts in the old world. That is a server-wide gameplay
+change and is off by default.
 
 ## Config
 
