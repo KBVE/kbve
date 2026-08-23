@@ -1,9 +1,0 @@
-[worldserver]
-
-OldWorldFlying.Enable = 1
-
-OldWorldFlying.Spells = 64681,64761
-
-OldWorldFlying.AllFlightSpells = 0
-
-OldWorldFlying.IgnoreColdWeatherFlying = 1
