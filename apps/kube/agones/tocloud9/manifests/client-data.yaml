@@ -71,7 +71,7 @@ spec:
                         # Pinned to the same core the worldserver image is built from.
                         # walkline's cluster-mode branch is a different core, and this
                         # file is mounted over the image's own worldserver.conf.
-                        value: 'https://raw.githubusercontent.com/3kynox/azerothcore-wotlk/35a34b6aaf1cd662c8ac164532a0d8ff1cbbf0cb/src/server/apps/worldserver/worldserver.conf.dist'
+                        value: 'https://raw.githubusercontent.com/KBVE/azerothcore-wotlk/0433f6bf50afb66d8cbd9e2e1c57b26ead80ef1d/src/server/apps/worldserver/worldserver.conf.dist'
                   command: ['/bin/sh', '-c']
                   args:
                       - |
