@@ -56,7 +56,7 @@ spec:
                 - name: servers-registry
                   image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
                   # One image carries every ToCloud9 service; pick this one.
-                  command: ["/app/servers-registry"]
+                  command: ['/app/servers-registry']
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PORT
@@ -130,7 +130,7 @@ spec:
                 - name: charserver
                   image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
                   # One image carries every ToCloud9 service; pick this one.
-                  command: ["/app/charserver"]
+                  command: ['/app/charserver']
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PORT
@@ -212,7 +212,7 @@ spec:
                 - name: chatserver
                   image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
                   # One image carries every ToCloud9 service; pick this one.
-                  command: ["/app/chatserver"]
+                  command: ['/app/chatserver']
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PORT
@@ -291,7 +291,7 @@ spec:
                 - name: guildserver
                   image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
                   # One image carries every ToCloud9 service; pick this one.
-                  command: ["/app/guildserver"]
+                  command: ['/app/guildserver']
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PORT
@@ -369,7 +369,7 @@ spec:
                 - name: guidserver
                   image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
                   # One image carries every ToCloud9 service; pick this one.
-                  command: ["/app/guidserver"]
+                  command: ['/app/guidserver']
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PORT
@@ -446,7 +446,7 @@ spec:
                 - name: mailserver
                   image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
                   # One image carries every ToCloud9 service; pick this one.
-                  command: ["/app/mailserver"]
+                  command: ['/app/mailserver']
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PORT
@@ -523,7 +523,7 @@ spec:
                 - name: auctionhouse
                   image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
                   # One image carries every ToCloud9 service; pick this one.
-                  command: ["/app/auctionhouse"]
+                  command: ['/app/auctionhouse']
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PORT
@@ -609,7 +609,7 @@ spec:
                 - name: groupserver
                   image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
                   # One image carries every ToCloud9 service; pick this one.
-                  command: ["/app/groupserver"]
+                  command: ['/app/groupserver']
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PORT
@@ -686,7 +686,7 @@ spec:
                 - name: matchmakingserver
                   image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
                   # One image carries every ToCloud9 service; pick this one.
-                  command: ["/app/matchmakingserver"]
+                  command: ['/app/matchmakingserver']
                   imagePullPolicy: IfNotPresent
                   env:
                       - name: PORT
@@ -703,6 +703,12 @@ spec:
                                 key: WORLD_DB_CONNECTION
                       - name: SERVERS_REGISTRY_SERVICE_ADDRESS
                         value: 'servers-registry:8999'
+                      # The dungeon finder forms its parties through the group
+                      # service, so matchmaking is a client of it now. Without
+                      # this the config default localhost:8998 is used and every
+                      # JoinLFG dies on connection refused.
+                      - name: GROUP_SERVICE_ADDRESS
+                        value: 'groupserver:8998'
                       - name: BATTLE_GROUPS
                         value: '1:1'
                       - name: NATS_URL
