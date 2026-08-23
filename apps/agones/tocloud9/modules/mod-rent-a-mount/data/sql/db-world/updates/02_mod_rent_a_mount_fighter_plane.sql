@@ -16,11 +16,12 @@ INSERT INTO `npc_spellclick_spells` (`npc_entry`, `spell_id`, `cast_flags`, `use
 
 DELETE FROM `creature_template_spell` WHERE `CreatureID` = 27838;
 INSERT INTO `creature_template_spell` (`CreatureID`, `Spell`, `Index`) VALUES
-(27838, 43770, 0),
-(27838, 44009, 1),
-(27838, 43799, 2),
-(27838, 43769, 3),
-(27838, 47769, 4);
+(27838, 43799, 0),
+(27838, 43769, 1),
+(27838, 56896, 2),
+(27838, 54170, 3),
+(27838, 57092, 4),
+(27838, 44009, 5);
 
 DELETE FROM `smart_scripts` WHERE `entryorguid` = 27838 AND `source_type` = 0;
 INSERT INTO `smart_scripts`
