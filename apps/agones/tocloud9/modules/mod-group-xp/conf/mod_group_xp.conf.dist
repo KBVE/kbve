@@ -1,0 +1,52 @@
+[worldserver]
+
+#
+# mod-group-xp
+#
+# AzerothCore splits kill XP across a party: total XP is multiplied by a small
+# group rate (1.0 for 2, 1.166 for 3, 1.3 for 4, 1.4 for 5, 1.0 for a raid) and
+# then divided by the summed levels of the members present. A 5-man therefore
+# nets roughly 28% of solo XP each. This module rewrites that rate at reward
+# time. Gray-member and level penalties in the core still apply on top.
+#
+
+#    GroupXP.Enable
+#        Description: Master switch. 0 restores stock AzerothCore behaviour.
+#        Default:     1
+
+GroupXP.Enable = 1
+
+#    GroupXP.SoloParity
+#        Description: Floor the group rate at 1.0, so each member earns what
+#                     they would have earned killing the mob alone. This is the
+#                     option that removes the grouping penalty.
+#        Default:     1
+
+GroupXP.SoloParity = 1
+
+#    GroupXP.Bonus
+#        Description: Extra fraction applied on top, so grouping can pay better
+#                     than soloing. 0.0 = parity only, 0.10 = +10%.
+#        Default:     0.0
+
+GroupXP.Bonus = 0.0
+
+#    GroupXP.RaidGroups
+#        Description: Apply to raid groups as well as parties. Raids take the
+#                     worst of the stock formula (rate 1.0 over up to 40 levels).
+#        Default:     1
+
+GroupXP.RaidGroups = 1
+
+#    GroupXP.Battlegrounds
+#        Description: Apply to kills made inside a battleground.
+#        Default:     0
+
+GroupXP.Battlegrounds = 0
+
+#    GroupXP.MaxRate
+#        Description: Hard ceiling on the resulting rate. Safety clamp against a
+#                     mistyped Bonus.
+#        Default:     5.0
+
+GroupXP.MaxRate = 5.0
