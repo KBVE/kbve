@@ -142,6 +142,15 @@ services:
         environment:
             <<: *shard-env
             TC9_PREFERRED_HOSTNAME: gameserver-ac-b
+            # Explicit, like shard a's 1900, rather than inheriting the
+            # x-shard-env default. That default is ${AI_PLAYERBOT_MAX_RANDOM_BOTS:-20}
+            # and .env ships 20, so leaving it out silently ran this shard at 20
+            # bots against a's 1900 -- and because bots only auto-queue
+            # battlegrounds once playerBots.size() reaches the target, an
+            # accidental 20 also opens the BG gate on a shard that cannot fill a
+            # queue. The partition should not depend on an untracked .env.
+            AC_AI_PLAYERBOT_MIN_RANDOM_BOTS: '2000'
+            AC_AI_PLAYERBOT_MAX_RANDOM_BOTS: '2000'
             AC_CLUSTER_AVAILABLE_MAPS: '0,530,609'
             # See the note on shard a. 609 is deliberately absent: it is the
             # Death Knight start, not a grind destination, so bots saved there
