@@ -201,7 +201,7 @@ pub struct QTerrain {
     landmark_log: bool,
     ground_shape: Option<Gd<HeightMapShape3D>>,
     window: Option<crate::worldgen::Window>,
-    shift_rx: Option<std::sync::mpsc::Receiver<(Vec<f32>, Vec<u8>, [f32; 2])>>,
+    shift_rx: Option<std::sync::mpsc::Receiver<ShiftBake>>,
     /// Bumped whenever the ground itself is replaced rather than merely shifted, which
     /// today means the seed changed under it. Scatter fields watch it: a reseed leaves
     /// the window origin exactly where it was, so nothing else tells them the rock they
@@ -293,6 +293,15 @@ impl INode3D for QTerrain {
     }
 }
 
+/// One window's worth of ground, everything about it that a thread could work
+/// out without the engine.
+struct ShiftBake {
+    heights: Vec<f32>,
+    clearance: Vec<u8>,
+    road: Option<(road::RoadBake, HeightGen)>,
+    origin: [f32; 2],
+}
+
 /// Times the stages of a window swap, which all run on the main thread while the
 /// bake that fed them ran off it.
 ///
@@ -363,9 +372,9 @@ impl QTerrain {
         }
         if let Some(rx) = self.shift_rx.as_ref() {
             match rx.try_recv() {
-                Ok((heights, clearance, origin)) => {
+                Ok(bake) => {
                     self.shift_rx = None;
-                    self.apply_window(heights, clearance, origin);
+                    self.apply_window(bake);
                 }
                 Err(std::sync::mpsc::TryRecvError::Empty) => return,
                 Err(_) => self.shift_rx = None,
@@ -386,11 +395,34 @@ impl QTerrain {
         let worker_gen = crate::ground::Ground::new(source, params.seed, &params);
         let (extent, res) = (self.extent, self.resolution.max(2));
         let water = self.water_level;
+        let road_width = self.road_width;
+        let wants_road =
+            !crate::world::q_hidden("road") && source == crate::ground::GroundSource::Authored;
         let (tx, rx) = std::sync::mpsc::channel();
         let job = move || {
             let heights = worker_gen.bake_at(next, extent, res);
-            let clearance = paint_clearance(&heights, res, extent, water);
-            let _ = tx.send((heights, clearance, next));
+            let mut clearance = paint_clearance(&heights, res, extent, water);
+            let road = wants_road.then(|| {
+                let hgen = HeightGen::new(&params);
+                let at = Vector2::new(next[0], next[1]);
+                let baked = road::bake_road(&hgen, at, extent, water, road_width);
+                road::stamp_road_clearance(
+                    &mut clearance,
+                    CLEARANCE_RES,
+                    at,
+                    extent,
+                    &baked.road,
+                    &hgen,
+                    water,
+                );
+                (baked, hgen)
+            });
+            let _ = tx.send(ShiftBake {
+                heights,
+                clearance,
+                road,
+                origin: next,
+            });
         };
         match Engine::singleton()
             .get_singleton(crate::threads::runtime::RuntimeManager::SINGLETON)
@@ -408,7 +440,13 @@ impl QTerrain {
 
     /// Swaps a freshly baked window in: the heightmap every shader reads, the
     /// collider bodies stand on, and the origin that ties the two together.
-    fn apply_window(&mut self, heights: Vec<f32>, clearance: Vec<u8>, origin: [f32; 2]) {
+    fn apply_window(&mut self, bake: ShiftBake) {
+        let ShiftBake {
+            heights,
+            clearance,
+            road,
+            origin,
+        } = bake;
         let res = self.resolution.max(2);
         if heights.len() != (res * res) as usize {
             return;
@@ -481,14 +519,10 @@ impl QTerrain {
         // next frame.
         if !crate::world::q_hidden("road") {
             self.clear_road();
-            let params = self.height_params();
-            if crate::ground::GroundSource::parse(&self.ground_source.to_string())
-                == crate::ground::GroundSource::Authored
-            {
-                self.hgen = Some(HeightGen::new(&params));
-            }
             stage.mark("clear");
-            self.build_road();
+            if let Some((baked, hgen)) = road {
+                self.install_road(baked, hgen);
+            }
             stage.mark("road");
             self.build_landmarks();
             stage.mark("landmarks");
@@ -595,7 +629,23 @@ impl QTerrain {
         self.heights = heights;
 
         if !crate::world::q_hidden("road") {
-            self.build_road();
+            if let Some(hgen) = self.hgen.take() {
+                let at = self.window_origin();
+                let baked =
+                    road::bake_road(&hgen, at, self.extent, self.water_level, self.road_width);
+                road::stamp_road_clearance(
+                    &mut self.clearance,
+                    self.clearance_res,
+                    at,
+                    self.extent,
+                    &baked.road,
+                    &hgen,
+                    self.water_level,
+                );
+                self.clearance_dirty = true;
+                self.flush_clearance();
+                self.install_road(baked, hgen);
+            }
             self.build_landmarks();
         }
 
@@ -672,11 +722,34 @@ impl QTerrain {
         let worker_gen = crate::ground::Ground::new(source, params.seed, &params);
         let (extent, res) = (self.extent, self.resolution.max(2));
         let water = self.water_level;
+        let road_width = self.road_width;
+        let wants_road =
+            !crate::world::q_hidden("road") && source == crate::ground::GroundSource::Authored;
         let (tx, rx) = std::sync::mpsc::channel();
         let job = move || {
             let heights = worker_gen.bake_at(origin, extent, res);
-            let clearance = paint_clearance(&heights, res, extent, water);
-            let _ = tx.send((heights, clearance, origin));
+            let mut clearance = paint_clearance(&heights, res, extent, water);
+            let road = wants_road.then(|| {
+                let hgen = HeightGen::new(&params);
+                let at = Vector2::new(origin[0], origin[1]);
+                let baked = road::bake_road(&hgen, at, extent, water, road_width);
+                road::stamp_road_clearance(
+                    &mut clearance,
+                    CLEARANCE_RES,
+                    at,
+                    extent,
+                    &baked.road,
+                    &hgen,
+                    water,
+                );
+                (baked, hgen)
+            });
+            let _ = tx.send(ShiftBake {
+                heights,
+                clearance,
+                road,
+                origin,
+            });
         };
         match Engine::singleton()
             .get_singleton(crate::threads::runtime::RuntimeManager::SINGLETON)
@@ -892,6 +965,53 @@ impl QTerrain {
 /// Side of the clearance grid, independent of the heightmap's resolution.
 const CLEARANCE_RES: i32 = 512;
 
+/// Marks a disc of ground as cleared, softening from `inner` out to `radius`.
+///
+/// Returns whether anything actually changed. The grid covers the window, not
+/// the world, so a world point comes back to the window before it picks a
+/// texel -- stamped in world coordinates every mark lands a window's offset
+/// away from the thing that asked for it, or off the map entirely.
+#[allow(clippy::too_many_arguments)]
+pub(super) fn stamp_band(
+    clearance: &mut [u8],
+    cres: i32,
+    origin: Vector2,
+    extent: f32,
+    x: f32,
+    z: f32,
+    inner: f32,
+    radius: f32,
+) -> bool {
+    if cres < 2 || radius <= 0.0 || inner >= radius {
+        return false;
+    }
+    let texel = extent * 2.0 / (cres - 1) as f32;
+    let (lx, lz) = (x - origin.x, z - origin.y);
+    let to_px = |w: f32| ((w + extent) / texel).round() as i32;
+    let r_px = (radius / texel).ceil() as i32 + 1;
+    let cx = to_px(lx);
+    let cz = to_px(lz);
+    let mut touched = false;
+    for py in (cz - r_px).max(0)..=(cz + r_px).min(cres - 1) {
+        let wz = -extent + py as f32 * texel;
+        for px in (cx - r_px).max(0)..=(cx + r_px).min(cres - 1) {
+            let wx = -extent + px as f32 * texel;
+            let d = ((wx - lx) * (wx - lx) + (wz - lz) * (wz - lz)).sqrt();
+            if d >= radius {
+                continue;
+            }
+            let t = ((d - inner) / (radius - inner)).clamp(0.0, 1.0);
+            let v = ((1.0 - t * t * (3.0 - 2.0 * t)) * 255.0) as u8;
+            let idx = (py * cres + px) as usize;
+            if v > clearance[idx] {
+                clearance[idx] = v;
+                touched = true;
+            }
+        }
+    }
+    touched
+}
+
 /// How much grass the ground itself denies, painted from height alone. Free
 /// standing so a window shift can pay for it on the bake thread.
 fn paint_clearance(heights: &[f32], hres: i32, extent: f32, water_level: f32) -> Vec<u8> {
@@ -1027,38 +1147,18 @@ impl QTerrain {
 
     /// Clearance stamp with an explicit fully-cleared core.
     pub fn stamp_clearance_band(&mut self, x: f32, z: f32, inner: f32, radius: f32) {
-        let cres = self.clearance_res;
-        if cres < 2 || radius <= 0.0 || inner >= radius {
-            return;
-        }
-        let texel = self.extent * 2.0 / (cres - 1) as f32;
-        // The clearance map covers the window, not the world, so a world point
-        // has to come back to the window before it can be a texel. While the
-        // window sat at the origin these were the same number; once it follows
-        // the player, stamping in world coordinates lands every mark a window's
-        // offset away from the thing that asked for it, or off the map entirely.
         let origin = self.window_origin();
-        let (lx, lz) = (x - origin.x, z - origin.y);
-        let to_px = |w: f32| ((w + self.extent) / texel).round() as i32;
-        let r_px = (radius / texel).ceil() as i32 + 1;
-        let cx = to_px(lx);
-        let cz = to_px(lz);
-        for py in (cz - r_px).max(0)..=(cz + r_px).min(cres - 1) {
-            let wz = -self.extent + py as f32 * texel;
-            for px in (cx - r_px).max(0)..=(cx + r_px).min(cres - 1) {
-                let wx = -self.extent + px as f32 * texel;
-                let d = ((wx - lx) * (wx - lx) + (wz - lz) * (wz - lz)).sqrt();
-                if d >= radius {
-                    continue;
-                }
-                let t = ((d - inner) / (radius - inner)).clamp(0.0, 1.0);
-                let v = ((1.0 - t * t * (3.0 - 2.0 * t)) * 255.0) as u8;
-                let idx = (py * cres + px) as usize;
-                if v > self.clearance[idx] {
-                    self.clearance[idx] = v;
-                    self.clearance_dirty = true;
-                }
-            }
+        if stamp_band(
+            &mut self.clearance,
+            self.clearance_res,
+            origin,
+            self.extent,
+            x,
+            z,
+            inner,
+            radius,
+        ) {
+            self.clearance_dirty = true;
         }
     }
 
