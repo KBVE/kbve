@@ -128,27 +128,31 @@ own `Spell.dbc` — see Verified below.
 
 ## Pricing and eligibility
 
-Both seeded offers are **50 copper for 900 seconds**. That is deliberately cheap
-because renting is a convenience, not a shortcut — the renter is someone who
-could already mount and simply has not bought one.
+Both seeded offers are **50 copper for 900 seconds**, open to everyone. No level
+requirement, no Riding skill requirement.
 
-That only holds if the gates are enforced, so they are. `min_level` and
-`min_riding_skill` on each offer default the seed rows to **level 20 and Riding
-75**, which is what the stock mounts themselves require:
+That is the point of the thing. A rental exists for the player who cannot mount
+yet — gating it behind Riding 75 would turn it into a convenience for people who
+already own a mount, which is backwards. `Player::CastSpell` is called triggered
+and skips the engine's own skill and level checks, so a level 1 with no Riding
+skill can rent and ride.
 
-| Item                           | RequiredLevel | RequiredSkill | Rank |
-| ------------------------------ | ------------- | ------------- | ---- |
-| Brown Horse Bridle (5656)      | 20            | 762 Riding    | 75   |
-| Horn of the Timber Wolf (1132) | 20            | 762 Riding    | 75   |
+The 1 gold permanent mounts are not undercut by this, because they are a
+different purchase:
 
-Without them the price would be a problem rather than a bargain: those items
-cost 10,000 copper (1 gold) to own permanently, so an ungated 50 copper rental
-is 1/200th the price of the real thing, and a level 1 with no Riding skill could
-ride one. `Player::CastSpell` is called triggered, which skips the engine's own
-skill and level checks, so nothing else would stop it.
+| Item                           | Cost    | Duration  |
+| ------------------------------ | ------- | --------- |
+| Brown Horse Bridle (5656)      | 10,000c | permanent |
+| Horn of the Timber Wolf (1132) | 10,000c | permanent |
+| Rental                         | 50c     | 15 min    |
 
-Set either column to `0` to disable that check for an offer. Both are database
-columns rather than config so they can be relaxed per offer without a rebuild.
+Buying costs 200x more and never expires. Renting is a service you keep paying
+for.
+
+`min_level` and `min_riding_skill` still exist as columns on each offer, both
+`0` on the seeded rows. They are there for tiered offers later — an epic-speed
+mount is a reasonable thing to put behind a real requirement — and being columns
+rather than config means adding that tier needs no rebuild.
 
 ## Playerbots dependency
 
