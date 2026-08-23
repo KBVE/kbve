@@ -243,6 +243,21 @@ COPY --from=build-core /repo/bin/etc/worldserver.conf.dist /repo/bin/etc/worldse
 # over /repo/bin/etc/modules/playerbots.conf to change it without a rebuild.
 COPY --from=build-core /repo/modules/mod-playerbots/conf/playerbots.conf.dist /repo/bin/etc/modules/playerbots.conf
 
+# AiPlayerbot.ClusterBotMaps is read by the code
+# (PlayerbotAIConfig.cpp: GetOption("AiPlayerbot.ClusterBotMaps", "")) but is
+# absent from playerbots.conf.dist. OverrideWithEnvVariablesIfAny() only
+# rewrites keys already present in a loaded conf, so without this line
+# AC_AI_PLAYERBOT_CLUSTER_BOT_MAPS silently does nothing and the value stays
+# "" -- which makes IsMapServedByClusterBots() return true for EVERY map.
+#
+# That matters once the fleet is partitioned. A random bot that wanders onto a
+# map this shard does not own is handed off over NATS to the owner; with the
+# permissive default, a bot stepping into a dungeon is handed to whichever
+# shard serves instances, which has no bot pool for it. Declaring the key
+# empty here changes nothing on its own and lets each Fleet set the real value.
+RUN printf '\n# Added by the KBVE image: see Dockerfile for why this key must exist.\nAiPlayerbot.ClusterBotMaps =\n' \
+      >> /repo/bin/etc/modules/playerbots.conf
+
 # worldserver -- not dbimport -- creates and migrates acore_playerbots, and it
 # reads the SQL from this path at runtime, so the module's data/sql has to be
 # present in the runtime image or startup fails with
