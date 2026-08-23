@@ -2,25 +2,27 @@
 #
 #   docker compose -f docker-compose.yml -f docker-compose.playerbots.yml ...
 #
-# Rebuilds the WHOLE ToCloud9 stack from 3kynox's integration fork, not just the
-# worldserver. That is not optional: their integration changes api/proto
+# Rebuilds the WHOLE ToCloud9 stack from the KBVE fork, not just the
+# worldserver. That is not optional: the integration it carries changes api/proto
 # (guilds, worldserver) and shared/events, so it is a wire-protocol change. The
 # published ghcr.io/walkline/* images cannot talk to this worldserver, and
 # mixing them produces protocol errors rather than a clean failure.
 #
 # Only mysql / nats / redis stay on their pinned upstream images.
 #
-# Everything is pinned to the 20260728 snapshot -- a strict superset of the nav5
-# set named in 3kynox's README. Refs are commit SHAs, not branches: these are
-# personal integration branches that get rebased and deleted as work lands
-# upstream, so a branch ref would silently change what we build.
+# The KBVE fork descends from the 20260728 snapshot of 3kynox's integration and
+# carries our patches on top. Forking is partly why: those were personal
+# integration branches that get rebased and deleted as work lands upstream, so
+# the SHAs could vanish. Refs stay commit SHAs, not branches -- this must match
+# TOCLOUD9_REF in gameserver/Dockerfile exactly, or the Go services and the
+# worldserver's libsidecar disagree on the wire protocol.
 #
 # Go services use a git build context, so nothing needs cloning locally.
 # Bump TC9_FORK_REF and PLAYERBOTS_* together -- the module's mmaps work and the
 # core that reads it are a matched pair.
 
 x-tc9-fork: &tc9_fork
-    context: https://github.com/3kynox/ToCloud9.git#f878465721200739eaae27633f70f378ac280411
+    context: https://github.com/KBVE/ToCloud9.git#1a3bb7bb04373461722213ec5b7caa03f739cc6f
 
 services:
     # --- core (compiled from AC + module + libsidecar) ---
