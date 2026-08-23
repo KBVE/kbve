@@ -78,10 +78,12 @@ change and is off by default.
 
 ## Config
 
-| Option                                   | Default | Effect                               |
-| ---------------------------------------- | ------- | ------------------------------------ |
-| `OldWorldFlying.Enable`                  | `1`     | master switch                        |
-| `OldWorldFlying.IgnoreColdWeatherFlying` | `1`     | Northrend flight without spell 54197 |
+| Option                                   | Default       | Effect                                      |
+| ---------------------------------------- | ------------- | ------------------------------------------- |
+| `OldWorldFlying.Enable`                  | `1`           | master switch                               |
+| `OldWorldFlying.Spells`                  | `64681,64761` | spell ids to unrestrict                     |
+| `OldWorldFlying.AllFlightSpells`         | `0`           | ignore the list, free all 110 flight spells |
+| `OldWorldFlying.IgnoreColdWeatherFlying` | `1`           | Northrend flight without spell 54197        |
 
 ## Verified
 
