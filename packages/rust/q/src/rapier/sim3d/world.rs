@@ -1277,4 +1277,36 @@ mod tests {
         assert!((rot[3].abs() - h).abs() < 1e-4, "got {rot:?}");
         assert!(rot[0].abs() < 1e-4 && rot[2].abs() < 1e-4, "got {rot:?}");
     }
+
+    /// `SimSnapshot::body` binary-searches, so a snapshot that comes out in
+    /// spawn order rather than id order loses bodies silently. Spawned out of
+    /// order so insertion order cannot be mistaken for sorted order.
+    #[test]
+    fn a_snapshot_comes_out_in_id_order_whatever_order_it_was_built_in() {
+        let mut world = SimWorld::new(&SimConfig::default());
+        for i in [9u32, 3, 40, 1, 12] {
+            world.apply(SimCommand::Spawn {
+                id: BodyId(i),
+                desc: BodyDesc {
+                    // Fixed bodies are left out of a snapshot on purpose --
+                    // they never move, so there is nothing to publish.
+                    kind: BodyKind::Dynamic,
+                    shape: ShapeDesc::ConvexHull {
+                        points: cube_cloud(0.5),
+                        scale: [1.0; 3],
+                    },
+                    iso: Iso::at(i as f32 * 4.0, 0.0, 0.0),
+                    ..Default::default()
+                },
+            });
+        }
+        let snap = world.snapshot();
+        let ids: Vec<_> = snap.bodies.iter().map(|b| b.id).collect();
+        let mut sorted = ids.clone();
+        sorted.sort_unstable();
+        assert_eq!(ids, sorted, "snapshot is not searchable");
+        for i in [9u32, 3, 40, 1, 12] {
+            assert_eq!(snap.body(BodyId(i)).map(|b| b.id), Some(BodyId(i)));
+        }
+    }
 }

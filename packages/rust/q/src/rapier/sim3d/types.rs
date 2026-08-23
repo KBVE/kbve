@@ -292,3 +292,96 @@ impl SimConfig {
         1.0 / self.tick_hz.max(1.0)
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn snapshot(ids: &[u32]) -> SimSnapshot {
+        SimSnapshot {
+            tick: 1,
+            sim_time: 0.05,
+            bodies: ids
+                .iter()
+                .map(|&i| BodySnapshot {
+                    id: BodyId(i),
+                    ..Default::default()
+                })
+                .collect(),
+        }
+    }
+
+    #[test]
+    fn every_body_in_a_snapshot_can_be_found_again() {
+        let ids = [1u32, 4, 7, 9, 40, 41, 900];
+        let snap = snapshot(&ids);
+        for id in ids {
+            assert_eq!(
+                snap.body(BodyId(id)).map(|b| b.id),
+                Some(BodyId(id)),
+                "body {id} went missing from its own snapshot"
+            );
+        }
+    }
+
+    #[test]
+    fn a_body_that_is_not_there_is_not_invented() {
+        let snap = snapshot(&[1, 4, 7]);
+        for id in [0u32, 2, 5, 8, u32::MAX] {
+            assert!(snap.body(BodyId(id)).is_none(), "invented body {id}");
+        }
+    }
+
+    /// `body` binary-searches, so a snapshot built out of order answers for
+    /// whatever the search happens to land on -- which is not a defined answer
+    /// and not always a wrong one. Sorting is what makes it a lookup, and this
+    /// is the test that says the order is load-bearing rather than incidental.
+    #[test]
+    fn sorting_is_what_makes_a_snapshot_searchable() {
+        let ids = [9u32, 1, 40, 4, 12];
+        let mut snap = snapshot(&ids);
+        snap.bodies.sort_unstable_by_key(|b| b.id);
+        for id in ids {
+            assert_eq!(
+                snap.body(BodyId(id)).map(|b| b.id),
+                Some(BodyId(id)),
+                "body {id} is unreachable in a sorted snapshot"
+            );
+        }
+    }
+
+    #[test]
+    fn the_timestep_is_the_tick_rate_upside_down_and_never_divides_by_nothing() {
+        assert!(
+            (SimConfig {
+                tick_hz: 20.0,
+                ..Default::default()
+            }
+            .timestep()
+                - 0.05)
+                .abs()
+                < 1e-9
+        );
+        assert!(
+            (SimConfig {
+                tick_hz: 60.0,
+                ..Default::default()
+            }
+            .timestep()
+                - 1.0 / 60.0)
+                .abs()
+                < 1e-9
+        );
+        for bad in [0.0, -1.0, 0.25] {
+            let step = SimConfig {
+                tick_hz: bad,
+                ..Default::default()
+            }
+            .timestep();
+            assert!(
+                step.is_finite() && step > 0.0 && step <= 1.0,
+                "tick_hz {bad} gave a timestep of {step}"
+            );
+        }
+    }
+}
