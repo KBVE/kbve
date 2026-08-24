@@ -154,7 +154,7 @@ jobs:
               run: |
                   set -euo pipefail
                   for base in 20260708120000_store_schema_init 20260709170000_store_topup_pod 20260730010000_store_account_read_surface 20260824120000_ows_users_tenant_scoped_pk; do
-                    echo "== store invariant test: ${base} =="
+                    echo "== migration invariant test: ${base} =="
                     awk '
                       /^-- (SEED|ASSERT_AFTER_UP) *$/ { on=1; next }
                       /^-- ASSERT_AFTER_DOWN *$/      { on=0 }
