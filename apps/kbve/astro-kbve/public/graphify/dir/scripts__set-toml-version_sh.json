@@ -1,14 +1,14 @@
 {
 	"dir": "scripts/set-toml-version.sh",
-	"center": [-2934.77, -274.7],
-	"r": 75.09,
+	"center": [-2931.25, -257.55],
+	"r": 75.05,
 	"files": [
 		{
 			"i": 0,
 			"label": "set-toml-version.sh",
 			"path": "scripts/set-toml-version.sh",
-			"x": -2934.77,
-			"y": -274.7,
+			"x": -2931.25,
+			"y": -257.55,
 			"n": 2
 		}
 	],
@@ -17,18 +17,18 @@
 			"i": 0,
 			"f": 0,
 			"label": "set-toml-version.sh",
-			"x": -2927.94,
-			"y": -274.7,
-			"c": 4769,
+			"x": -2924.42,
+			"y": -257.55,
+			"c": 4733,
 			"loc": "L1"
 		},
 		{
 			"i": 1,
 			"f": 0,
 			"label": "set-toml-version.sh script",
-			"x": -2943.49,
-			"y": -266.71,
-			"c": 4769,
+			"x": -2939.97,
+			"y": -249.56,
+			"c": 4733,
 			"loc": "L1"
 		}
 	],

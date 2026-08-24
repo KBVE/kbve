@@ -1,14 +1,14 @@
 {
 	"dir": "https:/",
-	"center": [-485.53, -32.94],
-	"r": 74.18,
+	"center": [10.9, -141.34],
+	"r": 74.16,
 	"files": [
 		{
 			"i": 0,
 			"label": "+esm",
 			"path": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm",
-			"x": -485.53,
-			"y": -32.94,
+			"x": 10.9,
+			"y": -141.34,
 			"n": 1
 		}
 	],
@@ -17,9 +17,9 @@
 			"i": 0,
 			"f": 0,
 			"label": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm",
-			"x": -485.53,
-			"y": -32.94,
-			"c": 22,
+			"x": 10.9,
+			"y": -141.34,
+			"c": 943,
 			"loc": ""
 		}
 	],

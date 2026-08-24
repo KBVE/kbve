@@ -1,14 +1,14 @@
 {
 	"dir": "world-atlas/countries-110m.json",
-	"center": [-752.87, 21.34],
-	"r": 74.18,
+	"center": [-252.4, -89.7],
+	"r": 74.16,
 	"files": [
 		{
 			"i": 0,
 			"label": "countries-110m.json",
 			"path": "world-atlas/countries-110m.json",
-			"x": -752.87,
-			"y": 21.34,
+			"x": -252.4,
+			"y": -89.7,
 			"n": 1
 		}
 	],
@@ -17,9 +17,9 @@
 			"i": 0,
 			"f": 0,
 			"label": "world-atlas/countries-110m.json",
-			"x": -752.87,
-			"y": 21.34,
-			"c": 145,
+			"x": -252.4,
+			"y": -89.7,
+			"c": 120,
 			"loc": ""
 		}
 	],
