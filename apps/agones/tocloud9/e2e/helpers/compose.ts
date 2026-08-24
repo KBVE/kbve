@@ -1,6 +1,7 @@
 import { execFileSync } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
+import { parseRedisKeys } from '../../src/redis-output';
 
 const projectRoot = path.resolve(__dirname, '..', '..');
 const composeFile = path.join(projectRoot, 'docker-compose.yml');
@@ -21,23 +22,17 @@ export function compose(...args: string[]): string {
 }
 
 export function redisKeys(pattern: string): string[] {
-	return compose(
-		'exec',
-		'-T',
-		'redis',
-		'redis-cli',
-		'--no-raw',
-		'KEYS',
-		pattern,
-	)
-		.split('\n')
-		.map((line) =>
-			line
-				.replace(/^\s*\d+\)\s*/, '')
-				.replace(/^"|"$/g, '')
-				.trim(),
-		)
-		.filter(Boolean);
+	return parseRedisKeys(
+		compose(
+			'exec',
+			'-T',
+			'redis',
+			'redis-cli',
+			'--no-raw',
+			'KEYS',
+			pattern,
+		),
+	);
 }
 
 export function redisGet(key: string): string {
