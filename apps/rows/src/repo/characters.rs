@@ -341,9 +341,17 @@ impl<'a> CharsRepo<'a> {
             .execute(self.0)
             .await?;
         if done.rows_affected() == 0 {
-            return Err(RowsError::NotFound(format!(
-                "No user {user_guid} in tenant {customer_guid}; character not created"
-            )));
+            // Identifiers go to the log, not the response body -- this message is returned to the
+            // game client verbatim.
+            tracing::warn!(
+                %customer_guid,
+                %user_guid,
+                char_name,
+                "CreateCharacter matched no users row; character not created"
+            );
+            return Err(RowsError::NotFound(
+                "Character not created: no such user in this tenant".into(),
+            ));
         }
         Ok(())
     }
@@ -378,9 +386,17 @@ impl<'a> CharsRepo<'a> {
             .execute(self.0)
             .await?;
         if done.rows_affected() == 0 {
-            return Err(RowsError::NotFound(format!(
-                "No user {user_guid} in tenant {customer_guid}, or no default set '{default_set_name}'; character not created"
-            )));
+            // Same reasoning as create_character: no identifiers in the client-facing string.
+            tracing::warn!(
+                %customer_guid,
+                %user_guid,
+                char_name,
+                default_set_name,
+                "CreateCharacterUsingDefaultCharacterValues matched no rows; character not created"
+            );
+            return Err(RowsError::NotFound(
+                "Character not created: no such user in this tenant, or unknown default set".into(),
+            ));
         }
         Ok(())
     }

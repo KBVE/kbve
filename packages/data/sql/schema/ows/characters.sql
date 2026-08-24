@@ -108,6 +108,9 @@ CREATE TABLE Characters
         FOREIGN KEY (CustomerGUID, UserGUID) REFERENCES Users (CustomerGUID, UserGUID)
 );
 
+-- Referencing side of FK_Characters_UserGUID; also serves the tenant-scoped roster lookup.
+CREATE INDEX IF NOT EXISTS IX_Characters_Customer_User ON Characters (CustomerGUID, UserGUID);
+
 -- Security: Characters
 ALTER TABLE Characters ENABLE ROW LEVEL SECURITY;
 ALTER TABLE Characters FORCE ROW LEVEL SECURITY;

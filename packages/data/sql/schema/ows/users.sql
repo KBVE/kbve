@@ -19,6 +19,8 @@ CREATE TABLE Users
         UNIQUE (CustomerGUID, Email, Role)
 );
 
+-- Non-unique on purpose: after the tenant re-key a UserGUID identifies a row only together with
+-- its CustomerGUID. Any query keyed on UserGUID alone is a cross-tenant query.
 CREATE INDEX IF NOT EXISTS IX_Users_UserGUID ON Users (UserGUID);
 
 -- Security: Users

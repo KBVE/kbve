@@ -14,6 +14,14 @@ SET search_path TO ows;
 -- no existing row can violate it and no data migration is needed. The two dependent FKs
 -- (Characters, UserSessions) already carry CustomerGUID, so they widen to the composite and gain
 -- tenant integrity they did not have before.
+--
+-- The FKs go on NOT VALID here and are validated in 20260824120100. The old FK constrained
+-- UserGUID only and never checked CustomerGUID, so a child row whose CustomerGUID disagrees with
+-- its parent's is possible in existing data. Adding the composite FK pre-validated would take
+-- ACCESS EXCLUSIVE on Characters and UserSessions for a full scan and would abort the whole
+-- deploy on the first bad row -- with the service already rolled forward. NOT VALID takes a brief
+-- lock, constrains all new writes immediately, and moves the scan into its own migration where a
+-- failure is diagnosable and re-runnable.
 
 ALTER TABLE Characters DROP CONSTRAINT IF EXISTS FK_Characters_UserGUID;
 ALTER TABLE UserSessions DROP CONSTRAINT IF EXISTS FK_UserSessions_UserGUID;
@@ -23,15 +31,51 @@ ALTER TABLE Users ADD CONSTRAINT PK_Users PRIMARY KEY (CustomerGUID, UserGUID);
 
 ALTER TABLE Characters
     ADD CONSTRAINT FK_Characters_UserGUID
-        FOREIGN KEY (CustomerGUID, UserGUID) REFERENCES Users (CustomerGUID, UserGUID);
+        FOREIGN KEY (CustomerGUID, UserGUID) REFERENCES Users (CustomerGUID, UserGUID)
+        NOT VALID;
 
 ALTER TABLE UserSessions
     ADD CONSTRAINT FK_UserSessions_UserGUID
-        FOREIGN KEY (CustomerGUID, UserGUID) REFERENCES Users (CustomerGUID, UserGUID);
+        FOREIGN KEY (CustomerGUID, UserGUID) REFERENCES Users (CustomerGUID, UserGUID)
+        NOT VALID;
 
 -- The old PK also served lookups keyed on UserGUID alone (legacy re-key paths, session purges).
--- Keep a non-unique index so those stay cheap.
+-- Keep a non-unique index so those stay cheap. NOTE: non-unique -- after this migration a UserGUID
+-- identifies a row only together with its CustomerGUID. Any query keyed on UserGUID alone is a
+-- cross-tenant query and is almost certainly a bug.
 CREATE INDEX IF NOT EXISTS IX_Users_UserGUID ON Users (UserGUID);
+
+-- Referencing side of the two composite FKs. Without these, every parent-key change on Users --
+-- which the legacy Supabase re-key path in UsersRepo::find_or_create_supabase_user performs --
+-- seq-scans both child tables for the NO ACTION check. They also serve the tenant-scoped roster
+-- and session lookups directly.
+CREATE INDEX IF NOT EXISTS IX_Characters_Customer_User ON Characters (CustomerGUID, UserGUID);
+CREATE INDEX IF NOT EXISTS IX_UserSessions_Customer_User ON UserSessions (CustomerGUID, UserGUID);
+
+-- Surface pre-existing cross-tenant child rows now, at re-key time, rather than letting the
+-- operator discover them when 20260824120100 refuses to validate.
+DO $$
+DECLARE
+    bad_chars    BIGINT;
+    bad_sessions BIGINT;
+BEGIN
+    SELECT count(*) INTO bad_chars
+      FROM Characters c JOIN Users u ON u.UserGUID = c.UserGUID
+     WHERE c.CustomerGUID <> u.CustomerGUID;
+
+    SELECT count(*) INTO bad_sessions
+      FROM UserSessions s JOIN Users u ON u.UserGUID = s.UserGUID
+     WHERE s.CustomerGUID <> u.CustomerGUID;
+
+    IF bad_chars > 0 OR bad_sessions > 0 THEN
+        RAISE WARNING
+            'ows: % Characters and % UserSessions rows reference a Users row in another tenant. Migration 20260824120100 will refuse to validate FK_Characters_UserGUID / FK_UserSessions_UserGUID until these are repaired or deleted.',
+            bad_chars, bad_sessions;
+    ELSE
+        RAISE NOTICE 'ows: no cross-tenant Characters/UserSessions rows; FK validation should pass.';
+    END IF;
+END
+$$;
 
 -- migrate:down
 SET search_path TO ows;
@@ -39,10 +83,15 @@ SET search_path TO ows;
 ALTER TABLE Characters DROP CONSTRAINT IF EXISTS FK_Characters_UserGUID;
 ALTER TABLE UserSessions DROP CONSTRAINT IF EXISTS FK_UserSessions_UserGUID;
 
+DROP INDEX IF EXISTS IX_Characters_Customer_User;
+DROP INDEX IF EXISTS IX_UserSessions_Customer_User;
 DROP INDEX IF EXISTS IX_Users_UserGUID;
 
--- Rolling back can fail if the same UserGUID now exists under more than one tenant, which is
--- exactly what the up-migration permits. Drop those rows or re-key them before rolling back.
+-- NOTE: this down block exists for ci-dbmate-validate only. The production runner
+-- (apps/kube/kilobase/templates/dbmate-runner-job.yaml) is hardcoded to `dbmate up` and never
+-- runs `down` -- to reverse this in prod you write a new forward migration. It also cannot
+-- succeed once the same UserGUID exists under more than one tenant, which is exactly what the
+-- up-migration permits. Drop or re-key those rows first.
 ALTER TABLE Users DROP CONSTRAINT IF EXISTS PK_Users;
 ALTER TABLE Users ADD CONSTRAINT PK_Users PRIMARY KEY (UserGUID);
 

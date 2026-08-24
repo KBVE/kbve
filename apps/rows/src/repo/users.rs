@@ -29,6 +29,7 @@ impl<'a> UsersRepo<'a> {
 
         let (customer_guid, user_guid) = match row {
             Some(r) => {
+                let (cg, ug) = r;
                 let pool = self.0.clone();
                 let pw = password.to_string();
                 let email_owned = email.to_string();
@@ -39,15 +40,22 @@ impl<'a> UsersRepo<'a> {
                     };
                     let salt = SaltString::generate(&mut OsRng);
                     if let Ok(new_hash) = Argon2::default().hash_password(pw.as_bytes(), &salt) {
-                        let _ = sqlx::query("UPDATE users SET passwordhash = $1 WHERE email = $2")
-                            .bind(new_hash.to_string())
-                            .bind(&email_owned)
-                            .execute(&pool)
-                            .await;
+                        // Scoped to the row we authenticated. `email` is only unique per
+                        // (customerguid, role), so an email-only UPDATE rewrites the hash for
+                        // every tenant that shares this address.
+                        let _ = sqlx::query(
+                            "UPDATE users SET passwordhash = $1
+                             WHERE customerguid = $2 AND userguid = $3",
+                        )
+                        .bind(new_hash.to_string())
+                        .bind(cg)
+                        .bind(ug)
+                        .execute(&pool)
+                        .await;
                         tracing::info!(email = %email_owned, "Password migrated from bcrypt to argon2");
                     }
                 });
-                r
+                (cg, ug)
             }
             None => {
                 let fallback: Option<(Uuid, Uuid, String)> = sqlx::query_as(
@@ -88,7 +96,10 @@ impl<'a> UsersRepo<'a> {
             }
         };
 
-        sqlx::query("DELETE FROM usersessions WHERE userguid = $1")
+        // Tenant-scoped: `userguid` is only unique per tenant now, so an unscoped purge would
+        // evict this account's live session in every OTHER tenant it belongs to.
+        sqlx::query("DELETE FROM usersessions WHERE customerguid = $1 AND userguid = $2")
+            .bind(customer_guid)
             .bind(user_guid)
             .execute(self.0)
             .await?;
@@ -393,9 +404,18 @@ impl<'a> UsersRepo<'a> {
         {
             Ok(done) => done.rows_affected(),
             Err(e) if is_unique_violation(&e) => {
-                return Err(RowsError::Conflict(format!(
-                    "OWS user with email {email} already exists under a different account"
-                )));
+                // Explicit rollback rather than relying on the Drop impl, so the connection is
+                // returned to the pool on this path the same way it is on the one below.
+                tx.rollback().await?;
+                tracing::warn!(
+                    email = %email,
+                    user_guid = %supabase_uuid,
+                    customer_guid = %customer_guid,
+                    "OWS user provisioning hit a unique violation (AK_User)"
+                );
+                return Err(RowsError::Conflict(
+                    "An OWS user with this email already exists under a different account".into(),
+                ));
             }
             Err(e) => return Err(e.into()),
         };
@@ -420,9 +440,9 @@ impl<'a> UsersRepo<'a> {
                     customer_guid = %customer_guid,
                     "Failed to provision OWS user into tenant; insert matched an existing row owned elsewhere"
                 );
-                return Err(RowsError::Conflict(format!(
-                    "Could not provision user {supabase_uuid} into tenant {customer_guid}"
-                )));
+                return Err(RowsError::Conflict(
+                    "Could not provision this account into the requested tenant".into(),
+                ));
             }
         }
 
@@ -441,12 +461,14 @@ impl<'a> UsersRepo<'a> {
         customer_guid: Uuid,
         user_guid: Uuid,
     ) -> Result<Uuid, RowsError> {
-        // Replace any prior session for this user in one round-trip: the CTE deletes the old rows,
-        // then the INSERT writes the fresh session.
+        // Replace any prior session for this user IN THIS TENANT in one round-trip: the CTE deletes
+        // the old rows, then the INSERT writes the fresh session. The delete must carry
+        // `customerguid` -- `userguid` is only unique per tenant, so an unscoped purge logs the
+        // account out of every other tenant it is provisioned into.
         let session_guid = Uuid::new_v4();
         sqlx::query(
             "WITH purged AS (
-                 DELETE FROM usersessions WHERE userguid = $3
+                 DELETE FROM usersessions WHERE customerguid = $1 AND userguid = $3
              )
              INSERT INTO usersessions (customerguid, usersessionguid, userguid, logindate)
              VALUES ($1, $2, $3, NOW())",

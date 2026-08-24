@@ -14,6 +14,9 @@ CREATE TABLE UserSessions
         FOREIGN KEY (CustomerGUID, UserGUID) REFERENCES Users (CustomerGUID, UserGUID)
 );
 
+-- Referencing side of FK_UserSessions_UserGUID; also serves the tenant-scoped session purge.
+CREATE INDEX IF NOT EXISTS IX_UserSessions_Customer_User ON UserSessions (CustomerGUID, UserGUID);
+
 -- Security: UserSessions
 ALTER TABLE UserSessions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE UserSessions FORCE ROW LEVEL SECURITY;
