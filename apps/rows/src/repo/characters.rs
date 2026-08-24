@@ -332,12 +332,19 @@ impl<'a> CharsRepo<'a> {
             Self::CHAR_DEFAULTS,
             Self::CHAR_ZEROS
         );
-        sqlx::query(&sql)
+        // INSERT..SELECT writes nothing when the users row is missing, and execute() still returns
+        // Ok -- which reported success:true on a complete no-op. Fail loudly instead.
+        let done = sqlx::query(&sql)
             .bind(customer_guid)
             .bind(user_guid)
             .bind(char_name)
             .execute(self.0)
             .await?;
+        if done.rows_affected() == 0 {
+            return Err(RowsError::NotFound(format!(
+                "No user {user_guid} in tenant {customer_guid}; character not created"
+            )));
+        }
         Ok(())
     }
 
@@ -361,13 +368,20 @@ impl<'a> CharsRepo<'a> {
             Self::CHAR_DEFAULTS,
             Self::CHAR_ZEROS
         );
-        sqlx::query(&sql)
+        // Same silent no-op as create_character, plus a second way to match nothing: no
+        // defaultcharactervalues row for this tenant / set name.
+        let done = sqlx::query(&sql)
             .bind(customer_guid)
             .bind(user_guid)
             .bind(char_name)
             .bind(default_set_name)
             .execute(self.0)
             .await?;
+        if done.rows_affected() == 0 {
+            return Err(RowsError::NotFound(format!(
+                "No user {user_guid} in tenant {customer_guid}, or no default set '{default_set_name}'; character not created"
+            )));
+        }
         Ok(())
     }
 

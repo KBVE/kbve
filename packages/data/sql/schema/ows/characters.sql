@@ -105,7 +105,7 @@ CREATE TABLE Characters
     CONSTRAINT PK_Chars
         PRIMARY KEY (CustomerGUID, CharacterID),
     CONSTRAINT FK_Characters_UserGUID
-        FOREIGN KEY (UserGUID) REFERENCES Users (UserGUID)
+        FOREIGN KEY (CustomerGUID, UserGUID) REFERENCES Users (CustomerGUID, UserGUID)
 );
 
 -- Security: Characters

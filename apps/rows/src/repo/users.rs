@@ -374,10 +374,13 @@ impl<'a> UsersRepo<'a> {
             .map_err(|e| RowsError::Internal(format!("Hash error: {e}")))?
             .to_string();
 
+        // Conflict target must match the tenant-scoped PK on (customerguid, userguid). Targeting
+        // userguid alone silently swallowed the insert whenever the same Supabase account already
+        // existed under a different tenant, leaving this tenant with no users row at all.
         let inserted = match sqlx::query(
             "INSERT INTO users (customerguid, userguid, email, passwordhash, firstname, lastname, role, createdate)
              VALUES ($1, $2, $3, $4, $5, $6, 'Player', NOW())
-             ON CONFLICT (userguid) DO NOTHING",
+             ON CONFLICT (customerguid, userguid) DO NOTHING",
         )
         .bind(customer_guid)
         .bind(supabase_uuid)
@@ -397,12 +400,38 @@ impl<'a> UsersRepo<'a> {
             Err(e) => return Err(e.into()),
         };
 
+        // A zero-row insert means someone else won the race OR the conflict clause swallowed a row
+        // that does not belong to this tenant. Only the first is benign, and the two are
+        // indistinguishable from rows_affected alone -- so confirm the row exists for THIS tenant
+        // before handing back a session. Returning Ok here without the check is what let login
+        // succeed for a user that did not exist in the tenant.
+        if inserted == 0 {
+            let present: Option<(Uuid,)> =
+                sqlx::query_as("SELECT userguid FROM users WHERE customerguid = $1 AND userguid = $2")
+                    .bind(customer_guid)
+                    .bind(supabase_uuid)
+                    .fetch_optional(&mut *tx)
+                    .await?;
+            if present.is_none() {
+                tx.rollback().await?;
+                tracing::error!(
+                    email = %email,
+                    user_guid = %supabase_uuid,
+                    customer_guid = %customer_guid,
+                    "Failed to provision OWS user into tenant; insert matched an existing row owned elsewhere"
+                );
+                return Err(RowsError::Conflict(format!(
+                    "Could not provision user {supabase_uuid} into tenant {customer_guid}"
+                )));
+            }
+        }
+
         tx.commit().await?;
 
         if inserted > 0 {
             tracing::info!(email = %email, user_guid = %supabase_uuid, "Created OWS user from Supabase auth");
         } else {
-            tracing::info!(email = %email, user_guid = %supabase_uuid, "OWS user already created concurrently; skipped duplicate insert");
+            tracing::info!(email = %email, user_guid = %supabase_uuid, "OWS user already present for tenant; skipped duplicate insert");
         }
         Ok(supabase_uuid)
     }

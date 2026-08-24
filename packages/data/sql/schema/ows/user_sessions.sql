@@ -11,7 +11,7 @@ CREATE TABLE UserSessions
     CONSTRAINT PK_UserSessions
         PRIMARY KEY (CustomerGUID, UserSessionGUID),
     CONSTRAINT FK_UserSessions_UserGUID
-        FOREIGN KEY (UserGUID) REFERENCES Users (UserGUID)
+        FOREIGN KEY (CustomerGUID, UserGUID) REFERENCES Users (CustomerGUID, UserGUID)
 );
 
 -- Security: UserSessions
