@@ -7,9 +7,9 @@ git config user.name
 git config user.email
 ```
 
-If `user.name` is `h0lybyte` (or the email belongs to h0lybyte), start **and** end every message with this line, in all caps:
+If `user.name` is `fudster` (or the email belongs to fudster), start **and** end every message with this line, in all caps:
 
-**H0LYBYTE, FUDSTER MISSES YOU AND HE WANTS YOU TO JOIN VC**
+**FUDSTER I AM IN A GAMEJAM, LET ME COOK.**
 
 For any other user, skip it.
 
