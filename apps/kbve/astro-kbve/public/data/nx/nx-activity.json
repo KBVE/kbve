@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-08-23T02:23:50Z",
+  "generated_at": "2026-08-24T02:22:51Z",
   "window": {
     "days": 7,
-    "since": "2026-08-16T02:23:50Z"
+    "since": "2026-08-17T02:22:51Z"
   },
   "commits": {
-    "total": 488,
+    "total": 375,
     "authors": 4,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 346
+        "commits": 254
       },
       {
         "author": "github-actions[bot]",
-        "commits": 138
+        "commits": 117
       },
       {
         "author": "dependabot[bot]",
@@ -113,72 +113,72 @@
     ]
   },
   "pull_requests": {
-    "merged": 406,
+    "merged": 351,
     "recent": [
       {
-        "number": 16297,
+        "number": 16318,
+        "title": "Atomic: sitemap lastmod full history",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16318"
+      },
+      {
+        "number": 16324,
+        "title": "fix(tocloud9): point matchmaking at the group service and pin shard b's bot target",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16324"
+      },
+      {
+        "number": 16323,
         "title": "chore(ci): sync ci-dispatch-manifest",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16297"
+        "url": "https://github.com/KBVE/kbve/pull/16323"
       },
       {
-        "number": 16296,
-        "title": "fix(tocloud9): use creature.id, not id1, in the rent-a-mount spawns",
+        "number": 16322,
+        "title": "Atomic: chuck beta 0346",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16322"
+      },
+      {
+        "number": 16321,
+        "title": "fix(tocloud9): replace the fighter plane action bar with a working loadout",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16296"
+        "url": "https://github.com/KBVE/kbve/pull/16321"
       },
       {
-        "number": 16294,
-        "title": "test(q): cover the slot allocator, the escape route, the snapshot lookup and the fauna subsystem",
+        "number": 16320,
+        "title": "revert(tocloud9): drop mod-old-world-flying",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16294"
+        "url": "https://github.com/KBVE/kbve/pull/16320"
       },
       {
-        "number": 16291,
-        "title": "Release: 1 feature, 2 chores \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16291"
+        "number": 16319,
+        "title": "feat(tocloud9): make the Wintergrasp Fighter Plane pilotable",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16319"
       },
       {
-        "number": 16293,
-        "title": "Atomic: tocloud9-db-import v0.0.4 post-publish sync",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16293"
+        "number": 16317,
+        "title": "feat(tocloud9): form dungeon-finder groups through the cluster group service",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16317"
       },
       {
-        "number": 16292,
-        "title": "Atomic: tocloud9-gameserver v0.0.4 post-publish sync",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16292"
+        "number": 16316,
+        "title": "feat(tocloud9): add mod-old-world-flying",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16316"
       },
       {
-        "number": 16286,
-        "title": "Release: 2 features, 1 chore \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16286"
-      },
-      {
-        "number": 16289,
+        "number": 16315,
         "title": "chore(ci): sync ci-dispatch-manifest",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16289"
-      },
-      {
-        "number": 16288,
-        "title": "feat(tocloud9): wire mod-rent-a-mount into the gameserver build",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16288"
-      },
-      {
-        "number": 16287,
-        "title": "feat(tocloud9): raise the bot population to 1000",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16287"
+        "url": "https://github.com/KBVE/kbve/pull/16315"
       }
     ]
   },
   "issues": {
-    "opened": 413,
-    "closed": 408
+    "opened": 357,
+    "closed": 353
   }
 }
