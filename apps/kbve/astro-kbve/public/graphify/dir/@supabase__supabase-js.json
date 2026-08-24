@@ -1,14 +1,14 @@
 {
 	"dir": "@supabase/supabase-js",
-	"center": [187.2, 47.94],
-	"r": 74.18,
+	"center": [-654.32, -744.22],
+	"r": 74.16,
 	"files": [
 		{
 			"i": 0,
 			"label": "supabase-js",
 			"path": "@supabase/supabase-js",
-			"x": 187.2,
-			"y": 47.94,
+			"x": -654.32,
+			"y": -744.22,
 			"n": 1
 		}
 	],
@@ -17,9 +17,9 @@
 			"i": 0,
 			"f": 0,
 			"label": "@supabase/supabase-js",
-			"x": 187.2,
-			"y": 47.94,
-			"c": 378,
+			"x": -654.32,
+			"y": -744.22,
+			"c": 414,
 			"loc": ""
 		}
 	],

@@ -1,14 +1,14 @@
 {
 	"dir": "scripts/ci",
-	"center": [2887.64, 434.27],
-	"r": 75.09,
+	"center": [2601.18, 1353.63],
+	"r": 75.05,
 	"files": [
 		{
 			"i": 0,
 			"label": "retry-transient.sh",
 			"path": "scripts/ci/retry-transient.sh",
-			"x": 2887.64,
-			"y": 434.27,
+			"x": 2601.18,
+			"y": 1353.63,
 			"n": 2
 		}
 	],
@@ -17,18 +17,18 @@
 			"i": 0,
 			"f": 0,
 			"label": "retry-transient.sh",
-			"x": 2894.46,
-			"y": 434.27,
-			"c": 4764,
+			"x": 2608.01,
+			"y": 1353.63,
+			"c": 4728,
 			"loc": "L1"
 		},
 		{
 			"i": 1,
 			"f": 0,
 			"label": "retry-transient.sh script",
-			"x": 2878.91,
-			"y": 442.26,
-			"c": 4764,
+			"x": 2592.46,
+			"y": 1361.62,
+			"c": 4728,
 			"loc": "L1"
 		}
 	],
