@@ -1,43 +1,42 @@
-# The worldserver fleet — the only part of ToCloud9 that belongs in Agones.
+# Shard b of the worldserver partition. Shard a is worldserver-fleet.yaml, and
+# every design note that is not about the split itself lives there: portPolicy,
+# the absence of GameServerAllocation, the agones-shim readiness contract, the
+# tick/CPU sizing, and why an instances-and-battlegrounds shard holding no bots
+# must never be built.
 #
-# Two things make this unusual, and both are deliberate:
+# Two Fleets rather than replicas: 2. A Fleet templates identical pods, and the
+# whole point of the partition is that each shard advertises a DIFFERENT
+# Cluster.AvailableMaps, so one Fleet cannot express it.
 #
-# 1. portPolicy: None. Players never connect to a worldserver directly; they
-#    reach `gateway`, which forwards to whichever worldserver owns their map.
-#    So these pods need no hostPort and stay compatible with baseline
-#    PodSecurity, the same shape as the herbmail fleet.
+# The division of labour:
 #
-# 2. No GameServerAllocation anywhere. ToCloud9's own servers-registry is the
-#    allocator: each worldserver self-registers its pod IP and the registry
-#    assigns maps across the fleet and redirects players when one dies. Adding
-#    an Agones allocation policy on top would fight it. Agones owns the pod
-#    pool and nothing else.
+#   shard a  AvailableMaps ''         -> Kalimdor, Northrend, and everything
+#                                        left unclaimed: instances, BGs
+#            RandomBotMaps '1,571'       1900 bots
 #
-# AzerothCore has no Agones SDK integration, so it can never call Ready() or
-# Health() itself. The agones-bridge sidecar does it: it waits for the world
-# socket to accept — the only honest readiness signal, since libsidecar's
-# /ready is a hardcoded {"ready":true} that says nothing about map loading —
-# then marks the GameServer Ready and beats Health until the socket dies.
+#   shard b  AvailableMaps '0,530,609' -> Eastern Kingdoms, Outland, DK start
+#            RandomBotMaps '0,530'       2000 bots
+#
+# Both shards carry bots on purpose. Only the owner of a battleground map may
+# fill its queue and it fills from local bots, so BG ownership has to land on a
+# server that has some -- see the long note in worldserver-fleet.yaml.
 apiVersion: agones.dev/v1
 kind: Fleet
 metadata:
-    name: tocloud9-worldserver
+    name: tocloud9-worldserver-b
     namespace: tocloud9
     labels:
         app: tocloud9-worldserver
-        shard: a
+        shard: b
         app.kubernetes.io/part-of: tocloud9
     annotations:
         # After the db-import and client-data hooks (wave 1). Scaling the fleet
         # before the schema exists produces a crashloop, not a useful error.
         argocd.argoproj.io/sync-wave: '2'
 spec:
-    # One replica, because the partition is expressed as two Fleets rather
-    # than two replicas of one. A Fleet templates identical pods, and each
-    # shard needs its own Cluster.AvailableMaps and RandomBotMaps, so the
-    # second shard is worldserver-b-fleet.yaml. See that file for the split.
-    #
-    # Cross-shard bot handoff IS now proven, which is what unblocked this.
+    # One replica per shard. Scaling this number re-runs the map bin-packer
+    # and moves a continent out from under the bots standing on it; growth
+    # comes from adding a shard with an explicit map list, not from replicas.
     #
     # servers-registry bin-packs maps across every worldserver that advertises
     # Cluster.AvailableMaps="" (which this fleet does), so two replicas own
@@ -58,21 +57,10 @@ spec:
     # foreign, the handoff path is never entered rather than merely tuned, and
     # no bot is benched.
     #
-    # An earlier revision of this comment proposed a second Fleet owning
-    # instances and battlegrounds and holding no bots. Do not build that. It was
-    # tried on the compose stack and retired: mod-playerbots
-    # PlayerbotsCluster.cpp bails on
-    #     if (!bgTemplate || !sToCloud9Sidecar->IsMapAssigned(bgTemplate->GetMapId()))
-    #         return;
-    # so ONLY the shard owning a battleground map may fill its queue, and it
-    # fills from its OWN local bots. A bot-less shard owning every BG map is
-    # therefore the only server permitted to fill and has nothing to fill with,
-    # and player queues never populate for anyone.
-    #
-    # The split that works puts bots on BOTH shards and lets the unclaimed maps
-    # -- instances and battlegrounds included -- bin-pack onto them, so BG
-    # ownership lands on servers that have bots. This fleet is shard a and
-    # claims nothing explicitly; worldserver-b-fleet.yaml claims 0,530,609.
+    # This shard claims its maps EXPLICITLY, which also removes it from the
+    # registry's balancer: the distributor hands the list over verbatim and
+    # stops offering these maps to anyone else. That is why shard a must stay
+    # empty -- something has to absorb the instanced maps neither shard names.
     replicas: 1
     scheduling: Packed
     strategy:
@@ -85,7 +73,7 @@ spec:
         metadata:
             labels:
                 app: tocloud9-worldserver
-                shard: a
+                shard: b
                 app.kubernetes.io/part-of: tocloud9
         spec:
             # Mandatory once the pod holds more than one container: Agones has
@@ -122,7 +110,7 @@ spec:
                 metadata:
                     labels:
                         app: tocloud9-worldserver
-                        shard: a
+                        shard: b
                         app.kubernetes.io/part-of: tocloud9
                 spec:
                     terminationGracePeriodSeconds: 120
@@ -367,38 +355,25 @@ spec:
                               # exactly the old 2400s ready timeout. Both the health
                               # delay and the shim timeout are raised below so that
                               # single boot cannot be mistaken for a hung server.
-                              # Below what this shard can seat, on purpose. A shard
-                              # only reaches its target from characters saved on maps it
-                              # OWNS, and Kalimdor + Northrend hold fewer than Eastern
-                              # Kingdoms + Outland: 1940/2000 measured here against
-                              # 2000/2000 on b. The shortfall is not cosmetic -- bots
-                              # only auto-queue battlegrounds once playerBots.size()
-                              # reaches the target, so an unreachable target keeps the
-                              # BG gate shut forever and logs a shortfall every cycle.
+                              # Stated explicitly rather than inherited. Eastern
+                              # Kingdoms + Outland hold enough saved characters for this
+                              # shard to actually reach 2000, which shard a cannot on
+                              # Kalimdor + Northrend. Bots only auto-queue battlegrounds
+                              # once playerBots.size() reaches the target, so the number
+                              # has to be one the shard can really seat.
                               - name: AC_AI_PLAYERBOT_MIN_RANDOM_BOTS
-                                value: '1900'
+                                value: '2000'
                               - name: AC_AI_PLAYERBOT_MAX_RANDOM_BOTS
-                                value: '1900'
-                              # Deliberately EMPTY, not '1,571'. An explicit list removes
-                              # a shard from the registry's balancer, so if both shards
-                              # were explicit the instance and battleground maps would be
-                              # owned by nobody: dungeon entry returns instanceNotFound
-                              # and the BG fill path bails on !IsMapAssigned(bgMap).
-                              # Empty means this shard takes everything b does not claim
-                              # -- Kalimdor, Northrend, and every instanced map -- while
-                              # RandomBotMaps below keeps its grind population on the
-                              # continents it owns.
+                                value: '2000'
                               - name: AC_CLUSTER_AVAILABLE_MAPS
-                                value: ''
-                              # MUST stay consistent with AvailableMaps.
-                              # RandomTeleportForLevel filters destinations by
-                              # RandomBotMaps and never checks IsMapAssigned, so leaving
-                              # the stock 0,1,530,571 here makes this shard teleport its
-                              # own bots onto maps it does not own and trips the handoff
-                              # path immediately: 122 handoffs in ~40s at 2000 bots,
-                              # measured, bouncing the same bots against b.
+                                value: '0,530,609'
+                              # MUST stay consistent with AvailableMaps above; see
+                              # shard a for the measurement. 609 is deliberately absent:
+                              # it is the Death Knight start, not a grind destination, so
+                              # bots saved there seat and leave but are never teleported
+                              # back in.
                               - name: AC_AI_PLAYERBOT_RANDOM_BOT_MAPS
-                                value: '1,571'
+                                value: '0,530'
                               # 0 means automatic, which is correct and was
                               # not before. This pool is NOT sized by this
                               # setting: RandomPlayerbotMgr allocates
