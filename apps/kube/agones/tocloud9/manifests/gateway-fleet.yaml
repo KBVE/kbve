@@ -78,7 +78,7 @@ spec:
                             type: RuntimeDefault
                     containers:
                         - name: gateway
-                          image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.2
+                          image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.3
                           # One image carries every ToCloud9 service; pick this one.
                           command: ['/app/gateway']
                           imagePullPolicy: IfNotPresent
