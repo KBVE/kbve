@@ -1,5 +1,7 @@
 import net from 'node:net';
 
+export { logonChallenge } from '../../src/protocol';
+
 export const HOST = process.env.TC9_HOST ?? '127.0.0.1';
 export const AUTH_PORT = Number(process.env.TC9_AUTH_PORT ?? 3724);
 export const GATEWAY_PORT = Number(process.env.TC9_GATEWAY_PORT ?? 8085);
@@ -69,35 +71,4 @@ export function readAtLeast(
 		socket.once('error', onError);
 		socket.once('close', onClose);
 	});
-}
-
-export function logonChallenge(account: string, build = 12340): Buffer {
-	const name = Buffer.from(account.toUpperCase(), 'ascii');
-	const body = Buffer.alloc(30 + name.length);
-	let o = 0;
-	body.write('WoW\0', o, 'ascii');
-	o += 4;
-	body[o++] = 3;
-	body[o++] = 3;
-	body[o++] = 5;
-	body.writeUInt16LE(build, o);
-	o += 2;
-	body.write('68x\0', o, 'ascii');
-	o += 4;
-	body.write('niW\0', o, 'ascii');
-	o += 4;
-	body.write('SUne', o, 'ascii');
-	o += 4;
-	body.writeUInt32LE(0, o);
-	o += 4;
-	body.writeUInt32LE(0x0100007f, o);
-	o += 4;
-	body[o++] = name.length;
-	name.copy(body, o);
-
-	const header = Buffer.alloc(4);
-	header[0] = 0x00;
-	header[1] = 0x08;
-	header.writeUInt16LE(body.length, 2);
-	return Buffer.concat([header, body]);
 }

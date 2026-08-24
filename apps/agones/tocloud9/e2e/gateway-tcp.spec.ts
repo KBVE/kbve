@@ -5,8 +5,7 @@ import {
 	connect,
 	readAtLeast,
 } from './helpers/net';
-
-const SMSG_AUTH_CHALLENGE = 0x01ec;
+import { SMSG_AUTH_CHALLENGE } from '../src/protocol';
 
 describe.each([
 	['gateway', GATEWAY_PORT],
