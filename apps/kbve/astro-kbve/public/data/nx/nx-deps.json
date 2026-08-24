@@ -1,7 +1,7 @@
 {
-	"generated_at": "2026-08-23T02:27:46Z",
+	"generated_at": "2026-08-24T02:26:33Z",
 	"node": {
-		"count": 124,
+		"count": 125,
 		"major": 21,
 		"items": [
 			{
@@ -224,7 +224,7 @@
 				"name": "@shopify/react-native-skia",
 				"current": "2.6.9",
 				"wanted": "2.6.9",
-				"latest": "2.11.0",
+				"latest": "2.11.1",
 				"type": "dependencies",
 				"major": false
 			},
@@ -280,7 +280,15 @@
 				"name": "@tanstack/query-core",
 				"current": "5.100.5",
 				"wanted": "5.100.5",
-				"latest": "5.101.4",
+				"latest": "5.102.1",
+				"type": "dependencies",
+				"major": false
+			},
+			{
+				"name": "@tanstack/react-query",
+				"current": "5.101.4",
+				"wanted": "5.101.4",
+				"latest": "5.102.1",
 				"type": "dependencies",
 				"major": false
 			},
@@ -288,7 +296,7 @@
 				"name": "@tanstack/react-query-persist-client",
 				"current": "5.101.0",
 				"wanted": "5.101.0",
-				"latest": "5.101.4",
+				"latest": "5.102.1",
 				"type": "dependencies",
 				"major": false
 			},
@@ -296,7 +304,7 @@
 				"name": "@tanstack/react-router",
 				"current": "1.170.16",
 				"wanted": "1.170.16",
-				"latest": "1.170.31",
+				"latest": "1.170.32",
 				"type": "dependencies",
 				"major": false
 			},
@@ -999,7 +1007,7 @@
 		]
 	},
 	"rust": {
-		"count": 256,
+		"count": 257,
 		"major": 1,
 		"items": [
 			{
@@ -1669,6 +1677,12 @@
 				"major": false
 			},
 			{
+				"name": "blocking",
+				"current": "1.6.2",
+				"latest": "1.7.0",
+				"major": false
+			},
+			{
 				"name": "branches",
 				"current": "0.4.4",
 				"latest": "0.4.6",
@@ -2313,7 +2327,7 @@
 			{
 				"name": "syn",
 				"current": "3.0.2",
-				"latest": "3.0.3",
+				"latest": "3.0.4",
 				"major": false
 			},
 			{
@@ -2540,6 +2554,6 @@
 			}
 		]
 	},
-	"total": 380,
+	"total": 382,
 	"major_total": 22
 }
