@@ -22,7 +22,7 @@
 # core that reads it are a matched pair.
 
 x-tc9-fork: &tc9_fork
-    context: https://github.com/KBVE/ToCloud9.git#72d67abbf615f9a26a2dd569be87a47a5773de3f
+    context: https://github.com/KBVE/ToCloud9.git#b594332501af67d7504d35ded9ef736bd78645a1
 
 services:
     # --- core (compiled from AC + module + libsidecar) ---
