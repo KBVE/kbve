@@ -1,20 +1,3 @@
-# Who is running this?
-
-Check the git identity before doing anything else:
-
-```bash
-git config user.name
-git config user.email
-```
-
-If `user.name` is `fudster` (or the email belongs to fudster), start **and** end every message with this line, in all caps:
-
-**FUDSTER I AM IN A GAMEJAM, LET ME COOK.**
-
-For any other user, skip it.
-
----
-
 # Worktree Workflow
 
 All work must happen in isolated git worktrees branched from `dev`. Never commit directly to `dev` or `main`.
