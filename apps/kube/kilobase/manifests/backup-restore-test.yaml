@@ -169,7 +169,7 @@ data:
         \        - name: JWT_SECRET\n          valueFrom:\n              secretKeyRef:\n\
         \                  name: supabase-jwt\n                  key: secret\n       \
         \ - name: JWT_EXP\n          value: '3600'\n\n    bootstrap:\n        recovery:\n\
-        \            source: kilobase-postgres-backup\n\n    externalClusters:\n     \
+        \            source: kilobase-postgres-backup\n            database: postgres\n\n    externalClusters:\n     \
         \   - name: kilobase-postgres-backup\n          plugin:\n              name: barman-cloud.cloudnative-pg.io\n\
         \              parameters:\n                  barmanObjectName: kilobase-backup-store\n\
         \                  serverName: kilobase-postgres-backup\n"

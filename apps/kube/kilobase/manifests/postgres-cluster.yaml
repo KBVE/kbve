@@ -173,6 +173,7 @@ spec:
     bootstrap:
         recovery:
             source: kilobase-postgres-backup
+            database: postgres
     externalClusters:
         - name: kilobase-postgres-backup
           plugin:
