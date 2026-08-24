@@ -580,7 +580,7 @@ jobs:
             - name: Upload via SteamPipe (game-ci/steam-deploy)
               if: steps.vdf.outputs.skip != 'true'
               id: steam_deploy
-              uses: game-ci/steam-deploy@42f7685db8f153c3bfbdf2793f048163fdae3905
+              uses: game-ci/steam-deploy@50f6b29fc64922e19a16d202a88fe199d394b536
               with:
                   username: ${{ secrets.STEAM_USERNAME }}
                   password: ${{ secrets.STEAM_PASSWORD }}
