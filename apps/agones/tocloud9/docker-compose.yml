@@ -297,6 +297,11 @@ services:
             CHAR_DB_CONNECTION: *char_db
             WORLD_DB_CONNECTION: *world_db
             SERVERS_REGISTRY_SERVICE_ADDRESS: servers-registry:8999
+            # The dungeon finder forms its parties through the group service, so
+            # matchmaking is a client of it now. Without this the config default
+            # localhost:8998 is used and every JoinLFG dies on
+            #   dial tcp [::1]:8998: connect: connection refused
+            GROUP_SERVICE_ADDRESS: groupserver:8998
             BATTLE_GROUPS: 1:1
             NATS_URL: nats://nats:4222
             PORT: 8994

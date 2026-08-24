@@ -15,8 +15,8 @@
 # The binaries are static, so there is nothing to configure per service beyond
 # the entrypoint; behaviour is driven entirely by environment variables.
 #
-# Sources come from 3kynox's integration fork rather than walkline's, because
-# the playerbots integration adds RPCs the upstream services do not implement
+# Sources come from the KBVE fork rather than walkline's, because the
+# playerbots integration it carries adds RPCs the upstream services do not implement
 # (guild creation in cluster mode, the guild bank). The additions are wire
 # compatible -- both proto changes are purely additive, +238/-0 and +71/-0 --
 # so a mixed stack degrades rather than breaks, but the worldserver does call
@@ -26,8 +26,8 @@
 # is compiled into the worldserver from the same tree that produces these
 # services, and the two speak the gRPC contract defined in api/proto.
 
-ARG TOCLOUD9_REPO=https://github.com/3kynox/ToCloud9.git
-ARG TOCLOUD9_REF=f878465721200739eaae27633f70f378ac280411
+ARG TOCLOUD9_REPO=https://github.com/KBVE/ToCloud9.git
+ARG TOCLOUD9_REF=b594332501af67d7504d35ded9ef736bd78645a1
 
 FROM --platform=${BUILDPLATFORM} golang:1.23-alpine AS build
 

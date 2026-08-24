@@ -218,8 +218,6 @@ pub struct QTreeField {
     terrain_path: NodePath,
     #[export]
     player_path: NodePath,
-    /// Set while a replacement scatter is planned and the standing one is still drawn.
-    swap_pending: bool,
     /// Off-thread sim to mirror the trunk colliders into. Godot keeps its own copy
     /// either way -- the mantle and camera probes raycast against it.
     #[export]
@@ -315,6 +313,7 @@ pub struct QTreeField {
     seen_generation: i64,
     plan_rx: Option<std::sync::mpsc::Receiver<TreePlan>>,
     stage: Option<TreeStage>,
+    staged: Staged,
 }
 
 struct TreePlan {
@@ -327,6 +326,17 @@ struct TreePlan {
 struct TreeStage {
     terra: TerrainSnapshot,
     next: usize,
+}
+
+/// A whole forest built off to the side, drawn only once every species is in it.
+#[derive(Default)]
+struct Staged {
+    computes: Vec<FloraCompute>,
+    meshes: Vec<Gd<ArrayMesh>>,
+    mesh_tris: Vec<u64>,
+    leaf_mats: Vec<Gd<ShaderMaterial>>,
+    bark_mats: Vec<Gd<ShaderMaterial>>,
+    instance_of: HashMap<u64, (u32, u32)>,
 }
 
 impl QTreeField {
@@ -351,27 +361,55 @@ impl QTreeField {
         let _t = crate::world::StallTimer::start("trees.rescatter");
         self.plan_rx = None;
         self.stage = None;
+        self.free_staged();
         let damage: Vec<(u64, u8)> = self.core.damage().collect();
         for (id, stage) in damage {
             self.ledger.record(id, stage);
         }
-        self.swap_pending = true;
         self.candidates.clear();
         self.cand_ids.clear();
         self.init_done = false;
     }
 
-    /// Drops what the previous scatter still draws, once its replacement can take over.
-    fn retire_scatter(&mut self) {
-        if !self.swap_pending {
+    /// Puts the finished forest on screen in one move and drops the one it replaces.
+    fn commit_staged(&mut self) {
+        if self.staged.computes.is_empty() {
             return;
         }
-        self.swap_pending = false;
+        let _t = crate::world::StallTimer::start("trees.commit");
+        self.build_colliders();
         self.free_computes();
-        self.meshes.clear();
-        self.mesh_tris.clear();
-        self.leaf_mats.clear();
-        self.bark_mats.clear();
+        let staged = std::mem::take(&mut self.staged);
+        self.computes = staged.computes;
+        self.meshes = staged.meshes;
+        self.mesh_tris = staged.mesh_tris;
+        self.leaf_mats = staged.leaf_mats;
+        self.bark_mats = staged.bark_mats;
+        self.instance_of = staged.instance_of;
+        let visible = self.base().is_visible_in_tree();
+        for fc in self.computes.iter_mut() {
+            fc.set_visible(visible);
+        }
+        let obj = self.last_player_pos + Vector3::new(0.0, 1.1, 0.0);
+        for m in self.leaf_mats.iter_mut().chain(self.bark_mats.iter_mut()) {
+            m.set_shader_parameter("object_position", &obj.to_variant());
+        }
+        let felled: Vec<u64> = self
+            .instance_of
+            .keys()
+            .copied()
+            .filter(|id| !self.core.alive(*id))
+            .collect();
+        for id in felled {
+            self.cull_instance(id);
+        }
+    }
+
+    fn free_staged(&mut self) {
+        for mut fc in self.staged.computes.drain(..) {
+            fc.free();
+        }
+        self.staged = Staged::default();
     }
 
     fn late_init(&mut self) -> bool {
@@ -447,7 +485,6 @@ impl QTreeField {
             return true;
         }
         self.core.clear();
-        self.instance_of.clear();
         for e in entries {
             self.core.insert(e);
         }
@@ -456,8 +493,6 @@ impl QTreeField {
         let ledger = std::mem::take(&mut self.ledger);
         self.core.restore(&ledger);
         self.ledger = ledger;
-        self.build_colliders();
-
         {
             let node = self.base().clone().upcast::<godot::classes::Node>();
             let Some(mut terrain) = crate::world::resolve_terrain(&node, &self.terrain_path) else {
@@ -513,8 +548,8 @@ impl QTreeField {
         }
         if cands.is_empty() {
             if next + 1 >= SPECIES.len() {
-                self.retire_scatter();
                 self.stage = None;
+                self.commit_staged();
                 if self.computes.is_empty() {
                     crate::q_error!(
                         "TreeField",
@@ -608,24 +643,26 @@ impl QTreeField {
             pass: HarvestPass::Remains,
         });
         match (near_c, far_c, stump_c) {
-            (Some(n), Some(f), Some(s)) => {
-                self.retire_scatter();
-                let base = self.computes.len() as u32;
+            (Some(mut n), Some(mut f), Some(mut s)) => {
+                n.set_visible(false);
+                f.set_visible(false);
+                s.set_visible(false);
+                let base = self.staged.computes.len() as u32;
                 for (slot, id) in ids.iter().enumerate() {
-                    self.instance_of.insert(*id, (base, slot as u32));
+                    self.staged.instance_of.insert(*id, (base, slot as u32));
                 }
-                self.computes.push(n);
-                self.computes.push(f);
-                self.computes.push(s);
-                self.mesh_tris.extend_from_slice(&tris);
-                self.meshes.push(near);
-                self.meshes.push(far);
-                self.meshes.push(stump);
+                self.staged.computes.push(n);
+                self.staged.computes.push(f);
+                self.staged.computes.push(s);
+                self.staged.mesh_tris.extend_from_slice(&tris);
+                self.staged.meshes.push(near);
+                self.staged.meshes.push(far);
+                self.staged.meshes.push(stump);
                 if let Some(lm) = leaf_mat {
-                    self.leaf_mats.push(lm);
+                    self.staged.leaf_mats.push(lm);
                 }
                 if let Some(bm) = bark_mat {
-                    self.bark_mats.push(bm);
+                    self.staged.bark_mats.push(bm);
                 }
             }
             (n, f, s) => {
@@ -641,6 +678,7 @@ impl QTreeField {
 
         if next + 1 >= SPECIES.len() {
             self.stage = None;
+            self.commit_staged();
             if self.computes.is_empty() {
                 godot_error!("[QTreeField] no tree computes online; trees disabled");
             }
@@ -684,6 +722,9 @@ impl INode3D for QTreeField {
             for m in self.leaf_mats.iter_mut().chain(self.bark_mats.iter_mut()) {
                 m.set_shader_parameter("object_position", &obj.to_variant());
             }
+        }
+        for fc in self.staged.computes.iter_mut() {
+            let _ = fc.try_finalize();
         }
         if self.computes.is_empty() {
             return;
@@ -1252,7 +1293,7 @@ impl QTreeField {
     }
 
     fn free_all(&mut self) {
-        self.swap_pending = false;
+        self.free_staged();
         self.free_computes();
         self.free_colliders();
         self.free_falling();

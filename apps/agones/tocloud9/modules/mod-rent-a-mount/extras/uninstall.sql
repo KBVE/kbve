@@ -17,3 +17,12 @@ DELETE FROM `creature_template`       WHERE `entry`      BETWEEN 900300 AND 9003
 DELETE FROM `npc_text` WHERE `ID` = 90030;
 
 DROP TABLE IF EXISTS `mod_rent_a_mount_offers`;
+
+-- 27838 is a stock AzerothCore creature, unlike everything above. These four
+-- statements return it to its shipped state: scenery, not a vehicle.
+UPDATE `creature_template` SET `VehicleId` = 0, `npcflag` = 0, `faction` = 614,
+       `speed_run` = 1.14286, `AIName` = '' WHERE `entry` = 27838;
+DELETE FROM `creature_template_movement` WHERE `CreatureId` = 27838;
+DELETE FROM `npc_spellclick_spells`      WHERE `npc_entry` = 27838;
+DELETE FROM `creature_template_spell`    WHERE `CreatureID` = 27838;
+DELETE FROM `smart_scripts` WHERE `entryorguid` = 27838 AND `source_type` = 0;

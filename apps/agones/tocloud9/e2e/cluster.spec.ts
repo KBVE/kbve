@@ -1,11 +1,30 @@
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
+import {
+	ADDRESS_FIELDS,
+	type WorldServer,
+	assignedMapCount,
+	isRoutableAddress,
+	mapOwnerConflicts,
+} from '../src/cluster-topology';
 import { redisGet, redisKeys } from './helpers/compose';
 
-const ADDRESS = /^\d{1,3}(\.\d{1,3}){3}:\d+$/;
-
 describe('servers-registry cluster membership', () => {
+	let worldServers: Record<string, WorldServer> = {};
+
+	// Read inside a hook, not at collection time: an it.each() argument runs
+	// while vitest is still collecting, so a stack that is down took the whole
+	// file with it instead of reporting a failed test.
+	beforeAll(() => {
+		worldServers = Object.fromEntries(
+			redisKeys('ws:*').map((key) => [
+				key,
+				JSON.parse(redisGet(key) || '{}') as WorldServer,
+			]),
+		);
+	});
+
 	it('has at least one worldserver registered under ws:*', () => {
-		expect(redisKeys('ws:*').length).toBeGreaterThan(0);
+		expect(Object.keys(worldServers).length).toBeGreaterThan(0);
 	});
 
 	it('indexes registered worldservers on realm 1', () => {
@@ -17,45 +36,28 @@ describe('servers-registry cluster membership', () => {
 	});
 
 	it('assigns every map to exactly one worldserver', () => {
-		const owners = new Map<number, string>();
-		for (const key of redisKeys('ws:*')) {
-			const server = JSON.parse(redisGet(key));
-			for (const map of server.AssignedMapsToHandle ?? []) {
-				expect(
-					owners.has(map),
-					`map ${map} claimed by both ${owners.get(map)} and ${key}`,
-				).toBe(false);
-				owners.set(map, key);
-			}
-		}
-		expect(owners.size).toBeGreaterThan(0);
+		expect(mapOwnerConflicts(worldServers)).toEqual([]);
+		expect(assignedMapCount(worldServers)).toBeGreaterThan(0);
 	});
 
-	it.each(redisKeys('ws:*'))(
-		'%s advertises routable addresses and holds map assignments',
-		(key) => {
-			const raw = redisGet(key);
-			expect(raw, `${key} has no payload`).not.toBe('');
-			const server = JSON.parse(raw);
-
-			// Each worldserver self-registers the address it is reachable on, which is
-			// what an Agones Fleet pod would publish from status.podIP. A loopback here
-			// means nothing else in the cluster could route to it.
-			for (const field of [
-				'Address',
-				'GRPCAddress',
-				'HealthCheckAddr',
-			] as const) {
-				expect(server[field], `${key}.${field}`).toMatch(ADDRESS);
+	it('advertises routable addresses on every worldserver', () => {
+		for (const [key, server] of Object.entries(worldServers)) {
+			for (const field of ADDRESS_FIELDS) {
 				expect(
-					server[field],
-					`${key}.${field} must not be loopback`,
-				).not.toMatch(/^127\./);
+					isRoutableAddress(server[field]),
+					`${key}.${field} is ${server[field] ?? 'missing'}`,
+				).toBe(true);
 			}
+		}
+	});
 
-			expect(server.RealmID).toBe(1);
-			expect(Array.isArray(server.AssignedMapsToHandle)).toBe(true);
-			expect(server.AssignedMapsToHandle.length).toBeGreaterThan(0);
-		},
-	);
+	it('holds map assignments on realm 1', () => {
+		for (const [key, server] of Object.entries(worldServers)) {
+			expect(server.RealmID, `${key}.RealmID`).toBe(1);
+			expect(
+				server.AssignedMapsToHandle?.length ?? 0,
+				`${key} holds no maps`,
+			).toBeGreaterThan(0);
+		}
+	});
 });

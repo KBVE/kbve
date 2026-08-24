@@ -1,22 +1,22 @@
 {
 	"dir": "tools/scripts",
-	"center": [835.73, -308.06],
-	"r": 76.37,
+	"center": [279.08, -176.52],
+	"r": 76.32,
 	"files": [
 		{
 			"i": 0,
 			"label": "eas-build-post-install.mjs",
 			"path": "tools/scripts/eas-build-post-install.mjs",
-			"x": 1014.44,
-			"y": -308.06,
+			"x": 457.65,
+			"y": -176.52,
 			"n": 2
 		},
 		{
 			"i": 1,
 			"label": "eas-build-pre-install.mjs",
 			"path": "tools/scripts/eas-build-pre-install.mjs",
-			"x": 657.03,
-			"y": -308.06,
+			"x": 100.5,
+			"y": -176.52,
 			"n": 2
 		}
 	],
@@ -25,36 +25,36 @@
 			"i": 0,
 			"f": 0,
 			"label": "eas-build-post-install.mjs",
-			"x": 1021.27,
-			"y": -308.06,
-			"c": 4770,
+			"x": 464.48,
+			"y": -176.52,
+			"c": 4734,
 			"loc": "L1"
 		},
 		{
 			"i": 1,
 			"f": 0,
 			"label": "[workspaceRoot, projectRoot]",
-			"x": 1005.72,
-			"y": -300.07,
-			"c": 4770,
+			"x": 448.93,
+			"y": -168.53,
+			"c": 4734,
 			"loc": "L11"
 		},
 		{
 			"i": 2,
 			"f": 1,
 			"label": "eas-build-pre-install.mjs",
-			"x": 663.86,
-			"y": -308.06,
-			"c": 23,
+			"x": 107.33,
+			"y": -176.52,
+			"c": 4735,
 			"loc": "L1"
 		},
 		{
 			"i": 3,
 			"f": 1,
 			"label": "[workspaceRoot, projectRoot]",
-			"x": 648.31,
-			"y": -300.07,
-			"c": 23,
+			"x": 91.78,
+			"y": -168.53,
+			"c": 4735,
 			"loc": "L11"
 		}
 	],

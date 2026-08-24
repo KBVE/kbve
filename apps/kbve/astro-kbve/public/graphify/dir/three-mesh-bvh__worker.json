@@ -1,14 +1,14 @@
 {
 	"dir": "three-mesh-bvh/worker",
-	"center": [342.63, 582.5],
-	"r": 74.18,
+	"center": [255.07, 361.28],
+	"r": 74.16,
 	"files": [
 		{
 			"i": 0,
 			"label": "worker",
 			"path": "three-mesh-bvh/worker",
-			"x": 342.63,
-			"y": 582.5,
+			"x": 255.07,
+			"y": 361.28,
 			"n": 1
 		}
 	],
@@ -17,9 +17,9 @@
 			"i": 0,
 			"f": 0,
 			"label": "three-mesh-bvh/worker",
-			"x": 342.63,
-			"y": 582.5,
-			"c": 592,
+			"x": 255.07,
+			"y": 361.28,
+			"c": 637,
 			"loc": ""
 		}
 	],

@@ -323,3 +323,92 @@ fn inject_roster(evt: ServerEvent, roster: &Arc<RwLock<Roster>>) -> ServerEvent 
         other => other,
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn claim(roster: &mut Roster, who: &str) -> Option<proto::PlayerSlot> {
+        roster.claim(who.to_string())
+    }
+
+    #[test]
+    fn the_lowest_free_slot_is_the_one_handed_out() {
+        let mut roster = Roster::new(4);
+        assert_eq!(claim(&mut roster, "a"), Some(proto::PlayerSlot(0)));
+        assert_eq!(claim(&mut roster, "b"), Some(proto::PlayerSlot(1)));
+        assert_eq!(claim(&mut roster, "c"), Some(proto::PlayerSlot(2)));
+    }
+
+    /// The slot a player leaves has to come back, and come back first -- a
+    /// roster that only ever counts upward fills a match that is half empty.
+    #[test]
+    fn a_released_slot_is_reused_before_any_untouched_one() {
+        let mut roster = Roster::new(4);
+        claim(&mut roster, "a");
+        let b = claim(&mut roster, "b").expect("second slot");
+        claim(&mut roster, "c");
+
+        roster.release(b);
+        assert_eq!(
+            claim(&mut roster, "d"),
+            Some(b),
+            "the hole in the middle was skipped for fresh ground"
+        );
+    }
+
+    #[test]
+    fn a_full_roster_refuses_rather_than_growing() {
+        let mut roster = Roster::new(2);
+        claim(&mut roster, "a");
+        claim(&mut roster, "b");
+        assert_eq!(claim(&mut roster, "c"), None);
+        assert_eq!(roster.active_slots().len(), 2, "capacity was exceeded");
+    }
+
+    /// Releases arrive from session teardown, which does not check the slot
+    /// against the roster it is releasing into.
+    #[test]
+    fn releasing_a_slot_the_roster_does_not_have_is_ignored() {
+        let mut roster = Roster::new(2);
+        let a = claim(&mut roster, "a").expect("first slot");
+        roster.release(proto::PlayerSlot(200));
+        assert_eq!(
+            roster.active_slots(),
+            vec![a],
+            "an out-of-range release disturbed a slot that was in use"
+        );
+    }
+
+    #[test]
+    fn a_roster_with_no_room_asked_for_still_seats_one() {
+        let mut roster = Roster::new(0);
+        assert_eq!(claim(&mut roster, "a"), Some(proto::PlayerSlot(0)));
+        assert_eq!(claim(&mut roster, "b"), None);
+    }
+
+    /// `snapshot` is what goes on the wire and `active_slots` is what the sim
+    /// iterates; they describe the same roster and must not drift.
+    #[test]
+    fn the_wire_view_and_the_slot_list_describe_the_same_players() {
+        let mut roster = Roster::new(5);
+        claim(&mut roster, "ada");
+        let b = claim(&mut roster, "bo").expect("second slot");
+        claim(&mut roster, "cy");
+        roster.release(b);
+
+        let view = roster.snapshot();
+        assert_eq!(
+            view.iter().map(|p| p.slot).collect::<Vec<_>>(),
+            roster.active_slots()
+        );
+        assert_eq!(
+            view.iter()
+                .map(|p| p.kbve_username.as_str())
+                .collect::<Vec<_>>(),
+            vec!["ada", "cy"],
+            "a released player is still being broadcast"
+        );
+        assert!(view.iter().all(|p| p.connected));
+    }
+}

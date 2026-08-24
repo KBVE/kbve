@@ -1,62 +1,62 @@
 {
 	"dir": "@astrojs/starlight",
-	"center": [-461.59, 853.32],
-	"r": 77.78,
+	"center": [520.44, -306.25],
+	"r": 77.71,
 	"files": [
 		{
 			"i": 0,
 			"label": "Footer.astro",
 			"path": "@astrojs/starlight/components/Footer.astro",
-			"x": -284.15,
-			"y": 853.32,
+			"x": 697.73,
+			"y": -306.25,
 			"n": 1
 		},
 		{
 			"i": 1,
 			"label": "MarkdownContent.astro",
 			"path": "@astrojs/starlight/components/MarkdownContent.astro",
-			"x": -354.44,
-			"y": 999.27,
+			"x": 627.5,
+			"y": -160.43,
 			"n": 1
 		},
 		{
 			"i": 2,
 			"label": "MobileMenuFooter.astro",
 			"path": "@astrojs/starlight/components/MobileMenuFooter.astro",
-			"x": -512.37,
-			"y": 1035.32,
+			"x": 469.71,
+			"y": -124.41,
 			"n": 1
 		},
 		{
 			"i": 3,
 			"label": "PageSidebar.astro",
 			"path": "@astrojs/starlight/components/PageSidebar.astro",
-			"x": -639.03,
-			"y": 934.32,
+			"x": 343.16,
+			"y": -225.32,
 			"n": 1
 		},
 		{
 			"i": 4,
 			"label": "Sidebar.astro",
 			"path": "@astrojs/starlight/components/Sidebar.astro",
-			"x": -639.03,
-			"y": 772.31,
+			"x": 343.16,
+			"y": -387.18,
 			"n": 1
 		},
 		{
 			"i": 5,
 			"label": "ThemeProvider.astro",
 			"path": "@astrojs/starlight/components/ThemeProvider.astro",
-			"x": -512.37,
-			"y": 671.31,
+			"x": 469.71,
+			"y": -488.09,
 			"n": 1
 		},
 		{
 			"i": 6,
 			"label": "props",
 			"path": "@astrojs/starlight/props",
-			"x": -354.44,
-			"y": 707.36,
+			"x": 627.5,
+			"y": -452.07,
 			"n": 1
 		}
 	],
@@ -65,63 +65,63 @@
 			"i": 0,
 			"f": 0,
 			"label": "components/Footer.astro",
-			"x": -284.15,
-			"y": 853.32,
-			"c": 61,
+			"x": 697.73,
+			"y": -306.25,
+			"c": 218,
 			"loc": ""
 		},
 		{
 			"i": 1,
 			"f": 1,
 			"label": "components/MarkdownContent.astro",
-			"x": -354.44,
-			"y": 999.27,
-			"c": 4011,
+			"x": 627.5,
+			"y": -160.43,
+			"c": 4007,
 			"loc": ""
 		},
 		{
 			"i": 2,
 			"f": 2,
 			"label": "@astrojs/starlight/components/MobileMenuFooter.astro",
-			"x": -512.37,
-			"y": 1035.32,
-			"c": 1627,
+			"x": 469.71,
+			"y": -124.41,
+			"c": 1636,
 			"loc": ""
 		},
 		{
 			"i": 3,
 			"f": 3,
 			"label": "components/PageSidebar.astro",
-			"x": -639.03,
-			"y": 934.32,
-			"c": 593,
+			"x": 343.16,
+			"y": -225.32,
+			"c": 500,
 			"loc": ""
 		},
 		{
 			"i": 4,
 			"f": 4,
 			"label": "components/Sidebar.astro",
-			"x": -639.03,
-			"y": 772.31,
-			"c": 22,
+			"x": 343.16,
+			"y": -387.18,
+			"c": 17,
 			"loc": ""
 		},
 		{
 			"i": 5,
 			"f": 5,
 			"label": "components/ThemeProvider.astro",
-			"x": -512.37,
-			"y": 671.31,
-			"c": 4013,
+			"x": 469.71,
+			"y": -488.09,
+			"c": 4009,
 			"loc": ""
 		},
 		{
 			"i": 6,
 			"f": 6,
 			"label": "@astrojs/starlight/props",
-			"x": -354.44,
-			"y": 707.36,
-			"c": 61,
+			"x": 627.5,
+			"y": -452.07,
+			"c": 218,
 			"loc": ""
 		}
 	],

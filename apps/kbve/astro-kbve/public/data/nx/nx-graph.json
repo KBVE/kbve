@@ -10392,7 +10392,7 @@
 								"cwd": "apps/agones/tocloud9",
 								"parallel": false,
 								"commands": [
-									"echo 'Building the full 3kynox stack: 12 Go services (fast) plus AzerothCore + mod-playerbots + libsidecar (slow). Expect tens of minutes and every core pegged.'",
+									"echo 'Building the full KBVE ToCloud9 stack: 12 Go services (fast) plus AzerothCore + mod-playerbots + libsidecar (slow). Expect tens of minutes and every core pegged.'",
 									"docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile ac --profile setup build"
 								]
 							},

@@ -576,3 +576,120 @@ fn a_body_under_the_deck_is_not_on_it() {
         "a world with no crossing has nothing to be under"
     );
 }
+
+/// `escape_route` exists because the gradient inside a blocked region points
+/// nowhere: those cells were never reached, so `direction_at` has nothing to
+/// say. Rings outward until it finds ground the field can route from.
+#[test]
+fn a_body_walled_into_a_rock_is_given_a_bearing_out_of_it() {
+    let mut g = grid(32, 32);
+    g.block_disc([16.0, 16.0], 4.0);
+    let mut field = Field::new(g);
+    field.build([30.5, 16.5]);
+
+    assert!(
+        !field.distance_at([16.0, 16.0]).is_finite(),
+        "the middle of the rock has to be unrouted, or this proves nothing"
+    );
+    let out = field
+        .escape_route([16.0, 0.0, 16.0], &[2.0, 5.0, 8.0], 16)
+        .expect("stranded with no way out");
+    assert!(
+        (length(out) - 1.0).abs() < 1e-3,
+        "not a unit bearing: {out:?}"
+    );
+
+    // Following it has to actually leave the rock behind.
+    let landed = add([16.0, 16.0], scale(out, 5.0));
+    assert!(
+        field.distance_at(landed).is_finite(),
+        "the way out leads back into ground the field cannot route: {landed:?}"
+    );
+}
+
+/// The rings are searched nearest-first and the first one that offers anything
+/// wins, so a body is never sent across the map when open ground is adjacent.
+#[test]
+fn the_nearest_ring_that_offers_anything_is_the_one_taken() {
+    let mut g = grid(40, 40);
+    g.block_disc([20.0, 20.0], 3.0);
+    let mut field = Field::new(g);
+    field.build([38.5, 20.5]);
+
+    let near = field
+        .escape_route([20.0, 0.0, 20.0], &[4.0], 24)
+        .expect("open ground one ring out");
+    let far = field
+        .escape_route([20.0, 0.0, 20.0], &[4.0, 15.0], 24)
+        .expect("same first ring, one more behind it");
+    assert_eq!(
+        near, far,
+        "a further ring changed an answer the first ring had already given"
+    );
+}
+
+/// Samples carry the body's own height for one reason: a body under a walkway
+/// is in cells the field calls open, so the cheapest probe is usually straight
+/// along the deck it is stuck beneath. Those probes have to be refused.
+#[test]
+fn the_way_out_from_under_a_deck_does_not_run_along_it() {
+    let mut g = grid(40, 40);
+    g.block_disc([20.0, 20.0], 2.0);
+    let mut field = Field::new(g);
+    field.set_deck(Some(Deck {
+        from: [4.0, 20.0],
+        to: [36.0, 20.0],
+        half_width: 3.0,
+        surface_y: 6.0,
+        drop: 1.0,
+    }));
+    field.build([38.5, 20.5]);
+
+    let out = field
+        .escape_route([20.0, 0.0, 20.0], &[4.0, 6.0], 32)
+        .expect("under the deck with nowhere to go");
+    // The deck runs along x, so anything the field offers has to have some z to
+    // it -- a purely axial answer is a probe that stayed underneath.
+    assert!(
+        out[1].abs() > 0.3,
+        "sent along the underside of the deck instead of out from under it: {out:?}"
+    );
+    assert!(
+        !field.under_deck([20.0 + out[0] * 5.0, 0.0, 20.0 + out[1] * 5.0,]),
+        "the way out is still under the deck"
+    );
+}
+
+/// A field with no reachable ground anywhere has to say so rather than hand
+/// back a bearing into more of the same.
+#[test]
+fn nowhere_to_go_is_an_answer() {
+    let mut g = grid(16, 16);
+    g.block_disc([8.0, 8.0], 20.0);
+    let mut field = Field::new(g);
+    field.build([8.5, 8.5]);
+    assert!(
+        field
+            .escape_route([8.0, 0.0, 8.0], &[2.0, 4.0, 6.0], 12)
+            .is_none(),
+        "offered a way out of a world that is entirely wall"
+    );
+}
+
+/// Both degenerate inputs, which reach the ring loop rather than being screened
+/// out ahead of it: no rings is no answer, and no samples still divides.
+#[test]
+fn degenerate_ring_and_sample_counts_do_not_divide_by_nothing() {
+    let mut g = grid(24, 24);
+    g.block_disc([12.0, 12.0], 3.0);
+    let mut field = Field::new(g);
+    field.build([22.5, 12.5]);
+
+    assert!(
+        field.escape_route([12.0, 0.0, 12.0], &[], 8).is_none(),
+        "found a way out without being given a distance to look at"
+    );
+    // One sample is what zero is clamped to, so this must not panic and must
+    // give the single probe on each ring an honest hearing.
+    let _ = field.escape_route([12.0, 0.0, 12.0], &[5.0], 0);
+}

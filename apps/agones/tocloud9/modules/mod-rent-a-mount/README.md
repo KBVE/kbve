@@ -128,27 +128,31 @@ own `Spell.dbc` — see Verified below.
 
 ## Pricing and eligibility
 
-Both seeded offers are **50 copper for 900 seconds**. That is deliberately cheap
-because renting is a convenience, not a shortcut — the renter is someone who
-could already mount and simply has not bought one.
+Both seeded offers are **50 copper for 900 seconds**, open to everyone. No level
+requirement, no Riding skill requirement.
 
-That only holds if the gates are enforced, so they are. `min_level` and
-`min_riding_skill` on each offer default the seed rows to **level 20 and Riding
-75**, which is what the stock mounts themselves require:
+That is the point of the thing. A rental exists for the player who cannot mount
+yet — gating it behind Riding 75 would turn it into a convenience for people who
+already own a mount, which is backwards. `Player::CastSpell` is called triggered
+and skips the engine's own skill and level checks, so a level 1 with no Riding
+skill can rent and ride.
 
-| Item                           | RequiredLevel | RequiredSkill | Rank |
-| ------------------------------ | ------------- | ------------- | ---- |
-| Brown Horse Bridle (5656)      | 20            | 762 Riding    | 75   |
-| Horn of the Timber Wolf (1132) | 20            | 762 Riding    | 75   |
+The 1 gold permanent mounts are not undercut by this, because they are a
+different purchase:
 
-Without them the price would be a problem rather than a bargain: those items
-cost 10,000 copper (1 gold) to own permanently, so an ungated 50 copper rental
-is 1/200th the price of the real thing, and a level 1 with no Riding skill could
-ride one. `Player::CastSpell` is called triggered, which skips the engine's own
-skill and level checks, so nothing else would stop it.
+| Item                           | Cost    | Duration  |
+| ------------------------------ | ------- | --------- |
+| Brown Horse Bridle (5656)      | 10,000c | permanent |
+| Horn of the Timber Wolf (1132) | 10,000c | permanent |
+| Rental                         | 50c     | 15 min    |
 
-Set either column to `0` to disable that check for an offer. Both are database
-columns rather than config so they can be relaxed per offer without a rebuild.
+Buying costs 200x more and never expires. Renting is a service you keep paying
+for.
+
+`min_level` and `min_riding_skill` still exist as columns on each offer, both
+`0` on the seeded rows. They are there for tiered offers later — an epic-speed
+mount is a reasonable thing to put behind a real requirement — and being columns
+rather than config means adding that tier needs no rebuild.
 
 ## Playerbots dependency
 
@@ -181,6 +185,97 @@ the RWX client-data volume — 49,839 records, 234 fields, name at field 136:
 
 Nearby alternates, should more offers be wanted: 472 Pinto, 6648 Chestnut Mare,
 6777 Gray Ram, 6653 Dire Wolf.
+
+## The Wintergrasp Fighter Plane (27838)
+
+A pilotable flying vehicle, defined in
+`data/sql/db-world/updates/02_mod_rent_a_mount_fighter_plane.sql`. Not rentable
+yet — it is spawned with `.npc add 27838`.
+
+Blizzard shipped 27838 as scenery: `VehicleId 0`, `npcflag 0`, no movement row,
+no seats. Everything that makes it fly was authored, and every piece turned out
+to be load-bearing:
+
+| Piece                               | Value     | Why                                                                                       |
+| ----------------------------------- | --------- | ----------------------------------------------------------------------------------------- |
+| `VehicleId`                         | `8`       | Steel Gate Flying Machine. Seat 0 is the **control** seat, and the kit lacks `NO_JUMPING` |
+| `creature_template_movement.Flight` | `2`       | the enum is `None, DisableGravity, CanFly` — `1` only hovers                              |
+| `Ground`                            | `1`       | `0` is `None`, which stops it moving on the ground at all                                 |
+| `npc_spellclick_spells`             | `46598`   | how a player boards it                                                                    |
+| `creature_template_spell`           | 5 spells  | the action bar, matched to kit 8's seat                                                   |
+| `smart_scripts` 29 + 27             | `SET_FLY` | flight is granted at runtime, never by template data                                      |
+
+### Action bar
+
+| Slot | Spell               | Effect                          | Works on players |
+| ---- | ------------------- | ------------------------------- | ---------------- |
+| 0    | 43799 Machine Gun   | channeled, tracks target        | no               |
+| 1    | 43769 Rockets       | damage                          | no               |
+| 2    | 56896 Rhino Strike  | 2374 direct damage, no cooldown | yes              |
+| 3    | 54170 Soar          | flight speed +350%, 8s          | self             |
+| 4    | 57092 Blazing Speed | flight speed +499%, 30s         | self             |
+| 5    | 44009 Boosters      | flight speed +99%, 15s          | self             |
+
+Picking these is harder than it looks. Four separate things silently disqualify
+a spell, and each one presents as "nothing happens":
+
+**`SPELL_ATTR5_NOT_ON_PLAYER`.** `SpellInfo::CheckTarget` returns
+`SPELL_FAILED_TARGET_IS_PLAYER` — "Cannot target players". Both quest weapons in
+slots 0 and 1 carry it, so they are PvE only. Nothing in the database changes
+that; it would take a module clearing the attribute at spell load.
+
+**`conditions` target locks.** `SourceTypeOrReferenceId` 13 and 17 pin a spell to
+specific creature entries. The original slot 0 was 43770 Grappling Hook, locked
+to creature 24439 "Sack of Relics", so it answered "Invalid target" on
+everything else forever. 49840 Shock Lance is locked to four Oculus creatures
+the same way.
+
+**Power cost.** The plane has no energy pool, so anything costing energy can
+never fire. 57665 Frostbolt and 56091 Flame Spike are both 10 energy.
+
+**`SPELL_EFFECT_TRIGGER_MISSILE` (32).** The launcher carries no damage; a
+triggered spell does. 66518 Airship Cannon triggers 66655, and its payload
+selects targets with implicit target 87, `TARGET_UNIT_DEST_AREA_ENEMY`, relative
+to the caster. It reads as a purely visual effect when nothing qualifies.
+
+Direct `SPELL_EFFECT_SCHOOL_DAMAGE` with implicit target 6
+(`TARGET_UNIT_TARGET_ENEMY`) avoids all four. That is how slot 2 was chosen.
+
+Also worth knowing: 44009 Boosters is aura 210,
+`MOD_FLIGHT_SPEED_NOT_STACKING`, while Soar and Blazing Speed are aura 206,
+`MOD_INCREASE_FLIGHT_SPEED`. Different types, so Boosters stacks with either.
+
+68505 Thrust passes every test above and deals 7999 with a one second cooldown,
+which is roughly eight times slot 2. Deliberately not used.
+
+### Two traps worth remembering
+
+**Seat order decides everything.** Kit 129 (Vic's Flying Machine) has a far
+better pitch range, but its control seat is seat _1_ — spellclick puts a player
+in the first free seat, so they land in seat 0 as a passenger, with no control
+and no action bar. Read `VehicleSeat.dbc` flag `0x800` before picking a kit.
+
+**Template data never grants flight.** `Flight = 2` alone does nothing for a
+piloted vehicle. `SMART_ACTION_SET_FLY` calls `Unit::SetCanFly`, which branches:
+
+```cpp
+if (isClientControlled)  // SMSG_MOVE_SET_CAN_FLY -> the pilot, enables ascend
+else                     // SMSG_SPLINE_MOVE_SET_FLYING -> AI flight only
+```
+
+Firing it on `SMART_EVENT_CHARMED` (29) alone took the wrong branch: gravity off,
+so it hovered and moved but could not climb — altitude only came from driving up
+slopes. `SMART_EVENT_PASSENGER_BOARDED` (27) fires after control is established
+and takes the client branch. Both rows are kept.
+
+Kits with aircraft-like pitch are all either fixed gun turrets or carry
+`NO_JUMPING`, which disables ascend. Kit 8 is the compromise: it climbs.
+
+### This one modifies stock data
+
+Unlike the rest of this module, 27838 is a creature AzerothCore ships, so these
+are `UPDATE`s rather than inserts into a reserved range. `extras/uninstall.sql`
+restores it to scenery.
 
 ## Uninstall
 

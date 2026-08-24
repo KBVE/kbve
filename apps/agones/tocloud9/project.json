@@ -84,7 +84,7 @@
 				"cwd": "apps/agones/tocloud9",
 				"parallel": false,
 				"commands": [
-					"echo 'Building the full 3kynox stack: 12 Go services (fast) plus AzerothCore + mod-playerbots + libsidecar (slow). Expect tens of minutes and every core pegged.'",
+					"echo 'Building the full KBVE ToCloud9 stack: 12 Go services (fast) plus AzerothCore + mod-playerbots + libsidecar (slow). Expect tens of minutes and every core pegged.'",
 					"docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile ac --profile setup build"
 				]
 			}
@@ -131,7 +131,7 @@
 				"parallel": false,
 				"commands": [
 					"echo 'Waiting for a worldserver to register with servers-registry (<=600s; AzerothCore map loading is slow)...' && for i in $(seq 1 600); do if [ -n \"$(docker compose --profile ac exec -T redis redis-cli --raw KEYS 'ws:*' 2>/dev/null | tr -d '[:space:]')\" ]; then echo \"worldserver registered after ${i}s\"; break; fi; if [ $(( i % 30 )) -eq 0 ]; then echo \"--- [${i}s] still waiting ---\"; docker compose --profile ac logs --tail=5 gameserver-ac 2>&1 | sed 's/^/  | /'; fi; if [ $i -eq 600 ]; then echo 'FAIL: no worldserver registered in 600s'; docker compose --profile ac logs --tail=80 gameserver-ac servers-registry 2>&1 | sed 's/^/  | /'; exit 1; fi; sleep 1; done",
-					"npx vitest run"
+					"npx vitest run --config vitest.e2e.config.ts"
 				]
 			}
 		},

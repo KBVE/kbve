@@ -1,14 +1,14 @@
 {
 	"dir": "astro:transitions/client",
-	"center": [1425.73, -2522.32],
-	"r": 74.18,
+	"center": [2419.6, 1757.04],
+	"r": 74.16,
 	"files": [
 		{
 			"i": 0,
 			"label": "client",
 			"path": "astro:transitions/client",
-			"x": 1425.73,
-			"y": -2522.32,
+			"x": 2419.6,
+			"y": 1757.04,
 			"n": 1
 		}
 	],
@@ -17,9 +17,9 @@
 			"i": 0,
 			"f": 0,
 			"label": "astro:transitions/client",
-			"x": 1425.73,
-			"y": -2522.32,
-			"c": 13006,
+			"x": 2419.6,
+			"y": 1757.04,
+			"c": 12987,
 			"loc": ""
 		}
 	],

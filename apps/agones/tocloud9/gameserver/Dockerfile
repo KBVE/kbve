@@ -1,8 +1,9 @@
 # AzerothCore worldserver with ToCloud9 clustering AND mod-playerbots.
 #
-# No published image carries both, so we build it. Sources come from 3kynox's
-# three-repo integration rather than the parent projects, because simply putting
-# the module and the cluster core in one tree does not produce working bots:
+# No published image carries both, so we build it. Sources come from KBVE forks
+# of 3kynox's three-repo integration rather than the parent projects, because
+# simply putting the module and the cluster core in one tree does not produce
+# working bots:
 # upstream mod-playerbots targets a standalone worldserver by design. Making
 # bots cluster-aware (per-shard bot pool, cross-shard handoff, group invite
 # accept, follow-when-grouped) is ~81 commits of module work plus matching core
@@ -14,9 +15,10 @@
 # (PR #204). That pairing is load-bearing -- the mmaps format and the core that
 # reads it must come from the same set, so do not bump one ref without the other.
 #
-# libsidecar is built from 3kynox's ToCloud9 fork, not walkline's, because their
-# integration changes api/proto and shared/events. That is a wire-protocol
-# change, so the Go microservices must be built from the same fork -- the
+# libsidecar is built from our ToCloud9 fork, not walkline's, because the
+# integration it carries changes api/proto and shared/events. That is a
+# wire-protocol change, so the Go microservices must be built from the same
+# fork and the same SHA -- the
 # published ghcr.io/walkline/* images will not interoperate with this worldserver.
 #
 # Separately, ToCloud9's own azerothcore Dockerfile still COPYs a patches/
@@ -24,17 +26,25 @@
 # gameserver-ac:master on ghcr is frozen at 2026-04-29 while every other
 # ToCloud9 image is from 2026-08-15.
 
-# All three pinned to the 20260728 snapshot of 3kynox's integration, which is a
-# strict superset of the nav5 set named in their README (behind: 0 on all three).
-# Pinned by SHA rather than branch: these are personal integration branches that
-# get rebased and deleted as work is upstreamed, so a branch ref would silently
-# change what we build -- or vanish.
-ARG TOCLOUD9_REPO=https://github.com/3kynox/ToCloud9.git
-ARG TOCLOUD9_REF=f878465721200739eaae27633f70f378ac280411
-ARG AC_REPO=https://github.com/3kynox/azerothcore-wotlk.git
-ARG AC_REF=35a34b6aaf1cd662c8ac164532a0d8ff1cbbf0cb
-ARG PLAYERBOTS_REPO=https://github.com/3kynox/mod-playerbots.git
-ARG PLAYERBOTS_REF=d9c80b3b27fcf09919c0e31c886bbaa70ef8193c
+# All three now build from KBVE forks. Each descends from the 20260728 snapshot
+# of 3kynox's integration -- f878465 / 35a34b6 / d9c80b3 are ancestors of the
+# refs below -- and carries our patches on top: cluster group anchors and the
+# bot-partition exemption in the module, the LFG SendUpdate exception and the
+# TC9GroupInvite plumbing in the core and libsidecar, and the matchmaking queue
+# ticker in the Go services.
+#
+# Forking is also what makes the pin trustworthy. 3kynox's are personal
+# integration branches that get rebased and deleted as work is upstreamed, so
+# the SHAs could vanish from under us.
+#
+# Still pinned by SHA, not branch: these three are a matched set (mmaps format,
+# wire protocol, group API) and must move together.
+ARG TOCLOUD9_REPO=https://github.com/KBVE/ToCloud9.git
+ARG TOCLOUD9_REF=b594332501af67d7504d35ded9ef736bd78645a1
+ARG AC_REPO=https://github.com/KBVE/azerothcore-wotlk.git
+ARG AC_REF=907c29b947cf868af747a0dd62bccbc66dd73b1b
+ARG PLAYERBOTS_REPO=https://github.com/KBVE/mod-playerbots.git
+ARG PLAYERBOTS_REF=4e7d3b9494f7778df5d757aae087a0749db07e57
 
 FROM ubuntu:22.04 AS source
 
@@ -242,6 +252,21 @@ COPY --from=build-core /repo/bin/etc/worldserver.conf.dist /repo/bin/etc/worldse
 # 2699 lines of tuning, so it ships as a file rather than env overrides. Mount
 # over /repo/bin/etc/modules/playerbots.conf to change it without a rebuild.
 COPY --from=build-core /repo/modules/mod-playerbots/conf/playerbots.conf.dist /repo/bin/etc/modules/playerbots.conf
+
+# AiPlayerbot.ClusterBotMaps is read by the code
+# (PlayerbotAIConfig.cpp: GetOption("AiPlayerbot.ClusterBotMaps", "")) but is
+# absent from playerbots.conf.dist. OverrideWithEnvVariablesIfAny() only
+# rewrites keys already present in a loaded conf, so without this line
+# AC_AI_PLAYERBOT_CLUSTER_BOT_MAPS silently does nothing and the value stays
+# "" -- which makes IsMapServedByClusterBots() return true for EVERY map.
+#
+# That matters once the fleet is partitioned. A random bot that wanders onto a
+# map this shard does not own is handed off over NATS to the owner; with the
+# permissive default, a bot stepping into a dungeon is handed to whichever
+# shard serves instances, which has no bot pool for it. Declaring the key
+# empty here changes nothing on its own and lets each Fleet set the real value.
+RUN printf '\n# Added by the KBVE image: see Dockerfile for why this key must exist.\nAiPlayerbot.ClusterBotMaps =\n' \
+      >> /repo/bin/etc/modules/playerbots.conf
 
 # worldserver -- not dbimport -- creates and migrates acore_playerbots, and it
 # reads the SQL from this path at runtime, so the module's data/sql has to be

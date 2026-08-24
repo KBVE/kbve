@@ -98,29 +98,156 @@ impl RoadNetwork {
     }
 }
 
-impl QTerrain {
-    pub(super) fn build_road(&mut self) {
-        let Some(hgen) = self.hgen.take() else {
-            return;
-        };
-        let origin = self.window_origin();
-        let mut road = RoadNetwork::build(
-            &hgen,
-            origin,
-            self.extent,
-            self.water_level,
-            self.road_width,
+/// The carriageway as data: where it runs, and the mask that paints it.
+///
+/// Everything here is a function of the generator and the window, so a window
+/// shift works it out on the bake thread and leaves the main thread the nodes
+/// and the uploads.
+pub(super) struct RoadBake {
+    pub road: RoadNetwork,
+    pub mask: Vec<u8>,
+    pub crossing: bool,
+}
+
+/// How far from the crossing the deck and its approaches carry the road.
+///
+/// Read off the shared plan rather than measured off the built structure, so it
+/// is known before anything is built. `build_bridge` lays its geometry out from
+/// the same numbers and arrives at the same answer.
+fn bridge_reach(hgen: &HeightGen, extent: f32, water_level: f32, road_width: f32) -> f32 {
+    crate::worldgen::BridgePlan::new(hgen, extent, water_level, road_width).deck_half + 0.6
+}
+
+pub(super) fn bake_road(
+    hgen: &HeightGen,
+    origin: Vector2,
+    extent: f32,
+    water_level: f32,
+    road_width: f32,
+) -> RoadBake {
+    let mut road = RoadNetwork::build(hgen, origin, extent, water_level, road_width);
+    // Only where it actually is. A window that does not reach the crossing
+    // gets no bridge, rather than one built under the player.
+    let crossing = road.crossing_in(origin, extent);
+    let reach = if crossing {
+        bridge_reach(hgen, extent, water_level, road_width)
+    } else {
+        road.half_span + 1.0
+    };
+    road.set_bridge_reach(reach);
+
+    let mask = paint_road_mask(&road, hgen, origin, extent, water_level);
+    RoadBake {
+        road,
+        mask,
+        crossing,
+    }
+}
+
+fn paint_road_mask(
+    road: &RoadNetwork,
+    hgen: &HeightGen,
+    origin: Vector2,
+    extent: f32,
+    water_level: f32,
+) -> Vec<u8> {
+    let res = ROAD_RES;
+    let step = extent * 2.0 / (res - 1) as f32;
+    let mut mask = vec![0u8; (res * res) as usize];
+    let paint_reach = road.width * 1.9;
+
+    // Painted by walking the carriageway rather than by asking every texel how
+    // far the carriageway is. The road covers a thin band of a wide window, so
+    // the second way spends nearly all of its time proving that ground nowhere
+    // near a road is nowhere near a road -- and it costs the whole window times
+    // every segment, which is what made a window shift a visible hitch.
+    //
+    // Coverage falls off with distance, so the most any segment gives a texel is
+    // what the nearest segment gives it. Taking the greatest is the same answer
+    // the minimum distance gave.
+    let t_mask = std::time::Instant::now();
+    let lo = Vector2::new(origin.x - extent, origin.y - extent);
+    for (a, b) in road.segments() {
+        let min_x = a.x.min(b.x) - paint_reach;
+        let max_x = a.x.max(b.x) + paint_reach;
+        let min_z = a.y.min(b.y) - paint_reach;
+        let max_z = a.y.max(b.y) + paint_reach;
+        let ix0 = (((min_x - lo.x) / step).floor() as i32).clamp(0, res - 1);
+        let ix1 = (((max_x - lo.x) / step).ceil() as i32).clamp(0, res - 1);
+        let iz0 = (((min_z - lo.y) / step).floor() as i32).clamp(0, res - 1);
+        let iz1 = (((max_z - lo.y) / step).ceil() as i32).clamp(0, res - 1);
+
+        for iy in iz0..=iz1 {
+            let z = lo.y + iy as f32 * step;
+            for ix in ix0..=ix1 {
+                let x = lo.x + ix as f32 * step;
+                let p = Vector2::new(x, z);
+                let d = crate::worldgen::seg_distance(flat(p), flat(a), flat(b));
+                if d > paint_reach {
+                    continue;
+                }
+                let slot = (iy * res + ix) as usize;
+                let t = 1.0 - (d / paint_reach).clamp(0.0, 1.0);
+                let v = ((t * t * (3.0 - 2.0 * t)) * 255.0) as u8;
+                if v <= mask[slot] {
+                    continue;
+                }
+                if road.on_bridge(p) || hgen.height(x, z) < water_level + 0.35 {
+                    continue;
+                }
+                mask[slot] = v;
+            }
+        }
+    }
+
+    if std::env::var("Q_SHIFT_PROFILE").is_ok() {
+        godot_print!(
+            "[q]   road mask {:.1}ms",
+            (std::time::Instant::now() - t_mask).as_secs_f32() * 1000.0
         );
-        // Only where it actually is. A window that does not reach the crossing
-        // gets no bridge, rather than one built under the player.
+    }
+    mask
+}
+
+/// Clearance the carriageway itself asks for, stamped straight into a grid.
+///
+/// Rides with the mask on the bake thread: both walk the same segments and both
+/// only need the generator.
+pub(super) fn stamp_road_clearance(
+    clearance: &mut [u8],
+    cres: i32,
+    origin: Vector2,
+    extent: f32,
+    road: &RoadNetwork,
+    hgen: &HeightGen,
+    water_level: f32,
+) {
+    let hard = road.width * 0.5 + 1.3;
+    for (a, b) in road.segments() {
+        let n = ((b - a).length() / 1.5).ceil().max(1.0) as i32;
+        for i in 0..n {
+            let p = a + (b - a) * (i as f32 / n as f32);
+            if hgen.height(p.x, p.y) < water_level + 0.35 {
+                continue;
+            }
+            super::stamp_band(clearance, cres, origin, extent, p.x, p.y, hard, hard + 1.8);
+        }
+    }
+}
+
+impl QTerrain {
+    /// Puts a baked carriageway in place: the paint, the bridge and the plan.
+    pub(super) fn install_road(&mut self, baked: RoadBake, hgen: HeightGen) {
+        let RoadBake {
+            road,
+            mask,
+            crossing,
+        } = baked;
+        let res = ROAD_RES;
         let t_bridge = std::time::Instant::now();
-        let crossing = road.crossing_in(origin, self.extent);
-        let reach = if crossing {
-            self.build_bridge(&hgen, &road)
-        } else {
-            road.half_span + 1.0
-        };
-        road.set_bridge_reach(reach);
+        if crossing {
+            self.build_bridge(&hgen, &road);
+        }
         if std::env::var("Q_SHIFT_PROFILE").is_ok() {
             godot_print!(
                 "[q]   bridge {:.1}ms ({})",
@@ -128,63 +255,6 @@ impl QTerrain {
                 if crossing { "built" } else { "no crossing" }
             );
         }
-
-        let res = ROAD_RES;
-        let step = self.extent * 2.0 / (res - 1) as f32;
-        let mut mask = vec![0u8; (res * res) as usize];
-        let paint_reach = road.width * 1.9;
-
-        // Painted by walking the carriageway rather than by asking every texel how
-        // far the carriageway is. The road covers a thin band of a wide window, so
-        // the second way spends nearly all of its time proving that ground nowhere
-        // near a road is nowhere near a road -- and it costs the whole window times
-        // every segment, which is what made a window shift a visible hitch.
-        //
-        // Coverage falls off with distance, so the most any segment gives a texel is
-        // what the nearest segment gives it. Taking the greatest is the same answer
-        // the minimum distance gave.
-        let t_mask = std::time::Instant::now();
-        let lo = Vector2::new(origin.x - self.extent, origin.y - self.extent);
-        for (a, b) in road.segments() {
-            let min_x = a.x.min(b.x) - paint_reach;
-            let max_x = a.x.max(b.x) + paint_reach;
-            let min_z = a.y.min(b.y) - paint_reach;
-            let max_z = a.y.max(b.y) + paint_reach;
-            let ix0 = (((min_x - lo.x) / step).floor() as i32).clamp(0, res - 1);
-            let ix1 = (((max_x - lo.x) / step).ceil() as i32).clamp(0, res - 1);
-            let iz0 = (((min_z - lo.y) / step).floor() as i32).clamp(0, res - 1);
-            let iz1 = (((max_z - lo.y) / step).ceil() as i32).clamp(0, res - 1);
-
-            for iy in iz0..=iz1 {
-                let z = lo.y + iy as f32 * step;
-                for ix in ix0..=ix1 {
-                    let x = lo.x + ix as f32 * step;
-                    let p = Vector2::new(x, z);
-                    let d = crate::worldgen::seg_distance(flat(p), flat(a), flat(b));
-                    if d > paint_reach {
-                        continue;
-                    }
-                    let slot = (iy * res + ix) as usize;
-                    let t = 1.0 - (d / paint_reach).clamp(0.0, 1.0);
-                    let v = ((t * t * (3.0 - 2.0 * t)) * 255.0) as u8;
-                    if v <= mask[slot] {
-                        continue;
-                    }
-                    if road.on_bridge(p) || hgen.height(x, z) < self.water_level + 0.35 {
-                        continue;
-                    }
-                    mask[slot] = v;
-                }
-            }
-        }
-
-        if std::env::var("Q_SHIFT_PROFILE").is_ok() {
-            godot_print!(
-                "[q]   road mask {:.1}ms",
-                (std::time::Instant::now() - t_mask).as_secs_f32() * 1000.0
-            );
-        }
-        let t_stamp = std::time::Instant::now();
         let data = PackedByteArray::from(mask.as_slice());
         let img =
             Image::create_from_data(res, res, false, ImageFormat::R8, &data).map(|mut img| {
@@ -205,27 +275,6 @@ impl QTerrain {
         }
         self.road_res = res;
         self.road_mask = mask;
-
-        let stamps: Vec<Vector2> = road
-            .segments()
-            .flat_map(|(a, b)| {
-                let n = ((b - a).length() / 1.5).ceil().max(1.0) as i32;
-                (0..n).map(move |i| a + (b - a) * (i as f32 / n as f32))
-            })
-            .filter(|p| hgen.height(p.x, p.y) >= self.water_level + 0.35)
-            .collect();
-        let hard = road.width * 0.5 + 1.3;
-        for p in stamps {
-            self.stamp_clearance_band(p.x, p.y, hard, hard + 1.8);
-        }
-        self.flush_clearance();
-        if std::env::var("Q_SHIFT_PROFILE").is_ok() {
-            godot_print!(
-                "[q]   road clearance {:.1}ms",
-                (std::time::Instant::now() - t_stamp).as_secs_f32() * 1000.0
-            );
-        }
-
         self.hgen = Some(hgen);
         self.road = Some(road);
     }
