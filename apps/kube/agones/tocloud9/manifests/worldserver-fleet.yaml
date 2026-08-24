@@ -93,8 +93,11 @@ spec:
                 # A cold worldserver spends a long time loading maps before it
                 # binds the world socket — over ten minutes was observed
                 # locally, and Longhorn RWX reads will not make that faster.
-                # Health checking must not start until well past that.
-                initialDelaySeconds: 1800
+                # Health checking must not start until well past that, and
+                # raising maxRandomBots adds a one-time character generation on
+                # top of the preload -- see the AC_AI_PLAYERBOT_MAX_RANDOM_BOTS
+                # comment below for the measured numbers.
+                initialDelaySeconds: 3600
                 periodSeconds: 15
                 failureThreshold: 5
             sdkServer:
@@ -327,19 +330,30 @@ spec:
                               # collapse costs a full grid preload to recover,
                               # which is why health initialDelaySeconds is 1800.
                               #
-                              # Startup is longer again. With RandomBotAccountCount
-                              # 0 the factory sizes its own pool: RNDbot accounts
-                              # are ceil(maxRandomBots / charsPerAccount) and
-                              # charsPerAccount is 10 here, so this takes the pool
-                              # from 100 accounts to 150 and generates roughly 500
-                              # new characters on first boot. The 250-character
-                              # boot at 500 bots took about 10 minutes to fully
-                              # seat, well inside the 1800s health delay and the
-                              # shim's 2400s ready timeout.
+                              # Startup cost is a ONE-TIME character generation,
+                              # not a per-boot cost. With RandomBotAccountCount 0
+                              # the factory sizes its own pool: RNDbot accounts are
+                              # ceil(maxRandomBots / charsPerAccount), charsPerAccount
+                              # is 10, so 2000 asks for 200 RNDbot accounts and
+                              # generates roughly 1000 new characters the first time
+                              # this value is raised.
+                              #
+                              # Measured in prod at 1000 once the characters existed:
+                              # pod start 06:27:49, worldserver ready 06:29:08, all
+                              # 1000 bots seated by 06:29:31 -- 22s of seating on top
+                              # of a 79s grid preload. Steady-state boot is nowhere
+                              # near the budget.
+                              #
+                              # The generation boot is what needs the room. The
+                              # 250-character boot at 500 bots took about 10 minutes,
+                              # so ~1000 characters lands near 40 minutes, which is
+                              # exactly the old 2400s ready timeout. Both the health
+                              # delay and the shim timeout are raised below so that
+                              # single boot cannot be mistaken for a hung server.
                               - name: AC_AI_PLAYERBOT_MIN_RANDOM_BOTS
-                                value: '1000'
+                                value: '2000'
                               - name: AC_AI_PLAYERBOT_MAX_RANDOM_BOTS
-                                value: '1000'
+                                value: '2000'
                               # 0 means automatic, which is correct and was
                               # not before. This pool is NOT sized by this
                               # setting: RandomPlayerbotMgr allocates
@@ -495,9 +509,12 @@ spec:
                               # GameServer in Scheduled and never replaced it -- a dead server that
                               # is never recycled, with no crashloop and nothing to alert on.
                               # Past this the shim exits non-zero so Agones can replace the pod.
-                              # 2400s because a cold worldserver preloads every non-instanced map grid; over ten minutes observed locally, and health initialDelaySeconds is already 1800.
+                              # 5400s: a cold worldserver preloads every non-instanced map grid (over ten
+                              # minutes observed locally) and the boot that first raises maxRandomBots also
+                              # generates the new characters, which at 2000 bots is roughly 40 minutes on its
+                              # own. 2400s left no margin for that boot; health initialDelaySeconds is 3600.
                               - name: AGONES_SHIM_READY_TIMEOUT_SECS
-                                value: '2400'
+                                value: '5400'
                               - name: AGONES_SHIM_READY_HTTP
                                 value: 'http://127.0.0.1:8901/healthcheck'
                               - name: AGONES_SHIM_LIVE_TCP
