@@ -1,184 +1,180 @@
 {
-  "generated_at": "2026-08-24T02:22:51Z",
+  "generated_at": "2026-08-25T02:18:33Z",
   "window": {
     "days": 7,
-    "since": "2026-08-17T02:22:51Z"
+    "since": "2026-08-18T02:18:33Z"
   },
   "commits": {
-    "total": 375,
-    "authors": 4,
+    "total": 391,
+    "authors": 3,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 254
+        "commits": 240
       },
       {
         "author": "github-actions[bot]",
-        "commits": 117
-      },
-      {
-        "author": "dependabot[bot]",
-        "commits": 3
+        "commits": 143
       },
       {
         "author": "Fudster",
-        "commits": 1
+        "commits": 8
       }
     ],
     "recent": [
       {
-        "sha": "e978a50",
+        "sha": "e851e22",
         "author": "h0lybyte",
-        "message": "Merge pull request #16291 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/e978a50cfc6a37a517a3bc4a5ff1b96d5927cc4f",
-        "date": "2026-08-23T00:11:51Z"
+        "message": "Merge pull request #16380 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/e851e2226d237069d5f9129765e7d5b618484a07",
+        "date": "2026-08-25T01:34:19Z"
       },
       {
-        "sha": "5807c9d",
+        "sha": "a99c583",
         "author": "github-actions[bot]",
-        "message": "chore(tocloud9-db-import): post-publish sync to v0.0.4 (#16293)",
-        "url": "https://github.com/KBVE/kbve/commit/5807c9dd364f70c76bb8a97b35d2430501945f15",
-        "date": "2026-08-23T00:00:07Z"
+        "message": "fix(tocloud9): size the bot account pool for the whole fleet, not one shard (#16379)",
+        "url": "https://github.com/KBVE/kbve/commit/a99c5836743b611e6766fabf2fbef8ddaf8b1031",
+        "date": "2026-08-25T01:07:29Z"
       },
       {
-        "sha": "f5faf20",
+        "sha": "a87380f",
+        "author": "h0lybyte",
+        "message": "Merge pull request #16378 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/a87380f9efa4a033d9642fe2ab6571e1609abf3a",
+        "date": "2026-08-24T23:17:09Z"
+      },
+      {
+        "sha": "92645e1",
+        "author": "h0lybyte",
+        "message": "feat(tocloud9): partition prod across two worldserver shards (#16377)",
+        "url": "https://github.com/KBVE/kbve/commit/92645e10688c091de4aded48f7d93fa9a450aeb6",
+        "date": "2026-08-24T22:58:50Z"
+      },
+      {
+        "sha": "2cbfebe",
+        "author": "h0lybyte",
+        "message": "Merge pull request #16373 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/2cbfebefdf3c9dc717cf41e2b7949ff71c4bbddd",
+        "date": "2026-08-24T21:51:57Z"
+      },
+      {
+        "sha": "f4339ac",
         "author": "github-actions[bot]",
-        "message": "chore(tocloud9-gameserver): post-publish sync to v0.0.4 (#16292)",
-        "url": "https://github.com/KBVE/kbve/commit/f5faf20cdeaec15928dac7588bf55d72a3b7dcc4",
-        "date": "2026-08-22T23:59:53Z"
+        "message": "feat(tocloud9): raise the prod bot population to 2000 (#16360)",
+        "url": "https://github.com/KBVE/kbve/commit/f4339aceac9ae2d7eeeb550340c83de61c8a6ff5",
+        "date": "2026-08-24T20:51:44Z"
       },
       {
-        "sha": "4d7d9da",
+        "sha": "b8050c6",
         "author": "h0lybyte",
-        "message": "feat(c9): adding group module.",
-        "url": "https://github.com/KBVE/kbve/commit/4d7d9da9e47db815384645a1569b01254c0baf47",
-        "date": "2026-08-22T23:50:01Z"
+        "message": "fix(kilobase): point CNPG metrics at the postgres database (#16363)",
+        "url": "https://github.com/KBVE/kbve/commit/b8050c6e3ee7c641ddf3d308ee2ed52884ed517f",
+        "date": "2026-08-24T20:51:02Z"
       },
       {
-        "sha": "1242841",
-        "author": "h0lybyte",
-        "message": "Merge pull request #16286 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/1242841ec28369fc034631d64c527b2827315bab",
-        "date": "2026-08-22T23:34:01Z"
-      },
-      {
-        "sha": "a49cf41",
+        "sha": "27d8113",
         "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#16289)",
-        "url": "https://github.com/KBVE/kbve/commit/a49cf41c9342188d5c05e95e0808d6b820d70f0d",
-        "date": "2026-08-22T23:32:17Z"
+        "message": "chore(chuck): post-publish sync to v0.3.49 (#16372)",
+        "url": "https://github.com/KBVE/kbve/commit/27d811316f75c42b058d247974e5955f7bf1f8cd",
+        "date": "2026-08-24T12:21:38Z"
       },
       {
-        "sha": "70d4df7",
-        "author": "h0lybyte",
-        "message": "feat(tocloud9): wire mod-rent-a-mount into the gameserver build (#16288)",
-        "url": "https://github.com/KBVE/kbve/commit/70d4df7728861ac371cced7c11a1eeb25577b7eb",
-        "date": "2026-08-22T23:29:57Z"
-      },
-      {
-        "sha": "4e08a06",
-        "author": "h0lybyte",
-        "message": "feat(tocloud9): raise the bot population to 1000 (#16287)",
-        "url": "https://github.com/KBVE/kbve/commit/4e08a06a83f5c6f5b8c54108372bd73c1265be03",
-        "date": "2026-08-22T23:29:11Z"
-      },
-      {
-        "sha": "fabffd3",
+        "sha": "3ad0f75",
         "author": "github-actions[bot]",
-        "message": "chore(metrics): post-publish sync to v0.1.6 (#16285)",
-        "url": "https://github.com/KBVE/kbve/commit/fabffd37b4afafcb72b021a27b781856eb2aa638",
-        "date": "2026-08-22T23:07:39Z"
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#16371)",
+        "url": "https://github.com/KBVE/kbve/commit/3ad0f75c3276f71e41b3021d9889dac6cf47c0fb",
+        "date": "2026-08-24T12:12:03Z"
       },
       {
-        "sha": "a98fb03",
-        "author": "h0lybyte",
-        "message": "Merge pull request #16284 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/a98fb039cde1321204e62d3482861604b6869a1b",
-        "date": "2026-08-22T22:54:23Z"
+        "sha": "5d414bf",
+        "author": "Fudster",
+        "message": "Merge pull request #16370 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/5d414bf0717d8f84a6b7f7f738792a2a9a8a42e5",
+        "date": "2026-08-24T12:10:23Z"
       },
       {
-        "sha": "07adf1c",
-        "author": "h0lybyte",
-        "message": "fix(docker): build cargo-chef images against the real workspace root (#16282)",
-        "url": "https://github.com/KBVE/kbve/commit/07adf1c2bf1c4792b36bec33a5f5f52299c5d4dd",
-        "date": "2026-08-22T22:53:57Z"
+        "sha": "77251f8",
+        "author": "github-actions[bot]",
+        "message": "chore(chuck): bump beta 0.3.48 -> 0.3.49 (#16369)",
+        "url": "https://github.com/KBVE/kbve/commit/77251f8605b62b4f57d16926557c547ffdad94e6",
+        "date": "2026-08-24T12:09:34Z"
       },
       {
-        "sha": "b86b153",
-        "author": "h0lybyte",
-        "message": "chore(q): break the window-shift profile into the stages worth moving (#16281)",
-        "url": "https://github.com/KBVE/kbve/commit/b86b1539ecaa7df553396607bc5d9c9a5ae74e48",
-        "date": "2026-08-22T22:53:39Z"
+        "sha": "4427b51",
+        "author": "Fudster",
+        "message": "Merge pull request #16366 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/4427b51db0f77692e8297fc604a1c8aa588bb0fa",
+        "date": "2026-08-24T11:52:33Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 351,
+    "merged": 340,
     "recent": [
       {
-        "number": 16318,
-        "title": "Atomic: sitemap lastmod full history",
+        "number": 16380,
+        "title": "Release: 1 fix \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16318"
+        "url": "https://github.com/KBVE/kbve/pull/16380"
       },
       {
-        "number": 16324,
-        "title": "fix(tocloud9): point matchmaking at the group service and pin shard b's bot target",
+        "number": 16379,
+        "title": "Atomic: tc9 bot pool",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16379"
+      },
+      {
+        "number": 16378,
+        "title": "Release: 1 feature \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16378"
+      },
+      {
+        "number": 16377,
+        "title": "feat(tocloud9): partition prod across two worldserver shards",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16324"
+        "url": "https://github.com/KBVE/kbve/pull/16377"
       },
       {
-        "number": 16323,
+        "number": 16373,
+        "title": "Release: 1 feature, 1 fix, 2 chores \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16373"
+      },
+      {
+        "number": 16360,
+        "title": "Atomic: tc9 bots 2000",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16360"
+      },
+      {
+        "number": 16363,
+        "title": "fix(kilobase): point CNPG metrics at the postgres database",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16363"
+      },
+      {
+        "number": 16372,
+        "title": "Atomic: chuck v0.3.49 post-publish sync",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16372"
+      },
+      {
+        "number": 16371,
         "title": "chore(ci): sync ci-dispatch-manifest",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16323"
+        "url": "https://github.com/KBVE/kbve/pull/16371"
       },
       {
-        "number": 16322,
-        "title": "Atomic: chuck beta 0346",
+        "number": 16370,
+        "title": "Release: 1 chore \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16322"
-      },
-      {
-        "number": 16321,
-        "title": "fix(tocloud9): replace the fighter plane action bar with a working loadout",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16321"
-      },
-      {
-        "number": 16320,
-        "title": "revert(tocloud9): drop mod-old-world-flying",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16320"
-      },
-      {
-        "number": 16319,
-        "title": "feat(tocloud9): make the Wintergrasp Fighter Plane pilotable",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16319"
-      },
-      {
-        "number": 16317,
-        "title": "feat(tocloud9): form dungeon-finder groups through the cluster group service",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16317"
-      },
-      {
-        "number": 16316,
-        "title": "feat(tocloud9): add mod-old-world-flying",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16316"
-      },
-      {
-        "number": 16315,
-        "title": "chore(ci): sync ci-dispatch-manifest",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16315"
+        "url": "https://github.com/KBVE/kbve/pull/16370"
       }
     ]
   },
   "issues": {
-    "opened": 357,
-    "closed": 353
+    "opened": 346,
+    "closed": 342
   }
 }
