@@ -367,18 +367,20 @@ spec:
                               # exactly the old 2400s ready timeout. Both the health
                               # delay and the shim timeout are raised below so that
                               # single boot cannot be mistaken for a hung server.
-                              # Below what this shard can seat, on purpose. A shard
-                              # only reaches its target from characters saved on maps it
-                              # OWNS, and Kalimdor + Northrend hold fewer than Eastern
-                              # Kingdoms + Outland: 1940/2000 measured here against
-                              # 2000/2000 on b. The shortfall is not cosmetic -- bots
-                              # only auto-queue battlegrounds once playerBots.size()
-                              # reaches the target, so an unreachable target keeps the
-                              # BG gate shut forever and logs a shortfall every cycle.
+                              # Same target as shard b now. A shard only reaches its
+                              # target from characters saved on maps it OWNS, and this
+                              # one holds the smaller share -- 43% of characters against
+                              # b's 57% -- so the target used to be lowered to suit.
+                              # ClusterTotalRandomBots below fixes it the other way, by
+                              # making the shared pool big enough that 43% of it still
+                              # clears 2000. The target must stay reachable: bots only
+                              # auto-queue battlegrounds once playerBots.size() reaches
+                              # it, so an unreachable one keeps the BG gate shut forever
+                              # and logs a shortfall every cycle.
                               - name: AC_AI_PLAYERBOT_MIN_RANDOM_BOTS
-                                value: '1900'
+                                value: '2000'
                               - name: AC_AI_PLAYERBOT_MAX_RANDOM_BOTS
-                                value: '1900'
+                                value: '2000'
                               # Deliberately EMPTY, not '1,571'. An explicit list removes
                               # a shard from the registry's balancer, so if both shards
                               # were explicit the instance and battleground maps would be
@@ -399,34 +401,39 @@ spec:
                               # measured, bouncing the same bots against b.
                               - name: AC_AI_PLAYERBOT_RANDOM_BOT_MAPS
                                 value: '1,571'
-                              # Explicit, NOT 0, because the account pool is
-                              # FLEET-WIDE while auto-sizing is per-shard.
-                              # CalculateTotalAccountCount() derives the pool from
-                              # THIS server's maxRandomBots -- ceil(2000/10) = 200 --
-                              # so with two shards neither one ever asks for enough
-                              # to cover both. Measured in prod: 250 RNDbot accounts,
-                              # 2510 characters, against a combined target of 3900.
-                              # Shard b logged "Can't log-in all the requested bots
-                              # ... 6 more accounts needed" and neither shard could
-                              # reach its target.
+                              # 0 = automatic, and now correct on a cluster too.
+                              # CalculateTotalAccountCount() sizes creation from the
+                              # same fleet-wide target as the type-1 assignment, so it
+                              # works out the accounts needed by itself: 500 RNDbot for
+                              # ClusterTotalRandomBots 5000 at 10 chars/account, plus 50
+                              # AddClass.
                               #
-                              # That is not just a smaller population: bots only
-                              # auto-queue battlegrounds once playerBots.size()
-                              # reaches the target, so an unreachable target keeps
-                              # the BG gate shut on BOTH shards forever.
-                              #
-                              # 400 covers 1900 + 2000 at 10 chars/account with room
-                              # to spare. The value is a FLOOR, not a cap -- if the
-                              # calculated requirement is higher the factory uses
-                              # that instead and logs the override -- so it cannot
-                              # starve a shard that needs more.
-                              #
-                              # Safe to set identically on both shards: creation is
-                              # guarded by AccountMgr::GetId(accountName) against
-                              # deterministic RNDBOT<n> names, so whichever shard
-                              # boots second finds the accounts already there.
+                              # Left at 0 deliberately rather than hand-set. This knob
+                              # creates accounts but does NOT decide how many become
+                              # type 1, so setting it high does not add bots -- it adds
+                              # unassigned dead weight and lengthens the generation boot.
+                              # A hand-picked 400 is exactly how the pool ended up with
+                              # 1500 characters no bot could ever use.
                               - name: AC_AI_PLAYERBOT_RANDOM_BOT_ACCOUNT_COUNT
-                                value: '400'
+                                value: '0'
+                              # The account pool lives in one playerbots database
+                              # shared by both shards, but upstream sizes it from the
+                              # LOCAL MaxRandomBots and only ever promotes accounts,
+                              # never demotes. So two shards asking 2000 each settled
+                              # the pool at ~200 accounts -- 2009 type-1 characters for
+                              # the whole cluster, split 1063/946 by map ownership, and
+                              # both shards stalled there with the BG gate shut.
+                              #
+                              # ClusterTotalRandomBots (KBVE patch) sizes that shared
+                              # pool for the fleet instead. It does NOT change how many
+                              # bots this shard logs in -- that is still Min/Max above.
+                              #
+                              # 5000, not 4000, because characters are not split evenly:
+                              # shard a's maps hold 43% of them. 0.43 * 5000 = 2150,
+                              # which clears a 2000 target with margin; 4000 would leave
+                              # shard a at ~1720 and permanently short.
+                              - name: AC_AI_PLAYERBOT_CLUSTER_TOTAL_RANDOM_BOTS
+                                value: '5000'
                               - name: AC_AI_PLAYERBOT_RANDOM_BOT_AUTOLOGIN
                                 value: '1'
                               # Cluster wiring. The bare names are what the
