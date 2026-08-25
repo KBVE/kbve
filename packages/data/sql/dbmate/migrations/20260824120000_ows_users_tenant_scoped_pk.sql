@@ -59,13 +59,17 @@ DECLARE
     bad_chars    BIGINT;
     bad_sessions BIGINT;
 BEGIN
+    -- Anti-join on the composite key, not a join on UserGUID alone: once the same UserGUID may
+    -- exist in several tenants, a UserGUID-only join fans out and reports valid rows.
     SELECT count(*) INTO bad_chars
-      FROM Characters c JOIN Users u ON u.UserGUID = c.UserGUID
-     WHERE c.CustomerGUID <> u.CustomerGUID;
+      FROM Characters c
+      LEFT JOIN Users u ON u.CustomerGUID = c.CustomerGUID AND u.UserGUID = c.UserGUID
+     WHERE c.UserGUID IS NOT NULL AND u.UserGUID IS NULL;
 
     SELECT count(*) INTO bad_sessions
-      FROM UserSessions s JOIN Users u ON u.UserGUID = s.UserGUID
-     WHERE s.CustomerGUID <> u.CustomerGUID;
+      FROM UserSessions s
+      LEFT JOIN Users u ON u.CustomerGUID = s.CustomerGUID AND u.UserGUID = s.UserGUID
+     WHERE u.UserGUID IS NULL;
 
     IF bad_chars > 0 OR bad_sessions > 0 THEN
         RAISE WARNING

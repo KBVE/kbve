@@ -58,14 +58,18 @@ rows pointing at another tenant's user are possible in existing data and will re
 Check before you deploy:
 
 ```sql
-SELECT count(*) FROM ows.Characters c JOIN ows.Users u ON u.UserGUID = c.UserGUID
- WHERE c.CustomerGUID <> u.CustomerGUID;
+SELECT count(*) FROM ows.Characters c
+  LEFT JOIN ows.Users u ON u.CustomerGUID = c.CustomerGUID AND u.UserGUID = c.UserGUID
+ WHERE c.UserGUID IS NOT NULL AND u.UserGUID IS NULL;
 
-SELECT count(*) FROM ows.UserSessions s JOIN ows.Users u ON u.UserGUID = s.UserGUID
- WHERE s.CustomerGUID <> u.CustomerGUID;
+SELECT count(*) FROM ows.UserSessions s
+  LEFT JOIN ows.Users u ON u.CustomerGUID = s.CustomerGUID AND u.UserGUID = s.UserGUID
+ WHERE u.UserGUID IS NULL;
 ```
 
-Both should return 0. `20260824120000` also `RAISE WARNING`s the same counts as it runs, so a
+Both should return 0. These are anti-joins on the composite key on purpose: after the re-key the
+same `UserGUID` may exist in several tenants, so a `JOIN ... ON UserGUID` that compares
+`CustomerGUID` fans out and flags valid rows. `20260824120000` also `RAISE WARNING`s the same counts as it runs, so a
 non-zero result shows up in the Job log even if the query above was skipped.
 
 If either is non-zero, repair before dispatching `20260824120100`:
@@ -117,4 +121,7 @@ which would otherwise have reached into every other tenant holding the same acco
 `packages/data/sql/dbmate/migration-tests/20260824120000_ows_users_tenant_scoped_pk.test.sql`
 asserts the property the migration exists for: the same `UserGUID` provisioned into two tenants,
 addressable independently, with within-tenant duplicates still rejected and the widened FKs
-enforcing tenancy and reported `convalidated`. It runs in `ci-dbmate-validate`.
+enforcing tenancy. `20260824120100_ows_users_tenant_fk_validate.test.sql` asserts both FKs report
+`convalidated`. Neither runs in `ci-dbmate-validate` (its test loop is a hardcoded list of
+`store_*` bases); CI only proves `up` / `rollback` / `up` apply. Run them locally with
+`./test-migration.sh <basename>`.

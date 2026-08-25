@@ -12,13 +12,18 @@ SET search_path TO ows;
 -- rows point at a Users row owned by another tenant -- a state the old UserGUID-only FK allowed.
 -- Find them with:
 --
---   SELECT c.CustomerGUID, c.CharacterID, c.CharName, c.UserGUID, u.CustomerGUID AS owner
---     FROM ows.Characters c JOIN ows.Users u ON u.UserGUID = c.UserGUID
---    WHERE c.CustomerGUID <> u.CustomerGUID;
+--   SELECT c.CustomerGUID, c.CharacterID, c.CharName, c.UserGUID
+--     FROM ows.Characters c
+--     LEFT JOIN ows.Users u ON u.CustomerGUID = c.CustomerGUID AND u.UserGUID = c.UserGUID
+--    WHERE c.UserGUID IS NOT NULL AND u.UserGUID IS NULL;
 --
---   SELECT s.CustomerGUID, s.UserSessionGUID, s.UserGUID, u.CustomerGUID AS owner
---     FROM ows.UserSessions s JOIN ows.Users u ON u.UserGUID = s.UserGUID
---    WHERE s.CustomerGUID <> u.CustomerGUID;
+--   SELECT s.CustomerGUID, s.UserSessionGUID, s.UserGUID
+--     FROM ows.UserSessions s
+--     LEFT JOIN ows.Users u ON u.CustomerGUID = s.CustomerGUID AND u.UserGUID = s.UserGUID
+--    WHERE u.UserGUID IS NULL;
+--
+-- (Anti-join on the composite key on purpose. After 20260824120000 the same UserGUID may live in
+-- several tenants, so joining on UserGUID alone and comparing CustomerGUID reports valid rows.)
 --
 -- Stale UserSessions rows are safe to DELETE (clients re-login). Characters rows need a decision
 -- per row: repoint CustomerGUID at the owning tenant, or NULL out UserGUID (the column is

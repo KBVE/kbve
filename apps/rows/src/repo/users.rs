@@ -404,9 +404,7 @@ impl<'a> UsersRepo<'a> {
         {
             Ok(done) => done.rows_affected(),
             Err(e) if is_unique_violation(&e) => {
-                // Explicit rollback rather than relying on the Drop impl, so the connection is
-                // returned to the pool on this path the same way it is on the one below.
-                tx.rollback().await?;
+                // `tx` drops here and rolls back; a rollback failure must not mask the Conflict.
                 tracing::warn!(
                     email = %email,
                     user_guid = %supabase_uuid,
@@ -420,31 +418,10 @@ impl<'a> UsersRepo<'a> {
             Err(e) => return Err(e.into()),
         };
 
-        // A zero-row insert means someone else won the race OR the conflict clause swallowed a row
-        // that does not belong to this tenant. Only the first is benign, and the two are
-        // indistinguishable from rows_affected alone -- so confirm the row exists for THIS tenant
-        // before handing back a session. Returning Ok here without the check is what let login
-        // succeed for a user that did not exist in the tenant.
-        if inserted == 0 {
-            let present: Option<(Uuid,)> =
-                sqlx::query_as("SELECT userguid FROM users WHERE customerguid = $1 AND userguid = $2")
-                    .bind(customer_guid)
-                    .bind(supabase_uuid)
-                    .fetch_optional(&mut *tx)
-                    .await?;
-            if present.is_none() {
-                tx.rollback().await?;
-                tracing::error!(
-                    email = %email,
-                    user_guid = %supabase_uuid,
-                    customer_guid = %customer_guid,
-                    "Failed to provision OWS user into tenant; insert matched an existing row owned elsewhere"
-                );
-                return Err(RowsError::Conflict(
-                    "Could not provision this account into the requested tenant".into(),
-                ));
-            }
-        }
+        // The conflict target is the tenant-scoped PK, so a zero-row insert can only mean this
+        // tenant's (customerguid, userguid) row already exists -- which the advisory lock and the
+        // by_uuid SELECT above make unreachable in practice. It cannot be a row owned by another
+        // tenant: that was the pre-fix ON CONFLICT (userguid) failure mode.
 
         tx.commit().await?;
 

@@ -6,8 +6,14 @@
 -- independently addressable. The old global PK on Users.UserGUID made this impossible.
 --
 -- Also asserted: the widened FKs actually enforce tenancy, which the old UserGUID-only FKs did
--- not, and that the FKs are VALIDATED (20260824120100 adds them NOT VALID then validates -- a
--- constraint left convalidated=false silently stops constraining pre-existing rows).
+-- not. FK validation (convalidated) is asserted by the companion test for 20260824120100 --
+-- test-migration.sh stages only migrations up to its target, so the validate migration never
+-- runs when this one is under test.
+--
+-- Harness shape matters here: SEED runs BEFORE the migration (old global PK still in force), and
+-- seed rows are NOT removed before `dbmate rollback`. So the second-tenant row is inserted inside
+-- ASSERT_AFTER_UP and removed again at its end, otherwise the seed would fail on the old PK and
+-- the down block could not restore it.
 
 -- SEED
 
@@ -21,26 +27,32 @@ BEGIN
     VALUES (v_tenant_a, 'tenant-a', 'a@example.test'),
            (v_tenant_b, 'tenant-b', 'b@example.test');
 
-    -- Same Supabase account, same email, both tenants. AK_User is (CustomerGUID, Email, Role) so
-    -- the shared email is legal; the PK is what used to reject the second row.
+    -- Only tenant A before the migration: the old PK rejects the same UserGUID twice.
     INSERT INTO ows.Users (CustomerGUID, UserGUID, FirstName, LastName, Email, PasswordHash, Role)
-    VALUES (v_tenant_a, v_user, 'Cross', 'Tenant', 'shared@example.test', 'x', 'Player'),
-           (v_tenant_b, v_user, 'Cross', 'Tenant', 'shared@example.test', 'x', 'Player');
+    VALUES (v_tenant_a, v_user, 'Cross', 'Tenant', 'shared@example.test', 'x', 'Player');
 
     INSERT INTO ows.UserSessions (CustomerGUID, UserSessionGUID, UserGUID, LoginDate)
-    VALUES (v_tenant_a, gen_random_uuid(), v_user, NOW()),
-           (v_tenant_b, gen_random_uuid(), v_user, NOW());
+    VALUES (v_tenant_a, gen_random_uuid(), v_user, NOW());
 END;
 $$;
 
 -- ASSERT_AFTER_UP
 
--- 1. Both tenants hold the account.
+-- 1. The same account can now be provisioned into a second tenant. AK_User is
+--    (CustomerGUID, Email, Role) so the shared email is legal; the PK is what used to reject
+--    this row.
 DO $$
 DECLARE
-    v_user UUID := '00000000-0000-4000-8000-000000005ab0';
-    n      BIGINT;
+    v_tenant_b UUID := '00000000-0000-4000-8000-00000000b002';
+    v_user     UUID := '00000000-0000-4000-8000-000000005ab0';
+    n          BIGINT;
 BEGIN
+    INSERT INTO ows.Users (CustomerGUID, UserGUID, FirstName, LastName, Email, PasswordHash, Role)
+    VALUES (v_tenant_b, v_user, 'Cross', 'Tenant', 'shared@example.test', 'x', 'Player');
+
+    INSERT INTO ows.UserSessions (CustomerGUID, UserSessionGUID, UserGUID, LoginDate)
+    VALUES (v_tenant_b, gen_random_uuid(), v_user, NOW());
+
     SELECT count(*) INTO n FROM ows.Users WHERE UserGUID = v_user;
     IF n <> 2 THEN
         RAISE EXCEPTION 'fail: expected the same UserGUID in 2 tenants, found %', n;
@@ -83,8 +95,8 @@ BEGIN
 END;
 $$;
 
--- 4. The widened FK rejects a child row pointing at another tenant's user. Under the old
---    UserGUID-only FK this insert succeeded.
+-- 4. The widened FK rejects a child row pointing at a user that does not exist in this tenant.
+--    Under the old UserGUID-only FK this insert succeeded.
 DO $$
 DECLARE
     v_tenant_a UUID := '00000000-0000-4000-8000-00000000a001';
@@ -100,31 +112,20 @@ BEGIN
 END;
 $$;
 
--- 5. Both FKs are validated, not left NOT VALID by a half-applied deploy.
+-- 5. Remove the second-tenant rows again so the down block can restore PRIMARY KEY (UserGUID).
 DO $$
 DECLARE
-    v_unvalidated TEXT;
+    v_tenant_b UUID := '00000000-0000-4000-8000-00000000b002';
+    v_user     UUID := '00000000-0000-4000-8000-000000005ab0';
 BEGIN
-    SELECT string_agg(c.conname, ', ')
-      INTO v_unvalidated
-      FROM pg_constraint c
-      JOIN pg_namespace n ON n.oid = c.connamespace
-     WHERE n.nspname = 'ows'
-       AND c.conname IN ('fk_characters_userguid', 'fk_usersessions_userguid')
-       AND c.contype = 'f'
-       AND NOT c.convalidated;
-
-    IF v_unvalidated IS NOT NULL THEN
-        RAISE EXCEPTION 'fail: FK(s) still NOT VALID after up: %', v_unvalidated;
-    END IF;
+    DELETE FROM ows.UserSessions WHERE CustomerGUID = v_tenant_b AND UserGUID = v_user;
+    DELETE FROM ows.Users        WHERE CustomerGUID = v_tenant_b AND UserGUID = v_user;
 END;
 $$;
 
 -- ASSERT_AFTER_DOWN
 
--- The down block restores the global PK, so the cross-tenant pair cannot survive it. This
--- section runs only in the local test-migration.sh flow, where the SEED above is rolled back
--- with it; assert the shape, not the data.
+-- The down block restores the global PK; assert the shape.
 DO $$
 DECLARE
     v_cols TEXT;
