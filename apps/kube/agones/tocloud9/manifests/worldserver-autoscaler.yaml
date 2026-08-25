@@ -47,14 +47,18 @@ spec:
             bufferSize: 100
             # Pinned: min == max, so this cannot change the replica count.
             #
-            # Scaling this fleet re-runs the map bin-packer, which splits the
-            # world across shards and puts bots straight back into the handoff
-            # loop this fleet was just taken out of -- so an autoscaler that
-            # works is actively harmful here until the open world stops being
-            # partitioned. Left in place rather than deleted because the policy
-            # and the Counter behind it are still the right ones; they belong on
-            # the instances fleet once that exists, where scaling does not move
-            # a continent out from under a bot.
+            # Scaling this fleet re-runs the map bin-packer, which moves a
+            # continent out from under the bots standing on it -- so an
+            # autoscaler that works is actively harmful here. The partition is
+            # expressed as a fixed set of Fleets with explicit map lists
+            # (worldserver-fleet.yaml, worldserver-b-fleet.yaml); capacity is
+            # added by declaring another shard, not by scaling replicas.
+            #
+            # Left in place rather than deleted because the policy and the
+            # Counter behind it are still the right ones. The instances-only
+            # fleet an earlier note pointed at is NOT coming: a shard owning BG
+            # maps but holding no bots cannot fill a queue. See the note in
+            # worldserver-fleet.yaml.
             minCapacity: 1000
             maxCapacity: 1000
     sync:

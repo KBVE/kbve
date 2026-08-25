@@ -165,9 +165,13 @@ services:
     # populated by anyone. Dropping this shard lets a and b bin-pack the
     # unclaimed maps, putting BG ownership on the shards that have the bots.
     #
-    # Dungeons are NOT fixed by this: instance maps still split across a and b,
-    # so a player can still be transferred away from their party. That needs the
-    # gateway to stop transferring for instance maps.
+    # The dungeon caveat that used to sit here is resolved. It predated the
+    # grouped-bot handoff fix; with that in, a party entering an instance is
+    # routed as a unit -- servers-registry maps map->server with no per-instance
+    # split, so every member lands on the same owner -- and grouped bots follow
+    # their master instead of being re-randomized by the partition. Verified
+    # end to end on this stack: group formed through the cluster group service,
+    # all members seated in the same instance, dungeon completed, clean leave.
     gameserver-ac-c:
         <<: *shard
         scale: 0
