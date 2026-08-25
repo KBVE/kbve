@@ -113,7 +113,7 @@ spec:
                 # raising maxRandomBots adds a one-time character generation on
                 # top of the preload -- see the AC_AI_PLAYERBOT_MAX_RANDOM_BOTS
                 # comment below for the measured numbers.
-                initialDelaySeconds: 3600
+                initialDelaySeconds: 5400
                 periodSeconds: 15
                 failureThreshold: 5
             sdkServer:
@@ -399,19 +399,34 @@ spec:
                               # measured, bouncing the same bots against b.
                               - name: AC_AI_PLAYERBOT_RANDOM_BOT_MAPS
                                 value: '1,571'
-                              # 0 means automatic, which is correct and was
-                              # not before. This pool is NOT sized by this
-                              # setting: RandomPlayerbotMgr allocates
-                              # ceil(maxRandomBots / charsPerAccount) RNDbot
-                              # accounts and addClassAccountPoolSize AddClass
-                              # accounts, and anything beyond that is left
-                              # "unassigned" -- dead weight. The previous 70
-                              # produced 10 RNDbot / 50 AddClass / 10 unassigned
-                              # while maxRandomBots was 100, so raising it did
-                              # nothing for the bot pool. Raising maxRandomBots
-                              # below is what grows it; auto then follows.
+                              # Explicit, NOT 0, because the account pool is
+                              # FLEET-WIDE while auto-sizing is per-shard.
+                              # CalculateTotalAccountCount() derives the pool from
+                              # THIS server's maxRandomBots -- ceil(2000/10) = 200 --
+                              # so with two shards neither one ever asks for enough
+                              # to cover both. Measured in prod: 250 RNDbot accounts,
+                              # 2510 characters, against a combined target of 3900.
+                              # Shard b logged "Can't log-in all the requested bots
+                              # ... 6 more accounts needed" and neither shard could
+                              # reach its target.
+                              #
+                              # That is not just a smaller population: bots only
+                              # auto-queue battlegrounds once playerBots.size()
+                              # reaches the target, so an unreachable target keeps
+                              # the BG gate shut on BOTH shards forever.
+                              #
+                              # 400 covers 1900 + 2000 at 10 chars/account with room
+                              # to spare. The value is a FLOOR, not a cap -- if the
+                              # calculated requirement is higher the factory uses
+                              # that instead and logs the override -- so it cannot
+                              # starve a shard that needs more.
+                              #
+                              # Safe to set identically on both shards: creation is
+                              # guarded by AccountMgr::GetId(accountName) against
+                              # deterministic RNDBOT<n> names, so whichever shard
+                              # boots second finds the accounts already there.
                               - name: AC_AI_PLAYERBOT_RANDOM_BOT_ACCOUNT_COUNT
-                                value: '0'
+                                value: '400'
                               - name: AC_AI_PLAYERBOT_RANDOM_BOT_AUTOLOGIN
                                 value: '1'
                               # Cluster wiring. The bare names are what the
@@ -559,7 +574,7 @@ spec:
                               # generates the new characters, which at 2000 bots is roughly 40 minutes on its
                               # own. 2400s left no margin for that boot; health initialDelaySeconds is 3600.
                               - name: AGONES_SHIM_READY_TIMEOUT_SECS
-                                value: '5400'
+                                value: '9000'
                               - name: AGONES_SHIM_READY_HTTP
                                 value: 'http://127.0.0.1:8901/healthcheck'
                               - name: AGONES_SHIM_LIVE_TCP
