@@ -22,7 +22,9 @@ runner: arc-runner-set-kbve
 image: kbve/tocloud9-gameserver-playerbots
 nx_project: agones-tocloud9
 target: container-gameserver
-deployment_yaml: apps/kube/agones/tocloud9/manifests/worldserver-fleet.yaml
+deployment_yamls:
+    - apps/kube/agones/tocloud9/manifests/worldserver-fleet.yaml
+    - apps/kube/agones/tocloud9/manifests/worldserver-b-fleet.yaml
 has_test: false
 author: h0lybyte
 license: KBVE
