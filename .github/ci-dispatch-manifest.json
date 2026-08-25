@@ -90,6 +90,7 @@
 			"image": "kbve/agones-shim",
 			"deployment_yamls": [
 				"apps/kube/agones/tocloud9/manifests/worldserver-fleet.yaml",
+				"apps/kube/agones/tocloud9/manifests/worldserver-b-fleet.yaml",
 				"apps/kube/agones/tocloud9/manifests/gateway-fleet.yaml",
 				"apps/kube/agones/tocloud9/manifests/authserver-fleet.yaml"
 			],
@@ -653,7 +654,10 @@
 			"source_path": "apps/agones/tocloud9/gameserver",
 			"runner": "arc-runner-set-kbve",
 			"image": "kbve/tocloud9-gameserver-playerbots",
-			"deployment_yaml": "apps/kube/agones/tocloud9/manifests/worldserver-fleet.yaml",
+			"deployment_yamls": [
+				"apps/kube/agones/tocloud9/manifests/worldserver-fleet.yaml",
+				"apps/kube/agones/tocloud9/manifests/worldserver-b-fleet.yaml"
+			],
 			"has_test": false,
 			"target": "container-gameserver",
 			"nx_project": "agones-tocloud9"
