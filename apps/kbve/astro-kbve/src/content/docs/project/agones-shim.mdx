@@ -14,7 +14,7 @@ tags:
 key: agones_shim
 pipeline: docker
 app_name: agones-shim
-version: "0.0.3"
+version: "0.0.4"
 source_path: apps/agones/shim
 version_toml: apps/agones/shim/version.toml
 runner: ubuntu-latest
@@ -128,7 +128,12 @@ Nothing is game-specific — every behaviour is an environment variable, so one 
 | `AGONES_SHIM_READY_TCP` | Ports that must accept before Ready. `8085` or `host:8085`, comma separated |
 | `AGONES_SHIM_READY_HTTP` | URLs that must return 2xx before Ready |
 | `AGONES_SHIM_LIVE_TCP` / `_HTTP` | Liveness probes; defaults to the readiness set |
-| `AGONES_SHIM_READY_TIMEOUT_SECS` | Give up waiting. `0` (default) means never |
+| `AGONES_SHIM_LIVE_FAILURE_THRESHOLD` | Consecutive liveness failures before exiting, default `3` |
+| `AGONES_SHIM_STALE_METRIC` | Gauge that must keep moving; arms the staleness watchdog |
+| `AGONES_SHIM_STALE_METRICS_URL` | Endpoint to scrape it from; falls back to `_COUNTER_METRICS_URL` |
+| `AGONES_SHIM_STALE_INTERVAL_SECS` | Staleness scrape interval, default `30` |
+| `AGONES_SHIM_STALE_TIMEOUT_SECS` | Exit once the metric has not moved for this long, default `300` |
+| `AGONES_SHIM_READY_TIMEOUT_SECS` | Give up waiting, default `900`. `0` means never |
 | `AGONES_SHIM_HEALTH_INTERVAL_SECS` | Health beat and liveness interval, default `5` |
 | `AGONES_SHIM_COUNTER_NAME` | Counter to publish; must already exist in the GameServer spec |
 | `AGONES_SHIM_COUNTER_METRICS_URL` | Prometheus text endpoint to scrape |

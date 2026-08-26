@@ -1,115 +1,103 @@
 {
-  "generated_at": "2026-08-25T02:18:30Z",
+  "generated_at": "2026-08-26T02:24:52Z",
   "window": {
     "days": 7,
-    "since": "2026-08-18"
+    "since": "2026-08-19"
   },
   "totals": {
     "runs": 1000,
-    "success": 868,
-    "failure": 49,
-    "cancelled": 74,
+    "success": 885,
+    "failure": 46,
+    "cancelled": 50,
     "skipped": 0,
-    "other": 9,
+    "other": 19,
     "flaky": 1,
-    "success_rate": 94.7,
-    "avg_duration_s": 258
+    "success_rate": 95.1,
+    "avg_duration_s": 255
   },
   "totals_24h": {
-    "runs": 262,
-    "success": 237,
-    "failure": 14,
-    "success_rate": 94.4
+    "runs": 74,
+    "success": 62,
+    "failure": 0,
+    "success_rate": 100.0
   },
   "workflows": [
     {
       "name": "CI - CodeQL",
-      "runs": 275,
-      "success": 248,
+      "runs": 272,
+      "success": 250,
       "failure": 0,
-      "cancelled": 24,
+      "cancelled": 16,
       "skipped": 0,
-      "other": 3,
+      "other": 6,
       "flaky": 1,
       "success_rate": 100.0,
-      "avg_duration_s": 239
+      "avg_duration_s": 241
     },
     {
       "name": "CI - Dev",
-      "runs": 170,
-      "success": 125,
-      "failure": 29,
-      "cancelled": 16,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 81.2,
-      "avg_duration_s": 281
-    },
-    {
-      "name": "CI - Godot Tests",
-      "runs": 123,
-      "success": 98,
-      "failure": 1,
-      "cancelled": 21,
-      "skipped": 0,
-      "other": 3,
-      "flaky": 0,
-      "success_rate": 99.0,
-      "avg_duration_s": 159
-    },
-    {
-      "name": "Auto-merge bot PRs",
-      "runs": 64,
-      "success": 64,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 34
-    },
-    {
-      "name": "CI - Manifest Guard",
-      "runs": 64,
-      "success": 55,
-      "failure": 0,
+      "runs": 157,
+      "success": 120,
+      "failure": 28,
       "cancelled": 8,
       "skipped": 0,
       "other": 1,
       "flaky": 0,
+      "success_rate": 81.1,
+      "avg_duration_s": 273
+    },
+    {
+      "name": "CI - Godot Tests",
+      "runs": 126,
+      "success": 102,
+      "failure": 1,
+      "cancelled": 17,
+      "skipped": 0,
+      "other": 6,
+      "flaky": 0,
+      "success_rate": 99.0,
+      "avg_duration_s": 151
+    },
+    {
+      "name": "Auto-merge bot PRs",
+      "runs": 75,
+      "success": 75,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 132
+      "avg_duration_s": 35
+    },
+    {
+      "name": "CI - Manifest Guard",
+      "runs": 66,
+      "success": 58,
+      "failure": 0,
+      "cancelled": 4,
+      "skipped": 0,
+      "other": 4,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 131
     },
     {
       "name": "Q Crate Tests",
-      "runs": 42,
-      "success": 42,
+      "runs": 39,
+      "success": 39,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 292
-    },
-    {
-      "name": "Worldgen Determinism",
-      "runs": 33,
-      "success": 33,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 157
+      "avg_duration_s": 290
     },
     {
       "name": "CI - Bevy",
-      "runs": 28,
-      "success": 28,
+      "runs": 31,
+      "success": 31,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
@@ -120,46 +108,58 @@
     },
     {
       "name": "CI - Forgejo Mirror",
-      "runs": 28,
-      "success": 28,
+      "runs": 31,
+      "success": 31,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 71
+      "avg_duration_s": 85
     },
     {
       "name": "CI - Main",
-      "runs": 28,
-      "success": 28,
+      "runs": 31,
+      "success": 30,
+      "failure": 0,
+      "cancelled": 1,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 132
+    },
+    {
+      "name": "Worldgen Determinism",
+      "runs": 31,
+      "success": 31,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 118
+      "avg_duration_s": 156
     },
     {
       "name": "CI - Atomic Branches",
-      "runs": 23,
-      "success": 19,
+      "runs": 30,
+      "success": 26,
       "failure": 3,
       "cancelled": 1,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
-      "success_rate": 86.4,
-      "avg_duration_s": 647
+      "success_rate": 89.7,
+      "avg_duration_s": 724
     },
     {
       "name": "CI - Manifest Sync",
-      "runs": 18,
+      "runs": 17,
       "success": 17,
       "failure": 0,
-      "cancelled": 1,
+      "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
@@ -167,40 +167,16 @@
       "avg_duration_s": 142
     },
     {
-      "name": "CI - Cargo Workspace Stub Guard",
+      "name": "CI - Docker / axum-kbve",
       "runs": 14,
       "success": 11,
-      "failure": 2,
-      "cancelled": 1,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 84.6,
-      "avg_duration_s": 23
-    },
-    {
-      "name": "CI - dbmate validate",
-      "runs": 14,
-      "success": 13,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 1,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 225
-    },
-    {
-      "name": "CI - Docker / axum-kbve",
-      "runs": 13,
-      "success": 10,
       "failure": 3,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
-      "success_rate": 76.9,
-      "avg_duration_s": 1555
+      "success_rate": 78.6,
+      "avg_duration_s": 1536
     },
     {
       "name": "CI - Actionlint",
@@ -213,6 +189,42 @@
       "flaky": 0,
       "success_rate": 100.0,
       "avg_duration_s": 47
+    },
+    {
+      "name": "CI - dbmate validate",
+      "runs": 11,
+      "success": 10,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 1,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 216
+    },
+    {
+      "name": "CI - Cargo Workspace Stub Guard",
+      "runs": 9,
+      "success": 8,
+      "failure": 0,
+      "cancelled": 1,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 19
+    },
+    {
+      "name": "Daily Content",
+      "runs": 7,
+      "success": 6,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 1,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 454
     },
     {
       "name": "CI - Unreal / game unreal_chuck_beta",
@@ -239,18 +251,6 @@
       "avg_duration_s": 775
     },
     {
-      "name": "Daily Content",
-      "runs": 6,
-      "success": 5,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 1,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 476
-    },
-    {
       "name": "CI - MC Smoke",
       "runs": 4,
       "success": 4,
@@ -275,18 +275,6 @@
       "avg_duration_s": 870
     },
     {
-      "name": "CI - Docker / edge",
-      "runs": 3,
-      "success": 3,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 316
-    },
-    {
       "name": "CI - Docker / metrics",
       "runs": 3,
       "success": 1,
@@ -299,18 +287,6 @@
       "avg_duration_s": 429
     },
     {
-      "name": "CI - Docker / tocloud9-db-import",
-      "runs": 3,
-      "success": 3,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 2080
-    },
-    {
       "name": "CI - Docker / tocloud9-gameserver",
       "runs": 3,
       "success": 3,
@@ -320,10 +296,10 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 2044
+      "avg_duration_s": 1648
     },
     {
-      "name": "CI - Docker / agones-shim",
+      "name": "CI - Docker / edge",
       "runs": 2,
       "success": 2,
       "failure": 0,
@@ -332,7 +308,19 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 442
+      "avg_duration_s": 316
+    },
+    {
+      "name": "CI - Docker / tocloud9-db-import",
+      "runs": 2,
+      "success": 2,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 1942
     },
     {
       "name": "CI - Vector Config Guard",
@@ -347,19 +335,19 @@
       "avg_duration_s": 24
     },
     {
-      "name": "CI - Docker / discordsh",
-      "runs": 1,
-      "success": 1,
+      "name": "github_actions in /. - Update #1537739955",
+      "runs": 2,
+      "success": 2,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 987
+      "avg_duration_s": 266
     },
     {
-      "name": "CI - Docker / discordsh-bot",
+      "name": "CI - Docker / agones-shim",
       "runs": 1,
       "success": 1,
       "failure": 0,
@@ -368,7 +356,7 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 1007
+      "avg_duration_s": 448
     },
     {
       "name": "CI - Docker / irc-gateway",
@@ -441,18 +429,6 @@
       "flaky": 0,
       "success_rate": 0.0,
       "avg_duration_s": 1066
-    },
-    {
-      "name": "github_actions in /. - Update #1537739955",
-      "runs": 1,
-      "success": 1,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 266
     },
     {
       "name": "npm_and_yarn in /. - Update #1537739958",
