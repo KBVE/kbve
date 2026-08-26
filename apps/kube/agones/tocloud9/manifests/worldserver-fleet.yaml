@@ -146,7 +146,7 @@ spec:
                               sizeLimit: 512Mi
                     containers:
                         - name: worldserver
-                          image: ghcr.io/kbve/tocloud9-gameserver-playerbots:0.0.11
+                          image: ghcr.io/kbve/tocloud9-gameserver-playerbots:0.0.12
                           imagePullPolicy: IfNotPresent
                           env:
                               # AzerothCore's own settings. AC_* overrides the
