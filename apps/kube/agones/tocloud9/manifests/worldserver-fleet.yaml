@@ -614,9 +614,25 @@ spec:
                               # loop and goes silent with it.
                               - name: AGONES_SHIM_LIVE_HTTP
                                 value: 'http://127.0.0.1:8901/healthcheck'
-                              # delay_mean is recomputed every tick; frozen for ten
-                              # minutes means the loop stopped even if the endpoint
-                              # still answers.
+                              # delay_mean is recomputed every tick. Sampled at
+                              # the shim's own 30s cadence a healthy worldserver
+                              # oscillates -- 41 40 40 42 41 42 42 43 43 42 -- and
+                              # never holds a value longer than 60s, while the
+                              # server wedged on 2026-08-25 sat at exactly 40 for
+                              # five and a half hours. 600s is an order of
+                              # magnitude above the healthy run length.
+                              #
+                              # Do not evaluate this with a query_range whose end
+                              # lies in the future: Prometheus forward-fills the
+                              # last sample across its 5m lookback, and every gauge
+                              # here then reads as flat for exactly 300s. That
+                              # artifact is what briefly made this look unsound.
+                              #
+                              # LIVE_HTTP above catches the same wedge sooner --
+                              # that server answered in 4.57s mean against the
+                              # shim's 3s client timeout, a healthy one in 45ms --
+                              # so this is the backstop for a wedge that stays
+                              # fast, not the primary detector.
                               - name: AGONES_SHIM_STALE_METRIC
                                 value: 'delay_mean'
                               - name: AGONES_SHIM_STALE_TIMEOUT_SECS
