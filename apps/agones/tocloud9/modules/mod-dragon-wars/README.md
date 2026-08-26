@@ -28,6 +28,8 @@ Seat 0 of vehicle kit 8 carries `VEHICLE_SEAT_FLAG_CAN_CAST`, which is what gate
 
 **Two databases.** `UpdateFetcher` walks every subdirectory of `modules/<name>/data/sql/` and matches the directory name against the database's module name — `db-world` matches `world`, `db-characters` matches `characters`. The NPC goes to world; the sortie log is per-character state and goes to characters. Renaming either directory silently stops it being applied.
 
+**A missing table must never abort the core.** AzerothCore treats `ER_NO_SUCH_TABLE` as fatal in `MySQLConnection::_HandleMySQLErrno` — it calls `ABORT`, at startup _and_ at runtime. The gameserver and db-import are separately versioned images, so the C++ can reach a realm before its schema does. `SortieLog::Load` therefore probes `information_schema.TABLES` (a query that cannot raise 1146) and disables logging with a warning when the table is absent, rather than querying the table directly.
+
 **Cast-time weapons will not fire from a plane.** `PlayerbotAI::CanCastVehicleSpell` returns false for any spell with a cast time while the vehicle is moving, and a plane is always moving. Keep the action bar instant.
 
 **SQL is applied by db-import only.** Like mod-rent-a-mount, the world SQL is deliberately absent from the gameserver stage — that fleet can surge to two pods and `DBUpdater` carries no lock, so a worldserver able to see this SQL could race another applying it.
