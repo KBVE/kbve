@@ -4,13 +4,17 @@ A Booty Bay squadron event. Talk to Sizzik Vaneblast with a full group, and ever
 
 ## What it does
 
-Sizzik Vaneblast (`900400`) stands on the Booty Bay dock plaza, beside Captain Hecklebury Smotts. His single gossip option launches a sortie:
+Sizzik Vaneblast (`900400`) stands on the Booty Bay dock plaza, beside Captain Hecklebury Smotts. His gossip has a briefing option and a launch option. Launching:
 
 1. Checks the talker has a group of exactly `DragonWars.SquadronSize` (default 5).
 2. Checks every member is on the same map, within `DragonWars.MaxRange`, alive, out of combat, and not already in a vehicle, mounted, on a taxi, teleporting, or shapeshifted.
 3. Summons one plane per member at that member's own position.
 4. Seats each member in their plane.
 5. Writes one row per pilot to `mod_dragon_wars_sorties`.
+
+Talking to him again while anyone in the group is still piloting a plane offers **Bring them home**, which ejects every pilot and despawns their plane immediately rather than waiting out the timer.
+
+Recall works by scanning the group for members whose `GetVehicleBase()` is a creature of `DragonWars.PlaneEntry`, so it needs no stored state and survives a worldserver restart mid-sortie. The limitation is that it only finds planes with a pilot still aboard — one whose pilot logged out is left to the despawn timer.
 
 The planes are `TEMPSUMMON_TIMED_DESPAWN` for `DragonWars.DurationSeconds` (default 900), so the sortie cleans itself up. There is no despawn hook to get wrong.
 

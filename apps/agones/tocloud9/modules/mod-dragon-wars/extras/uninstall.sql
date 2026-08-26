@@ -4,4 +4,4 @@
 DELETE FROM `creature` WHERE `guid` = 9004000;
 DELETE FROM `creature_template_model` WHERE `CreatureID` = 900400;
 DELETE FROM `creature_template` WHERE `entry` = 900400;
-DELETE FROM `npc_text` WHERE `ID` = 90040;
+DELETE FROM `npc_text` WHERE `ID` BETWEEN 90040 AND 90042;
