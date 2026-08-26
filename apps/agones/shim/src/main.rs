@@ -81,9 +81,37 @@ struct Config {
     /// visible. Zero is still honoured when set explicitly, for the rare server
     /// whose startup genuinely has no upper bound.
     ready_timeout: Duration,
+    /// Consecutive liveness failures required before exiting.
+    ///
+    /// A single failed probe is not evidence of a dead server: a metrics
+    /// endpoint served off the game loop blips whenever a tick runs long. One
+    /// blip recycling a healthy server is a worse outage than the one this
+    /// watches for, so require a run of them.
+    live_failure_threshold: u32,
+    /// Optional watchdog for a server whose socket stays bound after its main
+    /// loop stops advancing.
+    ///
+    /// A wedged worldserver on 2026-08-25 kept port 8085 accepting for five
+    /// hours while its update loop was dead. TCP liveness passed the whole
+    /// time, Agones held the GameServer Ready, and the gateway kept routing
+    /// character creation to a process that answered nothing. Liveness proves
+    /// a process exists; only a value that has to move proves it is running.
+    stale: Option<StaleConfig>,
     /// Optional Counter published to the GameServer status, sourced from a
     /// Prometheus text endpoint.
     counter: Option<CounterConfig>,
+}
+
+struct StaleConfig {
+    metrics_url: String,
+    /// Gauge that a live server keeps changing. `delay_mean` is the natural
+    /// one for a game loop: it is recomputed every tick and freezes the moment
+    /// the loop does.
+    metric: String,
+    interval: Duration,
+    /// Exit once the metric has held the same value — or failed to scrape at
+    /// all — for this long.
+    timeout: Duration,
 }
 
 struct CounterConfig {
@@ -169,12 +197,35 @@ impl Config {
             ),
         };
 
+        let stale = match (
+            env_opt("AGONES_SHIM_STALE_METRIC"),
+            env_opt("AGONES_SHIM_STALE_METRICS_URL")
+                .or_else(|| env_opt("AGONES_SHIM_COUNTER_METRICS_URL")),
+        ) {
+            (Some(metric), Some(metrics_url)) => Some(StaleConfig {
+                metrics_url,
+                metric,
+                interval: env_secs("AGONES_SHIM_STALE_INTERVAL_SECS", 30),
+                timeout: env_secs("AGONES_SHIM_STALE_TIMEOUT_SECS", 300),
+            }),
+            (Some(_), None) => anyhow::bail!(
+                "AGONES_SHIM_STALE_METRIC needs AGONES_SHIM_STALE_METRICS_URL \
+                 (or AGONES_SHIM_COUNTER_METRICS_URL to reuse the counter's)"
+            ),
+            (None, _) => None,
+        };
+
         Ok(Self {
             ready,
             live,
             ready_interval: env_secs("AGONES_SHIM_READY_INTERVAL_SECS", 5),
             health_interval: env_secs("AGONES_SHIM_HEALTH_INTERVAL_SECS", 5),
             ready_timeout: env_secs("AGONES_SHIM_READY_TIMEOUT_SECS", 900),
+            live_failure_threshold: env_opt("AGONES_SHIM_LIVE_FAILURE_THRESHOLD")
+                .and_then(|v| v.parse::<u32>().ok())
+                .unwrap_or(3)
+                .max(1),
+            stale,
             counter,
         })
     }
@@ -197,6 +248,15 @@ fn scrape_metric(body: &str, metric: &str) -> Option<i64> {
         }
     }
     None
+}
+
+/// Fetch a Prometheus text endpoint and pull one gauge out of it. Any failure
+/// along the way — transport, status, body, missing metric — collapses to
+/// `None`, because every caller treats them the same way.
+async fn scrape_gauge(client: &reqwest::Client, url: &str, metric: &str) -> Option<i64> {
+    let resp = client.get(url).send().await.ok()?;
+    let body = resp.text().await.ok()?;
+    scrape_metric(&body, metric)
 }
 
 async fn wait_until_ready(cfg: &Config, client: &reqwest::Client) -> Result<()> {
@@ -311,13 +371,7 @@ async fn main() -> Result<()> {
             let mut last: Option<i64> = None;
             loop {
                 tokio::time::sleep(interval).await;
-                let scraped = match client.get(&url).send().await {
-                    Ok(r) => match r.text().await {
-                        Ok(body) => scrape_metric(&body, &metric),
-                        Err(_) => None,
-                    },
-                    Err(_) => None,
-                };
+                let scraped = scrape_gauge(&client, &url, &metric).await;
                 // A failed scrape leaves the previous value in place. Reporting
                 // zero because a metrics endpoint blipped would tell an
                 // autoscaler the server had emptied.
@@ -341,6 +395,47 @@ async fn main() -> Result<()> {
         });
     }
 
+    if let Some(st) = &cfg.stale {
+        let client = client.clone();
+        let (url, metric, interval, timeout) = (
+            st.metrics_url.clone(),
+            st.metric.clone(),
+            st.interval,
+            st.timeout,
+        );
+        tracing::info!(
+            metric = %metric,
+            timeout_secs = timeout.as_secs(),
+            "staleness watchdog armed"
+        );
+        tokio::spawn(async move {
+            let mut last: Option<i64> = None;
+            let mut moved_at = std::time::Instant::now();
+            loop {
+                tokio::time::sleep(interval).await;
+                // A scrape that fails is not treated as movement. The wedged
+                // case this exists for stopped answering entirely, so an
+                // endpoint that has gone silent has to trip the watchdog too.
+                if let Some(value) = scrape_gauge(&client, &url, &metric).await {
+                    if last != Some(value) {
+                        last = Some(value);
+                        moved_at = std::time::Instant::now();
+                    }
+                }
+                let stalled_for = moved_at.elapsed();
+                if stalled_for > timeout {
+                    tracing::error!(
+                        metric = %metric,
+                        value = ?last,
+                        stalled_secs = stalled_for.as_secs(),
+                        "metric has not moved — game loop is wedged, exiting without Shutdown()"
+                    );
+                    std::process::exit(1);
+                }
+            }
+        });
+    }
+
     let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
         .context("installing SIGTERM handler")?;
     let mut sigint = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())
@@ -348,6 +443,7 @@ async fn main() -> Result<()> {
 
     let mut liveness = tokio::time::interval(cfg.health_interval);
     liveness.tick().await;
+    let mut live_failures = 0u32;
 
     loop {
         tokio::select! {
@@ -360,20 +456,31 @@ async fn main() -> Result<()> {
                 break;
             }
             _ = liveness.tick() => {
-                let mut alive = true;
+                let mut failed = None;
                 for p in &cfg.live {
                     if !p.check(&client).await {
-                        tracing::error!(probe = %p.describe(), "liveness probe failed");
-                        alive = false;
+                        failed = Some(p.describe());
                         break;
                     }
                 }
-                if !alive {
-                    // Stop beating health and let Agones replace the pod. Calling
-                    // Shutdown() here would report a clean exit for a server that
-                    // actually died.
-                    tracing::error!("game server is gone, exiting without Shutdown()");
-                    std::process::exit(1);
+                match failed {
+                    None => live_failures = 0,
+                    Some(probe) => {
+                        live_failures += 1;
+                        tracing::error!(
+                            %probe,
+                            failures = live_failures,
+                            threshold = cfg.live_failure_threshold,
+                            "liveness probe failed"
+                        );
+                        if live_failures >= cfg.live_failure_threshold {
+                            // Stop beating health and let Agones replace the pod. Calling
+                            // Shutdown() here would report a clean exit for a server that
+                            // actually died.
+                            tracing::error!("game server is gone, exiting without Shutdown()");
+                            std::process::exit(1);
+                        }
+                    }
                 }
             }
         }

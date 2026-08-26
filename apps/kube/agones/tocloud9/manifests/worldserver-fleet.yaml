@@ -586,6 +586,20 @@ spec:
                                 value: 'http://127.0.0.1:8901/healthcheck'
                               - name: AGONES_SHIM_LIVE_TCP
                                 value: '8085'
+                              # A wedged worldserver keeps 8085 bound, so TCP alone
+                              # held the GameServer Ready for five hours on
+                              # 2026-08-25 while character creation timed out
+                              # against it. /healthcheck is served off the update
+                              # loop and goes silent with it.
+                              - name: AGONES_SHIM_LIVE_HTTP
+                                value: 'http://127.0.0.1:8901/healthcheck'
+                              # delay_mean is recomputed every tick; frozen for ten
+                              # minutes means the loop stopped even if the endpoint
+                              # still answers.
+                              - name: AGONES_SHIM_STALE_METRIC
+                                value: 'delay_mean'
+                              - name: AGONES_SHIM_STALE_TIMEOUT_SECS
+                                value: '600'
                               # active_connections counts gateway sessions, so this is real players;
                               # bots are server-side and never appear here.
                               - name: AGONES_SHIM_COUNTER_NAME
