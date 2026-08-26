@@ -1,0 +1,15 @@
+[worldserver]
+
+DragonWars.Enable = 1
+
+DragonWars.SquadronSize = 5
+
+DragonWars.PlaneEntry = 27838
+
+DragonWars.DurationSeconds = 900
+
+DragonWars.MaxRange = 40
+
+DragonWars.LeaderOnly = 1
+
+DragonWars.AllowBots = 1
