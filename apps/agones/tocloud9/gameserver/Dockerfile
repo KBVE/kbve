@@ -134,6 +134,7 @@ RUN mkdir -p /repo/modules/mod-playerbots && cd /repo/modules/mod-playerbots && 
 COPY --from=modules mod-underbarrel-bootlegger /repo/modules/mod-underbarrel-bootlegger
 COPY --from=modules mod-rent-a-mount /repo/modules/mod-rent-a-mount
 COPY --from=modules mod-group-xp /repo/modules/mod-group-xp
+COPY --from=modules mod-dragon-wars /repo/modules/mod-dragon-wars
 
 COPY --from=build-sidecar /build/libsidecar-cpp/build/libsidecar.so ./repo/deps/libsidecar/libsidecar.so
 
@@ -231,6 +232,11 @@ COPY --from=build-core /repo/modules/mod-playerbots/data/sql /repo/modules/mod-p
 # an ArgoCD Sync hook in wave 1, ahead of the fleet, leaving a single writer.
 COPY --from=build-core /repo/modules/mod-rent-a-mount/data/sql /repo/modules/mod-rent-a-mount/data/sql
 
+# mod-dragon-wars lands here for the same reason, and adds a characters-side
+# table: the sortie log is per-character state, so its schema goes to
+# acore_characters while the Booty Bay NPC goes to acore_world.
+COPY --from=build-core /repo/modules/mod-dragon-wars/data/sql /repo/modules/mod-dragon-wars/data/sql
+
 WORKDIR /repo/bin
 
 ENTRYPOINT ["./dbimport"]
@@ -284,6 +290,7 @@ COPY --from=modules mod-rent-a-mount/conf/mod_rent_a_mount.conf.dist /repo/bin/e
 # stage only, and an option absent from a loaded conf is not env-overridable, so
 # AC_GROUP_XP_* would bind to nothing.
 COPY --from=modules mod-group-xp/conf/mod_group_xp.conf.dist /repo/bin/etc/modules/mod_group_xp.conf
+COPY --from=modules mod-dragon-wars/conf/mod_dragon_wars.conf.dist /repo/bin/etc/modules/mod_dragon_wars.conf
 
 COPY --from=build-core /repo/bin/bin/worldserver /repo/bin/worldserver
 
