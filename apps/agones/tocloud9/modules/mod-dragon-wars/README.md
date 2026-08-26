@@ -4,7 +4,7 @@ A Booty Bay squadron event. Talk to Sizzik Vaneblast with a full group, and ever
 
 ## What it does
 
-Sizzik Vaneblast (`900400`) stands on the Booty Bay main deck. His single gossip option launches a sortie:
+Sizzik Vaneblast (`900400`) stands on the Booty Bay dock plaza, beside Captain Hecklebury Smotts. His single gossip option launches a sortie:
 
 1. Checks the talker has a group of exactly `DragonWars.SquadronSize` (default 5).
 2. Checks every member is on the same map, within `DragonWars.MaxRange`, alive, out of combat, and not already in a vehicle, mounted, on a taxi, teleporting, or shapeshifted.

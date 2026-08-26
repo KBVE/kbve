@@ -13,15 +13,17 @@ DELETE FROM `creature_template_model` WHERE `CreatureID` = 900400;
 INSERT INTO `creature_template_model` (`CreatureID`, `Idx`, `CreatureDisplayID`, `DisplayScale`, `Probability`) VALUES
 (900400, 0, 7212, 1, 1);
 
--- Booty Bay main deck, z 15.20. Bounded by Crank Fizzlebub (-14453.4, 490.26),
--- Innkeeper Skindle (-14457.7, 495.35) and Zandalarian Emissary (-14449.9,
--- 479.18), all spawned between z 15.19 and 15.21, so this sits on the same
--- flat decking rather than the two-NPC balcony above it.
+-- Booty Bay dock plaza, z 8.95. Planes are summoned at each pilot's own
+-- position, so the airfield needs sky above it -- the tavern deck and the
+-- balcony above that are both roofed. Twelve spawns sit within 18 yards of
+-- this point between z 8.70 and 9.25 (Wonderform Operator at 3.1, Captain
+-- Hecklebury Smotts at 6.1, Sprogger at 8.0), so the decking is flat and the
+-- height is measured rather than guessed.
 DELETE FROM `creature` WHERE `guid` = 9004000;
 INSERT INTO `creature`
 (`guid`, `id`, `map`, `spawnMask`, `phaseMask`, `position_x`, `position_y`, `position_z`, `orientation`,
  `spawntimesecs`, `wander_distance`, `MovementType`, `Comment`) VALUES
-(9004000, 900400, 0, 1, 1, -14449.00, 486.00, 15.20, 1.50, 300, 0, 0, 'mod-dragon-wars Booty Bay');
+(9004000, 900400, 0, 1, 1, -14290.00, 512.00, 8.95, 1.20, 300, 0, 0, 'mod-dragon-wars Booty Bay dock');
 
 DELETE FROM `npc_text` WHERE `ID` = 90040;
 INSERT INTO `npc_text` (`ID`, `text0_0`, `text0_1`, `VerifiedBuild`) VALUES
