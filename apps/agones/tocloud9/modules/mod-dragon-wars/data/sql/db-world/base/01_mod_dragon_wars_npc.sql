@@ -25,6 +25,17 @@ INSERT INTO `creature`
  `spawntimesecs`, `wander_distance`, `MovementType`, `Comment`) VALUES
 (9004000, 900400, 0, 1, 1, -14290.00, 512.00, 8.95, 1.20, 300, 0, 0, 'mod-dragon-wars Booty Bay dock');
 
-DELETE FROM `npc_text` WHERE `ID` = 90040;
+DELETE FROM `npc_text` WHERE `ID` BETWEEN 90040 AND 90042;
 INSERT INTO `npc_text` (`ID`, `text0_0`, `text0_1`, `VerifiedBuild`) VALUES
-(90040, 'The hangar is full and the sky is empty. Bring me five and I will put every one of you in a cockpit.', 'The hangar is full and the sky is empty. Bring me five and I will put every one of you in a cockpit.', 0);
+(90040,
+ 'Five of you, five of them in the hangar. That is the whole arrangement. Get in, get up, and put something sharp into that wyrm before it comes back down the coast and takes another one of my ships.',
+ 'Five of you, five of them in the hangar. That is the whole arrangement. Get in, get up, and put something sharp into that wyrm before it comes back down the coast and takes another one of my ships.',
+ 0),
+(90041,
+ 'Wintergrasp. Where else? The Alliance and the Horde spent a winter shooting each other out of the sky up there, and neither of them thought to count the wrecks afterward. I counted. I shipped. Bloodsail take a cut, the Cartel takes a bigger one, and what is left flies out of my dock. They are salvage, so do not get attached, and do not ask what the previous pilot was called.',
+ 'Wintergrasp. Where else? The Alliance and the Horde spent a winter shooting each other out of the sky up there, and neither of them thought to count the wrecks afterward. I counted. I shipped. Bloodsail take a cut, the Cartel takes a bigger one, and what is left flies out of my dock. They are salvage, so do not get attached, and do not ask what the previous pilot was called.',
+ 0),
+(90042,
+ 'Planes are fuelled and the hangar doors are open, but I am not sending anyone up alone. That thing over the hills eats lone fliers. Bring me a full crew and we will talk about getting you airborne.',
+ 'Planes are fuelled and the hangar doors are open, but I am not sending anyone up alone. That thing over the hills eats lone fliers. Bring me a full crew and we will talk about getting you airborne.',
+ 0);

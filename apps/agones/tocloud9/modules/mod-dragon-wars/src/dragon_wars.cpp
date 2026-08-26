@@ -18,8 +18,13 @@
 
 namespace
 {
-    constexpr uint32 GOSSIP_TEXT_DRAGON_WARS = 90040;
+    constexpr uint32 GOSSIP_TEXT_HANGAR = 90040;
+    constexpr uint32 GOSSIP_TEXT_BRIEFING = 90041;
+    constexpr uint32 GOSSIP_TEXT_NO_SQUADRON = 90042;
+
     constexpr uint32 GOSSIP_ACTION_LAUNCH = 1;
+    constexpr uint32 GOSSIP_ACTION_BRIEFING = 2;
+    constexpr uint32 GOSSIP_ACTION_BACK = 3;
 
     bool Enabled() { return sConfigMgr->GetOption<bool>("DragonWars.Enable", true); }
     uint32 SquadronSize() { return sConfigMgr->GetOption<uint32>("DragonWars.SquadronSize", 5); }
@@ -32,25 +37,25 @@ namespace
     char const* PilotError(Player* pilot)
     {
         if (!pilot->IsAlive())
-            return "is dead";
+            return "is dead, and I do not strap corpses in";
 
         if (pilot->IsInCombat())
-            return "is in combat";
+            return "is still fighting, and I am not fuelling a plane mid-brawl";
 
         if (pilot->GetVehicle())
-            return "is already in a vehicle";
+            return "is already sitting in something with wheels";
 
         if (pilot->IsMounted())
-            return "is mounted";
+            return "needs to get off that animal first";
 
         if (pilot->IsInFlight())
-            return "is on a taxi";
+            return "is on a gryphon, and I do not compete with the flight masters";
 
         if (pilot->IsBeingTeleported())
-            return "is teleporting";
+            return "is halfway to somewhere else";
 
         if (pilot->IsInDisallowedMountForm())
-            return "is shapeshifted";
+            return "is wearing the wrong shape for a cockpit";
 
         return nullptr;
     }
@@ -126,21 +131,22 @@ namespace
         Group* group = leader->GetGroup();
         if (!group)
         {
-            problem = "You need a squadron. Form a group first.";
+            problem = "One pilot is not a squadron. Bring a crew and come back.";
             return pilots;
         }
 
         uint32 required = SquadronSize();
         if (group->GetMembersCount() != required)
         {
-            problem = Acore::StringFormat("A squadron is exactly {} pilots. Yours has {}.",
-                                          required, group->GetMembersCount());
+            problem = Acore::StringFormat(
+                "I have {} airworthy planes in that hangar. Not {}. Bring me exactly {} pilots.",
+                required, group->GetMembersCount(), required);
             return pilots;
         }
 
         if (LeaderOnly() && group->GetLeaderGUID() != leader->GetGUID())
         {
-            problem = "Only the squadron leader can call for planes.";
+            problem = "I deal with whoever is leading. Go and fetch them.";
             return pilots;
         }
 
@@ -151,14 +157,14 @@ namespace
             Player* pilot = itr->GetSource();
             if (!pilot)
             {
-                problem = "One of your pilots is not online.";
+                problem = "One of your crew is not here. I do not fly short-handed.";
                 pilots.clear();
                 return pilots;
             }
 
             if (pilot->GetMapId() != npc->GetMapId() || !pilot->IsWithinDist(npc, range))
             {
-                problem = Acore::StringFormat("{} is too far from the airfield.", pilot->GetName());
+                problem = Acore::StringFormat("{} is nowhere near my dock. Walk them over.", pilot->GetName());
                 pilots.clear();
                 return pilots;
             }
@@ -190,21 +196,36 @@ public:
             return true;
         }
 
-        ClearGossipMenuFor(player);
-
-        AddGossipItemFor(player, GOSSIP_ICON_BATTLE,
-                         Acore::StringFormat("Launch the squadron ({} planes)", SquadronSize()),
-                         GOSSIP_SENDER_MAIN, GOSSIP_ACTION_LAUNCH);
-
-        SendGossipMenuFor(player, GOSSIP_TEXT_DRAGON_WARS, creature->GetGUID());
+        SendHangar(player, creature);
         return true;
     }
 
     bool OnGossipSelect(Player* player, Creature* creature, uint32 /*sender*/, uint32 action) override
     {
+        if (!Enabled() || !SessionAllowed(player))
+        {
+            CloseGossipMenuFor(player);
+            return true;
+        }
+
+        if (action == GOSSIP_ACTION_BRIEFING)
+        {
+            ClearGossipMenuFor(player);
+            AddGossipItemFor(player, GOSSIP_ICON_TALK, "Back to the hangar.", GOSSIP_SENDER_MAIN,
+                             GOSSIP_ACTION_BACK);
+            SendGossipMenuFor(player, GOSSIP_TEXT_BRIEFING, creature->GetGUID());
+            return true;
+        }
+
+        if (action == GOSSIP_ACTION_BACK)
+        {
+            SendHangar(player, creature);
+            return true;
+        }
+
         CloseGossipMenuFor(player);
 
-        if (!Enabled() || !SessionAllowed(player) || action != GOSSIP_ACTION_LAUNCH)
+        if (action != GOSSIP_ACTION_LAUNCH)
             return true;
 
         std::string problem;
@@ -229,7 +250,7 @@ public:
             if (!plane)
             {
                 Scrub(launched);
-                ChatHandler(player->GetSession()).PSendSysMessage("The hangar could not roll out enough planes.");
+                ChatHandler(player->GetSession()).PSendSysMessage("That is the trouble with salvage. Half of them will not start.");
                 return true;
             }
 
@@ -239,7 +260,7 @@ public:
             if (pilot->GetVehicleBase() != plane)
             {
                 Scrub(launched);
-                ChatHandler(player->GetSession()).PSendSysMessage("{} could not climb into a cockpit.", pilot->GetName());
+                ChatHandler(player->GetSession()).PSendSysMessage("{} cannot get the canopy open. Nobody flies until everyone does.", pilot->GetName());
                 return true;
             }
         }
@@ -251,7 +272,8 @@ public:
                                          launched[i]->GetGUID().GetCounter(), entry, duration);
 
             ChatHandler(pilots[i]->GetSession()).PSendSysMessage(
-                "Sortie {} is airborne. You have {} minutes.", sortieId, duration / MINUTE);
+                "Sortie {} is airborne. The Cartel wants the plane back in {} minutes. It does not much care "
+                "about you.", sortieId, duration / MINUTE);
         }
 
         LOG_INFO("module.dragonwars", "Sortie {} launched from Booty Bay with {} pilots, leader {}",
@@ -261,6 +283,23 @@ public:
     }
 
 private:
+    static void SendHangar(Player* player, Creature* creature)
+    {
+        ClearGossipMenuFor(player);
+
+        AddGossipItemFor(player, GOSSIP_ICON_BATTLE,
+                         Acore::StringFormat("We are ready. Roll out {} planes.", SquadronSize()),
+                         GOSSIP_SENDER_MAIN, GOSSIP_ACTION_LAUNCH);
+
+        AddGossipItemFor(player, GOSSIP_ICON_TALK, "Where did you get a hangar full of Wintergrasp planes?",
+                         GOSSIP_SENDER_MAIN, GOSSIP_ACTION_BRIEFING);
+
+        Group* group = player->GetGroup();
+        bool ready = group && group->GetMembersCount() == SquadronSize();
+
+        SendGossipMenuFor(player, ready ? GOSSIP_TEXT_HANGAR : GOSSIP_TEXT_NO_SQUADRON, creature->GetGUID());
+    }
+
     static void Scrub(std::vector<TempSummon*>& launched)
     {
         for (TempSummon* plane : launched)
