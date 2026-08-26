@@ -1,7 +1,7 @@
 {
-	"generated_at": "2026-08-25T02:22:08Z",
+	"generated_at": "2026-08-26T02:28:46Z",
 	"node": {
-		"count": 125,
+		"count": 126,
 		"major": 21,
 		"items": [
 			{
@@ -16,7 +16,7 @@
 				"name": "@astrojs/mdx",
 				"current": "7.0.5",
 				"wanted": "7.0.5",
-				"latest": "7.0.7",
+				"latest": "7.0.8",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -25,6 +25,14 @@
 				"current": "6.0.2",
 				"wanted": "6.0.2",
 				"latest": "6.0.4",
+				"type": "devDependencies",
+				"major": false
+			},
+			{
+				"name": "@astrojs/starlight",
+				"current": "0.41.7",
+				"wanted": "0.41.7",
+				"latest": "0.41.8",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -120,7 +128,7 @@
 				"name": "@hcaptcha/react-hcaptcha",
 				"current": "2.0.2",
 				"wanted": "2.0.2",
-				"latest": "2.1.0",
+				"latest": "2.2.0",
 				"type": "dependencies",
 				"major": false
 			},
@@ -280,7 +288,7 @@
 				"name": "@tanstack/query-core",
 				"current": "5.100.5",
 				"wanted": "5.100.5",
-				"latest": "5.102.2",
+				"latest": "5.102.3",
 				"type": "dependencies",
 				"major": false
 			},
@@ -288,7 +296,7 @@
 				"name": "@tanstack/react-query",
 				"current": "5.101.4",
 				"wanted": "5.101.4",
-				"latest": "5.102.2",
+				"latest": "5.102.3",
 				"type": "dependencies",
 				"major": false
 			},
@@ -296,7 +304,7 @@
 				"name": "@tanstack/react-query-persist-client",
 				"current": "5.101.0",
 				"wanted": "5.101.0",
-				"latest": "5.102.2",
+				"latest": "5.102.3",
 				"type": "dependencies",
 				"major": false
 			},
@@ -384,7 +392,7 @@
 				"name": "@types/node",
 				"current": "18.19.17",
 				"wanted": "18.19.17",
-				"latest": "26.2.0",
+				"latest": "26.3.0",
 				"type": "devDependencies",
 				"major": true
 			},
@@ -424,7 +432,7 @@
 				"name": "@typescript-eslint/eslint-plugin",
 				"current": "8.66.0",
 				"wanted": "8.66.0",
-				"latest": "8.67.0",
+				"latest": "8.68.0",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -432,7 +440,7 @@
 				"name": "@typescript-eslint/parser",
 				"current": "8.66.0",
 				"wanted": "8.66.0",
-				"latest": "8.67.0",
+				"latest": "8.68.0",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -488,7 +496,7 @@
 				"name": "astro",
 				"current": "7.2.2",
 				"wanted": "7.2.2",
-				"latest": "7.2.4",
+				"latest": "7.2.6",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -560,7 +568,7 @@
 				"name": "eslint",
 				"current": "9.39.5",
 				"wanted": "9.39.5",
-				"latest": "10.9.0",
+				"latest": "10.9.1",
 				"type": "devDependencies",
 				"major": true
 			},
@@ -704,7 +712,7 @@
 				"name": "marked",
 				"current": "18.0.2",
 				"wanted": "18.0.2",
-				"latest": "18.0.10",
+				"latest": "18.0.11",
 				"type": "dependencies",
 				"major": false
 			},
@@ -720,7 +728,7 @@
 				"name": "mermaid",
 				"current": "11.15.0",
 				"wanted": "11.15.0",
-				"latest": "11.17.1",
+				"latest": "11.17.2",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -936,7 +944,7 @@
 				"name": "typescript-eslint",
 				"current": "8.65.0",
 				"wanted": "8.65.0",
-				"latest": "8.67.0",
+				"latest": "8.68.0",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -1007,7 +1015,7 @@
 		]
 	},
 	"rust": {
-		"count": 260,
+		"count": 263,
 		"major": 1,
 		"items": [
 			{
@@ -1025,7 +1033,7 @@
 			{
 				"name": "actix-server",
 				"current": "2.6.0",
-				"latest": "2.8.0",
+				"latest": "2.9.0",
 				"major": false
 			},
 			{
@@ -1167,6 +1175,12 @@
 				"major": false
 			},
 			{
+				"name": "async-rs",
+				"current": "0.8.11",
+				"latest": "0.8.12",
+				"major": false
+			},
+			{
 				"name": "async-trait",
 				"current": "0.1.91",
 				"latest": "0.1.92",
@@ -1199,25 +1213,25 @@
 			{
 				"name": "aws-sdk-s3",
 				"current": "1.138.1",
-				"latest": "1.143.0",
+				"latest": "1.144.0",
 				"major": false
 			},
 			{
 				"name": "aws-sdk-sso",
 				"current": "1.103.0",
-				"latest": "1.107.0",
+				"latest": "1.108.0",
 				"major": false
 			},
 			{
 				"name": "aws-sdk-ssooidc",
 				"current": "1.105.0",
-				"latest": "1.109.0",
+				"latest": "1.110.0",
 				"major": false
 			},
 			{
 				"name": "aws-sdk-sts",
 				"current": "1.108.0",
-				"latest": "1.112.0",
+				"latest": "1.113.0",
 				"major": false
 			},
 			{
@@ -1731,6 +1745,12 @@
 				"major": false
 			},
 			{
+				"name": "combine",
+				"current": "4.6.7",
+				"latest": "4.6.8",
+				"major": false
+			},
+			{
 				"name": "const_panic",
 				"current": "0.2.15",
 				"latest": "0.2.17",
@@ -2223,6 +2243,12 @@
 				"major": false
 			},
 			{
+				"name": "rand",
+				"current": "0.8.7",
+				"latest": "0.8.8",
+				"major": false
+			},
+			{
 				"name": "rapier3d",
 				"current": "0.35.1",
 				"latest": "0.35.2",
@@ -2572,6 +2598,6 @@
 			}
 		]
 	},
-	"total": 385,
+	"total": 389,
 	"major_total": 22
 }
