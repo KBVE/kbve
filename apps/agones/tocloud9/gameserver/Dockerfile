@@ -40,7 +40,7 @@
 # Still pinned by SHA, not branch: these three are a matched set (mmaps format,
 # wire protocol, group API) and must move together.
 ARG TOCLOUD9_REPO=https://github.com/KBVE/ToCloud9.git
-ARG TOCLOUD9_REF=b594332501af67d7504d35ded9ef736bd78645a1
+ARG TOCLOUD9_REF=f29be8274cc26af2ba56dad5c97e2b8354a989b3
 ARG AC_REPO=https://github.com/KBVE/azerothcore-wotlk.git
 ARG AC_REF=907c29b947cf868af747a0dd62bccbc66dd73b1b
 ARG PLAYERBOTS_REPO=https://github.com/KBVE/mod-playerbots.git
