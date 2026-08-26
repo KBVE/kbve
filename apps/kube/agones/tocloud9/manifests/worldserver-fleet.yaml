@@ -436,6 +436,27 @@ spec:
                                 value: '5000'
                               - name: AC_AI_PLAYERBOT_RANDOM_BOT_AUTOLOGIN
                                 value: '1'
+                              # Left unset, IsMapServedByClusterBots() returns
+                              # true for EVERY map -- see the Dockerfile note on
+                              # why the key has to exist in playerbots.conf at
+                              # all. That makes a bot inside a dungeon or a
+                              # battleground a cluster-pool candidate and hands
+                              # it to whichever shard owns instances, which has
+                              # no pool for it.
+                              #
+                              # docker-compose.shards.yml has carried the
+                              # correct value since the partition landed; the
+                              # Fleets never got it, so production has been
+                              # running the permissive default. Measured on
+                              # 2026-08-26: one bot handed off 128 times, and a
+                              # BG participant hitting
+                              # "blocked teleport ... (bg instance ... status 3)".
+                              #
+                              # The five maps are the continents plus the Death
+                              # Knight start -- every instanced map is excluded
+                              # on purpose.
+                              - name: AC_AI_PLAYERBOT_CLUSTER_BOT_MAPS
+                                value: '0,1,530,571,609'
                               # Cluster wiring. The bare names are what the
                               # AzerothCore cluster patch reads and are the set
                               # verified working in apps/agones/tocloud9; the
