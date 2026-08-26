@@ -614,13 +614,18 @@ spec:
                               # loop and goes silent with it.
                               - name: AGONES_SHIM_LIVE_HTTP
                                 value: 'http://127.0.0.1:8901/healthcheck'
-                              # delay_mean is recomputed every tick; frozen for ten
-                              # minutes means the loop stopped even if the endpoint
-                              # still answers.
-                              - name: AGONES_SHIM_STALE_METRIC
-                                value: 'delay_mean'
-                              - name: AGONES_SHIM_STALE_TIMEOUT_SECS
-                                value: '600'
+                              # No staleness watchdog here: every gauge this
+                              # endpoint exposes is computed over the same
+                              # 500-diff window and converges to a fixed integer
+                              # on an idle-but-healthy server. Measured
+                              # 2026-08-26: delay_mean, delay_median, all three
+                              # delay percentiles and delay_max sat flat for 300s+
+                              # simultaneously on two healthy worldservers, which
+                              # is indistinguishable from the wedge it was meant
+                              # to catch. LIVE_HTTP above is the real detector --
+                              # the wedged server answered in 4.57s mean against
+                              # the shim's 3s client timeout, while a healthy one
+                              # answers in 45ms.
                               # active_connections counts gateway sessions, so this is real players;
                               # bots are server-side and never appear here.
                               - name: AGONES_SHIM_COUNTER_NAME
