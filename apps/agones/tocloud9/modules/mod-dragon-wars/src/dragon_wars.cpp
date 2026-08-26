@@ -25,6 +25,7 @@ namespace
     constexpr uint32 GOSSIP_ACTION_LAUNCH = 1;
     constexpr uint32 GOSSIP_ACTION_BRIEFING = 2;
     constexpr uint32 GOSSIP_ACTION_BACK = 3;
+    constexpr uint32 GOSSIP_ACTION_RECALL = 4;
 
     bool Enabled() { return sConfigMgr->GetOption<bool>("DragonWars.Enable", true); }
     uint32 SquadronSize() { return sConfigMgr->GetOption<uint32>("DragonWars.SquadronSize", 5); }
@@ -123,6 +124,46 @@ namespace
         bool _available = false;
         uint64 _nextId = 1;
     };
+
+    std::vector<Player*> Squad(Player* player)
+    {
+        std::vector<Player*> squad;
+
+        Group* group = player->GetGroup();
+        if (!group)
+        {
+            squad.push_back(player);
+            return squad;
+        }
+
+        for (GroupReference* itr = group->GetFirstMember(); itr != nullptr; itr = itr->next())
+            if (Player* member = itr->GetSource())
+                squad.push_back(member);
+
+        return squad;
+    }
+
+    Creature* PilotedPlane(Player* player)
+    {
+        Unit* base = player->GetVehicleBase();
+        if (!base)
+            return nullptr;
+
+        Creature* plane = base->ToCreature();
+        if (!plane || plane->GetEntry() != PlaneEntry())
+            return nullptr;
+
+        return plane;
+    }
+
+    bool SquadIsFlying(Player* player)
+    {
+        for (Player* member : Squad(player))
+            if (PilotedPlane(member))
+                return true;
+
+        return false;
+    }
 
     std::vector<Player*> Roster(Player* leader, Creature* npc, std::string& problem)
     {
@@ -225,6 +266,12 @@ public:
 
         CloseGossipMenuFor(player);
 
+        if (action == GOSSIP_ACTION_RECALL)
+        {
+            Recall(player);
+            return true;
+        }
+
         if (action != GOSSIP_ACTION_LAUNCH)
             return true;
 
@@ -291,6 +338,10 @@ private:
                          Acore::StringFormat("We are ready. Roll out {} planes.", SquadronSize()),
                          GOSSIP_SENDER_MAIN, GOSSIP_ACTION_LAUNCH);
 
+        if (SquadIsFlying(player))
+            AddGossipItemFor(player, GOSSIP_ICON_TAXI, "That is enough for today. Bring them home.",
+                             GOSSIP_SENDER_MAIN, GOSSIP_ACTION_RECALL);
+
         AddGossipItemFor(player, GOSSIP_ICON_TALK, "Where did you get a hangar full of Wintergrasp planes?",
                          GOSSIP_SENDER_MAIN, GOSSIP_ACTION_BRIEFING);
 
@@ -298,6 +349,30 @@ private:
         bool ready = group && group->GetMembersCount() == SquadronSize();
 
         SendGossipMenuFor(player, ready ? GOSSIP_TEXT_HANGAR : GOSSIP_TEXT_NO_SQUADRON, creature->GetGUID());
+    }
+
+    static void Recall(Player* player)
+    {
+        uint32 returned = 0;
+
+        for (Player* member : Squad(player))
+        {
+            Creature* plane = PilotedPlane(member);
+            if (!plane)
+                continue;
+
+            if (Vehicle* vehicle = plane->GetVehicleKit())
+                vehicle->RemoveAllPassengers();
+
+            plane->DespawnOrUnsummon();
+            ++returned;
+
+            ChatHandler(member->GetSession()).PSendSysMessage("Sizzik waves you down. The sortie is over.");
+        }
+
+        ChatHandler(player->GetSession()).PSendSysMessage(
+            "{} plane{} back in the hangar. Fewer than I lent out, but that is the business.",
+            returned, returned == 1 ? "" : "s");
     }
 
     static void Scrub(std::vector<TempSummon*>& launched)

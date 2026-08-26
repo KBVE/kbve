@@ -12,6 +12,10 @@ Sizzik Vaneblast (`900400`) stands on the Booty Bay dock plaza, beside Captain H
 4. Seats each member in their plane.
 5. Writes one row per pilot to `mod_dragon_wars_sorties`.
 
+Talking to him again while anyone in the group is still piloting a plane offers **Bring them home**, which ejects every pilot and despawns their plane immediately rather than waiting out the timer.
+
+Recall works by scanning the group for members whose `GetVehicleBase()` is a creature of `DragonWars.PlaneEntry`, so it needs no stored state and survives a worldserver restart mid-sortie. The limitation is that it only finds planes with a pilot still aboard — one whose pilot logged out is left to the despawn timer.
+
 The planes are `TEMPSUMMON_TIMED_DESPAWN` for `DragonWars.DurationSeconds` (default 900), so the sortie cleans itself up. There is no despawn hook to get wrong.
 
 ## Why it seats pilots directly
