@@ -75,7 +75,22 @@ namespace
 
         void Load()
         {
+            _available = false;
             _nextId = 1;
+
+            QueryResult probe = CharacterDatabase.Query(
+                "SELECT COUNT(*) FROM `information_schema`.`TABLES` "
+                "WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = 'mod_dragon_wars_sorties'");
+
+            if (!probe || !(*probe)[0].Get<uint64>())
+            {
+                LOG_WARN("module.dragonwars",
+                         "mod_dragon_wars_sorties is missing. Squadrons will still launch, but no sortie will be "
+                         "logged. Apply the module's db-characters SQL to enable logging.");
+                return;
+            }
+
+            _available = true;
 
             if (QueryResult result = CharacterDatabase.Query("SELECT MAX(`sortie_id`) FROM `mod_dragon_wars_sorties`"))
                 if (!(*result)[0].IsNull())
@@ -87,6 +102,9 @@ namespace
         void Record(uint64 sortieId, ObjectGuid::LowType leader, ObjectGuid::LowType pilot,
                     ObjectGuid::LowType plane, uint32 entry, uint32 duration)
         {
+            if (!_available)
+                return;
+
             uint64 now = static_cast<uint64>(std::time(nullptr));
 
             CharacterDatabase.Execute(
@@ -97,6 +115,7 @@ namespace
         }
 
     private:
+        bool _available = false;
         uint64 _nextId = 1;
     };
 
