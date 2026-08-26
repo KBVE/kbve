@@ -78,7 +78,7 @@ spec:
                             type: RuntimeDefault
                     containers:
                         - name: gateway
-                          image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.3
+                          image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.4
                           # One image carries every ToCloud9 service; pick this one.
                           command: ['/app/gateway']
                           imagePullPolicy: IfNotPresent
@@ -147,7 +147,7 @@ spec:
                                   drop:
                                       - ALL
                         - name: agones-bridge
-                          image: ghcr.io/kbve/agones-shim:0.0.3
+                          image: ghcr.io/kbve/agones-shim:0.0.4
                           imagePullPolicy: IfNotPresent
                           env:
                               # Without a deadline the shim waits for readiness forever. When the

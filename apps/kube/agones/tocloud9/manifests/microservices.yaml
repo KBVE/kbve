@@ -54,7 +54,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: servers-registry
-                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.3
+                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.4
                   # One image carries every ToCloud9 service; pick this one.
                   command: ['/app/servers-registry']
                   imagePullPolicy: IfNotPresent
@@ -128,7 +128,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: charserver
-                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.3
+                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.4
                   # One image carries every ToCloud9 service; pick this one.
                   command: ['/app/charserver']
                   imagePullPolicy: IfNotPresent
@@ -210,7 +210,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: chatserver
-                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.3
+                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.4
                   # One image carries every ToCloud9 service; pick this one.
                   command: ['/app/chatserver']
                   imagePullPolicy: IfNotPresent
@@ -289,7 +289,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: guildserver
-                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.3
+                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.4
                   # One image carries every ToCloud9 service; pick this one.
                   command: ['/app/guildserver']
                   imagePullPolicy: IfNotPresent
@@ -367,7 +367,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: guidserver
-                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.3
+                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.4
                   # One image carries every ToCloud9 service; pick this one.
                   command: ['/app/guidserver']
                   imagePullPolicy: IfNotPresent
@@ -444,7 +444,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: mailserver
-                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.3
+                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.4
                   # One image carries every ToCloud9 service; pick this one.
                   command: ['/app/mailserver']
                   imagePullPolicy: IfNotPresent
@@ -521,7 +521,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: auctionhouse
-                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.3
+                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.4
                   # One image carries every ToCloud9 service; pick this one.
                   command: ['/app/auctionhouse']
                   imagePullPolicy: IfNotPresent
@@ -607,7 +607,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: groupserver
-                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.3
+                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.4
                   # One image carries every ToCloud9 service; pick this one.
                   command: ['/app/groupserver']
                   imagePullPolicy: IfNotPresent
@@ -684,7 +684,7 @@ spec:
                     type: RuntimeDefault
             containers:
                 - name: matchmakingserver
-                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.3
+                  image: ghcr.io/kbve/tocloud9-services-playerbots:0.0.4
                   # One image carries every ToCloud9 service; pick this one.
                   command: ['/app/matchmakingserver']
                   imagePullPolicy: IfNotPresent

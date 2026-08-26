@@ -556,7 +556,7 @@ spec:
                                   drop:
                                       - ALL
                         - name: agones-bridge
-                          image: ghcr.io/kbve/agones-shim:0.0.3
+                          image: ghcr.io/kbve/agones-shim:0.0.4
                           imagePullPolicy: IfNotPresent
                           env:
                               # An HTTP 200 here means libsidecar is up, which happens within
