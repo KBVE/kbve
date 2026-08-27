@@ -1,5 +1,5 @@
 {
-	"generated_at": "2026-08-26T02:28:46Z",
+	"generated_at": "2026-08-27T10:59:28Z",
 	"node": {
 		"count": 126,
 		"major": 21,
@@ -32,7 +32,7 @@
 				"name": "@astrojs/starlight",
 				"current": "0.41.7",
 				"wanted": "0.41.7",
-				"latest": "0.41.8",
+				"latest": "0.41.9",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -288,7 +288,7 @@
 				"name": "@tanstack/query-core",
 				"current": "5.100.5",
 				"wanted": "5.100.5",
-				"latest": "5.102.3",
+				"latest": "5.102.6",
 				"type": "dependencies",
 				"major": false
 			},
@@ -296,7 +296,7 @@
 				"name": "@tanstack/react-query",
 				"current": "5.101.4",
 				"wanted": "5.101.4",
-				"latest": "5.102.3",
+				"latest": "5.102.6",
 				"type": "dependencies",
 				"major": false
 			},
@@ -304,7 +304,7 @@
 				"name": "@tanstack/react-query-persist-client",
 				"current": "5.101.0",
 				"wanted": "5.101.0",
-				"latest": "5.102.3",
+				"latest": "5.102.6",
 				"type": "dependencies",
 				"major": false
 			},
@@ -488,7 +488,7 @@
 				"name": "@xyflow/react",
 				"current": "12.11.1",
 				"wanted": "12.11.1",
-				"latest": "12.11.3",
+				"latest": "12.11.5",
 				"type": "dependencies",
 				"major": false
 			},
@@ -496,7 +496,7 @@
 				"name": "astro",
 				"current": "7.2.2",
 				"wanted": "7.2.2",
-				"latest": "7.2.6",
+				"latest": "7.2.8",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -520,7 +520,7 @@
 				"name": "babel-preset-expo",
 				"current": "57.0.6",
 				"wanted": "57.0.6",
-				"latest": "57.0.8",
+				"latest": "57.0.9",
 				"type": "dependencies",
 				"major": false
 			},
@@ -536,7 +536,7 @@
 				"name": "cssnano",
 				"current": "7.1.4",
 				"wanted": "7.1.4",
-				"latest": "8.0.8",
+				"latest": "8.0.10",
 				"type": "devDependencies",
 				"major": true
 			},
@@ -584,7 +584,7 @@
 				"name": "expo",
 				"current": "57.0.9",
 				"wanted": "57.0.9",
-				"latest": "57.0.16",
+				"latest": "57.0.17",
 				"type": "dependencies",
 				"major": false
 			},
@@ -592,7 +592,7 @@
 				"name": "expo-auth-session",
 				"current": "57.0.5",
 				"wanted": "57.0.5",
-				"latest": "57.0.9",
+				"latest": "57.0.10",
 				"type": "dependencies",
 				"major": false
 			},
@@ -600,7 +600,7 @@
 				"name": "expo-build-properties",
 				"current": "57.0.8",
 				"wanted": "57.0.8",
-				"latest": "57.0.14",
+				"latest": "57.0.15",
 				"type": "dependencies",
 				"major": false
 			},
@@ -608,7 +608,7 @@
 				"name": "expo-dev-client",
 				"current": "57.0.10",
 				"wanted": "57.0.10",
-				"latest": "57.0.15",
+				"latest": "57.0.16",
 				"type": "dependencies",
 				"major": false
 			},
@@ -616,7 +616,7 @@
 				"name": "expo-linking",
 				"current": "57.0.4",
 				"wanted": "57.0.4",
-				"latest": "57.0.7",
+				"latest": "57.0.8",
 				"type": "dependencies",
 				"major": false
 			},
@@ -624,7 +624,7 @@
 				"name": "expo-modules-core",
 				"current": "57.0.8",
 				"wanted": "57.0.8",
-				"latest": "57.0.13",
+				"latest": "57.0.14",
 				"type": "dependencies",
 				"major": false
 			},
@@ -648,7 +648,7 @@
 				"name": "happy-dom",
 				"current": "20.10.6",
 				"wanted": "20.10.6",
-				"latest": "20.11.6",
+				"latest": "20.11.8",
 				"type": "dependencies",
 				"major": false
 			},
@@ -808,7 +808,7 @@
 				"name": "react-native",
 				"current": "0.86.2",
 				"wanted": "0.86.2",
-				"latest": "0.87.0",
+				"latest": "0.87.1",
 				"type": "dependencies",
 				"major": false
 			},
@@ -952,7 +952,7 @@
 				"name": "verdaccio",
 				"current": "6.5.1",
 				"wanted": "6.5.1",
-				"latest": "6.10.0",
+				"latest": "6.10.1",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -2449,7 +2449,7 @@
 			{
 				"name": "uuid",
 				"current": "1.24.0",
-				"latest": "1.25.0",
+				"latest": "1.26.0",
 				"major": false
 			},
 			{
