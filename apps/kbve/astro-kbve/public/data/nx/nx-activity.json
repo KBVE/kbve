@@ -1,16 +1,16 @@
 {
-  "generated_at": "2026-08-26T02:24:49Z",
+  "generated_at": "2026-08-27T10:55:53Z",
   "window": {
     "days": 7,
-    "since": "2026-08-19T02:24:49Z"
+    "since": "2026-08-20T10:55:53Z"
   },
   "commits": {
-    "total": 314,
+    "total": 271,
     "authors": 3,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 185
+        "commits": 142
       },
       {
         "author": "github-actions[bot]",
@@ -23,158 +23,158 @@
     ],
     "recent": [
       {
-        "sha": "aeadce2",
+        "sha": "38b80a7",
         "author": "h0lybyte",
-        "message": "Merge pull request #16398 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/aeadce29cf0fa066231736e7d5121492498d6fe7",
-        "date": "2026-08-25T17:02:19Z"
+        "message": "Merge pull request #16443 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/38b80a7ac5f9cb66ed4a1b991b6eb8c715e1b417",
+        "date": "2026-08-26T17:36:00Z"
       },
       {
-        "sha": "3e10f33",
+        "sha": "dad0332",
         "author": "github-actions[bot]",
-        "message": "fix(tocloud9): keep shard b's image pins in the release pipeline (#16397)",
-        "url": "https://github.com/KBVE/kbve/commit/3e10f332b8e369667f765946fe680a2a7a0555eb",
-        "date": "2026-08-25T16:57:07Z"
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#16445)",
+        "url": "https://github.com/KBVE/kbve/commit/dad03327351d21dd72a5ace82422ad73f988e9fe",
+        "date": "2026-08-26T17:32:42Z"
       },
       {
-        "sha": "55d1b98",
+        "sha": "1a182cc",
         "author": "h0lybyte",
-        "message": "Merge pull request #16396 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/55d1b9872129a23af6fd64a38b36e3c258900679",
-        "date": "2026-08-25T13:54:23Z"
+        "message": "fix(tocloud9-gameserver): pin the LFG cluster group fixes (#16444)",
+        "url": "https://github.com/KBVE/kbve/commit/1a182cc95d9af5aaf2575d90922f8dab83de5199",
+        "date": "2026-08-26T17:29:46Z"
       },
       {
-        "sha": "84d0452",
+        "sha": "0bf2dfb",
         "author": "github-actions[bot]",
-        "message": "chore(tocloud9-gameserver): post-publish sync to v0.0.6 (#16395)",
-        "url": "https://github.com/KBVE/kbve/commit/84d0452e5c03211c22855e4ec86e0e1052af922e",
-        "date": "2026-08-25T11:32:49Z"
+        "message": "chore(tocloud9-gameserver): post-publish sync to v0.0.11 (#16442)",
+        "url": "https://github.com/KBVE/kbve/commit/0bf2dfbf877216f49fe659293d90e576e4a7cc6c",
+        "date": "2026-08-26T12:27:09Z"
       },
       {
-        "sha": "ca11412",
+        "sha": "d119646",
+        "author": "github-actions[bot]",
+        "message": "chore(irc-gateway): post-publish sync to v0.1.32 (#16441)",
+        "url": "https://github.com/KBVE/kbve/commit/d119646a501b5d1e7f59e41a7cc6dac617a41e0e",
+        "date": "2026-08-26T12:26:21Z"
+      },
+      {
+        "sha": "47ae890",
         "author": "h0lybyte",
-        "message": "Merge pull request #16393 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/ca114129dc69fa661b1a947515eab2b114fbdf9d",
-        "date": "2026-08-25T11:12:29Z"
+        "message": "Merge pull request #16439 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/47ae890460ccb9d5d0373075aa4864204e035fec",
+        "date": "2026-08-26T12:06:19Z"
       },
       {
-        "sha": "202420b",
+        "sha": "ef41a18",
         "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#16394)",
-        "url": "https://github.com/KBVE/kbve/commit/202420ba1cf2f004febc7169e25a611cf76b0622",
-        "date": "2026-08-25T05:14:15Z"
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#16440)",
+        "url": "https://github.com/KBVE/kbve/commit/ef41a180e3f1edd3708659227de6d4b544e73ee0",
+        "date": "2026-08-26T11:39:01Z"
       },
       {
-        "sha": "4e3cbc2",
+        "sha": "9adf349",
         "author": "github-actions[bot]",
-        "message": "feat(tocloud9): run 2000 bots on each shard (#16392)",
-        "url": "https://github.com/KBVE/kbve/commit/4e3cbc226401f11d8cbb19fc8cb01684bc086c05",
-        "date": "2026-08-25T05:12:05Z"
+        "message": "chore(irc-gateway): release v0.1.32 (#16438)",
+        "url": "https://github.com/KBVE/kbve/commit/9adf3492c4d618f58ce4666a5c426261b924d431",
+        "date": "2026-08-26T11:34:32Z"
       },
       {
-        "sha": "7b53704",
+        "sha": "94c3fb1",
         "author": "h0lybyte",
-        "message": "Merge pull request #16391 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/7b53704015a0fd329a0ed8ad3a6f31a0d155b15c",
-        "date": "2026-08-25T03:12:09Z"
+        "message": "feat(mod-dragon-wars): give Sizzik a briefing, a voice, and a way to end the sortie (#16437)",
+        "url": "https://github.com/KBVE/kbve/commit/94c3fb16d33635b35af8d1a723737bceb7c322c8",
+        "date": "2026-08-26T11:34:21Z"
       },
       {
-        "sha": "0b6aad7",
-        "author": "github-actions[bot]",
-        "message": "chore(content): daily security scaffold [skip ci] (#16390)",
-        "url": "https://github.com/KBVE/kbve/commit/0b6aad7d2d5d02919f7bfc350fc3719e6055f384",
-        "date": "2026-08-25T02:22:57Z"
+        "sha": "007c91a",
+        "author": "h0lybyte",
+        "message": "Merge pull request #16436 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/007c91aa578a9c8a68d575a6b9bc606964fefa86",
+        "date": "2026-08-26T10:26:20Z"
       },
       {
-        "sha": "b151bcc",
+        "sha": "321803f",
         "author": "github-actions[bot]",
-        "message": "chore(content): daily deps scaffold [skip ci] (#16389)",
-        "url": "https://github.com/KBVE/kbve/commit/b151bcccc9d685bd5c914a45c61baa5ab3a06cfa",
-        "date": "2026-08-25T02:22:55Z"
+        "message": "chore(tocloud9-gameserver): post-publish sync to v0.0.10 (#16435)",
+        "url": "https://github.com/KBVE/kbve/commit/321803f4d23a1e4c1beeccdd19d99a2f4640b918",
+        "date": "2026-08-26T10:13:34Z"
       },
       {
-        "sha": "9236d4b",
-        "author": "github-actions[bot]",
-        "message": "chore(content): daily report scaffold [skip ci] (#16388)",
-        "url": "https://github.com/KBVE/kbve/commit/9236d4b9bc2659a22dc054f58aa336f7c3d0b6ff",
-        "date": "2026-08-25T02:21:24Z"
-      },
-      {
-        "sha": "5a758bc",
-        "author": "github-actions[bot]",
-        "message": "chore(content): daily graph scaffold [skip ci] (#16386)",
-        "url": "https://github.com/KBVE/kbve/commit/5a758bcf2331c1ef498158ef3eebcb649eabb1d9",
-        "date": "2026-08-25T02:21:14Z"
+        "sha": "f49a215",
+        "author": "h0lybyte",
+        "message": "Merge pull request #16434 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/f49a215541bfe260d29b9b230fdf9699ef3f3f4d",
+        "date": "2026-08-26T09:53:58Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 288,
+    "merged": 283,
     "recent": [
       {
-        "number": 16402,
+        "number": 16446,
+        "title": "Atomic: tocloud9-gameserver v0.0.12 post-publish sync",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16446"
+      },
+      {
+        "number": 16443,
+        "title": "Release: 1 fix, 2 chores \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16443"
+      },
+      {
+        "number": 16445,
         "title": "chore(ci): sync ci-dispatch-manifest",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16402"
+        "url": "https://github.com/KBVE/kbve/pull/16445"
       },
       {
-        "number": 16400,
-        "title": "feat(tocloud9-gameserver): bots fight from vehicles outside battlegrounds",
+        "number": 16444,
+        "title": "fix(tocloud9-gameserver): pin the LFG cluster group fixes",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16400"
+        "url": "https://github.com/KBVE/kbve/pull/16444"
       },
       {
-        "number": 16398,
-        "title": "Release: 1 fix \u2192 Main",
+        "number": 16442,
+        "title": "Atomic: tocloud9-gameserver v0.0.11 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16398"
+        "url": "https://github.com/KBVE/kbve/pull/16442"
       },
       {
-        "number": 16397,
-        "title": "Atomic: tc9 shard b pins",
+        "number": 16441,
+        "title": "Atomic: irc-gateway v0.1.32 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16397"
+        "url": "https://github.com/KBVE/kbve/pull/16441"
       },
       {
-        "number": 16396,
-        "title": "Release: 1 chore \u2192 Main",
+        "number": 16439,
+        "title": "Release: 1 feature, 1 chore \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16396"
+        "url": "https://github.com/KBVE/kbve/pull/16439"
       },
       {
-        "number": 16395,
-        "title": "Atomic: tocloud9-gameserver v0.0.6 post-publish sync",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16395"
-      },
-      {
-        "number": 16393,
-        "title": "Release: 1 feature \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16393"
-      },
-      {
-        "number": 16394,
+        "number": 16440,
         "title": "chore(ci): sync ci-dispatch-manifest",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16394"
+        "url": "https://github.com/KBVE/kbve/pull/16440"
       },
       {
-        "number": 16392,
-        "title": "Atomic: tc9 cluster pool",
+        "number": 16438,
+        "title": "Atomic: irc gateway relay fix",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16392"
+        "url": "https://github.com/KBVE/kbve/pull/16438"
       },
       {
-        "number": 16391,
-        "title": "Dev",
+        "number": 16437,
+        "title": "feat(mod-dragon-wars): give Sizzik a briefing, a voice, and a way to end the sortie",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16391"
+        "url": "https://github.com/KBVE/kbve/pull/16437"
       }
     ]
   },
   "issues": {
-    "opened": 296,
-    "closed": 289
+    "opened": 290,
+    "closed": 284
   }
 }
