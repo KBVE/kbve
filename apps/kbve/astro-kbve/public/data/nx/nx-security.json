@@ -1,11 +1,11 @@
 {
-	"generated_at": "2026-08-27T11:00:43Z",
+	"generated_at": "2026-08-28T12:34:21Z",
 	"summary": {
 		"critical": 4,
 		"high": 55,
 		"medium": 62,
 		"low": 11,
-		"info": 32
+		"info": 33
 	},
 	"ecosystems": {
 		"npm": {
@@ -789,36 +789,36 @@
 					"url": "https://github.com/advisories/GHSA-q3j6-qgpj-74h6"
 				},
 				{
-					"id": "1145561",
-					"title": "fast-uri vulnerable to host confusion via percent-encoded authority delimiters",
+					"id": "1145647",
+					"title": "node-tar: Uncontrolled recursion in mapHas/filesFilter allows uncatchable stack-overflow DoS via crafted long-path tar with member selection",
 					"severity": "high",
-					"package": "fast-uri",
-					"url": "https://github.com/advisories/GHSA-v39h-62p7-jpjc"
+					"package": "tar",
+					"url": "https://github.com/advisories/GHSA-r292-9mhp-454m"
 				},
 				{
-					"id": "1145636",
+					"id": "1146555",
 					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
 					"severity": "high",
 					"package": "fast-uri",
 					"url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
 				},
 				{
-					"id": "1145647",
-					"title": "node-tar: Uncontrolled recursion in mapHas/filesFilter allows uncatchable stack-overflow DoS via crafted long-path tar with member selection",
+					"id": "1146558",
+					"title": "fast-uri vulnerable to host confusion via percent-encoded authority delimiters",
 					"severity": "high",
-					"package": "tar",
-					"url": "https://github.com/advisories/GHSA-r292-9mhp-454m"
+					"package": "fast-uri",
+					"url": "https://github.com/advisories/GHSA-v39h-62p7-jpjc"
 				}
 			]
 		},
 		"cargo": {
-			"total": 51,
+			"total": 52,
 			"severities": {
 				"critical": 0,
 				"high": 0,
 				"medium": 19,
 				"low": 0,
-				"info": 32
+				"info": 33
 			},
 			"advisories": [
 				{
@@ -1177,6 +1177,13 @@
 					"severity": "info",
 					"package": "lru",
 					"url": "https://github.com/jeromefroe/lru-rs/pull/238"
+				},
+				{
+					"id": "",
+					"title": "",
+					"severity": "info",
+					"package": "chacha20",
+					"url": ""
 				}
 			]
 		},
