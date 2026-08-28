@@ -332,12 +332,27 @@ impl<'a> CharsRepo<'a> {
             Self::CHAR_DEFAULTS,
             Self::CHAR_ZEROS
         );
-        sqlx::query(&sql)
+        // INSERT..SELECT writes nothing when the users row is missing, and execute() still returns
+        // Ok -- which reported success:true on a complete no-op. Fail loudly instead.
+        let done = sqlx::query(&sql)
             .bind(customer_guid)
             .bind(user_guid)
             .bind(char_name)
             .execute(self.0)
             .await?;
+        if done.rows_affected() == 0 {
+            // Identifiers go to the log, not the response body -- this message is returned to the
+            // game client verbatim.
+            tracing::warn!(
+                %customer_guid,
+                %user_guid,
+                char_name,
+                "CreateCharacter matched no users row; character not created"
+            );
+            return Err(RowsError::NotFound(
+                "Character not created: no such user in this tenant".into(),
+            ));
+        }
         Ok(())
     }
 
@@ -361,13 +376,28 @@ impl<'a> CharsRepo<'a> {
             Self::CHAR_DEFAULTS,
             Self::CHAR_ZEROS
         );
-        sqlx::query(&sql)
+        // Same silent no-op as create_character, plus a second way to match nothing: no
+        // defaultcharactervalues row for this tenant / set name.
+        let done = sqlx::query(&sql)
             .bind(customer_guid)
             .bind(user_guid)
             .bind(char_name)
             .bind(default_set_name)
             .execute(self.0)
             .await?;
+        if done.rows_affected() == 0 {
+            // Same reasoning as create_character: no identifiers in the client-facing string.
+            tracing::warn!(
+                %customer_guid,
+                %user_guid,
+                char_name,
+                default_set_name,
+                "CreateCharacterUsingDefaultCharacterValues matched no rows; character not created"
+            );
+            return Err(RowsError::NotFound(
+                "Character not created: no such user in this tenant, or unknown default set".into(),
+            ));
+        }
         Ok(())
     }
 
