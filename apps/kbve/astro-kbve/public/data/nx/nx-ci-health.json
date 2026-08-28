@@ -1,67 +1,67 @@
 {
-  "generated_at": "2026-08-27T10:55:49Z",
+  "generated_at": "2026-08-28T12:31:22Z",
   "window": {
     "days": 7,
-    "since": "2026-08-20"
+    "since": "2026-08-21"
   },
   "totals": {
     "runs": 1000,
-    "success": 923,
-    "failure": 38,
-    "cancelled": 21,
+    "success": 908,
+    "failure": 53,
+    "cancelled": 26,
     "skipped": 0,
-    "other": 18,
+    "other": 13,
     "flaky": 1,
-    "success_rate": 96.0,
-    "avg_duration_s": 272
+    "success_rate": 94.5,
+    "avg_duration_s": 1953
   },
   "totals_24h": {
-    "runs": 57,
-    "success": 53,
-    "failure": 0,
-    "success_rate": 100.0
+    "runs": 42,
+    "success": 21,
+    "failure": 10,
+    "success_rate": 67.7
   },
   "workflows": [
     {
       "name": "CI - CodeQL",
-      "runs": 275,
-      "success": 262,
-      "failure": 0,
-      "cancelled": 7,
+      "runs": 263,
+      "success": 242,
+      "failure": 4,
+      "cancelled": 12,
       "skipped": 0,
-      "other": 6,
+      "other": 5,
       "flaky": 1,
-      "success_rate": 100.0,
-      "avg_duration_s": 253
+      "success_rate": 98.4,
+      "avg_duration_s": 1974
     },
     {
       "name": "CI - Dev",
-      "runs": 162,
-      "success": 138,
+      "runs": 156,
+      "success": 133,
       "failure": 23,
       "cancelled": 0,
       "skipped": 0,
-      "other": 1,
+      "other": 0,
       "flaky": 0,
-      "success_rate": 85.7,
-      "avg_duration_s": 258
+      "success_rate": 85.3,
+      "avg_duration_s": 1097
     },
     {
       "name": "CI - Godot Tests",
-      "runs": 110,
-      "success": 92,
-      "failure": 1,
-      "cancelled": 11,
+      "runs": 104,
+      "success": 85,
+      "failure": 5,
+      "cancelled": 10,
       "skipped": 0,
-      "other": 6,
+      "other": 4,
       "flaky": 0,
-      "success_rate": 98.9,
-      "avg_duration_s": 142
+      "success_rate": 94.4,
+      "avg_duration_s": 4277
     },
     {
       "name": "Auto-merge bot PRs",
-      "runs": 75,
-      "success": 75,
+      "runs": 87,
+      "success": 87,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
@@ -72,20 +72,20 @@
     },
     {
       "name": "CI - Manifest Guard",
-      "runs": 57,
+      "runs": 58,
       "success": 54,
-      "failure": 0,
+      "failure": 2,
       "cancelled": 0,
       "skipped": 0,
-      "other": 3,
+      "other": 2,
       "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 134
+      "success_rate": 96.4,
+      "avg_duration_s": 5681
     },
     {
       "name": "CI - Bevy",
-      "runs": 38,
-      "success": 38,
+      "runs": 39,
+      "success": 39,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
@@ -96,20 +96,20 @@
     },
     {
       "name": "CI - Forgejo Mirror",
-      "runs": 38,
-      "success": 38,
+      "runs": 37,
+      "success": 37,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 94
+      "avg_duration_s": 95
     },
     {
       "name": "CI - Main",
-      "runs": 38,
-      "success": 37,
+      "runs": 37,
+      "success": 36,
       "failure": 0,
       "cancelled": 1,
       "skipped": 0,
@@ -120,15 +120,27 @@
     },
     {
       "name": "Q Crate Tests",
-      "runs": 35,
+      "runs": 37,
       "success": 35,
-      "failure": 0,
+      "failure": 2,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 290
+      "success_rate": 94.6,
+      "avg_duration_s": 933
+    },
+    {
+      "name": "Worldgen Determinism",
+      "runs": 34,
+      "success": 32,
+      "failure": 2,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 94.1,
+      "avg_duration_s": 864
     },
     {
       "name": "CI - Atomic Branches",
@@ -140,24 +152,12 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 90.3,
-      "avg_duration_s": 720
-    },
-    {
-      "name": "Worldgen Determinism",
-      "runs": 32,
-      "success": 32,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 157
+      "avg_duration_s": 722
     },
     {
       "name": "CI - Manifest Sync",
-      "runs": 22,
-      "success": 22,
+      "runs": 23,
+      "success": 23,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
@@ -176,19 +176,19 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 1788
+      "avg_duration_s": 1807
     },
     {
       "name": "CI - dbmate validate",
-      "runs": 11,
-      "success": 10,
-      "failure": 0,
+      "runs": 14,
+      "success": 12,
+      "failure": 1,
       "cancelled": 0,
       "skipped": 0,
       "other": 1,
       "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 216
+      "success_rate": 92.3,
+      "avg_duration_s": 21455
     },
     {
       "name": "CI - Docker / tocloud9-gameserver",
@@ -201,6 +201,18 @@
       "flaky": 0,
       "success_rate": 100.0,
       "avg_duration_s": 1155
+    },
+    {
+      "name": "Daily Content",
+      "runs": 7,
+      "success": 6,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 1,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 462
     },
     {
       "name": "CI - Actionlint",
@@ -239,16 +251,16 @@
       "avg_duration_s": 775
     },
     {
-      "name": "Daily Content",
-      "runs": 6,
-      "success": 5,
+      "name": "CI - Docker / axum-chuckrpg",
+      "runs": 4,
+      "success": 4,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
-      "other": 1,
+      "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 473
+      "avg_duration_s": 870
     },
     {
       "name": "CI - MC Smoke",
@@ -261,18 +273,6 @@
       "flaky": 0,
       "success_rate": 100.0,
       "avg_duration_s": 203
-    },
-    {
-      "name": "CI - Docker / axum-chuckrpg",
-      "runs": 3,
-      "success": 3,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 870
     },
     {
       "name": "CI - Docker / metrics",
@@ -347,6 +347,18 @@
       "avg_duration_s": 360
     },
     {
+      "name": "CI - Docker / rows",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 899
+    },
+    {
       "name": "CI - E2E / main",
       "runs": 1,
       "success": 0,
@@ -369,6 +381,18 @@
       "flaky": 0,
       "success_rate": 100.0,
       "avg_duration_s": 42
+    },
+    {
+      "name": "CI - dbmate deploy",
+      "runs": 1,
+      "success": 0,
+      "failure": 0,
+      "cancelled": 1,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 0.0,
+      "avg_duration_s": 1869
     },
     {
       "name": "cargo in /. - Update #1537739953",
@@ -421,109 +445,109 @@
   ],
   "recent_failures": [
     {
-      "name": "CI - Unreal / server unreal_chuck_beta",
-      "branch": "main",
-      "event": "workflow_dispatch",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32725849360",
-      "finished_at": "2026-08-24T12:26:14Z"
-    },
-    {
-      "name": "CI - Atomic Branches",
-      "branch": "atom-08240806-chuck-beta-0349",
-      "event": "push",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32725306373",
-      "finished_at": "2026-08-24T12:15:10Z"
-    },
-    {
-      "name": "CI - Atomic Branches",
-      "branch": "atom-08240231-tc9-services-bump",
-      "event": "push",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32716377437",
-      "finished_at": "2026-08-24T10:22:10Z"
-    },
-    {
-      "name": "CI - E2E / main",
-      "branch": "main",
-      "event": "schedule",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32699361984",
-      "finished_at": "2026-08-24T07:55:27Z"
-    },
-    {
-      "name": "CI - Unreal / game unreal_chuck_beta",
-      "branch": "main",
-      "event": "workflow_dispatch",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32698964287",
-      "finished_at": "2026-08-24T07:05:07Z"
-    },
-    {
-      "name": "CI - Atomic Branches",
-      "branch": "atom-08240242-chuck-beta-0347",
-      "event": "push",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32698449920",
-      "finished_at": "2026-08-24T06:53:54Z"
-    },
-    {
-      "name": "CI - Unreal / game unreal_chuck_beta",
-      "branch": "main",
-      "event": "workflow_dispatch",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32697085967",
-      "finished_at": "2026-08-24T06:37:33Z"
-    },
-    {
-      "name": "CI - Unreal / server unreal_chuck_beta",
-      "branch": "main",
-      "event": "workflow_dispatch",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32697088308",
-      "finished_at": "2026-08-24T06:33:44Z"
-    },
-    {
-      "name": "cargo in /. - Update #1537739953",
+      "name": "CI - Godot Tests",
       "branch": "dev",
-      "event": "dynamic",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32695189135",
-      "finished_at": "2026-08-24T06:12:07Z"
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/33129291926",
+      "finished_at": "2026-08-28T07:03:55Z"
+    },
+    {
+      "name": "CI - CodeQL",
+      "branch": "dev",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/33129291923",
+      "finished_at": "2026-08-28T07:03:55Z"
+    },
+    {
+      "name": "CI - Manifest Guard",
+      "branch": "dev",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/33129291925",
+      "finished_at": "2026-08-28T07:03:55Z"
+    },
+    {
+      "name": "CI - Dev",
+      "branch": "dev",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/33129292093",
+      "finished_at": "2026-08-28T07:03:55Z"
+    },
+    {
+      "name": "Worldgen Determinism",
+      "branch": "dev",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/33129291897",
+      "finished_at": "2026-08-28T07:03:55Z"
+    },
+    {
+      "name": "Q Crate Tests",
+      "branch": "dev",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/33129291895",
+      "finished_at": "2026-08-28T07:03:55Z"
+    },
+    {
+      "name": "Q Crate Tests",
+      "branch": "atom-post-publish-rows-v0.1.39",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/33129254192",
+      "finished_at": "2026-08-28T00:18:03Z"
+    },
+    {
+      "name": "Worldgen Determinism",
+      "branch": "atom-post-publish-rows-v0.1.39",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/33129254113",
+      "finished_at": "2026-08-28T00:18:03Z"
+    },
+    {
+      "name": "CI - CodeQL",
+      "branch": "atom-post-publish-rows-v0.1.39",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/33129254206",
+      "finished_at": "2026-08-28T00:18:03Z"
     },
     {
       "name": "CI - Godot Tests",
-      "branch": "dependabot/cargo/dev/rapier2d-0.35.2",
+      "branch": "atom-post-publish-rows-v0.1.39",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32695751522",
-      "finished_at": "2026-08-24T06:09:20Z"
-    },
-    {
-      "name": "CI - Unreal / game unreal_chuck_beta",
-      "branch": "main",
-      "event": "workflow_dispatch",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32692802378",
-      "finished_at": "2026-08-24T06:06:25Z"
-    },
-    {
-      "name": "pip in /. - Update #1537739956",
-      "branch": "dev",
-      "event": "dynamic",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32695187113",
-      "finished_at": "2026-08-24T05:55:23Z"
-    },
-    {
-      "name": "CI - Unreal / server unreal_chuck_beta",
-      "branch": "main",
-      "event": "workflow_dispatch",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32692803805",
-      "finished_at": "2026-08-24T05:29:40Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/33129254180",
+      "finished_at": "2026-08-28T00:18:03Z"
     },
     {
       "name": "CI - Dev",
       "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32688669855",
-      "finished_at": "2026-08-24T04:18:19Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/32998192869",
+      "finished_at": "2026-08-28T00:00:56Z"
     },
     {
-      "name": "CI - Dev",
+      "name": "CI - CodeQL",
       "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/32674549929",
-      "finished_at": "2026-08-24T00:11:29Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/32998192513",
+      "finished_at": "2026-08-28T00:00:56Z"
+    },
+    {
+      "name": "CI - Godot Tests",
+      "branch": "dev",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/32998192506",
+      "finished_at": "2026-08-28T00:00:56Z"
+    },
+    {
+      "name": "CI - dbmate validate",
+      "branch": "atom-08240920-rows-tenant-user",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/32732218421",
+      "finished_at": "2026-08-28T00:00:39Z"
+    },
+    {
+      "name": "CI - CodeQL",
+      "branch": "atom-08240920-rows-tenant-user",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/32732218411",
+      "finished_at": "2026-08-28T00:00:39Z"
     }
   ]
 }
