@@ -29,6 +29,7 @@ impl<'a> UsersRepo<'a> {
 
         let (customer_guid, user_guid) = match row {
             Some(r) => {
+                let (cg, ug) = r;
                 let pool = self.0.clone();
                 let pw = password.to_string();
                 let email_owned = email.to_string();
@@ -39,15 +40,22 @@ impl<'a> UsersRepo<'a> {
                     };
                     let salt = SaltString::generate(&mut OsRng);
                     if let Ok(new_hash) = Argon2::default().hash_password(pw.as_bytes(), &salt) {
-                        let _ = sqlx::query("UPDATE users SET passwordhash = $1 WHERE email = $2")
-                            .bind(new_hash.to_string())
-                            .bind(&email_owned)
-                            .execute(&pool)
-                            .await;
+                        // Scoped to the row we authenticated. `email` is only unique per
+                        // (customerguid, role), so an email-only UPDATE rewrites the hash for
+                        // every tenant that shares this address.
+                        let _ = sqlx::query(
+                            "UPDATE users SET passwordhash = $1
+                             WHERE customerguid = $2 AND userguid = $3",
+                        )
+                        .bind(new_hash.to_string())
+                        .bind(cg)
+                        .bind(ug)
+                        .execute(&pool)
+                        .await;
                         tracing::info!(email = %email_owned, "Password migrated from bcrypt to argon2");
                     }
                 });
-                r
+                (cg, ug)
             }
             None => {
                 let fallback: Option<(Uuid, Uuid, String)> = sqlx::query_as(
@@ -88,7 +96,10 @@ impl<'a> UsersRepo<'a> {
             }
         };
 
-        sqlx::query("DELETE FROM usersessions WHERE userguid = $1")
+        // Tenant-scoped: `userguid` is only unique per tenant now, so an unscoped purge would
+        // evict this account's live session in every OTHER tenant it belongs to.
+        sqlx::query("DELETE FROM usersessions WHERE customerguid = $1 AND userguid = $2")
+            .bind(customer_guid)
             .bind(user_guid)
             .execute(self.0)
             .await?;
@@ -374,10 +385,13 @@ impl<'a> UsersRepo<'a> {
             .map_err(|e| RowsError::Internal(format!("Hash error: {e}")))?
             .to_string();
 
+        // Conflict target must match the tenant-scoped PK on (customerguid, userguid). Targeting
+        // userguid alone silently swallowed the insert whenever the same Supabase account already
+        // existed under a different tenant, leaving this tenant with no users row at all.
         let inserted = match sqlx::query(
             "INSERT INTO users (customerguid, userguid, email, passwordhash, firstname, lastname, role, createdate)
              VALUES ($1, $2, $3, $4, $5, $6, 'Player', NOW())
-             ON CONFLICT (userguid) DO NOTHING",
+             ON CONFLICT (customerguid, userguid) DO NOTHING",
         )
         .bind(customer_guid)
         .bind(supabase_uuid)
@@ -390,19 +404,31 @@ impl<'a> UsersRepo<'a> {
         {
             Ok(done) => done.rows_affected(),
             Err(e) if is_unique_violation(&e) => {
-                return Err(RowsError::Conflict(format!(
-                    "OWS user with email {email} already exists under a different account"
-                )));
+                // `tx` drops here and rolls back; a rollback failure must not mask the Conflict.
+                tracing::warn!(
+                    email = %email,
+                    user_guid = %supabase_uuid,
+                    customer_guid = %customer_guid,
+                    "OWS user provisioning hit a unique violation (AK_User)"
+                );
+                return Err(RowsError::Conflict(
+                    "An OWS user with this email already exists under a different account".into(),
+                ));
             }
             Err(e) => return Err(e.into()),
         };
+
+        // The conflict target is the tenant-scoped PK, so a zero-row insert can only mean this
+        // tenant's (customerguid, userguid) row already exists -- which the advisory lock and the
+        // by_uuid SELECT above make unreachable in practice. It cannot be a row owned by another
+        // tenant: that was the pre-fix ON CONFLICT (userguid) failure mode.
 
         tx.commit().await?;
 
         if inserted > 0 {
             tracing::info!(email = %email, user_guid = %supabase_uuid, "Created OWS user from Supabase auth");
         } else {
-            tracing::info!(email = %email, user_guid = %supabase_uuid, "OWS user already created concurrently; skipped duplicate insert");
+            tracing::info!(email = %email, user_guid = %supabase_uuid, "OWS user already present for tenant; skipped duplicate insert");
         }
         Ok(supabase_uuid)
     }
@@ -412,12 +438,14 @@ impl<'a> UsersRepo<'a> {
         customer_guid: Uuid,
         user_guid: Uuid,
     ) -> Result<Uuid, RowsError> {
-        // Replace any prior session for this user in one round-trip: the CTE deletes the old rows,
-        // then the INSERT writes the fresh session.
+        // Replace any prior session for this user IN THIS TENANT in one round-trip: the CTE deletes
+        // the old rows, then the INSERT writes the fresh session. The delete must carry
+        // `customerguid` -- `userguid` is only unique per tenant, so an unscoped purge logs the
+        // account out of every other tenant it is provisioned into.
         let session_guid = Uuid::new_v4();
         sqlx::query(
             "WITH purged AS (
-                 DELETE FROM usersessions WHERE userguid = $3
+                 DELETE FROM usersessions WHERE customerguid = $1 AND userguid = $3
              )
              INSERT INTO usersessions (customerguid, usersessionguid, userguid, logindate)
              VALUES ($1, $2, $3, NOW())",

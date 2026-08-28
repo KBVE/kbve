@@ -3,9 +3,7 @@ SET search_path TO ows;
 
 CREATE TABLE Users
 (
-    UserGUID     UUID      DEFAULT gen_random_uuid() NOT NULL
-        CONSTRAINT PK_Users
-            PRIMARY KEY,
+    UserGUID     UUID      DEFAULT gen_random_uuid() NOT NULL,
     CustomerGUID UUID                                NOT NULL,
     FirstName    VARCHAR(50)                         NOT NULL,
     LastName     VARCHAR(50)                         NOT NULL,
@@ -14,9 +12,16 @@ CREATE TABLE Users
     CreateDate   TIMESTAMP DEFAULT NOW()             NOT NULL,
     LastAccess   TIMESTAMP DEFAULT NOW()             NOT NULL,
     Role         VARCHAR(10)                         NOT NULL,
+    -- Tenant-scoped: the same Supabase account must be provisionable into every tenant.
+    CONSTRAINT PK_Users
+        PRIMARY KEY (CustomerGUID, UserGUID),
     CONSTRAINT AK_User
         UNIQUE (CustomerGUID, Email, Role)
 );
+
+-- Non-unique on purpose: after the tenant re-key a UserGUID identifies a row only together with
+-- its CustomerGUID. Any query keyed on UserGUID alone is a cross-tenant query.
+CREATE INDEX IF NOT EXISTS IX_Users_UserGUID ON Users (UserGUID);
 
 -- Security: Users
 ALTER TABLE Users ENABLE ROW LEVEL SECURITY;

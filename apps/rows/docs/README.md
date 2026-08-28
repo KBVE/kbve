@@ -24,6 +24,7 @@ order.** Full config detail lives in the
 | ------------------------------------------------------------------------ | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | [ue-chuck-drain-contract](./2026-06-24-ue-chuck-drain-contract.md)       | 🔄 living | The **UE5/chuck side** of the cooperative contract (heartbeat, SDK obligations, save budget). Synced to Phase 3 as-built 2026-07-10; with all ROWS phases shipped, the open gates are UE obligations. |
 | [rows-config-and-docs-index](./2026-06-24-rows-config-and-docs-index.md) | 🔄 living | Registry of every config knob + the document map. Add new knobs here in the same PR that introduces them.                                                                                             |
+| [ows-users-tenant-scoped-pk](./2026-08-24-ows-users-tenant-scoped-pk.md) | 📋 runbook | Deploy order, pre-flight, and rollback posture for the `ows.Users` `(CustomerGUID, UserGUID)` re-key. **Migrations must land before `rows` 0.1.39 serves traffic.**                                    |
 
 ## At a glance
 
