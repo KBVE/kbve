@@ -104,6 +104,11 @@ on:
                 required: false
                 type: string
                 default: ''
+            force_republish:
+                description: '[server] Overwrite an already-deployed version dir on the PVC (NOT rollback; a pod may be running from it)'
+                required: false
+                type: boolean
+                default: false
 
 
             plugin_path:
@@ -346,26 +351,20 @@ jobs:
         outputs:
             should_build: ${{ steps.check.outputs.should_build }}
         steps:
+            - name: Checkout scripts
+              uses: actions/checkout@v7
+              with:
+                  sparse-checkout: .github/scripts/ows
+                  sparse-checkout-cone-mode: false
+
             - name: Check if version already deployed
               id: check
+              env:
+                  TARGET: ${{ needs.server_config.outputs.server_target }}
+                  VERSION: ${{ needs.server_config.outputs.version }}
               run: |
-                  VERSION="${{ needs.server_config.outputs.version }}"
-                  TARGET="${{ needs.server_config.outputs.server_target }}"
-                  DEST="/mnt/longhorn/ows-server/${TARGET}/${VERSION}"
-
-                  if [ -d "${DEST}/LinuxServer" ]; then
-                    FILE_COUNT=$(find "${DEST}/LinuxServer" -type f 2>/dev/null | wc -l)
-                    if [ "${FILE_COUNT}" -gt 0 ]; then
-                      echo "::notice::v${VERSION} already deployed (${FILE_COUNT} files). Skipping build."
-                      echo "should_build=false" >> "$GITHUB_OUTPUT"
-                    else
-                      echo "::notice::v${VERSION} directory exists but is empty. Will rebuild."
-                      echo "should_build=true" >> "$GITHUB_OUTPUT"
-                    fi
-                  else
-                    echo "::notice::v${VERSION} not found on PVC. Will build."
-                    echo "should_build=true" >> "$GITHUB_OUTPUT"
-                  fi
+                  # PVC layout is flat: <target>/<version>/chuckServer.sh (no LinuxServer/ level).
+                  bash .github/scripts/ows/gate.sh >> "$GITHUB_OUTPUT"
 
     server_build:
         name: Build ${{ needs.server_config.outputs.server_target }} (Linux Server)
@@ -620,57 +619,14 @@ jobs:
                   echo "::notice::BUILD_INFO written - source ${REPO}@${CHUCK_SHA:0:8}, config ${CONFIG}"
 
             - name: Deploy server to PVC
+              env:
+                  TARGET: ${{ needs.server_config.outputs.server_target }}
+                  VERSION: ${{ needs.server_config.outputs.version }}
+                  FORCE_REPUBLISH: ${{ inputs.force_republish && 'true' || 'false' }}
               run: |
-                  VERSION="${{ needs.server_config.outputs.version }}"
-                  TARGET="${{ needs.server_config.outputs.server_target }}"
                   SERVER_DIR=$(find /tmp/ue5-build-output -name "LinuxServer" -type d | head -1)
-
-                  DEST="/mnt/longhorn/ows-server/${TARGET}/${VERSION}"
-
-                  rm -rf "${DEST}" 2>/dev/null || true
-                  mkdir -p "${DEST}"
-                  cp -r "${SERVER_DIR}/." "${DEST}/"
-                  chmod -R 755 "${DEST}"
-
-                  ln -sfn "${VERSION}" "/mnt/longhorn/ows-server/${TARGET}/latest"
-
-                  echo "::notice::${TARGET} v${VERSION} deployed to PVC ($(du -sh ${DEST} | cut -f1))"
-                  ls -la "${DEST}/" | head -10
-                  cat "${DEST}/BUILD_INFO"
-
-            - name: Prune old versions
-              run: |
-                  TARGET="${{ needs.server_config.outputs.server_target }}"
-                  PVC_DIR="/mnt/longhorn/ows-server/${TARGET}"
-                  KEEP=3
-
-                  echo "Pruning old versions in ${PVC_DIR} (keeping latest ${KEEP})..."
-                  cd "${PVC_DIR}"
-
-                  # Protect latest symlink target
-                  LATEST_TARGET=$(readlink latest 2>/dev/null || echo "")
-
-                  # Sort version dirs by semver (descending), skip first KEEP
-                  DIRS=$(ls -d [0-9]* 2>/dev/null | sort -V -r | tail -n +$((KEEP+1)))
-
-                  if [ -n "${DIRS}" ]; then
-                    for DIR in ${DIRS}; do
-                      # Skip if this is the latest symlink target
-                      if [ "${DIR}" = "${LATEST_TARGET}" ]; then
-                        echo "  Skipping ${DIR} (latest symlink target)"
-                        continue
-                      fi
-                      # Skip if in use by running server
-                      if find "${DIR}" -name ".nfs*" -print -quit 2>/dev/null | grep -q .; then
-                        echo "  Skipping ${DIR} (in use by running server)"
-                      else
-                        echo "  Removing ${DIR}"
-                        rm -rf "${DIR}"
-                      fi
-                    done
-                  else
-                    echo "  Nothing to prune."
-                  fi
+                  export SERVER_DIR
+                  bash .github/scripts/ows/deploy.sh
 
             - name: Cleanup
               if: always()
@@ -678,6 +634,54 @@ jobs:
                   docker logout ghcr.io 2>/dev/null || true
                   docker system prune -f 2>/dev/null || true
                   rm -rf /tmp/game-project /tmp/ue5-build-output 2>/dev/null || true
+
+    server_prune:
+        name: Prune old server builds
+        needs: [server_config, server_gate, server_build]
+        # Runs after a successful build OR a gate skip (nothing new, but the
+        # protected set may have changed). Never after a failed build.
+        if: |
+            always() && inputs.mode == 'server'
+            && needs.server_gate.result == 'success'
+            && (needs.server_build.result == 'success' || needs.server_build.result == 'skipped')
+        runs-on: arc-runner-ue
+        timeout-minutes: 10
+        permissions:
+            contents: read
+        steps:
+            # Pins are read from main: Argo deploys main, so a pin merged to dev
+            # but not yet promoted is covered by the live-cluster read instead.
+            - name: Checkout main (fleet pins)
+              uses: actions/checkout@v7
+              with:
+                  ref: main
+                  sparse-checkout: |
+                      .github/scripts/ows
+                      apps/kube/agones/rows-tenants
+                  sparse-checkout-cone-mode: false
+
+            - name: Collect protected versions
+              id: protected
+              run: |
+                  set +e
+                  REPO_ROOT="$PWD" bash .github/scripts/ows/protected-versions.sh > /tmp/protected-versions.txt
+                  rc=$?
+                  set -e
+                  if [ "$rc" -ne 0 ]; then
+                    echo "::warning::protected-versions.sh failed (rc=$rc); skipping prune (fail closed)"
+                    echo "skip=true" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "Protected: $(tr '\n' ' ' < /tmp/protected-versions.txt)"
+                    echo "skip=false" >> "$GITHUB_OUTPUT"
+                  fi
+
+            - name: Prune
+              if: steps.protected.outputs.skip == 'false'
+              env:
+                  TARGET: ${{ needs.server_config.outputs.server_target }}
+                  PROTECTED_FILE: /tmp/protected-versions.txt
+                  KEEP: '3'
+              run: bash .github/scripts/ows/prune.sh
 
     # ════════════════ GAME (client / standalone) ════════════════
     game_gate:

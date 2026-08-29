@@ -35,6 +35,11 @@ on:
                 required: false
                 type: string
                 default: '{}'
+            force_republish:
+                description: '[server] Overwrite an already-deployed version dir on the PVC (not rollback)'
+                required: false
+                type: boolean
+                default: false
             publish:
                 description: '[game] JSON publish config: deploy_to_itch, itch_user, itch_game, itch_channel'
                 required: false
@@ -106,6 +111,7 @@ jobs:
             manifest_version: ${{ fromJSON(inputs.version).manifest }}
             version_source: ${{ fromJSON(inputs.version).source }}
             version_toml: ${{ fromJSON(inputs.version).toml }}
+            force_republish: ${{ inputs.force_republish == true }}
         secrets:
             UNITY_PAT: ${{ secrets.UNITY_PAT }}
             butler_api: ${{ secrets.ITCH_API }}
