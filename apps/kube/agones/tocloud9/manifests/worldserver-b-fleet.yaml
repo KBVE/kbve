@@ -545,7 +545,7 @@ spec:
                               # is no reason to run close to the line when ~480G
                               # is unrequested.
                               requests:
-                                  cpu: '8'
+                                  cpu: '3'
                                   memory: '16Gi'
                               limits:
                                   cpu: '16'
