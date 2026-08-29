@@ -1,5 +1,5 @@
 {
-	"generated_at": "2026-08-28T12:32:35.286Z",
+	"generated_at": "2026-08-29T07:42:16.481Z",
 	"summary": {
 		"total_protos": 47,
 		"registered": 0,
@@ -1766,7 +1766,7 @@
 		"packages/data/proto/spell/spelldb.proto",
 		"packages/data/proto/wallet/wallet.proto"
 	],
-	"checked_at": "2026-08-28T12:32:03Z",
+	"checked_at": "2026-08-29T07:41:45Z",
 	"drift_detected": false,
 	"drift_files": []
 }
