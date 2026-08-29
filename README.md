@@ -199,3 +199,5 @@ The API is current being updated! Its split into a NestJS core under `/apps/api/
 - Discord.sh
 
 <!-- ci-poke: no-op touch to trigger a dispatch run. Safe to delete. -->
+
+<!-- ci: poke after windows-builder cpu request lowered to 3 (#16475) -->
