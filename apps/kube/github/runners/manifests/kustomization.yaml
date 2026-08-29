@@ -20,6 +20,7 @@ resources:
     - buildkitd.yaml
     - valkey-sccache-externalsecret.yaml
     - vm-starter-rbac.yaml
+    - ows-prune-rbac.yaml
     - runner-reaper.yaml
     - runner-networkpolicy.yaml
     - runner-apiserver-egress.yaml

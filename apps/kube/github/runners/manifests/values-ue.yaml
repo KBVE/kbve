@@ -21,8 +21,10 @@ maxRunners: 1
 template:
     metadata:
         annotations:
-            kbve.com/restart-trigger: '20260624-pvc-dind-tiered'
+            kbve.com/restart-trigger: '20260829-fleet-reader-sa'
     spec:
+        # Read-only Agones access for the server_prune job (ows-prune-rbac.yaml).
+        serviceAccountName: arc-fleet-reader
         initContainers:
             - name: init-dind-externals
               image: ghcr.io/kbve/arc-runner:0.1.7
