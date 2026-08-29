@@ -84,6 +84,7 @@ export const ProjectSchemaWithEngine = ICiProjectSchema.extend({
 			game_mode: z.string().min(1).max(256).optional(),
 			custom_config: z.string().min(1).max(128).optional(),
 			use_logging_in_shipping: z.enum(['0', '1']).optional(),
+			debug_symbols: z.enum(['0', '1']).optional(),
 			gdextension: z
 				.object({
 					package: z.string().min(1).max(64),

@@ -1416,7 +1416,8 @@
 				],
 				"game_mode": "/Script/Chuck.ChuckGameMode",
 				"custom_config": "Beta",
-				"use_logging_in_shipping": "1"
+				"use_logging_in_shipping": "1",
+				"debug_symbols": "1"
 			},
 			"source_path": "apps/chuckrpg/unreal-chuck",
 			"shell_path": "apps/chuckrpg/unreal-chuck",

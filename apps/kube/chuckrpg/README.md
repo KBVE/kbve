@@ -83,6 +83,47 @@ In-cluster service URLs are pre-wired as commented entries in `configmap.yaml`. 
 
 A CiliumNetworkPolicy permitting egress from `chuckrpg` to `kilobase` should land alongside the first integration that actually needs cross-namespace traffic.
 
+## Build secret escrow
+
+Some secrets are consumed by GitHub Actions runners, which have no cluster access. GitHub
+repo secrets are write-only — once set they can never be read back — so each one also gets a
+SealedSecret in this directory as the durable, recoverable copy.
+
+| Secret                    | SealedSecret                                 | Script                                |
+| ------------------------- | -------------------------------------------- | ------------------------------------- |
+| Apple Developer ID creds  | `chuck-launcher-signing-sealedsecret.yaml`   | `seal-apple-signing.sh`               |
+| `SYMBOL_ARCHIVE_PASSWORD` | `chuck-symbol-archive-sealedsecret.yaml`     | `rotate-symbol-archive-password.sh`   |
+
+These files are deliberately **not** listed in `manifest/kustomization.yaml` — ArgoCD does not
+sync them, so nothing unused sits in the cluster. To read a value back, apply the manifest by
+hand and read the Secret:
+
+```bash
+kubectl apply -f apps/kube/chuckrpg/manifest/chuck-symbol-archive-sealedsecret.yaml
+./apps/kube/chuckrpg/rotate-symbol-archive-password.sh --show-current
+```
+
+### `SYMBOL_ARCHIVE_PASSWORD`
+
+`ci-unreal-build.yml` builds the Unreal client with debug symbols when the project mdx sets
+`engine.debug_symbols: "1"`. The symbols are pulled out of the deployable build and uploaded as
+a **separate, AES-256 encrypted** artifact — this repo is public, so a plaintext PDB/dSYM
+artifact would be world-readable. `SYMBOL_ARCHIVE_PASSWORD` is that encryption key.
+
+```bash
+./apps/kube/chuckrpg/rotate-symbol-archive-password.sh
+```
+
+Generates a 64-char password, seals it to `manifest/chuck-symbol-archive-sealedsecret.yaml`, and
+pushes it to the `KBVE/kbve` repo secret in one pass. Rotation is not retroactive: archives that
+were already uploaded still open only with the password current at their build time, so keep the
+outgoing value (the script prints it) until those artifacts expire. Decrypt with:
+
+```bash
+openssl enc -d -aes-256-cbc -pbkdf2 -iter 100000 \
+  -pass env:SYMBOL_ARCHIVE_PASSWORD -in <app>-symbols.zip.enc -out symbols.zip
+```
+
 ## ArgoCD
 
 - App: `chuckrpg` (source: `apps/kube/chuckrpg/manifest`)
