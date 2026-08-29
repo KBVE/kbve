@@ -1,5 +1,5 @@
 {
-	"generated_at": "2026-08-28T12:35:12Z",
+	"generated_at": "2026-08-29T07:45:08Z",
 	"node": {
 		"count": 141,
 		"major": 22,
@@ -32,7 +32,7 @@
 				"name": "@astrojs/starlight",
 				"current": "0.41.7",
 				"wanted": "0.41.7",
-				"latest": "0.41.9",
+				"latest": "0.41.10",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -320,7 +320,7 @@
 				"name": "@scalar/api-reference",
 				"current": "1.55.3",
 				"wanted": "1.55.3",
-				"latest": "1.66.1",
+				"latest": "1.67.0",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -328,7 +328,7 @@
 				"name": "@scalar/client-side-rendering",
 				"current": "0.3.1",
 				"wanted": "0.3.1",
-				"latest": "0.3.9",
+				"latest": "0.3.10",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -560,7 +560,7 @@
 				"name": "@vitejs/plugin-react",
 				"current": "6.0.2",
 				"wanted": "6.0.2",
-				"latest": "6.1.0",
+				"latest": "6.1.1",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -648,7 +648,7 @@
 				"name": "cssnano",
 				"current": "7.1.4",
 				"wanted": "7.1.4",
-				"latest": "9.0.0",
+				"latest": "9.0.1",
 				"type": "devDependencies",
 				"major": true
 			},
@@ -696,7 +696,7 @@
 				"name": "expo",
 				"current": "57.0.9",
 				"wanted": "57.0.9",
-				"latest": "57.0.17",
+				"latest": "57.0.18",
 				"type": "dependencies",
 				"major": false
 			},
@@ -760,7 +760,7 @@
 				"name": "happy-dom",
 				"current": "20.10.6",
 				"wanted": "20.10.6",
-				"latest": "20.11.12",
+				"latest": "20.11.13",
 				"type": "dependencies",
 				"major": false
 			},
@@ -808,7 +808,7 @@
 				"name": "lucide",
 				"current": "0.575.0",
 				"wanted": "0.575.0",
-				"latest": "1.34.0",
+				"latest": "1.35.0",
 				"type": "dependencies",
 				"major": true
 			},
@@ -816,7 +816,7 @@
 				"name": "lucide-react",
 				"current": "0.575.0",
 				"wanted": "0.575.0",
-				"latest": "1.34.0",
+				"latest": "1.35.0",
 				"type": "dependencies",
 				"major": true
 			},
@@ -880,7 +880,7 @@
 				"name": "postcss-merge-rules",
 				"current": "8.0.1",
 				"wanted": "8.0.1",
-				"latest": "9.0.0",
+				"latest": "9.0.1",
 				"type": "devDependencies",
 				"major": true
 			},
@@ -1048,7 +1048,7 @@
 				"name": "typegpu",
 				"current": "0.11.9",
 				"wanted": "0.11.9",
-				"latest": "0.12.3",
+				"latest": "0.12.4",
 				"type": "dependencies",
 				"major": false
 			},
@@ -1112,7 +1112,7 @@
 				"name": "webpack-cli",
 				"current": "7.1.0",
 				"wanted": "7.1.0",
-				"latest": "7.2.2",
+				"latest": "7.2.3",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -1128,14 +1128,14 @@
 				"name": "zod",
 				"current": "4.3.6",
 				"wanted": "4.3.6",
-				"latest": "4.4.3",
+				"latest": "4.5.1",
 				"type": "dependencies",
 				"major": false
 			}
 		]
 	},
 	"rust": {
-		"count": 271,
+		"count": 273,
 		"major": 1,
 		"items": [
 			{
@@ -1153,7 +1153,7 @@
 			{
 				"name": "actix-rt",
 				"current": "2.11.0",
-				"latest": "2.12.0",
+				"latest": "2.13.0",
 				"major": false
 			},
 			{
@@ -1877,6 +1877,12 @@
 				"major": false
 			},
 			{
+				"name": "clickhouse-types",
+				"current": "0.1.2",
+				"latest": "0.1.3",
+				"major": false
+			},
+			{
 				"name": "combine",
 				"current": "4.6.7",
 				"latest": "4.6.8",
@@ -2207,6 +2213,12 @@
 				"major": false
 			},
 			{
+				"name": "indexmap",
+				"current": "2.14.0",
+				"latest": "2.14.1",
+				"major": false
+			},
+			{
 				"name": "inotify",
 				"current": "0.11.4",
 				"latest": "0.11.5",
@@ -2407,7 +2419,7 @@
 			{
 				"name": "rapier3d",
 				"current": "0.35.1",
-				"latest": "0.35.2",
+				"latest": "0.35.3",
 				"major": false
 			},
 			{
@@ -2766,6 +2778,6 @@
 			}
 		]
 	},
-	"total": 412,
+	"total": 414,
 	"major_total": 23
 }
