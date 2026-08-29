@@ -6,8 +6,10 @@
 set -euo pipefail
 
 PVC_ROOT="${PVC_ROOT:-/mnt/longhorn/ows-server}"
-TARGET="${TARGET:?TARGET is required}"
-VERSION="${VERSION:?VERSION is required}"
+TARGET="${TARGET:-}"
+VERSION="${VERSION:-}"
+[ -n "${TARGET}" ]  || { echo "::error::TARGET is required" >&2; exit 1; }
+[ -n "${VERSION}" ] || { echo "::error::VERSION is required" >&2; exit 1; }
 
 DEST="${PVC_ROOT}/${TARGET}/${VERSION}"
 

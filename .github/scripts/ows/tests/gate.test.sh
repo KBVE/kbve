@@ -37,10 +37,12 @@ t_other_version_present_still_builds() {
 }
 
 t_empty_args_fail() {
-    local pvc; pvc=$(mktemp -d)
-    if PVC_ROOT="${pvc}" TARGET="" VERSION="1.0.0" bash "${SCRIPTS}/gate.sh" >/dev/null 2>&1; then
-        assert_eq "exit!=0" "exit0" "empty TARGET must fail"
-    fi
+    local pvc rc=0; pvc=$(mktemp -d)
+    PVC_ROOT="${pvc}" TARGET="" VERSION="1.0.0" bash "${SCRIPTS}/gate.sh" >/dev/null 2>&1 || rc=$?
+    assert_eq "1" "${rc}" "empty TARGET must exit 1"
+    rc=0
+    PVC_ROOT="${pvc}" TARGET="chuckServer" VERSION="" bash "${SCRIPTS}/gate.sh" >/dev/null 2>&1 || rc=$?
+    assert_eq "1" "${rc}" "empty VERSION must exit 1"
 }
 
 run_tests
