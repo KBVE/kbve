@@ -126,7 +126,7 @@ spec:
                           resources:
                               requests:
                                   memory: 3Gi
-                                  cpu: '1'
+                                  cpu: 250m
                               limits:
                                   memory: 8Gi
                                   cpu: '2'
