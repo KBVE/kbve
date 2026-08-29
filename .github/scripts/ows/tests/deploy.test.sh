@@ -51,6 +51,20 @@ t_empty_existing_dir_is_not_a_deploy() {
     assert_exists "${tmp}/pvc/chuckServer/1.0.0/chuckServer.sh" "filled empty dir"
 }
 
+t_target_without_server_suffix_refused() {
+    # UBT names the launch script after -target; chuckServerDev -> chuckServerDev.sh.
+    # deploy must refuse target-agnostically (non-empty dest dir), not just on *Server.sh.
+    local tmp; tmp=$(mktemp -d)
+    mkdir -p "${tmp}/out/LinuxServer/Engine"
+    printf '#!/bin/sh\necho server\n' > "${tmp}/out/LinuxServer/chuckServerDev.sh"
+    deploy "${tmp}/pvc" chuckServerDev 1.0.0 "${tmp}/out/LinuxServer"
+    echo "original" > "${tmp}/pvc/chuckServerDev/1.0.0/marker"
+    local rc=0
+    deploy "${tmp}/pvc" chuckServerDev 1.0.0 "${tmp}/out/LinuxServer" >/dev/null 2>&1 || rc=$?
+    assert_eq "3" "${rc}" "chuckServerDev refused exit code"
+    assert_exists "${tmp}/pvc/chuckServerDev/1.0.0/marker" "existing dir untouched"
+}
+
 t_second_version_keeps_first_and_moves_latest() {
     local tmp; tmp=$(mktemp -d)
     mk_build "${tmp}/out/LinuxServer"

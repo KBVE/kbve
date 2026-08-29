@@ -2,7 +2,10 @@
 # Publish a built UE LinuxServer dir to the shared PVC as an immutable, flat version dir.
 #   <PVC_ROOT>/<TARGET>/<VERSION>/chuckServer.sh   (contents of SERVER_DIR; no LinuxServer/ level)
 #   <PVC_ROOT>/<TARGET>/latest -> <VERSION>
-# Refuses to overwrite a version that already holds a *Server.sh unless FORCE_REPUBLISH=true.
+# Refuses to overwrite a version dir that is already non-empty, unless FORCE_REPUBLISH=true.
+# Target-agnostic on purpose: the launch script name follows the UBT -target (e.g.
+# chuckServerDev.sh), so matching on a "*Server.sh" name would miss some targets and
+# risk cp -r'ing over a version directory a live pod is executing from.
 # Exit codes: 1 bad input, 3 refused (already deployed).
 set -euo pipefail
 
@@ -23,12 +26,12 @@ fi
 
 DEST="${PVC_ROOT}/${TARGET}/${VERSION}"
 
-if [ -d "${DEST}" ] && find "${DEST}" -maxdepth 1 -name '*Server.sh' -type f -print -quit 2>/dev/null | grep -q .; then
+if [ -d "${DEST}" ] && [ -n "$(find "${DEST}" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]; then
     if [ "${FORCE_REPUBLISH}" = "true" ]; then
         echo "::warning::FORCE_REPUBLISH=true — replacing already-deployed ${TARGET} v${VERSION} at ${DEST}. A pod may be running from it."
         rm -rf "${DEST}"
     else
-        echo "::error::${TARGET} v${VERSION} is already deployed at ${DEST}. Versions are immutable: bump the version, or re-run with force_republish=true." >&2
+        echo "::error::${TARGET} v${VERSION} already has a non-empty version dir at ${DEST}. Versions are immutable: bump the version, or re-run with force_republish=true." >&2
         exit 3
     fi
 fi

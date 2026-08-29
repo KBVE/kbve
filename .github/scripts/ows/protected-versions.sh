@@ -18,8 +18,13 @@ git_pins() {
     local f
     for f in "${REPO_ROOT}"/apps/kube/agones/rows-tenants/*/manifests/fleet.yaml; do
         [ -f "${f}" ] || continue
-        # the line after "name: OWS_SERVER_VERSION" is "value: 'x.y.z'"
-        awk '/name: OWS_SERVER_VERSION/{getline; if (match($0, /value:[[:space:]]*['"'"'"]?([0-9][^'"'"'" ]*)/, m)) print m[1]}' "${f}"
+        # the line after "name: OWS_SERVER_VERSION" is "value: 'x.y.z'" (single-quoted,
+        # double-quoted, or bare). Portable: no gawk-only 3-arg match(). grep exits 1 on
+        # no match, which is legitimate (a fleet.yaml with no pin) — guard it so
+        # `set -e` doesn't trip the pipeline.
+        grep -A1 'name: OWS_SERVER_VERSION' "${f}" \
+            | sed -n "s/.*value:[[:space:]]*['\"]\{0,1\}\([0-9][0-9A-Za-z.+-]*\).*/\1/p" \
+            || true
     done
 }
 

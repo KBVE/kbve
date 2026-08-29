@@ -36,6 +36,15 @@ t_other_version_present_still_builds() {
     assert_eq "should_build=true" "$(gate "${pvc}" chuckServer 1.0.0)" "different version"
 }
 
+t_target_without_server_suffix_flat_binary_skips() {
+    # UBT names the launch script after -target; chuckServerDev -> chuckServerDev.sh.
+    # It happens to also match *Server.sh, but gate must recognize it via ${TARGET}.sh too.
+    local pvc; pvc=$(mktemp -d)
+    mkdir -p "${pvc}/chuckServerDev/1.0.0"
+    touch "${pvc}/chuckServerDev/1.0.0/chuckServerDev.sh"
+    assert_eq "should_build=false" "$(gate "${pvc}" chuckServerDev 1.0.0)" "chuckServerDev binary present"
+}
+
 t_empty_args_fail() {
     local pvc rc=0; pvc=$(mktemp -d)
     PVC_ROOT="${pvc}" TARGET="" VERSION="1.0.0" bash "${SCRIPTS}/gate.sh" >/dev/null 2>&1 || rc=$?

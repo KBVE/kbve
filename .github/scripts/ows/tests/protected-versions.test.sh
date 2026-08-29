@@ -44,6 +44,33 @@ t_malformed_live_json_is_read_failure() {
     assert_eq "2" "${rc}" "malformed json exit 2"
 }
 
+t_git_pin_double_quoted_value() {
+    local repo; repo=$(mktemp -d)
+    mkdir -p "${repo}/apps/kube/agones/rows-tenants/chuckrpg-beta/manifests"
+    cp "${FX}/fleet-pinned-double-quoted.yaml" "${repo}/apps/kube/agones/rows-tenants/chuckrpg-beta/manifests/fleet.yaml"
+    local empty; empty=$(mktemp); echo '{"items":[]}' > "${empty}"
+    assert_eq "0.3.60" "$(protected "${repo}" "${empty}" "${empty}")" "double-quoted value"
+}
+
+t_git_pin_unquoted_value() {
+    local repo; repo=$(mktemp -d)
+    mkdir -p "${repo}/apps/kube/agones/rows-tenants/chuckrpg-beta/manifests"
+    cp "${FX}/fleet-pinned-unquoted.yaml" "${repo}/apps/kube/agones/rows-tenants/chuckrpg-beta/manifests/fleet.yaml"
+    local empty; empty=$(mktemp); echo '{"items":[]}' > "${empty}"
+    assert_eq "0.3.61" "$(protected "${repo}" "${empty}" "${empty}")" "unquoted value"
+}
+
+t_gameserver_with_no_labels_key_does_not_error_or_print_null() {
+    local repo; repo=$(mktemp -d)
+    mkdir -p "${repo}/apps/kube/agones/rows-tenants/chuckrpg-beta/manifests"
+    printf 'apiVersion: agones.dev/v1\nkind: Fleet\n' > "${repo}/apps/kube/agones/rows-tenants/chuckrpg-beta/manifests/fleet.yaml"
+    local empty; empty=$(mktemp); echo '{"items":[]}' > "${empty}"
+    local out rc=0
+    out=$(protected "${repo}" "${empty}" "${FX}/gameservers-no-labels-key.json") || rc=$?
+    assert_eq "0" "${rc}" "no labels key: exit ok"
+    assert_eq "" "${out}" "no labels key: no null, no version"
+}
+
 t_git_pins_from_all_tenants() {
     local repo; repo=$(mktemp -d); mk_repo "${repo}"
     mkdir -p "${repo}/apps/kube/agones/rows-tenants/chuckrpg-dev/manifests"
