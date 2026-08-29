@@ -149,6 +149,26 @@ influence on these manifests ends.
   command targeting an online player hits the wrong node most of the time and
   reports "player not found" rather than failing. `WOW_GAMEOPS.md` has the full
   reasoning and the human steps still outstanding.
+- **Binlog is off (`--skip-log-bin`), and the PVC is larger than this repo says.**
+  On 2026-08-29 the 20Gi MySQL volume filled at 13:00 UTC: 22 binlogs x 1.1G = 18G
+  of the 20G, written in the seven days since the pod started. `binlog_expire_logs_seconds`
+  was the stock 30 days, and playerbots at `maxplayers=2003` push ~3.1 GB/day of
+  `ROW` binlog, so expiry could never fire before the disk did. Every write txn then
+  parked forever (`Disk is full writing './binlog.000022'`), the authserver's
+  `UPDATE account SET session_key ... WHERE id = 1` hit `innodb_lock_wait_timeout`
+  at 50s, and clients hung on **Handshaking** -- the gateway never saw them.
+  Nothing consumes binlog here: one node, no replica, no PITR, no backups.
+  Two things to know if this recurs:
+  - **`PURGE BINARY LOGS` cannot rescue a full disk.** The writer thread holds
+    `LOCK_log` while waiting for space, so `PURGE` and even `SHOW BINARY LOGS`
+    block on it. Free space at the OS level -- expand the PVC -- and the server
+    resumes on its own. Purge *before* restarting with binlog disabled; once
+    `--skip-log-bin` is live the statement no longer exists and leftover files
+    have to be removed by hand alongside `binlog.index`.
+  - **`data-mysql-0` was expanded 20Gi -> 60Gi live, and that is deliberately not
+    in `mysql.yaml`.** `volumeClaimTemplates` is immutable on a StatefulSet, so
+    encoding the new size in git makes ArgoCD sync fail on a forbidden update.
+    The manifest still reads 20Gi; the live PVC does not.
 - MySQL is a plain StatefulSet with no backups. It is also the first MySQL
   workload in the cluster; ToCloud9 cannot use kilobase/CNPG, because the
   worldserver is C++ against libmysqlclient, every Go repo is `*_mysql.go`, and
