@@ -68,6 +68,7 @@ jobs:
             custom_config: ${{ fromJSON(inputs.engine).custom_config }}
             verify_baked_config: ${{ fromJSON(inputs.engine).verify_baked_config }}
             use_logging_in_shipping: ${{ fromJSON(inputs.engine).use_logging_in_shipping }}
+            debug_symbols: ${{ fromJSON(inputs.engine).debug_symbols }}
             game_mode: ${{ fromJSON(inputs.engine).game_mode }}
             maps: ${{ toJSON(fromJSON(inputs.engine).maps) }}
             version_source: ${{ fromJSON(inputs.version).source }}
@@ -83,6 +84,7 @@ jobs:
             butler_api: ${{ secrets.ITCH_API }}
             FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
             FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+            SYMBOL_ARCHIVE_PASSWORD: ${{ secrets.SYMBOL_ARCHIVE_PASSWORD }}
             APPLE_CERTIFICATE: ${{ secrets.APPLE_CERTIFICATE }}
             APPLE_CERTIFICATE_PASSWORD: ${{ secrets.APPLE_CERTIFICATE_PASSWORD }}
             APPLE_SIGNING_IDENTITY: ${{ secrets.APPLE_SIGNING_IDENTITY }}
