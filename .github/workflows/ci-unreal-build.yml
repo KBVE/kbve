@@ -506,8 +506,12 @@ jobs:
                     echo "::error::project_path '${SUBDIR}' not found in ${SLUG}"
                     exit 1
                   fi
-                  mkdir -p /tmp/game-project
-                  cp -r "${SRC}/." /tmp/game-project/
+                  # drop the LFS object cache (working tree already has the files) and
+                  # rename instead of copy: a full chuck checkout is ~7.5 GB of LFS, and
+                  # clone + .git/lfs + cp peaked at ~23 GB inside the 16Gi tmpfs /tmp
+                  rm -rf /tmp/game-clone/.git/lfs
+                  mv "${SRC}" /tmp/game-project
+                  rm -rf /tmp/game-clone
 
             - name: Build dedicated server
               env:
@@ -889,8 +893,12 @@ jobs:
                     echo "::error::project_path '${SUBDIR}' not found in ${SLUG}"
                     exit 1
                   fi
-                  mkdir -p /tmp/game-project
-                  cp -r "${SRC}/." /tmp/game-project/
+                  # drop the LFS object cache (working tree already has the files) and
+                  # rename instead of copy: a full chuck checkout is ~7.5 GB of LFS, and
+                  # clone + .git/lfs + cp peaked at ~23 GB inside the 16Gi tmpfs /tmp
+                  rm -rf /tmp/game-clone/.git/lfs
+                  mv "${SRC}" /tmp/game-project
+                  rm -rf /tmp/game-clone
 
             - name: Build Linux client
               run: |
