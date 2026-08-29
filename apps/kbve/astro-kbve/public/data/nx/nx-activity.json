@@ -1,180 +1,180 @@
 {
-  "generated_at": "2026-08-28T12:31:25Z",
+  "generated_at": "2026-08-29T07:41:05Z",
   "window": {
     "days": 7,
-    "since": "2026-08-21T12:31:25Z"
+    "since": "2026-08-22T07:41:05Z"
   },
   "commits": {
-    "total": 226,
+    "total": 220,
     "authors": 3,
     "leaderboard": [
       {
         "author": "github-actions[bot]",
-        "commits": 117
+        "commits": 126
       },
       {
         "author": "h0lybyte",
-        "commits": 100
+        "commits": 76
       },
       {
         "author": "Fudster",
-        "commits": 9
+        "commits": 18
       }
     ],
     "recent": [
       {
-        "sha": "2e86387",
+        "sha": "d1fbcbc",
         "author": "Fudster",
-        "message": "Merge pull request #16460 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/2e86387bebfea7bc55232739cef3930b4d0c9d13",
-        "date": "2026-08-28T07:03:37Z"
+        "message": "Merge pull request #16496 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/d1fbcbcca040b13daac82e6e2602d9ed2458dba4",
+        "date": "2026-08-29T03:58:56Z"
       },
       {
-        "sha": "9326c2f",
+        "sha": "c24a6ce",
         "author": "github-actions[bot]",
-        "message": "chore(rows): post-publish sync to v0.1.39 (#16459)",
-        "url": "https://github.com/KBVE/kbve/commit/9326c2f1cfcfad2f916e356a0d079e520e458951",
-        "date": "2026-08-28T00:18:01Z"
+        "message": "chore(chuck): bump beta 0.3.50 -> 0.3.51 (#16495)",
+        "url": "https://github.com/KBVE/kbve/commit/c24a6cef9bfa5cffe4f6576428e2b575de901eaa",
+        "date": "2026-08-29T03:57:45Z"
       },
       {
-        "sha": "4f05c4c",
+        "sha": "bd5d119",
+        "author": "Fudster",
+        "message": "Merge pull request #16493 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/bd5d1193d642208a75ad3c5ca3695ccd6b3d0846",
+        "date": "2026-08-29T03:36:23Z"
+      },
+      {
+        "sha": "767caa5",
         "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#16458)",
-        "url": "https://github.com/KBVE/kbve/commit/4f05c4cc9d6f748e6d20ad1a05fae9f9a5e0c567",
-        "date": "2026-08-28T00:02:56Z"
+        "message": "chore(chuck): post-publish sync to v0.3.50 (#16492)",
+        "url": "https://github.com/KBVE/kbve/commit/767caa51fba75424c110fcbe8d996f1bec61b8f3",
+        "date": "2026-08-29T03:32:11Z"
       },
       {
-        "sha": "da83fc8",
-        "author": "h0lybyte",
-        "message": "Merge pull request #16447 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/da83fc82679143f5fdfe0c8790de6e37baae356b",
-        "date": "2026-08-28T00:00:55Z"
+        "sha": "5ac9385",
+        "author": "Fudster",
+        "message": "Merge pull request #16491 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/5ac93851736ba1ee7e6f4c3e81473341fc4105df",
+        "date": "2026-08-29T03:09:24Z"
       },
       {
-        "sha": "3d7bf9b",
+        "sha": "3e876a5",
         "author": "github-actions[bot]",
-        "message": "Atomic: rows tenant user (#16375)",
-        "url": "https://github.com/KBVE/kbve/commit/3d7bf9bd63a4e29bdf927273f718e9a7ae08d798",
-        "date": "2026-08-28T00:00:37Z"
+        "message": "fix(ci): stop UE runner /tmp overflow on game materialize (#16490)",
+        "url": "https://github.com/KBVE/kbve/commit/3e876a514f2fcba3d36ba47ec95bceed726cddcd",
+        "date": "2026-08-29T03:03:57Z"
       },
       {
-        "sha": "8c7c814",
-        "author": "github-actions[bot]",
-        "message": "chore(content): daily security scaffold [skip ci] (#16457)",
-        "url": "https://github.com/KBVE/kbve/commit/8c7c814c050f5f7f62434bb8cac48db1726940d7",
-        "date": "2026-08-27T11:01:31Z"
+        "sha": "f072ff8",
+        "author": "Fudster",
+        "message": "Merge pull request #16488 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/f072ff8383db2aca0fc88a517acd3820ee1991a5",
+        "date": "2026-08-29T02:42:58Z"
       },
       {
-        "sha": "055685c",
+        "sha": "96ab7f0",
         "author": "github-actions[bot]",
-        "message": "chore(content): daily deps scaffold [skip ci] (#16456)",
-        "url": "https://github.com/KBVE/kbve/commit/055685c4e90ad1601ab3f2c9ed6bd1c2bd4c4f2b",
-        "date": "2026-08-27T11:00:23Z"
+        "message": "fix(kube): raise windows-builder VM cpu request to 6 (#16475) (#16489)",
+        "url": "https://github.com/KBVE/kbve/commit/96ab7f08d626e82925e51e81af0bfbb5e682fc88",
+        "date": "2026-08-29T02:41:46Z"
       },
       {
-        "sha": "0a6708b",
+        "sha": "2092551",
         "author": "github-actions[bot]",
-        "message": "chore(content): daily report scaffold [skip ci] (#16455)",
-        "url": "https://github.com/KBVE/kbve/commit/0a6708b5b39a364e77ce60dcf00a2e1123d53832",
-        "date": "2026-08-27T10:59:05Z"
+        "message": "fix(kube): right-size cpu requests to measured usage (#16475) (#16487)",
+        "url": "https://github.com/KBVE/kbve/commit/2092551e922a39e23aaaa237a2d2706ea51fc7b0",
+        "date": "2026-08-29T02:38:28Z"
       },
       {
-        "sha": "5ebbdce",
-        "author": "github-actions[bot]",
-        "message": "chore(content): daily proto scaffold [skip ci] (#16454)",
-        "url": "https://github.com/KBVE/kbve/commit/5ebbdce56ec7d2b1396de5786edfe02937ceadbe",
-        "date": "2026-08-27T10:57:38Z"
+        "sha": "35b0a91",
+        "author": "Fudster",
+        "message": "Merge pull request #16486 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/35b0a91c6c5763c3db11f957562901a8f5f9d362",
+        "date": "2026-08-29T02:26:56Z"
       },
       {
-        "sha": "62dc3e0",
+        "sha": "74709c0",
         "author": "github-actions[bot]",
-        "message": "chore(content): daily graph scaffold [skip ci] (#16453)",
-        "url": "https://github.com/KBVE/kbve/commit/62dc3e01325db503d0b3402e612bae1047498ac0",
-        "date": "2026-08-27T10:57:27Z"
+        "message": "chore(repo): remove ci poke comments from README (#16485)",
+        "url": "https://github.com/KBVE/kbve/commit/74709c06efcbd4dc5233dcdd83a526625e8e696e",
+        "date": "2026-08-29T02:25:14Z"
       },
       {
-        "sha": "3d00d40",
-        "author": "github-actions[bot]",
-        "message": "chore(content): daily ci-health scaffold [skip ci] (#16452)",
-        "url": "https://github.com/KBVE/kbve/commit/3d00d40bc04aea78535a8c3ff1f022fa4ab29a21",
-        "date": "2026-08-27T10:56:55Z"
-      },
-      {
-        "sha": "0453792",
-        "author": "github-actions[bot]",
-        "message": "chore(content): daily activity scaffold [skip ci] (#16451)",
-        "url": "https://github.com/KBVE/kbve/commit/045379208433b8a976134d4afa67729f86af0694",
-        "date": "2026-08-27T10:56:31Z"
+        "sha": "ad49fee",
+        "author": "Fudster",
+        "message": "Merge pull request #16484 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/ad49fee95b99a5f0d22f0ba3db17bd7ef559f790",
+        "date": "2026-08-29T01:42:34Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 234,
+    "merged": 247,
     "recent": [
       {
-        "number": 16460,
-        "title": "Release: 2 chores \u2192 Main",
+        "number": 16498,
+        "title": "Atomic: chuck v0.3.51 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16460"
+        "url": "https://github.com/KBVE/kbve/pull/16498"
       },
       {
-        "number": 16459,
-        "title": "Atomic: rows v0.1.39 post-publish sync",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16459"
-      },
-      {
-        "number": 16458,
+        "number": 16497,
         "title": "chore(ci): sync ci-dispatch-manifest",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16458"
+        "url": "https://github.com/KBVE/kbve/pull/16497"
       },
       {
-        "number": 16447,
+        "number": 16496,
         "title": "Release: 1 chore \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16447"
+        "url": "https://github.com/KBVE/kbve/pull/16496"
       },
       {
-        "number": 16375,
-        "title": "Atomic: rows tenant user",
+        "number": 16495,
+        "title": "Atomic: chuck beta 0351",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16375"
+        "url": "https://github.com/KBVE/kbve/pull/16495"
       },
       {
-        "number": 16457,
-        "title": "chore(content): daily security scaffold",
+        "number": 16493,
+        "title": "Release: 1 chore \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16457"
+        "url": "https://github.com/KBVE/kbve/pull/16493"
       },
       {
-        "number": 16456,
-        "title": "chore(content): daily deps scaffold",
+        "number": 16492,
+        "title": "Atomic: chuck v0.3.50 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16456"
+        "url": "https://github.com/KBVE/kbve/pull/16492"
       },
       {
-        "number": 16455,
-        "title": "chore(content): daily report scaffold",
+        "number": 16491,
+        "title": "Release: 1 fix \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16455"
+        "url": "https://github.com/KBVE/kbve/pull/16491"
       },
       {
-        "number": 16454,
-        "title": "chore(content): daily proto scaffold",
+        "number": 16490,
+        "title": "Atomic: ue runner tmp",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16454"
+        "url": "https://github.com/KBVE/kbve/pull/16490"
       },
       {
-        "number": 16453,
-        "title": "chore(content): daily graph scaffold",
+        "number": 16488,
+        "title": "Release: 2 fixes \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16453"
+        "url": "https://github.com/KBVE/kbve/pull/16488"
+      },
+      {
+        "number": 16489,
+        "title": "Atomic: windows builder cpu6",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16489"
       }
     ]
   },
   "issues": {
-    "opened": 240,
-    "closed": 235
+    "opened": 254,
+    "closed": 250
   }
 }
