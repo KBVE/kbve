@@ -354,6 +354,10 @@ jobs:
             - name: Checkout scripts
               uses: actions/checkout@v7
               with:
+                  # The callers pin this reusable workflow at @dev, but a called
+                  # workflow's default checkout ref is the CALLER's ref (main).
+                  # Pin explicitly so the scripts match the workflow revision.
+                  ref: dev
                   sparse-checkout: .github/scripts/ows
                   sparse-checkout-cone-mode: false
 
@@ -421,6 +425,14 @@ jobs:
               uses: actions/checkout@v7
               with:
                   lfs: false
+
+            - name: Checkout ows scripts
+              uses: actions/checkout@v7
+              with:
+                  ref: dev
+                  path: .ows
+                  sparse-checkout: .github/scripts/ows
+                  sparse-checkout-cone-mode: false
 
             - name: Clone external game repo + materialize project
               env:
@@ -626,7 +638,7 @@ jobs:
               run: |
                   SERVER_DIR=$(find /tmp/ue5-build-output -name "LinuxServer" -type d | head -1)
                   export SERVER_DIR
-                  bash .github/scripts/ows/deploy.sh
+                  bash .ows/.github/scripts/ows/deploy.sh
 
             - name: Cleanup
               if: always()
@@ -649,22 +661,29 @@ jobs:
         permissions:
             contents: read
         steps:
-            # Pins are read from main: Argo deploys main, so a pin merged to dev
-            # but not yet promoted is covered by the live-cluster read instead.
+            # Scripts travel with the workflow revision (callers pin @dev);
+            # fleet pins are read from main because Argo deploys main.
+            - name: Checkout ows scripts
+              uses: actions/checkout@v7
+              with:
+                  ref: dev
+                  path: .ows
+                  sparse-checkout: .github/scripts/ows
+                  sparse-checkout-cone-mode: false
+
             - name: Checkout main (fleet pins)
               uses: actions/checkout@v7
               with:
                   ref: main
-                  sparse-checkout: |
-                      .github/scripts/ows
-                      apps/kube/agones/rows-tenants
+                  path: .pins
+                  sparse-checkout: apps/kube/agones/rows-tenants
                   sparse-checkout-cone-mode: false
 
             - name: Collect protected versions
               id: protected
               run: |
                   set +e
-                  REPO_ROOT="$PWD" bash .github/scripts/ows/protected-versions.sh > /tmp/protected-versions.txt
+                  REPO_ROOT="$PWD/.pins" bash .ows/.github/scripts/ows/protected-versions.sh > /tmp/protected-versions.txt
                   rc=$?
                   set -e
                   if [ "$rc" -ne 0 ]; then
@@ -681,7 +700,7 @@ jobs:
                   TARGET: ${{ needs.server_config.outputs.server_target }}
                   PROTECTED_FILE: /tmp/protected-versions.txt
                   KEEP: '3'
-              run: bash .github/scripts/ows/prune.sh
+              run: bash .ows/.github/scripts/ows/prune.sh
 
     # ════════════════ GAME (client / standalone) ════════════════
     game_gate:

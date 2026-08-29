@@ -81,4 +81,29 @@ t_missing_server_dir_fails() {
     assert_eq "1" "${rc}" "missing SERVER_DIR"
 }
 
+t_no_staging_dir_left_behind() {
+    local tmp; tmp=$(mktemp -d)
+    mk_build "${tmp}/out/LinuxServer"
+    deploy "${tmp}/pvc" chuckServer 1.0.0 "${tmp}/out/LinuxServer"
+    local leftover; leftover=$(find "${tmp}/pvc/chuckServer" -maxdepth 1 -name '.stage-*' | wc -l)
+    assert_eq "0" "${leftover}" "no staging dir remains"
+    assert_exists "${tmp}/pvc/chuckServer/1.0.0/chuckServer.sh" "binary in place"
+}
+
+t_force_republish_older_version_does_not_move_latest_back() {
+    local tmp; tmp=$(mktemp -d)
+    mk_build "${tmp}/out/LinuxServer"
+    deploy "${tmp}/pvc" chuckServer 1.0.1 "${tmp}/out/LinuxServer"
+    deploy "${tmp}/pvc" chuckServer 1.0.0 "${tmp}/out/LinuxServer" true
+    assert_eq "1.0.1" "$(readlink "${tmp}/pvc/chuckServer/latest")" "latest stays on newer version"
+}
+
+t_deploying_newer_version_moves_latest_forward() {
+    local tmp; tmp=$(mktemp -d)
+    mk_build "${tmp}/out/LinuxServer"
+    deploy "${tmp}/pvc" chuckServer 1.0.0 "${tmp}/out/LinuxServer"
+    deploy "${tmp}/pvc" chuckServer 1.0.1 "${tmp}/out/LinuxServer"
+    assert_eq "1.0.1" "$(readlink "${tmp}/pvc/chuckServer/latest")" "latest moves to newer version"
+}
+
 run_tests

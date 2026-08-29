@@ -36,12 +36,30 @@ if [ -d "${DEST}" ] && [ -n "$(find "${DEST}" -mindepth 1 -maxdepth 1 -print -qu
     fi
 fi
 
-mkdir -p "${DEST}"
-cp -r "${SERVER_DIR}/." "${DEST}/"
-chmod -R 755 "${DEST}"
+# Stage into a dot-prefixed sibling, then rename: `mv -T` is atomic within the
+# filesystem, so a killed runner can never leave a partial dir that the gate
+# treats as deployed or a GameServer boots. The dot prefix keeps the staging
+# dir out of every `[0-9]*` glob (gate, prune, fleet launchers).
+STAGE="${PVC_ROOT}/${TARGET}/.stage-${VERSION}.$$"
+rm -rf "${STAGE}"
+trap 'rm -rf "${STAGE}"' EXIT
+mkdir -p "${STAGE}"
+cp -r "${SERVER_DIR}/." "${STAGE}/"
+chmod -R 755 "${STAGE}"
+rm -rf "${DEST}"
+mv -T "${STAGE}" "${DEST}"
+trap - EXIT
 
-ln -sfn "${VERSION}" "${PVC_ROOT}/${TARGET}/latest"
+# Forward-only: force_republish of an older version must not silently roll back
+# the tenants whose launcher reads /server/latest (chuckrpg-dev, chuckrpg-prod).
+CURRENT_LATEST=$(readlink "${PVC_ROOT}/${TARGET}/latest" 2>/dev/null || echo "")
+if [ -z "${CURRENT_LATEST}" ] || [ "${CURRENT_LATEST}" = "${VERSION}" ] \
+    || [ "$(printf '%s\n%s\n' "${CURRENT_LATEST}" "${VERSION}" | sort -V | tail -1)" = "${VERSION}" ]; then
+    ln -sfn "${VERSION}" "${PVC_ROOT}/${TARGET}/latest"
+else
+    echo "::warning::latest stays at ${CURRENT_LATEST} (newer than ${VERSION}); not moving it backwards"
+fi
 
 echo "::notice::${TARGET} v${VERSION} deployed to ${DEST} ($(du -sh "${DEST}" | cut -f1))"
-ls -la "${DEST}/" | head -10
+ls -la "${DEST}/" | head -10 || true
 [ -f "${DEST}/BUILD_INFO" ] && cat "${DEST}/BUILD_INFO" || true
