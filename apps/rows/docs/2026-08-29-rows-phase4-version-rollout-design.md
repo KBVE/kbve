@@ -38,11 +38,11 @@ Two independent audits (Explore + two Opus verification passes + Fable spec revi
 - `ci-unreal-build.yml` deploy step copies the **contents** of `LinuxServer/` into
   `/mnt/longhorn/ows-server/<target>/<version>/`. Result on PVC: `/server/<ver>/chuckServer.sh`,
   **no `LinuxServer/` level** (`.github/workflows/ci-unreal-build.yml:619-635`).
-- Deploy does `rm -rf "${DEST}"` before copy (`:626`). Republishing a version deletes a
+- **(fixed by Plan 1, PR pending)** Deploy does `rm -rf "${DEST}"` before copy (`:626`). Republishing a version deletes a
   directory a pod may be executing from.
-- The "already deployed → skip build" gate checks `${DEST}/LinuxServer` (`:356`), which
+- **(fixed by Plan 1, PR pending)** The "already deployed → skip build" gate checks `${DEST}/LinuxServer` (`:356`), which
   deploy never creates. `should_build` is always true.
-- Prune runs inside the publish job, keeps newest 3, protects only the `latest` symlink
+- **(fixed by Plan 1, PR pending)** Prune runs inside the publish job, keeps newest 3, protects only the `latest` symlink
   target (`:637-670`). `.nfs*` is not an in-use guard for a running binary.
 - Version selection: `ci-dispatch-manifest.json` wins over `version.toml` (`:297-302`).
   Manifest = desired (from mdx, written by `ci-manifest-sync.yml`); `version.toml` =
@@ -549,7 +549,7 @@ in `2026-06-24-rows-server-lifecycle-and-shutdown.md` (fleet-restart operator ru
 
 ## 6. Rollout order
 
-1. Plan 1 (CI) — PR to `dev`.
+1. Plan 1 (CI) — PR pending to `dev`. Done.
 2. Plan 2.A + 2.B — pin beta to the version on the PVC `latest` target (`0.3.51` today),
    reporter change. **Precondition checked at PR time:** mdx `version:` == `version.toml` ==
    pin (true today). If they differ, bump mdx to the pin value in the same PR — the
