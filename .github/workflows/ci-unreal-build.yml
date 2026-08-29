@@ -80,7 +80,7 @@ on:
                 type: string
                 default: ''
             debug_symbols:
-                description: '[game] When "1", drop -nodebuginfo from BuildCookRun so the client is built with debug symbols (PDBs on Win64). Symbols upload as a separate artifact and are stripped from the deployable zip / itch.io payload. Empty = keep -nodebuginfo.'
+                description: '[game] When "1", drop -nodebuginfo from BuildCookRun so the client is built with debug symbols (PDBs on Win64, dSYMs on Mac). Symbols are stripped from the deployable zip / itch.io payload and uploaded as a SEPARATE, PASSWORD-ENCRYPTED artifact (this repo is public - plaintext symbol artifacts would be world-readable). Requires the SYMBOL_ARCHIVE_PASSWORD secret. Empty = keep -nodebuginfo.'
                 required: false
                 type: string
                 default: ''
@@ -197,6 +197,9 @@ on:
                 required: false
             FORGEJO_TOKEN:
                 description: 'Forgejo (git.kbve.com) token for per-game LFS pull'
+                required: false
+            SYMBOL_ARCHIVE_PASSWORD:
+                description: '[game] Password for the encrypted debug-symbol artifact. REQUIRED when debug_symbols="1" - this repo is public, so symbols must never be uploaded in the clear.'
                 required: false
             APPLE_CERTIFICATE:
                 description: '[game/notarize] base64 Developer ID Application .p12'
@@ -1294,33 +1297,108 @@ jobs:
               run: |
                   # PDBs are often larger than the exe and must never ship to players,
                   # so move them out of the archive dir BEFORE the zip / butler push.
+                  $out = "C:\ue5-game-output"
                   $sym = "C:\ue5-game-symbols"
                   if (Test-Path $sym) { Remove-Item -Recurse -Force $sym }
                   New-Item -ItemType Directory -Force -Path $sym | Out-Null
-                  $found = @(Get-ChildItem -Path "C:\ue5-game-output" -Recurse -Include *.pdb,*.map -File -ErrorAction SilentlyContinue)
+
+                  # Do NOT use `Get-ChildItem -Path <dir> -Include *.pdb -Recurse`:
+                  # with a non-wildcard -Path it silently skips files sitting in the
+                  # root of <dir>, and the leftover guard below would inherit the
+                  # exact same blind spot. Enumerate everything, filter by extension.
+                  # .map is only treated as a symbol under Binaries\ - a project can
+                  # legitimately ship .map files (CEF/WebUI sourcemaps, data tables)
+                  # and stripping those breaks the build only once it is on a player's
+                  # machine.
+                  function Test-SymbolFile($f) {
+                      if ($f.Extension -ieq '.pdb') { return $true }
+                      if ($f.Extension -ieq '.map' -and $f.FullName -imatch '\\Binaries\\') { return $true }
+                      return $false
+                  }
+                  $all = @(Get-ChildItem -LiteralPath $out -Recurse -File -Force -ErrorAction SilentlyContinue)
+                  $found = @($all | Where-Object { Test-SymbolFile $_ })
+                  if ($found.Count -eq 0) {
+                      Write-Host "::error::debug_symbols=1 but no symbol files found under $out - -nodebuginfo was dropped yet the target emitted nothing. Failing rather than shipping a release with no symbols."
+                      exit 1
+                  }
+                  $mb = [math]::Round((($found | Measure-Object -Property Length -Sum).Sum / 1MB), 1)
                   foreach ($f in $found) {
-                      $rel = $f.FullName.Substring("C:\ue5-game-output".Length).TrimStart('\')
+                      $rel = $f.FullName.Substring($out.Length).TrimStart('\')
                       $dest = Join-Path $sym $rel
                       New-Item -ItemType Directory -Force -Path (Split-Path -Parent $dest) | Out-Null
                       Move-Item -Force -LiteralPath $f.FullName -Destination $dest
                   }
-                  if ($found.Count -eq 0) {
-                      Write-Host "::warning::debug_symbols=1 but no .pdb/.map found under C:\ue5-game-output - check that -nodebuginfo was dropped and the target emits symbols"
-                  } else {
-                      $mb = [math]::Round((($found | Measure-Object -Property Length -Sum).Sum / 1MB), 1)
-                      Write-Host "::notice::Moved $($found.Count) symbol file(s) ($mb MB) to $sym"
+                  Write-Host "::notice::Moved $($found.Count) symbol file(s) ($mb MB) to $sym"
+
+                  $leftover = @(Get-ChildItem -LiteralPath $out -Recurse -File -Force -ErrorAction SilentlyContinue | Where-Object { Test-SymbolFile $_ })
+                  if ($leftover.Count -gt 0) {
+                      $leftover | ForEach-Object { Write-Host "  $($_.FullName)" }
+                      Write-Host "::error::$($leftover.Count) symbol file(s) still in the deployable output"
+                      exit 1
                   }
-                  $leftover = @(Get-ChildItem -Path "C:\ue5-game-output" -Recurse -Include *.pdb,*.map -File -ErrorAction SilentlyContinue)
-                  if ($leftover.Count -gt 0) { Write-Host "::error::$($leftover.Count) symbol file(s) still in the deployable output"; exit 1 }
+
+            - name: Encrypt debug symbols (Win64)
+              if: inputs.debug_symbols == '1'
+              env:
+                  SYMBOL_ARCHIVE_PASSWORD: ${{ secrets.SYMBOL_ARCHIVE_PASSWORD }}
+              run: |
+                  # This repo is PUBLIC, so an Actions artifact is world-readable.
+                  # Shipping-client PDBs hand out the full symbol table (backend keys,
+                  # protocol structs, cheat surface), so the archive is encrypted with a
+                  # repo secret before it ever leaves the runner.
+                  #
+                  # Decrypt (identical on Win64 and Mac):
+                  #   openssl enc -d -aes-256-cbc -pbkdf2 -iter 100000 \
+                  #     -pass env:SYMBOL_ARCHIVE_PASSWORD \
+                  #     -in <app>-symbols.zip.enc -out symbols.zip
+                  $pass = $env:SYMBOL_ARCHIVE_PASSWORD
+                  if ([string]::IsNullOrEmpty($pass)) {
+                      Write-Host "::error::debug_symbols=1 but the SYMBOL_ARCHIVE_PASSWORD secret is unset - refusing to publish plaintext symbols from a public repo"
+                      exit 1
+                  }
+                  $zip = "C:\ue5-game-symbols.zip"
+                  $enc = "C:\ue5-game-symbols.zip.enc"
+                  if (Test-Path $zip) { Remove-Item -Force $zip }
+                  if (Test-Path $enc) { Remove-Item -Force $enc }
+                  Compress-Archive -Path "C:\ue5-game-symbols\*" -DestinationPath $zip
+
+                  # OpenSSL "Salted__" container: magic + 8-byte salt + AES-256-CBC body,
+                  # key/IV from PBKDF2-HMAC-SHA256 (openssl enc -pbkdf2 defaults).
+                  $salt = New-Object byte[] 8
+                  [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($salt)
+                  $kdf = New-Object System.Security.Cryptography.Rfc2898DeriveBytes(
+                      $pass, $salt, 100000, [System.Security.Cryptography.HashAlgorithmName]::SHA256)
+                  $keyIv = $kdf.GetBytes(48)
+                  $aes = [System.Security.Cryptography.Aes]::Create()
+                  $aes.KeySize = 256
+                  $aes.Mode = [System.Security.Cryptography.CipherMode]::CBC
+                  $aes.Padding = [System.Security.Cryptography.PaddingMode]::PKCS7
+                  $aes.Key = [byte[]]$keyIv[0..31]
+                  $aes.IV = [byte[]]$keyIv[32..47]
+                  $inStream = [System.IO.File]::OpenRead($zip)
+                  $outStream = [System.IO.File]::Create($enc)
+                  $outStream.Write([System.Text.Encoding]::ASCII.GetBytes('Salted__'), 0, 8)
+                  $outStream.Write($salt, 0, 8)
+                  $cs = New-Object System.Security.Cryptography.CryptoStream(
+                      $outStream, $aes.CreateEncryptor(), [System.Security.Cryptography.CryptoStreamMode]::Write)
+                  $inStream.CopyTo($cs)
+                  $cs.FlushFinalBlock()
+                  $cs.Dispose(); $outStream.Dispose(); $inStream.Dispose(); $aes.Dispose()
+
+                  # Plaintext must not survive on a persistent runner.
+                  Remove-Item -Force $zip
+                  Remove-Item -Recurse -Force "C:\ue5-game-symbols"
+                  $mb = [math]::Round(((Get-Item $enc).Length / 1MB), 1)
+                  Write-Host "::notice::Encrypted symbol archive -> $enc ($mb MB)"
 
             - name: Upload debug symbols
               if: inputs.debug_symbols == '1'
               uses: actions/upload-artifact@v7
               with:
                   name: ${{ inputs.app_name }}-windows-symbols-v${{ needs.game_gate.outputs.version }}
-                  path: C:\ue5-game-symbols
-                  if-no-files-found: warn
-                  retention-days: 30
+                  path: C:\ue5-game-symbols.zip.enc
+                  if-no-files-found: error
+                  retention-days: 90
 
             - name: Package archive
               run: |
@@ -1357,6 +1435,7 @@ jobs:
               run: |
                   if (Test-Path C:\ue5-game-output) { Remove-Item -Recurse -Force C:\ue5-game-output -ErrorAction SilentlyContinue }
                   if (Test-Path C:\ue5-game-symbols) { Remove-Item -Recurse -Force C:\ue5-game-symbols -ErrorAction SilentlyContinue }
+                  Remove-Item -Force C:\ue5-game-symbols.zip, C:\ue5-game-symbols.zip.enc -ErrorAction SilentlyContinue
                   if (Test-Path C:\game-clone) { Remove-Item -Recurse -Force C:\game-clone -ErrorAction SilentlyContinue }
                   # Drain packaged build zips from the root of the persistent Win64 runner (current run + any backlog for this app)
                   Get-ChildItem -Path 'C:\' -Filter '${{ inputs.app_name }}-*.zip' -File -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
@@ -1537,34 +1616,75 @@ jobs:
             - name: Extract debug symbols (Mac)
               if: inputs.debug_symbols == '1'
               run: |
+                  set -euo pipefail
                   # dSYMs must not ride along in the staged .app that gets zipped and
                   # pushed to itch.io - move them out before signing/packaging.
+                  # No -maxdepth: the real nesting is
+                  #   Mac/<Game>.app/Contents/UE/Engine/Binaries/Mac/<x>.dSYM
+                  # which is already 7 levels down, so any small cap silently leaks
+                  # symbols into the public itch.io payload.
                   PROJECT_ROOT="${{ steps.clone_project.outputs.project_root }}"
                   STAGE="${PROJECT_ROOT}/Saved/StagedBuilds/Mac"
                   SYM="${RUNNER_TEMP}/ue5-game-symbols"
                   rm -rf "${SYM}"; mkdir -p "${SYM}"
                   COUNT=0
+                  # -prune: do not descend into a matched bundle (it is a directory).
                   while IFS= read -r d; do
                     [ -n "${d}" ] || continue
                     REL="${d#${STAGE}/}"
                     mkdir -p "${SYM}/$(dirname "${REL}")"
                     mv "${d}" "${SYM}/${REL}"
                     COUNT=$((COUNT + 1))
-                  done <<< "$(find "${STAGE}" -maxdepth 6 -name '*.dSYM' 2>/dev/null || true)"
+                  done <<< "$(find "${STAGE}" -name '*.dSYM' -prune -print 2>/dev/null || true)"
                   if [ "${COUNT}" -eq 0 ]; then
-                    echo "::warning::debug_symbols=1 but no .dSYM found under ${STAGE}"
-                  else
-                    echo "::notice::Moved ${COUNT} dSYM bundle(s) to ${SYM} ($(du -sh "${SYM}" | cut -f1))"
+                    echo "::error::debug_symbols=1 but no .dSYM found under ${STAGE} - -nodebuginfo was dropped yet the target emitted nothing. Failing rather than shipping a release with no symbols."
+                    exit 1
                   fi
+                  echo "::notice::Moved ${COUNT} dSYM bundle(s) to ${SYM} ($(du -sh "${SYM}" | cut -f1))"
+
+                  # Mirror the Win64 hard-fail: the staged tree is what gets zipped,
+                  # signed, notarized and pushed to itch.io.
+                  LEFTOVER=$(find "${STAGE}" -name '*.dSYM' -prune -print 2>/dev/null | wc -l | tr -d ' ')
+                  if [ "${LEFTOVER}" -ne 0 ]; then
+                    find "${STAGE}" -name '*.dSYM' -prune -print
+                    echo "::error::${LEFTOVER} dSYM bundle(s) still in the staged Mac build"
+                    exit 1
+                  fi
+
+            - name: Encrypt debug symbols (Mac)
+              if: inputs.debug_symbols == '1'
+              env:
+                  SYMBOL_ARCHIVE_PASSWORD: ${{ secrets.SYMBOL_ARCHIVE_PASSWORD }}
+              run: |
+                  set -euo pipefail
+                  # This repo is PUBLIC, so an Actions artifact is world-readable.
+                  # Encrypt before upload. Decrypt (identical on Win64 and Mac):
+                  #   openssl enc -d -aes-256-cbc -pbkdf2 -iter 100000 \
+                  #     -pass env:SYMBOL_ARCHIVE_PASSWORD \
+                  #     -in <app>-symbols.zip.enc -out symbols.zip
+                  if [ -z "${SYMBOL_ARCHIVE_PASSWORD:-}" ]; then
+                    echo "::error::debug_symbols=1 but the SYMBOL_ARCHIVE_PASSWORD secret is unset - refusing to publish plaintext symbols from a public repo"
+                    exit 1
+                  fi
+                  SYM="${RUNNER_TEMP}/ue5-game-symbols"
+                  ZIP="${RUNNER_TEMP}/ue5-game-symbols.zip"
+                  ENC="${RUNNER_TEMP}/ue5-game-symbols.zip.enc"
+                  rm -f "${ZIP}" "${ENC}"
+                  # -y preserves symlinks inside the dSYM bundles.
+                  (cd "$(dirname "${SYM}")" && zip -qry "${ZIP}" "$(basename "${SYM}")")
+                  openssl enc -aes-256-cbc -pbkdf2 -iter 100000 -salt \
+                    -pass env:SYMBOL_ARCHIVE_PASSWORD -in "${ZIP}" -out "${ENC}"
+                  rm -rf "${SYM}" "${ZIP}"
+                  echo "::notice::Encrypted symbol archive -> ${ENC} ($(du -h "${ENC}" | cut -f1))"
 
             - name: Upload debug symbols (Mac)
               if: inputs.debug_symbols == '1'
               uses: actions/upload-artifact@v7
               with:
                   name: ${{ inputs.app_name }}-macos-symbols-v${{ needs.game_gate.outputs.version }}
-                  path: ${{ runner.temp }}/ue5-game-symbols
-                  if-no-files-found: warn
-                  retention-days: 30
+                  path: ${{ runner.temp }}/ue5-game-symbols.zip.enc
+                  if-no-files-found: error
+                  retention-days: 90
 
             - name: Verify baked backend config (pre-pak, Mac)
               if: inputs.verify_baked_config == 'true'
@@ -1659,7 +1779,7 @@ jobs:
             - name: Cleanup
               if: always()
               run: |
-                  rm -rf "${RUNNER_TEMP}/game-clone" "${RUNNER_TEMP}/game-project" "${RUNNER_TEMP}/ue5-game-output" "${RUNNER_TEMP}/ue5-game-symbols" "/tmp/${{ inputs.app_name }}-macos.zip" 2>/dev/null || true
+                  rm -rf "${RUNNER_TEMP}/game-clone" "${RUNNER_TEMP}/game-project" "${RUNNER_TEMP}/ue5-game-output" "${RUNNER_TEMP}/ue5-game-symbols" "${RUNNER_TEMP}/ue5-game-symbols.zip" "${RUNNER_TEMP}/ue5-game-symbols.zip.enc" "/tmp/${{ inputs.app_name }}-macos.zip" 2>/dev/null || true
 
     game_itch_mac:
         name: Game Deploy to itch.io (Mac client)
