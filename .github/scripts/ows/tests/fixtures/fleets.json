@@ -1,0 +1,4 @@
+{"items":[
+ {"metadata":{"name":"rows-chuckrpg-beta"},"spec":{"template":{"metadata":{"labels":{"ows.kbve.com/server-version":"0.3.52"}}}}},
+ {"metadata":{"name":"rows-chuckrpg-dev"},"spec":{"template":{"metadata":{"labels":{}}}}}
+]}
