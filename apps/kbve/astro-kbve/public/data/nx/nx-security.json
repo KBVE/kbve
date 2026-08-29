@@ -1,5 +1,5 @@
 {
-	"generated_at": "2026-08-28T12:34:21Z",
+	"generated_at": "2026-08-29T07:44:37Z",
 	"summary": {
 		"critical": 4,
 		"high": 55,
@@ -796,14 +796,14 @@
 					"url": "https://github.com/advisories/GHSA-r292-9mhp-454m"
 				},
 				{
-					"id": "1146555",
+					"id": "1147649",
 					"title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
 					"severity": "high",
 					"package": "fast-uri",
 					"url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
 				},
 				{
-					"id": "1146558",
+					"id": "1147654",
 					"title": "fast-uri vulnerable to host confusion via percent-encoded authority delimiters",
 					"severity": "high",
 					"package": "fast-uri",
