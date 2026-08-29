@@ -124,7 +124,7 @@ template:
             - name: shared-tmp
               emptyDir:
                   medium: Memory
-                  sizeLimit: 16Gi
+                  sizeLimit: 64Gi
             - name: ows-server-build
               persistentVolumeClaim:
                   claimName: ows-server-build
