@@ -79,6 +79,11 @@ on:
                 required: false
                 type: string
                 default: ''
+            debug_symbols:
+                description: '[game] When "1", drop -nodebuginfo from BuildCookRun so the client is built with debug symbols (PDBs on Win64). Symbols upload as a separate artifact and are stripped from the deployable zip / itch.io payload. Empty = keep -nodebuginfo.'
+                required: false
+                type: string
+                default: ''
             game_mode:
                 description: '[game] Server launch game mode (fleet metadata)'
                 required: false
@@ -1253,7 +1258,12 @@ jobs:
                   }
                   $loggingShipping = '${{ inputs.use_logging_in_shipping }}'
                   if ($loggingShipping) { $env:USE_LOGGING_IN_SHIPPING = $loggingShipping }
-                  Write-Host "::notice::Building $($uproject.FullName) (Win64 client, $clientConfig, $mapArg)"
+                  # debug_symbols='1' keeps PDBs (crash callstacks resolve to symbols
+                  # instead of raw offsets). They are pulled out of the archive dir
+                  # before packaging so they never reach players.
+                  $debugSymbols = '${{ inputs.debug_symbols }}'
+                  $debugInfoArgs = if ($debugSymbols -eq '1') { @() } else { @('-nodebuginfo') }
+                  Write-Host "::notice::Building $($uproject.FullName) (Win64 client, $clientConfig, $mapArg, debug_symbols=$debugSymbols)"
                   & '${{ steps.engine.outputs.runuat }}' BuildCookRun `
                       -project="$($uproject.FullName)" `
                       -targetplatform=Win64 `
@@ -1262,7 +1272,7 @@ jobs:
                       -build -stage -pak -archive `
                       @customConfigArgs `
                       -archivedirectory="$out" `
-                      -nodebuginfo `
+                      @debugInfoArgs `
                       -unattended -utf8output -NoP4
                   if ($LASTEXITCODE -ne 0) { Write-Host "::error::BuildCookRun failed ($LASTEXITCODE)"; exit $LASTEXITCODE }
 
@@ -1278,6 +1288,39 @@ jobs:
                       Write-Host "::notice::OWS endpoint in staged Win64 config:"
                       $hits | ForEach-Object { Write-Host ("  " + $_.Path + ": " + $_.Line.Trim()) }
                   } else { Write-Host "::warning::OWS keys not found in any staged .ini (config likely packed into iostore/zen - verify at runtime via the client 'ROWS initialized - API:' log line)" }
+
+            - name: Extract debug symbols (Win64)
+              if: inputs.debug_symbols == '1'
+              run: |
+                  # PDBs are often larger than the exe and must never ship to players,
+                  # so move them out of the archive dir BEFORE the zip / butler push.
+                  $sym = "C:\ue5-game-symbols"
+                  if (Test-Path $sym) { Remove-Item -Recurse -Force $sym }
+                  New-Item -ItemType Directory -Force -Path $sym | Out-Null
+                  $found = @(Get-ChildItem -Path "C:\ue5-game-output" -Recurse -Include *.pdb,*.map -File -ErrorAction SilentlyContinue)
+                  foreach ($f in $found) {
+                      $rel = $f.FullName.Substring("C:\ue5-game-output".Length).TrimStart('\')
+                      $dest = Join-Path $sym $rel
+                      New-Item -ItemType Directory -Force -Path (Split-Path -Parent $dest) | Out-Null
+                      Move-Item -Force -LiteralPath $f.FullName -Destination $dest
+                  }
+                  if ($found.Count -eq 0) {
+                      Write-Host "::warning::debug_symbols=1 but no .pdb/.map found under C:\ue5-game-output - check that -nodebuginfo was dropped and the target emits symbols"
+                  } else {
+                      $mb = [math]::Round((($found | Measure-Object -Property Length -Sum).Sum / 1MB), 1)
+                      Write-Host "::notice::Moved $($found.Count) symbol file(s) ($mb MB) to $sym"
+                  }
+                  $leftover = @(Get-ChildItem -Path "C:\ue5-game-output" -Recurse -Include *.pdb,*.map -File -ErrorAction SilentlyContinue)
+                  if ($leftover.Count -gt 0) { Write-Host "::error::$($leftover.Count) symbol file(s) still in the deployable output"; exit 1 }
+
+            - name: Upload debug symbols
+              if: inputs.debug_symbols == '1'
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ inputs.app_name }}-windows-symbols-v${{ needs.game_gate.outputs.version }}
+                  path: C:\ue5-game-symbols
+                  if-no-files-found: warn
+                  retention-days: 30
 
             - name: Package archive
               run: |
@@ -1313,6 +1356,7 @@ jobs:
               if: always()
               run: |
                   if (Test-Path C:\ue5-game-output) { Remove-Item -Recurse -Force C:\ue5-game-output -ErrorAction SilentlyContinue }
+                  if (Test-Path C:\ue5-game-symbols) { Remove-Item -Recurse -Force C:\ue5-game-symbols -ErrorAction SilentlyContinue }
                   if (Test-Path C:\game-clone) { Remove-Item -Recurse -Force C:\game-clone -ErrorAction SilentlyContinue }
                   # Drain packaged build zips from the root of the persistent Win64 runner (current run + any backlog for this app)
                   Get-ChildItem -Path 'C:\' -Filter '${{ inputs.app_name }}-*.zip' -File -ErrorAction SilentlyContinue | Remove-Item -Force -ErrorAction SilentlyContinue
@@ -1475,6 +1519,11 @@ jobs:
                   # No -archive: under Modern Xcode (UE 5.3+) BuildCookRun -archive copies
                   # the exe-only Binaries/Mac bundle, not the staged one with Contents/UE
                   # + dylibs. Stage only; package the staged .app below. (issue #12996)
+                  # debug_symbols='1' keeps the dSYM/debug info so crash callstacks
+                  # resolve to symbols instead of raw offsets.
+                  DEBUG_INFO_ARG="-nodebuginfo"
+                  if [ "${{ inputs.debug_symbols }}" = "1" ]; then DEBUG_INFO_ARG=""; fi
+
                   "${{ steps.find_ue.outputs.runuat }}" BuildCookRun \
                     -project="${UPROJECT}" \
                     -targetplatform=Mac \
@@ -1482,8 +1531,40 @@ jobs:
                     -cook ${MAP_ARG} \
                     -build -stage -pak -prereqs \
                     ${CUSTOM_CONFIG_ARG} \
-                    -nodebuginfo \
+                    ${DEBUG_INFO_ARG} \
                     -unattended -utf8output -NoP4
+
+            - name: Extract debug symbols (Mac)
+              if: inputs.debug_symbols == '1'
+              run: |
+                  # dSYMs must not ride along in the staged .app that gets zipped and
+                  # pushed to itch.io - move them out before signing/packaging.
+                  PROJECT_ROOT="${{ steps.clone_project.outputs.project_root }}"
+                  STAGE="${PROJECT_ROOT}/Saved/StagedBuilds/Mac"
+                  SYM="${RUNNER_TEMP}/ue5-game-symbols"
+                  rm -rf "${SYM}"; mkdir -p "${SYM}"
+                  COUNT=0
+                  while IFS= read -r d; do
+                    [ -n "${d}" ] || continue
+                    REL="${d#${STAGE}/}"
+                    mkdir -p "${SYM}/$(dirname "${REL}")"
+                    mv "${d}" "${SYM}/${REL}"
+                    COUNT=$((COUNT + 1))
+                  done <<< "$(find "${STAGE}" -maxdepth 6 -name '*.dSYM' 2>/dev/null || true)"
+                  if [ "${COUNT}" -eq 0 ]; then
+                    echo "::warning::debug_symbols=1 but no .dSYM found under ${STAGE}"
+                  else
+                    echo "::notice::Moved ${COUNT} dSYM bundle(s) to ${SYM} ($(du -sh "${SYM}" | cut -f1))"
+                  fi
+
+            - name: Upload debug symbols (Mac)
+              if: inputs.debug_symbols == '1'
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ inputs.app_name }}-macos-symbols-v${{ needs.game_gate.outputs.version }}
+                  path: ${{ runner.temp }}/ue5-game-symbols
+                  if-no-files-found: warn
+                  retention-days: 30
 
             - name: Verify baked backend config (pre-pak, Mac)
               if: inputs.verify_baked_config == 'true'
@@ -1578,7 +1659,7 @@ jobs:
             - name: Cleanup
               if: always()
               run: |
-                  rm -rf "${RUNNER_TEMP}/game-clone" "${RUNNER_TEMP}/game-project" "${RUNNER_TEMP}/ue5-game-output" "/tmp/${{ inputs.app_name }}-macos.zip" 2>/dev/null || true
+                  rm -rf "${RUNNER_TEMP}/game-clone" "${RUNNER_TEMP}/game-project" "${RUNNER_TEMP}/ue5-game-output" "${RUNNER_TEMP}/ue5-game-symbols" "/tmp/${{ inputs.app_name }}-macos.zip" 2>/dev/null || true
 
     game_itch_mac:
         name: Game Deploy to itch.io (Mac client)
