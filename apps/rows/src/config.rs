@@ -176,8 +176,20 @@ pub struct FleetRestart {
 pub struct DeployState {
     #[sqlx(rename = "targetversion")]
     pub target_version: String,
+    /// What a GameServer should load right now. `None` until the first roll (or the
+    /// migration backfill) sets it. The fleet launchers ask ROWS for this at container
+    /// start rather than picking the newest directory off the PVC, which is what keeps the
+    /// fleet on one version through the whole publish→roll window.
+    #[sqlx(rename = "bootversion")]
+    pub boot_version: Option<String>,
     pub rolled: bool,
     pub health: String,
+    /// `idle` | `pending` | `swapping` | `settling` — see the roll reconcile in `jobs.rs`.
+    /// Persisted because mid-roll the fleet is empty and joins are locked out, so "zero
+    /// active instances" reads true again on the next tick; without a phase the reconcile
+    /// would re-scale to zero every 30s and kill the servers it just created.
+    #[sqlx(rename = "rollphase")]
+    pub roll_phase: String,
 }
 
 /// Per-scope admission override, read from the `ows.admission_control` table. `accept_new_joins`

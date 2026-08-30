@@ -14,6 +14,11 @@ pub fn system_routes(hs: HandlerState) -> Router {
         .route("/api/System/InstanceLog", get(instance_log))
         .route("/api/System/DeploymentInfo", get(deployment_info))
         .route("/api/System/ReportBuild", axum::routing::post(report_build))
+        .route("/api/System/BootVersion", get(boot_version))
+        .route(
+            "/api/System/ReportBuildAvailable",
+            axum::routing::post(report_build_available),
+        )
         .route(
             "/api/System/RestartGameServer",
             axum::routing::post(restart_game_server),
@@ -832,6 +837,140 @@ fn is_plausible_build_version(v: &str) -> bool {
         && v.bytes().any(|b| b.is_ascii_digit())
 }
 
+/// Path-safe on top of `is_plausible_build_version`. `BootVersion` is interpolated by the
+/// fleet launcher into `/server/<version>/`, and the looser gate deliberately accepts `..1`
+/// and `.hidden` — see its doc comment. Require a leading digit and no `..` anywhere, so the
+/// value can only ever name a sibling directory.
+fn is_path_safe_version(v: &str) -> bool {
+    is_plausible_build_version(v)
+        && !v.contains("..")
+        && v.as_bytes().first().is_some_and(u8::is_ascii_digit)
+}
+
+#[utoipa::path(
+    get,
+    path = "/api/System/BootVersion",
+    tag = "system",
+    summary = "Which build a GameServer should load",
+    description = "The fleet launcher calls this at container start and execs /server/<version>/. \
+                   ROWS owns this value so the fleet stays on ONE version: publishing a new build \
+                   does not change it, only a completed roll does. Fail closed — if this returns \
+                   no version the launcher must exit rather than guess.",
+    responses(
+        (status = 200, description = "{ version: string }"),
+        (status = 503, description = "No boot version is set, or it failed the path-safety gate"),
+    )
+)]
+pub async fn boot_version(State(hs): State<HandlerState>) -> axum::response::Response {
+    use axum::response::IntoResponse;
+
+    // Served from the 30s deploy_state cache, not a per-boot query: every GameServer start hits
+    // this, and a pod restart storm must not turn into a DB storm. Staleness is harmless — the
+    // roll only moves bootversion while the fleet is empty and joins are locked out.
+    let cached = hs.app.deploy_state_cache.read().unwrap().clone();
+
+    let version = match cached.as_ref().and_then(|d| d.boot_version.clone()) {
+        Some(v) => v,
+        None => {
+            tracing::warn!(
+                "BootVersion: no bootversion set — launcher will fail closed. Seed deploy_state \
+                 (ReportBuild) or run a roll before the fleet restarts."
+            );
+            return (
+                axum::http::StatusCode::SERVICE_UNAVAILABLE,
+                Json(serde_json::json!({ "error": "no boot version set" })),
+            )
+                .into_response();
+        }
+    };
+
+    if !is_path_safe_version(&version) {
+        tracing::error!(
+            version,
+            "BootVersion: stored bootversion is not path-safe — refusing to serve it"
+        );
+        return (
+            axum::http::StatusCode::SERVICE_UNAVAILABLE,
+            Json(serde_json::json!({ "error": "stored boot version is not path-safe" })),
+        )
+            .into_response();
+    }
+
+    Json(serde_json::json!({ "version": version })).into_response()
+}
+
+#[utoipa::path(
+    post,
+    path = "/api/System/ReportBuildAvailable",
+    tag = "system",
+    summary = "CI announces a published build",
+    description = "Called once by CI after a server build lands on the PVC. Sets the roll target \
+                   and arms the reconcile; does NOT change what pods boot. Requires the gateway \
+                   bearer token — deliberately not the X-CustomerGUID header that ReportBuild \
+                   accepts, since a GameServer must not be able to set the rollout target.",
+    request_body(description = "{ version: string }", content_type = "application/json"),
+    responses(
+        (status = 200, description = "{ success: bool, version: string }"),
+        (status = 401, description = "Missing or invalid gateway bearer token"),
+        (status = 400, description = "Version failed the path-safety gate"),
+    )
+)]
+pub async fn report_build_available(
+    State(hs): State<HandlerState>,
+    headers: HeaderMap,
+    Json(body): Json<serde_json::Value>,
+) -> axum::response::Response {
+    use axum::response::IntoResponse;
+
+    // Fail closed, unlike RestartFleet's conditional gate: this endpoint is new, so there is no
+    // pre-token caller to brick, and it decides which build the whole fleet will move to.
+    if !fleet_restart_token_ok(&headers) {
+        return (
+            axum::http::StatusCode::UNAUTHORIZED,
+            Json(serde_json::json!({
+                "success": false,
+                "error": "ReportBuildAvailable requires the gateway bearer token",
+            })),
+        )
+            .into_response();
+    }
+
+    let version = body
+        .get("version")
+        .and_then(|v| v.as_str())
+        .unwrap_or("")
+        .trim();
+
+    if !is_path_safe_version(version) {
+        return (
+            axum::http::StatusCode::BAD_REQUEST,
+            Json(serde_json::json!({
+                "success": false,
+                "error": "version must start with a digit, contain no '..', and be 1-64 chars of [0-9A-Za-z._-]",
+            })),
+        )
+            .into_response();
+    }
+
+    match crate::repo::InstanceRepo(&hs.app.db)
+        .set_target_version(hs.app.config.customer_guid, version)
+        .await
+    {
+        Ok(()) => {
+            tracing::info!(version, "ReportBuildAvailable: roll target set");
+            Json(serde_json::json!({ "success": true, "version": version })).into_response()
+        }
+        Err(e) => {
+            tracing::error!(error = %e, version, "ReportBuildAvailable: failed to set target");
+            (
+                axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                Json(serde_json::json!({ "success": false, "error": "failed to set roll target" })),
+            )
+                .into_response()
+        }
+    }
+}
+
 #[utoipa::path(
     post,
     path = "/api/System/RestartGameServer",
@@ -1240,7 +1379,7 @@ pub async fn verify_deployment(
 
 #[cfg(test)]
 mod tests {
-    use super::{fleet_restart_token_matches, is_plausible_build_version};
+    use super::{fleet_restart_token_matches, is_path_safe_version, is_plausible_build_version};
     use axum::http::{HeaderMap, HeaderValue, header::AUTHORIZATION};
 
     fn headers_with_bearer(token: &str) -> HeaderMap {
@@ -1315,6 +1454,40 @@ mod tests {
             too_long.as_str(),    // over length cap
         ] {
             assert!(!is_plausible_build_version(v), "{v:?} should be rejected");
+        }
+    }
+
+    // BootVersion is interpolated by the fleet launcher into /server/<version>/, so it needs a
+    // stricter gate than the seed does. The looser one deliberately accepts `..1` and `.hidden`
+    // (see its doc comment); those must never reach a filesystem path.
+    #[test]
+    fn path_safe_versions_pass() {
+        for v in ["0.3.54", "0.3.54-rc1", "1.0.0_beta", "20260709"] {
+            assert!(is_path_safe_version(v), "{v} should pass");
+        }
+    }
+
+    #[test]
+    fn path_unsafe_versions_rejected() {
+        for v in [
+            "..1",       // passes the loose charset gate, escapes /server/
+            "..",        // ditto
+            ".0.3.54",   // leading dot — hidden entry, not a version dir
+            "dev.1",     // no leading digit; plausible, but not a published dir shape
+            "0.3/54",    // separator is outside the charset, but assert it explicitly
+            "",          // empty
+        ] {
+            assert!(!is_path_safe_version(v), "{v:?} should be rejected");
+        }
+    }
+
+    // Every version the loose gate accepts must either be path-safe or be caught here — this is
+    // the invariant that keeps a GameServer-reported seed from becoming a traversal at boot.
+    #[test]
+    fn path_safe_is_strictly_narrower_than_plausible() {
+        for v in ["..1", ".hidden1", "dev.1"] {
+            assert!(is_plausible_build_version(v), "{v} should pass the loose gate");
+            assert!(!is_path_safe_version(v), "{v} must fail the path-safe gate");
         }
     }
 }

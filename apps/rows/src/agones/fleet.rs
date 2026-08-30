@@ -52,6 +52,62 @@ impl AgonesClient {
             .unwrap_or(0))
     }
 
+    /// Names of GameServers in this tenant's fleet created strictly before `cutoff`
+    /// (an RFC3339 UTC instant, e.g. `2026-08-30T04:45:44Z`).
+    ///
+    /// This is the version roll's "all old servers are gone" barrier. A `count == 0` barrier
+    /// cannot work: after `scale_fleet(0)` the FleetAutoscaler refills within 30s while the old
+    /// pods are still terminating, and the Fleet template is unchanged so the same
+    /// GameServerSet is reused — nothing distinguishes an old GameServer from a new one by
+    /// name or label. The count may therefore never read zero, and the roll would hold the
+    /// admission lockout open forever: a permanent join freeze rather than a roll.
+    ///
+    /// Creation time is used rather than a stored name snapshot so the barrier survives a ROWS
+    /// restart mid-roll: `deploy_state.phasesince` is the cutoff, and anything older than the
+    /// moment we scaled to zero is by definition from the outgoing fleet.
+    ///
+    /// Agones stamps `metadata.creationTimestamp` in a fixed `...Z` format, so a lexicographic
+    /// compare is a chronological one; a malformed or missing stamp is treated as OLD, which
+    /// keeps the barrier closed rather than declaring a roll finished early.
+    pub async fn list_gameservers_created_before(
+        &self,
+        cutoff: &str,
+    ) -> Result<Vec<String>, AgonesError> {
+        let url = format!(
+            "/apis/agones.dev/v1/namespaces/{}/gameservers?labelSelector=agones.dev/fleet={}",
+            self.namespace, self.fleet
+        );
+
+        let req = http::Request::get(&url)
+            .body(Vec::new())
+            .map_err(|e| anyhow::anyhow!("Failed to build gameserver list request: {e}"))?;
+
+        let resp: serde_json::Value =
+            tokio::time::timeout(super::client::api_timeout(), self.client.request(req))
+                .await
+                .map_err(|_| anyhow::anyhow!("K8s gameserver list request timed out (10s)"))??;
+
+        Ok(resp
+            .get("items")
+            .and_then(|v| v.as_array())
+            .map(|items| {
+                items
+                    .iter()
+                    .filter_map(|gs| {
+                        let meta = gs.get("metadata")?;
+                        let name = meta.get("name")?.as_str()?;
+                        let created = meta
+                            .get("creationTimestamp")
+                            .and_then(|t| t.as_str())
+                            .unwrap_or("");
+                        // Missing/unparseable stamp => treat as old (barrier stays closed).
+                        (created.is_empty() || created < cutoff).then(|| name.to_owned())
+                    })
+                    .collect()
+            })
+            .unwrap_or_default())
+    }
+
     #[tracing::instrument(skip(self))]
     pub async fn fleet_status(&self) -> Result<FleetStatus, AgonesError> {
         let url = format!(

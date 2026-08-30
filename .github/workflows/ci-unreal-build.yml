@@ -646,6 +646,26 @@ jobs:
                   ls -la "${DEST}/" | head -10
                   cat "${DEST}/BUILD_INFO"
 
+            # ROWS decides WHEN this build goes live; CI only says that it exists. The roll
+            # itself waits for the game to be empty, so this call never interrupts players.
+            # Best-effort: a failure here leaves the build on the PVC un-announced, which the
+            # next publish (or an operator call) corrects. It must not fail an 8-hour build.
+            - name: Announce build to ROWS
+              if: ${{ secrets.ROWS_FLEET_RESTART_TOKEN != '' }}
+              env:
+                  VERSION: ${{ needs.server_config.outputs.version }}
+                  ROWS_URL: http://rows.rows-chuckrpg-beta.svc.cluster.local:4322
+                  ROWS_TOKEN: ${{ secrets.ROWS_FLEET_RESTART_TOKEN }}
+              run: |
+                  if curl -sf -m 10 -X POST "${ROWS_URL}/api/System/ReportBuildAvailable" \
+                      -H "Authorization: Bearer ${ROWS_TOKEN}" \
+                      -H "Content-Type: application/json" \
+                      -d "{\"version\":\"${VERSION}\"}" >/dev/null; then
+                    echo "::notice::ROWS armed for v${VERSION}; it will roll when the game is empty"
+                  else
+                    echo "::warning::Could not announce v${VERSION} to ROWS — build is on the PVC but the roll is not armed"
+                  fi
+
             - name: Prune old versions
               run: |
                   TARGET="${{ needs.server_config.outputs.server_target }}"
