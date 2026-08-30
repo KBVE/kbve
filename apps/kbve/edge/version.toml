@@ -52,6 +52,11 @@ label = "OWS"
 description = "OWS admin operations (unstuck, maintenance, status)"
 
 [[functions]]
+name = "wow"
+label = "WoW"
+description = "ToCloud9 game account provisioning and staff realm operations"
+
+[[functions]]
 name = "irc"
 label = "IRC"
 description = "IRC admin operations (channels, messages, server status)"
