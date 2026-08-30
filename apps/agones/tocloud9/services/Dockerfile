@@ -27,7 +27,7 @@
 # services, and the two speak the gRPC contract defined in api/proto.
 
 ARG TOCLOUD9_REPO=https://github.com/KBVE/ToCloud9.git
-ARG TOCLOUD9_REF=f29be8274cc26af2ba56dad5c97e2b8354a989b3
+ARG TOCLOUD9_REF=c91a68fa7fb70ab088e5bba2960dcf57dfbe3ba0
 
 FROM --platform=${BUILDPLATFORM} golang:1.23-alpine AS build
 
