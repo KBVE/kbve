@@ -1,10 +1,15 @@
 # ROWS Phase 4 — Version Rollout (revised design)
 
-**Status:** design, rev 6 (after five Fable review rounds). Supersedes the Phase 4 section (R0–R5) of
+**Status:** design, rev 7. Supersedes the Phase 4 section (R0–R5) of
 [`2026-06-24-rows-drain-fleet-restart.md`](./2026-06-24-rows-drain-fleet-restart.md).
 Phase 3 (drain, `fleet_restart`, `deploy_state`, trigger/pending routes) is shipped and is
 reused where noted. This document replaces the Argo-Workflow scale-to-0 orchestrator
 (old R3) with an Agones-native rolling model.
+
+**rev 7 (2026-08-30): the fleet version pin is dropped.** Rev 6 made
+`OWS_SERVER_VERSION` in `fleet.yaml` the single kube-side pin and the rollout trigger.
+That is gone — see §2. Plan 2 is deleted entirely; Plan 1 shipped without its
+pin-dependent half; Plan 3 loses the input it was designed around and needs a new one.
 
 **Goal:** a new chuck server build reaches the beta fleet with no human step after the
 mdx version bump, and a running server is replaced only when it has no players.
@@ -13,18 +18,14 @@ mdx version bump, and a running server is replaced only when it has no players.
 (old R1), migration-safety lint (old R2), non-kube supervisors. The decision logic lives in
 ROWS so a non-kube supervisor can be added later without redoing this work.
 
-**Delivery:** three implementation plans, in order. Plan 1 and Plan 2 together deliver
-"auto roll when the fleet is empty". Plan 3 adds "wait for players to leave".
-
-| Plan | Scope | Delivers |
+| Plan | Scope | State |
 |---|---|---|
-| 1 | CI immutability + gate fix + prune | Safe today, no fleet change |
-| 2 | Fleet pin + reporter + server post-publish job | Auto roll of empty servers |
-| 3 | ROWS version-aware drain | Busy servers drained, then rolled |
+| 1 | CI immutability + gate fix + prune | **Shipped** (PR #16510). No fleet change. |
+| 2 | Fleet pin + reporter + server post-publish job | **Dropped** — see §2. |
+| 3 | ROWS version-aware drain | Not started. Now the *only* roll mechanism. |
 
 Plan 3 converges only if empty drained servers actually shut down, which needs the
-empty-server reaper, which needs live UE heartbeats (UE-side, outside this doc). Plans 1+2
-do not depend on that.
+empty-server reaper, which needs live UE heartbeats (UE-side, outside this doc).
 
 ---
 
@@ -65,12 +66,21 @@ Two independent audits (Explore + two Opus verification passes + Fable spec revi
 ### Fleet manifests
 
 - Beta `ue5-server` picks the newest numeric dir at boot
-  (`apps/kube/agones/rows-tenants/chuckrpg-beta/manifests/fleet.yaml:74-84`). A pod restart
-  silently changes version; a new publish changes nothing until a restart. Observed
-  2026-08-29: pod on `0.3.49` for 9h with PVC `latest → 0.3.51`. Rolled by hand.
+  (`apps/kube/agones/rows-tenants/chuckrpg-beta/manifests/fleet.yaml:74-84`). Rev 6 treated
+  this as a defect; as of rev 7 it is **the mechanism** — see §2. Its consequence is
+  unchanged and is the open problem: a pod restart changes version silently, and a new
+  publish changes nothing until a restart. Observed 2026-08-29: pod on `0.3.49` for 9h with
+  PVC `latest → 0.3.51`, rolled by hand. Still true 2026-08-30: both beta GameServers on
+  `0.3.53` with the PVC at `0.3.54`.
 - Dev and prod default to `/server/latest/LinuxServer/chuckServer.sh`
-  (`chuckrpg-dev|prod/manifests/fleet.yaml:76`). That path cannot exist given the CI layout.
-  Dev's PVC subtree `chuckServerDev/` contents are **unverified** (dev mdx pins `0.3.20`).
+  (`chuckrpg-dev|prod/manifests/fleet.yaml:76`). That path cannot exist given the CI layout,
+  and both fallbacks there also require a `LinuxServer` dir. **Verified 2026-08-30:** the
+  chuckrpg-dev pod exits 1 with `ERROR: cooked server binary not found` before UE starts —
+  an earlier cause of that fleet's READY=0 than the known Agones `Ready()` hang. Its subPath
+  `chuckServerDev/` is an **empty directory** dated PVC-provisioning day: `unreal_chuck_dev`
+  has never dispatched, because its declared `version_toml`
+  (`apps/chuckrpg/unreal-chuck/version-dev.toml`) does not exist and `is_newer`'s `0.0.0`
+  guard then refuses forever. Dev and prod are unused; only beta is shipped.
 - Prod: `subPath: chuckServerProd` has no CI producer; prod Argo app is commented out
   (`apps/kube/kustomization.yaml:75`). Unreachable config.
 - **Argo tracks `main`** (`chuckrpg-beta/application.yaml:21`). Anything merged to `dev`
@@ -140,267 +150,116 @@ servers" via Allocated/Ready, and ROWS already allocates. The revised design use
 
 ## 2. Design
 
-### Principle
+### Principle (rev 7)
 
-`OWS_SERVER_VERSION` in `fleet.yaml` is the single kube-side pin. Bumping it is the only
-rollout trigger. Agones replaces empty servers immediately; ROWS drains busy old-version
-servers and shuts them down when empty; the fleet replaces them with the pinned version.
-No orchestrator, no scale-to-0, no player disconnects.
+**The newest version directory on the PVC is the target version.** There is no pin.
+
+Every fleet launcher resolves its build at container start with
+`find /server -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -1`, so any pod that
+starts runs the newest published build. Publishing is therefore the only rollout input, and
+`fleet.yaml` never changes between releases.
+
+Rev 6 instead made `OWS_SERVER_VERSION` in `fleet.yaml` the pin and its bump the rollout
+trigger. That was dropped for cost: it required a CI-authored PR per server build, an
+auto-merge to `dev`, a batch human `dev → main` merge, and an Argo sync before a build could
+reach the cluster — and it made prune's "which version is still in use" question require
+Agones labels, a ServiceAccount and RBAC to answer. Without a pin the question has no
+subject, because no pod ever wants an older directory.
+
+**What the pin was also doing, and what now has to replace it.** A pin bump changed the
+Fleet template, and *that* is what made Agones roll: `RollingUpdate` replaces `Ready`
+GameServers and leaves `Allocated` ones alone. With no template change there is no trigger
+at all — a `Ready` GameServer on an old build sits `Ready` on that build indefinitely. A
+publish reaches only pods that happen to be created for other reasons.
+
+So the rollout trigger moves from CI into ROWS (Plan 3). Until Plan 3 lands, rolling is an
+operator action (`RestartFleet`, or deleting `Ready` GameServers).
 
 ### Data flow
 
 ```
-mdx version bump (human)  →  ci-manifest-sync writes ci-dispatch-manifest.json
+mdx version bump (human)
   → ci-unreal-build (mode=server): build → /server/<ver>/ (immutable) → latest symlink
-  → server_post_publish (NEW, after build OR gate-skip): PR to dev bumping
-        fleet.yaml OWS_SERVER_VERSION + label only; idempotent; auto-merged
-     (game_post_publish keeps owning version.toml, unchanged)
-  → dev → main merge (existing release flow)  ← THE ROLL HAPPENS HERE
-  → Argo sync → Fleet template diff → new GameServerSet
-       ├─ Ready (empty) old GS: Agones deletes, new GS boots pinned version
-       └─ Allocated (busy) old GS: survives RollingUpdate
-  → ROWS (Plan 3): instance.serverversion != pin
-       → version-roll drain (joins go only to pinned-version instances)
+  → prune keeps newest 2                                    ← CI ends here
+                                                               no PR, no Argo, no fleet edit
+
+  → any GameServer created from now on boots /server/<newest>/
+  → existing GameServers keep running whatever they started with:
+       ├─ Ready (empty) old GS: nothing removes it            ← THE GAP
+       └─ Allocated (busy) old GS: correct to leave alone
+
+  → ROWS (Plan 3): target = newest version observed Ready
+       → drain instances below target (joins go only to target-version instances)
        → empty → shutdown (reaper or UE ShutDownServerInstance) → GS deleted
-       → Fleet replaces with pinned version
+       → FleetAutoscaler refills; the new GS boots the newest dir
 ```
+
+The client side needs no CI sequencing: ROWS already tracks the served version
+(`rest/system.rs`), and a client launcher picks the client build matching it. Retaining two
+client builds is an itch channel-naming change (version-suffixed channels), independent of
+everything here.
 
 ---
 
-### Plan 1 — CI publish: immutable versioned builds (`ci-unreal-build.yml`)
+### Plan 1 — CI publish: immutable versioned builds — SHIPPED
 
-1. **Layout fixed as flat:** `/server/<ver>/chuckServer.sh`. Record it in the workflow
-   comment. Do not add a `LinuxServer/` level.
-2. **Gate fix:** `server_gate` checks `find "${DEST}" -maxdepth 1 -name '*Server.sh'`.
-   "Already deployed" then actually skips.
-3. **Immutable publish:** if `${DEST}` holds a `*Server.sh`, fail the deploy step with a
-   `::error::` instead of `rm -rf`. Escape hatch: `workflow_dispatch` input
-   `force_republish=true` (explicit, logged). `force_republish` is **not** rollback.
-4. **Prune** moves to its own job (`needs: server_build`, `runs-on: arc-runner-ue` for the
-   `/mnt/longhorn` mount, with a repo checkout of **`main`**). It reads every
-   `OWS_SERVER_VERSION` value under `apps/kube/agones/rows-tenants/*/manifests/fleet.yaml`
-   **and**, live from the cluster, every distinct `ows.kbve.com/server-version` label on
-   Fleets and on GameServers in `Ready|Allocated|Reserved` across `arc-runners` (union,
-   no target→fleet mapping needed; over-protective is fine). A version carried only by an
-   Allocated old GameServer must survive — Plan 2 has no drain, so such a server can outlive
-   three publishes. Never delete a protected version or the `latest` target. Keep newest 3
-   otherwise. `main`, not
-   `dev`, because Argo deploys `main`; a pin merged to `dev` but not yet promoted is
-   protected by the live-Fleet read.
-   The live read needs identity: `arc-runner-ue` has apiserver egress
-   (`runner-apiserver-egress.yaml:34-45`) but no ServiceAccount. Add `arc-fleet-reader`
-   SA + Role (`agones.dev` `fleets,gameservers` `get,list` in `arc-runners`) + RoleBinding, following
-   `vm-starter-rbac.yaml`, and set `template.spec.serviceAccountName` in `values-ue.yaml`.
-   Read via `curl` with the SA token (do not assume `kubectl` in
-   `ghcr.io/kbve/arc-runner`). If the live read fails, prune **skips deletion** (fail closed).
-5. `latest` symlink stays (human convenience), but no fleet references it.
+See [`2026-08-29-plan1-ci-immutable-server-builds.md`](./2026-08-29-plan1-ci-immutable-server-builds.md).
+
+Flat immutable layout, a working gate, an atomic stage-and-swap publish, a reachable
+`force_republish`, forward-only `latest`, and prune keeping newest `KEEP=2` plus the
+`latest` target. No pins, no cluster reads, no added permissions. `latest` is human
+convenience and a prune anchor; no fleet reads it.
 
 ---
 
-### Plan 2 — Fleet pin, reporter, server post-publish
+### Plan 2 — DROPPED
 
-#### 2.A Fleet manifest (`chuckrpg-beta` only — see dev note)
+Fleet pin (2.A), reporter rewrite (2.B), server post-publish job and `-fleet` PR (2.C), and
+the pin-rollback runbook (2.D) are all deleted.
 
-Add to the **existing** blocks (`fleet.yaml:18-23` labels; pod spec at
-`spec.template.spec.template.spec`):
+2.B would have been a regression: the reporter already resolves the version with the same
+newest-dir logic as the launchers (`ows-build-reporter-configmap.yaml:18`), and rewriting it
+to read `OWS_SERVER_VERSION` would have coupled it to a value that no longer exists.
 
-```yaml
-spec:
-    template:                       # GameServer template
-        metadata:
-            labels:
-                # bumped with env by post-publish; used by Plan 3 selectors
-                ows.kbve.com/server-version: '0.3.51'
-        spec:
-            template:               # Pod template
-                spec:
-                    terminationGracePeriodSeconds: 120  # placeholder, see §4
-                    containers:
-                        - name: ue5-server
-                          env:
-                              # THE rollout trigger (post-publish sed rewrites the value: line)
-                              - name: OWS_SERVER_VERSION
-                                value: '0.3.51'
-                          command:
-                              - /bin/bash
-                              - -c
-                              - |
-                                  SERVER_DIR="/server/${OWS_SERVER_VERSION}"
-                                  SERVER_BIN=$(find "${SERVER_DIR}" -maxdepth 1 -name '*Server.sh' 2>/dev/null | head -1)
-                                  if [ -z "${SERVER_BIN}" ]; then
-                                    echo "ERROR: pinned build ${OWS_SERVER_VERSION} not on PVC"; ls -la /server/
-                                    sleep 60   # slow the Agones unhealthy→recreate loop
-                                    exit 1
-                                  fi
-                                  echo "Starting UE5 dedicated server ${OWS_SERVER_VERSION} from ${SERVER_BIN}"
-                                  exec "${SERVER_BIN}" -server -log -nosteam -unattended \
-                                    -port=${GAME_PORT:-7777} -GameMode=${OWS_GAME_MODE} ${OWS_EXTRA_ARGS:-}
-```
-
-- `OWS_SERVER_VERSION` is also set on `build-reporter-init` and `build-reporter`. Their
-  `server-binary` volumeMounts (`fleet.yaml:54-58,155-159`) are removed — the reporter no
-  longer reads the PVC. `OWS_SERVER_BIN` is derived, never declared. No `$(VAR)` references.
-- Remove every `find … | sort -V | tail -1` fallback. Fail closed.
-- Strategy stays `RollingUpdate 25%/25%`. On a 1-replica fleet: new GS surges up, old
-  Ready GS is deleted; an old Allocated GS survives until it shuts down.
-- FleetAutoscaler unchanged: after the template change its `allocated + 1` Ready servers
-  are new-version servers.
-- **Dev fleet:** not pinned in this plan. Before pinning dev, verify
-  `/mnt/longhorn/ows-server/chuckServerDev/` holds a versioned dir matching the dev mdx
-  (`0.3.20`); record the result in §1. Until then dev keeps its current command.
-- **Prod fleet:** untouched; add a comment that the Argo app is disabled.
-
-#### 2.B Build reporter (`ows-build-reporter-configmap.yaml`)
-
-```sh
-VER="${OWS_SERVER_VERSION:-}"
-[ -n "$VER" ] || { echo "ows-build-reporter: OWS_SERVER_VERSION unset"; exit 0; }
-```
-
-Drop the `readlink`/`find` resolution. Body stays `{"version": "<ver>"}`; the reporter is
-**advisory** (feeds `/health.served_versions`), never a control input (see Plan 3.1).
-
-#### 2.C Server post-publish job (`ci-unreal-build.yml` + `utils-post-publish.yml`)
-
-Ownership split, by construction no shared file:
-
-- `game_post_publish` (existing, client) keeps writing `version.toml`. Unchanged.
-- `server_post_publish` (new) writes **only** the fleet pin. It runs after a successful
-  build **or** a gate skip, and is idempotent (pin already at version → nothing to commit,
-  which `utils-post-publish.yml` already handles).
-
-```yaml
-server_post_publish:
-    needs: [server_config, server_gate, server_build]
-    if: |
-        always() && inputs.mode == 'server'
-        && needs.server_gate.result == 'success'
-        && (needs.server_build.result == 'success' || needs.server_build.result == 'skipped')
-        && inputs.fleet_manifests != '' && inputs.fleet_manifests != 'null'
-        && inputs.fleet_manifests != '[]'
-    permissions:
-        contents: write
-        pull-requests: write
-        actions: write
-    uses: KBVE/kbve/.github/workflows/utils-post-publish.yml@dev
-    with:
-        app_name: ${{ inputs.app_name }}
-        version: ${{ needs.server_config.outputs.version }}
-        fleet_manifests: ${{ inputs.fleet_manifests }}   # JSON array
-        branch_suffix: '-fleet'
-        # no version_toml_path: pin-only PR
-    secrets:
-        TRIGGER_PAT: ${{ secrets.UNITY_PAT }}
-```
-
-`utils-post-publish.yml` changes (all required, or the pin never moves):
-
-- `version_toml_path` becomes optional (`default: ''`). The "Update version.toml" step
-  (`:140-151`), its `EXPECTED_FILES` entry (`:269`) and `git add` (`:323`) are gated on it
-  being non-empty. Today it is required and runs unconditionally, so a pin-only call would
-  either fail validation or bump `version.toml` from the server side.
-- New input `branch_suffix` (default `''`): `BRANCH="atom-post-publish-${APP}-v${VERSION}${SUFFIX}"`
-  (`:312`). Without it the game and server jobs collide on the same branch and the second
-  is silently skipped (`:357-361`). `app_name` must stay identical — auto-merge resolves the
-  manifest entry by it (`ci-auto-merge-bot-prs.yml:199-231`).
-- New input `fleet_manifests` (JSON array, iterated like `deployment_yamls`).
-- `branch_suffix` is validated with `^[a-zA-Z0-9-]*$` and added to the ASCII / punycode /
-  metachar loops (`:77,85,121`) — it is interpolated into `git` commands.
-- When `branch_suffix` is set, the PR title gets ` (fleet)` appended so the game and fleet
-  PRs are distinguishable (auto-merge's title regex tolerates it).
-
-Why "or skipped": the dispatcher (`ci-main.yml:135-165`) re-dispatches while mdx ≠
-`version.toml`; the server gate skips when the build is already on the PVC. A single-shot
-post-publish would then never fire and the pin would never move. Consequence to accept: if
-the client build fails after the server published, the dispatcher keeps re-dispatching both
-until the client succeeds — the server side is a cheap skip + no-op PR each time. If the
-server build fails after the client published, `version.toml` is already bumped, nothing
-re-dispatches, and a human must re-dispatch the server build (`workflow_dispatch`). State
-this in `2026-06-24-rows-server-lifecycle-and-shutdown.md` (fleet-restart operator runbook).
-
-`utils-post-publish.yml` gains input `fleet_manifests` (JSON array, same shape and jq
-iteration as `deployment_yamls`). Per file, a **dedicated** step (not the deployment sed,
-which rewrites every `version:` key):
-
-```sh
-sed -i "/name: OWS_SERVER_VERSION/{n;s|value:.*|value: '${VERSION}'|}" "$f"
-sed -i "s|\(ows.kbve.com/server-version:\).*|\1 '${VERSION}'|" "$f"
-```
-
-The step runs `if: inputs.fleet_manifests != ''`; a listed file that does not exist →
-`::warning` + skip, mirroring the deployment-yaml step (`:245-248`). `value:` must be the
-line directly after `name: OWS_SERVER_VERSION` in every container (2.A guarantees it).
-Validation: `jq -e 'type=="array"'` on the raw input, then run each **element**
-(`jq -r '.[]'`) through the traversal / absolute / metachar / printable-ASCII loops
-(`:66-116`). Never feed the raw `fleet_manifests` string to those loops — `toJSON` output
-is multi-line and the ASCII check would reject it (`deployment_yamls` is likewise kept out
-of the loops today). Add the elements to `EXPECTED_FILES` (`:257-292`) and `git add`
-(`:301-330`).
-
-Frontmatter lives under `engine`, because only `engine.*` reaches `ci-unreal.yml`
-(`ci-main.yml:557-559`):
-
-```yaml
-# unreal-chuck-beta.mdx
-engine:
-    fleet_manifests:
-        - apps/kube/agones/rows-tenants/chuckrpg-beta/manifests/fleet.yaml
-```
-
-Touch points (eight, all in this plan):
-
-1. `apps/kbve/astro-kbve/.../project-schema.ts:63-106` — `engine` zod object is closed;
-   add `fleet_manifests: z.array(z.string()).optional()`.
-2. astro `gen:ci-manifest` generator (`project.json:143-156`; `manifest-builder.ts:247`
-   passes `engine` through; `sync:ci-manifest` only copies the build output) —
-   no code change, but the PR must commit the regenerated `.github/ci-dispatch-manifest.json`
-   or `ci-manifest-guard` (`:92-100`) flags structural drift.
-3. `ci-main.yml` — no change (passes whole `engine` JSON).
-4. `ci-unreal.yml` server job (`:96-108`) — add `app_name: ${{ fromJSON(inputs.engine).app_name }}`
-   (missing today; utils-post-publish rejects empty) and
-   `fleet_manifests: ${{ fromJSON(inputs.engine).fleet_manifests && toJSON(fromJSON(inputs.engine).fleet_manifests) || '' }}`
-   so projects without the field pass `''`, not the string `null`.
-5. `ci-unreal-build.yml` — declare input, forward to `server_post_publish`.
-6. `utils-post-publish.yml` — consume (above).
-7. `ci-auto-merge-bot-prs.yml:244-252` — extend `allowedFiles` with
-   `entry.engine?.fleet_manifests ?? []`; otherwise the fleet PR is "blocked" and waits for
-   a human, and the pin never moves without one.
-8. `AGENTS.md` — rollback carve-out (2.D).
-
-Do **not** write `ci-dispatch-manifest.json` from post-publish; `ci-manifest-sync.yml`
-owns it.
-
-#### 2.D Rollback (operator runbook — copy into `2026-06-24-rows-server-lifecycle-and-shutdown.md` (fleet-restart operator runbook))
-
-Rollback is a human PR that re-pins the fleet. **Carve-out to the AGENTS.md rule:** the
-fleet pin is the one CI-owned line a human may edit, and only for rollback. Never
-`dbmate down`. `force_republish` is not rollback.
-
-1. In `apps/kube/agones/rows-tenants/chuckrpg-beta/manifests/fleet.yaml` set **both**
-   lines to the retained older version: the `value:` under `name: OWS_SERVER_VERSION`
-   (every container) and the `ows.kbve.com/server-version:` label. Both, or Plan 3's
-   selectors disagree with the binary.
-2. Confirm the build still exists: `/mnt/longhorn/ows-server/chuckServer/<old>/chuckServer.sh`
-   (Plan 1 prune protects the pin, so it should).
-3. Open the PR to `dev`. It is a human merge — auto-merge takes bot PRs only.
-4. Promote dev→main. Nothing happens until then (Argo `targetRevision: main`).
-5. Verify:
-   `kubectl -n arc-runners get fleet rows-chuckrpg-beta -o jsonpath='{.spec.template.metadata.labels.ows\.kbve\.com/server-version}'`
-   then `kubectl -n arc-runners get gs -l agones.dev/fleet=rows-chuckrpg-beta` shows a
-   `Ready` GameServer with the old label.
-
-Leave the mdx at the newer version. mdx == `version.toml`, so nothing re-dispatches and the
-rollback is stable until the next deliberate bump. Plan 3's 3.4 treats the downward pin like
-any pin change (`rolled=false`, drains the newer version).
+A grep for `ows.kbve.com/server-version` and `OWS_SERVER_VERSION` across `.rs`, `.yaml`,
+`.yml` and `.sql`, excluding these docs, returns nothing — the pin never reached live code,
+so dropping it deletes none.
 
 ---
 
 ### Plan 3 — ROWS version-aware drain
 
-Plan 3 gets its own short design pass before code (system-row semantics below are the
-starting point, not the final word). Components:
+**Plan 3 is now the only roll mechanism, and it needs a new input.** Every component below
+was written against the fleet pin: 3.1 stamps `serverversion` from the allocated
+GameServer's `ows.kbve.com/server-version` label, and 3.2 reads the same label off the Fleet
+as the target. Neither label exists. Treat 3.1 and 3.2 as **open**, and 3.3–3.8 as
+conditional on how they are resolved.
 
-**3.1 Per-instance version, stamped at allocation.** `mapinstances.serverversion TEXT NULL`
+The candidate target is *the highest version among GameServers currently `Ready` or
+`Allocated`* — the value both the launcher and the reporter already compute independently.
+Open problems with it:
+
+- **Source of truth.** With no label, the reporter is the only version signal, and 3.1
+  rejects it precisely because it is spoofable by any GameServer (`rest/system.rs:775-780`
+  authenticates only `X-CustomerGUID`). Either accept that trust level for drain decisions,
+  or have the GameServer stamp its own Agones label via the SDK at boot — which is the same
+  trust level, more honestly named.
+- **Bootstrapping.** "Highest version observed Ready" cannot notice a build that no pod has
+  started yet, so a publish does not become a target until something boots it. Something has
+  to create that first pod.
+- **Crash loops.** A newest-dir target is self-fulfilling: if the new build cannot start,
+  no GS ever reports it, so the target never advances and nothing drains. That is
+  fail-safe, and it also means a bad publish is invisible rather than alarming.
+
+An alternative worth pricing before committing: drop version comparison entirely and roll on
+*publish time* — drain instances whose GameServer is older than the newest build's mtime.
+It needs no version plumbing at all, at the cost of not being able to say what is running.
+
+The system-row semantics below stand on their own and are unaffected by which target source
+wins. Components:
+
+**3.1 Per-instance version, stamped at allocation.** *(OPEN — rev-6 text; the
+label it reads does not exist. Retained for the schema and call sites, not the source.)* `mapinstances.serverversion TEXT NULL`
 (additive migration + `packages/data/sql/schema/ows/` mirror). Written when the instance row
 is inserted (`repo/instances.rs:846-870`, new arg) from the allocated GameServer's
 `ows.kbve.com/server-version` label. The `GameServerAllocation` response carries
@@ -409,7 +268,8 @@ currently keeps only name/address/port and gains a `labels` field.
 `reconcile_allocations` (`agones/sdk.rs:266-306`) backfills on startup. The reporter is not
 a source — it is spoofable by any GameServer (§1).
 
-**3.2 Fleet pin reader.** `agones::fleet::pinned_version(fleet) -> Option<String>`:
+**3.2 Fleet pin reader.** *(OPEN — rev-6 text; there is no pin to read. Whatever
+replaces it occupies this slot: one cached call returning the target version.)* `agones::fleet::pinned_version(fleet) -> Option<String>`:
 GET the Fleet, read `spec.template.metadata.labels["ows.kbve.com/server-version"]`. Cached
 in the existing 30s snapshot with `count_gameservers`. This is the only kube-specific read;
 a non-kube supervisor replaces this function.
@@ -518,51 +378,41 @@ in `2026-06-24-rows-server-lifecycle-and-shutdown.md` (fleet-restart operator ru
 
 ## 5. Testing
 
-- **Plan 1 (workflow):** gate skips when `*Server.sh` present; deploy fails on existing
-  non-empty `DEST` without `force_republish`; prune never removes a version named in any
-  `fleet.yaml` on `main`, on a live Fleet label, or carried only by an Allocated
-  GameServer's label; prune skips deletion when the live read fails.
-- **Plan 2:** `kustomize build` for beta; no `$(NAME)` where `NAME` is a declared env var
-  (kube expands only those; shell `$(find …)` is fine); all three containers carry
-  `OWS_SERVER_VERSION`; the 2.A command block run under bash with `/server` = empty tmpdir
-  prints `not on PVC`, sleeps 60, exits 1; `server_post_publish` PR touches exactly `fleet.yaml` (never `version.toml`); its branch ends in `-fleet`; auto-merge accepts
-  it; re-dispatch of an on-PVC version yields skip + no-op post-publish (no PR, no loop);
-  no other `version:`-shaped line in `fleet.yaml` changes; a project without
-  `engine.fleet_manifests` skips `server_post_publish` cleanly. Live: merge pin `N+1` to main with the fleet empty → new GS `Ready` on `N+1`
-  within 2 min, old GS gone.
-- **Plan 3 (unit):** `pinned_version` parser; `deploy_state` transitions incl. (a)/(b) and
-  the empty-fleet case; `list_drainable_instances_not_at_version`; system row never
+- **Plan 1 — shipped.** `bash .github/scripts/ows/tests/run-all.sh`: gate skips when the
+  launch script is present and rebuilds under `force_republish`; a partial dir rebuilds
+  while a complete one is refused (exit 3); publish leaves no `.stage-*` or `.old-*`;
+  `latest` moves forward only; prune keeps newest 2, the `latest` target and `.nfs*` dirs,
+  and sweeps stale leftovers without touching a fresh staging dir. Run and linted in CI by
+  the `ows_scripts` job in `ci-actionlint.yml`.
+- **Plan 2 — dropped**, no tests.
+- **Plan 3 (unit)** — the target-source tests depend on the open question above and are not
+  specified until it is settled. Independent of it: `deploy_state` transitions incl. (a)/(b)
+  and the empty-fleet case; `list_drainable_instances_not_at_version`; system row never
   opens over an operator row; aggressive trigger escalates a system row; join filter
-  excludes non-pin instances on all three join paths while a system row is active;
-  allocation selectors are `[fleet+pin, fleet]`; `escalate_fleet_restart` flips a system
-  row to operator with lockout and bypasses the reaper 412; `/fleet-restart/clear` on a
-  system row sets `rolled=true` atomically and the row does not reopen; `deploy_state.health`
-  flips to `unhealthy` after `ROWS_DEPLOY_UNHEALTHY_AFTER_SECS` with no pinned GS; stall
-  stage 1/2 read `count_active_instances_not_at_version`; reconcile with an existing active
-  system row is a no-op (idempotent resume after ROWS restart).
-- **Plan 3 (live, beta):** publish `N+1` with one player on `N`. Expect: new Ready GS on
-  `N+1`; old GS stays Allocated; `/fleet-restart/pending=true`, `status.mode=version-roll`;
-  a second player spins up on `N+1`, not `N`; first player leaves → old GS gone within the
-  reaper window; `target_version=N+1`, `served_versions=[N+1]`, `pending=false`.
+  excludes off-target instances on all three join paths while a system row is active;
+  `escalate_fleet_restart` flips a system row to operator with lockout and bypasses the
+  reaper 412; `/fleet-restart/clear` on a system row sets `rolled=true` atomically and the
+  row does not reopen; `deploy_state.health` flips to `unhealthy` after
+  `ROWS_DEPLOY_UNHEALTHY_AFTER_SECS`; stall stage 1/2 read
+  `count_active_instances_not_at_version`; reconcile with an existing active system row is a
+  no-op (idempotent resume after ROWS restart).
+- **Plan 3 (live, beta):** publish `N+1` with one player on `N`. Expect: ROWS opens a
+  version-roll row; the empty `Ready` GS on `N` is replaced by one on `N+1`; the Allocated
+  GS stays on `N`; a second player spins up on `N+1`; first player leaves → old GS gone
+  within the reaper window; `served_versions=[N+1]`, `pending=false`.
 
 ---
 
 ## 6. Rollout order
 
-1. Plan 1 (CI) — PR #16510 to `dev`. Done.
-2. Plan 2.A + 2.B — pin beta to the version on the PVC `latest` target (`0.3.51` today),
-   reporter change. **Precondition checked at PR time:** mdx `version:` == `version.toml` ==
-   pin (true today). If they differ, bump mdx to the pin value in the same PR — the
-   dispatcher re-dispatches while mdx ≠ `version.toml`, and the first fleet PR would rewrite
-   the pin to the mdx value. PR to `dev`; takes effect at the next dev→main merge.
-3. Plan 2.C + 2.D — server post-publish job, frontmatter plumbing, AGENTS.md carve-out.
-   **Gap between steps 2 and 3:** any mdx bump landing in between leaves the pin stale, and
-   post-publish only fires while mdx ≠ `version.toml`, so there is no catch-up. Rule until
-   step 3 is on `main`: whoever bumps `unreal-chuck-beta.mdx` edits the pin in the same PR
-   (2.D carve-out applies). Line in `2026-06-24-rows-server-lifecycle-and-shutdown.md` (fleet-restart operator runbook).
-4. Plan 3 design pass, then 3.1–3.8, migrations, reaper enabled on beta overlay after the
-   heartbeat check.
-5. Measure save budget, set TGPS (§4).
-6. Live tests (§5).
+1. Plan 1 (CI) — PR #16510 to `dev`. **Done.**
+2. Plan 3 design pass to settle the target-version source, then 3.1–3.8, migrations, and the
+   reaper enabled on the beta overlay after the heartbeat check.
+3. Measure the save budget and set `terminationGracePeriodSeconds` (§4).
+4. Live tests (§5).
 
 Each step is its own PR to `dev`.
+
+**Until step 2 ships, rolling beta is manual.** A publish reaches only newly created pods;
+an existing `Ready` GameServer stays on its build indefinitely. The operator lever is
+`RestartFleet` or deleting `Ready` GameServers, and it is the only one.
