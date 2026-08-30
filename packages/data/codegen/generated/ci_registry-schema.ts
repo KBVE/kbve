@@ -312,6 +312,7 @@ export const CiProjectSchema = z.object({
 	external_publish: ExternalPublishSchema.optional(),
 	engine: GameEngineConfigSchema.optional(),
 	kube: KubeMetadataSchema.optional(),
+	enabled: z.boolean().optional(),
 	bento: BentoDocSchema.optional(),
 });
 

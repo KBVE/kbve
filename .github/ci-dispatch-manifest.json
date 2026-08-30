@@ -1462,7 +1462,8 @@
 				"itch_user": "kbve",
 				"itch_game": "chuckrpg",
 				"itch_channel": "dev"
-			}
+			},
+			"enabled": false
 		},
 		{
 			"key": "unreal_deathslayer",

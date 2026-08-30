@@ -153,6 +153,14 @@ jobs:
                       esac
                     fi
 
+                    # A declared-but-missing version.toml means pub_v stays 0.0.0 and
+                    # is_newer refuses forever. That is the right default for an
+                    # unconfigured project, but it must not be silent — say so, and point
+                    # at the two legitimate resolutions.
+                    if [ -n "$version_toml" ] && [ ! -f "$version_toml" ]; then
+                      echo "::warning::$version_toml does not exist — this project can never dispatch (is_newer 0.0.0 guard). Seed it, or set 'enabled: false' in the MDX frontmatter to make the opt-out explicit." >&2
+                    fi
+
                     # Read published version from version.toml
                     if [ -f "$version_toml" ]; then
                       pub_v=$(grep -m1 '^version' "$version_toml" | sed 's/version = "\(.*\)"/\1/' 2>/dev/null || echo "0.0.0")
@@ -194,6 +202,22 @@ jobs:
                   is_altered() {
                     local key="$1"
                     jq -r --arg k "$key" '.[$k] // "false"' "$ALTER" 2>/dev/null
+                  }
+
+                  # --- Explicit opt-out gate -------------------------------------------
+                  # `enabled: false` in a project's MDX frontmatter means "tracked, but not
+                  # shipped yet". Without it the only way to keep an unfinished project from
+                  # dispatching was to leave its version_toml uncreated, which is_newer's
+                  # 0.0.0 guard then swallowed as an ordinary "version published" skip —
+                  # indistinguishable from a healthy project and impossible to notice.
+                  # Absent = enabled, so every existing entry is unaffected.
+                  skip_disabled() { # $1 = manifest entry JSON; true (0) = caller must skip
+                    local en nm
+                    en=$(echo "$1" | jq -r '.enabled // "true"')
+                    [ "$en" != "false" ] && return 1
+                    nm=$(echo "$1" | jq -r '.app_name // .package_name // .pypi_name // .plugin_name // .key // "?"')
+                    echo "  · $nm — disabled (enabled: false in MDX frontmatter), skipping"
+                    return 0
                   }
 
                   # --- In-flight check ---
@@ -253,6 +277,7 @@ jobs:
                     SRC=$(echo "$entry" | jq -r '.version_source // empty')
                     VTOML=$(echo "$entry" | jq -r '.version_toml // empty')
                     altered=$(is_altered "$key")
+                    if skip_disabled "$entry"; then SKIPPED=$((SKIPPED + 1)); continue; fi
                     needs_dispatch="false"
                     reason=""
                     if [ "$altered" = "true" ]; then
@@ -304,6 +329,7 @@ jobs:
                     [ -n "$TGT" ] && EXTRA_FIELDS="$EXTRA_FIELDS --field version_target=${TGT}"
                     [ -n "$VER" ] && [ "$VER" != "0.0.0" ] && EXTRA_FIELDS="$EXTRA_FIELDS --field manifest_version=${VER}"
 
+                    if skip_disabled "$entry"; then SKIPPED=$((SKIPPED + 1)); continue; fi
                     needs_dispatch="false"
                     reason=""
                     if [ "$altered" = "true" ]; then
@@ -362,6 +388,7 @@ jobs:
                       EXTRA_FIELDS="$EXTRA_FIELDS --field manifest_version=${VER}"
                     fi
 
+                    if skip_disabled "$entry"; then SKIPPED=$((SKIPPED + 1)); continue; fi
                     needs_dispatch="false"
                     reason=""
                     if [ "$altered" = "true" ]; then
@@ -408,6 +435,7 @@ jobs:
                     [ -n "$TGT" ] && EXTRA_FIELDS="$EXTRA_FIELDS --field version_target=${TGT}"
                     [ -n "$VER" ] && [ "$VER" != "0.0.0" ] && EXTRA_FIELDS="$EXTRA_FIELDS --field manifest_version=${VER}"
 
+                    if skip_disabled "$entry"; then SKIPPED=$((SKIPPED + 1)); continue; fi
                     needs_dispatch="false"
                     reason=""
                     if [ "$altered" = "true" ]; then
@@ -454,6 +482,7 @@ jobs:
                     altered=$(is_altered "$key")
                     deploy_itch="false"
                     [ -n "$itch" ] && deploy_itch="true"
+                    if skip_disabled "$entry"; then SKIPPED=$((SKIPPED + 1)); continue; fi
                     reason=""
                     if [ "$altered" = "true" ]; then
                       reason="files changed"
@@ -533,6 +562,7 @@ jobs:
                     deploy_steam="false"
                     [ "$steam_apps" != "[]" ] && [ "$steam_apps" != "null" ] && deploy_steam="true"
 
+                    if skip_disabled "$entry"; then SKIPPED=$((SKIPPED + 1)); return; fi
                     local altered reason
                     altered=$(is_altered "$key")
                     reason=""

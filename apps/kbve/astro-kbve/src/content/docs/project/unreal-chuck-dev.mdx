@@ -12,6 +12,12 @@ tags:
     - dev
 key: unreal_chuck_dev
 pipeline: unreal_game
+# Tracked and documented, but not shipped: dev and prod tenants are unused, only
+# beta is. Without this the entry was kept out of CI by accident — its declared
+# version_toml (version-dev.toml) does not exist, so is_newer's 0.0.0 guard
+# refused forever and the dispatcher logged it as an ordinary "already
+# published" skip, indistinguishable from a healthy project.
+enabled: false
 app_name: chuck-dev
 source_path: apps/chuckrpg/unreal-chuck
 version_toml: apps/chuckrpg/unreal-chuck/version-dev.toml

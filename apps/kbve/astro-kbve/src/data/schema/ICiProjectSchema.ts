@@ -96,6 +96,11 @@ export const ICiProjectSchema = AstroProjectExtensions.extend({
 	external_publish: ExternalPublishSchema.optional(),
 	engine: GameEngineConfigSchema.optional(),
 	kube: KubeMetadataSchema.optional(),
+	// false = tracked and documented, but not shipped: ci-main skips every
+	// dispatch. Absent/true dispatches as before. This schema picks proto fields
+	// one by one rather than spreading, so an unlisted field is silently
+	// stripped from frontmatter and never reaches the manifest.
+	enabled: CiProjectSchema.shape.enabled,
 	bento: BentoDocSchema.optional(),
 });
 
