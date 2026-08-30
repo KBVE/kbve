@@ -91,7 +91,7 @@ interface UnrealGameEntry extends GameEntryBase {}
 interface BevyGameEntry extends GameEntryBase {}
 interface ViteGameEntry extends GameEntryBase {}
 
-type ManifestEntry =
+type PipelineEntry =
 	| DockerEntry
 	| NpmEntry
 	| CratesEntry
@@ -103,6 +103,10 @@ type ManifestEntry =
 	| UnrealGameEntry
 	| BevyGameEntry
 	| ViteGameEntry;
+
+// `enabled` rides on every pipeline shape rather than each one declaring it.
+// Only ever `false`: an enabled project omits the key entirely.
+type ManifestEntry = PipelineEntry & { enabled?: false };
 
 export interface DispatchManifest {
 	docker: DockerEntry[];
@@ -125,10 +129,23 @@ export interface ProjectEntry {
 	data: ICiProject;
 }
 
+// `enabled: false` means "tracked, not shipped" — ci-main skips every
+// dispatch for the entry. Only emitted when explicitly disabled, so enabling
+// a project is the absence of the field and the manifest stays unchanged for
+// every existing entry.
 function toManifestEntry(
 	d: ICiProject,
 	mdxPath?: string,
 ): ManifestEntry | null {
+	const entry = toPipelineEntry(d, mdxPath);
+	if (!entry) return null;
+	return d.enabled === false ? { ...entry, enabled: false } : entry;
+}
+
+function toPipelineEntry(
+	d: ICiProject,
+	mdxPath?: string,
+): PipelineEntry | null {
 	const vt = d.version_toml;
 	const ver = d.version;
 	switch (d.pipeline) {

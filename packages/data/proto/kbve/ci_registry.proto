@@ -387,6 +387,14 @@ message CiProject {
   // All fields optional; downstream tools can infer defaults from other fields.
   optional KubeMetadata kube = 37;
 
+  // --- Dispatch opt-out --------------------------------------------------
+  // false = tracked and documented, but not shipped: ci-main skips every
+  // dispatch for this project. Unset/true = normal dispatch, so existing
+  // entries are unaffected. Use this instead of leaving version_toml
+  // uncreated, which the is_newer 0.0.0 guard swallows as an ordinary
+  // "already published" skip.
+  optional bool enabled = 39;
+
   // --- Bento splash-doc presentation (Astro rendering only) -------------
   // Consumed by BentoDoc.astro to render the project page as a bento
   // splash. Ignored by CI dispatch tooling.
