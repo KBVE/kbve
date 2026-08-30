@@ -27,11 +27,11 @@ Verified against the live PVC on 2026-08-30. There is no `LinuxServer/` level.
 
 | Script | Job | Behaviour |
 |---|---|---|
-| `lib.sh` | — | `ows_is_deployed()` — the single "is this a complete build" predicate, shared so the gate and the deploy cannot drift. Recognises the flat layout, and a nested `<ver>/LinuxServer/*Server.sh` defensively. |
+| `lib.sh` | — | `ows_is_deployed()` — the single "is this a complete build" predicate, shared so the gate and the deploy cannot drift. Recognises the flat layout, and a nested `<ver>/LinuxServer/` build defensively. |
 | `gate.sh` | `server_gate` | Prints `should_build=true\|false`. Skips when the version is already published. Honours `FORCE_REPUBLISH`, without which the escape hatch is unreachable — `server_build` is gated on `should_build`. |
 | `deploy.sh` | `server_build` | Stages into `.stage-<ver>.$$`, renames the old tree aside, `mv -T`s the new one in, then unlinks. Atomic: a killed runner never leaves a partial version dir, and a pod holding old binaries open is never unlinked out from under. Refuses a complete deploy (exit 3) unless `FORCE_REPUBLISH=true`; replaces a partial one. |
 | `latest.sh` | `server_build`, `server_gate` | Forward-only, create-then-rename. Called on a gate skip too — otherwise re-dispatching a published version is a green no-op that never moves `latest`. |
-| `prune.sh` | `server_prune` | Keeps newest `KEEP=2`, the `latest` target, and dirs holding an NFS silly-rename. Sweeps `.stage-*` / `.old-*` older than a day. |
+| `prune.sh` | `server_prune` | Keeps newest `KEEP=2`, the `latest` target, and dirs holding an NFS silly-rename. Sweeps `.stage-*`, `.old-*` and stale `latest.tmp.*` older than a day. |
 
 `KEEP=2` is the running version plus the one just published. It is also how rollback works:
 delete the bad newest version and the launchers fall back to the previous one at the next

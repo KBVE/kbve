@@ -8,8 +8,13 @@ reused where noted. This document replaces the Argo-Workflow scale-to-0 orchestr
 
 **rev 7 (2026-08-30): the fleet version pin is dropped.** Rev 6 made
 `OWS_SERVER_VERSION` in `fleet.yaml` the single kube-side pin and the rollout trigger.
-That is gone — see §2. Plan 2 is deleted entirely; Plan 1 shipped without its
-pin-dependent half; Plan 3 loses the input it was designed around and needs a new one.
+That is gone — see §2. Plan 1 shipped without its pin-dependent half; Plan 2 is deleted
+entirely; Plan 3 is superseded by
+[`2026-08-30-rows-whole-fleet-version-roll.md`](./2026-08-30-rows-whole-fleet-version-roll.md),
+which rolls the whole fleet at once when the game is empty instead of draining a mixed one.
+
+**This document is now history plus §1.** The verified current-state audit in §1 is still
+the reference; the live design lives in the file above.
 
 **Goal:** a new chuck server build reaches the beta fleet with no human step after the
 mdx version bump, and a running server is replaced only when it has no players.
@@ -22,10 +27,7 @@ ROWS so a non-kube supervisor can be added later without redoing this work.
 |---|---|---|
 | 1 | CI immutability + gate fix + prune | **Shipped** (PR #16510). No fleet change. |
 | 2 | Fleet pin + reporter + server post-publish job | **Dropped** — see §2. |
-| 3 | ROWS version-aware drain | Not started. Now the *only* roll mechanism. |
-
-Plan 3 converges only if empty drained servers actually shut down, which needs the
-empty-server reaper, which needs live UE heartbeats (UE-side, outside this doc).
+| 3 | ROWS version-aware drain | **Superseded** by the whole-fleet roll — see §Plan 3. |
 
 ---
 
@@ -227,131 +229,22 @@ so dropping it deletes none.
 
 ---
 
-### Plan 3 — ROWS version-aware drain
+### Plan 3 — SUPERSEDED
 
-**Plan 3 is now the only roll mechanism, and it needs a new input.** Every component below
-was written against the fleet pin: 3.1 stamps `serverversion` from the allocated
-GameServer's `ows.kbve.com/server-version` label, and 3.2 reads the same label off the Fleet
-as the target. Neither label exists. Treat 3.1 and 3.2 as **open**, and 3.3–3.8 as
-conditional on how they are resolved.
+Rev 6's Plan 3 was a version-aware rolling drain: stamp each instance with the version of
+the GameServer it was allocated from, compare against the fleet pin, and drain instances
+below it while new joins go only to pinned-version servers. It is deleted.
 
-The candidate target is *the highest version among GameServers currently `Ready` or
-`Allocated`* — the value both the launcher and the reporter already compute independently.
-Open problems with it:
+Two reasons. It read a `ows.kbve.com/server-version` label that the dropped pin was
+supposed to write, so it had no input. More fundamentally it was designed to converge a
+*mixed* fleet, and a mixed fleet is not acceptable: the world is one game split across
+zones, one GameServer per zone, and two server versions cannot serve it at once.
 
-- **Source of truth.** With no label, the reporter is the only version signal, and 3.1
-  rejects it precisely because it is spoofable by any GameServer (`rest/system.rs:775-780`
-  authenticates only `X-CustomerGUID`). Either accept that trust level for drain decisions,
-  or have the GameServer stamp its own Agones label via the SDK at boot — which is the same
-  trust level, more honestly named.
-- **Bootstrapping.** "Highest version observed Ready" cannot notice a build that no pod has
-  started yet, so a publish does not become a target until something boots it. Something has
-  to create that first pod.
-- **Crash loops.** A newest-dir target is self-fulfilling: if the new build cannot start,
-  no GS ever reports it, so the target never advances and nothing drains. That is
-  fail-safe, and it also means a bad publish is invisible rather than alarming.
+The replacement waits for the whole game to be empty and then rolls everything at once,
+which removes the need for per-instance versions, join filters and drain entirely:
 
-An alternative worth pricing before committing: drop version comparison entirely and roll on
-*publish time* — drain instances whose GameServer is older than the newest build's mtime.
-It needs no version plumbing at all, at the cost of not being able to say what is running.
+**→ [`2026-08-30-rows-whole-fleet-version-roll.md`](./2026-08-30-rows-whole-fleet-version-roll.md)**
 
-The system-row semantics below stand on their own and are unaffected by which target source
-wins. Components:
-
-**3.1 Per-instance version, stamped at allocation.** *(OPEN — rev-6 text; the
-label it reads does not exist. Retained for the schema and call sites, not the source.)* `mapinstances.serverversion TEXT NULL`
-(additive migration + `packages/data/sql/schema/ows/` mirror). Written when the instance row
-is inserted (`repo/instances.rs:846-870`, new arg) from the allocated GameServer's
-`ows.kbve.com/server-version` label. The `GameServerAllocation` response carries
-`status.metadata.labels` (Agones 1.58); `AllocationResult` (`allocate.rs:11-15,155-193`)
-currently keeps only name/address/port and gains a `labels` field.
-`reconcile_allocations` (`agones/sdk.rs:266-306`) backfills on startup. The reporter is not
-a source — it is spoofable by any GameServer (§1).
-
-**3.2 Fleet pin reader.** *(OPEN — rev-6 text; there is no pin to read. Whatever
-replaces it occupies this slot: one cached call returning the target version.)* `agones::fleet::pinned_version(fleet) -> Option<String>`:
-GET the Fleet, read `spec.template.metadata.labels["ows.kbve.com/server-version"]`. Cached
-in the existing 30s snapshot with `count_gameservers`. This is the only kube-specific read;
-a non-kube supervisor replaces this function.
-
-**3.3 Allocation prefers the pin.** `allocate.rs:99-105` switches from the deprecated
-`required` to ordered `selectors`: `[{fleet + ows.kbve.com/server-version: <pin>}, {fleet}]`
-when `pinned_version()` is `Some`; `[{fleet}]` when `None`. **Preferred, not required**: a
-required pin label would 500 every spin-up in the surge window (new GS not yet Ready;
-`NotAllocated` is not retryable, `allocate.rs:132-137`, `error.rs:20-22`). With preference,
-a spin-up in that window may land on the old version and is then drained like any other
-old instance. So 3.3 biases, it does not guarantee.
-
-**3.4 `deploy_state` becomes live.** Replace the `DO NOTHING` seed with an upsert driven by
-the snapshot:
-
-- pin ≠ `targetversion` → `targetversion = pin, rolled = false, health = 'healthy'`.
-- `rolled = true` when **(a)** ≥1 GameServer `Ready|Allocated` carries label `== pin`
-  **and (b)** zero active instances with `serverversion IS DISTINCT FROM pin`.
-  (a) stops an empty fleet from being vacuously "rolled" while the new build crash-loops.
-- `health = 'unhealthy'` when `rolled = false` for longer than
-  `ROWS_DEPLOY_UNHEALTHY_AFTER_SECS` (new knob, default 900) with no GS at the pin
-  `Ready|Allocated`. Register it in the config index doc.
-- `/health`: `target_version` (the pin) and `served_versions[]` (distinct
-  `serverversion` of active instances) as separate fields. `unreal_version` keeps its
-  current meaning (served) for launcher compatibility; note in the UE contract doc.
-
-**3.5 Version-roll drain — a distinct row kind.** The existing operator row semantics
-(lockout, whole-fleet fan-out, `count_active == 0` latch, stall, 409) do not fit a rolling
-roll. Add a discriminator `fleet_restart.owner IN ('operator','system')` (additive
-migration; default `'operator'`) with system-row rules:
-
-| Aspect | Operator row (today) | System row (version-roll) |
-|---|---|---|
-| Opened by | `POST /fleet-restart/trigger` | reconcile, when `deploy_state.rolled=false` **and** condition (a) of 3.4 holds |
-| `lockout` | true | **false** — new `open_system_fleet_restart` writes it |
-| Fan-out | all active instances | `list_drainable_instances_not_at_version(pin)` |
-| Drain state | `state=1, urgency=0` | `state=1, urgency=0` **plus** join filter (3.6) |
-| Converged when | `active == 0 && gameservers == 0` | `count_active_instances_not_at_version(pin) == 0` → row `active=false`, `rolled=true` |
-| Stall clock | `startedat` vs `fleet_restart_stall_secs` | same, on the not-at-version count |
-| `safe_to_roll` / `drainedat` | latched | not used; `/fleet-restart/status` reports `mode: version-roll` and omits `safe_to_roll` |
-| Operator trigger while active | 409 | **escalates**: aggressive trigger converts the row to operator-owned (`urgency=1`, deadline). Escalation of an `owner='system'` row is **exempt** from the reaper-disabled 412 (it converts, it does not create) |
-| `POST /fleet-restart/clear` | `active=false` | `active=false` **and** `deploy_state.rolled=true` in one tx (accept the current version mix); status shows `cleared_by: operator`. Without this the open condition re-fires next tick and the roll cannot be cancelled |
-
-Only one row exists at a time (PK `CustomerGUID`). A system row never overrides an active
-operator row; it waits.
-
-SQL consequences: `set_fleet_restart` is `WHERE active=false` (`repo/instances.rs:1548-1556`)
-and cannot escalate. Add `escalate_fleet_restart`: one `UPDATE … SET owner='operator',
-urgency=1, dropplayers=true, draindeadline=$1, lockout=true WHERE active AND owner='system'`
-(satisfies `chk_safe_default`/`chk_deadline_aggr` because `urgency=1` is set in the same
-statement). Escalation adopts full operator semantics including lockout. Convergence writes
-`fleet_restart.active=false` and `deploy_state.rolled=true` in **one transaction** so the
-open condition cannot reopen the row on the next tick. Both stall reads
-(`jobs.rs:1144-1186`, stage 1 and 2) switch to the not-at-version count when
-`owner='system'`.
-
-**3.6 Join filter.** `join_map_by_char_name` (`repo/instances.rs:170-260`) has three
-callers: `find_existing` (`pipeline.rs:123-128`), `poll_until_ready` loop + timeout fallback
-(`pipeline.rs:401-430`), and the `acquire_lock` Conflict branch
-(`service/instances.rs:218-226`). The filter goes **inside** `join_map_by_char_name`
-(new args `pin: Option<&str>`, `system_row_active: bool`; `join_candidate_key` takes
-`server_version`) so every caller inherits it. While a system row is active, instances with
-`serverversion IS DISTINCT FROM pin` are excluded; with none for the zone, ROWS spins one up
-(3.3 biases it toward the pin). The MQ fallback path (`mq.rs:353`, no Agones) cannot honour
-the pin; say so in `2026-06-24-rows-server-lifecycle-and-shutdown.md` (fleet-restart operator runbook). Operator-row behaviour unchanged.
-
-**3.7 Shutdown of empty drained instances.** Both existing writers are accepted:
-the empty-server reaper, and UE calling `ShutDownServerInstance` / Agones `SDK.Shutdown()`.
-The reaper is enabled for beta (`ROWS_EMPTY_REAPER_ENABLED=true` in
-`apps/kube/rows/tenants/overlays/chuckrpg-beta/`) **only after** the heartbeat precondition
-in `deployment.yaml:100-112` is verified live. `ROWS_REAP_NEVER_REPORTED` stays off. The
-system row bypasses the HTTP 412 gate (it is not an HTTP trigger), so no gate change is
-needed. The `ue_shutdown_trusted` idea from rev 1 is dropped. Until UE heartbeats are live
-and the reaper is on, Plan 3 drains but never converges; Plans 1+2 still deliver the
-empty-fleet roll.
-
-**3.8 Doc/code drift fixes** (same plan): 412 not 404 in the old doc; document
-`stagger`/`batch_size`; `RestartFleet` fails closed on empty token (after confirming the
-sealed secret ships to every tenant overlay); correct the "only the reaper writes
-`status=0`" comments in `jobs.rs`, `CLAUDE.md`, and the old plan.
-
----
 
 ## 3. Error handling
 
@@ -385,29 +278,15 @@ in `2026-06-24-rows-server-lifecycle-and-shutdown.md` (fleet-restart operator ru
   and sweeps stale leftovers without touching a fresh staging dir. Run and linted in CI by
   the `ows_scripts` job in `ci-actionlint.yml`.
 - **Plan 2 — dropped**, no tests.
-- **Plan 3 (unit)** — the target-source tests depend on the open question above and are not
-  specified until it is settled. Independent of it: `deploy_state` transitions incl. (a)/(b)
-  and the empty-fleet case; `list_drainable_instances_not_at_version`; system row never
-  opens over an operator row; aggressive trigger escalates a system row; join filter
-  excludes off-target instances on all three join paths while a system row is active;
-  `escalate_fleet_restart` flips a system row to operator with lockout and bypasses the
-  reaper 412; `/fleet-restart/clear` on a system row sets `rolled=true` atomically and the
-  row does not reopen; `deploy_state.health` flips to `unhealthy` after
-  `ROWS_DEPLOY_UNHEALTHY_AFTER_SECS`; stall stage 1/2 read
-  `count_active_instances_not_at_version`; reconcile with an existing active system row is a
-  no-op (idempotent resume after ROWS restart).
-- **Plan 3 (live, beta):** publish `N+1` with one player on `N`. Expect: ROWS opens a
-  version-roll row; the empty `Ready` GS on `N` is replaced by one on `N+1`; the Allocated
-  GS stays on `N`; a second player spins up on `N+1`; first player leaves → old GS gone
-  within the reaper window; `served_versions=[N+1]`, `pending=false`.
+- **Plan 3** — superseded; its tests live with the design that replaced it.
 
 ---
 
 ## 6. Rollout order
 
 1. Plan 1 (CI) — PR #16510 to `dev`. **Done.**
-2. Plan 3 design pass to settle the target-version source, then 3.1–3.8, migrations, and the
-   reaper enabled on the beta overlay after the heartbeat check.
+2. Whole-fleet version roll — see
+   [`2026-08-30-rows-whole-fleet-version-roll.md`](./2026-08-30-rows-whole-fleet-version-roll.md).
 3. Measure the save budget and set `terminationGracePeriodSeconds` (§4).
 4. Live tests (§5).
 

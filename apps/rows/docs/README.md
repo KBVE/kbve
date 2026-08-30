@@ -17,6 +17,9 @@ order.** Full config detail lives in the
 | 2   | [rows-drain-core](./2026-06-24-rows-drain-core.md)                                       | ✅ **done**               | **Phase 1.** Shipped in **PR #13537** (live on `dev`): drain state on `mapinstances`, reaper exemption, drain-aware join routing.                                                                                                          |
 | 3   | [rows-drain-admission](./2026-06-24-rows-drain-admission.md)                             | ✅ **done**               | **Phase 2.** Shipped in **PR #13543** (live on `dev`): `admission_control` gate + retryable-rejection contract.                                                                                                                            |
 | 4   | [rows-drain-fleet-restart](./2026-06-24-rows-drain-fleet-restart.md)                     | 🟡 implemented            | **Phase 3.** Implemented in **PR #13575** (ships inert): `fleet_restart`/`deploy_state` tables, reconcile job, `/fleet-restart/*` endpoints, `/health` launcher contract, sealed trigger token. Phase-4 rollout pieces (R0–R3) still open. |
+| 5   | [phase4-version-rollout](./2026-08-29-rows-phase4-version-rollout-design.md)             | 📜 history + audit        | **Phase 4, rev 7.** The version-pin design is dropped; Plan 2 deleted, Plan 3 superseded. Kept for §1, the verified current-state audit of CI, fleets, reporter and fleet-restart machinery. |
+| 5a  | [plan1-ci-immutable-server-builds](./2026-08-29-plan1-ci-immutable-server-builds.md)     | ✅ **done**               | **Phase 4 Plan 1.** Shipped in **PR #16510**: flat immutable PVC publish, working build gate, atomic stage-and-swap, prune keeping newest 2. No fleet change, no cluster permissions. |
+| 5b  | [whole-fleet-version-roll](./2026-08-30-rows-whole-fleet-version-roll.md)                | 📋 design                 | **Phase 4 Plan 2 (replacement).** Roll every zone at once when the game is empty: `scale_fleet(0)`, the FleetAutoscaler refills onto the newest build. No pin, no mixed-version window. Not implemented. |
 
 ## Cross-cutting (not a build step)
 
@@ -28,8 +31,11 @@ order.** Full config detail lives in the
 
 ## At a glance
 
-- **Implemented:** 4 of 5 build-order plans (reaper, drain core, admission, fleet-restart) — all ship inert/gated.
-- **Next up:** the Phase-4 rollout pieces (R0 version-pinned PVC delivery → R1 parity gate → R3 orchestrator, blocked on the chuck login-crash), and the **player-presence phase** (valkey live tier: who's online, server/zone, locations — design in progress).
+- **Implemented:** 4 of 5 build-order plans (reaper, drain core, admission, fleet-restart) — all ship inert/gated. Phase 4 Plan 1 (CI publish) is shipped in PR #16510.
+- **Next up:** the whole-fleet version roll (plan 5b) — ROWS scales the fleet to zero once the
+  game is empty and the autoscaler refills onto the newest build. Nothing rolls the fleet today:
+  a publish reaches only newly created pods, so an existing `Ready` GameServer stays on its build
+  until deleted by hand. Also open: the **player-presence phase** (valkey live tier — design in progress).
 - **Gate to enable the reaper:** UE obligations #1–#3 in
   [ue-chuck-drain-contract](./2026-06-24-ue-chuck-drain-contract.md) (live heartbeat + accurate count
     - annotation self-shutdown) must hold in the target env first.
