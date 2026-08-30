@@ -1,5 +1,5 @@
 {
-	"generated_at": "2026-08-29T07:45:08Z",
+	"generated_at": "2026-08-30T06:19:39Z",
 	"node": {
 		"count": 141,
 		"major": 22,
@@ -760,7 +760,7 @@
 				"name": "happy-dom",
 				"current": "20.10.6",
 				"wanted": "20.10.6",
-				"latest": "20.11.13",
+				"latest": "20.12.0",
 				"type": "dependencies",
 				"major": false
 			},
@@ -808,7 +808,7 @@
 				"name": "lucide",
 				"current": "0.575.0",
 				"wanted": "0.575.0",
-				"latest": "1.35.0",
+				"latest": "1.37.0",
 				"type": "dependencies",
 				"major": true
 			},
@@ -816,7 +816,7 @@
 				"name": "lucide-react",
 				"current": "0.575.0",
 				"wanted": "0.575.0",
-				"latest": "1.35.0",
+				"latest": "1.37.0",
 				"type": "dependencies",
 				"major": true
 			},
@@ -1128,7 +1128,7 @@
 				"name": "zod",
 				"current": "4.3.6",
 				"wanted": "4.3.6",
-				"latest": "4.5.1",
+				"latest": "4.5.4",
 				"type": "dependencies",
 				"major": false
 			}
