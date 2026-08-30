@@ -179,6 +179,7 @@ const handlers: Record<string, Handler> = {
         username,
         (body.salt as string).toUpperCase(),
         (body.verifier as string).toUpperCase(),
+        typeof claims.email === "string" ? claims.email : "",
       );
     } catch (err) {
       if (err instanceof UsernameTakenError) {

@@ -10,7 +10,8 @@ import { isDuplicateKey, MysqlConnection, MysqlError } from "./mysql.ts";
 // Every value interpolated below has already been checked against a fixed
 // character class by the caller (^[A-Z0-9_-]{3,16}$ for names, ^[0-9A-F]{64}$
 // for the credential halves), which is why these statements can be built as
-// text without an escaping layer.
+// text without an escaping layer. The account email is the one value that does
+// not arrive pre-checked, so sanitizeEmail applies a class of its own.
 // ---------------------------------------------------------------------------
 
 const HOST = Deno.env.get("TC9_MYSQL_HOST") ??
@@ -57,6 +58,25 @@ function withConnection<T>(
   return withDatabase("acore_auth", fn);
 }
 
+// AzerothCore keeps the account email for recovery and for the GM tooling that
+// looks a player up by it, so it has to be the same address the KBVE account
+// signs in with -- it comes from the session token, never from the request body.
+//
+// The pattern is the gate, not a cleanup: it admits no quote, backslash or
+// control character, so the result is safe to interpolate like every other
+// value here. Anything it rejects is stored as the empty string acore already
+// defaults to, because a mail address is not worth failing a provision over.
+// The 255 cap is the column width.
+const EMAIL_PATTERN =
+  /^[A-Za-z0-9._%+-]{1,64}@[A-Za-z0-9-]{1,63}(\.[A-Za-z0-9-]{1,63})+$/;
+
+export function sanitizeEmail(email: unknown): string {
+  if (typeof email !== "string") return "";
+  const trimmed = email.trim().toLowerCase();
+  if (trimmed.length > 255 || !EMAIL_PATTERN.test(trimmed)) return "";
+  return trimmed;
+}
+
 export class UsernameTakenError extends Error {
   constructor() {
     super("game username already taken");
@@ -74,13 +94,15 @@ export async function createAccount(
   username: string,
   salt: string,
   verifier: string,
+  email: string,
 ): Promise<void> {
+  const mail = sanitizeEmail(email);
   try {
     await withConnection((conn) =>
       conn.execute(
         `INSERT INTO acore_auth.account
              (username, salt, verifier, email, reg_mail, joindate, expansion)
-         VALUES ('${username}', 0x${salt}, 0x${verifier}, '', '', NOW(), ${EXPANSION_WOTLK})`,
+         VALUES ('${username}', 0x${salt}, 0x${verifier}, '${mail}', '${mail}', NOW(), ${EXPANSION_WOTLK})`,
       )
     );
   } catch (err) {
