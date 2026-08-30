@@ -1079,3 +1079,66 @@ git push --force-with-lease
 **Placeholders:** Task 7 `#<n>` is filled by the executor after `gh pr create`; that is the only deferred value. 
 
 **Type consistency:** output key `should_build` matches the existing `server_build.if` (`needs.server_gate.outputs.should_build == 'true'`). Env names (`PVC_ROOT`, `TARGET`, `VERSION`, `SERVER_DIR`, `FORCE_REPUBLISH`, `REPO_ROOT`, `PROTECTED_FILE`, `KEEP`) are identical across scripts, tests, and workflow steps. `force_republish` is `type: boolean` in both workflows; the deploy step converts it to the string `'true'`/`'false'` the script expects.
+
+---
+
+## Post-review amendments (audit of PR #16510)
+
+A production audit of the PR found that three of the delivered behaviours were
+either unreachable or a regression. Fixed in this branch:
+
+1. **`force_republish` was unreachable.** `server_build.if` is gated on
+   `should_build`, and `gate.sh` had no knowledge of the flag, so a republish
+   request for an already-deployed version skipped the build, never reached
+   `deploy.sh` (the only consumer of `FORCE_REPUBLISH`), and reported green
+   having done nothing — in exactly the state the flag exists for. `gate.sh`
+   now honours `FORCE_REPUBLISH`, and the gate step passes it.
+
+2. **Prune lost its only live-use guard.** The replaced inline prune skipped
+   dirs holding an NFS silly-rename (`.nfs*`); `prune.sh` dropped it in favour
+   of `ows.kbve.com/server-version` labels that no Fleet or GameServer carries
+   yet. Between this merge and the Plan 2 pin PR, protection would have been
+   *weaker* than the code it replaced. The `.nfs*` check is reinstated as a
+   belt-and-braces guard.
+
+3. **A gate skip never advanced `latest`.** `ln -sfn` lived only in
+   `deploy.sh`, so re-dispatching an already-published version was a silent
+   green no-op — new behaviour, previously masked by the always-rebuilding
+   gate. The forward-only symlink logic moved to `latest.sh`, called both by
+   `deploy.sh` and by the gate job when the build is skipped.
+
+4. **Gate and deploy disagreed on "deployed".** The gate required a launch
+   script; deploy refused on any non-empty dir. A partial dir left by the old
+   non-atomic `rm -rf; mkdir; cp -r` — several may exist on the PVC today —
+   would gate as "build", burn an 8-hour build, then exit 3. The predicate now
+   lives once in `lib.sh` and is shared. Deploy replaces a non-empty dir with
+   no launch script (nothing can boot from it) and refuses only a complete one.
+
+5. **Silent failure modes made loud.** `protected-versions.sh` warns when it
+   finds zero git pins (indistinguishable from a glob/parse miss), and the
+   prune job's fail-closed skip is now an `::error::` annotation so a prune
+   that has stopped working is visible on an otherwise green run.
+
+6. **Tests wired into CI.** `ci-actionlint.yml` gained an `ows_scripts` job
+   (shellcheck + `run-all.sh`) and `.github/scripts/**` on its path trigger.
+   The scripts previously had no automated coverage at all — that is how the
+   gawk-only 3-arg `match()` reached a runner.
+
+### Deliberately not changed here
+
+- **`ref: dev` pins stay.** They are required until the scripts exist on
+  `main`; unpinning is a follow-up once this promotes. Until then, a push to
+  `dev` changes production build and prune behaviour with no promotion gate.
+- **`arc-fleet-reader` is mounted for every job on `arc-runner-ue`,** not just
+  the prune job, so any workflow on that runner — including the external game
+  repo's build code — can enumerate Agones Fleets and GameServers. Acceptable
+  for a runner that is already privileged and authorized-users gated; tightening
+  it (projected token, or moving the apiserver read off the UE runner) is a
+  separate change.
+- **`.stage-*` orphans** from a hard-killed runner still have no sweeper.
+- **No server-version rollback path.** `latest` is forward-only and version
+  dirs are immutable, so moving tenants back to an older build has no supported
+  mechanism. Needs a design decision, not a patch.
+- **Deploy ordering:** this workflow goes live on `dev` merge, while
+  `ows-prune-rbac.yaml` reaches the cluster only when Argo syncs `main`. In
+  between, prune fails closed (403 → exit 2 → skip) and now says so loudly.

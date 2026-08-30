@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 
-gate() { PVC_ROOT="$1" TARGET="$2" VERSION="$3" bash "${SCRIPTS}/gate.sh"; }
+gate() { # pvc target version [force]
+    PVC_ROOT="$1" TARGET="$2" VERSION="$3" FORCE_REPUBLISH="${4:-false}" bash "${SCRIPTS}/gate.sh"
+}
 
 t_missing_dir_builds() {
     local pvc; pvc=$(mktemp -d)
@@ -43,6 +45,32 @@ t_target_without_server_suffix_flat_binary_skips() {
     mkdir -p "${pvc}/chuckServerDev/1.0.0"
     touch "${pvc}/chuckServerDev/1.0.0/chuckServerDev.sh"
     assert_eq "should_build=false" "$(gate "${pvc}" chuckServerDev 1.0.0)" "chuckServerDev binary present"
+}
+
+t_force_republish_overrides_skip() {
+    # server_build is gated on should_build, so force_republish is only reachable
+    # if the gate itself honours it. Without this the input is a silent no-op in
+    # exactly the state it exists for.
+    local pvc; pvc=$(mktemp -d)
+    mkdir -p "${pvc}/chuckServer/1.0.0"
+    touch "${pvc}/chuckServer/1.0.0/chuckServer.sh"
+    assert_eq "should_build=true" "$(gate "${pvc}" chuckServer 1.0.0 true)" "force_republish rebuilds"
+}
+
+t_force_republish_false_still_skips() {
+    local pvc; pvc=$(mktemp -d)
+    mkdir -p "${pvc}/chuckServer/1.0.0"
+    touch "${pvc}/chuckServer/1.0.0/chuckServer.sh"
+    assert_eq "should_build=false" "$(gate "${pvc}" chuckServer 1.0.0 false)" "no force, still skip"
+}
+
+t_nonempty_without_launch_script_builds() {
+    # Partial dir from the old non-atomic publish. Must gate as "build", and
+    # deploy must agree and replace it rather than refusing after 8 hours.
+    local pvc; pvc=$(mktemp -d)
+    mkdir -p "${pvc}/chuckServer/1.0.0/Engine"
+    touch "${pvc}/chuckServer/1.0.0/Engine/half-copied.pak"
+    assert_eq "should_build=true" "$(gate "${pvc}" chuckServer 1.0.0)" "partial dir is not a deploy"
 }
 
 t_empty_args_fail() {

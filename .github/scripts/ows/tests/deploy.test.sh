@@ -51,6 +51,18 @@ t_empty_existing_dir_is_not_a_deploy() {
     assert_exists "${tmp}/pvc/chuckServer/1.0.0/chuckServer.sh" "filled empty dir"
 }
 
+t_partial_dir_without_launch_script_is_replaced() {
+    # gate.sh says "build" for a non-empty dir with no launch script, so deploy
+    # must publish over it. Refusing here would burn an 8-hour build and exit 3.
+    local tmp; tmp=$(mktemp -d)
+    mk_build "${tmp}/out/LinuxServer"
+    mkdir -p "${tmp}/pvc/chuckServer/1.0.0/Engine"
+    touch "${tmp}/pvc/chuckServer/1.0.0/Engine/half-copied.pak"
+    deploy "${tmp}/pvc" chuckServer 1.0.0 "${tmp}/out/LinuxServer"
+    assert_exists "${tmp}/pvc/chuckServer/1.0.0/chuckServer.sh" "published over partial dir"
+    assert_missing "${tmp}/pvc/chuckServer/1.0.0/Engine/half-copied.pak" "partial contents gone"
+}
+
 t_target_without_server_suffix_refused() {
     # UBT names the launch script after -target; chuckServerDev -> chuckServerDev.sh.
     # deploy must refuse target-agnostically (non-empty dest dir), not just on *Server.sh.

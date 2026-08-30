@@ -64,4 +64,12 @@ if [ "${rc}" -ne 0 ] || [[ "${live_out}" == *__FETCH_FAILED__* ]] || [[ "${live_
     exit 2
 fi
 
-{ git_pins; printf '%s\n' "${live_out}"; } | { grep -v '^$' || true; } | sort -u -V
+pins=$(git_pins | { grep -v '^$' || true; })
+if [ -z "${pins}" ]; then
+    # Not fatal: the pin PR has not landed yet, and a tenant may legitimately
+    # track `latest`. Loud, because a silent empty set here is indistinguishable
+    # from a glob/parse miss and downgrades prune to "newest KEEP + latest".
+    echo "::warning::no OWS_SERVER_VERSION pins found under ${REPO_ROOT}/apps/kube/agones/rows-tenants/*/manifests/fleet.yaml — prune falls back to live labels only" >&2
+fi
+
+{ printf '%s\n' "${pins}"; printf '%s\n' "${live_out}"; } | { grep -v '^$' || true; } | sort -u -V

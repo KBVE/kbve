@@ -366,9 +366,23 @@ jobs:
               env:
                   TARGET: ${{ needs.server_config.outputs.server_target }}
                   VERSION: ${{ needs.server_config.outputs.version }}
+                  # force_republish has to be honoured HERE, not only in deploy.sh:
+                  # server_build is gated on should_build, so without this the
+                  # escape hatch can never fire in the one state it exists for.
+                  FORCE_REPUBLISH: ${{ inputs.force_republish && 'true' || 'false' }}
               run: |
                   # PVC layout is flat: <target>/<version>/chuckServer.sh (no LinuxServer/ level).
                   bash .github/scripts/ows/gate.sh >> "$GITHUB_OUTPUT"
+
+            # On a skip, deploy.sh never runs, so nothing would move `latest`.
+            # A dispatch of an already-published version would report green while
+            # the tenants reading /server/latest stay on the old build.
+            - name: Advance latest (build skipped)
+              if: steps.check.outputs.should_build == 'false'
+              env:
+                  TARGET: ${{ needs.server_config.outputs.server_target }}
+                  VERSION: ${{ needs.server_config.outputs.version }}
+              run: bash .github/scripts/ows/latest.sh
 
     server_build:
         name: Build ${{ needs.server_config.outputs.server_target }} (Linux Server)
@@ -687,7 +701,12 @@ jobs:
                   rc=$?
                   set -e
                   if [ "$rc" -ne 0 ]; then
-                    echo "::warning::protected-versions.sh failed (rc=$rc); skipping prune (fail closed)"
+                    # ::error:: (not ::warning::) so a prune that has silently
+                    # stopped working — e.g. the arc-fleet-reader SA has not
+                    # reached the cluster yet, since Argo syncs main while this
+                    # workflow runs from dev — is visible on an otherwise green run.
+                    # The job still succeeds: failing closed is the correct outcome.
+                    echo "::error::protected-versions.sh failed (rc=$rc); skipping prune (fail closed)"
                     echo "skip=true" >> "$GITHUB_OUTPUT"
                   else
                     echo "Protected: $(tr '\n' ' ' < /tmp/protected-versions.txt)"

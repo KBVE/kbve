@@ -2,12 +2,16 @@
 # Publish a built UE LinuxServer dir to the shared PVC as an immutable, flat version dir.
 #   <PVC_ROOT>/<TARGET>/<VERSION>/chuckServer.sh   (contents of SERVER_DIR; no LinuxServer/ level)
 #   <PVC_ROOT>/<TARGET>/latest -> <VERSION>
-# Refuses to overwrite a version dir that is already non-empty, unless FORCE_REPUBLISH=true.
-# Target-agnostic on purpose: the launch script name follows the UBT -target (e.g.
-# chuckServerDev.sh), so matching on a "*Server.sh" name would miss some targets and
-# risk cp -r'ing over a version directory a live pod is executing from.
+# Refuses to overwrite a version dir that is already a complete deploy, unless
+# FORCE_REPUBLISH=true. A non-empty dir with no launch script is junk from the
+# old non-atomic publish path — no fleet launcher can be executing it — so it is
+# replaced rather than refused (gate.sh sends us here for exactly that case).
 # Exit codes: 1 bad input, 3 refused (already deployed).
 set -euo pipefail
+
+HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=.github/scripts/ows/lib.sh
+source "${HERE}/lib.sh"
 
 PVC_ROOT="${PVC_ROOT:-/mnt/longhorn/ows-server}"
 TARGET="${TARGET:-}"
@@ -26,14 +30,17 @@ fi
 
 DEST="${PVC_ROOT}/${TARGET}/${VERSION}"
 
-if [ -d "${DEST}" ] && [ -n "$(find "${DEST}" -mindepth 1 -maxdepth 1 -print -quit 2>/dev/null)" ]; then
+if ows_is_deployed "${DEST}" "${TARGET}"; then
     if [ "${FORCE_REPUBLISH}" = "true" ]; then
         echo "::warning::FORCE_REPUBLISH=true — replacing already-deployed ${TARGET} v${VERSION} at ${DEST}. A pod may be running from it."
-        rm -rf "${DEST}"
     else
-        echo "::error::${TARGET} v${VERSION} already has a non-empty version dir at ${DEST}. Versions are immutable: bump the version, or re-run with force_republish=true." >&2
+        echo "::error::${TARGET} v${VERSION} already has a complete deploy at ${DEST}. Versions are immutable: bump the version, or re-run with force_republish=true." >&2
         exit 3
     fi
+elif ows_is_nonempty "${DEST}"; then
+    # Same predicate as the gate, so this is reachable only when the gate said
+    # "build": a partial dir with no launch script. Nothing can boot from it.
+    echo "::warning::${DEST} is non-empty but holds no launch script (partial publish from a killed runner). Replacing it."
 fi
 
 # Stage into a dot-prefixed sibling, then rename: `mv -T` is atomic within the
@@ -50,15 +57,7 @@ rm -rf "${DEST}"
 mv -T "${STAGE}" "${DEST}"
 trap - EXIT
 
-# Forward-only: force_republish of an older version must not silently roll back
-# the tenants whose launcher reads /server/latest (chuckrpg-dev, chuckrpg-prod).
-CURRENT_LATEST=$(readlink "${PVC_ROOT}/${TARGET}/latest" 2>/dev/null || echo "")
-if [ -z "${CURRENT_LATEST}" ] || [ "${CURRENT_LATEST}" = "${VERSION}" ] \
-    || [ "$(printf '%s\n%s\n' "${CURRENT_LATEST}" "${VERSION}" | sort -V | tail -1)" = "${VERSION}" ]; then
-    ln -sfn "${VERSION}" "${PVC_ROOT}/${TARGET}/latest"
-else
-    echo "::warning::latest stays at ${CURRENT_LATEST} (newer than ${VERSION}); not moving it backwards"
-fi
+PVC_ROOT="${PVC_ROOT}" TARGET="${TARGET}" VERSION="${VERSION}" bash "${HERE}/latest.sh"
 
 echo "::notice::${TARGET} v${VERSION} deployed to ${DEST} ($(du -sh "${DEST}" | cut -f1))"
 ls -la "${DEST}/" | head -10 || true

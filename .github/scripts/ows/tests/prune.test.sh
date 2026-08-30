@@ -63,6 +63,18 @@ t_non_version_dirs_ignored() {
     assert_exists "${pvc}/chuckServer/scratch" "non-version dir untouched"
 }
 
+t_nfs_silly_rename_dir_kept() {
+    # A running server holds its binaries open; on the NFS-backed RWX mount that
+    # shows up as .nfs* silly-renames. Belt-and-braces guard for the window
+    # before every Fleet/GameServer carries ows.kbve.com/server-version.
+    local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.1 0.3.2 0.3.3 0.3.4 0.3.5
+    touch "${pvc}/chuckServer/0.3.1/.nfs0000000012345678"
+    local prot; prot=$(mktemp)
+    prune "${pvc}" "${prot}"
+    assert_exists "${pvc}/chuckServer/0.3.1" "in-use dir kept"
+    assert_missing "${pvc}/chuckServer/0.3.2" "unprotected old removed"
+}
+
 t_nothing_to_prune() {
     local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.1 0.3.2
     local prot; prot=$(mktemp)
