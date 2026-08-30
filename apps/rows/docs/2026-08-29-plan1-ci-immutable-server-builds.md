@@ -1241,3 +1241,45 @@ inert — prune sweeps leftovers and deletes nothing. That is deliberate: at
 `KEEP=1` with no live evidence, the first prune would delete the version the
 fleets are actually serving. To make it take effect, land the Plan 2 pin/label
 PR. To prune in the meantime, raise `KEEP` to 3 in the `server_prune` job.
+
+---
+
+## Flat vs nested: RESOLVED — the PVC is flat
+
+Read from the live cluster on 2026-08-30 (`ows-server-build` in `arc-runners`):
+
+```
+/mnt/chuckServer/0.3.51/chuckServer.sh
+/mnt/chuckServer/0.3.52/chuckServer.sh
+/mnt/chuckServer/0.3.53/chuckServer.sh
+/mnt/chuckServer/latest -> 0.3.53
+/mnt/chuckServerDev/          <- exists, EMPTY
+(no chuckServerProd at all)
+```
+
+No `LinuxServer` level anywhere. The flat contract these scripts codify is
+correct; the nested branch in `ows_is_deployed()` is defensive dead code.
+
+**The launchers are inconsistent with each other, and two of the three are
+broken:**
+
+| Tenant | subPath | Launcher | State |
+|---|---|---|---|
+| beta | `chuckServer` | flat-aware — falls back to `find /server -maxdepth 1 -type d -name '[0-9]*'` | **Working.** Booted `/server/0.3.53/chuckServer.sh`, ready, 1 Allocated |
+| dev | `chuckServerDev` | nested-only (`/server/latest/LinuxServer/chuckServer.sh`, fallback also requires a `LinuxServer` dir) | **Broken.** `ERROR: cooked server binary not found`, exit 1, fleet READY=0 |
+| prod | `chuckServerProd` | nested-only, same as dev | No fleet deployed; subPath does not exist on the PVC |
+
+So the chuckrpg-dev fleet's READY=0 is not (only) the UE-side Agones `Ready()`
+hang — the container exits 1 before UE ever starts, on two independent faults:
+a launcher that cannot read the flat layout, and a `chuckServerDev` subPath that
+no build has ever published into.
+
+### Required follow-up (not in this PR)
+
+1. Port beta's flat-aware launcher into `chuckrpg-dev` and `chuckrpg-prod`
+   `fleet.yaml`, and drop the stale `# Cooked ... staged at
+   /server/latest/LinuxServer/...` comments. Natural home: the Plan 2 pin PR,
+   which edits those same three files.
+2. Decide what `chuckServerDev`/`chuckServerProd` should be. Either publish
+   builds for those targets, or point those tenants' subPath at `chuckServer`
+   the way beta does. Today dev mounts an empty directory.

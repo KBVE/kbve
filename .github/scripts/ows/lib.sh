@@ -17,12 +17,13 @@ ows_is_deployed() {
     # Flat layout: <ver>/<target>.sh
     [ -f "${dir}/${target}.sh" ] && return 0
     find "${dir}" -maxdepth 1 -name '*Server.sh' -type f -print -quit 2>/dev/null | grep -q . && return 0
-    # Nested layout: <ver>/LinuxServer/<target>.sh. This is what the fleet
-    # launchers in apps/kube/agones/rows-tenants/*/manifests/fleet.yaml
-    # actually exec (/server/latest/LinuxServer/chuckServer.sh, and every
-    # fallback there also requires a LinuxServer dir). A nested dir is a
-    # bootable deploy, NOT a partial one: without this branch deploy.sh would
-    # overwrite a directory live GameServers are executing from.
+    # Nested layout: <ver>/LinuxServer/<target>.sh. Defensive only — the live
+    # PVC is flat (verified 2026-08-30: /mnt/chuckServer/0.3.5{1,2,3}/chuckServer.sh,
+    # latest -> 0.3.53, no LinuxServer level anywhere) and publish has always
+    # flattened via `cp -r "${SERVER_DIR}/."`. Kept because if a nested dir ever
+    # does appear, it is a bootable build for the chuckrpg-dev/prod launchers,
+    # not a partial one, and deploy.sh must refuse it rather than overwrite a
+    # directory a GameServer is executing from.
     find "${dir}" -mindepth 2 -maxdepth 2 -path '*/LinuxServer/*Server.sh' -type f -print -quit 2>/dev/null | grep -q .
 }
 
