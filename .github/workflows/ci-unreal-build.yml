@@ -718,7 +718,7 @@ jobs:
               env:
                   TARGET: ${{ needs.server_config.outputs.server_target }}
                   PROTECTED_FILE: /tmp/protected-versions.txt
-                  KEEP: '3'
+                  KEEP: '1'
               run: bash .ows/.github/scripts/ows/prune.sh
 
     # ════════════════ GAME (client / standalone) ════════════════

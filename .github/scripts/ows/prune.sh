@@ -1,11 +1,20 @@
 #!/usr/bin/env bash
 # Delete old server version dirs under <PVC_ROOT>/<TARGET>, keeping:
-#   - the newest KEEP versions (semver order)
+#   - the newest KEEP versions (semver order; KEEP=1 = the just-published one)
 #   - the target of the `latest` symlink
 #   - every version listed in PROTECTED_FILE (git pins + live cluster labels)
 #   - any dir holding an NFS silly-rename (.nfs*), i.e. a file some process
 #     still has open on the RWX Longhorn/NFS mount
 # PROTECTED_FILE must exist (may be empty). Never runs without it.
+#
+# Retention policy: one running version + the new one. KEEP=1 covers the new
+# version; PROTECTED_FILE covers whatever is still running. When the fleets
+# finish rolling onto the new version the old one stops appearing in the live
+# label set, and the next prune deletes it.
+#
+# That policy only works if PROTECTED_FILE can actually see what is running.
+# With an aggressive KEEP and an empty protected set, prune would delete the
+# version the fleets are serving from. See the KEEP_FLOOR guard below.
 #
 # The .nfs* check is a weak, last-resort guard, kept because the label-based
 # protection above is inert until every Fleet/GameServer carries
@@ -18,7 +27,7 @@ set -euo pipefail
 
 PVC_ROOT="${PVC_ROOT:-/mnt/longhorn/ows-server}"
 TARGET="${TARGET:-}"
-KEEP="${KEEP:-3}"
+KEEP="${KEEP:-1}"
 PROTECTED_FILE="${PROTECTED_FILE:-}"
 
 [ -n "${TARGET}" ]         || { echo "::error::TARGET is required" >&2; exit 1; }
@@ -52,6 +61,21 @@ is_in_use() {
 
 echo "Pruning ${PVC_DIR}: keep newest ${KEEP}; latest -> '${LATEST_TARGET:-none}'; protected: ${PROTECTED[*]:-none}"
 
+# An empty protected set means no Fleet or GameServer carries
+# ows.kbve.com/server-version and no fleet.yaml carries an OWS_SERVER_VERSION
+# pin — i.e. we have NO evidence of which version is live. `latest` does not
+# count: it is where new pods go, not where running ones are. At KEEP >= 3 the
+# newest-N window is a wide enough accident to be tolerable; at KEEP=1 it is
+# not, and pruning would delete the version the fleets are serving.
+KEEP_FLOOR="${KEEP_FLOOR:-3}"
+if [ "${#PROTECTED[@]}" -eq 0 ] || [ -z "${PROTECTED[0]:-}" ]; then
+    if [ "${KEEP}" -lt "${KEEP_FLOOR}" ]; then
+        echo "::error::protected set is empty (no OWS_SERVER_VERSION pins, no ows.kbve.com/server-version labels) and KEEP=${KEEP} < ${KEEP_FLOOR}. Cannot tell which version is live; refusing to prune version dirs. Land the pin/label PR, or raise KEEP."
+        SWEEP_ONLY=true
+    fi
+fi
+SWEEP_ONLY="${SWEEP_ONLY:-false}"
+
 # Sweep deploy leftovers: .stage-* from a hard-killed runner (the EXIT trap
 # never fired) and .old-* the atomic swap could not unlink because a pod still
 # held files open. Both are invisible to the gate, the launchers and the
@@ -59,6 +83,11 @@ echo "Pruning ${PVC_DIR}: keep newest ${KEEP}; latest -> '${LATEST_TARGET:-none}
 # publish running right now is never touched.
 find . -mindepth 1 -maxdepth 1 -type d \( -name '.stage-*' -o -name '.old-*' \) -mtime +1 \
     -print -exec rm -rf {} + 2>/dev/null || true
+
+if [ "${SWEEP_ONLY}" = "true" ]; then
+    echo "  Swept staging leftovers only; no version dirs considered."
+    exit 0
+fi
 
 mapfile -t CANDIDATES < <(find . -mindepth 1 -maxdepth 1 -type d -name '[0-9]*' -printf '%f\n' | sort -V -r | tail -n +$((KEEP + 1)))
 

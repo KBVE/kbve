@@ -1206,3 +1206,38 @@ here:
 - **50Gi PVC** with KEEP=3 multi-GB cooked servers, plus a transient second
   copy during publish. Storage headroom is thin.
 - **No rollback runbook.**
+
+---
+
+## Retention policy: one running version + the new one
+
+`KEEP` is **1**, not 3. The retained set is:
+
+- the newest version dir (the one just published), via `KEEP=1`
+- whatever the protected set says is live — `OWS_SERVER_VERSION` pins on `main`
+  plus `ows.kbve.com/server-version` labels on Ready/Allocated/Reserved Fleets
+  and GameServers
+- the `latest` symlink target
+- anything holding an `.nfs*` silly-rename
+
+During a roll that is two versions on disk. Once the fleets finish moving to
+the new version the old one stops appearing in the live label set, and the next
+prune deletes it. That is the intended steady state: one version.
+
+### The floor guard — why prune does nothing today
+
+At `KEEP=1` the protected set *is* the safety mechanism. An empty protected set
+means no Fleet or GameServer carries `ows.kbve.com/server-version` and no
+`fleet.yaml` carries an `OWS_SERVER_VERSION` pin — i.e. there is no evidence of
+which version is live. `latest` does not substitute for that: it is where new
+pods go, not where running ones are.
+
+So `prune.sh` refuses to touch version dirs when the protected set is empty and
+`KEEP < KEEP_FLOOR` (default 3). It still sweeps `.stage-*` / `.old-*`, and it
+emits an `::error::` annotation explaining why.
+
+**Neither pins nor labels exist yet**, so on merge this policy is armed but
+inert — prune sweeps leftovers and deletes nothing. That is deliberate: at
+`KEEP=1` with no live evidence, the first prune would delete the version the
+fleets are actually serving. To make it take effect, land the Plan 2 pin/label
+PR. To prune in the meantime, raise `KEEP` to 3 in the `server_prune` job.
