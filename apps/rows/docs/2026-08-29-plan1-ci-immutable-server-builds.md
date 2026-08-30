@@ -1142,3 +1142,67 @@ either unreachable or a regression. Fixed in this branch:
 - **Deploy ordering:** this workflow goes live on `dev` merge, while
   `ows-prune-rbac.yaml` reaches the cluster only when Argo syncs `main`. In
   between, prune fails closed (403 → exit 2 → skip) and now says so loudly.
+
+
+---
+
+## Second audit pass (post-fix)
+
+A second independent audit of the amended branch found a cross-system contract
+break that the first pass missed, plus several sharper failure modes. Fixed
+here:
+
+7. **The fleet launchers expect a NESTED layout, not the flat one.** All three
+   tenants exec `/server/latest/LinuxServer/chuckServer.sh`
+   (`rows-tenants/*/manifests/fleet.yaml`), `OWS_SERVER_BIN` is never set
+   anywhere, and every fallback in those launchers also requires a
+   `LinuxServer` dir. The scripts here codify a flat `<ver>/<target>.sh`
+   layout. Amendment 4 above made this dangerous: a legacy nested dir looks
+   exactly like "non-empty, no launch script", so deploy would have overwritten
+   a directory live GameServers boot from. `ows_is_deployed()` now recognises
+   the nested layout as a complete deploy — the gate skips it and deploy
+   refuses it (exit 3).
+
+   **This does not resolve the contradiction, only defuses it.** Flat vs nested
+   is a decision for the Plan 2 PR: either the launchers move to the flat path,
+   or deploy publishes nested. Until then, verify the real PVC layout
+   (`ls /mnt/longhorn/ows-server/chuckServer*/`) before the first dispatch.
+
+8. **Publish is now a swap, not delete-then-move.** `rm -rf "${DEST}"` before
+   the rename left a window with the version absent, and on the NFS-backed RWX
+   mount it aborts mid-delete on files a running GameServer holds open —
+   leaving `DEST` half-destroyed after an 8-hour build. The old tree is renamed
+   aside and unlinked only after the new version is live. This also closes the
+   `force_republish` window listed as a known residual risk in the PR body.
+
+9. **`latest` is swapped atomically.** `ln -sfn` unlinks then re-creates; a pod
+   resolving `/server/latest` in that window saw nothing.
+
+10. **Prune sweeps `.stage-*` and `.old-*` dirs older than a day.** Closes the
+    disk leak from a hard-killed runner. Age-bounded so an in-flight publish is
+    never touched.
+
+11. **The `.nfs*` guard's comment was corrected.** Silly-renames only appear
+    after an unlink races an open file, so a running-but-untouched version dir
+    carries no marker: the check does not save it on the first pass, it only
+    stops the second pass finishing the job. Real protection is the label set.
+
+12. **`curl` retries** (`--retry 2 --retry-connrefused`) so one apiserver blip
+    does not fail closed and silently skip prune.
+
+### Still open after this pass
+
+- **Flat vs nested layout decision** (item 7) — hard prerequisite for Plan 2.
+- **`ref: dev` is a moving branch, not a SHA.** The gate checks out at T0 and
+  deploy up to 8 hours later, so a push to `dev` mid-run makes them execute
+  different revisions of the shared predicate — the exact drift class this work
+  exists to remove. Resolve `dev` to a SHA once in `server_config` and use it
+  in all three jobs.
+- **Prune-skip is invisible on a green run.** Needs an alert, or a hard fail
+  after N consecutive fail-closed skips.
+- **Concurrency group keys on `github.ref`,** so a `main` and a `dev` dispatch
+  of the same version can both pass the gate and the second exits 3 after a
+  full build.
+- **50Gi PVC** with KEEP=3 multi-GB cooked servers, plus a transient second
+  copy during publish. Storage headroom is thin.
+- **No rollback runbook.**

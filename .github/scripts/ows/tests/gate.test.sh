@@ -23,12 +23,21 @@ t_flat_binary_skips() {
     assert_eq "should_build=false" "$(gate "${pvc}" chuckServer 1.0.0)" "flat binary present"
 }
 
-t_legacy_linuxserver_level_does_not_count() {
-    # The old gate looked for <ver>/LinuxServer; deploy never creates it. Must not skip on it.
+t_legacy_linuxserver_level_counts_as_deployed() {
+    # The fleet launchers exec /server/latest/LinuxServer/chuckServer.sh, so a
+    # nested dir IS bootable. Treating it as "not deployed" would send deploy.sh
+    # in to overwrite a directory live GameServers are running from.
     local pvc; pvc=$(mktemp -d)
     mkdir -p "${pvc}/chuckServer/1.0.0/LinuxServer"
     touch "${pvc}/chuckServer/1.0.0/LinuxServer/chuckServer.sh"
-    assert_eq "should_build=true" "$(gate "${pvc}" chuckServer 1.0.0)" "nested layout is not a deploy"
+    assert_eq "should_build=false" "$(gate "${pvc}" chuckServer 1.0.0)" "nested layout is a deploy"
+}
+
+t_linuxserver_dir_without_binary_builds() {
+    local pvc; pvc=$(mktemp -d)
+    mkdir -p "${pvc}/chuckServer/1.0.0/LinuxServer/Engine"
+    touch "${pvc}/chuckServer/1.0.0/LinuxServer/Engine/half-copied.pak"
+    assert_eq "should_build=true" "$(gate "${pvc}" chuckServer 1.0.0)" "nested but no launch script"
 }
 
 t_other_version_present_still_builds() {

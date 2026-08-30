@@ -36,7 +36,8 @@ fetch() { # $1 = api path ; $2 = injected file var
     fi
     local token
     token=$(cat "${SA_DIR}/token") || return 1
-    curl -sS --fail --max-time 15 --cacert "${SA_DIR}/ca.crt" \
+    # Retry: a single blip would otherwise fail closed and silently skip prune.
+    curl -sS --fail --max-time 15 --retry 2 --retry-connrefused --cacert "${SA_DIR}/ca.crt" \
         -H "Authorization: Bearer ${token}" "${KUBE_API}$1" || return 1
 }
 

@@ -23,7 +23,10 @@ CURRENT=$(readlink "${LINK}" 2>/dev/null || echo "")
 
 if [ -z "${CURRENT}" ] || [ "${CURRENT}" = "${VERSION}" ] \
     || [ "$(printf '%s\n%s\n' "${CURRENT}" "${VERSION}" | sort -V | tail -1)" = "${VERSION}" ]; then
-    ln -sfn "${VERSION}" "${LINK}"
+    # `ln -sfn` unlinks then re-creates: a pod resolving /server/latest in that
+    # window sees nothing. Create-then-rename is atomic.
+    ln -sfn "${VERSION}" "${LINK}.tmp.$$"
+    mv -T "${LINK}.tmp.$$" "${LINK}"
     echo "::notice::${TARGET} latest -> ${VERSION}"
 else
     echo "::warning::latest stays at ${CURRENT} (newer than ${VERSION}); not moving it backwards"

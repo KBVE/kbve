@@ -63,6 +63,18 @@ t_partial_dir_without_launch_script_is_replaced() {
     assert_missing "${tmp}/pvc/chuckServer/1.0.0/Engine/half-copied.pak" "partial contents gone"
 }
 
+t_nested_legacy_layout_is_refused_not_overwritten() {
+    # A nested <ver>/LinuxServer/chuckServer.sh is what the fleet launchers boot.
+    # deploy must exit 3, never replace it.
+    local tmp rc=0; tmp=$(mktemp -d)
+    mk_build "${tmp}/out/LinuxServer"
+    mkdir -p "${tmp}/pvc/chuckServer/1.0.0/LinuxServer"
+    touch "${tmp}/pvc/chuckServer/1.0.0/LinuxServer/chuckServer.sh"
+    deploy "${tmp}/pvc" chuckServer 1.0.0 "${tmp}/out/LinuxServer" >/dev/null 2>&1 || rc=$?
+    assert_eq "3" "${rc}" "nested layout refused"
+    assert_exists "${tmp}/pvc/chuckServer/1.0.0/LinuxServer/chuckServer.sh" "nested layout untouched"
+}
+
 t_target_without_server_suffix_refused() {
     # UBT names the launch script after -target; chuckServerDev -> chuckServerDev.sh.
     # deploy must refuse target-agnostically (non-empty dest dir), not just on *Server.sh.
@@ -100,6 +112,16 @@ t_no_staging_dir_left_behind() {
     local leftover; leftover=$(find "${tmp}/pvc/chuckServer" -maxdepth 1 -name '.stage-*' | wc -l)
     assert_eq "0" "${leftover}" "no staging dir remains"
     assert_exists "${tmp}/pvc/chuckServer/1.0.0/chuckServer.sh" "binary in place"
+}
+
+t_force_republish_leaves_no_old_dir_behind() {
+    local tmp; tmp=$(mktemp -d)
+    mk_build "${tmp}/out/LinuxServer"
+    deploy "${tmp}/pvc" chuckServer 1.0.0 "${tmp}/out/LinuxServer"
+    deploy "${tmp}/pvc" chuckServer 1.0.0 "${tmp}/out/LinuxServer" true
+    local leftover; leftover=$(find "${tmp}/pvc/chuckServer" -maxdepth 1 -name '.old-*' | wc -l)
+    assert_eq "0" "${leftover}" "swapped-aside dir removed"
+    assert_exists "${tmp}/pvc/chuckServer/1.0.0/chuckServer.sh" "new version live"
 }
 
 t_force_republish_older_version_does_not_move_latest_back() {

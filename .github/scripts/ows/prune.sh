@@ -7,11 +7,13 @@
 #     still has open on the RWX Longhorn/NFS mount
 # PROTECTED_FILE must exist (may be empty). Never runs without it.
 #
-# The .nfs* check is a belt-and-braces guard, kept because the label-based
+# The .nfs* check is a weak, last-resort guard, kept because the label-based
 # protection above is inert until every Fleet/GameServer carries
-# ows.kbve.com/server-version. Without it, the window between this landing and
-# the pin PR would prune with strictly weaker protection than the code it
-# replaced.
+# ows.kbve.com/server-version. Do not over-trust it: silly-renames only appear
+# AFTER an unlink races a file some process holds open, so a running-but-
+# untouched version dir carries no marker and this check will not save it on
+# the first pass — it only stops the second pass from finishing the job. Real
+# protection is the label set; land the pin PR.
 set -euo pipefail
 
 PVC_ROOT="${PVC_ROOT:-/mnt/longhorn/ows-server}"
@@ -49,6 +51,14 @@ is_in_use() {
 }
 
 echo "Pruning ${PVC_DIR}: keep newest ${KEEP}; latest -> '${LATEST_TARGET:-none}'; protected: ${PROTECTED[*]:-none}"
+
+# Sweep deploy leftovers: .stage-* from a hard-killed runner (the EXIT trap
+# never fired) and .old-* the atomic swap could not unlink because a pod still
+# held files open. Both are invisible to the gate, the launchers and the
+# version glob below, so nothing but disk depends on them. Age-bounded so a
+# publish running right now is never touched.
+find . -mindepth 1 -maxdepth 1 -type d \( -name '.stage-*' -o -name '.old-*' \) -mtime +1 \
+    -print -exec rm -rf {} + 2>/dev/null || true
 
 mapfile -t CANDIDATES < <(find . -mindepth 1 -maxdepth 1 -type d -name '[0-9]*' -printf '%f\n' | sort -V -r | tail -n +$((KEEP + 1)))
 

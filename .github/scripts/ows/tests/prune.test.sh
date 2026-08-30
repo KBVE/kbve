@@ -75,6 +75,25 @@ t_nfs_silly_rename_dir_kept() {
     assert_missing "${pvc}/chuckServer/0.3.2" "unprotected old removed"
 }
 
+t_sweeps_stale_stage_and_old_dirs() {
+    local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.1 0.3.2
+    mkdir -p "${pvc}/chuckServer/.stage-0.3.3.123" "${pvc}/chuckServer/.old-0.3.1.456"
+    touch -d '3 days ago' "${pvc}/chuckServer/.stage-0.3.3.123" "${pvc}/chuckServer/.old-0.3.1.456"
+    local prot; prot=$(mktemp)
+    prune "${pvc}" "${prot}"
+    assert_missing "${pvc}/chuckServer/.stage-0.3.3.123" "stale stage dir swept"
+    assert_missing "${pvc}/chuckServer/.old-0.3.1.456" "stale old dir swept"
+}
+
+t_does_not_sweep_fresh_stage_dir() {
+    # A publish may be running right now; its staging dir must survive.
+    local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.1 0.3.2
+    mkdir -p "${pvc}/chuckServer/.stage-0.3.3.123"
+    local prot; prot=$(mktemp)
+    prune "${pvc}" "${prot}"
+    assert_exists "${pvc}/chuckServer/.stage-0.3.3.123" "fresh stage dir kept"
+}
+
 t_nothing_to_prune() {
     local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.1 0.3.2
     local prot; prot=$(mktemp)
