@@ -1283,3 +1283,42 @@ no build has ever published into.
 2. Decide what `chuckServerDev`/`chuckServerProd` should be. Either publish
    builds for those targets, or point those tenants' subPath at `chuckServer`
    the way beta does. Today dev mounts an empty directory.
+
+---
+
+## SUPERSEDED — no fleet pin, no cluster read
+
+Decision (2026-08-30): the fleet will not be version-pinned. That removes the
+reason for most of the protection machinery above, so it is deleted rather than
+carried.
+
+**Why it collapses.** The fleet launchers resolve the build themselves at every
+container start:
+
+```sh
+find /server -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -1
+```
+
+A restarting pod always re-resolves to the **newest** version. No pod ever
+depends on an older directory. "Which old version is still in use?" — the
+question the Agones label read, the `arc-fleet-reader` SA and the
+`OWS_SERVER_VERSION` pins existed to answer — has no answer because it has no
+subject.
+
+**Deleted:** `protected-versions.sh` and its tests/fixtures; `PROTECTED_FILE`
+and the `KEEP_FLOOR` guard in `prune.sh`; `ows-prune-rbac.yaml` and its
+kustomization entry; the `serviceAccountName` / restart-trigger change in
+`values-ue.yaml`; `server_prune`'s `main` checkout and "Collect protected
+versions" step. No cluster permissions are added by this PR at all.
+
+**`KEEP=2`** — the version pods are running plus the one just published. It is
+also how rollback works without a pin: delete the bad newest version and the
+launcher falls back to the previous one on the next pod start. The `latest`
+symlink target and `.nfs*`-holding dirs are still skipped.
+
+**Obsolete above:** amendment 2 (`.nfs*` as a stopgap for inert labels — it is
+now just courtesy, not protection), amendment 11, and the whole "Retention
+policy / floor guard" section. Plan 2's fleet pin, `server_post_publish` and
+`-fleet` PR are dropped entirely; client/server version skew is handled by a
+client launcher that reads the served version ROWS already tracks
+(`apps/rows/src/rest/system.rs`), not by CI sequencing.

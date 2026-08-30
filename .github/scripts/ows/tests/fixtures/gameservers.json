@@ -1,6 +1,0 @@
-{"items":[
- {"metadata":{"name":"a","labels":{"ows.kbve.com/server-version":"0.3.49"}},"status":{"state":"Allocated"}},
- {"metadata":{"name":"b","labels":{"ows.kbve.com/server-version":"0.3.52"}},"status":{"state":"Ready"}},
- {"metadata":{"name":"c","labels":{"ows.kbve.com/server-version":"0.3.40"}},"status":{"state":"Shutdown"}},
- {"metadata":{"name":"d","labels":{}},"status":{"state":"Reserved"}}
-]}

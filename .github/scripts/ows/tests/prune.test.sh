@@ -7,80 +7,66 @@ mk_pvc() { # $1 = pvc root ; versions...
     for v in "$@"; do mkdir -p "${pvc}/chuckServer/${v}"; touch "${pvc}/chuckServer/${v}/chuckServer.sh"; done
 }
 
-prune() { # pvc protected_file [keep]
-    PVC_ROOT="$1" TARGET=chuckServer PROTECTED_FILE="$2" KEEP="${3:-3}" bash "${SCRIPTS}/prune.sh"
+prune() { # pvc [keep]
+    PVC_ROOT="$1" TARGET=chuckServer KEEP="${2:-2}" bash "${SCRIPTS}/prune.sh"
 }
 
-t_keeps_newest_three() {
-    local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.47 0.3.48 0.3.49 0.3.50 0.3.51
-    ln -sfn 0.3.51 "${pvc}/chuckServer/latest"
-    local prot; prot=$(mktemp)
-    prune "${pvc}" "${prot}" 3
-    assert_missing "${pvc}/chuckServer/0.3.47" "oldest removed"
-    assert_missing "${pvc}/chuckServer/0.3.48" "second oldest removed"
-    assert_exists "${pvc}/chuckServer/0.3.49" "kept 3rd newest"
-    assert_exists "${pvc}/chuckServer/0.3.51" "kept newest"
+t_keeps_running_plus_new() {
+    # KEEP=2 is "the version pods are on, plus the one just published".
+    local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.50 0.3.51 0.3.52 0.3.53
+    ln -sfn 0.3.53 "${pvc}/chuckServer/latest"
+    prune "${pvc}"
+    assert_exists "${pvc}/chuckServer/0.3.53" "newest kept"
+    assert_exists "${pvc}/chuckServer/0.3.52" "one back kept"
+    assert_missing "${pvc}/chuckServer/0.3.51" "older removed"
+    assert_missing "${pvc}/chuckServer/0.3.50" "older removed"
 }
 
 t_semver_order_not_lexical() {
     local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.9 0.3.10 0.3.11 0.3.12
-    local prot; prot=$(mktemp)
-    prune "${pvc}" "${prot}" 3
+    prune "${pvc}"
     assert_missing "${pvc}/chuckServer/0.3.9" "0.3.9 is oldest"
     assert_exists "${pvc}/chuckServer/0.3.12" "0.3.12 newest"
-}
-
-t_protected_survives_beyond_keep() {
-    local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.40 0.3.49 0.3.50 0.3.51 0.3.52
-    local prot; prot=$(mktemp); printf '0.3.40\n0.3.49\n' > "${prot}"
-    prune "${pvc}" "${prot}"
-    assert_exists "${pvc}/chuckServer/0.3.40" "protected 0.3.40 (Allocated old GS) kept"
-    assert_exists "${pvc}/chuckServer/0.3.49" "protected 0.3.49 kept"
+    assert_exists "${pvc}/chuckServer/0.3.11" "one back kept"
 }
 
 t_latest_target_survives() {
+    # Rollback without a pin is "delete the bad newest and let the launcher fall
+    # back", which can leave latest pointing below the KEEP window.
     local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.1 0.3.2 0.3.3 0.3.4 0.3.5
-    ln -sfn 0.3.1 "${pvc}/chuckServer/latest"   # someone re-pointed latest backwards
-    local prot; prot=$(mktemp)
-    prune "${pvc}" "${prot}" 3
+    ln -sfn 0.3.1 "${pvc}/chuckServer/latest"
+    prune "${pvc}"
     assert_exists "${pvc}/chuckServer/0.3.1" "latest target kept"
     assert_missing "${pvc}/chuckServer/0.3.2" "unprotected old removed"
 }
 
-t_missing_protected_file_aborts() {
+t_nfs_silly_rename_dir_kept() {
     local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.1 0.3.2 0.3.3 0.3.4
-    local rc=0
-    prune "${pvc}" "/nonexistent" >/dev/null 2>&1 || rc=$?
-    assert_eq "1" "${rc}" "exit 1"
-    assert_exists "${pvc}/chuckServer/0.3.1" "nothing deleted"
+    touch "${pvc}/chuckServer/0.3.1/.nfs0000000012345678"
+    prune "${pvc}"
+    assert_exists "${pvc}/chuckServer/0.3.1" "in-use dir kept"
+    assert_missing "${pvc}/chuckServer/0.3.2" "unprotected old removed"
 }
 
 t_non_version_dirs_ignored() {
     local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.1 0.3.2 0.3.3 0.3.4
     mkdir -p "${pvc}/chuckServer/scratch"
-    local prot; prot=$(mktemp)
-    prune "${pvc}" "${prot}" 3
+    prune "${pvc}"
     assert_exists "${pvc}/chuckServer/scratch" "non-version dir untouched"
 }
 
-t_nfs_silly_rename_dir_kept() {
-    # A running server holds its binaries open; on the NFS-backed RWX mount that
-    # shows up as .nfs* silly-renames. Belt-and-braces guard for the window
-    # before every Fleet/GameServer carries ows.kbve.com/server-version.
-    local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.1 0.3.2 0.3.3 0.3.4 0.3.5
-    touch "${pvc}/chuckServer/0.3.1/.nfs0000000012345678"
-    local prot; prot=$(mktemp)
-    prune "${pvc}" "${prot}" 3
-    assert_exists "${pvc}/chuckServer/0.3.1" "in-use dir kept"
-    assert_missing "${pvc}/chuckServer/0.3.2" "unprotected old removed"
+t_nothing_to_prune() {
+    local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.1 0.3.2
+    prune "${pvc}"
+    assert_exists "${pvc}/chuckServer/0.3.1" "kept"
+    assert_exists "${pvc}/chuckServer/0.3.2" "kept"
 }
 
 t_sweeps_stale_stage_and_old_dirs() {
     local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.1 0.3.2
     mkdir -p "${pvc}/chuckServer/.stage-0.3.3.123" "${pvc}/chuckServer/.old-0.3.1.456"
     touch -d '3 days ago' "${pvc}/chuckServer/.stage-0.3.3.123" "${pvc}/chuckServer/.old-0.3.1.456"
-    local prot; prot=$(mktemp)
-    prune "${pvc}" "${prot}"
+    prune "${pvc}"
     assert_missing "${pvc}/chuckServer/.stage-0.3.3.123" "stale stage dir swept"
     assert_missing "${pvc}/chuckServer/.old-0.3.1.456" "stale old dir swept"
 }
@@ -89,63 +75,13 @@ t_does_not_sweep_fresh_stage_dir() {
     # A publish may be running right now; its staging dir must survive.
     local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.1 0.3.2
     mkdir -p "${pvc}/chuckServer/.stage-0.3.3.123"
-    local prot; prot=$(mktemp)
-    prune "${pvc}" "${prot}"
+    prune "${pvc}"
     assert_exists "${pvc}/chuckServer/.stage-0.3.3.123" "fresh stage dir kept"
 }
 
-t_nothing_to_prune() {
-    local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.1 0.3.2
-    local prot; prot=$(mktemp)
-    prune "${pvc}" "${prot}" 3
-    assert_exists "${pvc}/chuckServer/0.3.1" "kept"
-}
-
-t_keep_one_keeps_running_plus_new() {
-    # Retention policy: one running version + the new one. 0.3.50 is live (label
-    # in the protected set), 0.3.52 is the just-published newest. Everything
-    # between goes.
-    local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.49 0.3.50 0.3.51 0.3.52
-    ln -sfn 0.3.52 "${pvc}/chuckServer/latest"
-    local prot; prot=$(mktemp); printf '0.3.50\n' > "${prot}"
-    prune "${pvc}" "${prot}" 1
-    assert_exists "${pvc}/chuckServer/0.3.52" "new version kept"
-    assert_exists "${pvc}/chuckServer/0.3.50" "running version kept"
-    assert_missing "${pvc}/chuckServer/0.3.51" "unreferenced version removed"
-    assert_missing "${pvc}/chuckServer/0.3.49" "unreferenced version removed"
-}
-
-t_keep_one_deletes_old_once_fleet_has_rolled() {
-    # Next run after the fleets moved to 0.3.52: 0.3.50 no longer carries a live
-    # label, so it drops out of the protected set and is deleted.
-    local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.50 0.3.52
-    ln -sfn 0.3.52 "${pvc}/chuckServer/latest"
-    local prot; prot=$(mktemp); printf '0.3.52\n' > "${prot}"
-    prune "${pvc}" "${prot}" 1
-    assert_exists "${pvc}/chuckServer/0.3.52" "rolled-onto version kept"
-    assert_missing "${pvc}/chuckServer/0.3.50" "old version removed after roll"
-}
-
-t_keep_one_refuses_when_protected_set_is_empty() {
-    # No pins, no live labels => no evidence of what is running. At KEEP=1 that
-    # would delete the version the fleets are serving. Must refuse.
-    local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.50 0.3.51 0.3.52
-    ln -sfn 0.3.52 "${pvc}/chuckServer/latest"
-    local prot; prot=$(mktemp)
-    prune "${pvc}" "${prot}" 1
-    assert_exists "${pvc}/chuckServer/0.3.50" "nothing deleted without live evidence"
-    assert_exists "${pvc}/chuckServer/0.3.51" "nothing deleted without live evidence"
-}
-
-t_empty_protected_set_still_sweeps_stage_dirs() {
-    # The refusal covers version dirs only; leaked staging dirs are pure disk.
-    local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.50 0.3.51 0.3.52
-    mkdir -p "${pvc}/chuckServer/.stage-0.3.53.99"
-    touch -d '3 days ago' "${pvc}/chuckServer/.stage-0.3.53.99"
-    local prot; prot=$(mktemp)
-    prune "${pvc}" "${prot}" 1
-    assert_missing "${pvc}/chuckServer/.stage-0.3.53.99" "stage dir swept anyway"
-    assert_exists "${pvc}/chuckServer/0.3.50" "version dirs untouched"
+t_missing_target_is_noop() {
+    local pvc; pvc=$(mktemp -d)
+    prune "${pvc}"
 }
 
 run_tests

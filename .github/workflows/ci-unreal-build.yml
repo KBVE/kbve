@@ -664,8 +664,8 @@ jobs:
     server_prune:
         name: Prune old server builds
         needs: [server_config, server_gate, server_build]
-        # Runs after a successful build OR a gate skip (nothing new, but the
-        # protected set may have changed). Never after a failed build.
+        # Runs after a successful build OR a gate skip (a skip still means the
+        # newest-KEEP window may have moved). Never after a failed build.
         if: |
             always() && inputs.mode == 'server'
             && needs.server_gate.result == 'success'
@@ -675,51 +675,23 @@ jobs:
         permissions:
             contents: read
         steps:
-            # Scripts travel with the workflow revision (callers pin @dev);
-            # fleet pins are read from main because Argo deploys main.
             - name: Checkout ows scripts
               uses: actions/checkout@v7
               with:
+                  # The callers pin this reusable workflow at @dev, but a called
+                  # workflow's default checkout ref is the CALLER's ref (main).
                   ref: dev
-                  path: .ows
                   sparse-checkout: .github/scripts/ows
                   sparse-checkout-cone-mode: false
 
-            - name: Checkout main (fleet pins)
-              uses: actions/checkout@v7
-              with:
-                  ref: main
-                  path: .pins
-                  sparse-checkout: apps/kube/agones/rows-tenants
-                  sparse-checkout-cone-mode: false
-
-            - name: Collect protected versions
-              id: protected
-              run: |
-                  set +e
-                  REPO_ROOT="$PWD/.pins" bash .ows/.github/scripts/ows/protected-versions.sh > /tmp/protected-versions.txt
-                  rc=$?
-                  set -e
-                  if [ "$rc" -ne 0 ]; then
-                    # ::error:: (not ::warning::) so a prune that has silently
-                    # stopped working — e.g. the arc-fleet-reader SA has not
-                    # reached the cluster yet, since Argo syncs main while this
-                    # workflow runs from dev — is visible on an otherwise green run.
-                    # The job still succeeds: failing closed is the correct outcome.
-                    echo "::error::protected-versions.sh failed (rc=$rc); skipping prune (fail closed)"
-                    echo "skip=true" >> "$GITHUB_OUTPUT"
-                  else
-                    echo "Protected: $(tr '\n' ' ' < /tmp/protected-versions.txt)"
-                    echo "skip=false" >> "$GITHUB_OUTPUT"
-                  fi
-
+            # No cluster read: the fleet launchers resolve the newest version dir
+            # at container start, so no pod ever depends on an older build and
+            # there is nothing to ask the apiserver about.
             - name: Prune
-              if: steps.protected.outputs.skip == 'false'
               env:
                   TARGET: ${{ needs.server_config.outputs.server_target }}
-                  PROTECTED_FILE: /tmp/protected-versions.txt
-                  KEEP: '1'
-              run: bash .ows/.github/scripts/ows/prune.sh
+                  KEEP: '2'
+              run: bash .github/scripts/ows/prune.sh
 
     # ════════════════ GAME (client / standalone) ════════════════
     game_gate:
