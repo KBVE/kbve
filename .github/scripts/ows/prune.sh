@@ -44,8 +44,12 @@ echo "Pruning ${PVC_DIR}: keep newest ${KEEP}; latest -> '${LATEST_TARGET:-none}
 # held files open. Both are invisible to the gate, the launchers and the
 # version glob below, so nothing but disk depends on them. Age-bounded so a
 # publish running right now is never touched.
-find . -mindepth 1 -maxdepth 1 -type d \( -name '.stage-*' -o -name '.old-*' \) -mtime +1 \
-    -print -exec rm -rf {} + 2>/dev/null || true
+# latest.tmp.<pid> is the create-then-rename half of latest.sh; a runner killed
+# between the two leaves a dangling symlink. Harmless to every glob (the name
+# does not start with a digit) but it accumulates, so sweep it here too.
+find . -mindepth 1 -maxdepth 1 \
+    \( -type d \( -name '.stage-*' -o -name '.old-*' \) -o -type l -name 'latest.tmp.*' \) \
+    -mtime +1 -print -exec rm -rf {} + 2>/dev/null || true
 
 mapfile -t CANDIDATES < <(find . -mindepth 1 -maxdepth 1 -type d -name '[0-9]*' -printf '%f\n' | sort -V -r | tail -n +$((KEEP + 1)))
 

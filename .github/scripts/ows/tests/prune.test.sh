@@ -71,6 +71,15 @@ t_sweeps_stale_stage_and_old_dirs() {
     assert_missing "${pvc}/chuckServer/.old-0.3.1.456" "stale old dir swept"
 }
 
+t_sweeps_stale_latest_tmp_symlinks() {
+    local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.1 0.3.2
+    ln -sfn 0.3.2 "${pvc}/chuckServer/latest.tmp.999"
+    touch -h -d '3 days ago' "${pvc}/chuckServer/latest.tmp.999"
+    prune "${pvc}"
+    assert_missing "${pvc}/chuckServer/latest.tmp.999" "stale latest.tmp symlink swept"
+    assert_exists "${pvc}/chuckServer/0.3.2" "version dirs untouched"
+}
+
 t_does_not_sweep_fresh_stage_dir() {
     # A publish may be running right now; its staging dir must survive.
     local pvc; pvc=$(mktemp -d); mk_pvc "${pvc}" 0.3.1 0.3.2

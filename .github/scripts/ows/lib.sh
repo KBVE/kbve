@@ -24,6 +24,7 @@ ows_is_deployed() {
     # does appear, it is a bootable build for the chuckrpg-dev/prod launchers,
     # not a partial one, and deploy.sh must refuse it rather than overwrite a
     # directory a GameServer is executing from.
+    [ -f "${dir}/LinuxServer/${target}.sh" ] && return 0
     find "${dir}" -mindepth 2 -maxdepth 2 -path '*/LinuxServer/*Server.sh' -type f -print -quit 2>/dev/null | grep -q .
 }
 

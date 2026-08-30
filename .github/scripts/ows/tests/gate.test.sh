@@ -33,6 +33,16 @@ t_legacy_linuxserver_level_counts_as_deployed() {
     assert_eq "should_build=false" "$(gate "${pvc}" chuckServer 1.0.0)" "nested layout is a deploy"
 }
 
+t_nested_target_without_server_suffix_counts_as_deployed() {
+    # The flat branch handles ${TARGET}.sh explicitly; the nested branch must too,
+    # or a bootable <ver>/LinuxServer/chuckServerDev.sh gates as "not deployed"
+    # and deploy.sh replaces a directory a pod could be executing from.
+    local pvc; pvc=$(mktemp -d)
+    mkdir -p "${pvc}/chuckServerDev/1.0.0/LinuxServer"
+    touch "${pvc}/chuckServerDev/1.0.0/LinuxServer/chuckServerDev.sh"
+    assert_eq "should_build=false" "$(gate "${pvc}" chuckServerDev 1.0.0)" "nested Dev target is a deploy"
+}
+
 t_linuxserver_dir_without_binary_builds() {
     local pvc; pvc=$(mktemp -d)
     mkdir -p "${pvc}/chuckServer/1.0.0/LinuxServer/Engine"
