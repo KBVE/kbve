@@ -1,37 +1,32 @@
 ---
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import ReactNxReport from '@/components/dashboard/ReactNxReport';
+import ReactLocChart from '@/components/dashboard/ReactLocChart';
 import {
 	parseLocStats,
-	parsePlugins,
-	parseCacheUsage,
 	parseCoverage,
 	parseTestCount,
 	coverageColor,
 	coverageAverage,
 	type CoverageEntry,
 	type LocEntry,
-	type NxReportData,
-	type PluginEntry,
-} from '@/components/dashboard/nxReportParse';
+	type WorkspaceReportData,
+} from '@/components/dashboard/reportParse';
 
-let data: NxReportData | null = null;
+let data: WorkspaceReportData | null = null;
 let parseError: string | null = null;
 const reportPath = fileURLToPath(
-	new URL('../../../public/data/nx/nx-report.json', import.meta.url),
+	new URL('../../../public/data/nx/report.json', import.meta.url),
 );
 try {
-	data = JSON.parse(readFileSync(reportPath, 'utf8')) as NxReportData;
+	data = JSON.parse(readFileSync(reportPath, 'utf8')) as WorkspaceReportData;
 } catch (e) {
 	parseError = e instanceof Error ? e.message : String(e);
 }
 
 const loc: LocEntry[] = data ? parseLocStats(data.loc_stats ?? '') : [];
-const plugins = data
-	? parsePlugins(data.nx_report ?? '')
-	: { builtin: [] as PluginEntry[], community: [] as PluginEntry[] };
-const cache = data ? parseCacheUsage(data.nx_report ?? '') : null;
+const toolchain = data?.toolchain ?? [];
+const workspace = data?.workspace ?? null;
 const coverage: CoverageEntry[] = data
 	? parseCoverage(data.coverage ?? '')
 	: [];
@@ -69,11 +64,15 @@ const totalFiles = loc.reduce((s, e) => s + e.files, 0);
 					</div>
 					<div class="anr-tile-sub">{tests.files} files</div>
 				</div>
-				{cache && (
+				{workspace && (
 					<div class="anr-tile">
-						<div class="anr-tile-label">Nx cache</div>
-						<div class="anr-tile-value">{cache.used}</div>
-						<div class="anr-tile-sub">of {cache.total}</div>
+						<div class="anr-tile-label">Projects</div>
+						<div class="anr-tile-value">
+							{workspace.projects.toLocaleString()}
+						</div>
+						<div class="anr-tile-sub">
+							{workspace.tasks.toLocaleString()} tasks
+						</div>
 					</div>
 				)}
 			</div>
@@ -81,7 +80,7 @@ const totalFiles = loc.reduce((s, e) => s + e.files, 0);
 			<section class="anr-section">
 				<h3 class="anr-h3">Top 15 languages by code volume</h3>
 				{loc.length > 0 ? (
-					<ReactNxReport entries={loc} client:only="react" />
+					<ReactLocChart entries={loc} client:only="react" />
 				) : (
 					<div class="anr-empty">No LOC data available.</div>
 				)}
@@ -133,42 +132,40 @@ const totalFiles = loc.reduce((s, e) => s + e.files, 0);
 			)}
 
 			<section class="anr-section">
-				<h3 class="anr-h3">Nx plugins</h3>
-				{plugins.builtin.length > 0 && (
-					<div class="anr-plugins">
-						<div class="anr-plugins-label">
-							Built-in ({plugins.builtin.length})
-						</div>
-						<div class="anr-pills">
-							{plugins.builtin.map((p) => (
-								<span class="anr-plugin">
-									<span class="anr-plugin-name">
-										{p.name}
-									</span>
-									<span class="anr-plugin-version">
-										{p.version}
-									</span>
-								</span>
-							))}
-						</div>
+				<h3 class="anr-h3">Toolchain</h3>
+				<div class="anr-plugins">
+					<div class="anr-plugins-label">
+						Pinned in .prototools ({toolchain.length})
 					</div>
-				)}
-				{plugins.community.length > 0 && (
+					<div class="anr-pills">
+						{toolchain.map((t) => (
+							<span class="anr-plugin">
+								<span class="anr-plugin-name">{t.name}</span>
+								<span class="anr-plugin-version">
+									{t.version}
+								</span>
+							</span>
+						))}
+					</div>
+				</div>
+				{workspace && (
 					<div class="anr-plugins">
 						<div class="anr-plugins-label">
-							Community ({plugins.community.length})
+							Projects by language
 						</div>
 						<div class="anr-pills">
-							{plugins.community.map((p) => (
-								<span class="anr-plugin">
-									<span class="anr-plugin-name">
-										{p.name}
+							{Object.entries(workspace.by_language).map(
+								([lang, count]) => (
+									<span class="anr-plugin">
+										<span class="anr-plugin-name">
+											{lang}
+										</span>
+										<span class="anr-plugin-version">
+											{count}
+										</span>
 									</span>
-									<span class="anr-plugin-version">
-										{p.version}
-									</span>
-								</span>
-							))}
+								),
+							)}
 						</div>
 					</div>
 				)}

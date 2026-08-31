@@ -8,14 +8,14 @@ import {
 	XAxis,
 	YAxis,
 } from 'recharts';
-import { colorForLanguage, type LocEntry } from './nxReportParse';
+import { colorForLanguage, type LocEntry } from './reportParse';
 
 interface Props {
 	entries: LocEntry[];
 	height?: number;
 }
 
-export default function ReactNxReport({ entries, height = 420 }: Props) {
+export default function ReactLocChart({ entries, height = 420 }: Props) {
 	const top = entries.slice(0, 15);
 	return (
 		<ResponsiveContainer width="100%" height={height}>

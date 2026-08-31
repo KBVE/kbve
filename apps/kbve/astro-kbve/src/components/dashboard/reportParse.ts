@@ -1,7 +1,18 @@
-export interface NxReportData {
+export interface ToolchainEntry {
+	name: string;
+	version: string;
+}
+
+export interface WorkspaceStats {
+	projects: number;
+	tasks: number;
+	by_language: Record<string, number>;
+}
+
+export interface WorkspaceReportData {
 	generated_at: string;
-	environment: { node: string; nx: string; pnpm: string; os: string };
-	nx_report: string;
+	toolchain: ToolchainEntry[];
+	workspace: WorkspaceStats;
 	loc_stats: string;
 	coverage: string | null;
 }
@@ -16,12 +27,6 @@ export interface LocEntry {
 	complexity: number;
 }
 
-export interface PluginEntry {
-	name: string;
-	version: string;
-	community: boolean;
-}
-
 export interface CoverageEntry {
 	project: string;
 	statements: number;
@@ -30,7 +35,7 @@ export interface CoverageEntry {
 	lines: number;
 }
 
-export const NX_LANG_COLORS: Record<string, string> = {
+export const LANG_COLORS: Record<string, string> = {
 	MDX: '#f59e0b',
 	TypeScript: '#3178c6',
 	'C#': '#9b4dca',
@@ -53,7 +58,7 @@ export const NX_LANG_COLORS: Record<string, string> = {
 };
 
 export const colorForLanguage = (lang: string) =>
-	NX_LANG_COLORS[lang] ?? '#475569';
+	LANG_COLORS[lang] ?? '#475569';
 
 export function parseLocStats(raw: string): LocEntry[] {
 	const out: LocEntry[] = [];
@@ -81,56 +86,27 @@ export function parseLocStats(raw: string): LocEntry[] {
 	return out;
 }
 
-export function parsePlugins(raw: string): {
-	builtin: PluginEntry[];
-	community: PluginEntry[];
-} {
-	const builtin: PluginEntry[] = [];
-	const community: PluginEntry[] = [];
-	let mode: 'builtin' | 'community' | null = null;
-	for (const line of raw.split('\n')) {
-		const trimmed = line.trim();
-		if (trimmed.startsWith('Community plugins:')) {
-			mode = 'community';
-			continue;
-		}
-		if (
-			!mode &&
-			(trimmed.startsWith('nx ') || trimmed.startsWith('@nx/'))
-		) {
-			mode = 'builtin';
-		}
-		if (!mode) continue;
-		const m = line.match(/^(@?[\w/.-]+)\s*:\s*(\S+)\s*$/);
-		if (!m) continue;
-		if (m[1] === 'typescript') break;
-		(mode === 'community' ? community : builtin).push({
-			name: m[1],
-			version: m[2],
-			community: mode === 'community',
-		});
-	}
-	return { builtin, community };
-}
-
-export function parseCacheUsage(
-	raw: string,
-): { used: string; total: string } | null {
-	const m = raw.match(/Cache Usage:\s*([\d.]+\s*\S+)\s*\/\s*([\d.]+\s*\S+)/);
-	return m ? { used: m[1], total: m[2] } : null;
-}
-
 export function parseCoverage(raw: string): CoverageEntry[] {
-	const groups = raw.split(/::group::\s*[✅❌]?\s*> nx run /);
+	// moon prefixes every line with `<project>:<task> | ` when it runs more than
+	// one target, so the output of four coverage runs arrives interleaved rather
+	// than in blocks. Grouping by that prefix puts each project's lines back
+	// together; a single-target run has no prefix and is handled below.
+	const byProject = new Map<string, string[]>();
+	for (const line of raw.split('\n')) {
+		const m = line.match(/^\s*([\w-]+):coverage\s*\|\s?(.*)$/);
+		if (!m) continue;
+		const lines = byProject.get(m[1]) ?? [];
+		lines.push(m[2]);
+		byProject.set(m[1], lines);
+	}
+
+	const ALL_FILES =
+		/All files\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/;
+
 	const out: CoverageEntry[] = [];
-	for (const group of groups.slice(1)) {
-		const projMatch = group.match(/^([\w-]+):coverage/);
-		if (!projMatch) continue;
-		const project = projMatch[1];
-		const all = group.match(
-			/All files\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)\s*\|\s*([\d.]+)/,
-		);
-		if (!all) continue;
+	const push = (project: string, text: string) => {
+		const all = text.match(ALL_FILES);
+		if (!all) return;
 		out.push({
 			project,
 			statements: +all[1],
@@ -138,7 +114,18 @@ export function parseCoverage(raw: string): CoverageEntry[] {
 			functions: +all[3],
 			lines: +all[4],
 		});
+	};
+
+	if (byProject.size > 0) {
+		for (const [project, lines] of byProject)
+			push(project, lines.join('\n'));
+	} else {
+		// One target: no prefix, so the project name comes from vitest's own
+		// header, which prints the directory it ran in.
+		const run = raw.match(/RUN\s+v[\d.]+\s+\S*\/([\w-]+)\s*$/m);
+		if (run) push(run[1], raw);
 	}
+
 	out.sort((a, b) => a.project.localeCompare(b.project));
 	return out;
 }
