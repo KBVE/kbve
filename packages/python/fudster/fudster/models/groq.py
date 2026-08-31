@@ -30,7 +30,7 @@ class GroqResponse(BaseModel):
     choices: List[GroqChoice]
     usage: GroqUsage
     system_fingerprint: str
-    x_groq: Optional[dict] = Field(None, alias='x_groq')
+    x_groq: Optional[dict] = Field(None, alias="x_groq")
 
     class Config:
         populate_by_name = True

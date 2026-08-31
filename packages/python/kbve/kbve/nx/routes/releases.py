@@ -33,9 +33,7 @@ def _acquire(ctx: BuildContext) -> dict:
 @route("releases", "daily", needs=())
 class ReleasesRoute:
     def plan(self, ctx: BuildContext) -> PlanResult:
-        return PlanResult(
-            "releases", True, "regenerate (git-diff guard drops no-ops)", []
-        )
+        return PlanResult("releases", True, "regenerate (git-diff guard drops no-ops)", [])
 
     def build(self, ctx: BuildContext) -> BuildResult:
         payload = build_release_payload(_acquire(ctx), ctx.timestamp)

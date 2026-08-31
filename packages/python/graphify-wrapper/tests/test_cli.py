@@ -11,13 +11,13 @@ def test_build_main_requires_scope():
     runner = CliRunner()
     result = runner.invoke(build_main, [])
     assert result.exit_code != 0
-    assert 'scope' in result.output.lower() or 'Error' in result.output
+    assert "scope" in result.output.lower() or "Error" in result.output
 
 
 def test_build_main_requires_output():
     """Test that build command requires output path."""
     runner = CliRunner()
-    result = runner.invoke(build_main, ['--scope', 'monorepo'])
+    result = runner.invoke(build_main, ["--scope", "monorepo"])
     assert result.exit_code != 0
 
 

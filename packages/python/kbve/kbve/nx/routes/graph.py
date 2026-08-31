@@ -76,9 +76,7 @@ def _acquire(ctx: BuildContext) -> dict:
 @route("graph", "daily", needs=("node",))
 class GraphRoute:
     def plan(self, ctx: BuildContext) -> PlanResult:
-        return PlanResult(
-            "graph", True, "regenerate (git-diff guard drops no-ops)", []
-        )
+        return PlanResult("graph", True, "regenerate (git-diff guard drops no-ops)", [])
 
     def build(self, ctx: BuildContext) -> BuildResult:
         try:

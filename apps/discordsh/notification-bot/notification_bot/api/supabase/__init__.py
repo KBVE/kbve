@@ -1,23 +1,24 @@
 """
 Supabase package for managing database operations, vault secrets, distributed coordination, and user management
 """
+
 from .supabase_service import (  # noqa: F401
     supabase_conn,
     get_supabase_client,
     QueryResult,
-    SupabaseService
+    SupabaseService,
 )
 from .vault import (  # noqa: F401
     vault_manager,
     VaultOperationResponse,
     VaultSecretResponse,
     VaultGetRequest,
-    VaultSetRequest
+    VaultSetRequest,
 )
 from .tracker import (  # noqa: F401
     tracker_manager,
     ShardAssignment,
-    ShardAssignmentResult
+    ShardAssignmentResult,
 )
 from .users import (  # noqa: F401
     user_manager,
@@ -25,33 +26,30 @@ from .users import (  # noqa: F401
     UserProviderCreate,
     UserProfile,
     UserAllProviders,
-    SyncResult
+    SyncResult,
 )
 
 __all__ = [
     # Service instances
-    'supabase_conn',
-    'vault_manager',
-    'tracker_manager',
-    'user_manager',
-
+    "supabase_conn",
+    "vault_manager",
+    "tracker_manager",
+    "user_manager",
     # Services
-    'SupabaseService',
-
+    "SupabaseService",
     # Functions
-    'get_supabase_client',
-
+    "get_supabase_client",
     # Models
-    'QueryResult',
-    'VaultOperationResponse',
-    'VaultSecretResponse',
-    'VaultGetRequest',
-    'VaultSetRequest',
-    'ShardAssignment',
-    'ShardAssignmentResult',
-    'UserProvider',
-    'UserProviderCreate',
-    'UserProfile',
-    'UserAllProviders',
-    'SyncResult'
+    "QueryResult",
+    "VaultOperationResponse",
+    "VaultSecretResponse",
+    "VaultGetRequest",
+    "VaultSetRequest",
+    "ShardAssignment",
+    "ShardAssignmentResult",
+    "UserProvider",
+    "UserProviderCreate",
+    "UserProfile",
+    "UserAllProviders",
+    "SyncResult",
 ]

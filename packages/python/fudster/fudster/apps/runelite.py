@@ -30,15 +30,7 @@ class RuneLiteClient:
             initial_memory = "256m"
             # Run the subprocess in a thread pool without blocking the main coroutine
             await asyncio.to_thread(
-                subprocess.run,
-                [
-                    "java",
-                    f"-Xmx{max_memory}",
-                    f"-Xms{initial_memory}",
-                    "-jar",
-                    self.jar_path
-                ],
-                env=env
+                subprocess.run, ["java", f"-Xmx{max_memory}", f"-Xms{initial_memory}", "-jar", self.jar_path], env=env
             )
             logger.info("RuneLite started successfully.")
         except Exception as e:
@@ -63,16 +55,16 @@ class RuneLiteClient:
         await asyncio.sleep(60)  # Adjust the sleep time as necessary
 
         # Define the URLs and file paths
-        url = 'https://kbve.com/data/outpost/runelite/default.properties'
-        profiles_json_path = os.path.expanduser('~/.runelite/profiles2/profiles.json')
-        destination_dir = os.path.expanduser('~/.runelite/profiles2/')
+        url = "https://kbve.com/data/outpost/runelite/default.properties"
+        profiles_json_path = os.path.expanduser("~/.runelite/profiles2/profiles.json")
+        destination_dir = os.path.expanduser("~/.runelite/profiles2/")
 
         # Read the profiles.json file
         try:
-            with open(profiles_json_path, 'r') as f:
+            with open(profiles_json_path, "r") as f:
                 profiles_data = json.load(f)
                 # Assuming we want to use the ID from the first profile entry
-                profile_id = profiles_data['profiles'][1]['id']
+                profile_id = profiles_data["profiles"][1]["id"]
         except FileNotFoundError:
             logger.error(f"profiles.json not found at {profiles_json_path}")
             await self.stop_runelite_async()
@@ -97,7 +89,7 @@ class RuneLiteClient:
 
         # Write the downloaded content to the new file
         try:
-            with open(new_file_path, 'w') as f:
+            with open(new_file_path, "w") as f:
                 f.write(default_properties)
             logger.info(f"Successfully created {new_file_name} in {destination_dir}")
         except IOError as e:
@@ -123,10 +115,7 @@ class RuneLiteClient:
         try:
             # Use `pgrep` to find the process by its name
             result = subprocess.run(
-                ["pgrep", "-f", "runelite.jar"],
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                text=True
+                ["pgrep", "-f", "runelite.jar"], stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
             )
 
             # Check if any process ID was found

@@ -70,7 +70,8 @@ class HttpClient:
         """Perform a GET request, return parsed JSON."""
         session = await self._ensure_session()
         async with session.get(
-            self._url(endpoint), **kwargs,
+            self._url(endpoint),
+            **kwargs,
         ) as resp:
             resp.raise_for_status()
             return await resp.json()
@@ -79,7 +80,8 @@ class HttpClient:
         """Perform a POST request, return parsed JSON."""
         session = await self._ensure_session()
         async with session.post(
-            self._url(endpoint), **kwargs,
+            self._url(endpoint),
+            **kwargs,
         ) as resp:
             resp.raise_for_status()
             return await resp.json()
@@ -88,7 +90,8 @@ class HttpClient:
         """Perform a PUT request, return parsed JSON."""
         session = await self._ensure_session()
         async with session.put(
-            self._url(endpoint), **kwargs,
+            self._url(endpoint),
+            **kwargs,
         ) as resp:
             resp.raise_for_status()
             return await resp.json()
@@ -97,7 +100,8 @@ class HttpClient:
         """Perform a DELETE request, return parsed JSON."""
         session = await self._ensure_session()
         async with session.delete(
-            self._url(endpoint), **kwargs,
+            self._url(endpoint),
+            **kwargs,
         ) as resp:
             resp.raise_for_status()
             return await resp.json()
@@ -106,7 +110,8 @@ class HttpClient:
         """Perform a GET request, return raw bytes."""
         session = await self._ensure_session()
         async with session.get(
-            self._url(endpoint), **kwargs,
+            self._url(endpoint),
+            **kwargs,
         ) as resp:
             resp.raise_for_status()
             return await resp.read()

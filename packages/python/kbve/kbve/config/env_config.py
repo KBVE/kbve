@@ -33,9 +33,7 @@ def load_env_file(path: str | Path) -> dict[str, str]:
             key, _, value = line.partition("=")
             key = key.strip()
             value = value.strip()
-            if len(value) >= 2 and value[0] == value[-1] and value[0] in (
-                '"', "'"
-            ):
+            if len(value) >= 2 and value[0] == value[-1] and value[0] in ('"', "'"):
                 value = value[1:-1]
             result[key] = value
     return result
@@ -115,7 +113,7 @@ class EnvConfig:
 
         for key, val in os.environ.items():
             if env_prefix and key.upper().startswith(env_prefix.upper()):
-                short_key = key[len(env_prefix):].lower()
+                short_key = key[len(env_prefix) :].lower()
                 if short_key not in values:
                     values[short_key] = val
 

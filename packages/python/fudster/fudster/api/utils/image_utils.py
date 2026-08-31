@@ -35,7 +35,7 @@ class ImageUtility:
 
     async def _download_and_cache_image(self, url):
         """Core asynchronous method to download and cache an image using aiohttp."""
-        image_name = url.split('/')[-1]
+        image_name = url.split("/")[-1]
         cache_path = os.path.join(self.cache_dir, image_name)
 
         if not os.path.exists(cache_path):
@@ -47,7 +47,7 @@ class ImageUtility:
                         response.raise_for_status()
                         content = await response.read()
 
-                with open(cache_path, 'wb') as f:
+                with open(cache_path, "wb") as f:
                     f.write(content)
                 logger.info(f"Downloaded and cached {image_name} at {cache_path}")
             except aiohttp.ClientError as e:

@@ -40,9 +40,7 @@ def _run_json(cmd: list[str], cwd: Path, fallback, timeout: int = _AUDIT_TIMEOUT
     """
     tool = cmd[0]
     try:
-        proc = subprocess.run(
-            cmd, cwd=str(cwd), capture_output=True, text=True, timeout=timeout
-        )
+        proc = subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True, timeout=timeout)
         return json.loads(proc.stdout)
     except FileNotFoundError:
         _warn("%s not found — using empty fallback" % tool)
@@ -102,9 +100,7 @@ def _acquire(ctx: BuildContext) -> dict:
 @route("security", "daily", needs=("node", "rust", "python", "token"))
 class SecurityRoute:
     def plan(self, ctx: BuildContext) -> PlanResult:
-        return PlanResult(
-            "security", True, "regenerate (git-diff guard drops no-ops)", []
-        )
+        return PlanResult("security", True, "regenerate (git-diff guard drops no-ops)", [])
 
     def build(self, ctx: BuildContext) -> BuildResult:
         raw = ctx.inputs.get("raw") or ctx.inputs.get("security_raw")

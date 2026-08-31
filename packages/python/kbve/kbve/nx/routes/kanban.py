@@ -51,9 +51,7 @@ def _acquire(ctx: BuildContext) -> dict | None:
 @route("kanban", "daily", needs=("token",))
 class KanbanRoute:
     def plan(self, ctx: BuildContext) -> PlanResult:
-        return PlanResult(
-            "kanban", True, "regenerate (git-diff guard drops no-ops)", []
-        )
+        return PlanResult("kanban", True, "regenerate (git-diff guard drops no-ops)", [])
 
     def build(self, ctx: BuildContext) -> BuildResult:
         payload = _acquire(ctx)

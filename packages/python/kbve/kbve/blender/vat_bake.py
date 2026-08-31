@@ -10,7 +10,7 @@ import bpy
 
 
 def argv() -> list[str]:
-    return sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+    return sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else []
 
 
 def clear_scene() -> None:
@@ -81,8 +81,7 @@ def sample_frames(obj: bpy.types.Object, action: bpy.types.Action, frames: int):
 
 def write_exr(path: Path, rows: list[list[tuple[float, float, float]]], width: int) -> None:
     height = len(rows)
-    image = bpy.data.images.new(path.stem, width=width, height=height,
-                                alpha=True, float_buffer=True)
+    image = bpy.data.images.new(path.stem, width=width, height=height, alpha=True, float_buffer=True)
     image.colorspace_settings.name = "Non-Color"
     pixels = [0.0] * (width * height * 4)
     for y, row in enumerate(rows):
@@ -155,14 +154,12 @@ def main() -> None:
         "source_tris": source_tris,
         "frames": frames,
         "fps": bpy.context.scene.render.fps,
-        "length_s": float(action.frame_range[1] - action.frame_range[0])
-        / bpy.context.scene.render.fps,
+        "length_s": float(action.frame_range[1] - action.frame_range[0]) / bpy.context.scene.render.fps,
         "aabb_min": bounds_min,
         "aabb_max": bounds_max,
     }
     (out_dir / f"{name}_vat.json").write_text(json.dumps(meta, indent=2))
-    print(f"[vat] {name}: {source_tris} -> {meta['tris']} tris, "
-          f"{width} verts x {frames} frames")
+    print(f"[vat] {name}: {source_tris} -> {meta['tris']} tris, {width} verts x {frames} frames")
 
 
 if __name__ == "__main__":

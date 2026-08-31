@@ -10,6 +10,7 @@ execs it headless against the baker, forwarding every arg after `--`:
 
 Set BLENDER_BIN to override binary discovery.
 """
+
 import os
 import shutil
 import subprocess
@@ -40,9 +41,7 @@ def find_blender():
 def main():
     blender = find_blender()
     if not blender:
-        raise SystemExit(
-            "Blender not found. Install it (brew install --cask blender) or set BLENDER_BIN."
-        )
+        raise SystemExit("Blender not found. Install it (brew install --cask blender) or set BLENDER_BIN.")
     baker = os.path.join(os.path.dirname(os.path.abspath(__file__)), "model_sprites.py")
     argv = sys.argv[1:]
     # accept both `kbve-model-sprites --model ...` and `... -- --model ...`

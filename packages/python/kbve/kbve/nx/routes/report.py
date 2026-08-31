@@ -53,7 +53,8 @@ def _acquire_loc(repo_root: Path) -> str:
     try:
         proc = subprocess.run(
             [
-                "scc", ".",
+                "scc",
+                ".",
                 "--exclude-dir=%s" % _SCC_EXCLUDES,
                 "--no-cocomo",
             ],
@@ -73,7 +74,10 @@ def _acquire_loc(repo_root: Path) -> str:
     try:
         proc = subprocess.run(
             [
-                "npx", "--yes", "cloc", ".",
+                "npx",
+                "--yes",
+                "cloc",
+                ".",
                 "--exclude-dir=%s" % _SCC_EXCLUDES,
             ],
             cwd=str(repo_root),
@@ -91,7 +95,11 @@ def _acquire_coverage(repo_root: Path) -> str:
     try:
         proc = subprocess.run(
             [
-                "pnpm", "nx", "run-many", "-t", "coverage",
+                "pnpm",
+                "nx",
+                "run-many",
+                "-t",
+                "coverage",
                 "--projects=droid,devops,khashvault,laser",
             ],
             cwd=str(repo_root),
@@ -127,9 +135,7 @@ def _acquire(ctx: BuildContext) -> dict:
 @route("report", "daily", needs=("node",))
 class ReportRoute:
     def plan(self, ctx: BuildContext) -> PlanResult:
-        return PlanResult(
-            "report", True, "regenerate (git-diff guard drops no-ops)", []
-        )
+        return PlanResult("report", True, "regenerate (git-diff guard drops no-ops)", [])
 
     def build(self, ctx: BuildContext) -> BuildResult:
         data = ctx.inputs.get("report_data")

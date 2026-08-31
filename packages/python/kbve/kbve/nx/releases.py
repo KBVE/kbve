@@ -27,8 +27,7 @@ REGISTRIES = {
 
 
 def _get_json(url: str, timeout: float) -> dict | None:
-    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT,
-                                               "Accept": "application/json"})
+    req = urllib.request.Request(url, headers={"User-Agent": USER_AGENT, "Accept": "application/json"})
     try:
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             return json.load(resp)
@@ -85,8 +84,7 @@ def load_manifest(repo_root: Path) -> dict:
 
 
 def _name_of(eco: str, entry: dict) -> str:
-    return entry.get("package_name") or entry.get("crate_name") \
-        or entry.get("key") or ""
+    return entry.get("package_name") or entry.get("crate_name") or entry.get("key") or ""
 
 
 def _registry_name(eco: str, entry: dict, display: str) -> str:
@@ -95,8 +93,7 @@ def _registry_name(eco: str, entry: dict, display: str) -> str:
     return display
 
 
-def resolve(manifest: dict, fetch=registry_latest,
-            timeout: float = 20.0) -> list[dict]:
+def resolve(manifest: dict, fetch=registry_latest, timeout: float = 20.0) -> list[dict]:
     """Compare every crates/npm/python manifest entry to its registry."""
     rows: list[dict] = []
     for eco in ("crates", "npm", "python"):
@@ -114,13 +111,15 @@ def resolve(manifest: dict, fetch=registry_latest,
                 except Exception:  # noqa: BLE001 — degrade per-package
                     published = None
                 status = classify(local, published)
-            rows.append({
-                "ecosystem": eco,
-                "name": name,
-                "local": local,
-                "published": published,
-                "status": status,
-            })
+            rows.append(
+                {
+                    "ecosystem": eco,
+                    "name": name,
+                    "local": local,
+                    "published": published,
+                    "status": status,
+                }
+            )
     rows.sort(key=lambda r: (r["ecosystem"], r["name"]))
     return rows
 

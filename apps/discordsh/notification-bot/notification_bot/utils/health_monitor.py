@@ -35,7 +35,7 @@ class HealthMonitor:
                 "process_memory_percent": round(memory_percent, 2),
                 "system_memory_total_gb": round(system_memory.total / 1024 / 1024 / 1024, 2),
                 "system_memory_available_gb": round(system_memory.available / 1024 / 1024 / 1024, 2),
-                "system_memory_used_percent": round(system_memory.percent, 2)
+                "system_memory_used_percent": round(system_memory.percent, 2),
             }
         except Exception as e:
             return {"error": f"Failed to get memory info: {str(e)}"}
@@ -53,7 +53,7 @@ class HealthMonitor:
             return {
                 "process_cpu_percent": round(process_cpu, 2),
                 "system_cpu_percent": round(system_cpu, 2),
-                "cpu_count": cpu_count
+                "cpu_count": cpu_count,
             }
         except Exception as e:
             return {"error": f"Failed to get CPU info: {str(e)}"}
@@ -74,7 +74,7 @@ class HealthMonitor:
                 "pid": pid,
                 "thread_count": threads,
                 "uptime_seconds": uptime_seconds,
-                "uptime_formatted": uptime_str
+                "uptime_formatted": uptime_str,
             }
         except Exception as e:
             return {"error": f"Failed to get process info: {str(e)}"}
@@ -112,23 +112,14 @@ class HealthMonitor:
                     "process_memory_percent": 0.0,
                     "system_memory_total_gb": 0.0,
                     "system_memory_available_gb": 0.0,
-                    "system_memory_used_percent": 0.0
+                    "system_memory_used_percent": 0.0,
                 }
 
             if "error" in cpu_info:
-                cpu_info = {
-                    "process_cpu_percent": 0.0,
-                    "system_cpu_percent": 0.0,
-                    "cpu_count": 1
-                }
+                cpu_info = {"process_cpu_percent": 0.0, "system_cpu_percent": 0.0, "cpu_count": 1}
 
             if "error" in process_info:
-                process_info = {
-                    "pid": 0,
-                    "thread_count": 0,
-                    "uptime_seconds": 0,
-                    "uptime_formatted": "0:00:00"
-                }
+                process_info = {"pid": 0, "thread_count": 0, "uptime_seconds": 0, "uptime_formatted": "0:00:00"}
 
             # Determine health status
             memory_percent = memory_info.get("process_memory_percent", 0)
@@ -141,7 +132,7 @@ class HealthMonitor:
                 "memory": memory_info,
                 "cpu": cpu_info,
                 "process": process_info,
-                "cache_age_seconds": 0  # Fresh data
+                "cache_age_seconds": 0,  # Fresh data
             }
         except Exception as e:
             # Complete fallback if everything fails
@@ -153,21 +144,12 @@ class HealthMonitor:
                     "process_memory_percent": 0.0,
                     "system_memory_total_gb": 0.0,
                     "system_memory_available_gb": 0.0,
-                    "system_memory_used_percent": 0.0
+                    "system_memory_used_percent": 0.0,
                 },
-                "cpu": {
-                    "process_cpu_percent": 0.0,
-                    "system_cpu_percent": 0.0,
-                    "cpu_count": 1
-                },
-                "process": {
-                    "pid": 0,
-                    "thread_count": 0,
-                    "uptime_seconds": 0,
-                    "uptime_formatted": "0:00:00"
-                },
+                "cpu": {"process_cpu_percent": 0.0, "system_cpu_percent": 0.0, "cpu_count": 1},
+                "process": {"pid": 0, "thread_count": 0, "uptime_seconds": 0, "uptime_formatted": "0:00:00"},
                 "error": f"Health check failed: {str(e)}",
-                "cache_age_seconds": 0
+                "cache_age_seconds": 0,
             }
 
     async def start_background_monitoring(self):
@@ -197,6 +179,7 @@ class HealthMonitor:
                 break
             except Exception as e:
                 import logging
+
                 logging.error(f"Background health monitoring error: {e}")
                 await asyncio.sleep(60)  # Wait 1 minute before retrying on error
 
@@ -204,7 +187,7 @@ class HealthMonitor:
         """Update cached health data (thread-safe)"""
         async with self._update_lock:
             # Run the blocking psutil calls in a thread pool
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             health_data = await loop.run_in_executor(None, self._collect_health_data)
 
             self._cached_health_data = health_data
@@ -237,21 +220,12 @@ class HealthMonitor:
                     "process_memory_percent": 0.0,
                     "system_memory_total_gb": 0.0,
                     "system_memory_available_gb": 0.0,
-                    "system_memory_used_percent": 0.0
+                    "system_memory_used_percent": 0.0,
                 },
-                "cpu": {
-                    "process_cpu_percent": 0.0,
-                    "system_cpu_percent": 0.0,
-                    "cpu_count": 1
-                },
-                "process": {
-                    "pid": 0,
-                    "thread_count": 0,
-                    "uptime_seconds": 0,
-                    "uptime_formatted": "0:00:00"
-                },
+                "cpu": {"process_cpu_percent": 0.0, "system_cpu_percent": 0.0, "cpu_count": 1},
+                "process": {"pid": 0, "thread_count": 0, "uptime_seconds": 0, "uptime_formatted": "0:00:00"},
                 "error": f"Health monitoring unavailable: {str(e)}",
-                "cache_age_seconds": -1
+                "cache_age_seconds": -1,
             }
 
     async def force_refresh(self):

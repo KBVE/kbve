@@ -44,12 +44,10 @@
 			}
 		},
 		"lint": {
-			"executor": "@nxlv/python:flake8",
-			"outputs": [
-				"{workspaceRoot}/reports/packages/python/graphify-wrapper/pylint.txt"
-			],
+			"executor": "nx:run-commands",
 			"options": {
-				"outputFile": "reports/packages/python/graphify-wrapper/pylint.txt"
+				"command": "uv run ruff check .",
+				"cwd": "packages/python/graphify-wrapper"
 			}
 		},
 		"test": {
@@ -81,9 +79,7 @@
 		},
 		"build-tiered": {
 			"executor": "@nxlv/python:run-commands",
-			"outputs": [
-				"{workspaceRoot}/apps/kbve/astro-kbve/public/graphify"
-			],
+			"outputs": ["{workspaceRoot}/apps/kbve/astro-kbve/public/graphify"],
 			"options": {
 				"command": "bash ../../data/graphify/scripts/build-tiered-graph.sh",
 				"cwd": "packages/python/graphify-wrapper"

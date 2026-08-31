@@ -16,8 +16,7 @@ import subprocess
 from pathlib import Path
 
 _TIMEOUT = 600
-_CARGO_LINE = re.compile(
-    r"^\s*(?:Updating|Upgrading)\s+(\S+)\s+v(\S+)\s+->\s+v(\S+)", re.M)
+_CARGO_LINE = re.compile(r"^\s*(?:Updating|Upgrading)\s+(\S+)\s+v(\S+)\s+->\s+v(\S+)", re.M)
 
 
 def _major(version: str) -> str:
@@ -29,7 +28,9 @@ def fetch_node(repo_root: Path) -> list[dict]:
     try:
         proc = subprocess.run(
             ["pnpm", "outdated", "--format", "json"],
-            cwd=str(repo_root), capture_output=True, text=True,
+            cwd=str(repo_root),
+            capture_output=True,
+            text=True,
             timeout=_TIMEOUT,
         )
     except (OSError, subprocess.SubprocessError):
@@ -47,14 +48,16 @@ def fetch_node(repo_root: Path) -> list[dict]:
             continue
         current = str(info.get("current", ""))
         latest = str(info.get("latest", ""))
-        items.append({
-            "name": name,
-            "current": current,
-            "wanted": str(info.get("wanted", "")),
-            "latest": latest,
-            "type": info.get("dependencyType", "dependencies"),
-            "major": _major(current) != _major(latest),
-        })
+        items.append(
+            {
+                "name": name,
+                "current": current,
+                "wanted": str(info.get("wanted", "")),
+                "latest": latest,
+                "type": info.get("dependencyType", "dependencies"),
+                "major": _major(current) != _major(latest),
+            }
+        )
     items.sort(key=lambda d: d["name"])
     return items
 
@@ -64,7 +67,9 @@ def fetch_rust(repo_root: Path) -> list[dict]:
     try:
         proc = subprocess.run(
             ["cargo", "update", "--dry-run"],
-            cwd=str(repo_root), capture_output=True, text=True,
+            cwd=str(repo_root),
+            capture_output=True,
+            text=True,
             timeout=_TIMEOUT,
         )
     except (OSError, subprocess.SubprocessError):
@@ -72,12 +77,14 @@ def fetch_rust(repo_root: Path) -> list[dict]:
     text = proc.stdout + proc.stderr
     items = []
     for name, cur, new in _CARGO_LINE.findall(text):
-        items.append({
-            "name": name,
-            "current": cur,
-            "latest": new,
-            "major": _major(cur) != _major(new),
-        })
+        items.append(
+            {
+                "name": name,
+                "current": cur,
+                "latest": new,
+                "major": _major(cur) != _major(new),
+            }
+        )
     items.sort(key=lambda d: d["name"])
     return items
 

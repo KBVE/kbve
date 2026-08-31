@@ -32,7 +32,7 @@ class RSSUtility:
         :param raw_xml: Raw RSS feed data as bytes.
         :return: Parsed RSS feed as a BeautifulSoup object.
         """
-        soup = BeautifulSoup(raw_xml, 'xml')
+        soup = BeautifulSoup(raw_xml, "xml")
         return soup
 
     async def fetch_and_parse_rss(self) -> BeautifulSoup:
@@ -49,23 +49,21 @@ class RSSUtility:
         """
         Converts a BeautifulSoup object representing an RSS feed into an RssFeed model.
         """
-        channel = soup.find('channel')
-        feed_title = channel.find(
-            'title').text if channel.find('title') else None
-        feed_link = channel.find('link').text if channel.find('link') else None
-        feed_description = channel.find(
-            'description').text if channel.find('description') else None
+        channel = soup.find("channel")
+        feed_title = channel.find("title").text if channel.find("title") else None
+        feed_link = channel.find("link").text if channel.find("link") else None
+        feed_description = channel.find("description").text if channel.find("description") else None
 
         items: List[RssItem] = []
-        for item in channel.find_all('item'):
-            items.append(RssItem(
-                title=item.find('title').text if item.find('title') else None,
-                link=item.find('link').text if item.find('link') else None,
-                description=item.find('description').text if item.find(
-                    'description') else None,
-                pubDate=item.find('pubDate').text if item.find(
-                    'pubDate') else None
-            ))
+        for item in channel.find_all("item"):
+            items.append(
+                RssItem(
+                    title=item.find("title").text if item.find("title") else None,
+                    link=item.find("link").text if item.find("link") else None,
+                    description=item.find("description").text if item.find("description") else None,
+                    pubDate=item.find("pubDate").text if item.find("pubDate") else None,
+                )
+            )
 
         return RssFeed(title=feed_title, link=feed_link, description=feed_description, items=items)
 
@@ -77,10 +75,7 @@ class RSSUtility:
         formatted_feed = f"RSS Feed: {rss_feed.title}\n"
         for item in rss_feed.items:
             formatted_feed += (
-                f"\nTitle: {item.title}\n"
-                f"Link: {item.link}\n"
-                f"Description: {item.description}\n"
-                f"PubDate: {item.pubDate}\n"
+                f"\nTitle: {item.title}\nLink: {item.link}\nDescription: {item.description}\nPubDate: {item.pubDate}\n"
             )
             formatted_feed += "-" * 50 + "\n"
         return formatted_feed

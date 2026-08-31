@@ -67,9 +67,7 @@ class GrpcClient:
     def stub(self, stub_class: Type) -> Any:
         """Create a gRPC stub from a generated stub class."""
         if self._channel is None:
-            raise RuntimeError(
-                "Channel not open. Use GrpcClient as a context manager."
-            )
+            raise RuntimeError("Channel not open. Use GrpcClient as a context manager.")
         return stub_class(self._channel)
 
     async def close(self) -> None:

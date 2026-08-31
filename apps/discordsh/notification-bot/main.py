@@ -39,8 +39,14 @@ setup_dishka(container, app)
 CORS(app)
 
 # Include all command routers
-for router in [bot_online_router, bot_offline_router, bot_restart_router,
-               bot_force_restart_router, cleanup_thread_router, health_router]:
+for router in [
+    bot_online_router,
+    bot_offline_router,
+    bot_restart_router,
+    bot_force_restart_router,
+    cleanup_thread_router,
+    health_router,
+]:
     app.include_router(router)
 
 
@@ -53,6 +59,7 @@ async def hello_world() -> Response:
 async def simple_health_check() -> Response:
     """Simple health check endpoint for Kubernetes probes - no dependencies required"""
     return success_response("Healthy")
+
 
 # @app.get("/test-vault")
 # async def test_vault():
@@ -78,16 +85,16 @@ async def tracker_status() -> Response:
         from notification_bot.api.supabase import tracker_manager
 
         # Get environment variables
-        instance_id = os.getenv('HOSTNAME', 'unknown')
-        cluster_name = os.getenv('CLUSTER_NAME', 'default')
-        use_distributed_sharding = os.getenv('USE_DISTRIBUTED_SHARDING', 'false').lower() == 'true'
+        instance_id = os.getenv("HOSTNAME", "unknown")
+        cluster_name = os.getenv("CLUSTER_NAME", "default")
+        use_distributed_sharding = os.getenv("USE_DISTRIBUTED_SHARDING", "false").lower() == "true"
 
         environment = {
             "instance_id": instance_id,
             "cluster_name": cluster_name,
-            "use_distributed_sharding": os.getenv('USE_DISTRIBUTED_SHARDING', 'not set'),
-            "hostname": os.getenv('HOSTNAME', 'not set'),
-            "total_shards": os.getenv('TOTAL_SHARDS', '2')
+            "use_distributed_sharding": os.getenv("USE_DISTRIBUTED_SHARDING", "not set"),
+            "hostname": os.getenv("HOSTNAME", "not set"),
+            "total_shards": os.getenv("TOTAL_SHARDS", "2"),
         }
 
         kwargs = {}
@@ -109,10 +116,10 @@ async def tracker_status() -> Response:
 async def enable_distributed_sharding() -> Response:
     """Temporarily enable distributed sharding for testing"""
     try:
-        os.environ['USE_DISTRIBUTED_SHARDING'] = 'true'
+        os.environ["USE_DISTRIBUTED_SHARDING"] = "true"
         return success_response(
             "Distributed sharding enabled for this session. Restart the bot to take effect.",
-            {"note": "This is temporary and will reset when the container restarts."}
+            {"note": "This is temporary and will reset when the container restarts."},
         )
     except Exception as e:
         logger.error(f"Error enabling distributed sharding: {e}")
@@ -126,11 +133,11 @@ async def cleanup_stale_shards() -> Response:
         from notification_bot.api.supabase import supabase_conn
 
         client = supabase_conn.init_supabase_client()
-        result = client.schema('tracker').rpc('cleanup_stale_assignments', {
-            'p_stale_threshold': '10 minutes'
-        }).execute()
+        result = (
+            client.schema("tracker").rpc("cleanup_stale_assignments", {"p_stale_threshold": "10 minutes"}).execute()
+        )
 
-        if hasattr(result, 'error') and result.error:
+        if hasattr(result, "error") and result.error:
             return error_response(f"Cleanup failed: {result.error}")
 
         cleanup_data = result.data[0] if result.data else {}
@@ -138,8 +145,8 @@ async def cleanup_stale_shards() -> Response:
             "Stale shard cleanup completed",
             {
                 "cleaned_count": cleanup_data.get("cleaned_count", 0),
-                "affected_instances": cleanup_data.get("affected_instances", [])
-            }
+                "affected_instances": cleanup_data.get("affected_instances", []),
+            },
         )
     except Exception as e:
         logger.error(f"Error cleaning up stale shards: {e}")
@@ -173,14 +180,9 @@ async def get_user_providers(user_id: str) -> Response:
         user_providers = await user_manager.get_user_all_providers(user_id)
 
         if user_providers:
-            return user_providers_response(
-                user_providers.user_id,
-                user_providers.providers
-            )
+            return user_providers_response(user_providers.user_id, user_providers.providers)
         else:
-            return user_providers_response(
-                message=f"No providers found for user: {user_id}"
-            )
+            return user_providers_response(message=f"No providers found for user: {user_id}")
 
     except Exception as e:
         logger.error(f"Error getting user providers: {e}")
@@ -196,10 +198,7 @@ async def sync_user_providers(user_id: str) -> Response:
         sync_result = await user_manager.sync_user_provider_relationships(user_id)
 
         return sync_response(
-            sync_result.synced_providers,
-            sync_result.total_synced,
-            sync_result.success,
-            sync_result.error
+            sync_result.synced_providers, sync_result.total_synced, sync_result.success, sync_result.error
         )
 
     except Exception as e:
@@ -218,13 +217,10 @@ async def link_user_provider(user_id: str, provider: str, provider_id: str) -> R
         if relationship_id:
             return success_response(
                 f"Successfully linked {provider} ID {provider_id} to user {user_id}",
-                {"relationship_id": relationship_id}
+                {"relationship_id": relationship_id},
             )
         else:
-            return error_response(
-                f"Failed to link {provider} ID {provider_id} to user {user_id}",
-                400
-            )
+            return error_response(f"Failed to link {provider} ID {provider_id} to user {user_id}", 400)
 
     except Exception as e:
         logger.error(f"Error linking provider: {e}")

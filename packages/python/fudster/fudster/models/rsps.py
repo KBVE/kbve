@@ -8,7 +8,7 @@ class Stat(BaseModel):
     level: int
     boostedLevel: int
     xp: int
-    xp_gained: Union[int, str] = Field(alias='xp gained')
+    xp_gained: Union[int, str] = Field(alias="xp gained")
 
 
 class GameStat(BaseModel):
@@ -20,9 +20,9 @@ class WorldPoint(BaseModel):
     x: int
     y: int
     plane: int
-    regionID: int = Field(alias='regionID')
-    regionX: int = Field(alias='regionX')
-    regionY: int = Field(alias='regionY')
+    regionID: int = Field(alias="regionID")
+    regionX: int = Field(alias="regionX")
+    regionY: int = Field(alias="regionY")
 
 
 class Camera(BaseModel):
@@ -43,16 +43,16 @@ class Mouse(BaseModel):
 
 class GameEvent(BaseModel):
     animation: int
-    animation_pose: int = Field(alias='animation pose')
-    latest_msg: str = Field(alias='latest msg')
-    run_energy: int = Field(alias='run energy')
-    game_tick: int = Field(alias='game tick')
+    animation_pose: int = Field(alias="animation pose")
+    latest_msg: str = Field(alias="latest msg")
+    run_energy: int = Field(alias="run energy")
+    game_tick: int = Field(alias="game tick")
     health: str
-    interacting_code: Union[str, None] = Field(alias='interacting code')
-    npc_name: Union[str, None] = Field(alias='npc name')
-    npc_health: int = Field(alias='npc health', default=0)
-    MAX_DISTANCE: int = Field(alias='MAX_DISTANCE')
-    worldPoint: WorldPoint = Field(alias='worldPoint')
+    interacting_code: Union[str, None] = Field(alias="interacting code")
+    npc_name: Union[str, None] = Field(alias="npc name")
+    npc_health: int = Field(alias="npc health", default=0)
+    MAX_DISTANCE: int = Field(alias="MAX_DISTANCE")
+    worldPoint: WorldPoint = Field(alias="worldPoint")
     camera: Camera
     mouse: Mouse
 

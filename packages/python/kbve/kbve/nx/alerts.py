@@ -26,8 +26,7 @@ ENDPOINTS = {
 }
 
 
-def fetch_all(path: str, token: str, per_page: int,
-              timeout: float) -> list[dict[str, Any]]:
+def fetch_all(path: str, token: str, per_page: int, timeout: float) -> list[dict[str, Any]]:
     """Page through a GitHub REST endpoint that returns arrays.
 
     Uses the ``Link: rel="next"`` header for pagination, stitched
@@ -46,8 +45,7 @@ def fetch_all(path: str, token: str, per_page: int,
         with urllib.request.urlopen(req, timeout=timeout) as resp:
             payload = json.load(resp)
             if not isinstance(payload, list):
-                raise ValueError(
-                    f"expected list, got {type(payload).__name__}")
+                raise ValueError(f"expected list, got {type(payload).__name__}")
             out.extend(payload)
             url = next_link(resp.headers.get("Link") or "")
     return out

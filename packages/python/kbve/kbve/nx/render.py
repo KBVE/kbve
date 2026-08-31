@@ -37,15 +37,12 @@ SEVERITY_LABELS = {
 
 SEVERITY_SVG = {
     "critical": (
-        "M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71"
-        " 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"
+        "M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0zM12 9v4M12 17h.01"
     ),
     "high": "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 8v4M12 16h.01",
     "medium": "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 16v-4M12 8h.01",
     "low": "M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4 12 14.01l-3-3",
-    "info": (
-        "M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"
-    ),
+    "info": ("M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1zM4 22v-7"),
 }
 
 ECOSYSTEM_LABELS = {
@@ -64,13 +61,8 @@ ECOSYSTEM_SVG = {
     ),
     "cargo": "M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5",
     "python": "M16 18l6-6-6-6M8 6l-6 6 6 6",
-    "codeql": (
-        "M21 21l-6-6M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"
-    ),
-    "dependabot": (
-        "M6 3v12M18 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM6 21a3 3 0 1 0 0-6 3 3 0 0"
-        " 0 0 6zM15 6a9 9 0 0 1-9 9"
-    ),
+    "codeql": ("M21 21l-6-6M11 19a8 8 0 1 0 0-16 8 8 0 0 0 0 16z"),
+    "dependabot": ("M6 3v12M18 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM15 6a9 9 0 0 1-9 9"),
 }
 
 ECOSYSTEM_ORDER = ["npm", "cargo", "python", "codeql", "dependabot"]
@@ -111,27 +103,26 @@ def _stat_tile(out: TextIO, path: str, value, label: str) -> None:
         ' fill="none" stroke="currentColor" stroke-width="1.75"'
         ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
         f'<path d="{path}" /></svg>\n'
-        '\t\t\t\t\t</span>\n'
+        "\t\t\t\t\t</span>\n"
         f'\t\t\t\t\t<span class="bento-stat__value">{value}</span>\n'
         f'\t\t\t\t\t<span class="bento-stat__label">{label}</span>\n'
-        '\t\t\t\t</div>\n'
+        "\t\t\t\t</div>\n"
     )
 
 
-def _linkcard(out: TextIO, path: str, title: str, copy: str,
-              href: str | None = None) -> None:
+def _linkcard(out: TextIO, path: str, title: str, copy: str, href: str | None = None) -> None:
     tag = "a" if href else "div"
     attrs = f' href="{href}"' if href else ""
     out.write(
         f'\t\t<{tag} class="bento-cell bento-linkcard bento-card'
         ' bento-card--glass bento-card--interactive"'
-        f'{attrs}>\n'
+        f"{attrs}>\n"
         '\t\t\t<span class="bento-icon-tile">\n'
         '\t\t\t\t<svg viewBox="0 0 24 24" width="18" height="18" fill="none"'
         ' stroke="currentColor" stroke-width="1.75" stroke-linecap="round"'
         ' stroke-linejoin="round" aria-hidden="true">'
         f'<path d="{path}" /></svg>\n'
-        '\t\t\t</span>\n'
+        "\t\t\t</span>\n"
         f'\t\t\t<span class="bento-linkcard__title">{title}</span>\n'
         f'\t\t\t<span class="bento-linkcard__copy">{copy}</span>\n'
     )
@@ -142,12 +133,13 @@ def _linkcard(out: TextIO, path: str, title: str, copy: str,
             ' fill="none" stroke="currentColor" stroke-width="2"'
             ' stroke-linecap="round" stroke-linejoin="round">'
             '<path d="M5 12h14M13 6l6 6-6 6" /></svg>\n'
-            '\t\t\t</span>\n'
+            "\t\t\t</span>\n"
         )
-    out.write(f'\t\t</{tag}>\n')
+    out.write(f"\t\t</{tag}>\n")
 
 
 # ── Security ─────────────────────────────────────────────────────────
+
 
 def render_security_json(data: dict) -> str:
     """Serialize the structured security payload to JSON."""
@@ -193,16 +185,11 @@ def render_security_mdx(data: dict, timestamp: str) -> str:
             " across the monorepo — triage before merge."
         )
     elif total > 0:
-        lede = (
-            f"<strong>{total}</strong> finding{'s' if total != 1 else ''}"
-            " tracked — none critical or high."
-        )
+        lede = f"<strong>{total}</strong> finding{'s' if total != 1 else ''} tracked — none critical or high."
     else:
         lede = "No security findings detected across any ecosystem."
 
-    out.write(
-        '<div class="sec-report" data-dash-report>\n\n'
-    )
+    out.write('<div class="sec-report" data-dash-report>\n\n')
 
     out.write(
         '<section class="bento-hero bento-section not-content"'
@@ -217,45 +204,43 @@ def render_security_mdx(data: dict, timestamp: str) -> str:
         ' fill="none" stroke="currentColor" stroke-width="1.75"'
         ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
         '<path d="M12 2 4 5v6c0 5 3.4 9.4 8 11 4.6-1.6 8-6 8-11V5z" /></svg>\n'
-        '\t\t\t\t\t<span>auto-generated · daily</span>\n'
-        '\t\t\t\t</span>\n'
+        "\t\t\t\t\t<span>auto-generated · daily</span>\n"
+        "\t\t\t\t</span>\n"
         '\t\t\t\t<h1 class="bento-title">\n'
-        '\t\t\t\t\tSecurity posture\n'
+        "\t\t\t\t\tSecurity posture\n"
         '\t\t\t\t\t<span class="bento-title__accent">across every'
-        ' ecosystem.</span>\n'
-        '\t\t\t\t</h1>\n'
+        " ecosystem.</span>\n"
+        "\t\t\t\t</h1>\n"
         f'\t\t\t\t<p class="bento-lede">{lede}</p>\n'
         f'\t\t\t\t<p class="bento-lede">Last generated'
-        f' <strong>{timestamp}</strong>.</p>\n'
+        f" <strong>{timestamp}</strong>.</p>\n"
         '\t\t\t\t<div class="bento-cta">\n'
         '\t\t\t\t\t<a class="bento-btn bento-btn--primary" href="#findings">\n'
-        '\t\t\t\t\t\tView findings\n'
+        "\t\t\t\t\t\tView findings\n"
         '\t\t\t\t\t\t<svg viewBox="0 0 24 24" fill="none"'
         ' stroke="currentColor" aria-hidden="true"><path'
         ' stroke-linecap="round" stroke-linejoin="round" stroke-width="2"'
         ' d="M5 12h14M13 6l6 6-6 6" /></svg>\n'
-        '\t\t\t\t\t</a>\n'
+        "\t\t\t\t\t</a>\n"
         '\t\t\t\t\t<a class="bento-btn bento-btn--ghost"'
         ' href="#ecosystems">Ecosystems</a>\n'
         '\t\t\t\t\t<a class="bento-btn bento-btn--ghost"'
         ' href="/dashboard/">Dashboard home</a>\n'
-        '\t\t\t\t</div>\n'
-        '\t\t\t</div>\n\n'
+        "\t\t\t\t</div>\n"
+        "\t\t\t</div>\n\n"
     )
 
     for sev in SEVERITY_ORDER:
-        _stat_tile(
-            out, SEVERITY_SVG[sev], summary[sev], SEVERITY_LABELS[sev]
-        )
+        _stat_tile(out, SEVERITY_SVG[sev], summary[sev], SEVERITY_LABELS[sev])
 
     out.write(
-        '\t\t</div>\n'
+        "\t\t</div>\n"
         '\t\t<nav class="bento-jump" aria-label="On this page">\n'
         '\t\t\t<a class="bento-chip" href="#ecosystems">Ecosystems</a>\n'
         '\t\t\t<a class="bento-chip" href="#findings">Findings</a>\n'
-        '\t\t</nav>\n'
-        '\t</div>\n'
-        '</section>\n\n'
+        "\t\t</nav>\n"
+        "\t</div>\n"
+        "</section>\n\n"
     )
 
     out.write(
@@ -267,11 +252,13 @@ def render_security_mdx(data: dict, timestamp: str) -> str:
         eco = ecosystems.get(eco_name, {})
         count = eco.get("total", 0)
         label = ECOSYSTEM_LABELS[eco_name]
-        item_word = "alerts" if eco_name in (
-            "codeql", "dependabot") else "advisories"
+        item_word = "alerts" if eco_name in ("codeql", "dependabot") else "advisories"
         copy = f"{count} {item_word}"
         _linkcard(
-            out, ECOSYSTEM_SVG[eco_name], label, copy,
+            out,
+            ECOSYSTEM_SVG[eco_name],
+            label,
+            copy,
             href=f"#eco-{eco_name}",
         )
     out.write("\t</div>\n</BentoShell>\n\n")
@@ -280,17 +267,13 @@ def render_security_mdx(data: dict, timestamp: str) -> str:
 
     severity = donut_svg(
         "Findings by Severity",
-        [Slice(SEVERITY_LABELS[sev], summary[sev])
-         for sev in SEVERITY_ORDER[:4]],
+        [Slice(SEVERITY_LABELS[sev], summary[sev]) for sev in SEVERITY_ORDER[:4]],
     )
     if severity:
         out.write("### Severity distribution\n\n")
         out.write(f'<div class="kbve-figure">{severity}</div>\n\n')
 
-    eco_totals = {
-        ECOSYSTEM_LABELS[e]: ecosystems.get(e, {}).get("total", 0)
-        for e in ECOSYSTEM_ORDER
-    }
+    eco_totals = {ECOSYSTEM_LABELS[e]: ecosystems.get(e, {}).get("total", 0) for e in ECOSYSTEM_ORDER}
     by_eco = donut_svg(
         "Findings by Ecosystem",
         [Slice(label, count) for label, count in eco_totals.items()],
@@ -328,8 +311,7 @@ def render_security_mdx(data: dict, timestamp: str) -> str:
 
     _write_advisory_section(out, "npm", "npm", ecosystems.get("npm", {}))
     _write_advisory_section(out, "cargo", "Cargo", ecosystems.get("cargo", {}))
-    _write_advisory_section(
-        out, "python", "Python", ecosystems.get("python", {}))
+    _write_advisory_section(out, "python", "Python", ecosystems.get("python", {}))
     _write_codeql_section(out, ecosystems.get("codeql", {}))
     _write_dependabot_section(out, ecosystems.get("dependabot", {}))
 
@@ -346,32 +328,20 @@ def render_security_mdx(data: dict, timestamp: str) -> str:
     out.write("</BentoProse>\n\n")
 
     out.write("</div>\n\n")
-    out.write(
-        "<style is:global>{`.sec-report{--bento-accent:#f59e0b;"
-        "--bento-accent-2:#f43f5e}`}</style>\n"
-    )
+    out.write("<style is:global>{`.sec-report{--bento-accent:#f59e0b;--bento-accent-2:#f43f5e}`}</style>\n")
 
     return out.getvalue()
 
 
-def _write_advisory_section(out: TextIO, eco_name: str, label: str,
-                            eco: dict, key: str = "advisories") -> None:
+def _write_advisory_section(out: TextIO, eco_name: str, label: str, eco: dict, key: str = "advisories") -> None:
     out.write(f'<span id="eco-{eco_name}"></span>\n\n')
     out.write(f"### {label}\n\n")
     items = eco.get(key, [])
     if not items:
-        out.write(
-            ":::tip[All Clear]\n"
-            f"No {label.lower()} advisories found.\n"
-            ":::\n\n"
-        )
+        out.write(f":::tip[All Clear]\nNo {label.lower()} advisories found.\n:::\n\n")
         return
-    out.write(
-        "| Severity | Package | Advisory | Link |\n"
-        "|----------|---------|----------|------|\n"
-    )
-    for item in sorted(items, key=lambda x: SEVERITY_ORDER.index(
-            x.get("severity", "medium"))):
+    out.write("| Severity | Package | Advisory | Link |\n|----------|---------|----------|------|\n")
+    for item in sorted(items, key=lambda x: SEVERITY_ORDER.index(x.get("severity", "medium"))):
         sev = item.get("severity", "medium").capitalize()
         pkg = item.get("package", "")
         title = item.get("title", item.get("id", ""))
@@ -389,18 +359,10 @@ def _write_codeql_section(out: TextIO, eco: dict) -> None:
     out.write("### CodeQL\n\n")
     alerts = eco.get("alerts", [])
     if not alerts:
-        out.write(
-            ":::tip[All Clear]\n"
-            "No open CodeQL alerts.\n"
-            ":::\n\n"
-        )
+        out.write(":::tip[All Clear]\nNo open CodeQL alerts.\n:::\n\n")
         return
-    out.write(
-        "| Severity | Rule | Path | Link |\n"
-        "|----------|------|------|------|\n"
-    )
-    for alert in sorted(alerts, key=lambda x: SEVERITY_ORDER.index(
-            x.get("severity", "medium"))):
+    out.write("| Severity | Rule | Path | Link |\n|----------|------|------|------|\n")
+    for alert in sorted(alerts, key=lambda x: SEVERITY_ORDER.index(x.get("severity", "medium"))):
         sev = alert.get("severity", "medium").capitalize()
         rule = alert.get("rule_id", "")
         path = alert.get("path", "")
@@ -417,18 +379,12 @@ def _write_dependabot_section(out: TextIO, eco: dict) -> None:
     out.write("### Dependabot\n\n")
     alerts = eco.get("alerts", [])
     if not alerts:
-        out.write(
-            ":::tip[All Clear]\n"
-            "No open Dependabot alerts.\n"
-            ":::\n\n"
-        )
+        out.write(":::tip[All Clear]\nNo open Dependabot alerts.\n:::\n\n")
         return
     out.write(
-        "| Severity | Package | Ecosystem | Summary | Link |\n"
-        "|----------|---------|-----------|---------|------|\n"
+        "| Severity | Package | Ecosystem | Summary | Link |\n|----------|---------|-----------|---------|------|\n"
     )
-    for alert in sorted(alerts, key=lambda x: SEVERITY_ORDER.index(
-            x.get("severity", "medium"))):
+    for alert in sorted(alerts, key=lambda x: SEVERITY_ORDER.index(x.get("severity", "medium"))):
         sev = alert.get("severity", "medium").capitalize()
         pkg = alert.get("package", "")
         eco_name = alert.get("ecosystem", "")
@@ -437,14 +393,12 @@ def _write_dependabot_section(out: TextIO, eco: dict) -> None:
             summary = summary[:47] + "..."
         url = alert.get("url", "")
         link = f"[Details]({url})" if url else ""
-        out.write(
-            f"| {sev} | `{pkg}` | {eco_name}"
-            f" | {summary} | {link} |\n"
-        )
+        out.write(f"| {sev} | `{pkg}` | {eco_name} | {summary} | {link} |\n")
     out.write("\n")
 
 
 # ── Graph ────────────────────────────────────────────────────────────
+
 
 def render_graph_mdx(graph: GraphData, timestamp: str) -> str:
     """Render the Bento-native MDX Nx dependency-graph page."""
@@ -503,30 +457,30 @@ def render_graph_mdx(graph: GraphData, timestamp: str) -> str:
         ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
         '<path d="M6 3v12M18 9a3 3 0 1 0 0 6 3 3 0 0 0 0-6zM6 21a3 3 0 1 0'
         ' 0-6 3 3 0 0 0 0 6zM15 6a9 9 0 0 1-9 9" /></svg>\n'
-        '\t\t\t\t\t<span>auto-generated · daily</span>\n'
-        '\t\t\t\t</span>\n'
+        "\t\t\t\t\t<span>auto-generated · daily</span>\n"
+        "\t\t\t\t</span>\n"
         '\t\t\t\t<h1 class="bento-title">\n'
-        '\t\t\t\t\tDependency graph\n'
+        "\t\t\t\t\tDependency graph\n"
         '\t\t\t\t\t<span class="bento-title__accent">across the'
-        ' monorepo.</span>\n'
-        '\t\t\t\t</h1>\n'
+        " monorepo.</span>\n"
+        "\t\t\t\t</h1>\n"
         f'\t\t\t\t<p class="bento-lede">{lede}</p>\n'
         f'\t\t\t\t<p class="bento-lede">Last generated'
-        f' <strong>{timestamp}</strong>.</p>\n'
+        f" <strong>{timestamp}</strong>.</p>\n"
         '\t\t\t\t<div class="bento-cta">\n'
         '\t\t\t\t\t<a class="bento-btn bento-btn--primary" href="#diagram">\n'
-        '\t\t\t\t\t\tView diagram\n'
+        "\t\t\t\t\t\tView diagram\n"
         '\t\t\t\t\t\t<svg viewBox="0 0 24 24" fill="none"'
         ' stroke="currentColor" aria-hidden="true"><path'
         ' stroke-linecap="round" stroke-linejoin="round" stroke-width="2"'
         ' d="M5 12h14M13 6l6 6-6 6" /></svg>\n'
-        '\t\t\t\t\t</a>\n'
+        "\t\t\t\t\t</a>\n"
         '\t\t\t\t\t<a class="bento-btn bento-btn--ghost"'
         ' href="#hubs">Top hubs</a>\n'
         '\t\t\t\t\t<a class="bento-btn bento-btn--ghost"'
         ' href="#project-index">Projects</a>\n'
-        '\t\t\t\t</div>\n'
-        '\t\t\t</div>\n\n'
+        "\t\t\t\t</div>\n"
+        "\t\t\t</div>\n\n"
     )
 
     _stat_tile(out, TYPE_SVG["app"], len(by_type.get("app", set())), "Apps")
@@ -535,14 +489,14 @@ def render_graph_mdx(graph: GraphData, timestamp: str) -> str:
     _stat_tile(out, TYPE_SVG["deps"], len(seen_edges), "Dependencies")
 
     out.write(
-        '\t\t</div>\n'
+        "\t\t</div>\n"
         '\t\t<nav class="bento-jump" aria-label="On this page">\n'
         '\t\t\t<a class="bento-chip" href="#hubs">Hubs</a>\n'
         '\t\t\t<a class="bento-chip" href="#diagram">Diagram</a>\n'
         '\t\t\t<a class="bento-chip" href="#project-index">Projects</a>\n'
-        '\t\t</nav>\n'
-        '\t</div>\n'
-        '</section>\n\n'
+        "\t\t</nav>\n"
+        "\t</div>\n"
+        "</section>\n\n"
     )
 
     out.write(
@@ -564,7 +518,9 @@ def render_graph_mdx(graph: GraphData, timestamp: str) -> str:
         _linkcard(out, path, row.name, copy)
     if not any_hub:
         _linkcard(
-            out, TYPE_SVG["deps"], "No hubs",
+            out,
+            TYPE_SVG["deps"],
+            "No hubs",
             "No project is depended on by another yet.",
         )
     out.write("\t</div>\n</BentoShell>\n\n")
@@ -574,10 +530,7 @@ def render_graph_mdx(graph: GraphData, timestamp: str) -> str:
     out.write("### Project distribution\n\n")
     distribution = donut_svg(
         "Projects by Type",
-        [
-            Slice(ptype.capitalize() + "s", len(by_type[ptype]))
-            for ptype in sorted(by_type)
-        ],
+        [Slice(ptype.capitalize() + "s", len(by_type[ptype])) for ptype in sorted(by_type)],
     )
     if distribution:
         out.write(f'<div class="kbve-figure">{distribution}</div>\n\n')
@@ -586,11 +539,7 @@ def render_graph_mdx(graph: GraphData, timestamp: str) -> str:
         out.write("### Hub connectivity\n\n")
         hubs = donut_svg(
             "Dependents per Hub",
-            [
-                Slice(row.name, row.dependent_count)
-                for row in top_depended
-                if row.dependent_count > 0
-            ],
+            [Slice(row.name, row.dependent_count) for row in top_depended if row.dependent_count > 0],
         )
         if hubs:
             out.write(f'<div class="kbve-figure">{hubs}</div>\n\n')
@@ -602,8 +551,7 @@ def render_graph_mdx(graph: GraphData, timestamp: str) -> str:
     else:
         ranked = sorted(
             rows,
-            key=lambda r: (r.dep_count + r.dependent_count,
-                           r.dependent_count, r.name),
+            key=lambda r: (r.dep_count + r.dependent_count, r.dependent_count, r.name),
             reverse=True,
         )
         diagram_nodes = {r.name for r in ranked[:_MAX_DIAGRAM_NODES]}
@@ -629,18 +577,13 @@ def render_graph_mdx(graph: GraphData, timestamp: str) -> str:
         if tgt in diagram_nodes
     ]
     diagram = dag_svg(
-        [
-            DagNode(name, nodes[name].get("type", "unknown"))
-            for name in sorted(diagram_nodes)
-        ],
+        [DagNode(name, nodes[name].get("type", "unknown")) for name in sorted(diagram_nodes)],
         diagram_edges,
         title="Nx project dependency graph",
     )
 
     if diagram:
-        out.write(
-            f'<div class="kbve-figure kbve-figure--wide">{diagram}</div>\n\n'
-        )
+        out.write(f'<div class="kbve-figure kbve-figure--wide">{diagram}</div>\n\n')
         out.write(
             ":::tip[Legend]\n"
             "**Blue** = Application &nbsp; "
@@ -651,30 +594,18 @@ def render_graph_mdx(graph: GraphData, timestamp: str) -> str:
             ":::\n\n"
         )
     else:
-        out.write(
-            ":::caution\n"
-            "No dependency edges among the top projects to diagram.\n"
-            ":::\n\n"
-        )
+        out.write(":::caution\nNo dependency edges among the top projects to diagram.\n:::\n\n")
 
     out.write("</BentoProse>\n\n")
 
     out.write('<BentoProse id="project-index" heading="Project index">\n\n')
-    out.write(
-        "| Project | Type | Root | Deps | Dependents |\n"
-        "|---------|------|------|:----:|:----------:|\n"
-    )
+    out.write("| Project | Type | Root | Deps | Dependents |\n|---------|------|------|:----:|:----------:|\n")
     for row in rows:
-        out.write(
-            f"| **{row.name}** | {row.project_type} | `{row.root}` "
-            f"| {row.dep_count} | {row.dependent_count} |\n"
-        )
+        out.write(f"| **{row.name}** | {row.project_type} | `{row.root}` | {row.dep_count} | {row.dependent_count} |\n")
     out.write("\n")
 
     for ptype in sorted(by_type):
-        type_projects = [
-            n for n in sorted(by_type[ptype]) if deps.get(n)
-        ]
+        type_projects = [n for n in sorted(by_type[ptype]) if deps.get(n)]
         if not type_projects:
             continue
         out.write(f"#### {ptype.capitalize()} Projects\n\n")
@@ -812,30 +743,30 @@ def render_report_mdx(data: dict, timestamp: str) -> str:
         ' fill="none" stroke="currentColor" stroke-width="1.75"'
         ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
         '<path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5"'
-        ' /></svg>\n'
-        '\t\t\t\t\t<span>auto-generated · daily</span>\n'
-        '\t\t\t\t</span>\n'
+        " /></svg>\n"
+        "\t\t\t\t\t<span>auto-generated · daily</span>\n"
+        "\t\t\t\t</span>\n"
         '\t\t\t\t<h1 class="bento-title">\n'
-        '\t\t\t\t\tNX workspace\n'
+        "\t\t\t\t\tNX workspace\n"
         '\t\t\t\t\t<span class="bento-title__accent">report.</span>\n'
-        '\t\t\t\t</h1>\n'
+        "\t\t\t\t</h1>\n"
         f'\t\t\t\t<p class="bento-lede">{lede}</p>\n'
         f'\t\t\t\t<p class="bento-lede">Last generated'
-        f' <strong>{timestamp}</strong>.</p>\n'
+        f" <strong>{timestamp}</strong>.</p>\n"
         '\t\t\t\t<div class="bento-cta">\n'
         '\t\t\t\t\t<a class="bento-btn bento-btn--primary" href="#insights">\n'
-        '\t\t\t\t\t\tView insights\n'
+        "\t\t\t\t\t\tView insights\n"
         '\t\t\t\t\t\t<svg viewBox="0 0 24 24" fill="none"'
         ' stroke="currentColor" aria-hidden="true"><path'
         ' stroke-linecap="round" stroke-linejoin="round" stroke-width="2"'
         ' d="M5 12h14M13 6l6 6-6 6" /></svg>\n'
-        '\t\t\t\t\t</a>\n'
+        "\t\t\t\t\t</a>\n"
         '\t\t\t\t\t<a class="bento-btn bento-btn--ghost"'
         ' href="#raw">Raw output</a>\n'
         '\t\t\t\t\t<a class="bento-btn bento-btn--ghost"'
         ' href="/dashboard/">Dashboard home</a>\n'
-        '\t\t\t\t</div>\n'
-        '\t\t\t</div>\n\n'
+        "\t\t\t\t</div>\n"
+        "\t\t\t</div>\n\n"
     )
 
     _stat_tile(out, REPORT_ENV_SVG["node"], node, "Node")
@@ -844,20 +775,20 @@ def render_report_mdx(data: dict, timestamp: str) -> str:
     _stat_tile(out, REPORT_ENV_SVG["os"], os_info, "OS")
 
     out.write(
-        '\t\t</div>\n'
+        "\t\t</div>\n"
         '\t\t<nav class="bento-jump" aria-label="On this page">\n'
         '\t\t\t<a class="bento-chip" href="#insights">Insights</a>\n'
         '\t\t\t<a class="bento-chip" href="#raw">Raw output</a>\n'
-        '\t\t</nav>\n'
-        '\t</div>\n'
-        '</section>\n\n'
+        "\t\t</nav>\n"
+        "\t</div>\n"
+        "</section>\n\n"
     )
 
     out.write(
         '<BentoShell id="insights" eyebrow="Workspace"'
         ' heading="Report insights">\n'
-        '\t<AstroNxReport />\n'
-        '</BentoShell>\n\n'
+        "\t<AstroNxReport />\n"
+        "</BentoShell>\n\n"
     )
 
     out.write('<BentoProse id="raw" heading="Raw output">\n\n')
@@ -892,10 +823,7 @@ def render_report_mdx(data: dict, timestamp: str) -> str:
     out.write("</BentoProse>\n\n")
 
     out.write("</div>\n\n")
-    out.write(
-        "<style is:global>{`.nx-report{--bento-accent:#10b981;"
-        "--bento-accent-2:#38bdf8}`}</style>\n"
-    )
+    out.write("<style is:global>{`.nx-report{--bento-accent:#10b981;--bento-accent-2:#38bdf8}`}</style>\n")
 
     return out.getvalue()
 
@@ -903,16 +831,28 @@ def render_report_mdx(data: dict, timestamp: str) -> str:
 # ── Kanban ───────────────────────────────────────────────────────────
 
 KANBAN_COLUMNS = [
-    "Theory", "AI", "Todo", "Backlog", "Error",
-    "Support", "Staging", "Review", "Done",
+    "Theory",
+    "AI",
+    "Todo",
+    "Backlog",
+    "Error",
+    "Support",
+    "Staging",
+    "Review",
+    "Done",
 ]
 
 # Pipeline node tones. `dag_svg` colours by node type, so the board's four
 # work states reuse the Nx project-type slots rather than inventing a palette.
 _KANBAN_TONE = {
-    "Theory": "lib", "AI": "lib", "Backlog": "lib",
-    "Todo": "app", "Staging": "app", "Review": "app",
-    "Error": "e2e", "Support": "e2e",
+    "Theory": "lib",
+    "AI": "lib",
+    "Backlog": "lib",
+    "Todo": "app",
+    "Staging": "app",
+    "Review": "app",
+    "Error": "e2e",
+    "Support": "e2e",
     "Done": "lib",
 }
 
@@ -922,35 +862,35 @@ _BLOCKED_COLS = ("Error", "Support")
 
 KANBAN_COL_SVG = {
     "Theory": "M12 2 15 9l7 .5-5.3 4.6L18.5 21 12 17l-6.5 4 1.8-6.9L2 9.5 9 9z",
-    "AI": ("M9 2v2m6-2v2M9 20v2m6-2v2M2 9h2m-2 6h2m16-6h2m-2 6h2"
-           "M6 6h12v12H6zM9 9h6v6H9z"),
+    "AI": ("M9 2v2m6-2v2M9 20v2m6-2v2M2 9h2m-2 6h2m16-6h2m-2 6h2M6 6h12v12H6zM9 9h6v6H9z"),
     "Todo": "M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01",
     "Backlog": "M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5",
-    "Error": ("M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0"
-              " 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"),
-    "Support": ("M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 6a4 4 0 1 0 0 8"
-                " 4 4 0 0 0 0-8zM4.9 4.9l3.5 3.5m7.2 7.2 3.5 3.5m0-14.2"
-                "-3.5 3.5m-7.2 7.2-3.5 3.5"),
-    "Staging": ("M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM19.4 15a1.65 1.65 0 0 0"
-                " .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0"
-                " 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09"
-                "A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2"
-                " 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65"
-                " 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9"
-                "a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06"
-                ".06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0"
-                " 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82"
-                "-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33"
-                " 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65"
-                " 1.65 0 0 0-1.51 1z"),
-    "Review": ("M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7zM12 15a3 3 0"
-               " 1 0 0-6 3 3 0 0 0 0 6z"),
+    "Error": ("M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"),
+    "Support": (
+        "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zm0 6a4 4 0 1 0 0 8"
+        " 4 4 0 0 0 0-8zM4.9 4.9l3.5 3.5m7.2 7.2 3.5 3.5m0-14.2"
+        "-3.5 3.5m-7.2 7.2-3.5 3.5"
+    ),
+    "Staging": (
+        "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM19.4 15a1.65 1.65 0 0 0"
+        " .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0"
+        " 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09"
+        "A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2"
+        " 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65"
+        " 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9"
+        "a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06"
+        ".06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0"
+        " 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82"
+        "-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33"
+        " 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65"
+        " 1.65 0 0 0-1.51 1z"
+    ),
+    "Review": ("M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7-10-7-10-7zM12 15a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"),
     "Done": "M22 11.1V12a10 10 0 1 1-5.9-9.1M22 4 12 14.01l-3-3",
 }
 
 
-def build_kanban_payload(project: dict, columns: dict, summary: dict,
-                         timestamp: str) -> dict:
+def build_kanban_payload(project: dict, columns: dict, summary: dict, timestamp: str) -> dict:
     """Assemble the frozen ``nx-kanban.json`` contract (JS key order)."""
     from .kanban_board import VIEWS
 
@@ -988,8 +928,7 @@ def render_kanban_mdx(payload: dict, timestamp: str) -> str:
     blocked = sum(summary.get(c, 0) for c in _BLOCKED_COLS)
     planning = sum(summary.get(c, 0) for c in _PLANNING_COLS)
     done = summary.get("Done", 0)
-    project_url = project.get(
-        "url", "") or "https://github.com/orgs/KBVE/projects/5"
+    project_url = project.get("url", "") or "https://github.com/orgs/KBVE/projects/5"
     out = StringIO()
 
     out.write(
@@ -1043,30 +982,30 @@ def render_kanban_mdx(payload: dict, timestamp: str) -> str:
         ' fill="none" stroke="currentColor" stroke-width="1.75"'
         ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
         '<path d="M3 3h7v7H3zM14 3h7v7h-7zM14 14h7v7h-7zM3 14h7v7H3z" /></svg>\n'
-        '\t\t\t\t\t<span>auto-generated · daily</span>\n'
-        '\t\t\t\t</span>\n'
+        "\t\t\t\t\t<span>auto-generated · daily</span>\n"
+        "\t\t\t\t</span>\n"
         '\t\t\t\t<h1 class="bento-title">\n'
-        '\t\t\t\t\tProject board\n'
+        "\t\t\t\t\tProject board\n"
         '\t\t\t\t\t<span class="bento-title__accent">across every'
-        ' column.</span>\n'
-        '\t\t\t\t</h1>\n'
+        " column.</span>\n"
+        "\t\t\t\t</h1>\n"
         f'\t\t\t\t<p class="bento-lede">{lede}</p>\n'
         f'\t\t\t\t<p class="bento-lede">Last generated'
-        f' <strong>{timestamp}</strong>.</p>\n'
+        f" <strong>{timestamp}</strong>.</p>\n"
         '\t\t\t\t<div class="bento-cta">\n'
         '\t\t\t\t\t<a class="bento-btn bento-btn--primary" href="#columns">\n'
-        '\t\t\t\t\t\tView columns\n'
+        "\t\t\t\t\t\tView columns\n"
         '\t\t\t\t\t\t<svg viewBox="0 0 24 24" fill="none"'
         ' stroke="currentColor" aria-hidden="true"><path'
         ' stroke-linecap="round" stroke-linejoin="round" stroke-width="2"'
         ' d="M5 12h14M13 6l6 6-6 6" /></svg>\n'
-        '\t\t\t\t\t</a>\n'
+        "\t\t\t\t\t</a>\n"
         f'\t\t\t\t\t<a class="bento-btn bento-btn--ghost"'
         f' href="{project_url}">Open board</a>\n'
         '\t\t\t\t\t<a class="bento-btn bento-btn--ghost"'
         ' href="/dashboard/">Dashboard home</a>\n'
-        '\t\t\t\t</div>\n'
-        '\t\t\t</div>\n\n'
+        "\t\t\t\t</div>\n"
+        "\t\t\t</div>\n\n"
     )
 
     _stat_tile(out, KANBAN_COL_SVG["Backlog"], tracked, "Tracked")
@@ -1076,14 +1015,14 @@ def render_kanban_mdx(payload: dict, timestamp: str) -> str:
     _stat_tile(out, KANBAN_COL_SVG["Done"], done, "Done")
 
     out.write(
-        '\t\t</div>\n'
+        "\t\t</div>\n"
         '\t\t<nav class="bento-jump" aria-label="On this page">\n'
         '\t\t\t<a class="bento-chip" href="#columns">Columns</a>\n'
         '\t\t\t<a class="bento-chip" href="#flow">Pipeline</a>\n'
         '\t\t\t<a class="bento-chip" href="#board">Board</a>\n'
-        '\t\t</nav>\n'
-        '\t</div>\n'
-        '</section>\n\n'
+        "\t\t</nav>\n"
+        "\t</div>\n"
+        "</section>\n\n"
     )
 
     out.write(
@@ -1095,14 +1034,16 @@ def render_kanban_mdx(payload: dict, timestamp: str) -> str:
         count = summary.get(col, 0)
         copy = f"{count} item{'s' if count != 1 else ''}"
         _linkcard(
-            out, KANBAN_COL_SVG[col], col, copy,
+            out,
+            KANBAN_COL_SVG[col],
+            col,
+            copy,
             href=f"#col-{col.lower()}",
         )
     out.write("\t</div>\n</BentoShell>\n\n")
 
     out.write('<BentoProse id="flow" heading="Pipeline flow">\n\n')
-    _write_kanban_charts(out, summary, columns, active,
-                         blocked, done, planning)
+    _write_kanban_charts(out, summary, columns, active, blocked, done, planning)
     out.write("</BentoProse>\n\n")
 
     out.write('<BentoProse id="board" heading="Board detail">\n\n')
@@ -1112,9 +1053,7 @@ def render_kanban_mdx(payload: dict, timestamp: str) -> str:
 
     out.write('<BentoProse id="about">\n\n')
     out.write("---\n\n")
-    out.write(
-        f"Source: [KBVE Project Board]({project_url})\n\n"
-    )
+    out.write(f"Source: [KBVE Project Board]({project_url})\n\n")
     out.write(
         "*Auto-generated by "
         "[ci-daily-content.yml]"
@@ -1124,17 +1063,14 @@ def render_kanban_mdx(payload: dict, timestamp: str) -> str:
     out.write("</BentoProse>\n\n")
 
     out.write("</div>\n\n")
-    out.write(
-        "<style is:global>{`.kanban-report{--bento-accent:#8b5cf6;"
-        "--bento-accent-2:#3b82f6}`}</style>\n"
-    )
+    out.write("<style is:global>{`.kanban-report{--bento-accent:#8b5cf6;--bento-accent-2:#3b82f6}`}</style>\n")
 
     return out.getvalue()
 
 
-def _write_kanban_charts(out: TextIO, summary: dict, columns: dict,
-                         active: int, blocked: int, done: int,
-                         planning: int) -> None:
+def _write_kanban_charts(
+    out: TextIO, summary: dict, columns: dict, active: int, blocked: int, done: int, planning: int
+) -> None:
     by_status = donut_svg(
         "Items by Status",
         _folded_slices([(c, summary.get(c, 0)) for c in KANBAN_COLUMNS]),
@@ -1165,17 +1101,12 @@ def _write_kanban_charts(out: TextIO, summary: dict, columns: dict,
             )
             for col in KANBAN_COLUMNS
         ],
-        [
-            DagEdge(a, b)
-            for a, b in zip(KANBAN_COLUMNS, KANBAN_COLUMNS[1:])
-        ],
+        [DagEdge(a, b) for a, b in zip(KANBAN_COLUMNS, KANBAN_COLUMNS[1:])],
         title="Pipeline",
     )
     if pipeline:
         out.write("### Pipeline\n\n")
-        out.write(
-            f'<div class="kbve-figure kbve-figure--wide">{pipeline}</div>\n\n'
-        )
+        out.write(f'<div class="kbve-figure kbve-figure--wide">{pipeline}</div>\n\n')
 
     type_counts: dict[str, int] = {}
     for col in KANBAN_COLUMNS:
@@ -1184,11 +1115,9 @@ def _write_kanban_charts(out: TextIO, summary: dict, columns: dict,
             type_counts[t] = type_counts.get(t, 0) + 1
     by_type = donut_svg(
         "Items by Type",
-        _folded_slices([
-            (_titlecase_type(t), c)
-            for t, c in sorted(type_counts.items(), key=lambda kv: kv[1],
-                               reverse=True)
-        ]),
+        _folded_slices(
+            [(_titlecase_type(t), c) for t, c in sorted(type_counts.items(), key=lambda kv: kv[1], reverse=True)]
+        ),
     )
     if by_type:
         out.write("### Items by type\n\n")
@@ -1201,8 +1130,7 @@ def _write_kanban_labels(out: TextIO, columns: dict) -> None:
         for item in columns.get(col, []):
             for lbl in item.get("labels", []):
                 label_counts[lbl] = label_counts.get(lbl, 0) + 1
-    top = sorted(label_counts.items(), key=lambda kv: kv[1],
-                 reverse=True)[:10]
+    top = sorted(label_counts.items(), key=lambda kv: kv[1], reverse=True)[:10]
     if not top:
         return
     out.write("### Top labels\n\n")
@@ -1218,28 +1146,18 @@ def _write_kanban_tables(out: TextIO, columns: dict, summary: dict) -> None:
         out.write(f'<span id="col-{col.lower()}"></span>\n\n')
         out.write(f"### {col} ({summary.get(col, 0)})\n\n")
         if not items:
-            out.write(
-                ":::tip[Empty]\n"
-                f"No items in **{col}**.\n"
-                ":::\n\n"
-            )
+            out.write(f":::tip[Empty]\nNo items in **{col}**.\n:::\n\n")
             continue
-        out.write(
-            "| # | Title | Priority | Assignees | Labels |\n"
-            "|---|-------|----------|-----------|--------|\n"
-        )
+        out.write("| # | Title | Priority | Assignees | Labels |\n|---|-------|----------|-----------|--------|\n")
         for it in items:
             num = it.get("number")
             url = it.get("url")
-            ref = f"[#{num}]({url})" if url and num else (
-                str(num) if num else "—")
+            ref = f"[#{num}]({url})" if url and num else (str(num) if num else "—")
             title = escape_mdx(it.get("title", ""))[:80]
             priority = it.get("matrix") or "—"
             assignees = ", ".join(it.get("assignees", [])) or "—"
             labels = ", ".join(it.get("labels", [])[:3]) or "—"
-            out.write(
-                f"| {ref} | {title} | {priority} | {assignees} | {labels} |\n"
-            )
+            out.write(f"| {ref} | {title} | {priority} | {assignees} | {labels} |\n")
         out.write("\n")
 
 
@@ -1251,8 +1169,7 @@ CI_HEALTH_SVG = {
     "duration": "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 6v6l4 2",
     "failures": "M7.9 2h8.2L22 7.9v8.2L16.1 22H7.9L2 16.1V7.9zM15 9l-6 6M9 9l6 6",
     "flaky": "M13 2 3 14h7l-1 8 10-12h-7z",
-    "workflow": ("M6 3v12M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0"
-                 " 0-6 3 3 0 0 0 0 6zM15 6a9 9 0 0 1-9 9"),
+    "workflow": ("M6 3v12M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM15 6a9 9 0 0 1-9 9"),
 }
 
 
@@ -1324,11 +1241,7 @@ def render_ci_health_mdx(payload: dict, timestamp: str) -> str:
             f"{'s' if fails != 1 else ''}, <strong>{flaky}</strong> flaky."
         )
     else:
-        lede = (
-            f"<strong>{rate}%</strong> success across"
-            f" <strong>{totals['runs']}</strong> runs"
-            f" ({days}d) — all green."
-        )
+        lede = f"<strong>{rate}%</strong> success across <strong>{totals['runs']}</strong> runs ({days}d) — all green."
 
     out.write('<div class="ci-health-report" data-dash-report>\n\n')
 
@@ -1345,49 +1258,48 @@ def render_ci_health_mdx(payload: dict, timestamp: str) -> str:
         ' fill="none" stroke="currentColor" stroke-width="1.75"'
         ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
         '<path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>\n'
-        '\t\t\t\t\t<span>auto-generated · daily</span>\n'
-        '\t\t\t\t</span>\n'
+        "\t\t\t\t\t<span>auto-generated · daily</span>\n"
+        "\t\t\t\t</span>\n"
         '\t\t\t\t<h1 class="bento-title">\n'
-        '\t\t\t\t\tPipeline health\n'
+        "\t\t\t\t\tPipeline health\n"
         '\t\t\t\t\t<span class="bento-title__accent">every workflow,'
-        ' every day.</span>\n'
-        '\t\t\t\t</h1>\n'
+        " every day.</span>\n"
+        "\t\t\t\t</h1>\n"
         f'\t\t\t\t<p class="bento-lede">{lede}</p>\n'
         f'\t\t\t\t<p class="bento-lede">Last generated'
-        f' <strong>{timestamp}</strong>.</p>\n'
+        f" <strong>{timestamp}</strong>.</p>\n"
         '\t\t\t\t<div class="bento-cta">\n'
         '\t\t\t\t\t<a class="bento-btn bento-btn--primary"'
         ' href="#workflows">\n'
-        '\t\t\t\t\t\tView workflows\n'
+        "\t\t\t\t\t\tView workflows\n"
         '\t\t\t\t\t\t<svg viewBox="0 0 24 24" fill="none"'
         ' stroke="currentColor" aria-hidden="true"><path'
         ' stroke-linecap="round" stroke-linejoin="round" stroke-width="2"'
         ' d="M5 12h14M13 6l6 6-6 6" /></svg>\n'
-        '\t\t\t\t\t</a>\n'
+        "\t\t\t\t\t</a>\n"
         '\t\t\t\t\t<a class="bento-btn bento-btn--ghost"'
         ' href="#failures">Failures</a>\n'
         '\t\t\t\t\t<a class="bento-btn bento-btn--ghost"'
         ' href="/dashboard/">Dashboard home</a>\n'
-        '\t\t\t\t</div>\n'
-        '\t\t\t</div>\n\n'
+        "\t\t\t\t</div>\n"
+        "\t\t\t</div>\n\n"
     )
 
     _stat_tile(out, CI_HEALTH_SVG["runs"], totals["runs"], f"Runs ({days}d)")
     _stat_tile(out, CI_HEALTH_SVG["rate"], f"{rate}%", "Success rate")
-    _stat_tile(out, CI_HEALTH_SVG["duration"],
-               _fmt_duration(totals["avg_duration_s"]), "Avg duration")
+    _stat_tile(out, CI_HEALTH_SVG["duration"], _fmt_duration(totals["avg_duration_s"]), "Avg duration")
     _stat_tile(out, CI_HEALTH_SVG["failures"], fails, "Failures")
     _stat_tile(out, CI_HEALTH_SVG["flaky"], flaky, "Flaky")
 
     out.write(
-        '\t\t</div>\n'
+        "\t\t</div>\n"
         '\t\t<nav class="bento-jump" aria-label="On this page">\n'
         '\t\t\t<a class="bento-chip" href="#workflows">Workflows</a>\n'
         '\t\t\t<a class="bento-chip" href="#trends">Trends</a>\n'
         '\t\t\t<a class="bento-chip" href="#failures">Failures</a>\n'
-        '\t\t</nav>\n'
-        '\t</div>\n'
-        '</section>\n\n'
+        "\t\t</nav>\n"
+        "\t</div>\n"
+        "</section>\n\n"
     )
 
     out.write(
@@ -1397,15 +1309,16 @@ def render_ci_health_mdx(payload: dict, timestamp: str) -> str:
     )
     for wf in workflows[:9]:
         copy = f"{wf['runs']} runs · {wf['success_rate']}% ok"
-        _linkcard(out, CI_HEALTH_SVG["workflow"], escape_mdx(wf["name"]),
-                  copy, href="#health-table")
+        _linkcard(out, CI_HEALTH_SVG["workflow"], escape_mdx(wf["name"]), copy, href="#health-table")
     out.write("\t</div>\n</BentoShell>\n\n")
 
     out.write('<BentoProse id="trends" heading="Trends">\n\n')
 
     concl = {
-        "Success": totals["success"], "Failure": totals["failure"],
-        "Cancelled": totals["cancelled"], "Skipped": totals["skipped"],
+        "Success": totals["success"],
+        "Failure": totals["failure"],
+        "Cancelled": totals["cancelled"],
+        "Skipped": totals["skipped"],
         "Other": totals["other"],
     }
     outcomes = donut_svg(
@@ -1454,10 +1367,7 @@ def render_ci_health_mdx(payload: dict, timestamp: str) -> str:
 
     out.write('<BentoProse id="failures" heading="Recent failures">\n\n')
     if failures:
-        out.write(
-            "| Workflow | Branch | Event | Finished | Link |\n"
-            "|----------|--------|-------|----------|------|\n"
-        )
+        out.write("| Workflow | Branch | Event | Finished | Link |\n|----------|--------|-------|----------|------|\n")
         for f in failures:
             name = escape_mdx(f.get("name") or "")
             branch = escape_mdx(f.get("branch") or "—")
@@ -1465,12 +1375,10 @@ def render_ci_health_mdx(payload: dict, timestamp: str) -> str:
             fin = (f.get("finished_at") or "—")[:16].replace("T", " ")
             url = f.get("url")
             link = f"[run]({url})" if url else "—"
-            out.write(
-                f"| {name} | {branch} | {event} | {fin} | {link} |\n")
+            out.write(f"| {name} | {branch} | {event} | {fin} | {link} |\n")
         out.write("\n")
     else:
-        out.write(
-            ":::tip[All Clear]\nNo failed runs in the window.\n:::\n\n")
+        out.write(":::tip[All Clear]\nNo failed runs in the window.\n:::\n\n")
     out.write("</BentoProse>\n\n")
 
     out.write('<BentoProse id="about">\n\n')
@@ -1484,10 +1392,7 @@ def render_ci_health_mdx(payload: dict, timestamp: str) -> str:
     out.write("</BentoProse>\n\n")
 
     out.write("</div>\n\n")
-    out.write(
-        "<style is:global>{`.ci-health-report{--bento-accent:#06b6d4;"
-        "--bento-accent-2:#f43f5e}`}</style>\n"
-    )
+    out.write("<style is:global>{`.ci-health-report{--bento-accent:#06b6d4;--bento-accent-2:#f43f5e}`}</style>\n")
 
     return out.getvalue()
 
@@ -1503,7 +1408,8 @@ _MAX_SLICES = 6
 
 
 def _folded_slices(
-    pairs: list[tuple[str, float]], limit: int = _MAX_SLICES,
+    pairs: list[tuple[str, float]],
+    limit: int = _MAX_SLICES,
 ) -> list[Slice]:
     """Drop empty entries and fold everything past *limit* into "Other"."""
     kept = [(label, value) for label, value in pairs if value > 0]
@@ -1511,21 +1417,26 @@ def _folded_slices(
         return [Slice(_slice_label(label), value) for label, value in kept]
 
     ranked = sorted(kept, key=lambda kv: kv[1], reverse=True)
-    head = {label for label, _ in ranked[:limit - 1]}
+    head = {label for label, _ in ranked[: limit - 1]}
     tail = sum(value for label, value in kept if label not in head)
-    return [
-        Slice(_slice_label(label), value)
-        for label, value in kept
-        if label in head
-    ] + [Slice("Other", tail)]
+    return [Slice(_slice_label(label), value) for label, value in kept if label in head] + [Slice("Other", tail)]
 
 
 # ── Shared Bento hero ────────────────────────────────────────────────
 
-def _hero_open(out: TextIO, aria: str, badge_path: str, title_main: str,
-               title_accent: str, lede: str, timestamp: str,
-               primary_href: str, primary_label: str,
-               ghost_links: list) -> None:
+
+def _hero_open(
+    out: TextIO,
+    aria: str,
+    badge_path: str,
+    title_main: str,
+    title_accent: str,
+    lede: str,
+    timestamp: str,
+    primary_href: str,
+    primary_label: str,
+    ghost_links: list,
+) -> None:
     out.write(
         f'<section class="bento-hero bento-section not-content"'
         f' aria-label="{aria}">\n'
@@ -1539,41 +1450,35 @@ def _hero_open(out: TextIO, aria: str, badge_path: str, title_main: str,
         ' fill="none" stroke="currentColor" stroke-width="1.75"'
         ' stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
         f'<path d="{badge_path}" /></svg>\n'
-        '\t\t\t\t\t<span>auto-generated · daily</span>\n'
-        '\t\t\t\t</span>\n'
+        "\t\t\t\t\t<span>auto-generated · daily</span>\n"
+        "\t\t\t\t</span>\n"
         '\t\t\t\t<h1 class="bento-title">\n'
-        f'\t\t\t\t\t{title_main}\n'
+        f"\t\t\t\t\t{title_main}\n"
         f'\t\t\t\t\t<span class="bento-title__accent">{title_accent}</span>\n'
-        '\t\t\t\t</h1>\n'
+        "\t\t\t\t</h1>\n"
         f'\t\t\t\t<p class="bento-lede">{lede}</p>\n'
         f'\t\t\t\t<p class="bento-lede">Last generated'
-        f' <strong>{timestamp}</strong>.</p>\n'
+        f" <strong>{timestamp}</strong>.</p>\n"
         '\t\t\t\t<div class="bento-cta">\n'
         f'\t\t\t\t\t<a class="bento-btn bento-btn--primary"'
         f' href="{primary_href}">\n'
-        f'\t\t\t\t\t\t{primary_label}\n'
+        f"\t\t\t\t\t\t{primary_label}\n"
         '\t\t\t\t\t\t<svg viewBox="0 0 24 24" fill="none"'
         ' stroke="currentColor" aria-hidden="true"><path'
         ' stroke-linecap="round" stroke-linejoin="round" stroke-width="2"'
         ' d="M5 12h14M13 6l6 6-6 6" /></svg>\n'
-        '\t\t\t\t\t</a>\n'
+        "\t\t\t\t\t</a>\n"
     )
     for label, href in ghost_links:
-        out.write(
-            f'\t\t\t\t\t<a class="bento-btn bento-btn--ghost"'
-            f' href="{href}">{label}</a>\n'
-        )
-    out.write('\t\t\t\t</div>\n\t\t\t</div>\n\n')
+        out.write(f'\t\t\t\t\t<a class="bento-btn bento-btn--ghost" href="{href}">{label}</a>\n')
+    out.write("\t\t\t\t</div>\n\t\t\t</div>\n\n")
 
 
 def _hero_close(out: TextIO, chips: list) -> None:
-    out.write(
-        '\t\t</div>\n'
-        '\t\t<nav class="bento-jump" aria-label="On this page">\n'
-    )
+    out.write('\t\t</div>\n\t\t<nav class="bento-jump" aria-label="On this page">\n')
     for label, href in chips:
         out.write(f'\t\t\t<a class="bento-chip" href="{href}">{label}</a>\n')
-    out.write('\t\t</nav>\n\t</div>\n</section>\n\n')
+    out.write("\t\t</nav>\n\t</div>\n</section>\n\n")
 
 
 def _about(out: TextIO) -> None:
@@ -1588,6 +1493,7 @@ def _about(out: TextIO) -> None:
 
 
 # ── Dependency Freshness ─────────────────────────────────────────────
+
 
 def build_deps_payload(agg: dict, timestamp: str) -> dict:
     return {"generated_at": timestamp, **agg}
@@ -1639,35 +1545,47 @@ def render_deps_mdx(payload: dict, timestamp: str) -> str:
 
     out.write('<div class="deps-report" data-dash-report>\n\n')
     _hero_open(
-        out, "Dependency freshness",
+        out,
+        "Dependency freshness",
         "M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5",
-        "Dependency drift", "npm and cargo, daily.", lede, timestamp,
-        "#ecosystems", "View drift",
+        "Dependency drift",
+        "npm and cargo, daily.",
+        lede,
+        timestamp,
+        "#ecosystems",
+        "View drift",
         [("Trends", "#trends"), ("Dashboard home", "/dashboard/")],
     )
-    _stat_tile(out, "M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5",
-               total, "Outdated")
-    _stat_tile(out, "M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2"
-               " 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z", majors, "Major")
-    _stat_tile(out, "M12 2 15 9l7 .5-5.3 4.6L18.5 21 12 17l-6.5 4 1.8-6.9L2"
-               " 9.5 9 9z", node["count"], "npm")
-    _stat_tile(out, "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z", rust["count"],
-               "cargo")
-    _hero_close(out, [("Ecosystems", "#ecosystems"),
-                      ("Trends", "#trends")])
+    _stat_tile(out, "M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5", total, "Outdated")
+    _stat_tile(
+        out,
+        "M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z",
+        majors,
+        "Major",
+    )
+    _stat_tile(out, "M12 2 15 9l7 .5-5.3 4.6L18.5 21 12 17l-6.5 4 1.8-6.9L2 9.5 9 9z", node["count"], "npm")
+    _stat_tile(out, "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z", rust["count"], "cargo")
+    _hero_close(out, [("Ecosystems", "#ecosystems"), ("Trends", "#trends")])
 
     out.write(
         '<BentoShell id="ecosystems" eyebrow="Coverage"'
         ' heading="Ecosystem drift">\n'
         '\t<div class="bento-board bento-board--cols-3">\n'
     )
-    _linkcard(out, "M12 2 15 9l7 .5-5.3 4.6L18.5 21 12 17l-6.5 4 1.8-6.9L2"
-              " 9.5 9 9z", "npm",
-              f"{node['count']} outdated · {node['major']} major",
-              href="#npm")
-    _linkcard(out, "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z", "cargo",
-              f"{rust['count']} outdated · {rust['major']} major",
-              href="#cargo")
+    _linkcard(
+        out,
+        "M12 2 15 9l7 .5-5.3 4.6L18.5 21 12 17l-6.5 4 1.8-6.9L2 9.5 9 9z",
+        "npm",
+        f"{node['count']} outdated · {node['major']} major",
+        href="#npm",
+    )
+    _linkcard(
+        out,
+        "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z",
+        "cargo",
+        f"{rust['count']} outdated · {rust['major']} major",
+        href="#cargo",
+    )
     out.write("\t</div>\n</BentoShell>\n\n")
 
     out.write('<BentoProse id="trends" heading="Drift detail">\n\n')
@@ -1680,32 +1598,20 @@ def render_deps_mdx(payload: dict, timestamp: str) -> str:
 
     out.write('<span id="npm"></span>\n\n### npm\n\n')
     if node["items"]:
-        out.write(
-            "| Package | Current | Wanted | Latest | Major |\n"
-            "|---------|---------|--------|--------|:-----:|\n"
-        )
+        out.write("| Package | Current | Wanted | Latest | Major |\n|---------|---------|--------|--------|:-----:|\n")
         for d in node["items"]:
             flag = "⚠️" if d.get("major") else ""
-            out.write(
-                f"| {escape_mdx(d['name'])} | {d['current']} |"
-                f" {d['wanted']} | {d['latest']} | {flag} |\n"
-            )
+            out.write(f"| {escape_mdx(d['name'])} | {d['current']} | {d['wanted']} | {d['latest']} | {flag} |\n")
         out.write("\n")
     else:
         out.write(":::tip[Fresh]\nNo npm packages outdated.\n:::\n\n")
 
     out.write('<span id="cargo"></span>\n\n### cargo\n\n')
     if rust["items"]:
-        out.write(
-            "| Crate | Current | Latest | Major |\n"
-            "|-------|---------|--------|:-----:|\n"
-        )
+        out.write("| Crate | Current | Latest | Major |\n|-------|---------|--------|:-----:|\n")
         for d in rust["items"]:
             flag = "⚠️" if d.get("major") else ""
-            out.write(
-                f"| {escape_mdx(d['name'])} | {d['current']} |"
-                f" {d['latest']} | {flag} |\n"
-            )
+            out.write(f"| {escape_mdx(d['name'])} | {d['current']} | {d['latest']} | {flag} |\n")
         out.write("\n")
     else:
         out.write(":::tip[Fresh]\nNo crates outdated in range.\n:::\n\n")
@@ -1713,14 +1619,12 @@ def render_deps_mdx(payload: dict, timestamp: str) -> str:
 
     _about(out)
     out.write("</div>\n\n")
-    out.write(
-        "<style is:global>{`.deps-report{--bento-accent:#f59e0b;"
-        "--bento-accent-2:#22c55e}`}</style>\n"
-    )
+    out.write("<style is:global>{`.deps-report{--bento-accent:#f59e0b;--bento-accent-2:#22c55e}`}</style>\n")
     return out.getvalue()
 
 
 # ── Activity Pulse ───────────────────────────────────────────────────
+
 
 def build_activity_payload(agg: dict, timestamp: str) -> dict:
     return {"generated_at": timestamp, **agg}
@@ -1774,27 +1678,38 @@ def render_activity_mdx(payload: dict, timestamp: str) -> str:
 
     out.write('<div class="activity-report" data-dash-report>\n\n')
     _hero_open(
-        out, "Activity pulse",
-        "M22 12h-4l-3 9L9 3l-3 9H2", "Repository pulse",
-        "commits, PRs, and issues.", lede, timestamp,
-        "#leaderboard", "View leaderboard",
+        out,
+        "Activity pulse",
+        "M22 12h-4l-3 9L9 3l-3 9H2",
+        "Repository pulse",
+        "commits, PRs, and issues.",
+        lede,
+        timestamp,
+        "#leaderboard",
+        "View leaderboard",
         [("Commits", "#commits"), ("Dashboard home", "/dashboard/")],
     )
-    _stat_tile(out, "M6 3v12M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0"
-               " 0-6 3 3 0 0 0 0 6zM15 6a9 9 0 0 1-9 9",
-               commits["total"], f"Commits ({days}d)")
-    _stat_tile(out, "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0"
-               " 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9",
-               commits["authors"], "Contributors")
-    _stat_tile(out, "M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3"
-               " 0 0 0 0 6zM6 15V9M18 6a9 9 0 0 1-9 9", prs["merged"],
-               "PRs merged")
-    _stat_tile(out, "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 8v4m0 4h.01",
-               issues["opened"], "Issues opened")
-    _stat_tile(out, "M22 11.1V12a10 10 0 1 1-5.9-9.1M22 4 12 14.01l-3-3",
-               issues["closed"], "Issues closed")
-    _hero_close(out, [("Leaderboard", "#leaderboard"),
-                      ("Commits", "#commits")])
+    _stat_tile(
+        out,
+        "M6 3v12M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM15 6a9 9 0 0 1-9 9",
+        commits["total"],
+        f"Commits ({days}d)",
+    )
+    _stat_tile(
+        out,
+        "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8zM22 21v-2a4 4 0 0 0-3-3.9",
+        commits["authors"],
+        "Contributors",
+    )
+    _stat_tile(
+        out,
+        "M18 9a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 21a3 3 0 1 0 0-6 3 3 0 0 0 0 6zM6 15V9M18 6a9 9 0 0 1-9 9",
+        prs["merged"],
+        "PRs merged",
+    )
+    _stat_tile(out, "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 8v4m0 4h.01", issues["opened"], "Issues opened")
+    _stat_tile(out, "M22 11.1V12a10 10 0 1 1-5.9-9.1M22 4 12 14.01l-3-3", issues["closed"], "Issues closed")
+    _hero_close(out, [("Leaderboard", "#leaderboard"), ("Commits", "#commits")])
 
     out.write(
         '<BentoShell id="leaderboard" eyebrow="Contributors"'
@@ -1802,18 +1717,19 @@ def render_activity_mdx(payload: dict, timestamp: str) -> str:
         '\t<div class="bento-board bento-board--cols-3">\n'
     )
     for c in commits["leaderboard"][:6]:
-        _linkcard(out, "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1"
-                  " 0 0-8 4 4 0 0 0 0 8z", escape_mdx(c["author"]),
-                  f"{c['commits']} commit{'s' if c['commits'] != 1 else ''}",
-                  href="#commits")
+        _linkcard(
+            out,
+            "M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2M9 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z",
+            escape_mdx(c["author"]),
+            f"{c['commits']} commit{'s' if c['commits'] != 1 else ''}",
+            href="#commits",
+        )
     out.write("\t</div>\n</BentoShell>\n\n")
 
     out.write('<BentoProse id="commits" heading="Activity detail">\n\n')
     by_author = donut_svg(
         "Commits by Author",
-        _folded_slices([
-            (c["author"], c["commits"]) for c in commits["leaderboard"]
-        ]),
+        _folded_slices([(c["author"], c["commits"]) for c in commits["leaderboard"]]),
     )
     if by_author:
         out.write(f'<div class="kbve-figure">{by_author}</div>\n\n')
@@ -1822,8 +1738,7 @@ def render_activity_mdx(payload: dict, timestamp: str) -> str:
     if commits["recent"]:
         out.write("| SHA | Author | Message |\n|-----|--------|---------|\n")
         for c in commits["recent"]:
-            sha = f"[`{c['sha']}`]({c['url']})" if c.get("url") else \
-                f"`{c['sha']}`"
+            sha = f"[`{c['sha']}`]({c['url']})" if c.get("url") else f"`{c['sha']}`"
             msg = escape_mdx(c.get("message") or "")[:72]
             out.write(f"| {sha} | {escape_mdx(c['author'])} | {msg} |\n")
         out.write("\n")
@@ -1834,12 +1749,8 @@ def render_activity_mdx(payload: dict, timestamp: str) -> str:
     if prs["recent"]:
         out.write("| # | Title | Author |\n|---|-------|--------|\n")
         for p in prs["recent"]:
-            ref = f"[#{p['number']}]({p['url']})" if p.get("url") else \
-                str(p.get("number") or "—")
-            out.write(
-                f"| {ref} | {escape_mdx(p.get('title') or '')[:72]} |"
-                f" {escape_mdx(p.get('user') or '—')} |\n"
-            )
+            ref = f"[#{p['number']}]({p['url']})" if p.get("url") else str(p.get("number") or "—")
+            out.write(f"| {ref} | {escape_mdx(p.get('title') or '')[:72]} | {escape_mdx(p.get('user') or '—')} |\n")
         out.write("\n")
     else:
         out.write(":::tip[Quiet]\nNo PRs merged in the window.\n:::\n\n")
@@ -1847,18 +1758,18 @@ def render_activity_mdx(payload: dict, timestamp: str) -> str:
 
     _about(out)
     out.write("</div>\n\n")
-    out.write(
-        "<style is:global>{`.activity-report{--bento-accent:#8b5cf6;"
-        "--bento-accent-2:#06b6d4}`}</style>\n"
-    )
+    out.write("<style is:global>{`.activity-report{--bento-accent:#8b5cf6;--bento-accent-2:#06b6d4}`}</style>\n")
     return out.getvalue()
 
 
 # ── Release Radar ────────────────────────────────────────────────────
 
 _RELEASE_STATUS_LABEL = {
-    "pending": "Pending", "behind": "Behind", "unpublished": "Unpublished",
-    "published": "Published", "skipped": "Skipped",
+    "pending": "Pending",
+    "behind": "Behind",
+    "unpublished": "Unpublished",
+    "published": "Published",
+    "skipped": "Skipped",
 }
 _RELEASE_ECO_LABEL = {"crates": "Crates.io", "npm": "npm", "python": "PyPI"}
 
@@ -1908,35 +1819,35 @@ def render_release_mdx(payload: dict, timestamp: str) -> str:
         lede = "No publishable packages tracked in the dispatch manifest."
     elif pending > 0:
         lede = (
-            f"<strong>{pending}</strong> package"
-            f"{'s' if pending != 1 else ''} ahead of the registry —"
-            f" pending publish."
+            f"<strong>{pending}</strong> package{'s' if pending != 1 else ''} ahead of the registry — pending publish."
         )
     else:
-        lede = (
-            f"<strong>{total}</strong> tracked package"
-            f"{'s' if total != 1 else ''} — all in sync with the registry."
-        )
+        lede = f"<strong>{total}</strong> tracked package{'s' if total != 1 else ''} — all in sync with the registry."
 
     out.write('<div class="release-report" data-dash-report>\n\n')
     _hero_open(
-        out, "Release radar",
+        out,
+        "Release radar",
         "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 6v6l4 2",
-        "Release radar", "manifest versus registry.", lede, timestamp,
-        "#ecosystems", "View drift",
+        "Release radar",
+        "manifest versus registry.",
+        lede,
+        timestamp,
+        "#ecosystems",
+        "View drift",
         [("Packages", "#packages"), ("Dashboard home", "/dashboard/")],
     )
-    _stat_tile(out, "M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5",
-               total, "Tracked")
+    _stat_tile(out, "M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5", total, "Tracked")
     _stat_tile(out, "M12 19V5M5 12l7-7 7 7", pending, "Pending")
     _stat_tile(out, "M12 5v14M5 12l7 7 7-7", behind, "Behind")
-    _stat_tile(out, "M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0"
-               " 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z",
-               summary.get("unpublished", 0), "Unpublished")
-    _stat_tile(out, "M22 11.1V12a10 10 0 1 1-5.9-9.1M22 4 12 14.01l-3-3",
-               summary.get("published", 0), "Published")
-    _hero_close(out, [("Ecosystems", "#ecosystems"),
-                      ("Packages", "#packages")])
+    _stat_tile(
+        out,
+        "M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z",
+        summary.get("unpublished", 0),
+        "Unpublished",
+    )
+    _stat_tile(out, "M22 11.1V12a10 10 0 1 1-5.9-9.1M22 4 12 14.01l-3-3", summary.get("published", 0), "Published")
+    _hero_close(out, [("Ecosystems", "#ecosystems"), ("Packages", "#packages")])
 
     out.write(
         '<BentoShell id="ecosystems" eyebrow="Registries"'
@@ -1945,15 +1856,17 @@ def render_release_mdx(payload: dict, timestamp: str) -> str:
     )
     for eco in ("crates", "npm", "python"):
         e = ecosystems.get(eco, {"total": 0, "pending": 0})
-        _linkcard(out, "M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5",
-                  _RELEASE_ECO_LABEL[eco],
-                  f"{e['total']} tracked · {e['pending']} pending",
-                  href="#packages")
+        _linkcard(
+            out,
+            "M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5",
+            _RELEASE_ECO_LABEL[eco],
+            f"{e['total']} tracked · {e['pending']} pending",
+            href="#packages",
+        )
     out.write("\t</div>\n</BentoShell>\n\n")
 
     out.write('<BentoProse id="packages" heading="Package status">\n\n')
-    dist = {_RELEASE_STATUS_LABEL[s]: summary.get(s, 0)
-            for s in ("pending", "behind", "unpublished", "published")}
+    dist = {_RELEASE_STATUS_LABEL[s]: summary.get(s, 0) for s in ("pending", "behind", "unpublished", "published")}
     by_pkg_status = donut_svg(
         "Packages by Status",
         [Slice(label, val) for label, val in dist.items()],
@@ -1980,8 +1893,5 @@ def render_release_mdx(payload: dict, timestamp: str) -> str:
 
     _about(out)
     out.write("</div>\n\n")
-    out.write(
-        "<style is:global>{`.release-report{--bento-accent:#10b981;"
-        "--bento-accent-2:#0ea5e9}`}</style>\n"
-    )
+    out.write("<style is:global>{`.release-report{--bento-accent:#10b981;--bento-accent-2:#0ea5e9}`}</style>\n")
     return out.getvalue()

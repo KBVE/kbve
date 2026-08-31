@@ -100,7 +100,8 @@ def _parse_usage_output(raw: str) -> ClaudeUsage:
 
     # Parse human-readable output
     cost_match = re.search(
-        r"\$([0-9]+\.?[0-9]*)", raw,
+        r"\$([0-9]+\.?[0-9]*)",
+        raw,
     )
     if cost_match:
         usage.cost_usd = float(cost_match.group(1))
@@ -123,7 +124,9 @@ def _parse_usage_output(raw: str) -> ClaudeUsage:
         usage.percent_used = float(pct_match.group(1))
 
     duration_match = re.search(
-        r"([0-9]+\.?[0-9]*)\s*(?:seconds?|s\b)", raw, re.IGNORECASE,
+        r"([0-9]+\.?[0-9]*)\s*(?:seconds?|s\b)",
+        raw,
+        re.IGNORECASE,
     )
     if duration_match:
         usage.duration_s = float(duration_match.group(1))

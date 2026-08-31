@@ -15,8 +15,7 @@ SAMPLE_GRAPH = {
         },
         "dependencies": {
             "app-web": [
-                {"source": "app-web", "target": "lib-ui",
-                 "type": "static"},
+                {"source": "app-web", "target": "lib-ui", "type": "static"},
             ],
             "lib-ui": [],
         },
@@ -45,6 +44,7 @@ SAMPLE_SECURITY = {
 
 # ── CLI group ────────────────────────────────────────────────────────
 
+
 def test_cli_help():
     runner = CliRunner()
     result = runner.invoke(main, ["--help"])
@@ -62,18 +62,23 @@ def test_nx_help():
 
 # ── graph-to-mdx ─────────────────────────────────────────────────────
 
+
 def test_graph_to_mdx(tmp_path):
     graph_file = tmp_path / "graph.json"
     graph_file.write_text(json.dumps(SAMPLE_GRAPH))
     output_file = tmp_path / "output.mdx"
 
     runner = CliRunner()
-    result = runner.invoke(main, [
-        "nx", "graph-to-mdx",
-        str(graph_file),
-        str(output_file),
-        "2026-03-18T00:00:00Z",
-    ])
+    result = runner.invoke(
+        main,
+        [
+            "nx",
+            "graph-to-mdx",
+            str(graph_file),
+            str(output_file),
+            "2026-03-18T00:00:00Z",
+        ],
+    )
     assert result.exit_code == 0
     assert "Generated" in result.output
     assert "2 projects" in result.output
@@ -93,10 +98,16 @@ def test_graph_to_mdx_frontmatter(tmp_path):
     output_file = tmp_path / "output.mdx"
 
     runner = CliRunner()
-    runner.invoke(main, [
-        "nx", "graph-to-mdx",
-        str(graph_file), str(output_file), "ts",
-    ])
+    runner.invoke(
+        main,
+        [
+            "nx",
+            "graph-to-mdx",
+            str(graph_file),
+            str(output_file),
+            "ts",
+        ],
+    )
     content = output_file.read_text()
     assert "title: NX Dependency Graph" in content
     assert "editUrl: false" in content
@@ -109,10 +120,16 @@ def test_graph_to_mdx_diagram_included(tmp_path):
     output_file = tmp_path / "output.mdx"
 
     runner = CliRunner()
-    runner.invoke(main, [
-        "nx", "graph-to-mdx",
-        str(graph_file), str(output_file), "ts",
-    ])
+    runner.invoke(
+        main,
+        [
+            "nx",
+            "graph-to-mdx",
+            str(graph_file),
+            str(output_file),
+            "ts",
+        ],
+    )
     content = output_file.read_text()
     assert "```mermaid" not in content
     assert "<svg" in content
@@ -126,10 +143,16 @@ def test_graph_to_mdx_project_index(tmp_path):
     output_file = tmp_path / "output.mdx"
 
     runner = CliRunner()
-    runner.invoke(main, [
-        "nx", "graph-to-mdx",
-        str(graph_file), str(output_file), "ts",
-    ])
+    runner.invoke(
+        main,
+        [
+            "nx",
+            "graph-to-mdx",
+            str(graph_file),
+            str(output_file),
+            "ts",
+        ],
+    )
     content = output_file.read_text()
     assert "| Project |" in content
     assert "**app-web**" in content
@@ -137,14 +160,21 @@ def test_graph_to_mdx_project_index(tmp_path):
 
 def test_graph_to_mdx_missing_file():
     runner = CliRunner()
-    result = runner.invoke(main, [
-        "nx", "graph-to-mdx",
-        "/nonexistent/graph.json", "/tmp/out.mdx", "ts",
-    ])
+    result = runner.invoke(
+        main,
+        [
+            "nx",
+            "graph-to-mdx",
+            "/nonexistent/graph.json",
+            "/tmp/out.mdx",
+            "ts",
+        ],
+    )
     assert result.exit_code != 0
 
 
 # ── security-to-mdx ─────────────────────────────────────────────────
+
 
 def test_security_to_mdx_json_output(tmp_path):
     input_file = tmp_path / "security.json"
@@ -152,12 +182,19 @@ def test_security_to_mdx_json_output(tmp_path):
     json_out = tmp_path / "report.json"
 
     runner = CliRunner()
-    result = runner.invoke(main, [
-        "nx", "security-to-mdx",
-        "--input", str(input_file),
-        "--timestamp", "2026-03-18T00:00:00Z",
-        "--json-out", str(json_out),
-    ])
+    result = runner.invoke(
+        main,
+        [
+            "nx",
+            "security-to-mdx",
+            "--input",
+            str(input_file),
+            "--timestamp",
+            "2026-03-18T00:00:00Z",
+            "--json-out",
+            str(json_out),
+        ],
+    )
     assert result.exit_code == 0
     assert "JSON written" in result.output
 
@@ -174,12 +211,19 @@ def test_security_to_mdx_mdx_output(tmp_path):
     mdx_out = tmp_path / "report.mdx"
 
     runner = CliRunner()
-    result = runner.invoke(main, [
-        "nx", "security-to-mdx",
-        "--input", str(input_file),
-        "--timestamp", "2026-03-18T00:00:00Z",
-        "--mdx-out", str(mdx_out),
-    ])
+    result = runner.invoke(
+        main,
+        [
+            "nx",
+            "security-to-mdx",
+            "--input",
+            str(input_file),
+            "--timestamp",
+            "2026-03-18T00:00:00Z",
+            "--mdx-out",
+            str(mdx_out),
+        ],
+    )
     assert result.exit_code == 0
     assert "MDX written" in result.output
 
@@ -197,13 +241,21 @@ def test_security_to_mdx_both_outputs(tmp_path):
     json_out = tmp_path / "report.json"
 
     runner = CliRunner()
-    result = runner.invoke(main, [
-        "nx", "security-to-mdx",
-        "--input", str(input_file),
-        "--timestamp", "ts",
-        "--mdx-out", str(mdx_out),
-        "--json-out", str(json_out),
-    ])
+    result = runner.invoke(
+        main,
+        [
+            "nx",
+            "security-to-mdx",
+            "--input",
+            str(input_file),
+            "--timestamp",
+            "ts",
+            "--mdx-out",
+            str(mdx_out),
+            "--json-out",
+            str(json_out),
+        ],
+    )
     assert result.exit_code == 0
     assert mdx_out.exists()
     assert json_out.exists()
@@ -214,11 +266,17 @@ def test_security_to_mdx_no_output_flags(tmp_path):
     input_file.write_text(json.dumps(SAMPLE_SECURITY))
 
     runner = CliRunner()
-    result = runner.invoke(main, [
-        "nx", "security-to-mdx",
-        "--input", str(input_file),
-        "--timestamp", "ts",
-    ])
+    result = runner.invoke(
+        main,
+        [
+            "nx",
+            "security-to-mdx",
+            "--input",
+            str(input_file),
+            "--timestamp",
+            "ts",
+        ],
+    )
     assert result.exit_code != 0
     assert "at least one" in result.output.lower() or result.exit_code != 0
 
@@ -241,34 +299,52 @@ def test_security_to_mdx_crit_high_callout(tmp_path):
     mdx_out = tmp_path / "report.mdx"
 
     runner = CliRunner()
-    runner.invoke(main, [
-        "nx", "security-to-mdx",
-        "--input", str(input_file),
-        "--timestamp", "ts",
-        "--mdx-out", str(mdx_out),
-    ])
+    runner.invoke(
+        main,
+        [
+            "nx",
+            "security-to-mdx",
+            "--input",
+            str(input_file),
+            "--timestamp",
+            "ts",
+            "--mdx-out",
+            str(mdx_out),
+        ],
+    )
     content = mdx_out.read_text()
     assert "Action Required" in content
 
 
 def test_security_to_mdx_all_clear(tmp_path):
     input_file = tmp_path / "security.json"
-    input_file.write_text(json.dumps({
-        "npm": {},
-        "cargo": {},
-        "python": [],
-        "codeql": [],
-        "dependabot": [],
-    }))
+    input_file.write_text(
+        json.dumps(
+            {
+                "npm": {},
+                "cargo": {},
+                "python": [],
+                "codeql": [],
+                "dependabot": [],
+            }
+        )
+    )
     mdx_out = tmp_path / "report.mdx"
 
     runner = CliRunner()
-    runner.invoke(main, [
-        "nx", "security-to-mdx",
-        "--input", str(input_file),
-        "--timestamp", "ts",
-        "--mdx-out", str(mdx_out),
-    ])
+    runner.invoke(
+        main,
+        [
+            "nx",
+            "security-to-mdx",
+            "--input",
+            str(input_file),
+            "--timestamp",
+            "ts",
+            "--mdx-out",
+            str(mdx_out),
+        ],
+    )
     content = mdx_out.read_text()
     assert "All Clear" in content
 
@@ -291,12 +367,19 @@ def test_security_to_mdx_medium_only(tmp_path):
     mdx_out = tmp_path / "report.mdx"
 
     runner = CliRunner()
-    runner.invoke(main, [
-        "nx", "security-to-mdx",
-        "--input", str(input_file),
-        "--timestamp", "ts",
-        "--mdx-out", str(mdx_out),
-    ])
+    runner.invoke(
+        main,
+        [
+            "nx",
+            "security-to-mdx",
+            "--input",
+            str(input_file),
+            "--timestamp",
+            "ts",
+            "--mdx-out",
+            str(mdx_out),
+        ],
+    )
     content = mdx_out.read_text()
     assert "Findings Present" in content
 
@@ -320,12 +403,19 @@ def test_security_to_mdx_long_title_truncation(tmp_path):
     mdx_out = tmp_path / "report.mdx"
 
     runner = CliRunner()
-    runner.invoke(main, [
-        "nx", "security-to-mdx",
-        "--input", str(input_file),
-        "--timestamp", "ts",
-        "--mdx-out", str(mdx_out),
-    ])
+    runner.invoke(
+        main,
+        [
+            "nx",
+            "security-to-mdx",
+            "--input",
+            str(input_file),
+            "--timestamp",
+            "ts",
+            "--mdx-out",
+            str(mdx_out),
+        ],
+    )
     content = mdx_out.read_text()
     assert "..." in content
     assert long_title not in content
@@ -333,25 +423,34 @@ def test_security_to_mdx_long_title_truncation(tmp_path):
 
 def test_security_to_mdx_codeql_tab(tmp_path):
     security_data = {
-        "codeql": [{
-            "rule": {"id": "js/xss", "security_severity_level": "high"},
-            "most_recent_instance": {
-                "location": {"path": "src/app.js"},
-            },
-            "html_url": "https://github.com/example",
-        }],
+        "codeql": [
+            {
+                "rule": {"id": "js/xss", "security_severity_level": "high"},
+                "most_recent_instance": {
+                    "location": {"path": "src/app.js"},
+                },
+                "html_url": "https://github.com/example",
+            }
+        ],
     }
     input_file = tmp_path / "security.json"
     input_file.write_text(json.dumps(security_data))
     mdx_out = tmp_path / "report.mdx"
 
     runner = CliRunner()
-    runner.invoke(main, [
-        "nx", "security-to-mdx",
-        "--input", str(input_file),
-        "--timestamp", "ts",
-        "--mdx-out", str(mdx_out),
-    ])
+    runner.invoke(
+        main,
+        [
+            "nx",
+            "security-to-mdx",
+            "--input",
+            str(input_file),
+            "--timestamp",
+            "ts",
+            "--mdx-out",
+            str(mdx_out),
+        ],
+    )
     content = mdx_out.read_text()
     assert "js/xss" in content
     assert "src/app.js" in content
@@ -359,32 +458,42 @@ def test_security_to_mdx_codeql_tab(tmp_path):
 
 def test_security_to_mdx_dependabot_tab(tmp_path):
     security_data = {
-        "dependabot": [{
-            "security_vulnerability": {
-                "severity": "high",
-                "package": {"name": "axios", "ecosystem": "npm"},
-            },
-            "security_advisory": {"summary": "SSRF in axios"},
-            "html_url": "https://github.com/example",
-        }],
+        "dependabot": [
+            {
+                "security_vulnerability": {
+                    "severity": "high",
+                    "package": {"name": "axios", "ecosystem": "npm"},
+                },
+                "security_advisory": {"summary": "SSRF in axios"},
+                "html_url": "https://github.com/example",
+            }
+        ],
     }
     input_file = tmp_path / "security.json"
     input_file.write_text(json.dumps(security_data))
     mdx_out = tmp_path / "report.mdx"
 
     runner = CliRunner()
-    runner.invoke(main, [
-        "nx", "security-to-mdx",
-        "--input", str(input_file),
-        "--timestamp", "ts",
-        "--mdx-out", str(mdx_out),
-    ])
+    runner.invoke(
+        main,
+        [
+            "nx",
+            "security-to-mdx",
+            "--input",
+            str(input_file),
+            "--timestamp",
+            "ts",
+            "--mdx-out",
+            str(mdx_out),
+        ],
+    )
     content = mdx_out.read_text()
     assert "axios" in content
     assert "SSRF" in content
 
 
 # ── version ──────────────────────────────────────────────────────────
+
 
 def test_version():
     runner = CliRunner()
@@ -396,6 +505,7 @@ def test_version():
 
 
 # ── info ─────────────────────────────────────────────────────────────
+
 
 def test_info():
     runner = CliRunner()
@@ -427,9 +537,7 @@ def test_info_json_all_available():
     result = runner.invoke(main, ["info", "--json"])
     data = json.loads(result.output)
     for m in data:
-        assert m["available"] is True, (
-            f"{m['name']} should be available"
-        )
+        assert m["available"] is True, f"{m['name']} should be available"
 
 
 def test_info_includes_new_modules():
@@ -444,6 +552,7 @@ def test_info_includes_new_modules():
 
 # ── serve ────────────────────────────────────────────────────────────
 
+
 def test_serve_help():
     runner = CliRunner()
     result = runner.invoke(main, ["serve", "--help"])
@@ -456,6 +565,7 @@ def test_serve_help():
 
 # ── config ───────────────────────────────────────────────────────────
 
+
 def test_config_empty():
     runner = CliRunner()
     result = runner.invoke(main, ["config"])
@@ -467,11 +577,16 @@ def test_config_with_env_file(tmp_path):
     f.write_text("TESTCLI_PORT=9090\nTESTCLI_HOST=127.0.0.1\n")
 
     runner = CliRunner()
-    result = runner.invoke(main, [
-        "config",
-        "--env-file", str(f),
-        "--prefix", "TESTCLI",
-    ])
+    result = runner.invoke(
+        main,
+        [
+            "config",
+            "--env-file",
+            str(f),
+            "--prefix",
+            "TESTCLI",
+        ],
+    )
     assert result.exit_code == 0
     assert "port" in result.output
     assert "9090" in result.output
@@ -482,12 +597,17 @@ def test_config_json(tmp_path):
     f.write_text("JSONCFG_A=1\nJSONCFG_B=two\n")
 
     runner = CliRunner()
-    result = runner.invoke(main, [
-        "config",
-        "--env-file", str(f),
-        "--prefix", "JSONCFG",
-        "--json",
-    ])
+    result = runner.invoke(
+        main,
+        [
+            "config",
+            "--env-file",
+            str(f),
+            "--prefix",
+            "JSONCFG",
+            "--json",
+        ],
+    )
     assert result.exit_code == 0
     data = json.loads(result.output)
     assert data["a"] == "1"
@@ -495,6 +615,7 @@ def test_config_json(tmp_path):
 
 
 # ── grpc subgroup ────────────────────────────────────────────────────
+
 
 def test_grpc_help():
     runner = CliRunner()
@@ -506,9 +627,16 @@ def test_grpc_help():
 
 def test_grpc_health_unreachable():
     runner = CliRunner()
-    result = runner.invoke(main, [
-        "grpc", "health", "localhost:1", "--timeout", "0.5",
-    ])
+    result = runner.invoke(
+        main,
+        [
+            "grpc",
+            "health",
+            "localhost:1",
+            "--timeout",
+            "0.5",
+        ],
+    )
     assert result.exit_code != 0
     assert "UNREACHABLE" in result.output or "ERROR" in result.output
 
@@ -516,6 +644,7 @@ def test_grpc_health_unreachable():
 def _has_grpc_tools():
     try:
         import grpc_tools  # noqa: F401
+
         return True
     except ImportError:
         return False
@@ -527,19 +656,21 @@ def _has_grpc_tools():
 )
 def test_grpc_compile_success(tmp_path):
     proto_file = tmp_path / "cli_test.proto"
-    proto_file.write_text(
-        'syntax = "proto3";\n'
-        "package clipkg;\n"
-        "message CliMsg { string v = 1; }\n"
-    )
+    proto_file.write_text('syntax = "proto3";\npackage clipkg;\nmessage CliMsg { string v = 1; }\n')
 
     runner = CliRunner()
-    result = runner.invoke(main, [
-        "grpc", "compile",
-        str(proto_file),
-        "--proto-path", str(tmp_path),
-        "--python-out", str(tmp_path),
-    ])
+    result = runner.invoke(
+        main,
+        [
+            "grpc",
+            "compile",
+            str(proto_file),
+            "--proto-path",
+            str(tmp_path),
+            "--python-out",
+            str(tmp_path),
+        ],
+    )
     assert result.exit_code == 0
     assert "Compiled" in result.output
     assert (tmp_path / "cli_test_pb2.py").exists()
@@ -554,12 +685,18 @@ def test_grpc_compile_bad_proto(tmp_path):
     proto_file.write_text("invalid proto")
 
     runner = CliRunner()
-    result = runner.invoke(main, [
-        "grpc", "compile",
-        str(proto_file),
-        "--proto-path", str(tmp_path),
-        "--python-out", str(tmp_path),
-    ])
+    result = runner.invoke(
+        main,
+        [
+            "grpc",
+            "compile",
+            str(proto_file),
+            "--proto-path",
+            str(tmp_path),
+            "--python-out",
+            str(tmp_path),
+        ],
+    )
     assert result.exit_code != 0
     assert "failed" in result.output
 
@@ -574,6 +711,7 @@ def test_grpc_compile_help():
 
 
 # ── claude subgroup ──────────────────────────────────────────────────
+
 
 def test_claude_help():
     runner = CliRunner()

@@ -39,11 +39,9 @@ def _next_link(header: str) -> str | None:
     return None
 
 
-def fetch_commits(token: str, since_iso: str, timeout: float = 30.0,
-                  max_pages: int = 20) -> list[dict]:
+def fetch_commits(token: str, since_iso: str, timeout: float = 30.0, max_pages: int = 20) -> list[dict]:
     """Page ``/commits?since=<iso>`` into a flat list (capped)."""
-    url = (f"{API_BASE}/repos/{OWNER}/{REPO}/commits"
-           f"?since={urllib.parse.quote(since_iso)}&per_page=100")
+    url = f"{API_BASE}/repos/{OWNER}/{REPO}/commits?since={urllib.parse.quote(since_iso)}&per_page=100"
     out: list[dict] = []
     pages = 0
     while url and pages < max_pages:
@@ -57,13 +55,11 @@ def fetch_commits(token: str, since_iso: str, timeout: float = 30.0,
 
 def search_count(token: str, query: str, timeout: float = 30.0) -> dict:
     """Return ``{total, items}`` for a ``/search/issues`` query (first page)."""
-    url = (f"{API_BASE}/search/issues"
-           f"?q={urllib.parse.quote(query)}&per_page=20&sort=updated")
+    url = f"{API_BASE}/search/issues?q={urllib.parse.quote(query)}&per_page=20&sort=updated"
     req = urllib.request.Request(url, headers=_headers(token))
     with urllib.request.urlopen(req, timeout=timeout) as resp:
         data = json.load(resp)
-    return {"total": data.get("total_count", 0),
-            "items": data.get("items", [])}
+    return {"total": data.get("total_count", 0), "items": data.get("items", [])}
 
 
 def _commit_author(c: dict) -> str:
@@ -74,8 +70,9 @@ def _commit_author(c: dict) -> str:
     return (commit.get("author") or {}).get("name") or "unknown"
 
 
-def aggregate(commits: list[dict], prs: dict, issues_opened: dict,
-              issues_closed: dict, since_iso: str, days: int) -> dict:
+def aggregate(
+    commits: list[dict], prs: dict, issues_opened: dict, issues_closed: dict, since_iso: str, days: int
+) -> dict:
     """Roll raw feeds into leaderboard + counts + recent lists."""
     by_author: dict[str, int] = {}
     recent_commits = []
@@ -84,25 +81,30 @@ def aggregate(commits: list[dict], prs: dict, issues_opened: dict,
         by_author[author] = by_author.get(author, 0) + 1
         commit = c.get("commit") or {}
         msg = (commit.get("message") or "").split("\n", 1)[0]
-        recent_commits.append({
-            "sha": (c.get("sha") or "")[:7],
-            "author": author,
-            "message": msg,
-            "url": c.get("html_url"),
-            "date": (commit.get("author") or {}).get("date"),
-        })
+        recent_commits.append(
+            {
+                "sha": (c.get("sha") or "")[:7],
+                "author": author,
+                "message": msg,
+                "url": c.get("html_url"),
+                "date": (commit.get("author") or {}).get("date"),
+            }
+        )
 
     leaderboard = sorted(
         ({"author": a, "commits": n} for a, n in by_author.items()),
         key=lambda d: (-d["commits"], d["author"]),
     )[:10]
 
-    recent_prs = [{
-        "number": p.get("number"),
-        "title": p.get("title"),
-        "user": (p.get("user") or {}).get("login"),
-        "url": p.get("html_url"),
-    } for p in prs.get("items", [])[:10]]
+    recent_prs = [
+        {
+            "number": p.get("number"),
+            "title": p.get("title"),
+            "user": (p.get("user") or {}).get("login"),
+            "url": p.get("html_url"),
+        }
+        for p in prs.get("items", [])[:10]
+    ]
 
     return {
         "window": {"days": days, "since": since_iso},

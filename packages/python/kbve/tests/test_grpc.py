@@ -9,6 +9,7 @@ from kbve.grpc.interceptors import LoggingInterceptor
 
 # ── create_channel ───────────────────────────────────────────────────
 
+
 def test_create_channel_insecure():
     channel = create_channel("localhost:50051")
     assert channel is not None
@@ -23,6 +24,7 @@ def test_create_channel_with_options():
 
 
 # ── GrpcClient ───────────────────────────────────────────────────────
+
 
 def test_grpc_client_init():
     client = GrpcClient("localhost:50051")
@@ -62,9 +64,11 @@ async def test_grpc_client_stub_creation():
 
 # ── check_health (unreachable target) ────────────────────────────────
 
+
 @pytest.mark.asyncio
 async def test_check_health_unreachable():
     from kbve.grpc.client import check_health
+
     result = await check_health("localhost:1", timeout=0.5)
     assert result["healthy"] is False
     assert result["target"] == "localhost:1"
@@ -73,6 +77,7 @@ async def test_check_health_unreachable():
 
 # ── LoggingInterceptor ───────────────────────────────────────────────
 
+
 def test_logging_interceptor_init():
     interceptor = LoggingInterceptor()
     assert interceptor is not None
@@ -80,19 +85,17 @@ def test_logging_interceptor_init():
 
 def test_logging_interceptor_is_server_interceptor():
     from grpc import aio
+
     interceptor = LoggingInterceptor()
     assert isinstance(interceptor, aio.ServerInterceptor)
 
 
 # ── compile_proto ────────────────────────────────────────────────────
 
+
 def test_compile_proto_success(tmp_path):
     proto_file = tmp_path / "test.proto"
-    proto_file.write_text(
-        'syntax = "proto3";\n'
-        "package testpkg;\n"
-        "message TestMsg { string value = 1; }\n"
-    )
+    proto_file.write_text('syntax = "proto3";\npackage testpkg;\nmessage TestMsg { string value = 1; }\n')
 
     exit_code = compile_proto(
         proto_files=str(proto_file),
@@ -126,11 +129,7 @@ def test_compile_proto_with_grpc(tmp_path):
 
 def test_compile_proto_with_pyi(tmp_path):
     proto_file = tmp_path / "typed.proto"
-    proto_file.write_text(
-        'syntax = "proto3";\n'
-        "package typedpkg;\n"
-        "message TypedMsg { int32 count = 1; }\n"
-    )
+    proto_file.write_text('syntax = "proto3";\npackage typedpkg;\nmessage TypedMsg { int32 count = 1; }\n')
 
     exit_code = compile_proto(
         proto_files=str(proto_file),
@@ -146,11 +145,7 @@ def _simple_proto(pkg, msg):
     semi = ";"
     lb = "{"
     rb = "}"
-    return (
-        f'syntax = "proto3"{semi}\n'
-        f"package {pkg}{semi}\n"
-        f"message {msg} {lb} string v = 1{semi} {rb}\n"
-    )
+    return f'syntax = "proto3"{semi}\npackage {pkg}{semi}\nmessage {msg} {lb} string v = 1{semi} {rb}\n'
 
 
 def test_compile_proto_multiple_files(tmp_path):
@@ -185,8 +180,10 @@ def test_compile_proto_bad_file(tmp_path):
 
 # ── GrpcServer with interceptors ─────────────────────────────────────
 
+
 def test_grpc_server_interceptors():
     from kbve.server.grpc_server import GrpcServer
+
     interceptor = LoggingInterceptor()
     server = GrpcServer(interceptors=[interceptor])
     assert server._interceptors == [interceptor]
@@ -194,6 +191,7 @@ def test_grpc_server_interceptors():
 
 def test_grpc_server_add_service_with_name():
     from kbve.server.grpc_server import GrpcServer
+
     server = GrpcServer()
     server.add_service(lambda s: None, name="test.Service")
     assert "test.Service" in server._service_names
@@ -201,6 +199,7 @@ def test_grpc_server_add_service_with_name():
 
 def test_grpc_server_enable_reflection():
     from kbve.server.grpc_server import GrpcServer
+
     server = GrpcServer()
     server.enable_reflection(extra_names=["kbve.Health"])
     assert server._reflection_enabled is True
@@ -209,11 +208,13 @@ def test_grpc_server_enable_reflection():
 
 def test_grpc_server_reflection_default_off():
     from kbve.server.grpc_server import GrpcServer
+
     server = GrpcServer()
     assert server._reflection_enabled is False
 
 
 # ── Module imports ───────────────────────────────────────────────────
+
 
 def test_grpc_module_imports():
     from kbve.grpc import (
@@ -224,6 +225,7 @@ def test_grpc_module_imports():
         create_channel,
         enable_reflection,
     )
+
     assert GrpcClient is not None
     assert LoggingInterceptor is not None
     assert callable(check_health)

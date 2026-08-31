@@ -44,11 +44,7 @@ def rewrite_command(command: str) -> list[str]:
 
 
 def filter_diagnostics(text: str) -> str:
-    kept = [
-        line
-        for line in text.splitlines()
-        if "error:" in line or "warning:" in line or ": note:" in line
-    ]
+    kept = [line for line in text.splitlines() if "error:" in line or "warning:" in line or ": note:" in line]
     return "\n".join(kept)
 
 
@@ -131,9 +127,7 @@ def main(argv: list[str] | None = None) -> int:
                 file=sys.stderr,
             )
             return 2
-        result = subprocess.run(
-            cmd, capture_output=True, text=True, cwd=entry["directory"]
-        )
+        result = subprocess.run(cmd, capture_output=True, text=True, cwd=entry["directory"])
         if result.returncode != 0:
             failed = True
             output = filter_diagnostics(result.stderr or result.stdout)

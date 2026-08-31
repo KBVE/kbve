@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 class BotStatusView(ui.View):
     """Discord bot status display as a View with embedded buttons"""
 
-    def __init__(self, bot_instance: 'DiscordBotService', *, wolf_image_url: str = None) -> None:
+    def __init__(self, bot_instance: "DiscordBotService", *, wolf_image_url: str = None) -> None:
         super().__init__(timeout=None)  # No timeout for persistent view
         self.__bot_instance = bot_instance  # Store bot instance for status checks
 
@@ -32,7 +32,7 @@ class BotStatusView(ui.View):
         self.thumbnail_url = state_image_url
 
         # Store color for embed
-        if hasattr(self, '_is_shutdown_view') and self._is_shutdown_view:
+        if hasattr(self, "_is_shutdown_view") and self._is_shutdown_view:
             self.embed_color = StatusState.STOPPING.color
         else:
             self.embed_color = status_model.get_health_based_color()
@@ -47,8 +47,8 @@ class BotStatusView(ui.View):
         except Exception as e:
             # Fallback to basic status without health data if health collection fails
             import logging
-            logging.warning(
-                f"Health data collection failed, using basic status: {e}")
+
+            logging.warning(f"Health data collection failed, using basic status: {e}")
             status_dict = self.__bot_instance.get_status()
             return BotStatusModel.from_status_dict(status_dict)
 
@@ -56,9 +56,9 @@ class BotStatusView(ui.View):
         """Format shard information for display"""
         shard_lines = []
         for shard_id, shard_data in status_model.shard_info.items():
-            latency = shard_data.get('latency', 0)
-            guild_count = shard_data.get('guild_count', 0)
-            is_closed = shard_data.get('is_closed', False)
+            latency = shard_data.get("latency", 0)
+            guild_count = shard_data.get("guild_count", 0)
+            is_closed = shard_data.get("is_closed", False)
 
             # Choose status emoji based on latency and connection
             if is_closed:
@@ -70,16 +70,14 @@ class BotStatusView(ui.View):
             else:
                 status_emoji = "🟠"
 
-            shard_lines.append(
-                f"• Shard {shard_id}: {status_emoji} {latency:.0f}ms | {guild_count} guilds"
-            )
+            shard_lines.append(f"• Shard {shard_id}: {status_emoji} {latency:.0f}ms | {guild_count} guilds")
 
         return shard_lines
 
     def _get_status_text(self) -> str:
         """Generate status text based on bot state with health metrics"""
         # Check if this is a shutdown view
-        if hasattr(self, '_is_shutdown_view') and self._is_shutdown_view:
+        if hasattr(self, "_is_shutdown_view") and self._is_shutdown_view:
             return self._get_shutdown_status_text()
 
         status_model = self._get_bot_status_model()
@@ -107,8 +105,7 @@ class BotStatusView(ui.View):
             if status_model.current_shard is not None:
                 # Manual sharding - show current shard ID and total
                 shard_display = (
-                    f"{status_model.current_shard}/{status_model.shard_count}"
-                    f" (Shard ID: {status_model.current_shard})"
+                    f"{status_model.current_shard}/{status_model.shard_count} (Shard ID: {status_model.current_shard})"
                 )
             else:
                 # Auto-sharding - show total count
@@ -116,7 +113,7 @@ class BotStatusView(ui.View):
 
         # Check if this is for master server display
         title = "🤖 **Discord Bot Status Dashboard**"
-        if hasattr(self, '_master_server_shard_id') and self._master_server_shard_id is not None:
+        if hasattr(self, "_master_server_shard_id") and self._master_server_shard_id is not None:
             title = f"🤖 **Bot Status - Shard {self._master_server_shard_id}**"
 
         lines = [
@@ -128,7 +125,7 @@ class BotStatusView(ui.View):
             f"**Ready:** {'Yes' if status_model.is_ready else 'No'}",
             f"**Guilds:** {status_model.guild_count}",
             f"**Shards:** {shard_display}",
-            ""
+            "",
         ]
 
         # Add shard details if available
@@ -138,26 +135,28 @@ class BotStatusView(ui.View):
             lines.append("")
 
         # Continue with rest of status
-        lines.extend([
-            f"**💾 System Resources{cache_info}:**",
-            f"• Memory: {status_model.memory_usage_mb:.1f}MB ({status_model.memory_percent:.1f}%)",
-            f"• CPU: {status_model.cpu_percent:.1f}%",
-            f"• Threads: {status_model.thread_count}",
-            f"• Uptime: {status_model.uptime_formatted}",
-            "",
-            "**State Flags:**",
-            f"• Starting: {'Yes' if status_model.is_starting else 'No'}",
-            f"• Stopping: {'Yes' if status_model.is_stopping else 'No'}",
-            "",
-            f"**Last Updated:** {datetime.datetime.now().strftime('%H:%M:%S')}"
-        ])
+        lines.extend(
+            [
+                f"**💾 System Resources{cache_info}:**",
+                f"• Memory: {status_model.memory_usage_mb:.1f}MB ({status_model.memory_percent:.1f}%)",
+                f"• CPU: {status_model.cpu_percent:.1f}%",
+                f"• Threads: {status_model.thread_count}",
+                f"• Uptime: {status_model.uptime_formatted}",
+                "",
+                "**State Flags:**",
+                f"• Starting: {'Yes' if status_model.is_starting else 'No'}",
+                f"• Stopping: {'Yes' if status_model.is_stopping else 'No'}",
+                "",
+                f"**Last Updated:** {datetime.datetime.now().strftime('%H:%M:%S')}",
+            ]
+        )
 
         return "\n".join(lines)
 
     def _get_shutdown_status_text(self) -> str:
         """Generate shutdown status text using STOPPING state"""
         # Get shard ID for title
-        shard_id = getattr(self, '_master_server_shard_id', None)
+        shard_id = getattr(self, "_master_server_shard_id", None)
         if shard_id is not None:
             title = f"🤖 **Bot Status - Shard {shard_id}**"
         else:
@@ -180,7 +179,7 @@ class BotStatusView(ui.View):
             "",
             "Bot will be offline momentarily.",
             "",
-            f"**Last Updated:** {datetime.datetime.now().strftime('%H:%M:%S')}"
+            f"**Last Updated:** {datetime.datetime.now().strftime('%H:%M:%S')}",
         ]
 
         return "\n".join(lines)
@@ -195,7 +194,7 @@ class BotStatusView(ui.View):
             "",
             "⏳ Please wait while the bot comes online...",
             "",
-            f"**Last Updated:** {datetime.datetime.now().strftime('%H:%M:%S')}"
+            f"**Last Updated:** {datetime.datetime.now().strftime('%H:%M:%S')}",
         ]
         return "\n".join(lines)
 
@@ -209,7 +208,7 @@ class BotStatusView(ui.View):
             "",
             "⏳ Please wait while the bot stops safely...",
             "",
-            f"**Last Updated:** {datetime.datetime.now().strftime('%H:%M:%S')}"
+            f"**Last Updated:** {datetime.datetime.now().strftime('%H:%M:%S')}",
         ]
         return "\n".join(lines)
 
@@ -226,7 +225,7 @@ class BotStatusView(ui.View):
             "• Reinitializing connection",
             "• Starting fresh instance",
             "",
-            f"**Last Updated:** {datetime.datetime.now().strftime('%H:%M:%S')}"
+            f"**Last Updated:** {datetime.datetime.now().strftime('%H:%M:%S')}",
         ]
         return "\n".join(lines)
 
@@ -248,26 +247,25 @@ class BotStatusView(ui.View):
         status_model = self._get_bot_status_model()
         return status_model.get_health_based_color()
 
-    @ui.button(label='🔄 Refresh', style=discord.ButtonStyle.primary)
+    @ui.button(label="🔄 Refresh", style=discord.ButtonStyle.primary)
     async def refresh_status_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         import logging
+
         logger = logging.getLogger("app")
 
         # Get Discord ID and lookup user profile
         discord_id = str(interaction.user.id)
-        logger.info(
-            f"🔄 Refresh button clicked by {interaction.user} (Discord ID: {discord_id})")
+        logger.info(f"🔄 Refresh button clicked by {interaction.user} (Discord ID: {discord_id})")
 
         # Try to lookup user in Supabase
         try:
             from ....api.supabase import user_manager
+
             user_profile = await user_manager.find_user_by_discord_id(discord_id)
             if user_profile:
-                logger.info(
-                    f"   └─ Supabase user found: {user_profile.user_id} ({user_profile.email})")
+                logger.info(f"   └─ Supabase user found: {user_profile.user_id} ({user_profile.email})")
             else:
-                logger.info(
-                    f"   └─ No Supabase user profile found for Discord ID: {discord_id}")
+                logger.info(f"   └─ No Supabase user profile found for Discord ID: {discord_id}")
         except Exception as e:
             logger.warning(f"   └─ Failed to lookup Supabase user: {e}")
 
@@ -278,6 +276,7 @@ class BotStatusView(ui.View):
             # Force refresh health data
             try:
                 from ....utils.health_monitor import health_monitor
+
                 await health_monitor.force_refresh()
                 logger.info("Health data refreshed successfully")
             except Exception as e:
@@ -293,48 +292,41 @@ class BotStatusView(ui.View):
 
             # Update the message with new embed
             logger.info("Updating message...")
-            await interaction.followup.edit_message(
-                interaction.message.id,
-                embed=embed,
-                view=self
-            )
+            await interaction.followup.edit_message(interaction.message.id, embed=embed, view=self)
             logger.info("Message updated successfully")
 
-            await interaction.followup.send(
-                "✅ Status refreshed!",
-                ephemeral=True
-            )
+            await interaction.followup.send("✅ Status refreshed!", ephemeral=True)
             logger.info("Refresh button completed successfully")
 
         except Exception as e:
             logger.error(f"❌ Error in refresh button: {e}")
             import traceback
+
             logger.error(f"Full traceback: {traceback.format_exc()}")
             try:
                 await interaction.followup.send(f"❌ Error refreshing: {e}", ephemeral=True)
             except Exception:
                 logger.error("Failed to send error message to user")
 
-    @ui.button(label='🧹 Cleanup', style=discord.ButtonStyle.secondary)
+    @ui.button(label="🧹 Cleanup", style=discord.ButtonStyle.secondary)
     async def cleanup_thread_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         import logging
+
         logger = logging.getLogger("app")
 
         # Get Discord ID and lookup user profile
         discord_id = str(interaction.user.id)
-        logger.info(
-            f"🧹 Cleanup button clicked by {interaction.user} (Discord ID: {discord_id})")
+        logger.info(f"🧹 Cleanup button clicked by {interaction.user} (Discord ID: {discord_id})")
 
         # Try to lookup user in Supabase
         try:
             from ....api.supabase import user_manager
+
             user_profile = await user_manager.find_user_by_discord_id(discord_id)
             if user_profile:
-                logger.info(
-                    f"   └─ Supabase user found: {user_profile.user_id} ({user_profile.email})")
+                logger.info(f"   └─ Supabase user found: {user_profile.user_id} ({user_profile.email})")
             else:
-                logger.info(
-                    f"   └─ No Supabase user profile found for Discord ID: {discord_id}")
+                logger.info(f"   └─ No Supabase user profile found for Discord ID: {discord_id}")
         except Exception as e:
             logger.warning(f"   └─ Failed to lookup Supabase user: {e}")
 
@@ -345,44 +337,40 @@ class BotStatusView(ui.View):
             # Clean up old messages
             logger.info("Starting thread cleanup...")
             deleted_count = await self.__bot_instance.cleanup_thread_messages()
-            logger.info(
-                f"Thread cleanup completed, deleted {deleted_count} messages")
+            logger.info(f"Thread cleanup completed, deleted {deleted_count} messages")
 
-            await interaction.followup.send(
-                f"🧹 Cleaned up {deleted_count} old messages from thread",
-                ephemeral=True
-            )
+            await interaction.followup.send(f"🧹 Cleaned up {deleted_count} old messages from thread", ephemeral=True)
             logger.info("Cleanup button completed successfully")
 
         except Exception as e:
             logger.error(f"❌ Error in cleanup button: {e}")
             import traceback
+
             logger.error(f"Full traceback: {traceback.format_exc()}")
             try:
                 await interaction.followup.send(f"❌ Error cleaning up: {e}", ephemeral=True)
             except Exception:
                 logger.error("Failed to send error message to user")
 
-    @ui.button(label='🔄 Restart', style=discord.ButtonStyle.danger)
+    @ui.button(label="🔄 Restart", style=discord.ButtonStyle.danger)
     async def restart_bot_button(self, interaction: discord.Interaction, button: discord.ui.Button):
         import logging
+
         logger = logging.getLogger("app")
 
         # Get Discord ID and lookup user profile
         discord_id = str(interaction.user.id)
-        logger.info(
-            f"🔄 Restart button clicked by {interaction.user} (Discord ID: {discord_id})")
+        logger.info(f"🔄 Restart button clicked by {interaction.user} (Discord ID: {discord_id})")
 
         # Try to lookup user in Supabase
         try:
             from ....api.supabase import user_manager
+
             user_profile = await user_manager.find_user_by_discord_id(discord_id)
             if user_profile:
-                logger.info(
-                    f"   └─ Supabase user found: {user_profile.user_id} ({user_profile.email})")
+                logger.info(f"   └─ Supabase user found: {user_profile.user_id} ({user_profile.email})")
             else:
-                logger.info(
-                    f"   └─ No Supabase user profile found for Discord ID: {discord_id}")
+                logger.info(f"   └─ No Supabase user profile found for Discord ID: {discord_id}")
         except Exception as e:
             logger.warning(f"   └─ Failed to lookup Supabase user: {e}")
 
@@ -390,25 +378,20 @@ class BotStatusView(ui.View):
         try:
             # Check if user has permission to restart
             if not self._has_restart_permission(interaction.user, interaction.guild):
-                logger.info(
-                    f"User {interaction.user} denied restart permission")
+                logger.info(f"User {interaction.user} denied restart permission")
                 await interaction.response.send_message(
-                    "❌ You don't have permission to restart the bot. Admin role required.",
-                    ephemeral=True
+                    "❌ You don't have permission to restart the bot. Admin role required.", ephemeral=True
                 )
                 return
 
-            logger.info(
-                f"User {interaction.user} has restart permission, proceeding...")
+            logger.info(f"User {interaction.user} has restart permission, proceeding...")
             await interaction.response.defer()
 
             # Update status to show pending restart
             old_text = self.status_text
             await self._show_pending_restart()
             embed = self.create_status_embed()
-            await interaction.followup.edit_message(
-                interaction.message.id, embed=embed, view=self
-            )
+            await interaction.followup.edit_message(interaction.message.id, embed=embed, view=self)
 
             # Actually restart the bot
             await self.__bot_instance.restart_bot()
@@ -419,23 +402,17 @@ class BotStatusView(ui.View):
             # Update with final status
             await self.refresh_status()
             embed = self.create_status_embed()
-            await interaction.followup.edit_message(
-                interaction.message.id, embed=embed, view=self
-            )
+            await interaction.followup.edit_message(interaction.message.id, embed=embed, view=self)
 
         except Exception as e:
             # Restore original text if error
             if old_text is not None:
                 self.status_text = old_text
                 embed = self.create_status_embed()
-                await interaction.followup.edit_message(
-                    interaction.message.id, embed=embed, view=self
-                )
+                await interaction.followup.edit_message(interaction.message.id, embed=embed, view=self)
 
             if "starting or stopping" in str(e).lower():
-                await interaction.followup.send(
-                    "⏳ Bot is busy, please try again in a moment", ephemeral=True
-                )
+                await interaction.followup.send("⏳ Bot is busy, please try again in a moment", ephemeral=True)
             else:
                 await interaction.followup.send(f"❌ Error: {e}", ephemeral=True)
 
@@ -478,17 +455,16 @@ class BotStatusView(ui.View):
         self.embed_color = status_model.get_health_based_color()
 
     @classmethod
-    async def create_with_wolf_image(
-        cls, bot_instance: 'DiscordBotService'
-    ) -> 'BotStatusView':
+    async def create_with_wolf_image(cls, bot_instance: "DiscordBotService") -> "BotStatusView":
         """Create status view with a random wolf image"""
         try:
             import aiohttp
+
             async with aiohttp.ClientSession() as session:
-                async with session.get('https://random.dog/woof.json') as resp:
+                async with session.get("https://random.dog/woof.json") as resp:
                     if resp.status == 200:
                         data = await resp.json()
-                        wolf_url = data.get('url', None)
+                        wolf_url = data.get("url", None)
                     else:
                         wolf_url = None
         except Exception:
@@ -499,8 +475,8 @@ class BotStatusView(ui.View):
 
     @classmethod
     async def create_master_server_view(
-        cls, bot_instance: 'DiscordBotService', shard_id: Optional[int] = None
-    ) -> 'BotStatusView':
+        cls, bot_instance: "DiscordBotService", shard_id: Optional[int] = None
+    ) -> "BotStatusView":
         """Create status view for master server with shard-specific title"""
         view = cls(bot_instance)
 
@@ -512,8 +488,8 @@ class BotStatusView(ui.View):
 
     @classmethod
     async def create_shutdown_view(
-        cls, bot_instance: 'DiscordBotService', shard_id: Optional[int] = None
-    ) -> 'BotStatusView':
+        cls, bot_instance: "DiscordBotService", shard_id: Optional[int] = None
+    ) -> "BotStatusView":
         """Create status view showing shutdown state for master server"""
         view = cls(bot_instance)
 
@@ -526,17 +502,12 @@ class BotStatusView(ui.View):
 
     def create_status_embed(self) -> discord.Embed:
         """Create a Discord embed from the current status"""
-        embed = discord.Embed(
-            description=self.status_text,
-            color=self.embed_color
-        )
+        embed = discord.Embed(description=self.status_text, color=self.embed_color)
         embed.set_thumbnail(url=self.thumbnail_url)
         return embed
 
 
-async def send_bot_status_embed(
-    channel: discord.abc.Messageable, bot_instance: 'DiscordBotService'
-) -> discord.Message:
+async def send_bot_status_embed(channel: discord.abc.Messageable, bot_instance: "DiscordBotService") -> discord.Message:
     """
     Send a bot status embed to the specified channel
 

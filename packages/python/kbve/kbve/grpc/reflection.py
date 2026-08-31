@@ -27,19 +27,14 @@ def enable_reflection(
         from grpc_reflection.v1alpha import reflection as grpc_reflection
         from grpc_reflection.v1alpha import reflection_pb2
     except ImportError:
-        logger.warning(
-            "grpcio-reflection not installed; "
-            "skipping gRPC reflection setup"
-        )
+        logger.warning("grpcio-reflection not installed; skipping gRPC reflection setup")
         return
 
     names = list(service_names or [])
     names.append(
         reflection_pb2.FILE_DESCRIPTOR_RESPONSE
         if hasattr(reflection_pb2, "FILE_DESCRIPTOR_RESPONSE")
-        else reflection_pb2.DESCRIPTOR.services_by_name[
-            "ServerReflection"
-        ].full_name
+        else reflection_pb2.DESCRIPTOR.services_by_name["ServerReflection"].full_name
     )
 
     grpc_reflection.enable_server_reflection(names, server)

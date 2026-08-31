@@ -1,6 +1,7 @@
 """
 Ultra-fast response system using TypeAdapter + orjson + Starlette
 """
+
 from datetime import datetime
 from typing import Dict, Any, TypeVar, Type
 from fastapi import Response
@@ -17,11 +18,11 @@ from ..models.responses import (
     UserResponse,
     UserProvidersResponse,
     SyncResponse,
-    ErrorResponse
+    ErrorResponse,
 )
 
 # Type variable for TypedDict responses
-T = TypeVar('T', bound=TypedDict)
+T = TypeVar("T", bound=TypedDict)
 
 # Pre-initialized TypeAdapters for maximum performance
 _adapters: Dict[Type[TypedDict], TypeAdapter] = {
@@ -54,36 +55,22 @@ def fast_response(data: T, response_type: Type[T], status_code: int = 200) -> Re
     validated_data = adapter.validate_python(data)
     json_content = adapter.dump_json(validated_data)
 
-    return Response(
-        content=json_content,
-        status_code=status_code,
-        media_type="application/json"
-    )
+    return Response(content=json_content, status_code=status_code, media_type="application/json")
 
 
 def success_response(message: str, data: Dict[str, Any] = None) -> Response:
     """Create optimized success response"""
     if data:
-        response_data = DataResponse(
-            status="success",
-            message=message,
-            data=data
-        )
+        response_data = DataResponse(status="success", message=message, data=data)
         return fast_response(response_data, DataResponse)
     else:
-        response_data = StandardResponse(
-            status="success",
-            message=message
-        )
+        response_data = StandardResponse(status="success", message=message)
         return fast_response(response_data, StandardResponse)
 
 
 def info_response(message: str) -> Response:
     """Create optimized info response"""
-    response_data = StandardResponse(
-        status="info",
-        message=message
-    )
+    response_data = StandardResponse(status="info", message=message)
     return fast_response(response_data, StandardResponse)
 
 
@@ -93,18 +80,14 @@ def error_response(message: str, status_code: int = 500) -> Response:
     return fast_response(response_data, ErrorResponse, status_code)
 
 
-def health_response(
-    bot_status: Dict[str, Any],
-    health_data: Dict[str, Any],
-    status: str = "success"
-) -> Response:
+def health_response(bot_status: Dict[str, Any], health_data: Dict[str, Any], status: str = "success") -> Response:
     """Create optimized health response"""
     response_data = HealthResponse(
         status=status,
         timestamp=health_data.get("timestamp", datetime.utcnow().isoformat()),
         health_status=health_data.get("health_status", "healthy"),
         bot=bot_status,
-        system=health_data.get("system", {})
+        system=health_data.get("system", {}),
     )
 
     # Add error if present
@@ -114,41 +97,22 @@ def health_response(
     return fast_response(response_data, HealthResponse)
 
 
-def bot_status_response(
-    message: str,
-    status: str = "success",
-    **kwargs
-) -> Response:
+def bot_status_response(message: str, status: str = "success", **kwargs) -> Response:
     """Create optimized bot status response"""
-    response_data = BotStatusResponse(
-        status=status,
-        message=message,
-        **kwargs
-    )
+    response_data = BotStatusResponse(status=status, message=message, **kwargs)
     return fast_response(response_data, BotStatusResponse)
 
 
 def cleanup_response(message: str, deleted_count: int) -> Response:
     """Create optimized cleanup response"""
-    response_data = CleanupResponse(
-        status="success",
-        message=message,
-        deleted_count=deleted_count
-    )
+    response_data = CleanupResponse(status="success", message=message, deleted_count=deleted_count)
     return fast_response(response_data, CleanupResponse)
 
 
-def tracker_status_response(
-    distributed_sharding_enabled: bool,
-    environment: Dict[str, str],
-    **kwargs
-) -> Response:
+def tracker_status_response(distributed_sharding_enabled: bool, environment: Dict[str, str], **kwargs) -> Response:
     """Create optimized tracker status response"""
     response_data = TrackerStatusResponse(
-        status="success",
-        distributed_sharding_enabled=distributed_sharding_enabled,
-        environment=environment,
-        **kwargs
+        status="success", distributed_sharding_enabled=distributed_sharding_enabled, environment=environment, **kwargs
     )
     return fast_response(response_data, TrackerStatusResponse)
 
@@ -167,18 +131,11 @@ def user_response(user_data: Dict[str, Any] = None, message: str = None) -> Resp
 
 def user_not_found_response(message: str) -> Response:
     """Create optimized user not found response"""
-    response_data = UserResponse(
-        status="not_found",
-        message=message
-    )
+    response_data = UserResponse(status="not_found", message=message)
     return fast_response(response_data, UserResponse)
 
 
-def user_providers_response(
-    user_id: str = None,
-    providers: list = None,
-    message: str = None
-) -> Response:
+def user_providers_response(user_id: str = None, providers: list = None, message: str = None) -> Response:
     """Create optimized user providers response"""
     response_data = UserProvidersResponse(status="success")
 
@@ -192,17 +149,10 @@ def user_providers_response(
     return fast_response(response_data, UserProvidersResponse)
 
 
-def sync_response(
-    synced_providers: list,
-    total_synced: int,
-    success: bool = True,
-    error: str = None
-) -> Response:
+def sync_response(synced_providers: list, total_synced: int, success: bool = True, error: str = None) -> Response:
     """Create optimized sync response"""
     response_data = SyncResponse(
-        status="success" if success else "failed",
-        synced_providers=synced_providers,
-        total_synced=total_synced
+        status="success" if success else "failed", synced_providers=synced_providers, total_synced=total_synced
     )
 
     if error:

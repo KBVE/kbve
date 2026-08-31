@@ -42,8 +42,7 @@ def test_graphify_build_reports_output_on_success(tmp_path):
     ctx.inputs["build_cmd"] = [
         "bash",
         "-c",
-        'mkdir -p "%s" && printf "{}" > "%s/overview.json"'
-        % (out_dir, out_dir),
+        'mkdir -p "%s" && printf "{}" > "%s/overview.json"' % (out_dir, out_dir),
     ]
 
     result = get("graphify").build(ctx)

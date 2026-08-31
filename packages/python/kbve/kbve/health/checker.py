@@ -73,12 +73,14 @@ class HealthCheck:
                 healthy = False
                 msg = str(exc)
             elapsed = (time.monotonic() - start) * 1000
-            results.append(CheckResult(
-                name=name,
-                healthy=healthy,
-                message=msg,
-                duration_ms=round(elapsed, 2),
-            ))
+            results.append(
+                CheckResult(
+                    name=name,
+                    healthy=healthy,
+                    message=msg,
+                    duration_ms=round(elapsed, 2),
+                )
+            )
 
         all_healthy = all(r.healthy for r in results)
         any_healthy = any(r.healthy for r in results)

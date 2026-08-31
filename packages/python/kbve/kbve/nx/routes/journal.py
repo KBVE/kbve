@@ -25,14 +25,7 @@ def _target(ctx: BuildContext):
 
 
 def _block(year: str) -> str:
-    return (
-        '<BentoProse id="%s" heading="%s">\n'
-        "\n"
-        "- [ ]\n"
-        "\n"
-        "</BentoProse>\n"
-        "\n"
-    ) % (year, year)
+    return ('<BentoProse id="%s" heading="%s">\n\n- [ ]\n\n</BentoProse>\n\n') % (year, year)
 
 
 @route("journal", "daily")

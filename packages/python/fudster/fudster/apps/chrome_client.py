@@ -52,12 +52,9 @@ class ChromeClient:
                 loc_span = job_listing.find("span", class_="location")
                 location = loc_span.get_text(strip=True) if loc_span else "No Location"
 
-                job_data.append({
-                    "department": department_name,
-                    "title": job_title,
-                    "location": location,
-                    "link": job_link
-                })
+                job_data.append(
+                    {"department": department_name, "title": job_title, "location": location, "link": job_link}
+                )
 
         return json.dumps(job_data)
 

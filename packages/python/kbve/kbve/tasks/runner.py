@@ -69,8 +69,7 @@ class TaskRunner:
 
     async def run_all(self) -> list[TaskResult]:
         """Run all tasks concurrently and return results."""
-        coros = [self._execute(name, fn, timeout)
-                 for name, fn, timeout in self._tasks]
+        coros = [self._execute(name, fn, timeout) for name, fn, timeout in self._tasks]
         return await asyncio.gather(*coros)
 
     async def run_sequential(self) -> list[TaskResult]:
@@ -86,7 +85,10 @@ class TaskRunner:
         return [name for name, _, _ in self._tasks]
 
     async def _execute(
-        self, name: str, fn: Callable, timeout: float | None,
+        self,
+        name: str,
+        fn: Callable,
+        timeout: float | None,
     ) -> TaskResult:
         start = time.monotonic()
         try:

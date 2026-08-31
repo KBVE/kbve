@@ -1,6 +1,7 @@
 """
 Health check command module - Ultra-optimized with TypeAdapter
 """
+
 from __future__ import annotations
 from fastapi import APIRouter, Response
 from ....types import BotService, Monitor
@@ -12,10 +13,7 @@ router = APIRouter()
 
 @router.get("/health", response_model=None)
 @with_error_context("health monitoring")
-async def health_check(
-    discord_bot: "BotService",
-    health_monitor: "Monitor"
-) -> Response:
+async def health_check(discord_bot: "BotService", health_monitor: "Monitor") -> Response:
     """Get comprehensive health status including bot status and system metrics"""
     # Get bot status and health data
     bot_status = discord_bot.get_status()
@@ -28,7 +26,7 @@ async def health_check(
         "is_starting": bot_status.get("is_starting"),
         "is_stopping": bot_status.get("is_stopping"),
         "is_closed": bot_status.get("is_closed"),
-        "guild_count": bot_status.get("guild_count")
+        "guild_count": bot_status.get("guild_count"),
     }
 
     return health_response(formatted_bot_status, health_data)

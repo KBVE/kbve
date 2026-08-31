@@ -7,6 +7,7 @@ Emits findings.json: the shared page-keyed contract other pillars enrich.
 Exit status is non-zero when any error-severity finding is present, so the
 same command gates CI.
 """
+
 import argparse
 import json
 import sys
@@ -29,8 +30,7 @@ def audit(content_dir, only=None):
             findings.extend(rule(p, ctx, profile))
         for f in findings:
             counts[f.severity] += 1
-        c = per_collection.setdefault(
-            p.collection, {"pages": 0, "error": 0, "warn": 0, "info": 0})
+        c = per_collection.setdefault(p.collection, {"pages": 0, "error": 0, "warn": 0, "info": 0})
         c["pages"] += 1
         for f in findings:
             c[f.severity] += 1
@@ -53,8 +53,7 @@ def audit(content_dir, only=None):
 def main():
     parser = argparse.ArgumentParser(description="Audit astro-kbve SEO metadata.")
     parser.add_argument("--root", default=None, help="Repo root path")
-    parser.add_argument("--only", default=None,
-                        help="Restrict to one collection (folder)")
+    parser.add_argument("--only", default=None, help="Restrict to one collection (folder)")
     parser.add_argument("--json", default=None, help="Write findings to path")
     args = parser.parse_args()
 
@@ -65,8 +64,7 @@ def main():
         with open(args.json, "w", encoding="utf-8") as fh:
             fh.write(text)
     s = result["summary"]
-    print("audited %d pages: %d error, %d warn, %d info" % (
-        s["pages"], s["error"], s["warn"], s["info"]))
+    print("audited %d pages: %d error, %d warn, %d info" % (s["pages"], s["error"], s["warn"], s["info"]))
     return 1 if s["error"] else 0
 
 

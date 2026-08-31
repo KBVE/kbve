@@ -13,6 +13,7 @@ Usage:
     uv run kbve-skin-variant --in idolknight.jpg --out idolknight_off.jpg
         [--hue green --darken 0.42 --dom 25 --min 60 --feather 1.5 --tint 0.72,0.82,1.0]
 """
+
 import argparse
 
 import numpy as np
@@ -54,9 +55,7 @@ def main():
     off = np.clip(off, 0, 255)
 
     # feather the mask so the swap is seamless
-    m = Image.fromarray((mask * 255).astype(np.uint8)).filter(
-        ImageFilter.GaussianBlur(a.feather)
-    )
+    m = Image.fromarray((mask * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(a.feather))
     m = np.asarray(m).astype(float)[..., None] / 255.0
 
     out = arr * (1 - m) + off * m

@@ -32,6 +32,7 @@ the source of truth; axum-kbve build.rs codegens the static 308 table from that
 JSON. To add a new item to an existing family: create only the member MDX, then
 run steps 3-4 (with --merge) and step 5. See docs/plans/osrs/README.md.
 """
+
 import argparse
 import json
 import os
@@ -85,20 +86,22 @@ def resolve(content_dir, min_members=2):
         base, kind, dose = family_of(name)
         # The page URL is derived from the FILENAME, not the frontmatter
         # osrs.slug (which collides across poison variants). Use the filename.
-        groups[base.lower()].append({
-            "slug": fname[:-4] if fname.endswith(".mdx") else fname,
-            "name": name,
-            "id": osrs.get("id"),
-            "icon": osrs.get("icon"),
-            "examine": osrs.get("examine"),
-            "kind": kind,
-            "dose": dose,
-            "value": osrs.get("value"),
-            "lowalch": osrs.get("lowalch"),
-            "highalch": osrs.get("highalch"),
-            "members": bool(osrs.get("members")),
-            "base_name": base,
-        })
+        groups[base.lower()].append(
+            {
+                "slug": fname[:-4] if fname.endswith(".mdx") else fname,
+                "name": name,
+                "id": osrs.get("id"),
+                "icon": osrs.get("icon"),
+                "examine": osrs.get("examine"),
+                "kind": kind,
+                "dose": dose,
+                "value": osrs.get("value"),
+                "lowalch": osrs.get("lowalch"),
+                "highalch": osrs.get("highalch"),
+                "members": bool(osrs.get("members")),
+                "base_name": base,
+            }
+        )
 
     families = []
     redirect_ids = {}
@@ -113,9 +116,11 @@ def resolve(content_dir, min_members=2):
         family_slug = base_member["slug"] if base_member else _slugify(base_name)
         canonical_id = base_member["id"] if base_member else None
         kinds = sorted({m["kind"] for m in members})
-        ftype = "dose" if "dose" in kinds else (
-            "poison" if "poison" in kinds else (
-                "degraded" if "degraded" in kinds else "mixed"))
+        ftype = (
+            "dose"
+            if "dose" in kinds
+            else ("poison" if "poison" in kinds else ("degraded" if "degraded" in kinds else "mixed"))
+        )
         # flag members that share a slug (distinct ids, same slug)
         by_slug = defaultdict(list)
         for m in members:
@@ -130,9 +135,22 @@ def resolve(content_dir, min_members=2):
             "has_base_item": base_member is not None,
             "canonical_id": canonical_id,
             "members": [
-                {k: m[k] for k in (
-                    "slug", "name", "id", "icon", "examine", "kind", "dose",
-                    "value", "lowalch", "highalch", "members")}
+                {
+                    k: m[k]
+                    for k in (
+                        "slug",
+                        "name",
+                        "id",
+                        "icon",
+                        "examine",
+                        "kind",
+                        "dose",
+                        "value",
+                        "lowalch",
+                        "highalch",
+                        "members",
+                    )
+                }
                 for m in members
             ],
         }
@@ -155,15 +173,13 @@ def resolve(content_dir, min_members=2):
 
 
 def _indent_yaml(block, indent="  "):
-    dumped = yaml.dump(block, default_flow_style=False, sort_keys=False,
-                       allow_unicode=True).rstrip("\n")
+    dumped = yaml.dump(block, default_flow_style=False, sort_keys=False, allow_unicode=True).rstrip("\n")
     return "\n".join(indent + ln for ln in dumped.split("\n"))
 
 
 # Strip previously-stamped family blocks (2-space top-level keys + their nested
 # lines) so --write is idempotent / re-runnable.
-_STRIP_FAMILY = re.compile(
-    r"\n  (?:family_ref|family|canonical):.*?(?=\n  \S|\n---)", re.S)
+_STRIP_FAMILY = re.compile(r"\n  (?:family_ref|family|canonical):.*?(?=\n  \S|\n---)", re.S)
 
 
 def _strip_family_blocks(raw):
@@ -186,9 +202,7 @@ def write_families(content_dir, result, min_members):
             continue
         raw = _strip_family_blocks(raw)  # idempotent: drop any prior stamp
         item_id = osrs.get("id")
-        is_canonical = (
-            fam["canonical_id"] is not None and item_id == fam["canonical_id"]
-        )
+        is_canonical = fam["canonical_id"] is not None and item_id == fam["canonical_id"]
         family_url = "%s/osrs/%s/" % (SITE, fam["family_slug"])
         ref = {"family_slug": fam["family_slug"], "role": role}
         if dose is not None:
@@ -213,9 +227,9 @@ def write_families(content_dir, result, min_members):
                     "highalch": mem.get("highalch"),
                 }
                 for mem in fam["members"]
-                if not (mem["kind"] != "base"
-                        and mem["id"] == fam["canonical_id"]
-                        and mem["slug"] != fam["family_slug"])
+                if not (
+                    mem["kind"] != "base" and mem["id"] == fam["canonical_id"] and mem["slug"] != fam["family_slug"]
+                )
             ]
             block["family"] = {
                 "slug": fam["family_slug"],
@@ -231,7 +245,7 @@ def write_families(content_dir, result, min_members):
             continue
         indent = mv.group(1)
         snippet = "\n" + _indent_yaml(block, indent)
-        raw2 = raw[:mv.start()] + snippet + raw[mv.start():]
+        raw2 = raw[: mv.start()] + snippet + raw[mv.start() :]
         with open(os.path.join(content_dir, fname), "w", encoding="utf-8") as fh:
             fh.write(raw2)
         stamped += 1
@@ -280,8 +294,7 @@ def scaffold_base_pages(content_dir, result, today):
             raw = fh.read()
         raw = _strip_family_blocks(raw)
         base_name = fam["family_name"]
-        raw = re.sub(r"^title:.*$",
-                     "title: %s | OSRS Price Data" % base_name, raw, count=1, flags=re.M)
+        raw = re.sub(r"^title:.*$", "title: %s | OSRS Price Data" % base_name, raw, count=1, flags=re.M)
         raw = _rewrite_frontmatter_line(raw, "name", base_name)
         raw = _rewrite_frontmatter_line(raw, "slug", slug)
         raw = _rewrite_frontmatter_line(raw, "mdx_version", "4")
@@ -342,40 +355,36 @@ def main():
     parser = argparse.ArgumentParser(description="Resolve OSRS item families.")
     parser.add_argument("--root", default=None, help="Repo root path")
     parser.add_argument("--json", default=None, help="Write JSON to this path")
-    parser.add_argument("--min-members", type=int, default=2,
-                        help="Minimum members for a family (default 2)")
-    parser.add_argument("--write", action="store_true",
-                        help="Stamp family_ref/canonical/roster into member MDX")
-    parser.add_argument("--only", default=None,
-                        help="Restrict --write to one family slug (pilot)")
-    parser.add_argument("--redirect-json", default=None,
-                        help="Write the 301 redirect pairs JSON (axum build.rs input)")
-    parser.add_argument("--merge", action="store_true",
-                        help="Merge --redirect-json into existing routes instead of overwriting "
-                             "(required once members are pruned and can no longer be re-resolved)")
-    parser.add_argument("--scaffold-base-pages", action="store_true",
-                        help="Create unsuffixed base pages for dose families lacking one")
-    parser.add_argument("--prune-members", action="store_true",
-                        help="Delete non-base member MDX (collapsed into the family page)")
-    parser.add_argument("--today", default="2026-06-29",
-                        help="mdx_updated stamp for scaffolded pages")
+    parser.add_argument("--min-members", type=int, default=2, help="Minimum members for a family (default 2)")
+    parser.add_argument("--write", action="store_true", help="Stamp family_ref/canonical/roster into member MDX")
+    parser.add_argument("--only", default=None, help="Restrict --write to one family slug (pilot)")
+    parser.add_argument("--redirect-json", default=None, help="Write the 301 redirect pairs JSON (axum build.rs input)")
+    parser.add_argument(
+        "--merge",
+        action="store_true",
+        help="Merge --redirect-json into existing routes instead of overwriting "
+        "(required once members are pruned and can no longer be re-resolved)",
+    )
+    parser.add_argument(
+        "--scaffold-base-pages", action="store_true", help="Create unsuffixed base pages for dose families lacking one"
+    )
+    parser.add_argument(
+        "--prune-members", action="store_true", help="Delete non-base member MDX (collapsed into the family page)"
+    )
+    parser.add_argument("--today", default="2026-06-29", help="mdx_updated stamp for scaffolded pages")
     args = parser.parse_args()
 
     content_dir = find_content_dir(args.root)
     result = resolve(content_dir, args.min_members)
     if args.only:
-        result["families"] = [
-            f for f in result["families"] if f["family_slug"] == args.only
-        ]
+        result["families"] = [f for f in result["families"] if f["family_slug"] == args.only]
     if args.scaffold_base_pages:
         s = scaffold_base_pages(content_dir, result, args.today)
-        print("scaffolded base pages: %d  skipped: %d" % (
-            len(s["created"]), len(s["skipped"])))
+        print("scaffolded base pages: %d  skipped: %d" % (len(s["created"]), len(s["skipped"])))
         return
     if args.prune_members:
         p = prune_members(content_dir, result)
-        print("pruned member pages: %d  kept(base): %d" % (
-            len(p["deleted"]), len(p["kept"])))
+        print("pruned member pages: %d  kept(base): %d" % (len(p["deleted"]), len(p["kept"])))
         return
     text = json.dumps(result, indent=2)
     if args.json and not args.write:
@@ -387,15 +396,14 @@ def main():
         exists = os.path.exists(args.redirect_json)
         if exists and not args.merge:
             existing = json.load(open(args.redirect_json))["routes"]
-            missing = [s for s, _ in existing
-                       if s not in {p[0] for p in pairs}]
+            missing = [s for s, _ in existing if s not in {p[0] for p in pairs}]
             if missing:
                 sys.exit(
                     "refusing to overwrite %s: %d committed routes (e.g. %s) "
                     "are not currently resolvable because their member pages "
                     "were pruned. Pruning is one-way -- rerun with --merge to "
-                    "union new routes into the committed set." % (
-                        args.redirect_json, len(missing), missing[0]))
+                    "union new routes into the committed set." % (args.redirect_json, len(missing), missing[0])
+                )
         if args.merge and exists:
             for s, d in json.load(open(args.redirect_json))["routes"]:
                 merged[s] = d
@@ -405,14 +413,14 @@ def main():
         routes = sorted(merged.items())
         payload = {
             "_comment": "Generated by kbve-osrs-families --redirect-json. "
-                        "Consumed by axum-kbve build.rs to codegen the static "
-                        "301 redirect table. Do not edit by hand. MERGE-ONLY: "
-                        "member MDX pages listed here were pruned from disk and "
-                        "cannot be regenerated, so future batches MUST pass "
-                        "--merge or the resolver refuses to overwrite.",
+            "Consumed by axum-kbve build.rs to codegen the static "
+            "301 redirect table. Do not edit by hand. MERGE-ONLY: "
+            "member MDX pages listed here were pruned from disk and "
+            "cannot be regenerated, so future batches MUST pass "
+            "--merge or the resolver refuses to overwrite.",
         }
         comment = json.dumps(payload["_comment"])
-        lines = ["{", "\t\"_comment\": %s," % comment, "\t\"routes\": ["]
+        lines = ["{", '\t"_comment": %s,' % comment, '\t"routes": [']
         for i, (s, d) in enumerate(routes):
             tail = "," if i < len(routes) - 1 else ""
             lines.append("\t\t[%s, %s]%s" % (json.dumps(s), json.dumps(d), tail))
@@ -420,25 +428,25 @@ def main():
         lines.append("}")
         with open(args.redirect_json, "w", encoding="utf-8") as fh:
             fh.write("\n".join(lines) + "\n")
-        print("wrote %d routes (%d new) from %d resolvable families -> %s" % (
-            len(routes), added, result["family_count"], args.redirect_json))
+        print(
+            "wrote %d routes (%d new) from %d resolvable families -> %s"
+            % (len(routes), added, result["family_count"], args.redirect_json)
+        )
         return
     if args.write:
         w = write_families(content_dir, result, args.min_members)
-        print("stamped: %d  skipped(existing): %d" % (
-            w["stamped"], w["skipped_existing"]))
+        print("stamped: %d  skipped(existing): %d" % (w["stamped"], w["skipped_existing"]))
         if w["dose_family_pages_needed"]:
-            print("dose families needing a new page: %d" % (
-                len(w["dose_family_pages_needed"])))
+            print("dose families needing a new page: %d" % (len(w["dose_family_pages_needed"])))
         return
-    print("families: %d  redirects: %d" % (
-        result["family_count"], result["redirect_count"]))
+    print("families: %d  redirects: %d" % (result["family_count"], result["redirect_count"]))
     print("\nlargest families:")
     for f in result["families"][:15]:
         kinds = sorted({m["kind"] for m in f["members"]})
-        print("  %-28s %2d members %-18s base=%s" % (
-            f["family_slug"], len(f["members"]), ",".join(kinds),
-            f["has_base_item"]))
+        print(
+            "  %-28s %2d members %-18s base=%s"
+            % (f["family_slug"], len(f["members"]), ",".join(kinds), f["has_base_item"])
+        )
 
 
 if __name__ == "__main__":

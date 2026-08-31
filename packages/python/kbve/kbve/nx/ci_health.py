@@ -19,8 +19,7 @@ API_BASE = "https://api.github.com"
 API_VERSION = "2022-11-28"
 USER_AGENT = "kbve-ci-daily-content-fetch/1.0"
 
-_TERMINAL = {"success", "failure", "cancelled", "skipped", "timed_out",
-             "action_required", "neutral", "stale"}
+_TERMINAL = {"success", "failure", "cancelled", "skipped", "timed_out", "action_required", "neutral", "stale"}
 
 
 def _next_link(header: str) -> str | None:
@@ -33,11 +32,11 @@ def _next_link(header: str) -> str | None:
     return None
 
 
-def fetch_runs(token: str, since_date: str, per_page: int = 100,
-               timeout: float = 30.0, max_pages: int = 40) -> list[dict]:
+def fetch_runs(
+    token: str, since_date: str, per_page: int = 100, timeout: float = 30.0, max_pages: int = 40
+) -> list[dict]:
     """Page ``/actions/runs?created=>=<since_date>`` into one list."""
-    url = (f"{API_BASE}/repos/{OWNER}/{REPO}/actions/runs"
-           f"?per_page={per_page}&created=%3E%3D{since_date}")
+    url = f"{API_BASE}/repos/{OWNER}/{REPO}/actions/runs?per_page={per_page}&created=%3E%3D{since_date}"
     headers = {
         "Accept": "application/vnd.github+json",
         "Authorization": f"Bearer {token}",
@@ -71,8 +70,7 @@ def _duration_s(run: dict) -> float | None:
 
 
 def _blank() -> dict:
-    return {"runs": 0, "success": 0, "failure": 0, "cancelled": 0,
-            "skipped": 0, "other": 0, "flaky": 0, "_dur": []}
+    return {"runs": 0, "success": 0, "failure": 0, "cancelled": 0, "skipped": 0, "other": 0, "flaky": 0, "_dur": []}
 
 
 def _bucket_conclusion(acc: dict, concl: str | None) -> None:
@@ -101,8 +99,7 @@ def _finalize(acc: dict) -> dict:
     return acc
 
 
-def aggregate(runs: list[dict], since_iso: str, now_iso: str,
-              days: int = 7) -> dict:
+def aggregate(runs: list[dict], since_iso: str, now_iso: str, days: int = 7) -> dict:
     """Roll raw runs into totals + per-workflow health + recent failures."""
     try:
         now = datetime.fromisoformat(now_iso.replace("Z", "+00:00"))
@@ -150,13 +147,15 @@ def aggregate(runs: list[dict], since_iso: str, now_iso: str,
                     t24["failure"] += 1
 
         if concl == "failure":
-            failures.append({
-                "name": name,
-                "branch": run.get("head_branch"),
-                "event": run.get("event"),
-                "url": run.get("html_url"),
-                "finished_at": run.get("updated_at"),
-            })
+            failures.append(
+                {
+                    "name": name,
+                    "branch": run.get("head_branch"),
+                    "event": run.get("event"),
+                    "url": run.get("html_url"),
+                    "finished_at": run.get("updated_at"),
+                }
+            )
 
     workflows = [{"name": n, **_finalize(a)} for n, a in per_wf.items()]
     workflows.sort(key=lambda w: (-w["runs"], w["name"]))
@@ -166,8 +165,7 @@ def aggregate(runs: list[dict], since_iso: str, now_iso: str,
     return {
         "window": {"days": days, "since": since_iso},
         "totals": _finalize(totals),
-        "totals_24h": {**t24, "success_rate": _rate(
-            t24["success"], t24["failure"])},
+        "totals_24h": {**t24, "success_rate": _rate(t24["success"], t24["failure"])},
         "workflows": workflows,
         "recent_failures": failures[:15],
     }

@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "KBVE wrapper for Graphify knowledge graph generation with Nx integration"
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "graphifyy[neo4j,pdf,sql]>=0.1.0,<1.0",
     "pyyaml>=6.0,<7.0",
@@ -18,8 +18,7 @@ kbve-graph-export = "graphify_wrapper.cli:export_main"
 
 [dependency-groups]
 dev = [
-    "autopep8==2.0.2",
-    "flake8==6.0.0",
+    "ruff>=0.15,<1.0",
     "pytest==8.3.3",
     "pytest-sugar==0.9.7",
 ]
@@ -34,6 +33,16 @@ show_missing = true
 
 [tool.pytest.ini_options]
 addopts = "--cov --cov-report html:'../../../coverage/packages/python/graphify-wrapper/html' --cov-report xml:'../../../coverage/packages/python/graphify-wrapper/coverage.xml'"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+# flake8's default rule set, which is what the .flake8 files this replaces were
+# running: pycodestyle errors and warnings plus pyflakes. Ruff's own default is
+# narrower (E4, E7, E9, F), so it is named rather than inherited.
+select = ["E", "W", "F"]
 
 [build-system]
 requires = ["hatchling"]

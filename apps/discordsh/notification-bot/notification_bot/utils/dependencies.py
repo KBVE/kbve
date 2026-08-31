@@ -51,6 +51,7 @@ async def lifespan(app: FastAPI):
                 except Exception as e:
                     logger.error(f"Discord bot background task failed: {e}")
                     import traceback
+
                     logger.error(f"Full traceback: {traceback.format_exc()}")
 
             discord_task = asyncio.create_task(start_bot_wrapper())

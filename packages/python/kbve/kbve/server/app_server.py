@@ -90,16 +90,8 @@ class AppServer:
         health_svc = HealthServicer()
         echo = EchoServicer()
 
-        self.grpc.add_service(
-            lambda server: kbve_pb2_grpc.add_HealthServicer_to_server(
-                health_svc, server
-            )
-        )
-        self.grpc.add_service(
-            lambda server: kbve_pb2_grpc.add_EchoServicer_to_server(
-                echo, server
-            )
-        )
+        self.grpc.add_service(lambda server: kbve_pb2_grpc.add_HealthServicer_to_server(health_svc, server))
+        self.grpc.add_service(lambda server: kbve_pb2_grpc.add_EchoServicer_to_server(echo, server))
 
         self.health.add("self", lambda: True)
         router = create_health_router(self.health)
@@ -114,7 +106,9 @@ class AppServer:
         self.health.add(name, check_fn)
 
     def add_startup_task(
-        self, name: str, fn: Callable,
+        self,
+        name: str,
+        fn: Callable,
         timeout: float | None = None,
     ) -> None:
         """Register a named async startup task."""
@@ -136,7 +130,8 @@ class AppServer:
                 if r.state.value == "failed":
                     logger.warning(
                         "Startup task '%s' failed: %s",
-                        r.name, r.error,
+                        r.name,
+                        r.error,
                     )
 
         for hook in self._startup_hooks:

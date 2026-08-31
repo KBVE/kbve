@@ -5,6 +5,7 @@
 
 Prints per-collection health and the worst offenders. Read-only.
 """
+
 import argparse
 import sys
 from collections import Counter
@@ -25,14 +26,13 @@ def main():
     s = result["summary"]
 
     print("== SEO audit ==")
-    print("pages %d | error %d | warn %d | info %d\n"
-          % (s["pages"], s["error"], s["warn"], s["info"]))
+    print("pages %d | error %d | warn %d | info %d\n" % (s["pages"], s["error"], s["warn"], s["info"]))
 
     print("per collection:")
-    for name, c in sorted(s["collections"].items(),
-                          key=lambda kv: -(kv[1]["error"] + kv[1]["warn"])):
-        print("  %-14s pages %-4d error %-3d warn %-3d info %-3d"
-              % (name, c["pages"], c["error"], c["warn"], c["info"]))
+    for name, c in sorted(s["collections"].items(), key=lambda kv: -(kv[1]["error"] + kv[1]["warn"])):
+        print(
+            "  %-14s pages %-4d error %-3d warn %-3d info %-3d" % (name, c["pages"], c["error"], c["warn"], c["info"])
+        )
 
     rule_counts = Counter()
     for page in result["pages"].values():

@@ -33,8 +33,7 @@ class GroqClient(APIConnector):
         return groq_response
 
     async def groq_process_pathways(
-        self, pathways: dict, pathway: str,
-        payload: AiGroqPayload, max_calls: int = 5
+        self, pathways: dict, pathway: str, payload: AiGroqPayload, max_calls: int = 5
     ) -> GroqResponse:
         current_pathway = pathway
         for _ in range(max_calls):

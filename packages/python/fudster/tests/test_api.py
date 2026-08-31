@@ -9,6 +9,7 @@ from fudster.api.routes import Routes
 
 # ── CORS ─────────────────────────────────────────────────────────────
 
+
 def test_cors_default_origins():
     app = FastAPI()
     cors = CORS(app)
@@ -52,9 +53,7 @@ def test_cors_explicit_overrides_env(monkeypatch):
 def test_cors_middleware_applied():
     app = FastAPI()
     CORS(app)
-    middleware_classes = [
-        m.cls.__name__ for m in app.user_middleware
-    ]
+    middleware_classes = [m.cls.__name__ for m in app.user_middleware]
     assert "CORSMiddleware" in middleware_classes
 
 
@@ -71,6 +70,7 @@ def test_origins_from_env_not_set():
 
 
 # ── Routes ───────────────────────────────────────────────────────────
+
 
 def test_routes_get(tmp_path):
     templates_dir = tmp_path / "templates"
@@ -144,9 +144,7 @@ def test_routes_get_string_result(tmp_path):
 def test_routes_render(tmp_path):
     templates_dir = tmp_path / "templates"
     templates_dir.mkdir()
-    (templates_dir / "home.html").write_text(
-        "<html><body>Hello</body></html>"
-    )
+    (templates_dir / "home.html").write_text("<html><body>Hello</body></html>")
 
     app = FastAPI()
     routes = Routes(app, templates_dir=str(templates_dir))
@@ -181,9 +179,11 @@ def test_routes_invalid_method(tmp_path):
 # which requires a running event loop. Test _prepare_headers by calling
 # the unbound method directly with a simple namespace object.
 
+
 def _make_connector_attrs(base_url="https://x.com", key=None):
     """Create a simple namespace with APIConnector fields."""
     from types import SimpleNamespace
+
     return SimpleNamespace(
         base_url=base_url,
         key=key,
@@ -194,6 +194,7 @@ def _make_connector_attrs(base_url="https://x.com", key=None):
 
 def test_api_connector_prepare_headers():
     from fudster.api.api_connector import APIConnector
+
     obj = _make_connector_attrs(key="secret")
     headers = APIConnector._prepare_headers(obj, auth="header")
     assert headers["Authorization"] == "Bearer secret"
@@ -201,6 +202,7 @@ def test_api_connector_prepare_headers():
 
 def test_api_connector_prepare_headers_no_auth():
     from fudster.api.api_connector import APIConnector
+
     obj = _make_connector_attrs(key="secret")
     headers = APIConnector._prepare_headers(obj)
     assert "Authorization" not in headers
@@ -208,6 +210,7 @@ def test_api_connector_prepare_headers_no_auth():
 
 def test_api_connector_prepare_headers_no_key():
     from fudster.api.api_connector import APIConnector
+
     obj = _make_connector_attrs()
     headers = APIConnector._prepare_headers(obj, auth="header")
     assert "Authorization" not in headers
@@ -215,7 +218,8 @@ def test_api_connector_prepare_headers_no_key():
 
 def test_api_connector_attributes():
     obj = _make_connector_attrs(
-        base_url="https://api.example.com", key="tk",
+        base_url="https://api.example.com",
+        key="tk",
     )
     assert obj.base_url == "https://api.example.com"
     assert obj.key == "tk"

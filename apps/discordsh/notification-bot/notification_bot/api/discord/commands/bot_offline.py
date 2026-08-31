@@ -1,6 +1,7 @@
 """
 Bot offline command module - Manual Dishka resolution
 """
+
 import asyncio
 import logging
 import os

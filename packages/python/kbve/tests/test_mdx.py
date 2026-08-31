@@ -7,6 +7,7 @@ from kbve.svg import DagEdge, DagNode
 
 # ── escape_mdx ───────────────────────────────────────────────────────
 
+
 def test_escape_mdx():
     assert escape_mdx("a & b") == "a &amp; b"
     assert escape_mdx("<div>") == "&lt;div&gt;"
@@ -36,6 +37,7 @@ def test_escape_mdx_already_escaped():
 
 
 # ── frontmatter ──────────────────────────────────────────────────────
+
 
 def test_frontmatter():
     w = MdxWriter()
@@ -85,10 +87,10 @@ def test_frontmatter_empty():
 
 # ── imports ──────────────────────────────────────────────────────────
 
+
 def test_imports():
     w = MdxWriter()
-    w.imports("Card", "CardGrid",
-              source="@astrojs/starlight/components")
+    w.imports("Card", "CardGrid", source="@astrojs/starlight/components")
     out = w.render()
     assert "import { Card, CardGrid }" in out
     assert "'@astrojs/starlight/components'" in out
@@ -101,6 +103,7 @@ def test_imports_single():
 
 
 # ── heading ──────────────────────────────────────────────────────────
+
 
 def test_heading():
     w = MdxWriter()
@@ -121,6 +124,7 @@ def test_heading_default_level():
 
 
 # ── text and raw ─────────────────────────────────────────────────────
+
 
 def test_text():
     w = MdxWriter()
@@ -148,6 +152,7 @@ def test_raw_empty():
 
 # ── admonition ───────────────────────────────────────────────────────
 
+
 def test_admonition():
     w = MdxWriter()
     w.admonition("note", "Hey", "Some body.")
@@ -173,6 +178,7 @@ def test_admonition_empty_title():
 
 
 # ── cards ────────────────────────────────────────────────────────────
+
 
 def test_card():
     w = MdxWriter()
@@ -202,6 +208,7 @@ def test_card_grid_empty():
 
 
 # ── tabs ─────────────────────────────────────────────────────────────
+
 
 def test_tabs():
     w = MdxWriter()
@@ -234,6 +241,7 @@ def test_tabs_multiple():
 
 
 # ── charts ──────────────────────────────────────────────────────────
+
 
 def test_donut():
     w = MdxWriter()
@@ -291,6 +299,7 @@ def test_dag_empty_writes_nothing():
 
 # ── table ────────────────────────────────────────────────────────────
 
+
 def test_table():
     w = MdxWriter()
     w.table(
@@ -334,6 +343,7 @@ def test_table_empty_rows():
 
 # ── details ──────────────────────────────────────────────────────────
 
+
 def test_details():
     w = MdxWriter()
     w.details_start("<strong>Section</strong>")
@@ -347,6 +357,7 @@ def test_details():
 
 
 # ── render / write_to ────────────────────────────────────────────────
+
 
 def test_render_empty():
     w = MdxWriter()
@@ -374,14 +385,10 @@ def test_write_to_overwrites(tmp_path):
 
 # ── chaining ─────────────────────────────────────────────────────────
 
+
 def test_method_chaining():
     w = MdxWriter()
-    result = (
-        w.frontmatter(title="Chain")
-        .heading("H")
-        .text("body")
-        .raw("end")
-    )
+    result = w.frontmatter(title="Chain").heading("H").text("body").raw("end")
     assert result is w
     out = w.render()
     assert "title: Chain" in out
@@ -391,6 +398,7 @@ def test_method_chaining():
 
 
 # ── full document integration ────────────────────────────────────────
+
 
 def test_full_document(tmp_path):
     w = MdxWriter()

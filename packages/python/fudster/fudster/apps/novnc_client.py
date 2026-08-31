@@ -64,7 +64,7 @@ class NoVNCClient:
             await server.close()
 
     def start_websockify_server(self, target_host: str, target_port: int):
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         loop.run_in_executor(None, self._websockify_server, target_host, target_port)
 
     def _websockify_server(self, target_host: str, target_port: int):
@@ -76,10 +76,6 @@ class NoVNCClient:
                 super().new_websocket_client()
 
         proxy = CustomWebSocketProxy(
-            listen_host='0.0.0.0',
-            listen_port=8001,
-            target_host=target_host,
-            target_port=target_port,
-            verbose=True
+            listen_host="0.0.0.0", listen_port=8001, target_host=target_host, target_port=target_port, verbose=True
         )
         proxy.start_server()

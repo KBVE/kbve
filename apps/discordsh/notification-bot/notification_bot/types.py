@@ -1,6 +1,7 @@
 """
 Type aliases for dependency injection to reduce typing overhead
 """
+
 from typing import Annotated
 from dishka.integrations.fastapi import FromDishka
 from .api.discord.discord_service import DiscordBotService

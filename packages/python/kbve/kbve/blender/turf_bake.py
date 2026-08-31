@@ -91,17 +91,19 @@ def rock_geometry(rng: random.Random, template) -> tuple[list[Vector], list]:
     for v in base_verts:
         n = v.normalized()
         warp = (
-            0.30 * math.sin(n.x * 4.1 + ph[0])
-            + 0.22 * math.sin(n.y * 5.7 + ph[1])
-            + 0.18 * math.sin(n.z * 3.3 + ph[2])
+            0.30 * math.sin(n.x * 4.1 + ph[0]) + 0.22 * math.sin(n.y * 5.7 + ph[1]) + 0.18 * math.sin(n.z * 3.3 + ph[2])
         )
         p = n * (1.0 + warp * 0.35)
         x, y, z = p.x * sx, p.y * sy, p.z * sz
-        out.append(Vector((
-            x * math.cos(yaw) - y * math.sin(yaw),
-            x * math.sin(yaw) + y * math.cos(yaw),
-            z,
-        )))
+        out.append(
+            Vector(
+                (
+                    x * math.cos(yaw) - y * math.sin(yaw),
+                    x * math.sin(yaw) + y * math.cos(yaw),
+                    z,
+                )
+            )
+        )
     return out, faces
 
 
@@ -146,8 +148,7 @@ def soil_geometry() -> tuple[list[Vector], list[tuple[int, ...]]]:
             x = -span + (2.0 * span) * ix / n
             y = -span + (2.0 * span) * iy / n
             z = SOIL_RELIEF * (
-                math.sin(x * 7.3) * math.cos(y * 6.1)
-                + 0.5 * math.sin(x * 19.7 + 1.3) * math.cos(y * 17.9)
+                math.sin(x * 7.3) * math.cos(y * 6.1) + 0.5 * math.sin(x * 19.7 + 1.3) * math.cos(y * 17.9)
             )
             verts.append(Vector((x, y, z)))
     for iy in range(n):
@@ -177,11 +178,13 @@ def scatter(rng: random.Random, rock_count: int = ROCK_COUNT) -> tuple[Accum, Ac
         cy = rng.uniform(-half, half)
         for _ in range(BLADES_PER_TUFT):
             geo = blade_geometry(rng)
-            loc = Vector((
-                cx + rng.gauss(0.0, 0.018),
-                cy + rng.gauss(0.0, 0.018),
-                rng.uniform(-0.004, 0.002),
-            ))
+            loc = Vector(
+                (
+                    cx + rng.gauss(0.0, 0.018),
+                    cy + rng.gauss(0.0, 0.018),
+                    rng.uniform(-0.004, 0.002),
+                )
+            )
             placements.append((False, loc, geo))
 
     for is_rock, loc, (verts, faces) in placements:
@@ -306,7 +309,7 @@ def save(img: bpy.types.Image, path: Path, depth: str = "8") -> None:
 
 
 def main() -> int:
-    argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+    argv = sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else []
     out_dir = Path(argv[argv.index("--out") + 1]) if "--out" in argv else Path.cwd()
     res = int(argv[argv.index("--res") + 1]) if "--res" in argv else 2048
     seed = int(argv[argv.index("--seed") + 1]) if "--seed" in argv else 7

@@ -67,19 +67,13 @@ class WS:
                 logger.info(f"Received valid handshake from client: {handshake_instance}")
 
                 success_log = LoggerModel(
-                    command="log",
-                    message="Handshake successful! Connected to the server.",
-                    priority=1
+                    command="log", message="Handshake successful! Connected to the server.", priority=1
                 )
 
                 await websocket.send_text(success_log.json())
 
             except (json.JSONDecodeError, ValidationError) as e:
-                error_log = LoggerModel(
-                    command="log",
-                    message=f"Invalid handshake format: {e}",
-                    priority=3
-                )
+                error_log = LoggerModel(command="log", message=f"Invalid handshake format: {e}", priority=3)
                 await websocket.send_text(error_log.json())
                 await websocket.close()
                 return
@@ -101,6 +95,7 @@ class WS:
         """Handles receiving and broadcasting messages for WebSocket clients."""
         try:
             async with anyio.create_task_group() as task_group:
+
                 async def receiver():
                     async for message in websocket.iter_text():
                         try:

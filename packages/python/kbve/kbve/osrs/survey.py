@@ -1,7 +1,8 @@
 """Survey the OSRS item corpus: tiers, section fill, variant counts.
 
-    uv run kbve-osrs-survey --root <repo> [--json out.json]
+uv run kbve-osrs-survey --root <repo> [--json out.json]
 """
+
 import argparse
 import json
 from collections import Counter
@@ -23,8 +24,12 @@ def _dist(vals):
         return vals[min(n - 1, int(p * n))]
 
     return {
-        "min": vals[0], "p25": pct(.25), "median": pct(.5),
-        "p75": pct(.75), "p90": pct(.9), "max": vals[-1],
+        "min": vals[0],
+        "p25": pct(0.25),
+        "median": pct(0.5),
+        "p75": pct(0.75),
+        "p90": pct(0.9),
+        "max": vals[-1],
     }
 
 
