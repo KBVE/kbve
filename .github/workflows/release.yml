@@ -236,6 +236,8 @@ jobs:
             contents: write
             packages: write
             issues: write
+            pull-requests: write
+            id-token: write
         uses: ./.github/workflows/rust-publish-crate.yml
         with:
             package: ${{ needs.verify.outputs.project }}
@@ -248,6 +250,7 @@ jobs:
         if: ${{ !cancelled() && !failure() && github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'npm') }}
         permissions:
             contents: read
+            id-token: write
         uses: ./.github/workflows/utils-npm-publish.yml
         with:
             project: ${{ needs.verify.outputs.project }}
@@ -260,6 +263,7 @@ jobs:
         if: ${{ !cancelled() && !failure() && github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'python') }}
         permissions:
             contents: read
+            id-token: write
         uses: ./.github/workflows/utils-python-publish.yml
         with:
             project: ${{ needs.verify.outputs.project }}
@@ -306,7 +310,9 @@ jobs:
         needs: [verify, docker]
         if: ${{ !cancelled() && !failure() && github.event_name == 'push' && needs.verify.outputs.deployment_yamls != '' }}
         permissions:
-            contents: read
+            contents: write
+            pull-requests: write
+            actions: write
         uses: ./.github/workflows/utils-post-publish.yml
         with:
             app_name: ${{ needs.verify.outputs.project }}
@@ -332,6 +338,9 @@ jobs:
         permissions:
             contents: write
             packages: read
+            issues: write
+            pull-requests: write
+            actions: write
         uses: ./.github/workflows/ci-godot.yml
         with:
             key: ${{ needs.verify.outputs.project }}
@@ -348,6 +357,9 @@ jobs:
         permissions:
             contents: write
             packages: write
+            issues: write
+            pull-requests: write
+            actions: write
         uses: ./.github/workflows/ci-unreal.yml
         with:
             task: game
@@ -365,6 +377,9 @@ jobs:
         permissions:
             contents: write
             packages: write
+            issues: write
+            pull-requests: write
+            actions: write
         uses: ./.github/workflows/ci-unreal.yml
         with:
             task: server
@@ -382,6 +397,10 @@ jobs:
         if: ${{ github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'unity') }}
         permissions:
             contents: write
+            issues: write
+            pull-requests: write
+            actions: write
+            checks: write
         uses: ./.github/workflows/ci-unity.yml
         with:
             key: ${{ needs.verify.outputs.project }}
@@ -413,7 +432,8 @@ jobs:
         needs: [verify, test]
         if: ${{ !cancelled() && !failure() && github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'desktop') }}
         permissions:
-            contents: read
+            contents: write
+            pull-requests: write
         uses: ./.github/workflows/ci-tauri-builder.yml
         with:
             project: ${{ needs.verify.outputs.project }}

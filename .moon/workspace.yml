@@ -45,6 +45,10 @@ projects:
         # Builds the deploy matrix in deploy.yml off the 'service' tag.
         deploy-tools: 'tools/deploy'
 
+        # Validates the workflow call graph -- the permission ceiling actionlint
+        # cannot model.
+        ci-tools: 'tools/ci'
+
         # Docker publishing helpers, shared by the release lane.
         docker-tools: 'tools/docker'
 

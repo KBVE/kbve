@@ -132,6 +132,7 @@
 		"ci",
 		"ci-bevy",
 		"ci-godot",
+		"ci-tools",
 		"ci-unreal",
 		"cilium",
 		"claude",
