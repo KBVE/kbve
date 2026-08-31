@@ -19,7 +19,19 @@ export default defineConfig({
 	plugins: [
 		react(),
 		nxViteTsPaths(),
-		nxCopyAssetsPlugin(['*.md', 'sitemap/*.mjs']),
+		nxCopyAssetsPlugin([
+			'*.md',
+			'sitemap/*.mjs',
+			// The 50 .astro components are shipped as source -- exports names
+			// each one at ./components/<name>.astro -- and nothing copied them,
+			// so every published consumer of one got a missing file. Local
+			// consumers resolve through tsconfig paths, which is why it held.
+			{
+				input: 'src/components',
+				glob: '**/*.astro',
+				output: 'components',
+			},
+		]),
 		dts({
 			entryRoot: 'src',
 			tsconfigPath: path.join(__dirname, 'tsconfig.lib.json'),
