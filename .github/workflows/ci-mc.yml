@@ -129,33 +129,10 @@ jobs:
                   username: ${{ github.actor }}
                   password: ${{ github.token }}
 
-            - name: Setup Node v24
-              uses: actions/setup-node@v7
+            - name: Setup JavaScript
+              uses: ./.github/actions/setup-js
               with:
-                  node-version: 24
-
-            - name: Setup pnpm
-              uses: pnpm/action-setup@v6
-              with:
-                  version: 11.15.0
-                  run_install: false
-
-            - name: Get pnpm Store Path
-              id: pnpm-store
-              run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
-
-            - name: Setup pnpm Cache
-              uses: actions/cache@v6
-              with:
-                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
-                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
-                  restore-keys: |
-                      ${{ runner.os }}-pnpm-store-
-
-            - name: Install pnpm Dependencies
-              run: pnpm install --frozen-lockfile
-              env:
-                  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+                  playwright: 'false'
 
             - name: Setup moon
               uses: ./.github/actions/setup-moon
@@ -211,16 +188,10 @@ jobs:
                   distribution: temurin
                   java-version: '21'
 
-            - name: Setup Node v24
-              uses: actions/setup-node@v7
+            - name: Setup JavaScript
+              uses: ./.github/actions/setup-js
               with:
-                  node-version: 24
-
-            - name: Setup pnpm v10
-              uses: pnpm/action-setup@v6
-              with:
-                  version: 11.15.0
-                  run_install: false
+                  install: 'false'
 
             - name: Cache Gradle (Loom MC + libs)
               uses: actions/cache@v6
@@ -270,33 +241,10 @@ jobs:
             - name: Checkout
               uses: actions/checkout@v7
 
-            - name: Setup Node v24
-              uses: actions/setup-node@v7
+            - name: Setup JavaScript
+              uses: ./.github/actions/setup-js
               with:
-                  node-version: 24
-
-            - name: Setup pnpm v10
-              uses: pnpm/action-setup@v6
-              with:
-                  version: 11.15.0
-                  run_install: false
-
-            - name: Get pnpm Store Path
-              id: pnpm-store
-              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
-
-            - name: Setup pnpm Cache
-              uses: actions/cache@v6
-              with:
-                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
-                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
-                  restore-keys: |
-                      ${{ runner.os }}-pnpm-store-
-
-            - name: Install pnpm Dependencies
-              run: pnpm install --frozen-lockfile
-              env:
-                  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
+                  playwright: 'false'
 
             - name: Install mc-monitor (itzg)
               run: |
@@ -389,32 +337,20 @@ jobs:
                   fail-on-severity: high
                   comment-summary-in-pr: on-failure
 
-    track_failure:
+    # One job rather than a failure/success pair. The pair reported the same
+    # five inputs twice and differed only in a status string, and their two
+    # conditions had to stay each other's exact complement by hand.
+    track:
         name: Track Failures
-        if: ${{ always() && contains(needs.*.result, 'failure') && github.event_name != 'pull_request' }}
+        if: ${{ always() && (contains(needs.*.result, 'failure') || !contains(needs.*.result, 'cancelled')) && github.event_name != 'pull_request' }}
         needs: [plan, build, client-smoke, server-ping-smoke]
         permissions:
             issues: write
             contents: read
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:
             workflow_name: 'CI - MC'
             job_name: 'mc'
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: 'failure'
-
-    track_success:
-        name: Track Success
-        if: ${{ always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') && github.event_name != 'pull_request' }}
-        needs: [plan, build, client-smoke, server-ping-smoke]
-        permissions:
-            issues: write
-            contents: read
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
-        with:
-            workflow_name: 'CI - MC'
-            job_name: 'mc'
-            run_id: ${{ github.run_id }}
-            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: 'success'
+            status: ${{ contains(needs.*.result, 'failure') && 'failure' || 'success' }}

@@ -619,7 +619,7 @@ jobs:
         needs: [run_tests]
         permissions:
             issues: write
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:
             workflow_name: 'CI - Atomic Branches'
             job_name: 'Run Tests'
@@ -633,7 +633,7 @@ jobs:
         needs: [auto_merge]
         permissions:
             issues: write
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:
             workflow_name: 'CI - Atomic Branches'
             job_name: 'Auto-Merge Authorized PRs'

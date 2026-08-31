@@ -39,19 +39,8 @@ jobs:
               with:
                   ref: ${{ inputs.branch || 'dev' }}
 
-            - name: Setup Node v24
-              uses: actions/setup-node@v7
-              with:
-                  node-version: 24
-
-            - name: Setup pnpm v10
-              uses: pnpm/action-setup@v6
-              with:
-                  version: 11.15.0
-                  run_install: false
-
-            - name: Install dependencies
-              run: pnpm install --frozen-lockfile
+            - name: Setup JavaScript
+              uses: ./.github/actions/setup-js
 
             - name: Setup moon
               uses: ./.github/actions/setup-moon
@@ -197,7 +186,7 @@ jobs:
         needs: [discover]
         permissions:
             issues: write
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:
             workflow_name: 'CI - E2E'
             job_name: 'Discover E2E Projects'
@@ -211,7 +200,7 @@ jobs:
         needs: [e2e]
         permissions:
             issues: write
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:
             workflow_name: 'CI - E2E'
             job_name: 'E2E'
@@ -225,7 +214,7 @@ jobs:
         needs: [summary]
         permissions:
             issues: write
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:
             workflow_name: 'CI - E2E'
             job_name: 'E2E Summary'

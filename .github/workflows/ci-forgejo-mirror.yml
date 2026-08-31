@@ -53,7 +53,7 @@ jobs:
         needs: [mirror]
         permissions:
             issues: write
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:
             workflow_name: 'CI - Forgejo Mirror'
             job_name: 'Mirror to Forgejo'

@@ -1,0 +1,65 @@
+name: 'KBVE - Setup JavaScript'
+description: 'Installs the pinned node and pnpm, caches the pnpm store, and optionally installs dependencies'
+branding:
+    color: 'yellow'
+    icon: 'package'
+
+# The versions live in .prototools and package.json and nowhere else. They used
+# to be written into every workflow that needed them, which is how node drifted
+# to 20 in ci-react-native-ios.yml while seventeen other files said 24 and
+# .prototools said 24.10.0 -- a skew that reads as a broken workflow rather than
+# a stale pin.
+
+inputs:
+    install:
+        description: 'Run `pnpm install --frozen-lockfile` after the toolchain is set up.'
+        required: false
+        default: 'true'
+    playwright:
+        description: 'Let the install download Playwright browsers.'
+        required: false
+        # Defaults to downloading, because that is what an install with no
+        # PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD did before this action existed and
+        # most callers had none. The four that set it to skip pass 'false'.
+        # Flipping the default would silently stop the browser suites working.
+        default: 'true'
+
+runs:
+    using: 'composite'
+    steps:
+        # Same shape as setup-moon: read the pin rather than accept it as an
+        # input, so a workflow cannot disagree with what everyone runs locally.
+        - name: Read the pinned node version
+          id: node
+          shell: bash
+          run: |
+              VERSION="$(sed -n 's/^node *= *"\(.*\)"$/\1/p' .prototools)"
+              if [ -z "$VERSION" ]; then
+                echo "::error::No node version pinned in .prototools"
+                exit 1
+              fi
+              echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+              echo "node $VERSION"
+
+        # Before setup-node, which needs pnpm on PATH to resolve the store path
+        # for its cache. No version here on purpose: action-setup reads
+        # `packageManager` from package.json, so pnpm's version has one home.
+        - name: Setup pnpm
+          uses: pnpm/action-setup@v6
+          with:
+              run_install: false
+
+        # `cache: pnpm` replaces the store-path-plus-actions/cache pair that
+        # eight workflows each wrote out by hand.
+        - name: Setup node
+          uses: actions/setup-node@v7
+          with:
+              node-version: ${{ steps.node.outputs.version }}
+              cache: 'pnpm'
+
+        - name: Install dependencies
+          if: ${{ inputs.install == 'true' }}
+          shell: bash
+          env:
+              PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: ${{ inputs.playwright == 'true' && '0' || '1' }}
+          run: pnpm install --frozen-lockfile

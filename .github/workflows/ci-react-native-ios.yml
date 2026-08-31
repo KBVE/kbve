@@ -54,11 +54,10 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v7
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v7
+            - name: Setup JavaScript
+              uses: ./.github/actions/setup-js
               with:
-                  node-version: '20'
-                  cache: 'npm'
+                  install: 'false'
 
             - name: Install dependencies
               working-directory: ${{ inputs.app_path }}

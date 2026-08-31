@@ -100,22 +100,8 @@ jobs:
               working-directory: packages/python/kbve
               run: uv sync
 
-            - name: Setup Node v24
-              if: contains(matrix.needs, 'node')
-              uses: actions/setup-node@v7
-              with:
-                  node-version: 24
-
-            - name: Setup pnpm v10
-              if: contains(matrix.needs, 'node')
-              uses: pnpm/action-setup@v6
-              with:
-                  version: 11.15.0
-                  run_install: false
-
-            - name: Install pnpm Dependencies
-              if: contains(matrix.needs, 'node')
-              run: pnpm install --frozen-lockfile
+            - name: Setup JavaScript
+              uses: ./.github/actions/setup-js
 
             - name: Setup Rust toolchain
               if: contains(matrix.needs, 'rust')
