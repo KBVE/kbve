@@ -54,11 +54,10 @@ impl WindmillBridge {
         let now = unix_now();
         {
             let cache = self.cache.lock().await;
-            if let Some(entry) = cache.get(email) {
-                if entry.exp - 60 > now {
+            if let Some(entry) = cache.get(email)
+                && entry.exp - 60 > now {
                     return Ok(entry.token.clone());
                 }
-            }
         }
 
         if !self.user_exists(client, email).await? {

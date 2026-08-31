@@ -1,8 +1,8 @@
 $schema: 'https://moonrepo.dev/schemas/tasks.json'
 
-# Inherited by every project tagged 'tauri'. Four desktop apps -- isometric,
-# desktop-kbve, chuck-launcher, deathslayer-launcher -- and the last three had
-# the same six Nx targets between them.
+# Inherited by every project tagged 'tauri'. Three desktop apps -- isometric,
+# desktop-kbve, chuck-launcher -- and the last two had the same six Nx targets
+# between them.
 #
 # The Nx commands all opened with `export PATH="$HOME/.cargo/bin:$PATH"`, which
 # is dropped: moon puts the toolchain on PATH itself, and hard-coding a home
@@ -13,14 +13,12 @@ $schema: 'https://moonrepo.dev/schemas/tasks.json'
 inheritedBy:
     tag: 'tauri'
 
-# Tasks run the script's command rather than `pnpm <script>`. These four are
-# nested pnpm projects -- their own package.json, and for three of them their
-# own lockfile -- inside a repo with no pnpm workspaces, so `pnpm run` first
-# checks whether that directory's dependencies are current and tries to install
-# when they are not. For deathslayer-launcher that install cannot succeed: it
-# declares "@kbve/tauri": "workspace:*" and there is no workspace to resolve it
-# from. moon already decides when a task is stale, and node_modules/.bin is on
-# PATH, so going through pnpm buys nothing and costs that.
+# Tasks run the script's command rather than `pnpm <script>`. These three are
+# nested pnpm projects -- their own package.json and their own lockfile --
+# inside a repo with no pnpm workspaces, so `pnpm run` first checks whether that
+# directory's dependencies are current and tries to install when they are not.
+# moon already decides when a task is stale, and node_modules/.bin is on PATH,
+# so going through pnpm buys nothing and costs that.
 
 tasks:
     # Frees the port first. A tauri dev server that fails to bind leaves the
@@ -45,7 +43,7 @@ tasks:
     # these projects have both, and Nx named them test and test:rust for exactly
     # that reason.
     # The crate lives in src-tauri/, and its package name is not the project id
-    # for two of the four apps (desktop-kbve is kbve-desktop, isometric is
+    # for two of the three apps (desktop-kbve is kbve-desktop, isometric is
     # isometric-game), so this runs where the Cargo.toml is and lets cargo
     # resolve the package itself.
     test-rust:

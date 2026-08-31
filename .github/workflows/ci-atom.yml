@@ -308,10 +308,7 @@ jobs:
         if: always() && !failure() && !cancelled() && (needs.check_pr_status.outputs.pr_exists == 'true' || needs.create_pr.outputs.pr_created == 'true')
         permissions:
             contents: read
-        uses: ./.github/workflows/utils-ci-lint-test.yml
-        with:
-            base-ref: origin/dev
-            head-ref: HEAD
+        uses: ./.github/workflows/ci.yml
 
     # Job 6: Security check — defense-in-depth validation of PR author
     security_check:

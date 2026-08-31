@@ -110,7 +110,6 @@ on:
                 type: string
                 default: ''
 
-
             plugin_path:
                 description: '[plugin] Plugin dir relative to repo root'
                 required: false
@@ -452,63 +451,14 @@ jobs:
                   cd /tmp/game-clone
 
                   if [ -n "${SUBDIR}" ] && [ "${SUBDIR}" != "." ]; then
-                    INCLUDE="${SUBDIR}/**"
                     SRC="/tmp/game-clone/${SUBDIR}"
                   else
-                    INCLUDE="**"
                     SRC="/tmp/game-clone"
                   fi
 
-                  RAW_LFS=""
-                  [ -f .lfsconfig ] && RAW_LFS=$(git config -f .lfsconfig lfs.url 2>/dev/null || true)
-                  case "${RAW_LFS}" in
-                    *forgejo.kbve.com*|*git.kbve.com*|*mc.kbve.com*)
-                      if [ -z "${FORGEJO_USER}" ] || [ -z "${FORGEJO_TOKEN}" ]; then
-                        echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing - cannot pull LFS from git.kbve.com"
-                        exit 1
-                      fi
-                      echo "::add-mask::${FORGEJO_TOKEN}"
-                      REPO_PATH="${RAW_LFS#ssh://}"; REPO_PATH="${REPO_PATH#https://}"; REPO_PATH="${REPO_PATH#http://}"
-                      REPO_PATH="${REPO_PATH#*@}"
-                      REPO_PATH="${REPO_PATH#*/}"
-                      REPO_PATH="${REPO_PATH%/}"
-                      case "${REPO_PATH}" in
-                        */info/lfs) ;;
-                        *.git) REPO_PATH="${REPO_PATH}/info/lfs" ;;
-                        *) REPO_PATH="${REPO_PATH%.git}.git/info/lfs" ;;
-                      esac
-                      AUTH_LFS="https://${FORGEJO_USER}:${FORGEJO_TOKEN}@git.kbve.com/${REPO_PATH}"
-                      echo "::notice::Pulling LFS (${INCLUDE}) from git.kbve.com/${REPO_PATH} (normalized from ${RAW_LFS})"
-                      # Preflight: fail fast with a clear, classifiable error if the token is bad,
-                      # instead of burning the whole pull on a cryptic git-lfs auth error.
-                      LFS_CODE=$(curl -s -o /dev/null -w '%{http_code}' \
-                        -X POST -H 'Accept: application/vnd.git-lfs+json' -H 'Content-Type: application/vnd.git-lfs+json' \
-                        -d '{"operation":"download","transfers":["basic"],"objects":[]}' \
-                        --max-time 20 "${AUTH_LFS}/objects/batch" || echo 000)
-                      if [ "${LFS_CODE}" = "401" ] || [ "${LFS_CODE}" = "403" ]; then
-                        echo "::error::Forgejo LFS auth failed (HTTP ${LFS_CODE}) at git.kbve.com/${REPO_PATH} - FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."
-                        exit 1
-                      fi
-                      echo "::notice::Forgejo LFS auth OK (HTTP ${LFS_CODE})"
-                      git -c lfs.url="${AUTH_LFS}" lfs install --local
-                      git config --local lfs.transfer.maxretries 10
-                      n=0
-                      until git -c lfs.url="${AUTH_LFS}" lfs pull --include="${INCLUDE}"; do
-                        n=$((n+1))
-                        if [ "$n" -ge 4 ]; then
-                          echo "::error::LFS pull from git.kbve.com failed after ${n} tries (transient 503/ingress hiccup — single-replica Forgejo rolled or LFS-store IO stalled). Re-run the job."
-                          exit 1
-                        fi
-                        echo "::warning::LFS pull attempt ${n} hit a transient git.kbve.com error; retrying in $((n*15))s"
-                        sleep $((n*15))
-                      done
-                      ;;
-                    *)
-                      echo "::notice::Pulling LFS (${INCLUDE}) from origin (GitHub-native)"
-                      git lfs install --local
-                      git lfs pull --include="${INCLUDE}"
-                      ;;
-                  esac
+                  # cwd is the external clone, so the .lfsconfig ensure.sh reads is
+                  # that repo's own -- which is the one naming its Forgejo endpoint.
+                  LFS_INCLUDE="${SUBDIR:-.}" bash "${GITHUB_WORKSPACE}/tools/lfs/ensure.sh"
 
                   if [ ! -d "${SRC}" ]; then
                     echo "::error::project_path '${SUBDIR}' not found in ${SLUG}"
@@ -790,26 +740,15 @@ jobs:
                     echo "::error::${PROJ}/.lfsconfig not found - cannot resolve game LFS endpoint"
                     exit 1
                   fi
-                  if [ -z "${FORGEJO_USER}" ] || [ -z "${FORGEJO_TOKEN}" ]; then
-                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing - cannot pull LFS from git.kbve.com"
-                    exit 1
-                  fi
-                  echo "::add-mask::${FORGEJO_TOKEN}"
-                  LFS_URL=$(git config -f "${PROJ}/.lfsconfig" lfs.url)
-                  AUTH_URL="${LFS_URL/https:\/\//https://${FORGEJO_USER}:${FORGEJO_TOKEN}@}"
-                  echo "::notice::Pulling LFS for ${PROJ} from ${LFS_URL}"
-                  # Preflight: fail fast with a clear, classifiable error if the token is bad.
-                  LFS_CODE=$(curl -s -o /dev/null -w '%{http_code}' \
-                    -X POST -H 'Accept: application/vnd.git-lfs+json' -H 'Content-Type: application/vnd.git-lfs+json' \
-                    -d '{"operation":"download","transfers":["basic"],"objects":[]}' \
-                    --max-time 20 "${AUTH_URL}/objects/batch" || echo 000)
-                  if [ "${LFS_CODE}" = "401" ] || [ "${LFS_CODE}" = "403" ]; then
-                    echo "::error::Forgejo LFS auth failed (HTTP ${LFS_CODE}) at ${LFS_URL} - FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."
-                    exit 1
-                  fi
-                  echo "::notice::Forgejo LFS auth OK (HTTP ${LFS_CODE})"
-                  git -c lfs.url="${AUTH_URL}" lfs install --local
-                  git -c lfs.url="${AUTH_URL}" lfs pull --include="${PROJ}/**"
+                  # The project's own .lfsconfig, passed explicitly: git-lfs reads
+                  # lfs.url from the repo root only, and the root file names a
+                  # different Forgejo repo than this game's blobs live in.
+                  #
+                  # LFS_REQUIRED because this step exists to materialize the game: an
+                  # empty listing here means .gitattributes is broken, not that the
+                  # project has no assets.
+                  LFS_ENDPOINT=$(git config -f "${PROJ}/.lfsconfig" lfs.url) \
+                    LFS_INCLUDE="${PROJ}" LFS_REQUIRED=1 bash tools/lfs/ensure.sh
                   rm -rf /tmp/game-project
                   mkdir -p /tmp/game-project
                   cp -r "${PROJ}/." /tmp/game-project/
@@ -836,66 +775,14 @@ jobs:
                   cd /tmp/game-clone
 
                   if [ -n "${SUBDIR}" ] && [ "${SUBDIR}" != "." ]; then
-                    INCLUDE="${SUBDIR}/**"
                     SRC="/tmp/game-clone/${SUBDIR}"
                   else
-                    INCLUDE="**"
                     SRC="/tmp/game-clone"
                   fi
 
-                  RAW_LFS=""
-                  [ -f .lfsconfig ] && RAW_LFS=$(git config -f .lfsconfig lfs.url 2>/dev/null || true)
-                  case "${RAW_LFS}" in
-                    *forgejo.kbve.com*|*git.kbve.com*|*mc.kbve.com*)
-                      if [ -z "${FORGEJO_USER}" ] || [ -z "${FORGEJO_TOKEN}" ]; then
-                        echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing - cannot pull LFS from git.kbve.com"
-                        exit 1
-                      fi
-                      echo "::add-mask::${FORGEJO_TOKEN}"
-                      # Derive repo path from the repo's own .lfsconfig (preserves owner/repo case -
-                      # Forgejo LFS routing is case-sensitive: KBVE/chuck = 401, kbve/chuck = 302) and
-                      # force the HTTPS ingress host git.kbve.com (.74) over the ssh/Cilium .71 route.
-                      REPO_PATH="${RAW_LFS#ssh://}"; REPO_PATH="${REPO_PATH#https://}"; REPO_PATH="${REPO_PATH#http://}"
-                      REPO_PATH="${REPO_PATH#*@}"
-                      REPO_PATH="${REPO_PATH#*/}"
-                      REPO_PATH="${REPO_PATH%/}"
-                      case "${REPO_PATH}" in
-                        */info/lfs) ;;
-                        *.git) REPO_PATH="${REPO_PATH}/info/lfs" ;;
-                        *) REPO_PATH="${REPO_PATH%.git}.git/info/lfs" ;;
-                      esac
-                      AUTH_LFS="https://${FORGEJO_USER}:${FORGEJO_TOKEN}@git.kbve.com/${REPO_PATH}"
-                      echo "::notice::Pulling LFS (${INCLUDE}) from git.kbve.com/${REPO_PATH} (normalized from ${RAW_LFS})"
-                      # Preflight: fail fast with a clear, classifiable error if the token is bad,
-                      # instead of burning the whole pull on a cryptic git-lfs auth error.
-                      LFS_CODE=$(curl -s -o /dev/null -w '%{http_code}' \
-                        -X POST -H 'Accept: application/vnd.git-lfs+json' -H 'Content-Type: application/vnd.git-lfs+json' \
-                        -d '{"operation":"download","transfers":["basic"],"objects":[]}' \
-                        --max-time 20 "${AUTH_LFS}/objects/batch" || echo 000)
-                      if [ "${LFS_CODE}" = "401" ] || [ "${LFS_CODE}" = "403" ]; then
-                        echo "::error::Forgejo LFS auth failed (HTTP ${LFS_CODE}) at git.kbve.com/${REPO_PATH} - FORGEJO_TOKEN invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."
-                        exit 1
-                      fi
-                      echo "::notice::Forgejo LFS auth OK (HTTP ${LFS_CODE})"
-                      git -c lfs.url="${AUTH_LFS}" lfs install --local
-                      git config --local lfs.transfer.maxretries 10
-                      n=0
-                      until git -c lfs.url="${AUTH_LFS}" lfs pull --include="${INCLUDE}"; do
-                        n=$((n+1))
-                        if [ "$n" -ge 4 ]; then
-                          echo "::error::LFS pull from git.kbve.com failed after ${n} tries (transient 503/ingress hiccup — single-replica Forgejo rolled or LFS-store IO stalled). Re-run the job."
-                          exit 1
-                        fi
-                        echo "::warning::LFS pull attempt ${n} hit a transient git.kbve.com error; retrying in $((n*15))s"
-                        sleep $((n*15))
-                      done
-                      ;;
-                    *)
-                      echo "::notice::Pulling LFS (${INCLUDE}) from origin (GitHub-native)"
-                      git lfs install --local
-                      git lfs pull --include="${INCLUDE}"
-                      ;;
-                  esac
+                  # cwd is the external clone, so the .lfsconfig ensure.sh reads is
+                  # that repo's own -- which is the one naming its Forgejo endpoint.
+                  LFS_INCLUDE="${SUBDIR:-.}" bash "${GITHUB_WORKSPACE}/tools/lfs/ensure.sh"
 
                   if [ ! -d "${SRC}" ]; then
                     echo "::error::project_path '${SUBDIR}' not found in ${SLUG}"
@@ -1547,34 +1434,12 @@ jobs:
 
                   cd "${CLONE_DIR}"
                   if [ -n "${SUBDIR}" ] && [ "${SUBDIR}" != "." ]; then
-                    INCLUDE="${SUBDIR}/**"
                     SRC="${CLONE_DIR}/${SUBDIR}"
                   else
-                    INCLUDE="**"
                     SRC="${CLONE_DIR}"
                   fi
 
-                  # Handle Forgejo LFS if configured
-                  RAW_LFS=$(git config -f .lfsconfig lfs.url 2>/dev/null || echo "")
-                  if echo "${RAW_LFS}" | grep -q "kbve.com"; then
-                    if [ -z "${FORGEJO_USER}" ] || [ -z "${FORGEJO_TOKEN}" ]; then
-                      echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing for Forgejo LFS"
-                      exit 1
-                    fi
-                    echo "::add-mask::${FORGEJO_TOKEN}"
-                    REPO_PATH=$(echo "${RAW_LFS}" | sed 's|^ssh://||' | sed 's|^https\?://||' | sed 's|^[^/]*@||' | sed 's|^[^/]*/||' | sed 's|/$||')
-                    if ! echo "${REPO_PATH}" | grep -q '/info/lfs$'; then
-                      REPO_PATH="${REPO_PATH%.git}.git/info/lfs"
-                    fi
-                    AUTH_LFS="https://${FORGEJO_USER}:${FORGEJO_TOKEN}@git.kbve.com/${REPO_PATH}"
-                    echo "::notice::Pulling LFS (${INCLUDE}) from git.kbve.com/${REPO_PATH}"
-                    git -c lfs.url="${AUTH_LFS}" lfs install --local
-                    git -c lfs.url="${AUTH_LFS}" lfs pull --include="${INCLUDE}"
-                  else
-                    echo "::notice::Pulling LFS (${INCLUDE}) from origin"
-                    git lfs install --local
-                    git lfs pull --include="${INCLUDE}"
-                  fi
+                  LFS_INCLUDE="${SUBDIR:-.}" bash "${GITHUB_WORKSPACE}/tools/lfs/ensure.sh"
 
                   if [ ! -d "${SRC}" ]; then
                     echo "::error::project_path '${SUBDIR}' not found in ${SLUG}"

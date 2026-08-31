@@ -69,7 +69,7 @@ pub fn apply_trades(
         }
     };
 
-    let drained: Vec<_> = pending.0.drain(..).collect();
+    let drained: Vec<_> = std::mem::take(&mut pending.0);
     for (slot, input) in drained {
         let me = slot.0;
         if !entity_of_slot.contains_key(&me) {

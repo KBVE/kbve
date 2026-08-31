@@ -1,0 +1,19 @@
+# LFS materialization. Not a released thing itself.
+#
+# Shell rather than node: this runs inside the engine build containers, where
+# git-lfs is the only dependency that can be assumed and node is not.
+layer: 'tool'
+language: 'bash'
+stack: 'infrastructure'
+
+owners:
+    defaultOwner: '@h0lybyte'
+
+tasks:
+    test:
+        script: 'bash ensure.test.sh && bash scope.test.sh'
+        options:
+            # ensure.test.sh builds throwaway git repos in TMPDIR and
+            # scope.test.sh reads the real working tree, so neither produces
+            # an output worth hashing.
+            cache: false

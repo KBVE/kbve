@@ -1,0 +1,36 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+# One of the ToCloud9 images. It had a Dockerfile and a dispatch-manifest entry
+# but no moon.yml, so the graph could not see it -- which under tag-driven
+# releases means no tag could name it.
+layer: 'application'
+language: 'bash'
+tags: ['docker']
+
+tasks:
+    # The image name is not kbve/$project, so the container task the docker tag
+    # provides is overridden here rather than inherited.
+    container:
+        script: 'docker buildx build --load -f apps/agones/tocloud9/gameserver/Dockerfile -t kbve/tocloud9-gameserver-playerbots:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    container-publish:
+        script: 'docker buildx build --load --cache-from=type=gha --cache-from=type=registry,ref=ghcr.io/kbve/tocloud9-gameserver-playerbots:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/tocloud9-gameserver-playerbots:buildcache,mode=max -f apps/agones/tocloud9/gameserver/Dockerfile -t kbve/tocloud9-gameserver-playerbots:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true
+
+env:
+    # The runner a release of this project builds on. Declared because the
+    # default two-core hosted runner is not enough for it -- the dispatch
+    # manifest carried this per entry, and dropping it would put a build
+    # that needs arc-runner-set-kbve back on a 60 minute ceiling it cannot meet.
+    CI_RUNNER: 'arc-runner-set-kbve'
+    # The kube manifests whose image tag a release of this project pins.
+    # Publishing an image does not change what the cluster runs; ArgoCD deploys
+    # what the manifest says, so the tag has to be written into it. This was the
+    # dispatch manifest's deployment_yaml/deployment_yamls field.
+    KUBE_DEPLOYMENT_YAMLS: '["apps/kube/agones/tocloud9/manifests/worldserver-fleet.yaml","apps/kube/agones/tocloud9/manifests/worldserver-b-fleet.yaml"]'

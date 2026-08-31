@@ -136,11 +136,10 @@ impl MemberCache {
         // Check cache (lock held briefly)
         {
             let mut cache = self.cache.lock().unwrap_or_else(|e| e.into_inner());
-            if let Some(entry) = cache.get(&discord_id) {
-                if Instant::now() < entry.expires_at {
+            if let Some(entry) = cache.get(&discord_id)
+                && Instant::now() < entry.expires_at {
                     return entry.status.clone();
                 }
-            }
         }
 
         // Fetch from Supabase (no lock held)
@@ -164,14 +163,13 @@ impl MemberCache {
     /// Mark a Guest user as notified so the one-time message is not repeated.
     pub fn mark_notified(&self, discord_id: u64) {
         let mut cache = self.cache.lock().unwrap_or_else(|e| e.into_inner());
-        if let Some(entry) = cache.get_mut(&discord_id) {
-            if let MemberStatus::Guest {
+        if let Some(entry) = cache.get_mut(&discord_id)
+            && let MemberStatus::Guest {
                 ref mut notified, ..
             } = entry.status
             {
                 *notified = true;
             }
-        }
     }
 
     /// Invalidate a specific user's cache entry.
@@ -185,11 +183,10 @@ impl MemberCache {
     pub async fn lookup_claim_identity(&self, discord_id: u64) -> Option<ClaimIdentity> {
         {
             let mut cache = self.claim_cache.lock().unwrap_or_else(|e| e.into_inner());
-            if let Some(entry) = cache.get(&discord_id) {
-                if Instant::now() < entry.expires_at {
+            if let Some(entry) = cache.get(&discord_id)
+                && Instant::now() < entry.expires_at {
                     return entry.identity.clone();
                 }
-            }
         }
 
         match self.fetch_claim_identity_from_supabase(discord_id).await {
@@ -307,12 +304,11 @@ impl MemberCache {
             return MemberStatus::Member(profile);
         }
 
-        if let Ok(profiles) = serde_json::from_str::<Vec<UserProfile>>(&text) {
-            if let Some(profile) = profiles.into_iter().next() {
+        if let Ok(profiles) = serde_json::from_str::<Vec<UserProfile>>(&text)
+            && let Some(profile) = profiles.into_iter().next() {
                 info!(discord_id, user_id = %profile.user_id, "Member found");
                 return MemberStatus::Member(profile);
             }
-        }
 
         MemberStatus::Guest { notified: false }
     }

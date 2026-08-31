@@ -2,6 +2,7 @@ $schema: 'https://moonrepo.dev/schemas/project.json'
 
 layer: 'application'
 language: 'typescript'
+tags: ['unreal-game']
 
 tasks:
     lfs-push:
@@ -52,3 +53,20 @@ tasks:
             runFromWorkspaceRoot: true
     clangd-db:
         script: 'cd ../../../packages/python/kbve && uv run kbve-unreal-clangd'
+
+env:
+    # The engine configuration this project builds with. JSON rather than
+    # a key per field: it is nested and list-valued, and the build
+    # workflows already take it in exactly this shape -- it was the
+    # dispatch manifest's `engine` block, moved beside the project.
+    ENGINE_CONFIG: '{"version":"5.8.0","project_path":"apps/rentearth/unreal-rentearth","build_targets":["Win64","Linux"]}'
+    # The runner a release of this project builds on. Declared because the
+    # default two-core hosted runner is not enough for it -- the dispatch
+    # manifest carried this per entry, and dropping it would put a build
+    # that needs arc-runner-ue back on a 60 minute ceiling it cannot meet.
+    CI_RUNNER: 'arc-runner-ue'
+    # Where a release of this project publishes to, declared beside the
+    # project. This was the `external_publish` blob of its dispatch manifest
+    # entry; release.yml reads it off the graph.
+    ITCH_GAME: 'rentearth'
+    ITCH_USER: 'kbve'

@@ -6,8 +6,7 @@ language: 'rust'
 # The gdextension the Godot project loads. Tagged rust for build/test/lint, but
 # every shipping task here is a cross-compile plus a copy into the game's
 # addons/ directory, so those stay local.
-tags: ['rust']
-
+tags: ['rust', 'crates']
 tasks:
     # Nightly and build-std: the extension is built with panic_abort against a
     # rebuilt std, which stable cargo cannot do.
@@ -83,3 +82,13 @@ tasks:
         deps: ['~:test-all']
         options:
             cache: false
+
+    # The worldgen bit-exactness probe. Its own task rather than part of
+    # test-all because the feature set is the point: no default features, the
+    # server side, and rapier3d-sim standalone -- the combination the dedicated
+    # server actually ships, where a float that resolves differently than it
+    # does under the client's feature union puts two players in different
+    # worlds from the same seed.
+    test-determinism:
+        command: 'cargo test --no-default-features --features server,rapier3d-sim --lib worldgen::tests -- --nocapture'
+        inputs: ['src/**/*', 'Cargo.toml', '/Cargo.lock']

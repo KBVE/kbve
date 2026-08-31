@@ -1,0 +1,199 @@
+name: CI
+
+# Every project in the workspace, off the moon graph, so a project added later
+# is covered without editing this file.
+#
+# This replaces utils-ci-lint-test.yml and the four per-ecosystem fanout
+# workflows it sat beside. It also closes a hole those left: the only
+# lint-and-test job in the repository was gated on the dev->main pull request,
+# so an ordinary pull request into dev was merged without either.
+#
+# A workflow is only worth adding beside this one when the execution context
+# differs: a runner moon cannot reach, a secret, or a cadence. ci-godot.yml
+# earns one because it needs LFS credentials and a self-hosted mac. Everything
+# else belongs in a task here, where the project graph already knows what a
+# change affects.
+on:
+    push:
+        branches: [dev, main]
+    pull_request:
+    merge_group:
+    # ci-atom.yml gates its security check on lint and test passing, and it runs
+    # on a branch push rather than on the pull request it then creates, so it
+    # needs to call this rather than wait for the pull_request trigger above.
+    workflow_call:
+
+permissions:
+    contents: read
+
+concurrency:
+    group: ci-${{ github.ref }}
+    cancel-in-progress: true
+
+jobs:
+    # The commit-msg hook covers commits, but a pull request title is composed
+    # in the browser where no hook runs -- and a squash merge makes that title
+    # the commit message. tools/release/notes.mjs reads the type and scope out
+    # of those commits, so an unconventional title lands under the wrong
+    # heading in a release note rather than failing anything.
+    title:
+        name: Pull request title
+        if: github.event_name == 'pull_request'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        steps:
+            - uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
+            # Reads scopes.lock.json, so it needs neither moon nor a toolchain.
+            - name: Check the pull request title
+              env:
+                  TITLE: ${{ github.event.pull_request.title }}
+              run: node tools/commit/validate.mjs --title "$TITLE"
+
+    ci:
+        name: ci (${{ matrix.index }}/${{ matrix.total }})
+        runs-on: ubuntu-latest
+        timeout-minutes: 120
+        strategy:
+            fail-fast: false
+            matrix:
+                index: [0, 1, 2]
+                total: [3]
+        steps:
+            - name: Free disk space
+              uses: jlumbroso/free-disk-space@main
+              with:
+                  tool-cache: false
+                  android: true
+                  dotnet: true
+                  haskell: true
+                  large-packages: true
+                  swap-storage: true
+                  docker-images: true
+
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  # moon compares against the base to decide what is affected.
+                  fetch-depth: 0
+
+            # libxml2/libxslt are for python, not rust: fudster depends on lxml,
+            # and the runner's CPython has no manylinux wheel for it, so uv
+            # builds it from source and needs the headers.
+            - name: Install the system libraries the rust crates link against
+              run: |
+                  sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq
+                  sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y --no-install-recommends \
+                    pkg-config libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev \
+                    libpq-dev protobuf-compiler libprotobuf-dev \
+                    libxml2-dev libxslt1-dev
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v7
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v6
+              with:
+                  version: 11.15.0
+                  run_install: false
+
+            - name: Get pnpm Store Path
+              id: pnpm-store
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v6
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm Dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Install uv
+              uses: astral-sh/setup-uv@v7
+              with:
+                  github-token: ${{ github.token }}
+
+            # What cargo downloads, not what it produces. The registry index and
+            # the .crate tarballs are what a cold runner spends its first minutes
+            # on before it compiles a line, and they are the same for every shard
+            # here. registry/src is deliberately not in the list: cargo
+            # re-extracts it from the tarballs beside it in seconds.
+            - name: Restore the cargo registry
+              uses: actions/cache@v6
+              with:
+                  path: |
+                      ~/.cargo/registry/index
+                      ~/.cargo/registry/cache
+                      ~/.cargo/git/db
+                  key: cargo-${{ runner.os }}-${{ hashFiles('Cargo.lock') }}
+                  restore-keys: cargo-${{ runner.os }}-
+
+            # Compiled dependency artifacts. `moon ci` only runs affected
+            # projects, but "affected" is about our crates; their dependencies
+            # are cold either way on a fresh runner. save-if limits writes to the
+            # trunk branches, so a pull request cannot fill the cache budget with
+            # an entry only it will ever read.
+            - name: Restore compiled dependencies
+              uses: Swatinem/rust-cache@v2
+              with:
+                  key: shard-${{ matrix.index }}
+                  save-if: ${{ github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main' }}
+
+            # Everything downstream of a .proto reads the committed .binpb
+            # descriptor, not the .proto -- so an edit with no regeneration is
+            # silently inert and nothing else in CI notices. Hash-based, so this
+            # needs no protoc and cannot flake on a protoc version.
+            - name: Check proto descriptors are not stale
+              if: matrix.index == 0
+              run: node packages/data/codegen/check-descriptors.mjs
+
+            # Same failure mode one layer up: the games load the generated
+            # <db>.json/.binpb, never the MDX, so an MDX edit that was never
+            # regenerated changes nothing that ships.
+            - name: Check data artifacts are not stale
+              if: matrix.index == 0
+              run: node packages/data/codegen/check-data-artifacts.mjs
+
+            # Provision the rust toolchain before moon does. moon sets it up once
+            # per cargo workspace root -- the root one and hardware/esp32c6-display,
+            # which is excluded from the root members and carries its own manifest
+            # -- and runs those setups concurrently. Both want the same targets,
+            # and rustup takes no lock on ~/.rustup/downloads, so the two racing
+            # processes write the same <hash>.partial and whichever loses the
+            # rename dies with "component download failed". Doing it once here
+            # leaves moon's calls as no-ops with nothing to download.
+            #
+            # The target list is read from .moon/toolchains.yml rather than
+            # repeated here, for the same reason setup-moon reads its version from
+            # .prototools: a copy would drift from what moon actually provisions.
+            - name: Preinstall the rust toolchain
+              run: |
+                  rustup show active-toolchain || rustup toolchain install
+                  TARGETS="$(node tools/moon/rust-targets.mjs)"
+                  if [ -n "$TARGETS" ]; then
+                    echo "rustup target add $TARGETS"
+                    rustup target add $TARGETS
+                  fi
+
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
+            # Scoped to lint and test, which is what this job replaced. A bare
+            # `moon ci` runs every task carrying runInCI, and here that is 45
+            # container builds and 59 browser suites -- neither of which this
+            # runner has a docker registry or a Playwright install for, and
+            # neither of which ran on a pull request before. The e2e suites keep
+            # their own workflows.
+            #
+            # `moon ci` has no project filter, so the Godot suites opt out with
+            # runInCI: false in their own moon.yml -- the reason lives beside
+            # the task it applies to rather than in this file.
+            - name: Run affected lint and test
+              run: moon ci ':lint' ':test' --job ${{ matrix.index }} --job-total ${{ matrix.total }}

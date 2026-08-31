@@ -1,6 +1,6 @@
 //! The GATT contract the firmware publishes.
 //!
-//! These UUIDs are the wire format shared with `apps/hardware/esp32c6-display`.
+//! These UUIDs are the wire format shared with `hardware/esp32c6-display`.
 //! Changing one here without changing it there silently stops the board from
 //! being recognised, so they are kept in one place rather than inline.
 

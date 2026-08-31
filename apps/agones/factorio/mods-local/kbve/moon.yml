@@ -1,0 +1,12 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+# The KBVE Fleet Commander Factorio mod. Registered so the mod publish list can
+# come off the graph: the dispatch manifest carried a `factorio_mods` array of
+# {name, source_path} pairs, and both facts are already a project.
+#
+# `factorio-mod` is the release lane. The two mods under mods-src are python
+# projects that build into this shape; this one is authored directly as mod
+# source, which is why it has no build step.
+layer: 'library'
+language: 'unknown'
+tags: ['factorio-mod']

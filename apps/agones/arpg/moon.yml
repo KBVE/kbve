@@ -49,9 +49,3 @@ tasks:
         options:
             runFromWorkspaceRoot: true
             cache: false
-    container-web-publish:
-        script: 'docker buildx build --load --build-arg PUBLIC_ARPG_VERSION --cache-from=type=registry,ref=ghcr.io/kbve/arpg-web:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/arpg-web:buildcache,mode=max -f apps/agones/arpg/web/Dockerfile -t kbve/arpg-web:latest .'
-        options:
-            runFromWorkspaceRoot: true
-            cache: false
-            runInCI: true

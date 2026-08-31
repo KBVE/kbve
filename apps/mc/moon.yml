@@ -65,3 +65,19 @@ tasks:
         deps: ['~:container']
         options:
             cache: false
+
+env:
+    # The kube manifests whose image tag a release of this project pins.
+    # Publishing an image does not change what the cluster runs; ArgoCD deploys
+    # what the manifest says, so the tag has to be written into it. This was the
+    # dispatch manifest's deployment_yaml/deployment_yamls field.
+    KUBE_DEPLOYMENT_YAMLS: '["apps/kube/agones/mc/manifests/fleet.yaml"]'
+    # Where a release of this project publishes to, declared beside the
+    # project. This was the `external_publish` blob of its dispatch manifest
+    # entry; release.yml reads it off the graph.
+    MODRINTH_GAME_VERSIONS: '["1.21.11"]'
+    MODRINTH_LOADERS: '["fabric"]'
+    MODRINTH_MOD_ID: 'QoFCg0tO'
+    MODRINTH_PACK_ID: '86Wqkiak'
+    MODRINTH_SERVER_ADDRESS: 'mc.kbve.com'
+    MODRINTH_VERSION_TYPE: 'release'

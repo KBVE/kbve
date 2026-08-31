@@ -2,8 +2,7 @@ $schema: 'https://moonrepo.dev/schemas/project.json'
 
 layer: 'application'
 language: 'typescript'
-tags: ['playwright', 'vite', 'eslint']
-
+tags: ['playwright', 'vite', 'eslint', 'web-game']
 tasks:
     rebake:
         script: 'bash art/character/rebake.sh'
@@ -28,3 +27,16 @@ tasks:
         script: 'vitest run --config apps/herbmail/herbmail-game/vite.config.ts'
         options:
             runFromWorkspaceRoot: true
+
+env:
+    # The engine configuration this project builds with. JSON rather than
+    # a key per field: it is nested and list-valued, and the build
+    # workflows already take it in exactly this shape -- it was the
+    # dispatch manifest's `engine` block, moved beside the project.
+    ENGINE_CONFIG: '{"version":"vite","project_path":"apps/herbmail/herbmail-game","build_targets":["html5"]}'
+    # Where a release of this project publishes to, declared beside the
+    # project. This was the `external_publish` blob of its dispatch manifest
+    # entry; release.yml reads it off the graph.
+    ITCH_CHANNEL: 'html5'
+    ITCH_GAME: 'herbmail'
+    ITCH_USER: 'kbve'

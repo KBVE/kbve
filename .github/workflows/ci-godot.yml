@@ -2,7 +2,41 @@ name: CI - Godot
 
 run-name: 'CI - Godot / ${{ fromJSON(inputs.engine).app_name }}'
 
+# Callable as well as dispatchable. release.yml calls this for a tag whose
+# project is in this lane; the inputs are the same either way, so the block is
+# repeated rather than the workflow being split -- GitHub Actions has no anchor
+# for it.
+#
+# `dispatched_at` was the dispatcher's stale-queue guard: it compared the
+# timestamp against in-flight runs so a superseded dispatch could bail. A tag is
+# not queued behind anything, so a caller passes the current time and the guard
+# is a no-op.
 on:
+    workflow_call:
+        inputs:
+            key:
+                description: 'Manifest key'
+                required: true
+                type: string
+            dispatched_at:
+                description: 'Unix timestamp when this was dispatched (queue guard)'
+                required: true
+                type: string
+            engine:
+                description: 'JSON engine config: app_name, project_path, version, build_targets, dotnet_enabled'
+                required: true
+                type: string
+            version:
+                description: 'JSON version config: source, toml, manifest'
+                required: false
+                type: string
+                default: '{}'
+            publish:
+                description: 'JSON publish config: deploy_to_itch, itch_user, itch_game, itch_channel, notarize'
+                required: false
+                type: string
+                default: '{}'
+
     workflow_dispatch:
         inputs:
             key:
@@ -109,44 +143,8 @@ jobs:
               env:
                   FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
                   FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
-                  PROJECT_PATH: ${{ fromJSON(inputs.engine).project_path }}
-              run: |
-                  # git-lfs first: the LFS-presence probe needs it, and the
-                  # `:(attr:filter=lfs)` pathspec that used to answer this question
-                  # silently returns nothing in a --filter=blob:none partial clone
-                  # (no blobs, no attributes to match) — which skipped the pull and
-                  # shipped a 132-byte pointer as the macOS dylib.
-                  command -v git-lfs >/dev/null 2>&1 || {
-                    apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq && apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y -qq --no-install-recommends git-lfs
-                  }
-                  # actions/checkout writes its safe.directory entry under a HOME it
-                  # then restores, so inside the container git doesn't trust the
-                  # workspace and git-lfs exits 128 "Not in a Git repository".
-                  git config --global --add safe.directory "$PWD"
-                  git lfs install --local
-                  if ! git lfs ls-files -n | grep -q "^$PROJECT_PATH/"; then
-                    echo "::notice::No LFS-tracked files under $PROJECT_PATH — skipping"
-                    exit 0
-                  fi
-                  if [ -z "$FORGEJO_USER" ] || [ -z "$FORGEJO_TOKEN" ]; then
-                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — LFS assets would ship as pointer stubs"
-                    exit 1
-                  fi
-                  printf 'machine git.kbve.com\nlogin %s\npassword %s\n' \
-                    "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
-                  chmod 600 "$HOME/.netrc"
-                  git lfs pull -I "$PROJECT_PATH/**"
-                  # Assert the pull actually resolved: a leftover pointer is a text
-                  # file starting with the LFS spec URL. Godot imports those as
-                  # ERR_FILE_CORRUPT / refuses to load them, but the export itself
-                  # still "succeeds", so nothing else catches it.
-                  STUBS=$(git lfs ls-files -n | grep "^$PROJECT_PATH/" \
-                    | xargs -r grep -l "^version https://git-lfs" 2>/dev/null | head -5)
-                  if [ -n "$STUBS" ]; then
-                    echo "::error::LFS pointers unresolved after pull:"
-                    echo "$STUBS"
-                    exit 1
-                  fi
+                  LFS_INCLUDE: ${{ fromJSON(inputs.engine).project_path }}
+              run: bash tools/lfs/ensure.sh
             - name: Download GDExtension binaries
               if: ${{ fromJSON(inputs.engine).gdextension.package != '' }}
               uses: actions/download-artifact@v8
@@ -547,44 +545,8 @@ jobs:
               env:
                   FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
                   FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
-                  PROJECT_PATH: ${{ fromJSON(inputs.engine).project_path }}
-              run: |
-                  # git-lfs first: the LFS-presence probe needs it, and the
-                  # `:(attr:filter=lfs)` pathspec that used to answer this question
-                  # silently returns nothing in a --filter=blob:none partial clone
-                  # (no blobs, no attributes to match) — which skipped the pull and
-                  # shipped a 132-byte pointer as the macOS dylib.
-                  command -v git-lfs >/dev/null 2>&1 || {
-                    apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq && apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y -qq --no-install-recommends git-lfs
-                  }
-                  # actions/checkout writes its safe.directory entry under a HOME it
-                  # then restores, so inside the container git doesn't trust the
-                  # workspace and git-lfs exits 128 "Not in a Git repository".
-                  git config --global --add safe.directory "$PWD"
-                  git lfs install --local
-                  if ! git lfs ls-files -n | grep -q "^$PROJECT_PATH/"; then
-                    echo "::notice::No LFS-tracked files under $PROJECT_PATH — skipping"
-                    exit 0
-                  fi
-                  if [ -z "$FORGEJO_USER" ] || [ -z "$FORGEJO_TOKEN" ]; then
-                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — LFS assets would ship as pointer stubs"
-                    exit 1
-                  fi
-                  printf 'machine git.kbve.com\nlogin %s\npassword %s\n' \
-                    "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
-                  chmod 600 "$HOME/.netrc"
-                  git lfs pull -I "$PROJECT_PATH/**"
-                  # Assert the pull actually resolved: a leftover pointer is a text
-                  # file starting with the LFS spec URL. Godot imports those as
-                  # ERR_FILE_CORRUPT / refuses to load them, but the export itself
-                  # still "succeeds", so nothing else catches it.
-                  STUBS=$(git lfs ls-files -n | grep "^$PROJECT_PATH/" \
-                    | xargs -r grep -l "^version https://git-lfs" 2>/dev/null | head -5)
-                  if [ -n "$STUBS" ]; then
-                    echo "::error::LFS pointers unresolved after pull:"
-                    echo "$STUBS"
-                    exit 1
-                  fi
+                  LFS_INCLUDE: ${{ fromJSON(inputs.engine).project_path }}
+              run: bash tools/lfs/ensure.sh
             - name: Download GDExtension binaries
               if: ${{ fromJSON(inputs.engine).gdextension.package != '' }}
               uses: actions/download-artifact@v8
@@ -755,31 +717,8 @@ jobs:
               env:
                   FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
                   FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
-                  PROJECT_PATH: ${{ fromJSON(inputs.engine).project_path }}
-              run: |
-                  # Same contract as the Linux export job: a leftover pointer imports as
-                  # ERR_FILE_CORRUPT while the export still "succeeds", so the pull is
-                  # asserted rather than assumed. git-lfs ships on the macOS runner.
-                  git lfs install --local
-                  if ! git lfs ls-files -n | grep -q "^$PROJECT_PATH/"; then
-                    echo "::notice::No LFS-tracked files under $PROJECT_PATH — skipping"
-                    exit 0
-                  fi
-                  if [ -z "$FORGEJO_USER" ] || [ -z "$FORGEJO_TOKEN" ]; then
-                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — LFS assets would ship as pointer stubs"
-                    exit 1
-                  fi
-                  printf 'machine git.kbve.com\nlogin %s\npassword %s\n' \
-                    "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
-                  chmod 600 "$HOME/.netrc"
-                  git lfs pull -I "$PROJECT_PATH/**"
-                  STUBS=$(git lfs ls-files -n | grep "^$PROJECT_PATH/" \
-                    | xargs -r grep -l "^version https://git-lfs" 2>/dev/null | head -5)
-                  if [ -n "$STUBS" ]; then
-                    echo "::error::LFS pointers unresolved after pull:"
-                    echo "$STUBS"
-                    exit 1
-                  fi
+                  LFS_INCLUDE: ${{ fromJSON(inputs.engine).project_path }}
+              run: bash tools/lfs/ensure.sh
             - name: Download GDExtension binaries
               if: ${{ fromJSON(inputs.engine).gdextension.package != '' }}
               uses: actions/download-artifact@v8
@@ -1051,12 +990,6 @@ jobs:
                   name: ${{ fromJSON(inputs.engine).app_name }}-${{ steps.san.outputs.name }}
                   path: ${{ runner.temp }}/artifact
                   if-no-files-found: error
-            - name: Wipe Forgejo netrc
-              if: always()
-              # The LFS step writes the Forgejo token to $HOME/.netrc, which was
-              # discarded with the VM on a hosted runner and now outlives the job on
-              # a real machine. Same wipe ci-unity already does for the same reason.
-              run: rm -f "$HOME/.netrc"
 
     itch:
         name: Itch.io Publish

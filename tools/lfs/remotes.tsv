@@ -1,0 +1,24 @@
+# Per-game LFS remotes: name, endpoint, path prefix. Tab-separated.
+#
+# The blobs are not in one store. Each game has its own Forgejo repo, and stock
+# git-lfs reads lfs.url from the repo-root .lfsconfig only -- which names
+# KBVE/rareicon for the whole monorepo. So anything pulling or pushing another
+# game's assets has to name the endpoint itself, and this is the list it names
+# it from.
+#
+# The prefix is what the game owns: it is the pathspec for a pull and the scope
+# for `kbve.sh -lfs <game> register`. Narrower than the game's tree means blobs
+# that never upload and 404 in CI.
+#
+# Forgejo dedups content across the KBVE org, so a blob pushed to the root
+# endpoint is readable through another repo once its OID is registered there.
+# That is why a pull against the rareicon endpoint can succeed for a different
+# game's assets, and why the right fix for a 404 is `register`, not a reroute.
+chuck	https://git.kbve.com/KBVE/chuck.git/info/lfs	apps/chuckrpg/unreal-chuck
+rareicon	https://git.kbve.com/KBVE/rareicon.git/info/lfs	apps/rareicon
+rentearth	https://git.kbve.com/KBVE/rentearth.git/info/lfs	apps/rentearth/unreal-rentearth
+arpg	https://git.kbve.com/KBVE/arpg.git/info/lfs	apps/agones/arpg/web/public/assets/arcade/arpg
+cryptothrone	https://git.kbve.com/KBVE/cryptothrone.git/info/lfs	apps/cryptothrone/astro-cryptothrone/public/assets
+cleanroom	https://git.kbve.com/KBVE/cleanroom.git/info/lfs	apps/chuckrpg/unreal-cleanroom/UnrealCleanroom
+herbmail	https://git.kbve.com/KBVE/herbmail.git/info/lfs	apps/herbmail/herbmail-game
+friendslop	https://git.kbve.com/KBVE/friendslop.git/info/lfs	apps/friendslop/godot-friendslop

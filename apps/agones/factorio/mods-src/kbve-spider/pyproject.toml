@@ -6,3 +6,20 @@ requires-python = ">=3.14,<3.15"
 dependencies = [
     "pillow>=12.0,<13.0",
 ]
+
+[dependency-groups]
+dev = [
+    "ruff>=0.15,<1.0",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+# The same set packages/python/kbve names: pycodestyle errors and warnings plus
+# pyflakes. Named rather than inherited because ruff's defaults move -- 0.16
+# turns on BLE001, EXE001, I001, SIM103 and PLW1510 for a project with no
+# config, so leaving this out makes the rule set a property of whichever ruff
+# version resolved rather than a decision.
+select = ["E", "W", "F"]

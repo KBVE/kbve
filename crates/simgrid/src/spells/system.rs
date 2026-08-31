@@ -68,7 +68,7 @@ pub fn apply_spells(
     if pending.0.is_empty() {
         return;
     }
-    let drained: Vec<_> = pending.0.drain(..).collect();
+    let drained: Vec<_> = std::mem::take(&mut pending.0);
 
     let mut by_slot: HashMap<u16, Entity> = HashMap::new();
     for (entity, slot, ..) in q_players.iter() {

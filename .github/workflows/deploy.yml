@@ -1,0 +1,98 @@
+name: Deploy
+
+# Ships everything under services/ -- the deployed infrastructure that is
+# configured in this repository rather than built by it.
+#
+# The matrix comes from the project graph, not from this file: a project opts in
+# with `tags: ['service']` and a `ship` task, and tools/deploy/plan.mjs turns
+# that into the matrix below. Adding the second service is a moon.yml and no
+# edit here. `deploy-tools:lint` fails in CI if a service is tagged without a
+# ship task, so the gap shows up on the pull request rather than on main.
+#
+# This is deliberately not a job in ci.yml. That workflow is lint and test: it
+# runs on every pull request, cancels itself on a new push, and is workflow_call
+# -ed by six other workflows -- so a ship job inside it would deploy from pull
+# requests, get cancelled mid-write, and fire as a side effect of a release.
+#
+# What each service actually does lives in its own moon.yml. The only thing this
+# file knows about a specific service is its secret, below, because GitHub has
+# no way to look one up by name at runtime.
+
+on:
+    push:
+        branches: [main]
+        paths:
+            - services/**
+            - tools/deploy/**
+            - .github/workflows/deploy.yml
+    workflow_dispatch:
+        inputs:
+            project:
+                description: 'Ship one service by id. Blank = all of them.'
+                required: false
+                type: string
+
+# Never cancel a half-written deploy: a `sync push` that dies partway leaves the
+# instance holding some of the change and none of the rest.
+concurrency:
+    group: deploy
+    cancel-in-progress: false
+
+permissions:
+    contents: read
+
+jobs:
+    plan:
+        name: Plan
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        outputs:
+            matrix: ${{ steps.plan.outputs.matrix }}
+            has_work: ${{ steps.plan.outputs.has_work }}
+        steps:
+            - uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
+
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
+            - name: Build the matrix
+              id: plan
+              run: |
+                  node tools/deploy/plan.mjs \
+                    ${{ inputs.project && format('--project={0}', inputs.project) || '' }}
+
+    ship:
+        name: ship ${{ matrix.project }}
+        needs: plan
+        if: needs.plan.outputs.has_work == 'true'
+        runs-on: ${{ matrix.runner }}
+        timeout-minutes: 20
+        strategy:
+            # One service failing must not cancel another's deploy half-written.
+            fail-fast: false
+            max-parallel: 1
+            matrix:
+                include: ${{ fromJson(needs.plan.outputs.matrix) }}
+        env:
+            # GitHub cannot resolve a secret by a name computed at runtime, so
+            # every service's credential is listed here and each `ship` task
+            # reads the one it needs. An unused entry is an empty string.
+            WMILL_TOKEN: ${{ secrets.WINDMILL_SUPERADMIN_TOKEN }}
+        steps:
+            - uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
+
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
+            # Credential setup, for the services that need it. A fresh runner
+            # has no CLI config; a laptop that ran this once does.
+            - name: Configure
+              if: matrix.configure
+              run: moon run ${{ matrix.project }}:configure
+
+            - name: Ship
+              run: moon run ${{ matrix.project }}:ship

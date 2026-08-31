@@ -499,7 +499,7 @@ impl QTreeField {
                 return true;
             };
             let mut tb = terrain.bind_mut();
-            for c in self.candidates.chunks_exact(8) {
+            for c in self.candidates.as_chunks::<8>().0 {
                 tb.stamp_clearance(c[0], c[2], 0.9 + c[3] * 0.14);
             }
             tb.flush_clearance();
@@ -533,7 +533,7 @@ impl QTreeField {
 
         let mut cands: Vec<f32> = Vec::new();
         let mut ids: Vec<u64> = Vec::new();
-        for (c, id) in self.candidates.chunks_exact(8).zip(self.cand_ids.iter()) {
+        for (c, id) in self.candidates.as_chunks::<8>().0.iter().zip(self.cand_ids.iter()) {
             if c[5] as usize != i {
                 continue;
             }
@@ -933,7 +933,7 @@ impl QTreeField {
     #[func]
     fn get_tree_positions(&self, max: i32) -> PackedVector3Array {
         let mut out = PackedVector3Array::new();
-        for c in self.candidates.chunks_exact(8).take(max.max(0) as usize) {
+        for c in self.candidates.as_chunks::<8>().0.iter().take(max.max(0) as usize) {
             out.push(Vector3::new(c[0], c[1], c[2]));
         }
         out
@@ -946,7 +946,7 @@ impl QTreeField {
     fn obstacle_discs(&self) -> PackedFloat32Array {
         let scale_r = self.trunk_collider_radius / TRUNK_BUCKETS[1];
         let mut out = PackedFloat32Array::new();
-        for c in self.candidates.chunks_exact(8) {
+        for c in self.candidates.as_chunks::<8>().0 {
             out.push(c[0]);
             out.push(c[2]);
             out.push(scale_r * TRUNK_BUCKETS[trunk_bucket(c[3])]);
@@ -957,7 +957,7 @@ impl QTreeField {
     #[func]
     fn get_tree_info(&self, max: i32) -> VarArray {
         let mut out = VarArray::new();
-        for c in self.candidates.chunks_exact(8).take(max.max(0) as usize) {
+        for c in self.candidates.as_chunks::<8>().0.iter().take(max.max(0) as usize) {
             let mut d = VarDictionary::new();
             let _ = d.insert("pos", Vector3::new(c[0], c[1], c[2]));
             let _ = d.insert("scale", c[3]);
@@ -1009,7 +1009,7 @@ impl QTreeField {
         // slot's index is fixed for the life of the body and felling one later is
         // a single call instead of rebuilding the lot.
         self.shape_of.clear();
-        for (c, id) in self.candidates.chunks_exact(8).zip(self.cand_ids.iter()) {
+        for (c, id) in self.candidates.as_chunks::<8>().0.iter().zip(self.cand_ids.iter()) {
             let bi = trunk_bucket(c[3]);
             let half = TRUNK_BUCKETS[bi] * TRUNK_COLLIDER_SPAN * 0.5;
             let t = Transform3D::IDENTITY.translated(Vector3::new(c[0], c[1] + half, c[2]));

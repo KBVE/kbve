@@ -36,8 +36,10 @@
 //! let loaded: Option<Session> = store.get("sessions", "abc123").await?;
 //! ```
 
+#[cfg(feature = "bevy-plugin")]
 pub mod backend;
 pub mod error;
+#[cfg(feature = "bevy-plugin")]
 pub(crate) mod store;
 
 #[cfg(not(target_arch = "wasm32"))]

@@ -26,9 +26,52 @@ projects:
         # and every directory in it is a crate, so there are no repeated
         # basenames to collide and nothing task-less to pick up.
         - 'crates/*'
+
+        # The Unreal plugins. Same reasoning: packages/unreal is flat, every
+        # directory in it is a plugin with a .uplugin and a moon.yml, and the
+        # names are unique across the graph. They were never registered at all
+        # -- the plugin build matrix read them out of the dispatch manifest.
+        - 'packages/unreal/*'
     sources:
         # The workspace itself: whole-tree tasks that belong to no project.
         root: '.'
+
+        # Release tooling: resolves a <project>@<version> tag against the graph.
+        release-tools: 'tools/release'
+
+        # Commit message validation, and the scope lock the hook reads.
+        commit: 'tools/commit'
+
+        # Builds the deploy matrix in deploy.yml off the 'service' tag.
+        deploy-tools: 'tools/deploy'
+
+        # Docker publishing helpers, shared by the release lane.
+        docker-tools: 'tools/docker'
+
+        # LFS materialization, shared by every engine lane.
+        lfs-tools: 'tools/lfs'
+
+        # Azure DevOps checkout, for the projects hosted outside GitHub.
+        azure-tools: 'tools/azure'
+
+        # The CI face of kbve.blender; the package holds the implementation.
+        blender-tools: 'tools/blender'
+
+        # ToCloud9 images. Registered late: both had a Dockerfile and a manifest
+        # entry but no moon.yml, so neither was in the graph at all.
+        tocloud9-gameserver: 'apps/agones/tocloud9/gameserver'
+        tocloud9-services: 'apps/agones/tocloud9/services'
+
+        # The Factorio mod that is authored as mod source rather than built by a
+        # python project. Its two siblings under mods-src were already in the
+        # graph; this one was only ever named by the dispatch manifest.
+        factorio-mod-kbve: 'apps/agones/factorio/mods-local/kbve'
+
+        # The Unreal monorepo shells. Each is a version.toml and a build.toml
+        # pointing at a fork; both had a dispatch manifest entry and no moon.yml,
+        # so no release tag could name them.
+        unreal-chuck: 'apps/chuckrpg/unreal-chuck'
+        unreal-rareicon: 'apps/rareicon/unreal-rareicon'
 
         # Sites
         astro-chuckrpg: 'apps/chuckrpg/astro-chuckrpg'
@@ -59,7 +102,6 @@ projects:
 
         # Desktop shells (tauri)
         chuck-launcher: 'apps/chuckrpg/chuck-launcher'
-        deathslayer-launcher: 'apps/deathslayer/deathslayer-launcher'
         desktop-kbve: 'apps/kbve/desktop-kbve'
         isometric: 'apps/kbve/isometric'
 
@@ -73,8 +115,6 @@ projects:
         # Python (uv)
         fudster: 'packages/python/fudster'
         graphify-wrapper: 'packages/python/graphify-wrapper'
-        notification-bot: 'apps/discordsh/notification-bot'
-        pydesk: 'apps/pydesk'
         # crates/kbve owns 'kbve' in the graph, and two projects cannot share
         # an id. Only the graph cares -- the directory, the distribution and
         # `pip install kbve` all stay kbve.
@@ -133,13 +173,16 @@ projects:
         mc-velocity: 'apps/mc/velocity'
 
         # Other apps
-        angelscript: 'apps/angelscript'
+        chuckrpg-server: 'apps/chuckrpg/chuckrpg-server'
         aria2-proxy: 'apps/vm/aria2-proxy'
         arpg-web: 'apps/agones/arpg/web'
         edge: 'apps/kbve/edge'
-        esp32c6-display: 'apps/hardware/esp32c6-display'
         herbmail-game: 'apps/herbmail/herbmail-game'
         rentearth-web: 'apps/rentearth/axum-rentearth/web'
+
+        # Firmware. Top-level like crates/, but named rather than globbed:
+        # one project so far, and a glob would register any stray directory.
+        esp32c6-display: 'hardware/esp32c6-display'
 
         # Unpublished npm libraries
         chat: 'packages/npm/chat'
@@ -194,6 +237,11 @@ projects:
         # Remaining
         iot-edge-worker: 'apps/vm/iot/edge-worker'
         metrics-e2e: 'apps/metrics/e2e'
+
+        # Services: deployed infrastructure that is configured here rather than
+        # built here. windmill is the first; the tree is a wmill CLI checkout of
+        # the running instance, not an application with a build.
+        windmill: 'services/windmill'
 
 vcs:
     defaultBranch: 'dev'

@@ -18,7 +18,6 @@ apps/kbve/
 apps/kube/
 apps/memes/
 apps/postgres/
-apps/pydesk/
 
 # ── Packages not needed for discordsh ────────────────────────────────
 packages/python/

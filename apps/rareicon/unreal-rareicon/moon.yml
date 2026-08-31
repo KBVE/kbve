@@ -1,0 +1,18 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+# The monorepo shell for the RareIcon dedicated server. The Unreal project
+# itself lives in a fork; what is here is the version this repository releases
+# and the build configuration ci-unreal-build.yml reads from build.toml.
+#
+# `ue5-server` is the release lane: a server build, not a game client, so it
+# has no itch or Steam target.
+layer: 'application'
+language: 'unknown'
+tags: ['ue5-server']
+
+env:
+    # The monorepo shell ci-unreal-build.yml reads build.toml from.
+    UE_SHELL_PATH: 'apps/rareicon/unreal-rareicon'
+
+    # Not the default two-core hosted runner: an Unreal server compile.
+    CI_RUNNER: 'arc-runner-ue'

@@ -1,1 +1,0 @@
-"""PyDesk tests."""

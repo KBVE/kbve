@@ -956,7 +956,7 @@ impl QGrassField {
         let occlude = crate::world::grass_compute::occlusion_enabled()
             && !(self.terrain_heights.is_empty() && self.terrain_image.is_none());
         let mut out = Vec::with_capacity(cells.len());
-        for (i, e) in cells.chunks_exact(4).enumerate() {
+        for (i, e) in cells.as_chunks::<4>().0.iter().enumerate() {
             let ymin = ys.get(i * 2).copied().unwrap_or(-1.0e4);
             let ymax = ys.get(i * 2 + 1).copied().unwrap_or(1.0e4);
             let center = Vector3::new(e[0] + cell * 0.5, (ymin + ymax) * 0.5, e[1] + cell * 0.5);

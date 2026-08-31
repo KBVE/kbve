@@ -3,6 +3,7 @@ name = "kilobase"
 version = "17.4.1"
 edition = "2021"
 rust-version = "1.96"
+publish = false
 
 [lib]
 crate-type = ["cdylib"]

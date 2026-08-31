@@ -5,10 +5,9 @@ on:
     pull_request:
         paths:
             - 'apps/**'
-            - 'packages/rust/**'
-            - '.github/ci-dispatch-manifest.json'
+            - 'crates/**'
             - '.github/workflows/ci-godot-tests.yml'
-            - '.github/scripts/godot_test_matrix.py'
+            - 'tools/release/godot-matrix.mjs'
 
 permissions: {}
 
@@ -28,31 +27,31 @@ jobs:
             matrix: ${{ steps.pick.outputs.matrix }}
             any: ${{ steps.pick.outputs.any }}
         steps:
+            # Full history, not a sparse checkout: the matrix asks moon what a
+            # range of commits affected, and that needs the range present.
             - uses: actions/checkout@v7
               with:
-                  sparse-checkout: |
-                      .github
-                      /*
-                  sparse-checkout-cone-mode: false
+                  fetch-depth: 0
 
+            - name: Setup Node v24
+              uses: actions/setup-node@v7
+              with:
+                  node-version: 24
+
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
+            # No base on a manual dispatch, which the generator reads as "run
+            # everything". Narrowing on a bad guess would skip the suite
+            # silently, and a skipped suite looks exactly like a passing one.
             - name: Pick the projects this change touches
               id: pick
               env:
-                  GH_TOKEN: ${{ github.token }}
-                  EVENT: ${{ github.event_name }}
-                  PR: ${{ github.event.pull_request.number }}
-                  REPO: ${{ github.repository }}
+                  BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
+                  HEAD: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || '' }}
               run: |
                   set -euo pipefail
-                  if [ "$EVENT" = "pull_request" ]; then
-                    gh api "repos/$REPO/pulls/$PR/files" --paginate --jq '.[].filename' > changed.txt
-                    echo "::notice::$(wc -l < changed.txt) files changed"
-                  else
-                    : > changed.txt
-                  fi
-                  ALL=$([ "$EVENT" = "pull_request" ] && echo 0 || echo 1) \
-                    python3 .github/scripts/godot_test_matrix.py \
-                      .github/ci-dispatch-manifest.json changed.txt > matrix.json
+                  node tools/release/godot-matrix.mjs "$BASE" "$HEAD" > matrix.json
                   cat matrix.json
                   echo "matrix=$(cat matrix.json)" >> "$GITHUB_OUTPUT"
                   if [ "$(cat matrix.json)" = "[]" ]; then
@@ -172,43 +171,8 @@ jobs:
               env:
                   FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
                   FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
-                  PROJECT_PATH: ${{ matrix.project_path }}
-              run: |
-                  set -euo pipefail
-                  command -v git-lfs >/dev/null 2>&1 || {
-                    apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq && apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y -qq --no-install-recommends git-lfs
-                  }
-                  git config --global --add safe.directory "$PWD"
-                  git lfs install --local
-                  # Listed once into a file rather than piped. `git lfs ls-files | grep -q`
-                  # is a trap under pipefail: grep leaves on its first match, git-lfs dies
-                  # of SIGPIPE part way through a listing of every LFS file in the
-                  # monorepo, and the pipeline reports 141 -- read here as "nothing tracked
-                  # under this project" for a project with 268 files, so the pull was
-                  # skipped and the suite met pointer stubs where the fonts should be.
-                  git lfs ls-files -n > /tmp/lfs-files.txt
-                  if ! grep -q "^$PROJECT_PATH/" /tmp/lfs-files.txt; then
-                    echo "::notice::No LFS-tracked files under $PROJECT_PATH — skipping"
-                    exit 0
-                  fi
-                  if [ -z "$FORGEJO_USER" ] || [ -z "$FORGEJO_TOKEN" ]; then
-                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — the asset suites would crash on pointer stubs"
-                    exit 1
-                  fi
-                  printf 'machine git.kbve.com\nlogin %s\npassword %s\n' \
-                    "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
-                  chmod 600 "$HOME/.netrc"
-                  git lfs pull -I "$PROJECT_PATH/**"
-                  # A leftover pointer is a text file starting with the LFS spec URL. Godot
-                  # imports those as ERR_FILE_CORRUPT, and a stubbed font takes the engine
-                  # down with a signal rather than a message worth reading.
-                  STUBS=$(grep "^$PROJECT_PATH/" /tmp/lfs-files.txt \
-                    | xargs -r grep -l "^version https://git-lfs" 2>/dev/null || true)
-                  if [ -n "$STUBS" ]; then
-                    echo "::error::LFS pointers unresolved after pull:"
-                    printf '%s\n' "$STUBS" | head -5
-                    exit 1
-                  fi
+                  LFS_INCLUDE: ${{ matrix.project_path }}
+              run: bash tools/lfs/ensure.sh
 
             - name: Download GDExtension
               if: ${{ matrix.package != '' }}

@@ -316,10 +316,8 @@ impl QFloraField {
             .done();
         rs.multimesh_set_mesh(mm, mesh);
         let mut buf: Vec<f32> = Vec::with_capacity(count * 16);
-        for c in self.candidates.chunks_exact(8) {
-            let &[x, y, z, s, rank, kind, phase, _] = c else {
-                continue;
-            };
+        for c in self.candidates.as_chunks::<8>().0 {
+            let &[x, y, z, s, rank, kind, phase, _] = c;
             buf.extend_from_slice(&[
                 s, 0.0, 0.0, x, 0.0, s, 0.0, y, 0.0, 0.0, s, z, rank, kind, phase, 0.0,
             ]);

@@ -12,8 +12,12 @@ on:
                 required: true
                 type: string
             version_toml_path:
-                description: 'Path to version.toml'
-                required: true
+                description: >-
+                    Path to version.toml. Optional: a tag-driven release has the
+                    version committed and verified before it runs, so it asks for
+                    the deployment pin alone and leaves this empty.
+                required: false
+                default: ''
                 type: string
             version_target_path:
                 description: 'Path to Cargo.toml/package.json/.csproj to sync version into'
@@ -137,7 +141,11 @@ jobs:
                   token: ${{ secrets.TRIGGER_PAT }}
 
             # ── Version file updates ─────────────────────────────────────────
+            # Skipped for a tag-driven release: version.toml is hand-edited and
+            # was committed before the tag that verified it, so writing it back
+            # here would fight the person who set it.
             - name: Update version.toml
+              if: ${{ inputs.version_toml_path != '' }}
               run: |
                   VTOML="${{ inputs.version_toml_path }}"
                   VERSION="${{ steps.validate.outputs.version }}"
@@ -266,6 +274,8 @@ jobs:
               env:
                   DEPLOYMENT_YAMLS_JSON: ${{ inputs.deployment_yamls }}
               run: |
+                  # Empty when only the deployment pin was asked for, which is
+                  # why this starts from the input rather than assuming it.
                   EXPECTED_FILES="${{ inputs.version_toml_path }}"
                   if [ -n "${{ inputs.version_target_path }}" ]; then
                     EXPECTED_FILES="$EXPECTED_FILES ${{ inputs.version_target_path }}"

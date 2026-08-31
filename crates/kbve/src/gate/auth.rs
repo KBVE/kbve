@@ -55,11 +55,10 @@ pub fn validate_token(token: &str, secret: &str) -> Result<TokenData<Claims>, Au
     validation.validate_exp = true;
     validation.validate_aud = false;
 
-    if let Ok(issuer) = std::env::var("SUPABASE_JWT_ISSUER") {
-        if !issuer.trim().is_empty() {
+    if let Ok(issuer) = std::env::var("SUPABASE_JWT_ISSUER")
+        && !issuer.trim().is_empty() {
             validation.set_issuer(&[issuer]);
         }
-    }
 
     decode::<Claims>(token, &key, &validation).map_err(|e| match e.kind() {
         jsonwebtoken::errors::ErrorKind::ExpiredSignature => AuthError::TokenExpired,
@@ -74,8 +73,8 @@ pub fn extract_token(
     cookie_header: Option<&str>,
     query: Option<&str>,
 ) -> Option<String> {
-    if let Some(h) = auth_header {
-        if let Some(t) = h
+    if let Some(h) = auth_header
+        && let Some(t) = h
             .strip_prefix("Bearer ")
             .or_else(|| h.strip_prefix("bearer "))
         {
@@ -84,7 +83,6 @@ pub fn extract_token(
                 return Some(t.to_string());
             }
         }
-    }
 
     if let Some(c) = cookie_header {
         for name in [SB_ACCESS_TOKEN_COOKIE, GATE_SESSION_COOKIE] {
@@ -97,13 +95,11 @@ pub fn extract_token(
         }
     }
 
-    if let Some(q) = query {
-        if let Some(v) = query_param(q, "access_token") {
-            if !v.is_empty() {
+    if let Some(q) = query
+        && let Some(v) = query_param(q, "access_token")
+            && !v.is_empty() {
                 return Some(v);
             }
-        }
-    }
 
     None
 }
@@ -117,22 +113,20 @@ pub fn access_token_in_query(query: &str) -> Option<String> {
 fn cookie_value<'a>(cookie_header: &'a str, name: &str) -> Option<&'a str> {
     for pair in cookie_header.split(';') {
         let pair = pair.trim();
-        if let Some((k, v)) = pair.split_once('=') {
-            if k == name {
+        if let Some((k, v)) = pair.split_once('=')
+            && k == name {
                 return Some(v);
             }
-        }
     }
     None
 }
 
 fn query_param(query: &str, key: &str) -> Option<String> {
     for pair in query.split('&') {
-        if let Some((k, v)) = pair.split_once('=') {
-            if k == key {
+        if let Some((k, v)) = pair.split_once('=')
+            && k == key {
                 return Some(v.to_string());
             }
-        }
     }
     None
 }
@@ -221,13 +215,11 @@ impl StaffGate {
     /// Mint (and cache, re-minting before expiry) a `service_role` bearer.
     fn service_bearer(&self) -> Result<String, AuthError> {
         let now = Self::now();
-        if let Ok(guard) = self.service_token.lock() {
-            if let Some((tok, exp)) = guard.as_ref() {
-                if now + 30 < *exp {
+        if let Ok(guard) = self.service_token.lock()
+            && let Some((tok, exp)) = guard.as_ref()
+                && now + 30 < *exp {
                     return Ok(tok.clone());
                 }
-            }
-        }
 
         let exp = now + 600;
         let claims = ServiceClaims {
@@ -250,13 +242,11 @@ impl StaffGate {
     }
 
     pub async fn is_staff(&self, user_id: &str) -> Result<bool, AuthError> {
-        if let Ok(mut cache) = self.cache.lock() {
-            if let Some(&(val, exp)) = cache.get(user_id) {
-                if Self::now() < exp {
+        if let Ok(mut cache) = self.cache.lock()
+            && let Some(&(val, exp)) = cache.get(user_id)
+                && Self::now() < exp {
                     return Ok(val);
                 }
-            }
-        }
 
         let val = match self.query_is_staff(user_id).await {
             Ok(v) => v,

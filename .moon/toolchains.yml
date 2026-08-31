@@ -43,3 +43,10 @@ rust:
     components:
         - 'clippy'
         - 'rustfmt'
+    # hardware/esp32c6-display cross-compiles to the ESP32-C6, and its
+    # .cargo/config.toml sets that target for every cargo invocation in the
+    # directory. Without the target installed its clippy fails at "can't find
+    # crate for `core`" -- which reads as a broken crate rather than a missing
+    # rustup component, and would have failed `moon ci` on a fresh runner.
+    targets:
+        - 'riscv32imac-unknown-none-elf'

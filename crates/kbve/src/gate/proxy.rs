@@ -314,8 +314,8 @@ fn deny(
         if bounced && is_navigation(headers) {
             return loop_break_page(msg);
         }
-        if let Some(target) = &state.cfg.login_redirect {
-            if is_navigation(headers) {
+        if let Some(target) = &state.cfg.login_redirect
+            && is_navigation(headers) {
                 if !is_bounceable(ext_url) {
                     warn_unbounceable(ext_url);
                 }
@@ -325,7 +325,6 @@ fn deny(
                 let location = format!("{target}{sep}redirect_to={enc}");
                 return redirect(&location, None);
             }
-        }
     }
     if status == StatusCode::FORBIDDEN && is_navigation(headers) {
         return forbidden_page();
@@ -385,6 +384,13 @@ fn loop_break_page(reason: &str) -> Response {
 }
 
 /// Validate the JWT and apply the authz policy. Returns the token `exp` on pass.
+///
+/// The error is the response to send, which is the axum pattern: a failure here
+/// has already decided its status and body. clippy wants that boxed because it
+/// is 128 bytes, but boxing it would put an allocation on the rejection path
+/// and a deref at every call site to buy back stack that this async fn is not
+/// short of.
+#[allow(clippy::result_large_err)]
 async fn authorize(
     state: &GateState,
     headers: &HeaderMap,
@@ -498,11 +504,10 @@ async fn gate_handler(State(state): State<Arc<GateState>>, req: Request<Body>) -
     // Token arrived in the URL (post-login bounce): convert it to a session
     // cookie and redirect to a clean URL. Skipped for WebSocket upgrades, which
     // carry the token in the cookie the browser already holds.
-    if !is_websocket_upgrade(&headers) {
-        if let Some(token) = query.as_deref().and_then(access_token_in_query) {
+    if !is_websocket_upgrade(&headers)
+        && let Some(token) = query.as_deref().and_then(access_token_in_query) {
             return cookie_land(&state, req.uri(), &token, exp);
         }
-    }
 
     // Windmill bridge: swap the gate identity for a per-user upstream token so
     // Windmill sees the request as that user (its CE build has no custom SSO).
@@ -577,13 +582,11 @@ fn sanitize_cookies(headers: &mut HeaderMap) {
         .and_then(|v| v.to_str().ok())
         .map(strip_gate_cookies);
     headers.remove(header::COOKIE);
-    if let Some(kept) = kept {
-        if !kept.is_empty() {
-            if let Ok(v) = HeaderValue::from_str(&kept) {
+    if let Some(kept) = kept
+        && !kept.is_empty()
+            && let Ok(v) = HeaderValue::from_str(&kept) {
                 headers.insert(header::COOKIE, v);
             }
-        }
-    }
 }
 
 fn upstream_uri(upstream: &str, prefix: &str, uri: &Uri) -> String {
@@ -613,21 +616,18 @@ fn inject_upstream_auth(
     user: &str,
     bearer_override: Option<&str>,
 ) {
-    if let Some(basic) = &state.cfg.upstream_basic {
-        if let Ok(v) = HeaderValue::from_str(basic) {
+    if let Some(basic) = &state.cfg.upstream_basic
+        && let Ok(v) = HeaderValue::from_str(basic) {
             headers.insert(header::AUTHORIZATION, v);
         }
-    }
-    if let Some(bearer) = &state.cfg.upstream_bearer {
-        if let Ok(v) = HeaderValue::from_str(&format!("Bearer {bearer}")) {
+    if let Some(bearer) = &state.cfg.upstream_bearer
+        && let Ok(v) = HeaderValue::from_str(&format!("Bearer {bearer}")) {
             headers.insert(header::AUTHORIZATION, v);
         }
-    }
-    if let Some(bearer) = bearer_override {
-        if let Ok(v) = HeaderValue::from_str(&format!("Bearer {bearer}")) {
+    if let Some(bearer) = bearer_override
+        && let Ok(v) = HeaderValue::from_str(&format!("Bearer {bearer}")) {
             headers.insert(header::AUTHORIZATION, v);
         }
-    }
     if let Some(name) = &state.cfg.forward_user_header {
         let value = state.cfg.forward_user_value.as_deref().unwrap_or(user);
         if let (Ok(hn), Ok(hv)) = (
@@ -708,11 +708,10 @@ async fn forward_http(
         .get(header::LOCATION)
         .and_then(|v| v.to_str().ok())
         .and_then(|loc| rewrite_location(loc, &state.cfg.upstream_prefix));
-    if let Some(loc) = rewritten {
-        if let Ok(v) = HeaderValue::from_str(&loc) {
+    if let Some(loc) = rewritten
+        && let Ok(v) = HeaderValue::from_str(&loc) {
             out_headers.insert(header::LOCATION, v);
         }
-    }
 
     let body = Body::from_stream(resp.bytes_stream());
     let mut builder = Response::builder().status(status);

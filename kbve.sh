@@ -29,6 +29,10 @@
 
 # Script Configuration
 
+# Absolute path to this script's directory, so helpers under tools/ resolve
+# regardless of where the script is invoked from.
+KBVE_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
 
 # Install a brew package if the command is not already available
 brew_install() {
@@ -1003,14 +1007,6 @@ kbve_lfs() {
         cat <<'EOF'
 Usage: ./kbve.sh -lfs <game> <lfs-subcommand> [args...]
 
-Games:
-  chuck      → https://git.kbve.com/KBVE/chuck.git/info/lfs
-  rareicon   → https://git.kbve.com/KBVE/rareicon.git/info/lfs
-  rentearth  → https://git.kbve.com/KBVE/rentearth.git/info/lfs
-  arpg       → https://git.kbve.com/KBVE/arpg.git/info/lfs
-  cryptothrone → https://git.kbve.com/KBVE/cryptothrone.git/info/lfs
-  friendslop → https://git.kbve.com/KBVE/friendslop.git/info/lfs
-
 Standard subcommands forwarded to `git lfs`:
   push|pull|fetch|ls-files|env|...
 
@@ -1050,48 +1046,19 @@ Examples:
   ./kbve.sh -lfs cleanroom ssh-push forgejo-archive dev
   ./kbve.sh -lfs cleanroom direct-push forgejo-archive dev
 EOF
+        echo "Games:"
+        while IFS=$'\t' read -r g u _; do
+            case "$g" in '' | '#'*) continue ;; esac
+            printf '  %-13s → %s\n' "$g" "$u"
+        done < "$KBVE_ROOT/tools/lfs/remotes.tsv"
         return 1
     fi
 
+    # The map is data, in tools/lfs/remotes.tsv, so adding a game does not mean
+    # editing this script -- which the docker publish path shells out to.
     local url path_prefix
-    case "$game" in
-        chuck)
-            url="https://git.kbve.com/KBVE/chuck.git/info/lfs"
-            path_prefix="apps/chuckrpg/unreal-chuck"
-            ;;
-        rareicon)
-            url="https://git.kbve.com/KBVE/rareicon.git/info/lfs"
-            path_prefix="apps/rareicon"
-            ;;
-        rentearth)
-            url="https://git.kbve.com/KBVE/rentearth.git/info/lfs"
-            path_prefix="apps/rentearth/unreal-rentearth"
-            ;;
-        arpg)
-            url="https://git.kbve.com/KBVE/arpg.git/info/lfs"
-            path_prefix="apps/agones/arpg/web/public/assets/arcade/arpg"
-            ;;
-        cryptothrone)
-            url="https://git.kbve.com/KBVE/cryptothrone.git/info/lfs"
-            path_prefix="apps/cryptothrone/astro-cryptothrone/public/assets"
-            ;;
-        cleanroom)
-            url="https://git.kbve.com/KBVE/cleanroom.git/info/lfs"
-            path_prefix="apps/chuckrpg/unreal-cleanroom/UnrealCleanroom"
-            ;;
-        herbmail)
-            url="https://git.kbve.com/KBVE/herbmail.git/info/lfs"
-            path_prefix="apps/herbmail/herbmail-game"
-            ;;
-        friendslop)
-            url="https://git.kbve.com/KBVE/friendslop.git/info/lfs"
-            path_prefix="apps/friendslop/godot-friendslop"
-            ;;
-        *)
-            echo "Unknown game '$game'. Known: chuck, rareicon, rentearth, arpg, cryptothrone, cleanroom, herbmail, friendslop" >&2
-            return 1
-            ;;
-    esac
+    url=$("$KBVE_ROOT/tools/lfs/remotes.sh" url "$game") || return 1
+    path_prefix=$("$KBVE_ROOT/tools/lfs/remotes.sh" path "$game")
 
     if [ $# -eq 0 ]; then
         echo "Missing lfs subcommand (e.g. push, pull, fetch, ls-files, register)." >&2

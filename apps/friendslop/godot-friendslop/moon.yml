@@ -11,9 +11,18 @@ stack: 'frontend'
 #
 # Every task shells out to scripts/godot.sh, which resolves the engine binary;
 # proto pins godot in workspace/.prototools upstream and would do the same here.
-tags: ['lfs']
-
+tags: ['lfs', 'godot']
 env:
+    # The engine configuration this project builds with. JSON rather than
+    # a key per field: it is nested and list-valued, and the build
+    # workflows already take it in exactly this shape -- it was the
+    # dispatch manifest's `engine` block, moved beside the project.
+    ENGINE_CONFIG: '{"version":"4.7.1","project_path":"apps/friendslop/godot-friendslop","build_targets":["Windows Desktop","macOS","Linux"],"features":["net-godot"],"gdextension":{"package":"q","addon_path":"addons/q"}}'
+    # Where a release of this project publishes to, declared beside the
+    # project. This was the `external_publish` blob of its dispatch manifest
+    # entry; release.yml reads it off the graph.
+    ITCH_GAME: 'friendslop'
+    ITCH_USER: 'kbve'
     LFS_REMOTE: 'friendslop'
 
 dependsOn: ['q']
@@ -45,11 +54,20 @@ tasks:
         script: 'bash scripts/godot.sh --editor .'
         preset: 'server'
 
+    # Out of the shared CI pipeline, which checks out without LFS. A Godot
+    # project whose assets are pointer stubs does not fail a test: the asset
+    # scan takes a signal partway through reimport, so the job dies before a
+    # single test runs and reports nothing about why. ci-godot.yml runs both of
+    # these by name, with the LFS pull and the Forgejo credentials they need.
     test:
         script: 'bash scripts/test.sh'
+        options:
+            runInCI: false
 
     test-smoke:
         script: 'bash scripts/godot.sh --headless -s tests/smoke_ecs.gd'
+        options:
+            runInCI: false
 
     export-windows:
         script: 'mkdir -p $workspaceRoot/dist/apps/friendslop/windows && bash scripts/godot.sh --headless --export-release "Windows Desktop"'

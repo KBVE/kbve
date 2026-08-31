@@ -13,13 +13,13 @@ on:
         branches: [main, dev]
         paths:
             - 'apps/mc/Dockerfile.mods'
-            - 'apps/mc/project.json'
+            - 'apps/mc/moon.yml'
             - '.github/workflows/ci-mc-mods-cache.yml'
     pull_request:
         branches: [main, dev]
         paths:
             - 'apps/mc/Dockerfile.mods'
-            - 'apps/mc/project.json'
+            - 'apps/mc/moon.yml'
             - '.github/workflows/ci-mc-mods-cache.yml'
 
 concurrency:

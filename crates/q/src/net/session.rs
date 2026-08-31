@@ -629,7 +629,7 @@ impl<T: Transport> HostSession<T> {
 
     /// True where a prop stands, with room for the body that would be put there.
     fn blocked(&self, x: f32, z: f32) -> bool {
-        self.obstacles.chunks_exact(3).any(|disc| {
+        self.obstacles.as_chunks::<3>().0.iter().any(|disc| {
             let clearance = disc[2] + SPAWN_CLEARANCE;
             let (dx, dz) = (x - disc[0], z - disc[1]);
             dx * dx + dz * dz < clearance * clearance
@@ -2014,7 +2014,7 @@ impl<T: Transport> ClientSession<T> {
                     let replay = Ledger::from_flat(&flat);
                     // Every entry becomes an event too: the fields were built
                     // before this arrived and have no other way to learn of it.
-                    for c in flat.chunks_exact(3) {
+                    for c in flat.as_chunks::<3>().0 {
                         let id = c[0] as u64 | ((c[1] as u64) << 32);
                         self.harvest_events.push(HarvestEvent {
                             target,
