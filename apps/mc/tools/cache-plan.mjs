@@ -44,7 +44,7 @@ const LAYERS = {
 };
 
 // The task definitions live here, so a change to them can invalidate either.
-const ALL = ['apps/mc/moon.yml', 'apps/mc/tools/cache-plan.mjs', '.github/workflows/ci-mc-cache.yml'];
+const ALL = ['apps/mc/moon.yml', 'apps/mc/tools/cache-plan.mjs', '.github/workflows/ci-mc.yml'];
 
 const requested = process.env.LAYER_INPUT?.trim();
 const base = process.env.BASE_SHA?.trim();
