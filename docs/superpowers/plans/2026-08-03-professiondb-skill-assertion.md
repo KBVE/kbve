@@ -31,21 +31,24 @@
 ## Task 1: `validate_skill_refs` + axum startup assertion
 
 **Files:**
+
 - Modify: `packages/rust/bevy/bevy_items/src/profession.rs` (add the method + unit tests).
 - Modify: `apps/kbve/axum-kbve/src/gameserver/mod.rs` (add the system + wire it).
 
 **Interfaces:**
+
 - Produces: `impl ProfessionDb { pub fn validate_skill_refs<F: Fn(&str) -> bool>(&self, is_known: F) -> Result<(), Vec<String>> }` — returns `Err(sorted_unique_missing)` if any gather `skill_ref` fails `is_known`, else `Ok(())`.
 
 - [ ] **Step 1: Write failing tests** (in `profession.rs`'s `#[cfg(test)] mod tests`, or add one). Use `ProfessionDb::from_json` with a minimal inline professiondb JSON containing at least one `gather-*` action whose profession `ref` is the skill_ref. Two tests:
-  - `validate_skill_refs_ok_when_all_known`: build a db, call `validate_skill_refs(|r| r == "mining")` for a db whose only gather skill_ref is `mining` → assert `Ok(())`.
-  - `validate_skill_refs_reports_missing`: same db, call `validate_skill_refs(|_| false)` → assert `Err(v)` where `v == vec!["mining".to_string()]` (sorted, deduped).
-  Derive the exact minimal JSON shape from `from_json`'s `RawRoot`/`RawProfession`/`RawAction` structs in the same file (match their serde field names — e.g. `ref`, `actions`, `outputs`, `itemRef`). If constructing valid JSON for `from_json` is impractical, instead build the `ProfessionDb` via `from_json` with the smallest JSON that yields one gather entry, and assert on that. Keep the fixture tiny.
+    - `validate_skill_refs_ok_when_all_known`: build a db, call `validate_skill_refs(|r| r == "mining")` for a db whose only gather skill_ref is `mining` → assert `Ok(())`.
+    - `validate_skill_refs_reports_missing`: same db, call `validate_skill_refs(|_| false)` → assert `Err(v)` where `v == vec!["mining".to_string()]` (sorted, deduped).
+      Derive the exact minimal JSON shape from `from_json`'s `RawRoot`/`RawProfession`/`RawAction` structs in the same file (match their serde field names — e.g. `ref`, `actions`, `outputs`, `itemRef`). If constructing valid JSON for `from_json` is impractical, instead build the `ProfessionDb` via `from_json` with the smallest JSON that yields one gather entry, and assert on that. Keep the fixture tiny.
 
 - [ ] **Step 2: Run tests, verify they FAIL** (method not defined):
-  `npx nx run bevy_items:test 2>&1 | tail -20` (fallback `cargo test -p bevy_items validate_skill_refs`). Expect compile error / failing tests.
+      `moon run bevy_items:test 2>&1 | tail -20` (fallback `cargo test -p bevy_items validate_skill_refs`). Expect compile error / failing tests.
 
 - [ ] **Step 3: Implement the method** on `ProfessionDb` in `profession.rs`:
+
 ```rust
     pub fn validate_skill_refs<F: Fn(&str) -> bool>(&self, is_known: F) -> Result<(), Vec<String>> {
         let mut missing: Vec<String> = self
@@ -65,9 +68,10 @@
 ```
 
 - [ ] **Step 4: Run tests, verify they PASS:**
-  `npx nx run bevy_items:test 2>&1 | tail -20` (fallback `cargo test -p bevy_items validate_skill_refs`). Both pass.
+      `moon run bevy_items:test 2>&1 | tail -20` (fallback `cargo test -p bevy_items validate_skill_refs`). Both pass.
 
 - [ ] **Step 5: Add the axum startup system** in `apps/kbve/axum-kbve/src/gameserver/mod.rs`, near `register_server_skills`. Confirm the exact import paths already in the file for `SkillRegistry` and `get_profession_db` and reuse them (do not add duplicate `use`s):
+
 ```rust
 fn validate_professiondb_skills(registry: Res<SkillRegistry>) {
     let Some(db) = get_profession_db() else {
@@ -85,24 +89,28 @@ fn validate_professiondb_skills(registry: Res<SkillRegistry>) {
     }
 }
 ```
+
 (Match the file's actual `Res`/`Startup` import style — if it uses `bevy::prelude::*`, no new import is needed; otherwise add `Res` from the same path the file already imports Bevy ECS types.)
 
 - [ ] **Step 6: Wire it** — where `app.add_systems(Startup, register_server_skills)` is registered, add the validator ordered after it:
+
 ```rust
     app.add_systems(
         Startup,
         validate_professiondb_skills.after(register_server_skills),
     );
 ```
+
 (If the existing line already groups Startup systems in a tuple, add `validate_professiondb_skills.after(register_server_skills)` to that tuple instead of a second `add_systems` call — match the file's existing pattern. Ensure `.after` is available — `IntoSystemConfigs`/`bevy::prelude::*` is already in scope for the existing `add_systems`.)
 
 - [ ] **Step 7: Compile-gate axum:**
-  `npx nx run axum-kbve:check-desktop 2>&1 | tail -20` (fallback `cargo check -p axum-kbve` from workspace root). Passes.
+      `moon run axum-kbve:check-desktop 2>&1 | tail -20` (fallback `cargo check -p axum-kbve` from workspace root). Passes.
 
 - [ ] **Step 8: Full bevy_items test + clippy sanity:**
-  `npx nx run bevy_items:test 2>&1 | tail -10` passes. If a lint target exists, run it; otherwise skip.
+      `moon run bevy_items:test 2>&1 | tail -10` passes. If a lint target exists, run it; otherwise skip.
 
 - [ ] **Step 9: Commit:**
+
 ```bash
 git add packages/rust/bevy/bevy_items/src/profession.rs apps/kbve/axum-kbve/src/gameserver/mod.rs
 git commit -m "feat(axum): assert professiondb gather skill_refs resolve in SkillRegistry at startup"
@@ -110,7 +118,7 @@ git commit -m "feat(axum): assert professiondb gather skill_refs resolve in Skil
 
 ## Task 2: gate + push + PR
 
-- [ ] **Step 1:** Re-run `npx nx run bevy_items:test` + `npx nx run axum-kbve:check-desktop` — both green. `git status --porcelain` clean.
+- [ ] **Step 1:** Re-run `moon run bevy_items:test` + `moon run axum-kbve:check-desktop` — both green. `git status --porcelain` clean.
 - [ ] **Step 2:** Push `git push -u origin trunk/professiondb-skill-assertion`.
 - [ ] **Step 3:** PR `--base dev`, title `feat(axum): assert professiondb gather skill_refs resolve in SkillRegistry`. Body: this is B2 from the professiondb epic — a fail-loud startup guard (passes today 3/3, trips on future drift); `bevy_items` gained no `bevy_skills` dep (resolver closure); compress skill_refs not validated (no field); the deeper "source SkillRegistry FROM professiondb" refactor is a deferred follow-up.
 

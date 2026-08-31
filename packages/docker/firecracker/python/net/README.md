@@ -24,14 +24,14 @@ For sandbox quick-mode VMs (no network, public exec), keep using the no-network 
 ## Build
 
 ```bash
-npx nx run firecracker-python-net:container
-npx nx run firecracker-python-net:extract
+moon run firecracker-python-net:container
+moon run firecracker-python-net:extract
 ```
 
 ## Publish (CI)
 
 ```bash
-npx nx run firecracker-python-net:container:production
+moon run firecracker-python-net:container-production
 ```
 
 Pushes `ghcr.io/kbve/firecracker-python-net:latest` and `:<version>`.

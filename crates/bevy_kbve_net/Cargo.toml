@@ -1,0 +1,51 @@
+[package]
+name = "bevy_kbve_net"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Shared lightyear protocol for KBVE multiplayer — replicated components, inputs, channels"
+homepage = "https://kbve.com/"
+repository.workspace = true
+keywords = ["bevy", "lightyear", "multiplayer", "networking", "gamedev"]
+categories = ["game-development", "game-engines", "network-programming"]
+readme = "README.md"
+
+[features]
+default = []
+npcdb = ["bevy_npc/creature"]
+client = ["lightyear/client", "lightyear/websocket", "lightyear/webtransport", "lightyear/udp", "dep:aeronet_webtransport", "dep:lightyear_aeronet"]
+creatures = ["npcdb", "dep:bevy_tasker", "dep:crossbeam-channel", "dep:dashmap"]
+
+[dependencies]
+bevy = { workspace = true, features = ["bevy_state", "bevy_render"] }
+lightyear = { workspace = true, features = ["replication", "prediction", "interpolation", "input_native", "netcode"] }
+avian3d = { workspace = true, features = ["3d", "f32", "parry-f32", "serialize"] }
+serde = { workspace = true, features = ["derive"] }
+base64 = { workspace = true }
+hex = { workspace = true }
+bevy_npc = { version = "0.1", path = "../bevy_npc", optional = true }
+aeronet_webtransport = { version = "0.21", optional = true }
+lightyear_aeronet = { version = "0.29", optional = true }
+bevy_tasker = { version = "0.1", path = "../bevy_tasker", optional = true }
+crossbeam-channel = { workspace = true, optional = true }
+dashmap = { workspace = true, optional = true }
+ulid = { workspace = true, features = ["serde"] }
+bytes = { workspace = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom_02 = { package = "getrandom", version = "0.2", features = ["js"] }
+getrandom_03 = { package = "getrandom", version = "0.3", features = ["wasm_js"] }
+getrandom_04 = { package = "getrandom", version = "0.4", features = ["wasm_js"] }
+wasm-bindgen = { workspace = true, features = ["default"] }
+web-sys = { workspace = true, features = ["WebSocket", "BinaryType", "MessageEvent", "CloseEvent", "Event"] }
+js-sys = { workspace = true, features = ["default"] }
+
+# `client` pulls lightyear/udp which doesn't compile on wasm32. Use the
+# creatures feature set for cross-target docs; client docs ride along on
+# the linux target via all-features in CI builds, not on docs.rs.
+[package.metadata.docs.rs]
+features = ["creatures"]
+targets = ["x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
+rustdoc-args = ["--cfg", "docsrs"]

@@ -3,7 +3,7 @@ $schema: 'https://moonrepo.dev/schemas/project.json'
 layer: 'application'
 language: 'typescript'
 stack: 'frontend'
-tags: ['tauri']
+tags: ['tauri', 'eslint']
 
 env:
     TAURI_DEV_PORT: '1420'
@@ -41,3 +41,18 @@ tasks:
         command: 'cargo run -p isometric-game'
         options:
             runFromWorkspaceRoot: true
+
+    # The dev loop for the WASM client: free the port, make sure the local TLS
+    # certificate has a day left on it, rebuild the wasm, then serve. Uncached
+    # and long-running by nature.
+    wasm:
+        script: >-
+            lsof -ti:1420 | xargs kill 2>/dev/null || true
+            ; mkdir -p certificates
+            && (openssl x509 -checkend 86400 -noout -in certificates/cert.pem 2>/dev/null
+                || mkcert -cert-file certificates/cert.pem -key-file certificates/key.pem localhost 127.0.0.1)
+            && export PATH="$HOME/.cargo/bin:$PATH" && pnpm build:wasm
+            && GAME_API_TARGET=https://kbve.com pnpm dev
+        options:
+            cache: false
+            persistent: true

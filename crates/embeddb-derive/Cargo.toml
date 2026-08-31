@@ -1,0 +1,17 @@
+[package]
+name = "embeddb-derive"
+version = "0.1.1"
+edition.workspace = true
+description = "derive macro for embeddb FromEmbedRow"
+license.workspace = true
+homepage = "https://kbve.com/application/rust/#embeddb-derive"
+repository.workspace = true
+rust-version.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { workspace = true, features = ["full"] }
+quote = { workspace = true }
+proc-macro2 = { workspace = true }

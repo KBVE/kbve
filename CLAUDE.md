@@ -1,39 +1,29 @@
-<!-- nx configuration start-->
-<!-- Leave the start & end comments to automatically receive updates. -->
+# General Guidelines for working with moon
 
-# General Guidelines for working with Nx
+- Run tasks through moon (`moon run <project>:<task>`, `moon check`, `moon ci`) rather than the underlying tool directly. The task config carries the inputs, outputs and dependencies that make a run cacheable and correct.
+- `moon query projects` and `moon query tasks` answer "what exists" as JSON; `moon project <id>` and `moon task <target>` explain one of them. Prefer these over reading config files by hand.
+- A task id spells a colon as a hyphen. Nx's `astro-kbve:sync:itemdb` is `astro-kbve:sync-itemdb`.
+- `moon project-graph` and `moon task-graph` open the graphs. `moon clean` clears the cache.
+- NEVER guess CLI flags — check `--help` first.
 
-- For navigating/exploring the workspace, invoke the `nx-workspace` skill first - it has patterns for querying projects, targets, and dependencies
-- When running tasks (for example build, lint, test, e2e, etc.), always prefer running the task through `nx` (i.e. `nx run`, `nx run-many`, `nx affected`) instead of using the underlying tooling directly
-- Prefix nx commands with the workspace's package manager (e.g., `pnpm nx build`, `npm exec nx test`) - avoids using globally installed CLI
-- You have access to the Nx MCP server and its tools, use them to help the user
-- For Nx plugin best practices, check `node_modules/@nx/<plugin>/PLUGIN.md`. Not all plugins have this file - proceed without it if unavailable.
-- NEVER guess CLI flags - always check nx_docs or `--help` first when unsure
+## Where configuration lives
 
-## Scaffolding & Generators
+- `.moon/workspace.yml` — the project graph. Everything outside `crates/` is named explicitly; read the comment there before adding a glob.
+- `.moon/toolchains.yml` — node, pnpm, rust and the typescript/javascript layers.
+- `.moon/tasks/*.yml` — the presets. A file's `inheritedBy` is either a tag (`astro`, `docker`, `npm`, `playwright`, `vite`, `vitest`, `eslint`, `tauri`, `lfs`, `uv`) or a toolchain (`rust`, `node`). Most projects need no tasks of their own; they declare tags and inherit.
+- `<project>/moon.yml` — only what the tags do not already provide.
 
-- For scaffolding tasks (creating apps, libs, project structure, setup), ALWAYS invoke the `nx-generate` skill FIRST before exploring or calling MCP tools
+## Adding a project
 
-## When to use nx_docs
+1. Give it a `moon.yml` with `layer`, `language` and its tags.
+2. Add it to `projects.sources` in `.moon/workspace.yml` — a project outside `crates/` is not in the graph until it is named there.
+3. Write tasks only where the preset is wrong for it.
 
-- USE for: advanced config options, unfamiliar flags, migration guides, plugin configuration, edge cases
-- DON'T USE for: basic generator syntax (`nx g @nx/react:app`), standard commands, things you already know
-- The `nx-generate` skill handles generator discovery internally - don't call nx_docs just to look up generator syntax
+## Common pitfalls
 
-## Common Pitfalls
-
-- **Cache issues**: If builds behave unexpectedly, try `pnpm nx reset` to clear cache
-- **Affected commands**: Remember `--base` and `--head` for comparing against specific commits (default: `main`)
-- **Task dependencies**: Check `nx.json` and `project.json` for implicit dependencies that affect task execution order
-- **Monorepo navigation**: Use project tags and Nx graph for large codebases - don't rely on directory structure alone
-
-## Workspace-Specific Patterns
-
-- This is a large monorepo with multiple apps and libraries
-- Graph performance optimizations are actively being worked on (feature branch)
-- Prefer using Nx's dependency graph (`nx graph`) over manual exploration for understanding project relationships
-- When making changes that affect multiple projects, use `nx affected` to validate impact
-
-<!-- nx configuration end-->
+- **Inherited tasks merge, they do not override.** args, deps, inputs and outputs from a preset are appended to the project's own. To replace rather than extend, set `options.mergeOutputs: 'replace'` (and the equivalent for the other fields).
+- **Two presets that define the same task id will merge their commands into nonsense.** This is why a rust project with a vitest config does not get the `vitest` tag, and why rust and python projects never get `eslint` — `test` and `lint` already belong to cargo and to ruff.
+- **A glob in `projects.sources` registers every matching directory**, with or without a moon.yml. `apps/` and `packages/` have repeated basenames (`kbve`, `relay`, `server`, `web`) and globbing them breaks the graph outright.
+- **Affected runs** take `--affected --base <ref> --head <ref>`; add `--query` to filter further.
 
 @AGENTS.md

@@ -3,3 +3,24 @@ $schema: 'https://moonrepo.dev/schemas/project.json'
 language: 'python'
 tags: ['uv']
 layer: 'application'
+
+tasks:
+    # Pinned to 1.7.2 rather than :latest, which is how the Nx target had it --
+    # the tag is the released version and `orb` runs exactly that image.
+    container:
+        script: >-
+            docker buildx build --load --platform linux/amd64
+            -f $projectSource/Dockerfile
+            -t kbve/notification-bot:1.7.2
+            $projectSource
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    # Build and run it locally against the repo's .env.
+    orb:
+        deps: ['~:container']
+        script: 'docker run --env-file .env -p 3000:3000 kbve/notification-bot:1.7.2'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false

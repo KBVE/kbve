@@ -150,9 +150,9 @@ src-tauri/src/
 
 ```bash
 # From monorepo root
-npx nx run desktop-kbve:dev      # Vite dev server (port 1421)
-npx nx run desktop-kbve:build    # Frontend build
-npx nx run desktop-kbve:build:tauri  # Full desktop build
+moon run desktop-kbve:dev      # Vite dev server (port 1421)
+moon run desktop-kbve:build    # Frontend build
+moon run desktop-kbve:build-tauri  # Full desktop build
 ```
 
 ### Adding a New View

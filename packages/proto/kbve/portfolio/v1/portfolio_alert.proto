@@ -1,0 +1,168 @@
+syntax = "proto3";
+
+package kbve.portfolio.v1;
+
+import "google/protobuf/timestamp.proto";
+import "kbve/asset/v1/asset.proto";
+import "kbve/common/v1/decimal.proto";
+import "kbve/market/v1/market_scan.proto";
+import "kbve/type/v1/id.proto";
+
+// Telling somebody a price moved.
+//
+// The whole value of an alert is that it arrives once, when the thing actually
+// happened. Everything here exists to prevent the two failures that make
+// alerting worthless: firing every poll while a condition stays true, and
+// firing on a price nobody could have traded at.
+
+// What is being watched.
+enum AlertMetric {
+  ALERT_METRIC_UNSPECIFIED = 0;
+  ALERT_METRIC_BID = 1;
+  ALERT_METRIC_ASK = 2;
+  ALERT_METRIC_LAST = 3;
+  ALERT_METRIC_NET_MARGIN = 4;
+  ALERT_METRIC_ROI_BPS = 5;
+  ALERT_METRIC_VOLUME = 6;
+  // Movement against the previous close, in basis points.
+  ALERT_METRIC_CHANGE_BPS = 7;
+}
+
+// How the metric is tested against the threshold.
+//
+// The distinction between crossing and being is the difference between an
+// alert and a nuisance. AT_OR_ABOVE is true on every poll for as long as the
+// price stays there; CROSSES_ABOVE is true once, on the poll where it stopped
+// being below. Anything user-facing wants the crossing form.
+enum AlertComparator {
+  ALERT_COMPARATOR_UNSPECIFIED = 0;
+  ALERT_COMPARATOR_CROSSES_ABOVE = 1;
+  ALERT_COMPARATOR_CROSSES_BELOW = 2;
+  ALERT_COMPARATOR_AT_OR_ABOVE = 3;
+  ALERT_COMPARATOR_AT_OR_BELOW = 4;
+}
+
+// Where a triggered alert is delivered.
+enum AlertChannel {
+  ALERT_CHANNEL_UNSPECIFIED = 0;
+  ALERT_CHANNEL_IN_APP = 1;
+  ALERT_CHANNEL_EMAIL = 2;
+  ALERT_CHANNEL_DISCORD = 3;
+  ALERT_CHANNEL_WEBHOOK = 4;
+  ALERT_CHANNEL_PUSH = 5;
+}
+
+// The test itself.
+message AlertCondition {
+  kbve.asset.v1.AssetRef ref = 1;
+  AlertMetric metric = 2;
+  AlertComparator comparator = 3;
+  kbve.common.v1.Decimal threshold = 4;
+
+  // Suppress the alert unless the asset also traded this much inside the
+  // window. A price crossing on two units traded is a crossing that could not
+  // have been acted on.
+  optional int64 min_volume = 5;
+  optional int64 volume_window_seconds = 6;
+
+  // Suppress the alert if the quote that satisfied it is older than this.
+  optional int64 max_quote_age_seconds = 7;
+}
+
+// A standing request to be told.
+message PriceAlert {
+  kbve.type.v1.Ulid id = 1;
+  kbve.type.v1.Ulid owner_id = 2;
+  optional string label = 3;
+
+  AlertCondition condition = 4;
+  bool enabled = 5;
+
+  repeated AlertChannel channels = 6;
+  // Where a webhook alert is sent.
+  optional string webhook_url = 7;
+
+  // The shortest gap between two firings of this alert. A price oscillating
+  // across a threshold will otherwise fire on every crossing in both
+  // directions.
+  optional int64 cooldown_seconds = 8;
+  // Stop after the first firing.
+  optional bool one_shot = 9;
+
+  optional google.protobuf.Timestamp last_triggered_at = 10;
+
+  // The metric's value at the previous evaluation.
+  //
+  // Required for the crossing comparators and useless for the others: a
+  // crossing is defined by two observations, and an evaluator holding only the
+  // current one cannot tell a crossing from a condition that was already true
+  // when the alert was created.
+  optional kbve.common.v1.Decimal last_observed = 11;
+  optional google.protobuf.Timestamp last_evaluated_at = 12;
+
+  optional google.protobuf.Timestamp expires_at = 13;
+  google.protobuf.Timestamp created_at = 14;
+  optional google.protobuf.Timestamp updated_at = 15;
+}
+
+// Whether a delivery reached anybody.
+enum AlertDeliveryStatus {
+  ALERT_DELIVERY_STATUS_UNSPECIFIED = 0;
+  ALERT_DELIVERY_STATUS_PENDING = 1;
+  ALERT_DELIVERY_STATUS_SENT = 2;
+  ALERT_DELIVERY_STATUS_FAILED = 3;
+  // Dropped on purpose - cooldown, expiry, or a disabled channel.
+  ALERT_DELIVERY_STATUS_SUPPRESSED = 4;
+}
+
+// One attempt to deliver one firing down one channel.
+message AlertDelivery {
+  AlertChannel channel = 1;
+  AlertDeliveryStatus status = 2;
+  optional google.protobuf.Timestamp sent_at = 3;
+  optional string error = 4;
+  optional int32 attempts = 5;
+}
+
+// A firing.
+//
+// Kept as a record rather than emitted and discarded, because the value that
+// tripped the alert is gone by the time anybody reads the notification, and
+// "why did this fire" is unanswerable without it.
+message AlertEvent {
+  kbve.type.v1.Ulid id = 1;
+  kbve.type.v1.Ulid alert_id = 2;
+  kbve.asset.v1.AssetRef ref = 3;
+
+  google.protobuf.Timestamp triggered_at = 4;
+  AlertMetric metric = 5;
+  // What the metric read when it fired.
+  kbve.common.v1.Decimal observed = 6;
+  // What it read the evaluation before, for the crossing comparators.
+  optional kbve.common.v1.Decimal previous = 7;
+  kbve.common.v1.Decimal threshold = 8;
+
+  // The state of the market when it fired, so the notification can say
+  // something useful and the firing can be judged afterwards.
+  optional kbve.market.v1.MarketSnapshot snapshot = 9;
+
+  repeated AlertDelivery deliveries = 10;
+}
+
+// A named set of assets somebody is following.
+message Watchlist {
+  kbve.type.v1.Ulid id = 1;
+  kbve.type.v1.Ulid owner_id = 2;
+  string name = 3;
+  optional string description = 4;
+
+  repeated kbve.asset.v1.AssetRef refs = 5;
+
+  // A saved scan attached to the list, so a watchlist can be a live query
+  // rather than a fixed roster.
+  optional kbve.market.v1.ScanFilter filter = 6;
+
+  optional bool public = 7;
+  google.protobuf.Timestamp created_at = 8;
+  optional google.protobuf.Timestamp updated_at = 9;
+}

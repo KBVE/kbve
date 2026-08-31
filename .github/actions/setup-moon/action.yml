@@ -1,0 +1,47 @@
+name: 'KBVE - Setup moon'
+description: 'Installs the moon CLI at the version pinned in .prototools and caches its store'
+branding:
+    color: 'blue'
+    icon: 'moon'
+
+runs:
+    using: 'composite'
+    steps:
+        # The version lives in .prototools and nowhere else. Passing it as an
+        # input would let a workflow drift from the version everyone runs
+        # locally, and the failure would look like a task bug rather than a
+        # version skew.
+        - name: Read pinned version
+          id: version
+          shell: bash
+          run: |
+              VERSION="$(sed -n 's/^moon *= *"\(.*\)"$/\1/p' .prototools)"
+              if [ -z "$VERSION" ]; then
+                echo "::error::No moon version pinned in .prototools"
+                exit 1
+              fi
+              echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+              echo "moon $VERSION"
+
+          # Task outputs, keyed on the lockfiles and task configuration. A miss
+          # costs a rebuild, never a wrong result: moon hashes its own inputs
+          # and ignores anything restored that does not match.
+        - name: Restore moon cache
+          uses: actions/cache@v4
+          with:
+              path: .moon/cache
+              key: moon-${{ runner.os }}-${{ hashFiles('pnpm-lock.yaml', 'Cargo.lock', '.moon/**/*.yml') }}
+              restore-keys: |
+                  moon-${{ runner.os }}-
+
+        - name: Install moon
+          shell: bash
+          env:
+              MOON_VERSION: ${{ steps.version.outputs.version }}
+          run: |
+              curl -fsSL https://moonrepo.dev/install/moon.sh | bash -s -- "$MOON_VERSION"
+              echo "$HOME/.moon/bin" >> "$GITHUB_PATH"
+
+        - name: Verify
+          shell: bash
+          run: moon --version

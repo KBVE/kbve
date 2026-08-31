@@ -20,7 +20,7 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: `PUBLIC_ARPG_GAME_WS=ws://localhost:${SERVER_PORT}/ws PUBLIC_SUPABASE_URL=https://supabase.kbve.com ./kbve.sh -nx arpg:web-dev`,
+		command: `PUBLIC_ARPG_GAME_WS=ws://localhost:${SERVER_PORT}/ws PUBLIC_SUPABASE_URL=https://supabase.kbve.com moon run arpg:web-dev`,
 		cwd: workspaceRoot,
 		url: WEB_URL,
 		reuseExistingServer: false,

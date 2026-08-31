@@ -68,14 +68,14 @@ ENTRYPOINT ["/app/my-service"]
 
 ```bash
 # Build both images (runtime + builder)
-./kbve.sh -nx run chisel-ubuntu-axum:container
+moon run chisel-ubuntu-axum:container
 
 # Run e2e validation against both images
-./kbve.sh -nx run chisel-ubuntu-axum:test
+moon run chisel-ubuntu-axum:test
 
 # Individual targets
-./kbve.sh -nx run chisel-ubuntu-axum:containerx-runtime
-./kbve.sh -nx run chisel-ubuntu-axum:containerx-builder
+moon run chisel-ubuntu-axum:containerx-runtime
+moon run chisel-ubuntu-axum:containerx-builder
 ```
 
 ### What the test target validates

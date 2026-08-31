@@ -33,20 +33,20 @@ tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }
 bevy = { workspace = true, features = ["bevy_state", "multi_threaded"] }
 
 # Creature components from the shared bevy_npc package
-bevy_npc = { path = "../../../packages/rust/bevy/bevy_npc", features = ["creature"] }
+bevy_npc = { path = "../../../crates/bevy_npc", features = ["creature"] }
 
 # Flow field pathfinding — pure algorithms, no Bevy feature needed here
 # (the grid/flow types are plain Rust structs wrapped as Bevy Resources
 # inside our own ECS module).
-bevy_pathfinder = { path = "../../../packages/rust/bevy/bevy_pathfinder" }
+bevy_pathfinder = { path = "../../../crates/bevy_pathfinder" }
 
 # Shared behavior tree engine — BehaviorNode trait, Selector/Sequence
 # composites, cooldown system, observation traits. MC-specific nodes
 # (archetype, flow field) stay local; the generic engine is shared.
-bevy_behavior = { path = "../../../packages/rust/bevy/bevy_behavior" }
+bevy_behavior = { path = "../../../crates/bevy_behavior" }
 
 # Chat bridge — IRC client exposed via C-FFI so JNI can drive it
 # (kbve_chat_connect / send / poll / disconnect). Pulls in the ffi
 # feature which activates extern "C" entry points.
-bevy_chat = { path = "../../../packages/rust/bevy/bevy_chat", features = ["ffi"] }
+bevy_chat = { path = "../../../crates/bevy_chat", features = ["ffi"] }
 

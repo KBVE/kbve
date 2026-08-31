@@ -15,8 +15,6 @@ env:
 jobs:
     test:
         runs-on: ubuntu-latest
-        env:
-            NX_NO_CLOUD: true
         permissions:
             contents: read
 
@@ -68,8 +66,11 @@ jobs:
             - name: Install pnpm Dependencies
               run: pnpm install --frozen-lockfile
 
-            - name: Nx e2e ${{ inputs.package }}
-              run: pnpm nx e2e ${{ inputs.package }} --no-cloud
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
+            - name: e2e ${{ inputs.package }}
+              run: moon run ${{ inputs.package }}:e2e
 
             - name: Mark test passed
               if: success()

@@ -22,7 +22,7 @@ chrono = { workspace = true, features = ["clock"] }
 utoipa = { workspace = true, features = ["axum_extras"] }
 kube = { workspace = true, features = ["client", "rustls-tls"] }
 k8s-openapi = { workspace = true, features = ["v1_32"] }
-jedi = { path = "../../../packages/rust/jedi", features = ["clickhouse"] }
+jedi = { path = "../../../crates/jedi", features = ["clickhouse"] }
 
 [features]
 default = []

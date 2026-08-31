@@ -1,0 +1,15 @@
+# Struct-level text cleaning, migrated from the legacy Nx workspace at
+# KBVE/kbve packages/rust/holy and since split into a facade over holy-derive.
+#
+# This is the crate to depend on. holy-derive carries the macros alone, because
+# a proc-macro crate cannot export anything else.
+layer: 'library'
+stack: 'systems'
+toolchains:
+  default: 'rust'
+
+dependsOn:
+  - 'holy-derive'
+
+owners:
+  defaultOwner: '@h0lybyte'

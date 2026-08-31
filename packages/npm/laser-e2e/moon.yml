@@ -1,0 +1,11 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+tags: ['playwright', 'vite']
+
+tasks:
+    e2e:
+        script: 'npx playwright test --config=packages/npm/laser-e2e/playwright.config.ts'
+        options:
+            runFromWorkspaceRoot: true

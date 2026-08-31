@@ -1,0 +1,35 @@
+[package]
+name = "bevy_pathfinder"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Grid-based flow field pathfinding and chokepoint detection — pure Rust core with optional Bevy ECS integration"
+homepage = "https://kbve.com/"
+repository.workspace = true
+keywords = ["pathfinding", "flow-field", "gamedev", "bevy"]
+categories = ["game-development", "algorithms"]
+readme = "README.md"
+
+[features]
+default = []
+
+# Bevy ECS integration — adds Resource derives and optional plugin.
+# Without this feature the crate is plain Rust with zero Bevy dependency,
+# suitable for JNI cdylibs (behavior_statetree) and CLI tools.
+bevy = ["dep:bevy"]
+
+# Sparse graph pathfinding for abstract tile games (per-node edge list,
+# not a uniform 2D grid). Use this when nodes are arbitrary coordinates
+# and adjacency is governed by per-node connectivity (e.g. a dungeon
+# whose tiles each declare which directions are open). Disjoint from
+# the dense `BlockGrid` API, which stays the right tool for voxel /
+# walkability-grid worlds.
+tile-graph = []
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+
+# Bevy — only pulled in under the `bevy` feature.
+bevy = { workspace = true, optional = true, features = ["bevy_state"] }

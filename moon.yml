@@ -1,0 +1,28 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+# The workspace itself, for tasks that measure or operate on the whole tree
+# rather than on any one project.
+#
+# The Nx root project also carried a `local-registry` verdaccio target. Nothing
+# uses it: npm publishing goes through tools/npm/publish.sh, which dry-runs
+# against the real registry by default, and a local registry proves less than
+# that does.
+layer: 'application'
+language: 'bash'
+
+tasks:
+    # scc if it is installed, cloc otherwise. Neither is a repository
+    # dependency, so the fallback is the point rather than a nicety.
+    stats:
+        script: >-
+            scc . --exclude-dir=node_modules,dist,.nx,.moon,.git,target,coverage,pumpkin,ergo,postgres --no-cocomo
+            || npx --yes cloc . --exclude-dir=node_modules,dist,.nx,.moon,.git,target,coverage,pumpkin,ergo,postgres
+        options:
+            runFromWorkspaceRoot: true
+
+    stats-json:
+        script: >-
+            scc . --exclude-dir=node_modules,dist,.nx,.moon,.git,target,coverage,pumpkin,ergo,postgres --format json --no-cocomo
+            || npx --yes cloc . --exclude-dir=node_modules,dist,.nx,.moon,.git,target,coverage,pumpkin,ergo,postgres --json
+        options:
+            runFromWorkspaceRoot: true

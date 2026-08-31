@@ -160,13 +160,13 @@ The full e2e pipeline runs via `nx e2e discordsh`:
 
 ```bash
 # Full pipeline (unit tests → docker build → docker e2e → mock e2e)
-./kbve.sh -nx e2e discordsh
+moon run e2e discordsh
 
 # Individual steps
 cargo test -p axum-discordsh                    # unit tests
-./kbve.sh -nx container axum-discordsh          # docker build
-./kbve.sh -nx e2e:docker discordsh-e2e          # playwright vs container
-./kbve.sh -nx e2e:mock discordsh-e2e            # playwright vs mockoon stack
+moon run container axum-discordsh          # docker build
+moon run e2e:docker discordsh-e2e          # playwright vs container
+moon run e2e:mock discordsh-e2e            # playwright vs mockoon stack
 
 # Mock stack only (without Nx)
 docker compose -f apps/discordsh/poc/docker-compose-poc-dev.yaml up

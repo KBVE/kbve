@@ -1,0 +1,27 @@
+[package]
+name = "bevy_dialogue"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Proto-driven conversation graphs for Bevy games — entry selection, condition evaluation and choice filtering over kbve.dialogue.v1."
+homepage = "https://kbve.com/"
+repository.workspace = true
+keywords = ["bevy", "dialogue", "gamedev", "protobuf", "plugin"]
+categories = ["game-development", "game-engines"]
+readme = "README.md"
+
+[dependencies]
+bevy = { workspace = true, features = ["bevy_state"] }
+kbve-proto = { path = "../kbve-proto" }
+prost = { workspace = true, features = ["derive"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+ulid = { workspace = true }
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

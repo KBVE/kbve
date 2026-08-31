@@ -48,7 +48,6 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 25
         env:
-            NX_NO_CLOUD: true
             GRADLE_OPTS: '-Xmx3g -Dorg.gradle.daemon=false'
 
         steps:
@@ -114,7 +113,6 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 25
         env:
-            NX_NO_CLOUD: true
             MC_MONITOR_VERSION: '0.16.2'
 
         steps:
@@ -167,6 +165,9 @@ jobs:
                   username: ${{ github.actor }}
                   password: ${{ github.token }}
 
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
             - name: Ensure ghcr.io/kbve/mc:latest present (pull or build)
               run: |
                   set -e
@@ -174,7 +175,7 @@ jobs:
                       docker tag ghcr.io/kbve/mc:latest kbve/mc:latest
                   else
                       echo "[ensure] ghcr image missing, building locally"
-                      pnpm nx run mc:container --configuration=local --no-cloud
+                      moon run mc:container
                   fi
                   docker image inspect kbve/mc:latest >/dev/null
 

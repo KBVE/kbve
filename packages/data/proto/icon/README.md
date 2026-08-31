@@ -33,5 +33,5 @@ Each `Icon` entry captures:
 
 ## Downstream
 
-- **astro-rareicon** — `buf.gen.yaml` already targets `packages/data/proto`; `npx nx run astro-rareicon:proto` regenerates TS types into `src/generated/proto/`.
+- **astro-rareicon** — `buf.gen.yaml` already targets `packages/data/proto`; `moon run astro-rareicon:proto` regenerates TS types into `src/generated/proto/`.
 - **MDX flow** (next phase) — script reads a JSON corpus conforming to `IconRegistry`, emits one MDX per icon with frontmatter derived from `search` + `categories`, body inlines `svg_body` so Pagefind picks it up.

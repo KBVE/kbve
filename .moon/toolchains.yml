@@ -30,3 +30,16 @@ typescript:
     syncProjectReferences: false
     createMissingConfig: false
     includeSharedTypes: false
+
+rust:
+    version: '1.98.0'
+    # Both of these rewrite Cargo.toml on sync: the writer reformats the file,
+    # drops the comments, and adds a member entry for every project it sees --
+    # including the ones with no Cargo.toml, which breaks the workspace.
+    # rust-toolchain.toml is pinned by hand instead, and kept equal to the
+    # version above.
+    syncToolchainConfig: false
+    addMsrvConstraint: false
+    components:
+        - 'clippy'
+        - 'rustfmt'

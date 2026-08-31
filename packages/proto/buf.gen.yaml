@@ -1,0 +1,162 @@
+version: v2
+managed:
+  enabled: true
+  override:
+    # Unity consumers expect KBVE.Proto.<Domain>; setting it here keeps the
+    # option out of every individual file.
+    - file_option: csharp_namespace_prefix
+      value: KBVE.Proto
+
+# Every language a consumer uses is generated from the same command, so a
+# schema change that breaks one of them fails locally rather than in whichever
+# downstream repository happens to build first.
+#
+# Remote plugins are not version-pinned yet. Until they are, generated output
+# can change without a schema change.
+plugins:
+  # TypeScript - Astro applications and Node services.
+  - remote: buf.build/community/stephenh-ts-proto
+    out: gen/ts
+    opt:
+      # The sites are static and call the API over JSON, so they need the
+      # shapes and none of the wire codec. onlyTypes drops encode/decode and
+      # the protobufjs and long imports with them.
+      - onlyTypes=true
+      # forceLong defaults to number, which throws at runtime past
+      # MAX_SAFE_INTEGER. Any int64 id would hit that.
+      - forceLong=string
+      - esModuleInterop=true
+      - importSuffix=.js
+      - outputServices=false
+      - oneof=unions
+      - enumsAsLiterals=true
+      - stringEnums=true
+      - useOptionals=messages
+      - useExactTypes=true
+      - exportCommonSymbols=true
+      - removeEnumPrefix=true
+      - snakeToCamel=false
+
+  # Rust - Bevy crates and Axum services, replacing the per-crate build.rs
+  # invocations of prost_build against a relative path.
+  #
+  # The type_attribute lines below reproduce what crates/jedi/build.rs did with
+  # ninety-nine calls. They are scoped rather than global because serde cannot
+  # be derived on every type here: GroqRequestBody and GroqResponse hold a
+  # google.protobuf.Struct, and prost-types does not implement Serialize for
+  # it, so a blanket rule stops the crate compiling. The four groq types named
+  # individually are the four that carry no well-known type -- which is the
+  # same line the hand-written build.rs drew, arrived at the same way.
+  #
+  # Serialize and Deserialize are two entries rather than one derive with
+  # both: plugin parameters are comma separated, so a comma inside the
+  # attribute is read as the end of it -- 'invalid parameter:
+  # serde::Deserialize)]'.
+  - remote: buf.build/community/neoeinstein-prost
+    out: gen/rust
+    opt:
+      - type_attribute=.kbve.jedi.v1=#[derive(serde::Serialize)]
+      - type_attribute=.kbve.jedi.v1=#[derive(serde::Deserialize)]
+      - type_attribute=.kbve.redis.v1=#[derive(serde::Serialize)]
+      - type_attribute=.kbve.redis.v1=#[derive(serde::Deserialize)]
+      - type_attribute=.kbve.clickhouse.v1=#[derive(serde::Serialize)]
+      - type_attribute=.kbve.clickhouse.v1=#[derive(serde::Deserialize)]
+      - type_attribute=.kbve.twitch.v1=#[derive(serde::Serialize)]
+      - type_attribute=.kbve.twitch.v1=#[derive(serde::Deserialize)]
+      - type_attribute=.kbve.git.v1=#[derive(serde::Serialize)]
+      - type_attribute=.kbve.git.v1=#[derive(serde::Deserialize)]
+      - type_attribute=.kbve.groq.v1.GroqMessage=#[derive(serde::Serialize)]
+      - type_attribute=.kbve.groq.v1.GroqMessage=#[derive(serde::Deserialize)]
+      - type_attribute=.kbve.groq.v1.GroqMessageContent=#[derive(serde::Serialize)]
+      - type_attribute=.kbve.groq.v1.GroqMessageContent=#[derive(serde::Deserialize)]
+      - type_attribute=.kbve.groq.v1.GroqChoice=#[derive(serde::Serialize)]
+      - type_attribute=.kbve.groq.v1.GroqChoice=#[derive(serde::Deserialize)]
+      - type_attribute=.kbve.groq.v1.GroqUsage=#[derive(serde::Serialize)]
+      - type_attribute=.kbve.groq.v1.GroqUsage=#[derive(serde::Deserialize)]
+      # The content domains. Each was a package-wide serde rule in the build
+      # script of the Bevy crate that consumed it, and the registries are
+      # loaded from JSON as well as from the wire, so serde is not optional
+      # for them. common, type and dialogue come along because the domain
+      # types embed them and a derive is only as deriveable as its fields.
+      - type_attribute=.kbve.common.v1=#[derive(serde::Serialize)]
+      - type_attribute=.kbve.common.v1=#[derive(serde::Deserialize)]
+      - type_attribute=.kbve.type.v1=#[derive(serde::Serialize)]
+      - type_attribute=.kbve.type.v1=#[derive(serde::Deserialize)]
+      - type_attribute=.kbve.dialogue.v1=#[derive(serde::Serialize)]
+      - type_attribute=.kbve.dialogue.v1=#[derive(serde::Deserialize)]
+      - type_attribute=.kbve.item.v1=#[derive(serde::Serialize)]
+      - type_attribute=.kbve.item.v1=#[derive(serde::Deserialize)]
+      - type_attribute=.kbve.npc.v1=#[derive(serde::Serialize)]
+      - type_attribute=.kbve.npc.v1=#[derive(serde::Deserialize)]
+      - type_attribute=.kbve.map.v1=#[derive(serde::Serialize)]
+      - type_attribute=.kbve.map.v1=#[derive(serde::Deserialize)]
+      - type_attribute=.kbve.quest.v1=#[derive(serde::Serialize)]
+      - type_attribute=.kbve.quest.v1=#[derive(serde::Deserialize)]
+      - type_attribute=.kbve.spell.v1=#[derive(serde::Serialize)]
+      - type_attribute=.kbve.spell.v1=#[derive(serde::Deserialize)]
+      # map and npc are loaded from hand-written JSON as well as from the
+      # wire, and that JSON omits whatever it has nothing to say about. Both
+      # build scripts applied serde(default) package-wide for that reason;
+      # without it a file that leaves out an enum field fails to load rather
+      # than taking the zero value the schema already gives it.
+      - message_attribute=.kbve.map.v1=#[serde(default)]
+      - message_attribute=.kbve.npc.v1=#[serde(default)]
+      - message_attribute=.kbve.dialogue.v1=#[serde(default)]
+      # A ULID is sixteen bytes on the wire and twenty-six characters
+      # everywhere a human writes one. Without this, serde renders it as a JSON
+      # array of byte values, and every hand-authored content file that says
+      # "01KKR5QWTA6KARZ9EQB9Y476S4" fails to load. The schema already says the
+      # textual encoding belongs at the edges; JSON is an edge.
+      # Two attributes rather than one for the usual reason: a comma inside a
+      # plugin parameter ends it.
+      - type_attribute=.kbve.type.v1.Ulid=#[serde(from = "crate::UlidText")]
+      - type_attribute=.kbve.type.v1.Ulid=#[serde(into = "crate::UlidText")]
+      # The two fields in those packages whose type is a well-known one.
+      # prost-types implements neither Serialize nor Deserialize, so a derive
+      # covering the message that holds them does not compile. Skipping the
+      # field is what the bevy_items build script already did with
+      # Item.bonuses; RegistryMeta.generated_at is the same problem, and both
+      # are provenance rather than content -- a registry round-tripped through
+      # JSON is not carrying its build stamp anywhere useful.
+      - field_attribute=.kbve.common.v1.RegistryMeta.generated_at=#[serde(skip)]
+      - field_attribute=.kbve.item.v1.Item.bonuses=#[serde(skip)]
+      # JediEnvelope carries an opaque payload that is forwarded, not read.
+      # Bytes makes that forwarding a refcount bump rather than a copy, which
+      # is the whole reason the envelope exists.
+      - bytes=.kbve.jedi.v1
+
+  # gRPC clients and servers for the two services in the module, RedisService
+  # and ClickHouseService. Without this the schema would define RPCs that
+  # nothing generates code for, and crates/jedi would keep its own frozen copy.
+  #
+  # No wiring is needed: the plugin appends an include! for its own output to
+  # the prost-generated file, which prost-crate has already put in the module
+  # tree. Order matters -- it reads what prost wrote.
+  #
+  # no_include keeps the service code out of the message files, which is what
+  # lets kbve-proto put it behind a feature. Left to itself the plugin appends
+  # an include! to each package file, and an unconditional include cannot be
+  # switched off by a cargo feature -- every consumer of the message types then
+  # compiles axum, hyper, h2 and tower to get at a struct with three fields.
+  # The generated code refers to its messages as `super::RedisCommand`, so the
+  # crate includes it one module below a re-export of the package.
+  - remote: buf.build/community/neoeinstein-tonic
+    out: gen/rust
+    opt:
+      - no_include
+
+  # prost emits files that refer to each other with relative module paths
+  # (super::super::r#type::v1::Ulid), so without a module tree the output does
+  # not compile. This plugin writes that tree as mod.rs.
+  - remote: buf.build/community/neoeinstein-prost-crate
+    out: gen/rust
+    opt:
+      - no_features
+
+  # C# - Unity.
+  - remote: buf.build/protocolbuffers/csharp
+    out: gen/csharp
+
+  # Python.
+  - remote: buf.build/protocolbuffers/python
+    out: gen/python

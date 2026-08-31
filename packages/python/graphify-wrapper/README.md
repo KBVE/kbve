@@ -12,7 +12,7 @@ KBVE wrapper for [Graphify](https://github.com/Graphify-Labs/graphify) - semanti
 ## Installation
 
 ```bash
-pnpm nx run graphify-wrapper:install
+moon run graphify-wrapper:install
 ```
 
 ## Usage
@@ -20,7 +20,7 @@ pnpm nx run graphify-wrapper:install
 ### Build Full Monorepo Graph
 
 ```bash
-pnpm nx run graphify-wrapper:build-monorepo
+moon run graphify-wrapper:build-monorepo
 ```
 
 Output: `packages/data/graphify/output/monorepo/graph.json`
@@ -28,7 +28,7 @@ Output: `packages/data/graphify/output/monorepo/graph.json`
 ### Build App-Specific Graph
 
 ```bash
-pnpm nx run graphify-wrapper:build-app --app=herbmail
+moon run graphify-wrapper:build-app --app=herbmail
 ```
 
 Output: `packages/data/graphify/output/apps/herbmail/graph.json`
@@ -36,13 +36,13 @@ Output: `packages/data/graphify/output/apps/herbmail/graph.json`
 ### Query the Graph
 
 ```bash
-pnpm nx run graphify-wrapper:query --q="Where is user authentication handled?"
+moon run graphify-wrapper:query --q="Where is user authentication handled?"
 ```
 
 ### Export for Web
 
 ```bash
-pnpm nx run graphify-wrapper:export-web
+moon run graphify-wrapper:export-web
 ```
 
 Copies to: `apps/kbve/astro-kbve/public/graphify/monorepo.json`

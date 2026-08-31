@@ -794,7 +794,7 @@ Whether you're building complex systems or optimizing performance, Q is your go-
 
 ### Q Mac
 
-To build the crate on the mac, we have three options, the first is through the Nx monorepo command: `./kbve.sh -nx q:build-mac`!
+To build the crate on the mac, we have three options, the first is through the Nx monorepo command: `moon run q:build-mac`!
 The other option would be to run a [docker](/application/docker/) image to do the build process and the final option would be a [git workflow](/application/git/), more on those two later on.
 
 </BentoProse>
@@ -834,7 +834,7 @@ This means the Astro build output **must exist** before `cargo build` runs.
 **Local development:**
 ```shell
 # 1. Build Astro first
-npx nx run astro-memes:build
+moon run astro-memes:build
 
 # 2. Copy the askama page output into Rust's template directory
 cp dist/apps/astro-memes/askama/meme/index.html \
@@ -850,7 +850,7 @@ cargo build --manifest-path apps/memes/axum-memes/Cargo.toml
 FROM node:22-alpine AS astro-build
 WORKDIR /app
 COPY . .
-RUN pnpm install && npx nx run astro-memes:build
+RUN pnpm install && moon run astro-memes:build
 
 # Stage 2: Build Rust (askama needs Astro output)
 FROM rust:1.87 AS rust-build

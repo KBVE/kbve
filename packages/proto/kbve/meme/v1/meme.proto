@@ -1,0 +1,371 @@
+syntax = "proto3";
+
+package kbve.meme.v1;
+
+import "google/protobuf/timestamp.proto";
+import "kbve/common/v1/rarity.proto";
+import "kbve/common/v1/reaction.proto";
+import "kbve/common/v1/report_reason.proto";
+import "kbve/type/v1/id.proto";
+
+// How the asset is encoded.
+enum MemeFormat {
+  MEME_FORMAT_UNSPECIFIED = 0;
+  MEME_FORMAT_IMAGE = 1;
+  MEME_FORMAT_GIF = 2;
+  MEME_FORMAT_VIDEO = 3;
+  MEME_FORMAT_WEBP_ANIM = 4;
+}
+
+// Where a meme is in its life.
+enum MemeStatus {
+  MEME_STATUS_UNSPECIFIED = 0;
+  // Made but not published.
+  MEME_STATUS_DRAFT = 1;
+  MEME_STATUS_PENDING = 2;
+  MEME_STATUS_PUBLISHED = 3;
+  MEME_STATUS_REJECTED = 4;
+  // Hidden by its author.
+  MEME_STATUS_ARCHIVED = 5;
+  // Caught by a content filter.
+  MEME_STATUS_FLAGGED = 6;
+  // Removed by an administrator.
+  MEME_STATUS_BANNED = 7;
+}
+
+// The comedic register of a meme, used as the type chart for card battles.
+//
+// Named a genre rather than an element. The original called it MemeElement,
+// which put it beside the elemental affinities in the item and npc domains, and
+// it is not one of those: dank, cursed and wholesome are not fire, ice and
+// lightning. It stays local for the same reason.
+enum MemeGenre {
+  MEME_GENRE_UNSPECIFIED = 0;
+  MEME_GENRE_DANK = 1;
+  MEME_GENRE_WHOLESOME = 2;
+  MEME_GENRE_CURSED = 3;
+  MEME_GENRE_DEEP_FRIED = 4;
+  MEME_GENRE_SURREAL = 5;
+  // Self-referential.
+  MEME_GENRE_META = 6;
+  MEME_GENRE_EDGY = 7;
+  MEME_GENRE_NOSTALGIC = 8;
+}
+
+// When a card's ability fires.
+enum AbilityTrigger {
+  ABILITY_TRIGGER_UNSPECIFIED = 0;
+  ABILITY_TRIGGER_ON_PLAY = 1;
+  ABILITY_TRIGGER_ON_ATTACK = 2;
+  ABILITY_TRIGGER_ON_DEFEND = 3;
+  ABILITY_TRIGGER_ON_DEATH = 4;
+  // Always in effect while the card is on the field.
+  ABILITY_TRIGGER_PASSIVE = 5;
+  ABILITY_TRIGGER_ON_TURN_START = 6;
+  ABILITY_TRIGGER_ON_TURN_END = 7;
+}
+
+// What a card's ability does.
+enum AbilityEffect {
+  ABILITY_EFFECT_UNSPECIFIED = 0;
+  ABILITY_EFFECT_DAMAGE = 1;
+  ABILITY_EFFECT_HEAL = 2;
+  ABILITY_EFFECT_BUFF_ATK = 3;
+  ABILITY_EFFECT_BUFF_DEF = 4;
+  ABILITY_EFFECT_DEBUFF_ATK = 5;
+  ABILITY_EFFECT_DEBUFF_DEF = 6;
+  ABILITY_EFFECT_DRAW = 7;
+  ABILITY_EFFECT_STUN = 8;
+  // Absorbs the next hit.
+  ABILITY_EFFECT_SHIELD = 9;
+  ABILITY_EFFECT_GENRE_SHIFT = 10;
+}
+
+// How a battle ended, or that it has not.
+enum BattleStatus {
+  BATTLE_STATUS_UNSPECIFIED = 0;
+  BATTLE_STATUS_WAITING = 1;
+  BATTLE_STATUS_IN_PROGRESS = 2;
+  BATTLE_STATUS_COMPLETED = 3;
+  BATTLE_STATUS_ABANDONED = 4;
+  BATTLE_STATUS_DRAW = 5;
+}
+
+// Text laid over an image. Positions are fractions of the image, so a caption
+// survives the image being resized.
+message MemeCaption {
+  string text = 1;
+  float position_x = 2;
+  float position_y = 3;
+  optional float font_size = 4;
+  optional string font_family = 5;
+  // Hex colour, e.g. "#FFFFFF".
+  optional string color = 6;
+  optional string stroke_color = 7;
+  optional float stroke_width = 8;
+  // Degrees.
+  optional float rotation = 9;
+  // "left", "center" or "right".
+  optional string text_align = 10;
+  // Fraction of the image width at which text wraps.
+  optional float max_width = 11;
+}
+
+// Where a caption goes on a template, before anyone has written one.
+message TemplateCaptionSlot {
+  // e.g. "top_text".
+  string label = 1;
+  float default_x = 2;
+  float default_y = 3;
+  optional float default_font_size = 4;
+  // Hint shown in the empty field.
+  optional string placeholder = 5;
+  optional float max_width = 6;
+  optional int32 max_chars = 7;
+}
+
+// A reusable base image with its caption slots marked out.
+message MemeTemplate {
+  kbve.type.v1.Ulid id = 1;
+  // e.g. "Drake Hotline Bling".
+  string name = 2;
+  optional string description = 3;
+  string image_url = 4;
+  optional string thumbnail_url = 5;
+  int32 width = 6;
+  int32 height = 7;
+  repeated TemplateCaptionSlot slots = 8;
+  // Denormalised.
+  int64 usage_count = 9;
+  repeated string tags = 10;
+  google.protobuf.Timestamp created_at = 11;
+  optional google.protobuf.Timestamp updated_at = 12;
+}
+
+// One ability on a card.
+message CardAbility {
+  // e.g. "Repost Shield".
+  string name = 1;
+  string description = 2;
+  AbilityTrigger trigger = 3;
+  AbilityEffect effect = 4;
+  // Magnitude: damage dealt, points healed, and so on.
+  int32 value = 5;
+  // Turns before it may fire again. Zero means every turn.
+  optional int32 cooldown = 6;
+  // Turns a buff or debuff lasts.
+  optional int32 duration = 7;
+}
+
+// What a meme becomes once it is minted as a playable card.
+message MemeCardStats {
+  kbve.type.v1.Ulid meme_id = 13;
+  kbve.common.v1.Rarity rarity = 1;
+  MemeGenre genre = 2;
+  int32 attack = 3;
+  int32 defense = 4;
+  int32 hp = 5;
+  int32 energy_cost = 6;
+  repeated CardAbility abilities = 7;
+  // Lore or a joke, printed on the card.
+  optional string flavor_text = 8;
+
+  int32 level = 9;
+  int64 xp = 10;
+  optional kbve.type.v1.Ulid evolves_from = 11;
+  optional kbve.type.v1.Ulid evolves_into = 12;
+}
+
+// One cell of the type chart.
+message GenreMatchup {
+  MemeGenre attacker = 1;
+  MemeGenre defender = 2;
+  // Below one resists, above one is strong against.
+  float damage_multiplier = 3;
+}
+
+// A meme.
+message Meme {
+  kbve.type.v1.Ulid id = 1;
+  kbve.type.v1.Uuid author_id = 2;
+  optional string title = 3;
+  // Set when the meme was built from a template.
+  optional kbve.type.v1.Ulid template_id = 4;
+  MemeFormat format = 5;
+  MemeStatus status = 6;
+
+  string asset_url = 7;
+  optional string thumbnail_url = 8;
+  optional int32 width = 9;
+  optional int32 height = 10;
+  optional int64 file_size = 11;
+
+  // Kept after rendering so the meme can be re-rendered and read aloud.
+  repeated MemeCaption captions = 12;
+
+  repeated string tags = 13;
+  optional string source_url = 14;
+  optional string alt_text = 15;
+
+  // Denormalised for feed reads.
+  int64 view_count = 16;
+  int64 reaction_count = 17;
+  int64 share_count = 18;
+  int64 comment_count = 19;
+  int64 save_count = 20;
+
+  google.protobuf.Timestamp created_at = 21;
+  optional google.protobuf.Timestamp updated_at = 22;
+  optional google.protobuf.Timestamp published_at = 23;
+
+  // Present once the meme has been minted as a card.
+  optional MemeCardStats card = 24;
+
+  // Perceptual hash, for spotting reposts.
+  optional string content_hash = 25;
+}
+
+// One reaction to a meme.
+message MemeReaction {
+  kbve.type.v1.Ulid meme_id = 1;
+  kbve.type.v1.Uuid user_id = 2;
+  kbve.common.v1.ReactionKind reaction = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+// A comment, nested through parent_id.
+message MemeComment {
+  kbve.type.v1.Ulid id = 1;
+  kbve.type.v1.Ulid meme_id = 2;
+  kbve.type.v1.Uuid author_id = 3;
+  string body = 4;
+  // Absent for a top-level comment.
+  optional kbve.type.v1.Ulid parent_id = 5;
+  int64 reaction_count = 6;
+  int32 reply_count = 7;
+  google.protobuf.Timestamp created_at = 8;
+  optional google.protobuf.Timestamp updated_at = 9;
+}
+
+// A meme somebody kept.
+message MemeSave {
+  kbve.type.v1.Ulid meme_id = 1;
+  kbve.type.v1.Uuid user_id = 2;
+  // Absent means the default collection.
+  optional kbve.type.v1.Ulid collection_id = 3;
+  google.protobuf.Timestamp created_at = 4;
+}
+
+// A named group of saved memes.
+message MemeCollection {
+  kbve.type.v1.Ulid id = 1;
+  kbve.type.v1.Uuid owner_id = 2;
+  string name = 3;
+  optional string description = 4;
+  optional kbve.type.v1.Ulid cover_meme_id = 5;
+  bool is_public = 6;
+  int32 meme_count = 7;
+  google.protobuf.Timestamp created_at = 8;
+  optional google.protobuf.Timestamp updated_at = 9;
+}
+
+// How somebody is doing at the card game.
+message MemePlayerStats {
+  kbve.type.v1.Uuid user_id = 9;
+  int32 total_battles = 1;
+  int32 wins = 2;
+  int32 losses = 3;
+  int32 draws = 4;
+  int32 elo_rating = 5;
+  int32 cards_owned = 6;
+  int32 highest_streak = 7;
+  optional string rank_title = 8;
+}
+
+// Aggregate state for one person on the meme feed.
+message MemeUserProfile {
+  kbve.type.v1.Uuid user_id = 1;
+  optional string display_name = 2;
+  optional string avatar_url = 3;
+  optional string bio = 4;
+
+  int64 total_memes = 5;
+  int64 total_reactions_received = 6;
+  int64 total_views_received = 7;
+  int32 follower_count = 8;
+  int32 following_count = 9;
+
+  optional MemePlayerStats card_stats = 10;
+
+  google.protobuf.Timestamp joined_at = 11;
+  optional google.protobuf.Timestamp updated_at = 12;
+}
+
+// One person following another.
+message MemeFollow {
+  kbve.type.v1.Uuid follower_id = 1;
+  kbve.type.v1.Uuid following_id = 2;
+  google.protobuf.Timestamp created_at = 3;
+}
+
+// One card in a deck.
+message DeckCard {
+  kbve.type.v1.Ulid card_id = 1;
+  optional int32 position = 2;
+}
+
+// A deck somebody plays with.
+message MemeDeck {
+  kbve.type.v1.Ulid id = 1;
+  kbve.type.v1.Uuid owner_id = 2;
+  string name = 3;
+  repeated DeckCard cards = 4;
+  // Whether this is the deck matchmaking will use.
+  bool is_active = 5;
+  google.protobuf.Timestamp created_at = 6;
+  optional google.protobuf.Timestamp updated_at = 7;
+}
+
+// One thing that happened during a battle.
+message BattleAction {
+  int32 turn = 1;
+  kbve.type.v1.Uuid player_id = 2;
+  kbve.type.v1.Ulid card_id = 3;
+  optional kbve.type.v1.Ulid target_card_id = 4;
+  // Absent for a basic attack.
+  optional string ability_name = 5;
+  int32 damage_dealt = 6;
+  int32 healing_done = 7;
+  optional string effect_applied = 8;
+}
+
+// A battle, and how it went.
+message BattleResult {
+  kbve.type.v1.Ulid battle_id = 1;
+  kbve.type.v1.Uuid player_a_id = 2;
+  kbve.type.v1.Uuid player_b_id = 3;
+  BattleStatus status = 4;
+  // Absent on a draw or an abandonment.
+  optional kbve.type.v1.Uuid winner_id = 5;
+  int32 total_turns = 6;
+  // The full log, kept so a battle can be replayed.
+  repeated BattleAction actions = 7;
+  int32 elo_delta_a = 8;
+  int32 elo_delta_b = 9;
+  google.protobuf.Timestamp created_at = 10;
+  optional google.protobuf.Timestamp completed_at = 11;
+}
+
+// A report filed against a meme.
+message MemeReport {
+  kbve.type.v1.Ulid id = 1;
+  kbve.type.v1.Ulid meme_id = 2;
+  kbve.type.v1.Uuid reporter_id = 3;
+  kbve.common.v1.ReportReason reason = 4;
+  optional string detail = 5;
+  bool resolved = 6;
+  optional kbve.type.v1.Uuid resolved_by = 7;
+  optional string resolution_note = 8;
+  google.protobuf.Timestamp created_at = 9;
+  optional google.protobuf.Timestamp resolved_at = 10;
+}

@@ -1,0 +1,13 @@
+# Supabase integration.
+#
+# Migrated from the legacy Nx workspace at KBVE/kbve packages/rust/bevy.
+# Flattened into crates/ rather than kept under crates/bevy/: the group's
+# dependencies on each other are all sibling paths (../bevy_items), so a flat
+# layout keeps them resolving unchanged and needs no new glob.
+layer: 'library'
+stack: 'frontend'
+toolchains:
+  default: 'rust'
+
+owners:
+  defaultOwner: '@h0lybyte'

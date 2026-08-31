@@ -1,0 +1,32 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'rust'
+tags: ['rust', 'docker']
+
+tasks:
+    dev:
+        script: 'STATIC_DIR=./dist/apps/astro-kbve STATIC_PRECOMPRESSED=false cargo run -p axum-kbve'
+        deps: ['astro-kbve:build']
+        options:
+            runFromWorkspaceRoot: true
+    emit-openapi:
+        script: 'cargo build -p axum-kbve --target-dir dist/target/axum-kbve --quiet && ./dist/target/axum-kbve/debug/axum-kbve --emit-openapi > packages/data/openapi/openapi.json'
+        outputs: ['/packages/data/openapi/openapi.json']
+        options:
+            runFromWorkspaceRoot: true
+    container-prep:
+        script: "echo 'no arpg prep: the game art + embed bundle now live on arpg.kbve.com (CDN); kbve.com loads them cross-origin, so the astro build bundles nothing arpg-specific'"
+        options:
+            runFromWorkspaceRoot: true
+    containerx:
+        script: 'docker buildx build --load -f apps/kbve/axum-kbve/Dockerfile -t kbve/kbve:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    containerx-publish:
+        script: 'docker buildx build --load --cache-from=type=gha --cache-from=type=registry,ref=ghcr.io/kbve/kbve:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/kbve:buildcache,mode=max -f apps/kbve/axum-kbve/Dockerfile -t ghcr.io/kbve/kbve:latest -t kbve/kbve:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true

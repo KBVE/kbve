@@ -1,0 +1,10 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+
+tasks:
+    lint:
+        script: "sh -n apps/vm/iot/edge-worker/bootstrap.sh && docker run --rm -v $PWD/apps/vm/iot/edge-worker:/work pipelinecomponents/yamllint:latest yamllint -d '{extends: relaxed, rules: {line-length: disable}}' /work/cloud-init.yaml.tmpl || true"
+        options:
+            runFromWorkspaceRoot: true

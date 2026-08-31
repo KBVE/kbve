@@ -1,0 +1,18 @@
+[package]
+name = "holy-derive"
+description = "Derive macros for the holy crate. Use holy, not this crate directly."
+version = "0.2.2"
+authors = ["kbve", "h0lybyte"]
+homepage = "https://kbve.com/"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[lib]
+proc-macro = true
+
+[dependencies]
+syn = { workspace = true, features = ["full"] }
+quote = { workspace = true }
+proc-macro2 = { workspace = true }

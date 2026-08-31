@@ -21,7 +21,7 @@ This directory holds the canonical OpenAPI 3.1 specification for the public HTTP
 
 ```bash
 # From the repo root
-npx nx run axum-kbve:emit-openapi
+moon run axum-kbve:emit-openapi
 ```
 
 Run this after any change to a `#[utoipa::path]` annotation, `ToSchema` derive, or a route registration in [`transport/https.rs`](../../../apps/kbve/axum-kbve/src/transport/https.rs). Commit the resulting `openapi.json` diff alongside the source change so reviewers can see the API surface delta.

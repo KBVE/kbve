@@ -4,7 +4,7 @@
  *   npx tsx packages/data/codegen/gen-openapi-types.mjs
  *
  * Source: packages/data/openapi/openapi.json (emit via
- *   `npx nx run axum-kbve:emit-openapi`)
+ *   `moon run axum-kbve:emit-openapi`)
  */
 
 /**

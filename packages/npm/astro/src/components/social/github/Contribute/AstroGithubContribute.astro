@@ -37,10 +37,10 @@ cd ../kbve-fix-auth-redirect`,
 	{
 		n: '3',
 		title: 'Install + run targets',
-		body: '`./kbve.sh -nx` wraps `npx nx run …` and sources `.env.local`. Use it for builds, dev servers, codegen, anything Nx.',
-		code: `./kbve.sh -nx astro-kbve:dev
-./kbve.sh -nx axum-kbve:test
-./kbve.sh -nx astro-kbve:test:unit`,
+		body: '`moon run <project>:<task>` runs anything in the workspace — builds, dev servers, codegen. `./kbve.sh -moon` is the same thing through the repo shell.',
+		code: `moon run astro-kbve:dev
+moon run axum-kbve:test
+moon run astro-kbve:test:unit`,
 	},
 	{
 		n: '4',

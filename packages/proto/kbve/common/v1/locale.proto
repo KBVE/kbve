@@ -1,0 +1,36 @@
+syntax = "proto3";
+
+package kbve.common.v1;
+
+// The languages the ecosystem ships.
+//
+// Declared here rather than in each consumer so the website, the game clients
+// and the API cannot disagree about which locales exist. Adding a language is
+// one value; every generated language picks it up on the next build.
+//
+// Names follow BCP 47 with the separator upper-cased: pt-BR is LOCALE_PT_BR.
+enum Locale {
+  LOCALE_UNSPECIFIED = 0;
+  LOCALE_EN = 1;
+}
+
+// One translated string, addressed by "<entry ref>.<field path>".
+message LocaleEntry {
+  string key = 1;
+  string value = 2;
+}
+
+// Every translated string for one database in one language, generated from
+// the i18n block of the MDX entries and shipped beside the canonical
+// registry. English stays in the registry itself and is the fallback for a
+// missing key.
+//
+// Entries are repeated rather than map<string, string> on purpose: proto map
+// ordering is unspecified, and these tables are committed as .binpb, so a map
+// would rewrite the bytes on every regeneration. Entries are emitted sorted
+// by key.
+message LocaleTable {
+  Locale locale = 1;
+  string db = 2;
+  repeated LocaleEntry entries = 3;
+}

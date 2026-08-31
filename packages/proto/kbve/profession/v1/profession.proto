@@ -1,0 +1,170 @@
+syntax = "proto3";
+
+package kbve.profession.v1;
+
+import "kbve/common/v1/extension.proto";
+import "kbve/common/v1/item_amount.proto";
+import "kbve/common/v1/registry.proto";
+import "kbve/type/v1/id.proto";
+
+// An engine-agnostic catalogue of gathering and production disciplines:
+// mining, farming, smithing, cooking, alchemy.
+//
+// Definitions only. This holds the static shape of a profession - its
+// experience curve, the actions a unit can perform, and what those actions
+// consume, produce and unlock. Which unit has Mining at level 14 and how much
+// experience they hold is runtime state, and belongs to the entity and each
+// game's persistence layer rather than here.
+
+// Broad discipline class. Gathering yields resources, production consumes
+// them, and support covers the disciplines that do neither cleanly.
+enum ProfessionCategory {
+  PROFESSION_CATEGORY_UNSPECIFIED = 0;
+  // Mining, farming, fishing, woodcutting.
+  PROFESSION_CATEGORY_GATHERING = 1;
+  // Smithing, alchemy, cooking, crafting.
+  PROFESSION_CATEGORY_PRODUCTION = 2;
+  // Enchanting and other utility or hybrid disciplines.
+  PROFESSION_CATEGORY_SUPPORT = 3;
+}
+
+// The shape of the experience curve. Its parameters live in ExperienceCurve.
+enum CurveKind {
+  CURVE_KIND_UNSPECIFIED = 0;
+  // base_xp * level
+  CURVE_KIND_LINEAR = 1;
+  // base_xp * level ^ growth_factor
+  CURVE_KIND_POLYNOMIAL = 2;
+  // base_xp * growth_factor ^ level
+  CURVE_KIND_EXPONENTIAL = 3;
+  // level_table[level], stated explicitly per level
+  CURVE_KIND_TABLE = 4;
+}
+
+// What each level costs.
+message ExperienceCurve {
+  CurveKind kind = 1;
+  // Cost anchor for the first level.
+  uint32 base_xp = 2;
+  // Exponent or base, for the polynomial and exponential curves.
+  optional float growth_factor = 3;
+  uint32 max_level = 4;
+  // Explicit per-level cost, for CURVE_KIND_TABLE only.
+  repeated uint32 level_table = 5;
+}
+
+// One performable activity, e.g. mining copper ore or smithing an iron dagger.
+//
+// An action is an edge in the crafting graph: item references in, item
+// references out. It is not another profession.
+message ProfessionAction {
+  // URL-safe identifier, e.g. "mine-copper-ore".
+  string ref = 1;
+  string name = 2;
+  optional string description = 3;
+
+  // Empty inputs means a pure gathering action.
+  repeated kbve.common.v1.ItemAmount inputs = 4;
+  repeated kbve.common.v1.ItemAmount outputs = 5;
+
+  uint32 required_level = 6;
+  uint32 xp_reward = 7;
+  optional uint32 duration_ms = 8;
+
+  // Tools that permit or speed up the action, by item reference.
+  repeated string tool_refs = 9;
+  optional string emoji = 10;
+  optional string icon = 11;
+
+  // Stable numeric identifier, the bridge for engines that index by integer.
+  uint32 key = 12;
+  optional string facility_ref = 13;
+  // The world object this action is performed against, where one exists.
+  optional string resource_node_ref = 14;
+}
+
+// A milestone reached at a given level, revealing content or granting a
+// passive.
+message ProfessionUnlock {
+  uint32 level = 1;
+  // The action that becomes available.
+  optional string action_ref = 2;
+  // A title, recipe or perk granted instead.
+  optional string reward_ref = 3;
+  optional string description = 4;
+}
+
+// A discipline.
+message Profession {
+  // URL-safe identifier, e.g. "mining".
+  string ref = 1;
+  // Stable numeric identifier for engines that index by integer.
+  uint32 key = 2;
+  kbve.type.v1.Ulid id = 3;
+  string name = 4;
+  optional string description = 5;
+  optional string lore = 6;
+
+  ProfessionCategory category = 7;
+  repeated string tags = 8;
+
+  optional string emoji = 9;
+  optional string icon = 10;
+  optional string img = 11;
+
+  // Mirrors experience_curve.max_level for consumers that need only the
+  // ceiling.
+  uint32 max_level = 12;
+  ExperienceCurve experience_curve = 13;
+
+  repeated ProfessionAction actions = 14;
+  repeated ProfessionUnlock unlocks = 15;
+
+  repeated kbve.common.v1.Extension extensions = 16;
+
+  optional string credits = 17;
+  // Hidden from production builds.
+  optional bool drafted = 18;
+}
+
+// A list of action keys.
+//
+// Exists because a proto3 map cannot hold a repeated value directly.
+message KeyList {
+  repeated int64 keys = 1;
+}
+
+// A materialised reverse index over the profession graph.
+//
+// The authored edges live on ProfessionAction, in its inputs, outputs, tools
+// and resource node. This is the same graph precomputed in both directions so a
+// consumer can answer "what produces this" without walking every action. It is
+// a build artifact, generated alongside the registry rather than authored.
+//
+// Keyed on numeric item and action keys throughout.
+message XrefIndex {
+  // Drift stamp over the payload.
+  string content_version = 1;
+  // Item reference to item key.
+  map<string, int64> slug_to_key = 2;
+  // Item key to the actions that output it.
+  map<int64, KeyList> produced_by = 3;
+  // Item key to the actions that consume it.
+  map<int64, KeyList> input_to = 4;
+  // Item key to the actions that use it as a tool.
+  map<int64, KeyList> tool_for = 5;
+  // Action key to the world object it is performed against.
+  map<int64, string> node_links = 6;
+  // World object reference to the action performed against it.
+  map<string, int64> node_by_ref = 7;
+}
+
+// Every profession, as shipped to clients.
+message ProfessionRegistry {
+  // 2 was content_version, now RegistryMeta.content_version.
+  reserved 2;
+  reserved "content_version";
+
+  kbve.common.v1.RegistryMeta meta = 3;
+  repeated Profession professions = 1;
+}

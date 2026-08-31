@@ -1,0 +1,177 @@
+syntax = "proto3";
+
+package kbve.market.v1;
+
+import "google/protobuf/timestamp.proto";
+import "kbve/asset/v1/asset.proto";
+import "kbve/common/v1/decimal.proto";
+import "kbve/market/v1/market.proto";
+import "kbve/type/v1/id.proto";
+
+// What an asset is worth trading right now.
+//
+// A quote says what something costs. This says whether acting on it makes
+// money, which is a different question and the one anybody actually asks. The
+// three things that turn a price into a decision are the fee, the volume, and
+// the age of the quote -- and a spread computed without all three is a number
+// that looks like profit and is not.
+
+// The economics of buying and reselling one unit.
+//
+// Every field after the two prices is derived, and stored anyway. A margin is
+// read far more often than it is computed, and recomputing it per request
+// against a fee schedule that may since have changed produces a different
+// answer than the one that was shown when the user acted.
+message Margin {
+  kbve.asset.v1.AssetRef ref = 1;
+  google.protobuf.Timestamp as_of = 2;
+
+  // What acquiring a unit costs.
+  kbve.common.v1.Decimal buy_price = 3;
+  // What disposing of a unit returns, before fees.
+  kbve.common.v1.Decimal sell_price = 4;
+
+  // sell_price - buy_price. Signed: a negative spread is a real and common
+  // state, not an error, and clamping it at zero hides every item whose ends
+  // have crossed.
+  kbve.common.v1.Decimal spread = 5;
+
+  // What the venue takes on the sale, under the schedule in force at as_of.
+  kbve.common.v1.Decimal fee = 6;
+
+  // spread - fee. The only number here worth acting on.
+  kbve.common.v1.Decimal net_margin = 7;
+
+  // net_margin / buy_price, in basis points. Signed. Integer because a
+  // percentage of two exact quantities should not become approximate on the
+  // way to being displayed.
+  int32 roi_bps = 8;
+
+  // How many units may be acquired inside the venue's buy-limit window.
+  optional int64 limit_quantity = 9;
+  // net_margin * limit_quantity: the most this can earn per window.
+  optional kbve.common.v1.Decimal potential_profit = 10;
+  // buy_price * limit_quantity: what it costs to find out.
+  optional kbve.common.v1.Decimal capital_required = 11;
+
+  // The fee schedule this was computed under, so the arithmetic can be
+  // reproduced after the venue changes its rules.
+  optional int32 fee_rate_bps = 12;
+}
+
+// How much of an asset actually changes hands, and how recently.
+//
+// The load-bearing half of a scan. A large margin on an item that trades four
+// times a day is not an opportunity; it is a wide spread on an illiquid thing,
+// and the reason the spread is wide is that nobody is trading it.
+message Liquidity {
+  kbve.asset.v1.AssetRef ref = 1;
+  google.protobuf.Timestamp as_of = 2;
+
+  // The period the counts below cover.
+  int64 window_seconds = 3;
+
+  // Units that traded at the buying end of the book.
+  optional int64 buy_volume = 4;
+  // Units that traded at the selling end.
+  optional int64 sell_volume = 5;
+  // Units traded in total. Not necessarily buy + sell: a venue may report an
+  // aggregate it does not break down.
+  optional int64 total_volume = 6;
+
+  // Volume valued at price, which is how items of different unit prices are
+  // compared honestly.
+  optional kbve.common.v1.Decimal notional_volume = 7;
+  optional int64 trade_count = 8;
+
+  // How stale each end of the quote is, as of as_of.
+  //
+  // Separate from the volume counts because they answer different questions: a
+  // window can show healthy volume while the specific price being quoted is
+  // hours old. The Grand Exchange reports the last trade at each end whenever
+  // it happened, so this is routine rather than exceptional.
+  optional int64 bid_age_seconds = 9;
+  optional int64 ask_age_seconds = 10;
+}
+
+// Everything known about one asset at one moment, assembled for display.
+//
+// A row in a table. Kept as one message so that what was shown to a user can
+// be stored and replayed exactly, rather than reassembled later from parts
+// that have each moved on.
+message MarketSnapshot {
+  kbve.asset.v1.AssetRef ref = 1;
+  google.protobuf.Timestamp as_of = 2;
+
+  // Denormalised so a row renders without a second lookup.
+  optional string name = 3;
+  optional string icon_url = 4;
+
+  optional Quote quote = 5;
+  optional Margin margin = 6;
+  optional Liquidity liquidity = 7;
+
+  // Where the price sits against its own recent range, in basis points of the
+  // range. Zero is the low, ten thousand is the high. This is what separates
+  // "cheap" from "falling".
+  optional int32 range_position_bps = 8;
+  optional kbve.common.v1.Decimal day_high = 9;
+  optional kbve.common.v1.Decimal day_low = 10;
+  // Change against the previous close, in basis points. Signed.
+  optional int32 change_bps = 11;
+}
+
+// What a scan kept and what it threw away.
+//
+// Recorded with its results rather than applied and forgotten. A ranked table
+// is meaningless without the filter that produced it - "the best flips" is a
+// claim about the filter as much as about the market.
+message ScanFilter {
+  optional kbve.common.v1.Decimal min_net_margin = 1;
+  optional int32 min_roi_bps = 2;
+  optional int64 min_volume = 3;
+
+  optional kbve.common.v1.Decimal min_buy_price = 4;
+  optional kbve.common.v1.Decimal max_buy_price = 5;
+
+  // The most capital a single position may consume.
+  optional kbve.common.v1.Decimal max_capital = 6;
+
+  // Reject a quote older than this. Without it a scan is ranked partly by how
+  // long ago somebody stopped trading each item.
+  optional int64 max_quote_age_seconds = 7;
+
+  optional int64 min_buy_limit = 8;
+  repeated string tags = 9;
+  repeated string venues = 10;
+  optional kbve.asset.v1.AssetClass asset_class = 11;
+}
+
+// How a scan is ordered.
+enum ScanSort {
+  SCAN_SORT_UNSPECIFIED = 0;
+  SCAN_SORT_NET_MARGIN = 1;
+  SCAN_SORT_ROI = 2;
+  SCAN_SORT_VOLUME = 3;
+  SCAN_SORT_POTENTIAL_PROFIT = 4;
+  SCAN_SORT_RECENCY = 5;
+  SCAN_SORT_CHANGE = 6;
+}
+
+// A ranked set of opportunities.
+message MarketScan {
+  kbve.type.v1.Ulid id = 1;
+  optional string title = 2;
+  google.protobuf.Timestamp as_of = 3;
+
+  ScanFilter filter = 4;
+  ScanSort sort = 5;
+  bool descending = 6;
+
+  repeated MarketSnapshot rows = 7;
+
+  // How many assets matched before the rows were truncated. A page of fifty
+  // out of four thousand and a page of fifty out of fifty-one mean different
+  // things, and the row count alone cannot tell them apart.
+  optional int64 matched_count = 8;
+}

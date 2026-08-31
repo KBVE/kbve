@@ -34,28 +34,28 @@ chrono = { workspace = true, features = ["default"] }
 globset = "0.4.18"
 
 # Workspace path dependencies
-jedi = { path = "../../../packages/rust/jedi", features = ["valkey", "clickhouse"] }
-kbve = { path = "../../../packages/rust/kbve", features = ["supabase", "image-gen", "kv"] }
-bevy_items = { path = "../../../packages/rust/bevy/bevy_items", features = ["inventory"] }
-bevy_inventory = { path = "../../../packages/rust/bevy/bevy_inventory", default-features = false }
-bevy_battle = { path = "../../../packages/rust/bevy/bevy_battle" }
-bevy_dungeon = { path = "../../../packages/rust/bevy/bevy_dungeon" }
-bevy_behavior = { path = "../../../packages/rust/bevy/bevy_behavior" }
-bevy_npc = { path = "../../../packages/rust/bevy/bevy_npc" }
-bevy_quests = { path = "../../../packages/rust/bevy/bevy_quests" }
-bevy_skills = { path = "../../../packages/rust/bevy/bevy_skills" }
-bevy_chat = { path = "../../../packages/rust/bevy/bevy_chat" }
-bevy_mapdb = { path = "../../../packages/rust/bevy/bevy_mapdb" }
-bevy_pathfinder = { path = "../../../packages/rust/bevy/bevy_pathfinder", default-features = false, features = [
+jedi = { path = "../../../crates/jedi", features = ["valkey", "clickhouse"] }
+kbve = { path = "../../../crates/kbve", features = ["supabase", "image-gen", "kv"] }
+bevy_items = { path = "../../../crates/bevy_items", features = ["inventory"] }
+bevy_inventory = { path = "../../../crates/bevy_inventory", default-features = false }
+bevy_battle = { path = "../../../crates/bevy_battle" }
+bevy_dungeon = { path = "../../../crates/bevy_dungeon" }
+bevy_behavior = { path = "../../../crates/bevy_behavior" }
+bevy_npc = { path = "../../../crates/bevy_npc" }
+bevy_quests = { path = "../../../crates/bevy_quests" }
+bevy_skills = { path = "../../../crates/bevy_skills" }
+bevy_chat = { path = "../../../crates/bevy_chat" }
+bevy_mapdb = { path = "../../../crates/bevy_mapdb" }
+bevy_pathfinder = { path = "../../../crates/bevy_pathfinder", default-features = false, features = [
     "tile-graph",
 ] }
-bevy_db = { path = "../../../packages/rust/bevy/bevy_db", default-features = false }
+bevy_db = { path = "../../../crates/bevy_db", default-features = false }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { workspace = true, optional = true }
 
 [dev-dependencies]
-bevy_dungeon = { path = "../../../packages/rust/bevy/bevy_dungeon", features = ["testing"] }
+bevy_dungeon = { path = "../../../crates/bevy_dungeon", features = ["testing"] }
 serial_test = { workspace = true }
 wiremock = "0.6"
 

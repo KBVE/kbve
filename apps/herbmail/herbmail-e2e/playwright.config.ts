@@ -25,7 +25,7 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: './kbve.sh -nx axum-herbmail:dev',
+		command: 'moon run axum-herbmail:dev',
 		cwd: workspaceRoot,
 		url: `${baseURL}/health`,
 		reuseExistingServer: false,

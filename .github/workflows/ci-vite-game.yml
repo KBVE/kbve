@@ -90,7 +90,6 @@ jobs:
         permissions:
             contents: read
         env:
-            NX_NO_CLOUD: true
             APP_NAME: ${{ fromJSON(inputs.engine).app_name }}
             PROJECT_PATH: ${{ fromJSON(inputs.engine).project_path }}
         steps:
@@ -155,7 +154,7 @@ jobs:
               run: pnpm install --frozen-lockfile
 
             - name: Build ${{ env.APP_NAME }}
-              run: ./kbve.sh -nx "${APP_NAME}:build" --skip-nx-cache
+              run: moon run "${APP_NAME}:build" --force
 
             - name: Verify build output
               run: |

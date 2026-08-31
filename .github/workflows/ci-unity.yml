@@ -226,13 +226,16 @@ jobs:
             # itemdb.json / itemdb.binpb are gitignored codegen artifacts.
             # Without regen the bundle ships with an empty ItemDBCache and
             # every name resolves to "item.unknown".
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
             - name: Regenerate StreamingAssets DB artifacts
               if: ${{ contains(inputs.project_path, 'rareicon') }}
               run: |
-                  npx nx run astro-kbve:sync:itemdb
-                  npx nx run astro-kbve:sync:itemdb-atlas
-                  npx nx run astro-kbve:sync:npcdb
-                  npx nx run astro-kbve:sync:mapdb
+                  moon run astro-kbve:sync-itemdb
+                  moon run astro-kbve:sync-itemdb-atlas
+                  moon run astro-kbve:sync-npcdb
+                  moon run astro-kbve:sync-mapdb
 
             - name: Run Unity EditMode tests
               uses: game-ci/unity-test-runner@v4
@@ -352,13 +355,16 @@ jobs:
             # itemdb.json / itemdb.binpb are gitignored codegen artifacts.
             # Without regen the bundle ships with an empty ItemDBCache and
             # every name resolves to "item.unknown".
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
             - name: Regenerate StreamingAssets DB artifacts
               if: ${{ contains(inputs.project_path, 'rareicon') }}
               run: |
-                  npx nx run astro-kbve:sync:itemdb
-                  npx nx run astro-kbve:sync:itemdb-atlas
-                  npx nx run astro-kbve:sync:npcdb
-                  npx nx run astro-kbve:sync:mapdb
+                  moon run astro-kbve:sync-itemdb
+                  moon run astro-kbve:sync-itemdb-atlas
+                  moon run astro-kbve:sync-npcdb
+                  moon run astro-kbve:sync-mapdb
 
             - name: Seed Unity Library from PVC
               run: |

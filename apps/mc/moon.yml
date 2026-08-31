@@ -1,0 +1,67 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+tags: ['docker', 'vitest']
+
+tasks:
+    container-publish:
+        script: 'docker buildx build --push --build-arg JAVA_BUILDER_IMAGE=ghcr.io/kbve/mc:gradle --cache-from=type=registry,ref=ghcr.io/kbve/mc:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/mc:buildcache,mode=max -f apps/mc/Dockerfile -t ghcr.io/kbve/mc:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true
+    container-gradle:
+        script: 'docker buildx build --load -f apps/mc/Dockerfile.gradle -t kbve/mc:gradle .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    container-gradle-publish:
+        script: 'docker buildx build --push -f apps/mc/Dockerfile.gradle -t ghcr.io/kbve/mc:gradle .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true
+    container-mods:
+        script: 'docker buildx build --load -f apps/mc/Dockerfile.mods -t ghcr.io/kbve/mc:mods .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    container-mods-publish:
+        script: 'docker buildx build --push -f apps/mc/Dockerfile.mods -t ghcr.io/kbve/mc:mods .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true
+    dev:
+        script: "docker compose --env-file ../../.env -f docker-compose.dev.yml down --remove-orphans 2>/dev/null || true && echo '=== Starting MC dev stack (Velocity + Fabric via docker compose) ===' && echo '  Game:  localhost:25565 (connect here — Velocity proxy)' && echo '  RCON:  localhost:25575 (password: dev)' && echo '  Env:   ../../.env (repo root, gitignored)' && echo '  Stop:  moon run mc:dev-down   (keeps world data)' && echo '  Wipe:  moon run mc:dev-clean  (drops world volume)' && echo '' && docker compose --env-file ../../.env -f docker-compose.dev.yml up --remove-orphans"
+        deps: ['~:container']
+        options:
+            cache: false
+    dev-client:
+        script: "echo '=== KBVE MC Dev Client ===' && echo '  Builds the Fabric mod and launches a Minecraft client' && echo '  with the mod loaded. Connect to localhost:25565' && echo '' && echo '  Make sure the dev server is running: moon run mc:dev' && echo '' && cd behavior_statetree/java && ./gradlew runClient --no-daemon"
+        options:
+            cache: false
+    smoke-client:
+        script: 'bash apps/mc/scripts/headless-client-smoke.sh'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    smoke-ping:
+        script: 'bash apps/mc/scripts/server-ping-smoke.sh'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    dev-down:
+        script: 'docker compose --env-file ../../.env -f docker-compose.dev.yml down --remove-orphans'
+        options:
+            cache: false
+    dev-clean:
+        script: 'docker compose --env-file ../../.env -f docker-compose.dev.yml down --remove-orphans --volumes'
+        options:
+            cache: false
+    e2e:
+        script: 'docker rm -f mc-e2e 2>/dev/null || true && docker run -d --name mc-e2e -p 25575:25575 -p 25565:25565 -e EULA=TRUE -e RCON_PASSWORD=test -e ENABLE_RCON=true -e ONLINE_MODE=false kbve/mc:latest && echo ''Waiting for MC server RCON...'' && for i in $(seq 1 300); do if docker logs mc-e2e 2>&1 | grep -q ''RCON running''; then echo ''RCON ready after ''"$i"''s''; break; fi; if docker logs mc-e2e 2>&1 | grep -q ''Multiple garbage collectors''; then echo ''JVM GC conflict detected''; docker logs mc-e2e 2>&1 | tail -20; docker rm -f mc-e2e 2>/dev/null || true; exit 1; fi; if [ $i -eq 300 ]; then echo ''Server did not start in 300s''; docker logs mc-e2e 2>&1 | tail -50; docker rm -f mc-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done && RCON_PASSWORD=test npx vitest run; EC=$?; echo ''--- container logs ---''; docker logs mc-e2e 2>&1 | tail -50; docker rm -f mc-e2e 2>/dev/null || true; exit $EC'
+        deps: ['~:container']
+        options:
+            cache: false

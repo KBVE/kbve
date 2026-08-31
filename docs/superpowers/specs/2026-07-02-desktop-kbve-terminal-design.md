@@ -75,7 +75,7 @@ Execution follows `superpowers:subagent-driven-development`. Orchestrator stays 
 Ground rules for every subagent:
 
 - Work in a git worktree off `dev` (never checkout in the main repo; never push `dev`/`main` directly).
-- Build/test via `./kbve.sh -nx desktop-kbve:<target>` — no raw cargo/vite.
+- Build/test via `moon run desktop-kbve:<task>` — no raw cargo/vite.
 - No code comments in produced code. No manual version bumps.
 - TDD: failing test first where the surface allows (parsers, stores, actor lifecycle).
 

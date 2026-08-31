@@ -55,20 +55,20 @@ libm = "0.2"
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 avian3d = { workspace = true, features = ["3d", "f32", "parry-f32", "debug-plugin"] }
-bevy_inventory = { path = "../../../../packages/rust/bevy/bevy_inventory" }
-bevy_items = { path = "../../../../packages/rust/bevy/bevy_items", features = ["inventory"] }
-bevy_cam = { path = "../../../../packages/rust/bevy/bevy_cam" }
-bevy_kbve_net = { path = "../../../../packages/rust/bevy/bevy_kbve_net", features = ["npcdb", "client", "creatures"] }
-bevy_behavior = { path = "../../../../packages/rust/bevy/bevy_behavior" }
-bevy_pathfinder = { path = "../../../../packages/rust/bevy/bevy_pathfinder" }
-bevy_skills = { path = "../../../../packages/rust/bevy/bevy_skills" }
-bevy_db = { path = "../../../../packages/rust/bevy/bevy_db" }
-bevy_chat = { path = "../../../../packages/rust/bevy/bevy_chat", features = ["plugin"] }
+bevy_inventory = { path = "../../../../crates/bevy_inventory" }
+bevy_items = { path = "../../../../crates/bevy_items", features = ["inventory"] }
+bevy_cam = { path = "../../../../crates/bevy_cam" }
+bevy_kbve_net = { path = "../../../../crates/bevy_kbve_net", features = ["npcdb", "client", "creatures"] }
+bevy_behavior = { path = "../../../../crates/bevy_behavior" }
+bevy_pathfinder = { path = "../../../../crates/bevy_pathfinder" }
+bevy_skills = { path = "../../../../crates/bevy_skills" }
+bevy_db = { path = "../../../../crates/bevy_db" }
+bevy_chat = { path = "../../../../crates/bevy_chat", features = ["plugin"] }
 lightyear = { workspace = true, features = ["client", "replication", "prediction", "interpolation", "input_native", "websocket", "websocket_self_signed", "netcode", "webtransport"] }
 base64 = { workspace = true }
 dirs = { workspace = true }
 rand = { workspace = true }
-bevy_tasker = { path = "../../../../packages/rust/bevy/bevy_tasker" }
+bevy_tasker = { path = "../../../../crates/bevy_tasker" }
 crossbeam-channel = { workspace = true }
 dashmap = { workspace = true }
 log = { workspace = true }

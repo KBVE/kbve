@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package kbve.common.v1;
+
+// An exact decimal number.
+//
+// The value is units scaled by a power of ten: units divided by 10^scale. So
+// 123.45 is units 12345 with scale 2, and one million coins is units 1000000
+// with scale 0.
+//
+// Integers rather than a float, because money compared or summed as a float
+// stops being the number that was written down. Integers plus an explicit
+// scale rather than a fixed smallest unit, because one smallest unit cannot
+// serve a game currency, a share price and a token at once.
+//
+// units is 64 bits, so a value needs to stay within about 9.2e18 units at its
+// chosen scale. That is ample for coins and for prices quoted in cents, and it
+// is worth care for tokens quoted at eighteen decimal places: quote those at a
+// coarser scale, or carry the fractional part in a second field, rather than
+// letting the value silently wrap.
+message Decimal {
+  int64 units = 1;
+  // Decimal places. Zero means units is already the whole value.
+  int32 scale = 2;
+}

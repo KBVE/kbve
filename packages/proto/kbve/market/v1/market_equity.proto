@@ -1,0 +1,159 @@
+syntax = "proto3";
+
+package kbve.market.v1;
+
+import "google/protobuf/timestamp.proto";
+import "kbve/asset/v1/asset.proto";
+import "kbve/common/v1/decimal.proto";
+
+// What a company earns, and what it pays out.
+//
+// Facts about a company, filed under market rather than asset because every
+// figure that a screen actually sorts on is a ratio with a price on one side.
+// They go stale as a set, on a date, which is market-data behaviour.
+
+// The period a set of figures covers.
+enum FiscalPeriod {
+  FISCAL_PERIOD_UNSPECIFIED = 0;
+  FISCAL_PERIOD_Q1 = 1;
+  FISCAL_PERIOD_Q2 = 2;
+  FISCAL_PERIOD_Q3 = 3;
+  FISCAL_PERIOD_Q4 = 4;
+  FISCAL_PERIOD_FULL_YEAR = 5;
+  // The last four quarters, whatever they are. Not a reported period: a
+  // rolling window computed from four that were.
+  FISCAL_PERIOD_TRAILING_TWELVE_MONTHS = 6;
+}
+
+// Whether a set of figures is what the company said or what the market thinks.
+enum FigureBasis {
+  FIGURE_BASIS_UNSPECIFIED = 0;
+  // As filed.
+  FIGURE_BASIS_REPORTED = 1;
+  // Analyst consensus, before the fact.
+  FIGURE_BASIS_ESTIMATE = 2;
+  // Restated after the fact. A revision is not a correction of a data feed;
+  // it is the company changing its own answer, and a series that silently
+  // replaces the original loses the fact that it moved.
+  FIGURE_BASIS_RESTATED = 3;
+}
+
+// One reporting period.
+message EarningsReport {
+  kbve.asset.v1.AssetRef ref = 1;
+  FiscalPeriod period = 2;
+  // The fiscal year the period belongs to, which is not always the calendar
+  // year it ends in.
+  int32 fiscal_year = 3;
+  FigureBasis basis = 4;
+
+  // When the period ended, and when the company said so. The gap between them
+  // is weeks, and a figure filed under the wrong one lands in the wrong
+  // quarter.
+  google.protobuf.Timestamp period_end = 5;
+  optional google.protobuf.Timestamp reported_at = 6;
+
+  // What the figures are denominated in. A foreign listing reports in its own
+  // currency and a ratio that mixes it with a price in another is nonsense.
+  string currency = 7;
+
+  optional kbve.common.v1.Decimal revenue = 8;
+  optional kbve.common.v1.Decimal net_income = 9;
+  // Per share, diluted. Signed: a loss is a normal quarter, not a missing one.
+  optional kbve.common.v1.Decimal eps = 10;
+  optional kbve.common.v1.Decimal eps_estimate = 11;
+
+  optional kbve.common.v1.Decimal operating_income = 12;
+  optional kbve.common.v1.Decimal free_cash_flow = 13;
+  optional kbve.common.v1.Decimal total_assets = 14;
+  optional kbve.common.v1.Decimal total_debt = 15;
+}
+
+// What a company pays holders, and how reliably.
+message DividendPolicy {
+  // Payments per year: 4 quarterly, 1 annual, 0 for a company that does not
+  // pay one.
+  optional int32 frequency = 1;
+  // Per share, per payment, in the currency below.
+  optional kbve.common.v1.Decimal amount_per_share = 2;
+  optional string currency = 3;
+
+  // Trailing twelve months of payments over the current price, in basis
+  // points. Derived, and stored because it depends on a price that moves: a
+  // yield quoted without saying when is a yield against an unknown price.
+  optional int32 yield_bps = 4;
+  optional google.protobuf.Timestamp yield_as_of = 5;
+
+  // Share of earnings paid out, in basis points. Above ten thousand means the
+  // company is paying more than it earns, which is the number this field
+  // exists to make visible.
+  optional int32 payout_ratio_bps = 6;
+
+  optional google.protobuf.Timestamp last_ex_date = 7;
+  optional google.protobuf.Timestamp next_ex_date = 8;
+  // Consecutive years of increases, which is the whole basis of the
+  // dividend-growth screens.
+  optional int32 growth_streak_years = 9;
+}
+
+// The derived figures a screen actually sorts on.
+//
+// Every one is a ratio with a price on one side, so the whole message is only
+// meaningful with its as_of. Kept together rather than hung off Asset for that
+// reason: they go stale as a set, at the same moment, and a consumer holding
+// half of one snapshot and half of another is comparing two different days.
+message Fundamentals {
+  kbve.asset.v1.AssetRef ref = 1;
+  google.protobuf.Timestamp as_of = 2;
+  string currency = 3;
+
+  // Price over trailing twelve-month earnings, in basis points to stay exact.
+  // Absent rather than negative for a company that lost money: a negative P/E
+  // sorts as the cheapest stock on the exchange, and it is the opposite.
+  optional int32 pe_ratio_bps = 4;
+  // Against forward estimates rather than reported earnings.
+  optional int32 forward_pe_bps = 5;
+  optional int32 price_to_book_bps = 6;
+  optional int32 price_to_sales_bps = 7;
+
+  optional kbve.common.v1.Decimal eps_ttm = 8;
+  optional kbve.common.v1.Decimal revenue_ttm = 9;
+  optional kbve.common.v1.Decimal book_value_per_share = 10;
+
+  // How far the price swings against the market, in basis points: 15000 is a
+  // beta of 1.5.
+  optional int32 beta_bps = 11;
+  optional kbve.common.v1.Decimal market_cap = 12;
+  optional kbve.common.v1.Decimal enterprise_value = 13;
+
+  optional DividendPolicy dividend = 14;
+
+  // When the company next reports. The single most useful date on a screen:
+  // it is when everything above stops being true.
+  optional google.protobuf.Timestamp next_earnings_at = 15;
+  // Whether that date is confirmed by the company or estimated from its
+  // history. An estimated date presented as confirmed is how a position gets
+  // held through an earnings print by accident.
+  optional bool next_earnings_confirmed = 16;
+
+  // Fraction of the float sold short, in basis points.
+  optional int32 short_interest_bps = 17;
+
+  // What a fund's holdings are actually worth per share, and when that was
+  // struck. Absent on anything that is not a fund.
+  //
+  // A fund has two prices: what it holds and what it trades for. For an ETF
+  // they stay within a few basis points because shares can be created against
+  // the basket; for a closed-end fund, or an ETF whose underlying market is
+  // shut while its own is open, they separate, and the gap is the entire
+  // decision. NAV is struck once a day, so it is stale against an intraday
+  // price by construction -- which is why it carries its own timestamp rather
+  // than sharing as_of above.
+  optional kbve.common.v1.Decimal nav = 18;
+  optional google.protobuf.Timestamp nav_as_of = 19;
+  // Price over NAV, in basis points, signed: 200 is a two percent premium,
+  // -1500 a fifteen percent discount. Stored because it is the figure the
+  // screens sort on and recomputing it against a later NAV answers a
+  // different question.
+  optional int32 premium_to_nav_bps = 20;
+}

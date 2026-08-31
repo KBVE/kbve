@@ -63,3 +63,24 @@ tasks:
         deps: ['~:install']
         inputs: ['@group(sources)', '@group(manifests)']
         outputs: ['dist']
+
+    # @nxlv/python wrapped `uv add` and `uv remove` as `add`/`update`/`remove`
+    # targets on every python project. They are the same two uv commands, and
+    # the package name is a passthrough argument:
+    #   moon run kbve-py:add -- httpx
+    add:
+        command: 'uv add'
+        options:
+            cache: false
+
+    remove:
+        command: 'uv remove'
+        options:
+            cache: false
+
+    # `update` had no uv equivalent of its own: it re-resolved the lockfile,
+    # which is what `uv lock --upgrade` does.
+    update:
+        command: 'uv lock --upgrade'
+        options:
+            cache: false

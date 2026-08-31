@@ -1,0 +1,12 @@
+# The proc-macro half of `holy`. Split out so the facade crate can carry the
+# runtime the generated code calls into: a proc-macro crate can export macros
+# and nothing else, so the two cannot live together.
+#
+# Nothing should depend on this directly -- depend on `holy`.
+layer: 'library'
+stack: 'systems'
+toolchains:
+  default: 'rust'
+
+owners:
+  defaultOwner: '@h0lybyte'

@@ -99,7 +99,7 @@ All must print (7 structs, 3 Populate overloads, nested repeated, oneof-as-indep
 		},
 ```
 
-- [ ] **Step 3:** Verify: `node -e "JSON.parse(require('fs').readFileSync('apps/kbve/astro-kbve/project.json','utf8'));console.log('json ok')"`; then `npx nx run astro-kbve:sync:professiondb-uecpp --skip-nx-cache` (isolated — avoids the mapdb/itemdb churn the parent triggers) → succeeds; `git status --porcelain packages/unreal/KBVEProfessionDB packages/data/codegen` shows only the (already-committed) headers, i.e. clean or headers-only.
+- [ ] **Step 3:** Verify: `node -e "JSON.parse(require('fs').readFileSync('apps/kbve/astro-kbve/project.json','utf8'));console.log('json ok')"`; then `moon run astro-kbve:sync-professiondb-uecpp --skip-nx-cache` (isolated — avoids the mapdb/itemdb churn the parent triggers) → succeeds; `git status --porcelain packages/unreal/KBVEProfessionDB packages/data/codegen` shows only the (already-committed) headers, i.e. clean or headers-only.
 - [ ] **Step 4:** Commit: `git commit -am "feat(nx): wire sync:professiondb-uecpp into sync:professiondb"`
 
 ## Task 3: plugin scaffold (`.uplugin`, `Build.cs`, module, version)
@@ -197,7 +197,7 @@ All print. Confirm every mapper field ref exists in the generated header (mismat
 
 ## Task 6: full gate + push
 
-- [ ] **Step 1:** `npx nx run astro-kbve:sync:professiondb-uecpp --skip-nx-cache` → succeeds, headers stable. `git status --porcelain` clean (revert any stray `sync:itemdb-uecpp` UE-header churn if the parent target was run).
+- [ ] **Step 1:** `moon run astro-kbve:sync-professiondb-uecpp --skip-nx-cache` → succeeds, headers stable. `git status --porcelain` clean (revert any stray `sync:itemdb-uecpp` UE-header churn if the parent target was run).
 - [ ] **Step 2:** File inventory: `find packages/unreal/KBVEProfessionDB -type f | sort` → `.uplugin`, `version.toml`, `Build.cs`, `KBVEProfessionDB.h`, `KBVEProfessionDBModule.cpp`, `KBVEProfessionTypes.h`, `KBVEProfessionMap.h`, `KBVEProfessionDBDatabase.h`, `KBVEProfessionDBDatabase.cpp`, `Generated/KBVEProfessionDBProtoTypes.h`, `Generated/KBVEProfessionDBProtoParse.h`.
 - [ ] **Step 3:** Record the honest UE-compile-gate note (PR body): no local UE compile; static-verified vs `KBVEQuestDB`; real gate is `ci-unreal-plugins.yml` (auto-discovers the plugin).
 - [ ] **Step 4:** Push: `git push -u origin trunk/professiondb-ue-consumer-1785674901`.

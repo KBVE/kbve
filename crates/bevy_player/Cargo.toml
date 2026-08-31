@@ -1,0 +1,21 @@
+[package]
+name = "bevy_player"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Bevy kinematic character controller with Avian3D physics — gravity, jump, collision-aware movement, and fall damage."
+homepage = "https://kbve.com/"
+repository.workspace = true
+keywords = ["bevy", "character-controller", "physics", "avian3d", "gamedev"]
+categories = ["game-development", "simulation"]
+readme = "README.md"
+
+[dependencies]
+bevy = { workspace = true, features = ["bevy_state", "keyboard"] }
+avian3d = { workspace = true, features = ["3d", "f32", "parry-f32"] }
+serde = { workspace = true, features = ["derive"] }
+
+[dev-dependencies]
+serde_json = { workspace = true }

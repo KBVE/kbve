@@ -83,6 +83,32 @@ tasks:
     export:
         deps: ['~:export-windows', '~:export-macos', '~:export-linux']
 
+    # Copies the shared locale files in beside the scenes. Godot loads
+    # translations from the project directory, so they cannot be read out of
+    # packages/data/i18n where they are edited.
+    i18n-sync:
+        script: >-
+            rm -rf $projectSource/assets/i18n
+            && mkdir -p $projectSource/assets/i18n
+            && cp -R packages/data/i18n/locales/. $projectSource/assets/i18n/
+        inputs: ['/packages/data/i18n/locales/**/*.json']
+        outputs: ['assets/i18n']
+        options:
+            runFromWorkspaceRoot: true
+
+    # Needs blender on PATH, so it is a local authoring step rather than
+    # anything CI runs.
+    bake-turf:
+        script: >-
+            blender -b -P packages/python/kbve/kbve/blender/turf_bake.py --
+            --out $projectSource/assets/biomes/grassland/textures
+            --res 2048 --ao-samples 40
+            && python3 packages/python/kbve/kbve/blender/pack_orm.py
+            $projectSource/assets/biomes/grassland/textures
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
     steam-assets:
         deps: ['q:deploy-mac']
         script: 'bash scripts/steam.sh'

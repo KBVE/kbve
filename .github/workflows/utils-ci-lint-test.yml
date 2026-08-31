@@ -6,11 +6,11 @@ on:
             base-ref:
                 required: true
                 type: string
-                description: 'Base ref for nx affected (e.g., origin/main)'
+                description: 'Base ref for the affected check (e.g., origin/main)'
             head-ref:
                 required: true
                 type: string
-                description: 'Head ref for nx affected (e.g., origin/dev)'
+                description: 'Head ref for the affected check (e.g., origin/dev)'
             check-conflicts:
                 required: false
                 type: boolean
@@ -22,9 +22,6 @@ jobs:
         name: 'Lint and Test'
         runs-on: ubuntu-latest
         timeout-minutes: 120
-        env:
-            NX_NO_CLOUD: true
-            NX_DAEMON: false
         permissions:
             contents: read
         steps:
@@ -104,10 +101,10 @@ jobs:
                   with: |
                       github-token: ${{ github.token }}
 
-            - name: Setup Rust 1.96
+            - name: Setup Rust 1.98
               uses: dtolnay/rust-toolchain@stable
               with:
-                  toolchain: '1.96'
+                  toolchain: '1.98'
                   components: clippy
 
             - name: Install system libraries for wry/webkit2gtk + protoc
@@ -127,18 +124,6 @@ jobs:
                   mkdir -p ~/.pgrx
                   printf '[configs]\npg17 = "/usr/lib/postgresql/17/bin/pg_config"\n' > ~/.pgrx/config.toml
 
-            # Force a fresh nx project graph before affected lint/test runs.
-            # Without this, the @nx/dependency-checks ESLint rule has a known
-            # race when a dep + its first import land in back-to-back PRs:
-            # the daemon's cached graph sees the dep in package.json but
-            # not yet the import in src/, so it falsely flags the package
-            # as unused (see #10607). `nx reset` clears the cache and stops
-            # any stale daemon; NX_DAEMON=false (job env) then keeps every nx
-            # invocation daemonless, rebuilding the graph from disk each time
-            # so CI never hits the "Failed to process project graph" daemon flake.
-            - name: Reset nx graph
-              run: pnpm nx reset
-
             # Everything downstream of a .proto reads the committed .binpb descriptor, not the
             # .proto — so an edit with no regeneration is silently inert and nothing else in CI
             # notices. Hash-based, so this needs no protoc and cannot flake on a protoc version.
@@ -151,8 +136,11 @@ jobs:
             - name: Check data artifacts are not stale
               run: node packages/data/codegen/check-data-artifacts.mjs
 
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
             - name: Lint affected projects
-              run: pnpm nx affected --target=lint --base=${{ inputs.base-ref }} --head=${{ inputs.head-ref }} --no-cloud
+              run: moon run ':lint' --affected --base ${{ inputs.base-ref }} --head ${{ inputs.head-ref }}
 
             # Godot suites are excluded because this job checks out with
             # `lfs: false`, and a Godot project whose assets are pointer stubs
@@ -167,4 +155,7 @@ jobs:
             # credentials and a four-minute gdextension build, to re-run what
             # already ran.
             - name: Test affected projects
-              run: pnpm nx affected --target=test --base=${{ inputs.base-ref }} --head=${{ inputs.head-ref }} --no-cloud --exclude='tag:type:godot-app'
+              run: |
+                  moon run ':test' --affected \
+                    --base ${{ inputs.base-ref }} --head ${{ inputs.head-ref }} \
+                    --query 'project!=godot-friendslop'

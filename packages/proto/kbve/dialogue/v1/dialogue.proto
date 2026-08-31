@@ -1,0 +1,233 @@
+syntax = "proto3";
+
+package kbve.dialogue.v1;
+
+import "kbve/common/v1/quest_status.proto";
+import "kbve/common/v1/registry.proto";
+import "kbve/type/v1/id.proto";
+
+// What a node does when it is reached.
+enum DialogueNodeKind {
+  DIALOGUE_NODE_KIND_UNSPECIFIED = 0;
+  // Speaks its text and advances to next_node_id.
+  DIALOGUE_NODE_KIND_LINE = 1;
+  // Presents its choices and waits for the player.
+  DIALOGUE_NODE_KIND_CHOICE = 2;
+  DIALOGUE_NODE_KIND_QUEST_OFFER = 3;
+  DIALOGUE_NODE_KIND_QUEST_TURN_IN = 4;
+  DIALOGUE_NODE_KIND_SHOP_OPEN = 5;
+  DIALOGUE_NODE_KIND_END = 6;
+  // Jumps to next_node_id without speaking.
+  DIALOGUE_NODE_KIND_GOTO = 7;
+  DIALOGUE_NODE_KIND_SCRIPT = 8;
+  // Speaks one line chosen at random from texts.
+  DIALOGUE_NODE_KIND_RANDOM_LINE = 9;
+}
+
+// What choosing an option, or entering a node, does to the world.
+//
+// Supersedes kbve.quest.ChoiceConsequenceType and the free-text
+// consequence_type on npc.DialogueOption, which carried values like
+// "advance_quest" and "give_item" as strings.
+enum DialogueEffectKind {
+  DIALOGUE_EFFECT_KIND_UNSPECIFIED = 0;
+  DIALOGUE_EFFECT_KIND_NONE = 1;
+  DIALOGUE_EFFECT_KIND_SET_FLAG = 2;
+  DIALOGUE_EFFECT_KIND_CLEAR_FLAG = 3;
+  DIALOGUE_EFFECT_KIND_START_QUEST = 4;
+  DIALOGUE_EFFECT_KIND_ADVANCE_QUEST = 5;
+  DIALOGUE_EFFECT_KIND_FAIL_QUEST = 6;
+  DIALOGUE_EFFECT_KIND_BRANCH_QUEST = 7;
+  DIALOGUE_EFFECT_KIND_GIVE_ITEM = 8;
+  DIALOGUE_EFFECT_KIND_TAKE_ITEM = 9;
+  DIALOGUE_EFFECT_KIND_GRANT_CURRENCY = 10;
+  DIALOGUE_EFFECT_KIND_GRANT_XP = 11;
+  DIALOGUE_EFFECT_KIND_REPUTATION = 12;
+  DIALOGUE_EFFECT_KIND_NPC_DISPOSITION = 13;
+  DIALOGUE_EFFECT_KIND_SPAWN_ENEMY = 14;
+  DIALOGUE_EFFECT_KIND_TELEPORT = 15;
+  DIALOGUE_EFFECT_KIND_UNLOCK = 16;
+  DIALOGUE_EFFECT_KIND_OPEN_SHOP = 17;
+  DIALOGUE_EFFECT_KIND_PLAY_SOUND = 18;
+  DIALOGUE_EFFECT_KIND_RUN_SCRIPT = 19;
+}
+
+// Required progress on one quest.
+message QuestCondition {
+  kbve.type.v1.Ulid quest_ref = 1;
+  // Any one of these satisfies the condition. Empty means any state but
+  // LOCKED.
+  repeated kbve.common.v1.QuestStatus states = 2;
+}
+
+// Whether a node, entry point or choice is available right now.
+//
+// Every field is a conjunct: all of the populated ones must hold. This is what
+// makes the graph respond to what the player has done, rather than replaying
+// the same path on every visit.
+message DialogueCondition {
+  // World-state flags that must be set, and must not be.
+  repeated string required_flags = 1;
+  repeated string blocked_flags = 2;
+
+  repeated QuestCondition quests = 3;
+
+  optional int32 min_level = 4;
+  optional int32 max_level = 5;
+
+  // Items the player must be carrying.
+  repeated kbve.type.v1.Ulid required_item_refs = 6;
+
+  optional string required_class = 7;
+  optional kbve.type.v1.Ulid faction_ref = 8;
+  optional int32 min_reputation = 9;
+  optional int32 min_disposition = 10;
+
+  // Skill check the player must pass, e.g. "persuasion:30".
+  optional string skill_check = 11;
+
+  // How many times this graph has been entered before. Lets an NPC greet a
+  // stranger differently from a regular.
+  optional int32 min_visits = 12;
+  optional int32 max_visits = 13;
+
+  // Escape hatch for conditions the structured fields cannot express. Prefer a
+  // real field: an expression is opaque to tooling and to every consumer that
+  // does not implement the same evaluator.
+  optional string expression = 14;
+}
+
+// A change written back to the world.
+message DialogueEffect {
+  DialogueEffectKind kind = 1;
+
+  // What the effect acts on: a quest, item, faction or NPC depending on kind.
+  optional kbve.type.v1.Ulid target_ref = 2;
+
+  // Flag name, for the flag effects.
+  optional string flag = 3;
+
+  // Magnitude: currency granted, reputation delta, item count.
+  optional int32 value = 4;
+
+  // Slug target for effects that address something by name rather than id,
+  // such as a script, sound or shop.
+  optional string slug = 5;
+}
+
+// One option the player can pick at a CHOICE node.
+message DialogueChoice {
+  // Unique within its node.
+  string id = 1;
+  string label = 2;
+  optional string description = 3;
+
+  // Hidden, or shown greyed out, when this does not hold.
+  optional DialogueCondition condition = 4;
+  // Shown greyed out rather than hidden when the condition fails.
+  optional bool show_when_unavailable = 5;
+
+  // Applied in order when the choice is taken.
+  repeated DialogueEffect effects = 6;
+
+  // Where the conversation goes next. Empty ends it.
+  optional string next_node_id = 7;
+
+  // Selectable only once per player, ever.
+  optional bool once = 8;
+
+  // Display order. Equal values keep authoring order.
+  optional int32 order = 9;
+}
+
+// One node in the graph.
+message DialogueNode {
+  // Unique within its graph, e.g. "greet_stranger".
+  string id = 1;
+  DialogueNodeKind kind = 2;
+
+  // Who speaks. Defaults to the graph's speaker.
+  optional kbve.type.v1.Ulid speaker_ref = 3;
+  // Display overrides for multi-speaker scenes.
+  optional string speaker_override = 4;
+  optional string portrait_override = 5;
+
+  // Spoken text. RANDOM_LINE nodes pick one of texts at random; every other
+  // kind uses the first entry.
+  repeated string texts = 6;
+  optional string voice_ref = 7;
+
+  // Skipped when this does not hold, and the graph falls through to the next
+  // candidate.
+  optional DialogueCondition condition = 8;
+
+  repeated DialogueChoice choices = 9;
+
+  // For LINE, GOTO and the quest kinds.
+  optional string next_node_id = 10;
+
+  // Subject of QUEST_OFFER and QUEST_TURN_IN.
+  optional kbve.type.v1.Ulid quest_ref = 11;
+  // Subject of SHOP_OPEN and SCRIPT.
+  optional string shop_ref = 12;
+  optional string script_ref = 13;
+
+  // Applied on arrival and on departure.
+  repeated DialogueEffect on_enter = 14;
+  repeated DialogueEffect on_exit = 15;
+
+  // Higher wins when several nodes are eligible.
+  optional int32 priority = 16;
+
+  // Visited at most once per player.
+  optional bool once = 17;
+
+  // Free-form tags for tooling and filtering.
+  repeated string tags = 18;
+}
+
+// A way into the graph.
+//
+// This is what makes a conversation a web rather than a tree: a graph has many
+// entry points, each guarded by a condition, and the highest-priority eligible
+// one wins. The same NPC opens on a different node depending on what the
+// player has done.
+message DialogueEntry {
+  string node_id = 1;
+  optional DialogueCondition condition = 2;
+  // Higher is considered first.
+  optional int32 priority = 3;
+  // Human-readable note about when this entry is meant to fire.
+  optional string comment = 4;
+}
+
+// A conversation graph.
+//
+// Supersedes npc.DialogueTree, which had a single entry node and options-based
+// navigation, and map.DialogueTree, which had typed nodes but still one root.
+message DialogueGraph {
+  kbve.type.v1.Ulid id = 1;
+  // URL-safe identifier, e.g. "innkeeper-mara".
+  string ref = 2;
+  string name = 3;
+  optional string description = 4;
+
+  // Evaluated in priority order; the first eligible entry starts the
+  // conversation. A graph with no eligible entry is not offered at all.
+  repeated DialogueEntry entries = 5;
+
+  repeated DialogueNode nodes = 6;
+
+  // Speaker for nodes that do not name one.
+  optional kbve.type.v1.Ulid default_speaker_ref = 7;
+
+  repeated string tags = 8;
+  optional string credits = 9;
+  optional bool drafted = 10;
+}
+
+// Every conversation graph, as shipped to clients.
+message DialogueRegistry {
+  kbve.common.v1.RegistryMeta meta = 1;
+  repeated DialogueGraph graphs = 2;
+}

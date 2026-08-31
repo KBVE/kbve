@@ -305,7 +305,7 @@ Accessed via **`sqlx`** (async, compile-time-checked queries; migrations via `sq
 The deployable surface lives in `apps/jobboard`: `Dockerfile` (chiseled Ubuntu axum base), `version.toml`, and nx `project.json` (`build` / `test` / `lint` / `run` / `container` / `containerx`). The container build context is the repo root.
 
 ### Container image
-- Built via `./kbve.sh -nx jobboard:container` → `kbve/jobboard:latest` (+ version tag); production config also tags `ghcr.io/kbve/jobboard`.
+- Built via `moon run jobboard:container` → `kbve/jobboard:latest` (+ version tag); production config also tags `ghcr.io/kbve/jobboard`.
 - Multi-stage cargo-chef build (planner → cook → builder → runtime) on `ghcr.io/kbve/chisel-ubuntu-axum`. Runtime image runs `/app/jobboard` as uid 10001, exposes `5400`.
 - Protos are **vendored** (`apps/jobboard/src/proto/jobboard.rs`); the image build does not run `protoc`. Regenerate only when the `.proto` changes: `BUILD_PROTO=1 cargo build -p jobboard` (and revert the incidental jedi proto regen before committing).
 

@@ -1,0 +1,30 @@
+[package]
+name = "bevy_cam"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Bevy isometric camera plugin with pixel snapping, multiplicative zoom, and two-stage render-to-texture pipeline for crisp pixel-art rendering."
+homepage = "https://kbve.com/"
+repository.workspace = true
+keywords = ["bevy", "camera", "isometric", "pixel-art", "gamedev"]
+categories = ["game-development", "rendering"]
+readme = "README.md"
+
+[features]
+default = []
+# Wire scroll-wheel zoom input + per-frame zoom interpolation. Off by
+# default because most games using this plugin have a fixed isometric
+# camera and don't want the wasted system dispatch.
+zoom = []
+
+[dependencies]
+bevy = { workspace = true, features = ["bevy_asset", "bevy_render", "bevy_core_pipeline", "bevy_pbr"] }
+
+[dev-dependencies]
+criterion = { workspace = true, features = ["plotters", "cargo_bench_support"] }
+
+[[bench]]
+name = "pixel_snap"
+harness = false

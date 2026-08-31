@@ -1,0 +1,12 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+tags: ['vitest']
+
+tasks:
+    e2e:
+        script: 'docker rm -f discordsh-bot-e2e 2>/dev/null || true && docker run -d --name discordsh-bot-e2e -p 4322:4322 -e HEALTH_PORT=4322 -e RUST_LOG=info kbve/discordsh-bot:latest && sleep 3 && npx vitest run; EC=$?; docker rm -f discordsh-bot-e2e 2>/dev/null || true; exit $EC'
+        deps: ['discordsh-bot:container']
+        options:
+            cache: false

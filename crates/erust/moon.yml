@@ -1,0 +1,12 @@
+# egui and eframe components, migrated from the legacy Nx workspace at
+# KBVE/kbve packages/rust/erust.
+layer: 'library'
+stack: 'frontend'
+toolchains:
+  default: 'rust'
+
+dependsOn:
+  - 'holy'
+
+owners:
+  defaultOwner: '@h0lybyte'

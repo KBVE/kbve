@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package kbve.asset.v1;
+
+import "google/protobuf/timestamp.proto";
+import "kbve/common/v1/decimal.proto";
+
+// What a fund is, beyond the fact that it has a price.
+//
+// AssetClass carries FUND and EquityProfile carries `is_etf`, and between them
+// they say a thing is a fund without saying anything about it. That is a
+// larger hole than it looks: a fund's price is not what it is worth, its cost
+// is not in the price at all, and two funds tracking the same index can differ
+// by more than the index moved. None of that is visible from a quote.
+
+// How a fund is structured.
+//
+// The structure decides whether the price can leave the value behind. An ETF
+// creates and redeems shares continuously, so it tracks; a closed-end fund has
+// a fixed share count and trades at whatever someone will pay, which is
+// routinely a fifth away from what it holds.
+enum FundKind {
+  FUND_KIND_UNSPECIFIED = 0;
+  FUND_KIND_ETF = 1;
+  // Priced once a day at net asset value, with no intraday market.
+  FUND_KIND_MUTUAL_FUND = 2;
+  // Fixed share count. Premium and discount to NAV are the whole story.
+  FUND_KIND_CLOSED_END = 3;
+  // An unsecured debt obligation that pays an index return. Carries issuer
+  // credit risk that an ETF holding the same index does not, which is the one
+  // fact a holder is most likely not to know.
+  FUND_KIND_ETN = 4;
+  // A grantor trust holding a physical asset, e.g. a metal.
+  FUND_KIND_TRUST = 5;
+}
+
+// How a fund gets the return it advertises.
+enum ReplicationMethod {
+  REPLICATION_METHOD_UNSPECIFIED = 0;
+  // Holds every constituent at index weight.
+  REPLICATION_METHOD_FULL = 1;
+  // Holds a subset chosen to behave like the index. Introduces tracking error
+  // that full replication does not have.
+  REPLICATION_METHOD_SAMPLED = 2;
+  // Holds a swap against a counterparty rather than the assets. The return is
+  // contractual, so it comes with counterparty risk instead of tracking error.
+  REPLICATION_METHOD_SYNTHETIC = 3;
+  // No index. A manager picks the holdings.
+  REPLICATION_METHOD_ACTIVE = 4;
+}
+
+// What a fund is.
+message FundProfile {
+  FundKind kind = 1;
+
+  // Annual cost, in basis points: 3 is a broad-market index fund, 95 is an
+  // active one. Deducted from the fund's assets rather than billed, so it
+  // never appears in a price series and a return computed from prices alone
+  // has already had it taken out without saying so.
+  optional int32 expense_ratio_bps = 2;
+
+  // Total assets under management, in the currency below. The liquidity
+  // figure that matters for a fund: a large fund with thin volume can still
+  // be traded, because a market maker can create shares against the basket.
+  optional kbve.common.v1.Decimal aum = 3;
+  optional string currency = 4;
+
+  // What it is trying to match, as the provider words it, e.g.
+  // "S&P 500", "MSCI World". Absent on an active fund.
+  optional string benchmark_index = 5;
+  ReplicationMethod replication = 6;
+
+  // Leverage, in basis points: 20000 is a two-times fund, 10000 is unlevered.
+  // Levered and inverse funds reset daily, so their return over any period
+  // longer than a day is not their multiple of the index return -- it is path
+  // dependent, and the gap grows with volatility. Recording the factor is what
+  // lets a consumer refuse to annualise them.
+  optional int32 leverage_bps = 7;
+  // Whether it returns the inverse of the benchmark.
+  optional bool inverse = 8;
+
+  // Distributions per year: 12 monthly, 4 quarterly, 0 for an accumulating
+  // fund that reinvests instead. Zero and unknown are different answers here,
+  // which is why this is optional rather than defaulted.
+  optional int32 distribution_frequency = 9;
+  // Whether income is reinvested rather than paid out. An accumulating fund's
+  // price series is already a total-return series; a distributing fund's is
+  // not, and comparing the two directly understates the second.
+  optional bool accumulating = 10;
+
+  // Where the fund is domiciled, as ISO 3166-1 alpha-2. Decides withholding
+  // and eligibility -- a US-domiciled ETF is not purchasable by most European
+  // retail investors regardless of where it lists.
+  optional string domicile = 11;
+  // Whether it is UCITS-compliant, which is the form that answers the above.
+  optional bool ucits = 12;
+
+  optional int32 holdings_count = 13;
+  optional google.protobuf.Timestamp inception_at = 14;
+  optional string issuer_name = 15;
+  optional string prospectus_url = 16;
+}

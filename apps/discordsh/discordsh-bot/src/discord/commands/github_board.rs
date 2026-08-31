@@ -14,6 +14,7 @@ use crate::discord::embeds::task_board_embed::{build_task_board_embed, tasks_fro
 use crate::discord::game::github_cards;
 use crate::discord::github::resolve_github_token;
 use crate::discord::github_permissions::{CommandTier, check_tier, github_permission_check};
+use jedi::GitHubIssueExt;
 
 /// Maximum time for the entire slash command operation (token resolve + API calls).
 /// Discord allows 15 minutes after defer, but we want fast feedback.
@@ -1177,7 +1178,11 @@ fn neutralize_at(s: &str) -> String {
 fn state_change_comment(author: &str, reopen: bool, is_pull_request: bool) -> String {
     let who = neutralize_at(author.trim());
     let action = if reopen { "reopened" } else { "closed" };
-    let kind = if is_pull_request { "pull request" } else { "issue" };
+    let kind = if is_pull_request {
+        "pull request"
+    } else {
+        "issue"
+    };
     if who.is_empty() {
         format!("_(via Discord)_ {action} this {kind}.")
     } else {
@@ -1299,7 +1304,10 @@ async fn post_state_attribution(
         .await
     {
         Ok(c) => {
-            if let Err(e) = store.set_comment_mirror_github_id(interaction_id, c.id as i64).await {
+            if let Err(e) = store
+                .set_comment_mirror_github_id(interaction_id, c.id as i64)
+                .await
+            {
                 warn!(error = %e, comment_id = c.id, "gh state: finalize mirror failed; forward echo-guard may miss");
             }
         }

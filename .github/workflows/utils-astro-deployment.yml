@@ -43,8 +43,6 @@ jobs:
     deploy:
         runs-on: ubuntu-latest
         timeout-minutes: 30
-        env:
-            NX_NO_CLOUD: true
         permissions:
             contents: read
         steps:
@@ -87,7 +85,7 @@ jobs:
               shell: bash
               env:
                   BUILD_CMD: ${{ inputs.build_command }}
-              run: ./kbve.sh -nx $BUILD_CMD
+              run: moon run $BUILD_CMD
 
             - name: Deploy to ${{ inputs.destination_repo }}
               uses: dobbelina/copy_file_to_another_repo_action@main

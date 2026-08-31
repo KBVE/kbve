@@ -1,0 +1,365 @@
+syntax = "proto3";
+
+package kbve.map.v1;
+
+import "kbve/common/v1/bounds.proto";
+import "kbve/common/v1/extension.proto";
+import "kbve/common/v1/math.proto";
+import "kbve/map/v1/climate.proto";
+import "kbve/map/v1/hex.proto";
+import "kbve/map/v1/object.proto";
+import "kbve/map/v1/terrain.proto";
+import "kbve/type/v1/id.proto";
+
+// Zone type — functional classification
+enum ZoneType {
+  ZONE_TYPE_UNSPECIFIED = 0;
+  ZONE_TYPE_OVERWORLD = 1;
+  ZONE_TYPE_DUNGEON = 2;
+  ZONE_TYPE_INSTANCE = 3; // Private per-party instance
+  ZONE_TYPE_CITY = 4;
+  ZONE_TYPE_ARENA = 5; // PvP / challenge
+  ZONE_TYPE_SAFE = 6; // No combat
+  ZONE_TYPE_WILDERNESS = 7; // Open PvP / high danger
+  ZONE_TYPE_RAID = 8;
+  ZONE_TYPE_TUTORIAL = 9;
+  ZONE_TYPE_EVENT = 10; // Seasonal / limited-time
+}
+
+// Room type — for tile-based dungeons (discordsh-style)
+enum RoomType {
+  ROOM_TYPE_UNSPECIFIED = 0;
+  ROOM_TYPE_EMPTY = 1;
+  ROOM_TYPE_COMBAT = 2;
+  ROOM_TYPE_TREASURE = 3;
+  ROOM_TYPE_TRAP = 4;
+  ROOM_TYPE_REST_SHRINE = 5;
+  ROOM_TYPE_MERCHANT = 6;
+  ROOM_TYPE_BOSS = 7;
+  ROOM_TYPE_STORY = 8;
+  ROOM_TYPE_HALLWAY = 9;
+  ROOM_TYPE_UNDERGROUND_CITY = 10;
+  ROOM_TYPE_PUZZLE = 11;
+  ROOM_TYPE_SECRET = 12;
+  ROOM_TYPE_PORTAL = 13;
+}
+
+// Room modifier — environmental effects on combat / exploration
+enum RoomModifier {
+  ROOM_MODIFIER_UNSPECIFIED = 0;
+  ROOM_MODIFIER_NONE = 1;
+  ROOM_MODIFIER_FOG = 2; // Reduced accuracy / vision
+  ROOM_MODIFIER_BLESSING = 3; // Healing bonus
+  ROOM_MODIFIER_CURSED = 4; // Damage multiplier on players
+  ROOM_MODIFIER_FLOODED = 5; // Movement penalty
+  ROOM_MODIFIER_BURNING = 6; // Periodic fire damage
+  ROOM_MODIFIER_FROZEN = 7; // Slow / ice hazards
+  ROOM_MODIFIER_TOXIC = 8; // Poison buildup
+  ROOM_MODIFIER_DARK = 9; // Requires light source
+  ROOM_MODIFIER_HOLY = 10; // Bonus vs undead, heal over time
+  ROOM_MODIFIER_ARCANE = 11; // Magic amplification
+}
+
+// Compass direction for tile exits / adjacency
+enum Direction {
+  DIRECTION_UNSPECIFIED = 0;
+  DIRECTION_NORTH = 1;
+  DIRECTION_SOUTH = 2;
+  DIRECTION_EAST = 3;
+  DIRECTION_WEST = 4;
+  DIRECTION_UP = 5;
+  DIRECTION_DOWN = 6;
+}
+
+// Point of interest type
+enum PoiType {
+  POI_TYPE_UNSPECIFIED = 0;
+  POI_TYPE_CITY = 1;
+  POI_TYPE_TOWN = 2;
+  POI_TYPE_VILLAGE = 3;
+  POI_TYPE_DUNGEON = 4;
+  POI_TYPE_LANDMARK = 5;
+  POI_TYPE_SHRINE = 6;
+  POI_TYPE_MERCHANT = 7;
+  POI_TYPE_CAMP = 8;
+  POI_TYPE_RUINS = 9;
+  POI_TYPE_MINE = 10;
+  POI_TYPE_FARM = 11;
+  POI_TYPE_PORT = 12;
+  POI_TYPE_TOWER = 13;
+  POI_TYPE_CAVE = 14;
+  POI_TYPE_ARENA = 15;
+  POI_TYPE_GUILD_HALL = 16;
+  POI_TYPE_SPAWN_POINT = 17;
+  POI_TYPE_QUEST_HUB = 18;
+  POI_TYPE_CUSTOM = 19;
+}
+
+// Spawn category — what kind of entity spawns here
+enum SpawnCategory {
+  SPAWN_CATEGORY_UNSPECIFIED = 0;
+  SPAWN_CATEGORY_NPC = 1;
+  SPAWN_CATEGORY_RESOURCE = 2; // Ore, tree, herb node
+  SPAWN_CATEGORY_OBJECT = 3; // Chest, crate, decoration
+  SPAWN_CATEGORY_ENEMY = 4;
+  SPAWN_CATEGORY_BOSS = 5;
+  SPAWN_CATEGORY_EVENT = 6; // Seasonal / triggered spawn
+  SPAWN_CATEGORY_AMBIENT = 7; // Critters, birds, particles
+}
+
+// A single tile definition in a tile-based map
+message TileDef {
+  string id = 1;
+  optional string name = 2;
+  optional string description = 3;
+  RoomType room_type = 4;
+  repeated Direction exits = 5; // Available exits from this tile
+
+  // Modifiers & hazards
+  repeated RoomModifier modifiers = 6;
+  repeated TileHazard hazards = 7;
+
+  // Content
+  repeated string enemy_refs = 8; // NPC refs for combat rooms
+  repeated string loot_refs = 9; // Item refs for treasure rooms
+  optional string merchant_ref = 10; // NPC ref for merchant rooms
+  optional string story_event_ref = 11; // Quest/event ref for story rooms
+
+  // Visual
+  optional string template_name = 12; // Room template slug (e.g. "shattered_gallery")
+  optional string img = 13;
+  optional string music_override = 14;
+}
+
+// Environmental hazard on a tile
+message TileHazard {
+  string type = 1; // e.g. "spikes", "gas", "fire"
+  optional int32 damage = 2; // Damage on trigger
+  optional string effect_kind = 3; // Status effect slug
+  optional int32 effect_stacks = 4;
+  optional int32 effect_turns = 5;
+  optional float trigger_chance = 6; // 0.0–1.0 (default 1.0)
+}
+
+// Zone definition — a named region of the world
+message Zone {
+  kbve.type.v1.Ulid id = 1;
+  string ref = 2; // URL-safe identifier, e.g. "crystal-caverns"
+  string name = 3;
+  optional string description = 4;
+  optional string lore = 5;
+
+  // Classification
+  ZoneType type = 6;
+  Biome biome = 7;
+  repeated string tags = 8;
+
+  // Spatial bounds
+  optional kbve.common.v1.Bounds2D bounds = 9; // 2D region on world map
+  optional kbve.common.v1.BoundsAabb bounds_3d = 10; // 3D bounding volume
+
+  // Level range
+  optional int32 level_min = 11;
+  optional int32 level_max = 12;
+  optional int32 recommended_party_size = 13;
+
+  // Connections to other zones
+  repeated ZoneConnection connections = 14;
+
+  // Visual
+  optional string img = 15; // Map art / splash
+  optional string icon = 16; // Minimap icon
+  optional string music_ref = 17; // Background music track
+  optional string ambient_ref = 18; // Ambient sound loop
+
+  // Behavior
+  optional bool pvp_enabled = 19;
+  optional bool safe_zone = 20; // No combat allowed
+  optional bool instanced = 21; // Private per-party copy
+  optional int32 max_players = 22; // Player capacity
+
+  // Terrain generation (for procedural zones)
+  optional TerrainConfig terrain = 23;
+
+  // Water
+  optional WaterConfig water = 24;
+
+  // Contents
+  repeated PointOfInterest pois = 25;
+  repeated SpawnPoint spawn_points = 26;
+  repeated WorldObjectPlacement objects = 27;
+
+  // Dungeon-specific (tile-based zones)
+  optional DungeonConfig dungeon = 28;
+
+  // Phasing / availability
+  repeated string prerequisite_quest_refs = 29;
+  optional string event_ref = 30;
+
+  // Extensions
+  repeated kbve.common.v1.Extension extensions = 31;
+
+  // World behavior policies
+  optional GenerationMode generation = 39;
+  optional PersistenceMode persistence = 34;
+  optional StreamingHint streaming = 35;
+  optional ReplicationHint replication = 36;
+
+  // Environment / atmosphere
+  optional EnvironmentConfig environment = 37;
+
+  // Seed derivation
+  optional SeedPolicy seed_policy = 38;
+
+  // Empire / city / territory wiring
+  optional string faction_ref = 40; // Controlling faction
+  repeated string settlement_refs = 41; // Settlements anchored in this zone
+  repeated string territory_claim_refs = 42; // Active claims overlapping this zone
+  repeated string landmark_refs = 43; // Landmarks in this zone
+  repeated string trade_route_refs = 44; // Routes passing through
+
+  // Cultural / religious flavour overrides
+  optional string culture_ref = 45;
+  optional string religion_ref = 46;
+
+  // Climate authoring — overrides region climate when set
+  optional ClimateConfig climate = 47;
+
+  // Metadata
+  optional string credits = 32;
+  optional bool drafted = 33;
+}
+
+// Connection between two zones
+message ZoneConnection {
+  string target_zone_ref = 1; // Zone slug or ULID
+  optional string name = 2; // e.g. "Northern Gate", "Cave Entrance"
+  optional Direction direction = 3;
+  optional kbve.common.v1.Vec3F position = 4; // Where the portal/entrance is
+  optional int32 level_requirement = 5;
+  optional string quest_requirement = 6;
+  optional bool bidirectional = 7; // Can travel both ways (default true)
+}
+
+// A notable location within a zone
+message PointOfInterest {
+  kbve.type.v1.Ulid id = 1;
+  string ref = 2;
+  string name = 3;
+  optional string description = 4;
+
+  PoiType type = 5;
+  optional kbve.common.v1.Vec3F position = 6;
+  optional kbve.common.v1.Vec2I grid_pos = 7; // For tile-based maps
+  optional float radius = 8; // Interaction / discovery radius
+
+  // Visual
+  optional string icon = 9;
+  optional string marker_icon = 10; // Map marker
+
+  // Linkage
+  repeated string npc_refs = 11; // NPCs stationed here
+  repeated string quest_refs = 12; // Quests available here
+  optional string shop_ref = 13; // Shop inventory
+  optional string zone_ref = 14; // Enters a sub-zone (dungeon, building)
+
+  // Behavior
+  optional bool discoverable = 15; // Must be found before showing on map
+  optional bool fast_travel = 16; // Can teleport here once discovered
+  optional bool respawn_point = 17; // Player respawns here on death
+
+  // Extensions
+  repeated kbve.common.v1.Extension extensions = 18;
+}
+
+// Configuration for tile-based dungeons
+message DungeonConfig {
+  optional int64 seed = 1; // Procedural generation seed
+  optional int32 max_depth = 2; // Maximum Manhattan distance from origin
+  repeated int32 boss_ring_distances = 3; // Manhattan distances for boss spawns (e.g. 7, 14, 21)
+  optional int32 bosses_per_ring = 4; // Boss count per ring (default 1)
+  repeated TileDef tile_templates = 5; // Pre-defined tile templates
+  repeated RoomSpawnWeight room_weights = 6; // Room type distribution
+}
+
+// Room type spawn weight — probability of room type appearing
+message RoomSpawnWeight {
+  RoomType room_type = 1;
+  float weight = 2; // Relative weight in spawn pool
+  optional int32 min_depth = 3; // Only at this depth or deeper
+  optional int32 max_depth = 4;
+}
+
+// Where entities appear in the world
+message SpawnPoint {
+  string id = 1;
+  SpawnCategory category = 2;
+  optional string entity_ref = 3; // NPC, item, or object def ref
+  optional kbve.common.v1.Vec3F position = 4;
+  optional kbve.common.v1.Vec2I grid_pos = 5;
+  optional float radius = 6; // Random offset from position
+
+  // Spawn rules
+  optional float spawn_weight = 7; // Relative probability
+  optional int32 max_active = 8; // Max concurrent instances
+  optional int32 level_min = 9;
+  optional int32 level_max = 10;
+  optional int32 respawn_time_secs = 11;
+  optional int32 respawn_variance = 12;
+
+  // Conditions
+  optional string time_of_day = 13; // "day", "night", "dawn", "dusk"
+  optional string weather = 14; // "clear", "rain", "storm", "snow"
+  optional string event_ref = 15; // Only during this event
+  optional string quest_ref = 16; // Only during/after this quest
+  repeated string required_flags = 17; // World-state flags
+
+  // Group spawning
+  optional int32 group_min = 18; // Min entities per spawn
+  optional int32 group_max = 19; // Max entities per spawn
+  optional float group_radius = 20; // Spread radius for groups
+
+  // Typed condition gates — preferred over the stringly-typed
+  // `time_of_day` / `weather` fields above. Generators should set the
+  // typed enums; the string fields stay for backward-compat reads.
+  optional TimeOfDay time_of_day_kind = 21;
+  optional WeatherKind weather_kind = 22;
+  optional Season season = 23;
+
+  // Faction / territory gating
+  optional string faction_ref = 24; // Only spawn while this faction owns the area
+  optional string territory_claim_ref = 25; // Only spawn inside this claim
+  optional string settlement_ref = 26; // Pinned to a specific settlement
+}
+
+// A region / continent / world that contains multiple zones
+message Region {
+  kbve.type.v1.Ulid id = 1;
+  string ref = 2;
+  string name = 3;
+  optional string description = 4;
+  optional string lore = 5;
+
+  repeated string zone_refs = 6; // Zones in this region
+  optional string img = 7; // World map image
+  optional string icon = 8;
+
+  // World-level settings
+  optional float gravity = 9; // World gravity (default 20.0)
+  optional float day_cycle_secs = 10; // Length of day/night cycle in seconds
+
+  // Extensions
+  repeated kbve.common.v1.Extension extensions = 11;
+
+  // Empire / city / culture wiring
+  repeated string faction_refs = 12; // Factions whose territory touches this region
+  repeated string settlement_refs = 13; // Settlements anchored in this region
+  repeated string territory_claim_refs = 14;
+  repeated string trade_route_refs = 15;
+  repeated string landmark_refs = 16;
+  repeated string culture_refs = 17;
+  repeated string religion_refs = 18;
+  optional ClimateConfig climate = 19; // Default climate for child zones
+  optional string dominant_culture_ref = 20;
+  optional string dominant_religion_ref = 21;
+}

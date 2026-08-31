@@ -3,3 +3,19 @@ $schema: 'https://moonrepo.dev/schemas/project.json'
 layer: 'application'
 language: 'rust'
 tags: ['rust', 'docker']
+
+tasks:
+    # The registry build, which is CI's. It pushes rather than loading, and
+    # carries the buildcache the local task has no use for.
+    container-publish:
+        script: >-
+            docker buildx build --push
+            --cache-from=type=registry,ref=ghcr.io/kbve/agones-shim:buildcache
+            --cache-to=type=registry,ref=ghcr.io/kbve/agones-shim:buildcache,mode=max
+            -f $projectSource/Dockerfile
+            -t ghcr.io/kbve/agones-shim:latest
+            .
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true

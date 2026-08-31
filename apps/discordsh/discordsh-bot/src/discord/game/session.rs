@@ -176,6 +176,7 @@ mod tests {
             short_id: short_id.to_owned(),
             owner: owner_id,
             party: Vec::new(),
+            dialogue_memory: Default::default(),
             mode: SessionMode::Solo,
             phase: GamePhase::Exploring,
             created_at: Instant::now(),

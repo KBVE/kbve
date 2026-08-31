@@ -44,3 +44,14 @@ tasks:
         options:
             runFromWorkspaceRoot: true
             cache: false
+
+    # The same suite against the built site rather than the dev server. It is
+    # the one that catches a broken build rather than a broken page.
+    e2e-preview:
+        script: 'E2E_PREVIEW=true pnpm exec playwright test --config=$projectSource/playwright.config.ts'
+        deps: ['~:build']
+        env:
+            E2E_PREVIEW: 'true'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false

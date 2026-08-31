@@ -27,7 +27,7 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: `JWT_SECRET=${jwtSecret} ./kbve.sh -nx irc-gateway:dev`,
+		command: `JWT_SECRET=${jwtSecret} moon run irc-gateway:dev`,
 		cwd: workspaceRoot,
 		url: `${baseURL}/health`,
 		reuseExistingServer: false,

@@ -2374,6 +2374,7 @@ dependencies = [
  "dotenvy",
  "futures-util",
  "hmac 0.13.0",
+ "holy",
  "http 1.4.2",
  "http-body-util",
  "jedi",
@@ -2900,8 +2901,8 @@ dependencies = [
  "crossbeam-channel",
  "futures-util",
  "js-sys",
+ "kbve-proto",
  "prost 0.14.4",
- "prost-build 0.14.4",
  "prost-types 0.14.4",
  "serde",
  "serde_json",
@@ -3053,11 +3054,24 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_dialogue"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+ "kbve-proto",
+ "prost 0.14.4",
+ "serde",
+ "serde_json",
+ "ulid",
+]
+
+[[package]]
 name = "bevy_dungeon"
 version = "0.1.0"
 dependencies = [
  "bevy_battle",
  "bevy_behavior",
+ "bevy_dialogue",
  "bevy_inventory",
  "bevy_items",
  "bevy_mapdb",
@@ -3553,8 +3567,8 @@ name = "bevy_mapdb"
 version = "0.1.1"
 dependencies = [
  "bevy",
+ "kbve-proto",
  "prost 0.14.4",
- "prost-build 0.14.4",
  "serde",
  "serde_json",
 ]
@@ -3653,10 +3667,11 @@ name = "bevy_npc"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "kbve-proto",
  "prost 0.14.4",
- "prost-build 0.14.4",
  "serde",
  "serde_json",
+ "ulid",
 ]
 
 [[package]]
@@ -4006,8 +4021,8 @@ name = "bevy_spells"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "kbve-proto",
  "prost 0.14.4",
- "prost-build 0.14.4",
  "serde",
  "serde_json",
 ]
@@ -5996,16 +6011,6 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
-]
-
-[[package]]
-name = "csbindgen"
-version = "1.9.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "950f59b281d7e20f050b4efd56d7c36c0deb853bf9ea1f20b985a75ae5b03b34"
-dependencies = [
- "regex",
- "syn 2.0.119",
 ]
 
 [[package]]
@@ -9395,11 +9400,19 @@ dependencies = [
 name = "holy"
 version = "0.2.2"
 dependencies = [
+ "holy-derive",
+ "rand 0.10.2",
+ "regex",
+ "trybuild",
+]
+
+[[package]]
+name = "holy-derive"
+version = "0.2.2"
+dependencies = [
  "proc-macro2",
  "quote",
- "rand 0.10.2",
  "syn 3.0.2",
- "trybuild",
 ]
 
 [[package]]
@@ -10304,6 +10317,7 @@ dependencies = [
  "fred",
  "futures-util",
  "jsonwebtoken",
+ "kbve-proto",
  "lru 0.18.1",
  "metrics",
  "papaya",
@@ -10324,7 +10338,6 @@ dependencies = [
  "tonic 0.14.6",
  "tonic-health",
  "tonic-prost",
- "tonic-prost-build",
  "tonic-reflection",
  "tower 0.5.3",
  "tracing",
@@ -10697,6 +10710,20 @@ dependencies = [
  "tokio",
  "tracing",
  "tracing-subscriber",
+]
+
+[[package]]
+name = "kbve-proto"
+version = "0.1.0"
+dependencies = [
+ "bytes",
+ "prost 0.14.4",
+ "prost-types 0.14.4",
+ "serde",
+ "serde_json",
+ "tonic 0.14.6",
+ "tonic-prost",
+ "ulid",
 ]
 
 [[package]]
@@ -15224,70 +15251,6 @@ checksum = "f94967dc7688f3054c7fac87473ffae4cc4c3904800e2d9f5b857246d8963b0a"
 dependencies = [
  "prost 0.14.4",
 ]
-
-[[package]]
-name = "protoc-bin-vendored"
-version = "3.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d1c381df33c98266b5f08186583660090a4ffa0889e76c7e9a5e175f645a67fa"
-dependencies = [
- "protoc-bin-vendored-linux-aarch_64",
- "protoc-bin-vendored-linux-ppcle_64",
- "protoc-bin-vendored-linux-s390_64",
- "protoc-bin-vendored-linux-x86_32",
- "protoc-bin-vendored-linux-x86_64",
- "protoc-bin-vendored-macos-aarch_64",
- "protoc-bin-vendored-macos-x86_64",
- "protoc-bin-vendored-win32",
-]
-
-[[package]]
-name = "protoc-bin-vendored-linux-aarch_64"
-version = "3.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c350df4d49b5b9e3ca79f7e646fde2377b199e13cfa87320308397e1f37e1a4c"
-
-[[package]]
-name = "protoc-bin-vendored-linux-ppcle_64"
-version = "3.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a55a63e6c7244f19b5c6393f025017eb5d793fd5467823a099740a7a4222440c"
-
-[[package]]
-name = "protoc-bin-vendored-linux-s390_64"
-version = "3.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1dba5565db4288e935d5330a07c264a4ee8e4a5b4a4e6f4e83fad824cc32f3b0"
-
-[[package]]
-name = "protoc-bin-vendored-linux-x86_32"
-version = "3.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8854774b24ee28b7868cd71dccaae8e02a2365e67a4a87a6cd11ee6cdbdf9cf5"
-
-[[package]]
-name = "protoc-bin-vendored-linux-x86_64"
-version = "3.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b38b07546580df720fa464ce124c4b03630a6fb83e05c336fea2a241df7e5d78"
-
-[[package]]
-name = "protoc-bin-vendored-macos-aarch_64"
-version = "3.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "89278a9926ce312e51f1d999fee8825d324d603213344a9a706daa009f1d8092"
-
-[[package]]
-name = "protoc-bin-vendored-macos-x86_64"
-version = "3.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81745feda7ccfb9471d7a4de888f0652e806d5795b61480605d4943176299756"
-
-[[package]]
-name = "protoc-bin-vendored-win32"
-version = "3.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "95067976aca6421a523e491fce939a3e65249bac4b977adee0ee9771568e8aa3"
 
 [[package]]
 name = "ptr_meta"
@@ -20639,11 +20602,9 @@ dependencies = [
  "bevy_pathfinder",
  "bevy_skills",
  "criterion",
- "csbindgen",
+ "kbve-proto",
  "proptest",
  "prost 0.14.4",
- "prost-build 0.14.4",
- "protoc-bin-vendored",
  "rusqlite",
  "serde",
  "tempfile",

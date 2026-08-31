@@ -1,0 +1,39 @@
+[package]
+name = "bevy_dungeon"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Dungeon crawl rules engine — rooms, combat, quests and loot over the shared proto content registries, with no presentation layer"
+homepage = "https://kbve.com/"
+repository.workspace = true
+keywords = ["dungeon", "roguelike", "combat", "gamedev", "mud"]
+categories = ["game-development"]
+publish = false
+
+[features]
+default = []
+# Exposes test-only session/map builders to downstream test suites.
+testing = []
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+rand = { workspace = true }
+rand_chacha = "0.10"
+tracing = { workspace = true }
+uuid = { workspace = true, features = ["v4", "serde"] }
+
+bevy_battle = { version = "0.1", path = "../bevy_battle" }
+bevy_behavior = { version = "0.1", path = "../bevy_behavior" }
+bevy_inventory = { version = "0.1", path = "../bevy_inventory", default-features = false }
+bevy_items = { version = "0.1", path = "../bevy_items", features = ["inventory"] }
+bevy_mapdb = { version = "0.1", path = "../bevy_mapdb" }
+bevy_dialogue = { path = "../bevy_dialogue" }
+bevy_npc = { version = "0.1", path = "../bevy_npc" }
+bevy_quests = { version = "0.1", path = "../bevy_quests" }
+bevy_skills = { version = "0.1", path = "../bevy_skills" }
+bevy_pathfinder = { version = "0.1", path = "../bevy_pathfinder", default-features = false, features = [
+    "tile-graph",
+] }

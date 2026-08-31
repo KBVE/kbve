@@ -1,0 +1,5 @@
+error: validate rules are only valid for String fields, but field 'age' has another type
+ --> tests/fail/10-validate-type-mismatch.rs:5:23
+  |
+5 |     #[holy(validate = "non_empty")]
+  |                       ^^^^^^^^^^^

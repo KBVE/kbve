@@ -1,6 +1,6 @@
 """The ``professiondb`` route — weekly integrity audit for the unified DB.
 
-Runs ``nx run astro-kbve:sync:professiondb`` (which regenerates the professiondb
+Runs ``moon run astro-kbve:sync-professiondb`` (which regenerates the professiondb
 data + runtime view and runs the hard-fail xref validator). A validator failure
 raises out of ``build`` so the weekly job fails; regen drift is reported as
 changed files and auto-PR'd like every other route.
@@ -59,7 +59,7 @@ class ProfessiondbRoute:
     def build(self, ctx: BuildContext) -> BuildResult:
         repo_root = repo_root_for(ctx.content_root)
         _run(
-            ["npx", "nx", "run", "astro-kbve:sync:professiondb", "--skip-nx-cache"],
+            ["moon", "run", "astro-kbve:sync-professiondb", "--force"],
             repo_root,
         )
         return BuildResult("professiondb", _changed(repo_root), False, "validated")

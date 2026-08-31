@@ -25,14 +25,14 @@ For short-lived runs or arbitrary dependency sets, the cheaper path is the exist
 ## Build
 
 ```bash
-npx nx run firecracker-python-web:container
-npx nx run firecracker-python-web:extract
+moon run firecracker-python-web:container
+moon run firecracker-python-web:extract
 ```
 
 ## Publish
 
 ```bash
-npx nx run firecracker-python-web:container:production
+moon run firecracker-python-web:container-production
 ```
 
 Pushes `ghcr.io/kbve/firecracker-python-web:latest` and `:<version>`.

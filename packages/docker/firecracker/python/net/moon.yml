@@ -1,0 +1,33 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'library'
+language: 'typescript'
+tags: ['docker']
+
+tasks:
+    container:
+        script: "VERSION=$(grep -m1 'version' packages/docker/firecracker/python/net/version.toml | sed 's/.*\"\\(.*\\)\\\"/\\1/') && docker tag ghcr.io/kbve/firecracker-python-net:latest ghcr.io/kbve/firecracker-python-net:${VERSION} && echo \"Tagged ghcr.io/kbve/firecracker-python-net:${VERSION}\""
+        deps: ['~:containerx']
+        options:
+            runFromWorkspaceRoot: true
+    containerx:
+        script: 'docker buildx build --load --platform linux/amd64 -f packages/docker/firecracker/python/net/Dockerfile -t ghcr.io/kbve/firecracker-python-net:latest packages/docker/firecracker/python/net'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    containerx-publish:
+        script: 'docker buildx build --load --platform linux/amd64 --provenance=false --sbom=false -f packages/docker/firecracker/python/net/Dockerfile -t ghcr.io/kbve/firecracker-python-net:latest packages/docker/firecracker/python/net'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true
+    extract:
+        script: "mkdir -p packages/docker/firecracker/python/net/dist && docker create --name fc-python-net-extract ghcr.io/kbve/firecracker-python-net:latest true > /dev/null 2>&1 || true && docker cp fc-python-net-extract:/rootfs.ext4 packages/docker/firecracker/python/net/dist/python-net.ext4 && docker rm fc-python-net-extract > /dev/null 2>&1 || true && echo 'Extracted: packages/docker/firecracker/python/net/dist/python-net.ext4'"
+        deps: ['~:container']
+        options:
+            runFromWorkspaceRoot: true
+    test:
+        script: "echo '=== firecracker-python-net rootfs tests ===' && docker create --name fc-python-net-test ghcr.io/kbve/firecracker-python-net:latest true > /dev/null 2>&1 && docker export fc-python-net-test | tar -t | grep -q '^rootfs.ext4$' && echo 'PASS: rootfs.ext4 present' && docker rm fc-python-net-test > /dev/null 2>&1 && echo '=== All firecracker-python-net tests passed ==='"
+        deps: ['~:container']
+        options:
+            runFromWorkspaceRoot: true

@@ -1,0 +1,136 @@
+syntax = "proto3";
+
+package kbve.forum.v1;
+
+import "google/protobuf/timestamp.proto";
+import "kbve/common/v1/reaction.proto";
+import "kbve/forum/v1/forum.proto";
+import "kbve/type/v1/id.proto";
+
+// Which way a vote points.
+//
+// CLEARED exists rather than deleting the row: a retraction that leaves a
+// record is auditable, and a deletion is not.
+enum VoteDirection {
+  VOTE_DIRECTION_UNSPECIFIED = 0;
+  VOTE_DIRECTION_UP = 1;
+  VOTE_DIRECTION_DOWN = 2;
+  VOTE_DIRECTION_CLEARED = 3;
+}
+
+// Forum-side state for one user, keyed by the same identifier the profile
+// domain uses.
+//
+// Identity does not live here. Username, display name, avatar and linked
+// providers belong to the profile domain and are deliberately not duplicated.
+message ForumUserProfile {
+  kbve.type.v1.Uuid user_id = 1;
+  // Net score across everything they have written.
+  int64 karma = 2;
+  int64 post_count = 3;
+  int64 comment_count = 4;
+  int64 upvotes_given = 5;
+  int64 downvotes_given = 6;
+  int64 upvotes_received = 7;
+  int64 downvotes_received = 8;
+
+  optional string signature = 9;
+  // Chosen from the flair its space offers.
+  optional int32 flair_id = 10;
+  optional string flair_text = 11;
+  optional int32 rank_id = 12;
+  repeated int32 badge_ids = 13;
+
+  // When they first opted into the forum, which need not be when they signed
+  // up.
+  google.protobuf.Timestamp joined_forum_at = 14;
+  optional google.protobuf.Timestamp last_active_at = 15;
+  // Posting-privilege tier.
+  int32 trust_level = 16;
+
+  bool mute_all_notifications = 17;
+  bool show_nsfw = 18;
+  bool is_banned = 19;
+  optional string ban_reason = 20;
+  // Absent means the ban does not lift.
+  optional google.protobuf.Timestamp ban_expires_at = 21;
+}
+
+// One vote on a thread, unique per voter.
+message ThreadVote {
+  kbve.type.v1.Uuid thread_id = 1;
+  kbve.type.v1.Uuid voter_id = 2;
+  VoteDirection direction = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+// One vote on a comment, unique per voter.
+message CommentVote {
+  kbve.type.v1.Uuid comment_id = 1;
+  kbve.type.v1.Uuid voter_id = 2;
+  VoteDirection direction = 3;
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
+}
+
+// One reaction on a thread or comment.
+message Reaction {
+  kbve.type.v1.Uuid id = 1;
+  ContentTargetKind target_kind = 2;
+  kbve.type.v1.Uuid target_id = 3;
+  kbve.type.v1.Uuid user_id = 4;
+  kbve.common.v1.ReactionKind kind = 5;
+  // Set only for REACTION_KIND_CUSTOM.
+  optional string custom_kind = 6;
+  google.protobuf.Timestamp created_at = 7;
+}
+
+// The association between a thread and a tag.
+//
+// The tag here may be one that has since been merged. Read paths resolve it
+// through ForumTag.canonical_id rather than using it directly.
+message ThreadTag {
+  kbve.type.v1.Uuid thread_id = 1;
+  int32 tag_id = 2;
+}
+
+// A follow edge. Users follow other users, spaces or tags to shape their feed.
+//
+// The target is a oneof rather than a kind and an identifier. The identifier
+// was previously a string documented as "UUID for a user or space, and a
+// stringified integer for a tag", which is two types wearing one field.
+message UserFollow {
+  kbve.type.v1.Uuid follower_id = 1;
+
+  oneof target {
+    kbve.type.v1.Uuid user_id = 2;
+    kbve.type.v1.Uuid space_id = 3;
+    int32 tag_id = 4;
+  }
+
+  google.protobuf.Timestamp created_at = 5;
+  // Whether activity from this target is surfaced as a notification.
+  bool notifications_enabled = 6;
+}
+
+// A thread a user saved.
+message Bookmark {
+  kbve.type.v1.Uuid id = 1;
+  kbve.type.v1.Uuid user_id = 2;
+  kbve.type.v1.Uuid thread_id = 3;
+  // A bucket the user named.
+  optional string folder = 4;
+  optional string note = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+// A subscription to a thread's activity. An author is subscribed to their own
+// thread by default; everyone else opts in.
+message ThreadSubscription {
+  kbve.type.v1.Uuid thread_id = 1;
+  kbve.type.v1.Uuid user_id = 2;
+  bool email_enabled = 3;
+  bool push_enabled = 4;
+  google.protobuf.Timestamp created_at = 5;
+}

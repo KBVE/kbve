@@ -26,7 +26,7 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: `HTTP_PORT=${port} ./kbve.sh -nx axum-discordsh:dev`,
+		command: `HTTP_PORT=${port} moon run axum-discordsh:dev`,
 		cwd: workspaceRoot,
 		url: `${baseURL}/health`,
 		reuseExistingServer: false,

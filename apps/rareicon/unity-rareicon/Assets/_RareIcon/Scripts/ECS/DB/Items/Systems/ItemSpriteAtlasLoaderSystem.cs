@@ -18,7 +18,7 @@ namespace RareIcon
             string path = Path.Combine(Application.streamingAssetsPath, "itemdb-atlas.png");
             if (!File.Exists(path))
             {
-                Debug.LogError($"[ItemSpriteAtlasLoader] missing at {path}. Run `npx nx run astro-kbve:sync:itemdb-atlas` to regenerate.");
+                Debug.LogError($"[ItemSpriteAtlasLoader] missing at {path}. Run `moon run astro-kbve:sync-itemdb-atlas` to regenerate.");
                 return;
             }
 

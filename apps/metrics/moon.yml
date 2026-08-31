@@ -8,3 +8,27 @@ tasks:
     # The Nx target tagged this one explicitly rather than taking kbve/$project.
     container:
         args: ['-t', 'kbve/metrics:latest']
+
+    # The registry build, which is CI's. It loads rather than pushing -- the
+    # workflow pushes afterwards -- but carries the buildcache and the ghcr tag.
+    containerx-publish:
+        script: >-
+            docker buildx build --load
+            --cache-from=type=registry,ref=ghcr.io/kbve/metrics:buildcache
+            --cache-to=type=registry,ref=ghcr.io/kbve/metrics:buildcache,mode=max
+            -f $projectSource/Dockerfile
+            -t ghcr.io/kbve/metrics:latest
+            -t kbve/metrics:latest
+            .
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true
+
+    # The local build. `container` above tags it kbve/metrics; this is the same
+    # image under the name the containerx target used.
+    containerx:
+        script: 'docker buildx build --load -f $projectSource/Dockerfile -t kbve/metrics:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false

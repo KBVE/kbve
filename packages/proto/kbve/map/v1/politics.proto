@@ -1,0 +1,477 @@
+syntax = "proto3";
+
+package kbve.map.v1;
+
+import "kbve/common/v1/bounds.proto";
+import "kbve/common/v1/color.proto";
+import "kbve/common/v1/extension.proto";
+import "kbve/common/v1/math.proto";
+import "kbve/map/v1/hex.proto";
+import "kbve/map/v1/trade.proto";
+import "kbve/type/v1/id.proto";
+
+// Settlement size tier — population class drives services, taxes,
+// growth ceiling, and visual density.
+enum SettlementTier {
+  SETTLEMENT_TIER_UNSPECIFIED = 0;
+  SETTLEMENT_TIER_OUTPOST = 1; // <50, frontier
+  SETTLEMENT_TIER_HAMLET = 2; // 50–200
+  SETTLEMENT_TIER_VILLAGE = 3; // 200–1000
+  SETTLEMENT_TIER_TOWN = 4; // 1k–5k
+  SETTLEMENT_TIER_CITY = 5; // 5k–50k
+  SETTLEMENT_TIER_METROPOLIS = 6; // 50k+
+  SETTLEMENT_TIER_CAPITAL = 7; // Faction seat (any pop class)
+  SETTLEMENT_TIER_RUINED = 8; // Destroyed / abandoned
+  SETTLEMENT_TIER_NOMADIC = 9; // Mobile camp (caravan / horde)
+}
+
+// District functional zoning inside a Settlement.
+enum DistrictType {
+  DISTRICT_TYPE_UNSPECIFIED = 0;
+  DISTRICT_TYPE_RESIDENTIAL = 1;
+  DISTRICT_TYPE_COMMERCIAL = 2; // Markets / shops
+  DISTRICT_TYPE_INDUSTRIAL = 3; // Smithies, mills
+  DISTRICT_TYPE_AGRICULTURAL = 4; // Farms within walls
+  DISTRICT_TYPE_MILITARY = 5; // Barracks / training
+  DISTRICT_TYPE_RELIGIOUS = 6; // Temples / shrines
+  DISTRICT_TYPE_ADMINISTRATIVE = 7; // Palace / town hall
+  DISTRICT_TYPE_HARBOR = 8; // Docks / shipyards
+  DISTRICT_TYPE_ARCANE = 9; // Mage quarter / library
+  DISTRICT_TYPE_NOBLE = 10;
+  DISTRICT_TYPE_SLUM = 11;
+  DISTRICT_TYPE_UNDERCITY = 12; // Sewer / criminal
+  DISTRICT_TYPE_GUILD = 13; // Faction lodges
+  DISTRICT_TYPE_ENTERTAINMENT = 14; // Arena / theatre / brothel
+  DISTRICT_TYPE_GRAVEYARD = 15;
+  DISTRICT_TYPE_PARK = 16;
+  DISTRICT_TYPE_CUSTOM = 100;
+}
+
+// Form of government — selects ruler model, succession rules, and
+// applicable buffs/policies in civ-style games.
+enum GovernmentType {
+  GOVERNMENT_TYPE_UNSPECIFIED = 0;
+  GOVERNMENT_TYPE_ANARCHY = 1;
+  GOVERNMENT_TYPE_TRIBAL = 2;
+  GOVERNMENT_TYPE_FEUDAL = 3;
+  GOVERNMENT_TYPE_MONARCHY = 4;
+  GOVERNMENT_TYPE_REPUBLIC = 5;
+  GOVERNMENT_TYPE_DEMOCRACY = 6;
+  GOVERNMENT_TYPE_OLIGARCHY = 7;
+  GOVERNMENT_TYPE_THEOCRACY = 8;
+  GOVERNMENT_TYPE_EMPIRE = 9;
+  GOVERNMENT_TYPE_GUILD = 10; // Mercantile / craft-guild rule
+  GOVERNMENT_TYPE_HIVE_MIND = 11;
+  GOVERNMENT_TYPE_CORPORATE = 12; // Sci-fi / cyberpunk
+  GOVERNMENT_TYPE_MERCENARY = 13;
+  GOVERNMENT_TYPE_OCCUPIED = 14; // Foreign rule — controlled by another faction
+}
+
+// Pair-wise diplomatic stance between two factions.
+enum DiplomaticStance {
+  DIPLOMATIC_STANCE_UNSPECIFIED = 0;
+  DIPLOMATIC_STANCE_NEUTRAL = 1;
+  DIPLOMATIC_STANCE_FRIENDLY = 2;
+  DIPLOMATIC_STANCE_ALLIED = 3;
+  DIPLOMATIC_STANCE_TRADE = 4; // Trade-only agreement
+  DIPLOMATIC_STANCE_NON_AGGRESSION = 5;
+  DIPLOMATIC_STANCE_RIVAL = 6;
+  DIPLOMATIC_STANCE_HOSTILE = 7;
+  DIPLOMATIC_STANCE_AT_WAR = 8;
+  DIPLOMATIC_STANCE_VASSAL = 9; // Subordinate faction
+  DIPLOMATIC_STANCE_OVERLORD = 10; // Dominant faction in vassalage
+  DIPLOMATIC_STANCE_TRIBUTARY = 11; // Pays tribute, otherwise free
+  DIPLOMATIC_STANCE_VENDETTA = 12; // Personal blood feud (clan / honour systems)
+}
+
+// How a faction holds territory.
+enum TerritoryClaimKind {
+  TERRITORY_CLAIM_KIND_UNSPECIFIED = 0;
+  TERRITORY_CLAIM_KIND_HARD = 1; // Owned, defended, patrolled
+  TERRITORY_CLAIM_KIND_SOFT = 2; // Influence only, no garrison
+  TERRITORY_CLAIM_KIND_CONTESTED = 3; // Two factions overlap claim
+  TERRITORY_CLAIM_KIND_OCCUPIED = 4; // Held by enemy, original claimant survives
+  TERRITORY_CLAIM_KIND_HISTORICAL = 5; // Lost long ago, used for casus belli
+  TERRITORY_CLAIM_KIND_NEUTRAL = 6; // Unowned, recognized as neutral ground
+  TERRITORY_CLAIM_KIND_SACRED = 7; // Religious / cultural — non-military claim
+}
+
+// Cultural archetype — flavours unit names, music, dialect, faction visuals.
+enum CultureArchetype {
+  CULTURE_ARCHETYPE_UNSPECIFIED = 0;
+  CULTURE_ARCHETYPE_HUMAN_FEUDAL = 1;
+  CULTURE_ARCHETYPE_NORDIC = 2;
+  CULTURE_ARCHETYPE_DESERT = 3;
+  CULTURE_ARCHETYPE_ELVEN = 4;
+  CULTURE_ARCHETYPE_DWARVEN = 5;
+  CULTURE_ARCHETYPE_ORCISH = 6;
+  CULTURE_ARCHETYPE_GOBLIN = 7;
+  CULTURE_ARCHETYPE_UNDEAD = 8;
+  CULTURE_ARCHETYPE_OCEANIC = 9;
+  CULTURE_ARCHETYPE_NOMAD = 10;
+  CULTURE_ARCHETYPE_ARCANE = 11;
+  CULTURE_ARCHETYPE_INFERNAL = 12;
+  CULTURE_ARCHETYPE_CELESTIAL = 13;
+  CULTURE_ARCHETYPE_INSECTOID = 14;
+  CULTURE_ARCHETYPE_MECHANICAL = 15; // Constructs / robots
+  CULTURE_ARCHETYPE_PSIONIC = 16;
+  CULTURE_ARCHETYPE_CUSTOM = 100;
+}
+
+// Religion / pantheon alignment — drives shrine bonuses, holy / unholy
+// damage, NPC alignment.
+enum ReligionAlignment {
+  RELIGION_ALIGNMENT_UNSPECIFIED = 0;
+  RELIGION_ALIGNMENT_LIGHT = 1;
+  RELIGION_ALIGNMENT_DARK = 2;
+  RELIGION_ALIGNMENT_NATURE = 3;
+  RELIGION_ALIGNMENT_ARCANE = 4;
+  RELIGION_ALIGNMENT_DEATH = 5;
+  RELIGION_ALIGNMENT_LIFE = 6;
+  RELIGION_ALIGNMENT_ORDER = 7;
+  RELIGION_ALIGNMENT_CHAOS = 8;
+  RELIGION_ALIGNMENT_NEUTRAL = 9;
+  RELIGION_ALIGNMENT_ANCESTRAL = 10;
+  RELIGION_ALIGNMENT_ELEMENTAL = 11;
+}
+
+// Landmark significance scope — controls discovery sound, fast-travel
+// availability, lore reveal weight, minimap symbol size.
+enum LandmarkSignificance {
+  LANDMARK_SIGNIFICANCE_UNSPECIFIED = 0;
+  LANDMARK_SIGNIFICANCE_LOCAL = 1; // Inside one zone
+  LANDMARK_SIGNIFICANCE_REGIONAL = 2; // Visible across a region
+  LANDMARK_SIGNIFICANCE_CONTINENTAL = 3;
+  LANDMARK_SIGNIFICANCE_WORLD = 4; // Wonder / unique
+  LANDMARK_SIGNIFICANCE_MYTHIC = 5; // Lore-only / quest-tier
+  LANDMARK_SIGNIFICANCE_RUIN = 6; // Ancient, decayed
+}
+
+// Visual identity block — banner / sigil / motto. Reused by Faction,
+// Settlement, GuildHall, and any nameable owning entity.
+message Banner {
+  optional kbve.common.v1.Color primary = 1;
+  optional kbve.common.v1.Color secondary = 2;
+  optional kbve.common.v1.Color tertiary = 3;
+  optional string sigil_ref = 4; // icon / sprite slug
+  optional string motto = 5;
+  optional string anthem_ref = 6; // music ref
+  optional string crest_pattern = 7; // pattern slug ("checker", "rampant_lion")
+}
+
+// Cultural identity — drives names, music, dialect, faction palettes.
+message Culture {
+  kbve.type.v1.Ulid id = 1;
+  string ref = 2;
+  string name = 3;
+  CultureArchetype archetype = 4;
+  optional string description = 5;
+  optional string lore = 6;
+  optional string language_ref = 7; // links to a language pack
+  repeated string name_pool_refs = 8; // NPC / settlement name pools
+  optional Banner banner = 9;
+  repeated kbve.common.v1.Extension extensions = 10;
+}
+
+// Religion / pantheon — shrines, altars, holy units link via religion_ref.
+message Religion {
+  string id = 1;
+  string ref = 2;
+  string name = 3;
+  ReligionAlignment alignment = 4;
+  optional string description = 5;
+  optional string lore = 6;
+  repeated string deity_refs = 7; // pantheon members
+  repeated string holy_site_refs = 8; // landmark / shrine refs
+  repeated string forbidden_action_refs = 9; // taboos (slug list)
+  repeated string blessed_skill_refs = 10; // skills with bonus
+  optional Banner banner = 11;
+  repeated kbve.common.v1.Extension extensions = 12;
+}
+
+// Single diplomatic relation between two factions.
+message DiplomaticRelation {
+  string from_faction_ref = 1;
+  string to_faction_ref = 2;
+  DiplomaticStance stance = 3;
+  int32 reputation = 4; // -100..100
+  optional string treaty_ref = 5; // links to Treaty.ref
+  optional int64 expires_at_turn = 6; // 0 = permanent
+  optional int64 established_at_turn = 7;
+}
+
+// Formal agreement between factions — gates wars, trade, marriages.
+message Treaty {
+  string id = 1;
+  string ref = 2;
+  string name = 3;
+  repeated string signatory_faction_refs = 4;
+  optional string description = 5;
+  optional int64 signed_at_turn = 6;
+  optional int64 expires_at_turn = 7;
+  repeated string clause_refs = 8; // game-defined clause types
+  repeated kbve.common.v1.Extension extensions = 9;
+}
+
+// Faction / empire / clan / guild — top-level political entity.
+message Faction {
+  kbve.type.v1.Ulid id = 1;
+  string ref = 2;
+  string name = 3;
+  optional string short_name = 4; // For tags / mentions
+  optional string description = 5;
+  optional string lore = 6;
+
+  // Identity
+  GovernmentType government = 7;
+  optional Banner banner = 8;
+  optional string culture_ref = 9;
+  optional string religion_ref = 10;
+  optional CultureArchetype archetype = 11; // Quick lookup w/o culture_ref
+
+  // Leadership
+  optional string ruler_unit_ref = 12; // NPC / player unit ref
+  optional string heir_unit_ref = 13;
+  repeated string council_unit_refs = 14; // Advisors / nobles
+  optional string capital_settlement_ref = 15;
+
+  // Membership
+  repeated string member_settlement_refs = 16;
+  repeated string member_zone_refs = 17;
+  repeated string member_unit_refs = 18; // Standing army roster
+  repeated string vassal_faction_refs = 19;
+  optional string overlord_faction_ref = 20;
+
+  // Economy
+  optional ResourceLedger treasury = 21;
+  repeated string trade_route_refs = 22;
+  optional float taxation_rate = 23; // 0.0–1.0
+  optional float tribute_rate = 24; // Owed to overlord
+
+  // Diplomacy
+  repeated DiplomaticRelation relations = 25;
+  repeated string allied_faction_refs = 26; // Denormalized for fast reads
+  repeated string hostile_faction_refs = 27;
+  repeated string treaty_refs = 28;
+
+  // Power / metrics
+  optional int32 prestige = 29;
+  optional int32 stability = 30; // -100..100, civil unrest gauge
+  optional int32 tech_level = 31;
+  optional int32 manpower = 32; // Recruitable population pool
+  optional float aggression = 33; // 0.0–1.0 AI temperament
+  repeated string trait_refs = 34; // "seafaring", "magical", etc.
+
+  // Cosmetic / metadata
+  optional string color_hex = 35; // Quick map color (e.g. "#A22")
+  optional bool destroyed = 36;
+  optional int64 founded_at_turn = 37;
+  optional int64 destroyed_at_turn = 38;
+  optional string credits = 39;
+  optional bool drafted = 40;
+
+  repeated kbve.common.v1.Extension extensions = 41;
+}
+
+// Sub-region of a Settlement — districts let cities split into
+// residential / commercial / military quarters with their own
+// stats and building rosters.
+message District {
+  string id = 1;
+  string ref = 2;
+  string name = 3;
+  DistrictType type = 4;
+  optional string description = 5;
+
+  optional kbve.common.v1.Bounds2D bounds = 6;
+  repeated kbve.common.v1.Vec2I grid_cells = 7; // For tile-grid cities
+  repeated HexCoord hexes = 8; // For hex-grid cities
+
+  optional int32 population = 9;
+  optional int32 population_cap = 10;
+  optional float wealth_index = 11; // 0.0–1.0
+  optional float crime_rate = 12; // 0.0–1.0
+  optional float happiness = 13; // 0.0–1.0
+  optional float pollution = 14;
+
+  repeated string building_refs = 15; // WorldObjectPlacement / building IDs
+  repeated string npc_refs = 16;
+  repeated string service_kinds = 17; // Denormalized list of ServiceKind names
+
+  optional string district_quest_ref = 18; // District-tied storyline
+  optional bool walled = 19;
+  optional bool destroyed = 20;
+  repeated kbve.common.v1.Extension extensions = 21;
+}
+
+// Settlement / city / town / village — owns a footprint inside one
+// or more zones, optionally split into districts. Ownership chains up
+// to a Faction; supplied by TradeRoutes; defended by structures whose
+// services list TerritoryEmitterSpec.
+message Settlement {
+  kbve.type.v1.Ulid id = 1;
+  string ref = 2;
+  string name = 3;
+  optional string description = 4;
+  optional string lore = 5;
+
+  // Class
+  SettlementTier tier = 6;
+  optional string faction_ref = 7;
+  optional string culture_ref = 8;
+  optional string religion_ref = 9;
+
+  // Leadership
+  optional string mayor_unit_ref = 10;
+  repeated string council_unit_refs = 11;
+
+  // Geography
+  optional string region_ref = 12;
+  optional string zone_ref = 13; // Primary zone the settlement sits in
+  repeated string aux_zone_refs = 14; // Secondary / sub-zones
+  optional kbve.common.v1.Vec3F position = 15;
+  optional kbve.common.v1.Vec2I grid_pos = 16;
+  optional HexCoord hex = 17;
+  optional kbve.common.v1.Bounds2D footprint_bounds = 18;
+  repeated HexCoord footprint_hexes = 19;
+
+  // Demographics
+  optional int32 population = 20;
+  optional int32 population_cap = 21;
+  optional float growth_rate = 22; // Per-turn or per-tick
+  optional int32 garrison_size = 23; // Defending militia
+  optional int32 manpower_pool = 24; // Recruitable
+
+  // Economy
+  optional ResourceLedger treasury = 25;
+  optional ResourceLedger granary = 26; // Food / supplies separate
+  optional float tax_rate = 27;
+  optional float tariff_rate = 28; // For inbound trade
+  repeated string trade_route_refs = 29;
+  repeated string export_item_refs = 30; // Denormalized: what this settlement produces
+  repeated string import_item_refs = 31; // Denormalized: what it needs
+
+  // Districts & contents
+  repeated District districts = 32; // Inline sub-regions
+  repeated string building_refs = 33; // Building placement refs at settlement scope
+  repeated string landmark_refs = 34; // Featured landmarks within the settlement
+  repeated string poi_refs = 35; // Featured POIs
+
+  // Services denormalized for quick capability queries.
+  repeated string service_kinds = 36; // ServiceKind enum names
+
+  // Defenses & status
+  optional bool capital = 37;
+  optional bool walled = 38;
+  optional int32 wall_health = 39;
+  optional bool besieged = 40;
+  optional string besieging_faction_ref = 41;
+  optional bool destroyed = 42;
+  optional bool occupied = 43;
+  optional string occupier_faction_ref = 44;
+
+  // Phasing / unlock
+  optional bool discoverable = 45;
+  optional string discovery_quest_ref = 46;
+  repeated string prerequisite_quest_refs = 47;
+
+  // Visual / map
+  optional Banner banner = 48;
+  optional string icon = 49;
+  optional string marker_icon = 50;
+  optional string img = 51;
+
+  // Lifecycle
+  optional int64 founded_at_turn = 52;
+  optional int64 destroyed_at_turn = 53;
+
+  // Metadata
+  optional string credits = 54;
+  optional bool drafted = 55;
+  repeated kbve.common.v1.Extension extensions = 56;
+}
+
+// Faction territorial claim — explicit hex / rect / zone ownership
+// with strength + contestation. Empire AI reads claims to drive
+// expansion goals; rendering uses claims to draw map borders.
+message TerritoryClaim {
+  string id = 1;
+  string ref = 2;
+  string faction_ref = 3;
+  TerritoryClaimKind kind = 4;
+
+  // Claimed area — pick the form matching the world topology
+  repeated HexCoord hexes = 5;
+  optional kbve.common.v1.Bounds2D bounds = 6;
+  repeated string zone_refs = 7; // Whole-zone claims
+  repeated string settlement_refs = 8; // Anchored to specific cities
+
+  optional int32 strength = 9; // 0..100 — defensive weight
+  optional int32 garrison_size = 10;
+  optional string contested_by_faction_ref = 11;
+  optional int32 contest_progress = 12; // 0..100 toward flip
+
+  optional int64 claimed_at_turn = 13;
+  optional int64 expires_at_turn = 14; // 0 = permanent
+  optional bool sacred = 15; // Religion-linked, non-military
+  optional string casus_belli_ref = 16; // Why it's claimed (lore / war goal)
+
+  repeated kbve.common.v1.Extension extensions = 17;
+}
+
+// Landmark — a positioned, named, optionally interactive point of
+// interest. Bridges PoiType.POI_LANDMARK + WorldObjectType.LANDMARK
+// into a single addressable record. Click behavior is delegated to a
+// referenced WorldObjectDef (via interaction_world_object_ref).
+message Landmark {
+  string id = 1;
+  string ref = 2;
+  string name = 3;
+  optional string description = 4;
+  optional string lore = 5;
+
+  LandmarkSignificance significance = 6;
+  optional string zone_ref = 7;
+  optional string region_ref = 8;
+  optional string settlement_ref = 9; // If inside a settlement
+  optional string faction_ref = 10; // Owning faction (if any)
+  optional string culture_ref = 11;
+  optional string religion_ref = 12;
+
+  // Position
+  optional kbve.common.v1.Vec3F position = 13;
+  optional kbve.common.v1.Vec2I grid_pos = 14;
+  optional HexCoord hex = 15;
+  optional float discovery_radius = 16; // Auto-discover within this range
+
+  // Visual
+  optional string img = 17;
+  optional string icon = 18;
+  optional string marker_icon = 19;
+  optional kbve.common.v1.Color marker_color = 20;
+
+  // Behavior
+  optional string interaction_world_object_ref = 21; // WorldObjectDef.ref for click logic
+  optional bool discoverable = 22;
+  optional bool fast_travel = 23;
+  optional bool respawn_point = 24;
+  optional bool unique = 25; // One-of-a-kind landmark
+  optional bool destroyed = 26;
+
+  // Phasing / unlock
+  optional string discovery_quest_ref = 27;
+  repeated string prerequisite_quest_refs = 28;
+  optional string event_ref = 29;
+
+  // Linkage
+  repeated string npc_refs = 30;
+  repeated string quest_refs = 31;
+  optional string dialogue_tree_ref = 32;
+  optional string shop_ref = 33;
+  optional string dungeon_zone_ref = 34;
+
+  // Metadata
+  optional string credits = 35;
+  optional bool drafted = 36;
+  repeated kbve.common.v1.Extension extensions = 37;
+}

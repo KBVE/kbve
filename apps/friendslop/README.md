@@ -13,12 +13,12 @@
 ## Commands
 
 ```bash
-pnpm nx run godot-friendslop:editor
-pnpm nx run godot-friendslop:run
-pnpm nx run godot-friendslop:export:windows
-pnpm nx run godot-friendslop:export:macos
-pnpm nx run godot-friendslop:export:linux
-pnpm nx run godot-friendslop:export
+moon run godot-friendslop:editor
+moon run godot-friendslop:run
+moon run godot-friendslop:export-windows
+moon run godot-friendslop:export-macos
+moon run godot-friendslop:export-linux
+moon run godot-friendslop:export
 ```
 
 Exports land in `dist/apps/friendslop/<platform>/`.

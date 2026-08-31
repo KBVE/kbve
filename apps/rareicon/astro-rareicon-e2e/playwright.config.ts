@@ -25,7 +25,7 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: './kbve.sh -nx astro-rareicon:dev',
+		command: 'moon run astro-rareicon:dev',
 		cwd: workspaceRoot,
 		url: baseURL,
 		reuseExistingServer: !process.env['CI'],

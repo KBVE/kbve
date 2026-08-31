@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+package kbve.common.v1;
+
+// Dynamic property attached to an entity whose shape is not known at schema
+// design time. Prefer a concrete field wherever the set of keys is closed.
+message KeyValue {
+  string key = 1;
+
+  oneof value {
+    string string_value = 2;
+    int64 int_value = 3;
+    double float_value = 4;
+    bool bool_value = 5;
+  }
+}

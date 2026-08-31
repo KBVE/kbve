@@ -1,0 +1,13 @@
+{
+  "name": "@kbve/protobuf",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "//": "gen/ts is produced by the protobuf:generate task and is not committed.",
+  "exports": {
+    "./*": {
+      "types": "./gen/ts/*",
+      "default": "./gen/ts/*"
+    }
+  }
+}

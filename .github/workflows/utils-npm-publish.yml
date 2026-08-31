@@ -25,8 +25,6 @@ jobs:
         name: Publish ${{ inputs.project }} NPM Package
         runs-on: ubuntu-latest
         timeout-minutes: 20
-        env:
-            NX_NO_CLOUD: true
         permissions:
             contents: read
             id-token: write
@@ -108,7 +106,7 @@ jobs:
             - name: Build and Publish ${{ inputs.project }} NPM Package
               if: steps.version_check.outputs.should_publish == 'true'
               shell: bash
-              run: ./kbve.sh -nx ${{ inputs.project }}:publish
+              run: moon run ${{ inputs.project }}:publish
               env:
                   NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
                   NPM_CONFIG_PROVENANCE: true

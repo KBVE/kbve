@@ -28,8 +28,6 @@ jobs:
         name: Publish ${{ inputs.project }} Python Package
         runs-on: ubuntu-latest
         timeout-minutes: 20
-        env:
-            NX_NO_CLOUD: true
         environment:
             name: pypi
         permissions:
@@ -121,10 +119,13 @@ jobs:
                     echo "should_publish=true" >> "$GITHUB_OUTPUT"
                   fi
 
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
             - name: Build ${{ inputs.project }}
               if: steps.version_check.outputs.should_publish == 'true'
               shell: bash
-              run: pnpm nx build ${{ inputs.project }} --no-cloud
+              run: moon run ${{ inputs.project }}:build
 
             - name: Publish distribution to PyPI
               if: steps.version_check.outputs.should_publish == 'true'

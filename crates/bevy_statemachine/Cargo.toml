@@ -1,0 +1,29 @@
+[package]
+name = "bevy_statemachine"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Thread-safe state snapshot bridge for Bevy — exposes ECS resources to external consumers (Tauri IPC, WASM JS, lightyear networking) with JSON and bincode support."
+homepage = "https://kbve.com/"
+repository.workspace = true
+keywords = ["bevy", "state", "snapshot", "ipc", "gamedev"]
+categories = ["game-development", "data-structures"]
+readme = "README.md"
+
+[features]
+default = ["serde"]
+serde = ["dep:serde", "dep:serde_json"]
+bincode = ["dep:serde", "dep:bincode"]
+
+[dependencies]
+bevy = { workspace = true, features = ["bevy_state"] }
+serde = { workspace = true, optional = true, features = ["derive"] }
+serde_json = { workspace = true, optional = true }
+bincode = { workspace = true, optional = true, features = ["serde"] }
+
+[package.metadata.docs.rs]
+all-features = true
+targets = ["x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
+rustdoc-args = ["--cfg", "docsrs"]

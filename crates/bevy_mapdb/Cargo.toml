@@ -1,0 +1,33 @@
+[package]
+name = "bevy_mapdb"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Proto-driven map definitions for Bevy games — compiles mapdb.proto into typed Rust structs with a searchable registry."
+homepage = "https://kbve.com/"
+repository.workspace = true
+keywords = ["bevy", "map", "gamedev", "protobuf", "plugin"]
+categories = ["game-development", "game-engines"]
+readme = "README.md"
+
+[features]
+default = ["bevy"]
+
+# Bevy ECS integration — adds the `Resource` derive and `BevyMapDbPlugin`.
+# Without this feature the crate is plain Rust with zero Bevy dependency: the
+# proto types and `MapDb` lookups still work, which is what lets FFI cdylibs
+# (Godot GDExtension) and non-Bevy consumers read the same mapdb registry.
+bevy = ["dep:bevy"]
+
+[dependencies]
+kbve-proto = { path = "../kbve-proto" }
+bevy = { workspace = true, features = ["bevy_state"], optional = true }
+prost = { workspace = true, features = ["derive"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

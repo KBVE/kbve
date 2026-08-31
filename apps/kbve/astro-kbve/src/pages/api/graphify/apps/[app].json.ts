@@ -60,7 +60,7 @@ export const GET: APIRoute = async ({ params }) => {
 					scope: 'app',
 					app,
 					status: 'not-generated',
-					message: `Graph not yet generated for app: ${app}. Run: pnpm nx run graphify-wrapper:build-app --app=${app}`,
+					message: `Graph not yet generated for app: ${app}. Run: moon run graphify-wrapper:build-app --app=${app}`,
 				},
 				graph: {
 					nodes: [],

@@ -24,7 +24,7 @@ namespace RareIcon
             string path = Path.Combine(Application.streamingAssetsPath, "mapdb.binpb");
             if (!File.Exists(path))
             {
-                Debug.LogError($"[MapdbLoader] mapdb.binpb missing at {path}. Run `npx nx run astro-kbve:sync:mapdb` to regenerate.");
+                Debug.LogError($"[MapdbLoader] mapdb.binpb missing at {path}. Run `moon run astro-kbve:sync-mapdb` to regenerate.");
                 return;
             }
 

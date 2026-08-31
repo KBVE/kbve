@@ -1,0 +1,396 @@
+syntax = "proto3";
+
+package kbve.meme.v1;
+
+import "kbve/common/v1/reaction.proto";
+import "kbve/common/v1/report_reason.proto";
+import "kbve/common/v1/result.proto";
+import "kbve/meme/v1/meme.proto";
+import "kbve/type/v1/id.proto";
+
+// The meme feed's request and response contracts.
+//
+// Request and response names track their method rather than their subject:
+// GetFeed takes a GetFeedRequest, not a FeedRequest. Several did not, and the
+// lint rules that enforce it are worth keeping, because a reader following a
+// method to its payload should not have to guess the name.
+//
+// Paging is by opaque cursor throughout. A cursor is a string precisely so
+// that callers cannot take it apart and depend on what is inside.
+
+// How the feed is ordered.
+enum FeedSort {
+  FEED_SORT_UNSPECIFIED = 0;
+  // Recency weighted by engagement.
+  FEED_SORT_HOT = 1;
+  FEED_SORT_NEW = 2;
+  // Most reacted to, within the requested window.
+  FEED_SORT_TOP = 3;
+  FEED_SORT_RANDOM = 4;
+  // Fastest-growing engagement.
+  FEED_SORT_RISING = 5;
+}
+
+// The window FEED_SORT_TOP ranks within.
+enum FeedTimeWindow {
+  FEED_TIME_WINDOW_UNSPECIFIED = 0;
+  FEED_TIME_WINDOW_HOUR = 1;
+  FEED_TIME_WINDOW_DAY = 2;
+  FEED_TIME_WINDOW_WEEK = 3;
+  FEED_TIME_WINDOW_MONTH = 4;
+  FEED_TIME_WINDOW_ALL = 5;
+}
+
+message GetFeedRequest {
+  int32 limit = 1;
+  optional string cursor = 2;
+  FeedSort sort = 3;
+  // Required when sorting by top.
+  optional FeedTimeWindow time_window = 4;
+  optional string tag = 5;
+  optional kbve.type.v1.Uuid author_id = 6;
+  optional MemeGenre genre = 7;
+  // Only memes that have been minted as cards.
+  optional bool cards_only = 8;
+}
+
+message GetFeedResponse {
+  repeated Meme memes = 1;
+  optional string next_cursor = 2;
+  bool has_more = 3;
+}
+
+message SubmitMemeRequest {
+  optional string title = 1;
+  optional kbve.type.v1.Ulid template_id = 2;
+  MemeFormat format = 3;
+  string asset_url = 4;
+  repeated MemeCaption captions = 5;
+  repeated string tags = 6;
+  optional string source_url = 7;
+  optional string alt_text = 8;
+}
+
+message SubmitMemeResponse {
+  kbve.common.v1.Result result = 1;
+  optional Meme meme = 2;
+}
+
+message GetMemeRequest {
+  kbve.type.v1.Ulid id = 1;
+}
+
+message GetMemeResponse {
+  bool found = 1;
+  optional Meme meme = 2;
+}
+
+message UpdateMemeRequest {
+  kbve.type.v1.Ulid id = 1;
+  optional string title = 2;
+  repeated string tags = 3;
+  optional string alt_text = 4;
+  // An author may archive their own meme.
+  optional MemeStatus status = 5;
+}
+
+message UpdateMemeResponse {
+  kbve.common.v1.Result result = 1;
+  optional Meme meme = 2;
+}
+
+message DeleteMemeRequest {
+  kbve.type.v1.Ulid id = 1;
+}
+
+message DeleteMemeResponse {
+  kbve.common.v1.Result result = 1;
+}
+
+message ReactRequest {
+  kbve.type.v1.Ulid meme_id = 1;
+  kbve.common.v1.ReactionKind reaction = 2;
+}
+
+message ReactResponse {
+  kbve.common.v1.Result result = 1;
+}
+
+message AddCommentRequest {
+  kbve.type.v1.Ulid meme_id = 1;
+  string body = 2;
+  optional kbve.type.v1.Ulid parent_id = 3;
+}
+
+message AddCommentResponse {
+  kbve.common.v1.Result result = 1;
+  optional MemeComment comment = 2;
+}
+
+message ListCommentsRequest {
+  kbve.type.v1.Ulid meme_id = 1;
+  int32 limit = 2;
+  optional string cursor = 3;
+  // Absent lists top-level comments; set lists replies to that comment.
+  optional kbve.type.v1.Ulid parent_id = 4;
+}
+
+message ListCommentsResponse {
+  repeated MemeComment comments = 1;
+  optional string next_cursor = 2;
+  bool has_more = 3;
+}
+
+message SaveMemeRequest {
+  kbve.type.v1.Ulid meme_id = 1;
+  // Absent saves to the default collection.
+  optional kbve.type.v1.Ulid collection_id = 2;
+}
+
+message SaveMemeResponse {
+  kbve.common.v1.Result result = 1;
+}
+
+message UnsaveMemeRequest {
+  kbve.type.v1.Ulid meme_id = 1;
+  optional kbve.type.v1.Ulid collection_id = 2;
+}
+
+message UnsaveMemeResponse {
+  kbve.common.v1.Result result = 1;
+}
+
+message CreateCollectionRequest {
+  string name = 1;
+  optional string description = 2;
+  bool is_public = 3;
+}
+
+message CreateCollectionResponse {
+  kbve.common.v1.Result result = 1;
+  optional MemeCollection collection = 2;
+}
+
+message ListCollectionsRequest {
+  kbve.type.v1.Uuid owner_id = 1;
+  int32 limit = 2;
+  optional string cursor = 3;
+}
+
+message ListCollectionsResponse {
+  repeated MemeCollection collections = 1;
+  optional string next_cursor = 2;
+  bool has_more = 3;
+}
+
+message GetCollectionMemesRequest {
+  kbve.type.v1.Ulid collection_id = 1;
+  int32 limit = 2;
+  optional string cursor = 3;
+}
+
+message GetCollectionMemesResponse {
+  repeated Meme memes = 1;
+  optional string next_cursor = 2;
+  bool has_more = 3;
+}
+
+message ReportMemeRequest {
+  kbve.type.v1.Ulid meme_id = 1;
+  kbve.common.v1.ReportReason reason = 2;
+  optional string detail = 3;
+}
+
+message ReportMemeResponse {
+  kbve.common.v1.Result result = 1;
+}
+
+message GetTemplateRequest {
+  kbve.type.v1.Ulid id = 1;
+}
+
+message GetTemplateResponse {
+  bool found = 1;
+  optional MemeTemplate template = 2;
+}
+
+message ListTemplatesRequest {
+  int32 limit = 1;
+  optional string cursor = 2;
+  // Fuzzy match against the template name.
+  optional string search = 3;
+}
+
+message ListTemplatesResponse {
+  repeated MemeTemplate templates = 1;
+  optional string next_cursor = 2;
+  bool has_more = 3;
+}
+
+message GetProfileRequest {
+  kbve.type.v1.Uuid user_id = 1;
+}
+
+message GetProfileResponse {
+  bool found = 1;
+  optional MemeUserProfile profile = 2;
+}
+
+message FollowRequest {
+  kbve.type.v1.Uuid target_user_id = 1;
+}
+
+message FollowResponse {
+  kbve.common.v1.Result result = 1;
+}
+
+message UnfollowRequest {
+  kbve.type.v1.Uuid target_user_id = 1;
+}
+
+message UnfollowResponse {
+  kbve.common.v1.Result result = 1;
+}
+
+message ListFollowersRequest {
+  kbve.type.v1.Uuid user_id = 1;
+  int32 limit = 2;
+  optional string cursor = 3;
+}
+
+message ListFollowersResponse {
+  repeated MemeUserProfile followers = 1;
+  optional string next_cursor = 2;
+  bool has_more = 3;
+}
+
+message ListFollowingRequest {
+  kbve.type.v1.Uuid user_id = 1;
+  int32 limit = 2;
+  optional string cursor = 3;
+}
+
+message ListFollowingResponse {
+  repeated MemeUserProfile following = 1;
+  optional string next_cursor = 2;
+  bool has_more = 3;
+}
+
+message MintCardRequest {
+  kbve.type.v1.Ulid meme_id = 1;
+}
+
+message MintCardResponse {
+  kbve.common.v1.Result result = 1;
+  // Derived from how the meme has performed.
+  optional MemeCardStats card = 2;
+}
+
+message CreateDeckRequest {
+  string name = 1;
+  repeated kbve.type.v1.Ulid card_ids = 2;
+}
+
+message CreateDeckResponse {
+  kbve.common.v1.Result result = 1;
+  optional MemeDeck deck = 2;
+}
+
+message UpdateDeckRequest {
+  kbve.type.v1.Ulid deck_id = 1;
+  optional string name = 2;
+  repeated kbve.type.v1.Ulid card_ids = 3;
+  optional bool is_active = 4;
+}
+
+message UpdateDeckResponse {
+  kbve.common.v1.Result result = 1;
+  optional MemeDeck deck = 2;
+}
+
+message ListDecksRequest {
+  kbve.type.v1.Uuid owner_id = 1;
+}
+
+message ListDecksResponse {
+  repeated MemeDeck decks = 1;
+}
+
+message StartBattleRequest {
+  kbve.type.v1.Ulid deck_id = 1;
+}
+
+message StartBattleResponse {
+  kbve.common.v1.Result result = 1;
+  optional kbve.type.v1.Ulid battle_id = 2;
+  optional BattleStatus status = 3;
+}
+
+message GetBattleRequest {
+  kbve.type.v1.Ulid battle_id = 1;
+}
+
+message GetBattleResponse {
+  bool found = 1;
+  optional BattleResult battle = 2;
+}
+
+message ListBattleHistoryRequest {
+  kbve.type.v1.Uuid user_id = 1;
+  int32 limit = 2;
+  optional string cursor = 3;
+}
+
+message ListBattleHistoryResponse {
+  repeated BattleResult battles = 1;
+  optional string next_cursor = 2;
+  bool has_more = 3;
+}
+
+// The feed itself, and everything done to a meme.
+service MemeService {
+  rpc GetFeed(GetFeedRequest) returns (GetFeedResponse);
+  rpc GetMeme(GetMemeRequest) returns (GetMemeResponse);
+
+  rpc SubmitMeme(SubmitMemeRequest) returns (SubmitMemeResponse);
+  rpc UpdateMeme(UpdateMemeRequest) returns (UpdateMemeResponse);
+  rpc DeleteMeme(DeleteMemeRequest) returns (DeleteMemeResponse);
+
+  rpc React(ReactRequest) returns (ReactResponse);
+  rpc AddComment(AddCommentRequest) returns (AddCommentResponse);
+  rpc ListComments(ListCommentsRequest) returns (ListCommentsResponse);
+
+  rpc SaveMeme(SaveMemeRequest) returns (SaveMemeResponse);
+  rpc UnsaveMeme(UnsaveMemeRequest) returns (UnsaveMemeResponse);
+  rpc CreateCollection(CreateCollectionRequest) returns (CreateCollectionResponse);
+  rpc ListCollections(ListCollectionsRequest) returns (ListCollectionsResponse);
+  rpc GetCollectionMemes(GetCollectionMemesRequest) returns (GetCollectionMemesResponse);
+
+  rpc ReportMeme(ReportMemeRequest) returns (ReportMemeResponse);
+}
+
+// The library of base images memes are built from.
+service MemeTemplateService {
+  rpc GetTemplate(GetTemplateRequest) returns (GetTemplateResponse);
+  rpc ListTemplates(ListTemplatesRequest) returns (ListTemplatesResponse);
+}
+
+// Profiles and the follow graph.
+service MemeSocialService {
+  rpc GetProfile(GetProfileRequest) returns (GetProfileResponse);
+  rpc Follow(FollowRequest) returns (FollowResponse);
+  rpc Unfollow(UnfollowRequest) returns (UnfollowResponse);
+  rpc ListFollowers(ListFollowersRequest) returns (ListFollowersResponse);
+  rpc ListFollowing(ListFollowingRequest) returns (ListFollowingResponse);
+}
+
+// Minting memes as cards, building decks, and battling with them.
+service MemeCardService {
+  rpc MintCard(MintCardRequest) returns (MintCardResponse);
+  rpc CreateDeck(CreateDeckRequest) returns (CreateDeckResponse);
+  rpc UpdateDeck(UpdateDeckRequest) returns (UpdateDeckResponse);
+  rpc ListDecks(ListDecksRequest) returns (ListDecksResponse);
+  rpc StartBattle(StartBattleRequest) returns (StartBattleResponse);
+  rpc GetBattle(GetBattleRequest) returns (GetBattleResponse);
+  rpc ListBattleHistory(ListBattleHistoryRequest) returns (ListBattleHistoryResponse);
+}

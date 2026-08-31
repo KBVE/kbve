@@ -142,8 +142,8 @@ This is the **long-lived deploy** rootfs for Node endpoints submitted through th
 ## Build
 
 ```bash
-npx nx run firecracker-node-web:container
-npx nx run firecracker-node-web:extract
+moon run firecracker-node-web:container
+moon run firecracker-node-web:extract
 ```
 
 Output: `packages/docker/firecracker/node/web/dist/node-web.ext4`.
@@ -151,7 +151,7 @@ Output: `packages/docker/firecracker/node/web/dist/node-web.ext4`.
 ## Publish
 
 ```bash
-npx nx run firecracker-node-web:container:production
+moon run firecracker-node-web:container-production
 ```
 
 Pushes `ghcr.io/kbve/firecracker-node-web:latest` and `:<version>`.

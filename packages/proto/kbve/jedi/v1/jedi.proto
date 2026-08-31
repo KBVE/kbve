@@ -1,0 +1,85 @@
+syntax = "proto3";
+
+package kbve.jedi.v1;
+
+enum PayloadFormat {
+  PAYLOAD_FORMAT_UNSPECIFIED = 0;
+  PAYLOAD_FORMAT_JSON = 1;
+  PAYLOAD_FORMAT_FLEX = 2;
+  PAYLOAD_FORMAT_PROTOBUF = 3;
+  PAYLOAD_FORMAT_FLATBUFFER = 4;
+}
+
+enum MessageKind {
+  // ───── Verbs (Bits 0–7)
+  MESSAGE_KIND_UNSPECIFIED = 0;
+  MESSAGE_KIND_ADD = 1;
+  MESSAGE_KIND_READ = 2;
+  MESSAGE_KIND_GET = 4;
+  MESSAGE_KIND_SET = 8;
+  MESSAGE_KIND_DEL = 16;
+  MESSAGE_KIND_STREAM = 32;
+  MESSAGE_KIND_GROUP = 64;
+  MESSAGE_KIND_LIST = 128;
+
+  // ───── Intent / Message Metadata (Bits 8–15)
+  MESSAGE_KIND_ACTION = 256;
+  MESSAGE_KIND_MESSAGE = 512;
+  MESSAGE_KIND_INFO = 1024;
+  MESSAGE_KIND_DEBUG = 2048;
+  MESSAGE_KIND_ERROR = 4096;
+  MESSAGE_KIND_AUTH = 8192;
+  MESSAGE_KIND_HEARTBEAT = 16384;
+
+  // ───── System Targets / Routing (Bits 16–23)
+  MESSAGE_KIND_CONFIG_UPDATE = 32768;
+  MESSAGE_KIND_REDIS = 65536;
+  MESSAGE_KIND_SUPABASE = 131072;
+  MESSAGE_KIND_FILESYSTEM = 262144;
+  MESSAGE_KIND_WEBSOCKET = 524288;
+  MESSAGE_KIND_HTTP_API = 1048576;
+  MESSAGE_KIND_LOCAL_CACHE = 2097152;
+  MESSAGE_KIND_AI = 4194304;
+
+  // ───── Reserved / Future Use (Bits 24–31)
+  MESSAGE_KIND_EXTERNAL = 8388608;
+  MESSAGE_KIND_CLICKHOUSE = 16777216;
+  MESSAGE_KIND_RESERVED_26 = 33554432;
+  MESSAGE_KIND_RESERVED_27 = 67108864;
+  MESSAGE_KIND_RESERVED_28 = 134217728;
+  MESSAGE_KIND_RESERVED_29 = 268435456;
+  MESSAGE_KIND_RESERVED_30 = 536870912;
+  MESSAGE_KIND_RESERVED_31 = 1073741824;
+}
+
+message JediEnvelope {
+  int32 version = 1;
+  MessageKind kind = 2;
+  PayloadFormat format = 3;
+  bytes payload = 4;
+  bytes metadata = 5;
+}
+
+message FlagEnvelope {
+  int32 flag = 1;
+  bytes payload = 2;
+}
+
+message FlexEnvelope {
+  MessageKind kind = 1;
+  bytes payload = 2;
+}
+
+message RawEnvelope {
+  bytes key = 1;
+  bytes payload = 2;
+}
+
+message JediMessage {
+  oneof envelope {
+    JediEnvelope hybrid = 1;
+    FlexEnvelope flex = 2;
+    RawEnvelope raw = 3;
+    FlagEnvelope flag = 4;
+  }
+}

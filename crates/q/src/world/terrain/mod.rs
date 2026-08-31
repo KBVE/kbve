@@ -1,0 +1,1288 @@
+mod landmark;
+mod river;
+mod road;
+mod water;
+
+use godot::classes::image::Format as ImageFormat;
+use godot::classes::notify::Node3DNotification;
+use godot::classes::{
+    CollisionShape3D, Engine, HeightMapShape3D, Image, ImageTexture, RenderingDevice,
+    ShaderMaterial, StaticBody3D, Texture2Drd,
+};
+use godot::prelude::*;
+
+pub(super) use crate::worldgen::HeightGen;
+use crate::worldgen::HeightParams;
+
+impl QTerrain {
+    fn height_params(&self) -> HeightParams {
+        HeightParams {
+            seed: self.terrain_seed,
+            hill_amplitude: self.hill_amplitude,
+            hill_base: self.hill_base,
+            hill_frequency: self.hill_frequency,
+            river_wander: self.river_wander,
+            river_wander_frequency: self.river_wander_frequency,
+            river_width: self.river_width,
+            water_level: self.water_level,
+            riverbed_depth: self.riverbed_depth,
+        }
+    }
+}
+
+#[derive(GodotClass)]
+#[class(init, base = Node3D)]
+pub struct QTerrain {
+    base: Base<Node3D>,
+
+    #[export]
+    #[init(val = 1337)]
+    terrain_seed: i32,
+    #[export]
+    #[init(val = 4.0)]
+    hill_amplitude: f32,
+    #[export]
+    #[init(val = 3.5)]
+    hill_base: f32,
+    #[export]
+    #[init(val = 0.008)]
+    hill_frequency: f32,
+    #[export]
+    #[init(val = 60.0)]
+    river_wander: f32,
+    #[export]
+    #[init(val = 0.004)]
+    river_wander_frequency: f32,
+    #[export]
+    #[init(val = 7.0)]
+    river_width: f32,
+    #[export]
+    #[init(val = -1.4)]
+    water_level: f32,
+    #[export]
+    #[init(val = 1.2)]
+    riverbed_depth: f32,
+    #[export]
+    #[init(val = 256.0)]
+    extent: f32,
+    #[export]
+    #[init(val = 513)]
+    resolution: i32,
+    /// Which field the ground comes from: `authored` for the hills and the one
+    /// river everything is built around, `region` for sinks with the ground
+    /// derived from them.
+    ///
+    /// The region field is what an endless world wants -- bounded relief and
+    /// guaranteed drainage however far out you walk -- but it has seas and lakes
+    /// where the authored field has a river, so the road, the bridge and the
+    /// fishing have nothing to attach to and are not built. It is reachable so
+    /// it can be walked around in, not because anything depends on it yet.
+    #[export]
+    #[init(val = GString::from("authored"))]
+    ground_source: GString,
+    /// Re-bakes the ground around the player as they walk, so the world does not
+    /// end at `extent`.
+    ///
+    /// On by default, and the server has been streaming its own regions by
+    /// default for as long as this has existed (`FS_STREAM_ENABLED`). While this
+    /// was off the client held the whole world to the one tile it baked at the
+    /// origin, so the pair only agreed because the client never walked far
+    /// enough to disagree.
+    ///
+    /// Off still reproduces that: one bake at the origin, and a player who
+    /// leaves it walks off the edge of the drawn world.
+    #[export]
+    #[init(val = true)]
+    stream_enabled: bool,
+    /// How far the window may jump at a time. Smaller re-bakes more often for
+    /// less work each; it also has to divide the sample spacing evenly or the
+    /// new grid lands between the old samples and the seam shows.
+    #[export]
+    #[init(val = 128.0)]
+    stream_stride: f32,
+    #[export]
+    #[init(val = true)]
+    wake_enabled: bool,
+    #[export]
+    player_path: NodePath,
+    /// Off-thread sim to mirror the bridge collision into. The heightfield alone puts
+    /// water under the crossing, so without this a body walks onto the deck and drops
+    /// through it.
+    #[export]
+    #[init(val = NodePath::from("../Physics"))]
+    physics_path: NodePath,
+    #[export]
+    grass_material: Option<Gd<ShaderMaterial>>,
+    #[export]
+    ground_material: Option<Gd<ShaderMaterial>>,
+    #[export]
+    bank_material: Option<Gd<ShaderMaterial>>,
+    #[export]
+    water_material: Option<Gd<ShaderMaterial>>,
+    #[export]
+    riverbed_material: Option<Gd<ShaderMaterial>>,
+    #[export]
+    bridge_material: Option<Gd<ShaderMaterial>>,
+    #[export]
+    abutment_material: Option<Gd<ShaderMaterial>>,
+    #[export]
+    #[init(val = 3.2)]
+    road_width: f32,
+    #[export]
+    #[init(val = 1.4)]
+    road_tile_scale: f32,
+
+    player: Option<Gd<Node3D>>,
+    water_rd: Option<Gd<RenderingDevice>>,
+    #[init(val = Rid::Invalid)]
+    pattern_tex: Rid,
+    #[init(val = Rid::Invalid)]
+    pattern_shader: Rid,
+    #[init(val = Rid::Invalid)]
+    pattern_pipeline: Rid,
+    #[init(val = Rid::Invalid)]
+    pattern_set: Rid,
+    pattern_wrap: Option<Gd<Texture2Drd>>,
+    water_time: f32,
+    #[init(val = f32::MIN)]
+    pattern_zc: f32,
+    #[init(val = [Rid::Invalid; 2])]
+    wake_tex: [Rid; 2],
+    #[init(val = [Rid::Invalid; 2])]
+    wake_sets: [Rid; 2],
+    #[init(val = Rid::Invalid)]
+    wake_shader: Rid,
+    #[init(val = Rid::Invalid)]
+    wake_pipeline: Rid,
+    #[init(val = Rid::Invalid)]
+    wake_sampler: Rid,
+    wake_wraps: Vec<Gd<Texture2Drd>>,
+    wake_idx: usize,
+    wake_energy: f32,
+    wake_active: bool,
+    wake_origin: Vector2,
+    /// Time banked since the last wake dispatch, and where the player was when it ran.
+    /// The wake is a slow, smeared thing; stepping it at the render rate spends a compute
+    /// dispatch and a texture swap per frame to advance it by a hundredth of what the eye
+    /// can see.
+    wake_accum: f32,
+    wake_last_pos: Vector3,
+    last_player_pos: Vector3,
+    /// The height field the world is baked from, whichever was selected.
+    ground: Option<crate::ground::Ground>,
+    /// The authored field, and only when that is the one in use. The road, the
+    /// bridge and the river all read detail that exists nowhere else, so this
+    /// being `None` is what stops them being built over ground that has no river
+    /// to cross.
+    hgen: Option<HeightGen>,
+    gen_rx: Option<std::sync::mpsc::Receiver<Vec<f32>>>,
+    gen_t0: Option<std::time::Instant>,
+    heights: Vec<f32>,
+    texture: Option<Gd<ImageTexture>>,
+    clearance: Vec<u8>,
+    clearance_res: i32,
+    clearance_tex: Option<Gd<ImageTexture>>,
+    clearance_dirty: bool,
+    road_tex: Option<Gd<ImageTexture>>,
+    road_mask: Vec<u8>,
+    road_res: i32,
+    road: Option<road::RoadNetwork>,
+    ground_body: Option<Gd<StaticBody3D>>,
+    /// Sim bodies standing in for the bridge. The structure is rebuilt whenever the
+    /// window moves, so these are taken down with the nodes they mirror.
+    sim_bridge: PackedInt64Array,
+    /// What is built in the window currently baked. Derived from the seed, never
+    /// received, so the client and the server hold the same list without agreeing on
+    /// it.
+    landmarks: Vec<crate::landmark::Landmark>,
+    /// Cleared once the world has said where its built places are, which is worth
+    /// saying exactly once and not on every window.
+    #[init(val = true)]
+    landmark_log: bool,
+    ground_shape: Option<Gd<HeightMapShape3D>>,
+    window: Option<crate::worldgen::Window>,
+    shift_rx: Option<std::sync::mpsc::Receiver<ShiftBake>>,
+    /// Bumped whenever the ground itself is replaced rather than merely shifted, which
+    /// today means the seed changed under it. Scatter fields watch it: a reseed leaves
+    /// the window origin exactly where it was, so nothing else tells them the rock they
+    /// planned is standing on ground that no longer exists.
+    generation: i64,
+}
+
+#[godot_api]
+impl INode3D for QTerrain {
+    fn ready(&mut self) {
+        if Engine::singleton().is_editor_hint() {
+            return;
+        }
+        let _t = crate::world::ReadyTimer::start("terrain");
+        if std::env::var("Q_NO_WAKE").is_ok() {
+            self.wake_enabled = false;
+        }
+        if std::env::var("Q_NO_VSYNC").is_ok() {
+            godot::classes::DisplayServer::singleton()
+                .window_set_vsync_mode(godot::classes::display_server::VSyncMode::DISABLED);
+        }
+        let source = crate::ground::GroundSource::parse(&self.ground_source.to_string());
+        let params = self.height_params();
+        self.ground = Some(crate::ground::Ground::new(source, params.seed, &params));
+        self.hgen =
+            (source == crate::ground::GroundSource::Authored).then(|| HeightGen::new(&params));
+        self.gen_t0 = Some(std::time::Instant::now());
+        self.window = Some(crate::worldgen::Window::aligned(
+            self.extent,
+            self.stream_stride,
+            self.resolution.max(2),
+        ));
+        let worker_gen = crate::ground::Ground::new(source, params.seed, &params);
+        let extent = self.extent;
+        let res = self.resolution.max(2);
+        let (tx, rx) = std::sync::mpsc::channel();
+        let job = move || {
+            let _ = tx.send(worker_gen.bake_at([0.0, 0.0], extent, res));
+        };
+        let rt = Engine::singleton()
+            .get_singleton(crate::threads::runtime::RuntimeManager::SINGLETON)
+            .and_then(|s| s.try_cast::<crate::threads::runtime::RuntimeManager>().ok());
+        match rt {
+            Some(rt) => {
+                rt.bind().spawn_blocking(job);
+            }
+            None => {
+                std::thread::spawn(job);
+            }
+        }
+        self.gen_rx = Some(rx);
+    }
+
+    fn process(&mut self, delta: f64) {
+        if let Some(rx) = self.gen_rx.as_ref() {
+            match rx.try_recv() {
+                Ok(h) => {
+                    self.gen_rx = None;
+                    self.finish_init(h);
+                }
+                Err(std::sync::mpsc::TryRecvError::Empty) => return,
+                Err(_) => {
+                    self.gen_rx = None;
+                    return;
+                }
+            }
+        }
+        if self.heights.is_empty() {
+            return;
+        }
+        if let Some(p) = self.player.as_ref().map(|p| p.get_global_position()) {
+            if let Some(m) = self.water_material.as_mut() {
+                m.set_shader_parameter("player_position", &p.to_variant());
+            }
+            if self.wake_enabled {
+                self.dispatch_wake(delta as f32, p);
+            }
+            self.last_player_pos = p;
+        }
+        self.water_time += delta as f32;
+        self.dispatch_water_fx();
+        self.stream_step();
+    }
+
+    fn on_notification(&mut self, what: Node3DNotification) {
+        if what == Node3DNotification::PREDELETE {
+            self.free_water_fx();
+        }
+    }
+}
+
+/// One window's worth of ground, everything about it that a thread could work
+/// out without the engine.
+struct ShiftBake {
+    heights: Vec<f32>,
+    clearance: Vec<u8>,
+    road: Option<(road::RoadBake, HeightGen)>,
+    origin: [f32; 2],
+}
+
+/// Times the stages of a window swap, which all run on the main thread while the
+/// bake that fed them ran off it.
+///
+/// A swap is one frame's work and a frame is 16ms, so anything here that is tens of
+/// milliseconds is a visible hitch every time the player crosses a stride. Off unless
+/// `Q_SHIFT_PROFILE` is set, because the timing itself is not free.
+struct ShiftTimer {
+    where_to: std::cell::Cell<Option<[f32; 2]>>,
+    t0: Option<std::time::Instant>,
+    last: std::cell::Cell<std::time::Instant>,
+    parts: std::cell::RefCell<Vec<(&'static str, f32)>>,
+}
+
+impl ShiftTimer {
+    fn start() -> Self {
+        let on = std::env::var("Q_SHIFT_PROFILE").is_ok();
+        let now = std::time::Instant::now();
+        Self {
+            where_to: std::cell::Cell::new(None),
+            t0: on.then_some(now),
+            last: std::cell::Cell::new(now),
+            parts: std::cell::RefCell::new(Vec::new()),
+        }
+    }
+
+    fn mark(&self, name: &'static str) {
+        if self.t0.is_none() {
+            return;
+        }
+        let now = std::time::Instant::now();
+        self.parts
+            .borrow_mut()
+            .push((name, (now - self.last.get()).as_secs_f32() * 1000.0));
+        self.last.set(now);
+    }
+
+    fn finish(&self) {
+        let Some(t0) = self.t0 else {
+            return;
+        };
+        let total = (std::time::Instant::now() - t0).as_secs_f32() * 1000.0;
+        let parts: Vec<String> = self
+            .parts
+            .borrow()
+            .iter()
+            .map(|(n, ms)| format!("{n} {ms:.1}"))
+            .collect();
+        godot_print!(
+            "[q] window shift {total:.1}ms {} -- {}",
+            self.where_to
+                .get()
+                .map(|o| format!("to {:.0},{:.0}", o[0], o[1]))
+                .unwrap_or_default(),
+            parts.join(", ")
+        );
+    }
+}
+
+impl QTerrain {
+    /// Moves the baked window after the player, one re-bake at a time.
+    ///
+    /// The bake runs off the main thread because it is tens of milliseconds, and
+    /// the old window stays live until the new one lands -- there is never a
+    /// frame with no ground under anybody.
+    fn stream_step(&mut self) {
+        if !self.stream_enabled {
+            return;
+        }
+        if let Some(rx) = self.shift_rx.as_ref() {
+            match rx.try_recv() {
+                Ok(bake) => {
+                    self.shift_rx = None;
+                    self.apply_window(bake);
+                }
+                Err(std::sync::mpsc::TryRecvError::Empty) => return,
+                Err(_) => self.shift_rx = None,
+            }
+            return;
+        }
+        let Some(window) = self.window else {
+            return;
+        };
+        let Some(player) = self.player.as_ref().map(|p| p.get_global_position()) else {
+            return;
+        };
+        let Some(next) = window.next_origin([player.x, player.z]) else {
+            return;
+        };
+        let params = self.height_params();
+        let source = crate::ground::GroundSource::parse(&self.ground_source.to_string());
+        let worker_gen = crate::ground::Ground::new(source, params.seed, &params);
+        let (extent, res) = (self.extent, self.resolution.max(2));
+        let water = self.water_level;
+        let road_width = self.road_width;
+        let wants_road =
+            !crate::world::q_hidden("road") && source == crate::ground::GroundSource::Authored;
+        let (tx, rx) = std::sync::mpsc::channel();
+        let job = move || {
+            let heights = worker_gen.bake_at(next, extent, res);
+            let mut clearance = paint_clearance(&heights, res, extent, water);
+            let road = wants_road.then(|| {
+                let hgen = HeightGen::new(&params);
+                let at = Vector2::new(next[0], next[1]);
+                let baked = road::bake_road(&hgen, at, extent, water, road_width);
+                road::stamp_road_clearance(
+                    &mut clearance,
+                    CLEARANCE_RES,
+                    at,
+                    extent,
+                    &baked.road,
+                    &hgen,
+                    water,
+                );
+                (baked, hgen)
+            });
+            let _ = tx.send(ShiftBake {
+                heights,
+                clearance,
+                road,
+                origin: next,
+            });
+        };
+        match Engine::singleton()
+            .get_singleton(crate::threads::runtime::RuntimeManager::SINGLETON)
+            .and_then(|s| s.try_cast::<crate::threads::runtime::RuntimeManager>().ok())
+        {
+            Some(rt) => {
+                rt.bind().spawn_blocking(job);
+            }
+            None => {
+                std::thread::spawn(job);
+            }
+        }
+        self.shift_rx = Some(rx);
+    }
+
+    /// Swaps a freshly baked window in: the heightmap every shader reads, the
+    /// collider bodies stand on, and the origin that ties the two together.
+    fn apply_window(&mut self, bake: ShiftBake) {
+        let ShiftBake {
+            heights,
+            clearance,
+            road,
+            origin,
+        } = bake;
+        let res = self.resolution.max(2);
+        if heights.len() != (res * res) as usize {
+            return;
+        }
+        let stage = ShiftTimer::start();
+        stage.where_to.set(Some(origin));
+        if let Some(w) = self.window.as_mut() {
+            w.origin = origin;
+        }
+        let bytes: Vec<u8> = heights.iter().flat_map(|h| h.to_le_bytes()).collect();
+        let data = PackedByteArray::from(bytes.as_slice());
+        if let Some(tex) = self.texture.as_mut()
+            && let Some(img) = Image::create_from_data(res, res, false, ImageFormat::RF, &data)
+        {
+            // Updated in place, so every material still points at the same
+            // texture and none of them need rebinding.
+            tex.update(&img);
+        }
+        let at = Vector2::new(origin[0], origin[1]);
+        for m in [
+            self.grass_material.as_mut(),
+            self.ground_material.as_mut(),
+            self.riverbed_material.as_mut(),
+            self.water_material.as_mut(),
+        ]
+        .into_iter()
+        .flatten()
+        {
+            m.set_shader_parameter("terrain_origin", &at.to_variant());
+        }
+        stage.mark("heightmap");
+        if let Some(shape) = self.ground_shape.as_mut() {
+            shape.set_map_data(&PackedFloat32Array::from(heights.as_slice()));
+        }
+        stage.mark("collision");
+        // Everything drawn flat over the window travels with it: the ground
+        // plane, the riverbed and the water. Left behind, the player walks off
+        // the edge of the visible world while still standing on collider.
+        let at = Vector3::new(origin[0], 0.0, origin[1]);
+        if let Some(body) = self.ground_body.as_mut() {
+            body.set_position(at);
+        }
+        for name in ["Riverbed", "Water"] {
+            if let Some(mut n) = self
+                .base()
+                .get_node_or_null(name)
+                .and_then(|n| n.try_cast::<Node3D>().ok())
+            {
+                let keep = n.get_position();
+                n.set_position(Vector3::new(at.x, keep.y, at.z));
+            }
+        }
+        if let Some(mut ground) = self
+            .base()
+            .get_node_or_null("../Ground")
+            .and_then(|n| n.try_cast::<Node3D>().ok())
+        {
+            let keep = ground.get_position();
+            ground.set_position(Vector3::new(at.x, keep.y, at.z));
+        }
+        stage.mark("nodes");
+        self.upload_clearance(clearance);
+        self.heights = heights;
+        stage.mark("clearance");
+
+        // The road paint, the bridge and the clearance all describe this stretch
+        // of ground, so they are rebuilt with it. Scatter fields read the road
+        // mask when they rescatter, so this has to land before they notice the
+        // window moved -- which it does, because they only look on their own
+        // next frame.
+        if !crate::world::q_hidden("road") {
+            self.clear_road();
+            stage.mark("clear");
+            if let Some((baked, hgen)) = road {
+                self.install_road(baked, hgen);
+            }
+            stage.mark("road");
+            self.build_landmarks();
+            stage.mark("landmarks");
+        }
+        stage.finish();
+    }
+
+    /// Takes down the previous window's road furniture. The carriageway is paint
+    /// and goes with the mask, but the bridge is nodes and has to be freed.
+    fn clear_road(&mut self) {
+        let taken = std::mem::take(&mut self.sim_bridge);
+        self.despawn_sim_bridge(taken);
+        self.clear_landmarks();
+        for name in ["BridgeBody", "BridgeAbutment", "Bridge"] {
+            if let Some(mut n) = self.base().get_node_or_null(name) {
+                n.queue_free();
+                self.base_mut().remove_child(&n);
+            }
+        }
+        self.road = None;
+    }
+
+    /// The sim bridge only exists in builds that carry the rapier module; `default`
+    /// consumers get the same world without it.
+    #[cfg(feature = "rapier3d-client")]
+    fn despawn_sim_bridge(&mut self, taken: PackedInt64Array) {
+        if taken.is_empty() {
+            return;
+        }
+        if let Some(mut phys) = self
+            .base()
+            .get_node_or_null(&self.physics_path)
+            .and_then(|n| n.try_cast::<crate::rapier::bridge3d::QPhysics3D>().ok())
+        {
+            phys.bind_mut().despawn_batch(taken);
+        }
+    }
+
+    #[cfg(not(feature = "rapier3d-client"))]
+    fn despawn_sim_bridge(&mut self, _taken: PackedInt64Array) {}
+
+    fn finish_init(&mut self, heights: Vec<f32>) {
+        let res = self.resolution.max(2);
+        let bytes: Vec<u8> = heights.iter().flat_map(|h| h.to_le_bytes()).collect();
+        let data = PackedByteArray::from(bytes.as_slice());
+        let tex = Image::create_from_data(res, res, false, ImageFormat::RF, &data)
+            .and_then(|img| ImageTexture::create_from_image(&img));
+        self.texture = tex.clone();
+
+        for m in [
+            self.grass_material.as_mut(),
+            self.ground_material.as_mut(),
+            self.riverbed_material.as_mut(),
+        ]
+        .into_iter()
+        .flatten()
+        {
+            if let Some(t) = tex.as_ref() {
+                m.set_shader_parameter("heightmap", &t.to_variant());
+            }
+            m.set_shader_parameter("terrain_extent", &self.extent.to_variant());
+        }
+        for m in [
+            self.grass_material.as_mut(),
+            self.riverbed_material.as_mut(),
+        ]
+        .into_iter()
+        .flatten()
+        {
+            m.set_shader_parameter("water_level", &self.water_level.to_variant());
+        }
+        if let Some(m) = self.water_material.as_mut() {
+            if let Some(t) = tex.as_ref() {
+                m.set_shader_parameter("heightmap", &t.to_variant());
+            }
+            m.set_shader_parameter("terrain_extent", &self.extent.to_variant());
+            m.set_shader_parameter("water_level", &self.water_level.to_variant());
+            let texel = self.extent * 2.0 / (res - 1).max(1) as f32;
+            m.set_shader_parameter("heightmap_texel", &texel.to_variant());
+        }
+
+        self.bake_clearance(&heights, res);
+
+        let mut shape = HeightMapShape3D::new_gd();
+        shape.set_map_width(res);
+        shape.set_map_depth(res);
+        shape.set_map_data(&PackedFloat32Array::from(heights.as_slice()));
+        let mut col = CollisionShape3D::new_alloc();
+        col.set_shape(&shape);
+        let mut body = StaticBody3D::new_alloc();
+        body.add_child(&col);
+        self.base_mut().add_child(&body);
+        self.ground_shape = Some(shape);
+        self.ground_body = Some(body.clone());
+
+        if crate::world::q_hidden("pom")
+            && let Some(m) = self.riverbed_material.as_mut()
+        {
+            m.set_shader_parameter("pom_depth", &0.0f32.to_variant());
+            m.set_shader_parameter("pom_fade_end", &0.0f32.to_variant());
+        }
+        self.build_river_planes();
+
+        self.heights = heights;
+
+        if !crate::world::q_hidden("road") {
+            if let Some(hgen) = self.hgen.take() {
+                let at = self.window_origin();
+                let baked =
+                    road::bake_road(&hgen, at, self.extent, self.water_level, self.road_width);
+                road::stamp_road_clearance(
+                    &mut self.clearance,
+                    self.clearance_res,
+                    at,
+                    self.extent,
+                    &baked.road,
+                    &hgen,
+                    self.water_level,
+                );
+                self.clearance_dirty = true;
+                self.flush_clearance();
+                self.install_road(baked, hgen);
+            }
+            self.build_landmarks();
+        }
+
+        let player = self
+            .base()
+            .get_node_or_null(&self.player_path)
+            .and_then(|n| n.try_cast::<Node3D>().ok());
+        self.player = player.clone();
+        if let Some(mut player) = player {
+            let p = player.get_global_position();
+            let spawn = std::env::var("Q_SPAWN").unwrap_or_default();
+            if spawn == "river" {
+                let rx = self.hgen.as_ref().map(|g| g.river_x(p.z)).unwrap_or(0.0);
+                player.set_global_position(Vector3::new(rx, self.water_level + 0.6, p.z));
+            } else if spawn == "road" {
+                let target = self
+                    .road
+                    .as_ref()
+                    .map(|r| r.point_near_x(r.crossing.x + r.half_span + 20.0))
+                    .unwrap_or(Vector2::ZERO);
+                let (rx, rz) = (target.x, target.y);
+                player.set_global_position(Vector3::new(rx, self.height(rx, rz) + 1.0, rz));
+            } else {
+                let mut sx = p.x;
+                while self.height(sx, p.z) < self.water_level + 1.0 && sx < self.extent {
+                    sx += 4.0;
+                }
+                player.set_global_position(Vector3::new(sx, self.height(sx, p.z) + 1.0, p.z));
+            }
+        }
+        self.setup_water_fx();
+        if let Some(t0) = self.gen_t0.take() {
+            godot_print!("[q] terrain gen+apply {}ms", t0.elapsed().as_millis());
+        }
+        self.signals().ground_ready().emit();
+    }
+}
+
+#[godot_api]
+impl QTerrain {
+    /// The first frame there is ground to stand on. Anything that would otherwise
+    /// spawn into an empty world waits for this.
+    #[signal]
+    fn ground_ready();
+
+    /// Bakes the world the host is actually simulating, if that is not the one already
+    /// under our feet.
+    ///
+    /// The seed arrives a round trip after this node has baked from its own exported
+    /// default, so assigning `terrain_seed` on join was doing nothing: the ground was
+    /// already made. It agreed only because both defaults happened to read 1337. A host
+    /// that rotates its seed would have had every client standing on a different
+    /// landscape, sinking into its hills and hovering over its seas.
+    ///
+    /// Rebaked through the same path a window shift takes, so the road, the bridge, the
+    /// landmarks and the clearance are all rebuilt from the new field rather than left
+    /// describing the old one.
+    #[func]
+    pub fn adopt_seed(&mut self, seed: i64) {
+        let seed = seed as i32;
+        if seed == self.terrain_seed || self.heights.is_empty() {
+            return;
+        }
+        self.terrain_seed = seed;
+        self.generation += 1;
+
+        let params = self.height_params();
+        let source = crate::ground::GroundSource::parse(&self.ground_source.to_string());
+        self.ground = Some(crate::ground::Ground::new(source, params.seed, &params));
+        self.hgen =
+            (source == crate::ground::GroundSource::Authored).then(|| HeightGen::new(&params));
+
+        let origin = self.window.map(|w| w.origin).unwrap_or([0.0, 0.0]);
+        let worker_gen = crate::ground::Ground::new(source, params.seed, &params);
+        let (extent, res) = (self.extent, self.resolution.max(2));
+        let water = self.water_level;
+        let road_width = self.road_width;
+        let wants_road =
+            !crate::world::q_hidden("road") && source == crate::ground::GroundSource::Authored;
+        let (tx, rx) = std::sync::mpsc::channel();
+        let job = move || {
+            let heights = worker_gen.bake_at(origin, extent, res);
+            let mut clearance = paint_clearance(&heights, res, extent, water);
+            let road = wants_road.then(|| {
+                let hgen = HeightGen::new(&params);
+                let at = Vector2::new(origin[0], origin[1]);
+                let baked = road::bake_road(&hgen, at, extent, water, road_width);
+                road::stamp_road_clearance(
+                    &mut clearance,
+                    CLEARANCE_RES,
+                    at,
+                    extent,
+                    &baked.road,
+                    &hgen,
+                    water,
+                );
+                (baked, hgen)
+            });
+            let _ = tx.send(ShiftBake {
+                heights,
+                clearance,
+                road,
+                origin,
+            });
+        };
+        match Engine::singleton()
+            .get_singleton(crate::threads::runtime::RuntimeManager::SINGLETON)
+            .and_then(|s| s.try_cast::<crate::threads::runtime::RuntimeManager>().ok())
+        {
+            Some(rt) => {
+                rt.bind().spawn_blocking(job);
+            }
+            None => {
+                std::thread::spawn(job);
+            }
+        }
+        self.shift_rx = Some(rx);
+    }
+
+    /// How many times the ground has been replaced under a standing window.
+    #[func]
+    pub fn ground_generation(&self) -> i64 {
+        self.generation
+    }
+
+    /// Whether the collider exists yet, for whatever readied before the signal
+    /// went out.
+    #[func]
+    fn is_ground_ready(&self) -> bool {
+        self.ground_body.is_some() && !self.heights.is_empty()
+    }
+
+    #[func]
+    fn height_at(&self, x: f32, z: f32) -> f32 {
+        self.mesh_height(x, z)
+    }
+
+    #[func]
+    fn river_x_at(&self, z: f32) -> f32 {
+        self.hgen.as_ref().map(|g| g.river_x(z)).unwrap_or(0.0)
+    }
+
+    #[func]
+    fn water_level_at(&self) -> f32 {
+        self.water_level
+    }
+
+    /// The CPU height grid, for anything that needs to read the ground in bulk
+    /// rather than a point at a time.
+    /// Middle of the ground currently baked, for anything building spatial
+    /// structure over [`height_grid`](Self::height_grid). While the world was
+    /// one tile this was always zero; with streaming on, a consumer that
+    /// centres itself on the origin is building over ground the window has
+    /// long since left.
+    #[func]
+    fn world_origin(&self) -> Vector2 {
+        self.window_origin()
+    }
+
+    #[func]
+    fn height_grid(&self) -> PackedFloat32Array {
+        match self.cpu_heights() {
+            Some((h, _)) => PackedFloat32Array::from(h),
+            None => PackedFloat32Array::new(),
+        }
+    }
+
+    #[func]
+    fn height_grid_res(&self) -> i64 {
+        self.cpu_heights().map(|(_, r)| r as i64).unwrap_or(0)
+    }
+
+    #[func]
+    fn river_width_at(&self) -> f32 {
+        self.river_width
+    }
+
+    /// The bridge as a line to walk: `ax, az, bx, bz, half_width`, empty if
+    /// there is no crossing.
+    ///
+    /// A flow field reading the height grid sees water under the deck and closes
+    /// the only place the river can be crossed, so it needs telling. The ends
+    /// reach past the abutments onto dry land at either bank, or the route stops
+    /// short of the ramps.
+    #[func]
+    fn bridge_span(&self) -> PackedFloat32Array {
+        let Some(road) = self.road.as_ref() else {
+            return PackedFloat32Array::new();
+        };
+        let dir = road.direction.normalized();
+        let reach = road.half_span + 8.0;
+        let a = road.crossing - dir * reach;
+        let b = road.crossing + dir * reach;
+        PackedFloat32Array::from(&[a.x, a.y, b.x, b.y, self.road_width * 0.5])
+    }
+
+    /// The crossing as a thing with sides, for a flow field.
+    ///
+    /// [`Self::bridge_span`] gives the line to walk and nothing else, which is only
+    /// half the story: the approaches are railed causeways with a skirt down to the
+    /// ground, so most of what the bridge puts in a creature's way is solid. A field
+    /// told only about the line routes bodies through the side of a ramp.
+    ///
+    /// Empty when the world has no crossing. Distances are along world X, which is
+    /// what [`crate::worldgen::BridgePlan`] lays the deck down.
+    #[func]
+    fn bridge_plan(&self) -> VarDictionary {
+        let mut out = VarDictionary::new();
+        let Some(hgen) = self.hgen.as_ref().filter(|_| self.road.is_some()) else {
+            return out;
+        };
+        let plan =
+            crate::worldgen::BridgePlan::new(hgen, self.extent, self.water_level, self.road_width);
+        let f = plan.footprint(hgen);
+        out.set("from", Vector3::new(f.from[0], 0.0, f.from[1]));
+        out.set("to", Vector3::new(f.to[0], 0.0, f.to[1]));
+        out.set("walk_half_width", f.walk_half_width);
+        out.set("solid_half_width", f.solid_half_width);
+        out.set(
+            "deck_from",
+            Vector3::new(f.deck_from[0], f.deck_y, f.deck_from[1]),
+        );
+        out.set(
+            "deck_to",
+            Vector3::new(f.deck_to[0], f.deck_y, f.deck_to[1]),
+        );
+        out.set("deck_y", f.deck_y);
+        out
+    }
+
+    /// Everything built in this window, as lines a flow field can be told about.
+    ///
+    /// `solid` is what to close, `open` is what to reopen afterwards -- a gateway and
+    /// the piers -- and `decks` are the raised walkways a body can stand underneath.
+    /// Each is a flat run of `ax, az, bx, bz, half_width`.
+    ///
+    /// Empty where nothing is built, which is nearly everywhere.
+    #[func]
+    fn landmark_plan(&self) -> VarDictionary {
+        let mut out = VarDictionary::new();
+        let Some(hgen) = self.hgen.as_ref().filter(|_| !self.landmarks.is_empty()) else {
+            return out;
+        };
+        let (solid, open, decks, deck_y) = self.landmark_bars(hgen);
+        out.set("solid", &PackedFloat32Array::from(solid.as_slice()));
+        out.set("open", &PackedFloat32Array::from(open.as_slice()));
+        out.set("decks", &PackedFloat32Array::from(decks.as_slice()));
+        out.set("deck_y", deck_y);
+        out
+    }
+
+    /// Where the people of the built places in this window stand.
+    ///
+    /// One dictionary each: `role`, `at` and `facing`. The client decides what a
+    /// `gate_guard` looks like and what it says; nothing here knows.
+    ///
+    /// `at` carries the levelled floor as its `y`, so a caller placing somebody does
+    /// not have to sample the ground to find out they are standing on a courtyard.
+    #[func]
+    fn landmark_posts(&self) -> VarArray {
+        let mut out = VarArray::new();
+        let Some(hgen) = self.hgen.as_ref() else {
+            return out;
+        };
+        // A landmark is raised while its middle is still outside the window, so that a
+        // wall straddling the boundary is not missing half of itself. Its people are a
+        // different matter: whoever stands them up settles them onto the ground mesh,
+        // and outside the baked grid there is no ground mesh to settle onto. A post out
+        // there is somewhere nobody can be put, so it is not offered until it is inside.
+        let origin = self.window_origin();
+        for mark in &self.landmarks {
+            for post in mark.posts(hgen) {
+                if (post.at[0] - origin.x).abs() > self.extent
+                    || (post.at[1] - origin.y).abs() > self.extent
+                {
+                    continue;
+                }
+                let mut one = VarDictionary::new();
+                one.set("role", post.role.as_str());
+                one.set("at", Vector3::new(post.at[0], mark.pad_y, post.at[1]));
+                one.set(
+                    "facing",
+                    Vector3::new(post.facing[0], mark.pad_y, post.facing[1]),
+                );
+                one.set("landmark", mark.kind_name());
+                one.set("cell", Vector2i::new(mark.cell[0], mark.cell[1]));
+                out.push(&one.to_variant());
+            }
+        }
+        out
+    }
+
+    /// Where the nearest built place of each kind is, for pointing somebody at one.
+    ///
+    /// Reads the world rather than the window, so it answers for landmarks far
+    /// outside anything currently baked.
+    #[func]
+    fn nearest_landmarks(&self, from: Vector3) -> VarDictionary {
+        let mut out = VarDictionary::new();
+        let Some(hgen) = self.hgen.as_ref() else {
+            return out;
+        };
+        for mark in crate::landmark::nearest(hgen.seed(), hgen, [from.x, from.z]) {
+            let name = match mark.kind {
+                crate::landmark::LandmarkKind::Capital => "capital",
+                crate::landmark::LandmarkKind::Harbour => "harbour",
+            };
+            out.set(
+                name,
+                Vector3::new(mark.centre[0], mark.pad_y, mark.centre[1]),
+            );
+        }
+        out
+    }
+}
+
+/// Side of the clearance grid, independent of the heightmap's resolution.
+const CLEARANCE_RES: i32 = 512;
+
+/// Marks a disc of ground as cleared, softening from `inner` out to `radius`.
+///
+/// Returns whether anything actually changed. The grid covers the window, not
+/// the world, so a world point comes back to the window before it picks a
+/// texel -- stamped in world coordinates every mark lands a window's offset
+/// away from the thing that asked for it, or off the map entirely.
+#[allow(clippy::too_many_arguments)]
+pub(super) fn stamp_band(
+    clearance: &mut [u8],
+    cres: i32,
+    origin: Vector2,
+    extent: f32,
+    x: f32,
+    z: f32,
+    inner: f32,
+    radius: f32,
+) -> bool {
+    if cres < 2 || radius <= 0.0 || inner >= radius {
+        return false;
+    }
+    let texel = extent * 2.0 / (cres - 1) as f32;
+    let (lx, lz) = (x - origin.x, z - origin.y);
+    let to_px = |w: f32| ((w + extent) / texel).round() as i32;
+    let r_px = (radius / texel).ceil() as i32 + 1;
+    let cx = to_px(lx);
+    let cz = to_px(lz);
+    let mut touched = false;
+    for py in (cz - r_px).max(0)..=(cz + r_px).min(cres - 1) {
+        let wz = -extent + py as f32 * texel;
+        for px in (cx - r_px).max(0)..=(cx + r_px).min(cres - 1) {
+            let wx = -extent + px as f32 * texel;
+            let d = ((wx - lx) * (wx - lx) + (wz - lz) * (wz - lz)).sqrt();
+            if d >= radius {
+                continue;
+            }
+            let t = ((d - inner) / (radius - inner)).clamp(0.0, 1.0);
+            let v = ((1.0 - t * t * (3.0 - 2.0 * t)) * 255.0) as u8;
+            let idx = (py * cres + px) as usize;
+            if v > clearance[idx] {
+                clearance[idx] = v;
+                touched = true;
+            }
+        }
+    }
+    touched
+}
+
+/// How much grass the ground itself denies, painted from height alone. Free
+/// standing so a window shift can pay for it on the bake thread.
+fn paint_clearance(heights: &[f32], hres: i32, extent: f32, water_level: f32) -> Vec<u8> {
+    let cres = CLEARANCE_RES;
+    let cstep = extent * 2.0 / (cres - 1) as f32;
+    let mut clearance = vec![0u8; (cres * cres) as usize];
+    for iy in 0..cres {
+        let z = -extent + iy as f32 * cstep;
+        for ix in 0..cres {
+            let x = -extent + ix as f32 * cstep;
+            let u = ((x + extent) / (extent * 2.0)).clamp(0.0, 1.0);
+            let v = ((z + extent) / (extent * 2.0)).clamp(0.0, 1.0);
+            let px = ((u * (hres - 1) as f32) as i32).clamp(0, hres - 1);
+            let py = ((v * (hres - 1) as f32) as i32).clamp(0, hres - 1);
+            let h = heights[(py * hres + px) as usize];
+            let t = ((h - (water_level + 0.4)) / 2.2).clamp(0.0, 1.0);
+            let band = 1.0 - t * t * (3.0 - 2.0 * t);
+            clearance[(iy * cres + ix) as usize] = (band * 255.0) as u8;
+        }
+    }
+    clearance
+}
+
+impl QTerrain {
+    fn bake_clearance(&mut self, heights: &[f32], hres: i32) {
+        let clearance = paint_clearance(heights, hres, self.extent, self.water_level);
+        self.upload_clearance(clearance);
+    }
+
+    /// Hands a clearance grid to the GPU and keeps the copy stamping reads.
+    fn upload_clearance(&mut self, clearance: Vec<u8>) {
+        let cres = CLEARANCE_RES;
+        let cdata = PackedByteArray::from(clearance.as_slice());
+        let img = Image::create_from_data(cres, cres, false, ImageFormat::R8, &cdata);
+        // Updated in place once it exists. The grass cull kernels resolve this
+        // texture to an RD rid when they come online and hold it for the life of
+        // the pipeline, so handing them a new ImageTexture every stride leaves
+        // them sampling one that has been freed.
+        match (img, self.clearance_res == cres, self.clearance_tex.as_mut()) {
+            (Some(img), true, Some(tex)) => tex.update(&img),
+            (Some(img), _, _) => {
+                self.clearance_tex = ImageTexture::create_from_image(&img);
+                if let Some(t) = self.clearance_tex.as_ref()
+                    && let Some(m) = self.ground_material.as_mut()
+                {
+                    m.set_shader_parameter("clearance_tex", &t.to_variant());
+                }
+            }
+            (None, _, _) => {}
+        }
+        self.clearance = clearance;
+        self.clearance_res = cres;
+    }
+
+    pub fn cpu_heights(&self) -> Option<(&[f32], i32)> {
+        if self.heights.is_empty() {
+            None
+        } else {
+            Some((&self.heights, self.resolution.max(2)))
+        }
+    }
+
+    pub fn heightmap_texture(&self) -> Option<Gd<ImageTexture>> {
+        self.texture.clone()
+    }
+
+    /// Centre of the baked window. Everything that maps world to the heightmap
+    /// has to subtract this, or it reads the wrong ground once the world moves.
+    pub fn window_origin(&self) -> Vector2 {
+        self.window
+            .map(|w| Vector2::new(w.origin[0], w.origin[1]))
+            .unwrap_or(Vector2::ZERO)
+    }
+
+    pub fn world_extent(&self) -> f32 {
+        self.extent
+    }
+
+    pub fn water(&self) -> f32 {
+        self.water_level
+    }
+
+    pub fn road_span(&self) -> f32 {
+        self.road_width
+    }
+
+    /// The shape of the ground, for anything that has to derive placement from the
+    /// generator rather than from the baked grid.
+    pub fn generator_params(&self) -> HeightParams {
+        self.height_params()
+    }
+
+    /// Whether this world has the one authored river running through it.
+    ///
+    /// False on the region field, which has seas and lakes but no river, and so
+    /// nothing for the road, the bridge or a shoal of fish to be placed along.
+    pub fn has_river(&self) -> bool {
+        self.ground
+            .as_ref()
+            .map(|g| g.river_centre(0.0).is_some())
+            .unwrap_or(false)
+    }
+
+    pub fn river_center(&self, z: f32) -> f32 {
+        self.hgen.as_ref().map(|g| g.river_x(z)).unwrap_or(0.0)
+    }
+
+    pub fn river_width_value(&self) -> f32 {
+        self.river_width
+    }
+
+    pub fn sample_height(&self, x: f32, z: f32) -> f32 {
+        self.mesh_height(x, z)
+    }
+
+    pub fn clearance_texture(&self) -> Option<Gd<ImageTexture>> {
+        self.clearance_tex.clone()
+    }
+
+    /// Scatter fields snapshot this the same way they snapshot heights, so they can
+    /// keep their placement loops off the road without binding per candidate.
+    pub fn road_mask(&self) -> Option<(&[u8], i32)> {
+        if self.road_mask.is_empty() {
+            None
+        } else {
+            Some((&self.road_mask, self.road_res))
+        }
+    }
+
+    pub fn stamp_clearance(&mut self, x: f32, z: f32, radius: f32) {
+        self.stamp_clearance_band(x, z, radius * 0.55, radius);
+    }
+
+    /// Clearance stamp with an explicit fully-cleared core.
+    pub fn stamp_clearance_band(&mut self, x: f32, z: f32, inner: f32, radius: f32) {
+        let origin = self.window_origin();
+        if stamp_band(
+            &mut self.clearance,
+            self.clearance_res,
+            origin,
+            self.extent,
+            x,
+            z,
+            inner,
+            radius,
+        ) {
+            self.clearance_dirty = true;
+        }
+    }
+
+    pub fn flush_clearance(&mut self) {
+        if !self.clearance_dirty {
+            return;
+        }
+        self.clearance_dirty = false;
+        let cres = self.clearance_res;
+        let cdata = PackedByteArray::from(self.clearance.as_slice());
+        if let (Some(img), Some(tex)) = (
+            Image::create_from_data(cres, cres, false, ImageFormat::R8, &cdata),
+            self.clearance_tex.as_mut(),
+        ) {
+            tex.update(&img);
+        }
+    }
+
+    fn height(&self, x: f32, z: f32) -> f32 {
+        self.ground.as_ref().map(|g| g.height(x, z)).unwrap_or(0.0)
+    }
+
+    /// The drawn ground rather than the height data. See
+    /// [`crate::world::TerrainSnapshot::height`] for why they differ.
+    fn mesh_height(&self, x: f32, z: f32) -> f32 {
+        const Q: f32 = crate::world::GROUND_QUAD;
+        if self.heights.is_empty() {
+            return self.height(x, z);
+        }
+        let gx = (x / Q).floor() * Q;
+        let gz = (z / Q).floor() * Q;
+        let tx = (x - gx) / Q;
+        let tz = (z - gz) / Q;
+        let a = {
+            let h0 = self.grid_height(gx, gz);
+            h0 + (self.grid_height(gx + Q, gz) - h0) * tx
+        };
+        let b = {
+            let h0 = self.grid_height(gx, gz + Q);
+            h0 + (self.grid_height(gx + Q, gz + Q) - h0) * tx
+        };
+        a + (b - a) * tz
+    }
+
+    fn grid_height(&self, x: f32, z: f32) -> f32 {
+        let res = self.resolution.max(2);
+        if self.heights.len() < (res * res) as usize {
+            return self.height(x, z);
+        }
+        let o = self.window_origin();
+        let fx = (((x - o.x + self.extent) / (self.extent * 2.0)).clamp(0.001, 0.999) * res as f32
+            - 0.5)
+            .max(0.0);
+        let fz = (((z - o.y + self.extent) / (self.extent * 2.0)).clamp(0.001, 0.999) * res as f32
+            - 0.5)
+            .max(0.0);
+        let x0 = (fx as i32).clamp(0, res - 2);
+        let z0 = (fz as i32).clamp(0, res - 2);
+        let tx = (fx - x0 as f32).clamp(0.0, 1.0);
+        let tz = (fz - z0 as f32).clamp(0.0, 1.0);
+        let h00 = self.heights[(z0 * res + x0) as usize];
+        let h10 = self.heights[(z0 * res + x0 + 1) as usize];
+        let h01 = self.heights[((z0 + 1) * res + x0) as usize];
+        let h11 = self.heights[((z0 + 1) * res + x0 + 1) as usize];
+        let a = h00 + (h10 - h00) * tx;
+        let b = h01 + (h11 - h01) * tx;
+        a + (b - a) * tz
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn flat(h: f32, res: i32) -> Vec<f32> {
+        vec![h; (res * res) as usize]
+    }
+
+    /// The mask is what keeps grass off ground it has no business on, so the
+    /// two ends have to be the two extremes rather than merely ordered.
+    #[test]
+    fn ground_at_the_waterline_is_denied_and_high_ground_is_not() {
+        let res = 65;
+        let wet = paint_clearance(&flat(-1.0, res), res, 256.0, -1.4);
+        let dry = paint_clearance(&flat(40.0, res), res, 256.0, -1.4);
+        assert!(
+            wet.iter().all(|&c| c == 255),
+            "the waterline is not fully cleared"
+        );
+        assert!(dry.iter().all(|&c| c == 0), "high ground is being cleared");
+    }
+
+    /// Painted on the bake thread now, so it has to be a function of its
+    /// arguments alone -- same heights in, same bytes out, every time.
+    #[test]
+    fn the_same_ground_paints_the_same_mask() {
+        let res = 33;
+        let heights: Vec<f32> = (0..res * res)
+            .map(|i| (i as f32 * 0.37).sin() * 6.0)
+            .collect();
+        assert_eq!(
+            paint_clearance(&heights, res, 256.0, -1.4),
+            paint_clearance(&heights, res, 256.0, -1.4)
+        );
+    }
+
+    #[test]
+    fn the_mask_is_the_size_the_uploader_expects() {
+        let res = 33;
+        let mask = paint_clearance(&flat(0.0, res), res, 256.0, -1.4);
+        assert_eq!(mask.len(), (CLEARANCE_RES * CLEARANCE_RES) as usize);
+    }
+
+    /// Raising the water raises what counts as too low to grow on.
+    #[test]
+    fn a_higher_waterline_denies_more_ground() {
+        let res = 33;
+        let heights = flat(1.0, res);
+        let low = paint_clearance(&heights, res, 256.0, -1.4);
+        let high = paint_clearance(&heights, res, 256.0, 0.9);
+        let sum = |m: &[u8]| m.iter().map(|&c| c as u64).sum::<u64>();
+        assert!(
+            sum(&high) > sum(&low),
+            "the same ground was denied no harder by deeper water"
+        );
+    }
+}

@@ -1,0 +1,19 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'rust'
+tags: ['rust', 'docker']
+
+tasks:
+    test:
+        script: 'cargo test -p axum-rareicon'
+        options:
+            runFromWorkspaceRoot: true
+    lint:
+        script: 'cargo clippy -p axum-rareicon --all-targets -- -D warnings'
+        options:
+            runFromWorkspaceRoot: true
+    container:
+        script: 'docker buildx build --platform linux/amd64 -f apps/rareicon/axum-rareicon/Dockerfile -t kbve/rareicon:latest --load .'
+        options:
+            runFromWorkspaceRoot: true

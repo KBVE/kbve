@@ -2,26 +2,37 @@ $schema: 'https://moonrepo.dev/schemas/workspace.json'
 
 # Project graph.
 #
-# Every project is named explicitly rather than globbed. moon registers a
-# matched directory as a project whether or not it holds a moon.yml, which
-# rules globs out here twice over:
+# crates/ is globbed; everything else is named.
 #
-#   Collisions. kbve nests unevenly -- apps/mc, apps/kbve/astro-kbve,
-#   apps/agones/arpg/server, packages/rust/bevy/bevy_items -- so covering it
-#   takes globs two to four segments deep, and those match four directory
-#   basenames that repeat: kbve, relay, server, web. 'apps/*/*/*' alone fails
-#   the graph outright on apps/agones/{arpg,cryptothrone}/server.
+# moon registers a matched directory as a project whether or not it holds a
+# moon.yml, which is what decides where a glob is safe.
 #
-#   Coexistence. Nx still owns every project that has not been ported. A glob
-#   would pull all 149 into moon's graph as empty, task-less projects and put
-#   them in `moon check --all` before anything can run them.
+#   crates/ is flat, every directory in it is a crate, and no two share a name,
+#   so a glob there is exact and a new crate needs no edit here.
 #
-# So this map is the migration checklist: a project enters the graph on the
-# commit that gives it a moon.yml, and Nx keeps it until then.
+#   apps/ and packages/ are not. They nest unevenly -- apps/mc,
+#   apps/kbve/astro-kbve, apps/agones/arpg/server -- so covering them takes
+#   globs two to four segments deep, and those match four directory basenames
+#   that repeat: kbve, relay, server, web. 'apps/*/*/*' alone fails the graph
+#   outright on apps/agones/{arpg,cryptothrone}/server. A glob would also pull
+#   in every project that has not been ported yet, as an empty task-less entry
+#   that turns up in `moon check --all`.
+#
+# So the map below is the migration checklist: a project outside crates/ enters
+# the graph on the commit that gives it a moon.yml, and Nx keeps it until then.
 projects:
+    globs:
+        # Rust crates. A glob here where apps/ cannot have one: crates/ is flat
+        # and every directory in it is a crate, so there are no repeated
+        # basenames to collide and nothing task-less to pick up.
+        - 'crates/*'
     sources:
+        # The workspace itself: whole-tree tasks that belong to no project.
+        root: '.'
+
         # Sites
         astro-chuckrpg: 'apps/chuckrpg/astro-chuckrpg'
+        astro-kbve: 'apps/kbve/astro-kbve'
         astro-cryptothrone: 'apps/cryptothrone/astro-cryptothrone'
         astro-discordsh: 'apps/discordsh/astro-discordsh'
         astro-herbmail: 'apps/herbmail/astro-herbmail'
@@ -42,6 +53,9 @@ projects:
 
         # Writes the icon catalogue into astro-rareicon's content directory
         icons-codegen: 'apps/rareicon/icons-codegen'
+        # Named 'protobuf' because the crates that came from KBVE/workspace
+        # declare dependsOn: ['protobuf']; the directory is packages/proto.
+        protobuf: 'packages/proto'
 
         # Desktop shells (tauri)
         chuck-launcher: 'apps/chuckrpg/chuck-launcher'
@@ -66,15 +80,120 @@ projects:
         # `pip install kbve` all stay kbve.
         kbve-py: 'packages/python/kbve'
 
-        # Rust: two libraries and two services, as the proving set for rust.yml
-        embeddb-derive: 'packages/rust/embeddb-derive'
-        jedi: 'packages/rust/jedi'
+        # Rust services still under apps/; the libraries moved to crates/.
         agones-shim: 'apps/agones/shim'
         met: 'apps/metrics'
+        agones-factorio-relay: 'apps/agones/factorio/relay'
+        agones-palworld-relay: 'apps/agones/palworld/relay'
+        arpg-server: 'apps/agones/arpg/server'
+        axum-chuckrpg: 'apps/chuckrpg/axum-chuckrpg'
+        axum-cryptothrone: 'apps/cryptothrone/axum-cryptothrone'
+        axum-discordsh: 'apps/discordsh/axum-discordsh'
+        axum-herbmail: 'apps/herbmail/axum-herbmail'
+        axum-kbve: 'apps/kbve/axum-kbve'
+        axum-memes: 'apps/memes/axum-memes'
+        axum-rareicon: 'apps/rareicon/axum-rareicon'
+        axum-rentearth: 'apps/rentearth/axum-rentearth'
+        cryptothrone-server: 'apps/agones/cryptothrone/server'
+        discordsh-bot: 'apps/discordsh/discordsh-bot'
+        factorio-ctl: 'apps/vm/factorio-ctl'
+        firecracker-ctl: 'apps/vm/firecracker-ctl'
+        friendslop-server: 'apps/agones/friendslop/server'
+        herbmail-server: 'apps/agones/herbmail/server'
+        irc-gateway: 'apps/irc/irc-gateway'
+        jobboard: 'apps/jobboard'
+        kbve-gate: 'apps/kbve/kbve-gate'
+        kbve-kubectl: 'apps/vm/kubectl'
+        kilobase: 'apps/kbve/kilobase'
+        reel: 'apps/media/reel'
+        rows: 'apps/rows'
 
         # Godot
         godot-friendslop: 'apps/friendslop/godot-friendslop'
-        q: 'packages/rust/q'
+
+        # Docker images
+        arc-runner: 'packages/docker/arc-runner'
+        chisel-ubuntu-axum: 'packages/docker/chisel-ubuntu-axum'
+        firecracker-node-web: 'packages/docker/firecracker/node/web'
+        firecracker-python-net: 'packages/docker/firecracker/python/net'
+        firecracker-python-web: 'packages/docker/firecracker/python/web'
+        kasm-cloakbrowser: 'packages/docker/kasm-cloakbrowser'
+        kasm-void: 'packages/docker/kasm-void'
+        steamcmd-ubuntu: 'packages/docker/steamcmd-ubuntu'
+
+        # Game servers and their stacks
+        agones-factorio: 'apps/agones/factorio'
+        agones-palworld: 'apps/agones/palworld'
+        agones-palworld-savetool: 'apps/agones/palworld/savetool'
+        agones-tocloud9: 'apps/agones/tocloud9'
+        kbve-orc: 'apps/agones/factorio/mods-src/kbve-orc'
+        kbve-spider: 'apps/agones/factorio/mods-src/kbve-spider'
+        mc: 'apps/mc'
+        mc-lobby: 'apps/mc/lobby'
+        mc-velocity: 'apps/mc/velocity'
+
+        # Other apps
+        angelscript: 'apps/angelscript'
+        aria2-proxy: 'apps/vm/aria2-proxy'
+        arpg-web: 'apps/agones/arpg/web'
+        edge: 'apps/kbve/edge'
+        esp32c6-display: 'apps/hardware/esp32c6-display'
+        herbmail-game: 'apps/herbmail/herbmail-game'
+        rentearth-web: 'apps/rentearth/axum-rentearth/web'
+
+        # Unpublished npm libraries
+        chat: 'packages/npm/chat'
+        fx: 'packages/npm/fx'
+        rn: 'packages/npm/rn'
+
+        # Suites
+        arc-runner-e2e: 'packages/docker/arc-runner-e2e'
+        aria2-proxy-e2e: 'apps/vm/aria2-proxy-e2e'
+        arpg-e2e: 'apps/agones/arpg/arpg-e2e'
+        astro-kbve-e2e: 'apps/kbve/astro-kbve-e2e'
+        axum-chuckrpg-e2e: 'apps/chuckrpg/axum-chuckrpg-e2e'
+        axum-discordsh-e2e: 'apps/discordsh/axum-discordsh-e2e'
+        axum-kbve-e2e: 'apps/kbve/axum-kbve-e2e'
+        axum-rareicon-e2e: 'apps/rareicon/axum-rareicon-e2e'
+        devops-e2e: 'packages/npm/devops-e2e'
+        discordsh-bot-e2e: 'apps/discordsh/discordsh-bot-e2e'
+        droid-e2e: 'packages/npm/droid-e2e'
+        edge-e2e: 'apps/kbve/edge-e2e'
+        firecracker-ctl-e2e: 'apps/vm/firecracker-ctl-e2e'
+        khashvault-e2e: 'packages/npm/khashvault-e2e'
+        kubectl-e2e: 'apps/vm/kubectl-e2e'
+        laser-e2e: 'packages/npm/laser-e2e'
+
+        # Shared data and schemas
+        data-i18n: 'packages/data/i18n'
+        data-proto: 'packages/data/proto'
+        data-sql: 'packages/data/sql'
+
+        # Unpublished npm libraries, continued
+        core: 'packages/npm/core'
+        kbve-tauri: 'packages/npm/tauri'
+        observ: 'packages/npm/observ'
+        rn-astro: 'packages/npm/rn-astro'
+        rn-tauri: 'packages/npm/rn-tauri'
+
+        # Umbrellas: a site, its service and its suite behind one id
+        cryptothrone: 'apps/cryptothrone'
+        discordsh: 'apps/discordsh'
+        herbmail: 'apps/herbmail'
+        irc: 'apps/irc'
+        memes: 'apps/memes'
+
+        # Game clients and engines
+        agones-palworld-chef-food: 'apps/agones/palworld/mods/chef_paldon_yumsay'
+        arpg: 'apps/agones/arpg'
+        kbve-react-native: 'apps/kbve/kbve-react-native'
+        unity-rareicon: 'apps/rareicon/unity-rareicon'
+        unreal-cleanroom: 'apps/chuckrpg/unreal-cleanroom'
+        unreal-rentearth: 'apps/rentearth/unreal-rentearth'
+
+        # Remaining
+        iot-edge-worker: 'apps/vm/iot/edge-worker'
+        metrics-e2e: 'apps/metrics/e2e'
 
 vcs:
     defaultBranch: 'dev'

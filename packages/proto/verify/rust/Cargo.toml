@@ -1,0 +1,22 @@
+# Compiles the generated Rust. Nothing depends on this crate; it exists so a
+# schema that generates but does not compile fails here rather than in a Bevy
+# crate downstream.
+[package]
+name = "verify-rust"
+version = "0.0.0"
+edition = "2021"
+publish = false
+
+# Versions track the workspace root manifest: the generated tonic code calls
+# tonic_prost::ProstCodec, which is the 0.14 split, and pairing it with an
+# older prost here would fail for a reason that has nothing to do with the
+# schema this crate exists to check.
+[dependencies]
+prost = "0.14"
+prost-types = "0.14"
+serde = { version = "1", features = ["derive"] }
+bytes = { version = "1", features = ["serde"] }
+tonic = "0.14"
+tonic-prost = "0.14"
+
+[workspace]

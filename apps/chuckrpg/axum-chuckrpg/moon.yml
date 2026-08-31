@@ -1,0 +1,11 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'rust'
+tags: ['rust', 'docker']
+
+tasks:
+    container:
+        script: 'docker buildx build --platform linux/amd64 -f apps/chuckrpg/axum-chuckrpg/Dockerfile -t kbve/chuckrpg:latest --load .'
+        options:
+            runFromWorkspaceRoot: true

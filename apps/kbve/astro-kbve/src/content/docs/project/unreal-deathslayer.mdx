@@ -116,7 +116,7 @@ nx run desktop-deathslayer:build:tauri
 ## Release Process
 
 1. Bump `version:` in this MDX file above `version.toml` (`apps/deathslayer/unreal-deathslayer/version.toml`)
-2. Run `npx nx run astro-kbve:sync:ci-manifest` to update the CI manifest
+2. Run `moon run astro-kbve:sync-ci-manifest` to update the CI manifest
 3. Commit and push to trigger the build pipeline
 4. The next `ci-main` run fans out the game build + itch upload for this entry
 5. Post-publish atom PR updates `version.toml` automatically

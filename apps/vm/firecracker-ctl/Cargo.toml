@@ -17,7 +17,7 @@ tower-http = { workspace = true, features = ["trace", "cors"] }
 tracing = { workspace = true }
 tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }
 uuid = { workspace = true, features = ["v4", "v5"] }
-kbve = { path = "../../../packages/rust/kbve", default-features = false, features = ["wallet"] }
+kbve = { path = "../../../crates/kbve", default-features = false, features = ["wallet"] }
 tokio-stream = { workspace = true }
 dashmap = { workspace = true }
 # Used by /fc/* persistent endpoint proxy (Phase 2d) to reverse-proxy

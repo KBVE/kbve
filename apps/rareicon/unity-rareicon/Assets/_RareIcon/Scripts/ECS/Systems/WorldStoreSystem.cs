@@ -28,7 +28,7 @@ namespace RareIcon
                 uint nativeVer = NativeWorld.NativeSchemaVersion();
                 if (nativeVer != NativeWorld.ExpectedSchemaVersion)
                 {
-                    Debug.LogError($"[WorldStoreSystem] FFI schema mismatch — Rust dylib reports v{nativeVer}, C# expects v{NativeWorld.ExpectedSchemaVersion}. Rebuild the dylib via `npx nx run uniti:build:macos` (or :windows / :linux) so csbindgen regenerates Uniti.g.cs against the new struct layout. Falling back to in-memory store; persistence disabled this session.");
+                    Debug.LogError($"[WorldStoreSystem] FFI schema mismatch — Rust dylib reports v{nativeVer}, C# expects v{NativeWorld.ExpectedSchemaVersion}. Rebuild the dylib via `moon run uniti:build-macos` (or :windows / :linux) so csbindgen regenerates Uniti.g.cs against the new struct layout. Falling back to in-memory store; persistence disabled this session.");
                     _instance = new NativeWorld();
                     return;
                 }
@@ -54,7 +54,7 @@ namespace RareIcon
             catch (System.DllNotFoundException ex)
             {
                 Debug.LogError($"[WorldStoreSystem] libuniti.dylib not found: {ex.Message}\n" +
-                               "Run `npx nx run uniti:build:macos` to build it.");
+                               "Run `moon run uniti:build-macos` to build it.");
             }
             catch (System.Exception ex)
             {

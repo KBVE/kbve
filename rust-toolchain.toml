@@ -1,0 +1,8 @@
+# moon reads this when it provisions the toolchain, and cargo reads it outside
+# moon, so both use the same compiler. Raised from the workspace's previous
+# 1.96 by the crates that came from KBVE/workspace, which are edition 2024 and
+# declare rust-version 1.98.0.
+[toolchain]
+channel = "1.98.0"
+components = ["clippy", "rustfmt"]
+profile = "minimal"

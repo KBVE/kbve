@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package kbve.common.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// Provenance shared by every content registry.
+//
+// Registries are not forced into a single envelope type: their payloads
+// genuinely differ, from one repeated field up to fourteen. What they share is
+// where they came from, so that is what is factored out. Every
+// `<Domain>Registry` carries this as field 1.
+message RegistryMeta {
+  // Build stamp used for server/client parity checks.
+  string content_version = 1;
+
+  // When the registry was generated.
+  google.protobuf.Timestamp generated_at = 2;
+
+  // Identifier of the pipeline or source tree that produced it.
+  string source_ref = 3;
+}

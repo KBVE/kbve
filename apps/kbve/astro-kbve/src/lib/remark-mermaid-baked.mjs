@@ -35,7 +35,7 @@ function loadManifest() {
 	} catch {
 		throw new Error(
 			'remark-mermaid-baked: src/generated/mermaid/manifest.json is missing. ' +
-				'Run `pnpm nx run astro-kbve:gen:mermaid`.',
+				'Run `moon run astro-kbve:gen-mermaid`.',
 		);
 	}
 	return manifest;
@@ -82,7 +82,7 @@ export default function remarkMermaidBaked() {
 				throw new Error(
 					`remark-mermaid-baked: no baked SVG for the mermaid block in ` +
 						`${vfile?.path ?? 'unknown file'} (hash ${hash}). ` +
-						'Run `pnpm nx run astro-kbve:gen:mermaid`.',
+						'Run `moon run astro-kbve:gen-mermaid`.',
 				);
 			}
 

@@ -90,7 +90,7 @@ This reads MDX frontmatter and writes `src-tauri/src/data/itemdb.json`.
 
 ## Build & Run
 
-All commands use Nx from the monorepo root (`./kbve.sh -nx` or `pnpm nx`):
+All commands run from the monorepo root:
 
 | Command                        | What it does                                                       |
 | ------------------------------ | ------------------------------------------------------------------ |

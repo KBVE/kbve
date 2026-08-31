@@ -1,0 +1,28 @@
+[package]
+name = "bevy_tasker"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.1"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Cross-platform async task spawning for Bevy — web workers via microtask queue on WASM, thread pool on desktop."
+homepage = "https://kbve.com/"
+repository.workspace = true
+keywords = ["bevy", "async", "wasm", "tasks", "gamedev"]
+categories = ["game-development", "asynchronous"]
+readme = "README.md"
+
+[dependencies]
+async-task = { version = "4.7", default-features = false }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+js-sys = { workspace = true }
+wasm-bindgen = { workspace = true }
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+crossbeam-channel = { workspace = true }
+
+[package.metadata.docs.rs]
+all-features = true
+targets = ["x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
+rustdoc-args = ["--cfg", "docsrs"]

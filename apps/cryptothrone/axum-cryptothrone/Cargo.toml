@@ -29,8 +29,8 @@ k8s-openapi = { workspace = true, features = ["v1_32"] }
 rustls = { workspace = true, features = ["default", "ring"] }
 
 # Workspace path dependencies
-jedi = { path = "../../../packages/rust/jedi", features = ["postgres", "valkey"] }
-kbve = { path = "../../../packages/rust/kbve" }
+jedi = { path = "../../../crates/jedi", features = ["postgres", "valkey"] }
+kbve = { path = "../../../crates/kbve" }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { workspace = true, optional = true }
