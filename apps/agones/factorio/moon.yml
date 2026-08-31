@@ -16,3 +16,15 @@ tasks:
         deps: ['~:container']
         options:
             cache: false
+
+env:
+    # The kube manifests whose image tag a release of this project pins.
+    # Publishing an image does not change what the cluster runs; ArgoCD deploys
+    # what the manifest says, so the tag has to be written into it. This was the
+    # dispatch manifest's deployment_yaml/deployment_yamls field.
+    KUBE_DEPLOYMENT_YAMLS: '["apps/kube/agones/factorio/manifests/gameserver.yaml"]'
+    # A release of this project also publishes the Factorio mods to
+    # mods.factorio.com. Which mods is the `factorio-mod` lane in the graph, not
+    # a list here -- the dispatch manifest carried {name, source_path} pairs and
+    # both facts are a project.
+    PUBLISHES_FACTORIO_MODS: 'true'

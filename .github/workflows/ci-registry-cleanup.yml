@@ -27,13 +27,20 @@ jobs:
         steps:
             - uses: actions/checkout@v7
 
+            - name: Setup Node v24
+              uses: actions/setup-node@v7
+              with:
+                  node-version: 24
+
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
+            # Read off the project graph rather than from a hand-maintained
+            # list. Pruning is destructive, and the failure mode of a stale list
+            # is deleting an image the workspace still builds.
             - id: list
               run: |
-                  NAMES=$(jq -r '[.docker[].image | sub("^kbve/"; "")] | unique | join(" ")' .github/ci-dispatch-manifest.json)
-                  if [ -z "${NAMES}" ]; then
-                    echo "::error::No images resolved from ci-dispatch-manifest.json"
-                    exit 1
-                  fi
+                  NAMES=$(node tools/release/docker-images.mjs)
                   echo "Resolved images: ${NAMES}"
                   echo "image_names=${NAMES}" >> "$GITHUB_OUTPUT"
 
@@ -69,7 +76,7 @@ jobs:
                         `- Run: ${runUrl}`,
                         `- Commit: ${context.sha}`,
                         ``,
-                        `Check the \`collect\` / \`prune\` job logs. Common causes: \`UNITY_PAT\` missing \`delete:packages\` scope, GHCR API rate limit, or a malformed \`ci-dispatch-manifest.json\`.`,
+                        `Check the \`collect\` / \`prune\` job logs. Common causes: \`UNITY_PAT\` missing \`delete:packages\` scope, GHCR API rate limit, or a project graph that resolved no images.`,
                       ].join('\n');
                       const existing = await github.rest.issues.listForRepo({
                         owner: context.repo.owner,

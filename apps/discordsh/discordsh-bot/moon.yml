@@ -16,3 +16,10 @@ tasks:
             runFromWorkspaceRoot: true
             cache: false
             runInCI: true
+
+env:
+    # The kube manifests whose image tag a release of this project pins.
+    # Publishing an image does not change what the cluster runs; ArgoCD deploys
+    # what the manifest says, so the tag has to be written into it. This was the
+    # dispatch manifest's deployment_yaml/deployment_yamls field.
+    KUBE_DEPLOYMENT_YAMLS: '["apps/kube/discordsh/manifest/discordsh-bot-deployment.yaml"]'

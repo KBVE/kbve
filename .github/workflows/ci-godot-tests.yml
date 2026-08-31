@@ -5,10 +5,9 @@ on:
     pull_request:
         paths:
             - 'apps/**'
-            - 'packages/rust/**'
-            - '.github/ci-dispatch-manifest.json'
+            - 'crates/**'
             - '.github/workflows/ci-godot-tests.yml'
-            - '.github/scripts/godot_test_matrix.py'
+            - 'tools/release/godot-matrix.mjs'
 
 permissions: {}
 
@@ -28,31 +27,31 @@ jobs:
             matrix: ${{ steps.pick.outputs.matrix }}
             any: ${{ steps.pick.outputs.any }}
         steps:
+            # Full history, not a sparse checkout: the matrix asks moon what a
+            # range of commits affected, and that needs the range present.
             - uses: actions/checkout@v7
               with:
-                  sparse-checkout: |
-                      .github
-                      /*
-                  sparse-checkout-cone-mode: false
+                  fetch-depth: 0
 
+            - name: Setup Node v24
+              uses: actions/setup-node@v7
+              with:
+                  node-version: 24
+
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
+            # No base on a manual dispatch, which the generator reads as "run
+            # everything". Narrowing on a bad guess would skip the suite
+            # silently, and a skipped suite looks exactly like a passing one.
             - name: Pick the projects this change touches
               id: pick
               env:
-                  GH_TOKEN: ${{ github.token }}
-                  EVENT: ${{ github.event_name }}
-                  PR: ${{ github.event.pull_request.number }}
-                  REPO: ${{ github.repository }}
+                  BASE: ${{ github.event_name == 'pull_request' && format('origin/{0}', github.base_ref) || '' }}
+                  HEAD: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || '' }}
               run: |
                   set -euo pipefail
-                  if [ "$EVENT" = "pull_request" ]; then
-                    gh api "repos/$REPO/pulls/$PR/files" --paginate --jq '.[].filename' > changed.txt
-                    echo "::notice::$(wc -l < changed.txt) files changed"
-                  else
-                    : > changed.txt
-                  fi
-                  ALL=$([ "$EVENT" = "pull_request" ] && echo 0 || echo 1) \
-                    python3 .github/scripts/godot_test_matrix.py \
-                      .github/ci-dispatch-manifest.json changed.txt > matrix.json
+                  node tools/release/godot-matrix.mjs "$BASE" "$HEAD" > matrix.json
                   cat matrix.json
                   echo "matrix=$(cat matrix.json)" >> "$GITHUB_OUTPUT"
                   if [ "$(cat matrix.json)" = "[]" ]; then

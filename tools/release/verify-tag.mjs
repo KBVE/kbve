@@ -240,7 +240,61 @@ export function lanes(tags) {
 		.map(([, lane]) => lane);
 }
 
-export function verify(tag, root = process.cwd()) {
+/**
+ * Where a release of this project publishes to, beyond its own registry.
+ *
+ * utils-external-publish.yml takes the `external_publish` blob the dispatch
+ * manifest carried per entry -- itch, Steam, Modrinth, Factorio. That blob is
+ * now the project's own env, so this reassembles it in the shape the workflow
+ * already reads rather than changing a 890-line workflow to match a new one.
+ *
+ * The Factorio mods are the exception: the manifest listed them as {name,
+ * source_path} pairs, and both facts are a project in the graph, so they come
+ * from the `factorio-mod` lane rather than from this project's env.
+ */
+export function externalPublish(node, factorioMods = []) {
+	const env = node.config?.env ?? {};
+	const out = {};
+
+	if (env.ITCH_USER && env.ITCH_GAME) {
+		out.itch_user = env.ITCH_USER;
+		out.itch_game = env.ITCH_GAME;
+		if (env.ITCH_CHANNEL) out.itch_channel = env.ITCH_CHANNEL;
+	}
+	// Structured rather than scalar, so it is stored as JSON. A malformed value
+	// throws here, where the tag is being checked, rather than midway through a
+	// publish.
+	if (env.STEAM_APPS) out.steam_apps = JSON.parse(env.STEAM_APPS);
+
+	for (const [key, value] of Object.entries(env)) {
+		if (!key.startsWith('MODRINTH_')) continue;
+		// Two of these are lists in the shape the workflow reads --
+		// game_versions and loaders -- and env values are strings. Parse what
+		// looks like JSON back into the value it was, and leave a plain string
+		// alone: `mc.kbve.com` is not JSON and must not become one.
+		out[key.toLowerCase()] =
+			value.startsWith('[') || value.startsWith('{') ? JSON.parse(value) : value;
+	}
+
+	if (env.PUBLISHES_FACTORIO_MODS === 'true' && factorioMods.length)
+		out.factorio_mods = factorioMods;
+
+	return Object.keys(out).length ? out : null;
+}
+
+/**
+ * A Factorio mod's own name: info.json for one authored as mod source, the
+ * pyproject name for the two that are built by a python project.
+ */
+export function modName(source, root = process.cwd()) {
+	const info = join(root, source, 'info.json');
+	if (existsSync(info)) return JSON.parse(readFileSync(info, 'utf8')).name ?? null;
+	const py = join(root, source, 'pyproject.toml');
+	if (existsSync(py)) return readFileSync(py, 'utf8').match(/^\s*name\s*=\s*"([^"]+)"/m)?.[1] ?? null;
+	return null;
+}
+
+export function verify(tag, root = process.cwd(), factorioMods = []) {
 	const { project, version } = parseTag(tag);
 	const node = projectNode(project, root);
 	const source = node.source;
@@ -264,8 +318,19 @@ export function verify(tag, root = process.cwd()) {
 		// no image and a docker release has no PyPI name, and the workflow
 		// picks its lane from `tags` before it reads either.
 		lanes: lanes(tags),
+		// Whether the release gate has an end-to-end suite to run on top of
+		// `test`. Only one of the 26 crates has one, so asking for it
+		// unconditionally would fail every other release on a task that was
+		// never meant to exist.
+		hasE2e: Boolean(node.tasks?.e2e),
+		hasTest: Boolean(node.tasks?.test),
 		docker: tags.includes('docker') ? dockerPublish(node) : null,
-		pypi: tags.includes('uv') ? pypiName(root, source) : null,
+		pypi: tags.includes('pypi') ? pypiName(root, source) : null,
+		external: externalPublish(node, factorioMods),
+		// The kube manifests a release pins its image tag into. Publishing an
+		// image does not change what the cluster runs, so this is the step that
+		// makes a docker release actually reach it.
+		deploymentYamls: node.config?.env?.KUBE_DEPLOYMENT_YAMLS ?? '',
 	};
 }
 
@@ -276,7 +341,21 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop()
 		process.exit(2);
 	}
 	try {
-		const result = verify(tag);
+		// The Factorio mods, in the {name, source_path} shape
+		// utils-external-publish.yml reads. Queried once and passed in, so
+		// verify() itself stays a pure function of the graph node.
+		const mods = JSON.parse(
+			execFileSync('moon', ['query', 'projects', '--tags', 'factorio-mod'], {
+				encoding: 'utf8',
+				maxBuffer: 64 * 1024 * 1024,
+			}),
+		).projects.map((p) => ({
+			// The mod's own name, which is not the moon project id: the mod at
+			// mods-local is the project `factorio-mod-kbve` and the mod `kbve`.
+			name: modName(p.source) ?? p.id,
+			source_path: p.source,
+		}));
+		const result = verify(tag, process.cwd(), mods);
 		console.log(
 			`${tag} matches ${result.file} (project ${result.project} at ${result.source}).`,
 		);
@@ -293,9 +372,13 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop()
 					`file=${result.file}`,
 					`tags=${JSON.stringify(result.tags)}`,
 					`lanes=${JSON.stringify(result.lanes)}`,
+					`has_e2e=${result.hasE2e}`,
+					`has_test=${result.hasTest}`,
 					`docker_target=${result.docker?.target ?? ''}`,
 					`docker_image=${result.docker?.image ?? ''}`,
 					`pypi_name=${result.pypi ?? ''}`,
+					`external_publish=${result.external ? JSON.stringify(result.external) : ''}`,
+					`deployment_yamls=${result.deploymentYamls}`,
 					'',
 				].join('\n'),
 			);

@@ -1,0 +1,18 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+# The KBVEGameplay Unreal plugin. Registered so the plugin build matrix can come
+# off the project graph: the dispatch manifest carried a `dependency_plugins`
+# string per plugin and ue-plugin-matrix.mjs topologically sorted it by hand,
+# which is what `dependsOn` and moon already do.
+#
+# Dependencies are the .uplugin's own `Plugins` array, filtered to the ones
+# that live in this repository -- a .uplugin also names engine plugins,
+# which are not projects here.
+layer: 'library'
+language: 'cpp'
+tags: ['unreal']
+
+env:
+    # Which platforms this plugin builds for. Everything builds for all
+    # three unless its manifest entry said otherwise.
+    UE_SUPPORTED_PLATFORMS: 'Win64,Linux,Mac'

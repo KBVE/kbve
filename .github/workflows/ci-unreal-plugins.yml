@@ -19,7 +19,7 @@ on:
             - 'packages/unreal/**'
             - '.github/workflows/ci-unreal-plugins.yml'
             - '.github/workflows/ci-unreal-build.yml'
-            - '.github/scripts/ue-plugin-matrix.mjs'
+            - 'tools/release/unreal-matrix.mjs'
 
 permissions:
     contents: write
@@ -61,6 +61,14 @@ jobs:
                   fi
                   echo "count=$(wc -l < /tmp/changed.txt | tr -d ' ')" >> "$GITHUB_OUTPUT"
 
+            - name: Setup Node v24
+              uses: actions/setup-node@v7
+              with:
+                  node-version: 24
+
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
             - name: Build matrix
               id: matrix
               env:
@@ -68,7 +76,7 @@ jobs:
                   UE_IMAGE_TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.ue_image_tag || 'dev-5.8.0' }}
               run: |
                   CHANGED_FILES="$(cat /tmp/changed.txt)" \
-                  node .github/scripts/ue-plugin-matrix.mjs
+                  node tools/release/unreal-matrix.mjs
 
     verify_mac:
         name: Verify (Mac)

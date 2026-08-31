@@ -8,6 +8,9 @@ members = [
 rust-version = "1.96"
 
 [workspace.dependencies]
+# embeddb's analytics feature; both arrive with the crates from KBVE/workspace.
+duckdb = { version = "1", features = ["bundled"] }
+turso = "0.7.2"
 agones = "1.57"
 ammonia = "4.1.2"
 anyhow = "1.0"

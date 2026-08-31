@@ -43,6 +43,10 @@ jobs:
             docker_target: ${{ steps.tag.outputs.docker_target }}
             docker_image: ${{ steps.tag.outputs.docker_image }}
             pypi_name: ${{ steps.tag.outputs.pypi_name }}
+            external_publish: ${{ steps.tag.outputs.external_publish }}
+            deployment_yamls: ${{ steps.tag.outputs.deployment_yamls }}
+            has_e2e: ${{ steps.tag.outputs.has_e2e }}
+            has_test: ${{ steps.tag.outputs.has_test }}
         steps:
             - name: Checkout
               uses: actions/checkout@v7
@@ -98,6 +102,61 @@ jobs:
                     "Add one of 'docker', 'npm', 'pypi' or 'crates' to its moon.yml, or do not tag it."
                   exit 1
 
+    # Nothing tested a package before publishing it once the manifest went:
+    # npm-test-package.yml, python-test-package.yml and rust-test-crate.yml were
+    # each reachable only through ci-publish.yml, and they ran `<project>:e2e`
+    # for the projects the manifest flagged has_test.
+    #
+    # `test` is the gate instead, because every project has one and only one of
+    # the 26 crates has an e2e suite -- asking every release for `e2e` would
+    # fail on a task that was never meant to exist. The suite runs on top when
+    # the project does have it.
+    test:
+        name: Test before publishing
+        needs: [verify]
+        if: ${{ github.event_name == 'push' && needs.verify.outputs.has_test == 'true' }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: Install the system libraries the rust crates link against
+              run: |
+                  sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq
+                  sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y --no-install-recommends \
+                    pkg-config libgtk-3-dev libwebkit2gtk-4.1-dev libayatana-appindicator3-dev \
+                    libpq-dev protobuf-compiler libprotobuf-dev
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v7
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v6
+              with:
+                  version: 11.15.0
+                  run_install: false
+
+            - name: Install pnpm Dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Install uv
+              uses: astral-sh/setup-uv@v7
+              with:
+                  github-token: ${{ github.token }}
+
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
+            - name: Test
+              run: moon run ${{ needs.verify.outputs.project }}:test
+
+            - name: End-to-end
+              if: ${{ needs.verify.outputs.has_e2e == 'true' }}
+              run: moon run ${{ needs.verify.outputs.project }}:e2e
+
     # Each lane below is the publisher that already existed, called with the
     # project the tag named. They take version_source/version_target to sync a
     # version out of MDX before publishing; under tags the version is already
@@ -105,8 +164,8 @@ jobs:
     # sync step skips itself.
     docker:
         name: Publish image
-        needs: [verify]
-        if: ${{ github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'docker') }}
+        needs: [verify, test]
+        if: ${{ !cancelled() && !failure() && github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'docker') }}
         permissions:
             contents: read
             packages: write
@@ -123,8 +182,8 @@ jobs:
 
     crates:
         name: Publish crate
-        needs: [verify]
-        if: ${{ github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'crates') }}
+        needs: [verify, test]
+        if: ${{ !cancelled() && !failure() && github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'crates') }}
         permissions:
             contents: write
             packages: write
@@ -137,8 +196,8 @@ jobs:
 
     npm:
         name: Publish package
-        needs: [verify]
-        if: ${{ github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'npm') }}
+        needs: [verify, test]
+        if: ${{ !cancelled() && !failure() && github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'npm') }}
         permissions:
             contents: read
         uses: ./.github/workflows/utils-npm-publish.yml
@@ -149,8 +208,8 @@ jobs:
 
     python:
         name: Publish distribution
-        needs: [verify]
-        if: ${{ github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'python') }}
+        needs: [verify, test]
+        if: ${{ !cancelled() && !failure() && github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'python') }}
         permissions:
             contents: read
         uses: ./.github/workflows/utils-python-publish.yml
@@ -159,3 +218,53 @@ jobs:
             pypi_name: ${{ needs.verify.outputs.pypi_name }}
         secrets:
             PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+
+    # Where a release goes beyond its own registry: itch, Steam, Modrinth, the
+    # Factorio mod portal. The deleted ci-docker.yml called this with the dispatch
+    # manifest's `external_publish` blob; the blob is the project's own env now,
+    # reassembled by verify-tag into the shape this workflow already reads.
+    external:
+        name: Publish externally
+        needs: [verify, test, docker]
+        if: ${{ !cancelled() && !failure() && github.event_name == 'push' && needs.verify.outputs.external_publish != '' }}
+        permissions:
+            contents: read
+        uses: ./.github/workflows/utils-external-publish.yml
+        with:
+            app_name: ${{ needs.verify.outputs.project }}
+            version: ${{ needs.verify.outputs.version }}
+            source_path: ${{ needs.verify.outputs.source }}
+            external_publish: ${{ needs.verify.outputs.external_publish }}
+        secrets:
+            MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
+            MODRINTH_SESSION: ${{ secrets.MODRINTH_SESSION }}
+            MODRINTH_PASSKEY: ${{ secrets.MODRINTH_PASSKEY }}
+            ITCH_API_KEY: ${{ secrets.ITCH_API_KEY }}
+            STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+            STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
+            CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
+            FACTORIO: ${{ secrets.FACTORIO }}
+
+    # Pin the published tag into the kube manifests ArgoCD watches.
+    #
+    # Publishing an image does not change what the cluster runs -- Argo deploys
+    # whatever tag the manifest names -- so without this a release reaches the
+    # registry and stops there. utils-post-publish.yml also wrote version.toml
+    # and synced the version into Cargo.toml/package.json; both are hand-edited
+    # now and are already committed by the time the tag exists, so only the
+    # deployment pin is asked for here.
+    deploy:
+        name: Pin the deployment tag
+        needs: [verify, docker]
+        if: ${{ !cancelled() && !failure() && github.event_name == 'push' && needs.verify.outputs.deployment_yamls != '' }}
+        permissions:
+            contents: read
+        uses: ./.github/workflows/utils-post-publish.yml
+        with:
+            app_name: ${{ needs.verify.outputs.project }}
+            version: ${{ needs.verify.outputs.version }}
+            version_toml_path: ''
+            image_name: ghcr.io/${{ needs.verify.outputs.docker_image }}
+            deployment_yamls: ${{ needs.verify.outputs.deployment_yamls }}
+        secrets:
+            TRIGGER_PAT: ${{ secrets.TRIGGER_PAT }}

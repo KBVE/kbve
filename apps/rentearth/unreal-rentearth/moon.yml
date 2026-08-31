@@ -52,3 +52,10 @@ tasks:
             runFromWorkspaceRoot: true
     clangd-db:
         script: 'cd ../../../packages/python/kbve && uv run kbve-unreal-clangd'
+
+env:
+    # Where a release of this project publishes to, declared beside the
+    # project. This was the `external_publish` blob of its dispatch manifest
+    # entry; release.yml reads it off the graph.
+    ITCH_GAME: 'rentearth'
+    ITCH_USER: 'kbve'

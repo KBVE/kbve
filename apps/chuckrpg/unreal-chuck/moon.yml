@@ -1,0 +1,20 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+# The monorepo shell for unreal-chuck. The Unreal project itself lives in a
+# fork; what is here is the version this repository releases and the build
+# configuration ci-unreal-build.yml reads.
+#
+# Registered so a release tag can name it. It had a version.toml and a dispatch
+# manifest entry but no moon.yml, so it was not in the graph.
+layer: 'application'
+language: 'unknown'
+tags: ['itch']
+
+env:
+    # Where a release of this project goes, declared beside the project rather
+    # than in a dispatch manifest. `chuck` and `chuck-dev` were two manifest
+    # entries for this one directory, differing only in the itch channel. The
+    # default channel is the released one; ci-unreal-build.yml takes a channel
+    # input for the dev build, which is what that second entry really was.
+    ITCH_USER: 'kbve'
+    ITCH_GAME: 'chuckrpg'

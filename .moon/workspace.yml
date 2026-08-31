@@ -26,6 +26,12 @@ projects:
         # and every directory in it is a crate, so there are no repeated
         # basenames to collide and nothing task-less to pick up.
         - 'crates/*'
+
+        # The Unreal plugins. Same reasoning: packages/unreal is flat, every
+        # directory in it is a plugin with a .uplugin and a moon.yml, and the
+        # names are unique across the graph. They were never registered at all
+        # -- the plugin build matrix read them out of the dispatch manifest.
+        - 'packages/unreal/*'
     sources:
         # The workspace itself: whole-tree tasks that belong to no project.
         root: '.'
@@ -37,6 +43,11 @@ projects:
         # entry but no moon.yml, so neither was in the graph at all.
         tocloud9-gameserver: 'apps/agones/tocloud9/gameserver'
         tocloud9-services: 'apps/agones/tocloud9/services'
+
+        # The Factorio mod that is authored as mod source rather than built by a
+        # python project. Its two siblings under mods-src were already in the
+        # graph; this one was only ever named by the dispatch manifest.
+        factorio-mod-kbve: 'apps/agones/factorio/mods-local/kbve'
 
         # Sites
         astro-chuckrpg: 'apps/chuckrpg/astro-chuckrpg'

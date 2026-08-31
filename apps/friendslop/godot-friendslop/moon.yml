@@ -14,7 +14,25 @@ stack: 'frontend'
 tags: ['lfs']
 
 env:
+    # Where a release of this project publishes to, declared beside the
+    # project. This was the `external_publish` blob of its dispatch manifest
+    # entry; release.yml reads it off the graph.
+    ITCH_GAME: 'friendslop'
+    ITCH_USER: 'kbve'
     LFS_REMOTE: 'friendslop'
+
+    # What ci-godot-tests.yml needs to build the gdextension and run the suite.
+    # These were the `engine` block of the dispatch manifest's godot entry;
+    # declaring them here puts them beside the project they describe, and the
+    # test matrix reads them off the graph.
+    #
+    # GODOT_VERSION is also scripts/godot.sh's default, so the workflow and the
+    # script agree by one passing it to the other rather than by both being
+    # edited. Which crate the extension comes from is `dependsOn: ['q']` below,
+    # not repeated here.
+    GODOT_VERSION: '4.7.1'
+    GDEXTENSION_FEATURES: 'net-godot'
+    GDEXTENSION_ADDON_PATH: 'addons/q'
 
 dependsOn: ['q']
 
