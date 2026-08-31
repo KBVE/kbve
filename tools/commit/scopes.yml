@@ -154,7 +154,6 @@ extra:
     - 'valkey'
     - 'vm'
     - 'vscode'
-    - 'windmill'
     - 'wm'
     - 'workflows'
     - 'world'

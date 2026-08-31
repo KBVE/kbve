@@ -150,7 +150,7 @@ Required at runtime. In production the values come from `discordsh-config` (Conf
 
 ### Windmill runner (`/wm`)
 
-`/wm <command> [args]` runs an allowlisted Windmill script and returns its result inline. A blank invocation lists every available command. Scripts live under `apps/windmill/f/discordsh/` and opt in by declaring `args` (array) plus an optional `discord` param; the bot POSTs `{args, discord}` to Windmill's `run_wait_result` endpoint.
+`/wm <command> [args]` runs an allowlisted Windmill script and returns its result inline. A blank invocation lists every available command. Scripts live under `services/windmill/f/discordsh/` and opt in by declaring `args` (array) plus an optional `discord` param; the bot POSTs `{args, discord}` to Windmill's `run_wait_result` endpoint.
 
 Bare paths collapse into the `f/discordsh/` namespace, so `/wm poem` resolves to `f/discordsh/poem`. That namespace is a hard pin, not just a default — an explicit path outside it is rejected even if the allowlist would otherwise match, which also blocks prefix confusion like `f/discordshEVIL/...`. Paths are validated against traversal (`..`) and request injection before they reach the URL, and args are capped at 16 per call, 512 chars each.
 

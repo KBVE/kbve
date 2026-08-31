@@ -237,6 +237,11 @@ projects:
         iot-edge-worker: 'apps/vm/iot/edge-worker'
         metrics-e2e: 'apps/metrics/e2e'
 
+        # Services: deployed infrastructure that is configured here rather than
+        # built here. windmill is the first; the tree is a wmill CLI checkout of
+        # the running instance, not an application with a build.
+        windmill: 'services/windmill'
+
 vcs:
     defaultBranch: 'dev'
     provider: 'github'

@@ -252,7 +252,7 @@ KBVE self-hosts Windmill on the cluster and drives it two ways: from **Discord**
 | `/wm npm` | Lists the maintained `@kbve` npm packages live from the registry — `/wm npm laser` filters to one |
 | `/wm ud` | Defines a term via Urban Dictionary — `/wm ud yeet`; `/wm urbandictionary` is a long-form alias |
 
-**Scripts live in the monorepo.** Every `/wm` target is a plain TypeScript file checked into `apps/windmill/` and written for the fast **Bun** runtime with zero dependencies. Each script returns a generic **embed contract** — a `{ embed: { title, description, fields, ... } }` object — and a single renderer in the bot turns that into a Discord message. Adding a new command is just adding a new script.
+**Scripts live in the monorepo.** Every `/wm` target is a plain TypeScript file checked into `services/windmill/` and written for the fast **Bun** runtime with zero dependencies. Each script returns a generic **embed contract** — a `{ embed: { title, description, fields, ... } }` object — and a single renderer in the bot turns that into a Discord message. Adding a new command is just adding a new script.
 
 <span id="index" />
 
@@ -260,7 +260,7 @@ KBVE self-hosts Windmill on the cluster and drives it two ways: from **Discord**
 
 **One core, many surfaces.** Scripts are organised by the surface that invokes them — `f/discordsh/*` for the Discord bot, `f/web/*` for the website dashboard — with reusable logic factored into a shared parent under `f/shared/*`. A surface script stays a thin wrapper: `f/discordsh/poem` and `f/web/poem` both import the same `fetchPoem()` from `f/shared/poem` and only differ in how they shape the result (a Discord embed versus a plain dashboard object). The logic lives once; each surface keeps its own tightly-scoped entry point.
 
-**Merge, and it syncs.** When a change to `apps/windmill/` lands on `main`, a CI job pushes the versioned scripts into the running Windmill workspace automatically — the repo is the source of truth, and going live is a merge, not a manual deploy.
+**Merge, and it syncs.** When a change to `services/windmill/` lands on `main`, a CI job pushes the versioned scripts into the running Windmill workspace automatically — the repo is the source of truth, and going live is a merge, not a manual deploy.
 
 <Aside type="note">
 This pattern replaced our earlier **n8n** setup. Code-first scripts in version control fit our monorepo far better than a click-built canvas — reviews, history, and rollbacks all come for free.
@@ -275,13 +275,13 @@ Shipping a new `/wm` command is a **merge, not a manual deploy** — but a few p
 <Steps>
 
 1. **Author the script**
-   Add `npm.ts` plus a `npm.script.yaml` manifest under `apps/windmill/f/discordsh/`, written for the **Bun** runtime with zero dependencies. Every folder in the tree also needs a `folder.meta.yaml` — a missing one fails the whole sync.
+   Add `npm.ts` plus a `npm.script.yaml` manifest under `services/windmill/f/discordsh/`, written for the **Bun** runtime with zero dependencies. Every folder in the tree also needs a `folder.meta.yaml` — a missing one fails the whole sync.
 
 2. **Scope the sync**
-   `apps/windmill/wmill.yaml` sets `includes: f/**`, so a push only manages the `f/` tree and never clobbers user-space scripts. The push also runs with `--skip-variables` so it can't touch stored secrets — it stays **prune-safe**.
+   `services/windmill/wmill.yaml` sets `includes: f/**`, so a push only manages the `f/` tree and never clobbers user-space scripts. The push also runs with `--skip-variables` so it can't touch stored secrets — it stays **prune-safe**.
 
 3. **CI on merge to main**
-   `.github/workflows/windmill-sync.yml` triggers on a push to `main` that touches `apps/windmill/**`. It runs `windmill-cli` **pinned to the deployed server version** (the CLI and server protocol are version-matched — a mismatch breaks the push).
+   `.github/workflows/windmill-sync.yml` triggers on a push to `main` that touches `services/windmill/**`. It runs `windmill-cli` **pinned to the deployed server version** (the CLI and server protocol are version-matched — a mismatch breaks the push).
 
 4. **Run inside the cluster**
    The Windmill API is cluster-internal, so the sync job runs on a **self-hosted in-cluster runner** — an external runner cannot reach it. That runner's egress must explicitly allow it to reach the Windmill service, and the CI token's **workspace role must permit writing scripts** (an operator-only token gets a `401` on create).
