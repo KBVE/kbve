@@ -300,15 +300,15 @@ jobs:
                       echo "Branches are synchronized or main is ahead"
                   fi
 
-    validate_pr:
-        name: 'Validate Dev→Main PR'
-        if: github.event_name == 'pull_request' && github.base_ref == 'main' && github.head_ref == 'dev'
-        permissions:
-            contents: read
-        uses: ./.github/workflows/ci.yml
+    # validate_pr used to call ci.yml here. ci.yml already runs on every pull
+    # request, this one included, so that was a second invocation for the same
+    # ref -- and both landed in ci.yml's concurrency group and cancelled each
+    # other, which is what put four cancelled checks on every release PR.
+    #
+    # Deleting the call rather than renaming the group is what keeps the run
+    # count at one. The group is disambiguated too, for ci-atom.yml, but two
+    # full three-shard matrices for one ref was waste on top of the breakage.
 
-    # Only meaningful for the dev->main pull request, so it lives here rather
-    # than in the shared CI workflow every branch runs.
     check_conflicts:
         name: 'Check dev merges into main'
         if: github.event_name == 'pull_request' && github.base_ref == 'main' && github.head_ref == 'dev'
@@ -350,17 +350,3 @@ jobs:
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             status: ${{ needs.dev_to_main_pr.result }}
-
-    track-validate-pr:
-        name: Track Validate PR
-        if: always()
-        needs: [validate_pr]
-        permissions:
-            issues: write
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
-        with:
-            workflow_name: 'CI - Dev'
-            job_name: 'Validate Dev→Main PR'
-            run_id: ${{ github.run_id }}
-            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: ${{ needs.validate_pr.result }}
