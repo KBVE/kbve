@@ -20,6 +20,7 @@ $schema: 'https://moonrepo.dev/schemas/workspace.json'
 # commit that gives it a moon.yml, and Nx keeps it until then.
 projects:
     sources:
+        # Sites
         astro-chuckrpg: 'apps/chuckrpg/astro-chuckrpg'
         astro-cryptothrone: 'apps/cryptothrone/astro-cryptothrone'
         astro-discordsh: 'apps/discordsh/astro-discordsh'
@@ -27,6 +28,20 @@ projects:
         astro-irc: 'apps/irc/astro-irc'
         astro-memes: 'apps/memes/astro-memes'
         astro-rareicon: 'apps/rareicon/astro-rareicon'
+
+        # Browser suites for those sites
+        astro-cryptothrone-e2e: 'apps/cryptothrone/astro-cryptothrone-e2e'
+        astro-rareicon-e2e: 'apps/rareicon/astro-rareicon-e2e'
+        discordsh-e2e: 'apps/discordsh/discordsh-e2e'
+        herbmail-e2e: 'apps/herbmail/herbmail-e2e'
+        irc-e2e: 'apps/irc/irc-e2e'
+        memes-e2e: 'apps/memes/memes-e2e'
+
+        # A site and its own suite in one project
+        astro-e2e: 'packages/npm/astro-e2e'
+
+        # Writes the icon catalogue into astro-rareicon's content directory
+        icons-codegen: 'apps/rareicon/icons-codegen'
 
 vcs:
     defaultBranch: 'dev'

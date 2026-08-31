@@ -1,0 +1,29 @@
+$schema: 'https://moonrepo.dev/schemas/tasks.json'
+
+# Inherited by every project tagged 'e2e'. Replaces @nx/playwright:playwright,
+# which took a config path as an executor option; here that is the command.
+#
+# Every suite in the repo follows the same layout -- playwright.config.ts at
+# the project root, specs under e2e/ -- so $projectSource is enough to name the
+# config and no project has to repeat it. Variants (docker, preview, mock,
+# static) are declared per project, because which of them exist differs.
+inheritedBy:
+    tag: 'e2e'
+
+fileGroups:
+    tests:
+        - 'e2e/**/*'
+    configs:
+        - 'playwright*.config.ts'
+
+tasks:
+    e2e:
+        command: 'playwright test --config=$projectSource/playwright.config.ts'
+        toolchains: ['node']
+        options:
+            # Playwright resolves its config's relative paths, and its browser
+            # download, against the directory it starts in.
+            runFromWorkspaceRoot: true
+            # A browser suite talks to a live server, so its result is not a pure
+            # function of the file inputs. The Nx targets all set cache: false too.
+            cache: false

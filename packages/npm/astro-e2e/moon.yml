@@ -1,0 +1,39 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'automation'
+language: 'typescript'
+
+# Both: it is an Astro site whose only purpose is to be driven by a Playwright
+# suite against the @kbve/astro package.
+tags: ['astro', 'e2e']
+
+# @kbve/astro is not in moon's graph yet; the edge is added when the npm
+# packages are ported.
+tasks:
+    # Unlike the sites under apps/, this one lives in packages/ and its
+    # astro.config points outDir at dist/packages/ to match. The inherited
+    # /dist/apps/$project would name a directory Astro never writes, and the
+    # task would cache an empty tree.
+    build:
+        outputs: ['/dist/packages/npm/astro-e2e']
+
+    dev:
+        args: ['--port', '4302']
+
+    preview:
+        args: ['--port', '4303']
+
+    e2e:
+        deps: ['~:build']
+        env:
+            E2E_PREVIEW: 'true'
+
+    e2e-static:
+        command: 'playwright test --config=$projectSource/playwright.config.ts'
+        toolchains: ['node']
+        deps: ['~:build']
+        env:
+            E2E_STATIC: 'true'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false

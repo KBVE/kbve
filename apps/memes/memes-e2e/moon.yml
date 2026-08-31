@@ -1,0 +1,17 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'automation'
+language: 'typescript'
+tags: ['e2e']
+
+# Nx also listed the axum/gateway service here, but those projects are not
+# in moon's graph yet. The edge is added when they are ported.
+dependsOn: ['astro-memes']
+
+tasks:
+    e2e-docker:
+        command: 'playwright test --config=$projectSource/playwright.docker.config.ts'
+        toolchains: ['node']
+        options:
+            runFromWorkspaceRoot: true
+            cache: false

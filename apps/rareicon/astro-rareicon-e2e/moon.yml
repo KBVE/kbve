@@ -1,0 +1,22 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'automation'
+language: 'typescript'
+tags: ['e2e']
+
+dependsOn: ['astro-rareicon']
+
+tasks:
+    e2e-docker:
+        command: 'playwright test --config=$projectSource/playwright.docker.config.ts'
+        toolchains: ['node']
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    e2e-preview:
+        deps: ['astro-rareicon:build']
+        command: 'playwright test --config=$projectSource/playwright.preview.config.ts'
+        toolchains: ['node']
+        options:
+            runFromWorkspaceRoot: true
+            cache: false

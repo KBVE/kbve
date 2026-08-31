@@ -33,3 +33,9 @@ tasks:
 
     check:
         deps: ['~:proto']
+
+    proto-clean:
+        script: 'rm -rf apps/rareicon/astro-rareicon/src/generated/proto && mkdir -p apps/rareicon/astro-rareicon/src/generated/proto'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
