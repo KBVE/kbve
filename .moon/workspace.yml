@@ -39,6 +39,21 @@ projects:
         # Release tooling: resolves a <project>@<version> tag against the graph.
         release-tools: 'tools/release'
 
+        # Commit message validation, and the scope lock the hook reads.
+        commit: 'tools/commit'
+
+        # Docker publishing helpers, shared by the release lane.
+        docker-tools: 'tools/docker'
+
+        # LFS materialization, shared by every engine lane.
+        lfs-tools: 'tools/lfs'
+
+        # Azure DevOps checkout, for the projects hosted outside GitHub.
+        azure-tools: 'tools/azure'
+
+        # The CI face of kbve.blender; the package holds the implementation.
+        blender-tools: 'tools/blender'
+
         # ToCloud9 images. Registered late: both had a Dockerfile and a manifest
         # entry but no moon.yml, so neither was in the graph at all.
         tocloud9-gameserver: 'apps/agones/tocloud9/gameserver'
@@ -48,6 +63,12 @@ projects:
         # python project. Its two siblings under mods-src were already in the
         # graph; this one was only ever named by the dispatch manifest.
         factorio-mod-kbve: 'apps/agones/factorio/mods-local/kbve'
+
+        # The Unreal monorepo shells. Each is a version.toml and a build.toml
+        # pointing at a fork; both had a dispatch manifest entry and no moon.yml,
+        # so no release tag could name them.
+        unreal-chuck: 'apps/chuckrpg/unreal-chuck'
+        unreal-rareicon: 'apps/rareicon/unreal-rareicon'
 
         # Sites
         astro-chuckrpg: 'apps/chuckrpg/astro-chuckrpg'

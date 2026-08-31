@@ -142,8 +142,18 @@ export function projectNode(project, cwd = process.cwd()) {
 export function manifestVersion(root, source) {
 	const candidates = [
 		['Cargo.toml', (t) => cargoVersion(t)],
-		['package.json', (t) => JSON.parse(t).version ?? null],
+		// A private package.json is not a version claim. herbmail-game is a
+		// game published to itch that happens to be built by vite, so it has
+		// `"private": true, "version": "0.0.0"` -- the npm stub convention for
+		// "never published here" -- beside a version.toml that carries the real
+		// one. Reading the stub would fail every correct tag.
+		['package.json', (t) => (JSON.parse(t).private === true ? undefined : JSON.parse(t).version ?? null)],
 		['pyproject.toml', (t) => tomlVersion(t, 'project')],
+		// A Tauri app's version is in its tauri.conf.json -- it is what the
+		// built application reports and what the installer is stamped with.
+		// The package.json beside it is a private stub, and src-tauri/Cargo.toml
+		// carries the same number; this is the one the artifact is named for.
+		['src-tauri/tauri.conf.json', (t) => JSON.parse(t).version ?? null],
 		['project.godot', (t) => godotVersion(t)],
 		['godot/project.godot', (t) => godotVersion(t)],
 		// Both shapes are in the tree: most version.toml files are a bare
@@ -157,6 +167,10 @@ export function manifestVersion(root, source) {
 		const path = join(root, source, file);
 		if (!existsSync(path)) continue;
 		const version = read(readFileSync(path, 'utf8'));
+		// undefined means "this file declines to answer", so try the next
+		// candidate; null means "this file should have had a version and does
+		// not", which is an error rather than something to fall through.
+		if (version === undefined) continue;
 		if (version === null) {
 			throw new TagError(`${source}/${file} has no version to check the tag against.`);
 		}
@@ -234,7 +248,26 @@ export function pypiName(root, source) {
  * else. A project can be in more than one lane.
  */
 export function lanes(tags) {
-	const map = { docker: 'docker', npm: 'npm', pypi: 'python', crates: 'crates' };
+	const map = {
+		docker: 'docker',
+		npm: 'npm',
+		pypi: 'python',
+		crates: 'crates',
+		// The engine lanes. Each is a build workflow rather than a registry
+		// push, and each reads the project's ENGINE_CONFIG.
+		godot: 'godot',
+		unity: 'unity',
+		'unreal-game': 'unreal-game',
+		'ue5-server': 'ue5-server',
+		// One lane for every browser game. A Vite game and a Bevy wasm game
+		// differ in what their build task does, which moon already knows, and
+		// in nothing the publish workflow does.
+		'web-game': 'web-game',
+		// The Tauri desktop apps. Named `desktop` rather than `tauri` because
+		// `tauri` is already the toolchain tag that hands a project its build
+		// tasks, and a lane is a different question from a toolchain.
+		desktop: 'desktop',
+	};
 	return Object.entries(map)
 		.filter(([tag]) => tags.includes(tag))
 		.map(([, lane]) => lane);
@@ -294,6 +327,45 @@ export function modName(source, root = process.cwd()) {
 	return null;
 }
 
+/**
+ * The engine blob a game build workflow reads, in the shape it already expects.
+ *
+ * ENGINE_CONFIG is the manifest's `engine` block verbatim. Three things the
+ * dispatcher merged in are merged here instead of being stored: `app_name` is
+ * the project id, `shell_path` is its own env key, and the three list fields
+ * are defaulted so the workflow's `fromJSON(...).maps` is never undefined.
+ * Storing app_name would be a second copy of the project id that could drift
+ * from it.
+ */
+export function engineConfig(node) {
+	const raw = node.config?.env?.ENGINE_CONFIG;
+	if (!raw) return '';
+	const engine = JSON.parse(raw);
+	return JSON.stringify({
+		...engine,
+		app_name: node.id,
+		shell_path: node.config?.env?.UE_SHELL_PATH ?? '',
+		build_targets: engine.build_targets ?? [],
+		maps: engine.maps ?? [],
+		features: engine.features ?? [],
+	});
+}
+
+/**
+ * The publish blob those same workflows read. Built from the same env the
+ * external publish lane uses, so a project states where it ships once.
+ */
+export function publishConfig(node) {
+	const env = node.config?.env ?? {};
+	return JSON.stringify({
+		deploy_to_itch: Boolean(env.ITCH_USER && env.ITCH_GAME),
+		itch_user: env.ITCH_USER ?? '',
+		itch_game: env.ITCH_GAME ?? '',
+		itch_channel: env.ITCH_CHANNEL ?? '',
+		notarize: env.NOTARIZE === 'true',
+	});
+}
+
 export function verify(tag, root = process.cwd(), factorioMods = []) {
 	const { project, version } = parseTag(tag);
 	const node = projectNode(project, root);
@@ -331,6 +403,21 @@ export function verify(tag, root = process.cwd(), factorioMods = []) {
 		// image does not change what the cluster runs, so this is the step that
 		// makes a docker release actually reach it.
 		deploymentYamls: node.config?.env?.KUBE_DEPLOYMENT_YAMLS ?? '',
+		// Which runner this project's release builds on. The default hosted
+		// runner is two cores with a 60 minute ceiling, and several of these
+		// are compiles that do not fit in it -- tocloud9-gameserver is an
+		// AzerothCore build that was cancelled at that limit before the
+		// manifest started carrying this.
+		runner: node.config?.env?.CI_RUNNER ?? 'ubuntu-latest',
+		// The engine build configuration, passed through to the build workflow
+		// in the shape it already reads. Empty for anything that is not a game.
+		engine: engineConfig(node),
+		publish: publishConfig(node),
+		shellPath: node.config?.env?.UE_SHELL_PATH ?? '',
+		// What a Tauri build of this app produces, for the desktop lane.
+		tauriPlatforms: node.config?.env?.TAURI_PLATFORMS ?? '',
+		tauriNotarize: node.config?.env?.TAURI_NOTARIZE === 'true',
+		webGameNeedsRust: node.config?.env?.WEB_GAME_NEEDS_RUST === 'true',
 	};
 }
 
@@ -379,6 +466,17 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop()
 					`pypi_name=${result.pypi ?? ''}`,
 					`external_publish=${result.external ? JSON.stringify(result.external) : ''}`,
 					`deployment_yamls=${result.deploymentYamls}`,
+					`runner=${result.runner}`,
+					`engine=${result.engine}`,
+					`publish=${result.publish}`,
+					`shell_path=${result.shellPath}`,
+					`tauri_platforms=${result.tauriPlatforms}`,
+					`tauri_notarize=${result.tauriNotarize}`,
+					`web_game_needs_rust=${result.webGameNeedsRust}`,
+					// The queue guard in each build workflow checks this is less
+					// than two hours old. It was the dispatch timestamp; for a
+					// tag it is when the release started.
+					`dispatched_at=${Math.floor(Date.now() / 1000)}`,
 					'',
 				].join('\n'),
 			);

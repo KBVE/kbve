@@ -4,6 +4,15 @@ layer: 'application'
 language: 'rust'
 tags: ['rust']
 
+# The rust preset's `test` is `cargo test`, which cannot work here: this crate
+# is no_std and .cargo/config.toml builds it for riscv32imac-unknown-none-elf,
+# where there is no `test` crate to link against and no host to run a harness
+# on. It fails at "can't find crate for `test`", which reads as a missing
+# dependency rather than a task that does not apply to firmware.
+workspace:
+    inheritedTasks:
+        exclude: ['test']
+
 tasks:
     build:
         script: 'set -a; [ -f wifi.env ] && . ./wifi.env; set +a; cargo build --release'

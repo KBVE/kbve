@@ -2,7 +2,51 @@ name: CI - Unreal Engine
 
 run-name: 'CI - Unreal / ${{ inputs.task }} ${{ inputs.key }}'
 
+# Callable as well as dispatchable. release.yml calls this for a tag whose
+# project is in this lane; the inputs are the same either way, so the block is
+# repeated rather than the workflow being split -- GitHub Actions has no anchor
+# for it.
+#
+# `dispatched_at` was the dispatcher's stale-queue guard: it compared the
+# timestamp against in-flight runs so a superseded dispatch could bail. A tag is
+# not queued behind anything, so a caller passes the current time and the guard
+# is a no-op.
 on:
+    workflow_call:
+        inputs:
+            task:
+                # A string, not a choice: workflow_call has no choice type. The
+                # dispatch block below keeps the dropdown for a human.
+                description: 'game | server | win-setup | mac-setup'
+                required: false
+                type: string
+                default: game
+            key:
+                description: '[game] Manifest key'
+                required: false
+                type: string
+                default: ''
+            dispatched_at:
+                description: 'Unix timestamp when dispatched (queue guard)'
+                required: false
+                type: string
+                default: ''
+            engine:
+                description: '[game] JSON engine config: app_name, project_path, version, build_targets, external_repo_url, external_repo_ref, server_target, server_config, client_config, game_mode, maps, shell_path'
+                required: false
+                type: string
+                default: '{}'
+            version:
+                description: '[game] JSON version config: source, toml, manifest'
+                required: false
+                type: string
+                default: '{}'
+            publish:
+                description: '[game] JSON publish config: deploy_to_itch, itch_user, itch_game, itch_channel'
+                required: false
+                type: string
+                default: '{}'
+
     workflow_dispatch:
         inputs:
             task:

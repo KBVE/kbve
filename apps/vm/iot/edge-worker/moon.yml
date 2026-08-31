@@ -8,3 +8,10 @@ tasks:
         script: "sh -n apps/vm/iot/edge-worker/bootstrap.sh && docker run --rm -v $PWD/apps/vm/iot/edge-worker:/work pipelinecomponents/yamllint:latest yamllint -d '{extends: relaxed, rules: {line-length: disable}}' /work/cloud-init.yaml.tmpl || true"
         options:
             runFromWorkspaceRoot: true
+
+env:
+    # The runner a release of this project builds on. Declared because the
+    # default two-core hosted runner is not enough for it -- the dispatch
+    # manifest carried this per entry, and dropping it would put a build
+    # that needs arc-runner-set back on a 60 minute ceiling it cannot meet.
+    CI_RUNNER: 'arc-runner-set'

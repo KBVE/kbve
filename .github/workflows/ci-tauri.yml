@@ -21,7 +21,7 @@ jobs:
     resolve:
         name: Resolve app config
         runs-on: ubuntu-latest
-        timeout-minutes: 2
+        timeout-minutes: 5
         outputs:
             project: ${{ steps.map.outputs.project }}
             project_path: ${{ steps.map.outputs.project_path }}
@@ -31,42 +31,73 @@ jobs:
             config: ${{ steps.map.outputs.config }}
             appstore: ${{ steps.map.outputs.appstore }}
         steps:
+            - uses: actions/checkout@v7
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v7
+              with:
+                  node-version: 24
+
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
+            # Read off the project graph rather than from a bash `case` over the
+            # app name. Every branch of that case was a project's own facts --
+            # where it lives, what platforms it targets, whether it is notarized
+            # -- restated in a workflow, which is the same drift the dispatch
+            # manifest had.
+            #
+            # `desktop-kbve-appstore` is the exception and stays here: it is not
+            # a fourth project but a second way of building desktop-kbve, a
+            # sandboxed Mac App Store variant with its own features and tauri
+            # config. A variant is a build option, not a project.
             - id: map
-              shell: bash
+              env:
+                  APP: ${{ inputs.app }}
               run: |
-                  # defaults (a build off these unless the case overrides)
-                  echo "features=" >> "$GITHUB_OUTPUT"
-                  echo "config=" >> "$GITHUB_OUTPUT"
-                  echo "appstore=false" >> "$GITHUB_OUTPUT"
-                  case "${{ inputs.app }}" in
-                    chuck-launcher)
-                      echo "project=chuck-launcher" >> "$GITHUB_OUTPUT"
-                      echo "project_path=apps/chuckrpg/chuck-launcher" >> "$GITHUB_OUTPUT"
-                      echo "notarize=true" >> "$GITHUB_OUTPUT"
-                      echo "platforms=macos" >> "$GITHUB_OUTPUT" ;;
-                    isometric)
-                      echo "project=isometric" >> "$GITHUB_OUTPUT"
-                      echo "project_path=apps/kbve/isometric" >> "$GITHUB_OUTPUT"
-                      echo "notarize=false" >> "$GITHUB_OUTPUT"
-                      echo "platforms=linux,macos,windows,wasm" >> "$GITHUB_OUTPUT" ;;
-                    desktop-kbve)
-                      # Developer ID / self-distributed: full-power DMG (global hotkey + auto-paste).
-                      echo "project=desktop-kbve" >> "$GITHUB_OUTPUT"
-                      echo "project_path=apps/kbve/desktop-kbve" >> "$GITHUB_OUTPUT"
-                      echo "notarize=true" >> "$GITHUB_OUTPUT"
-                      echo "platforms=linux,macos,windows" >> "$GITHUB_OUTPUT" ;;
-                    desktop-kbve-appstore)
-                      # Mac App Store: sandboxed variant. clipboard-only paste, no enigo inject.
-                      echo "project=desktop-kbve" >> "$GITHUB_OUTPUT"
-                      echo "project_path=apps/kbve/desktop-kbve" >> "$GITHUB_OUTPUT"
-                      echo "notarize=false" >> "$GITHUB_OUTPUT"
-                      echo "platforms=macos" >> "$GITHUB_OUTPUT"
-                      echo "features=appstore" >> "$GITHUB_OUTPUT"
-                      echo "config=src-tauri/tauri.appstore.conf.json" >> "$GITHUB_OUTPUT"
-                      echo "appstore=true" >> "$GITHUB_OUTPUT" ;;
-                    *)
-                      echo "unknown app: ${{ inputs.app }}" >&2; exit 1 ;;
-                  esac
+                  set -euo pipefail
+                  PROJECT="$APP"
+                  APPSTORE=false
+                  FEATURES=""
+                  CONFIG=""
+                  if [ "$APP" = "desktop-kbve-appstore" ]; then
+                    PROJECT="desktop-kbve"
+                    APPSTORE=true
+                    FEATURES="appstore"
+                    CONFIG="src-tauri/tauri.appstore.conf.json"
+                  fi
+
+                  NODE=$(moon query projects --id "$PROJECT" | jq -c --arg p "$PROJECT" \
+                    '.projects[] | select(.id == $p)')
+                  if [ -z "$NODE" ]; then
+                    echo "::error::No moon project called '$PROJECT'."
+                    exit 1
+                  fi
+
+                  PLATFORMS=$(jq -r '.config.env.TAURI_PLATFORMS // ""' <<<"$NODE")
+                  NOTARIZE=$(jq -r '.config.env.TAURI_NOTARIZE // "false"' <<<"$NODE")
+                  if [ -z "$PLATFORMS" ]; then
+                    echo "::error::$PROJECT declares no TAURI_PLATFORMS in its moon.yml env."
+                    exit 1
+                  fi
+
+                  # The App Store variant is macOS-only and signed for the store
+                  # rather than notarized for direct distribution.
+                  if [ "$APPSTORE" = "true" ]; then
+                    PLATFORMS="macos"
+                    NOTARIZE=false
+                  fi
+
+                  {
+                    echo "project=$PROJECT"
+                    echo "project_path=$(jq -r '.source' <<<"$NODE")"
+                    echo "platforms=$PLATFORMS"
+                    echo "notarize=$NOTARIZE"
+                    echo "features=$FEATURES"
+                    echo "config=$CONFIG"
+                    echo "appstore=$APPSTORE"
+                  } >> "$GITHUB_OUTPUT"
+                  echo "::notice::$PROJECT -> $PLATFORMS (notarize=$NOTARIZE, appstore=$APPSTORE)"
 
     build:
         name: Build ${{ inputs.app }}

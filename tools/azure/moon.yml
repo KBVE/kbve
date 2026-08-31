@@ -1,0 +1,17 @@
+# Azure DevOps checkout. Not a released thing itself.
+#
+# Shell rather than node: this runs before any toolchain is set up, on runners
+# where git is the only thing guaranteed to be there.
+layer: 'tool'
+language: 'bash'
+stack: 'infrastructure'
+
+owners:
+    defaultOwner: '@h0lybyte'
+
+tasks:
+    test:
+        command: 'bash clone.test.sh'
+        options:
+            # Builds throwaway repos in TMPDIR; nothing lands in the workspace.
+            cache: false

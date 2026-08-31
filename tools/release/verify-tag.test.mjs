@@ -80,10 +80,13 @@ const GODOT_PROJECTS = [
 		id: 'godot-friendslop',
 		source: 'apps/friendslop/godot-friendslop',
 		config: {
+			tags: ['godot'],
 			env: {
-				GODOT_VERSION: '4.7.1',
-				GDEXTENSION_FEATURES: 'net-godot',
-				GDEXTENSION_ADDON_PATH: 'addons/q',
+				ENGINE_CONFIG: JSON.stringify({
+					version: '4.7.1',
+					features: ['net-godot'],
+					gdextension: { package: 'q', addon_path: 'addons/q' },
+				}),
 			},
 		},
 		dependencies: [{ id: 'q', scope: 'production' }],
@@ -113,7 +116,9 @@ test('matrixFrom narrows to the affected set when one is given', () => {
 });
 
 test('matrixFrom leaves package empty for a Godot project with no rust dependency', () => {
-	const bare = [{ id: 'g', source: 'a/g', config: { env: { GODOT_VERSION: '4.7.1' } } }];
+	const bare = [
+		{ id: 'g', source: 'a/g', config: { tags: ['godot'], env: { ENGINE_CONFIG: '{"version":"4.7.1"}' } } },
+	];
 	assert.equal(matrixFrom(bare, null)[0].package, '');
 });
 
@@ -157,4 +162,30 @@ test('unreal matrix emits dependency paths in build order', () => {
 test('unreal matrix narrows to the selected set', () => {
 	assert.deepEqual(unrealMatrix(PLUGINS, new Set(['C']), 't').Mac.map((e) => e.key), ['C']);
 	assert.deepEqual(unrealMatrix(PLUGINS, new Set(), 't').Linux, []);
+});
+
+import { execFileSync } from 'node:child_process';
+import { manifestVersion, lanes } from './verify-tag.mjs';
+
+// tools/docker/version.sh is the shell half of manifestVersion, used by the
+// docker publish workflow where starting node per step is not worth it. They
+// were four separate implementations with different rules, which meant the
+// version a tag was checked against and the version its image was tagged with
+// could disagree with nothing downstream able to tell. This is the assertion
+// that keeps them one behaviour.
+test('the shell version reader agrees with manifestVersion on every releasable project', () => {
+	const root = new URL('../..', import.meta.url).pathname;
+	const projects = JSON.parse(
+		execFileSync('moon', ['query', 'projects'], { encoding: 'utf8', maxBuffer: 1 << 26, cwd: root }),
+	).projects.filter((p) => lanes(p.config?.tags ?? []).length);
+
+	assert.ok(projects.length > 50, 'expected the graph to have releasable projects');
+	for (const project of projects) {
+		const { file, version } = manifestVersion(root, project.source);
+		const shell = execFileSync('bash', ['tools/docker/version.sh', file], {
+			encoding: 'utf8',
+			cwd: root,
+		}).trim();
+		assert.equal(shell, version, `${project.id} (${file})`);
+	}
 });

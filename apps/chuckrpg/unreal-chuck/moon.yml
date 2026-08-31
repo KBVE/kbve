@@ -8,9 +8,20 @@ $schema: 'https://moonrepo.dev/schemas/project.json'
 # manifest entry but no moon.yml, so it was not in the graph.
 layer: 'application'
 language: 'unknown'
-tags: ['itch']
-
+tags: ['unreal-game']
 env:
+    # The monorepo shell ci-unreal-build.yml reads build.toml from.
+    UE_SHELL_PATH: 'apps/chuckrpg/unreal-chuck'
+    # The engine configuration this project builds with. JSON rather than
+    # a key per field: it is nested and list-valued, and the build
+    # workflows already take it in exactly this shape -- it was the
+    # dispatch manifest's `engine` block, moved beside the project.
+    ENGINE_CONFIG: '{"version":"5.8.0","project_path":"chuck","build_targets":["Win64","Linux","Mac"],"external_repo_url":"https://github.com/kbve/chuck","server_target":"chuckServer","server_config":"Shipping","client_config":"Shipping","maps":["/Game/Menus/L_MainMenu","/Game/Map/L_ChuckWorld"],"game_mode":"/Script/Chuck.ChuckGameMode","custom_config":"Beta","use_logging_in_shipping":"1","debug_symbols":"1"}'
+    # The runner a release of this project builds on. Declared because the
+    # default two-core hosted runner is not enough for it -- the dispatch
+    # manifest carried this per entry, and dropping it would put a build
+    # that needs arc-runner-ue back on a 60 minute ceiling it cannot meet.
+    CI_RUNNER: 'arc-runner-ue'
     # Where a release of this project goes, declared beside the project rather
     # than in a dispatch manifest. `chuck` and `chuck-dev` were two manifest
     # entries for this one directory, differing only in the itch channel. The

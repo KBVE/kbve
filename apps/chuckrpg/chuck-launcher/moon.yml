@@ -3,9 +3,13 @@ $schema: 'https://moonrepo.dev/schemas/project.json'
 layer: 'application'
 language: 'typescript'
 stack: 'frontend'
-tags: ['tauri', 'eslint']
-
+tags: ['tauri', 'eslint', 'desktop']
 env:
+    # What a Tauri build of this app produces. ci-tauri.yml resolved these
+    # from a bash `case` over an app name -- a lookup table of the same kind
+    # the dispatch manifest was, one project per branch.
+    TAURI_PLATFORMS: 'macos'
+    TAURI_NOTARIZE: 'true'
     TAURI_DEV_PORT: '1422'
 
 tasks:

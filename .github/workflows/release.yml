@@ -34,6 +34,10 @@ jobs:
         name: Verify tag
         runs-on: ubuntu-latest
         timeout-minutes: 10
+        # Overrides the read-only default at the top of the file. Only this job
+        # writes, and only to create the draft release.
+        permissions:
+            contents: write
         outputs:
             project: ${{ steps.tag.outputs.project }}
             version: ${{ steps.tag.outputs.version }}
@@ -45,6 +49,14 @@ jobs:
             pypi_name: ${{ steps.tag.outputs.pypi_name }}
             external_publish: ${{ steps.tag.outputs.external_publish }}
             deployment_yamls: ${{ steps.tag.outputs.deployment_yamls }}
+            runner: ${{ steps.tag.outputs.runner }}
+            engine: ${{ steps.tag.outputs.engine }}
+            publish: ${{ steps.tag.outputs.publish }}
+            shell_path: ${{ steps.tag.outputs.shell_path }}
+            tauri_platforms: ${{ steps.tag.outputs.tauri_platforms }}
+            tauri_notarize: ${{ steps.tag.outputs.tauri_notarize }}
+            web_game_needs_rust: ${{ steps.tag.outputs.web_game_needs_rust }}
+            dispatched_at: ${{ steps.tag.outputs.dispatched_at }}
             has_e2e: ${{ steps.tag.outputs.has_e2e }}
             has_test: ${{ steps.tag.outputs.has_test }}
         steps:
@@ -68,6 +80,34 @@ jobs:
             - name: Tag matches the manifest
               id: tag
               run: node tools/release/verify-tag.mjs "${{ inputs.tag || github.ref_name }}"
+
+            # GitHub's own generated notes diff against the chronologically
+            # previous tag, which in a monorepo interleaves every other
+            # project's commits. notes.mjs takes the previous tag *for this
+            # project* and asks which commits in that range touched the
+            # project's source, so the notes describe the artifact rather than
+            # the calendar.
+            #
+            # Created as a draft: the editorial pass is still worth doing, the
+            # transcription is not. Re-running on a tag that already has a
+            # release refreshes the notes rather than failing on a second
+            # create -- only the body, so a draft edited by hand is the one
+            # thing this would overwrite, which is why it stays a draft until a
+            # person publishes it.
+            - name: Draft the release
+              if: ${{ github.event_name == 'push' }}
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  TAG: ${{ github.ref_name }}
+              run: |
+                  set -euo pipefail
+                  node tools/release/notes.mjs "$TAG" > notes.md
+                  cat notes.md >> "$GITHUB_STEP_SUMMARY"
+                  if gh release view "$TAG" >/dev/null 2>&1; then
+                    gh release edit "$TAG" --notes-file notes.md
+                  else
+                    gh release create "$TAG" --draft --title "$TAG" --notes-file notes.md
+                  fi
 
             - name: Summary
               env:
@@ -115,8 +155,10 @@ jobs:
         name: Test before publishing
         needs: [verify]
         if: ${{ github.event_name == 'push' && needs.verify.outputs.has_test == 'true' }}
-        runs-on: ubuntu-latest
-        timeout-minutes: 60
+        # The same runner the publish uses. This compiles the same code, so a
+        # project that needs a bigger machine to build needs it to test.
+        runs-on: ${{ needs.verify.outputs.runner }}
+        timeout-minutes: ${{ needs.verify.outputs.runner == 'ubuntu-latest' && 60 || 240 }}
         steps:
             - name: Checkout
               uses: actions/checkout@v7
@@ -175,6 +217,12 @@ jobs:
             target: ${{ needs.verify.outputs.docker_target }}
             image: ${{ needs.verify.outputs.docker_image }}
             cargo_toml: ${{ needs.verify.outputs.file }}
+            # A project declares a runner when the default two-core hosted one
+            # is not enough for it. Self-hosted runners are declared for builds
+            # that do not fit the default budget, so give them a proportionate
+            # ceiling rather than raising it for every release.
+            runner: ${{ needs.verify.outputs.runner }}
+            timeout_minutes: ${{ needs.verify.outputs.runner == 'ubuntu-latest' && 60 || 240 }}
         secrets:
             MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
             FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
@@ -268,3 +316,127 @@ jobs:
             deployment_yamls: ${{ needs.verify.outputs.deployment_yamls }}
         secrets:
             TRIGGER_PAT: ${{ secrets.TRIGGER_PAT }}
+
+    # The engine lanes. Each calls the build workflow that already existed, with
+    # the engine blob the dispatch manifest used to carry -- it is the project's
+    # own ENGINE_CONFIG now.
+    #
+    # `version.toml` is left empty in the version blob on purpose. That field
+    # fed a gate comparing the MDX version against the published one, to decide
+    # whether a push had bumped anything. A tag is that decision, so the gate
+    # has nothing left to weigh and passes.
+    godot:
+        name: Build and publish (Godot)
+        needs: [verify]
+        if: ${{ github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'godot') }}
+        permissions:
+            contents: write
+            packages: read
+        uses: ./.github/workflows/ci-godot.yml
+        with:
+            key: ${{ needs.verify.outputs.project }}
+            dispatched_at: ${{ needs.verify.outputs.dispatched_at }}
+            engine: ${{ needs.verify.outputs.engine }}
+            version: '{"source":"","toml":"","manifest":"${{ needs.verify.outputs.version }}"}'
+            publish: ${{ needs.verify.outputs.publish }}
+        secrets: inherit
+
+    unreal-game:
+        name: Build and publish (Unreal)
+        needs: [verify]
+        if: ${{ github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'unreal-game') }}
+        permissions:
+            contents: write
+            packages: write
+        uses: ./.github/workflows/ci-unreal.yml
+        with:
+            task: game
+            key: ${{ needs.verify.outputs.project }}
+            dispatched_at: ${{ needs.verify.outputs.dispatched_at }}
+            engine: ${{ needs.verify.outputs.engine }}
+            version: '{"source":"","toml":"","manifest":"${{ needs.verify.outputs.version }}"}'
+            publish: ${{ needs.verify.outputs.publish }}
+        secrets: inherit
+
+    ue5-server:
+        name: Build and publish (Unreal server)
+        needs: [verify]
+        if: ${{ github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'ue5-server') }}
+        permissions:
+            contents: write
+            packages: write
+        uses: ./.github/workflows/ci-unreal.yml
+        with:
+            task: server
+            key: ${{ needs.verify.outputs.project }}
+            dispatched_at: ${{ needs.verify.outputs.dispatched_at }}
+            engine: '{"shell_path":"${{ needs.verify.outputs.shell_path }}"}'
+            version: '{"source":"","toml":"","manifest":"${{ needs.verify.outputs.version }}"}'
+        secrets: inherit
+
+    # Unity takes the engine blob unpacked into flat inputs rather than as JSON,
+    # so this is the one lane that names its fields.
+    unity:
+        name: Build and publish (Unity)
+        needs: [verify]
+        if: ${{ github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'unity') }}
+        permissions:
+            contents: write
+        uses: ./.github/workflows/ci-unity.yml
+        with:
+            key: ${{ needs.verify.outputs.project }}
+            app_name: ${{ needs.verify.outputs.project }}
+            project_path: ${{ fromJSON(needs.verify.outputs.engine).project_path }}
+            engine_version: ${{ fromJSON(needs.verify.outputs.engine).version }}
+            build_targets: ${{ toJSON(fromJSON(needs.verify.outputs.engine).build_targets) }}
+            license_method: ${{ fromJSON(needs.verify.outputs.engine).license_method }}
+            manifest_version: ${{ needs.verify.outputs.version }}
+            deploy_to_itch: ${{ fromJSON(needs.verify.outputs.publish).deploy_to_itch }}
+            itch_user: ${{ fromJSON(needs.verify.outputs.publish).itch_user }}
+            itch_game: ${{ fromJSON(needs.verify.outputs.publish).itch_game }}
+            # Steam is the one target with structured config; it rides in the
+            # external_publish blob and is passed through as JSON.
+            deploy_to_steam: ${{ needs.verify.outputs.external_publish != '' && contains(needs.verify.outputs.external_publish, 'steam_apps') }}
+            steam_apps: ${{ needs.verify.outputs.external_publish != '' && toJSON(fromJSON(needs.verify.outputs.external_publish).steam_apps) || '[]' }}
+            dispatched_at: ${{ needs.verify.outputs.dispatched_at }}
+        secrets: inherit
+
+    # The Tauri desktop apps. Calls the builder directly rather than through
+    # ci-tauri.yml: that one exists to turn a dropdown into a project, and a tag
+    # already names the project.
+    #
+    # The Mac App Store variant of desktop-kbve is deliberately not reachable
+    # from a tag. It is a second build of the same version rather than a release
+    # of its own, so it stays a dispatch on ci-tauri.yml.
+    desktop:
+        name: Build (Tauri)
+        needs: [verify, test]
+        if: ${{ !cancelled() && !failure() && github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'desktop') }}
+        permissions:
+            contents: read
+        uses: ./.github/workflows/ci-tauri-builder.yml
+        with:
+            project: ${{ needs.verify.outputs.project }}
+            project_path: ${{ needs.verify.outputs.source }}
+            app_name: ${{ needs.verify.outputs.project }}
+            notarize: ${{ needs.verify.outputs.tauri_notarize == 'true' }}
+            platforms: ${{ needs.verify.outputs.tauri_platforms }}
+        secrets: inherit
+
+    # Every browser game, whatever engine built it. ci-vite-game.yml and
+    # ci-bevy-game.yml were one workflow each for two games that differ only in
+    # their build task, which moon owns.
+    web-game:
+        name: Build and publish (web)
+        needs: [verify]
+        if: ${{ github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'web-game') }}
+        permissions:
+            contents: read
+        uses: ./.github/workflows/ci-web-game.yml
+        with:
+            project: ${{ needs.verify.outputs.project }}
+            version: ${{ needs.verify.outputs.version }}
+            publish: ${{ needs.verify.outputs.publish }}
+            needs_rust: ${{ needs.verify.outputs.web_game_needs_rust == 'true' }}
+        secrets:
+            ITCH_API_KEY: ${{ secrets.ITCH_API_KEY }}

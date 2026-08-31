@@ -1,0 +1,160 @@
+# Commit scopes that are not a moon project.
+#
+# A scope should normally name the project the change is in --
+# `fix(axum-kbve):` -- and those come from the project graph via
+# scopes.lock.json, so they need no listing here. This file is for changes that
+# are genuinely repository-wide or span a domain rather than one project.
+#
+# Seeded from this repository's own history rather than invented: every entry
+# below appears at least twice in the last two thousand commits. A validator
+# whose vocabulary disagrees with the practice it is meant to describe gets
+# turned off within a week.
+extra:
+    # Repository-wide
+    - 'ci' # workflows, actions, runners
+    - 'moon' # workspace configuration, toolchains, the project graph
+    - 'repo' # gitignore, gitattributes, licence, README
+    - 'agents' # AGENTS.md and the conventions it records
+    - 'deps' # dependency bumps that span projects
+    - 'deps-dev'
+    - 'git'
+    - 'skills'
+
+    # Language and ecosystem groups
+    - 'crates'
+    - 'rust'
+    - 'python'
+    - 'docker'
+    - 'codegen'
+
+    # Content collections, which are data rather than a project
+    - 'content'
+    - 'journal'
+    - 'itemdb'
+    - 'npcdb'
+    - 'mapdb'
+    - 'professiondb'
+
+    # Cluster and platform areas, which span several projects each
+    - 'kube'
+    - 'kubectl'
+    - 'kubevirt'
+    - 'monitoring'
+    - 'observability'
+    - 'metrics'
+    - 'vector'
+    - 'sql'
+    - 'auth'
+    - 'hardware'
+    - 'graph'
+    - 'store'
+    - 'media'
+    - 'dashboard'
+
+    # Game and product families, where a change spans a family's projects
+    - 'agones'
+    - 'godot'
+    - 'friendslop'
+    - 'chuck'
+    - 'rentearth'
+    - 'tocloud9'
+    - 'palworld'
+    - 'palforge'
+    - 'dungeon'
+    - 'bbs'
+    - 'chuckrpg'
+    - 'deathslayer'
+    - 'wow'
+    - 'c9'
+
+    # Infrastructure and tooling areas the history uses once or twice each.
+    # Included because a scope that is correct but rare is still correct, and
+    # the frequency cutoff that seeded this file is not a judgement about them.
+    - 'argocd'
+    - 'crossplane'
+    - 'ci-godot'
+    - 'lint'
+    - 'claude'
+    - 'dash'
+    - 'gameops'
+    - 'mod-dragon-wars'
+    - 'tocloud9-db-import'
+
+    # The remainder of what this repository's three thousand commits actually
+    # use. Added wholesale rather than curated: a scope that has been used a
+    # dozen times is vocabulary whether or not it would have been chosen
+    # today, and rejecting it teaches people to pass --no-verify.
+    #
+    # Deliberately excluded: 'friendshlop' and 'godot|kube' (typos), and the
+    # nx ones, which name a tool this repository no longer uses.
+    - 'application'
+    - 'arc'
+    - 'arc-runners'
+    - 'auto-merge'
+    - 'axum'
+    - 'bevy'
+    - 'buildkitd'
+    - 'cert-manager'
+    - 'chisel'
+    - 'ci-bevy'
+    - 'ci-unreal'
+    - 'cilium'
+    - 'clickhouse'
+    - 'cube'
+    - 'data'
+    - 'deathslayer-launcher'
+    - 'dev'
+    - 'discord'
+    - 'docs'
+    - 'engine'
+    - 'factorio'
+    - 'firecracker'
+    - 'forgejo'
+    - 'forum'
+    - 'gitops'
+    - 'graphify'
+    - 'husky'
+    - 'kasm'
+    - 'kbve-mod'
+    - 'kbve-wgpu'
+    - 'kbveui'
+    - 'kong'
+    - 'kubectl-rotator'
+    - 'lfs'
+    - 'manifest'
+    - 'markets'
+    - 'ml'
+    - 'netpol'
+    - 'osrs'
+    - 'palworld-relay'
+    - 'palworld-savetool'
+    - 'palworld-shops'
+    - 'plan'
+    - 'plans'
+    - 'pnpm'
+    - 'proto'
+    - 'publish'
+    - 'py'
+    - 'python-kbve'
+    - 'rareicon'
+    - 'realtime'
+    - 'reel-web'
+    - 'rn-dash'
+    - 'seo'
+    - 'service'
+    - 'sidebar'
+    - 'sitegraph'
+    - 'spec'
+    - 'spo'
+    - 'stalwart'
+    - 'superpowers'
+    - 'talos'
+    - 'theory'
+    - 'tooling'
+    - 'valkey'
+    - 'vm'
+    - 'vscode'
+    - 'windmill'
+    - 'wm'
+    - 'workflows'
+    - 'world'

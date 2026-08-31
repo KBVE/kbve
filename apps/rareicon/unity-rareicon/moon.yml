@@ -2,12 +2,18 @@ $schema: 'https://moonrepo.dev/schemas/project.json'
 
 layer: 'application'
 language: 'typescript'
+tags: ['unity']
 
 tasks:
     dev-android:
         script: 'bash Scripts/dev-android.sh'
 
 env:
+    # The engine configuration this project builds with. JSON rather than
+    # a key per field: it is nested and list-valued, and the build
+    # workflows already take it in exactly this shape -- it was the
+    # dispatch manifest's `engine` block, moved beside the project.
+    ENGINE_CONFIG: '{"version":"6000.3.10f1","project_path":"apps/rareicon/unity-rareicon","build_targets":["StandaloneLinux64","StandaloneWindows64","StandaloneOSX","Android","iOS"],"license_method":"personal"}'
     # The Steam apps a release promotes, as JSON because this one is genuinely
     # structured -- two apps, each with a branch and one with a promotion
     # target. Everything else here is a scalar and is a plain key.

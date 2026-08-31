@@ -171,43 +171,8 @@ jobs:
               env:
                   FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
                   FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
-                  PROJECT_PATH: ${{ matrix.project_path }}
-              run: |
-                  set -euo pipefail
-                  command -v git-lfs >/dev/null 2>&1 || {
-                    apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq && apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y -qq --no-install-recommends git-lfs
-                  }
-                  git config --global --add safe.directory "$PWD"
-                  git lfs install --local
-                  # Listed once into a file rather than piped. `git lfs ls-files | grep -q`
-                  # is a trap under pipefail: grep leaves on its first match, git-lfs dies
-                  # of SIGPIPE part way through a listing of every LFS file in the
-                  # monorepo, and the pipeline reports 141 -- read here as "nothing tracked
-                  # under this project" for a project with 268 files, so the pull was
-                  # skipped and the suite met pointer stubs where the fonts should be.
-                  git lfs ls-files -n > /tmp/lfs-files.txt
-                  if ! grep -q "^$PROJECT_PATH/" /tmp/lfs-files.txt; then
-                    echo "::notice::No LFS-tracked files under $PROJECT_PATH — skipping"
-                    exit 0
-                  fi
-                  if [ -z "$FORGEJO_USER" ] || [ -z "$FORGEJO_TOKEN" ]; then
-                    echo "::error::FORGEJO_USER / FORGEJO_TOKEN missing — the asset suites would crash on pointer stubs"
-                    exit 1
-                  fi
-                  printf 'machine git.kbve.com\nlogin %s\npassword %s\n' \
-                    "$FORGEJO_USER" "$FORGEJO_TOKEN" > "$HOME/.netrc"
-                  chmod 600 "$HOME/.netrc"
-                  git lfs pull -I "$PROJECT_PATH/**"
-                  # A leftover pointer is a text file starting with the LFS spec URL. Godot
-                  # imports those as ERR_FILE_CORRUPT, and a stubbed font takes the engine
-                  # down with a signal rather than a message worth reading.
-                  STUBS=$(grep "^$PROJECT_PATH/" /tmp/lfs-files.txt \
-                    | xargs -r grep -l "^version https://git-lfs" 2>/dev/null || true)
-                  if [ -n "$STUBS" ]; then
-                    echo "::error::LFS pointers unresolved after pull:"
-                    printf '%s\n' "$STUBS" | head -5
-                    exit 1
-                  fi
+                  LFS_INCLUDE: ${{ matrix.project_path }}
+              run: bash tools/lfs/ensure.sh
 
             - name: Download GDExtension
               if: ${{ matrix.package != '' }}

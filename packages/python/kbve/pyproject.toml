@@ -53,6 +53,10 @@ kbve-unreal-clangd = "kbve.unreal.clangd:main"
 kbve-unreal-check = "kbve.unreal.check:main"
 kbve-blender-retarget = "kbve.blender.cli:retarget_main"
 kbve-blender-vat = "kbve.blender.cli:vat_main"
+kbve-blender-which = "kbve.blender.cli:which_main"
+kbve-blender-render = "kbve.blender.cli:render_main"
+kbve-blender-export = "kbve.blender.cli:export_main"
+kbve-blender-batch-export = "kbve.blender.cli:batch_export_main"
 
 [dependency-groups]
 dev = [

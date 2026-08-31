@@ -3,9 +3,28 @@ $schema: 'https://moonrepo.dev/schemas/project.json'
 layer: 'application'
 language: 'typescript'
 stack: 'frontend'
-tags: ['tauri', 'eslint']
-
+tags: ['tauri', 'eslint', 'web-game']
 env:
+    # The build is a wasm bundle: nightly rust rebuilding std with atomics
+    # via -Z build-std. A Vite game in the same lane needs none of it.
+    WEB_GAME_NEEDS_RUST: 'true'
+    # What a Tauri build of this app produces. ci-tauri.yml resolved these
+    # from a bash `case` over an app name -- a lookup table of the same kind
+    # the dispatch manifest was, one project per branch.
+    TAURI_PLATFORMS: 'linux,macos,windows,wasm'
+    TAURI_NOTARIZE: 'false'
+    # Where a release of this game ships. `bevy-game` is the release lane: a
+    # tag builds the wasm bundle and pushes it to itch.
+    #
+    # This replaces deploying the bundle into astro-kbve on every push to main.
+    # That route rebuilt a wasm game -- a nightly toolchain and -Z build-std --
+    # whenever anything in the project changed, whether or not there was
+    # anything to release, and shipped it by committing a build artifact into
+    # another project's public directory.
+    ITCH_USER: 'kbve'
+    ITCH_GAME: 'isometric'
+    # Web builds go to the html5 channel, which is what itch serves in-browser.
+    ITCH_CHANNEL: 'html5'
     TAURI_DEV_PORT: '1420'
 
 tasks:

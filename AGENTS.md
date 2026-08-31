@@ -134,19 +134,49 @@ git push origin axum-kbve@1.0.297
 ```
 
 `release.yml` resolves the tag against the project graph, checks the version
-against the project's own manifest, and hands it to the publisher for whichever
-lane the project opts into. Nothing else triggers a publish.
+against the project's own manifest, drafts a GitHub release with notes built
+from the commits that actually touched that project since its own previous tag,
+and hands it to the publisher for whichever lane the project opts into. Nothing
+else triggers a publish.
 
 - The version lives in the project's own manifest — `Cargo.toml`,
   `package.json`, `pyproject.toml`, or `version.toml` for the image-only
   projects that have none of those. **Bump it, commit it, then tag.** A tag
   whose version disagrees with the manifest is rejected rather than published.
-- The lane is a tag in the project's `moon.yml`: `crates`, `npm`, `pypi`,
-  `docker`. It is separate from the toolchain tag, because what a project is
-  built with and what publishing it means are different questions — 26
-  applications here are written in rust and must never reach crates.io.
+- The lane is a tag in the project's `moon.yml`. It is separate from the
+  toolchain tag, because what a project is built with and what publishing it
+  means are different questions — 26 applications here are written in rust and
+  must never reach crates.io.
+
+    | lane tag                                   | what a tag does                                                   |
+    | ------------------------------------------ | ----------------------------------------------------------------- |
+    | `crates`                                   | publishes to crates.io                                            |
+    | `npm`                                      | publishes to npmjs                                                |
+    | `pypi`                                     | publishes to PyPI                                                 |
+    | `docker`                                   | builds and pushes the image, then pins it into the kube manifests |
+    | `web-game`                                 | builds the browser bundle and pushes it to itch                   |
+    | `godot` `unity` `unreal-game` `ue5-server` | runs that engine's build and ships the artifact                   |
+    | `desktop`                                  | builds the Tauri app for its declared platforms                   |
+
 - A project in no lane cannot be released, and tagging it fails loudly rather
   than doing nothing.
+- Anything the release needs beyond the version is the project's own `env`, not
+  a list kept elsewhere: `KUBE_DEPLOYMENT_YAMLS` (which kube manifests the image
+  tag is pinned into — **without this a release reaches the registry and never
+  reaches the cluster**), `CI_RUNNER` (when the default two-core hosted runner
+  is not enough), `ENGINE_CONFIG`, and the `ITCH_*` / `STEAM_APPS` /
+  `MODRINTH_*` / `PUBLISHES_FACTORIO_MODS` publish targets.
+- A deployment pin belongs on the project that **builds** the image, which is
+  not always the one whose source changes: `axum-kbve` builds the image
+  `astro-kbve`'s content ships in.
+
+Games ship to itch, not into the site. `isometric` used to rebuild its wasm
+bundle on every push to main and commit the result into
+`astro-kbve/public/isometric`; a wasm build is a nightly toolchain rebuilding
+std with atomics, which is not something to do for a release nobody asked for.
+It is a `bevy-game` tag now. The assets already committed under
+`public/isometric` are left alone — the site keeps serving them until someone
+decides otherwise.
 
 There is no dispatch manifest and no MDX version pipeline. Both are gone.
 `.github/ci-dispatch-manifest.json`, `utils-file-alterations.yml` and the
@@ -208,6 +238,29 @@ outputs and dependencies that make a run cacheable and correct.
 - **A glob in `projects.sources` registers every matching directory**, with or
   without a moon.yml. `apps/` and `packages/` have repeated basenames (`kbve`,
   `relay`, `server`, `web`) and globbing them breaks the graph outright.
+
+---
+
+# Commit messages
+
+Conventional commits, enforced by the `commit-msg` hook and again on the pull
+request title in CI (a title is composed in the browser where no hook runs, and
+a squash merge makes it the commit message).
+
+```
+type(scope): subject
+```
+
+- **Types** and **scopes** live in `tools/commit/scopes.lock.json`, generated
+  from the project graph by `moon run commit:sync`. Run that after adding or
+  renaming a project; `moon run commit:lint` fails when the lock is behind, so
+  CI catches it rather than a contributor meeting it as a rejected commit.
+- A scope is normally a moon project id. Repository-wide and domain scopes
+  (`ci`, `kube`, `content`, `agones`…) are listed in `tools/commit/scopes.yml`.
+- A change spanning a few projects may list them: `fix(reel,discordsh-bot):`.
+- This is not decoration. `tools/release/notes.mjs` reads the type and scope out
+  of the commits a release contains, so an unconventional message lands under
+  the wrong heading in someone's release notes rather than failing anything.
 
 ---
 

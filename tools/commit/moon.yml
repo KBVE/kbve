@@ -1,0 +1,34 @@
+# Commit message tooling. Not a released thing itself.
+layer: 'tool'
+language: 'javascript'
+stack: 'infrastructure'
+
+owners:
+    defaultOwner: '@h0lybyte'
+
+tasks:
+    test:
+        command: 'node --test'
+        toolchains: ['node']
+        inputs:
+            - '*.mjs'
+            - 'scopes.lock.json'
+
+    # Regenerates scopes.lock.json from the project graph. Run after adding or
+    # renaming a project.
+    sync:
+        command: 'node sync.mjs'
+        toolchains: ['node']
+        options:
+            cache: false
+
+    # The lock is a generated file that a stale commit would leave behind, and
+    # the symptom is a contributor's correct commit being rejected. `lint`
+    # rather than a task of its own, so `moon ci` reaches it.
+    lint:
+        command: 'node sync.mjs --check'
+        toolchains: ['node']
+        inputs:
+            - 'sync.mjs'
+            - 'scopes.yml'
+            - 'scopes.lock.json'

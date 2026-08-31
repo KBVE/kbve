@@ -7,28 +7,33 @@
 // declares `dependsOn: ['q']`, and `--affected` answers the question the path
 // comparison was approximating.
 //
-// A project is a Godot project here if it declares GODOT_VERSION in its env.
-// That is the same test as "the manifest had an entry for it", except the
-// declaration lives beside the project.
+// A project is a Godot project here if it declares ENGINE_CONFIG in its env --
+// the same blob release.yml hands the build workflow, and the same test as "the
+// manifest had an entry for it", except the declaration lives beside the
+// project and there is exactly one of it. Keeping a second set of keys just for
+// this matrix would be the manifest's drift problem in miniature.
 
 import { execFileSync } from 'node:child_process';
 
 export function matrixFrom(projects, affected) {
 	const wanted = affected === null ? null : new Set(affected);
 	return projects
-		.filter((p) => p.config?.env?.GODOT_VERSION)
+		.filter((p) => (p.config?.tags ?? []).includes('godot') && p.config?.env?.ENGINE_CONFIG)
 		.filter((p) => wanted === null || wanted.has(p.id))
-		.map((p) => ({
-			app_name: p.id,
-			project_path: p.source,
-			godot_version: p.config.env.GODOT_VERSION,
-			// The extension crate is the dependency, not a repeated string. A
-			// Godot project with no rust dependency gets an empty package and
-			// the workflow skips its build steps.
-			package: (p.dependencies ?? [])[0]?.id ?? '',
-			addon_path: p.config.env.GDEXTENSION_ADDON_PATH ?? '',
-			features: p.config.env.GDEXTENSION_FEATURES ?? '',
-		}))
+		.map((p) => {
+			const engine = JSON.parse(p.config.env.ENGINE_CONFIG);
+			return {
+				app_name: p.id,
+				project_path: p.source,
+				godot_version: engine.version ?? '',
+				// The extension crate is the dependency, not a repeated string.
+				// A Godot project with no rust dependency gets an empty package
+				// and the workflow skips its build steps.
+				package: (p.dependencies ?? [])[0]?.id ?? '',
+				addon_path: engine.gdextension?.addon_path ?? '',
+				features: (engine.features ?? []).join(','),
+			};
+		})
 		.sort((a, b) => a.app_name.localeCompare(b.app_name));
 }
 

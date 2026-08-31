@@ -31,6 +31,26 @@ concurrency:
     cancel-in-progress: true
 
 jobs:
+    # The commit-msg hook covers commits, but a pull request title is composed
+    # in the browser where no hook runs -- and a squash merge makes that title
+    # the commit message. tools/release/notes.mjs reads the type and scope out
+    # of those commits, so an unconventional title lands under the wrong
+    # heading in a release note rather than failing anything.
+    title:
+        name: Pull request title
+        if: github.event_name == 'pull_request'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        steps:
+            - uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
+            # Reads scopes.lock.json, so it needs neither moon nor a toolchain.
+            - name: Check the pull request title
+              env:
+                  TITLE: ${{ github.event.pull_request.title }}
+              run: node tools/commit/validate.mjs --title "$TITLE"
+
     ci:
         name: ci (${{ matrix.index }}/${{ matrix.total }})
         runs-on: ubuntu-latest

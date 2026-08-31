@@ -1,0 +1,214 @@
+name: CI - Web Game
+
+# Builds a browser game and pushes it to itch.
+#
+# One workflow for every web game, because they differ in nothing this file
+# does: each runs its own `build` task and uploads the result. ci-vite-game.yml
+# and ci-bevy-game.yml were separate for the engine's sake -- a Vite game and a
+# Bevy wasm game -- but moon already knows how to build each, so the engine was
+# never this workflow's business. The only real difference is that a wasm build
+# needs a nightly rust toolchain, and the project says so.
+#
+# It also replaced the push-to-main route in ci-bevy.yml, which rebuilt the wasm
+# bundle whenever anything in the project changed and shipped it by committing
+# the build artifact into astro-kbve's public directory.
+#
+# Called by release.yml for a tag whose project is in the `web-game` lane.
+# workflow_dispatch is kept so a build can be re-run without cutting a tag.
+on:
+    workflow_call:
+        inputs:
+            project:
+                description: 'moon project id'
+                required: true
+                type: string
+            version:
+                description: 'Version being released'
+                required: true
+                type: string
+            publish:
+                description: 'JSON publish config: itch_user, itch_game, itch_channel'
+                required: true
+                type: string
+            needs_rust:
+                description: 'Install the nightly wasm toolchain (a Bevy game needs it, a Vite one does not)'
+                required: false
+                default: false
+                type: boolean
+        secrets:
+            ITCH_API_KEY:
+                required: false
+    workflow_dispatch:
+        inputs:
+            project:
+                description: 'moon project id'
+                required: true
+                type: string
+                default: isometric
+            version:
+                description: 'Version to label the build with'
+                required: true
+                type: string
+            publish:
+                description: 'JSON publish config: itch_user, itch_game, itch_channel'
+                required: true
+                type: string
+            needs_rust:
+                description: 'Install the nightly wasm toolchain'
+                required: false
+                default: false
+                type: boolean
+
+run-name: 'CI - Web Game / ${{ inputs.project }} v${{ inputs.version }}'
+
+permissions:
+    contents: read
+
+concurrency:
+    group: web-game-${{ inputs.project }}
+    cancel-in-progress: false
+
+jobs:
+    build:
+        name: Build and publish
+        runs-on: ubuntu-latest
+        timeout-minutes: 90
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            # dtolnay/rust-toolchain@nightly fails fast when static.rust-lang.org
+            # is mid-rollout and the channel manifest checksum mismatches
+            # (rustup #3390), so the install is retried rather than taken as a
+            # broken build.
+            # Only a wasm game needs this, and only that game declares it. A
+            # Vite game is node all the way down and would spend four minutes
+            # installing a toolchain it never invokes.
+            - name: Setup Rust nightly (wasm32 + rust-src for -Z build-std atomics)
+              if: ${{ inputs.needs_rust == true }}
+              run: |
+                  set -euo pipefail
+                  if ! command -v rustup >/dev/null; then
+                      curl --proto '=https' --tlsv1.2 --retry 10 \
+                          --retry-connrefused --location --silent \
+                          --show-error --fail https://sh.rustup.rs \
+                          | sh -s -- --default-toolchain none -y
+                      echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+                      export PATH="$HOME/.cargo/bin:$PATH"
+                  fi
+                  attempt=1
+                  max_attempts=5
+                  while (( attempt <= max_attempts )); do
+                      if rustup toolchain install nightly \
+                          --target wasm32-unknown-unknown \
+                          --component rust-src \
+                          --profile minimal \
+                          --allow-downgrade \
+                          --no-self-update; then
+                          break
+                      fi
+                      if (( attempt == max_attempts )); then
+                          echo "rustup install failed after ${max_attempts} attempts" >&2
+                          exit 1
+                      fi
+                      sleep $(( attempt * 15 ))
+                      attempt=$(( attempt + 1 ))
+                  done
+                  rustup default nightly
+
+            - name: Rust Cache
+              if: ${{ inputs.needs_rust == true }}
+              uses: Swatinem/rust-cache@v2
+              with:
+                  workspaces: '.'
+                  cache-on-failure: true
+
+            - name: Install wasm-pack
+              if: ${{ inputs.needs_rust == true }}
+              run: cargo install wasm-pack --locked
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v7
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v6
+              with:
+                  version: 11.15.0
+                  run_install: false
+
+            - name: Get pnpm Store Path
+              id: pnpm-store
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> "$GITHUB_OUTPUT"
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v6
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm dependencies
+              run: pnpm install --frozen-lockfile
+
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
+            # The project's own build task, so the bundle CI ships is the one a
+            # developer gets locally. moon resolves its project-local npm
+            # install through the task graph.
+            - name: Build
+              env:
+                  CI: 'true'
+              run: moon run ${{ inputs.project }}:build
+
+            - name: Resolve the build output
+              id: dist
+              env:
+                  PROJECT: ${{ inputs.project }}
+              run: |
+                  set -euo pipefail
+                  SOURCE=$(moon query projects --id "$PROJECT" | jq -r '.projects[0].source')
+                  DIST="$SOURCE/dist"
+                  if [ ! -d "$DIST" ] || [ -z "$(ls -A "$DIST")" ]; then
+                    echo "::error::$PROJECT:build produced nothing at $DIST"
+                    exit 1
+                  fi
+                  echo "path=$DIST" >> "$GITHUB_OUTPUT"
+                  echo "source=$SOURCE" >> "$GITHUB_OUTPUT"
+                  echo "::notice::$(du -sh "$DIST" | cut -f1) in $DIST"
+
+            # Kept whether or not the push happens, so a build can be inspected
+            # or hand-uploaded when itch is unreachable.
+            - name: Upload the bundle
+              uses: actions/upload-artifact@v7
+              with:
+                  name: ${{ inputs.project }}-${{ inputs.version }}-web
+                  path: ${{ steps.dist.outputs.path }}
+                  if-no-files-found: error
+                  retention-days: 14
+
+            # Absent on a fork, where the build is still worth running and the
+            # push is not possible. Saying so beats failing on a missing secret.
+            - name: Check for the itch credential
+              id: itch
+              env:
+                  KEY: ${{ secrets.ITCH_API_KEY }}
+              run: |
+                  if [ -n "$KEY" ]; then
+                    echo "ready=true" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "ready=false" >> "$GITHUB_OUTPUT"
+                    echo "::warning::ITCH_API_KEY is not set; the bundle was built but not published."
+                  fi
+
+            - name: Push to itch
+              if: ${{ steps.itch.outputs.ready == 'true' }}
+              working-directory: ${{ steps.dist.outputs.source }}
+              env:
+                  BUTLER_API_KEY: ${{ secrets.ITCH_API_KEY }}
+                  ITCH_TARGET: ${{ fromJSON(inputs.publish).itch_user }}/${{ fromJSON(inputs.publish).itch_game }}:${{ fromJSON(inputs.publish).itch_channel }}
+                  ITCH_USERVERSION: ${{ inputs.version }}
+              run: bash "$GITHUB_WORKSPACE/tools/itch/push.sh"

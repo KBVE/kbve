@@ -11,28 +11,19 @@ stack: 'frontend'
 #
 # Every task shells out to scripts/godot.sh, which resolves the engine binary;
 # proto pins godot in workspace/.prototools upstream and would do the same here.
-tags: ['lfs']
-
+tags: ['lfs', 'godot']
 env:
+    # The engine configuration this project builds with. JSON rather than
+    # a key per field: it is nested and list-valued, and the build
+    # workflows already take it in exactly this shape -- it was the
+    # dispatch manifest's `engine` block, moved beside the project.
+    ENGINE_CONFIG: '{"version":"4.7.1","project_path":"apps/friendslop/godot-friendslop","build_targets":["Windows Desktop","macOS","Linux"],"features":["net-godot"],"gdextension":{"package":"q","addon_path":"addons/q"}}'
     # Where a release of this project publishes to, declared beside the
     # project. This was the `external_publish` blob of its dispatch manifest
     # entry; release.yml reads it off the graph.
     ITCH_GAME: 'friendslop'
     ITCH_USER: 'kbve'
     LFS_REMOTE: 'friendslop'
-
-    # What ci-godot-tests.yml needs to build the gdextension and run the suite.
-    # These were the `engine` block of the dispatch manifest's godot entry;
-    # declaring them here puts them beside the project they describe, and the
-    # test matrix reads them off the graph.
-    #
-    # GODOT_VERSION is also scripts/godot.sh's default, so the workflow and the
-    # script agree by one passing it to the other rather than by both being
-    # edited. Which crate the extension comes from is `dependsOn: ['q']` below,
-    # not repeated here.
-    GODOT_VERSION: '4.7.1'
-    GDEXTENSION_FEATURES: 'net-godot'
-    GDEXTENSION_ADDON_PATH: 'addons/q'
 
 dependsOn: ['q']
 

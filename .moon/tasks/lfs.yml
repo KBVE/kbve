@@ -13,8 +13,11 @@ inheritedBy:
 
 tasks:
     assets:
+        # The same script CI runs, so a local build and a release build resolve
+        # the same endpoint and assert the same thing about the result. It reads
+        # LFS_REMOTE straight out of the project's env block.
         script: >-
-            (cd $workspaceRoot && ./kbve.sh -lfs $LFS_REMOTE pull --include="$projectSource/**")
+            (cd $workspaceRoot && LFS_INCLUDE="$projectSource" bash tools/lfs/ensure.sh)
             || echo "$LFS_REMOTE LFS pull skipped (no creds / offline) — assets may be pointer stubs"
         options:
             # Reads the working tree and may reach the network, so there is nothing

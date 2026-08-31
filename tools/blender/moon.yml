@@ -1,0 +1,20 @@
+# The CI face of the blender tools. Not a released thing itself.
+#
+# The implementation is the kbve pip package (kbve/blender): the bpy scripts,
+# the Blender search order, and the launcher that runs one inside the other.
+# This project is the wrapper CI calls, so a workflow step names an operation
+# and the package owns everything else.
+layer: 'tool'
+language: 'bash'
+stack: 'infrastructure'
+
+owners:
+    defaultOwner: '@h0lybyte'
+
+tasks:
+    test:
+        command: 'bash blender.test.sh'
+        options:
+            # Reads the package manifest and runs no Blender, so there is no
+            # output worth hashing.
+            cache: false

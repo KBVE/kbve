@@ -1,0 +1,12 @@
+# Docker publishing helpers. Not a released thing itself.
+#
+# The shell here exists because the publish workflow runs it between docker
+# steps, where starting node per step is not worth it. Its behaviour is asserted
+# against tools/release/verify-tag.mjs by that project's test, so the two halves
+# cannot drift.
+layer: 'tool'
+language: 'bash'
+stack: 'infrastructure'
+
+owners:
+    defaultOwner: '@h0lybyte'

@@ -16,7 +16,7 @@ on:
             - 'apps/mc/behavior_statetree/java/settings.gradle'
             - 'apps/mc/mc_auth/java/build.gradle'
             - 'apps/mc/mc_auth/java/settings.gradle'
-            - 'apps/mc/project.json'
+            - 'apps/mc/moon.yml'
             - '.github/workflows/ci-mc-gradle-cache.yml'
     pull_request:
         branches: [main, dev]
@@ -26,7 +26,7 @@ on:
             - 'apps/mc/behavior_statetree/java/settings.gradle'
             - 'apps/mc/mc_auth/java/build.gradle'
             - 'apps/mc/mc_auth/java/settings.gradle'
-            - 'apps/mc/project.json'
+            - 'apps/mc/moon.yml'
             - '.github/workflows/ci-mc-gradle-cache.yml'
 
 concurrency:
