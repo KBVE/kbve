@@ -56,28 +56,22 @@ flowchart LR
 
 ## Commands
 
-Run targets either through the repo wrapper (sources `.env.local`, avoids OOM)
-or pnpm nx directly:
+Run tasks with moon:
 
 ```bash
 # full local stack (Postgres + migrations + seed + the Axum binary)
 moon run jobboard:dev
-moon run jobboard:dev
 
 # tear the stack down (wipes the db volume)
-moon run jobboard:down
 moon run jobboard:down
 
 # SPA dev server with hot reload (vite :5401, proxies /api -> :5400)
 moon run jobboard:web-dev
-moon run jobboard:web-dev
 
 # build the SPA to web/dist
 moon run jobboard:web-build
-moon run jobboard:web-build
 
 # run the Axum binary on the host, serving web/dist from disk (no re-embed)
-moon run jobboard:serve-static
 moon run jobboard:serve-static
 
 # cargo run / build / test / lint the Rust service
@@ -88,7 +82,6 @@ moon run jobboard:lint
 moon run jobboard:run
 
 # build the production container image
-moon run jobboard:container
 moon run jobboard:container
 ```
 

@@ -113,7 +113,7 @@ item_refs: ['health-potion']
 
 ## Verify
 
-- `./kbve.sh -nx data:proto:lint` (buf lint) if available
+- `moon run data:proto-lint` (buf lint) if available
 - `npx tsx packages/data/codegen/gen-all.mjs skilldb` regen zod
-- `./kbve.sh -nx astro-kbve:sync:skilldb` regen data
-- `./kbve.sh -nx astro-kbve:build`
+- `moon run astro-kbve:sync-skilldb` regen data
+- `moon run astro-kbve:build`

@@ -31,7 +31,7 @@ Dry run for devs:
 
 ```shell
 
-./kbve.sh -nx jedi:dry --no-cloud
+moon run jedi:dry
 
 ```
 

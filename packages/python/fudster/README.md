@@ -14,6 +14,6 @@ This package is part of the [KBVE](https://github.com/kbve/kbve) monorepo, manag
 
 ```bash
 moon run python-fudster:test
-pnpm nx lint python-fudster
+moon run python-fudster:lint
 moon run python-fudster:build
 ```

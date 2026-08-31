@@ -193,8 +193,8 @@ and `drop_rate` are strings. Numbers stay unquoted.
 ## 4. Validation (run from repo root)
 
 ```sh
-./kbve.sh -nx astro-kbve:sync     # MUST pass — validates frontmatter against Zod
-./kbve.sh -nx astro-kbve:check    # typecheck; ignore the 2 pre-existing baseline errors
+moon run astro-kbve:sync     # MUST pass — validates frontmatter against Zod
+moon run astro-kbve:check    # typecheck; ignore the 2 pre-existing baseline errors
                                   # (rnweb/RnWebDemo.tsx, api/ci-registry.json.ts)
 ```
 

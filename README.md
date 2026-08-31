@@ -20,7 +20,7 @@
 
 KBVE is a collective that builds different programs, libraries, games and memes!
 This monorepo is the heart of all our applications, making it easier to manage while providing an experimental playground for pipelines.
-The core of this Monorepo is based upon [Nx Smart Monorepos](https://nx.dev/), but do not fear! This is easy once you get the hang of it!
+The core of this Monorepo is [moon](https://moonrepo.dev/), but do not fear! This is easy once you get the hang of it!
 
 ---
 
@@ -161,7 +161,7 @@ Official Install [Docs](https://kbve.com/guides/getting-started/#setup-instructi
 
 - `git clone https://github.com/KBVE/kbve.git` then enter the directory. `cd kbve`
 - Then run -> `pnpm install`
-- Launch `pnpm nx dev herbmail.com` - Should start a development server with Astro for HerbMail.com
+- Launch `moon run astro-herbmail:dev` - Should start a development server with Astro for HerbMail.com
 
 ---
 

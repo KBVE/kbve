@@ -44,7 +44,7 @@ For preparing a release, we would run this:
 
 ```shell
 
-pnpm nx release --projects=devops
+moon run devops:pack
 
 ```
 

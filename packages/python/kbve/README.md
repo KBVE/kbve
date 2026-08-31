@@ -14,7 +14,7 @@ This package is part of the [KBVE](https://github.com/kbve/kbve) monorepo, manag
 
 ```bash
 moon run python-kbve:test
-pnpm nx lint python-kbve
+moon run python-kbve:lint
 moon run python-kbve:build
 ```
 

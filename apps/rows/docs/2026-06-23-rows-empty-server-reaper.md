@@ -32,7 +32,7 @@
 ## Global Constraints
 
 - All work in an isolated git worktree off `dev` (per `AGENTS.md`): `./kbve.sh -worktree rows-reaper`. Never commit to `dev`/`main`.
-- Run Nx via `./kbve.sh -nx` in the worktree (sources `.env.local`), never bare `pnpm nx`.
+- Run tasks with `moon run <project>:<task>` from anywhere in the worktree.
 - Build/test the crate with `cargo` inside `apps/rows` (e.g. `cargo test -p rows`), or `moon run rows:test` if a target exists.
 - Conventional commits, no co-author lines. PR targets `dev`.
 - sqlx queries are **runtime** (`sqlx::query`/`query_as`), not the `query!` macro — no `DATABASE_URL` needed to compile, no `.sqlx` cache to update.

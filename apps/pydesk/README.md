@@ -6,6 +6,6 @@ FastAPI application built on the `fudster` library. Provides WebSocket broadcast
 
 ```bash
 moon run pydesk:test
-pnpm nx lint pydesk
+moon run pydesk:lint
 moon run pydesk:build
 ```

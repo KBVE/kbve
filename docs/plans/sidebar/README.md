@@ -168,7 +168,7 @@ No unit layer — pure markup/DOM behavior; e2e is the right altitude.
 ## Rollout
 
 - New git worktree off `dev` (worktrees only; never checkout in main repo; never push dev/main direct).
-- Implement, run `./kbve.sh -nx` build + e2e for astro-kbve.
+- Implement, run the build and e2e tasks for astro-kbve.
 - PR back to `dev`.
 
 ## Appendix — Alpine `x-data` (future, out of scope)

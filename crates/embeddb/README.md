@@ -60,7 +60,7 @@ This crate is an Nx project (`packages/rust/embeddb/project.json`) with `build`,
 ```bash
 moon run embeddb:build
 moon run embeddb:test
-pnpm nx lint embeddb
+moon run embeddb:lint
 ```
 
 ## Usage
