@@ -1029,10 +1029,10 @@ impl QTreeField {
     /// each distinct cylinder crosses the channel once rather than once per tree.
     /// Felled trunks are left out entirely: the sim has no disabled-shape notion, and a
     /// rebuild is what a felling already triggers.
-    #[cfg(not(feature = "rapier3d-sim"))]
+    #[cfg(not(feature = "rapier3d-client"))]
     fn publish_sim_colliders(&mut self) {}
 
-    #[cfg(feature = "rapier3d-sim")]
+    #[cfg(feature = "rapier3d-client")]
     fn publish_sim_colliders(&mut self) {
         let Some(mut phys) = self
             .base()

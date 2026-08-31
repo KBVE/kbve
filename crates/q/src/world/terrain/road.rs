@@ -689,7 +689,7 @@ impl QTerrain {
     ///
     /// The vertices are already world-space -- the bridge is authored where it stands
     /// rather than placed by a transform -- so this hands them over unmoved.
-    #[cfg(not(feature = "rapier3d-sim"))]
+    #[cfg(not(feature = "rapier3d-client"))]
     pub(super) fn publish_sim_slabs(
         &mut self,
         _shapes: &[Gd<CollisionShape3D>],
@@ -698,7 +698,7 @@ impl QTerrain {
     }
 
     /// Mirrors the bridge's boxes into the sim, which has no Godot collision of its own.
-    #[cfg(feature = "rapier3d-sim")]
+    #[cfg(feature = "rapier3d-client")]
     pub(super) fn publish_sim_slabs(
         &mut self,
         shapes: &[Gd<CollisionShape3D>],

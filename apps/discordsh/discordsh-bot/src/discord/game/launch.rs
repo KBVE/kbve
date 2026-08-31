@@ -104,6 +104,7 @@ pub async fn prepare_launch(
         short_id: short_id.clone(),
         owner: pid(user),
         party: Vec::new(),
+        dialogue_memory: Default::default(),
         // Phase 1 of the redesign always launches into Party so the
         // dungeon embed exposes the join button. Solo mode stays in the
         // enum for any internal callers that still need it.

@@ -34,6 +34,7 @@ mod registry;
 pub mod creature;
 
 // Re-export all proto-generated NPC types
+pub use proto::Rarity;
 pub use proto::npc::*;
 
 // Re-export registry types

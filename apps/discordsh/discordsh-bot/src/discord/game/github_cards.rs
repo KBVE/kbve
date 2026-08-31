@@ -12,6 +12,7 @@ use std::collections::HashMap;
 
 use crate::discord::embeds::notice_board_embed::NoticeItem;
 use crate::discord::embeds::task_board_embed::TaskItem;
+use jedi::GitHubIssueExt;
 
 // ── Display structs ─────────────────────────────────────────────────
 

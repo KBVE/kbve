@@ -5,10 +5,11 @@
 // and nothing else. Run from the project directory, which is where moon runs a
 // task; everything below is relative to that.
 //
-// Nx does the first half of this with nxCopyAssetsPlugin and never the second,
-// which is how @kbve/laser 0.2.0 shipped bundles importing chunk files its
-// `files` glob excluded -- every entry point 404s on first import, and nothing
-// in the repository could have noticed.
+// The second half is the point. Copying the manifest beside the bundles is not
+// the same as proving the tarball resolves, and for a long time nothing did the
+// latter: @kbve/laser 0.2.0 shipped bundles importing chunk files its `files`
+// glob excluded -- every entry point 404s on first import, and nothing in the
+// repository could have noticed.
 //
 // Reads:
 //   NPM_DIST   directory the build wrote to, relative to the project (default: dist)

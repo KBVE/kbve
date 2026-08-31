@@ -1295,6 +1295,7 @@ mod tests {
             short_id,
             owner: OWNER,
             party: Vec::new(),
+            dialogue_memory: Default::default(),
             mode: SessionMode::Solo,
             phase: GamePhase::Exploring,
             created_at: Instant::now(),

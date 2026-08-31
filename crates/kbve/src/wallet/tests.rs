@@ -21,7 +21,7 @@ const TEST_URL_ENV: &str = "WALLET_TEST_DATABASE_URL";
 
 async fn client() -> Option<WalletClient> {
     let url = env::var(TEST_URL_ENV).ok()?;
-    env::set_var("WALLET_DATABASE_URL", &url);
+    unsafe { env::set_var("WALLET_DATABASE_URL", &url) };
     Some(WalletClient::from_env().await.expect("client from_env"))
 }
 

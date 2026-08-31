@@ -547,7 +547,7 @@ impl QTerrain {
 
     /// The sim bridge only exists in builds that carry the rapier module; `default`
     /// consumers get the same world without it.
-    #[cfg(feature = "rapier3d-sim")]
+    #[cfg(feature = "rapier3d-client")]
     fn despawn_sim_bridge(&mut self, taken: PackedInt64Array) {
         if taken.is_empty() {
             return;
@@ -561,7 +561,7 @@ impl QTerrain {
         }
     }
 
-    #[cfg(not(feature = "rapier3d-sim"))]
+    #[cfg(not(feature = "rapier3d-client"))]
     fn despawn_sim_bridge(&mut self, _taken: PackedInt64Array) {}
 
     fn finish_init(&mut self, heights: Vec<f32>) {

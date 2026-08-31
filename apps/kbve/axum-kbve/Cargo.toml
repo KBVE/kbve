@@ -73,6 +73,7 @@ webpki-roots = { workspace = true }
 # Workspace path dependencies
 jedi = { path = "../../../crates/jedi", features = ["aws", "clickhouse", "forgejo", "postgres", "valkey"] }
 kbve = { path = "../../../crates/kbve", features = ["wallet"] }
+holy = { version = "0.2.2", path = "../../../crates/holy" }
 uuid = { workspace = true, features = ["v4", "v5", "serde"] }
 
 # Referral handler hashes client IP + subnet before any DB write.

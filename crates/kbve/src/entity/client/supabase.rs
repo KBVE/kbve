@@ -560,8 +560,10 @@ mod tests {
     #[test]
     fn test_from_env_returns_none_without_vars() {
         // Env vars won't be set in test, so from_env should return None
-        std::env::remove_var("SUPABASE_URL");
-        std::env::remove_var("SUPABASE_SERVICE_ROLE_KEY");
+        unsafe {
+            std::env::remove_var("SUPABASE_URL");
+            std::env::remove_var("SUPABASE_SERVICE_ROLE_KEY");
+        }
         assert!(SupabaseClient::from_env().is_none());
     }
 }

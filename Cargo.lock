@@ -2374,6 +2374,7 @@ dependencies = [
  "dotenvy",
  "futures-util",
  "hmac 0.13.0",
+ "holy",
  "http 1.4.2",
  "http-body-util",
  "jedi",

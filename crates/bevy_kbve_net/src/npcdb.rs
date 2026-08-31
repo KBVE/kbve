@@ -115,7 +115,7 @@ pub fn build_creature_registry() -> CreatureRegistry {
             r#ref: "meadow-firefly".into(),
             name: "Meadow Firefly".into(),
             family: npc_types::CreatureFamily::Spirit as i32,
-            rarity: npc_types::NpcRarity::Common as i32,
+            rarity: npc_types::Rarity::Common as i32,
             level: 1,
             stats: Some(npc_types::NpcStats {
                 hp: 1,
@@ -164,7 +164,7 @@ pub fn build_creature_registry() -> CreatureRegistry {
             r#ref: "woodland-butterfly".into(),
             name: "Woodland Butterfly".into(),
             family: npc_types::CreatureFamily::Beast as i32,
-            rarity: npc_types::NpcRarity::Common as i32,
+            rarity: npc_types::Rarity::Common as i32,
             level: 1,
             stats: Some(npc_types::NpcStats {
                 hp: 1,
@@ -213,7 +213,7 @@ pub fn build_creature_registry() -> CreatureRegistry {
             r#ref: "green-toad".into(),
             name: "Green Toad".into(),
             family: npc_types::CreatureFamily::Beast as i32,
-            rarity: npc_types::NpcRarity::Common as i32,
+            rarity: npc_types::Rarity::Common as i32,
             level: 1,
             stats: Some(npc_types::NpcStats {
                 hp: 3,
@@ -261,7 +261,7 @@ pub fn build_creature_registry() -> CreatureRegistry {
             r#ref: "wraith-executioner".into(),
             name: "Wraith Executioner".into(),
             family: npc_types::CreatureFamily::Undead as i32,
-            rarity: npc_types::NpcRarity::Epic as i32,
+            rarity: npc_types::Rarity::Epic as i32,
             level: 4,
             stats: Some(npc_types::NpcStats {
                 hp: 40,
@@ -312,7 +312,7 @@ pub fn build_creature_registry() -> CreatureRegistry {
             r#ref: "forest-wolf".into(),
             name: "Forest Wolf".into(),
             family: npc_types::CreatureFamily::Beast as i32,
-            rarity: npc_types::NpcRarity::Uncommon as i32,
+            rarity: npc_types::Rarity::Uncommon as i32,
             level: 3,
             stats: Some(npc_types::NpcStats {
                 hp: 25,
@@ -363,7 +363,7 @@ pub fn build_creature_registry() -> CreatureRegistry {
             r#ref: "woodland-stag".into(),
             name: "Woodland Stag".into(),
             family: npc_types::CreatureFamily::Beast as i32,
-            rarity: npc_types::NpcRarity::Uncommon as i32,
+            rarity: npc_types::Rarity::Uncommon as i32,
             level: 2,
             stats: Some(npc_types::NpcStats {
                 hp: 18,
@@ -413,7 +413,7 @@ pub fn build_creature_registry() -> CreatureRegistry {
             r#ref: "wild-boar".into(),
             name: "Wild Boar".into(),
             family: npc_types::CreatureFamily::Beast as i32,
-            rarity: npc_types::NpcRarity::Common as i32,
+            rarity: npc_types::Rarity::Common as i32,
             level: 2,
             stats: Some(npc_types::NpcStats {
                 hp: 20,
@@ -464,7 +464,7 @@ pub fn build_creature_registry() -> CreatureRegistry {
             r#ref: "honey-badger".into(),
             name: "Honey Badger".into(),
             family: npc_types::CreatureFamily::Beast as i32,
-            rarity: npc_types::NpcRarity::Uncommon as i32,
+            rarity: npc_types::Rarity::Uncommon as i32,
             level: 3,
             stats: Some(npc_types::NpcStats {
                 hp: 22,
