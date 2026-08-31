@@ -1,0 +1,144 @@
+# One project rather than one per script. The wmill CLI owns the tree under
+# f/: it decides the paths, writes the .script.yaml sidecars, and syncs both
+# directions with the running instance. Splitting it into moon projects would
+# put two owners on the same files.
+layer: 'application'
+language: 'typescript'
+stack: 'backend'
+tags: ['service', 'windmill']
+
+owners:
+    defaultOwner: '@h0lybyte'
+
+fileGroups:
+    scripts:
+        - 'f/**/*'
+    config:
+        - 'wmill.yaml'
+
+# The CLI is not a repository dependency: kbve installs into one root
+# node_modules, and this version is pinned to the deployed Windmill server
+# image rather than to whatever the lockfile resolved. Bump it alongside the
+# image in apps/kube/windmill.
+env:
+    WMILL_CLI_VERSION: '1.751.0'
+    WMILL_WORKSPACE: 'kbve'
+    # The API is ClusterIP-only and windmill.kbve.com sits behind the staff-JWT
+    # gate, so the deploy lane has to run from inside the cluster. Read by
+    # tools/deploy/plan.mjs as the runs-on label.
+    DEPLOY_RUNNER: 'arc-runner-set-kbve'
+    WMILL_BASE_URL: 'http://windmill-app.windmill.svc.cluster.local:8000'
+
+tasks:
+    # Registers the workspace with the CLI. Split out rather than made a dep of
+    # the others: it needs a superadmin token, and a laptop that already ran it
+    # once should not be asked for one on every `moon run windmill:check`. The
+    # deploy lane runs it because a fresh runner has no CLI config at all.
+    configure:
+        script: |
+            if [ -z "${WMILL_TOKEN:-}" ]; then
+              echo "WMILL_TOKEN is not set. It is the Windmill superadmin token; CI reads it from the WINDMILL_SUPERADMIN_TOKEN secret." >&2
+              exit 1
+            fi
+            npx --yes "windmill-cli@$WMILL_CLI_VERSION" workspace add \
+              "$WMILL_WORKSPACE" "$WMILL_WORKSPACE" "$WMILL_BASE_URL" --token "$WMILL_TOKEN"
+        toolchains: ['node']
+        options:
+            cache: false
+            runInCI: false
+
+    # Writes the lockfiles the instance needs to resolve imports. Only the two
+    # folders whose scripts import anything; the rest are dependency-free and
+    # would spend a runner minute to produce an empty lock.
+    metadata:
+        command:
+            - 'npx'
+            - '--yes'
+            - 'windmill-cli@$WMILL_CLI_VERSION'
+            - 'generate-metadata'
+            - '--workspace'
+            - '$WMILL_WORKSPACE'
+            - '--lock-only'
+            - '--yes'
+            - '--includes'
+            - 'f/discordsh/**,f/shared/**'
+        toolchains: ['node']
+        options:
+            cache: false
+            runInCI: false
+
+    # What a push would change, without changing it.
+    check:
+        command:
+            - 'npx'
+            - '--yes'
+            - 'windmill-cli@$WMILL_CLI_VERSION'
+            - 'sync'
+            - 'push'
+            - '--workspace'
+            - '$WMILL_WORKSPACE'
+            - '--skip-variables'
+            - '--dry-run'
+        toolchains: ['node']
+        options:
+            cache: false
+            runInCI: false
+
+    # Pulls the instance into the repo. Run this after anyone edits in the
+    # Windmill UI, or the next push overwrites their change.
+    pull:
+        command:
+            - 'npx'
+            - '--yes'
+            - 'windmill-cli@$WMILL_CLI_VERSION'
+            - 'sync'
+            - 'pull'
+            - '--workspace'
+            - '$WMILL_WORKSPACE'
+            - '--yes'
+        toolchains: ['node']
+        options:
+            cache: false
+            runInCI: false
+
+    # Fails when the instance holds something the repo does not, which is what
+    # a UI edit looks like. Without this the UI quietly becomes the source of
+    # truth and the next push reverts it.
+    drift:
+        command: 'node tools/drift.mjs'
+        toolchains: ['node']
+        inputs:
+            - '@group(scripts)'
+            - '@group(config)'
+            - 'tools/drift.mjs'
+        options:
+            cache: false
+            # Needs a workspace token and an in-cluster route to the API, so it runs
+            # from its own workflow rather than failing `moon ci` for everyone else.
+            runInCI: false
+
+    # What the deploy lane runs. `ship` rather than `deploy` because `deploy` is
+    # already taken repository-wide for running a container on your laptop.
+    #
+    # Idempotent by contract: the lane ships every service on any services/**
+    # push rather than working out which one changed, and `sync push` against an
+    # unchanged tree is a no-op.
+    #
+    # --skip-variables because the workspace variables and secrets are owned by
+    # the ExternalSecret in apps/kube/windmill, not by this tree.
+    ship:
+        deps: ['~:metadata']
+        command:
+            - 'npx'
+            - '--yes'
+            - 'windmill-cli@$WMILL_CLI_VERSION'
+            - 'sync'
+            - 'push'
+            - '--workspace'
+            - '$WMILL_WORKSPACE'
+            - '--skip-variables'
+            - '--yes'
+        toolchains: ['node']
+        options:
+            cache: false
+            runInCI: false

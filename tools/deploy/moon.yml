@@ -1,0 +1,19 @@
+# Builds the deploy matrix from the project graph. Not a released thing itself.
+layer: 'tool'
+language: 'javascript'
+stack: 'infrastructure'
+
+owners:
+    defaultOwner: '@h0lybyte'
+
+tasks:
+    # A project tagged 'service' with no 'ship' task is invisible until the
+    # lane tries to run it, and by then it is a failed push to main. `lint`
+    # rather than a task of its own, so `moon ci` reaches it.
+    lint:
+        command: 'node plan.mjs --check'
+        toolchains: ['node']
+        options:
+            # Reads the whole project graph rather than a file list, so there
+            # is nothing honest to hash as an input.
+            cache: false

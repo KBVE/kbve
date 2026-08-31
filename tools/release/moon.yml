@@ -12,3 +12,15 @@ tasks:
         toolchains: ['node']
         inputs:
             - '*.mjs'
+
+    # A stale release pin or a lane tag with no version behind it is invisible
+    # until someone pushes the tag, and then it is either a failed release or --
+    # worse -- a green one that never reached the cluster. `lint` rather than a
+    # task of its own, so `moon ci` reaches it.
+    lint:
+        command: 'node audit.mjs'
+        toolchains: ['node']
+        options:
+            # Reads the whole project graph and the files it points at, so
+            # there is nothing honest to hash as an input.
+            cache: false

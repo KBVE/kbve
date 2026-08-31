@@ -42,6 +42,9 @@ projects:
         # Commit message validation, and the scope lock the hook reads.
         commit: 'tools/commit'
 
+        # Builds the deploy matrix in deploy.yml off the 'service' tag.
+        deploy-tools: 'tools/deploy'
+
         # Docker publishing helpers, shared by the release lane.
         docker-tools: 'tools/docker'
 
@@ -235,6 +238,11 @@ projects:
         # Remaining
         iot-edge-worker: 'apps/vm/iot/edge-worker'
         metrics-e2e: 'apps/metrics/e2e'
+
+        # Services: deployed infrastructure that is configured here rather than
+        # built here. windmill is the first; the tree is a wmill CLI checkout of
+        # the running instance, not an application with a build.
+        windmill: 'services/windmill'
 
 vcs:
     defaultBranch: 'dev'
