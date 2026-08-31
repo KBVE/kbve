@@ -115,7 +115,6 @@ projects:
         # Python (uv)
         fudster: 'packages/python/fudster'
         graphify-wrapper: 'packages/python/graphify-wrapper'
-        pydesk: 'apps/pydesk'
         # crates/kbve owns 'kbve' in the graph, and two projects cannot share
         # an id. Only the graph cares -- the directory, the distribution and
         # `pip install kbve` all stay kbve.
