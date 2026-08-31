@@ -44,7 +44,7 @@ ARG TOCLOUD9_REF=fdc6fa32ddb0964077f5eb11127987489fd66f27
 ARG AC_REPO=https://github.com/KBVE/azerothcore-wotlk.git
 ARG AC_REF=edcbff3c7fa3fde2e9a097236d825a24975e981e
 ARG PLAYERBOTS_REPO=https://github.com/KBVE/mod-playerbots.git
-ARG PLAYERBOTS_REF=2e1fb030112318598141385b68c9dc7eb75a7a24
+ARG PLAYERBOTS_REF=21f95d45bfd7b9bdec3d02850f0bea4afe7d10cf
 
 FROM ubuntu:22.04 AS source
 
