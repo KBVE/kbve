@@ -43,6 +43,39 @@ projects:
         # Writes the icon catalogue into astro-rareicon's content directory
         icons-codegen: 'apps/rareicon/icons-codegen'
 
+        # Desktop shells (tauri)
+        chuck-launcher: 'apps/chuckrpg/chuck-launcher'
+        deathslayer-launcher: 'apps/deathslayer/deathslayer-launcher'
+        desktop-kbve: 'apps/kbve/desktop-kbve'
+        isometric: 'apps/kbve/isometric'
+
+        # Published npm packages
+        astro: 'packages/npm/astro'
+        devops: 'packages/npm/devops'
+        droid: 'packages/npm/droid'
+        khashvault: 'packages/npm/khashvault'
+        laser: 'packages/npm/laser'
+
+        # Python (uv)
+        fudster: 'packages/python/fudster'
+        graphify-wrapper: 'packages/python/graphify-wrapper'
+        notification-bot: 'apps/discordsh/notification-bot'
+        pydesk: 'apps/pydesk'
+        # crates/kbve owns 'kbve' in the graph, and two projects cannot share
+        # an id. Only the graph cares -- the directory, the distribution and
+        # `pip install kbve` all stay kbve.
+        kbve-py: 'packages/python/kbve'
+
+        # Rust: two libraries and two services, as the proving set for rust.yml
+        embeddb-derive: 'packages/rust/embeddb-derive'
+        jedi: 'packages/rust/jedi'
+        agones-shim: 'apps/agones/shim'
+        met: 'apps/metrics'
+
+        # Godot
+        godot-friendslop: 'apps/friendslop/godot-friendslop'
+        q: 'packages/rust/q'
+
 vcs:
     defaultBranch: 'dev'
     provider: 'github'

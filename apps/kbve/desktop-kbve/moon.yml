@@ -1,0 +1,32 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+stack: 'frontend'
+tags: ['tauri', 'vite', 'vitest']
+
+env:
+    TAURI_DEV_PORT: '1421'
+
+tasks:
+    install-deps:
+        command: 'pnpm install --frozen-lockfile'
+        toolchains: ['node']
+        inputs: ['package.json']
+        env:
+            CI: 'true'
+        options:
+            cache: false
+
+    build:
+        deps: ['~:install-deps']
+
+    test:
+        deps: ['~:install-deps']
+
+    build-sidecars:
+        script: 'cd src-tauri && bash sidecars/build.sh'
+
+    build-tauri:
+        deps: ['~:build-sidecars']
+        command: 'cargo tauri build'

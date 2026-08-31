@@ -1,0 +1,34 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'library'
+language: 'rust'
+
+# The gdextension the Godot project loads. Tagged rust for build/test/lint, but
+# every shipping task here is a cross-compile plus a copy into the game's
+# addons/ directory, so those stay local.
+tags: ['rust']
+
+tasks:
+    # Nightly and build-std: the extension is built with panic_abort against a
+    # rebuilt std, which stable cargo cannot do.
+    build-mac:
+        script: 'cargo +nightly build -Z build-std=std,panic_abort -Z unstable-options --features net-godot --target aarch64-apple-darwin --artifact-dir dist/macos --release'
+        outputs: ['dist/macos']
+
+    build-ios:
+        command: 'cargo build --features net-godot --target aarch64-apple-ios --release'
+
+    # Copies the dylib into the game and signs it. Codesigning is why this exists
+    # as a task rather than a build output moon moves: an unsigned dylib loads on
+    # the build machine and is rejected everywhere else.
+    deploy-mac:
+        deps: ['~:build-mac']
+        script: 'mkdir -p $workspaceRoot/apps/friendslop/godot-friendslop/addons/q/macos && cp dist/macos/libq.dylib $workspaceRoot/apps/friendslop/godot-friendslop/addons/q/macos/libq.dylib && bash scripts/sign-dylib.sh $workspaceRoot/apps/friendslop/godot-friendslop/addons/q/macos/libq.dylib'
+        options:
+            cache: false
+
+    deploy-ios:
+        deps: ['~:build-ios']
+        script: 'mkdir -p $workspaceRoot/apps/friendslop/godot-friendslop/addons/q/ios/libq.framework && cp $workspaceRoot/dist/target/aarch64-apple-ios/release/libq.dylib $workspaceRoot/apps/friendslop/godot-friendslop/addons/q/ios/libq.framework/libq'
+        options:
+            cache: false

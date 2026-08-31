@@ -1,0 +1,38 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+stack: 'frontend'
+tags: ['tauri']
+
+env:
+    TAURI_DEV_PORT: '1420'
+
+tasks:
+    # The wasm bundle has to exist before the dev server starts, unlike the other
+    # three apps.
+    dev:
+        script: 'lsof -ti:$TAURI_DEV_PORT | xargs kill 2>/dev/null; pnpm build:wasm && pnpm dev'
+
+    serve-dist:
+        command: 'node scripts/serve-coi.mjs'
+        toolchains: ['node']
+        preset: 'server'
+
+    quick:
+        script: 'bash $workspaceRoot/scripts/deploy_isometric_quick.sh'
+        options:
+            cache: false
+
+    # Copies the built bundle into astro-kbve's public/ and stages it. Writes
+    # into another project, so it is not part of any build.
+    deploy:
+        deps: ['~:build']
+        script: 'rm -rf ../astro-kbve/public/isometric && mkdir -p ../astro-kbve/public && cp -r dist ../astro-kbve/public/isometric'
+        options:
+            cache: false
+
+    run:
+        command: 'cargo run -p isometric-game'
+        options:
+            runFromWorkspaceRoot: true

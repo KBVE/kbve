@@ -1,0 +1,10 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'rust'
+tags: ['rust', 'docker']
+
+tasks:
+    # The Nx target tagged this one explicitly rather than taking kbve/$project.
+    container:
+        args: ['-t', 'kbve/metrics:latest']

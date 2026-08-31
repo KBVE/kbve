@@ -1,3 +1,9 @@
 node = "24.10.0"
 pnpm = "11.15.0"
 moon = "2.5.3"
+
+# Pinned to match uv.toml at the repo root, which uv itself enforces. The
+# interpreter is deliberately not pinned here: uv resolves it from each
+# project's .python-version and downloads its own build, so a pin here would be
+# a second claim that loses silently. proto pins uv; uv pins python.
+uv = "0.11.29"

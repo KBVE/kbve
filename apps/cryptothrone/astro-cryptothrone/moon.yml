@@ -3,23 +3,14 @@ $schema: 'https://moonrepo.dev/schemas/project.json'
 layer: 'application'
 language: 'typescript'
 stack: 'frontend'
-tags: ['astro']
+tags: ['astro', 'lfs']
 
+env:
+    LFS_REMOTE: 'cryptothrone'
+
+# The art lives behind the cryptothrone LFS remote; the 'lfs' tag is what
+# fetches it and hangs it off build.
 tasks:
-    # Art lives in the cryptothrone LFS remote, not in git proper. Failure is
-    # tolerated on purpose: without credentials or offline the build still runs
-    # and the assets stay pointer stubs, which is the behaviour the Nx target had.
-    lfs-pull:
-        script: >-
-            (cd "$(git rev-parse --show-toplevel)" && ./kbve.sh -lfs cryptothrone pull
-            --include='apps/cryptothrone/astro-cryptothrone/public/assets/**')
-            || echo 'cryptothrone LFS pull skipped (no creds / offline) — assets may be pointer stubs'
-        options:
-            cache: false
-
-    build:
-        deps: ['~:lfs-pull']
-
     # Two standalone Vite bundles served from public/. Not build deps: the Nx
     # targets were not either, and both are rebuilt on their own cadence.
     build-embed:

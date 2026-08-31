@@ -1,0 +1,32 @@
+$schema: 'https://moonrepo.dev/schemas/tasks.json'
+
+# Inherited by every project tagged 'docker'.
+#
+# Replaces @nx-tools/nx-container:build, which has no moon counterpart -- the
+# 49 of these are the largest hand-written part of the migration. The executor
+# options were uniform, though: engine docker, context ".", file
+# <projectSource>/Dockerfile, load true, and sometimes an explicit tag. So the
+# command below is the executor, and a project overrides `args` only when its
+# Dockerfile is somewhere else or it needs build args.
+#
+# The context is the workspace root for all of them: these images copy from
+# packages/ and from the Cargo workspace, so a project-scoped context would not
+# see its own dependencies.
+inheritedBy:
+    tag: 'docker'
+
+tasks:
+    container:
+        command: >-
+            docker buildx build --load
+            -f $projectSource/Dockerfile
+            -t kbve/$project:latest
+            .
+        inputs:
+            - 'Dockerfile'
+            - '@group(sources)'
+        options:
+            runFromWorkspaceRoot: true
+            # The image lands in the local docker daemon, not in a path moon can
+            # hash, so there is no output to cache against.
+            cache: false

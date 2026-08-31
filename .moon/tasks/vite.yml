@@ -1,0 +1,35 @@
+$schema: 'https://moonrepo.dev/schemas/tasks.json'
+
+# Inherited by every project tagged 'vite'.
+#
+# Nx got these targets two ways -- @nx/vite:build declared in project.json, and
+# @nx/vite/plugin inferring a build for any project with a vite.config. The
+# inferred half has no configuration anywhere to port, so a tag is what makes
+# those projects portable at all: roughly 64 of them have a build, test or
+# serve that exists only because a plugin conjured it.
+#
+# Each config is self-sufficient -- root, outDir and lib.entry are all in the
+# file, and the Nx executor's outputPath/main/tsConfig options only restated
+# them -- so the command needs no arguments. `outputs` cannot be shared for the
+# same reason it can for astro: outDir varies per project, so each declares it.
+inheritedBy:
+    tag: 'vite'
+
+fileGroups:
+    sources:
+        - 'src/**/*'
+    configs:
+        - 'vite.config.*'
+        - 'tsconfig*.json'
+
+tasks:
+    build:
+        command: 'vite build'
+        toolchains: ['node']
+        inputs: ['@group(sources)', '@group(configs)']
+
+    preview:
+        command: 'vite preview'
+        toolchains: ['node']
+        preset: 'server'
+        deps: ['~:build']
