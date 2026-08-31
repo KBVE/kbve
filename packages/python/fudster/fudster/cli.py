@@ -332,7 +332,7 @@ def grpc_health(target: str, timeout: float) -> None:
     import asyncio
     from kbve.grpc.client import check_health
 
-    result = asyncio.get_event_loop().run_until_complete(check_health(target, timeout=timeout))
+    result = asyncio.run(check_health(target, timeout=timeout))
     if result["healthy"]:
         click.secho(
             f"  {target} -> {result['status']}",

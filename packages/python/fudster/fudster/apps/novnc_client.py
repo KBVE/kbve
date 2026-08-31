@@ -64,7 +64,7 @@ class NoVNCClient:
             await server.close()
 
     def start_websockify_server(self, target_host: str, target_port: int):
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         loop.run_in_executor(None, self._websockify_server, target_host, target_port)
 
     def _websockify_server(self, target_host: str, target_port: int):

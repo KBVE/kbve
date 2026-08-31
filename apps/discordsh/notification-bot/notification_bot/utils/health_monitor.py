@@ -187,7 +187,7 @@ class HealthMonitor:
         """Update cached health data (thread-safe)"""
         async with self._update_lock:
             # Run the blocking psutil calls in a thread pool
-            loop = asyncio.get_event_loop()
+            loop = asyncio.get_running_loop()
             health_data = await loop.run_in_executor(None, self._collect_health_data)
 
             self._cached_health_data = health_data

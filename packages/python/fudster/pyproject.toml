@@ -4,7 +4,7 @@ version = "1.0.3"
 description = "Fudster - A composable ML library for haystack-ai and pgvector integrations"
 readme = "README.md"
 license = "LicenseRef-Proprietary"
-requires-python = ">=3.12,<3.14"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "kbve>=0.1.0",
     "pydantic>=1.10,<3.0",

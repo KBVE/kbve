@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "KBVE wrapper for Graphify knowledge graph generation with Nx integration"
 readme = "README.md"
 license = "MIT"
-requires-python = ">=3.12,<3.13"
+requires-python = ">=3.14,<3.15"
 dependencies = [
     "graphifyy[neo4j,pdf,sql]>=0.1.0,<1.0",
     "pyyaml>=6.0,<7.0",
