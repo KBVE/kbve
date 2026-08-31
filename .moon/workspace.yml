@@ -29,6 +29,7 @@ projects:
     sources:
         # Sites
         astro-chuckrpg: 'apps/chuckrpg/astro-chuckrpg'
+        astro-kbve: 'apps/kbve/astro-kbve'
         astro-cryptothrone: 'apps/cryptothrone/astro-cryptothrone'
         astro-discordsh: 'apps/discordsh/astro-discordsh'
         astro-herbmail: 'apps/herbmail/astro-herbmail'
@@ -79,6 +80,30 @@ projects:
         # Rust services still under apps/; the libraries moved to crates/.
         agones-shim: 'apps/agones/shim'
         met: 'apps/metrics'
+        agones-factorio-relay: 'apps/agones/factorio/relay'
+        agones-palworld-relay: 'apps/agones/palworld/relay'
+        arpg-server: 'apps/agones/arpg/server'
+        axum-chuckrpg: 'apps/chuckrpg/axum-chuckrpg'
+        axum-cryptothrone: 'apps/cryptothrone/axum-cryptothrone'
+        axum-discordsh: 'apps/discordsh/axum-discordsh'
+        axum-herbmail: 'apps/herbmail/axum-herbmail'
+        axum-kbve: 'apps/kbve/axum-kbve'
+        axum-memes: 'apps/memes/axum-memes'
+        axum-rareicon: 'apps/rareicon/axum-rareicon'
+        axum-rentearth: 'apps/rentearth/axum-rentearth'
+        cryptothrone-server: 'apps/agones/cryptothrone/server'
+        discordsh-bot: 'apps/discordsh/discordsh-bot'
+        factorio-ctl: 'apps/vm/factorio-ctl'
+        firecracker-ctl: 'apps/vm/firecracker-ctl'
+        friendslop-server: 'apps/agones/friendslop/server'
+        herbmail-server: 'apps/agones/herbmail/server'
+        irc-gateway: 'apps/irc/irc-gateway'
+        jobboard: 'apps/jobboard'
+        kbve-gate: 'apps/kbve/kbve-gate'
+        kbve-kubectl: 'apps/vm/kubectl'
+        kilobase: 'apps/kbve/kilobase'
+        reel: 'apps/media/reel'
+        rows: 'apps/rows'
 
         # Godot
         godot-friendslop: 'apps/friendslop/godot-friendslop'

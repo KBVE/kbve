@@ -1,0 +1,27 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'rust'
+tags: ['rust', 'docker']
+
+tasks:
+    dev:
+        script: 'STATIC_DIR=./dist/apps/astro-irc STATIC_PRECOMPRESSED=false ERGO_WS_URL=ws://localhost:8080 ERGO_IRC_HOST=localhost ERGO_IRC_PORT=6667 cargo run -p irc-gateway'
+        deps: ['astro-irc:build']
+        options:
+            runFromWorkspaceRoot: true
+    e2e:
+        script: 'nx e2e irc-e2e'
+        deps: ['~:test']
+        options:
+            runFromWorkspaceRoot: true
+    deploy:
+        script: "docker rm -f irc-gateway-local 2>/dev/null || true && lsof -ti:4321 | xargs kill -9 2>/dev/null || true && nx container irc-gateway --configuration=local --no-cloud && VERSION=$(grep '^version' apps/irc/irc-gateway/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker run --rm --name irc-gateway-local -p 4321:4321 -e JWT_SECRET=local-dev-secret kbve/irc-gateway:$VERSION"
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    containerx:
+        script: 'docker buildx build --load -f apps/irc/irc-gateway/Dockerfile -t kbve/irc-gateway:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false

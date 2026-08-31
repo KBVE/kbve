@@ -1,0 +1,32 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'rust'
+tags: ['rust', 'docker']
+
+tasks:
+    web-dev:
+        script: 'cd web && npm run dev'
+        options:
+            cache: false
+    web-build:
+        script: 'cd web && npm run build'
+        outputs: ['web/dist']
+    serve-static:
+        script: 'JOBBOARD_WEB_DIR=apps/jobboard/web/dist cargo run -p jobboard'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    dev:
+        script: 'bash -c ''set -o pipefail; : > jobboards.txt; docker compose up --build 2>&1 | tee /dev/stderr | { grep -iE "error|fail|fatal|panic|unhealthy|exited with code [1-9]|didn.t complete" >> jobboards.txt || true; }; exit ${PIPESTATUS[0]}'''
+        options:
+            cache: false
+    down:
+        script: 'docker compose down -v'
+        options:
+            cache: false
+    containerx:
+        script: 'docker buildx build --load -f apps/jobboard/Dockerfile -t kbve/jobboard:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false

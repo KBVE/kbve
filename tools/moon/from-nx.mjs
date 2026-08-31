@@ -54,6 +54,14 @@ export function detectTags(dir) {
 	if (glob(/^playwright.*\.config\./)) tags.push('playwright');
 	if (glob(/^vite\.config\./)) tags.push('vite');
 	if (glob(/^vitest.*\.config\./)) tags.push('vitest');
+
+	// A rust service with a vitest config runs vitest over a live container, not
+	// over its own sources: `test` is cargo's and the suite is the `e2e` target,
+	// which project.json spells out. Both tags define `test`, so keeping vitest
+	// here would leave which one wins to inheritance order.
+	if (tags.includes('rust') && tags.includes('vitest')) {
+		return tags.filter((t) => t !== 'vitest');
+	}
 	return tags;
 }
 
@@ -61,21 +69,33 @@ export function detectTags(dir) {
 // becomes a deps-only task: keeping the command would leave moon shelling out
 // to the runner it replaces.
 const NX_CALL =
-	/^\s*(?:npx |pnpm |pnpm exec )?nx (?:run )?([a-zA-Z0-9_.@/-]+):([a-zA-Z0-9_:.-]+)|^\s*(?:npx |pnpm |pnpm exec )?nx ([a-z-]+) ([a-zA-Z0-9_.@/-]+)/;
+	/^\s*(?:npx |pnpm |pnpm exec |\.\/kbve\.sh -)?nx (?:run )?([a-zA-Z0-9_.@/-]+):([a-zA-Z0-9_:.-]+)$|^\s*(?:npx |pnpm |pnpm exec |\.\/kbve\.sh -)?nx ([a-z-]+) ([a-zA-Z0-9_.@/-]+)$/;
 
-function asNxDeps(raw, self) {
+// Splits a target's commands into the runner calls it makes and the work it
+// does itself. A call to the runner is a dependency, not a command: leaving it
+// in the script would have moon shell out to the tool it replaces, and the
+// two graphs would then both believe they own the ordering.
+//
+// A target that is nothing but runner calls is an alias, and becomes deps-only.
+// A mixed one -- `nx astro-kbve:build && cargo run` is the common shape here --
+// keeps its own half as the script and hoists the rest into deps.
+function hoistNxDeps(raw, self) {
 	const deps = [];
+	const rest = [];
 	for (const cmd of raw) {
-		for (const part of cmd.split(/&&|;/)) {
+		for (const part of cmd.split(/&&/)) {
 			const t = part.trim();
 			if (!t) continue;
 			const m = t.match(NX_CALL);
-			if (!m) return null; // something other than an nx call: keep the script
+			if (!m) {
+				rest.push(t);
+				continue;
+			}
 			const [proj, task] = m[1] ? [m[1], m[2]] : [m[4], m[3]];
 			deps.push(proj === self ? '~:' + taskId(task) : `${proj}:${taskId(task)}`);
 		}
 	}
-	return deps.length ? [...new Set(deps)] : null;
+	return { deps: [...new Set(deps)], rest };
 }
 
 const token = (s, dir) =>
@@ -86,42 +106,83 @@ const token = (s, dir) =>
 		.replaceAll('{projectRoot}', '.')
 		.replace(new RegExp('^/' + dir.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '/'), '');
 
-const dep = (d, dir) => {
+// `own` is the project's own target names. Nx allows a colon inside one, so
+// `solitaire:snapshot-npcdb` is a single target here rather than a reference to
+// a `solitaire` project -- and this repo has 120 of them. A dependency has to be
+// read against that set before it can be read as project:task.
+const dep = (d, dir, self, own = new Set()) => {
 	if (typeof d === 'string') {
 		if (d.startsWith('^')) return '^:' + d.slice(1);
-		return d.includes(':') ? d.replace(/:(.+)$/, (m, t) => ':' + taskId(t)) : '~:' + taskId(d);
+		if (own.has(d)) return '~:' + taskId(d);
+		if (!d.includes(':')) return '~:' + taskId(d);
+		const [proj, ...rest] = d.split(':');
+		const task = taskId(rest.join(':'));
+		return proj === self ? '~:' + task : `${proj}:${task}`;
 	}
 	const target = taskId(d.target ?? '');
 	const projects = d.projects;
 	if (!projects || projects === 'self') return '~:' + target;
 	if (projects === 'dependencies') return '^:' + target;
 	const list = Array.isArray(projects) ? projects : [projects];
-	return list.map((p) => `${p}:${target}`);
+	return list.map((p) => (p === self ? '~:' + target : `${p}:${target}`));
 };
+
+// @nx-tools/nx-container:build in terms of the CLI it wraps.
+//
+// Only the local build is translated. The `production` configuration on these
+// targets differs by pushing to a registry with a build cache, and that is CI's
+// job rather than a task anyone runs at a terminal -- CI publishing is being
+// moved onto git tags separately, so encoding it here would date immediately.
+function containerScript(target, project) {
+	const o = { ...(target.options ?? {}), ...(target.configurations?.local ?? {}) };
+	const meta = o.metadata ?? {};
+	const tags =
+		o.tags ??
+		(meta.images ?? []).flatMap((image) => (meta.tags ?? ['latest']).map((t) => `${image}:${t}`));
+	const args = ['docker', 'buildx', 'build', '--load'];
+	if (o.target) args.push('--target', o.target);
+	if (o.platforms?.length) args.push('--platform', o.platforms.join(','));
+	args.push('-f', o.file);
+	for (const t of tags.length ? tags : [`kbve/${project}:latest`]) args.push('-t', t);
+	args.push(o.context ?? '.');
+	return args.join(' ');
+}
 
 export function convert(dir, tags) {
 	const nx = JSON.parse(readFileSync(path.join(dir, 'project.json'), 'utf8'));
 	const provided = new Set(tags.flatMap((t) => PRESET_TASKS[t] ?? []));
+	const own = new Set(Object.keys(nx.targets ?? {}));
 	const tasks = {};
 
 	for (const [name, target] of Object.entries(nx.targets ?? {})) {
 		const id = taskId(name);
 		const o = target.options ?? {};
 		const raw = o.command ? [o.command] : (o.commands ?? []).map((c) => (typeof c === 'string' ? c : c.command));
-		if (!raw.length) continue; // executor-driven; a preset covers it or it is ported by hand
+		if (!raw.length) {
+			// The one executor with a mechanical translation. Everything else
+			// executor-driven is either covered by a preset or ported by hand.
+			if (target.executor === '@nx-tools/nx-container:build' && !provided.has(id)) {
+				tasks[id] = {
+					script: containerScript(target, nx.name),
+					options: { runFromWorkspaceRoot: true, cache: false },
+				};
+			}
+			continue;
+		}
 
 		// Nx runs `commands` in parallel unless told otherwise, but every
 		// multi-command target in this repo that matters sets parallel: false.
 		// Joining with && preserves the sequential case and makes the parallel
 		// one sequential too, which is safe in the direction that matters.
-		const script = raw.join(' && ');
-
-		// `nx run a:b` inside a target is an alias, not work of its own.
-		const aliased = asNxDeps(raw, nx.name);
-		if (aliased) {
-			tasks[id] = { deps: aliased, options: { cache: false } };
+		const hoisted = hoistNxDeps(raw, nx.name);
+		if (hoisted.deps.length && !hoisted.rest.length) {
+			tasks[id] = { deps: hoisted.deps, options: { cache: false } };
 			continue;
 		}
+		// `nx exec -- x` is how a target reaches a local binary through the
+		// runner's PATH. moon puts the toolchain on PATH itself, so the prefix
+		// carries no meaning here and only leaves a dead reference behind.
+		const script = hoisted.rest.join(' && ').replaceAll(/(?:npx |pnpm |pnpm exec )?nx exec -- /g, '');
 
 		const cwd = o.cwd ?? '';
 		const atRoot = cwd === '' || cwd === '{workspaceRoot}' || cwd === '.';
@@ -140,7 +201,9 @@ export function convert(dir, tags) {
 			const ins = target.inputs.filter((i) => typeof i === 'string').map((x) => token(x, dir));
 			if (ins.length) task.inputs = ins;
 		}
-		if (target.dependsOn?.length) task.deps = target.dependsOn.flatMap((d) => dep(d, dir));
+		const declared = (target.dependsOn ?? []).flatMap((d) => dep(d, dir, nx.name, own));
+		const alldeps = [...new Set([...hoisted.deps, ...declared])];
+		if (alldeps.length) task.deps = alldeps;
 		if (target.cache === false) task.options = { ...(task.options ?? {}), cache: false };
 
 		// A preset already defines this id. Keep the project's version only when

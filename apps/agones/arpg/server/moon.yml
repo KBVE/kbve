@@ -1,0 +1,17 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'rust'
+tags: ['rust', 'docker']
+
+tasks:
+    build:
+        script: 'cargo build -p arpg-server'
+        outputs: ['/dist/target/debug/arpg-server']
+        options:
+            runFromWorkspaceRoot: true
+    build-release:
+        script: 'cargo build --release -p arpg-server'
+        outputs: ['/dist/target/release/arpg-server']
+        options:
+            runFromWorkspaceRoot: true

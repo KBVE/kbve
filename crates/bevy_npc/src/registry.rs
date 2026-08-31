@@ -284,7 +284,10 @@ mod tests {
         // round-trip: the schema stores sixteen bytes, the lookup takes the
         // twenty-six characters a content file would have written.
         npc.id = Some(kbve_proto::kbve::r#type::v1::Ulid {
-            value: ulid::Ulid::from_string(ULID_TEXT).unwrap().to_bytes().to_vec(),
+            value: ulid::Ulid::from_string(ULID_TEXT)
+                .unwrap()
+                .to_bytes()
+                .to_vec(),
         });
         db.insert(npc);
         db.insert(sample("b", "Beta")); // no ulid

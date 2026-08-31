@@ -1,0 +1,459 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+tags: ['astro', 'playwright', 'vitest']
+
+tasks:
+    proto:
+        script: 'buf generate packages/data/proto --template apps/kbve/astro-kbve/buf.gen.yaml'
+        inputs: ['/packages/data/proto/kbve/*.proto']
+        outputs: ['src/generated/proto']
+        options:
+            runFromWorkspaceRoot: true
+    dev:
+        script: 'rm -rf .astro node_modules/.vite node_modules/.astro ../../../node_modules/.vite && astro sync && UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=8192" astro dev'
+    build:
+        script: 'UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=8192" astro build'
+        deps: ['~:proto']
+        outputs: ['/dist/apps/astro-kbve']
+    build-osrs:
+        script: 'node scripts/generate-osrs-items.mjs && astro sync && UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=8192" astro build'
+        deps: ['~:proto']
+    preview:
+        script: 'astro preview'
+        deps: ['~:build']
+    check:
+        script: 'astro check'
+        deps: ['~:proto']
+    test:
+        script: 'vitest run --config vitest.config.ts'
+    test-unit:
+        script: 'vitest run --config vitest.unit-jsdom.config.ts'
+    e2e:
+        script: 'pnpm exec playwright test --config=playwright.config.ts'
+        deps: ['~:build']
+    proto-lint:
+        script: 'buf lint packages/data/proto'
+        options:
+            runFromWorkspaceRoot: true
+    proto-clean:
+        script: 'rm -rf apps/kbve/astro-kbve/src/generated/proto && mkdir -p apps/kbve/astro-kbve/src/generated/proto'
+        options:
+            runFromWorkspaceRoot: true
+    sync-ci-manifest:
+        script: "node -e \"const fs=require('fs');const src='dist/apps/astro-kbve/api/ci-registry.json';const dst='.github/ci-dispatch-manifest.json';if(!fs.existsSync(src)){console.error('Build output not found — run astro-kbve:build first');process.exit(1);}const data=JSON.parse(fs.readFileSync(src,'utf8'));const{index,...manifest}=data;fs.writeFileSync(dst,JSON.stringify(manifest,null,'\\t')+'\\n');console.log('Wrote',dst,'—',manifest.summary.total,'tracked items');\""
+        options:
+            runFromWorkspaceRoot: true
+    gen-ci-manifest:
+        script: 'npx tsx scripts/gen-ci-manifest.mts'
+        inputs:
+            [
+                'src/content/docs/project/*.mdx',
+                'src/data/ci/manifest-builder.ts',
+                'src/data/ci/project-schema.ts',
+                'src/data/schema/ICiProjectSchema.ts',
+                'scripts/gen-ci-manifest.mts',
+                '/packages/data/codegen/generated/ci_registry-schema.ts',
+            ]
+        outputs: ['/.github/ci-dispatch-manifest.json']
+    gen-ci-manifest-check:
+        script: 'npx tsx scripts/gen-ci-manifest.mts --check'
+    gen-mermaid:
+        script: 'node scripts/gen-mermaid.mjs'
+        inputs:
+            [
+                'src/content/**/*.mdx',
+                'src/content/**/*.md',
+                'scripts/gen-mermaid.mjs',
+            ]
+        outputs: ['src/generated/mermaid']
+    gen-mermaid-check:
+        script: 'node scripts/gen-mermaid.mjs --check'
+        inputs:
+            [
+                'src/content/**/*.mdx',
+                'src/content/**/*.md',
+                'scripts/gen-mermaid.mjs',
+                'src/generated/mermaid',
+            ]
+    gen-palworld-shops:
+        script: 'node scripts/validate-palworld-shops.mjs && node scripts/generate-palworld-shops.mjs'
+        inputs:
+            [
+                'src/content/docs/palworld/palshop/*.mdx',
+                'scripts/generate-palworld-shops.mjs',
+                'scripts/validate-palworld-shops.mjs',
+            ]
+        outputs:
+            [
+                '/apps/agones/palworld/mods/PalSchema/mods/KBVEShops/raw/kbve-shops.json',
+            ]
+    gen-palworld-shops-check:
+        script: 'node scripts/validate-palworld-shops.mjs && node scripts/generate-palworld-shops.mjs --check'
+        inputs:
+            [
+                'src/content/docs/palworld/palshop/*.mdx',
+                'scripts/generate-palworld-shops.mjs',
+                'scripts/validate-palworld-shops.mjs',
+                '/apps/agones/palworld/mods/PalSchema/mods/KBVEShops/raw/kbve-shops.json',
+            ]
+    sync-unreal:
+        script: 'node apps/kbve/astro-kbve/scripts/sync-unreal-uplugin.mjs'
+        options:
+            runFromWorkspaceRoot: true
+    sync-unreal-check:
+        script: 'node apps/kbve/astro-kbve/scripts/sync-unreal-uplugin.mjs --check'
+        options:
+            runFromWorkspaceRoot: true
+    gen-dungeon:
+        script: 'python3 packages/data/codegen/gen_dungeon.py'
+        inputs: ['/packages/data/codegen/gen_dungeon.py']
+        outputs:
+            [
+                '/packages/data/codegen/generated/tilemaps/crypt_depths.tilemap.json',
+            ]
+        options:
+            runFromWorkspaceRoot: true
+    sync-tilemaps:
+        script: 'node packages/data/codegen/gen-tilemaps.mjs'
+        inputs:
+            [
+                '/packages/data/codegen/gen-tilemaps.mjs',
+                '/packages/data/codegen/maps/*.json',
+            ]
+        outputs:
+            [
+                '/apps/cryptothrone/astro-cryptothrone/public/assets/map/cloud_city.tilemap.json',
+                '/apps/agones/cryptothrone/server/assets/cloud_city.tilemap.json',
+            ]
+        options:
+            runFromWorkspaceRoot: true
+    sync-tiles:
+        script: 'node packages/data/codegen/gen-tile-slices.mjs'
+        inputs:
+            [
+                '/packages/data/codegen/gen-tile-slices.mjs',
+                '/packages/data/codegen/tiles/tiles.manifest.json',
+                '/apps/cryptothrone/astro-cryptothrone/public/assets/map/cloud_tileset.png',
+            ]
+        outputs: ['public/assets/tiledb', 'src/content/docs/tiledb']
+        options:
+            runFromWorkspaceRoot: true
+    sync-tiledb:
+        script: 'node packages/data/codegen/gen-tiledb-data.mjs'
+        inputs:
+            [
+                '/packages/data/codegen/gen-tiledb-data.mjs',
+                'src/content/docs/tiledb/*.mdx',
+            ]
+        outputs: ['/packages/data/codegen/generated/tiledb-data.json']
+        options:
+            runFromWorkspaceRoot: true
+    sync-palettes:
+        script: 'node packages/data/codegen/gen-palette-atlas.mjs'
+        inputs:
+            [
+                '/packages/data/codegen/gen-palette-atlas.mjs',
+                '/packages/data/codegen/palettes/*.json',
+                '/packages/data/codegen/generated/tiledb-data.json',
+                'public/assets/tiledb',
+            ]
+        outputs:
+            [
+                '/apps/cryptothrone/astro-cryptothrone/public/assets/map/palettes',
+                '/apps/cryptothrone/astro-cryptothrone/src/components/game/data/palettes',
+            ]
+        options:
+            runFromWorkspaceRoot: true
+    sync-mapdb:
+        script: 'node packages/data/codegen/gen-mapdb-data.mjs'
+        inputs:
+            [
+                'src/content/docs/mapdb/*.mdx',
+                '/packages/data/codegen/gen-mapdb-data.mjs',
+                '/packages/data/codegen/descriptors/mapdb.binpb',
+            ]
+        outputs:
+            [
+                '/packages/data/codegen/generated/mapdb-data.json',
+                '/packages/data/codegen/generated/mapdb-data.binpb',
+                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/mapdb.json',
+                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/mapdb.binpb',
+                '/apps/discordsh/discordsh-bot/data/mapdb.json',
+            ]
+        options:
+            runFromWorkspaceRoot: true
+    sync-mapdb-zod:
+        script: 'protoc --include_imports --descriptor_set_out=packages/data/codegen/descriptors/mapdb.binpb --proto_path=packages/data/proto map/mapdb.proto && npx tsx packages/data/codegen/gen-mapdb-zod.mjs'
+        deps: ['devops:build']
+        inputs:
+            [
+                '/packages/data/proto/map/mapdb.proto',
+                '/packages/data/proto/kbve/common.proto',
+                '/packages/data/codegen/mapdb-zod-config.json',
+                '/packages/data/codegen/gen-mapdb-zod.mjs',
+            ]
+        outputs:
+            [
+                '/packages/data/codegen/descriptors/mapdb.binpb',
+                '/packages/data/codegen/generated/mapdb-schema.ts',
+            ]
+        options:
+            runFromWorkspaceRoot: true
+    sync-jobboard-taxonomy:
+        script: 'node packages/data/codegen/gen-jobboard-taxonomy.mjs'
+        inputs:
+            [
+                'src/content/docs/project/jobboard.mdx',
+                '/packages/data/codegen/gen-jobboard-taxonomy.mjs',
+            ]
+        outputs:
+            [
+                '/packages/data/codegen/generated/jobboard-taxonomy.json',
+                '/packages/data/codegen/generated/jobboard-taxonomy-seed.sql',
+                '/apps/jobboard/web/src/api/taxonomy.generated.json',
+                '/apps/jobboard/docker/seed.sql',
+            ]
+        options:
+            runFromWorkspaceRoot: true
+    sync-itemdb:
+        script: 'node packages/data/codegen/gen-itemdb-data.mjs'
+        deps: ['~:sync-itemdb-uecpp']
+        inputs:
+            [
+                'src/content/docs/itemdb/*.mdx',
+                '/packages/data/codegen/gen-itemdb-data.mjs',
+                '/packages/data/codegen/descriptors/itemdb.binpb',
+            ]
+        outputs:
+            [
+                '/packages/data/codegen/generated/itemdb-data.json',
+                '/packages/data/codegen/generated/itemdb-data.binpb',
+                '/packages/data/codegen/generated/itemdb.json',
+                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.json',
+                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb.binpb',
+            ]
+        options:
+            runFromWorkspaceRoot: true
+    sync-itemdb-uecpp:
+        script: 'node packages/data/codegen/gen-itemdb-uecpp.mjs'
+        inputs:
+            [
+                '/packages/data/codegen/gen-itemdb-uecpp.mjs',
+                '/packages/data/codegen/descriptors/itemdb.binpb',
+            ]
+        outputs:
+            [
+                '/packages/unreal/KBVEItemDB/Source/KBVEItemDB/Public/Generated/KBVEItemDBProtoTypes.h',
+                '/packages/unreal/KBVEItemDB/Source/KBVEItemDB/Public/Generated/KBVEItemDBProtoParse.h',
+            ]
+        options:
+            runFromWorkspaceRoot: true
+    sync-professiondb-uecpp:
+        script: 'node packages/data/codegen/gen-professiondb-uecpp.mjs'
+        inputs:
+            [
+                '/packages/data/codegen/gen-professiondb-uecpp.mjs',
+                '/packages/data/codegen/descriptors/professiondb.binpb',
+            ]
+        outputs:
+            [
+                '/packages/unreal/KBVEProfessionDB/Source/KBVEProfessionDB/Public/Generated/KBVEProfessionDBProtoTypes.h',
+                '/packages/unreal/KBVEProfessionDB/Source/KBVEProfessionDB/Public/Generated/KBVEProfessionDBProtoParse.h',
+            ]
+        options:
+            runFromWorkspaceRoot: true
+    sync-professiondb:
+        script: 'node packages/data/codegen/gen-professiondb-data.mjs'
+        deps: ['~:sync-mapdb', '~:sync-itemdb', '~:sync-professiondb-uecpp']
+        inputs:
+            [
+                'src/content/docs/professiondb/**/*.mdx',
+                '/packages/data/codegen/gen-professiondb-data.mjs',
+                '/packages/data/codegen/gen-professiondb-xref.mjs',
+                '/packages/data/codegen/descriptors/professiondb.binpb',
+                '/packages/data/codegen/generated/mapdb-data.json',
+                '/packages/data/codegen/generated/itemdb-data.json',
+            ]
+        outputs:
+            [
+                '/packages/data/codegen/generated/professiondb-data.json',
+                '/packages/data/codegen/generated/professiondb-data.binpb',
+                '/packages/data/codegen/generated/professiondb-runtime.json',
+                '/packages/data/codegen/generated/xref-index.json',
+                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/professiondb-runtime.json',
+            ]
+        options:
+            runFromWorkspaceRoot: true
+    sync-npcdb-uecpp:
+        script: 'node packages/data/codegen/gen-npcdb-uecpp.mjs'
+        inputs:
+            [
+                '/packages/data/codegen/gen-npcdb-uecpp.mjs',
+                '/packages/data/codegen/descriptors/npcdb.binpb',
+            ]
+        outputs:
+            [
+                '/packages/unreal/KBVENPCDB/Source/KBVENPCDB/Public/Generated/KBVENPCDBProtoTypes.h',
+                '/packages/unreal/KBVENPCDB/Source/KBVENPCDB/Public/Generated/KBVENPCDBProtoParse.h',
+            ]
+        options:
+            runFromWorkspaceRoot: true
+    sync-questdb:
+        script: 'node packages/data/codegen/gen-questdb-data.mjs'
+        inputs:
+            [
+                'src/content/docs/questdb/*.mdx',
+                '/packages/data/codegen/gen-questdb-data.mjs',
+                '/packages/data/codegen/descriptors/questdb.binpb',
+            ]
+        outputs:
+            [
+                '/packages/data/codegen/generated/questdb-data.json',
+                '/packages/data/codegen/generated/questdb-data.binpb',
+                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/questdb.json',
+                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/questdb.binpb',
+            ]
+        options:
+            runFromWorkspaceRoot: true
+    sync-questdb-uecpp:
+        script: 'node packages/data/codegen/gen-questdb-uecpp.mjs'
+        inputs:
+            [
+                '/packages/data/codegen/gen-questdb-uecpp.mjs',
+                '/packages/data/codegen/descriptors/questdb.binpb',
+            ]
+        outputs:
+            [
+                '/packages/unreal/KBVEQuestDB/Source/KBVEQuestDB/Public/Generated/KBVEQuestDBProtoTypes.h',
+                '/packages/unreal/KBVEQuestDB/Source/KBVEQuestDB/Public/Generated/KBVEQuestDBProtoParse.h',
+            ]
+        options:
+            runFromWorkspaceRoot: true
+    sync-npcdb:
+        script: 'node packages/data/codegen/gen-npcdb-data.mjs'
+        deps: ['~:sync-abilitydb']
+        inputs:
+            [
+                'src/content/docs/npcdb/*.mdx',
+                '/packages/data/codegen/gen-npcdb-data.mjs',
+                '/packages/data/codegen/descriptors/npcdb.binpb',
+            ]
+        outputs:
+            [
+                '/packages/data/codegen/generated/npcdb-data.json',
+                '/packages/data/codegen/generated/npcdb-data.binpb',
+                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/npcdb.json',
+                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/npcdb.binpb',
+            ]
+        options:
+            runFromWorkspaceRoot: true
+    sync-abilitydb:
+        script: 'node packages/data/codegen/gen-abilitydb-data.mjs'
+        inputs:
+            [
+                'src/content/docs/abilitydb/*.mdx',
+                'src/content/docs/npcdb/*.mdx',
+                '/packages/data/codegen/gen-abilitydb-data.mjs',
+                '/packages/data/codegen/descriptors/common.binpb',
+            ]
+        outputs:
+            [
+                '/packages/data/codegen/generated/abilitydb.es.json',
+                '/packages/data/codegen/generated/abilitydb.es.binpb',
+                '/packages/data/codegen/generated/abilitydb.ja.json',
+                '/packages/data/codegen/generated/abilitydb.ja.binpb',
+                '/apps/friendslop/godot-friendslop/assets/abilitydb',
+            ]
+        options:
+            runFromWorkspaceRoot: true
+    sync-spelldb:
+        script: 'node packages/data/codegen/gen-spelldb-data.mjs'
+        deps: ['~:sync-spelldb-uecpp']
+        inputs:
+            [
+                'src/content/docs/spelldb/*.mdx',
+                '/packages/data/codegen/gen-spelldb-data.mjs',
+                '/packages/data/codegen/descriptors/spelldb.binpb',
+            ]
+        outputs:
+            [
+                '/packages/data/codegen/generated/spelldb-data.json',
+                '/packages/data/codegen/generated/spelldb-data.binpb',
+            ]
+        options:
+            runFromWorkspaceRoot: true
+    sync-spelldb-uecpp:
+        script: 'node packages/data/codegen/gen-spelldb-uecpp.mjs'
+        inputs:
+            [
+                '/packages/data/codegen/gen-spelldb-uecpp.mjs',
+                '/packages/data/codegen/descriptors/spelldb.binpb',
+            ]
+        outputs:
+            [
+                '/packages/unreal/KBVESpellDB/Source/KBVESpellDB/Public/Generated/KBVESpellDBProtoTypes.h',
+                '/packages/unreal/KBVESpellDB/Source/KBVESpellDB/Public/Generated/KBVESpellDBProtoParse.h',
+            ]
+        options:
+            runFromWorkspaceRoot: true
+    sync-itemdb-atlas:
+        script: 'node packages/data/codegen/gen-itemdb-atlas.mjs'
+        inputs:
+            [
+                'src/content/docs/itemdb/*.mdx',
+                'public/assets/items/**/*.png',
+                '/packages/data/codegen/gen-itemdb-atlas.mjs',
+            ]
+        outputs:
+            [
+                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb-atlas.png',
+                '/apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemSpriteAtlas.Generated.cs',
+                '/apps/cryptothrone/astro-cryptothrone/public/assets/items/itemdb-atlas.png',
+                '/apps/cryptothrone/astro-cryptothrone/src/components/game/data/itemAtlas.generated.ts',
+            ]
+        options:
+            runFromWorkspaceRoot: true
+    sync-hextile-atlas:
+        script: 'node packages/data/codegen/gen-hextile-atlas.mjs'
+        inputs:
+            [
+                '/apps/rareicon/unity-rareicon/Assets/_RareIcon/Textures/Environment/**/*.png',
+                '/packages/data/codegen/gen-hextile-atlas.mjs',
+            ]
+        outputs:
+            [
+                '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/hextile-atlas.png',
+                '/apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/Hex/HexTileAtlas.Generated.cs',
+            ]
+        options:
+            runFromWorkspaceRoot: true
+    solitaire-snapshot-npcdb:
+        script: 'node apps/kbve/astro-kbve/scripts/snapshot-solitaire-npcdb.mjs'
+        deps: ['~:build']
+        inputs:
+            [
+                '/dist/apps/astro-kbve/api/npcdb.json',
+                'scripts/snapshot-solitaire-npcdb.mjs',
+            ]
+        outputs: ['standalone/solitaire/npcdb-snapshot.json']
+        options:
+            runFromWorkspaceRoot: true
+    solitaire-standalone:
+        script: 'vite build --config standalone/solitaire/vite.config.ts'
+        deps: ['~:solitaire-snapshot-npcdb']
+        inputs:
+            [
+                'standalone/solitaire/**/*',
+                'src/arcade/solitaire/**/*',
+                '/packages/npm/laser/src/**/*',
+            ]
+        outputs: ['dist/solitaire-standalone']
+    solitaire-standalone-zip:
+        script: 'cd apps/kbve/astro-kbve/dist/solitaire-standalone && zip -r ../solitaire-standalone.zip ./'
+        deps: ['~:solitaire-standalone']
+        inputs: ['dist/solitaire-standalone/index.html']
+        outputs: ['dist/solitaire-standalone.zip']
+        options:
+            runFromWorkspaceRoot: true

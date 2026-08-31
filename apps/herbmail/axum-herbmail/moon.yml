@@ -1,0 +1,26 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'rust'
+tags: ['rust', 'docker']
+
+tasks:
+    dev:
+        script: 'STATIC_DIR=./dist/apps/astro-herbmail STATIC_PRECOMPRESSED=false cargo run -p axum-herbmail'
+        deps: ['astro-herbmail:build']
+        options:
+            runFromWorkspaceRoot: true
+    e2e:
+        deps: ['~:test']
+        options:
+            cache: false
+    container-prep:
+        script: 'rm -rf ./apps/herbmail/axum-herbmail/dist/ && mkdir -p ./apps/herbmail/axum-herbmail/dist/ && cp -a ./dist/apps/astro-herbmail/. ./apps/herbmail/axum-herbmail/dist/'
+        deps: ['astro-herbmail:build']
+        options:
+            runFromWorkspaceRoot: true
+    containerx:
+        script: 'docker buildx build --load -f apps/herbmail/axum-herbmail/Dockerfile -t kbve/herbmail:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false

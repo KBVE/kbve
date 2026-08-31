@@ -1,0 +1,12 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'rust'
+tags: ['rust', 'docker']
+
+tasks:
+    containerx:
+        script: 'docker buildx build --load -f apps/agones/factorio/relay/Dockerfile -t kbve/agones-factorio-relay:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false

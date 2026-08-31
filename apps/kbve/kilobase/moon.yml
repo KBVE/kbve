@@ -1,0 +1,49 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'rust'
+tags: ['rust', 'docker']
+
+tasks:
+    bump:
+        script: 'bash tools/scripts/public/kilobase/version_bump.sh {args.version}'
+        options:
+            runFromWorkspaceRoot: true
+    local:
+        script: "cargo pgrx package --features pg17 --out-dir='../../../dist/target/kilobase'"
+    pgrx:
+        script: 'cargo pgrx run'
+    copy-requirements:
+        script: 'cp apps/kbve/kilobase/requirements.txt dist/target/kilobase/requirements.txt'
+        deps: ['~:build']
+        options:
+            runFromWorkspaceRoot: true
+    seal:
+        script: 'cd ../../../tools/scripts/public/kube/etc && ./generate-sealed-secret.sh -n "{args.namespace}" -k "{args.keyName}" -s "{args.secrets}"'
+        inputs: ['args']
+    container-test:
+        script: 'docker buildx build --load -f apps/kbve/kilobase/Dockerfile.test -t kilobase-test:latest apps/kbve/kilobase'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    e2e:
+        script: 'bash kilobase_dev.sh e2e'
+        deps: ['~:container-test']
+        inputs:
+            ['src/**/*.rs', 'Cargo.toml', 'Dockerfile.test', 'kilobase_dev.sh']
+        outputs: ['test-results/test-results.json']
+    dev-test:
+        script: 'bash kilobase_dev.sh test'
+    dev-unit:
+        script: 'bash kilobase_dev.sh unit'
+    dev-results:
+        script: 'bash kilobase_dev.sh results'
+    dev-clean:
+        script: 'bash kilobase_dev.sh clean'
+    image-e2e:
+        script: 'bash image_e2e.sh'
+    debug:
+        script: 'cd ./apps/kbve/kilobase && docker-compose --env-file .env up --build'
+        deps: ['~:container']
+        options:
+            runFromWorkspaceRoot: true

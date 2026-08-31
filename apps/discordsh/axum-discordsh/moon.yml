@@ -1,0 +1,27 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'rust'
+tags: ['rust', 'docker']
+
+tasks:
+    dev:
+        script: 'STATIC_DIR=./dist/apps/astro-discordsh STATIC_PRECOMPRESSED=false cargo run -p axum-discordsh'
+        deps: ['astro-discordsh:build']
+        options:
+            runFromWorkspaceRoot: true
+    e2e:
+        script: 'nx e2e discordsh-e2e'
+        deps: ['~:test']
+        options:
+            runFromWorkspaceRoot: true
+    container-prep:
+        script: 'rm -rf ./apps/discordsh/axum-discordsh/dist/ && mkdir -p ./apps/discordsh/axum-discordsh/dist/ && cp -a ./dist/apps/astro-discordsh/. ./apps/discordsh/axum-discordsh/dist/'
+        deps: ['astro-discordsh:build']
+        options:
+            runFromWorkspaceRoot: true
+    containerx:
+        script: 'docker buildx build --load -f apps/discordsh/axum-discordsh/Dockerfile -t kbve/discordsh:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
