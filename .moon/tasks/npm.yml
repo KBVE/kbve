@@ -26,11 +26,11 @@ tasks:
     # on purpose: it writes the manifest and README into the build output, so
     # keeping it apart leaves `build` with outputs moon alone owns.
     #
-    # The check is the point. Nx did the copying with nxCopyAssetsPlugin and
-    # nothing verified the result, which is how a published package can import
-    # chunk files its own `files` glob excluded -- it installs cleanly and every
-    # entry point fails on first import. pack.mjs reads the bundles, resolves
-    # what they reach for, and fails here instead.
+    # The check is the point. Copying the manifest into the build output is the
+    # easy half; nothing used to do the other half, which is how a published
+    # package can import chunk files its own `files` glob excluded -- it
+    # installs cleanly and every entry point fails on first import. pack.mjs
+    # reads the bundles, resolves what they reach for, and fails here instead.
     pack:
         command: 'node $workspaceRoot/tools/npm/pack.mjs'
         toolchains: ['node']
