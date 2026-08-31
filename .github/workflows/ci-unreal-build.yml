@@ -1310,11 +1310,50 @@ jobs:
                   # legitimately ship .map files (CEF/WebUI sourcemaps, data tables)
                   # and stripping those breaks the build only once it is on a player's
                   # machine.
+                  # Only DEBUG artefacts leave the payload. All Manifest_*.txt are
+                  # stage-time build metadata - path+timestamp indexes UE writes for
+                  # deployment tooling, never read by a shipped client (it loads from
+                  # pak/iostore). Manifest_UFSFiles_*.txt alone leaks the full cooked
+                  # asset tree (~4.5k paths), so all three travel with the PDBs.
+                  # NOTICES.txt and every other normal file stay in the payload -
+                  # NOTICES.txt is required third-party license text.
                   function Test-SymbolFile($f) {
                       if ($f.Extension -ieq '.pdb') { return $true }
                       if ($f.Extension -ieq '.map' -and $f.FullName -imatch '\\Binaries\\') { return $true }
+                      if ($f.Name -imatch '^Manifest_.*\.txt$') { return $true }
+                      $rel = $f.FullName.Substring($out.Length).TrimStart('\\')
+                      if ($manifestPaths.Contains($rel)) { return $true }
+                      if ($DEBUG_ONLY_BINARIES -contains $f.Name) { return $true }
                       return $false
                   }
+                  # Binaries reachable ONLY behind a debug flag, never in a normal
+                  # session. Loaded dynamically and degrading gracefully when absent -
+                  # not static imports, so the game still launches without them.
+                  #   d3d12SDKLayers.dll   D3D12 debug validation layer; loaded only for
+                  #                        a debug device (-d3ddebug).
+                  # NOT in this list on purpose: dbghelp.dll and GFSDK_Aftermath_Lib*
+                  # are CRASH HANDLERS. They run on real player machines during a real
+                  # crash, so they ship. Same for D3D12Core.dll next to the layer DLL -
+                  # that is the Agility SDK runtime and is required.
+                  $DEBUG_ONLY_BINARIES = @(
+                      'd3d12SDKLayers.dll'
+                  )
+
+                  # UE writes its OWN authoritative debug list to
+                  # Manifest_DebugFiles_<Platform>.txt: one "<relative/path>\t<utc>" per
+                  # line. It covers files no extension rule would catch - e.g.
+                  # Engine/Content/SlateDebug/Fonts/LastResort.ttf (5.4 MB). Honour it
+                  # verbatim, then fall back to the extension rules for anything the
+                  # manifest missed.
+                  $manifestPaths = New-Object 'System.Collections.Generic.HashSet[string]' ([StringComparer]::OrdinalIgnoreCase)
+                  foreach ($m in @(Get-ChildItem -LiteralPath $out -Recurse -File -Force -Filter 'Manifest_DebugFiles_*.txt' -ErrorAction SilentlyContinue)) {
+                      foreach ($line in (Get-Content -LiteralPath $m.FullName)) {
+                          $rel = ($line -split "`t")[0].Trim()
+                          if ($rel) { [void]$manifestPaths.Add(($rel -replace '/', '\\')) }
+                      }
+                  }
+                  Write-Host "::notice::Manifest_DebugFiles lists $($manifestPaths.Count) debug file(s)"
+
                   $all = @(Get-ChildItem -LiteralPath $out -Recurse -File -Force -ErrorAction SilentlyContinue)
                   $found = @($all | Where-Object { Test-SymbolFile $_ })
                   if ($found.Count -eq 0) {
@@ -1636,18 +1675,112 @@ jobs:
                     mv "${d}" "${SYM}/${REL}"
                     COUNT=$((COUNT + 1))
                   done <<< "$(find "${STAGE}" -name '*.dSYM' -prune -print 2>/dev/null || true)"
+
+                  # UBT's Mac toolchain does NOT emit .dSYM bundles by default: on Mac,
+                  # -nodebuginfo only controls whether UAT *stages* debug files, so
+                  # dropping it stages nothing and COUNT stays 0 (KBVE/kbve run
+                  # 33357221262). Clang keeps the DWARF in the per-TU .o files and a
+                  # debug map in the linked binary, so generate the bundles here with
+                  # dsymutil. Intermediate/Build is still on disk (same job), and the
+                  # staged binary is a byte copy of Binaries/Mac, so the debug map
+                  # resolves. Output goes straight to ${SYM} - never into ${STAGE},
+                  # which is what gets zipped and pushed to itch.io.
                   if [ "${COUNT}" -eq 0 ]; then
-                    echo "::error::debug_symbols=1 but no .dSYM found under ${STAGE} - -nodebuginfo was dropped yet the target emitted nothing. Failing rather than shipping a release with no symbols."
+                    echo "::notice::No prebuilt .dSYM staged; generating with dsymutil"
+                    NO_DWARF=0
+                    while IFS= read -r bin; do
+                      [ -n "${bin}" ] || continue
+                      case "${bin}" in
+                        *.pak|*.ucas|*.utoc|*.ubulk|*.uasset|*.umap|*.ini|*.png|*.txt) continue ;;
+                      esac
+                      file -b "${bin}" 2>/dev/null | grep -q 'Mach-O' || continue
+                      REL="${bin#${STAGE}/}"
+                      OUT="${SYM}/${REL}.dSYM"
+                      mkdir -p "$(dirname "${OUT}")"
+                      if dsymutil "${bin}" -o "${OUT}"; then
+                        if [ -d "${OUT}" ]; then
+                          COUNT=$((COUNT + 1))
+                        else
+                          NO_DWARF=$((NO_DWARF + 1))
+                        fi
+                      else
+                        echo "::warning::dsymutil failed for ${REL}"
+                        rm -rf "${OUT}"
+                      fi
+                    done <<< "$(find "${STAGE}" -type f 2>/dev/null)"
+                    if [ "${NO_DWARF}" -ne 0 ]; then
+                      echo "::warning::${NO_DWARF} Mach-O file(s) carried no debug map"
+                    fi
+                  fi
+
+                  if [ "${COUNT}" -eq 0 ]; then
+                    echo "::error::debug_symbols=1 but no .dSYM could be found or generated under ${STAGE} - the target was compiled without debug info (nothing for dsymutil to read). Failing rather than shipping a release with no symbols."
                     exit 1
                   fi
                   echo "::notice::Moved ${COUNT} dSYM bundle(s) to ${SYM} ($(du -sh "${SYM}" | cut -f1))"
 
+                  # Only DEBUG artefacts leave the payload. All Manifest_*.txt are
+                  # stage-time build metadata - path+timestamp indexes UE writes for
+                  # deployment tooling, never read by a shipped client (it loads from
+                  # pak/iostore), and Manifest_UFSFiles_* leaks the full cooked asset
+                  # tree. NOTICES.txt and every other normal file stay in the payload -
+                  # NOTICES.txt is required third-party license text.
+                  # UE writes its OWN authoritative debug list to
+                  # Manifest_DebugFiles_<Platform>.txt: one "<relative/path>\t<utc>" per
+                  # line, covering files no extension rule would catch (e.g.
+                  # Engine/Content/SlateDebug/Fonts/LastResort.ttf, 5.4 MB). Honour it
+                  # before moving the manifests themselves out.
+                  MAN=0
+                  while IFS= read -r m; do
+                    [ -n "${m}" ] || continue
+                    # `|| [ -n ... ]`: survive a manifest with no trailing newline.
+                    while IFS=$'\t' read -r rel _rest || [ -n "${rel}" ]; do
+                      [ -n "${rel}" ] || continue
+                      SRC="${STAGE}/${rel}"
+                      [ -e "${SRC}" ] || continue
+                      mkdir -p "${SYM}/$(dirname "${rel}")"
+                      mv "${SRC}" "${SYM}/${rel}"
+                      MAN=$((MAN + 1))
+                    done < "${m}"
+                  done <<< "$(find "${STAGE}" -type f -name 'Manifest_DebugFiles_*.txt' 2>/dev/null || true)"
+                  echo "::notice::Moved ${MAN} manifest-listed debug file(s) to ${SYM}"
+
+                  # Binaries reachable ONLY behind a debug flag (see the Win64 job for
+                  # the full rationale). Crash handlers - dbghelp, NVIDIA Aftermath -
+                  # deliberately stay in the payload: they run during real player
+                  # crashes. Mac stages none of these today, so this matches nothing;
+                  # it is kept in sync with Win64 so a future Mac stage cannot silently
+                  # start shipping one.
+                  DBG=0
+                  while IFS= read -r b; do
+                    [ -n "${b}" ] || continue
+                    REL="${b#${STAGE}/}"
+                    mkdir -p "${SYM}/$(dirname "${REL}")"
+                    mv "${b}" "${SYM}/${REL}"
+                    DBG=$((DBG + 1))
+                  done <<< "$(find "${STAGE}" -type f -name 'd3d12SDKLayers.dll' 2>/dev/null || true)"
+                  echo "::notice::Moved ${DBG} debug-only third-party binary/binaries to ${SYM}"
+
+                  TXT=0
+                  while IFS= read -r t; do
+                    [ -n "${t}" ] || continue
+                    REL="${t#${STAGE}/}"
+                    mkdir -p "${SYM}/$(dirname "${REL}")"
+                    mv "${t}" "${SYM}/${REL}"
+                    TXT=$((TXT + 1))
+                  done <<< "$(find "${STAGE}" -type f -name 'Manifest_*.txt' 2>/dev/null || true)"
+                  echo "::notice::Moved ${TXT} build manifest(s) to ${SYM}"
+
                   # Mirror the Win64 hard-fail: the staged tree is what gets zipped,
                   # signed, notarized and pushed to itch.io.
-                  LEFTOVER=$(find "${STAGE}" -name '*.dSYM' -prune -print 2>/dev/null | wc -l | tr -d ' ')
-                  if [ "${LEFTOVER}" -ne 0 ]; then
+                  leftover_scan() {
                     find "${STAGE}" -name '*.dSYM' -prune -print
-                    echo "::error::${LEFTOVER} dSYM bundle(s) still in the staged Mac build"
+                    find "${STAGE}" -type f \( -name 'Manifest_*.txt' -o -name 'd3d12SDKLayers.dll' \)
+                  }
+                  LEFTOVER=$(leftover_scan 2>/dev/null | wc -l | tr -d ' ')
+                  if [ "${LEFTOVER}" -ne 0 ]; then
+                    leftover_scan 2>/dev/null
+                    echo "::error::${LEFTOVER} debug file(s) still in the staged Mac build"
                     exit 1
                   fi
 
