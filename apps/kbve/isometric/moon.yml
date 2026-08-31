@@ -14,6 +14,11 @@ tasks:
     dev:
         script: 'lsof -ti:$TAURI_DEV_PORT | xargs kill 2>/dev/null; pnpm build:wasm && pnpm dev'
 
+    # Not the preset's `tsc && vite build`: this one compiles the wasm crate
+    # first and copies shaders, textures and worker shims into dist afterwards.
+    build:
+        script: 'pnpm build:wasm && npx tsc && vite build && mkdir -p dist/assets/shaders dist/assets/textures && cp -r public/assets/shaders/*.wgsl dist/assets/shaders/ && cp -r public/assets/textures/* dist/assets/textures/ && cp public/wasm-worker.js dist/wasm-worker.js && cp public/safari-shim.js dist/safari-shim.js && cp -r wasm-pkg/snippets dist/assets/snippets'
+
     serve-dist:
         command: 'node scripts/serve-coi.mjs'
         toolchains: ['node']

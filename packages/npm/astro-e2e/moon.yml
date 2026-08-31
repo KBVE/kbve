@@ -15,6 +15,13 @@ tasks:
     # /dist/apps/$project would name a directory Astro never writes, and the
     # task would cache an empty tree.
     build:
+        # mergeOutputs, because an inherited task's outputs are appended to, not
+        # replaced by, the ones declared here -- the same rule that makes two
+        # files defining one task merge their args. Without it this task also
+        # demands dist/apps/astro-e2e from the astro preset, which nothing
+        # writes, and the run fails on a missing output after a clean build.
+        options:
+            mergeOutputs: 'replace'
         outputs: ['/dist/packages/npm/astro-e2e']
 
     dev:
