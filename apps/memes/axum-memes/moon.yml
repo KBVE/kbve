@@ -11,10 +11,9 @@ tasks:
         options:
             runFromWorkspaceRoot: true
     e2e:
-        script: 'nx e2e memes-e2e'
-        deps: ['~:test']
+        deps: ['~:test', 'memes-e2e:e2e']
         options:
-            runFromWorkspaceRoot: true
+            cache: false
     container-prep:
         script: 'rm -rf ./apps/memes/axum-memes/dist/ && mkdir -p ./apps/memes/axum-memes/dist/ && cp -a ./dist/apps/astro-memes/. ./apps/memes/axum-memes/dist/'
         deps: ['astro-memes:build']

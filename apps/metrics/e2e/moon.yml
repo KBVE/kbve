@@ -2,8 +2,9 @@ $schema: 'https://moonrepo.dev/schemas/project.json'
 
 layer: 'application'
 language: 'typescript'
-stack: 'frontend'
-tags: ['tauri', 'eslint']
 
-env:
-    TAURI_DEV_PORT: '1423'
+tasks:
+    e2e:
+        script: 'bash run.sh'
+        options:
+            cache: false

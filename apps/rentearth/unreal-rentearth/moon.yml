@@ -1,0 +1,54 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+
+tasks:
+    lfs-push:
+        script: './kbve.sh -lfs rentearth push'
+        options:
+            runFromWorkspaceRoot: true
+    lfs-pull:
+        script: './kbve.sh -lfs rentearth pull'
+        options:
+            runFromWorkspaceRoot: true
+    lfs-fetch:
+        script: './kbve.sh -lfs rentearth fetch --all'
+        options:
+            runFromWorkspaceRoot: true
+    lfs-ls:
+        script: './kbve.sh -lfs rentearth ls-files'
+        options:
+            runFromWorkspaceRoot: true
+    lfs-register:
+        script: './kbve.sh -lfs rentearth register'
+        options:
+            runFromWorkspaceRoot: true
+    sync-data:
+        script: './apps/rentearth/unreal-rentearth/scripts/sync-data.sh'
+        options:
+            runFromWorkspaceRoot: true
+    sync:
+        script: './kbve.sh -lfs rentearth fetch --all && ./kbve.sh -lfs rentearth pull && ./kbve.sh -lfs rentearth register && ./apps/rentearth/unreal-rentearth/scripts/sync-data.sh'
+        options:
+            runFromWorkspaceRoot: true
+    build-editor:
+        script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" chuckEditor Mac Development "$PWD/rentearth.uproject"'
+    build-game:
+        script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" chuck Mac Development "$PWD/rentearth.uproject"'
+    build-server:
+        script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" chuckServer Mac Development "$PWD/rentearth.uproject"'
+    compile:
+        script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" chuckEditor Mac Development "$PWD/rentearth.uproject"'
+    regen-project-files:
+        script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh" -project="$PWD/rentearth.uproject" -game -engine'
+    launch-editor:
+        script: './apps/rentearth/unreal-rentearth/scripts/launch-editor.sh'
+        options:
+            runFromWorkspaceRoot: true
+    dev:
+        script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" chuckEditor Mac Development "$PWD/apps/rentearth/unreal-rentearth/rentearth.uproject" && ./apps/rentearth/unreal-rentearth/scripts/launch-editor.sh'
+        options:
+            runFromWorkspaceRoot: true
+    clangd-db:
+        script: 'cd ../../../packages/python/kbve && uv run kbve-unreal-clangd'

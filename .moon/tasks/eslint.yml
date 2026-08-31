@@ -1,0 +1,27 @@
+$schema: 'https://moonrepo.dev/schemas/tasks.json'
+
+# Inherited by every project tagged 'eslint'.
+#
+# Most of these were @nx/eslint inferred targets rather than configured ones,
+# so as with vite.yml and vitest.yml the tag is the whole port. The 17 projects
+# that carry their own eslint.config.mjs all extend the root one.
+#
+# The tag is not applied to rust or python projects even when a config is
+# present, because `lint` there is clippy's and ruff's. Two files defining the
+# same task id merge their args rather than overriding, so both would run as
+# one nonsense command.
+inheritedBy:
+    tag: 'eslint'
+
+fileGroups:
+    configs:
+        - 'eslint.config.*'
+
+tasks:
+    lint:
+        command: 'eslint .'
+        toolchains: ['node']
+        inputs:
+            - 'src/**/*'
+            - '@group(configs)'
+            - '/eslint.config.mjs'

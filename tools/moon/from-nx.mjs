@@ -28,6 +28,7 @@ const PRESET_TASKS = {
 	playwright: ['e2e'],
 	uv: ['install', 'lock', 'test', 'lint', 'format', 'build'],
 	npm: ['build', 'pack', 'publish'],
+	eslint: ['lint'],
 	tauri: ['dev', 'dev-web', 'build', 'test-rust', 'build-tauri'],
 	lfs: ['assets', 'build'],
 };
@@ -54,6 +55,7 @@ export function detectTags(dir) {
 	if (glob(/^playwright.*\.config\./)) tags.push('playwright');
 	if (glob(/^vite\.config\./)) tags.push('vite');
 	if (glob(/^vitest.*\.config\./)) tags.push('vitest');
+	if (glob(/^eslint\.config\./)) tags.push('eslint');
 
 	// A rust service with a vitest config runs vitest over a live container, not
 	// over its own sources: `test` is cargo's and the suite is the `e2e` target,
@@ -62,6 +64,11 @@ export function detectTags(dir) {
 	if (tags.includes('rust') && tags.includes('vitest')) {
 		return tags.filter((t) => t !== 'vitest');
 	}
+
+	// Same collision on `lint`: clippy's and ruff's, not eslint's.
+	if (tags.includes('eslint') && (tags.includes('rust') || tags.includes('uv'))) {
+		return tags.filter((t) => t !== 'eslint');
+	}
 	return tags;
 }
 
@@ -69,7 +76,7 @@ export function detectTags(dir) {
 // becomes a deps-only task: keeping the command would leave moon shelling out
 // to the runner it replaces.
 const NX_CALL =
-	/^\s*(?:npx |pnpm |pnpm exec |\.\/kbve\.sh -)?nx (?:run )?([a-zA-Z0-9_.@/-]+):([a-zA-Z0-9_:.-]+)$|^\s*(?:npx |pnpm |pnpm exec |\.\/kbve\.sh -)?nx ([a-z-]+) ([a-zA-Z0-9_.@/-]+)$/;
+	/^\s*(?:[A-Z_][A-Z0-9_]*=\S* )*(?:npx |pnpm |pnpm exec |\.\/kbve\.sh -)?nx (?:run )?([a-zA-Z0-9_.@/-]+):([a-zA-Z0-9_:.-]+)$|^\s*(?:[A-Z_][A-Z0-9_]*=\S* )*(?:npx |pnpm |pnpm exec |\.\/kbve\.sh -)?nx ([a-z][a-z0-9_:.-]*) ([a-zA-Z0-9_.@/-]+)$/;
 
 // Splits a target's commands into the runner calls it makes and the work it
 // does itself. A call to the runner is a dependency, not a command: leaving it
@@ -79,6 +86,12 @@ const NX_CALL =
 // A target that is nothing but runner calls is an alias, and becomes deps-only.
 // A mixed one -- `nx astro-kbve:build && cargo run` is the common shape here --
 // keeps its own half as the script and hoists the rest into deps.
+//
+// Only a leading run of them is hoisted. deps have no order between them, so a
+// call that comes after work of the project's own would lose the ordering the
+// `&&` gave it -- `nx a:e2e && free the port && nx a:e2e-mock` would race. Those
+// keep the runner call in the script, where it is visible and has to be ported
+// by hand.
 function hoistNxDeps(raw, self) {
 	const deps = [];
 	const rest = [];
@@ -86,7 +99,7 @@ function hoistNxDeps(raw, self) {
 		for (const part of cmd.split(/&&/)) {
 			const t = part.trim();
 			if (!t) continue;
-			const m = t.match(NX_CALL);
+			const m = rest.length ? null : t.match(NX_CALL);
 			if (!m) {
 				rest.push(t);
 				continue;
@@ -184,7 +197,9 @@ export function convert(dir, tags) {
 		// carries no meaning here and only leaves a dead reference behind.
 		const script = hoisted.rest.join(' && ').replaceAll(/(?:npx |pnpm |pnpm exec )?nx exec -- /g, '');
 
-		const cwd = o.cwd ?? '';
+		// A cwd is written in Nx tokens as often as it is written literally, and
+		// `{projectRoot}/dbmate` has to resolve before it can be made relative.
+		const cwd = (o.cwd ?? '').replaceAll('{workspaceRoot}/', '').replaceAll('{projectRoot}', dir);
 		const atRoot = cwd === '' || cwd === '{workspaceRoot}' || cwd === '.';
 		const inProject = cwd === dir;
 

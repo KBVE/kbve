@@ -11,12 +11,11 @@ tasks:
         options:
             runFromWorkspaceRoot: true
     e2e:
-        script: 'nx e2e irc-e2e'
-        deps: ['~:test']
+        deps: ['~:test', 'irc-e2e:e2e']
         options:
-            runFromWorkspaceRoot: true
+            cache: false
     deploy:
-        script: "docker rm -f irc-gateway-local 2>/dev/null || true && lsof -ti:4321 | xargs kill -9 2>/dev/null || true && nx container irc-gateway --configuration=local --no-cloud && VERSION=$(grep '^version' apps/irc/irc-gateway/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker run --rm --name irc-gateway-local -p 4321:4321 -e JWT_SECRET=local-dev-secret kbve/irc-gateway:$VERSION"
+        script: "docker rm -f irc-gateway-local 2>/dev/null || true && lsof -ti:4321 | xargs kill -9 2>/dev/null || true && moon run irc-gateway:container && VERSION=$(grep '^version' apps/irc/irc-gateway/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker run --rm --name irc-gateway-local -p 4321:4321 -e JWT_SECRET=local-dev-secret kbve/irc-gateway:$VERSION"
         options:
             runFromWorkspaceRoot: true
             cache: false

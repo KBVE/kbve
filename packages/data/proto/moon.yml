@@ -1,0 +1,26 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'library'
+language: 'typescript'
+
+tasks:
+    generate-zod:
+        script: 'npx tsx packages/data/codegen/gen-all.mjs'
+        inputs: ['**/*.proto', '/packages/data/codegen/*-zod-config.json']
+        outputs:
+            [
+                '/packages/data/codegen/generated',
+                '/packages/data/codegen/descriptors',
+            ]
+        options:
+            runFromWorkspaceRoot: true
+    generate-buf:
+        script: 'npx buf generate packages/data/proto --template apps/kbve/astro-kbve/buf.gen.yaml'
+        inputs: ['**/*.proto']
+        outputs: ['/apps/kbve/astro-kbve/src/generated/proto']
+        options:
+            runFromWorkspaceRoot: true
+    generate:
+        deps: ['~:generate-zod', '~:generate-buf']
+        options:
+            cache: false

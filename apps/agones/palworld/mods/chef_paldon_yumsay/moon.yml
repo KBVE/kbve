@@ -1,0 +1,18 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+
+tasks:
+    validate:
+        script: 'python3 build/validate_foods.py foods'
+        options:
+            cache: false
+    generate-placeholders:
+        script: 'python3 build/gen_placeholders.py'
+        options:
+            cache: false
+    cook:
+        script: 'bash build/cook.sh'
+        options:
+            cache: false

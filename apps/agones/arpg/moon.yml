@@ -1,0 +1,51 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+
+tasks:
+    tmux:
+        script: 'apps/agones/arpg/dev-tmux.sh'
+        options:
+            runFromWorkspaceRoot: true
+    tmux-down:
+        script: 'apps/agones/arpg/dev-tmux.sh kill'
+        options:
+            runFromWorkspaceRoot: true
+    dev:
+        script: "trap 'docker compose -f apps/agones/arpg/docker-compose.yml --profile web down' EXIT INT TERM; docker compose -f apps/agones/arpg/docker-compose.yml --profile web up --build"
+        options:
+            runFromWorkspaceRoot: true
+    compose-up:
+        script: 'docker compose -f apps/agones/arpg/docker-compose.yml up --build'
+        options:
+            runFromWorkspaceRoot: true
+    compose-down:
+        script: 'docker compose -f apps/agones/arpg/docker-compose.yml --profile web down'
+        options:
+            runFromWorkspaceRoot: true
+    web-dev:
+        script: 'cd web && npm run dev'
+    web-build:
+        script: 'cd web && (cd "$(git rev-parse --show-toplevel)" && ./kbve.sh -lfs arpg pull --include=''apps/agones/arpg/web/public/assets/arcade/arpg/**'') || echo ''arpg LFS pull skipped (no creds / offline) — sprites may be pointer stubs'' && npm run build'
+        outputs: ['web/dist']
+    web-build-embed:
+        script: 'cd web && npm run build:embed'
+        outputs: ['web/dist/arpg-embed.js']
+    web-build-discord:
+        script: 'cd web && npm run build:discord'
+        outputs: ['web/dist/discord/arpg/arpg.js']
+    web-typecheck:
+        script: 'cd web && npm run typecheck'
+    web-test:
+        script: 'cd web && npm run test'
+    e2e:
+        script: '(cd "$(git rev-parse --show-toplevel)" && ./kbve.sh -lfs arpg pull --include=''apps/agones/arpg/web/public/assets/arcade/arpg/**'') && moon run arpg:container-web && moon run arpg-e2e:e2e-cdn'
+        deps: ['~:web-test']
+        options:
+            runFromWorkspaceRoot: true
+    container-web:
+        script: 'docker buildx build --load -f apps/agones/arpg/web/Dockerfile -t kbve/arpg-web:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false

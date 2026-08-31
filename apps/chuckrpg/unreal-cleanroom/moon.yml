@@ -1,0 +1,16 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+
+tasks:
+    open:
+        script: 'open apps/chuckrpg/unreal-cleanroom/UnrealCleanroom/UnrealCleanroom.uproject'
+        options:
+            runFromWorkspaceRoot: true
+    clean:
+        script: 'cd UnrealCleanroom && rm -rf Binaries && rm -rf Build && rm -rf DerivedDataCache && rm -rf Intermediate && rm -rf Saved'
+    sync:
+        script: "git add apps/chuckrpg/unreal-cleanroom/ && git commit -m 'chore(cleanroom): sync assets' || echo 'No changes to commit' && ./kbve.sh -lfs cleanroom push origin dev"
+        options:
+            runFromWorkspaceRoot: true

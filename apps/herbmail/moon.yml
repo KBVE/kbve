@@ -1,0 +1,19 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+
+tasks:
+    e2e:
+        deps:
+            [
+                'axum-herbmail:test',
+                'axum-herbmail:container',
+                'herbmail-e2e:e2e-docker',
+            ]
+        options:
+            cache: false
+    container:
+        deps: ['axum-herbmail:container']
+        options:
+            cache: false

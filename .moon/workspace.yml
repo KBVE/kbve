@@ -27,6 +27,9 @@ projects:
         # basenames to collide and nothing task-less to pick up.
         - 'crates/*'
     sources:
+        # The workspace itself: whole-tree tasks that belong to no project.
+        root: '.'
+
         # Sites
         astro-chuckrpg: 'apps/chuckrpg/astro-chuckrpg'
         astro-kbve: 'apps/kbve/astro-kbve'
@@ -160,6 +163,37 @@ projects:
         khashvault-e2e: 'packages/npm/khashvault-e2e'
         kubectl-e2e: 'apps/vm/kubectl-e2e'
         laser-e2e: 'packages/npm/laser-e2e'
+
+        # Shared data and schemas
+        data-i18n: 'packages/data/i18n'
+        data-proto: 'packages/data/proto'
+        data-sql: 'packages/data/sql'
+
+        # Unpublished npm libraries, continued
+        core: 'packages/npm/core'
+        kbve-tauri: 'packages/npm/tauri'
+        observ: 'packages/npm/observ'
+        rn-astro: 'packages/npm/rn-astro'
+        rn-tauri: 'packages/npm/rn-tauri'
+
+        # Umbrellas: a site, its service and its suite behind one id
+        cryptothrone: 'apps/cryptothrone'
+        discordsh: 'apps/discordsh'
+        herbmail: 'apps/herbmail'
+        irc: 'apps/irc'
+        memes: 'apps/memes'
+
+        # Game clients and engines
+        agones-palworld-chef-food: 'apps/agones/palworld/mods/chef_paldon_yumsay'
+        arpg: 'apps/agones/arpg'
+        kbve-react-native: 'apps/kbve/kbve-react-native'
+        unity-rareicon: 'apps/rareicon/unity-rareicon'
+        unreal-cleanroom: 'apps/chuckrpg/unreal-cleanroom'
+        unreal-rentearth: 'apps/rentearth/unreal-rentearth'
+
+        # Remaining
+        iot-edge-worker: 'apps/vm/iot/edge-worker'
+        metrics-e2e: 'apps/metrics/e2e'
 
 vcs:
     defaultBranch: 'dev'

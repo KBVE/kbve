@@ -15,10 +15,9 @@ tasks:
         options:
             runFromWorkspaceRoot: true
     e2e:
-        script: 'nx e2e astro-cryptothrone-e2e'
-        deps: ['~:test']
+        deps: ['~:test', 'astro-cryptothrone-e2e:e2e']
         options:
-            runFromWorkspaceRoot: true
+            cache: false
     container-prep:
         script: 'rm -rf ./apps/cryptothrone/axum-cryptothrone/dist/ && mkdir -p ./apps/cryptothrone/axum-cryptothrone/dist/ && cp -a ./dist/apps/astro-cryptothrone/. ./apps/cryptothrone/axum-cryptothrone/dist/'
         deps: ['astro-cryptothrone:build']

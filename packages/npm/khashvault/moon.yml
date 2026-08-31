@@ -2,4 +2,4 @@ $schema: 'https://moonrepo.dev/schemas/project.json'
 
 layer: 'library'
 language: 'typescript'
-tags: ['vite', 'vitest', 'npm']
+tags: ['vite', 'vitest', 'npm', 'eslint']

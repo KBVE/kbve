@@ -1,0 +1,32 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'library'
+language: 'typescript'
+
+tasks:
+    kilobase-up:
+        script: 'cd dbmate && docker compose -f kilobase-docker-compose.yml up -d'
+    kilobase-down:
+        script: 'cd dbmate && docker compose -f kilobase-docker-compose.yml down'
+    kilobase-reset:
+        script: 'cd dbmate && docker compose -f kilobase-docker-compose.yml down -v && docker compose -f kilobase-docker-compose.yml up -d'
+    migrate-up:
+        script: 'cd dbmate && dbmate --no-dump-schema --migrations-dir migrations up'
+    migrate-status:
+        script: 'cd dbmate && dbmate --no-dump-schema --migrations-dir migrations status'
+    test-migration:
+        script: 'cd dbmate && ./test-migration.sh'
+    smoke-kilobase:
+        script: 'cd dbmate && ./smoke.sh kilobase'
+    smoke-kilobase-keep:
+        script: 'cd dbmate && ./smoke.sh kilobase --keep'
+    smoke-kilobase-rollback:
+        script: 'cd dbmate && ./smoke.sh kilobase --rollback'
+    smoke:
+        script: 'cd dbmate && ./smoke.sh kilobase --rollback'
+    smoke-seed:
+        script: 'cd dbmate && ./seed-smoke.sh'
+    smoke-seed-keep:
+        script: 'cd dbmate && ./seed-smoke.sh --keep'
+    verify-seed-sync:
+        script: 'diff -u schema/ows/seed/tenants_init.sql ../../../apps/kube/rows/tenants/base/tenants_init.sql'

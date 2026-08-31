@@ -11,10 +11,9 @@ tasks:
         options:
             runFromWorkspaceRoot: true
     e2e:
-        script: 'nx e2e discordsh-e2e'
-        deps: ['~:test']
+        deps: ['~:test', 'discordsh-e2e:e2e']
         options:
-            runFromWorkspaceRoot: true
+            cache: false
     container-prep:
         script: 'rm -rf ./apps/discordsh/axum-discordsh/dist/ && mkdir -p ./apps/discordsh/axum-discordsh/dist/ && cp -a ./dist/apps/astro-discordsh/. ./apps/discordsh/axum-discordsh/dist/'
         deps: ['astro-discordsh:build']

@@ -2,7 +2,7 @@ $schema: 'https://moonrepo.dev/schemas/project.json'
 
 layer: 'library'
 language: 'typescript'
-tags: ['vitest']
+tags: ['vitest', 'eslint']
 
 tasks:
     typecheck:

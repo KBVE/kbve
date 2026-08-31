@@ -1,0 +1,15 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+
+tasks:
+    e2e:
+        script: 'moon run irc-gateway:test && moon run irc-e2e:e2e && docker rm -f irc-e2e-test 2>/dev/null || true && moon run irc-gateway:container && moon run irc-e2e:e2e-docker; EC=$?; docker rm -f irc-e2e-test 2>/dev/null || true; exit $EC'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    container:
+        deps: ['irc-gateway:container']
+        options:
+            cache: false

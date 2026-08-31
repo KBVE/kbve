@@ -1,0 +1,19 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+
+tasks:
+    e2e:
+        deps:
+            [
+                'axum-cryptothrone:test',
+                'axum-cryptothrone:container',
+                'astro-cryptothrone-e2e:e2e-docker',
+            ]
+        options:
+            cache: false
+    container:
+        deps: ['axum-cryptothrone:container']
+        options:
+            cache: false

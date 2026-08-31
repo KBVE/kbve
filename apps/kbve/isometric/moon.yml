@@ -3,7 +3,7 @@ $schema: 'https://moonrepo.dev/schemas/project.json'
 layer: 'application'
 language: 'typescript'
 stack: 'frontend'
-tags: ['tauri']
+tags: ['tauri', 'eslint']
 
 env:
     TAURI_DEV_PORT: '1420'
