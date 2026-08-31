@@ -1,0 +1,62 @@
+name: 'git-crypt unlock'
+description: 'Decrypts the git-crypt protected files so a build can read them.'
+
+# Ported from KBVE/workspace, where it decrypts private Rust and WGSL that cargo
+# has to compile. The mechanics are repository independent; what differs is only
+# which paths .gitattributes marks with `filter=git-crypt`.
+#
+# The key is absent on pull requests from forks: GitHub does not pass secrets to
+# them, by design. This action reports that rather than failing, so the reason a
+# fork build cannot read the protected files is stated once here instead of
+# surfacing later as a missing-file or parse error.
+#
+# Inert until `git-crypt init` has been run on this repository and at least one
+# path is marked in .gitattributes. Before that it is a no-op with the notice.
+
+inputs:
+    key:
+        description: 'The git-crypt key, base64 encoded. Pass secrets.GIT_CRYPT_KEY.'
+        required: false
+        default: ''
+
+outputs:
+    unlocked:
+        description: 'true when the repository was unlocked.'
+        value: ${{ steps.unlock.outputs.unlocked }}
+
+runs:
+    using: composite
+    steps:
+        - id: unlock
+          shell: bash
+          env:
+              # Through the environment rather than on the command line, so the
+              # key is never visible in a process listing on the runner.
+              GIT_CRYPT_KEY: ${{ inputs.key }}
+          run: |
+              set -euo pipefail
+
+              if [ -z "${GIT_CRYPT_KEY}" ]; then
+                echo "unlocked=false" >> "$GITHUB_OUTPUT"
+                echo "::notice::GIT_CRYPT_KEY is not available; protected files stay encrypted."
+                exit 0
+              fi
+
+              if ! command -v git-crypt >/dev/null 2>&1; then
+                sudo apt-get update -qq
+                sudo apt-get install -y -qq git-crypt
+              fi
+
+              keyfile="${RUNNER_TEMP}/git-crypt.key"
+              # Created empty with restrictive permissions before anything is
+              # written, so the key is never briefly world-readable on disk.
+              install -m 600 /dev/null "$keyfile"
+              printf '%s' "${GIT_CRYPT_KEY}" | base64 -d > "$keyfile"
+
+              # git-crypt refuses to unlock a dirty tree, and a failure here must
+              # not leave the key sitting in the runner temp directory.
+              trap 'shred -u "$keyfile" 2>/dev/null || rm -f "$keyfile"' EXIT
+              git-crypt unlock "$keyfile"
+
+              echo "unlocked=true" >> "$GITHUB_OUTPUT"
+              echo "Protected files decrypted."
