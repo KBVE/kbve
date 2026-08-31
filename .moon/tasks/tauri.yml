@@ -1,0 +1,48 @@
+$schema: 'https://moonrepo.dev/schemas/tasks.json'
+
+# Inherited by every project tagged 'tauri'. Four desktop apps -- isometric,
+# desktop-kbve, chuck-launcher, deathslayer-launcher -- and the last three had
+# the same six Nx targets between them.
+#
+# The Nx commands all opened with `export PATH="$HOME/.cargo/bin:$PATH"`, which
+# is dropped: moon puts the toolchain on PATH itself, and hard-coding a home
+# directory is what made those targets machine-specific.
+#
+# Each app pins its own dev port, so `dev` and `dev-web` read TAURI_DEV_PORT
+# from the project rather than the preset guessing one.
+inheritedBy:
+    tag: 'tauri'
+
+tasks:
+    # Frees the port first. A tauri dev server that fails to bind leaves the
+    # previous run holding it, and the second failure is much less legible.
+    dev:
+        script: 'lsof -ti:$TAURI_DEV_PORT | xargs kill 2>/dev/null; cargo tauri dev'
+        toolchains: ['node']
+        preset: 'server'
+
+    dev-web:
+        script: 'lsof -ti:$TAURI_DEV_PORT | xargs kill 2>/dev/null; pnpm dev'
+        toolchains: ['node']
+        preset: 'server'
+
+    build:
+        command: 'pnpm build'
+        toolchains: ['node']
+        inputs: ['src/**/*', 'package.json', 'vite.config.*', 'tsconfig*.json']
+        outputs: ['dist']
+
+    # The rust half of the app. Not the `test` task, which is the vitest one --
+    # these projects have both, and Nx named them test and test:rust for exactly
+    # that reason.
+    # The crate lives in src-tauri/, and its package name is not the project id
+    # for two of the four apps (desktop-kbve is kbve-desktop, isometric is
+    # isometric-game), so this runs where the Cargo.toml is and lets cargo
+    # resolve the package itself.
+    test-rust:
+        script: 'cd src-tauri && cargo test'
+
+    build-tauri:
+        command: 'cargo tauri build'
+        toolchains: ['node']
+        deps: ['~:build']

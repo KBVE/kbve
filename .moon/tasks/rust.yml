@@ -1,0 +1,60 @@
+$schema: 'https://moonrepo.dev/schemas/tasks.json'
+
+# Inherited by every project tagged 'rust'.
+#
+# A tag, not `inheritedBy: toolchain: 'rust'`, which is the mechanism this
+# wants. Registering the rust toolchain in .moon/toolchains.yml is deferred
+# until the node side is proven, and it is not a free switch: moon's rust
+# toolchain rewrites Cargo.toml on sync -- it reformats the file, drops the
+# comments and adds a member entry for every project it sees -- so it arrives
+# with syncToolchainConfig and addMsrvConstraint both off. rust-version = 1.96
+# stays pinned by hand in the workspace manifest. Swapping the two lines below
+# is the whole change when that happens; nothing else here moves.
+#
+# Replaces @monodon/rust, whose build/test/lint/run executors all passed
+# target-dir: dist/target/<project>. That is dropped deliberately. Per-project
+# target directories exist so Nx can treat the output as a project artifact,
+# and the cost is 56 separate copies of every shared dependency's build.
+# Cargo's own shared target/ plus moon's content-addressable cache gets the
+# same isolation from one tree.
+#
+# No -p either. moon runs a task in its project directory, and cargo resolves
+# the package from the Cargo.toml it finds there while still writing to the
+# workspace target/. Naming the package explicitly would have worked for 58 of
+# the 60 crates here and silently named the wrong one for the other two.
+inheritedBy:
+    tag: 'rust'
+
+# build.rs is deliberately not in sources. Most crates here do not have one,
+# and moon warns per task per run for an input that does not exist. A crate
+# with a build script adds it to its own inputs.
+fileGroups:
+    sources:
+        - 'src/**/*'
+    tests:
+        - 'tests/**/*'
+        - 'benches/**/*'
+    manifests:
+        - 'Cargo.toml'
+        - '/Cargo.lock'
+
+tasks:
+    build:
+        command: 'cargo build --release'
+        inputs: ['@group(sources)', '@group(manifests)']
+
+    test:
+        command: 'cargo test'
+        inputs: ['@group(sources)', '@group(tests)', '@group(manifests)']
+
+    lint:
+        command: 'cargo clippy --all-targets -- -D warnings'
+        inputs: ['@group(sources)', '@group(tests)', '@group(manifests)']
+
+    format:
+        command: 'cargo fmt --check'
+        inputs: ['@group(sources)']
+
+    run:
+        command: 'cargo run'
+        preset: 'server'

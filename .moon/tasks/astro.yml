@@ -12,12 +12,30 @@ fileGroups:
     configs:
         - 'astro.config.*'
         - 'tsconfig.json'
-        - 'package.json'
 
 tasks:
+    # `astro build` already syncs, so this exists for the wipe. .astro is Astro's
+    # own on-disk content-collection cache, and it goes stale against a schema
+    # change in a way neither Nx nor moon can hash -- the build then compiles
+    # against types for the previous shape. Every Nx build target here opened
+    # with the same `rm -rf .astro && astro sync`; keeping it a task rather than
+    # a command prefix is what lets `build` stay a single cacheable command.
+    sync:
+        script: 'rm -rf .astro && astro sync'
+        toolchains: ['node']
+        inputs: ['@group(sources)', '@group(configs)']
+        # .astro is the thing the wipe exists to replace, so declaring it as an
+        # output is what makes the wipe conditional: moon restores the directory on
+        # a hit and only re-derives it when a source or config actually changed.
+        # Without it this task is uncacheable and every build pays ~2s for a sync
+        # whose result is already on disk. It is 40K-300K per site and holds no
+        # absolute paths, so it restores cleanly.
+        outputs: ['.astro']
+
     build:
         command: 'astro build'
         toolchains: ['node']
+        deps: ['~:sync']
         inputs: ['@group(sources)', '@group(configs)']
         # Every astro app in the repo writes to the shared dist/ rather than a
         # project-local one, via outDir in its astro.config. Leading '/' is
@@ -34,6 +52,7 @@ tasks:
         command: 'astro dev'
         toolchains: ['node']
         preset: 'server'
+        deps: ['~:sync']
         env:
             NODE_OPTIONS: '--max-old-space-size=4096'
             UV_THREADPOOL_SIZE: '4'

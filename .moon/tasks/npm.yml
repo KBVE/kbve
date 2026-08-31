@@ -1,0 +1,37 @@
+$schema: 'https://moonrepo.dev/schemas/tasks.json'
+
+# Inherited by every project tagged 'npm'. Each of these builds with vite, so
+# a project carries both tags and `build` comes from vite.yml.
+#
+# The Nx publish target was a four-command chain: build, copy package.json,
+# copy README, then nx-release-publish. The first three are assembling the
+# tarball and the last is uploading it, so they are split -- `pack` owns the
+# staging directory, which leaves `build` with outputs moon alone writes.
+inheritedBy:
+    tag: 'npm'
+
+tasks:
+    pack:
+        script: 'cp package.json README.md $workspaceRoot/dist/$projectSource/'
+        toolchains: ['node']
+        deps: ['~:build']
+        inputs:
+            - 'package.json'
+            - 'README.md'
+
+    publish:
+        command: 'npm publish'
+        toolchains: ['node']
+        deps: ['~:pack']
+        # Narrow on purpose. Without inputs a task is affected by any change in its
+        # project, so `moon ci` would run this -- and the build behind it -- on
+        # every push. What it actually checks is the publish configuration.
+        inputs:
+            - 'moon.yml'
+            - 'package.json'
+        options:
+            # Not runInCI: false, which reads as "release-only" but means moon skips
+            # the task in any CI environment, including when a release workflow asks
+            # for it by name -- publishing would then silently never happen.
+            runInCI: true
+            cache: false

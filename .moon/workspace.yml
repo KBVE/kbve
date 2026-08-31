@@ -20,7 +20,61 @@ $schema: 'https://moonrepo.dev/schemas/workspace.json'
 # commit that gives it a moon.yml, and Nx keeps it until then.
 projects:
     sources:
+        # Sites
+        astro-chuckrpg: 'apps/chuckrpg/astro-chuckrpg'
+        astro-cryptothrone: 'apps/cryptothrone/astro-cryptothrone'
+        astro-discordsh: 'apps/discordsh/astro-discordsh'
         astro-herbmail: 'apps/herbmail/astro-herbmail'
+        astro-irc: 'apps/irc/astro-irc'
+        astro-memes: 'apps/memes/astro-memes'
+        astro-rareicon: 'apps/rareicon/astro-rareicon'
+
+        # Browser suites for those sites
+        astro-cryptothrone-e2e: 'apps/cryptothrone/astro-cryptothrone-e2e'
+        astro-rareicon-e2e: 'apps/rareicon/astro-rareicon-e2e'
+        discordsh-e2e: 'apps/discordsh/discordsh-e2e'
+        herbmail-e2e: 'apps/herbmail/herbmail-e2e'
+        irc-e2e: 'apps/irc/irc-e2e'
+        memes-e2e: 'apps/memes/memes-e2e'
+
+        # A site and its own suite in one project
+        astro-e2e: 'packages/npm/astro-e2e'
+
+        # Writes the icon catalogue into astro-rareicon's content directory
+        icons-codegen: 'apps/rareicon/icons-codegen'
+
+        # Desktop shells (tauri)
+        chuck-launcher: 'apps/chuckrpg/chuck-launcher'
+        deathslayer-launcher: 'apps/deathslayer/deathslayer-launcher'
+        desktop-kbve: 'apps/kbve/desktop-kbve'
+        isometric: 'apps/kbve/isometric'
+
+        # Published npm packages
+        astro: 'packages/npm/astro'
+        devops: 'packages/npm/devops'
+        droid: 'packages/npm/droid'
+        khashvault: 'packages/npm/khashvault'
+        laser: 'packages/npm/laser'
+
+        # Python (uv)
+        fudster: 'packages/python/fudster'
+        graphify-wrapper: 'packages/python/graphify-wrapper'
+        notification-bot: 'apps/discordsh/notification-bot'
+        pydesk: 'apps/pydesk'
+        # crates/kbve owns 'kbve' in the graph, and two projects cannot share
+        # an id. Only the graph cares -- the directory, the distribution and
+        # `pip install kbve` all stay kbve.
+        kbve-py: 'packages/python/kbve'
+
+        # Rust: two libraries and two services, as the proving set for rust.yml
+        embeddb-derive: 'packages/rust/embeddb-derive'
+        jedi: 'packages/rust/jedi'
+        agones-shim: 'apps/agones/shim'
+        met: 'apps/metrics'
+
+        # Godot
+        godot-friendslop: 'apps/friendslop/godot-friendslop'
+        q: 'packages/rust/q'
 
 vcs:
     defaultBranch: 'dev'
