@@ -10,6 +10,7 @@ from kbve.ai.claude import (
 
 # ── CommandResult ────────────────────────────────────────────────────
 
+
 def test_command_result_success():
     r = CommandResult(exit_code=0, stdout="ok", stderr="")
     assert r.success is True
@@ -27,6 +28,7 @@ def test_command_result_timeout():
 
 
 # ── run_command ──────────────────────────────────────────────────────
+
 
 def test_run_command_echo():
     result = run_command(["echo", "hello"])
@@ -66,6 +68,7 @@ def test_run_command_cwd(tmp_path):
 
 # ── _parse_usage_output ─────────────────────────────────────────────
 
+
 def test_parse_usage_empty():
     usage = _parse_usage_output("")
     assert usage.available is False
@@ -78,11 +81,7 @@ def test_parse_usage_cost():
 
 
 def test_parse_usage_tokens():
-    raw = (
-        "Input: 50,000 tokens\n"
-        "Output: 10,000 tokens\n"
-        "Total: 60,000 tokens"
-    )
+    raw = "Input: 50,000 tokens\nOutput: 10,000 tokens\nTotal: 60,000 tokens"
     usage = _parse_usage_output(raw)
     assert usage.input_tokens == 50000
     assert usage.output_tokens == 10000
@@ -90,10 +89,7 @@ def test_parse_usage_tokens():
 
 
 def test_parse_usage_cache_tokens():
-    raw = (
-        "Cache read: 100,000 tokens\n"
-        "Cache write: 5,000 tokens"
-    )
+    raw = "Cache read: 100,000 tokens\nCache write: 5,000 tokens"
     usage = _parse_usage_output(raw)
     assert usage.cache_read_tokens == 100000
     assert usage.cache_write_tokens == 5000
@@ -116,6 +112,7 @@ def test_parse_usage_duration_short():
 
 def test_parse_usage_json():
     import json
+
     data = {
         "cost_usd": 0.55,
         "input_tokens": 1000,
@@ -152,6 +149,7 @@ def test_parse_usage_combined():
 
 # ── ClaudeUsage ──────────────────────────────────────────────────────
 
+
 def test_claude_usage_as_dict():
     usage = ClaudeUsage(
         raw_output="test",
@@ -175,12 +173,12 @@ def test_claude_usage_defaults():
 
 # ── get_claude_version ───────────────────────────────────────────────
 
+
 def test_get_claude_version():
     result = get_claude_version()
     # Claude is installed in this environment
     if result.success:
-        assert "claude" in result.stdout.lower() or \
-            result.stdout[0].isdigit()
+        assert "claude" in result.stdout.lower() or result.stdout[0].isdigit()
     # If not installed, still shouldn't crash
     assert isinstance(result, CommandResult)
 
@@ -192,6 +190,7 @@ def test_get_claude_version_bad_binary():
 
 # ── Module imports ───────────────────────────────────────────────────
 
+
 def test_ai_module_imports():
     from kbve.ai import (
         ClaudeUsage,
@@ -200,6 +199,7 @@ def test_ai_module_imports():
         get_usage,
         run_command,
     )
+
     assert callable(run_command)
     assert callable(get_usage)
     assert callable(get_claude_version)

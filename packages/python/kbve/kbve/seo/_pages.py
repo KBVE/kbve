@@ -4,6 +4,7 @@ Walks apps/kbve/astro-kbve/src/content/docs/<collection>/**.mdx, parses the
 YAML frontmatter and the MDX body, and yields one Page per file. The whole-site
 analog of kbve.osrs._corpus.
 """
+
 import os
 import re
 from collections import namedtuple
@@ -11,7 +12,12 @@ from collections import namedtuple
 import yaml
 
 CONTENT_REL = os.path.join(
-    "apps", "kbve", "astro-kbve", "src", "content", "docs",
+    "apps",
+    "kbve",
+    "astro-kbve",
+    "src",
+    "content",
+    "docs",
 )
 
 _FRONTMATTER = re.compile(r"^---\n(.*?)\n---\n?(.*)$", re.S)

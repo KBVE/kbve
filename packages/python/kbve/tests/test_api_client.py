@@ -80,9 +80,11 @@ async def test_http_client_ensure_session():
 
 def test_top_level_import():
     from kbve.api import HttpClient as HC
+
     assert HC is HttpClient
 
 
 def test_clients_re_export():
     from kbve.api.clients import HttpClient as HC
+
     assert HC is HttpClient

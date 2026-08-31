@@ -1,20 +1,35 @@
 """Fudster library unit tests."""
 
 from fudster import (
-    CommandModel, LoggerModel, BroadcastModel,
-    KBVELoginModel, HandshakeModel, model_map,
-    Routes, CORS, WS, RuneLiteClient,
+    CommandModel,
+    LoggerModel,
+    BroadcastModel,
+    KBVELoginModel,
+    HandshakeModel,
+    model_map,
+    Routes,
+    CORS,
+    WS,
+    RuneLiteClient,
     APIConnector,
-    RssItem, RssFeed, PoemDB,
+    RssItem,
+    RssFeed,
+    PoemDB,
     AiGroqPayload,
-    CoinDeskClient, PoetryDBClient, GroqClient, WebsocketEchoClient,
-    RSSUtility, KRDecorator, DynamicEndpoint,
+    CoinDeskClient,
+    PoetryDBClient,
+    GroqClient,
+    WebsocketEchoClient,
+    RSSUtility,
+    KRDecorator,
+    DynamicEndpoint,
 )
 
 
 def test_version():
     """Test the version is set."""
     from fudster import __version__
+
     assert __version__ == "0.1.0"
 
 
@@ -127,5 +142,5 @@ def test_utils_importable():
 
 def test_api_connector_context_manager():
     """Test APIConnector supports async context manager protocol."""
-    assert hasattr(APIConnector, '__aenter__')
-    assert hasattr(APIConnector, '__aexit__')
+    assert hasattr(APIConnector, "__aenter__")
+    assert hasattr(APIConnector, "__aexit__")

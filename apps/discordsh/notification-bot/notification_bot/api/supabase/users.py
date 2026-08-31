@@ -1,6 +1,7 @@
 """
 Users module for managing user provider relationships
 """
+
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from pydantic import BaseModel, Field, UUID4
@@ -11,6 +12,7 @@ from notification_bot.utils.logger import logger, sanitize_log
 # Pydantic Models for User Provider Operations
 class UserProvider(BaseModel):
     """Model for user provider relationship"""
+
     id: UUID4
     user_id: UUID4
     provider: str
@@ -21,6 +23,7 @@ class UserProvider(BaseModel):
 
 class UserProviderCreate(BaseModel):
     """Model for creating user provider relationship"""
+
     user_id: UUID4
     provider: str = Field(..., description="Provider name (discord, github, google, etc.)")
     provider_id: str = Field(..., description="External provider ID")
@@ -28,6 +31,7 @@ class UserProviderCreate(BaseModel):
 
 class UserProfile(BaseModel):
     """Model for user profile with provider data"""
+
     user_id: UUID4
     email: Optional[str] = None
     username: Optional[str] = None
@@ -41,12 +45,14 @@ class UserProfile(BaseModel):
 
 class UserAllProviders(BaseModel):
     """Model for user with all their linked providers"""
+
     user_id: UUID4
     providers: List[Dict[str, Any]]
 
 
 class SyncResult(BaseModel):
     """Model for provider sync operation result"""
+
     success: bool
     synced_providers: List[str]
     total_synced: int
@@ -73,24 +79,31 @@ class UserManager:
             client = self._supabase.init_supabase_client()
 
             # Call RPC function with proper parameter - the function expects TEXT
-            result = client.schema('tracker').rpc('find_user_by_discord_id', {
-                'p_discord_id': str(discord_id)  # Ensure it's a string
-            }).execute()
+            result = (
+                client.schema("tracker")
+                .rpc(
+                    "find_user_by_discord_id",
+                    {
+                        "p_discord_id": str(discord_id)  # Ensure it's a string
+                    },
+                )
+                .execute()
+            )
 
             if result.data and len(result.data) > 0:
                 user_data = result.data[0]
 
                 # The RPC returns specific columns matching our UserProfile
                 return UserProfile(
-                    user_id=user_data['user_id'],
-                    email=user_data['email'] if user_data.get('email') else None,
-                    username=user_data['discord_username'],  # Note: RPC returns 'discord_username'
-                    avatar_url=user_data['discord_avatar'],  # Note: RPC returns 'discord_avatar'
-                    full_name=user_data['full_name'],
-                    provider='discord',
+                    user_id=user_data["user_id"],
+                    email=user_data["email"] if user_data.get("email") else None,
+                    username=user_data["discord_username"],  # Note: RPC returns 'discord_username'
+                    avatar_url=user_data["discord_avatar"],  # Note: RPC returns 'discord_avatar'
+                    full_name=user_data["full_name"],
+                    provider="discord",
                     provider_id=discord_id,
-                    provider_linked_at=user_data['created_at'],
-                    last_sign_in=user_data['last_sign_in']
+                    provider_linked_at=user_data["created_at"],
+                    last_sign_in=user_data["last_sign_in"],
                 )
 
             return None
@@ -99,11 +112,7 @@ class UserManager:
             logger.error("Error finding user by Discord ID %s: %s", sanitize_log(discord_id), e)
             return None
 
-    async def find_user_by_provider(
-        self,
-        provider: str,
-        provider_id: str
-    ) -> Optional[UserProfile]:
+    async def find_user_by_provider(self, provider: str, provider_id: str) -> Optional[UserProfile]:
         """
         Find user by any provider
 
@@ -117,23 +126,24 @@ class UserManager:
         try:
             client = self._supabase.init_supabase_client()
 
-            result = client.schema('tracker').rpc('find_user_by_provider', {
-                'p_provider': provider,
-                'p_provider_id': provider_id
-            }).execute()
+            result = (
+                client.schema("tracker")
+                .rpc("find_user_by_provider", {"p_provider": provider, "p_provider_id": provider_id})
+                .execute()
+            )
 
             if result.data and len(result.data) > 0:
                 user_data = result.data[0]
                 return UserProfile(
-                    user_id=user_data['user_id'],
-                    email=user_data['email'],
-                    username=user_data['username'],
-                    avatar_url=user_data['avatar_url'],
-                    full_name=user_data['full_name'],
+                    user_id=user_data["user_id"],
+                    email=user_data["email"],
+                    username=user_data["username"],
+                    avatar_url=user_data["avatar_url"],
+                    full_name=user_data["full_name"],
                     provider=provider,
                     provider_id=provider_id,
-                    provider_linked_at=user_data['provider_linked_at'],
-                    last_sign_in=user_data['last_sign_in']
+                    provider_linked_at=user_data["provider_linked_at"],
+                    last_sign_in=user_data["last_sign_in"],
                 )
 
             return None
@@ -155,26 +165,23 @@ class UserManager:
         try:
             client = self._supabase.init_supabase_client()
 
-            result = client.schema('tracker').rpc('get_user_all_providers', {
-                'p_user_id': user_id
-            }).execute()
+            result = client.schema("tracker").rpc("get_user_all_providers", {"p_user_id": user_id}).execute()
 
             if result.data:
                 providers = []
                 for provider_data in result.data:
-                    providers.append({
-                        'provider': provider_data['provider'],
-                        'provider_id': provider_data['provider_id'],
-                        'linked_at': provider_data['linked_at'],
-                        'username': provider_data['username'],
-                        'email': provider_data['email'],
-                        'avatar_url': provider_data['avatar_url']
-                    })
+                    providers.append(
+                        {
+                            "provider": provider_data["provider"],
+                            "provider_id": provider_data["provider_id"],
+                            "linked_at": provider_data["linked_at"],
+                            "username": provider_data["username"],
+                            "email": provider_data["email"],
+                            "avatar_url": provider_data["avatar_url"],
+                        }
+                    )
 
-                return UserAllProviders(
-                    user_id=user_id,
-                    providers=providers
-                )
+                return UserAllProviders(user_id=user_id, providers=providers)
 
             return None
 
@@ -195,39 +202,23 @@ class UserManager:
         try:
             client = self._supabase.init_supabase_client()
 
-            result = client.schema('tracker').rpc('sync_user_provider_relationships', {
-                'p_user_id': user_id
-            }).execute()
+            result = client.schema("tracker").rpc("sync_user_provider_relationships", {"p_user_id": user_id}).execute()
 
             if result.data and len(result.data) > 0:
                 sync_data = result.data[0]
                 return SyncResult(
                     success=True,
-                    synced_providers=sync_data['synced_providers'] or [],
-                    total_synced=sync_data['total_synced'] or 0
+                    synced_providers=sync_data["synced_providers"] or [],
+                    total_synced=sync_data["total_synced"] or 0,
                 )
 
-            return SyncResult(
-                success=True,
-                synced_providers=[],
-                total_synced=0
-            )
+            return SyncResult(success=True, synced_providers=[], total_synced=0)
 
         except Exception as e:
             logger.error("Error syncing provider relationships for user %s: %s", sanitize_log(user_id), e)
-            return SyncResult(
-                success=False,
-                synced_providers=[],
-                total_synced=0,
-                error=str(e)
-            )
+            return SyncResult(success=False, synced_providers=[], total_synced=0, error=str(e))
 
-    async def link_user_provider(
-        self,
-        user_id: str,
-        provider: str,
-        provider_id: str
-    ) -> Optional[str]:
+    async def link_user_provider(self, user_id: str, provider: str, provider_id: str) -> Optional[str]:
         """
         Manually link a provider to a user
 
@@ -242,22 +233,31 @@ class UserManager:
         try:
             client = self._supabase.init_supabase_client()
 
-            result = client.schema('tracker').rpc('link_user_provider', {
-                'p_user_id': user_id,
-                'p_provider': provider,
-                'p_provider_id': provider_id
-            }).execute()
+            result = (
+                client.schema("tracker")
+                .rpc("link_user_provider", {"p_user_id": user_id, "p_provider": provider, "p_provider_id": provider_id})
+                .execute()
+            )
 
             if result.data:
-                logger.info("Successfully linked %s ID %s to user %s", sanitize_log(
-                    provider), sanitize_log(provider_id), sanitize_log(user_id))
+                logger.info(
+                    "Successfully linked %s ID %s to user %s",
+                    sanitize_log(provider),
+                    sanitize_log(provider_id),
+                    sanitize_log(user_id),
+                )
                 return str(result.data)
 
             return None
 
         except Exception as e:
-            logger.error("Error linking %s ID %s to user %s: %s", sanitize_log(
-                provider), sanitize_log(provider_id), sanitize_log(user_id), e)
+            logger.error(
+                "Error linking %s ID %s to user %s: %s",
+                sanitize_log(provider),
+                sanitize_log(provider_id),
+                sanitize_log(user_id),
+                e,
+            )
             return None
 
     async def unlink_user_provider(self, user_id: str, provider: str) -> bool:
@@ -274,10 +274,11 @@ class UserManager:
         try:
             client = self._supabase.init_supabase_client()
 
-            result = client.schema('tracker').rpc('unlink_user_provider', {
-                'p_user_id': user_id,
-                'p_provider': provider
-            }).execute()
+            result = (
+                client.schema("tracker")
+                .rpc("unlink_user_provider", {"p_user_id": user_id, "p_provider": provider})
+                .execute()
+            )
 
             if result.data:
                 success = result.data
@@ -306,13 +307,7 @@ class UserManager:
         try:
             client = self._supabase.init_supabase_client()
 
-            result = (
-                client.schema('tracker')
-                .table('user_providers')
-                .select('*')
-                .eq('user_id', user_id)
-                .execute()
-            )
+            result = client.schema("tracker").table("user_providers").select("*").eq("user_id", user_id).execute()
 
             providers = []
             if result.data:

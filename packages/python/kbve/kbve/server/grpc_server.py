@@ -26,7 +26,9 @@ class GrpcServer:
         self._reflection_enabled = False
 
     def add_service(
-        self, registrar: Callable, name: str | None = None,
+        self,
+        registrar: Callable,
+        name: str | None = None,
     ) -> None:
         """Register a gRPC service adder callable.
 
@@ -39,7 +41,8 @@ class GrpcServer:
             self._service_names.append(name)
 
     def enable_reflection(
-        self, extra_names: Sequence[str] | None = None,
+        self,
+        extra_names: Sequence[str] | None = None,
     ) -> None:
         """Mark this server for gRPC reflection on start."""
         self._reflection_enabled = True
@@ -57,6 +60,7 @@ class GrpcServer:
 
         if self._reflection_enabled:
             from kbve.grpc.reflection import enable_reflection
+
             enable_reflection(self._server, self._service_names)
 
         bind_address = self.host + ":" + str(self.port)

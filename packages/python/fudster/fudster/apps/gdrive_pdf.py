@@ -25,9 +25,7 @@ _GDRIVE_FILE_RE = re.compile(
     r"https?://drive\.google\.com/file/d/([a-zA-Z0-9_-]+)",
 )
 
-_GDRIVE_PREVIEW_TPL = (
-    "https://drive.google.com/file/d/{file_id}/preview"
-)
+_GDRIVE_PREVIEW_TPL = "https://drive.google.com/file/d/{file_id}/preview"
 
 # JS that converts every blob: <img> on the page to a base64 data-URL
 # via an offscreen canvas.  Returns a JSON array of base64 JPEG strings.
@@ -59,9 +57,7 @@ def _parse_file_id(url: str) -> str:
     m = _GDRIVE_FILE_RE.search(url)
     if m:
         return m.group(1)
-    raise ValueError(
-        f"Could not extract Google Drive file ID from: {url}"
-    )
+    raise ValueError(f"Could not extract Google Drive file ID from: {url}")
 
 
 def _build_viewer_url(url: str) -> str:
@@ -75,15 +71,10 @@ def _scroll_all_pages(sb, *, pause: float = 0.6, max_scrolls: int = 300):
     last_height = 0
     stable_count = 0
     for _ in range(max_scrolls):
-        sb.execute_script(
-            "document.querySelector('div.ndfHFb-c4YZDc-cYSp0e-DARUcf')"
-            "?.scrollBy(0, window.innerHeight);"
-        )
+        sb.execute_script("document.querySelector('div.ndfHFb-c4YZDc-cYSp0e-DARUcf')?.scrollBy(0, window.innerHeight);")
         time.sleep(pause)
         new_height = sb.execute_script(
-            "var el = document.querySelector("
-            "'div.ndfHFb-c4YZDc-cYSp0e-DARUcf');"
-            "return el ? el.scrollTop : 0;"
+            "var el = document.querySelector('div.ndfHFb-c4YZDc-cYSp0e-DARUcf');return el ? el.scrollTop : 0;"
         )
         if new_height == last_height:
             stable_count += 1
@@ -195,10 +186,7 @@ def extract_gdrive_pdf(
     try:
         from seleniumbase import SB
     except ImportError:
-        raise ImportError(
-            "seleniumbase is required. "
-            "Install with: pip install fudster[browser]"
-        )
+        raise ImportError("seleniumbase is required. Install with: pip install fudster[browser]")
 
     viewer_url = _build_viewer_url(url)
     logger.info("Opening viewer: %s", viewer_url)
@@ -214,18 +202,12 @@ def extract_gdrive_pdf(
         # Wait for the PDF viewer to render at least one page image
         try:
             sb.wait_for_element(
-                'img[src^="blob:"]', timeout=20,
+                'img[src^="blob:"]',
+                timeout=20,
             )
         except Exception:
-            logger.warning(
-                "No blob images found — the PDF may require "
-                "sign-in or the link may be invalid."
-            )
-            return (
-                "# Error\n\n"
-                "Could not load the PDF. Ensure the link is a "
-                "publicly shared Google Drive PDF.\n"
-            )
+            logger.warning("No blob images found — the PDF may require sign-in or the link may be invalid.")
+            return "# Error\n\nCould not load the PDF. Ensure the link is a publicly shared Google Drive PDF.\n"
 
         logger.info("First page loaded, scrolling through document…")
         _scroll_all_pages(sb, pause=scroll_pause)
@@ -237,10 +219,7 @@ def extract_gdrive_pdf(
         logger.info("Captured %d page image(s)", len(images))
 
     if not images:
-        return (
-            "# Error\n\n"
-            "No page images could be captured from the viewer.\n"
-        )
+        return "# Error\n\nNo page images could be captured from the viewer.\n"
 
     header = f"# Google Drive PDF — {len(images)} page(s)\n\n"
     body = _images_to_markdown(images, output_dir=out, use_ocr=use_ocr)

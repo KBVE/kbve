@@ -18,6 +18,7 @@ def hc():
 
 # ── HealthCheck basics ───────────────────────────────────────────────
 
+
 def test_health_check_empty(hc):
     result = asyncio.get_event_loop().run_until_complete(hc.run())
     assert result["status"] == "healthy"
@@ -103,6 +104,7 @@ def test_uptime_seconds(hc):
 
 # ── HealthStatus enum ────────────────────────────────────────────────
 
+
 def test_health_status_values():
     assert HealthStatus.HEALTHY.value == "healthy"
     assert HealthStatus.DEGRADED.value == "degraded"
@@ -110,6 +112,7 @@ def test_health_status_values():
 
 
 # ── CheckResult ──────────────────────────────────────────────────────
+
 
 def test_check_result_defaults():
     cr = CheckResult(name="test", healthy=True)

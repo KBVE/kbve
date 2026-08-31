@@ -15,8 +15,10 @@ def _ctx(tmp_path, inputs):
     content_root.mkdir(parents=True)
     (tmp_path / "nx.json").write_text("{}")
     return BuildContext(
-        content_root=content_root, public_dir=public_dir,
-        timestamp="2026-07-19T00:00:00Z", inputs=inputs,
+        content_root=content_root,
+        public_dir=public_dir,
+        timestamp="2026-07-19T00:00:00Z",
+        inputs=inputs,
     )
 
 
@@ -48,10 +50,8 @@ def test_resolve_uses_injected_fetch():
 
 def test_aggregate_summary():
     rows = [
-        {"ecosystem": "crates", "name": "a", "local": "2.0", "published":
-         "1.0", "status": "pending"},
-        {"ecosystem": "npm", "name": "b", "local": "1.0", "published": "1.0",
-         "status": "published"},
+        {"ecosystem": "crates", "name": "a", "local": "2.0", "published": "1.0", "status": "pending"},
+        {"ecosystem": "npm", "name": "b", "local": "1.0", "published": "1.0", "status": "published"},
     ]
     agg = aggregate(rows)
     assert agg["total"] == 2
@@ -61,8 +61,7 @@ def test_aggregate_summary():
 
 def test_releases_build_writes(tmp_path):
     # resolve() will hit the network for the real fetch; instead inject rows
-    rows = [{"ecosystem": "crates", "name": "kbve", "local": "0.0.1",
-             "published": "0.0.1", "status": "published"}]
+    rows = [{"ecosystem": "crates", "name": "kbve", "local": "0.0.1", "published": "0.0.1", "status": "published"}]
     ctx = _ctx(tmp_path, {"release_rows": rows})
     result = get("releases").build(ctx)
     assert result.skipped is False and len(result.changed) == 2

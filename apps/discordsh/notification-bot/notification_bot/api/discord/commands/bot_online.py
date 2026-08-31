@@ -1,6 +1,7 @@
 """
 Bot online command module - Manual Dishka resolution
 """
+
 import logging
 from fastapi import APIRouter, Request
 from ....api.discord.discord_service import DiscordBotService

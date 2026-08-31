@@ -38,10 +38,7 @@ def _report_fixture() -> dict:
             "os": "linux-x64",
         },
         "nx_report": _SAMPLE_NX_REPORT,
-        "loc_stats": (
-            "Language   Files  Lines  Code\n"
-            "TypeScript   10    500   400\n"
-        ),
+        "loc_stats": ("Language   Files  Lines  Code\nTypeScript   10    500   400\n"),
         "coverage": (
             "::group::✅ > nx run laser:coverage\n"
             "All files | 75.46 | 57.22 | 75.07 | 76.66 |\n"

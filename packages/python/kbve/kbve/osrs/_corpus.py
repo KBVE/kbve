@@ -1,33 +1,74 @@
 """Shared loaders and classification for the OSRS MDX item corpus."""
+
 import os
 import re
 
 import yaml
 
 CONTENT_REL = os.path.join(
-    "apps", "kbve", "astro-kbve", "src", "content", "docs", "osrs",
+    "apps",
+    "kbve",
+    "astro-kbve",
+    "src",
+    "content",
+    "docs",
+    "osrs",
 )
 
 RICH_SECTIONS = [
-    "equipment", "drop_table", "drop_sources", "related_items",
-    "market_strategy", "recipes", "skilling_sources", "shops",
-    "special_attack", "passive_effects", "consumable", "food", "cooking",
-    "farming", "teleport", "prayer", "gathering", "slayer", "construction",
-    "charges", "ammunition", "quest_data", "set_bonus", "treasure_trail",
-    "trading_tips", "material",
+    "equipment",
+    "drop_table",
+    "drop_sources",
+    "related_items",
+    "market_strategy",
+    "recipes",
+    "skilling_sources",
+    "shops",
+    "special_attack",
+    "passive_effects",
+    "consumable",
+    "food",
+    "cooking",
+    "farming",
+    "teleport",
+    "prayer",
+    "gathering",
+    "slayer",
+    "construction",
+    "charges",
+    "ammunition",
+    "quest_data",
+    "set_bonus",
+    "treasure_trail",
+    "trading_tips",
+    "material",
 ]
 
 SOURCE_SECTIONS = (
-    "drop_table", "drop_sources", "skilling_sources", "shops", "recipes",
+    "drop_table",
+    "drop_sources",
+    "skilling_sources",
+    "shops",
+    "recipes",
 )
 CONTEXT_SECTIONS = (
-    "related_items", "market_strategy", "special_attack", "passive_effects",
-    "trading_tips", "set_bonus",
+    "related_items",
+    "market_strategy",
+    "special_attack",
+    "passive_effects",
+    "trading_tips",
+    "set_bonus",
 )
 
 _ORNAMENT_KINDS = {
-    "or": "ornament", "g": "ornament", "t": "ornament", "l": "locked",
-    "i": "imbued", "e": "enchanted", "u": "unfinished", "cr": "corrupted",
+    "or": "ornament",
+    "g": "ornament",
+    "t": "ornament",
+    "l": "locked",
+    "i": "imbued",
+    "e": "enchanted",
+    "u": "unfinished",
+    "cr": "corrupted",
 }
 _FRONTMATTER = re.compile(r"^---\n(.*?)\n---", re.S)
 _ORNAMENT_RE = re.compile(r"\((or|g|t|h\d?|cr|l|i|e|nz|c|u|deadman|ce|bh)\)")

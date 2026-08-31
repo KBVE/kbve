@@ -30,14 +30,9 @@ def _warn(msg: str) -> None:
 
 
 def _run(cmd: list[str], cwd: Path, timeout: int = _GEN_TIMEOUT) -> str:
-    proc = subprocess.run(
-        cmd, cwd=str(cwd), capture_output=True, text=True, timeout=timeout
-    )
+    proc = subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True, timeout=timeout)
     if proc.returncode != 0:
-        raise ProtoAcquireError(
-            "%s failed (exit %d): %s"
-            % (" ".join(cmd), proc.returncode, proc.stderr.strip()[:300])
-        )
+        raise ProtoAcquireError("%s failed (exit %d): %s" % (" ".join(cmd), proc.returncode, proc.stderr.strip()[:300]))
     return proc.stdout
 
 
@@ -91,9 +86,7 @@ def _acquire(repo_root: Path) -> tuple[dict, dict]:
 @route("proto", "daily", needs=("node", "protoc"))
 class ProtoRoute:
     def plan(self, ctx: BuildContext) -> PlanResult:
-        return PlanResult(
-            "proto", True, "regenerate (git-diff guard drops no-ops)", []
-        )
+        return PlanResult("proto", True, "regenerate (git-diff guard drops no-ops)", [])
 
     def build(self, ctx: BuildContext) -> BuildResult:
         repo_root = repo_root_for(ctx.content_root)

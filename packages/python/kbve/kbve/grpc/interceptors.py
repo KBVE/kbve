@@ -35,7 +35,8 @@ class LoggingInterceptor(aio.ServerInterceptor):
         elapsed_ms = round((time.monotonic() - start) * 1000, 2)
         logger.info(
             "gRPC %s resolved in %.2fms",
-            method, elapsed_ms,
+            method,
+            elapsed_ms,
         )
 
         return handler

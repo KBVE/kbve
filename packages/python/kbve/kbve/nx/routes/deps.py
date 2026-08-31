@@ -30,9 +30,7 @@ def _acquire(ctx: BuildContext) -> dict:
 @route("deps", "daily", needs=("node", "rust"))
 class DepsRoute:
     def plan(self, ctx: BuildContext) -> PlanResult:
-        return PlanResult(
-            "deps", True, "regenerate (git-diff guard drops no-ops)", []
-        )
+        return PlanResult("deps", True, "regenerate (git-diff guard drops no-ops)", [])
 
     def build(self, ctx: BuildContext) -> BuildResult:
         payload = build_deps_payload(_acquire(ctx), ctx.timestamp)

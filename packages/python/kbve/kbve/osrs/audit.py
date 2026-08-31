@@ -1,7 +1,8 @@
 """Audit thin OSRS items: full STUB list and sparse BASIC ranking.
 
-    uv run kbve-osrs-audit --root <repo> [--json out.json]
+uv run kbve-osrs-audit --root <repo> [--json out.json]
 """
+
 import argparse
 import json
 from collections import Counter

@@ -28,17 +28,15 @@ class ScreenClient:
 
     def get_vnc_display_size(self):
         if pyautogui is None:
-            raise ImportError(
-                "pyautogui is required. Install with: pip install fudster[automation]")
+            raise ImportError("pyautogui is required. Install with: pip install fudster[automation]")
         screen_size = pyautogui.size()
         return screen_size
 
-    async def find_and_click_image(self, button='left'):
+    async def find_and_click_image(self, button="left"):
         if pyautogui is None or cv2 is None:
-            raise ImportError(
-                "automation dependencies required. Install with: pip install fudster[automation]")
+            raise ImportError("automation dependencies required. Install with: pip install fudster[automation]")
 
-        os.environ['DISPLAY'] = ':1'
+        os.environ["DISPLAY"] = ":1"
 
         try:
             image_path = await self.image_util.download_and_cache_image_async(self.image_url)
@@ -73,8 +71,7 @@ class ScreenClient:
                 cursor.click_on([click_x, click_y])
 
                 logger.info(
-                    f"Clicked at position: ({click_x}, {click_y}) "
-                    f"with offset ({random_offset_x}, {random_offset_y})"
+                    f"Clicked at position: ({click_x}, {click_y}) with offset ({random_offset_x}, {random_offset_y})"
                 )
                 return "Click successful"
             else:
@@ -85,17 +82,15 @@ class ScreenClient:
             logger.exception("Failed to click image")
             return "Failed to click image; see server logs for details."
 
-    def debug_mouse_move_and_click(self, coordinates, button='left', move_duration=1.0):
+    def debug_mouse_move_and_click(self, coordinates, button="left", move_duration=1.0):
         if pyautogui is None:
-            raise ImportError(
-                "pyautogui is required. Install with: pip install fudster[automation]")
+            raise ImportError("pyautogui is required. Install with: pip install fudster[automation]")
 
-        os.environ['DISPLAY'] = ':1'
+        os.environ["DISPLAY"] = ":1"
 
         try:
             screen_width, screen_height = self.get_vnc_display_size()
-            logger.info(
-                f"VNC Display size: width={screen_width}, height={screen_height}")
+            logger.info(f"VNC Display size: width={screen_width}, height={screen_height}")
 
             for coord in coordinates:
                 x, y = coord
@@ -103,8 +98,7 @@ class ScreenClient:
                 x = min(max(x, 0), screen_width - 1)
                 y = min(max(y, 0), screen_height - 1)
 
-                logger.info(
-                    f"Moving to: ({x}, {y}) and clicking with {button} button")
+                logger.info(f"Moving to: ({x}, {y}) and clicking with {button} button")
 
                 pyautogui.sleep(0.5)
                 pyautogui.moveTo(x, y, duration=move_duration)
@@ -120,10 +114,9 @@ class ScreenClient:
 
     def take_screenshot(self):
         if pyautogui is None:
-            raise ImportError(
-                "pyautogui is required. Install with: pip install fudster[automation]")
+            raise ImportError("pyautogui is required. Install with: pip install fudster[automation]")
 
-        os.environ['DISPLAY'] = ':1'
+        os.environ["DISPLAY"] = ":1"
 
         try:
             screenshot = pyautogui.screenshot()

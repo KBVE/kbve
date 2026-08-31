@@ -22,9 +22,7 @@ def _graph_fixture() -> dict:
                 },
             },
             "dependencies": {
-                "web": [
-                    {"source": "web", "target": "ui", "type": "static"}
-                ],
+                "web": [{"source": "web", "target": "ui", "type": "static"}],
                 "ui": [],
             },
         }

@@ -2,8 +2,13 @@ from fastapi import FastAPI, WebSocket
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, Response
 from fudster import (
-    Routes, CORS, WS, RuneLiteClient,
-    CoinDeskClient, PoetryDBClient, WebsocketEchoClient,
+    Routes,
+    CORS,
+    WS,
+    RuneLiteClient,
+    CoinDeskClient,
+    PoetryDBClient,
+    WebsocketEchoClient,
     RSSUtility,
 )
 from kbve import AppServer, ServerConfig
@@ -20,7 +25,7 @@ except ImportError:
 
 logger = logging.getLogger("uvicorn")
 
-os.environ['DISPLAY'] = ':1'
+os.environ["DISPLAY"] = ":1"
 
 ws_handler = WS(max_message_history=100)
 
@@ -83,8 +88,7 @@ routes.get("/ws/status", RuneLiteClient, "status_runelite")
 
 routes.get("/api/bitcoin-price", CoinDeskClient, "get_current_bitcoin_price")
 routes.get("/api/poem", PoetryDBClient, "get_random_poem")
-routes.get("/api/config-runelite", RuneLiteClient,
-           "start_and_configure_runelite")
+routes.get("/api/config-runelite", RuneLiteClient, "start_and_configure_runelite")
 
 
 @app.get("/api/echo")
@@ -99,8 +103,7 @@ async def echo_main():
 
 @app.get("/api/news")
 async def google_news():
-    rss_utility = RSSUtility(
-        base_url="https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en")
+    rss_utility = RSSUtility(base_url="https://news.google.com/rss?hl=en-US&gl=US&ceid=US:en")
     try:
         soup = await rss_utility.fetch_and_parse_rss()
         rss_feed_model = await rss_utility.convert_to_model(soup)
@@ -111,6 +114,7 @@ async def google_news():
 
 
 if ScreenClient is not None:
+
     @app.get("/api/click")
     async def click_main():
         image_url = "https://utfs.io/f/f2af0bde-9e51-40e3-b68b-5a4e6805ac2e-a8zuzm.png"
@@ -118,12 +122,12 @@ if ScreenClient is not None:
         message = await client.find_and_click_image()
         return {"message": message}
 
+
 if ChromeClient is not None:
     routes.get("/api/start-chrome", ChromeClient, "start_chrome_async")
     routes.get("/api/stop-chrome", ChromeClient, "stop_chrome_async")
     routes.get("/api/go-to-gitlab", ChromeClient, "go_to_gitlab")
-    routes.get("/api/go-to-greenboard", ChromeClient,
-               "fetch_embedded_job_board")
+    routes.get("/api/go-to-greenboard", ChromeClient, "fetch_embedded_job_board")
 
 if DiscordClient is not None:
     routes.get("/api/discord-login", DiscordClient, "login_with_passkey")
@@ -134,4 +138,5 @@ server = AppServer(config=config, app=app)
 
 if __name__ == "__main__":
     import asyncio
+
     asyncio.run(server.serve())

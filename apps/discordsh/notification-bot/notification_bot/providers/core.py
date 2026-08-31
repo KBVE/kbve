@@ -1,6 +1,7 @@
 """
 Core providers for Discord bot and Supabase client
 """
+
 from dishka import Provider, Scope, provide
 from ..api.discord.discord_service import DiscordBotService
 from ..api.supabase.supabase_service import SupabaseService

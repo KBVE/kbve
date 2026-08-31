@@ -15,6 +15,7 @@ Usage:
         [--shadow-alpha 0.38 --shadow-blur 0.05 --shadow-squash 0.55 \
          --shadow-dx 0.04 --shadow-dy 0.06 --no-shadow]
 """
+
 import argparse
 import glob
 import math
@@ -27,8 +28,12 @@ def parse_args():
     p = argparse.ArgumentParser(prog="kbve-sprite-postprocess")
     p.add_argument("--dir", required=True, help="dir of frame_NN.png")
     p.add_argument("--res", type=int, required=True, help="px per frame (square)")
-    p.add_argument("--cols", type=int, default=0,
-                   help="sheet columns (0 = square auto). Set to anim-frames for a directions x frames grid")
+    p.add_argument(
+        "--cols",
+        type=int,
+        default=0,
+        help="sheet columns (0 = square auto). Set to anim-frames for a directions x frames grid",
+    )
     p.add_argument("--no-shadow", action="store_true", help="skip the baked shadow")
     # shadow knobs are fractions of frame size, so they scale with --res
     p.add_argument("--shadow-alpha", type=float, default=0.45, help="darkness 0..1")
@@ -61,8 +66,12 @@ def bake_shadow(im, res, alpha, blur, squash, shear, grow, dx, dy):
     #   y' = base + (y - ody - base) / squash   (flatten toward the floor)
     inv = 1.0 / max(squash, 0.01)
     coeffs = (
-        1.0, -shear, -odx + shear * base,
-        0.0, inv, base - ody * inv - base * inv,
+        1.0,
+        -shear,
+        -odx + shear * base,
+        0.0,
+        inv,
+        base - ody * inv - base * inv,
     )
     mask = a.transform((res, res), Image.AFFINE, coeffs, resample=Image.BILINEAR)
     # dilate so the pool reads slightly larger than the (self-occluding flat) hull
@@ -90,8 +99,15 @@ def main():
         im = Image.open(fp).convert("RGBA")
         if not a.no_shadow:
             im = bake_shadow(
-                im, a.res, a.shadow_alpha, a.shadow_blur, a.shadow_squash,
-                a.shadow_shear, a.shadow_grow, a.shadow_dx, a.shadow_dy,
+                im,
+                a.res,
+                a.shadow_alpha,
+                a.shadow_blur,
+                a.shadow_squash,
+                a.shadow_shear,
+                a.shadow_grow,
+                a.shadow_dx,
+                a.shadow_dy,
             )
             im.save(fp)  # frames carry the shadow too
         frames.append(im)

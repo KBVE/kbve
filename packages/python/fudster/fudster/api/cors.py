@@ -42,11 +42,7 @@ class CORS:
         allow_headers: List[str] | None = None,
     ):
         self.app = app
-        self.origins = (
-            origins
-            or _origins_from_env()
-            or list(DEFAULT_ORIGINS)
-        )
+        self.origins = origins or _origins_from_env() or list(DEFAULT_ORIGINS)
         self.allow_credentials = allow_credentials
         self.allow_methods = allow_methods or ["*"]
         self.allow_headers = allow_headers or ["*"]

@@ -60,7 +60,8 @@ def compile_proto(
         )
     else:
         logger.error(
-            "Proto compilation failed with exit code %d", exit_code,
+            "Proto compilation failed with exit code %d",
+            exit_code,
         )
 
     return exit_code

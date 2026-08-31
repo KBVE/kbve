@@ -62,6 +62,7 @@ ECOSYSTEM_LABELS = {
 
 # ── Root CLI group ───────────────────────────────────────────────────
 
+
 @click.group()
 def main() -> None:
     """Fudster CLI — workspace tooling powered by kbve core."""
@@ -69,20 +70,26 @@ def main() -> None:
 
 # ── version ──────────────────────────────────────────────────────────
 
+
 @main.command()
 def version() -> None:
     """Show fudster and kbve versions."""
     import fudster as _fudster
     from kbve import __version__ as _kbve_version
+
     click.echo(f"fudster {_fudster.__version__}")
     click.echo(f"kbve    {_kbve_version}")
 
 
 # ── info ─────────────────────────────────────────────────────────────
 
+
 @main.command()
 @click.option(
-    "--json", "as_json", is_flag=True, default=False,
+    "--json",
+    "as_json",
+    is_flag=True,
+    default=False,
     help="Output as JSON instead of a table.",
 )
 def info(as_json: bool) -> None:
@@ -93,17 +100,13 @@ def info(as_json: bool) -> None:
 
     if as_json:
         import json as _json
-        data = [
-            {"name": m.name, "description": m.description,
-             "available": m.available}
-            for m in modules
-        ]
+
+        data = [{"name": m.name, "description": m.description, "available": m.available} for m in modules]
         click.echo(_json.dumps(data, indent=2))
     else:
         click.echo("kbve modules:\n")
         for m in modules:
-            status = click.style("ok", fg="green") if m.available \
-                else click.style("missing", fg="red")
+            status = click.style("ok", fg="green") if m.available else click.style("missing", fg="red")
             click.echo(f"  [{status}] {m.name}")
             click.echo(f"         {m.description}")
         click.echo()
@@ -111,18 +114,24 @@ def info(as_json: bool) -> None:
 
 # ── serve ─────────────────────────────────────────────────────────────
 
+
 @main.command()
 @click.option("--host", default="0.0.0.0", help="Bind host.")
 @click.option("--port", default=8000, type=int, help="HTTP port.")
 @click.option("--grpc-port", default=50051, type=int, help="gRPC port.")
 @click.option("--log-level", default="info", help="Log level.")
 @click.option(
-    "--env-file", type=click.Path(), default=None,
+    "--env-file",
+    type=click.Path(),
+    default=None,
     help="Path to .env file for config.",
 )
 def serve(
-    host: str, port: int, grpc_port: int,
-    log_level: str, env_file: str | None,
+    host: str,
+    port: int,
+    grpc_port: int,
+    log_level: str,
+    env_file: str | None,
 ) -> None:
     """Start a kbve microservice with health checks."""
     import asyncio
@@ -150,27 +159,32 @@ def serve(
     server.http.app.include_router(router)
 
     addr = host + ":" + str(port)
-    click.echo(
-        f"Starting kbve server on {addr}"
-        f" (gRPC: {grpc_port})"
-    )
+    click.echo(f"Starting kbve server on {addr} (gRPC: {grpc_port})")
     asyncio.run(server.serve())
 
 
 # ── config ───────────────────────────────────────────────────────────
 
+
 @main.command("config")
 @click.option(
-    "--env-file", type=click.Path(exists=True), default=None,
+    "--env-file",
+    type=click.Path(exists=True),
+    default=None,
     help="Path to .env file.",
 )
 @click.option("--prefix", default="", help="Env var prefix to filter.")
 @click.option(
-    "--json", "as_json", is_flag=True, default=False,
+    "--json",
+    "as_json",
+    is_flag=True,
+    default=False,
     help="Output as JSON.",
 )
 def config_cmd(
-    env_file: str | None, prefix: str, as_json: bool,
+    env_file: str | None,
+    prefix: str,
+    as_json: bool,
 ) -> None:
     """Show resolved configuration from environment and .env files."""
     from kbve.config import EnvConfig
@@ -197,6 +211,7 @@ def config_cmd(
 
 # ── claude sub-group ─────────────────────────────────────────────────
 
+
 @main.group("claude")
 def claude_group() -> None:
     """Claude Code utilities — usage tracking, version info."""
@@ -204,11 +219,16 @@ def claude_group() -> None:
 
 @claude_group.command("usage")
 @click.option(
-    "--json", "as_json", is_flag=True, default=False,
+    "--json",
+    "as_json",
+    is_flag=True,
+    default=False,
     help="Output as JSON.",
 )
 @click.option(
-    "--timeout", default=15.0, type=float,
+    "--timeout",
+    default=15.0,
+    type=float,
     help="Timeout in seconds.",
 )
 def claude_usage(as_json: bool, timeout: float) -> None:
@@ -232,13 +252,9 @@ def claude_usage(as_json: bool, timeout: float) -> None:
         if usage.output_tokens is not None:
             click.echo("  Output tokens: " + format(usage.output_tokens, ","))
         if usage.cache_read_tokens is not None:
-            click.echo(
-                "  Cache read: " + format(usage.cache_read_tokens, ",")
-            )
+            click.echo("  Cache read: " + format(usage.cache_read_tokens, ","))
         if usage.cache_write_tokens is not None:
-            click.echo(
-                "  Cache write: " + format(usage.cache_write_tokens, ",")
-            )
+            click.echo("  Cache write: " + format(usage.cache_write_tokens, ","))
         if usage.percent_used is not None:
             click.echo(f"  Used: {usage.percent_used}%")
         if usage.duration_s is not None:
@@ -261,7 +277,10 @@ def claude_version() -> None:
 
 @claude_group.command("status")
 @click.option(
-    "--json", "as_json", is_flag=True, default=False,
+    "--json",
+    "as_json",
+    is_flag=True,
+    default=False,
     help="Output as JSON.",
 )
 def claude_status(as_json: bool) -> None:
@@ -299,6 +318,7 @@ def claude_status(as_json: bool) -> None:
 
 # ── grpc sub-group ───────────────────────────────────────────────────
 
+
 @main.group("grpc")
 def grpc_group() -> None:
     """gRPC utilities — health check, proto compilation."""
@@ -312,12 +332,11 @@ def grpc_health(target: str, timeout: float) -> None:
     import asyncio
     from kbve.grpc.client import check_health
 
-    result = asyncio.get_event_loop().run_until_complete(
-        check_health(target, timeout=timeout)
-    )
+    result = asyncio.get_event_loop().run_until_complete(check_health(target, timeout=timeout))
     if result["healthy"]:
         click.secho(
-            f"  {target} -> {result['status']}", fg="green",
+            f"  {target} -> {result['status']}",
+            fg="green",
         )
     else:
         err = result.get("error", "")
@@ -331,19 +350,27 @@ def grpc_health(target: str, timeout: float) -> None:
 @grpc_group.command("compile")
 @click.argument("proto_files", nargs=-1, required=True)
 @click.option(
-    "--proto-path", default=".", type=click.Path(exists=True),
+    "--proto-path",
+    default=".",
+    type=click.Path(exists=True),
     help="Directory to search for imports.",
 )
 @click.option(
-    "--python-out", default=".", type=click.Path(),
+    "--python-out",
+    default=".",
+    type=click.Path(),
     help="Output directory for _pb2.py files.",
 )
 @click.option(
-    "--grpc-out", default=None, type=click.Path(),
+    "--grpc-out",
+    default=None,
+    type=click.Path(),
     help="Output directory for _pb2_grpc.py files.",
 )
 @click.option(
-    "--pyi-out", default=None, type=click.Path(),
+    "--pyi-out",
+    default=None,
+    type=click.Path(),
     help="Output directory for .pyi type stubs.",
 )
 def grpc_compile(
@@ -365,7 +392,8 @@ def grpc_compile(
     )
     if exit_code == 0:
         click.secho(
-            f"Compiled {len(proto_files)} proto file(s)", fg="green",
+            f"Compiled {len(proto_files)} proto file(s)",
+            fg="green",
         )
     else:
         msg = "Proto compilation failed (exit " + str(exit_code) + ")"
@@ -375,6 +403,7 @@ def grpc_compile(
 
 # ── gdrive sub-group ────────────────────────────────────────────────
 
+
 @main.group("gdrive")
 def gdrive_group() -> None:
     """Google Drive utilities — PDF extraction, conversion."""
@@ -383,23 +412,34 @@ def gdrive_group() -> None:
 @gdrive_group.command("pdf-to-md")
 @click.argument("url")
 @click.option(
-    "--output", "-o", type=click.Path(), default=None,
+    "--output",
+    "-o",
+    type=click.Path(),
+    default=None,
     help="Write Markdown to a file instead of stdout.",
 )
 @click.option(
-    "--image-dir", type=click.Path(), default=None,
+    "--image-dir",
+    type=click.Path(),
+    default=None,
     help="Directory to save extracted page images.",
 )
 @click.option(
-    "--no-ocr", is_flag=True, default=False,
+    "--no-ocr",
+    is_flag=True,
+    default=False,
     help="Skip OCR even if pytesseract is available.",
 )
 @click.option(
-    "--headed", is_flag=True, default=False,
+    "--headed",
+    is_flag=True,
+    default=False,
     help="Run the browser with a visible window.",
 )
 @click.option(
-    "--scroll-pause", type=float, default=0.6,
+    "--scroll-pause",
+    type=float,
+    default=0.6,
     help="Seconds between scroll steps (default: 0.6).",
 )
 def gdrive_pdf_to_md(
@@ -442,6 +482,7 @@ def gdrive_pdf_to_md(
 
     if output:
         from pathlib import Path
+
         Path(output).write_text(md, encoding="utf-8")
         click.secho(f"Markdown written to {output}", fg="green")
     else:
@@ -450,6 +491,7 @@ def gdrive_pdf_to_md(
 
 # ── nx sub-group ─────────────────────────────────────────────────────
 
+
 @main.group()
 def nx() -> None:
     """Nx workspace commands."""
@@ -457,12 +499,15 @@ def nx() -> None:
 
 # ── nx graph-to-mdx ─────────────────────────────────────────────────
 
+
 @nx.command("graph-to-mdx")
 @click.argument("graph_json", type=click.Path(exists=True))
 @click.argument("output_mdx", type=click.Path())
 @click.argument("timestamp")
 def graph_to_mdx(
-    graph_json: str, output_mdx: str, timestamp: str,
+    graph_json: str,
+    output_mdx: str,
+    timestamp: str,
 ) -> None:
     """Generate a Starlight MDX page from an Nx graph JSON file."""
     gd: GraphData = parse_graph(graph_json)
@@ -471,21 +516,23 @@ def graph_to_mdx(
     w = MdxWriter()
     w.frontmatter(
         title="NX Dependency Graph",
-        description="Daily auto-generated NX project dependency graph"
-        " for the KBVE monorepo.",
+        description="Daily auto-generated NX project dependency graph for the KBVE monorepo.",
         sidebar={"label": "Graph", "order": 101},
         editUrl=False,
     )
     w.imports(
-        "Card", "CardGrid", "Tabs", "TabItem",
+        "Card",
+        "CardGrid",
+        "Tabs",
+        "TabItem",
         source="@astrojs/starlight/components",
     )
 
     w.heading("NX Dependency Graph")
     w.admonition(
-        "note", "Auto-generated",
-        f"Last generated: **{timestamp}** — "
-        "updated daily by `ci-dashboard`.",
+        "note",
+        "Auto-generated",
+        f"Last generated: **{timestamp}** — updated daily by `ci-dashboard`.",
     )
 
     # Overview cards
@@ -499,7 +546,8 @@ def graph_to_mdx(
             names += f" + {len(gd.by_type[ptype]) - 6} more"
         w.card(f"{count} {label}", icon, names)
     w.card(
-        f"{len(gd.edges)} Dependencies", "random",
+        f"{len(gd.edges)} Dependencies",
+        "random",
         f"Across {len(gd.nodes)} projects in the monorepo.",
     )
     w.card_grid_end()
@@ -512,7 +560,8 @@ def graph_to_mdx(
             continue
         icon = TYPE_ICONS.get(row.project_type, "document")
         w.card(
-            row.name, icon,
+            row.name,
+            icon,
             f"**{row.dependent_count}** project"
             f"{'s' if row.dependent_count != 1 else ''}"
             f" depend on this {row.project_type}."
@@ -524,8 +573,7 @@ def graph_to_mdx(
     w.heading("Project Distribution", level=3)
     w.donut(
         "Projects by Type",
-        {ptype.capitalize() + "s": len(gd.by_type[ptype])
-         for ptype in sorted(gd.by_type)},
+        {ptype.capitalize() + "s": len(gd.by_type[ptype]) for ptype in sorted(gd.by_type)},
     )
 
     # Hub connectivity donut
@@ -533,107 +581,74 @@ def graph_to_mdx(
         w.heading("Hub Connectivity", level=3)
         w.donut(
             "Dependents per Hub",
-            {r.name: r.dependent_count
-             for r in hubs if r.dependent_count > 0},
+            {r.name: r.dependent_count for r in hubs if r.dependent_count > 0},
         )
 
     # Tabs: Diagram + Project Index + Details
     w.tabs_start()
     w.tab_start("Diagram")
     if len(gd.edges) <= 200:
-        node_type = {
-            name: ptype
-            for ptype, names in gd.by_type.items()
-            for name in names
-        }
+        node_type = {name: ptype for ptype, names in gd.by_type.items() for name in names}
         w.dag(
-            [
-                DagNode(r.name, node_type.get(r.name, ""))
-                for r in gd.rows
-            ],
-            [
-                DagEdge(src, tgt)
-                for src, targets in sorted(gd.edges_by_source.items())
-                for tgt in sorted(targets)
-            ],
+            [DagNode(r.name, node_type.get(r.name, "")) for r in gd.rows],
+            [DagEdge(src, tgt) for src, targets in sorted(gd.edges_by_source.items()) for tgt in sorted(targets)],
             title="Dependency graph",
         )
         w.admonition(
-            "tip", "Legend",
-            "**Blue** = Application &nbsp; "
-            "**Green** = Library &nbsp; "
-            "**Amber** = E2E Test",
+            "tip",
+            "Legend",
+            "**Blue** = Application &nbsp; **Green** = Library &nbsp; **Amber** = E2E Test",
         )
     else:
         w.admonition(
-            "caution", "",
-            "Dependency diagram omitted — "
-            "too many edges for inline rendering.",
+            "caution",
+            "",
+            "Dependency diagram omitted — too many edges for inline rendering.",
         )
     w.tab_end()
 
     w.tab_start("Project Index")
     w.table(
         ["Project", "Type", "Root", "Deps", "Dependents"],
-        [[f"**{r.name}**", r.project_type, f"`{r.root}`",
-          str(r.dep_count), str(r.dependent_count)]
-         for r in gd.rows],
+        [[f"**{r.name}**", r.project_type, f"`{r.root}`", str(r.dep_count), str(r.dependent_count)] for r in gd.rows],
         ["left", "left", "left", "center", "center"],
     )
     w.tab_end()
 
     w.tab_start("Details")
     for ptype in sorted(gd.by_type):
-        type_projects = [
-            n for n in sorted(gd.by_type[ptype])
-            if gd.deps.get(n)
-        ]
+        type_projects = [n for n in sorted(gd.by_type[ptype]) if gd.deps.get(n)]
         if not type_projects:
             continue
         w.heading(f"{ptype.capitalize()} Projects", level=4)
         for name in type_projects:
             dep_list = gd.deps[name]
-            w.details_start(
-                f"<strong>{name}</strong>"
-                f" ({len(dep_list)} dep"
-                f"{'s' if len(dep_list) != 1 else ''})"
-            )
+            w.details_start(f"<strong>{name}</strong> ({len(dep_list)} dep{'s' if len(dep_list) != 1 else ''})")
             w.table(
                 ["Target", "Type"],
-                [[d["target"], d["type"]]
-                 for d in sorted(dep_list, key=lambda x: x["target"])],
+                [[d["target"], d["type"]] for d in sorted(dep_list, key=lambda x: x["target"])],
             )
             w.details_end()
     w.tab_end()
     w.tabs_end()
 
     w.text("---")
-    w.text(
-        "*Auto-generated by "
-        "[ci-dashboard.yml]"
-        "(https://github.com/KBVE/kbve/actions/"
-        "workflows/ci-dashboard.yml)*"
-    )
+    w.text("*Auto-generated by [ci-dashboard.yml](https://github.com/KBVE/kbve/actions/workflows/ci-dashboard.yml)*")
 
     w.write_to(output_mdx)
-    click.echo(
-        f"Generated {output_mdx}"
-        f" — {len(gd.nodes)} projects, {len(gd.edges)} edges"
-    )
+    click.echo(f"Generated {output_mdx} — {len(gd.nodes)} projects, {len(gd.edges)} edges")
 
 
 # ── nx security-to-mdx ──────────────────────────────────────────────
 
+
 @nx.command("security-to-mdx")
-@click.option("--input", "input_path", required=True,
-              type=click.Path(exists=True),
-              help="Path to aggregated raw security JSON.")
-@click.option("--timestamp", required=True,
-              help="ISO 8601 timestamp for the report.")
-@click.option("--mdx-out", type=click.Path(), default=None,
-              help="Path to write Starlight MDX output.")
-@click.option("--json-out", type=click.Path(), default=None,
-              help="Path to write structured JSON output.")
+@click.option(
+    "--input", "input_path", required=True, type=click.Path(exists=True), help="Path to aggregated raw security JSON."
+)
+@click.option("--timestamp", required=True, help="ISO 8601 timestamp for the report.")
+@click.option("--mdx-out", type=click.Path(), default=None, help="Path to write Starlight MDX output.")
+@click.option("--json-out", type=click.Path(), default=None, help="Path to write structured JSON output.")
 def security_to_mdx(
     input_path: str,
     timestamp: str,
@@ -642,9 +657,7 @@ def security_to_mdx(
 ) -> None:
     """Aggregate security audit data into Starlight MDX and/or JSON."""
     if not mdx_out and not json_out:
-        raise click.UsageError(
-            "At least one of --mdx-out or --json-out is required."
-        )
+        raise click.UsageError("At least one of --mdx-out or --json-out is required.")
 
     with open(input_path) as f:
         raw = json.load(f)
@@ -667,7 +680,9 @@ def security_to_mdx(
 
 
 def _write_security_mdx(
-    data: dict, timestamp: str, path: str,
+    data: dict,
+    timestamp: str,
+    path: str,
 ) -> None:
     """Render the security report as Starlight MDX."""
     from kbve.mdx.escape import escape_mdx
@@ -679,40 +694,42 @@ def _write_security_mdx(
     w = MdxWriter()
     w.frontmatter(
         title="Security Audit Report",
-        description="Daily auto-generated security audit"
-        " for the KBVE monorepo.",
+        description="Daily auto-generated security audit for the KBVE monorepo.",
         sidebar={"label": "Security", "order": 102},
         editUrl=False,
     )
     w.imports(
-        "Card", "CardGrid", "Tabs", "TabItem",
+        "Card",
+        "CardGrid",
+        "Tabs",
+        "TabItem",
         source="@astrojs/starlight/components",
     )
 
     w.heading("Security Audit Report")
     w.admonition(
-        "note", "Auto-generated",
-        f"Last generated: **{timestamp}** — "
-        "updated daily by `ci-dashboard`.",
+        "note",
+        "Auto-generated",
+        f"Last generated: **{timestamp}** — updated daily by `ci-dashboard`.",
     )
 
     crit_high = summary["critical"] + summary["high"]
     if crit_high > 0:
         w.admonition(
-            "caution", "Action Required",
-            f"**{crit_high}** critical/high severity"
-            f" finding{'s' if crit_high != 1 else ''}"
-            " across the monorepo.",
+            "caution",
+            "Action Required",
+            f"**{crit_high}** critical/high severity finding{'s' if crit_high != 1 else ''} across the monorepo.",
         )
     elif total > 0:
         w.admonition(
-            "note", "Findings Present",
-            f"**{total}** finding{'s' if total != 1 else ''}"
-            " found — none critical or high.",
+            "note",
+            "Findings Present",
+            f"**{total}** finding{'s' if total != 1 else ''} found — none critical or high.",
         )
     else:
         w.admonition(
-            "tip", "All Clear",
+            "tip",
+            "All Clear",
             "No security findings detected across any ecosystem.",
         )
 
@@ -723,8 +740,7 @@ def _write_security_mdx(
         icon = SEVERITY_ICONS.get(sev, "information")
         count = summary[sev]
         label = sev.capitalize()
-        w.card(f"{count} {label}", icon,
-               f"{label}-severity findings across all ecosystems.")
+        w.card(f"{count} {label}", icon, f"{label}-severity findings across all ecosystems.")
     w.card_grid_end()
 
     # Ecosystem breakdown cards
@@ -735,8 +751,7 @@ def _write_security_mdx(
         icon = ECOSYSTEM_ICONS.get(eco_name, "document")
         count = eco.get("total", 0)
         label = ECOSYSTEM_LABELS.get(eco_name, eco_name.capitalize())
-        item_word = ("alerts" if eco_name in ("codeql", "dependabot")
-                     else "advisories")
+        item_word = "alerts" if eco_name in ("codeql", "dependabot") else "advisories"
         w.card(label, icon, f"**{count}** {item_word}")
     w.card_grid_end()
 
@@ -769,22 +784,26 @@ def _write_security_mdx(
         sevs = eco.get("severities", _empty)
         eco_total = eco.get("total", 0)
         label = ECOSYSTEM_LABELS.get(eco_name, eco_name.capitalize())
-        rows.append([
-            f"**{label}**",
-            str(sevs.get("critical", 0)),
-            str(sevs.get("high", 0)),
-            str(sevs.get("medium", 0)),
-            str(sevs.get("low", 0)),
-            str(eco_total),
-        ])
-    rows.append([
-        "**Total**",
-        str(summary["critical"]),
-        str(summary["high"]),
-        str(summary["medium"]),
-        str(summary["low"]),
-        str(total),
-    ])
+        rows.append(
+            [
+                f"**{label}**",
+                str(sevs.get("critical", 0)),
+                str(sevs.get("high", 0)),
+                str(sevs.get("medium", 0)),
+                str(sevs.get("low", 0)),
+                str(eco_total),
+            ]
+        )
+    rows.append(
+        [
+            "**Total**",
+            str(summary["critical"]),
+            str(summary["high"]),
+            str(summary["medium"]),
+            str(summary["low"]),
+            str(total),
+        ]
+    )
     w.table(
         ["Ecosystem", "Critical", "High", "Medium", "Low", "Total"],
         rows,
@@ -794,22 +813,24 @@ def _write_security_mdx(
 
     # Per-ecosystem advisory tabs
     for eco_name, label in [
-        ("npm", "npm"), ("cargo", "Cargo"), ("python", "Python"),
+        ("npm", "npm"),
+        ("cargo", "Cargo"),
+        ("python", "Python"),
     ]:
         eco = ecosystems.get(eco_name, {})
         w.tab_start(label)
         items = eco.get("advisories", [])
         if not items:
             w.admonition(
-                "tip", "All Clear",
+                "tip",
+                "All Clear",
                 f"No {label.lower()} advisories found.",
             )
         else:
             adv_rows = []
             for item in sorted(
                 items,
-                key=lambda x: SEVERITY_ORDER.index(
-                    x.get("severity", "medium")),
+                key=lambda x: SEVERITY_ORDER.index(x.get("severity", "medium")),
             ):
                 sev = item.get("severity", "medium").capitalize()
                 pkg = item.get("package", "")
@@ -836,8 +857,7 @@ def _write_security_mdx(
         cq_rows = []
         for alert in sorted(
             alerts,
-            key=lambda x: SEVERITY_ORDER.index(
-                x.get("severity", "medium")),
+            key=lambda x: SEVERITY_ORDER.index(x.get("severity", "medium")),
         ):
             sev = alert.get("severity", "medium").capitalize()
             rule = alert.get("rule_id", "")
@@ -848,7 +868,8 @@ def _write_security_mdx(
             link = f"[Details]({url})" if url else ""
             cq_rows.append([sev, f"`{rule}`", f"`{apath}`", link])
         w.table(
-            ["Severity", "Rule", "Path", "Link"], cq_rows,
+            ["Severity", "Rule", "Path", "Link"],
+            cq_rows,
         )
     w.tab_end()
 
@@ -858,14 +879,15 @@ def _write_security_mdx(
     alerts = eco.get("alerts", [])
     if not alerts:
         w.admonition(
-            "tip", "All Clear", "No open Dependabot alerts.",
+            "tip",
+            "All Clear",
+            "No open Dependabot alerts.",
         )
     else:
         db_rows = []
         for alert in sorted(
             alerts,
-            key=lambda x: SEVERITY_ORDER.index(
-                x.get("severity", "medium")),
+            key=lambda x: SEVERITY_ORDER.index(x.get("severity", "medium")),
         ):
             sev = alert.get("severity", "medium").capitalize()
             pkg = alert.get("package", "")
@@ -875,8 +897,7 @@ def _write_security_mdx(
                 asummary = asummary[:47] + "..."
             url = alert.get("url", "")
             link = f"[Details]({url})" if url else ""
-            db_rows.append(
-                [sev, f"`{pkg}`", aeco, asummary, link])
+            db_rows.append([sev, f"`{pkg}`", aeco, asummary, link])
         w.table(
             ["Severity", "Package", "Ecosystem", "Summary", "Link"],
             db_rows,
@@ -886,12 +907,7 @@ def _write_security_mdx(
     w.tabs_end()
 
     w.text("---")
-    w.text(
-        "*Auto-generated by "
-        "[ci-dashboard.yml]"
-        "(https://github.com/KBVE/kbve/actions/"
-        "workflows/ci-dashboard.yml)*"
-    )
+    w.text("*Auto-generated by [ci-dashboard.yml](https://github.com/KBVE/kbve/actions/workflows/ci-dashboard.yml)*")
 
     w.write_to(path)
     click.echo(f"MDX written to {path} ({total} total findings)")

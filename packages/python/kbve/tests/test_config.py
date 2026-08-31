@@ -14,6 +14,7 @@ from kbve.config.env_config import (
 
 # ── load_env_file ────────────────────────────────────────────────────
 
+
 def test_load_env_file(tmp_path):
     f = tmp_path / ".env"
     f.write_text("KEY=value\nOTHER=123\n")
@@ -30,7 +31,7 @@ def test_load_env_file_comments_and_blanks(tmp_path):
 
 def test_load_env_file_quoted_values(tmp_path):
     f = tmp_path / ".env"
-    f.write_text('A="hello world"\nB=\'single\'\n')
+    f.write_text("A=\"hello world\"\nB='single'\n")
     result = load_env_file(f)
     assert result["A"] == "hello world"
     assert result["B"] == "single"
@@ -56,6 +57,7 @@ def test_load_env_file_equals_in_value(tmp_path):
 
 
 # ── apply_env_file ───────────────────────────────────────────────────
+
 
 def test_apply_env_file(tmp_path, monkeypatch):
     f = tmp_path / ".env"
@@ -89,6 +91,7 @@ def test_apply_env_file_override(tmp_path, monkeypatch):
 
 # ── get_env ──────────────────────────────────────────────────────────
 
+
 def test_get_env(monkeypatch):
     monkeypatch.setenv("TEST_GET_ENV", "val")
     assert get_env("TEST_GET_ENV") == "val"
@@ -110,6 +113,7 @@ def test_get_env_required_present(monkeypatch):
 
 
 # ── EnvConfig ────────────────────────────────────────────────────────
+
 
 def test_env_config_defaults():
     cfg = EnvConfig.from_env(defaults={"port": "8000", "host": "localhost"})

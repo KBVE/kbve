@@ -1,6 +1,7 @@
 """
 Service providers for Supabase managers
 """
+
 from dishka import Provider, Scope, provide
 from ..api.supabase.vault import VaultManager
 from ..api.supabase.tracker import TrackerManager

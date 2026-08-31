@@ -8,11 +8,9 @@ from kbve.nx.cli import alerts_main
 
 # ── next_link ────────────────────────────────────────────────────────
 
+
 def test_next_link_present():
-    header = (
-        '<https://api.github.com/x?page=2>; rel="next", '
-        '<https://api.github.com/x?page=9>; rel="last"'
-    )
+    header = '<https://api.github.com/x?page=2>; rel="next", <https://api.github.com/x?page=9>; rel="last"'
     assert next_link(header) == "https://api.github.com/x?page=2"
 
 
@@ -23,6 +21,7 @@ def test_next_link_absent():
 
 
 # ── validate ─────────────────────────────────────────────────────────
+
 
 def test_validate_keeps_only_open_dicts():
     alerts = [
@@ -38,6 +37,7 @@ def test_validate_keeps_only_open_dicts():
 
 # ── endpoints ────────────────────────────────────────────────────────
 
+
 def test_endpoints_shape():
     assert set(ENDPOINTS) == {"code-scanning", "dependabot"}
     assert ENDPOINTS["dependabot"].endswith("/dependabot/alerts")
@@ -45,11 +45,11 @@ def test_endpoints_shape():
 
 # ── CLI ──────────────────────────────────────────────────────────────
 
+
 def test_alerts_main_missing_token_writes_empty(tmp_path, monkeypatch):
     monkeypatch.delenv("GITHUB_TOKEN", raising=False)
     out = tmp_path / "alerts.json"
-    rc = alerts_main([
-        "--endpoint", "dependabot", "--out", str(out)])
+    rc = alerts_main(["--endpoint", "dependabot", "--out", str(out)])
     assert rc == 2
     assert json.loads(out.read_text()) == []
 
@@ -64,7 +64,6 @@ def test_alerts_main_success(tmp_path, monkeypatch):
         ],
     )
     out = tmp_path / "alerts.json"
-    rc = alerts_main([
-        "--endpoint", "code-scanning", "--out", str(out)])
+    rc = alerts_main(["--endpoint", "code-scanning", "--out", str(out)])
     assert rc == 0
     assert json.loads(out.read_text()) == [{"state": "open", "number": 1}]

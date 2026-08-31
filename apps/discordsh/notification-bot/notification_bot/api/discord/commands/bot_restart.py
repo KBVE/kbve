@@ -1,6 +1,7 @@
 """
 Bot restart command module - Ultra-optimized
 """
+
 from __future__ import annotations
 from fastapi import APIRouter, Response
 from ....types import BotService

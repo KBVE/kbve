@@ -25,10 +25,12 @@ def _ctx(tmp_path, inputs):
 def _item(status, number, title, matrix=None, labels=None, itype="ISSUE"):
     return {
         "type": itype,
-        "fieldValues": {"nodes": [
-            {"field": {"name": "Status"}, "name": status},
-            {"field": {"name": "Matrix"}, "number": matrix},
-        ]},
+        "fieldValues": {
+            "nodes": [
+                {"field": {"name": "Status"}, "name": status},
+                {"field": {"name": "Matrix"}, "number": matrix},
+            ]
+        },
         "content": {
             "number": number,
             "title": title,
@@ -89,8 +91,15 @@ def test_kanban_build_writes_all_three(tmp_path):
     assert data["summary"]["Todo"] == 2
     assert data["summary"]["Done"] == 1
     assert list(data["columns"].keys()) == [
-        "Theory", "AI", "Todo", "Backlog", "Error",
-        "Support", "Staging", "Review", "Done",
+        "Theory",
+        "AI",
+        "Todo",
+        "Backlog",
+        "Error",
+        "Support",
+        "Staging",
+        "Review",
+        "Done",
     ]
     # matrix priority sort — higher first
     assert data["columns"]["Todo"][0]["number"] == 2
@@ -112,16 +121,18 @@ def test_kanban_mdx_is_bento(tmp_path):
 def test_kanban_json_key_order(tmp_path):
     ctx = _ctx(tmp_path, _seam([_item("Todo", 1, "X")]))
     get("kanban").build(ctx)
-    data = json.loads(
-        (ctx.public_dir / "nx-kanban.json").read_text())
-    assert list(data.keys()) == [
-        "generated_at", "project", "summary", "columns", "views"]
+    data = json.loads((ctx.public_dir / "nx-kanban.json").read_text())
+    assert list(data.keys()) == ["generated_at", "project", "summary", "columns", "views"]
 
 
 def test_bucket_ignores_unknown_status():
-    cols, summ = bucket([
-        {"type": "ISSUE", "fieldValues": {"nodes": [
-            {"field": {"name": "Status"}, "name": "Nonexistent"}]},
-         "content": {"number": 1, "title": "x"}},
-    ])
+    cols, summ = bucket(
+        [
+            {
+                "type": "ISSUE",
+                "fieldValues": {"nodes": [{"field": {"name": "Status"}, "name": "Nonexistent"}]},
+                "content": {"number": 1, "title": "x"},
+            },
+        ]
+    )
     assert sum(summ.values()) == 0

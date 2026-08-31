@@ -185,11 +185,7 @@ def _order_layers(
     for sweep in range(_ORDER_SWEEPS):
         forward = sweep % 2 == 0
         indices = range(1, depth) if forward else range(depth - 2, -1, -1)
-        position = {
-            name: i
-            for bucket in buckets
-            for i, name in enumerate(bucket)
-        }
+        position = {name: i for bucket in buckets for i, name in enumerate(bucket)}
         for index in indices:
             neighbours = preds if forward else succs
             buckets[index].sort(
@@ -219,10 +215,7 @@ def _place(
     texts = {name: _label(known[name]) for name in known}
     widths = {name: _width(texts[name]) for name in known}
 
-    column_widths = [
-        max((widths[n] for n in bucket), default=_MIN_NODE_WIDTH)
-        for bucket in order
-    ]
+    column_widths = [max((widths[n] for n in bucket), default=_MIN_NODE_WIDTH) for bucket in order]
     column_x: list[float] = []
     cursor = float(_MARGIN)
     for width in column_widths:
@@ -230,10 +223,7 @@ def _place(
         cursor += width + _LAYER_GAP
     total_width = cursor - _LAYER_GAP + _MARGIN
 
-    column_heights = [
-        len(bucket) * _NODE_HEIGHT + max(0, len(bucket) - 1) * _ROW_GAP
-        for bucket in order
-    ]
+    column_heights = [len(bucket) * _NODE_HEIGHT + max(0, len(bucket) - 1) * _ROW_GAP for bucket in order]
     tallest = max(column_heights, default=0)
     total_height = tallest + 2 * _MARGIN
 
@@ -241,14 +231,16 @@ def _place(
     for index, bucket in enumerate(order):
         top = _MARGIN + (tallest - column_heights[index]) / 2
         for row, name in enumerate(bucket):
-            placed.append(_Placed(
-                node=known[name],
-                text=texts[name],
-                layer=index,
-                x=column_x[index],
-                y=top + row * (_NODE_HEIGHT + _ROW_GAP),
-                width=column_widths[index],
-            ))
+            placed.append(
+                _Placed(
+                    node=known[name],
+                    text=texts[name],
+                    layer=index,
+                    x=column_x[index],
+                    y=top + row * (_NODE_HEIGHT + _ROW_GAP),
+                    width=column_widths[index],
+                )
+            )
     return placed, total_width, total_height
 
 
@@ -305,7 +297,7 @@ def _emit(
         label = escape_svg(item.text)
         full = escape_svg(item.node.name)
         parts.append(
-            f'<g><title>{full}</title>'
+            f"<g><title>{full}</title>"
             f'<rect x="{item.x:.1f}" y="{item.y:.1f}"'
             f' width="{item.width:.1f}" height="{_NODE_HEIGHT}" rx="7"'
             f' fill="{fill}" stroke="{stroke}" stroke-width="1.5" />'
@@ -336,19 +328,11 @@ def _edge_path(source: _Placed, target: _Placed, back: bool) -> str:
     if back:
         x1 = target.x + target.width
         bow = max(40.0, abs(y1 - y0) * 0.4)
-        path = (
-            f"M {x0:.1f} {y0:.1f}"
-            f" C {x0 + bow:.1f} {y0:.1f} {x1 + bow:.1f} {y1:.1f}"
-            f" {x1:.1f} {y1:.1f}"
-        )
+        path = f"M {x0:.1f} {y0:.1f} C {x0 + bow:.1f} {y0:.1f} {x1 + bow:.1f} {y1:.1f} {x1:.1f} {y1:.1f}"
         dash = ' stroke-dasharray="5 4"'
     else:
         grip = max(28.0, (x1 - x0) * 0.5)
-        path = (
-            f"M {x0:.1f} {y0:.1f}"
-            f" C {x0 + grip:.1f} {y0:.1f} {x1 - grip:.1f} {y1:.1f}"
-            f" {x1:.1f} {y1:.1f}"
-        )
+        path = f"M {x0:.1f} {y0:.1f} C {x0 + grip:.1f} {y0:.1f} {x1 - grip:.1f} {y1:.1f} {x1:.1f} {y1:.1f}"
         dash = ""
 
     return (

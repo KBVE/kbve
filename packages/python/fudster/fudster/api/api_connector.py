@@ -21,7 +21,7 @@ class APIConnector:
 
     async def _request(self, method: str, endpoint: str, **kwargs) -> Any:
         url = f"{self.base_url}/{endpoint}"
-        headers = self._prepare_headers(kwargs.pop('auth', None))
+        headers = self._prepare_headers(kwargs.pop("auth", None))
         async with self.session.request(method, url, headers=headers, **kwargs) as response:
             response.raise_for_status()
             return await response.json()
@@ -32,13 +32,13 @@ class APIConnector:
         return self.session
 
     async def get(self, endpoint: str, **kwargs) -> Any:
-        return await self._request('GET', endpoint, **kwargs)
+        return await self._request("GET", endpoint, **kwargs)
 
     async def post(self, endpoint: str, **kwargs) -> Any:
-        return await self._request('POST', endpoint, **kwargs)
+        return await self._request("POST", endpoint, **kwargs)
 
     async def delete(self, endpoint: str, **kwargs) -> Any:
-        return await self._request('DELETE', endpoint, **kwargs)
+        return await self._request("DELETE", endpoint, **kwargs)
 
     async def close(self):
         if self.websocket is not None and not self.websocket.closed:
@@ -48,7 +48,7 @@ class APIConnector:
     async def connect_websocket(self, endpoint: Optional[str] = None) -> aiohttp.ClientWebSocketResponse:
         headers = {}
         if self.key:
-            headers['Authorization'] = f"Bearer {self.key}"
+            headers["Authorization"] = f"Bearer {self.key}"
         if endpoint:
             websocket_url = f"{self.base_url}/{endpoint}"
         else:
@@ -81,8 +81,8 @@ class APIConnector:
     def _prepare_headers(self, auth: Optional[str] = None) -> dict:
         """Prepare headers for HTTP or WebSocket connection."""
         headers = {}
-        if self.key and auth == 'header':
-            headers['Authorization'] = f"Bearer {self.key}"
+        if self.key and auth == "header":
+            headers["Authorization"] = f"Bearer {self.key}"
         return headers
 
     async def get_raw_content(self, endpoint: str) -> bytes:

@@ -76,10 +76,6 @@ class NoVNCClient:
                 super().new_websocket_client()
 
         proxy = CustomWebSocketProxy(
-            listen_host='0.0.0.0',
-            listen_port=8001,
-            target_host=target_host,
-            target_port=target_port,
-            verbose=True
+            listen_host="0.0.0.0", listen_port=8001, target_host=target_host, target_port=target_port, verbose=True
         )
         proxy.start_server()

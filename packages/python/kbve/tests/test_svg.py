@@ -17,18 +17,17 @@ def _parse(svg: str) -> ET.Element:
 
 # ── escaping ────────────────────────────────────────────────────────
 
+
 def test_escape_svg_handles_markup_and_jsx_braces():
-    assert escape_svg('a & b < c > d "e"') == (
-        "a &amp; b &lt; c &gt; d &quot;e&quot;"
-    )
+    assert escape_svg('a & b < c > d "e"') == ("a &amp; b &lt; c &gt; d &quot;e&quot;")
     assert escape_svg("{expr}") == "&#123;expr&#125;"
 
 
 # ── donut ───────────────────────────────────────────────────────────
 
+
 def test_donut_svg_is_well_formed():
-    svg = donut_svg("Projects by Type", [
-        Slice("Apps", 62), Slice("Libs", 57), Slice("E2es", 24)])
+    svg = donut_svg("Projects by Type", [Slice("Apps", 62), Slice("Libs", 57), Slice("E2es", 24)])
     root = _parse(svg)
     assert root.tag == "svg"
     assert root.get("role") == "img"
@@ -89,6 +88,7 @@ def test_donut_svg_respects_explicit_colors():
 
 
 # ── dag ─────────────────────────────────────────────────────────────
+
 
 def _nodes(*specs: tuple[str, str]) -> list[DagNode]:
     return [DagNode(name, kind) for name, kind in specs]
@@ -244,9 +244,7 @@ def test_dag_svg_widens_with_dependency_depth():
     for i in range(1, 8):
         nodes.append(DagNode(f"p{i:02d}", "lib"))
         edges.append(DagEdge(f"p{i - 1:02d}", f"p{i:02d}"))
-    columns = {
-        float(rect.get("x")) for rect in _parse(dag_svg(nodes, edges)).iter("rect")
-    }
+    columns = {float(rect.get("x")) for rect in _parse(dag_svg(nodes, edges)).iter("rect")}
     assert len(columns) == 8
 
 
@@ -270,10 +268,7 @@ def test_dag_svg_nodes_do_not_overlap_within_a_layer():
         nodes.append(DagNode(f"n{i:02d}", "app"))
         edges.append(DagEdge(f"n{i:02d}", "hub"))
     svg = dag_svg(nodes, edges)
-    boxes = [
-        (float(r.get("x")), float(r.get("y")), float(r.get("height")))
-        for r in _parse(svg).iter("rect")
-    ]
+    boxes = [(float(r.get("x")), float(r.get("y")), float(r.get("height"))) for r in _parse(svg).iter("rect")]
     by_column: dict[float, list[tuple[float, float]]] = {}
     for x, y, h in boxes:
         by_column.setdefault(x, []).append((y, y + h))

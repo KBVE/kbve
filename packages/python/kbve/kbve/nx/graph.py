@@ -49,9 +49,7 @@ def parse_graph(source: str | Path | dict) -> GraphData:
     """
     if isinstance(source, dict):
         data = source
-    elif isinstance(source, Path) or (
-        isinstance(source, str) and not source.lstrip().startswith("{")
-    ):
+    elif isinstance(source, Path) or (isinstance(source, str) and not source.lstrip().startswith("{")):
         with open(source) as f:
             data = json.load(f)
     else:
@@ -117,15 +115,14 @@ def _build_rows(
     for name in sorted(nodes):
         node = nodes[name]
         dep_count = len(deps.get(name, []))
-        dependents = sum(
-            1 for d_list in deps.values() for d in d_list
-            if d["target"] == name
+        dependents = sum(1 for d_list in deps.values() for d in d_list if d["target"] == name)
+        rows.append(
+            ProjectRow(
+                name=name,
+                project_type=node.get("type", "unknown"),
+                root=node.get("data", {}).get("root", ""),
+                dep_count=dep_count,
+                dependent_count=dependents,
+            )
         )
-        rows.append(ProjectRow(
-            name=name,
-            project_type=node.get("type", "unknown"),
-            root=node.get("data", {}).get("root", ""),
-            dep_count=dep_count,
-            dependent_count=dependents,
-        ))
     return rows
