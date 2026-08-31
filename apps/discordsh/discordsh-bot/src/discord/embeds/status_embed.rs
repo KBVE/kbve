@@ -8,6 +8,7 @@ use crate::health::HealthSnapshot;
 /// Data bag passed into the embed builder, decoupled from poise's Data struct.
 pub struct StatusSnapshot {
     pub state: StatusState,
+    #[allow(dead_code)]
     pub version: &'static str,
     pub guild_count: usize,
     pub shard_id: Option<u32>,

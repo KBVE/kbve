@@ -28,6 +28,7 @@ pub fn emit_boss_killed(irc: &Option<ChatClient>, player_name: &str, boss_name: 
 }
 
 /// Emit a rare item drop event to IRC.
+#[allow(dead_code)]
 pub fn emit_rare_drop(irc: &Option<ChatClient>, player_name: &str, item_name: &str) {
     let Some(client) = irc else { return };
     let msg = ChatMessage::event(
@@ -85,6 +86,7 @@ pub fn emit_victory(irc: &Option<ChatClient>, player_name: &str, depth: u32) {
 }
 
 /// Emit a quest completed event to IRC.
+#[allow(dead_code)]
 pub fn emit_quest_complete(irc: &Option<ChatClient>, player_name: &str, quest_title: &str) {
     let Some(client) = irc else { return };
     let msg = ChatMessage::event(

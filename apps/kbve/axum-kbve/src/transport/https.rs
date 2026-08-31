@@ -3282,7 +3282,19 @@ pub(crate) async fn api_create_thread(
     headers: HeaderMap,
     Json(mut payload): Json<CreateThreadBody>,
 ) -> Response {
-    payload.sanitize();
+    if let Err(errors) = payload.sanitize() {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json!({
+                "error": "invalid payload",
+                "fields": errors
+                    .iter()
+                    .map(|e| e.to_string())
+                    .collect::<Vec<_>>(),
+            })),
+        )
+            .into_response();
+    }
     let user_id = match auth_user_id(&headers).await {
         Ok(id) => id,
         Err(resp) => return resp,
@@ -3390,7 +3402,19 @@ pub(crate) async fn api_create_comment(
     headers: HeaderMap,
     Json(mut payload): Json<CreateCommentBody>,
 ) -> Response {
-    payload.sanitize();
+    if let Err(errors) = payload.sanitize() {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json!({
+                "error": "invalid payload",
+                "fields": errors
+                    .iter()
+                    .map(|e| e.to_string())
+                    .collect::<Vec<_>>(),
+            })),
+        )
+            .into_response();
+    }
     let user_id = match auth_user_id(&headers).await {
         Ok(id) => id,
         Err(resp) => return resp,
@@ -3480,7 +3504,19 @@ pub(crate) async fn api_edit_comment(
     headers: HeaderMap,
     Json(mut payload): Json<EditCommentBody>,
 ) -> Response {
-    payload.sanitize();
+    if let Err(errors) = payload.sanitize() {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json!({
+                "error": "invalid payload",
+                "fields": errors
+                    .iter()
+                    .map(|e| e.to_string())
+                    .collect::<Vec<_>>(),
+            })),
+        )
+            .into_response();
+    }
     let user_id = match auth_user_id(&headers).await {
         Ok(id) => id,
         Err(resp) => return resp,
@@ -3534,7 +3570,19 @@ pub(crate) async fn api_remove_comment(
     headers: HeaderMap,
     Json(mut payload): Json<EditCommentBody>,
 ) -> Response {
-    payload.sanitize();
+    if let Err(errors) = payload.sanitize() {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json!({
+                "error": "invalid payload",
+                "fields": errors
+                    .iter()
+                    .map(|e| e.to_string())
+                    .collect::<Vec<_>>(),
+            })),
+        )
+            .into_response();
+    }
     let user_id = match auth_user_id(&headers).await {
         Ok(id) => id,
         Err(resp) => return resp,
@@ -3694,7 +3742,19 @@ pub(crate) async fn api_staff_edit_comment(
     headers: HeaderMap,
     Json(mut payload): Json<EditCommentBody>,
 ) -> Response {
-    payload.sanitize();
+    if let Err(errors) = payload.sanitize() {
+        return (
+            StatusCode::BAD_REQUEST,
+            Json(json!({
+                "error": "invalid payload",
+                "fields": errors
+                    .iter()
+                    .map(|e| e.to_string())
+                    .collect::<Vec<_>>(),
+            })),
+        )
+            .into_response();
+    }
     let user_id = match auth_user_id(&headers).await {
         Ok(id) => id,
         Err(resp) => return resp,

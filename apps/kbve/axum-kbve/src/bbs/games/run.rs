@@ -58,6 +58,10 @@ struct KeyRun {
     reserved: &'static [char],
 }
 
+/// One side of the stall: each option's hotkey and its rendered label.
+#[cfg(test)]
+type StallLabels = Vec<(Option<char>, String)>;
+
 impl KeyRun {
     fn digits() -> Self {
         Self {
@@ -217,7 +221,7 @@ impl Run {
     }
 
     #[cfg(test)]
-    pub fn stall_labels(&self) -> (Vec<(Option<char>, String)>, Vec<(Option<char>, String)>) {
+    pub fn stall_labels(&self) -> (StallLabels, StallLabels) {
         let (buy, sell) = self.stall();
         (
             buy.into_iter().map(|o| (o.key, o.label)).collect(),

@@ -97,6 +97,7 @@ impl CommandRateLimiter {
     }
 
     /// Prune entries older than 2x the window.
+    #[allow(dead_code)]
     pub fn prune(&self) {
         let now = Instant::now();
         let cutoff = self.window_secs * 2;

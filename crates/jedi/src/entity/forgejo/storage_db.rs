@@ -38,10 +38,12 @@ fn classify(err: &tokio_postgres::Error) -> ForgejoStorageError {
     match err.code() {
         Some(c) if *c == SqlState::UNDEFINED_COLUMN || *c == SqlState::UNDEFINED_TABLE => {
             ForgejoStorageError::SchemaDrift {
-                missing: vec![format!(
-                    "{}",
-                    err.as_db_error().map(|e| e.message()).unwrap_or("?")
-                )],
+                missing: vec![
+                    err.as_db_error()
+                        .map(|e| e.message())
+                        .unwrap_or("?")
+                        .to_string(),
+                ],
             }
         }
         Some(c) if *c == SqlState::INSUFFICIENT_PRIVILEGE => ForgejoStorageError::AccessDenied,

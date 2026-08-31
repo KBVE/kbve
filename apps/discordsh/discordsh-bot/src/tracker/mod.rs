@@ -42,6 +42,7 @@ fn epoch_days_to_date(days: i64) -> (i64, u32, u32) {
 
 /// A shard record from the `tracker.cluster_management` table.
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[allow(dead_code)]
 pub struct ShardRecord {
     pub instance_id: String,
     pub cluster_name: String,
@@ -241,6 +242,7 @@ impl ShardTracker {
     }
 
     /// Get all active shards in a cluster.
+    #[allow(dead_code)]
     pub async fn get_cluster_status(&self, cluster_name: &str) -> Vec<ShardRecord> {
         let url = format!(
             "{}?cluster_name=eq.{}&status=eq.active&order=shard_id.asc",

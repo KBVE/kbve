@@ -360,7 +360,13 @@ enum DispatchError {
     #[error("store error: {0}")]
     Store(#[from] kbve::GithubStoreError),
     #[error("discord http: {0}")]
-    Serenity(#[from] serenity::Error),
+    Serenity(Box<serenity::Error>),
+}
+
+impl From<serenity::Error> for DispatchError {
+    fn from(err: serenity::Error) -> Self {
+        Self::Serenity(Box::new(err))
+    }
 }
 
 async fn dispatch(
