@@ -42,6 +42,9 @@ projects:
         # Commit message validation, and the scope lock the hook reads.
         commit: 'tools/commit'
 
+        # Builds the deploy matrix in deploy.yml off the 'service' tag.
+        deploy-tools: 'tools/deploy'
+
         # Docker publishing helpers, shared by the release lane.
         docker-tools: 'tools/docker'
 

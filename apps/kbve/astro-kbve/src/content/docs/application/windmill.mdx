@@ -281,7 +281,7 @@ Shipping a new `/wm` command is a **merge, not a manual deploy** — but a few p
    `services/windmill/wmill.yaml` sets `includes: f/**`, so a push only manages the `f/` tree and never clobbers user-space scripts. The push also runs with `--skip-variables` so it can't touch stored secrets — it stays **prune-safe**.
 
 3. **CI on merge to main**
-   `.github/workflows/windmill-sync.yml` triggers on a push to `main` that touches `services/windmill/**`. It runs `windmill-cli` **pinned to the deployed server version** (the CLI and server protocol are version-matched — a mismatch breaks the push).
+   `.github/workflows/deploy.yml` triggers on a push to `main` that touches `services/**`. It is a generic lane: the matrix comes from the project graph, so every project tagged `service` with a `ship` task gets deployed and no service owns a workflow of its own. The commands live in `services/windmill/moon.yml`, including the `windmill-cli` version **pinned to the deployed server version** (the CLI and server protocol are version-matched — a mismatch breaks the push), so `moon run windmill:ship` from a laptop does what CI does.
 
 4. **Run inside the cluster**
    The Windmill API is cluster-internal, so the sync job runs on a **self-hosted in-cluster runner** — an external runner cannot reach it. That runner's egress must explicitly allow it to reach the Windmill service, and the CI token's **workspace role must permit writing scripts** (an operator-only token gets a `401` on create).
