@@ -10,8 +10,15 @@
 //
 // Two questions, asked of the whole graph:
 //
-//   1. Does every project carrying a lane tag have a version this can read?
-//      Without one, `<project>@<semver>` fails verify-tag at release time.
+//   1. Would `<project>@<its current version>` release? This runs the real
+//      verify() over every project carrying a lane tag -- the same call the
+//      release workflow makes -- so a lane with no version behind it, a docker
+//      project whose publish task no longer names an image, or a game whose
+//      ENGINE_CONFIG stopped parsing all fail here rather than on the tag.
+//
+//      No tag has ever been pushed in this repository, so until one is, this
+//      is the only thing standing between the graph and a first release that
+//      does not work. It is a dry run of all of them.
 //
 //   2. Does every path in KUBE_DEPLOYMENT_YAMLS exist? A release with a stale
 //      pin reaches the registry and never reaches the cluster -- ArgoCD keeps
@@ -24,16 +31,23 @@ import { existsSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { manifestVersion, lanes, TagError } from './verify-tag.mjs';
+import { manifestVersion, lanes, verify, TagError } from './verify-tag.mjs';
 
 // Resolved from this file rather than from cwd: manifestVersion joins the
 // project source onto it, so a run from anywhere but the workspace root
 // would look for every manifest in the wrong place and fail all 87.
 const root = dirname(dirname(dirname(fileURLToPath(import.meta.url))));
 
-const projects = JSON.parse(
-  execFileSync('moon', ['query', 'projects'], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }),
-).projects.sort((a, b) => a.id.localeCompare(b.id));
+const query = (args) =>
+  JSON.parse(execFileSync('moon', ['query', ...args], { cwd: root, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 }));
+
+// One call, and every node it returns carries its tasks -- which is what lets
+// verify() below be handed a node instead of looking each one up again.
+const projects = query(['projects']).projects.sort((a, b) => a.id.localeCompare(b.id));
+
+// externalPublish resolves the factorio mod lane against this list, so a run
+// without it would report every mod as publishing nothing.
+const factorioMods = query(['projects', '--tags', 'factorio-mod']).projects.map((p) => p.id);
 
 const problems = [];
 let releasable = 0;
@@ -45,12 +59,16 @@ for (const project of projects) {
 
   if (lanes(tags).length > 0) {
     try {
-      manifestVersion(root, source);
+      // The version the tag would have to claim is the one the manifest
+      // already states, so this is the tag that project would actually be
+      // released under today.
+      const { version } = manifestVersion(root, source);
+      verify(`${project.id}@${version}`, root, factorioMods, project);
       releasable += 1;
     } catch (error) {
       if (!(error instanceof TagError)) throw error;
       problems.push(
-        `${project.id} carries the ${lanes(tags).join('/')} lane but has no version: ${error.message}`,
+        `${project.id} carries the ${lanes(tags).join('/')} lane but could not be released: ${error.message}`,
       );
     }
   }
@@ -85,5 +103,5 @@ if (problems.length > 0) {
 }
 
 console.log(
-  `${releasable} releasable project(s) resolve a version; ${pinned} deployment pin(s) exist.`,
+  `${releasable} releasable project(s) would release; ${pinned} deployment pin(s) exist.`,
 );

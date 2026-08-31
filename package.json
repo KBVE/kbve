@@ -121,7 +121,8 @@
 		"vitest": "4.0.9",
 		"webpack": "5.107.2",
 		"webpack-cli": "^7.1.0",
-		"webpack-dev-server": "5.2.5"
+		"webpack-dev-server": "5.2.5",
+		"yaml": "^2.9.0"
 	},
 	"dependencies": {
 		"@astropub/worker": "^0.2.0",

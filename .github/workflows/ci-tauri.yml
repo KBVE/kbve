@@ -102,6 +102,9 @@ jobs:
     build:
         name: Build ${{ inputs.app }}
         needs: resolve
+        permissions:
+            contents: write
+            pull-requests: write
         uses: ./.github/workflows/ci-tauri-builder.yml
         with:
             project: ${{ needs.resolve.outputs.project }}
