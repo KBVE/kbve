@@ -11,6 +11,10 @@ $schema: 'https://moonrepo.dev/schemas/tasks.json'
 # wrappers over uv commands that are shorter written out. Its flake8 executor
 # wrote a report to reports/<project>/pylint.txt; `lint` here writes to stdout,
 # because nothing in the repository reads those files.
+#
+# ruff, not flake8. It replaces the linter and the formatter (autopep8) at once,
+# and its config lives in each project's pyproject.toml -- already a manifest
+# below, so the .flake8 files left the file group along with the tool.
 inheritedBy:
     tag: 'uv'
 
@@ -22,7 +26,6 @@ fileGroups:
     manifests:
         - 'pyproject.toml'
         - 'uv.lock'
-        - '.flake8'
         # uv resolves the interpreter from this, so it decides what every venv
         # built from these manifests contains. Left out, a Python bump would not
         # re-sync.
@@ -46,7 +49,12 @@ tasks:
         inputs: ['@group(sources)', '@group(tests)', '@group(manifests)']
 
     lint:
-        command: 'uv run flake8 .'
+        command: 'uv run ruff check .'
+        deps: ['~:install']
+        inputs: ['@group(sources)', '@group(manifests)']
+
+    format:
+        command: 'uv run ruff format --check .'
         deps: ['~:install']
         inputs: ['@group(sources)', '@group(manifests)']
 

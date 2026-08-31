@@ -51,12 +51,10 @@
 			}
 		},
 		"lint": {
-			"executor": "@nxlv/python:flake8",
-			"outputs": [
-				"{workspaceRoot}/reports/apps/discordsh/notification-bot/pylint.txt"
-			],
+			"executor": "nx:run-commands",
 			"options": {
-				"outputFile": "reports/apps/discordsh/notification-bot/pylint.txt"
+				"command": "uv run ruff check .",
+				"cwd": "apps/discordsh/notification-bot"
 			},
 			"cache": true
 		},

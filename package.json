@@ -270,8 +270,8 @@
 			"rustfmt"
 		],
 		"*.py": [
-			"autopep8 --in-place",
-			"flake8 --max-line-length 120"
+			"uvx ruff@0.16.5 format",
+			"uvx ruff@0.16.5 check"
 		],
 		"apps/kbve/edge/functions/**/*.ts": [
 			"./scripts/deno-fmt.sh"

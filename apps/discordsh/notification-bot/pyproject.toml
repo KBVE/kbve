@@ -22,8 +22,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "autopep8>=2.0,<3.0",
-    "flake8>=7.0,<8.0",
+    "ruff>=0.15,<1.0",
     "pytest>=8.3,<10.0",
     "pytest-sugar>=1.0,<2.0",
     "pytest-cov>=6.0,<7.0",
@@ -40,6 +39,16 @@ show_missing = true
 
 [tool.pytest.ini_options]
 addopts = "--cov --cov-report html:'../../coverage/apps/notification-bot/html' --cov-report xml:'../../coverage/apps/notification-bot/coverage.xml' --html='../../reports/apps/notification-bot/unittests/html/index.html' --junitxml='../../reports/apps/notification-bot/unittests/junit.xml'"
+
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+
+[tool.ruff.lint]
+# flake8's default rule set, which is what the .flake8 files this replaces were
+# running: pycodestyle errors and warnings plus pyflakes. Ruff's own default is
+# narrower (E4, E7, E9, F), so it is named rather than inherited.
+select = ["E", "W", "F"]
 
 [build-system]
 requires = ["hatchling"]
