@@ -1,0 +1,161 @@
+syntax = "proto3";
+
+package kbve.map.v1;
+
+import "kbve/common/v1/color.proto";
+
+// Axial hex coordinate (cube coordinate S is implicit: s = -q - r)
+message HexCoord {
+  int32 q = 1;
+  int32 r = 2;
+}
+
+// How a zone's content is generated / authored
+enum GenerationMode {
+  GENERATION_MODE_UNSPECIFIED = 0;
+  GENERATION_MODE_STATIC_AUTHORED = 1; // Hand-built, no procedural generation
+  GENERATION_MODE_FINITE_PROCEDURAL = 2; // Generated once from seed, bounded area
+  GENERATION_MODE_INFINITE_PROCEDURAL = 3; // Gateway to unbounded chunk-managed generation
+  GENERATION_MODE_INSTANCED = 4; // Private copy per party (dungeons, raids)
+  GENERATION_MODE_TRANSIT = 5; // Transition zone (loading, portals)
+}
+
+// How a hex zone persists its state across sessions
+enum PersistenceMode {
+  PERSISTENCE_MODE_UNSPECIFIED = 0;
+  PERSISTENCE_MODE_CANONICAL = 1; // Saved as-is (authored content)
+  PERSISTENCE_MODE_DETERMINISTIC_REGEN = 2; // Regenerated from seed; only deltas saved
+  PERSISTENCE_MODE_DELTA = 3; // Generated base + saved mutations
+  PERSISTENCE_MODE_SESSION_ONLY = 4; // Lost on session end
+}
+
+// Hint for how a zone should be streamed / loaded
+enum StreamingHint {
+  STREAMING_HINT_UNSPECIFIED = 0;
+  STREAMING_HINT_PARTITIONED = 1; // Engine-managed spatial partition (e.g. World Partition)
+  STREAMING_HINT_CHUNK_RING = 2; // Active ring of chunks around players
+  STREAMING_HINT_DESCRIPTOR_ACTIVATED = 3; // Loaded on demand from descriptors
+  STREAMING_HINT_INSTANCE_LOADED = 4; // Fully loaded as a private instance
+}
+
+// Hint for how zone actors should be replicated to clients
+enum ReplicationHint {
+  REPLICATION_HINT_UNSPECIFIED = 0;
+  REPLICATION_HINT_STATIC_ONLY = 1; // No dynamic replication; visuals only
+  REPLICATION_HINT_LOCAL_DYNAMIC = 2; // Replicate nearby dynamic actors
+  REPLICATION_HINT_CHUNK_SCOPED = 3; // Replicate within active chunk radius
+  REPLICATION_HINT_FULL_INSTANCE = 4; // Replicate everything (instanced zones)
+}
+
+// Deterministic seed derivation policy for a zone
+message SeedPolicy {
+  int64 world_seed = 1; // Root world seed
+  int32 content_version = 2; // Content version for stable regeneration
+  // Derived seeds: region = hash(world_seed, hex_q, hex_r, content_version)
+  //                cell   = hash(region_seed, cell_x, cell_y, content_version)
+}
+
+// Travel link between two hex zones
+message HexTravelLink {
+  HexCoord from = 1;
+  HexCoord to = 2;
+
+  enum TravelType {
+    TRAVEL_TYPE_UNSPECIFIED = 0;
+    TRAVEL_TYPE_OPEN = 1; // Freely traversable
+    TRAVEL_TYPE_GATED = 2; // Requires key, quest, or level
+    TRAVEL_TYPE_ONE_WAY = 3; // From → To only
+    TRAVEL_TYPE_BLOCKED = 4; // Currently impassable
+  }
+  TravelType travel_type = 3;
+
+  optional int32 level_requirement = 4;
+  optional string quest_requirement = 5;
+  optional string tag = 6; // Named route (e.g. "Northern Pass")
+}
+
+// Environment configuration — visual atmosphere for a zone
+message EnvironmentConfig {
+  // Sun / directional light
+  optional float sun_pitch = 1; // Elevation angle in degrees (-90 to 90)
+  optional float sun_yaw = 2; // Azimuth angle in degrees (0 to 360)
+  optional float sun_intensity = 3;
+  optional kbve.common.v1.Color sun_color = 4;
+
+  // Sky
+  optional float sky_intensity = 5;
+  optional float atmosphere_rayleigh_scale = 6;
+  optional float atmosphere_mie_scale = 7;
+
+  // Fog
+  optional float fog_density = 8;
+  optional float fog_height_falloff = 9;
+  optional kbve.common.v1.Color fog_color = 10;
+  optional float fog_start_distance = 11;
+
+  // Ambient
+  optional string ambient_sound_ref = 12;
+  optional string music_ref = 13;
+}
+
+// A hex zone record — one tile in the master hex world map
+message HexZoneRecord {
+  HexCoord coord = 1;
+  string zone_ref = 2; // Links to Zone.ref for full zone data
+
+  // Generation
+  GenerationMode generation = 9;
+
+  // Behavior policies
+  PersistenceMode persistence = 3;
+  StreamingHint streaming = 4;
+  ReplicationHint replication = 5;
+
+  // Generation
+  optional SeedPolicy seed_policy = 6;
+
+  // Environment override (if different from zone default)
+  optional EnvironmentConfig environment = 7;
+
+  // Travel links originating from this hex
+  repeated HexTravelLink travel_links = 8;
+}
+
+// The master hex world map — top-level world topology
+message HexWorldMap {
+  string id = 1;
+  string name = 2;
+  optional string description = 3;
+  SeedPolicy seed_policy = 4; // Default seed policy for the world
+  double hex_size = 5; // Hex size in world units (center to vertex)
+  repeated HexZoneRecord hexes = 6;
+}
+
+// Hex tile orientation (rareicon hex maps).
+enum HexOrientation {
+  HEX_ORIENTATION_UNSPECIFIED = 0;
+  HEX_ORIENTATION_POINTY = 1;
+  HEX_ORIENTATION_FLAT = 2;
+}
+
+// One hex cell — axial coord + tile id + flags.
+message HexTile {
+  HexCoord coord = 1;
+  uint32 tile = 2;
+  bool blocked = 3;
+  int32 biome = 4;
+}
+
+// Hex tilemap — rareicon-style maps (axial q/r).
+message HexTilemap {
+  string id = 1;
+  string ref = 2;
+  string name = 3;
+  optional string description = 4;
+  HexOrientation orientation = 5;
+  double hex_size = 6;
+  repeated HexTile tiles = 7;
+  GenerationMode generation = 8;
+  uint64 seed = 9;
+  bool drafted = 10;
+}

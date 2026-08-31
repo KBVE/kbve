@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package kbve.common.v1;
+
+// Elemental affinity of damage, resistance or spell school.
+//
+// Replaces item.Element, npc.Element and spell.SpellSchool. The npc variant
+// was already a superset of the item variant; BLOOD comes from the spell
+// school list.
+//
+// UNSPECIFIED means the field was never set. NONE is a deliberate statement
+// that the thing has no elemental affinity - physical damage, for instance -
+// and the two are not interchangeable.
+enum Element {
+  ELEMENT_UNSPECIFIED = 0;
+  ELEMENT_NONE = 1;
+  ELEMENT_FIRE = 2;
+  ELEMENT_ICE = 3;
+  ELEMENT_LIGHTNING = 4;
+  ELEMENT_POISON = 5;
+  ELEMENT_SHADOW = 6;
+  ELEMENT_HOLY = 7;
+  ELEMENT_ARCANE = 8;
+  ELEMENT_EARTH = 9;
+  ELEMENT_WIND = 10;
+  ELEMENT_NATURE = 11;
+  ELEMENT_LIGHT = 12;
+  ELEMENT_BLOOD = 13;
+}

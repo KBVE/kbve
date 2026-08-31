@@ -1,0 +1,78 @@
+[package]
+name = "kbve"
+description = "Axum and Diesel boilerplate for building backend micro service APIs."
+version = "0.1.26"
+authors = ["kbve", "h0lybyte"]
+homepage = "https://kbve.com/"
+readme = "README.md"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[features]
+default = []
+gate = ["gate-auth", "axum/ws", "reqwest/stream", "dep:tokio-tungstenite", "dep:metrics", "jedi/prometheus"]
+gate-auth = ["dep:lru"]
+image-gen = ["dep:resvg"]
+kv = ["supabase", "jedi/valkey"]
+legacy-sync-db = ["diesel/postgres", "diesel/r2d2", "dep:r2d2"]
+supabase = ["dep:lru", "dep:uuid"]
+wallet = ["dep:uuid"]
+
+[dependencies]
+ammonia = { workspace = true }
+anyhow = { workspace = true }
+argon2 = { workspace = true }
+askama = { workspace = true }
+async-trait = { workspace = true }
+axum = { workspace = true, features = ["default", "macros"] }
+axum-extra = { workspace = true, features = ["cookie"] }
+bb8 = { workspace = true }
+chrono = { workspace = true, features = ["default", "serde"] }
+dashmap = { workspace = true, features = ["serde"] }
+dotenvy = { workspace = true }
+futures-util = { workspace = true, features = ["default"] }
+jsonwebtoken = { workspace = true, features = ["default", "rust_crypto"] }
+regex = { workspace = true }
+reqwest = { workspace = true, features = ["json", "rustls", "form"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["default", "full"] }
+tower = { workspace = true, features = ["timeout", "util"] }
+tower-http = { workspace = true, features = ["cors", "fs"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["default", "env-filter"] }
+ulid = { workspace = true }
+url = { workspace = true }
+
+holy = { version = "0.2.2", path = "../holy" }
+jedi = { version = "0.2.3", path = "../jedi" }
+
+# Pinned here rather than in the workspace table: nothing else in this
+# repository talks to Diesel or needs these.
+diesel = { version = "2.3.7", default-features = false, features = [
+    "chrono",
+    "serde_json",
+    "uuid",
+] }
+diesel-async = { version = "0.9", features = ["postgres", "bb8"] }
+num-bigint = "0.4"
+pulldown-cmark = { version = "0.13", default-features = false, features = ["html"] }
+rand_core = { version = "0.6.4", features = ["std"] }
+time = "0.3.47"
+
+# Optional, behind the feature of the same name above.
+lru = { workspace = true, optional = true }
+metrics = { workspace = true, optional = true }
+r2d2 = { version = "0.8.9", optional = true }
+resvg = { version = "0.47.0", optional = true }
+tokio-tungstenite = { workspace = true, features = ["default", "rustls-tls-webpki-roots"], optional = true }
+uuid = { workspace = true, optional = true, features = ["v4", "serde"] }
+
+[dev-dependencies]
+serial_test = { workspace = true }
+
+[package.metadata.askama]
+dirs = ["templates"]

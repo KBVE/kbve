@@ -1,0 +1,24 @@
+syntax = "proto3";
+
+package kbve.common.v1;
+
+// A quantity of an item.
+//
+// item.CraftingIngredient and profession.ResourceAmount were the same message:
+// a reference, a denormalised label, a count, and a qualifier. One described
+// what a recipe consumes and the other what an action consumes or yields, which
+// is the same statement made from either end of the graph.
+//
+// The reference is a slug or a ULID depending on how the content was authored.
+// It stays a string for that reason: promoting it to Ulid would claim a
+// precision the authored data does not have.
+message ItemAmount {
+  string item_ref = 1;
+  // Denormalised label, informational only.
+  optional string item_name = 2;
+  uint32 quantity = 3;
+  // Yield probability from zero to one. Absent means certain.
+  optional float chance = 4;
+  // Whether performing the action consumes this. Absent means it does.
+  optional bool consumed = 5;
+}

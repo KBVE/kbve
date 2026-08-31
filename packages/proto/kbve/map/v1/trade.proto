@@ -1,0 +1,100 @@
+syntax = "proto3";
+
+package kbve.map.v1;
+
+import "kbve/common/v1/extension.proto";
+import "kbve/common/v1/math.proto";
+import "kbve/map/v1/hex.proto";
+
+// Trade-good classification — drives tariffs, contraband checks, caravan AI.
+enum TradeGoodCategory {
+  TRADE_GOOD_CATEGORY_UNSPECIFIED = 0;
+  TRADE_GOOD_CATEGORY_RAW_MATERIAL = 1; // Ore, timber, hide
+  TRADE_GOOD_CATEGORY_FOOD = 2;
+  TRADE_GOOD_CATEGORY_TEXTILE = 3;
+  TRADE_GOOD_CATEGORY_LUXURY = 4; // Silk, spice, gemstone
+  TRADE_GOOD_CATEGORY_TOOL = 5;
+  TRADE_GOOD_CATEGORY_WEAPON = 6;
+  TRADE_GOOD_CATEGORY_ARMOR = 7;
+  TRADE_GOOD_CATEGORY_MAGICAL = 8;
+  TRADE_GOOD_CATEGORY_INFORMATION = 9; // Letters, maps, intel
+  TRADE_GOOD_CATEGORY_LIVESTOCK = 10;
+  TRADE_GOOD_CATEGORY_ARTIFACT = 11; // Quest-tier
+  TRADE_GOOD_CATEGORY_CONTRABAND = 12; // Smuggled / illegal
+  TRADE_GOOD_CATEGORY_SLAVE = 13; // Dark themes / opt-in
+  TRADE_GOOD_CATEGORY_RELIC = 14;
+  TRADE_GOOD_CATEGORY_CURRENCY = 15; // Specie / bullion
+}
+
+// Trade-route medium — gates which units can traverse.
+enum RouteKind {
+  ROUTE_KIND_UNSPECIFIED = 0;
+  ROUTE_KIND_LAND = 1;
+  ROUTE_KIND_SEA = 2;
+  ROUTE_KIND_RIVER = 3;
+  ROUTE_KIND_AIR = 4;
+  ROUTE_KIND_PORTAL = 5; // Magical / instant
+  ROUTE_KIND_RAIL = 6;
+  ROUTE_KIND_UNDERGROUND = 7;
+}
+
+// Generic resource ledger — used as treasury, granary, armoury,
+// reserve. Maps free-form item slugs (itemdb refs) to integer
+// quantities; per-item caps are optional.
+message ResourceLedger {
+  map<string, int64> resources = 1; // item_ref → amount
+  map<string, int64> capacity_per_item = 2; // optional ceiling per item
+  optional int64 total_capacity = 3; // optional aggregate ceiling
+  optional bool unlimited = 4; // sandbox / cheats / godmode
+}
+
+// One stop along a trade route — caravan halts here for `dwell_secs`
+// before moving to the next stop.
+message TradeRouteStop {
+  optional string settlement_ref = 1;
+  optional HexCoord hex = 2;
+  optional kbve.common.v1.Vec3F position = 3;
+  optional float dwell_secs = 4;
+  optional bool refuel = 5; // Restocks caravan supplies
+  optional bool toll = 6; // Pays tariff to local faction
+}
+
+// One cargo line carried along a trade route.
+message TradeCargo {
+  string item_ref = 1;
+  int32 amount_per_caravan = 2;
+  TradeGoodCategory category = 3;
+  optional int32 buy_price_at_origin = 4;
+  optional int32 sell_price_at_destination = 5;
+  optional bool perishable = 6;
+  optional bool restricted = 7; // Faction-locked / contraband
+}
+
+// Recurring caravan / shipping line between settlements.
+message TradeRoute {
+  string id = 1;
+  string ref = 2;
+  string name = 3;
+  optional string description = 4;
+
+  string from_settlement_ref = 5;
+  string to_settlement_ref = 6;
+  repeated TradeRouteStop stops = 7; // Optional waypoints
+
+  RouteKind route_kind = 8;
+  repeated TradeCargo cargo = 9;
+  optional float cadence_secs = 10; // How often a caravan launches
+  optional float distance = 11; // World units / hex count
+  optional int32 caravan_size = 12; // Number of carriers
+  optional int32 caravan_health = 13;
+  optional float danger_level = 14; // 0.0–1.0 — bandit / pirate density
+  repeated string protection_unit_refs = 15; // Escort unit refs
+
+  optional string operator_faction_ref = 16;
+  optional float profit_per_run = 17; // Estimated, for AI evaluation
+  optional bool active = 18;
+  optional int64 established_at_turn = 19;
+  optional int64 last_run_at_turn = 20;
+
+  repeated kbve.common.v1.Extension extensions = 21;
+}

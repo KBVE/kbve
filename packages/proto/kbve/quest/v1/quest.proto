@@ -1,0 +1,323 @@
+syntax = "proto3";
+
+package kbve.quest.v1;
+
+import "kbve/common/v1/extension.proto";
+import "kbve/common/v1/registry.proto";
+import "kbve/dialogue/v1/dialogue.proto";
+import "kbve/type/v1/id.proto";
+
+// Narrative weight and reset behaviour of a quest.
+enum QuestCategory {
+  QUEST_CATEGORY_UNSPECIFIED = 0;
+  QUEST_CATEGORY_MAIN = 1;
+  QUEST_CATEGORY_SIDE = 2;
+  QUEST_CATEGORY_DAILY = 3;
+  QUEST_CATEGORY_EVENT = 4;
+  QUEST_CATEGORY_CHALLENGE = 5;
+  QUEST_CATEGORY_TUTORIAL = 6;
+  QUEST_CATEGORY_BOUNTY = 7;
+  QUEST_CATEGORY_GUILD = 8;
+}
+
+// What the player must actually do.
+enum ObjectiveType {
+  OBJECTIVE_TYPE_UNSPECIFIED = 0;
+  OBJECTIVE_TYPE_COLLECT = 1;
+  OBJECTIVE_TYPE_KILL = 2;
+  OBJECTIVE_TYPE_VISIT = 3;
+  OBJECTIVE_TYPE_INTERACT = 4;
+  OBJECTIVE_TYPE_ESCORT = 5;
+  OBJECTIVE_TYPE_DEFEND = 6;
+  OBJECTIVE_TYPE_CRAFT = 7;
+  OBJECTIVE_TYPE_EXPLORE = 8;
+  // Game-specific logic, resolved through a trigger expression.
+  OBJECTIVE_TYPE_CUSTOM = 9;
+}
+
+// What happens when a quest or step fails.
+enum FailurePolicy {
+  FAILURE_POLICY_UNSPECIFIED = 0;
+  // Cannot retry; the quest is locked permanently.
+  FAILURE_POLICY_PERMANENT = 1;
+  // Restart the current step, keeping progress from earlier steps.
+  FAILURE_POLICY_RETRY_STEP = 2;
+  FAILURE_POLICY_RETRY_QUEST = 3;
+  // Marked failed, but may be accepted again later.
+  FAILURE_POLICY_SOFT_FAIL = 4;
+}
+
+// How rewards are distributed when a quest is completed by a party.
+enum RewardPolicy {
+  REWARD_POLICY_UNSPECIFIED = 0;
+  REWARD_POLICY_INDIVIDUAL = 1;
+  REWARD_POLICY_SHARED = 2;
+  REWARD_POLICY_LEADER = 3;
+}
+
+// A single thing the player must do.
+message QuestObjective {
+  // Unique within its quest, e.g. "kill_spiders".
+  string id = 1;
+  string description = 2;
+  ObjectiveType type = 3;
+
+  // NPC, item, zone or tile the objective refers to.
+  repeated kbve.type.v1.Ulid target_refs = 4;
+  int32 required_amount = 5;
+
+  // Named is_optional rather than optional: a field literally named `optional`
+  // generates identifiers that collide with the keyword in several targets.
+  optional bool is_optional = 6;
+
+  // Revealed only once reveal_trigger fires.
+  optional bool hidden = 7;
+  optional string reveal_trigger = 8;
+
+  // Sequential ordering. Zero means the objective may be done in parallel.
+  optional int32 order = 9;
+  optional kbve.type.v1.Ulid zone_ref = 10;
+}
+
+// One item granted as a reward.
+message QuestItemReward {
+  kbve.type.v1.Ulid item_ref = 1;
+  optional string item_name = 2;
+  int32 amount = 3;
+}
+
+// Platform achievement unlocked alongside a quest.
+message AchievementMeta {
+  // Platform achievement id, e.g. "ACH_AUTO_COOKER".
+  string api_name = 1;
+  optional string name = 2;
+  optional string description = 3;
+  optional string icon_achieved = 4;
+  optional string icon_unachieved = 5;
+  // Share of players who have earned it, 0 to 100.
+  optional float global_percent = 6;
+  optional bool hidden = 7;
+  optional int32 min_value = 8;
+  optional int32 max_value = 9;
+}
+
+// Everything granted on completion.
+message QuestRewards {
+  repeated QuestItemReward items = 1;
+  optional int32 currency = 2;
+  optional int32 xp = 3;
+  // Arbitrary stat bonuses, e.g. "cookingSpeed" to 5.
+  map<string, double> bonuses = 4;
+  optional AchievementMeta achievement = 5;
+  // Recipe, area or feature unlocked.
+  optional kbve.type.v1.Ulid unlock_ref = 6;
+  repeated kbve.type.v1.Ulid unlock_quest_refs = 7;
+  optional int32 reputation_amount = 8;
+  optional string reputation_faction = 9;
+}
+
+// One selectable option within a quest step.
+//
+// Gating and consequences are expressed with the dialogue domain's condition
+// and effect types rather than a quest-local copy. A choice in a quest step and
+// a choice in a conversation are the same thing, and modelling them twice is
+// how consequence_type ended up as an enum here and as free text on
+// npc.DialogueOption.
+message QuestChoice {
+  // Superseded by condition and effects below.
+  reserved 4, 5, 6, 8, 9, 11;
+  reserved "consequence", "consequence_ref", "consequence_value";
+  reserved "required_item_refs", "required_class", "set_flags";
+
+  string id = 1;
+  string label = 2;
+  optional string description = 3;
+
+  // Jump to a specific step instead of continuing sequentially.
+  optional string next_step_id = 7;
+
+  optional string outcome_id = 10;
+  // Entry point into a dialogue graph.
+  optional string dialogue_node_ref = 12;
+
+  // What must hold for this choice to be offered.
+  optional kbve.dialogue.v1.DialogueCondition condition = 13;
+  // Applied in order when the choice is taken.
+  repeated kbve.dialogue.v1.DialogueEffect effects = 14;
+}
+
+// A distinct ending, with its own rewards and continuation.
+message QuestOutcome {
+  // Unique within its quest, e.g. "saved_village".
+  string id = 1;
+  string description = 2;
+  optional QuestRewards rewards = 3;
+  optional kbve.type.v1.Ulid next_quest_ref = 4;
+  // World-state flags set permanently by reaching this ending.
+  repeated string consequence_flags = 5;
+  // e.g. "good", "neutral", "evil".
+  optional string ending_type = 6;
+  // Whether this is the canonical ending for lore purposes.
+  optional bool canonical = 7;
+}
+
+// Entry points into NPC dialogue trees at quest transitions. Dialogue content
+// itself belongs to the NPC domain; only the references live here.
+message QuestDialogueHooks {
+  optional string accept_ref = 1;
+  optional string in_progress_ref = 2;
+  optional string complete_ref = 3;
+  optional string turn_in_ref = 4;
+  optional string fail_ref = 5;
+  optional string abandon_ref = 6;
+}
+
+// Different rewards for the first completion and for later ones.
+message RepeatRewards {
+  optional QuestRewards first_time = 1;
+  optional QuestRewards repeat = 2;
+}
+
+// One stage of a quest.
+message QuestStep {
+  string id = 1;
+  optional string title = 2;
+  optional string description = 3;
+
+  reserved 4;
+
+  optional kbve.type.v1.Ulid speaker_ref = 5;
+  repeated QuestObjective objectives = 6;
+  repeated QuestChoice choices = 7;
+  optional string next_step_id = 8;
+  optional QuestRewards step_rewards = 9;
+  optional string trigger_on_start = 10;
+  optional string trigger_on_complete = 11;
+
+  // Objectives may be completed in any order.
+  optional bool parallel = 12;
+  // Advances on its own once the objectives are met.
+  optional bool auto_complete = 13;
+  // Not shown until the preceding step completes.
+  optional bool hidden = 14;
+  optional bool skippable = 15;
+
+  optional FailurePolicy failure_policy = 16;
+  // Per-step timeout, independent of any quest-level limit.
+  optional int32 step_time_limit_secs = 17;
+
+  optional QuestDialogueHooks dialogue_hooks = 18;
+}
+
+// What must be true before a quest becomes available.
+message QuestPrerequisite {
+  optional int32 level_requirement = 1;
+  repeated kbve.type.v1.Ulid quest_refs = 2;
+  optional kbve.type.v1.Ulid faction_ref = 3;
+  optional int32 faction_rank = 4;
+  repeated kbve.type.v1.Ulid item_refs = 5;
+  optional string class_ref = 6;
+  optional string trigger = 7;
+  // Minimum Inn upgrade tier for a giver to offer this quest.
+  optional uint32 inn_tier_min = 8;
+}
+
+// When a quest may be started and how long it may take.
+message QuestTimeLimits {
+  optional int32 time_limit_secs = 1;
+  // ISO 8601 dates bounding availability.
+  optional string available_after = 2;
+  optional string available_until = 3;
+  optional int32 cooldown_secs = 4;
+  // UTC hour, 0 to 23, at which daily quests reset.
+  optional int32 daily_reset_hour = 5;
+}
+
+// A quest definition.
+//
+// Supersedes kbve.schema.Quest, which modelled objectives as a flat list with
+// no steps, choices or outcomes.
+message Quest {
+  kbve.type.v1.Ulid id = 1;
+  // URL-safe identifier, e.g. "auto-cooker-9000".
+  string ref = 2;
+  string title = 3;
+  optional string description = 4;
+  optional string lore = 5;
+
+  QuestCategory category = 6;
+  repeated string tags = 7;
+
+  optional string icon = 8;
+  optional string img = 9;
+  optional string marker_icon = 10;
+
+  optional QuestPrerequisite prerequisites = 11;
+
+  // Not listed in the quest log until triggered.
+  optional bool hidden = 12;
+  optional bool repeatable = 13;
+  optional bool auto_accept = 14;
+  optional bool auto_complete = 15;
+  optional bool shareable = 16;
+  optional bool abandonable = 17;
+  // Shown on the HUD tracker by default.
+  optional bool tracked = 18;
+
+  optional QuestTimeLimits time_limits = 19;
+
+  repeated QuestStep steps = 20;
+
+  optional kbve.type.v1.Ulid next_quest_ref = 21;
+  optional kbve.type.v1.Ulid chain_ref = 22;
+
+  repeated kbve.type.v1.Ulid giver_npc_refs = 23;
+  repeated kbve.type.v1.Ulid turn_in_npc_refs = 24;
+
+  repeated kbve.type.v1.Ulid zone_refs = 25;
+  optional int32 recommended_level = 26;
+  optional int32 recommended_party_size = 27;
+
+  // Used when no outcomes are defined.
+  optional QuestRewards rewards = 28;
+
+  // Event expressions that activate or progress the quest, e.g.
+  // "player:level:5".
+  repeated string triggers = 29;
+
+  repeated kbve.common.v1.Extension extensions = 30;
+
+  optional string credits = 31;
+  // Hidden from production builds.
+  optional bool drafted = 32;
+
+  repeated QuestOutcome outcomes = 33;
+  optional RepeatRewards repeat_rewards = 34;
+  optional RewardPolicy reward_policy = 35;
+  // Quest-level default; individual steps may override it.
+  optional FailurePolicy failure_policy = 36;
+  optional QuestDialogueHooks dialogue_hooks = 37;
+
+  // World-state flags gating availability.
+  repeated string required_flags = 38;
+  repeated string blocked_by_flags = 39;
+}
+
+// An ordered storyline grouping several quests.
+message QuestChain {
+  kbve.type.v1.Ulid id = 1;
+  string ref = 2;
+  string name = 3;
+  optional string description = 4;
+  repeated kbve.type.v1.Ulid quest_refs = 5;
+  optional string icon = 6;
+  // Granted for completing every quest in the chain.
+  optional QuestRewards chain_rewards = 7;
+}
+
+// Every quest and chain, as shipped to clients.
+message QuestRegistry {
+  kbve.common.v1.RegistryMeta meta = 1;
+  repeated Quest quests = 2;
+  repeated QuestChain chains = 3;
+}

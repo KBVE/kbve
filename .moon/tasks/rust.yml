@@ -2,14 +2,12 @@ $schema: 'https://moonrepo.dev/schemas/tasks.json'
 
 # Inherited by every project tagged 'rust'.
 #
-# A tag, not `inheritedBy: toolchain: 'rust'`, which is the mechanism this
-# wants. Registering the rust toolchain in .moon/toolchains.yml is deferred
-# until the node side is proven, and it is not a free switch: moon's rust
-# toolchain rewrites Cargo.toml on sync -- it reformats the file, drops the
-# comments and adds a member entry for every project it sees -- so it arrives
-# with syncToolchainConfig and addMsrvConstraint both off. rust-version = 1.96
-# stays pinned by hand in the workspace manifest. Swapping the two lines below
-# is the whole change when that happens; nothing else here moves.
+# Attached by toolchain rather than by tag. The 30 crates that came from
+# KBVE/workspace declare `toolchains: default: 'rust'` and nothing else, so the
+# toolchain is what carries their tasks. It is registered in
+# .moon/toolchains.yml with syncToolchainConfig off -- moon's rust toolchain
+# rewrites Cargo.toml on sync, reformatting it and adding a member entry for
+# every project it sees.
 #
 # Replaces @monodon/rust, whose build/test/lint/run executors all passed
 # target-dir: dist/target/<project>. That is dropped deliberately. Per-project
@@ -18,12 +16,18 @@ $schema: 'https://moonrepo.dev/schemas/tasks.json'
 # Cargo's own shared target/ plus moon's content-addressable cache gets the
 # same isolation from one tree.
 #
+# Debug, not --release. Every Nx rust build here is a debug build -- the
+# run-commands ones say `cargo build -p <crate>` outright, and @monodon/rust's
+# executor defaults to debug too -- so releasing from `build` would change what
+# 51 crates produce and how long they take. The four projects that ship a
+# release binary declare build-release themselves.
+#
 # No -p either. moon runs a task in its project directory, and cargo resolves
 # the package from the Cargo.toml it finds there while still writing to the
 # workspace target/. Naming the package explicitly would have worked for 58 of
 # the 60 crates here and silently named the wrong one for the other two.
 inheritedBy:
-    tag: 'rust'
+    toolchain: 'rust'
 
 # build.rs is deliberately not in sources. Most crates here do not have one,
 # and moon warns per task per run for an input that does not exist. A crate
@@ -40,7 +44,7 @@ fileGroups:
 
 tasks:
     build:
-        command: 'cargo build --release'
+        command: 'cargo build'
         inputs: ['@group(sources)', '@group(manifests)']
 
     test:

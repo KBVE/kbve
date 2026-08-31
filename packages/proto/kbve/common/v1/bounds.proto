@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package kbve.common.v1;
+
+import "kbve/common/v1/math.proto";
+
+// A rectangle on a tile grid, inclusive of its bounds.
+message Bounds2D {
+  int32 min_x = 1;
+  int32 min_y = 2;
+  int32 max_x = 3;
+  int32 max_y = 4;
+}
+
+// An axis-aligned box in world space.
+message BoundsAabb {
+  Vec3F min = 1;
+  Vec3F max = 2;
+}

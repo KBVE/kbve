@@ -1,0 +1,101 @@
+[package]
+name = "jedi"
+description = "Juggernaut Electronic Data Interchange: a data exchange layer extended through the holy crate."
+version = "0.2.3"
+authors = ["kbve", "h0lybyte"]
+homepage = "https://kbve.com/application/rust/#jedi"
+readme = "README.md"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+ammonia = { workspace = true }
+kbve-proto = { path = "../kbve-proto" }
+async-trait = { workspace = true }
+axum = { workspace = true, features = ["default", "ws", "macros"] }
+bitflags = { workspace = true, features = ["serde"] }
+bytes = { workspace = true, features = ["serde"] }
+chrono = { workspace = true, features = ["default", "serde"] }
+dashmap = { workspace = true, features = ["serde", "rayon"] }
+futures-util = { workspace = true, features = ["default"] }
+jsonwebtoken = { workspace = true, features = ["default", "rust_crypto"] }
+prost = { workspace = true, features = ["derive"] }
+prost-types = { workspace = true }
+regex = { workspace = true }
+reqwest = { workspace = true, features = ["json", "rustls", "query"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tokio = { workspace = true, features = ["default", "rt-multi-thread", "macros", "sync", "time", "net", "fs", "io-util"] }
+tower = { workspace = true, features = ["util", "timeout", "load-shed", "limit"] }
+tracing = { workspace = true }
+ulid = { workspace = true, features = ["serde", "uuid"] }
+
+# Pinned here rather than in the workspace table: nothing else in this
+# repository uses them, so a shared entry would carry a version no other crate
+# has an opinion about.
+bytes-utils = "0.1.4"
+crossbeam = "0.8.4"
+flexbuffers = "25.2.10"
+papaya = "0.2.1"
+rustc-hash = "2.1.1"
+
+# Optional, behind the feature of the same name below.
+aws-config = { version = "1", optional = true, features = ["behavior-version-latest"] }
+aws-sdk-s3 = { version = "1", optional = true }
+axum-prometheus = { version = "0.10", optional = true }
+bb8 = { workspace = true, optional = true }
+bb8-postgres = { version = "0.9.0", optional = true }
+clickhouse = { version = "0.14", optional = true }
+fred = { version = "10", optional = true, features = [
+  "i-keys", "i-lists", "i-pubsub", "i-std", "subscriber-client",
+  "serde-json", "i-server", "i-scripts", "i-streams",
+  "metrics", "enable-rustls", "i-tracking"
+] }
+lru = { workspace = true, optional = true }
+metrics = { workspace = true, optional = true }
+rustls = { workspace = true, optional = true, features = ["ring"] }
+rustls-pemfile = { workspace = true, optional = true }
+tokio-postgres = { workspace = true, optional = true, features = ["with-uuid-1", "with-chrono-0_4", "with-serde_json-1"] }
+tokio-postgres-rustls = { version = "0.14", optional = true }
+tonic = { workspace = true, optional = true }
+tonic-health = { version = "0.14.5", optional = true }
+tonic-prost = { workspace = true, optional = true }
+tonic-reflection = { version = "0.14.5", optional = true }
+twitch-irc = { version = "6.1.1", optional = true, default-features = false, features = ["with-serde", "refreshing-token-rustls-webpki-roots", "transport-tcp", "transport-tcp-rustls-webpki-roots", "transport-ws", "transport-ws-rustls-webpki-roots"] }
+url = { workspace = true, optional = true }
+uuid = { workspace = true, optional = true, features = ["serde", "v4"] }
+webpki-roots = { workspace = true, optional = true }
+
+[dependencies.tracing-subscriber]
+workspace = true
+optional = true
+features = ["registry", "std"]
+
+[features]
+default = []
+aws = ["dep:aws-config", "dep:aws-sdk-s3"]
+clickhouse = ["dep:clickhouse"]
+forgejo = []
+grpc = ["dep:tonic", "dep:tonic-prost", "dep:tonic-health", "dep:tonic-reflection", "kbve-proto/grpc"]
+itch = []
+observ = ["dep:tracing-subscriber"]
+postgres = [
+    "dep:tokio-postgres",
+    "dep:bb8",
+    "dep:bb8-postgres",
+    "dep:tokio-postgres-rustls",
+    "dep:rustls",
+    "dep:rustls-pemfile",
+    "dep:webpki-roots",
+    "dep:url",
+    "dep:uuid",
+]
+prometheus = ["dep:axum-prometheus", "dep:metrics"]
+twitch = ["dep:twitch-irc"]
+valkey = ["dep:lru", "dep:fred"]
+
+[dev-dependencies]
+serial_test = { workspace = true }

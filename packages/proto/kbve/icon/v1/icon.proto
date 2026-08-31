@@ -1,0 +1,258 @@
+syntax = "proto3";
+
+package kbve.icon.v1;
+
+import "google/protobuf/timestamp.proto";
+import "kbve/common/v1/extension.proto";
+import "kbve/common/v1/registry.proto";
+import "kbve/type/v1/id.proto";
+
+// Visual style. Most packs ship several stroke and fill variants of one glyph,
+// and each variant is its own Icon beneath a term.
+enum IconStyle {
+  ICON_STYLE_UNSPECIFIED = 0;
+  // Line art, no fill.
+  ICON_STYLE_OUTLINE = 1;
+  // Solid fill, no stroke.
+  ICON_STYLE_FILLED = 2;
+  // Filled and outlined.
+  ICON_STYLE_SOLID = 3;
+  ICON_STYLE_DUOTONE = 4;
+  ICON_STYLE_BOLD = 5;
+  ICON_STYLE_THIN = 6;
+  ICON_STYLE_SKETCH = 7;
+  // Compact pictogram carrying no detail.
+  ICON_STYLE_GLYPH = 8;
+}
+
+// Primary asset encoding. SVG is preferred: it is searchable and recolourable.
+enum IconFormat {
+  ICON_FORMAT_UNSPECIFIED = 0;
+  ICON_FORMAT_SVG = 1;
+  ICON_FORMAT_PNG = 2;
+  ICON_FORMAT_WEBP = 3;
+  // A codepoint in an icon font.
+  ICON_FORMAT_FONT = 4;
+}
+
+// License family. CUSTOM covers bespoke terms spelled out in license_text.
+enum IconLicense {
+  ICON_LICENSE_UNSPECIFIED = 0;
+  ICON_LICENSE_CC0 = 1;
+  ICON_LICENSE_CC_BY = 2;
+  ICON_LICENSE_CC_BY_SA = 3;
+  ICON_LICENSE_CC_BY_NC = 4;
+  ICON_LICENSE_CC_BY_ND = 5;
+  ICON_LICENSE_MIT = 6;
+  ICON_LICENSE_APACHE_2 = 7;
+  // SIL Open Font License, for icon fonts.
+  ICON_LICENSE_OFL = 8;
+  ICON_LICENSE_ISC = 9;
+  ICON_LICENSE_BSD_2 = 10;
+  ICON_LICENSE_BSD_3 = 11;
+  ICON_LICENSE_UNLICENSE = 12;
+  ICON_LICENSE_WTFPL = 13;
+  ICON_LICENSE_PROPRIETARY = 14;
+  ICON_LICENSE_CUSTOM = 15;
+}
+
+// How the icon is offered to downstream consumers.
+enum IconOffering {
+  ICON_OFFERING_UNSPECIFIED = 0;
+  ICON_OFFERING_FREE = 1;
+  ICON_OFFERING_PAID = 2;
+  // Pay what you want.
+  ICON_OFFERING_DONATION = 3;
+  // Previewed here, bought elsewhere.
+  ICON_OFFERING_PREVIEW = 4;
+  // Not offered publicly.
+  ICON_OFFERING_INTERNAL = 5;
+}
+
+// Viewport defaults. Packs disagree on canonical size, so recording it keeps
+// rendering deterministic across collections.
+message IconViewBox {
+  int32 min_x = 1;
+  int32 min_y = 2;
+  int32 width = 3;
+  int32 height = 4;
+}
+
+// The author's rendering intent. Consumers override at use time.
+message IconRender {
+  // Hex or CSS keyword. Empty means currentColor.
+  optional string fill = 1;
+  optional string stroke = 2;
+  optional float stroke_width = 3;
+  // "butt", "round" or "square".
+  optional string stroke_cap = 4;
+  // "miter", "round" or "bevel".
+  optional string stroke_join = 5;
+  // The source uses currentColor, so CSS can recolour it.
+  optional bool uses_current_color = 6;
+  // Single-colour, and therefore safe to recolour.
+  optional bool monochrome = 7;
+  // Distinct colours in the source: one is mono, two is duotone.
+  optional int32 color_count = 8;
+  optional string background = 9;
+}
+
+// Licensing. A field left unset on an Icon inherits from its term, and one
+// left unset on a term inherits from its collection.
+message IconLicenseInfo {
+  IconLicense license = 1;
+  optional string license_url = 2;
+  // Inline terms, for CUSTOM and ambiguous cases.
+  optional string license_text = 3;
+  optional bool attribution_required = 4;
+  optional string attribution_line = 5;
+  optional string author = 6;
+  optional string author_url = 7;
+  optional string source_url = 8;
+  optional bool commercial_use = 9;
+  optional bool modifications_allowed = 10;
+}
+
+// Search and indexing hints. Keywords surface in the index; aliases collapse
+// spellings onto the canonical term.
+message IconSearch {
+  // e.g. "close", "x" and "dismiss" for one glyph.
+  repeated string keywords = 1;
+  repeated string aliases = 2;
+  optional string primary_category = 3;
+  // Ranking boost, where one is the default.
+  optional float search_weight = 4;
+  optional bool exclude_from_search = 5;
+}
+
+// Pricing and distribution. Absent when the icon is internal only.
+message IconOfferingInfo {
+  IconOffering offering = 1;
+  // Cents of the currency below. Zero is free.
+  optional int32 price_cents = 2;
+  // ISO 4217, defaulting to USD.
+  optional string currency_code = 3;
+  optional string download_url = 4;
+  optional string purchase_url = 5;
+  optional bool requires_account = 6;
+  optional int32 download_count = 7;
+}
+
+// One visual rendering of a term.
+//
+// The term carries the meaning - its name, categories, search hints and licence
+// defaults. An Icon is the asset: a particular style, from a particular author,
+// in a particular collection.
+message Icon {
+  // Variant slug, scoped to its term, e.g. "outline" or "filled-bold".
+  string ref = 1;
+  optional string label = 2;
+  // Present only when the variant needs identity of its own.
+  optional kbve.type.v1.Ulid id = 3;
+
+  IconStyle style = 4;
+  IconFormat format = 5;
+  optional string collection_ref = 6;
+
+  // Inline markup, preferred: it can be searched and recoloured in place.
+  optional string svg_body = 7;
+  // Path used when the markup is not inlined.
+  optional string svg_path = 8;
+  optional string raster_path = 9;
+  // For ICON_FORMAT_FONT.
+  optional string font_family = 10;
+  optional string font_glyph = 11;
+  // Embedded binary. Use sparingly.
+  optional bytes raw_bytes = 12;
+
+  optional IconViewBox viewbox = 13;
+  optional IconRender render = 14;
+  repeated int32 recommended_sizes = 15;
+
+  // Override the term's defaults.
+  optional IconLicenseInfo license = 16;
+  optional IconOfferingInfo offering = 17;
+
+  optional string aria_label = 18;
+  // SVG role attribute, e.g. "img".
+  optional string role = 19;
+
+  optional string credits = 20;
+  optional google.protobuf.Timestamp created_at = 21;
+  optional google.protobuf.Timestamp updated_at = 22;
+  optional string version = 23;
+  optional bool drafted = 24;
+
+  repeated kbve.common.v1.Extension extensions = 25;
+
+  // Faceting specific to this rendering, e.g. "thin-stroke" or "game-hud",
+  // supplementing the term's own tags.
+  repeated string tags = 26;
+  // Palette or mood, orthogonal to style, e.g. "ocean" or "noir".
+  repeated string themes = 27;
+}
+
+// A concept, such as "sword" or "arrow-right", holding every rendering of it.
+message IconTerm {
+  kbve.type.v1.Ulid id = 1;
+  // URL-safe slug, e.g. "arrow-right".
+  string ref = 2;
+  string name = 3;
+  optional string title = 4;
+  optional string description = 5;
+
+  // Shared by every variant of the term.
+  repeated string categories = 6;
+  repeated string tags = 7;
+  optional string primary_category = 8;
+
+  optional IconSearch search = 9;
+
+  // Inherited by every variant that does not override them.
+  optional IconLicenseInfo default_license = 10;
+  optional IconOfferingInfo default_offering = 11;
+
+  // Sibling concepts, for "see also" lists and ranking hints.
+  repeated string related_term_refs = 12;
+
+  repeated Icon icons = 13;
+
+  optional string credits = 14;
+  optional google.protobuf.Timestamp created_at = 15;
+  optional google.protobuf.Timestamp updated_at = 16;
+  optional string version = 17;
+  optional bool drafted = 18;
+
+  repeated kbve.common.v1.Extension extensions = 19;
+}
+
+// A pack of icons sharing a style, viewport, licence and author. Terms cite a
+// collection and inherit any licence field they leave unset.
+message IconCollection {
+  kbve.type.v1.Ulid id = 1;
+  // Slug, e.g. "ocean-kit".
+  string ref = 2;
+  string name = 3;
+  optional string description = 4;
+  optional string homepage = 5;
+  // Variant used as the collection thumbnail.
+  optional string cover_icon_ref = 6;
+  optional IconStyle primary_style = 7;
+  optional IconViewBox default_viewbox = 8;
+  optional IconRender default_render = 9;
+  optional IconLicenseInfo license = 10;
+  optional IconOfferingInfo offering = 11;
+  repeated string tags = 12;
+  // Denormalised counts; the registry is the authority.
+  optional int32 icon_count = 13;
+  optional int32 term_count = 14;
+  optional string version = 15;
+  optional bool drafted = 16;
+}
+
+// Every term and collection, as shipped to clients.
+message IconRegistry {
+  kbve.common.v1.RegistryMeta meta = 3;
+  repeated IconTerm terms = 1;
+  repeated IconCollection collections = 2;
+}

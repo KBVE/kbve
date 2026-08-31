@@ -1,0 +1,12 @@
+# Conversation graphs.
+#
+# The registry half of kbve.dialogue.v1: which node a conversation opens on,
+# which choices are offered, and what each one writes back. The schema is in
+# packages/proto; nothing is generated here.
+layer: 'library'
+stack: 'frontend'
+toolchains:
+  default: 'rust'
+
+owners:
+  defaultOwner: '@h0lybyte'

@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package kbve.common.v1;
+
+// 2D vector with integer components, for grid and tile coordinates.
+message Vec2I {
+  int32 x = 1;
+  int32 y = 2;
+}
+
+// 2D vector with floating point components.
+message Vec2F {
+  float x = 1;
+  float y = 2;
+}
+
+// 3D vector with floating point components.
+message Vec3F {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}
+
+// Rotation expressed as a quaternion.
+message Quat {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+  float w = 4;
+}
+
+// Position, rotation and scale of an object in world space.
+message Transform {
+  Vec3F position = 1;
+  Quat rotation = 2;
+  Vec3F scale = 3;
+}

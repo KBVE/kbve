@@ -16,9 +16,9 @@ name = "herbmail-server"
 path = "src/main.rs"
 
 [dependencies]
-simgrid = { path = "../../../../packages/rust/simgrid" }
-simbody3d = { path = "../../../../packages/rust/simbody3d" }
-jedi = { path = "../../../../packages/rust/jedi" }
+simgrid = { path = "../../../../crates/simgrid" }
+simbody3d = { path = "../../../../crates/simbody3d" }
+jedi = { path = "../../../../crates/jedi" }
 async-trait = { workspace = true }
 bevy = { workspace = true, features = ["bevy_state"] }
 axum = { workspace = true, features = ["ws", "json", "http1", "tokio"] }

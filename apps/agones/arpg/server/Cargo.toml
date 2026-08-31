@@ -12,11 +12,11 @@ name = "arpg-server"
 path = "src/main.rs"
 
 [dependencies]
-simgrid = { path = "../../../../packages/rust/simgrid" }
-bevy_items = { path = "../../../../packages/rust/bevy/bevy_items" }
-bevy_spells = { path = "../../../../packages/rust/bevy/bevy_spells" }
-bevy_mapdb = { path = "../../../../packages/rust/bevy/bevy_mapdb" }
-jedi = { path = "../../../../packages/rust/jedi", features = ["postgres", "valkey", "observ"] }
+simgrid = { path = "../../../../crates/simgrid" }
+bevy_items = { path = "../../../../crates/bevy_items" }
+bevy_spells = { path = "../../../../crates/bevy_spells" }
+bevy_mapdb = { path = "../../../../crates/bevy_mapdb" }
+jedi = { path = "../../../../crates/jedi", features = ["postgres", "valkey", "observ"] }
 bevy = { workspace = true, features = ["bevy_state"] }
 axum = { workspace = true, features = ["ws", "json", "http1", "tokio"] }
 tokio = { workspace = true, features = ["default", "rt-multi-thread", "macros", "signal", "sync", "time", "net"] }

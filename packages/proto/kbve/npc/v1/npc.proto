@@ -1,0 +1,644 @@
+syntax = "proto3";
+
+package kbve.npc.v1;
+
+import "kbve/common/v1/element.proto";
+import "kbve/common/v1/equip_slot.proto";
+import "kbve/common/v1/extension.proto";
+import "kbve/common/v1/rarity.proto";
+import "kbve/common/v1/registry.proto";
+import "kbve/type/v1/id.proto";
+
+// NPC archetypes, as a bitmask: one character may be a merchant and a quest
+// giver at once, so these combine into Npc.type_flags.
+enum NpcTypeFlag {
+  NPC_TYPE_FLAG_UNSPECIFIED = 0;
+  NPC_TYPE_FLAG_ENEMY = 0x0001;
+  NPC_TYPE_FLAG_MERCHANT = 0x0002;
+  NPC_TYPE_FLAG_QUEST_GIVER = 0x0004;
+  NPC_TYPE_FLAG_COMPANION = 0x0008;
+  NPC_TYPE_FLAG_NEUTRAL = 0x0010;
+  NPC_TYPE_FLAG_BOSS = 0x0020;
+  NPC_TYPE_FLAG_MINIBOSS = 0x0040;
+  NPC_TYPE_FLAG_SUMMON = 0x0080;
+  NPC_TYPE_FLAG_TRAINER = 0x0100;
+  NPC_TYPE_FLAG_REPAIR = 0x0200;
+  NPC_TYPE_FLAG_INNKEEPER = 0x0400;
+}
+
+// Drives flavour text, dialogue tone and AI weighting.
+enum Personality {
+  PERSONALITY_UNSPECIFIED = 0;
+  PERSONALITY_AGGRESSIVE = 1;
+  PERSONALITY_CUNNING = 2;
+  PERSONALITY_FEARFUL = 3;
+  PERSONALITY_STOIC = 4;
+  PERSONALITY_FERAL = 5;
+  PERSONALITY_ANCIENT = 6;
+  PERSONALITY_CHEERFUL = 7;
+  PERSONALITY_MYSTERIOUS = 8;
+  PERSONALITY_COWARDLY = 9;
+  PERSONALITY_NOBLE = 10;
+  PERSONALITY_PASSIVE = 11;
+}
+
+// Combat rank, separate from rarity: it sets difficulty expectation rather than
+// how often the NPC is encountered.
+enum NpcRank {
+  NPC_RANK_UNSPECIFIED = 0;
+  NPC_RANK_NORMAL = 1;
+  NPC_RANK_MINION = 2;
+  NPC_RANK_ELITE = 3;
+  NPC_RANK_RARE_ELITE = 4;
+  NPC_RANK_WORLD_BOSS = 5;
+}
+
+// Taxonomic grouping, used by abilities that target a family.
+enum CreatureFamily {
+  CREATURE_FAMILY_UNSPECIFIED = 0;
+  CREATURE_FAMILY_BEAST = 1;
+  CREATURE_FAMILY_UNDEAD = 2;
+  CREATURE_FAMILY_DEMON = 3;
+  CREATURE_FAMILY_ELEMENTAL = 4;
+  CREATURE_FAMILY_HUMANOID = 5;
+  CREATURE_FAMILY_MECHANICAL = 6;
+  CREATURE_FAMILY_DRAGON = 7;
+  CREATURE_FAMILY_ABERRATION = 8;
+  CREATURE_FAMILY_PLANT = 9;
+  CREATURE_FAMILY_SPIRIT = 10;
+  CREATURE_FAMILY_CONSTRUCT = 11;
+}
+
+// Idle movement behaviour.
+enum MovementType {
+  MOVEMENT_TYPE_UNSPECIFIED = 0;
+  MOVEMENT_TYPE_STATIONARY = 1;
+  MOVEMENT_TYPE_RANDOM_WANDER = 2;
+  MOVEMENT_TYPE_PATROL = 3;
+  MOVEMENT_TYPE_SCRIPTED = 4;
+  MOVEMENT_TYPE_AGGRESSIVE = 5;
+}
+
+// Difficulty tier a stat override applies to.
+enum DifficultyMode {
+  DIFFICULTY_MODE_UNSPECIFIED = 0;
+  DIFFICULTY_MODE_NORMAL = 1;
+  DIFFICULTY_MODE_HARD = 2;
+  DIFFICULTY_MODE_HEROIC = 3;
+  DIFFICULTY_MODE_MYTHIC = 4;
+}
+
+// Which clip a row and frame range of a billboard atlas represents.
+enum SpriteAnim {
+  SPRITE_ANIM_UNSPECIFIED = 0;
+  SPRITE_ANIM_IDLE = 1;
+  SPRITE_ANIM_WALK = 2;
+  SPRITE_ANIM_CRAWL = 3;
+  SPRITE_ANIM_RUN = 4;
+  SPRITE_ANIM_ATTACK = 5;
+  SPRITE_ANIM_CAST = 6;
+  SPRITE_ANIM_HURT = 7;
+  SPRITE_ANIM_DEATH = 8;
+  SPRITE_ANIM_SPAWN = 9;
+  SPRITE_ANIM_SPECIAL = 10;
+}
+
+// View direction. The right-facing row is the side row mirrored.
+enum SpriteFacing {
+  SPRITE_FACING_UNSPECIFIED = 0;
+  SPRITE_FACING_FRONT = 1;
+  SPRITE_FACING_SIDE = 2;
+  SPRITE_FACING_BACK = 3;
+}
+
+// Experience curve governing how much a pet needs per level.
+enum GrowthRate {
+  GROWTH_RATE_UNSPECIFIED = 0;
+  GROWTH_RATE_ERRATIC = 1;
+  GROWTH_RATE_FAST = 2;
+  GROWTH_RATE_MEDIUM_FAST = 3;
+  GROWTH_RATE_MEDIUM_SLOW = 4;
+  GROWTH_RATE_SLOW = 5;
+  GROWTH_RATE_FLUCTUATING = 6;
+}
+
+// Damage class of a move, which decides the attack and defence stats used.
+enum MoveCategory {
+  MOVE_CATEGORY_UNSPECIFIED = 0;
+  MOVE_CATEGORY_PHYSICAL = 1;
+  MOVE_CATEGORY_SPECIAL = 2;
+  // No direct damage; status and stat changes only.
+  MOVE_CATEGORY_STATUS = 3;
+}
+
+// Who a move resolves against.
+enum MoveTarget {
+  MOVE_TARGET_UNSPECIFIED = 0;
+  MOVE_TARGET_ENEMY = 1;
+  MOVE_TARGET_ALL_ENEMIES = 2;
+  MOVE_TARGET_SELF = 3;
+  MOVE_TARGET_ALLY = 4;
+  MOVE_TARGET_ALL_ALLIES = 5;
+  MOVE_TARGET_FIELD = 6;
+}
+
+// How an ambient creature instance is drawn.
+enum CreatureRenderKind {
+  CREATURE_RENDER_KIND_UNSPECIFIED = 0;
+  CREATURE_RENDER_KIND_SPRITE = 1;
+  CREATURE_RENDER_KIND_BILLBOARD = 2;
+  CREATURE_RENDER_KIND_EMISSIVE = 3;
+  CREATURE_RENDER_KIND_MESH = 4;
+  // Batched instanced mesh, for a shoal or a flock.
+  CREATURE_RENDER_KIND_MULTI_MESH = 5;
+}
+
+// Time-of-day window an ambient creature populates.
+enum CreatureSchedule {
+  CREATURE_SCHEDULE_UNSPECIFIED = 0;
+  CREATURE_SCHEDULE_ALWAYS = 1;
+  CREATURE_SCHEDULE_DAY = 2;
+  CREATURE_SCHEDULE_NIGHT = 3;
+}
+
+// Stat targeted by a battle modifier, in stages from -6 to +6.
+enum StatKind {
+  STAT_KIND_UNSPECIFIED = 0;
+  STAT_KIND_ATTACK = 1;
+  STAT_KIND_DEFENSE = 2;
+  STAT_KIND_SPECIAL_ATTACK = 3;
+  STAT_KIND_SPECIAL_DEFENSE = 4;
+  STAT_KIND_SPEED = 5;
+  STAT_KIND_ACCURACY = 6;
+  STAT_KIND_EVASION = 7;
+  STAT_KIND_CRIT_RATE = 8;
+}
+
+// Base combat statistics.
+message NpcStats {
+  int32 hp = 1;
+  int32 max_hp = 2;
+  int32 attack = 3;
+  int32 defense = 4;
+  int32 speed = 5;
+  optional int32 mp = 6;
+  optional int32 max_mp = 7;
+  optional int32 ep = 8;
+  optional int32 max_ep = 9;
+  optional int32 armor = 10;
+  optional int32 intelligence = 11;
+  optional int32 strength = 12;
+  optional int32 agility = 13;
+  // Per turn, or per second in real-time games.
+  optional float hp_regen = 14;
+  optional float mp_regen = 15;
+  optional float ep_regen = 16;
+
+  // Special attack and defence, distinct from their physical counterparts.
+  optional int32 special_attack = 17;
+  optional int32 special_defense = 18;
+  // 100 is neutral.
+  optional int32 accuracy = 19;
+  optional int32 evasion = 20;
+  optional int32 crit_rate = 21;
+  // Multiplier, e.g. 1.5.
+  optional float crit_damage = 22;
+
+  // Real-time colony simulation. World units per step, where speed above is a
+  // coarse integer rank.
+  optional float move_speed = 23;
+  optional int32 max_hunger = 24;
+  optional int32 max_fatigue = 25;
+  // Fourth attribute alongside strength, agility and intelligence.
+  optional int32 will = 26;
+  optional float hunger_per_sec = 27;
+  optional float fatigue_per_sec = 28;
+}
+
+// Elemental resistance or weakness with a magnitude.
+message ElementalAffinity {
+  kbve.common.v1.Element element = 1;
+  // Zero to one; 0.5 is a 50 percent resistance or weakness.
+  float magnitude = 2;
+}
+
+// One possible drop.
+message LootEntry {
+  // A ULID or an item slug, depending on how the table was authored.
+  string item_ref = 1;
+  optional string item_name = 2;
+  int32 min_quantity = 3;
+  int32 max_quantity = 4;
+  // Zero to one probability.
+  float drop_rate = 5;
+  optional int32 level_requirement = 6;
+}
+
+// Everything an NPC can drop.
+message LootTable {
+  repeated LootEntry entries = 1;
+  optional int32 guaranteed_drops = 2;
+  optional int32 max_drops = 3;
+  optional int32 gold_min = 4;
+  optional int32 gold_max = 5;
+  optional int32 xp_reward = 6;
+}
+
+// One equipped item.
+message EquipmentEntry {
+  kbve.common.v1.EquipSlot slot = 1;
+  string item_ref = 2;
+  optional string item_name = 3;
+  optional int32 enchant_level = 4;
+}
+
+// Everything an NPC is wearing.
+message EquipmentLoadout {
+  repeated EquipmentEntry equipped = 1;
+}
+
+// A stat buff or debuff applied on hit.
+message StatChange {
+  StatKind stat = 1;
+  // Stage delta, -6 to +6.
+  int32 stages = 2;
+  // Defaults to the move's own target.
+  optional MoveTarget target = 3;
+  // Zero to one; defaults to certain.
+  optional float chance = 4;
+}
+
+// An ability the NPC can use.
+message NpcAbility {
+  // Slug, e.g. "fireball".
+  string id = 1;
+  string name = 2;
+  optional string description = 3;
+  optional kbve.common.v1.Element element = 4;
+  optional int32 damage = 5;
+  optional int32 mp_cost = 6;
+  optional int32 ep_cost = 7;
+  optional int32 cooldown_turns = 8;
+  optional float hit_chance = 9;
+  optional bool is_aoe = 10;
+  optional int32 heal_amount = 11;
+  optional string status_effect = 12;
+  // Relative weight when selecting from a pool.
+  optional float weight = 13;
+
+  optional MoveCategory category = 14;
+  // Base power, preferred over damage in turn-based games.
+  optional int32 power = 15;
+  optional int32 pp = 16;
+  optional int32 max_pp = 17;
+  // Turn-order bump, -7 to +7.
+  optional int32 priority = 18;
+  optional float status_chance = 19;
+  // Self-damage as a fraction of damage dealt.
+  optional float recoil_fraction = 20;
+  // Self-healing as a fraction of damage dealt.
+  optional float drain_fraction = 21;
+  optional bool high_crit = 22;
+  optional MoveTarget target = 23;
+  repeated StatChange stat_changes = 24;
+}
+
+// Probability of choosing an ability under given conditions.
+message IntentWeight {
+  // References NpcAbility.id.
+  string ability_id = 1;
+  float weight = 2;
+  optional int32 tier_min = 3;
+  optional int32 tier_max = 4;
+  // Only available below this fraction of health.
+  optional float hp_threshold = 5;
+}
+
+// Combat modifiers baked into the definition.
+message BehaviorTraits {
+  optional bool first_strike = 1;
+  // Fraction of health at which enrage triggers.
+  optional float enrage_threshold = 2;
+  optional float enrage_multiplier = 3;
+  optional bool can_flee = 4;
+  optional bool can_charge = 5;
+  // Returns to its spawn point after combat.
+  optional bool is_tethered = 6;
+  optional float aggro_range = 7;
+  optional float leash_distance = 8;
+  optional float call_for_help_radius = 9;
+  optional float wander_radius = 10;
+  MovementType movement_type = 11;
+  optional string patrol_path_ref = 12;
+}
+
+// Faction membership and standing.
+message FactionInfo {
+  // e.g. "undead_legion".
+  string faction_id = 1;
+  optional int32 faction_rank = 2;
+  repeated string hostile_factions = 3;
+  repeated string friendly_factions = 4;
+}
+
+// A pool of interchangeable lines for one situation.
+//
+// Supersedes both FlavorPool and DialogueLine, which were the same message
+// under two names: a trigger, a list of interchangeable strings, and in one
+// case a condition.
+message FlavorPool {
+  // e.g. "attack", "flee", "death", "greet", "shop_open".
+  string trigger = 1;
+  // Placeholders {name}, {target} and {damage} are substituted at runtime.
+  repeated string messages = 2;
+  // Expression or flag gate, when the pool is conditional.
+  optional string condition = 3;
+}
+
+// Where and how this NPC appears.
+message SpawnRule {
+  optional string zone = 1;
+  optional int32 floor_min = 2;
+  optional int32 floor_max = 3;
+  float spawn_weight = 4;
+  optional int32 max_active = 5;
+  optional int32 level_min = 6;
+  optional int32 level_max = 7;
+  optional int32 respawn_time_secs = 8;
+  optional int32 respawn_variance = 9;
+  optional int32 despawn_time_secs = 10;
+}
+
+// A stat block replacing the base one at a given difficulty.
+message DifficultyOverride {
+  DifficultyMode mode = 1;
+  NpcStats stats = 2;
+  optional float xp_modifier = 3;
+  optional float gold_modifier = 4;
+}
+
+// How an encounter scales with party size.
+message PartyScaling {
+  bool enabled = 1;
+  // Additional fraction of health per extra member, e.g. 0.3.
+  optional float hp_per_member = 2;
+  optional float damage_per_member = 3;
+  // Party size the base stats are tuned for.
+  optional int32 base_party_size = 4;
+}
+
+// When this NPC exists in the world at all.
+message PhaseRule {
+  optional int32 phase_id = 1;
+  repeated kbve.type.v1.Ulid prerequisite_quest_refs = 2;
+  optional string event_ref = 3;
+  // Time of day, 0 to 2359 on a 24 hour clock.
+  optional int32 time_start = 4;
+  optional int32 time_end = 5;
+}
+
+// Physics and reach, for real-time and spatial games.
+message SpatialProperties {
+  optional float combat_reach = 1;
+  optional float bounding_radius = 2;
+  optional float walk_speed = 3;
+  optional float run_speed = 4;
+  optional float fly_speed = 5;
+  optional bool can_swim = 6;
+  optional bool can_fly = 7;
+}
+
+// How many of this creature exist in the world and how they are scattered
+// across it. Drives chunk-scatter spawners for billboards and instanced meshes
+// alike.
+message CreatureConfig {
+  CreatureRenderKind render_kind = 1;
+  int32 pool_size = 2;
+  // World-space chunk edge used for deterministic placement.
+  float chunk_size = 3;
+  int32 per_chunk = 4;
+  // Zero to one fraction of slots that fill.
+  float spawn_chance = 5;
+  CreatureSchedule schedule = 6;
+}
+
+// What players can do with this NPC.
+message InteractionFlags {
+  optional bool is_interactable = 1;
+  optional bool is_attackable = 2;
+  optional bool is_targetable = 3;
+  optional bool is_skinnable = 4;
+  optional bool is_herbable = 5;
+  optional bool is_mineable = 6;
+  // Killing incurs a reputation penalty.
+  optional bool is_civilian = 7;
+}
+
+// One clip inside a sprite atlas, mapping a concept to a row and frame range.
+message SpriteClip {
+  SpriteAnim anim = 1;
+  int32 row = 2;
+  int32 start_frame = 3;
+  int32 frame_count = 4;
+  float fps = 5;
+  optional bool loop = 6;
+}
+
+// A billboarded pixel-art atlas: columns are frames, rows are directions.
+message SpriteAtlas {
+  string atlas_ref = 1;
+  int32 columns = 2;
+  int32 rows = 3;
+  optional int32 cell_width = 4;
+  optional int32 cell_height = 5;
+  int32 row_front = 6;
+  int32 row_side = 7;
+  int32 row_back = 8;
+  optional bool mirror_right_from_side = 9;
+  // In-world billboard size.
+  optional float world_width = 10;
+  optional float world_height = 11;
+  // Zero is bottom-anchored.
+  optional float pivot_z = 12;
+  repeated SpriteClip clips = 13;
+}
+
+// One move a pet learns by levelling.
+message PetMovepoolEntry {
+  int32 level = 1;
+  // References an NpcAbility.id on this species.
+  string ability_id = 2;
+}
+
+// An evolution branch for a pet species.
+message PetEvolution {
+  string evolves_to_ref = 1;
+  optional int32 level = 2;
+  optional string item_ref = 3;
+  // Free-form gate on time, friendship or location.
+  optional string condition = 4;
+}
+
+// Present only on species that can be caught and trained.
+message PetInfo {
+  // 8 was egg_groups: breeding is out of scope, and egg groups mean nothing
+  // without it. 11 was base_stat_total, the sum of the six base stats, so it
+  // could only ever drift from the numbers it summed.
+  reserved 8, 11;
+  reserved "egg_groups", "base_stat_total";
+
+  bool catchable = 1;
+  // Zero to 255; higher is easier to catch.
+  optional int32 capture_rate = 2;
+  optional GrowthRate growth_rate = 3;
+  optional int32 base_xp_yield = 4;
+  optional int32 base_friendship = 5;
+  // Male fraction, zero to one. Negative means genderless.
+  optional float gender_ratio = 6;
+  repeated PetMovepoolEntry movepool = 7;
+  repeated PetEvolution evolutions = 9;
+  // Dual typing, for matchups.
+  optional kbve.common.v1.Element secondary_element = 10;
+}
+
+// One place an NPC is meant to be, and when they set off for it.
+//
+// The offset is measured from wherever the world places them, so the same
+// routine reads the same whether they stand by a bridge or in a market.
+message RoutineStop {
+  // Zero to 24, when they leave for this place.
+  float hour = 1;
+  float offset_x = 2;
+  float offset_z = 3;
+  // Animation played while standing here.
+  optional string task = 4;
+  // Item the task produces.
+  optional string yield_item = 5;
+  optional float yield_minutes = 6;
+}
+
+// Where somebody is meant to be through the day. Derived from the world clock
+// rather than stepped, so every machine simulating the world agrees without
+// exchanging anything.
+message DailyRoutine {
+  repeated RoutineStop stops = 1;
+  // Metres per second between stops.
+  optional float walk_speed = 2;
+}
+
+// An NPC definition.
+message Npc {
+  // 24 was dialogue, a list of trigger-keyed line pools, and 50 was
+  // dialogue_tree, an embedded single-entry conversation. Both are superseded
+  // by dialogue_graph_refs: the line pools are FlavorPool entries, and the tree
+  // is a kbve.dialogue.v1.DialogueGraph addressed by reference rather than
+  // inlined, so several NPCs can share one conversation and a conversation can
+  // be authored without an NPC.
+  reserved 24, 50;
+  reserved "dialogue", "dialogue_tree";
+
+  kbve.type.v1.Ulid id = 1;
+  // URL-safe identifier, e.g. "glass-slime".
+  string ref = 2;
+  string name = 3;
+  // e.g. "The Shattered King".
+  optional string title = 4;
+  optional string description = 5;
+  optional string lore = 6;
+
+  // Bitmask of NpcTypeFlag values.
+  int32 type_flags = 7;
+  kbve.common.v1.Rarity rarity = 8;
+  Personality personality = 9;
+  optional kbve.common.v1.Element element = 10;
+  repeated string tags = 11;
+
+  optional string img = 12;
+  optional string icon = 13;
+  optional int32 pixel_density = 14;
+
+  int32 level = 15;
+  // Scaling floor and ceiling.
+  optional int32 level_min = 16;
+  optional int32 level_max = 17;
+
+  NpcStats stats = 18;
+  repeated NpcAbility abilities = 19;
+
+  optional LootTable loot = 22;
+
+  // Interchangeable lines keyed by situation.
+  repeated FlavorPool flavor_text = 23;
+
+  repeated SpawnRule spawn_rules = 25;
+
+  optional string credits = 26;
+  // Hidden from production builds.
+  optional bool drafted = 27;
+
+  optional EquipmentLoadout equipment = 28;
+
+  NpcRank rank = 29;
+  CreatureFamily family = 30;
+
+  // Visual size multiplier.
+  optional float scale = 31;
+  optional string model_ref = 32;
+  optional string animation_set = 33;
+  optional string sound_set = 34;
+
+  repeated ElementalAffinity weaknesses = 35;
+  repeated ElementalAffinity resistances = 36;
+  // e.g. "stun", "poison", "bleed".
+  repeated string status_immunities = 37;
+  repeated IntentWeight intent_weights = 38;
+
+  optional BehaviorTraits behavior = 39;
+  optional FactionInfo faction = 40;
+
+  // Quests this NPC offers or advances.
+  repeated kbve.type.v1.Ulid quest_refs = 41;
+  optional string shop_inventory_ref = 42;
+  // Shared kill-credit identifier for quest tracking.
+  optional string kill_credit_ref = 43;
+
+  repeated PhaseRule phase_rules = 44;
+  repeated DifficultyOverride difficulty_overrides = 45;
+  optional PartyScaling party_scaling = 46;
+  optional SpatialProperties spatial = 47;
+  optional InteractionFlags interaction = 48;
+
+  repeated kbve.common.v1.Extension extensions = 49;
+
+  optional SpriteAtlas sprite_atlas = 51;
+  // Item refs this merchant buys and sells; prices come from the item domain.
+  repeated string shop_items = 52;
+  optional PetInfo pet = 53;
+
+  // Engine bridge for the real-time ECS. Ignored by other consumers.
+  optional int32 unit_type = 54;
+  optional int32 default_weapon = 55;
+  // Numeric first-contact dialogue id, where zero means silent. Distinct from
+  // dialogue_graph_refs, which addresses authored conversations.
+  optional int32 dialogue_tree_id = 56;
+  // Locale key, e.g. "creature.goblin".
+  optional string name_key = 57;
+
+  optional CreatureConfig creature_config = 58;
+  optional DailyRoutine routine = 59;
+
+  // Conversations this NPC can hold. Each graph decides for itself which entry
+  // point applies, so several NPCs may share one and the choice of opening line
+  // belongs to the graph rather than to the NPC.
+  repeated kbve.type.v1.Ulid dialogue_graph_refs = 60;
+}
+
+// Every NPC, as shipped to clients.
+message NpcRegistry {
+  // 2 was content_version, now RegistryMeta.content_version.
+  reserved 2;
+  reserved "content_version";
+
+  kbve.common.v1.RegistryMeta meta = 1;
+  repeated Npc npcs = 3;
+}

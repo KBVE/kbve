@@ -1,0 +1,35 @@
+version: v2
+modules:
+  - path: .
+    name: buf.build/kbve/proto
+lint:
+  use:
+    - STANDARD
+  # The RPC naming rules exist so a request can gain a field without dragging
+  # every other caller of the same message along. They assume the request type
+  # is the RPC's own wrapper, and in these two places it is not.
+  #
+  # ClickHouse's TailLogs streams `LogEntry`, which is a log row -- the same
+  # row QueryLogsResponse returns in a repeated field. Renaming it
+  # TailLogsResponse would name a row after one of the two RPCs that emit it.
+  #
+  # Redis's RedisCommand and RedisResponse are the command envelope, carried
+  # over the websocket path in RedisWsMessage as well as over gRPC. Their names
+  # describe what they are; SendCommandRequest would describe only one of the
+  # two transports that carry them.
+  #
+  # CityStateStatus has no unspecified value because it has no unspecified
+  # state: a city-state nobody has spoken to is hostile. Adding a zero value
+  # would mean renumbering the rest, and the numbers are in saved games on both
+  # sides of the Unity/Rust boundary.
+  ignore_only:
+    ENUM_ZERO_VALUE_SUFFIX:
+      - kbve/empire/v1/empire.proto
+    RPC_REQUEST_STANDARD_NAME:
+      - kbve/redis/v1/redis.proto
+    RPC_RESPONSE_STANDARD_NAME:
+      - kbve/redis/v1/redis.proto
+      - kbve/clickhouse/v1/clickhouse.proto
+breaking:
+  use:
+    - FILE

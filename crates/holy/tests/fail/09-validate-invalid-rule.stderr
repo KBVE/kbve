@@ -1,0 +1,5 @@
+error: unknown validate rule: 'emial'. Known rules: captcha_token, discord_server, email, github_url, hex_code, no_html, non_empty, service, ulid, url, username
+ --> tests/fail/09-validate-invalid-rule.rs:5:23
+  |
+5 |     #[holy(validate = "emial")]
+  |                       ^^^^^^^

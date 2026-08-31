@@ -1,0 +1,12 @@
+layer: 'library'
+stack: 'systems'
+toolchains:
+  default: 'rust'
+
+# The generated tree this crate includes is an output of `protobuf:build`, so
+# the dependency is what stops the crate compiling against a stale schema.
+dependsOn:
+  - 'protobuf'
+
+owners:
+  defaultOwner: '@h0lybyte'

@@ -1,0 +1,13 @@
+# Axum and Diesel boilerplate, migrated from the legacy Nx workspace at
+# KBVE/kbve packages/rust/kbve.
+layer: 'library'
+stack: 'backend'
+toolchains:
+  default: 'rust'
+
+dependsOn:
+  - 'holy'
+  - 'jedi'
+
+owners:
+  defaultOwner: '@h0lybyte'

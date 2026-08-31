@@ -1,0 +1,14 @@
+# The data exchange layer, migrated from the legacy Nx workspace at
+# KBVE/kbve packages/rust/jedi.
+#
+# No dependsOn for the schemas, unlike kbve-proto: jedi's generated code is
+# committed under src/proto and its build script only regenerates when
+# BUILD_PROTO is set. The schemas themselves are still in the old repository,
+# so there is nothing here to depend on yet.
+layer: 'library'
+stack: 'systems'
+toolchains:
+  default: 'rust'
+
+owners:
+  defaultOwner: '@h0lybyte'

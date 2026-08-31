@@ -1,0 +1,52 @@
+[package]
+name = "bevy_supa"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Agnostic Supabase (PostgREST) client with optional Bevy integration — native HTTP now, WASM stub for later"
+homepage = "https://kbve.com/"
+repository.workspace = true
+keywords = ["bevy", "supabase", "postgrest", "gamedev"]
+categories = ["game-development", "web-programming::http-client"]
+readme = "README.md"
+
+[features]
+# Most consumers want the native HTTP client and nothing else.
+default = ["native"]
+
+# Enable the native (non-WASM) HTTP transport backed by reqwest+rustls.
+# This is what the JNI mc_auth plugin uses. Turn this off only if you
+# are targeting WASM, in which case enable `wasm` instead (see below).
+native = ["dep:reqwest"]
+
+# Optional Bevy ECS integration — exposes `BevySupaPlugin` and inserts
+# `SupaClient` as a Bevy `Resource`. Without this feature `bevy_supa`
+# is a plain Rust crate with zero Bevy dependency, which keeps lean
+# consumers like JNI cdylibs small. Turn this on for Bevy games.
+bevy = ["dep:bevy"]
+
+# WASM (browser) HTTP transport — STUB for now. The module this gates
+# is a placeholder that errors at compile time with a pointer to the
+# implementation plan. See src/transport/wasm.rs for details. Flip
+# this on once browser `fetch` integration lands.
+wasm = []
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+
+# Native HTTP stack — only pulled in under the `native` feature.
+reqwest = { workspace = true, features = ["json", "rustls"], optional = true }
+# Bevy — only pulled in under the `bevy` feature. Game consumers that
+# want the plugin opt in; JNI consumers stay skinny.
+bevy = { workspace = true, optional = true, features = ["bevy_state"] }
+
+# `native` and `wasm` features are mutually exclusive transports — can't
+# enable both. Pin docs.rs to native+bevy until the wasm stub becomes real.
+[package.metadata.docs.rs]
+features = ["native", "bevy"]
+rustdoc-args = ["--cfg", "docsrs"]

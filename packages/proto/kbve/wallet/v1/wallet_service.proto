@@ -1,0 +1,128 @@
+syntax = "proto3";
+
+package kbve.wallet.v1;
+
+import "google/protobuf/timestamp.proto";
+import "kbve/type/v1/id.proto";
+import "kbve/wallet/v1/wallet.proto";
+
+// Request and response contracts for the wallet.
+//
+// The first group is callable by an authenticated user and acts on their own
+// wallet, which is why none of those requests names an account. The second
+// group is callable only by the service role, names the account explicitly, and
+// mirrors the stored procedures the database exposes. Both are typed here
+// because the wallet schema is not surfaced directly.
+
+// Balance of the calling user's own wallet.
+message GetBalanceRequest {}
+
+message GetBalanceResponse {
+  Balance balance = 1;
+}
+
+// Coupons held by the calling user.
+message ListCouponsRequest {}
+
+// A coupon and the template it came from, flattened for display.
+message ListCouponsItem {
+  int64 coupon_id = 1;
+  string template_code = 2;
+  string template_label = 3;
+  RewardKind reward_kind = 4;
+  string reward_payload_json = 5;
+  CouponStatus status = 6;
+  google.protobuf.Timestamp granted_at = 7;
+  optional google.protobuf.Timestamp expires_at = 8;
+  optional google.protobuf.Timestamp redeemed_at = 9;
+}
+
+message ListCouponsResponse {
+  repeated ListCouponsItem coupons = 1;
+}
+
+message RedeemCouponRequest {
+  int64 coupon_id = 1;
+  // Supplied by the caller, so a retried redemption pays out once.
+  kbve.type.v1.Uuid idempotency_key = 2;
+}
+
+message RedeemCouponResponse {
+  bool success = 1;
+  RewardKind reward_kind = 2;
+  string reward_payload_json = 3;
+  optional int64 ledger_id = 4;
+}
+
+// Add funds to an account.
+message ServiceCreditRequest {
+  kbve.type.v1.Uuid account_id = 1;
+  CurrencyKind currency = 2;
+  // Positive. The direction is the operation, not the sign.
+  int64 amount = 3;
+  SourceKind source_kind = 4;
+  string reason = 5;
+  optional string ref_type = 6;
+  optional int64 ref_id = 7;
+  kbve.type.v1.Uuid idempotency_key = 8;
+}
+
+message ServiceCreditResponse {
+  int64 ledger_id = 1;
+}
+
+// Remove funds from an account.
+message ServiceDebitRequest {
+  kbve.type.v1.Uuid account_id = 1;
+  CurrencyKind currency = 2;
+  // Positive, as for a credit.
+  int64 amount = 3;
+  SourceKind source_kind = 4;
+  string reason = 5;
+  optional string ref_type = 6;
+  optional int64 ref_id = 7;
+  kbve.type.v1.Uuid idempotency_key = 8;
+}
+
+message ServiceDebitResponse {
+  int64 ledger_id = 1;
+}
+
+// Move funds between two accounts in one transaction.
+message ServiceTransferRequest {
+  kbve.type.v1.Uuid from_account_id = 1;
+  kbve.type.v1.Uuid to_account_id = 2;
+  CurrencyKind currency = 3;
+  int64 amount = 4;
+  SourceKind source_kind = 5;
+  string reason = 6;
+  optional string ref_type = 7;
+  optional int64 ref_id = 8;
+  kbve.type.v1.Uuid idempotency_key = 9;
+}
+
+message ServiceTransferResponse {}
+
+message ServiceRevokeCouponRequest {
+  int64 coupon_id = 1;
+  string reason = 2;
+}
+
+message ServiceRevokeCouponResponse {
+  bool revoked = 1;
+}
+
+// Compare the materialised balance against the sum of the journal.
+message ServiceVerifyBalanceRequest {
+  kbve.type.v1.Uuid account_id = 1;
+}
+
+message ServiceVerifyBalanceResponse {
+  kbve.type.v1.Uuid account_id = 1;
+  int64 stored_credits = 2;
+  int64 ledger_credits = 3;
+  int64 stored_khash = 4;
+  int64 ledger_khash = 5;
+  // Whether the stored balances match the journal.
+  bool ok = 6;
+}

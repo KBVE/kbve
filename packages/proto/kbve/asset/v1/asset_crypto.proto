@@ -1,0 +1,105 @@
+syntax = "proto3";
+
+package kbve.asset.v1;
+
+import "google/protobuf/timestamp.proto";
+import "kbve/common/v1/decimal.proto";
+
+// What a token is, beyond the fact that it has a price.
+//
+// The equity analogue is EquityProfile, and the difference that matters is
+// supply. A company's share count changes on a schedule and is audited; a
+// token's does not have to be either. Most of what goes wrong with crypto data
+// goes wrong here.
+
+// How a token exists.
+enum TokenStandard {
+  TOKEN_STANDARD_UNSPECIFIED = 0;
+  // The chain's own unit: ETH on Ethereum, SOL on Solana.
+  TOKEN_STANDARD_NATIVE = 1;
+  TOKEN_STANDARD_ERC20 = 2;
+  TOKEN_STANDARD_ERC721 = 3;
+  TOKEN_STANDARD_ERC1155 = 4;
+  TOKEN_STANDARD_SPL = 5;
+  TOKEN_STANDARD_BEP20 = 6;
+}
+
+// What, if anything, a stablecoin is backed by.
+enum PegKind {
+  PEG_KIND_UNSPECIFIED = 0;
+  // Not pegged.
+  PEG_KIND_NONE = 1;
+  // Reserves held off-chain: cash, treasuries.
+  PEG_KIND_FIAT_BACKED = 2;
+  // Over-collateralised with on-chain assets.
+  PEG_KIND_CRYPTO_BACKED = 3;
+  // Held by a mint-and-burn mechanism with no reserve behind it.
+  PEG_KIND_ALGORITHMIC = 4;
+}
+
+// What a token is.
+message TokenProfile {
+  // The chain it lives on, as a lowercase slug: "ethereum", "solana", "base".
+  // A token bridged to several chains is several assets that happen to share a
+  // name, and treating them as one is how a supply figure ends up counted
+  // twice.
+  string chain = 1;
+  // The chain's own numeric id, where it has one: EIP-155 for an EVM chain,
+  // 1 for Ethereum mainnet, 8453 for Base. The slug above is what humans and
+  // data sources call it, and they disagree -- "eth", "ethereum", "mainnet",
+  // "erc20" all appear for the same chain. This is what actually keys it, and
+  // a contract address without it is not a unique address: the same bytes are
+  // a different contract on every EVM chain, and the same deployer commonly
+  // deploys to all of them.
+  optional int64 chain_id = 16;
+  TokenStandard standard = 2;
+  // Where it lives on that chain. Absent for a native coin, which has no
+  // contract.
+  optional string contract_address = 3;
+
+  // How many decimal places the on-chain integer carries. Eighteen for most
+  // ERC-20s, six for USDC, eight for BTC.
+  //
+  // This is the token's own unit, not a display preference: reading a raw
+  // balance without it is wrong by a factor of ten to the eighteenth, and it
+  // is the most common way a crypto integration reports a number that is
+  // absurd rather than merely inaccurate.
+  optional int32 decimals = 4;
+
+  // Units that exist and are not locked, burned, or unissued. The only supply
+  // figure that belongs in a market capitalisation.
+  optional kbve.common.v1.Decimal circulating_supply = 5;
+  // Units that exist, including locked and vesting.
+  optional kbve.common.v1.Decimal total_supply = 6;
+  // The ceiling, where the protocol has one. Absent means uncapped, which is
+  // not the same as unknown -- and a consumer that cannot tell those apart
+  // will render an inflation schedule that does not exist.
+  optional kbve.common.v1.Decimal max_supply = 7;
+
+  // Price times circulating supply. Recomputed rather than trusted: a cap
+  // built on total supply instead of circulating overstates a token with a
+  // large locked allocation by a multiple, and the two figures are reported
+  // interchangeably by sources that should know better.
+  optional kbve.common.v1.Decimal market_cap = 8;
+  // Price times max supply, where one exists.
+  optional kbve.common.v1.Decimal fully_diluted_valuation = 9;
+
+  // When the supply figures above were read. Supply is not static and is not
+  // quoted: it changes on unlocks, burns and emissions that happen on their
+  // own schedule, and a source that returns it alongside a live price implies
+  // the two are equally fresh when the supply may be weeks old. A market
+  // capitalisation is only as current as its stalest input, and it is never
+  // the price.
+  optional google.protobuf.Timestamp supply_as_of = 17;
+
+  optional PegKind peg = 10;
+  // What it is pegged to, where it is pegged: "USD", "XAU".
+  optional string peg_currency = 11;
+
+  optional google.protobuf.Timestamp genesis_at = 12;
+  optional string whitepaper_url = 13;
+  optional string website_url = 14;
+  // The canonical explorer entry for the contract, so a holding can be
+  // verified against the chain rather than against this record.
+  optional string explorer_url = 15;
+}

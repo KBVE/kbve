@@ -1,0 +1,36 @@
+[package]
+name = "bevy_skills"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Skill progression system — pure Rust core with optional Bevy ECS integration"
+homepage = "https://kbve.com/"
+repository.workspace = true
+keywords = ["bevy", "skills", "gamedev", "rpg", "plugin"]
+categories = ["game-development", "game-engines"]
+readme = "README.md"
+
+[features]
+# Default keeps existing consumers (rareicon bevy game) working out of
+# the box. Disable with `default-features = false` from FFI / mobile
+# crates that can't pull bevy_app + android-activity.
+default = ["bevy"]
+
+# Bevy ECS integration — adds Component / Resource / Message derives
+# and the BevySkillsPlugin. Without this feature the crate is plain
+# Rust with zero Bevy dependency, suitable for FFI cdylibs (uniti) and
+# headless consumers (Discord bot sessions).
+bevy = ["dep:bevy", "dep:bevy_items"]
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+# Bevy — only pulled in under the `bevy` feature.
+bevy = { workspace = true, optional = true, features = ["bevy_state", "bevy_log"] }
+
+# professiondb source for register_professions — only pulled in under the
+# `bevy` feature since bevy_items itself has a hard (non-optional) bevy dep.
+bevy_items = { version = "0.1", path = "../bevy_items", optional = true, default-features = false }

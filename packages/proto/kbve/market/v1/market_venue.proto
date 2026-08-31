@@ -1,0 +1,88 @@
+syntax = "proto3";
+
+package kbve.market.v1;
+
+import "google/protobuf/timestamp.proto";
+import "kbve/common/v1/decimal.proto";
+
+// Where an asset trades, and what it costs to trade there.
+//
+// Fees are venue policy, not asset policy, so they live on the venue and an
+// asset carries only its exemption. Getting this wrong is expensive in a
+// specific way: a margin quoted before fees is not a margin, it is the number
+// that talks somebody into a losing trade.
+
+// Which party pays a fee.
+enum FeeSide {
+  FEE_SIDE_UNSPECIFIED = 0;
+  FEE_SIDE_BUYER = 1;
+  FEE_SIDE_SELLER = 2;
+  FEE_SIDE_BOTH = 3;
+}
+
+// How a computed fee is reduced to a whole unit of currency.
+//
+// This is not a rounding-error footnote. The Grand Exchange rounds its tax
+// down, which is why an item selling below 50 gp is taxed nothing at all -
+// two percent of 49 floors to zero. A model that rounds to nearest invents a
+// fee on every cheap item and mis-sorts the entire low end of a scan.
+enum FeeRounding {
+  FEE_ROUNDING_UNSPECIFIED = 0;
+  FEE_ROUNDING_DOWN = 1;
+  FEE_ROUNDING_UP = 2;
+  FEE_ROUNDING_NEAREST = 3;
+  // Keep the fee at full precision.
+  FEE_ROUNDING_NONE = 4;
+}
+
+// What a venue charges on a trade.
+message FeeSchedule {
+  // Rate against the notional value, in basis points. 200 is two percent.
+  //
+  // Basis points rather than a decimal because a rate is exact by definition
+  // and a float would make the fee on a large order disagree with itself.
+  int32 rate_bps = 1;
+
+  FeeSide side = 2;
+  FeeRounding rounding = 3;
+
+  // The most the venue will charge on a single trade. The Grand Exchange caps
+  // its tax at five million gp, which means every item above 250m gp has an
+  // effective rate below two percent - and a scan that ignores the cap
+  // understates the margin on exactly the items worth the most.
+  optional kbve.common.v1.Decimal cap = 4;
+
+  // A fee below this is not charged at all.
+  optional kbve.common.v1.Decimal minimum = 5;
+
+  // Trades with a notional below this are not charged.
+  optional kbve.common.v1.Decimal exempt_below = 6;
+
+  // When this schedule took effect. Fee rules change, and a realised profit
+  // computed under today's rate is wrong for a trade closed before it.
+  optional google.protobuf.Timestamp effective_from = 7;
+  optional google.protobuf.Timestamp effective_until = 8;
+}
+
+// A market that quotes assets.
+message Venue {
+  // Stable slug used as AssetRef.venue, e.g. "osrs-ge", "nasdaq", "coinbase".
+  string slug = 1;
+  string name = 2;
+
+  // What prices here are quoted in by default.
+  string quote_currency = 3;
+
+  // Fee schedules in force. Repeated so a historic schedule can be kept
+  // alongside the current one and a past trade can be priced under the rules
+  // it actually traded under.
+  repeated FeeSchedule fees = 4;
+
+  // How long a quote from this venue stays meaningful. The Grand Exchange
+  // reports the last trade at each end whenever it happened, so a price can be
+  // hours stale while looking perfectly current.
+  optional int64 typical_quote_age_seconds = 5;
+
+  optional string timezone = 6;
+  optional string url = 7;
+}

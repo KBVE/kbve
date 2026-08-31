@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package kbve.common.v1;
+
+// Game-specific data that does not belong in a shared schema.
+//
+// Six domains had written this same message under six names - ItemExtension,
+// QuestExtension, NpcExtension, MapExtension, IconExtension and
+// ProfessionExtension - with identical fields and identical numbering. It is
+// one idea, so it is one message.
+//
+// A key is namespaced by the system that owns it, e.g.
+// "isometric.chunk_load_radius". Anything read by more than one consumer has
+// outgrown this and wants a real field.
+message Extension {
+  string key = 1;
+
+  oneof value {
+    string string_value = 2;
+    int64 int_value = 3;
+    double float_value = 4;
+    bool bool_value = 5;
+    bytes bytes_value = 6;
+  }
+}

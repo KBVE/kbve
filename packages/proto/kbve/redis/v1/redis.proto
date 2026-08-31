@@ -1,0 +1,138 @@
+syntax = "proto3";
+
+package kbve.redis.v1;
+
+service RedisService {
+  rpc SendCommand(RedisCommand) returns (RedisResponse);
+}
+
+message RedisCommand {
+  oneof command {
+    SetCommand set = 1;
+    GetCommand get = 2;
+    DelCommand del = 3;
+    WatchCommand watch = 4;
+    UnwatchCommand unwatch = 5;
+  }
+}
+
+message SetCommand {
+  string key = 1;
+  string value = 2;
+  optional uint64 ttl = 3;
+}
+
+message GetCommand {
+  string key = 1;
+}
+
+message DelCommand {
+  string key = 1;
+}
+
+message RedisResponse {
+  string status = 1;
+  string value = 2;
+}
+
+message RedisEvent {
+  string channel = 1;
+  string payload = 2;
+  uint64 timestamp = 3;
+}
+
+message RedisEventObject {
+  oneof object {
+    RedisCommand command = 1;
+    RedisEvent event = 2;
+    RedisKeyUpdate update = 3;
+  }
+}
+
+message WatchCommand {
+  string key = 1;
+}
+
+message UnwatchCommand {
+  string key = 1;
+}
+
+message RedisKeyUpdate {
+  string key = 1;
+  oneof state {
+    string value = 2;
+    bool deleted = 3;
+  }
+  uint64 timestamp = 4;
+}
+
+message RedisWsMessage {
+  oneof message {
+    WatchCommand watch = 1;
+    RedisKeyUpdate update = 2;
+    RedisCommand command = 3;
+    RedisEvent event = 4;
+    UnwatchCommand unwatch = 5;
+    Ping ping = 6;
+    Pong pong = 7;
+    ErrorMessage error_msg = 8;
+  }
+}
+
+message Ping {
+  uint64 timestamp = 1;
+}
+
+message Pong {
+  uint64 timestamp = 1;
+}
+
+message ErrorMessage {
+  string error = 1;
+}
+
+// Stream
+
+message RedisStream {
+  oneof payload {
+    XAddPayload xadd = 1;
+    XReadPayload xread = 2;
+    XReadResponse xread_response = 3;
+  }
+}
+
+message XAddPayload {
+  bytes stream = 1;
+  repeated Field fields = 2;
+  optional bytes id = 3;
+}
+
+message XReadPayload {
+  repeated StreamReadRequest streams = 1;
+  optional uint64 count = 2;
+  optional uint64 block = 3;
+}
+
+message StreamReadRequest {
+  bytes stream = 1;
+  bytes id = 2;
+}
+
+message XReadResponse {
+  repeated StreamMessages streams = 1;
+}
+
+message StreamMessages {
+  bytes stream = 1;
+  repeated StreamEntry entries = 2;
+}
+
+message StreamEntry {
+  bytes id = 1;
+  repeated Field fields = 2;
+}
+
+message Field {
+  bytes key = 1;
+  bytes value = 2;
+}

@@ -30,5 +30,5 @@ thiserror = { workspace = true }
 dotenvy = { workspace = true }
 
 metrics = { workspace = true }
-jedi = { path = "../../packages/rust/jedi", features = ["clickhouse", "prometheus"] }
-kbve = { path = "../../packages/rust/kbve", default-features = false, features = ["gate-auth"] }
+jedi = { path = "../../crates/jedi", features = ["clickhouse", "prometheus"] }
+kbve = { path = "../../crates/kbve", default-features = false, features = ["gate-auth"] }

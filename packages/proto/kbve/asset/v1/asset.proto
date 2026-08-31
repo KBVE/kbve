@@ -1,0 +1,258 @@
+syntax = "proto3";
+
+package kbve.asset.v1;
+
+import "google/protobuf/timestamp.proto";
+import "kbve/asset/v1/asset_crypto.proto";
+import "kbve/asset/v1/asset_fund.proto";
+import "kbve/common/v1/decimal.proto";
+import "kbve/common/v1/registry.proto";
+import "kbve/type/v1/id.proto";
+
+// Things that have a price and can be traded.
+//
+// This file answers what an asset *is*: how it is named, what it is known by
+// elsewhere, and the class-specific facts that follow from being a company, a
+// token, or an item in a game economy. What it is *worth* is kbve.market.v1,
+// and what one person did about it is kbve.portfolio.v1. The three meet at
+// AssetRef and nowhere else.
+//
+// Equities are the first class modelled here, because they are the strictest:
+// they carry several competing identifier schemes, they trade on venues whose
+// ticker namespaces collide, and their price history is rewritten behind them
+// by splits and dividends. A model that survives that carries a token or a
+// game item without further work.
+
+// What kind of thing is being traded.
+//
+// The class decides how an asset is identified and which venues can quote it,
+// and little else. Everything below is deliberately shaped so that adding a
+// class does not change any message.
+enum AssetClass {
+  ASSET_CLASS_UNSPECIFIED = 0;
+  // An item in a game economy.
+  ASSET_CLASS_GAME_ITEM = 1;
+  ASSET_CLASS_EQUITY = 2;
+  ASSET_CLASS_CRYPTO = 3;
+  // A national currency, as the subject of a rate rather than the unit of one.
+  ASSET_CLASS_FIAT = 4;
+  ASSET_CLASS_COMMODITY = 5;
+  ASSET_CLASS_INDEX = 6;
+  ASSET_CLASS_FUND = 7;
+}
+
+// What form of claim a listed line actually is.
+//
+// Every one of these quotes in the same place, on the same screen, in the same
+// currency, and they are not the same instrument. A warrant expiring worthless
+// and a common share are one field apart here and nothing apart in a price
+// feed. It also decides whether the figures in kbve.market.v1.Fundamentals
+// mean anything: a preferred share has a coupon and no earnings claim, so a
+// P/E printed against it is the issuer's P/E attached to the wrong row.
+enum SecurityType {
+  SECURITY_TYPE_UNSPECIFIED = 0;
+  SECURITY_TYPE_COMMON = 1;
+  // Fixed claim ahead of common, usually without a vote.
+  SECURITY_TYPE_PREFERRED = 2;
+  // A receipt for shares held abroad. Per-share figures do not carry across
+  // without the ratio -- see EquityProfile below.
+  SECURITY_TYPE_ADR = 3;
+  SECURITY_TYPE_GDR = 4;
+  // A right to buy at a strike, with an expiry. Has no value after it.
+  SECURITY_TYPE_WARRANT = 5;
+  SECURITY_TYPE_RIGHT = 6;
+  // Shares and warrants stapled together, which separate later.
+  SECURITY_TYPE_UNIT = 7;
+  // Pays out most of its income by law; the payout ratio screens that work on
+  // ordinary companies read as distress here.
+  SECURITY_TYPE_REIT = 8;
+  // A partnership interest rather than a share. Distributions are not
+  // dividends and are taxed differently.
+  SECURITY_TYPE_LIMITED_PARTNERSHIP = 9;
+}
+
+// How an asset is named where it trades.
+//
+// A symbol alone does not identify anything: the same ticker is different
+// companies on different exchanges, and a token symbol is not unique at all.
+// The venue is part of the name.
+message AssetRef {
+  AssetClass asset_class = 1;
+  // Where it trades, e.g. "osrs-ge", "nasdaq", "coinbase".
+  string venue = 2;
+  // How the venue names it, e.g. "Abyssal whip", "AAPL", "BTC-USD".
+  string symbol = 3;
+}
+
+// What a venue permits.
+message TradingRules {
+  // How many units may be bought within the window below. The Grand Exchange
+  // calls this a buy limit; an exchange would call it a position limit.
+  optional int64 buy_limit = 1;
+  optional int64 buy_limit_window_seconds = 2;
+
+  // The smallest order the venue accepts.
+  optional kbve.common.v1.Decimal min_order_size = 3;
+  // The smallest price increment.
+  optional kbve.common.v1.Decimal tick_size = 4;
+  // Orders must be a multiple of this many units.
+  optional int64 lot_size = 5;
+
+  optional bool tradeable = 6;
+  // Whether units of it are interchangeable and can be held as one balance.
+  optional bool fungible = 7;
+
+  // Whether the venue's fee schedule skips this asset. Venues keep explicit
+  // exemption lists - the Grand Exchange does not tax tools or bonds - and an
+  // exemption is a property of the asset rather than of the schedule, so it
+  // cannot live on the venue with the rate.
+  optional bool fee_exempt = 8;
+}
+
+// One name an asset goes by, and the scheme that issued it.
+//
+// The scheme is a lowercase slug: "isin", "cusip", "figi", "sedol", "cik",
+// "mic", "contract-address", "osrs-item-id". Keeping it open avoids an enum
+// that has to change every time a data source is added.
+message AssetIdentifier {
+  string scheme = 1;
+  string value = 2;
+}
+
+// What a company or fund is, beyond the fact that it trades.
+//
+// Present only on equities and funds. Absent on a token or a game item, which
+// have no sector and no share count.
+message EquityProfile {
+  // Where the issuer is domiciled, as an ISO 3166-1 alpha-2 code.
+  optional string country = 1;
+  // Classification, as the source system words it.
+  optional string sector = 2;
+  optional string industry = 3;
+
+  optional int64 shares_outstanding = 4;
+  // Recomputed rather than stored as truth: it is a price times a share count,
+  // and both move.
+  optional kbve.common.v1.Decimal market_cap = 5;
+
+  // Superseded by Asset.fund, which says what kind of fund and at what cost.
+  // Kept because a source that only knows the boolean is still a source.
+  optional bool is_etf = 6;
+  optional string issuer_name = 7;
+  optional google.protobuf.Timestamp listed_at = 8;
+
+  SecurityType security_type = 9;
+
+  // Which class of share this line is: "A", "B", "C". Two classes of the same
+  // company are two assets with two prices and one set of financials, and a
+  // portfolio that cannot see they are the same issuer reports diversification
+  // it does not have. Grouping is by the issuer identifier -- scheme "cik" or
+  // "lei" in Asset.identifiers -- because the class letter alone is not a key.
+  optional string share_class = 10;
+
+  // Shares actually available to trade, which is outstanding minus what
+  // insiders, governments and cross-holdings sit on. Index weights and any
+  // honest liquidity figure use this one; market capitalisation uses the other
+  // one. For a founder-controlled company the two differ by a multiple, so
+  // silently substituting either for the other is a large error in whichever
+  // direction it is made.
+  optional int64 free_float_shares = 11;
+
+  // What the company files its financials in, which is not what its listing
+  // quotes in. An ADR quotes USD and reports in EUR or JPY, and every ratio
+  // built by dividing one by the other is wrong by the exchange rate.
+  optional string reporting_currency = 12;
+
+  // The calendar month the fiscal year ends in, 1 to 12. Without it there is
+  // no way to place a reported quarter on a calendar: a fiscal Q1 ending in
+  // December and one ending in March are a quarter apart, and comparing two
+  // companies quarter-by-quarter across that gap compares different weather.
+  optional int32 fiscal_year_end_month = 13;
+
+  // The conversion between a depositary receipt and the underlying shares,
+  // as a ratio rather than a decimal: one ADR representing half an ordinary
+  // share is depositary 1, ordinary 1, then... it is not, and that is the
+  // point -- ratios here run both ways and are not always integers on the side
+  // you expect. Present only on an ADR or GDR. Per-share figures -- EPS,
+  // dividend per share, book value -- must be scaled by it before they can be
+  // compared to the receipt's own price.
+  optional int64 adr_ordinary_shares = 14;
+  optional int64 adr_depositary_shares = 15;
+
+  // Whether this listing is the company's primary one. The same company lists
+  // on several venues, and consolidating volume across all of them without
+  // knowing which is primary counts the same trading more than once.
+  optional bool primary_listing = 16;
+}
+
+// A tradeable thing.
+message Asset {
+  kbve.type.v1.Ulid id = 1;
+  AssetRef ref = 2;
+  string name = 3;
+  optional string description = 4;
+
+  // What prices for it are quoted in: a currency code, or the name of a game
+  // currency such as "gp".
+  string quote_currency = 5;
+
+  // Every identifier the asset is known by. A security carries several at
+  // once - an ISIN, a CUSIP, a FIGI, an exchange ticker - and which one a data
+  // source speaks is not a property of the asset. A single native_id field
+  // would have forced a choice that does not exist.
+  repeated AssetIdentifier identifiers = 6;
+
+  optional TradingRules rules = 7;
+
+  // What the issuing system says it is worth, where that is a fixed number
+  // rather than a market price. A game item's shop value, a bond's face value.
+  optional kbve.common.v1.Decimal base_value = 8;
+
+  optional EquityProfile equity = 9;
+
+  optional string icon_url = 10;
+  repeated string tags = 11;
+
+  google.protobuf.Timestamp created_at = 12;
+  optional google.protobuf.Timestamp updated_at = 13;
+  // When the asset stopped trading: an item removed from a game, a company
+  // delisted, a token abandoned.
+  optional google.protobuf.Timestamp retired_at = 14;
+
+  // Present on a token, absent on everything else, and the counterpart to
+  // equity above.
+  optional TokenProfile crypto = 15;
+
+  // What this row is a market in, where the row is a pair rather than a thing.
+  //
+  // A crypto venue lists BTC-USD and BTC-EUR as separate instruments with
+  // separate prices, and they are the same asset priced two ways. Without this
+  // nothing can tell that, so a portfolio holding both double-counts the
+  // position and a chart switching between them reads as a move.
+  optional AssetRef base_asset = 16;
+
+  // Present on a fund, and the counterpart to equity and crypto above. A fund
+  // is not a company: it has no earnings and its cost is deducted from its
+  // assets rather than charged, so EquityProfile describes it wrongly rather
+  // than incompletely.
+  optional FundProfile fund = 17;
+
+  // What this asset is a claim on, where it is a wrapper rather than a thing.
+  //
+  // WETH is ETH, USDC on Base is USDC on Ethereum, and a bridged token is the
+  // token it was bridged from. They have their own contracts, their own
+  // prices and their own supply figures, which is why TokenProfile treats them
+  // as separate assets -- but a balance sheet that adds their supplies has
+  // counted the same coins twice, and a portfolio that lists them separately
+  // reports two positions where the holder has one exposure.
+  //
+  // Distinct from base_asset: that one says a row is a *pair*, this one says a
+  // row is a *representation*.
+  optional AssetRef wraps = 18;
+}
+
+// Every asset being tracked.
+message AssetRegistry {
+  kbve.common.v1.RegistryMeta meta = 1;
+  repeated Asset assets = 2;
+}

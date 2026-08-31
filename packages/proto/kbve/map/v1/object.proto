@@ -1,0 +1,417 @@
+syntax = "proto3";
+
+package kbve.map.v1;
+
+import "kbve/common/v1/color.proto";
+import "kbve/common/v1/extension.proto";
+import "kbve/common/v1/math.proto";
+import "kbve/type/v1/id.proto";
+
+// World object archetype — gameplay role, not physical shape.
+// Use sub_kind for the specific variant (e.g. "oak", "coal", "furnace").
+enum WorldObjectType {
+  WORLD_OBJECT_TYPE_UNSPECIFIED = 0;
+
+  // Harvestable / gatherable nodes (tree, rock, flower, mushroom, crystal, water)
+  WORLD_OBJECT_TYPE_RESOURCE_NODE = 1;
+
+  // Loot / storage containers (crate, chest, barrel)
+  WORLD_OBJECT_TYPE_CONTAINER = 2;
+
+  // Crafting stations (workbench, furnace, anvil)
+  WORLD_OBJECT_TYPE_CRAFTING_STATION = 3;
+
+  // Decorative / utility props (statue, pillar, sign, campfire, etc.)
+  WORLD_OBJECT_TYPE_PROP = 4;
+
+  // Light sources — distinct for rendering/lighting system
+  WORLD_OBJECT_TYPE_LIGHT = 5;
+
+  // Navigation / movement
+  WORLD_OBJECT_TYPE_PORTAL = 6;
+  WORLD_OBJECT_TYPE_BARRIER = 7;
+
+  // Gameplay markers
+  WORLD_OBJECT_TYPE_NPC_MARKER = 8; // Where an NPC stands
+  WORLD_OBJECT_TYPE_TRIGGER = 9; // Boss activation, quest zone, cutscene, spawn area
+
+  // World structures
+  WORLD_OBJECT_TYPE_SETTLEMENT = 10; // City / outpost / bazaar (zone-level safe area)
+  WORLD_OBJECT_TYPE_BUILDING = 11; // Individual structure (inn, tavern, smithy)
+  WORLD_OBJECT_TYPE_ARENA = 12; // Boss encounter room
+  WORLD_OBJECT_TYPE_LANDMARK = 13; // Story / lore point of interest
+
+  // Escape hatch
+  WORLD_OBJECT_TYPE_CUSTOM = 100;
+}
+
+// Subtype for WORLD_OBJECT_RESOURCE_NODE — what resource the node yields
+enum ResourceType {
+  RESOURCE_TYPE_UNSPECIFIED = 0;
+  RESOURCE_TYPE_WOOD = 1;
+  RESOURCE_TYPE_STONE = 2;
+  RESOURCE_TYPE_FLOWER = 3;
+  RESOURCE_TYPE_MUSHROOM = 4;
+  RESOURCE_TYPE_CRYSTAL = 5;
+  RESOURCE_TYPE_WATER = 6;
+  RESOURCE_TYPE_ORE = 7; // sub_kind further specifies: coal, iron, gold, etc.
+}
+
+// Subtype for WORLD_OBJECT_CONTAINER
+enum ContainerType {
+  CONTAINER_TYPE_UNSPECIFIED = 0;
+  CONTAINER_TYPE_CRATE = 1;
+  CONTAINER_TYPE_CHEST = 2;
+  CONTAINER_TYPE_BARREL = 3;
+}
+
+// Subtype for WORLD_OBJECT_CRAFTING_STATION
+enum CraftingStationType {
+  CRAFTING_STATION_TYPE_UNSPECIFIED = 0;
+  CRAFTING_STATION_TYPE_WORKBENCH = 1;
+  CRAFTING_STATION_TYPE_FURNACE = 2;
+  CRAFTING_STATION_TYPE_ANVIL = 3;
+}
+
+// How a structure's footprint occupies the grid. RECTANGULAR uses
+// footprint_width × footprint_height; HEX_FLOWER claims centre + 6 axial
+// neighbours (hex-grid games only); EXPLICIT uses footprint_cells.
+enum FootprintShape {
+  FOOTPRINT_SHAPE_UNSPECIFIED = 0;
+  FOOTPRINT_SHAPE_RECTANGULAR = 1;
+  FOOTPRINT_SHAPE_HEX_FLOWER = 2;
+  FOOTPRINT_SHAPE_EXPLICIT = 3;
+}
+
+// Where the placement cost is paid from.
+enum CostSource {
+  COST_SOURCE_UNSPECIFIED = 0;
+  COST_SOURCE_FACTION_TREASURY = 1; // Shared faction/empire stockpile
+  COST_SOURCE_OWNER_INVENTORY = 2; // Placing unit's personal inventory
+  COST_SOURCE_FREE = 3; // No cost (admin / cheats / narrative grant)
+}
+
+// Click-interaction kind for landmarks / buildings. Discriminator for
+// the per-kind specs below (ShrineSpec / ShopSpec / DungeonSpec /
+// QuestGiverSpec). UNSPECIFIED / NONE = inert object, no interaction.
+enum InteractionKind {
+  INTERACTION_KIND_UNSPECIFIED = 0;
+  INTERACTION_KIND_NONE = 1;
+  INTERACTION_KIND_SHRINE = 2;
+  INTERACTION_KIND_SHOP = 3;
+  INTERACTION_KIND_QUEST_GIVER = 4;
+  INTERACTION_KIND_DUNGEON = 5;
+  INTERACTION_KIND_NPC_DIALOG = 6;
+}
+
+// Service a structure offers to nearby units. Service seekers read
+// ServiceCapability.kind and pick the highest priority provider.
+enum ServiceKind {
+  SERVICE_KIND_UNSPECIFIED = 0;
+  SERVICE_KIND_FOOD = 1;
+  SERVICE_KIND_SLEEP = 2;
+  SERVICE_KIND_HEALING = 3;
+  SERVICE_KIND_TRAINING = 4; // Skill / XP grinding station
+  SERVICE_KIND_TELEPORT = 5; // Fast-travel endpoint
+  SERVICE_KIND_STORAGE = 6; // Shared stockpile accessor
+  SERVICE_KIND_MERCHANT = 7; // Buy/sell stall
+  SERVICE_KIND_BANKER = 8; // Personal bank access (OSRS-style)
+}
+
+// An item cost line — item_ref cross-links to the itemdb's canonical ref.
+message IngredientSpec {
+  string item_ref = 1; // itemdb ref slug (e.g. "timber", "stone-block")
+  int32 amount = 2;
+}
+
+// A service a structure provides to nearby units.
+message ServiceCapability {
+  ServiceKind kind = 1;
+  int32 priority = 2; // Tie-breaker — higher priority providers win
+  int32 capacity = 3; // Bed count (SLEEP), slot count (TRAINING), etc.
+}
+
+// A tender requirement — the structure needs a qualified worker within
+// footprint_radius hexes (or sheltered inside) to function.
+message TenderSpec {
+  string profession_ref = 1; // Skill / profession slug (e.g. "farmer", "lumberjack")
+  int32 footprint_radius = 2; // Grid distance from root; 0 = root cell only
+  bool required = 3; // If true, production halts without a tender
+}
+
+// A structure that radiates territorial / faction control around itself.
+message TerritoryEmitterSpec {
+  int32 radius = 1; // Grid distance from root cell
+}
+
+// One recipe on a production structure — inputs consumed, outputs produced
+// on a cycle. pulls_from_treasury=true draws inputs from the faction
+// treasury instead of the structure's local ledger.
+message ProductionRecipeSpec {
+  repeated IngredientSpec inputs = 1;
+  repeated IngredientSpec outputs = 2;
+  float cycle_secs = 3;
+  bool pulls_from_treasury = 4;
+}
+
+// Automatic surplus export — anything above `floor` ships to the treasury.
+message SurplusExportSpec {
+  string item_ref = 1;
+  int32 floor = 2;
+}
+
+// Timed no-input production (e.g. passive fishing).
+message PassiveProductionSpec {
+  string output_item_ref = 1;
+  int32 output_amount = 2;
+  float cycle_secs = 3;
+  string destination = 4; // "local" or "treasury"
+}
+
+// Cooldown-gated ranged attack — universal tower/turret/outpost behaviour.
+message RangedAttackSpec {
+  float cooldown_secs = 1;
+  float range = 2;
+  int32 shots_per_volley = 3;
+  int32 ammo_per_volley_cost = 4;
+  float damage_per_shot = 5;
+  float spread_half_angle_rad = 6;
+  float projectile_speed = 7;
+  float projectile_lifetime = 8;
+  string projectile_ref = 9; // itemdb / projectile slug
+  int32 ammo_capacity = 10; // Local ammo pool size; restocked from stockpile
+}
+
+// Cadence-based unit spawner — Goblin Cave, Barracks, dungeon spawner,
+// MUD mob den. Consumes cost_per_spawn from a local buffer of size storage_cap.
+message PopulationSpawnSpec {
+  string spawn_entity_ref = 1;
+  int32 cadence_turns = 2;
+  optional IngredientSpec cost_per_spawn = 3;
+  int32 storage_cap = 4;
+}
+
+// Periodic hostile raid emitter — Bandit Camp, dungeon boss timer.
+message RaidSpec {
+  int32 cadence_turns = 1;
+  int32 party_size = 2;
+  string party_unit_ref = 3;
+  string target_kind = 4; // "faction_capital" | "nearest_settlement" | "random_wild"
+}
+
+// Single step in an upgrade tier progression (Market → Trade House → Guild).
+message UpgradeSpec {
+  string next_def_ref = 1; // ref of the upgraded WorldObjectDef
+  repeated IngredientSpec costs = 2;
+}
+
+// Full tier progression chain for a building.
+message UpgradeChainSpec {
+  repeated UpgradeSpec tiers = 1;
+}
+
+// Turn-cadenced shrine grant. Anchored to WorldClock.TurnIndex so the
+// shrine acts like passive production rather than a wall-clock cooldown.
+// Bonus fires when (`territory_active` AND shrine is inside player
+// territory) OR (`king_visit_active` AND the King's root hex == shrine
+// hex), gated by `cadence_turns` between grants.
+message ShrineSpec {
+  int32 cadence_turns = 1; // turns between grants (3–4 typical)
+  int32 reward_coin = 2;
+  repeated IngredientSpec reward_items = 3;
+  bool territory_active = 4; // grants while inside player territory
+  bool king_visit_active = 5; // grants while King is on shrine hex
+  optional string xp_skill_ref = 6;
+  optional int32 xp_amount = 7;
+  optional string buff_ref = 8;
+  optional float buff_duration_secs = 9;
+}
+
+// Shop offer — one tradable item line.
+message ShopOffer {
+  string item_ref = 1; // itemdb ref
+  int32 buy_price = 2; // coin cost to buy from the shop
+  optional int32 sell_price = 3; // coin paid if player sells the item TO the shop
+  optional int32 stock = 4; // -1 = infinite, 0+ = finite
+  optional int32 restock_seconds = 5; // 0 = no restock
+}
+
+// A merchant landmark / building's stock list.
+message ShopSpec {
+  repeated ShopOffer inventory = 1;
+}
+
+// Dungeon entry — clicking the landmark transitions to the named scene.
+message DungeonSpec {
+  string scene_ref = 1; // scene slug to load
+  optional int32 min_player_level = 2;
+  optional int32 party_size_max = 3;
+  optional string difficulty = 4; // "normal" | "hard" | "legendary"
+  optional string entry_quest_ref = 5; // gates entry to a quest progression
+}
+
+// Quest-giver landmark — offers one or more quest scrolls on click.
+message QuestGiverSpec {
+  repeated string quest_refs = 1;
+  optional string greeting_dialogue_ref = 2;
+}
+
+// Passive radius effect emitted by a living landmark / building.
+// Bonus kind keys are gameplay slugs ("production", "movement_speed",
+// "hp_regen", "mana_regen") so new aura types add without touching
+// proto. multiplier is applied to the named stat for entities inside
+// the radius.
+message AuraSpec {
+  int32 radius = 1;
+  string bonus_kind = 2;
+  float multiplier = 3;
+}
+
+// A world object definition (archetype / template)
+message WorldObjectDef {
+  kbve.type.v1.Ulid id = 1;
+  string ref = 2;
+  string name = 3;
+  optional string description = 4;
+
+  WorldObjectType type = 5;
+  optional string sub_kind = 6; // Free-form variant (e.g. "coal", "oak", "ruby")
+
+  // Typed subtypes — use the one matching the archetype in `type`
+  optional ResourceType resource_type = 37;
+  optional ContainerType container_type = 38;
+  optional CraftingStationType crafting_station_type = 39;
+
+  // Visual
+  optional string model_ref = 7;
+  optional string icon = 8;
+  optional float scale = 9; // Visual size multiplier
+  repeated kbve.common.v1.Color palette = 10; // Color palette for procedural visuals
+  optional string img = 25; // Image / sprite path
+
+  // Interaction
+  optional bool interactable = 11; // Can player click/interact
+  optional bool destructible = 12; // Can be destroyed / harvested
+  optional int32 harvest_time_ms = 14; // Time to harvest in milliseconds
+  reserved 13, 15, 16, 17;
+  reserved "loot_item_ref", "tool_required", "skill_level", "skill_type";
+
+  // Resource properties (for harvestable objects)
+  optional int32 harvest_yield = 26; // Amount gathered per harvest action
+  optional int32 max_amount = 27; // Maximum resource capacity
+  optional int32 initial_amount = 28; // Starting amount (defaults to max_amount)
+
+  // Structure properties (for buildable / placed structures)
+  optional int32 max_health = 29; // Hit points
+  optional int32 footprint_width = 30; // Grid cells wide
+  optional int32 footprint_height = 31; // Grid cells tall
+  optional bool blocks_placement = 32; // Prevents placing other objects here
+  optional float construction_time_secs = 33; // Time to build in seconds
+  repeated BuildCost build_costs = 34; // Resources needed to construct
+
+  // Spawn hints (archetype-level defaults)
+  optional float spawn_weight = 35; // Relative spawn probability (0.0–1.0)
+  optional int32 spawn_count = 36; // Target count per zone
+
+  // Physics
+  optional float collision_radius = 18;
+  optional float collision_height = 19;
+  optional bool blocks_movement = 20;
+  optional bool occludes_player = 21; // Semi-transparent when between camera and player
+
+  // Respawn
+  optional int32 respawn_time_secs = 22;
+  optional int32 respawn_variance = 23;
+
+  // Extensions
+  repeated kbve.common.v1.Extension extensions = 24;
+
+  // Metadata
+  optional string credits = 40;
+  optional bool drafted = 41;
+
+  // Placement constraints ────────────────────────────────────────────────
+  // Biome whitelist — entry values are Biome enum numeric values. Empty =
+  // any biome (but BIOME_OCEAN is conventionally rejected by placement).
+  repeated int32 allowed_biomes = 42;
+  optional bool spawns_fully_built = 43; // Skip construction phase
+  optional bool requires_in_territory = 44; // Placement restricted to faction territory
+  optional FootprintShape footprint_shape = 45;
+  repeated kbve.common.v1.Vec2I footprint_cells = 46; // Used when footprint_shape = EXPLICIT
+  optional CostSource cost_source = 47;
+
+  // Universal capabilities ───────────────────────────────────────────────
+  repeated ServiceCapability services = 48;
+  optional TenderSpec tender = 49;
+  optional TerritoryEmitterSpec territory = 50;
+  repeated ProductionRecipeSpec recipes = 51;
+  repeated SurplusExportSpec surplus = 52;
+  optional PassiveProductionSpec passive_production = 53;
+
+  // Gameplay behaviours (universal) ──────────────────────────────────────
+  optional RangedAttackSpec ranged_attack = 54;
+  optional PopulationSpawnSpec population_spawn = 55;
+  optional RaidSpec raid = 56;
+  optional UpgradeChainSpec upgrade_chain = 57;
+
+  // Click interaction (landmark / shrine / shop / dungeon / quest-giver) ─
+  // `interaction` is the discriminator; populate the matching spec block
+  // (`shrine` for SHRINE, `shop` for SHOP, etc.). `interaction_cooldown_secs`
+  // gates reuse on a per-instance basis. `aura` is independent of
+  // interaction and runs as long as the landmark is alive. `faction`
+  // identifies the landmark's allegiance ("neutral" | "hostile" |
+  // "player" | named faction slug) — drives combat/aggression rules.
+  optional InteractionKind interaction = 58;
+  optional ShrineSpec shrine = 60;
+  optional ShopSpec shop = 61;
+  optional DungeonSpec dungeon = 62;
+  optional QuestGiverSpec quest_giver = 63;
+  optional AuraSpec aura = 64;
+  optional string faction = 65;
+
+  // Empire / city / culture wiring (added with the Faction/Settlement layer).
+  // `faction` (above) stays as a slug for legacy use; `faction_ref` is the
+  // canonical pointer to a Faction record. `settlement_ref` tags a structure
+  // as belonging to a Settlement's roster (used by district / siege logic).
+  optional string faction_ref = 66;
+  optional string settlement_ref = 67;
+  optional string district_ref = 68;
+  optional string culture_ref = 69;
+  optional string religion_ref = 70;
+  optional string dialogue_tree_ref = 71; // Upgrade for QuestGiverSpec / NPC dialog
+  optional float interaction_cooldown_secs = 72;
+
+  // Ongoing periodic effects emitted by the placed object (campfire heal ring,
+  // hazard burn, totem buff). Independent of interaction — active while alive.
+  repeated PlacedEffect placed_effects = 73;
+
+  optional string profession_action_ref = 74;
+  optional int32 harvest_weight = 75;
+}
+
+// A periodic status effect emitted by a placed world object. `status` is a
+// StatusEffectKind slug (e.g. "regen", "burning"); `range` 0 = on-tile only
+// (hazard), >=1 = surrounding ring radius (aura). `period_ticks` is the sim
+// cadence between applications.
+message PlacedEffect {
+  string status = 1;
+  optional int32 magnitude = 2;
+  optional int32 period_ticks = 3;
+  optional int32 range = 4;
+}
+
+// Resource cost for constructing a structure
+message BuildCost {
+  string resource_type = 1; // e.g. "wood", "stone", "metal"
+  int32 amount = 2;
+}
+
+// A placed instance of a world object in a zone
+message WorldObjectPlacement {
+  string object_def_ref = 1; // Reference to WorldObjectDef
+  optional kbve.common.v1.Vec3F position = 2;
+  optional kbve.common.v1.Vec2I grid_pos = 3; // For tile-based placement
+  optional float rotation_y = 4; // Y-axis rotation in degrees
+  optional float scale_override = 5; // Override object def scale
+  optional int64 seed = 6; // Per-instance randomization seed
+}

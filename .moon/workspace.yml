@@ -2,23 +2,30 @@ $schema: 'https://moonrepo.dev/schemas/workspace.json'
 
 # Project graph.
 #
-# Every project is named explicitly rather than globbed. moon registers a
-# matched directory as a project whether or not it holds a moon.yml, which
-# rules globs out here twice over:
+# crates/ is globbed; everything else is named.
 #
-#   Collisions. kbve nests unevenly -- apps/mc, apps/kbve/astro-kbve,
-#   apps/agones/arpg/server, packages/rust/bevy/bevy_items -- so covering it
-#   takes globs two to four segments deep, and those match four directory
-#   basenames that repeat: kbve, relay, server, web. 'apps/*/*/*' alone fails
-#   the graph outright on apps/agones/{arpg,cryptothrone}/server.
+# moon registers a matched directory as a project whether or not it holds a
+# moon.yml, which is what decides where a glob is safe.
 #
-#   Coexistence. Nx still owns every project that has not been ported. A glob
-#   would pull all 149 into moon's graph as empty, task-less projects and put
-#   them in `moon check --all` before anything can run them.
+#   crates/ is flat, every directory in it is a crate, and no two share a name,
+#   so a glob there is exact and a new crate needs no edit here.
 #
-# So this map is the migration checklist: a project enters the graph on the
-# commit that gives it a moon.yml, and Nx keeps it until then.
+#   apps/ and packages/ are not. They nest unevenly -- apps/mc,
+#   apps/kbve/astro-kbve, apps/agones/arpg/server -- so covering them takes
+#   globs two to four segments deep, and those match four directory basenames
+#   that repeat: kbve, relay, server, web. 'apps/*/*/*' alone fails the graph
+#   outright on apps/agones/{arpg,cryptothrone}/server. A glob would also pull
+#   in every project that has not been ported yet, as an empty task-less entry
+#   that turns up in `moon check --all`.
+#
+# So the map below is the migration checklist: a project outside crates/ enters
+# the graph on the commit that gives it a moon.yml, and Nx keeps it until then.
 projects:
+    globs:
+        # Rust crates. A glob here where apps/ cannot have one: crates/ is flat
+        # and every directory in it is a crate, so there are no repeated
+        # basenames to collide and nothing task-less to pick up.
+        - 'crates/*'
     sources:
         # Sites
         astro-chuckrpg: 'apps/chuckrpg/astro-chuckrpg'
@@ -42,6 +49,9 @@ projects:
 
         # Writes the icon catalogue into astro-rareicon's content directory
         icons-codegen: 'apps/rareicon/icons-codegen'
+        # Named 'protobuf' because the crates that came from KBVE/workspace
+        # declare dependsOn: ['protobuf']; the directory is packages/proto.
+        protobuf: 'packages/proto'
 
         # Desktop shells (tauri)
         chuck-launcher: 'apps/chuckrpg/chuck-launcher'
@@ -66,15 +76,12 @@ projects:
         # `pip install kbve` all stay kbve.
         kbve-py: 'packages/python/kbve'
 
-        # Rust: two libraries and two services, as the proving set for rust.yml
-        embeddb-derive: 'packages/rust/embeddb-derive'
-        jedi: 'packages/rust/jedi'
+        # Rust services still under apps/; the libraries moved to crates/.
         agones-shim: 'apps/agones/shim'
         met: 'apps/metrics'
 
         # Godot
         godot-friendslop: 'apps/friendslop/godot-friendslop'
-        q: 'packages/rust/q'
 
 vcs:
     defaultBranch: 'dev'

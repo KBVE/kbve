@@ -1,0 +1,181 @@
+syntax = "proto3";
+
+package kbve.forum.v1;
+
+import "google/protobuf/timestamp.proto";
+import "kbve/type/v1/id.proto";
+
+// A tag-first, space-driven social platform.
+//
+// Spaces define ownership and moderation and are the source of truth. Tags are
+// descriptive, cross-cutting and admin-curated. Users are identities from the
+// auth system.
+//
+// Threads are the top-level unit and comments are replies within them. A
+// thread's type selects both its rendering and exactly one branch of its
+// type_data, so a new kind of thread needs no schema change.
+//
+// Identity - username, avatar, linked providers - belongs to the profile
+// domain. Only forum-side state lives here, keyed by the same user.
+
+// Lifecycle of a thread. Several of these have no meaning for a comment, which
+// is why comments have a status enum of their own.
+enum ThreadStatus {
+  THREAD_STATUS_UNSPECIFIED = 0;
+  THREAD_STATUS_ACTIVE = 1;
+  // No new comments accepted.
+  THREAD_STATUS_LOCKED = 2;
+  THREAD_STATUS_REMOVED = 3;
+  // Read-only and historical.
+  THREAD_STATUS_ARCHIVED = 4;
+  // A marketplace listing that completed.
+  THREAD_STATUS_SOLD = 5;
+  // An auction or party past its deadline.
+  THREAD_STATUS_EXPIRED = 6;
+  THREAD_STATUS_PENDING = 7;
+  // Visible to its author only.
+  THREAD_STATUS_DRAFT = 8;
+  THREAD_STATUS_SCHEDULED = 9;
+}
+
+// Lifecycle of a comment. Moderating a comment is a different class of event
+// from a thread's lifecycle: a locked thread is not a removed comment.
+enum CommentStatus {
+  COMMENT_STATUS_UNSPECIFIED = 0;
+  COMMENT_STATUS_ACTIVE = 1;
+  COMMENT_STATUS_REMOVED = 2;
+  // Reported and awaiting review.
+  COMMENT_STATUS_FLAGGED = 3;
+  COMMENT_STATUS_DRAFT = 4;
+}
+
+// What kind of thread this is. Each value maps to exactly one branch of
+// ForumThread.type_data.
+enum ThreadType {
+  THREAD_TYPE_UNSPECIFIED = 0;
+  THREAD_TYPE_DISCUSSION = 1;
+  THREAD_TYPE_QUESTION = 2;
+  THREAD_TYPE_ANNOUNCEMENT = 3;
+  THREAD_TYPE_MARKETPLACE = 4;
+  THREAD_TYPE_AUCTION = 5;
+  THREAD_TYPE_POLL = 6;
+  THREAD_TYPE_GUIDE = 7;
+  // Looking for group.
+  THREAD_TYPE_LFG = 8;
+  THREAD_TYPE_SHOWCASE = 9;
+  THREAD_TYPE_BUG_REPORT = 10;
+  // A shared tool, template or asset pack.
+  THREAD_TYPE_ASSET = 11;
+  // Short-form post with a body and no title.
+  THREAD_TYPE_STATUS = 12;
+  // A long-running container, such as a weekly thread.
+  THREAD_TYPE_MEGATHREAD = 13;
+}
+
+// Lifecycle of a space.
+enum SpaceStatus {
+  SPACE_STATUS_UNSPECIFIED = 0;
+  SPACE_STATUS_ACTIVE = 1;
+  SPACE_STATUS_ARCHIVED = 2;
+  // Invite only.
+  SPACE_STATUS_PRIVATE = 3;
+  // Locked down by an administrator, which is not the same as archived.
+  SPACE_STATUS_SUSPENDED = 4;
+}
+
+// Lifecycle of a tag.
+enum TagStatus {
+  TAG_STATUS_UNSPECIFIED = 0;
+  TAG_STATUS_ACTIVE = 1;
+  // Soft-removed but still searchable.
+  TAG_STATUS_DEPRECATED = 2;
+  // Replaced by the tag it aliases.
+  TAG_STATUS_MERGED = 3;
+}
+
+// What a piece of content is attached to, reported against or acted upon.
+//
+// Named for the target rather than for attachments. The original enum was
+// AttachmentParentKind and every other user of it carried a comment saying it
+// was reusing the attachment enum, which is a sign the name was wrong rather
+// than the reuse.
+enum ContentTargetKind {
+  CONTENT_TARGET_KIND_UNSPECIFIED = 0;
+  CONTENT_TARGET_KIND_THREAD = 1;
+  CONTENT_TARGET_KIND_COMMENT = 2;
+  CONTENT_TARGET_KIND_SPACE = 3;
+  CONTENT_TARGET_KIND_USER = 4;
+}
+
+// A flair a space offers its members.
+//
+// Was a JSON string on the space, described as an array of objects with an id,
+// a label and a colour. That is a message.
+message SpaceFlair {
+  int32 id = 1;
+  string label = 2;
+  // Hex colour, e.g. "#3AAED8".
+  optional string color = 3;
+}
+
+// A curated discussion domain, and the source of truth for ownership and
+// moderation. Spaces may nest for aggregation.
+message ForumSpace {
+  kbve.type.v1.Uuid id = 1;
+  // URL-safe identifier, e.g. "unreal".
+  string slug = 2;
+  string name = 3;
+  optional string description = 4;
+  optional kbve.type.v1.Uuid parent_space_id = 5;
+  optional string rules = 6;
+  optional string icon_url = 7;
+  optional string banner_url = 8;
+  SpaceStatus status = 9;
+  // Denormalised counts.
+  int32 follower_count = 10;
+  int32 thread_count = 11;
+  repeated ThreadType allowed_types = 12;
+  google.protobuf.Timestamp created_at = 13;
+  google.protobuf.Timestamp updated_at = 14;
+  // Order among siblings; lower sorts earlier.
+  int32 sort_order = 15;
+  bool nsfw = 16;
+  repeated SpaceFlair flair_options = 17;
+  repeated kbve.type.v1.Uuid moderator_ids = 18;
+  // Denormalised, over a rolling week.
+  int64 active_user_count = 19;
+}
+
+// Descriptive metadata for discovery. Tags never determine ownership.
+//
+// The taxonomy is admin-controlled: users pick from the approved pool rather
+// than inventing tags, which is what keeps "gamedev", "game-dev" and
+// "gamedevelopment" from all existing at once.
+//
+// When tags are merged, alias_of points at the direct target and canonical_id
+// at the end of the chain. Every read path aggregates on canonical_id, never
+// on a raw id, so merged tags produce consistent counts.
+message ForumTag {
+  // Integer rather than a ULID: these sit in a junction table joined on every
+  // feed query, and a narrow key keeps that index small.
+  int32 id = 1;
+  // URL-safe identifier, e.g. "networking".
+  string slug = 2;
+  string name = 3;
+  optional string description = 4;
+  TagStatus status = 5;
+  // The tag this one was merged into, if any.
+  optional int32 alias_of = 6;
+  // The end of the alias chain. Read paths aggregate on this.
+  int32 canonical_id = 7;
+  // Denormalised, and held on the canonical tag only.
+  int32 usage_count = 8;
+  kbve.type.v1.Uuid created_by = 9;
+  google.protobuf.Timestamp created_at = 10;
+  // Hierarchy, e.g. gamedev above unity and unreal.
+  repeated int32 parent_tag_ids = 11;
+  // Hex colour for the display chip.
+  optional string color = 12;
+  // Reference into the icon library.
+  optional string icon_ref = 13;
+}

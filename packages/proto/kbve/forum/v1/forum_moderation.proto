@@ -1,0 +1,95 @@
+syntax = "proto3";
+
+package kbve.forum.v1;
+
+import "google/protobuf/timestamp.proto";
+import "kbve/common/v1/extension.proto";
+import "kbve/common/v1/report_reason.proto";
+import "kbve/forum/v1/forum.proto";
+import "kbve/type/v1/id.proto";
+
+// What a moderator did. The log of these is append-only.
+enum ModerationActionKind {
+  MODERATION_ACTION_KIND_UNSPECIFIED = 0;
+  MODERATION_ACTION_KIND_THREAD_LOCK = 1;
+  MODERATION_ACTION_KIND_THREAD_UNLOCK = 2;
+  MODERATION_ACTION_KIND_THREAD_REMOVE = 3;
+  MODERATION_ACTION_KIND_THREAD_RESTORE = 4;
+  MODERATION_ACTION_KIND_THREAD_PIN = 5;
+  MODERATION_ACTION_KIND_THREAD_UNPIN = 6;
+  MODERATION_ACTION_KIND_THREAD_MOVE = 7;
+  MODERATION_ACTION_KIND_COMMENT_REMOVE = 8;
+  MODERATION_ACTION_KIND_COMMENT_RESTORE = 9;
+  MODERATION_ACTION_KIND_USER_MUTE = 10;
+  MODERATION_ACTION_KIND_USER_BAN = 11;
+  MODERATION_ACTION_KIND_USER_UNBAN = 12;
+  MODERATION_ACTION_KIND_REPORT_RESOLVE = 13;
+  MODERATION_ACTION_KIND_REPORT_DISMISS = 14;
+  MODERATION_ACTION_KIND_TAG_MERGE = 15;
+  MODERATION_ACTION_KIND_TAG_DEPRECATE = 16;
+}
+
+// Why a notification was raised.
+enum NotificationKind {
+  NOTIFICATION_KIND_UNSPECIFIED = 0;
+  // Named in the body of a thread or comment.
+  NOTIFICATION_KIND_MENTION = 1;
+  // Someone replied to their comment.
+  NOTIFICATION_KIND_REPLY = 2;
+  // Someone replied on a thread they wrote.
+  NOTIFICATION_KIND_THREAD_REPLY = 3;
+  NOTIFICATION_KIND_FOLLOW = 4;
+  NOTIFICATION_KIND_THREAD_UPDATE = 5;
+  // Their post crossed a vote threshold.
+  NOTIFICATION_KIND_VOTE_MILESTONE = 6;
+  NOTIFICATION_KIND_MOD_ACTION = 7;
+  NOTIFICATION_KIND_AWARD = 8;
+  NOTIFICATION_KIND_AUCTION_OUTBID = 9;
+  NOTIFICATION_KIND_AUCTION_WON = 10;
+  NOTIFICATION_KIND_ACCEPTED_ANSWER = 11;
+  NOTIFICATION_KIND_LFG_FILLED = 12;
+}
+
+// A report filed by a signed-in user. How it was resolved is recorded as a
+// moderation action rather than here.
+message Report {
+  kbve.type.v1.Uuid id = 1;
+  kbve.type.v1.Uuid reporter_id = 2;
+  ContentTargetKind target_kind = 3;
+  kbve.type.v1.Uuid target_id = 4;
+  kbve.common.v1.ReportReason reason = 5;
+  optional string reason_detail = 6;
+  optional kbve.type.v1.Uuid resolved_by = 7;
+  optional google.protobuf.Timestamp resolved_at = 8;
+  optional string resolution_note = 9;
+  google.protobuf.Timestamp created_at = 10;
+}
+
+// One moderator action, appended to an audit log.
+message ModerationAction {
+  kbve.type.v1.Uuid id = 1;
+  kbve.type.v1.Uuid moderator_id = 2;
+  ModerationActionKind kind = 3;
+  ContentTargetKind target_kind = 4;
+  kbve.type.v1.Uuid target_id = 5;
+  optional string reason = 6;
+  // Whatever the action needs beyond the above, such as the destination of a
+  // move. Typed key-values rather than a JSON string.
+  repeated kbve.common.v1.Extension metadata = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+// One notification for one user.
+message Notification {
+  kbve.type.v1.Uuid id = 1;
+  kbve.type.v1.Uuid recipient_id = 2;
+  NotificationKind kind = 3;
+  // Absent when the system raised it rather than a person.
+  optional kbve.type.v1.Uuid actor_id = 4;
+  optional ContentTargetKind target_kind = 5;
+  optional kbve.type.v1.Uuid target_id = 6;
+  optional string body = 7;
+  // Absent while unread.
+  optional google.protobuf.Timestamp read_at = 8;
+  google.protobuf.Timestamp created_at = 9;
+}

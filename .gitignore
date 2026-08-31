@@ -132,9 +132,9 @@ apps/*/godot-*/addons/*/macos/*.dylib
 apps/*/godot-*/addons/*/linux/*.so
 apps/*/godot-*/addons/*/windows/*.dll
 apps/*/godot-*/addons/*/android/**/*.so
-packages/rust/*/release/addons/**/*.dylib
-packages/rust/*/release/addons/**/*.so
-packages/rust/*/release/addons/**/*.dll
+crates/*/release/addons/**/*.dylib
+crates/*/release/addons/**/*.so
+crates/*/release/addons/**/*.dll
 
 # Mono
 .mono/*
@@ -210,3 +210,6 @@ apps/**/unreal-*/Config/Local*.ini
 # moon
 .moon/cache/
 .moon/docker/
+
+# q ships a signed dylib into its addons tree; the binaries are build output.
+crates/q/release/

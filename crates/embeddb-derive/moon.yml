@@ -1,0 +1,11 @@
+# The derive half of `embeddb`. Separate because a proc-macro crate can export
+# macros and nothing else -- the same split holy and holy-derive use.
+#
+# Depend on `embeddb` with its `derive` feature, not on this directly.
+layer: 'library'
+stack: 'systems'
+toolchains:
+  default: 'rust'
+
+owners:
+  defaultOwner: '@h0lybyte'

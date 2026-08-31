@@ -1,0 +1,62 @@
+syntax = "proto3";
+
+package kbve.forum.v1;
+
+import "kbve/forum/v1/forum.proto";
+import "kbve/forum/v1/forum_attachment.proto";
+import "kbve/forum/v1/forum_social.proto";
+import "kbve/forum/v1/forum_thread.proto";
+
+// Assembled responses.
+//
+// Nothing here is stored. Each message is a read model: entities already
+// defined elsewhere, joined and enriched for one screen, including whatever
+// depends on who is looking.
+
+// A thread as it appears in a feed.
+message FeedItem {
+  ForumThread thread = 1;
+  ForumSpace space = 2;
+  // Resolved through ThreadTag, and through the canonical tag beyond that.
+  repeated ForumTag tags = 3;
+  string author_name = 4;
+  optional string author_avatar_url = 5;
+  optional int32 author_flair_id = 6;
+  optional int32 author_rank_id = 7;
+  // How the viewer has voted, if they have.
+  optional VoteDirection viewer_vote = 8;
+  bool viewer_bookmarked = 9;
+  bool viewer_subscribed = 10;
+  // The first few, for a preview.
+  repeated Attachment attachments = 11;
+  // Across every kind.
+  int32 reaction_total = 12;
+}
+
+// A space and what is happening in it.
+message SpacePage {
+  ForumSpace space = 1;
+  repeated FeedItem threads = 2;
+  repeated ForumTag popular_tags = 3;
+  repeated ForumSpace child_spaces = 4;
+  optional ForumSpace parent_space = 5;
+  bool viewer_follows = 6;
+  bool viewer_is_moderator = 7;
+}
+
+// One thread in full, with its first page of comments.
+message ThreadPage {
+  ForumThread thread = 1;
+  ForumSpace space = 2;
+  repeated ForumTag tags = 3;
+  ForumUserProfile author_forum_profile = 4;
+  repeated Attachment attachments = 5;
+  repeated ForumComment comments = 6;
+  int32 comment_page_size = 7;
+  optional string next_comment_cursor = 8;
+  optional VoteDirection viewer_vote = 9;
+  bool viewer_bookmarked = 10;
+  bool viewer_subscribed = 11;
+  // Populated for an auction only.
+  repeated ForumAuctionBid recent_bids = 12;
+}

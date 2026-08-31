@@ -1,0 +1,24 @@
+# The dungeon crawler, and the crate that ties the rest together.
+#
+# Migrated from the legacy Nx workspace at KBVE/kbve packages/rust/bevy.
+# Flattened into crates/ rather than kept under crates/bevy/: the group's
+# dependencies on each other are all sibling paths (../bevy_items), so a flat
+# layout keeps them resolving unchanged and needs no new glob.
+layer: 'library'
+stack: 'frontend'
+toolchains:
+  default: 'rust'
+
+dependsOn:
+  - 'bevy_battle'
+  - 'bevy_behavior'
+  - 'bevy_inventory'
+  - 'bevy_items'
+  - 'bevy_mapdb'
+  - 'bevy_npc'
+  - 'bevy_pathfinder'
+  - 'bevy_quests'
+  - 'bevy_skills'
+
+owners:
+  defaultOwner: '@h0lybyte'

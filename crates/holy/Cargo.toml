@@ -1,0 +1,24 @@
+[package]
+name = "holy"
+description = "Struct-level text cleaning: sanitise and validate fields where they are declared."
+version = "0.2.2"
+authors = ["kbve", "h0lybyte"]
+homepage = "https://kbve.com/"
+readme = "README.md"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+holy-derive = { version = "0.2.2", path = "../holy-derive" }
+# The runtime half. A validate rule is a regex match, and the generated code
+# calls into this crate to run it.
+regex = { workspace = true }
+
+[dev-dependencies]
+# Compile-fail tests: the .stderr fixtures in tests/fail record exact rustc
+# output, so this is pinned rather than tracked through the workspace table --
+# a trybuild bump reformats diagnostics and rewrites every fixture.
+trybuild = "1.0"
+rand = { workspace = true }

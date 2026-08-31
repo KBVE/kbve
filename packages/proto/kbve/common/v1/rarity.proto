@@ -1,0 +1,23 @@
+syntax = "proto3";
+
+package kbve.common.v1;
+
+// Quality tier of a piece of content.
+//
+// Replaces the per-domain rarity ladders (ItemRarity, NpcRarity, SpellRarity,
+// MemeRarity, MCRarity, MCEnchantRarity), which were the same concept with
+// different numbering. The ladder here is the union of those: domains that do
+// not reach the top simply never emit the higher values.
+//
+// Drop frequency is a different concept and does not belong here. A table that
+// describes how often something drops wants its own enum in its own domain.
+enum Rarity {
+  RARITY_UNSPECIFIED = 0;
+  RARITY_COMMON = 1;
+  RARITY_UNCOMMON = 2;
+  RARITY_RARE = 3;
+  RARITY_VERY_RARE = 4;
+  RARITY_EPIC = 5;
+  RARITY_LEGENDARY = 6;
+  RARITY_MYTHIC = 7;
+}

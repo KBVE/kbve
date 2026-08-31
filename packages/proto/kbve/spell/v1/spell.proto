@@ -1,0 +1,82 @@
+syntax = "proto3";
+
+package kbve.spell.v1;
+
+import "kbve/common/v1/element.proto";
+import "kbve/common/v1/rarity.proto";
+import "kbve/common/v1/registry.proto";
+import "kbve/type/v1/id.proto";
+
+// How the spell selects what it hits.
+enum SpellTarget {
+  SPELL_TARGET_UNSPECIFIED = 0;
+  SPELL_TARGET_SELF = 1;
+  SPELL_TARGET_ENEMY = 2;
+  SPELL_TARGET_ALLY = 3;
+  SPELL_TARGET_GROUND = 4;
+  SPELL_TARGET_PROJECTILE = 5;
+  SPELL_TARGET_CONE = 6;
+  SPELL_TARGET_NOVA = 7;
+}
+
+// Primary outcome the spell resolves to on the server.
+enum SpellEffect {
+  SPELL_EFFECT_UNSPECIFIED = 0;
+  SPELL_EFFECT_DAMAGE = 1;
+  SPELL_EFFECT_HEAL = 2;
+  SPELL_EFFECT_BUFF = 3;
+  SPELL_EFFECT_DEBUFF = 4;
+  SPELL_EFFECT_STATUS = 5;
+  SPELL_EFFECT_SHIELD = 6;
+  SPELL_EFFECT_SUMMON = 7;
+  SPELL_EFFECT_TELEPORT = 8;
+}
+
+// A single castable spell.
+//
+// The MDX frontmatter under astro-kbve/src/content/docs/spelldb/*.mdx is the
+// source of truth; this message is the wire and codegen shape every consumer
+// decodes.
+message Spell {
+  // Stable identity. `id` is the canonical machine identifier; `ref` is the
+  // human-authored slug that matches the MDX filename; `key` is the dense
+  // index used by client-side lookup tables.
+  kbve.type.v1.Ulid id = 1;
+  string ref = 2;
+  uint32 key = 3;
+
+  string name = 4;
+  optional string description = 5;
+
+  // The school a spell draws from is an elemental affinity, so it uses the
+  // shared Element rather than a spell-local copy of the same list.
+  kbve.common.v1.Element school = 6;
+  SpellTarget target = 7;
+  SpellEffect effect = 8;
+  kbve.common.v1.Rarity rarity = 9;
+
+  optional string emoji = 10;
+  optional string img = 11;
+
+  optional uint32 mana_cost = 12;
+  optional uint32 cooldown_ms = 13;
+  optional uint32 cast_time_ms = 14;
+  optional uint32 range = 15;
+  optional uint32 radius = 16;
+
+  optional int32 power = 17;
+  optional uint32 duration_ms = 18;
+  optional uint32 level_req = 19;
+
+  // Status effect this spell applies, by ref. Empty when effect is not
+  // SPELL_EFFECT_STATUS.
+  optional string status_ref = 20;
+
+  optional bool drafted = 21;
+}
+
+// Every spell, as shipped to clients.
+message SpellRegistry {
+  kbve.common.v1.RegistryMeta meta = 1;
+  repeated Spell spells = 2;
+}

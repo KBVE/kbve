@@ -1,0 +1,24 @@
+[package]
+name = "bevy_behavior"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Game-agnostic behavior tree engine for Bevy — composable nodes, cooldown tracking, and observation traits shared across Minecraft, Bevy Isometric, Discord MUD, and Unity."
+homepage = "https://kbve.com/"
+repository.workspace = true
+keywords = ["bevy", "behavior-tree", "ai", "gamedev", "npc"]
+categories = ["game-development", "game-engines"]
+readme = "README.md"
+
+[features]
+default = []
+## Adds Bevy Resource/Component derives and a BehaviorTreePlugin
+## for in-ECS tree evaluation. Without this feature the crate is
+## pure Rust with zero framework dependency.
+bevy = ["dep:bevy"]
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+bevy = { workspace = true, optional = true, features = ["bevy_state"] }

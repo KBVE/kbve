@@ -1,0 +1,563 @@
+syntax = "proto3";
+
+package kbve.item.v1;
+
+import "google/protobuf/struct.proto";
+import "kbve/common/v1/element.proto";
+import "kbve/common/v1/equip_slot.proto";
+import "kbve/common/v1/extension.proto";
+import "kbve/common/v1/item_amount.proto";
+import "kbve/common/v1/rarity.proto";
+import "kbve/common/v1/registry.proto";
+import "kbve/type/v1/id.proto";
+
+// Item archetypes, as a bitmask: an item may be several at once, so these are
+// combined into Item.type_flags rather than assigned singly.
+enum ItemTypeFlag {
+  ITEM_TYPE_FLAG_UNSPECIFIED = 0;
+  ITEM_TYPE_FLAG_WEAPON = 0x00000001;
+  ITEM_TYPE_FLAG_ARMOR = 0x00000002;
+  ITEM_TYPE_FLAG_TOOL = 0x00000004;
+  ITEM_TYPE_FLAG_FOOD = 0x00000008;
+  ITEM_TYPE_FLAG_DRINK = 0x00000010;
+  ITEM_TYPE_FLAG_POTION = 0x00000020;
+  ITEM_TYPE_FLAG_MATERIAL = 0x00000040;
+  ITEM_TYPE_FLAG_RESOURCE = 0x00000080;
+  ITEM_TYPE_FLAG_SKILLING = 0x00000100;
+  ITEM_TYPE_FLAG_COMBAT = 0x00000200;
+  ITEM_TYPE_FLAG_STRUCTURE = 0x00000400;
+  ITEM_TYPE_FLAG_MAGIC = 0x00000800;
+  ITEM_TYPE_FLAG_QUEST = 0x00001000;
+  ITEM_TYPE_FLAG_UTILITY = 0x00002000;
+  ITEM_TYPE_FLAG_DEPLETABLE = 0x00004000;
+  ITEM_TYPE_FLAG_LEGENDARY = 0x00008000;
+  ITEM_TYPE_FLAG_VEHICLE = 0x00010000;
+  ITEM_TYPE_FLAG_PET = 0x00020000;
+  ITEM_TYPE_FLAG_CURRENCY = 0x00040000;
+  ITEM_TYPE_FLAG_COSMETIC = 0x00080000;
+  ITEM_TYPE_FLAG_DEPLOYABLE = 0x00100000;
+  ITEM_TYPE_FLAG_SOUL = 0x40000000;
+}
+
+// What happens when an item is consumed or activated.
+enum UseEffectType {
+  USE_EFFECT_TYPE_UNSPECIFIED = 0;
+  USE_EFFECT_TYPE_HEAL = 1;
+  USE_EFFECT_TYPE_DAMAGE_ENEMY = 2;
+  USE_EFFECT_TYPE_APPLY_EFFECT = 3;
+  USE_EFFECT_TYPE_REMOVE_EFFECT = 4;
+  USE_EFFECT_TYPE_GUARANTEED_FLEE = 5;
+  USE_EFFECT_TYPE_FULL_HEAL = 6;
+  USE_EFFECT_TYPE_REMOVE_ALL_NEGATIVE = 7;
+  USE_EFFECT_TYPE_CAMPFIRE_REST = 8;
+  USE_EFFECT_TYPE_TELEPORT_CITY = 9;
+  USE_EFFECT_TYPE_DAMAGE_AND_APPLY = 10;
+  USE_EFFECT_TYPE_REVIVE_ALLY = 11;
+  USE_EFFECT_TYPE_BUFF_PARTY = 12;
+  USE_EFFECT_TYPE_SUMMON = 13;
+  USE_EFFECT_TYPE_TRANSFORM = 14;
+  // Blueprints, which teach a CraftingRecipe.
+  USE_EFFECT_TYPE_LEARN_RECIPE = 15;
+  // Tomes, which add a spell to the spellbook.
+  USE_EFFECT_TYPE_LEARN_SPELL = 16;
+  // Lore pickups, which reveal a codex entry.
+  USE_EFFECT_TYPE_UNLOCK_LORE = 17;
+}
+
+// Passive carried by a piece of gear.
+enum GearSpecialType {
+  GEAR_SPECIAL_TYPE_UNSPECIFIED = 0;
+  GEAR_SPECIAL_TYPE_LIFE_STEAL = 1;
+  GEAR_SPECIAL_TYPE_THORNS = 2;
+  GEAR_SPECIAL_TYPE_CRIT_BONUS = 3;
+  GEAR_SPECIAL_TYPE_DAMAGE_REDUCTION = 4;
+}
+
+// Codified status effects, so lookups do not depend on matching free text.
+enum StatusEffectKind {
+  STATUS_EFFECT_KIND_UNSPECIFIED = 0;
+  STATUS_EFFECT_KIND_POISON = 1;
+  STATUS_EFFECT_KIND_BURNING = 2;
+  STATUS_EFFECT_KIND_BLEED = 3;
+  STATUS_EFFECT_KIND_SHIELDED = 4;
+  STATUS_EFFECT_KIND_WEAKENED = 5;
+  STATUS_EFFECT_KIND_STUNNED = 6;
+  STATUS_EFFECT_KIND_SHARPENED = 7;
+  STATUS_EFFECT_KIND_THORNS = 8;
+  STATUS_EFFECT_KIND_REGEN = 9;
+  STATUS_EFFECT_KIND_HASTE = 10;
+  STATUS_EFFECT_KIND_SLOW = 11;
+  STATUS_EFFECT_KIND_FROZEN = 12;
+  STATUS_EFFECT_KIND_CURSED = 13;
+  STATUS_EFFECT_KIND_BLESSED = 14;
+}
+
+// Stat bonuses granted by equipping or using an item.
+message ItemBonuses {
+  optional int32 armor = 1;
+  optional int32 attack = 2;
+  optional int32 defense = 3;
+  optional int32 strength = 4;
+  optional int32 intelligence = 5;
+  optional int32 health = 6;
+  optional int32 mana = 7;
+  optional int32 energy = 8;
+  optional int32 speed = 9;
+  optional int32 agility = 10;
+  // Zero to one.
+  optional float crit_chance = 11;
+  // Multiplier, e.g. 1.5.
+  optional float crit_damage = 12;
+  optional int32 stamina = 13;
+  optional int32 charisma = 14;
+  optional int32 dexterity = 15;
+  optional int32 perception = 16;
+
+  // Game-specific stats that do not warrant a field of their own, e.g.
+  // "cookingSpeed" or "fallDamageReduction".
+  map<string, double> extra = 17;
+}
+
+// Elemental boost or resistance carried by an item.
+message ItemAffinity {
+  kbve.common.v1.Element element = 1;
+  // Zero to one; 0.3 means a 30 percent boost or resistance.
+  float magnitude = 2;
+}
+
+// One effect triggered by using an item.
+message UseEffect {
+  UseEffectType type = 1;
+  optional int32 amount = 2;
+  optional StatusEffectKind status_effect = 3;
+  // Free-form effect slug, for effects with no codified kind.
+  optional string effect_kind_custom = 4;
+  optional int32 stacks = 5;
+  optional int32 turns = 6;
+  optional int32 percent = 7;
+  optional string summon_ref = 8;
+  optional kbve.common.v1.Element element = 9;
+}
+
+// A script attached to an item, with its variable overrides.
+message ScriptBinding {
+  // 32 character hex GUID.
+  string guid = 1;
+  optional string name = 2;
+  // Values are stored as text and parsed by the runtime.
+  map<string, string> vars = 3;
+}
+
+// What an enchantment grants to the equipment it is attached to. Items
+// carrying this are eligible to occupy an EquipmentInfo enchantment slot.
+message EnchantmentInfo {
+  // Namespace matching EquipmentInfo.enchantment_types.
+  string slug = 1;
+  optional ItemBonuses bonuses = 2;
+  repeated UseEffect on_use = 3;
+  repeated UseEffect while_equipped = 4;
+  optional int32 tier = 5;
+  // False means removing it destroys the enchantment.
+  optional bool removable = 6;
+  optional int32 level_requirement = 7;
+  repeated ItemAffinity affinities = 8;
+  repeated ItemAffinity resistances = 9;
+}
+
+// Present when an item can be equipped.
+message EquipmentInfo {
+  kbve.common.v1.EquipSlot slot = 1;
+  ItemBonuses bonuses = 2;
+  optional GearSpecialType special = 3;
+  // Magnitude of the special, e.g. 0.15 for 15 percent lifesteal.
+  optional float special_value = 4;
+  optional int32 durability = 5;
+  optional int32 max_durability = 6;
+  optional int32 enchantment_slots = 7;
+  // Accepted enchantment slugs, e.g. "gem", "rune", "sigil".
+  repeated string enchantment_types = 8;
+  // Cannot be removed without a remedy.
+  optional bool cursed = 9;
+  // Zero to one speed reduction while worn.
+  optional float movement_penalty = 10;
+  // Wardrobe piece the renderer resolves, e.g. "ranger_head_hood". Carries no
+  // sex, because which mesh it becomes depends on the body wearing it.
+  optional string wardrobe = 11;
+}
+
+// How an item is made.
+message CraftingRecipe {
+  repeated kbve.common.v1.ItemAmount ingredients = 1;
+  // Tools required but not consumed.
+  repeated string required_tools = 2;
+  optional string skill = 3;
+  optional int32 skill_level = 4;
+  optional float xp_reward = 5;
+  optional int32 output_quantity = 6;
+  // Required crafting station, e.g. "furnace", "anvil".
+  optional string facility = 7;
+  optional bool members_only = 8;
+}
+
+// Placement behaviour for structures and placeables.
+message DeployableInfo {
+  // Width and height in grid cells.
+  repeated int32 size = 1;
+  // Anchor point, x and y from zero to one.
+  repeated float pivot = 2;
+  optional string override_prefab = 3;
+  optional float scale_multiplier = 4;
+  optional bool grid_snap = 5;
+  repeated ScriptBinding scripts = 6;
+  // Functional type, e.g. "cooker", "campfire", "workbench".
+  optional string deployable_type = 7;
+}
+
+// Where an item can be obtained.
+message ItemSource {
+  // "drop", "shop", "craft", "quest" or "gather".
+  optional string source_type = 1;
+  optional string source_ref = 2;
+  optional string source_name = 3;
+  // Zero to one probability.
+  optional float drop_rate = 4;
+  optional int32 min_quantity = 5;
+  optional int32 max_quantity = 6;
+  optional int32 level_requirement = 7;
+}
+
+// Food and consumable behaviour.
+message FoodInfo {
+  reserved 3, 4;
+  reserved "cooking_level", "cooking_xp";
+
+  optional int32 heals = 1;
+  // Potions carry one to four.
+  optional int32 doses = 2;
+  optional int32 burn_level = 5;
+  optional int32 duration = 6;
+  repeated UseEffect buff_effects = 7;
+  optional int32 restore_energy = 8;
+  optional int32 restore_mana = 9;
+  // Health per second after consumption.
+  optional float regen_per_second = 10;
+  optional float regen_duration = 11;
+  optional bool perishable = 12;
+  optional int32 shelf_life_seconds = 13;
+  // What it becomes when it spoils.
+  optional string spoils_into_ref = 14;
+}
+
+// Carrying hints beyond a raw stack limit.
+message StackingInfo {
+  // Per-unit carried cap, distinct from storage max_stack.
+  optional int32 pack_max = 1;
+  // Storage only, e.g. gold bars.
+  optional bool no_pack = 2;
+  // Any item sharing this group substitutes for another, e.g. "food".
+  optional string pool_group = 3;
+}
+
+// Cells occupied in a spatial inventory, measured upright before rotation.
+// Distinct from DeployableInfo.size, which is the footprint once placed in the
+// world. Absent means a single cell.
+message GridFootprint {
+  optional int32 width = 1;
+  optional int32 height = 2;
+  optional bool no_rotate = 3;
+}
+
+// Weapon behaviour, melee and ranged alike. A range of zero or one is melee.
+message WeaponInfo {
+  optional float range = 1;
+  // Attacks per second; lower is slower.
+  optional float attack_speed = 2;
+  optional string projectile_ref = 3;
+  // Primary consumed ammunition, e.g. "arrow".
+  optional string ammo_ref = 4;
+  repeated string compatible_ammo = 5;
+  optional kbve.common.v1.Element damage_element = 6;
+  optional int32 min_damage = 7;
+  optional int32 max_damage = 8;
+  optional float crit_chance = 9;
+  optional float crit_damage = 10;
+  optional int32 windup_ticks = 11;
+  optional int32 recovery_ticks = 12;
+  // Zero is single-target.
+  optional int32 aoe_radius = 13;
+  // Occupies both hands even when the slot is a main hand.
+  optional bool two_handed = 14;
+  // Limited uses for wands and one-shots; zero is unlimited.
+  optional int32 charges = 15;
+}
+
+// Combustible behaviour, for furnaces, cookfires and campfires.
+message FuelInfo {
+  int32 burn_seconds = 1;
+  // Relative heat rating: a cookfire needs one, a smelter three.
+  optional int32 heat_output = 2;
+  optional string residue_ref = 3;
+  optional float residue_chance = 4;
+  // Regrows or crafts indefinitely, as wood does and coal does not.
+  optional bool renewable = 5;
+}
+
+// Storage capacity, for pouches, quivers and deployed chests.
+message ContainerInfo {
+  optional int32 added_slots = 1;
+  optional float volume_multiplier = 2;
+  // Fraction by which contained items weigh less.
+  optional float weight_reduction = 3;
+  // Tag filter; empty accepts anything.
+  repeated string category_filter = 4;
+  optional int32 storage_slots = 5;
+  optional bool shared_inventory = 6;
+  optional bool locked_by_default = 7;
+}
+
+// Growth behaviour for seeds and saplings.
+message PlantingInfo {
+  string grows_into_ref = 1;
+  int32 grow_seconds = 2;
+  optional int32 yield_amount = 3;
+  // Tile slug, e.g. "farmland".
+  optional string required_tile = 4;
+  // Minimum light level, zero to 255.
+  optional int32 required_light = 5;
+  // Zero means rain-fed.
+  optional float water_per_hour = 6;
+  // The plant regrows rather than being destroyed.
+  optional bool multi_harvest = 7;
+  optional int32 regrow_seconds = 8;
+  optional string season = 9;
+  optional float frost_tolerance = 10;
+}
+
+// Flight and impact behaviour for arrows, bolts and thrown items.
+message ProjectileInfo {
+  optional float speed = 1;
+  // Zero is a flat trajectory; higher values arc.
+  optional float gravity = 2;
+  optional int32 pierce_count = 3;
+  optional string impact_effect_ref = 4;
+  optional string trail_ref = 5;
+  optional bool homing = 6;
+  optional int32 splash_radius = 7;
+  optional float splash_falloff = 8;
+}
+
+// Casting behaviour for scrolls, tomes, wands and staves.
+message SpellInfo {
+  // Slug of a spell in the spell domain, e.g. "fireball".
+  string spell_ref = 1;
+  optional int32 mana_cost = 2;
+  optional float cast_seconds = 3;
+  optional float cooldown_seconds = 4;
+  optional string scaling_stat = 5;
+  optional float scaling_multiplier = 6;
+  optional int32 base_damage = 7;
+  optional kbve.common.v1.Element element = 8;
+  optional float range = 9;
+  optional int32 aoe_radius = 10;
+  // Tomes add the spell to the caster's book permanently.
+  optional bool teaches_permanent = 11;
+  optional bool consumed_on_cast = 12;
+  optional int32 charges = 13;
+  repeated UseEffect side_effects = 14;
+}
+
+// Readable content, for lore books, journals and recipe books.
+message BookInfo {
+  optional string body_text = 1;
+  optional string body_text_ref = 2;
+  optional int32 reading_seconds = 3;
+  optional string teaches_recipe_ref = 4;
+  optional string teaches_spell_ref = 5;
+  optional string unlocks_lore_ref = 6;
+  optional bool consumed_on_read = 7;
+  optional string language = 8;
+  repeated string chapters = 9;
+}
+
+// What a key opens.
+message KeyInfo {
+  string unlocks_ref = 1;
+  // "door", "chest", "gate" or "cell".
+  optional string unlock_category = 2;
+  optional bool consumed_on_use = 3;
+  optional string grant_item_ref = 4;
+  // Unlocks before the key breaks; zero is unlimited.
+  optional int32 uses = 5;
+  optional string faction_lock = 6;
+}
+
+// Conveyance behaviour for boats, carts and mounts.
+message VehicleInfo {
+  optional float max_speed = 1;
+  optional float acceleration = 2;
+  optional float turn_rate = 3;
+  optional int32 passenger_capacity = 4;
+  // Empty means self-propelled.
+  optional string fuel_ref = 5;
+  optional float fuel_per_distance = 6;
+  // "water", "land", "air" or "amphibious".
+  optional string terrain_type = 7;
+  optional int32 cargo_slots = 8;
+  optional float cargo_weight_capacity = 9;
+  optional float damage_reduction = 10;
+  optional bool requires_leash = 11;
+}
+
+// Trigger behaviour for placed hazards.
+message TrapInfo {
+  // "step", "proximity" or "timer".
+  optional string trigger = 1;
+  optional int32 arming_seconds = 2;
+  optional int32 proximity_radius = 3;
+  // Uses before the trap is spent; zero is unlimited.
+  optional int32 max_triggers = 4;
+  optional bool reusable = 5;
+  repeated UseEffect on_trigger = 6;
+}
+
+// One tier of a set bonus.
+message SetBonus {
+  int32 pieces_required = 1;
+  optional string description = 2;
+  optional ItemBonuses stat_bonuses = 3;
+  repeated UseEffect effects = 4;
+}
+
+// A group of items granting bonuses when worn together.
+message ItemSet {
+  string set_id = 1;
+  string set_name = 2;
+  repeated string item_refs = 3;
+  repeated SetBonus bonuses = 4;
+}
+
+// An item definition.
+//
+// Supersedes kbve.schema.Object, which carried a single flat set of fields with
+// no per-facet sub-messages, and ows.Item.
+message Item {
+  reserved 42, 48;
+  reserved "skilling", "compress";
+
+  kbve.type.v1.Ulid id = 1;
+  // URL-safe identifier, e.g. "fire-flask".
+  string ref = 2;
+  string name = 3;
+  optional string title = 4;
+  optional string description = 5;
+  optional string lore = 6;
+
+  // Bitmask of ItemTypeFlag values.
+  int32 type_flags = 7;
+  kbve.common.v1.Rarity rarity = 8;
+  optional kbve.common.v1.Element element = 9;
+  repeated string tags = 10;
+
+  optional string img = 11;
+  optional string icon = 12;
+  optional string emoji = 13;
+  // Eight to 512.
+  optional int32 pixel_density = 14;
+  optional string sorting_layer = 15;
+  optional int32 sorting_order = 16;
+  optional string model_ref = 17;
+  optional string animation_ref = 18;
+  optional string sound_ref = 19;
+
+  optional int32 max_stack = 20;
+  optional bool stackable = 21;
+  optional float weight = 22;
+
+  optional int32 level_requirement = 23;
+  optional string quest_requirement = 24;
+
+  optional int32 buy_price = 25;
+  optional int32 sell_price = 26;
+  optional bool tradeable = 27;
+
+  optional bool consumable = 28;
+  optional int32 cooldown = 29;
+  // Primary action verb, e.g. "consume", "deploy".
+  optional string action = 30;
+  repeated UseEffect use_effects = 31;
+
+  optional EquipmentInfo equipment = 32;
+  repeated CraftingRecipe recipes = 33;
+  optional DeployableInfo deployable = 34;
+  repeated ItemSource sources = 35;
+
+  // Variants, upgrades and set pieces.
+  repeated string related_item_refs = 36;
+  optional string set_ref = 37;
+
+  repeated kbve.common.v1.Extension extensions = 38;
+  optional string credits = 39;
+  // Hidden from production builds.
+  optional bool drafted = 40;
+
+  optional FoodInfo food = 41;
+
+  repeated ItemAffinity resistances = 43;
+  repeated ItemAffinity affinities = 44;
+  repeated ScriptBinding scripts = 45;
+
+  // Durability for non-equipment items such as tools.
+  optional int32 durability = 46;
+  optional int32 max_durability = 47;
+
+  optional StackingInfo stacking = 49;
+  // Shortcut for the common case where no other StackingInfo field is set.
+  optional string pool_group = 50;
+
+  optional WeaponInfo weapon = 51;
+  optional FuelInfo fuel = 52;
+  optional ContainerInfo container = 53;
+  optional PlantingInfo planting = 54;
+  optional ProjectileInfo projectile = 55;
+  optional TrapInfo trap = 56;
+  // Present when the item is itself an enchantment.
+  optional EnchantmentInfo enchantment = 57;
+
+  // Physical volume, parallel to weight, for volume-aware containers.
+  optional float volume = 58;
+
+  optional SpellInfo spell = 59;
+  optional BookInfo book = 60;
+  optional KeyInfo unlock = 61;
+  optional VehicleInfo vehicle = 62;
+
+  // Tiles of light cast; zero emits none.
+  optional float light_radius = 63;
+  // Hex colour such as "#ffcc88", or a named slug such as "warm".
+  optional string light_color = 64;
+
+  // Numeric runtime identifier, authored per item and stable across builds.
+  // Primary lookup key for engines.
+  int32 key = 65;
+  // Whether a sprite asset exists, derived from img.
+  //
+  // Named img_present rather than has_img: `optional string img` makes C#
+  // emit a presence property called HasImg, and a field named has_img emits a
+  // value property of the same name, so the two collide and the type does not
+  // compile. The original itemdb.proto carries that collision.
+  optional bool img_present = 66;
+
+  // Bonuses authored flat in MDX. Heterogeneous by nature, mixing numbers such
+  // as cookingSpeed with boolean flags such as quantumFlux, so it is an
+  // arbitrary structure rather than the fixed-field ItemBonuses.
+  optional google.protobuf.Struct bonuses = 67;
+
+  optional GridFootprint grid = 68;
+}
+
+// Every item and set, as shipped to clients.
+message ItemRegistry {
+  kbve.common.v1.RegistryMeta meta = 1;
+  repeated Item items = 2;
+  repeated ItemSet sets = 3;
+}

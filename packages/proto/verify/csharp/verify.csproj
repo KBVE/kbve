@@ -1,0 +1,12 @@
+<!-- Compiles the generated C#. Unity is the consumer; a proto field name that
+     collides with a C# keyword or an existing member fails here. -->
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <Nullable>disable</Nullable>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.28.3" />
+  </ItemGroup>
+</Project>

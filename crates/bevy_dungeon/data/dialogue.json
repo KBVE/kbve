@@ -1,0 +1,75 @@
+[
+  {
+    "ref": "the-shattered-king",
+    "name": "The Shattered King",
+    "description": "The king speaks before he fights, and remembers whether you have met.",
+    "entries": [
+      {
+        "node_id": "again",
+        "priority": 10,
+        "comment": "Anyone who has already heard him out once.",
+        "condition": {
+          "required_flags": [
+            "met_shattered_king"
+          ]
+        }
+      },
+      {
+        "node_id": "first_meeting",
+        "priority": 0,
+        "comment": "First contact."
+      }
+    ],
+    "nodes": [
+      {
+        "id": "first_meeting",
+        "kind": "DIALOGUE_NODE_KIND_CHOICE",
+        "texts": [
+          "You stand in a hall of broken glass, and every shard is watching you."
+        ],
+        "on_enter": [
+          {
+            "kind": "DIALOGUE_EFFECT_KIND_SET_FLAG",
+            "flag": "met_shattered_king"
+          }
+        ],
+        "choices": [
+          {
+            "id": "who",
+            "label": "Who were you?",
+            "order": 0,
+            "next_node_id": "who_answer"
+          },
+          {
+            "id": "leave",
+            "label": "Say nothing and step back.",
+            "order": 1
+          }
+        ]
+      },
+      {
+        "id": "who_answer",
+        "kind": "DIALOGUE_NODE_KIND_LINE",
+        "texts": [
+          "\"A king. Then a mirror. Then this.\""
+        ],
+        "next_node_id": "farewell"
+      },
+      {
+        "id": "again",
+        "kind": "DIALOGUE_NODE_KIND_LINE",
+        "texts": [
+          "\"You came back. They rarely come back.\""
+        ],
+        "next_node_id": "farewell"
+      },
+      {
+        "id": "farewell",
+        "kind": "DIALOGUE_NODE_KIND_END",
+        "texts": [
+          "The shards turn away from you."
+        ]
+      }
+    ]
+  }
+]
