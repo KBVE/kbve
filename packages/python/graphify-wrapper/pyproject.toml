@@ -21,6 +21,9 @@ dev = [
     "ruff>=0.15,<1.0",
     "pytest==8.3.3",
     "pytest-sugar==0.9.7",
+    # addopts in [tool.pytest.ini_options] pass --cov and --cov-report, so
+    # pytest exits 4 on "unrecognized arguments" without this.
+    "pytest-cov>=4.1,<7.0",
 ]
 
 [tool.coverage.run]

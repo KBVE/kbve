@@ -13,6 +13,15 @@ $schema: 'https://moonrepo.dev/schemas/tasks.json'
 inheritedBy:
     tag: 'tauri'
 
+# Tasks run the script's command rather than `pnpm <script>`. These four are
+# nested pnpm projects -- their own package.json, and for three of them their
+# own lockfile -- inside a repo with no pnpm workspaces, so `pnpm run` first
+# checks whether that directory's dependencies are current and tries to install
+# when they are not. For deathslayer-launcher that install cannot succeed: it
+# declares "@kbve/tauri": "workspace:*" and there is no workspace to resolve it
+# from. moon already decides when a task is stale, and node_modules/.bin is on
+# PATH, so going through pnpm buys nothing and costs that.
+
 tasks:
     # Frees the port first. A tauri dev server that fails to bind leaves the
     # previous run holding it, and the second failure is much less legible.
@@ -22,12 +31,12 @@ tasks:
         preset: 'server'
 
     dev-web:
-        script: 'lsof -ti:$TAURI_DEV_PORT | xargs kill 2>/dev/null; pnpm dev'
+        script: 'lsof -ti:$TAURI_DEV_PORT | xargs kill 2>/dev/null; vite'
         toolchains: ['node']
         preset: 'server'
 
     build:
-        command: 'pnpm build'
+        script: 'tsc && vite build'
         toolchains: ['node']
         inputs: ['src/**/*', 'package.json', 'vite.config.*', 'tsconfig*.json']
         outputs: ['dist']
