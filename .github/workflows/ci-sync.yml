@@ -2,7 +2,13 @@
 
 name: CI - Sync Branches
 
+# Triggered directly on main. This used to be reached through ci-main.yml,
+# which existed to run the dispatch manifest; with the manifest gone its only
+# other job was this call and a sha256 of the head commit that nothing read.
 on:
+    push:
+        branches:
+            - main
     workflow_dispatch:
     workflow_call:
         secrets:

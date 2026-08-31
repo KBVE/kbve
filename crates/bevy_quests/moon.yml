@@ -7,7 +7,14 @@
 layer: 'library'
 stack: 'frontend'
 toolchains:
-  default: 'rust'
+    default: 'rust'
 
 owners:
-  defaultOwner: '@h0lybyte'
+    defaultOwner: '@h0lybyte'
+
+# `crates` is the release lane: this crate publishes to crates.io. It is
+# separate from the rust toolchain, which says what the project is built with
+# rather than what publishing it means -- 26 applications here are also rust
+# and must never be pushed to a registry.
+
+tags: ['crates']

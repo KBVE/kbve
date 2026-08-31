@@ -323,11 +323,33 @@ jobs:
         if: github.event_name == 'pull_request' && github.base_ref == 'main' && github.head_ref == 'dev'
         permissions:
             contents: read
-        uses: ./.github/workflows/utils-ci-lint-test.yml
-        with:
-            base-ref: origin/main
-            head-ref: origin/dev
-            check-conflicts: true
+        uses: ./.github/workflows/ci.yml
+
+    # Only meaningful for the dev->main pull request, so it lives here rather
+    # than in the shared CI workflow every branch runs.
+    check_conflicts:
+        name: 'Check dev merges into main'
+        if: github.event_name == 'pull_request' && github.base_ref == 'main' && github.head_ref == 'dev'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: read
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+            - name: Merge cleanly into main
+              run: |
+                  git config user.name "CI Bot"
+                  git config user.email "ci@example.com"
+                  if git merge --no-commit --no-ff origin/main; then
+                    echo "No merge conflicts detected"
+                    git merge --abort 2>/dev/null || git reset --hard HEAD
+                  else
+                    echo "::error::Merge conflicts detected. Resolve them before merging."
+                    git merge --abort 2>/dev/null || git reset --hard HEAD
+                    exit 1
+                  fi
 
     # ---------------------------------------------------------------------------
     # Failure tracker — surfaces failures as GitHub issues (#8186).

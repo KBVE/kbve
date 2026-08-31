@@ -1,0 +1,24 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+# One of the ToCloud9 images. It had a Dockerfile and a dispatch-manifest entry
+# but no moon.yml, so the graph could not see it -- which under tag-driven
+# releases means no tag could name it.
+layer: 'application'
+language: 'bash'
+tags: ['docker']
+
+tasks:
+    # The image name is not kbve/$project, so the container task the docker tag
+    # provides is overridden here rather than inherited.
+    container:
+        script: 'docker buildx build --load -f apps/agones/tocloud9/services/Dockerfile -t kbve/tocloud9-services-playerbots:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    container-publish:
+        script: 'docker buildx build --load --cache-from=type=gha --cache-from=type=registry,ref=ghcr.io/kbve/tocloud9-services-playerbots:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/tocloud9-services-playerbots:buildcache,mode=max -f apps/agones/tocloud9/services/Dockerfile -t kbve/tocloud9-services-playerbots:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true

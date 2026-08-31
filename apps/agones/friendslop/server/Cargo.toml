@@ -3,6 +3,7 @@ name = "friendslop-server"
 authors = ["kbve", "h0lybyte"]
 version = "0.0.15"
 edition = "2024"
+publish = false
 rust-version.workspace = true
 license = "MIT"
 description = "Friendslop dedicated server — authoritative rapier3d sim over a WebSocket transport, hosted on Agones."

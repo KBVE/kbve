@@ -30,6 +30,14 @@ projects:
         # The workspace itself: whole-tree tasks that belong to no project.
         root: '.'
 
+        # Release tooling: resolves a <project>@<version> tag against the graph.
+        release-tools: 'tools/release'
+
+        # ToCloud9 images. Registered late: both had a Dockerfile and a manifest
+        # entry but no moon.yml, so neither was in the graph at all.
+        tocloud9-gameserver: 'apps/agones/tocloud9/gameserver'
+        tocloud9-services: 'apps/agones/tocloud9/services'
+
         # Sites
         astro-chuckrpg: 'apps/chuckrpg/astro-chuckrpg'
         astro-kbve: 'apps/kbve/astro-kbve'
@@ -59,7 +67,6 @@ projects:
 
         # Desktop shells (tauri)
         chuck-launcher: 'apps/chuckrpg/chuck-launcher'
-        deathslayer-launcher: 'apps/deathslayer/deathslayer-launcher'
         desktop-kbve: 'apps/kbve/desktop-kbve'
         isometric: 'apps/kbve/isometric'
 
@@ -133,7 +140,7 @@ projects:
         mc-velocity: 'apps/mc/velocity'
 
         # Other apps
-        angelscript: 'apps/angelscript'
+        chuckrpg-server: 'apps/chuckrpg/chuckrpg-server'
         aria2-proxy: 'apps/vm/aria2-proxy'
         arpg-web: 'apps/agones/arpg/web'
         edge: 'apps/kbve/edge'

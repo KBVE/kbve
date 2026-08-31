@@ -1,0 +1,14 @@
+# Release tooling. Not a released thing itself.
+layer: 'tool'
+language: 'javascript'
+stack: 'infrastructure'
+
+owners:
+    defaultOwner: '@h0lybyte'
+
+tasks:
+    test:
+        command: 'node --test'
+        toolchains: ['node']
+        inputs:
+            - '*.mjs'

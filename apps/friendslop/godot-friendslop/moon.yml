@@ -45,11 +45,20 @@ tasks:
         script: 'bash scripts/godot.sh --editor .'
         preset: 'server'
 
+    # Out of the shared CI pipeline, which checks out without LFS. A Godot
+    # project whose assets are pointer stubs does not fail a test: the asset
+    # scan takes a signal partway through reimport, so the job dies before a
+    # single test runs and reports nothing about why. ci-godot.yml runs both of
+    # these by name, with the LFS pull and the Forgejo credentials they need.
     test:
         script: 'bash scripts/test.sh'
+        options:
+            runInCI: false
 
     test-smoke:
         script: 'bash scripts/godot.sh --headless -s tests/smoke_ecs.gd'
+        options:
+            runInCI: false
 
     export-windows:
         script: 'mkdir -p $workspaceRoot/dist/apps/friendslop/windows && bash scripts/godot.sh --headless --export-release "Windows Desktop"'

@@ -7,13 +7,64 @@
 layer: 'library'
 stack: 'frontend'
 toolchains:
-  default: 'rust'
+    default: 'rust'
 
 dependsOn:
-  - 'bevy_battle'
-  - 'bevy_inventory'
-  - 'bevy_pathfinder'
-  - 'bevy_skills'
+    - 'bevy_battle'
+    - 'bevy_inventory'
+    - 'bevy_pathfinder'
+    - 'bevy_skills'
 
 owners:
-  defaultOwner: '@h0lybyte'
+    defaultOwner: '@h0lybyte'
+
+# The deep checks ci-uniti.yml used to carry as four separate jobs. They are
+# tasks rather than a workflow because none of them needs anything a workflow
+# provides -- no secret, no artifact, no runner moon cannot reach -- only a
+# nightly toolchain, which cargo resolves from the +nightly in the command.
+#
+# They are not part of `test`: asan and miri are minutes each, and a cdylib
+# with a C ABI is exactly the shape where they earn that on a cadence rather
+# than on every push.
+tasks:
+    # -Z build-std because the sanitizer runtime has to be linked into std
+    # itself; the rustup-shipped std is built without it and the instrumented
+    # crate then fails to link.
+    test-asan:
+        script: >-
+            cargo +nightly test -p uniti -Z build-std
+            --target x86_64-unknown-linux-gnu --no-fail-fast
+        env:
+            RUSTFLAGS: '-Z sanitizer=address'
+            RUSTDOCFLAGS: '-Z sanitizer=address'
+            ASAN_OPTIONS: 'detect_leaks=0'
+            LSAN_OPTIONS: 'detect_leaks=0'
+        options:
+            cache: false
+
+    # One suite, not the whole set: miri interprets rather than executes, and
+    # the FFI surface is where undefined behaviour would actually live.
+    test-miri:
+        script: 'cargo +nightly miri setup && cargo +nightly miri test -p uniti --test ffi_chunk_summary'
+        env:
+            MIRIFLAGS: '-Zmiri-disable-isolation'
+        options:
+            cache: false
+
+    # A smoke run, not a campaign. Sixty seconds finds a round-trip that
+    # panics; finding more than that is what a dedicated fuzzing host is for.
+    fuzz:
+        script: 'cargo +nightly fuzz run chunk_touch_roundtrip -- -max_total_time=60'
+        options:
+            cache: false
+
+    build-release-linux:
+        command: 'cargo build --release --target x86_64-unknown-linux-gnu'
+        outputs: ['/target/x86_64-unknown-linux-gnu/release/libuniti.so']
+
+# `crates` is the release lane: this crate publishes to crates.io. It is
+# separate from the rust toolchain, which says what the project is built with
+# rather than what publishing it means -- 26 applications here are also rust
+# and must never be pushed to a registry.
+
+tags: ['crates']

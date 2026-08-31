@@ -1,9 +1,13 @@
 name: CI - Bevy
 
+# Triggered on main directly. It used to chain off CI - Main completing, and
+# CI - Main existed to run the dispatch manifest; with that gone the chain had
+# nothing left at the front of it, and a workflow_run naming a workflow that
+# does not exist never fires at all.
 on:
-    workflow_run:
-        workflows: ['CI - Main']
-        types: [completed]
+    push:
+        branches:
+            - main
     workflow_dispatch:
 
 concurrency:
@@ -18,10 +22,9 @@ env:
     RUSTUP_MAX_RETRIES: '10'
 
 jobs:
-    # ---------------------------------------------------------------------------
-    # Guard: skip if triggered by a failed CI - Main run.
-    # workflow_dispatch bypasses this check so builds can be re-run manually.
-    # ---------------------------------------------------------------------------
+    # Kept as a job rather than deleted so the two downstream `needs: [guard]`
+    # gates stay in place. It guarded against chaining off a failed CI - Main;
+    # a push to main has no such upstream to be failed.
     guard:
         name: Guard
         runs-on: ubuntu-latest
@@ -31,28 +34,43 @@ jobs:
         steps:
             - name: Check trigger condition
               id: check
-              run: |
-                  if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-                    echo "should_run=true" >> "$GITHUB_OUTPUT"
-                  elif [ "${{ github.event.workflow_run.conclusion }}" = "success" ]; then
-                    echo "should_run=true" >> "$GITHUB_OUTPUT"
-                  else
-                    echo "CI - Main did not succeed (conclusion: ${{ github.event.workflow_run.conclusion }}), skipping."
-                    echo "should_run=false" >> "$GITHUB_OUTPUT"
-                  fi
+              run: echo "should_run=true" >> "$GITHUB_OUTPUT"
 
     # ---------------------------------------------------------------------------
     # File alteration detection — did the isometric project change?
     # ---------------------------------------------------------------------------
+    # Whether isometric itself changed. This was a call into
+    # utils-file-alterations.yml, which answered fifty of these questions from
+    # a hand-maintained path list; thirty-five of its paths pointed at
+    # directories that no longer existed. Only one answer was ever read here,
+    # so it is asked directly.
     alter:
-        name: Detect Changes
+        name: 'Changed paths'
         needs: [guard]
         if: needs.guard.outputs.should_run == 'true'
+        runs-on: ubuntu-latest
         permissions:
             contents: read
-        uses: KBVE/kbve/.github/workflows/utils-file-alterations.yml@main
-        with:
-            branch: 'main'
+        outputs:
+            isometric: ${{ steps.delta.outputs.isometric_any_changed }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+                  lfs: false
+            - name: Changed files
+              id: delta
+              uses: tj-actions/changed-files@v48
+              with:
+                  files_yaml: |
+                      isometric:
+                          - 'apps/kbve/isometric/src/**'
+                          - 'apps/kbve/isometric/public/**'
+                          - 'apps/kbve/isometric/src-tauri/src/**'
+                          - 'apps/kbve/isometric/src-tauri/Cargo.toml'
+                          - 'apps/kbve/isometric/src-tauri/.cargo/**'
+                          - 'apps/kbve/isometric/src-tauri/rust-toolchain.toml'
 
     # ---------------------------------------------------------------------------
     # WASM build — the only active build target.

@@ -1,0 +1,161 @@
+name: Release
+
+# Runs only when a release tag is pushed. Nothing here fires on a normal push
+# or pull request, so the cost of having it is zero until someone releases.
+#
+# Tags are `<moon project id>@<semver>` -- axum-kbve@1.0.296 -- which means a
+# tag resolves to a node in the project graph. That is what replaces
+# .github/ci-dispatch-manifest.json: the graph already knows where every
+# project lives, which lane it publishes to and what image it builds, so the
+# only fact left for a human to state is the version.
+#
+# Releasing is deliberate and manual on purpose. The manifest existed to guess
+# intent from a diff -- "these files changed, so this app probably wants
+# publishing" -- and it guessed from a hand-maintained path list that fell out
+# of step with the tree twice over. A tag is the intent, stated once.
+on:
+    push:
+        tags: ['*@*']
+    workflow_dispatch:
+        inputs:
+            tag:
+                description: 'Release tag to verify, e.g. axum-kbve@1.0.296'
+                required: true
+
+permissions:
+    contents: read
+
+concurrency:
+    group: release-${{ github.ref }}
+    cancel-in-progress: false
+
+jobs:
+    verify:
+        name: Verify tag
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        outputs:
+            project: ${{ steps.tag.outputs.project }}
+            version: ${{ steps.tag.outputs.version }}
+            source: ${{ steps.tag.outputs.source }}
+            lanes: ${{ steps.tag.outputs.lanes }}
+            file: ${{ steps.tag.outputs.file }}
+            docker_target: ${{ steps.tag.outputs.docker_target }}
+            docker_image: ${{ steps.tag.outputs.docker_image }}
+            pypi_name: ${{ steps.tag.outputs.pypi_name }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+
+            - name: Setup Node v24
+              uses: actions/setup-node@v7
+              with:
+                  node-version: 24
+
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
+            # Resolves the tag against the project graph and the project's own
+            # manifest. A mismatch means the version bump was never committed,
+            # and publishing it would label an artifact with a version its
+            # manifest never claimed.
+            - name: Tag matches the manifest
+              id: tag
+              run: node tools/release/verify-tag.mjs "${{ inputs.tag || github.ref_name }}"
+
+            - name: Summary
+              env:
+                  TAG: ${{ inputs.tag || github.ref_name }}
+              run: |
+                  {
+                    echo "### \`$TAG\`"
+                    echo
+                    echo "- project: \`${{ steps.tag.outputs.project }}\` at \`${{ steps.tag.outputs.source }}\`"
+                    echo "- version: \`${{ steps.tag.outputs.version }}\` (from \`${{ steps.tag.outputs.file }}\`)"
+                    echo "- lanes: \`${{ steps.tag.outputs.lanes }}\`"
+                  } >> "$GITHUB_STEP_SUMMARY"
+
+            # A tag whose project opts into no lane is almost always a typo or a
+            # project that was never meant to be released, and silently doing
+            # nothing is the one outcome that looks identical to success.
+            # mc and chisel-ubuntu-axum build several images from one project,
+            # so there is no single task a tag can mean. Saying so is better
+            # than picking one of them and publishing the wrong image.
+            - name: Docker lane has one publish task
+              if: ${{ contains(fromJSON(steps.tag.outputs.lanes), 'docker') && steps.tag.outputs.docker_target == '' }}
+              run: |
+                  echo "::error::${{ steps.tag.outputs.project }} does not resolve to a single" \
+                    "container publish task, so this tag cannot say which image to build." \
+                    "Run the publish workflow directly with the target you mean."
+                  exit 1
+
+            - name: Tag names no publish lane
+              if: ${{ steps.tag.outputs.lanes == '[]' }}
+              run: |
+                  echo "::error::${{ steps.tag.outputs.project }} carries no release lane tag." \
+                    "Add one of 'docker', 'npm', 'pypi' or 'crates' to its moon.yml, or do not tag it."
+                  exit 1
+
+    # Each lane below is the publisher that already existed, called with the
+    # project the tag named. They take version_source/version_target to sync a
+    # version out of MDX before publishing; under tags the version is already
+    # committed and has just been verified, so those are left empty and the
+    # sync step skips itself.
+    docker:
+        name: Publish image
+        needs: [verify]
+        if: ${{ github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'docker') }}
+        permissions:
+            contents: read
+            packages: write
+        uses: ./.github/workflows/utils-publish-docker-image.yml
+        with:
+            project: ${{ needs.verify.outputs.project }}
+            target: ${{ needs.verify.outputs.docker_target }}
+            image: ${{ needs.verify.outputs.docker_image }}
+            cargo_toml: ${{ needs.verify.outputs.file }}
+        secrets:
+            MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+            FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+            FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
+
+    crates:
+        name: Publish crate
+        needs: [verify]
+        if: ${{ github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'crates') }}
+        permissions:
+            contents: write
+            packages: write
+            issues: write
+        uses: ./.github/workflows/rust-publish-crate.yml
+        with:
+            package: ${{ needs.verify.outputs.project }}
+        secrets:
+            CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
+
+    npm:
+        name: Publish package
+        needs: [verify]
+        if: ${{ github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'npm') }}
+        permissions:
+            contents: read
+        uses: ./.github/workflows/utils-npm-publish.yml
+        with:
+            project: ${{ needs.verify.outputs.project }}
+        secrets:
+            NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+    python:
+        name: Publish distribution
+        needs: [verify]
+        if: ${{ github.event_name == 'push' && contains(fromJSON(needs.verify.outputs.lanes), 'python') }}
+        permissions:
+            contents: read
+        uses: ./.github/workflows/utils-python-publish.yml
+        with:
+            project: ${{ needs.verify.outputs.project }}
+            pypi_name: ${{ needs.verify.outputs.pypi_name }}
+        secrets:
+            PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}

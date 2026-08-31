@@ -3,6 +3,7 @@ name = "herbmail-server"
 authors = ["kbve", "h0lybyte"]
 version = "0.0.1"
 edition = "2024"
+publish = false
 rust-version.workspace = true
 license = "MIT"
 description = "Herbmail game server — authoritative sim for the herbmail dungeon crawler."

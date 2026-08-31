@@ -24,3 +24,13 @@ tasks:
     preview:
         script: 'vite preview'
         deps: ['~:build-app']
+    # The registry build of the `container` task the docker tag provides.
+    # It lives here rather than on the parent arpg project because a release
+    # tag names a project and then looks for that project's publish task; a
+    # task on a sibling is one a tag can never reach.
+    container-publish:
+        script: 'docker buildx build --load --build-arg PUBLIC_ARPG_VERSION --cache-from=type=registry,ref=ghcr.io/kbve/arpg-web:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/arpg-web:buildcache,mode=max -f apps/agones/arpg/web/Dockerfile -t kbve/arpg-web:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true

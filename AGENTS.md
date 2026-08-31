@@ -124,26 +124,90 @@ For small, self-contained changes (docs, config, single-file fixes). Atoms use i
 
 ---
 
-# MDX is the version source — never hand-edit downstream files
+# Releases are git tags
 
-Every project with a `pipeline:` field in its `apps/kbve/astro-kbve/src/content/docs/project/*.mdx` frontmatter follows the same contract:
+A release is a tag, `<moon project id>@<semver>`:
 
-- `pipeline: docker` — `mc`, `mc-lobby`, `mc-velocity`, `kilobase`, `api`, `arc-runner`, `chuckrpg`, `discordsh`, `edge`, `herbmail`, `irc-gateway`, `iot-edge-worker`, `kubectl`, `memes`, `rareicon`, `rows`, `steamcmd-ubuntu`, etc.
-- `pipeline: crates` — `bevy_inventory`, `bevy_kbve_net`, `bevy_items`, `bevy_tasker`, `soul`, `uniti`, `khashvault`, `holy`, `kbve`, `jedi`, etc.
-- `pipeline: npm` — `@kbve/*` packages
-- `pipeline: python` — `python-kbve` (PyPI: `kbve`)
-- `pipeline: ue5_server`, `pipeline: unity`, `pipeline: unreal` — game engine builds
+```bash
+git tag axum-kbve@1.0.297
+git push origin axum-kbve@1.0.297
+```
 
-Same rules apply across all of them:
+`release.yml` resolves the tag against the project graph, checks the version
+against the project's own manifest, and hands it to the publisher for whichever
+lane the project opts into. Nothing else triggers a publish.
 
-- ✅ Bump **only** the mdx frontmatter `version: "x.y.z"` to ship a new release.
-- ❌ Never edit the file pointed at by `version_toml:` (`apps/<app>/version.toml`, `packages/.../version.toml`) — CI's post-publish PR owns it.
-- ❌ Never edit the file pointed at by `version_source:` (`Cargo.toml`, `package.json`, `pyproject.toml`) — same.
-- ❌ Never edit `apps/kube/.../<app>-deployment.yaml` `image:` tags — Argo + post-publish own those too.
+- The version lives in the project's own manifest — `Cargo.toml`,
+  `package.json`, `pyproject.toml`, or `version.toml` for the image-only
+  projects that have none of those. **Bump it, commit it, then tag.** A tag
+  whose version disagrees with the manifest is rejected rather than published.
+- The lane is a tag in the project's `moon.yml`: `crates`, `npm`, `pypi`,
+  `docker`. It is separate from the toolchain tag, because what a project is
+  built with and what publishing it means are different questions — 26
+  applications here are written in rust and must never reach crates.io.
+- A project in no lane cannot be released, and tagging it fails loudly rather
+  than doing nothing.
 
-Dispatch logic: CI compares mdx `version:` against `version_toml`; **equal → skip build entirely**. Pre-bumping `version.toml` (or `Cargo.toml`, etc.) silently breaks the pipeline because the dispatcher thinks the version already shipped.
+There is no dispatch manifest and no MDX version pipeline. Both are gone.
+`.github/ci-dispatch-manifest.json`, `utils-file-alterations.yml` and the
+`ci-manifest-*` workflows tried to infer release intent from which files a
+commit touched, using a hand-maintained path list that fell out of step with
+the tree; a tag states the intent once. MDX `version:` frontmatter remains as
+display data for the site and is no longer a lever.
 
-Look-ups before editing: `git log -- <project>.mdx` and confirm the bot account (`kbve-bot` / CI commits) is the one that touches `version.toml`. If a human commit shows up there, it's a mistake.
+Adding a project to a lane is one line in its own `moon.yml`, not an entry in a
+list kept somewhere else.
+
+---
+
+# Running tasks
+
+Run tasks through moon (`moon run <project>:<task>`, `moon check`, `moon ci`)
+rather than the underlying tool directly. The task config carries the inputs,
+outputs and dependencies that make a run cacheable and correct.
+
+- `moon query projects` and `moon query tasks` answer "what exists" as JSON;
+  `moon project <id>` and `moon task <target>` explain one of them. Prefer these
+  over reading config files by hand.
+- A task id spells a colon as a hyphen: `astro-kbve:sync-itemdb`, not
+  `sync:itemdb`.
+- `moon project-graph` and `moon task-graph` open the graphs. `moon clean`
+  clears the cache.
+- Affected runs take `--affected --base <ref> --head <ref>`.
+- **Never guess CLI flags — check `--help` first.** `moon ci` has no `--query`;
+  a task opts out of CI with `runInCI: false` in its own moon.yml.
+
+## Where configuration lives
+
+- `.moon/workspace.yml` — the project graph. Everything outside `crates/` is
+  named explicitly; read the comment there before adding a glob.
+- `.moon/toolchains.yml` — node, pnpm, rust and the typescript/javascript layers.
+- `.moon/tasks/*.yml` — the presets. A file's `inheritedBy` is either a tag
+  (`astro`, `docker`, `npm`, `playwright`, `vite`, `vitest`, `eslint`, `tauri`,
+  `lfs`, `uv`) or a toolchain (`rust`, `node`). Most projects need no tasks of
+  their own; they declare tags and inherit.
+- `<project>/moon.yml` — only what the tags do not already provide.
+
+## Adding a project
+
+1. Give it a `moon.yml` with `layer`, `language` and its tags.
+2. Add it to `projects.sources` in `.moon/workspace.yml` — a project outside
+   `crates/` is not in the graph until it is named there.
+3. Write tasks only where the preset is wrong for it.
+
+## Common pitfalls
+
+- **Inherited tasks merge, they do not override.** args, deps, inputs and
+  outputs from a preset are appended to the project's own. To replace rather
+  than extend, set `options.mergeOutputs: 'replace'` (and the equivalent for the
+  other fields).
+- **Two presets that define the same task id will merge their commands into
+  nonsense.** This is why a rust project with a vitest config does not get the
+  `vitest` tag, and why rust and python projects never get `eslint` — `test` and
+  `lint` already belong to cargo and to ruff.
+- **A glob in `projects.sources` registers every matching directory**, with or
+  without a moon.yml. `apps/` and `packages/` have repeated basenames (`kbve`,
+  `relay`, `server`, `web`) and globbing them breaks the graph outright.
 
 ---
 
