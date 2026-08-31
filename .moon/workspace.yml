@@ -1,0 +1,50 @@
+$schema: 'https://moonrepo.dev/schemas/workspace.json'
+
+# Project graph.
+#
+# Every project is named explicitly rather than globbed. moon registers a
+# matched directory as a project whether or not it holds a moon.yml, which
+# rules globs out here twice over:
+#
+#   Collisions. kbve nests unevenly -- apps/mc, apps/kbve/astro-kbve,
+#   apps/agones/arpg/server, packages/rust/bevy/bevy_items -- so covering it
+#   takes globs two to four segments deep, and those match four directory
+#   basenames that repeat: kbve, relay, server, web. 'apps/*/*/*' alone fails
+#   the graph outright on apps/agones/{arpg,cryptothrone}/server.
+#
+#   Coexistence. Nx still owns every project that has not been ported. A glob
+#   would pull all 149 into moon's graph as empty, task-less projects and put
+#   them in `moon check --all` before anything can run them.
+#
+# So this map is the migration checklist: a project enters the graph on the
+# commit that gives it a moon.yml, and Nx keeps it until then.
+projects:
+    sources:
+        astro-herbmail: 'apps/herbmail/astro-herbmail'
+
+vcs:
+    defaultBranch: 'dev'
+    provider: 'github'
+
+hasher:
+    optimization: 'accuracy'
+
+pipeline:
+    inheritColorsForPipedTasks: true
+
+experiments:
+    # Content-addressable store for task outputs. Required by the shared
+    # worktree cache below -- that feature shares CAS blobs.
+    casOutputsCache: true
+
+cache:
+    cas:
+        maxSize: '4gb'
+
+    # Share task outputs across git worktrees. Every branch here is developed in
+    # a linked worktree (AGENTS.md), and a linked worktree otherwise gets its own
+    # .moon/cache and starts cold. Only blobs and manifests are shared; hashes,
+    # locks and run states stay per-worktree.
+    #
+    # Still prefixed unstable_ in moon 2.5.
+    unstable_sharedWorktreeCache: true

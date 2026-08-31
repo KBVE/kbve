@@ -1,0 +1,20 @@
+$schema: 'https://moonrepo.dev/schemas/tasks.json'
+
+# Inherited by every project using the node toolchain.
+#
+# File groups only, deliberately. Tasks belong to tag-scoped files such as
+# astro.yml: a project inherits every file whose inheritedBy matches, and two
+# files defining the same task id merge their args rather than overriding,
+# which silently produces commands like `astro build run build`.
+inheritedBy:
+    toolchain: 'node'
+
+fileGroups:
+    sources:
+        - 'src/**/*'
+    tests:
+        - 'tests/**/*'
+        - 'src/**/*.test.*'
+        - 'src/**/*.spec.*'
+    configs:
+        - '*.{js,cjs,mjs,json,ts}'
