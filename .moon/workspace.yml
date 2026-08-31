@@ -112,7 +112,6 @@ projects:
         # Python (uv)
         fudster: 'packages/python/fudster'
         graphify-wrapper: 'packages/python/graphify-wrapper'
-        notification-bot: 'apps/discordsh/notification-bot'
         pydesk: 'apps/pydesk'
         # crates/kbve owns 'kbve' in the graph, and two projects cannot share
         # an id. Only the graph cares -- the directory, the distribution and

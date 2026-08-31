@@ -10,7 +10,7 @@ use super::commands;
 use super::components;
 use crate::state::AppState;
 
-/// Vault secret UUID for the Discord bot token (shared with the Python notification-bot).
+/// Vault secret UUID for the Discord bot token.
 const DISCORD_TOKEN_VAULT_ID: &str = "39781c47-be8f-4a10-ae3a-714da299ca07";
 
 /// Bounded retry budget for vault token fetch on startup. After exhaustion the

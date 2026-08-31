@@ -9,7 +9,7 @@ use tracing::{info, warn};
 
 /// Health assessment based on memory and CPU thresholds.
 ///
-/// Thresholds match the Python notification-bot:
+/// Thresholds:
 /// - HEALTHY: memory ≤ 70% AND CPU ≤ 70%
 /// - WARNING: either > 70% but neither > 90%
 /// - CRITICAL: either > 90%

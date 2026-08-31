@@ -1,7 +1,4 @@
 /// Bot lifecycle states with associated display properties.
-///
-/// Ported from notification-bot's `StatusState` enum, simplified
-/// to the five states relevant for the Rust bot.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[allow(dead_code)]
 pub enum StatusState {
