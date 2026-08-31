@@ -1,0 +1,19 @@
+# Workflow tooling. Not a released thing itself.
+layer: 'tool'
+language: 'javascript'
+stack: 'infrastructure'
+
+owners:
+    defaultOwner: '@h0lybyte'
+
+tasks:
+    # A calling job that grants a called workflow less than it asks for does not
+    # fail the job -- GitHub refuses to create the run, with no job and no log.
+    # actionlint cannot see it, because every file involved is valid on its own.
+    # `lint` rather than a task of its own, so `moon ci` reaches it.
+    lint:
+        command: 'node permissions.mjs'
+        toolchains: ['node']
+        inputs:
+            - 'permissions.mjs'
+            - '/.github/workflows/*.yml'
