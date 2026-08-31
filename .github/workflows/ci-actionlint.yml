@@ -8,6 +8,7 @@ on:
         paths:
             - '.github/workflows/**'
             - '.github/actions/**'
+            - '.github/scripts/**'
             - '.github/workflows/ci-actionlint.yml'
     workflow_dispatch:
 
@@ -45,6 +46,28 @@ jobs:
               run: |
                   set -euo pipefail
                   "$ACTIONLINT" -color -shellcheck 'shellcheck -S error'
+
+    ows_scripts:
+        # actionlint only shellchecks embedded `run:` blocks, so the extracted
+        # ows publish scripts had no coverage at all — that is how the gawk-only
+        # 3-arg match() reached a runner. Lint and unit-test them here.
+        name: ows scripts (shellcheck + tests)
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        permissions:
+            contents: read
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+
+            - name: shellcheck
+              run: |
+                  set -euo pipefail
+                  shellcheck --version
+                  shellcheck -S error -x .github/scripts/ows/*.sh .github/scripts/ows/tests/*.sh
+
+            - name: Run ows test suite
+              run: bash .github/scripts/ows/tests/run-all.sh
 
     zizmor:
         name: zizmor (informational)
@@ -95,7 +118,7 @@ jobs:
     track_failure:
         name: Track Failures
         if: ${{ always() && contains(needs.*.result, 'failure') }}
-        needs: [actionlint]
+        needs: [actionlint, ows_scripts]
         permissions:
             issues: write
             contents: read
@@ -110,7 +133,7 @@ jobs:
     track_success:
         name: Track Success
         if: ${{ always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
-        needs: [actionlint]
+        needs: [actionlint, ows_scripts]
         permissions:
             issues: write
             contents: read
