@@ -10,3 +10,9 @@ tasks:
         options:
             runFromWorkspaceRoot: true
             cache: false
+    containerx-publish:
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/factorio-ctl:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/factorio-ctl:buildcache,mode=max -f apps/vm/factorio-ctl/Dockerfile -t ghcr.io/kbve/factorio-ctl:latest -t kbve/factorio-ctl:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true

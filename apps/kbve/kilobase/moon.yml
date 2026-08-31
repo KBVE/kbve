@@ -47,3 +47,9 @@ tasks:
         deps: ['~:container']
         options:
             runFromWorkspaceRoot: true
+    container-publish:
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/kilobase:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/kilobase:buildcache,mode=max -f apps/kbve/kilobase/Dockerfile -t kbve/kilobase:latest apps/kbve/kilobase'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true

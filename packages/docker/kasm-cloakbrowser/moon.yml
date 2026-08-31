@@ -14,6 +14,12 @@ tasks:
         options:
             runFromWorkspaceRoot: true
             cache: false
+    containerx-publish:
+        script: 'docker buildx build --push --platform linux/amd64 --cache-from=type=registry,ref=ghcr.io/kbve/kasm-cloakbrowser:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/kasm-cloakbrowser:buildcache,mode=max -f packages/docker/kasm-cloakbrowser/Dockerfile -t ghcr.io/kbve/kasm-cloakbrowser:latest packages/docker/kasm-cloakbrowser'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true
     test:
         script: 'docker inspect ghcr.io/kbve/kasm-cloakbrowser:dev --format ''{{.Config.User}}'' | grep -q ''^1000$'' && echo ''PASS: drops to uid 1000'' && docker run --rm --entrypoint /opt/cloakbrowser/cloakbrowser ghcr.io/kbve/kasm-cloakbrowser:dev --version && echo ''PASS: cloakbrowser binary runs --version'' && docker run --rm --entrypoint cat ghcr.io/kbve/kasm-cloakbrowser:dev /dockerstartup/custom_startup.sh | grep -q CLOAK_BIN && echo ''PASS: custom_startup.sh installed'' && docker run --rm --entrypoint python3 ghcr.io/kbve/kasm-cloakbrowser:dev -c ''from cloakbrowser import launch; print("sdk-import-ok")'' | grep -q sdk-import-ok && echo ''PASS: python cloakbrowser sdk importable'' && docker rmi -f ghcr.io/kbve/kasm-cloakbrowser:dev || true'
         deps: ['~:container']

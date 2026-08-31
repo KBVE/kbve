@@ -20,3 +20,9 @@ tasks:
         deps: ['~:container']
         options:
             cache: false
+    container-publish:
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/herbmail-server:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/herbmail-server:buildcache,mode=max -f apps/agones/herbmail/server/Dockerfile -t kbve/herbmail-server:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true

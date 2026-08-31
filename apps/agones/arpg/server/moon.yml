@@ -15,3 +15,9 @@ tasks:
         outputs: ['/dist/target/release/arpg-server']
         options:
             runFromWorkspaceRoot: true
+    container-publish:
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/arpg-server:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/arpg-server:buildcache,mode=max -f apps/agones/arpg/server/Dockerfile -t kbve/arpg-server:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true

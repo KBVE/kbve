@@ -24,3 +24,9 @@ tasks:
         options:
             runFromWorkspaceRoot: true
             cache: false
+    containerx-publish:
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/memes:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/memes:buildcache,mode=max -f apps/memes/axum-memes/Dockerfile -t ghcr.io/kbve/memes:latest -t kbve/memes:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true

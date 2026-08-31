@@ -15,6 +15,12 @@ tasks:
         options:
             runFromWorkspaceRoot: true
             cache: false
+    containerx-publish:
+        script: 'docker buildx build --load --platform linux/amd64 --provenance=false --sbom=false -f packages/docker/firecracker/node/web/Dockerfile -t ghcr.io/kbve/firecracker-node-web:latest packages/docker/firecracker/node/web'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true
     extract:
         script: "mkdir -p packages/docker/firecracker/node/web/dist && docker create --name fc-node-web-extract ghcr.io/kbve/firecracker-node-web:latest true > /dev/null 2>&1 || true && docker cp fc-node-web-extract:/rootfs.ext4 packages/docker/firecracker/node/web/dist/node-web.ext4 && docker rm fc-node-web-extract > /dev/null 2>&1 || true && echo 'Extracted: packages/docker/firecracker/node/web/dist/node-web.ext4'"
         deps: ['~:container']

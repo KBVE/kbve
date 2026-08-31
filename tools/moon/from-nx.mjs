@@ -105,6 +105,10 @@ function hoistNxDeps(raw, self) {
 				continue;
 			}
 			const [proj, task] = m[1] ? [m[1], m[2]] : [m[4], m[3]];
+			// Checked against the Nx target name, before the colons in it become
+			// hyphens: `e2e:docker` is a target, `e2e-docker` is what moon calls it.
+			const targets = proj === self ? null : targetsOf(proj);
+			if (targets && !targets.has(task)) continue;
 			deps.push(proj === self ? '~:' + taskId(task) : `${proj}:${taskId(task)}`);
 		}
 	}
@@ -140,21 +144,68 @@ const dep = (d, dir, self, own = new Set()) => {
 	return list.map((p) => (p === self ? '~:' + target : `${p}:${target}`));
 };
 
+// Every project.json in the repository, by Nx project name. Used to check that
+// a dependency points at a target that exists: `cryptothrone:base` and
+// `discordsh:base` forward to a `base` target neither axum project has, so they
+// are dead under Nx too and should not be carried across.
+let PROJECTS;
+function targetsOf(name) {
+	if (!PROJECTS) {
+		PROJECTS = new Map();
+		const walk = (d) => {
+			for (const entry of readdirSync(d, { withFileTypes: true })) {
+				if (entry.name.startsWith('.') || ['node_modules', 'target', 'dist'].includes(entry.name)) continue;
+				const full = path.join(d, entry.name);
+				if (entry.isDirectory()) walk(full);
+				else if (entry.name === 'project.json') {
+					try {
+						const nx = JSON.parse(readFileSync(full, 'utf8'));
+						if (nx.name) PROJECTS.set(nx.name, new Set(Object.keys(nx.targets ?? {})));
+					} catch {}
+				}
+			}
+		};
+		walk('.');
+	}
+	return PROJECTS.get(name);
+}
+
+// A dep is dropped when the project it names is known and has no such target.
+// An unknown project is left alone: it may be one moon defines without an Nx
+// counterpart, and dropping it would hide a real edge.
+function live(d, self, own) {
+	if (typeof d !== 'string' || d.startsWith('^') || own.has(d)) return true;
+	const [proj, ...rest] = d.split(':');
+	if (!rest.length || proj === self) return true;
+	const targets = targetsOf(proj);
+	return !targets || targets.has(rest.join(':'));
+}
+
 // @nx-tools/nx-container:build in terms of the CLI it wraps.
 //
-// Only the local build is translated. The `production` configuration on these
-// targets differs by pushing to a registry with a build cache, and that is CI's
-// job rather than a task anyone runs at a terminal -- CI publishing is being
-// moved onto git tags separately, so encoding it here would date immediately.
-function containerScript(target, project) {
-	const o = { ...(target.options ?? {}), ...(target.configurations?.local ?? {}) };
+// Two tasks come out of one target. The `local` configuration loads the image
+// into the daemon and is what anyone runs at a terminal; `production` pushes it
+// to a registry through a build cache and is only ever run by CI. They differ by
+// more than a flag -- different tags, sometimes different build args -- so they
+// cannot be one task with a switch, and moon has no notion of a configuration to
+// hang the difference on.
+function containerScript(target, project, config) {
+	const o = { ...(target.options ?? {}), ...(target.configurations?.[config] ?? {}) };
 	const meta = o.metadata ?? {};
 	const tags =
 		o.tags ??
 		(meta.images ?? []).flatMap((image) => (meta.tags ?? ['latest']).map((t) => `${image}:${t}`));
-	const args = ['docker', 'buildx', 'build', '--load'];
+	const args = ['docker', 'buildx', 'build'];
+	// --push and --load are alternatives: one uploads the image, the other keeps
+	// it local. A production config that sets both means push.
+	args.push(o.push ? '--push' : '--load');
 	if (o.target) args.push('--target', o.target);
 	if (o.platforms?.length) args.push('--platform', o.platforms.join(','));
+	for (const a of o['build-args'] ?? []) args.push('--build-arg', a);
+	for (const c of o['cache-from'] ?? []) args.push(`--cache-from=${c}`);
+	for (const c of o['cache-to'] ?? []) args.push(`--cache-to=${c}`);
+	if (o.provenance !== undefined) args.push(`--provenance=${o.provenance}`);
+	if (o.sbom !== undefined) args.push(`--sbom=${o.sbom}`);
 	args.push('-f', o.file);
 	for (const t of tags.length ? tags : [`kbve/${project}:latest`]) args.push('-t', t);
 	args.push(o.context ?? '.');
@@ -174,11 +225,19 @@ export function convert(dir, tags) {
 		if (!raw.length) {
 			// The one executor with a mechanical translation. Everything else
 			// executor-driven is either covered by a preset or ported by hand.
-			if (target.executor === '@nx-tools/nx-container:build' && !provided.has(id)) {
-				tasks[id] = {
-					script: containerScript(target, nx.name),
-					options: { runFromWorkspaceRoot: true, cache: false },
-				};
+			if (target.executor === '@nx-tools/nx-container:build') {
+				const opts = { runFromWorkspaceRoot: true, cache: false };
+				// The docker tag already provides `container` for the common
+				// shape, so only a project whose local build differs writes it.
+				if (!provided.has(id)) {
+					tasks[id] = { script: containerScript(target, nx.name, 'local'), options: opts };
+				}
+				if (target.configurations?.production) {
+					tasks[`${id}-publish`] = {
+						script: containerScript(target, nx.name, 'production'),
+						options: { ...opts, runInCI: true },
+					};
+				}
 			}
 			continue;
 		}
@@ -188,6 +247,7 @@ export function convert(dir, tags) {
 		// Joining with && preserves the sequential case and makes the parallel
 		// one sequential too, which is safe in the direction that matters.
 		const hoisted = hoistNxDeps(raw, nx.name);
+		if (!hoisted.deps.length && !hoisted.rest.length) continue; // every call it made was dead
 		if (hoisted.deps.length && !hoisted.rest.length) {
 			tasks[id] = { deps: hoisted.deps, options: { cache: false } };
 			continue;
@@ -216,7 +276,9 @@ export function convert(dir, tags) {
 			const ins = target.inputs.filter((i) => typeof i === 'string').map((x) => token(x, dir));
 			if (ins.length) task.inputs = ins;
 		}
-		const declared = (target.dependsOn ?? []).flatMap((d) => dep(d, dir, nx.name, own));
+		const declared = (target.dependsOn ?? [])
+			.filter((d) => live(d, nx.name, own))
+			.flatMap((d) => dep(d, dir, nx.name, own));
 		const alldeps = [...new Set([...hoisted.deps, ...declared])];
 		if (alldeps.length) task.deps = alldeps;
 		if (target.cache === false) task.options = { ...(task.options ?? {}), cache: false };

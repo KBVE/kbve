@@ -24,3 +24,9 @@ tasks:
         options:
             runFromWorkspaceRoot: true
             cache: false
+    containerx-publish:
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/discordsh:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/discordsh:buildcache,mode=max -f apps/discordsh/axum-discordsh/Dockerfile -t ghcr.io/kbve/discordsh:latest -t kbve/discordsh:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true

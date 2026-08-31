@@ -24,3 +24,9 @@ tasks:
         options:
             runFromWorkspaceRoot: true
             cache: false
+    containerx-publish:
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/herbmail:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/herbmail:buildcache,mode=max -f apps/herbmail/axum-herbmail/Dockerfile -t ghcr.io/kbve/herbmail:latest -t kbve/herbmail:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true

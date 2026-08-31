@@ -10,3 +10,9 @@ tasks:
         options:
             runFromWorkspaceRoot: true
             cache: false
+    containerx-publish:
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/aria2-proxy:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/aria2-proxy:buildcache,mode=max -f apps/vm/aria2-proxy/Dockerfile -t ghcr.io/kbve/aria2-proxy:latest -t kbve/aria2-proxy:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true

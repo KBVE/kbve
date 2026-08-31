@@ -10,6 +10,12 @@ tasks:
     options:
       runFromWorkspaceRoot: true
       cache: false
+  containerx-publish:
+    script: "docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/edge:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/edge:buildcache,mode=max -f apps/kbve/edge/Dockerfile -t ghcr.io/kbve/edge:latest -t kbve/edge:latest apps/kbve/edge"
+    options:
+      runFromWorkspaceRoot: true
+      cache: false
+      runInCI: true
   containerx-dev:
     script: "docker buildx build --load -f apps/kbve/edge/Dockerfile.dev -t kbve/edge:dev apps/kbve/edge"
     options:

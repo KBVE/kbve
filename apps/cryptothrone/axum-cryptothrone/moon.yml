@@ -28,3 +28,9 @@ tasks:
         options:
             runFromWorkspaceRoot: true
             cache: false
+    containerx-publish:
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/cryptothrone:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/cryptothrone:buildcache,mode=max -f apps/cryptothrone/axum-cryptothrone/Dockerfile -t ghcr.io/kbve/cryptothrone:latest -t kbve/cryptothrone:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true

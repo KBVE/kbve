@@ -40,12 +40,18 @@ tasks:
     web-test:
         script: 'cd web && npm run test'
     e2e:
-        script: '(cd "$(git rev-parse --show-toplevel)" && ./kbve.sh -lfs arpg pull --include=''apps/agones/arpg/web/public/assets/arcade/arpg/**'') && moon run arpg:container-web && moon run arpg-e2e:e2e-cdn'
+        script: '(cd "$(git rev-parse --show-toplevel)" && ./kbve.sh -lfs arpg pull --include=''apps/agones/arpg/web/public/assets/arcade/arpg/**'') && nx run arpg:container-web && nx run arpg-e2e:e2e:cdn'
         deps: ['~:web-test']
         options:
             runFromWorkspaceRoot: true
     container-web:
-        script: 'docker buildx build --load -f apps/agones/arpg/web/Dockerfile -t kbve/arpg-web:latest .'
+        script: 'docker buildx build --load --build-arg PUBLIC_ARPG_VERSION -f apps/agones/arpg/web/Dockerfile -t kbve/arpg-web:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false
+    container-web-publish:
+        script: 'docker buildx build --load --build-arg PUBLIC_ARPG_VERSION --cache-from=type=registry,ref=ghcr.io/kbve/arpg-web:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/arpg-web:buildcache,mode=max -f apps/agones/arpg/web/Dockerfile -t kbve/arpg-web:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true

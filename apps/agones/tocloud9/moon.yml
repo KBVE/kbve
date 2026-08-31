@@ -50,13 +50,31 @@ tasks:
         options:
             runFromWorkspaceRoot: true
             cache: false
+    container-gameserver-publish:
+        script: 'docker buildx build --push --target gameserver --cache-from=type=registry,ref=ghcr.io/kbve/tocloud9-gameserver-playerbots:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/tocloud9-gameserver-playerbots:buildcache,mode=max -f apps/agones/tocloud9/gameserver/Dockerfile -t ghcr.io/kbve/tocloud9-gameserver-playerbots:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true
     container-db-import:
         script: 'docker buildx build --load --target db-import -f apps/agones/tocloud9/gameserver/Dockerfile -t kbve/tocloud9-db-import-playerbots:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false
+    container-db-import-publish:
+        script: 'docker buildx build --push --target db-import --cache-from=type=registry,ref=ghcr.io/kbve/tocloud9-db-import-playerbots:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/tocloud9-db-import-playerbots:buildcache,mode=max -f apps/agones/tocloud9/gameserver/Dockerfile -t ghcr.io/kbve/tocloud9-db-import-playerbots:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true
     container-services:
         script: 'docker buildx build --load -f apps/agones/tocloud9/services/Dockerfile -t kbve/tocloud9-services-playerbots:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false
+    container-services-publish:
+        script: 'docker buildx build --push --cache-from=type=registry,ref=ghcr.io/kbve/tocloud9-services-playerbots:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/tocloud9-services-playerbots:buildcache,mode=max -f apps/agones/tocloud9/services/Dockerfile -t ghcr.io/kbve/tocloud9-services-playerbots:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true

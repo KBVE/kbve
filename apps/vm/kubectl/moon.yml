@@ -10,3 +10,9 @@ tasks:
         options:
             runFromWorkspaceRoot: true
             cache: false
+    containerx-publish:
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/kubectl:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/kubectl:buildcache,mode=max -f apps/vm/kubectl/Dockerfile -t ghcr.io/kbve/kubectl:latest -t kbve/kubectl:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true
