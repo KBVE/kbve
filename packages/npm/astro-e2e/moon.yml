@@ -5,7 +5,7 @@ language: 'typescript'
 
 # Both: it is an Astro site whose only purpose is to be driven by a Playwright
 # suite against the @kbve/astro package.
-tags: ['astro', 'e2e']
+tags: ['astro', 'playwright']
 
 # @kbve/astro is not in moon's graph yet; the edge is added when the npm
 # packages are ported.

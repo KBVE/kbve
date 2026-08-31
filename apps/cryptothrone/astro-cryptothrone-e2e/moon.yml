@@ -2,7 +2,7 @@ $schema: 'https://moonrepo.dev/schemas/project.json'
 
 layer: 'automation'
 language: 'typescript'
-tags: ['e2e']
+tags: ['playwright']
 
 dependsOn: ['astro-cryptothrone']
 

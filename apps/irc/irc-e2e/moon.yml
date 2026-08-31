@@ -2,7 +2,7 @@ $schema: 'https://moonrepo.dev/schemas/project.json'
 
 layer: 'automation'
 language: 'typescript'
-tags: ['e2e']
+tags: ['playwright']
 
 # Nx also listed the axum/gateway service here, but those projects are not
 # in moon's graph yet. The edge is added when they are ported.

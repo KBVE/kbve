@@ -1,14 +1,22 @@
 $schema: 'https://moonrepo.dev/schemas/tasks.json'
 
-# Inherited by every project tagged 'e2e'. Replaces @nx/playwright:playwright,
-# which took a config path as an executor option; here that is the command.
+# Inherited by every project tagged 'playwright'. Replaces
+# @nx/playwright:playwright, which took a config path as an executor option;
+# here that is the command.
 #
-# Every suite in the repo follows the same layout -- playwright.config.ts at
-# the project root, specs under e2e/ -- so $projectSource is enough to name the
-# config and no project has to repeat it. Variants (docker, preview, mock,
+# The tag names the tool, not the intent. Only 27 of the 99 e2e targets in this
+# repo are Playwright: 26 are docker orchestration, 30 delegate to other Nx
+# targets, and the rest are pytest, cargo or vitest. A tag named 'e2e' would
+# hand every one of them a `playwright test --config=...` pointing at a file
+# that does not exist. The task is still called `e2e`, so `moon run :e2e` still
+# reaches all of them once the other runners have presets of their own.
+#
+# Every Playwright suite here follows the same layout -- playwright.config.ts
+# at the project root, specs under e2e/ -- so $projectSource is enough to name
+# the config and no project has to repeat it. Variants (docker, preview, mock,
 # static) are declared per project, because which of them exist differs.
 inheritedBy:
-    tag: 'e2e'
+    tag: 'playwright'
 
 fileGroups:
     tests:
