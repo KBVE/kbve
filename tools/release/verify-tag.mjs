@@ -285,6 +285,23 @@ export function lanes(tags) {
  * source_path} pairs, and both facts are a project in the graph, so they come
  * from the `factorio-mod` lane rather than from this project's env.
  */
+/**
+ * A structured env value, parsed with the project and the key in the error.
+ *
+ * These are JSON in a string because moon env values are strings, and a bare
+ * `JSON.parse` failure reads `Unexpected token } in JSON at position 41` with
+ * nothing to say which of 87 projects or which of a dozen keys it came from.
+ * At release time that is the only thing on the screen.
+ */
+function envJson(node, key) {
+	const raw = node.config?.env?.[key];
+	try {
+		return JSON.parse(raw);
+	} catch (error) {
+		throw new TagError(`${node.id} has a ${key} that is not valid JSON: ${error.message}\n\n  ${raw}`);
+	}
+}
+
 export function externalPublish(node, factorioMods = []) {
 	const env = node.config?.env ?? {};
 	const out = {};
@@ -297,7 +314,7 @@ export function externalPublish(node, factorioMods = []) {
 	// Structured rather than scalar, so it is stored as JSON. A malformed value
 	// throws here, where the tag is being checked, rather than midway through a
 	// publish.
-	if (env.STEAM_APPS) out.steam_apps = JSON.parse(env.STEAM_APPS);
+	if (env.STEAM_APPS) out.steam_apps = envJson(node, 'STEAM_APPS');
 
 	for (const [key, value] of Object.entries(env)) {
 		if (!key.startsWith('MODRINTH_')) continue;
@@ -306,7 +323,7 @@ export function externalPublish(node, factorioMods = []) {
 		// looks like JSON back into the value it was, and leave a plain string
 		// alone: `mc.kbve.com` is not JSON and must not become one.
 		out[key.toLowerCase()] =
-			value.startsWith('[') || value.startsWith('{') ? JSON.parse(value) : value;
+			value.startsWith('[') || value.startsWith('{') ? envJson(node, key) : value;
 	}
 
 	if (env.PUBLISHES_FACTORIO_MODS === 'true' && factorioMods.length)
@@ -340,7 +357,7 @@ export function modName(source, root = process.cwd()) {
 export function engineConfig(node) {
 	const raw = node.config?.env?.ENGINE_CONFIG;
 	if (!raw) return '';
-	const engine = JSON.parse(raw);
+	const engine = envJson(node, 'ENGINE_CONFIG');
 	return JSON.stringify({
 		...engine,
 		app_name: node.id,
@@ -366,9 +383,16 @@ export function publishConfig(node) {
 	});
 }
 
-export function verify(tag, root = process.cwd(), factorioMods = []) {
+export function verify(tag, root = process.cwd(), factorioMods = [], node = null) {
 	const { project, version } = parseTag(tag);
-	const node = projectNode(project, root);
+	// The node is normally looked up here, one `moon query` per call, which is
+	// right for a release: it verifies one tag. audit.mjs verifies all of them,
+	// and `moon query projects` already returned every node it needs, so it
+	// passes one in rather than spawning moon 87 more times.
+	node ??= projectNode(project, root);
+	if (node.id !== project) {
+		throw new TagError(`Tag ${tag} was checked against project ${node.id}.`);
+	}
 	const source = node.source;
 	const manifest = manifestVersion(root, source);
 	if (manifest.version !== version) {
