@@ -20,7 +20,13 @@ $schema: 'https://moonrepo.dev/schemas/workspace.json'
 # commit that gives it a moon.yml, and Nx keeps it until then.
 projects:
     sources:
+        astro-chuckrpg: 'apps/chuckrpg/astro-chuckrpg'
+        astro-cryptothrone: 'apps/cryptothrone/astro-cryptothrone'
+        astro-discordsh: 'apps/discordsh/astro-discordsh'
         astro-herbmail: 'apps/herbmail/astro-herbmail'
+        astro-irc: 'apps/irc/astro-irc'
+        astro-memes: 'apps/memes/astro-memes'
+        astro-rareicon: 'apps/rareicon/astro-rareicon'
 
 vcs:
     defaultBranch: 'dev'

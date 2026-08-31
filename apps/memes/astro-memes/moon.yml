@@ -1,0 +1,28 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+stack: 'frontend'
+tags: ['astro']
+
+tasks:
+    # Generates the Zod schemas the content collections validate against, so it
+    # has to run before anything type-checks or builds.
+    proto:
+        command: 'node apps/memes/astro-memes/codegen/proto-to-zod.mjs'
+        toolchains: ['node']
+        inputs: ['/packages/data/proto/**/*.proto', 'codegen/proto-to-zod.mjs']
+        outputs: ['src/schemas/generated/meme.zod.ts']
+        options:
+            runFromWorkspaceRoot: true
+
+    build:
+        deps: ['~:proto']
+
+    check:
+        deps: ['~:proto']
+
+    test:
+        command: 'vitest run --config vitest.config.ts'
+        toolchains: ['node']
+        inputs: ['@group(sources)', '@group(configs)', 'vitest.config.ts']

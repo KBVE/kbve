@@ -1,0 +1,10 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+stack: 'frontend'
+tags: ['astro']
+
+# The Nx target ran `astro build --root apps/discordsh/astro-discordsh` from the
+# workspace root; moon runs tasks in the project directory, so --root is what
+# the inherited task already does implicitly.

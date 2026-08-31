@@ -1,0 +1,44 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+stack: 'frontend'
+tags: ['astro']
+
+tasks:
+    # Art lives in the cryptothrone LFS remote, not in git proper. Failure is
+    # tolerated on purpose: without credentials or offline the build still runs
+    # and the assets stay pointer stubs, which is the behaviour the Nx target had.
+    lfs-pull:
+        script: >-
+            (cd "$(git rev-parse --show-toplevel)" && ./kbve.sh -lfs cryptothrone pull
+            --include='apps/cryptothrone/astro-cryptothrone/public/assets/**')
+            || echo 'cryptothrone LFS pull skipped (no creds / offline) — assets may be pointer stubs'
+        options:
+            cache: false
+
+    build:
+        deps: ['~:lfs-pull']
+
+    # Two standalone Vite bundles served from public/. Not build deps: the Nx
+    # targets were not either, and both are rebuilt on their own cadence.
+    build-embed:
+        command: 'vite build --config vite.embed.config.mts'
+        toolchains: ['node']
+        inputs: ['src/**/*', 'vite.embed.config.mts']
+        outputs: ['public/embed']
+        env:
+            NODE_OPTIONS: '--max-old-space-size=4096'
+
+    build-discord:
+        command: 'vite build --config vite.discord.config.mts'
+        toolchains: ['node']
+        inputs: ['src/**/*', 'vite.discord.config.mts']
+        outputs: ['public/discord']
+        env:
+            NODE_OPTIONS: '--max-old-space-size=4096'
+
+    test:
+        command: 'vitest run --coverage --config vitest.config.ts'
+        toolchains: ['node']
+        inputs: ['@group(sources)', '@group(configs)', 'vitest.config.ts']

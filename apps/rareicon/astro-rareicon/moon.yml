@@ -1,0 +1,35 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+stack: 'frontend'
+tags: ['astro']
+
+tasks:
+    proto:
+        command: 'buf generate packages/data/proto --template apps/rareicon/astro-rareicon/buf.gen.yaml'
+        toolchains: ['node']
+        inputs: ['/packages/data/proto/**/*.proto', 'buf.gen.yaml']
+        outputs: ['src/generated/proto']
+        options:
+            runFromWorkspaceRoot: true
+
+    proto-lint:
+        command: 'buf lint packages/data/proto'
+        toolchains: ['node']
+        inputs: ['/packages/data/proto/**/*.proto']
+        options:
+            runFromWorkspaceRoot: true
+
+    build:
+        deps: ['~:proto']
+        # The icon set pushes this one past the shared 4096 default.
+        env:
+            NODE_OPTIONS: '--max-old-space-size=8192'
+
+    dev:
+        env:
+            NODE_OPTIONS: '--max-old-space-size=8192'
+
+    check:
+        deps: ['~:proto']
