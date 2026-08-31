@@ -137,9 +137,12 @@ projects:
         aria2-proxy: 'apps/vm/aria2-proxy'
         arpg-web: 'apps/agones/arpg/web'
         edge: 'apps/kbve/edge'
-        esp32c6-display: 'apps/hardware/esp32c6-display'
         herbmail-game: 'apps/herbmail/herbmail-game'
         rentearth-web: 'apps/rentearth/axum-rentearth/web'
+
+        # Firmware. Top-level like crates/, but named rather than globbed:
+        # one project so far, and a glob would register any stray directory.
+        esp32c6-display: 'hardware/esp32c6-display'
 
         # Unpublished npm libraries
         chat: 'packages/npm/chat'
