@@ -1,0 +1,50 @@
+$schema: 'https://moonrepo.dev/schemas/tasks.json'
+
+# Inherited by every project tagged 'astro', so a new site declares the tag and
+# gets the whole task set.
+inheritedBy:
+    tag: 'astro'
+
+fileGroups:
+    sources:
+        - 'src/**/*'
+        - 'public/**/*'
+    configs:
+        - 'astro.config.*'
+        - 'tsconfig.json'
+        - 'package.json'
+
+tasks:
+    build:
+        command: 'astro build'
+        toolchains: ['node']
+        inputs: ['@group(sources)', '@group(configs)']
+        # Every astro app in the repo writes to the shared dist/ rather than a
+        # project-local one, via outDir in its astro.config. Leading '/' is
+        # workspace-relative.
+        outputs: ['/dist/apps/$project']
+        env:
+            # Carried over from the Nx targets: the content collections blow the
+            # default heap on the larger sites, and the default libuv pool starves
+            # image processing. A site that needs more raises it in its own moon.yml.
+            NODE_OPTIONS: '--max-old-space-size=4096'
+            UV_THREADPOOL_SIZE: '4'
+
+    dev:
+        command: 'astro dev'
+        toolchains: ['node']
+        preset: 'server'
+        env:
+            NODE_OPTIONS: '--max-old-space-size=4096'
+            UV_THREADPOOL_SIZE: '4'
+
+    preview:
+        command: 'astro preview'
+        toolchains: ['node']
+        preset: 'server'
+        deps: ['~:build']
+
+    check:
+        command: 'astro check'
+        toolchains: ['node']
+        inputs: ['@group(sources)', '@group(configs)']

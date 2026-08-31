@@ -1,0 +1,32 @@
+$schema: 'https://moonrepo.dev/schemas/toolchains.json'
+
+# moon 2 splits the old monolithic node toolchain into discrete plugins:
+# runtime (node), package manager (pnpm), ecosystem (javascript), type layer
+# (typescript). Each must be registered here to be active.
+#
+# rust and python are deliberately absent. They land after the node side is
+# proven; until then @monodon/rust and @nxlv/python keep owning those targets.
+
+node:
+    version: '24.10.0'
+
+pnpm:
+    version: '11.15.0'
+
+javascript:
+    packageManager: 'pnpm'
+    dedupeOnLockfileChange: true
+    inferTasksFromScripts: false
+    # pnpm-workspace.yaml declares no `packages:` -- kbve installs every
+    # dependency into one root node_modules and projects do not resolve each
+    # other through the store. Syncing per-project workspace dependencies would
+    # write `workspace:*` entries pnpm has no workspace to satisfy.
+    syncProjectWorkspaceDependencies: false
+
+typescript:
+    # Project references are off on purpose. moon writes them from the dependsOn
+    # graph, and TypeScript then requires composite: true on every referenced
+    # project -- declaration emit, which a noEmit Astro project cannot provide.
+    syncProjectReferences: false
+    createMissingConfig: false
+    includeSharedTypes: false
