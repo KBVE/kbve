@@ -167,10 +167,10 @@ Different rule for content collections under `apps/kbve/astro-kbve/src/content/d
 
 - These have **no** `version:` field. They're data, not packages.
 - Edit MDX → run the matching codegen target:
-    - `npx nx run astro-kbve:sync:itemdb`
-    - `npx nx run astro-kbve:sync:npcdb`
-    - `npx nx run astro-kbve:sync:mapdb`
-    - `npx nx run astro-kbve:sync:questdb`
+    - `moon run astro-kbve:sync-itemdb`
+    - `moon run astro-kbve:sync-npcdb`
+    - `moon run astro-kbve:sync-mapdb`
+    - `moon run astro-kbve:sync-questdb`
 - Commit the MDX **and** any artifacts the sync target wrote (JSON / binpb under `astro-kbve/public/data/`, Generated C# under `apps/rareicon/.../Generated/`).
 - ❌ Never hand-edit those generated artifacts. The MDX is the source of truth; the sync target is the only writer.
 
@@ -185,7 +185,7 @@ uv run kbve-unreal-check <absolute-or-relative-file-path>
 
 - Works on `.cpp` and `.h` (headers are checked through a sibling source file from the same module).
 - Exit 0 = clean, 1 = compile errors (printed as `file:line:col: error: ...`), 2 = file not in the compile database.
-- On exit 2 (new file, or flags drifted), regenerate the database first: `uv run kbve-unreal-clangd` (or `pnpm nx run unreal-rentearth:clangd-db`). Takes ~10 s.
+- On exit 2 (new file, or flags drifted), regenerate the database first: `uv run kbve-unreal-clangd` (or `moon run unreal-rentearth:clangd-db`). Takes ~10 s.
 - The database lives at `apps/rentearth/unreal-rentearth/compile_commands.json` (gitignored) and is pointed to by the committed root `.clangd`, which also powers clangd IDE support.
 
 ---

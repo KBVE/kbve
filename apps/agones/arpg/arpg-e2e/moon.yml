@@ -3,3 +3,31 @@ $schema: 'https://moonrepo.dev/schemas/project.json'
 layer: 'application'
 language: 'typescript'
 tags: ['playwright']
+
+tasks:
+    # Four suites, four configs: the game server, the web client, the nginx CDN
+    # image, and Playwright component tests. Each is its own task because each
+    # needs a different thing running first.
+    e2e-server:
+        script: 'pnpm exec playwright test --config=$projectSource/playwright.server.config.ts'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    e2e-web:
+        script: 'pnpm exec playwright test --config=$projectSource/playwright.web.config.ts'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    e2e-cdn:
+        script: 'pnpm exec playwright test --config=$projectSource/playwright.cdn.config.ts'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    component:
+        script: 'pnpm exec playwright test --config=$projectSource/playwright.ct.config.ts'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false

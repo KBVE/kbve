@@ -25,7 +25,7 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: `pnpm nx run astro-cryptothrone:preview -- --port ${port}`,
+		command: `moon run astro-cryptothrone:preview -- --port ${port}`,
 		cwd: workspaceRoot,
 		url: baseURL,
 		reuseExistingServer: !process.env['CI'],

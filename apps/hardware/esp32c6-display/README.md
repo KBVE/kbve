@@ -33,9 +33,9 @@ cargo install espflash --locked
 ## Use
 
 ```bash
-./kbve.sh -nx esp32c6-display:build     # compile
-./kbve.sh -nx esp32c6-display:flash     # flash over USB-C, then monitor
-./kbve.sh -nx esp32c6-display:monitor   # attach to a running board
+moon run esp32c6-display:build     # compile
+moon run esp32c6-display:flash     # flash over USB-C, then monitor
+moon run esp32c6-display:monitor   # attach to a running board
 ```
 
 The board exposes a **built-in USB Serial/JTAG** peripheral, so the USB-C port

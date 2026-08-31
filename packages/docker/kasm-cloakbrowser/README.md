@@ -12,8 +12,8 @@ or kernel fingerprint while running behind a datacenter VPN exit.
 ## Build
 
 ```sh
-npx nx run kasm-cloakbrowser:container
-npx nx run kasm-cloakbrowser:test
+moon run kasm-cloakbrowser:container
+moon run kasm-cloakbrowser:test
 ```
 
 ## Override CloakBrowser version

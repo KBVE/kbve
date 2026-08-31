@@ -24,3 +24,11 @@ tasks:
             runFromWorkspaceRoot: true
             cache: false
             runInCI: true
+
+    # The local build. `container` above tags it kbve/metrics; this is the same
+    # image under the name the containerx target used.
+    containerx:
+        script: 'docker buildx build --load -f $projectSource/Dockerfile -t kbve/metrics:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false

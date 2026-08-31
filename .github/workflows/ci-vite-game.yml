@@ -154,7 +154,7 @@ jobs:
               run: pnpm install --frozen-lockfile
 
             - name: Build ${{ env.APP_NAME }}
-              run: ./kbve.sh -nx "${APP_NAME}:build" --skip-nx-cache
+              run: moon run "${APP_NAME}:build" --force
 
             - name: Verify build output
               run: |

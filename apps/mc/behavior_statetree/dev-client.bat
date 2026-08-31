@@ -2,7 +2,7 @@
 REM Launch a Fabric development client with the behavior_statetree mod.
 REM
 REM Prerequisites:
-REM   1. Docker dev server running: npx nx run mc:dev
+REM   1. Docker dev server running: moon run mc:dev
 REM   2. Java 21+ installed
 REM
 REM Usage:

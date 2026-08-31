@@ -13,7 +13,7 @@ pip install fudster
 This package is part of the [KBVE](https://github.com/kbve/kbve) monorepo, managed with Nx and Poetry.
 
 ```bash
-pnpm nx test python-fudster
+moon run python-fudster:test
 pnpm nx lint python-fudster
-pnpm nx build python-fudster
+moon run python-fudster:build
 ```

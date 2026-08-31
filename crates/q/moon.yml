@@ -32,3 +32,54 @@ tasks:
         script: 'mkdir -p $workspaceRoot/apps/friendslop/godot-friendslop/addons/q/ios/libq.framework && cp $workspaceRoot/dist/target/aarch64-apple-ios/release/libq.dylib $workspaceRoot/apps/friendslop/godot-friendslop/addons/q/ios/libq.framework/libq'
         options:
             cache: false
+
+    # The Steam flavour of the same build. Separate rather than a flag on
+    # build-mac: it links steamworks and has to ship libsteam_api.dylib beside
+    # libq, and both need signing before they will load anywhere but here.
+    build-mac-steam:
+        script: >-
+            cargo +nightly build -Z build-std=std,panic_abort -Z unstable-options
+            --features net-godot,steam --target aarch64-apple-darwin
+            --artifact-dir dist/macos-steam --release
+            && mkdir -p release/addons/q/macos
+            && cp dist/macos-steam/*.dylib release/addons/q/macos/
+            && cp $HOME/.cargo/registry/src/*/steamworks-sys-0.12.2/lib/steam/redistributable_bin/osx/libsteam_api.dylib release/addons/q/macos/
+            && bash scripts/sign-dylib.sh release/addons/q/macos/libq.dylib
+            && bash scripts/sign-dylib.sh release/addons/q/macos/libsteam_api.dylib
+        outputs: ['dist/macos-steam']
+
+    deploy-mac-steam:
+        deps: ['~:build-mac-steam']
+        script: >-
+            mkdir -p $workspaceRoot/apps/friendslop/godot-friendslop/addons/q/macos
+            && cp dist/macos-steam/libq.dylib $workspaceRoot/apps/friendslop/godot-friendslop/addons/q/macos/libq.dylib
+            && cp $HOME/.cargo/registry/src/*/steamworks-sys-0.12.2/lib/steam/redistributable_bin/osx/libsteam_api.dylib $workspaceRoot/apps/friendslop/godot-friendslop/addons/q/macos/libsteam_api.dylib
+            && bash scripts/sign-dylib.sh $workspaceRoot/apps/friendslop/godot-friendslop/addons/q/macos/libq.dylib
+            && bash scripts/sign-dylib.sh $workspaceRoot/apps/friendslop/godot-friendslop/addons/q/macos/libsteam_api.dylib
+        options:
+            cache: false
+
+    build-linux:
+        command: 'cargo build --release -p q --features net-godot --target-dir $workspaceRoot/dist/target/q'
+        outputs: ['/dist/target/q/release/libq.so']
+
+    deploy-linux:
+        deps: ['~:build-linux']
+        script: >-
+            mkdir -p $workspaceRoot/apps/friendslop/godot-friendslop/addons/q/linux
+            && cp $workspaceRoot/dist/target/q/release/libq.so $workspaceRoot/apps/friendslop/godot-friendslop/addons/q/linux/libq.so
+        options:
+            cache: false
+
+    # Both sides of the extension: the Godot client and the headless server
+    # flavour, which share the sim and diverge on everything around it.
+    test-all:
+        script: >-
+            cargo test --lib --features net-godot
+            && cargo test --lib --no-default-features --features net-server,net-session
+
+    # Kept because rust-test-crate.yml dispatches `<crate>:e2e`.
+    e2e:
+        deps: ['~:test-all']
+        options:
+            cache: false

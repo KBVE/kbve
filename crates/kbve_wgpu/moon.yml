@@ -79,3 +79,9 @@ tasks:
         deps: ['~:format', '~:lint', '~:test']
         options:
             cache: false
+
+    # Both mobile flavours after the checks pass, which is what CI ran.
+    build-all:
+        deps: ['~:verify', '~:build-ios', '~:build-android']
+        options:
+            cache: false

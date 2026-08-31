@@ -29,10 +29,10 @@ target pulls them first: `./kbve.sh -lfs arpg pull --include='…/arpg/**'`.
 ## Local dev
 
 ```sh
-npx nx run arpg:dev        # full stack: arpg-server (:7979) + this web (:5402),
+moon run arpg:dev        # full stack: arpg-server (:7979) + this web (:5402),
                            # docker compose, auto-down on exit
-npx nx run arpg:web-dev    # just this client, against a server you run separately
-npx nx run arpg:compose-up # arpg-server only (no web)
+moon run arpg:web-dev    # just this client, against a server you run separately
+moon run arpg:compose-up # arpg-server only (no web)
 ```
 
 Auth: runs the real Supabase login; the session JWT is verified by `arpg-server`

@@ -25,14 +25,14 @@ graphify/
 uv tool install graphifyy
 
 # Or via the Python package
-pnpm nx run graphify-wrapper:install
+moon run graphify-wrapper:install
 ```
 
 ### 2. Build Full Monorepo Graph
 
 ```bash
 # Using the wrapper package (recommended)
-pnpm nx run graphify-wrapper:build-monorepo
+moon run graphify-wrapper:build-monorepo
 
 # Or using the shell script directly
 ./packages/data/graphify/scripts/build-monorepo-graph.sh
@@ -45,19 +45,19 @@ graphify ../../../ --output output/monorepo --config configs/.graphify.yml
 ### 3. Build App-Specific Graph
 
 ```bash
-pnpm nx run graphify-wrapper:build-app --app=herbmail
+moon run graphify-wrapper:build-app --app=herbmail
 ```
 
 ### 4. Query the Graph
 
 ```bash
-pnpm nx run graphify-wrapper:query --q="Where is user authentication handled?"
+moon run graphify-wrapper:query --q="Where is user authentication handled?"
 ```
 
 ### 5. Export for Web
 
 ```bash
-pnpm nx run graphify-wrapper:export-web
+moon run graphify-wrapper:export-web
 ```
 
 ## Configuration
@@ -115,7 +115,7 @@ git lfs track "packages/data/graphify/output/**/*.json"
 
 ```bash
 # Use AST-only mode (no semantic analysis)
-pnpm nx run graphify-wrapper:build-monorepo  # Default: no semantic
+moon run graphify-wrapper:build-monorepo  # Default: no semantic
 
 # Or enable semantic for deeper analysis
 ./packages/data/graphify/scripts/build-monorepo-graph.sh --semantic

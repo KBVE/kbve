@@ -3,3 +3,30 @@ $schema: 'https://moonrepo.dev/schemas/project.json'
 language: 'python'
 tags: ['uv']
 layer: 'library'
+
+tasks:
+    # There is no separate suite here; the package's own tests are the e2e run.
+    e2e:
+        deps: ['~:test']
+        options:
+            cache: false
+
+    # Regenerates the python gRPC stubs from the schema.
+    proto:
+        command: >-
+            uv run python -m grpc_tools.protoc
+            --proto_path=$workspaceRoot/packages/data/proto/kbve
+            --python_out=kbve/proto --grpc_python_out=kbve/proto --pyi_out=kbve/proto
+            $workspaceRoot/packages/data/proto/kbve/kbve.proto
+        outputs: ['kbve/proto']
+
+    # The daily-content router: decides which dashboard routes need rebuilding.
+    router:
+        command: 'uv run kbve-nx-router --cadence daily --json'
+        options:
+            cache: false
+
+    content-build:
+        command: 'uv run kbve-nx-build journal'
+        options:
+            cache: false

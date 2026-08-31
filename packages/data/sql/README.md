@@ -55,19 +55,19 @@ exits non-zero.
 
 ```bash
 # Vanilla postgres:17-alpine — fast feedback loop, ~10s end-to-end
-npx nx run data-sql:smoke-vanilla
+moon run data-sql:smoke-vanilla
 
 # Production-replica CNPG image (kilobase) — real auth.* schema +
 # Supabase trigger surface; the only locally-runnable parity test
 # for the live cluster. Slower (Rosetta on ARM Macs).
-npx nx run data-sql:smoke-kilobase
+moon run data-sql:smoke-kilobase
 
 # Run both stacks sequentially (vanilla first, then kilobase)
-npx nx run data-sql:smoke
+moon run data-sql:smoke
 
 # Leave the stack up after smoke (useful for follow-up psql probes)
-npx nx run data-sql:smoke-vanilla-keep
-npx nx run data-sql:smoke-kilobase-keep
+moon run data-sql:smoke-vanilla-keep
+moon run data-sql:smoke-kilobase-keep
 ```
 
 The wrapper script is [`dbmate/smoke.sh`](./dbmate/smoke.sh); it also

@@ -18,10 +18,10 @@ Builds as a `cdylib` (`libuniti.dylib` / `uniti.dll` / `libuniti.so`) and is con
 Per-platform Nx targets copy the artifact straight into the Unity project's `Plugins/` tree and (on macOS) re-codesign it adhoc to satisfy Gatekeeper.
 
 ```sh
-npx nx run uniti:build:macos
-npx nx run uniti:build:windows
-npx nx run uniti:build:linux
-npx nx run uniti:build:all
+moon run uniti:build-macos
+moon run uniti:build-windows
+moon run uniti:build-linux
+moon run uniti:build-all
 ```
 
 ## Bindings

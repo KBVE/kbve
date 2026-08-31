@@ -33,7 +33,7 @@
 
 - All work in an isolated git worktree off `dev` (per `AGENTS.md`): `./kbve.sh -worktree rows-reaper`. Never commit to `dev`/`main`.
 - Run Nx via `./kbve.sh -nx` in the worktree (sources `.env.local`), never bare `pnpm nx`.
-- Build/test the crate with `cargo` inside `apps/rows` (e.g. `cargo test -p rows`), or `./kbve.sh -nx run rows:test` if a target exists.
+- Build/test the crate with `cargo` inside `apps/rows` (e.g. `cargo test -p rows`), or `moon run rows:test` if a target exists.
 - Conventional commits, no co-author lines. PR targets `dev`.
 - sqlx queries are **runtime** (`sqlx::query`/`query_as`), not the `query!` macro — no `DATABASE_URL` needed to compile, no `.sqlx` cache to update.
 - Migrations: add a new timestamped file under `packages/data/sql/dbmate/migrations/`; also update the reference schema file under `packages/data/sql/schema/ows/` to match. Never hand-edit generated artifacts.
@@ -1099,5 +1099,5 @@ or the risk of touching audited code exceeds the benefit).
 (triple-gated: `enabled` + `never_reported` + `require_heartbeat` auto-gate). It's **silent
 under-reaping on first enable** if `heartbeat_interval ≥ ROWS_EMPTY_REAP_FRESH_SECS` — the Empty path
 no-ops even with `ENABLED=true`. Detectable via the per-cycle "empty servers retained: heartbeat stale
-vs empty_fresh_secs" log, _if_ someone watches it. Make verifying `heartbeat_interval < FRESH_SECS` a
+vs empty*fresh_secs" log, \_if* someone watches it. Make verifying `heartbeat_interval < FRESH_SECS` a
 hard precondition in the §2 enablement runbook.

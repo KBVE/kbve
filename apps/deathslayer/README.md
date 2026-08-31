@@ -158,7 +158,7 @@ nx run deathslayer-launcher:lint
 # Change: version: "0.1.0" -> version: "0.1.1"
 
 # 2. Sync manifest
-npx nx run astro-kbve:sync:ci-manifest
+moon run astro-kbve:sync-ci-manifest
 
 # 3. Commit and push
 git add .

@@ -11,11 +11,12 @@ Turso (`libsql`) writes a real SQLite-format file, and DuckDB can attach to and 
 - **Writes** go through `EmbedDb`, backed by a `turso::Connection`. `EmbedDb::open` opens (creating if needed) the file in WAL journal mode. `EmbedDb::execute` runs a single write/DDL statement and returns the affected row count.
 
 `EmbedDb::open` (and `open_with`) require the path to be valid UTF-8. A non-UTF-8 path returns `EmbedError::NonUtf8Path` rather than panicking.
+
 - **Reads for analytics** go through DuckDB. `EmbedDb::analytics_scalar_i64` / `EmbedDb::analytics_scalar_f64` open a fresh in-memory DuckDB connection, `ATTACH` the same file read-only via the `sqlite` extension, and run a scalar query against it.
 
 Because DuckDB attaches read-only and Turso owns all writes, only one process ever mutates the file, avoiding write contention between the two engines.
 
-The Turso write path is pure Rust and statically linked — no shared library to manage. The DuckDB analytics read path is *not* fully static end-to-end: `duckdb`'s `bundled` Cargo feature statically links DuckDB's core engine only. The `sqlite`/`sqlite_scanner` extension it loads at runtime is a separate artifact — see "Deployment note" below.
+The Turso write path is pure Rust and statically linked — no shared library to manage. The DuckDB analytics read path is _not_ fully static end-to-end: `duckdb`'s `bundled` Cargo feature statically links DuckDB's core engine only. The `sqlite`/`sqlite_scanner` extension it loads at runtime is a separate artifact — see "Deployment note" below.
 
 ## Checkpoint-then-read model
 
@@ -29,12 +30,12 @@ When done, call `EmbedDb::close` to drop the connection and release the file.
 
 ## Cargo features
 
-| Feature | Default | Effect |
-| --- | --- | --- |
-| `derive` | on | `#[derive(FromEmbedRow)]` proc macro via `embeddb-derive` |
-| `analytics` | on | DuckDB read path: the `analytics_*` methods, the reader pool, and `EmbedError::Duck` |
-| `vector` | off | Vector storage and search |
-| `embed-api` | off | HTTP embedder client (implies `vector`) |
+| Feature     | Default | Effect                                                                               |
+| ----------- | ------- | ------------------------------------------------------------------------------------ |
+| `derive`    | on      | `#[derive(FromEmbedRow)]` proc macro via `embeddb-derive`                            |
+| `analytics` | on      | DuckDB read path: the `analytics_*` methods, the reader pool, and `EmbedError::Duck` |
+| `vector`    | off     | Vector storage and search                                                            |
+| `embed-api` | off     | HTTP embedder client (implies `vector`)                                              |
 
 `analytics` pulls in `duckdb` with its `bundled` feature, which compiles DuckDB's C++ engine from source. That is fine on a server but expensive-to-impossible for a game client, an iOS/Android cross-compile, or any target without a C++ toolchain. Turning it off leaves a pure-Rust dependency tree:
 
@@ -57,8 +58,8 @@ To support that environment, pre-stage `sqlite_scanner.duckdb_extension` (matchi
 This crate is an Nx project (`packages/rust/embeddb/project.json`) with `build`, `test`, `e2e`, and `lint` targets backed by `@monodon/rust`. Run them through Nx rather than calling `cargo` directly:
 
 ```bash
-pnpm nx build embeddb
-pnpm nx test embeddb
+moon run embeddb:build
+moon run embeddb:test
 pnpm nx lint embeddb
 ```
 

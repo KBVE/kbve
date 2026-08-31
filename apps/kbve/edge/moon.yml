@@ -37,3 +37,9 @@ tasks:
     deps: ['edge-e2e:e2e']
     options:
       cache: false
+
+  # The dev image, built from Dockerfile.dev.
+  container-dev:
+    deps: ['~:containerx-dev']
+    options:
+      cache: false

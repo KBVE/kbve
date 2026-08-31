@@ -22,7 +22,7 @@ namespace RareIcon
             string path = Path.Combine(Application.streamingAssetsPath, "itemdb.json");
             if (!File.Exists(path))
             {
-                Debug.LogError($"[ItemDBLoader] itemdb.json missing at {path}. Run `npx nx run astro-kbve:sync:itemdb` to regenerate. ItemDB will remain empty until the bundle is present.");
+                Debug.LogError($"[ItemDBLoader] itemdb.json missing at {path}. Run `moon run astro-kbve:sync-itemdb` to regenerate. ItemDB will remain empty until the bundle is present.");
                 return;
             }
 

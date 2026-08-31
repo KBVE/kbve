@@ -51,7 +51,7 @@ published marker and is never pre-synced; the build fires only while MDX >
    bumping `version.toml` and the source `.uplugin` `VersionName`. One PR per
    plugin — the old Linux-owns / Win64-skips split is gone.
 
-`npx nx run astro-kbve:sync:unreal` exists as a manual tool to bulk-resync every
+`moon run astro-kbve:sync-unreal` exists as a manual tool to bulk-resync every
 `.uplugin` VersionName from MDX (e.g. after backfilling versions); it is not part
 of the release path.
 

@@ -171,7 +171,7 @@ cd apps/kbve/astro-kbve/src/content/docs/project
 
 # Sync manifest
 cd /path/to/kbve
-npx nx run astro-kbve:sync:ci-manifest
+moon run astro-kbve:sync-ci-manifest
 
 # Commit and push
 git add .
@@ -271,7 +271,7 @@ nx run deathslayer-launcher:build:tauri
 
 ```bash
 # Re-sync manifest
-npx nx run astro-kbve:sync:ci-manifest
+moon run astro-kbve:sync-ci-manifest
 
 # Verify change in .github/ci-dispatch-manifest.json
 git diff .github/ci-dispatch-manifest.json

@@ -33,3 +33,16 @@ tasks:
         toolchains: ['node']
         preset: 'server'
         deps: ['~:build']
+
+    # The dev server. Nx spelled this @nx/vite:dev-server and called it `serve`
+    # on some projects and `dev` on others; both names are here so neither
+    # habit breaks.
+    dev:
+        command: 'vite dev'
+        toolchains: ['node']
+        preset: 'server'
+
+    serve:
+        command: 'vite dev'
+        toolchains: ['node']
+        preset: 'server'

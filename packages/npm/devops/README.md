@@ -1,6 +1,4 @@
-
 [![DevOps NPM](https://kbve.com/assets/img/npm/devops.png)](https://kbve.com/application/git/)
-
 
 **WIP**
 
@@ -8,14 +6,13 @@ This is a work in progress library, still a ton of functions and core files stil
 
 # DevOps
 
-The DevOps npm library is a versatile toolkit designed to streamline development operations with a suite of CI/CD, GitHub Actions, and other functional extensions. 
+The DevOps npm library is a versatile toolkit designed to streamline development operations with a suite of CI/CD, GitHub Actions, and other functional extensions.
 This library offers a range of pre-configured scripts and utilities that simplify the setup and management of continuous integration and deployment pipelines, automate repetitive tasks, and ensure consistent workflows across development teams.
 With features like automated testing, deployment scripts, environment variable management, and integration with popular CI/CD platforms, "devops" aims to enhance productivity, reduce manual errors, and accelerate the development lifecycle, making it an essential tool for modern DevOps practices.
 
 ---
 
 ## Info
-
 
 This library was written by the [KBVE Team](https://kbve.com/) to help streamline all our development and production tasks.
 The KBVE Team is dedicated to creating robust and efficient tools that address the common challenges faced by development and operations teams. With extensive experience in various aspects of software development, the team understands the importance of automation, consistency, and reliability in modern development workflows.
@@ -55,6 +52,6 @@ For running the test cases, we would run this:
 
 ```shell
 
-./kbve.sh -nx devops:test
+moon run devops:test
 
 ```

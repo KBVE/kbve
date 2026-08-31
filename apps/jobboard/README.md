@@ -61,41 +61,41 @@ or pnpm nx directly:
 
 ```bash
 # full local stack (Postgres + migrations + seed + the Axum binary)
-./kbve.sh -nx jobboard:dev
-pnpm nx run jobboard:dev
+moon run jobboard:dev
+moon run jobboard:dev
 
 # tear the stack down (wipes the db volume)
-./kbve.sh -nx jobboard:down
-pnpm nx run jobboard:down
+moon run jobboard:down
+moon run jobboard:down
 
 # SPA dev server with hot reload (vite :5401, proxies /api -> :5400)
-./kbve.sh -nx jobboard:web-dev
-pnpm nx run jobboard:web-dev
+moon run jobboard:web-dev
+moon run jobboard:web-dev
 
 # build the SPA to web/dist
-./kbve.sh -nx jobboard:web-build
-pnpm nx run jobboard:web-build
+moon run jobboard:web-build
+moon run jobboard:web-build
 
 # run the Axum binary on the host, serving web/dist from disk (no re-embed)
-./kbve.sh -nx jobboard:serve-static
-pnpm nx run jobboard:serve-static
+moon run jobboard:serve-static
+moon run jobboard:serve-static
 
 # cargo run / build / test / lint the Rust service
-./kbve.sh -nx jobboard:run
-./kbve.sh -nx jobboard:build
-./kbve.sh -nx jobboard:test
-./kbve.sh -nx jobboard:lint
-pnpm nx run jobboard:run
+moon run jobboard:run
+moon run jobboard:build
+moon run jobboard:test
+moon run jobboard:lint
+moon run jobboard:run
 
 # build the production container image
-./kbve.sh -nx jobboard:container
-pnpm nx run jobboard:container
+moon run jobboard:container
+moon run jobboard:container
 ```
 
 ## Quick start
 
 ```bash
-./kbve.sh -nx jobboard:dev      # first run builds the image (slow, emulated)
+moon run jobboard:dev      # first run builds the image (slow, emulated)
 open http://localhost:5400
 ```
 
@@ -106,9 +106,9 @@ to see just what broke.
 ### Fast SPA loop (no Rust rebuilds)
 
 ```bash
-./kbve.sh -nx jobboard:dev        # leave the DB + API up, or:
-./kbve.sh -nx jobboard:serve-static   # API + disk-served SPA on :5400
-./kbve.sh -nx jobboard:web-dev        # vite :5401 with HMR
+moon run jobboard:dev        # leave the DB + API up, or:
+moon run jobboard:serve-static   # API + disk-served SPA on :5400
+moon run jobboard:web-dev        # vite :5401 with HMR
 ```
 
 ## Auth

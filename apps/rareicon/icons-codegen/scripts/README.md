@@ -24,19 +24,19 @@ gen-merge-variants.mjs    → consolidates <ref>-<pack>.mdx siblings into base
 Run end-to-end:
 
 ```sh
-npx nx run astro-rareicon:gen:all-icons
+moon run astro-rareicon:gen-all-icons
 ```
 
 Per pack:
 
 ```sh
-npx nx run astro-rareicon:gen:lucide-icons      # via gen:icons
-npx nx run astro-rareicon:gen:brand-icons       # gen-simple-icons.mjs
-npx nx run astro-rareicon:gen:tabler-icons
-npx nx run astro-rareicon:gen:phosphor-icons
-npx nx run astro-rareicon:gen:game-icons
-npx nx run astro-rareicon:gen:iconify-icons     # all Iconify packs
-npx nx run astro-rareicon:gen:merge-variants
+moon run astro-rareicon:gen-lucide-icons      # via gen:icons
+moon run astro-rareicon:gen-brand-icons       # gen-simple-icons.mjs
+moon run astro-rareicon:gen-tabler-icons
+moon run astro-rareicon:gen-phosphor-icons
+moon run astro-rareicon:gen-game-icons
+moon run astro-rareicon:gen-iconify-icons     # all Iconify packs
+moon run astro-rareicon:gen-merge-variants
 ```
 
 `gen-iconify-icons.mjs --only <prefix>` runs a single Iconify pack

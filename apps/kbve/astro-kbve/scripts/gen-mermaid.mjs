@@ -261,7 +261,7 @@ if (CHECK) {
 	if (problems.length > 0) {
 		console.error('gen-mermaid --check failed:');
 		for (const p of problems) console.error(`  - ${p}`);
-		console.error('\nRun: pnpm nx run astro-kbve:gen:mermaid');
+		console.error('\nRun: moon run astro-kbve:gen-mermaid');
 		process.exit(1);
 	}
 	console.log(`gen-mermaid: ${wanted.size} diagrams up to date.`);

@@ -1,11 +1,17 @@
 /// <reference types="vitest/config" />
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import react from '@vitejs/plugin-react';
 import dts from 'vite-plugin-dts';
 import * as path from 'path';
-import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
-import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
-import { existsSync, readFileSync } from 'node:fs';
+import tsconfigPaths from 'vite-tsconfig-paths';
+import {
+	copyFileSync,
+	cpSync,
+	existsSync,
+	mkdirSync,
+	readFileSync,
+	readdirSync,
+} from 'node:fs';
 
 // Every ./<path>.js in the export map has to be an entry, or rollup emits only
 // the main bundle and the subpath resolves to a file that was never written --
@@ -13,8 +19,8 @@ import { existsSync, readFileSync } from 'node:fs';
 // exports rather than listing them keeps the two from drifting: adding a
 // subpath to package.json is enough to build it.
 //
-// '.astro' and '.mjs' targets are skipped; those ship as source through
-// nxCopyAssetsPlugin below.
+// '.astro' and '.mjs' targets are skipped; those ship as source, copied by
+// copyAssets below.
 const manifest = JSON.parse(
 	readFileSync(path.join(__dirname, 'package.json'), 'utf8'),
 );
@@ -48,6 +54,56 @@ for (const target of exportTargets) {
 	entry[stem] = source;
 }
 
+// What @nx/vite's nxCopyAssetsPlugin did here, written out.
+//
+// Three things ship beside the bundles: the README, the sitemap helpers, and
+// the ~50 .astro components, which are published as source because `exports`
+// names each one at ./components/<name>.astro. Nothing copied the components
+// before the plugin was told to, and every published consumer of one got a
+// missing file -- local consumers resolve through tsconfig paths, which is why
+// it held for so long. tools/npm/pack.mjs checks the result.
+function copyAssets(): Plugin {
+	return {
+		name: 'kbve-copy-assets',
+		apply: 'build',
+		closeBundle() {
+			const out = path.resolve(
+				__dirname,
+				'../../../dist/packages/npm/astro',
+			);
+			for (const file of readdirSync(__dirname)) {
+				if (file.endsWith('.md')) {
+					copyFileSync(
+						path.join(__dirname, file),
+						path.join(out, file),
+					);
+				}
+			}
+			const sitemap = path.resolve(__dirname, 'sitemap');
+			if (existsSync(sitemap)) {
+				mkdirSync(path.join(out, 'sitemap'), { recursive: true });
+				for (const file of readdirSync(sitemap)) {
+					if (file.endsWith('.mjs')) {
+						copyFileSync(
+							path.join(sitemap, file),
+							path.join(out, 'sitemap', file),
+						);
+					}
+				}
+			}
+			cpSync(
+				path.resolve(__dirname, 'src/components'),
+				path.join(out, 'components'),
+				{
+					recursive: true,
+					filter: (src) =>
+						!src.endsWith('.ts') && !src.endsWith('.tsx'),
+				},
+			);
+		},
+	};
+}
+
 export default defineConfig({
 	root: __dirname,
 	cacheDir: '../../../node_modules/.vite/npm/astro',
@@ -60,20 +116,8 @@ export default defineConfig({
 
 	plugins: [
 		react(),
-		nxViteTsPaths(),
-		nxCopyAssetsPlugin([
-			'*.md',
-			'sitemap/*.mjs',
-			// The 50 .astro components are shipped as source -- exports names
-			// each one at ./components/<name>.astro -- and nothing copied them,
-			// so every published consumer of one got a missing file. Local
-			// consumers resolve through tsconfig paths, which is why it held.
-			{
-				input: 'src/components',
-				glob: '**/*.astro',
-				output: 'components',
-			},
-		]),
+		tsconfigPaths(),
+		copyAssets(),
 		dts({
 			entryRoot: 'src',
 			tsconfigPath: path.join(__dirname, 'tsconfig.lib.json'),

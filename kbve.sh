@@ -15,14 +15,14 @@
 # - Language runtimes (Rust, Node.js, Python, .NET)
 # - Package managers (pnpm, Poetry, Cargo)
 # - Development tools (tmux session management, git workflows)
-# - Build systems (Nx monorepo tooling)
+# - Build systems (moon monorepo tooling)
 # - Container preparation and deployment utilities
 #
 # Usage Examples:
 #   ./kbve.sh -install          # Install monorepo dependencies
 #   ./kbve.sh -atomic "feature" # Create atomic worktree from dev
-#   ./kbve.sh -nx build app     # Run Nx build command
-#   ./kbve.sh -studio           # Launch development studio
+#   ./kbve.sh -moon astro-kbve:build   # Run a moon task
+#   ./kbve.sh -graph                   # Launch the moon project graph
 #
 # For full command reference, see the case statement at the bottom of this file
 #==============================================================================

@@ -1,12 +1,12 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
-import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
+import tsconfigPaths from 'vite-tsconfig-paths';
 
 export default defineConfig({
 	root: __dirname,
 	cacheDir:
 		'../../../node_modules/.vite/apps/cryptothrone/astro-cryptothrone',
-	plugins: [react(), nxViteTsPaths()],
+	plugins: [react(), tsconfigPaths()],
 	test: {
 		globals: true,
 		watch: false,

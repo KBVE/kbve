@@ -10,7 +10,7 @@ function tokenWith(claims: Record<string, unknown>): string {
 }
 
 describe('multiplayer auth plumbing', () => {
-	// The root @kbve/laser barrel resolves only through nxViteTsPaths for
+	// The root @kbve/laser barrel resolves only through tsconfigPaths for
 	// build/dev; vitest needs an explicit alias, and the game had one for every
 	// subpath but not the root. This asserts the import actually works.
 	it('resolves the root @kbve/laser barrel', () => {

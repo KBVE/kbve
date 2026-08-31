@@ -31,25 +31,25 @@ controlled with the rest of the repo.
 
 ```sh
 # 1. Pull deps (only when regenerating)
-npx nx run astro-rareicon:gen:icons-install
+moon run astro-rareicon:gen-icons-install
 
 # 2. Run a full regen + merge pass
-npx nx run astro-rareicon:gen:all-icons
+moon run astro-rareicon:gen-all-icons
 
 # 3. Clean up after — drops ~700MB of node_modules
-npx nx run astro-rareicon:gen:icons-clean
+moon run astro-rareicon:gen-icons-clean
 ```
 
 Per-pack regens (skip the install step if you've already pulled deps):
 
 ```sh
-npx nx run astro-rareicon:gen:icons          # Lucide
-npx nx run astro-rareicon:gen:brand-icons    # Simple Icons
-npx nx run astro-rareicon:gen:tabler-icons
-npx nx run astro-rareicon:gen:phosphor-icons
-npx nx run astro-rareicon:gen:game-icons
-npx nx run astro-rareicon:gen:iconify-icons  # Heroicons + Octicons + Iconoir + Carbon + Material + Fluent + MDI
-npx nx run astro-rareicon:gen:merge-variants
+moon run astro-rareicon:gen-icons          # Lucide
+moon run astro-rareicon:gen-brand-icons    # Simple Icons
+moon run astro-rareicon:gen-tabler-icons
+moon run astro-rareicon:gen-phosphor-icons
+moon run astro-rareicon:gen-game-icons
+moon run astro-rareicon:gen-iconify-icons  # Heroicons + Octicons + Iconoir + Carbon + Material + Fluent + MDI
+moon run astro-rareicon:gen-merge-variants
 ```
 
 `pnpm gen:iconify --only material-symbols` runs a single Iconify pack.

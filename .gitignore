@@ -23,7 +23,7 @@ apps/mc/**/java/run/
 **/.cache/
 
 
-# Nx generated reports and coverage
+# Generated reports and coverage
 /reports/
 /coverage/
 
@@ -75,7 +75,7 @@ Thumbs.db
 
 .astro
 
-.nx/
+.moon/cache/
 /output.json
 apps/api/.env
 .env
@@ -127,7 +127,7 @@ apps/rareicon/**/*.mdb
 # Godot GDExtension binaries are built, never committed — CI's gdextension matrix
 # produces every platform's lib and stages it into the export. macOS used to be the
 # one exception (hand-built, ad-hoc signed, arm64-only against a `universal` preset);
-# it is now built like the rest. Locally: ./kbve.sh -nx q:deploy-mac
+# it is now built like the rest. Locally: moon run q:deploy-mac
 apps/*/godot-*/addons/*/macos/*.dylib
 apps/*/godot-*/addons/*/linux/*.so
 apps/*/godot-*/addons/*/windows/*.dll
@@ -208,7 +208,6 @@ apps/**/unreal-*/Config/Local*.ini
 .e2e-venv/
 
 # moon
-.moon/cache/
 .moon/docker/
 
 # q ships a signed dylib into its addons tree; the binaries are build output.

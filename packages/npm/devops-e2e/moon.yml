@@ -3,3 +3,11 @@ $schema: 'https://moonrepo.dev/schemas/project.json'
 layer: 'application'
 language: 'typescript'
 tags: ['vite']
+
+tasks:
+    # Needs the package it exercises to be built first.
+    e2e:
+        deps: ['devops:build']
+        script: 'vitest run'
+        options:
+            cache: false

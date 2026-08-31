@@ -18,7 +18,7 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: 'npx nx serve droid-e2e',
+		command: 'moon run droid-e2e:serve',
 		url: 'http://localhost:4301',
 		reuseExistingServer: !process.env['CI'],
 		timeout: 30_000,

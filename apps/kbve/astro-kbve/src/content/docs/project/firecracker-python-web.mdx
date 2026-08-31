@@ -141,8 +141,8 @@ This is the **long-lived deploy** rootfs for endpoints submitted through the das
 ## Build
 
 ```bash
-npx nx run firecracker-python-web:container
-npx nx run firecracker-python-web:extract
+moon run firecracker-python-web:container
+moon run firecracker-python-web:extract
 ```
 
 Output: `packages/docker/firecracker/python/web/dist/python-web.ext4`.
@@ -150,7 +150,7 @@ Output: `packages/docker/firecracker/python/web/dist/python-web.ext4`.
 ## Publish
 
 ```bash
-npx nx run firecracker-python-web:container:production
+moon run firecracker-python-web:container-production
 ```
 
 Pushes `ghcr.io/kbve/firecracker-python-web:latest` and `:<version>`.

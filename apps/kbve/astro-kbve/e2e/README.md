@@ -14,7 +14,7 @@ Playwright suite for the astro-kbve app. Runs against the static build under `di
 ## Run
 
 ```sh
-./kbve.sh -nx run astro-kbve:e2e
+moon run astro-kbve:e2e
 ```
 
 Or directly:

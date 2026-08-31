@@ -51,7 +51,7 @@ namespace RareIcon
             string path = Path.Combine(Application.streamingAssetsPath, "professiondb-runtime.json");
             if (!File.Exists(path))
             {
-                Debug.LogError($"[ProfessiondbLoader] professiondb-runtime.json missing at {path}. Run `npx nx run astro-kbve:sync:professiondb`. Gathering and storage consolidation stay disabled until present.");
+                Debug.LogError($"[ProfessiondbLoader] professiondb-runtime.json missing at {path}. Run `moon run astro-kbve:sync-professiondb`. Gathering and storage consolidation stay disabled until present.");
                 return;
             }
 

@@ -13,9 +13,9 @@ pip install kbve
 This package is part of the [KBVE](https://github.com/kbve/kbve) monorepo, managed with Nx and Poetry.
 
 ```bash
-pnpm nx test python-kbve
+moon run python-kbve:test
 pnpm nx lint python-kbve
-pnpm nx build python-kbve
+moon run python-kbve:build
 ```
 
 ## OSRS item corpus (`kbve.osrs`, `--extra osrs`)

@@ -185,7 +185,7 @@ namespace RareIcon
             string path = System.IO.Path.Combine(Application.streamingAssetsPath, "hextile-atlas.png");
             if (!System.IO.File.Exists(path))
             {
-                Debug.LogError($"[HexChunkSystem] hextile-atlas.png missing at {path}. Run `npx nx run astro-kbve:sync:hextile-atlas`.");
+                Debug.LogError($"[HexChunkSystem] hextile-atlas.png missing at {path}. Run `moon run astro-kbve:sync-hextile-atlas`.");
                 return null;
             }
             var raw = System.IO.File.ReadAllBytes(path);

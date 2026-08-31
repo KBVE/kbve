@@ -87,7 +87,7 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: './kbve.sh -nx astro-cryptothrone:dev',
+		command: 'moon run astro-cryptothrone:dev',
 		cwd: workspaceRoot,
 		url: baseURL,
 		reuseExistingServer: !process.env['CI'],

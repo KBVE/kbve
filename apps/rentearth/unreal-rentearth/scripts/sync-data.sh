@@ -5,8 +5,8 @@
 # subsystems load the fresh JSON every time.
 #
 # Run from monorepo root via:
-#   ./kbve.sh -nx unreal-rentearth:sync-data
-#   ./kbve.sh -nx unreal-rentearth:sync           # composite (LFS + data)
+#   moon run unreal-rentearth:sync-data
+#   moon run unreal-rentearth:sync           # composite (LFS + data)
 #
 # MDX -> JSON regeneration is upstream of this script. Edit the MDX, run
 # the astro-kbve codegen, then this script picks up the fresh JSON.

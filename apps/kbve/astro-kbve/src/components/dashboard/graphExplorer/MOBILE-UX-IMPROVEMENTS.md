@@ -21,12 +21,14 @@ The graph explorer at [https://kbve.com/graph/](https://kbve.com/graph/) has bee
 ### Collapsible Controls
 
 **Desktop Behavior:**
+
 - All controls visible by default
 - Horizontal layout in top-right corner
 - Full button labels displayed
 - Hamburger menu hidden
 
 **Mobile Behavior:**
+
 - Controls start collapsed to maximize graph viewing area
 - Hamburger menu (☰) toggles control visibility
 - Vertical layout when expanded
@@ -34,6 +36,7 @@ The graph explorer at [https://kbve.com/graph/](https://kbve.com/graph/) has bee
 - Semi-transparent backdrop for better readability
 
 **Implementation:**
+
 ```tsx
 // CSS-driven responsive behavior
 @media (max-width: 768px) {
@@ -64,11 +67,13 @@ Node detail panels use a mobile-optimized bottom sheet design:
 ### Adaptive Layout
 
 **Elements Hidden on Mobile:**
+
 - Relationship legend (saves screen space)
 - Desktop keyboard shortcuts
 - Full navigation hints
 
 **Elements Repositioned:**
+
 - Stats panel: Centered instead of top-right
 - Navigation controls: Larger touch targets (48x48px)
 - Legend: Reduced padding and font size
@@ -78,17 +83,21 @@ Node detail panels use a mobile-optimized bottom sheet design:
 ### Double-Tap Zoom
 
 **Directory Nodes:**
+
 ```typescript
 // First tap: Focus and pick directory
 // Second tap (within 300ms): Aggressive zoom (12x instead of 6x)
 const now = Date.now();
 const tap = lastTap.current;
-if (tap && now - tap.time < 300 &&
-    Math.abs(e.nativeEvent.clientX - tap.x) < 30 &&
-    Math.abs(e.nativeEvent.clientY - tap.y) < 30) {
-  startFly(d.x, d.y, fitZoom.current * 12); // Double-tap zoom
+if (
+	tap &&
+	now - tap.time < 300 &&
+	Math.abs(e.nativeEvent.clientX - tap.x) < 30 &&
+	Math.abs(e.nativeEvent.clientY - tap.y) < 30
+) {
+	startFly(d.x, d.y, fitZoom.current * 12); // Double-tap zoom
 } else {
-  startFly(d.x, d.y, fitZoom.current * 6); // Single tap focus
+	startFly(d.x, d.y, fitZoom.current * 6); // Single tap focus
 }
 ```
 
@@ -97,26 +106,29 @@ if (tap && now - tap.time < 300 &&
 Tooltips behave differently based on input method:
 
 **Mouse/Pointer:**
+
 - Tooltips appear on hover
 - No click required
 - Dismiss on mouse out
 
 **Touch:**
+
 - Tooltips don't appear on hover (prevents clutter)
 - Single tap shows tooltip with instructions
 - "Double-tap to open" hint displayed
 - Auto-dismiss after 2 seconds
 
 **Implementation:**
+
 ```typescript
 if (e.pointerType !== 'touch') {
-  onHover({
-    kind: 'file',
-    label: f.label,
-    sub: `${f.path} · ${f.n} symbols`,
-    x: e.nativeEvent.clientX,
-    y: e.nativeEvent.clientY,
-  });
+	onHover({
+		kind: 'file',
+		label: f.label,
+		sub: `${f.path} · ${f.n} symbols`,
+		x: e.nativeEvent.clientX,
+		y: e.nativeEvent.clientY,
+	});
 }
 ```
 
@@ -125,26 +137,28 @@ if (e.pointerType !== 'touch') {
 Files use a two-step interaction on touch devices:
 
 1. **First Tap**: Show preview tooltip
-   - Display file path and symbol count
-   - Add "Double-tap to open" instruction
-   - Auto-dismiss after 2 seconds
+    - Display file path and symbol count
+    - Add "Double-tap to open" instruction
+    - Auto-dismiss after 2 seconds
 
 2. **Second Tap** (within 300ms): Open file on GitHub
-   - Prevents accidental navigation
-   - Better for fat-finger scenarios
+    - Prevents accidental navigation
+    - Better for fat-finger scenarios
 
 ## Enhanced Node Visual Differentiation
 
 ### Improved Node Sizing
 
 **Minimum Sizes (for better touch targets):**
+
 ```typescript
-const MIN_DIR_RADIUS = 8;   // Directory nodes
-const MIN_FILE_RADIUS = 10;  // File nodes (larger for clarity)
-const SYMBOL_SIZE = 5;       // Symbols (up from 4)
+const MIN_DIR_RADIUS = 8; // Directory nodes
+const MIN_FILE_RADIUS = 10; // File nodes (larger for clarity)
+const SYMBOL_SIZE = 5; // Symbols (up from 4)
 ```
 
 **Dynamic Sizing:**
+
 - Directory nodes: `max(MIN_DIR_RADIUS, d.r)`
 - File nodes: `max(MIN_FILE_RADIUS, 7 + √n * 2.6)`
 - All touch targets meet WCAG 2.1 Level AAA (44x44px minimum)
@@ -152,12 +166,14 @@ const SYMBOL_SIZE = 5;       // Symbols (up from 4)
 ### Enhanced Color Contrast
 
 **Focus Mode Improvements:**
+
 - Focused nodes: **125-135%** brightness (up from 115-120%)
 - Dimmed nodes: **18-20%** brightness (down from 22-25%)
 - Higher contrast ratio for better mobile visibility
 - More dramatic distinction helps on small screens
 
 **Symbol Brightness:**
+
 ```typescript
 // Symbols rendered 10% brighter for better distinction
 mesh.setColorAt(i, col.setRGB(r * 1.1, g * 1.1, b * 1.1));
@@ -169,16 +185,17 @@ Node type badges include colored dot indicators:
 
 ```css
 .mgx__kind::before {
-  content: '';
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: currentColor;
-  margin-right: 4px;
+	content: '';
+	width: 6px;
+	height: 6px;
+	border-radius: 50%;
+	background: currentColor;
+	margin-right: 4px;
 }
 ```
 
 **Badge Colors:**
+
 - **Directory**: Blue (#38bdf8) with dark text
 - **File**: Lime green (#a3e635) with dark green text
 - **Symbol**: Pink/purple (#f0abfc) with dark purple text
@@ -188,6 +205,7 @@ Node type badges include colored dot indicators:
 ### Label Rendering
 
 **Desktop:**
+
 ```css
 font-size: 0.8rem;
 font-weight: 500;
@@ -195,19 +213,24 @@ text-shadow: 0 1px 3px rgba(2, 6, 14, 0.95);
 ```
 
 **Mobile:**
+
 ```css
 font-size: 0.75rem;
-font-weight: 600;  /* Bolder for readability */
-text-shadow: 0 1px 4px rgba(2, 6, 14, 0.98), 0 0 8px rgba(2, 6, 14, 0.9);
+font-weight: 600; /* Bolder for readability */
+text-shadow:
+	0 1px 4px rgba(2, 6, 14, 0.98),
+	0 0 8px rgba(2, 6, 14, 0.9);
 ```
 
 ### Navigation Hints
 
 **Desktop:**
+
 > Navigation: Scroll/pinch to zoom · Drag to pan · Click nodes to explore
 > +/- zoom · R reset · F fullscreen · S stats
 
 **Mobile:**
+
 > Navigation: Pinch to zoom · Drag to pan · Tap nodes
 
 ### Touch Target Sizing
@@ -216,13 +239,13 @@ All interactive elements meet WCAG 2.1 Level AAA requirements:
 
 ```css
 @media (pointer: coarse) {
-  .mgx__nav-controls button,
-  .mgx__controls-toggle,
-  .mgx__controls-content > button,
-  .mgx__panel-close {
-    min-height: 44px;
-    min-width: 44px;
-  }
+	.mgx__nav-controls button,
+	.mgx__controls-toggle,
+	.mgx__controls-content > button,
+	.mgx__panel-close {
+		min-height: 44px;
+		min-width: 44px;
+	}
 }
 ```
 
@@ -231,6 +254,7 @@ All interactive elements meet WCAG 2.1 Level AAA requirements:
 ### ARIA Labels
 
 All controls have proper accessibility attributes:
+
 ```tsx
 <button
   type="button"
@@ -243,6 +267,7 @@ All controls have proper accessibility attributes:
 ### Keyboard Navigation
 
 Keyboard shortcuts continue to work on desktop:
+
 - `+`/`=`: Zoom in
 - `-`/`_`: Zoom out
 - `R`: Reset view
@@ -260,6 +285,7 @@ Shortcuts are automatically disabled when typing in inputs.
 ### Color Contrast
 
 All text meets WCAG AA standards:
+
 - Labels: White (#e2e8f0) on dark backgrounds
 - Buttons: Light gray (#cbd5e1) with increased brightness on hover
 - Badges: High contrast color combinations
@@ -269,6 +295,7 @@ All text meets WCAG AA standards:
 ### Unit Tests
 
 **MonorepoGraphExplorer.test.tsx** covers:
+
 - Desktop vs mobile responsive behavior
 - Collapsible controls functionality
 - Search functionality and result limiting
@@ -280,6 +307,7 @@ All text meets WCAG AA standards:
 - Accessibility (ARIA labels, button roles)
 
 **TieredGraphScene.test.tsx** covers:
+
 - Node sizing enforcement (minimum radii)
 - Touch vs mouse pointer event handling
 - Double-tap zoom functionality
@@ -293,6 +321,7 @@ All text meets WCAG AA standards:
 ### E2E Tests
 
 **graph-explorer.spec.ts** covers:
+
 - Desktop view: Canvas rendering, controls, search, stats panel
 - Mobile view: Collapsed controls, hamburger menu, shortened labels
 - Accessibility: ARIA labels, keyboard navigation
@@ -300,12 +329,13 @@ All text meets WCAG AA standards:
 - Touch interactions: Target sizes, bottom sheet layout
 
 **Run Tests:**
+
 ```bash
 # Unit tests
-pnpm nx test astro-kbve
+moon run astro-kbve:test
 
 # E2E tests
-pnpm nx e2e astro-kbve
+moon run astro-kbve:e2e
 ```
 
 ## Performance Considerations
@@ -313,6 +343,7 @@ pnpm nx e2e astro-kbve
 ### Zero JavaScript Overhead
 
 All responsive behavior uses CSS media queries:
+
 - No resize event listeners
 - No mobile detection JavaScript
 - Pure CSS breakpoints for layout changes
@@ -329,19 +360,21 @@ All responsive behavior uses CSS media queries:
 ```typescript
 // Only check pointer type when needed
 if (e.pointerType !== 'touch') {
-  // Desktop hover behavior
+	// Desktop hover behavior
 }
 ```
 
 ## Browser Support
 
 **Tested and verified on:**
+
 - Chrome 90+ (desktop and mobile)
 - Safari 14+ (desktop and iOS)
 - Firefox 88+
 - Edge 90+
 
 **Media query support:**
+
 - `@media (max-width: 768px)` - Mobile breakpoint
 - `@media (pointer: coarse)` - Touch device detection
 
@@ -350,24 +383,24 @@ if (e.pointerType !== 'touch') {
 Potential improvements for future iterations:
 
 1. **Gesture Support**
-   - Pinch-to-zoom refinement
-   - Swipe to pan optimization
-   - Long-press context menus
+    - Pinch-to-zoom refinement
+    - Swipe to pan optimization
+    - Long-press context menus
 
 2. **Visual Enhancements**
-   - Node icons for different file types
-   - Edge weight visualization
-   - Cluster/community highlighting
+    - Node icons for different file types
+    - Edge weight visualization
+    - Cluster/community highlighting
 
 3. **Mobile Performance**
-   - Adaptive LOD based on device performance
-   - Progressive enhancement for high-DPI displays
-   - Battery-aware animation throttling
+    - Adaptive LOD based on device performance
+    - Progressive enhancement for high-DPI displays
+    - Battery-aware animation throttling
 
 4. **Accessibility**
-   - Screen reader announcements for graph changes
-   - High contrast mode support
-   - Reduced motion preferences
+    - Screen reader announcements for graph changes
+    - High contrast mode support
+    - Reduced motion preferences
 
 ## Credits
 
