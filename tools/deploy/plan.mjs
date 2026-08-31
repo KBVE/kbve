@@ -20,6 +20,14 @@
 // --check validates the same rules without emitting anything, and runs as this
 // project's lint task, so a service tagged but never wired up fails in CI
 // rather than at 2am on a push to main.
+//
+// One of those rules is that neither task carries `runInCI: false`. It reads
+// like the right way to keep a task that needs a production token away from
+// CI, and it is how windmill was first written -- but moon applies it to
+// `moon run` as well as to `moon ci`, so the lane's own invocation found no
+// task and the first real deploy failed with "No tasks found". Keeping a
+// service out of CI is ci.yml's `moon ci ':lint' ':test'` scope doing it: name
+// the task anything but lint or test and CI never reaches it.
 
 import { execFileSync } from 'node:child_process';
 import { appendFileSync } from 'node:fs';
@@ -44,8 +52,21 @@ const problems = [];
 const matrix = [];
 
 for (const project of services.sort((a, b) => a.id.localeCompare(b.id))) {
-  if (!shipsById[project.id]) {
+  const ship = shipsById[project.id]?.ship;
+  if (!ship) {
     problems.push(`${project.id} (${project.source}) is tagged 'service' but defines no 'ship' task.`);
+    continue;
+  }
+
+  const filtered = ['ship', 'configure'].filter(
+    (id) => ({ ship, configure: configuresById[project.id]?.configure })[id]?.options?.runInCI === false,
+  );
+  if (filtered.length > 0) {
+    problems.push(
+      `${project.id} sets runInCI: false on ${filtered.join(' and ')}. moon applies that to ` +
+        `\`moon run\` too, so the deploy lane would find no task. Remove it -- ci.yml runs ` +
+        `\`moon ci ':lint' ':test'\`, so a task named neither is already out of CI.`,
+    );
     continue;
   }
 

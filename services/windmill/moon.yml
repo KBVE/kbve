@@ -16,6 +16,12 @@ fileGroups:
     config:
         - 'wmill.yaml'
 
+# No task here sets `runInCI: false`. It reads like the right way to keep a
+# task that needs a token out of CI, but it filters `moon run` too -- not just
+# `moon ci` -- so the deploy lane's own `moon run windmill:configure` found no
+# task and failed. What actually keeps these out of CI is that ci.yml runs
+# `moon ci ':lint' ':test'`, and none of them are named lint or test.
+#
 # The CLI is not a repository dependency: kbve installs into one root
 # node_modules, and this version is pinned to the deployed Windmill server
 # image rather than to whatever the lockfile resolved. Bump it alongside the
@@ -45,7 +51,6 @@ tasks:
         toolchains: ['node']
         options:
             cache: false
-            runInCI: false
 
     # Writes the lockfiles the instance needs to resolve imports. Only the two
     # folders whose scripts import anything; the rest are dependency-free and
@@ -65,7 +70,6 @@ tasks:
         toolchains: ['node']
         options:
             cache: false
-            runInCI: false
 
     # What a push would change, without changing it.
     check:
@@ -82,7 +86,6 @@ tasks:
         toolchains: ['node']
         options:
             cache: false
-            runInCI: false
 
     # Pulls the instance into the repo. Run this after anyone edits in the
     # Windmill UI, or the next push overwrites their change.
@@ -99,7 +102,6 @@ tasks:
         toolchains: ['node']
         options:
             cache: false
-            runInCI: false
 
     # Fails when the instance holds something the repo does not, which is what
     # a UI edit looks like. Without this the UI quietly becomes the source of
@@ -115,7 +117,6 @@ tasks:
             cache: false
             # Needs a workspace token and an in-cluster route to the API, so it runs
             # from its own workflow rather than failing `moon ci` for everyone else.
-            runInCI: false
 
     # What the deploy lane runs. `ship` rather than `deploy` because `deploy` is
     # already taken repository-wide for running a container on your laptop.
@@ -141,4 +142,3 @@ tasks:
         toolchains: ['node']
         options:
             cache: false
-            runInCI: false
