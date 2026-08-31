@@ -1,0 +1,12 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+tags: ['vitest']
+
+tasks:
+    e2e:
+        script: 'docker rm -f axum-discordsh-e2e 2>/dev/null || true && docker run -d --name axum-discordsh-e2e -p 4321:4321 -e HTTP_PORT=4321 -e RUST_LOG=info kbve/axum-discordsh:latest && sleep 3 && npx vitest run; EC=$?; docker rm -f axum-discordsh-e2e 2>/dev/null || true; exit $EC'
+        deps: ['axum-discordsh:container']
+        options:
+            cache: false

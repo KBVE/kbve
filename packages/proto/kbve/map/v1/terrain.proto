@@ -1,0 +1,83 @@
+syntax = "proto3";
+
+package kbve.map.v1;
+
+import "kbve/common/v1/color.proto";
+
+// Biome classification — drives terrain generation, visuals, and spawn tables
+enum Biome {
+  BIOME_UNSPECIFIED = 0;
+  BIOME_GRASSLAND = 1;
+  BIOME_FOREST = 2;
+  BIOME_DESERT = 3;
+  BIOME_TUNDRA = 4;
+  BIOME_SWAMP = 5;
+  BIOME_MOUNTAIN = 6;
+  BIOME_VOLCANIC = 7;
+  BIOME_OCEAN = 8;
+  BIOME_CAVE = 9;
+  BIOME_DUNGEON = 10;
+  BIOME_CITY = 11;
+  BIOME_RUINS = 12;
+  BIOME_UNDERGROUND = 13;
+  BIOME_FLOATING = 14;
+  BIOME_VOID = 15;
+  BIOME_COASTAL = 16;
+  BIOME_RIVER = 17;
+  BIOME_DIRT = 18;
+  BIOME_SNOW = 19;
+  BIOME_STONE = 20;
+}
+
+// Terrain band type — height-based visual classification
+enum TerrainBand {
+  TERRAIN_BAND_UNSPECIFIED = 0;
+  TERRAIN_BAND_WATER = 1;
+  TERRAIN_BAND_SAND = 2;
+  TERRAIN_BAND_GRASS = 3;
+  TERRAIN_BAND_DIRT = 4;
+  TERRAIN_BAND_STONE = 5;
+  TERRAIN_BAND_SNOW = 6;
+  TERRAIN_BAND_LAVA = 7;
+}
+
+// Terrain generation configuration
+message TerrainConfig {
+  // Noise parameters
+  optional int64 seed = 1;
+  optional float noise_scale = 2; // Frequency of terrain variation
+  optional int32 octaves = 3; // Noise complexity layers (default 2)
+  optional float max_height = 4; // Maximum terrain height in world units
+  optional float persistence = 5; // Amplitude decay per octave (0.0–1.0)
+  optional float lacunarity = 6; // Frequency growth per octave (default 2.0)
+
+  // Chunk system
+  optional int32 chunk_size = 7; // Tiles per chunk side (default 16)
+  optional int32 load_radius = 8; // Chunks loaded around player (default 3)
+  optional float tile_size = 9; // World units per tile (default 1.0)
+
+  // Height-based terrain bands
+  repeated TerrainBandDef bands = 10;
+}
+
+// A height-based terrain band with visual properties
+message TerrainBandDef {
+  TerrainBand type = 1;
+  float min_height = 2; // Band starts at this height
+  float max_height = 3; // Band ends at this height
+  repeated kbve.common.v1.Color colors = 4; // Shade variants for this band
+  optional float body_darkness = 5; // Cliff/side darkness factor (default 0.72)
+}
+
+// Water configuration
+message WaterConfig {
+  optional float water_level = 1; // World height of water surface
+  optional kbve.common.v1.Color base_color = 2; // Shallow water color
+  optional kbve.common.v1.Color deep_color = 3; // Deep water color
+  optional float ripple_speed = 4;
+  optional float ripple_scale = 5;
+  optional float highlight_strength = 6;
+  optional float foam_intensity = 7;
+  optional bool swimmable = 8; // Can players swim (default true)
+  optional int32 drown_damage = 9; // Damage per tick if not swimmable
+}

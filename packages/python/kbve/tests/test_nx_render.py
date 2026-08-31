@@ -25,14 +25,14 @@ def _security_data(raw):
 
 # ── cargo yanked advisory:null (regression #14103) ──────────────────
 
+
 def test_cargo_yanked_null_advisory_renders():
     raw = {
         "cargo": {
             "vulnerabilities": {"list": []},
             "warnings": {
                 "yanked": [
-                    {"kind": "yanked", "advisory": None,
-                     "package": {"name": "spin"}},
+                    {"kind": "yanked", "advisory": None, "package": {"name": "spin"}},
                 ],
             },
         },
@@ -45,6 +45,7 @@ def test_cargo_yanked_null_advisory_renders():
 
 
 # ── security render shape ───────────────────────────────────────────
+
 
 def test_security_mdx_frontmatter_and_clear():
     data = _security_data({})
@@ -72,16 +73,13 @@ def test_security_mdx_bento_structure():
 def test_security_mdx_renders_counts_and_ecosystems():
     data = {
         "generated_at": TS,
-        "summary": {"critical": 2, "high": 1, "medium": 0,
-                    "low": 0, "info": 0},
+        "summary": {"critical": 2, "high": 1, "medium": 0, "low": 0, "info": 0},
         "ecosystems": {
             "npm": {
                 "total": 3,
-                "severities": {"critical": 2, "high": 1, "medium": 0,
-                               "low": 0, "info": 0},
+                "severities": {"critical": 2, "high": 1, "medium": 0, "low": 0, "info": 0},
                 "advisories": [
-                    {"severity": "critical", "package": "leftpad",
-                     "title": "RCE", "url": "https://x", "id": 1},
+                    {"severity": "critical", "package": "leftpad", "title": "RCE", "url": "https://x", "id": 1},
                 ],
             },
             "cargo": {"total": 0, "severities": {}, "advisories": []},
@@ -105,11 +103,11 @@ def test_security_json_roundtrip():
     data = _security_data({})
     out = json.loads(render_security_json(data))
     assert out["generated_at"] == TS
-    assert set(out["ecosystems"]) == {
-        "npm", "cargo", "python", "codeql", "dependabot"}
+    assert set(out["ecosystems"]) == {"npm", "cargo", "python", "codeql", "dependabot"}
 
 
 # ── graph render shape ──────────────────────────────────────────────
+
 
 def _graph_fixture():
     return {
@@ -119,8 +117,7 @@ def _graph_fixture():
                 "ui": {"type": "lib", "data": {"root": "libs/ui"}},
             },
             "dependencies": {
-                "web": [{"source": "web", "target": "ui",
-                         "type": "static"}],
+                "web": [{"source": "web", "target": "ui", "type": "static"}],
                 "ui": [],
             },
         },
@@ -158,7 +155,7 @@ def test_graph_mdx_caps_large_diagram():
     assert "most-connected projects" in mdx
     # the diagram renders at most _MAX_DIAGRAM_NODES distinct nodes
     start = mdx.index('<svg class="kbve-dag"')
-    block = mdx[start:mdx.index("</svg>", start)]
+    block = mdx[start : mdx.index("</svg>", start)]
     labels = set(re.findall(r"<title>([^<]+)</title>", block))
     labels.discard("Nx project dependency graph")
     assert 0 < len(labels) <= _MAX_DIAGRAM_NODES
@@ -191,14 +188,13 @@ def test_graph_mdx_bento_structure():
 
 # ── CLI entry points ────────────────────────────────────────────────
 
+
 def test_security_main_writes(tmp_path):
     raw = tmp_path / "raw.json"
     raw.write_text(json.dumps({}))
     mdx = tmp_path / "out.mdx"
     js = tmp_path / "out.json"
-    rc = security_main([
-        "--input", str(raw), "--mdx-out", str(mdx),
-        "--json-out", str(js), "--timestamp", TS])
+    rc = security_main(["--input", str(raw), "--mdx-out", str(mdx), "--json-out", str(js), "--timestamp", TS])
     assert rc == 0
     assert mdx.read_text().startswith("---\n")
     assert json.loads(js.read_text())["generated_at"] == TS

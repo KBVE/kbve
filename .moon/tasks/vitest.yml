@@ -1,0 +1,37 @@
+$schema: 'https://moonrepo.dev/schemas/tasks.json'
+
+# Inherited by every project tagged 'vitest'. Same story as vite.yml: about
+# half of these tests existed only because @nx/vitest inferred them, so there
+# is no Nx configuration to carry over -- the tag is the port.
+#
+# The config is left unnamed. Projects here split across vite.config.ts,
+# vitest.config.ts and vitest.unit-jsdom.config.ts, and vitest resolves that
+# itself -- vitest.config.* first, falling back to vite.config.*. Naming
+# vitest.config.ts in the preset broke every npm package, which keeps its test
+# config inside vite.config.ts. A project with more than one names the one it
+# wants.
+inheritedBy:
+    tag: 'vitest'
+
+fileGroups:
+    tests:
+        - 'src/**/*.{test,spec}.*'
+        - 'tests/**/*'
+    configs:
+        - 'vitest.config.*'
+        - 'vite.config.*'
+
+tasks:
+    test:
+        command: 'vitest run'
+        toolchains: ['node']
+        inputs: ['src/**/*', '@group(tests)', '@group(configs)']
+
+    coverage:
+        command: 'vitest run --coverage'
+        toolchains: ['node']
+        inputs: ['src/**/*', '@group(tests)', '@group(configs)']
+        options:
+            # Nx set cache: false on every coverage target. The report is what is
+            # wanted, and it is wanted freshly written where the reporter expects it.
+            cache: false

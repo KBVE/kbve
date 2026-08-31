@@ -49,9 +49,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"uproject not found: {uproject}", file=sys.stderr)
         return 2
 
-    engine_root = resolve_engine_root(
-        uproject, override=Path(args.engine_root) if args.engine_root else None
-    )
+    engine_root = resolve_engine_root(uproject, override=Path(args.engine_root) if args.engine_root else None)
     if not args.dry_run and not engine_root.exists():
         print(
             f"engine not found: {engine_root} (override with --engine-root or KBVE_UE_ROOT)",

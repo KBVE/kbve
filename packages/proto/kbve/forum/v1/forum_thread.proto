@@ -1,0 +1,239 @@
+syntax = "proto3";
+
+package kbve.forum.v1;
+
+import "google/protobuf/timestamp.proto";
+import "kbve/forum/v1/forum.proto";
+import "kbve/type/v1/id.proto";
+
+// How a party is filling up. Finer-grained than a thread being expired.
+enum LfgStatus {
+  LFG_STATUS_UNSPECIFIED = 0;
+  LFG_STATUS_OPEN = 1;
+  LFG_STATUS_FULL = 2;
+  LFG_STATUS_STARTED = 3;
+  LFG_STATUS_CANCELLED = 4;
+}
+
+// Extras for a plain thread: discussion, guide, showcase, bug report or
+// megathread.
+//
+// Empty on purpose, so that every thread type has a branch and no type relies
+// on the absence of one.
+message DiscussionData {}
+
+// Extras for a question. The accepted answer is a foreign key on the thread
+// itself rather than a field here.
+message QuestionData {}
+
+// Extras for an announcement.
+message AnnouncementData {
+  // Unpinned automatically once this passes.
+  optional google.protobuf.Timestamp expires_at = 1;
+}
+
+// Extras for a listing.
+message MarketplaceData {
+  string item_name = 1;
+  optional string item_description = 2;
+  // In the smallest unit of the currency below.
+  int64 price = 3;
+  string currency = 4;
+  optional string condition = 5;
+  // Set when the listing sells.
+  optional kbve.type.v1.Uuid buyer_id = 6;
+  repeated kbve.type.v1.Uuid image_attachment_ids = 7;
+  optional string shipping_region = 8;
+  bool offers_accepted = 9;
+  bool trade_accepted = 10;
+  // Identifier from whichever payment system settled the sale.
+  optional string payment_ref = 11;
+  // Absent means the listing is open-ended.
+  optional google.protobuf.Timestamp expires_at = 12;
+}
+
+// Extras for an auction. The current bid and bidder are denormalised from the
+// bid history.
+message AuctionData {
+  string item_name = 1;
+  optional string item_description = 2;
+  int64 start_price = 3;
+  int64 current_bid = 4;
+  optional kbve.type.v1.Uuid current_bidder_id = 5;
+  string currency = 6;
+  google.protobuf.Timestamp end_time = 7;
+  int32 bid_count = 8;
+  int64 min_increment = 9;
+  // Hidden. A sale does not complete below it.
+  optional int64 reserve_price = 10;
+  // Whether a late bid pushes the deadline back.
+  bool anti_snipe_enabled = 11;
+  int32 anti_snipe_extend_seconds = 12;
+  repeated kbve.type.v1.Uuid image_attachment_ids = 13;
+}
+
+// One bid. Append-only: this is the history, and AuctionData holds its head.
+message ForumAuctionBid {
+  kbve.type.v1.Uuid id = 1;
+  kbve.type.v1.Uuid thread_id = 2;
+  kbve.type.v1.Uuid bidder_id = 3;
+  // In the smallest unit of the currency below.
+  int64 amount = 4;
+  string currency = 5;
+  google.protobuf.Timestamp created_at = 6;
+  bool retracted = 7;
+}
+
+// Extras for a poll.
+//
+// When the poll is anonymous only the tallies are kept. Otherwise each vote is
+// also recorded individually.
+message PollData {
+  repeated string options = 1;
+  // Tally per option, parallel to options above.
+  repeated int32 votes = 2;
+  bool multiple_choice = 3;
+  optional google.protobuf.Timestamp end_time = 4;
+  bool anonymous = 5;
+  // Cap on a multiple-choice poll. Zero is uncapped.
+  int32 max_choices = 6;
+}
+
+// One vote on a poll, kept only when the poll is not anonymous.
+message ForumPollVote {
+  kbve.type.v1.Uuid id = 1;
+  kbve.type.v1.Uuid thread_id = 2;
+  kbve.type.v1.Uuid voter_id = 3;
+  // Indices into PollData.options.
+  repeated int32 option_indices = 4;
+  google.protobuf.Timestamp created_at = 5;
+}
+
+// Extras for a party looking for members.
+message LfgData {
+  string game = 1;
+  int32 slots_total = 2;
+  int32 slots_filled = 3;
+  optional string requirements = 4;
+  optional google.protobuf.Timestamp scheduled_time = 5;
+  // e.g. "pc", "ps5", "switch".
+  repeated string platforms = 6;
+  bool voice_required = 7;
+  // Absent means the author leads.
+  optional kbve.type.v1.Uuid leader_id = 8;
+  LfgStatus lfg_status = 9;
+  repeated kbve.type.v1.Uuid member_user_ids = 10;
+}
+
+// Extras for a shared asset. Unlike a listing, nothing is bought.
+message AssetData {
+  string asset_name = 1;
+  optional string asset_description = 2;
+  optional string download_url = 3;
+  optional string source_url = 4;
+  // SPDX identifier.
+  optional string license = 5;
+  optional string version = 6;
+  optional string engine = 7;
+  repeated string file_types = 8;
+  optional int64 file_size_bytes = 9;
+  int32 download_count = 10;
+  optional string repo_url = 11;
+}
+
+// Extras for a short-form post.
+message StatusData {
+  // Shown over the post while it stays blurred.
+  optional string content_warning = 1;
+}
+
+// A top-level post. Belongs to exactly one space.
+message ForumThread {
+  // 6 was tag_ids. Tag associations live in ThreadTag, which is the database's
+  // source of truth; the API writes there and returns the expanded tags.
+  reserved 6;
+  reserved "tag_ids";
+
+  kbve.type.v1.Uuid id = 1;
+  // May be empty for a short-form post.
+  string title = 2;
+  string body = 3;
+  kbve.type.v1.Uuid author_id = 4;
+  kbve.type.v1.Uuid space_id = 5;
+  ThreadStatus status = 7;
+  ThreadType thread_type = 8;
+
+  // Exactly one branch is set, and which one is determined by thread_type. The
+  // write path enforces the match.
+  oneof type_data {
+    DiscussionData discussion_data = 9;
+    QuestionData question_data = 10;
+    AnnouncementData announcement_data = 11;
+    MarketplaceData marketplace_data = 12;
+    AuctionData auction_data = 13;
+    PollData poll_data = 14;
+    LfgData lfg_data = 15;
+    AssetData asset_data = 24;
+    StatusData status_data = 25;
+  }
+
+  int32 comment_count = 16;
+  // Wide enough for a post that gets away from us.
+  int64 view_count = 17;
+  optional string slug = 18;
+  bool pinned = 19;
+  // For a question: the answer its author accepted.
+  optional kbve.type.v1.Uuid accepted_comment_id = 20;
+  google.protobuf.Timestamp created_at = 21;
+  google.protobuf.Timestamp updated_at = 22;
+  // Absent when the thread has never been edited.
+  optional google.protobuf.Timestamp edited_at = 23;
+
+  // Sort signals.
+  int64 score = 26;
+  int64 upvote_count = 27;
+  int64 downvote_count = 28;
+  // Moved by a comment, a vote or an edit, and what bump-sorting reads.
+  google.protobuf.Timestamp last_activity_at = 29;
+
+  bool nsfw = 30;
+  // Implied by status, denormalised so filtering does not have to derive it.
+  bool locked = 31;
+  // BCP-47, e.g. "en-US".
+  optional string locale = 32;
+
+  optional kbve.type.v1.Uuid cross_posted_from_thread_id = 33;
+  optional kbve.type.v1.Uuid quoted_thread_id = 34;
+
+  // When the thread is scheduled, the time it becomes visible.
+  optional google.protobuf.Timestamp scheduled_at = 35;
+
+  int32 revision_count = 36;
+  // Denormalised; the attachments themselves point back at this thread.
+  int32 attachment_count = 37;
+}
+
+// A reply, nested through parent_comment_id.
+message ForumComment {
+  kbve.type.v1.Uuid id = 1;
+  string body = 2;
+  kbve.type.v1.Uuid author_id = 3;
+  kbve.type.v1.Uuid thread_id = 4;
+  // Absent for a top-level reply.
+  optional kbve.type.v1.Uuid parent_comment_id = 5;
+  int32 depth = 6;
+  CommentStatus status = 7;
+  bool is_accepted = 8;
+  google.protobuf.Timestamp created_at = 9;
+  optional google.protobuf.Timestamp edited_at = 10;
+
+  int64 score = 11;
+  int64 upvote_count = 12;
+  int64 downvote_count = 13;
+
+  // Another comment in the same thread, rendered above this one for context.
+  optional kbve.type.v1.Uuid quoted_comment_id = 14;
+
+  int32 revision_count = 15;
+  int32 attachment_count = 16;
+}

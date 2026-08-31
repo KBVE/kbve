@@ -2,7 +2,7 @@
 # Launch a Fabric development client with the behavior_statetree mod.
 #
 # Prerequisites:
-#   1. Docker dev server running: npx nx run mc:dev
+#   1. Docker dev server running: moon run mc:dev
 #   2. Rust native lib built (optional — only needed for AI, not ships):
 #      cargo build -p behavior_statetree --release
 #

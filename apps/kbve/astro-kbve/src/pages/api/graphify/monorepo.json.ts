@@ -135,7 +135,7 @@ export const GET: APIRoute = async () => {
 					scope: 'monorepo',
 					status: 'not-generated',
 					message:
-						'Graph source missing. Expected public/graphify/overview.json (run: pnpm nx run graphify-wrapper:build-monorepo).',
+						'Graph source missing. Expected public/graphify/overview.json (run: moon run graphify-wrapper:build-monorepo).',
 				},
 				graph: {
 					nodes: [],

@@ -84,9 +84,9 @@ bento:
             pip install kbve
 
             # development inside the KBVE monorepo
-            pnpm nx test python-kbve
-            pnpm nx lint python-kbve
-            pnpm nx build python-kbve
+            moon run python-kbve:test
+            moon run python-kbve:lint
+            moon run python-kbve:build
     related:
         - title: Fudster
           href: /project/fudster/

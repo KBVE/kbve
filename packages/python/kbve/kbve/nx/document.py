@@ -33,16 +33,12 @@ class MdxDocument:
         return needle in self._text
 
     def frontmatter_scalar(self, key: str) -> str | None:
-        m = re.search(
-            r"^%s:[ \t]*(.+?)[ \t]*$" % re.escape(key), self._text, re.M
-        )
+        m = re.search(r"^%s:[ \t]*(.+?)[ \t]*$" % re.escape(key), self._text, re.M)
         return m.group(1) if m else None
 
     def set_frontmatter_year(self, key: str, year: str) -> bool:
         pattern = r"(^%s:[ \t]*)(\d{4})(-)" % re.escape(key)
-        new, n = re.subn(
-            pattern, r"\g<1>%s\g<3>" % year, self._text, count=1, flags=re.M
-        )
+        new, n = re.subn(pattern, r"\g<1>%s\g<3>" % year, self._text, count=1, flags=re.M)
         if n:
             self._text = new
         return bool(n)

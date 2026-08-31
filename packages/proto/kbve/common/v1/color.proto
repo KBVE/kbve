@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package kbve.common.v1;
+
+// Colour in linear sRGB, each channel from zero to one.
+message Color {
+  float r = 1;
+  float g = 2;
+  float b = 3;
+  // Defaults to fully opaque when unset.
+  optional float a = 4;
+}

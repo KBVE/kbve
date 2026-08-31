@@ -1,0 +1,46 @@
+[package]
+name = "simgrid"
+authors = ["kbve", "h0lybyte"]
+version = "0.0.1"
+edition = "2024"
+rust-version.workspace = true
+license = "MIT"
+description = "Headless grid-authoritative multiplayer sim core for KBVE games — bevy ECS + axum WS + postcard wire + Supabase JWT. No godot, no rapier, no lightyear."
+homepage = "https://kbve.com/"
+repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/simgrid"
+keywords = ["bevy", "grid", "multiplayer", "gamedev", "axum"]
+categories = ["game-development", "game-engines", "network-programming"]
+
+[lib]
+crate-type = ["rlib"]
+
+[features]
+default = ["supabase-auth"]
+supabase-auth = ["dep:jsonwebtoken"]
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+postcard = { workspace = true, features = ["use-std"] }
+bevy = { workspace = true, features = ["bevy_state"] }
+bevy_spells = { version = "0.1.0", path = "../bevy_spells" }
+axum = { workspace = true, features = ["ws"] }
+tokio = { workspace = true, features = ["default", "rt-multi-thread", "macros", "sync", "time", "net"] }
+futures-util = { workspace = true, features = ["std"] }
+dashmap = { workspace = true }
+ulid = { workspace = true }
+async-trait = { workspace = true }
+jsonwebtoken = { workspace = true, optional = true }
+tracing = { workspace = true }
+sha2 = { workspace = true }
+hex = { workspace = true }
+fastnoise-lite = "=1.1.1"
+getrandom = "0.2"
+
+[dev-dependencies]
+# Integration tests spin the real axum WS router + sim loop and drive a client.
+tokio = { workspace = true, features = ["default", "rt-multi-thread", "macros", "time", "net"] }
+axum = { workspace = true, features = ["default", "ws", "tokio"] }
+tokio-tungstenite = { workspace = true, features = ["default"] }
+futures-util = { workspace = true, features = ["default"] }
+serde_json = { workspace = true }

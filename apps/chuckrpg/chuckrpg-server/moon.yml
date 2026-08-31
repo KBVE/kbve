@@ -1,0 +1,24 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'bash'
+
+# Not tagged 'docker': the preset builds from the workspace root, and this
+# image copies a `server/` directory of pre-built UE binaries that only CI
+# produces. The context is the project dir, populated by the engine build.
+tasks:
+    container:
+        command: >-
+            docker buildx build --load
+            -f $projectSource/Dockerfile
+            -t kbve/chuckrpg-server:latest
+            $projectSource
+        inputs:
+            - 'Dockerfile'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    version:
+        script: 'cat apps/chuckrpg/chuckrpg-server/version.toml'
+        options:
+            runFromWorkspaceRoot: true

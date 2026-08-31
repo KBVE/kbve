@@ -1,0 +1,18 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'library'
+language: 'typescript'
+tags: ['docker']
+
+tasks:
+    container-publish:
+        script: 'docker buildx build --push --platform linux/amd64 --cache-from=type=registry,ref=ghcr.io/kbve/arc-runner:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/arc-runner:buildcache,mode=max -f packages/docker/arc-runner/Dockerfile -t ghcr.io/kbve/arc-runner:latest packages/docker/arc-runner'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true
+    test:
+        script: "echo '=== arc-runner image tests ===' && docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'git-lfs --version' | grep -q 'git-lfs/' && echo 'PASS: git-lfs on PATH' && docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'jq --version' | grep -q 'jq-' && echo 'PASS: jq on PATH' && docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'unzip -v' | grep -q 'UnZip' && echo 'PASS: unzip on PATH' && docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'zip -v' | grep -q 'Zip ' && echo 'PASS: zip on PATH' && docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'xz --version' | grep -q 'xz (XZ Utils)' && echo 'PASS: xz on PATH' && docker run --rm --platform linux/amd64 ghcr.io/kbve/arc-runner:latest bash -lc 'gh --version' | grep -q 'gh version' && echo 'PASS: gh on PATH' && echo '=== arc-runner image OK ===' && docker rmi -f ghcr.io/kbve/arc-runner:latest || true"
+        deps: ['~:container']
+        options:
+            runFromWorkspaceRoot: true

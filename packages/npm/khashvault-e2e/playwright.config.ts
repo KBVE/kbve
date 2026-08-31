@@ -18,7 +18,7 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: 'npx nx serve khashvault-e2e',
+		command: 'moon run khashvault-e2e:serve',
 		url: 'http://localhost:4305',
 		reuseExistingServer: !process.env['CI'],
 		timeout: 30_000,

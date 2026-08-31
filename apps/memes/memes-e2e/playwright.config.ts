@@ -25,7 +25,7 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: './kbve.sh -nx axum-memes:dev',
+		command: 'moon run axum-memes:dev',
 		cwd: workspaceRoot,
 		url: `${baseURL}/health`,
 		reuseExistingServer: false,

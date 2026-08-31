@@ -1,7 +1,7 @@
 // Layout probe for the built astro-kbve site.
 //
 // Usage:
-//   1. Build:  ./kbve.sh -nx astro-kbve:build --skip-nx-cache
+//   1. Build:  moon run astro-kbve:build --force
 //   2. Serve:  (cd dist/apps/astro-kbve && python3 -m http.server 8199)
 //   3. Probe:  node apps/kbve/astro-kbve/scripts/measure.mjs <path> [selector ...]
 //

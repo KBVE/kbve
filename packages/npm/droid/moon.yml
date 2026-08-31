@@ -1,0 +1,13 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'library'
+language: 'typescript'
+tags: ['vite', 'vitest', 'npm', 'eslint']
+
+tasks:
+    # The suite that tests this package. CI dispatches `<package>:e2e` and does
+    # not need to know which project holds the tests.
+    e2e:
+        deps: ['droid-e2e:e2e']
+        options:
+            cache: false

@@ -41,11 +41,11 @@ e2e/                 vitest network probes
 ## Running it
 
 ```bash
-./kbve.sh -nx agones-tocloud9:setup   # one-time: schema import + ~3.5GB client data
-./kbve.sh -nx agones-tocloud9:up      # start the cluster
-./kbve.sh -nx agones-tocloud9:e2e     # network + cluster-membership probes
-./kbve.sh -nx agones-tocloud9:scale   # TC9_WORLDSERVERS=3 to rehearse a Fleet
-./kbve.sh -nx agones-tocloud9:down    # stop (nuke also drops volumes)
+moon run agones-tocloud9:setup   # one-time: schema import + ~3.5GB client data
+moon run agones-tocloud9:up      # start the cluster
+moon run agones-tocloud9:e2e     # network + cluster-membership probes
+moon run agones-tocloud9:scale   # TC9_WORLDSERVERS=3 to rehearse a Fleet
+moon run agones-tocloud9:down    # stop (nuke also drops volumes)
 ```
 
 `setup` is slow and mostly network-bound: it pulls the AzerothCore world DB and the

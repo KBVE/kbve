@@ -34,7 +34,7 @@ fi
 
 log "$LIB missing; running nx $TARGET"
 cd "$ROOT"
-pnpm nx run "$TARGET"
+moon run "$TARGET"
 
 if [ ! -f "$LIB" ]; then
 	log "$TARGET finished but $LIB is still absent"

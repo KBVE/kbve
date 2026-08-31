@@ -26,7 +26,7 @@ target
 # CI / Config
 .github
 .claude
-.nx
+.moon/cache
 
 # Large / irrelevant app directories not needed by any Dockerfile
 apps/irc/ergo

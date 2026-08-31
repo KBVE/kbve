@@ -1,0 +1,66 @@
+syntax = "proto3";
+
+package kbve.market.v1;
+
+import "google/protobuf/timestamp.proto";
+import "kbve/asset/v1/asset.proto";
+import "kbve/common/v1/decimal.proto";
+import "kbve/type/v1/id.proto";
+
+// Things an issuer did that rewrite what a price series means.
+//
+// Kept beside the prices rather than beside the asset, because adjusting a
+// series is the whole reason to record them.
+
+// Something an issuer did that changes what a holding is or what it is worth.
+enum CorporateActionKind {
+  CORPORATE_ACTION_KIND_UNSPECIFIED = 0;
+  // One share becomes several.
+  CORPORATE_ACTION_KIND_SPLIT = 1;
+  // Several shares become one.
+  CORPORATE_ACTION_KIND_REVERSE_SPLIT = 2;
+  CORPORATE_ACTION_KIND_CASH_DIVIDEND = 3;
+  CORPORATE_ACTION_KIND_STOCK_DIVIDEND = 4;
+  // The issuer was absorbed; holders receive the successor.
+  CORPORATE_ACTION_KIND_MERGER = 5;
+  // Part of the issuer became a separate asset.
+  CORPORATE_ACTION_KIND_SPINOFF = 6;
+  // The name or ticker changed and the asset did not.
+  CORPORATE_ACTION_KIND_RENAME = 7;
+  CORPORATE_ACTION_KIND_DELISTING = 8;
+  CORPORATE_ACTION_KIND_RIGHTS_ISSUE = 9;
+}
+
+// One corporate action.
+//
+// These are why a price series is not simply a list of numbers. Each one has
+// an effective date that rewrites everything before it, so they are recorded
+// rather than folded silently into the prices.
+message CorporateAction {
+  kbve.type.v1.Ulid id = 1;
+  kbve.asset.v1.AssetRef ref = 2;
+  CorporateActionKind kind = 3;
+
+  // The first day the asset trades without the entitlement. This is the date
+  // that matters for adjusting a series, not the announcement or the payment.
+  google.protobuf.Timestamp ex_date = 4;
+  optional google.protobuf.Timestamp announced_at = 5;
+  // Who holds it on this date is entitled.
+  optional google.protobuf.Timestamp record_date = 6;
+  optional google.protobuf.Timestamp pay_date = 7;
+
+  // For splits, as a ratio rather than a decimal: a three-for-two split is
+  // numerator 3 and denominator 2, and writing that as 1.5 loses the fact that
+  // it was a share count.
+  optional int64 ratio_numerator = 8;
+  optional int64 ratio_denominator = 9;
+
+  // For dividends, per share, in the currency below.
+  optional kbve.common.v1.Decimal amount = 10;
+  optional string currency = 11;
+
+  // What the asset became, for a merger, a spinoff or a rename.
+  optional kbve.asset.v1.AssetRef resulting_ref = 12;
+
+  optional string notes = 13;
+}

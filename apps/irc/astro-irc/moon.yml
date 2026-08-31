@@ -1,0 +1,23 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+stack: 'frontend'
+tags: ['astro']
+
+tasks:
+    # The embeddable widget is a second Vite build whose output is served out of
+    # public/, so it has to land before Astro copies that directory.
+    build-embed:
+        command: 'vite build --config vite.embed.config.ts'
+        toolchains: ['node']
+        inputs:
+            - 'src/**/*'
+            - 'vite.embed.config.ts'
+        outputs: ['public/embed']
+
+    build:
+        deps: ['~:build-embed']
+
+    dev:
+        deps: ['~:build-embed']

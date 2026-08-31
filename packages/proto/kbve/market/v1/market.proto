@@ -1,0 +1,134 @@
+syntax = "proto3";
+
+package kbve.market.v1;
+
+import "google/protobuf/timestamp.proto";
+import "kbve/asset/v1/asset.proto";
+import "kbve/common/v1/decimal.proto";
+import "kbve/market/v1/market_session.proto";
+
+// What an asset costs, now and over time.
+//
+// The moving half of the domain. Everything here is keyed by
+// kbve.asset.v1.AssetRef and says nothing about what the asset is -- a quote
+// for a share and a quote for an abyssal whip are the same shape, because the
+// thing that differs between them is not the price.
+
+// What an asset costs at one moment.
+//
+// Bid and ask carry their own timestamps because they do not have to move
+// together. On the Grand Exchange they routinely do not: an item can have an
+// instant-sell price from an hour ago and an instant-buy price from a minute
+// ago, and averaging the two without knowing that is how a price ends up
+// wrong.
+message Quote {
+  kbve.asset.v1.AssetRef ref = 1;
+  // When this quote was assembled.
+  google.protobuf.Timestamp as_of = 2;
+
+  // The best price a buyer is offering.
+  optional kbve.common.v1.Decimal bid = 3;
+  optional google.protobuf.Timestamp bid_at = 4;
+  optional int64 bid_size = 5;
+
+  // The best price a seller is asking.
+  optional kbve.common.v1.Decimal ask = 6;
+  optional google.protobuf.Timestamp ask_at = 7;
+  optional int64 ask_size = 8;
+
+  // The price of the last trade that actually happened.
+  optional kbve.common.v1.Decimal last = 9;
+  optional google.protobuf.Timestamp last_at = 10;
+
+  // Units traded over the period the venue reports.
+  optional int64 volume = 11;
+
+  // Who said so. Two vendors disagree about the same instrument at the same
+  // instant more often than they agree exactly, and a series assembled from
+  // both without recording which is which cannot be reconciled afterwards.
+  optional string source = 12;
+
+  QuoteQuality quality = 13;
+  // How far behind real time this is. Equity data is commonly fifteen minutes
+  // delayed unless licensed otherwise, and presenting that as live is both a
+  // wrong number and a licensing problem.
+  optional int64 delay_seconds = 14;
+
+  // Whether the asset could actually be traded at this moment. A price quoted
+  // during a halt is the last one before the halt, and it is the price least
+  // likely to survive the resumption.
+  TradingStatus status = 15;
+}
+
+// How close to the market a quote is.
+enum QuoteQuality {
+  QUOTE_QUALITY_UNSPECIFIED = 0;
+  QUOTE_QUALITY_REALTIME = 1;
+  // Deliberately lagged by the venue or the vendor, typically fifteen minutes.
+  QUOTE_QUALITY_DELAYED = 2;
+  // The official close, not a live price.
+  QUOTE_QUALITY_END_OF_DAY = 3;
+  // A reference price rather than a tradeable one: a computed mid, a stale
+  // last, or a vendor's estimate for an instrument that has not traded.
+  QUOTE_QUALITY_INDICATIVE = 4;
+}
+
+// The period one candle covers.
+enum CandleInterval {
+  CANDLE_INTERVAL_UNSPECIFIED = 0;
+  CANDLE_INTERVAL_MINUTE_1 = 1;
+  CANDLE_INTERVAL_MINUTE_5 = 2;
+  CANDLE_INTERVAL_MINUTE_15 = 3;
+  CANDLE_INTERVAL_HOUR_1 = 4;
+  CANDLE_INTERVAL_HOUR_4 = 5;
+  CANDLE_INTERVAL_DAY_1 = 6;
+  CANDLE_INTERVAL_WEEK_1 = 7;
+  CANDLE_INTERVAL_MONTH_1 = 8;
+}
+
+// Aggregated trading over one interval.
+message Candle {
+  // The interval this candle opens; it closes one interval later.
+  google.protobuf.Timestamp open_time = 1;
+  kbve.common.v1.Decimal open = 2;
+  kbve.common.v1.Decimal high = 3;
+  kbve.common.v1.Decimal low = 4;
+  kbve.common.v1.Decimal close = 5;
+  optional int64 volume = 6;
+  // How many trades made up the candle.
+  optional int64 trade_count = 7;
+}
+
+// A run of candles for one asset at one interval.
+message PriceHistory {
+  kbve.asset.v1.AssetRef ref = 1;
+  CandleInterval interval = 2;
+  // Ordered oldest first.
+  repeated Candle candles = 3;
+
+  // Whether the prices have been restated for splits and dividends since they
+  // were quoted.
+  //
+  // This is not decoration. A two-for-one split halves every price before it,
+  // so an unadjusted series and an adjusted one disagree about what a share
+  // cost on the same day, and a chart that mixes them shows a crash that never
+  // happened. A series that does not say which it is cannot be used safely, so
+  // the field is required rather than optional and the zero value means
+  // nobody said.
+  PriceAdjustment adjustment = 4;
+  // The last corporate action folded into these prices, where the series is
+  // adjusted. A series adjusted before a later split is stale, not wrong, and
+  // this is how a consumer can tell.
+  optional google.protobuf.Timestamp adjusted_through = 5;
+}
+
+// Whether a price series has been restated for corporate actions.
+enum PriceAdjustment {
+  PRICE_ADJUSTMENT_UNSPECIFIED = 0;
+  // Prices exactly as they were quoted at the time.
+  PRICE_ADJUSTMENT_NONE = 1;
+  // Restated for splits only.
+  PRICE_ADJUSTMENT_SPLIT = 2;
+  // Restated for splits and for dividends paid out of the price.
+  PRICE_ADJUSTMENT_SPLIT_AND_DIVIDEND = 3;
+}

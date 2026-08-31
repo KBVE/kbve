@@ -1,0 +1,52 @@
+[package]
+name = "embeddb"
+version = "0.3.0"
+edition.workspace = true
+description = "Single-file embedded DB: Turso write path + DuckDB analytics read path"
+license.workspace = true
+homepage = "https://kbve.com/application/rust/#embeddb"
+repository.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+turso = { workspace = true }
+duckdb = { workspace = true, optional = true }
+tokio = { workspace = true, features = ["default", "rt", "rt-multi-thread", "macros"] }
+thiserror = { workspace = true }
+embeddb-derive = { version = "0.1.0", path = "../embeddb-derive", optional = true }
+reqwest = { workspace = true, features = ["json", "rustls"], optional = true }
+serde = { workspace = true, features = ["derive"], optional = true }
+serde_json = { workspace = true, optional = true }
+
+[features]
+default = ["derive", "analytics"]
+derive = ["dep:embeddb-derive"]
+analytics = ["dep:duckdb"]
+vector = []
+embed-api = ["vector", "dep:reqwest", "dep:serde", "dep:serde_json"]
+
+[dev-dependencies]
+tempfile = { workspace = true }
+tokio = { workspace = true, features = ["default", "rt", "rt-multi-thread", "macros"] }
+criterion = { workspace = true, features = ["default"] }
+
+[[bench]]
+name = "embeddb_bench"
+harness = false
+required-features = ["analytics"]
+
+[[test]]
+name = "e2e_core"
+required-features = ["derive", "analytics"]
+
+[[test]]
+name = "e2e_vector"
+required-features = ["vector", "analytics"]
+
+[[test]]
+name = "e2e_offline"
+required-features = ["vector", "analytics"]
+
+[[example]]
+name = "basic"
+required-features = ["analytics"]

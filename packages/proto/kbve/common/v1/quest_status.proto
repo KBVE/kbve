@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package kbve.common.v1;
+
+// Progress of a quest for one player.
+//
+// Lives here rather than in the quest domain because dialogue gates on it:
+// which line an NPC opens with depends on whether a quest is unstarted,
+// running or already turned in. The npc domain previously encoded the same
+// thing as free text, e.g. "active:quest-slug".
+enum QuestStatus {
+  QUEST_STATUS_UNSPECIFIED = 0;
+  // Prerequisites are not met.
+  QUEST_STATUS_LOCKED = 1;
+  QUEST_STATUS_AVAILABLE = 2;
+  QUEST_STATUS_ACTIVE = 3;
+  // Objectives are done, rewards are not yet claimed.
+  QUEST_STATUS_COMPLETE = 4;
+  QUEST_STATUS_TURNED_IN = 5;
+  QUEST_STATUS_FAILED = 6;
+  QUEST_STATUS_ABANDONED = 7;
+}

@@ -33,8 +33,6 @@ jobs:
         name: Build + Push ghcr.io/kbve/mc:mods
         runs-on: ubuntu-latest
         timeout-minutes: 30
-        env:
-            NX_NO_CLOUD: true
         permissions:
             contents: read
             packages: write
@@ -99,17 +97,20 @@ jobs:
             # PR runs build-only to validate Dockerfile.mods + sha1 checks,
             # but skip pushing so PR runs can't overwrite the :mods tag
             # that main image builds depend on.
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
             - name: Build ghcr.io/kbve/mc:mods (local)
               if: ${{ github.event_name == 'pull_request' }}
               env:
                   INPUT_GITHUB_TOKEN: ${{ github.token }}
-              run: pnpm nx run mc:container-mods --configuration=local --no-cloud
+              run: moon run mc:container-mods
 
             - name: Build + Push ghcr.io/kbve/mc:mods
               if: ${{ github.event_name != 'pull_request' }}
               env:
                   INPUT_GITHUB_TOKEN: ${{ github.token }}
-              run: pnpm nx run mc:container-mods --configuration=production --no-cloud
+              run: moon run mc:container-mods-publish
 
     track_failure:
         name: Track Failures

@@ -1,0 +1,27 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+language: 'python'
+tags: ['uv']
+layer: 'library'
+
+tasks:
+    # There is no separate suite here; the package's own tests are the e2e run.
+    e2e:
+        deps: ['~:test']
+        options:
+            cache: false
+
+    cli:
+        command: 'uv run fudster'
+        options:
+            cache: false
+
+    graph-to-mdx:
+        command: 'uv run fudster nx graph-to-mdx'
+        options:
+            cache: false
+
+    security-to-mdx:
+        command: 'uv run fudster nx security-to-mdx'
+        options:
+            cache: false

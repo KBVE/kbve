@@ -1,0 +1,28 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'rust'
+tags: ['rust', 'docker']
+
+tasks:
+    build:
+        script: 'cargo build -p friendslop-server'
+        outputs: ['/dist/target/debug/friendslop-server']
+        options:
+            runFromWorkspaceRoot: true
+    build-release:
+        script: 'cargo build --release -p friendslop-server'
+        outputs: ['/dist/target/release/friendslop-server']
+        options:
+            runFromWorkspaceRoot: true
+    e2e:
+        script: 'docker rm -f friendslop-server-e2e 2>/dev/null || true && docker run -d --name friendslop-server-e2e -p 7980:7980 -p 7981:7981/udp -e FS_SERVER_ADDR=0.0.0.0:7980 -e FS_UDP_ADDR=0.0.0.0:7981 kbve/friendslop-server:latest && echo ''Waiting for friendslop-server...'' && for i in $(seq 1 60); do if curl -fsS http://127.0.0.1:7980/healthz >/dev/null 2>&1; then echo ''ready after ''"$i"''s''; break; fi; if [ $i -eq 60 ]; then echo ''did not start in 60s''; docker logs friendslop-server-e2e 2>&1 | tail -80; docker rm -f friendslop-server-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done && FS_HOST=127.0.0.1 FS_PORT=7980 npx vitest run; EC=$?; echo ''--- container logs ---''; docker logs friendslop-server-e2e 2>&1 | tail -80; docker rm -f friendslop-server-e2e 2>/dev/null || true; exit $EC'
+        deps: ['~:container']
+        options:
+            cache: false
+    container-publish:
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/friendslop-server:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/friendslop-server:buildcache,mode=max -f apps/agones/friendslop/server/Dockerfile -t kbve/friendslop-server:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true

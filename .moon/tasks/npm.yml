@@ -1,0 +1,72 @@
+$schema: 'https://moonrepo.dev/schemas/tasks.json'
+
+# Inherited by every project tagged 'npm'. Each of these builds with vite, so a
+# project carries both tags and `build` comes from vite.yml.
+#
+# NPM_DIST is where vite wrote the package. These build to dist/packages/npm/
+# <name> at the workspace root rather than a project-local dist/, so it is set
+# once here from the project's own source path.
+inheritedBy:
+    tag: 'npm'
+
+fileGroups:
+    manifest:
+        - 'package.json'
+        - 'README.md'
+
+tasks:
+    # vite.yml cannot declare outputs -- outDir varies per project -- but every
+    # npm package here writes to dist/<its source path>, so the tag can. Without
+    # this a cache hit skips the build and restores nothing, and `pack` then
+    # fails on a directory that was deleted after the hash was recorded.
+    build:
+        outputs: ['/dist/$projectSource']
+
+    # Assembles the tarball and proves it holds together. Separate from `build`
+    # on purpose: it writes the manifest and README into the build output, so
+    # keeping it apart leaves `build` with outputs moon alone owns.
+    #
+    # The check is the point. Nx did the copying with nxCopyAssetsPlugin and
+    # nothing verified the result, which is how a published package can import
+    # chunk files its own `files` glob excluded -- it installs cleanly and every
+    # entry point fails on first import. pack.mjs reads the bundles, resolves
+    # what they reach for, and fails here instead.
+    pack:
+        command: 'node $workspaceRoot/tools/npm/pack.mjs'
+        toolchains: ['node']
+        deps: ['~:build']
+        inputs:
+            - '@group(manifest)'
+            - '/tools/npm/pack.mjs'
+        env:
+            NPM_DIST: '$workspaceRoot/dist/$projectSource'
+
+    publish:
+        command: 'bash $workspaceRoot/tools/npm/publish.sh'
+        toolchains: ['node']
+        deps: ['~:pack']
+        # Narrow on purpose. Without inputs a task is affected by any change in its
+        # project, so `moon ci` would run this -- and the build behind it -- on
+        # every push. What it actually checks is the publish configuration, and
+        # that lives in package.json and moon.yml.
+        inputs:
+            - 'moon.yml'
+            - 'package.json'
+        env:
+            NPM_DIST: '$workspaceRoot/dist/$projectSource'
+            # Dry run unless something explicitly opts out. `moon check` runs this
+            # task -- it has no outputs, so moon treats it as checkable -- and a task
+            # that pushes to a public registry by default is one `moon check --all`
+            # away from publishing a work in progress. An npm version is immutable
+            # once published, so that mistake cannot be taken back.
+            #
+            # The dry run still verifies the tarball, the manifest, and that the
+            # version is not already on the registry; it just stops before upload.
+            NPM_DRY_RUN: '1'
+        options:
+            # Not runInCI: false, which reads as "release-only" but means moon skips
+            # the task in any CI environment, including when a release workflow asks
+            # for it by name -- publishing would then silently never happen. The
+            # dry-run default above is what keeps a push from uploading, not this.
+            runInCI: true
+            cache: false

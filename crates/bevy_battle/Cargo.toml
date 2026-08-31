@@ -1,0 +1,45 @@
+[package]
+name = "bevy_battle"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Generic turn-based battle types — pure Rust core + optional Bevy ECS plugin (components, events, systems)"
+homepage = "https://kbve.com/"
+repository.workspace = true
+keywords = ["bevy", "combat", "battle", "gamedev", "ecs"]
+categories = ["game-development", "game-engines"]
+readme = "README.md"
+
+[features]
+# Default keeps existing consumers (discordsh-bot battle bridge, rareicon
+# bevy game) working out of the box. Disable with `default-features = false`
+# from FFI / mobile crates that can't pull bevy_app + android-activity —
+# they'll get just the pure type/enum surface from types.rs.
+default = ["bevy"]
+
+# Bevy ECS integration — adds Component / Event / Resource / Message
+# derives, the BevyBattlePlugin, snapshot/world helpers, and the full
+# combat system pipeline. Without this feature the crate is plain Rust
+# with zero Bevy dependency, suitable for FFI cdylibs (uniti) and
+# headless serializers.
+bevy = ["dep:bevy", "dep:bevy_behavior"]
+
+[dependencies]
+serde = { workspace = true, features = ["derive"] }
+rand = { workspace = true }
+
+# Bevy — only pulled in under the `bevy` feature.
+bevy = { workspace = true, optional = true, features = ["bevy_state"] }
+
+# Shared behavior tree engine — only used by the bevy-feature systems
+# (BehaviorPolicy enemy_turn override). Skipped without bevy.
+bevy_behavior = { version = "0.1", path = "../bevy_behavior", optional = true }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+getrandom = { version = "0.4", features = ["wasm_js"] }
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

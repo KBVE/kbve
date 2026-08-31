@@ -1,0 +1,46 @@
+syntax = "proto3";
+
+package kbve.forum.v1;
+
+import "google/protobuf/timestamp.proto";
+import "kbve/forum/v1/forum.proto";
+import "kbve/type/v1/id.proto";
+
+// What an attachment is, for display purposes. The MIME type is what actually
+// decides rendering.
+enum AttachmentKind {
+  ATTACHMENT_KIND_UNSPECIFIED = 0;
+  ATTACHMENT_KIND_IMAGE = 1;
+  ATTACHMENT_KIND_VIDEO = 2;
+  ATTACHMENT_KIND_AUDIO = 3;
+  ATTACHMENT_KIND_FILE = 4;
+  // An external link, rendered as a preview card.
+  ATTACHMENT_KIND_LINK = 5;
+  ATTACHMENT_KIND_CODE = 6;
+}
+
+// Something attached to a thread, comment, space or user.
+message Attachment {
+  kbve.type.v1.Uuid id = 1;
+  ContentTargetKind parent_kind = 2;
+  kbve.type.v1.Uuid parent_id = 3;
+  AttachmentKind kind = 4;
+  // Required for a link. For everything else, where the stored asset is
+  // served from.
+  string url = 5;
+  optional string mime_type = 6;
+  optional int64 size_bytes = 7;
+  // For images and video.
+  optional int32 width = 8;
+  optional int32 height = 9;
+  // For video and audio.
+  optional int32 duration_seconds = 10;
+  optional string alt_text = 11;
+  optional string title = 12;
+  optional string preview_image_url = 13;
+  // For a code snippet, e.g. "rust".
+  optional string language = 14;
+  kbve.type.v1.Uuid uploader_id = 15;
+  google.protobuf.Timestamp created_at = 16;
+  int32 sort_order = 17;
+}

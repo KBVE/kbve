@@ -1,0 +1,15 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+
+tasks:
+    e2e:
+        deps:
+            ['axum-memes:test', 'axum-memes:container', 'memes-e2e:e2e-docker']
+        options:
+            cache: false
+    container:
+        deps: ['axum-memes:container']
+        options:
+            cache: false

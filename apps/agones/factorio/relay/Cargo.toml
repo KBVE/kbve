@@ -18,7 +18,7 @@ futures = { workspace = true }
 uuid = { workspace = true, features = ["v4", "serde"] }
 reqwest = { workspace = true, features = ["rustls", "json"] }
 chrono = { workspace = true, features = ["clock", "serde"] }
-jedi = { path = "../../../../packages/rust/jedi", features = ["clickhouse"] }
+jedi = { path = "../../../../crates/jedi", features = ["clickhouse"] }
 tokio-rustls = { workspace = true, features = ["ring"] }
 webpki-roots = { workspace = true }
 rustls = { workspace = true, features = ["ring", "std", "tls12"] }

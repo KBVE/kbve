@@ -1,0 +1,69 @@
+syntax = "proto3";
+
+package kbve.map.v1;
+
+// Weather state — climate / spawn / movement gating.
+enum WeatherKind {
+  WEATHER_KIND_UNSPECIFIED = 0;
+  WEATHER_KIND_CLEAR = 1;
+  WEATHER_KIND_OVERCAST = 2;
+  WEATHER_KIND_RAIN = 3;
+  WEATHER_KIND_STORM = 4;
+  WEATHER_KIND_SNOW = 5;
+  WEATHER_KIND_BLIZZARD = 6;
+  WEATHER_KIND_FOG = 7;
+  WEATHER_KIND_SANDSTORM = 8;
+  WEATHER_KIND_HEATWAVE = 9;
+  WEATHER_KIND_ASHFALL = 10; // Volcanic / apocalyptic
+  WEATHER_KIND_ARCANE = 11; // Magic storm — affects mana / spell mods
+  WEATHER_KIND_CURSED = 12; // Story-flagged dread weather
+}
+
+// Season — long-cadence climate band. Drives crop yields, NPC mood,
+// holiday events, world music, and ambient palettes.
+enum Season {
+  SEASON_UNSPECIFIED = 0;
+  SEASON_SPRING = 1;
+  SEASON_SUMMER = 2;
+  SEASON_AUTUMN = 3;
+  SEASON_WINTER = 4;
+  SEASON_DRY = 5; // Equatorial / two-season worlds
+  SEASON_WET = 6;
+  SEASON_HARVEST = 7; // Festival / event banding
+  SEASON_DEAD = 8; // Apocalyptic / nuclear / undead overrun
+}
+
+// Time-of-day window — canonical replacement for stringly-typed
+// SpawnPoint.time_of_day. Wired to WorldClock when available.
+enum TimeOfDay {
+  TIME_OF_DAY_UNSPECIFIED = 0;
+  TIME_OF_DAY_DAWN = 1;
+  TIME_OF_DAY_DAY = 2;
+  TIME_OF_DAY_DUSK = 3;
+  TIME_OF_DAY_NIGHT = 4;
+  TIME_OF_DAY_MIDNIGHT = 5; // Deep night — special spawn window
+}
+
+// One entry in a weather rotation — weight-driven random pick that
+// runs for `duration_secs` before a re-roll.
+message WeatherProfile {
+  WeatherKind kind = 1;
+  float weight = 2; // Relative likelihood
+  optional float duration_secs = 3;
+  optional Season season_filter = 4; // Only pick during this season
+  optional TimeOfDay time_of_day_filter = 5;
+  repeated string event_refs = 6; // Seasonal event hooks
+}
+
+// Climate band for a zone — drives weather rotation, season cadence,
+// crop yields, ambient music swap.
+message ClimateConfig {
+  optional Season default_season = 1;
+  optional float season_cycle_secs = 2; // Length of a full season cycle
+  repeated WeatherProfile weather_rotation = 3;
+  optional float baseline_temperature = 4; // For survival games
+  optional float temperature_variance = 5;
+  repeated string holiday_event_refs = 6; // Calendar events
+  optional bool day_night_locked = 7; // Eternal day / night zones
+  optional TimeOfDay locked_time_of_day = 8;
+}

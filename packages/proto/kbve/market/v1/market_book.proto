@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+package kbve.market.v1;
+
+import "google/protobuf/timestamp.proto";
+import "kbve/asset/v1/asset.proto";
+import "kbve/common/v1/decimal.proto";
+
+// Resting orders, below the top of the book.
+//
+// Separate from the quote because it answers a different question. A quote
+// says what one unit costs; the book says what a lot of them cost, and on a
+// thin market the difference between those two is most of the trade.
+
+// One price level in a book, and the size resting there.
+message BookLevel {
+  kbve.common.v1.Decimal price = 1;
+  // Units offered at this price.
+  int64 size = 2;
+  // How many separate orders make up that size, where the venue says. One
+  // order of a thousand and ten of a hundred behave differently when hit.
+  optional int32 order_count = 3;
+}
+
+// Resting orders on both sides, deepest information a venue gives.
+//
+// Top of book is what Quote carries and it is enough to say what something
+// costs. It is not enough to say what it costs to buy a lot of it: an order
+// larger than the best level walks up the book, and the average fill is worse
+// than the quoted price by an amount only the depth can tell you. On a thin
+// crypto pair that difference is most of the trade.
+message OrderBook {
+  kbve.asset.v1.AssetRef ref = 1;
+  google.protobuf.Timestamp as_of = 2;
+
+  // Best first: bids descending, asks ascending.
+  repeated BookLevel bids = 3;
+  repeated BookLevel asks = 4;
+
+  // Whether these are all the levels the venue has, or the top of a longer
+  // book. Depth truncated at twenty levels and depth that ends at twenty
+  // levels are different markets, and they look identical here without it.
+  optional bool truncated = 5;
+  // The venue's own sequence number for this snapshot, where it has one, so
+  // out-of-order delivery can be detected rather than silently applied.
+  optional int64 sequence = 6;
+}

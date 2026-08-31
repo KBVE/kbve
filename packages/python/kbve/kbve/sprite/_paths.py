@@ -4,6 +4,7 @@ The original scripts lived in apps/agones/arpg/web/scripts and anchored their I/
 off `__file__` (../../../.. hops). Now that they live in the kbve package, that math
 no longer points at the repo, so we walk up from the CWD to the repo root instead.
 """
+
 import os
 
 ROOT_MARKERS = (".git", "nx.json")
@@ -17,9 +18,7 @@ def repo_root(start=None):
             return d
         parent = os.path.dirname(d)
         if parent == d:
-            raise SystemExit(
-                "repo root not found above CWD (need a .git or nx.json ancestor)"
-            )
+            raise SystemExit("repo root not found above CWD (need a .git or nx.json ancestor)")
         d = parent
 
 

@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package kbve.common.v1;
+
+// Where a piece of equipment is worn.
+//
+// Shared because both an item definition and an NPC's loadout describe the
+// same slots. item.EquipSlot and npc.EquipSlot were the same list, the NPC
+// copy simply stopping at BACK and omitting the two-handed and ammunition
+// slots.
+enum EquipSlot {
+  EQUIP_SLOT_UNSPECIFIED = 0;
+  EQUIP_SLOT_HEAD = 1;
+  EQUIP_SLOT_CHEST = 2;
+  EQUIP_SLOT_LEGS = 3;
+  EQUIP_SLOT_FEET = 4;
+  EQUIP_SLOT_HANDS = 5;
+  EQUIP_SLOT_MAIN_HAND = 6;
+  EQUIP_SLOT_OFF_HAND = 7;
+  EQUIP_SLOT_NECK = 8;
+  EQUIP_SLOT_RING = 9;
+  EQUIP_SLOT_BACK = 10;
+  EQUIP_SLOT_TWO_HAND = 11;
+  EQUIP_SLOT_AMMO = 12;
+}

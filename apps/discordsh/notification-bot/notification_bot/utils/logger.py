@@ -2,6 +2,7 @@
 Centralized logger configuration for compatibility with different ASGI servers
 Works with both Uvicorn and Granian
 """
+
 import logging
 import sys
 import os
@@ -15,9 +16,9 @@ def setup_logging():
     # Configure the root logger
     logging.basicConfig(
         level=getattr(logging, log_level, logging.INFO),
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S',
-        stream=sys.stdout
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+        datefmt="%Y-%m-%d %H:%M:%S",
+        stream=sys.stdout,
     )
 
 
@@ -50,4 +51,4 @@ def sanitize_log(value: str) -> str:
     """
     if not isinstance(value, str):
         value = str(value)
-    return value.replace('\n', '').replace('\r', '')
+    return value.replace("\n", "").replace("\r", "")

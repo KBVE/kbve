@@ -19,8 +19,8 @@ navigation via the nav-shim HTTP endpoint.
 ## Build
 
 ```sh
-npx nx run kasm-void:container
-npx nx run kasm-void:test
+moon run kasm-void:container
+moon run kasm-void:test
 ```
 
 ## Runtime env

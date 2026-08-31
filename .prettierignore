@@ -1,8 +1,7 @@
 # Add files here to ignore them from prettier formatting
 /dist
 /coverage
-/.nx/cache
-/.nx/workspace-data
+/.moon/cache
 
 # Unity WebGL template files use mustache-style {{{ }}} syntax
 apps/kbve/astro-kbve/public/data/scripts/unity/WebGLTemplates/
@@ -15,7 +14,6 @@ apps/kbve/astro-kbve/src/components/realtime/example.astro
 
 # Deno edge functions — formatted by deno fmt
 apps/kbve/edge/
-.nx/self-healing
 
 pnpm-lock.yaml
 
@@ -31,7 +29,7 @@ apps/rareicon/unity-rareicon/Assets/StreamingAssets/*.json
 apps/friendslop/godot-friendslop/assets/*db/*.json
 apps/discordsh/discordsh-bot/data/*.json
 
-# Generated CI dispatch manifest (raw nx sync output; prettier must not reflow it)
+# Generated CI dispatch manifest (generated, must not be reflowed; prettier must not reflow it)
 .github/ci-dispatch-manifest.json
 
 # Vendored upstream KubeVirt release manifest — kept byte-identical to the

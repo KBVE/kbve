@@ -1,0 +1,18 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'rust'
+tags: ['rust', 'docker']
+
+tasks:
+    containerx:
+        script: 'docker buildx build --load -f apps/vm/firecracker-ctl/Dockerfile -t kbve/firecracker-ctl:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    containerx-publish:
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/firecracker-ctl:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/firecracker-ctl:buildcache,mode=max -f apps/vm/firecracker-ctl/Dockerfile -t ghcr.io/kbve/firecracker-ctl:latest -t kbve/firecracker-ctl:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true

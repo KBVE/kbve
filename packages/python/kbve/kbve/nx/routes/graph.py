@@ -1,9 +1,13 @@
-"""The ``graph`` route — Nx dependency-graph dashboard (MDX + raw JSON).
+"""The ``graph`` route — dependency-graph dashboard (MDX + raw JSON).
 
-Mirrors the ``ci-dashboard`` report job: run ``pnpm nx graph`` to acquire the
-project graph JSON, parse via :func:`parse_graph`, and render the Starlight
-MDX with output parity to ``scripts/nx-graph-to-mdx.py``. The raw graph JSON
-is copied verbatim into the Astro public data dir.
+Acquires the project graph from moon, parses it via :func:`parse_graph`, and
+renders the Starlight MDX. The raw graph JSON is written to the Astro public
+data dir, where the ``/graph/`` hub and the home dashboard read it.
+
+The payload keeps the shape Nx produced -- ``{graph: {nodes, dependencies}}``
+with ``app``/``lib``/``e2e`` node types -- because the site, the MDX renderer
+and the published ``/data/nx/nx-graph.json`` URL all read it. Translating at
+acquisition keeps that contract while the graph underneath it changed.
 """
 
 from __future__ import annotations
@@ -19,34 +23,69 @@ from ..graph import parse_graph
 from ..render import render_graph_mdx
 from ..router import route
 
-_NX_GRAPH_TIMEOUT = 300
+_GRAPH_TIMEOUT = 300
 
 
 class GraphAcquireError(Exception):
-    """Raised when the nx project graph cannot be produced or parsed."""
+    """Raised when the project graph cannot be produced or parsed."""
 
 
 def _warn(msg: str) -> None:
     print("::warning::graph route: %s" % msg, file=sys.stderr)
 
 
-def _run_nx_graph(repo_root: Path, out_file: Path) -> None:
-    """Invoke ``pnpm nx graph`` writing the project graph to ``out_file``."""
-    out_file.parent.mkdir(parents=True, exist_ok=True)
-    subprocess.run(
-        ["pnpm", "nx", "graph", "--file=%s" % out_file, "--open=false"],
+def _node_type(project: dict) -> str:
+    """The node type the dashboard colours by.
+
+    ``e2e`` is its own category rather than a layer, so it is read off the id
+    the way the Nx tags used to say it.
+    """
+    if project["id"].endswith("-e2e"):
+        return "e2e"
+    return "app" if project.get("layer") == "application" else "lib"
+
+
+def _from_moon(payload: dict) -> dict:
+    """Translate ``moon query projects`` into the graph shape the site reads."""
+    nodes = {}
+    dependencies = {}
+    for project in payload.get("projects", []):
+        pid = project["id"]
+        nodes[pid] = {
+            "name": pid,
+            "type": _node_type(project),
+            "data": {
+                "root": project.get("source", ""),
+                "name": pid,
+                "projectType": project.get("layer", ""),
+                "tags": project.get("config", {}).get("tags", []),
+            },
+        }
+        dependencies[pid] = [
+            {"source": pid, "target": dep["id"], "type": "static"} for dep in project.get("dependencies", [])
+        ]
+    return {"graph": {"nodes": nodes, "dependencies": dependencies}}
+
+
+def _run_moon_query(repo_root: Path) -> dict:
+    """Invoke ``moon query projects`` and return the parsed payload."""
+    out = subprocess.run(
+        ["moon", "query", "projects"],
         cwd=str(repo_root),
         check=True,
-        timeout=_NX_GRAPH_TIMEOUT,
-    )
+        capture_output=True,
+        text=True,
+        timeout=_GRAPH_TIMEOUT,
+    ).stdout
+    return json.loads(out)
 
 
 def _validate_graph(raw) -> dict:
-    """Ensure the payload has the expected nx-graph shape before parsing."""
+    """Ensure the payload has the expected graph shape before parsing."""
     if not isinstance(raw, dict) or "nodes" not in (raw.get("graph") or {}):
-        raise GraphAcquireError("unexpected nx graph schema (missing graph.nodes)")
+        raise GraphAcquireError("unexpected graph schema (missing graph.nodes)")
     if not raw["graph"]["nodes"]:
-        raise GraphAcquireError("nx graph has zero nodes")
+        raise GraphAcquireError("graph has zero nodes")
     return raw
 
 
@@ -57,28 +96,24 @@ def _acquire(ctx: BuildContext) -> dict:
         return _validate_graph(raw)
 
     repo_root = repo_root_for(ctx.content_root)
-    workdir = Path(ctx.workdir) if ctx.workdir else repo_root
-    graph_file = workdir / "nx-graph.json"
     try:
-        _run_nx_graph(repo_root, graph_file)
-        raw = json.loads(graph_file.read_text())
+        raw = _from_moon(_run_moon_query(repo_root))
     except (
         subprocess.CalledProcessError,
         subprocess.TimeoutExpired,
         OSError,
         ValueError,
+        KeyError,
         json.JSONDecodeError,
     ) as exc:
-        raise GraphAcquireError("nx graph acquisition failed (%s)" % exc) from exc
+        raise GraphAcquireError("graph acquisition failed (%s)" % exc) from exc
     return _validate_graph(raw)
 
 
 @route("graph", "daily", needs=("node",))
 class GraphRoute:
     def plan(self, ctx: BuildContext) -> PlanResult:
-        return PlanResult(
-            "graph", True, "regenerate (git-diff guard drops no-ops)", []
-        )
+        return PlanResult("graph", True, "regenerate (git-diff guard drops no-ops)", [])
 
     def build(self, ctx: BuildContext) -> BuildResult:
         try:

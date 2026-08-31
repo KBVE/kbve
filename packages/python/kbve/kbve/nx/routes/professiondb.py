@@ -1,6 +1,6 @@
 """The ``professiondb`` route — weekly integrity audit for the unified DB.
 
-Runs ``nx run astro-kbve:sync:professiondb`` (which regenerates the professiondb
+Runs ``moon run astro-kbve:sync-professiondb`` (which regenerates the professiondb
 data + runtime view and runs the hard-fail xref validator). A validator failure
 raises out of ``build`` so the weekly job fails; regen drift is reported as
 changed files and auto-PR'd like every other route.
@@ -29,14 +29,10 @@ class ProfessiondbValidationError(Exception):
 
 
 def _run(cmd: list[str], cwd: Path, timeout: int = _GEN_TIMEOUT) -> str:
-    proc = subprocess.run(
-        cmd, cwd=str(cwd), capture_output=True, text=True, timeout=timeout
-    )
+    proc = subprocess.run(cmd, cwd=str(cwd), capture_output=True, text=True, timeout=timeout)
     if proc.returncode != 0:
         tail = (proc.stderr or proc.stdout).strip()[-600:]
-        raise ProfessiondbValidationError(
-            "%s failed (exit %d): %s" % (" ".join(cmd), proc.returncode, tail)
-        )
+        raise ProfessiondbValidationError("%s failed (exit %d): %s" % (" ".join(cmd), proc.returncode, tail))
     return proc.stdout
 
 
@@ -63,7 +59,7 @@ class ProfessiondbRoute:
     def build(self, ctx: BuildContext) -> BuildResult:
         repo_root = repo_root_for(ctx.content_root)
         _run(
-            ["npx", "nx", "run", "astro-kbve:sync:professiondb", "--skip-nx-cache"],
+            ["moon", "run", "astro-kbve:sync-professiondb", "--force"],
             repo_root,
         )
         return BuildResult("professiondb", _changed(repo_root), False, "validated")

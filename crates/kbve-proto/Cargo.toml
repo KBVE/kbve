@@ -1,0 +1,32 @@
+[package]
+name = "kbve-proto"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+description = "Rust view of the workspace protobuf schemas."
+
+# The message types are the default. gRPC is not.
+#
+# Two of the schemas define services, and the generated clients and servers
+# drag in axum, hyper, h2 and tower. A Bevy crate that wants an item
+# definition should not compile an HTTP/2 stack to get one, so the service
+# code sits behind `grpc` and the plugin is told not to include it from the
+# message files -- see the no_include note in buf.gen.yaml.
+#
+# serde stays unconditional. Its derives are written into the type definitions
+# themselves, so a feature that removed the dependency would leave attributes
+# behind referring to a crate that is not there.
+[features]
+default = []
+grpc = ["dep:tonic", "dep:tonic-prost"]
+
+[dependencies]
+bytes = { workspace = true, features = ["serde"] }
+prost.workspace = true
+prost-types.workspace = true
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+tonic = { workspace = true, optional = true }
+tonic-prost = { workspace = true, optional = true }
+ulid = { workspace = true }

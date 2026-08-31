@@ -18,7 +18,7 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: 'npx nx serve laser-e2e',
+		command: 'moon run laser-e2e:serve',
 		url: 'http://localhost:4300',
 		reuseExistingServer: !process.env['CI'],
 		timeout: 30_000,

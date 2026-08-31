@@ -1,0 +1,21 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'library'
+language: 'typescript'
+tags: ['vite', 'vitest', 'npm', 'eslint']
+
+tasks:
+    # No `e2e` alias here, unlike the other npm packages. devops-e2e:e2e already
+    # depends on devops:build -- it tests the built package rather than the
+    # sources -- and an alias pointing back at the suite closes that into a
+    # cycle. CI reaches the suite by its own name.
+
+    # Regenerates the typed client from the OpenAPI document axum-kbve emits.
+    sync-openapi:
+        script: 'node packages/data/codegen/gen-openapi-types.mjs'
+        inputs:
+            - '/packages/data/openapi/openapi.json'
+            - '/packages/data/codegen/gen-openapi-types.mjs'
+        outputs: ['src/lib/client/kbve/openapi-types.ts']
+        options:
+            runFromWorkspaceRoot: true

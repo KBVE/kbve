@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package kbve.market.v1;
+
+import "kbve/asset/v1/asset.proto";
+import "kbve/type/v1/id.proto";
+
+// A described way of making money on an asset.
+//
+// Generalised from the Grand Exchange flipping guides, which are the same
+// shape as any spread trade: acquire something, do something to it, sell the
+// result.
+
+// A step in a strategy for turning one asset into another.
+//
+// Generalised from the Grand Exchange flipping guides, which are the same
+// shape as any spread trade: acquire something, do something to it, sell the
+// result.
+message StrategyStep {
+  // One-based.
+  int32 order = 1;
+  // What to do, e.g. "Buy yew logs".
+  string action = 2;
+  optional kbve.asset.v1.AssetRef ref = 3;
+  optional int64 quantity = 4;
+}
+
+// A described way of making money on an asset.
+message Strategy {
+  kbve.type.v1.Ulid id = 1;
+  string title = 2;
+  optional string description = 3;
+  // The asset the strategy is filed under.
+  kbve.asset.v1.AssetRef ref = 4;
+  repeated StrategyStep steps = 5;
+  // How the profit is worked out, as written for a person to read.
+  repeated string profit_formulas = 6;
+  repeated string notes = 7;
+}

@@ -40,8 +40,6 @@ jobs:
         name: Build + Push ghcr.io/kbve/mc:gradle
         runs-on: ubuntu-latest
         timeout-minutes: 60
-        env:
-            NX_NO_CLOUD: true
         permissions:
             contents: read
             packages: write
@@ -106,17 +104,20 @@ jobs:
             # Pull requests build-only to validate the Dockerfile, but skip
             # pushing so PR runs can't overwrite the :gradle tag that main
             # builds depend on. Push is gated on event_name != pull_request.
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
             - name: Build ghcr.io/kbve/mc:gradle (local)
               if: ${{ github.event_name == 'pull_request' }}
               env:
                   INPUT_GITHUB_TOKEN: ${{ github.token }}
-              run: pnpm nx run mc:container-gradle --configuration=local --no-cloud
+              run: moon run mc:container-gradle
 
             - name: Build + Push ghcr.io/kbve/mc:gradle
               if: ${{ github.event_name != 'pull_request' }}
               env:
                   INPUT_GITHUB_TOKEN: ${{ github.token }}
-              run: pnpm nx run mc:container-gradle --configuration=production --no-cloud
+              run: moon run mc:container-gradle-publish
 
     track_failure:
         name: Track Failures

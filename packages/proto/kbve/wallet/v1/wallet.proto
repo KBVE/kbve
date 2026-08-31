@@ -1,0 +1,165 @@
+syntax = "proto3";
+
+package kbve.wallet.v1;
+
+import "google/protobuf/timestamp.proto";
+import "kbve/type/v1/id.proto";
+
+// A multi-currency, multi-owner ledger.
+//
+// Mirrors the wallet Postgres schema. Every balance is an integer in its
+// currency's smallest unit: a credit is one hundred-thousandth of a US dollar,
+// and a khash has no peg. The two are not convertible, which is why no convert
+// operation exists.
+
+// A currency tracked by the ledger.
+enum CurrencyKind {
+  CURRENCY_KIND_UNSPECIFIED = 0;
+  // Premium, pegged to the US dollar.
+  CURRENCY_KIND_CREDITS = 1;
+  // Earned through activity, unpegged.
+  CURRENCY_KIND_KHASH = 2;
+}
+
+// What owns a wallet.
+enum AccountKind {
+  ACCOUNT_KIND_UNSPECIFIED = 0;
+  ACCOUNT_KIND_USER = 1;
+  ACCOUNT_KIND_GUILD = 2;
+  // House funds and fees.
+  ACCOUNT_KIND_TREASURY = 3;
+  // Funds in flight between two parties.
+  ACCOUNT_KIND_ESCROW = 4;
+  ACCOUNT_KIND_SYSTEM = 5;
+}
+
+// Why a ledger entry exists.
+enum SourceKind {
+  SOURCE_KIND_UNSPECIFIED = 0;
+  // Daily login, quest completion, achievement.
+  SOURCE_KIND_REWARD = 1;
+  SOURCE_KIND_PURCHASE = 2;
+  SOURCE_KIND_REFUND = 3;
+  // Staff grant or adjustment.
+  SOURCE_KIND_ADMIN = 4;
+  SOURCE_KIND_COUPON = 5;
+  SOURCE_KIND_MARKET_BUY = 6;
+  SOURCE_KIND_MARKET_SELL = 7;
+  // Treasury skim on a trade.
+  SOURCE_KIND_MARKET_FEE = 8;
+  SOURCE_KIND_TRANSFER = 9;
+  SOURCE_KIND_REFERRAL = 10;
+}
+
+// What redeeming a coupon pays out.
+enum RewardKind {
+  REWARD_KIND_UNSPECIFIED = 0;
+  REWARD_KIND_CREDITS = 1;
+  REWARD_KIND_KHASH = 2;
+  REWARD_KIND_GRANT_ITEMS = 3;
+  // Reserved for flag-style rewards.
+  REWARD_KIND_WALLET_PROMO = 4;
+}
+
+// Where a coupon instance is in its life.
+enum CouponStatus {
+  COUPON_STATUS_UNSPECIFIED = 0;
+  COUPON_STATUS_UNREDEEMED = 1;
+  COUPON_STATUS_REDEEMED = 2;
+  COUPON_STATUS_EXPIRED = 3;
+  COUPON_STATUS_REVOKED = 4;
+}
+
+// A wallet's owner.
+message Account {
+  kbve.type.v1.Uuid id = 1;
+  AccountKind kind = 2;
+  // Set when the account belongs to a user.
+  optional kbve.type.v1.Uuid user_id = 3;
+  // Set when the account belongs to a guild.
+  optional kbve.type.v1.Uuid guild_id = 4;
+  string label = 5;
+  google.protobuf.Timestamp created_at = 6;
+}
+
+// The current balance, materialised.
+message Balance {
+  kbve.type.v1.Uuid account_id = 1;
+  int64 credits = 2;
+  int64 khash = 3;
+  google.protobuf.Timestamp updated_at = 4;
+}
+
+// One immutable entry in the journal.
+message LedgerEntry {
+  int64 id = 1;
+  kbve.type.v1.Uuid account_id = 2;
+  CurrencyKind currency = 3;
+  // Signed: positive credits the account, negative debits it.
+  int64 delta = 4;
+  int64 balance_after = 5;
+  SourceKind source_kind = 6;
+  string reason = 7;
+  optional string ref_type = 8;
+  optional int64 ref_id = 9;
+  kbve.type.v1.Uuid idempotency_key = 10;
+  // Digest of the semantic payload, used to detect a replay.
+  bytes replay_fingerprint = 11;
+  google.protobuf.Timestamp created_at = 12;
+}
+
+// A kind of coupon that can be granted.
+//
+// reward_payload_json is canonical JSON whose shape depends on reward_kind:
+// an amount for the currency rewards, a list of items for a grant. It stays
+// text rather than becoming a structure, because the service parses and
+// fingerprints exactly these bytes.
+message CouponTemplate {
+  int64 id = 1;
+  // e.g. "WELCOME_KHASH".
+  string code = 2;
+  string label = 3;
+  RewardKind reward_kind = 4;
+  string reward_payload_json = 5;
+  // How long a granted instance lasts. Absent means it does not expire.
+  //
+  // Seconds rather than google.protobuf.Duration: the Rust generator derives Eq
+  // on every message, prost-types hand-writes that impl for Timestamp but not
+  // for Duration, and the plugin offers no way to suppress the derive. Any
+  // message holding a Duration therefore fails to compile.
+  optional int64 default_expires_in_seconds = 6;
+  bool is_active = 7;
+  google.protobuf.Timestamp created_at = 8;
+}
+
+// One coupon held by one account.
+message Coupon {
+  int64 id = 1;
+  kbve.type.v1.Uuid account_id = 2;
+  int64 template_id = 3;
+  CouponStatus status = 4;
+  google.protobuf.Timestamp granted_at = 5;
+  optional google.protobuf.Timestamp expires_at = 6;
+  optional google.protobuf.Timestamp redeemed_at = 7;
+  optional google.protobuf.Timestamp revoked_at = 8;
+  // Set once a redemption succeeds.
+  optional kbve.type.v1.Uuid redeem_idempotency_key = 9;
+  optional int64 redeem_ledger_id = 10;
+  optional string metadata_json = 11;
+  kbve.type.v1.Uuid idempotency_key = 12;
+}
+
+// One administrative action, recorded.
+message AuditLogEntry {
+  int64 id = 1;
+  // The role the actor held, or the database user.
+  string actor_role = 2;
+  optional kbve.type.v1.Uuid actor_user_id = 3;
+  // e.g. "coupon.revoke".
+  string action = 4;
+  string target_type = 5;
+  string target_id = 6;
+  string reason = 7;
+  optional string metadata_json = 8;
+  google.protobuf.Timestamp created_at = 9;
+}

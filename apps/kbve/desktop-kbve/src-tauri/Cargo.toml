@@ -41,7 +41,7 @@ default = []
 appstore = []
 
 [dependencies]
-erust = { path = "../../../../packages/rust/erust", default-features = false, features = ["tauri"] }
+erust = { path = "../../../../crates/erust", default-features = false, features = ["tauri"] }
 tauri = { version = "2.9", features = [
   "protocol-asset",
   "macos-private-api",

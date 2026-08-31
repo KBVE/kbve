@@ -15,7 +15,7 @@ export default defineConfig({
 	use: { trace: 'on-first-retry' },
 	projects: [{ name: 'arpg-server', use: { ...devices['Desktop Chrome'] } }],
 	webServer: {
-		command: `SUPABASE_JWT_SECRET=${JWT_SECRET} ARPG_SERVER_ADDR=0.0.0.0:${SERVER_PORT} ./kbve.sh -nx arpg-server:run`,
+		command: `SUPABASE_JWT_SECRET=${JWT_SECRET} ARPG_SERVER_ADDR=0.0.0.0:${SERVER_PORT} moon run arpg-server:run`,
 		cwd: workspaceRoot,
 		url: `http://localhost:${SERVER_PORT}/healthz`,
 		reuseExistingServer: false,

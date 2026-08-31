@@ -58,7 +58,10 @@ jobs:
             # standalone tsx generator — byte-identical to the Astro build path
             # (shared buildManifest + ProjectSchemaWithEngine) without paying
             # for a full Astro build.
-            - run: npx nx run astro-kbve:gen:ci-manifest
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
+            - run: moon run astro-kbve:gen-ci-manifest
 
             - name: Diff manifest
               run: |
@@ -97,7 +100,7 @@ jobs:
 
                   if [ -n "$STRUCTURAL_DIFF" ]; then
                       echo "::error::ci-dispatch-manifest.json has structural drift from the MDX sources."
-                      echo "::error::Run 'npx nx run astro-kbve:gen:ci-manifest' locally and commit the regenerated manifest."
+                      echo "::error::Run 'moon run astro-kbve:gen-ci-manifest' locally and commit the regenerated manifest."
                       echo "Structural diff:"
                       echo "$STRUCTURAL_DIFF"
                       git diff --stat -- .github/ci-dispatch-manifest.json

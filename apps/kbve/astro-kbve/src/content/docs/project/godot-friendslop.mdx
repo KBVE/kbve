@@ -282,9 +282,9 @@ One number stays per-creature rather than in the preset: `set_body(radius)`, bec
 
 <BentoProse id="local" eyebrow="Dev loop" heading="Local">
 
-- `pnpm nx run godot-friendslop:test` — import + gdUnit4 headless suite
-- `pnpm nx run godot-friendslop:test:smoke` — raw SceneTree smoke pass
-- `pnpm nx run godot-friendslop:export` — all three release exports
+- `moon run godot-friendslop:test` — import + gdUnit4 headless suite
+- `moon run godot-friendslop:test-smoke` — raw SceneTree smoke pass
+- `moon run godot-friendslop:export` — all three release exports
 
 `scripts/gdext.sh` skips the build when `addons/q/<platform>/libq.*` is already there, and a fresh LFS checkout smudges a *released* one — so a worktree can run the whole suite against an extension that predates whatever you are testing, and fail on parse errors about members that plainly exist. `GDEXT_FORCE=1 bash scripts/gdext.sh` rebuilds it.
 
@@ -292,7 +292,7 @@ One number stays per-creature rather than in the preset: `set_body(radius)`, bec
 
 <BentoProse id="steam" eyebrow="Store art" heading="Steam page assets">
 
-Every image below is rendered from the live game world by `src/ui/steam/page_assets.gd` — pinned seed, real terrain, real foliage — and regenerated in one pass with `pnpm nx run godot-friendslop:steam:assets`. Each figure is anchored, so feedback can point at a slot by its link. The title art is drawn at render time from the Alagard face, so the whole set re-exports under a new name with one argument.
+Every image below is rendered from the live game world by `src/ui/steam/page_assets.gd` — pinned seed, real terrain, real foliage — and regenerated in one pass with `moon run godot-friendslop:steam-assets`. Each figure is anchored, so feedback can point at a slot by its link. The title art is drawn at render time from the Alagard face, so the whole set re-exports under a new name with one argument.
 
 <div class="steam-gallery not-content" style="display:flex;flex-direction:column;gap:2rem">
 	<figure id="steam-header-capsule">

@@ -27,12 +27,12 @@ def db_path(tmp_path):
         {
             "file": str(widget),
             "directory": str(tmp_path),
-            "command": f'clang++ -DWITH_EDITOR=1 -I/ue/inc -c {widget} -o /out/KBVEWidget.o',
+            "command": f"clang++ -DWITH_EDITOR=1 -I/ue/inc -c {widget} -o /out/KBVEWidget.o",
         },
         {
             "file": str(other),
             "directory": str(tmp_path),
-            "command": f'clang++ -DWITH_EDITOR=1 -I/ue/inc -c {other} -o /out/KBVETheme.o',
+            "command": f"clang++ -DWITH_EDITOR=1 -I/ue/inc -c {other} -o /out/KBVETheme.o",
         },
     ]
     path = tmp_path / "compile_commands.json"
@@ -58,7 +58,7 @@ def test_find_entry_returns_none_for_unknown(db_path):
 
 
 def test_rewrite_command_adds_syntax_only_strips_output():
-    cmd = rewrite_command('clang++ -DX=1 -I/inc -c /src/a.cpp -o /out/a.o')
+    cmd = rewrite_command("clang++ -DX=1 -I/inc -c /src/a.cpp -o /out/a.o")
     assert "-fsyntax-only" in cmd
     assert "-o" not in cmd
     assert "/out/a.o" not in cmd
@@ -97,7 +97,7 @@ def test_resolve_check_entry_unknown_raises(db_path):
 
 
 def test_rewrite_command_suppresses_unused_arg_error():
-    cmd = rewrite_command('clang++ @/rsp/file.rsp')
+    cmd = rewrite_command("clang++ @/rsp/file.rsp")
     assert "-fsyntax-only" in cmd
     assert "-Wno-unused-command-line-argument" in cmd
     assert cmd[1] == "@/rsp/file.rsp"
@@ -105,6 +105,7 @@ def test_rewrite_command_suppresses_unused_arg_error():
 
 def test_filter_diagnostics_keeps_driver_errors():
     from kbve.unreal.check import filter_diagnostics
+
     text = (
         "note noise\n"
         "clang++: error: something broke\n"

@@ -52,9 +52,7 @@ def _acquire(ctx: BuildContext) -> dict | None:
 @route("ci-health", "daily", needs=("token",))
 class CiHealthRoute:
     def plan(self, ctx: BuildContext) -> PlanResult:
-        return PlanResult(
-            "ci-health", True, "regenerate (git-diff guard drops no-ops)", []
-        )
+        return PlanResult("ci-health", True, "regenerate (git-diff guard drops no-ops)", [])
 
     def build(self, ctx: BuildContext) -> BuildResult:
         payload = _acquire(ctx)

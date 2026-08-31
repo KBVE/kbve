@@ -24,14 +24,14 @@ For short-lived runs the cheaper path is the existing `alpine-node` rootfs plus 
 ## Build
 
 ```bash
-npx nx run firecracker-node-web:container
-npx nx run firecracker-node-web:extract
+moon run firecracker-node-web:container
+moon run firecracker-node-web:extract
 ```
 
 ## Publish
 
 ```bash
-npx nx run firecracker-node-web:container:production
+moon run firecracker-node-web:container-production
 ```
 
 Pushes `ghcr.io/kbve/firecracker-node-web:latest` and `:<version>`.

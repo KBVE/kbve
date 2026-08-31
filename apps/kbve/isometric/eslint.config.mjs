@@ -1,9 +1,9 @@
 import baseConfig from '../../../eslint.base.config.mjs';
-import nx from '@nx/eslint-plugin';
+import reactConfig from '../../../eslint.react.config.mjs';
 
 export default [
 	...baseConfig,
-	...nx.configs['flat/react'],
+	...reactConfig,
 	{
 		files: ['**/*.ts', '**/*.tsx', '**/*.js', '**/*.jsx'],
 		// Override or add rules here

@@ -1,0 +1,223 @@
+$schema: 'https://moonrepo.dev/schemas/workspace.json'
+
+# Project graph.
+#
+# crates/ is globbed; everything else is named.
+#
+# moon registers a matched directory as a project whether or not it holds a
+# moon.yml, which is what decides where a glob is safe.
+#
+#   crates/ is flat, every directory in it is a crate, and no two share a name,
+#   so a glob there is exact and a new crate needs no edit here.
+#
+#   apps/ and packages/ are not. They nest unevenly -- apps/mc,
+#   apps/kbve/astro-kbve, apps/agones/arpg/server -- so covering them takes
+#   globs two to four segments deep, and those match four directory basenames
+#   that repeat: kbve, relay, server, web. 'apps/*/*/*' alone fails the graph
+#   outright on apps/agones/{arpg,cryptothrone}/server. A glob would also pull
+#   in every project that has not been ported yet, as an empty task-less entry
+#   that turns up in `moon check --all`.
+#
+# So the map below is the migration checklist: a project outside crates/ enters
+# the graph on the commit that gives it a moon.yml, and Nx keeps it until then.
+projects:
+    globs:
+        # Rust crates. A glob here where apps/ cannot have one: crates/ is flat
+        # and every directory in it is a crate, so there are no repeated
+        # basenames to collide and nothing task-less to pick up.
+        - 'crates/*'
+    sources:
+        # The workspace itself: whole-tree tasks that belong to no project.
+        root: '.'
+
+        # Sites
+        astro-chuckrpg: 'apps/chuckrpg/astro-chuckrpg'
+        astro-kbve: 'apps/kbve/astro-kbve'
+        astro-cryptothrone: 'apps/cryptothrone/astro-cryptothrone'
+        astro-discordsh: 'apps/discordsh/astro-discordsh'
+        astro-herbmail: 'apps/herbmail/astro-herbmail'
+        astro-irc: 'apps/irc/astro-irc'
+        astro-memes: 'apps/memes/astro-memes'
+        astro-rareicon: 'apps/rareicon/astro-rareicon'
+
+        # Browser suites for those sites
+        astro-cryptothrone-e2e: 'apps/cryptothrone/astro-cryptothrone-e2e'
+        astro-rareicon-e2e: 'apps/rareicon/astro-rareicon-e2e'
+        discordsh-e2e: 'apps/discordsh/discordsh-e2e'
+        herbmail-e2e: 'apps/herbmail/herbmail-e2e'
+        irc-e2e: 'apps/irc/irc-e2e'
+        memes-e2e: 'apps/memes/memes-e2e'
+
+        # A site and its own suite in one project
+        astro-e2e: 'packages/npm/astro-e2e'
+
+        # Writes the icon catalogue into astro-rareicon's content directory
+        icons-codegen: 'apps/rareicon/icons-codegen'
+        # Named 'protobuf' because the crates that came from KBVE/workspace
+        # declare dependsOn: ['protobuf']; the directory is packages/proto.
+        protobuf: 'packages/proto'
+
+        # Desktop shells (tauri)
+        chuck-launcher: 'apps/chuckrpg/chuck-launcher'
+        deathslayer-launcher: 'apps/deathslayer/deathslayer-launcher'
+        desktop-kbve: 'apps/kbve/desktop-kbve'
+        isometric: 'apps/kbve/isometric'
+
+        # Published npm packages
+        astro: 'packages/npm/astro'
+        devops: 'packages/npm/devops'
+        droid: 'packages/npm/droid'
+        khashvault: 'packages/npm/khashvault'
+        laser: 'packages/npm/laser'
+
+        # Python (uv)
+        fudster: 'packages/python/fudster'
+        graphify-wrapper: 'packages/python/graphify-wrapper'
+        notification-bot: 'apps/discordsh/notification-bot'
+        pydesk: 'apps/pydesk'
+        # crates/kbve owns 'kbve' in the graph, and two projects cannot share
+        # an id. Only the graph cares -- the directory, the distribution and
+        # `pip install kbve` all stay kbve.
+        kbve-py: 'packages/python/kbve'
+
+        # Rust services still under apps/; the libraries moved to crates/.
+        agones-shim: 'apps/agones/shim'
+        met: 'apps/metrics'
+        agones-factorio-relay: 'apps/agones/factorio/relay'
+        agones-palworld-relay: 'apps/agones/palworld/relay'
+        arpg-server: 'apps/agones/arpg/server'
+        axum-chuckrpg: 'apps/chuckrpg/axum-chuckrpg'
+        axum-cryptothrone: 'apps/cryptothrone/axum-cryptothrone'
+        axum-discordsh: 'apps/discordsh/axum-discordsh'
+        axum-herbmail: 'apps/herbmail/axum-herbmail'
+        axum-kbve: 'apps/kbve/axum-kbve'
+        axum-memes: 'apps/memes/axum-memes'
+        axum-rareicon: 'apps/rareicon/axum-rareicon'
+        axum-rentearth: 'apps/rentearth/axum-rentearth'
+        cryptothrone-server: 'apps/agones/cryptothrone/server'
+        discordsh-bot: 'apps/discordsh/discordsh-bot'
+        factorio-ctl: 'apps/vm/factorio-ctl'
+        firecracker-ctl: 'apps/vm/firecracker-ctl'
+        friendslop-server: 'apps/agones/friendslop/server'
+        herbmail-server: 'apps/agones/herbmail/server'
+        irc-gateway: 'apps/irc/irc-gateway'
+        jobboard: 'apps/jobboard'
+        kbve-gate: 'apps/kbve/kbve-gate'
+        kbve-kubectl: 'apps/vm/kubectl'
+        kilobase: 'apps/kbve/kilobase'
+        reel: 'apps/media/reel'
+        rows: 'apps/rows'
+
+        # Godot
+        godot-friendslop: 'apps/friendslop/godot-friendslop'
+
+        # Docker images
+        arc-runner: 'packages/docker/arc-runner'
+        chisel-ubuntu-axum: 'packages/docker/chisel-ubuntu-axum'
+        firecracker-node-web: 'packages/docker/firecracker/node/web'
+        firecracker-python-net: 'packages/docker/firecracker/python/net'
+        firecracker-python-web: 'packages/docker/firecracker/python/web'
+        kasm-cloakbrowser: 'packages/docker/kasm-cloakbrowser'
+        kasm-void: 'packages/docker/kasm-void'
+        steamcmd-ubuntu: 'packages/docker/steamcmd-ubuntu'
+
+        # Game servers and their stacks
+        agones-factorio: 'apps/agones/factorio'
+        agones-palworld: 'apps/agones/palworld'
+        agones-palworld-savetool: 'apps/agones/palworld/savetool'
+        agones-tocloud9: 'apps/agones/tocloud9'
+        kbve-orc: 'apps/agones/factorio/mods-src/kbve-orc'
+        kbve-spider: 'apps/agones/factorio/mods-src/kbve-spider'
+        mc: 'apps/mc'
+        mc-lobby: 'apps/mc/lobby'
+        mc-velocity: 'apps/mc/velocity'
+
+        # Other apps
+        angelscript: 'apps/angelscript'
+        aria2-proxy: 'apps/vm/aria2-proxy'
+        arpg-web: 'apps/agones/arpg/web'
+        edge: 'apps/kbve/edge'
+        esp32c6-display: 'apps/hardware/esp32c6-display'
+        herbmail-game: 'apps/herbmail/herbmail-game'
+        rentearth-web: 'apps/rentearth/axum-rentearth/web'
+
+        # Unpublished npm libraries
+        chat: 'packages/npm/chat'
+        fx: 'packages/npm/fx'
+        rn: 'packages/npm/rn'
+
+        # Suites
+        arc-runner-e2e: 'packages/docker/arc-runner-e2e'
+        aria2-proxy-e2e: 'apps/vm/aria2-proxy-e2e'
+        arpg-e2e: 'apps/agones/arpg/arpg-e2e'
+        astro-kbve-e2e: 'apps/kbve/astro-kbve-e2e'
+        axum-chuckrpg-e2e: 'apps/chuckrpg/axum-chuckrpg-e2e'
+        axum-discordsh-e2e: 'apps/discordsh/axum-discordsh-e2e'
+        axum-kbve-e2e: 'apps/kbve/axum-kbve-e2e'
+        axum-rareicon-e2e: 'apps/rareicon/axum-rareicon-e2e'
+        devops-e2e: 'packages/npm/devops-e2e'
+        discordsh-bot-e2e: 'apps/discordsh/discordsh-bot-e2e'
+        droid-e2e: 'packages/npm/droid-e2e'
+        edge-e2e: 'apps/kbve/edge-e2e'
+        firecracker-ctl-e2e: 'apps/vm/firecracker-ctl-e2e'
+        khashvault-e2e: 'packages/npm/khashvault-e2e'
+        kubectl-e2e: 'apps/vm/kubectl-e2e'
+        laser-e2e: 'packages/npm/laser-e2e'
+
+        # Shared data and schemas
+        data-i18n: 'packages/data/i18n'
+        data-proto: 'packages/data/proto'
+        data-sql: 'packages/data/sql'
+
+        # Unpublished npm libraries, continued
+        core: 'packages/npm/core'
+        kbve-tauri: 'packages/npm/tauri'
+        observ: 'packages/npm/observ'
+        rn-astro: 'packages/npm/rn-astro'
+        rn-tauri: 'packages/npm/rn-tauri'
+
+        # Umbrellas: a site, its service and its suite behind one id
+        cryptothrone: 'apps/cryptothrone'
+        discordsh: 'apps/discordsh'
+        herbmail: 'apps/herbmail'
+        irc: 'apps/irc'
+        memes: 'apps/memes'
+
+        # Game clients and engines
+        agones-palworld-chef-food: 'apps/agones/palworld/mods/chef_paldon_yumsay'
+        arpg: 'apps/agones/arpg'
+        kbve-react-native: 'apps/kbve/kbve-react-native'
+        unity-rareicon: 'apps/rareicon/unity-rareicon'
+        unreal-cleanroom: 'apps/chuckrpg/unreal-cleanroom'
+        unreal-rentearth: 'apps/rentearth/unreal-rentearth'
+
+        # Remaining
+        iot-edge-worker: 'apps/vm/iot/edge-worker'
+        metrics-e2e: 'apps/metrics/e2e'
+
+vcs:
+    defaultBranch: 'dev'
+    provider: 'github'
+
+hasher:
+    optimization: 'accuracy'
+
+pipeline:
+    inheritColorsForPipedTasks: true
+
+experiments:
+    # Content-addressable store for task outputs. Required by the shared
+    # worktree cache below -- that feature shares CAS blobs.
+    casOutputsCache: true
+
+cache:
+    cas:
+        maxSize: '4gb'
+
+    # Share task outputs across git worktrees. Every branch here is developed in
+    # a linked worktree (AGENTS.md), and a linked worktree otherwise gets its own
+    # .moon/cache and starts cold. Only blobs and manifests are shared; hashes,
+    # locks and run states stay per-worktree.
+    #
+    # Still prefixed unstable_ in moon 2.5.
+    unstable_sharedWorktreeCache: true

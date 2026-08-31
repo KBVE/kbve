@@ -1,6 +1,7 @@
 """
 Core Supabase client service for managing database connections
 """
+
 import os
 from typing import NamedTuple, Optional, Any
 from supabase import create_client, Client
@@ -9,6 +10,7 @@ from notification_bot.utils.logger import logger
 
 class QueryResult(NamedTuple):
     """Result from executing a Supabase query"""
+
     success: bool
     data: Optional[Any] = None
     error: Optional[str] = None
@@ -50,10 +52,10 @@ class SupabaseService:
             _ = self.init_supabase_client()
             response = query.execute()
 
-            if hasattr(response, 'error') and response.error:
+            if hasattr(response, "error") and response.error:
                 return QueryResult(success=False, data=None, error=str(response.error))
 
-            data = response.data if hasattr(response, 'data') else response
+            data = response.data if hasattr(response, "data") else response
             return QueryResult(success=True, data=data, error=None)
 
         except Exception as e:

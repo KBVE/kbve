@@ -4,9 +4,10 @@
 
 **Goal:** Collapse the six standalone DB plugins (`KBVEItemDB`, `KBVENPCDB`, `KBVEQuestDB`, `KBVEMapDB`, `KBVESpellDB`, `KBVEProfessionDB`) into a single `KBVEData` plugin with one module per DB — the "one `KBVE<T>` plugin, modularity within" structure — without changing any consumer's `#include`s or `Build.cs` module deps.
 
-**Architecture — why it's feasible:** UE resolves module dependencies by **module name**, not owning plugin. If each DB's `Source/KBVE<DB>/` module directory moves *unchanged* under `KBVEData/Source/KBVE<DB>/`, the module name stays `KBVE<DB>`, so every consumer `Build.cs` dep (`"KBVEMapDB"`, …) and every `#include "KBVE<DB>Database.h"` keeps resolving. Only the **plugin** layer changes: six `.uplugin`s → one `KBVEData.uplugin` listing all modules, and consumers' `.uproject` swaps the six plugin entries for one.
+**Architecture — why it's feasible:** UE resolves module dependencies by **module name**, not owning plugin. If each DB's `Source/KBVE<DB>/` module directory moves _unchanged_ under `KBVEData/Source/KBVE<DB>/`, the module name stays `KBVE<DB>`, so every consumer `Build.cs` dep (`"KBVEMapDB"`, …) and every `#include "KBVE<DB>Database.h"` keeps resolving. Only the **plugin** layer changes: six `.uplugin`s → one `KBVEData.uplugin` listing all modules, and consumers' `.uproject` swaps the six plugin entries for one.
 
 **Recommended phasing (do NOT big-bang all 6):**
+
 - **Phase 1 (this plan):** consolidate the 3 lean, codegen-simple plugins — `KBVEProfessionDB` (8 files), `KBVESpellDB` (12), `KBVEMapDB` (14) ≈ 34 files — into `KBVEData`. Proves the entire mechanic (moves + merged uplugin + uproject + codegen OUT_DIR + nx + manifest + CI matrix) on a reviewable/reversible surface.
 - **Phase 2 (follow-up):** migrate the 3 large plugins (`KBVEItemDB` 45, `KBVENPCDB` 35, `KBVEQuestDB` 23) into the now-proven `KBVEData` using the identical steps.
 
@@ -47,7 +48,7 @@
 
 - [ ] **Step 1:** In each `-uecpp` generator, change `OUT_DIR` from `packages/unreal/KBVE<DB>/Source/KBVE<DB>/Public/Generated` → `packages/unreal/KBVEData/Source/KBVE<DB>/Public/Generated`. (Header comment paths too.)
 - [ ] **Step 2:** In `project.json`, repoint `sync:professiondb-uecpp` + `sync:spelldb-uecpp` `inputs`/`outputs` Generated paths to the `KBVEData/Source/KBVE<DB>/…` location.
-- [ ] **Step 3: Verify:** `node packages/data/codegen/gen-professiondb-uecpp.mjs` + `gen-spelldb-uecpp.mjs` write into `KBVEData/Source/…/Generated/` (the moved headers regenerate in place, no diff if the move preserved them); `git status` shows only the (already-moved) generated headers, no new stray dir. `npx nx run astro-kbve:sync:professiondb-uecpp --skip-nx-cache` + `sync:spelldb-uecpp` succeed. No output under the old paths.
+- [ ] **Step 3: Verify:** `node packages/data/codegen/gen-professiondb-uecpp.mjs` + `gen-spelldb-uecpp.mjs` write into `KBVEData/Source/…/Generated/` (the moved headers regenerate in place, no diff if the move preserved them); `git status` shows only the (already-moved) generated headers, no new stray dir. `moon run astro-kbve:sync-professiondb-uecpp --skip-nx-cache` + `sync:spelldb-uecpp` succeed. No output under the old paths.
 - [ ] **Step 4: Commit.** `git commit -am "refactor(codegen): repoint uecpp OUT_DIR + nx targets to KBVEData"`
 
 ## Task 3: update rentearth `.uproject`

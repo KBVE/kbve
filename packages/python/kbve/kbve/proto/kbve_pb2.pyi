@@ -16,6 +16,7 @@ class HealthCheckResponse(_message.Message):
         UNKNOWN: _ClassVar[HealthCheckResponse.ServingStatus]
         SERVING: _ClassVar[HealthCheckResponse.ServingStatus]
         NOT_SERVING: _ClassVar[HealthCheckResponse.ServingStatus]
+
     UNKNOWN: HealthCheckResponse.ServingStatus
     SERVING: HealthCheckResponse.ServingStatus
     NOT_SERVING: HealthCheckResponse.ServingStatus

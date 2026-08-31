@@ -1,0 +1,41 @@
+syntax = "proto3";
+
+package kbve.map.v1;
+
+import "kbve/common/v1/registry.proto";
+import "kbve/map/v1/climate.proto";
+import "kbve/map/v1/hex.proto";
+import "kbve/map/v1/object.proto";
+import "kbve/map/v1/politics.proto";
+import "kbve/map/v1/trade.proto";
+import "kbve/map/v1/zone.proto";
+
+// Everything that describes a world, as shipped to clients.
+//
+// Named map_registry.proto rather than registry.proto because the C# generator
+// flattens its output and names each file after the proto's basename, so two
+// files called registry.proto in different packages both want to be
+// Registry.cs. Basenames are unique across the module for that reason.
+message MapRegistry {
+  // Renumbered so meta sits at field 1, as it does in every other registry in
+  // the module. The old numbering is not reserved: these registries are built
+  // artifacts, regenerated from source content rather than stored, and nothing
+  // consumes this package yet. Field 13 was dialogue_trees, which is gone for a
+  // different reason - conversations belong to the dialogue domain and are
+  // addressed by reference rather than carried inline.
+  kbve.common.v1.RegistryMeta meta = 1;
+
+  repeated Region regions = 2;
+  repeated Zone zones = 3;
+  repeated WorldObjectDef object_defs = 4;
+  repeated HexWorldMap hex_worlds = 5;
+  repeated Faction factions = 6;
+  repeated Settlement settlements = 7;
+  repeated TerritoryClaim territory_claims = 8;
+  repeated TradeRoute trade_routes = 9;
+  repeated Landmark landmarks = 10;
+  repeated Culture cultures = 11;
+  repeated Religion religions = 12;
+  repeated Treaty treaties = 13;
+  repeated ClimateConfig climates = 14;
+}

@@ -682,14 +682,14 @@ Before installing Graphify, ensure you have:
 2. **Install Python package dependencies**
 
    ```bash
-   pnpm nx run graphify-wrapper:install
-   pnpm nx run graphify-wrapper:lock
+   moon run graphify-wrapper:install
+   moon run graphify-wrapper:lock
    ```
 
 3. **Verify setup with a test build**
 
    ```bash
-   pnpm nx run graphify-wrapper:build-app --app=herbmail
+   moon run graphify-wrapper:build-app --app=herbmail
    ls packages/data/graphify/output/apps/herbmail/
    # Should see: graph.json, graph.html, GRAPH_REPORT.md
 
@@ -725,11 +725,11 @@ open packages/data/graphify/output/monorepo/graph.html
 
 ```bash
 # Full monorepo (AST-only mode, fast, no LLM)
-pnpm nx run graphify-wrapper:build-monorepo
+moon run graphify-wrapper:build-monorepo
 
 # Specific application
-pnpm nx run graphify-wrapper:build-app --app=laser
-pnpm nx run graphify-wrapper:build-app --app=discordsh
+moon run graphify-wrapper:build-app --app=laser
+moon run graphify-wrapper:build-app --app=discordsh
 
 # Specific package
 cd packages/python/graphify-wrapper
@@ -755,7 +755,7 @@ graphify . \
 
 ```bash
 # Semantic search
-pnpm nx run graphify-wrapper:query --q="Where is user authentication handled?"
+moon run graphify-wrapper:query --q="Where is user authentication handled?"
 
 # Path tracing between components
 graphify path packages/data/graphify/output/monorepo/graph.json "astro-kbve" "bevy_inventory"
@@ -803,7 +803,7 @@ ignore:
 
 ```bash
 # Default mode - uses tree-sitter for static analysis only
-pnpm nx run graphify-wrapper:build-monorepo
+moon run graphify-wrapper:build-monorepo
 ```
 
 <Aside>
@@ -817,7 +817,7 @@ pnpm nx run graphify-wrapper:build-monorepo
 
 ```bash
 # Export graph to public web directory
-pnpm nx run graphify-wrapper:export-web
+moon run graphify-wrapper:export-web
 
 # Output location: apps/kbve/astro-kbve/public/graphify/monorepo.json
 ```
@@ -827,7 +827,7 @@ pnpm nx run graphify-wrapper:export-web
 Start the dev server to access graph data:
 
 ```bash
-pnpm nx run astro-kbve:serve
+moon run astro-kbve:serve
 
 # Then visit:
 # http://localhost:4321/api/graphify/monorepo.json
@@ -885,19 +885,19 @@ Maintain the Python wrapper package with these Nx targets:
 
 ```bash
 # Install dependencies
-pnpm nx run graphify-wrapper:install
+moon run graphify-wrapper:install
 
 # Lock dependencies
-pnpm nx run graphify-wrapper:lock
+moon run graphify-wrapper:lock
 
 # Run tests
-pnpm nx run graphify-wrapper:test
+moon run graphify-wrapper:test
 
 # Lint code
-pnpm nx run graphify-wrapper:lint
+moon run graphify-wrapper:lint
 
 # Build package
-pnpm nx run graphify-wrapper:build
+moon run graphify-wrapper:build
 ```
 
 ### File Structure
@@ -971,7 +971,7 @@ uv sync
 **Memory Issues**: For very large graphs:
 
 ```bash
-NODE_OPTIONS=--max-old-space-size=8192 pnpm nx run graphify-wrapper:build-monorepo
+NODE_OPTIONS=--max-old-space-size=8192 moon run graphify-wrapper:build-monorepo
 ```
 
 **Large Graph Files**: If `graph.json` exceeds 10MB, use Git LFS:
@@ -990,12 +990,12 @@ Or keep graphs in `.gitignore` and rebuild via CI.
 
 1. **Install dependencies**
    ```bash
-   pnpm nx run graphify-wrapper:install
+   moon run graphify-wrapper:install
    ```
 
 2. **Build a small graph for testing**
    ```bash
-   pnpm nx run graphify-wrapper:build-app --app=herbmail
+   moon run graphify-wrapper:build-app --app=herbmail
    ```
 
 3. **View the HTML visualization**
@@ -1005,7 +1005,7 @@ Or keep graphs in `.gitignore` and rebuild via CI.
 
 4. **Query the graph**
    ```bash
-   pnpm nx run graphify-wrapper:query --q="test query"
+   moon run graphify-wrapper:query --q="test query"
    ```
 
 5. **Run tests**
@@ -1046,10 +1046,10 @@ jobs:
               run: uv tool install graphifyy
 
             - name: Build Monorepo Graph
-              run: pnpm nx run graphify-wrapper:build-monorepo
+              run: moon run graphify-wrapper:build-monorepo
 
             - name: Export for Web
-              run: pnpm nx run graphify-wrapper:export-web
+              run: moon run graphify-wrapper:export-web
 
             - name: Commit Graph Data
               run: |

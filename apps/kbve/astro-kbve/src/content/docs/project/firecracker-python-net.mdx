@@ -138,8 +138,8 @@ This image is **not** for the public sandbox quick-mode VMs. Those keep the no-n
 ## Build
 
 ```bash
-npx nx run firecracker-python-net:container
-npx nx run firecracker-python-net:extract
+moon run firecracker-python-net:container
+moon run firecracker-python-net:extract
 ```
 
 Output: `packages/docker/firecracker/python/net/dist/python-net.ext4`.
@@ -147,7 +147,7 @@ Output: `packages/docker/firecracker/python/net/dist/python-net.ext4`.
 ## Publish
 
 ```bash
-npx nx run firecracker-python-net:container:production
+moon run firecracker-python-net:container-production
 ```
 
 Pushes `ghcr.io/kbve/firecracker-python-net:latest` and `:<version>`.

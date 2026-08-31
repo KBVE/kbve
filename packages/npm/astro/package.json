@@ -131,8 +131,7 @@
 		}
 	},
 	"files": [
-		"astro.es.js",
-		"index.d.ts",
+		"*.js",
 		"**/*.d.ts",
 		"components/**/*.astro",
 		"components/**/*.js",

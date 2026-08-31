@@ -43,12 +43,7 @@ def merge_dicts(
     """
     merged = dict(base)
     for key, val in override.items():
-        if (
-            deep
-            and key in merged
-            and isinstance(merged[key], dict)
-            and isinstance(val, dict)
-        ):
+        if deep and key in merged and isinstance(merged[key], dict) and isinstance(val, dict):
             merged[key] = merge_dicts(merged[key], val, deep=True)
         else:
             merged[key] = val

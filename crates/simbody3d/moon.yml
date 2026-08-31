@@ -1,0 +1,12 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'library'
+stack: 'systems'
+toolchains:
+    default: 'rust'
+
+tasks:
+    # The physics core has to build for the browser too; wasm32 has no threads
+    # and no clock, and a dependency that assumes either fails only here.
+    check-wasm:
+        command: 'cargo check -p simbody3d --target wasm32-unknown-unknown'

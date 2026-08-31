@@ -6,4 +6,4 @@ class PoemDB(BaseModel):
     title: str
     author: str
     lines: List[str]
-    linecount: int = Field(..., alias='linecount')
+    linecount: int = Field(..., alias="linecount")

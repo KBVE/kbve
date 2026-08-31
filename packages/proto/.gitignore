@@ -1,0 +1,13 @@
+gen/
+node_modules/
+.DS_Store
+
+# Derived from the schemas; distributed as a CI artifact, never committed.
+descriptor.binpb
+
+# Build output from the compile-check harnesses in verify/.
+verify/csharp/bin/
+verify/csharp/obj/
+verify/rust/target/
+verify/ts/src/
+verify/csharp/*.cs

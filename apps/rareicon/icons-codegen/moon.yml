@@ -1,0 +1,87 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'tool'
+language: 'javascript'
+
+# Its own project rather than a set of targets on astro-rareicon, which is
+# where Nx put them. It has its own package.json, its own pnpm-lock.yaml and
+# installs with --ignore-workspace, so it is a separate package that happens to
+# write into the site -- one IconTerm MDX per concept under the site's content
+# directory, plus the dedup-keys.json ledger that keeps re-runs deterministic.
+#
+# Everything here is opt-in: pulling thousands of SVGs from upstream packs is
+# not something a build should do on its own, and the generated MDX is
+# committed. Nothing depends on these tasks.
+tasks:
+    install:
+        command: 'pnpm install --ignore-workspace'
+        toolchains: ['node']
+        inputs: ['package.json', 'pnpm-lock.yaml']
+        options:
+            cache: false
+            runDepsInParallel: false
+
+    clean:
+        command: 'pnpm clean:deps'
+        toolchains: ['node']
+        options:
+            cache: false
+
+    gen-lucide:
+        command: 'pnpm gen:lucide'
+        toolchains: ['node']
+        options: { cache: false }
+
+    gen-simple:
+        command: 'pnpm gen:simple'
+        toolchains: ['node']
+        options: { cache: false }
+
+    gen-tabler:
+        command: 'pnpm gen:tabler'
+        toolchains: ['node']
+        options: { cache: false }
+
+    gen-phosphor:
+        command: 'pnpm gen:phosphor'
+        toolchains: ['node']
+        options: { cache: false }
+
+    gen-gameicons:
+        command: 'pnpm gen:gameicons'
+        toolchains: ['node']
+        options: { cache: false }
+
+    gen-iconify:
+        command: 'pnpm gen:iconify'
+        toolchains: ['node']
+        options: { cache: false }
+
+    gen-merge:
+        command: 'pnpm gen:merge'
+        toolchains: ['node']
+        options: { cache: false }
+
+    # Not exposed as an Nx target, though gen:all runs it. Named here so the
+    # step can be re-run on its own.
+    gen-categories:
+        command: 'pnpm gen:categories'
+        toolchains: ['node']
+        options: { cache: false }
+
+    gen-all:
+        command: 'pnpm gen:all'
+        toolchains: ['node']
+        options: { cache: false }
+
+    audit-links:
+        command: 'pnpm audit:links'
+        toolchains: ['node']
+        deps: ['astro-rareicon:build']
+        options: { cache: false }
+
+    # Also not an Nx target. audit:all is the pair of these two.
+    validate-jsonld:
+        command: 'pnpm validate:jsonld'
+        toolchains: ['node']
+        options: { cache: false }

@@ -1,6 +1,5 @@
 import { defineConfig } from 'vite';
-import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
-import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
+import tsconfigPaths from 'vite-tsconfig-paths';
 import dts from 'vite-plugin-dts';
 import path from 'path';
 
@@ -8,8 +7,7 @@ export default defineConfig(() => ({
 	root: __dirname,
 	cacheDir: '../../../node_modules/.vite/npm/droid',
 	plugins: [
-		nxViteTsPaths(),
-		nxCopyAssetsPlugin(['*.md']),
+		tsconfigPaths(),
 		dts({
 			entryRoot: 'src',
 			tsconfigPath: path.join(__dirname, 'tsconfig.lib.json'),
@@ -74,7 +72,7 @@ export default defineConfig(() => ({
 	},
 
 	worker: {
-		plugins: () => [nxViteTsPaths()],
+		plugins: () => [tsconfigPaths()],
 		format: 'es',
 		rollupOptions: {
 			input: {

@@ -1,0 +1,115 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'bash'
+stack: 'frontend'
+
+# No godot.yml preset. There is exactly one Godot project in the repository,
+# and a preset with a single member is indirection rather than reuse -- two
+# files to read to understand one project. Promote these to .moon/tasks/ if a
+# second Godot project ever appears.
+#
+# Every task shells out to scripts/godot.sh, which resolves the engine binary;
+# proto pins godot in workspace/.prototools upstream and would do the same here.
+tags: ['lfs']
+
+env:
+    LFS_REMOTE: 'friendslop'
+
+dependsOn: ['q']
+
+tasks:
+    # 'build' rather than an export alias, so the lfs tag's build dep has
+    # something real to attach to: a headless export is the closest thing this
+    # project has to a build, and Windows is the one every platform can produce.
+    build:
+        deps: ['~:export-windows']
+
+    editor:
+        script: 'bash scripts/godot.sh --editor .'
+        preset: 'server'
+
+    run:
+        script: 'bash scripts/godot.sh .'
+        preset: 'server'
+
+    # dev differs from run only in requiring a freshly built extension. A stale
+    # libq.dylib is the usual cause of a startup crash here.
+    dev:
+        deps: ['q:deploy-mac']
+        script: 'bash scripts/godot.sh .'
+        preset: 'server'
+
+    dev-editor:
+        deps: ['q:deploy-mac']
+        script: 'bash scripts/godot.sh --editor .'
+        preset: 'server'
+
+    test:
+        script: 'bash scripts/test.sh'
+
+    test-smoke:
+        script: 'bash scripts/godot.sh --headless -s tests/smoke_ecs.gd'
+
+    export-windows:
+        script: 'mkdir -p $workspaceRoot/dist/apps/friendslop/windows && bash scripts/godot.sh --headless --export-release "Windows Desktop"'
+        outputs: ['/dist/apps/friendslop/windows']
+
+    export-macos:
+        script: 'mkdir -p $workspaceRoot/dist/apps/friendslop/macos && bash scripts/godot.sh --headless --export-release "macOS"'
+        outputs: ['/dist/apps/friendslop/macos']
+
+    export-linux:
+        script: 'mkdir -p $workspaceRoot/dist/apps/friendslop/linux && bash scripts/godot.sh --headless --export-release "Linux"'
+        outputs: ['/dist/apps/friendslop/linux']
+
+    export-ios:
+        deps: ['q:deploy-ios']
+        script: 'bash scripts/ios.sh export'
+        outputs: ['/dist/apps/friendslop/ios']
+
+    install-ios:
+        deps: ['~:export-ios']
+        script: 'bash scripts/ios.sh install'
+        options:
+            cache: false
+
+    run-ios:
+        deps: ['~:install-ios']
+        script: 'bash scripts/ios.sh run'
+        options:
+            cache: false
+
+    export:
+        deps: ['~:export-windows', '~:export-macos', '~:export-linux']
+
+    # Copies the shared locale files in beside the scenes. Godot loads
+    # translations from the project directory, so they cannot be read out of
+    # packages/data/i18n where they are edited.
+    i18n-sync:
+        script: >-
+            rm -rf $projectSource/assets/i18n
+            && mkdir -p $projectSource/assets/i18n
+            && cp -R packages/data/i18n/locales/. $projectSource/assets/i18n/
+        inputs: ['/packages/data/i18n/locales/**/*.json']
+        outputs: ['assets/i18n']
+        options:
+            runFromWorkspaceRoot: true
+
+    # Needs blender on PATH, so it is a local authoring step rather than
+    # anything CI runs.
+    bake-turf:
+        script: >-
+            blender -b -P packages/python/kbve/kbve/blender/turf_bake.py --
+            --out $projectSource/assets/biomes/grassland/textures
+            --res 2048 --ao-samples 40
+            && python3 packages/python/kbve/kbve/blender/pack_orm.py
+            $projectSource/assets/biomes/grassland/textures
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    steam-assets:
+        deps: ['q:deploy-mac']
+        script: 'bash scripts/steam.sh'
+        outputs: ['screenshots/steam']

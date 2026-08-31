@@ -1032,6 +1032,7 @@ mod tests {
             short_id: "test1234".to_owned(),
             owner,
             party: Vec::new(),
+            dialogue_memory: Default::default(),
             mode: SessionMode::Solo,
             phase: GamePhase::Exploring,
             created_at: std::time::Instant::now(),

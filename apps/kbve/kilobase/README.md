@@ -1,5 +1,4 @@
 ---
-
 ---
 
 ## KiloBase
@@ -87,11 +86,11 @@ pub mod pg_test {
 
 ## Dev Notes
 
-To bump up the version: 
+To bump up the version:
 
 ```shell
 
-./kbve.sh -nx kilobase:bump
+moon run kilobase:bump
 
 ```
 
@@ -99,7 +98,7 @@ To run a local build
 
 ```shell
 
-./kbve.sh -nx kilobase:local
+moon run kilobase:local
 
 ```
 

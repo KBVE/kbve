@@ -8,33 +8,36 @@ import discord
 
 class StatusState(Enum):
     """Bot status state enumeration with emoji, color, image URL, and display name"""
-    OFFLINE = (
-        "red_circle", discord.Color.red(),
-        "https://octodex.github.com/images/deckfailcat.png", "Offline")
-    PENDING = (
-        "yellow_circle", discord.Color.orange(),
-        "https://octodex.github.com/images/octobiwan.jpg", "Pending")
+
+    OFFLINE = ("red_circle", discord.Color.red(), "https://octodex.github.com/images/deckfailcat.png", "Offline")
+    PENDING = ("yellow_circle", discord.Color.orange(), "https://octodex.github.com/images/octobiwan.jpg", "Pending")
     STARTING = (
-        "yellow_circle", discord.Color.orange(),
-        "https://octodex.github.com/images/dunetocat.png", "Starting...")
+        "yellow_circle",
+        discord.Color.orange(),
+        "https://octodex.github.com/images/dunetocat.png",
+        "Starting...",
+    )
     STOPPING = (
-        "orange_circle", discord.Color.orange(),
-        "https://octodex.github.com/images/dunetocat.png", "Stopping...")
+        "orange_circle",
+        discord.Color.orange(),
+        "https://octodex.github.com/images/dunetocat.png",
+        "Stopping...",
+    )
     ONLINE = (
-        "green_circle", discord.Color.green(),
-        "https://octodex.github.com/images/megacat-2.png", "Online & Ready")
-    GREEN = (
-        "green_circle", discord.Color.green(),
-        "https://octodex.github.com/images/megacat-2.png", "Online & Ready")
+        "green_circle",
+        discord.Color.green(),
+        "https://octodex.github.com/images/megacat-2.png",
+        "Online & Ready",
+    )
+    GREEN = ("green_circle", discord.Color.green(), "https://octodex.github.com/images/megacat-2.png", "Online & Ready")
     INITIALIZING = (
-        "yellow_circle", discord.Color.yellow(),
-        "https://octodex.github.com/images/universetocat.png", "Initializing")
-    ERROR = (
-        "warning", discord.Color.dark_red(),
-        "https://octodex.github.com/images/dunetocat.png", "Error")
-    UNKNOWN = (
-        "question", discord.Color.greyple(),
-        "https://octodex.github.com/images/dunetocat.png", "Unknown")
+        "yellow_circle",
+        discord.Color.yellow(),
+        "https://octodex.github.com/images/universetocat.png",
+        "Initializing",
+    )
+    ERROR = ("warning", discord.Color.dark_red(), "https://octodex.github.com/images/dunetocat.png", "Error")
+    UNKNOWN = ("question", discord.Color.greyple(), "https://octodex.github.com/images/dunetocat.png", "Unknown")
 
     def __init__(self, emoji: str, color: discord.Color, image_url: str, display_name: str):
         self.emoji = emoji
@@ -72,55 +75,57 @@ class BotStatusModel(BaseModel):
     pid: int = Field(default=0, description="Process ID")
 
     @classmethod
-    def from_status_dict(cls, status_dict: dict, health_data: Optional[dict] = None) -> 'BotStatusModel':
+    def from_status_dict(cls, status_dict: dict, health_data: Optional[dict] = None) -> "BotStatusModel":
         """Create BotStatusModel from status dictionary with optional health data"""
         # Determine state based on status flags
-        if status_dict.get('is_starting', False):
+        if status_dict.get("is_starting", False):
             state = StatusState.STARTING
-        elif status_dict.get('is_stopping', False):
+        elif status_dict.get("is_stopping", False):
             state = StatusState.STOPPING
-        elif status_dict.get('is_ready', False):
+        elif status_dict.get("is_ready", False):
             state = StatusState.ONLINE
-        elif status_dict.get('initialized', False) and not status_dict.get('is_closed', True):
+        elif status_dict.get("initialized", False) and not status_dict.get("is_closed", True):
             state = StatusState.INITIALIZING
-        elif not status_dict.get('initialized', False) or status_dict.get('is_closed', True):
+        elif not status_dict.get("initialized", False) or status_dict.get("is_closed", True):
             state = StatusState.OFFLINE
         else:
             state = StatusState.UNKNOWN
 
         # Base model data
         model_data = {
-            'state': state,
-            'initialized': status_dict.get('initialized', False),
-            'is_ready': status_dict.get('is_ready', False),
-            'is_starting': status_dict.get('is_starting', False),
-            'is_stopping': status_dict.get('is_stopping', False),
-            'is_closed': status_dict.get('is_closed', True),
-            'guild_count': status_dict.get('guild_count', 0),
-            'shard_count': status_dict.get('shard_count', 0),
-            'current_shard': status_dict.get('current_shard'),
-            'shard_info': status_dict.get('shard_info', {}),
-            'custom_message': status_dict.get('custom_message')
+            "state": state,
+            "initialized": status_dict.get("initialized", False),
+            "is_ready": status_dict.get("is_ready", False),
+            "is_starting": status_dict.get("is_starting", False),
+            "is_stopping": status_dict.get("is_stopping", False),
+            "is_closed": status_dict.get("is_closed", True),
+            "guild_count": status_dict.get("guild_count", 0),
+            "shard_count": status_dict.get("shard_count", 0),
+            "current_shard": status_dict.get("current_shard"),
+            "shard_info": status_dict.get("shard_info", {}),
+            "custom_message": status_dict.get("custom_message"),
         }
 
         # Add health data if provided
         if health_data:
-            memory_info = health_data.get('memory', {})
-            cpu_info = health_data.get('cpu', {})
-            process_info = health_data.get('process', {})
+            memory_info = health_data.get("memory", {})
+            cpu_info = health_data.get("cpu", {})
+            process_info = health_data.get("process", {})
 
-            model_data.update({
-                'memory_usage_mb': memory_info.get('process_memory_mb', 0.0),
-                'memory_percent': memory_info.get('process_memory_percent', 0.0),
-                'cpu_percent': cpu_info.get('process_cpu_percent', 0.0),
-                'uptime_seconds': process_info.get('uptime_seconds', 0),
-                'uptime_formatted': process_info.get('uptime_formatted', '0:00:00'),
-                'thread_count': process_info.get('thread_count', 0),
-                'system_memory_total_gb': memory_info.get('system_memory_total_gb', 0.0),
-                'system_memory_used_percent': memory_info.get('system_memory_used_percent', 0.0),
-                'health_status': health_data.get('health_status', 'UNKNOWN'),
-                'pid': process_info.get('pid', 0)
-            })
+            model_data.update(
+                {
+                    "memory_usage_mb": memory_info.get("process_memory_mb", 0.0),
+                    "memory_percent": memory_info.get("process_memory_percent", 0.0),
+                    "cpu_percent": cpu_info.get("process_cpu_percent", 0.0),
+                    "uptime_seconds": process_info.get("uptime_seconds", 0),
+                    "uptime_formatted": process_info.get("uptime_formatted", "0:00:00"),
+                    "thread_count": process_info.get("thread_count", 0),
+                    "system_memory_total_gb": memory_info.get("system_memory_total_gb", 0.0),
+                    "system_memory_used_percent": memory_info.get("system_memory_used_percent", 0.0),
+                    "health_status": health_data.get("health_status", "UNKNOWN"),
+                    "pid": process_info.get("pid", 0),
+                }
+            )
 
         return cls(**model_data)
 
@@ -173,8 +178,4 @@ class BotStatusModel(BaseModel):
 
         return bar_char * filled + empty_char * (width - filled)
 
-    model_config = {
-        "json_encoders": {
-            discord.Color: lambda v: v.value
-        }
-    }
+    model_config = {"json_encoders": {discord.Color: lambda v: v.value}}

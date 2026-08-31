@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+package kbve.common.v1;
+
+// Why a person reported a piece of content.
+//
+// The forum and the meme feed each had their own copy, overlapping but
+// numbered differently, so the same report meant different things depending on
+// which product wrote it. This is the union: forum contributed VIOLENCE,
+// OFF_TOPIC, SCAM and SELF_HARM, and the meme feed contributed HATE_SPEECH.
+//
+// A product uses the subset that fits it. Nothing requires every surface to
+// offer every reason.
+enum ReportReason {
+  REPORT_REASON_UNSPECIFIED = 0;
+  REPORT_REASON_SPAM = 1;
+  REPORT_REASON_HARASSMENT = 2;
+  REPORT_REASON_NSFW = 3;
+  REPORT_REASON_VIOLENCE = 4;
+  REPORT_REASON_COPYRIGHT = 5;
+  REPORT_REASON_OFF_TOPIC = 6;
+  REPORT_REASON_SCAM = 7;
+  REPORT_REASON_MISINFO = 8;
+  REPORT_REASON_SELF_HARM = 9;
+  REPORT_REASON_HATE_SPEECH = 10;
+  REPORT_REASON_OTHER = 99;
+}

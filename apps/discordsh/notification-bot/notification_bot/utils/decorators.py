@@ -1,6 +1,7 @@
 """
 Developer-friendly decorators for ultra-fast endpoints with minimal boilerplate
 """
+
 from functools import wraps
 from typing import Callable
 from fastapi import Response
@@ -19,6 +20,7 @@ def auto_response(func: Callable) -> Callable:
             await bot.action()
             return "Action completed"  # Auto-wrapped in StandardResponse
     """
+
     @wraps(func)
     async def wrapper(*args, **kwargs) -> Response:
         try:
@@ -37,15 +39,9 @@ def auto_response(func: Callable) -> Callable:
                 if result.get("status") == "info":
                     return info_response(result.get("message", "Info"))
                 elif result.get("status") == "error":
-                    return error_response(
-                        result.get("message", "Error"),
-                        result.get("status_code", 500)
-                    )
+                    return error_response(result.get("message", "Error"), result.get("status_code", 500))
                 else:
-                    return success_response(
-                        result.get("message", "Success"),
-                        result.get("data")
-                    )
+                    return success_response(result.get("message", "Success"), result.get("data"))
 
             # Default: wrap result in success response
             return success_response("Operation completed successfully")
@@ -76,6 +72,7 @@ def bot_action(success_message: str = None):
         async def restart_bot(bot: BotService):
             await bot.restart()
     """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def wrapper(*args, **kwargs) -> Response:
@@ -104,6 +101,7 @@ def bot_action(success_message: str = None):
                     return error_response(str(e))
 
         return wrapper
+
     return decorator
 
 
@@ -118,6 +116,7 @@ def require_ready_bot(func: Callable) -> Callable:
             # Bot readiness automatically checked
             return await bot.cleanup()
     """
+
     @wraps(func)
     async def wrapper(*args, **kwargs) -> Response:
         # Find BotService in args/kwargs
@@ -125,14 +124,14 @@ def require_ready_bot(func: Callable) -> Callable:
 
         # Check args for BotService
         for arg in args:
-            if hasattr(arg, 'get_bot'):
+            if hasattr(arg, "get_bot"):
                 bot_service = arg
                 break
 
         # Check kwargs for BotService
         if not bot_service:
             for value in kwargs.values():
-                if hasattr(value, 'get_bot'):
+                if hasattr(value, "get_bot"):
                     bot_service = value
                     break
 
@@ -160,6 +159,7 @@ def with_error_context(context: str):
         async def get_user(user_id: str):
             # Errors will include "Error in user management: ..."
     """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         async def wrapper(*args, **kwargs) -> Response:
@@ -170,6 +170,7 @@ def with_error_context(context: str):
                 return error_response(f"Error in {context}: {str(e)}")
 
         return wrapper
+
     return decorator
 
 
@@ -183,6 +184,7 @@ def log_execution(func: Callable) -> Callable:
         async def important_action():
             # Execution will be logged
     """
+
     @wraps(func)
     async def wrapper(*args, **kwargs) -> Response:
         logger.info(f"Executing {func.__name__}")

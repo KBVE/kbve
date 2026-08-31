@@ -42,7 +42,8 @@ def _acquire(ctx: BuildContext) -> dict | None:
             seam.get("prs", {}),
             seam.get("issues_opened", {}),
             seam.get("issues_closed", {}),
-            start_iso, days,
+            start_iso,
+            days,
         )
 
     token = os.environ.get("GITHUB_TOKEN", "").strip()
@@ -51,12 +52,9 @@ def _acquire(ctx: BuildContext) -> dict | None:
         return None
     try:
         commits = fetch_commits(token, start_iso, timeout=_TIMEOUT)
-        prs = search_count(
-            token, f"{_REPO} is:pr is:merged merged:>={start_day}", _TIMEOUT)
-        opened = search_count(
-            token, f"{_REPO} is:issue created:>={start_day}", _TIMEOUT)
-        closed = search_count(
-            token, f"{_REPO} is:issue closed:>={start_day}", _TIMEOUT)
+        prs = search_count(token, f"{_REPO} is:pr is:merged merged:>={start_day}", _TIMEOUT)
+        opened = search_count(token, f"{_REPO} is:issue created:>={start_day}", _TIMEOUT)
+        closed = search_count(token, f"{_REPO} is:issue closed:>={start_day}", _TIMEOUT)
     except Exception as exc:  # noqa: BLE001 — degrade, never hard-fail
         _warn("activity fetch failed (%s)" % exc)
         return None
@@ -66,9 +64,7 @@ def _acquire(ctx: BuildContext) -> dict | None:
 @route("activity", "daily", needs=("token",))
 class ActivityRoute:
     def plan(self, ctx: BuildContext) -> PlanResult:
-        return PlanResult(
-            "activity", True, "regenerate (git-diff guard drops no-ops)", []
-        )
+        return PlanResult("activity", True, "regenerate (git-diff guard drops no-ops)", [])
 
     def build(self, ctx: BuildContext) -> BuildResult:
         payload = _acquire(ctx)

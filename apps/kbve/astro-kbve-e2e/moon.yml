@@ -1,0 +1,12 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+tags: ['vitest']
+
+tasks:
+    e2e:
+        script: 'docker rm -f astro-kbve-e2e 2>/dev/null || true && docker run -d --name astro-kbve-e2e -p 4323:4321 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4321 -e RUST_LOG=info kbve/kbve:latest && npx vitest run; EC=$?; docker rm -f astro-kbve-e2e 2>/dev/null || true; exit $EC'
+        deps: ['axum-kbve:container']
+        options:
+            cache: false

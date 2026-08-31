@@ -99,13 +99,13 @@ does not exist yet would leave the deployment unschedulable.
 
 ```bash
 # Build Docker image
-pnpm nx run edge:container
+moon run edge:container
 
 # Run e2e tests (builds image, starts container, runs vitest, cleans up)
-pnpm nx e2e edge
+moon run edge:e2e
 
 # Dev mode (local Docker with volume mount)
-pnpm nx run edge:run-dev
+moon run edge:run-dev
 ```
 
 Image: `supabase/edge-runtime:v1.70.5` with functions copied to `/home/deno/functions`.

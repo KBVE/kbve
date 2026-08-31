@@ -15,14 +15,14 @@
 # - Language runtimes (Rust, Node.js, Python, .NET)
 # - Package managers (pnpm, Poetry, Cargo)
 # - Development tools (tmux session management, git workflows)
-# - Build systems (Nx monorepo tooling)
+# - Build systems (moon monorepo tooling)
 # - Container preparation and deployment utilities
 #
 # Usage Examples:
 #   ./kbve.sh -install          # Install monorepo dependencies
 #   ./kbve.sh -atomic "feature" # Create atomic worktree from dev
-#   ./kbve.sh -nx build app     # Run Nx build command
-#   ./kbve.sh -studio           # Launch development studio
+#   ./kbve.sh -moon astro-kbve:build   # Run a moon task
+#   ./kbve.sh -graph                   # Launch the moon project graph
 #
 # For full command reference, see the case statement at the bottom of this file
 #==============================================================================
@@ -200,24 +200,13 @@ atomic_function() {
         cp "$main_repo/.env" "$worktree_dir/.env"
     fi
 
-    # Generate .env.local with Nx workspace isolation
-    echo "Generating .env.local for Nx..."
-    local worktree_basename
-    worktree_basename=$(basename "$worktree_dir")
-    cat > "$worktree_dir/.env.local" <<ENVEOF
-NX_WORKSPACE_ROOT=$worktree_dir
-NX_WORKSPACE_ROOT_PATH=$worktree_dir
-NX_WORKSPACE_DATA_DIRECTORY=.nx/workspace-data-${worktree_basename}
-NX_CACHE_DIRECTORY=.nx/cache
-NX_DAEMON=false
-ENVEOF
-
-    # Install dependencies and reset Nx cache
+    # No .env.local. moon finds the workspace root by walking up to .moon/, so a
+    # worktree needs no environment to tell it where it is -- which is all the
+    # five NX_* variables written here were ever for. Task outputs are shared
+    # across worktrees through the CAS (cache.unstable_sharedWorktreeCache in
+    # .moon/workspace.yml), so a new worktree does not start cold either.
     echo "Installing pnpm dependencies in worktree..."
     (cd "$worktree_dir" && pnpm install)
-    echo "Resetting Nx cache in worktree..."
-    (cd "$worktree_dir" && export NX_WORKSPACE_ROOT_PATH="$worktree_dir" && pnpm nx reset)
-    _link_worktree_nx_data "$worktree_dir" "$worktree_basename"
 
     echo ""
     echo "=== Atomic worktree ready ==="
@@ -227,11 +216,8 @@ ENVEOF
     echo "Run the following to enter the worktree:"
     echo "  cd $worktree_dir"
     echo ""
-    echo "Then run Nx targets with (auto-sources .env.local):"
-    echo "  ./kbve.sh -nx <project>:<target>"
-    echo ""
-    echo "Bare 'npx nx' works too — .nx/workspace-data is symlinked at the per-worktree"
-    echo "data dir so the CLI and its forked executors agree on one graph cache."
+    echo "Then run tasks with:"
+    echo "  moon run <project>:<task>"
     echo ""
     echo "When done, push and ci-atom.yml will auto-create a PR to dev:"
     echo "  git push -u origin $branch_name"
@@ -306,25 +292,13 @@ create_worktree() {
         cp "$main_repo/.env" "$worktree_dir/.env"
     fi
 
-    # Generate .env.local with Nx workspace root pointing to the worktree
-    # NX_WORKSPACE_DATA_DIRECTORY prevents cross-worktree daemon/cache crosstalk
-    echo "Generating .env.local for Nx..."
-    local worktree_basename
-    worktree_basename=$(basename "$worktree_dir")
-    cat > "$worktree_dir/.env.local" <<ENVEOF
-NX_WORKSPACE_ROOT=$worktree_dir
-NX_WORKSPACE_ROOT_PATH=$worktree_dir
-NX_WORKSPACE_DATA_DIRECTORY=.nx/workspace-data-${worktree_basename}
-NX_CACHE_DIRECTORY=.nx/cache
-NX_DAEMON=false
-ENVEOF
-
-    # Install dependencies and reset Nx cache
+    # No .env.local. moon finds the workspace root by walking up to .moon/, so a
+    # worktree needs no environment to tell it where it is -- which is all the
+    # five NX_* variables written here were ever for. Task outputs are shared
+    # across worktrees through the CAS (cache.unstable_sharedWorktreeCache in
+    # .moon/workspace.yml), so a new worktree does not start cold either.
     echo "Installing pnpm dependencies in worktree..."
     (cd "$worktree_dir" && pnpm install)
-    echo "Resetting Nx cache in worktree..."
-    (cd "$worktree_dir" && export NX_WORKSPACE_ROOT_PATH="$worktree_dir" && pnpm nx reset)
-    _link_worktree_nx_data "$worktree_dir" "$worktree_basename"
 
     echo ""
     echo "=== Worktree ready ==="
@@ -334,35 +308,8 @@ ENVEOF
     echo "Run the following to enter the worktree:"
     echo "  cd $worktree_dir"
     echo ""
-    echo "Then run Nx targets with (auto-sources .env.local):"
-    echo "  ./kbve.sh -nx <project>:<target>"
-    echo ""
-    echo "Bare 'npx nx' works too — .nx/workspace-data is symlinked at the per-worktree"
-    echo "data dir so the CLI and its forked executors agree on one graph cache."
-}
-
-# Point the default Nx data directory at the per-worktree one.
-#
-# .env.local sets NX_WORKSPACE_DATA_DIRECTORY to a worktree-suffixed path so worktrees do
-# not share a daemon or graph cache. Nx only loads .env.local for *task* processes, though,
-# not for the CLI parent — so a bare `npx nx run <target>` computes the graph into the
-# default .nx/workspace-data and then forks an executor that reads the suffixed one, which
-# fails with the thoroughly unhelpful:
-#
-#   [readCachedProjectGraph] ERROR: No cached ProjectGraph is available.
-#
-# Symlinking the default name at the suffixed directory makes both spellings resolve to the
-# same store, so the bare invocation works too. `./kbve.sh -nx` was always fine.
-_link_worktree_nx_data() {
-    local worktree_dir="$1"
-    local worktree_basename="$2"
-    local suffixed="$worktree_dir/.nx/workspace-data-${worktree_basename}"
-    local default="$worktree_dir/.nx/workspace-data"
-
-    mkdir -p "$suffixed"
-    # `nx reset` may have left a real directory behind; it is disposable cache either way.
-    [ -e "$default" ] && [ ! -L "$default" ] && rm -rf "$default"
-    ln -sfn "$suffixed" "$default"
+    echo "Then run tasks with:"
+    echo "  moon run <project>:<task>"
 }
 
 # Print the MAIN repo root, correctly even when called from inside a worktree.
@@ -1024,37 +971,11 @@ execmdx_function() {
 }
 
 
-# Source .env.local if present so NX_WORKSPACE_ROOT_PATH is set for worktrees.
-# Nx resolves the workspace root at module-load time (before dotenv),
-# so NX_WORKSPACE_ROOT_PATH must be a real shell env var.
-_load_env_local() {
-    if [ -f ".env.local" ]; then
-        set -a
-        . .env.local
-        set +a
-    fi
-}
-
-# Function to run pnpm nx with additional arguments under the cloud.
-run_pnpm_nxc() {
-    _load_env_local
-    echo "Running pnpm nx with arguments: $@"
-    pnpm nx run "$@"
-}
-
-# Function to run pnpm nx with additional arguments without the cloud.
-run_pnpm_nx() {
-    # Note: "$@" passes all arguments received by the function as-is
-    _load_env_local
-    echo "Running pnpm nx with arguments: $@"
-    pnpm nx run "$@" --no-cloud
-}
-
-# Function to build pnpm nx with an argument
-build_pnpm_nx() {
-    _load_env_local
-    local argument="$1"
-    pnpm nx build "$argument"
+# Run a moon task. Kept as a wrapper so the shell stays the one entry point the
+# docs point at, not because moon needs anything set up first -- it does not.
+run_moon() {
+    echo "moon run $*"
+    moon run "$@"
 }
 
 # Git LFS endpoint router.
@@ -1349,17 +1270,11 @@ case "$1" in
     -install)
         install_monorepo
         ;;
-    -studio)
-        manage_tmux_session "studio" "pnpm nx run api:studio"
-        ;;
-    -report)
-        manage_tmux_session "report" "pnpm nx report"
-        ;;
     -graph)
-        manage_tmux_session "graph" "pnpm nx graph"
+        manage_tmux_session "graph" "moon project-graph"
         ;;
     -reset)
-        manage_tmux_session "reset" "pnpm install --no-frozen-lockfile && pnpm nx reset"
+        manage_tmux_session "reset" "pnpm install --no-frozen-lockfile && moon clean"
         ;;
     -atomic)
         shift
@@ -1399,38 +1314,27 @@ case "$1" in
         [ -z "$2" ] || [ -z "$3" ] && { echo "Usage: $0 -execmdx [mdx_file_path] [command_to_run]"; exit 1; }
         execmdx_function "$2" "$3"
         ;;
-    -outpostgraph)
-        # Call create_markdown to create the report markdown file
-        create_markdown "report" "./apps/kbve.com/public/data/outpost/nx/report.mdx"
-
-        # Execute the command and append its output to the MDX file
-        execmdx_function "./apps/kbve.com/public/data/outpost/nx/report.mdx" "pnpm nx report"
-
-        # Add additional Timestamp in Unix
-        timestamp=$(date +%s)
-        execmdx_function "./apps/kbve.com/public/data/outpost/nx/report.mdx" "echo 'Report Timestamp: $timestamp'"
-
+    -moon)
+        shift
+        if [ $# -eq 0 ]; then
+            echo "No task specified. Usage: $0 -moon <project>:<task> [args...]"
+            exit 1
+        fi
+        run_moon "$@"
         ;;
     -nx)
-        shift  # This discards "-nx", shifting all other arguments left.
-        if [ $# -eq 0 ]; then  # Check if there are any arguments left.
-            echo "No command specified. Usage: $0 -nx [command] [args...]"
+        # Kept because the docs, the workflows and everyone's fingers say -nx.
+        shift
+        if [ $# -eq 0 ]; then
+            echo "No task specified. Usage: $0 -moon <project>:<task> [args...]"
             exit 1
         fi
-        run_pnpm_nx "$@"  # Pass all remaining arguments to the function.
+        echo "note: -nx is now -moon; running it under moon."
+        run_moon "$@"
         ;;
-    -nxc)
-        shift  # This discards "-nxc", shifting all other arguments left.
-        if [ $# -eq 0 ]; then  # Check if there are any arguments left.
-            echo "No command specified. Usage: $0 -nx [command] [args...]"
-            exit 1
-        fi
-        run_pnpm_nxc "$@"  # Pass all remaining arguments to the function.
-        ;;    
-
     -build)
-         [ -z "$2" ] && { echo "No argument specified. Usage: $0 -nx [argument]"; exit 1; }
-        build_pnpm_nx "$2"
+        [ -z "$2" ] && { echo "No project specified. Usage: $0 -build <project>"; exit 1; }
+        run_moon "$2:build"
         ;;
     -ue)
         # Build + deploy UE5 dedicated server
@@ -1562,13 +1466,10 @@ case "$1" in
         echo "  -installpy         Install Python + Poetry via Homebrew"
         echo ""
         echo "Development:"
-        echo "  -nx [cmd]          Run pnpm nx (no cloud)"
-        echo "  -nxc [cmd]         Run pnpm nx (with cloud)"
-        echo "  -build [project]   Build with pnpm nx"
-        echo "  -studio            Launch API studio (tmux)"
-        echo "  -graph             Launch Nx graph (tmux)"
-        echo "  -report            Run Nx report (tmux)"
-        echo "  -reset             Reinstall deps + reset Nx cache"
+        echo "  -moon <p>:<t>      Run a moon task"
+        echo "  -build [project]   Run a project's build task"
+        echo "  -graph             Launch the moon project graph (tmux)"
+        echo "  -reset             Reinstall deps + clean the moon cache"
         echo ""
         echo "Git:"
         echo "  -atomic [desc]     Create atomic worktree from dev"

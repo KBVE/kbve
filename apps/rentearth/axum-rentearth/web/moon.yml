@@ -1,0 +1,17 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+tags: ['vite']
+
+tasks:
+    dev:
+        script: 'vite'
+    build:
+        script: 'vite build'
+        outputs: ['dist']
+    typecheck:
+        script: 'tsc --noEmit'
+    preview:
+        script: 'vite preview'
+        deps: ['~:build']

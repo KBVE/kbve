@@ -1,0 +1,87 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'library'
+stack: 'systems'
+toolchains:
+    default: 'rust'
+
+# The mobile targets exist for kbve-react-native, which consumes this crate as
+# a native module rather than as a cargo dependency: the ios task hands it an
+# xcframework and the android one a jniLibs tree, both written straight into
+# modules/kbve-wgpu/. That is why they are uncached -- the output is a
+# directory in another project, and moon would restore a stale copy of it.
+#
+# Every path is workspace-relative and the tasks run from the root. They ran
+# from the crate directory under Nx, back when it lived in packages/rust/, and
+# reached out through ../../../.
+tasks:
+    build-ios:
+        script: >-
+            rustup target add aarch64-apple-ios aarch64-apple-ios-sim
+            && cargo build -p kbve_wgpu --release --target aarch64-apple-ios
+            && cargo build -p kbve_wgpu --release --target aarch64-apple-ios-sim
+            && rm -rf apps/kbve/kbve-react-native/modules/kbve-wgpu/ios/kbve_wgpu.xcframework
+            && mkdir -p apps/kbve/kbve-react-native/modules/kbve-wgpu/ios
+            && xcodebuild -create-xcframework
+            -library dist/target/aarch64-apple-ios/release/libkbve_wgpu.a
+            -library dist/target/aarch64-apple-ios-sim/release/libkbve_wgpu.a
+            -output apps/kbve/kbve-react-native/modules/kbve-wgpu/ios/kbve_wgpu.xcframework
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    build-android:
+        script: >-
+            rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
+            && (cargo ndk --version > /dev/null 2>&1 || cargo install cargo-ndk --locked)
+            && cargo ndk -t arm64-v8a -t armeabi-v7a -t x86 -t x86_64
+            -o apps/kbve/kbve-react-native/modules/kbve-wgpu/android/src/main/jniLibs
+            build -p kbve_wgpu --release
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    # Same two, built with the bevy feature. The React Native module picks one
+    # flavour or the other; building both would have the second overwrite the
+    # first in place.
+    build-ios-bevy:
+        script: >-
+            rustup target add aarch64-apple-ios aarch64-apple-ios-sim
+            && cargo rustc -p kbve_wgpu --release --features bevy --target aarch64-apple-ios --crate-type staticlib
+            && cargo rustc -p kbve_wgpu --release --features bevy --target aarch64-apple-ios-sim --crate-type staticlib
+            && rm -rf apps/kbve/kbve-react-native/modules/kbve-wgpu/ios/kbve_wgpu.xcframework
+            && mkdir -p apps/kbve/kbve-react-native/modules/kbve-wgpu/ios
+            && xcodebuild -create-xcframework
+            -library dist/target/aarch64-apple-ios/release/libkbve_wgpu.a
+            -library dist/target/aarch64-apple-ios-sim/release/libkbve_wgpu.a
+            -output apps/kbve/kbve-react-native/modules/kbve-wgpu/ios/kbve_wgpu.xcframework
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    build-android-bevy:
+        script: >-
+            rustup target add aarch64-linux-android armv7-linux-androideabi i686-linux-android x86_64-linux-android
+            && (cargo ndk --version > /dev/null 2>&1 || cargo install cargo-ndk --locked)
+            && cargo ndk -t arm64-v8a -t armeabi-v7a -t x86 -t x86_64
+            -o apps/kbve/kbve-react-native/modules/kbve-wgpu/android/src/main/jniLibs
+            build -p kbve_wgpu --release --features bevy
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    build-mobile:
+        deps: ['~:build-ios', '~:build-android']
+        options:
+            cache: false
+
+    verify:
+        deps: ['~:format', '~:lint', '~:test']
+        options:
+            cache: false
+
+    # Both mobile flavours after the checks pass, which is what CI ran.
+    build-all:
+        deps: ['~:verify', '~:build-ios', '~:build-android']
+        options:
+            cache: false

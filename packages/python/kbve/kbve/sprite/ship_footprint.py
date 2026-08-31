@@ -22,6 +22,7 @@ Writes TWO generated files (one bake, two languages — never hand-edit):
 
 Regen (from anywhere in the repo): uv run kbve-ship-footprint
 """
+
 import math
 import os
 
@@ -38,12 +39,12 @@ F = None
 
 # Must match env.ts SHIP_ENV + iso.ts + entityView.ts.
 TILE_W, TILE_H = 64, 32
-DISPLAY = 384      # SHIP_ENV.displayWidth/Height
-ORIGIN_Y = 0.52    # SHIP_ENV.originY
-Y_NUDGE = 8        # entityView sprite y+8
-ALPHA_T = 40       # opaque threshold
-RANGE = 7          # tile search radius around base (footprint)
-PIX_STEP = 4       # pixel sampling stride for the OBB cloud
+DISPLAY = 384  # SHIP_ENV.displayWidth/Height
+ORIGIN_Y = 0.52  # SHIP_ENV.originY
+Y_NUDGE = 8  # entityView sprite y+8
+ALPHA_T = 40  # opaque threshold
+RANGE = 7  # tile search radius around base (footprint)
+PIX_STEP = 4  # pixel sampling stride for the OBB cloud
 
 GEN_BY = "kbve-ship-footprint (packages/python/kbve/kbve/sprite/ship_footprint.py)"
 
@@ -88,12 +89,7 @@ def bake_footprints():
 
     facings = []
     for f in range(16):
-        tiles = [
-            (dx, dy)
-            for dy in range(-RANGE, RANGE + 1)
-            for dx in range(-RANGE, RANGE + 1)
-            if covered(f, dx, dy)
-        ]
+        tiles = [(dx, dy) for dy in range(-RANGE, RANGE + 1) for dx in range(-RANGE, RANGE + 1) if covered(f, dx, dy)]
         if not tiles:
             tiles = [(0, 0)]
         facings.append(tiles)
@@ -191,8 +187,7 @@ def _fmt(v):
 
 def write_ts(footprints, colliders, hulls):
     fp = "\n".join(
-        "\t[" + ", ".join(f"[{dx}, {dy}]" for dx, dy in t) + f"], // facing {f}"
-        for f, t in enumerate(footprints)
+        "\t[" + ", ".join(f"[{dx}, {dy}]" for dx, dy in t) + f"], // facing {f}" for f, t in enumerate(footprints)
     )
     co = "\n".join(
         "\t{ cx: %s, cy: %s, angle: %s, hx: %s, hy: %s }, // facing %d"
@@ -236,26 +231,19 @@ def write_ts(footprints, colliders, hulls):
 
 def _hulls_ts(hulls):
     return "\n".join(
-        "\t["
-        + ", ".join(f"[{_fmt(x)}, {_fmt(y)}]" for x, y in h)
-        + f"], // facing {f}"
-        for f, h in enumerate(hulls)
+        "\t[" + ", ".join(f"[{_fmt(x)}, {_fmt(y)}]" for x, y in h) + f"], // facing {f}" for f, h in enumerate(hulls)
     )
 
 
 def _hulls_rs(hulls):
     return "\n".join(
-        "    &["
-        + ", ".join(f"({_fmt(x)}, {_fmt(y)})" for x, y in h)
-        + f"], // facing {f}"
-        for f, h in enumerate(hulls)
+        "    &[" + ", ".join(f"({_fmt(x)}, {_fmt(y)})" for x, y in h) + f"], // facing {f}" for f, h in enumerate(hulls)
     )
 
 
 def write_rs(footprints, colliders, hulls):
     fp = "\n".join(
-        "    &[" + ", ".join(f"({dx}, {dy})" for dx, dy in t) + f"], // facing {f}"
-        for f, t in enumerate(footprints)
+        "    &[" + ", ".join(f"({dx}, {dy})" for dx, dy in t) + f"], // facing {f}" for f, t in enumerate(footprints)
     )
     co = "\n".join(
         "    ShipObb { cx: %s, cy: %s, angle: %s, hx: %s, hy: %s }, // facing %d"

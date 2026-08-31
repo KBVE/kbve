@@ -41,7 +41,7 @@ thiserror = { workspace = true }
 # games (isometric, etc.) can import the same plugin + SupaClient shape
 # without re-rolling the reqwest wrapper. mc_auth is JNI, not Bevy, so we
 # opt out of the `bevy` feature and take only the native HTTP transport.
-bevy_supa = { path = "../../../packages/rust/bevy/bevy_supa", default-features = false, features = [
+bevy_supa = { path = "../../../crates/bevy_supa", default-features = false, features = [
     "native",
 ] }
 

@@ -1,0 +1,52 @@
+[package]
+name = "uniti"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "C FFI bridge from KBVE game logic crates to Unity via csbindgen"
+homepage = "https://kbve.com/"
+repository.workspace = true
+keywords = ["ffi", "unity", "gamedev", "csbindgen"]
+categories = ["game-development", "api-bindings"]
+readme = "README.md"
+
+[lib]
+# cdylib + staticlib for Unity (desktop DllImport + iOS static link).
+# rlib so integration tests under tests/ can link the crate directly.
+crate-type = ["cdylib", "staticlib", "rlib"]
+
+[dependencies]
+kbve-proto = { path = "../kbve-proto" }
+serde = { workspace = true, features = ["derive"] }
+# bundled = compile SQLite C source in — zero system-lib deps at runtime,
+# works cross-platform inside the Unity cdylib without needing the host to
+# ship libsqlite3.
+rusqlite = { version = "0.31", features = ["bundled"] }
+# Save-archive compression. Bundled pure-Rust backend keeps the cdylib
+# cross-platform clean.
+zstd = { version = "0.13", default-features = false }
+# Pure data crates — default-features = false strips their optional bevy dep,
+# keeping the compile mobile-friendly (no bevy_app / android-activity pull).
+bevy_pathfinder = { version = "0.1", path = "../bevy_pathfinder", default-features = false }
+bevy_inventory = { version = "0.1", path = "../bevy_inventory", default-features = false }
+bevy_battle = { version = "0.1", path = "../bevy_battle", default-features = false }
+bevy_skills = { version = "0.1", path = "../bevy_skills", default-features = false }
+# Empire snapshot proto codec.
+prost = { workspace = true }
+# Async runtime for the empire strategic ticker + future MP transports.
+# Feature-set is intentionally minimal: rt + time only, no multi-thread
+# scheduler, no macros, no IO. Excluded from wasm32 in lib code via cfg
+# so WebGL builds skip the runtime entirely while the sync FFI surface
+# (publish/take/tick) keeps working.
+tokio = { workspace = true, features = ["rt", "rt-multi-thread", "time", "sync"] }
+
+[dev-dependencies]
+tempfile = { workspace = true }
+criterion = { workspace = true, features = ["plotters", "cargo_bench_support"] }
+proptest = "1"
+
+[[bench]]
+name = "ffi_world_bench"
+harness = false

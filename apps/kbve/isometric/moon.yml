@@ -1,0 +1,58 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+stack: 'frontend'
+tags: ['tauri', 'eslint']
+
+env:
+    TAURI_DEV_PORT: '1420'
+
+tasks:
+    # The wasm bundle has to exist before the dev server starts, unlike the other
+    # three apps.
+    dev:
+        script: 'lsof -ti:$TAURI_DEV_PORT | xargs kill 2>/dev/null; pnpm build:wasm && pnpm dev'
+
+    # Not the preset's `tsc && vite build`: this one compiles the wasm crate
+    # first and copies shaders, textures and worker shims into dist afterwards.
+    build:
+        script: 'pnpm build:wasm && npx tsc && vite build && mkdir -p dist/assets/shaders dist/assets/textures && cp -r public/assets/shaders/*.wgsl dist/assets/shaders/ && cp -r public/assets/textures/* dist/assets/textures/ && cp public/wasm-worker.js dist/wasm-worker.js && cp public/safari-shim.js dist/safari-shim.js && cp -r wasm-pkg/snippets dist/assets/snippets'
+
+    serve-dist:
+        command: 'node scripts/serve-coi.mjs'
+        toolchains: ['node']
+        preset: 'server'
+
+    quick:
+        script: 'bash $workspaceRoot/scripts/deploy_isometric_quick.sh'
+        options:
+            cache: false
+
+    # Copies the built bundle into astro-kbve's public/ and stages it. Writes
+    # into another project, so it is not part of any build.
+    deploy:
+        deps: ['~:build']
+        script: 'rm -rf ../astro-kbve/public/isometric && mkdir -p ../astro-kbve/public && cp -r dist ../astro-kbve/public/isometric'
+        options:
+            cache: false
+
+    run:
+        command: 'cargo run -p isometric-game'
+        options:
+            runFromWorkspaceRoot: true
+
+    # The dev loop for the WASM client: free the port, make sure the local TLS
+    # certificate has a day left on it, rebuild the wasm, then serve. Uncached
+    # and long-running by nature.
+    wasm:
+        script: >-
+            lsof -ti:1420 | xargs kill 2>/dev/null || true
+            ; mkdir -p certificates
+            && (openssl x509 -checkend 86400 -noout -in certificates/cert.pem 2>/dev/null
+                || mkcert -cert-file certificates/cert.pem -key-file certificates/key.pem localhost 127.0.0.1)
+            && export PATH="$HOME/.cargo/bin:$PATH" && pnpm build:wasm
+            && GAME_API_TARGET=https://kbve.com pnpm dev
+        options:
+            cache: false
+            persistent: true

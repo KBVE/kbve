@@ -33,9 +33,7 @@ class HttpServer:
             log_level=self.log_level,
         )
         self._server = uvicorn.Server(config)
-        logger.info(
-            "HTTP server starting on %s:%s", self.host, self.port
-        )
+        logger.info("HTTP server starting on %s:%s", self.host, self.port)
         await self._server.serve()
 
     async def stop(self) -> None:

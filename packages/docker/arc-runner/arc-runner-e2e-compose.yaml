@@ -11,7 +11,7 @@
 #   docker compose -f packages/docker/arc-runner/arc-runner-e2e-compose.yaml down -v
 #
 # Or via nx:
-#   ./kbve.sh -nx arc-runner-e2e:e2e
+#   moon run arc-runner-e2e:e2e
 # ============================================================================
 
 services:

@@ -26,4 +26,5 @@ class KRDecorator:
 
             self.app.add_api_route(path, wrapper, methods=["GET"])
             return wrapper
+
         return decorator

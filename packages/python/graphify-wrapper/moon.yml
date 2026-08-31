@@ -1,0 +1,35 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+language: 'python'
+tags: ['uv']
+layer: 'application'
+
+tasks:
+    # The semantic directory graph the site's /graph/ hub renders.
+    build-monorepo:
+        command: 'uv run kbve-graph-build --scope monorepo --output $workspaceRoot/packages/data/graphify/output/monorepo'
+        outputs: ['/packages/data/graphify/output/monorepo']
+
+    # Scoped to one app. The app name is a passthrough argument:
+    #   moon run graphify-wrapper:build-app -- --name astro-kbve
+    build-app:
+        command: 'uv run kbve-graph-build --scope app'
+        options:
+            cache: false
+
+    build-tiered:
+        command: 'bash $workspaceRoot/packages/data/graphify/scripts/build-tiered-graph.sh'
+        options:
+            cache: false
+
+    # Query the built graph:
+    #   moon run graphify-wrapper:query -- --query '<expression>'
+    query:
+        command: 'uv run kbve-graph-query --graph $workspaceRoot/packages/data/graphify/output/monorepo/graph.json'
+        options:
+            cache: false
+
+    export-web:
+        command: 'uv run kbve-graph-export --input $workspaceRoot/packages/data/graphify/output/monorepo/graph.json --output $workspaceRoot/apps/kbve/astro-kbve/public/graphify/monorepo.json'
+        deps: ['~:build-monorepo']
+        outputs: ['/apps/kbve/astro-kbve/public/graphify/monorepo.json']

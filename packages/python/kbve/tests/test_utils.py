@@ -12,6 +12,7 @@ from kbve.utils.module_info import (
 
 # ── load_json ────────────────────────────────────────────────────────
 
+
 def test_load_json(tmp_path):
     path = tmp_path / "data.json"
     path.write_text('{"key": "value"}')
@@ -28,6 +29,7 @@ def test_load_json_string_path(tmp_path):
 
 def test_load_json_file_not_found():
     import pytest
+
     with pytest.raises(FileNotFoundError):
         load_json("/nonexistent/file.json")
 
@@ -36,11 +38,13 @@ def test_load_json_malformed(tmp_path):
     path = tmp_path / "bad.json"
     path.write_text("{invalid json")
     import pytest
+
     with pytest.raises(json.JSONDecodeError):
         load_json(path)
 
 
 # ── write_json ───────────────────────────────────────────────────────
+
 
 def test_write_json(tmp_path):
     path = tmp_path / "out.json"
@@ -71,6 +75,7 @@ def test_write_json_list(tmp_path):
 
 
 # ── merge_dicts ──────────────────────────────────────────────────────
+
 
 def test_merge_dicts_flat():
     result = merge_dicts({"a": 1}, {"b": 2})
@@ -124,6 +129,7 @@ def test_merge_dicts_non_dict_override():
 
 
 # ── module_info ──────────────────────────────────────────────────────
+
 
 def test_list_modules():
     modules = list_modules()

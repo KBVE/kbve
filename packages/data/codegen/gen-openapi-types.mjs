@@ -29,7 +29,7 @@ const outTypes = resolve(outDir, 'openapi-types.ts');
 
 if (!existsSync(specPath)) {
 	console.error(
-		`✗ Missing ${specPath}\n  Run \`npx nx run axum-kbve:emit-openapi\` first.`,
+		`✗ Missing ${specPath}\n  Run \`moon run axum-kbve:emit-openapi\` first.`,
 	);
 	process.exit(1);
 }
@@ -49,7 +49,7 @@ const banner = [
 	' *   npx tsx packages/data/codegen/gen-openapi-types.mjs',
 	' *',
 	' * Source: packages/data/openapi/openapi.json (emit via',
-	' *   `npx nx run axum-kbve:emit-openapi`)',
+	' *   `moon run axum-kbve:emit-openapi`)',
 	' */',
 ].join('\n');
 

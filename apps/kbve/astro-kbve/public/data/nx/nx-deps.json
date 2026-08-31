@@ -1,5 +1,5 @@
 {
-	"generated_at": "2026-08-30T06:19:39Z",
+	"generated_at": "2026-08-31T06:45:33Z",
 	"node": {
 		"count": 141,
 		"major": 22,
@@ -912,7 +912,7 @@
 				"name": "react-hook-form",
 				"current": "7.55.0",
 				"wanted": "7.55.0",
-				"latest": "7.86.0",
+				"latest": "7.87.0",
 				"type": "dependencies",
 				"major": false
 			},
@@ -968,7 +968,7 @@
 				"name": "react-native-webgpu",
 				"current": "0.8.1",
 				"wanted": "0.8.1",
-				"latest": "0.8.4",
+				"latest": "0.8.5",
 				"type": "dependencies",
 				"major": false
 			},
@@ -1104,7 +1104,7 @@
 				"name": "webpack",
 				"current": "5.107.2",
 				"wanted": "5.107.2",
-				"latest": "5.110.1",
+				"latest": "5.110.2",
 				"type": "devDependencies",
 				"major": false
 			},
@@ -2389,13 +2389,13 @@
 			{
 				"name": "proc-macro-error-attr3",
 				"current": "3.0.2",
-				"latest": "3.1.0",
+				"latest": "3.1.1",
 				"major": false
 			},
 			{
 				"name": "proc-macro-error3",
 				"current": "3.0.2",
-				"latest": "3.1.0",
+				"latest": "3.1.1",
 				"major": false
 			},
 			{

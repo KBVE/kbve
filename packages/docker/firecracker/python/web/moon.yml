@@ -1,0 +1,33 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'library'
+language: 'typescript'
+tags: ['docker']
+
+tasks:
+    container:
+        script: "VERSION=$(grep -m1 'version' packages/docker/firecracker/python/web/version.toml | sed 's/.*\"\\(.*\\)\\\"/\\1/') && docker tag ghcr.io/kbve/firecracker-python-web:latest ghcr.io/kbve/firecracker-python-web:${VERSION} && echo \"Tagged ghcr.io/kbve/firecracker-python-web:${VERSION}\""
+        deps: ['~:containerx']
+        options:
+            runFromWorkspaceRoot: true
+    containerx:
+        script: 'docker buildx build --load --platform linux/amd64 -f packages/docker/firecracker/python/web/Dockerfile -t ghcr.io/kbve/firecracker-python-web:latest packages/docker/firecracker/python/web'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    containerx-publish:
+        script: 'docker buildx build --load --platform linux/amd64 --provenance=false --sbom=false -f packages/docker/firecracker/python/web/Dockerfile -t ghcr.io/kbve/firecracker-python-web:latest packages/docker/firecracker/python/web'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true
+    extract:
+        script: "mkdir -p packages/docker/firecracker/python/web/dist && docker create --name fc-python-web-extract ghcr.io/kbve/firecracker-python-web:latest true > /dev/null 2>&1 || true && docker cp fc-python-web-extract:/rootfs.ext4 packages/docker/firecracker/python/web/dist/python-web.ext4 && docker rm fc-python-web-extract > /dev/null 2>&1 || true && echo 'Extracted: packages/docker/firecracker/python/web/dist/python-web.ext4'"
+        deps: ['~:container']
+        options:
+            runFromWorkspaceRoot: true
+    test:
+        script: "echo '=== firecracker-python-web rootfs tests ===' && docker create --name fc-python-web-test ghcr.io/kbve/firecracker-python-web:latest true > /dev/null 2>&1 && docker export fc-python-web-test | tar -t | grep -q '^rootfs.ext4$' && echo 'PASS: rootfs.ext4 present' && docker rm fc-python-web-test > /dev/null 2>&1 && echo '=== All firecracker-python-web tests passed ==='"
+        deps: ['~:container']
+        options:
+            runFromWorkspaceRoot: true

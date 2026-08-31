@@ -1,0 +1,17 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'library'
+language: 'typescript'
+tags: ['eslint']
+
+tasks:
+    typecheck:
+        script: 'tsc --noEmit -p packages/npm/core/tsconfig.lib.json'
+        options:
+            runFromWorkspaceRoot: true
+    sync-api:
+        script: 'openapi-typescript packages/data/openapi/openapi.json -o packages/npm/core/src/api/schema.ts'
+        deps: ['axum-kbve:emit-openapi']
+        outputs: ['src/api/schema.ts']
+        options:
+            runFromWorkspaceRoot: true

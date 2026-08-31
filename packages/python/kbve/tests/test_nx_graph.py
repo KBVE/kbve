@@ -30,8 +30,7 @@ SAMPLE_GRAPH = {
             ],
             "lib-utils": [],
             "app-web-e2e": [
-                {"source": "app-web-e2e", "target": "app-web",
-                 "type": "implicit"},
+                {"source": "app-web-e2e", "target": "app-web", "type": "implicit"},
             ],
         },
     }
@@ -39,6 +38,7 @@ SAMPLE_GRAPH = {
 
 
 # ── mermaid_id ───────────────────────────────────────────────────────
+
 
 def test_mermaid_id():
     assert mermaid_id("app-web") == "app_web"
@@ -55,6 +55,7 @@ def test_mermaid_id_all_special():
 
 
 # ── group_projects_by_type ───────────────────────────────────────────
+
 
 def test_group_projects_by_type():
     nodes = SAMPLE_GRAPH["graph"]["nodes"]
@@ -77,6 +78,7 @@ def test_group_projects_by_type_missing_type():
 
 
 # ── collect_edges ────────────────────────────────────────────────────
+
 
 def test_collect_edges():
     deps = SAMPLE_GRAPH["graph"]["dependencies"]
@@ -115,6 +117,7 @@ def test_collect_edges_deduplicates():
 
 # ── parse_graph ──────────────────────────────────────────────────────
 
+
 def test_parse_graph_from_dict():
     gd = parse_graph(SAMPLE_GRAPH)
     assert isinstance(gd, GraphData)
@@ -145,6 +148,7 @@ def test_parse_graph_from_path_object(tmp_path):
 
 
 # ── parse_graph rows ────────────────────────────────────────────────
+
 
 def test_parse_graph_rows():
     gd = parse_graph(SAMPLE_GRAPH)
@@ -178,6 +182,7 @@ def test_parse_graph_rows_missing_data_fields():
 
 
 # ── top_hubs ─────────────────────────────────────────────────────────
+
 
 def test_top_hubs():
     gd = parse_graph(SAMPLE_GRAPH)

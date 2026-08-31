@@ -1,0 +1,91 @@
+syntax = "proto3";
+
+package kbve.market.v1;
+
+import "google/protobuf/timestamp.proto";
+
+// When a market is open, and whether it is currently trading at all.
+//
+// The Grand Exchange and a crypto exchange never close, and an equity market
+// is shut more hours of the week than it is open. A staleness rule written for
+// one is wrong for the other.
+
+// Which part of the trading day a session covers.
+enum SessionKind {
+  SESSION_KIND_UNSPECIFIED = 0;
+  // Before the opening auction. Thin, wide, and not where a fill should be
+  // assumed.
+  SESSION_KIND_PRE_MARKET = 1;
+  // The main continuous session.
+  SESSION_KIND_REGULAR = 2;
+  SESSION_KIND_POST_MARKET = 3;
+  // The market exists and is not trading.
+  SESSION_KIND_CLOSED = 4;
+  // Continuous, with no close. Crypto venues and game economies.
+  SESSION_KIND_CONTINUOUS = 5;
+}
+
+// Whether an individual asset can be traded right now, independent of whether
+// the venue is open.
+//
+// A halt is not a closed market: the venue is trading everything else. Quoting
+// a halted symbol as though it were live is how a stale last price gets
+// presented as an opportunity, and the reason for the halt is usually the
+// reason the price is about to be wrong.
+enum TradingStatus {
+  TRADING_STATUS_UNSPECIFIED = 0;
+  TRADING_STATUS_TRADING = 1;
+  // Halted by the venue: news pending, volatility, or a regulatory stop.
+  TRADING_STATUS_HALTED = 2;
+  // In an opening or closing auction; orders accepted, none crossing yet.
+  TRADING_STATUS_AUCTION = 3;
+  // Suspended for longer than a halt, usually pending an announcement.
+  TRADING_STATUS_SUSPENDED = 4;
+  // No longer listed here.
+  TRADING_STATUS_DELISTED = 5;
+}
+
+// One span of one kind, in absolute time.
+//
+// Absolute rather than local-time-plus-a-rule: a daylight-saving change moves
+// the open by an hour, and a market that follows a different DST calendar than
+// the viewer moves it on a different date. Resolving that once, on the way in,
+// beats every consumer resolving it again and a few of them getting it wrong.
+message MarketSession {
+  string venue = 1;
+  SessionKind kind = 2;
+  google.protobuf.Timestamp opens_at = 3;
+  google.protobuf.Timestamp closes_at = 4;
+}
+
+// A day the venue does not trade, or trades short.
+message MarketHoliday {
+  // The calendar date, at the venue's own midnight.
+  google.protobuf.Timestamp date = 1;
+  string name = 2;
+  // A half day rather than a full closure: the close moves, the open does not.
+  optional bool early_close = 3;
+  optional google.protobuf.Timestamp closes_at = 4;
+}
+
+// What a venue's trading week looks like, and the exceptions to it.
+message TradingCalendar {
+  string venue = 1;
+  // IANA zone, e.g. "America/New_York". The zone the venue's own clock keeps,
+  // which is what its holiday and half-day rules are written against.
+  string timezone = 2;
+
+  // Sessions for the period this calendar was generated to cover, expanded
+  // rather than expressed as a recurrence rule.
+  repeated MarketSession sessions = 3;
+  repeated MarketHoliday holidays = 4;
+
+  // A venue that never closes has no sessions worth expanding. Set this and
+  // leave the list empty rather than generating a continuous span per day.
+  optional bool continuous = 5;
+
+  google.protobuf.Timestamp generated_at = 6;
+  // The last moment this calendar describes. A consumer past this date has an
+  // incomplete calendar, not an empty one, and the two must not look alike.
+  optional google.protobuf.Timestamp covers_through = 7;
+}

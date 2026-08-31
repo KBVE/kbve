@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package kbve.common.v1;
+
+// A reaction left on a piece of content.
+//
+// The forum offered a general palette and the meme feed a narrower one in its
+// own idiom; both are the same idea, and a shared list lets moderation and
+// analytics read across products. As with rarity, a product emits the subset
+// it offers rather than the whole list.
+//
+// CUSTOM carries a slug alongside it, for reactions a space defines itself.
+enum ReactionKind {
+  REACTION_KIND_UNSPECIFIED = 0;
+  REACTION_KIND_THUMBS_UP = 1;
+  REACTION_KIND_THUMBS_DOWN = 2;
+  REACTION_KIND_HEART = 3;
+  REACTION_KIND_FIRE = 4;
+  REACTION_KIND_LAUGH = 5;
+  REACTION_KIND_SURPRISED = 6;
+  REACTION_KIND_SAD = 7;
+  REACTION_KIND_ANGRY = 8;
+  REACTION_KIND_CLAP = 9;
+  REACTION_KIND_EYES = 10;
+  REACTION_KIND_ROCKET = 11;
+  REACTION_KIND_BRAIN = 12;
+  REACTION_KIND_SKULL = 13;
+  // Laughing until crying, distinct from plain laughter.
+  REACTION_KIND_CRY = 14;
+  // Disbelief.
+  REACTION_KIND_CAP = 15;
+  REACTION_KIND_CUSTOM = 99;
+}

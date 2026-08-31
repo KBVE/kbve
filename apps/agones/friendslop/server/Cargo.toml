@@ -12,7 +12,7 @@ name = "friendslop-server"
 path = "src/main.rs"
 
 [dependencies]
-q = { path = "../../../../packages/rust/q", default-features = false, features = ["net-dedicated"] }
+q = { path = "../../../../crates/q", default-features = false, features = ["net-dedicated"] }
 axum = { workspace = true, features = ["ws", "json", "http1", "tokio"] }
 tokio = { workspace = true, features = ["default", "rt-multi-thread", "macros", "signal", "sync", "time", "net"] }
 tracing = { workspace = true }
@@ -20,7 +20,7 @@ tracing-subscriber = { workspace = true, features = ["default", "env-filter", "f
 agones = { workspace = true }
 serde_json = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
-jedi = { path = "../../../../packages/rust/jedi" }
+jedi = { path = "../../../../crates/jedi" }
 
 [dev-dependencies]
 # Mints tokens for the issuer tests. HS256 verifies against a shared secret, so

@@ -1,0 +1,10 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'library'
+language: 'typescript'
+
+tasks:
+    sync:
+        deps: ['godot-friendslop:i18n-sync']
+        options:
+            cache: false

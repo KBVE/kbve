@@ -41,7 +41,7 @@ jobs:
             - name: Setup Python
               uses: actions/setup-python@v7
               with:
-                  python-version: '3.12'
+                  python-version: '3.14'
 
             - name: Install uv
               uses: Wandalen/wretry.action@v3.8.0
@@ -73,7 +73,7 @@ jobs:
         needs: router
         if: needs.router.outputs.has_work == 'true'
         runs-on: ubuntu-latest
-        # report runs `nx run-many -t coverage` across several projects — slow.
+        # report runs coverage across several projects — slow.
         timeout-minutes: 120
         strategy:
             fail-fast: false
@@ -87,7 +87,7 @@ jobs:
             - name: Setup Python
               uses: actions/setup-python@v7
               with:
-                  python-version: '3.12'
+                  python-version: '3.14'
 
             - name: Install uv
               uses: Wandalen/wretry.action@v3.8.0

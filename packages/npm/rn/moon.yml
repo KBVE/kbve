@@ -1,0 +1,11 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'library'
+language: 'typescript'
+tags: ['vitest', 'eslint']
+
+tasks:
+    typecheck:
+        script: 'tsc --noEmit -p packages/npm/rn/tsconfig.lib.json'
+        options:
+            runFromWorkspaceRoot: true

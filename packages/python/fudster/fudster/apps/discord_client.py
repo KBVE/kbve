@@ -21,8 +21,7 @@ class DiscordClient:
         passkey = passkey or os.getenv("DISCORD_PASSKEY")
         if not passkey:
             raise ValueError(
-                "Passkey not provided. Set it as an argument "
-                "or in the DISCORD_PASSKEY environment variable."
+                "Passkey not provided. Set it as an argument or in the DISCORD_PASSKEY environment variable."
             )
 
         if not re.match(r"^[A-Za-z0-9_\-\.]+$", passkey):

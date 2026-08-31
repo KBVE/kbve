@@ -57,10 +57,8 @@ def test_aggregate_rates_and_flaky():
     runs = [
         _run("CI", "success", "2026-07-19T10:00:00Z", "2026-07-19T10:05:00Z"),
         _run("CI", "failure", "2026-07-19T09:00:00Z", "2026-07-19T09:04:00Z"),
-        _run("CI", "success", "2026-07-18T09:00:00Z", "2026-07-18T09:02:00Z",
-             attempt=2),
-        _run("Deploy", "cancelled", "2026-07-15T09:00:00Z",
-             "2026-07-15T09:01:00Z"),
+        _run("CI", "success", "2026-07-18T09:00:00Z", "2026-07-18T09:02:00Z", attempt=2),
+        _run("Deploy", "cancelled", "2026-07-15T09:00:00Z", "2026-07-15T09:01:00Z"),
     ]
     agg = aggregate(runs, "2026-07-12", "2026-07-19T12:00:00Z", days=7)
     assert agg["totals"]["runs"] == 4

@@ -1,0 +1,18 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+stack: 'frontend'
+tags: ['tauri', 'eslint']
+
+env:
+    TAURI_DEV_PORT: '1422'
+
+tasks:
+    # pnpm tauri rather than cargo tauri: this app drives the CLI through its own
+    # devDependency instead of a globally installed cargo-tauri.
+    dev:
+        script: 'lsof -ti:$TAURI_DEV_PORT | xargs kill 2>/dev/null; pnpm tauri dev'
+
+    build-tauri:
+        command: 'pnpm tauri build'

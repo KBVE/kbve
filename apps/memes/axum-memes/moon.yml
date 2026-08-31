@@ -1,0 +1,32 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'rust'
+tags: ['rust', 'docker']
+
+tasks:
+    dev:
+        script: 'STATIC_DIR=./dist/apps/astro-memes STATIC_PRECOMPRESSED=false cargo run -p axum-memes'
+        deps: ['astro-memes:build']
+        options:
+            runFromWorkspaceRoot: true
+    e2e:
+        deps: ['~:test', 'memes-e2e:e2e']
+        options:
+            cache: false
+    container-prep:
+        script: 'rm -rf ./apps/memes/axum-memes/dist/ && mkdir -p ./apps/memes/axum-memes/dist/ && cp -a ./dist/apps/astro-memes/. ./apps/memes/axum-memes/dist/'
+        deps: ['astro-memes:build']
+        options:
+            runFromWorkspaceRoot: true
+    containerx:
+        script: 'docker buildx build --load -f apps/memes/axum-memes/Dockerfile -t kbve/memes:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    containerx-publish:
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/memes:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/memes:buildcache,mode=max -f apps/memes/axum-memes/Dockerfile -t ghcr.io/kbve/memes:latest -t kbve/memes:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true

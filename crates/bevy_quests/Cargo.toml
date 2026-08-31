@@ -1,0 +1,26 @@
+[package]
+name = "bevy_quests"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Proto-driven quest definitions for Bevy games — compiles questdb.proto into typed Rust structs with a searchable registry."
+homepage = "https://kbve.com/"
+repository.workspace = true
+keywords = ["bevy", "quests", "gamedev", "protobuf", "plugin"]
+categories = ["game-development", "game-engines"]
+readme = "README.md"
+
+[dependencies]
+bevy = { workspace = true, features = ["bevy_state"] }
+prost = { workspace = true, features = ["derive"] }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+[build-dependencies]
+prost-build = { workspace = true }
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"]

@@ -1,0 +1,28 @@
+syntax = "proto3";
+
+package kbve.type.v1;
+
+// Canonical identifier types.
+//
+// Identifiers are carried as fixed-width bytes rather than their textual
+// form: a ULID is 16 bytes on the wire instead of 26, and a UUID is 16
+// instead of 36. Generated accessors are responsible for presenting the
+// textual encoding at the edges (logs, JSON, URLs).
+//
+// Each identifier is a distinct message rather than a bare `bytes` field so
+// that the type system rejects passing one kind of id where another is
+// expected.
+
+// ULID - 128-bit lexicographically sortable identifier.
+// Textual form is 26 characters of Crockford Base32: [0-9A-HJKMNP-TV-Z]{26}
+message Ulid {
+  // Exactly 16 bytes: 48-bit timestamp followed by 80 bits of randomness.
+  bytes value = 1;
+}
+
+// UUID - 128-bit identifier as defined by RFC 4122.
+// Textual form is 36 characters including dashes.
+message Uuid {
+  // Exactly 16 bytes, big-endian.
+  bytes value = 1;
+}

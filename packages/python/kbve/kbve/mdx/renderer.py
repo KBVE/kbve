@@ -73,9 +73,7 @@ class MdxWriter:
         lbrace = "{"
         rbrace = "}"
         semi = ";"
-        self._buf.write(
-            f"import {lbrace} {names} {rbrace} from '{source}'{semi}\n\n"
-        )
+        self._buf.write(f"import {lbrace} {names} {rbrace} from '{source}'{semi}\n\n")
         return self
 
     # ── Headings & text ──────────────────────────────────────────
@@ -97,13 +95,14 @@ class MdxWriter:
     # ── Admonitions ──────────────────────────────────────────────
 
     def admonition(
-        self, kind: str, title: str, body: str,
+        self,
+        kind: str,
+        title: str,
+        body: str,
     ) -> "MdxWriter":
         """Write a Starlight admonition (note, tip, caution, danger)."""
         prefix = ":" * 3
-        self._buf.write(
-            f"{prefix}{kind}[{title}]\n{body}\n{prefix}\n\n"
-        )
+        self._buf.write(f"{prefix}{kind}[{title}]\n{body}\n{prefix}\n\n")
         return self
 
     # ── Cards ────────────────────────────────────────────────────
@@ -117,7 +116,10 @@ class MdxWriter:
         return self
 
     def card(
-        self, title: str, icon: str, body: str,
+        self,
+        title: str,
+        icon: str,
+        body: str,
     ) -> "MdxWriter":
         line1 = f'  <Card title="{title}" icon="{icon}">'
         line2 = f"    {body}"
@@ -149,11 +151,14 @@ class MdxWriter:
     # would reach the reader as raw diagram source.
 
     def donut(
-        self, title: str, data: dict[str, int | float],
+        self,
+        title: str,
+        data: dict[str, int | float],
     ) -> "MdxWriter":
         """Write a donut chart as inline SVG. Zero-valued entries drop out."""
         svg = donut_svg(
-            title, [Slice(label, value) for label, value in data.items()],
+            title,
+            [Slice(label, value) for label, value in data.items()],
         )
         if svg:
             self._buf.write(f'<div class="kbve-figure">{svg}</div>\n\n')
@@ -193,9 +198,7 @@ class MdxWriter:
             "right": "---:",
         }
         header_line = "| " + " | ".join(headers) + " |"
-        sep_line = "| " + " | ".join(
-            sep_map.get(a, "---") for a in alignments
-        ) + " |"
+        sep_line = "| " + " | ".join(sep_map.get(a, "---") for a in alignments) + " |"
 
         self._buf.write(header_line + "\n")
         self._buf.write(sep_line + "\n")

@@ -26,6 +26,7 @@ Or directly: blender -b -P model_sprites.py -- <args>
 
 Single parked frame (no spin): pass --frames 1 with the chosen --yaw-offset.
 """
+
 import argparse
 import math
 import os
@@ -36,7 +37,7 @@ import mathutils
 
 
 def parse_args():
-    argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+    argv = sys.argv[sys.argv.index("--") + 1 :] if "--" in sys.argv else []
     p = argparse.ArgumentParser(prog="kbve-model-sprites")
     p.add_argument("--model", required=True, help="source .obj or .fbx")
     p.add_argument("--skin", required=True, help="texture image applied to all meshes")
@@ -44,19 +45,27 @@ def parse_args():
     p.add_argument("--frames", type=int, default=16, help="yaw facings (1 = static)")
     p.add_argument("--res", type=int, default=256, help="px per frame (square)")
     # --- animation (spool-up / takeoff, or hover idle) ---
-    p.add_argument("--anim-frames", type=int, default=1,
-                   help="animation frames PER facing (1 = static). >1 bakes an animation")
-    p.add_argument("--anim-mode",
-                   choices=["lift", "idle", "move", "bank", "launch"], default="lift",
-                   help="lift=rise once; idle=hover bob loop; move=flying bob+sway loop; "
-                        "bank=monotonic roll left->right (turn lean, index by turn-rate); "
-                        "launch=cinematic ascent to space (leaving atmosphere; reverse for entering)")
-    p.add_argument("--lift", type=float, default=0.6,
-                   help="hover height as a fraction of model size (lift target / idle+move+bank base)")
-    p.add_argument("--bob", type=float, default=0.06,
-                   help="vertical bob amplitude as a fraction of model size (idle/move)")
-    p.add_argument("--sway", type=float, default=8.0,
-                   help="bank/roll amplitude in degrees (move sway / bank extent)")
+    p.add_argument(
+        "--anim-frames", type=int, default=1, help="animation frames PER facing (1 = static). >1 bakes an animation"
+    )
+    p.add_argument(
+        "--anim-mode",
+        choices=["lift", "idle", "move", "bank", "launch"],
+        default="lift",
+        help="lift=rise once; idle=hover bob loop; move=flying bob+sway loop; "
+        "bank=monotonic roll left->right (turn lean, index by turn-rate); "
+        "launch=cinematic ascent to space (leaving atmosphere; reverse for entering)",
+    )
+    p.add_argument(
+        "--lift",
+        type=float,
+        default=0.6,
+        help="hover height as a fraction of model size (lift target / idle+move+bank base)",
+    )
+    p.add_argument(
+        "--bob", type=float, default=0.06, help="vertical bob amplitude as a fraction of model size (idle/move)"
+    )
+    p.add_argument("--sway", type=float, default=8.0, help="bank/roll amplitude in degrees (move sway / bank extent)")
     # --- launch (leaving atmosphere) cinematic ---
     p.add_argument("--launch-height", type=float, default=5.0, help="ascent height x model size")
     p.add_argument("--launch-pitch", type=float, default=70.0, help="nose-up pitch deg at apex")
@@ -67,8 +76,11 @@ def parse_args():
     p.add_argument("--emit", type=float, default=0.55, help="0=unlit emissive .. 1=pure diffuse shading mix")
     # shadow knobs forwarded to sprite_postprocess.py (fractions of frame size)
     # --- real shadow (Cycles shadow-catcher pass) ---
-    p.add_argument("--real-shadow", action="store_true",
-                   help="render a TRUE cast shadow (Cycles + ground catcher); overrides the fake 2D shadow")
+    p.add_argument(
+        "--real-shadow",
+        action="store_true",
+        help="render a TRUE cast shadow (Cycles + ground catcher); overrides the fake 2D shadow",
+    )
     p.add_argument("--sun-elev", type=float, default=55.0, help="sun elevation deg (real-shadow)")
     p.add_argument("--sun-az", type=float, default=135.0, help="sun azimuth deg (real-shadow; shadow falls opposite)")
     p.add_argument("--sun-soft", type=float, default=4.0, help="sun angular size deg = penumbra softness")
@@ -266,6 +278,7 @@ def postprocess(a):
     """
     import shutil
     import subprocess
+
     py = shutil.which("python3") or shutil.which("python")
     here = os.path.dirname(os.path.abspath(__file__))
     helper = os.path.join(here, "sprite_postprocess.py")
@@ -280,13 +293,20 @@ def postprocess(a):
     if a.no_shadow or a.real_shadow:
         cmd.append("--no-shadow")  # real shadow is already in the frames; just stitch
     cmd += [
-        "--shadow-alpha", str(a.shadow_alpha),
-        "--shadow-blur", str(a.shadow_blur),
-        "--shadow-squash", str(a.shadow_squash),
-        "--shadow-shear", str(a.shadow_shear),
-        "--shadow-grow", str(a.shadow_grow),
-        "--shadow-dx", str(a.shadow_dx),
-        "--shadow-dy", str(a.shadow_dy),
+        "--shadow-alpha",
+        str(a.shadow_alpha),
+        "--shadow-blur",
+        str(a.shadow_blur),
+        "--shadow-squash",
+        str(a.shadow_squash),
+        "--shadow-shear",
+        str(a.shadow_shear),
+        "--shadow-grow",
+        str(a.shadow_grow),
+        "--shadow-dx",
+        str(a.shadow_dx),
+        "--shadow-dy",
+        str(a.shadow_dy),
     ]
     try:
         subprocess.run(cmd, check=True)

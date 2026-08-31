@@ -15,8 +15,10 @@ def _ctx(tmp_path, inputs):
     content_root.mkdir(parents=True)
     (tmp_path / "nx.json").write_text("{}")
     return BuildContext(
-        content_root=content_root, public_dir=public_dir,
-        timestamp="2026-07-19T00:00:00Z", inputs=inputs,
+        content_root=content_root,
+        public_dir=public_dir,
+        timestamp="2026-07-19T00:00:00Z",
+        inputs=inputs,
     )
 
 
@@ -26,13 +28,10 @@ def test_deps_needs_tags():
 
 def test_aggregate_counts_majors():
     node = [
-        {"name": "react", "current": "18.0.0", "wanted": "18.2.0",
-         "latest": "19.0.0", "major": True},
-        {"name": "vite", "current": "5.1.0", "wanted": "5.2.0",
-         "latest": "5.2.0", "major": False},
+        {"name": "react", "current": "18.0.0", "wanted": "18.2.0", "latest": "19.0.0", "major": True},
+        {"name": "vite", "current": "5.1.0", "wanted": "5.2.0", "latest": "5.2.0", "major": False},
     ]
-    rust = [{"name": "serde", "current": "1.0.0", "latest": "1.0.9",
-             "major": False}]
+    rust = [{"name": "serde", "current": "1.0.0", "latest": "1.0.9", "major": False}]
     agg = aggregate(node, rust)
     assert agg["total"] == 3
     assert agg["major_total"] == 1
@@ -41,12 +40,15 @@ def test_aggregate_counts_majors():
 
 
 def test_deps_build_writes(tmp_path):
-    ctx = _ctx(tmp_path, {
-        "deps_node": [{"name": "react", "current": "18.0.0",
-                       "wanted": "18.2.0", "latest": "19.0.0",
-                       "major": True}],
-        "deps_rust": [],
-    })
+    ctx = _ctx(
+        tmp_path,
+        {
+            "deps_node": [
+                {"name": "react", "current": "18.0.0", "wanted": "18.2.0", "latest": "19.0.0", "major": True}
+            ],
+            "deps_rust": [],
+        },
+    )
     result = get("deps").build(ctx)
     assert result.skipped is False and len(result.changed) == 2
 

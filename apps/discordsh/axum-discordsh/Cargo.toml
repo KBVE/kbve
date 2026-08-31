@@ -26,8 +26,8 @@ sysinfo = { workspace = true }
 reqwest = { workspace = true, features = ["json", "rustls"] }
 
 # Workspace path dependencies
-kbve = { path = "../../../packages/rust/kbve", features = ["supabase", "image-gen"] }
-jedi = { path = "../../../packages/rust/jedi", features = ["postgres"] }
+kbve = { path = "../../../crates/kbve", features = ["supabase", "image-gen"] }
+jedi = { path = "../../../crates/jedi", features = ["postgres"] }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { workspace = true, optional = true }

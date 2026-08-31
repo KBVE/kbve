@@ -15,6 +15,7 @@ from kbve.nx.security import (
 
 # ── normalize_severity ───────────────────────────────────────────────
 
+
 def test_normalize_severity():
     assert normalize_severity("critical") == "critical"
     assert normalize_severity("CRITICAL") == "critical"
@@ -28,6 +29,7 @@ def test_normalize_severity():
 
 
 # ── parse_npm ────────────────────────────────────────────────────────
+
 
 def test_parse_npm_classic():
     raw = {
@@ -117,18 +119,21 @@ def test_parse_npm_advisories_not_dict():
 
 # ── parse_cargo ──────────────────────────────────────────────────────
 
+
 def test_parse_cargo_critical():
     raw = {
         "vulnerabilities": {
-            "list": [{
-                "advisory": {
-                    "id": "RUSTSEC-2024-001",
-                    "title": "Memory safety",
-                    "cvss": "9.8",
-                    "url": "https://rustsec.org/1",
-                },
-                "package": {"name": "some-crate"},
-            }],
+            "list": [
+                {
+                    "advisory": {
+                        "id": "RUSTSEC-2024-001",
+                        "title": "Memory safety",
+                        "cvss": "9.8",
+                        "url": "https://rustsec.org/1",
+                    },
+                    "package": {"name": "some-crate"},
+                }
+            ],
         },
     }
     result = parse_cargo(raw)
@@ -139,10 +144,12 @@ def test_parse_cargo_critical():
 def test_parse_cargo_high_cvss():
     raw = {
         "vulnerabilities": {
-            "list": [{
-                "advisory": {"id": "X", "title": "X", "cvss": "7.5"},
-                "package": {"name": "pkg"},
-            }],
+            "list": [
+                {
+                    "advisory": {"id": "X", "title": "X", "cvss": "7.5"},
+                    "package": {"name": "pkg"},
+                }
+            ],
         },
     }
     result = parse_cargo(raw)
@@ -152,10 +159,12 @@ def test_parse_cargo_high_cvss():
 def test_parse_cargo_medium_cvss():
     raw = {
         "vulnerabilities": {
-            "list": [{
-                "advisory": {"id": "X", "title": "X", "cvss": "5.0"},
-                "package": {"name": "pkg"},
-            }],
+            "list": [
+                {
+                    "advisory": {"id": "X", "title": "X", "cvss": "5.0"},
+                    "package": {"name": "pkg"},
+                }
+            ],
         },
     }
     result = parse_cargo(raw)
@@ -165,10 +174,12 @@ def test_parse_cargo_medium_cvss():
 def test_parse_cargo_low_cvss():
     raw = {
         "vulnerabilities": {
-            "list": [{
-                "advisory": {"id": "X", "title": "X", "cvss": "3.0"},
-                "package": {"name": "pkg"},
-            }],
+            "list": [
+                {
+                    "advisory": {"id": "X", "title": "X", "cvss": "3.0"},
+                    "package": {"name": "pkg"},
+                }
+            ],
         },
     }
     result = parse_cargo(raw)
@@ -179,10 +190,12 @@ def test_parse_cargo_cvss_boundary_values():
     def make_entry(cvss):
         return {
             "vulnerabilities": {
-                "list": [{
-                    "advisory": {"id": "X", "title": "X", "cvss": cvss},
-                    "package": {"name": "pkg"},
-                }],
+                "list": [
+                    {
+                        "advisory": {"id": "X", "title": "X", "cvss": cvss},
+                        "package": {"name": "pkg"},
+                    }
+                ],
             },
         }
 
@@ -195,13 +208,16 @@ def test_parse_cargo_cvss_boundary_values():
 def test_parse_cargo_cvss_non_numeric():
     raw = {
         "vulnerabilities": {
-            "list": [{
-                "advisory": {
-                    "id": "X", "title": "X",
-                    "cvss": "CVSS:3.1/AV:N/AC:L",
-                },
-                "package": {"name": "pkg"},
-            }],
+            "list": [
+                {
+                    "advisory": {
+                        "id": "X",
+                        "title": "X",
+                        "cvss": "CVSS:3.1/AV:N/AC:L",
+                    },
+                    "package": {"name": "pkg"},
+                }
+            ],
         },
     }
     result = parse_cargo(raw)
@@ -211,14 +227,17 @@ def test_parse_cargo_cvss_non_numeric():
 def test_parse_cargo_informational():
     raw = {
         "vulnerabilities": {
-            "list": [{
-                "advisory": {
-                    "id": "X", "title": "X",
-                    "informational": "unsound",
-                    "cvss": "9.0",
-                },
-                "package": {"name": "pkg"},
-            }],
+            "list": [
+                {
+                    "advisory": {
+                        "id": "X",
+                        "title": "X",
+                        "informational": "unsound",
+                        "cvss": "9.0",
+                    },
+                    "package": {"name": "pkg"},
+                }
+            ],
         },
     }
     result = parse_cargo(raw)
@@ -228,10 +247,12 @@ def test_parse_cargo_informational():
 def test_parse_cargo_no_cvss():
     raw = {
         "vulnerabilities": {
-            "list": [{
-                "advisory": {"id": "X", "title": "X"},
-                "package": {"name": "pkg"},
-            }],
+            "list": [
+                {
+                    "advisory": {"id": "X", "title": "X"},
+                    "package": {"name": "pkg"},
+                }
+            ],
         },
     }
     result = parse_cargo(raw)
@@ -242,14 +263,18 @@ def test_parse_cargo_warnings():
     raw = {
         "vulnerabilities": {"list": []},
         "warnings": {
-            "yanked": [{
-                "advisory": {"id": "Y", "title": "Yanked"},
-                "package": {"name": "old"},
-            }],
-            "unmaintained": [{
-                "advisory": {"id": "Z", "title": "Unmaintained"},
-                "package": {"name": "stale"},
-            }],
+            "yanked": [
+                {
+                    "advisory": {"id": "Y", "title": "Yanked"},
+                    "package": {"name": "old"},
+                }
+            ],
+            "unmaintained": [
+                {
+                    "advisory": {"id": "Z", "title": "Unmaintained"},
+                    "package": {"name": "stale"},
+                }
+            ],
         },
     }
     result = parse_cargo(raw)
@@ -273,14 +298,17 @@ def test_parse_cargo_empty():
 
 # ── parse_python ─────────────────────────────────────────────────────
 
+
 def test_parse_python_list_format():
-    raw = [{
-        "name": "requests",
-        "version": "2.25.0",
-        "vulns": [
-            {"id": "PYSEC-2024-001", "description": "SSRF vulnerability"},
-        ],
-    }]
+    raw = [
+        {
+            "name": "requests",
+            "version": "2.25.0",
+            "vulns": [
+                {"id": "PYSEC-2024-001", "description": "SSRF vulnerability"},
+            ],
+        }
+    ]
     result = parse_python(raw)
     assert result["total"] == 1
     assert result["advisories"][0]["package"] == "requests"
@@ -289,10 +317,12 @@ def test_parse_python_list_format():
 
 def test_parse_python_dict_format():
     raw = {
-        "dependencies": [{
-            "name": "django",
-            "vulns": [{"id": "PYSEC-2024-002", "description": "XSS"}],
-        }],
+        "dependencies": [
+            {
+                "name": "django",
+                "vulns": [{"id": "PYSEC-2024-002", "description": "XSS"}],
+            }
+        ],
     }
     result = parse_python(raw)
     assert result["total"] == 1
@@ -319,13 +349,15 @@ def test_parse_python_empty():
 
 
 def test_parse_python_multiple_vulns_per_dep():
-    raw = [{
-        "name": "pkg",
-        "vulns": [
-            {"id": "A", "description": "first"},
-            {"id": "B", "description": "second"},
-        ],
-    }]
+    raw = [
+        {
+            "name": "pkg",
+            "vulns": [
+                {"id": "A", "description": "first"},
+                {"id": "B", "description": "second"},
+            ],
+        }
+    ]
     result = parse_python(raw)
     assert result["total"] == 2
     assert result["severities"]["medium"] == 2
@@ -333,18 +365,21 @@ def test_parse_python_multiple_vulns_per_dep():
 
 # ── parse_codeql ─────────────────────────────────────────────────────
 
+
 def test_parse_codeql():
-    raw = [{
-        "rule": {
-            "id": "js/sql-injection",
-            "description": "SQL Injection",
-            "security_severity_level": "high",
-        },
-        "most_recent_instance": {
-            "location": {"path": "src/db.js"},
-        },
-        "html_url": "https://github.com/example/1",
-    }]
+    raw = [
+        {
+            "rule": {
+                "id": "js/sql-injection",
+                "description": "SQL Injection",
+                "security_severity_level": "high",
+            },
+            "most_recent_instance": {
+                "location": {"path": "src/db.js"},
+            },
+            "html_url": "https://github.com/example/1",
+        }
+    ]
     result = parse_codeql(raw)
     assert result["total"] == 1
     assert result["alerts"][0]["rule_id"] == "js/sql-injection"
@@ -352,11 +387,13 @@ def test_parse_codeql():
 
 
 def test_parse_codeql_severity_fallback():
-    raw = [{
-        "rule": {"id": "test", "severity": "warning"},
-        "most_recent_instance": {"location": {"path": "x.js"}},
-        "html_url": "",
-    }]
+    raw = [
+        {
+            "rule": {"id": "test", "severity": "warning"},
+            "most_recent_instance": {"location": {"path": "x.js"}},
+            "html_url": "",
+        }
+    ]
     result = parse_codeql(raw)
     assert result["severities"]["medium"] == 1
 
@@ -377,15 +414,18 @@ def test_parse_codeql_empty():
 
 # ── parse_dependabot ─────────────────────────────────────────────────
 
+
 def test_parse_dependabot():
-    raw = [{
-        "security_vulnerability": {
-            "severity": "critical",
-            "package": {"name": "axios", "ecosystem": "npm"},
-        },
-        "security_advisory": {"summary": "SSRF in axios"},
-        "html_url": "https://github.com/example/2",
-    }]
+    raw = [
+        {
+            "security_vulnerability": {
+                "severity": "critical",
+                "package": {"name": "axios", "ecosystem": "npm"},
+            },
+            "security_advisory": {"summary": "SSRF in axios"},
+            "html_url": "https://github.com/example/2",
+        }
+    ]
     result = parse_dependabot(raw)
     assert result["total"] == 1
     assert result["alerts"][0]["package"] == "axios"
@@ -434,16 +474,27 @@ def test_parse_dependabot_multiple():
 
 # ── build_summary ────────────────────────────────────────────────────
 
+
 def test_build_summary():
     ecosystems = {
-        "npm": {"severities": {
-            "critical": 1, "high": 0, "medium": 2,
-            "low": 0, "info": 0,
-        }},
-        "cargo": {"severities": {
-            "critical": 0, "high": 1, "medium": 0,
-            "low": 0, "info": 1,
-        }},
+        "npm": {
+            "severities": {
+                "critical": 1,
+                "high": 0,
+                "medium": 2,
+                "low": 0,
+                "info": 0,
+            }
+        },
+        "cargo": {
+            "severities": {
+                "critical": 0,
+                "high": 1,
+                "medium": 0,
+                "low": 0,
+                "info": 1,
+            }
+        },
     }
     summary = build_summary(ecosystems)
     assert summary["critical"] == 1
@@ -464,6 +515,7 @@ def test_build_summary_missing_severities_key():
 
 
 # ── parse_all_ecosystems ─────────────────────────────────────────────
+
 
 def test_parse_all_ecosystems():
     raw = {
@@ -506,5 +558,9 @@ def test_parse_all_ecosystems_all_present():
 
 def test_severity_order_completeness():
     assert set(SEVERITY_ORDER) == {
-        "critical", "high", "medium", "low", "info",
+        "critical",
+        "high",
+        "medium",
+        "low",
+        "info",
     }

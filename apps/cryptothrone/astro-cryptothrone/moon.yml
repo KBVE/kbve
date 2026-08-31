@@ -1,0 +1,35 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+stack: 'frontend'
+tags: ['astro', 'lfs']
+
+env:
+    LFS_REMOTE: 'cryptothrone'
+
+# The art lives behind the cryptothrone LFS remote; the 'lfs' tag is what
+# fetches it and hangs it off build.
+tasks:
+    # Two standalone Vite bundles served from public/. Not build deps: the Nx
+    # targets were not either, and both are rebuilt on their own cadence.
+    build-embed:
+        command: 'vite build --config vite.embed.config.mts'
+        toolchains: ['node']
+        inputs: ['src/**/*', 'vite.embed.config.mts']
+        outputs: ['public/embed']
+        env:
+            NODE_OPTIONS: '--max-old-space-size=4096'
+
+    build-discord:
+        command: 'vite build --config vite.discord.config.mts'
+        toolchains: ['node']
+        inputs: ['src/**/*', 'vite.discord.config.mts']
+        outputs: ['public/discord']
+        env:
+            NODE_OPTIONS: '--max-old-space-size=4096'
+
+    test:
+        command: 'vitest run --coverage --config vitest.config.ts'
+        toolchains: ['node']
+        inputs: ['@group(sources)', '@group(configs)', 'vitest.config.ts']

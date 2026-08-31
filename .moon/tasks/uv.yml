@@ -1,0 +1,86 @@
+$schema: 'https://moonrepo.dev/schemas/tasks.json'
+
+# Inherited by every project tagged 'uv'.
+#
+# This stands in for a toolchain file the way rust.yml does, but permanently:
+# moon 2.5 ships no python toolchain plugin, and declaring `python:` in
+# .moon/toolchains.yml fails with "a locator is required for plugins". uv runs
+# as a system command instead, and the tag is what a toolchain would have been.
+#
+# Replaces @nxlv/python, whose add/update/remove/install executors were
+# wrappers over uv commands that are shorter written out. Its flake8 executor
+# wrote a report to reports/<project>/pylint.txt; `lint` here writes to stdout,
+# because nothing in the repository reads those files.
+#
+# ruff, not flake8. It replaces the linter and the formatter (autopep8) at once,
+# and its config lives in each project's pyproject.toml -- already a manifest
+# below, so the .flake8 files left the file group along with the tool.
+inheritedBy:
+    tag: 'uv'
+
+fileGroups:
+    sources:
+        - '**/*.py'
+    tests:
+        - 'tests/**/*'
+    manifests:
+        - 'pyproject.toml'
+        - 'uv.lock'
+        # uv resolves the interpreter from this, so it decides what every venv
+        # built from these manifests contains. Left out, a Python bump would not
+        # re-sync.
+        - '.python-version'
+
+tasks:
+    install:
+        command: 'uv sync'
+        inputs: ['@group(manifests)']
+        options:
+            cache: false
+
+    lock:
+        command: 'uv lock'
+        inputs: ['pyproject.toml']
+        outputs: ['uv.lock']
+
+    test:
+        command: 'uv run pytest tests/'
+        deps: ['~:install']
+        inputs: ['@group(sources)', '@group(tests)', '@group(manifests)']
+
+    lint:
+        command: 'uv run ruff check .'
+        deps: ['~:install']
+        inputs: ['@group(sources)', '@group(manifests)']
+
+    format:
+        command: 'uv run ruff format --check .'
+        deps: ['~:install']
+        inputs: ['@group(sources)', '@group(manifests)']
+
+    build:
+        command: 'uv build'
+        deps: ['~:install']
+        inputs: ['@group(sources)', '@group(manifests)']
+        outputs: ['dist']
+
+    # @nxlv/python wrapped `uv add` and `uv remove` as `add`/`update`/`remove`
+    # targets on every python project. They are the same two uv commands, and
+    # the package name is a passthrough argument:
+    #   moon run kbve-py:add -- httpx
+    add:
+        command: 'uv add'
+        options:
+            cache: false
+
+    remove:
+        command: 'uv remove'
+        options:
+            cache: false
+
+    # `update` had no uv equivalent of its own: it re-resolved the lockfile,
+    # which is what `uv lock --upgrade` does.
+    update:
+        command: 'uv lock --upgrade'
+        options:
+            cache: false

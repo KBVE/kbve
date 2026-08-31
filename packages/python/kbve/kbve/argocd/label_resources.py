@@ -188,10 +188,7 @@ class ResourceLabeler:
         return modified
 
     def process_manifest_file(
-        self,
-        manifest_file: Path,
-        labels: Dict[str, str],
-        dry_run: bool = False
+        self, manifest_file: Path, labels: Dict[str, str], dry_run: bool = False
     ) -> Tuple[int, int]:
         """
         Process a manifest file, applying labels to all resources.

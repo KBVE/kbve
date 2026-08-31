@@ -100,7 +100,9 @@ def _legend_text(item: Slice, total: float, show_data: bool) -> str:
 
 
 def _legend_width(
-    drawn: list[Slice], total: float, show_data: bool,
+    drawn: list[Slice],
+    total: float,
+    show_data: bool,
 ) -> int:
     """Widen the canvas until the longest legend row fits.
 
@@ -111,11 +113,7 @@ def _legend_width(
         (len(_legend_text(item, total, show_data)) for item in drawn),
         default=0,
     )
-    needed = (
-        _LEGEND_TEXT_X
-        + int(longest * _LEGEND_CHAR_WIDTH)
-        + _LEGEND_RIGHT_PAD
-    )
+    needed = _LEGEND_TEXT_X + int(longest * _LEGEND_CHAR_WIDTH) + _LEGEND_RIGHT_PAD
     return max(_MIN_WIDTH, needed)
 
 

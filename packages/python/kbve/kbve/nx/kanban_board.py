@@ -20,17 +20,21 @@ GRAPHQL_URL = "https://api.github.com/graphql"
 USER_AGENT = "kbve-ci-daily-content-fetch/1.0"
 
 COLUMNS = [
-    "Theory", "AI", "Todo", "Backlog", "Error",
-    "Support", "Staging", "Review", "Done",
+    "Theory",
+    "AI",
+    "Todo",
+    "Backlog",
+    "Error",
+    "Support",
+    "Staging",
+    "Review",
+    "Done",
 ]
 
 VIEWS = {
-    "kanban": {"number": 1,
-               "url": "https://github.com/orgs/KBVE/projects/5/views/1"},
-    "task": {"number": 2,
-             "url": "https://github.com/orgs/KBVE/projects/5/views/2"},
-    "map": {"number": 3,
-            "url": "https://github.com/orgs/KBVE/projects/5/views/3"},
+    "kanban": {"number": 1, "url": "https://github.com/orgs/KBVE/projects/5/views/1"},
+    "task": {"number": 2, "url": "https://github.com/orgs/KBVE/projects/5/views/2"},
+    "map": {"number": 3, "url": "https://github.com/orgs/KBVE/projects/5/views/3"},
 }
 
 _QUERY = """
@@ -93,10 +97,12 @@ query($org: String!, $num: Int!, $cursor: String) {
 
 
 def _post(token: str, cursor: str | None, timeout: float) -> dict[str, Any]:
-    body = json.dumps({
-        "query": _QUERY,
-        "variables": {"org": ORG, "num": PROJECT_NUMBER, "cursor": cursor},
-    }).encode("utf-8")
+    body = json.dumps(
+        {
+            "query": _QUERY,
+            "variables": {"org": ORG, "num": PROJECT_NUMBER, "cursor": cursor},
+        }
+    ).encode("utf-8")
     req = urllib.request.Request(
         GRAPHQL_URL,
         data=body,
@@ -159,10 +165,8 @@ def _entry(item: dict[str, Any]) -> tuple[str | None, dict[str, Any]]:
         "title": content.get("title") or "(untitled)",
         "state": content.get("state"),
         "url": content.get("url"),
-        "assignees": [a["login"]
-                      for a in (content.get("assignees") or {}).get("nodes", [])],
-        "labels": [lbl["name"]
-                   for lbl in (content.get("labels") or {}).get("nodes", [])],
+        "assignees": [a["login"] for a in (content.get("assignees") or {}).get("nodes", [])],
+        "labels": [lbl["name"] for lbl in (content.get("labels") or {}).get("nodes", [])],
         "matrix": matrix,
         "date": date,
         "milestone": (content.get("milestone") or {}).get("title"),

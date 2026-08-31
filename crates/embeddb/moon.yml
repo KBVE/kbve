@@ -1,0 +1,12 @@
+# Single-file embedded database: Turso for writes, DuckDB for analytics reads.
+# Migrated from the legacy Nx workspace at KBVE/kbve packages/rust/embeddb.
+layer: 'library'
+stack: 'systems'
+toolchains:
+  default: 'rust'
+
+dependsOn:
+  - 'embeddb-derive'
+
+owners:
+  defaultOwner: '@h0lybyte'

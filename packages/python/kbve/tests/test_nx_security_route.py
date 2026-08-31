@@ -39,9 +39,7 @@ def _raw_fixture() -> dict:
         "python": [
             {
                 "name": "requests",
-                "vulns": [
-                    {"id": "GHSA-xxxx", "description": "Header injection"}
-                ],
+                "vulns": [{"id": "GHSA-xxxx", "description": "Header injection"}],
             }
         ],
         "codeql": [
@@ -52,9 +50,7 @@ def _raw_fixture() -> dict:
                     "security_severity_level": "high",
                     "description": "SQL injection",
                 },
-                "most_recent_instance": {
-                    "location": {"path": "app/db.py"}
-                },
+                "most_recent_instance": {"location": {"path": "app/db.py"}},
                 "html_url": "https://example.com/codeql",
             }
         ],
@@ -113,9 +109,7 @@ def test_security_build_writes_mdx_and_json(tmp_path):
     payload = json.loads(js.read_text())
     assert "summary" in payload
     assert "ecosystems" in payload
-    assert set(payload["ecosystems"]) == {
-        "npm", "cargo", "python", "codeql", "dependabot"
-    }
+    assert set(payload["ecosystems"]) == {"npm", "cargo", "python", "codeql", "dependabot"}
     assert payload["summary"]["critical"] == 1
     assert payload["summary"]["high"] == 2
 

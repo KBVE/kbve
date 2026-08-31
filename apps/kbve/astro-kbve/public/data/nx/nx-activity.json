@@ -1,180 +1,180 @@
 {
-  "generated_at": "2026-08-30T06:16:13Z",
+  "generated_at": "2026-08-31T06:42:05Z",
   "window": {
     "days": 7,
-    "since": "2026-08-23T06:16:13Z"
+    "since": "2026-08-24T06:42:05Z"
   },
   "commits": {
-    "total": 202,
+    "total": 198,
     "authors": 3,
     "leaderboard": [
       {
         "author": "github-actions[bot]",
-        "commits": 129
+        "commits": 131
       },
       {
         "author": "h0lybyte",
-        "commits": 50
+        "commits": 41
       },
       {
         "author": "Fudster",
-        "commits": 23
+        "commits": 26
       }
     ],
     "recent": [
       {
-        "sha": "0a569b0",
+        "sha": "61e9922",
+        "author": "Fudster",
+        "message": "Merge pull request #16557 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/61e99228c46772ad3b53d2177830d6b886e98121",
+        "date": "2026-08-31T04:26:29Z"
+      },
+      {
+        "sha": "c1cfd10",
+        "author": "github-actions[bot]",
+        "message": "chore(chuck): bump beta 0.3.54 -> 0.3.55 (#16556)",
+        "url": "https://github.com/KBVE/kbve/commit/c1cfd10e8c23632ff50f788213b61a8cc34b2e5c",
+        "date": "2026-08-31T04:25:19Z"
+      },
+      {
+        "sha": "86fbe9b",
+        "author": "Fudster",
+        "message": "Merge pull request #16550 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/86fbe9b3a54f36a3d51bc7b43fd771209a0101ec",
+        "date": "2026-08-30T15:30:27Z"
+      },
+      {
+        "sha": "654675d",
+        "author": "github-actions[bot]",
+        "message": "chore(chuck): post-publish sync to v0.3.54 (#16549)",
+        "url": "https://github.com/KBVE/kbve/commit/654675d17fe049d000d6b453f92d354bbab8920e",
+        "date": "2026-08-30T14:14:53Z"
+      },
+      {
+        "sha": "d149b04",
+        "author": "Fudster",
+        "message": "Merge pull request #16547 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/d149b04f37775e445e1bb83c90f7e74f40500c5a",
+        "date": "2026-08-30T13:57:57Z"
+      },
+      {
+        "sha": "fe4b838",
+        "author": "github-actions[bot]",
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#16548)",
+        "url": "https://github.com/KBVE/kbve/commit/fe4b83884cb222886de1a1372a8bd2b6abac2a03",
+        "date": "2026-08-30T13:49:15Z"
+      },
+      {
+        "sha": "a471b5d",
+        "author": "github-actions[bot]",
+        "message": "chore(chuck): bump beta 0.3.53 -> 0.3.54 (#16546)",
+        "url": "https://github.com/KBVE/kbve/commit/a471b5dad0e28ca485212ce8975e117787c3323e",
+        "date": "2026-08-30T13:46:50Z"
+      },
+      {
+        "sha": "2b531ca",
         "author": "h0lybyte",
-        "message": "Merge pull request #16526 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/0a569b02f258766e151a9ba5809e8fd27de1178d",
-        "date": "2026-08-29T19:47:37Z"
+        "message": "Merge pull request #16543 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/2b531cac23511787e2a8ef480d0cf38f65c7df3a",
+        "date": "2026-08-30T12:11:25Z"
       },
       {
-        "sha": "5059cbd",
+        "sha": "60d8541",
+        "author": "github-actions[bot]",
+        "message": "chore(edge): post-publish sync to v0.1.50 (#16544)",
+        "url": "https://github.com/KBVE/kbve/commit/60d8541cba63f912a4f7338525dd2197903c6ac5",
+        "date": "2026-08-30T08:20:34Z"
+      },
+      {
+        "sha": "5fcb2d1",
+        "author": "github-actions[bot]",
+        "message": "chore(tocloud9-services): post-publish sync to v0.0.5 (#16542)",
+        "url": "https://github.com/KBVE/kbve/commit/5fcb2d1270666a83f9c50f092c4ca4f766a2efa2",
+        "date": "2026-08-30T08:18:09Z"
+      },
+      {
+        "sha": "536e2b5",
         "author": "h0lybyte",
-        "message": "fix(tocloud9): disable mysql binlog to stop disk-full wedge (#16525)",
-        "url": "https://github.com/KBVE/kbve/commit/5059cbd6984e3d270f449701f248f1a6c94b3d6e",
-        "date": "2026-08-29T19:47:09Z"
+        "message": "Merge pull request #16528 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/536e2b5e3193f445de31c1c2b5feb0425bcc7d6a",
+        "date": "2026-08-30T08:10:53Z"
       },
       {
-        "sha": "0620df6",
-        "author": "Fudster",
-        "message": "Merge pull request #16523 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/0620df648976624243e4d758b8e5cd36f87958cd",
-        "date": "2026-08-29T19:26:53Z"
-      },
-      {
-        "sha": "8dfb32d",
+        "sha": "815ef64",
         "author": "github-actions[bot]",
-        "message": "chore(chuck): post-publish sync to v0.3.53 (#16522)",
-        "url": "https://github.com/KBVE/kbve/commit/8dfb32ddf1ef56f61978817f023d60fab9206a02",
-        "date": "2026-08-29T19:16:18Z"
-      },
-      {
-        "sha": "1983065",
-        "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#16521)",
-        "url": "https://github.com/KBVE/kbve/commit/1983065b274c8d9f0b73d5d3ccfef633a10ba550",
-        "date": "2026-08-29T18:59:03Z"
-      },
-      {
-        "sha": "566cff6",
-        "author": "Fudster",
-        "message": "Merge pull request #16520 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/566cff6f6c51822bd9213238de30e3d10e0aafc0",
-        "date": "2026-08-29T18:58:22Z"
-      },
-      {
-        "sha": "84f52eb",
-        "author": "github-actions[bot]",
-        "message": "chore(chuck): bump beta 0.3.52 -> 0.3.53 (#16519)",
-        "url": "https://github.com/KBVE/kbve/commit/84f52eb3f034a253720f048c4cf765825fbbd6db",
-        "date": "2026-08-29T18:56:50Z"
-      },
-      {
-        "sha": "fc4f22a",
-        "author": "Fudster",
-        "message": "Merge pull request #16517 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/fc4f22a9f27b7bdfe6d908c2119071ed1bdbf8b6",
-        "date": "2026-08-29T18:53:43Z"
-      },
-      {
-        "sha": "fc56064",
-        "author": "github-actions[bot]",
-        "message": "Atomic: unreal debug symbols (#16516)",
-        "url": "https://github.com/KBVE/kbve/commit/fc56064b904b59b762795068ee500a98d503fef6",
-        "date": "2026-08-29T18:53:02Z"
-      },
-      {
-        "sha": "6c7aaa2",
-        "author": "github-actions[bot]",
-        "message": "test(sql): seed cross-tenant sessions in the ows FK validate test (#16518)",
-        "url": "https://github.com/KBVE/kbve/commit/6c7aaa2e7e3f7036636f814a6d91419ecc2f8944",
-        "date": "2026-08-29T18:26:27Z"
-      },
-      {
-        "sha": "863ae56",
-        "author": "github-actions[bot]",
-        "message": "fix(sql): purge cross-tenant sessions before validating the ows FKs (#16461)",
-        "url": "https://github.com/KBVE/kbve/commit/863ae5602d219258ac3a1795b28b81599fbb8552",
-        "date": "2026-08-29T17:44:27Z"
-      },
-      {
-        "sha": "b2460a5",
-        "author": "Fudster",
-        "message": "Merge pull request #16515 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/b2460a54cb658373218025f5c4696646ac8d1466",
-        "date": "2026-08-29T15:41:52Z"
+        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#16541)",
+        "url": "https://github.com/KBVE/kbve/commit/815ef647d6f201e1ed4b29f2f226fc1b3557e776",
+        "date": "2026-08-30T07:44:10Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 218,
+    "merged": 212,
     "recent": [
       {
-        "number": 16529,
-        "title": "chore(ci): sync ci-dispatch-manifest",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16529"
-      },
-      {
-        "number": 16527,
-        "title": "Atomic: tc9 services lfg queue",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16527"
-      },
-      {
-        "number": 16526,
-        "title": "Release: 1 fix \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16526"
-      },
-      {
-        "number": 16525,
-        "title": "fix(tocloud9): disable mysql binlog to stop disk-full wedge",
+        "number": 16562,
+        "title": "chore(moon): scaffold moon workspace alongside nx",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16525"
+        "url": "https://github.com/KBVE/kbve/pull/16562"
       },
       {
-        "number": 16523,
-        "title": "Release: 2 chores \u2192 Main",
+        "number": 16559,
+        "title": "Atomic: chuck v0.3.55 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16523"
+        "url": "https://github.com/KBVE/kbve/pull/16559"
       },
       {
-        "number": 16522,
-        "title": "Atomic: chuck v0.3.53 post-publish sync",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16522"
-      },
-      {
-        "number": 16521,
+        "number": 16558,
         "title": "chore(ci): sync ci-dispatch-manifest",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16521"
+        "url": "https://github.com/KBVE/kbve/pull/16558"
       },
       {
-        "number": 16520,
+        "number": 16557,
         "title": "Release: 1 chore \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16520"
+        "url": "https://github.com/KBVE/kbve/pull/16557"
       },
       {
-        "number": 16519,
-        "title": "Atomic: chuck beta 0353",
+        "number": 16556,
+        "title": "Atomic: chuck beta 0355",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16519"
+        "url": "https://github.com/KBVE/kbve/pull/16556"
       },
       {
-        "number": 16517,
-        "title": "Release: 1 fix, 1 test \u2192 Main",
+        "number": 16550,
+        "title": "Release: 1 chore \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16517"
+        "url": "https://github.com/KBVE/kbve/pull/16550"
+      },
+      {
+        "number": 16549,
+        "title": "Atomic: chuck v0.3.54 post-publish sync",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16549"
+      },
+      {
+        "number": 16547,
+        "title": "Release: 1 chore \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16547"
+      },
+      {
+        "number": 16548,
+        "title": "chore(ci): sync ci-dispatch-manifest",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16548"
+      },
+      {
+        "number": 16546,
+        "title": "Atomic: chuck beta 0354",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16546"
       }
     ]
   },
   "issues": {
-    "opened": 227,
-    "closed": 221
+    "opened": 228,
+    "closed": 217
   }
 }

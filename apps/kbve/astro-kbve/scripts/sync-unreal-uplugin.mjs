@@ -40,7 +40,7 @@ if (checkOnly) {
 	if (drift.length) {
 		console.error('uplugin VersionName drift from MDX version:');
 		for (const line of drift) console.error(`  ${line}`);
-		console.error('Run: npx nx run astro-kbve:sync:unreal');
+		console.error('Run: moon run astro-kbve:sync-unreal');
 		process.exit(1);
 	}
 	console.log(`All ${plugins.length} uplugin VersionNames match MDX.`);

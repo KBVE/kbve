@@ -55,14 +55,14 @@ Configurable in **Mod settings → Map** (runtime-global) and **Settings → Mod
 
 ## nx targets
 
-| Target     | Cmd                                                               | Notes                                                                                           |
-| ---------- | ----------------------------------------------------------------- | ----------------------------------------------------------------------------------------------- |
-| `test`     | `./kbve.sh -nx kbve-spider:test`                                  | Static validation — info.json, FRAMES table, sheet dims, RGBA mode. ~1s.                        |
-| `bake`     | `SPIDER_SRC=~/Downloads/Spider256 ./kbve.sh -nx kbve-spider:bake` | Rebuild direction-major sheets from per-direction source.                                       |
-| `optimize` | `./kbve.sh -nx kbve-spider:optimize`                              | Lossless `zopflipng` recompress. Cached per file via `*.png.opt` markers; rerunning is a no-op. |
-| `package`  | `./kbve.sh -nx kbve-spider:package`                               | Build `dist/kbve-spider_<version>.zip` in Factorio release layout.                              |
-| `e2e`      | `./kbve.sh -nx kbve-spider:e2e`                                   | Currently aliases `test`; will swap to Factorio-headless once Dockerized.                       |
-| `clean`    | `./kbve.sh -nx kbve-spider:clean`                                 | Remove `dist/` and all `*.png.opt` markers.                                                     |
+| Target     | Cmd                                                          | Notes                                                                                           |
+| ---------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------------------------- |
+| `test`     | `moon run kbve-spider:test`                                  | Static validation — info.json, FRAMES table, sheet dims, RGBA mode. ~1s.                        |
+| `bake`     | `SPIDER_SRC=~/Downloads/Spider256 moon run kbve-spider:bake` | Rebuild direction-major sheets from per-direction source.                                       |
+| `optimize` | `moon run kbve-spider:optimize`                              | Lossless `zopflipng` recompress. Cached per file via `*.png.opt` markers; rerunning is a no-op. |
+| `package`  | `moon run kbve-spider:package`                               | Build `dist/kbve-spider_<version>.zip` in Factorio release layout.                              |
+| `e2e`      | `moon run kbve-spider:e2e`                                   | Currently aliases `test`; will swap to Factorio-headless once Dockerized.                       |
+| `clean`    | `moon run kbve-spider:clean`                                 | Remove `dist/` and all `*.png.opt` markers.                                                     |
 
 ## Re-baking sprites
 
@@ -128,8 +128,8 @@ The hot paths are deliberately registry-driven so they scale with the number of 
 
 ## Releasing to the Factorio mod portal
 
-1. `./kbve.sh -nx kbve-spider:test` — must be green.
-2. `./kbve.sh -nx kbve-spider:package` — produces `dist/kbve-spider_<version>.zip`.
+1. `moon run kbve-spider:test` — must be green.
+2. `moon run kbve-spider:package` — produces `dist/kbve-spider_<version>.zip`.
 3. Bump `info.json::version` + add a `changelog.txt` entry for any new release.
 4. Go to https://mods.factorio.com → **My Mods** → **Upload a Mod**.
 5. First release: fill out name, title, summary (description from info.json is fine), category (`enemies`), tags (`enemies`, `cheats` for editor-spawn). Upload `dist/kbve-spider_<version>.zip`.

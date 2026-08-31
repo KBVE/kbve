@@ -1,0 +1,175 @@
+syntax = "proto3";
+
+package kbve.portfolio.v1;
+
+import "google/protobuf/timestamp.proto";
+import "kbve/asset/v1/asset.proto";
+import "kbve/common/v1/decimal.proto";
+import "kbve/type/v1/id.proto";
+
+// What somebody actually did, and what it made them.
+//
+// A scan says what was possible. This says what happened, and the two disagree
+// constantly -- the price moved between spotting it and filling, the order
+// filled partially, the fee was larger than the estimate. Realised profit is
+// the only number here that is not a guess, and it is built from fills rather
+// than from prices.
+//
+// Split from kbve.market.v1 because these are rows one person owns. Market
+// data is public and shared; a flip journal is neither, and a service that
+// serves charts should not have to link the messages that describe who traded
+// what.
+
+// Which way a fill went.
+enum TradeSide {
+  TRADE_SIDE_UNSPECIFIED = 0;
+  TRADE_SIDE_BUY = 1;
+  TRADE_SIDE_SELL = 2;
+}
+
+// One execution.
+//
+// The atom of the whole file. Everything above is derived from a set of these,
+// and nothing else is authoritative: an average price is a summary of fills,
+// so storing the average as truth means the moment a fill is corrected the
+// average silently stops matching it.
+message Fill {
+  kbve.type.v1.Ulid id = 1;
+  kbve.asset.v1.AssetRef ref = 2;
+  TradeSide side = 3;
+
+  int64 quantity = 4;
+  // Price per unit, as filled rather than as ordered.
+  kbve.common.v1.Decimal price = 5;
+  // What the venue took on this fill.
+  optional kbve.common.v1.Decimal fee = 6;
+
+  google.protobuf.Timestamp executed_at = 7;
+  optional string note = 8;
+  // Ties the fill back to the venue's own record where there is one.
+  optional string external_id = 9;
+}
+
+// How far along a round trip is.
+enum FlipState {
+  FLIP_STATE_UNSPECIFIED = 0;
+  // Bought, nothing sold.
+  FLIP_STATE_OPEN = 1;
+  // Some of the position has been sold.
+  FLIP_STATE_PARTIAL = 2;
+  // Fully sold.
+  FLIP_STATE_CLOSED = 3;
+  // Abandoned without completing.
+  FLIP_STATE_CANCELLED = 4;
+}
+
+// A round trip in one asset: acquire, dispose, keep the difference.
+message Flip {
+  kbve.type.v1.Ulid id = 1;
+  kbve.type.v1.Ulid owner_id = 2;
+  kbve.asset.v1.AssetRef ref = 3;
+
+  FlipState state = 4;
+
+  int64 quantity_bought = 5;
+  optional kbve.common.v1.Decimal avg_buy_price = 6;
+  int64 quantity_sold = 7;
+  optional kbve.common.v1.Decimal avg_sell_price = 8;
+
+  optional kbve.common.v1.Decimal fees_paid = 9;
+
+  // Profit on the quantity actually sold, after fees. Signed, and the sign is
+  // the point: a journal that cannot record a loss is a highlight reel and
+  // will mislead whoever trusts its totals.
+  optional kbve.common.v1.Decimal realized_profit = 10;
+
+  // Profit on what is still held, marked against the current price. Separate
+  // from realised because it is an opinion about the market and realised
+  // profit is a fact about the past.
+  optional kbve.common.v1.Decimal unrealized_profit = 11;
+  optional google.protobuf.Timestamp marked_at = 12;
+
+  google.protobuf.Timestamp opened_at = 13;
+  optional google.protobuf.Timestamp closed_at = 14;
+
+  repeated Fill fills = 15;
+  optional string note = 16;
+  repeated string tags = 17;
+}
+
+// A holding in one asset at one moment.
+message Position {
+  kbve.asset.v1.AssetRef ref = 1;
+  int64 quantity = 2;
+
+  // What the held units cost, per unit, including the fees paid to get them.
+  kbve.common.v1.Decimal avg_cost = 3;
+  // quantity * avg_cost.
+  optional kbve.common.v1.Decimal cost_basis = 4;
+
+  // What the units would fetch now, net of the fee that selling them would
+  // incur. Gross market value overstates every position by the tax.
+  optional kbve.common.v1.Decimal market_value = 5;
+  optional kbve.common.v1.Decimal unrealized_profit = 6;
+  optional int32 unrealized_roi_bps = 7;
+
+  google.protobuf.Timestamp as_of = 8;
+  optional google.protobuf.Timestamp opened_at = 9;
+}
+
+// Everything one person holds, in one currency.
+message Portfolio {
+  kbve.type.v1.Ulid id = 1;
+  kbve.type.v1.Ulid owner_id = 2;
+  string name = 3;
+
+  // What the totals below are denominated in. A portfolio mixing gp and
+  // dollars has no total, so the currency belongs to the portfolio rather
+  // than to each line.
+  string currency = 4;
+
+  repeated Position positions = 5;
+  // Uninvested balance.
+  optional kbve.common.v1.Decimal cash = 6;
+
+  // cash plus the market value of every position.
+  optional kbve.common.v1.Decimal total_value = 7;
+  // Banked, over the portfolio's whole life.
+  optional kbve.common.v1.Decimal realized_profit = 8;
+  optional kbve.common.v1.Decimal unrealized_profit = 9;
+  optional kbve.common.v1.Decimal fees_paid = 10;
+
+  google.protobuf.Timestamp as_of = 11;
+  google.protobuf.Timestamp created_at = 12;
+}
+
+// Aggregate performance over a period.
+//
+// The honest version of "how am I doing". Win rate alone is not it: a strategy
+// winning nine times out of ten and losing more on the tenth than it made on
+// the nine is a losing strategy that reads as a winning one, which is why the
+// worst trade is carried alongside the average.
+message PerformanceSummary {
+  kbve.type.v1.Ulid owner_id = 1;
+  google.protobuf.Timestamp period_start = 2;
+  google.protobuf.Timestamp period_end = 3;
+  string currency = 4;
+
+  int64 flips_closed = 5;
+  int64 flips_profitable = 6;
+
+  kbve.common.v1.Decimal realized_profit = 7;
+  optional kbve.common.v1.Decimal fees_paid = 8;
+  // Capital put at risk, summed across closed flips.
+  optional kbve.common.v1.Decimal volume_traded = 9;
+  optional int32 return_bps = 10;
+
+  optional kbve.common.v1.Decimal best_flip_profit = 11;
+  optional kbve.asset.v1.AssetRef best_flip_ref = 12;
+  optional kbve.common.v1.Decimal worst_flip_profit = 13;
+  optional kbve.asset.v1.AssetRef worst_flip_ref = 14;
+
+  optional kbve.common.v1.Decimal avg_profit_per_flip = 15;
+  // Typical time from first buy to final sell.
+  optional int64 avg_hold_seconds = 16;
+}

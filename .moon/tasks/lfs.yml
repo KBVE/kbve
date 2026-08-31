@@ -1,0 +1,29 @@
+$schema: 'https://moonrepo.dev/schemas/tasks.json'
+
+# Inherited by every project tagged 'lfs'. A game declares the tag and its
+# build fetches its own assets on a fresh clone -- no one has to know which of
+# the router's remotes holds them.
+#
+# kbve's LFS is routed per remote rather than one store, so a project names its
+# remote in LFS_REMOTE and the scope stays its own directory. Failure is
+# tolerated: without credentials or offline the build still runs and the assets
+# stay pointer stubs, which is what the hand-written Nx steps did.
+inheritedBy:
+    tag: 'lfs'
+
+tasks:
+    assets:
+        script: >-
+            (cd $workspaceRoot && ./kbve.sh -lfs $LFS_REMOTE pull --include="$projectSource/**")
+            || echo "$LFS_REMOTE LFS pull skipped (no creds / offline) — assets may be pointer stubs"
+        options:
+            # Reads the working tree and may reach the network, so there is nothing
+            # meaningful to hash. It exits quickly when the blobs are already there.
+            cache: false
+            runInCI: true
+
+    # Attaches to whatever build the project already has, whether that is local
+    # or inherited from astro.yml, vite.yml or rust.yml. Declaring only the dep
+    # avoids restating a command that differs per project.
+    build:
+        deps: ['~:assets']

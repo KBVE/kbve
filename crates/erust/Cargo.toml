@@ -1,0 +1,42 @@
+[package]
+name = "erust"
+description = "Extendable egui and eframe components."
+version = "0.1.8"
+authors = ["kbve", "h0lybyte"]
+homepage = "https://kbve.com/"
+readme = "README.md"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[features]
+default = ["egui"]
+egui = ["dep:egui", "dep:eframe", "dep:image"]
+tauri = []
+
+[dependencies]
+base64 = { workspace = true }
+chrono = { workspace = true, features = ["default", "serde"] }
+holy = { version = "0.2.2", path = "../holy" }
+log = { workspace = true }
+serde = { workspace = true, features = ["derive"] }
+serde_json = { workspace = true }
+
+# The GUI stack, behind the `egui` feature. Pinned here rather than in the
+# workspace table: nothing else in this repository draws an egui frame, and the
+# renderer crates move as a set with eframe.
+egui = { version = "0.35.0", optional = true }
+eframe = { version = "0.35.0", default-features = false, optional = true, features = [
+    "accesskit",     # Screen reader support. Pulls in a lot of dependencies.
+    "default_fonts", # Embed the default egui fonts.
+    "glow",          # Rendering backend. The alternative is "wgpu".
+    "persistence",   # Restore app state on restart.
+    "wayland",       # Linux.
+    "x11",           # Linux.
+] }
+ehttp = "0.6.0"
+image = { version = "0.25.9", optional = true, default-features = false, features = ["png", "jpeg", "webp"] }
+
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wasm-bindgen-futures = { workspace = true }

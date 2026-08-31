@@ -6,7 +6,7 @@ import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { createRequire } from 'node:module';
 import react from '@vitejs/plugin-react';
-import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
+import tsconfigPaths from 'vite-tsconfig-paths';
 import {
 	animationChannelCountsInFile,
 	meshNodeNamesInFile,
@@ -249,7 +249,7 @@ export default defineConfig({
 	base: './',
 	plugins: [
 		react(),
-		nxViteTsPaths(),
+		tsconfigPaths(),
 		iconStudioWriter(),
 		assetHashes(),
 		gltfpackModels(),
@@ -266,7 +266,7 @@ export default defineConfig({
 	},
 	worker: {
 		format: 'es',
-		plugins: () => [nxViteTsPaths(), assetHashes()],
+		plugins: () => [tsconfigPaths(), assetHashes()],
 	},
 	build: {
 		outDir: '../../../dist/apps/herbmail/herbmail-game',
@@ -279,7 +279,7 @@ export default defineConfig({
 		include: ['src/**/*.{test,spec}.{ts,tsx}', 'tools/**/*.{test,spec}.ts'],
 		reporters: ['default'],
 		// vitest's node resolver doesn't pick up the @kbve/laser/* tsconfig-path
-		// aliases (nxViteTsPaths only wires them for build/dev), so map the subpaths to
+		// aliases (tsconfigPaths only wires them for build/dev), so map the subpaths to
 		// source here and inline the package for transform.
 		alias: [
 			{

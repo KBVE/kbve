@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package kbve.common.v1;
+
+// Outcome of an operation that can fail without being an transport-level
+// error. Transport failures belong in the RPC status, not here.
+message Result {
+  bool success = 1;
+  string message = 2;
+  int32 code = 3;
+}

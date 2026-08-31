@@ -72,16 +72,16 @@ All Nx targets run from the repo root:
 
 ```bash
 # Bake source PNG strips → Factorio direction-major sheets
-./kbve.sh -nx run kbve-orc:bake
+moon run kbve-orc:bake
 
 # Optional: lossless re-compress baked sheets (requires zopflipng)
-./kbve.sh -nx run kbve-orc:optimize
+moon run kbve-orc:optimize
 
 # Static validation (info.json, sheet sizes, locale, settings)
-./kbve.sh -nx run kbve-orc:test
+moon run kbve-orc:test
 
 # Zip mod for Factorio mod portal upload (dist/kbve-orc_<version>.zip)
-./kbve.sh -nx run kbve-orc:package
+moon run kbve-orc:package
 ```
 
 Source root for `bake`: override the default `~/Downloads/orc_assets` via the `ORC_SRC` env var.
