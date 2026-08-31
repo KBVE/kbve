@@ -33,6 +33,14 @@ tasks:
     e2e:
         script: 'pnpm exec playwright test --config=playwright.config.ts'
         deps: ['~:build']
+
+    # Same suite with the line reporter, which is what a log without a terminal
+    # wants. CI runs this one.
+    e2e-ci:
+        script: 'pnpm exec playwright test --config=playwright.config.ts --reporter=line'
+        deps: ['~:build']
+        options:
+            cache: false
     proto-lint:
         script: 'buf lint packages/data/proto'
         options:

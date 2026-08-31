@@ -28,8 +28,6 @@ jobs:
         name: Discover E2E Projects
         runs-on: ubuntu-latest
         timeout-minutes: 10
-        env:
-            NX_NO_CLOUD: true
         permissions:
             contents: read
         outputs:
@@ -55,6 +53,9 @@ jobs:
             - name: Install dependencies
               run: pnpm install --frozen-lockfile
 
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
             - name: Build e2e matrix
               id: matrix
               run: |
@@ -63,7 +64,8 @@ jobs:
                   #   bevy_*      — need Rust + wasm32 toolchain (not in docker-test-app.yml)
                   #   kilobase    — needs pgrx/PostgreSQL build environment
                   #   astro-e2e   — shared Astro harness (not a standalone test project)
-                  PROJECTS=$(pnpm nx show projects --with-target e2e 2>/dev/null \
+                  PROJECTS=$(moon query projects --tasks e2e \
+                    | jq -r '.projects[].id' \
                     | grep -v '^q$' \
                     | grep -v '^bevy_' \
                     | grep -v '^kilobase$' \

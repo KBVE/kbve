@@ -11,8 +11,6 @@ jobs:
     test:
         name: Test ${{ inputs.project }} Python Package
         runs-on: ubuntu-latest
-        env:
-            NX_NO_CLOUD: true
         permissions:
             contents: read
 
@@ -58,8 +56,11 @@ jobs:
                   attempt_limit: 3
                   attempt_delay: 15000
 
-            - name: Nx e2e ${{ inputs.project }}
-              run: pnpm nx e2e ${{ inputs.project }} --no-cloud
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
+            - name: e2e ${{ inputs.project }}
+              run: moon run ${{ inputs.project }}:e2e
 
             - name: Mark test passed
               if: success()

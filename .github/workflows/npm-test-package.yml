@@ -11,8 +11,6 @@ jobs:
     test:
         name: Test ${{ inputs.project }} NPM Package
         runs-on: ubuntu-latest
-        env:
-            NX_NO_CLOUD: true
         permissions:
             contents: read
 
@@ -125,8 +123,11 @@ jobs:
                   sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update || true
                   pnpm exec playwright install-deps chromium || pnpm exec playwright install --with-deps chromium
 
-            - name: Nx e2e ${{ inputs.project }}
-              run: pnpm nx e2e ${{ inputs.project }} --no-cloud
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
+            - name: e2e ${{ inputs.project }}
+              run: moon run ${{ inputs.project }}:e2e
 
             - name: Mark test passed
               if: success()

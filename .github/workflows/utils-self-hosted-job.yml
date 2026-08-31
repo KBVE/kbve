@@ -188,15 +188,15 @@ jobs:
               if: inputs.setup_node
               run: pnpm install --frozen-lockfile
 
-            - name: Setup Nx Cache
+            - name: Setup moon cache
               if: inputs.setup_node
               uses: actions/cache@v6
               with:
-                  path: .nx/cache
-                  key: ${{ runner.os }}-nx-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.sha }}
+                  path: .moon/cache
+                  key: ${{ runner.os }}-moon-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ github.sha }}
                   restore-keys: |
-                      ${{ runner.os }}-nx-${{ hashFiles('**/pnpm-lock.yaml') }}-
-                      ${{ runner.os }}-nx-
+                      ${{ runner.os }}-moon-${{ hashFiles('**/pnpm-lock.yaml') }}-
+                      ${{ runner.os }}-moon-
 
             # ── Toolchain: Rust ───────────────────────────────────
             - name: Rust ToolChain

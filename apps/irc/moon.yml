@@ -5,10 +5,19 @@ language: 'typescript'
 
 tasks:
     e2e:
-        script: 'nx test irc-gateway --no-cloud && nx e2e irc-e2e --no-cloud && docker rm -f irc-e2e-test 2>/dev/null || true && nx container irc-gateway --configuration=local --no-cloud && nx e2e:docker irc-e2e --no-cloud; EC=$?; docker rm -f irc-e2e-test 2>/dev/null || true; exit $EC'
+        script: 'moon run irc-gateway:test && moon run irc-e2e:e2e && docker rm -f irc-e2e-test 2>/dev/null || true && moon run irc-gateway:container && moon run irc-e2e:e2e-docker; EC=$?; docker rm -f irc-e2e-test 2>/dev/null || true; exit $EC'
         options:
             runFromWorkspaceRoot: true
             cache: false
+    # What CI runs. It drops the non-docker `irc-e2e:e2e` leg of the task
+    # above: the docker leg covers the same suite against a real container, and
+    # running both doubles a slow job for one signal.
+    e2e-ci:
+        script: 'moon run irc-gateway:test && docker rm -f irc-e2e-test 2>/dev/null || true && moon run irc-gateway:container && moon run irc-e2e:e2e-docker; EC=$?; docker rm -f irc-e2e-test 2>/dev/null || true; exit $EC'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
     container:
         deps: ['irc-gateway:container']
         options:

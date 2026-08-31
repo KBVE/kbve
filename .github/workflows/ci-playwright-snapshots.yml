@@ -56,11 +56,13 @@ jobs:
               timeout-minutes: 15
               run: pnpm exec playwright install --with-deps chromium webkit
 
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
             - name: Build project
               env:
-                  NX_NO_CLOUD: 'true'
                   NODE_OPTIONS: '--max-old-space-size=8192'
-              run: pnpm nx run ${{ inputs.project }}:build --no-cloud --output-style=stream
+              run: moon run ${{ inputs.project }}:build
 
             - name: Update Playwright snapshots
               env:

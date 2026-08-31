@@ -151,8 +151,11 @@ jobs:
 
             - run: pnpm install --frozen-lockfile
 
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
             - name: Regenerate ci-dispatch-manifest
-              run: npx nx run astro-kbve:gen:ci-manifest
+              run: moon run astro-kbve:gen-ci-manifest
 
             - name: Create PR
               id: pr

@@ -22,7 +22,7 @@ on:
                 type: string
                 default: 'auto'
             source_path:
-                description: 'Project source path (e.g. apps/cryptothrone). Used to auto-detect @nx/playwright usage.'
+                description: 'Project source path (e.g. apps/cryptothrone). Used to auto-detect Playwright usage.'
                 required: false
                 type: string
                 default: ''
@@ -47,15 +47,6 @@ jobs:
         name: Test ${{ inputs.project }} Docker App
         runs-on: ${{ inputs.runner }}
         timeout-minutes: 180
-        env:
-            NX_NO_CLOUD: true
-            # cryptothrone-only: its docker test intermittently hits the Nx
-            # daemon crashing during graph processing ("Failed to process
-            # project graph"). Scope the daemon-off to that project so other
-            # (working) pipelines keep their default. The job env is inherited
-            # by both the direct `pnpm nx e2e` and the nested kbve.sh -nx
-            # container-prep build.
-            NX_DAEMON: ${{ inputs.project == 'cryptothrone' && 'false' || '' }}
         permissions:
             contents: read
             packages: write
@@ -268,7 +259,7 @@ jobs:
                     ROOT="${{ inputs.source_path }}"
                     if [ -z "$ROOT" ] || [ ! -d "$ROOT" ]; then
                       USES=false
-                    elif grep -rlq '@nx/playwright:playwright' "$ROOT" 2>/dev/null; then
+                    elif find "$ROOT" -maxdepth 6 -type f -name 'playwright.config.*' -not -path '*/node_modules/*' 2>/dev/null | grep -q .; then
                       USES=true
                     else
                       USES=false
@@ -443,12 +434,25 @@ jobs:
                     && protoc --version \
                     || echo "::warning::protoc install failed; Rust e2e projects that need it will fail with a clear prost-build error"
 
-            - name: Nx e2e ${{ inputs.project }}
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
+            - name: e2e ${{ inputs.project }}
               env:
                   BUILDKIT_PROGRESS: plain
                   INPUT_GITHUB_TOKEN: ${{ github.token }}
                   PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && '1' || '' }}
-              run: pnpm nx e2e ${{ inputs.project }} --configuration=ci --no-cloud --output-style=stream
+              run: |
+                  # A project with a CI-specific suite declares e2e-ci; the rest
+                  # just have e2e. Under Nx this was `--configuration=ci`, which
+                  # fell back to the default when a project had no such
+                  # configuration -- moon has no configurations, so the fallback
+                  # is spelled out.
+                  TASK=e2e
+                  if moon task "${{ inputs.project }}:e2e-ci" >/dev/null 2>&1; then
+                    TASK=e2e-ci
+                  fi
+                  moon run "${{ inputs.project }}:$TASK"
 
             - name: Mark test passed
               if: success()
