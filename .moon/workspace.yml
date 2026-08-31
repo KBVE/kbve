@@ -108,6 +108,59 @@ projects:
         # Godot
         godot-friendslop: 'apps/friendslop/godot-friendslop'
 
+        # Docker images
+        arc-runner: 'packages/docker/arc-runner'
+        chisel-ubuntu-axum: 'packages/docker/chisel-ubuntu-axum'
+        firecracker-node-web: 'packages/docker/firecracker/node/web'
+        firecracker-python-net: 'packages/docker/firecracker/python/net'
+        firecracker-python-web: 'packages/docker/firecracker/python/web'
+        kasm-cloakbrowser: 'packages/docker/kasm-cloakbrowser'
+        kasm-void: 'packages/docker/kasm-void'
+        steamcmd-ubuntu: 'packages/docker/steamcmd-ubuntu'
+
+        # Game servers and their stacks
+        agones-factorio: 'apps/agones/factorio'
+        agones-palworld: 'apps/agones/palworld'
+        agones-palworld-savetool: 'apps/agones/palworld/savetool'
+        agones-tocloud9: 'apps/agones/tocloud9'
+        kbve-orc: 'apps/agones/factorio/mods-src/kbve-orc'
+        kbve-spider: 'apps/agones/factorio/mods-src/kbve-spider'
+        mc: 'apps/mc'
+        mc-lobby: 'apps/mc/lobby'
+        mc-velocity: 'apps/mc/velocity'
+
+        # Other apps
+        angelscript: 'apps/angelscript'
+        aria2-proxy: 'apps/vm/aria2-proxy'
+        arpg-web: 'apps/agones/arpg/web'
+        edge: 'apps/kbve/edge'
+        esp32c6-display: 'apps/hardware/esp32c6-display'
+        herbmail-game: 'apps/herbmail/herbmail-game'
+        rentearth-web: 'apps/rentearth/axum-rentearth/web'
+
+        # Unpublished npm libraries
+        chat: 'packages/npm/chat'
+        fx: 'packages/npm/fx'
+        rn: 'packages/npm/rn'
+
+        # Suites
+        arc-runner-e2e: 'packages/docker/arc-runner-e2e'
+        aria2-proxy-e2e: 'apps/vm/aria2-proxy-e2e'
+        arpg-e2e: 'apps/agones/arpg/arpg-e2e'
+        astro-kbve-e2e: 'apps/kbve/astro-kbve-e2e'
+        axum-chuckrpg-e2e: 'apps/chuckrpg/axum-chuckrpg-e2e'
+        axum-discordsh-e2e: 'apps/discordsh/axum-discordsh-e2e'
+        axum-kbve-e2e: 'apps/kbve/axum-kbve-e2e'
+        axum-rareicon-e2e: 'apps/rareicon/axum-rareicon-e2e'
+        devops-e2e: 'packages/npm/devops-e2e'
+        discordsh-bot-e2e: 'apps/discordsh/discordsh-bot-e2e'
+        droid-e2e: 'packages/npm/droid-e2e'
+        edge-e2e: 'apps/kbve/edge-e2e'
+        firecracker-ctl-e2e: 'apps/vm/firecracker-ctl-e2e'
+        khashvault-e2e: 'packages/npm/khashvault-e2e'
+        kubectl-e2e: 'apps/vm/kubectl-e2e'
+        laser-e2e: 'packages/npm/laser-e2e'
+
 vcs:
     defaultBranch: 'dev'
     provider: 'github'

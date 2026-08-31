@@ -1,0 +1,62 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+tags: ['vitest']
+
+tasks:
+    env:
+        script: "[ -f .env ] || cp .env.example .env; echo 'apps/agones/tocloud9/.env ready'"
+    setup:
+        script: "echo 'Downloading ~3.5GB of WoW 3.3.5a client data and importing the AzerothCore schema. First run takes a long while.' && docker compose --profile setup up --abort-on-container-failure --exit-code-from tc9-sql download-miscs tc9-sql && docker compose --profile setup down"
+        deps: ['~:env']
+    up:
+        script: 'docker compose --profile ac up -d'
+        deps: ['~:env']
+    dev:
+        script: "trap 'docker compose --profile ac down' EXIT INT TERM; docker compose --profile ac up"
+        deps: ['~:env']
+    scale:
+        script: 'docker compose --profile ac up -d --scale gameserver-ac=${TC9_WORLDSERVERS:-2} --no-recreate'
+    logs:
+        script: 'docker compose --profile ac logs -f --tail=200'
+    ps:
+        script: 'docker compose --profile ac ps'
+    down:
+        script: 'docker compose --profile ac --profile setup down'
+    nuke:
+        script: 'docker compose --profile ac --profile setup down -v'
+    playerbots-build:
+        script: "echo 'Building the full KBVE ToCloud9 stack: 12 Go services (fast) plus AzerothCore + mod-playerbots + libsidecar (slow). Expect tens of minutes and every core pegged.' && docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile ac --profile setup build"
+        deps: ['~:env']
+        options:
+            cache: false
+    playerbots-setup:
+        script: 'docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile setup up --abort-on-container-failure --exit-code-from tc9-sql download-miscs tc9-sql && docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile setup down'
+        deps: ['~:playerbots-build']
+    playerbots-up:
+        script: 'docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile ac up -d'
+        deps: ['~:env']
+    playerbots-logs:
+        script: 'docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile ac logs -f --tail=200 gameserver-ac'
+    playerbots-down:
+        script: 'docker compose -f docker-compose.yml -f docker-compose.playerbots.yml --profile ac --profile setup down'
+    e2e:
+        script: 'echo ''Waiting for a worldserver to register with servers-registry (<=600s; AzerothCore map loading is slow)...'' && for i in $(seq 1 600); do if [ -n "$(docker compose --profile ac exec -T redis redis-cli --raw KEYS ''ws:*'' 2>/dev/null | tr -d ''[:space:]'')" ]; then echo "worldserver registered after ${i}s"; break; fi; if [ $(( i % 30 )) -eq 0 ]; then echo "--- [${i}s] still waiting ---"; docker compose --profile ac logs --tail=5 gameserver-ac 2>&1 | sed ''s/^/  | /''; fi; if [ $i -eq 600 ]; then echo ''FAIL: no worldserver registered in 600s''; docker compose --profile ac logs --tail=80 gameserver-ac servers-registry 2>&1 | sed ''s/^/  | /''; exit 1; fi; sleep 1; done && npx vitest run --config vitest.e2e.config.ts'
+        options:
+            cache: false
+    container-gameserver:
+        script: 'docker buildx build --load --target gameserver -f apps/agones/tocloud9/gameserver/Dockerfile -t kbve/tocloud9-gameserver-playerbots:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    container-db-import:
+        script: 'docker buildx build --load --target db-import -f apps/agones/tocloud9/gameserver/Dockerfile -t kbve/tocloud9-db-import-playerbots:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    container-services:
+        script: 'docker buildx build --load -f apps/agones/tocloud9/services/Dockerfile -t kbve/tocloud9-services-playerbots:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false

@@ -22,9 +22,14 @@ tasks:
             -f $projectSource/Dockerfile
             -t kbve/$project:latest
             .
+        # Only the Dockerfile. The build context is the workspace root and the
+        # image lands in the daemon rather than a path moon can hash, so the
+        # task is uncacheable either way and a wider input list would buy
+        # nothing. It cannot be `@group(sources)`: that group comes from the
+        # rust toolchain file, and half the projects tagged docker here are not
+        # rust ones.
         inputs:
             - 'Dockerfile'
-            - '@group(sources)'
         options:
             runFromWorkspaceRoot: true
             # The image lands in the local docker daemon, not in a path moon can

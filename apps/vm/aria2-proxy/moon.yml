@@ -1,0 +1,12 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'library'
+language: 'typescript'
+tags: ['docker']
+
+tasks:
+    containerx:
+        script: 'docker buildx build --load -f apps/vm/aria2-proxy/Dockerfile -t kbve/aria2-proxy:latest .'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false

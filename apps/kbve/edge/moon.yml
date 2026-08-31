@@ -1,0 +1,33 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+tags: ['docker']
+
+tasks:
+  containerx:
+    script: "docker buildx build --load -f apps/kbve/edge/Dockerfile -t kbve/edge:latest apps/kbve/edge"
+    options:
+      runFromWorkspaceRoot: true
+      cache: false
+  containerx-dev:
+    script: "docker buildx build --load -f apps/kbve/edge/Dockerfile.dev -t kbve/edge:dev apps/kbve/edge"
+    options:
+      runFromWorkspaceRoot: true
+      cache: false
+  run:
+    script: "docker run --rm -p 9000:9000 kbve/edge:latest start --main-service /home/deno/functions/main -p 9000"
+    options:
+      runFromWorkspaceRoot: true
+  run-dev:
+    script: "docker run --rm -p 9000:9000 -v $PWD/apps/kbve/edge/functions:/home/deno/functions kbve/edge:dev start --main-service /home/deno/functions/main -p 9000"
+    options:
+      runFromWorkspaceRoot: true
+  check:
+    script: "bash apps/kbve/edge/scripts/check.sh"
+    options:
+      runFromWorkspaceRoot: true
+  e2e:
+    deps: ['edge-e2e:e2e']
+    options:
+      cache: false

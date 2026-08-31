@@ -1,0 +1,27 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'library'
+language: 'typescript'
+tags: ['docker']
+
+tasks:
+    container:
+        script: "VERSION=$(grep -m1 'version' packages/docker/firecracker/node/web/version.toml | sed 's/.*\"\\(.*\\)\\\"/\\1/') && docker tag ghcr.io/kbve/firecracker-node-web:latest ghcr.io/kbve/firecracker-node-web:${VERSION} && echo \"Tagged ghcr.io/kbve/firecracker-node-web:${VERSION}\""
+        deps: ['~:containerx']
+        options:
+            runFromWorkspaceRoot: true
+    containerx:
+        script: 'docker buildx build --load --platform linux/amd64 -f packages/docker/firecracker/node/web/Dockerfile -t ghcr.io/kbve/firecracker-node-web:latest packages/docker/firecracker/node/web'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    extract:
+        script: "mkdir -p packages/docker/firecracker/node/web/dist && docker create --name fc-node-web-extract ghcr.io/kbve/firecracker-node-web:latest true > /dev/null 2>&1 || true && docker cp fc-node-web-extract:/rootfs.ext4 packages/docker/firecracker/node/web/dist/node-web.ext4 && docker rm fc-node-web-extract > /dev/null 2>&1 || true && echo 'Extracted: packages/docker/firecracker/node/web/dist/node-web.ext4'"
+        deps: ['~:container']
+        options:
+            runFromWorkspaceRoot: true
+    test:
+        script: "echo '=== firecracker-node-web rootfs tests ===' && docker create --name fc-node-web-test ghcr.io/kbve/firecracker-node-web:latest true > /dev/null 2>&1 && docker export fc-node-web-test | tar -t | grep -q '^rootfs.ext4$' && echo 'PASS: rootfs.ext4 present' && docker rm fc-node-web-test > /dev/null 2>&1 && echo '=== All firecracker-node-web tests passed ==='"
+        deps: ['~:container']
+        options:
+            runFromWorkspaceRoot: true

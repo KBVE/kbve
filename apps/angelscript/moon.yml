@@ -1,0 +1,15 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+tags: ['docker']
+
+tasks:
+    build:
+        script: "echo 'Angelscript engine builds run via GitHub Actions CI — use workflow_dispatch to trigger.'"
+        options:
+            runFromWorkspaceRoot: true
+    version:
+        script: 'cat apps/angelscript/version.toml'
+        options:
+            runFromWorkspaceRoot: true

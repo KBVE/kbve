@@ -1,0 +1,49 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'python'
+tags: ['uv']
+
+tasks:
+    test:
+        script: 'uv run --quiet --project . python tools/test_mod.py'
+        inputs:
+            [
+                'info.json',
+                'prototypes/**/*.lua',
+                'graphics/**/*.png',
+                'tools/test_mod.py',
+                'pyproject.toml',
+            ]
+    bake:
+        script: 'uv run --quiet --project . python tools/bake_sheets.py --src ${ORC_SRC:-~/Downloads/orc_assets} --out graphics/entity/orc'
+        options:
+            cache: false
+    package:
+        script: 'uv run --quiet --project . python tools/build_zip.py'
+        deps: ['~:test']
+        inputs:
+            [
+                'info.json',
+                'data.lua',
+                'changelog.txt',
+                'README.md',
+                'prototypes/**/*.lua',
+                'graphics/**/*.png',
+                'tools/build_zip.py',
+                'pyproject.toml',
+            ]
+        outputs: ['dist']
+    e2e:
+        script: 'uv run --quiet --project . python tools/test_mod.py'
+        deps: ['~:test']
+        options:
+            cache: false
+    optimize:
+        script: 'uv run --quiet --project . python tools/optimize_pngs.py'
+        options:
+            cache: false
+    clean:
+        script: "rm -rf dist && find graphics -name '*.png.opt' -delete"
+        options:
+            cache: false

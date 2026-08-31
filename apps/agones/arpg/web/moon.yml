@@ -1,0 +1,26 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+tags: ['docker', 'vite', 'vitest']
+
+tasks:
+    dev:
+        script: 'vite'
+    build:
+        script: 'vite build && vite build --mode embed && vite build --mode discord'
+        outputs: ['dist']
+    build-app:
+        script: 'vite build'
+        outputs: ['dist']
+    build-embed:
+        script: 'vite build --mode embed'
+        outputs: ['dist/arpg-embed.js']
+    build-discord:
+        script: 'vite build --mode discord'
+        outputs: ['dist/discord/arpg']
+    typecheck:
+        script: 'tsc --noEmit'
+    preview:
+        script: 'vite preview'
+        deps: ['~:build-app']
