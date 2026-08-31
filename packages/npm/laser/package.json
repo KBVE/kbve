@@ -47,9 +47,7 @@
 		}
 	},
 	"files": [
-		"*.es.js",
-		"laser.es.js",
-		"index.d.ts",
+		"*.js",
 		"**/*.d.ts",
 		"*.md"
 	],
