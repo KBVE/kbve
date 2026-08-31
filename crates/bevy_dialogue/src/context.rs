@@ -75,11 +75,10 @@ impl DialogueContext {
             return false;
         }
 
-        if let Some(required) = &c.required_class {
-            if self.class.as_deref() != Some(required.as_str()) {
+        if let Some(required) = &c.required_class
+            && self.class.as_deref() != Some(required.as_str()) {
                 return false;
             }
-        }
         if let Some(min) = c.min_reputation {
             let faction = c.faction_ref.as_ref().and_then(|f| kbve_proto::ulid_text(Some(f)));
             // A reputation floor with no faction names no score to compare, so
@@ -96,11 +95,10 @@ impl DialogueContext {
                 _ => return false,
             }
         }
-        if let Some(check) = &c.skill_check {
-            if !self.skill_ok(check) {
+        if let Some(check) = &c.skill_check
+            && !self.skill_ok(check) {
                 return false;
             }
-        }
 
         let visits = self.visits.get(graph_ref).copied().unwrap_or(0);
         if c.min_visits.is_some_and(|min| visits < min) {

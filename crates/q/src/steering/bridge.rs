@@ -140,7 +140,7 @@ impl QPatrol {
         self.sense.neighbours.clear();
         self.sense
             .neighbours
-            .extend(crowd.as_slice().chunks_exact(5).map(|c| Neighbour {
+            .extend(crowd.as_slice().as_chunks::<5>().0.iter().map(|c| Neighbour {
                 position: [c[0], c[1]],
                 velocity: [c[2], c[3]],
                 radius: c[4],

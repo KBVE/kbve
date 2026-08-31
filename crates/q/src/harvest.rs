@@ -263,7 +263,7 @@ impl Ledger {
 
     pub fn from_flat(flat: &[u32]) -> Self {
         let mut out = Self::new();
-        for c in flat.chunks_exact(3) {
+        for c in flat.as_chunks::<3>().0 {
             let id = c[0] as u64 | ((c[1] as u64) << 32);
             out.record(id, c[2].min(255) as u8);
         }
@@ -300,8 +300,8 @@ impl Ledger {
             return None;
         }
         let words: Vec<u32> = body
-            .chunks_exact(4)
-            .map(|c| u32::from_le_bytes(c.try_into().expect("chunks_exact(4)")))
+            .as_chunks::<4>().0.iter()
+            .map(|c| u32::from_le_bytes(*c))
             .collect();
         Some(Self::from_flat(&words))
     }

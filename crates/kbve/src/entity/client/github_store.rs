@@ -252,11 +252,10 @@ impl GithubStore {
 
         {
             let mut cache = self.cache.lock().unwrap_or_else(|e| e.into_inner());
-            if let Some(entry) = cache.get(&key) {
-                if Instant::now() < entry.expires_at {
+            if let Some(entry) = cache.get(&key)
+                && Instant::now() < entry.expires_at {
                     return Ok(entry.issue.clone());
                 }
-            }
         }
 
         let Some(client) = self.client.as_ref() else {

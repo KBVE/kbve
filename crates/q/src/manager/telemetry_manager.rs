@@ -350,17 +350,19 @@ mod tests {
 
     #[test]
     fn a_post_never_exceeds_the_services_batch_cap() {
-        assert!(
-            MAX_PER_POST <= SERVICE_MAX_BATCH,
-            "a batch over the service cap is rejected whole, and this client drops \
-             what it has already dequeued — every event in it is lost"
-        );
+        const {
+            assert!(
+                MAX_PER_POST <= SERVICE_MAX_BATCH,
+                "a batch over the service cap is rejected whole, and this client drops \
+                 what it has already dequeued — every event in it is lost"
+            )
+        };
     }
 
     #[test]
     fn a_full_queue_takes_more_than_one_post_to_drain() {
         // The queue is allowed to outgrow one post; that is the case the chunking
         // exists for. If these ever became equal, chunking would be untested.
-        assert!(MAX_QUEUE > MAX_PER_POST);
+        const { assert!(MAX_QUEUE > MAX_PER_POST) };
     }
 }

@@ -137,7 +137,7 @@ impl Grid {
     /// is a tuning number, not a fraction of ground covered.
     pub fn stamp_coverage(&mut self, discs: &[f32], block_ratio: f32, cost_scale: f32) {
         let mut covered = vec![0.0f32; self.width * self.height];
-        for d in discs.chunks_exact(3) {
+        for d in discs.as_chunks::<3>().0 {
             let centre = [d[0], d[1]];
             let radius = d[2];
             if radius <= 0.0

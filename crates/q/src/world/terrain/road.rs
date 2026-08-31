@@ -1082,9 +1082,6 @@ mod plan_tests {
         }
     }
 
-    /// The abutments carry the approach where it meets the bank, and the client drew
-    /// them long before anything collided with them.
-
     /// The client caps each approach rail with a post thicker and taller than the
     /// rail itself. Nothing put collision under it, so it was scenery a body walked
     /// through wherever it looked most solid.
@@ -1116,6 +1113,8 @@ mod plan_tests {
         }
     }
 
+    /// The abutments carry the approach where it meets the bank, and the client drew
+    /// them long before anything collided with them.
     #[test]
     fn an_abutment_stands_under_each_bank() {
         let hgen = HeightGen::new(&HeightParams::default());

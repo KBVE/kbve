@@ -57,6 +57,11 @@ fn auth_status(err: &AuthError) -> StatusCode {
     }
 }
 
+// The error is the response to send, which is the axum pattern: a rejection
+// here has already decided its status and body. Boxing it to satisfy
+// result_large_err would put an allocation on the rejection path and a deref at
+// every call site, to buy back stack an async fn is not short of.
+#[allow(clippy::result_large_err)]
 async fn authorize(app: &AppState, headers: &HeaderMap) -> Result<(), Response> {
     match &app.auth {
         Some(auth) => auth.require_staff(headers).await.map(|_| ()).map_err(|e| {
