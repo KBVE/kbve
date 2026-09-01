@@ -4,6 +4,15 @@ layer: 'application'
 language: 'typescript'
 tags: ['vitest']
 
+# The specs under e2e/ are this project's only vitest suite, and they need the
+# service the `e2e` task starts. The vitest preset's inherited `test` runs the
+# same files with nothing behind them, so it fails on a refused connection or a
+# missing container -- which reads as a broken suite rather than a task that was
+# never meant to run on its own. `e2e` runs vitest itself, so nothing is lost.
+workspace:
+    inheritedTasks:
+        exclude: ['test']
+
 tasks:
     e2e:
         script: 'docker rm -f astro-kbve-e2e 2>/dev/null || true && docker run -d --name astro-kbve-e2e -p 4323:4321 -e HTTP_HOST=0.0.0.0 -e HTTP_PORT=4321 -e RUST_LOG=info kbve/kbve:latest && npx vitest run; EC=$?; docker rm -f astro-kbve-e2e 2>/dev/null || true; exit $EC'
