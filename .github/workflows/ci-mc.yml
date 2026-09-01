@@ -112,8 +112,14 @@ jobs:
                   swap-storage: false
                   docker-images: true
 
+            # Full history: `moon run` resolves changed files against the base
+            # branch, and on a pull request it compares against an explicit one.
+            # A shallow clone has no `dev` to compare with, and moon fails hard
+            # -- `fatal: ambiguous argument 'dev'` -- rather than degrading.
             - name: Checkout
               uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
 
             - name: Setup Docker Buildx
               uses: Wandalen/wretry.action@v3.8.0
