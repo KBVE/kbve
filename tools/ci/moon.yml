@@ -12,8 +12,23 @@ tasks:
     # actionlint cannot see it, because every file involved is valid on its own.
     # `lint` rather than a task of its own, so `moon ci` reaches it.
     lint:
+        # ci.yml runs `moon ci ':lint' ':test'`, which matches the task id
+        # exactly -- a task called lint-pins is never reached by it. The dep is
+        # what puts the pin check in CI.
+        deps: ['~:lint-pins']
         command: 'node permissions.mjs'
         toolchains: ['node']
         inputs:
             - 'permissions.mjs'
+            - '/.github/workflows/*.yml'
+
+    # A toolchain version written into a workflow is a copy of one that
+    # .prototools or package.json already owns, and the copy is what drifts.
+    lint-pins:
+        command: 'node pins.mjs'
+        toolchains: ['node']
+        inputs:
+            - 'pins.mjs'
+            - '/.prototools'
+            - '/package.json'
             - '/.github/workflows/*.yml'

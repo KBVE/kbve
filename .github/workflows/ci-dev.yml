@@ -343,7 +343,7 @@ jobs:
         needs: [dev_to_main_pr]
         permissions:
             issues: write
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:
             workflow_name: 'CI - Dev'
             job_name: 'Create/Update Dev to Main PR'

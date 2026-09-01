@@ -2545,9 +2545,12 @@ jobs:
                   command -v python3 && python3 --version || echo "python3: not found"
                   echo "::notice::Mac runner setup check complete. Install UE as needed."
 
-    track_failure:
+    # One job rather than a failure/success pair. The pair reported the same
+    # five inputs twice and differed only in a status string, and their two
+    # conditions had to stay each other's exact complement by hand.
+    track:
         name: Track Failures
-        if: ${{ always() && contains(needs.*.result, 'failure') }}
+        if: ${{ always() && (contains(needs.*.result, 'failure') || !contains(needs.*.result, 'cancelled')) }}
         needs:
             [
                 guard,
@@ -2564,46 +2567,15 @@ jobs:
                 plugin_release,
                 win_setup,
                 mac_setup,
-            ]
-        permissions:
-            issues: write
-            contents: read
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
-        with:
-            workflow_name: 'CI - Unreal Build (${{ inputs.mode }})'
-            job_name: '${{ inputs.app_name }}${{ inputs.plugin_name }}${{ inputs.shell_path }}${{ inputs.mode }}'
-            run_id: ${{ github.run_id }}
-            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: 'failure'
-
-    track_success:
-        name: Track Success (close resolved)
-        if: ${{ always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
-        needs:
-            [
-                guard,
-                server_config,
-                server_gate,
-                server_build,
-                game_gate,
-                game_build_linux,
-                game_build_windows,
-                game_build_mac,
                 game_post_publish,
-                plugin_check,
-                plugin_build_linux,
-                plugin_build_win,
-                plugin_release,
-                win_setup,
-                mac_setup,
             ]
         permissions:
             issues: write
             contents: read
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:
             workflow_name: 'CI - Unreal Build (${{ inputs.mode }})'
             job_name: '${{ inputs.app_name }}${{ inputs.plugin_name }}${{ inputs.shell_path }}${{ inputs.mode }}'
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: 'success'
+            status: ${{ contains(needs.*.result, 'failure') && 'failure' || 'success' }}

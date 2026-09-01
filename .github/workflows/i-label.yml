@@ -263,7 +263,7 @@ jobs:
             ]
         permissions:
             issues: write
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@dev
+        uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:
             workflow_name: 'Organize Labels'
             job_name: 'Label Automation'
