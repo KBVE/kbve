@@ -72,8 +72,8 @@ impl QuestDb {
         let title: &'static str = Box::leak(quest.title.clone().into_boxed_str());
         self.display_titles.insert(id, title);
         self.by_ref.insert(quest.r#ref.clone(), id);
-        if !quest.id.is_empty() {
-            self.by_ulid.insert(quest.id.clone(), id);
+        if let Some(ulid) = kbve_proto::ulid_text(quest.id.as_ref()) {
+            self.by_ulid.insert(ulid, id);
         }
         self.by_id.insert(id, quest);
     }

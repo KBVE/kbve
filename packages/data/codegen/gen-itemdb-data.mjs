@@ -114,14 +114,13 @@ const ASTRO_ONLY = new Set([
 // Google.Protobuf.JsonParser (and equivalents in other languages) accept
 // the enum values as fully-qualified strings.
 const ENUM_PREFIX = {
-	rarity: 'ITEM_RARITY_',
+	rarity: 'RARITY_',
 	slot: 'EQUIP_SLOT_',
 	element: 'ELEMENT_',
 	damageElement: 'ELEMENT_',
-	skill: 'SKILLING_',
-	type: 'USE_EFFECT_',
-	special: 'GEAR_SPECIAL_',
-	statusEffect: 'STATUS_EFFECT_',
+	type: 'USE_EFFECT_TYPE_',
+	special: 'GEAR_SPECIAL_TYPE_',
+	statusEffect: 'STATUS_EFFECT_KIND_',
 };
 
 function snakeToCamel(key) {

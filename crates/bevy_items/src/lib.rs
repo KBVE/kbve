@@ -36,6 +36,7 @@ mod registry;
 
 // Re-export all proto-generated item types
 pub use proto::item::*;
+pub use proto::{Element, EquipSlot, Extension, ItemAmount, Rarity};
 
 // Re-export registry types
 pub use registry::{ItemDb, ProtoItemId};

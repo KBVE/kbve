@@ -2,6 +2,7 @@ use std::collections::HashMap;
 
 use prost::Message;
 
+use crate::proto::Rarity;
 use crate::proto::item;
 
 /// Stable numeric identifier for an item, derived from its ref.
@@ -70,8 +71,8 @@ impl ItemDb {
         let name: &'static str = Box::leak(item.name.clone().into_boxed_str());
         self.display_names.insert(id, name);
         self.by_ref.insert(item.r#ref.clone(), id);
-        if !item.id.is_empty() {
-            self.by_ulid.insert(item.id.clone(), id);
+        if let Some(ulid) = kbve_proto::ulid_text(item.id.as_ref()) {
+            self.by_ulid.insert(ulid, id);
         }
         self.by_id.insert(id, item);
     }
@@ -121,7 +122,7 @@ impl ItemDb {
     }
 
     /// Find all items matching a rarity tier.
-    pub fn find_by_rarity(&self, rarity: item::ItemRarity) -> Vec<&item::Item> {
+    pub fn find_by_rarity(&self, rarity: Rarity) -> Vec<&item::Item> {
         self.by_id
             .values()
             .filter(|item| item.rarity == rarity as i32)

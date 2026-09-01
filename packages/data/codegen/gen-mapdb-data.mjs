@@ -50,12 +50,13 @@ const outputBinPath = resolve(generatedDir, 'mapdb-data.binpb');
 // Enum field → proto enum value prefix. Keyed by the camelCase field name
 // as it appears in the canonical output.
 const ENUM_PREFIX = {
-	type: 'WORLD_OBJECT_',
-	resourceType: 'RESOURCE_',
-	containerType: 'CONTAINER_',
-	craftingStationType: 'CRAFTING_STATION_',
+	type: 'WORLD_OBJECT_TYPE_',
+	resourceType: 'RESOURCE_TYPE_',
+	containerType: 'CONTAINER_TYPE_',
+	craftingStationType: 'CRAFTING_STATION_TYPE_',
 	footprintShape: 'FOOTPRINT_SHAPE_',
 	costSource: 'COST_SOURCE_',
+	interaction: 'INTERACTION_KIND_',
 	kind: 'SERVICE_KIND_',
 };
 

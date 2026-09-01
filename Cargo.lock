@@ -3473,8 +3473,8 @@ version = "0.1.1"
 dependencies = [
  "bevy",
  "bevy_inventory",
+ "kbve-proto",
  "prost 0.14.4",
- "prost-build 0.14.4",
  "prost-types 0.14.4",
  "serde",
  "serde_json",
@@ -3817,8 +3817,8 @@ name = "bevy_quests"
 version = "0.1.0"
 dependencies = [
  "bevy",
+ "kbve-proto",
  "prost 0.14.4",
- "prost-build 0.14.4",
  "serde",
  "serde_json",
 ]
@@ -5029,6 +5029,25 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "26b52a9543ae338f279b96b0b9fed9c8093744685043739079ce85cd58f289a6"
 dependencies = [
  "cipher",
+]
+
+[[package]]
+name = "cbindgen"
+version = "0.29.4"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2ecb53484c9c167ba674026b656d8a27d7657a58e6066aa902bfb1a4aa00ae20"
+dependencies = [
+ "clap",
+ "heck 0.5.0",
+ "indexmap 2.14.0",
+ "log",
+ "proc-macro2",
+ "quote",
+ "serde",
+ "serde_json",
+ "syn 2.0.119",
+ "tempfile",
+ "toml 0.9.12+spec-1.1.0",
 ]
 
 [[package]]
@@ -20620,6 +20639,14 @@ checksum = "fc1de2c688dc15305988b563c3854064043356019f97a4b46276fe734c4f07ea"
 dependencies = [
  "crypto-common 0.1.7",
  "subtle",
+]
+
+[[package]]
+name = "unr"
+version = "0.1.0"
+dependencies = [
+ "cbindgen",
+ "tokio",
 ]
 
 [[package]]

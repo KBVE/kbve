@@ -95,7 +95,7 @@ fn offer_available_quests(session: &mut SessionState) -> Vec<String> {
 /// Objectives with no `target_refs` count any kill; those with `target_refs`
 /// only count kills of matching refs.
 fn advance_kill_objectives(session: &mut SessionState, enemy_ref: &str, logs: &mut Vec<String>) {
-    let kill_type = bevy_quests::ObjectiveType::ObjectiveKill as i32;
+    let kill_type = bevy_quests::ObjectiveType::Kill as i32;
 
     for quest in &mut session.quest_journal.active {
         let quest_ref = quest.quest_ref.clone();
@@ -140,8 +140,8 @@ fn advance_kill_objectives(session: &mut SessionState, enemy_ref: &str, logs: &m
 
 /// Advance "explore" objectives in all active quests.
 fn advance_explore_objectives(session: &mut SessionState, logs: &mut Vec<String>) {
-    let explore_type = bevy_quests::ObjectiveType::ObjectiveExplore as i32;
-    let visit_type = bevy_quests::ObjectiveType::ObjectiveVisit as i32;
+    let explore_type = bevy_quests::ObjectiveType::Explore as i32;
+    let visit_type = bevy_quests::ObjectiveType::Visit as i32;
 
     for quest in &mut session.quest_journal.active {
         let quest_ref = quest.quest_ref.clone();

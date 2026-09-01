@@ -53,6 +53,27 @@ export function ulidToBytes(text) {
 const b64 = (bytes) => Buffer.from(bytes).toString('base64');
 
 /**
+ * Rejects an enum value the schema does not define.
+ *
+ * `fromJson` is called with `ignoreUnknownFields`, which also forgives an
+ * unrecognised enum name -- the field simply comes back as zero. That is how a
+ * generator whose prefix table said `USE_EFFECT_` while the schema said
+ * `USE_EFFECT_TYPE_` produced artifacts where every use effect was
+ * UNSPECIFIED, encoded without complaint and shipped. A name the schema does
+ * not know is a bug in the generator, so it stops the build.
+ */
+function assertEnumValues(field, value) {
+	for (const v of Array.isArray(value) ? value : [value]) {
+		if (typeof v !== 'string') continue;
+		if (field.enum.values.some((e) => e.name === v)) continue;
+		throw new Error(
+			`${field.parent.typeName}.${field.name}: '${v}' is not a value of ${field.enum.typeName}. ` +
+				`Expected one of: ${field.enum.values.map((e) => e.name).join(', ')}`,
+		);
+	}
+}
+
+/**
  * Rewrites every Ulid-typed field in `value` from its text form to the object
  * shape the schema wants. Walks by descriptor, so it follows the schema rather
  * than a hand-kept list of field names.
@@ -64,6 +85,11 @@ function convertUlids(desc, value, seen = new Set()) {
 	const out = {};
 	for (const [key, v] of Object.entries(value)) {
 		const field = desc.fields.find((f) => f.jsonName === key || f.name === key);
+		if (field?.enum) {
+			assertEnumValues(field, v);
+			out[key] = v;
+			continue;
+		}
 		if (!field || field.message == null) {
 			out[key] = v;
 			continue;

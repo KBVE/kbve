@@ -40,10 +40,10 @@ const outputJsonPath = resolve(generatedDir, 'spelldb-data.json');
 const outputBinPath = resolve(generatedDir, 'spelldb-data.binpb');
 
 const ENUM_PREFIX = {
-	school: 'SPELL_SCHOOL_',
+	school: 'ELEMENT_',
 	target: 'SPELL_TARGET_',
 	effect: 'SPELL_EFFECT_',
-	rarity: 'SPELL_RARITY_',
+	rarity: 'RARITY_',
 };
 
 const ASTRO_ONLY_FIELDS = new Set(['title']);

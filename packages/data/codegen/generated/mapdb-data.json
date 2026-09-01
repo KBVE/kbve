@@ -11,7 +11,7 @@
         "hidden": true
       },
       "description": "An impenetrable adamantine deposit with razor edged crystalline facets",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "adamantine_ore",
       "img": "/assets/mapdb/metal/adamantine/adamantine_vein.png",
       "interactable": true,
@@ -35,7 +35,7 @@
         "hidden": true
       },
       "description": "A fortified hall with timber-framed upper story, tiled roof, and a heraldic insignia over the door. Recruits soldiers, crafts arrows, heals the wounded.",
-      "type": "WORLD_OBJECT_BUILDING",
+      "type": "WORLD_OBJECT_TYPE_BUILDING",
       "subKind": "barracks",
       "interactable": true,
       "destructible": true,
@@ -163,7 +163,7 @@
         "hidden": true
       },
       "description": "A hefty chunk of quarried stone, the backbone of any mason's stockpile.",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "stone",
       "interactable": true,
       "destructible": true,
@@ -187,7 +187,7 @@
         "hidden": true
       },
       "description": "A placed campfire — blocks its tile, warms the ring around it, and burns anything forced onto the embers.",
-      "type": "WORLD_OBJECT_PROP",
+      "type": "WORLD_OBJECT_TYPE_PROP",
       "subKind": "campfire",
       "img": "/assets/arcade/arpg/environment/hazards/campfire/campfire-Sheet.png",
       "interactable": false,
@@ -220,7 +220,7 @@
         "hidden": true
       },
       "description": "A placed floor candelabrum — blocks its tile and steadies the mana of anyone in its candlelight ring.",
-      "type": "WORLD_OBJECT_PROP",
+      "type": "WORLD_OBJECT_TYPE_PROP",
       "subKind": "candelabrum",
       "img": "/assets/arcade/arpg/environment/lightsources/candelabrum-stand/Anim_Infernus_Lightsources_1.png",
       "interactable": false,
@@ -247,7 +247,7 @@
         "hidden": true
       },
       "description": "The seat of the empire — a 7-hex flower of walls, banners, and the king's hall. Bootstraps an entire civilization from a single scroll.",
-      "type": "WORLD_OBJECT_BUILDING",
+      "type": "WORLD_OBJECT_TYPE_BUILDING",
       "subKind": "capital",
       "interactable": true,
       "destructible": true,
@@ -340,7 +340,7 @@
         "hidden": true
       },
       "description": "Wide curtain wall, twin flanking towers, multi-tier central keep with watchtower, four torches, and a grand banner — Barracks tier 2, capital of war.",
-      "type": "WORLD_OBJECT_BUILDING",
+      "type": "WORLD_OBJECT_TYPE_BUILDING",
       "subKind": "castle",
       "interactable": true,
       "destructible": true,
@@ -425,7 +425,7 @@
         "hidden": true
       },
       "description": "A compressed seam of coal embedded within stratified shale",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "coal",
       "img": "/assets/mapdb/stone/coal/coal_vein.png",
       "interactable": true,
@@ -449,7 +449,7 @@
         "hidden": true
       },
       "description": "A rare cobalt ore vein threaded with luminescent blue crystals",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "cobalt_ore",
       "img": "/assets/mapdb/metal/cobalt/cobalt_vein.png",
       "interactable": true,
@@ -473,7 +473,7 @@
         "hidden": true
       },
       "description": "A rich copper ore deposit embedded in rocky terrain",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "copper_ore",
       "professionActionRef": "gather-copper-ore",
       "img": "/assets/mapdb/metal/copper/copper_vein.png",
@@ -498,7 +498,7 @@
         "hidden": true
       },
       "description": "Wooden pilings rising from the river, planked deck, fisherman's shack with a lantern. River-only — passive fishing plus boat construction when a Craftsman is on duty.",
-      "type": "WORLD_OBJECT_BUILDING",
+      "type": "WORLD_OBJECT_TYPE_BUILDING",
       "subKind": "dock",
       "interactable": true,
       "destructible": true,
@@ -560,14 +560,14 @@
         "hidden": true
       },
       "description": "Trinkets and vials line crooked shelves. A merchant eyes you expectantly from behind a counter made of stacked crates.",
-      "type": "WORLD_OBJECT_NPC_MARKER",
+      "type": "WORLD_OBJECT_TYPE_NPC_MARKER",
       "subKind": "merchant",
       "interactable": true,
       "destructible": false,
       "spawnWeight": 0.15,
       "spawnCount": 1,
       "blocksMovement": true,
-      "interaction": "shop",
+      "interaction": "INTERACTION_KIND_SHOP",
       "faction": "neutral",
       "maxHealth": 400
     },
@@ -582,14 +582,14 @@
         "hidden": true
       },
       "description": "Sturdy stone buildings cluster around a central well. The smell of cooking drifts from a tavern doorway and hammer strikes ring from a smithy.",
-      "type": "WORLD_OBJECT_SETTLEMENT",
+      "type": "WORLD_OBJECT_TYPE_SETTLEMENT",
       "subKind": "city",
       "interactable": true,
       "destructible": false,
       "spawnWeight": 0.15,
       "spawnCount": 1,
       "blocksMovement": true,
-      "interaction": "shop",
+      "interaction": "INTERACTION_KIND_SHOP",
       "faction": "neutral",
       "maxHealth": 1200
     },
@@ -604,14 +604,14 @@
         "hidden": true
       },
       "description": "An ancient fireplace still burns with pale blue flame. No fuel feeds it, yet it has burned since before anyone can remember.",
-      "type": "WORLD_OBJECT_PROP",
+      "type": "WORLD_OBJECT_TYPE_PROP",
       "subKind": "shrine",
       "interactable": true,
       "destructible": false,
       "spawnWeight": 0.15,
       "spawnCount": 1,
       "blocksMovement": true,
-      "interaction": "shrine",
+      "interaction": "INTERACTION_KIND_SHRINE",
       "faction": "neutral",
       "maxHealth": 600,
       "shrine": {
@@ -638,7 +638,7 @@
         "hidden": true
       },
       "description": "A tilled plot with a timber-framed barn — the empire's cornerstone for food. Requires a Farmer on the footprint to turn compost into carrots.",
-      "type": "WORLD_OBJECT_BUILDING",
+      "type": "WORLD_OBJECT_TYPE_BUILDING",
       "subKind": "farm",
       "interactable": true,
       "destructible": true,
@@ -739,7 +739,7 @@
         "hidden": true
       },
       "description": "A cluster of papery purple blooms with a sharp, oniony scent.",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "allium",
       "interactable": true,
       "destructible": true,
@@ -763,7 +763,7 @@
         "hidden": true
       },
       "description": "A slender stem topped with drooping blue bells that chime faintly in strong wind.",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "bellflower",
       "interactable": true,
       "destructible": true,
@@ -787,7 +787,7 @@
         "hidden": true
       },
       "description": "A rare, delicate orchid with petals the color of deep still water.",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "blue_orchid",
       "interactable": true,
       "destructible": true,
@@ -811,7 +811,7 @@
         "hidden": true
       },
       "description": "A wiry stalk crowned with vivid blue petals, common at the edges of tilled fields.",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "cornflower",
       "interactable": true,
       "destructible": true,
@@ -835,7 +835,7 @@
         "hidden": true
       },
       "description": "A cheerful white-and-yellow bloom that grows wherever the sun reaches bare soil.",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "daisy",
       "interactable": true,
       "destructible": true,
@@ -859,7 +859,7 @@
         "hidden": true
       },
       "description": "A fragrant purple spike favored by herbalists for its calming oil.",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "lavender",
       "interactable": true,
       "destructible": true,
@@ -883,7 +883,7 @@
         "hidden": true
       },
       "description": "A thorned stem bearing a single fragrant bloom, prized in both trade and tradition.",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "rose",
       "interactable": true,
       "destructible": true,
@@ -907,7 +907,7 @@
         "hidden": true
       },
       "description": "A tall stalk crowned with a broad golden bloom that tracks the sun across the sky.",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "sunflower",
       "interactable": true,
       "destructible": true,
@@ -931,7 +931,7 @@
         "hidden": true
       },
       "description": "A cupped, vividly colored bloom that pushes up early after the frost breaks.",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "tulip",
       "interactable": true,
       "destructible": true,
@@ -955,7 +955,7 @@
         "hidden": true
       },
       "description": "A scattering of unclaimed blooms growing wherever the soil allows.",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "wildflower",
       "interactable": true,
       "destructible": true,
@@ -979,9 +979,9 @@
         "hidden": true
       },
       "description": "A kiln of stacked stone with a brick chimney belching heat. Smelts ore into ingots and stone into brick whenever it's fed fuel.",
-      "type": "WORLD_OBJECT_BUILDING",
+      "type": "WORLD_OBJECT_TYPE_BUILDING",
       "subKind": "furnace",
-      "craftingStationType": "CRAFTING_STATION_FURNACE",
+      "craftingStationType": "CRAFTING_STATION_TYPE_FURNACE",
       "interactable": true,
       "destructible": true,
       "blocksMovement": true,
@@ -1068,7 +1068,7 @@
         "hidden": true
       },
       "description": "A mossy rock mound hiding a torch-lit archway. Feed it food and it spits out more goblins.",
-      "type": "WORLD_OBJECT_BUILDING",
+      "type": "WORLD_OBJECT_TYPE_BUILDING",
       "subKind": "goblin_cave",
       "interactable": true,
       "destructible": true,
@@ -1113,7 +1113,7 @@
         "hidden": true
       },
       "description": "A gleaming gold vein encased in dense granite and pyrite inclusions",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "gold_ore",
       "img": "/assets/mapdb/metal/gold/gold_vein.png",
       "interactable": true,
@@ -1137,7 +1137,7 @@
         "hidden": true
       },
       "description": "A half-timbered tavern with warm-glow windows and a tiled roof. Feeds travellers, houses the weary, keeps the fire going no matter the hour.",
-      "type": "WORLD_OBJECT_BUILDING",
+      "type": "WORLD_OBJECT_TYPE_BUILDING",
       "subKind": "inn",
       "interactable": true,
       "destructible": true,
@@ -1185,7 +1185,7 @@
         "hidden": true
       },
       "description": "A dense iron ore deposit with rich metallic veins running through granite",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "iron_ore",
       "professionActionRef": "gather-iron-ore",
       "img": "/assets/mapdb/metal/iron/iron_vein.png",
@@ -1210,7 +1210,7 @@
         "hidden": true
       },
       "description": "A verdant jade crystal pillar infused with restorative earth energies",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "jade",
       "img": "/assets/mapdb/stone/jade/jade_crystal.png",
       "interactable": true,
@@ -1234,7 +1234,7 @@
         "hidden": true
       },
       "description": "Curtain wall with crenellations, twin corner towers, and a central keep tower — Barracks tier 1. Garrison hub.",
-      "type": "WORLD_OBJECT_BUILDING",
+      "type": "WORLD_OBJECT_TYPE_BUILDING",
       "subKind": "keep",
       "interactable": true,
       "destructible": true,
@@ -1340,7 +1340,7 @@
         "hidden": true
       },
       "description": "A log cabin with stacked firewood, a chopping stump, and a steel axe buried in the block. Forest-only building — converts Lumberjack labour into logs.",
-      "type": "WORLD_OBJECT_BUILDING",
+      "type": "WORLD_OBJECT_TYPE_BUILDING",
       "subKind": "lumbercamp",
       "interactable": true,
       "destructible": true,
@@ -1402,14 +1402,14 @@
         "hidden": true
       },
       "description": "A warm glow emanates from a shrine embedded in the wall. The air feels lighter here, and wounds seem to close on their own.",
-      "type": "WORLD_OBJECT_PROP",
+      "type": "WORLD_OBJECT_TYPE_PROP",
       "subKind": "shrine",
       "interactable": true,
       "destructible": false,
       "spawnWeight": 0.15,
       "spawnCount": 1,
       "blocksMovement": true,
-      "interaction": "shrine",
+      "interaction": "INTERACTION_KIND_SHRINE",
       "faction": "neutral",
       "maxHealth": 500,
       "shrine": {
@@ -1441,7 +1441,7 @@
         "hidden": true
       },
       "description": "An open wooden stall with a striped canvas awning and a trestle table of goods. First rung of a three-tier commerce chain — Market → Trade House → Merchants Guild.",
-      "type": "WORLD_OBJECT_BUILDING",
+      "type": "WORLD_OBJECT_TYPE_BUILDING",
       "subKind": "market",
       "interactable": true,
       "destructible": true,
@@ -1506,7 +1506,7 @@
         "hidden": true
       },
       "description": "Three-story stone guildhall with columned mezzanine, tiled hip roof, and a purple banner. Market tier 2, the peak of the commerce chain.",
-      "type": "WORLD_OBJECT_BUILDING",
+      "type": "WORLD_OBJECT_TYPE_BUILDING",
       "subKind": "merchants_guild",
       "interactable": true,
       "destructible": true,
@@ -1540,7 +1540,7 @@
         "hidden": true
       },
       "description": "A timber A-frame over a dark pit mouth with a rope-and-bucket rig hanging in the centre. Sand-biome only — converts Miner labour into stone.",
-      "type": "WORLD_OBJECT_BUILDING",
+      "type": "WORLD_OBJECT_TYPE_BUILDING",
       "subKind": "mining_pit",
       "interactable": true,
       "destructible": true,
@@ -1598,14 +1598,14 @@
         "hidden": true
       },
       "description": "Your reflection moves on its own. It beckons you closer, mimicking actions you haven't taken yet.",
-      "type": "WORLD_OBJECT_LANDMARK",
+      "type": "WORLD_OBJECT_TYPE_LANDMARK",
       "subKind": "landmark",
       "interactable": true,
       "destructible": false,
       "spawnWeight": 0.15,
       "spawnCount": 1,
       "blocksMovement": true,
-      "interaction": "shrine",
+      "interaction": "INTERACTION_KIND_SHRINE",
       "faction": "neutral",
       "maxHealth": 700,
       "shrine": {
@@ -1627,7 +1627,7 @@
         "hidden": true
       },
       "description": "A shimmering mithril seam interwoven with ethereal silver-blue threads",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "mithril_ore",
       "img": "/assets/mapdb/metal/mithril/mithril_vein.png",
       "interactable": true,
@@ -1651,7 +1651,7 @@
         "hidden": true
       },
       "description": "A weathered rock cloaked in thick moss, slow to yield but steady in supply.",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "mossy_stone",
       "interactable": true,
       "destructible": true,
@@ -1675,14 +1675,14 @@
         "hidden": true
       },
       "description": "Giant luminescent fungi provide light while merchants sell goods from stalls carved into massive stalks. A cozy inn glows warmly in the largest mushroom cap.",
-      "type": "WORLD_OBJECT_SETTLEMENT",
+      "type": "WORLD_OBJECT_TYPE_SETTLEMENT",
       "subKind": "city",
       "interactable": true,
       "destructible": false,
       "spawnWeight": 0.15,
       "spawnCount": 1,
       "blocksMovement": true,
-      "interaction": "shop",
+      "interaction": "INTERACTION_KIND_SHOP",
       "faction": "neutral",
       "maxHealth": 1000
     },
@@ -1697,7 +1697,7 @@
         "hidden": true
       },
       "description": "A golden, trumpet-shaped mushroom with a faintly fruity smell, favored by cooks.",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "chanterelle",
       "interactable": true,
       "destructible": true,
@@ -1721,7 +1721,7 @@
         "hidden": true
       },
       "description": "A striking red-capped mushroom flecked with white, as dangerous as it is distinctive.",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "fly_agaric",
       "interactable": true,
       "destructible": true,
@@ -1745,7 +1745,7 @@
         "hidden": true
       },
       "description": "A dense, earthy mushroom with a thick stalk, sought after by alchemists and chefs.",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "porcini",
       "interactable": true,
       "destructible": true,
@@ -1769,7 +1769,7 @@
         "hidden": true
       },
       "description": "Starter defensive tower for Nexus Defense matches. Single-target arrow turret with modest range and damage; placed on the player's hex grid at match start.",
-      "type": "WORLD_OBJECT_BUILDING",
+      "type": "WORLD_OBJECT_TYPE_BUILDING",
       "subKind": "nd_tower_basic",
       "interactable": false,
       "destructible": true,
@@ -1813,7 +1813,7 @@
         "hidden": true
       },
       "description": "A sturdy oak tree that provides wood when harvested",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "oak",
       "professionActionRef": "gather-log",
       "img": "/assets/mapdb/tree/oak/oak_tree.png",
@@ -1838,7 +1838,7 @@
         "hidden": true
       },
       "description": "A vein of crystal-flecked ore that glitters faintly when struck, prized by enchanters and smiths alike.",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "crystal_ore",
       "interactable": true,
       "destructible": true,
@@ -1862,7 +1862,7 @@
         "hidden": true
       },
       "description": "A stone watchtower with a crenellated parapet, heraldic banner, and an arrow volley pool in the cellar. Anchors empire territory outside the Capital's radius.",
-      "type": "WORLD_OBJECT_BUILDING",
+      "type": "WORLD_OBJECT_TYPE_BUILDING",
       "subKind": "outpost",
       "interactable": true,
       "destructible": true,
@@ -1930,14 +1930,14 @@
         "hidden": true
       },
       "description": "An enormous chamber. At its center, a throne of living glass pulses with prismatic light. Something ancient awakens as you enter.",
-      "type": "WORLD_OBJECT_ARENA",
+      "type": "WORLD_OBJECT_TYPE_ARENA",
       "subKind": "boss_arena",
       "interactable": true,
       "destructible": false,
       "spawnWeight": 0.15,
       "spawnCount": 1,
       "blocksMovement": true,
-      "interaction": "dungeon",
+      "interaction": "INTERACTION_KIND_DUNGEON",
       "faction": "hostile",
       "maxHealth": 1500
     },
@@ -1952,7 +1952,7 @@
         "hidden": true
       },
       "description": "Clear water bubbles up from a crack in the stone. Its warmth is soothing and its touch heals wounds with unnatural speed.",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "water",
       "interactable": true,
       "destructible": false,
@@ -1972,7 +1972,7 @@
         "hidden": true
       },
       "description": "A massive ancient redwood tree that provides abundant wood",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "redwood",
       "img": "/assets/mapdb/tree/redwood/redwood_tree.png",
       "interactable": true,
@@ -1996,7 +1996,7 @@
         "hidden": true
       },
       "description": "A luminous ruby crystal cluster radiating intense heat and magical energy",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "ruby",
       "img": "/assets/mapdb/stone/ruby/ruby_crystal.png",
       "interactable": true,
@@ -2020,7 +2020,7 @@
         "hidden": true
       },
       "description": "A crystalline salt vein crystallized within chalky limestone",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "salt",
       "img": "/assets/mapdb/stone/salt/salt_vein.png",
       "interactable": true,
@@ -2044,7 +2044,7 @@
         "hidden": true
       },
       "description": "A serene sapphire crystal cluster humming with focused elemental water energy",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "sapphire",
       "img": "/assets/mapdb/stone/sapphire/sapphire_crystal.png",
       "interactable": true,
@@ -2068,14 +2068,14 @@
         "hidden": true
       },
       "description": "Fragments of a massive crystal orbit the room in slow arcs. Power radiates from within, ancient and terrible.",
-      "type": "WORLD_OBJECT_ARENA",
+      "type": "WORLD_OBJECT_TYPE_ARENA",
       "subKind": "boss_arena",
       "interactable": true,
       "destructible": false,
       "spawnWeight": 0.15,
       "spawnCount": 1,
       "blocksMovement": true,
-      "interaction": "dungeon",
+      "interaction": "INTERACTION_KIND_DUNGEON",
       "faction": "hostile",
       "maxHealth": 1500
     },
@@ -2090,7 +2090,7 @@
         "hidden": true
       },
       "description": "A shimmering silver ore vein threaded through quartz-laced rock",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "silver_ore",
       "img": "/assets/mapdb/metal/silver/silver_vein.png",
       "interactable": true,
@@ -2114,14 +2114,14 @@
         "hidden": true
       },
       "description": "An underground market carved into ancient stone, lit by rows of flickering torches. Merchants hawk wares from hollowed alcoves while an inn sign creaks overhead.",
-      "type": "WORLD_OBJECT_SETTLEMENT",
+      "type": "WORLD_OBJECT_TYPE_SETTLEMENT",
       "subKind": "city",
       "interactable": true,
       "destructible": false,
       "spawnWeight": 0.15,
       "spawnCount": 1,
       "blocksMovement": true,
-      "interaction": "shop",
+      "interaction": "INTERACTION_KIND_SHOP",
       "faction": "neutral",
       "maxHealth": 1000
     },
@@ -2136,14 +2136,14 @@
         "hidden": true
       },
       "description": "A perfectly still pool of obsidian-dark water lies at the chamber's center; something moves beneath its polished surface, slowly and deliberately, watching from below.\n",
-      "type": "WORLD_OBJECT_LANDMARK",
+      "type": "WORLD_OBJECT_TYPE_LANDMARK",
       "subKind": "landmark",
       "interactable": true,
       "destructible": false,
       "spawnWeight": 0.15,
       "spawnCount": 1,
       "blocksMovement": true,
-      "interaction": "shrine",
+      "interaction": "INTERACTION_KIND_SHRINE",
       "faction": "neutral",
       "maxHealth": 800,
       "shrine": {
@@ -2170,7 +2170,7 @@
         "hidden": true
       },
       "description": "Standalone defensive spire with stone shaft, parapet, crenellations, and a lit torch crown — scout vision and ranged deterrent.",
-      "type": "WORLD_OBJECT_BUILDING",
+      "type": "WORLD_OBJECT_TYPE_BUILDING",
       "subKind": "tower",
       "interactable": true,
       "destructible": true,
@@ -2207,7 +2207,7 @@
         "hidden": true
       },
       "description": "Two-bay wooden hall with tiled roof and a counter of goods — Market tier 1. Upgrade from Market with 5 Gold Bars.",
-      "type": "WORLD_OBJECT_BUILDING",
+      "type": "WORLD_OBJECT_TYPE_BUILDING",
       "subKind": "trade_house",
       "interactable": true,
       "destructible": true,
@@ -2254,7 +2254,7 @@
         "hidden": true
       },
       "description": "A volatile uranium deposit pulsing with unstable green luminescence",
-      "type": "WORLD_OBJECT_RESOURCE_NODE",
+      "type": "WORLD_OBJECT_TYPE_RESOURCE_NODE",
       "subKind": "uranium_ore",
       "img": "/assets/mapdb/metal/uranium/uranium_vein.png",
       "interactable": true,
@@ -2278,7 +2278,7 @@
         "hidden": true
       },
       "description": "Farm plot flanked by two cottages and a central well — Farm tier 1. Expanded food production plus faint population presence.",
-      "type": "WORLD_OBJECT_BUILDING",
+      "type": "WORLD_OBJECT_TYPE_BUILDING",
       "subKind": "village",
       "interactable": true,
       "destructible": true,
@@ -2362,7 +2362,7 @@
         "hidden": true
       },
       "description": "Stone rampart with crenellated top, central gate arch, and arrow slits — standalone barrier segment linking Towers or flanking a Keep.",
-      "type": "WORLD_OBJECT_BUILDING",
+      "type": "WORLD_OBJECT_TYPE_BUILDING",
       "subKind": "wall",
       "interactable": true,
       "destructible": true,
@@ -2395,14 +2395,14 @@
         "hidden": true
       },
       "description": "A cloaked figure beckons from behind a makeshift stall wedged into a dungeon alcove. The goods are questionable. The prices are worse.",
-      "type": "WORLD_OBJECT_NPC_MARKER",
+      "type": "WORLD_OBJECT_TYPE_NPC_MARKER",
       "subKind": "merchant",
       "interactable": true,
       "destructible": false,
       "spawnWeight": 0.15,
       "spawnCount": 1,
       "blocksMovement": true,
-      "interaction": "shop",
+      "interaction": "INTERACTION_KIND_SHOP",
       "faction": "neutral",
       "maxHealth": 400
     },
@@ -2417,14 +2417,14 @@
         "hidden": true
       },
       "description": "Voices echo from nowhere. The walls seem to breathe, whispering fragments of conversations from ages past.",
-      "type": "WORLD_OBJECT_LANDMARK",
+      "type": "WORLD_OBJECT_TYPE_LANDMARK",
       "subKind": "landmark",
       "interactable": true,
       "destructible": false,
       "spawnWeight": 0.15,
       "spawnCount": 1,
       "blocksMovement": true,
-      "interaction": "shrine",
+      "interaction": "INTERACTION_KIND_SHRINE",
       "faction": "neutral",
       "maxHealth": 700,
       "shrine": {

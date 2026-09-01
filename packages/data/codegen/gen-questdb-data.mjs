@@ -54,11 +54,10 @@ const outputBinPath = resolve(generatedDir, 'questdb-data.binpb');
 
 const ENUM_PREFIX = {
 	category: 'QUEST_CATEGORY_',
-	type: 'OBJECTIVE_',
+	type: 'OBJECTIVE_TYPE_',
 	status: 'QUEST_STATUS_',
-	consequence: 'CONSEQUENCE_',
-	failurePolicy: 'FAILURE_',
-	rewardPolicy: 'REWARD_',
+	failurePolicy: 'FAILURE_POLICY_',
+	rewardPolicy: 'REWARD_POLICY_',
 };
 
 /// Frontmatter keys that belong to the page rather than to the quest. `title` is not one

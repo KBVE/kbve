@@ -24,15 +24,13 @@ bevy = ["dep:bevy"]
 inventory = ["dep:bevy_inventory"]
 
 [dependencies]
+kbve-proto = { path = "../kbve-proto" }
 bevy = { workspace = true, features = ["bevy_state"], optional = true }
 prost = { workspace = true, features = ["derive"] }
 prost-types = { workspace = true }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
 bevy_inventory = { version = "0.1", path = "../bevy_inventory", optional = true, default-features = false }
-
-[build-dependencies]
-prost-build = { workspace = true }
 
 [package.metadata.docs.rs]
 all-features = true

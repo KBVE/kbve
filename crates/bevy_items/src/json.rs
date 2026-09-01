@@ -7,6 +7,8 @@
 use serde_json::Value;
 
 use crate::proto::item;
+use crate::proto::{Element, EquipSlot, Extension, ItemAmount, Rarity};
+use kbve_proto::kbve::common::v1::extension;
 
 /// Errors that can occur when loading items from JSON.
 #[derive(Debug)]
@@ -64,11 +66,13 @@ pub fn parse_itemdb_json(json_str: &str) -> Result<Vec<item::Item>, JsonLoadErro
 
 fn json_value_to_item(v: &Value) -> Option<item::Item> {
     let slug = v.get("ref")?.as_str()?.to_string();
+    // The schema stores sixteen bytes; a content file writes the twenty-six
+    // characters. `Ulid` is declared to convert through `UlidText` for serde, so
+    // the text form decodes without this crate reimplementing Crockford.
     let id = v
         .get("id")
         .and_then(|v| v.as_str())
-        .unwrap_or("")
-        .to_string();
+        .and_then(|text| serde_json::from_value(Value::String(text.to_string())).ok());
     let name = v
         .get("name")
         .and_then(|v| v.as_str())
@@ -128,95 +132,95 @@ fn json_value_to_item(v: &Value) -> Option<item::Item> {
 
 fn parse_rarity(v: Option<&Value>) -> i32 {
     match v.and_then(|v| v.as_str()) {
-        Some("common") => item::ItemRarity::Common as i32,
-        Some("uncommon") => item::ItemRarity::Uncommon as i32,
-        Some("rare") => item::ItemRarity::Rare as i32,
-        Some("epic") => item::ItemRarity::Epic as i32,
-        Some("legendary") => item::ItemRarity::Legendary as i32,
-        Some("mythic") => item::ItemRarity::Mythic as i32,
+        Some("common") => Rarity::Common as i32,
+        Some("uncommon") => Rarity::Uncommon as i32,
+        Some("rare") => Rarity::Rare as i32,
+        Some("epic") => Rarity::Epic as i32,
+        Some("legendary") => Rarity::Legendary as i32,
+        Some("mythic") => Rarity::Mythic as i32,
         _ => v.and_then(|v| v.as_i64()).unwrap_or(0) as i32,
     }
 }
 
 fn parse_element(v: &Value) -> i32 {
     match v.as_str() {
-        Some("fire") => item::Element::Fire as i32,
-        Some("ice") => item::Element::Ice as i32,
-        Some("lightning") => item::Element::Lightning as i32,
-        Some("poison") => item::Element::Poison as i32,
-        Some("shadow") => item::Element::Shadow as i32,
-        Some("holy") => item::Element::Holy as i32,
-        Some("arcane") => item::Element::Arcane as i32,
-        Some("earth") => item::Element::Earth as i32,
-        Some("wind") => item::Element::Wind as i32,
+        Some("fire") => Element::Fire as i32,
+        Some("ice") => Element::Ice as i32,
+        Some("lightning") => Element::Lightning as i32,
+        Some("poison") => Element::Poison as i32,
+        Some("shadow") => Element::Shadow as i32,
+        Some("holy") => Element::Holy as i32,
+        Some("arcane") => Element::Arcane as i32,
+        Some("earth") => Element::Earth as i32,
+        Some("wind") => Element::Wind as i32,
         _ => v.as_i64().unwrap_or(0) as i32,
     }
 }
 
 fn parse_equip_slot(v: Option<&Value>) -> i32 {
     match v.and_then(|v| v.as_str()) {
-        Some("head") => item::EquipSlot::Head as i32,
-        Some("chest") => item::EquipSlot::Chest as i32,
-        Some("legs") => item::EquipSlot::Legs as i32,
-        Some("feet") => item::EquipSlot::Feet as i32,
-        Some("hands") => item::EquipSlot::Hands as i32,
-        Some("main_hand") => item::EquipSlot::MainHand as i32,
-        Some("off_hand") => item::EquipSlot::OffHand as i32,
-        Some("neck") => item::EquipSlot::Neck as i32,
-        Some("ring") => item::EquipSlot::Ring as i32,
-        Some("back") => item::EquipSlot::Back as i32,
-        Some("two_hand") => item::EquipSlot::TwoHand as i32,
-        Some("ammo") => item::EquipSlot::Ammo as i32,
+        Some("head") => EquipSlot::Head as i32,
+        Some("chest") => EquipSlot::Chest as i32,
+        Some("legs") => EquipSlot::Legs as i32,
+        Some("feet") => EquipSlot::Feet as i32,
+        Some("hands") => EquipSlot::Hands as i32,
+        Some("main_hand") => EquipSlot::MainHand as i32,
+        Some("off_hand") => EquipSlot::OffHand as i32,
+        Some("neck") => EquipSlot::Neck as i32,
+        Some("ring") => EquipSlot::Ring as i32,
+        Some("back") => EquipSlot::Back as i32,
+        Some("two_hand") => EquipSlot::TwoHand as i32,
+        Some("ammo") => EquipSlot::Ammo as i32,
         _ => v.and_then(|v| v.as_i64()).unwrap_or(0) as i32,
     }
 }
 
 fn parse_use_effect_type(v: Option<&Value>) -> i32 {
     match v.and_then(|v| v.as_str()) {
-        Some("heal") => item::UseEffectType::UseEffectHeal as i32,
-        Some("damage_enemy") => item::UseEffectType::UseEffectDamageEnemy as i32,
-        Some("apply_effect") => item::UseEffectType::UseEffectApplyEffect as i32,
-        Some("remove_effect") => item::UseEffectType::UseEffectRemoveEffect as i32,
-        Some("guaranteed_flee") => item::UseEffectType::UseEffectGuaranteedFlee as i32,
-        Some("full_heal") => item::UseEffectType::UseEffectFullHeal as i32,
-        Some("remove_all_negative") => item::UseEffectType::UseEffectRemoveAllNegative as i32,
-        Some("campfire_rest") => item::UseEffectType::UseEffectCampfireRest as i32,
-        Some("teleport_city") => item::UseEffectType::UseEffectTeleportCity as i32,
-        Some("damage_and_apply") => item::UseEffectType::UseEffectDamageAndApply as i32,
-        Some("revive_ally") => item::UseEffectType::UseEffectReviveAlly as i32,
-        Some("buff_party") => item::UseEffectType::UseEffectBuffParty as i32,
-        Some("summon") => item::UseEffectType::UseEffectSummon as i32,
-        Some("transform") => item::UseEffectType::UseEffectTransform as i32,
+        Some("heal") => item::UseEffectType::Heal as i32,
+        Some("damage_enemy") => item::UseEffectType::DamageEnemy as i32,
+        Some("apply_effect") => item::UseEffectType::ApplyEffect as i32,
+        Some("remove_effect") => item::UseEffectType::RemoveEffect as i32,
+        Some("guaranteed_flee") => item::UseEffectType::GuaranteedFlee as i32,
+        Some("full_heal") => item::UseEffectType::FullHeal as i32,
+        Some("remove_all_negative") => item::UseEffectType::RemoveAllNegative as i32,
+        Some("campfire_rest") => item::UseEffectType::CampfireRest as i32,
+        Some("teleport_city") => item::UseEffectType::TeleportCity as i32,
+        Some("damage_and_apply") => item::UseEffectType::DamageAndApply as i32,
+        Some("revive_ally") => item::UseEffectType::ReviveAlly as i32,
+        Some("buff_party") => item::UseEffectType::BuffParty as i32,
+        Some("summon") => item::UseEffectType::Summon as i32,
+        Some("transform") => item::UseEffectType::Transform as i32,
         _ => v.and_then(|v| v.as_i64()).unwrap_or(0) as i32,
     }
 }
 
 fn parse_gear_special(v: Option<&Value>) -> i32 {
     match v.and_then(|v| v.as_str()) {
-        Some("life_steal") => item::GearSpecialType::GearSpecialLifeSteal as i32,
-        Some("thorns") => item::GearSpecialType::GearSpecialThorns as i32,
-        Some("crit_bonus") => item::GearSpecialType::GearSpecialCritBonus as i32,
-        Some("damage_reduction") => item::GearSpecialType::GearSpecialDamageReduction as i32,
+        Some("life_steal") => item::GearSpecialType::LifeSteal as i32,
+        Some("thorns") => item::GearSpecialType::Thorns as i32,
+        Some("crit_bonus") => item::GearSpecialType::CritBonus as i32,
+        Some("damage_reduction") => item::GearSpecialType::DamageReduction as i32,
         _ => v.and_then(|v| v.as_i64()).unwrap_or(0) as i32,
     }
 }
 
 fn parse_status_effect(v: Option<&Value>) -> i32 {
     match v.and_then(|v| v.as_str()) {
-        Some("poison") => item::StatusEffectKind::StatusEffectPoison as i32,
-        Some("burning") => item::StatusEffectKind::StatusEffectBurning as i32,
-        Some("bleed") => item::StatusEffectKind::StatusEffectBleed as i32,
-        Some("shielded") => item::StatusEffectKind::StatusEffectShielded as i32,
-        Some("weakened") => item::StatusEffectKind::StatusEffectWeakened as i32,
-        Some("stunned") => item::StatusEffectKind::StatusEffectStunned as i32,
-        Some("sharpened") => item::StatusEffectKind::StatusEffectSharpened as i32,
-        Some("thorns") => item::StatusEffectKind::StatusEffectThorns as i32,
-        Some("regen") => item::StatusEffectKind::StatusEffectRegen as i32,
-        Some("haste") => item::StatusEffectKind::StatusEffectHaste as i32,
-        Some("slow") => item::StatusEffectKind::StatusEffectSlow as i32,
-        Some("frozen") => item::StatusEffectKind::StatusEffectFrozen as i32,
-        Some("cursed") => item::StatusEffectKind::StatusEffectCursed as i32,
-        Some("blessed") => item::StatusEffectKind::StatusEffectBlessed as i32,
+        Some("poison") => item::StatusEffectKind::Poison as i32,
+        Some("burning") => item::StatusEffectKind::Burning as i32,
+        Some("bleed") => item::StatusEffectKind::Bleed as i32,
+        Some("shielded") => item::StatusEffectKind::Shielded as i32,
+        Some("weakened") => item::StatusEffectKind::Weakened as i32,
+        Some("stunned") => item::StatusEffectKind::Stunned as i32,
+        Some("sharpened") => item::StatusEffectKind::Sharpened as i32,
+        Some("thorns") => item::StatusEffectKind::Thorns as i32,
+        Some("regen") => item::StatusEffectKind::Regen as i32,
+        Some("haste") => item::StatusEffectKind::Haste as i32,
+        Some("slow") => item::StatusEffectKind::Slow as i32,
+        Some("frozen") => item::StatusEffectKind::Frozen as i32,
+        Some("cursed") => item::StatusEffectKind::Cursed as i32,
+        Some("blessed") => item::StatusEffectKind::Blessed as i32,
         _ => v.and_then(|v| v.as_i64()).unwrap_or(0) as i32,
     }
 }
@@ -336,13 +340,14 @@ fn parse_food(v: Option<&Value>) -> Option<item::FoodInfo> {
     })
 }
 
-fn parse_ingredient(v: &Value) -> Option<item::CraftingIngredient> {
+fn parse_ingredient(v: &Value) -> Option<ItemAmount> {
     let obj = v.as_object()?;
-    Some(item::CraftingIngredient {
+    Some(ItemAmount {
         item_ref: obj.get("item_ref")?.as_str()?.to_string(),
-        name: obj.get("name").and_then(|v| v.as_str()).map(String::from),
-        amount: obj.get("amount").and_then(|v| v.as_i64()).unwrap_or(1) as i32,
+        item_name: obj.get("name").and_then(|v| v.as_str()).map(String::from),
+        quantity: obj.get("amount").and_then(|v| v.as_i64()).unwrap_or(1) as u32,
         consumed: obj.get("consumed").and_then(|v| v.as_bool()),
+        ..Default::default()
     })
 }
 
@@ -514,7 +519,7 @@ fn parse_sources(v: Option<&Value>) -> Vec<item::ItemSource> {
         .unwrap_or_default()
 }
 
-fn parse_extensions(v: Option<&Value>) -> Vec<item::ItemExtension> {
+fn parse_extensions(v: Option<&Value>) -> Vec<Extension> {
     v.and_then(|v| v.as_array())
         .map(|arr| {
             arr.iter()
@@ -522,17 +527,17 @@ fn parse_extensions(v: Option<&Value>) -> Vec<item::ItemExtension> {
                     let obj = e.as_object()?;
                     let key = obj.get("key")?.as_str()?.to_string();
                     let value = if let Some(s) = obj.get("string_value").and_then(|v| v.as_str()) {
-                        Some(item::item_extension::Value::StringValue(s.to_string()))
+                        Some(extension::Value::StringValue(s.to_string()))
                     } else if let Some(n) = obj.get("int_value").and_then(|v| v.as_i64()) {
-                        Some(item::item_extension::Value::IntValue(n))
+                        Some(extension::Value::IntValue(n))
                     } else if let Some(n) = obj.get("float_value").and_then(|v| v.as_f64()) {
-                        Some(item::item_extension::Value::FloatValue(n))
+                        Some(extension::Value::FloatValue(n))
                     } else {
                         obj.get("bool_value")
                             .and_then(|v| v.as_bool())
-                            .map(item::item_extension::Value::BoolValue)
+                            .map(extension::Value::BoolValue)
                     };
-                    Some(item::ItemExtension { key, value })
+                    Some(Extension { key, value })
                 })
                 .collect()
         })
