@@ -34,13 +34,8 @@ import {
 	collectLocales,
 	encodeLocaleTables,
 } from './lib/i18n-slice.mjs';
-import {
-	toBinary,
-	fromJson,
-	fromBinary,
-	createFileRegistry,
-} from '@bufbuild/protobuf';
-import { FileDescriptorSetSchema } from '@bufbuild/protobuf/wkt';
+import { encodeRegistry } from './proto-encode.mjs';
+import { kbveProtoDescriptor } from './lib/proto-descriptor.mjs';
 import { main as generateXref } from './gen-professiondb-xref.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -49,7 +44,6 @@ const professiondbDir = resolve(
 	repoRoot,
 	'apps/kbve/astro-kbve/src/content/docs/professiondb',
 );
-const descriptorPath = resolve(__dirname, 'descriptors/professiondb.binpb');
 const generatedDir = resolve(__dirname, 'generated');
 const outputJsonPath = resolve(generatedDir, 'professiondb-data.json');
 const outputBinPath = resolve(generatedDir, 'professiondb-data.binpb');
@@ -223,21 +217,11 @@ function main() {
 	writeFileSync(outputJsonPath, JSON.stringify(registryJson, null, 2));
 	console.log(`Wrote ${outputJsonPath}`);
 
-	const descBytes = readFileSync(descriptorPath);
-	const fds = fromBinary(FileDescriptorSetSchema, descBytes);
-	const registry = createFileRegistry(fds);
-	const registryDesc = registry.getMessage('profession.ProfessionRegistry');
-	if (!registryDesc) {
-		console.error(
-			'FATAL: profession.ProfessionRegistry message descriptor not found in professiondb.binpb',
-		);
-		process.exit(1);
-	}
-
-	const msg = fromJson(registryDesc, registryJson, {
-		ignoreUnknownFields: true,
-	});
-	const wire = toBinary(registryDesc, msg);
+	const wire = encodeRegistry(
+		kbveProtoDescriptor(),
+		'kbve.profession.v1.ProfessionRegistry',
+		registryJson,
+	);
 	writeFileSync(outputBinPath, wire);
 	console.log(`Wrote ${outputBinPath} (${wire.length} bytes)`);
 
