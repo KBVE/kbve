@@ -390,7 +390,7 @@ message PartyScaling {
 // When this NPC exists in the world at all.
 message PhaseRule {
   optional int32 phase_id = 1;
-  repeated kbve.type.v1.Ulid prerequisite_quest_refs = 2;
+  repeated string prerequisite_quest_refs = 2;
   optional string event_ref = 3;
   // Time of day, 0 to 2359 on a 24 hour clock.
   optional int32 time_start = 4;
@@ -597,7 +597,7 @@ message Npc {
   optional FactionInfo faction = 40;
 
   // Quests this NPC offers or advances.
-  repeated kbve.type.v1.Ulid quest_refs = 41;
+  repeated string quest_refs = 41;
   optional string shop_inventory_ref = 42;
   // Shared kill-credit identifier for quest tracking.
   optional string kill_credit_ref = 43;
@@ -630,7 +630,7 @@ message Npc {
   // Conversations this NPC can hold. Each graph decides for itself which entry
   // point applies, so several NPCs may share one and the choice of opening line
   // belongs to the graph rather than to the NPC.
-  repeated kbve.type.v1.Ulid dialogue_graph_refs = 60;
+  repeated string dialogue_graph_refs = 60;
 }
 
 // Every NPC, as shipped to clients.
