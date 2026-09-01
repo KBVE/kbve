@@ -2,7 +2,7 @@
 	"FileVersion": 3,
 	"EngineAssociation": "5.8",
 	"Category": "",
-	"Description": "RareIcon — Unreal client. Simulation authority lives in Rust.",
+	"Description": "RareIcon \u2014 Unreal client. Simulation authority lives in Rust.",
 	"Modules": [
 		{
 			"Name": "RareIcon",
@@ -17,6 +17,10 @@
 		"../../../packages/unreal"
 	],
 	"Plugins": [
+		{
+			"Name": "KBVERareIconCore",
+			"Enabled": true
+		},
 		{
 			"Name": "ModelingToolsEditorMode",
 			"Enabled": true,

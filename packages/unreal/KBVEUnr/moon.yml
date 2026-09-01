@@ -1,0 +1,35 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+# Unreal binding for the `unr` Rust staticlib. Unlike the other ThirdParty
+# plugins here, the library it wraps is built from this repository rather than
+# vendored, so it carries a sync task instead of committed binaries.
+layer: 'library'
+language: 'cpp'
+tags: ['unreal']
+
+dependsOn:
+    - 'unr'
+
+env:
+    # Mac only for now: the staticlib is cross-compiled per platform and only
+    # the host target is wired up. Win64/Linux follow when their cargo targets
+    # are added to the sync task.
+    UE_SUPPORTED_PLATFORMS: 'Mac'
+
+tasks:
+    # Copies the built staticlib and the generated header into ThirdParty/.
+    # The header is committed in crates/unr, so only the binary is produced
+    # here -- keeping the two in lockstep is what makes the copy a task rather
+    # than a note in a README.
+    sync-unr:
+        deps: ['unr:build-release-macos']
+        script: >-
+            mkdir -p packages/unreal/KBVERareIconCore/ThirdParty/unr/lib/Mac &&
+            cp crates/unr/include/unr.h
+            packages/unreal/KBVERareIconCore/ThirdParty/unr/include/unr.h &&
+            cp dist/target/release/libunr.a
+            packages/unreal/KBVERareIconCore/ThirdParty/unr/lib/Mac/libunr.a &&
+            ls -lh packages/unreal/KBVERareIconCore/ThirdParty/unr/lib/Mac/libunr.a
+        options:
+            cache: false
+            runFromWorkspaceRoot: true

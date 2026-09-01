@@ -1,0 +1,89 @@
+# The Unreal-side FFI bridge. Sibling of `uniti`, which does the same job for
+# Unity: engine-agnostic logic crates in, one C ABI out.
+#
+layer: 'library'
+stack: 'frontend'
+toolchains:
+    default: 'rust'
+
+owners:
+    defaultOwner: '@h0lybyte'
+
+tasks:
+    # A build script means this crate must name it as an input itself -- the
+    # inherited rust tasks deliberately leave build.rs out of `sources`.
+    build:
+        inputs:
+            [
+                '@group(sources)',
+                '@group(manifests)',
+                'build.rs',
+                'cbindgen.toml',
+            ]
+    lint:
+        inputs:
+            [
+                '@group(sources)',
+                '@group(tests)',
+                '@group(manifests)',
+                'build.rs',
+            ]
+
+    # Regenerates the checked-in include/unr.h. Never cached: the header is a
+    # committed output, and a cache hit would leave it stale against the source
+    # it is generated from.
+    bindgen:
+        command: 'cargo build --features bindgen'
+        options:
+            cache: false
+
+    # Fails when the committed header does not match what the current FFI would
+    # generate -- the drift that otherwise surfaces as a link error in Unreal
+    # long after the change that caused it. Writes to a temp file rather than
+    # the tree, so a check never mutates what it is checking.
+    bindgen-check:
+        script: >-
+            out="$(mktemp -t unr_h)" &&
+            UNR_BINDGEN_OUT="$out" cargo build --features bindgen &&
+            diff -u include/unr.h "$out" &&
+            rm -f "$out"
+        options:
+            cache: false
+
+    # CI runs `moon ci ':lint' ':test'` and nothing else, so a check that is
+    # not reachable from one of those two never runs. Appended to the inherited
+    # cargo-test task rather than replacing it.
+    test:
+        deps: ['~:bindgen-check']
+        inputs:
+            [
+                '@group(sources)',
+                '@group(tests)',
+                '@group(manifests)',
+                'build.rs',
+            ]
+
+    # The check that matters for Unreal. `cargo test` links through rustc's own
+    # toolchain and would stay green even if the platform linker could not read
+    # the archive UBT is handed.
+    link-probe:
+        script: >-
+            cargo build -p unr --release &&
+            clang -I crates/unr/include crates/unr/tests/link_probe.c
+            dist/target/release/libunr.a -o dist/target/release/unr-link-probe
+            -framework CoreFoundation -framework Security &&
+            ./dist/target/release/unr-link-probe
+        options:
+            cache: false
+            runFromWorkspaceRoot: true
+
+    build-release-macos:
+        command: 'cargo build --release'
+        outputs:
+            - '/dist/target/release/libunr.a'
+
+# `crates` is the release lane: this crate publishes to crates.io. Separate
+# from the rust toolchain, which says what the project is built with rather
+# than what publishing it means -- the apps here are also rust and must never
+# reach a registry. Released by pushing the tag `unr@<Cargo.toml version>`.
+tags: ['crates']

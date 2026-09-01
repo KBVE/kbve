@@ -89,7 +89,7 @@ echo "==> raw stream : $RAW_LOG"
 echo "==> engine log : $UE_LOG"
 echo "==> issues     : $ISSUE_LOG"
 echo "==> friendly   : $FRIENDLY_LOG"
-echo "==> filtered console (LogRareIcon, warnings, errors) below:"
+echo "==> filtered console (LogRareIcon, LogKBVE*, warnings, errors) below:"
 echo ""
 
 ( for _ in $(seq 1 15); do
@@ -104,7 +104,7 @@ done ) &
 	-AbsLog="$UE_LOG" \
 	"$@" 2>&1 \
 	| tee "$RAW_LOG" \
-	| grep --line-buffered -E "LogRareIcon|Engine exit requested|$ISSUE_RE" \
+	| grep --line-buffered -E "LogRareIcon|LogKBVE|Engine exit requested|$ISSUE_RE" \
 	| tee "$FRIENDLY_LOG"
 
 EXIT=${PIPESTATUS[0]}
