@@ -729,7 +729,7 @@
       }
     },
     {
-      "id": "ZMTWXN4N0WQARDMGSMBTEKP3F9",
+      "id": "01M0EMJVBAQKXDWG0Z5KWFW2BJ",
       "ref": "flower-allium",
       "drafted": false,
       "name": "Allium",
@@ -753,7 +753,7 @@
       "professionActionRef": "gather-allium"
     },
     {
-      "id": "T4M7G2GHRK7022EZNG4BNHS2DZ",
+      "id": "01M0EMJVBABGN1RBXFMC6FE5ST",
       "ref": "flower-bell",
       "drafted": false,
       "name": "Bellflower",
@@ -777,7 +777,7 @@
       "professionActionRef": "gather-bellflower"
     },
     {
-      "id": "KG1M5ZPW3M70VJES2ED1Q3QCAV",
+      "id": "01M0EMJVBA2DXBW7FPX0FMVSR7",
       "ref": "flower-blue-orchid",
       "drafted": false,
       "name": "Blue Orchid",
@@ -801,7 +801,7 @@
       "professionActionRef": "gather-blue-orchid"
     },
     {
-      "id": "YTJHXQWVXXWYAMH2XBPMH1AMM1",
+      "id": "01M0EMJVBADA4993EMH8M9VCDY",
       "ref": "flower-cornflower",
       "drafted": false,
       "name": "Cornflower",
@@ -825,7 +825,7 @@
       "professionActionRef": "gather-cornflower"
     },
     {
-      "id": "J849VFHQA9NATMKVY5S6FJFJVP",
+      "id": "01M0EMJVBA44C5P86VYYWW35DT",
       "ref": "flower-daisy",
       "drafted": false,
       "name": "Daisy",
@@ -849,7 +849,7 @@
       "professionActionRef": "gather-daisy"
     },
     {
-      "id": "8XHEZJJRCCTH3GNEP31APKF39J",
+      "id": "01M0EMJVBA3DFQRT4K9S9SDPBK",
       "ref": "flower-lavender",
       "drafted": false,
       "name": "Lavender",
@@ -873,7 +873,7 @@
       "professionActionRef": "gather-lavender"
     },
     {
-      "id": "BY7MA5XBVADCC3N4NY093770DR",
+      "id": "01M0EMJVBA42FPXY7A4NMDDNGK",
       "ref": "flower-rose",
       "drafted": false,
       "name": "Rose",
@@ -897,7 +897,7 @@
       "professionActionRef": "gather-rose"
     },
     {
-      "id": "D1A6W724RPF55HZN0RQ4GGMFFR",
+      "id": "01M0EMJVBA0P9E5QVRXP1MPQW9",
       "ref": "flower-sunflower",
       "drafted": false,
       "name": "Sunflower",
@@ -921,7 +921,7 @@
       "professionActionRef": "gather-sunflower"
     },
     {
-      "id": "GPBTPZSPZ36QR5414BMPSRPZ2C",
+      "id": "01M0EMJVBAW4BFK7Z1NGVFY1S8",
       "ref": "flower-tulip",
       "drafted": false,
       "name": "Tulip",
@@ -945,7 +945,7 @@
       "professionActionRef": "gather-tulip"
     },
     {
-      "id": "9VFMM6VWQPFWG9FYV3ATJ809M1",
+      "id": "01M0EMJVBANPFT63XRDZ7KJJEE",
       "ref": "flower-wildflower",
       "drafted": false,
       "name": "Wildflower",
@@ -1641,7 +1641,7 @@
       "spawnCount": 7
     },
     {
-      "id": "XE131D1Y492BGGDPGX3VBVMBKV",
+      "id": "01M0EMJVBBVP1CFMK9P9KSJMWT",
       "ref": "mossy-rock",
       "drafted": false,
       "name": "Mossy Rock",
@@ -1687,7 +1687,7 @@
       "maxHealth": 1000
     },
     {
-      "id": "BQ221PCMR3MNX257XBGSGG6R6H",
+      "id": "01M0EMJVBBNZ5Z2BXYT1E3DFSB",
       "ref": "mushroom-chanterelle",
       "drafted": false,
       "name": "Chanterelle Mushroom",
@@ -1711,7 +1711,7 @@
       "professionActionRef": "gather-chanterelle"
     },
     {
-      "id": "THP7EVB0C1HPJZCXWFXR7GTJJM",
+      "id": "01M0EMJVBBT34M9EQ5689D1109",
       "ref": "mushroom-fly-agaric",
       "drafted": false,
       "name": "Fly Agaric Mushroom",
@@ -1759,7 +1759,7 @@
       "professionActionRef": "gather-porcini"
     },
     {
-      "id": "01KQ2WOYBMSI3R6MWOUO39Q8P5",
+      "id": "01KXSJA48TTD1THEE468Z21YRA",
       "ref": "nd-tower-basic",
       "drafted": false,
       "name": "Nexus Defense — Basic Tower",

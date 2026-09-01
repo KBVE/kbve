@@ -1,7 +1,7 @@
 {
 	"quests": [
 		{
-			"id": "01JX26AA1NSLIMESLAYER000001",
+			"id": "01JX26AA1N73T6GV0V3X8QAQF1",
 			"ref": "slime-slayer",
 			"title": "Slime Slayer",
 			"description": "The dungeon's lower tunnels are overrun with slimes. Clear them out to prove your worth.",
@@ -31,7 +31,7 @@
 			"triggers": ["player:level:1", "area:dungeon"]
 		},
 		{
-			"id": "01JX26BB2NDUNGEONDELVER0002",
+			"id": "01JX26BB2NFFTEC93ZFEHXTT1G",
 			"ref": "dungeon-delver",
 			"title": "Dungeon Delver",
 			"description": "Venture deep into the dungeon and explore its forgotten corridors.",
@@ -62,7 +62,7 @@
 			"next_quest_ref": "shadow-hunter"
 		},
 		{
-			"id": "01JX26CC3NSHADOWHUNTER00003",
+			"id": "01JX26CC3NNRA29CNQ2CF6CATR",
 			"ref": "shadow-hunter",
 			"title": "Shadow Hunter",
 			"description": "A powerful shadow wraith has been sighted in the deeper levels. Track it down and destroy it.",
@@ -116,7 +116,7 @@
 			"next_quest_ref": "kings-demise"
 		},
 		{
-			"id": "01JX26DD4NKINGSDEMISE000004",
+			"id": "01JX26DD4NKZBVXN4EPEBCHW6Y",
 			"ref": "kings-demise",
 			"title": "The King's Demise",
 			"description": "The Shattered King rules the deepest level of the dungeon. End his reign of terror.",
@@ -177,7 +177,7 @@
 			"triggers": ["quest:complete:shadow-hunter"]
 		},
 		{
-			"id": "01JX26EE5NTREASURESEEKER005",
+			"id": "01JX26EE5NCQQRVD9RJFW0RN3N",
 			"ref": "treasure-seeker",
 			"title": "Treasure Seeker",
 			"description": "The dungeon is filled with hidden riches. Collect gold from treasure rooms and enemy loot.",
@@ -213,7 +213,7 @@
 			"triggers": ["player:level:1", "area:dungeon"]
 		},
 		{
-			"id": "01JX26FF6NSURVIVOR00000006",
+			"id": "01JX26FF6NN1G2FP0WN4GJNGN4",
 			"ref": "survivor",
 			"title": "Survivor",
 			"description": "The dungeon is merciless. Prove you can endure by clearing rooms without falling in battle.",

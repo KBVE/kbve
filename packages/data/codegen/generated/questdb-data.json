@@ -53,7 +53,7 @@
       "nextQuestRef": null
     },
     {
-      "id": "01JX26BB2NDUNGEONDELVER0002",
+      "id": "01JX26BB2NFFTEC93ZFEHXTT1G",
       "ref": "dungeon-delver",
       "drafted": false,
       "title": "Dungeon Delver",
@@ -92,7 +92,7 @@
       "nextQuestRef": "shadow-hunter"
     },
     {
-      "id": "01KSAVZ00000000000QFSBITTERRT",
+      "id": "01KSAVZ000N59M47ZVR3JPP10E",
       "ref": "friendslop-bitterroot",
       "drafted": false,
       "title": "Word from the Riverbank",
@@ -158,7 +158,7 @@
       "nextQuestRef": null
     },
     {
-      "id": "01KSAVZ000000000000QFSMECHWCH",
+      "id": "01KSAVZ0008C8RNWNF6E7APNJV",
       "ref": "friendslop-mech-watch",
       "drafted": false,
       "title": "What the Mechs Are Waiting For",
@@ -225,7 +225,7 @@
       "nextQuestRef": null
     },
     {
-      "id": "01KSAVZ0000000000000QFSPLANK",
+      "id": "01KSAVZ000T23Q3PFSY3N4TCTW",
       "ref": "friendslop-third-plank",
       "drafted": false,
       "title": "Mind the Third Plank",
@@ -288,7 +288,7 @@
       "nextQuestRef": null
     },
     {
-      "id": "01JX26DD4NKINGSDEMISE000004",
+      "id": "01JX26DD4NKZBVXN4EPEBCHW6Y",
       "ref": "kings-demise",
       "drafted": false,
       "title": "The King's Demise",
@@ -362,7 +362,7 @@
       "nextQuestRef": null
     },
     {
-      "id": "01JX26CC3NSHADOWHUNTER00003",
+      "id": "01JX26CC3NNRA29CNQ2CF6CATR",
       "ref": "shadow-hunter",
       "drafted": false,
       "title": "Shadow Hunter",
@@ -427,7 +427,7 @@
       "nextQuestRef": "kings-demise"
     },
     {
-      "id": "01JX26AA1NSLIMESLAYER000001",
+      "id": "01JX26AA1N73T6GV0V3X8QAQF1",
       "ref": "slime-slayer",
       "drafted": false,
       "title": "Slime Slayer",
@@ -466,7 +466,7 @@
       "nextQuestRef": null
     },
     {
-      "id": "01JX26FF6NSURVIVOR00000006",
+      "id": "01JX26FF6NN1G2FP0WN4GJNGN4",
       "ref": "survivor",
       "drafted": false,
       "title": "Survivor",
@@ -511,7 +511,7 @@
       "nextQuestRef": null
     },
     {
-      "id": "01JX26EE5NTREASURESEEKER005",
+      "id": "01JX26EE5NCQQRVD9RJFW0RN3N",
       "ref": "treasure-seeker",
       "drafted": false,
       "title": "Treasure Seeker",
