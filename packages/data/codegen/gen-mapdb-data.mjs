@@ -34,13 +34,8 @@ import {
 	collectLocales,
 	encodeLocaleTables,
 } from './lib/i18n-slice.mjs';
-import {
-	fromBinary,
-	toBinary,
-	fromJson,
-	createFileRegistry,
-} from '@bufbuild/protobuf';
-import { FileDescriptorSetSchema } from '@bufbuild/protobuf/wkt';
+import { encodeRegistry } from './proto-encode.mjs';
+import { kbveProtoDescriptor } from './lib/proto-descriptor.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');
@@ -48,7 +43,6 @@ const mapdbDir = resolve(
 	repoRoot,
 	'apps/kbve/astro-kbve/src/content/docs/mapdb',
 );
-const descriptorPath = resolve(__dirname, 'descriptors/mapdb.binpb');
 const generatedDir = resolve(__dirname, 'generated');
 const outputJsonPath = resolve(generatedDir, 'mapdb-data.json');
 const outputBinPath = resolve(generatedDir, 'mapdb-data.binpb');
@@ -155,21 +149,11 @@ function main() {
 	console.log(`Wrote ${outputJsonPath}`);
 
 	// 2. Encode to proto binary via the descriptor + bufbuild reflection
-	const descBytes = readFileSync(descriptorPath);
-	const fds = fromBinary(FileDescriptorSetSchema, descBytes);
-	const registry = createFileRegistry(fds);
-	const mapRegistryDesc = registry.getMessage('map.MapRegistry');
-	if (!mapRegistryDesc) {
-		console.error(
-			'FATAL: map.MapRegistry message descriptor not found in mapdb.binpb',
-		);
-		process.exit(1);
-	}
-
-	const msg = fromJson(mapRegistryDesc, registryJson, {
-		ignoreUnknownFields: true,
-	});
-	const wire = toBinary(mapRegistryDesc, msg);
+	const wire = encodeRegistry(
+		kbveProtoDescriptor(),
+		'kbve.map.v1.MapRegistry',
+		registryJson,
+	);
 	writeFileSync(outputBinPath, wire);
 	console.log(`Wrote ${outputBinPath} (${wire.length} bytes)`);
 
