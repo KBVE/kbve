@@ -28,6 +28,10 @@
 			"import": "./astro.es.js",
 			"types": "./index.d.ts"
 		},
+		"./content/external-docs": {
+			"import": "./content/external-docs.js",
+			"types": "./content/external-docs.d.ts"
+		},
 		"./sitemap/lastmod": {
 			"import": "./sitemap/lastmod.mjs"
 		},

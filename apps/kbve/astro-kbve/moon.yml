@@ -15,16 +15,19 @@ tasks:
         script: 'rm -rf .astro node_modules/.vite node_modules/.astro ../../../node_modules/.vite && astro sync && UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=8192" astro dev'
     build:
         script: 'UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=8192" astro build'
+        inputs: ['**/*', '/docs/legal/**/*']
         deps: ['~:proto']
         outputs: ['/dist/apps/astro-kbve']
     build-osrs:
         script: 'node scripts/generate-osrs-items.mjs && astro sync && UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=8192" astro build'
+        inputs: ['**/*', '/docs/legal/**/*']
         deps: ['~:proto']
     preview:
         script: 'astro preview'
         deps: ['~:build']
     check:
         script: 'astro check'
+        inputs: ['**/*', '/docs/legal/**/*']
         deps: ['~:proto']
     test:
         script: 'vitest run --config vitest.config.ts'

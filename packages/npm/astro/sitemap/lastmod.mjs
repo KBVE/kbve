@@ -55,6 +55,7 @@ export function createSitemapLastmod(options = {}) {
 		srcDir = 'src',
 		contentCollections = { docs: '/' },
 		pagesDir = 'pages',
+		extraRoots = [],
 		base = '/',
 	} = options;
 
@@ -72,12 +73,18 @@ export function createSitemapLastmod(options = {}) {
 			const src = path.join(appDir, srcDir);
 			const dates = commitDates(repoRoot, [
 				path.relative(repoRoot, src) || '.',
+				...extraRoots.map(
+					({ dir }) =>
+						path.relative(repoRoot, path.resolve(appDir, dir)) ||
+						'.',
+				),
 			]);
 			const routes = collectRoutes({
 				appDir,
 				srcDir,
 				contentCollections,
 				pagesDir,
+				extraRoots,
 			});
 			for (const [route, file] of routes) {
 				const key = path

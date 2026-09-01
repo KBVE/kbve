@@ -141,6 +141,7 @@ export default defineConfig({
 				'react-dom',
 				'react/jsx-runtime',
 				'astro',
+				/^astro\//,
 				'@kbve/droid',
 				'd3-force',
 				'nanostores',

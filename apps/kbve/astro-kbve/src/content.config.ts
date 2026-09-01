@@ -2,6 +2,7 @@ import { defineCollection } from 'astro:content';
 import { z } from 'astro/zod';
 import { docsSchema } from '@astrojs/starlight/schema';
 import { docsLoader } from '@astrojs/starlight/loaders';
+import { withExternalDocs } from '@kbve/astro/content/external-docs';
 // TODO: Re-enable once starlight-site-graph supports Zod 4 / Astro 6
 // import { pageSiteGraphSchema } from 'starlight-site-graph/schema';
 import { glob } from 'astro/loaders';
@@ -27,6 +28,10 @@ import {
 import { ProjectSchemaWithEngine } from '@/data/ci/project-schema';
 
 const OSRSFrontmatterSchema = OSRSExtendedSchema;
+
+const EXTERNAL_DOCS_SECTIONS = [
+	{ prefix: 'legal', base: '../../../docs/legal' },
+];
 
 export function validateItemUniqueness(items: z.infer<typeof IObjectSchema>[]) {
 	const seenIds = new Set<string>();
@@ -129,7 +134,7 @@ const tiledb = defineCollection({
 
 export const collections = {
 	docs: defineCollection({
-		loader: docsLoader(),
+		loader: withExternalDocs(docsLoader(), EXTERNAL_DOCS_SECTIONS),
 		schema: docsSchema({
 			extend: z.object({
 				canonical: z.string().url().optional(),
