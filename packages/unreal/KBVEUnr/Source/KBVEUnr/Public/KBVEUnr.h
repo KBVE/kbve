@@ -2,13 +2,13 @@
 
 #include "CoreMinimal.h"
 
-KBVERAREICONCORE_API DECLARE_LOG_CATEGORY_EXTERN(LogKBVERareIconCore, Log, All);
+KBVEUNR_API DECLARE_LOG_CATEGORY_EXTERN(LogKBVEUnr, Log, All);
 
 /**
  * Thin C++ face over the `unr` Rust staticlib. Keeps the C ABI out of gameplay
  * code: everything above this converts to Unreal types here and nowhere else.
  */
-class KBVERAREICONCORE_API FKBVERareIconCore
+class KBVEUNR_API FKBVEUnr
 {
 public:
 	/** Version string reported by the linked Rust library. */

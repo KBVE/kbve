@@ -29,5 +29,6 @@
 //! [`cbindgen`]: https://github.com/mozilla/cbindgen
 #![allow(clippy::missing_safety_doc)]
 
+pub mod ffi_chunk;
 pub mod ffi_probe;
 pub mod runtime;

@@ -1,9 +1,9 @@
 using UnrealBuildTool;
 using System.IO;
 
-public class KBVERareIconCore : ModuleRules
+public class KBVEUnr : ModuleRules
 {
-	public KBVERareIconCore(ReadOnlyTargetRules Target) : base(Target)
+	public KBVEUnr(ReadOnlyTargetRules Target) : base(Target)
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 
@@ -24,8 +24,8 @@ public class KBVERareIconCore : ModuleRules
 		if (!File.Exists(LibPath))
 		{
 			throw new BuildException(
-				"KBVERareIconCore: missing " + LibPath +
-				"\nBuild it first: moon run KBVERareIconCore:sync-unr");
+				"KBVEUnr: missing " + LibPath +
+				"\nBuild it first: moon run KBVEUnr:sync-unr");
 		}
 
 		PublicAdditionalLibraries.Add(LibPath);

@@ -24,12 +24,12 @@ tasks:
     sync-unr:
         deps: ['unr:build-release-macos']
         script: >-
-            mkdir -p packages/unreal/KBVERareIconCore/ThirdParty/unr/lib/Mac &&
+            mkdir -p packages/unreal/KBVEUnr/ThirdParty/unr/lib/Mac &&
             cp crates/unr/include/unr.h
-            packages/unreal/KBVERareIconCore/ThirdParty/unr/include/unr.h &&
+            packages/unreal/KBVEUnr/ThirdParty/unr/include/unr.h &&
             cp dist/target/release/libunr.a
-            packages/unreal/KBVERareIconCore/ThirdParty/unr/lib/Mac/libunr.a &&
-            ls -lh packages/unreal/KBVERareIconCore/ThirdParty/unr/lib/Mac/libunr.a
+            packages/unreal/KBVEUnr/ThirdParty/unr/lib/Mac/libunr.a &&
+            ls -lh packages/unreal/KBVEUnr/ThirdParty/unr/lib/Mac/libunr.a
         options:
             cache: false
             runFromWorkspaceRoot: true

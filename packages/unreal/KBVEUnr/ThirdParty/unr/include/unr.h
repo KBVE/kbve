@@ -11,9 +11,101 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+/**
+ * Samples per chunk edge. 33 = 32 cells + 1 shared border vertex, matching
+ * the `CellsPerEdge = 32` the Unreal chunk actor already uses.
+ */
+#define UNR_CHUNK_EDGE 33
+
+/**
+ * Total samples in one chunk payload.
+ */
+#define UNR_CHUNK_SAMPLES (UNR_CHUNK_EDGE * UNR_CHUNK_EDGE)
+
+/**
+ * Job finished and its payload is waiting for `unr_chunk_copy_into`.
+ */
+#define UNR_CHUNK_OK 0
+
+/**
+ * Job was cancelled before it finished. No payload is retained.
+ */
+#define UNR_CHUNK_CANCELLED 1
+
+/**
+ * One completion record. Plain data by value -- no pointers cross in here, so
+ * the host can memcpy an array of these without lifetime questions.
+ */
+typedef struct UnrChunkDone {
+  uint64_t ticket;
+  uint32_t seed;
+  int32_t cx;
+  int32_t cy;
+  /**
+   * Samples available to copy. Zero when `status` is not `UNR_CHUNK_OK`.
+   */
+  uint32_t samples;
+  uint32_t status;
+} UnrChunkDone;
+
 #ifdef __cplusplus
 extern "C" {
 #endif // __cplusplus
+
+/**
+ * Queue a chunk bake. Returns a ticket immediately; never blocks.
+ */
+uint64_t unr_chunk_submit(uint32_t seed, int32_t cx, int32_t cy);
+
+/**
+ * Copy up to `cap` completion records into `out`, returning how many were
+ * written. Non-blocking; returns 0 when nothing has finished.
+ *
+ * `cap` is the per-tick budget: a burst of completions spreads over frames
+ * instead of spiking one.
+ *
+ * # Safety
+ *
+ * `out` must point to at least `cap` writable `UnrChunkDone` slots.
+ */
+uint32_t unr_drain_completed(struct UnrChunkDone *out, uint32_t cap);
+
+/**
+ * Copy a finished payload into caller-owned memory and release it.
+ *
+ * The host allocates, so nothing crosses the allocator boundary and there is
+ * no matching free to forget. Returns false when the ticket has no payload or
+ * `len` does not match exactly; the payload is retained on a length mismatch
+ * so a correctly sized retry still works.
+ *
+ * # Safety
+ *
+ * `out` must point to at least `len` writable `f32` slots.
+ */
+bool unr_chunk_copy_into(uint64_t ticket, float *out, uint32_t len);
+
+/**
+ * Ask a job to stop. Best effort: a bake already past its last cancel check
+ * still completes, and reports `UNR_CHUNK_OK`.
+ */
+void unr_chunk_cancel(uint64_t ticket);
+
+/**
+ * Drop a finished payload without copying it -- for results that arrived after
+ * the host stopped caring. Without this, abandoning tickets leaks.
+ */
+void unr_chunk_release(uint64_t ticket);
+
+/**
+ * Samples the host must size its buffer for.
+ */
+uint32_t unr_chunk_samples(void);
+
+/**
+ * Payloads finished but not yet copied or released. Diagnostics -- a number
+ * that only grows means the host is dropping tickets.
+ */
+uint32_t unr_chunk_retained(void);
 
 /**
  * Crate version as a NUL-terminated static string.

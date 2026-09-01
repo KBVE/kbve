@@ -2,8 +2,8 @@
 	"FileVersion": 3,
 	"Version": 1,
 	"VersionName": "0.1.0",
-	"FriendlyName": "KBVE RareIcon Core",
-	"Description": "Unreal binding for the `unr` Rust staticlib — deterministic world generation and game logic shared with the headless server.",
+	"FriendlyName": "KBVE Unr",
+	"Description": "Unreal binding for the `unr` Rust staticlib: one C ABI over the KBVE game-logic crates, shared with the headless server. Game-agnostic.",
 	"Category": "KBVE",
 	"CreatedBy": "KBVE",
 	"CreatedByURL": "https://kbve.com",
@@ -16,7 +16,7 @@
 	"EnabledByDefault": false,
 	"Modules": [
 		{
-			"Name": "KBVERareIconCore",
+			"Name": "KBVEUnr",
 			"Type": "Runtime",
 			"LoadingPhase": "Default"
 		}

@@ -1,4 +1,4 @@
-#include "KBVERareIconCore.h"
+#include "KBVEUnr.h"
 
 #include "HAL/IConsoleManager.h"
 #include "Modules/ModuleManager.h"
@@ -7,30 +7,30 @@ THIRD_PARTY_INCLUDES_START
 #include "unr.h"
 THIRD_PARTY_INCLUDES_END
 
-DEFINE_LOG_CATEGORY(LogKBVERareIconCore);
+DEFINE_LOG_CATEGORY(LogKBVEUnr);
 
-FString FKBVERareIconCore::Version()
+FString FKBVEUnr::Version()
 {
 	return FString(ANSI_TO_TCHAR(unr_version()));
 }
 
-int32 FKBVERareIconCore::Add(int32 A, int32 B)
+int32 FKBVEUnr::Add(int32 A, int32 B)
 {
 	return unr_add(A, B);
 }
 
-uint64 FKBVERareIconCore::RuntimeProbe(uint32 N)
+uint64 FKBVEUnr::RuntimeProbe(uint32 N)
 {
 	return unr_runtime_probe(N);
 }
 
-static void KBVERareIconCoreProbe()
+static void KBVEUnrProbe()
 {
-	const FString Version = FKBVERareIconCore::Version();
-	const int32 Sum = FKBVERareIconCore::Add(2, 40);
-	const uint64 Probe = FKBVERareIconCore::RuntimeProbe(10);
+	const FString Version = FKBVEUnr::Version();
+	const int32 Sum = FKBVEUnr::Add(2, 40);
+	const uint64 Probe = FKBVEUnr::RuntimeProbe(10);
 
-	UE_LOG(LogKBVERareIconCore, Display,
+	UE_LOG(LogKBVEUnr, Display,
 		TEXT("unr probe: version=%s add(2,40)=%d runtime_probe(10)=%llu"),
 		*Version, Sum, Probe);
 
@@ -38,17 +38,17 @@ static void KBVERareIconCoreProbe()
 	// rather than leaving a human to compare three numbers by eye.
 	if (Sum == 42 && Probe == 45 && !Version.IsEmpty())
 	{
-		UE_LOG(LogKBVERareIconCore, Display, TEXT("unr probe: OK"));
+		UE_LOG(LogKBVEUnr, Display, TEXT("unr probe: OK"));
 	}
 	else
 	{
-		UE_LOG(LogKBVERareIconCore, Error, TEXT("unr probe: FAILED"));
+		UE_LOG(LogKBVEUnr, Error, TEXT("unr probe: FAILED"));
 	}
 }
 
-static FAutoConsoleCommand GKBVERareIconCoreProbeCmd(
+static FAutoConsoleCommand GKBVEUnrProbeCmd(
 	TEXT("unr.Probe"),
 	TEXT("Call into the unr Rust staticlib and log version / add / runtime probe."),
-	FConsoleCommandDelegate::CreateStatic(&KBVERareIconCoreProbe));
+	FConsoleCommandDelegate::CreateStatic(&KBVEUnrProbe));
 
-IMPLEMENT_MODULE(FDefaultModuleImpl, KBVERareIconCore)
+IMPLEMENT_MODULE(FDefaultModuleImpl, KBVEUnr)
