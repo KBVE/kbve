@@ -4,6 +4,12 @@ layer: 'application'
 language: 'typescript'
 tags: ['unreal-game', 'ue5-server']
 
+# The game module links KBVEUnr, whose staticlib is built from crates/unr
+# rather than committed. Declaring it means a fresh clone builds instead of
+# hitting the Build.cs "missing libunr.a" guard.
+dependsOn:
+    - 'KBVEUnr'
+
 tasks:
     lfs-push:
         script: './kbve.sh -lfs rareicon push'
@@ -26,18 +32,22 @@ tasks:
     # A moon cache hit would report success without relinking the module the
     # editor then loads, so these never cache.
     build-editor:
+        deps: ['KBVEUnr:sync-unr']
         script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" RareIconEditor Mac Development "$PWD/RareIcon.uproject"'
         options:
             cache: false
     build-game:
+        deps: ['KBVEUnr:sync-unr']
         script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" RareIcon Mac Development "$PWD/RareIcon.uproject"'
         options:
             cache: false
     build-server:
+        deps: ['KBVEUnr:sync-unr']
         script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" RareIconServer Mac Development "$PWD/RareIcon.uproject"'
         options:
             cache: false
     compile:
+        deps: ['KBVEUnr:sync-unr']
         script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" RareIconEditor Mac Development "$PWD/RareIcon.uproject"'
         options:
             cache: false
@@ -74,7 +84,13 @@ tasks:
 env:
     # The engine configuration this project builds with, in the shape the
     # build workflows already take.
-    ENGINE_CONFIG: '{"version":"5.8.0","project_path":"apps/rareicon/unreal-rareicon","build_targets":["Win64","Linux"]}'
+    #
+    # Mac only, and that is a constraint rather than a preference: the game
+    # module links KBVEUnr, and `libunr.a` is cross-compiled per platform with
+    # only the host target wired up so far. Declaring Win64/Linux here would
+    # hand CI a build that fails in Build.cs on a missing library. Widen this
+    # and KBVEUnr's UE_SUPPORTED_PLATFORMS together, never separately.
+    ENGINE_CONFIG: '{"version":"5.8.0","project_path":"apps/rareicon/unreal-rareicon","build_targets":["Mac"]}'
     # The monorepo shell ci-unreal-build.yml reads build.toml from.
     UE_SHELL_PATH: 'apps/rareicon/unreal-rareicon'
     # Not the default two-core hosted runner: an Unreal compile.
