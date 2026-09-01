@@ -1,6 +1,8 @@
 syntax = "proto3";
 package jobboard;
 
+import "kbve/profile.proto";
+
 message MediaAttachment {
   string url = 1;
   int32 media_type = 2;
@@ -104,6 +106,9 @@ message TalentProfile {
   repeated uint64 tool_ids       = 10;
   repeated uint64 skill_ids      = 11;
   string updated_at = 12;
+
+  // Extended profile data (bio, location, avatar, links) from central profile.extended_profiles
+  optional kbve.profile.ExtendedProfile extended = 13;
 }
 
 message ClientProfile {
@@ -242,17 +247,12 @@ message ByUser   { bytes  user_id = 1; }
 message Ack      { bool success = 1; string message = 2; }
 
 // Membership API envelope: string ids so one message serves REST JSON + gRPC.
-message ProfileLink {
-  string kind = 1; // github/linkedin/website/x/itch/artstation/other
-  string url  = 2;
-}
-
 message ProfileDraft {
   optional string headline         = 1;
   optional string bio              = 2;
   optional int32  years_experience = 3;
   optional string location         = 4;
-  repeated ProfileLink links       = 5;
+  repeated kbve.profile.ProfileLink links = 5;  // Reuse shared ProfileLink from kbve.profile
   repeated uint64 discipline_ids   = 6;
 }
 

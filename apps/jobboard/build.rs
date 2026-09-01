@@ -14,7 +14,6 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .out_dir(out_dir);
 
     for msg in [
-        "ProfileLink",
         "ProfileDraft",
         "MembershipApplicationView",
         "AdminApplicationView",
@@ -23,6 +22,14 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     ] {
         builder = builder.type_attribute(
             format!(".jobboard.{msg}"),
+            "#[derive(serde::Serialize, serde::Deserialize)]",
+        );
+    }
+
+    // Add serde to kbve.profile types
+    for msg in ["ProfileLink", "ExtendedProfile"] {
+        builder = builder.type_attribute(
+            format!(".kbve.profile.{msg}"),
             "#[derive(serde::Serialize, serde::Deserialize)]",
         );
     }
@@ -45,7 +52,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         );
     }
     builder.compile_protos(
-        &[format!("{proto_root}/jobboard/jobboard.proto")],
+        &[
+            format!("{proto_root}/jobboard/jobboard.proto"),
+            format!("{proto_root}/kbve/profile.proto"),
+        ],
         &[proto_root.to_string()],
     )?;
 

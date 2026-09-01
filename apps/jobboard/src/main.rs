@@ -19,6 +19,14 @@ pub mod proto {
     pub mod jobboard {
         include!("proto/jobboard.rs");
     }
+    pub mod kbve {
+        pub mod profile {
+            include!("proto/kbve.profile.rs");
+        }
+        pub mod common {
+            include!("proto/kbve.common.rs");
+        }
+    }
 }
 
 #[tokio::main]
