@@ -19,9 +19,18 @@ static RUNTIME: OnceLock<Runtime> = OnceLock::new();
 /// call this is a single atomic load.
 pub fn shared_runtime() -> &'static Runtime {
     RUNTIME.get_or_init(|| {
+        // Half the machine, floor 2, ceiling 8. The host is a game engine with
+        // its own game, render and task-graph threads; taking every core would
+        // win the bake and lose the frame. One async worker is enough because
+        // no CPU work runs there -- bakes go to the blocking pool.
+        let cores = std::thread::available_parallelism()
+            .map(|n| n.get())
+            .unwrap_or(4);
+        let blocking = (cores / 2).clamp(2, 8);
+
         Builder::new_multi_thread()
             .worker_threads(1)
-            .max_blocking_threads(4)
+            .max_blocking_threads(blocking)
             .enable_time()
             .thread_name("unr-rt")
             .build()

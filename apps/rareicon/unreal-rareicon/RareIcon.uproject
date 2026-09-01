@@ -18,7 +18,11 @@
 	],
 	"Plugins": [
 		{
-			"Name": "KBVERareIconCore",
+			"Name": "KBVEUnr",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEWorld",
 			"Enabled": true
 		},
 		{

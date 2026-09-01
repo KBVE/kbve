@@ -9,7 +9,9 @@ public class KBVEUnr : ModuleRules
 
 		PublicDependencyModuleNames.AddRange(new string[]
 		{
-			"Core"
+			"Core",
+			"CoreUObject",
+			"Engine"
 		});
 
 		string ThirdPartyDir = Path.Combine(ModuleDirectory, "..", "..", "ThirdParty", "unr");

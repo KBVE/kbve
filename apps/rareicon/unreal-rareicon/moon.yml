@@ -9,6 +9,7 @@ tags: ['unreal-game', 'ue5-server']
 # hitting the Build.cs "missing libunr.a" guard.
 dependsOn:
     - 'KBVEUnr'
+    - 'KBVEWorld'
 
 tasks:
     lfs-push:

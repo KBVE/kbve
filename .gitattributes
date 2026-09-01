@@ -34,6 +34,34 @@ apps/godot/**/addons/**/bin/**/*.wasm  filter=lfs diff=lfs merge=lfs -text
 # time with no LFS pull. Plugin libs are pinned third-party versions that change
 # rarely, so the history cost is acceptable for the zero-friction download.
 
+# Unreal Engine — apps/rareicon/unreal-rareicon binary assets
+# Pointer files live in this repo; blobs live on git.kbve.com/KBVE/rareicon.git
+# (see apps/rareicon/unreal-rareicon/.lfsconfig, and the repo-root .lfsconfig
+# which already defaults to that endpoint). Added before the first level was
+# saved: without it a .umap lands in plain git on GitHub, and rewriting that
+# out of history later is far more work than one rule now.
+# UE cooked / serialized assets
+apps/rareicon/unreal-rareicon/**/*.uasset filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal-rareicon/**/*.umap   filter=lfs diff=lfs merge=lfs -text
+# Raw 3D / DCC source art
+apps/rareicon/unreal-rareicon/**/*.fbx    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal-rareicon/**/*.obj    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal-rareicon/**/*.blend  filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal-rareicon/**/*.psd    filter=lfs diff=lfs merge=lfs -text
+# Textures
+apps/rareicon/unreal-rareicon/**/*.png    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal-rareicon/**/*.jpg    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal-rareicon/**/*.jpeg   filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal-rareicon/**/*.tga    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal-rareicon/**/*.exr    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal-rareicon/**/*.hdr    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal-rareicon/**/*.r16    filter=lfs diff=lfs merge=lfs -text
+# Audio
+apps/rareicon/unreal-rareicon/**/*.wav    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal-rareicon/**/*.mp3    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal-rareicon/**/*.ogg    filter=lfs diff=lfs merge=lfs -text
+apps/rareicon/unreal-rareicon/**/*.flac   filter=lfs diff=lfs merge=lfs -text
+
 # Unreal Engine — apps/rentearth/unreal-rentearth binary assets
 # Pointer files live in this repo; blobs live on git.kbve.com/KBVE/rentearth.git
 # (see apps/rentearth/unreal-rentearth/.lfsconfig). Routes through git.kbve.com

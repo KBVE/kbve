@@ -17,7 +17,8 @@ public class RareIcon : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[] {
 			"Json",
 			"JsonUtilities",
-			"KBVERareIconCore"
+			"KBVEUnr",
+			"KBVEWorldCore"
 		});
 
 		PublicIncludePaths.AddRange(new string[] {
