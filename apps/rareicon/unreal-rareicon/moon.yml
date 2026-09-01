@@ -1,18 +1,81 @@
 $schema: 'https://moonrepo.dev/schemas/project.json'
 
-# The monorepo shell for the RareIcon dedicated server. The Unreal project
-# itself lives in a fork; what is here is the version this repository releases
-# and the build configuration ci-unreal-build.yml reads from build.toml.
-#
-# `ue5-server` is the release lane: a server build, not a game client, so it
-# has no itch or Steam target.
 layer: 'application'
-language: 'unknown'
-tags: ['ue5-server']
+language: 'typescript'
+tags: ['unreal-game', 'ue5-server']
+
+tasks:
+    lfs-push:
+        script: './kbve.sh -lfs rareicon push'
+        options:
+            runFromWorkspaceRoot: true
+    lfs-pull:
+        script: './kbve.sh -lfs rareicon pull'
+        options:
+            runFromWorkspaceRoot: true
+    lfs-fetch:
+        script: './kbve.sh -lfs rareicon fetch --all'
+        options:
+            runFromWorkspaceRoot: true
+    lfs-register:
+        script: './kbve.sh -lfs rareicon register'
+        options:
+            runFromWorkspaceRoot: true
+    # UBT decides for itself what needs recompiling, and it reads state moon
+    # cannot see -- the engine install and every plugin under packages/unreal.
+    # A moon cache hit would report success without relinking the module the
+    # editor then loads, so these never cache.
+    build-editor:
+        script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" RareIconEditor Mac Development "$PWD/RareIcon.uproject"'
+        options:
+            cache: false
+    build-game:
+        script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" RareIcon Mac Development "$PWD/RareIcon.uproject"'
+        options:
+            cache: false
+    build-server:
+        script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" RareIconServer Mac Development "$PWD/RareIcon.uproject"'
+        options:
+            cache: false
+    compile:
+        script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" RareIconEditor Mac Development "$PWD/RareIcon.uproject"'
+        options:
+            cache: false
+    regen-project-files:
+        script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh" -project="$PWD/RareIcon.uproject" -game -engine'
+        options:
+            cache: false
+    # Launch only. Assumes the module is already built -- the script says so
+    # rather than letting the editor crash on a missing dylib.
+    launch-editor:
+        script: './apps/rareicon/unreal-rareicon/scripts/launch-editor.sh'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            persistent: true
+    # The one to use day to day: compile the C++, then launch what was built.
+    dev:
+        deps: ['~:build-editor']
+        script: './apps/rareicon/unreal-rareicon/scripts/launch-editor.sh'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            persistent: true
+    open:
+        script: 'open apps/rareicon/unreal-rareicon/RareIcon.uproject'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    clean:
+        script: 'rm -rf Binaries Build DerivedDataCache Intermediate Saved'
+    clangd-db:
+        script: 'cd ../../../packages/python/kbve && uv run kbve-unreal-clangd'
 
 env:
+    # The engine configuration this project builds with, in the shape the
+    # build workflows already take.
+    ENGINE_CONFIG: '{"version":"5.8.0","project_path":"apps/rareicon/unreal-rareicon","build_targets":["Win64","Linux"]}'
     # The monorepo shell ci-unreal-build.yml reads build.toml from.
     UE_SHELL_PATH: 'apps/rareicon/unreal-rareicon'
-
-    # Not the default two-core hosted runner: an Unreal server compile.
+    # Not the default two-core hosted runner: an Unreal compile.
     CI_RUNNER: 'arc-runner-ue'

@@ -1,6 +1,6 @@
 [project]
-repo = "KBVE/rareicon"
-path = "RareIcon/RareIcon.uproject"
+repo = "KBVE/kbve"
+path = "RareIcon.uproject"
 server_target = "RareIconServer"
-ue_image_tag = "dev-5.7.4"
+ue_image_tag = "dev-5.8.0"
 server_config = "Development"
