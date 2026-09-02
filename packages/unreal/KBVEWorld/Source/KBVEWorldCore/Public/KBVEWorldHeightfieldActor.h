@@ -6,6 +6,7 @@
 
 #include "KBVEWorldHeightfieldActor.generated.h"
 
+class FKBVEWorldRoadField;
 class UMaterialInterface;
 class UProceduralMeshComponent;
 
@@ -84,6 +85,17 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Heightfield")
 	TObjectPtr<UMaterialInterface> TerrainMaterial;
 
+	/**
+	 * Surface for the standing water in this patch, at the shape's WaterZ.
+	 *
+	 * Without it the carved channels are dry trenches, which is what a river
+	 * looks like when nothing fills it -- the ground is right and the world still
+	 * reads as pitted rather than as watered. One quad per patch, so it streams
+	 * with the terrain instead of needing a window of its own.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Heightfield")
+	TObjectPtr<UMaterialInterface> WaterMaterial;
+
 	/** Collision costs a physics cook; off until something needs it. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Heightfield")
 	bool bGenerateCollision = false;
@@ -105,11 +117,21 @@ public:
 		meta = (ClampMin = "1", ClampMax = "64"))
 	int32 CollisionLODStep = 4;
 
+	/**
+	 * Road corridors to grade into this patch, owned by the streamer.
+	 *
+	 * Shared rather than per-patch: routing is a Viterbi pass per edge and nine
+	 * chunk-pairs can touch one patch, so building a field per patch routes the
+	 * same roads over and over.
+	 */
+	void SetRoadField(const FKBVEWorldRoadField* InField) { RoadField = InField; }
+
 	/** Regenerate the mesh from the current properties. */
 	UFUNCTION(BlueprintCallable, Category = "KBVEWorld|Heightfield")
 	void Rebuild();
 
 	UProceduralMeshComponent* GetMeshComponent() const { return Mesh; }
+	UProceduralMeshComponent* GetWaterComponent() const { return Water; }
 
 	/** Milliseconds spent generating heights, normals and triangles. */
 	float GetLastGenerateMs() const { return LastGenerateMs; }
@@ -128,6 +150,9 @@ private:
 	/** Fill one component with a patch at the given stride. */
 	void BuildSection(UProceduralMeshComponent* Target, int32 Step, bool bCollision);
 
+	/** One quad at the water line, covering this patch. */
+	void BuildWater();
+
 	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
 	TObjectPtr<UProceduralMeshComponent> Mesh;
 
@@ -137,9 +162,14 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
 	TObjectPtr<UProceduralMeshComponent> CollisionMesh;
 
+	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
+	TObjectPtr<UProceduralMeshComponent> Water;
+
 	// Split so the log can say whether a slow patch is arithmetic or the physics
 	// cook. Stride and collision both apply to the innermost ring, so a single
 	// total cannot tell the two apart.
 	float LastGenerateMs = 0.0f;
 	float LastSectionMs = 0.0f;
+
+	const FKBVEWorldRoadField* RoadField = nullptr;
 };
