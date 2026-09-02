@@ -17,7 +17,9 @@ COPY apps/vm/factorio-ctl/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 COPY apps/vm/factorio-ctl/Cargo.toml apps/vm/factorio-ctl/Cargo.toml
 
-COPY packages/rust/jedi packages/rust/jedi
+COPY crates/jedi crates/jedi
+COPY crates/kbve-proto crates/kbve-proto
+COPY packages/proto packages/proto
 
 RUN mkdir -p apps/vm/factorio-ctl/src && \
     echo "fn main() {}" > apps/vm/factorio-ctl/src/main.rs
@@ -52,7 +54,9 @@ COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
 COPY --from=planner /app/Cargo.toml ./
 
 COPY apps/vm/factorio-ctl apps/vm/factorio-ctl
-COPY packages/rust/jedi packages/rust/jedi
+COPY crates/jedi crates/jedi
+COPY crates/kbve-proto crates/kbve-proto
+COPY packages/proto packages/proto
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \

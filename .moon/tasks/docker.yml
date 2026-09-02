@@ -17,6 +17,13 @@ inheritedBy:
 
 tasks:
     container:
+        # The rust images copy packages/proto, and kbve-proto include!s the
+        # prost output under packages/proto/gen -- a gitignored tree that only
+        # exists once protobuf:build has run. The build context is the
+        # workspace root, so an image built before it is a cache miss away from
+        # "failed to read crates/kbve-proto/Cargo.toml". The images that copy
+        # no rust pay one buf generate for the guarantee.
+        deps: ['protobuf:build']
         command: >-
             docker buildx build --load
             -f $projectSource/Dockerfile

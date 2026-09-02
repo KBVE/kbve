@@ -11,15 +11,17 @@ COPY apps/agones/cryptothrone/server/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
 COPY apps/agones/cryptothrone/server/Cargo.toml apps/agones/cryptothrone/server/Cargo.toml
-COPY packages/rust/simgrid/Cargo.toml packages/rust/simgrid/Cargo.toml
-COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
+COPY crates/simgrid/Cargo.toml crates/simgrid/Cargo.toml
+COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
+COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
+COPY crates/bevy_spells/Cargo.toml crates/bevy_spells/Cargo.toml
 
 RUN mkdir -p apps/agones/cryptothrone/server/src && \
     echo "fn main() {}" > apps/agones/cryptothrone/server/src/main.rs && \
-    mkdir -p packages/rust/simgrid/src && \
-    echo "" > packages/rust/simgrid/src/lib.rs && \
-    mkdir -p packages/rust/jedi/src && \
-    echo "" > packages/rust/jedi/src/lib.rs
+    mkdir -p crates/simgrid/src && \
+    echo "" > crates/simgrid/src/lib.rs && \
+    mkdir -p crates/jedi/src && \
+    echo "" > crates/jedi/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json --bin cryptothrone-server
 
@@ -59,8 +61,11 @@ COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
 COPY apps/agones/cryptothrone/server/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
-COPY packages/rust/simgrid packages/rust/simgrid
-COPY packages/rust/jedi packages/rust/jedi
+COPY crates/simgrid crates/simgrid
+COPY crates/jedi crates/jedi
+COPY crates/kbve-proto crates/kbve-proto
+COPY crates/bevy_spells crates/bevy_spells
+COPY packages/proto packages/proto
 COPY packages/data/codegen/generated/npcdb-data.json packages/data/codegen/generated/npcdb-data.json
 COPY packages/data/codegen/generated/itemdb-data.json packages/data/codegen/generated/itemdb-data.json
 COPY apps/agones/cryptothrone/server apps/agones/cryptothrone/server
