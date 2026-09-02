@@ -21,6 +21,7 @@ tasks:
                 '/docs/legal/**/*',
                 '/docs/guides/**/*',
                 '/docs/stock/**/*',
+                '/docs/theory/**/*',
             ]
         deps: ['~:proto']
         outputs: ['/dist/apps/astro-kbve']
@@ -32,6 +33,7 @@ tasks:
                 '/docs/legal/**/*',
                 '/docs/guides/**/*',
                 '/docs/stock/**/*',
+                '/docs/theory/**/*',
             ]
         deps: ['~:proto']
     preview:
@@ -45,6 +47,7 @@ tasks:
                 '/docs/legal/**/*',
                 '/docs/guides/**/*',
                 '/docs/stock/**/*',
+                '/docs/theory/**/*',
             ]
         deps: ['~:proto']
     test:
