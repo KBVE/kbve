@@ -6,7 +6,7 @@ const REGISTRY := "res://assets/questdb/questdb.json"
 const TAG := "friendslop"
 
 const CATEGORY_PREFIX := "QUEST_CATEGORY_"
-const OBJECTIVE_PREFIX := "OBJECTIVE_"
+const OBJECTIVE_PREFIX := "OBJECTIVE_TYPE_"
 
 const FLAG_TARGET := "flag:"
 
