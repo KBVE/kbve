@@ -359,7 +359,7 @@ message CiProject {
   // --- CI deployment config (drives docker/e2e workflows) ---
   optional string runner = 23;              // CI runner label (e.g. "ubuntu-latest", "arc-runner-set")
   optional string image = 24;              // Docker image name without registry (e.g. "kbve/edge")
-  optional string e2e_name = 25;           // Nx e2e project name (e.g. "axum-kbve-e2e")
+  optional string e2e_name = 25;           // Nx e2e project name (e.g. "edge-e2e")
   optional string deployment_yaml = 26;    // Path to kube deployment YAML relative to repo root
   repeated string deployment_yamls = 36;   // Multi-pin variant: paths to manifests sharing the same image tag (arc-runner Helm values, etc.)
   optional string version_target = 27;     // Path to build manifest to sync version into (Cargo.toml, deno.json, etc.)
