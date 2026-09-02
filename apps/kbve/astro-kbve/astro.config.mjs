@@ -15,6 +15,7 @@ import { createCanonicalFilter } from '../../../packages/npm/astro/sitemap/canon
 import { readFileSync } from 'node:fs';
 import https from 'node:https';
 import { fileURLToPath } from 'node:url';
+import { EXTERNAL_DOCS_ROOTS } from './src/lib/external-docs.mjs';
 
 const DROID_SRC = fileURLToPath(
 	new URL('../../../packages/npm/droid/src/index.ts', import.meta.url),
@@ -447,6 +448,7 @@ export default defineConfig({
 			filter: (url) => isIndexableUrl(url) && isCanonicalUrl(url),
 			serialize: createSitemapLastmod({
 				appDir: fileURLToPath(new URL('.', import.meta.url)),
+				extraRoots: EXTERNAL_DOCS_ROOTS,
 			}),
 			i18n: {
 				defaultLocale: 'en',

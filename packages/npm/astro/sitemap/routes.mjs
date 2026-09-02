@@ -61,6 +61,7 @@ export function collectRoutes({
 	srcDir = 'src',
 	contentCollections = { docs: '/' },
 	pagesDir = 'pages',
+	extraRoots = [],
 }) {
 	const src = path.join(appDir, srcDir);
 	const roots = [];
@@ -68,6 +69,9 @@ export function collectRoutes({
 		roots.push({ dir: path.join(src, 'content', collection), prefix });
 	}
 	if (pagesDir) roots.push({ dir: path.join(src, pagesDir), prefix: '/' });
+	for (const { dir, prefix } of extraRoots) {
+		roots.push({ dir: path.resolve(appDir, dir), prefix });
+	}
 
 	const routes = new Map();
 	for (const { dir, prefix } of roots) {

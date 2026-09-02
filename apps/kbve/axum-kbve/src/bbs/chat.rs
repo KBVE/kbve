@@ -207,6 +207,9 @@ impl ChatHub {
         }
     }
 
+    // An accessor for the pending count, written for observability and not yet
+    // read anywhere. Kept rather than deleted; wire it to a metric or drop it.
+    #[allow(dead_code)]
     pub fn queued(&self) -> usize {
         self.outbox.lock().map(|pending| pending.len()).unwrap_or(0)
     }

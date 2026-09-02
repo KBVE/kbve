@@ -1,0 +1,35 @@
+[package]
+name = "unr"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "C FFI bridge from KBVE game logic crates to Unreal Engine via cbindgen"
+homepage = "https://kbve.com/"
+repository.workspace = true
+keywords = ["ffi", "unreal", "gamedev", "cbindgen"]
+categories = ["game-development", "api-bindings"]
+readme = "README.md"
+
+[lib]
+# staticlib is the one Unreal actually links: UBT takes it through
+# PublicAdditionalLibraries, which keeps the macOS codesigning that a dylib
+# would drag in out of the picture entirely. cdylib stays for hosts that want
+# runtime loading, rlib so tests/ can link the crate directly.
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[dependencies]
+# rt-multi-thread for the bounded worker + blocking pool in runtime.rs; time
+# for the tickers that will follow. No `net`, no `macros`: this crate is the
+# work layer, and its host owns transport.
+tokio = { workspace = true, features = ["rt", "rt-multi-thread", "time", "sync"] }
+
+[features]
+# Header generation is opt-in. The server links this crate through the rlib and
+# never reads the C header, so a plain build must not pay to compile cbindgen
+# or write into the source tree. `moon run unr:bindgen` turns it on.
+bindgen = ["dep:cbindgen"]
+
+[build-dependencies]
+cbindgen = { workspace = true, optional = true }

@@ -62,12 +62,15 @@ impl NoticePriority {
 pub struct NoticeItem {
     pub number: u64,
     pub title: String,
+    #[allow(dead_code)]
     pub description: String,
     pub priority: NoticePriority,
     pub reporter: String,
     pub html_url: String,
+    #[allow(dead_code)]
     pub labels: Vec<String>,
     pub stale_days: Option<u64>,
+    #[allow(dead_code)]
     pub updated_at: String,
 }
 
@@ -106,6 +109,7 @@ impl NoticeItem {
 // ── Embed Builders ──────────────────────────────────────────────────
 
 /// Build a single notice board embed for one item.
+#[allow(dead_code)]
 pub fn build_notice_embed(item: &NoticeItem, repo_name: &str) -> serenity::CreateEmbed {
     let mut embed = serenity::CreateEmbed::new()
         .title(truncate(&item.title, 256))

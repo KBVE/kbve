@@ -1,0 +1,4 @@
+# The Rust staticlib is a build artifact, not a vendored binary: it is built
+# from crates/unr in this repo, so committing 18MB per platform per change
+# would be storing what `moon run KBVEUnr:sync-unr` reproduces.
+ThirdParty/unr/lib/

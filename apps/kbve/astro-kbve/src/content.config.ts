@@ -2,6 +2,8 @@ import { defineCollection } from 'astro:content';
 import { z } from 'astro/zod';
 import { docsSchema } from '@astrojs/starlight/schema';
 import { docsLoader } from '@astrojs/starlight/loaders';
+import { withExternalDocs } from '@kbve/astro/content/external-docs';
+import { EXTERNAL_DOCS_SECTIONS } from '@/lib/external-docs.mjs';
 // TODO: Re-enable once starlight-site-graph supports Zod 4 / Astro 6
 // import { pageSiteGraphSchema } from 'starlight-site-graph/schema';
 import { glob } from 'astro/loaders';
@@ -129,7 +131,7 @@ const tiledb = defineCollection({
 
 export const collections = {
 	docs: defineCollection({
-		loader: docsLoader(),
+		loader: withExternalDocs(docsLoader(), EXTERNAL_DOCS_SECTIONS),
 		schema: docsSchema({
 			extend: z.object({
 				canonical: z.string().url().optional(),

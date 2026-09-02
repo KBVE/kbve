@@ -171,9 +171,9 @@ fn extract_tag(xml: &str, name: &str) -> Option<String> {
             cursor = open_lt + 1;
             continue;
         }
-        let gt = match rest.find('>') {
-            Some(g) => open_lt + 1 + g,
-            None => return None,
+        let gt = {
+            let g = rest.find('>')?;
+            open_lt + 1 + g
         };
         if xml[open_lt..gt].ends_with('/') {
             return Some(String::new());

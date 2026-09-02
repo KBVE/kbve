@@ -31,13 +31,8 @@ import { execSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
-import {
-	fromBinary,
-	toBinary,
-	fromJson,
-	createFileRegistry,
-} from '@bufbuild/protobuf';
-import { FileDescriptorSetSchema } from '@bufbuild/protobuf/wkt';
+import { encodeRegistry } from './proto-encode.mjs';
+import { kbveProtoDescriptor } from './lib/proto-descriptor.mjs';
 import {
 	takeI18n,
 	collectLocales,
@@ -51,7 +46,6 @@ const npcdbDir = resolve(
 	repoRoot,
 	'apps/kbve/astro-kbve/src/content/docs/npcdb',
 );
-const descriptorPath = resolve(__dirname, 'descriptors/npcdb.binpb');
 const generatedDir = resolve(__dirname, 'generated');
 const outputJsonPath = resolve(generatedDir, 'npcdb-data.json');
 const outputBinPath = resolve(generatedDir, 'npcdb-data.binpb');
@@ -62,13 +56,13 @@ const ENUM_PREFIX = {
 	personality:      'PERSONALITY_',
 	element:          'ELEMENT_',
 	secondaryElement: 'ELEMENT_',
-	rarity:           'NPC_RARITY_',
+	rarity:           'RARITY_',
 	rank:             'NPC_RANK_',
 	family:           'CREATURE_FAMILY_',
 	movementType:     'MOVEMENT_TYPE_',
 	renderKind:       'CREATURE_RENDER_KIND_',
 	schedule:         'CREATURE_SCHEDULE_',
-	difficulty:       'DIFFICULTY_',
+	difficulty:       'DIFFICULTY_MODE_',
 	slot:             'EQUIP_SLOT_',
 	anim:             'SPRITE_ANIM_',
 	growthRate:       'GROWTH_RATE_',
@@ -138,21 +132,11 @@ function main() {
 	writeFileSync(outputJsonPath, JSON.stringify(registryJson, null, 2));
 	console.log(`Wrote ${outputJsonPath}`);
 
-	const descBytes = readFileSync(descriptorPath);
-	const fds = fromBinary(FileDescriptorSetSchema, descBytes);
-	const registry = createFileRegistry(fds);
-	const npcRegistryDesc = registry.getMessage('npc.NpcRegistry');
-	if (!npcRegistryDesc) {
-		console.error(
-			'FATAL: npc.NpcRegistry message descriptor not found in npcdb.binpb',
-		);
-		process.exit(1);
-	}
-
-	const msg = fromJson(npcRegistryDesc, registryJson, {
-		ignoreUnknownFields: true,
-	});
-	const wire = toBinary(npcRegistryDesc, msg);
+	const wire = encodeRegistry(
+		kbveProtoDescriptor(),
+		'kbve.npc.v1.NpcRegistry',
+		registryJson,
+	);
 	writeFileSync(outputBinPath, wire);
 	console.log(`Wrote ${outputBinPath} (${wire.length} bytes)`);
 

@@ -9,6 +9,7 @@ pub fn pid(user: serenity::UserId) -> PlayerId {
 }
 
 /// Engine player id -> Discord snowflake.
+#[allow(dead_code)]
 pub fn uid(player: PlayerId) -> serenity::UserId {
     serenity::UserId::new(player.get())
 }

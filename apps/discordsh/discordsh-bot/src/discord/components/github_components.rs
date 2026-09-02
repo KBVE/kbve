@@ -107,9 +107,11 @@ pub async fn handle_github_component(
                 component,
                 &gh,
                 app,
-                owner,
-                repo_name,
-                number,
+                IssueRef {
+                    owner,
+                    repo: repo_name,
+                    number,
+                },
                 &selected_value,
             )
             .await;
@@ -120,9 +122,11 @@ pub async fn handle_github_component(
                 component,
                 &gh,
                 app,
-                owner,
-                repo_name,
-                number,
+                IssueRef {
+                    owner,
+                    repo: repo_name,
+                    number,
+                },
                 &selected_value,
             )
             .await;
@@ -142,16 +146,26 @@ pub async fn handle_github_component(
     }
 }
 
+/// Which issue a component interaction is acting on.
+struct IssueRef<'a> {
+    owner: &'a str,
+    repo: &'a str,
+    number: u64,
+}
+
 async fn handle_priority_change(
     ctx: &serenity::Context,
     component: &serenity::ComponentInteraction,
     gh: &jedi::entity::github::GitHubClient,
     app: &Arc<AppState>,
-    owner: &str,
-    repo_name: &str,
-    number: u64,
+    issue: IssueRef<'_>,
     selected: &str,
 ) {
+    let IssueRef {
+        owner,
+        repo: repo_name,
+        number,
+    } = issue;
     let new_level: u8 = selected.parse().unwrap_or(0);
 
     // Defer the response (we'll edit it after API calls)
@@ -242,11 +256,14 @@ async fn handle_set_type(
     component: &serenity::ComponentInteraction,
     gh: &jedi::entity::github::GitHubClient,
     app: &Arc<AppState>,
-    owner: &str,
-    repo_name: &str,
-    number: u64,
+    issue: IssueRef<'_>,
     type_name: &str,
 ) {
+    let IssueRef {
+        owner,
+        repo: repo_name,
+        number,
+    } = issue;
     let _ = component
         .create_response(
             ctx,

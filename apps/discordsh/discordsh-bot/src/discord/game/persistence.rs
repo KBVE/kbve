@@ -78,6 +78,7 @@ pub struct RunSummary {
 #[derive(Debug, Clone, Deserialize)]
 pub struct LeaderboardEntry {
     pub rank: i64,
+    #[allow(dead_code)]
     pub discord_id: i64,
     pub discord_name: String,
     pub level: i16,
@@ -111,6 +112,7 @@ impl ProfileStore {
     /// Build from environment without an L2 cache. Kept for tests and
     /// callers that don't need redb-backed persistence.
     #[cfg(test)]
+    #[allow(dead_code)]
     pub fn from_env() -> Self {
         Self::from_env_with_local(None)
     }

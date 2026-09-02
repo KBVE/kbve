@@ -5,6 +5,26 @@ language: 'rust'
 tags: ['rust', 'docker']
 
 tasks:
+    # Inherited from the rust preset, which cannot know that cargo needs a
+    # Postgres toolchain here: the Dockerfile installs postgresql-server-dev-17,
+    # `cargo install cargo-pgrx` and runs `cargo pgrx init` before it compiles
+    # anything. Without that, both die in pgrx-bindgen -- "Unable to generate
+    # bindings for pg17" -- which reads as a broken crate rather than a missing
+    # toolchain. ci-e2e.yml already excludes this project by name for the same
+    # reason; this puts that decision in the graph. The image build is what
+    # compiles the extension in CI, and it still runs.
+    #
+    # Only these two: runInCI also filters `moon run` whenever CI is set (see
+    # the windmill fix), and ci.yml only ever reaches :lint and :test, so
+    # setting it on anything else here would protect nothing and could strand a
+    # lane that invokes the task by name.
+    lint:
+        options:
+            runInCI: false
+    test:
+        options:
+            runInCI: false
+
     bump:
         script: 'bash tools/scripts/public/kilobase/version_bump.sh {args.version}'
         options:

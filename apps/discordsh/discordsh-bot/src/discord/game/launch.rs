@@ -39,6 +39,7 @@ pub struct Launched {
     pub card_png: Option<Vec<u8>>,
     pub member_status: MemberStatus,
     pub short_id: ShortSid,
+    #[allow(dead_code)]
     pub user_id: serenity::UserId,
 }
 

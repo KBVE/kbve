@@ -7,6 +7,7 @@
 use serde_json::Value;
 
 use crate::proto::quest;
+use crate::proto::{Extension, extension};
 
 /// Errors that can occur when loading quests from JSON.
 #[derive(Debug)]
@@ -59,11 +60,13 @@ pub fn parse_questdb_json(json_str: &str) -> Result<Vec<quest::Quest>, JsonLoadE
 
 fn json_value_to_quest(v: &Value) -> Option<quest::Quest> {
     let slug = v.get("ref")?.as_str()?.to_string();
+    // The schema stores sixteen bytes; a content file writes the twenty-six
+    // characters. `Ulid` is declared to convert through `UlidText` for serde, so
+    // the text form decodes without this crate reimplementing Crockford.
     let id = v
         .get("id")
         .and_then(|v| v.as_str())
-        .unwrap_or("")
-        .to_string();
+        .and_then(|text| serde_json::from_value(Value::String(text.to_string())).ok());
     let title = v
         .get("title")
         .and_then(|v| v.as_str())
@@ -133,53 +136,34 @@ fn parse_category(v: Option<&Value>) -> i32 {
 
 fn parse_objective_type(v: Option<&Value>) -> i32 {
     match v.and_then(|v| v.as_str()) {
-        Some("collect") => quest::ObjectiveType::ObjectiveCollect as i32,
-        Some("kill") => quest::ObjectiveType::ObjectiveKill as i32,
-        Some("visit") => quest::ObjectiveType::ObjectiveVisit as i32,
-        Some("interact") => quest::ObjectiveType::ObjectiveInteract as i32,
-        Some("escort") => quest::ObjectiveType::ObjectiveEscort as i32,
-        Some("defend") => quest::ObjectiveType::ObjectiveDefend as i32,
-        Some("craft") => quest::ObjectiveType::ObjectiveCraft as i32,
-        Some("explore") => quest::ObjectiveType::ObjectiveExplore as i32,
-        Some("custom") => quest::ObjectiveType::ObjectiveCustom as i32,
-        _ => v.and_then(|v| v.as_i64()).unwrap_or(0) as i32,
-    }
-}
-
-fn parse_consequence_type(v: Option<&Value>) -> i32 {
-    match v.and_then(|v| v.as_str()) {
-        Some("none") => quest::ChoiceConsequenceType::ConsequenceNone as i32,
-        Some("advance_quest") => quest::ChoiceConsequenceType::ConsequenceAdvanceQuest as i32,
-        Some("fail_quest") => quest::ChoiceConsequenceType::ConsequenceFailQuest as i32,
-        Some("branch_quest") => quest::ChoiceConsequenceType::ConsequenceBranchQuest as i32,
-        Some("give_item") => quest::ChoiceConsequenceType::ConsequenceGiveItem as i32,
-        Some("take_item") => quest::ChoiceConsequenceType::ConsequenceTakeItem as i32,
-        Some("reputation") => quest::ChoiceConsequenceType::ConsequenceReputation as i32,
-        Some("spawn_enemy") => quest::ChoiceConsequenceType::ConsequenceSpawnEnemy as i32,
-        Some("teleport") => quest::ChoiceConsequenceType::ConsequenceTeleport as i32,
-        Some("unlock") => quest::ChoiceConsequenceType::ConsequenceUnlock as i32,
-        Some("set_flag") => quest::ChoiceConsequenceType::ConsequenceSetFlag as i32,
-        Some("clear_flag") => quest::ChoiceConsequenceType::ConsequenceClearFlag as i32,
-        Some("npc_disposition") => quest::ChoiceConsequenceType::ConsequenceNpcDisposition as i32,
+        Some("collect") => quest::ObjectiveType::Collect as i32,
+        Some("kill") => quest::ObjectiveType::Kill as i32,
+        Some("visit") => quest::ObjectiveType::Visit as i32,
+        Some("interact") => quest::ObjectiveType::Interact as i32,
+        Some("escort") => quest::ObjectiveType::Escort as i32,
+        Some("defend") => quest::ObjectiveType::Defend as i32,
+        Some("craft") => quest::ObjectiveType::Craft as i32,
+        Some("explore") => quest::ObjectiveType::Explore as i32,
+        Some("custom") => quest::ObjectiveType::Custom as i32,
         _ => v.and_then(|v| v.as_i64()).unwrap_or(0) as i32,
     }
 }
 
 fn parse_failure_policy(v: Option<&Value>) -> i32 {
     match v.and_then(|v| v.as_str()) {
-        Some("permanent") => quest::FailurePolicy::FailurePermanent as i32,
-        Some("retry_step") => quest::FailurePolicy::FailureRetryStep as i32,
-        Some("retry_quest") => quest::FailurePolicy::FailureRetryQuest as i32,
-        Some("soft_fail") => quest::FailurePolicy::FailureSoftFail as i32,
+        Some("permanent") => quest::FailurePolicy::Permanent as i32,
+        Some("retry_step") => quest::FailurePolicy::RetryStep as i32,
+        Some("retry_quest") => quest::FailurePolicy::RetryQuest as i32,
+        Some("soft_fail") => quest::FailurePolicy::SoftFail as i32,
         _ => v.and_then(|v| v.as_i64()).unwrap_or(0) as i32,
     }
 }
 
 fn parse_reward_policy(v: Option<&Value>) -> i32 {
     match v.and_then(|v| v.as_str()) {
-        Some("individual") => quest::RewardPolicy::RewardIndividual as i32,
-        Some("shared") => quest::RewardPolicy::RewardShared as i32,
-        Some("leader") => quest::RewardPolicy::RewardLeader as i32,
+        Some("individual") => quest::RewardPolicy::Individual as i32,
+        Some("shared") => quest::RewardPolicy::Shared as i32,
+        Some("leader") => quest::RewardPolicy::Leader as i32,
         _ => v.and_then(|v| v.as_i64()).unwrap_or(0) as i32,
     }
 }
@@ -203,7 +187,6 @@ fn parse_objective(v: &Value) -> Option<quest::QuestObjective> {
             .get("required_amount")
             .and_then(|v| v.as_i64())
             .unwrap_or(1) as i32,
-        optional: obj.get("optional").and_then(|v| v.as_bool()),
         hidden: obj.get("hidden").and_then(|v| v.as_bool()),
         reveal_trigger: obj
             .get("reveal_trigger")
@@ -214,6 +197,7 @@ fn parse_objective(v: &Value) -> Option<quest::QuestObjective> {
             .get("zone_ref")
             .and_then(|v| v.as_str())
             .map(String::from),
+        ..Default::default()
     })
 }
 
@@ -319,33 +303,19 @@ fn parse_choice(v: &Value) -> Option<quest::QuestChoice> {
             .get("description")
             .and_then(|v| v.as_str())
             .map(String::from),
-        consequence: parse_consequence_type(obj.get("consequence")),
-        consequence_ref: obj
-            .get("consequence_ref")
-            .and_then(|v| v.as_str())
-            .map(String::from),
-        consequence_value: obj
-            .get("consequence_value")
-            .and_then(|v| v.as_i64())
-            .map(|n| n as i32),
         next_step_id: obj
             .get("next_step_id")
-            .and_then(|v| v.as_str())
-            .map(String::from),
-        required_item_refs: str_array_from(obj.get("required_item_refs")),
-        required_class: obj
-            .get("required_class")
             .and_then(|v| v.as_str())
             .map(String::from),
         outcome_id: obj
             .get("outcome_id")
             .and_then(|v| v.as_str())
             .map(String::from),
-        set_flags: str_array_from(obj.get("set_flags")),
         dialogue_node_ref: obj
             .get("dialogue_node_ref")
             .and_then(|v| v.as_str())
             .map(String::from),
+        ..Default::default()
     })
 }
 
@@ -492,6 +462,7 @@ fn parse_prerequisites(v: Option<&Value>) -> Option<quest::QuestPrerequisite> {
             .and_then(|v| v.as_str())
             .map(String::from),
         trigger: v.get("trigger").and_then(|v| v.as_str()).map(String::from),
+        ..Default::default()
     })
 }
 
@@ -529,7 +500,7 @@ fn parse_repeat_rewards(v: Option<&Value>) -> Option<quest::RepeatRewards> {
     })
 }
 
-fn parse_extensions(v: Option<&Value>) -> Vec<quest::QuestExtension> {
+fn parse_extensions(v: Option<&Value>) -> Vec<Extension> {
     v.and_then(|v| v.as_array())
         .map(|arr| {
             arr.iter()
@@ -537,17 +508,17 @@ fn parse_extensions(v: Option<&Value>) -> Vec<quest::QuestExtension> {
                     let obj = e.as_object()?;
                     let key = obj.get("key")?.as_str()?.to_string();
                     let value = if let Some(s) = obj.get("string_value").and_then(|v| v.as_str()) {
-                        Some(quest::quest_extension::Value::StringValue(s.to_string()))
+                        Some(extension::Value::StringValue(s.to_string()))
                     } else if let Some(n) = obj.get("int_value").and_then(|v| v.as_i64()) {
-                        Some(quest::quest_extension::Value::IntValue(n))
+                        Some(extension::Value::IntValue(n))
                     } else if let Some(n) = obj.get("float_value").and_then(|v| v.as_f64()) {
-                        Some(quest::quest_extension::Value::FloatValue(n))
+                        Some(extension::Value::FloatValue(n))
                     } else {
                         obj.get("bool_value")
                             .and_then(|v| v.as_bool())
-                            .map(quest::quest_extension::Value::BoolValue)
+                            .map(extension::Value::BoolValue)
                     };
-                    Some(quest::QuestExtension { key, value })
+                    Some(Extension { key, value })
                 })
                 .collect()
         })

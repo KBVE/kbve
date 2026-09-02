@@ -2316,7 +2316,7 @@ fn process_craft_requests(
                 if !ing.consumed.unwrap_or(true) {
                     continue;
                 }
-                let need = (ing.amount as u32).saturating_mul(batches);
+                let need = ing.quantity.saturating_mul(batches);
                 let ing_kind = ProtoItemKind::from_ref(&ing.item_ref);
                 if inv.count(ing_kind) < need {
                     missing = true;
@@ -2357,7 +2357,7 @@ fn process_craft_requests(
                 if !ing.consumed.unwrap_or(true) {
                     continue;
                 }
-                let need = (ing.amount as u32).saturating_mul(batches);
+                let need = ing.quantity.saturating_mul(batches);
                 inv.remove(ProtoItemKind::from_ref(&ing.item_ref), need);
             }
             let overflow = inv.add(kind, output_qty);
@@ -2446,14 +2446,14 @@ fn process_use_item_requests(
             if let Ok(mut v) = vitals.get_mut(player_entity) {
                 for eff in &item.use_effects {
                     match bevy_items::UseEffectType::try_from(eff.r#type) {
-                        Ok(bevy_items::UseEffectType::UseEffectHeal) => {
+                        Ok(bevy_items::UseEffectType::Heal) => {
                             let amount = eff.amount.unwrap_or(0).max(0) as f32;
                             v.health = (v.health + amount).min(v.max_health);
                         }
-                        Ok(bevy_items::UseEffectType::UseEffectFullHeal) => {
+                        Ok(bevy_items::UseEffectType::FullHeal) => {
                             v.health = v.max_health;
                         }
-                        Ok(bevy_items::UseEffectType::UseEffectRemoveAllNegative) => {
+                        Ok(bevy_items::UseEffectType::RemoveAllNegative) => {
                             // PlayerVitals has no status-effect list yet; this
                             // is a no-op until a StatusEffects component lands.
                             // Kept here so the proto enum arm is reachable.

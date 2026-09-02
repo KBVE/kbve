@@ -15,7 +15,7 @@
         {
           "id": "obj-recover-cooker",
           "description": "Recover the Auto Cooker 9000",
-          "type": "OBJECTIVE_COLLECT",
+          "type": "OBJECTIVE_TYPE_COLLECT",
           "targetRefs": [
             "01JWN7TN1P44J963328VP0YNFF"
           ],
@@ -53,7 +53,7 @@
       "nextQuestRef": null
     },
     {
-      "id": "01JX26BB2NDUNGEONDELVER0002",
+      "id": "01JX26BB2NFFTEC93ZFEHXTT1G",
       "ref": "dungeon-delver",
       "drafted": false,
       "title": "Dungeon Delver",
@@ -75,7 +75,7 @@
             {
               "id": "obj-visit-5-rooms",
               "description": "Explore 5 different rooms",
-              "type": "OBJECTIVE_EXPLORE",
+              "type": "OBJECTIVE_TYPE_EXPLORE",
               "requiredAmount": 5
             }
           ]
@@ -92,7 +92,7 @@
       "nextQuestRef": "shadow-hunter"
     },
     {
-      "id": "01KSAVZ00000000000QFSBITTERRT",
+      "id": "01KSAVZ000N59M47ZVR3JPP10E",
       "ref": "friendslop-bitterroot",
       "drafted": false,
       "title": "Word from the Riverbank",
@@ -124,7 +124,7 @@
             {
               "id": "obj-bitterroot-taught",
               "description": "Have Wren show you bitterroot",
-              "type": "OBJECTIVE_CUSTOM",
+              "type": "OBJECTIVE_TYPE_CUSTOM",
               "targetRefs": [
                 "flag:wren_taught_bitterroot"
               ],
@@ -141,7 +141,7 @@
             {
               "id": "obj-tell-cleric",
               "description": "Talk to the cleric",
-              "type": "OBJECTIVE_INTERACT",
+              "type": "OBJECTIVE_TYPE_INTERACT",
               "targetRefs": [
                 "cleric"
               ],
@@ -158,7 +158,7 @@
       "nextQuestRef": null
     },
     {
-      "id": "01KSAVZ000000000000QFSMECHWCH",
+      "id": "01KSAVZ0008C8RNWNF6E7APNJV",
       "ref": "friendslop-mech-watch",
       "drafted": false,
       "title": "What the Mechs Are Waiting For",
@@ -191,7 +191,7 @@
             {
               "id": "obj-tam-guessed",
               "description": "Get Tam to say what he thinks they are waiting for",
-              "type": "OBJECTIVE_CUSTOM",
+              "type": "OBJECTIVE_TYPE_CUSTOM",
               "targetRefs": [
                 "flag:tam_guessed_the_mechs"
               ],
@@ -208,7 +208,7 @@
             {
               "id": "obj-ask-the-mage",
               "description": "Put the guess to the mage",
-              "type": "OBJECTIVE_CUSTOM",
+              "type": "OBJECTIVE_TYPE_CUSTOM",
               "targetRefs": [
                 "flag:mage_weighed_the_guess"
               ],
@@ -225,7 +225,7 @@
       "nextQuestRef": null
     },
     {
-      "id": "01KSAVZ0000000000000QFSPLANK",
+      "id": "01KSAVZ000T23Q3PFSY3N4TCTW",
       "ref": "friendslop-third-plank",
       "drafted": false,
       "title": "Mind the Third Plank",
@@ -254,7 +254,7 @@
             {
               "id": "obj-talk-to-marlow",
               "description": "Talk to Marlow at the crossing",
-              "type": "OBJECTIVE_INTERACT",
+              "type": "OBJECTIVE_TYPE_INTERACT",
               "targetRefs": [
                 "marlow"
               ],
@@ -271,7 +271,7 @@
             {
               "id": "obj-toll-paid",
               "description": "Pay Marlow the toll for the bridge",
-              "type": "OBJECTIVE_CUSTOM",
+              "type": "OBJECTIVE_TYPE_CUSTOM",
               "targetRefs": [
                 "flag:marlow_toll_paid"
               ],
@@ -288,7 +288,7 @@
       "nextQuestRef": null
     },
     {
-      "id": "01JX26DD4NKINGSDEMISE000004",
+      "id": "01JX26DD4NKZBVXN4EPEBCHW6Y",
       "ref": "kings-demise",
       "drafted": false,
       "title": "The King's Demise",
@@ -317,7 +317,7 @@
             {
               "id": "obj-kill-10-enemies",
               "description": "Defeat 10 enemies to prove you are ready",
-              "type": "OBJECTIVE_KILL",
+              "type": "OBJECTIVE_TYPE_KILL",
               "requiredAmount": 10
             }
           ]
@@ -329,7 +329,7 @@
             {
               "id": "obj-kill-shattered-king",
               "description": "Defeat the Shattered King",
-              "type": "OBJECTIVE_KILL",
+              "type": "OBJECTIVE_TYPE_KILL",
               "targetRefs": [
                 "the-shattered-king"
               ],
@@ -362,7 +362,7 @@
       "nextQuestRef": null
     },
     {
-      "id": "01JX26CC3NSHADOWHUNTER00003",
+      "id": "01JX26CC3NNRA29CNQ2CF6CATR",
       "ref": "shadow-hunter",
       "drafted": false,
       "title": "Shadow Hunter",
@@ -390,7 +390,7 @@
             {
               "id": "obj-explore-rooms",
               "description": "Explore 8 rooms to reach the deeper levels",
-              "type": "OBJECTIVE_EXPLORE",
+              "type": "OBJECTIVE_TYPE_EXPLORE",
               "requiredAmount": 8
             }
           ]
@@ -402,7 +402,7 @@
             {
               "id": "obj-kill-boss",
               "description": "Defeat a boss enemy",
-              "type": "OBJECTIVE_KILL",
+              "type": "OBJECTIVE_TYPE_KILL",
               "targetRefs": [
                 "shadow-wraith"
               ],
@@ -427,7 +427,7 @@
       "nextQuestRef": "kings-demise"
     },
     {
-      "id": "01JX26AA1NSLIMESLAYER000001",
+      "id": "01JX26AA1N73T6GV0V3X8QAQF1",
       "ref": "slime-slayer",
       "drafted": false,
       "title": "Slime Slayer",
@@ -449,7 +449,7 @@
             {
               "id": "obj-kill-3-enemies",
               "description": "Defeat 3 enemies in the dungeon",
-              "type": "OBJECTIVE_KILL",
+              "type": "OBJECTIVE_TYPE_KILL",
               "requiredAmount": 3
             }
           ]
@@ -466,7 +466,7 @@
       "nextQuestRef": null
     },
     {
-      "id": "01JX26FF6NSURVIVOR00000006",
+      "id": "01JX26FF6NN1G2FP0WN4GJNGN4",
       "ref": "survivor",
       "drafted": false,
       "title": "Survivor",
@@ -488,7 +488,7 @@
             {
               "id": "obj-clear-3-rooms",
               "description": "Clear 3 combat rooms without dying",
-              "type": "OBJECTIVE_EXPLORE",
+              "type": "OBJECTIVE_TYPE_EXPLORE",
               "requiredAmount": 3
             }
           ]
@@ -511,7 +511,7 @@
       "nextQuestRef": null
     },
     {
-      "id": "01JX26EE5NTREASURESEEKER005",
+      "id": "01JX26EE5NCQQRVD9RJFW0RN3N",
       "ref": "treasure-seeker",
       "drafted": false,
       "title": "Treasure Seeker",
@@ -533,7 +533,7 @@
             {
               "id": "obj-earn-100-gold",
               "description": "Earn 100 gold in a single dungeon run",
-              "type": "OBJECTIVE_COLLECT",
+              "type": "OBJECTIVE_TYPE_COLLECT",
               "requiredAmount": 100
             }
           ]

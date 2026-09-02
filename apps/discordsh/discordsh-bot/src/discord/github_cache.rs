@@ -8,11 +8,13 @@ use std::time::{Duration, Instant};
 use dashmap::DashMap;
 use jedi::entity::github::{GitHubClient, GitHubIssue, GitHubLabel};
 
+#[allow(dead_code)]
 const LABEL_TTL: Duration = Duration::from_secs(3600); // 1 hour
 const ISSUE_TTL: Duration = Duration::from_secs(30); // 30 seconds
 
 /// Cached GitHub data shared across commands and component handlers.
 pub struct GitHubCache {
+    #[allow(dead_code)]
     labels: DashMap<String, (Instant, Vec<GitHubLabel>)>,
     issues: DashMap<String, (Instant, GitHubIssue)>,
 }
@@ -26,6 +28,7 @@ impl GitHubCache {
     }
 
     /// Get labels from cache or fetch from GitHub API.
+    #[allow(dead_code)]
     pub async fn get_or_fetch_labels(
         &self,
         client: &GitHubClient,
@@ -93,6 +96,7 @@ impl GitHubCache {
     }
 
     /// Prune expired entries to prevent unbounded growth.
+    #[allow(dead_code)]
     pub fn prune(&self) {
         let now = Instant::now();
         self.labels

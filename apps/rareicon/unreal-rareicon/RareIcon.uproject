@@ -1,0 +1,44 @@
+{
+	"FileVersion": 3,
+	"EngineAssociation": "5.8",
+	"Category": "",
+	"Description": "RareIcon \u2014 Unreal client. Simulation authority lives in Rust.",
+	"Modules": [
+		{
+			"Name": "RareIcon",
+			"Type": "Runtime",
+			"LoadingPhase": "Default",
+			"AdditionalDependencies": [
+				"Engine"
+			]
+		}
+	],
+	"AdditionalPluginDirectories": [
+		"../../../packages/unreal"
+	],
+	"Plugins": [
+		{
+			"Name": "KBVEUnr",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEWorld",
+			"Enabled": true
+		},
+		{
+			"Name": "ModelingToolsEditorMode",
+			"Enabled": true,
+			"TargetAllowList": [
+				"Editor"
+			]
+		},
+		{
+			"Name": "EditorScriptingUtilities",
+			"Enabled": true
+		},
+		{
+			"Name": "PythonScriptPlugin",
+			"Enabled": true
+		}
+	]
+}

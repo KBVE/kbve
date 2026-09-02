@@ -35,13 +35,8 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
 import { takeI18n, collectLocales, encodeLocaleTables } from './lib/i18n-slice.mjs';
-import {
-	fromBinary,
-	toBinary,
-	fromJson,
-	createFileRegistry,
-} from '@bufbuild/protobuf';
-import { FileDescriptorSetSchema } from '@bufbuild/protobuf/wkt';
+import { encodeRegistry } from './proto-encode.mjs';
+import { kbveProtoDescriptor } from './lib/proto-descriptor.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');
@@ -50,7 +45,6 @@ const MDX_DIR = resolve(
 	repoRoot,
 	'apps/kbve/astro-kbve/src/content/docs/itemdb',
 );
-const DESCRIPTOR_PATH = resolve(__dirname, 'descriptors/itemdb.binpb');
 const GENERATED_DIR = resolve(__dirname, 'generated');
 const CENTRAL_JSON = resolve(GENERATED_DIR, 'itemdb-data.json');
 const CENTRAL_BINPB = resolve(GENERATED_DIR, 'itemdb-data.binpb');
@@ -120,14 +114,13 @@ const ASTRO_ONLY = new Set([
 // Google.Protobuf.JsonParser (and equivalents in other languages) accept
 // the enum values as fully-qualified strings.
 const ENUM_PREFIX = {
-	rarity: 'ITEM_RARITY_',
+	rarity: 'RARITY_',
 	slot: 'EQUIP_SLOT_',
 	element: 'ELEMENT_',
 	damageElement: 'ELEMENT_',
-	skill: 'SKILLING_',
-	type: 'USE_EFFECT_',
-	special: 'GEAR_SPECIAL_',
-	statusEffect: 'STATUS_EFFECT_',
+	type: 'USE_EFFECT_TYPE_',
+	special: 'GEAR_SPECIAL_TYPE_',
+	statusEffect: 'STATUS_EFFECT_KIND_',
 };
 
 function snakeToCamel(key) {
@@ -313,20 +306,11 @@ function main() {
 	const protoBundle = { items: protoItems };
 
 	// 3. Encode to proto binary using the descriptor reflection.
-	const descBytes = readFileSync(DESCRIPTOR_PATH);
-	const fds = fromBinary(FileDescriptorSetSchema, descBytes);
-	const registry = createFileRegistry(fds);
-	const itemRegistryDesc = registry.getMessage('item.ItemRegistry');
-	if (!itemRegistryDesc) {
-		console.error(
-			'FATAL: item.ItemRegistry descriptor not found in itemdb.binpb',
-		);
-		process.exit(1);
-	}
-	const msg = fromJson(itemRegistryDesc, protoBundle, {
-		ignoreUnknownFields: true,
-	});
-	const wire = toBinary(itemRegistryDesc, msg);
+	const wire = encodeRegistry(
+		kbveProtoDescriptor(),
+		'kbve.item.v1.ItemRegistry',
+		protoBundle,
+	);
 
 	// 4. Write central artifacts.
 	ensureDir(GENERATED_DIR);

@@ -39,13 +39,8 @@ import {
 	collectLocales,
 	encodeLocaleTables,
 } from './lib/i18n-slice.mjs';
-import {
-	fromBinary,
-	toBinary,
-	fromJson,
-	createFileRegistry,
-} from '@bufbuild/protobuf';
-import { FileDescriptorSetSchema } from '@bufbuild/protobuf/wkt';
+import { encodeRegistry } from './proto-encode.mjs';
+import { kbveProtoDescriptor } from './lib/proto-descriptor.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');
@@ -53,18 +48,16 @@ const questdbDir = resolve(
 	repoRoot,
 	'apps/kbve/astro-kbve/src/content/docs/questdb',
 );
-const descriptorPath = resolve(__dirname, 'descriptors/questdb.binpb');
 const generatedDir = resolve(__dirname, 'generated');
 const outputJsonPath = resolve(generatedDir, 'questdb-data.json');
 const outputBinPath = resolve(generatedDir, 'questdb-data.binpb');
 
 const ENUM_PREFIX = {
 	category: 'QUEST_CATEGORY_',
-	type: 'OBJECTIVE_',
+	type: 'OBJECTIVE_TYPE_',
 	status: 'QUEST_STATUS_',
-	consequence: 'CONSEQUENCE_',
-	failurePolicy: 'FAILURE_',
-	rewardPolicy: 'REWARD_',
+	failurePolicy: 'FAILURE_POLICY_',
+	rewardPolicy: 'REWARD_POLICY_',
 };
 
 /// Frontmatter keys that belong to the page rather than to the quest. `title` is not one
@@ -129,21 +122,11 @@ function main() {
 	writeFileSync(outputJsonPath, JSON.stringify(registryJson, null, 2));
 	console.log(`Wrote ${outputJsonPath}`);
 
-	const descBytes = readFileSync(descriptorPath);
-	const fds = fromBinary(FileDescriptorSetSchema, descBytes);
-	const registry = createFileRegistry(fds);
-	const questRegistryDesc = registry.getMessage('quest.QuestRegistry');
-	if (!questRegistryDesc) {
-		console.error(
-			'FATAL: quest.QuestRegistry message descriptor not found in questdb.binpb',
-		);
-		process.exit(1);
-	}
-
-	const msg = fromJson(questRegistryDesc, registryJson, {
-		ignoreUnknownFields: true,
-	});
-	const wire = toBinary(questRegistryDesc, msg);
+	const wire = encodeRegistry(
+		kbveProtoDescriptor(),
+		'kbve.quest.v1.QuestRegistry',
+		registryJson,
+	);
 	writeFileSync(outputBinPath, wire);
 	console.log(`Wrote ${outputBinPath} (${wire.length} bytes)`);
 

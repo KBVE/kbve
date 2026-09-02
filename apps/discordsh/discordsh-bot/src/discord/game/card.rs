@@ -1037,6 +1037,7 @@ pub async fn render_game_card_with_snapshot(
 pub struct OgDefaultTemplate;
 
 /// Render the default OG image as PNG bytes.
+#[allow(dead_code)]
 pub fn render_og_default_blocking(fontdb: &FontDb) -> Result<Vec<u8>, String> {
     let template = OgDefaultTemplate;
     let svg_string = template

@@ -1,0 +1,12 @@
+; Git LFS endpoint for the rareicon Unreal project's binary assets.
+;
+; Pointer files live in this GitHub monorepo; the blobs live on the
+; self-hosted Forgejo instance. Stock git-lfs only honors lfs.url from the
+; .lfsconfig at the *repository root*, which already names KBVE/rareicon --
+; so this file agrees with it and exists as the documented source of truth.
+;
+;   ./kbve.sh -lfs rareicon push origin <branch>
+;   ./kbve.sh -lfs rareicon pull
+;   ./kbve.sh -lfs rareicon fetch --all
+[lfs]
+    url = https://git.kbve.com/KBVE/rareicon.git/info/lfs

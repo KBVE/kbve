@@ -9,7 +9,7 @@ use std::sync::LazyLock;
 
 use bevy_dialogue::{DialogueDb, DialogueGraph};
 use bevy_items::{
-    EquipSlot as ProtoEquipSlot, GearSpecialType, ItemDb, StatusEffectKind, UseEffectType,
+    EquipSlot as ProtoEquipSlot, GearSpecialType, ItemDb, Rarity, StatusEffectKind, UseEffectType,
     inventory_adapter::ProtoItemKind,
 };
 use bevy_mapdb::{MapDb, WorldObjectType};
@@ -431,27 +431,31 @@ fn slug_to_game_id(slug: &str) -> &'static str {
     leak(slug.replace('-', "_"))
 }
 
+/// The shared `kbve.common.v1.Rarity`, narrowed to the four tiers the dungeon
+/// has. It opens with UNSPECIFIED and carries a VERY_RARE between rare and
+/// epic, neither of which the game models, so the numbers are matched by name
+/// rather than by position -- the previous mapping counted from zero and read
+/// every tier one step too low once the schemas converged.
 fn proto_rarity(rarity: i32) -> ItemRarity {
-    match rarity {
-        0 => ItemRarity::Common,
-        1 => ItemRarity::Uncommon,
-        2 => ItemRarity::Rare,
-        3 => ItemRarity::Epic,
-        4 | 5 => ItemRarity::Legendary,
-        _ => ItemRarity::Common,
+    match Rarity::try_from(rarity).unwrap_or(Rarity::Unspecified) {
+        Rarity::Uncommon => ItemRarity::Uncommon,
+        Rarity::Rare | Rarity::VeryRare => ItemRarity::Rare,
+        Rarity::Epic => ItemRarity::Epic,
+        Rarity::Legendary | Rarity::Mythic => ItemRarity::Legendary,
+        Rarity::Unspecified | Rarity::Common => ItemRarity::Common,
     }
 }
 
 fn proto_status_to_effect_kind(status: i32) -> Option<EffectKind> {
     match StatusEffectKind::try_from(status).ok()? {
-        StatusEffectKind::StatusEffectPoison => Some(EffectKind::Poison),
-        StatusEffectKind::StatusEffectBurning => Some(EffectKind::Burning),
-        StatusEffectKind::StatusEffectBleed => Some(EffectKind::Bleed),
-        StatusEffectKind::StatusEffectShielded => Some(EffectKind::Shielded),
-        StatusEffectKind::StatusEffectWeakened => Some(EffectKind::Weakened),
-        StatusEffectKind::StatusEffectStunned => Some(EffectKind::Stunned),
-        StatusEffectKind::StatusEffectSharpened => Some(EffectKind::Sharpened),
-        StatusEffectKind::StatusEffectThorns => Some(EffectKind::Thorns),
+        StatusEffectKind::Poison => Some(EffectKind::Poison),
+        StatusEffectKind::Burning => Some(EffectKind::Burning),
+        StatusEffectKind::Bleed => Some(EffectKind::Bleed),
+        StatusEffectKind::Shielded => Some(EffectKind::Shielded),
+        StatusEffectKind::Weakened => Some(EffectKind::Weakened),
+        StatusEffectKind::Stunned => Some(EffectKind::Stunned),
+        StatusEffectKind::Sharpened => Some(EffectKind::Sharpened),
+        StatusEffectKind::Thorns => Some(EffectKind::Thorns),
         _ => None,
     }
 }
@@ -459,13 +463,13 @@ fn proto_status_to_effect_kind(status: i32) -> Option<EffectKind> {
 fn proto_use_effect(ue: &bevy_items::UseEffect) -> Option<UseEffect> {
     let typ = UseEffectType::try_from(ue.r#type).ok()?;
     match typ {
-        UseEffectType::UseEffectHeal => Some(UseEffect::Heal {
+        UseEffectType::Heal => Some(UseEffect::Heal {
             amount: ue.amount.unwrap_or(0),
         }),
-        UseEffectType::UseEffectDamageEnemy => Some(UseEffect::DamageEnemy {
+        UseEffectType::DamageEnemy => Some(UseEffect::DamageEnemy {
             amount: ue.amount.unwrap_or(0),
         }),
-        UseEffectType::UseEffectApplyEffect => {
+        UseEffectType::ApplyEffect => {
             let kind = proto_status_to_effect_kind(ue.status_effect.unwrap_or(0))?;
             Some(UseEffect::ApplyEffect {
                 kind,
@@ -473,18 +477,18 @@ fn proto_use_effect(ue: &bevy_items::UseEffect) -> Option<UseEffect> {
                 turns: ue.turns.unwrap_or(1) as u8,
             })
         }
-        UseEffectType::UseEffectRemoveEffect => {
+        UseEffectType::RemoveEffect => {
             let kind = proto_status_to_effect_kind(ue.status_effect.unwrap_or(0))?;
             Some(UseEffect::RemoveEffect { kind })
         }
-        UseEffectType::UseEffectGuaranteedFlee => Some(UseEffect::GuaranteedFlee),
-        UseEffectType::UseEffectFullHeal => Some(UseEffect::FullHeal),
-        UseEffectType::UseEffectRemoveAllNegative => Some(UseEffect::RemoveAllNegativeEffects),
-        UseEffectType::UseEffectCampfireRest => Some(UseEffect::CampfireRest {
+        UseEffectType::GuaranteedFlee => Some(UseEffect::GuaranteedFlee),
+        UseEffectType::FullHeal => Some(UseEffect::FullHeal),
+        UseEffectType::RemoveAllNegative => Some(UseEffect::RemoveAllNegativeEffects),
+        UseEffectType::CampfireRest => Some(UseEffect::CampfireRest {
             heal_percent: ue.percent.unwrap_or(50) as u8,
         }),
-        UseEffectType::UseEffectTeleportCity => Some(UseEffect::TeleportCity),
-        UseEffectType::UseEffectDamageAndApply => {
+        UseEffectType::TeleportCity => Some(UseEffect::TeleportCity),
+        UseEffectType::DamageAndApply => {
             let kind = proto_status_to_effect_kind(ue.status_effect.unwrap_or(0))?;
             Some(UseEffect::DamageAndApply {
                 damage: ue.amount.unwrap_or(0),
@@ -493,7 +497,7 @@ fn proto_use_effect(ue: &bevy_items::UseEffect) -> Option<UseEffect> {
                 turns: ue.turns.unwrap_or(1) as u8,
             })
         }
-        UseEffectType::UseEffectReviveAlly => Some(UseEffect::ReviveAlly {
+        UseEffectType::ReviveAlly => Some(UseEffect::ReviveAlly {
             heal_percent: ue.percent.unwrap_or(30) as u8,
         }),
         _ => None,
@@ -531,16 +535,16 @@ fn proto_to_gear_def(proto: &bevy_items::Item) -> Option<GearDef> {
     let special = equip.special.and_then(|s| {
         let special_value = equip.special_value.unwrap_or(0.0);
         match GearSpecialType::try_from(s).ok()? {
-            GearSpecialType::GearSpecialLifeSteal => Some(GearSpecial::LifeSteal {
+            GearSpecialType::LifeSteal => Some(GearSpecial::LifeSteal {
                 percent: (special_value * 100.0) as u8,
             }),
-            GearSpecialType::GearSpecialThorns => Some(GearSpecial::Thorns {
+            GearSpecialType::Thorns => Some(GearSpecial::Thorns {
                 damage: special_value as i32,
             }),
-            GearSpecialType::GearSpecialCritBonus => Some(GearSpecial::CritBonus {
+            GearSpecialType::CritBonus => Some(GearSpecial::CritBonus {
                 percent: (special_value * 100.0) as u8,
             }),
-            GearSpecialType::GearSpecialDamageReduction => Some(GearSpecial::DamageReduction {
+            GearSpecialType::DamageReduction => Some(GearSpecial::DamageReduction {
                 percent: (special_value * 100.0) as u8,
             }),
             _ => None,
@@ -735,8 +739,7 @@ pub fn get_npc_dialogue_graph(npc_ref: &str) -> Option<&'static DialogueGraph> {
     let npc = find_npc_by_ref(npc_ref)?;
     npc.dialogue_graph_refs
         .iter()
-        .filter_map(|id| bevy_dialogue::ulid_text(Some(id)))
-        .find_map(|ulid| DIALOGUE_DB.get_by_ulid(&ulid))
+        .find_map(|graph_ref| DIALOGUE_DB.get(graph_ref))
         .or_else(|| DIALOGUE_DB.get(npc_ref))
 }
 
@@ -852,11 +855,11 @@ pub fn available_recipes(
             for ing in &recipe.ingredients {
                 let game_id = leak(ing.item_ref.replace('-', "_"));
                 let name = ing
-                    .name
+                    .item_name
                     .as_deref()
                     .map(|n| leak(n.to_owned()))
                     .unwrap_or(game_id);
-                let required = ing.amount.max(1) as u32;
+                let required = ing.quantity.max(1);
                 let have = super::types::inv_count(inventory, game_id);
                 if have < required {
                     can_craft = false;
@@ -1007,7 +1010,7 @@ pub fn execute_craft(
     let mut to_consume: Vec<(&'static str, u32)> = Vec::new();
     for ing in &recipe.ingredients {
         let game_id = leak(ing.item_ref.replace('-', "_"));
-        let required = ing.amount.max(1) as u32;
+        let required = ing.quantity.max(1);
         let have = super::types::inv_count(inventory, game_id);
         if have < required {
             return Err(CraftError::MissingIngredient {

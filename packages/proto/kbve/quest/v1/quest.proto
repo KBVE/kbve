@@ -63,7 +63,7 @@ message QuestObjective {
   ObjectiveType type = 3;
 
   // NPC, item, zone or tile the objective refers to.
-  repeated kbve.type.v1.Ulid target_refs = 4;
+  repeated string target_refs = 4;
   int32 required_amount = 5;
 
   // Named is_optional rather than optional: a field literally named `optional`
@@ -76,12 +76,12 @@ message QuestObjective {
 
   // Sequential ordering. Zero means the objective may be done in parallel.
   optional int32 order = 9;
-  optional kbve.type.v1.Ulid zone_ref = 10;
+  optional string zone_ref = 10;
 }
 
 // One item granted as a reward.
 message QuestItemReward {
-  kbve.type.v1.Ulid item_ref = 1;
+  string item_ref = 1;
   optional string item_name = 2;
   int32 amount = 3;
 }
@@ -110,8 +110,8 @@ message QuestRewards {
   map<string, double> bonuses = 4;
   optional AchievementMeta achievement = 5;
   // Recipe, area or feature unlocked.
-  optional kbve.type.v1.Ulid unlock_ref = 6;
-  repeated kbve.type.v1.Ulid unlock_quest_refs = 7;
+  optional string unlock_ref = 6;
+  repeated string unlock_quest_refs = 7;
   optional int32 reputation_amount = 8;
   optional string reputation_faction = 9;
 }
@@ -152,7 +152,7 @@ message QuestOutcome {
   string id = 1;
   string description = 2;
   optional QuestRewards rewards = 3;
-  optional kbve.type.v1.Ulid next_quest_ref = 4;
+  optional string next_quest_ref = 4;
   // World-state flags set permanently by reaching this ending.
   repeated string consequence_flags = 5;
   // e.g. "good", "neutral", "evil".
@@ -186,7 +186,7 @@ message QuestStep {
 
   reserved 4;
 
-  optional kbve.type.v1.Ulid speaker_ref = 5;
+  optional string speaker_ref = 5;
   repeated QuestObjective objectives = 6;
   repeated QuestChoice choices = 7;
   optional string next_step_id = 8;
@@ -212,10 +212,10 @@ message QuestStep {
 // What must be true before a quest becomes available.
 message QuestPrerequisite {
   optional int32 level_requirement = 1;
-  repeated kbve.type.v1.Ulid quest_refs = 2;
-  optional kbve.type.v1.Ulid faction_ref = 3;
+  repeated string quest_refs = 2;
+  optional string faction_ref = 3;
   optional int32 faction_rank = 4;
-  repeated kbve.type.v1.Ulid item_refs = 5;
+  repeated string item_refs = 5;
   optional string class_ref = 6;
   optional string trigger = 7;
   // Minimum Inn upgrade tier for a giver to offer this quest.
@@ -268,13 +268,13 @@ message Quest {
 
   repeated QuestStep steps = 20;
 
-  optional kbve.type.v1.Ulid next_quest_ref = 21;
-  optional kbve.type.v1.Ulid chain_ref = 22;
+  optional string next_quest_ref = 21;
+  optional string chain_ref = 22;
 
-  repeated kbve.type.v1.Ulid giver_npc_refs = 23;
-  repeated kbve.type.v1.Ulid turn_in_npc_refs = 24;
+  repeated string giver_npc_refs = 23;
+  repeated string turn_in_npc_refs = 24;
 
-  repeated kbve.type.v1.Ulid zone_refs = 25;
+  repeated string zone_refs = 25;
   optional int32 recommended_level = 26;
   optional int32 recommended_party_size = 27;
 
@@ -309,7 +309,7 @@ message QuestChain {
   string ref = 2;
   string name = 3;
   optional string description = 4;
-  repeated kbve.type.v1.Ulid quest_refs = 5;
+  repeated string quest_refs = 5;
   optional string icon = 6;
   // Granted for completing every quest in the chain.
   optional QuestRewards chain_rewards = 7;

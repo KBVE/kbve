@@ -71,6 +71,7 @@ fn format_assignees(assignees: &[jedi::entity::github::GitHubUser]) -> String {
 }
 
 /// Parse a hex color string (e.g. "d73a4a") to a u32 for Discord embeds.
+#[allow(dead_code)]
 fn parse_label_color(labels: &[jedi::entity::github::GitHubLabel]) -> Option<u32> {
     labels
         .first()
@@ -647,11 +648,7 @@ async fn repo(
                     .title(&info.full_name)
                     .url(&info.html_url)
                     .description(desc)
-                    .field(
-                        "Default Branch",
-                        format!("`{}`", &info.default_branch),
-                        true,
-                    )
+                    .field("Default Branch", format!("`{}`", info.default_branch), true)
                     .field("Open Issues", info.open_issues_count.to_string(), true)
                     .color(branding::GH_DARK)
                     .author(branding::embed_author())

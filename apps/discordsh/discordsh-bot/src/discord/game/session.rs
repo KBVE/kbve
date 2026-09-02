@@ -14,6 +14,7 @@ use super::types::{GameOverReason, GamePhase, PlayerId, SessionState, ShortSid};
 pub struct BotSession {
     pub state: SessionState,
     pub channel_id: serenity::ChannelId,
+    #[allow(dead_code)]
     pub message_id: serenity::MessageId,
     pub snapshots: std::collections::HashMap<PlayerId, DungeonProfile>,
 }

@@ -476,6 +476,7 @@ pub fn render_repo_card_blocking(
     kbve::render_svg_to_png(&svg, fontdb).map_err(|e| format!("Repo PNG render: {e}"))
 }
 
+#[allow(dead_code)]
 pub fn render_noticeboard_card_blocking(
     notices: &[NoticeItem],
     repo_name: &str,
@@ -512,6 +513,7 @@ pub fn render_commits_card_blocking(
     kbve::render_svg_to_png(&svg, fontdb).map_err(|e| format!("Commits PNG render: {e}"))
 }
 
+#[allow(dead_code)]
 pub fn render_taskboard_card_blocking(
     tasks: &[TaskItem],
     repo_name: &str,

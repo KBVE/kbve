@@ -4,6 +4,15 @@ layer: 'application'
 language: 'typescript'
 tags: ['vitest']
 
+# The specs under e2e/ are this project's only vitest suite, and they need the
+# service the `e2e` task starts. The vitest preset's inherited `test` runs the
+# same files with nothing behind them, so it fails on a refused connection or a
+# missing container -- which reads as a broken suite rather than a task that was
+# never meant to run on its own. `e2e` runs vitest itself, so nothing is lost.
+workspace:
+    inheritedTasks:
+        exclude: ['test']
+
 tasks:
     e2e:
         script: 'docker rm -f aria2-proxy-e2e aria2-proxy-e2e-aria aria2-proxy-e2e-fs 2>/dev/null || true && docker buildx build --platform linux/amd64 -f apps/vm/aria2-proxy/Dockerfile -t kbve/aria2-proxy:latest --load apps/vm/aria2-proxy/ && docker run -d --name aria2-proxy-e2e --entrypoint sleep kbve/aria2-proxy:latest infinity && echo ''Waiting for container...'' && for i in $(seq 1 30); do if docker exec aria2-proxy-e2e /bin/sh -c ''echo ok'' >/dev/null 2>&1; then echo ''Container ready after ''"$i"''s''; break; fi; if [ $i -eq 30 ]; then echo ''Container did not become ready''; docker logs aria2-proxy-e2e 2>&1 | tail -20; docker rm -f aria2-proxy-e2e 2>/dev/null || true; exit 1; fi; sleep 1; done && cd apps/vm/aria2-proxy-e2e && npx vitest run; EC=$?; docker rm -f aria2-proxy-e2e aria2-proxy-e2e-aria aria2-proxy-e2e-fs 2>/dev/null || true; exit $EC'

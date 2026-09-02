@@ -1061,10 +1061,10 @@ const FULL_HEAL: i32 = 9_999;
 /// supports. Unsupported effects return `None` so the item simply grants no buff.
 fn map_status(raw: i32) -> Option<StatusKind> {
     match StatusEffectKind::try_from(raw).ok()? {
-        StatusEffectKind::StatusEffectRegen => Some(StatusKind::Regen),
-        StatusEffectKind::StatusEffectHaste => Some(StatusKind::Haste),
-        StatusEffectKind::StatusEffectPoison => Some(StatusKind::Poison),
-        StatusEffectKind::StatusEffectBurning => Some(StatusKind::Burn),
+        StatusEffectKind::Regen => Some(StatusKind::Regen),
+        StatusEffectKind::Haste => Some(StatusKind::Haste),
+        StatusEffectKind::Poison => Some(StatusKind::Poison),
+        StatusEffectKind::Burning => Some(StatusKind::Burn),
         _ => None,
     }
 }
@@ -1077,15 +1077,15 @@ fn ingest_effect(
     buffs: &mut HashMap<String, BuffSpec>,
 ) {
     match UseEffectType::try_from(ue.r#type) {
-        Ok(UseEffectType::UseEffectHeal) => {
+        Ok(UseEffectType::Heal) => {
             if let Some(a) = ue.amount {
                 heals.entry(ref_id.to_string()).or_insert(a);
             }
         }
-        Ok(UseEffectType::UseEffectFullHeal) => {
+        Ok(UseEffectType::FullHeal) => {
             heals.entry(ref_id.to_string()).or_insert(FULL_HEAL);
         }
-        Ok(UseEffectType::UseEffectApplyEffect) => {
+        Ok(UseEffectType::ApplyEffect) => {
             if let Some(kind) = ue.status_effect.and_then(map_status) {
                 let turns = ue.turns.unwrap_or(8).max(1) as u32;
                 let magnitude = ue.amount.or(ue.stacks).unwrap_or(2).max(1);
@@ -1473,17 +1473,17 @@ mod tests {
         use super::{StatusEffectKind, StatusKind};
         fn itemdb_of(k: StatusKind) -> StatusEffectKind {
             match k {
-                StatusKind::Poison => StatusEffectKind::StatusEffectPoison,
-                StatusKind::Regen => StatusEffectKind::StatusEffectRegen,
-                StatusKind::Haste => StatusEffectKind::StatusEffectHaste,
-                StatusKind::Burn => StatusEffectKind::StatusEffectBurning,
+                StatusKind::Poison => StatusEffectKind::Poison,
+                StatusKind::Regen => StatusEffectKind::Regen,
+                StatusKind::Haste => StatusEffectKind::Haste,
+                StatusKind::Burn => StatusEffectKind::Burning,
             }
         }
         for (k, name) in [
-            (StatusKind::Poison, "STATUS_EFFECT_POISON"),
-            (StatusKind::Regen, "STATUS_EFFECT_REGEN"),
-            (StatusKind::Haste, "STATUS_EFFECT_HASTE"),
-            (StatusKind::Burn, "STATUS_EFFECT_BURNING"),
+            (StatusKind::Poison, "STATUS_EFFECT_KIND_POISON"),
+            (StatusKind::Regen, "STATUS_EFFECT_KIND_REGEN"),
+            (StatusKind::Haste, "STATUS_EFFECT_KIND_HASTE"),
+            (StatusKind::Burn, "STATUS_EFFECT_KIND_BURNING"),
         ] {
             assert_eq!(itemdb_of(k).as_str_name(), name);
         }

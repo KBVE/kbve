@@ -13,6 +13,7 @@ use crate::discord::branding;
 pub enum TaskStatus {
     Open,
     Closed,
+    #[allow(dead_code)]
     Merged,
 }
 

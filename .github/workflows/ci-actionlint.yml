@@ -92,32 +92,20 @@ jobs:
                   fi
                   exit 0
 
-    track_failure:
+    # One job rather than a failure/success pair. The pair reported the same
+    # five inputs twice and differed only in a status string, and their two
+    # conditions had to stay each other's exact complement by hand.
+    track:
         name: Track Failures
-        if: ${{ always() && contains(needs.*.result, 'failure') }}
+        if: ${{ always() && (contains(needs.*.result, 'failure') || !contains(needs.*.result, 'cancelled')) }}
         needs: [actionlint]
         permissions:
             issues: write
             contents: read
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
+        uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:
             workflow_name: 'CI - Actionlint'
             job_name: 'actionlint'
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: 'failure'
-
-    track_success:
-        name: Track Success
-        if: ${{ always() && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
-        needs: [actionlint]
-        permissions:
-            issues: write
-            contents: read
-        uses: KBVE/kbve/.github/workflows/utils-ci-failure-tracker.yml@main
-        with:
-            workflow_name: 'CI - Actionlint'
-            job_name: 'actionlint'
-            run_id: ${{ github.run_id }}
-            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-            status: 'success'
+            status: ${{ contains(needs.*.result, 'failure') && 'failure' || 'success' }}

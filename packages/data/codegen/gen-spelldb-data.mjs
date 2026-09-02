@@ -7,7 +7,7 @@
  *
  * Inputs:
  *   apps/kbve/astro-kbve/src/content/docs/spelldb/*.mdx (authoritative catalog)
- *   packages/data/codegen/descriptors/spelldb.binpb     (proto schema descriptor)
+ *   packages/proto/kbve/spell/v1/spell.proto            (proto schema)
  *
  * Outputs:
  *   packages/data/codegen/generated/spelldb-data.json   (proto-canonical camelCase)
@@ -26,13 +26,8 @@ import {
 	collectLocales,
 	encodeLocaleTables,
 } from './lib/i18n-slice.mjs';
-import {
-	toBinary,
-	fromJson,
-	fromBinary,
-	createFileRegistry,
-} from '@bufbuild/protobuf';
-import { FileDescriptorSetSchema } from '@bufbuild/protobuf/wkt';
+import { encodeRegistry } from './proto-encode.mjs';
+import { kbveProtoDescriptor } from './lib/proto-descriptor.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');
@@ -40,16 +35,15 @@ const spelldbDir = resolve(
 	repoRoot,
 	'apps/kbve/astro-kbve/src/content/docs/spelldb',
 );
-const descriptorPath = resolve(__dirname, 'descriptors/spelldb.binpb');
 const generatedDir = resolve(__dirname, 'generated');
 const outputJsonPath = resolve(generatedDir, 'spelldb-data.json');
 const outputBinPath = resolve(generatedDir, 'spelldb-data.binpb');
 
 const ENUM_PREFIX = {
-	school: 'SPELL_SCHOOL_',
+	school: 'ELEMENT_',
 	target: 'SPELL_TARGET_',
 	effect: 'SPELL_EFFECT_',
-	rarity: 'SPELL_RARITY_',
+	rarity: 'RARITY_',
 };
 
 const ASTRO_ONLY_FIELDS = new Set(['title']);
@@ -110,21 +104,11 @@ function main() {
 	writeFileSync(outputJsonPath, JSON.stringify(registryJson, null, 2));
 	console.log(`Wrote ${outputJsonPath}`);
 
-	const descBytes = readFileSync(descriptorPath);
-	const fds = fromBinary(FileDescriptorSetSchema, descBytes);
-	const registry = createFileRegistry(fds);
-	const spellRegistryDesc = registry.getMessage('spell.SpellRegistry');
-	if (!spellRegistryDesc) {
-		console.error(
-			'FATAL: spell.SpellRegistry message descriptor not found in spelldb.binpb',
-		);
-		process.exit(1);
-	}
-
-	const msg = fromJson(spellRegistryDesc, registryJson, {
-		ignoreUnknownFields: true,
-	});
-	const wire = toBinary(spellRegistryDesc, msg);
+	const wire = encodeRegistry(
+		kbveProtoDescriptor(),
+		'kbve.spell.v1.SpellRegistry',
+		registryJson,
+	);
 	writeFileSync(outputBinPath, wire);
 	console.log(`Wrote ${outputBinPath} (${wire.length} bytes)`);
 

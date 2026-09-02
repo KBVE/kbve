@@ -13,13 +13,11 @@ categories = ["game-development", "game-engines"]
 readme = "README.md"
 
 [dependencies]
+kbve-proto = { path = "../kbve-proto" }
 bevy = { workspace = true, features = ["bevy_state"] }
 prost = { workspace = true, features = ["derive"] }
 serde = { workspace = true, features = ["derive"] }
 serde_json = { workspace = true }
-
-[build-dependencies]
-prost-build = { workspace = true }
 
 [package.metadata.docs.rs]
 all-features = true
