@@ -1,5 +1,8 @@
 #include "KBVEWorldStreamer.h"
 
+#include "KBVEWorldHeightfield.h"
+#include "KBVEWorldRoadField.h"
+
 #include "Engine/World.h"
 #include "GameFramework/PlayerController.h"
 #include "KBVEWorldHeightfieldActor.h"
@@ -107,6 +110,24 @@ int32 AKBVEWorldStreamer::LODStepForRing(int32 Ring) const
 	return FMath::Clamp(1 << FMath::Min(Group, 6), 1, FMath::Max(1, CellsPerChunk / 4));
 }
 
+// Out of line, where FKBVEWorldRoadField is a complete type: the header only
+// forward-declares it, and a TUniquePtr member cannot be destroyed against a
+// declaration.
+AKBVEWorldStreamer::~AKBVEWorldStreamer() = default;
+
+const FKBVEWorldRoadField* AKBVEWorldStreamer::GetRoadField() const
+{
+	const int32 Seed = FKBVEWorldHeightfield::SeedFromWorld(WorldSeed);
+	// Rebuilt when the numbers behind it change, so editing the road in the
+	// details panel regrades the ground rather than leaving the old cuttings in
+	// terrain that no longer has roads there.
+	if (!RoadField.IsValid() || !RoadField->Matches(Road, Seed))
+	{
+		RoadField = MakeUnique<FKBVEWorldRoadField>(Road, Shape, Seed);
+	}
+	return RoadField.Get();
+}
+
 void AKBVEWorldStreamer::ConfigurePatch(AKBVEWorldHeightfieldActor* Patch, const FIntPoint& Coord) const
 {
 	const float TileStep = CellSize / 100.0f;
@@ -117,6 +138,8 @@ void AKBVEWorldStreamer::ConfigurePatch(AKBVEWorldHeightfieldActor* Patch, const
 	Patch->CellSize = CellSize;
 	Patch->SkirtDepth = SkirtDepth;
 	Patch->TerrainMaterial = TerrainMaterial;
+	Patch->WaterMaterial = WaterMaterial;
+	Patch->SetRoadField(GetRoadField());
 	// Tile origin follows the chunk coordinate exactly, so the last column of
 	// one patch samples the same tile as the first column of the next and the
 	// surfaces meet rather than nearly meet.
@@ -222,6 +245,10 @@ void AKBVEWorldStreamer::AccountBuild(AKBVEWorldHeightfieldActor* Patch, float E
 
 void AKBVEWorldStreamer::ReleaseOutsideRadius(const FIntPoint& Centre)
 {
+	// Derived from the centre being moved to, so anything left over from the
+	// previous one is answering a question that is no longer being asked.
+	Restage.Reset();
+
 	TArray<FIntPoint> Stale;
 	for (const TPair<FIntPoint, TObjectPtr<AKBVEWorldHeightfieldActor>>& Pair : Live)
 	{
@@ -234,15 +261,18 @@ void AKBVEWorldStreamer::ReleaseOutsideRadius(const FIntPoint& Centre)
 		}
 
 		// A patch built coarse when it was far away has to be rebuilt as the
-		// viewer closes on it, and so does one that now needs collision.
-		// Releasing it here puts it back in the pool, and QueueInsideRadius
-		// picks the coordinate up again on the same pass with the stride and
-		// collision its new ring calls for.
+		// viewer closes on it, and so does one that now needs collision. It is
+		// rebuilt where it stands rather than released to the pool and queued:
+		// pooling it removes the only floor under that coordinate, and the
+		// rebuild then waits behind a millisecond budget. A pawn standing on a
+		// chunk whose ring changed lost its floor for as long as that took,
+		// fell, and was snapped back when the patch returned. A stale stride
+		// for a few frames is not visible; a missing floor is.
 		if (IsValid(Pair.Value)
 			&& (Pair.Value->LODStep != LODStepForRing(Ring)
 				|| Pair.Value->bGenerateCollision != WantsCollisionAtRing(Ring)))
 		{
-			Stale.Add(Pair.Key);
+			Restage.Add(Pair.Key);
 		}
 	}
 
@@ -275,12 +305,29 @@ void AKBVEWorldStreamer::QueueInsideRadius(const FIntPoint& Centre)
 
 	// Nearest first: what the viewer is standing on matters more than the
 	// far corner of the window, and on a boundary crossing both are eligible.
-	Pending.Sort([&Centre](const FIntPoint& A, const FIntPoint& B)
+	auto NearestFirst = [&Centre](const FIntPoint& A, const FIntPoint& B)
 	{
 		const FIntPoint DA = A - Centre;
 		const FIntPoint DB = B - Centre;
 		return (DA.X * DA.X + DA.Y * DA.Y) < (DB.X * DB.X + DB.Y * DB.Y);
-	});
+	};
+	Pending.Sort(NearestFirst);
+	Restage.Sort(NearestFirst);
+}
+
+void AKBVEWorldStreamer::RebuildInPlace(const FIntPoint& Coord)
+{
+	TObjectPtr<AKBVEWorldHeightfieldActor>* Found = Live.Find(Coord);
+	if (!Found || !IsValid(*Found))
+	{
+		return;
+	}
+
+	// No transform change and no visibility change: the patch is already where
+	// it belongs and already on screen. Only the stride and the collision flag
+	// are being restated, then the mesh regenerated to match.
+	ConfigurePatch(*Found, Coord);
+	BuildAndAccount(*Found);
 }
 
 void AKBVEWorldStreamer::Tick(float DeltaSeconds)
@@ -333,14 +380,14 @@ void AKBVEWorldStreamer::Tick(float DeltaSeconds)
 		// appear while standing still or turning on the spot, the streamer is
 		// reacting to something it should not and that is worth seeing.
 		UE_LOG(LogKBVEWorldStream, Display,
-			TEXT("centre %d,%d -> %d,%d (view %.0f,%.0f): %d live, %d queued, %d pooled"),
+			TEXT("centre %d,%d -> %d,%d (view %.0f,%.0f): %d live, %d queued, %d restaged, %d pooled"),
 			Previous.X, Previous.Y, Centre.X, Centre.Y, ViewLocation.X, ViewLocation.Y,
-			Live.Num(), Pending.Num(), Pool.Num());
+			Live.Num(), Pending.Num(), Restage.Num(), Pool.Num());
 	}
 
 	int32 Built = 0;
 	const double TickStart = FPlatformTime::Seconds();
-	if (Pending.Num() > 0)
+	if (Pending.Num() > 0 || Restage.Num() > 0)
 	{
 		++FillTicks;
 	}
@@ -359,10 +406,26 @@ void AKBVEWorldStreamer::Tick(float DeltaSeconds)
 		}
 	}
 
+	// Same budget, and after the coordinates that have no patch at all: a
+	// restaged patch is standing there being drawn and stood on the whole time,
+	// so it can wait, where an empty coordinate is a hole in the world.
+	while (Restage.Num() > 0 && Built < MaxBuildsPerTick)
+	{
+		RebuildInPlace(Restage[0]);
+		Restage.RemoveAt(0, EAllowShrinking::No);
+		++Built;
+
+		const double SpentMs = (FPlatformTime::Seconds() - TickStart) * 1000.0;
+		if (SpentMs >= MaxBuildMillisecondsPerTick)
+		{
+			break;
+		}
+	}
+
 	// One line when the window finishes filling, rather than per patch. The
 	// interesting numbers are what the whole window cost and which ring it went
 	// to, not each of its 169 parts.
-	if (Built > 0 && Pending.Num() == 0)
+	if (Built > 0 && Pending.Num() == 0 && Restage.Num() == 0)
 	{
 		FString ByLOD;
 		for (int32 I = 0; I < MaxTrackedLOD; ++I)

@@ -63,4 +63,79 @@ struct KBVEWORLDCORE_API FKBVEWorldHeightfieldParams
 	/** Peak height in world units. The mixed noise is clamped to +/-1 first. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Mix")
 	float Amplitude = 900.0f;
+
+	/** How large the river network is. Lower is fewer, further-apart rivers. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River")
+	float RiverFreq = 0.001f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River", meta = (ClampMin = "1", ClampMax = "8"))
+	int32 RiverOctaves = 2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River")
+	float RiverGain = 0.5f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River")
+	float RiverLacunarity = 2.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River")
+	int32 RiverSeedOffset = 7717;
+
+	/**
+	 * Warp pulls the channel off the noise's own grid. Without it rivers run as
+	 * soft diagonals; with it they meander.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River|Warp")
+	float RiverWarpFreq = 0.006f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River|Warp", meta = (ClampMin = "1", ClampMax = "8"))
+	int32 RiverWarpOctaves = 2;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River|Warp")
+	float RiverWarpAmp = 45.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River|Warp")
+	int32 RiverWarpSeedOffset = 91237;
+
+	/** Offset of the second warp sample, so x and y come from one field undistorted. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River|Warp")
+	float RiverWarpLobe = 137.0f;
+
+	/**
+	 * Half-width of the channel in TILES, not in noise units.
+	 *
+	 * That distinction is the difference between a river and a chain of ponds. A
+	 * band of constant noise value is wide wherever the field is flat and pinched
+	 * wherever it is steep, so its width on the ground varies by an order of
+	 * magnitude along one channel. Dividing by the gradient turns the value back
+	 * into a distance, and the channel then holds its width.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River", meta = (ClampMin = "0.5"))
+	float RiverWidthTiles = 7.0f;
+
+	/**
+	 * Step used to measure the noise gradient, in tiles. Wide on purpose: the
+	 * gradient is a difference of two nearly equal values, so a short step is
+	 * dominated by cancellation, and the error lands straight on the river width.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River", meta = (ClampMin = "0.1"))
+	float RiverGradientStep = 2.0f;
+
+	/** Surface every body of standing water sits at. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River")
+	float WaterZ = -140.0f;
+
+	/** How far the channel floor lies below the water surface. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River", meta = (ClampMin = "0.0"))
+	float RiverbedDepth = 160.0f;
+
+	/**
+	 * How high above the water rivers still run.
+	 *
+	 * The water surface is one flat plane, so a channel carved across a hilltop
+	 * is a dry trench rather than a river. Fading the carve out with elevation is
+	 * what keeps every channel that does exist full: rivers belong to the
+	 * lowlands here, and the uplands they would drain are left alone.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "River", meta = (ClampMin = "0.0"))
+	float RiverMaxElevation = 260.0f;
 };

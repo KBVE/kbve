@@ -3,6 +3,8 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "KBVEWorldHeightfieldParams.h"
+#include "KBVEWorldRoadField.h"
+#include "KBVEWorldRoadGraph.h"
 
 #include "KBVEWorldStreamer.generated.h"
 
@@ -31,12 +33,24 @@ class KBVEWORLDCORE_API AKBVEWorldStreamer : public AActor
 
 public:
 	AKBVEWorldStreamer();
+	virtual ~AKBVEWorldStreamer() override;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Streaming")
 	int64 WorldSeed = 1337;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Streaming")
 	FKBVEWorldHeightfieldParams Shape;
+
+	/**
+	 * The road network, which the terrain is graded for.
+	 *
+	 * Owned here rather than on the road actor because the ground has to know
+	 * about roads before anything can be laid on it, and because two actors
+	 * carrying their own copy of these numbers is two chances to disagree about
+	 * where the roads are. The road actor reads them from this one.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Streaming")
+	FKBVEWorldRoadParams Road;
 
 	/** Cells per patch edge. Vertex cost per patch is (this + 1) squared. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Streaming",
@@ -138,6 +152,13 @@ public:
 	TObjectPtr<UMaterialInterface> TerrainMaterial;
 
 	/**
+	 * Surface for standing water, handed to every patch. Without it the carved
+	 * river channels are dry trenches.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Streaming")
+	TObjectPtr<UMaterialInterface> WaterMaterial;
+
+	/**
 	 * Rings that get collision, counted from the centre.
 	 *
 	 * Collision is a second copy of the mesh and a physics cook per patch, so it
@@ -172,6 +193,9 @@ public:
 
 	FIntPoint GetCentre() const { return LastCentre; }
 
+	/** The graded road corridors these patches are built against. */
+	const FKBVEWorldRoadField* GetRoadField() const;
+
 	virtual void Tick(float DeltaSeconds) override;
 #if WITH_EDITOR
 	// So the world exists in the editor viewport too. Without it the level looks
@@ -193,10 +217,15 @@ private:
 
 	void ReleaseOutsideRadius(const FIntPoint& Centre);
 	void QueueInsideRadius(const FIntPoint& Centre);
+
+	/** Restate stride and collision on a patch that stays where it is, then rebuild it. */
+	void RebuildInPlace(const FIntPoint& Coord);
 	static void SetPatchVisible(AKBVEWorldHeightfieldActor* Patch, bool bVisible);
 
 	/** Push this streamer's settings onto a patch for the given coordinate. */
 	void ConfigurePatch(AKBVEWorldHeightfieldActor* Patch, const FIntPoint& Coord) const;
+
+	mutable TUniquePtr<FKBVEWorldRoadField> RoadField;
 
 	void BuildAndAccount(AKBVEWorldHeightfieldActor* Patch);
 	void AccountBuild(AKBVEWorldHeightfieldActor* Patch, float ElapsedMs);
@@ -220,6 +249,11 @@ private:
 	TArray<TObjectPtr<AKBVEWorldHeightfieldActor>> Pool;
 
 	TArray<FIntPoint> Pending;
+
+	// Coordinates that are still live and still drawn, but whose stride or
+	// collision no longer matches their ring. Separate from Pending because
+	// these must not be torn down first: the pawn may be standing on one.
+	TArray<FIntPoint> Restage;
 	FIntPoint LastCentre = FIntPoint(MAX_int32, MAX_int32);
 
 	int32 BuildCount = 0;
