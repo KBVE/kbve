@@ -11,7 +11,8 @@ tasks:
     # Nightly and build-std: the extension is built with panic_abort against a
     # rebuilt std, which stable cargo cannot do.
     build-mac:
-        script: 'cargo +nightly build -Z build-std=std,panic_abort -Z unstable-options --features net-godot --target aarch64-apple-darwin --artifact-dir dist/macos --release'
+        toolchain: 'system'
+        script: 'rustup run nightly cargo build -Z build-std=std,panic_abort -Z unstable-options --features net-godot --target aarch64-apple-darwin --artifact-dir dist/macos --release'
         outputs: ['dist/macos']
 
     build-ios:
@@ -36,8 +37,9 @@ tasks:
     # build-mac: it links steamworks and has to ship libsteam_api.dylib beside
     # libq, and both need signing before they will load anywhere but here.
     build-mac-steam:
+        toolchain: 'system'
         script: >-
-            cargo +nightly build -Z build-std=std,panic_abort -Z unstable-options
+            rustup run nightly cargo build -Z build-std=std,panic_abort -Z unstable-options
             --features net-godot,steam --target aarch64-apple-darwin
             --artifact-dir dist/macos-steam --release
             && mkdir -p release/addons/q/macos
