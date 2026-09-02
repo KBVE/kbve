@@ -4,9 +4,9 @@ set -euo pipefail
 # deploy_isometric_quick.sh
 # Builds WASM client, generates mkcert TLS certs, starts axum-kbve as a single
 # HTTPS server that serves the game client + REST API + game server.
-# Usage: ./scripts/deploy_isometric_quick.sh  (or via `nx run isometric:quick`)
+# Usage: moon run isometric:quick
 
-REPO_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+REPO_ROOT="$(cd "$(dirname "$0")/../../../.." && pwd)"
 ISO_DIR="$REPO_ROOT/apps/kbve/isometric"
 CERT_DIR="$ISO_DIR/certificates"
 
