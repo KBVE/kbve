@@ -9,19 +9,21 @@ COPY apps/agones/herbmail/server/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
 COPY apps/agones/herbmail/server/Cargo.toml apps/agones/herbmail/server/Cargo.toml
-COPY packages/rust/simgrid/Cargo.toml packages/rust/simgrid/Cargo.toml
-COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
-COPY packages/rust/simbody3d/Cargo.toml packages/rust/simbody3d/Cargo.toml
+COPY crates/simgrid/Cargo.toml crates/simgrid/Cargo.toml
+COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
+COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
+COPY crates/simbody3d/Cargo.toml crates/simbody3d/Cargo.toml
+COPY crates/bevy_spells/Cargo.toml crates/bevy_spells/Cargo.toml
 
 RUN mkdir -p apps/agones/herbmail/server/src && \
     echo "fn main() {}" > apps/agones/herbmail/server/src/main.rs && \
     echo "" > apps/agones/herbmail/server/src/lib.rs && \
-    mkdir -p packages/rust/simgrid/src && \
-    echo "" > packages/rust/simgrid/src/lib.rs && \
-    mkdir -p packages/rust/jedi/src && \
-    echo "" > packages/rust/jedi/src/lib.rs && \
-    mkdir -p packages/rust/simbody3d/src && \
-    echo "" > packages/rust/simbody3d/src/lib.rs
+    mkdir -p crates/simgrid/src && \
+    echo "" > crates/simgrid/src/lib.rs && \
+    mkdir -p crates/jedi/src && \
+    echo "" > crates/jedi/src/lib.rs && \
+    mkdir -p crates/simbody3d/src && \
+    echo "" > crates/simbody3d/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json --bin herbmail-server
 
@@ -61,9 +63,12 @@ COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
 COPY apps/agones/herbmail/server/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
-COPY packages/rust/simgrid packages/rust/simgrid
-COPY packages/rust/jedi packages/rust/jedi
-COPY packages/rust/simbody3d packages/rust/simbody3d
+COPY crates/simgrid crates/simgrid
+COPY crates/jedi crates/jedi
+COPY crates/kbve-proto crates/kbve-proto
+COPY crates/bevy_spells crates/bevy_spells
+COPY packages/proto packages/proto
+COPY crates/simbody3d crates/simbody3d
 COPY apps/agones/herbmail/server apps/agones/herbmail/server
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \

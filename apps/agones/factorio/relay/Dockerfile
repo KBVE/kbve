@@ -1,4 +1,4 @@
-ARG RUST_VERSION=1.96
+ARG RUST_VERSION=1.98
 
 FROM --platform=linux/amd64 rust:${RUST_VERSION}-bookworm AS builder
 ENV CARGO_INCREMENTAL=0
@@ -6,7 +6,10 @@ WORKDIR /build
 
 COPY apps/agones/factorio/relay/Cargo.workspace.toml Cargo.toml
 COPY apps/agones/factorio/relay apps/agones/factorio/relay
-COPY packages/rust/jedi packages/rust/jedi
+COPY crates/jedi crates/jedi
+COPY crates/kbve-proto crates/kbve-proto
+COPY packages/proto packages/proto
+COPY packages/proto packages/proto
 
 RUN --mount=type=cache,target=/build/target,id=agones-factorio-relay-target \
     --mount=type=cache,target=/usr/local/cargo/registry,id=cargo-registry \

@@ -13,16 +13,20 @@ COPY apps/kbve/kbve-gate/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
 COPY apps/kbve/kbve-gate/Cargo.toml apps/kbve/kbve-gate/Cargo.toml
-COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
-COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
-COPY packages/rust/holy/Cargo.toml packages/rust/holy/Cargo.toml
+COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
+COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
+COPY crates/kbve/Cargo.toml crates/kbve/Cargo.toml
+COPY crates/holy/Cargo.toml crates/holy/Cargo.toml
+COPY crates/holy-derive/Cargo.toml crates/holy-derive/Cargo.toml
 
 COPY packages/data/proto packages/data/proto
 
 RUN mkdir -p apps/kbve/kbve-gate/src && echo "fn main() {}" > apps/kbve/kbve-gate/src/main.rs && \
-    mkdir -p packages/rust/jedi/src && echo "" > packages/rust/jedi/src/lib.rs && \
-    mkdir -p packages/rust/kbve/src && echo "" > packages/rust/kbve/src/lib.rs && \
-    mkdir -p packages/rust/holy/src && echo "" > packages/rust/holy/src/lib.rs
+    mkdir -p crates/jedi/src && echo "" > crates/jedi/src/lib.rs && \
+    mkdir -p crates/holy-derive/src && echo "" > crates/holy-derive/src/lib.rs && \
+    mkdir -p crates/kbve-proto/src && echo "" > crates/kbve-proto/src/lib.rs && \
+    mkdir -p crates/kbve/src && echo "" > crates/kbve/src/lib.rs && \
+    mkdir -p crates/holy/src && echo "" > crates/holy/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -56,9 +60,12 @@ RUN mkdir -p apps/kbve/kbve-gate/src && \
 
 COPY packages/data/proto packages/data/proto
 
-COPY packages/rust/jedi packages/rust/jedi
-COPY packages/rust/kbve packages/rust/kbve
-COPY packages/rust/holy packages/rust/holy
+COPY crates/jedi crates/jedi
+COPY crates/kbve-proto crates/kbve-proto
+COPY crates/holy-derive crates/holy-derive
+COPY packages/proto packages/proto
+COPY crates/kbve crates/kbve
+COPY crates/holy crates/holy
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
@@ -69,9 +76,12 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 FROM foundation AS builder
 
 COPY packages/data/proto packages/data/proto
-COPY packages/rust/jedi packages/rust/jedi
-COPY packages/rust/kbve packages/rust/kbve
-COPY packages/rust/holy packages/rust/holy
+COPY crates/jedi crates/jedi
+COPY crates/kbve-proto crates/kbve-proto
+COPY crates/holy-derive crates/holy-derive
+COPY packages/proto packages/proto
+COPY crates/kbve crates/kbve
+COPY crates/holy crates/holy
 
 COPY apps/kbve/kbve-gate apps/kbve/kbve-gate
 

@@ -80,18 +80,22 @@ COPY apps/irc/irc-gateway/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
 COPY apps/irc/irc-gateway/Cargo.toml apps/irc/irc-gateway/Cargo.toml
-COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
-COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
-COPY packages/rust/holy/Cargo.toml packages/rust/holy/Cargo.toml
-COPY packages/rust/bevy/bevy_chat/Cargo.toml packages/rust/bevy/bevy_chat/Cargo.toml
+COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
+COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
+COPY crates/kbve/Cargo.toml crates/kbve/Cargo.toml
+COPY crates/holy/Cargo.toml crates/holy/Cargo.toml
+COPY crates/bevy_chat/Cargo.toml crates/bevy_chat/Cargo.toml
+COPY crates/holy-derive/Cargo.toml crates/holy-derive/Cargo.toml
 
 COPY packages/data/proto packages/data/proto
 
 RUN mkdir -p apps/irc/irc-gateway/src && echo "fn main() {}" > apps/irc/irc-gateway/src/main.rs && \
-    mkdir -p packages/rust/jedi/src && echo "" > packages/rust/jedi/src/lib.rs && \
-    mkdir -p packages/rust/kbve/src && echo "" > packages/rust/kbve/src/lib.rs && \
-    mkdir -p packages/rust/holy/src && echo "" > packages/rust/holy/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_chat/src && echo "" > packages/rust/bevy/bevy_chat/src/lib.rs
+    mkdir -p crates/jedi/src && echo "" > crates/jedi/src/lib.rs && \
+    mkdir -p crates/holy-derive/src && echo "" > crates/holy-derive/src/lib.rs && \
+    mkdir -p crates/kbve-proto/src && echo "" > crates/kbve-proto/src/lib.rs && \
+    mkdir -p crates/kbve/src && echo "" > crates/kbve/src/lib.rs && \
+    mkdir -p crates/holy/src && echo "" > crates/holy/src/lib.rs && \
+    mkdir -p crates/bevy_chat/src && echo "" > crates/bevy_chat/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -123,17 +127,20 @@ COPY apps/irc/irc-gateway/Cargo.toml apps/irc/irc-gateway/Cargo.toml
 # bevy_chat is a workspace member and a path dep of irc-gateway; cargo
 # evaluates the full graph even for -p kbve -p jedi, so we stub it here
 # to keep this stage untouched by chat-side changes.
-COPY packages/rust/bevy/bevy_chat/Cargo.toml packages/rust/bevy/bevy_chat/Cargo.toml
+COPY crates/bevy_chat/Cargo.toml crates/bevy_chat/Cargo.toml
 RUN mkdir -p apps/irc/irc-gateway/src && \
     echo "fn main() {}" > apps/irc/irc-gateway/src/main.rs && \
-    mkdir -p packages/rust/bevy/bevy_chat/src && \
-    echo "" > packages/rust/bevy/bevy_chat/src/lib.rs
+    mkdir -p crates/bevy_chat/src && \
+    echo "" > crates/bevy_chat/src/lib.rs
 
 COPY packages/data/proto packages/data/proto
 
-COPY packages/rust/jedi packages/rust/jedi
-COPY packages/rust/kbve packages/rust/kbve
-COPY packages/rust/holy packages/rust/holy
+COPY crates/jedi crates/jedi
+COPY crates/kbve-proto crates/kbve-proto
+COPY crates/holy-derive crates/holy-derive
+COPY packages/proto packages/proto
+COPY crates/kbve crates/kbve
+COPY crates/holy crates/holy
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
@@ -152,11 +159,14 @@ RUN dpkg -s make >/dev/null 2>&1 || \
 COPY --from=astro-precompressor /static /app/apps/irc/irc-gateway/templates/dist
 
 COPY packages/data/proto packages/data/proto
-COPY packages/rust/jedi packages/rust/jedi
-COPY packages/rust/kbve packages/rust/kbve
-COPY packages/rust/holy packages/rust/holy
+COPY crates/jedi crates/jedi
+COPY crates/kbve-proto crates/kbve-proto
+COPY crates/holy-derive crates/holy-derive
+COPY packages/proto packages/proto
+COPY crates/kbve crates/kbve
+COPY crates/holy crates/holy
 # Shared ChatMessage schema used by /minechat — path dep of irc-gateway.
-COPY packages/rust/bevy/bevy_chat packages/rust/bevy/bevy_chat
+COPY crates/bevy_chat crates/bevy_chat
 
 COPY apps/irc/irc-gateway apps/irc/irc-gateway
 
