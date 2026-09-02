@@ -13,7 +13,7 @@ apps/kbve/astro-kbve/public/isometric/
 apps/kbve/astro-kbve/src/components/realtime/example.astro
 
 # Deno edge functions — formatted by deno fmt
-apps/kbve/edge/
+services/functions/deno/functions/
 
 pnpm-lock.yaml
 

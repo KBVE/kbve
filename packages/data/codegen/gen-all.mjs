@@ -27,7 +27,7 @@ const descriptorsDir = resolve(__dirname, 'descriptors');
 const generatedDir = resolve(__dirname, 'generated');
 
 // The emitter writes readable-but-unformatted TS. Every commit path in this repo then runs a
-// formatter over it (prettier via lint-staged, `deno fmt` for apps/kbve/edge), so raw emitter
+// formatter over it (prettier via lint-staged, `deno fmt` for services/functions/deno), so raw emitter
 // output never matches what is committed and `gen-all` reported ~50 formatting-only diffs on
 // every run. Formatting here makes regeneration a no-op when nothing changed.
 async function formatGenerated(filePath) {

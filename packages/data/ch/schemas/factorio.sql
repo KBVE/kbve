@@ -9,7 +9,7 @@
 -- Cluster topology mirrors observability.logs_raw: 2 shards × 2 replicas.
 -- Producers (relay sidecar at apps/agones/factorio/relay/) write to the
 -- `*_raw` tables on whichever shard the round-robin lands on. Readers
--- (axum-kbve /dashboard/clickhouse/proxy + apps/kbve/edge/functions/factorio)
+-- (axum-kbve /dashboard/clickhouse/proxy + services/functions/deno/functions/factorio)
 -- query through the `Distributed` twins so the result fans out across shards.
 --
 -- Retention:

@@ -1,0 +1,59 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+tags: ['docker']
+
+tasks:
+    containerx:
+        script: 'docker buildx build --load -f services/functions/deno/Dockerfile -t kbve/edge:latest services/functions/deno'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    containerx-publish:
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/edge:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/edge:buildcache,mode=max -f services/functions/deno/Dockerfile -t ghcr.io/kbve/edge:latest -t kbve/edge:latest services/functions/deno'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            runInCI: true
+    containerx-dev:
+        script: 'docker buildx build --load -f services/functions/deno/Dockerfile.dev -t kbve/edge:dev services/functions/deno'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    run:
+        script: 'docker run --rm -p 9000:9000 kbve/edge:latest start --main-service /home/deno/functions/main -p 9000'
+        options:
+            runFromWorkspaceRoot: true
+    run-dev:
+        script: 'docker run --rm -p 9000:9000 -v $PWD/services/functions/deno/functions:/home/deno/functions kbve/edge:dev start --main-service /home/deno/functions/main -p 9000'
+        options:
+            runFromWorkspaceRoot: true
+    check:
+        script: 'bash services/functions/deno/scripts/check.sh'
+        options:
+            runFromWorkspaceRoot: true
+
+    # The suite under e2e/ was its own project (edge-e2e) until the functions
+    # moved here. It only ever tested this image, and splitting it bought a second
+    # entry in the ci-e2e matrix that ran the same specs. Merged, it also gets the
+    # image build it always assumed: standalone it ran `docker run kbve/edge:latest`
+    # against whatever the daemon happened to hold.
+    e2e:
+        deps: ['~:containerx']
+        script: "docker rm -f edge-e2e-test 2>/dev/null || true && docker run -d --name edge-e2e-test -p 9100:9000 -e JWT_SECRET=super-secret-jwt-token-with-at-least-32-characters-long -e VERIFY_JWT=true -e SUPABASE_URL=http://localhost:54321 -e SUPABASE_ANON_KEY=dummy-anon-key -e SUPABASE_SERVICE_ROLE_KEY=dummy-service-role-key -e CLICKHOUSE_ENDPOINT=http://localhost:8123 -e CLICKHOUSE_USER=default -e CLICKHOUSE_PASSWORD=dummy kbve/edge:latest start --main-service /home/deno/functions/main && npx vitest run; EC=$?; if [ $EC -ne 0 ]; then echo '--- edge-e2e-test container state ---'; docker ps -a --filter name=edge-e2e-test --format 'table {{.Names}}\\t{{.Status}}\\t{{.Ports}}' || true; echo '--- edge-e2e-test logs (last 200 lines) ---'; docker logs --tail 200 edge-e2e-test 2>&1 || true; echo '--- end edge-e2e-test logs ---'; fi; docker rm -f edge-e2e-test 2>/dev/null || true; exit $EC"
+        options:
+            cache: false
+
+    # The dev image, built from Dockerfile.dev.
+    container-dev:
+        deps: ['~:containerx-dev']
+        options:
+            cache: false
+
+env:
+    # The kube manifests whose image tag a release of this project pins.
+    # Publishing an image does not change what the cluster runs; ArgoCD deploys
+    # what the manifest says, so the tag has to be written into it. This was the
+    # dispatch manifest's deployment_yaml/deployment_yamls field.
+    KUBE_DEPLOYMENT_YAMLS: '["apps/kube/functions/manifests/functions-deployment.yaml"]'
