@@ -208,3 +208,91 @@ def launch_editor(
                 print(diagnostics.read_text(errors="replace"))
 
     return exit_code
+
+
+def sample_perf(
+    uproject: Path, seconds: int = 20, port: int = 8099, extra_cvars: str = "", engine_root: Path | None = None
+) -> int:
+    """Run the game headless-ish and scrape KBVEPerf's JSON readout.
+
+    Frame timings without anyone reading a stat overlay, so a change can be
+    A/B'd rather than argued about.
+
+    A caveat that belongs with every number this prints: `-game` runs the editor
+    binary, which carries editor modules whether or not you see them. Measured
+    render-thread cost has a fixed floor here that a cooked build does not.
+    """
+    import json
+    import urllib.error
+    import urllib.request
+
+    uproject = Path(uproject).resolve()
+    root = resolve_engine_root(uproject, engine_root)
+    editor = editor_binary(root)
+    if not os.access(editor, os.X_OK):
+        print(f"error: UnrealEditor not found at {editor}", file=sys.stderr)
+        return 127
+
+    cvars = f"kbve.perf 1,kbve.perf.port {port}"
+    if extra_cvars:
+        cvars = f"{extra_cvars},{cvars}"
+
+    log = uproject.parent / "Saved" / "Logs" / "perf-run.log"
+    log.parent.mkdir(parents=True, exist_ok=True)
+    argv = [
+        str(editor),
+        str(uproject),
+        "-game",
+        "-windowed",
+        "-resx=1280",
+        "-resy=720",
+        f"-ExecCmds={cvars}",
+        "-stdout",
+        f"-AbsLog={log}",
+    ]
+
+    proc = subprocess.Popen(argv, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    url = f"http://localhost:{port}/perf"
+    try:
+        deadline = time.time() + 120
+        while time.time() < deadline:
+            try:
+                urllib.request.urlopen(url, timeout=2).read()
+                break
+            except (urllib.error.URLError, OSError):
+                if proc.poll() is not None:
+                    print("error: game exited before the perf endpoint came up", file=sys.stderr)
+                    return 1
+                time.sleep(3)
+        else:
+            print("error: perf endpoint never came up", file=sys.stderr)
+            return 1
+
+        # Discarded: the first frames after load are streaming and shader work,
+        # not steady state.
+        time.sleep(8)
+
+        samples = []
+        for _ in range(max(1, seconds // 4)):
+            payload = json.loads(urllib.request.urlopen(url, timeout=5).read())
+            samples.append(payload)
+            print("fps=%(fps).1f game=%(gameMs).2f render=%(renderMs).2f gpu=%(gpuMs).2f rhi=%(rhiMs).2f" % payload)
+            time.sleep(4)
+
+        if samples:
+
+            def median(key):
+                vals = sorted(s[key] for s in samples)
+                return vals[len(vals) // 2]
+
+            print(
+                f"\nmedian: fps={median('fps'):.1f} game={median('gameMs'):.2f} "
+                f"render={median('renderMs'):.2f} gpu={median('gpuMs'):.2f}"
+            )
+        return 0
+    finally:
+        proc.terminate()
+        try:
+            proc.wait(timeout=15)
+        except subprocess.TimeoutExpired:
+            proc.kill()

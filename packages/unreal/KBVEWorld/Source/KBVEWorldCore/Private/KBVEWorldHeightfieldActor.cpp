@@ -60,7 +60,10 @@ void AKBVEWorldHeightfieldActor::BuildSection(UProceduralMeshComponent* Target, 
 		return Padded[(Y + 1) * PadEdge + (X + 1)];
 	};
 
-	const bool bSkirt = SkirtDepth > KINDA_SMALL_NUMBER;
+	// Skirts hide LOD cracks visually. As collision they are 400 uu walls at
+	// every chunk boundary -- invisible geometry a capsule snags on and a camera
+	// probe collides with -- so the proxy gets the surface and nothing else.
+	const bool bSkirt = !bCollision && SkirtDepth > KINDA_SMALL_NUMBER;
 	const int32 SkirtCount = bSkirt ? 4 * Quads : 0;
 	const int32 VertCount = GridCount + SkirtCount;
 

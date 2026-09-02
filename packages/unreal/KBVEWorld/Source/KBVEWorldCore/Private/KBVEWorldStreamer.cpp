@@ -128,6 +128,17 @@ void AKBVEWorldStreamer::ConfigurePatch(AKBVEWorldHeightfieldActor* Patch, const
 	const int32 Ring = FMath::Max(FMath::Abs(Delta.X), FMath::Abs(Delta.Y));
 	Patch->LODStep = LODStepForRing(Ring);
 	Patch->bGenerateCollision = WantsCollisionAtRing(Ring);
+	// Never finer than the mesh being drawn: a proxy denser than the visual
+	// surface costs more to cook and cannot be more accurate than its source.
+	Patch->CollisionLODStep = FMath::Max(CollisionLODStep, Patch->LODStep);
+
+	// Set on the component rather than rebuilt into the mesh: shadow casting is
+	// a render-state flag, so changing it as a patch moves between rings costs
+	// nothing and never needs a rebuild.
+	if (UProceduralMeshComponent* PatchMesh = Patch->GetMeshComponent())
+	{
+		PatchMesh->SetCastShadow(WantsShadowAtRing(Ring));
+	}
 }
 
 void AKBVEWorldStreamer::BuildChunk(const FIntPoint& Coord)

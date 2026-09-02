@@ -6,7 +6,7 @@ import sys
 from pathlib import Path
 
 from .commandlet import run_editor_script
-from .process import build_target, launch_editor, quit_editor
+from .process import build_target, launch_editor, quit_editor, sample_perf
 
 
 def _parse(argv, description):
@@ -86,3 +86,12 @@ def dev_main(argv: list[str] | None = None) -> int:
     if code != 0:
         return code
     return launch_editor(args.project, args.log_prefix, args.module, [], args.engine_root)
+
+
+def perf_main(argv: list[str] | None = None) -> int:
+    parser = _project_arg("Sample KBVEPerf frame timings from a running game.")
+    parser.add_argument("--seconds", type=int, default=20, help="how long to sample")
+    parser.add_argument("--port", type=int, default=8099)
+    parser.add_argument("--cvars", default="", help="extra console commands, comma separated")
+    args = parser.parse_args(argv or sys.argv[1:])
+    return sample_perf(args.project, args.seconds, args.port, args.cvars, args.engine_root)

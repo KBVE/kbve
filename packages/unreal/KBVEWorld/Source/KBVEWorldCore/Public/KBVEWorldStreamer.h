@@ -80,6 +80,31 @@ public:
 		meta = (ClampMin = "0.0", ClampMax = "0.5"))
 	float RecentreHysteresis = 0.15f;
 
+	/**
+	 * Rings that cast shadows, counted from the centre.
+	 *
+	 * Every shadow-casting primitive is re-submitted once per cascade, so this
+	 * multiplies the render thread's draw count rather than adding to it. The
+	 * far rings sit in fog and their self-shadowing is not visible; the sun
+	 * still shadows everything near the viewer. Negative means all rings.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Streaming",
+		meta = (ClampMin = "-1", ClampMax = "32"))
+	int32 ShadowRadiusChunks = 2;
+
+	/**
+	 * Sample stride for the collision proxy on patches that carry collision.
+	 *
+	 * 1 means collision is the same surface that is drawn. Anything coarser cuts
+	 * corners across the real ground: the proxy sits above it on concave slopes,
+	 * so feet float, and below it on convex ones, so a camera probe slips under
+	 * the visible surface. Both are visible immediately, which is why this
+	 * defaults to matching rather than to being cheap.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Streaming",
+		meta = (ClampMin = "1", ClampMax = "16"))
+	int32 CollisionLODStep = 1;
+
 	/** Skirt depth handed to each patch. See AKBVEWorldHeightfieldActor. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Streaming",
 		meta = (ClampMin = "0.0"))
@@ -181,6 +206,10 @@ private:
 	int32 LODStepForRing(int32 Ring) const;
 
 	bool WantsCollisionAtRing(int32 Ring) const { return Ring <= CollisionRadiusChunks; }
+	bool WantsShadowAtRing(int32 Ring) const
+	{
+		return ShadowRadiusChunks < 0 || Ring <= ShadowRadiusChunks;
+	}
 
 	float ChunkWorldSize() const { return CellsPerChunk * CellSize; }
 

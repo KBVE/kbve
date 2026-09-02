@@ -107,6 +107,16 @@ tasks:
             runFromWorkspaceRoot: true
             cache: false
 
+    # Frame timings from KBVEPerf's HTTP readout, so a change can be A/B'd
+    # instead of argued about. Pass --cvars to compare renderer settings.
+    perf:
+        command: >-
+            uv run --project $workspaceRoot/packages/python/kbve
+            kbve-unreal-perf --project $workspaceRoot/$UE_PROJECT
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
     # Scene and keybinds are generated from JSON by the shared editor scripts.
     # The umap and the input uassets are binary and unreviewable; the JSON is
     # the part worth reading, and the logic is the same for every KBVE game.
