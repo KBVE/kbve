@@ -20,10 +20,26 @@ concurrency:
 permissions: {}
 
 jobs:
+    # Rust is not in the pull_request matrix.
+    #
+    # It used to be, and finished in under four minutes. A toolchain change
+    # around 2026-08-27 -- the last green rust job is 2026-08-26, and nothing
+    # landed in that window that grew the rust surface -- turned it into a job
+    # that does not finish: every run since has been killed at the 60 minute
+    # timeout, part way through the query evaluation. Nine of thirty-six
+    # queries had been evaluated when the last one was cut off, and the ones
+    # still to come are the expensive security queries rather than the cheap
+    # diagnostics that had run.
+    #
+    # A job that cannot pass is not a gate, it is a red cross every PR learns
+    # to ignore, so rust analysis moves to push and to the weekly schedule
+    # where the wall clock is nobody's critical path. Rust in a PR is still
+    # analysed -- on the push to dev that merging it produces, one merge later
+    # than before.
     analyze:
         name: Analyze (${{ matrix.language }})
         runs-on: ubuntu-latest
-        timeout-minutes: 60
+        timeout-minutes: ${{ matrix.timeout }}
         permissions:
             security-events: write
             packages: read
@@ -33,13 +49,10 @@ jobs:
         strategy:
             fail-fast: false
             matrix:
-                include:
-                    - language: javascript-typescript
-                      build-mode: none
-                    - language: python
-                      build-mode: none
-                    - language: rust
-                      build-mode: none
+                include: >-
+                    ${{ fromJSON(github.event_name == 'pull_request'
+                    && '[{"language":"javascript-typescript","build-mode":"none","timeout":60},{"language":"python","build-mode":"none","timeout":60}]'
+                    || '[{"language":"javascript-typescript","build-mode":"none","timeout":60},{"language":"python","build-mode":"none","timeout":60},{"language":"rust","build-mode":"none","timeout":360}]') }}
 
         steps:
             - name: Checkout
