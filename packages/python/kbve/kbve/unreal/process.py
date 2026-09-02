@@ -116,7 +116,11 @@ def build_target(
         print(f"error: Build.sh not found at {script}", file=sys.stderr)
         return 127
     print(f"==> building {target} {platform} {config}")
-    return subprocess.run([str(script), target, platform, config, str(uproject)]).returncode
+    # -NoHotReloadFromIDE because a scripted build must link the base dylib.
+    # Left to itself UBT sees a live-editor signature and emits a numbered
+    # hot-reload copy instead, so the next fresh launch loads the older base
+    # and runs code that is not the code that was just built.
+    return subprocess.run([str(script), target, platform, config, str(uproject), "-NoHotReloadFromIDE"]).returncode
 
 
 def launch_editor(

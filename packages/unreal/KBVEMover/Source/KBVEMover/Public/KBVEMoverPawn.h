@@ -47,11 +47,25 @@ class KBVEMOVER_API AKBVEMoverPawn : public APawn, public IMoverInputProducerInt
 public:
 	AKBVEMoverPawn(const FObjectInitializer& ObjectInitializer);
 
+	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
 	virtual void PawnClientRestart() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
 	UCharacterMoverComponent* GetMoverComponent() const { return MoverComponent; }
+
+	/**
+	 * Whether floor checks sweep a flat-bottomed box rather than the capsule.
+	 *
+	 * Mover defaults this on, which suits authored level geometry: a flat base
+	 * stops a character sliding off the lip of a platform. On a continuous
+	 * procedural heightfield it is wrong -- the box rests on the highest ground
+	 * anywhere within the capsule radius, so the character hovers over every
+	 * bump it is merely near rather than standing on the surface beneath it.
+	 * Measured at roughly 13-16 cm of float on this terrain.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "KBVE|Mover")
+	bool bUseFlatBaseForFloorChecks = false;
 	bool IsSprinting() const { return bSprinting; }
 
 	// IKBVEMovementDriver — drives this Mover pawn from gameplay/AI without binding to Mover directly

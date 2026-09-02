@@ -29,6 +29,14 @@ public:
 
 	virtual void Tick(float DeltaSeconds) override;
 
+	/**
+	 * Log where the capsule, the collision surface, the analytic terrain and the
+	 * foot bone actually are. Each number isolates a different cause of the
+	 * character not standing on the ground, which is otherwise four
+	 * indistinguishable symptoms.
+	 */
+	void ReportFeet() const;
+
 	/** Speed, cm/s, at which walking gives way to running. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RareIcon|Animation")
 	float RunSpeedThreshold = 350.0f;
@@ -49,6 +57,14 @@ public:
 	float RunClipSpeed = 500.0f;
 
 private:
+	/** Seconds after possession to log ReportFeet once, so a headless run captures it. */
+	static constexpr float FeetReportDelay = 3.0f;
+	static constexpr float FeetReportInterval = 1.0f;
+	static constexpr int32 FeetReportCount = 1;
+
+	float TimeSinceBeginPlay = 0.0f;
+	int32 FeetReportsDone = 0;
+
 	/** Pick the clip for the current velocity and play it if it is not already. */
 	void UpdateLocomotionAnimation();
 

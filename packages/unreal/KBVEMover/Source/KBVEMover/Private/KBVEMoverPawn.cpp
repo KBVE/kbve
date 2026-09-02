@@ -16,6 +16,7 @@
 #include "DefaultMovementSet/CharacterMoverComponent.h"
 #include "MoverDataModelTypes.h"
 #include "KBVEEffectComponent.h"
+#include "DefaultMovementSet/Settings/CommonLegacyMovementSettings.h"
 
 AKBVEMoverPawn::AKBVEMoverPawn(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -69,6 +70,22 @@ void AKBVEMoverPawn::PawnClientRestart()
 			{
 				Subsystem->AddMappingContext(InputMappingContext, 0);
 			}
+		}
+	}
+}
+
+void AKBVEMoverPawn::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// Shared settings exist once the movement modes have been resolved, so this
+	// cannot be done in the constructor.
+	if (MoverComponent)
+	{
+		if (UCommonLegacyMovementSettings* Settings =
+				MoverComponent->FindSharedSettings_Mutable<UCommonLegacyMovementSettings>())
+		{
+			Settings->bUseFlatBaseForFloorChecks = bUseFlatBaseForFloorChecks;
 		}
 	}
 }
