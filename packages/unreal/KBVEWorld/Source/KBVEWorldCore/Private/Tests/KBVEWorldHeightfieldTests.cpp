@@ -49,4 +49,40 @@ bool FKBVEWorldHeightfieldVectorsTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FKBVEWorldHeightfieldFillGridTest,
+	"KBVE.World.Heightfield.FillGridMatchesHeightAt",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// FillGrid is a second path to the same canonical heights, taken because
+// HeightAt rebuilds both noise generators per sample. Bit-exact equality with
+// HeightAt is what keeps it inside the cross-language contract above rather
+// than beside it.
+bool FKBVEWorldHeightfieldFillGridTest::RunTest(const FString& Parameters)
+{
+	const int32 Seed = FKBVEWorldHeightfield::SeedFromWorld(1337);
+	const int32 Edge = 17;
+	const float OriginX = -8.5f;
+	const float OriginY = 3.25f;
+	const float Step = 0.5f;
+
+	TArray<float> Grid;
+	Grid.SetNumUninitialized(Edge * Edge);
+	FKBVEWorldHeightfield::FillGrid(Seed, OriginX, OriginY, Step, Edge, Grid);
+
+	for (int32 Y = 0; Y < Edge; ++Y)
+	{
+		for (int32 X = 0; X < Edge; ++X)
+		{
+			const float Expected = FKBVEWorldHeightfield::HeightAt(Seed, OriginX + X * Step, OriginY + Y * Step);
+			uint32 ExpectedBits, ActualBits;
+			const float Actual = Grid[Y * Edge + X];
+			FMemory::Memcpy(&ExpectedBits, &Expected, sizeof(ExpectedBits));
+			FMemory::Memcpy(&ActualBits, &Actual, sizeof(ActualBits));
+			TestEqual(FString::Printf(TEXT("FillGrid[%d,%d] bits"), X, Y), ActualBits, ExpectedBits);
+		}
+	}
+	return true;
+}
+
 #endif

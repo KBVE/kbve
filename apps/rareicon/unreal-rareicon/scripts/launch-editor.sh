@@ -39,34 +39,7 @@ if ! compgen -G "$PROJ_DIR/Binaries/Mac/*UnrealEditor-RareIcon.dylib" >/dev/null
 	exit 1
 fi
 
-EXISTING_PIDS=$(pgrep -f "UnrealEditor.*RareIcon.uproject" || true)
-if [ -n "$EXISTING_PIDS" ]; then
-	echo "==> graceful AppleScript quit: UnrealEditor(RareIcon) pids=$EXISTING_PIDS"
-	osascript -e 'tell application "UnrealEditor" to quit' 2>/dev/null || true
-
-	WAIT=0
-	while [ "$WAIT" -lt 30 ] && pgrep -f "UnrealEditor.*RareIcon.uproject" >/dev/null 2>&1; do
-		sleep 1
-		WAIT=$((WAIT + 1))
-	done
-
-	for SIG in INT TERM KILL; do
-		REMAINING=$(pgrep -f "UnrealEditor.*RareIcon.uproject" || true)
-		[ -z "$REMAINING" ] && break
-		echo "==> SIG$SIG escalation: $REMAINING"
-		for PID in $REMAINING; do
-			kill -"$SIG" "$PID" 2>/dev/null || true
-		done
-		WAIT=0
-		while [ "$WAIT" -lt 10 ] && pgrep -f "UnrealEditor.*RareIcon.uproject" >/dev/null 2>&1; do
-			sleep 1
-			WAIT=$((WAIT + 1))
-		done
-	done
-
-	pkill -f "CrashReportClient" 2>/dev/null || true
-	pkill -f "EpicWebHelper" 2>/dev/null || true
-fi
+"$PROJ_DIR/scripts/quit-editor.sh" "$PROJ_DIR" || exit 1
 
 LOG_DIR="$(cd "$PROJ_DIR" && pwd)/Saved/Logs"
 mkdir -p "$LOG_DIR"

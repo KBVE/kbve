@@ -26,6 +26,14 @@
 			"Enabled": true
 		},
 		{
+			"Name": "MoverExamples",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEMover",
+			"Enabled": true
+		},
+		{
 			"Name": "ModelingToolsEditorMode",
 			"Enabled": true,
 			"TargetAllowList": [

@@ -11,7 +11,8 @@ public class KBVEWorldCore : ModuleRules
 		{
 			"Core",
 			"CoreUObject",
-			"Engine"
+			"Engine",
+			"ProceduralMeshComponent"
 		});
 
 		// FastNoiseLite (header-only) — vendored once for the whole world plugin.

@@ -1,0 +1,36 @@
+{
+	"map": "/Game/Map/L_RareIconWorld",
+	"actors": [
+		{
+			"class": "KBVEWorldEnvironment",
+			"location": [0, 0, 0]
+		},
+		{
+			"class": "KBVEWorldStreamer",
+			"location": [0, 0, 0],
+			"properties": {
+				"cells_per_chunk": 128,
+				"cell_size": 100.0,
+				"view_radius_chunks": 6,
+				"rings_per_lod": 2,
+				"skirt_depth": 400.0,
+				"collision_radius_chunks": 1,
+				"max_builds_per_tick": 32,
+				"max_build_milliseconds_per_tick": 4.0,
+				"recentre_hysteresis": 0.15,
+				"terrain_material": "/Game/Textures/Terrain/M_RareIcon_Terrain"
+			},
+			"struct_properties": {
+				"shape": {
+					"detail_weight": 0.12,
+					"detail_freq": 0.05,
+					"amplitude": 650.0
+				}
+			}
+		},
+		{
+			"class": "PlayerStart",
+			"location": [0, 0, 1500]
+		}
+	]
+}

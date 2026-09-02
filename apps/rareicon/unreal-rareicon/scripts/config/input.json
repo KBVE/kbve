@@ -1,0 +1,50 @@
+{
+	"dest_dir": "/Game/Input",
+	"context_name": "IMC_RareIcon",
+	"actions": {
+		"IA_Move": "Axis2D",
+		"IA_Look": "Axis2D",
+		"IA_Jump": "Boolean",
+		"IA_Sprint": "Boolean",
+		"IA_Interact": "Boolean",
+		"IA_Inventory": "Boolean"
+	},
+	"mappings": [
+		{
+			"action": "IA_Move",
+			"key": "W",
+			"modifiers": [{ "type": "swizzle", "order": "YXZ" }]
+		},
+		{
+			"action": "IA_Move",
+			"key": "S",
+			"modifiers": [
+				{ "type": "swizzle", "order": "YXZ" },
+				{ "type": "negate", "y": true }
+			]
+		},
+		{
+			"action": "IA_Move",
+			"key": "A",
+			"modifiers": [{ "type": "negate", "x": true }]
+		},
+		{ "action": "IA_Move", "key": "D" },
+		{ "action": "IA_Move", "key": "Gamepad_Left2D" },
+
+		{
+			"action": "IA_Look",
+			"key": "Mouse2D",
+			"modifiers": [{ "type": "negate", "y": true }]
+		},
+		{ "action": "IA_Look", "key": "Gamepad_Right2D" },
+
+		{ "action": "IA_Jump", "key": "SpaceBar" },
+		{ "action": "IA_Jump", "key": "Gamepad_FaceButton_Bottom" },
+		{ "action": "IA_Sprint", "key": "LeftShift" },
+		{ "action": "IA_Sprint", "key": "Gamepad_LeftShoulder" },
+		{ "action": "IA_Interact", "key": "E" },
+		{ "action": "IA_Interact", "key": "Gamepad_FaceButton_Right" },
+		{ "action": "IA_Inventory", "key": "Tab" },
+		{ "action": "IA_Inventory", "key": "Gamepad_Special_Right" }
+	]
+}

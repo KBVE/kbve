@@ -10,6 +10,10 @@ tags: ['unreal-game', 'ue5-server']
 dependsOn:
     - 'KBVEUnr'
     - 'KBVEWorld'
+    - 'KBVEMover'
+    # build-world and build-input run the editor scripts shipped there.
+    # 'kbve' is the Rust crate; the python package is 'kbve-py'.
+    - 'kbve-py'
 
 tasks:
     lfs-push:
@@ -63,6 +67,32 @@ tasks:
         options:
             runFromWorkspaceRoot: true
             cache: false
+    # Scene and keybinds are generated from scripts/config/*.json by the shared
+    # editor scripts in the kbve python package. Not Config/ -- that is Unreal's, and
+    # on a case-insensitive filesystem a config/ of our own silently merges into
+    # it and then fails to resolve on Linux. The umap and the input uassets are
+    # binary and unreviewable; the JSON is the part worth reading, and the logic
+    # is the same for every KBVE Unreal game.
+    build-world:
+        deps: ['~:build-editor']
+        command: >-
+            uv run --project $workspaceRoot/packages/python/kbve
+            kbve-unreal-world-map
+            --project $workspaceRoot/apps/rareicon/unreal-rareicon/RareIcon.uproject
+            --config $workspaceRoot/apps/rareicon/unreal-rareicon/scripts/config/world.json
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    build-input:
+        deps: ['~:build-editor']
+        command: >-
+            uv run --project $workspaceRoot/packages/python/kbve
+            kbve-unreal-input-assets
+            --project $workspaceRoot/apps/rareicon/unreal-rareicon/RareIcon.uproject
+            --config $workspaceRoot/apps/rareicon/unreal-rareicon/scripts/config/input.json
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
     regen-project-files:
         script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh" -project="$PWD/RareIcon.uproject" -game -engine'
         options:
@@ -75,10 +105,19 @@ tasks:
             runFromWorkspaceRoot: true
             cache: false
             persistent: true
-    # The one to use day to day: compile the C++, then launch what was built.
+    quit-editor:
+        script: './apps/rareicon/unreal-rareicon/scripts/quit-editor.sh'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    # The one to use day to day: quit, compile the C++, launch what was built.
+    #
+    # Deliberately not `deps: ['~:build-editor']`. Moon would run the build
+    # first, with the editor still holding its modules open, and UBT would write
+    # hot-reload copies rather than the dylibs the next launch loads -- so the
+    # editor would come up silently running the previous build.
     dev:
-        deps: ['~:build-editor']
-        script: './apps/rareicon/unreal-rareicon/scripts/launch-editor.sh'
+        script: './apps/rareicon/unreal-rareicon/scripts/dev.sh'
         options:
             runFromWorkspaceRoot: true
             cache: false
@@ -102,7 +141,7 @@ env:
     # only the host target wired up so far. Declaring Win64/Linux here would
     # hand CI a build that fails in Build.cs on a missing library. Widen this
     # and KBVEUnr's UE_SUPPORTED_PLATFORMS together, never separately.
-    ENGINE_CONFIG: '{"version":"5.8.0","project_path":"apps/rareicon/unreal-rareicon","build_targets":["Mac"]}'
+    ENGINE_CONFIG: '{"version":"5.8.0","project_path":"apps/rareicon/unreal-rareicon","build_targets":["Mac"],"maps":["/Game/Map/L_RareIconWorld"]}'
     # The monorepo shell ci-unreal-build.yml reads build.toml from.
     UE_SHELL_PATH: 'apps/rareicon/unreal-rareicon'
     # Not the default two-core hosted runner: an Unreal compile.

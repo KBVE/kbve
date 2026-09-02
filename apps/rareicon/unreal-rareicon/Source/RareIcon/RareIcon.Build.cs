@@ -18,11 +18,13 @@ public class RareIcon : ModuleRules
 			"Json",
 			"JsonUtilities",
 			"KBVEUnr",
-			"KBVEWorldCore"
+			"KBVEWorldCore",
+			"KBVEMover"
 		});
 
 		PublicIncludePaths.AddRange(new string[] {
-			"RareIcon"
+			"RareIcon",
+			"RareIcon/Player"
 		});
 	}
 }
