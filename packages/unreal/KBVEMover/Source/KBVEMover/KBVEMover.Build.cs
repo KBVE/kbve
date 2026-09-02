@@ -14,7 +14,11 @@ public class KBVEMover : ModuleRules
 			"EnhancedInput",
 			"GameplayTags",
 			"Mover",
-			"KBVEGameplay"
+			"KBVEGameplay",
+			// The native foot-IK anim instance: AnimationCore for the two-bone
+			// solve, AnimGraphRuntime for the pose and bone-reference types.
+			"AnimationCore",
+			"AnimGraphRuntime"
 		});
 	}
 }

@@ -13,6 +13,7 @@
 #include "HAL/IConsoleManager.h"
 #include "DefaultMovementSet/CharacterMoverComponent.h"
 #include "MoveLibrary/FloorQueryUtils.h"
+#include "KBVEFootIKAnimInstance.h"
 #include "KBVEWorldHeightfield.h"
 #include "KBVEWorldStreamer.h"
 #include "KBVEWorldHeightfieldActor.h"
@@ -64,10 +65,12 @@ ARareIconPlayerPawn::ARareIconPlayerPawn(const FObjectInitializer& ObjectInitial
 				FVector(0.0f, 0.0f, -HalfHeight), FRotator(0.0f, -90.0f, 0.0f));
 		}
 
-		// Single-node playback, driven from Tick. No animation blueprint: the one
-		// that ships beside this mesh does not compile in 5.8 -- its cast to
-		// MoverExamplesCharacter has a stale pin and the whole graph fails.
-		Mesh->SetAnimationMode(EAnimationMode::AnimationSingleNode);
+		// A native anim instance rather than an animation blueprint: the one that
+		// ships beside this mesh does not compile in 5.8, and this keeps the
+		// whole solve in C++ where it shows up in a diff. It plays the one clip
+		// the locomotion picks and plants both feet on the ground beneath them.
+		Mesh->SetAnimInstanceClass(UKBVEFootIKAnimInstance::StaticClass());
+		Mesh->SetAnimationMode(EAnimationMode::AnimationBlueprint);
 	}
 
 	InputMappingContext = FindAsset<UInputMappingContext>(TEXT("/Game/Input/IMC_RareIcon.IMC_RareIcon"));
@@ -121,7 +124,15 @@ void ARareIconPlayerPawn::UpdateLocomotionAnimation()
 	UAnimSequence* Desired = IdleAnim;
 	float PlayRate = 1.0f;
 
-	if (FMath::Abs(Velocity.Z) > FallSpeedThreshold)
+	// Asked of the mover rather than inferred from vertical speed: at the apex
+	// of a jump the vertical speed passes through zero, so a speed threshold
+	// picks the run clip while the character is still in the air.
+	const UCharacterMoverComponent* Mover = GetMoverComponent();
+	const bool bAirborne = Mover
+		? Mover->IsAirborne()
+		: FMath::Abs(Velocity.Z) > FallSpeedThreshold;
+
+	if (bAirborne)
 	{
 		Desired = FallAnim;
 	}
@@ -143,14 +154,11 @@ void ARareIconPlayerPawn::UpdateLocomotionAnimation()
 		return;
 	}
 
-	// Restarting the clip every frame would freeze it on frame zero.
-	if (Desired != CurrentAnim)
+	CurrentAnim = Desired;
+	if (UKBVEFootIKAnimInstance* AnimInstance = Cast<UKBVEFootIKAnimInstance>(Mesh->GetAnimInstance()))
 	{
-		Mesh->PlayAnimation(Desired, true);
-		CurrentAnim = Desired;
+		AnimInstance->SetLocomotionClip(Desired, FMath::Clamp(PlayRate, 0.25f, 2.5f));
 	}
-
-	Mesh->SetPlayRate(FMath::Clamp(PlayRate, 0.25f, 2.5f));
 }
 
 
@@ -217,10 +225,28 @@ void ARareIconPlayerPawn::ReportFeet() const
 		}
 	}
 
+	// Each foot against the ground directly under that foot, which is the thing
+	// foot IK is trying to make zero. The single foot_l reading hides the case
+	// the IK exists for: one foot planted and the other hanging.
 	float FootZ = 0.0f;
+	FString Feet(TEXT("none"));
 	if (const USkeletalMeshComponent* MeshComponent = FindComponentByClass<USkeletalMeshComponent>())
 	{
 		FootZ = MeshComponent->GetSocketLocation(TEXT("foot_l")).Z;
+
+		Feet.Reset();
+		for (const TCHAR* Bone : {TEXT("foot_l"), TEXT("foot_r")})
+		{
+			const FVector Foot = MeshComponent->GetSocketLocation(Bone);
+			FHitResult FootHit;
+			const bool bFootHit = World->LineTraceSingleByChannel(FootHit,
+				Foot + FVector(0.0f, 0.0f, 50.0f), Foot - FVector(0.0f, 0.0f, 100.0f),
+				ECC_Visibility, Params);
+			Feet += bFootHit
+				? FString::Printf(TEXT(" %s: foot=%.1f ground=%.1f gap=%.1f"),
+					Bone, Foot.Z, FootHit.Location.Z, Foot.Z - FootHit.Location.Z)
+				: FString::Printf(TEXT(" %s: foot=%.1f ground=MISS"), Bone, Foot.Z);
+		}
 	}
 
 	const FVector Velocity = GetAuthoritativeVelocity();
@@ -308,10 +334,10 @@ void ARareIconPlayerPawn::ReportFeet() const
 	UE_LOG(LogRareIcon, Display,
 		TEXT("feet: mode=%s velZ=%.1f speed2D=%.1f actorZ=%.1f capsuleBottom=%.1f footBoneZ=%.1f "
 			"analyticZ=%.1f peakAnalytic=%.1f | capsule=[%s] updated=[%s] "
-			"| visSweep=%s pawnSweep=%s | floor=[%s] | stack:%s"),
+			"| visSweep=%s pawnSweep=%s | feet:%s | floor=[%s] | stack:%s"),
 		*Mode, Velocity.Z, Velocity.Size2D(), Location.Z, CapsuleBottom, FootZ,
 		Analytic, PeakAnalytic, *CapsuleDesc, *UpdatedDesc,
-		*VisSweep, *PawnSweep, *Floor, *Stack);
+		*VisSweep, *PawnSweep, *Feet, *Floor, *Stack);
 }
 
 static void RareIconFeetCmd()
