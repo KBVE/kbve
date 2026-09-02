@@ -26,14 +26,21 @@ on:
 permissions:
     contents: read
 
+# A cancelled check is indistinguishable from a failing one on a pull request,
+# so both halves of this exist to keep the dev->main release PR from wearing
+# grey X's.
+#
 # `github.workflow` is the *calling* workflow's name when this runs through
 # workflow_call, so a nested run and a direct one on the same ref sit in
-# different groups rather than cancelling each other. A cancelled check is
-# indistinguishable from a failing one on the pull request, which is how four
-# grey X's showed up on every dev->main release PR.
+# different groups rather than cancelling each other.
+#
+# The condition covers the other source: every merge into dev updates that same
+# pull request, superseding its in-flight run, which left it marked failed for
+# as long as dev stayed busy. `head_ref` is empty on a push, so this leaves
+# push supersession alone and spares only the one pull request opened from dev.
 concurrency:
     group: ci-${{ github.workflow }}-${{ github.ref }}
-    cancel-in-progress: true
+    cancel-in-progress: ${{ github.head_ref != 'dev' }}
 
 jobs:
     # The commit-msg hook covers commits, but a pull request title is composed
