@@ -263,9 +263,6 @@
 			"./scripts/deno-fmt.sh"
 		]
 	},
-	"nx": {
-		"includedScripts": []
-	},
 	"scripts": {
 		"prepare": "husky",
 		"setup:e2e": "pnpm exec playwright install chromium"

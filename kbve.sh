@@ -205,10 +205,9 @@ atomic_function() {
     fi
 
     # No .env.local. moon finds the workspace root by walking up to .moon/, so a
-    # worktree needs no environment to tell it where it is -- which is all the
-    # five NX_* variables written here were ever for. Task outputs are shared
-    # across worktrees through the CAS (cache.unstable_sharedWorktreeCache in
-    # .moon/workspace.yml), so a new worktree does not start cold either.
+    # worktree needs no environment to tell it where it is. Task outputs are
+    # shared across worktrees through the CAS (cache.unstable_sharedWorktreeCache
+    # in .moon/workspace.yml), so a new worktree does not start cold either.
     echo "Installing pnpm dependencies in worktree..."
     (cd "$worktree_dir" && pnpm install)
 
@@ -247,7 +246,7 @@ zeta_function() {
     git switch -c "${PATCH_NAME}"
 }
 
-# Create a git worktree with proper env setup for Nx
+# Create a git worktree
 create_worktree() {
     local description="$1"
     local base_branch="${2:-dev}"
@@ -297,10 +296,9 @@ create_worktree() {
     fi
 
     # No .env.local. moon finds the workspace root by walking up to .moon/, so a
-    # worktree needs no environment to tell it where it is -- which is all the
-    # five NX_* variables written here were ever for. Task outputs are shared
-    # across worktrees through the CAS (cache.unstable_sharedWorktreeCache in
-    # .moon/workspace.yml), so a new worktree does not start cold either.
+    # worktree needs no environment to tell it where it is. Task outputs are
+    # shared across worktrees through the CAS (cache.unstable_sharedWorktreeCache
+    # in .moon/workspace.yml), so a new worktree does not start cold either.
     echo "Installing pnpm dependencies in worktree..."
     (cd "$worktree_dir" && pnpm install)
 
@@ -1287,16 +1285,6 @@ case "$1" in
             echo "No task specified. Usage: $0 -moon <project>:<task> [args...]"
             exit 1
         fi
-        run_moon "$@"
-        ;;
-    -nx)
-        # Kept because the docs, the workflows and everyone's fingers say -nx.
-        shift
-        if [ $# -eq 0 ]; then
-            echo "No task specified. Usage: $0 -moon <project>:<task> [args...]"
-            exit 1
-        fi
-        echo "note: -nx is now -moon; running it under moon."
         run_moon "$@"
         ;;
     -build)
