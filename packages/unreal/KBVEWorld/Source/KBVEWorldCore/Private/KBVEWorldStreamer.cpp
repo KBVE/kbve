@@ -4,6 +4,7 @@
 #include "KBVEWorldRoadField.h"
 
 #include "Engine/World.h"
+#include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "KBVEWorldHeightfieldActor.h"
 #include "ProceduralMeshComponent.h"
