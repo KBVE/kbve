@@ -61,7 +61,7 @@ namespace RareIcon
             }
         }
 
-        static bool TryGetTargetKeeper(byte tier, out KBVE.Proto.Npc.Npc npc, out uint hash)
+        static bool TryGetTargetKeeper(byte tier, out KBVE.Proto.Kbve.Npc.V1.Npc npc, out uint hash)
         {
             string desiredRef = tier switch
             {

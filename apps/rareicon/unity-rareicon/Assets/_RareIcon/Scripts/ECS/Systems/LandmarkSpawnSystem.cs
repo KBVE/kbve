@@ -1,4 +1,4 @@
-using KBVE.Proto.Map;
+using KBVE.Proto.Kbve.Map.V1;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
@@ -181,10 +181,10 @@ namespace RareIcon
 
         static byte KindFromProto(WorldObjectType t) => t switch
         {
-            WorldObjectType.WorldObjectSettlement => LandmarkKind.Settlement,
-            WorldObjectType.WorldObjectLandmark   => LandmarkKind.Landmark,
-            WorldObjectType.WorldObjectArena      => LandmarkKind.Arena,
-            WorldObjectType.WorldObjectNpcMarker  => LandmarkKind.NpcMarker,
+            WorldObjectType.Settlement => LandmarkKind.Settlement,
+            WorldObjectType.Landmark   => LandmarkKind.Landmark,
+            WorldObjectType.Arena      => LandmarkKind.Arena,
+            WorldObjectType.NpcMarker  => LandmarkKind.NpcMarker,
             _                                     => LandmarkKind.Prop,
         };
 

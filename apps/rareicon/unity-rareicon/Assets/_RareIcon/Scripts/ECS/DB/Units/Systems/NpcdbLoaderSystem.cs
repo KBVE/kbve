@@ -1,6 +1,6 @@
 using System.IO;
 using Google.Protobuf;
-using KBVE.Proto.Npc;
+using KBVE.Proto.Kbve.Npc.V1;
 using Unity.Entities;
 using UnityEngine;
 

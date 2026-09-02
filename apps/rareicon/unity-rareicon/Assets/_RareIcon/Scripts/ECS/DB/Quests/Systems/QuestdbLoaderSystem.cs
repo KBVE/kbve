@@ -1,6 +1,6 @@
 using System.IO;
 using Google.Protobuf;
-using KBVE.Proto.Quest;
+using KBVE.Proto.Kbve.Quest.V1;
 using Unity.Entities;
 using UnityEngine;
 
