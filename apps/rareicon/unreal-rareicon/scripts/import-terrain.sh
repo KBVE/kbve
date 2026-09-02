@@ -22,13 +22,21 @@ PROJ_DIR="apps/rareicon/unreal-rareicon"
 UE_ROOT="${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}"
 EDITOR_CMD="$UE_ROOT/Engine/Binaries/Mac/UnrealEditor-Cmd"
 TERRAIN_SRC="${TERRAIN_SRC:-$HOME/Downloads}"
-OUT="$PROJ_DIR/Art/Terrain"
+ART="$PROJ_DIR/Art"
 RES="${TERRAIN_RES:-2048}"
 
-# <asset stem>:<polyhaven set>:<has displacement>
+# <asset stem>:<polyhaven set>:<has displacement>:<Art/ subdirectory>
+#
+# Terrain sets are sampled by world position; World sets are sampled by the mesh
+# UVs the road and bridge builders write, which is why they are separate
+# materials over the same three-map convention rather than one material with a
+# switch.
 SETS=(
-	"T_RockyTerrain02:rocky_terrain_02_2k:1"
-	"T_GrassMedium02:grass_medium_02_2k:0"
+	"T_RockyTerrain02:rocky_terrain_02_2k:1:Terrain"
+	"T_GrassMedium02:grass_medium_02_2k:0:Terrain"
+	"T_RoadPattern:floor_pattern_02_2k:1:World"
+	"T_WoodDeck:wood_shutter_2k:1:World"
+	"T_StonePier:plaster_stone_wall_02_2k:1:World"
 )
 
 if [ ! -f "$PROJ_DIR/RareIcon.uproject" ]; then
@@ -36,20 +44,20 @@ if [ ! -f "$PROJ_DIR/RareIcon.uproject" ]; then
 	exit 1
 fi
 
-mkdir -p "$OUT"
-
 needs_convert=0
 for entry in "${SETS[@]}"; do
-	stem="${entry%%:*}"
+	IFS=: read -r stem _pack _has_disp subdir <<<"$entry"
+	mkdir -p "$ART/$subdir"
 	for suffix in D N RH; do
-		[ -f "$OUT/${stem}_${suffix}.png" ] || needs_convert=1
+		[ -f "$ART/$subdir/${stem}_${suffix}.png" ] || needs_convert=1
 	done
 done
 
 convert_set() {
-	local stem="$1" pack="$2" has_disp="$3"
+	local stem="$1" pack="$2" has_disp="$3" subdir="$4"
 	local dir="$TERRAIN_SRC/$pack/textures"
 	local base="${pack%_2k}"
+	local OUT="$ART/$subdir"
 
 	if [ ! -d "$dir" ]; then
 		echo "error: source set not found at: $dir" >&2
@@ -91,8 +99,8 @@ if [ "$needs_convert" = "1" ]; then
 
 	echo "converting source textures from $TERRAIN_SRC"
 	for entry in "${SETS[@]}"; do
-		IFS=: read -r stem pack has_disp <<<"$entry"
-		convert_set "$stem" "$pack" "$has_disp" || exit 1
+		IFS=: read -r stem pack has_disp subdir <<<"$entry"
+		convert_set "$stem" "$pack" "$has_disp" "$subdir" || exit 1
 	done
 else
 	echo "converted textures already present, skipping ingest"
