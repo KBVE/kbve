@@ -13,7 +13,7 @@ import {
 	type SiteGraphInput,
 } from '../../../lib/graph/buildGraphIndex';
 import nxGraph from '../../../../public/data/nx/nx-graph.json';
-import graphifyOverview from '../../../../public/graphify/overview.json';
+import { loadGraphifyOverview } from '../../../lib/graph/graphifyOverview';
 
 /**
  * Unified graph index for the `/graph/` hub — fuses NX project dependencies,
@@ -47,7 +47,7 @@ export const GET: APIRoute = async () => {
 
 	const index = buildGraphIndex({
 		nx: nxGraph as unknown as NxGraphInput,
-		graphify: graphifyOverview as unknown as GraphifyOverviewInput,
+		graphify: loadGraphifyOverview() as unknown as GraphifyOverviewInput,
 		site,
 	});
 
