@@ -31,7 +31,7 @@ import tempfile
 
 import yaml
 
-REPO = pathlib.Path(__file__).resolve().parent.parent
+REPO = pathlib.Path(__file__).resolve().parents[2]
 MANIFESTS = REPO / "apps" / "kube" / "vector" / "manifests"
 
 # Vector resolves ${VAR} at load time and fails on anything unset, so every
@@ -93,7 +93,7 @@ def main() -> int:
 
     # Read rather than assume: a data_dir Vector cannot see aborts validation
     # before it ever reaches the transforms.
-    match = re.search(r"^data_dir:\s*[\"']?([^\"'\n]+)", config, re.M)
+    match = re.search(r"^data_dir:\s*[\"']?([^\"'\n]+)", config, re.MULTILINE)
     data_dir = match.group(1).strip() if match else "/vector-data-dir"
 
     env_vars = sorted(set(re.findall(r"\$\{([A-Za-z_][A-Za-z0-9_]*)", config)))
@@ -105,17 +105,24 @@ def main() -> int:
         (tmp_path / "data").mkdir()
 
         cmd = [
-            args.engine, "run", "--rm",
-            "-v", f"{tmp_path / 'vector.yml'}:/etc/vector/vector.yml:ro",
-            "-v", f"{tmp_path / 'data'}:{data_dir}",
-            "-v", f"{tmp_path / 'kubeconfig'}:/root/.kube/config:ro",
+            args.engine,
+            "run",
+            "--rm",
+            "-v",
+            f"{tmp_path / 'vector.yml'}:/etc/vector/vector.yml:ro",
+            "-v",
+            f"{tmp_path / 'data'}:{data_dir}",
+            "-v",
+            f"{tmp_path / 'kubeconfig'}:/root/.kube/config:ro",
         ]
         for name in env_vars:
             cmd += ["-e", f"{name}={PLACEHOLDERS.get(name, DEFAULT_PLACEHOLDER)}"]
         cmd += [
             image,
-            "validate", "--skip-healthchecks",
-            "--config-yaml", "/etc/vector/vector.yml",
+            "validate",
+            "--skip-healthchecks",
+            "--config-yaml",
+            "/etc/vector/vector.yml",
         ]
 
         print(f"image     {image}")
@@ -123,7 +130,7 @@ def main() -> int:
         print(f"env       {', '.join(env_vars) or '(none)'}")
         print()
 
-        result = subprocess.run(cmd)
+        result = subprocess.run(cmd, check=False)
 
     if result.returncode != 0:
         print(

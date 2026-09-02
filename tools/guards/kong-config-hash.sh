@@ -21,7 +21,7 @@
 # not needlessly restart the proxy.
 set -euo pipefail
 
-repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+repo_root=$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)
 config_file="${repo_root}/apps/kube/kong/manifests/kong-config.yaml"
 deployment_file="${repo_root}/apps/kube/kong/manifests/kong-deployment.yaml"
 
@@ -93,7 +93,7 @@ The Kong proxy renders its declarative config once at pod start, so a
 kong-config.yaml change does not reach the running proxy until the pods roll.
 Bump the annotation in the same commit:
 
-  ./scripts/kong-config-hash.sh --write
+  ./tools/guards/kong-config-hash.sh --write
 EOF
     exit 1
 fi

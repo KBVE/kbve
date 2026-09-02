@@ -202,6 +202,7 @@
 		"graph",
 		"graphify",
 		"graphify-wrapper",
+		"guards",
 		"hardware",
 		"herbmail",
 		"herbmail-e2e",

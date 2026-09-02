@@ -7,8 +7,8 @@ dependency (`dep.workspace = true`) fails with "`workspace.dependencies` was
 not defined" unless the stub carries the same table.
 
 Usage:
-    python3 scripts/sync-cargo-workspace-stubs.py           # rewrite stubs
-    python3 scripts/sync-cargo-workspace-stubs.py --check   # CI drift check
+    python3 tools/guards/sync-cargo-workspace-stubs.py           # rewrite stubs
+    python3 tools/guards/sync-cargo-workspace-stubs.py --check   # CI drift check
 """
 
 from __future__ import annotations
@@ -16,7 +16,7 @@ from __future__ import annotations
 import sys
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 SECTION = "[workspace.dependencies]"
 
 
@@ -56,7 +56,9 @@ def strip_section(text: str) -> str:
 def render(stub_text: str, section: str) -> str:
     base = strip_section(stub_text)
     lines = base.splitlines()
-    anchor = next((i for i, l in enumerate(lines) if l.startswith("[profile")), len(lines))
+    anchor = next(
+        (i for i, l in enumerate(lines) if l.startswith("[profile")), len(lines)
+    )
     head = "\n".join(lines[:anchor]).rstrip()
     tail = "\n".join(lines[anchor:]).rstrip()
     parts = [head, section.rstrip()]
@@ -83,10 +85,12 @@ def main() -> int:
             stub.write_text(desired)
 
     if check and drifted:
-        print("Cargo.workspace.toml stubs out of sync with root [workspace.dependencies]:")
+        print(
+            "Cargo.workspace.toml stubs out of sync with root [workspace.dependencies]:"
+        )
         for path in drifted:
             print(f"  {path}")
-        print("Run: python3 scripts/sync-cargo-workspace-stubs.py")
+        print("Run: python3 tools/guards/sync-cargo-workspace-stubs.py")
         return 1
 
     print(f"{'drift' if check else 'synced'}: {len(drifted)}/{len(stubs)} stubs")

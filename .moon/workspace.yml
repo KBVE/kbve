@@ -36,6 +36,9 @@ projects:
         # The workspace itself: whole-tree tasks that belong to no project.
         root: '.'
 
+        # Workspace guards: cargo stubs, kong config-hash, vector config.
+        guards: 'tools/guards'
+
         # Release tooling: resolves a <project>@<version> tag against the graph.
         release-tools: 'tools/release'
 
