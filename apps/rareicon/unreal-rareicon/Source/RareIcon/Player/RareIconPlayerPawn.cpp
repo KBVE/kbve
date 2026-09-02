@@ -90,7 +90,7 @@ ARareIconPlayerPawn::ARareIconPlayerPawn(const FObjectInitializer& ObjectInitial
 void ARareIconPlayerPawn::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
-	UpdateLocomotionAnimation();
+	UpdateLocomotionAnimation(DeltaSeconds);
 
 	// Once, after the pawn has had time to settle onto the ground, so a headless
 	// run records it without anyone typing into a console.
@@ -111,7 +111,18 @@ void ARareIconPlayerPawn::Tick(float DeltaSeconds)
 	}
 }
 
-void ARareIconPlayerPawn::UpdateLocomotionAnimation()
+float ARareIconPlayerPawn::EffectiveDwellTime() const
+{
+	float BlendTime = 0.0f;
+	if (const UKBVEFootIKAnimInstance* AnimInstance =
+			Mesh ? Cast<UKBVEFootIKAnimInstance>(Mesh->GetAnimInstance()) : nullptr)
+	{
+		BlendTime = AnimInstance->ClipBlendTime;
+	}
+	return FMath::Max(MinClipDwellTime, BlendTime);
+}
+
+void ARareIconPlayerPawn::UpdateLocomotionAnimation(float DeltaSeconds)
 {
 	if (!Mesh)
 	{
@@ -132,21 +143,35 @@ void ARareIconPlayerPawn::UpdateLocomotionAnimation()
 		? Mover->IsAirborne()
 		: FMath::Abs(Velocity.Z) > FallSpeedThreshold;
 
-	if (bAirborne)
+	// Descending close enough to the ground counts as grounded for the purpose
+	// of picking a pose, so the legs are already reaching for the floor when the
+	// character arrives rather than sweeping down after it.
+	const bool bUseGroundPose = !bAirborne
+		|| (Velocity.Z < 0.0f && IsAboutToLand(-Velocity.Z));
+
+	if (!bUseGroundPose)
 	{
 		Desired = FallAnim;
 	}
-	else if (GroundSpeed > RunSpeedThreshold)
+	else
 	{
-		Desired = RunAnim;
-		// Scaled to the clip's authored speed so the feet slide less. Not foot
-		// IK, and no substitute for it -- just the cheap half of the problem.
-		PlayRate = RunClipSpeed > KINDA_SMALL_NUMBER ? GroundSpeed / RunClipSpeed : 1.0f;
-	}
-	else if (GroundSpeed > MoveSpeedThreshold)
-	{
-		Desired = WalkAnim;
-		PlayRate = WalkClipSpeed > KINDA_SMALL_NUMBER ? GroundSpeed / WalkClipSpeed : 1.0f;
+		// Latched rather than compared each frame: entering a run takes the
+		// full threshold, leaving it takes a drop well below, so a speed
+		// hovering at the boundary does not alternate clips.
+		bRunning = bRunning ? GroundSpeed > RunExitSpeedThreshold : GroundSpeed > RunSpeedThreshold;
+
+		if (bRunning)
+		{
+			// Scaled to the clip's authored speed so the feet slide less. Not
+			// foot IK, and no substitute for it -- the cheap half only.
+			Desired = RunAnim;
+			PlayRate = RunClipSpeed > KINDA_SMALL_NUMBER ? GroundSpeed / RunClipSpeed : 1.0f;
+		}
+		else if (GroundSpeed > MoveSpeedThreshold)
+		{
+			Desired = WalkAnim;
+			PlayRate = WalkClipSpeed > KINDA_SMALL_NUMBER ? GroundSpeed / WalkClipSpeed : 1.0f;
+		}
 	}
 
 	if (!Desired)
@@ -154,13 +179,46 @@ void ARareIconPlayerPawn::UpdateLocomotionAnimation()
 		return;
 	}
 
-	CurrentAnim = Desired;
+	// Landing from a run and stopping happen within a few frames of each other,
+	// which without this walks the clip through run, walk and idle in under a
+	// tenth of a second -- three blends, each cut short by the next. Going
+	// airborne is exempt: a jump has to read immediately.
+	TimeInCurrentClip += DeltaSeconds;
+	const bool bUrgent = Desired == FallAnim || CurrentAnim == nullptr;
+	if (Desired != CurrentAnim && (bUrgent || TimeInCurrentClip >= EffectiveDwellTime()))
+	{
+		CurrentAnim = Desired;
+		TimeInCurrentClip = 0.0f;
+	}
+
 	if (UKBVEFootIKAnimInstance* AnimInstance = Cast<UKBVEFootIKAnimInstance>(Mesh->GetAnimInstance()))
 	{
-		AnimInstance->SetLocomotionClip(Desired, FMath::Clamp(PlayRate, 0.25f, 2.5f));
+		AnimInstance->SetLocomotionClip(CurrentAnim, FMath::Clamp(PlayRate, MinClipPlayRate, MaxClipPlayRate));
 	}
 }
 
+
+bool ARareIconPlayerPawn::IsAboutToLand(float DescentSpeed) const
+{
+	const UWorld* World = GetWorld();
+	const UCapsuleComponent* PawnCapsule = FindComponentByClass<UCapsuleComponent>();
+	if (!World || !PawnCapsule || DescentSpeed <= KINDA_SMALL_NUMBER || LandingAnticipationTime <= 0.0f)
+	{
+		return false;
+	}
+
+	// Only as far as the character can fall in the anticipation window, so a
+	// jump that is still high up keeps playing the fall clip.
+	const float Reach = DescentSpeed * LandingAnticipationTime;
+	const FVector Location = GetActorLocation();
+	const float Bottom = Location.Z - PawnCapsule->GetScaledCapsuleHalfHeight();
+
+	FHitResult Hit;
+	FCollisionQueryParams Params;
+	Params.AddIgnoredActor(this);
+	const FVector Start(Location.X, Location.Y, Bottom);
+	return World->LineTraceSingleByChannel(Hit, Start, Start - FVector(0.0f, 0.0f, Reach), ECC_Visibility, Params);
+}
 
 // Reports every link between the ground that is drawn and the feet that are
 // drawn, in one line, because "floating" can be any of them: a collision

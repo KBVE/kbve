@@ -66,6 +66,27 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "KBVE|Mover")
 	bool bUseFlatBaseForFloorChecks = false;
+
+	/**
+	 * Top ground speed, cm/s. Mover defaults to 800, which is far past what the
+	 * run animation is authored for: play rate spins the cycle faster but does
+	 * not lengthen the stride, so the ground passes under the feet quicker than
+	 * the feet travel and they slide. Measured at 1038 cm/s of foot travel
+	 * against 777 of body movement. Raise this only alongside a run clip
+	 * authored for the higher speed.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "KBVE|Mover")
+	float MaxGroundSpeed = 550.0f;
+
+	/**
+	 * How hard the character brakes, cm/s^2. Mover defaults to 4000, which
+	 * stops a run in about thirty milliseconds -- the velocity is gone while
+	 * the clip is still mid-stride with a foot in the air, so a leg finishes
+	 * its step for a character that has already stopped. No amount of IK hides
+	 * that; the stop simply has to take long enough for the stride to resolve.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "KBVE|Mover")
+	float GroundDeceleration = 1400.0f;
 	bool IsSprinting() const { return bSprinting; }
 
 	// IKBVEMovementDriver — drives this Mover pawn from gameplay/AI without binding to Mover directly

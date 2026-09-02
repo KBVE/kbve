@@ -86,6 +86,8 @@ void AKBVEMoverPawn::BeginPlay()
 				MoverComponent->FindSharedSettings_Mutable<UCommonLegacyMovementSettings>())
 		{
 			Settings->bUseFlatBaseForFloorChecks = bUseFlatBaseForFloorChecks;
+			Settings->MaxSpeed = MaxGroundSpeed;
+			Settings->Deceleration = GroundDeceleration;
 		}
 	}
 }
@@ -286,7 +288,10 @@ void AKBVEMoverPawn::SubmitJump(bool bPressed)
 
 FVector AKBVEMoverPawn::GetAuthoritativeVelocity() const
 {
-	return GetVelocity();
+	// Asked of the mover, which owns movement on this pawn. AActor::GetVelocity
+	// reports zero while airborne here, so anything choosing behaviour by speed
+	// -- locomotion clips, AI -- saw a character in mid-air as standing still.
+	return MoverComponent ? MoverComponent->GetVelocity() : GetVelocity();
 }
 
 void AKBVEMoverPawn::ApplyServerCorrection(const FVector& Position, const FVector& Velocity)
