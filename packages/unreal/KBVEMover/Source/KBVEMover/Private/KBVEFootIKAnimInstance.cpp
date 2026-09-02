@@ -5,6 +5,7 @@
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
+#include "DefaultMovementSet/CharacterMoverComponent.h"
 #include "TwoBoneIK.h"
 
 void FKBVEFootIKProxy::Initialize(UAnimInstance* InAnimInstance)
@@ -19,7 +20,7 @@ void FKBVEFootIKProxy::CacheBones()
 	FAnimInstanceProxy::CacheBones();
 
 	const FBoneContainer& Bones = GetRequiredBones();
-	for (FBoneReference* Bone : {&LeftFoot, &LeftCalf, &LeftThigh, &RightFoot, &RightCalf, &RightThigh, &Pelvis})
+	for (FBoneReference* Bone : {&LeftFoot, &LeftCalf, &LeftThigh, &RightFoot, &RightCalf, &RightThigh, &Pelvis, &Spine})
 	{
 		Bone->Initialize(Bones);
 	}
@@ -92,6 +93,16 @@ bool FKBVEFootIKProxy::Evaluate(FPoseContext& Output)
 	{
 		const FCompactPoseBoneIndex Index = Pelvis.GetCompactPoseIndex(Container);
 		Output.Pose[Index].AddToTranslation(FVector(0.0f, 0.0f, PelvisOffset));
+	}
+
+	// The torso follows the hips down: without it the character drops at the
+	// waist and the upper body rides the landing perfectly rigid.
+	if (Spine.IsValidToEvaluate() && !FMath::IsNearlyZero(SpineLeanDegrees))
+	{
+		const FCompactPoseBoneIndex Index = Spine.GetCompactPoseIndex(Container);
+		const FQuat Lean(FVector::RightVector, FMath::DegreesToRadians(SpineLeanDegrees));
+		Output.Pose[Index].SetRotation(Output.Pose[Index].GetRotation() * Lean);
+		Output.Pose[Index].NormalizeRotation();
 	}
 
 	FCSPose<FCompactPose> Pose;
@@ -170,12 +181,52 @@ void UKBVEFootIKAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		return;
 	}
 
+	// Feet in the air have no ground to be placed on, so the whole solve fades
+	// out on takeoff and back in on landing rather than snapping: held through
+	// a jump it pulls the pelvis toward ground that is metres below, which
+	// reads as the character arching or hopping a second time.
+	const UCharacterMoverComponent* Mover = Mesh->GetOwner()
+		? Mesh->GetOwner()->FindComponentByClass<UCharacterMoverComponent>()
+		: nullptr;
+	const bool bAirborne = Mover && Mover->IsAirborne();
+	const float BlendStep = AirborneBlendTime > KINDA_SMALL_NUMBER ? DeltaSeconds / AirborneBlendTime : 1.0f;
+	GroundedAlpha = FMath::Clamp(GroundedAlpha + (bAirborne ? -BlendStep : BlendStep), 0.0f, 1.0f);
+
+	// Landing absorption. The impact speed has to be remembered from the last
+	// airborne frame: by the time the mover reports ground the vertical speed
+	// has already been zeroed, so reading it on the landing frame reads zero.
+	const float SpeedZ = Mover ? Mover->GetVelocity().Z : 0.0f;
+	if (bAirborne)
+	{
+		LastAirborneSpeedZ = SpeedZ;
+	}
+	else if (bWasAirborne && bAbsorbLandings)
+	{
+		const float ImpactSpeed = FMath::Max(0.0f, -LastAirborneSpeedZ);
+		if (ImpactSpeed > LandingSpeedThreshold)
+		{
+			LandingDipVelocity -= (ImpactSpeed - LandingSpeedThreshold) * LandingDipPerSpeed;
+		}
+	}
+	bWasAirborne = bAirborne;
+
+	// A damped spring rather than a curve, so any impact speed produces a dip
+	// that settles instead of a fixed animation that does not match the fall.
+	const float SpringAccel = (-LandingSpringStiffness * LandingDip) - (LandingSpringDamping * LandingDipVelocity);
+	LandingDipVelocity += SpringAccel * DeltaSeconds;
+	LandingDip = FMath::Clamp(LandingDip + LandingDipVelocity * DeltaSeconds, -MaxLandingDip, 0.0f);
+	if (FMath::IsNearlyZero(LandingDip, 0.01f) && FMath::Abs(LandingDipVelocity) < 0.1f)
+	{
+		LandingDip = 0.0f;
+		LandingDipVelocity = 0.0f;
+	}
+
 	// Traces belong on the game thread; the proxy only consumes the results.
 	float LeftTarget = 0.0f;
 	float RightTarget = 0.0f;
 	FVector LeftNormalTarget = FVector::UpVector;
 	FVector RightNormalTarget = FVector::UpVector;
-	if (bEnableFootIK)
+	if (bEnableFootIK && GroundedAlpha > KINDA_SMALL_NUMBER)
 	{
 		const float RootZ = Mesh->GetComponentLocation().Z;
 
@@ -220,13 +271,22 @@ void UKBVEFootIKAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	const FTransform MeshTransform = Mesh->GetComponentTransform();
 
 	FKBVEFootIKProxy& Proxy = GetProxyOnGameThread<FKBVEFootIKProxy>();
-	Proxy.bFootIKEnabled = bEnableFootIK;
-	Proxy.LeftFootOffset = SmoothedLeft;
-	Proxy.RightFootOffset = SmoothedRight;
-	Proxy.PelvisOffset = SmoothedPelvis;
+	Proxy.bFootIKEnabled = bEnableFootIK && GroundedAlpha > KINDA_SMALL_NUMBER;
+	Proxy.LeftFootOffset = SmoothedLeft * GroundedAlpha;
+	Proxy.RightFootOffset = SmoothedRight * GroundedAlpha;
+	// The dip rides on top of the terrain adaptation: the feet are solved
+	// against this same offset, so they stay planted while the hips drop and
+	// the knees take the landing.
+	Proxy.PelvisOffset = (SmoothedPelvis + LandingDip) * GroundedAlpha;
+	Proxy.Spine.BoneName = SpineBone;
+	Proxy.SpineLeanDegrees = MaxLandingDip > KINDA_SMALL_NUMBER
+		? (LandingDip / MaxLandingDip) * LandingSpineLean * GroundedAlpha
+		: 0.0f;
 	Proxy.bAlignFeetToGround = bAlignFeetToGround;
-	Proxy.LeftFootNormal = MeshTransform.InverseTransformVectorNoScale(SmoothedLeftNormal).GetSafeNormal();
-	Proxy.RightFootNormal = MeshTransform.InverseTransformVectorNoScale(SmoothedRightNormal).GetSafeNormal();
+	const FVector LeftLocalNormal = MeshTransform.InverseTransformVectorNoScale(SmoothedLeftNormal).GetSafeNormal();
+	const FVector RightLocalNormal = MeshTransform.InverseTransformVectorNoScale(SmoothedRightNormal).GetSafeNormal();
+	Proxy.LeftFootNormal = FMath::Lerp(FVector::UpVector, LeftLocalNormal, GroundedAlpha).GetSafeNormal();
+	Proxy.RightFootNormal = FMath::Lerp(FVector::UpVector, RightLocalNormal, GroundedAlpha).GetSafeNormal();
 	Proxy.LeftFoot.BoneName = LeftFootBone;
 	Proxy.LeftCalf.BoneName = LeftCalfBone;
 	Proxy.LeftThigh.BoneName = LeftThighBone;

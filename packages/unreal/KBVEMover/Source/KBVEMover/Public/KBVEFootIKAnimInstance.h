@@ -59,6 +59,10 @@ struct FKBVEFootIKProxy : public FAnimInstanceProxy
 	FVector RightFootNormal = FVector::UpVector;
 	bool bAlignFeetToGround = true;
 
+	/** Torso pitch, in degrees, that follows the landing dip. */
+	float SpineLeanDegrees = 0.0f;
+	FBoneReference Spine;
+
 private:
 	/** Solve one leg so its foot reaches its ground point, and lies along it. */
 	void SolveLeg(FCSPose<FCompactPose>& Pose, const FBoneReference& Thigh, const FBoneReference& Calf,
@@ -139,6 +143,48 @@ public:
 	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|FootIK")
 	float TiltInterpSpeed = 240.0f;
 
+	/**
+	 * Seconds to blend the whole solve out on leaving the ground and back in on
+	 * landing. Airborne feet have no ground to sit on, and holding the solve
+	 * through a jump drags the pelvis toward whatever is far below.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|FootIK")
+	float AirborneBlendTime = 0.15f;
+
+	/** Bone the landing dip bends, so the torso follows the hips rather than riding rigid. */
+	UPROPERTY(EditDefaultsOnly, Category = "KBVE|Animation|Landing")
+	FName SpineBone = TEXT("spine_01");
+
+	/**
+	 * How far the hips drop per cm/s of downward speed at touchdown. The feet
+	 * stay planted by the same solve that plants them standing, so the dip
+	 * bends the knees rather than sinking the character.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Landing")
+	float LandingDipPerSpeed = 0.045f;
+
+	/** Hard cap on the dip, in cm. */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Landing")
+	float MaxLandingDip = 28.0f;
+
+	/** Downward speed, cm/s, below which a landing is not worth absorbing. */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Landing")
+	float LandingSpeedThreshold = 150.0f;
+
+	/** Spring pulling the hips back up, and the damping that stops it oscillating. */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Landing")
+	float LandingSpringStiffness = 130.0f;
+
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Landing")
+	float LandingSpringDamping = 18.0f;
+
+	/** Degrees of torso pitch at the deepest allowed dip. */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Landing")
+	float LandingSpineLean = 14.0f;
+
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Landing")
+	bool bAbsorbLandings = true;
+
 protected:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 	virtual FAnimInstanceProxy* CreateAnimInstanceProxy() override { return new FKBVEFootIKProxy(this); }
@@ -160,4 +206,11 @@ private:
 	float SmoothedPelvis = 0.0f;
 	FVector SmoothedLeftNormal = FVector::UpVector;
 	FVector SmoothedRightNormal = FVector::UpVector;
+	float GroundedAlpha = 1.0f;
+
+	/** Landing absorption state: a mass on a spring, displaced by the impact. */
+	float LandingDip = 0.0f;
+	float LandingDipVelocity = 0.0f;
+	bool bWasAirborne = false;
+	float LastAirborneSpeedZ = 0.0f;
 };
