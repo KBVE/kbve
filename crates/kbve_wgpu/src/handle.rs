@@ -21,6 +21,13 @@ impl SurfaceKind {
 }
 
 pub struct SurfaceSource {
+    // Every `*_target` arm below is the `unreachable!` stub on a platform that
+    // is neither Apple nor Android, so the pointer is genuinely never read
+    // there and `-D warnings` rejects the crate on a Linux CI runner.
+    #[cfg_attr(
+        not(any(target_os = "ios", target_os = "macos", target_os = "android")),
+        allow(dead_code)
+    )]
     raw: *mut c_void,
     kind: SurfaceKind,
 }
