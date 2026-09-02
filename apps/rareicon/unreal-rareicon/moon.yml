@@ -32,30 +32,15 @@ tasks:
         script: './kbve.sh -lfs rareicon register'
         options:
             runFromWorkspaceRoot: true
-    # UBT decides for itself what needs recompiling, and it reads state moon
-    # cannot see -- the engine install and every plugin under packages/unreal.
-    # A moon cache hit would report success without relinking the module the
-    # editor then loads, so these never cache.
+    # The game module links KBVEUnr, whose staticlib is built rather than
+    # committed, so every target has to wait on it. Deps merge with the
+    # inherited task rather than replacing it.
     build-editor:
         deps: ['KBVEUnr:sync-unr']
-        script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" RareIconEditor Mac Development "$PWD/RareIcon.uproject"'
-        options:
-            cache: false
     build-game:
         deps: ['KBVEUnr:sync-unr']
-        script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" RareIcon Mac Development "$PWD/RareIcon.uproject"'
-        options:
-            cache: false
     build-server:
         deps: ['KBVEUnr:sync-unr']
-        script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" RareIconServer Mac Development "$PWD/RareIcon.uproject"'
-        options:
-            cache: false
-    compile:
-        deps: ['KBVEUnr:sync-unr']
-        script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" RareIconEditor Mac Development "$PWD/RareIcon.uproject"'
-        options:
-            cache: false
     # Ingest the PolyHaven source set, then import it and rebuild the ground
     # material. Conversion happens here rather than in the editor: 4k EXR/PNG
     # is 94 MB of source for what ships as 17 MB of 2k PNG, and the normal map
@@ -67,61 +52,10 @@ tasks:
         options:
             runFromWorkspaceRoot: true
             cache: false
-    # Scene and keybinds are generated from scripts/config/*.json by the shared
-    # editor scripts in the kbve python package. Not Config/ -- that is Unreal's, and
-    # on a case-insensitive filesystem a config/ of our own silently merges into
-    # it and then fails to resolve on Linux. The umap and the input uassets are
-    # binary and unreviewable; the JSON is the part worth reading, and the logic
-    # is the same for every KBVE Unreal game.
-    build-world:
-        deps: ['~:build-editor']
-        command: >-
-            uv run --project $workspaceRoot/packages/python/kbve
-            kbve-unreal-world-map
-            --project $workspaceRoot/apps/rareicon/unreal-rareicon/RareIcon.uproject
-            --config $workspaceRoot/apps/rareicon/unreal-rareicon/scripts/config/world.json
-        options:
-            runFromWorkspaceRoot: true
-            cache: false
-    build-input:
-        deps: ['~:build-editor']
-        command: >-
-            uv run --project $workspaceRoot/packages/python/kbve
-            kbve-unreal-input-assets
-            --project $workspaceRoot/apps/rareicon/unreal-rareicon/RareIcon.uproject
-            --config $workspaceRoot/apps/rareicon/unreal-rareicon/scripts/config/input.json
-        options:
-            runFromWorkspaceRoot: true
-            cache: false
     regen-project-files:
         script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh" -project="$PWD/RareIcon.uproject" -game -engine'
         options:
             cache: false
-    # Launch only. Assumes the module is already built -- the script says so
-    # rather than letting the editor crash on a missing dylib.
-    launch-editor:
-        script: './apps/rareicon/unreal-rareicon/scripts/launch-editor.sh'
-        options:
-            runFromWorkspaceRoot: true
-            cache: false
-            persistent: true
-    quit-editor:
-        script: './apps/rareicon/unreal-rareicon/scripts/quit-editor.sh'
-        options:
-            runFromWorkspaceRoot: true
-            cache: false
-    # The one to use day to day: quit, compile the C++, launch what was built.
-    #
-    # Deliberately not `deps: ['~:build-editor']`. Moon would run the build
-    # first, with the editor still holding its modules open, and UBT would write
-    # hot-reload copies rather than the dylibs the next launch loads -- so the
-    # editor would come up silently running the previous build.
-    dev:
-        script: './apps/rareicon/unreal-rareicon/scripts/dev.sh'
-        options:
-            runFromWorkspaceRoot: true
-            cache: false
-            persistent: true
     open:
         script: 'open apps/rareicon/unreal-rareicon/RareIcon.uproject'
         options:
@@ -129,8 +63,6 @@ tasks:
             cache: false
     clean:
         script: 'rm -rf Binaries Build DerivedDataCache Intermediate Saved'
-    clangd-db:
-        script: 'cd ../../../packages/python/kbve && uv run kbve-unreal-clangd'
 
 env:
     # The engine configuration this project builds with, in the shape the
@@ -144,5 +76,15 @@ env:
     ENGINE_CONFIG: '{"version":"5.8.0","project_path":"apps/rareicon/unreal-rareicon","build_targets":["Mac"],"maps":["/Game/Map/L_RareIconWorld"]}'
     # The monorepo shell ci-unreal-build.yml reads build.toml from.
     UE_SHELL_PATH: 'apps/rareicon/unreal-rareicon'
+    # What .moon/tasks/unreal.yml needs to drive this project. Everything else
+    # about the editor workflow is inherited from that file.
+    UE_PROJECT: 'apps/rareicon/unreal-rareicon/RareIcon.uproject'
+    UE_TARGET: 'RareIconEditor'
+    UE_GAME_TARGET: 'RareIcon'
+    UE_SERVER_TARGET: 'RareIconServer'
+    UE_MODULE: 'RareIcon'
+    UE_LOG_PREFIX: 'rareicon'
+    UE_WORLD_CONFIG: 'apps/rareicon/unreal-rareicon/scripts/config/world.json'
+    UE_INPUT_CONFIG: 'apps/rareicon/unreal-rareicon/scripts/config/input.json'
     # Not the default two-core hosted runner: an Unreal compile.
     CI_RUNNER: 'arc-runner-ue'

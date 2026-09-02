@@ -1,0 +1,131 @@
+$schema: 'https://moonrepo.dev/schemas/tasks.json'
+
+# Inherited by every project tagged 'unreal-game'. A game declares the tag and
+# four env vars and gets the whole editor workflow; it writes no tasks and no
+# shell scripts of its own.
+#
+# The logic lives in the kbve python package (kbve.unreal.process and
+# kbve.unreal.editor) rather than in a per-game script, because none of it was
+# ever game-specific -- a launch script's only variable parts are the project
+# path, the module name and a log prefix.
+#
+# Required env per project:
+#   UE_PROJECT     path to the .uproject, relative to the workspace root
+#   UE_TARGET      editor target name, e.g. RareIconEditor
+#   UE_MODULE      game module the editor loads, e.g. RareIcon
+#   UE_LOG_PREFIX  basename for the four log files under Saved/Logs
+#
+# Optional:
+#   UE_GAME_TARGET / UE_SERVER_TARGET   non-editor targets, if the game has them
+#   UE_WORLD_CONFIG / UE_INPUT_CONFIG   JSON for the scene and keybind builders
+inheritedBy:
+    tag: 'unreal-game'
+
+fileGroups:
+    sources:
+        - 'Source/**/*'
+        - 'Config/**/*'
+
+tasks:
+    # UBT decides for itself what needs recompiling, and it reads state moon
+    # cannot see -- the engine install and every plugin under packages/unreal.
+    # A moon cache hit would report success without relinking the module the
+    # editor then loads, so none of these cache.
+    build-editor:
+        command: >-
+            uv run --project $workspaceRoot/packages/python/kbve
+            kbve-unreal-build --project $workspaceRoot/$UE_PROJECT --target $UE_TARGET
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    build-game:
+        command: >-
+            uv run --project $workspaceRoot/packages/python/kbve
+            kbve-unreal-build --project $workspaceRoot/$UE_PROJECT --target $UE_GAME_TARGET
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    # Server targets need a source build of the engine; a Launcher install
+    # refuses them, so this is CI-only on most machines.
+    build-server:
+        command: >-
+            uv run --project $workspaceRoot/packages/python/kbve
+            kbve-unreal-build --project $workspaceRoot/$UE_PROJECT --target $UE_SERVER_TARGET
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    quit-editor:
+        command: >-
+            uv run --project $workspaceRoot/packages/python/kbve
+            kbve-unreal-quit --project $workspaceRoot/$UE_PROJECT
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    # Launch only; assumes the module is already built and says so if it is not.
+    launch-editor:
+        command: >-
+            uv run --project $workspaceRoot/packages/python/kbve
+            kbve-unreal-launch --project $workspaceRoot/$UE_PROJECT
+            --log-prefix $UE_LOG_PREFIX --module $UE_MODULE
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            persistent: true
+
+    # The one to use day to day. Deliberately one command rather than a task
+    # with a build dependency: moon runs the dependency first, with the editor
+    # still holding its modules open, and UBT then writes hot-reload copies
+    # instead of the dylibs the next launch loads -- so the editor comes up
+    # silently running the previous build.
+    dev:
+        command: >-
+            uv run --project $workspaceRoot/packages/python/kbve
+            kbve-unreal-dev --project $workspaceRoot/$UE_PROJECT --target $UE_TARGET
+            --log-prefix $UE_LOG_PREFIX --module $UE_MODULE
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+            persistent: true
+
+    # Drops the hot-reload dylibs a build against a live editor leaves behind,
+    # without quitting anything.
+    clean-hot-reload:
+        command: >-
+            uv run --project $workspaceRoot/packages/python/kbve
+            kbve-unreal-quit --project $workspaceRoot/$UE_PROJECT
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    clangd-db:
+        command: 'uv run --project $workspaceRoot/packages/python/kbve kbve-unreal-clangd'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    # Scene and keybinds are generated from JSON by the shared editor scripts.
+    # The umap and the input uassets are binary and unreviewable; the JSON is
+    # the part worth reading, and the logic is the same for every KBVE game.
+    build-world:
+        deps: ['~:build-editor']
+        command: >-
+            uv run --project $workspaceRoot/packages/python/kbve
+            kbve-unreal-world-map --project $workspaceRoot/$UE_PROJECT
+            --config $workspaceRoot/$UE_WORLD_CONFIG
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    build-input:
+        deps: ['~:build-editor']
+        command: >-
+            uv run --project $workspaceRoot/packages/python/kbve
+            kbve-unreal-input-assets --project $workspaceRoot/$UE_PROJECT
+            --config $workspaceRoot/$UE_INPUT_CONFIG
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
