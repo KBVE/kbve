@@ -453,7 +453,7 @@ async function fetchReportSummary(): Promise<ReportSummary | null> {
 	if (cached) return cached;
 
 	try {
-		const resp = await fetch('/data/nx/nx-report.json', {
+		const resp = await fetch('/data/nx/report.json', {
 			signal: AbortSignal.timeout(8000),
 		});
 		if (!resp.ok) return null;
