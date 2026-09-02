@@ -11,27 +11,28 @@ COPY apps/agones/arpg/server/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
 COPY apps/agones/arpg/server/Cargo.toml apps/agones/arpg/server/Cargo.toml
-COPY packages/rust/simgrid/Cargo.toml packages/rust/simgrid/Cargo.toml
-COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
-COPY packages/rust/bevy/bevy_items/Cargo.toml packages/rust/bevy/bevy_items/Cargo.toml
-COPY packages/rust/bevy/bevy_inventory/Cargo.toml packages/rust/bevy/bevy_inventory/Cargo.toml
-COPY packages/rust/bevy/bevy_mapdb/Cargo.toml packages/rust/bevy/bevy_mapdb/Cargo.toml
-COPY packages/rust/bevy/bevy_spells/Cargo.toml packages/rust/bevy/bevy_spells/Cargo.toml
+COPY crates/simgrid/Cargo.toml crates/simgrid/Cargo.toml
+COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
+COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
+COPY crates/bevy_items/Cargo.toml crates/bevy_items/Cargo.toml
+COPY crates/bevy_inventory/Cargo.toml crates/bevy_inventory/Cargo.toml
+COPY crates/bevy_mapdb/Cargo.toml crates/bevy_mapdb/Cargo.toml
+COPY crates/bevy_spells/Cargo.toml crates/bevy_spells/Cargo.toml
 
 RUN mkdir -p apps/agones/arpg/server/src && \
     echo "fn main() {}" > apps/agones/arpg/server/src/main.rs && \
-    mkdir -p packages/rust/simgrid/src && \
-    echo "" > packages/rust/simgrid/src/lib.rs && \
-    mkdir -p packages/rust/jedi/src && \
-    echo "" > packages/rust/jedi/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_items/src && \
-    echo "" > packages/rust/bevy/bevy_items/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_inventory/src && \
-    echo "" > packages/rust/bevy/bevy_inventory/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_mapdb/src && \
-    echo "" > packages/rust/bevy/bevy_mapdb/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_spells/src && \
-    echo "" > packages/rust/bevy/bevy_spells/src/lib.rs
+    mkdir -p crates/simgrid/src && \
+    echo "" > crates/simgrid/src/lib.rs && \
+    mkdir -p crates/jedi/src && \
+    echo "" > crates/jedi/src/lib.rs && \
+    mkdir -p crates/bevy_items/src && \
+    echo "" > crates/bevy_items/src/lib.rs && \
+    mkdir -p crates/bevy_inventory/src && \
+    echo "" > crates/bevy_inventory/src/lib.rs && \
+    mkdir -p crates/bevy_mapdb/src && \
+    echo "" > crates/bevy_mapdb/src/lib.rs && \
+    mkdir -p crates/bevy_spells/src && \
+    echo "" > crates/bevy_spells/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json --bin arpg-server
 
@@ -71,12 +72,14 @@ COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
 COPY apps/agones/arpg/server/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
-COPY packages/rust/simgrid packages/rust/simgrid
-COPY packages/rust/jedi packages/rust/jedi
-COPY packages/rust/bevy/bevy_items packages/rust/bevy/bevy_items
-COPY packages/rust/bevy/bevy_inventory packages/rust/bevy/bevy_inventory
-COPY packages/rust/bevy/bevy_mapdb packages/rust/bevy/bevy_mapdb
-COPY packages/rust/bevy/bevy_spells packages/rust/bevy/bevy_spells
+COPY crates/simgrid crates/simgrid
+COPY crates/jedi crates/jedi
+COPY crates/kbve-proto crates/kbve-proto
+COPY packages/proto packages/proto
+COPY crates/bevy_items crates/bevy_items
+COPY crates/bevy_inventory crates/bevy_inventory
+COPY crates/bevy_mapdb crates/bevy_mapdb
+COPY crates/bevy_spells crates/bevy_spells
 # arpg-server include_bytes!s the canonical itemdb + mapdb + spelldb + npcdb at compile time.
 COPY packages/data/codegen/generated/itemdb-data.binpb packages/data/codegen/generated/itemdb-data.binpb
 COPY packages/data/codegen/generated/mapdb-data.binpb packages/data/codegen/generated/mapdb-data.binpb

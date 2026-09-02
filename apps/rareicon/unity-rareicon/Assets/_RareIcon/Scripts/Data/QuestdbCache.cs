@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using KBVE.Proto.Quest;
+using KBVE.Proto.Kbve.Quest.V1;
 
 namespace RareIcon
 {

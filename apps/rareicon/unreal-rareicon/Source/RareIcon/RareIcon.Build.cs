@@ -18,11 +18,16 @@ public class RareIcon : ModuleRules
 			"Json",
 			"JsonUtilities",
 			"KBVEUnr",
-			"KBVEWorldCore"
+			"KBVEWorldCore",
+			"KBVEMover",
+			// Reading the pawn's movement mode needs the concrete component, not
+			// the forward declaration KBVEMoverPawn.h gets away with.
+			"Mover"
 		});
 
 		PublicIncludePaths.AddRange(new string[] {
-			"RareIcon"
+			"RareIcon",
+			"RareIcon/Player"
 		});
 	}
 }

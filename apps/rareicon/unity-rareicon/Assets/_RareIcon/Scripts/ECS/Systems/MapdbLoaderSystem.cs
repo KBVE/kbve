@@ -1,6 +1,6 @@
 using System.IO;
 using Google.Protobuf;
-using KBVE.Proto.Map;
+using KBVE.Proto.Kbve.Map.V1;
 using Unity.Entities;
 using UnityEngine;
 

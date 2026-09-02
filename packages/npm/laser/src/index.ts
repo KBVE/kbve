@@ -67,9 +67,14 @@ export { Domain, mix32, mulberry32, stream, rollPct } from './lib/determ';
 export {
 	heightAt,
 	makeHeightSampler,
+	riverMask,
+	makeRiverSampler,
 	seedFromWorld,
 	HEIGHT_AMPLITUDE,
+	RIVER_DEPTH,
+	RIVER_WIDTH,
 	type HeightSampler,
+	type RiverSampler,
 } from './lib/determ/heightfield';
 
 // Combat — attack geometry mirrored byte-for-byte by simgrid combat.rs

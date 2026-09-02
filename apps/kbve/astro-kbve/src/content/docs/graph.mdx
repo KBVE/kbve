@@ -17,9 +17,10 @@ sidebar:
 import BentoShell from '@/components/hero/BentoShell.astro';
 import AstroGraphExplorer from '@/components/dashboard/AstroGraphExplorer.astro';
 import nxGraph from '../../../public/data/nx/nx-graph.json';
-import overview from '../../../public/graphify/overview.json';
+import { loadGraphifyOverview } from '@/lib/graph/graphifyOverview';
 
 export const projects = Object.keys(nxGraph.graph.nodes).length;
+export const overview = loadGraphifyOverview();
 export const dirs = overview.meta.dirs;
 export const symbols = overview.meta.symbols;
 

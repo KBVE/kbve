@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using KBVE.Proto.Map;
+using KBVE.Proto.Kbve.Map.V1;
 
 namespace RareIcon
 {
@@ -37,12 +37,12 @@ namespace RareIcon
                 _byRef[def.Ref] = def;
                 switch (def.Type)
                 {
-                    case WorldObjectType.WorldObjectBuilding:     _buildings.Add(def);     break;
-                    case WorldObjectType.WorldObjectResourceNode: _resourceNodes.Add(def); break;
-                    case WorldObjectType.WorldObjectSettlement:   _settlements.Add(def);   break;
-                    case WorldObjectType.WorldObjectNpcMarker:    _npcMarkers.Add(def);    break;
-                    case WorldObjectType.WorldObjectLandmark:     _landmarks.Add(def);     break;
-                    case WorldObjectType.WorldObjectArena:        _arenas.Add(def);        break;
+                    case WorldObjectType.Building:     _buildings.Add(def);     break;
+                    case WorldObjectType.ResourceNode: _resourceNodes.Add(def); break;
+                    case WorldObjectType.Settlement:   _settlements.Add(def);   break;
+                    case WorldObjectType.NpcMarker:    _npcMarkers.Add(def);    break;
+                    case WorldObjectType.Landmark:     _landmarks.Add(def);     break;
+                    case WorldObjectType.Arena:        _arenas.Add(def);        break;
                     default:                                      _other.Add(def);         break;
                 }
             }

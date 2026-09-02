@@ -15,9 +15,9 @@ sidebar:
 
 import BentoShell from '@/components/hero/BentoShell.astro';
 import AstroGraphExplorer from '@/components/dashboard/AstroGraphExplorer.astro';
-import overview from '../../../../public/graphify/overview.json';
+import { loadGraphifyOverview } from '@/lib/graph/graphifyOverview';
 
-export const meta = overview.meta;
+export const meta = loadGraphifyOverview().meta;
 
 <div class="graph-explorer-page" data-graph-explorer>
 

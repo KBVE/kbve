@@ -39,7 +39,7 @@ check "chuckrpg scope finds cleanroom" "KBVE/cleanroom.git/info/lfs" "$out"
 
 # A scope with no game's assets under it does nothing, rather than pulling the
 # whole monorepo's LFS.
-out=$(run apps/kbve/edge)
+out=$(run services/functions/deno)
 check "unrelated scope pulls nothing" "Resolved LFS for 0 game(s)" "$out"
 
 # A scope inside a game but above nothing tracked is still nothing.

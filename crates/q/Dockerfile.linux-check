@@ -13,8 +13,8 @@ RUN rustup component add rustfmt clippy
 WORKDIR /workspace
 
 # Usage (from repo root):
-#   docker build -t q-linux-check -f packages/rust/q/Dockerfile.linux-check .
+#   docker build -t q-linux-check -f crates/q/Dockerfile.linux-check .
 #   docker run --rm -v "$(pwd):/workspace" q-linux-check cargo check  -p q
 #   docker run --rm -v "$(pwd):/workspace" q-linux-check cargo test   -p q
 #   docker run --rm -v "$(pwd):/workspace" q-linux-check cargo clippy -p q
-#   docker run --rm -v "$(pwd):/workspace" q-linux-check rustfmt --check packages/rust/q/src/**/*.rs
+#   docker run --rm -v "$(pwd):/workspace" q-linux-check rustfmt --check crates/q/src/**/*.rs

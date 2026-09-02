@@ -27,35 +27,14 @@ tasks:
         options:
             runFromWorkspaceRoot: true
 
-    # The workspace-level guards. Each was a pull_request workflow with a path
-    # filter -- ci-cargo-stub-guard.yml, ci-kong-config-guard.yml,
-    # ci-vector-config-guard.yml -- and a path filter is what a task's `inputs`
-    # already is, except that moon also caches the result and the graph knows
-    # about it. Three workflows and 178 lines of runner setup for three script
-    # invocations.
-    #
-    # `lint` rather than three tasks with other names, because `moon ci` runs
-    # tasks by id: anything not called lint or test would never run. This
-    # replaces the `cargo clippy` that the rust toolchain gives every project,
-    # which at the workspace root lints all 60 crates a second time -- each of
-    # them already has its own lint task.
+    # The workspace guards moved to tools/guards; this override stays because
+    # without a `lint` here the rust toolchain gives the root `cargo clippy
+    # --all-targets`, which lints all 60 crates a second time -- each of them
+    # already has its own lint task.
     lint:
-        script: >-
-            python3 scripts/sync-cargo-workspace-stubs.py --check
-            && ./scripts/kong-config-hash.sh --check
-            && python3 scripts/validate-vector-config.py
-        inputs:
-            - 'Cargo.toml'
-            - 'apps/**/Cargo.workspace.toml'
-            - 'scripts/sync-cargo-workspace-stubs.py'
-            - 'scripts/kong-config-hash.sh'
-            - 'scripts/validate-vector-config.py'
-            - 'apps/kube/kong/manifests/kong-config.yaml'
-            - 'apps/kube/kong/manifests/kong-deployment.yaml'
-            - 'apps/kube/vector/manifests/vector-config.yaml'
-            - 'apps/kube/vector/manifests/vector-daemonset.yaml'
+        script: 'echo "workspace guards run as guards:lint; each project lints itself"'
         options:
-            runFromWorkspaceRoot: true
+            cache: false
 
     # The rust toolchain's `cargo test` at the workspace root runs every crate's
     # suite a second time; each crate has its own test task. There is nothing at

@@ -10,6 +10,10 @@ tags: ['unreal-game', 'ue5-server']
 dependsOn:
     - 'KBVEUnr'
     - 'KBVEWorld'
+    - 'KBVEMover'
+    # build-world and build-input run the editor scripts shipped there.
+    # 'kbve' is the Rust crate; the python package is 'kbve-py'.
+    - 'kbve-py'
 
 tasks:
     lfs-push:
@@ -28,30 +32,15 @@ tasks:
         script: './kbve.sh -lfs rareicon register'
         options:
             runFromWorkspaceRoot: true
-    # UBT decides for itself what needs recompiling, and it reads state moon
-    # cannot see -- the engine install and every plugin under packages/unreal.
-    # A moon cache hit would report success without relinking the module the
-    # editor then loads, so these never cache.
+    # The game module links KBVEUnr, whose staticlib is built rather than
+    # committed, so every target has to wait on it. Deps merge with the
+    # inherited task rather than replacing it.
     build-editor:
         deps: ['KBVEUnr:sync-unr']
-        script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" RareIconEditor Mac Development "$PWD/RareIcon.uproject"'
-        options:
-            cache: false
     build-game:
         deps: ['KBVEUnr:sync-unr']
-        script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" RareIcon Mac Development "$PWD/RareIcon.uproject"'
-        options:
-            cache: false
     build-server:
         deps: ['KBVEUnr:sync-unr']
-        script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" RareIconServer Mac Development "$PWD/RareIcon.uproject"'
-        options:
-            cache: false
-    compile:
-        deps: ['KBVEUnr:sync-unr']
-        script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" RareIconEditor Mac Development "$PWD/RareIcon.uproject"'
-        options:
-            cache: false
     # Ingest the PolyHaven source set, then import it and rebuild the ground
     # material. Conversion happens here rather than in the editor: 4k EXR/PNG
     # is 94 MB of source for what ships as 17 MB of 2k PNG, and the normal map
@@ -67,22 +56,6 @@ tasks:
         script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh" -project="$PWD/RareIcon.uproject" -game -engine'
         options:
             cache: false
-    # Launch only. Assumes the module is already built -- the script says so
-    # rather than letting the editor crash on a missing dylib.
-    launch-editor:
-        script: './apps/rareicon/unreal-rareicon/scripts/launch-editor.sh'
-        options:
-            runFromWorkspaceRoot: true
-            cache: false
-            persistent: true
-    # The one to use day to day: compile the C++, then launch what was built.
-    dev:
-        deps: ['~:build-editor']
-        script: './apps/rareicon/unreal-rareicon/scripts/launch-editor.sh'
-        options:
-            runFromWorkspaceRoot: true
-            cache: false
-            persistent: true
     open:
         script: 'open apps/rareicon/unreal-rareicon/RareIcon.uproject'
         options:
@@ -90,8 +63,6 @@ tasks:
             cache: false
     clean:
         script: 'rm -rf Binaries Build DerivedDataCache Intermediate Saved'
-    clangd-db:
-        script: 'cd ../../../packages/python/kbve && uv run kbve-unreal-clangd'
 
 env:
     # The engine configuration this project builds with, in the shape the
@@ -102,8 +73,18 @@ env:
     # only the host target wired up so far. Declaring Win64/Linux here would
     # hand CI a build that fails in Build.cs on a missing library. Widen this
     # and KBVEUnr's UE_SUPPORTED_PLATFORMS together, never separately.
-    ENGINE_CONFIG: '{"version":"5.8.0","project_path":"apps/rareicon/unreal-rareicon","build_targets":["Mac"]}'
+    ENGINE_CONFIG: '{"version":"5.8.0","project_path":"apps/rareicon/unreal-rareicon","build_targets":["Mac"],"maps":["/Game/Map/L_RareIconWorld"]}'
     # The monorepo shell ci-unreal-build.yml reads build.toml from.
     UE_SHELL_PATH: 'apps/rareicon/unreal-rareicon'
+    # What .moon/tasks/unreal.yml needs to drive this project. Everything else
+    # about the editor workflow is inherited from that file.
+    UE_PROJECT: 'apps/rareicon/unreal-rareicon/RareIcon.uproject'
+    UE_TARGET: 'RareIconEditor'
+    UE_GAME_TARGET: 'RareIcon'
+    UE_SERVER_TARGET: 'RareIconServer'
+    UE_MODULE: 'RareIcon'
+    UE_LOG_PREFIX: 'rareicon'
+    UE_WORLD_CONFIG: 'apps/rareicon/unreal-rareicon/scripts/config/world.json'
+    UE_INPUT_CONFIG: 'apps/rareicon/unreal-rareicon/scripts/config/input.json'
     # Not the default two-core hosted runner: an Unreal compile.
     CI_RUNNER: 'arc-runner-ue'

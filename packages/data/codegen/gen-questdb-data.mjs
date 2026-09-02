@@ -17,7 +17,7 @@
  *   apps/friendslop/godot-friendslop/assets/questdb/questdb.binpb      (mirror)
  *
  * Also regenerates apps/rareicon/.../Generated/Proto/Questdb.cs (+ Common.cs)
- * via protoc so the Unity QuestSeedSystem stays aligned with the proto shape.
+ * so the Unity QuestSeedSystem stays aligned with the proto shape.
  *
  * Usage:
  *   node packages/data/codegen/gen-questdb-data.mjs
@@ -30,7 +30,6 @@ import {
 	mkdirSync,
 	existsSync,
 } from 'node:fs';
-import { execSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
@@ -159,35 +158,6 @@ function main() {
 		console.log(`Synced ${t.name} → ${t.dir}`);
 	}
 
-	const protoRoot = resolve(repoRoot, 'packages/data/proto');
-	const protoFiles = ['kbve/common.proto', 'quest/questdb.proto'];
-	const csharpTargets = [
-		{
-			name: 'rareicon',
-			dir: resolve(
-				repoRoot,
-				'apps/rareicon/unity-rareicon/Assets/_RareIcon/Generated/Proto',
-			),
-		},
-	];
-	const protoc = resolve(repoRoot, 'node_modules/grpc-tools/bin/protoc');
-	for (const t of csharpTargets) {
-		if (!existsSync(t.dir)) mkdirSync(t.dir, { recursive: true });
-		try {
-			execSync(
-				`"${protoc}" --csharp_out="${t.dir}" --proto_path="${protoRoot}" ${protoFiles.join(' ')}`,
-				{ stdio: 'pipe' },
-			);
-			console.log(`Regenerated C# protos for ${t.name} → ${t.dir}`);
-		} catch (err) {
-			console.warn(
-				`[warn] protoc csharp gen for ${t.name} failed — ${err.stderr?.toString().trim() || err.message}`,
-			);
-			console.warn(
-				'       Skipping C# regeneration; run `pnpm install` to fetch grpc-tools.',
-			);
-		}
-	}
 }
 
 main();

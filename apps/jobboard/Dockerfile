@@ -30,21 +30,21 @@ ENV CARGO_INCREMENTAL=0
 # `[workspace.dependencies]`, and a stub has neither — `cargo metadata` then fails
 # before a single crate is compiled.
 COPY Cargo.toml /tmp/workspace-root.toml
-RUN sed -e '/^members = \[/,/^\]/c\members = ["apps/jobboard", "packages/rust/jedi", "packages/rust/holy", "packages/rust/kbve"]' \
+RUN sed -e '/^members = \[/,/^\]/c\members = ["apps/jobboard", "crates/jedi", "crates/holy", "crates/kbve"]' \
         /tmp/workspace-root.toml > Cargo.toml
 
 COPY Cargo.lock Cargo.lock
 
 COPY apps/jobboard/Cargo.toml apps/jobboard/Cargo.toml
-COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
-COPY packages/rust/holy/Cargo.toml packages/rust/holy/Cargo.toml
-COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
+COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
+COPY crates/holy/Cargo.toml crates/holy/Cargo.toml
+COPY crates/kbve/Cargo.toml crates/kbve/Cargo.toml
 COPY packages/data/proto/ packages/data/proto/
 COPY apps/jobboard/build.rs apps/jobboard/build.rs
 COPY apps/jobboard/src/ apps/jobboard/src/
-COPY packages/rust/jedi/src/ packages/rust/jedi/src/
-COPY packages/rust/holy/src/ packages/rust/holy/src/
-COPY packages/rust/kbve/src/ packages/rust/kbve/src/
+COPY crates/jedi/src/ crates/jedi/src/
+COPY crates/holy/src/ crates/holy/src/
+COPY crates/kbve/src/ crates/kbve/src/
 
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -57,15 +57,15 @@ ENV CARGO_INCREMENTAL=0
 # `[workspace.dependencies]`, and a stub has neither — `cargo metadata` then fails
 # before a single crate is compiled.
 COPY Cargo.toml /tmp/workspace-root.toml
-RUN sed -e '/^members = \[/,/^\]/c\members = ["apps/jobboard", "packages/rust/jedi", "packages/rust/holy", "packages/rust/kbve"]' \
+RUN sed -e '/^members = \[/,/^\]/c\members = ["apps/jobboard", "crates/jedi", "crates/holy", "crates/kbve"]' \
         /tmp/workspace-root.toml > Cargo.toml
 
 COPY Cargo.lock Cargo.lock
 
 COPY apps/jobboard/Cargo.toml apps/jobboard/Cargo.toml
-COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
-COPY packages/rust/holy/Cargo.toml packages/rust/holy/Cargo.toml
-COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
+COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
+COPY crates/holy/Cargo.toml crates/holy/Cargo.toml
+COPY crates/kbve/Cargo.toml crates/kbve/Cargo.toml
 COPY packages/data/proto/ packages/data/proto/
 COPY apps/jobboard/build.rs apps/jobboard/build.rs
 
@@ -81,9 +81,9 @@ FROM cook AS builder
 # here so cargo build bakes the true CARGO_PKG_VERSION (the /health fallback
 # when APP_VERSION isn't set).
 COPY apps/jobboard/Cargo.toml apps/jobboard/Cargo.toml
-COPY packages/rust/jedi/ packages/rust/jedi/
-COPY packages/rust/holy/ packages/rust/holy/
-COPY packages/rust/kbve/ packages/rust/kbve/
+COPY crates/jedi/ crates/jedi/
+COPY crates/holy/ crates/holy/
+COPY crates/kbve/ crates/kbve/
 COPY apps/jobboard/src/ apps/jobboard/src/
 COPY --from=web /app/apps/jobboard/web/dist apps/jobboard/web/dist
 RUN --mount=type=cache,target=/usr/local/cargo/registry \

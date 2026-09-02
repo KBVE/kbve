@@ -43,20 +43,20 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 COPY Cargo.lock .
 COPY apps/mc/behavior_statetree/ behavior_statetree/
 COPY apps/mc/mc_auth/ mc_auth/
-COPY packages/rust/bevy/bevy_npc/ bevy_npc/
-COPY packages/rust/bevy/bevy_supa/ bevy_supa/
-COPY packages/rust/bevy/bevy_pathfinder/ bevy_pathfinder/
-COPY packages/rust/bevy/bevy_behavior/ bevy_behavior/
-COPY packages/rust/bevy/bevy_chat/ bevy_chat/
+COPY crates/bevy_npc/ bevy_npc/
+COPY crates/bevy_supa/ bevy_supa/
+COPY crates/bevy_pathfinder/ bevy_pathfinder/
+COPY crates/bevy_behavior/ bevy_behavior/
+COPY crates/bevy_chat/ bevy_chat/
 
 # Rewrite package path refs for the flattened Docker context.
 # Every bevy_* path dep in behavior_statetree/mc_auth must be rewritten
-# from ../../../packages/rust/bevy/<crate> to ../<crate>.
-RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_npc"|path = "../bevy_npc"|' behavior_statetree/Cargo.toml
-RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_pathfinder"|path = "../bevy_pathfinder"|' behavior_statetree/Cargo.toml
-RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_behavior"|path = "../bevy_behavior"|' behavior_statetree/Cargo.toml
-RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_chat"|path = "../bevy_chat"|' behavior_statetree/Cargo.toml
-RUN sed -i 's|path = "../../../packages/rust/bevy/bevy_supa"|path = "../bevy_supa"|' mc_auth/Cargo.toml
+# from ../../../crates/<crate> to ../<crate>.
+RUN sed -i 's|path = "../../../crates/bevy_npc"|path = "../bevy_npc"|' behavior_statetree/Cargo.toml
+RUN sed -i 's|path = "../../../crates/bevy_pathfinder"|path = "../bevy_pathfinder"|' behavior_statetree/Cargo.toml
+RUN sed -i 's|path = "../../../crates/bevy_behavior"|path = "../bevy_behavior"|' behavior_statetree/Cargo.toml
+RUN sed -i 's|path = "../../../crates/bevy_chat"|path = "../bevy_chat"|' behavior_statetree/Cargo.toml
+RUN sed -i 's|path = "../../../crates/bevy_supa"|path = "../bevy_supa"|' mc_auth/Cargo.toml
 # The real workspace root, with `members` rewritten to the flattened layout above.
 # A hand-written stub root used to be enough, but since #15165 these crates inherit
 # their dependency versions from `[workspace.dependencies]`, which a stub has no way

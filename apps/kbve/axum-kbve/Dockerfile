@@ -45,7 +45,7 @@ COPY packages/data/openapi/ packages/data/openapi/
 # /project/holy-crate uses `import { Content } from '...README.md'`
 # so the crate doc and the kbve.com page stay in sync from one file).
 # Add new entries here when more crate READMEs are imported.
-COPY packages/rust/holy/README.md packages/rust/holy/README.md
+COPY crates/holy/README.md crates/holy/README.md
 
 # Copy astro-kbve source
 COPY apps/kbve/astro-kbve/ apps/kbve/astro-kbve/
@@ -104,42 +104,48 @@ COPY apps/kbve/axum-kbve/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
 COPY apps/kbve/axum-kbve/Cargo.toml apps/kbve/axum-kbve/Cargo.toml
-COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
-COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
-COPY packages/rust/holy/Cargo.toml packages/rust/holy/Cargo.toml
-COPY packages/rust/bevy/bevy_kbve_net/Cargo.toml packages/rust/bevy/bevy_kbve_net/Cargo.toml
-COPY packages/rust/bevy/bevy_npc/Cargo.toml packages/rust/bevy/bevy_npc/Cargo.toml
-COPY packages/rust/bevy/bevy_tasker/Cargo.toml packages/rust/bevy/bevy_tasker/Cargo.toml
-COPY packages/rust/bevy/bevy_inventory/Cargo.toml packages/rust/bevy/bevy_inventory/Cargo.toml
-COPY packages/rust/bevy/bevy_items/Cargo.toml packages/rust/bevy/bevy_items/Cargo.toml
-COPY packages/rust/bevy/bevy_skills/Cargo.toml packages/rust/bevy/bevy_skills/Cargo.toml
-COPY packages/rust/bevy/bevy_chat/Cargo.toml packages/rust/bevy/bevy_chat/Cargo.toml
-COPY packages/rust/bevy/bevy_dungeon/Cargo.toml packages/rust/bevy/bevy_dungeon/Cargo.toml
-COPY packages/rust/bevy/bevy_battle/Cargo.toml packages/rust/bevy/bevy_battle/Cargo.toml
-COPY packages/rust/bevy/bevy_behavior/Cargo.toml packages/rust/bevy/bevy_behavior/Cargo.toml
-COPY packages/rust/bevy/bevy_mapdb/Cargo.toml packages/rust/bevy/bevy_mapdb/Cargo.toml
-COPY packages/rust/bevy/bevy_quests/Cargo.toml packages/rust/bevy/bevy_quests/Cargo.toml
-COPY packages/rust/bevy/bevy_pathfinder/Cargo.toml packages/rust/bevy/bevy_pathfinder/Cargo.toml
+COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
+COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
+COPY crates/kbve/Cargo.toml crates/kbve/Cargo.toml
+COPY crates/holy/Cargo.toml crates/holy/Cargo.toml
+COPY crates/bevy_kbve_net/Cargo.toml crates/bevy_kbve_net/Cargo.toml
+COPY crates/bevy_npc/Cargo.toml crates/bevy_npc/Cargo.toml
+COPY crates/bevy_tasker/Cargo.toml crates/bevy_tasker/Cargo.toml
+COPY crates/bevy_inventory/Cargo.toml crates/bevy_inventory/Cargo.toml
+COPY crates/bevy_items/Cargo.toml crates/bevy_items/Cargo.toml
+COPY crates/bevy_skills/Cargo.toml crates/bevy_skills/Cargo.toml
+COPY crates/bevy_chat/Cargo.toml crates/bevy_chat/Cargo.toml
+COPY crates/bevy_dungeon/Cargo.toml crates/bevy_dungeon/Cargo.toml
+COPY crates/bevy_battle/Cargo.toml crates/bevy_battle/Cargo.toml
+COPY crates/bevy_behavior/Cargo.toml crates/bevy_behavior/Cargo.toml
+COPY crates/bevy_mapdb/Cargo.toml crates/bevy_mapdb/Cargo.toml
+COPY crates/bevy_quests/Cargo.toml crates/bevy_quests/Cargo.toml
+COPY crates/bevy_pathfinder/Cargo.toml crates/bevy_pathfinder/Cargo.toml
+COPY crates/bevy_dialogue/Cargo.toml crates/bevy_dialogue/Cargo.toml
+COPY crates/holy-derive/Cargo.toml crates/holy-derive/Cargo.toml
 
 COPY packages/data/proto packages/data/proto
 
 RUN mkdir -p apps/kbve/axum-kbve/src && echo "fn main() {}" > apps/kbve/axum-kbve/src/main.rs && \
-    mkdir -p packages/rust/jedi/src && echo "" > packages/rust/jedi/src/lib.rs && \
-    mkdir -p packages/rust/kbve/src && echo "" > packages/rust/kbve/src/lib.rs && \
-    mkdir -p packages/rust/holy/src && echo "" > packages/rust/holy/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_kbve_net/src && echo "" > packages/rust/bevy/bevy_kbve_net/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_npc/src && echo "" > packages/rust/bevy/bevy_npc/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_tasker/src && echo "" > packages/rust/bevy/bevy_tasker/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_inventory/src && echo "" > packages/rust/bevy/bevy_inventory/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_items/src && echo "" > packages/rust/bevy/bevy_items/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_skills/src && echo "" > packages/rust/bevy/bevy_skills/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_chat/src && echo "" > packages/rust/bevy/bevy_chat/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_dungeon/src && echo "" > packages/rust/bevy/bevy_dungeon/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_battle/src && echo "" > packages/rust/bevy/bevy_battle/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_behavior/src && echo "" > packages/rust/bevy/bevy_behavior/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_mapdb/src && echo "" > packages/rust/bevy/bevy_mapdb/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_quests/src && echo "" > packages/rust/bevy/bevy_quests/src/lib.rs && \
-    mkdir -p packages/rust/bevy/bevy_pathfinder/src && echo "" > packages/rust/bevy/bevy_pathfinder/src/lib.rs
+    mkdir -p crates/jedi/src && echo "" > crates/jedi/src/lib.rs && \
+    mkdir -p crates/bevy_dialogue/src && echo "" > crates/bevy_dialogue/src/lib.rs && \
+    mkdir -p crates/holy-derive/src && echo "" > crates/holy-derive/src/lib.rs && \
+    mkdir -p crates/kbve-proto/src && echo "" > crates/kbve-proto/src/lib.rs && \
+    mkdir -p crates/kbve/src && echo "" > crates/kbve/src/lib.rs && \
+    mkdir -p crates/holy/src && echo "" > crates/holy/src/lib.rs && \
+    mkdir -p crates/bevy_kbve_net/src && echo "" > crates/bevy_kbve_net/src/lib.rs && \
+    mkdir -p crates/bevy_npc/src && echo "" > crates/bevy_npc/src/lib.rs && \
+    mkdir -p crates/bevy_tasker/src && echo "" > crates/bevy_tasker/src/lib.rs && \
+    mkdir -p crates/bevy_inventory/src && echo "" > crates/bevy_inventory/src/lib.rs && \
+    mkdir -p crates/bevy_items/src && echo "" > crates/bevy_items/src/lib.rs && \
+    mkdir -p crates/bevy_skills/src && echo "" > crates/bevy_skills/src/lib.rs && \
+    mkdir -p crates/bevy_chat/src && echo "" > crates/bevy_chat/src/lib.rs && \
+    mkdir -p crates/bevy_dungeon/src && echo "" > crates/bevy_dungeon/src/lib.rs && \
+    mkdir -p crates/bevy_battle/src && echo "" > crates/bevy_battle/src/lib.rs && \
+    mkdir -p crates/bevy_behavior/src && echo "" > crates/bevy_behavior/src/lib.rs && \
+    mkdir -p crates/bevy_mapdb/src && echo "" > crates/bevy_mapdb/src/lib.rs && \
+    mkdir -p crates/bevy_quests/src && echo "" > crates/bevy_quests/src/lib.rs && \
+    mkdir -p crates/bevy_pathfinder/src && echo "" > crates/bevy_pathfinder/src/lib.rs
 
 RUN cargo chef prepare --recipe-path recipe.json
 
@@ -189,22 +195,26 @@ RUN mkdir -p apps/kbve/axum-kbve/src && \
 
 COPY packages/data/proto packages/data/proto
 
-COPY packages/rust/jedi packages/rust/jedi
-COPY packages/rust/kbve packages/rust/kbve
-COPY packages/rust/holy packages/rust/holy
-COPY packages/rust/bevy/bevy_kbve_net packages/rust/bevy/bevy_kbve_net
-COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
-COPY packages/rust/bevy/bevy_tasker packages/rust/bevy/bevy_tasker
-COPY packages/rust/bevy/bevy_inventory packages/rust/bevy/bevy_inventory
-COPY packages/rust/bevy/bevy_items packages/rust/bevy/bevy_items
-COPY packages/rust/bevy/bevy_skills packages/rust/bevy/bevy_skills
-COPY packages/rust/bevy/bevy_chat packages/rust/bevy/bevy_chat
-COPY packages/rust/bevy/bevy_dungeon packages/rust/bevy/bevy_dungeon
-COPY packages/rust/bevy/bevy_battle packages/rust/bevy/bevy_battle
-COPY packages/rust/bevy/bevy_behavior packages/rust/bevy/bevy_behavior
-COPY packages/rust/bevy/bevy_mapdb packages/rust/bevy/bevy_mapdb
-COPY packages/rust/bevy/bevy_quests packages/rust/bevy/bevy_quests
-COPY packages/rust/bevy/bevy_pathfinder packages/rust/bevy/bevy_pathfinder
+COPY crates/jedi crates/jedi
+COPY crates/kbve-proto crates/kbve-proto
+COPY crates/bevy_dialogue crates/bevy_dialogue
+COPY crates/holy-derive crates/holy-derive
+COPY packages/proto packages/proto
+COPY crates/kbve crates/kbve
+COPY crates/holy crates/holy
+COPY crates/bevy_kbve_net crates/bevy_kbve_net
+COPY crates/bevy_npc crates/bevy_npc
+COPY crates/bevy_tasker crates/bevy_tasker
+COPY crates/bevy_inventory crates/bevy_inventory
+COPY crates/bevy_items crates/bevy_items
+COPY crates/bevy_skills crates/bevy_skills
+COPY crates/bevy_chat crates/bevy_chat
+COPY crates/bevy_dungeon crates/bevy_dungeon
+COPY crates/bevy_battle crates/bevy_battle
+COPY crates/bevy_behavior crates/bevy_behavior
+COPY crates/bevy_mapdb crates/bevy_mapdb
+COPY crates/bevy_quests crates/bevy_quests
+COPY crates/bevy_pathfinder crates/bevy_pathfinder
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
@@ -236,22 +246,26 @@ COPY --from=astro-precompressor /static /app/apps/kbve/axum-kbve/templates/dist
 COPY packages/data/proto packages/data/proto
 COPY packages/data/rcon packages/data/rcon
 COPY packages/data/soap packages/data/soap
-COPY packages/rust/jedi packages/rust/jedi
-COPY packages/rust/kbve packages/rust/kbve
-COPY packages/rust/holy packages/rust/holy
-COPY packages/rust/bevy/bevy_kbve_net packages/rust/bevy/bevy_kbve_net
-COPY packages/rust/bevy/bevy_npc packages/rust/bevy/bevy_npc
-COPY packages/rust/bevy/bevy_tasker packages/rust/bevy/bevy_tasker
-COPY packages/rust/bevy/bevy_inventory packages/rust/bevy/bevy_inventory
-COPY packages/rust/bevy/bevy_items packages/rust/bevy/bevy_items
-COPY packages/rust/bevy/bevy_skills packages/rust/bevy/bevy_skills
-COPY packages/rust/bevy/bevy_chat packages/rust/bevy/bevy_chat
-COPY packages/rust/bevy/bevy_dungeon packages/rust/bevy/bevy_dungeon
-COPY packages/rust/bevy/bevy_battle packages/rust/bevy/bevy_battle
-COPY packages/rust/bevy/bevy_behavior packages/rust/bevy/bevy_behavior
-COPY packages/rust/bevy/bevy_mapdb packages/rust/bevy/bevy_mapdb
-COPY packages/rust/bevy/bevy_quests packages/rust/bevy/bevy_quests
-COPY packages/rust/bevy/bevy_pathfinder packages/rust/bevy/bevy_pathfinder
+COPY crates/jedi crates/jedi
+COPY crates/kbve-proto crates/kbve-proto
+COPY crates/bevy_dialogue crates/bevy_dialogue
+COPY crates/holy-derive crates/holy-derive
+COPY packages/proto packages/proto
+COPY crates/kbve crates/kbve
+COPY crates/holy crates/holy
+COPY crates/bevy_kbve_net crates/bevy_kbve_net
+COPY crates/bevy_npc crates/bevy_npc
+COPY crates/bevy_tasker crates/bevy_tasker
+COPY crates/bevy_inventory crates/bevy_inventory
+COPY crates/bevy_items crates/bevy_items
+COPY crates/bevy_skills crates/bevy_skills
+COPY crates/bevy_chat crates/bevy_chat
+COPY crates/bevy_dungeon crates/bevy_dungeon
+COPY crates/bevy_battle crates/bevy_battle
+COPY crates/bevy_behavior crates/bevy_behavior
+COPY crates/bevy_mapdb crates/bevy_mapdb
+COPY crates/bevy_quests crates/bevy_quests
+COPY crates/bevy_pathfinder crates/bevy_pathfinder
 
 # Application source (most frequently changing — placed last for cache)
 COPY apps/kbve/axum-kbve apps/kbve/axum-kbve

@@ -1,5 +1,5 @@
 using Google.Protobuf;
-using KBVE.Proto.Empire;
+using KBVE.Proto.Kbve.Empire.V1;
 
 namespace RareIcon
 {

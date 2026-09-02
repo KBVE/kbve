@@ -122,7 +122,7 @@ export const CI_PROJECTS: CiProject[] = ProjectArraySchema.parse([
 		app_name: 'edge',
 		test_framework: 'deno',
 		description: 'Supabase edge functions',
-		source_path: 'apps/kbve/edge',
+		source_path: 'services/functions/deno',
 		author: 'h0lybyte',
 		license: 'KBVE',
 		status: 'active',

@@ -31,8 +31,9 @@ tasks:
     # itself; the rustup-shipped std is built without it and the instrumented
     # crate then fails to link.
     test-asan:
+        toolchain: 'system'
         script: >-
-            cargo +nightly test -p uniti -Z build-std
+            rustup run nightly cargo test -p uniti -Z build-std
             --target x86_64-unknown-linux-gnu --no-fail-fast
         env:
             RUSTFLAGS: '-Z sanitizer=address'
@@ -45,7 +46,8 @@ tasks:
     # One suite, not the whole set: miri interprets rather than executes, and
     # the FFI surface is where undefined behaviour would actually live.
     test-miri:
-        script: 'cargo +nightly miri setup && cargo +nightly miri test -p uniti --test ffi_chunk_summary'
+        toolchain: 'system'
+        script: 'rustup run nightly cargo miri setup && rustup run nightly cargo miri test -p uniti --test ffi_chunk_summary'
         env:
             MIRIFLAGS: '-Zmiri-disable-isolation'
         options:
@@ -54,7 +56,8 @@ tasks:
     # A smoke run, not a campaign. Sixty seconds finds a round-trip that
     # panics; finding more than that is what a dedicated fuzzing host is for.
     fuzz:
-        script: 'cargo +nightly fuzz run chunk_touch_roundtrip -- -max_total_time=60'
+        toolchain: 'system'
+        script: 'rustup run nightly cargo fuzz run chunk_touch_roundtrip -- -max_total_time=60'
         options:
             cache: false
 

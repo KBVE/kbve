@@ -1,0 +1,23 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'tool'
+language: 'bash'
+
+tasks:
+    lint:
+        script: >-
+            python3 tools/guards/sync-cargo-workspace-stubs.py --check
+            && ./tools/guards/kong-config-hash.sh --check
+            && python3 tools/guards/validate-vector-config.py
+        inputs:
+            - '/Cargo.toml'
+            - '/apps/**/Cargo.workspace.toml'
+            - '/tools/guards/sync-cargo-workspace-stubs.py'
+            - '/tools/guards/kong-config-hash.sh'
+            - '/tools/guards/validate-vector-config.py'
+            - '/apps/kube/kong/manifests/kong-config.yaml'
+            - '/apps/kube/kong/manifests/kong-deployment.yaml'
+            - '/apps/kube/vector/manifests/vector-config.yaml'
+            - '/apps/kube/vector/manifests/vector-daemonset.yaml'
+        options:
+            runFromWorkspaceRoot: true

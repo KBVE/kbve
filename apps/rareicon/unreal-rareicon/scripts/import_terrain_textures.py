@@ -21,44 +21,71 @@ ASSET_TOOLS = unreal.AssetToolsHelpers.get_asset_tools()
 EAL = unreal.EditorAssetLibrary
 MEL = unreal.MaterialEditingLibrary
 
-CONTENT_DIR = "/Game/Textures/Terrain"
-MATERIAL_PATH = "/Game/Textures/Terrain/M_RareIcon_Terrain"
+TERRAIN_DIR = "/Game/Textures/Terrain"
+WORLD_DIR = "/Game/Textures/World"
+MATERIAL_PATH = f"{TERRAIN_DIR}/M_RareIcon_Terrain"
 
-# name -> (sRGB, compression, description)
-TEXTURES = {
-    "T_RockyTerrain02_D": (True, unreal.TextureCompressionSettings.TC_DEFAULT),
-    "T_RockyTerrain02_N": (False, unreal.TextureCompressionSettings.TC_NORMALMAP),
-    "T_RockyTerrain02_RH": (False, unreal.TextureCompressionSettings.TC_MASKS),
+# stem -> (Art/ subdirectory, /Game destination)
+SETS = {
+    "T_RockyTerrain02": ("Terrain", TERRAIN_DIR),
+    "T_RoadPattern": ("World", WORLD_DIR),
+    "T_WoodDeck": ("World", WORLD_DIR),
+    "T_StonePier": ("World", WORLD_DIR),
+}
+
+# suffix -> (sRGB, compression)
+MAPS = {
+    "D": (True, unreal.TextureCompressionSettings.TC_DEFAULT),
+    "N": (False, unreal.TextureCompressionSettings.TC_NORMALMAP),
+    "RH": (False, unreal.TextureCompressionSettings.TC_MASKS),
 }
 
 # World units per texture repeat. 512 uu = ~5 m, which reads as coarse rock at
 # walking distance without the tiling pattern becoming obvious from the air.
 UV_SCALE = 1.0 / 512.0
 
+# Roads are painted into the terrain, not laid over it, so the road texture is
+# part of the ground material and picked up by the red vertex channel the patch
+# builder writes. Tighter than the ground's tiling: a road surface read at
+# walking pace wants a finer grain than a hillside seen across a valley.
+ROAD_UV_SCALE = 1.0 / 300.0
 
-def source_dir():
+# Bridge meshes parameterise UV0 by distance travelled in world units, so their
+# materials sample UV0 straight through. Scaling it again here is what makes a
+# deck and the road it meets tile at different rates across the seam they share.
+# The road itself has no material here: it is terrain, and the ground material
+# samples its textures directly.
+WATER_MATERIAL_PATH = f"{WORLD_DIR}/M_RareIcon_Water"
+
+SURFACE_MATERIALS = {
+    "M_RareIcon_BridgeWood": "T_WoodDeck",
+    "M_RareIcon_BridgeStone": "T_StonePier",
+}
+
+
+def source_dir(subdir):
     project = unreal.Paths.convert_relative_path_to_full(
         unreal.Paths.project_content_dir()
     )
-    return os.path.join(project, os.pardir, "Art", "Terrain")
+    return os.path.join(project, os.pardir, "Art", subdir)
 
 
-def import_texture(name, srgb, compression):
-    png = os.path.join(source_dir(), name + ".png")
+def import_texture(name, subdir, content_dir, srgb, compression):
+    png = os.path.join(source_dir(subdir), name + ".png")
     if not os.path.isfile(png):
         unreal.log_error(f"missing source texture: {png}")
         return None
 
     task = unreal.AssetImportTask()
     task.filename = png
-    task.destination_path = CONTENT_DIR
+    task.destination_path = content_dir
     task.destination_name = name
     task.automated = True
     task.replace_existing = True
     task.save = True
     ASSET_TOOLS.import_asset_tasks([task])
 
-    tex = EAL.load_asset(f"{CONTENT_DIR}/{name}")
+    tex = EAL.load_asset(f"{content_dir}/{name}")
     if not isinstance(tex, unreal.Texture2D):
         unreal.log_error(f"import produced no Texture2D for {name}")
         return None
@@ -69,7 +96,7 @@ def import_texture(name, srgb, compression):
     # Already flipped during ingest; flipping again would undo it.
     if compression == unreal.TextureCompressionSettings.TC_NORMALMAP:
         tex.set_editor_property("flip_green_channel", False)
-    EAL.save_asset(f"{CONTENT_DIR}/{name}")
+    EAL.save_asset(f"{content_dir}/{name}")
     unreal.log(f"imported {name} (srgb={srgb})")
     return tex
 
@@ -124,11 +151,59 @@ def build_material(textures):
         "T_RockyTerrain02_RH", 400, unreal.MaterialSamplerType.SAMPLERTYPE_MASKS
     )
 
-    MEL.connect_material_property(diff, "RGB", unreal.MaterialProperty.MP_BASE_COLOR)
-    MEL.connect_material_property(norm, "RGB", unreal.MaterialProperty.MP_NORMAL)
+    # Road, blended in by the red vertex channel. The patch builder paints that
+    # channel from the same road field it grades the ground with, so the surface
+    # and the cutting it sits in cannot disagree about where the road is.
+    road_scale = expr(mat, unreal.MaterialExpressionScalarParameter, -700, 320)
+    road_scale.set_editor_property("parameter_name", "RoadUVScale")
+    road_scale.set_editor_property("default_value", ROAD_UV_SCALE)
+
+    road_uv = expr(mat, unreal.MaterialExpressionMultiply, -500, 320)
+    MEL.connect_material_expressions(mask, "", road_uv, "A")
+    MEL.connect_material_expressions(road_scale, "", road_uv, "B")
+
+    def road_sample(name, y, sampler_type):
+        s = expr(mat, unreal.MaterialExpressionTextureSampleParameter2D, -300, y)
+        s.set_editor_property("parameter_name", name)
+        s.set_editor_property("texture", textures[name])
+        s.set_editor_property("sampler_type", sampler_type)
+        MEL.connect_material_expressions(road_uv, "", s, "UVs")
+        return s
+
+    road_d = road_sample(
+        "T_RoadPattern_D", 700, unreal.MaterialSamplerType.SAMPLERTYPE_COLOR
+    )
+    road_n = road_sample(
+        "T_RoadPattern_N", 1000, unreal.MaterialSamplerType.SAMPLERTYPE_NORMAL
+    )
+    road_rh = road_sample(
+        "T_RoadPattern_RH", 1300, unreal.MaterialSamplerType.SAMPLERTYPE_MASKS
+    )
+
+    vertex_color = expr(mat, unreal.MaterialExpressionVertexColor, -700, 1600)
+    road_mask = expr(mat, unreal.MaterialExpressionComponentMask, -500, 1600)
+    road_mask.set_editor_property("r", True)
+    road_mask.set_editor_property("g", False)
+    road_mask.set_editor_property("b", False)
+    road_mask.set_editor_property("a", False)
+    MEL.connect_material_expressions(vertex_color, "", road_mask, "")
+
+    def blend(ground, road, channel, y):
+        node = expr(mat, unreal.MaterialExpressionLinearInterpolate, -100, y)
+        MEL.connect_material_expressions(ground, channel, node, "A")
+        MEL.connect_material_expressions(road, channel, node, "B")
+        MEL.connect_material_expressions(road_mask, "", node, "Alpha")
+        return node
+
+    base_color = blend(diff, road_d, "RGB", -200)
+    normal = blend(norm, road_n, "RGB", 100)
     # R is roughness, G is height. Height is unused until displacement or POM
     # lands; it rides along so that work does not need a reimport.
-    MEL.connect_material_property(rh, "R", unreal.MaterialProperty.MP_ROUGHNESS)
+    roughness = blend(rh, road_rh, "R", 400)
+
+    MEL.connect_material_property(base_color, "", unreal.MaterialProperty.MP_BASE_COLOR)
+    MEL.connect_material_property(normal, "", unreal.MaterialProperty.MP_NORMAL)
+    MEL.connect_material_property(roughness, "", unreal.MaterialProperty.MP_ROUGHNESS)
 
     MEL.recompile_material(mat)
     EAL.save_asset(MATERIAL_PATH)
@@ -136,15 +211,90 @@ def build_material(textures):
     return mat
 
 
+def build_surface_material(path, textures, stem):
+    if EAL.does_asset_exist(path):
+        EAL.delete_asset(path)
+
+    pkg_dir, pkg_name = path.rsplit("/", 1)
+    mat = ASSET_TOOLS.create_asset(
+        pkg_name, pkg_dir, unreal.Material, unreal.MaterialFactoryNew()
+    )
+
+    uv = expr(mat, unreal.MaterialExpressionTextureCoordinate, -500, 0)
+    uv.set_editor_property("coordinate_index", 0)
+
+    def sample(suffix, y, sampler_type):
+        name = f"{stem}_{suffix}"
+        s = expr(mat, unreal.MaterialExpressionTextureSampleParameter2D, -300, y)
+        s.set_editor_property("parameter_name", name)
+        s.set_editor_property("texture", textures[name])
+        s.set_editor_property("sampler_type", sampler_type)
+        MEL.connect_material_expressions(uv, "", s, "UVs")
+        return s
+
+    diff = sample("D", -200, unreal.MaterialSamplerType.SAMPLERTYPE_COLOR)
+    norm = sample("N", 100, unreal.MaterialSamplerType.SAMPLERTYPE_NORMAL)
+    rh = sample("RH", 400, unreal.MaterialSamplerType.SAMPLERTYPE_MASKS)
+
+    MEL.connect_material_property(diff, "RGB", unreal.MaterialProperty.MP_BASE_COLOR)
+    MEL.connect_material_property(norm, "RGB", unreal.MaterialProperty.MP_NORMAL)
+    MEL.connect_material_property(rh, "R", unreal.MaterialProperty.MP_ROUGHNESS)
+
+    MEL.recompile_material(mat)
+    EAL.save_asset(path)
+    unreal.log(f"built {path}")
+    return mat
+
+
+def build_water_material():
+    # Single Layer Water rather than a translucent surface: the carved channels
+    # are shallow and a flat blue plane over them reads as plastic, where this
+    # shading model gets depth absorption and refraction from the ground already
+    # drawn underneath it. No texture — the surface is all shading.
+    if EAL.does_asset_exist(WATER_MATERIAL_PATH):
+        EAL.delete_asset(WATER_MATERIAL_PATH)
+
+    pkg_dir, pkg_name = WATER_MATERIAL_PATH.rsplit("/", 1)
+    mat = ASSET_TOOLS.create_asset(
+        pkg_name, pkg_dir, unreal.Material, unreal.MaterialFactoryNew()
+    )
+    mat.set_editor_property(
+        "shading_model", unreal.MaterialShadingModel.MSM_SINGLE_LAYER_WATER
+    )
+
+    tint = expr(mat, unreal.MaterialExpressionConstant3Vector, -400, 0)
+    tint.set_editor_property("constant", unreal.LinearColor(0.008, 0.035, 0.05, 1.0))
+    MEL.connect_material_property(tint, "", unreal.MaterialProperty.MP_BASE_COLOR)
+
+    rough = expr(mat, unreal.MaterialExpressionConstant, -400, 180)
+    rough.set_editor_property("r", 0.02)
+    MEL.connect_material_property(rough, "", unreal.MaterialProperty.MP_ROUGHNESS)
+
+    metal = expr(mat, unreal.MaterialExpressionConstant, -400, 320)
+    metal.set_editor_property("r", 0.0)
+    MEL.connect_material_property(metal, "", unreal.MaterialProperty.MP_METALLIC)
+
+    MEL.recompile_material(mat)
+    EAL.save_asset(WATER_MATERIAL_PATH)
+    unreal.log(f"built {WATER_MATERIAL_PATH}")
+    return mat
+
+
 def main():
     imported = {}
-    for name, (srgb, compression) in TEXTURES.items():
-        tex = import_texture(name, srgb, compression)
-        if tex is None:
-            unreal.log_error(f"aborting: {name} did not import")
-            return
-        imported[name] = tex
+    for stem, (subdir, content_dir) in SETS.items():
+        for suffix, (srgb, compression) in MAPS.items():
+            name = f"{stem}_{suffix}"
+            tex = import_texture(name, subdir, content_dir, srgb, compression)
+            if tex is None:
+                unreal.log_error(f"aborting: {name} did not import")
+                return
+            imported[name] = tex
+
     build_material(imported)
+    for path, stem in SURFACE_MATERIALS.items():
+        build_surface_material(f"{WORLD_DIR}/{path}", imported, stem)
+    build_water_material()
 
 
 main()

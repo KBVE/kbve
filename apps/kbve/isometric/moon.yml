@@ -44,7 +44,7 @@ tasks:
         preset: 'server'
 
     quick:
-        script: 'bash $workspaceRoot/scripts/deploy_isometric_quick.sh'
+        script: 'bash scripts/deploy_isometric_quick.sh'
         options:
             cache: false
 

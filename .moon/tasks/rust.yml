@@ -42,17 +42,31 @@ fileGroups:
         - 'Cargo.toml'
         - '/Cargo.lock'
 
+# `^:build` on the three cargo tasks, because a crate here can depend on a
+# project whose build writes source cargo then has to compile. kbve-proto is
+# the one that does: it `include!`s packages/proto/gen/rust/mod.rs, which is
+# gitignored and written by `protobuf:build`. Without the dependency nothing in
+# the graph ever runs that task, so `cargo clippy` on any crate that reaches
+# kbve-proto dies on "couldn't read .../gen/rust/mod.rs" -- which is every
+# rust-affecting pull request. `dependsOn` alone does not order tasks.
+#
+# It costs nothing for the crates that only depend on other crates: cargo
+# already builds those, and moon's `^:build` runs in the shared target/ the
+# lint then reuses. A project dependency without a `build` task is skipped.
 tasks:
     build:
         command: 'cargo build'
+        deps: ['^:build']
         inputs: ['@group(sources)', '@group(manifests)']
 
     test:
         command: 'cargo test'
+        deps: ['^:build']
         inputs: ['@group(sources)', '@group(tests)', '@group(manifests)']
 
     lint:
         command: 'cargo clippy --all-targets -- -D warnings'
+        deps: ['^:build']
         inputs: ['@group(sources)', '@group(tests)', '@group(manifests)']
 
     format:

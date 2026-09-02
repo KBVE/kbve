@@ -25,7 +25,6 @@ import {
 	mkdirSync,
 	existsSync,
 } from 'node:fs';
-import { execSync } from 'node:child_process';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import matter from 'gray-matter';
@@ -203,39 +202,7 @@ function main() {
 		console.log(`Synced ${t.name} → ${t.path}`);
 	}
 
-	// 3. Regenerate C# proto classes so Unity's MapdbLoaderSystem stays in
-	// sync with the proto shape. Produces Mapdb.cs + its common.proto
-	// dependency under the per-game Generated/Proto/ folder. The runtime
-	// Google.Protobuf DLL ships via nuget inside Assets/Packages.
-	const protoRoot = resolve(repoRoot, 'packages/data/proto');
-	const protoFiles = ['kbve/common.proto', 'map/mapdb.proto'];
-	const csharpTargets = [
-		{
-			name: 'rareicon',
-			dir: resolve(
-				repoRoot,
-				'apps/rareicon/unity-rareicon/Assets/_RareIcon/Generated/Proto',
-			),
-		},
-	];
-	const protoc = resolve(repoRoot, 'node_modules/grpc-tools/bin/protoc');
-	for (const t of csharpTargets) {
-		if (!existsSync(t.dir)) mkdirSync(t.dir, { recursive: true });
-		try {
-			execSync(
-				`"${protoc}" --csharp_out="${t.dir}" --proto_path="${protoRoot}" ${protoFiles.join(' ')}`,
-				{ stdio: 'pipe' },
-			);
-			console.log(`Regenerated C# protos for ${t.name} → ${t.dir}`);
-		} catch (err) {
-			console.warn(
-				`[warn] protoc csharp gen for ${t.name} failed — ${err.stderr?.toString().trim() || err.message}`,
-			);
-			console.warn(
-				'       Skipping C# regeneration; run `pnpm install` to fetch grpc-tools.',
-			);
-		}
-	}
+
 }
 
 main();

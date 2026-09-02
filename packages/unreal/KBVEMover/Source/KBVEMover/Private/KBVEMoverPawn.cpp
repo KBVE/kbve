@@ -16,6 +16,7 @@
 #include "DefaultMovementSet/CharacterMoverComponent.h"
 #include "MoverDataModelTypes.h"
 #include "KBVEEffectComponent.h"
+#include "DefaultMovementSet/Settings/CommonLegacyMovementSettings.h"
 
 AKBVEMoverPawn::AKBVEMoverPawn(const FObjectInitializer& ObjectInitializer)
 	: Super(ObjectInitializer)
@@ -69,6 +70,24 @@ void AKBVEMoverPawn::PawnClientRestart()
 			{
 				Subsystem->AddMappingContext(InputMappingContext, 0);
 			}
+		}
+	}
+}
+
+void AKBVEMoverPawn::BeginPlay()
+{
+	Super::BeginPlay();
+
+	// Shared settings exist once the movement modes have been resolved, so this
+	// cannot be done in the constructor.
+	if (MoverComponent)
+	{
+		if (UCommonLegacyMovementSettings* Settings =
+				MoverComponent->FindSharedSettings_Mutable<UCommonLegacyMovementSettings>())
+		{
+			Settings->bUseFlatBaseForFloorChecks = bUseFlatBaseForFloorChecks;
+			Settings->MaxSpeed = MaxGroundSpeed;
+			Settings->Deceleration = GroundDeceleration;
 		}
 	}
 }
@@ -269,7 +288,10 @@ void AKBVEMoverPawn::SubmitJump(bool bPressed)
 
 FVector AKBVEMoverPawn::GetAuthoritativeVelocity() const
 {
-	return GetVelocity();
+	// Asked of the mover, which owns movement on this pawn. AActor::GetVelocity
+	// reports zero while airborne here, so anything choosing behaviour by speed
+	// -- locomotion clips, AI -- saw a character in mid-air as standing still.
+	return MoverComponent ? MoverComponent->GetVelocity() : GetVelocity();
 }
 
 void AKBVEMoverPawn::ApplyServerCorrection(const FVector& Position, const FVector& Velocity)

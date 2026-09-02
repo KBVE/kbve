@@ -1,4 +1,5 @@
-using KBVE.Proto.Npc;
+using KBVE.Proto.Kbve.Common.V1;
+using KBVE.Proto.Kbve.Npc.V1;
 using Unity.Entities;
 
 namespace RareIcon

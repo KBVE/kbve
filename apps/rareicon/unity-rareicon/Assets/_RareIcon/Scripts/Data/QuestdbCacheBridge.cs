@@ -1,4 +1,4 @@
-using KBVE.Proto.Quest;
+using KBVE.Proto.Kbve.Quest.V1;
 using Unity.Collections;
 
 namespace RareIcon
