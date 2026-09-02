@@ -259,7 +259,7 @@
 			"uvx ruff@0.16.5 format",
 			"uvx ruff@0.16.5 check"
 		],
-		"apps/kbve/edge/functions/**/*.ts": [
+		"services/functions/deno/functions/**/*.ts": [
 			"./scripts/deno-fmt.sh"
 		]
 	},

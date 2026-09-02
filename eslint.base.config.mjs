@@ -28,7 +28,7 @@ export const ignores = [
 	'**/src-tauri/',
 	'**/*.timestamp*',
 	// Deno edge functions — Deno imports, not Node
-	'apps/kbve/edge/',
+	'services/functions/deno/functions/',
 	// Generated isometric WASM client bundle (exact build output)
 	'apps/kbve/astro-kbve/public/isometric/',
 ];

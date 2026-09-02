@@ -86,7 +86,7 @@ jobs:
                         RUNNER="arc-runner-set"
                         PLAYWRIGHT="false"
                         ;;
-                      devops-e2e|edge-e2e)
+                      devops-e2e|edge)
                         PLAYWRIGHT="false"
                         ;;
                     esac

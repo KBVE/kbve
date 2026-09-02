@@ -70,7 +70,7 @@ export const protoRegistry = [
 		vendorTo: [
 			{ path: '../../npm/droid/src/lib/agents/generated/agents-schema.ts' },
 			{
-				path: '../../../apps/kbve/edge/functions/_shared/agents-schema.ts',
+				path: '../../../services/functions/deno/functions/_shared/agents-schema.ts',
 				denoZod: true,
 			},
 		],

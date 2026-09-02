@@ -183,7 +183,6 @@ projects:
         chuckrpg-server: 'apps/chuckrpg/chuckrpg-server'
         aria2-proxy: 'apps/vm/aria2-proxy'
         arpg-web: 'apps/agones/arpg/web'
-        edge: 'apps/kbve/edge'
         herbmail-game: 'apps/herbmail/herbmail-game'
         rentearth-web: 'apps/rentearth/axum-rentearth/web'
 
@@ -208,7 +207,6 @@ projects:
         devops-e2e: 'packages/npm/devops-e2e'
         discordsh-bot-e2e: 'apps/discordsh/discordsh-bot-e2e'
         droid-e2e: 'packages/npm/droid-e2e'
-        edge-e2e: 'apps/kbve/edge-e2e'
         firecracker-ctl-e2e: 'apps/vm/firecracker-ctl-e2e'
         khashvault-e2e: 'packages/npm/khashvault-e2e'
         kubectl-e2e: 'apps/vm/kubectl-e2e'
@@ -249,6 +247,11 @@ projects:
         # built here. windmill is the first; the tree is a wmill CLI checkout of
         # the running instance, not an application with a build.
         windmill: 'services/windmill'
+
+        # Serverless function runtimes. One project per runtime; `deno` is
+        # the supabase edge-runtime image (id and image name stay `edge`,
+        # which is what the release tag and the kube manifest pin).
+        edge: 'services/functions/deno'
 
 vcs:
     defaultBranch: 'dev'

@@ -1,6 +1,6 @@
 // Typed query builders for the observability.logs_distributed table.
 //
-// These mirror what the supabase edge function at apps/kbve/edge/functions/logs
+// These mirror what the supabase edge function at services/functions/deno/functions/logs
 // used to do — `query` (filtered SELECT) and `stats` (GROUP BY) — but build the
 // SQL inside Rust so axum-kbve can hit ClickHouse directly via
 // ClickHouseConfig::execute_select. The edge function is no longer in the

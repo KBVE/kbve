@@ -17,12 +17,6 @@ services:
     - dir: kbve-gate/
       tech: Rust
       role: Auth proxy sidecar — fronts n8n, grafana, studio with Supabase JWT validation.
-    - dir: edge/
-      tech: Deno
-      role: Supabase Edge Functions.
-    - dir: edge-e2e/
-      tech: Deno
-      role: Edge function tests.
     - dir: isometric/
       tech: Bevy, Tauri, WASM
       role: Isometric game client — native (Tauri) and WASM targets.
@@ -58,7 +52,6 @@ flowchart LR
 
     Browser --> Astro[astro-kbve<br/>static]
     Browser --> Axum[axum-kbve<br/>dynamic]
-    Browser --> Edge[edge<br/>Deno]
     Browser --> Iso[isometric<br/>WASM]
     Desktop --> Axum
     Mobile --> Axum
@@ -68,7 +61,6 @@ flowchart LR
     Axum --> PG[(PostgreSQL /<br/>kilobase)]
     Axum --> Supa[(Supabase)]
     Axum --> Redis[(Valkey)]
-    Edge --> SupaEdge[(Supabase Edge)]
     Iso -.WebSocket.-> Axum
 
     Gate --> N8N[n8n / grafana / studio]

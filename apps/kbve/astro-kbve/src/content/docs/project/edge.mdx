@@ -12,9 +12,9 @@ key: edge
 pipeline: docker
 app_name: edge
 version: "0.1.50"
-source_path: apps/kbve/edge
-version_toml: apps/kbve/edge/version.toml
-version_target: apps/kbve/edge/deno.json
+source_path: services/functions/deno
+version_toml: services/functions/deno/version.toml
+version_target: services/functions/deno/deno.json
 runner: ubuntu-latest
 image: kbve/edge
 e2e_name: edge
@@ -54,7 +54,7 @@ bento:
         untrusted workloads down to Firecracker microVMs.
     ctas:
         - label: View source
-          href: https://github.com/KBVE/kbve/tree/main/apps/kbve/edge
+          href: https://github.com/KBVE/kbve/tree/main/services/functions/deno
           primary: true
           external: true
         - label: Functions
