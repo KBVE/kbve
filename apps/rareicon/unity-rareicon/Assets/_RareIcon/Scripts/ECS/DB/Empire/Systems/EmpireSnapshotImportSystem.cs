@@ -1,4 +1,4 @@
-using KBVE.Proto.Empire;
+using KBVE.Proto.Kbve.Empire.V1;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;

@@ -69,6 +69,16 @@ function closureOf(descriptorPath, typeName) {
  * own closure, so a generator that deleted what it did not recognise would
  * delete the other two's classes on every run.
  */
+export function closureFileNames(descriptorPath, typeName) {
+	const names = new Set();
+	for (const protoPath of closureOf(descriptorPath, typeName)) {
+		// Well-known types ship with the runtime Google.Protobuf DLL.
+		if (protoPath.startsWith('google/')) continue;
+		names.add(csharpFileName(protoPath));
+	}
+	return names;
+}
+
 export function syncCsharp(descriptorPath, typeName, destDir) {
 	if (!existsSync(csharpDir)) {
 		console.warn(
@@ -79,12 +89,7 @@ export function syncCsharp(descriptorPath, typeName, destDir) {
 	}
 	mkdirSync(destDir, { recursive: true });
 
-	const wanted = new Set();
-	for (const protoPath of closureOf(descriptorPath, typeName)) {
-		// Well-known types ship with the runtime Google.Protobuf DLL.
-		if (protoPath.startsWith('google/')) continue;
-		wanted.add(csharpFileName(protoPath));
-	}
+	const wanted = closureFileNames(descriptorPath, typeName);
 
 	let copied = 0;
 	for (const file of wanted) {

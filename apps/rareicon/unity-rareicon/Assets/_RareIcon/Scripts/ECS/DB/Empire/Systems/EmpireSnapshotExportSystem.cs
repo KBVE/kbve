@@ -1,8 +1,8 @@
-using KBVE.Proto.Common;
-using KBVE.Proto.Empire;
+using KBVE.Proto.Kbve.Common.V1;
+using KBVE.Proto.Kbve.Empire.V1;
 using Unity.Collections;
 using Unity.Entities;
-using ProtoStatus = KBVE.Proto.Empire.CityStateStatusValue;
+using ProtoStatus = KBVE.Proto.Kbve.Empire.V1.CityStateStatus;
 
 namespace RareIcon
 {
@@ -56,8 +56,7 @@ namespace RareIcon
 
                 var rec = new CityStateRecord
                 {
-                    Id            = new ULID { Value = string.Empty },
-                    RootHex       = new Vec2i { X = bldg.RootHex.x, Y = bldg.RootHex.y },
+                    RootHex       = new Vec2I { X = bldg.RootHex.x, Y = bldg.RootHex.y },
                     Status        = (ProtoStatus)status.Value,
                     Mood          = disp.Mood,
                     DriftPerCadence = disp.DriftPerCadence,

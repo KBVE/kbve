@@ -198,13 +198,29 @@ tasks:
             ]
         options:
             runFromWorkspaceRoot: true
+    # One owner for the Unity Generated/Proto folder. The content generators
+    # used to each run protoc into it, which is how Unity ended up parsing one
+    # schema's bytes with another schema's classes; only a step that knows every
+    # closure can tell a class still in use from one a moved schema left behind.
+    sync-unity-proto:
+        script: 'node packages/data/codegen/sync-unity-proto.mjs'
+        inputs:
+            [
+                '/packages/data/codegen/sync-unity-proto.mjs',
+                '/packages/data/codegen/lib/csharp-sync.mjs',
+                '/packages/proto/kbve/**/*.proto',
+            ]
+        outputs:
+            ['/apps/rareicon/unity-rareicon/Assets/_RareIcon/Generated/Proto']
+        options:
+            runFromWorkspaceRoot: true
     sync-mapdb:
         script: 'node packages/data/codegen/gen-mapdb-data.mjs'
         inputs:
             [
                 'src/content/docs/mapdb/*.mdx',
                 '/packages/data/codegen/gen-mapdb-data.mjs',
-                '/packages/data/codegen/descriptors/mapdb.binpb',
+                '/packages/proto/kbve/**/*.proto',
             ]
         outputs:
             [
@@ -256,7 +272,7 @@ tasks:
             [
                 'src/content/docs/itemdb/*.mdx',
                 '/packages/data/codegen/gen-itemdb-data.mjs',
-                '/packages/data/codegen/descriptors/itemdb.binpb',
+                '/packages/proto/kbve/**/*.proto',
             ]
         outputs:
             [
@@ -304,7 +320,7 @@ tasks:
                 'src/content/docs/professiondb/**/*.mdx',
                 '/packages/data/codegen/gen-professiondb-data.mjs',
                 '/packages/data/codegen/gen-professiondb-xref.mjs',
-                '/packages/data/codegen/descriptors/professiondb.binpb',
+                '/packages/proto/kbve/**/*.proto',
                 '/packages/data/codegen/generated/mapdb-data.json',
                 '/packages/data/codegen/generated/itemdb-data.json',
             ]
@@ -338,7 +354,7 @@ tasks:
             [
                 'src/content/docs/questdb/*.mdx',
                 '/packages/data/codegen/gen-questdb-data.mjs',
-                '/packages/data/codegen/descriptors/questdb.binpb',
+                '/packages/proto/kbve/**/*.proto',
             ]
         outputs:
             [
@@ -370,7 +386,7 @@ tasks:
             [
                 'src/content/docs/npcdb/*.mdx',
                 '/packages/data/codegen/gen-npcdb-data.mjs',
-                '/packages/data/codegen/descriptors/npcdb.binpb',
+                '/packages/proto/kbve/**/*.proto',
             ]
         outputs:
             [
@@ -407,7 +423,7 @@ tasks:
             [
                 'src/content/docs/spelldb/*.mdx',
                 '/packages/data/codegen/gen-spelldb-data.mjs',
-                '/packages/data/codegen/descriptors/spelldb.binpb',
+                '/packages/proto/kbve/**/*.proto',
             ]
         outputs:
             [
