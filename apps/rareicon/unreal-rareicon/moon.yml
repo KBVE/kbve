@@ -52,6 +52,17 @@ tasks:
         script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/Build.sh" RareIconEditor Mac Development "$PWD/RareIcon.uproject"'
         options:
             cache: false
+    # Ingest the PolyHaven source set, then import it and rebuild the ground
+    # material. Conversion happens here rather than in the editor: 4k EXR/PNG
+    # is 94 MB of source for what ships as 17 MB of 2k PNG, and the normal map
+    # needs its green channel flipped from OpenGL to DirectX convention before
+    # Unreal ever sees it.
+    import-terrain:
+        deps: ['~:build-editor']
+        script: './apps/rareicon/unreal-rareicon/scripts/import-terrain.sh'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
     regen-project-files:
         script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh" -project="$PWD/RareIcon.uproject" -game -engine'
         options:
