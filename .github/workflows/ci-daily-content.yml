@@ -158,11 +158,16 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   UNITY_PAT: ${{ secrets.UNITY_PAT }}
               run: |
+                  set -euo pipefail
+                  # kbve-nx-build prints the repo-relative path of everything the
+                  # route touched, one per line, and prints nothing when it
+                  # skipped. The Create PR step stages exactly that list.
                   uv run kbve-nx-build "${{ matrix.route }}" \
                     --timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
                     --workdir "${RUNNER_TEMP}" \
                     --public-dir "$GITHUB_WORKSPACE/apps/kbve/astro-kbve/public/data/nx" \
-                    --content-root "$GITHUB_WORKSPACE/apps/kbve/astro-kbve/src/content/docs"
+                    --content-root "$GITHUB_WORKSPACE/apps/kbve/astro-kbve/src/content/docs" \
+                    | tee "${RUNNER_TEMP}/changed-${{ matrix.route }}.txt"
 
             - name: Create PR
               id: pr
@@ -172,8 +177,19 @@ jobs:
                   git config user.name "github-actions[bot]"
                   git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
-                  git add apps/kbve/astro-kbve/src/content/docs apps/kbve/astro-kbve/public/data/nx apps/kbve/astro-kbve/src/data apps/kbve/astro-kbve/public/graphify
-                  git add packages/data/codegen/generated/professiondb-data.json packages/data/codegen/generated/professiondb-data.binpb packages/data/codegen/generated/professiondb-runtime.json packages/data/codegen/generated/xref-index.json apps/rareicon/unity-rareicon/Assets/StreamingAssets/professiondb-runtime.json
+                  # Stage what the route said it wrote, not a fixed list of
+                  # directories. Staging the directories meant a route that
+                  # failed and reported nothing still had its output committed
+                  # in whatever state the failure left it: that is how a
+                  # graphify rebuild that died mid-run committed the deletion of
+                  # every file under public/graphify.
+                  CHANGED="${RUNNER_TEMP}/changed-${{ matrix.route }}.txt"
+                  if [ ! -s "${CHANGED}" ]; then
+                    echo "::notice::Route ${{ matrix.route }} reported no changed paths — nothing to commit."
+                    exit 0
+                  fi
+                  xargs -r -d '\n' -a "${CHANGED}" git add --
+
                   if git diff --cached --quiet; then
                     echo "::notice::No pending changes for route ${{ matrix.route }} — nothing to commit."
                     exit 0
