@@ -1,7 +1,7 @@
 """Tests for the ``graphify`` route (tiered-graph rebuild).
 
 The rebuild subprocess is bypassed via ``inputs["build_cmd"]`` so the test
-never needs the ``graphify`` CLI or the pnpm/nx toolchain.
+never needs the ``graphify`` CLI or the moon toolchain.
 """
 
 from __future__ import annotations
