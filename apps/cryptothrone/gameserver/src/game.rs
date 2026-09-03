@@ -14,9 +14,9 @@ pub const MAX_PLAYERS: usize = 32;
 
 const CLOUD_CITY_MAP: &[u8] = include_bytes!("../assets/cloud_city.tilemap.json");
 const NPCDB_JSON: &[u8] =
-    include_bytes!("../../../../../packages/data/codegen/generated/npcdb-data.json");
+    include_bytes!("../../../../packages/data/codegen/generated/npcdb-data.json");
 const ITEMDB_JSON: &[u8] =
-    include_bytes!("../../../../../packages/data/codegen/generated/itemdb-data.json");
+    include_bytes!("../../../../packages/data/codegen/generated/itemdb-data.json");
 
 pub const PLAYER_HP: i32 = 100;
 pub const PLAYER_ATTACK: i32 = 5;
