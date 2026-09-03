@@ -15,6 +15,39 @@ namespace
 	}
 }
 
+float FKBVEWorldRoadField::CorridorDistance(const FVector2D& P, const FSegment& Segment,
+	float& OutT) const
+{
+	const FVector2D AB = Segment.B - Segment.A;
+	const float LengthSq = AB.SizeSquared();
+	if (LengthSq <= KINDA_SMALL_NUMBER)
+	{
+		OutT = 0.0f;
+		return FVector2D::Distance(P, Segment.A);
+	}
+
+	const float Raw = FVector2D::DotProduct(P - Segment.A, AB) / LengthSq;
+	OutT = FMath::Clamp(Raw, 0.0f, 1.0f);
+
+	const FVector2D Nearest = Segment.A + AB * OutT;
+	const float Lateral = FVector2D::Distance(P, Nearest);
+	if (Raw >= 0.0f && Raw <= 1.0f)
+	{
+		return Lateral;
+	}
+
+	// Past an end, so the point is out where that end reaches. Scaled rather
+	// than cut: a hard stop would put a step in the ground across the abutment.
+	const float Length = FMath::Sqrt(LengthSq);
+	const float Over = (Raw < 0.0f) ? -Raw * Length : (Raw - 1.0f) * Length;
+	const float Reach = FMath::Max((Raw < 0.0f) ? Segment.ReachA : Segment.ReachB, 1.0f);
+	const float Scaled = Over * Road.CutHalfWidth / Reach;
+
+	// The lateral part is the leg of the same triangle, so the overshoot is
+	// traded against it rather than added to it.
+	return FMath::Sqrt(FMath::Max(Lateral * Lateral - Over * Over, 0.0f) + Scaled * Scaled);
+}
+
 FKBVEWorldRoadField::FKBVEWorldRoadField(const FKBVEWorldRoadParams& InRoad,
 	const FKBVEWorldHeightfieldParams& InShape, int32 InSeed)
 	: Road(InRoad)
@@ -31,7 +64,8 @@ bool FKBVEWorldRoadField::Matches(const FKBVEWorldRoadParams& InRoad, int32 InSe
 		&& Road.CutHalfWidth == InRoad.CutHalfWidth
 		&& Road.CutFlatHalfWidth == InRoad.CutFlatHalfWidth
 		&& Road.EdgeDensity == InRoad.EdgeDensity
-		&& Road.ProfileSmoothPasses == InRoad.ProfileSmoothPasses;
+		&& Road.ProfileSmoothPasses == InRoad.ProfileSmoothPasses
+		&& Road.BridgeEndReach == InRoad.BridgeEndReach;
 }
 
 const TArray<FVector>* FKBVEWorldRoadField::FindEdge(const FIntPoint& Chunk, int32 Step) const
@@ -39,7 +73,8 @@ const TArray<FVector>* FKBVEWorldRoadField::FindEdge(const FIntPoint& Chunk, int
 	return Edges.Find(FIntVector(Chunk.X, Chunk.Y, Step));
 }
 
-void FKBVEWorldRoadField::AddPolyline(const TArray<FVector>& Points) const
+void FKBVEWorldRoadField::AddPolyline(const TArray<FVector>& Points, float StartReach,
+	float EndReach) const
 {
 	for (int32 I = 0; I + 1 < Points.Num(); ++I)
 	{
@@ -49,6 +84,10 @@ void FKBVEWorldRoadField::AddPolyline(const TArray<FVector>& Points) const
 		Segment.B = FVector2D(Points[I + 1]);
 		Segment.ZA = Points[I].Z;
 		Segment.ZB = Points[I + 1].Z;
+		// Only the run's own two ends are ends. Everywhere else the next segment
+		// carries on and there is nothing to overshoot into.
+		Segment.ReachA = (I == 0) ? StartReach : Road.CutHalfWidth;
+		Segment.ReachB = (I + 2 == Points.Num()) ? EndReach : Road.CutHalfWidth;
 
 		// No taper along the run. One was tried and removed: the profile is
 		// smoothed with its ends pinned to the raw ground, so a corridor already
@@ -128,6 +167,19 @@ void FKBVEWorldRoadField::RouteChunk(const FIntPoint& Chunk) const
 		// the bridge was built to cross.
 		FKBVEWorldRoadGraph::FindRiverSpans(Road, Shape, Seed, Path, Spans);
 
+		// How far a run may grade out past an abutment, measured against the span
+		// on the other side of it. A fixed reach is fine against a long crossing
+		// and hopeless against a short one: two caps of three hundred units either
+		// end of a seven-hundred-unit span meet in the middle, fill the channel,
+		// and leave the deck buried in the ground that replaced the water. Capped
+		// at a quarter of the span so the middle is always left alone.
+		auto CapFor = [&](int32 Index)
+		{
+			const FKBVEWorldRoadSpan& Span = Spans[Index];
+			const float Length = FVector::Dist2D(Path[Span.Begin], Path[Span.End]);
+			return FMath::Min(Road.BridgeEndReach, FMath::Max(Length * 0.25f, 1.0f));
+		};
+
 		int32 Cursor = 0;
 		TArray<FVector> Dry;
 		for (int32 I = 0; I <= Spans.Num(); ++I)
@@ -137,7 +189,11 @@ void FKBVEWorldRoadField::RouteChunk(const FIntPoint& Chunk) const
 			{
 				Dry.Reset();
 				Dry.Append(Path.GetData() + Cursor, Stop - Cursor + 1);
-				AddPolyline(Dry);
+				// A run that starts after a span, or stops before one, is
+				// meeting a deck rather than continuing into a junction.
+				AddPolyline(Dry,
+					(I > 0) ? CapFor(I - 1) : Road.CutHalfWidth,
+					(I < Spans.Num()) ? CapFor(I) : Road.CutHalfWidth);
 			}
 			if (I < Spans.Num())
 			{
@@ -238,7 +294,7 @@ bool FKBVEWorldRoadField::Probe(float WorldX, float WorldY, float& OutDistance, 
 			{
 				const FSegment& Segment = Segments[Index];
 				float T = 0.0f;
-				const float Distance = DistanceToSegment(P, Segment.A, Segment.B, T);
+				const float Distance = CorridorDistance(P, Segment, T);
 				if (Distance < OutDistance)
 				{
 					OutDistance = Distance;
@@ -294,7 +350,7 @@ float FKBVEWorldRoadField::Level(float Base, float WorldX, float WorldY) const
 			{
 				const FSegment& Segment = Segments[Index];
 				float T = 0.0f;
-				const float Distance = DistanceToSegment(P, Segment.A, Segment.B, T);
+				const float Distance = CorridorDistance(P, Segment, T);
 				if (Distance >= Road.CutHalfWidth)
 				{
 					continue;

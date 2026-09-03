@@ -43,6 +43,19 @@ struct KBVEWORLDCORE_API FKBVEWorldBridgeParams
 	float ArchHeight = 70.0f;
 
 	/**
+	 * Rise as a fraction of the crossing's own length, taken as a floor.
+	 *
+	 * A fixed rise is a fixed rise whatever it is spanning, so the same 70 uu
+	 * that gives a short crossing a visible camber disappears into a long one --
+	 * over two or three thousand units of deck it is a slope of one in forty, and
+	 * the middle of the bridge reads as dead flat. Clearance cannot make up the
+	 * difference either: the bed is far below the banks the road crosses at, so
+	 * the solve below almost always asks for nothing.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bridge|Deck", meta = (ClampMin = "0.0"))
+	float ArchSpanRatio = 0.055f;
+
+	/**
 	 * Hard ceiling on the rise.
 	 *
 	 * The clearance solve divides by the taper carrying the arch, so a sample
@@ -82,6 +95,42 @@ struct KBVEWORLDCORE_API FKBVEWorldBridgeParams
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bridge|Rail", meta = (ClampMin = "0.0"))
 	float RailInset = 34.0f;
 
+	/**
+	 * Depth of the two girders carried under the deck.
+	 *
+	 * Swept along the deck's own line rather than boxed, so a crossing taken at
+	 * an angle gets a frame that runs with it. An axis-aligned beam under a
+	 * diagonal deck reads as scenery someone dropped there.
+	 */
+	/**
+	 * Pieces the deck line is cut into between route samples.
+	 *
+	 * The route describes where a road goes, at a few hundred units a sample.
+	 * That is the wrong resolution for a handrail: swept raw, a curve is a row of
+	 * flats with a corner at every joint.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bridge|Deck", meta = (ClampMin = "1", ClampMax = "16"))
+	int32 CurveSubdivisions = 5;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bridge|Frame", meta = (ClampMin = "0.0"))
+	float GirderDepth = 80.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bridge|Frame", meta = (ClampMin = "1.0"))
+	float GirderWidth = 64.0f;
+
+	/** How far in from the deck edge each girder runs. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bridge|Frame", meta = (ClampMin = "0.0"))
+	float GirderInset = 130.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bridge|Frame", meta = (ClampMin = "1.0"))
+	float CrossBeamSpacing = 420.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bridge|Frame", meta = (ClampMin = "0.0"))
+	float CrossBeamDepth = 56.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bridge|Frame", meta = (ClampMin = "1.0"))
+	float CrossBeamWidth = 72.0f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bridge|Pier", meta = (ClampMin = "1.0"))
 	float PierSpacing = 900.0f;
 
@@ -98,6 +147,20 @@ struct KBVEWORLDCORE_API FKBVEWorldBridgeParams
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bridge|Pier", meta = (ClampMin = "1.0"))
 	float AbutmentWidth = 300.0f;
+
+	/**
+	 * How far inboard an abutment may be built up from before it gives up, as a
+	 * fraction of the span.
+	 *
+	 * The deck leaves the ground gradually, so there is a stretch at each end
+	 * carrying less than a pier's worth of clearance -- too little to be worth a
+	 * support on its own, and exactly the stretch that was left as open air under
+	 * the ramp. It is masonry all the way out instead. The bound is only there so
+	 * a crossing whose deck never clears the ground does not fill its whole
+	 * length with stone.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bridge|Pier", meta = (ClampMin = "0.0", ClampMax = "0.5"))
+	float AbutmentReach = 0.35f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bridge|Pier", meta = (ClampMin = "1.0"))
 	float StoneTileLength = 400.0f;

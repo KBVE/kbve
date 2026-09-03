@@ -256,6 +256,10 @@ projects:
         # which is what the release tag and the kube manifest pin).
         edge: 'services/functions/deno'
 
+        # Shared static assets, served off the repository over raw HTTPS until a
+        # real origin exists. Registered for its guard task, not for a build.
+        cdn: 'services/cdn'
+
 vcs:
     defaultBranch: 'dev'
     provider: 'github'

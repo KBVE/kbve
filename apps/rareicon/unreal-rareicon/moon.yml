@@ -11,6 +11,10 @@ dependsOn:
     - 'KBVEUnr'
     - 'KBVEWorld'
     - 'KBVEMover'
+    # The frame-timing readout the inherited `perf` task talks to. Without it
+    # that task has nothing to connect to, which is why the only numbers this
+    # project could produce were its own build timings.
+    - 'KBVEPerf'
     # build-world and build-input run the editor scripts shipped there.
     # 'kbve' is the Rust crate; the python package is 'kbve-py'.
     - 'kbve-py'
@@ -41,6 +45,29 @@ tasks:
         deps: ['KBVEUnr:sync-unr']
     build-server:
         deps: ['KBVEUnr:sync-unr']
+    # Rig the weapon sources and import them. Separate from build-textures
+    # because it needs Blender as well: PolyHaven ships firearms as loose rigid
+    # parts with no armature, so the bolt and trigger bones are generated from
+    # the geometry rather than authored, and the FBX that produces is what the
+    # editor imports.
+    import-weapons:
+        deps: ['~:build-editor']
+        script: './apps/rareicon/unreal-rareicon/scripts/import-weapons.sh'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    # Stage and import the rifle locomotion clips. Separate from import-weapons
+    # because it needs no Blender and no ImageMagick -- these are authored
+    # animations on a compatible skeleton, so the whole job is a copy and an
+    # editor import.
+    import-animations:
+        deps: ['~:build-editor']
+        script: './apps/rareicon/unreal-rareicon/scripts/import-animations.sh'
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
     regen-project-files:
         script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh" -project="$PWD/RareIcon.uproject" -game -engine'
         options:
@@ -74,6 +101,7 @@ env:
     UE_MODULE: 'RareIcon'
     UE_LOG_PREFIX: 'rareicon'
     UE_WORLD_CONFIG: 'apps/rareicon/unreal-rareicon/scripts/config/world.json'
+    UE_WEAPON_CONFIG: 'apps/rareicon/unreal-rareicon/scripts/config/weapons.json'
     UE_INPUT_CONFIG: 'apps/rareicon/unreal-rareicon/scripts/config/input.json'
     UE_TEXTURE_CONFIG: 'apps/rareicon/unreal-rareicon/scripts/config/textures.json'
     # Not the default two-core hosted runner: an Unreal compile.

@@ -1,5 +1,7 @@
 #include "KBVEFootIKAnimInstance.h"
 
+#include "KBVEWeaponGrip.h"
+
 #include "Animation/AnimSequence.h"
 #include "Animation/AnimationPoseData.h"
 #include "AnimationRuntime.h"
@@ -12,6 +14,60 @@
 #include "HAL/IConsoleManager.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogKBVEFootIK, Display, All);
+
+namespace
+{
+	// Tuning handles for the support-hand grip. Negative curl means "leave the
+	// property alone"; the axis index selects which bone-local axis a joint
+	// bends about, which is faster to find by trying three than by deriving it.
+	static float GGripCurl = -1000.0f;
+	static float GGripThumb = -1000.0f;
+	static int32 GGripAxis = -1;
+	static float GGripRoll = -1000.0f;
+	static FAutoConsoleVariableRef CVarGripRoll(
+		TEXT("kbve.Grip.Roll"), GGripRoll,
+		TEXT("Roll the support hand around the barrel, degrees."), ECVF_Default);
+	static FAutoConsoleVariableRef CVarGripCurl(
+		TEXT("kbve.Grip.Curl"), GGripCurl, TEXT("Support-hand curl, degrees per joint."), ECVF_Default);
+	static FAutoConsoleVariableRef CVarGripThumb(
+		TEXT("kbve.Grip.Thumb"), GGripThumb, TEXT("Support-hand thumb curl, degrees."), ECVF_Default);
+	static FAutoConsoleVariableRef CVarGripAxis(
+		TEXT("kbve.Grip.Axis"), GGripAxis, TEXT("0=X 1=Y 2=Z, +3 to negate. -1 uses the property."), ECVF_Default);
+
+	// The contact solve's two inputs, live: where the wrist sits around the bore
+	// and how thick the thing it is holding is.
+	static float GGripBoreAngle = -1000.0f;
+	static float GGripWidth = -1000.0f;
+	static float GGripHeight = -1000.0f;
+	static float GGripCentre = -1000.0f;
+	static float GGripAlong = -1000.0f;
+	static int32 GGripContact = -1;
+	static FAutoConsoleVariableRef CVarGripBoreAngle(
+		TEXT("kbve.Grip.BoreAngle"), GGripBoreAngle,
+		TEXT("Support wrist angle around the bore, degrees. 270 is straight under."), ECVF_Default);
+	static FAutoConsoleVariableRef CVarGripWidth(
+		TEXT("kbve.Grip.Width"), GGripWidth,
+		TEXT("Fore-end half-width the fingers close onto, cm."), ECVF_Default);
+	static FAutoConsoleVariableRef CVarGripHeight(
+		TEXT("kbve.Grip.Height"), GGripHeight,
+		TEXT("Fore-end half-height the fingers close onto, cm."), ECVF_Default);
+	static FAutoConsoleVariableRef CVarGripAlong(
+		TEXT("kbve.Grip.Along"), GGripAlong,
+		TEXT("Where along the barrel the support hand grips, weapon-space cm."), ECVF_Default);
+	static FAutoConsoleVariableRef CVarGripCentre(
+		TEXT("kbve.Grip.Centre"), GGripCentre,
+		TEXT("Height of the fore-end centre above the weapon X axis, cm."), ECVF_Default);
+	static FAutoConsoleVariableRef CVarGripContact(
+		TEXT("kbve.Grip.Contact"), GGripContact,
+		TEXT("1 solves the grip to contact, 0 uses the tuned constants. -1 uses the property."), ECVF_Default);
+
+	// What the grip solve decided, as numbers. A grip either closes on the wood
+	// or it does not, and that is a distance rather than an impression.
+	static int32 GGripTrace = 0;
+	static FAutoConsoleVariableRef CVarGripTrace(
+		TEXT("kbve.Grip.Trace"), GGripTrace,
+		TEXT("Log the solved wrist angle, per-finger close and fingertip clearance."), ECVF_Default);
+}
 
 namespace
 {
@@ -47,9 +103,19 @@ void FKBVEFootIKProxy::CacheBones()
 	FAnimInstanceProxy::CacheBones();
 
 	const FBoneContainer& Bones = GetRequiredBones();
-	for (FBoneReference* Bone : {&LeftFoot, &LeftCalf, &LeftThigh, &RightFoot, &RightCalf, &RightThigh, &Pelvis, &Spine})
+	for (FBoneReference* Bone : {&LeftFoot, &LeftCalf, &LeftThigh, &RightFoot, &RightCalf, &RightThigh, &Pelvis, &Spine,
+			&Chest, &LeftUpperArm, &LeftLowerArm, &LeftHand, &RightUpperArm, &RightLowerArm, &RightHand, &WeaponHand})
 	{
 		Bone->Initialize(Bones);
+	}
+
+	for (FBoneReference& Finger : LeftFingers)
+	{
+		Finger.Initialize(Bones);
+	}
+	for (FBoneReference& Finger : RightFingers)
+	{
+		Finger.Initialize(Bones);
 	}
 
 	FAnimationCacheBonesContext Context(this);
@@ -146,6 +212,629 @@ void FKBVEFootIKProxy::SolveLeg(FCSPose<FCompactPose>& Pose, const FBoneReferenc
 	Pose.SetComponentSpaceTransform(Foot.GetCompactPoseIndex(Container), FootTransform);
 }
 
+void FKBVEFootIKProxy::SolveArm(FCSPose<FCompactPose>& Pose, const FBoneReference& UpperArm,
+	const FBoneReference& LowerArm, const FBoneReference& Hand, const FVector& Target,
+	const FVector& ElbowDirection, const FQuat& HandRotation, float Alpha, float RotationAlpha,
+	const FQuat& RotationDelta) const
+{
+	if (!UpperArm.IsValidToEvaluate() || !LowerArm.IsValidToEvaluate() || !Hand.IsValidToEvaluate())
+	{
+		return;
+	}
+	if (Alpha <= KINDA_SMALL_NUMBER)
+	{
+		return;
+	}
+
+	const FBoneContainer& Container = Pose.GetPose().GetBoneContainer();
+	FTransform UpperTransform = Pose.GetComponentSpaceTransform(UpperArm.GetCompactPoseIndex(Container));
+	FTransform LowerTransform = Pose.GetComponentSpaceTransform(LowerArm.GetCompactPoseIndex(Container));
+	FTransform HandTransform = Pose.GetComponentSpaceTransform(Hand.GetCompactPoseIndex(Container));
+
+	// Blended toward the weapon rather than snapped onto it, so raising and
+	// lowering the rifle is a movement instead of a substitution.
+	const FVector Effector = FMath::Lerp(HandTransform.GetLocation(), Target, Alpha);
+
+	// The solver wants a position, and only the plane it makes with the shoulder
+	// and the hand matters, so the direction is thrown out from the shoulder far
+	// enough to be unambiguous. Taken from the shoulder rather than the weapon
+	// because an elbow belongs to a body, not to what the body is carrying.
+	const FVector JointTarget = UpperTransform.GetLocation() + ElbowDirection.GetSafeNormal() * 100.0f;
+
+	AnimationCore::SolveTwoBoneIK(UpperTransform, LowerTransform, HandTransform, JointTarget, Effector,
+		false, 1.0f, 1.0f);
+
+	// Set after the solve, because the solve orients the hand along the limb and
+	// what matters is that the palm meets the stock. Skipped entirely when the
+	// clip already orients the hand and only its position is being corrected --
+	// overwriting a good rotation to fix a position throws away the better half.
+	if (RotationAlpha > KINDA_SMALL_NUMBER)
+	{
+		HandTransform.SetRotation(
+			FQuat::Slerp(HandTransform.GetRotation(), HandRotation, RotationAlpha).GetNormalized());
+	}
+
+	// A turn applied on top of whatever orientation the hand ended up with,
+	// rather than a replacement for it. The clip's wrist angle is kept; it is
+	// only rolled around the weapon.
+	if (!RotationDelta.IsIdentity())
+	{
+		HandTransform.SetRotation((RotationDelta * HandTransform.GetRotation()).GetNormalized());
+	}
+
+	Pose.SetComponentSpaceTransform(UpperArm.GetCompactPoseIndex(Container), UpperTransform);
+	Pose.SetComponentSpaceTransform(LowerArm.GetCompactPoseIndex(Container), LowerTransform);
+	Pose.SetComponentSpaceTransform(Hand.GetCompactPoseIndex(Container), HandTransform);
+}
+
+void FKBVEFootIKProxy::PoseFingers(FCompactPose& Pose, const TArray<FBoneReference>& Fingers, float Alpha) const
+{
+	if (Alpha <= KINDA_SMALL_NUMBER || FingersPerHand <= 0)
+	{
+		return;
+	}
+
+	// Local space, and the bend is about the bone's own Z. Every finger joint on
+	// this skeleton runs down its own X with Z across the knuckle, so one axis
+	// closes all of them and the thumb only differs by how far.
+	for (int32 Index = 0; Index < Fingers.Num(); ++Index)
+	{
+		const FBoneReference& Finger = Fingers[Index];
+		if (!Finger.IsValidToEvaluate())
+		{
+			continue;
+		}
+
+		// The first four chains are fingers; the last is the thumb, which
+		// opposes rather than curls and closes far less.
+		const bool bThumb = (Index / FingersPerHand) >= 4;
+		const float Degrees = (bThumb ? ThumbCurlDegrees : FingerCurlDegrees) * Alpha;
+		const FQuat Curl(FVector::UpVector, FMath::DegreesToRadians(-Degrees));
+
+		const FCompactPoseBoneIndex BoneIndex = Finger.GetCompactPoseIndex(Pose.GetBoneContainer());
+		Pose[BoneIndex].SetRotation((Pose[BoneIndex].GetRotation() * Curl).GetNormalized());
+	}
+}
+
+void FKBVEFootIKProxy::CurlFingers(FCompactPose& Pose, const TArray<FBoneReference>& Fingers,
+	float FingerDegrees, float ThumbDegrees) const
+{
+	if (FingersPerHand <= 0 || (FMath::IsNearlyZero(FingerDegrees) && FMath::IsNearlyZero(ThumbDegrees)))
+	{
+		return;
+	}
+
+	const FVector Axis = FingerCurlAxis.GetSafeNormal();
+	if (Axis.IsNearlyZero())
+	{
+		return;
+	}
+
+	for (int32 Index = 0; Index < Fingers.Num(); ++Index)
+	{
+		const FBoneReference& Finger = Fingers[Index];
+		if (!Finger.IsValidToEvaluate())
+		{
+			continue;
+		}
+
+		// Chains are ordered index, middle, ring, pinky, thumb, so the last one
+		// is the thumb -- which opposes rather than curls and takes its own
+		// amount.
+		const bool bThumb = (Index / FingersPerHand) >= 4;
+		const float Degrees = bThumb ? ThumbDegrees : FingerDegrees;
+		if (FMath::IsNearlyZero(Degrees))
+		{
+			continue;
+		}
+
+		const FQuat Curl(Axis, FMath::DegreesToRadians(Degrees));
+		const FCompactPoseBoneIndex BoneIndex = Finger.GetCompactPoseIndex(Pose.GetBoneContainer());
+		Pose[BoneIndex].SetRotation((Pose[BoneIndex].GetRotation() * Curl).GetNormalized());
+	}
+}
+
+namespace
+{
+	// How far a point lies outside the fore-end, in cm, negative inside it. The
+	// section is an ellipse rather than a circle -- a rifle's fore-end is a
+	// block under the barrel, taller than it is wide -- so the point is measured
+	// in the section's own units and then put back into centimetres.
+	FORCEINLINE float SectionClearance(const FVector& Point, const FVector& Origin, const FVector& AxisX,
+		const FVector& AxisY, const FVector& AxisZ, float HalfWidth, float HalfHeight)
+	{
+		const FVector Delta = Point - Origin;
+		const FVector Flat = Delta - AxisX * (Delta | AxisX);
+		const float U = (Flat | AxisY) / FMath::Max(HalfWidth, KINDA_SMALL_NUMBER);
+		const float V = (Flat | AxisZ) / FMath::Max(HalfHeight, KINDA_SMALL_NUMBER);
+		return (FMath::Sqrt(U * U + V * V) - 1.0f) * FMath::Min(HalfWidth, HalfHeight);
+	}
+
+	// Distance from that same centre out to the surface, along an angle measured
+	// as atan2(z, y). Used to place the wrist rather than state where it goes.
+	FORCEINLINE float SectionRadius(float Degrees, float HalfWidth, float HalfHeight)
+	{
+		const float Radians = FMath::DegreesToRadians(Degrees);
+		const float C = FMath::Cos(Radians) / FMath::Max(HalfWidth, KINDA_SMALL_NUMBER);
+		const float S = FMath::Sin(Radians) / FMath::Max(HalfHeight, KINDA_SMALL_NUMBER);
+		return 1.0f / FMath::Max(FMath::Sqrt(C * C + S * S), KINDA_SMALL_NUMBER);
+	}
+}
+
+void FKBVEFootIKProxy::SampleGripPose(const FBoneContainer& Container)
+{
+	if (bGripPoseSampled || !SupportHandPose || LeftFingers.Num() == 0)
+	{
+		return;
+	}
+	bGripPoseSampled = true;
+
+	// One evaluation, kept. Everything below the wrist in the authored pose is
+	// wanted and nothing above it is: the pose supplies fingers, the solver
+	// supplies where the hand is and which way it faces.
+	FCompactPose PosePose;
+	PosePose.SetBoneContainer(&Container);
+	FBlendedCurve Curve;
+	UE::Anim::FStackAttributeContainer Attributes;
+	FAnimationPoseData PoseData(PosePose, Curve, Attributes);
+
+	FAnimExtractContext Context(static_cast<double>(SupportHandPoseTime), false);
+	SupportHandPose->GetAnimationPose(PoseData, Context);
+
+	GripPoseLocals.Reset();
+	GripPoseLocals.Reserve(LeftFingers.Num());
+	for (const FBoneReference& Finger : LeftFingers)
+	{
+		GripPoseLocals.Add(Finger.IsValidToEvaluate()
+			? PosePose[Finger.GetCompactPoseIndex(Container)]
+			: FTransform::Identity);
+	}
+}
+
+void FKBVEFootIKProxy::SolveGrip(FCSPose<FCompactPose>& Pose, const FTransform& WeaponTransform,
+	TArray<float>& OutCurlDegrees) const
+{
+	OutCurlDegrees.Reset();
+	if (!LeftHand.IsValidToEvaluate() || !LeftUpperArm.IsValidToEvaluate() || !LeftLowerArm.IsValidToEvaluate())
+	{
+		return;
+	}
+	if (FingersPerHand <= 0 || LeftFingers.Num() < FingersPerHand)
+	{
+		return;
+	}
+
+	const FBoneContainer& Container = Pose.GetPose().GetBoneContainer();
+	const FVector CurlAxis = FingerCurlAxis.GetSafeNormal();
+	if (CurlAxis.IsNearlyZero())
+	{
+		return;
+	}
+
+	const int32 ChainCount = LeftFingers.Num() / FingersPerHand;
+
+	// The wrist is placed from the weapon's own section rather than rolled from
+	// where the clip left it. Under the fore-end at the stated angle, out by the
+	// distance to the surface there plus the thickness of a hand -- so a thicker
+	// or thinner weapon moves the wrist on its own.
+	// Where along the wood to take hold, chosen for this frame rather than
+	// stated once. The rifle moves with the clip, so the point that is a
+	// comfortable reach now is at arm's length a moment later; the hand slides
+	// along the fore-end instead, which is what a support hand does anyway.
+	float AlongBarrel = GripAlongBarrel;
+	if (GripArmExtension > KINDA_SMALL_NUMBER)
+	{
+		const FVector Shoulder =
+			Pose.GetComponentSpaceTransform(LeftUpperArm.GetCompactPoseIndex(Container)).GetLocation();
+		const FVector Elbow =
+			Pose.GetComponentSpaceTransform(LeftLowerArm.GetCompactPoseIndex(Container)).GetLocation();
+		const FVector Wrist =
+			Pose.GetComponentSpaceTransform(LeftHand.GetCompactPoseIndex(Container)).GetLocation();
+		const float Wanted = ((Elbow - Shoulder).Size() + (Wrist - Elbow).Size()) * GripArmExtension;
+
+		// Sampled rather than bisected. Distance to the shoulder is not monotone
+		// along the barrel -- which way it runs depends on how the clip is
+		// holding the rifle -- and a bisection told otherwise picks an end and
+		// is confidently wrong. Twelve samples across the woodwork is cheap and
+		// makes no assumption at all.
+		const float SeatOut =
+			SectionRadius(GripBoreAngleDegrees, ForeEndHalfWidth, ForeEndHalfHeight) + GripKnuckleClearance;
+		const float GripRadiansLocal = FMath::DegreesToRadians(GripBoreAngleDegrees);
+		const FVector SeatDir(0.0f, FMath::Cos(GripRadiansLocal), FMath::Sin(GripRadiansLocal));
+
+		float Best = TNumericLimits<float>::Max();
+		for (int32 Sample = 0; Sample <= 12; ++Sample)
+		{
+			const float Along = FMath::Lerp(GripAlongMin, GripAlongMax, Sample / 12.0f);
+
+			// The point the arm is actually sent to, not the middle of the wood:
+			// the wrist sits a hand's thickness outside the section, and picking
+			// a hold by where its centre is lands the real target out of reach.
+			const FVector Seat = FVector(Along, 0.0f, ForeEndCentreHeight) + SeatDir * SeatOut;
+			const float Distance = (WeaponTransform.TransformPosition(Seat) - Shoulder).Size();
+			const float Cost = FMath::Abs(Distance - Wanted);
+			if (Cost < Best)
+			{
+				Best = Cost;
+				AlongBarrel = Along;
+			}
+		}
+	}
+
+	const FVector GripOriginLocal(AlongBarrel, 0.0f, ForeEndCentreHeight);
+	const float GripRadians = FMath::DegreesToRadians(GripBoreAngleDegrees);
+	const FVector GripDirLocal(0.0f, FMath::Cos(GripRadians), FMath::Sin(GripRadians));
+	float Reach = SectionRadius(GripBoreAngleDegrees, ForeEndHalfWidth, ForeEndHalfHeight) + GripWristOffset;
+	FVector TargetComponent = WeaponTransform.TransformPosition(GripOriginLocal + GripDirLocal * Reach);
+
+	SolveArm(Pose, LeftUpperArm, LeftLowerArm, LeftHand, TargetComponent, LeftElbowDirection,
+		FQuat::Identity, LeftHandIKAlpha, 0.0f);
+
+	// The fore-end, where the pose lives.
+	const FVector AxisOrigin = WeaponTransform.TransformPosition(GripOriginLocal);
+	const FQuat WeaponRotation = WeaponTransform.GetRotation();
+	const FVector AxisDir = WeaponRotation.GetForwardVector().GetSafeNormal();
+	const FVector AxisY = WeaponRotation.GetRightVector().GetSafeNormal();
+	const FVector AxisZ = WeaponRotation.GetUpVector().GetSafeNormal();
+
+	// Everything below reads the pose through the engine rather than rebuilding
+	// it. A finger is not a child of the wrist on this skeleton -- there is a
+	// metacarpal in between -- and reconstructing those chains by hand is what
+	// dislocated the hand: GetComponentSpaceTransform already knows the
+	// hierarchy, so it is asked instead of reimplemented.
+	auto Chain = [&](int32 Index, int32 Joint) -> const FBoneReference&
+	{
+		return LeftFingers[Index * FingersPerHand + Joint];
+	};
+
+	auto ChainValid = [&](int32 Index) -> bool
+	{
+		for (int32 Joint = 0; Joint < FingersPerHand; ++Joint)
+		{
+			if (!Chain(Index, Joint).IsValidToEvaluate())
+			{
+				return false;
+			}
+		}
+		return true;
+	};
+
+	// Read once, in local space, and never again. A component-space read is
+	// cached: ask for a knuckle, move the wrist, ask again and the same answer
+	// comes back, because the cache does not know its parent moved. Every
+	// clearance measured that way describes where the hand used to be, which is
+	// why seating it moved nothing. Locals do not have that problem -- they are
+	// unaffected by anything the arm solve does -- so the chains are rebuilt
+	// from the wrist each time it is asked about.
+	TArray<FTransform, TInlineAllocator<8>> PrefixLocals;
+	TArray<TArray<FTransform, TInlineAllocator<4>>, TInlineAllocator<8>> JointLocals;
+	PrefixLocals.Init(FTransform::Identity, ChainCount);
+	JointLocals.SetNum(ChainCount);
+	const FCompactPoseBoneIndex HandBone = LeftHand.GetCompactPoseIndex(Container);
+
+	for (int32 Index = 0; Index < ChainCount; ++Index)
+	{
+		if (!ChainValid(Index))
+		{
+			continue;
+		}
+
+		// A finger is not a child of the wrist on this skeleton -- there is a
+		// metacarpal in between -- so the bones between the two are collected
+		// and carried, or every chain is rebuilt from the wrong origin.
+		TArray<FCompactPoseBoneIndex, TInlineAllocator<4>> Walked;
+		FCompactPoseBoneIndex Walk =
+			Container.GetParentBoneIndex(Chain(Index, 0).GetCompactPoseIndex(Container));
+		while (Walk.IsValid() && Walk != HandBone)
+		{
+			Walked.Insert(Walk, 0);
+			Walk = Container.GetParentBoneIndex(Walk);
+		}
+		if (Walk != HandBone)
+		{
+			continue;
+		}
+		for (const FCompactPoseBoneIndex& Bone : Walked)
+		{
+			PrefixLocals[Index] = Pose.GetLocalSpaceTransform(Bone) * PrefixLocals[Index];
+		}
+
+		for (int32 Joint = 0; Joint < FingersPerHand; ++Joint)
+		{
+			JointLocals[Index].Add(
+				Pose.GetLocalSpaceTransform(Chain(Index, Joint).GetCompactPoseIndex(Container)));
+		}
+	}
+
+	// Where a chain's joints and fingertip land, given the wrist as it is now
+	// and a curl added to every joint. Out[0..n-1] are the joints, Out.Last() is
+	// the tip.
+	auto ChainPoints = [&](int32 Index, float Degrees, TArray<FVector, TInlineAllocator<8>>& Out)
+	{
+		Out.Reset();
+		if (JointLocals[Index].Num() == 0)
+		{
+			return;
+		}
+		const FQuat Curl(CurlAxis, FMath::DegreesToRadians(Degrees));
+		FTransform Accum = PrefixLocals[Index] * Pose.GetComponentSpaceTransform(HandBone);
+		for (int32 Joint = 0; Joint < FingersPerHand; ++Joint)
+		{
+			FTransform Local = JointLocals[Index][Joint];
+			Local.SetRotation((Local.GetRotation() * Curl).GetNormalized());
+			Accum = Local * Accum;
+			Out.Add(Accum.GetLocation());
+		}
+		Out.Add(Accum.TransformPosition(FVector(FingertipLength, 0.0f, 0.0f)));
+	};
+
+	if (!ChainValid(0) || !ChainValid(1) || ChainCount < 4 || !ChainValid(3))
+	{
+		return;
+	}
+
+	// Which way this hand's palm faces, measured off its own bones rather than
+	// assumed from an axis name. The finger plane is spanned by the middle
+	// finger's own direction and the spread from index to pinky; the thumb says
+	// which side of that plane the palm is on, because a thumb sits palm-side.
+	TArray<FVector, TInlineAllocator<8>> Points;
+	ChainPoints(1, 0.0f, Points);
+	if (Points.Num() == 0)
+	{
+		return;
+	}
+	const FVector MiddleRoot = Points[0];
+	const FVector MiddleTip = Points.Last();
+	ChainPoints(0, 0.0f, Points);
+	const FVector IndexRoot = Points[0];
+	ChainPoints(3, 0.0f, Points);
+	const FVector PinkyRoot = Points[0];
+
+	const FVector FingerDir = (MiddleTip - MiddleRoot).GetSafeNormal();
+	const FVector Spread = (PinkyRoot - IndexRoot).GetSafeNormal();
+	FVector Palm = (FingerDir ^ Spread).GetSafeNormal();
+	if (FingerDir.IsNearlyZero() || Spread.IsNearlyZero() || Palm.IsNearlyZero())
+	{
+		return;
+	}
+	if (ChainCount >= 5 && ChainValid(4))
+	{
+		ChainPoints(4, 0.0f, Points);
+		if (((Points[0] - IndexRoot) | Palm) < 0.0f)
+		{
+			Palm = -Palm;
+		}
+	}
+
+	// Turn the palm to face the fore-end. This is what the fixed roll could not
+	// do: rolling the wrist round the weapon moved the hand but left it facing
+	// where it faced, so past thirty degrees the fingers pointed away from it.
+	const FVector HandOrigin = Pose.GetComponentSpaceTransform(HandBone).GetLocation();
+	const FVector Radial = (HandOrigin - (AxisOrigin + AxisDir * ((HandOrigin - AxisOrigin) | AxisDir)))
+		.GetSafeNormal();
+	if (Radial.IsNearlyZero())
+	{
+		return;
+	}
+
+	FQuat Delta = FQuat::FindBetweenNormals(Palm, -Radial);
+
+	// And then the fingers across the barrel rather than along it: a hand whose
+	// palm faces the wood can still be rotated about that palm normal into
+	// holding the rifle lengthways, which is not a grip.
+	const FVector Turned = (Delta * FingerDir).GetSafeNormal();
+	const FVector Across = (Turned - AxisDir * (Turned | AxisDir)).GetSafeNormal();
+	if (!Turned.IsNearlyZero() && !Across.IsNearlyZero())
+	{
+		Delta = FQuat::FindBetweenNormals(Turned, Across) * Delta;
+	}
+
+	Delta = FQuat::Slerp(FQuat::Identity, Delta.GetNormalized(),
+		FMath::Clamp(LeftHandIKAlpha, 0.0f, 1.0f)).GetNormalized();
+
+	// Applied by the arm solve rather than written onto the bone, because that
+	// path already places the whole limb and everything below the wrist follows
+	// it. The solve is run again rather than adjusted: it starts from its own
+	// answer and reaches the same one, and the turn lands on top of it.
+	SolveArm(Pose, LeftUpperArm, LeftLowerArm, LeftHand, TargetComponent, LeftElbowDirection,
+		FQuat::Identity, LeftHandIKAlpha, 0.0f, Delta);
+
+	// And then seated, by measurement. Where the wrist belongs is not a number
+	// worth guessing: the knuckles are asked where they came out, and the whole
+	// hand is moved by the vector that puts them on the wood. A translation
+	// rather than a nudge along one direction -- the first version of this could
+	// only correct up and down, so a hand sitting out beside the weapon stayed
+	// beside it while the target ran off through the stock.
+	const float SeatRadius =
+		SectionRadius(GripBoreAngleDegrees, ForeEndHalfWidth, ForeEndHalfHeight) + GripKnuckleClearance;
+	const FVector SeatLocal = GripOriginLocal + GripDirLocal * SeatRadius;
+
+	for (int32 Seat = 0; Seat < 3; ++Seat)
+	{
+		FVector Centroid = FVector::ZeroVector;
+		int32 Counted = 0;
+		for (int32 Index = 0; Index < FMath::Min(4, ChainCount); ++Index)
+		{
+			ChainPoints(Index, 0.0f, Points);
+			if (Points.Num() == 0)
+			{
+				continue;
+			}
+			Centroid += Points[0];
+			++Counted;
+		}
+		if (Counted == 0)
+		{
+			break;
+		}
+		Centroid /= Counted;
+
+		const FVector Offset = (WeaponTransform.TransformPosition(SeatLocal) - Centroid)
+			* FMath::Clamp(LeftHandIKAlpha, 0.0f, 1.0f);
+		if (Offset.SizeSquared() < 0.0025f)
+		{
+			break;
+		}
+
+		TargetComponent += Offset;
+		SolveArm(Pose, LeftUpperArm, LeftLowerArm, LeftHand, TargetComponent, LeftElbowDirection,
+			FQuat::Identity, LeftHandIKAlpha, 0.0f, Delta);
+	}
+
+	if (GGripTrace > 0)
+	{
+		// Whether the hand can get there at all, which no amount of seating or
+		// curling can change. Upper plus lower arm is the whole reach; a target
+		// beyond it leaves the solver straightening the arm and stopping short,
+		// and every clearance downstream then describes a hand that was never
+		// going to arrive.
+		const FVector Shoulder =
+			Pose.GetComponentSpaceTransform(LeftUpperArm.GetCompactPoseIndex(Container)).GetLocation();
+		const FVector Elbow =
+			Pose.GetComponentSpaceTransform(LeftLowerArm.GetCompactPoseIndex(Container)).GetLocation();
+		const FVector Wrist = Pose.GetComponentSpaceTransform(HandBone).GetLocation();
+		const float ArmLength = (Elbow - Shoulder).Size() + (Wrist - Elbow).Size();
+		UE_LOG(LogKBVEFootIK, Display,
+			TEXT("grip: shoulder->target %.1f cm, arm %.1f cm, wrist ended %.1f cm from target, along %.1f"),
+			(TargetComponent - Shoulder).Size(), ArmLength, (Wrist - TargetComponent).Size(), AlongBarrel);
+	}
+
+	// Fingers come from the authored pose when there is one, and the search
+	// below is not run at all. It exists for a weapon with no pose yet: closing
+	// each finger to contact does put them on the wood, but contact is a much
+	// weaker condition than a grip -- it says nothing about wrist angle, how
+	// curl distributes across the joints, or what the thumb opposes -- so it
+	// yields to a pose whenever one is available.
+	if (bGripPoseSampled && GripPoseLocals.Num() == LeftFingers.Num())
+	{
+		return;
+	}
+
+	// Close each finger until it touches the wood. The measure is the closest
+	// approach of the whole finger, not the fingertip alone, so a finger stops
+	// on the fore-end instead of curling through it to put its tip on the far
+	// side -- which is how a solver produces a fist inside a barrel.
+	const float MaxDegrees = FMath::Max(MaxGripCurlDegrees, 0.0f);
+	const float Alpha = FMath::Clamp(LeftHandIKAlpha, 0.0f, 1.0f);
+
+	OutCurlDegrees.Init(0.0f, ChainCount);
+
+	// Which way this hand closes, decided once for the whole hand. Solving each
+	// finger for its own best direction satisfies the distances and produces a
+	// hand with the index curling one way and the pinky the other, which is not
+	// a pose a hand can hold. Fingers close together or the answer is nonsense,
+	// however good its numbers look.
+	float ClosingSign = 1.0f;
+	{
+		float Best = TNumericLimits<float>::Max();
+		for (const float Candidate : { 1.0f, -1.0f })
+		{
+			float Total = 0.0f;
+			int32 Counted = 0;
+			for (int32 Index = 0; Index < FMath::Min(4, ChainCount); ++Index)
+			{
+				if (!ChainValid(Index))
+				{
+					continue;
+				}
+				TArray<FVector, TInlineAllocator<8>> Closed;
+				ChainPoints(Index, Candidate * MaxDegrees, Closed);
+				if (Closed.Num() == 0)
+				{
+					continue;
+				}
+				Total += FMath::Abs(SectionClearance(Closed.Last(), AxisOrigin, AxisDir, AxisY, AxisZ,
+					ForeEndHalfWidth, ForeEndHalfHeight));
+				++Counted;
+			}
+			if (Counted > 0 && Total / Counted < Best)
+			{
+				Best = Total / Counted;
+				ClosingSign = Candidate;
+			}
+		}
+	}
+
+	for (int32 Index = 0; Index < ChainCount; ++Index)
+	{
+		if (!ChainValid(Index))
+		{
+			continue;
+		}
+
+		// Closest approach of the whole finger to the fore-end, with a curl of
+		// the given size added to every joint. Joint origins from the second one
+		// on -- the knuckle is where the wrist solve put it and testing it would
+		// report contact before the finger has closed at all -- plus midpoints,
+		// because a phalanx is a segment whose ends can straddle the section
+		// while its middle is buried in it.
+		auto Clearance = [&](float Degrees) -> float
+		{
+			TArray<FVector, TInlineAllocator<8>> Local;
+			ChainPoints(Index, Degrees, Local);
+			if (Local.Num() == 0)
+			{
+				return 0.0f;
+			}
+
+			float Closest = TNumericLimits<float>::Max();
+			for (int32 Point = 1; Point < Local.Num(); ++Point)
+			{
+				Closest = FMath::Min(Closest, SectionClearance(Local[Point], AxisOrigin, AxisDir,
+					AxisY, AxisZ, ForeEndHalfWidth, ForeEndHalfHeight));
+				Closest = FMath::Min(Closest,
+					SectionClearance((Local[Point] + Local[Point - 1]) * 0.5f, AxisOrigin, AxisDir,
+						AxisY, AxisZ, ForeEndHalfWidth, ForeEndHalfHeight));
+			}
+			return Closest;
+		};
+
+		// The thumb opposes the fingers rather than joining them: it does not
+		// share their bend axis, so it travels the other way and less far.
+		const float Limit = MaxDegrees * (Index >= 4 ? FMath::Abs(ThumbCurlScale) : 1.0f);
+		float Degrees = 0.0f;
+
+		if (!FMath::IsNearlyZero(Limit))
+		{
+			// Only how far, never which way -- the direction belongs to the hand.
+			const float Toward = FMath::Abs(Limit) * ClosingSign * (Index >= 4 ? -1.0f : 1.0f);
+			const float Rest = Clearance(0.0f);
+
+			if (Clearance(Toward) * Rest > 0.0f)
+			{
+				// No contact anywhere in range: close as far as the joint may,
+				// which at least shuts the gap rather than leaving it open.
+				Degrees = FMath::Abs(Clearance(Toward)) < FMath::Abs(Rest) ? Toward : 0.0f;
+			}
+			else
+			{
+				// Clearance changes sign along the way, so contact is a root and
+				// a bisection finds it. Twelve halvings of eighty degrees is a
+				// fifth of a degree, finer than the mesh can show.
+				float Low = 0.0f;
+				float High = Toward;
+				const bool bLowOutside = Rest > 0.0f;
+				for (int32 Step = 0; Step < 12; ++Step)
+				{
+					const float Mid = (Low + High) * 0.5f;
+					((Clearance(Mid) > 0.0f) == bLowOutside ? Low : High) = Mid;
+				}
+				Degrees = Low;
+			}
+		}
+
+		OutCurlDegrees[Index] = Degrees * Alpha;
+
+		if (GGripTrace > 0)
+		{
+			UE_LOG(LogKBVEFootIK, Display,
+				TEXT("grip: chain %d closed %+.1f deg, clearance %.2f cm, section %.1fx%.1f at z%.1f, wrist %.1f deg, palm dot %.2f"),
+				Index, Degrees, Clearance(Degrees), ForeEndHalfWidth, ForeEndHalfHeight,
+				ForeEndCentreHeight, GripBoreAngleDegrees, (Delta * Palm) | -Radial);
+		}
+	}
+}
+
 bool FKBVEFootIKProxy::Evaluate(FPoseContext& Output)
 {
 	if (BlendAlpha >= 1.0f)
@@ -192,6 +881,11 @@ bool FKBVEFootIKProxy::Evaluate(FPoseContext& Output)
 	FCSPose<FCompactPose> Pose;
 	Pose.InitPose(Output.Pose);
 
+	// Filled by the grip solve and applied after the pose is back in local
+	// space. The solve decides the angles; a local rotation applies them, which
+	// is the one thing that cannot dislocate a finger.
+	TArray<float> GripCurl;
+
 	// Weighted by how high the clip has lifted each foot, measured on the pose
 	// before any correction is applied so it cannot feed back on itself. A foot
 	// in stance takes the full solve; a foot swinging forward is left alone.
@@ -213,7 +907,136 @@ bool FKBVEFootIKProxy::Evaluate(FPoseContext& Output)
 	SolveLeg(Pose, RightThigh, RightCalf, RightFoot,
 		RightFootCorrection * RightWeight - FVector(0.0f, 0.0f, PelvisOffset), RightFootNormal);
 
+	// Arms last, and off the chest as it actually ended up: the spine lean and
+	// the landing dip have already moved it, so a weapon placed from the chest
+	// rides those instead of floating clear of them.
+	if (WeaponIKAlpha > KINDA_SMALL_NUMBER && Chest.IsValidToEvaluate())
+	{
+		const FTransform ChestTransform =
+			Pose.GetComponentSpaceTransform(Chest.GetCompactPoseIndex(Container));
+		const FTransform WeaponTransform = WeaponRelativeToChest * ChestTransform;
+
+		SolveArm(Pose, RightUpperArm, RightLowerArm, RightHand,
+			WeaponTransform.TransformPosition(RightGripLocal), RightElbowDirection,
+			WeaponTransform.GetRotation() * RightHandGripRotation.Quaternion(), WeaponIKAlpha, WeaponIKAlpha);
+
+		SolveArm(Pose, LeftUpperArm, LeftLowerArm, LeftHand,
+			WeaponTransform.TransformPosition(LeftGripLocal), LeftElbowDirection,
+			WeaponTransform.GetRotation() * LeftHandGripRotation.Quaternion(), WeaponIKAlpha, WeaponIKAlpha);
+	}
+
+	// Support hand onto the weapon the clip is already holding. The weapon is
+	// found from the hand it hangs off, so this stays correct through every clip
+	// without the solver needing to know which one is playing.
+	if (LeftHandIKAlpha > KINDA_SMALL_NUMBER && WeaponHand.IsValidToEvaluate()
+		&& LeftUpperArm.IsValidToEvaluate())
+	{
+		const FTransform HandTransform =
+			Pose.GetComponentSpaceTransform(WeaponHand.GetCompactPoseIndex(Container));
+		const FTransform WeaponTransform = WeaponRelativeToHand * HandTransform;
+
+		if (bGripContactSolve)
+		{
+			SampleGripPose(Container);
+			SolveGrip(Pose, WeaponTransform, GripCurl);
+		}
+		else
+		{
+			// Rolled about the bore, not about the mesh's own X axis: the barrel
+			// sits above that axis, so rolling about it would swing the hand off
+			// the weapon instead of around it.
+			const FVector BoreOrigin(LeftHandTargetLocal.X, 0.0f, WeaponBoreHeight);
+			const FQuat Roll(FVector::ForwardVector, FMath::DegreesToRadians(LeftHandRollDegrees));
+			const FVector RolledLocal = BoreOrigin + Roll.RotateVector(LeftHandTargetLocal - BoreOrigin);
+
+			// The same turn, expressed where the pose lives, so the hand rotates
+			// with the position rather than sliding round while still facing the
+			// old way.
+			const FQuat RollInComponent =
+				WeaponTransform.GetRotation() * Roll * WeaponTransform.GetRotation().Inverse();
+
+			// Rotation alpha zero: the clip's wrist orientation is kept and only
+			// rolled, so there is no absolute rotation to blend toward.
+			SolveArm(Pose, LeftUpperArm, LeftLowerArm, LeftHand,
+				WeaponTransform.TransformPosition(RolledLocal), LeftElbowDirection,
+				FQuat::Identity, LeftHandIKAlpha, 0.0f, RollInComponent);
+		}
+	}
+
 	FCSPose<FCompactPose>::ConvertComponentPosesToLocalPoses(MoveTemp(Pose), Output.Pose);
+
+	// After the conversion back, because a finger curl is a local rotation and
+	// nothing downstream reads it in component space.
+	if (WeaponIKAlpha > KINDA_SMALL_NUMBER)
+	{
+		// The left hand is skipped once its grip is solved: a constant curl added
+		// on top of a contact solve closes the fingers past the wood it just
+		// found.
+		const bool bLeftSolved = bGripContactSolve && LeftHandIKAlpha > KINDA_SMALL_NUMBER
+			&& WeaponHand.IsValidToEvaluate();
+		if (!bLeftSolved)
+		{
+			PoseFingers(Output.Pose, LeftFingers, WeaponIKAlpha);
+		}
+		PoseFingers(Output.Pose, RightFingers, WeaponIKAlpha);
+	}
+
+	// The authored pose, written straight onto the fingers. A rotation per joint
+	// like everything else here, so it can be blended out and cannot dislocate
+	// anything -- and it replaces rather than adds, because the pose is the
+	// whole answer for the fingers rather than a correction to the clip's.
+	if (bGripContactSolve && bGripPoseSampled && GripPoseLocals.Num() == LeftFingers.Num()
+		&& LeftHandIKAlpha > KINDA_SMALL_NUMBER)
+	{
+		const float PoseWeight =
+			FMath::Clamp(SupportHandPoseWeight, 0.0f, 1.0f) * FMath::Clamp(LeftHandIKAlpha, 0.0f, 1.0f);
+		for (int32 Index = 0; Index < LeftFingers.Num(); ++Index)
+		{
+			const FBoneReference& Finger = LeftFingers[Index];
+			if (!Finger.IsValidToEvaluate())
+			{
+				continue;
+			}
+			const FCompactPoseBoneIndex BoneIndex = Finger.GetCompactPoseIndex(Container);
+			Output.Pose[BoneIndex].SetRotation(FQuat::Slerp(Output.Pose[BoneIndex].GetRotation(),
+				GripPoseLocals[Index].GetRotation(), PoseWeight).GetNormalized());
+		}
+	}
+
+	// The solved grip, applied the same way the tuned constants were: as a local
+	// rotation per joint, on top of whatever the clip posed. Nothing here moves
+	// a bone to a position -- a finger can only bend about its own axis, so a
+	// wrong angle is a wrong grip rather than a broken hand.
+	const FVector SolvedAxis = FingerCurlAxis.GetSafeNormal();
+	for (int32 Index = 0; Index < GripCurl.Num() && !SolvedAxis.IsNearlyZero(); ++Index)
+	{
+		if (FMath::IsNearlyZero(GripCurl[Index]))
+		{
+			continue;
+		}
+
+		const FQuat Curl(SolvedAxis, FMath::DegreesToRadians(GripCurl[Index]));
+		for (int32 Joint = 0; Joint < FingersPerHand; ++Joint)
+		{
+			const FBoneReference& Finger = LeftFingers[Index * FingersPerHand + Joint];
+			if (!Finger.IsValidToEvaluate())
+			{
+				continue;
+			}
+			const FCompactPoseBoneIndex BoneIndex = Finger.GetCompactPoseIndex(Container);
+			Output.Pose[BoneIndex].SetRotation((Output.Pose[BoneIndex].GetRotation() * Curl).GetNormalized());
+		}
+	}
+
+	// Independent of the procedural hold: this one corrects a clip that already
+	// poses the hand, rather than posing one that is not held at all. Skipped
+	// when the grip is solved to contact, which has already decided every one of
+	// these angles from the weapon itself.
+	if (!bGripContactSolve)
+	{
+		CurlFingers(Output.Pose, LeftFingers, LeftGripCurlDegrees, LeftGripThumbDegrees);
+	}
+
 	return true;
 }
 
@@ -561,6 +1384,105 @@ void UKBVEFootIKAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 			PendingClip ? *PendingClip->GetName() : TEXT("none"),
 			PendingPlayRate, Mover ? Mover->GetVelocity().Size2D() : 0.0f, bAirborne ? 1 : 0);
 		LastLoggedClip = PendingClip;
+	}
+
+	// Weapon hold, blended so raising and lowering the rifle reads as a movement.
+	const float WeaponStep = WeaponBlendTime > KINDA_SMALL_NUMBER
+		? DeltaSeconds / WeaponBlendTime : 1.0f;
+	WeaponAlpha = FMath::Clamp(WeaponAlpha + (bHoldWeapon ? WeaponStep : -WeaponStep), 0.0f, 1.0f);
+
+	Proxy.WeaponIKAlpha = WeaponAlpha;
+	Proxy.WeaponRelativeToChest = WeaponRelativeToChest;
+	Proxy.RightGripLocal = RightGripLocal;
+	Proxy.LeftGripLocal = LeftGripLocal;
+	Proxy.RightElbowDirection = RightElbowDirection;
+	Proxy.LeftElbowDirection = LeftElbowDirection;
+	Proxy.RightHandGripRotation = RightHandGripRotation;
+	Proxy.LeftHandGripRotation = LeftHandGripRotation;
+	Proxy.FingerCurlDegrees = FingerCurlDegrees;
+	Proxy.ThumbCurlDegrees = ThumbCurlDegrees;
+	Proxy.WeaponHand.BoneName = WeaponHandBone;
+	Proxy.WeaponRelativeToHand = WeaponRelativeToHand;
+	Proxy.LeftHandTargetLocal = LeftHandTargetLocal;
+	Proxy.LeftHandRollDegrees = GGripRoll > -999.0f ? GGripRoll : LeftHandRollDegrees;
+	Proxy.WeaponBoreHeight = WeaponBoreHeight;
+	Proxy.LeftHandIKAlpha = bSolveLeftHandToWeapon ? LeftHandIKAlpha : 0.0f;
+	Proxy.LeftGripCurlDegrees = GGripCurl > -999.0f ? GGripCurl : LeftGripCurlDegrees;
+	Proxy.LeftGripThumbDegrees = GGripThumb > -999.0f ? GGripThumb : LeftGripThumbDegrees;
+	Proxy.bGripContactSolve = GGripContact >= 0 ? GGripContact != 0 : bGripContactSolve;
+	Proxy.ForeEndHalfWidth = GGripWidth > -999.0f ? GGripWidth : ForeEndHalfWidth;
+	Proxy.ForeEndHalfHeight = GGripHeight > -999.0f ? GGripHeight : ForeEndHalfHeight;
+	Proxy.ForeEndCentreHeight = GGripCentre > -999.0f ? GGripCentre : ForeEndCentreHeight;
+	Proxy.GripWristOffset = GripWristOffset;
+	Proxy.GripKnuckleClearance = GripKnuckleClearance;
+	Proxy.GripAlongBarrel = GGripAlong > -999.0f ? GGripAlong : GripAlongBarrel;
+	Proxy.GripAlongMin = GripAlongMin;
+	Proxy.GripAlongMax = GripAlongMax;
+	Proxy.GripArmExtension = GGripAlong > -999.0f ? 0.0f : GripArmExtension;
+
+	// The weapon's own numbers win over the fallback defaults. A rifle is
+	// described by its asset; the loose properties are what a rifle without one
+	// falls back to.
+	if (WeaponGrip)
+	{
+		Proxy.ForeEndHalfWidth = WeaponGrip->ForeEndHalfWidth;
+		Proxy.ForeEndHalfHeight = WeaponGrip->ForeEndHalfHeight;
+		Proxy.ForeEndCentreHeight = WeaponGrip->ForeEndCentreHeight;
+		Proxy.GripKnuckleClearance = WeaponGrip->KnuckleClearance;
+		Proxy.GripBoreAngleDegrees = WeaponGrip->GripAngleDegrees;
+		if (GGripAlong <= -999.0f)
+		{
+			Proxy.GripAlongBarrel = WeaponGrip->GripAlongBarrel;
+		}
+		if (Proxy.SupportHandPose != WeaponGrip->SupportHandPose)
+		{
+			Proxy.SupportHandPose = WeaponGrip->SupportHandPose;
+			Proxy.bGripPoseSampled = false;
+		}
+		Proxy.SupportHandPoseTime = WeaponGrip->SupportHandPoseTime;
+		Proxy.SupportHandPoseWeight = WeaponGrip->SupportHandPoseWeight;
+	}
+	Proxy.GripBoreAngleDegrees = GGripBoreAngle > -999.0f ? GGripBoreAngle : LeftGripBoreAngleDegrees;
+	Proxy.FingertipLength = FingertipLength;
+	Proxy.MaxGripCurlDegrees = MaxGripCurlDegrees;
+	Proxy.ThumbCurlScale = ThumbCurlScale;
+	if (GGripAxis >= 0)
+	{
+		static const FVector Axes[3] = { FVector::ForwardVector, FVector::RightVector, FVector::UpVector };
+		Proxy.FingerCurlAxis = Axes[GGripAxis % 3] * (GGripAxis >= 3 ? -1.0f : 1.0f);
+	}
+	else
+	{
+		Proxy.FingerCurlAxis = FingerCurlAxis;
+	}
+	Proxy.Chest.BoneName = ChestBone;
+	Proxy.LeftUpperArm.BoneName = TEXT("upperarm_l");
+	Proxy.LeftLowerArm.BoneName = TEXT("lowerarm_l");
+	Proxy.LeftHand.BoneName = TEXT("hand_l");
+	Proxy.RightUpperArm.BoneName = TEXT("upperarm_r");
+	Proxy.RightLowerArm.BoneName = TEXT("lowerarm_r");
+	Proxy.RightHand.BoneName = TEXT("hand_r");
+
+	// Built once. The names are the UE mannequin's, and every joint of every
+	// finger is listed because a curl applied only to the knuckle leaves the
+	// hand flat with a bent base.
+	if (Proxy.LeftFingers.Num() == 0)
+	{
+		static const TCHAR* Chains[] = { TEXT("index"), TEXT("middle"), TEXT("ring"), TEXT("pinky"), TEXT("thumb") };
+		Proxy.FingersPerHand = 3;
+		for (const TCHAR* Chain : Chains)
+		{
+			for (int32 Joint = 1; Joint <= 3; ++Joint)
+			{
+				FBoneReference Left;
+				Left.BoneName = FName(*FString::Printf(TEXT("%s_0%d_l"), Chain, Joint));
+				Proxy.LeftFingers.Add(Left);
+
+				FBoneReference Right;
+				Right.BoneName = FName(*FString::Printf(TEXT("%s_0%d_r"), Chain, Joint));
+				Proxy.RightFingers.Add(Right);
+			}
+		}
 	}
 
 	Proxy.RequestedClip = PendingClip;

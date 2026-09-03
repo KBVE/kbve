@@ -54,11 +54,23 @@ struct KBVEWORLDCORE_API FKBVEWorldRoadParams
 	 * ground: the corridor is what bounds the work to a fixed cost per edge, and
 	 * the pass is still globally optimal inside it. Widening this is what lets a
 	 * road detour around a hill instead of climbing it.
+	 *
+	 * Cost is quadratic in this and linear in the samples, so it is the one
+	 * number here that is not free to raise.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Road|Routing", meta = (ClampMin = "3", ClampMax = "63"))
 	int32 LateralSlots = 15;
 
-	/** Half-width of the corridor the route may wander inside, in tiles. */
+	/**
+	 * Half-width of the corridor the route may wander inside, in tiles.
+	 *
+	 * Sized against the hills, not the water. Widening it to let a route detour
+	 * around a lake was tried and measured: pruning got worse, not better, for
+	 * twice the routing cost. A wider corridor buys a longer route, and a longer
+	 * route through a world that is a third water meets more water -- it cannot
+	 * help when the two nodes are on opposite shores, because no amount of
+	 * lateral freedom moves the endpoints.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Road|Routing", meta = (ClampMin = "0.0"))
 	float CorridorTiles = 60.0f;
 
@@ -175,6 +187,57 @@ struct KBVEWORLDCORE_API FKBVEWorldRoadParams
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Road|Cut")
 	bool bCutTerrain = true;
 
+	/**
+	 * Cost per world unit the route sits below the water line.
+	 *
+	 * The river weight only knows about channels, so before this the router was
+	 * indifferent to a lake -- it would take the straight line through a hundred
+	 * metres of open water and leave a bridge to sort it out. A third of this
+	 * world is under the water plane by construction, so water has to be a
+	 * barrier the route goes around, and a deck has to be what happens at a
+	 * narrow crossing rather than the network's answer to an inland sea.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Road|Route", meta = (ClampMin = "0.0"))
+	float DepthWeight = 45.0f;
+
+	/**
+	 * Longest crossing worth building, in tiles. An edge that needs a longer one
+	 * is not built at all.
+	 *
+	 * A road network stops at a shore; it does not viaduct across a lake because
+	 * two nodes happened to land either side of one. Without this the routing
+	 * grid put nodes wherever the chunk lattice said, and a quarter-kilometre
+	 * span was the result of a road being asked to exist somewhere no road would.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Road|Bridge", meta = (ClampMin = "1.0"))
+	float MaxBridgeSpanTiles = 100.0f;
+
+	/**
+	 * How much of an edge may be carried on decks before it is not a road.
+	 *
+	 * The per-span cap stops one absurd viaduct; this stops the other shape of
+	 * the same problem, an edge that crosses water five times because the chunk
+	 * lattice ran it down the length of a lake. The router can only detour by the
+	 * width of its corridor, so where the water is wider than that the honest
+	 * answer is that no road goes there.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Road|Bridge", meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float MaxBridgedFraction = 0.5f;
+
+	/**
+	 * How far above the water line the road has to stay to count as dry.
+	 *
+	 * Asked alongside the river mask rather than instead of it. The mask says
+	 * where a channel is, which is not the same question as whether the road is
+	 * under water: a basin in the continent noise that happens to sit below the
+	 * water plane is a pond, carries no channel, and scored zero -- so the router
+	 * drove straight into it and the grading laid a flat submerged shelf across
+	 * the bottom. Depth catches every body of water including the ones the
+	 * channel field never drew.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Road|Bridge", meta = (ClampMin = "0.0"))
+	float BridgeFreeboard = 60.0f;
+
 	/** River mask above which the road is over water and wants a deck instead. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Road|Bridge", meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float BridgeMaskThreshold = 0.1f;
@@ -182,6 +245,40 @@ struct KBVEWORLDCORE_API FKBVEWorldRoadParams
 	/** Extra ground either side of a crossing that the deck reaches back onto. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Road|Bridge", meta = (ClampMin = "0.0"))
 	float BridgeMarginTiles = 3.0f;
+
+	/**
+	 * How far a corridor's grading reaches out past an abutment, over the water.
+	 *
+	 * A corridor is a segment with a rounded end, so a run that stops at a bridge
+	 * still levels a half-corridor's radius of ground beyond where it stopped --
+	 * out over the river the bridge is there to cross. On a crossing shorter than
+	 * a full corridor the caps from the two banks meet in the middle and fill the
+	 * channel completely: the water goes, and the deck, which is drawn at the
+	 * height of the road it joins, ends up buried in the embankment that replaced
+	 * the river.
+	 *
+	 * Sideways reach is unchanged. Only the overshoot past the abutment is pulled
+	 * in, so the bank stays a bank and the cut does not become a causeway.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Road|Bridge", meta = (ClampMin = "1.0"))
+	float BridgeEndReach = 320.0f;
+};
+
+/**
+ * Why an edge that the graph joins ended up with no road on it.
+ *
+ * Reported rather than inferred. Three rules can drop an edge and they fail for
+ * opposite reasons -- one says the water is too wide to bridge, another says the
+ * route crosses it too often -- so a network that has lost most of itself tells
+ * you nothing until you know which rule took it.
+ */
+enum class EKBVEWorldRoadPrune : uint8
+{
+	None,
+	NotJoined,
+	NodeInWater,
+	SpanTooLong,
+	TooMuchDeck,
 };
 
 /** A run of path samples, inclusive of both ends. */
@@ -221,7 +318,8 @@ struct KBVEWORLDCORE_API FKBVEWorldRoadGraph
 	 * same polyline, so nothing has to be cached or replicated.
 	 */
 	static void RouteEdge(const FKBVEWorldRoadParams& Road, const FKBVEWorldHeightfieldParams& Shape,
-		int32 Seed, const FIntPoint& A, const FIntPoint& B, TArray<FVector>& OutWorld);
+		int32 Seed, const FIntPoint& A, const FIntPoint& B, TArray<FVector>& OutWorld,
+		EKBVEWorldRoadPrune* OutPrune = nullptr);
 
 	/**
 	 * Runs of the path that are over the river, widened onto dry ground either
