@@ -260,7 +260,7 @@
 			"uvx ruff@0.16.5 check"
 		],
 		"services/functions/deno/functions/**/*.ts": [
-			"./scripts/deno-fmt.sh"
+			"./tools/lint/deno-fmt.sh"
 		]
 	},
 	"scripts": {

@@ -1,0 +1,63 @@
+{
+	"art_root": "Art",
+	"sets": [
+		{
+			"stem": "T_RockyTerrain02",
+			"pack": "rocky_terrain_02_2k",
+			"displacement": true,
+			"source": "Terrain",
+			"destination": "/Game/Textures/Terrain"
+		},
+		{
+			"stem": "T_GrassMedium02",
+			"pack": "grass_medium_02_2k",
+			"displacement": false,
+			"source": "Terrain"
+		},
+		{
+			"stem": "T_RoadPattern",
+			"pack": "floor_pattern_02_2k",
+			"displacement": true,
+			"source": "World",
+			"destination": "/Game/Textures/World"
+		},
+		{
+			"stem": "T_WoodDeck",
+			"pack": "wood_shutter_2k",
+			"displacement": true,
+			"source": "World",
+			"destination": "/Game/Textures/World"
+		},
+		{
+			"stem": "T_StonePier",
+			"pack": "plaster_stone_wall_02_2k",
+			"displacement": true,
+			"source": "World",
+			"destination": "/Game/Textures/World"
+		}
+	],
+	"terrain_material": {
+		"path": "/Game/Textures/Terrain/M_RareIcon_Terrain",
+		"ground": "T_RockyTerrain02",
+		"road": "T_RoadPattern",
+		"repeat_uu": 512,
+		"road_repeat_uu": 300
+	},
+	"surface_materials": [
+		{
+			"path": "/Game/Textures/World/M_RareIcon_BridgeWood",
+			"stem": "T_WoodDeck"
+		},
+		{
+			"path": "/Game/Textures/World/M_RareIcon_BridgeStone",
+			"stem": "T_StonePier"
+		}
+	],
+	"water_material": {
+		"path": "/Game/Textures/World/M_RareIcon_Water",
+		"tint": [0.008, 0.035, 0.05],
+		"roughness": 0.02,
+		"scattering": [0.004, 0.0016, 0.0012],
+		"absorption": [0.006, 0.003, 0.002]
+	}
+}

@@ -4,13 +4,32 @@ use bevy::prelude::*;
 
 use crate::colony::grid::ColonyGrid;
 
-pub const CAMERA_YAW: f32 = std::f32::consts::FRAC_PI_4;
-pub const CAMERA_PITCH: f32 = 0.9;
+// Top down, not isometric: the camera never yaws, so a tile is a screen-aligned
+// square and grid coordinates map straight onto screen axes.
+pub const CAMERA_YAW: f32 = 0.0;
+
+// Degrees down from the horizon. 90 is straight overhead, where an upright
+// sprite would be edge-on and the billboards lie flat on the ground instead --
+// which is the honest top-down look, and needs top-down sprite art to match.
+// The default keeps a little tilt so a standing sprite still reads as standing.
+const DEFAULT_PITCH_DEGREES: f32 = 68.0;
 
 const CAMERA_DISTANCE: f32 = 200.0;
 const PAN_SPEED: f32 = 18.0;
 const ZOOM_PER_NOTCH: f32 = 1.12;
 const PIXELS_PER_NOTCH: f32 = 12.0;
+
+pub fn camera_pitch() -> f32 {
+    static PITCH: std::sync::OnceLock<f32> = std::sync::OnceLock::new();
+    *PITCH.get_or_init(|| {
+        std::env::var("COLONY_PITCH")
+            .ok()
+            .and_then(|v| v.parse::<f32>().ok())
+            .unwrap_or(DEFAULT_PITCH_DEGREES)
+            .clamp(20.0, 90.0)
+            .to_radians()
+    })
+}
 
 #[derive(Component, Debug, Clone, Copy)]
 pub struct CameraRig {
@@ -27,7 +46,7 @@ impl Default for CameraRig {
     fn default() -> Self {
         Self {
             focus: Vec3::ZERO,
-            zoom: 0.02,
+            zoom: 0.05,
         }
     }
 }
@@ -99,7 +118,7 @@ fn pan_keyboard(keys: Res<ButtonInput<KeyCode>>, time: Res<Time>, mut rigs: Quer
 
     let dir = dir.normalize();
     for mut rig in &mut rigs {
-        let step = PAN_SPEED * time.delta_secs() * (rig.zoom / 0.02);
+        let step = PAN_SPEED * time.delta_secs() * (rig.zoom / 0.05);
         rig.focus += screen_to_world(dir) * step;
     }
 }
@@ -146,7 +165,7 @@ fn zoom_control(mut wheel: MessageReader<MouseWheel>, mut rigs: Query<&mut Camer
 
 fn apply_rig(mut rigs: Query<(&CameraRig, &mut Transform, &mut Projection)>) {
     for (rig, mut transform, mut projection) in &mut rigs {
-        let rotation = Quat::from_euler(EulerRot::YXZ, CAMERA_YAW, -CAMERA_PITCH, 0.0);
+        let rotation = Quat::from_euler(EulerRot::YXZ, CAMERA_YAW, -camera_pitch(), 0.0);
         transform.rotation = rotation;
         transform.translation = rig.focus + rotation * Vec3::new(0.0, 0.0, CAMERA_DISTANCE);
 

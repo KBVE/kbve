@@ -32,6 +32,10 @@ check "a missing PAT is named" "AZURE_PAT is not set" "$out"
 tmp="$(mktemp -d)"
 origin="$tmp/origin"
 git init -q --bare "$origin"
+# The runner's init.defaultBranch decides this bare repo's HEAD, and the work
+# below pushes main. Where they disagree the clone under test resolves HEAD to
+# a ref that does not exist and checks out nothing.
+git -C "$origin" symbolic-ref HEAD refs/heads/main
 work="$tmp/work"
 git clone -q "$origin" "$work" 2>/dev/null
 git -C "$work" config user.email t@t.t

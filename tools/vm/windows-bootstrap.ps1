@@ -1,9 +1,9 @@
-# vm-windows-bootstrap.ps1 — One-shot setup for Windows Server UE5 build VM
+# windows-bootstrap.ps1 — One-shot setup for Windows Server UE5 build VM
 # Run as Administrator in PowerShell:
-#   irm https://raw.githubusercontent.com/KBVE/kbve/main/scripts/vm-windows-bootstrap.ps1 | iex
+#   irm https://raw.githubusercontent.com/KBVE/kbve/main/tools/vm/windows-bootstrap.ps1 | iex
 #
 # Or locally:
-#   .\scripts\vm-windows-bootstrap.ps1
+#   .\tools\vm\windows-bootstrap.ps1
 #
 # What it installs:
 #   - Git, Python 3, .NET SDK 8.0, DirectX Runtime

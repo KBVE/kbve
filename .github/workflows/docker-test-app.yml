@@ -111,7 +111,7 @@ jobs:
                     case "$TGT" in
                       *.json)   jq --arg v "$VER" '.version = $v' "$TGT" > "${TGT}.tmp" && mv "${TGT}.tmp" "$TGT" ;;
                       *.csproj) sed -i "s|<Version>[^<]*</Version>|<Version>${VER}</Version>|" "$TGT" ;;
-                      *)        sh scripts/set-toml-version.sh "$TGT" "$VER" ;;
+                      *)        sh tools/release/set-toml-version.sh "$TGT" "$VER" ;;
                     esac
                     echo "Synced version ${VER} → ${TGT}"
                   fi

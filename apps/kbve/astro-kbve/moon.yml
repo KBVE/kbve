@@ -6,8 +6,12 @@ tags: ['astro', 'playwright', 'vitest']
 
 tasks:
     proto:
-        script: 'buf generate packages/data/proto --template apps/kbve/astro-kbve/buf.gen.yaml'
-        inputs: ['/packages/data/proto/kbve/*.proto']
+        # buf ships as a node dependency, not a system binary, so this only
+        # resolves when the node toolchain puts node_modules/.bin on PATH.
+        # Without it CI failed with `buf: command not found`.
+        command: 'buf generate packages/data/proto --template apps/kbve/astro-kbve/buf.gen.yaml'
+        toolchains: ['node']
+        inputs: ['/packages/data/proto/kbve/*.proto', 'buf.gen.yaml']
         outputs: ['src/generated/proto']
         options:
             runFromWorkspaceRoot: true
@@ -66,7 +70,9 @@ tasks:
         options:
             cache: false
     proto-lint:
-        script: 'buf lint packages/data/proto'
+        command: 'buf lint packages/data/proto'
+        toolchains: ['node']
+        inputs: ['/packages/data/proto/kbve/*.proto']
         options:
             runFromWorkspaceRoot: true
     proto-clean:

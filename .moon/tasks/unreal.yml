@@ -18,6 +18,7 @@ $schema: 'https://moonrepo.dev/schemas/tasks.json'
 # Optional:
 #   UE_GAME_TARGET / UE_SERVER_TARGET   non-editor targets, if the game has them
 #   UE_WORLD_CONFIG / UE_INPUT_CONFIG   JSON for the scene and keybind builders
+#   UE_TEXTURE_CONFIG                   JSON for the PBR set and material builder
 inheritedBy:
     tag: 'unreal-game'
 
@@ -136,6 +137,22 @@ tasks:
             uv run --project $workspaceRoot/packages/python/kbve
             kbve-unreal-input-assets --project $workspaceRoot/$UE_PROJECT
             --config $workspaceRoot/$UE_INPUT_CONFIG
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
+    # Convert the PBR source sets and import them, rebuilding every material
+    # that samples them. Conversion runs host-side rather than in the editor:
+    # the 4k EXR/PNG source is 94 MB for what ships as 17 MB of 2k PNG, and the
+    # normal map needs its green channel flipped from OpenGL to DirectX
+    # convention before Unreal ever sees it. Skipped entirely when the PNGs are
+    # already present, which is the fresh-clone case.
+    build-textures:
+        deps: ['~:build-editor']
+        command: >-
+            uv run --project $workspaceRoot/packages/python/kbve
+            kbve-unreal-textures --project $workspaceRoot/$UE_PROJECT
+            --config $workspaceRoot/$UE_TEXTURE_CONFIG
         options:
             runFromWorkspaceRoot: true
             cache: false

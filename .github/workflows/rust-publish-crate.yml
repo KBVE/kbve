@@ -62,12 +62,12 @@ jobs:
                     exit 1
                   fi
 
-                  CURRENT=$(sh scripts/set-toml-version.sh --get "$TGT")
+                  CURRENT=$(sh tools/release/set-toml-version.sh --get "$TGT")
                   echo "Source ($SRC): $VER"
                   echo "Target ($TGT): $CURRENT"
 
                   if [ "$CURRENT" != "$VER" ]; then
-                    sh scripts/set-toml-version.sh "$TGT" "$VER"
+                    sh tools/release/set-toml-version.sh "$TGT" "$VER"
                     echo "Patched $TGT: $CURRENT → $VER"
                   else
                     echo "Already at $VER — no patch needed"

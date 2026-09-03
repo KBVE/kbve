@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# check-version-drift.sh — 3-way version drift check for all 27 CI registry items.
+# check-drift.sh — 3-way version drift check for all 27 CI registry items.
 #
 # Compares: source (Cargo.toml/package.json/pyproject.toml/.uplugin)
 #        vs version.toml (last-published marker)
@@ -7,7 +7,7 @@
 #
 # Unreal plugins are not checked against a remote registry (itch.io requires auth).
 #
-# Usage:  ./scripts/check-version-drift.sh [--local]
+# Usage:  ./tools/release/check-drift.sh [--local]
 #   --local   Skip remote registry checks (fast, offline)
 #
 # Exit code 0 = no drift, 1 = drift detected.
