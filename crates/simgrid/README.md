@@ -14,7 +14,7 @@ bevy ECS (headless) + axum WebSocket transport + postcard wire format + Supabase
 
 ## Usage
 
-Host crates own the tokio runtime and Agones lifecycle; simgrid owns the sim + transport. See `apps/agones/cryptothrone/server` for the reference host.
+Host crates own the tokio runtime and Agones lifecycle; simgrid owns the sim + transport. See `apps/cryptothrone/gameserver` for the reference host.
 
 ```rust
 let (snap_tx, _) = broadcast::channel(simgrid::SNAPSHOT_BROADCAST_CAPACITY);

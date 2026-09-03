@@ -9,7 +9,7 @@ Author: research pass over `packages/rust/simgrid`, `apps/agones/{cryptothrone,a
 
 **Verdict: depend on `simgrid`. Do not fork it. Do not run rapier on the server.**
 
-`packages/rust/simgrid` is already a game-agnostic, headless, grid-authoritative multiplayer core — bevy ECS sim loop, axum WebSocket + UDP transport, postcard wire, Supabase JWT admission, AOI interest management, client-prediction reconciliation, seed-derived endless dungeons, and persistence sinks. Two games already consume it as a library through a thin per-game adapter (`apps/agones/cryptothrone/server`, `apps/agones/arpg/server`). herbmail should be the third.
+`packages/rust/simgrid` is already a game-agnostic, headless, grid-authoritative multiplayer core — bevy ECS sim loop, axum WebSocket + UDP transport, postcard wire, Supabase JWT admission, AOI interest management, client-prediction reconciliation, seed-derived endless dungeons, and persistence sinks. Two games already consume it as a library through a thin per-game adapter (`apps/cryptothrone/gameserver`, `apps/agones/arpg/server`). herbmail should be the third.
 
 The recommended architecture is a new binary crate, `herbmail-server`, that:
 
@@ -44,7 +44,7 @@ Two browser clients, authenticated with Supabase JWTs, connected to `herbmail-se
 
 > Headless grid-authoritative multiplayer sim core for KBVE games. bevy ECS (headless) + axum WebSocket transport + postcard wire format + Supabase HS256 JWT admission. No godot, no rapier, no lightyear — collision is tile occupancy, "physics" is integer grid math.
 
-The README's own layout note is out of date (`build_app` now takes a `KindRegistry`, and `ServerState::new` takes an input sender, not a snapshot broadcaster) — read `apps/agones/cryptothrone/server/src/main.rs` as the live reference instead.
+The README's own layout note is out of date (`build_app` now takes a `KindRegistry`, and `ServerState::new` takes an input sender, not a snapshot broadcaster) — read `apps/cryptothrone/gameserver/src/main.rs` as the live reference instead.
 
 Modules relevant to herbmail:
 
@@ -102,7 +102,7 @@ pub trait TokenVerifier: Send + Sync {
 
 > The sim is content/infra-agnostic, so a host (the arpg server) injects a verifier — typically the shared jedi GoTrue + LRU cache — without simgrid taking that dependency.
 
-So a game adapter supplies `SimConfig`, `WalkableMap`, `KindRegistry`, a `TokenVerifier`, and extra bevy systems inserted into a `SimSet` — and nothing else. From `apps/agones/cryptothrone/server/src/main.rs`:
+So a game adapter supplies `SimConfig`, `WalkableMap`, `KindRegistry`, a `TokenVerifier`, and extra bevy systems inserted into a `SimSet` — and nothing else. From `apps/cryptothrone/gameserver/src/main.rs`:
 
 ```rust
 let mut app = build_app(out_tx, input_rx, roster, seed, config, map, registry);
@@ -301,7 +301,7 @@ herbmail-server/
   project.json          # nx targets: build, build-release, run, test, lint, e2e, container
   src/
     main.rs        # ~130 lines, near-identical to cryptothrone-server's main.rs
-    agones.rs      # verbatim copy of apps/agones/cryptothrone/server/src/agones.rs
+    agones.rs      # verbatim copy of apps/cryptothrone/gameserver/src/agones.rs
     auth.rs        # verbatim copy (jedi JWKS accept-both verifier)
     db/            # verbatim copy (pg_cluster + kv_cache, both non-fatal)
     game.rs        # KindRegistry + SimConfig + WalkableMap + spawn systems
@@ -392,7 +392,7 @@ The brief proposes "physics via rapier". The evidence says don't.
 Same discipline `arpg-server` and `@kbve/laser` already use:
 
 - **One canonical algorithm, two transliterations, pinned by parity vectors.** `simgrid/src/heightfield.rs` shows exactly how this repo does it — a `PINNED_BITS` table asserted bit-exactly in Rust and mirrored in `heightAt.spec.ts`. herbmail should do the same for `hashInt`, `sectorSeed`, and a fingerprint of the generated tile grid for a fixed set of `(seed, sx, sy)`.
-- **There is a working precedent for the client half.** `apps/cryptothrone/astro-cryptothrone/src/components/game/systems/floatMotion.ts` is a line-by-line TS port of `float_move.rs` with the constants duplicated (`WALK_SPEED = 3.4`, `MOVE_ACCEL = 18`, `BODY_RADIUS = 0.34`, `MAX_MOVE_STEP = 0.2`) and `stepFloat`/`moveAxis` structurally identical to the Rust. Read it before writing herbmail's equivalent — including its two hard-won details: an immediate flush on the moving→idle **release edge** rather than waiting for the 50 ms send cadence, and an anti-fight guard that skips reconciliation entirely when the body is already moving toward the server position.
+- **There is a working precedent for the client half.** `apps/cryptothrone/web/src/components/game/systems/floatMotion.ts` is a line-by-line TS port of `float_move.rs` with the constants duplicated (`WALK_SPEED = 3.4`, `MOVE_ACCEL = 18`, `BODY_RADIUS = 0.34`, `MAX_MOVE_STEP = 0.2`) and `stepFloat`/`moveAxis` structurally identical to the Rust. Read it before writing herbmail's equivalent — including its two hard-won details: an immediate flush on the moving→idle **release edge** rather than waiting for the 50 ms send cadence, and an anti-fight guard that skips reconciliation entirely when the body is already moving toward the server position.
 - **Correction is smoothed, not snapped.** cryptothrone uses `RECONCILE_LERP = 0.25` per correction with a hard snap only past `RECONCILE_SNAP_DIST = 6` tiles, and seeds the replay with the server's reported velocity (`qvx/qvy`) so unacked inputs reproduce the authoritative coast. Replaying from rest leaves the body trailing. Copy this.
 - **Fixed timestep on both sides.** Server 20 Hz; the client motor must move to a 20 Hz (or 50 Hz, integer multiple) accumulator, with render interpolation on top. This is the only real refactor the client needs.
 - **Reconciliation via `input_ack`.** `EntityDelta` already carries `qx`, `qy`, `qvx`, `qvy` and `input_ack`; `GameClient` already keeps `unackedMoves`. On a snapshot the client snaps its authoritative body to the server position and replays unacked inputs.
@@ -488,12 +488,12 @@ Copy the arpg pattern verbatim.
 
 1. **Crate** at `apps/agones/herbmail/server`, added to root `Cargo.toml` `[workspace] members`.
 2. **`Cargo.workspace.toml`** in the crate dir listing only `apps/agones/herbmail/server`, `packages/rust/simgrid`, `packages/rust/jedi` — this is the slim workspace the Dockerfile's `cargo chef` planner stage copies in as `Cargo.toml`.
-3. **Dockerfile** — copy of `apps/agones/cryptothrone/server/Dockerfile`: `ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder`, cargo-chef planner/deps/builder split, mold linker, sccache with the Valkey backend.
+3. **Dockerfile** — copy of `apps/cryptothrone/gameserver/Dockerfile`: `ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder`, cargo-chef planner/deps/builder split, mold linker, sccache with the Valkey backend.
 4. **`project.json`** — targets `build`, `build-release`, `run`, `test`, `lint`, `container` (`@nx-tools/nx-container:build`, `push: false`, `local`/`production` configurations with a ghcr buildcache), and `e2e` that `dependsOn` `container`, runs the image, polls `/healthz`, then drives it with vitest. Tags `["rust", "game-server", "agones", "herbmail"]`. Note the repo has **two Rust nx styles**: `axum-herbmail` uses `@monodon/rust:{build,test,lint,run}` executors, while the agones game servers use plain `nx:run-commands` wrapping `cargo ... -p <crate>`. Follow the agones style.
 5. **`version.toml`** in the crate dir, and a registration in `.github/ci-dispatch-manifest.json` (`version_toml`, `version_target`, `image`, `deployment_yaml`) alongside the existing `arpg_server` / `cryptothrone_server` / `herbmail` entries. There is also a CI guard for the Dockerfile stub trick: `.github/workflows/ci-cargo-stub-guard.yml`.
 6. **Manifests** at `apps/kube/agones/herbmail/manifests`: `namespace.yaml`, `fleet.yaml` (port 7979/TCP only — see §7 on UDP; `portPolicy: None`, `runAsNonRoot`, `readOnlyRootFilesystem: true`, drop ALL caps), `fleet-autoscaler.yaml` (`Buffer`, `minReplicas: 1, maxReplicas: 1`, with an ArgoCD `ignoreDifferences` on `/spec/replicas` since the Fleet declares `replicas: 0`), `game-service.yaml` (ClusterIP, `sessionAffinity: ClientIP`), `game-httproute.yaml` (`/ws` → game service with `backendRequest: 3600s`, `/` → the static client), `external-secrets.yaml` for `SUPABASE_JWT_SECRET` + `SUPABASE_JWKS_URI`, `game-certificate.yaml`, plus `application.yaml` one level up.
 7. **Agones integration** is just the health loop — copy `src/agones.rs` unchanged: `agones::Sdk::new(None, None)`, `sdk.ready()`, then a 2 s `health_check()` ping, and `sdk.shutdown()` on SIGTERM. It is deliberately non-fatal: on `Err` it logs "running outside Agones (local dev?)" and returns, so local dev needs no sidecar. The `agones = "1.57"` crate is already in the root `[workspace.dependencies]`.
-8. **No allocation path.** One shard, one persistent world, reached by a stable Service. The reason the autoscaler is pinned to 1 is recorded in `apps/kube/agones/cryptothrone/README.md`: *"A Service round-robins; multiple Ready pods would split players across separate worlds."* If herbmail later wants instanced dungeons, `apps/cryptothrone/axum-cryptothrone/src/agones.rs` is the template — `kube::Client::try_default()` + a POST to `/apis/allocation.agones.dev/v1/.../gameserverallocations`, exposed as `POST /api/join`, with `allocator-rbac.yaml` granting `create` on `gameserverallocations`. A richer version with retries and a circuit breaker lives in `apps/rows/src/agones/`. Note that `herbmail-sa` currently sets `automountServiceAccountToken: false`, so an allocator would need that flipped plus RBAC.
+8. **No allocation path.** One shard, one persistent world, reached by a stable Service. The reason the autoscaler is pinned to 1 is recorded in `apps/kube/agones/cryptothrone/README.md`: *"A Service round-robins; multiple Ready pods would split players across separate worlds."* If herbmail later wants instanced dungeons, `apps/cryptothrone/api/src/agones.rs` is the template — `kube::Client::try_default()` + a POST to `/apis/allocation.agones.dev/v1/.../gameserverallocations`, exposed as `POST /api/join`, with `allocator-rbac.yaml` granting `create` on `gameserverallocations`. A richer version with retries and a circuit breaker lives in `apps/rows/src/agones/`. Note that `herbmail-sa` currently sets `automountServiceAccountToken: false`, so an allocator would need that flipped plus RBAC.
 9. **Versioning** is MDX-driven in this repo; the Fleet image tag tracks the crate version that the release pipeline publishes. Nothing in this design touches version files.
 10. **The Dockerfile must explicitly `COPY` the codegen blobs** it `include_bytes!`s, before `cargo build` — see the corresponding lines in arpg's Dockerfile for itemdb/mapdb/spelldb/npcdb.
 
@@ -528,7 +528,7 @@ Stand up `herbmail-server` with `SimConfig`, a `KindRegistry` containing only `P
 
 **M8 — Deploy.** Fleet, autoscaler pinned to 1, ClusterIP Service, HTTPRoute, external secrets, ArgoCD app, `version.toml` + `ci-dispatch-manifest.json` registration. No UDP Service — the client is a browser (§7).
 
-Auth plumbing (getting a Supabase access token from `astro-herbmail`'s session into `GameClient`) is a prerequisite for M2 and is not currently anywhere in `herbmail-game`. `apps/cryptothrone/astro-cryptothrone/src/components/game/ReactGameGate.tsx` is the template: `initSupa()` → `authBridge.getSession()` → `usernameFromToken(accessToken)` → gate on a missing `kbve_username` → hand `{ jwt, username, wsUrl }` to the client.
+Auth plumbing (getting a Supabase access token from `astro-herbmail`'s session into `GameClient`) is a prerequisite for M2 and is not currently anywhere in `herbmail-game`. `apps/cryptothrone/web/src/components/game/ReactGameGate.tsx` is the template: `initSupa()` → `authBridge.getSession()` → `usernameFromToken(accessToken)` → gate on a missing `kbve_username` → hand `{ jwt, username, wsUrl }` to the client.
 
 ---
 

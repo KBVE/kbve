@@ -8,7 +8,7 @@ import { resolve } from 'node:path';
 // Discord OAuth handshake first (src/embed/discord.tsx). Main-thread only — the
 // Activity iframe has no SharedWorkers (the game already imports the lean
 // @kbve/astro/ui, so no droid workers are pulled in).
-// Output: apps/cryptothrone/astro-cryptothrone/public/discord/discord.js
+// Output: apps/cryptothrone/web/public/discord/discord.js
 const here = fileURLToPath(new URL('.', import.meta.url));
 const pkg = (p: string) => resolve(here, '../../../packages', p);
 

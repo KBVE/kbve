@@ -179,8 +179,8 @@ export const CI_PROJECTS: CiProject[] = ProjectArraySchema.parse([
 		test_framework: 'rust',
 		description:
 			'CryptoThrone authoritative grid game server (axum + simgrid bevy sim)',
-		source_path: 'apps/agones/cryptothrone/server',
-		version_toml: 'apps/agones/cryptothrone/server/version.toml',
+		source_path: 'apps/cryptothrone/gameserver',
+		version_toml: 'apps/cryptothrone/gameserver/version.toml',
 		runner: 'arc-runner-set',
 		image: 'kbve/cryptothrone-server',
 		author: 'h0lybyte',

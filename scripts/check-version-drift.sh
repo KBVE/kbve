@@ -205,7 +205,7 @@ check_item "irc-gateway"   docker   "apps/irc/irc-gateway/Cargo.toml"           
 check_item "discordsh"     docker   "apps/discordsh/axum-discordsh/Cargo.toml"     cargo  "apps/discordsh/version.toml"       "ghcr"         "kbve/discordsh"
 check_item "mc"            docker   "apps/mc/plugins/kbve-mc-plugin/Cargo.toml"    cargo  "apps/mc/version.toml"              "ghcr"         "kbve/mc"
 check_item "edge"          docker   "services/functions/deno/version.toml"                  toml   "services/functions/deno/version.toml"       "ghcr"         "kbve/edge"
-check_item "cryptothrone"  docker   "apps/cryptothrone/axum-cryptothrone/Cargo.toml" cargo "apps/cryptothrone/version.toml"    "ghcr"         "kbve/cryptothrone"
+check_item "cryptothrone"  docker   "apps/cryptothrone/api/Cargo.toml" cargo "apps/cryptothrone/version.toml"    "ghcr"         "kbve/cryptothrone"
 check_item "kilobase"      docker   ""                                             cargo  ""                                  ""             ""
 
 echo ""
