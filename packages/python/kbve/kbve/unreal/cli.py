@@ -7,6 +7,7 @@ from pathlib import Path
 
 from .commandlet import run_editor_script
 from .process import build_target, launch_editor, quit_editor, sample_perf
+from .textures import ingest
 
 
 def _parse(argv, description):
@@ -32,6 +33,32 @@ def input_assets_main(argv: list[str] | None = None) -> int:
 
 def world_map_main(argv: list[str] | None = None) -> int:
     return _run(argv or sys.argv[1:], "world_map", "Populate an Unreal level from a JSON description.")
+
+
+def surface_textures_main(argv: list[str] | None = None) -> int:
+    """Convert the source sets, then import them and rebuild their materials.
+
+    One command rather than two, because the conversion is the import's
+    precondition and the two used to be separate files with separate copies of
+    the set list.
+    """
+    parser = argparse.ArgumentParser(description="Import PBR texture sets and build their materials.")
+    parser.add_argument("--project", required=True, type=Path, help="path to the .uproject")
+    parser.add_argument("--config", required=True, type=Path, help="path to the JSON description")
+    parser.add_argument("--engine-root", type=Path, default=None, help="override the engine install")
+    parser.add_argument("--source", type=Path, default=None, help="directory holding the unpacked source sets")
+    parser.add_argument("--resolution", type=int, default=2048)
+    args = parser.parse_args(argv or sys.argv[1:])
+
+    if not args.config.is_file():
+        print(f"error: no config at {args.config}", file=sys.stderr)
+        return 1
+    config = json.loads(args.config.read_text())
+
+    code = ingest(args.project.resolve(), config, args.source, args.resolution)
+    if code != 0:
+        return code
+    return run_editor_script(args.project, "surface_textures", config, args.engine_root)
 
 
 def _project_arg(description):
