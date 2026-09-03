@@ -6,71 +6,86 @@ stack: 'systems'
 tags: ['proto']
 
 owners:
-  defaultOwner: '@h0lybyte'
-  # Schema changes fan out to every consumer and are breaking by default.
-  paths:
-    # The shared layers are imported by every domain: a change here is a
-    # change to all of them.
-    'kbve/type/': ['@h0lybyte']
-    'kbve/common/': ['@h0lybyte']
-    'buf.yaml': ['@h0lybyte']
-    'buf.gen.yaml': ['@h0lybyte']
+    defaultOwner: '@h0lybyte'
+    # Schema changes fan out to every consumer and are breaking by default.
+    paths:
+        # The shared layers are imported by every domain: a change here is a
+        # change to all of them.
+        'kbve/type/': ['@h0lybyte']
+        'kbve/common/': ['@h0lybyte']
+        'buf.yaml': ['@h0lybyte']
+        'buf.gen.yaml': ['@h0lybyte']
 
 tasks:
-  # Named build so '^:build' from a consumer pulls generation in.
-  #
-  # --clean, because generation only ever writes. Deleting a .proto leaves its
-  # generated code behind, and stale output does not announce itself: it
-  # compiles, it imports, and it offers a type the schema no longer defines
-  # until something downstream fails on a name nobody can find in the module.
-  build:
-    command: 'buf generate --clean'
-    toolchains: ['node']
-    inputs:
-      - 'kbve/**/*.proto'
-      - 'buf.gen.yaml'
-      - 'buf.yaml'
-    outputs:
-      - 'gen/**/*'
+    # Named build so '^:build' from a consumer pulls generation in.
+    #
+    # --clean, because generation only ever writes. Deleting a .proto leaves its
+    # generated code behind, and stale output does not announce itself: it
+    # compiles, it imports, and it offers a type the schema no longer defines
+    # until something downstream fails on a name nobody can find in the module.
+    build:
+        command: 'buf generate --clean'
+        toolchains: ['node']
+        inputs:
+            - 'kbve/**/*.proto'
+            - 'buf.gen.yaml'
+            - 'buf.yaml'
+        outputs:
+            - 'gen/**/*'
 
-  # Runs in the moon graph rather than in a workflow: it needs no secrets and
-  # no toolchain buf does not already bring, so a path filter in YAML would
-  # only be restating the inputs below.
-  verify-gen:
-    command: 'bash tools/verify-gen.sh'
-    toolchains: ['node']
-    deps: ['~:build']
-    inputs:
-      - 'kbve/**/*.proto'
-      - 'buf.gen.yaml'
-      - 'tools/verify-gen.sh'
+    # Runs in the moon graph rather than in a workflow: it needs no secrets and
+    # no toolchain buf does not already bring, so a path filter in YAML would
+    # only be restating the inputs below.
+    verify-gen:
+        command: 'bash tools/verify-gen.sh'
+        toolchains: ['node']
+        deps: ['~:build']
+        inputs:
+            - 'kbve/**/*.proto'
+            - 'buf.gen.yaml'
+            - 'tools/verify-gen.sh'
 
-  lint:
-    command: 'buf lint'
-    toolchains: ['node']
-    inputs: ['kbve/**/*.proto', 'buf.yaml']
+    # CI runs `moon ci ':lint' ':test'`, so a task named anything else never
+    # executes. format, verify-gen and breaking were all named something else and
+    # none of them had ever run -- including the breaking gate, which is the one
+    # that catches a renumbered field before it decodes into the wrong one. They
+    # hang off lint rather than being renamed so each stays runnable on its own,
+    # and each carries its own inputs, so a change that touches no schema pays
+    # nothing.
+    lint:
+        command: 'buf lint'
+        toolchains: ['node']
+        deps: ['~:format', '~:verify-gen', '~:breaking']
+        inputs: ['kbve/**/*.proto', 'buf.yaml']
 
-  format:
-    command: 'buf format --diff --exit-code'
-    toolchains: ['node']
-    inputs: ['kbve/**/*.proto']
+    format:
+        command: 'buf format --diff --exit-code'
+        toolchains: ['node']
+        inputs: ['kbve/**/*.proto']
 
-  # Every published schema is a promise. This rejects a change that would
-  # break a consumer already pinned to the module: a deleted field, a retyped
-  # field, a renumbered one.
-  #
-  # Migrating a new domain in does not trip it. The comparison is against this
-  # module's own history, so bringing osrs or the infra protos across adds
-  # files and adds messages -- the reshaping happens on the way in, against a
-  # source this module has never contained. What it does catch is reshaping a
-  # domain already landed here, which is exactly the change that should cost a
-  # deliberate decision.
-  #
-  # The ref resolves from the repository root with the module as a subdir; the
-  # bare '.git' form works only when the module is its own repository, which it
-  # stopped being when it moved into the monorepo. It needs the full clone that
-  # protobuf-ci.yml already checks out with fetch-depth: 0.
-  breaking:
-    command: 'buf breaking --against ../../.git#branch=origin/dev,subdir=packages/proto'
-    toolchains: ['node']
-    inputs: ['kbve/**/*.proto', 'buf.yaml']
+    # Every published schema is a promise. This rejects a change that would
+    # break a consumer already pinned to the module: a deleted field, a retyped
+    # field, a renumbered one.
+    #
+    # Migrating a new domain in does not trip it. The comparison is against this
+    # module's own history, so bringing osrs or the infra protos across adds
+    # files and adds messages -- the reshaping happens on the way in, against a
+    # source this module has never contained. What it does catch is reshaping a
+    # domain already landed here, which is exactly the change that should cost a
+    # deliberate decision.
+    #
+    # The ref resolves from the repository root with the module as a subdir; the
+    # bare '.git' form works only when the module is its own repository, which it
+    # stopped being when it moved into the monorepo. It needs the full clone that
+    # protobuf-ci.yml already checks out with fetch-depth: 0.
+    breaking:
+        command: 'buf breaking --against ../../.git#branch=origin/dev,subdir=packages/proto'
+        toolchains: ['node']
+        # buf clones the repository to read the comparison ref, and a plain clone
+        # runs the LFS smudge filter over every pointer in it. That fails on game
+        # assets this check has no interest in -- a 404 on an unreal .umap took the
+        # whole task down with `exit status 128`, which reads as a schema failure
+        # and is not one. Pointers are all the comparison needs.
+        env:
+            GIT_LFS_SKIP_SMUDGE: 'true'
+        inputs: ['kbve/**/*.proto', 'buf.yaml']
