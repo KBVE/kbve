@@ -1,199 +1,156 @@
-# KBVE
+<div align="center">
 
-![Discord](https://img.shields.io/discord/342732838598082562?logo=discord)
-[![PyPI - KBVE Version](https://img.shields.io/pypi/v/kbve?label=kbve%20pypi&logo=python)](https://pypi.org/project/kbve/)
-[![PyPI - Fudster Version](https://img.shields.io/pypi/v/fudster?label=fudster%20pypi&logo=python)](https://pypi.org/project/fudster/)
-[![Crates.io ERust Version](https://img.shields.io/crates/v/erust?label=erust%20crates.io&logo=rust)](https://crates.io/crates/erust)
-[![Crates.io KBVE Version](https://img.shields.io/crates/v/kbve?label=kbve%20crates.io&logo=rust)](https://crates.io/crates/kbve)
-[![Crates.io Jedi Version](https://img.shields.io/crates/v/jedi?label=jedi%20crates.io&logo=rust)](https://crates.io/crates/jedi)
-[![Crates.io Holy Version](https://img.shields.io/crates/v/holy?label=holy%20crates.io&logo=rust)](https://crates.io/crates/holy)
-[![NPM Laser](https://img.shields.io/npm/v/%40kbve%2Flaser?label=laser%20npmi&logo=nodedotjs)](https://www.npmjs.com/package/@kbve/laser)
-[![NPM Devops](https://img.shields.io/npm/v/%40kbve%2Fdevops?label=devops%20npmi&logo=nodedotjs)](https://www.npmjs.com/package/@kbve/devops)
+<a href="https://kbve.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/KBVE/kbve/main/services/cdn/assets/readme/logo.svg" width="180" alt="KBVE"></a>
 
-<center>
-<a alt="KBVE Logo" href="https://kbve.com/" target="_blank" rel="noreferrer"><img src="https://kbve.com/assets/images/brand/letter_logo.webp" width="200"></a>
-</center>
+# KBVE Monorepo
+
+Games, libraries, services and memes — one repo, one build graph.
+
+[![Discord](https://img.shields.io/discord/342732838598082562?logo=discord&label=discord)](https://kbve.com/discord/)
+[![moon](https://img.shields.io/badge/built%20with-moon-6F53F3?logo=moonrepo)](https://moonrepo.dev/)
+
+<img src="https://raw.githubusercontent.com/KBVE/kbve/main/services/cdn/assets/readme/hero.webp" width="820" alt="KBVE">
+
+</div>
 
 ---
 
 ## What is KBVE?
 
-KBVE is a collective that builds different programs, libraries, games and memes!
-This monorepo is the heart of all our applications, making it easier to manage while providing an experimental playground for pipelines.
-The core of this Monorepo is [moon](https://moonrepo.dev/), but do not fear! This is easy once you get the hang of it!
+KBVE is a collective that builds programs, libraries, games and memes. This monorepo is where all of it lives: a
+dozen web apps, a Kubernetes fleet, Rust crates, Unreal and Unity plugins, Godot and Bevy games, and the CI that
+ships them.
+
+The build graph is [moon](https://moonrepo.dev/). Every project declares its own tasks, and `moon` works out what a
+change affects — you rarely need to know more than `moon run <project>:<task>`.
 
 ---
 
-## Table of Libraries & Apps
+## Quick start
 
-| C#                                                                                 | R     | A        | P       | @Apps                                 |
-| ---------------------------------------------------------------------------------- | ----- | -------- | ------- | ------------------------------------- |
-| [kilonet](https://github.com/KBVE/kbve/tree/main/packages/unity/kilonet)           | erust | astropad | kbve    | [kbve.com](https://kbve.com/)         |
-| [MMExtensions](https://github.com/KBVE/kbve/tree/main/packages/unity/mmextensions) | jedi  |          | fudster |                                       |
-|                                                                                    | holy  |          |         | [herbmail.com](https://herbmail.com/) |
-|                                                                                    | kbve  |          |         |                                       |
+Requires Linux, macOS or WSL. Direct Windows is not supported.
 
----
+Toolchain versions are pinned in [`.prototools`](./.prototools) — Node 24, pnpm 11, moon 2.5, Rust 1.98, uv 0.11.
+[proto](https://moonrepo.dev/proto) installs all of them for you.
 
-## C#RAP STACK
+```bash
+git clone https://github.com/KBVE/kbve.git
+cd kbve
+pnpm install
 
-> cRap , pronounced, Ceee-Rap. 💩 ... uhh wait I meant to say carp. 🐟
+moon run astro-kbve:dev        # kbve.com dev server
+moon run astro-herbmail:dev    # herbmail.com dev server
+```
 
-- C#
-    - [saber](https://github.com/KBVE/kbve/tree/main/apps/saber)
-        - Unity | v2022.3.12f1
-            - `dev` has a playable build on [Itch.io - Saber Dev](https://kbve.itch.io/dev-saber)
-                - The monorepo builds and ships the `dev`-branch build to Itch.io
-            - TODO: Interoptopus for rust bindings.
-        - Blazor
-            - WIP: Waiting on Net 8.0 integration.
-        - Steam Pipeline:
-            - TODO: Building Pipeline after adding a new `beta` branch to the CI/CD pipeline.
+Useful workspace tasks:
 
-    - [pandaplayground](https://github.com/KBVE/kbve/tree/main/apps/kbve.com/public/data/c/graveyard/panda)
-        - Generic `C` playground
-        - Extremely WIP with submodules removed by default.
+```bash
+moon check --all               # lint + test everything the graph knows about
+moon run root:stats            # line counts across the tree
+moon query projects            # what is in the graph
+```
 
-- R for Rust
-    - [kbve](https://crates.io/creates/kbve)
-        - Axum
-            - Prebuilt Axum routes for the KBVE backend.
-        - Diesel
-            - Database ORM for managing the types.
-
-    - [erust](https://crates.io/crates/erust) | v0.1 dev.
-        - Egui
-            - A components library that extends out `egui` & `eframe`.
-        - Rust [Crates.io Package Source](https://github.com/KBVE/kbve/tree/main/packages/erust)
-
-- A for Astro
-    - [AstroVE](https://github.com/KBVE/kbve/tree/main/packages/astro-ve/)
-        - Astro Components Library
-        - TODO: NPM Release
-        - React
-            - TODO: Migrate out additional React Components.
-        - Svelte
-            - TODO: Refactor the Svelte Components.
-
-    - [KhashVault](https://github.com/KBVE/kbve/tree/main/packages/khashvault/)
-        - Typescript JS Library
-        - TODO: `engine.ts` - Integrating Axum (`kbve`) backend with frontend libraries.
-        - TODO: NPM Release
-
-    - React - SKIP
-    - Svelte - SKIP
-    - NAPI
-        - Rust Bindings
-
-- P for Python
-    - This part of the stack is under massive development, so we advise to skip this until we get the bindings sorted.
-    - `Atlas` under [kbve pip package](https://pypi.org/project/kbve/)
-        - TODO: Full `atlas` refactor with `autogen` and `taskweaver`.
-
-    - Pyo3
-        - Rust Bindings
-    - Interoptopus
-        - Rust Bindings
+> CI runs `moon ci ':lint' ':test'` — never a bare `moon ci`. See [`.github/workflows/ci.yml`](./.github/workflows/ci.yml).
 
 ---
 
-## DEVOPS STACK
+## Repository layout
 
-The Richard Stack is known as `Dockerized Integrated Container Kubes`.
-
-- D for [Docker](https://kbve.com/application/docker/)
-    - Swarm
-        - Docker Swarm for Stateful Applications.
-    - Portainer
-        - We use [Portainer](https://kbve.com/application/portainer/) for Docker/K8s management.
-    - KBVE Docker Images via [Hub](https://hub.docker.com/u/kbve)
-        - [kbve:atlas](https://hub.docker.com/r/kbve/atlas)
-- I for Integrations
-    - Github Actions
-        - We use GHA to help build the docker images for x86 and ARM.
-    - GitLab
-        - We use a private GitLab for `private` codebase projects.
-
-- C for Containers
-    - [Proxmox](https://kbve.com/application/proxmox/)
-        - qEMU
-            - The QEMU handles running our docker swarm and k8s.
-        - LXD
-
-- K for Kubes
-    - [Kubernetes](https://kbve.com/application/kubernetes/)
-        - `k` for Stateless Applications.
+| Path               | What lives there                                                            |
+| ------------------ | --------------------------------------------------------------------------- |
+| `apps/`            | Deployable products, grouped by product: `web`, `api`, `gameserver`, `e2e`  |
+| `crates/`          | Rust crates — engine pillars, Bevy plugins, shared libraries                |
+| `packages/npm/`    | Published `@kbve/*` TypeScript packages                                     |
+| `packages/unreal/` | Unreal Engine plugins (`KBVE*`)                                             |
+| `packages/unity/`  | Unity packages — `kilonet`, `mmextensions`, `ssdb`                          |
+| `packages/python/` | Python packages — `kbve`, `fudster`, `graphify-wrapper`                     |
+| `packages/proto/`  | Protobuf schemas shared across languages                                    |
+| `apps/kube/`       | ArgoCD app-of-apps — the whole cluster, declaratively                       |
+| `services/`        | Edge functions and Windmill scripts                                         |
+| `tools/`           | Repo tooling: CI guards, release resolution, commit validation, LFS, deploy |
+| `.moon/`           | Workspace config and shared toolchain task presets                          |
 
 ---
 
-Examples of monorepos:
+## Apps
 
-- [Cal.com](https://github.com/calcom/cal.com)
-- [E2B](https://github.com/e2b-dev/e2b/)
+| App              | Site                                         | Stack                                |
+| ---------------- | -------------------------------------------- | ------------------------------------ |
+| **kbve**         | [kbve.com](https://kbve.com)                 | Astro + Axum + Supabase (`kilobase`) |
+| **herbmail**     | [herbmail.com](https://herbmail.com)         | Astro + Axum, PSX-style R3F game     |
+| **discordsh**    | [discord.sh](https://discord.sh)             | Astro + Axum + Discord bot           |
+| **rareicon**     | [rareicon.com](https://rareicon.com)         | Astro + Unreal + Unity DOTS          |
+| **cryptothrone** | [cryptothrone.com](https://cryptothrone.com) | Bevy isometric ARPG, WASM + Agones   |
+| **chuckrpg**     | [chuckrpg.com](https://chuckrpg.com)         | Unreal MMO + Tauri launcher          |
+| **irc**          | [chat.kbve.com](https://chat.kbve.com)       | Astro + Rust gateway over NATS       |
+| **memes**        | [meme.sh](https://meme.sh)                   | Astro + Axum                         |
+| **friendslop**   | —                                            | Godot + Rust (`q` engine via gdext)  |
+| **rentearth**    | —                                            | Unreal + Axum                        |
+| **jobboard**     | —                                            | Rust service + web                   |
+| **mc**           | —                                            | Minecraft server ops, mods, Velocity |
+| **rows**         | —                                            | Multi-tenant Rust API                |
+| **agones**       | —                                            | Agones runtime for the game fleets   |
 
-Perks of a monorepo include:
-
-- Consistent Developer Environment and Experience.
-    - A monorepo can provide a consistent environment and set of tools for all developers, which can be especially beneficial in large organizations with many projects.
-    - Easier AI Training, as the codebase is all within a controlled repo.
-
-- Less clutter, keeping a single source of truth.
-    - The monorepo acts as a centralized source of truth for all projects, configurations, and dependencies.
-
-- Atomic Changes.
-    - Developers can make cross-cutting changes across multiple projects within a single atomic commit.
-
-- Scalable.
-    - Modern monorepo build tools and practices are designed to scale, even as the number of projects and developers grows.
-
----
-
-### Install
-
-Before getting started, we recommend that you use WSL, Linux or MacOS! Direct Windows is not supported.
-Make sure you have Node 18+ with PNPM! Python 3.10+ / Poetry are optional if you wish to work with python.
-
-Please see [./CONTRIBUTE.md](./CONTRIBUTE.md) for WSL Instructions
-
-Official Install [Docs](https://kbve.com/guides/getting-started/#setup-instructions)
-
-#### Git
-
-- `git clone https://github.com/KBVE/kbve.git` then enter the directory. `cd kbve`
-- Then run -> `pnpm install`
-- Launch `moon run astro-herbmail:dev` - Should start a development server with Astro for HerbMail.com
+<table>
+<tr>
+<td width="33%" align="center"><a href="https://rareicon.com"><img src="https://raw.githubusercontent.com/KBVE/kbve/main/services/cdn/assets/readme/app-rareicon.webp" alt="Rareicon"><br><b>Rareicon</b></a><br>Unreal + Unity DOTS</td>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/KBVE/kbve/main/services/cdn/assets/readme/app-rentearth.webp" alt="Rent Earth"><br><b>Rent Earth</b><br>Unreal + Axum</td>
+<td width="33%" align="center"><a href="https://discord.sh"><img src="https://raw.githubusercontent.com/KBVE/kbve/main/services/cdn/assets/readme/app-discordsh.webp" alt="Discord.sh"><br><b>Discord.sh</b></a><br>Astro + Axum + bot</td>
+</tr>
+</table>
 
 ---
 
-### Library & Apps
+## Published packages
 
-The breakdown of libraries, packages and applications in this repo contains!
+<img src="https://raw.githubusercontent.com/KBVE/kbve/main/services/cdn/assets/readme/pkg-crates.webp" width="110" align="right" alt="">
 
-#### SABER
+**Rust** — [`kbve`](https://crates.io/crates/kbve) · [`jedi`](https://crates.io/crates/jedi) ·
+[`holy`](https://crates.io/crates/holy) · [`erust`](https://crates.io/crates/erust) plus the `bevy_*` plugin family,
+`q`, `simgrid`, `simbody3d`, `embeddb` and `unr`.
 
-This is an open source Unity game that is currently located under `/apps/saber/` within this monorepo.
+[![Crates.io KBVE](https://img.shields.io/crates/v/kbve?label=kbve&logo=rust)](https://crates.io/crates/kbve)
+[![Crates.io Jedi](https://img.shields.io/crates/v/jedi?label=jedi&logo=rust)](https://crates.io/crates/jedi)
+[![Crates.io Holy](https://img.shields.io/crates/v/holy?label=holy&logo=rust)](https://crates.io/crates/holy)
+[![Crates.io ERust](https://img.shields.io/crates/v/erust?label=erust&logo=rust)](https://crates.io/crates/erust)
 
-#### Atlas
+<img src="https://raw.githubusercontent.com/KBVE/kbve/main/services/cdn/assets/readme/pkg-npm.webp" width="110" align="right" alt="">
 
-Atlas is a [Python pip package](https://pypi.org/p/kbve) for generic baseline ml applications.
-Atlas currently only has `pyautogen` but a couple other packages are planned but as of right now, we are waiting on the stablization of the OpenAI v1 API.
-The Atlas Library is currently broken needs to be wait on a couple packages to be updated, including LiteLLM.
+**npm** — `@kbve/laser`, `@kbve/devops`, `@kbve/astro`, `@kbve/core`, `@kbve/chat`, `@kbve/droid`, `@kbve/fx`,
+`@kbve/rn`, `@kbve/tauri`, `@kbve/observ`, `@kbve/khashvault`.
 
-#### AstroVe
+[![NPM Laser](https://img.shields.io/npm/v/%40kbve%2Flaser?label=@kbve/laser&logo=nodedotjs)](https://www.npmjs.com/package/@kbve/laser)
+[![NPM Devops](https://img.shields.io/npm/v/%40kbve%2Fdevops?label=@kbve/devops&logo=nodedotjs)](https://www.npmjs.com/package/@kbve/devops)
 
-Astro VE is an Astro-based UX/UI library that empowers developers to seamlessly create elegant and adaptable UX/UI components, fostering an interactive and intuitive user experience across diverse website applications.
+**PyPI** — [`kbve`](https://pypi.org/project/kbve/) · [`fudster`](https://pypi.org/project/fudster/)
 
-#### React Appwrite
+[![PyPI KBVE](https://img.shields.io/pypi/v/kbve?label=kbve&logo=python)](https://pypi.org/project/kbve/)
+[![PyPI Fudster](https://img.shields.io/pypi/v/fudster?label=fudster&logo=python)](https://pypi.org/project/fudster/)
 
-React-based Appwrite library for fast frontend deployment.
-This package will be deprecated and replace with a `react-api` style package.
+---
 
-#### API
+## Contributing
 
-The API is current being updated! Its split into a NestJS core under `/apps/api/` and micro controllers written in Rust, under `/apps/rust_api_*` with `*` representing a glob wild card.
+All work happens in an isolated git worktree branched from `dev`. Nothing is committed directly to `dev` or `main`.
 
-### Apps
+```bash
+./kbve.sh -worktree <task-name>    # creates worktree, copies .env, installs deps
+```
 
-- HerbMail.com
-- KBVE.com
-- Discord.sh
+Then commit with [conventional commits](https://www.conventionalcommits.org/) and open a PR against `dev`.
+Versions are never bumped by hand — releases are cut from git tags shaped `<moon-project-id>@<semver>`.
+
+Full workflow, commit scopes and release rules: [`AGENTS.md`](./AGENTS.md).
+WSL setup instructions: [`CONTRIBUTE.md`](./CONTRIBUTE.md).
+Getting-started docs: [kbve.com/guides](https://kbve.com/guides/getting-started/).
+
+---
+
+## Why a monorepo?
+
+- **One environment.** Every project shares the same pinned toolchain, lint rules and CI lane.
+- **Atomic changes.** A protobuf change, its Rust server and its TypeScript client land in one commit.
+- **One source of truth.** Configs, schemas and deployment manifests sit next to the code they describe.
+- **It scales.** The moon graph only builds and tests what a change actually touches.
+
+Prior art we borrow from: [Cal.com](https://github.com/calcom/cal.com) · [E2B](https://github.com/e2b-dev/e2b/).
