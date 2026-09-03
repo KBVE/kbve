@@ -71,8 +71,7 @@ export {
 	makeRiverSampler,
 	seedFromWorld,
 	HEIGHT_AMPLITUDE,
-	RIVER_DEPTH,
-	RIVER_WIDTH,
+	RIVER_WIDTH_TILES,
 	type HeightSampler,
 	type RiverSampler,
 } from './lib/determ/heightfield';
