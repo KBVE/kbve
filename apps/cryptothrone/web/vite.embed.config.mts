@@ -6,7 +6,7 @@ import { resolve } from 'node:path';
 
 // Standalone library build for the embed.js bundle (ESM config — the tailwind
 // vite plugin is ESM-only).
-// Output: apps/cryptothrone/astro-cryptothrone/public/embed/embed.js
+// Output: apps/cryptothrone/web/public/embed/embed.js
 //
 // Bundles React, Phaser, grid-engine, @kbve/laser, and the whole game UI into
 // one self-contained IIFE that mounts into a shadow root. The game's Tailwind

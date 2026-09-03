@@ -19,17 +19,17 @@ tasks:
         options:
             cache: false
     container-prep:
-        script: 'rm -rf ./apps/cryptothrone/axum-cryptothrone/dist/ && mkdir -p ./apps/cryptothrone/axum-cryptothrone/dist/ && cp -a ./dist/apps/astro-cryptothrone/. ./apps/cryptothrone/axum-cryptothrone/dist/'
+        script: 'rm -rf ./apps/cryptothrone/api/dist/ && mkdir -p ./apps/cryptothrone/api/dist/ && cp -a ./dist/apps/astro-cryptothrone/. ./apps/cryptothrone/api/dist/'
         deps: ['astro-cryptothrone:build']
         options:
             runFromWorkspaceRoot: true
     containerx:
-        script: 'docker buildx build --load -f apps/cryptothrone/axum-cryptothrone/Dockerfile -t kbve/cryptothrone:latest .'
+        script: 'docker buildx build --load -f apps/cryptothrone/api/Dockerfile -t kbve/cryptothrone:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false
     containerx-publish:
-        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/cryptothrone:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/cryptothrone:buildcache,mode=max -f apps/cryptothrone/axum-cryptothrone/Dockerfile -t ghcr.io/kbve/cryptothrone:latest -t kbve/cryptothrone:latest .'
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/cryptothrone:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/cryptothrone:buildcache,mode=max -f apps/cryptothrone/api/Dockerfile -t ghcr.io/kbve/cryptothrone:latest -t kbve/cryptothrone:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false

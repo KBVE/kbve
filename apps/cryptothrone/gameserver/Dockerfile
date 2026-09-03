@@ -7,17 +7,17 @@
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
 ENV CARGO_INCREMENTAL=0
 
-COPY apps/agones/cryptothrone/server/Cargo.workspace.toml Cargo.toml
+COPY apps/cryptothrone/gameserver/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
-COPY apps/agones/cryptothrone/server/Cargo.toml apps/agones/cryptothrone/server/Cargo.toml
+COPY apps/cryptothrone/gameserver/Cargo.toml apps/cryptothrone/gameserver/Cargo.toml
 COPY crates/simgrid/Cargo.toml crates/simgrid/Cargo.toml
 COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
 COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
 COPY crates/bevy_spells/Cargo.toml crates/bevy_spells/Cargo.toml
 
-RUN mkdir -p apps/agones/cryptothrone/server/src && \
-    echo "fn main() {}" > apps/agones/cryptothrone/server/src/main.rs && \
+RUN mkdir -p apps/cryptothrone/gameserver/src && \
+    echo "fn main() {}" > apps/cryptothrone/gameserver/src/main.rs && \
     mkdir -p crates/simgrid/src && \
     echo "" > crates/simgrid/src/lib.rs && \
     mkdir -p crates/jedi/src && \
@@ -58,7 +58,7 @@ ENV RUSTFLAGS="-C link-arg=-fuse-ld=mold"
 COPY --from=builder-deps /app/target target
 COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
 
-COPY apps/agones/cryptothrone/server/Cargo.workspace.toml Cargo.toml
+COPY apps/cryptothrone/gameserver/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
 COPY crates/simgrid crates/simgrid
@@ -68,7 +68,7 @@ COPY crates/bevy_spells crates/bevy_spells
 COPY packages/proto packages/proto
 COPY packages/data/codegen/generated/npcdb-data.json packages/data/codegen/generated/npcdb-data.json
 COPY packages/data/codegen/generated/itemdb-data.json packages/data/codegen/generated/itemdb-data.json
-COPY apps/agones/cryptothrone/server apps/agones/cryptothrone/server
+COPY apps/cryptothrone/gameserver apps/cryptothrone/gameserver
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \

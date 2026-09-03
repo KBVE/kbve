@@ -39,8 +39,8 @@ const MAPS = [
 			{ name: 'Crystal Cavern', x: 26, y: 22, w: 17, h: 17 },
 		],
 		outputs: [
-			'apps/cryptothrone/astro-cryptothrone/public/assets/map/cloud_city.tilemap.json',
-			'apps/agones/cryptothrone/server/assets/cloud_city.tilemap.json',
+			'apps/cryptothrone/web/public/assets/map/cloud_city.tilemap.json',
+			'apps/cryptothrone/gameserver/assets/cloud_city.tilemap.json',
 		],
 	},
 ];

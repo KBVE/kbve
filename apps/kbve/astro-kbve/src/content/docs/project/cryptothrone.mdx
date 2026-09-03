@@ -16,7 +16,7 @@ app_name: cryptothrone
 version: "0.1.51"
 source_path: apps/cryptothrone
 version_toml: apps/cryptothrone/version.toml
-version_target: apps/cryptothrone/axum-cryptothrone/Cargo.toml
+version_target: apps/cryptothrone/api/Cargo.toml
 runner: ubuntu-latest
 image: kbve/cryptothrone
 e2e_name: cryptothrone
@@ -322,7 +322,7 @@ Money is inventory items, defined in itemdb (MDX is source of truth):
 
 #### How it's earned
 
-In `apps/agones/cryptothrone/server/src/game.rs`:
+In `apps/cryptothrone/gameserver/src/game.rs`:
 
 - `GOBLIN_LOOT_REF = "coin"`, `WOLF_LOOT_REF = "coin"` — common mobs drop coins.
 - `BOSS_LOOT_REF = "gold-bar"` — the goblin-general boss drops a gold bar.

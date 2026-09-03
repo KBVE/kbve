@@ -29,7 +29,7 @@ COPY packages/npm/rn-astro/ packages/npm/rn-astro/
 COPY packages/data/codegen/generated/ packages/data/codegen/generated/
 COPY packages/data/codegen/*.ts packages/data/codegen/
 
-COPY apps/cryptothrone/astro-cryptothrone/ apps/cryptothrone/astro-cryptothrone/
+COPY apps/cryptothrone/web/ apps/cryptothrone/web/
 
 # Public Discord Activity client id, baked into the discord.js bundle at build
 # time. This is a public value (visible client-side); the OAuth secret stays
@@ -37,7 +37,7 @@ COPY apps/cryptothrone/astro-cryptothrone/ apps/cryptothrone/astro-cryptothrone/
 ARG PUBLIC_DISCORD_CLIENT_ID="1515611992172531712"
 ENV PUBLIC_DISCORD_CLIENT_ID=$PUBLIC_DISCORD_CLIENT_ID
 
-WORKDIR /app/apps/cryptothrone/astro-cryptothrone
+WORKDIR /app/apps/cryptothrone/web
 # Build the standalone embed.js + Discord Activity discord.js into public/
 # first, so `astro build` copies them into dist (served by the rust binary at
 # /embed/embed.js and /discord/{index.html,discord.js}).
@@ -92,10 +92,10 @@ RUN find . -type f \( \
 # [STAGE C] - Cargo Chef Planner
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
 
-COPY apps/cryptothrone/axum-cryptothrone/Cargo.workspace.toml Cargo.toml
+COPY apps/cryptothrone/api/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
-COPY apps/cryptothrone/axum-cryptothrone/Cargo.toml apps/cryptothrone/axum-cryptothrone/Cargo.toml
+COPY apps/cryptothrone/api/Cargo.toml apps/cryptothrone/api/Cargo.toml
 COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
 COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
 COPY crates/kbve/Cargo.toml crates/kbve/Cargo.toml
@@ -104,7 +104,7 @@ COPY crates/holy-derive/Cargo.toml crates/holy-derive/Cargo.toml
 
 COPY packages/data/proto packages/data/proto
 
-RUN mkdir -p apps/cryptothrone/axum-cryptothrone/src && echo "fn main() {}" > apps/cryptothrone/axum-cryptothrone/src/main.rs && \
+RUN mkdir -p apps/cryptothrone/api/src && echo "fn main() {}" > apps/cryptothrone/api/src/main.rs && \
     mkdir -p crates/jedi/src && echo "" > crates/jedi/src/lib.rs && \
     mkdir -p crates/holy-derive/src && echo "" > crates/holy-derive/src/lib.rs && \
     mkdir -p crates/kbve-proto/src && echo "" > crates/kbve-proto/src/lib.rs && \
@@ -137,9 +137,9 @@ COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
 COPY --from=planner /app/Cargo.toml ./
 COPY Cargo.lock ./
 
-COPY apps/cryptothrone/axum-cryptothrone/Cargo.toml apps/cryptothrone/axum-cryptothrone/Cargo.toml
-RUN mkdir -p apps/cryptothrone/axum-cryptothrone/src && \
-    echo "fn main() {}" > apps/cryptothrone/axum-cryptothrone/src/main.rs
+COPY apps/cryptothrone/api/Cargo.toml apps/cryptothrone/api/Cargo.toml
+RUN mkdir -p apps/cryptothrone/api/src && \
+    echo "fn main() {}" > apps/cryptothrone/api/src/main.rs
 
 COPY packages/data/proto packages/data/proto
 
@@ -170,7 +170,7 @@ RUN dpkg -s make >/dev/null 2>&1 || ( \
         rm -rf /var/lib/apt/lists/* \
     )
 
-COPY --from=astro-precompressor /static /app/apps/cryptothrone/axum-cryptothrone/templates/dist
+COPY --from=astro-precompressor /static /app/apps/cryptothrone/api/templates/dist
 
 COPY packages/data/proto packages/data/proto
 COPY crates/jedi crates/jedi
@@ -180,7 +180,7 @@ COPY packages/proto packages/proto
 COPY crates/kbve crates/kbve
 COPY crates/holy crates/holy
 
-COPY apps/cryptothrone/axum-cryptothrone apps/cryptothrone/axum-cryptothrone
+COPY apps/cryptothrone/api apps/cryptothrone/api
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
@@ -195,7 +195,7 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
 
 COPY --from=builder --chown=10001:10001 /app/target/release/axum-cryptothrone /app/axum-cryptothrone
 
-COPY --from=builder --chown=10001:10001 /app/apps/cryptothrone/axum-cryptothrone/templates/dist /app/templates/dist
+COPY --from=builder --chown=10001:10001 /app/apps/cryptothrone/api/templates/dist /app/templates/dist
 
 ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=4321

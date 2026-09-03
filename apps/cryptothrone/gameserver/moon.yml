@@ -21,7 +21,7 @@ tasks:
         options:
             cache: false
     container-publish:
-        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/cryptothrone-server:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/cryptothrone-server:buildcache,mode=max -f apps/agones/cryptothrone/server/Dockerfile -t kbve/cryptothrone-server:latest .'
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/cryptothrone-server:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/cryptothrone-server:buildcache,mode=max -f apps/cryptothrone/gameserver/Dockerfile -t kbve/cryptothrone-server:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false

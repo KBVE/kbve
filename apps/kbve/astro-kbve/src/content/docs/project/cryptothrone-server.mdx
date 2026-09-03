@@ -14,9 +14,9 @@ key: cryptothrone_server
 pipeline: docker
 app_name: cryptothrone-server
 version: "0.0.26"
-source_path: apps/agones/cryptothrone/server
-version_toml: apps/agones/cryptothrone/server/version.toml
-version_target: apps/agones/cryptothrone/server/Cargo.toml
+source_path: apps/cryptothrone/gameserver
+version_toml: apps/cryptothrone/gameserver/version.toml
+version_target: apps/cryptothrone/gameserver/Cargo.toml
 runner: arc-runner-set
 image: kbve/cryptothrone-server
 deployment_yaml: apps/kube/agones/cryptothrone/manifests/fleet.yaml
@@ -54,7 +54,7 @@ bento:
         Grid-authoritative: collision is tile occupancy, physics is integer math.
     ctas:
         - label: View source
-          href: https://github.com/KBVE/kbve/tree/main/apps/agones/cryptothrone/server
+          href: https://github.com/KBVE/kbve/tree/main/apps/cryptothrone/gameserver
           primary: true
           external: true
         - label: Sim core
@@ -120,7 +120,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 ### Layout
 
 ```
-apps/agones/cryptothrone/server/
+apps/cryptothrone/gameserver/
 ├── Cargo.toml         # package manifest (path-dep to ../../../../packages/rust/simgrid)
 ├── Dockerfile         # multi-stage chisel build (cargo-chef + sccache); no webkit stage
 ├── project.json       # nx build / run / container targets

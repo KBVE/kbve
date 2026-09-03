@@ -10,11 +10,11 @@ import { resolve, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const root = resolve(here, '../../..');
+const root = resolve(here, '../../../..');
 
 const SOURCES = [
 	resolve(root, 'test-results/monocart/coverage/lcov.info'),
-	resolve(here, '../astro-cryptothrone/coverage/unit/lcov.info'),
+	resolve(here, '../coverage/unit/lcov.info'),
 ];
 
 const norm = (sf) => {

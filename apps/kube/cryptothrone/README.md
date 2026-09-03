@@ -19,7 +19,7 @@ Single-Deployment axum service serving `cryptothrone.com`. Routes through the Ci
 
 The Deployment runs under a restricted PodSecurity profile:
 
-- `runAsNonRoot: true`, UID/GID `10001` (matches the binary owner set by `--chown=10001:10001` in `apps/cryptothrone/axum-cryptothrone/Dockerfile`)
+- `runAsNonRoot: true`, UID/GID `10001` (matches the binary owner set by `--chown=10001:10001` in `apps/cryptothrone/api/Dockerfile`)
 - `readOnlyRootFilesystem: true` with a 64Mi `emptyDir` mounted at `/tmp` for scratch
 - `allowPrivilegeEscalation: false`, all Linux capabilities dropped
 - `seccompProfile: RuntimeDefault`

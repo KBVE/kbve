@@ -5,7 +5,7 @@ import tsconfigPaths from 'vite-tsconfig-paths';
 export default defineConfig({
 	root: __dirname,
 	cacheDir:
-		'../../../node_modules/.vite/apps/cryptothrone/astro-cryptothrone',
+		'../../../node_modules/.vite/apps/cryptothrone/web',
 	plugins: [react(), tsconfigPaths()],
 	test: {
 		globals: true,

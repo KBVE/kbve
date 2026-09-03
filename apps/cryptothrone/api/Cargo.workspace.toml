@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
-    "apps/cryptothrone/axum-cryptothrone",
+    "apps/cryptothrone/api",
     "crates/jedi",
     "crates/kbve-proto",
     "crates/kbve",
