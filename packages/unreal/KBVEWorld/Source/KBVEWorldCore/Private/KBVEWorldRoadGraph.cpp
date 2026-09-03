@@ -63,6 +63,17 @@ bool FKBVEWorldRoadGraph::HasEdge(const FKBVEWorldRoadParams& Road, int32 Seed,
 	return Unit(H) < Road.EdgeDensity;
 }
 
+namespace
+{
+	/** How far the ground at a tile sits below the line the road has to stay above. */
+	float SubmergedDepth(const FKBVEWorldRoadParams& Road, const FKBVEWorldHeightfieldParams& Shape,
+		int32 Seed, const FVector2D& Tile)
+	{
+		const float H = FKBVEWorldHeightfield::HeightAt(Shape, Seed, Tile.X, Tile.Y);
+		return FMath::Max(0.0f, Shape.WaterZ + Road.BridgeFreeboard - H);
+	}
+}
+
 FVector2D FKBVEWorldRoadGraph::NodeTile(const FKBVEWorldRoadParams& Road,
 	const FKBVEWorldHeightfieldParams& Shape, int32 Seed, const FIntPoint& Chunk)
 {
@@ -72,9 +83,18 @@ FVector2D FKBVEWorldRoadGraph::NodeTile(const FKBVEWorldRoadParams& Road,
 		(Chunk.X + 0.5f + Jx) * Road.TilesPerChunk,
 		(Chunk.Y + 0.5f + Jy) * Road.TilesPerChunk);
 
+	// Wetness, not channel. A node in a lake is as unusable as one in a river,
+	// and the mask says nothing about a basin the channel field never drew.
+	auto Wetness = [&](const FVector2D& P)
+	{
+		return FMath::Max(
+			FKBVEWorldHeightfield::RiverMaskAt(Shape, Seed, P.X, P.Y) / FMath::Max(Road.BridgeMaskThreshold, KINDA_SMALL_NUMBER),
+			SubmergedDepth(Road, Shape, Seed, P) / FMath::Max(Road.BridgeFreeboard, 1.0f));
+	};
+
 	FVector2D Best = Wanted;
-	float BestMask = FKBVEWorldHeightfield::RiverMaskAt(Shape, Seed, Wanted.X, Wanted.Y);
-	if (BestMask <= Road.BridgeMaskThreshold)
+	float BestWet = Wetness(Wanted);
+	if (BestWet <= 1.0f)
 	{
 		return Wanted;
 	}
@@ -82,17 +102,17 @@ FVector2D FKBVEWorldRoadGraph::NodeTile(const FKBVEWorldRoadParams& Road,
 	// Widening rings rather than one jump, so a node that only clips the bank
 	// moves the least it can and the network keeps the shape the jitter gave it.
 	static constexpr int32 Steps = 8;
-	for (int32 Ring = 1; Ring <= 3 && BestMask > Road.BridgeMaskThreshold; ++Ring)
+	for (int32 Ring = 1; Ring <= 3 && BestWet > 1.0f; ++Ring)
 	{
 		const float Radius = Road.TilesPerChunk * 0.15f * Ring;
 		for (int32 Step = 0; Step < Steps; ++Step)
 		{
 			const float Angle = 2.0f * PI * Step / Steps;
 			const FVector2D Candidate = Wanted + FVector2D(FMath::Cos(Angle), FMath::Sin(Angle)) * Radius;
-			const float Mask = FKBVEWorldHeightfield::RiverMaskAt(Shape, Seed, Candidate.X, Candidate.Y);
-			if (Mask < BestMask)
+			const float Wet = Wetness(Candidate);
+			if (Wet < BestWet)
 			{
-				BestMask = Mask;
+				BestWet = Wet;
 				Best = Candidate;
 			}
 		}
@@ -103,12 +123,27 @@ FVector2D FKBVEWorldRoadGraph::NodeTile(const FKBVEWorldRoadParams& Road,
 
 void FKBVEWorldRoadGraph::RouteEdge(const FKBVEWorldRoadParams& Road,
 	const FKBVEWorldHeightfieldParams& Shape, int32 Seed, const FIntPoint& A, const FIntPoint& B,
-	TArray<FVector>& OutWorld)
+	TArray<FVector>& OutWorld, EKBVEWorldRoadPrune* OutPrune)
 {
 	OutWorld.Reset();
 
+	auto Prune = [&](EKBVEWorldRoadPrune Reason)
+	{
+		OutWorld.Reset();
+		if (OutPrune)
+		{
+			*OutPrune = Reason;
+		}
+	};
+
+	if (OutPrune)
+	{
+		*OutPrune = EKBVEWorldRoadPrune::None;
+	}
+
 	if (!HasEdge(Road, Seed, A, B))
 	{
+		Prune(EKBVEWorldRoadPrune::NotJoined);
 		return;
 	}
 
@@ -118,6 +153,16 @@ void FKBVEWorldRoadGraph::RouteEdge(const FKBVEWorldRoadParams& Road,
 
 	const FVector2D Start = NodeTile(Road, Shape, Seed, A);
 	const FVector2D End = NodeTile(Road, Shape, Seed, B);
+
+	// A node the push-out could not get onto dry land is in open water, and a
+	// road that starts in a lake is not a road. Both chunks that could own this
+	// edge compute the same two nodes, so both drop it.
+	if (SubmergedDepth(Road, Shape, Seed, Start) > 0.0f
+		|| SubmergedDepth(Road, Shape, Seed, End) > 0.0f)
+	{
+		Prune(EKBVEWorldRoadPrune::NodeInWater);
+		return;
+	}
 	const FVector2D Along = (End - Start).GetSafeNormal();
 	const FVector2D Across(Along.Y, -Along.X);
 
@@ -160,7 +205,10 @@ void FKBVEWorldRoadGraph::RouteEdge(const FKBVEWorldRoadParams& Road,
 
 	for (int32 J = 0; J < Slots; ++J)
 	{
-		Cost[J] = (J == Centre) ? Road.RiverWeight * River[J] : TNumericLimits<float>::Max();
+		const float Depth = FMath::Max(0.0f, Shape.WaterZ + Road.BridgeFreeboard - Height[J]);
+		Cost[J] = (J == Centre)
+			? Road.RiverWeight * River[J] + Road.DepthWeight * Depth
+			: TNumericLimits<float>::Max();
 	}
 
 	for (int32 I = 1; I < Num; ++I)
@@ -168,7 +216,11 @@ void FKBVEWorldRoadGraph::RouteEdge(const FKBVEWorldRoadParams& Road,
 		for (int32 J = 0; J < Slots; ++J)
 		{
 			const int32 K = I * Slots + J;
-			const float NodeCost = Road.RiverWeight * River[K];
+			// Depth comes free off the height already sampled, so water costs the
+			// router nothing to see and it can route around a lake rather than
+			// through it.
+			const float Depth = FMath::Max(0.0f, Shape.WaterZ + Road.BridgeFreeboard - Height[K]);
+			const float NodeCost = Road.RiverWeight * River[K] + Road.DepthWeight * Depth;
 
 			float Best = TNumericLimits<float>::Max();
 			int32 BestFrom = Centre;
@@ -237,6 +289,29 @@ void FKBVEWorldRoadGraph::RouteEdge(const FKBVEWorldRoadParams& Road,
 		Point.Z = FKBVEWorldHeightfield::HeightAt(Shape, Seed,
 			Point.X / Road.WorldUnitsPerTile, Point.Y / Road.WorldUnitsPerTile);
 	}
+
+	// A route that still needs a span no bridge would be built at is a road that
+	// should not exist. Dropped whole rather than trimmed: half an edge is a stub
+	// running into the water, which is worse than no edge at all.
+	TArray<FKBVEWorldRoadSpan> Spans;
+	FindRiverSpans(Road, Shape, Seed, OutWorld, Spans);
+
+	const float Longest = Road.MaxBridgeSpanTiles * Road.WorldUnitsPerTile;
+	int32 Carried = 0;
+	for (const FKBVEWorldRoadSpan& Span : Spans)
+	{
+		if (FVector::Dist2D(OutWorld[Span.Begin], OutWorld[Span.End]) > Longest)
+		{
+			Prune(EKBVEWorldRoadPrune::SpanTooLong);
+			return;
+		}
+		Carried += Span.Num();
+	}
+
+	if (Carried > Road.MaxBridgedFraction * OutWorld.Num())
+	{
+		Prune(EKBVEWorldRoadPrune::TooMuchDeck);
+	}
 }
 
 void FKBVEWorldRoadGraph::FindRiverSpans(const FKBVEWorldRoadParams& Road,
@@ -272,12 +347,19 @@ void FKBVEWorldRoadGraph::FindRiverSpans(const FKBVEWorldRoadParams& Road,
 		const FVector Across = FVector(T.Y, -T.X, 0.0f).GetSafeNormal();
 
 		float Worst = 0.0f;
+		float Lowest = TNumericLimits<float>::Max();
 		for (int32 Step = 0; Step < 2; ++Step)
 		{
 			// The sample itself, then the midpoint to the next one.
 			const FVector Along = (Step == 0)
 				? Path[I]
 				: (Path[I] + Path[FMath::Min(I + 1, Path.Num() - 1)]) * 0.5f;
+
+			// The route's own height, which is the height the road will be
+			// graded to. Not the ground under it: in a dip the road rides an
+			// embankment above the terrain, and a causeway standing clear of the
+			// water is a road, not a crossing.
+			Lowest = FMath::Min(Lowest, Along.Z);
 
 			for (int32 Lane = -2; Lane <= 2; ++Lane)
 			{
@@ -286,7 +368,8 @@ void FKBVEWorldRoadGraph::FindRiverSpans(const FKBVEWorldRoadParams& Road,
 			}
 		}
 
-		Wet[I] = Worst > Road.BridgeMaskThreshold;
+		Wet[I] = Worst > Road.BridgeMaskThreshold
+			|| Lowest < Shape.WaterZ + Road.BridgeFreeboard;
 	}
 
 	// The margin is in tiles but has to be applied in samples, and how long a
