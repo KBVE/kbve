@@ -43,7 +43,7 @@ tasks:
     # the tree, so a check never mutates what it is checking.
     bindgen-check:
         script: >-
-            out="$(mktemp -t unr_h)" &&
+            out="$(mktemp "${TMPDIR:-/tmp}/unr_hXXXXXX")" &&
             UNR_BINDGEN_OUT="$out" cargo build --features bindgen &&
             diff -u include/unr.h "$out" &&
             rm -f "$out"

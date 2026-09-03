@@ -12,6 +12,17 @@ tasks:
     web-build:
         script: 'cd web && npm run build'
         outputs: ['web/dist']
+
+    # The inherited rust lint and test compile src/rest/spa.rs, whose RustEmbed
+    # derive names `web/dist` as its folder. The derive resolves that at compile
+    # time, so on a clean checkout -- CI, or a fresh worktree -- both fail with a
+    # missing folder rather than anything about the code being linted. Neither
+    # task is declared here otherwise; these entries exist only to add the dep.
+    lint:
+        deps: ['~:web-build']
+
+    test:
+        deps: ['~:web-build']
     serve-static:
         script: 'JOBBOARD_WEB_DIR=apps/jobboard/web/dist cargo run -p jobboard'
         options:
