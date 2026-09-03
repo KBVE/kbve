@@ -3,7 +3,12 @@ name = "uniti-fuzz"
 version = "0.0.0"
 publish = false
 edition = "2024"
-rust-version.workspace = true
+
+# Its own workspace root. cargo-fuzz builds this package on nightly with a
+# sanitizer, which is not something the shared workspace should ever pull into
+# a `--workspace` build, so it stays excluded from the root -- and an excluded
+# package cannot inherit `rust-version` from a root it is not a member of.
+[workspace]
 
 [package.metadata]
 cargo-fuzz = true

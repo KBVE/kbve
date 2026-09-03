@@ -277,7 +277,7 @@ jobs:
                   # member lands outside this list.
                   sparse-checkout: |
                       .github/signing
-                      packages/rust
+                      crates
                       apps/kbve/kilobase
                       apps/kbve/axum-kbve
                       apps/kbve/kbve-gate
@@ -304,6 +304,7 @@ jobs:
                       apps/agones/arpg/server
                       apps/agones/herbmail/server
                       apps/agones/friendslop/server
+                      apps/agones/shim
                       apps/media/reel
             - name: Verify workspace members were checked out
               shell: bash
@@ -312,7 +313,14 @@ jobs:
                   # sparse list fails with a confusing manifest-not-found. Name it here.
                   MISSING=""
                   while read -r m; do
-                    [ -f "$m/Cargo.toml" ] || MISSING="$MISSING $m"
+                    # A member can be a glob ('crates/*'), which is satisfied by any
+                    # one manifest under it; the loop is unquoted so the shell
+                    # expands it, and a literal path is just a one-element expansion.
+                    FOUND=""
+                    for d in $m; do
+                      [ -f "$d/Cargo.toml" ] && FOUND=1
+                    done
+                    [ -n "$FOUND" ] || MISSING="$MISSING $m"
                   done < <(sed -n '/^members = \[/,/^\]/p' Cargo.toml | grep -oE "['\"][^'\"]+/[^'\"]+['\"]" | tr -d "'\"")
                   if [ -n "$MISSING" ]; then
                     echo "::error::Workspace members absent from the sparse-checkout list in ci-godot.yml:$MISSING"
