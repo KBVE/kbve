@@ -35,7 +35,7 @@ members = [
 ]
 
 exclude = [
-	'packages/rust/bevy/uniti/fuzz',
+	'crates/uniti/fuzz',
 	'apps/kbve/desktop-kbve/src-tauri',
 ]
 

@@ -178,6 +178,17 @@ jobs:
             - name: Setup moon
               uses: ./.github/actions/setup-moon
 
+            # moon only schedules a toolchain install when a task declares that
+            # toolchain, but syncing a project needs every toolchain the project
+            # infers -- and the root project infers node and pnpm from the root
+            # package.json while its own lint and test tasks are plain bash. Shard
+            # 0 is the one that draws root:lint, so it alone reached the sync with
+            # no node install ever scheduled and died on
+            # `proto::locate::missing_executable`. `moon setup` provisions what
+            # .moon/toolchains.yml declares, up front, for every shard.
+            - name: Provision the moon toolchains
+              run: moon setup
+
             # Scoped to lint and test, which is what this job replaced. A bare
             # `moon ci` runs every task carrying runInCI, and here that is 45
             # container builds and 59 browser suites -- neither of which this
