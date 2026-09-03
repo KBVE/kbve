@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
-# resolve-docker-digests.sh — Resolve and pin Docker base image digests
+# resolve-digests.sh — Resolve and pin Docker base image digests
 #
-# Usage: ./scripts/resolve-docker-digests.sh <Dockerfile> [<Dockerfile> ...]
+# Usage: ./tools/docker/resolve-digests.sh <Dockerfile> [<Dockerfile> ...]
 #
 # Prerequisites: crane (https://github.com/google/go-containerregistry)
 #

@@ -560,7 +560,7 @@ System namespaces (`default`, `kube-system`, `kube-public`, `kube-node-lease`) a
   </TabItem>
   <TabItem label="Proof of Concept">
 
-The full script is located at `scripts/kubectl-namespace-orphan-check.sh` and can be run directly against any cluster with `kubectl` access.
+The full script is located at `tools/kube/ns-audit.sh` and can be run directly against any cluster with `kubectl` access.
 
 ```bash
 #!/usr/bin/env bash
@@ -606,7 +606,7 @@ done
 Run the script from the repository root:
 
 ```shell
-./scripts/kubectl-namespace-orphan-check.sh
+./tools/kube/ns-audit.sh
 ```
 
 **Prerequisites:** `kubectl` must be installed and configured with a valid kubeconfig pointing to the target cluster. The `externalsecrets` and `secretstores` resource checks require the External Secrets Operator CRDs — if they are not installed, those counts will silently return `0`.
@@ -630,7 +630,7 @@ EMPTY   old-staging   (svcs=0 secrets=1 ingress=0 extSecrets=0 secretStores=0)
 1. **Run the audit** to identify empty namespaces:
 
     ```shell
-    ./scripts/kubectl-namespace-orphan-check.sh
+    ./tools/kube/ns-audit.sh
     ```
 
 2. **Inspect lingering resources** in each empty namespace before deleting:
