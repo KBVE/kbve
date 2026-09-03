@@ -10,6 +10,11 @@ tasks:
         deps: ['astro-discordsh:build']
         options:
             runFromWorkspaceRoot: true
+            # A task named dev takes moon's server preset, and that preset sets
+            # runInCI false. The Playwright suites start this server with
+            # `moon run <project>:dev`, which under CI resolves to no task at
+            # all -- "No tasks found. Unable to execute action pipeline."
+            runInCI: true
     e2e:
         deps: ['~:test', 'discordsh-e2e:e2e']
         options:
@@ -20,7 +25,13 @@ tasks:
         options:
             runFromWorkspaceRoot: true
     containerx:
-        script: 'docker buildx build --load -f apps/discordsh/axum-discordsh/Dockerfile -t kbve/discordsh:latest .'
+        # The Dockerfile copies packages/proto, a gitignored tree that only
+        # exists once protobuf:build has run -- the same reason the inherited
+        # container task carries this dep.
+        deps: ['protobuf:build']
+        # The version tag is what the e2e and deploy tasks run; tagging only
+        # :latest left them pulling a tag that a publish alone had produced.
+        script: "v=$(grep '^version' apps/discordsh/axum-discordsh/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker buildx build --load -f apps/discordsh/axum-discordsh/Dockerfile -t kbve/discordsh:latest -t kbve/discordsh:$v ."
         options:
             runFromWorkspaceRoot: true
             cache: false

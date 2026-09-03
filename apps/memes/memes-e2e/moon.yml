@@ -10,7 +10,12 @@ dependsOn: ['astro-memes']
 
 tasks:
     e2e-docker:
-        command: 'playwright test --config=$projectSource/playwright.docker.config.ts'
+        # The suite runs kbve/<app>:<Cargo version>, which nothing in CI built --
+        # it only ever existed after a publish, so the run died on "manifest
+        # unknown". containerx tags that version. This is a `moon run` rather
+        # than a dep because axum-memes already depends on this project through
+        # its own e2e task, and the edge would close a cycle.
+        script: 'moon run axum-memes:containerx && playwright test --config=$projectSource/playwright.docker.config.ts'
         toolchains: ['node']
         options:
             runFromWorkspaceRoot: true
