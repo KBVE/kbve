@@ -29,7 +29,7 @@ spec:
                   containerPort: 7777
                   protocol: UDP
             health:
-                initialDelaySeconds: 30
+                initialDelaySeconds: 180
                 periodSeconds: 15
                 failureThreshold: 5
             template:
