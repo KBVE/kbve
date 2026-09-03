@@ -1,0 +1,24 @@
+[package]
+name = "cryptothrone-server"
+authors = ["kbve", "h0lybyte"]
+version = "0.0.26"
+edition = "2024"
+publish = false
+rust-version.workspace = true
+license = "MIT"
+description = "CryptoThrone game server — axum + tokio host for the simgrid grid-authoritative bevy sim."
+
+[[bin]]
+name = "cryptothrone-server"
+path = "src/main.rs"
+
+[dependencies]
+simgrid = { path = "../../../crates/simgrid" }
+jedi = { path = "../../../crates/jedi", features = ["postgres", "valkey"] }
+async-trait = { workspace = true }
+bevy = { workspace = true, features = ["bevy_state"] }
+axum = { workspace = true, features = ["ws", "json", "http1", "tokio"] }
+tokio = { workspace = true, features = ["default", "rt-multi-thread", "macros", "signal", "sync", "time", "net"] }
+tracing = { workspace = true }
+tracing-subscriber = { workspace = true, features = ["default", "env-filter", "fmt"] }
+agones = { workspace = true }

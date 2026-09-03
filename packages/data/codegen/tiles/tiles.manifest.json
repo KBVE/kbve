@@ -1,6 +1,6 @@
 {
 	"source": {
-		"image": "apps/cryptothrone/astro-cryptothrone/public/assets/map/cloud_tileset.png",
+		"image": "apps/cryptothrone/web/public/assets/map/cloud_tileset.png",
 		"columns": 45,
 		"tileSize": 16
 	},

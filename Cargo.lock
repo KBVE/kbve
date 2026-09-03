@@ -4521,12 +4521,6 @@ dependencies = [
 
 [[package]]
 name = "bit-vec"
-version = "0.7.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d2c54ff287cfc0a34f38a6b832ea1bd8e448a330b3e40a50859e6488bee07f22"
-
-[[package]]
-name = "bit-vec"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5e764a1d40d510daf35e07be9eb06e75770908c27d411ee6c92109c9840eaaf7"
@@ -8394,156 +8388,15 @@ dependencies = [
 
 [[package]]
 name = "glam"
-version = "0.14.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "333928d5eb103c5d4050533cec0384302db6be8ef7d3cebd30ec6a35350353da"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
-name = "glam"
-version = "0.15.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3abb554f8ee44336b72d522e0a7fe86a29e09f839a36022fa869a7dfe941a54b"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
-name = "glam"
-version = "0.16.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4126c0479ccf7e8664c36a2d719f5f2c140fbb4f9090008098d2c291fa5b3f16"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
-name = "glam"
-version = "0.17.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e01732b97afd8508eee3333a541b9f7610f454bb818669e66e90f5f57c93a776"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
-name = "glam"
-version = "0.18.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "525a3e490ba77b8e326fb67d4b44b4bd2f920f44d4cc73ccec50adc68e3bee34"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
-name = "glam"
-version = "0.19.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2b8509e6791516e81c1a630d0bd7fbac36d2fa8712a9da8662e716b52d5051ca"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
-name = "glam"
-version = "0.20.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f43e957e744be03f5801a55472f593d43fabdebf25a4585db250f04d86b1675f"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
-name = "glam"
-version = "0.21.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "518faa5064866338b013ff9b2350dc318e14cc4fcd6cb8206d7e7c9886c98815"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
-name = "glam"
-version = "0.22.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12f597d56c1bd55a811a1be189459e8fad2bbc272616375602443bdfb37fa774"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
-name = "glam"
-version = "0.23.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8e4afd9ad95555081e109fe1d21f2a30c691b5f0919c67dfa690a2e1eb6bd51c"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
-name = "glam"
-version = "0.24.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b5418c17512bdf42730f9032c74e1ae39afc408745ebb2acf72fbc4691c17945"
-dependencies = [
- "libm",
-]
-
-[[package]]
-name = "glam"
-version = "0.25.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "151665d9be52f9bb40fc7966565d39666f2d1e69233571b71b87791c7e0528b3"
-dependencies = [
- "libm",
-]
-
-[[package]]
-name = "glam"
-version = "0.27.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9e05e7e6723e3455f4818c7b26e855439f7546cf617ef669d1adedb8669e5cb9"
-dependencies = [
- "libm",
-]
-
-[[package]]
-name = "glam"
-version = "0.28.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "779ae4bf7e8421cf91c0b3b64e7e8b40b862fba4d393f59150042de7c4965a94"
-dependencies = [
- "libm",
-]
-
-[[package]]
-name = "glam"
-version = "0.29.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8babf46d4c1c9d92deac9f7be466f76dfc4482b6452fc5024b5e8daf6ffeb3ee"
-dependencies = [
- "libm",
-]
-
-[[package]]
-name = "glam"
 version = "0.30.10"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "19fc433e8437a212d1b6f1e68c7824af3aed907da60afa994e7f542d18d12aa9"
-dependencies = [
- "libm",
-]
 
 [[package]]
 name = "glam"
 version = "0.31.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "556f6b2ea90b8d15a74e0e7bb41671c9bdf38cd9f78c284d750b9ce58a2b5be7"
-dependencies = [
- "libm",
-]
 
 [[package]]
 name = "glam"
@@ -8602,7 +8455,7 @@ checksum = "9847f980afb0628849bcd6a406cdffd29eb9d53fca83e1646005901a9acd4c5c"
 dependencies = [
  "approx",
  "glam 0.33.2",
- "nalgebra 0.35.0",
+ "nalgebra",
  "num-traits",
  "simba 0.10.2",
 ]
@@ -12696,56 +12549,6 @@ dependencies = [
 
 [[package]]
 name = "nalgebra"
-version = "0.33.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9d43ddcacf343185dfd6de2ee786d9e8b1c2301622afab66b6c73baf9882abfd"
-dependencies = [
- "approx",
- "matrixmultiply",
- "nalgebra-macros 0.2.2",
- "num-complex 0.4.6",
- "num-rational 0.4.2",
- "num-traits",
- "simba 0.9.1",
- "typenum",
-]
-
-[[package]]
-name = "nalgebra"
-version = "0.34.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df76ea0ff5c7e6b88689085804d6132ded0ddb9de5ca5b8aeb9eeadc0508a70a"
-dependencies = [
- "approx",
- "glam 0.14.0",
- "glam 0.15.2",
- "glam 0.16.0",
- "glam 0.17.3",
- "glam 0.18.0",
- "glam 0.19.0",
- "glam 0.20.5",
- "glam 0.21.3",
- "glam 0.22.0",
- "glam 0.23.0",
- "glam 0.24.2",
- "glam 0.25.0",
- "glam 0.27.0",
- "glam 0.28.0",
- "glam 0.29.3",
- "glam 0.30.10",
- "glam 0.31.1",
- "glam 0.32.1",
- "matrixmultiply",
- "nalgebra-macros 0.3.0",
- "num-complex 0.4.6",
- "num-rational 0.4.2",
- "num-traits",
- "simba 0.9.1",
- "typenum",
-]
-
-[[package]]
-name = "nalgebra"
 version = "0.35.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "adc43a60c217b0c6ff46e47f26911015ad8d2e5a8be1af668c67e370d99a4346"
@@ -12756,23 +12559,12 @@ dependencies = [
  "glam 0.32.1",
  "glam 0.33.2",
  "matrixmultiply",
- "nalgebra-macros 0.3.0",
+ "nalgebra-macros",
  "num-complex 0.4.6",
  "num-rational 0.4.2",
  "num-traits",
  "simba 0.10.2",
  "typenum",
-]
-
-[[package]]
-name = "nalgebra-macros"
-version = "0.2.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "254a5372af8fc138e36684761d3c0cdb758a4410e938babcff1c860ce14ddbfc"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.119",
 ]
 
 [[package]]
@@ -13849,15 +13641,6 @@ dependencies = [
 
 [[package]]
 name = "ordered-float"
-version = "4.6.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7bb71e1b3fa6ca1c61f383464aaf2bb0e2f8e772a1f01d486832464de363b951"
-dependencies = [
- "num-traits",
-]
-
-[[package]]
-name = "ordered-float"
 version = "5.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b7d950ca161dc355eaf28f82b11345ed76c6e1f6eb1f4f4479e0323b9e2fbd0e"
@@ -14079,31 +13862,6 @@ dependencies = [
 
 [[package]]
 name = "parry2d"
-version = "0.17.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "87edd53b1639e011e4765eecfceb0fa2c486da696dcdcfbc9a38bfc3574fb7e0"
-dependencies = [
- "approx",
- "arrayvec",
- "bitflags 2.13.1",
- "downcast-rs 1.2.1",
- "either",
- "ena",
- "log",
- "nalgebra 0.33.3",
- "num-derive",
- "num-traits",
- "ordered-float 4.6.0",
- "rustc-hash 2.1.3",
- "simba 0.9.1",
- "slab",
- "smallvec",
- "spade",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "parry2d"
 version = "0.27.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "64f0ec92e9560ebd24cbdd071e19e07a96df6a6d4970d8719cc898c7dfdc359a"
@@ -14124,6 +13882,32 @@ dependencies = [
  "serde",
  "serde_arrays",
  "simba 0.9.1",
+ "slab",
+ "smallvec",
+ "spade",
+ "thiserror 2.0.19",
+]
+
+[[package]]
+name = "parry2d"
+version = "0.30.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b7637d1087885e0bd9421938e79b66b4eb2e08afcb0c717a312ed917daefa528"
+dependencies = [
+ "approx",
+ "arrayvec",
+ "bitflags 2.13.1",
+ "downcast-rs 2.0.2",
+ "either",
+ "ena",
+ "foldhash 0.2.0",
+ "glamx 0.3.0",
+ "hashbrown 0.17.1",
+ "log",
+ "num-derive",
+ "num-traits",
+ "ordered-float 5.3.0",
+ "simba 0.10.2",
  "slab",
  "smallvec",
  "spade",
@@ -14155,35 +13939,6 @@ dependencies = [
  "slab",
  "smallvec",
  "spade",
- "thiserror 2.0.19",
-]
-
-[[package]]
-name = "parry3d"
-version = "0.25.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e99471b7b6870f7fe406d5611dd4b4c9b07aa3e5436b1d27e1515f9832bb0c6b"
-dependencies = [
- "approx",
- "arrayvec",
- "bitflags 2.13.1",
- "downcast-rs 2.0.2",
- "either",
- "ena",
- "foldhash 0.2.0",
- "hashbrown 0.16.1",
- "indexmap 2.14.0",
- "log",
- "nalgebra 0.34.2",
- "num-derive",
- "num-traits",
- "ordered-float 5.3.0",
- "rstar 0.12.2",
- "simba 0.9.1",
- "slab",
- "smallvec",
- "spade",
- "static_assertions",
  "thiserror 2.0.19",
 ]
 
@@ -14232,6 +13987,7 @@ dependencies = [
  "foldhash 0.2.0",
  "glamx 0.3.0",
  "hashbrown 0.17.1",
+ "indexmap 2.14.0",
  "log",
  "num-derive",
  "num-traits",
@@ -15356,7 +15112,7 @@ dependencies = [
  "objc2 0.6.4",
  "postcard",
  "rapier2d",
- "rapier3d 0.35.1",
+ "rapier3d",
  "raw-window-handle",
  "rustls 0.23.42",
  "serde",
@@ -15683,64 +15439,38 @@ dependencies = [
 
 [[package]]
 name = "rapier2d"
-version = "0.22.0"
+version = "0.35.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "643116992c25c96a07e1aae7d59fba207f01979dc9a107c42bcd4c4b83ef78b2"
-dependencies = [
- "approx",
- "arrayvec",
- "bit-vec 0.7.0",
- "bitflags 2.13.1",
- "crossbeam",
- "downcast-rs 1.2.1",
- "log",
- "nalgebra 0.33.3",
- "num-derive",
- "num-traits",
- "ordered-float 4.6.0",
- "parry2d 0.17.6",
- "rustc-hash 2.1.3",
- "simba 0.9.1",
- "thiserror 1.0.69",
-]
-
-[[package]]
-name = "rapier3d"
-version = "0.30.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5bd27b8eb36d0833fa0f2aea40164fabfad0fc34b9932286ae9e84f3452f5364"
-dependencies = [
- "approx",
- "arrayvec",
- "bit-vec 0.8.0",
- "bitflags 2.13.1",
- "downcast-rs 2.0.2",
- "log",
- "nalgebra 0.34.2",
- "num-derive",
- "num-traits",
- "ordered-float 5.3.0",
- "parry3d 0.25.3",
- "profiling",
- "rustc-hash 2.1.3",
- "simba 0.9.1",
- "static_assertions",
- "thiserror 2.0.19",
- "wide 0.7.33",
-]
-
-[[package]]
-name = "rapier3d"
-version = "0.35.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e1c797fd96e34ae075c7b849741f89968ebedb86b584023420d68a1993bdc5cc"
+checksum = "7da2cd77e3c7385ae61bac2357edd4e4775a149c8610fda2c7fc4477cabe0487"
 dependencies = [
  "approx",
  "arrayvec",
  "bitflags 2.13.1",
  "glamx 0.3.0",
  "log",
- "nalgebra 0.35.0",
+ "nalgebra",
+ "num-traits",
+ "parry2d 0.30.2",
+ "profiling",
+ "serde",
+ "simba 0.10.2",
+ "static_assertions",
+ "thiserror 2.0.19",
+ "wide 1.6.1",
+]
+
+[[package]]
+name = "rapier3d"
+version = "0.35.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0b14829af0960a134e2c39605bd6617a5c70e9837ce1b7c3c738efedc6fd8610"
+dependencies = [
+ "approx",
+ "arrayvec",
+ "bitflags 2.13.1",
+ "glamx 0.3.0",
+ "log",
+ "nalgebra",
  "num-traits",
  "parry3d 0.30.2",
  "profiling",
@@ -17573,7 +17303,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c99284beb21666094ba2b75bbceda012e610f5479dfcc2d6e2426f53197ffd95"
 dependencies = [
  "approx",
- "libm",
  "num-complex 0.4.6",
  "num-traits",
  "paste",
@@ -17587,6 +17316,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f1a7200d82ff1c7b4235efd12f11e2537a402c91cf83a5cb97ce80eef787fde7"
 dependencies = [
  "approx",
+ "libm",
  "num-complex 0.4.6",
  "num-traits",
  "wide 1.6.1",
@@ -17596,7 +17326,7 @@ dependencies = [
 name = "simbody3d"
 version = "0.0.1"
 dependencies = [
- "rapier3d 0.30.1",
+ "rapier3d",
 ]
 
 [[package]]

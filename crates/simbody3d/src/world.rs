@@ -26,11 +26,11 @@ pub fn sector_colliders(d: &SectorTiles, world: &WorldConfig, mask: &TileMask) -
             }
             out.push(
                 ColliderBuilder::cuboid(hx, hy, hx)
-                    .translation(vector![
+                    .translation(Vector::new(
                         (d.origin_col + c) as f32 * tile + hx,
                         hy,
                         (d.origin_row + r) as f32 * tile + hx
-                    ])
+                    ))
                     .build(),
             );
         }
@@ -50,11 +50,11 @@ pub fn sector_colliders(d: &SectorTiles, world: &WorldConfig, mask: &TileMask) -
             let len = (end - c + 1) as f32;
             out.push(
                 ColliderBuilder::cuboid(len * tile / 2.0, world.floor_half, tile / 2.0)
-                    .translation(vector![
+                    .translation(Vector::new(
                         ((d.origin_col + c) as f32 + len / 2.0) * tile,
                         -world.floor_half,
                         (d.origin_row + r) as f32 * tile + tile / 2.0
-                    ])
+                    ))
                     .build(),
             );
             c = end + 1;
@@ -169,11 +169,11 @@ impl PhysicsWorld {
     }
 
     /// Spawns a character capsule with its feet at `foot`.
-    pub fn spawn_character(&mut self, foot: Vector<f32>) -> CharacterHandle {
+    pub fn spawn_character(&mut self, foot: Vector) -> CharacterHandle {
         let ch = &self.config.character;
         let body = self.bodies.insert(
             RigidBodyBuilder::kinematic_position_based()
-                .translation(vector![foot.x, foot.y + ch.centre_offset(), foot.z])
+                .translation(Vector::new(foot.x, foot.y + ch.centre_offset(), foot.z))
                 .build(),
         );
         let collider = self.colliders.insert_with_parent(
@@ -199,12 +199,12 @@ impl PhysicsWorld {
         desired_z: f32,
         dt: f32,
     ) {
-        let translation = *self.bodies[ch.body].translation();
-        let wanted = vector![
+        let translation = self.bodies[ch.body].translation();
+        let wanted = Vector::new(
             desired_x * dt,
             -self.config.character.gravity * dt,
             desired_z * dt
-        ];
+        );
         let shape = self.colliders[ch.collider].shared_shape().clone();
 
         let queries = self.broad_phase.as_query_pipeline(
@@ -218,7 +218,7 @@ impl PhysicsWorld {
             dt,
             &queries,
             shape.as_ref(),
-            &Isometry::from(translation),
+            &Pose::from_translation(translation),
             wanted,
             |_| {},
         );
@@ -233,18 +233,18 @@ impl PhysicsWorld {
     }
 
     /// Foot position of a character.
-    pub fn foot_position(&self, ch: &CharacterHandle) -> Vector<f32> {
+    pub fn foot_position(&self, ch: &CharacterHandle) -> Vector {
         let t = self.bodies[ch.body].translation();
-        vector![
+        Vector::new(
             t.x,
             t.y - self.config.character.centre_offset(),
             t.z
-        ]
+        )
     }
 
-    pub fn teleport_character(&mut self, ch: &CharacterHandle, foot: Vector<f32>) {
+    pub fn teleport_character(&mut self, ch: &CharacterHandle, foot: Vector) {
         let centre = self.config.character.centre_offset();
-        self.bodies[ch.body].set_translation(vector![foot.x, foot.y + centre, foot.z], true);
+        self.bodies[ch.body].set_translation(Vector::new(foot.x, foot.y + centre, foot.z), true);
         self.settle();
     }
 
@@ -254,7 +254,7 @@ impl PhysicsWorld {
         let mut params = self.integration;
         params.dt = 0.0;
         self.pipeline.step(
-            &vector![0.0, 0.0, 0.0],
+            Vector::ZERO,
             &params,
             &mut self.islands,
             &mut self.broad_phase,
@@ -366,7 +366,7 @@ mod tests {
     fn the_capsule_rests_on_the_floor_instead_of_sinking_or_hovering() {
         let mut w = world();
         w.add_sector((0, 0), &open_sector());
-        let mut ch = w.spawn_character(vector![4.5, 0.0, 4.5]);
+        let mut ch = w.spawn_character(Vector::new(4.5, 0.0, 4.5));
         walk(&mut w, &mut ch, 0.0, 0.0, 1.0);
         let foot = w.foot_position(&ch);
         assert!(
@@ -381,7 +381,7 @@ mod tests {
     fn constant_intent_travels_about_the_expected_distance() {
         let mut w = world();
         w.add_sector((0, 0), &open_sector());
-        let mut ch = w.spawn_character(vector![4.5, 0.0, 4.5]);
+        let mut ch = w.spawn_character(Vector::new(4.5, 0.0, 4.5));
         walk(&mut w, &mut ch, 1.8, 0.0, 2.0);
         let travelled = w.foot_position(&ch).x - 4.5;
         // 2s at 1.8 m/s minus the acceleration ramp, which costs well under one
@@ -400,7 +400,7 @@ mod tests {
         }
         let mut w = world();
         w.add_sector((0, 0), &d);
-        let mut ch = w.spawn_character(vector![4.5, 0.0, 4.5]);
+        let mut ch = w.spawn_character(Vector::new(4.5, 0.0, 4.5));
         walk(&mut w, &mut ch, 4.5, 0.0, 4.0);
 
         // Literal, not recomputed from the config under test: wall face at
@@ -424,7 +424,7 @@ mod tests {
         }
         let mut w = world();
         w.add_sector((0, 0), &d);
-        let mut ch = w.spawn_character(vector![4.5, 0.0, 4.5]);
+        let mut ch = w.spawn_character(Vector::new(4.5, 0.0, 4.5));
         walk(&mut w, &mut ch, 4.5, 0.0, 3.0);
 
         let foot = w.foot_position(&ch);

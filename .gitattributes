@@ -102,13 +102,13 @@ apps/rentearth/unreal-rentearth/**/Plugins/**/*.bundle filter=lfs diff=lfs merge
 apps/agones/arpg/web/public/assets/arcade/arpg/**/*.png filter=lfs diff=lfs merge=lfs -text
 apps/agones/arpg/web/public/assets/arcade/arpg/**/*.webp filter=lfs diff=lfs merge=lfs -text
 
-# Cryptothrone — apps/cryptothrone/astro-cryptothrone isometric game art
+# Cryptothrone — apps/cryptothrone/web isometric game art
 # Pointer files live in this repo; blobs live on git.kbve.com/KBVE/cryptothrone.git
-# (see apps/cryptothrone/astro-cryptothrone/public/assets/.lfsconfig). Push/pull the
+# (see apps/cryptothrone/web/public/assets/.lfsconfig). Push/pull the
 # blobs to the cryptothrone endpoint with `./kbve.sh -lfs cryptothrone <push|pull|...>`;
 # the repo-root .lfsconfig still defaults to rareicon, so the wrapper injects the endpoint.
-apps/cryptothrone/astro-cryptothrone/public/assets/**/*.png  filter=lfs diff=lfs merge=lfs -text
-apps/cryptothrone/astro-cryptothrone/public/assets/**/*.webp filter=lfs diff=lfs merge=lfs -text
+apps/cryptothrone/web/public/assets/**/*.png  filter=lfs diff=lfs merge=lfs -text
+apps/cryptothrone/web/public/assets/**/*.webp filter=lfs diff=lfs merge=lfs -text
 
 # Herbmail — apps/herbmail/herbmail-game PSX-style vite game art (textures + models + audio)
 # Pointer files live in this repo; blobs live on git.kbve.com/KBVE/herbmail.git
@@ -158,3 +158,11 @@ apps/friendslop/godot-friendslop/addons/**/*.a     filter=lfs diff=lfs merge=lfs
 apps/friendslop/godot-friendslop/addons/**/*.framework/** filter=lfs diff=lfs merge=lfs -text
 # The bundle's plist is small text worth diffing; only the binary needs LFS.
 apps/friendslop/godot-friendslop/addons/**/*.framework/Info.plist !filter !diff !merge text
+
+# git-crypt — encrypted game internals.
+#
+# The key is symmetric (no GPG collaborator list): `git-crypt export-key`
+# writes it, and a clone without it sees these paths as binary. Everything
+# encrypted sits behind an off-by-default cargo feature, so a clone with no
+# key still builds and runs the game — it just gets the public half.
+apps/arcade/colony/src/private/** filter=git-crypt diff=git-crypt

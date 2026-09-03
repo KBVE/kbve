@@ -212,3 +212,8 @@ apps/**/unreal-*/Config/Local*.ini
 
 # q ships a signed dylib into its addons tree; the binaries are build output.
 crates/q/release/
+
+# `graphify update` writes its raw symbol graph to the repository root before
+# the tiered layout is precomputed from it. Intermediate, tens of megabytes,
+# and rebuilt from scratch every run.
+graphify-out/

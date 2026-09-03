@@ -156,8 +156,8 @@ tasks:
             ]
         outputs:
             [
-                '/apps/cryptothrone/astro-cryptothrone/public/assets/map/cloud_city.tilemap.json',
-                '/apps/agones/cryptothrone/server/assets/cloud_city.tilemap.json',
+                '/apps/cryptothrone/web/public/assets/map/cloud_city.tilemap.json',
+                '/apps/cryptothrone/gameserver/assets/cloud_city.tilemap.json',
             ]
         options:
             runFromWorkspaceRoot: true
@@ -167,7 +167,7 @@ tasks:
             [
                 '/packages/data/codegen/gen-tile-slices.mjs',
                 '/packages/data/codegen/tiles/tiles.manifest.json',
-                '/apps/cryptothrone/astro-cryptothrone/public/assets/map/cloud_tileset.png',
+                '/apps/cryptothrone/web/public/assets/map/cloud_tileset.png',
             ]
         outputs: ['public/assets/tiledb', 'src/content/docs/tiledb']
         options:
@@ -193,8 +193,8 @@ tasks:
             ]
         outputs:
             [
-                '/apps/cryptothrone/astro-cryptothrone/public/assets/map/palettes',
-                '/apps/cryptothrone/astro-cryptothrone/src/components/game/data/palettes',
+                '/apps/cryptothrone/web/public/assets/map/palettes',
+                '/apps/cryptothrone/web/src/components/game/data/palettes',
             ]
         options:
             runFromWorkspaceRoot: true
@@ -458,8 +458,8 @@ tasks:
             [
                 '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb-atlas.png',
                 '/apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemSpriteAtlas.Generated.cs',
-                '/apps/cryptothrone/astro-cryptothrone/public/assets/items/itemdb-atlas.png',
-                '/apps/cryptothrone/astro-cryptothrone/src/components/game/data/itemAtlas.generated.ts',
+                '/apps/cryptothrone/web/public/assets/items/itemdb-atlas.png',
+                '/apps/cryptothrone/web/src/components/game/data/itemAtlas.generated.ts',
             ]
         options:
             runFromWorkspaceRoot: true

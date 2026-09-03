@@ -1,0 +1,22 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+# Grid colony sim. Real 3D geometry under a fixed orthographic camera; every
+# actor is a pixel-art billboard, so the art is 2D and the world is not.
+layer: 'application'
+language: 'rust'
+stack: 'frontend'
+tags: ['bevy', 'game']
+toolchains:
+    default: 'rust'
+
+owners:
+    defaultOwner: '@h0lybyte'
+
+# build/test/lint/format/run are inherited from the rust toolchain tasks.
+tasks:
+    # The browser backend, native. Bevy resolves the graphics backend at
+    # compile time, so this is a separate binary rather than a runtime switch.
+    run-webgpu:
+        command: 'cargo run'
+        args: '--features webgpu'
+        preset: 'server'

@@ -1,0 +1,206 @@
+# ============================================================================
+# axum-cryptothrone — Multi-stage Docker build
+#
+# Uses shared chisel base images:
+#   ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder  (Rust + Node + pnpm + cargo-chef)
+#   ghcr.io/kbve/chisel-ubuntu-axum:24.04.3         (chiseled Ubuntu + jemalloc + libpq)
+# ============================================================================
+
+# ============================================================================
+# [STAGE A] - Build Astro Static Site
+# ============================================================================
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS astro-builder
+
+WORKDIR /app
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc tsconfig.base.json ./
+
+RUN --mount=type=cache,target=/root/.local/share/pnpm/store/v3,id=pnpm-store \
+    pnpm install --frozen-lockfile
+
+COPY packages/npm/astro/ packages/npm/astro/
+COPY packages/npm/droid/ packages/npm/droid/
+COPY packages/npm/laser/ packages/npm/laser/
+COPY packages/npm/chat/ packages/npm/chat/
+COPY packages/npm/core/ packages/npm/core/
+COPY packages/npm/rn/ packages/npm/rn/
+COPY packages/npm/rn-astro/ packages/npm/rn-astro/
+
+COPY packages/data/codegen/generated/ packages/data/codegen/generated/
+COPY packages/data/codegen/*.ts packages/data/codegen/
+
+COPY apps/cryptothrone/web/ apps/cryptothrone/web/
+
+# Public Discord Activity client id, baked into the discord.js bundle at build
+# time. This is a public value (visible client-side); the OAuth secret stays
+# server-side as a sealed secret. Override via --build-arg if it ever changes.
+ARG PUBLIC_DISCORD_CLIENT_ID="1515611992172531712"
+ENV PUBLIC_DISCORD_CLIENT_ID=$PUBLIC_DISCORD_CLIENT_ID
+
+WORKDIR /app/apps/cryptothrone/web
+# Build the standalone embed.js + Discord Activity discord.js into public/
+# first, so `astro build` copies them into dist (served by the rust binary at
+# /embed/embed.js and /discord/{index.html,discord.js}).
+RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-cryptothrone-cache,sharing=locked \
+    cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true && \
+    npx astro sync && \
+    NODE_OPTIONS="--max-old-space-size=4096" npx vite build --config vite.embed.config.mts && \
+    NODE_OPTIONS="--max-old-space-size=4096" npx vite build --config vite.discord.config.mts && \
+    # Cache-bust the fixed-name discord.js: stamp its content hash as a query so
+    # Discord's asset proxy can't serve last deploy's bytes. Done before astro
+    # build so the rewritten index.html is what gets copied into dist.
+    DJS_V=$(sha1sum public/discord/discord.js | cut -c1-8) && \
+    sed -i "s#src=\"discord.js\"#src=\"discord.js?v=$DJS_V\"#" public/discord/index.html && \
+    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build && \
+    cp -a .astro/. /tmp/astro-cache/ 2>/dev/null || true && \
+    # Fail loud if the embed/discord bundles didn't make it into dist (a stale
+    # cached astro-builder layer once shipped without them -> silent 404s).
+    test -f ../../../dist/apps/astro-cryptothrone/embed/embed.js && \
+    test -f ../../../dist/apps/astro-cryptothrone/discord/discord.js
+
+# ============================================================================
+# [STAGE B] - Precompress Static Assets
+# ============================================================================
+FROM --platform=linux/amd64 ubuntu:24.04 AS astro-precompressor
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gzip brotli && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY --from=astro-builder /app/dist/apps/astro-cryptothrone /static
+
+WORKDIR /static
+RUN find . -type f \( \
+        -name "*.css" -o \
+        -name "*.js" -o \
+        -name "*.json" -o \
+        -name "*.svg" -o \
+        -name "*.xml" -o \
+        -name "*.txt" -o \
+        -name "*.html" \
+    \) -print0 | \
+    xargs -0 -P "$(nproc)" -n 1 sh -c ' \
+        gzip -9 -f -k "$1" && \
+        brotli -q 9 -f --keep "$1" \
+    ' _ && \
+    echo "Precompression complete (brotli-9 + gzip-9, parallel x $(nproc))"
+
+# ============================================================================
+# Rust build stages
+# ============================================================================
+
+# [STAGE C] - Cargo Chef Planner
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
+
+COPY apps/cryptothrone/api/Cargo.workspace.toml Cargo.toml
+COPY Cargo.lock ./
+
+COPY apps/cryptothrone/api/Cargo.toml apps/cryptothrone/api/Cargo.toml
+COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
+COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
+COPY crates/kbve/Cargo.toml crates/kbve/Cargo.toml
+COPY crates/holy/Cargo.toml crates/holy/Cargo.toml
+COPY crates/holy-derive/Cargo.toml crates/holy-derive/Cargo.toml
+
+COPY packages/data/proto packages/data/proto
+
+RUN mkdir -p apps/cryptothrone/api/src && echo "fn main() {}" > apps/cryptothrone/api/src/main.rs && \
+    mkdir -p crates/jedi/src && echo "" > crates/jedi/src/lib.rs && \
+    mkdir -p crates/holy-derive/src && echo "" > crates/holy-derive/src/lib.rs && \
+    mkdir -p crates/kbve-proto/src && echo "" > crates/kbve-proto/src/lib.rs && \
+    mkdir -p crates/kbve/src && echo "" > crates/kbve/src/lib.rs && \
+    mkdir -p crates/holy/src && echo "" > crates/holy/src/lib.rs
+
+RUN cargo chef prepare --recipe-path recipe.json
+
+# [STAGE D] - Cargo Chef Cook (Cache External Dependencies)
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS builder-deps
+ENV CARGO_INCREMENTAL=0
+
+COPY --from=planner /app/recipe.json recipe.json
+COPY --from=planner /app/Cargo.toml /app/Cargo.lock ./
+COPY --from=planner /app/apps apps
+COPY --from=planner /app/packages packages
+
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
+    cargo chef cook --release --recipe-path recipe.json -p axum-cryptothrone
+
+# [STAGE E] - Foundation Layer (Compile kbve + jedi from real source)
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS foundation
+ENV CARGO_INCREMENTAL=0
+
+COPY --from=builder-deps /app/target target
+COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
+
+COPY --from=planner /app/Cargo.toml ./
+COPY Cargo.lock ./
+
+COPY apps/cryptothrone/api/Cargo.toml apps/cryptothrone/api/Cargo.toml
+RUN mkdir -p apps/cryptothrone/api/src && \
+    echo "fn main() {}" > apps/cryptothrone/api/src/main.rs
+
+COPY packages/data/proto packages/data/proto
+
+COPY crates/jedi crates/jedi
+COPY crates/kbve-proto crates/kbve-proto
+COPY crates/holy-derive crates/holy-derive
+COPY packages/proto packages/proto
+COPY crates/kbve crates/kbve
+COPY crates/holy crates/holy
+
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
+    cargo build --release -p kbve -p jedi -p holy
+
+# ============================================================================
+# [STAGE F] - Build Application
+# ============================================================================
+FROM foundation AS builder
+
+# Ensure make is available for tikv-jemalloc-sys compilation (build from source).
+# Drop nodesource sources + force IPv4 so the fallback survives transient
+# nodesource.com IPv6 outages — make only needs debian main.
+RUN dpkg -s make >/dev/null 2>&1 || ( \
+        rm -f /etc/apt/sources.list.d/nodesource.list && \
+        apt-get update -o Acquire::ForceIPv4=true && \
+        apt-get install -y --no-install-recommends make && \
+        rm -rf /var/lib/apt/lists/* \
+    )
+
+COPY --from=astro-precompressor /static /app/apps/cryptothrone/api/templates/dist
+
+COPY packages/data/proto packages/data/proto
+COPY crates/jedi crates/jedi
+COPY crates/kbve-proto crates/kbve-proto
+COPY crates/holy-derive crates/holy-derive
+COPY packages/proto packages/proto
+COPY crates/kbve crates/kbve
+COPY crates/holy crates/holy
+
+COPY apps/cryptothrone/api apps/cryptothrone/api
+
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/usr/local/sccache,id=sccache \
+    cargo build --release -p axum-cryptothrone --features jemalloc && \
+    strip target/release/axum-cryptothrone
+
+# ============================================================================
+# [STAGE Z] - Runtime Image (shared chisel base)
+# ============================================================================
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
+
+COPY --from=builder --chown=10001:10001 /app/target/release/axum-cryptothrone /app/axum-cryptothrone
+
+COPY --from=builder --chown=10001:10001 /app/apps/cryptothrone/api/templates/dist /app/templates/dist
+
+ENV HTTP_HOST=0.0.0.0
+ENV HTTP_PORT=4321
+ENV RUST_LOG=info
+
+EXPOSE 4321
+
+ENTRYPOINT ["/app/axum-cryptothrone"]

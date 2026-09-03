@@ -42,3 +42,9 @@ apps/kube/kubevirt/manifests/kubevirt-operator.yaml
 apps/agones/tocloud9/modules/mod-underbarrel-bootlegger/**
 !apps/agones/tocloud9/modules/mod-underbarrel-bootlegger/kbve/**
 !apps/agones/tocloud9/modules/mod-underbarrel-bootlegger/VENDOR.md
+
+# Generated dashboard and graph data. The daily content workflow writes these
+# from CI, where lint-staged does not run, so reformatting them locally means
+# every nightly regeneration comes back as a whole-file diff.
+apps/kbve/astro-kbve/public/data/nx/
+apps/kbve/astro-kbve/public/graphify/

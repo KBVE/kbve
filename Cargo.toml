@@ -15,7 +15,7 @@ members = [
 	'apps/chuckrpg/axum-chuckrpg',
 	'apps/rentearth/axum-rentearth',
 	'apps/rareicon/axum-rareicon',
-	'apps/cryptothrone/axum-cryptothrone',
+	'apps/cryptothrone/api',
 	'apps/rows',
 	'apps/jobboard',
 	'apps/metrics',
@@ -27,7 +27,7 @@ members = [
 	'apps/mc/mc_auth',
 	'apps/agones/factorio/relay',
 	'apps/agones/palworld/relay',
-	'apps/agones/cryptothrone/server',
+	'apps/cryptothrone/gameserver',
 	'apps/agones/arpg/server',
 	'apps/agones/herbmail/server',
 	'apps/agones/friendslop/server',
@@ -35,7 +35,7 @@ members = [
 ]
 
 exclude = [
-	'packages/rust/bevy/uniti/fuzz',
+	'crates/uniti/fuzz',
 	'apps/kbve/desktop-kbve/src-tauri',
 ]
 

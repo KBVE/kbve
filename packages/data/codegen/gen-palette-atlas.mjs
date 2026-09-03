@@ -19,7 +19,7 @@ import { readFileSync, writeFileSync, readdirSync, mkdirSync } from 'node:fs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');
-const app = 'apps/cryptothrone/astro-cryptothrone';
+const app = 'apps/cryptothrone/web';
 const manifestDir = resolve(__dirname, 'palettes');
 const atlasDir = resolve(repoRoot, app, 'public/assets/map/palettes');
 const paletteDir = resolve(repoRoot, app, 'src/components/game/data/palettes');

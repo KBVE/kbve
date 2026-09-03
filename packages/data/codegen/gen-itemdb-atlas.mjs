@@ -52,8 +52,8 @@ const SOURCE_OUT  = resolve(repoRoot, 'apps/rareicon/unity-rareicon/Assets/_Rare
 // app's public dir and a generated TS module mirrors the C# constants so the
 // browser computes frame == key (identity slot map) too.
 const WEB_ATLAS_URL = '/assets/items/itemdb-atlas.png';
-const WEB_ATLAS_OUT = resolve(repoRoot, 'apps/cryptothrone/astro-cryptothrone/public/assets/items/itemdb-atlas.png');
-const WEB_TS_OUT    = resolve(repoRoot, 'apps/cryptothrone/astro-cryptothrone/src/components/game/data/itemAtlas.generated.ts');
+const WEB_ATLAS_OUT = resolve(repoRoot, 'apps/cryptothrone/web/public/assets/items/itemdb-atlas.png');
+const WEB_TS_OUT    = resolve(repoRoot, 'apps/cryptothrone/web/src/components/game/data/itemAtlas.generated.ts');
 
 // arpg (apps/agones/arpg) consumes the same atlas under the same web URL.
 const ARPG_ATLAS_OUT = resolve(repoRoot, 'apps/agones/arpg/web/public/assets/items/itemdb-atlas.png');

@@ -3,7 +3,7 @@
 Re-extracts code symbols and precomputes the directory→file→symbol LOD chunks
 consumed by the dashboard Graph Explorer (and derived by the
 ``/api/graphify/monorepo.json`` endpoint). Delegates to the
-``graphify-wrapper:build-tiered`` nx target, which pins networkx/numpy/scipy so
+``graphify-wrapper:build-tiered`` moon task, which pins networkx/numpy/scipy so
 the force layout is deterministic — the graph moves only when code changes, not
 when a dependency floats.
 
@@ -25,7 +25,7 @@ from ..router import route
 
 _BUILD_TIMEOUT = 1800
 
-_DEFAULT_CMD = ["pnpm", "nx", "run", "graphify-wrapper:build-tiered"]
+_DEFAULT_CMD = ["moon", "run", "graphify-wrapper:build-tiered"]
 
 
 def _warn(msg: str) -> None:

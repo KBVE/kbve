@@ -4,6 +4,7 @@
 #include "KBVEWorldRoadField.h"
 
 #include "Engine/World.h"
+#include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "KBVEWorldHeightfieldActor.h"
 #include "ProceduralMeshComponent.h"
@@ -14,6 +15,58 @@ AKBVEWorldStreamer::AKBVEWorldStreamer()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	SetRootComponent(CreateDefaultSubobject<USceneComponent>(TEXT("Root")));
+
+	WaterPlane = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("WaterPlane"));
+	WaterPlane->SetupAttachment(GetRootComponent());
+	WaterPlane->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	WaterPlane->SetCanEverAffectNavigation(false);
+	// A flat sheet at a constant height casts a shadow over everything under it,
+	// including ground it is nowhere near.
+	WaterPlane->SetCastShadow(false);
+}
+
+void AKBVEWorldStreamer::RebuildWaterPlane(const FIntPoint& Centre)
+{
+	if (!WaterPlane || !WaterMaterial)
+	{
+		return;
+	}
+
+	// One quad over the whole window, recentred as the window moves. Two chunks
+	// of margin so the edge is never the thing the player is walking toward.
+	const float ChunkSize = ChunkWorldSize();
+	const float Reach = (ViewRadiusChunks + 2) * ChunkSize;
+	const FVector Origin(Centre.X * ChunkSize, Centre.Y * ChunkSize, Shape.WaterZ);
+
+	const TArray<FVector> Vertices = {
+		Origin + FVector(-Reach, -Reach, 0.0f),
+		Origin + FVector(Reach, -Reach, 0.0f),
+		Origin + FVector(-Reach, Reach, 0.0f),
+		Origin + FVector(Reach, Reach, 0.0f),
+	};
+	const TArray<int32> Triangles = { 0, 2, 3, 0, 3, 1 };
+	const TArray<FVector> Normals = {
+		FVector::UpVector, FVector::UpVector, FVector::UpVector, FVector::UpVector,
+	};
+	const float Tiles = (Reach * 2.0f) / 100.0f;
+	const TArray<FVector2D> UVs = {
+		FVector2D(0.0f, 0.0f),
+		FVector2D(Tiles, 0.0f),
+		FVector2D(0.0f, Tiles),
+		FVector2D(Tiles, Tiles),
+	};
+	const TArray<FProcMeshTangent> Tangents = {
+		FProcMeshTangent(FVector::XAxisVector, false),
+		FProcMeshTangent(FVector::XAxisVector, false),
+		FProcMeshTangent(FVector::XAxisVector, false),
+		FProcMeshTangent(FVector::XAxisVector, false),
+	};
+
+	const TArray<FLinearColor> NoColors;
+	WaterPlane->ClearAllMeshSections();
+	WaterPlane->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, NoColors,
+		Tangents, false);
+	WaterPlane->SetMaterial(0, WaterMaterial);
 }
 
 FIntPoint AKBVEWorldStreamer::ChunkCoordAt(const FVector& WorldLocation) const
@@ -138,7 +191,6 @@ void AKBVEWorldStreamer::ConfigurePatch(AKBVEWorldHeightfieldActor* Patch, const
 	Patch->CellSize = CellSize;
 	Patch->SkirtDepth = SkirtDepth;
 	Patch->TerrainMaterial = TerrainMaterial;
-	Patch->WaterMaterial = WaterMaterial;
 	Patch->SetRoadField(GetRoadField());
 	// Tile origin follows the chunk coordinate exactly, so the last column of
 	// one patch samples the same tile as the first column of the next and the
@@ -365,6 +417,7 @@ void AKBVEWorldStreamer::Tick(float DeltaSeconds)
 		LastCentre = Centre;
 		ReleaseOutsideRadius(Centre);
 		QueueInsideRadius(Centre);
+		RebuildWaterPlane(Centre);
 
 		FillStartSeconds = FPlatformTime::Seconds();
 		FillTicks = 0;
@@ -409,7 +462,17 @@ void AKBVEWorldStreamer::Tick(float DeltaSeconds)
 	// Same budget, and after the coordinates that have no patch at all: a
 	// restaged patch is standing there being drawn and stood on the whole time,
 	// so it can wait, where an empty coordinate is a hole in the world.
-	while (Restage.Num() > 0 && Built < MaxBuildsPerTick)
+	//
+	// Checked before the loop as well as inside it. Both loops used to check
+	// only after building, each one entitled to overrun on its own, so a tick
+	// that had already spent thirty milliseconds filling a hole would go on to
+	// restage a patch and spend thirty more. The after-check is there so a
+	// budget smaller than one patch still makes progress; that argument applies
+	// once per tick, not once per queue.
+	const bool bBudgetLeft =
+		(FPlatformTime::Seconds() - TickStart) * 1000.0 < MaxBuildMillisecondsPerTick;
+
+	while (bBudgetLeft && Restage.Num() > 0 && Built < MaxBuildsPerTick)
 	{
 		RebuildInPlace(Restage[0]);
 		Restage.RemoveAt(0, EAllowShrinking::No);
