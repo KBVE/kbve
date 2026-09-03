@@ -4,6 +4,7 @@
 #include "KBVEMoverPawn.h"
 
 class UAnimSequence;
+class USkeletalMeshComponent;
 
 #include "RareIconPlayerPawn.generated.h"
 
@@ -28,6 +29,7 @@ public:
 	ARareIconPlayerPawn(const FObjectInitializer& ObjectInitializer);
 
 	virtual void Tick(float DeltaSeconds) override;
+	virtual void BeginPlay() override;
 
 	/**
 	 * Log where the capsule, the collision surface, the analytic terrain and the
@@ -102,12 +104,70 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RareIcon|Animation")
 	float LandingAnticipationTime = 0.18f;
 
-	/** Ground speed each locomotion clip was authored at, for play-rate scaling. */
+	/**
+	 * Ground speed each locomotion clip was authored at, for play-rate scaling.
+	 *
+	 * Measured from the clips rather than estimated: the root travels 786.67 cm
+	 * over the 3.933 s walk and 1216.67 cm over the 2.433 s run, which is 200
+	 * and 500 cm/s exactly. A play rate computed against a guessed authoring
+	 * speed is what makes feet skate.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RareIcon|Animation")
-	float WalkClipSpeed = 150.0f;
+	float WalkClipSpeed = 200.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RareIcon|Animation")
 	float RunClipSpeed = 500.0f;
+
+	/**
+	 * Bone the weapon rides on, and where it sits relative to that bone.
+	 *
+	 * Attached to hand_r, not to weapon_r.
+	 *
+	 * weapon_r is the bone that exists for exactly this and the rifle clips do
+	 * animate it -- but SKM_Manny_Simple does not skin it. Its skeleton asset
+	 * lists 161 bones and the mesh carries a subset, so the lookup fails, and a
+	 * failed socket lookup is silent: the component attaches to its parent's
+	 * origin instead. On this pawn that origin is the capsule bottom, so the
+	 * rifle lay on the ground looking like a bad offset rather than a missing
+	 * bone. ReportFeet logs the bone index for that reason.
+	 *
+	 * The rotation is the Game Animation Sample's own convention rather than a
+	 * fit: weapon_r carries the orientation those clips expect a weapon to take,
+	 * and its X axis runs back down the weapon toward the butt. This rifle is
+	 * modelled muzzle on +X and scope on +Z, so the mapping is a half turn about
+	 * Z and nothing else -- which is why the rotation is exactly 180 and holds
+	 * to the degree across the whole idle loop.
+	 *
+	 * Fitting it to the hands instead does not work, and the failure is worth
+	 * recording. Aligning the barrel to the hand_r -> hand_l vector puts it 31
+	 * degrees across the body, because a hand bone sits at the wrist and the
+	 * wrist is offset from whatever the hand is wrapped around: the left wrist
+	 * measures 8.8 cm off the barrel's centreline while that hand's knuckles sit
+	 * 1.5 cm off it, on the fore-end, holding the weapon correctly.
+	 *
+	 * The translation puts the measured wrist of the stock on weapon_r, which is
+	 * 3.4 cm from hand_r -- the palm rather than the wrist joint.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RareIcon|Weapon")
+	FName WeaponAttachBone = TEXT("hand_r");
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RareIcon|Weapon")
+	FTransform WeaponAttachOffset = FTransform(
+		FRotator(0.0f, 180.0f, 0.0f), FVector(-36.80f, 3.41f, -0.38f));
+
+	/**
+	 * Solve the weapon hold procedurally instead of taking it from the clip.
+	 *
+	 * Off: the rifle set animates the hold. Worth having for a character with no
+	 * authored hold, and worth never having on at the same time as one -- both
+	 * write the same arm bones.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RareIcon|Weapon")
+	bool bUseProceduralWeaponHold = false;
+
+	/** The weapon itself. Skeletal because its bolt and trigger are bones. */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RareIcon|Weapon")
+	TObjectPtr<USkeletalMeshComponent> WeaponMesh;
 
 private:
 	/** Seconds after possession to log ReportFeet once, so a headless run captures it. */
@@ -117,6 +177,7 @@ private:
 
 	float TimeSinceBeginPlay = 0.0f;
 	int32 FeetReportsDone = 0;
+	bool bAutoShotTaken = false;
 
 	/** Pick the clip for the current velocity and play it if it is not already. */
 	void UpdateLocomotionAnimation(float DeltaSeconds);

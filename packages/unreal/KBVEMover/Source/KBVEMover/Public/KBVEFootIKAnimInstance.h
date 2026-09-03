@@ -89,6 +89,52 @@ struct FKBVEFootIKProxy : public FAnimInstanceProxy
 	float SpineLeanDegrees = 0.0f;
 	FBoneReference Spine;
 
+	// Weapon hold. The rifle is placed relative to the chest and both hands are
+	// solved onto it, rather than the rifle hanging off a hand: a hand driven by
+	// a locomotion clip swings, and anything attached to it swings with it. The
+	// weapon is the stable thing and the arms follow it, which is what holding
+	// something actually means.
+	FBoneReference Chest;
+	FBoneReference LeftUpperArm;
+	FBoneReference LeftLowerArm;
+	FBoneReference LeftHand;
+	FBoneReference RightUpperArm;
+	FBoneReference RightLowerArm;
+	FBoneReference RightHand;
+
+	FTransform WeaponRelativeToChest = FTransform::Identity;
+
+	// The weapon hangs off the trigger hand, so the solver has to find it the
+	// same way the component does rather than place it itself.
+	FBoneReference WeaponHand;
+	FTransform WeaponRelativeToHand = FTransform::Identity;
+	FVector LeftHandTargetLocal = FVector::ZeroVector;
+	float LeftHandIKAlpha = 0.0f;
+	float LeftHandRollDegrees = 0.0f;
+	float WeaponBoreHeight = 0.0f;
+	FVector LeftGripLocal = FVector::ZeroVector;
+	FVector RightGripLocal = FVector::ZeroVector;
+	FVector LeftElbowDirection = FVector::ZeroVector;
+	FVector RightElbowDirection = FVector::ZeroVector;
+	FRotator LeftHandGripRotation = FRotator::ZeroRotator;
+	FRotator RightHandGripRotation = FRotator::ZeroRotator;
+	float WeaponIKAlpha = 0.0f;
+
+	// Fingers are posed, not solved. A grip is the same shape every frame, so a
+	// solver would spend itself reproducing a constant; these are the constant.
+	TArray<FBoneReference> LeftFingers;
+	TArray<FBoneReference> RightFingers;
+	float FingerCurlDegrees = 0.0f;
+	float ThumbCurlDegrees = 0.0f;
+	int32 FingersPerHand = 0;
+
+	// Closing the support hand onto a weapon the clip was not authored around.
+	// Independent of the procedural hold above: the clip poses the arms, and
+	// only the grip radius needs correcting.
+	float LeftGripCurlDegrees = 0.0f;
+	float LeftGripThumbDegrees = 0.0f;
+	FVector FingerCurlAxis = FVector::UpVector;
+
 private:
 	FAnimNode_SequencePlayer& CurrentPlayer() { return bUsingA ? SequenceA : SequenceB; }
 	FAnimNode_SequencePlayer& PreviousPlayer() { return bUsingA ? SequenceB : SequenceA; }
@@ -96,6 +142,29 @@ private:
 	/** Solve one leg so its foot reaches its ground point, and lies along it. */
 	void SolveLeg(FCSPose<FCompactPose>& Pose, const FBoneReference& Thigh, const FBoneReference& Calf,
 		const FBoneReference& Foot, const FVector& Correction, const FVector& GroundNormal) const;
+
+	/**
+	 * Two-bone solve onto an absolute target, for an arm.
+	 *
+	 * Separate from SolveLeg rather than shared with it: a leg is corrected by a
+	 * delta from wherever the clip put the foot and rolls onto a ground normal,
+	 * an arm is sent to a position the weapon dictates and takes the weapon's
+	 * orientation. The elbow hint also differs -- a knee that has lost its hint
+	 * bends forward, an elbow bends back, and using the leg's fallback here
+	 * inverts the arm.
+	 */
+	void SolveArm(FCSPose<FCompactPose>& Pose, const FBoneReference& UpperArm, const FBoneReference& LowerArm,
+		const FBoneReference& Hand, const FVector& Target, const FVector& ElbowDirection,
+		const FQuat& HandRotation, float Alpha, float RotationAlpha,
+		const FQuat& RotationDelta = FQuat::Identity) const;
+
+	/** Close the fingers by a fixed amount about their own bend axis. */
+	void PoseFingers(FCompactPose& Pose, const TArray<FBoneReference>& Fingers, float Alpha) const;
+
+	/** Add curl on top of whatever the clip already posed, in degrees. */
+	void CurlFingers(FCompactPose& Pose, const TArray<FBoneReference>& Fingers,
+		float FingerDegrees, float ThumbDegrees) const;
+
 };
 
 UCLASS()
@@ -269,6 +338,179 @@ public:
 	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|FootIK")
 	float SwingHeight = 28.0f;
 
+	/**
+	 * Where the weapon sits relative to the chest, and where the hands go on it.
+	 *
+	 * Solved rather than posed by hand. Manny's arm is 27.8 + 27.2 cm, so a hand
+	 * further than about 47 cm from its shoulder cannot be reached and the solver
+	 * straightens the arm and misses. These defaults put the trigger hand 24 cm
+	 * from its shoulder and the support hand 43 cm from its own -- a bent firing
+	 * arm and an extended but not locked support arm, which is the shape of an
+	 * actual rifle hold.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	FTransform WeaponRelativeToChest = FTransform(
+		FRotator(-33.27f, 117.49f, -99.73f), FVector(-32.71f, 27.68f, -12.30f));
+
+	/** Grip points in the weapon's own space. Measured off the stock geometry. */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	FVector RightGripLocal = FVector(-37.0f, 0.0f, 0.0f);
+
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	FVector LeftGripLocal = FVector(-7.0f, 0.0f, -1.0f);
+
+	/**
+	 * Which way each elbow is pushed, as a direction from its own shoulder in
+	 * component space.
+	 *
+	 * An elbow has one degree of freedom once the shoulder and hand are fixed,
+	 * and nothing in the pose decides it, so it is stated. Anchored to the
+	 * shoulder rather than to the weapon on purpose: a hint held in the weapon's
+	 * space swings with the barrel, so aiming the rifle drags the elbows around
+	 * the arm axis with it and the joints invert as it passes through them.
+	 *
+	 * Manny faces +Y with his right on -X. The firing elbow drops out to the
+	 * right and back; the support elbow tucks straight down under the barrel.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	FVector RightElbowDirection = FVector(-0.5f, -0.3f, -0.8f);
+
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	FVector LeftElbowDirection = FVector(0.2f, 0.0f, -0.98f);
+
+	/** Hand orientation relative to the weapon, so the palms face the stock. */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	FRotator RightHandGripRotation = FRotator(0.0f, 0.0f, 0.0f);
+
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	FRotator LeftHandGripRotation = FRotator(0.0f, 0.0f, 180.0f);
+
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	FName ChestBone = TEXT("spine_05");
+
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	bool bHoldWeapon = false;
+
+	/**
+	 * Lift the support hand onto the weapon the clip is already holding.
+	 *
+	 * Distinct from bHoldWeapon, which poses arms that hold nothing. This is a
+	 * correction: the rifle clips place the support hand for their own weapon,
+	 * and against this one its knuckles finish two to four centimetres under the
+	 * fore-end -- close enough to look intentional and wrong enough to read as
+	 * hovering. Everything else about the pose is kept.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	bool bSolveLeftHandToWeapon = true;
+
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float LeftHandIKAlpha = 1.0f;
+
+	/**
+	 * Where the support wrist belongs, in the weapon's space.
+	 *
+	 * Measured, not chosen: with the clip pose the left knuckle lands at
+	 * (1.2, -0.4, -0.5) and the wrist at (-4.0, -7.4, 3.2), so the wrist sits
+	 * (-5.2, -7.0, 3.7) from the knuckle. Putting that knuckle on the underside
+	 * of the fore-end, at z = +2, puts the wrist here.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	FVector LeftHandTargetLocal = FVector(-4.0f, -7.0f, 5.7f);
+
+	/** Bone the weapon is attached to, and its offset from that bone. */
+	/**
+	 * Roll the support hand around the barrel, degrees.
+	 *
+	 * The clips grip a weapon far thicker than this one and meet it side-on, so
+	 * the wrist ends up level with the bore and out beside it -- a hand hanging
+	 * next to the fore-end rather than under it. Rolling about the barrel is the
+	 * one correction that fixes that without breaking the grip: every knuckle
+	 * keeps its distance from the axis, so contact is preserved and only where
+	 * the hand sits around the circumference changes.
+	 *
+	 * Thirty degrees, and the number is a compromise rather than a solve. The
+	 * wrist starts at 174 degrees around the bore, level with it, and geometry
+	 * alone says a support wrist belongs near 253 -- underneath. Rolling the
+	 * whole eighty degrees to get there does put it under, but it also carries
+	 * the clip's finger pose round with it until the fingers point away from the
+	 * weapon rather than around it, because they were authored to meet a much
+	 * thicker fore-end from the side. Thirty drops the wrist below the bore and
+	 * leaves the knuckles at 2.5 to 3.0 cm, still closed on the wood.
+	 *
+	 * The real fix is a support-hand pose authored for this weapon. Until there
+	 * is one, this is the most correction the clip will take.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float LeftHandRollDegrees = 30.0f;
+
+	/**
+	 * Height of the bore above the weapon's own X axis, cm.
+	 *
+	 * Not zero, and assuming it was cost a round of this: a rifle's barrel sits
+	 * above its stock line, by about 5 cm at the fore-end on this model, so the
+	 * axis the hand rolls about is not the axis the mesh is modelled around.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float WeaponBoreHeight = 5.0f;
+
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	FName WeaponHandBone = TEXT("hand_r");
+
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	FTransform WeaponRelativeToHand = FTransform::Identity;
+
+	/**
+	 * Extra curl on the support hand, degrees per joint, added to the clip.
+	 *
+	 * The rifle clips are authored around a weapon with a much thicker fore-end
+	 * than this one: measured against our barrel their left fingertips sit 4.7
+	 * to 5.1 cm from its centreline while the knuckles sit at 1.3 to 2.3 -- the
+	 * hand lies open along the barrel instead of closing round it. Curling the
+	 * joints further is what brings the fingertips back onto a thinner weapon,
+	 * and it is additive so the clip still owns the pose.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float LeftGripCurlDegrees = 45.0f;
+
+	/**
+	 * The thumb takes its own amount, and less of it.
+	 *
+	 * It does not share the fingers' bend axis, so curling it about the same one
+	 * only approximates: measured tip distance from the barrel improves from
+	 * 7.8 cm to 5.5 at -30 and gets worse again by -55, because past a point it
+	 * swings through and back out. -30 is the measured best rather than the
+	 * result of a solve, and a thumb laid along a fore-end rather than wrapped
+	 * under it is what a support hand does anyway.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float LeftGripThumbDegrees = -30.0f;
+
+	/**
+	 * Bone-local axis a finger joint bends about.
+	 *
+	 * Y on this skeleton, found by trying all three and measuring which one
+	 * pulls the fingertips toward the barrel: X and Z both push them further out.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	FVector FingerCurlAxis = FVector(0.0f, 1.0f, 0.0f);
+
+	/** Seconds to raise or lower the weapon hold. */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float WeaponBlendTime = 0.25f;
+
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float FingerCurlDegrees = 62.0f;
+
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float ThumbCurlDegrees = 34.0f;
+
+	/** Current weapon-hold blend, readable so the pawn can match the mesh to it. */
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Animation|Weapon")
+	float GetWeaponIKAlpha() const { return WeaponAlpha; }
+
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Animation|Weapon")
+	void SetHoldWeapon(bool bHold) { bHoldWeapon = bHold; }
+
 protected:
 	virtual void NativeUpdateAnimation(float DeltaSeconds) override;
 	virtual FAnimInstanceProxy* CreateAnimInstanceProxy() override { return new FKBVEFootIKProxy(this); }
@@ -280,6 +522,8 @@ private:
 
 	/** Cap a ground normal to MaxFootTilt so a steep face cannot lay a foot on its side. */
 	FVector ClampNormalToTilt(const FVector& Normal) const;
+
+	float WeaponAlpha = 0.0f;
 
 	UPROPERTY(Transient)
 	TObjectPtr<UAnimSequence> PendingClip;

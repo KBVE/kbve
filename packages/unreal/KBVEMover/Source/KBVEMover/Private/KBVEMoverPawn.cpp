@@ -78,6 +78,14 @@ void AKBVEMoverPawn::BeginPlay()
 {
 	Super::BeginPlay();
 
+	// Seeded from the boom rather than from the default, so a subclass or a
+	// placed instance that set its own distance keeps it until the first scroll.
+	if (CameraBoom)
+	{
+		DesiredCameraDistance = FMath::Clamp(
+			CameraBoom->TargetArmLength, MinCameraDistance, MaxCameraDistance);
+	}
+
 	// Shared settings exist once the movement modes have been resolved, so this
 	// cannot be done in the constructor.
 	if (MoverComponent)
@@ -129,6 +137,72 @@ void AKBVEMoverPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputCompo
 	{
 		EIC->BindAction(InventoryAction, ETriggerEvent::Started, this, &AKBVEMoverPawn::OnInventory);
 	}
+	if (ZoomAction)
+	{
+		EIC->BindAction(ZoomAction, ETriggerEvent::Triggered, this, &AKBVEMoverPawn::OnZoom);
+	}
+}
+
+namespace
+{
+	// Negative means "leave the camera alone". Set it to force a distance from
+	// the console, which is what makes a headless screenshot able to frame the
+	// character close enough to judge a surface rather than a silhouette.
+	static float GForcedCameraDistance = -1.0f;
+	static FAutoConsoleVariableRef CVarCameraDistance(
+		TEXT("kbve.Camera.Distance"),
+		GForcedCameraDistance,
+		TEXT("Force the camera boom length. Negative leaves it under player control."),
+		ECVF_Default);
+
+	// Orbits the camera without turning the pawn. Driving the controller instead
+	// would rotate the character too, so a shot meant to look at his front would
+	// only ever show his back.
+	static float GShotYaw = 0.0f;
+	static float GShotPitch = 0.0f;
+	static bool GShotOrbit = false;
+	static FAutoConsoleVariableRef CVarShotOrbit(
+		TEXT("kbve.Camera.Orbit"),
+		GShotOrbit,
+		TEXT("Detach the boom from the control rotation and use Camera.Yaw/Pitch."),
+		ECVF_Default);
+	static FAutoConsoleVariableRef CVarShotYaw(
+		TEXT("kbve.Camera.Yaw"), GShotYaw, TEXT("Boom yaw when orbiting."), ECVF_Default);
+	static FAutoConsoleVariableRef CVarShotPitch(
+		TEXT("kbve.Camera.Pitch"), GShotPitch, TEXT("Boom pitch when orbiting."), ECVF_Default);
+}
+
+void AKBVEMoverPawn::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (GForcedCameraDistance > 0.0f)
+	{
+		DesiredCameraDistance = GForcedCameraDistance;
+	}
+
+	if (CameraBoom && GShotOrbit)
+	{
+		CameraBoom->bUsePawnControlRotation = false;
+		CameraBoom->SetWorldRotation(FRotator(GShotPitch, GShotYaw, 0.0f));
+	}
+
+	if (CameraBoom && !FMath::IsNearlyEqual(CameraBoom->TargetArmLength, DesiredCameraDistance))
+	{
+		CameraBoom->TargetArmLength = CameraZoomInterpSpeed > KINDA_SMALL_NUMBER
+			? FMath::FInterpTo(CameraBoom->TargetArmLength, DesiredCameraDistance,
+				DeltaSeconds, CameraZoomInterpSpeed)
+			: DesiredCameraDistance;
+	}
+}
+
+void AKBVEMoverPawn::OnZoom(const FInputActionValue& Value)
+{
+	// Only the target moves here. Tick walks the boom toward it, so a fast
+	// scroll is one movement rather than a sequence of jumps.
+	DesiredCameraDistance = FMath::Clamp(
+		DesiredCameraDistance - Value.Get<float>() * CameraZoomStep,
+		MinCameraDistance, MaxCameraDistance);
 }
 
 void AKBVEMoverPawn::OnMove(const FInputActionValue& Value)
