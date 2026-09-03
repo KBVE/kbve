@@ -50,6 +50,13 @@ UV_SCALE = 1.0 / 512.0
 # walking pace wants a finer grain than a hillside seen across a valley.
 ROAD_UV_SCALE = 1.0 / 300.0
 
+# Scales for the second and third readings of a surface texture. Chosen against
+# each other rather than for their own sake: 0.47 and 0.083 share no useful
+# common multiple with 1.0, so the two readings do not come back into phase
+# anywhere a player would walk.
+DETILE_ALT_SCALE = 0.47
+DETILE_MACRO_SCALE = 0.083
+
 # Bridge meshes parameterise UV0 by distance travelled in world units, so their
 # materials sample UV0 straight through. Scaling it again here is what makes a
 # deck and the road it meets tile at different rates across the seam they share.
@@ -220,23 +227,65 @@ def build_surface_material(path, textures, stem):
         pkg_name, pkg_dir, unreal.Material, unreal.MaterialFactoryNew()
     )
 
-    uv = expr(mat, unreal.MaterialExpressionTextureCoordinate, -500, 0)
-    uv.set_editor_property("coordinate_index", 0)
+    def coords(u_scale, y):
+        node = expr(mat, unreal.MaterialExpressionTextureCoordinate, -700, y)
+        node.set_editor_property("coordinate_index", 0)
+        node.set_editor_property("u_tiling", u_scale)
+        node.set_editor_property("v_tiling", u_scale)
+        return node
 
-    def sample(suffix, y, sampler_type):
+    uv = coords(1.0, 0)
+
+    # A second reading of the same wood at an unrelated scale, mixed in by a
+    # third at a very large one.
+    #
+    # The strip builder parameterises UVs by distance along the deck, so a span
+    # is the same tile laid end to end -- twenty times over on a long one, and in
+    # lockstep across the deck and both rails, which is what makes the repeat
+    # read as a repeat rather than as timber. The scales are deliberately not
+    # ratios of each other: two patterns that share a common multiple line up
+    # again at that multiple and the eye finds the new period instead of the old.
+    uv_alt = coords(DETILE_ALT_SCALE, 300)
+    uv_macro = coords(DETILE_MACRO_SCALE, 600)
+
+    def sample(suffix, y, sampler_type, uvs=None):
         name = f"{stem}_{suffix}"
         s = expr(mat, unreal.MaterialExpressionTextureSampleParameter2D, -300, y)
         s.set_editor_property("parameter_name", name)
         s.set_editor_property("texture", textures[name])
         s.set_editor_property("sampler_type", sampler_type)
-        MEL.connect_material_expressions(uv, "", s, "UVs")
+        MEL.connect_material_expressions(uvs or uv, "", s, "UVs")
         return s
 
     diff = sample("D", -200, unreal.MaterialSamplerType.SAMPLERTYPE_COLOR)
     norm = sample("N", 100, unreal.MaterialSamplerType.SAMPLERTYPE_NORMAL)
     rh = sample("RH", 400, unreal.MaterialSamplerType.SAMPLERTYPE_MASKS)
 
-    MEL.connect_material_property(diff, "RGB", unreal.MaterialProperty.MP_BASE_COLOR)
+    # Only the colour is read twice. The repeat is visible in albedo -- the same
+    # knot in the same place down the whole rail -- and a second normal and
+    # roughness would double the samplers again to fix something nobody sees.
+    diff_alt = expr(mat, unreal.MaterialExpressionTextureSampleParameter2D, -300, 700)
+    diff_alt.set_editor_property("parameter_name", f"{stem}_D_Alt")
+    diff_alt.set_editor_property("texture", textures[f"{stem}_D"])
+    diff_alt.set_editor_property(
+        "sampler_type", unreal.MaterialSamplerType.SAMPLERTYPE_COLOR
+    )
+    MEL.connect_material_expressions(uv_alt, "", diff_alt, "UVs")
+
+    macro = expr(mat, unreal.MaterialExpressionTextureSampleParameter2D, -300, 1000)
+    macro.set_editor_property("parameter_name", f"{stem}_Macro")
+    macro.set_editor_property("texture", textures[f"{stem}_D"])
+    macro.set_editor_property(
+        "sampler_type", unreal.MaterialSamplerType.SAMPLERTYPE_COLOR
+    )
+    MEL.connect_material_expressions(uv_macro, "", macro, "UVs")
+
+    base_color = expr(mat, unreal.MaterialExpressionLinearInterpolate, -100, -200)
+    MEL.connect_material_expressions(diff, "RGB", base_color, "A")
+    MEL.connect_material_expressions(diff_alt, "RGB", base_color, "B")
+    MEL.connect_material_expressions(macro, "R", base_color, "Alpha")
+
+    MEL.connect_material_property(base_color, "", unreal.MaterialProperty.MP_BASE_COLOR)
     MEL.connect_material_property(norm, "RGB", unreal.MaterialProperty.MP_NORMAL)
     MEL.connect_material_property(rh, "R", unreal.MaterialProperty.MP_ROUGHNESS)
 
@@ -273,6 +322,39 @@ def build_water_material():
     metal = expr(mat, unreal.MaterialExpressionConstant, -400, 320)
     metal.set_editor_property("r", 0.0)
     MEL.connect_material_property(metal, "", unreal.MaterialProperty.MP_METALLIC)
+
+    # Opacity, which for this shading model is how much of the water's own
+    # surface shows rather than how see-through the material is. Left
+    # unconnected the surface had nothing to shade with and read as absent over
+    # a riverbed only a hundred and sixty units deep.
+    opacity = expr(mat, unreal.MaterialExpressionConstant, -400, 460)
+    opacity.set_editor_property("r", 1.0)
+    MEL.connect_material_property(opacity, "", unreal.MaterialProperty.MP_OPACITY)
+
+    # Absorption and scattering. Single Layer Water derives its colour from how
+    # light travels through the depth behind it, and with no coefficients given
+    # it takes defaults that are close to clear -- which over a shallow channel
+    # is indistinguishable from no water at all. These are per-metre in world
+    # units: strong enough to read as water at a metre of depth.
+    water_out = expr(
+        mat, unreal.MaterialExpressionSingleLayerWaterMaterialOutput, -100, 600
+    )
+
+    absorption = expr(mat, unreal.MaterialExpressionConstant3Vector, -400, 600)
+    absorption.set_editor_property(
+        "constant", unreal.LinearColor(0.004, 0.0016, 0.0012, 1.0)
+    )
+    MEL.connect_material_expressions(
+        absorption, "", water_out, "ScatteringCoefficients"
+    )
+
+    extinction = expr(mat, unreal.MaterialExpressionConstant3Vector, -400, 740)
+    extinction.set_editor_property(
+        "constant", unreal.LinearColor(0.006, 0.003, 0.002, 1.0)
+    )
+    MEL.connect_material_expressions(
+        extinction, "", water_out, "AbsorptionCoefficients"
+    )
 
     MEL.recompile_material(mat)
     EAL.save_asset(WATER_MATERIAL_PATH)

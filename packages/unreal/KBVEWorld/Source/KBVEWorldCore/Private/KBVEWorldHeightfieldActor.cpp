@@ -25,63 +25,6 @@ AKBVEWorldHeightfieldActor::AKBVEWorldHeightfieldActor()
 	// Never drawn -- it exists to be traced against and stood on.
 	CollisionMesh->SetHiddenInGame(true);
 	CollisionMesh->SetVisibility(false);
-
-	Water = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Water"));
-	Water->SetupAttachment(Mesh);
-	Water->SetCanEverAffectNavigation(false);
-	Water->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-	// The surface is a flat plane a long way from the patch it belongs to when
-	// the patch is a hilltop, so it casts a shadow over ground it is nowhere
-	// near unless it is told not to.
-	Water->SetCastShadow(false);
-}
-
-void AKBVEWorldHeightfieldActor::BuildWater()
-{
-	if (!Water)
-	{
-		return;
-	}
-
-	Water->ClearAllMeshSections();
-	if (!WaterMaterial)
-	{
-		return;
-	}
-
-	// A quad, not a grid. The surface is flat and its material does its own
-	// animation, so subdividing it buys vertices and nothing else.
-	const float Span = CellsPerEdge * CellSize;
-	const float Z = Shape.WaterZ;
-
-	const TArray<FVector> Vertices = {
-		FVector(0.0f, 0.0f, Z),
-		FVector(Span, 0.0f, Z),
-		FVector(0.0f, Span, Z),
-		FVector(Span, Span, Z),
-	};
-	const TArray<int32> Triangles = { 0, 2, 3, 0, 3, 1 };
-	const TArray<FVector> Normals = {
-		FVector::UpVector, FVector::UpVector, FVector::UpVector, FVector::UpVector,
-	};
-	const float Tiles = Span / 100.0f;
-	const TArray<FVector2D> UVs = {
-		FVector2D(0.0f, 0.0f),
-		FVector2D(Tiles, 0.0f),
-		FVector2D(0.0f, Tiles),
-		FVector2D(Tiles, Tiles),
-	};
-	const TArray<FProcMeshTangent> Tangents = {
-		FProcMeshTangent(FVector::XAxisVector, false),
-		FProcMeshTangent(FVector::XAxisVector, false),
-		FProcMeshTangent(FVector::XAxisVector, false),
-		FProcMeshTangent(FVector::XAxisVector, false),
-	};
-
-	const TArray<FLinearColor> NoColors;
-	Water->CreateMeshSection_LinearColor(0, Vertices, Triangles, Normals, UVs, NoColors,
-		Tangents, false);
-	Water->SetMaterial(0, WaterMaterial);
 }
 
 void AKBVEWorldHeightfieldActor::BuildSection(UProceduralMeshComponent* Target, int32 InStep, bool bCollision)
@@ -108,33 +51,44 @@ void AKBVEWorldHeightfieldActor::BuildSection(UProceduralMeshComponent* Target, 
 	// border and adjacent patches disagree about the surface, which shows up as
 	// a lit seam along every chunk boundary.
 	const int32 PadEdge = Edge + 2;
-	TArray<float> Padded;
-	Padded.SetNumUninitialized(PadEdge * PadEdge);
-	FKBVEWorldHeightfield::FillGrid(Shape, Seed,
-		TileOrigin.X - TileStep, TileOrigin.Y - TileStep, TileStep, PadEdge, Padded);
 
-	// Applied over the padded grid, before normals are taken from it, so the
-	// cutting is lit as the shape it is rather than as the ground it replaced --
-	// and so the ring shared with the next patch is levelled identically on both
-	// sides and no seam opens along a road that crosses a chunk boundary.
-	if (RoadField)
+	// Generated once per stride and kept. The collision proxy asks for the same
+	// stride as the drawn surface on every patch that carries collision, and the
+	// heights it wants are the heights already computed -- it differs in its
+	// skirts and its vertex colours, not in its ground.
+	if (CachedPaddedStep != Step || CachedPadded.Num() != PadEdge * PadEdge)
 	{
-		const float PadOrigin = -TileStep * 100.0f;
-		const FVector2D Min(TileOrigin.X * 100.0f + PadOrigin, TileOrigin.Y * 100.0f + PadOrigin);
-		const FVector2D Max = Min + FVector2D(PadEdge * VertexSize, PadEdge * VertexSize);
-		RoadField->EnsureCovers(Min, Max);
+		CachedPadded.SetNumUninitialized(PadEdge * PadEdge);
+		FKBVEWorldHeightfield::FillGrid(Shape, Seed,
+			TileOrigin.X - TileStep, TileOrigin.Y - TileStep, TileStep, PadEdge, CachedPadded);
 
-		for (int32 Y = 0; Y < PadEdge; ++Y)
+		// Applied over the padded grid, before normals are taken from it, so the
+		// cutting is lit as the shape it is rather than as the ground it replaced --
+		// and so the ring shared with the next patch is levelled identically on both
+		// sides and no seam opens along a road that crosses a chunk boundary.
+		if (RoadField)
 		{
-			for (int32 X = 0; X < PadEdge; ++X)
+			const float PadOrigin = -TileStep * 100.0f;
+			const FVector2D Min(TileOrigin.X * 100.0f + PadOrigin, TileOrigin.Y * 100.0f + PadOrigin);
+			const FVector2D Max = Min + FVector2D(PadEdge * VertexSize, PadEdge * VertexSize);
+			RoadField->EnsureCovers(Min, Max);
+
+			for (int32 Y = 0; Y < PadEdge; ++Y)
 			{
-				const float Wx = Min.X + X * VertexSize;
-				const float Wy = Min.Y + Y * VertexSize;
-				float& H = Padded[Y * PadEdge + X];
-				H = RoadField->Level(H, Wx, Wy);
+				for (int32 X = 0; X < PadEdge; ++X)
+				{
+					const float Wx = Min.X + X * VertexSize;
+					const float Wy = Min.Y + Y * VertexSize;
+					float& H = CachedPadded[Y * PadEdge + X];
+					H = RoadField->Level(H, Wx, Wy);
+				}
 			}
 		}
+
+		CachedPaddedStep = Step;
 	}
+
+	const TArray<float>& Padded = CachedPadded;
 
 	auto PaddedAt = [&Padded, PadEdge](int32 X, int32 Y) -> float
 	{
@@ -317,6 +271,9 @@ void AKBVEWorldHeightfieldActor::Rebuild()
 	LastGenerateMs = 0.0f;
 	LastSectionMs = 0.0f;
 
+	// A pooled patch arrives with the last coordinate's heights still cached.
+	CachedPaddedStep = 0;
+
 	BuildSection(Mesh, LODStep, false);
 
 	if (CollisionMesh)
@@ -335,7 +292,6 @@ void AKBVEWorldHeightfieldActor::Rebuild()
 		}
 	}
 
-	BuildWater();
 }
 
 void AKBVEWorldHeightfieldActor::OnConstruction(const FTransform& Transform)

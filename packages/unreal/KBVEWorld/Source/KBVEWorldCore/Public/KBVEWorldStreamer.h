@@ -9,6 +9,7 @@
 #include "KBVEWorldStreamer.generated.h"
 
 class AKBVEWorldHeightfieldActor;
+class UProceduralMeshComponent;
 class UMaterialInterface;
 
 KBVEWORLDCORE_API DECLARE_LOG_CATEGORY_EXTERN(LogKBVEWorldStream, Log, All);
@@ -159,6 +160,20 @@ public:
 	TObjectPtr<UMaterialInterface> WaterMaterial;
 
 	/**
+	 * The world's water, as one surface.
+	 *
+	 * It used to be a quad per patch, which bought a hundred and sixty-nine
+	 * draws of the most expensive shading model in the scene and nothing else:
+	 * the surface is flat and at a constant height, so there is no LOD to pick,
+	 * no variation to carry, and -- measured -- no patch anywhere in the window
+	 * whose ground stays above it, so nothing to cull either. The render thread
+	 * is what this world is limited by, and half of what it was submitting was
+	 * this.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Streaming")
+	TObjectPtr<UProceduralMeshComponent> WaterPlane;
+
+	/**
 	 * Rings that get collision, counted from the centre.
 	 *
 	 * Collision is a second copy of the mesh and a physics cook per patch, so it
@@ -233,6 +248,8 @@ private:
 
 	/** Sample stride for a patch this many rings from the centre. */
 	int32 LODStepForRing(int32 Ring) const;
+
+	void RebuildWaterPlane(const FIntPoint& Centre);
 
 	bool WantsCollisionAtRing(int32 Ring) const { return Ring <= CollisionRadiusChunks; }
 	bool WantsShadowAtRing(int32 Ring) const
