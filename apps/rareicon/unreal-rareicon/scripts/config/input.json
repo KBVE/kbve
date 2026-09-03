@@ -7,7 +7,8 @@
 		"IA_Jump": "Boolean",
 		"IA_Sprint": "Boolean",
 		"IA_Interact": "Boolean",
-		"IA_Inventory": "Boolean"
+		"IA_Inventory": "Boolean",
+		"IA_Zoom": "Axis1D"
 	},
 	"mappings": [
 		{
@@ -45,6 +46,13 @@
 		{ "action": "IA_Interact", "key": "E" },
 		{ "action": "IA_Interact", "key": "Gamepad_FaceButton_Right" },
 		{ "action": "IA_Inventory", "key": "Tab" },
-		{ "action": "IA_Inventory", "key": "Gamepad_Special_Right" }
+		{ "action": "IA_Inventory", "key": "Gamepad_Special_Right" },
+
+		{ "action": "IA_Zoom", "key": "MouseScrollUp" },
+		{
+			"action": "IA_Zoom",
+			"key": "MouseScrollDown",
+			"modifiers": [{ "type": "negate", "x": true }]
+		}
 	]
 }

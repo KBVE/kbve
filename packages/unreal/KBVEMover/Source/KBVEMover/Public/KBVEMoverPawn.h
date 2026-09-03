@@ -49,6 +49,7 @@ public:
 
 	virtual void BeginPlay() override;
 	virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent) override;
+	virtual void Tick(float DeltaSeconds) override;
 	virtual void PawnClientRestart() override;
 	virtual void GetLifetimeReplicatedProps(TArray<FLifetimeProperty>& OutLifetimeProps) const override;
 
@@ -87,6 +88,32 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "KBVE|Mover")
 	float GroundDeceleration = 1400.0f;
+
+	/**
+	 * Camera distance limits and how far one scroll notch moves it.
+	 *
+	 * The near end is deliberately close enough to inspect the character rather
+	 * than merely play from: checking how a weapon sits in a hand needs the
+	 * camera nearer than any gameplay distance.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Mover|Camera")
+	float MinCameraDistance = 60.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Mover|Camera")
+	float MaxCameraDistance = 900.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Mover|Camera")
+	float CameraZoomStep = 45.0f;
+
+	/**
+	 * Seconds for the boom to reach a new distance. Zero snaps.
+	 *
+	 * Interpolated rather than applied, because a scroll wheel arrives as a
+	 * burst of discrete notches and setting the length per notch reads as the
+	 * camera jumping rather than moving.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Mover|Camera")
+	float CameraZoomInterpSpeed = 10.0f;
 	bool IsSprinting() const { return bSprinting; }
 
 	// IKBVEMovementDriver — drives this Mover pawn from gameplay/AI without binding to Mover directly
@@ -122,6 +149,10 @@ protected:
 	void OnSprintCompleted(const FInputActionValue& Value);
 	void OnInteract(const FInputActionValue& Value);
 	void OnInventory(const FInputActionValue& Value);
+	void OnZoom(const FInputActionValue& Value);
+
+	/** Boom length the zoom is walking toward. Seeded from the boom in BeginPlay. */
+	float DesiredCameraDistance = 400.0f;
 
 	/** Forward line-trace from the camera; calls IKBVEMoverInteractable::OnInteract on the first hit. */
 	void TryInteract();
@@ -161,6 +192,9 @@ protected:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Mover|Input")
 	TObjectPtr<UInputAction> LookAction;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Mover|Input")
+	TObjectPtr<UInputAction> ZoomAction;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Mover|Input")
 	TObjectPtr<UInputAction> JumpAction;
