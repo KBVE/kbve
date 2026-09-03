@@ -22,4 +22,5 @@ resources:
     - vm-starter-rbac.yaml
     - runner-reaper.yaml
     - runner-networkpolicy.yaml
+    - runner-rows-egress.yaml
     - runner-apiserver-egress.yaml

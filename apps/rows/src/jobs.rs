@@ -60,6 +60,7 @@ pub fn spawn_all(svc: Arc<OWSService>) {
     tokio::spawn(empty_server_reaper(svc.clone()));
     tokio::spawn(fleet_restart_reconcile(svc.clone()));
     tokio::spawn(deploy_state_refresh(svc.clone()));
+    tokio::spawn(version_roll_reconcile(svc.clone()));
     tokio::spawn(spinup_lock_expiry(svc.clone()));
     tokio::spawn(session_cache_sweep(svc));
 }
@@ -83,6 +84,165 @@ async fn deploy_state_refresh(svc: Arc<OWSService>) {
             }
         }
     }
+}
+
+/// Whole-fleet version roll.
+/// Design: `apps/rows/docs/2026-08-30-rows-whole-fleet-version-roll.md`.
+///
+/// The world is one game split across zones, one GameServer per zone, so two server versions
+/// must never serve it at once. Agones `RollingUpdate` is built to produce exactly that mixed
+/// state, so it is not used: instead the whole fleet is replaced at once, and the trigger is
+/// that nobody is playing. Downtime during the swap is free because that is the precondition.
+///
+/// What keeps the fleet on ONE version between a publish and a roll is `deploy_state
+/// .bootversion`: the launchers ask ROWS what to load instead of picking the newest directory
+/// off the PVC, and publishing does not move it. Only the pending→swapping edge below does.
+///
+/// Phases are persisted (`deploy_state.rollphase`) because mid-roll the fleet is empty and
+/// joins are locked out, so "zero active instances" reads true again on the next tick — a
+/// stateless loop would re-scale to zero every 30s and kill the servers it just created.
+async fn version_roll_reconcile(svc: Arc<OWSService>) {
+    let mut interval = tokio::time::interval(Duration::from_secs(30));
+    interval.tick().await;
+
+    loop {
+        interval.tick().await;
+        if let Err(e) = version_roll_tick(&svc).await {
+            warn!(error = %e, "version roll: tick failed — will retry");
+        }
+    }
+}
+
+/// Seconds a roll may sit in `swapping` (old GameServers refusing to die) before giving up.
+/// On expiry the admission lockout is RELEASED and the phase returns to `pending`: a stuck
+/// roll must never leave the game unjoinable.
+const ROLL_SWAP_TIMEOUT_SECS: i64 = 300;
+/// Seconds a roll may sit in `settling` (waiting for a server on the new build) before it is
+/// called unhealthy. The lockout is already released by this point.
+const ROLL_SETTLE_TIMEOUT_SECS: i64 = 900;
+
+async fn version_roll_tick(svc: &Arc<OWSService>) -> Result<(), crate::error::RowsError> {
+    let guid = svc.state().config.customer_guid;
+    let repo = crate::repo::InstanceRepo(&svc.state().db);
+
+    let Some(state) = repo.get_deploy_state(guid).await? else {
+        return Ok(()); // no row yet — nothing published
+    };
+    let Some(agones) = svc.state().agones.as_ref() else {
+        return Ok(()); // no cluster access — roll is a no-op
+    };
+
+    match state.roll_phase.as_str() {
+        "pending" => {
+            if state.boot_version.as_deref() == Some(state.target_version.as_str()) {
+                repo.mark_rolled(guid).await?;
+                return Ok(());
+            }
+
+            // NOTE: this counts mapinstances rows, not players. An instance row survives until
+            // the empty-server reaper (disabled by default) or UE's SDK.Shutdown() clears it,
+            // so on a deployment without either the roll simply never fires. That is safe —
+            // it waits — but it is why the reaper is a prerequisite for this feature.
+            if repo.count_active_instances(guid).await? != 0 {
+                return Ok(());
+            }
+
+            // Atomic claim. Refused => somebody else already holds the join freeze (an operator
+            // fleet restart, most likely). Piggybacking on another owner's lockout would let us
+            // release a freeze we did not take, so stay pending and retry.
+            if !repo.try_set_admission_lockout(guid).await? {
+                info!("version roll: admission lockout already held — deferring");
+                return Ok(());
+            }
+
+            // Re-check under the lockout. The admission gate fails OPEN on DB errors, so this
+            // narrows the join window rather than closing it; if anyone slipped in, give the
+            // lockout back rather than scaling the fleet out from under them.
+            if repo.count_active_instances(guid).await? != 0 {
+                repo.set_admission(guid, None).await?;
+                info!("version roll: a join landed during the claim — aborting, will retry");
+                return Ok(());
+            }
+
+            // Moving bootversion is what changes the build new pods load. It must happen
+            // BEFORE the scale, or the autoscaler can refill onto the old version.
+            repo.set_roll_phase(guid, "swapping", Some(&state.target_version))
+                .await?;
+
+            if let Err(e) = agones.scale_fleet(0).await {
+                // Roll back to pending and release the freeze; bootversion stays moved, which
+                // is harmless — new pods boot the target, old ones keep running until the
+                // retry succeeds.
+                repo.set_roll_phase(guid, "pending", None).await?;
+                repo.set_admission(guid, None).await?;
+                warn!(error = %e, "version roll: scale to 0 failed — released lockout");
+                return Ok(());
+            }
+
+            info!(
+                version = %state.target_version,
+                "version roll: game empty, fleet scaled to 0"
+            );
+        }
+
+        "swapping" => {
+            let cutoff = match repo.phase_since_rfc3339(guid).await? {
+                Some(c) => c,
+                None => return Ok(()),
+            };
+            // A failed list must never be read as "no stragglers left" — that would release
+            // the lockout and declare the swap done while the old fleet is still up. Stay in
+            // `swapping` (lockout held) and retry; the swap timeout below is the backstop if
+            // the apiserver stays unreachable.
+            let stragglers = match agones.list_gameservers_created_before(&cutoff).await {
+                Ok(v) => v,
+                Err(e) => {
+                    warn!(error = %e, "version roll: GameServer list failed — retrying");
+                    return Ok(());
+                }
+            };
+
+            if stragglers.is_empty() {
+                repo.set_admission(guid, None).await?;
+                repo.set_roll_phase(guid, "settling", None).await?;
+                info!("version roll: old fleet gone, lockout released");
+                return Ok(());
+            }
+
+            if repo.phase_age_secs(guid).await? > ROLL_SWAP_TIMEOUT_SECS {
+                repo.set_admission(guid, None).await?;
+                repo.set_roll_phase(guid, "pending", None).await?;
+                warn!(
+                    remaining = stragglers.len(),
+                    "version roll: swap timed out — released lockout, back to pending"
+                );
+            }
+        }
+
+        "settling" => {
+            let served = svc.state().server_build_version.read().unwrap().clone();
+            if served.as_deref() == Some(state.target_version.as_str()) {
+                repo.mark_rolled(guid).await?;
+                info!(version = %state.target_version, "version roll: complete");
+                return Ok(());
+            }
+            if repo.phase_age_secs(guid).await? > ROLL_SETTLE_TIMEOUT_SECS {
+                repo.set_deploy_health(guid, false, Some(&state.target_version))
+                    .await?;
+                repo.set_roll_phase(guid, "idle", None).await?;
+                error!(
+                    version = %state.target_version,
+                    "version roll: no server came up on the new build — marked unhealthy. \
+                     Recovery: point bootversion back at the previous version (KEEP=2 keeps it \
+                     on the PVC) and investigate the build."
+                );
+            }
+        }
+
+        _ => {} // idle
+    }
+
+    Ok(())
 }
 
 async fn zone_health_monitor(svc: Arc<OWSService>) {

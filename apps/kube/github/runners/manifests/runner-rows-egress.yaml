@@ -1,0 +1,34 @@
+# Egress carve-out: UE server builds announce a published build to ROWS.
+#
+# arc-runner-egress (runner-networkpolicy.yaml) is default-deny and excepts every
+# RFC1918 / cluster CIDR on its public-internet rule, so a runner cannot reach any
+# in-cluster service — including ROWS. The server build's "Announce build to ROWS"
+# step (ci-unreal-build.yml) POSTs /api/System/ReportBuildAvailable so ROWS knows a
+# new build exists and can roll the fleet once the game is empty. Without this rule
+# that POST is silently dropped and the build sits on the PVC un-announced.
+#
+# Deliberately narrow: this one tenant's ROWS service, one port, from ARC ephemeral
+# runner pods only. It does NOT open the rest of the namespace. The endpoint itself
+# additionally requires the gateway bearer token, so network reach alone grants
+# nothing — a runner cannot set the rollout target without the secret.
+#
+# Same pattern and scoping as runner-apiserver-egress.yaml.
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+    name: arc-runner-rows-egress
+    namespace: arc-runners
+spec:
+    endpointSelector:
+        matchExpressions:
+            - key: actions.github.com/scale-set-name
+              operator: Exists
+    egress:
+        - toEndpoints:
+              - matchLabels:
+                    k8s:io.kubernetes.pod.namespace: rows-chuckrpg-beta
+                    k8s:app: rows
+          toPorts:
+              - ports:
+                    - port: '4322'
+                      protocol: TCP

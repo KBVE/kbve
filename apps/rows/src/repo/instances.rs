@@ -1437,7 +1437,8 @@ impl<'a> InstanceRepo<'a> {
         customer_guid: Uuid,
     ) -> Result<Option<crate::config::DeployState>, RowsError> {
         let result = sqlx::query_as::<_, crate::config::DeployState>(
-            "SELECT targetversion, rolled, health FROM deploy_state WHERE customerguid = $1",
+            "SELECT targetversion, bootversion, rolled, health, rollphase
+             FROM deploy_state WHERE customerguid = $1",
         )
         .bind(customer_guid)
         .fetch_optional(self.0)
@@ -1472,6 +1473,135 @@ impl<'a> InstanceRepo<'a> {
         match result {
             Ok(r) => Ok(r.rows_affected() > 0),
             Err(e) if is_undefined_table(&e) => Ok(false),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    /// CI announces a freshly published build. Sets the target and arms the roll; never
+    /// touches `bootversion`, which only a completed roll moves — publishing must not change
+    /// what running or newly-created pods boot.
+    ///
+    /// Idempotent: re-announcing the current target is a no-op rather than a phase reset, so
+    /// a re-dispatch of an already-published version cannot restart an in-flight roll.
+    pub async fn set_target_version(
+        &self,
+        customer_guid: Uuid,
+        version: &str,
+    ) -> Result<(), RowsError> {
+        let result = sqlx::query(
+            "INSERT INTO deploy_state (customerguid, targetversion, bootversion, rolled, health, rollphase, phasesince)
+             VALUES ($1, $2, NULL, false, 'healthy', 'pending', now())
+             ON CONFLICT (customerguid) DO UPDATE
+               SET targetversion = EXCLUDED.targetversion,
+                   rolled        = false,
+                   rollphase     = 'pending',
+                   phasesince    = now(),
+                   updatedat     = now()
+             WHERE deploy_state.targetversion IS DISTINCT FROM EXCLUDED.targetversion",
+        )
+        .bind(customer_guid)
+        .bind(version)
+        .execute(self.0)
+        .await;
+        match result {
+            Ok(_) => Ok(()),
+            Err(e) if is_undefined_table(&e) => Ok(()),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    /// Advance the roll state machine. `boot_version` is `Some` only on the pending→swapping
+    /// edge, where moving it is the act that changes what new pods load.
+    pub async fn set_roll_phase(
+        &self,
+        customer_guid: Uuid,
+        phase: &str,
+        boot_version: Option<&str>,
+    ) -> Result<(), RowsError> {
+        let result = match boot_version {
+            Some(v) => {
+                sqlx::query(
+                    "UPDATE deploy_state
+                       SET rollphase = $2, bootversion = $3, phasesince = now(), updatedat = now()
+                     WHERE customerguid = $1",
+                )
+                .bind(customer_guid)
+                .bind(phase)
+                .bind(v)
+                .execute(self.0)
+                .await
+            }
+            None => {
+                sqlx::query(
+                    "UPDATE deploy_state
+                       SET rollphase = $2, phasesince = now(), updatedat = now()
+                     WHERE customerguid = $1",
+                )
+                .bind(customer_guid)
+                .bind(phase)
+                .execute(self.0)
+                .await
+            }
+        };
+        match result {
+            Ok(_) => Ok(()),
+            Err(e) if is_undefined_table(&e) => Ok(()),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    /// Roll converged: a GameServer is up on the target. Back to `idle`.
+    pub async fn mark_rolled(&self, customer_guid: Uuid) -> Result<(), RowsError> {
+        let result = sqlx::query(
+            "UPDATE deploy_state
+               SET rolled = true, rollphase = 'idle', health = 'healthy',
+                   phasesince = now(), updatedat = now()
+             WHERE customerguid = $1",
+        )
+        .bind(customer_guid)
+        .execute(self.0)
+        .await;
+        match result {
+            Ok(_) => Ok(()),
+            Err(e) if is_undefined_table(&e) => Ok(()),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    /// `phasesince` rendered in Agones' `creationTimestamp` format (`...Z`, UTC), for use as
+    /// the roll barrier's cutoff. Formatted in Postgres rather than in Rust so the comparison
+    /// uses DB time on both sides and cannot skew against the ROWS pod's clock.
+    pub async fn phase_since_rfc3339(
+        &self,
+        customer_guid: Uuid,
+    ) -> Result<Option<String>, RowsError> {
+        let result = sqlx::query_scalar::<_, String>(
+            "SELECT to_char(phasesince AT TIME ZONE 'UTC', 'YYYY-MM-DD\"T\"HH24:MI:SS\"Z\"')
+             FROM deploy_state WHERE customerguid = $1",
+        )
+        .bind(customer_guid)
+        .fetch_optional(self.0)
+        .await;
+        match result {
+            Ok(v) => Ok(v),
+            Err(e) if is_undefined_table(&e) => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    /// How long the row has sat in its current phase. Drives the swapping/settling timeouts
+    /// so a stuck roll releases the admission lockout instead of freezing joins forever.
+    pub async fn phase_age_secs(&self, customer_guid: Uuid) -> Result<i64, RowsError> {
+        let result = sqlx::query_scalar::<_, i64>(
+            "SELECT EXTRACT(EPOCH FROM (now() - phasesince))::bigint
+             FROM deploy_state WHERE customerguid = $1",
+        )
+        .bind(customer_guid)
+        .fetch_optional(self.0)
+        .await;
+        match result {
+            Ok(v) => Ok(v.unwrap_or(0)),
+            Err(e) if is_undefined_table(&e) => Ok(0),
             Err(e) => Err(e.into()),
         }
     }

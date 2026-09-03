@@ -8,13 +8,17 @@ SET search_path TO ows;
 CREATE TABLE deploy_state
 (
     CustomerGUID  UUID    NOT NULL,
-    TargetVersion TEXT    NOT NULL,
+    TargetVersion TEXT    NOT NULL,          -- what CI last published
+    BootVersion   TEXT    NULL,              -- what a GameServer should load NOW (roll moves this)
     Rolled        BOOLEAN NOT NULL DEFAULT false,
     Health        TEXT    NOT NULL DEFAULT 'healthy',
+    RollPhase     TEXT    NOT NULL DEFAULT 'idle',
+    PhaseSince    TIMESTAMPTZ NOT NULL DEFAULT now(),
     UpdatedAt     TIMESTAMPTZ NOT NULL DEFAULT now(),
     CONSTRAINT PK_DeployState
         PRIMARY KEY (CustomerGUID),
-    CONSTRAINT chk_health CHECK (Health IN ('healthy','unhealthy'))
+    CONSTRAINT chk_health CHECK (Health IN ('healthy','unhealthy')),
+    CONSTRAINT chk_rollphase CHECK (RollPhase IN ('idle','pending','swapping','settling'))
 );
 
 -- Security: deploy_state

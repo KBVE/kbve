@@ -40,6 +40,66 @@ spec:
                         runAsGroup: 1000
                         fsGroup: 1000
                     initContainers:
+                        # Resolve which build to boot BEFORE the game container starts. ROWS owns
+                        # this — the launcher must never pick "newest on the PVC", which made the
+                        # fleet mixed for the whole window between a publish and a roll. Runs here
+                        # rather than in ue5-server because that image is bare ubuntu with no curl,
+                        # and because failing at init means a pod that cannot resolve a version
+                        # never starts the game at all.
+                        - name: boot-version
+                          image: ghcr.io/kbve/kubectl:0.1.5
+                          command:
+                              - /bin/sh
+                              - -c
+                              - |
+                                  set -u
+                                  URL="${OWS_API_PATH%/}/api/System/BootVersion"
+                                  VER=""
+                                  for attempt in 1 2 3 4 5 6; do
+                                    VER=$(curl -sf -m 5 "${URL}" \
+                                            -H "X-CustomerGUID: ${OWS_API_CUSTOMER_KEY}" \
+                                          | sed -n 's/.*"version"[[:space:]]*:[[:space:]]*"\([^"]*\)".*/\1/p')
+                                    [ -n "${VER}" ] && break
+                                    echo "BootVersion attempt ${attempt} failed; retrying in 5s"
+                                    sleep 5
+                                  done
+                                  if [ -z "${VER}" ]; then
+                                    echo "ERROR: ROWS did not return a boot version - refusing to guess"
+                                    exit 1
+                                  fi
+                                  case "${VER}" in
+                                    */*|.*|*..*)
+                                      echo "ERROR: unsafe boot version '${VER}'"; exit 1 ;;
+                                  esac
+                                  if [ ! -d "/server/${VER}" ]; then
+                                    echo "ERROR: ROWS asked for ${VER} but /server/${VER} is not on the PVC"
+                                    ls -la /server/ 2>/dev/null
+                                    exit 1
+                                  fi
+                                  printf '%s' "${VER}" > /boot/version
+                                  echo "boot-version: ${VER}"
+                          env:
+                              - name: OWS_API_PATH
+                                value: http://rows.rows-chuckrpg-beta.svc.cluster.local:4322/
+                              - name: OWS_API_CUSTOMER_KEY
+                                valueFrom:
+                                    secretKeyRef:
+                                        name: ows-gameserver-secrets-chuckrpg-beta
+                                        key: customer-guid
+                          volumeMounts:
+                              - name: server-binary
+                                mountPath: /server
+                                subPath: chuckServer
+                                readOnly: true
+                              - name: boot-version
+                                mountPath: /boot
+                          resources:
+                              requests:
+                                  memory: 16Mi
+                                  cpu: 10m
+                              limits:
+                                  memory: 32Mi
+                                  cpu: 50m
                         - name: build-reporter-init
                           image: ghcr.io/kbve/kubectl:0.1.5
                           command: ['/bin/sh', '-c', 'sh /scripts/report.sh']
@@ -72,12 +132,18 @@ spec:
                               - /bin/bash
                               - -c
                               - |
-                                  SERVER_DIR=$(find /server -maxdepth 2 -name "LinuxServer" -type d | sort -V | tail -1)
-                                  if [ -z "${SERVER_DIR}" ]; then
-                                    SERVER_DIR=$(find /server -maxdepth 1 -type d -name '[0-9]*' | sort -V | tail -1)
+                                  # Which build to boot is decided by ROWS and written to
+                                  # /boot/version by the boot-version initContainer (this image has
+                                  # no curl). Never "newest on the PVC": that made the fleet mixed
+                                  # for the whole window between a publish and a roll.
+                                  VER=$(cat /boot/version 2>/dev/null)
+                                  if [ -z "${VER}" ]; then
+                                    echo "ERROR: /boot/version is empty - boot-version init did not run"
+                                    exit 1
                                   fi
-                                  if [ -z "${SERVER_DIR}" ]; then
-                                    echo "ERROR: no server build found on PVC"
+                                  SERVER_DIR="/server/${VER}"
+                                  if [ ! -d "${SERVER_DIR}" ]; then
+                                    echo "ERROR: /server/${VER} is not on the PVC"
                                     ls -la /server/ 2>/dev/null
                                     exit 1
                                   fi
@@ -87,7 +153,7 @@ spec:
                                     ls -la "${SERVER_DIR}/" 2>/dev/null
                                     exit 1
                                   fi
-                                  echo "Starting UE5 dedicated server from ${SERVER_BIN}"
+                                  echo "Starting UE5 dedicated server ${VER} from ${SERVER_BIN}"
                                   exec "${SERVER_BIN}" \
                                     -server \
                                     -log \
@@ -136,6 +202,9 @@ spec:
                               - name: server-binary
                                 mountPath: /server
                                 subPath: chuckServer
+                              - name: boot-version
+                                mountPath: /boot
+                                readOnly: true
                         - name: build-reporter
                           image: ghcr.io/kbve/kubectl:0.1.5
                           command:
@@ -170,6 +239,8 @@ spec:
                         - name: server-binary
                           persistentVolumeClaim:
                               claimName: ows-server-build
+                        - name: boot-version
+                          emptyDir: {}
                         - name: build-reporter-script
                           configMap:
                               name: ows-build-reporter
