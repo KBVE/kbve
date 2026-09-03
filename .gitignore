@@ -50,11 +50,13 @@ node_modules
 *.sublime-workspace
 
 # IDE - VSCode
-.vscode/*
-!.vscode/settings.json
-!.vscode/tasks.json
-!.vscode/launch.json
-!.vscode/extensions.json
+#
+# Ignored whole. The tree previously committed settings.json and
+# extensions.json through the negations below, which made one contributor's
+# editor configuration everyone's: a shared settings.json is applied to every
+# clone, and the only way to disagree with a line in it is to dirty the
+# working tree.
+.vscode/
 
 # misc
 /.sass-cache
