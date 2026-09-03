@@ -16,7 +16,7 @@ name = "simbody3d"
 path = "src/lib.rs"
 
 [dependencies]
-rapier3d = "0.30.1"
+rapier3d = "0.35.3"
 
 [features]
 default = ["presets"]

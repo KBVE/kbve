@@ -107,8 +107,8 @@ bincode = { workspace = true, optional = true, features = ["serde"] }
 libm = { workspace = true }
 
 # Physics
-rapier2d = { version = "0.22", optional = true }
-rapier3d = { version = "0.35", optional = true }
+rapier2d = { version = "0.35", optional = true }
+rapier3d = { version = "0.35.3", optional = true }
 
 # Bevy ECS — headless server. No render, no winit; we drive App::update from a tokio task.
 bevy = { workspace = true, optional = true, features = ["bevy_state"] }
