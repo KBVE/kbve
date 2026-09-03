@@ -2,6 +2,7 @@
 
 #include "Components/CapsuleComponent.h"
 #include "Animation/AnimSequence.h"
+#include "DrawDebugHelpers.h"
 #include "Components/SkeletalMeshComponent.h"
 #include "Engine/SkeletalMesh.h"
 #include "InputAction.h"
@@ -134,6 +135,16 @@ namespace
 		TEXT("rareicon.Weapon.Roll"), GWeaponRoll,
 		TEXT("Extra weapon roll about the trigger-hand grip, degrees."), ECVF_Default);
 
+	// Draws the weapon as the hand solver believes it to be: the bore it rolls
+	// the wrist around and the fore-end it closes the fingers onto. If this
+	// cylinder is not lying inside the rendered barrel then every grip number
+	// downstream is being measured against a rifle that is not there, and no
+	// amount of finger solving converges.
+	static int32 GWeaponDrawBore = 0;
+	static FAutoConsoleVariableRef CVarWeaponDrawBore(
+		TEXT("rareicon.Weapon.DrawBore"), GWeaponDrawBore,
+		TEXT("Draw the bore and fore-end the grip solver is aiming at."), ECVF_Default);
+
 	static float GAutoShotDelay = 9.0f;
 	static FAutoConsoleVariableRef CVarAutoShotDelay(
 		TEXT("rareicon.AutoShotDelay"),
@@ -199,6 +210,44 @@ void ARareIconPlayerPawn::Tick(float DeltaSeconds)
 			WeaponMesh->SetRelativeTransform(Tuned);
 		}
 
+		// The solver is told the same transform, every frame. It was told the
+		// untuned offset once at BeginPlay, so pitching or rolling the weapon
+		// moved the rifle and left the hands reaching for where it used to be --
+		// a grip solved perfectly against a weapon that is no longer there.
+		if (UKBVEFootIKAnimInstance* AnimInstance =
+			Mesh ? Cast<UKBVEFootIKAnimInstance>(Mesh->GetAnimInstance()) : nullptr)
+		{
+			AnimInstance->WeaponRelativeToHand = Tuned;
+
+			if (GWeaponDrawBore > 0)
+			{
+				const FTransform Weapon = WeaponMesh->GetComponentTransform();
+
+				// The fore-end as the solver models it: a block under the barrel,
+				// not a cylinder on the bore. Drawn at its measured section so a
+				// glance says whether the two agree.
+				const float Centre = AnimInstance->ForeEndCentreHeight;
+				DrawDebugBox(GetWorld(),
+					Weapon.TransformPosition(FVector(AnimInstance->LeftHandTargetLocal.X, 0.0f, Centre)),
+					FVector(7.0f, AnimInstance->ForeEndHalfWidth, AnimInstance->ForeEndHalfHeight),
+					Weapon.GetRotation(), FColor::Cyan, false, -1.0f, 0, 0.3f);
+
+				const FVector Breech = Weapon.TransformPosition(FVector(-45.0f, 0.0f, AnimInstance->WeaponBoreHeight));
+				const FVector Muzzle = Weapon.TransformPosition(FVector(10.0f, 0.0f, AnimInstance->WeaponBoreHeight));
+				DrawDebugLine(GetWorld(), Breech, Muzzle, FColor::Blue, false, -1.0f, 0, 0.2f);
+				DrawDebugSphere(GetWorld(),
+					Weapon.TransformPosition(AnimInstance->LeftHandTargetLocal), 1.5f, 12,
+					FColor::Yellow, false, -1.0f, 0, 0.3f);
+				DrawDebugSphere(GetWorld(), Weapon.TransformPosition(AnimInstance->RightGripLocal), 1.5f, 12,
+					FColor::Red, false, -1.0f, 0, 0.3f);
+
+				if (Mesh)
+				{
+					DrawDebugSphere(GetWorld(), Mesh->GetSocketLocation(TEXT("hand_l")), 1.5f, 12,
+						FColor::Green, false, -1.0f, 0, 0.3f);
+				}
+			}
+		}
 	}
 
 	// A screenshot on the same schedule, so a headless run leaves a picture of
