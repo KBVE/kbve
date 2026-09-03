@@ -1,6 +1,6 @@
 <div align="center">
 
-<a href="https://kbve.com/" target="_blank" rel="noreferrer"><img src="https://kbve.com/assets/images/brand/letter_logo.webp" width="200" alt="KBVE Logo"></a>
+<a href="https://kbve.com/" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/KBVE/kbve/main/services/cdn/assets/readme/logo.svg" width="180" alt="KBVE"></a>
 
 # KBVE Monorepo
 
@@ -8,6 +8,8 @@ Games, libraries, services and memes — one repo, one build graph.
 
 [![Discord](https://img.shields.io/discord/342732838598082562?logo=discord&label=discord)](https://kbve.com/discord/)
 [![moon](https://img.shields.io/badge/built%20with-moon-6F53F3?logo=moonrepo)](https://moonrepo.dev/)
+
+<img src="https://raw.githubusercontent.com/KBVE/kbve/main/services/cdn/assets/readme/hero.webp" width="820" alt="KBVE">
 
 </div>
 
@@ -89,9 +91,19 @@ moon query projects            # what is in the graph
 | **rows**         | —                                            | Multi-tenant Rust API                |
 | **agones**       | —                                            | Agones runtime for the game fleets   |
 
+<table>
+<tr>
+<td width="33%" align="center"><a href="https://rareicon.com"><img src="https://raw.githubusercontent.com/KBVE/kbve/main/services/cdn/assets/readme/app-rareicon.webp" alt="Rareicon"><br><b>Rareicon</b></a><br>Unreal + Unity DOTS</td>
+<td width="33%" align="center"><img src="https://raw.githubusercontent.com/KBVE/kbve/main/services/cdn/assets/readme/app-rentearth.webp" alt="Rent Earth"><br><b>Rent Earth</b><br>Unreal + Axum</td>
+<td width="33%" align="center"><a href="https://discord.sh"><img src="https://raw.githubusercontent.com/KBVE/kbve/main/services/cdn/assets/readme/app-discordsh.webp" alt="Discord.sh"><br><b>Discord.sh</b></a><br>Astro + Axum + bot</td>
+</tr>
+</table>
+
 ---
 
 ## Published packages
+
+<img src="https://raw.githubusercontent.com/KBVE/kbve/main/services/cdn/assets/readme/pkg-crates.webp" width="110" align="right" alt="">
 
 **Rust** — [`kbve`](https://crates.io/crates/kbve) · [`jedi`](https://crates.io/crates/jedi) ·
 [`holy`](https://crates.io/crates/holy) · [`erust`](https://crates.io/crates/erust) plus the `bevy_*` plugin family,
@@ -101,6 +113,8 @@ moon query projects            # what is in the graph
 [![Crates.io Jedi](https://img.shields.io/crates/v/jedi?label=jedi&logo=rust)](https://crates.io/crates/jedi)
 [![Crates.io Holy](https://img.shields.io/crates/v/holy?label=holy&logo=rust)](https://crates.io/crates/holy)
 [![Crates.io ERust](https://img.shields.io/crates/v/erust?label=erust&logo=rust)](https://crates.io/crates/erust)
+
+<img src="https://raw.githubusercontent.com/KBVE/kbve/main/services/cdn/assets/readme/pkg-npm.webp" width="110" align="right" alt="">
 
 **npm** — `@kbve/laser`, `@kbve/devops`, `@kbve/astro`, `@kbve/core`, `@kbve/chat`, `@kbve/droid`, `@kbve/fx`,
 `@kbve/rn`, `@kbve/tauri`, `@kbve/observ`, `@kbve/khashvault`.

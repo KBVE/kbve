@@ -1,0 +1,33 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+# Shared static assets. No build and no deploy: the tree is served off the
+# repository over raw HTTPS until a real origin exists, so the only task worth
+# having is the guard that keeps it servable.
+layer: 'library'
+language: 'bash'
+tags: ['assets']
+
+owners:
+    defaultOwner: '@h0lybyte'
+
+fileGroups:
+    assets:
+        - 'assets/**/*'
+
+tasks:
+    # Two ways this tree stops working, both silent until someone loads a page:
+    # an asset committed through the LFS filter serves as a pointer file rather
+    # than an image, and an undersized-on-purpose derivative gets replaced by
+    # its multi-megabyte master.
+    check:
+        script: 'bash guard.sh'
+        inputs:
+            - '@group(assets)'
+            - 'guard.sh'
+        options:
+            runFromWorkspaceRoot: false
+
+    # ci.yml runs `moon ci ':lint' ':test'`, so the guard has to be named lint
+    # to be reached. It is the same task.
+    lint:
+        deps: ['~:check']
