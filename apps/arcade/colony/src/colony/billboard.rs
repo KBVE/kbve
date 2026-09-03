@@ -3,7 +3,7 @@ use bevy::image::{ImageSampler, ImageSamplerDescriptor};
 use bevy::prelude::*;
 use bevy::render::render_resource::{Extent3d, TextureDimension, TextureFormat};
 
-use crate::colony::camera::{CAMERA_PITCH, CAMERA_YAW};
+use crate::colony::camera::{CAMERA_YAW, camera_pitch};
 
 #[derive(Component, Debug, Clone, Copy)]
 pub struct Billboard {
@@ -54,14 +54,12 @@ fn load_billboard_assets(
 }
 
 fn face_camera(mut sprites: Query<(&Billboard, &mut Transform)>) {
-    let rotation = Quat::from_euler(EulerRot::YXZ, CAMERA_YAW, -(FRAC_PI_2 - CAMERA_PITCH), 0.0);
+    let rotation = Quat::from_euler(EulerRot::YXZ, CAMERA_YAW, -camera_pitch(), 0.0);
     for (billboard, mut transform) in &mut sprites {
         transform.rotation = rotation;
         transform.scale = Vec3::new(billboard.size.x, billboard.size.y, 1.0);
     }
 }
-
-const FRAC_PI_2: f32 = std::f32::consts::FRAC_PI_2;
 
 fn pawn_sprite() -> Image {
     const W: usize = 16;

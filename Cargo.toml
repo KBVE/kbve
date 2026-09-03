@@ -32,6 +32,7 @@ members = [
 	'apps/agones/herbmail/server',
 	'apps/agones/friendslop/server',
 	'apps/media/reel',
+	'apps/arcade/colony',
 ]
 
 exclude = [

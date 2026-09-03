@@ -112,6 +112,9 @@ projects:
         desktop-kbve: 'apps/kbve/desktop-kbve'
         isometric: 'apps/kbve/isometric'
 
+        # Bevy games
+        colony: 'apps/arcade/colony'
+
         # Published npm packages
         astro: 'packages/npm/astro'
         devops: 'packages/npm/devops'
