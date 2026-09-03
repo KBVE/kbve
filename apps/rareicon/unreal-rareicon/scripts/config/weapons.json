@@ -1,0 +1,17 @@
+{
+	"package_path": "/Game/Weapons",
+	"weapons": [
+		{
+			"asset": "DA_Grip_BoltAction762",
+			"fore_end_half_width": 2.1,
+			"fore_end_half_height": 3.5,
+			"fore_end_centre_height": 3.3,
+			"grip_along_barrel": -18.0,
+			"grip_angle_degrees": 253.0,
+			"knuckle_clearance": 0.6,
+			"support_hand_pose": "/Game/Animations/Rifle/A_Rifle_Walk_F.A_Rifle_Walk_F",
+			"support_hand_pose_time": 0.0,
+			"support_hand_pose_weight": 1.0
+		}
+	]
+}

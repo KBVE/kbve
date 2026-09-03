@@ -9,6 +9,7 @@
 #include "KBVEFootIKAnimInstance.generated.h"
 
 class UAnimSequence;
+class UKBVEWeaponGrip;
 
 /**
  * Evaluates one locomotion clip and plants both feet on the ground under them.
@@ -135,6 +136,35 @@ struct FKBVEFootIKProxy : public FAnimInstanceProxy
 	float LeftGripThumbDegrees = 0.0f;
 	FVector FingerCurlAxis = FVector::UpVector;
 
+	// Contact solve for the support hand. The clip's finger pose is a starting
+	// shape rather than an answer: the wrist is rolled to where the geometry
+	// says it belongs, the palm is turned to face the bore, and every finger
+	// closes until it meets the fore-end. Nothing here is tuned to one weapon --
+	// the wrap falls out of the radius it is closing onto.
+	bool bGripContactSolve = false;
+	float ForeEndHalfWidth = 0.0f;
+	float ForeEndHalfHeight = 0.0f;
+	float ForeEndCentreHeight = 0.0f;
+	float GripWristOffset = 0.0f;
+	float GripKnuckleClearance = 0.0f;
+	float GripAlongBarrel = 0.0f;
+	float GripAlongMin = 0.0f;
+	float GripAlongMax = 0.0f;
+	float GripArmExtension = 0.0f;
+
+	// The authored finger pose, sampled once and kept. A pose is the same every
+	// frame, so reading it per frame would be a pose evaluation spent to learn
+	// what it already knew.
+	TObjectPtr<UAnimSequence> SupportHandPose;
+	float SupportHandPoseTime = 0.0f;
+	float SupportHandPoseWeight = 0.0f;
+	TArray<FTransform> GripPoseLocals;
+	bool bGripPoseSampled = false;
+	float GripBoreAngleDegrees = 0.0f;
+	float FingertipLength = 0.0f;
+	float MaxGripCurlDegrees = 0.0f;
+	float ThumbCurlScale = 0.0f;
+
 private:
 	FAnimNode_SequencePlayer& CurrentPlayer() { return bUsingA ? SequenceA : SequenceB; }
 	FAnimNode_SequencePlayer& PreviousPlayer() { return bUsingA ? SequenceB : SequenceA; }
@@ -161,10 +191,30 @@ private:
 	/** Close the fingers by a fixed amount about their own bend axis. */
 	void PoseFingers(FCompactPose& Pose, const TArray<FBoneReference>& Fingers, float Alpha) const;
 
+	/**
+	 * Read the authored support-hand pose, once, into GripPoseLocals.
+	 *
+	 * Sampled against the bone container the pose is being evaluated with, so
+	 * the finger bones line up without a name lookup per frame.
+	 */
+	void SampleGripPose(const FBoneContainer& Container);
+
 	/** Add curl on top of whatever the clip already posed, in degrees. */
 	void CurlFingers(FCompactPose& Pose, const TArray<FBoneReference>& Fingers,
 		float FingerDegrees, float ThumbDegrees) const;
 
+	/**
+	 * Solve the whole support grip against the weapon rather than pose it.
+	 *
+	 * Three solves, in the only order they work in: the wrist is rolled around
+	 * the bore to the angle a support wrist belongs at, the hand is turned so
+	 * its own palm plane faces the bore axis, and then each finger is closed
+	 * about its bend axis until some part of it touches the fore-end cylinder.
+	 * The third step is what removes the tuned constants -- a finger stops where
+	 * the weapon stops it, so a thinner fore-end simply closes further.
+	 */
+	void SolveGrip(FCSPose<FCompactPose>& Pose, const FTransform& WeaponTransform,
+		TArray<float>& OutCurlDegrees) const;
 };
 
 UCLASS()
@@ -484,6 +534,165 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
 	float LeftGripThumbDegrees = -30.0f;
+
+	/**
+	 * Solve the support grip against the weapon instead of posing it.
+	 *
+	 * With this on, LeftHandRollDegrees, LeftGripCurlDegrees and
+	 * LeftGripThumbDegrees are all unused: the roll comes from
+	 * LeftGripBoreAngleDegrees and the curl comes from where each finger hits
+	 * ForeEndRadius. Off, the tuned constants above are used as before.
+	 */
+	/**
+	 * The weapon being held, as data.
+	 *
+	 * Set this and the section, the grip point and the finger pose all come
+	 * from it, which is what makes a second rifle an asset rather than another
+	 * round of tuning. The loose properties below are the fallback for a weapon
+	 * with no asset yet.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVE|Animation|Weapon")
+	TObjectPtr<UKBVEWeaponGrip> WeaponGrip;
+
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	bool bGripContactSolve = false;
+
+	/**
+	 * The section a support hand actually closes on, in the weapon's own space.
+	 *
+	 * Measured off the mesh rather than assumed, and the assumption is what cost
+	 * several rounds of this: the fore-end is not a cylinder around the bore. It
+	 * is a wooden block sitting under the barrel -- 4.2 cm wide, 7.0 cm tall,
+	 * its centre 3.3 cm up, while the bore runs at 5.35. Rolling a wrist around
+	 * the bore and closing fingers onto a 2.5 cm circle was therefore solving
+	 * against a shape the rifle does not have.
+	 *
+	 * Half-extents, so the section is an ellipse: a hand wrapping this meets
+	 * 2.1 cm at the sides and 3.5 cm below.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float ForeEndHalfWidth = 2.1f;
+
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float ForeEndHalfHeight = 3.5f;
+
+	/** Height of that section's centre above the weapon's X axis, cm. */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float ForeEndCentreHeight = 3.3f;
+
+	/**
+	 * How far the wrist sits outside the fore-end surface, cm.
+	 *
+	 * The wrist target is derived from the section rather than stated: the palm
+	 * lies on the wood and the wrist joint is behind it by roughly the thickness
+	 * of a hand. LeftHandTargetLocal was measured against a fore-end that was
+	 * thought to be a thin cylinder on the bore, which put it level with the
+	 * barrel and out beside it -- a hand next to the rifle rather than under it.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float GripWristOffset = 4.5f;
+
+	/**
+	 * How far off the wood the knuckles are seated, cm.
+	 *
+	 * The wrist offset above is only a starting guess now -- the solve measures
+	 * where the knuckles actually land and moves the wrist in by whatever they
+	 * miss by, which is what a guess cannot do. This is the one part of that
+	 * worth stating: a knuckle placed exactly on the surface is inside it once
+	 * the hand is skinned, so the target is just clear of it.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float GripKnuckleClearance = 0.6f;
+
+	/**
+	 * Where along the barrel the support hand grips, in the weapon's space.
+	 *
+	 * The old target gripped at x = -4, which is the far end of the woodwork,
+	 * and measuring it says that point is 52.8 cm from the left shoulder against
+	 * a 49.0 cm arm -- past the end of the arm, so the solver straightened it
+	 * and stopped short and the fingers closed on air. The fore-end runs from
+	 * about -18 to -4, so gripping the middle of it is both where a support hand
+	 * belongs and eight centimetres nearer the shoulder.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float GripAlongBarrel = -18.0f;
+
+	/**
+	 * How far along the fore-end the hand may slide, weapon-space cm.
+	 *
+	 * A support hand is not nailed to one spot on the wood, and measuring says
+	 * it cannot be: the clip swings the trigger hand, and with it the rifle, so
+	 * the fore-end travels between 42 and 48 cm from the left shoulder over one
+	 * run. A fixed grip point is therefore beyond reach on some frames and
+	 * slack on others -- the arm locks straight and the fingers close on air,
+	 * which is what a hand not touching the gun looks like. The bounds are the
+	 * woodwork's own, measured off the mesh.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float GripAlongMin = -18.0f;
+
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float GripAlongMax = -6.0f;
+
+	/**
+	 * How much of the arm's length the grip should use, as a fraction.
+	 *
+	 * Below one, so the elbow keeps a bend. An arm solved to exactly its own
+	 * length is straight, and a straight support arm reads as a mannequin
+	 * holding a prop rather than a person carrying a rifle.
+	 *
+	 * Zero, which turns the sliding hold off and pins the hand at
+	 * GripAlongBarrel. It is off because it measured worse than the fixed hold
+	 * it replaced: the point it scores is not the point the arm is finally sent
+	 * to -- the seating step moves that afterwards -- so it picked the forward
+	 * end of the wood and left the arm 3 cm short of its own target. The idea is
+	 * sound and the scoring is not; it needs to run against the seated target
+	 * rather than the one before seating.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float GripArmExtension = 0.0f;
+
+	/**
+	 * Where the support wrist sits around the bore, degrees.
+	 *
+	 * Measured as atan2(z, y) about the fore-end's own centre, so 0 is out to
+	 * the weapon's right, 90 is straight above and 270 straight below. 253 is
+	 * under and slightly out, which is where a hand supports a rifle.
+	 *
+	 * Rolling this far broke the grip while the fingers were a constant, because
+	 * the roll carried the clip's finger pose round with it. It does not now:
+	 * the palm is re-aimed at the bore afterwards and the fingers re-solved
+	 * against the wood, so the roll no longer has to preserve a pose it was
+	 * never going to preserve.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float LeftGripBoreAngleDegrees = 253.0f;
+
+	/**
+	 * Length of the last phalanx past its own joint, cm.
+	 *
+	 * The distal bone is a leaf, so the skeleton has no bone to measure the
+	 * fingertip from and the contact test would otherwise stop a centimetre and
+	 * a half short of the actual tip.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float FingertipLength = 1.6f;
+
+	/** Most a finger joint may be closed by the contact solve, degrees. */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float MaxGripCurlDegrees = 80.0f;
+
+	/**
+	 * How the thumb's close relates to the fingers'.
+	 *
+	 * Negative because it opposes them: it does not share their bend axis, and
+	 * about that axis it has to travel the other way to come toward the wood.
+	 * Scaled below one because a support thumb lies along a fore-end rather than
+	 * wrapping under it, and a thumb solved to contact like a finger would curl
+	 * it into the barrel.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float ThumbCurlScale = -0.55f;
 
 	/**
 	 * Bone-local axis a finger joint bends about.

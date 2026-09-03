@@ -147,6 +147,19 @@ tasks:
     # normal map needs its green channel flipped from OpenGL to DirectX
     # convention before Unreal ever sees it. Skipped entirely when the PNGs are
     # already present, which is the fresh-clone case.
+    # One grip data asset per weapon: the fore-end section a support hand closes
+    # on, where along it to take hold, and the finger pose to wear. Measured off
+    # each weapon mesh rather than tuned, so a new rifle is a config entry.
+    build-weapon-grips:
+        deps: ['~:build-editor']
+        command: >-
+            uv run --project $workspaceRoot/packages/python/kbve
+            kbve-unreal-weapon-grips --project $workspaceRoot/$UE_PROJECT
+            --config $workspaceRoot/$UE_WEAPON_CONFIG
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
     build-textures:
         deps: ['~:build-editor']
         command: >-

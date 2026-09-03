@@ -101,6 +101,7 @@ env:
     UE_MODULE: 'RareIcon'
     UE_LOG_PREFIX: 'rareicon'
     UE_WORLD_CONFIG: 'apps/rareicon/unreal-rareicon/scripts/config/world.json'
+    UE_WEAPON_CONFIG: 'apps/rareicon/unreal-rareicon/scripts/config/weapons.json'
     UE_INPUT_CONFIG: 'apps/rareicon/unreal-rareicon/scripts/config/input.json'
     UE_TEXTURE_CONFIG: 'apps/rareicon/unreal-rareicon/scripts/config/textures.json'
     # Not the default two-core hosted runner: an Unreal compile.

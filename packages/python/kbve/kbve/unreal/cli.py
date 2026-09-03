@@ -31,6 +31,10 @@ def input_assets_main(argv: list[str] | None = None) -> int:
     return _run(argv or sys.argv[1:], "input_assets", "Build Enhanced Input assets in an Unreal project.")
 
 
+def weapon_grips_main(argv: list[str] | None = None) -> int:
+    return _run(argv or sys.argv[1:], "weapon_grips", "Build weapon grip data assets from a JSON description.")
+
+
 def world_map_main(argv: list[str] | None = None) -> int:
     return _run(argv or sys.argv[1:], "world_map", "Populate an Unreal level from a JSON description.")
 
