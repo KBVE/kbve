@@ -1,0 +1,43 @@
+[package]
+name = "colony"
+description = "Grid-based 3D colony sim, pixel-art billboards under an orthographic camera."
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[features]
+# Off by default, and that default is load-bearing: `src/private/**` is
+# git-crypt encrypted, and rustc never opens a module that is cfg'd out. A
+# clone without the key builds and runs; it gets the public baseline numbers.
+default = []
+tuning = []
+webgpu = ["bevy/webgpu"]
+
+[dependencies]
+bevy = { workspace = true, features = [
+	"std",
+	"async_executor",
+	"multi_threaded",
+	"bevy_asset",
+	"bevy_color",
+	"bevy_core_pipeline",
+	"bevy_gizmos",
+	"bevy_log",
+	"bevy_pbr",
+	"bevy_render",
+	"bevy_sprite",
+	"bevy_state",
+	"bevy_text",
+	"bevy_ui",
+	"bevy_ui_render",
+	"bevy_window",
+	"bevy_winit",
+	"default_font",
+	"png",
+	"tonemapping_luts",
+	"zstd_rust",
+	"x11",
+	"wayland",
+] }
