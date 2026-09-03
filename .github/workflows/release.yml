@@ -449,3 +449,111 @@ jobs:
             needs_rust: ${{ needs.verify.outputs.web_game_needs_rust == 'true' }}
         secrets:
             ITCH_API_KEY: ${{ secrets.ITCH_API_KEY }}
+
+    # Withdraw a tag that never shipped.
+    #
+    # A tag is a claim that a version exists. When the build or the tests fail
+    # the claim is false, and nothing has been published: every publish lane is
+    # `needs: [verify, test]` guarded by `!failure()`, and the docker push step
+    # runs only after the image build succeeds. Left alone the tag stays,
+    # pointing at a commit that does not build, and the draft release stays with
+    # it -- so the next person reads a version that was never released.
+    #
+    # Deleting it is safe precisely because nothing consumed it. The version is
+    # not burned, so the fix is an ordinary pull request and then the SAME tag
+    # again; no version is skipped for a failure that never left CI.
+    #
+    # The exception is a registry that accepted a publish before a later lane
+    # failed. crates.io and npm refuse a version forever once it lands, so that
+    # tag is history and has to stand. This job detects that case and leaves the
+    # tag alone, saying so in the issue rather than deleting something that
+    # shipped. A docker push can be repeated onto the same tag and the
+    # deployment pin can be re-run, so neither of those burns a version.
+    cleanup:
+        name: Withdraw the tag if nothing shipped
+        needs:
+            - verify
+            - test
+            - docker
+            - crates
+            - npm
+            - python
+            - external
+            - deploy
+            - godot
+            - unreal-game
+            - unity
+            - desktop
+            - web-game
+        if: ${{ always() && github.event_name == 'push' && contains(needs.*.result, 'failure') }}
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            issues: write
+        steps:
+            - name: Decide whether the version is spent
+              id: spent
+              env:
+                  CRATES: ${{ needs.crates.result }}
+                  NPM: ${{ needs.npm.result }}
+                  PYTHON: ${{ needs.python.result }}
+              run: |
+                  spent=false
+                  for result in "$CRATES" "$NPM" "$PYTHON"; do
+                    if [ "$result" = "success" ]; then spent=true; fi
+                  done
+                  echo "spent=$spent" >> "$GITHUB_OUTPUT"
+
+            - name: Delete the draft release and the tag
+              if: ${{ steps.spent.outputs.spent == 'false' }}
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  TAG: ${{ github.ref_name }}
+                  REPO: ${{ github.repository }}
+              run: |
+                  if gh release delete "$TAG" --repo "$REPO" --yes 2>/dev/null; then
+                    echo "deleted draft release $TAG"
+                  else
+                    echo "no release to delete for $TAG"
+                  fi
+                  if gh api -X DELETE "repos/$REPO/git/refs/tags/$TAG" >/dev/null 2>&1; then
+                    echo "deleted tag $TAG"
+                  else
+                    echo "no tag to delete for $TAG"
+                  fi
+
+            - name: Open an issue saying what happened
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  TAG: ${{ github.ref_name }}
+                  REPO: ${{ github.repository }}
+                  SPENT: ${{ steps.spent.outputs.spent }}
+                  RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+              run: |
+                  if [ "$SPENT" = "true" ]; then
+                    title="Release $TAG: partially published, version spent"
+                    {
+                      echo "A publish to a registry that refuses re-publication succeeded before a later lane failed."
+                      echo
+                      echo "\`$TAG\` stands and its version is spent."
+                      echo
+                      echo "Run: $RUN_URL"
+                      echo
+                      echo "Fix the failing lane, bump the version manifest, and tag the next patch."
+                      echo "Do not retag \`$TAG\`."
+                    } > body.md
+                  else
+                    title="Release $TAG failed before publishing"
+                    {
+                      echo "Nothing was published, so \`$TAG\` and its draft release have been deleted."
+                      echo
+                      echo "Run: $RUN_URL"
+                      echo
+                      echo "Fix the failure in a pull request, then tag the same version again:"
+                      echo
+                      echo '```'
+                      echo "git tag $TAG && git push origin $TAG"
+                      echo '```'
+                    } > body.md
+                  fi
+                  gh issue create --repo "$REPO" --title "$title" --body-file body.md
