@@ -73,10 +73,28 @@ private:
 		FVector2D B;
 		float ZA;
 		float ZB;
+		// How far the corridor reaches out past each end. A full corridor width
+		// where the run carries on into a junction, and much less where it stops
+		// at an abutment and the ground beyond it is the river.
+		float ReachA;
+		float ReachB;
 	};
 
 	void RouteChunk(const FIntPoint& Chunk) const;
-	void AddPolyline(const TArray<FVector>& Points) const;
+	// Reaches are world units, not flags: a cap has to be small against the span
+	// it abuts, and the spans differ by an order of magnitude across a network.
+	void AddPolyline(const TArray<FVector>& Points, float StartReach, float EndReach) const;
+
+	/**
+	 * Distance to a corridor, with overshoot past a capped end counted at the
+	 * rate that end reaches out at.
+	 *
+	 * Sideways it is the plain distance to the segment. Past an end it is scaled,
+	 * so a tight cap shrinks the corridor along its axis without narrowing it --
+	 * and continuously, since the scaling only applies to overshoot, which is
+	 * zero at the end itself.
+	 */
+	float CorridorDistance(const FVector2D& P, const FSegment& Segment, float& OutT) const;
 
 	FKBVEWorldRoadParams Road;
 	FKBVEWorldHeightfieldParams Shape;

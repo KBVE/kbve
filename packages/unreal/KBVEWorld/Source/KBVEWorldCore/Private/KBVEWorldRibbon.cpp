@@ -25,12 +25,20 @@ namespace
 			Out.Tangents.Add(FProcMeshTangent(Tangent, false));
 		}
 
+		// Wound against the stated normal, which is the convention the swept
+		// surface below uses: its top face is emitted so that the geometric cross
+		// product of a triangle opposes the normal it carries. AddQuad used to
+		// wind with its normal instead, so every face it made -- the underside,
+		// both sides, the end caps, and every box -- was back-facing while the
+		// top was not. A rail is mostly side, so it rendered as a flat ribbon
+		// with nothing to it, and the piers under a deck were inside out and
+		// therefore not there at all.
 		Out.Triangles.Add(Base + 0);
+		Out.Triangles.Add(Base + 2);
 		Out.Triangles.Add(Base + 1);
-		Out.Triangles.Add(Base + 2);
 		Out.Triangles.Add(Base + 0);
-		Out.Triangles.Add(Base + 2);
 		Out.Triangles.Add(Base + 3);
+		Out.Triangles.Add(Base + 2);
 	}
 }
 
@@ -173,7 +181,11 @@ void FKBVEWorldRibbon::Append(FKBVEWorldRibbonMesh& Out, const TArray<FVector>& 
 	{
 		const FVector2D StepUV(FVector::Dist2D(Centre[I], Centre[I + 1]) / TileLength, VSpan);
 
-		AddQuad(Out, Left[I] + Drop, Right[I] + Drop, Right[I + 1] + Drop, Left[I + 1] + Drop, StepUV);
+		// Ordered the other way round from the top face, because it faces the
+		// other way: AddQuad takes its outward direction from the corners it is
+		// given, and the underside given in the top's order comes out facing up
+		// into the slab it is meant to close.
+		AddQuad(Out, Left[I] + Drop, Left[I + 1] + Drop, Right[I + 1] + Drop, Right[I] + Drop, StepUV);
 		AddQuad(Out, Left[I], Left[I + 1], Left[I + 1] + Drop, Left[I] + Drop, SideUV);
 		AddQuad(Out, Right[I + 1], Right[I], Right[I] + Drop, Right[I + 1] + Drop, SideUV);
 	}

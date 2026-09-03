@@ -21,23 +21,31 @@ bool FKBVEWorldRoadDeterminismTest::RunTest(const FString& Parameters)
 	const FKBVEWorldHeightfieldParams Shape;
 	const int32 Seed = FKBVEWorldHeightfield::SeedFromWorld(1337);
 
-	// Not every pair is joined any more, so the pair under test has to be one
-	// that is -- picking a fixed one would assert about pruning, not routing.
+	// Not every pair is joined any more, and a joined pair is not necessarily
+	// routed: an edge into open water, or one needing a span longer than a bridge
+	// would be built at, is dropped after the route is solved. So the pair under
+	// test has to be one that came back with a road on it -- asking HasEdge alone
+	// picks pairs that route to nothing and asserts about pruning, not routing.
+	TArray<FVector> First;
+	TArray<FVector> Second;
 	FIntPoint From(0, 0);
 	FIntPoint To(1, 0);
-	for (int32 X = 0; X <= 8 && !FKBVEWorldRoadGraph::HasEdge(Road, Seed, From, To); ++X)
+
+	for (int32 X = 0; X <= 8 && First.Num() < 2; ++X)
 	{
-		From = FIntPoint(X, 0);
-		To = FIntPoint(X + 1, 0);
+		for (int32 Y = 0; Y <= 8 && First.Num() < 2; ++Y)
+		{
+			From = FIntPoint(X, Y);
+			To = FIntPoint(X + 1, Y);
+			FKBVEWorldRoadGraph::RouteEdge(Road, Shape, Seed, From, To, First);
+		}
 	}
-	if (!TestTrue(TEXT("some pair is joined"), FKBVEWorldRoadGraph::HasEdge(Road, Seed, From, To)))
+
+	if (!TestTrue(TEXT("some pair is joined by a road"), First.Num() >= 2))
 	{
 		return false;
 	}
 
-	TArray<FVector> First;
-	TArray<FVector> Second;
-	FKBVEWorldRoadGraph::RouteEdge(Road, Shape, Seed, From, To, First);
 	FKBVEWorldRoadGraph::RouteEdge(Road, Shape, Seed, From, To, Second);
 
 	TestEqual(TEXT("same sample count"), Second.Num(), First.Num());
@@ -73,6 +81,13 @@ bool FKBVEWorldRoadAvoidsRiversTest::RunTest(const FString& Parameters)
 	FKBVEWorldRoadParams Road;
 	const FKBVEWorldHeightfieldParams Shape;
 	const int32 Seed = FKBVEWorldHeightfield::SeedFromWorld(1337);
+
+	// Pruning off in both arms. It drops the edges that cross the most water,
+	// which is most of what this test is trying to count -- with it on, both
+	// configurations came back with the same handful of wet samples and the
+	// comparison was measuring the caps rather than the penalty.
+	Road.MaxBridgedFraction = 1.0f;
+	Road.MaxBridgeSpanTiles = 100000.0f;
 
 	auto WetSamples = [&](const FKBVEWorldRoadParams& P)
 	{
