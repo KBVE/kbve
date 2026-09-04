@@ -34,10 +34,6 @@ jobs:
         name: Verify tag
         runs-on: ubuntu-latest
         timeout-minutes: 10
-        # Overrides the read-only default at the top of the file. Only this job
-        # writes, and only to create the draft release.
-        permissions:
-            contents: write
         outputs:
             project: ${{ steps.tag.outputs.project }}
             version: ${{ steps.tag.outputs.version }}
@@ -80,34 +76,6 @@ jobs:
             - name: Tag matches the manifest
               id: tag
               run: node tools/release/verify-tag.mjs "${{ inputs.tag || github.ref_name }}"
-
-            # GitHub's own generated notes diff against the chronologically
-            # previous tag, which in a monorepo interleaves every other
-            # project's commits. notes.mjs takes the previous tag *for this
-            # project* and asks which commits in that range touched the
-            # project's source, so the notes describe the artifact rather than
-            # the calendar.
-            #
-            # Created as a draft: the editorial pass is still worth doing, the
-            # transcription is not. Re-running on a tag that already has a
-            # release refreshes the notes rather than failing on a second
-            # create -- only the body, so a draft edited by hand is the one
-            # thing this would overwrite, which is why it stays a draft until a
-            # person publishes it.
-            - name: Draft the release
-              if: ${{ github.event_name == 'push' }}
-              env:
-                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  TAG: ${{ github.ref_name }}
-              run: |
-                  set -euo pipefail
-                  node tools/release/notes.mjs "$TAG" > notes.md
-                  cat notes.md >> "$GITHUB_STEP_SUMMARY"
-                  if gh release view "$TAG" >/dev/null 2>&1; then
-                    gh release edit "$TAG" --notes-file notes.md
-                  else
-                    gh release create "$TAG" --draft --title "$TAG" --notes-file notes.md
-                  fi
 
             - name: Summary
               env:
@@ -177,6 +145,27 @@ jobs:
               uses: astral-sh/setup-uv@v7
               with:
                   github-token: ${{ github.token }}
+
+            # Provision the rust toolchain before moon does, exactly as ci.yml
+            # does. moon's own setup asks proto for the toolchain named in
+            # .prototools and then expects cargo under ~/.rustup; on a runner
+            # where nothing has installed that toolchain yet it reports
+            # `installing rust` and the task still dies with
+            # proto::locate::missing_executable. unr@0.1.0 failed here: the
+            # first tag this repository ever pushed never reached its publish
+            # lane. Running rustup first leaves moon's call a no-op.
+            #
+            # Unconditional rather than gated on the project being rust: the
+            # tag carries no language, and a project can be rust without
+            # carrying the crates lane -- jobboard is rust behind a docker tag.
+            - name: Preinstall the rust toolchain
+              run: |
+                  rustup show active-toolchain || rustup toolchain install
+                  TARGETS="$(node tools/moon/rust-targets.mjs)"
+                  if [ -n "$TARGETS" ]; then
+                    echo "rustup target add $TARGETS"
+                    rustup target add $TARGETS
+                  fi
 
             - name: Setup moon
               uses: ./.github/actions/setup-moon
@@ -485,6 +474,7 @@ jobs:
             - unity
             - desktop
             - web-game
+            - notes
         if: ${{ always() && github.event_name == 'push' && contains(needs.*.result, 'failure') }}
         runs-on: ubuntu-latest
         permissions:
@@ -557,3 +547,64 @@ jobs:
                     } > body.md
                   fi
                   gh issue create --repo "$REPO" --title "$title" --body-file body.md
+
+    # Draft the release once the artifact exists.
+    #
+    # This used to be a step in `verify`, which meant GitHub showed a release
+    # for a tag the moment its version matched a manifest -- before anything was
+    # built, tested or published. unr@0.1.0 drafted a release and then failed in
+    # the test job, so for the length of that run the repository advertised a
+    # release that never shipped. Reading the releases page is how most people
+    # check what exists, and that page was answering the wrong question.
+    #
+    # Here it is downstream of every lane, so a draft means the artifact really
+    # was published. `always()` with an explicit failure check rather than plain
+    # success: most lanes skip on any given tag, and a skipped lane must not
+    # count against drafting.
+    #
+    # Still a draft, for the reason it always was: the editorial pass is worth
+    # doing, the transcription is not. Re-running refreshes the body rather than
+    # failing on a second create, so a draft edited by hand is the one thing
+    # this overwrites -- which is why publishing it stays a human act.
+    notes:
+        name: Draft the release notes
+        needs:
+            - verify
+            - test
+            - docker
+            - crates
+            - npm
+            - python
+            - external
+            - deploy
+            - godot
+            - unreal-game
+            - unity
+            - desktop
+            - web-game
+        if: ${{ always() && github.event_name == 'push' && !contains(needs.*.result, 'failure') && !contains(needs.*.result, 'cancelled') }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: write
+        steps:
+            # notes.mjs walks back to the previous tag for this project, so the
+            # shallow default would leave it with no history to read.
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+
+            - name: Draft the release
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  TAG: ${{ github.ref_name }}
+              run: |
+                  set -euo pipefail
+                  node tools/release/notes.mjs "$TAG" > notes.md
+                  cat notes.md >> "$GITHUB_STEP_SUMMARY"
+                  if gh release view "$TAG" >/dev/null 2>&1; then
+                    gh release edit "$TAG" --notes-file notes.md
+                  else
+                    gh release create "$TAG" --draft --title "$TAG" --notes-file notes.md
+                  fi
