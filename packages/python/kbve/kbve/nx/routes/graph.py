@@ -13,12 +13,11 @@ as a tool instead of being rounded to the nearest Nx project type.
 from __future__ import annotations
 
 import json
-import os
 import subprocess
 import sys
 from pathlib import Path
 
-from ..builder import BuildContext, BuildResult, PlanResult, repo_root_for
+from ..builder import BuildContext, BuildResult, PlanResult, emit_page, repo_root_for
 from ..graph import parse_graph
 from ..render import render_graph_mdx
 from ..router import route
@@ -125,22 +124,11 @@ class GraphRoute:
 
         graph = parse_graph(raw)
 
-        public_dir = Path(ctx.public_dir)
-        content_root = Path(ctx.content_root)
-        mdx_out = content_root / "dashboard" / "graph.mdx"
-        json_out = public_dir / "nx-graph.json"
-
-        if not ctx.dry_run:
-            mdx_out.parent.mkdir(parents=True, exist_ok=True)
-            public_dir.mkdir(parents=True, exist_ok=True)
-            with open(mdx_out, "w") as f:
-                f.write(render_graph_mdx(graph, ctx.timestamp))
-            with open(json_out, "w") as f:
-                json.dump(raw, f, indent=2)
-
-        repo_root = repo_root_for(content_root)
-        changed = [
-            os.path.relpath(mdx_out, repo_root),
-            os.path.relpath(json_out, repo_root),
-        ]
-        return BuildResult("graph", changed, False, "generated")
+        return emit_page(
+            ctx,
+            "graph",
+            page="graph.mdx",
+            mdx_text=render_graph_mdx(graph, ctx.timestamp),
+            json_name="nx-graph.json",
+            json_text=json.dumps(raw, indent=2),
+        )

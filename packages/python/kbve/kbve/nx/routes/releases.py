@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import os
 import sys
-from pathlib import Path
 
-from ..builder import BuildContext, BuildResult, PlanResult, repo_root_for
+from ..builder import BuildContext, BuildResult, PlanResult, emit_page, repo_root_for
 from ..releases import StatusError, aggregate, status_rows
 from ..render import (
     build_release_payload,
@@ -41,22 +39,11 @@ class ReleasesRoute:
 
         payload = build_release_payload(agg, ctx.timestamp)
 
-        content_root = Path(ctx.content_root)
-        public_dir = Path(ctx.public_dir)
-        json_out = public_dir / "nx-releases.json"
-        mdx_out = content_root / "dashboard" / "releases.mdx"
-
-        if not ctx.dry_run:
-            public_dir.mkdir(parents=True, exist_ok=True)
-            mdx_out.parent.mkdir(parents=True, exist_ok=True)
-            with open(json_out, "w") as f:
-                f.write(render_release_json(payload))
-            with open(mdx_out, "w") as f:
-                f.write(render_release_mdx(payload, ctx.timestamp))
-
-        repo_root = repo_root_for(content_root)
-        changed = [
-            os.path.relpath(mdx_out, repo_root),
-            os.path.relpath(json_out, repo_root),
-        ]
-        return BuildResult("releases", changed, False, "generated")
+        return emit_page(
+            ctx,
+            "releases",
+            page="releases.mdx",
+            mdx_text=render_release_mdx(payload, ctx.timestamp),
+            json_name="nx-releases.json",
+            json_text=render_release_json(payload),
+        )

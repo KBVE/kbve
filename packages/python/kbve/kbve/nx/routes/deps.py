@@ -2,11 +2,9 @@
 
 from __future__ import annotations
 
-import os
 import sys
-from pathlib import Path
 
-from ..builder import BuildContext, BuildResult, PlanResult, repo_root_for
+from ..builder import BuildContext, BuildResult, PlanResult, emit_page, repo_root_for
 from ..deps_fresh import aggregate, fetch_node, fetch_rust
 from ..render import build_deps_payload, render_deps_json, render_deps_mdx
 from ..router import route
@@ -35,22 +33,11 @@ class DepsRoute:
     def build(self, ctx: BuildContext) -> BuildResult:
         payload = build_deps_payload(_acquire(ctx), ctx.timestamp)
 
-        content_root = Path(ctx.content_root)
-        public_dir = Path(ctx.public_dir)
-        json_out = public_dir / "nx-deps.json"
-        mdx_out = content_root / "dashboard" / "deps.mdx"
-
-        if not ctx.dry_run:
-            public_dir.mkdir(parents=True, exist_ok=True)
-            mdx_out.parent.mkdir(parents=True, exist_ok=True)
-            with open(json_out, "w") as f:
-                f.write(render_deps_json(payload))
-            with open(mdx_out, "w") as f:
-                f.write(render_deps_mdx(payload, ctx.timestamp))
-
-        repo_root = repo_root_for(content_root)
-        changed = [
-            os.path.relpath(mdx_out, repo_root),
-            os.path.relpath(json_out, repo_root),
-        ]
-        return BuildResult("deps", changed, False, "generated")
+        return emit_page(
+            ctx,
+            "deps",
+            page="deps.mdx",
+            mdx_text=render_deps_mdx(payload, ctx.timestamp),
+            json_name="nx-deps.json",
+            json_text=render_deps_json(payload),
+        )

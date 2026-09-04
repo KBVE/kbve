@@ -16,7 +16,7 @@ import sys
 from pathlib import Path
 
 from ..alerts import ENDPOINTS, fetch_all, validate
-from ..builder import BuildContext, BuildResult, PlanResult, repo_root_for
+from ..builder import BuildContext, BuildResult, PlanResult, emit_page, repo_root_for
 from ..render import render_security_json, render_security_mdx
 from ..router import route
 from ..security import parse_all_ecosystems
@@ -114,22 +114,11 @@ class SecurityRoute:
             "ecosystems": parsed["ecosystems"],
         }
 
-        public_dir = Path(ctx.public_dir)
-        content_root = Path(ctx.content_root)
-        json_out = public_dir / "nx-security.json"
-        mdx_out = content_root / "dashboard" / "security.mdx"
-
-        if not ctx.dry_run:
-            public_dir.mkdir(parents=True, exist_ok=True)
-            mdx_out.parent.mkdir(parents=True, exist_ok=True)
-            with open(json_out, "w") as f:
-                f.write(render_security_json(data))
-            with open(mdx_out, "w") as f:
-                f.write(render_security_mdx(data, ctx.timestamp))
-
-        repo_root = repo_root_for(content_root)
-        changed = [
-            os.path.relpath(mdx_out, repo_root),
-            os.path.relpath(json_out, repo_root),
-        ]
-        return BuildResult("security", changed, False, "generated")
+        return emit_page(
+            ctx,
+            "security",
+            page="security.mdx",
+            mdx_text=render_security_mdx(data, ctx.timestamp),
+            json_name="nx-security.json",
+            json_text=render_security_json(data),
+        )
