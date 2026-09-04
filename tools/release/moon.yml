@@ -13,6 +13,17 @@ tasks:
         inputs:
             - '*.mjs'
 
+    # What has shipped and what is waiting. Informational, so deliberately not
+    # `lint`: nothing here is a failure, and a release that has not happened yet
+    # must not turn CI red.
+    status:
+        command: 'node status.mjs'
+        toolchains: ['node']
+        options:
+            # Reads the project graph and the git tag list, neither of which is
+            # an input this can hash.
+            cache: false
+
     # A stale release pin or a lane tag with no version behind it is invisible
     # until someone pushes the tag, and then it is either a failed release or --
     # worse -- a green one that never reached the cluster. `lint` rather than a
