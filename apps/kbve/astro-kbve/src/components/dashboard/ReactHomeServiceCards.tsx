@@ -499,7 +499,7 @@ export default function ReactHomeServiceCards() {
 								color="#06b6d4"
 							/>
 							<MetricValue label="Node" value={report.node} />
-							<MetricValue label="Nx" value={report.nx} />
+							<MetricValue label="moon" value={report.moon} />
 							<MetricValue label="pnpm" value={report.pnpm} />
 						</div>
 						{report.topLanguages.length > 0 && (
