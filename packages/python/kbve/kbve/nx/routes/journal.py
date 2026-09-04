@@ -6,7 +6,7 @@ import os
 from datetime import datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from ..builder import BuildContext, BuildResult, PlanResult
+from ..builder import BuildContext, BuildResult, PlanResult, repo_root_for
 from ..document import MdxDocument
 from ..router import route
 
@@ -52,7 +52,7 @@ class JournalRoute:
         doc.replace(r"href: '#\d{4}'", "href: '#%s'" % year, count=1)
         doc.insert_before(r'<BentoProse id="', _block(year))
 
-        rel = os.path.relpath(path, ctx.content_root)
+        rel = os.path.relpath(path, repo_root_for(ctx.content_root))
         if not ctx.dry_run:
             doc.save()
         return BuildResult("journal", [rel], False, "scaffolded")

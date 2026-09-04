@@ -37,10 +37,10 @@ def public_dir_for(content_root: Path) -> Path:
 
 
 def repo_root_for(content_root: Path) -> Path:
-    """Walk up from ``content_root`` to the monorepo root (holds ``nx.json``)."""
+    """Walk up from ``content_root`` to the monorepo root (holds ``.moon``)."""
     p = Path(content_root).resolve()
     for cand in [p, *p.parents]:
-        if (cand / "nx.json").exists() or (cand / "pnpm-workspace.yaml").exists():
+        if (cand / ".moon").exists() or (cand / "pnpm-workspace.yaml").exists():
             return cand
     return p
 

@@ -13,7 +13,7 @@ def _ctx(tmp_path, inputs):
     public_dir = tmp_path / "apps/kbve/astro-kbve/public/data/nx"
     content_root.mkdir(parents=True)
     # mark repo root so repo_root_for resolves cleanly
-    (tmp_path / "nx.json").write_text("{}")
+    (tmp_path / ".moon").mkdir()
     return BuildContext(
         content_root=content_root,
         public_dir=public_dir,
