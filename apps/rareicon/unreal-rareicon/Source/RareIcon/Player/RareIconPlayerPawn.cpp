@@ -16,6 +16,9 @@
 #include "DefaultMovementSet/CharacterMoverComponent.h"
 #include "MoveLibrary/FloorQueryUtils.h"
 #include "KBVEFootIKAnimInstance.h"
+#include "KBVEWeaponGrip.h"
+#include "GameFramework/SpringArmComponent.h"
+#include "UnrealClient.h"
 #include "KBVEWorldHeightfield.h"
 #include "KBVEWorldStreamer.h"
 #include "KBVEWorldHeightfieldActor.h"
@@ -53,6 +56,33 @@ namespace
 	// PolyHaven source ships as loose rigid parts, and scripts/rig_weapon.py
 	// builds the armature from their geometry. See that file for the bolt axis.
 	const TCHAR* RifleMeshPath = TEXT("/Game/Weapons/SK_Rifle_BoltAction762.SK_Rifle_BoltAction762");
+
+	// Built by `build-weapon-grips` from scripts/config/weapons.json.
+	const TCHAR* RifleGripPath = TEXT("/Game/Weapons/DA_Grip_BoltAction762.DA_Grip_BoltAction762");
+
+	// A second weapon, to find out whether the grip pipeline describes a rifle
+	// or just describes the Mosin. Different length, different section, barrel
+	// on a different axis in the source -- if the hand lands on both from
+	// measurements alone, the data asset is doing its job.
+	const TCHAR* SS2MeshPath = TEXT("/Game/Weapons/SK_Rifle_SS2V5.SK_Rifle_SS2V5");
+	const TCHAR* SS2GripPath = TEXT("/Game/Weapons/DA_Grip_SS2V5.DA_Grip_SS2V5");
+
+	// Strip the weapon and every pass that touches an arm, leaving the clip.
+	//
+	// The control this whole grip investigation lacked: if the left wrist still
+	// reads as twisted with nothing solving it, the twist is authored into the
+	// animation and no solver change was ever going to fix it.
+	static int32 GWeaponHide = 0;
+	static FAutoConsoleVariableRef CVarWeaponHide(
+		TEXT("rareicon.Weapon.Hide"), GWeaponHide,
+		TEXT("1 hides the weapon and disables every arm solve, showing the clip alone."),
+		ECVF_Default);
+
+	static int32 GWeaponUse = 0;
+	static FAutoConsoleVariableRef CVarWeaponUse(
+		TEXT("rareicon.Weapon.Use"), GWeaponUse,
+		TEXT("0 the bolt-action Mosin, 1 the SS2-V5. Swaps mesh and grip asset live."),
+		ECVF_Default);
 
 	template <typename T>
 	T* FindAsset(const TCHAR* Path)
@@ -92,6 +122,7 @@ ARareIconPlayerPawn::ARareIconPlayerPawn(const FObjectInitializer& ObjectInitial
 		// the geometry would push the character off ledges it stands clear of.
 		WeaponMesh = CreateDefaultSubobject<USkeletalMeshComponent>(TEXT("WeaponMesh"));
 		WeaponMesh->SetupAttachment(Mesh, WeaponAttachBone);
+		WeaponGrip = FindAsset<UKBVEWeaponGrip>(RifleGripPath);
 		WeaponMesh->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 		WeaponMesh->SetCanEverAffectNavigation(false);
 		if (USkeletalMesh* Rifle = FindAsset<USkeletalMesh>(RifleMeshPath))
@@ -141,6 +172,32 @@ namespace
 	// downstream is being measured against a rifle that is not there, and no
 	// amount of finger solving converges.
 	static int32 GWeaponDrawBore = 0;
+	// Frame the support hand and photograph it, so a grip can be looked at
+	// instead of inferred from joint angles. Six rounds of this were spent
+	// measuring numbers that were all individually correct while the hand
+	// still looked wrong, which is a thing only a picture settles.
+	static float GGripShotSeconds = -1.0f;
+	static float GGripShotYaw = -100.0f;
+	static float GGripShotPitch = -15.0f;
+	static float GGripShotDist = 42.0f;
+	static int32 GGripShotWeapon = 1;
+	static FAutoConsoleVariableRef CVarGripShotWeapon(
+		TEXT("rareicon.Weapon.GripShotWeapon"), GGripShotWeapon,
+		TEXT("1 frames the weapon in world space, 0 frames the support hand in the pawn's frame."),
+		ECVF_Default);
+	static FAutoConsoleVariableRef CVarGripShotYaw(
+		TEXT("rareicon.Weapon.GripShotYaw"), GGripShotYaw,
+		TEXT("Camera yaw about the support hand for the grip shot, relative to the pawn."), ECVF_Default);
+	static FAutoConsoleVariableRef CVarGripShotPitch(
+		TEXT("rareicon.Weapon.GripShotPitch"), GGripShotPitch,
+		TEXT("Camera pitch for the grip shot."), ECVF_Default);
+	static FAutoConsoleVariableRef CVarGripShotDist(
+		TEXT("rareicon.Weapon.GripShotDist"), GGripShotDist,
+		TEXT("Camera distance from the support hand for the grip shot, cm."), ECVF_Default);
+	static FAutoConsoleVariableRef CVarGripShot(
+		TEXT("rareicon.Weapon.GripShot"), GGripShotSeconds,
+		TEXT("Seconds to wait, then frame the left hand, screenshot it and quit. -1 off."),
+		ECVF_Default);
 	static FAutoConsoleVariableRef CVarWeaponDrawBore(
 		TEXT("rareicon.Weapon.DrawBore"), GWeaponDrawBore,
 		TEXT("Draw the bore and fore-end the grip solver is aiming at."), ECVF_Default);
@@ -187,6 +244,12 @@ void ARareIconPlayerPawn::BeginPlay()
 		// own copy that could drift out of step.
 		AnimInstance->WeaponHandBone = WeaponAttachBone;
 		AnimInstance->WeaponRelativeToHand = WeaponAttachOffset;
+
+		// Without this the grip asset is built and never read, and the support
+		// hand keeps whatever fingers the locomotion clip happened to have.
+		AnimInstance->WeaponGrip = WeaponGrip;
+		StoredLeftHandIKAlpha = AnimInstance->LeftHandIKAlpha;
+		StoredFitWeaponToHands = AnimInstance->bFitWeaponToHands;
 	}
 }
 
@@ -194,6 +257,77 @@ void ARareIconPlayerPawn::Tick(float DeltaSeconds)
 {
 	Super::Tick(DeltaSeconds);
 	UpdateLocomotionAnimation(DeltaSeconds);
+
+	// A close, fixed view of the support hand, held from the moment play starts
+	// so the shot below lands on a settled pose rather than a spawn frame.
+	if (GGripShotSeconds >= 0.0f && Mesh && CameraBoom)
+	{
+		// Framed on the weapon in world space, not on a hand in the pawn's own
+		// frame. Aiming at hand_l meant the character turned into the shot and
+		// occluded the thing being photographed, which cost several rounds of
+		// screenshots that showed a torso and a sliver of wood.
+		const FVector Target = (GGripShotWeapon != 0 && WeaponMesh)
+			? WeaponMesh->Bounds.Origin
+			: Mesh->GetSocketLocation(TEXT("hand_l"));
+		CameraBoom->SetWorldLocation(Target);
+
+		// Looking from the character's left and slightly below: the grip is on
+		// the underside of the fore-end, and the body hides it from anywhere in
+		// front. Yaw follows the pawn so the view holds as the character turns.
+		CameraBoom->SetWorldRotation(GGripShotWeapon != 0
+			? FRotator(GGripShotPitch, GGripShotYaw, 0.0f)
+			: FRotator(GGripShotPitch, GetActorRotation().Yaw + GGripShotYaw, 0.0f));
+		CameraBoom->TargetArmLength = GGripShotDist;
+		CameraBoom->bDoCollisionTest = false;
+
+		GripShotElapsed += DeltaSeconds;
+		if (GripShotElapsed >= GGripShotSeconds && !bGripShotTaken)
+		{
+			bGripShotTaken = true;
+			FScreenshotRequest::RequestScreenshot(false);
+			UE_LOG(LogTemp, Display, TEXT("grip shot: requested at %.1fs"), GripShotElapsed);
+		}
+		else if (bGripShotTaken && GripShotElapsed >= GGripShotSeconds + 1.5f)
+		{
+			FPlatformMisc::RequestExit(false);
+		}
+	}
+
+	// Nothing held, nothing solved: the clip as the animator left it.
+	if (Mesh)
+	{
+		if (WeaponMesh && WeaponMesh->IsVisible() == (GWeaponHide != 0))
+		{
+			WeaponMesh->SetVisibility(GWeaponHide == 0, true);
+		}
+		if (UKBVEFootIKAnimInstance* Anim = Cast<UKBVEFootIKAnimInstance>(Mesh->GetAnimInstance()))
+		{
+			const bool bHide = GWeaponHide != 0;
+			Anim->LeftHandIKAlpha = bHide ? 0.0f : StoredLeftHandIKAlpha;
+			Anim->bFitWeaponToHands = bHide ? false : StoredFitWeaponToHands;
+			Anim->SetHoldWeapon(bHide ? false : bUseProceduralWeaponHold);
+		}
+	}
+
+	// Swapped live rather than at spawn, so two weapons can be compared without
+	// a relaunch -- which is the whole point of measuring a grip instead of
+	// tuning one.
+	if (WeaponMesh && GWeaponUse != AppliedWeapon)
+	{
+		AppliedWeapon = GWeaponUse;
+		const bool bSS2 = GWeaponUse != 0;
+		if (USkeletalMesh* Swap = LoadObject<USkeletalMesh>(nullptr, bSS2 ? SS2MeshPath : RifleMeshPath))
+		{
+			WeaponMesh->SetSkeletalMesh(Swap);
+		}
+		WeaponGrip = LoadObject<UKBVEWeaponGrip>(nullptr, bSS2 ? SS2GripPath : RifleGripPath);
+		if (UKBVEFootIKAnimInstance* Anim =
+			Mesh ? Cast<UKBVEFootIKAnimInstance>(Mesh->GetAnimInstance()) : nullptr)
+		{
+			Anim->WeaponGrip = WeaponGrip;
+		}
+		UE_LOG(LogTemp, Display, TEXT("weapon: now %s"), bSS2 ? TEXT("SS2-V5") : TEXT("Mosin"));
+	}
 
 	// Reapplied every frame rather than once, so the offset can be dialled in
 	// from the details panel while the game is running. It is two compares and a
@@ -203,11 +337,34 @@ void ARareIconPlayerPawn::Tick(float DeltaSeconds)
 		// Pitched about the grip rather than translated: the right hand is on the
 		// stock's wrist and must stay there, so dropping the fore-end onto the
 		// support hand has to pivot around the point the trigger hand holds.
+		// The weapon's own attach offset when it carries one, so a second rifle
+		// is not hung where the first one's stock happened to sit.
+		const FTransform Base = (WeaponGrip && !WeaponGrip->AttachOffset.Equals(FTransform::Identity))
+			? WeaponGrip->AttachOffset
+			: WeaponAttachOffset;
 		const FTransform Tuned = FTransform(FRotator(GWeaponPitch, 0.0f, GWeaponRoll), FVector::ZeroVector)
-			* WeaponAttachOffset;
-		if (!WeaponMesh->GetRelativeTransform().Equals(Tuned))
+			* Base;
+
+		// The mesh follows the fit; the solver keeps being told the untouched
+		// tuned offset.
+		//
+		// Feeding the fitted transform back as the solver's input makes the fit
+		// compound on its own output: each frame swings the rifle a little
+		// further from a base that already includes the last swing, and it
+		// leaves the character's hands entirely within a second.
+		FTransform Worn = Tuned;
+		if (const UKBVEFootIKAnimInstance* Solved =
+			Mesh ? Cast<UKBVEFootIKAnimInstance>(Mesh->GetAnimInstance()) : nullptr)
 		{
-			WeaponMesh->SetRelativeTransform(Tuned);
+			if (Solved->bFitWeaponToHands && !Solved->FittedWeaponRelativeToHand.Equals(FTransform::Identity))
+			{
+				Worn = Solved->FittedWeaponRelativeToHand;
+			}
+		}
+
+		if (!WeaponMesh->GetRelativeTransform().Equals(Worn))
+		{
+			WeaponMesh->SetRelativeTransform(Worn);
 		}
 
 		// The solver is told the same transform, every frame. It was told the
@@ -243,8 +400,18 @@ void ARareIconPlayerPawn::Tick(float DeltaSeconds)
 
 				if (Mesh)
 				{
-					DrawDebugSphere(GetWorld(), Mesh->GetSocketLocation(TEXT("hand_l")), 1.5f, 12,
-						FColor::Green, false, -1.0f, 0, 0.3f);
+					// Which wrist is which, because a screenshot does not say and
+					// the two are solved by completely different things: the left
+					// is placed by the grip solve, the right is whatever the clip
+					// animated and is never touched here.
+					DrawDebugSphere(GetWorld(), Mesh->GetSocketLocation(TEXT("hand_l")), 2.0f, 12,
+						FColor::Green, false, -1.0f, 0, 0.4f);
+					DrawDebugSphere(GetWorld(), Mesh->GetSocketLocation(TEXT("hand_r")), 2.0f, 12,
+						FColor::Magenta, false, -1.0f, 0, 0.4f);
+					DrawDebugLine(GetWorld(), Mesh->GetSocketLocation(TEXT("lowerarm_l")),
+						Mesh->GetSocketLocation(TEXT("hand_l")), FColor::Green, false, -1.0f, 0, 0.4f);
+					DrawDebugLine(GetWorld(), Mesh->GetSocketLocation(TEXT("lowerarm_r")),
+						Mesh->GetSocketLocation(TEXT("hand_r")), FColor::Magenta, false, -1.0f, 0, 0.4f);
 				}
 			}
 		}
