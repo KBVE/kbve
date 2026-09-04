@@ -1,7 +1,7 @@
 """Command-line entry points for Nx dashboard generation.
 
 ``kbve-nx-security`` aggregates a raw multi-ecosystem audit payload into
-MDX and/or JSON. ``kbve-nx-graph`` renders an Nx project graph into MDX.
+MDX and/or JSON. ``kbve-nx-graph`` renders the project graph into MDX.
 Both mirror the standalone ``scripts/nx-*-to-mdx.py`` interfaces so the
 ``ci-dashboard`` workflow can migrate without arg changes.
 """

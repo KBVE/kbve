@@ -13,7 +13,7 @@ import os
 import sys
 from pathlib import Path
 
-from ..builder import BuildContext, BuildResult, PlanResult, repo_root_for
+from ..builder import BuildContext, BuildResult, PlanResult, emit_page
 from ..kanban_board import bucket, fetch_items
 from ..render import build_kanban_payload, render_kanban_json, render_kanban_mdx
 from ..router import route
@@ -58,29 +58,14 @@ class KanbanRoute:
         if payload is None:
             return BuildResult("kanban", [], True, "acquire failed")
 
-        content_root = Path(ctx.content_root)
-        public_dir = Path(ctx.public_dir)
-        src_data = content_root.parent.parent / "data"
-        json_public = public_dir / "nx-kanban.json"
-        json_src = src_data / "nx-kanban.json"
-        mdx_out = content_root / "dashboard" / "kanban-data.mdx"
-
-        if not ctx.dry_run:
-            public_dir.mkdir(parents=True, exist_ok=True)
-            src_data.mkdir(parents=True, exist_ok=True)
-            mdx_out.parent.mkdir(parents=True, exist_ok=True)
-            json_text = render_kanban_json(payload)
-            with open(json_public, "w") as f:
-                f.write(json_text)
-            with open(json_src, "w") as f:
-                f.write(json_text)
-            with open(mdx_out, "w") as f:
-                f.write(render_kanban_mdx(payload, ctx.timestamp))
-
-        repo_root = repo_root_for(content_root)
-        changed = [
-            os.path.relpath(mdx_out, repo_root),
-            os.path.relpath(json_src, repo_root),
-            os.path.relpath(json_public, repo_root),
-        ]
-        return BuildResult("kanban", changed, False, "generated")
+        json_text = render_kanban_json(payload)
+        src_data = Path(ctx.content_root).parent.parent / "data"
+        return emit_page(
+            ctx,
+            "kanban",
+            page="kanban-data.mdx",
+            mdx_text=render_kanban_mdx(payload, ctx.timestamp),
+            json_name="nx-kanban.json",
+            json_text=json_text,
+            extra_json=(src_data / "nx-kanban.json",),
+        )
