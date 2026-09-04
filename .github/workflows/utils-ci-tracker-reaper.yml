@@ -1,0 +1,59 @@
+name: CI Tracker Reaper
+
+# The failure tracker closes an issue only when the same workflow_name and
+# job_name pair reports a success. Delete or rename the tracked job and no run
+# can ever produce that pair again, so the issue stays open with nothing able
+# to resolve it -- #16598 outlived its job by minutes.
+#
+# Daily, because an orphan is created by a merge to a workflow file and there is
+# no event that fires when a job stops existing.
+
+on:
+    schedule:
+        - cron: '0 7 * * *'
+    workflow_dispatch:
+        inputs:
+            dry_run:
+                description: 'List orphans without closing them'
+                required: false
+                type: boolean
+                default: false
+
+concurrency:
+    group: ${{ github.workflow }}
+    cancel-in-progress: false
+
+permissions: {}
+
+jobs:
+    reap:
+        name: Close orphaned tracker issues
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: read
+            issues: write
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  fetch-depth: 1
+                  lfs: false
+
+            - name: Setup JavaScript
+              uses: ./.github/actions/setup-js
+              with:
+                  playwright: 'false'
+
+            - name: Reap
+              env:
+                  GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+                  GITHUB_REPOSITORY: ${{ github.repository }}
+                  DRY_RUN: ${{ inputs.dry_run }}
+              run: |
+                  set -euo pipefail
+                  if [ "${DRY_RUN:-false}" = "true" ]; then
+                    node tools/ci/tracker-reaper.mjs
+                  else
+                    node tools/ci/tracker-reaper.mjs --apply
+                  fi
