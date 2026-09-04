@@ -13,7 +13,7 @@ overrides:
     'minimatch@>=7.0.0 <7.4.8': 7.4.8
     'minimatch@>=9.0.0 <9.0.7': 9.0.7
     'minimatch@>=10.0.0 <10.2.3': 10.2.3
-    'postcss@<8.5.10': '>=8.5.10'
+    'postcss@<8.5.26': '>=8.5.26'
 allowBuilds:
     '@parcel/watcher': true
     '@swc/core': true
