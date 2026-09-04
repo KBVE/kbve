@@ -1,4 +1,4 @@
-"""KBVE Nx workspace integrations — graph analysis and security auditing."""
+"""Workspace dashboard pipeline — graph analysis, audits and daily content routes."""
 
 from .graph import (  # noqa: F401
     parse_graph,

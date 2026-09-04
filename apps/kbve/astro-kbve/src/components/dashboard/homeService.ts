@@ -59,7 +59,7 @@ export interface KanbanSummary {
 export interface ReportSummary {
 	generated_at: string;
 	node: string;
-	nx: string;
+	moon: string;
 	pnpm: string;
 	os: string;
 	totalFiles: number;
@@ -458,7 +458,17 @@ async function fetchReportSummary(): Promise<ReportSummary | null> {
 		});
 		if (!resp.ok) return null;
 		const data = await resp.json();
-		const env = data?.environment ?? {};
+		// report.json carries `toolchain` as [{name, version}] read off
+		// .prototools. It was `environment` when `nx report` produced this
+		// file, which is why every version on this card read '?'.
+		const env: Record<string, string> = Object.fromEntries(
+			(data?.toolchain ?? []).map(
+				(t: { name?: string; version?: string }) => [
+					t.name ?? '',
+					t.version ?? '',
+				],
+			),
+		);
 
 		// Parse LOC stats from scc output
 		let totalFiles = 0;
@@ -496,7 +506,7 @@ async function fetchReportSummary(): Promise<ReportSummary | null> {
 		const summary: ReportSummary = {
 			generated_at: data.generated_at ?? '',
 			node: env.node ?? '?',
-			nx: env.nx ?? '?',
+			moon: env.moon ?? '?',
 			pnpm: env.pnpm ?? '?',
 			os: env.os ?? '?',
 			totalFiles,

@@ -4,6 +4,7 @@
 #include "KBVEMoverPawn.h"
 
 class UAnimSequence;
+class UKBVEWeaponGrip;
 class USkeletalMeshComponent;
 
 #include "RareIconPlayerPawn.generated.h"
@@ -156,6 +157,17 @@ public:
 		FRotator(0.0f, 180.0f, 0.0f), FVector(-36.80f, 3.41f, -0.38f));
 
 	/**
+	 * How the support hand meets this particular weapon.
+	 *
+	 * The fore-end's cross-section, where along it the hand takes hold, and the
+	 * finger pose to wear. Built by the `build-weapon-grips` moon task from
+	 * scripts/config/weapons.json, so a second rifle is a config entry and not a
+	 * second set of constants in the anim instance.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RareIcon|Weapon")
+	TObjectPtr<UKBVEWeaponGrip> WeaponGrip;
+
+	/**
 	 * Solve the weapon hold procedurally instead of taking it from the clip.
 	 *
 	 * Off: the rifle set animates the hold. Worth having for a character with no
@@ -164,6 +176,18 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RareIcon|Weapon")
 	bool bUseProceduralWeaponHold = false;
+
+	/** The authored IK settings, kept so rareicon.Weapon.Hide can restore them. */
+	float StoredLeftHandIKAlpha = 1.0f;
+	bool bStoredCaptured = false;
+	bool StoredFitWeaponToHands = true;
+
+	/** Which weapon is currently mounted; see rareicon.Weapon.Use. */
+	int32 AppliedWeapon = 0;
+
+	/** Debug screenshot state; see rareicon.Weapon.GripShot. */
+	float GripShotElapsed = 0.0f;
+	bool bGripShotTaken = false;
 
 	/** The weapon itself. Skeletal because its bolt and trigger are bones. */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "RareIcon|Weapon")

@@ -7,6 +7,34 @@
 class UAnimSequence;
 
 /**
+ * One finger's shape in a grip, as the angle each of its three joints closes.
+ *
+ * Degrees about the joint's own bend axis, applied over the skeleton's
+ * reference pose rather than over the clip -- a grip is a shape the hand makes,
+ * and it has to come out the same whether the character is walking, idling or
+ * landing. Positive closes.
+ */
+USTRUCT(BlueprintType)
+struct FKBVEGripFinger
+{
+	GENERATED_BODY()
+
+	/** index, middle, ring, pinky or thumb. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip")
+	FName Chain;
+
+	/** Knuckle, second joint, fingertip joint. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip")
+	float Base = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip")
+	float Middle = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip")
+	float Tip = 0.0f;
+};
+
+/**
  * Everything the support hand needs to know about one weapon.
  *
  * A data asset per weapon rather than constants on the anim instance, because
@@ -58,13 +86,52 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip|Section")
 	float GripAlongBarrel = -18.0f;
 
-	/** Where the hand sits around the section, as atan2(z, y), degrees. */
+	/**
+	 * Where the hand sits around the section, as atan2(z, y), degrees.
+	 *
+	 * Under and outboard, which is the side a left hand meets a rifle from.
+	 * Under and inboard puts the hand across the weapon from the arm holding it
+	 * and the wrist has to rotate twice as far to lay the palm on the wood --
+	 * measured at 46 degrees against 20.7 here.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip|Section")
-	float GripAngleDegrees = 253.0f;
+	float GripAngleDegrees = 270.0f;
 
 	/** How far the knuckles are held off the surface, cm. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip|Section")
 	float KnuckleClearance = 0.6f;
+
+	/**
+	 * Where each hand meets this weapon, in the weapon's own space.
+	 *
+	 * These lived on the anim instance as tuned constants, which made a second
+	 * weapon impossible: the SS2-V5 came up held by its stock because it was
+	 * being mounted on the Mosin's numbers. They are properties of a rifle --
+	 * measured off the mesh, like the section above -- and belong with it.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip|Hold")
+	FVector RightGripLocal = FVector(-37.0f, 0.0f, 0.0f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip|Hold")
+	FVector LeftGripLocal = FVector(-7.0f, 0.0f, -1.0f);
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip|Hold")
+	FVector LeftHandTargetLocal = FVector(-4.0f, -7.0f, 5.7f);
+
+	/** Where the weapon hangs off the trigger hand. Identity means "unset". */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip|Hold")
+	FTransform AttachOffset;
+
+	/**
+	 * The support hand's shape, a joint angle at a time.
+	 *
+	 * Numbers in the weapon's config rather than a posed asset, because a grip
+	 * is reviewable as numbers and a uasset is not: this is what tells a reader
+	 * which knuckle closed further when the hold changed. Takes precedence over
+	 * SupportHandPose when it is filled in.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip|Pose")
+	TArray<FKBVEGripFinger> FingerPose;
 
 	/**
 	 * The support hand's finger pose, and the time it is read at.

@@ -14,13 +14,12 @@ they come from .prototools, which is where they are pinned.
 from __future__ import annotations
 
 import json
-import os
 import re
 import subprocess
 import sys
 from pathlib import Path
 
-from ..builder import BuildContext, BuildResult, PlanResult, repo_root_for
+from ..builder import BuildContext, BuildResult, PlanResult, emit_page, repo_root_for
 from ..render import render_report_json, render_report_mdx
 from ..router import route
 
@@ -185,7 +184,7 @@ def _acquire(ctx: BuildContext) -> dict:
     }
 
 
-@route("report", "daily", needs=("node",))
+@route("report", "daily", needs=("node", "moon"))
 class ReportRoute:
     def plan(self, ctx: BuildContext) -> PlanResult:
         return PlanResult("report", True, "regenerate (git-diff guard drops no-ops)", [])
@@ -198,22 +197,11 @@ class ReportRoute:
             _warn("report feeds all empty — skipping report regeneration")
             return BuildResult("report", [], True, "acquire failed")
 
-        public_dir = Path(ctx.public_dir)
-        content_root = Path(ctx.content_root)
-        json_out = public_dir / "report.json"
-        mdx_out = content_root / "dashboard" / "report.mdx"
-
-        if not ctx.dry_run:
-            public_dir.mkdir(parents=True, exist_ok=True)
-            mdx_out.parent.mkdir(parents=True, exist_ok=True)
-            with open(json_out, "w") as f:
-                f.write(render_report_json(data))
-            with open(mdx_out, "w") as f:
-                f.write(render_report_mdx(data, ctx.timestamp))
-
-        repo_root = repo_root_for(content_root)
-        changed = [
-            os.path.relpath(mdx_out, repo_root),
-            os.path.relpath(json_out, repo_root),
-        ]
-        return BuildResult("report", changed, False, "generated")
+        return emit_page(
+            ctx,
+            "report",
+            page="report.mdx",
+            mdx_text=render_report_mdx(data, ctx.timestamp),
+            json_name="report.json",
+            json_text=render_report_json(data),
+        )

@@ -4,21 +4,20 @@ Acquires the project graph from moon, parses it via :func:`parse_graph`, and
 renders the Starlight MDX. The raw graph JSON is written to the Astro public
 data dir, where the ``/graph/`` hub and the home dashboard read it.
 
-The payload keeps the shape Nx produced -- ``{graph: {nodes, dependencies}}``
-with ``app``/``lib``/``e2e`` node types -- because the site, the MDX renderer
-and the published ``/data/nx/nx-graph.json`` URL all read it. Translating at
-acquisition keeps that contract while the graph underneath it changed.
+The envelope stays ``{graph: {nodes, dependencies}}`` because the site, the MDX
+renderer and the published ``/data/nx/nx-graph.json`` URL all read it. What a
+node *says* is moon's, though: the type is the project's layer, so a tool reads
+as a tool instead of being rounded to the nearest Nx project type.
 """
 
 from __future__ import annotations
 
 import json
-import os
 import subprocess
 import sys
 from pathlib import Path
 
-from ..builder import BuildContext, BuildResult, PlanResult, repo_root_for
+from ..builder import BuildContext, BuildResult, PlanResult, emit_page, repo_root_for
 from ..graph import parse_graph
 from ..render import render_graph_mdx
 from ..router import route
@@ -35,14 +34,13 @@ def _warn(msg: str) -> None:
 
 
 def _node_type(project: dict) -> str:
-    """The node type the dashboard colours by.
+    """The node type the dashboard colours by — moon's layer, as declared.
 
-    ``e2e`` is its own category rather than a layer, so it is read off the id
-    the way the Nx tags used to say it.
+    The e2e suites this used to name by id suffix are ``layer: automation``,
+    and the tooling that had nowhere to go under Nx's app/lib/e2e is
+    ``layer: tool``, so the guessing this did is now just a field read.
     """
-    if project["id"].endswith("-e2e"):
-        return "e2e"
-    return "app" if project.get("layer") == "application" else "lib"
+    return project.get("layer") or "unknown"
 
 
 def _from_moon(payload: dict) -> dict:
@@ -57,7 +55,9 @@ def _from_moon(payload: dict) -> dict:
             "data": {
                 "root": project.get("source", ""),
                 "name": pid,
-                "projectType": project.get("layer", ""),
+                "layer": project.get("layer", ""),
+                "stack": project.get("stack", ""),
+                "language": project.get("language", ""),
                 "tags": project.get("config", {}).get("tags", []),
             },
         }
@@ -110,7 +110,7 @@ def _acquire(ctx: BuildContext) -> dict:
     return _validate_graph(raw)
 
 
-@route("graph", "daily", needs=("node",))
+@route("graph", "daily", needs=("moon",))
 class GraphRoute:
     def plan(self, ctx: BuildContext) -> PlanResult:
         return PlanResult("graph", True, "regenerate (git-diff guard drops no-ops)", [])
@@ -124,22 +124,11 @@ class GraphRoute:
 
         graph = parse_graph(raw)
 
-        public_dir = Path(ctx.public_dir)
-        content_root = Path(ctx.content_root)
-        mdx_out = content_root / "dashboard" / "graph.mdx"
-        json_out = public_dir / "nx-graph.json"
-
-        if not ctx.dry_run:
-            mdx_out.parent.mkdir(parents=True, exist_ok=True)
-            public_dir.mkdir(parents=True, exist_ok=True)
-            with open(mdx_out, "w") as f:
-                f.write(render_graph_mdx(graph, ctx.timestamp))
-            with open(json_out, "w") as f:
-                json.dump(raw, f, indent=2)
-
-        repo_root = repo_root_for(content_root)
-        changed = [
-            os.path.relpath(mdx_out, repo_root),
-            os.path.relpath(json_out, repo_root),
-        ]
-        return BuildResult("graph", changed, False, "generated")
+        return emit_page(
+            ctx,
+            "graph",
+            page="graph.mdx",
+            mdx_text=render_graph_mdx(graph, ctx.timestamp),
+            json_name="nx-graph.json",
+            json_text=json.dumps(raw, indent=2),
+        )

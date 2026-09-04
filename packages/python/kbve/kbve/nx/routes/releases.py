@@ -1,13 +1,11 @@
-"""The ``releases`` route — release radar (manifest vs registry) MDX + JSON."""
+"""The ``releases`` route — release radar (manifest vs git tag) MDX + JSON."""
 
 from __future__ import annotations
 
-import os
 import sys
-from pathlib import Path
 
-from ..builder import BuildContext, BuildResult, PlanResult, repo_root_for
-from ..releases import aggregate, load_manifest, resolve
+from ..builder import BuildContext, BuildResult, PlanResult, emit_page, repo_root_for
+from ..releases import StatusError, aggregate, status_rows
 from ..render import (
     build_release_payload,
     render_release_json,
@@ -23,37 +21,29 @@ def _warn(msg: str) -> None:
 def _acquire(ctx: BuildContext) -> dict:
     rows = ctx.inputs.get("release_rows")
     if not isinstance(rows, list):
-        manifest = ctx.inputs.get("release_manifest")
-        if not isinstance(manifest, dict):
-            manifest = load_manifest(repo_root_for(ctx.content_root))
-        rows = resolve(manifest)
+        rows = status_rows(repo_root_for(ctx.content_root))
     return aggregate(rows)
 
 
-@route("releases", "daily", needs=())
+@route("releases", "daily", needs=("node", "moon", "tags"))
 class ReleasesRoute:
     def plan(self, ctx: BuildContext) -> PlanResult:
         return PlanResult("releases", True, "regenerate (git-diff guard drops no-ops)", [])
 
     def build(self, ctx: BuildContext) -> BuildResult:
-        payload = build_release_payload(_acquire(ctx), ctx.timestamp)
+        try:
+            agg = _acquire(ctx)
+        except StatusError as exc:
+            _warn("%s — skipping releases regeneration" % exc)
+            return BuildResult("releases", [], True, "acquire failed: %s" % exc)
 
-        content_root = Path(ctx.content_root)
-        public_dir = Path(ctx.public_dir)
-        json_out = public_dir / "nx-releases.json"
-        mdx_out = content_root / "dashboard" / "releases.mdx"
+        payload = build_release_payload(agg, ctx.timestamp)
 
-        if not ctx.dry_run:
-            public_dir.mkdir(parents=True, exist_ok=True)
-            mdx_out.parent.mkdir(parents=True, exist_ok=True)
-            with open(json_out, "w") as f:
-                f.write(render_release_json(payload))
-            with open(mdx_out, "w") as f:
-                f.write(render_release_mdx(payload, ctx.timestamp))
-
-        repo_root = repo_root_for(content_root)
-        changed = [
-            os.path.relpath(mdx_out, repo_root),
-            os.path.relpath(json_out, repo_root),
-        ]
-        return BuildResult("releases", changed, False, "generated")
+        return emit_page(
+            ctx,
+            "releases",
+            page="releases.mdx",
+            mdx_text=render_release_mdx(payload, ctx.timestamp),
+            json_name="nx-releases.json",
+            json_text=render_release_json(payload),
+        )

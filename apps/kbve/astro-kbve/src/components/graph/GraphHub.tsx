@@ -21,7 +21,7 @@ interface GraphEntity {
 
 type Scope = 'all' | 'nx' | 'graphify' | 'site';
 
-const NX_URL = '/dashboard/graph/';
+const PROJECT_GRAPH_URL = '/dashboard/graph/';
 const GRAPHIFY_URL = '/dashboard/graph-explorer/';
 
 const scopeMatch = (e: GraphEntity, s: Scope): boolean => {
@@ -123,7 +123,7 @@ export default function GraphHub() {
 							{s === 'all'
 								? 'All'
 								: s === 'nx'
-									? 'NX'
+									? 'moon'
 									: s === 'graphify'
 										? 'Graphify'
 										: 'Site'}
@@ -156,7 +156,7 @@ export default function GraphHub() {
 									</span>
 									<span className="ghub__name">{e.name}</span>
 									<span className="ghub__facets">
-										{e.nx && <i title="NX">◆</i>}
+										{e.nx && <i title="moon">◆</i>}
 										{e.graphify && (
 											<i title="Graphify">◈</i>
 										)}
@@ -177,7 +177,7 @@ export default function GraphHub() {
 					<div className="ghub__detail">
 						{!selected && (
 							<div className="ghub__hint">
-								Select an entry to see its NX dependencies,
+								Select an entry to see its project dependencies,
 								Graphify code area, and linked docs.
 							</div>
 						)}
@@ -197,8 +197,9 @@ export default function GraphHub() {
 								{selected.nx && (
 									<section>
 										<h3>
-											NX · {selected.nx.deps.length} deps
-											· {selected.nx.dependents.length}{' '}
+											moon · {selected.nx.deps.length}{' '}
+											deps ·{' '}
+											{selected.nx.dependents.length}{' '}
 											dependents
 										</h3>
 										<GraphNeighborhood
@@ -207,8 +208,10 @@ export default function GraphHub() {
 											dependents={selected.nx.dependents}
 											onSelect={recenter}
 										/>
-										<a className="ghub__link" href={NX_URL}>
-											Open in NX graph →
+										<a
+											className="ghub__link"
+											href={PROJECT_GRAPH_URL}>
+											Open in project graph →
 										</a>
 									</section>
 								)}

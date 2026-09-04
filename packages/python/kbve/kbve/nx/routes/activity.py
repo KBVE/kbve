@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import os
 import sys
-from pathlib import Path
 
 from ..activity import (
     aggregate,
@@ -13,7 +12,7 @@ from ..activity import (
     since_day,
     since_iso,
 )
-from ..builder import BuildContext, BuildResult, PlanResult, repo_root_for
+from ..builder import BuildContext, BuildResult, PlanResult, emit_page
 from ..render import (
     build_activity_payload,
     render_activity_json,
@@ -72,22 +71,11 @@ class ActivityRoute:
             return BuildResult("activity", [], True, "acquire failed")
         payload = build_activity_payload(payload, ctx.timestamp)
 
-        content_root = Path(ctx.content_root)
-        public_dir = Path(ctx.public_dir)
-        json_out = public_dir / "nx-activity.json"
-        mdx_out = content_root / "dashboard" / "activity.mdx"
-
-        if not ctx.dry_run:
-            public_dir.mkdir(parents=True, exist_ok=True)
-            mdx_out.parent.mkdir(parents=True, exist_ok=True)
-            with open(json_out, "w") as f:
-                f.write(render_activity_json(payload))
-            with open(mdx_out, "w") as f:
-                f.write(render_activity_mdx(payload, ctx.timestamp))
-
-        repo_root = repo_root_for(content_root)
-        changed = [
-            os.path.relpath(mdx_out, repo_root),
-            os.path.relpath(json_out, repo_root),
-        ]
-        return BuildResult("activity", changed, False, "generated")
+        return emit_page(
+            ctx,
+            "activity",
+            page="activity.mdx",
+            mdx_text=render_activity_mdx(payload, ctx.timestamp),
+            json_name="nx-activity.json",
+            json_text=render_activity_json(payload),
+        )

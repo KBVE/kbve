@@ -6,6 +6,8 @@
 
 from __future__ import annotations
 
+import os
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from datetime import date as _date
 from datetime import datetime, timezone
@@ -37,10 +39,10 @@ def public_dir_for(content_root: Path) -> Path:
 
 
 def repo_root_for(content_root: Path) -> Path:
-    """Walk up from ``content_root`` to the monorepo root (holds ``nx.json``)."""
+    """Walk up from ``content_root`` to the monorepo root (holds ``.moon``)."""
     p = Path(content_root).resolve()
     for cand in [p, *p.parents]:
-        if (cand / "nx.json").exists() or (cand / "pnpm-workspace.yaml").exists():
+        if (cand / ".moon").exists() or (cand / "pnpm-workspace.yaml").exists():
             return cand
     return p
 
@@ -64,6 +66,41 @@ class BuildResult:
     changed: list[str]
     skipped: bool
     note: str
+
+
+def emit_page(
+    ctx: BuildContext,
+    route: str,
+    *,
+    page: str,
+    mdx_text: str,
+    json_name: str,
+    json_text: str,
+    extra_json: Sequence[Path] = (),
+    note: str = "generated",
+) -> BuildResult:
+    """Write a dashboard page and its companion JSON, and report both.
+
+    Every generating route ended with the same twenty lines: resolve the two
+    output paths, make their parents, write, then re-derive the repo root to
+    report what changed. The report is the part that has to be right — the
+    workflow stages exactly these strings from the repo root, so a route that
+    computes them itself is a route that can get them wrong, which is how the
+    journal route came to name a path `git add` could not resolve.
+    """
+    content_root = Path(ctx.content_root)
+    mdx_out = content_root / "dashboard" / page
+    json_out = Path(ctx.public_dir) / json_name
+    targets = [(mdx_out, mdx_text), *((p, json_text) for p in extra_json), (json_out, json_text)]
+
+    if not ctx.dry_run:
+        for path, text in targets:
+            path.parent.mkdir(parents=True, exist_ok=True)
+            with open(path, "w") as f:
+                f.write(text)
+
+    repo_root = repo_root_for(content_root)
+    return BuildResult(route, [os.path.relpath(p, repo_root) for p, _ in targets], False, note)
 
 
 class Builder:

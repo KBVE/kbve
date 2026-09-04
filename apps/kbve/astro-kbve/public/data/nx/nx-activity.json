@@ -1,180 +1,180 @@
 {
-  "generated_at": "2026-08-31T06:42:05Z",
+  "generated_at": "2026-09-04T05:42:31Z",
   "window": {
     "days": 7,
-    "since": "2026-08-24T06:42:05Z"
+    "since": "2026-08-28T05:42:31Z"
   },
   "commits": {
-    "total": 198,
+    "total": 210,
     "authors": 3,
     "leaderboard": [
       {
-        "author": "github-actions[bot]",
-        "commits": 131
+        "author": "h0lybyte",
+        "commits": 109
       },
       {
-        "author": "h0lybyte",
-        "commits": 41
+        "author": "github-actions[bot]",
+        "commits": 81
       },
       {
         "author": "Fudster",
-        "commits": 26
+        "commits": 20
       }
     ],
     "recent": [
       {
-        "sha": "61e9922",
-        "author": "Fudster",
-        "message": "Merge pull request #16557 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/61e99228c46772ad3b53d2177830d6b886e98121",
-        "date": "2026-08-31T04:26:29Z"
-      },
-      {
-        "sha": "c1cfd10",
-        "author": "github-actions[bot]",
-        "message": "chore(chuck): bump beta 0.3.54 -> 0.3.55 (#16556)",
-        "url": "https://github.com/KBVE/kbve/commit/c1cfd10e8c23632ff50f788213b61a8cc34b2e5c",
-        "date": "2026-08-31T04:25:19Z"
-      },
-      {
-        "sha": "86fbe9b",
-        "author": "Fudster",
-        "message": "Merge pull request #16550 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/86fbe9b3a54f36a3d51bc7b43fd771209a0101ec",
-        "date": "2026-08-30T15:30:27Z"
-      },
-      {
-        "sha": "654675d",
-        "author": "github-actions[bot]",
-        "message": "chore(chuck): post-publish sync to v0.3.54 (#16549)",
-        "url": "https://github.com/KBVE/kbve/commit/654675d17fe049d000d6b453f92d354bbab8920e",
-        "date": "2026-08-30T14:14:53Z"
-      },
-      {
-        "sha": "d149b04",
-        "author": "Fudster",
-        "message": "Merge pull request #16547 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/d149b04f37775e445e1bb83c90f7e74f40500c5a",
-        "date": "2026-08-30T13:57:57Z"
-      },
-      {
-        "sha": "fe4b838",
-        "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#16548)",
-        "url": "https://github.com/KBVE/kbve/commit/fe4b83884cb222886de1a1372a8bd2b6abac2a03",
-        "date": "2026-08-30T13:49:15Z"
-      },
-      {
-        "sha": "a471b5d",
-        "author": "github-actions[bot]",
-        "message": "chore(chuck): bump beta 0.3.53 -> 0.3.54 (#16546)",
-        "url": "https://github.com/KBVE/kbve/commit/a471b5dad0e28ca485212ce8975e117787c3323e",
-        "date": "2026-08-30T13:46:50Z"
-      },
-      {
-        "sha": "2b531ca",
+        "sha": "79c9af7",
         "author": "h0lybyte",
-        "message": "Merge pull request #16543 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/2b531cac23511787e2a8ef480d0cf38f65c7df3a",
-        "date": "2026-08-30T12:11:25Z"
+        "message": "Merge pull request #16748 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/79c9af70d0093ba1deed0fcba7267906aaa27379",
+        "date": "2026-09-03T23:02:44Z"
       },
       {
-        "sha": "60d8541",
-        "author": "github-actions[bot]",
-        "message": "chore(edge): post-publish sync to v0.1.50 (#16544)",
-        "url": "https://github.com/KBVE/kbve/commit/60d8541cba63f912a4f7338525dd2197903c6ac5",
-        "date": "2026-08-30T08:20:34Z"
-      },
-      {
-        "sha": "5fcb2d1",
-        "author": "github-actions[bot]",
-        "message": "chore(tocloud9-services): post-publish sync to v0.0.5 (#16542)",
-        "url": "https://github.com/KBVE/kbve/commit/5fcb2d1270666a83f9c50f092c4ca4f766a2efa2",
-        "date": "2026-08-30T08:18:09Z"
-      },
-      {
-        "sha": "536e2b5",
+        "sha": "b688617",
         "author": "h0lybyte",
-        "message": "Merge pull request #16528 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/536e2b5e3193f445de31c1c2b5feb0425bcc7d6a",
-        "date": "2026-08-30T08:10:53Z"
+        "message": "chore(repo): stop tracking .vscode (#16752)",
+        "url": "https://github.com/KBVE/kbve/commit/b688617673130ec210011e04d1a5a70259e61be1",
+        "date": "2026-09-03T23:01:46Z"
       },
       {
-        "sha": "815ef64",
-        "author": "github-actions[bot]",
-        "message": "chore(ci): sync ci-dispatch-manifest [skip ci] (#16541)",
-        "url": "https://github.com/KBVE/kbve/commit/815ef647d6f201e1ed4b29f2f226fc1b3557e776",
-        "date": "2026-08-30T07:44:10Z"
+        "sha": "a33846d",
+        "author": "h0lybyte",
+        "message": "docs(repo): rewrite root README, add services/cdn asset lane (#16749)",
+        "url": "https://github.com/KBVE/kbve/commit/a33846df774081c0759053efbe71a9e15b1add71",
+        "date": "2026-09-03T23:01:37Z"
+      },
+      {
+        "sha": "6629f90",
+        "author": "h0lybyte",
+        "message": "fix(agones): align chuckrpg-beta fleet health initial delay (#16750)",
+        "url": "https://github.com/KBVE/kbve/commit/6629f9011f2f68962059509289d96e7b691e134b",
+        "date": "2026-09-03T23:01:24Z"
+      },
+      {
+        "sha": "4205300",
+        "author": "h0lybyte",
+        "message": "feat(rareicon): per-weapon grip data and support-hand solve (#16746)",
+        "url": "https://github.com/KBVE/kbve/commit/42053000b80108c2714034a910727a49daeeb9c4",
+        "date": "2026-09-03T21:24:27Z"
+      },
+      {
+        "sha": "a1758e9",
+        "author": "h0lybyte",
+        "message": "feat(rareicon): rifle import and procedural weapon hold (#16745)",
+        "url": "https://github.com/KBVE/kbve/commit/a1758e958adeaaf4213f6e79a766e924f98107b3",
+        "date": "2026-09-03T21:03:29Z"
+      },
+      {
+        "sha": "05ddaa2",
+        "author": "h0lybyte",
+        "message": "feat(world): bridge girders and road water crossings (#16744)",
+        "url": "https://github.com/KBVE/kbve/commit/05ddaa20acf73ba7e9933cb823129ee57aa6dacb",
+        "date": "2026-09-03T21:02:50Z"
+      },
+      {
+        "sha": "95752ac",
+        "author": "h0lybyte",
+        "message": "fix(proto): run format, verify-gen and breaking in CI (#16747)",
+        "url": "https://github.com/KBVE/kbve/commit/95752acb1a3b2dd9c15eefe291a184bb549e3aab",
+        "date": "2026-09-03T21:01:58Z"
+      },
+      {
+        "sha": "6d5c7dd",
+        "author": "h0lybyte",
+        "message": "Merge pull request #16739 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/6d5c7ddd2feb3c3fb94f12eb02117f0ef758e008",
+        "date": "2026-09-03T20:40:04Z"
+      },
+      {
+        "sha": "89dc5b6",
+        "author": "h0lybyte",
+        "message": "fix(commit): add the tools scope and resync the lock (#16743)",
+        "url": "https://github.com/KBVE/kbve/commit/89dc5b6a245c557ca0c5f654b88eb68792e16e45",
+        "date": "2026-09-03T20:17:10Z"
+      },
+      {
+        "sha": "d7a97f3",
+        "author": "h0lybyte",
+        "message": "fix(ci): unblock the launcher lockfile, azure clone test and e2e suites (#16742)",
+        "url": "https://github.com/KBVE/kbve/commit/d7a97f333264f41139decdb74dc60e7642774c4c",
+        "date": "2026-09-03T19:39:08Z"
+      },
+      {
+        "sha": "a942272",
+        "author": "h0lybyte",
+        "message": "refactor(tools): collapse scripts/ into tools/ (#16741)",
+        "url": "https://github.com/KBVE/kbve/commit/a942272ffdf858ef5fb568846ae01f3b5706998a",
+        "date": "2026-09-03T19:38:58Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 212,
+    "merged": 163,
     "recent": [
       {
-        "number": 16562,
-        "title": "chore(moon): scaffold moon workspace alongside nx",
+        "number": 16757,
+        "title": "fix(release): provision rust in the test job, and draft the release only after publishing",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16562"
+        "url": "https://github.com/KBVE/kbve/pull/16757"
       },
       {
-        "number": 16559,
-        "title": "Atomic: chuck v0.3.55 post-publish sync",
+        "number": 16748,
+        "title": "Release: 3 features, 2 fixes, 1 doc, 1 chore \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16559"
+        "url": "https://github.com/KBVE/kbve/pull/16748"
       },
       {
-        "number": 16558,
-        "title": "chore(ci): sync ci-dispatch-manifest",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16558"
+        "number": 16752,
+        "title": "chore(repo): stop tracking .vscode",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16752"
       },
       {
-        "number": 16557,
-        "title": "Release: 1 chore \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16557"
+        "number": 16749,
+        "title": "docs(repo): rewrite root README, add services/cdn asset lane",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16749"
       },
       {
-        "number": 16556,
-        "title": "Atomic: chuck beta 0355",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16556"
+        "number": 16750,
+        "title": "fix(agones): verify rows-tenant fleet health + align beta delay",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16750"
       },
       {
-        "number": 16550,
-        "title": "Release: 1 chore \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16550"
+        "number": 16746,
+        "title": "feat(rareicon): per-weapon grip data and support-hand solve",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16746"
       },
       {
-        "number": 16549,
-        "title": "Atomic: chuck v0.3.54 post-publish sync",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16549"
+        "number": 16745,
+        "title": "feat(rareicon): rifle import and procedural weapon hold",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16745"
       },
       {
-        "number": 16547,
-        "title": "Release: 1 chore \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16547"
+        "number": 16744,
+        "title": "feat(world): bridge girders and road water crossings",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16744"
       },
       {
-        "number": 16548,
-        "title": "chore(ci): sync ci-dispatch-manifest",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16548"
+        "number": 16747,
+        "title": "fix(proto): run format, verify-gen and breaking in CI",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16747"
       },
       {
-        "number": 16546,
-        "title": "Atomic: chuck beta 0354",
+        "number": 16739,
+        "title": "Release: 1 feature, 4 fixes, 1 refactor \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16546"
+        "url": "https://github.com/KBVE/kbve/pull/16739"
       }
     ]
   },
   "issues": {
-    "opened": 228,
-    "closed": 217
+    "opened": 171,
+    "closed": 169
   }
 }
