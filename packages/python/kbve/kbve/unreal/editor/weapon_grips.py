@@ -68,6 +68,49 @@ def main():
             if field in entry:
                 grip.set_editor_property(field, float(entry[field]))
 
+        # Where the hands meet this weapon. Vectors rather than floats, and
+        # optional: a weapon that does not state them keeps the defaults, which
+        # are the Mosin's, which is what the anim instance used to hardcode.
+        for field in ("right_grip_local", "left_grip_local", "left_hand_target_local"):
+            if field in entry:
+                x, y, z = entry[field]
+                grip.set_editor_property(field, unreal.Vector(float(x), float(y), float(z)))
+
+        attach = entry.get("attach_offset")
+        if attach:
+            loc = [float(v) for v in attach.get("location", [0.0, 0.0, 0.0])]
+            rot = [float(v) for v in attach.get("rotation", [0.0, 0.0, 0.0])]
+            transform = unreal.Transform()
+            transform.set_editor_property("translation", unreal.Vector(*loc))
+            # Named, not positional. unreal.Rotator's Python constructor is
+            # (roll, pitch, yaw) while C++ FRotator is (pitch, yaw, roll), so
+            # passing a config triple straight through turns a yaw of 180 into
+            # a pitch of 180 -- the weapon arrives upside down rather than
+            # turned around, and both are a half turn so it looks like tuning.
+            transform.set_editor_property(
+                "rotation", unreal.Rotator(roll=rot[2], pitch=rot[0], yaw=rot[1]).quaternion()
+            )
+            transform.set_editor_property("scale3d", unreal.Vector(1.0, 1.0, 1.0))
+            grip.set_editor_property("attach_offset", transform)
+
+        # The grip as joint angles. Written in preference to a posed asset
+        # because a hold is reviewable as numbers -- a diff says which knuckle
+        # closed further, which a binary uasset never can.
+        pose = entry.get("finger_pose")
+        if pose:
+            fingers = []
+            for chain, angles in pose.items():
+                if len(angles) != 3:
+                    unreal.log_error(f"{name}: {chain} needs three angles, got {len(angles)}")
+                    continue
+                finger = unreal.KBVEGripFinger()
+                finger.set_editor_property("chain", chain)
+                finger.set_editor_property("base", float(angles[0]))
+                finger.set_editor_property("middle", float(angles[1]))
+                finger.set_editor_property("tip", float(angles[2]))
+                fingers.append(finger)
+            grip.set_editor_property("finger_pose", fingers)
+
         # The pose is a reference rather than a copy, so re-authoring the pose
         # updates every weapon that wears it without touching this script.
         pose_path = entry.get("support_hand_pose")
