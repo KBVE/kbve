@@ -42,7 +42,7 @@ def _ctx(tmp_path, inputs):
 
 
 def test_graph_needs_tags():
-    assert get("graph").needs == ("node",)
+    assert get("graph").needs == ("moon",)
 
 
 def test_graph_plan_needs_work(tmp_path):

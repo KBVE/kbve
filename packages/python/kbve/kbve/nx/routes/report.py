@@ -185,7 +185,7 @@ def _acquire(ctx: BuildContext) -> dict:
     }
 
 
-@route("report", "daily", needs=("node",))
+@route("report", "daily", needs=("node", "moon"))
 class ReportRoute:
     def plan(self, ctx: BuildContext) -> PlanResult:
         return PlanResult("report", True, "regenerate (git-diff guard drops no-ops)", [])

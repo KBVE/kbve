@@ -110,7 +110,7 @@ def _acquire(ctx: BuildContext) -> dict:
     return _validate_graph(raw)
 
 
-@route("graph", "daily", needs=("node",))
+@route("graph", "daily", needs=("moon",))
 class GraphRoute:
     def plan(self, ctx: BuildContext) -> PlanResult:
         return PlanResult("graph", True, "regenerate (git-diff guard drops no-ops)", [])

@@ -103,6 +103,24 @@ jobs:
             - name: Setup JavaScript
               uses: ./.github/actions/setup-js
 
+            - name: Setup moon
+              if: contains(matrix.needs, 'moon')
+              uses: ./.github/actions/setup-moon
+
+            # `release-tools:status` compares each version manifest against the
+            # newest tag naming that project, and counts the commits since it.
+            # The default shallow, tagless checkout makes every project look
+            # never-released.
+            - name: Fetch tags and history
+              if: contains(matrix.needs, 'tags')
+              run: |
+                  set -euo pipefail
+                  if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+                    git fetch --prune --unshallow --tags origin
+                  else
+                    git fetch --prune --tags origin
+                  fi
+
             - name: Setup Rust toolchain
               if: contains(matrix.needs, 'rust')
               run: |

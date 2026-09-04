@@ -46,7 +46,7 @@ def _ctx(tmp_path, inputs):
 
 
 def test_report_needs_tags():
-    assert get("report").needs == ("node",)
+    assert get("report").needs == ("node", "moon")
 
 
 def test_report_plan_needs_work(tmp_path):
