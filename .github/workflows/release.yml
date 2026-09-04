@@ -595,6 +595,18 @@ jobs:
               with:
                   fetch-depth: 0
 
+            # notes.mjs imports verify-tag.mjs, which asks the project graph
+            # where a project's source lives -- `moon query projects --id <id>`.
+            # While the draft lived in `verify` that job's own setup had already
+            # put moon on PATH; moving the step to its own job left it spawning
+            # a binary that was not there, and unr@0.1.0 published to crates.io
+            # and then failed here with spawnSync moon ENOENT.
+            - name: Setup JavaScript
+              uses: ./.github/actions/setup-js
+
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
             - name: Draft the release
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
