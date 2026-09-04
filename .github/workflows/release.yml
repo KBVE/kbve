@@ -178,6 +178,27 @@ jobs:
               with:
                   github-token: ${{ github.token }}
 
+            # Provision the rust toolchain before moon does, exactly as ci.yml
+            # does. moon's own setup asks proto for the toolchain named in
+            # .prototools and then expects cargo under ~/.rustup; on a runner
+            # where nothing has installed that toolchain yet it reports
+            # `installing rust` and the task still dies with
+            # proto::locate::missing_executable. unr@0.1.0 failed here: the
+            # first tag this repository ever pushed never reached its publish
+            # lane. Running rustup first leaves moon's call a no-op.
+            #
+            # Unconditional rather than gated on the project being rust: the
+            # tag carries no language, and a project can be rust without
+            # carrying the crates lane -- jobboard is rust behind a docker tag.
+            - name: Preinstall the rust toolchain
+              run: |
+                  rustup show active-toolchain || rustup toolchain install
+                  TARGETS="$(node tools/moon/rust-targets.mjs)"
+                  if [ -n "$TARGETS" ]; then
+                    echo "rustup target add $TARGETS"
+                    rustup target add $TARGETS
+                  fi
+
             - name: Setup moon
               uses: ./.github/actions/setup-moon
 
