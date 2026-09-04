@@ -26,7 +26,11 @@ try {
 
 const loc: LocEntry[] = data ? parseLocStats(data.loc_stats ?? '') : [];
 const toolchain = data?.toolchain ?? [];
-const workspace = data?.workspace ?? null;
+const ws = data?.workspace;
+const workspace =
+	ws && typeof ws.projects === 'number' && typeof ws.tasks === 'number'
+		? ws
+		: null;
 const coverage: CoverageEntry[] = data
 	? parseCoverage(data.coverage ?? '')
 	: [];

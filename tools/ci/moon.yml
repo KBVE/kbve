@@ -15,7 +15,7 @@ tasks:
         # ci.yml runs `moon ci ':lint' ':test'`, which matches the task id
         # exactly -- a task called lint-pins is never reached by it. The dep is
         # what puts the pin check in CI.
-        deps: ['~:lint-pins']
+        deps: ['~:lint-pins', '~:lint-tracker']
         command: 'node permissions.mjs'
         toolchains: ['node']
         inputs:
@@ -31,4 +31,15 @@ tasks:
             - 'pins.mjs'
             - '/.prototools'
             - '/package.json'
+            - '/.github/workflows/*.yml'
+
+    # A tracker issue can only be closed by a call site passing the same
+    # workflow_name and job_name it was opened with, so a deleted job strands
+    # its issue open forever (#16598). The reaper closes those; this proves it
+    # can still read the call sites, which is the half that needs no token.
+    lint-tracker:
+        command: 'node tracker-reaper.mjs --scan'
+        toolchains: ['node']
+        inputs:
+            - 'tracker-reaper.mjs'
             - '/.github/workflows/*.yml'
