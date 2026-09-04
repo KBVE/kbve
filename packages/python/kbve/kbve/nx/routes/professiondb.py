@@ -46,7 +46,7 @@ def _changed(repo_root: Path) -> list[str]:
     return [f for f in out.splitlines() if f]
 
 
-@route("professiondb", "weekly", needs=("node",))
+@route("professiondb", "weekly", needs=("node", "moon"))
 class ProfessiondbRoute:
     def plan(self, ctx: BuildContext) -> PlanResult:
         return PlanResult(

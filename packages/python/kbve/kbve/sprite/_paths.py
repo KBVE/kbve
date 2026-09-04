@@ -7,7 +7,7 @@ no longer points at the repo, so we walk up from the CWD to the repo root instea
 
 import os
 
-ROOT_MARKERS = (".git", "nx.json")
+ROOT_MARKERS = (".git", ".moon")
 
 
 def repo_root(start=None):
@@ -18,7 +18,7 @@ def repo_root(start=None):
             return d
         parent = os.path.dirname(d)
         if parent == d:
-            raise SystemExit("repo root not found above CWD (need a .git or nx.json ancestor)")
+            raise SystemExit("repo root not found above CWD (need a .git or .moon ancestor)")
         d = parent
 
 

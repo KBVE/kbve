@@ -412,9 +412,50 @@ jobs:
                   echo "Created PR #${PR_NUM}"
                   echo "pr_number=${PR_NUM}" >> "$GITHUB_OUTPUT"
 
-            - name: Dispatch auto-merge
+            # ci-auto-merge-bot-prs.yml validated this PR against
+            # .github/ci-dispatch-manifest.json; both were deleted with the
+            # tag-driven release pipeline, so the dispatch to it 422'd and the
+            # sync PR was left open. The manifest lookup only ever recovered
+            # the paths this job was handed as inputs, so it asks them directly.
+            - name: Approve and auto-merge
               if: steps.pr.outputs.pr_number != ''
-              uses: ./.github/actions/dispatch-auto-merge
-              with:
-                  pr_number: ${{ steps.pr.outputs.pr_number }}
-                  github_token: ${{ github.token }}
+              env:
+                  # The PAT that pushed the branch: GITHUB_TOKEN authored the
+                  # PR, and a PR cannot approve itself.
+                  GH_TOKEN: ${{ secrets.TRIGGER_PAT }}
+                  PR_NUM: ${{ steps.pr.outputs.pr_number }}
+                  APP: ${{ steps.validate.outputs.app }}
+                  VERSION_TOML: ${{ inputs.version_toml_path }}
+                  VERSION_TARGET: ${{ inputs.version_target_path }}
+                  DEPLOYMENT_YAML: ${{ inputs.deployment_yaml }}
+                  DEPLOYMENT_YAMLS_JSON: ${{ inputs.deployment_yamls }}
+              run: |
+                  set -euo pipefail
+
+                  ALLOWED="${VERSION_TOML} ${VERSION_TARGET} ${DEPLOYMENT_YAML}"
+                  case "${VERSION_TARGET}" in
+                    *Cargo.toml) ALLOWED="${ALLOWED} Cargo.lock";;
+                  esac
+                  if [ -n "${DEPLOYMENT_YAMLS_JSON}" ]; then
+                    ALLOWED="${ALLOWED} $(echo "${DEPLOYMENT_YAMLS_JSON}" | jq -r '.[]')"
+                  fi
+
+                  blocked=0
+                  while read -r file; do
+                    [ -z "$file" ] && continue
+                    ok=0
+                    for allowed in $ALLOWED; do
+                      [ "$file" = "$allowed" ] && ok=1 && break
+                    done
+                    if [ "$ok" -eq 0 ]; then
+                      echo "::error::PR #${PR_NUM} (${APP}) touches ${file}, which is not a version path this job was given"
+                      blocked=1
+                    fi
+                  done <<< "$(gh pr diff "${PR_NUM}" --name-only)"
+                  if [ "$blocked" -ne 0 ]; then
+                    exit 1
+                  fi
+
+                  gh pr review "${PR_NUM}" --approve \
+                    --body "Auto-approved — post-publish sync for \`${APP}\` touched only its declared version paths."
+                  gh pr merge "${PR_NUM}" --squash --auto

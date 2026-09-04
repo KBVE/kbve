@@ -103,6 +103,24 @@ jobs:
             - name: Setup JavaScript
               uses: ./.github/actions/setup-js
 
+            - name: Setup moon
+              if: contains(matrix.needs, 'moon')
+              uses: ./.github/actions/setup-moon
+
+            # `release-tools:status` compares each version manifest against the
+            # newest tag naming that project, and counts the commits since it.
+            # The default shallow, tagless checkout makes every project look
+            # never-released.
+            - name: Fetch tags and history
+              if: contains(matrix.needs, 'tags')
+              run: |
+                  set -euo pipefail
+                  if [ "$(git rev-parse --is-shallow-repository)" = "true" ]; then
+                    git fetch --prune --unshallow --tags origin
+                  else
+                    git fetch --prune --tags origin
+                  fi
+
             - name: Setup Rust toolchain
               if: contains(matrix.needs, 'rust')
               run: |
@@ -222,10 +240,49 @@ jobs:
                   fi
                   echo "pr_number=${PR_NUM}" >> "$GITHUB_OUTPUT"
 
-            - name: Dispatch auto-merge
+            # ci-auto-merge-bot-prs.yml validated bot PRs against
+            # .github/ci-dispatch-manifest.json and both are gone, so the
+            # dispatch to it 422'd on every route and left the day's PRs open.
+            # A content route writes generated files under known prefixes and
+            # nothing else, which is the whole check — kept here rather than in
+            # a workflow this one has to reach across a dispatch to run.
+            - name: Approve and auto-merge
               if: steps.pr.outputs.pr_number != ''
-              uses: ./.github/actions/dispatch-auto-merge
-              with:
-                  pr_number: ${{ steps.pr.outputs.pr_number }}
-                  ref: dev
-                  github_token: ${{ github.token }}
+              env:
+                  GH_TOKEN: ${{ secrets.UNITY_PAT }}
+                  PR_NUM: ${{ steps.pr.outputs.pr_number }}
+                  ROUTE: ${{ matrix.route }}
+              run: |
+                  set -euo pipefail
+
+                  # Must stay in sync with what the routes write; a path a
+                  # route stages but this omits blocks the merge rather than
+                  # merging something unreviewed.
+                  ALLOWED='
+                  apps/kbve/astro-kbve/src/content/docs/
+                  apps/kbve/astro-kbve/public/data/nx/
+                  apps/kbve/astro-kbve/public/graphify/
+                  apps/kbve/astro-kbve/src/data/
+                  packages/data/codegen/generated/
+                  apps/rareicon/unity-rareicon/Assets/StreamingAssets/
+                  '
+
+                  blocked=0
+                  while read -r file; do
+                    [ -z "$file" ] && continue
+                    ok=0
+                    for prefix in $ALLOWED; do
+                      case "$file" in "$prefix"*) ok=1; break;; esac
+                    done
+                    if [ "$ok" -eq 0 ]; then
+                      echo "::error::PR #${PR_NUM} (${ROUTE}) touches ${file}, outside the content allowlist"
+                      blocked=1
+                    fi
+                  done <<< "$(gh pr diff "${PR_NUM}" --name-only)"
+                  if [ "$blocked" -ne 0 ]; then
+                    exit 1
+                  fi
+
+                  gh pr review "${PR_NUM}" --approve \
+                    --body "Auto-approved — content route \`${ROUTE}\` wrote only generated files."
+                  gh pr merge "${PR_NUM}" --squash --auto

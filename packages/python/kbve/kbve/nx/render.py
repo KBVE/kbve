@@ -20,6 +20,8 @@ from typing import TextIO
 from ..mdx.escape import escape_mdx
 from ..svg import DagEdge, DagNode, Slice, dag_svg, donut_svg
 from .graph import GraphData, top_hubs
+from .releases import STATE_LABEL as _RELEASE_STATE_LABEL
+from .releases import STATES as _RELEASE_STATES
 from .security import SEVERITY_ORDER
 
 # The diagram is prerendered to SVG here, so its cost to the browser is zero
@@ -1741,16 +1743,6 @@ def render_activity_mdx(payload: dict, timestamp: str) -> str:
 
 # ── Release Radar ────────────────────────────────────────────────────
 
-_RELEASE_STATUS_LABEL = {
-    "pending": "Pending",
-    "behind": "Behind",
-    "unpublished": "Unpublished",
-    "published": "Published",
-    "skipped": "Skipped",
-}
-_RELEASE_ECO_LABEL = {"crates": "Crates.io", "npm": "npm", "python": "PyPI"}
-
-
 def build_release_payload(agg: dict, timestamp: str) -> dict:
     return {"generated_at": timestamp, **agg}
 
@@ -1763,19 +1755,20 @@ def render_release_mdx(payload: dict, timestamp: str) -> str:
     from io import StringIO
 
     summary = payload["summary"]
-    ecosystems = payload["ecosystems"]
+    lanes = payload.get("lanes") or {}
     rows = payload["rows"]
     total = payload["total"]
-    pending = summary.get("pending", 0)
-    behind = summary.get("behind", 0)
+    waiting = payload.get("waiting", 0)
+    pending = summary.get("tag-pending", 0)
+    unreleased = summary.get("changes-unreleased", 0)
     out = StringIO()
 
     out.write(
         "---\n"
         "title: Release Radar\n"
         "description: |\n"
-        "    Daily auto-generated release drift (manifest vs registry) for"
-        " the KBVE monorepo.\n"
+        "    Daily auto-generated release status (version manifest vs git tag)"
+        " for the KBVE monorepo.\n"
         "template: splash\n"
         "tableOfContents: false\n"
         "editUrl: false\n"
@@ -1793,13 +1786,14 @@ def render_release_mdx(payload: dict, timestamp: str) -> str:
     )
 
     if total == 0:
-        lede = "No publishable packages tracked in the dispatch manifest."
-    elif pending > 0:
+        lede = "No releasable projects — nothing in the graph carries a release lane tag."
+    elif waiting > 0:
         lede = (
-            f"<strong>{pending}</strong> package{'s' if pending != 1 else ''} ahead of the registry — pending publish."
+            f"<strong>{waiting}</strong> project{'s' if waiting != 1 else ''} waiting on a release —"
+            f" {pending} ready to tag, {unreleased} needing a bump first."
         )
     else:
-        lede = f"<strong>{total}</strong> tracked package{'s' if total != 1 else ''} — all in sync with the registry."
+        lede = f"<strong>{total}</strong> releasable project{'s' if total != 1 else ''} — nothing waiting."
 
     out.write('<div class="release-report" data-dash-report>\n\n')
     _hero_open(
@@ -1807,65 +1801,66 @@ def render_release_mdx(payload: dict, timestamp: str) -> str:
         "Release radar",
         "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM12 6v6l4 2",
         "Release radar",
-        "manifest versus registry.",
+        "version manifest versus git tag.",
         lede,
         timestamp,
-        "#ecosystems",
-        "View drift",
-        [("Packages", "#packages"), ("Dashboard home", "/dashboard/")],
+        "#lanes",
+        "View lanes",
+        [("Projects", "#projects"), ("Dashboard home", "/dashboard/")],
     )
-    _stat_tile(out, "M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5", total, "Tracked")
-    _stat_tile(out, "M12 19V5M5 12l7-7 7 7", pending, "Pending")
-    _stat_tile(out, "M12 5v14M5 12l7 7 7-7", behind, "Behind")
+    _stat_tile(out, "M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5", total, "Releasable")
+    _stat_tile(out, "M12 19V5M5 12l7-7 7 7", pending, "Tag pending")
+    _stat_tile(out, "M12 8v4l3 3M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z", unreleased, "Changes unreleased")
     _stat_tile(
         out,
         "M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z",
-        summary.get("unpublished", 0),
-        "Unpublished",
+        summary.get("never-released", 0),
+        "Never released",
     )
-    _stat_tile(out, "M22 11.1V12a10 10 0 1 1-5.9-9.1M22 4 12 14.01l-3-3", summary.get("published", 0), "Published")
-    _hero_close(out, [("Ecosystems", "#ecosystems"), ("Packages", "#packages")])
+    _stat_tile(out, "M22 11.1V12a10 10 0 1 1-5.9-9.1M22 4 12 14.01l-3-3", summary.get("current", 0), "Current")
+    _hero_close(out, [("Lanes", "#lanes"), ("Projects", "#projects")])
 
-    out.write(
-        '<BentoShell id="ecosystems" eyebrow="Registries"'
-        ' heading="Ecosystem status">\n'
-        '\t<div class="bento-board bento-board--cols-3">\n'
-    )
-    for eco in ("crates", "npm", "python"):
-        e = ecosystems.get(eco, {"total": 0, "pending": 0})
-        _linkcard(
-            out,
-            "M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5",
-            _RELEASE_ECO_LABEL[eco],
-            f"{e['total']} tracked · {e['pending']} pending",
-            href="#packages",
-        )
-    out.write("\t</div>\n</BentoShell>\n\n")
+    out.write('<BentoShell id="lanes" eyebrow="Publish lanes" heading="Lane status">\n')
+    if lanes:
+        out.write('\t<div class="bento-board bento-board--cols-3">\n')
+        for lane, counts in lanes.items():
+            _linkcard(
+                out,
+                "M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5",
+                escape_mdx(lane),
+                f"{counts['total']} project(s) · {counts['waiting']} waiting",
+                href="#projects",
+            )
+        out.write("\t</div>\n")
+    else:
+        out.write("\n:::tip[Empty]\nNo lane-tagged projects.\n:::\n\n")
+    out.write("</BentoShell>\n\n")
 
-    out.write('<BentoProse id="packages" heading="Package status">\n\n')
-    dist = {_RELEASE_STATUS_LABEL[s]: summary.get(s, 0) for s in ("pending", "behind", "unpublished", "published")}
-    by_pkg_status = donut_svg(
-        "Packages by Status",
+    out.write('<BentoProse id="projects" heading="Project status">\n\n')
+    dist = {_RELEASE_STATE_LABEL[s]: summary.get(s, 0) for s in _RELEASE_STATES}
+    by_state = donut_svg(
+        "Projects by Release State",
         [Slice(label, val) for label, val in dist.items()],
     )
-    if by_pkg_status:
-        out.write(f'<div class="kbve-figure">{by_pkg_status}</div>\n\n')
+    if by_state:
+        out.write(f'<div class="kbve-figure">{by_state}</div>\n\n')
 
     if rows:
         out.write(
-            "| Ecosystem | Package | Local | Published | Status |\n"
-            "|-----------|---------|-------|-----------|--------|\n"
+            "| Project | Lanes | Manifest | Released | Commits since | State |\n"
+            "|---------|-------|----------|----------|---------------|-------|\n"
         )
         for r in rows:
-            pub = r.get("published") or "—"
+            since = r.get("commits_since")
             out.write(
-                f"| {_RELEASE_ECO_LABEL.get(r['ecosystem'], r['ecosystem'])} |"
-                f" {escape_mdx(r['name'])} | {r['local']} | {pub} |"
-                f" {_RELEASE_STATUS_LABEL.get(r['status'], r['status'])} |\n"
+                f"| {escape_mdx(r['project'])} | {escape_mdx(', '.join(r['lanes']))} |"
+                f" {r.get('manifest') or '—'} | {r.get('released') or '—'} |"
+                f" {since if since else '—'} |"
+                f" {_RELEASE_STATE_LABEL.get(r['state'], r['state'])} |\n"
             )
         out.write("\n")
     else:
-        out.write(":::tip[Empty]\nNo tracked packages.\n:::\n\n")
+        out.write(":::tip[Empty]\nNo releasable projects.\n:::\n\n")
     out.write("</BentoProse>\n\n")
 
     _about(out)

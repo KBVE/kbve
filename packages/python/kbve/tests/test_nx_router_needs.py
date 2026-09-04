@@ -27,7 +27,7 @@ def test_explicit_multiple_routes(capsys):
     by_route = {e["route"]: e["needs"] for e in matrix["include"]}
     assert by_route == {
         "security": "node,rust,python,token",
-        "graph": "node",
+        "graph": "moon",
     }
 
 
