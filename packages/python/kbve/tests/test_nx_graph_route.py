@@ -13,11 +13,11 @@ def _graph_fixture() -> dict:
         "graph": {
             "nodes": {
                 "web": {
-                    "type": "app",
+                    "type": "application",
                     "data": {"root": "apps/web"},
                 },
                 "ui": {
-                    "type": "lib",
+                    "type": "library",
                     "data": {"root": "libs/ui"},
                 },
             },
@@ -64,7 +64,7 @@ def test_graph_build_writes_mdx_and_copies_json(tmp_path):
 
     text = mdx.read_text()
     assert text.startswith("---\n")
-    assert "title: NX Dependency Graph" in text
+    assert "title: Dependency Graph" in text
     assert "web" in text
     assert "ui" in text
 

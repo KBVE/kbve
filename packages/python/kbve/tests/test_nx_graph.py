@@ -15,10 +15,10 @@ from kbve.nx.graph import (
 SAMPLE_GRAPH = {
     "graph": {
         "nodes": {
-            "app-web": {"type": "app", "data": {"root": "apps/web"}},
-            "lib-ui": {"type": "lib", "data": {"root": "packages/ui"}},
-            "lib-utils": {"type": "lib", "data": {"root": "packages/utils"}},
-            "app-web-e2e": {"type": "e2e", "data": {"root": "apps/web-e2e"}},
+            "app-web": {"type": "application", "data": {"root": "apps/web"}},
+            "lib-ui": {"type": "library", "data": {"root": "packages/ui"}},
+            "lib-utils": {"type": "library", "data": {"root": "packages/utils"}},
+            "app-web-e2e": {"type": "automation", "data": {"root": "apps/web-e2e"}},
         },
         "dependencies": {
             "app-web": [
@@ -60,9 +60,9 @@ def test_mermaid_id_all_special():
 def test_group_projects_by_type():
     nodes = SAMPLE_GRAPH["graph"]["nodes"]
     groups = group_projects_by_type(nodes)
-    assert set(groups.keys()) == {"app", "lib", "e2e"}
-    assert "app-web" in groups["app"]
-    assert len(groups["lib"]) == 2
+    assert set(groups.keys()) == {"application", "library", "automation"}
+    assert "app-web" in groups["application"]
+    assert len(groups["library"]) == 2
 
 
 def test_group_projects_by_type_empty():
@@ -166,7 +166,7 @@ def test_parse_graph_rows_missing_data_fields():
         "graph": {
             "nodes": {
                 "bare": {},
-                "no-root": {"type": "lib", "data": {}},
+                "no-root": {"type": "library", "data": {}},
             },
             "dependencies": {"bare": [], "no-root": []},
         }
@@ -177,7 +177,7 @@ def test_parse_graph_rows_missing_data_fields():
     assert bare.root == ""
 
     no_root = next(r for r in gd.rows if r.name == "no-root")
-    assert no_root.project_type == "lib"
+    assert no_root.project_type == "library"
     assert no_root.root == ""
 
 
@@ -207,7 +207,7 @@ def test_top_hubs_default_n():
 def test_top_hubs_zero_dependents():
     data = {
         "graph": {
-            "nodes": {"a": {"type": "app"}, "b": {"type": "app"}},
+            "nodes": {"a": {"type": "application"}, "b": {"type": "application"}},
             "dependencies": {"a": [], "b": []},
         }
     }

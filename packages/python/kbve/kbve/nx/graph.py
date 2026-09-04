@@ -1,7 +1,7 @@
-"""Nx project graph parsing and analysis.
+"""Project graph parsing and analysis.
 
-Parses Nx graph JSON into structured data for downstream rendering
-(MDX, JSON reports, API responses, etc.).
+Parses the workspace graph JSON into structured data for downstream rendering
+(MDX, JSON reports, API responses, etc.). A node's type is its moon layer.
 """
 
 from __future__ import annotations
@@ -15,7 +15,7 @@ from typing import Any
 
 @dataclass
 class ProjectRow:
-    """A single project extracted from the Nx graph."""
+    """A single project extracted from the project graph."""
 
     name: str
     project_type: str
@@ -26,7 +26,7 @@ class ProjectRow:
 
 @dataclass
 class GraphData:
-    """Parsed and analysed Nx project graph."""
+    """Parsed and analysed project graph."""
 
     nodes: dict[str, Any]
     deps: dict[str, list[dict[str, str]]]
@@ -42,7 +42,7 @@ def mermaid_id(name: str) -> str:
 
 
 def parse_graph(source: str | Path | dict) -> GraphData:
-    """Parse an Nx graph from a file path, JSON string, or dict.
+    """Parse a project graph from a file path, JSON string, or dict.
 
     Returns a fully analysed ``GraphData`` with rows, groupings, and edges
     ready for rendering.
@@ -75,7 +75,7 @@ def parse_graph(source: str | Path | dict) -> GraphData:
 def group_projects_by_type(
     nodes: dict[str, Any],
 ) -> dict[str, list[str]]:
-    """Group project names by their Nx project type."""
+    """Group project names by their layer."""
     by_type: dict[str, list[str]] = {}
     for name, node in sorted(nodes.items()):
         ptype = node.get("type", "unknown")
@@ -86,7 +86,7 @@ def group_projects_by_type(
 def collect_edges(
     deps: dict[str, list[dict[str, str]]],
 ) -> tuple[set[tuple[str, str]], dict[str, list[str]]]:
-    """Collect unique directed edges from Nx dependency data.
+    """Collect unique directed edges from dependency data.
 
     Returns ``(edge_set, edges_by_source)``.
     """

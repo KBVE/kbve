@@ -1,7 +1,7 @@
 ---
 title: Graph
 description: |
-    Unified, searchable graph of the KBVE monorepo — NX project dependencies,
+    Unified, searchable graph of the KBVE monorepo — moon project dependencies,
     the Graphify semantic code graph, and the docs site graph, cross-linked.
 template: splash
 tableOfContents: false
@@ -39,13 +39,13 @@ export const symbols = overview.meta.symbols;
 					The whole monorepo,
 					<span class="bento-title__accent">one living graph.</span>
 				</h1>
-				<p class="bento-lede">One graph fuses <strong>Graphify</strong> code analysis, <strong>NX</strong> dependency edges, and <strong>doc references</strong>. Scroll to drill from directories into files and symbols; click a node for its projects and docs.</p>
+				<p class="bento-lede">One graph fuses <strong>Graphify</strong> code analysis, <strong>moon</strong> dependency edges, and <strong>doc references</strong>. Scroll to drill from directories into files and symbols; click a node for its projects and docs.</p>
 				<div class="bento-cta">
 					<a class="bento-btn bento-btn--primary" href="#hub">
 						Open the graph
 						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
 					</a>
-					<a class="bento-btn bento-btn--ghost" href="/dashboard/graph/">NX graph</a>
+					<a class="bento-btn bento-btn--ghost" href="/dashboard/graph/">Project graph</a>
 					<a class="bento-btn bento-btn--ghost" href="/dashboard/graph-explorer/">Graphify</a>
 				</div>
 			</div>
@@ -82,13 +82,13 @@ export const symbols = overview.meta.symbols;
 
 		<nav class="bento-jump" aria-label="On this page">
 			<a class="bento-chip" href="#hub">Search</a>
-			<a class="bento-chip" href="/dashboard/graph/">NX</a>
+			<a class="bento-chip" href="/dashboard/graph/">Projects</a>
 			<a class="bento-chip" href="/dashboard/graph-explorer/">Graphify</a>
 		</nav>
 	</div>
 </section>
 
-<BentoShell id="hub" eyebrow="Unified · Graphify + NX + docs" heading="Explore the graph">
+<BentoShell id="hub" eyebrow="Unified · Graphify + moon + docs" heading="Explore the graph">
 	<AstroGraphExplorer />
 	<p class="graph-hub-fallback">
 		Prefer a searchable list? <a href="/graph/list/">Open the list view →</a>

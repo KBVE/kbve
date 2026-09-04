@@ -1,19 +1,24 @@
 /**
- * Fuses the three monorepo graph feeds — NX project dependencies, the Graphify
+ * Fuses the three monorepo graph feeds — moon project dependencies, the Graphify
  * semantic directory graph, and the Starlight docs site graph — into a single
  * project-centric index consumed by the `/graph/` hub.
  *
  * Pure and IO-free: the endpoint reads the raw sources (static JSON +
  * `buildSiteGraph(getCollection('docs'))`) and hands them here. The spine is
- * the filesystem path — an NX project's `root` joins to its containing Graphify
+ * the filesystem path — a moon project's `root` joins to its containing Graphify
  * directory bubble, and docs attach to projects by a best-effort name/slug
  * heuristic. Nodes present in only one feed survive as standalone searchable
  * entities so nothing is lost.
  */
 
-export type NxProjectType = 'app' | 'lib' | 'e2e';
+export type ProjectLayer =
+	| 'application'
+	| 'library'
+	| 'automation'
+	| 'tool'
+	| 'unknown';
 
-export interface NxGraphInput {
+export interface ProjectGraphInput {
 	graph: {
 		nodes: Record<
 			string,
@@ -36,7 +41,7 @@ export interface SiteGraphNodeInput {
 export type SiteGraphInput = Record<string, SiteGraphNodeInput>;
 
 export interface GraphSources {
-	nx?: NxGraphInput | null;
+	nx?: ProjectGraphInput | null;
 	graphify?: GraphifyOverviewInput | null;
 	site?: SiteGraphInput | null;
 }
@@ -53,7 +58,7 @@ export interface GraphEntity {
 	kind: EntityKind;
 	name: string;
 	root?: string;
-	type?: NxProjectType;
+	type?: ProjectLayer;
 	nx?: { deps: string[]; dependents: string[] };
 	graphify?: { dirId: string; label: string };
 	docs?: DocRef[];
@@ -73,8 +78,16 @@ export interface GraphIndex {
 	};
 }
 
-const normType = (t: string | undefined): NxProjectType | undefined =>
-	t === 'app' || t === 'lib' || t === 'e2e' ? t : undefined;
+const LAYERS: readonly ProjectLayer[] = [
+	'application',
+	'library',
+	'automation',
+	'tool',
+	'unknown',
+];
+
+const normType = (t: string | undefined): ProjectLayer | undefined =>
+	LAYERS.includes(t as ProjectLayer) ? (t as ProjectLayer) : undefined;
 
 const topTwo = (root: string): string => root.split('/').slice(0, 2).join('/');
 
