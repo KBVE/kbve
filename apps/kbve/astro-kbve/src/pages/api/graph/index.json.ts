@@ -8,7 +8,7 @@ import {
 import { osrsExtractor } from '../../../lib/sitegraph/osrs-extractor';
 import {
 	buildGraphIndex,
-	type NxGraphInput,
+	type ProjectGraphInput,
 	type GraphifyOverviewInput,
 	type SiteGraphInput,
 } from '../../../lib/graph/buildGraphIndex';
@@ -16,7 +16,7 @@ import nxGraph from '../../../../public/data/nx/nx-graph.json';
 import { loadGraphifyOverview } from '../../../lib/graph/graphifyOverview';
 
 /**
- * Unified graph index for the `/graph/` hub — fuses NX project dependencies,
+ * Unified graph index for the `/graph/` hub — fuses moon project dependencies,
  * the Graphify directory graph, and the docs site graph at build time. Static
  * output prerenders this to a file; each feed is optional and failures degrade
  * to an empty-but-valid index rather than a 500.
@@ -46,7 +46,7 @@ export const GET: APIRoute = async () => {
 	}
 
 	const index = buildGraphIndex({
-		nx: nxGraph as unknown as NxGraphInput,
+		nx: nxGraph as unknown as ProjectGraphInput,
 		graphify: loadGraphifyOverview() as unknown as GraphifyOverviewInput,
 		site,
 	});

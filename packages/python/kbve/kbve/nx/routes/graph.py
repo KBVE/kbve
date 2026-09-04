@@ -4,10 +4,10 @@ Acquires the project graph from moon, parses it via :func:`parse_graph`, and
 renders the Starlight MDX. The raw graph JSON is written to the Astro public
 data dir, where the ``/graph/`` hub and the home dashboard read it.
 
-The payload keeps the shape Nx produced -- ``{graph: {nodes, dependencies}}``
-with ``app``/``lib``/``e2e`` node types -- because the site, the MDX renderer
-and the published ``/data/nx/nx-graph.json`` URL all read it. Translating at
-acquisition keeps that contract while the graph underneath it changed.
+The envelope stays ``{graph: {nodes, dependencies}}`` because the site, the MDX
+renderer and the published ``/data/nx/nx-graph.json`` URL all read it. What a
+node *says* is moon's, though: the type is the project's layer, so a tool reads
+as a tool instead of being rounded to the nearest Nx project type.
 """
 
 from __future__ import annotations
@@ -35,14 +35,13 @@ def _warn(msg: str) -> None:
 
 
 def _node_type(project: dict) -> str:
-    """The node type the dashboard colours by.
+    """The node type the dashboard colours by — moon's layer, as declared.
 
-    ``e2e`` is its own category rather than a layer, so it is read off the id
-    the way the Nx tags used to say it.
+    The e2e suites this used to name by id suffix are ``layer: automation``,
+    and the tooling that had nowhere to go under Nx's app/lib/e2e is
+    ``layer: tool``, so the guessing this did is now just a field read.
     """
-    if project["id"].endswith("-e2e"):
-        return "e2e"
-    return "app" if project.get("layer") == "application" else "lib"
+    return project.get("layer") or "unknown"
 
 
 def _from_moon(payload: dict) -> dict:
@@ -57,7 +56,9 @@ def _from_moon(payload: dict) -> dict:
             "data": {
                 "root": project.get("source", ""),
                 "name": pid,
-                "projectType": project.get("layer", ""),
+                "layer": project.get("layer", ""),
+                "stack": project.get("stack", ""),
+                "language": project.get("language", ""),
                 "tags": project.get("config", {}).get("tags", []),
             },
         }

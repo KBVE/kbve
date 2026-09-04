@@ -6,11 +6,11 @@ const sources = (): GraphSources => ({
 		graph: {
 			nodes: {
 				'axum-kbve': {
-					type: 'app',
+					type: 'application',
 					data: { root: 'apps/kbve/axum-kbve' },
 				},
-				jedi: { type: 'lib', data: { root: 'packages/rust/jedi' } },
-				kbve: { type: 'lib', data: { root: 'packages/rust/kbve' } },
+				jedi: { type: 'library', data: { root: 'packages/rust/jedi' } },
+				kbve: { type: 'library', data: { root: 'packages/rust/kbve' } },
 			},
 			dependencies: {
 				'axum-kbve': [{ target: 'jedi' }, { target: 'kbve' }],
@@ -37,7 +37,7 @@ describe('buildGraphIndex', () => {
 		const idx = buildGraphIndex(sources());
 		const axum = idx.entities.find((e) => e.id === 'axum-kbve')!;
 		expect(axum.kind).toBe('project');
-		expect(axum.type).toBe('app');
+		expect(axum.type).toBe('application');
 		expect(axum.nx).toEqual({ deps: ['jedi', 'kbve'], dependents: [] });
 
 		const jedi = idx.entities.find((e) => e.id === 'jedi')!;

@@ -113,8 +113,8 @@ def _graph_fixture():
     return {
         "graph": {
             "nodes": {
-                "web": {"type": "app", "data": {"root": "apps/web"}},
-                "ui": {"type": "lib", "data": {"root": "libs/ui"}},
+                "web": {"type": "application", "data": {"root": "apps/web"}},
+                "ui": {"type": "library", "data": {"root": "libs/ui"}},
             },
             "dependencies": {
                 "web": [{"source": "web", "target": "ui", "type": "static"}],
@@ -127,7 +127,7 @@ def _graph_fixture():
 def test_graph_mdx_render():
     graph = parse_graph(_graph_fixture())
     mdx = render_graph_mdx(graph, TS)
-    assert mdx.startswith("---\ntitle: NX Dependency Graph\n")
+    assert mdx.startswith("---\ntitle: Dependency Graph\n")
     assert "web" in mdx and "ui" in mdx
     assert "```mermaid" not in mdx
     assert '<svg class="kbve-dag"' in mdx
@@ -135,11 +135,11 @@ def test_graph_mdx_render():
 
 
 def _big_graph(n=60):
-    nodes = {"core": {"type": "lib", "data": {"root": "libs/core"}}}
+    nodes = {"core": {"type": "library", "data": {"root": "libs/core"}}}
     deps = {"core": []}
     for i in range(n):
         name = f"lib{i}"
-        nodes[name] = {"type": "lib", "data": {"root": f"libs/{name}"}}
+        nodes[name] = {"type": "library", "data": {"root": f"libs/{name}"}}
         deps[name] = [{"source": name, "target": "core", "type": "static"}]
     return {"graph": {"nodes": nodes, "dependencies": deps}}
 
@@ -157,7 +157,7 @@ def test_graph_mdx_caps_large_diagram():
     start = mdx.index('<svg class="kbve-dag"')
     block = mdx[start : mdx.index("</svg>", start)]
     labels = set(re.findall(r"<title>([^<]+)</title>", block))
-    labels.discard("Nx project dependency graph")
+    labels.discard("Project dependency graph")
     assert 0 < len(labels) <= _MAX_DIAGRAM_NODES
     # nothing hidden — every project still appears in the full index table
     assert "lib59" in mdx
@@ -183,7 +183,7 @@ def test_graph_mdx_bento_structure():
     assert 'id="diagram"' in mdx
     assert 'id="project-index"' in mdx
     assert 'class="kbve-figure kbve-figure--wide"' in mdx
-    assert '<span class="bento-stat__label">Apps</span>' in mdx
+    assert '<span class="bento-stat__label">Applications</span>' in mdx
 
 
 # ── CLI entry points ────────────────────────────────────────────────
@@ -213,4 +213,4 @@ def test_graph_main_writes(tmp_path):
     out = tmp_path / "graph.mdx"
     rc = graph_main([str(graph), str(out), TS])
     assert rc == 0
-    assert "NX Dependency Graph" in out.read_text()
+    assert "Dependency Graph" in out.read_text()

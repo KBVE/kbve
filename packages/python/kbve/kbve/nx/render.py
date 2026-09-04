@@ -1,4 +1,4 @@
-"""Render parsed Nx security and graph data into Starlight MDX and JSON.
+"""Render parsed security and project-graph data into Starlight MDX and JSON.
 
 The parse layer (:mod:`kbve.nx.security`, :mod:`kbve.nx.graph`) produces
 plain data; these renderers turn that data into the exact MDX/JSON emitted
@@ -69,22 +69,33 @@ ECOSYSTEM_SVG = {
 
 ECOSYSTEM_ORDER = ["npm", "cargo", "python", "codeql", "dependabot"]
 
+# Keyed on moon's project layer, which is what a graph node now reports.
 TYPE_STYLES = {
-    "app": (":::app", "fill:#3b82f6,stroke:#1d4ed8,color:#fff"),
-    "lib": (":::lib", "fill:#10b981,stroke:#059669,color:#fff"),
-    "e2e": (":::e2e", "fill:#f59e0b,stroke:#d97706,color:#fff"),
+    "application": (":::application", "fill:#3b82f6,stroke:#1d4ed8,color:#fff"),
+    "library": (":::library", "fill:#10b981,stroke:#059669,color:#fff"),
+    "automation": (":::automation", "fill:#f59e0b,stroke:#d97706,color:#fff"),
+    "tool": (":::tool", "fill:#a855f7,stroke:#7e22ce,color:#fff"),
+    "unknown": (":::unknown", "fill:#64748b,stroke:#475569,color:#fff"),
 }
 
-TYPE_LABELS = {"app": "Apps", "lib": "Libs", "e2e": "E2E"}
+TYPE_LABELS = {
+    "application": "Applications",
+    "library": "Libraries",
+    "automation": "Automation",
+    "tool": "Tools",
+    "unknown": "Unclassified",
+}
 
 TYPE_SVG = {
-    "app": (
+    "application": (
         "M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18"
         " 2.18 0 0 0-2.91-.09zM12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1"
         " 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"
     ),
-    "lib": "M4 4h7v7H4zM13 13h7v7h-7zM13 4h7v7h-7zM4 13h7v7H4z",
-    "e2e": "M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4 12 14.01l-3-3",
+    "library": "M4 4h7v7H4zM13 13h7v7h-7zM13 4h7v7h-7zM4 13h7v7H4z",
+    "automation": "M22 11.08V12a10 10 0 1 1-5.93-9.14M22 4 12 14.01l-3-3",
+    "tool": ("M14.7 6.3a4 4 0 0 1-5.4 5.4L4 17v3h3l5.3-5.3a4 4 0 0 1 5.4-5.4l-2.5 2.5-1.5-1.5 2.5-2.5z"),
+    "unknown": "M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20zM9.5 9a2.5 2.5 0 1 1 3 2.4V14m0 3h.01",
     "deps": (
         "M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5"
         " 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"
@@ -403,7 +414,7 @@ def _write_dependabot_section(out: TextIO, eco: dict) -> None:
 
 
 def render_graph_mdx(graph: GraphData, timestamp: str) -> str:
-    """Render the Bento-native MDX Nx dependency-graph page."""
+    """Render the Bento-native MDX project dependency-graph page."""
     from io import StringIO
 
     nodes = graph.nodes
@@ -417,9 +428,9 @@ def render_graph_mdx(graph: GraphData, timestamp: str) -> str:
 
     out.write(
         "---\n"
-        "title: NX Dependency Graph\n"
+        "title: Dependency Graph\n"
         "description: |\n"
-        "    Daily auto-generated NX project dependency graph"
+        "    Daily auto-generated moon project dependency graph"
         " for the KBVE monorepo.\n"
         "template: splash\n"
         "tableOfContents: false\n"
@@ -447,7 +458,7 @@ def render_graph_mdx(graph: GraphData, timestamp: str) -> str:
 
     out.write(
         '<section class="bento-hero bento-section not-content"'
-        ' aria-label="NX dependency graph">\n'
+        ' aria-label="Project dependency graph">\n'
         '\t<div class="bento-hero__bg" aria-hidden="true"></div>\n'
         '\t<div class="bento-hero__frame bento-frame">\n'
         '\t\t<div class="bento-board bento-board--hero">\n'
@@ -485,9 +496,10 @@ def render_graph_mdx(graph: GraphData, timestamp: str) -> str:
         "\t\t\t</div>\n\n"
     )
 
-    _stat_tile(out, TYPE_SVG["app"], len(by_type.get("app", set())), "Apps")
-    _stat_tile(out, TYPE_SVG["lib"], len(by_type.get("lib", set())), "Libs")
-    _stat_tile(out, TYPE_SVG["e2e"], len(by_type.get("e2e", set())), "E2E")
+    _stat_tile(out, TYPE_SVG["application"], len(by_type.get("application", set())), "Applications")
+    _stat_tile(out, TYPE_SVG["library"], len(by_type.get("library", set())), "Libraries")
+    _stat_tile(out, TYPE_SVG["tool"], len(by_type.get("tool", set())), "Tools")
+    _stat_tile(out, TYPE_SVG["automation"], len(by_type.get("automation", set())), "Automation")
     _stat_tile(out, TYPE_SVG["deps"], len(seen_edges), "Dependencies")
 
     out.write(
@@ -532,7 +544,7 @@ def render_graph_mdx(graph: GraphData, timestamp: str) -> str:
     out.write("### Project distribution\n\n")
     distribution = donut_svg(
         "Projects by Type",
-        [Slice(ptype.capitalize() + "s", len(by_type[ptype])) for ptype in sorted(by_type)],
+        [Slice(TYPE_LABELS.get(ptype, ptype.capitalize()), len(by_type[ptype])) for ptype in sorted(by_type)],
     )
     if distribution:
         out.write(f'<div class="kbve-figure">{distribution}</div>\n\n')
@@ -581,7 +593,7 @@ def render_graph_mdx(graph: GraphData, timestamp: str) -> str:
     diagram = dag_svg(
         [DagNode(name, nodes[name].get("type", "unknown")) for name in sorted(diagram_nodes)],
         diagram_edges,
-        title="Nx project dependency graph",
+        title="Project dependency graph",
     )
 
     if diagram:
@@ -610,7 +622,7 @@ def render_graph_mdx(graph: GraphData, timestamp: str) -> str:
         type_projects = [n for n in sorted(by_type[ptype]) if deps.get(n)]
         if not type_projects:
             continue
-        out.write(f"#### {ptype.capitalize()} Projects\n\n")
+        out.write(f"#### {TYPE_LABELS.get(ptype, ptype.capitalize())}\n\n")
         for name in type_projects:
             dep_list = deps[name]
             out.write("<details>\n")
@@ -716,7 +728,7 @@ def render_report_mdx(data: dict, timestamp: str) -> str:
 
     out.write(
         '<section class="bento-hero bento-section not-content"'
-        ' aria-label="NX workspace report">\n'
+        ' aria-label="Workspace report">\n'
         '\t<div class="bento-hero__bg" aria-hidden="true"></div>\n'
         '\t<div class="bento-hero__frame bento-frame">\n'
         '\t\t<div class="bento-board bento-board--hero">\n'
@@ -821,18 +833,18 @@ KANBAN_COLUMNS = [
     "Done",
 ]
 
-# Pipeline node tones. `dag_svg` colours by node type, so the board's four
-# work states reuse the Nx project-type slots rather than inventing a palette.
+# Pipeline node tones. `dag_svg` colours by node type, so the board's work
+# states reuse the project-layer slots rather than inventing a palette.
 _KANBAN_TONE = {
-    "Theory": "lib",
-    "AI": "lib",
-    "Backlog": "lib",
-    "Todo": "app",
-    "Staging": "app",
-    "Review": "app",
-    "Error": "e2e",
-    "Support": "e2e",
-    "Done": "lib",
+    "Theory": "library",
+    "AI": "library",
+    "Backlog": "library",
+    "Todo": "application",
+    "Staging": "application",
+    "Review": "application",
+    "Error": "automation",
+    "Support": "automation",
+    "Done": "library",
 }
 
 _PLANNING_COLS = ("Theory", "AI", "Backlog")
@@ -1742,6 +1754,7 @@ def render_activity_mdx(payload: dict, timestamp: str) -> str:
 
 
 # ── Release Radar ────────────────────────────────────────────────────
+
 
 def build_release_payload(agg: dict, timestamp: str) -> dict:
     return {"generated_at": timestamp, **agg}
