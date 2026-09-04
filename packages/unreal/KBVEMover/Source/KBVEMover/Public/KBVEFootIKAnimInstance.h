@@ -103,6 +103,42 @@ struct FKBVEFootIKProxy : public FAnimInstanceProxy
 	FBoneReference RightLowerArm;
 	FBoneReference RightHand;
 
+	// The twist bones the skin between forearm and hand is weighted to.
+	//
+	// A limb can hold every joint angle a body allows and still pinch at the
+	// wrist if these lag behind the hand's roll, because the shear is in the
+	// skinning and not in the pose -- no joint measurement will ever show it.
+	// Measured: the grip solve adds 21 degrees of axial roll at the left wrist
+	// against nothing at the untouched right, and the clip keys every one of
+	// these bones flat, so the whole 21 lands across the span of skin between
+	// the last twist bone and the hand. That is the candy wrapper.
+	FBoneReference LeftForearmTwist;
+	FBoneReference LeftForearmTwist2;
+	FBoneReference RightForearmTwist;
+	FBoneReference RightForearmTwist2;
+
+	// Signed axial roll each hand gained over the clip, about its own forearm.
+	// Written by the solve, spent on the twist bones after the pose is back in
+	// local space.
+	mutable float LeftHandRollAdded = 0.0f;
+	mutable float RightHandRollAdded = 0.0f;
+
+	float WristTwistShare = 1.0f;
+	float MaxForearmTwistDegrees = 45.0f;
+
+	// Fit the weapon to the hands instead of the hands to the weapon.
+	//
+	// The rifle clips already pose a correct two-handed hold; what was wrong was
+	// never the hand but where the weapon sat relative to it. Solving the hand
+	// onto a misplaced weapon meant destroying that hold and then rebuilding it
+	// -- restore the wrist, clamp the bend, spread the twist, re-swing the palm,
+	// four corrections each repairing damage from the one before, and the wrist
+	// still read as wrenched. Aiming the weapon at the hand instead touches no
+	// hand bone at all, so the shear it was producing cannot arise.
+	bool bFitWeaponToHands = true;
+	mutable FTransform FittedWeaponRelativeToHand = FTransform::Identity;
+	mutable float WeaponFitDegrees = 0.0f;
+
 	FTransform WeaponRelativeToChest = FTransform::Identity;
 
 	// The weapon hangs off the trigger hand, so the solver has to find it the
@@ -142,6 +178,7 @@ struct FKBVEFootIKProxy : public FAnimInstanceProxy
 	// closes until it meets the fore-end. Nothing here is tuned to one weapon --
 	// the wrap falls out of the radius it is closing onto.
 	bool bGripContactSolve = false;
+	bool bGripSolveFingers = false;
 	float ForeEndHalfWidth = 0.0f;
 	float ForeEndHalfHeight = 0.0f;
 	float ForeEndCentreHeight = 0.0f;
@@ -151,6 +188,14 @@ struct FKBVEFootIKProxy : public FAnimInstanceProxy
 	float GripAlongMin = 0.0f;
 	float GripAlongMax = 0.0f;
 	float GripArmExtension = 0.0f;
+	float GripFingerLeanDegrees = 0.0f;
+	float MaxGripTwistDegrees = 0.0f;
+	mutable float GripTwistApplied = 0.0f;
+	mutable float GripTwistWanted = 0.0f;
+	float MaxWristRollDegrees = 0.0f;
+	float MaxWristBendDegrees = 0.0f;
+	mutable float GripRollApplied = 0.0f;
+	mutable float GripRollWanted = 0.0f;
 
 	// The authored finger pose, sampled once and kept. A pose is the same every
 	// frame, so reading it per frame would be a pose evaluation spent to learn
@@ -159,6 +204,11 @@ struct FKBVEFootIKProxy : public FAnimInstanceProxy
 	float SupportHandPoseTime = 0.0f;
 	float SupportHandPoseWeight = 0.0f;
 	TArray<FTransform> GripPoseLocals;
+
+	// The authored grip, one angle per finger joint, in LeftFingers order.
+	// Flattened from the weapon's asset so the solver never has to know that a
+	// grip is described per chain.
+	TArray<float> GripFingerAngles;
 	bool bGripPoseSampled = false;
 	float GripBoreAngleDegrees = 0.0f;
 	float FingertipLength = 0.0f;
@@ -454,7 +504,7 @@ public:
 	bool bSolveLeftHandToWeapon = true;
 
 	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
-	float LeftHandIKAlpha = 1.0f;
+	float LeftHandIKAlpha = 0.0f;
 
 	/**
 	 * Where the support wrist belongs, in the weapon's space.
@@ -555,7 +605,42 @@ public:
 	TObjectPtr<UKBVEWeaponGrip> WeaponGrip;
 
 	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
-	bool bGripContactSolve = false;
+	bool bGripContactSolve = true;
+
+	/**
+	 * Aim the weapon at the support hand rather than the hand at the weapon.
+	 *
+	 * The rifle clips pose a correct two-handed hold already. Solving the left
+	 * hand onto a weapon placed somewhere else destroys that hold and then
+	 * spends four passes rebuilding it, and still reads as a wrenched wrist.
+	 * Swinging the rifle about the trigger hand until its fore-end reaches the
+	 * support hand writes no hand bone at all, so there is nothing to wrench.
+	 *
+	 * The cost is that the weapon rides the animation rather than being steady
+	 * on its own: it is held by the hands, which is what holding is.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	bool bFitWeaponToHands = false;
+
+	/** Where the fit put the weapon, for the component to follow. Read-only. */
+	UPROPERTY(BlueprintReadOnly, Category = "KBVE|Animation|Weapon")
+	FTransform FittedWeaponRelativeToHand;
+
+	/**
+	 * Close the fingers onto the weapon when there is no authored pose.
+	 *
+	 * Off. The search does reach the wood, but it bends each finger up to eighty
+	 * degrees at every joint about a single axis, and a hand with four fingers
+	 * cranked to their limit is a claw -- which reads as a mangled, twisted hand
+	 * even when the wrist behind it is exactly where the animator put it.
+	 *
+	 * Leaving it off keeps the clip's own fingers, which were posed by hand and
+	 * look like a hand. They will not conform to this weapon's fore-end; that is
+	 * what the authored pose is for, and a slightly wrong hand shape reads far
+	 * better than a right one no hand could make.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	bool bGripSolveFingers = false;
 
 	/**
 	 * The section a support hand actually closes on, in the weapon's own space.
@@ -653,11 +738,101 @@ public:
 	float GripArmExtension = 0.0f;
 
 	/**
+	 * How the fingers cross the fore-end, degrees, where 90 is square across it.
+	 *
+	 * Ninety, which is square, because leaning them was measured and does not
+	 * do what it looks like it should: the twist the solve asks for is 43.8
+	 * degrees at square and rises to 50.2 by fifty, so leaning the fingers makes
+	 * the wrist worse rather than better. The twist comes from the palm being
+	 * turned to face the wood, not from where the fingers point. Left adjustable
+	 * because it changes how the hand reads even though it does not help here.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float GripFingerLeanDegrees = 90.0f;
+
+	/**
+	 * The most the solve may turn the wrist to lay the palm on the wood.
+	 *
+	 * Zero, which switches the palm turn off, and that is the measurement
+	 * rather than a preference: with it disabled the hand's roll about its own
+	 * forearm is 0.0 degrees at every grip angle, and with it enabled the roll
+	 * is 89 degrees and rises to 126. The arm solve contributes none of it. The
+	 * turn was the entire source of the wrenched wrist.
+	 *
+	 * What it bought was the palm facing the fore-end, which the finger contact
+	 * search needed. It is not worth a wrist no arm can make, and an authored
+	 * pose does not need it: the clip's own wrist is one an animator posed to
+	 * read as a hand holding a rifle, and moving that hand to the weapon does
+	 * not spoil it.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float MaxGripTwistDegrees = 0.0f;
+
+	/**
+	 * The most the hand may roll about its own forearm, degrees.
+	 *
+	 * Distinct from the twist cap above, and the one that matters to the eye. A
+	 * hand swung a long way still reads as a hand; a hand rolled about its own
+	 * forearm reads as broken well before thirty degrees, because that is the
+	 * axis a wrist has least of. The two are separated by a swing-twist
+	 * decomposition so the solve keeps the freedom it needs and loses only the
+	 * freedom it was abusing.
+	 *
+	 * Measured against the clip's own wrist rather than the weapon: an animator
+	 * already posed a hand that reads correctly, and the roll accumulates from
+	 * the arm solve as much as from the palm turn, since sending the hand under
+	 * the fore-end rotates the whole forearm to get it there.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float MaxWristRollDegrees = 18.0f;
+
+	/**
+	 * The most the wrist may bend between forearm and hand, degrees.
+	 *
+	 * The joint angle a viewer reads as a twisted hand, and the one number that
+	 * describes it: measured, the untouched right wrist sits near 29 degrees
+	 * through a run, while the solved left reaches 47. The clip's own wrist is
+	 * kept, which is right, but that wrist was posed against the clip's weapon
+	 * and worn at a position this weapon dictates it exceeds what a wrist does.
+	 * Folded back about the axis it is already bending on, so the hand keeps its
+	 * direction and loses only the excess.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float MaxWristBendDegrees = 30.0f;
+
+	/**
+	 * How much of the roll the solve adds at a wrist is passed down the forearm
+	 * twist bones, as a fraction.
+	 *
+	 * These bones exist for exactly this and the source clips key them flat, so
+	 * without it every degree of roll the grip needs is taken by the one span of
+	 * skin between the last twist bone and the hand -- the candy wrapper. Each
+	 * bone takes the share its own position along the forearm earns it, so the
+	 * roll builds up from the elbow instead of arriving all at once.
+	 *
+	 * One is anatomical, not a tuning value: it means the forearm carries the
+	 * roll the way a real one does. Zero restores the pinch.
+	 */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float WristTwistShare = 0.5f;
+
+	/** Most roll a forearm twist bone may take, degrees. Bounds an untrusted measure. */
+	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
+	float MaxForearmTwistDegrees = 45.0f;
+
+	/**
 	 * Where the support wrist sits around the bore, degrees.
 	 *
 	 * Measured as atan2(z, y) about the fore-end's own centre, so 0 is out to
-	 * the weapon's right, 90 is straight above and 270 straight below. 253 is
-	 * under and slightly out, which is where a hand supports a rifle.
+	 * the weapon's right, 90 is straight above and 270 straight below.
+	 *
+	 * 270 -- straight under the fore-end, where a support hand goes.
+	 *
+	 * This was 253, then 291, both picked by sweeping the angle against how far
+	 * the hand had to turn. That measure was the wrong one: it counted the whole
+	 * turn rather than the roll about the forearm, which is the part that reads
+	 * as a broken wrist. With the palm turn off the roll is zero at any angle,
+	 * so the angle is free to be the anatomically obvious one.
 	 *
 	 * Rolling this far broke the grip while the fingers were a constant, because
 	 * the roll carried the clip's finger pose round with it. It does not now:
@@ -666,7 +841,7 @@ public:
 	 * never going to preserve.
 	 */
 	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
-	float LeftGripBoreAngleDegrees = 253.0f;
+	float LeftGripBoreAngleDegrees = 270.0f;
 
 	/**
 	 * Length of the last phalanx past its own joint, cm.
