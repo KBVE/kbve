@@ -1,6 +1,6 @@
 """Starlight MDX and JSON renderers, one module per dashboard page.
 
-The parse layer (:mod:`kbve.nx.security`, :mod:`kbve.nx.graph`, …) produces
+The parse layer (:mod:`kbve.content.security`, :mod:`kbve.content.graph`, …) produces
 plain data; these renderers turn it into the exact MDX/JSON the
 ``ci-daily-content`` workflow commits.
 

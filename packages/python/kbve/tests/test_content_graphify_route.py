@@ -8,8 +8,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from kbve.nx.builder import BuildContext, repo_root_for
-from kbve.nx.router import get
+from kbve.content.builder import BuildContext, repo_root_for
+from kbve.content.router import get
 
 
 def _ctx(tmp_path, inputs):

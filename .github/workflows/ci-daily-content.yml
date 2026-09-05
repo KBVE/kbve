@@ -61,11 +61,11 @@ jobs:
                   SCHEDULE: ${{ github.event.schedule }}
               run: |
                   if [ -n "${{ github.event.inputs.route }}" ]; then
-                    uv run kbve-nx-router --route "${{ github.event.inputs.route }}" --json
+                    uv run kbve-content-router --route "${{ github.event.inputs.route }}" --json
                   elif [ "$SCHEDULE" = "0 2 * * 1" ]; then
-                    uv run kbve-nx-router --cadence weekly --json
+                    uv run kbve-content-router --cadence weekly --json
                   else
-                    uv run kbve-nx-router --cadence "${{ github.event.inputs.cadence || 'daily' }}" --json
+                    uv run kbve-content-router --cadence "${{ github.event.inputs.cadence || 'daily' }}" --json
                   fi
 
     builder:
@@ -177,10 +177,10 @@ jobs:
                   UNITY_PAT: ${{ secrets.UNITY_PAT }}
               run: |
                   set -euo pipefail
-                  # kbve-nx-build prints the repo-relative path of everything the
+                  # kbve-content-build prints the repo-relative path of everything the
                   # route touched, one per line, and prints nothing when it
                   # skipped. The Create PR step stages exactly that list.
-                  uv run kbve-nx-build "${{ matrix.route }}" \
+                  uv run kbve-content-build "${{ matrix.route }}" \
                     --timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
                     --workdir "${RUNNER_TEMP}" \
                     --public-dir "$GITHUB_WORKSPACE/apps/kbve/astro-kbve/public/data/nx" \

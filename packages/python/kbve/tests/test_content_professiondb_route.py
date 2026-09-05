@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import pytest
 
-from kbve.nx.builder import BuildContext
-from kbve.nx.router import get, select
-from kbve.nx.routes import professiondb as mod
+from kbve.content.builder import BuildContext
+from kbve.content.router import get, select
+from kbve.content.routes import professiondb as mod
 
 
 def _ctx(tmp_path):

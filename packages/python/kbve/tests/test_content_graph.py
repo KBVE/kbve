@@ -1,9 +1,9 @@
-"""Tests for kbve.nx.graph module."""
+"""Tests for kbve.content.graph module."""
 
 import json
 from pathlib import Path
 
-from kbve.nx.graph import (
+from kbve.content.graph import (
     GraphData,
     collect_edges,
     group_projects_by_type,

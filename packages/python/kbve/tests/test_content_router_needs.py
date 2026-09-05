@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 
-from kbve.nx.cli import router_main
+from kbve.content.cli import router_main
 
 
 def _matrix(capsys, argv):

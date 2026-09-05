@@ -17,11 +17,11 @@ tasks:
             cache: false
 
     graph-to-mdx:
-        command: 'uv run fudster nx graph-to-mdx'
+        command: 'uv run fudster content graph-to-mdx'
         options:
             cache: false
 
     security-to-mdx:
-        command: 'uv run fudster nx security-to-mdx'
+        command: 'uv run fudster content security-to-mdx'
         options:
             cache: false

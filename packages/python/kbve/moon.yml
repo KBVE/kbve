@@ -22,11 +22,11 @@ tasks:
 
     # The daily-content router: decides which dashboard routes need rebuilding.
     router:
-        command: 'uv run kbve-nx-router --cadence daily --json'
+        command: 'uv run kbve-content-router --cadence daily --json'
         options:
             cache: false
 
     content-build:
-        command: 'uv run kbve-nx-build journal'
+        command: 'uv run kbve-content-build journal'
         options:
             cache: false

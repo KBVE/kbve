@@ -1,9 +1,9 @@
-"""Tests for kbve.nx.alerts and the kbve-nx-alerts CLI."""
+"""Tests for kbve.content.alerts and the kbve-content-alerts CLI."""
 
 import json
 
-from kbve.nx.alerts import ENDPOINTS, next_link, validate
-from kbve.nx.cli import alerts_main
+from kbve.content.alerts import ENDPOINTS, next_link, validate
+from kbve.content.cli import alerts_main
 
 
 # ── next_link ────────────────────────────────────────────────────────
@@ -57,7 +57,7 @@ def test_alerts_main_missing_token_writes_empty(tmp_path, monkeypatch):
 def test_alerts_main_success(tmp_path, monkeypatch):
     monkeypatch.setenv("GITHUB_TOKEN", "x")
     monkeypatch.setattr(
-        "kbve.nx.cli.fetch_all",
+        "kbve.content.cli.fetch_all",
         lambda *a, **k: [
             {"state": "open", "number": 1},
             {"state": "fixed", "number": 2},

@@ -4,8 +4,8 @@ from __future__ import annotations
 
 import json
 
-from kbve.nx.builder import BuildContext
-from kbve.nx.router import get
+from kbve.content.builder import BuildContext
+from kbve.content.router import get
 
 
 def _report_fixture() -> dict:
@@ -119,7 +119,7 @@ def test_report_build_coverage_none_when_empty(tmp_path):
 
 def test_toolchain_read_from_prototools(tmp_path):
     """The versions come from .prototools, not from this machine's PATH."""
-    from kbve.nx.routes.report import _acquire_toolchain
+    from kbve.content.routes.report import _acquire_toolchain
 
     (tmp_path / ".prototools").write_text('# a comment\nnode = "24.10.0"\nmoon = "2.5.3"\n\n[plugins]\n')
     entries = {e["name"]: e["version"] for e in _acquire_toolchain(tmp_path)}
