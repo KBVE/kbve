@@ -70,6 +70,7 @@ jobs:
         if: always()
         needs: [assign]
         permissions:
+            actions: read
             issues: write
         uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:

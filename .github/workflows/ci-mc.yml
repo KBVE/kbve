@@ -351,6 +351,7 @@ jobs:
         if: ${{ always() && (contains(needs.*.result, 'failure') || !contains(needs.*.result, 'cancelled')) && github.event_name != 'pull_request' }}
         needs: [plan, build, client-smoke, server-ping-smoke]
         permissions:
+            actions: read
             issues: write
             contents: read
         uses: ./.github/workflows/utils-ci-failure-tracker.yml

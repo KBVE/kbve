@@ -618,6 +618,7 @@ jobs:
         if: always()
         needs: [run_tests]
         permissions:
+            actions: read
             issues: write
         uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:
@@ -632,6 +633,7 @@ jobs:
         if: always()
         needs: [auto_merge]
         permissions:
+            actions: read
             issues: write
         uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:

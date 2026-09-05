@@ -342,6 +342,7 @@ jobs:
         if: always()
         needs: [dev_to_main_pr]
         permissions:
+            actions: read
             issues: write
         uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:
