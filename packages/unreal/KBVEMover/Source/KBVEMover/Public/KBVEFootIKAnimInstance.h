@@ -952,7 +952,26 @@ public:
 	 * pulls the fingertips toward the barrel: X and Z both push them further out.
 	 */
 	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
-	FVector FingerCurlAxis = FVector(0.0f, 1.0f, 0.0f);
+	/**
+	 * Which way a finger joint closes, in the joint's own space.
+	 *
+	 * Measured off Manny rather than assumed, because assuming it cost a
+	 * quarter turn on the whole hand. Its finger roots sit within half a
+	 * centimetre of each other -- the splay is entirely in their rotations --
+	 * so composing each chain to its tip is the only way to read the hand's
+	 * axes. Doing that: the tips fan out along local Z and all of them sit at
+	 * Y -3 with the roots at Y 0, so fingers close toward -Y and the axis that
+	 * closes them is -Z.
+	 *
+	 * Set to +Y it did not close them at all; it swung them sideways across the
+	 * palm, which stacked the four fingers in a vertical column hanging off the
+	 * fore-end instead of laying them along it. It also broke the derived wrist,
+	 * which finds the palm by closing a finger and watching where the tip goes:
+	 * turning about the wrong axis moves the tip the wrong way, so the palm came
+	 * out as -Z -- the spread direction -- and the hand was built a quarter turn
+	 * off the weapon.
+	 */
+	FVector FingerCurlAxis = FVector(0.0f, 0.0f, -1.0f);
 
 	/** Seconds to raise or lower the weapon hold. */
 	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")

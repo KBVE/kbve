@@ -69,4 +69,28 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "KBVE|Editor")
 	static bool DumpWeaponSlices(USkeletalMesh* Mesh, const FString& Path, float SlabWidth = 1.0f);
+
+	/**
+	 * Each named bone's rest offset from its parent, as text.
+	 *
+	 * The grip frame is built out of these -- which way the fingers point, which
+	 * way they spread -- and every time one of them has been assumed rather than
+	 * read, the hand has come out turned a quarter turn. Reading them costs one
+	 * line and settles it.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Editor")
+	static TArray<FString> DumpBoneRestOffsets(USkeletalMesh* Mesh, const TArray<FName>& Bones);
+
+	/**
+	 * Where each finger's tip sits in the hand's own space, at rest.
+	 *
+	 * Manny's finger roots are all in the same place -- under half a centimetre
+	 * apart -- so the hand's spread axis is not in their offsets at all, it is
+	 * in their rotations. Subtracting one root from another to get a spread
+	 * therefore measures nothing, and a grip frame built on it is a quarter turn
+	 * out. This composes each chain to its tip so the spread is a thing that can
+	 * be read rather than assumed.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Editor")
+	static TArray<FString> DumpFingerTips(USkeletalMesh* Mesh, FName HandBone);
 };

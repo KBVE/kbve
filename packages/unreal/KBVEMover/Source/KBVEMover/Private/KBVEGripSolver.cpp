@@ -120,13 +120,8 @@ bool FKBVEFootIKProxy::DeriveGripRotation(const FBoneContainer& Container, const
 	// walked to read the hand's own axes off the skeleton.
 	const FVector RestMiddle =
 		Container.GetRefPoseTransform(MiddleRoot.GetCompactPoseIndex(Container)).GetLocation();
-	const FVector RestIndex =
-		Container.GetRefPoseTransform(IndexRoot.GetCompactPoseIndex(Container)).GetLocation();
-	const FVector RestPinky =
-		Container.GetRefPoseTransform(PinkyRoot.GetCompactPoseIndex(Container)).GetLocation();
-
 	const FVector RestFinger = RestMiddle.GetSafeNormal();
-	if (RestFinger.IsNearlyZero() || (RestIndex - RestPinky).IsNearlyZero())
+	if (RestFinger.IsNearlyZero())
 	{
 		return false;
 	}
@@ -213,19 +208,19 @@ bool FKBVEFootIKProxy::DeriveGripRotation(const FBoneContainer& Container, const
 
 	// How deep the palm is, off the rig rather than out of a constant.
 	//
-	// Half the knuckle spread was standing in for this, and on Manny it came out
-	// under the floor it was being clamped to -- so the figure in every trace
-	// was the clamp, and every weapon sat about a centimetre inside the hand.
-	// The thumb is the depth the rig actually states: its root hangs off the
-	// palm side of the wrist, and how far it hangs is how thick the hand is
-	// there. The spread stays as a second opinion for a rig without a thumb.
+	// The thumb is the only depth the rig states: its root hangs off the palm
+	// side of the wrist, and how far it hangs is how thick the hand is there.
+	// Half the knuckle spread stood in for this once and was nonsense twice
+	// over -- it came out under the floor it was clamped to, so every trace
+	// printed the clamp, and it was measuring a spread that is not in the
+	// offsets at all. Manny's four finger roots are within half a centimetre of
+	// each other; the hand fans out by rotation, not by position.
 	const FBoneReference& ThumbRoot = LeftFingers[12];
 	const double ThumbDepth = ThumbRoot.IsValidToEvaluate()
 		? FMath::Abs(Container.GetRefPoseTransform(ThumbRoot.GetCompactPoseIndex(Container))
 			.GetLocation() | RestPalm)
 		: 0.0;
-	const float Thickness = static_cast<float>(FMath::Max3(ThumbDepth,
-		FMath::Abs(RestIndex.Y - RestPinky.Y) * 0.5, 1.5));
+	const float Thickness = static_cast<float>(FMath::Max(ThumbDepth, 1.5));
 
 	// The section's own radius in the direction the palm arrives from, so a
 	// deeper fore-end stands the hand further off without anybody restating it.
