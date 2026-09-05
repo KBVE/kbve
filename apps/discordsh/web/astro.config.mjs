@@ -5,7 +5,7 @@ import react from '@astrojs/react';
 
 export default defineConfig({
   site: 'https://discord.sh/',
-  outDir: '../../../dist/apps/astro-discordsh',
+  outDir: '../../../dist/apps/discordsh-web',
   integrations: [
     starlight({
       title: 'Discord.sh',

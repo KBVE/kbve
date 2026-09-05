@@ -1,4 +1,4 @@
-# axum-discordsh
+# discordsh-api
 
 Discord bot + HTTP server for the KBVE ecosystem. Combines a [poise](https://github.com/serenity-rs/poise)-based Discord bot with an [Axum](https://github.com/tokio-rs/axum) HTTP server serving Astro static assets.
 
@@ -132,10 +132,10 @@ All `/github` subcommands are gated by the permission check (`GITHUB_REQUIRED_PE
 
 ```bash
 # Local dev (guild-scoped commands for fast iteration)
-DISCORD_TOKEN=... GUILD_ID=... HTTP_PORT=4321 cargo run -p axum-discordsh
+DISCORD_TOKEN=... GUILD_ID=... HTTP_PORT=4321 cargo run -p discordsh-api
 
 # Run tests
-cargo test -p axum-discordsh --bin axum-discordsh
+cargo test -p discordsh-api --bin discordsh-api
 cargo test -p jedi --lib github
 ```
 
@@ -143,10 +143,10 @@ cargo test -p jedi --lib github
 
 The full e2e pipeline runs via `nx e2e discordsh`:
 
-1. **Unit tests** — `cargo test -p axum-discordsh`
-2. **Docker build** — `nx container axum-discordsh`
-3. **Docker e2e** — Playwright against the bare container (`nx e2e:docker discordsh-e2e`)
-4. **Mock e2e** — Playwright against the Mockoon mock stack (`nx e2e:mock discordsh-e2e`)
+1. **Unit tests** — `cargo test -p discordsh-api`
+2. **Docker build** — `nx container discordsh-api`
+3. **Docker e2e** — Playwright against the bare container (`nx e2e:docker discordsh-web-e2e`)
+4. **Mock e2e** — Playwright against the Mockoon mock stack (`nx e2e:mock discordsh-web-e2e`)
 
 ### E2E Environment Variables
 
@@ -163,10 +163,10 @@ The full e2e pipeline runs via `nx e2e discordsh`:
 moon run e2e discordsh
 
 # Individual steps
-cargo test -p axum-discordsh                    # unit tests
-moon run container axum-discordsh          # docker build
-moon run e2e:docker discordsh-e2e          # playwright vs container
-moon run e2e:mock discordsh-e2e            # playwright vs mockoon stack
+cargo test -p discordsh-api                    # unit tests
+moon run container discordsh-api          # docker build
+moon run e2e:docker discordsh-web-e2e          # playwright vs container
+moon run e2e:mock discordsh-web-e2e            # playwright vs mockoon stack
 
 # Mock stack only (without Nx)
 docker compose -f apps/discordsh/poc/docker-compose-poc-dev.yaml up

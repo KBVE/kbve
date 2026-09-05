@@ -1,5 +1,5 @@
 [package]
-name = "axum-discordsh"
+name = "discordsh-api"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.46"
 edition = "2024"

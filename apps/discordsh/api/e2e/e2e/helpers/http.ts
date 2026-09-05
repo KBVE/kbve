@@ -4,7 +4,7 @@ const AXUM_PORT = Number(process.env['AXUM_PORT'] ?? 4321);
 export const BASE_URL = `http://${AXUM_HOST}:${AXUM_PORT}`;
 
 /**
- * Poll until the axum-discordsh health server responds.
+ * Poll until the discordsh-api health server responds.
  */
 export async function waitForReady(timeoutMs = 30_000): Promise<void> {
 	const deadline = Date.now() + timeoutMs;
@@ -22,6 +22,6 @@ export async function waitForReady(timeoutMs = 30_000): Promise<void> {
 	}
 
 	throw new Error(
-		`axum-discordsh health server not ready at ${BASE_URL} after ${timeoutMs}ms`,
+		`discordsh-api health server not ready at ${BASE_URL} after ${timeoutMs}ms`,
 	);
 }

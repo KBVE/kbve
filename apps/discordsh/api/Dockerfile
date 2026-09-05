@@ -1,5 +1,5 @@
 # ============================================================================
-# axum-discordsh — Multi-stage Docker build
+# discordsh-api — Multi-stage Docker build
 #
 # Uses shared chisel base images:
 #   ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder  (Rust + Node + pnpm + cargo-chef)
@@ -30,14 +30,14 @@ COPY packages/npm/rn-astro/ packages/npm/rn-astro/
 # Copy generated schemas (content collections may import these)
 COPY packages/data/codegen/generated/ packages/data/codegen/generated/
 
-# Copy astro-discordsh source
+# Copy discordsh-web source
 COPY apps/discordsh/web/ apps/discordsh/web/
 
 # Build astro site
 WORKDIR /app/apps/discordsh/web
 # astro build handles sync internally — avoid separate sync which can
 # leave partial image cache entries that break the optimizer
-RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-discordsh-cache,sharing=locked \
+RUN --mount=type=cache,target=/tmp/astro-cache,id=discordsh-web-cache,sharing=locked \
     cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true && \
     UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build && \
     cp -a .astro/. /tmp/astro-cache/ 2>/dev/null || true
@@ -51,7 +51,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends gzip brotli && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=astro-builder /app/dist/apps/astro-discordsh /static
+COPY --from=astro-builder /app/dist/apps/discordsh-web /static
 
 WORKDIR /static
 RUN find . -type f \( \
@@ -110,7 +110,7 @@ COPY --from=planner /app/packages packages
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
-    cargo chef cook --release --recipe-path recipe.json -p axum-discordsh
+    cargo chef cook --release --recipe-path recipe.json -p discordsh-api
 
 # [STAGE E] - Foundation Layer (Compile kbve + jedi from real source)
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS foundation
@@ -167,15 +167,15 @@ COPY apps/discordsh/api apps/discordsh/api
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
-    cargo build --release -p axum-discordsh --features jemalloc && \
-    strip target/release/axum-discordsh
+    cargo build --release -p discordsh-api --features jemalloc && \
+    strip target/release/discordsh-api
 
 # ============================================================================
 # [STAGE Z] - Runtime Image (shared chisel base)
 # ============================================================================
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
 
-COPY --from=builder --chown=10001:10001 /app/target/release/axum-discordsh /app/axum-discordsh
+COPY --from=builder --chown=10001:10001 /app/target/release/discordsh-api /app/discordsh-api
 
 COPY --from=builder --chown=10001:10001 /app/apps/discordsh/api/templates/dist /app/templates/dist
 COPY --from=builder --chown=10001:10001 /app/apps/discordsh/api/templates/askama /app/templates/askama
@@ -186,10 +186,10 @@ COPY --chown=10001:10001 apps/discordsh/api/NotoSansSymbols-Regular.ttf /app/Not
 
 ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=4321
-ENV RUST_LOG=axum_discordsh=debug,tower_http=debug,kbve=debug
+ENV RUST_LOG=discordsh_api=debug,tower_http=debug,kbve=debug
 ENV FONT_PATH=/app/alagard.ttf
 ENV SYMBOL_FONT_PATH=/app/NotoSansSymbols-Regular.ttf
 
 EXPOSE 4321
 
-ENTRYPOINT ["/app/axum-discordsh"]
+ENTRYPOINT ["/app/discordsh-api"]

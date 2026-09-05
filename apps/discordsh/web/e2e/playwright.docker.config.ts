@@ -12,7 +12,7 @@ const cargoToml = readFileSync(
 );
 const version = cargoToml.match(/^version\s*=\s*"(.+)"/m)?.[1] ?? '0.1.0';
 
-const killPort = `docker rm -f discordsh-e2e-test 2>/dev/null; lsof -ti:${port} | xargs kill -9 2>/dev/null; sleep 1;`;
+const killPort = `docker rm -f discordsh-web-e2e-test 2>/dev/null; lsof -ti:${port} | xargs kill -9 2>/dev/null; sleep 1;`;
 
 export default defineConfig({
 	testDir: './e2e',
@@ -35,7 +35,7 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: `${killPort} docker run --rm --name discordsh-e2e-test -e HTTP_PORT=${port} -p ${port}:${port} kbve/discordsh:${version}`,
+		command: `${killPort} docker run --rm --name discordsh-web-e2e-test -e HTTP_PORT=${port} -p ${port}:${port} kbve/discordsh:${version}`,
 		url: `${baseURL}/health`,
 		reuseExistingServer: false,
 		timeout: 30_000,

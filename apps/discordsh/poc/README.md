@@ -113,7 +113,7 @@ steps:
     - name: Run E2E tests
       env:
           GITHUB_API_BASE_URL: http://localhost:4010
-      run: cargo test --package axum-discordsh -- --test-threads=1
+      run: cargo test --package discordsh-api -- --test-threads=1
 ```
 
 ## Related Issues
