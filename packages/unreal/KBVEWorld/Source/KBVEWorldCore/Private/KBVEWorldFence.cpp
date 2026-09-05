@@ -202,28 +202,95 @@ void FKBVEWorldFence::BuildRun(const FKBVEWorldFenceParams& Fence, const FKBVEWo
 
 	TArray<FKBVEWorldPart>& Parts = bWall ? Out.Stone : Out.Wood;
 
-	FVector PrevFoot = FVector::ZeroVector;
-	FVector PrevTangent = FVector::ZeroVector;
-	bool bHasPrev = false;
+	// Every station, stood on the ground, before anything is built from them.
+	// The line the rails ride is eased across the whole run, so a station cannot
+	// know its own height until its neighbours have been sampled too.
+	struct FStation
+	{
+		FVector Foot = FVector::ZeroVector;
+		FVector Tangent = FVector::ZeroVector;
+		float LineZ = 0.0f;
+		bool bDropped = false;
+	};
+
+	TArray<FStation> Stations;
+	Stations.SetNum(Bays + 1);
+
+	float LastKeptZ = 0.0f;
+	bool bHaveKept = false;
 
 	for (int32 I = 0; I <= Bays; ++I)
 	{
-		FVector Foot;
-		FVector Tangent;
-		StationAt(Run.Begin + Step * I, Foot, Tangent);
+		FStation& S = Stations[I];
+		StationAt(Run.Begin + Step * I, S.Foot, S.Tangent);
 
 		// A run gives up where the ground does. A fence marching straight up a
 		// bank reads as a texture laid on the hill rather than as something
 		// built, and the rails across a step that steep leave a wedge of daylight
 		// no kickboard closes.
-		if (bHasPrev && FMath::Abs(Foot.Z - PrevFoot.Z) > Fence.MaxSlope * Step)
+		if (bHaveKept && FMath::Abs(S.Foot.Z - LastKeptZ) > Fence.MaxSlope * Step)
+		{
+			S.bDropped = true;
+			bHaveKept = false;
+			continue;
+		}
+
+		S.LineZ = S.Foot.Z;
+		LastKeptZ = S.Foot.Z;
+		bHaveKept = true;
+	}
+
+	// Eased with its ends pinned, and never across a break: the two sides of a
+	// gap are separate runs of fence and averaging one into the other drags a
+	// stretch of posts toward ground they do not stand on.
+	for (int32 Pass = 0; Pass < Fence.ProfileSmoothPasses; ++Pass)
+	{
+		TArray<float> Eased;
+		Eased.SetNumUninitialized(Stations.Num());
+		for (int32 I = 0; I < Stations.Num(); ++I)
+		{
+			Eased[I] = Stations[I].LineZ;
+		}
+
+		for (int32 I = 1; I + 1 < Stations.Num(); ++I)
+		{
+			if (Stations[I].bDropped || Stations[I - 1].bDropped || Stations[I + 1].bDropped)
+			{
+				continue;
+			}
+			Eased[I] = (Stations[I - 1].LineZ + Stations[I].LineZ * 2.0f
+				+ Stations[I + 1].LineZ) * 0.25f;
+		}
+
+		for (int32 I = 0; I < Stations.Num(); ++I)
+		{
+			Stations[I].LineZ = Eased[I];
+		}
+	}
+
+	FVector PrevFoot = FVector::ZeroVector;
+	float PrevLineZ = 0.0f;
+	bool bHasPrev = false;
+
+	for (int32 I = 0; I <= Bays; ++I)
+	{
+		const FVector Foot = Stations[I].Foot;
+		const FVector Tangent = Stations[I].Tangent;
+		const float LineZ = Stations[I].LineZ;
+
+		if (Stations[I].bDropped)
 		{
 			bHasPrev = false;
 			continue;
 		}
 
+		// Yaw only. The tangent carries the road's own climb, and a post that
+		// inherits it leans by however steeply the road happens to be rising --
+		// which across a run reads as a fence that has been sheared rather than
+		// built. A post stands up whatever the ground under it is doing.
+		const FVector Level(Tangent.X, Tangent.Y, 0.0f);
 		const FVector Across(Tangent.Y, -Tangent.X, 0.0f);
-		const FQuat Facing = FRotationMatrix::MakeFromXY(Tangent, Across).ToQuat();
+		const FQuat Facing = FRotationMatrix::MakeFromXY(Level, Across).ToQuat();
 
 		if (bWall)
 		{
@@ -231,14 +298,18 @@ void FKBVEWorldFence::BuildRun(const FKBVEWorldFenceParams& Fence, const FKBVEWo
 			// them, so it is built from the gap and not from the station.
 			if (bHasPrev)
 			{
-				const FVector Mid = (Foot + PrevFoot) * 0.5f;
-				const float Span = FVector::Dist(Foot, PrevFoot);
+				const FVector A(PrevFoot.X, PrevFoot.Y,
+					PrevLineZ + Fence.WallHeight * 0.5f - Fence.PostEmbed);
+				const FVector B(Foot.X, Foot.Y,
+					LineZ + Fence.WallHeight * 0.5f - Fence.PostEmbed);
+				const FVector Dir = (B - A).GetSafeNormal();
 
 				FKBVEWorldPart& Course = Parts.AddDefaulted_GetRef();
-				Course.Centre = Mid + FVector(0.0f, 0.0f, Fence.WallHeight * 0.5f
-					- Fence.PostEmbed);
-				Course.Rotation = Facing;
-				Course.Size = FVector(Span, Fence.WallThickness,
+				Course.Centre = (A + B) * 0.5f;
+				Course.Rotation = Dir.IsNearlyZero()
+					? Facing
+					: FRotationMatrix::MakeFromXY(Dir, Across).ToQuat();
+				Course.Size = FVector(FVector::Dist(A, B), Fence.WallThickness,
 					Fence.WallHeight + Fence.PostEmbed);
 			}
 		}
@@ -251,23 +322,45 @@ void FKBVEWorldFence::BuildRun(const FKBVEWorldFenceParams& Fence, const FKBVEWo
 			const bool bEnd = !bHasPrev || I == Bays;
 			const float Width = Fence.PostWidth * (bEnd ? Fence.EndPostScale : 1.0f);
 
+			// Driven to the ground, topped off at the eased line. Standing it at
+			// a fixed height off the eased line instead would leave it hanging
+			// wherever the easing lifted the line clear of the terrain.
+			const float Top = LineZ + Fence.PostHeight;
+			const float Bottom = FMath::Min(Foot.Z, LineZ) - Fence.PostEmbed;
+
 			FKBVEWorldPart& Post = Parts.AddDefaulted_GetRef();
-			Post.Centre = Foot + FVector(0.0f, 0.0f,
-				Fence.PostHeight * 0.5f - Fence.PostEmbed * 0.5f);
+			Post.Centre = FVector(Foot.X, Foot.Y, (Top + Bottom) * 0.5f);
 			Post.Rotation = Facing;
-			Post.Size = FVector(Width, Width, Fence.PostHeight + Fence.PostEmbed);
+			Post.Size = FVector(Width, Width, Top - Bottom);
 
 			if (bHasPrev && Detail != EKBVEWorldFenceDetail::Posts)
 			{
-				const FVector Mid = (Foot + PrevFoot) * 0.5f;
-				const float Span = FVector::Dist(Foot, PrevFoot);
+				// Pitched along the two posts it actually joins, not along the
+				// road. The feet are sampled a fence's offset out to the side,
+				// where the ground climbs at its own rate -- so a rail carrying
+				// the road's pitch leaves one post above its top and the other
+				// below it, which is the daylight along the run.
+				auto Bridge = [&](float FromZ, float ToZ, float Thickness, float Depth)
+					-> FKBVEWorldPart&
+				{
+					const FVector A(PrevFoot.X, PrevFoot.Y, FromZ);
+					const FVector B(Foot.X, Foot.Y, ToZ);
+					const FVector Dir = (B - A).GetSafeNormal();
+
+					FKBVEWorldPart& Part = Parts.AddDefaulted_GetRef();
+					Part.Centre = (A + B) * 0.5f;
+					Part.Rotation = Dir.IsNearlyZero()
+						? Facing
+						: FRotationMatrix::MakeFromXY(Dir, Across).ToQuat();
+					Part.Size = FVector(FVector::Dist(A, B), Thickness, Depth);
+					return Part;
+				};
 
 				for (const float Height : { Fence.LowerRailHeight, Fence.UpperRailHeight })
 				{
-					FKBVEWorldPart& Rail = Parts.AddDefaulted_GetRef();
-					Rail.Centre = Mid + FVector(0.0f, 0.0f, Fence.PostHeight * Height);
-					Rail.Rotation = Facing;
-					Rail.Size = FVector(Span, Fence.RailThickness, Fence.RailDepth);
+					const float Rise = Fence.PostHeight * Height;
+					Bridge(PrevLineZ + Rise, LineZ + Rise, Fence.RailThickness,
+						Fence.RailDepth);
 				}
 
 				if (Detail == EKBVEWorldFenceDetail::Full)
@@ -277,27 +370,29 @@ void FKBVEWorldFence::BuildRun(const FKBVEWorldFenceParams& Fence, const FKBVEWo
 					// bridge a hollow and the run is lit from underneath.
 					if (Fence.KickboardHeight > 0.0f)
 					{
-						FKBVEWorldPart& Board = Parts.AddDefaulted_GetRef();
-						Board.Centre = Mid + FVector(0.0f, 0.0f,
-							Fence.KickboardHeight * 0.5f);
-						Board.Rotation = Facing;
-						Board.Size = FVector(Span, Fence.RailThickness,
-							Fence.KickboardHeight);
+						Bridge(PrevFoot.Z + Fence.KickboardHeight * 0.5f,
+							Foot.Z + Fence.KickboardHeight * 0.5f,
+							Fence.RailThickness, Fence.KickboardHeight);
 					}
 
 					if (Run.Style == EKBVEWorldFenceStyle::Picket)
 					{
 						const int32 Count = FMath::Max(
-							FMath::FloorToInt(Span / Fence.PicketSpacing), 1);
+							FMath::FloorToInt(FVector::Dist(Foot, PrevFoot)
+								/ Fence.PicketSpacing), 1);
 						for (int32 P = 1; P < Count; ++P)
 						{
 							const float T = static_cast<float>(P) / static_cast<float>(Count);
+							const FVector At = FMath::Lerp(PrevFoot, Foot, T);
+							const float Head = FMath::Lerp(PrevLineZ, LineZ, T)
+								+ Fence.PostHeight * 0.9f;
+							const float Toe = FMath::Min(At.Z, Head) - Fence.PostEmbed * 0.25f;
+
 							FKBVEWorldPart& Picket = Parts.AddDefaulted_GetRef();
-							Picket.Centre = FMath::Lerp(PrevFoot, Foot, T)
-								+ FVector(0.0f, 0.0f, Fence.PostHeight * 0.45f);
+							Picket.Centre = FVector(At.X, At.Y, (Head + Toe) * 0.5f);
 							Picket.Rotation = Facing;
 							Picket.Size = FVector(Fence.PicketWidth, Fence.RailThickness,
-								Fence.PostHeight * 0.9f);
+								Head - Toe);
 						}
 					}
 				}
@@ -305,7 +400,7 @@ void FKBVEWorldFence::BuildRun(const FKBVEWorldFenceParams& Fence, const FKBVEWo
 		}
 
 		PrevFoot = Foot;
-		PrevTangent = Tangent;
+		PrevLineZ = LineZ;
 		bHasPrev = true;
 	}
 }

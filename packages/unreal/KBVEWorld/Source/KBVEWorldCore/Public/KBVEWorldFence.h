@@ -162,6 +162,20 @@ struct KBVEWORLDCORE_API FKBVEWorldFenceParams
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fence", meta = (ClampMin = "0.0"))
 	float MaxSlope = 0.55f;
+
+	/**
+	 * Passes of easing over the line the rails ride.
+	 *
+	 * A run whose every post sits exactly where the ground is reads as a chain of
+	 * chords with a kink at each post, because that is what it is. Easing the line
+	 * lets a run arch over a rise the way a built fence does, while the posts
+	 * still reach the ground under them -- the same filter, and the same pinned
+	 * ends, that the road's own profile is smoothed with.
+	 *
+	 * Zero puts every post back on the raw ground.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fence", meta = (ClampMin = "0"))
+	int32 ProfileSmoothPasses = 6;
 };
 
 /** The boxes one stretch of roadside fence is built from, split by material. */
