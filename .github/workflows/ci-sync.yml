@@ -228,6 +228,7 @@ jobs:
         if: always()
         needs: [sync_dev_with_main]
         permissions:
+            actions: read
             issues: write
         uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:
@@ -242,6 +243,7 @@ jobs:
         if: always()
         needs: [cleanup_orphaned_atomic_branches]
         permissions:
+            actions: read
             issues: write
         uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:

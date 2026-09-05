@@ -192,6 +192,7 @@ jobs:
         if: ${{ always() && (contains(needs.*.result, 'failure') || !contains(needs.*.result, 'cancelled')) }}
         needs: [resolve, flow]
         permissions:
+            actions: read
             issues: write
             contents: read
         uses: ./.github/workflows/utils-ci-failure-tracker.yml

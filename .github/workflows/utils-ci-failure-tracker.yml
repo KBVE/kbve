@@ -29,6 +29,14 @@ jobs:
         runs-on: ubuntu-latest
         timeout-minutes: 5
         permissions:
+            # The job logs endpoint is the only Actions API call here that is
+            # not anonymously readable on a public repository: the run's job
+            # list returns 200 without a token, the log blob returns 403. With
+            # issues:write alone every issue this workflow has ever opened said
+            # "Log blob unavailable" and carried no error at all, while the
+            # failed step name -- read from the job list -- came through fine,
+            # which is what made it look like a timing problem.
+            actions: read
             issues: write
 
         steps:
@@ -85,14 +93,21 @@ jobs:
 
                   # Try to get log snippet — the log blob lands asynchronously, so a fetch
                   # right after the job ends can return an Azure error document instead.
+                  # The error is kept rather than discarded: a 403 here means the caller
+                  # did not grant actions:read, which is silent and looks exactly like a
+                  # blob that never arrived.
                   RAW_LOG=""
                   LOG_SNIPPET="See [run logs](${{ inputs.run_url }}) for details."
                   if [ -n "$JOB_ID" ]; then
                     for attempt in 1 2 3; do
                       CANDIDATE=$(gh api "repos/${{ github.repository }}/actions/jobs/${JOB_ID}/logs" \
-                        2>/dev/null || echo "")
+                        2>/tmp/log_error.txt || echo "")
                       if [ -n "$CANDIDATE" ] && ! printf '%s' "$CANDIDATE" | head -c 512 | grep -qiE '<\?xml|<Error>|<Code>(BlobNotFound|AuthenticationFailed|ResourceNotFound)'; then
                         RAW_LOG="$CANDIDATE"
+                        break
+                      fi
+                      if grep -qiE 'HTTP 403|Resource not accessible' /tmp/log_error.txt 2>/dev/null; then
+                        echo "::warning::Cannot read job logs — the calling job needs actions:read."
                         break
                       fi
                       echo "Log blob not ready (attempt ${attempt}/3), retrying..."
@@ -101,7 +116,15 @@ jobs:
                     if [ -n "$RAW_LOG" ]; then
                       LOG_SNIPPET=$(echo "$RAW_LOG" | tail -50 | head -50)
                     else
-                      LOG_SNIPPET="Log blob unavailable when this issue was written. See [run logs](${{ inputs.run_url }})."
+                      # Annotations are a separate store and stay readable when the log
+                      # blob is not, so a `::error::` line still reaches the issue.
+                      ANNOTATIONS=$(gh api "repos/${{ github.repository }}/check-runs/${JOB_ID}/annotations" \
+                        --jq '.[] | select(.annotation_level == "failure") | .message' 2>/dev/null | head -20 || echo "")
+                      if [ -n "$ANNOTATIONS" ]; then
+                        LOG_SNIPPET="$ANNOTATIONS"
+                      else
+                        LOG_SNIPPET="Log blob unavailable when this issue was written. See [run logs](${{ inputs.run_url }})."
+                      fi
                     fi
                   fi
 
@@ -183,6 +206,28 @@ jobs:
                     --title "$TITLE" \
                     --label "bug,ci,6" \
                     --body-file /tmp/issue-body-clean.md
+
+                  # Search-then-create is not atomic. Two jobs failing within the same
+                  # few seconds both search, both find nothing, and both create -- #16768
+                  # and #16770 are the same title 40 seconds apart. Whoever creates last
+                  # reconciles: keep the lowest number, fold the rest into it. Every run
+                  # after this one then finds a single issue and comments on it.
+                  DUPES=$(gh issue list --repo "${{ github.repository }}" \
+                    --search "\"$TITLE\" in:title" \
+                    --state open --json number,title \
+                    --jq "[.[] | select(.title == \"$TITLE\") | .number] | sort | .[1:] | .[]")
+
+                  KEEP=$(gh issue list --repo "${{ github.repository }}" \
+                    --search "\"$TITLE\" in:title" \
+                    --state open --json number,title \
+                    --jq "[.[] | select(.title == \"$TITLE\") | .number] | sort | .[0] // empty")
+
+                  for dupe in $DUPES; do
+                    echo "Closing duplicate #$dupe in favour of #$KEEP"
+                    gh issue comment "$dupe" --repo "${{ github.repository }}" \
+                      --body "Duplicate of #${KEEP} — two runs failed close enough together that both opened an issue for the same job. Tracking there."
+                    gh issue close "$dupe" --repo "${{ github.repository }}" --reason "not planned"
+                  done
 
             - name: Comment on existing failure issue
               if: inputs.status == 'failure' && steps.search.outputs.issue_number != ''
