@@ -15,12 +15,17 @@ import unreal
 
 LEVEL_PATH = "/Game/Map/L_RareIconWorld"
 
-# Only the bridges. The road surface is painted into the terrain and its
-# textures are sampled by the ground material, so there is no road material for
-# this actor to carry.
+# What stands off the ground: the crossings and the settlements. The road surface
+# is painted into the terrain and its textures are sampled by the ground
+# material, so there is no road material for this actor to carry.
+#
+# The brick is also the switch for the villages. Buildings are their own mesh
+# section rather than instances, so without a material to draw them with there is
+# nothing sensible to raise -- and a village in default grey is worse than none.
 MATERIALS = {
     "WoodMaterial": "/Game/Textures/World/M_RareIcon_BridgeWood",
     "StoneMaterial": "/Game/Textures/World/M_RareIcon_BridgeStone",
+    "BrickMaterial": "/Game/Textures/World/M_RareIcon_Brick",
 }
 
 WATER_MATERIAL = "/Game/Textures/World/M_RareIcon_Water"

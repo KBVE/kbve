@@ -107,4 +107,18 @@ struct KBVEWORLDCORE_API FKBVEWorldRibbon
 	/** Append an axis-aligned box, for piers and abutments. */
 	static void AppendBox(FKBVEWorldRibbonMesh& Out, const FVector& Min, const FVector& Max,
 		float UVScale);
+
+	/**
+	 * Append one quad carrying UVs the caller worked out.
+	 *
+	 * For surfaces built from several boxes that have to read as one thing. A box
+	 * that starts its own UVs at zero is fine for a pier, which nothing adjoins,
+	 * and wrong for the four panels around a window: each would restart the
+	 * pattern at its own corner and the coursing would break at every seam. Given
+	 * the UVs instead, a caller can parameterise the whole wall once and hand
+	 * each panel the stretch of it that belongs to it.
+	 */
+	static void AppendQuad(FKBVEWorldRibbonMesh& Out, const FVector& P0, const FVector& P1,
+		const FVector& P2, const FVector& P3, const FVector2D& UV0, const FVector2D& UV1,
+		const FVector2D& UV2, const FVector2D& UV3);
 };

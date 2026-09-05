@@ -22,6 +22,25 @@ from pathlib import Path
 
 SUFFIXES = ("D", "N", "RH")
 
+# What each map is looked for as, best precision first. PolyHaven is not
+# consistent about this between sets -- roughness ships as EXR for some packs
+# and as JPG for others -- and a hard-coded extension turns that into a missing
+# file for one set and a working conversion for the next.
+CANDIDATES = {
+    "diff": ("jpg", "png", "exr"),
+    "nor_gl": ("exr", "png", "jpg"),
+    "rough": ("exr", "png", "jpg"),
+    "disp": ("png", "exr", "jpg"),
+}
+
+
+def source_map(src: Path, base: str, name: str) -> Path | None:
+    for extension in CANDIDATES[name]:
+        path = src / f"{base}_{name}_2k.{extension}"
+        if path.is_file():
+            return path
+    return None
+
 
 def converted(art: Path, entry: dict) -> list[Path]:
     return [art / entry["source"] / f"{entry['stem']}_{suffix}.png" for suffix in SUFFIXES]
@@ -43,20 +62,28 @@ def convert_set(art: Path, source_root: Path, entry: dict, resolution: int) -> b
         return False
 
     base = pack.rsplit("_", 1)[0]
+    maps = {name: source_map(src, base, name) for name in ("diff", "nor_gl", "rough")}
+    if entry.get("displacement"):
+        maps["disp"] = source_map(src, base, "disp")
+    missing = [name for name, path in maps.items() if path is None]
+    if missing:
+        print(f"error: {pack} has no {', '.join(missing)} map in any known format", file=sys.stderr)
+        return False
+
     out = art / entry["source"]
     out.mkdir(parents=True, exist_ok=True)
     size = f"{resolution}x{resolution}"
     stem = entry["stem"]
     print(f"  {stem} <- {pack}")
 
-    if not magick([str(src / f"{base}_diff_2k.jpg"), "-resize", size, "-depth", "8", str(out / f"{stem}_D.png")]):
+    if not magick([str(maps["diff"]), "-resize", size, "-depth", "8", str(out / f"{stem}_D.png")]):
         return False
 
     # -set, not -colorspace: the EXR values are already the encoding wanted, and
     # converting would gamma-shift a normal map into nonsense.
     if not magick(
         [
-            str(src / f"{base}_nor_gl_2k.exr"),
+            str(maps["nor_gl"]),
             "-set",
             "colorspace",
             "sRGB",
@@ -79,7 +106,7 @@ def convert_set(art: Path, source_root: Path, entry: dict, resolution: int) -> b
     if entry.get("displacement"):
         height = [
             "(",
-            str(src / f"{base}_disp_2k.png"),
+            str(maps["disp"]),
             "-set",
             "colorspace",
             "sRGB",
@@ -97,7 +124,7 @@ def convert_set(art: Path, source_root: Path, entry: dict, resolution: int) -> b
     return magick(
         [
             "(",
-            str(src / f"{base}_rough_2k.exr"),
+            str(maps["rough"]),
             "-set",
             "colorspace",
             "sRGB",
