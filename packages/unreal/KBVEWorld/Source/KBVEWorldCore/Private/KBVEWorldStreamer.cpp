@@ -3,6 +3,7 @@
 #include "KBVEWorldHeightfield.h"
 #include "KBVEWorldRoadField.h"
 
+#include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
