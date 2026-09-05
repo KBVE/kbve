@@ -1,6 +1,6 @@
-"""Tests for kbve.nx.security module."""
+"""Tests for kbve.content.security module."""
 
-from kbve.nx.security import (
+from kbve.content.security import (
     SEVERITY_ORDER,
     build_summary,
     normalize_severity,

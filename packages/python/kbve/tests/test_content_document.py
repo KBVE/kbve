@@ -1,4 +1,4 @@
-from kbve.nx.document import MdxDocument
+from kbve.content.document import MdxDocument
 
 SAMPLE = """---
 title: "July: 19"

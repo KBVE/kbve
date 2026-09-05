@@ -137,7 +137,7 @@ def test_list_modules():
     assert all(isinstance(m, ModuleInfo) for m in modules)
     names = [m.name for m in modules]
     assert "kbve.server" in names
-    assert "kbve.nx.graph" in names
+    assert "kbve.content.graph" in names
     assert "kbve.mdx" in names
     assert "kbve.utils" in names
 
@@ -149,9 +149,9 @@ def test_list_modules_availability():
 
 
 def test_get_module_info_known():
-    info = get_module_info("kbve.nx.graph")
+    info = get_module_info("kbve.content.graph")
     assert info is not None
-    assert info.name == "kbve.nx.graph"
+    assert info.name == "kbve.content.graph"
     assert info.available is True
     assert "graph" in info.description.lower()
 

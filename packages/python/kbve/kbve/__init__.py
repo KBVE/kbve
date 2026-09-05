@@ -1,7 +1,7 @@
-"""KBVE - Core library for async servers, Nx workspace tooling, and MDX rendering.
+"""KBVE - Core library for async servers, monorepo tooling, and MDX rendering.
 
 Top-level names are resolved lazily (PEP 562) so importing a leaf subpackage
-(e.g. ``kbve.nx``, ``kbve.mdx``) does not drag in the server stack
+(e.g. ``kbve.content``, ``kbve.mdx``) does not drag in the server stack
 (pydantic/fastapi/uvicorn/grpc). ``from kbve import AppServer`` still works —
 the backing module loads on first attribute access.
 """

@@ -1,8 +1,8 @@
 """Fetch GitHub security alerts (code-scanning or dependabot) for KBVE/kbve.
 
 The fetch/pagination/validation logic that feeds
-:func:`kbve.nx.security.parse_codeql` and
-:func:`kbve.nx.security.parse_dependabot`. Client-side pagination via the
+:func:`kbve.content.security.parse_codeql` and
+:func:`kbve.content.security.parse_dependabot`. Client-side pagination via the
 ``Link: rel="next"`` header stitches paged arrays into one JSON document
 (avoiding the ``gh api --paginate`` concatenated-payload quirk).
 """

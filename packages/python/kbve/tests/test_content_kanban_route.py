@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import json
 
-from kbve.nx.builder import BuildContext
-from kbve.nx.kanban_board import bucket
-from kbve.nx.router import get
+from kbve.content.builder import BuildContext
+from kbve.content.kanban_board import bucket
+from kbve.content.router import get
 
 
 def _ctx(tmp_path, inputs):

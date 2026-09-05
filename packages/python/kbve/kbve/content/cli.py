@@ -1,9 +1,9 @@
-"""Command-line entry points for Nx dashboard generation.
+"""Command-line entry points for daily content generation.
 
-``kbve-nx-security`` aggregates a raw multi-ecosystem audit payload into
-MDX and/or JSON. ``kbve-nx-graph`` renders the project graph into MDX.
-Both mirror the standalone ``scripts/nx-*-to-mdx.py`` interfaces so the
-``ci-dashboard`` workflow can migrate without arg changes.
+``kbve-content-security`` aggregates a raw multi-ecosystem audit payload into
+MDX and/or JSON. ``kbve-content-graph`` renders the project graph into MDX.
+``kbve-content-router`` plans a cadence and ``kbve-content-build`` runs one
+route, which is the pair ``ci-daily-content.yml`` drives.
 """
 
 from __future__ import annotations
@@ -26,7 +26,7 @@ from .security import parse_all_ecosystems
 
 def security_main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        prog="kbve-nx-security",
+        prog="kbve-content-security",
         description="Aggregate security audit data into MDX and JSON.",
     )
     parser.add_argument("--input", required=True, help="Path to aggregated raw security JSON")
@@ -64,10 +64,10 @@ def security_main(argv: list[str] | None = None) -> int:
 
 def graph_main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        prog="kbve-nx-graph",
-        description="Render an Nx project graph into Starlight MDX.",
+        prog="kbve-content-graph",
+        description="Render a monorepo project graph into Starlight MDX.",
     )
-    parser.add_argument("graph", help="Path to nx graph JSON")
+    parser.add_argument("graph", help="Path to the project graph JSON")
     parser.add_argument("output", help="Path to write MDX output")
     parser.add_argument("timestamp", help="ISO 8601 timestamp for the report")
     args = parser.parse_args(argv)
@@ -82,7 +82,7 @@ def graph_main(argv: list[str] | None = None) -> int:
 
 def alerts_main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        prog="kbve-nx-alerts",
+        prog="kbve-content-alerts",
         description="Fetch open GitHub security alerts for KBVE/kbve.",
     )
     parser.add_argument("--endpoint", required=True, choices=sorted(ENDPOINTS), help="Which security feed to fetch.")
@@ -126,7 +126,7 @@ def alerts_main(argv: list[str] | None = None) -> int:
 
 def router_main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        prog="kbve-nx-router",
+        prog="kbve-content-router",
         description="Emit the routes needing work as a GH Actions matrix.",
     )
     parser.add_argument("--cadence", default="daily", help="Route cadence to select (default: daily).")
@@ -170,7 +170,7 @@ def router_main(argv: list[str] | None = None) -> int:
 
 def build_main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
-        prog="kbve-nx-build",
+        prog="kbve-content-build",
         description="Run a single content route and report changed files.",
     )
     parser.add_argument("route", help="Route name to build.")

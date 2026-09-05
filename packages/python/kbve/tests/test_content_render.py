@@ -1,15 +1,15 @@
-"""Tests for kbve.nx.render and kbve.nx.cli."""
+"""Tests for kbve.content.render and kbve.content.cli."""
 
 import json
 
-from kbve.nx.cli import graph_main, security_main
-from kbve.nx.graph import parse_graph
-from kbve.nx.render import (
+from kbve.content.cli import graph_main, security_main
+from kbve.content.graph import parse_graph
+from kbve.content.render import (
     render_graph_mdx,
     render_security_json,
     render_security_mdx,
 )
-from kbve.nx.security import parse_all_ecosystems
+from kbve.content.security import parse_all_ecosystems
 
 TS = "2026-07-14T10:00:00Z"
 
@@ -147,7 +147,7 @@ def _big_graph(n=60):
 def test_graph_mdx_caps_large_diagram():
     import re
 
-    from kbve.nx.render import _MAX_DIAGRAM_NODES
+    from kbve.content.render import _MAX_DIAGRAM_NODES
 
     graph = parse_graph(_big_graph(60))
     mdx = render_graph_mdx(graph, TS)

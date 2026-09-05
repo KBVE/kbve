@@ -1,10 +1,10 @@
 import re
 from datetime import date
 
-import kbve.nx  # noqa: F401  ensure routes register
-from kbve.nx.builder import Builder, BuildContext
-from kbve.nx.router import get
-from kbve.nx.routes.journal import journal_root
+import kbve.content  # noqa: F401  ensure routes register
+from kbve.content.builder import Builder, BuildContext
+from kbve.content.router import get
+from kbve.content.routes.journal import journal_root
 from kbve.seo._pages import find_content_dir
 
 FIXTURE = journal_root(find_content_dir(None)) / "07-19.mdx"

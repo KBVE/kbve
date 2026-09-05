@@ -4,9 +4,9 @@ from __future__ import annotations
 
 import json
 
-from kbve.nx.builder import BuildContext
-from kbve.nx.releases import aggregate
-from kbve.nx.router import get
+from kbve.content.builder import BuildContext
+from kbve.content.releases import aggregate
+from kbve.content.router import get
 
 
 def _ctx(tmp_path, inputs):
@@ -80,7 +80,7 @@ def test_releases_build_writes(tmp_path):
 
 
 def test_releases_build_skips_when_status_fails(tmp_path, monkeypatch):
-    from kbve.nx import routes
+    from kbve.content import routes
 
     def boom(_root, timeout=0):
         raise routes.releases.StatusError("moon missing")
