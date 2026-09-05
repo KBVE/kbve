@@ -1,0 +1,175 @@
+# ══════════════════════════════════════════════════════════════════════════
+# Shared DinD DaemonSet for UE Linux builds (arc-runner-ue)
+#
+# STATUS: INERT. This file is intentionally NOT listed in
+#   apps/kube/github/runners/manifests/kustomization.yaml
+# so Argo (auto-sync + prune + selfHeal) will NOT deploy it on merge.
+# Activate ONLY via the plan
+#   (docs/superpowers/plans/2026-06-24-ue-ramdisk-shared-build.md)
+# AFTER the tmpfs ceiling is confirmed for the chosen maxRunners.
+#
+# WHAT THIS IS: one privileged dockerd per node (single node ⇒ one pod) whose
+# --data-root lives on a host tmpfs at /var/mnt/ramdisk/docker, so the ~40 GB
+# UE engine image is extracted once and shared by all Linux builders. The
+# init container also provisions the tmpfs (DaemonSet, not Talos
+# machine-config). The daemon is exposed ONLY via a host-local UNIX socket on
+# a hostPath — never TCP.
+#
+# UNVALIDATED: never run against this cluster. Confirm every value during the
+# plan's validation. The tmpfs ceiling is size=200G — a deliberate cap well
+# under the ~500 GB node RAM (holds the ~45 GB engine + ~7 GB mirror + 3
+# concurrent build scratches for the maxRunners:3 target, with room to spare).
+# Raise it together with maxRunners (headroom to ~250 GB on this node); see
+# the plan's "Reference: RAM sizing".
+# ══════════════════════════════════════════════════════════════════════════
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+    name: ue-shared-dind
+    namespace: arc-runners
+    labels:
+        app: ue-shared-dind
+        kbve.com/category: ci-cd
+    annotations:
+        kbve.com/status: inert-pending-cutover
+        kbve.com/runbook: docs/superpowers/plans/2026-06-24-ue-ramdisk-shared-build.md
+spec:
+    selector:
+        matchLabels:
+            app: ue-shared-dind
+    template:
+        metadata:
+            labels:
+                app: ue-shared-dind
+        spec:
+            # Single-node cluster ⇒ exactly one pod. No nodeSelector needed
+            # (design §Platform facts: co-location is automatic).
+            hostPID: true
+            # initContainer provisions the tmpfs in the host mount namespace.
+            initContainers:
+                - name: provision-tmpfs
+                  image: alpine:3.20
+                  securityContext:
+                      privileged: true
+                  command:
+                      - nsenter
+                      - '--mount=/proc/1/ns/mnt'
+                      - '--'
+                      - sh
+                      - -c
+                      # Idempotent: mount only if not already a mountpoint.
+                      # size=200G is the hard RAM ceiling (cap, not reservation;
+                      # well under the ~500 GB node). mode=1777 so the non-root
+                      # runner (uid 1000) can create its own per-run scratch
+                      # subdirs.
+                      - |
+                          set -eu
+                          mkdir -p /var/mnt/ramdisk
+                          if ! mountpoint -q /var/mnt/ramdisk; then
+                            mount -t tmpfs -o size=200G,mode=1777 tmpfs /var/mnt/ramdisk
+                          fi
+                          # Assert it is REALLY tmpfs. hostPath type is
+                          # DirectoryOrCreate, so a failed/absent mount silently
+                          # leaves data-root on the node OS disk (etcd's disk) →
+                          # the original ENOSPC relocated onto the control plane.
+                          # Refuse to proceed unless the data-root lives on tmpfs.
+                          fstype=$(stat -f -c %T /var/mnt/ramdisk)
+                          if [ "$fstype" != "tmpfs" ] && [ "$fstype" != "ramfs" ]; then
+                            echo "FATAL: /var/mnt/ramdisk is '$fstype', not tmpfs — refusing to put dockerd data-root on the node OS disk" >&2
+                            exit 1
+                          fi
+                          mkdir -p /var/mnt/ramdisk/docker
+            containers:
+                - name: dind
+                  image: docker:29.3.0-dind
+                  securityContext:
+                      privileged: true
+                  # Keep the dev baseline's fd limits + ghcr mirror. Bind the
+                  # daemon to a host-local UNIX socket on the shared hostPath —
+                  # NOT tcp://0.0.0.0:2376 (design §4: that would be an
+                  # unauthenticated privileged Docker API, trivial node-root
+                  # escape). A background watcher chgrps the socket to gid 1000
+                  # so the non-root runner (runAsUser/Group 1000) can reach it
+                  # (default socket is root:root 0660 → permission denied).
+                  command: ['sh', '-c']
+                  args:
+                      - |
+                          ulimit -n 1048576
+                          # Defence-in-depth: the init container already asserts
+                          # tmpfs, but dockerd here mounts the hostPath via
+                          # HostToContainer propagation — re-verify the data-root
+                          # is RAM-backed inside THIS namespace before serving, so
+                          # a propagation gap can never silently land 40 GB of
+                          # image layers on the node OS disk.
+                          fstype=$(stat -f -c %T /var/mnt/ramdisk)
+                          if [ "$fstype" != "tmpfs" ] && [ "$fstype" != "ramfs" ]; then
+                            echo "FATAL: /var/mnt/ramdisk is '$fstype' inside dind, not tmpfs — refusing to start dockerd" >&2
+                            exit 1
+                          fi
+                          # Persistently keep the socket reachable by the non-root
+                          # runner (gid 1000). A one-shot fixup would not survive a
+                          # dockerd socket recreate → builds get permission denied
+                          # with no self-heal. Re-apply on every loss/recreate.
+                          (
+                            SOCK=/var/mnt/ramdisk/docker.sock
+                            while :; do
+                              if [ -S "$SOCK" ]; then
+                                cur=$(stat -c %g "$SOCK" 2>/dev/null || echo "")
+                                if [ "$cur" != "1000" ]; then
+                                  chgrp 1000 "$SOCK" && chmod 0660 "$SOCK"
+                                fi
+                              fi
+                              sleep 2
+                            done
+                          ) &
+                          exec dockerd \
+                            --host=unix:///var/mnt/ramdisk/docker.sock \
+                            --data-root=/var/mnt/ramdisk/docker \
+                            --default-ulimit=nofile=1048576:1048576 \
+                            --insecure-registry=registry-mirror-ghcr.arc-runners.svc.cluster.local:5000
+                  resources:
+                      # Sized for up to THREE concurrent UE cooks (maxRunners:3
+                      # target) served by ONE daemon (the per-pod sidecars were
+                      # 80Gi/4cpu EACH). Co-resident with etcd on the same cores
+                      # — CPU is the tighter term at 3 cooks; confirm headroom in
+                      # validation and raise the cpu limit if cooks contend.
+                      limits:
+                          cpu: '12'
+                          memory: 8Gi   # daemon RSS only; image+layers live on tmpfs, not here
+                      requests:
+                          cpu: '2'
+                          memory: 2Gi
+                  volumeMounts:
+                      - name: ramdisk
+                        mountPath: /var/mnt/ramdisk
+                        # Must match the runner pods' mount so `docker run -v`
+                        # bind sources resolve in the daemon (design §4).
+                        mountPropagation: HostToContainer
+            volumes:
+                - name: ramdisk
+                  hostPath:
+                      path: /var/mnt/ramdisk
+                      type: DirectoryOrCreate
+---
+# PodDisruptionBudget: this single daemon is now a SHARED SPOF — its loss
+# fails BOTH concurrent builds and wipes the tmpfs cache. Keep it from being
+# voluntarily evicted during node drains while builds run.
+#
+# OPERATIONAL TRAP: this is a single-pod workload on a single node, so
+# minAvailable:1 blocks ALL voluntary eviction permanently — not just during
+# builds. `kubectl drain` / any Talos maintenance using eviction WILL hang on
+# this PDB. Before node maintenance, delete this PDB first (the tmpfs is
+# volatile cache; `prepare` repopulates on the next run). See the runbook
+# "Incident quick-reference" / node-maintenance note.
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+    name: ue-shared-dind
+    namespace: arc-runners
+    annotations:
+        kbve.com/status: inert-pending-cutover
+spec:
+    minAvailable: 1
+    selector:
+        matchLabels:
+            app: ue-shared-dind
