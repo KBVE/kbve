@@ -1,11 +1,10 @@
 /**
- * Mock API E2E tests — validates that the discordsh bot works correctly
- * when its GitHub API calls are redirected to the Mockoon mock backend.
+ * Mock API E2E tests — validates that the discordsh service comes up and
+ * serves its pages with the GitHub API redirected to a Mockoon backend.
  *
  * These tests run against the full docker-compose stack:
  *   - mockoon-github   (port 4010)
- *   - mockoon-discord  (port 4011)
- *   - discordsh         (port 4321, GITHUB_API_BASE_URL → mockoon-github)
+ *   - discordsh        (port 4321, GITHUB_API_BASE_URL → mockoon-github)
  *
  * The tests verify stability of the integration path without requiring
  * any real credentials.
@@ -13,7 +12,6 @@
 import { test, expect } from '@playwright/test';
 
 const GITHUB_MOCK = 'http://localhost:4010';
-const DISCORD_MOCK = 'http://localhost:4011';
 
 // ── Bot health (confirms the full stack is up) ──────────────────────
 
@@ -112,67 +110,6 @@ test.describe('Mock Stack: GitHub Error Routes', () => {
 		expect(resp.status).toBe(404);
 		const body = await resp.json();
 		expect(body.message).toBe('Not Found');
-	});
-});
-
-// ── Mockoon Discord mock is live ────────────────────────────────────
-
-test.describe('Mock Stack: Discord Mock', () => {
-	test('bot user endpoint returns mock user', async () => {
-		const resp = await fetch(`${DISCORD_MOCK}/api/v10/users/@me`);
-		expect(resp.status).toBe(200);
-
-		const user = await resp.json();
-		expect(user.bot).toBe(true);
-		expect(user).toHaveProperty('id');
-		expect(user).toHaveProperty('username');
-	});
-
-	test('gateway endpoint returns mock gateway info', async () => {
-		const resp = await fetch(`${DISCORD_MOCK}/api/v10/gateway/bot`);
-		expect(resp.status).toBe(200);
-
-		const gw = await resp.json();
-		expect(gw).toHaveProperty('url');
-		expect(gw).toHaveProperty('shards');
-		expect(gw.session_start_limit).toHaveProperty('remaining');
-	});
-
-	test('message post endpoint accepts payloads', async () => {
-		const resp = await fetch(
-			`${DISCORD_MOCK}/api/v10/channels/123456/messages`,
-			{
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({
-					content: 'test message',
-					embeds: [
-						{
-							title: 'Test Embed',
-							description: 'Mock e2e test',
-						},
-					],
-				}),
-			},
-		);
-		expect(resp.status).toBe(200);
-
-		const msg = await resp.json();
-		expect(msg).toHaveProperty('id');
-		expect(msg).toHaveProperty('channel_id');
-		expect(msg.author.bot).toBe(true);
-	});
-
-	test('interaction callback returns 204', async () => {
-		const resp = await fetch(
-			`${DISCORD_MOCK}/api/v10/interactions/123/fake-token/callback`,
-			{
-				method: 'POST',
-				headers: { 'Content-Type': 'application/json' },
-				body: JSON.stringify({ type: 1 }),
-			},
-		);
-		expect(resp.status).toBe(204);
 	});
 });
 

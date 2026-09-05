@@ -6,9 +6,8 @@ const workspaceRoot = resolve(__dirname, '../../../..');
 const port = Number(process.env['E2E_PORT']) || 4321;
 const baseURL = `http://localhost:${port}`;
 
-// Mockoon ports — must match docker-compose-poc-dev.yaml
+// Mockoon port — must match mock/docker-compose.yaml
 const GITHUB_MOCK_PORT = 4010;
-const DISCORD_MOCK_PORT = 4011;
 
 const cargoToml = readFileSync(
 	resolve(workspaceRoot, 'apps/discordsh/api/Cargo.toml'),
@@ -16,7 +15,7 @@ const cargoToml = readFileSync(
 );
 const version = cargoToml.match(/^version\s*=\s*"(.+)"/m)?.[1] ?? '0.1.0';
 
-const composePath = 'apps/discordsh/poc/docker-compose-poc-dev.yaml';
+const composePath = 'apps/discordsh/web/e2e/mock/docker-compose.yaml';
 
 // Kill any leftover containers and ports from previous runs, then start
 // the full mock stack. The discordsh service in compose uses the
@@ -29,7 +28,6 @@ const cleanup = [
 	`docker compose -f ${composePath} down --remove-orphans 2>/dev/null || true`,
 	`lsof -ti:${port} | xargs kill -9 2>/dev/null || true`,
 	`lsof -ti:${GITHUB_MOCK_PORT} | xargs kill -9 2>/dev/null || true`,
-	`lsof -ti:${DISCORD_MOCK_PORT} | xargs kill -9 2>/dev/null || true`,
 ].join('; ');
 
 // Override the discordsh image tag via env so docker-compose uses the
