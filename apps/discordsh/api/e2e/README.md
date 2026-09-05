@@ -6,8 +6,8 @@ End-to-end smoke tests for the `axum-discordsh` HTTP server.
 
 - Health endpoints (`/health`, `/healthz`)
 - API server listing endpoints:
-  - `GET /api/servers/list` (pagination, sorting, category filter)
-  - `GET /api/servers/:server_id` (single server fetch)
+    - `GET /api/servers/list` (pagination, sorting, category filter)
+    - `GET /api/servers/:server_id` (single server fetch)
 - Security headers (CSP, X-Frame-Options, etc.)
 - Performance (response time < 1s)
 
@@ -18,7 +18,7 @@ End-to-end smoke tests for the `axum-discordsh` HTTP server.
 nx e2e axum-discordsh-e2e
 
 # Run locally (assumes axum-discordsh running on :4321)
-cd apps/discordsh/axum-discordsh-e2e
+cd apps/discordsh/api/e2e
 npx vitest run
 ```
 

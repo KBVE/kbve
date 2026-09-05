@@ -36,8 +36,7 @@ pub struct WmEmbed {
 
 impl WmEmbed {
     pub fn build(self) -> serenity::CreateEmbed {
-        let mut embed = serenity::CreateEmbed::new()
-            .color(self.color.unwrap_or(branding::GH_TASK));
+        let mut embed = serenity::CreateEmbed::new().color(self.color.unwrap_or(branding::GH_TASK));
 
         if let Some(title) = self.title {
             embed = embed.title(truncate(&title, TITLE_MAX));
@@ -49,9 +48,9 @@ impl WmEmbed {
             embed = embed.url(url);
         }
         if let Some(author) = self.author {
-            embed = embed.author(
-                serenity::CreateEmbedAuthor::new(truncate(&author, AUTHOR_MAX)),
-            );
+            embed = embed.author(serenity::CreateEmbedAuthor::new(truncate(
+                &author, AUTHOR_MAX,
+            )));
         }
         for field in self.fields.into_iter().take(FIELDS_MAX) {
             embed = embed.field(

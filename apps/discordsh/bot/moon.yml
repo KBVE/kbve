@@ -6,12 +6,12 @@ tags: ['rust', 'docker']
 
 tasks:
     containerx:
-        script: 'docker buildx build --load -f apps/discordsh/discordsh-bot/Dockerfile -t kbve/discordsh-bot:latest .'
+        script: 'docker buildx build --load -f apps/discordsh/bot/Dockerfile -t kbve/discordsh-bot:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false
     containerx-publish:
-        script: 'docker buildx build --push -f apps/discordsh/discordsh-bot/Dockerfile -t kbve/discordsh-bot:latest -t ghcr.io/kbve/discordsh-bot:latest .'
+        script: 'docker buildx build --push -f apps/discordsh/bot/Dockerfile -t kbve/discordsh-bot:latest -t ghcr.io/kbve/discordsh-bot:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false

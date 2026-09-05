@@ -234,7 +234,7 @@ tasks:
                 '/packages/data/codegen/generated/mapdb-data.binpb',
                 '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/mapdb.json',
                 '/apps/rareicon/unity-rareicon/Assets/StreamingAssets/mapdb.binpb',
-                '/apps/discordsh/discordsh-bot/data/mapdb.json',
+                '/apps/discordsh/bot/data/mapdb.json',
             ]
         options:
             runFromWorkspaceRoot: true
