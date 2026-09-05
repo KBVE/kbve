@@ -76,7 +76,7 @@ export function createStoreApi(opts: StoreApiOptions): StoreApi {
 		if (auth) {
 			const token = await getToken().catch(() => null);
 			if (!token) throw new StoreApiError('Not signed in', 401);
-			headers.Authorization = `Bearer ${token}`;
+			headers['Authorization'] = `Bearer ${token}`;
 		}
 		let res: Response;
 		try {

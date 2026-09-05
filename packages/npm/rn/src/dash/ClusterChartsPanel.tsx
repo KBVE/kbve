@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { StyleSheet, Pressable, View } from 'react-native';
+import type { DimensionValue } from 'react-native';
 import { Stack, Surface, Text, tokens } from './_ui';
 import { TrendChart } from './TrendChart';
 import type { ClusterHealth, NamespaceStat } from './clusterHealth';
@@ -89,7 +90,7 @@ function PodComposition({ h }: { h: ClusterHealth }) {
 	const failed = h.podsFailed ?? 0;
 	const total = running + pending + failed;
 	if (total === 0) return null;
-	const seg = (v: number) => `${(v / total) * 100}%`;
+	const seg = (v: number): DimensionValue => `${(v / total) * 100}%`;
 	return (
 		<Stack gap="xs">
 			<View style={styles.stack}>

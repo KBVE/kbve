@@ -17,7 +17,7 @@ export interface InventoryViewProps {
 }
 
 function displayName(item: InventoryItem): string {
-	const title = item.nbt?.title;
+	const title = item.nbt?.['title'];
 	return typeof title === 'string' && title.length > 0 ? title : item.ref;
 }
 
