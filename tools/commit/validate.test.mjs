@@ -41,6 +41,18 @@ test('unknown types and scopes are named', () => {
 	assert.ok(validate('feat(nope): x', VOCAB)[0].includes('unknown scope'));
 });
 
+test('a scope that is only miscased or mispunctuated is suggested back', () => {
+	// The list mixes conventions, so this is the likely slip -- and a pull
+	// request title is written in a browser where no hook runs, which makes a
+	// failed check the only place anyone learns the answer.
+	const cased = { types: ['feat'], scopes: ['KBVEWorld', 'axum-kbve'] };
+	assert.ok(validate('feat(kbveworld): x', cased)[0].includes('did you mean KBVEWorld?'));
+	assert.ok(validate('feat(axum_kbve): x', cased)[0].includes('did you mean axum-kbve?'));
+
+	// And nothing is invented when there is nothing close.
+	assert.ok(!validate('feat(nowhere): x', cased)[0].includes('did you mean'));
+});
+
 test('style is not enforced, because every style rule tried was wrong about the history', () => {
 	// 112 of 800 subjects end in a full stop; 61 of 3000 begin with a capital,
 	// mostly proper nouns; 25 are simply long. All three are house style.

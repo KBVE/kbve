@@ -132,22 +132,6 @@ bool FKBVEWorldSettlement::Site(const FKBVEWorldSettlementParams& Settlement,
 	TArray<float> Along;
 	MeasureAlong(Path, Along);
 
-	FVector Point;
-	FVector Tangent;
-	SampleAt(Path, Along, Plot.Along, Point, Tangent);
-
-	const FVector Across(Tangent.Y, -Tangent.X, 0.0f);
-
-	// Turned to face the road, which is what the front wall and its door mean.
-	// A building on the far side looks back across, so the two rows of a street
-	// face each other rather than both facing the same way down it.
-	const float Yaw = FMath::Atan2(-Across.Y * Plot.Side, -Across.X * Plot.Side);
-	OutPlan = FKBVEWorldBuilding::Plan(Settlement.Building, Plot.Seed, FVector::ZeroVector, Yaw);
-
-	const FVector Centre2D =
-		Point + Across * (Plot.Side * (Settlement.Setback + 0.5f * OutPlan.Depth));
-	OutPlan.Centre = FVector(Centre2D.X, Centre2D.Y, 0.0f);
-
 	// The same graded surface the road was levelled onto, so a house beside a
 	// cutting stands on the ground as it now is rather than as the noise left it.
 	auto GroundAt = [&](const FVector& P)
@@ -157,27 +141,86 @@ bool FKBVEWorldSettlement::Site(const FKBVEWorldSettlementParams& Settlement,
 		return Field ? Field->Level(Base, P.X, P.Y) : Base;
 	};
 
-	FVector Corners[4];
-	FKBVEWorldBuilding::Footprint(OutPlan, Corners);
+	// Dimensions first and once: a plot that changed shape as it looked for
+	// ground would be searching for somewhere a different building fits.
+	FKBVEWorldBuildingPlan Plan = FKBVEWorldBuilding::Plan(Settlement.Building, Plot.Seed,
+		FVector::ZeroVector, 0.0f);
 
-	float Highest = -BIG_NUMBER;
-	float Lowest = BIG_NUMBER;
-	for (const FVector& Corner : Corners)
+	auto Consider = [&](float Offset, FKBVEWorldBuildingPlan& Out, float& OutFall)
 	{
-		const float Z = GroundAt(Corner);
-		Highest = FMath::Max(Highest, Z);
-		Lowest = FMath::Min(Lowest, Z);
+		FVector Point;
+		FVector Tangent;
+		SampleAt(Path, Along, Plot.Along + Offset, Point, Tangent);
+
+		const FVector Across(Tangent.Y, -Tangent.X, 0.0f);
+
+		// Turned to face the road, which is what the front wall and its door mean.
+		// A building on the far side looks back across, so the two rows of a street
+		// face each other rather than both facing the same way down it.
+		Out = Plan;
+		Out.Yaw = FMath::Atan2(-Across.Y * Plot.Side, -Across.X * Plot.Side);
+
+		const FVector Centre =
+			Point + Across * (Plot.Side * (Settlement.Setback + 0.5f * Out.Depth));
+		Out.Centre = FVector(Centre.X, Centre.Y, 0.0f);
+
+		FVector Corners[4];
+		FKBVEWorldBuilding::Footprint(Out, Corners);
+
+		float Highest = -BIG_NUMBER;
+		float Lowest = BIG_NUMBER;
+		for (const FVector& Corner : Corners)
+		{
+			const float Z = GroundAt(Corner);
+			Highest = FMath::Max(Highest, Z);
+			Lowest = FMath::Min(Lowest, Z);
+		}
+
+		// Levelled to the highest corner and sunk to the lowest. Either alone is a
+		// visible failure: the floor at the mean leaves one corner of the building
+		// in the air, and a plinth cut to the mean leaves daylight under the other.
+		Out.Centre.Z = Highest;
+		OutFall = Highest - Lowest;
+		Out.Embed = OutFall + Settlement.Building.Wall.PlinthHeight;
+	};
+
+	// Look up and down the road a little for flatter ground before giving up.
+	//
+	// Without this a plot takes whatever the walk happened to land on, and on
+	// anything but a plain most of them land on a slope and are refused -- which
+	// is a village of gaps rather than a village. The window is kept under the
+	// spacing so two neighbours searching towards each other still cannot meet.
+	const float Span = 0.35f * FMath::Max(Settlement.MinGap, 0.0f);
+	const float Offsets[5] = { 0.0f, 0.5f * Span, -0.5f * Span, Span, -Span };
+
+	FKBVEWorldBuildingPlan Best;
+	float BestFall = BIG_NUMBER;
+
+	for (const float Offset : Offsets)
+	{
+		FKBVEWorldBuildingPlan Candidate;
+		float Fall = BIG_NUMBER;
+		Consider(Offset, Candidate, Fall);
+
+		if (Fall < BestFall)
+		{
+			BestFall = Fall;
+			Best = Candidate;
+		}
+
+		// The nominal spot wins outright when it is good enough, so a settlement
+		// on level ground keeps the spacing the walk gave it rather than drifting.
+		if (Fall <= Settlement.MaxFall && Offset == 0.0f)
+		{
+			break;
+		}
 	}
 
-	if (Highest - Lowest > Settlement.MaxFall)
+	if (BestFall > Settlement.MaxFall)
 	{
 		return false;
 	}
 
-	// Levelled to the highest corner and sunk to the lowest. Either alone is a
-	// visible failure: the floor at the mean leaves one corner of the building in
-	// the air, and a plinth cut to the mean leaves daylight under the other.
-	OutPlan.Centre.Z = Highest;
-	OutPlan.Embed = Highest - Lowest + Settlement.Building.Wall.PlinthHeight;
+	OutPlan = Best;
 	return true;
 }

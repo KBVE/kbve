@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "KBVEWorldRoof.h"
 #include "KBVEWorldWall.h"
 
 #include "KBVEWorldBuilding.generated.h"
@@ -21,6 +22,9 @@ struct KBVEWORLDCORE_API FKBVEWorldBuildingParams
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building")
 	FKBVEWorldWallParams Wall;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building")
+	FKBVEWorldRoofParams Roof;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building", meta = (ClampMin = "100.0"))
 	float MinWidth = 620.0f;
@@ -99,6 +103,27 @@ struct FKBVEWorldBuildingPlan
 	int32 Seed = 0;
 };
 
+/**
+ * One building's geometry, split by what it is made of.
+ *
+ * Two meshes because a roof is never masonry, and two materials is two sections
+ * -- so they are kept apart here rather than sorted out by whatever draws them.
+ * Both append, so a chunk's whole settlement is still one section per material.
+ */
+struct FKBVEWorldBuildingMesh
+{
+	FKBVEWorldRibbonMesh Masonry;
+	FKBVEWorldRibbonMesh Roof;
+
+	void Reset()
+	{
+		Masonry.Reset();
+		Roof.Reset();
+	}
+
+	bool IsEmpty() const { return Masonry.IsEmpty() && Roof.IsEmpty(); }
+};
+
 struct KBVEWORLDCORE_API FKBVEWorldBuilding
 {
 	/**
@@ -120,7 +145,7 @@ struct KBVEWORLDCORE_API FKBVEWorldBuilding
 	 * than restart at it.
 	 */
 	static void Build(const FKBVEWorldBuildingParams& Building, const FKBVEWorldBuildingPlan& Plan,
-		EKBVEWorldWallDetail Detail, FKBVEWorldRibbonMesh& Out);
+		EKBVEWorldWallDetail Detail, FKBVEWorldBuildingMesh& Out);
 
 	/**
 	 * The footprint's four corners, starting at the front right.

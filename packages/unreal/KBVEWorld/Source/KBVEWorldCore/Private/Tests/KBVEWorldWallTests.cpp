@@ -145,15 +145,24 @@ bool FKBVEWorldWallDetailTest::RunTest(const FString& Parameters)
 	const EKBVEWorldWallDetail Tiers[3] = { EKBVEWorldWallDetail::Full,
 		EKBVEWorldWallDetail::Plain, EKBVEWorldWallDetail::Solid };
 
+	int32 Roofs[3] = { 0, 0, 0 };
 	for (int32 I = 0; I < 3; ++I)
 	{
-		FKBVEWorldRibbonMesh Mesh;
+		FKBVEWorldBuildingMesh Mesh;
 		FKBVEWorldBuilding::Build(Building, Plan, Tiers[I], Mesh);
-		Counts[I] = Mesh.Triangles.Num() / 3;
+		Counts[I] = Mesh.Masonry.Triangles.Num() / 3;
+		Roofs[I] = Mesh.Roof.Triangles.Num() / 3;
 	}
 
-	AddInfo(FString::Printf(TEXT("%d storeys, %.0f x %.0f: %d tris full, %d plain, %d solid"),
-		Plan.Storeys, Plan.Width, Plan.Depth, Counts[0], Counts[1], Counts[2]));
+	AddInfo(FString::Printf(
+		TEXT("%d storeys, %.0f x %.0f: %d masonry tris full, %d plain, %d solid; %d roof"),
+		Plan.Storeys, Plan.Width, Plan.Depth, Counts[0], Counts[1], Counts[2], Roofs[0]));
+
+	// The roof is the same at every tier, which is the point of it: a building at
+	// range is mostly roof, and a village that dropped them would read as a field
+	// of brick boxes long before the walls stopped being visible.
+	TestTrue(TEXT("the roof is built"), Roofs[0] > 0);
+	TestEqual(TEXT("the roof does not thin out with range"), Roofs[2], Roofs[0]);
 
 	TestTrue(TEXT("the full level builds something"), Counts[0] > 0);
 	TestTrue(TEXT("dropping the trim costs triangles"), Counts[1] < Counts[0]);

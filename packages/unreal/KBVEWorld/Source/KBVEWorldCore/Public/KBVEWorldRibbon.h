@@ -121,4 +121,15 @@ struct KBVEWORLDCORE_API FKBVEWorldRibbon
 	static void AppendQuad(FKBVEWorldRibbonMesh& Out, const FVector& P0, const FVector& P1,
 		const FVector& P2, const FVector& P3, const FVector2D& UV0, const FVector2D& UV1,
 		const FVector2D& UV2, const FVector2D& UV3);
+
+	/**
+	 * The same for three corners, for the things that genuinely are triangles.
+	 *
+	 * A gable end and the end of a hipped roof. Emitting either as a quad with two
+	 * corners on top of each other leaves a degenerate triangle in the index
+	 * buffer for every one of them, which is a whole building's worth on a
+	 * village.
+	 */
+	static void AppendTri(FKBVEWorldRibbonMesh& Out, const FVector& P0, const FVector& P1,
+		const FVector& P2, const FVector2D& UV0, const FVector2D& UV1, const FVector2D& UV2);
 };

@@ -22,23 +22,29 @@ from pathlib import Path
 
 SUFFIXES = ("D", "N", "RH")
 
-# What each map is looked for as, best precision first. PolyHaven is not
-# consistent about this between sets -- roughness ships as EXR for some packs
-# and as JPG for others -- and a hard-coded extension turns that into a missing
-# file for one set and a working conversion for the next.
+# What each map is looked for as: the names it might carry, then the formats,
+# each best precision first.
+#
+# Two conventions rather than one because PolyHaven is not the only place a set
+# comes from, and the game-oriented packs name their maps after what they are
+# rather than after the measurement -- and are not consistent about the format
+# either. A hard-coded name or extension is a missing map for one pack and a
+# working conversion for the next.
 CANDIDATES = {
-    "diff": ("jpg", "png", "exr"),
-    "nor_gl": ("exr", "png", "jpg"),
-    "rough": ("exr", "png", "jpg"),
-    "disp": ("png", "exr", "jpg"),
+    "colour": (("diff_2k", "BaseColor", "basecolor", "albedo", "Albedo"), ("jpg", "png", "exr")),
+    "normal": (("nor_gl_2k", "nor_dx_2k", "Normal", "normal"), ("exr", "png", "jpg")),
+    "rough": (("rough_2k", "Roughness", "roughness"), ("exr", "png", "jpg")),
+    "height": (("disp_2k", "Height", "height", "Displacement"), ("png", "exr", "jpg")),
 }
 
 
 def source_map(src: Path, base: str, name: str) -> Path | None:
-    for extension in CANDIDATES[name]:
-        path = src / f"{base}_{name}_2k.{extension}"
-        if path.is_file():
-            return path
+    suffixes, extensions = CANDIDATES[name]
+    for suffix in suffixes:
+        for extension in extensions:
+            path = src / f"{base}_{suffix}.{extension}"
+            if path.is_file():
+                return path
     return None
 
 
@@ -56,15 +62,20 @@ def magick(args: list[str]) -> bool:
 
 def convert_set(art: Path, source_root: Path, entry: dict, resolution: int) -> bool:
     pack = entry["pack"]
-    src = source_root / pack / "textures"
+
+    # PolyHaven puts the maps in a "textures" subdirectory and names them after
+    # the pack; other packs put them beside each other and name them anything.
+    # Both are spelled out in the config rather than guessed at.
+    subdir = entry.get("textures_subdir", "textures")
+    src = source_root / pack / subdir if subdir else source_root / pack
     if not src.is_dir():
         print(f"error: source set not found at {src}", file=sys.stderr)
         return False
 
-    base = pack.rsplit("_", 1)[0]
-    maps = {name: source_map(src, base, name) for name in ("diff", "nor_gl", "rough")}
+    base = entry.get("base") or pack.rsplit("_", 1)[0]
+    maps = {name: source_map(src, base, name) for name in ("colour", "normal", "rough")}
     if entry.get("displacement"):
-        maps["disp"] = source_map(src, base, "disp")
+        maps["height"] = source_map(src, base, "height")
     missing = [name for name, path in maps.items() if path is None]
     if missing:
         print(f"error: {pack} has no {', '.join(missing)} map in any known format", file=sys.stderr)
@@ -76,23 +87,28 @@ def convert_set(art: Path, source_root: Path, entry: dict, resolution: int) -> b
     stem = entry["stem"]
     print(f"  {stem} <- {pack}")
 
-    if not magick([str(maps["diff"]), "-resize", size, "-depth", "8", str(out / f"{stem}_D.png")]):
+    if not magick([str(maps["colour"]), "-resize", size, "-depth", "8", str(out / f"{stem}_D.png")]):
         return False
 
     # -set, not -colorspace: the EXR values are already the encoding wanted, and
     # converting would gamma-shift a normal map into nonsense.
+    #
+    # Unreal samples DirectX normals, so an OpenGL map has to have its green
+    # inverted and a DirectX one must not. Which a pack ships is not something to
+    # guess at: flipped the wrong way the lighting is subtly inside out -- bumps
+    # read as dents under a moving sun -- and it looks like a material problem
+    # forever. Correlate the green channel against the height map's vertical
+    # gradient to settle it, then record the answer here.
+    flip = ["-channel", "G", "-negate", "+channel"] if entry.get("flip_green", True) else []
     if not magick(
         [
-            str(maps["nor_gl"]),
+            str(maps["normal"]),
             "-set",
             "colorspace",
             "sRGB",
             "-resize",
             size,
-            "-channel",
-            "G",
-            "-negate",
-            "+channel",
+            *flip,
             "-depth",
             "8",
             f"PNG24:{out / f'{stem}_N.png'}",
@@ -106,7 +122,7 @@ def convert_set(art: Path, source_root: Path, entry: dict, resolution: int) -> b
     if entry.get("displacement"):
         height = [
             "(",
-            str(maps["disp"]),
+            str(maps["height"]),
             "-set",
             "colorspace",
             "sRGB",

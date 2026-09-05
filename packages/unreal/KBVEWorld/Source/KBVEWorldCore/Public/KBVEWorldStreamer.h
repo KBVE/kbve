@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "KBVEWorldHeightfieldParams.h"
+#include "KBVEWorldPlan.h"
 #include "KBVEWorldRoadField.h"
 #include "KBVEWorldRoadGraph.h"
 
@@ -52,6 +53,26 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Streaming")
 	FKBVEWorldRoadParams Road;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Plan")
+	FKBVEWorldPlanParams Plan;
+
+	/**
+	 * Hold the player at the planned start until the ground under it exists.
+	 *
+	 * Two failures in one, and both of them only happen at the moment a world
+	 * opens. A pawn dropped into a world that has not been built yet falls
+	 * through it, because there is nothing to land on for as many ticks as the
+	 * build queue is deep. And a pawn left wherever the level author put it
+	 * streams the world in around there rather than around the start, so the
+	 * queue spends the whole wait building ground nobody is going to.
+	 *
+	 * Held at the planned point, both actors centre on it -- the road network
+	 * reads the pawn's location the same way this does -- so there is nothing to
+	 * keep in step between them.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Plan")
+	bool bHoldPlayerUntilReady = true;
 
 	/** Cells per patch edge. Vertex cost per patch is (this + 1) squared. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Streaming",
@@ -185,6 +206,13 @@ public:
 		meta = (ClampMin = "0", ClampMax = "32"))
 	int32 CollisionRadiusChunks = 1;
 
+	/** Where the seed said to start, and whether it had anywhere to offer. */
+	const FKBVEWorldPlan& GetWorldPlan() const { return WorldPlan; }
+
+	/** True while the player is being kept at the start waiting for ground. */
+	UFUNCTION(BlueprintCallable, Category = "KBVEWorld|Plan")
+	bool IsHoldingPlayer() const { return bHolding; }
+
 	/** Chunk coordinate containing a world location. */
 	UFUNCTION(BlueprintCallable, Category = "KBVEWorld|Streaming")
 	FIntPoint ChunkCoordAt(const FVector& WorldLocation) const;
@@ -226,6 +254,9 @@ protected:
 private:
 	/** Where the world should be built around. Falls back to this actor. */
 	bool TryGetViewLocation(FVector& Out) const;
+
+	/** Keep the pawn on the start, and let it go once there is ground under it. */
+	void HoldOrRelease();
 
 	/** Chunk coord for a view, refusing to leave the current one too eagerly. */
 	FIntPoint StableChunkCoordAt(const FVector& WorldLocation) const;
@@ -273,6 +304,9 @@ private:
 	TArray<FIntPoint> Restage;
 	FIntPoint LastCentre = FIntPoint(MAX_int32, MAX_int32);
 
+	FKBVEWorldPlan WorldPlan;
+	bool bHolding = false;
+
 	int32 BuildCount = 0;
 	float LastBuildMs = 0.0f;
 
@@ -282,6 +316,8 @@ private:
 	float BuildMsByLOD[MaxTrackedLOD] = {};
 	float GenerateMsByLOD[MaxTrackedLOD] = {};
 	float SectionMsByLOD[MaxTrackedLOD] = {};
+	float FillMsByLOD[MaxTrackedLOD] = {};
+	float RebuildMsByLOD[MaxTrackedLOD] = {};
 	int32 BuildsByLOD[MaxTrackedLOD] = {};
 	float WorstBuildMs = 0.0f;
 	double FillStartSeconds = 0.0;
