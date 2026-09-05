@@ -14,6 +14,11 @@ using namespace KBVEGrip;
 namespace
 {
 	constexpr int32 FingerChainTotal = 15;
+
+	// What a point off the end of the weapon measures. Far enough outside any
+	// section that a sweep never mistakes it for an approach, and finite so
+	// that averaging or comparing it stays defined.
+	constexpr float NoContact = 9.0f;
 }
 
 void FKBVEFootIKProxy::SampleGripPose(const FBoneContainer& Container)
@@ -82,7 +87,8 @@ void FKBVEFootIKProxy::SampleGripPose(const FBoneContainer& Container)
 }
 
 bool FKBVEFootIKProxy::DeriveGripRotation(const FBoneContainer& Container, const FQuat& WeaponRotation,
-	const FQuat& ClipHandRotation, FQuat& OutRotation, FVector& OutWristOffset) const
+	const FQuat& ClipHandRotation, FQuat& OutRotation, FVector& OutWristOffset,
+	FVector& OutElbowDirection) const
 {
 	// The support hand's orientation, derived rather than dialled.
 	//
@@ -96,7 +102,7 @@ bool FKBVEFootIKProxy::DeriveGripRotation(const FBoneContainer& Container, const
 	// Needs the barrel axis and which side the hand comes from. Not the
 	// section's size: a thicker fore-end moves the wrist further out, it does
 	// not turn it. So this works on a weapon nobody has measured.
-	if (GGripDerive == 0 || LeftFingers.Num() < 12)
+	if (GGripDerive == 0 || LeftFingers.Num() < FingerChainTotal)
 	{
 		return false;
 	}
@@ -120,8 +126,7 @@ bool FKBVEFootIKProxy::DeriveGripRotation(const FBoneContainer& Container, const
 		Container.GetRefPoseTransform(PinkyRoot.GetCompactPoseIndex(Container)).GetLocation();
 
 	const FVector RestFinger = RestMiddle.GetSafeNormal();
-	const FVector RestSpread = (RestIndex - RestPinky).GetSafeNormal();
-	if (RestFinger.IsNearlyZero() || RestSpread.IsNearlyZero())
+	if (RestFinger.IsNearlyZero() || (RestIndex - RestPinky).IsNearlyZero())
 	{
 		return false;
 	}
@@ -205,7 +210,22 @@ bool FKBVEFootIKProxy::DeriveGripRotation(const FBoneContainer& Container, const
 	const FVector FingerWorld = OutRotation.RotateVector(RestFinger);
 	const FVector PalmWorld = OutRotation.RotateVector(RestPalm);
 	const float Knuckle = RestMiddle.Size();
-	const float Thickness = FMath::Max(FMath::Abs(RestIndex.Y - RestPinky.Y) * 0.5f, 1.5f);
+
+	// How deep the palm is, off the rig rather than out of a constant.
+	//
+	// Half the knuckle spread was standing in for this, and on Manny it came out
+	// under the floor it was being clamped to -- so the figure in every trace
+	// was the clamp, and every weapon sat about a centimetre inside the hand.
+	// The thumb is the depth the rig actually states: its root hangs off the
+	// palm side of the wrist, and how far it hangs is how thick the hand is
+	// there. The spread stays as a second opinion for a rig without a thumb.
+	const FBoneReference& ThumbRoot = LeftFingers[12];
+	const double ThumbDepth = ThumbRoot.IsValidToEvaluate()
+		? FMath::Abs(Container.GetRefPoseTransform(ThumbRoot.GetCompactPoseIndex(Container))
+			.GetLocation() | RestPalm)
+		: 0.0;
+	const float Thickness = static_cast<float>(FMath::Max3(ThumbDepth,
+		FMath::Abs(RestIndex.Y - RestPinky.Y) * 0.5, 1.5));
 
 	// The section's own radius in the direction the palm arrives from, so a
 	// deeper fore-end stands the hand further off without anybody restating it.
@@ -214,12 +234,29 @@ bool FKBVEFootIKProxy::DeriveGripRotation(const FBoneContainer& Container, const
 
 	OutWristOffset = -PalmWorld * (Radius + Thickness) - FingerWorld * Knuckle;
 
+	// Which way the elbow hangs, taken from the weapon instead of pinned to the
+	// character.
+	//
+	// It was a constant in component space, which is a direction that means one
+	// thing while a rifle is level and something else the moment it is not: the
+	// arm kept its elbow pointing at the floor while the weapon pitched, and a
+	// support arm that does not follow what it is supporting reads as bent away
+	// from it. The palm already says which side of the weapon the hand is on,
+	// and an elbow belongs on the far side of the hand from the wood. Weight
+	// stays on down, because gravity is the other half of where an elbow goes.
+	OutElbowDirection = (-PalmWorld * 0.8f + FVector::DownVector).GetSafeNormal();
+	if (OutElbowDirection.IsNearlyZero())
+	{
+		OutElbowDirection = FVector::DownVector;
+	}
+
 	if (GGripTrace > 0)
 	{
 		UE_LOG(LogKBVEFootIK, Display,
-			TEXT("grip: derived hand frame at %.0f deg, palm (%.2f %.2f %.2f), knuckle %.2f thick %.2f radius %.2f, agreement %.3f"),
+			TEXT("grip: derived hand frame at %.0f deg, palm (%.2f %.2f %.2f), knuckle %.2f thick %.2f radius %.2f, elbow (%.2f %.2f %.2f), agreement %.3f"),
 			GripBoreAngleDegrees, RestPalm.X, RestPalm.Y, RestPalm.Z,
-			Knuckle, Thickness, Radius, Best);
+			Knuckle, Thickness, Radius,
+			OutElbowDirection.X, OutElbowDirection.Y, OutElbowDirection.Z, Best);
 	}
 	return true;
 }
@@ -257,11 +294,48 @@ void FKBVEFootIKProxy::WrapFingers(FCompactPose& Pose, const FBoneContainer& Con
 	// an ellipse rather than a circle because a fore-end is a block of wood,
 	// deeper than it is wide, and a circle through it either floats the fingers
 	// off the sides or buries them in the top.
+	//
+	// The section is looked up at the finger's own station along the weapon
+	// rather than stated once. Stated once it had no X in it at all, and a
+	// measurement with no X says a finger pointing straight down the barrel is
+	// exactly as close to the wood as one resting on it -- so asking the solver
+	// to unbury a buried finger straightened the whole hand instead, which is
+	// the failure that put this behind a switch. Past the end of the weapon
+	// there is no answer, and saying so is what stops the search wandering
+	// there.
 	auto Outside = [this, &WeaponToComponent](const FVector& Point) -> float
 	{
 		const FVector Local = WeaponToComponent.InverseTransformPosition(Point);
-		const float Y = Local.Y / ForeEndHalfWidth;
-		const float Z = (Local.Z - ForeEndCentreHeight) / ForeEndHalfHeight;
+
+		float HalfWidth = ForeEndHalfWidth;
+		float HalfHeight = ForeEndHalfHeight;
+		float CentreY = 0.0f;
+		float CentreZ = ForeEndCentreHeight;
+
+		if (ForeEndProfile.Num() > 0 && ProfileSlabWidth > KINDA_SMALL_NUMBER)
+		{
+			// Indexed, not searched. The profile is dense along the weapon --
+			// slices with no geometry are present and carry no width -- so the
+			// station is arithmetic, which matters at five fingers times a
+			// sixty-four step sweep times three points on each.
+			const int32 Index = FMath::RoundToInt((Local.X - ForeEndProfile[0].X) / ProfileSlabWidth);
+			if (!ForeEndProfile.IsValidIndex(Index))
+			{
+				return NoContact;
+			}
+			const FKBVEGripSlab& Slab = ForeEndProfile[Index];
+			if (Slab.HalfWidth <= KINDA_SMALL_NUMBER || Slab.HalfHeight <= KINDA_SMALL_NUMBER)
+			{
+				return NoContact;
+			}
+			HalfWidth = Slab.HalfWidth;
+			HalfHeight = Slab.HalfHeight;
+			CentreY = Slab.CentreY;
+			CentreZ = Slab.CentreZ;
+		}
+
+		const float Y = (Local.Y - CentreY) / HalfWidth;
+		const float Z = (Local.Z - CentreZ) / HalfHeight;
 		return FMath::Sqrt(Y * Y + Z * Z);
 	};
 

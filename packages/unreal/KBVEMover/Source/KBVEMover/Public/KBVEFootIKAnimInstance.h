@@ -5,6 +5,7 @@
 #include "Animation/AnimInstanceProxy.h"
 #include "Animation/AnimNode_SequencePlayer.h"
 #include "BoneContainer.h"
+#include "KBVEWeaponGrip.h"
 
 #include "KBVEFootIKAnimInstance.generated.h"
 
@@ -133,6 +134,14 @@ struct FKBVEFootIKProxy : public FAnimInstanceProxy
 	// actually sent to: drawing the authored one put a phantom gap between the
 	// wrist and its target and cost an evening chasing a miss that was not one.
 	mutable FTransform SolvedSupportSocket = FTransform::Identity;
+
+	// Where the wrist was actually sent, in the weapon's own space.
+	//
+	// Separate from the socket because they are deliberately not the same point
+	// -- the socket is on the wood and the wrist stands off it by the hand's own
+	// length -- and a bench that measured the gap between them reported the
+	// standoff as a miss, every frame, on a hold that had landed exactly.
+	mutable FVector SolvedSupportTarget = FVector::ZeroVector;
 	bool bHasSupportSocket = false;
 
 	// Fit the weapon to the hands instead of the hands to the weapon.
@@ -191,6 +200,21 @@ struct FKBVEFootIKProxy : public FAnimInstanceProxy
 	float ForeEndHalfWidth = 0.0f;
 	float ForeEndHalfHeight = 0.0f;
 	float ForeEndCentreHeight = 0.0f;
+
+	// The weapon's own underside, a slice at a time, as the import pipeline
+	// measured it. The three averages above are what a weapon predating this
+	// falls back to; these are what the fingers are actually closed against,
+	// because a fore-end that swells at the barrel band and stops at the muzzle
+	// is not describable by one ellipse and a finger past the end of the wood
+	// scored the same as one resting on it.
+	TArray<FKBVEGripSlab> ForeEndProfile;
+	float ProfileSlabWidth = 0.0f;
+
+	// Which weapon the copy above came from. Comparing the arrays themselves
+	// would mean comparing a hundred floats every frame to discover that the
+	// weapon has not changed, and comparing their lengths would mean two
+	// weapons of the same length silently sharing a profile.
+	const UKBVEWeaponGrip* ProfileSource = nullptr;
 	float GripWristOffset = 0.0f;
 	float GripKnuckleClearance = 0.0f;
 	float GripAlongBarrel = 0.0f;
@@ -248,7 +272,8 @@ private:
 	 * which case the clip's own wrist stands.
 	 */
 	bool DeriveGripRotation(const FBoneContainer& Container, const FQuat& WeaponRotation,
-		const FQuat& ClipHandRotation, FQuat& OutRotation, FVector& OutWristOffset) const;
+		const FQuat& ClipHandRotation, FQuat& OutRotation, FVector& OutWristOffset,
+		FVector& OutElbowDirection) const;
 
 	/**
 	 * Close the support hand's fingers onto the weapon's fore-end.
@@ -593,6 +618,19 @@ public:
 	 */
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KBVE|Animation|Weapon")
 	FTransform ResolvedSupportSocket = FTransform::Identity;
+
+	/**
+	 * The point the wrist was actually solved to, in weapon space.
+	 *
+	 * Not the socket. The socket is on the wood and the wrist stands off it by
+	 * the hand's own length, so the distance between them is the hold working
+	 * rather than failing -- and a bench measuring wrist-to-socket reported a
+	 * steady eight-centimetre miss on a grip that had landed dead on. One is
+	 * "is the target in the right place", the other is "did the arm get there",
+	 * and they need separate numbers or neither is answerable.
+	 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KBVE|Animation|Weapon")
+	FVector ResolvedSupportTarget = FVector::ZeroVector;
 
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KBVE|Animation|Weapon")
 	bool bResolvedSupportSocketValid = false;

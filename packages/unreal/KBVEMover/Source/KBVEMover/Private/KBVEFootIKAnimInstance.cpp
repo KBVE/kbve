@@ -157,7 +157,7 @@ namespace KBVEGrip
 	// deleted, reached by a shorter route: contact distance is satisfied by
 	// poses no hand can hold. A test that separates wrapped from merely near
 	// needs the weapon's own geometry, not an ellipse.
-	int32 GGripWrap = 0;
+	int32 GGripWrap = 1;
 	static FAutoConsoleVariableRef CVarGripWrap(
 		TEXT("kbve.Grip.Wrap"), GGripWrap,
 		TEXT("Close the support fingers onto the fore-end until they contact it."), ECVF_Default);
@@ -618,16 +618,21 @@ bool FKBVEFootIKProxy::Evaluate(FPoseContext& Output)
 
 		FQuat Derived = FQuat::Identity;
 		FVector WristOffset = FVector::ZeroVector;
-		const bool bDerived =
-			DeriveGripRotation(Container, WeaponRotation, ClipHandWorld, Derived, WristOffset);
+		FVector Elbow = LeftElbowDirection;
+		const bool bDerived = DeriveGripRotation(
+			Container, WeaponRotation, ClipHandWorld, Derived, WristOffset, Elbow);
 
 		// The socket names where the hand meets the wood; the offset carries the
 		// wrist back off it by the hand's own length and depth, so the palm ends
 		// up on the surface rather than the wrist joint.
 		const FVector Target = Socket.GetLocation() + WristOffset;
 
+		// Kept in the weapon's space, which is the frame the debug draw already
+		// reads the socket in and the only one where the two are comparable.
+		SolvedSupportTarget = WeaponToComponent.InverseTransformPosition(Target);
+
 		SolveArm(Pose, LeftUpperArm, LeftLowerArm, LeftHand,
-			Target, LeftElbowDirection, Derived,
+			Target, Elbow, Derived,
 			LeftHandIKAlpha, bDerived ? LeftHandIKAlpha : 0.0f, SocketDelta);
 	}
 
@@ -1314,6 +1319,17 @@ void UKBVEFootIKAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		Proxy.ForeEndHalfWidth = WeaponGrip->ForeEndHalfWidth;
 		Proxy.ForeEndHalfHeight = WeaponGrip->ForeEndHalfHeight;
 		Proxy.ForeEndCentreHeight = WeaponGrip->ForeEndCentreHeight;
+
+		// Copied rather than pointed at: the proxy is evaluated on a worker
+		// thread and the asset is a game-thread object, and a hundred-odd
+		// floats copied when the weapon changes is cheaper than the rule that
+		// would have to hold for it to be read across.
+		if (Proxy.ProfileSource != WeaponGrip)
+		{
+			Proxy.ProfileSource = WeaponGrip;
+			Proxy.ForeEndProfile = WeaponGrip->ForeEndProfile;
+		}
+		Proxy.ProfileSlabWidth = WeaponGrip->ProfileSlabWidth;
 		Proxy.GripKnuckleClearance = WeaponGrip->KnuckleClearance;
 		Proxy.GripBoreAngleDegrees = WeaponGrip->GripAngleDegrees;
 		if (GGripAlong <= -999.0f)
@@ -1368,6 +1384,9 @@ void UKBVEFootIKAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		ResolvedSupportSocket = Proxy.SolvedSupportSocket.Equals(FTransform::Identity)
 			? Proxy.SupportHandSocket
 			: Proxy.SolvedSupportSocket;
+		ResolvedSupportTarget = Proxy.SolvedSupportTarget.IsNearlyZero()
+			? ResolvedSupportSocket.GetLocation()
+			: Proxy.SolvedSupportTarget;
 		bResolvedSupportSocketValid = Proxy.bHasSupportSocket;
 		Proxy.SupportHandTrim = WeaponGrip->SupportHandTrim
 			+ FVector(GGripTrimX > -999.0f ? GGripTrimX : 0.0f,

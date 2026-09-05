@@ -35,6 +35,58 @@ struct FKBVEGripFinger
 };
 
 /**
+ * One slice of a weapon's underside, at a position along its length.
+ *
+ * A rifle is not a tube and its fore-end is not an ellipse: it swells at the
+ * barrel band, steps down at the receiver, stops altogether past the muzzle. A
+ * single cross-section stated once describes exactly one place on the weapon,
+ * so a finger measured against it is measured against wood that may not be
+ * there -- which is the whole reason the wrap solver was switched off.
+ *
+ * These are measured off the mesh rather than typed, one per centimetre, and
+ * they describe the lowest connected body at that station: a support hand
+ * arrives from underneath, so what it touches is the underside, not whatever
+ * optic happens to share the slice.
+ *
+ * Cut from the triangles, not gathered from the vertices. A rifle's woodwork is
+ * a handful of long flat faces, so whole centimetres of it carry no vertex at
+ * all -- reading the cloud gave a Mosin fore-end one centimetre tall with holes
+ * through the middle of it, because that is honestly what the vertices there
+ * say. Intersecting each triangle with the slice plane gives the outline the
+ * surface actually has.
+ */
+USTRUCT(BlueprintType)
+struct FKBVEGripSlab
+{
+	GENERATED_BODY()
+
+	/** Where along the weapon's own X this slice was taken. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip")
+	float X = 0.0f;
+
+	/**
+	 * Centre of the slice, across and up the weapon's own axes.
+	 *
+	 * Across as well as up, because a rifle is not symmetric about its own
+	 * origin: the bolt handle stands off one side and the Mosin's fore-end
+	 * measures three centimetres of it. A section assumed centred on zero puts
+	 * the hand a centimetre out on any weapon whose mesh was not built about
+	 * the bore.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip")
+	float CentreY = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip")
+	float CentreZ = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip")
+	float HalfWidth = 0.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip")
+	float HalfHeight = 0.0f;
+};
+
+/**
  * Everything the support hand needs to know about one weapon.
  *
  * A data asset per weapon rather than constants on the anim instance, because
@@ -124,6 +176,22 @@ public:
 	/** How far the knuckles are held off the surface, cm. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip|Section")
 	float KnuckleClearance = 0.6f;
+
+	/**
+	 * The weapon's underside, measured, a slice at a time.
+	 *
+	 * Written by the import pipeline from the mesh itself, so a weapon nobody
+	 * has held describes its own fore-end. The three half-extents above stay as
+	 * the average over the graspable run -- they are what a solver falls back
+	 * to when a weapon predates this, and what the debug box draws -- but the
+	 * fingers are closed against these.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip|Section")
+	TArray<FKBVEGripSlab> ForeEndProfile;
+
+	/** How far apart the slices are, cm. Zero means the profile is unusable. */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip|Section")
+	float ProfileSlabWidth = 0.0f;
 
 	/**
 	 * Where each hand meets this weapon, in the weapon's own space.
