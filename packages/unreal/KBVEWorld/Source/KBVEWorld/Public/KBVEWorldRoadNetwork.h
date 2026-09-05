@@ -7,7 +7,8 @@
 #include "KBVEWorldHeightfieldParams.h"
 #include "KBVEWorldRoadField.h"
 #include "KBVEWorldRoadGraph.h"
-#include "MassEntityHandle.h"
+#include "KBVEWorldSettlement.h"
+#include "Mass/EntityHandle.h"
 
 #include "KBVEWorldRoadNetwork.generated.h"
 
@@ -71,8 +72,12 @@ public:
 
 		const FKBVEWorldFenceParams* Fence = nullptr;
 
+		const FKBVEWorldSettlementParams* Settlement = nullptr;
+		EKBVEWorldWallDetail WallDetail = EKBVEWorldWallDetail::Full;
+
 		UMaterialInterface* WoodMaterial = nullptr;
 		UMaterialInterface* StoneMaterial = nullptr;
+		UMaterialInterface* BrickMaterial = nullptr;
 		const UStaticMesh* PartMesh = nullptr;
 	};
 
@@ -87,6 +92,15 @@ public:
 	 */
 	bool RebuildFences(const FBuild& In, FParts& OutParts);
 
+	/**
+	 * Stand this chunk's buildings up again at whatever detail they now want.
+	 *
+	 * The same trade the fences make and a coarser one: the plots are already
+	 * sited, so a tier change costs the masonry and not the ground sampling that
+	 * decided where a house could go. Returns false when nothing had changed.
+	 */
+	bool RebuildBuildings(const FBuild& In);
+
 	void Release();
 
 	const FIntPoint& GetCoord() const { return Coord; }
@@ -98,6 +112,9 @@ public:
 	/** The fence runs this chunk owns, as Mass entities. */
 	const TArray<FMassEntityHandle>& GetFenceRuns() const { return FenceRuns; }
 
+	/** The buildings this chunk owns, as Mass entities. */
+	const TArray<FMassEntityHandle>& GetBuildings() const { return Buildings; }
+
 private:
 	/** One entity per run, spawned once the seed has decided where the runs are. */
 	void SpawnFenceRuns(const FBuild& In);
@@ -108,11 +125,35 @@ private:
 	/** Stand every run up at whatever detail its entity currently asks for. */
 	void BuildFenceParts(const FBuild& In, struct FKBVEWorldFenceMesh& Out);
 
+	/** Site the plots this chunk's edges carry, which is what samples the ground. */
+	void SitePlots(const FBuild& In);
+
+	/** One entity per building, spawned once the seed has decided where they are. */
+	void SpawnBuildings(const FBuild& In);
+
+	void ReleaseBuildings();
+
+	/** Build every building at whatever detail its entity currently asks for. */
+	void BuildMasonry(const FBuild& In, struct FKBVEWorldRibbonMesh& Out);
+
 	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
 	TObjectPtr<UProceduralMeshComponent> Wood;
 
 	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
 	TObjectPtr<UProceduralMeshComponent> Stone;
+
+	/**
+	 * The masonry of this chunk's settlement, as one section.
+	 *
+	 * Not instanced, and that is the difference between a wall and a pier. A pier
+	 * is the same box everywhere, so it is worth an instance; a wall is a
+	 * different size on every building and carries UVs worked out from its own
+	 * length, which is what makes the coursing run continuously across the panels
+	 * around a window instead of restarting at each of them. Written into one
+	 * section per chunk, a village is one draw call and keeps its brickwork.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
+	TObjectPtr<UProceduralMeshComponent> Brick;
 
 	/**
 	 * The routes this chunk's two edges took, kept rather than re-solved.
@@ -139,6 +180,9 @@ private:
 	TArray<FMassEntityHandle> FenceRuns;
 	TArray<FKBVEWorldFenceRun> Runs;
 	TArray<int32> RunEdge;
+
+	TArray<FMassEntityHandle> Buildings;
+	TArray<FKBVEWorldBuildingPlan> Plans;
 
 	FIntPoint Coord = FIntPoint::ZeroValue;
 	bool bActive = false;
@@ -192,6 +236,17 @@ public:
 	FKBVEWorldFenceParams Fence;
 
 	/**
+	 * The buildings that stand along the roads.
+	 *
+	 * A settlement goes where the route already goes, because that is what a
+	 * settlement is and because the road is a solved polyline by the time
+	 * anything needs to know where a house belongs. Density is the only
+	 * difference between the village this raises and a town.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road")
+	FKBVEWorldSettlementParams Settlement;
+
+	/**
 	 * Chunks kept either side of the viewer's own.
 	 *
 	 * Smaller than the terrain radius on purpose: a road is a thin thing that
@@ -242,6 +297,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road")
 	TObjectPtr<UMaterialInterface> StoneMaterial;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road")
+	TObjectPtr<UMaterialInterface> BrickMaterial;
 
 	/**
 	 * A cube, for the parts of a crossing that are one.

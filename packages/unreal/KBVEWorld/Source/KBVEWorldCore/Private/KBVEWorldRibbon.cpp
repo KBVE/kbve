@@ -3,19 +3,16 @@
 namespace
 {
 	void AddQuad(FKBVEWorldRibbonMesh& Out, const FVector& P0, const FVector& P1,
-		const FVector& P2, const FVector& P3, const FVector2D& UVScale)
+		const FVector& P2, const FVector& P3, const FVector2D& UVSpan);
+
+	void AddQuad(FKBVEWorldRibbonMesh& Out, const FVector& P0, const FVector& P1,
+		const FVector& P2, const FVector& P3, const FVector2D (&UVs)[4])
 	{
 		const FVector Normal = FVector::CrossProduct(P1 - P0, P3 - P0).GetSafeNormal();
 		const FVector Tangent = (P1 - P0).GetSafeNormal();
 		const int32 Base = Out.Vertices.Num();
 
 		const FVector Corners[4] = { P0, P1, P2, P3 };
-		const FVector2D UVs[4] = {
-			FVector2D(0.0f, 0.0f),
-			FVector2D(UVScale.X, 0.0f),
-			FVector2D(UVScale.X, UVScale.Y),
-			FVector2D(0.0f, UVScale.Y),
-		};
 
 		for (int32 I = 0; I < 4; ++I)
 		{
@@ -39,6 +36,18 @@ namespace
 		Out.Triangles.Add(Base + 0);
 		Out.Triangles.Add(Base + 3);
 		Out.Triangles.Add(Base + 2);
+	}
+
+	void AddQuad(FKBVEWorldRibbonMesh& Out, const FVector& P0, const FVector& P1,
+		const FVector& P2, const FVector& P3, const FVector2D& UVSpan)
+	{
+		const FVector2D UVs[4] = {
+			FVector2D(0.0f, 0.0f),
+			FVector2D(UVSpan.X, 0.0f),
+			FVector2D(UVSpan.X, UVSpan.Y),
+			FVector2D(0.0f, UVSpan.Y),
+		};
+		AddQuad(Out, P0, P1, P2, P3, UVs);
 	}
 
 	/**
@@ -321,4 +330,12 @@ void FKBVEWorldRibbon::AppendBox(FKBVEWorldRibbonMesh& Out, const FVector& Min, 
 	AddQuad(Out, C, D, H, G, XZ);
 	AddQuad(Out, B, C, G, F, YZ);
 	AddQuad(Out, D, A, E, H, YZ);
+}
+
+void FKBVEWorldRibbon::AppendQuad(FKBVEWorldRibbonMesh& Out, const FVector& P0, const FVector& P1,
+	const FVector& P2, const FVector& P3, const FVector2D& UV0, const FVector2D& UV1,
+	const FVector2D& UV2, const FVector2D& UV3)
+{
+	const FVector2D UVs[4] = { UV0, UV1, UV2, UV3 };
+	AddQuad(Out, P0, P1, P2, P3, UVs);
 }

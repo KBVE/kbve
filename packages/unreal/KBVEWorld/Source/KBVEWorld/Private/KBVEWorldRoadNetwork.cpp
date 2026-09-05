@@ -5,6 +5,7 @@
 #include "KBVEWorldFenceMass.h"
 #include "KBVEWorldHeightfield.h"
 #include "KBVEWorldInstancePool.h"
+#include "KBVEWorldVillageMass.h"
 #include "KBVEWorldStreamer.h"
 #include "EngineUtils.h"
 #include "MassEntitySubsystem.h"
@@ -103,8 +104,9 @@ AKBVEWorldRoadChunk::AKBVEWorldRoadChunk()
 
 	Wood = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Wood"));
 	Stone = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Stone"));
+	Brick = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Brick"));
 
-	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get() })
+	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get() })
 	{
 		Mesh->SetupAttachment(SceneRoot);
 		Mesh->bUseAsyncCooking = true;
@@ -119,6 +121,11 @@ AKBVEWorldRoadChunk::AKBVEWorldRoadChunk()
 	// no complex geometry for a simple query to fall through to. Left on, every
 	// trace against a pier would find nothing there.
 	Stone->bUseComplexAsSimpleCollision = false;
+
+	// A wall is the one thing here a pawn is meant not to walk through, and it is
+	// a wall rather than a box: the openings are holes in the section, so a
+	// simple hull around it would be a house with a doorway that is bricked up.
+	Brick->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 }
 
 void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
@@ -193,8 +200,14 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 
 	SpawnFenceRuns(In);
 
+	SitePlots(In);
+	SpawnBuildings(In);
+
 	FKBVEWorldFenceMesh Fences;
 	BuildFenceParts(In, Fences);
+
+	FKBVEWorldRibbonMesh Masonry;
+	BuildMasonry(In, Masonry);
 
 	// World space, because the pool holds one component for the whole world and
 	// the rebase below is a thing only this chunk's own sections want.
@@ -212,15 +225,17 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 
 	Rebase(Data.Wood, Origin);
 	Rebase(Data.Stone, Origin);
+	Rebase(Masonry, Origin);
 
 	Commit(Wood, Data.Wood, WoodMaterial, true);
 	Commit(Stone, Data.Stone, StoneMaterial, false);
+	Commit(Brick, Masonry, In.BrickMaterial, true);
 
 	// The supports collide as blocks whether they were drawn as triangles here or
 	// as instances elsewhere, so this does not care which happened.
 	CommitBlocks(Stone, Data.Blocks, Origin);
 
-	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get() })
+	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get() })
 	{
 		Mesh->SetCullDistance(MaxDrawDistance);
 	}
@@ -386,12 +401,193 @@ bool AKBVEWorldRoadChunk::RebuildFences(const FBuild& In, FParts& OutParts)
 	return true;
 }
 
+void AKBVEWorldRoadChunk::SitePlots(const FBuild& In)
+{
+	Plans.Reset();
+	if (!In.Settlement)
+	{
+		return;
+	}
+
+	TArray<FKBVEWorldRoadSpan> Spans;
+	TArray<FKBVEWorldPlot> Plots;
+
+	for (int32 Step = 0; Step < EdgePaths.Num(); ++Step)
+	{
+		const TArray<FVector>& Path = EdgePaths[Step];
+		if (Path.Num() < 2)
+		{
+			continue;
+		}
+
+		FKBVEWorldRoadGraph::FindRiverSpans(*In.Road, *In.Shape, In.Seed, Path, Spans);
+
+		// A key per edge rather than per chunk. Both edges hashed off the chunk
+		// alone would roll the same settlement twice and lay the same houses at
+		// the same distances down each of them, which reads as a copy because it
+		// is one.
+		const FIntPoint Key(In.Coord.X, In.Coord.Y * 2 + Step);
+		FKBVEWorldSettlement::FindPlots(*In.Settlement, *In.Road, In.Seed, Key, Path, Spans,
+			Plots);
+
+		for (const FKBVEWorldPlot& Plot : Plots)
+		{
+			// The plot decides where a house would go and the ground decides
+			// whether one can. A refusal is left as a gap rather than flattened
+			// into a terrace: the terrain keeps its shape and the settlement
+			// grows along the parts of the road that could carry it.
+			FKBVEWorldBuildingPlan Plan;
+			if (FKBVEWorldSettlement::Site(*In.Settlement, *In.Road, *In.Shape, In.Seed, In.Field,
+				Path, Plot, Plan))
+			{
+				Plans.Add(Plan);
+			}
+		}
+	}
+}
+
+void AKBVEWorldRoadChunk::SpawnBuildings(const FBuild& In)
+{
+	if (Plans.Num() == 0)
+	{
+		return;
+	}
+
+	if (!Mass)
+	{
+		Mass = UWorld::GetSubsystem<UMassEntitySubsystem>(GetWorld());
+	}
+	if (!Mass)
+	{
+		return;
+	}
+
+	FMassEntityManager& Manager = Mass->GetMutableEntityManager();
+
+	const FMassArchetypeHandle Archetype = Manager.CreateArchetype(
+		TArray<const UScriptStruct*>{
+			FKBVEWorldBuildingFragment::StaticStruct(),
+			FKBVEWorldBuildingTag::StaticStruct() });
+
+	Buildings.Reserve(Plans.Num());
+
+	for (const FKBVEWorldBuildingPlan& Plan : Plans)
+	{
+		const FMassEntityHandle Entity = Manager.CreateEntity(Archetype);
+		FKBVEWorldBuildingFragment& Fragment =
+			Manager.GetFragmentDataChecked<FKBVEWorldBuildingFragment>(Entity);
+
+		Fragment.Chunk = In.Coord;
+		Fragment.Centre = Plan.Centre;
+		Fragment.Yaw = Plan.Yaw;
+		Fragment.Width = Plan.Width;
+		Fragment.Depth = Plan.Depth;
+		Fragment.Embed = Plan.Embed;
+		Fragment.Storeys = Plan.Storeys;
+		Fragment.Seed = Plan.Seed;
+
+		// Half the footprint's diagonal, so the processor can measure to the
+		// building rather than to the point its floor was levelled at.
+		Fragment.Radius = 0.5f * FMath::Sqrt(Plan.Width * Plan.Width + Plan.Depth * Plan.Depth);
+
+		Fragment.Detail = static_cast<uint8>(In.WallDetail);
+		Fragment.WantedDetail = Fragment.Detail;
+
+		Buildings.Add(Entity);
+	}
+}
+
+void AKBVEWorldRoadChunk::ReleaseBuildings()
+{
+	if (Buildings.Num() == 0)
+	{
+		return;
+	}
+
+	if (Mass)
+	{
+		FMassEntityManager& Manager = Mass->GetMutableEntityManager();
+		for (const FMassEntityHandle& Entity : Buildings)
+		{
+			if (Manager.IsEntityValid(Entity))
+			{
+				Manager.DestroyEntity(Entity);
+			}
+		}
+	}
+
+	Buildings.Reset();
+}
+
+void AKBVEWorldRoadChunk::BuildMasonry(const FBuild& In, FKBVEWorldRibbonMesh& Out)
+{
+	if (!In.Settlement || Plans.Num() == 0)
+	{
+		return;
+	}
+
+	FMassEntityManager* Manager = Mass ? &Mass->GetMutableEntityManager() : nullptr;
+
+	for (int32 I = 0; I < Plans.Num(); ++I)
+	{
+		EKBVEWorldWallDetail Detail = In.WallDetail;
+		if (Manager && I < Buildings.Num() && Manager->IsEntityValid(Buildings[I]))
+		{
+			FKBVEWorldBuildingFragment& Fragment =
+				Manager->GetFragmentDataChecked<FKBVEWorldBuildingFragment>(Buildings[I]);
+			Detail = static_cast<EKBVEWorldWallDetail>(Fragment.WantedDetail);
+			Fragment.Detail = Fragment.WantedDetail;
+		}
+
+		FKBVEWorldBuilding::Build(In.Settlement->Building, Plans[I], Detail, Out);
+	}
+}
+
+bool AKBVEWorldRoadChunk::RebuildBuildings(const FBuild& In)
+{
+	if (!Mass || Buildings.Num() == 0)
+	{
+		return false;
+	}
+
+	FMassEntityManager& Manager = Mass->GetMutableEntityManager();
+
+	bool bStale = false;
+	for (const FMassEntityHandle& Entity : Buildings)
+	{
+		if (!Manager.IsEntityValid(Entity))
+		{
+			continue;
+		}
+		const FKBVEWorldBuildingFragment& Fragment =
+			Manager.GetFragmentDataChecked<FKBVEWorldBuildingFragment>(Entity);
+		if (Fragment.Detail != Fragment.WantedDetail)
+		{
+			bStale = true;
+			break;
+		}
+	}
+
+	if (!bStale)
+	{
+		return false;
+	}
+
+	FKBVEWorldRibbonMesh Masonry;
+	BuildMasonry(In, Masonry);
+	Rebase(Masonry, GetActorLocation());
+	Commit(Brick, Masonry, In.BrickMaterial, true);
+	return true;
+}
+
 void AKBVEWorldRoadChunk::Release()
 {
 	ReleaseFenceRuns();
+	ReleaseBuildings();
 	bActive = false;
 	Wood->ClearAllMeshSections();
 	Stone->ClearAllMeshSections();
+	Brick->ClearAllMeshSections();
 	Stone->ClearCollisionConvexMeshes();
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
@@ -513,8 +709,15 @@ AKBVEWorldRoadChunk::FBuild AKBVEWorldRoadNetwork::MakeBuild(const FIntPoint& Co
 	// avoid. Without a mesh to instance, the roads simply have no fences.
 	In.Fence = bInstanced ? &Fence : nullptr;
 
+	// Buildings are their own section rather than instances, so unlike the fences
+	// they do not wait on a mesh being assigned -- what they wait on is a
+	// material, without which a village would be raised in default grey.
+	In.Settlement = BrickMaterial ? &Settlement : nullptr;
+	In.WallDetail = bDetailed ? EKBVEWorldWallDetail::Full : EKBVEWorldWallDetail::Plain;
+
 	In.WoodMaterial = WoodMaterial;
 	In.StoneMaterial = StoneMaterial;
+	In.BrickMaterial = BrickMaterial;
 	In.PartMesh = bInstanced ? PartMesh.Get() : nullptr;
 	return In;
 }
@@ -681,7 +884,7 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 	// Whatever the fence processor decided since the last tick. It writes a tier
 	// and stops there -- standing the posts up is a component's business, and a
 	// Mass processor has none with components.
-	if (bInstanced && Built == 0)
+	if (Built == 0)
 	{
 		int32 Restood = 0;
 		for (const TPair<FIntPoint, TObjectPtr<AKBVEWorldRoadChunk>>& Pair : Live)
@@ -691,14 +894,22 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 				continue;
 			}
 
-			AKBVEWorldRoadChunk::FParts FenceParts;
 			const AKBVEWorldRoadChunk::FBuild In = MakeBuild(Pair.Key, Seed,
 				Pair.Value->IsDetailed(), bInstanced, DrawDistance);
 
-			if (Pair.Value->RebuildFences(In, FenceParts))
+			AKBVEWorldRoadChunk::FParts FenceParts;
+			if (bInstanced && Pair.Value->RebuildFences(In, FenceParts))
 			{
 				Parts->Submit(StoneBucket, Pair.Key, MoveTemp(FenceParts.Stone));
 				Parts->Submit(WoodBucket, Pair.Key, MoveTemp(FenceParts.Wood));
+				++Restood;
+			}
+
+			// Counted against the same budget the fences spend from. Both are
+			// rebuilds that a viewer walking causes, and letting them each have a
+			// budget means a viewer walking towards a village pays twice.
+			if (Restood < MaxBuildsPerTick && Pair.Value->RebuildBuildings(In))
+			{
 				++Restood;
 			}
 		}
