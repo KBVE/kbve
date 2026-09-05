@@ -166,17 +166,110 @@ struct KBVEWORLDCORE_API FKBVEWorldBridgeParams
 	float StoneTileLength = 400.0f;
 };
 
-struct KBVEWORLDCORE_API FKBVEWorldBridge
+/**
+ * How much of a crossing is worth building at the range it is seen from.
+ *
+ * A road chunk is rebuilt whenever the window moves, so the ring it sits in is
+ * known before a single vertex exists -- which makes the cheapest LOD a
+ * build-time decision rather than a runtime one. A procedural mesh section has
+ * exactly one level of detail and no screen-size reduction of its own, so
+ * anything not decided here is drawn in full at every distance.
+ *
+ * Only the frame and the curve refinement are dropped. Between them they are
+ * most of a crossing's vertices and neither survives being a few pixels wide.
+ * The deck, the rails and the supports are built at every ring: they are the
+ * silhouette, and a bridge that loses its silhouette reads as a gap in the road.
+ */
+USTRUCT(BlueprintType)
+struct KBVEWORLDCORE_API FKBVEWorldBridgeLod
+{
+	GENERATED_BODY()
+
+	/**
+	 * Samples kept along the swept deck, against the shape's own subdivision.
+	 *
+	 * The deck line is refined at the shape's full rate whatever this says, and
+	 * this thins the refined line before it is swept. That order is the whole of
+	 * why the level is safe to change under a moving viewer: the route's length
+	 * is what the abutment march walks and what the pier bays divide, so solving
+	 * on a coarser line would stand the masonry somewhere else and the supports
+	 * would jump as the ring changed. Thinning afterwards moves nothing.
+	 *
+	 * Both ends are kept, so the join at the abutment is the same geometry at
+	 * every level and only the middle of the curve loses samples.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bridge|Lod",
+		meta = (ClampMin = "1", ClampMax = "16"))
+	int32 CurveSubdivisions = 5;
+
+	/**
+	 * Whether the girders and cross beams under the deck are built.
+	 *
+	 * How far the frame reaches is still solved when this is off, because that
+	 * is what decides which bays are worth a pier -- dropping the frame changes
+	 * what is drawn and never where a support stands. The supports rise to the
+	 * deck rather than stopping under a frame that is not there, so the far
+	 * level is a subset of the near one and nothing opens a gap under the deck.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bridge|Lod")
+	bool bFrame = true;
+
+	/**
+	 * Whether the repeated boxes come back as transforms rather than triangles.
+	 *
+	 * The piers, the abutments and the cross beams are all a box somewhere, and a
+	 * box is the one thing worth handing to an instanced mesh instead of building
+	 * per chunk. Off, they are triangulated into the meshes below as before, which
+	 * is what a caller with no mesh to instance needs.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bridge|Lod")
+	bool bInstancedParts = false;
+};
+
+/**
+ * One box a crossing stands or hangs somewhere, as a place and a size.
+ *
+ * Kept as a centre, a rotation and a size rather than as a transform so that a
+ * caller can scale whatever mesh a level gave it onto the box. A bridge has no
+ * idea how big the cube it is being drawn with was authored.
+ */
+struct FKBVEWorldBridgePart
+{
+	FVector Centre = FVector::ZeroVector;
+	FQuat Rotation = FQuat::Identity;
+	FVector Size = FVector::ZeroVector;
+};
+
+/** Everything one crossing produces. */
+struct FKBVEWorldBridgeMesh
 {
 	/**
-	 * Build one crossing from the road polyline and the span that is over water.
-	 *
-	 * Wood and stone come back as separate meshes because they are separate
-	 * materials, and a material change inside one procedural mesh section is not
-	 * a thing -- two sections is the cheapest form of the split.
+	 * Wood and stone are separate meshes because they are separate materials,
+	 * and a material change inside one procedural mesh section is not a thing --
+	 * two sections is the cheapest form of the split.
 	 */
-	static void Build(const FKBVEWorldBridgeParams& Bridge, const FKBVEWorldRoadParams& Road,
-		const FKBVEWorldHeightfieldParams& Shape, int32 Seed, const FKBVEWorldRoadField* Field,
-		const TArray<FVector>& Path, const FKBVEWorldRoadSpan& Span,
-		FKBVEWorldRibbonMesh& OutWood, FKBVEWorldRibbonMesh& OutStone);
+	FKBVEWorldRibbonMesh Wood;
+	FKBVEWorldRibbonMesh Stone;
+
+	/**
+	 * The supports as the boxes they were before they were triangulated.
+	 *
+	 * Filled whether or not the parts are instanced, because this is what the
+	 * supports collide as: cooking a pier's twelve triangles buys nothing over
+	 * the convex hull it already is.
+	 */
+	TArray<FBox> Blocks;
+
+	/** The boxes to instance, when the level gave a mesh to instance them with. */
+	TArray<FKBVEWorldBridgePart> StoneParts;
+	TArray<FKBVEWorldBridgePart> WoodParts;
+};
+
+struct KBVEWORLDCORE_API FKBVEWorldBridge
+{
+	/** Build one crossing from the road polyline and the span that is over water. */
+	static void Build(const FKBVEWorldBridgeParams& Bridge, const FKBVEWorldBridgeLod& Lod,
+		const FKBVEWorldRoadParams& Road, const FKBVEWorldHeightfieldParams& Shape, int32 Seed,
+		const FKBVEWorldRoadField* Field, const TArray<FVector>& Path,
+		const FKBVEWorldRoadSpan& Span, FKBVEWorldBridgeMesh& Out);
 };

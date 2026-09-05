@@ -9,8 +9,10 @@
 
 #include "KBVEWorldRoadNetwork.generated.h"
 
+class UKBVEWorldInstancePool;
 class UMaterialInterface;
 class UProceduralMeshComponent;
+class UStaticMesh;
 
 /**
  * The bridges the two road edges one chunk owns need.
@@ -29,15 +31,33 @@ class KBVEWORLD_API AKBVEWorldRoadChunk : public AActor
 public:
 	AKBVEWorldRoadChunk();
 
+	/**
+	 * The parts a crossing wants instanced, alongside the geometry it keeps.
+	 *
+	 * Handed back rather than submitted here: the pool holds one component for
+	 * the whole world, so it belongs to the network and a chunk has no business
+	 * reaching into it.
+	 */
+	struct FParts
+	{
+		TArray<FTransform> Stone;
+		TArray<FTransform> Wood;
+	};
+
 	void Build(const FIntPoint& InCoord, int32 InSeed, const FKBVEWorldRoadParams& Road,
-		const FKBVEWorldBridgeParams& Bridge, const FKBVEWorldHeightfieldParams& Shape,
-		const FKBVEWorldRoadField* Field, UMaterialInterface* WoodMaterial,
-		UMaterialInterface* StoneMaterial);
+		const FKBVEWorldBridgeParams& Bridge, const FKBVEWorldBridgeLod& Lod,
+		const FKBVEWorldHeightfieldParams& Shape, const FKBVEWorldRoadField* Field,
+		UMaterialInterface* WoodMaterial, UMaterialInterface* StoneMaterial,
+		const UStaticMesh* PartMesh, float MaxDrawDistance, bool bInDetailed,
+		FParts& OutParts);
 
 	void Release();
 
 	const FIntPoint& GetCoord() const { return Coord; }
 	bool IsActive() const { return bActive; }
+
+	/** The level this chunk's geometry was built at, so a changed ring can requeue it. */
+	bool IsDetailed() const { return bDetailed; }
 
 private:
 	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
@@ -48,6 +68,7 @@ private:
 
 	FIntPoint Coord = FIntPoint::ZeroValue;
 	bool bActive = false;
+	bool bDetailed = true;
 };
 
 /**
@@ -102,6 +123,32 @@ public:
 	int32 MaxBuildsPerTick = 2;
 
 	/**
+	 * Rings whose crossings are built with their under-frame and their full
+	 * curve refinement.
+	 *
+	 * A procedural mesh section has one level of detail and no screen-size
+	 * reduction of its own, so without this every girder, cross beam and
+	 * subdivided rail quad at the edge of the window is drawn at full density
+	 * for a bridge a few pixels wide. The window is rebuilt when it moves, which
+	 * is what makes the ring the cheapest place to answer this.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road|Lod",
+		meta = (ClampMin = "0"))
+	int32 DetailRadiusChunks = 1;
+
+	/**
+	 * How far past the window's own edge a crossing keeps drawing, in chunks.
+	 *
+	 * Zero draws to the far plane. The margin is there because the cull is a
+	 * hard cut and the window's edge is where chunks are released anyway: culling
+	 * exactly at it would put the two pops in the same place and make one visible
+	 * pop out of two invisible ones.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road|Lod",
+		meta = (ClampMin = "0.0"))
+	float DrawDistanceMarginChunks = 1.0f;
+
+	/**
 	 * Assigned from the level, the same contract the terrain streamer has for
 	 * its own material. The plugin is game-agnostic and has no business knowing
 	 * an asset path in some project's content.
@@ -111,6 +158,22 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road")
 	TObjectPtr<UMaterialInterface> StoneMaterial;
+
+	/**
+	 * A cube, for the parts of a crossing that are one.
+	 *
+	 * The piers, the abutments and the cross beams are all a box, and a box is
+	 * worth handing to an instanced mesh rather than building into every chunk
+	 * that holds one: instanced, a pier here and a pier five chunks away are one
+	 * draw call between them, and the cost stops growing with the world. Left
+	 * unset they are triangulated into the chunk as before, so a level that has
+	 * assigned nothing still gets its bridges.
+	 *
+	 * Any cube of any size, centred on its own origin -- the scale onto each box
+	 * is worked out from the mesh's bounds rather than assumed.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road|Lod")
+	TObjectPtr<UStaticMesh> PartMesh;
 
 	virtual void Tick(float DeltaSeconds) override;
 
@@ -126,6 +189,7 @@ private:
 	bool TryGetViewLocation(FVector& Out) const;
 	class AKBVEWorldStreamer* FindStreamer();
 	FIntPoint ChunkCoordAt(const FVector& WorldLocation) const;
+	bool WantsDetail(const FIntPoint& Centre, const FIntPoint& Coord) const;
 	void ReleaseOutsideRadius(const FIntPoint& Centre);
 	void QueueInsideRadius(const FIntPoint& Centre);
 
@@ -137,6 +201,12 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<class AKBVEWorldStreamer> Streamer;
+
+	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
+	TObjectPtr<UKBVEWorldInstancePool> Parts;
+
+	int32 StoneBucket = INDEX_NONE;
+	int32 WoodBucket = INDEX_NONE;
 
 	TArray<FIntPoint> Pending;
 	FIntPoint LastCentre = FIntPoint(MAX_int32, MAX_int32);
