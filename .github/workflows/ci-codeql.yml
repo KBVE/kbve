@@ -36,6 +36,16 @@ jobs:
     # where the wall clock is nobody's critical path. Rust in a PR is still
     # analysed -- on the push to dev that merging it produces, one merge later
     # than before.
+
+    # The config file drops two crates from the rust extractor's input set.
+    # hardware/esp32c6-display is its own workspace targeting
+    # riscv32imac-unknown-none-elf, and crates/uniti/fuzz needs nightly and
+    # cargo-fuzz; neither toolchain exists on the runner, so the vendored
+    # rust-analyzer resolves them against no sysroot. Feeding it those was
+    # enough to panic the extractor outright on bundle 2.26.4 --
+    # "Unable to fetch file text for `vfs::FileId`" out of index-files.sh --
+    # and even before that they were paying query time for code the queries
+    # cannot say anything useful about.
     analyze:
         name: Analyze (${{ matrix.language }})
         runs-on: ubuntu-latest
@@ -63,6 +73,7 @@ jobs:
               with:
                   languages: ${{ matrix.language }}
                   build-mode: ${{ matrix.build-mode }}
+                  config-file: ./.github/codeql/codeql-config.yml
 
             - name: Perform CodeQL Analysis
               uses: github/codeql-action/analyze@v4
