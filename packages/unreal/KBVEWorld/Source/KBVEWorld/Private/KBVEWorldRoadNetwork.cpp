@@ -162,7 +162,23 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 		TArray<FVector>& Path = EdgePaths[Step];
 		const FIntPoint Edge = In.Coord + Neighbours[Step];
 
-		FKBVEWorldRoadGraph::RouteEdge(RoadParams, Shape, InSeed, In.Coord, Edge, Path);
+		// Taken from the field rather than routed again. EnsureCovers above has
+		// already run this exact edge through Viterbi and kept the result, so
+		// routing here is a second pass for an answer that is already held -- and
+		// it is not even the same answer. The field smooths the route's profile
+		// before storing it, and that smoothed height is the one the terrain is
+		// graded to, which is what FindRiverSpans says it wants to measure the
+		// water against. Routing here got the raw profile instead, so the ground
+		// and the crossings could disagree about where a river is.
+		if (const TArray<FVector>* Routed = Field ? Field->FindEdge(In.Coord, Step) : nullptr)
+		{
+			Path = *Routed;
+		}
+		else
+		{
+			FKBVEWorldRoadGraph::RouteEdge(RoadParams, Shape, InSeed, In.Coord, Edge, Path);
+		}
+
 		if (Path.Num() < 2)
 		{
 			continue;
