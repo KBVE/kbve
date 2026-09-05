@@ -78,6 +78,7 @@ public:
 		UMaterialInterface* WoodMaterial = nullptr;
 		UMaterialInterface* StoneMaterial = nullptr;
 		UMaterialInterface* BrickMaterial = nullptr;
+		UMaterialInterface* RoofMaterial = nullptr;
 		const UStaticMesh* PartMesh = nullptr;
 	};
 
@@ -115,6 +116,23 @@ public:
 	/** The buildings this chunk owns, as Mass entities. */
 	const TArray<FMassEntityHandle>& GetBuildings() const { return Buildings; }
 
+	/**
+	 * Where the last build's time went, split by what spent it.
+	 *
+	 * One number for a chunk says only that it was slow. The reason to split it
+	 * is that the three things a chunk builds have completely different fixes --
+	 * routing is a Viterbi pass, the fences are instanced, the masonry is
+	 * triangles -- and optimising the wrong one is the usual way to spend a day.
+	 */
+	struct FTimings
+	{
+		float RouteMs = 0.0f;
+		float FenceMs = 0.0f;
+		float MasonryMs = 0.0f;
+	};
+
+	const FTimings& GetTimings() const { return Timings; }
+
 private:
 	/** One entity per run, spawned once the seed has decided where the runs are. */
 	void SpawnFenceRuns(const FBuild& In);
@@ -134,7 +152,7 @@ private:
 	void ReleaseBuildings();
 
 	/** Build every building at whatever detail its entity currently asks for. */
-	void BuildMasonry(const FBuild& In, struct FKBVEWorldRibbonMesh& Out);
+	void BuildStructures(const FBuild& In, struct FKBVEWorldBuildingMesh& Out);
 
 	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
 	TObjectPtr<UProceduralMeshComponent> Wood;
@@ -154,6 +172,15 @@ private:
 	 */
 	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
 	TObjectPtr<UProceduralMeshComponent> Brick;
+
+	/**
+	 * The roofs, which are their own section because they are their own material.
+	 *
+	 * Brick walls under tile or shingle is what everywhere with both settled on,
+	 * and a roof drawn in the wall's material reads as a building nobody finished.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
+	TObjectPtr<UProceduralMeshComponent> Roof;
 
 	/**
 	 * The routes this chunk's two edges took, kept rather than re-solved.
@@ -183,6 +210,8 @@ private:
 
 	TArray<FMassEntityHandle> Buildings;
 	TArray<FKBVEWorldBuildingPlan> Plans;
+
+	FTimings Timings;
 
 	FIntPoint Coord = FIntPoint::ZeroValue;
 	bool bActive = false;
@@ -301,6 +330,9 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road")
 	TObjectPtr<UMaterialInterface> BrickMaterial;
 
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road")
+	TObjectPtr<UMaterialInterface> RoofMaterial;
+
 	/**
 	 * A cube, for the parts of a crossing that are one.
 	 *
@@ -357,4 +389,7 @@ private:
 	TArray<FIntPoint> Pending;
 	FIntPoint LastCentre = FIntPoint(MAX_int32, MAX_int32);
 	float LastBuildMs = 0.0f;
+
+	/** Summed across the chunks of one window fill, so the log names the cost. */
+	AKBVEWorldRoadChunk::FTimings FillTimings;
 };

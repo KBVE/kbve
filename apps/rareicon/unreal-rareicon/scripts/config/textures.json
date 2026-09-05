@@ -41,6 +41,16 @@
 			"displacement": true,
 			"source": "World",
 			"destination": "/Game/Textures/World"
+		},
+		{
+			"stem": "T_RoofSlate",
+			"pack": "Free RoofTextures/RoofTexture (82)",
+			"base": "RoofTexture (82)",
+			"textures_subdir": "",
+			"flip_green": false,
+			"displacement": true,
+			"source": "World",
+			"destination": "/Game/Textures/World"
 		}
 	],
 	"terrain_material": {
@@ -62,6 +72,10 @@
 		{
 			"path": "/Game/Textures/World/M_RareIcon_Brick",
 			"stem": "T_ChurchBrick"
+		},
+		{
+			"path": "/Game/Textures/World/M_RareIcon_Roof",
+			"stem": "T_RoofSlate"
 		}
 	],
 	"water_material": {

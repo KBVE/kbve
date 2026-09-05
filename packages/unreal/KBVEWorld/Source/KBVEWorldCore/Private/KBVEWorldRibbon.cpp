@@ -339,3 +339,26 @@ void FKBVEWorldRibbon::AppendQuad(FKBVEWorldRibbonMesh& Out, const FVector& P0, 
 	const FVector2D UVs[4] = { UV0, UV1, UV2, UV3 };
 	AddQuad(Out, P0, P1, P2, P3, UVs);
 }
+
+void FKBVEWorldRibbon::AppendTri(FKBVEWorldRibbonMesh& Out, const FVector& P0, const FVector& P1,
+	const FVector& P2, const FVector2D& UV0, const FVector2D& UV1, const FVector2D& UV2)
+{
+	const FVector Normal = FVector::CrossProduct(P1 - P0, P2 - P0).GetSafeNormal();
+	const FVector Tangent = (P1 - P0).GetSafeNormal();
+	const int32 Base = Out.Vertices.Num();
+
+	const FVector Corners[3] = { P0, P1, P2 };
+	const FVector2D UVs[3] = { UV0, UV1, UV2 };
+	for (int32 I = 0; I < 3; ++I)
+	{
+		Out.Vertices.Add(Corners[I]);
+		Out.Normals.Add(Normal);
+		Out.UV0.Add(UVs[I]);
+		Out.Tangents.Add(FProcMeshTangent(Tangent, false));
+	}
+
+	// Wound against the stated normal, as everything else here is.
+	Out.Triangles.Add(Base + 0);
+	Out.Triangles.Add(Base + 2);
+	Out.Triangles.Add(Base + 1);
+}

@@ -6,6 +6,7 @@
 #include "Engine/Engine.h"
 #include "Engine/World.h"
 #include "GameFramework/Pawn.h"
+#include "GameFramework/PawnMovementComponent.h"
 #include "GameFramework/PlayerController.h"
 #include "KBVEWorldHeightfieldActor.h"
 #include "ProceduralMeshComponent.h"
@@ -411,6 +412,8 @@ void AKBVEWorldStreamer::Tick(float DeltaSeconds)
 #endif
 
 	FVector ViewLocation;
+	HoldOrRelease();
+
 	TryGetViewLocation(ViewLocation);
 	const FIntPoint Centre = StableChunkCoordAt(ViewLocation);
 
@@ -529,6 +532,64 @@ void AKBVEWorldStreamer::BeginPlay()
 {
 	Super::BeginPlay();
 	LastCentre = FIntPoint(MAX_int32, MAX_int32);
+
+	// Before anything streams, because the answer is what to stream around.
+	const int32 Seed = FKBVEWorldHeightfield::SeedFromWorld(WorldSeed);
+	WorldPlan = FKBVEWorldPlanner::Make(Plan, Road, Shape, Seed);
+
+	if (!WorldPlan.bValid)
+	{
+		// Worth saying plainly rather than starting anyway. Nothing within reach
+		// of the origin was dry and level, which is a property of the seed and
+		// not of anything that can be fixed by waiting.
+		UE_LOG(LogKBVEWorldStream, Warning,
+			TEXT("seed %lld offered nowhere to start within %d chunks"), WorldSeed,
+			Plan.SearchRadiusChunks);
+		return;
+	}
+
+	UE_LOG(LogKBVEWorldStream, Display,
+		TEXT("start at %.0f,%.0f in chunk %d,%d (%s)"), WorldPlan.Spawn.X, WorldPlan.Spawn.Y,
+		WorldPlan.SpawnChunk.X, WorldPlan.SpawnChunk.Y,
+		WorldPlan.bOnRoad ? TEXT("on the network") : TEXT("open country"));
+
+	bHolding = bHoldPlayerUntilReady;
+	HoldOrRelease();
+}
+
+void AKBVEWorldStreamer::HoldOrRelease()
+{
+	if (!bHolding)
+	{
+		return;
+	}
+
+	const UWorld* World = GetWorld();
+	const APlayerController* PC = World ? World->GetFirstPlayerController() : nullptr;
+	APawn* Pawn = PC ? PC->GetPawn() : nullptr;
+	if (!Pawn)
+	{
+		return;
+	}
+
+	// Put down every tick rather than frozen once. A pawn can be told to stop in
+	// a dozen ways depending on what it is, and this plugin does not know what it
+	// is -- but every one of them ends up somewhere, and this is where.
+	Pawn->SetActorLocation(WorldPlan.Spawn, false, nullptr, ETeleportType::TeleportPhysics);
+	if (UPawnMovementComponent* Movement = Pawn->GetMovementComponent())
+	{
+		Movement->StopMovementImmediately();
+	}
+
+	// Let go once the queue has run dry. That is the whole window built, not
+	// merely the chunk underfoot: releasing at the first patch drops the player
+	// onto an island with the rest of the world still arriving around them.
+	if (Pending.Num() == 0 && Live.Num() > 0)
+	{
+		bHolding = false;
+		UE_LOG(LogKBVEWorldStream, Display,
+			TEXT("world ready, releasing the player onto %d patches"), Live.Num());
+	}
 }
 
 void AKBVEWorldStreamer::EndPlay(const EEndPlayReason::Type Reason)
