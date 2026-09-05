@@ -3,7 +3,7 @@ import { resolve } from 'path';
 
 export default function globalTeardown() {
 	const workspaceRoot = resolve(__dirname, '../../../..');
-	const composePath = 'apps/discordsh/poc/docker-compose-poc-dev.yaml';
+	const composePath = 'apps/discordsh/web/e2e/mock/docker-compose.yaml';
 
 	try {
 		execSync(`docker compose -f ${composePath} down --remove-orphans`, {

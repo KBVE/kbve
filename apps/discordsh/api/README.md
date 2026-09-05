@@ -160,25 +160,24 @@ The full e2e pipeline runs via `nx e2e discordsh`:
 
 ```bash
 # Full pipeline (unit tests → docker build → docker e2e → mock e2e)
-moon run e2e discordsh
+moon run discordsh:e2e
 
 # Individual steps
-cargo test -p discordsh-api                    # unit tests
-moon run container discordsh-api          # docker build
-moon run e2e:docker discordsh-web-e2e          # playwright vs container
-moon run e2e:mock discordsh-web-e2e            # playwright vs mockoon stack
+cargo test -p discordsh-api                  # unit tests
+moon run discordsh-api:containerx            # docker build
+moon run discordsh-web-e2e:e2e-docker        # playwright vs container
+moon run discordsh-web-e2e:e2e-mock          # playwright vs mockoon stack
 
-# Mock stack only (without Nx)
-docker compose -f apps/discordsh/poc/docker-compose-poc-dev.yaml up
+# Mock stack only
+docker compose -f apps/discordsh/web/e2e/mock/docker-compose.yaml up
 ```
 
 ### Mock Stack Architecture
 
 ```
-docker-compose-poc-dev.yaml
-├── mockoon-github    (port 4010) — GitHub REST API mock
-├── mockoon-discord   (port 4011) — Discord REST API mock
-└── discordsh         (port 4321) — bot with GITHUB_API_BASE_URL → mockoon
+apps/discordsh/web/e2e/mock/docker-compose.yaml
+├── mockoon-github  (port 4010) — GitHub REST API mock
+└── discordsh       (port 4321) — this service, GITHUB_API_BASE_URL → mockoon
 ```
 
-See [poc/README.md](../poc/README.md) for mock route details and CI integration guide.
+See [the mock stack README](../web/e2e/mock/README.md) for its routes and limitations.

@@ -1,0 +1,62 @@
+# Mockoon-backed stack behind `moon run discordsh-web-e2e:e2e-mock`.
+#
+# Usage:
+#   docker compose -f apps/discordsh/web/e2e/mock/docker-compose.yaml up
+#
+# Architecture:
+#   discordsh-api      — the axum service (apps/discordsh/api)      (port 4321)
+#   mockoon-github     — mockoon/cli serving github-mock.json       (port 4010)
+#
+# The service here is the HTTP API, not the bot. The bot exits once its
+# gateway connection fails, and serenity has no DISCORD_TOKEN it will accept
+# from a mock, so a bot container would take the whole stack down with
+# --abort-on-container-exit. GITHUB_API_BASE_URL is read by the bot rather
+# than the API (apps/discordsh/bot/src/discord/), so the redirect below only
+# takes effect for a stack run with a real token against the bot image.
+
+services:
+    # ── Mockoon: GitHub API Mock ──────────────────────────────────────
+    mockoon-github:
+        image: mockoon/cli:latest
+        command:
+            [
+                '--data',
+                '/data/github-mock.json',
+                '--port',
+                '4010',
+                '--hostname',
+                '0.0.0.0',
+            ]
+        volumes:
+            - ./mockoon:/data:ro
+        ports:
+            - '4010:4010'
+        healthcheck:
+            test:
+                ['CMD', 'wget', '-qO-', 'http://127.0.0.1:4010/repos/KBVE/kbve']
+            interval: 5s
+            timeout: 5s
+            retries: 10
+            start_period: 10s
+        restart: unless-stopped
+
+    # ── discordsh api ─────────────────────────────────────────────────
+    # Uses a pre-built image when DISCORDSH_IMAGE is set (the e2e-mock task
+    # passes the tag containerx built), otherwise builds from the Dockerfile.
+    discordsh:
+        image: ${DISCORDSH_IMAGE:-}
+        build:
+            context: ../../../../../
+            dockerfile: apps/discordsh/api/Dockerfile
+        ports:
+            - '${DISCORDSH_PORT:-4321}:${DISCORDSH_PORT:-4321}'
+        environment:
+            GITHUB_API_BASE_URL: 'http://mockoon-github:4010'
+            GITHUB_TOKEN: 'mock-github-pat-for-local-testing'
+            HTTP_HOST: '0.0.0.0'
+            HTTP_PORT: '${DISCORDSH_PORT:-4321}'
+            RUST_LOG: 'discordsh_api=debug,tower_http=debug,kbve=debug,jedi=debug'
+        depends_on:
+            mockoon-github:
+                condition: service_healthy
+        restart: unless-stopped

@@ -21,7 +21,13 @@ tasks:
             runFromWorkspaceRoot: true
             cache: false
     e2e-mock:
-        command: 'playwright test --config=$projectSource/playwright.mock.config.ts'
+        # The mock compose stack runs kbve/discordsh:<Cargo version> via
+        # DISCORDSH_IMAGE. Without that tag on the host, compose falls back to
+        # its own `build:` stanza, which has no protobuf:build behind it and
+        # dies in `cargo chef cook` on the gitignored packages/proto. containerx
+        # carries that dep, so building through it is what keeps the fallback
+        # from ever being taken.
+        script: 'moon run discordsh-api:containerx && playwright test --config=$projectSource/playwright.mock.config.ts'
         toolchains: ['node']
         options:
             runFromWorkspaceRoot: true
