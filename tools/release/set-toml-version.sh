@@ -55,7 +55,7 @@ if [ "$MODE" = "get" ]; then
 	exit $?
 fi
 
-# POSIX awk only — docker-test-app.yml runs on a caller-supplied runner that may
+# POSIX awk only — utils-docker-test-app.yml runs on a caller-supplied runner that may
 # ship busybox, where GNU sed's `0,/re/` address is silently ignored.
 if awk -v v="$VERSION" '
 	/^[ \t]*\[/ {

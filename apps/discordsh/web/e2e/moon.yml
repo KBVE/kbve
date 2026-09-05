@@ -1,0 +1,34 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'automation'
+language: 'typescript'
+tags: ['playwright']
+
+# Nx also listed the axum/gateway service here, but those projects are not
+# in moon's graph yet. The edge is added when they are ported.
+dependsOn: ['discordsh-web']
+
+tasks:
+    e2e-docker:
+        # The suite runs kbve/<app>:<Cargo version>, which nothing in CI built --
+        # it only ever existed after a publish, so the run died on "manifest
+        # unknown". containerx tags that version. This is a `moon run` rather
+        # than a dep because discordsh-api already depends on this project through
+        # its own e2e task, and the edge would close a cycle.
+        script: 'moon run discordsh-api:containerx && playwright test --config=$projectSource/playwright.docker.config.ts'
+        toolchains: ['node']
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+    e2e-mock:
+        # The mock compose stack runs kbve/discordsh:<Cargo version> via
+        # DISCORDSH_IMAGE. Without that tag on the host, compose falls back to
+        # its own `build:` stanza, which has no protobuf:build behind it and
+        # dies in `cargo chef cook` on the gitignored packages/proto. containerx
+        # carries that dep, so building through it is what keeps the fallback
+        # from ever being taken.
+        script: 'moon run discordsh-api:containerx && playwright test --config=$projectSource/playwright.mock.config.ts'
+        toolchains: ['node']
+        options:
+            runFromWorkspaceRoot: true
+            cache: false

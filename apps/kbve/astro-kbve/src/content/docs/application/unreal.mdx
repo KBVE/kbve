@@ -390,7 +390,7 @@ Unreal builds require significant disk space and memory. Plan CI runner specs ac
 The KBVE monorepo runs two Unreal Engine workflows:
 
 - **`.github/workflows/ci-unreal.yml`** — Dispatch router (receives workflow_dispatch calls)
-- **`.github/workflows/ci-unreal-build.yml`** — Worker (game, server, win-setup, mac-setup modes)
+- **`.github/workflows/utils-unreal-build.yml`** — Worker (game, server, win-setup, mac-setup modes)
 
 #### Server Build Flow
 
@@ -831,7 +831,7 @@ xcodebuild -license accept
 
 ### CI Workflow
 
-The `ci-unreal.yml` workflow (`task: mac-setup`, routes to `ci-unreal-build.yml` mode `mac-setup`) follows the same two-job pattern as Windows:
+The `ci-unreal.yml` workflow (`task: mac-setup`, routes to `utils-unreal-build.yml` mode `mac-setup`) follows the same two-job pattern as Windows:
 1. **Linux runner**: stages downloads via download-proxy (aria2c)
 2. **macOS VM runner**: installs from staged files on the shared PVC
 

@@ -1,0 +1,80 @@
+name: Organize Labels
+
+on:
+    issues:
+        types: [labeled]
+
+permissions:
+    issues: write
+    contents: read
+
+jobs:
+    # One label fires per event, so fifteen conditional jobs meant fourteen
+    # skipped runners and a needs: list to match. The label-to-field mapping is
+    # data, and lives in the table below.
+    assign:
+        name: 'Label Automation'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+        steps:
+            - uses: actions/checkout@v7
+
+            - name: Resolve the label to a project field
+              id: map
+              uses: actions/github-script@v9
+              with:
+                  script: |
+                      const FIELDS = {
+                        codex: ['Status', 'AI'],
+                        enhancement: ['Status', 'Theory'],
+                        update: ['Status', 'Todo'],
+                        media: ['Status', 'Theory'],
+                        bug: ['Status', 'Error'],
+                        todo: ['Status', 'Todo'],
+                        backlog: ['Status', 'Backlog'],
+                        'help wanted': ['Status', 'Support'],
+                        ...Object.fromEntries(
+                          [0, 1, 2, 3, 4, 5, 6].map((n) => [String(n), ['Matrix', String(n)]]),
+                        ),
+                      };
+
+                      const label = context.payload.label?.name ?? '';
+                      const field = FIELDS[label];
+
+                      if (!field) {
+                        core.info(`No project field mapped for label '${label}' — nothing to do.`);
+                        core.setOutput('matched', 'false');
+                        return;
+                      }
+
+                      core.info(`Label '${label}' → ${field[0]} = ${field[1]}`);
+                      core.setOutput('matched', 'true');
+                      core.setOutput('key', field[0]);
+                      core.setOutput('value', field[1]);
+
+            - name: Move the issue on the project board
+              if: steps.map.outputs.matched == 'true'
+              uses: ./.github/actions/gql-project-migration
+              with:
+                  token: ${{ secrets.KBVE_PAT }}
+                  key: ${{ steps.map.outputs.key }}
+                  value: ${{ steps.map.outputs.value }}
+                  idref: ${{ github.event.issue.node_id }}
+
+    # ---------------------------------------------------------------------------
+    # Failure tracker — surfaces failures as GitHub issues (#8186).
+    # Event-driven label automation — low risk but tracked for completeness.
+    # ---------------------------------------------------------------------------
+    track-label-jobs:
+        name: Track Label Automation
+        if: always()
+        needs: [assign]
+        permissions:
+            issues: write
+        uses: ./.github/workflows/utils-ci-failure-tracker.yml
+        with:
+            workflow_name: 'Organize Labels'
+            job_name: 'Label Automation'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ needs.assign.result == 'failure' && 'failure' || 'success' }}

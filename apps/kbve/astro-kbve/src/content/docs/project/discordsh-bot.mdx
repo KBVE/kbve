@@ -12,9 +12,9 @@ key: discordsh_bot
 pipeline: docker
 app_name: discordsh-bot
 version: "0.1.35"
-source_path: apps/discordsh/discordsh-bot
-version_toml: apps/discordsh/discordsh-bot/version.toml
-version_target: apps/discordsh/discordsh-bot/Cargo.toml
+source_path: apps/discordsh/bot
+version_toml: apps/discordsh/bot/version.toml
+version_target: apps/discordsh/bot/Cargo.toml
 runner: ubuntu-latest
 image: kbve/discordsh-bot
 deployment_yaml: apps/kube/discordsh/manifest/discordsh-bot-deployment.yaml
@@ -35,7 +35,7 @@ next: false
 jsonld:
     faq:
         - question: What is the DiscordSH Bot?
-          answer: discordsh-bot is the standalone Discord gateway bot extracted from the axum-discordsh monolith. It handles all Discord interactions independently of the HTTP server, built on the poise/serenity gateway with shard support.
+          answer: discordsh-bot is the standalone Discord gateway bot extracted from the discordsh-api monolith. It handles all Discord interactions independently of the HTTP server, built on the poise/serenity gateway with shard support.
         - question: What can the DiscordSH Bot do?
           answer: It serves slash commands (/github, /gh, /dungeon, /ping, /status, /health, /restart, /cleanup, /skills, /wm), runs an embed dungeon game with bevy_battle combat and bevy_inventory items, manages GitHub issues and PRs with SVG card rendering, persists players via Supabase, and runs allowlisted Windmill scripts in-cluster.
         - question: How does the /wm command stay secure?
@@ -45,14 +45,14 @@ bento:
     title: Standalone gateway bot
     accent: DiscordSH Bot
     lede: >-
-        The standalone Discord gateway bot extracted from the axum-discordsh
+        The standalone Discord gateway bot extracted from the discordsh-api
         monolith. Built on the poise/serenity gateway with shard support, it
         handles every Discord interaction independently of the HTTP server —
         slash commands, an embed dungeon game, GitHub management, and a
         namespace-pinned Windmill job runner.
     ctas:
         - label: View source
-          href: https://github.com/KBVE/kbve/tree/main/apps/discordsh/discordsh-bot
+          href: https://github.com/KBVE/kbve/tree/main/apps/discordsh/bot
           primary: true
           external: true
         - label: Features
@@ -108,7 +108,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 
 <BentoProse id="overview" eyebrow="Responsibilities" heading="Overview & features">
 
-`discordsh-bot` is the standalone Discord gateway bot extracted from the axum-discordsh monolith. It handles all Discord interactions independently of the HTTP server.
+`discordsh-bot` is the standalone Discord gateway bot extracted from the discordsh-api monolith. It handles all Discord interactions independently of the HTTP server.
 
 ### Features
 
@@ -124,7 +124,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 
 <BentoProse id="env" eyebrow="Configuration" heading="Environment variables">
 
-Required at runtime. In production the values come from `discordsh-config` (ConfigMap) and the `discordsh-redis-secret` / `discordsh-supabase-shared` / `discordsh-windmill-token` Secrets. For the dev container, drop them into `apps/discordsh/discordsh-bot/.env` (loaded via `dotenvy` at startup) — anything missing simply disables the related feature instead of failing the boot.
+Required at runtime. In production the values come from `discordsh-config` (ConfigMap) and the `discordsh-redis-secret` / `discordsh-supabase-shared` / `discordsh-windmill-token` Secrets. For the dev container, drop them into `apps/discordsh/bot/.env` (loaded via `dotenvy` at startup) — anything missing simply disables the related feature instead of failing the boot.
 
 ### Core
 

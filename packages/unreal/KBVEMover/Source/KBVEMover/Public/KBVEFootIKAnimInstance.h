@@ -5,6 +5,7 @@
 #include "Animation/AnimInstanceProxy.h"
 #include "Animation/AnimNode_SequencePlayer.h"
 #include "BoneContainer.h"
+#include "KBVEWeaponGrip.h"
 
 #include "KBVEFootIKAnimInstance.generated.h"
 
@@ -125,6 +126,23 @@ struct FKBVEFootIKProxy : public FAnimInstanceProxy
 
 	float WristTwistShare = 1.0f;
 	float MaxForearmTwistDegrees = 45.0f;
+	FVector SupportHandTrim = FVector::ZeroVector;
+	FTransform SupportHandSocket = FTransform::Identity;
+
+	// The socket as solved, including where along the wood the arm chose to
+	// take hold. Read back so the debug draw marks the point the hand is
+	// actually sent to: drawing the authored one put a phantom gap between the
+	// wrist and its target and cost an evening chasing a miss that was not one.
+	mutable FTransform SolvedSupportSocket = FTransform::Identity;
+
+	// Where the wrist was actually sent, in the weapon's own space.
+	//
+	// Separate from the socket because they are deliberately not the same point
+	// -- the socket is on the wood and the wrist stands off it by the hand's own
+	// length -- and a bench that measured the gap between them reported the
+	// standoff as a miss, every frame, on a hold that had landed exactly.
+	mutable FVector SolvedSupportTarget = FVector::ZeroVector;
+	bool bHasSupportSocket = false;
 
 	// Fit the weapon to the hands instead of the hands to the weapon.
 	//
@@ -182,6 +200,21 @@ struct FKBVEFootIKProxy : public FAnimInstanceProxy
 	float ForeEndHalfWidth = 0.0f;
 	float ForeEndHalfHeight = 0.0f;
 	float ForeEndCentreHeight = 0.0f;
+
+	// The weapon's own underside, a slice at a time, as the import pipeline
+	// measured it. The three averages above are what a weapon predating this
+	// falls back to; these are what the fingers are actually closed against,
+	// because a fore-end that swells at the barrel band and stops at the muzzle
+	// is not describable by one ellipse and a finger past the end of the wood
+	// scored the same as one resting on it.
+	TArray<FKBVEGripSlab> ForeEndProfile;
+	float ProfileSlabWidth = 0.0f;
+
+	// Which weapon the copy above came from. Comparing the arrays themselves
+	// would mean comparing a hundred floats every frame to discover that the
+	// weapon has not changed, and comparing their lengths would mean two
+	// weapons of the same length silently sharing a profile.
+	const UKBVEWeaponGrip* ProfileSource = nullptr;
 	float GripWristOffset = 0.0f;
 	float GripKnuckleClearance = 0.0f;
 	float GripAlongBarrel = 0.0f;
@@ -233,6 +266,34 @@ private:
 	 * bends forward, an elbow bends back, and using the leg's fallback here
 	 * inverts the arm.
 	 */
+	/**
+	 * The support hand's orientation, worked out from the weapon rather than
+	 * tuned. False when the skeleton or the weapon cannot supply the frame, in
+	 * which case the clip's own wrist stands.
+	 */
+	bool DeriveGripRotation(const FBoneContainer& Container, const FQuat& WeaponRotation,
+		const FQuat& ClipHandRotation, FQuat& OutRotation, FVector& OutWristOffset,
+		FVector& OutElbowDirection) const;
+
+	/**
+	 * Close the support hand's fingers onto the weapon's fore-end.
+	 *
+	 * Run after the wrist is placed and the authored pose applied, because both
+	 * are inputs to it: this decides only how much further each finger has to
+	 * close to reach wood that the clip knows nothing about.
+	 */
+	/**
+	 * Where along the fore-end the support hand takes hold, given the arm.
+	 *
+	 * Returns DefaultAlong when the sliding hold is off or the weapon states no
+	 * extent for its woodwork.
+	 */
+	float ChooseGripAlong(const FBoneContainer& Container, const FTransform& WeaponToComponent,
+		const FVector& Shoulder, float DefaultAlong) const;
+
+	void WrapFingers(FCompactPose& Pose, const FBoneContainer& Container,
+		const FTransform& HandComponent, const FTransform& WeaponToComponent) const;
+
 	void SolveArm(FCSPose<FCompactPose>& Pose, const FBoneReference& UpperArm, const FBoneReference& LowerArm,
 		const FBoneReference& Hand, const FVector& Target, const FVector& ElbowDirection,
 		const FQuat& HandRotation, float Alpha, float RotationAlpha,
@@ -253,18 +314,6 @@ private:
 	void CurlFingers(FCompactPose& Pose, const TArray<FBoneReference>& Fingers,
 		float FingerDegrees, float ThumbDegrees) const;
 
-	/**
-	 * Solve the whole support grip against the weapon rather than pose it.
-	 *
-	 * Three solves, in the only order they work in: the wrist is rolled around
-	 * the bore to the angle a support wrist belongs at, the hand is turned so
-	 * its own palm plane faces the bore axis, and then each finger is closed
-	 * about its bend axis until some part of it touches the fore-end cylinder.
-	 * The third step is what removes the tuned constants -- a finger stops where
-	 * the weapon stops it, so a thinner fore-end simply closes further.
-	 */
-	void SolveGrip(FCSPose<FCompactPose>& Pose, const FTransform& WeaponTransform,
-		TArray<float>& OutCurlDegrees) const;
 };
 
 UCLASS()
@@ -504,7 +553,7 @@ public:
 	bool bSolveLeftHandToWeapon = true;
 
 	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
-	float LeftHandIKAlpha = 0.0f;
+	float LeftHandIKAlpha = 1.0f;
 
 	/**
 	 * Where the support wrist belongs, in the weapon's space.
@@ -558,6 +607,33 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
 	FTransform WeaponRelativeToHand = FTransform::Identity;
+
+	/**
+	 * The support-hand socket the solve actually used, in weapon space.
+	 *
+	 * Read back rather than read off the asset, because the console overrides
+	 * the asset: drawing the authored value while a socket is being dialled
+	 * marks where the hand is no longer being sent, which is worse than drawing
+	 * nothing at all.
+	 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KBVE|Animation|Weapon")
+	FTransform ResolvedSupportSocket = FTransform::Identity;
+
+	/**
+	 * The point the wrist was actually solved to, in weapon space.
+	 *
+	 * Not the socket. The socket is on the wood and the wrist stands off it by
+	 * the hand's own length, so the distance between them is the hold working
+	 * rather than failing -- and a bench measuring wrist-to-socket reported a
+	 * steady eight-centimetre miss on a grip that had landed dead on. One is
+	 * "is the target in the right place", the other is "did the arm get there",
+	 * and they need separate numbers or neither is answerable.
+	 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KBVE|Animation|Weapon")
+	FVector ResolvedSupportTarget = FVector::ZeroVector;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KBVE|Animation|Weapon")
+	bool bResolvedSupportSocketValid = false;
 
 	/**
 	 * Extra curl on the support hand, degrees per joint, added to the clip.

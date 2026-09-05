@@ -3,10 +3,7 @@
 	"weapons": [
 		{
 			"asset": "DA_Grip_BoltAction762",
-			"fore_end_half_width": 2.1,
-			"fore_end_half_height": 3.5,
-			"fore_end_centre_height": 3.3,
-			"grip_along_barrel": -18.0,
+			"mesh": "/Game/Weapons/SK_Rifle_BoltAction762",
 			"grip_angle_degrees": 270.0,
 			"knuckle_clearance": 0.6,
 			"support_hand_pose_time": 0.0,
@@ -24,14 +21,12 @@
 			"attach_offset": {
 				"location": [-36.8, 3.41, -0.38],
 				"rotation": [0.0, 180.0, 0.0]
-			}
+			},
+			"support_hand_socket": { "rotation": [0.0, 0.0, 0.0] }
 		},
 		{
 			"asset": "DA_Grip_SS2V5",
-			"fore_end_half_width": 2.44,
-			"fore_end_half_height": 3.41,
-			"fore_end_centre_height": 6.34,
-			"grip_along_barrel": 22.0,
+			"mesh": "/Game/Weapons/SK_Rifle_SS2V5",
 			"grip_angle_degrees": 270.0,
 			"knuckle_clearance": 0.6,
 			"finger_pose": {
@@ -47,7 +42,8 @@
 			"attach_offset": {
 				"location": [-7.8, 3.41, 3.62],
 				"rotation": [0.0, 180.0, 0.0]
-			}
+			},
+			"support_hand_socket": { "rotation": [0.0, 0.0, 0.0] }
 		}
 	]
 }

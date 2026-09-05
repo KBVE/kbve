@@ -7,8 +7,8 @@
 #   ci-godot.yml (x3)     listed with `ls-files -n | grep -q`, no retry
 #   ci-godot-tests.yml    listed into a file, no retry
 #   ci-unity.yml (x2)     no listing, no stub check at all
-#   ci-blender-flow.yml   no listing, no stub check
-#   ci-unreal-build.yml   auth preflight and retries, no stub check
+#   utils-blender-flow.yml  no listing, no stub check
+#   utils-unreal-build.yml  auth preflight and retries, no stub check
 #
 # The disagreements were not style. Each copy caught a different failure and
 # shipped the others, and every one of those failures presents as something

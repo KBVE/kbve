@@ -19,7 +19,7 @@ spec:
                 rollout-restart: '2026-06-14T15:27:33Z'
             labels:
                 app: irc-gateway
-                version: 0.1.25
+                version: '0.1.32'
         spec:
             containers:
                 - name: irc-gateway

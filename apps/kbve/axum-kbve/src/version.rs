@@ -10,7 +10,7 @@
 //! Fix: read `Cargo.toml` from disk at startup. CI's pre-build sync step
 //! bumps `apps/kbve/axum-kbve/Cargo.toml` from the api.mdx source before
 //! the image build (see `utils-publish-docker-image.yml` +
-//! `docker-test-app.yml`), and the Dockerfile copies that file into the
+//! `utils-docker-test-app.yml`), and the Dockerfile copies that file into the
 //! runtime image. Each image carries its own canonical version next to
 //! the binary, no env var coupling — single source of truth that travels
 //! with the image.

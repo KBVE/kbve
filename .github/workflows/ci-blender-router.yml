@@ -3,7 +3,7 @@ name: CI - Blender Router
 run-name: 'CI - Blender / ${{ inputs.task }} ${{ inputs.app_name }} (${{ inputs.lfs_backend }})'
 
 # Dispatch entry point. Validates inputs, resolves the LFS backend, then hands
-# off to the reusable ci-blender-flow.yml builder which runs headless Blender on
+# off to the reusable utils-blender-flow.yml builder which runs headless Blender on
 # the self-hosted mac-blender runner.
 
 on:
@@ -162,7 +162,7 @@ jobs:
     flow:
         name: Blender flow
         needs: resolve
-        uses: ./.github/workflows/ci-blender-flow.yml
+        uses: ./.github/workflows/utils-blender-flow.yml
         with:
             task: ${{ inputs.task }}
             app_name: ${{ inputs.app_name }}

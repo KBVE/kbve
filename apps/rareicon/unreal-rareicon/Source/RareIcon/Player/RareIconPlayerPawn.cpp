@@ -18,6 +18,7 @@
 #include "KBVEFootIKAnimInstance.h"
 #include "KBVEWeaponGrip.h"
 #include "GameFramework/SpringArmComponent.h"
+#include "Camera/CameraComponent.h"
 #include "UnrealClient.h"
 #include "KBVEWorldHeightfield.h"
 #include "KBVEWorldStreamer.h"
@@ -72,6 +73,53 @@ namespace
 	// The control this whole grip investigation lacked: if the left wrist still
 	// reads as twisted with nothing solving it, the twist is authored into the
 	// animation and no solver change was ever going to fix it.
+	// A bench for the grip: idle clip, camera parked on the weapon, nothing
+	// moving. A day of this was spent launching the editor, entering play and
+	// chasing a walking character with a screenshot to judge where a thumb sat.
+	// Frozen, not merely idling. The idle clip breathes and sways, which is
+	// enough to make a still of a thumb impossible to line up against the last
+	// one -- and comparing two stills is the entire point of a bench. Zero holds
+	// the first frame; set it to 1 to watch the hold move.
+	static float GGripLabRate = 0.0f;
+	static FAutoConsoleVariableRef CVarGripLabRate(
+		TEXT("rareicon.Grip.LabRate"), GGripLabRate,
+		TEXT("Play rate for the held idle clip in the grip lab. 0 freezes it."), ECVF_Default);
+
+	static int32 GGripLab = 0;
+	static FAutoConsoleVariableRef CVarGripLab(
+		TEXT("rareicon.Grip.Lab"), GGripLab,
+		TEXT("1 holds the idle pose and parks the camera on the weapon, for judging a grip."),
+		ECVF_Default);
+
+	// Name every bone the grip touches, on screen, with a leader line out to the
+	// label. Saying "the wrist looks twisted" and "lower lowerarm_twist_02_l by
+	// three degrees" are different sentences, and only one of them is actionable.
+	// On by default while the grip is being worked on: the whole point is that
+	// nobody should have to remember a console command to see which bone is
+	// which. Set to 0 when the hands are settled.
+	static int32 GGripBones = 1;
+	static FAutoConsoleVariableRef CVarGripBones(
+		TEXT("rareicon.Grip.Bones"), GGripBones,
+		TEXT("1 labels the support arm and finger roots, 2 labels every finger joint."),
+		ECVF_Default);
+
+	// Where the label column sits and how big it reads, live. The camera
+	// framing earlier cost a dozen rebuilds to find an angle by trial; this is
+	// dialable from the console instead.
+	static float GGripBonesSide = -30.0f;
+	static float GGripBonesSpread = 3.2f;
+	static float GGripBonesText = 2.0f;
+	static FAutoConsoleVariableRef CVarGripBonesSide(
+		TEXT("rareicon.Grip.BonesSide"), GGripBonesSide,
+		TEXT("Sideways offset of the bone label column, cm. Negative puts it clear of the weapon."),
+		ECVF_Default);
+	static FAutoConsoleVariableRef CVarGripBonesSpread(
+		TEXT("rareicon.Grip.BonesSpread"), GGripBonesSpread,
+		TEXT("Vertical gap between bone labels, cm."), ECVF_Default);
+	static FAutoConsoleVariableRef CVarGripBonesText(
+		TEXT("rareicon.Grip.BonesText"), GGripBonesText,
+		TEXT("Bone label font scale."), ECVF_Default);
+
 	static int32 GWeaponHide = 0;
 	static FAutoConsoleVariableRef CVarWeaponHide(
 		TEXT("rareicon.Weapon.Hide"), GWeaponHide,
@@ -171,6 +219,18 @@ namespace
 	// cylinder is not lying inside the rendered barrel then every grip number
 	// downstream is being measured against a rifle that is not there, and no
 	// amount of finger solving converges.
+	// Report the mannequin's weapon-IK bones against the weapon, once a second.
+	//
+	// Whether these clips animate ik_hand_l decides the whole approach, and it
+	// is not a thing to judge by eye: a bone welded to the wrist and a bone
+	// authored onto a fore-end can sit a few centimetres apart and look alike
+	// through a viewport. Moving over time and sitting near the wood is the
+	// answer, and both are numbers.
+	static int32 GGripIKReport = 0;
+	static FAutoConsoleVariableRef CVarGripIKReport(
+		TEXT("rareicon.Grip.IKReport"), GGripIKReport,
+		TEXT("Log ik_hand_gun and ik_hand_l against the weapon once a second."), ECVF_Default);
+
 	static int32 GWeaponDrawBore = 0;
 	// Frame the support hand and photograph it, so a grip can be looked at
 	// instead of inferred from joint angles. Six rounds of this were spent
@@ -260,7 +320,7 @@ void ARareIconPlayerPawn::Tick(float DeltaSeconds)
 
 	// A close, fixed view of the support hand, held from the moment play starts
 	// so the shot below lands on a settled pose rather than a spawn frame.
-	if (GGripShotSeconds >= 0.0f && Mesh && CameraBoom)
+	if ((GGripShotSeconds >= 0.0f || GGripLab != 0) && Mesh && CameraBoom)
 	{
 		// Framed on the weapon in world space, not on a hand in the pawn's own
 		// frame. Aiming at hand_l meant the character turned into the shot and
@@ -280,16 +340,215 @@ void ARareIconPlayerPawn::Tick(float DeltaSeconds)
 		CameraBoom->TargetArmLength = GGripShotDist;
 		CameraBoom->bDoCollisionTest = false;
 
+		// The boom follows the controller by default, which quietly threw away
+		// every rotation set above: two bench runs at ninety degrees apart came
+		// out pixel for pixel identical, so the one control that frames the
+		// weapon did nothing and the shot was whatever the character faced.
+		CameraBoom->bUsePawnControlRotation = false;
+
 		GripShotElapsed += DeltaSeconds;
 		if (GripShotElapsed >= GGripShotSeconds && !bGripShotTaken)
 		{
 			bGripShotTaken = true;
-			FScreenshotRequest::RequestScreenshot(false);
+			// With the UI, because that is where the debug text lives: bone
+			// labels go through the HUD, and asking for a screenshot without
+			// the UI strips the labels out of the very shot taken to check them.
+			FScreenshotRequest::RequestScreenshot(true);
 			UE_LOG(LogTemp, Display, TEXT("grip shot: requested at %.1fs"), GripShotElapsed);
 		}
 		else if (bGripShotTaken && GripShotElapsed >= GGripShotSeconds + 1.5f)
 		{
 			FPlatformMisc::RequestExit(false);
+		}
+	}
+
+	if (GGripIKReport > 0 && Mesh)
+	{
+		IKReportElapsed += DeltaSeconds;
+		if (IKReportElapsed >= 1.0f)
+		{
+			IKReportElapsed = 0.0f;
+			const FTransform Gun = Mesh->GetSocketTransform(TEXT("ik_hand_gun"), RTS_Component);
+			const FTransform IKL = Mesh->GetSocketTransform(TEXT("ik_hand_l"), RTS_Component);
+			const FTransform HandL = Mesh->GetSocketTransform(TEXT("hand_l"), RTS_Component);
+			const FTransform HandR = Mesh->GetSocketTransform(TEXT("hand_r"), RTS_Component);
+
+			// Relative to the gun bone, because that is the frame a hold would
+			// be authored in: a constant here means unanimated, whatever the
+			// character is doing.
+			const FVector RelGun = Gun.InverseTransformPosition(IKL.GetLocation());
+
+			// Reach against requirement, which is the question a miss actually
+			// raises: an arm that cannot get there and an arm aimed somewhere
+			// wrong both leave the hand off the weapon and look identical.
+			const FTransform Shoulder = Mesh->GetSocketTransform(TEXT("upperarm_l"), RTS_Component);
+			const FTransform Elbow = Mesh->GetSocketTransform(TEXT("lowerarm_l"), RTS_Component);
+			const float ArmLength =
+				FVector::Dist(Shoulder.GetLocation(), Elbow.GetLocation())
+				+ FVector::Dist(Elbow.GetLocation(), HandL.GetLocation());
+
+			// Against the point the arm was sent to, not the point on the wood.
+			//
+			// They are deliberately different -- a wrist stands off a rifle by
+			// the length of the hand in front of it -- so scoring the wrist
+			// against the wood reported a fixed eight-centimetre miss on a grip
+			// that had landed exactly, and no amount of solving would ever have
+			// cleared it. The standoff is reported beside it as its own figure,
+			// because a hand that is not standing off is a different fault.
+			FVector SocketAt = FVector::ZeroVector;
+			FVector TargetAt = FVector::ZeroVector;
+			float NeedReach = 0.0f;
+			const UKBVEFootIKAnimInstance* Solved =
+				Cast<UKBVEFootIKAnimInstance>(Mesh->GetAnimInstance());
+			if (Solved && Solved->bResolvedSupportSocketValid && WeaponMesh)
+			{
+				const FTransform Weapon = WeaponMesh->GetComponentTransform();
+				const FTransform ToLocal = Mesh->GetComponentTransform();
+				SocketAt = ToLocal.InverseTransformPosition(
+					(Solved->ResolvedSupportSocket * Weapon).GetLocation());
+				TargetAt = ToLocal.InverseTransformPosition(
+					Weapon.TransformPosition(Solved->ResolvedSupportTarget));
+				NeedReach = FVector::Dist(Shoulder.GetLocation(), TargetAt);
+			}
+
+			UE_LOG(LogTemp, Display,
+				TEXT("grip reach: shoulder(%.1f %.1f %.1f) socket(%.1f %.1f %.1f) "
+					 "target(%.1f %.1f %.1f) need=%.1f arm=%.1f slack=%+.1f miss=%.1f standoff=%.1f"),
+				Shoulder.GetLocation().X, Shoulder.GetLocation().Y, Shoulder.GetLocation().Z,
+				SocketAt.X, SocketAt.Y, SocketAt.Z, TargetAt.X, TargetAt.Y, TargetAt.Z,
+				NeedReach, ArmLength, ArmLength - NeedReach,
+				FVector::Dist(TargetAt, HandL.GetLocation()),
+				FVector::Dist(SocketAt, HandL.GetLocation()));
+
+			UE_LOG(LogTemp, Display,
+				TEXT("grip ik: gun(%.1f %.1f %.1f) ik_l(%.1f %.1f %.1f) rel_gun(%.2f %.2f %.2f) "
+					 "hand_l(%.1f %.1f %.1f) |ik_l-hand_l|=%.2f |gun-hand_r|=%.2f"),
+				Gun.GetLocation().X, Gun.GetLocation().Y, Gun.GetLocation().Z,
+				IKL.GetLocation().X, IKL.GetLocation().Y, IKL.GetLocation().Z,
+				RelGun.X, RelGun.Y, RelGun.Z,
+				HandL.GetLocation().X, HandL.GetLocation().Y, HandL.GetLocation().Z,
+				FVector::Dist(IKL.GetLocation(), HandL.GetLocation()),
+				FVector::Dist(Gun.GetLocation(), HandR.GetLocation()));
+		}
+	}
+
+	// The support-hand skeleton, named.
+	if (GGripBones > 0 && Mesh)
+	{
+		// The mannequin's own weapon-IK bones, alongside the arm they exist to
+		// drive. Manny carries ik_hand_gun and ik_hand_l, which is where a rifle
+		// hold is conventionally authored: the weapon mounts to the first and
+		// the animator poses the second onto its fore-end, leaving IK to enforce
+		// a hold rather than invent one. Whether these clips actually animate
+		// them is the question, and drawing them is how it gets answered.
+		static const TCHAR* Arm[] = {
+			TEXT("lowerarm_l"), TEXT("lowerarm_twist_02_l"), TEXT("lowerarm_twist_01_l"), TEXT("hand_l"),
+			TEXT("ik_hand_gun"), TEXT("ik_hand_l"),
+		};
+		static const TCHAR* Chains[] = {
+			TEXT("thumb"), TEXT("index"), TEXT("middle"), TEXT("ring"), TEXT("pinky"),
+		};
+
+		TArray<FName, TInlineAllocator<24>> Bones;
+		for (const TCHAR* Name : Arm)
+		{
+			Bones.Add(FName(Name));
+		}
+		for (const TCHAR* Chain : Chains)
+		{
+			const int32 Last = GGripBones > 1 ? 3 : 1;
+			for (int32 Joint = 1; Joint <= Last; ++Joint)
+			{
+				Bones.Add(FName(*FString::Printf(TEXT("%s_0%d_l"), Chain, Joint)));
+			}
+		}
+
+		// Labels stacked in a column beside the hand rather than sitting on the
+		// bones: at finger scale the text would overlap into an unreadable pile.
+		const FVector Anchor = Mesh->GetSocketLocation(TEXT("hand_l"));
+
+		// Stacked against the camera, not against the character. Offsetting
+		// along the actor's right vector puts the column edge-on or behind the
+		// hand as the pawn turns, and the lab camera holds a fixed world yaw
+		// rather than following the pawn, so the two drift apart immediately.
+		FVector Right = GetActorRightVector();
+		FVector Up = FVector::UpVector;
+		if (FollowCamera)
+		{
+			const FRotator View = FollowCamera->GetComponentRotation();
+			Right = FRotationMatrix(View).GetScaledAxis(EAxis::Y);
+			Up = FRotationMatrix(View).GetScaledAxis(EAxis::Z);
+		}
+
+		// A hue per finger, dimming toward the fingertip.
+		//
+		// Every finger drawn the same colour is what makes a bad hold hard to
+		// report: the picture says a knuckle is wrong and cannot say which
+		// knuckle, so the reply is "it looks bad" and the next guess is blind.
+		// Named colours the eye separates at finger scale, and the wrist white
+		// because it is the joint every one of these arguments is about.
+		auto ChainColour = [](int32 Chain, int32 Joint) -> FColor
+		{
+			static const FColor Hues[] = {
+				FColor(255, 140, 0),    // thumb
+				FColor(60, 220, 60),    // index
+				FColor(255, 0, 255),    // middle
+				FColor(80, 150, 255),   // ring
+				FColor(255, 230, 0),    // pinky
+			};
+			const FColor Hue = Hues[Chain % UE_ARRAY_COUNT(Hues)];
+			const float Fade = Joint <= 0 ? 1.0f : (Joint == 1 ? 0.72f : 0.5f);
+			return FColor(uint8(Hue.R * Fade), uint8(Hue.G * Fade), uint8(Hue.B * Fade));
+		};
+
+		const int32 ArmCount = UE_ARRAY_COUNT(Arm);
+		const int32 JointsPerChain = GGripBones > 1 ? 3 : 1;
+
+		for (int32 Index = 0; Index < Bones.Num(); ++Index)
+		{
+			const int32 BoneIndex = Mesh->GetBoneIndex(Bones[Index]);
+			if (BoneIndex == INDEX_NONE)
+			{
+				continue;
+			}
+			const FVector At = Mesh->GetBoneLocation(Bones[Index]);
+			// By name, not by position in the list. Highlighting the last arm
+			// entry marked whichever bone happened to be appended most recently
+			// -- which, once the IK bones were added for inspection, was not the
+			// wrist at all. The one bone every one of these arguments is about
+			// was the one drawn in the wrong colour.
+			const bool bArm = Index < ArmCount;
+			const bool bWrist = Bones[Index] == FName(TEXT("hand_l"));
+
+			FColor Colour = FColor::White;
+			if (!bArm)
+			{
+				const int32 Finger = Index - ArmCount;
+				Colour = ChainColour(Finger / JointsPerChain, Finger % JointsPerChain);
+			}
+			else if (!bWrist)
+			{
+				Colour = FColor(0, 190, 190);
+			}
+
+			DrawDebugSphere(GetWorld(), At, bWrist ? 1.4f : 0.9f, 10, Colour, false, -1.0f,
+				SDPG_Foreground, bWrist ? 0.5f : 0.3f);
+
+			const FVector Label = Anchor
+				+ Up * (Bones.Num() * GGripBonesSpread * 0.5f - Index * GGripBonesSpread)
+				+ Right * GGripBonesSide;
+			DrawDebugLine(GetWorld(), At, Label, Colour, false, -1.0f, SDPG_Foreground, 0.35f);
+			DrawDebugString(GetWorld(), Label, Bones[Index].ToString(), nullptr, Colour, 0.0f,
+				true, GGripBonesText);
+		}
+
+		// The forearm's own line, so a twist reads against something straight.
+		const int32 Elbow = Mesh->GetBoneIndex(TEXT("lowerarm_l"));
+		if (Elbow != INDEX_NONE)
+		{
+			DrawDebugLine(GetWorld(), Mesh->GetBoneLocation(TEXT("lowerarm_l")),
+				Mesh->GetBoneLocation(TEXT("hand_l")), FColor(0, 190, 190), false, -1.0f,
+				SDPG_Foreground, 0.2f);
 		}
 	}
 
@@ -376,42 +635,102 @@ void ARareIconPlayerPawn::Tick(float DeltaSeconds)
 		{
 			AnimInstance->WeaponRelativeToHand = Tuned;
 
-			if (GWeaponDrawBore > 0)
+			// The socket rides with the bone labels rather than behind DrawBore.
+			//
+			// It is the whole of the grip now -- one transform the arm is solved
+			// to -- and the same argument that put the bone names on by default
+			// applies twice over to the point they are all being measured
+			// against. The bore and the fore-end box stay behind their own
+			// switch: those are the weapon, and the weapon is on screen.
+			if (GWeaponDrawBore > 0 || GGripBones > 0)
 			{
 				const FTransform Weapon = WeaponMesh->GetComponentTransform();
 
 				// The fore-end as the solver models it: a block under the barrel,
 				// not a cylinder on the bore. Drawn at its measured section so a
 				// glance says whether the two agree.
-				const float Centre = AnimInstance->ForeEndCentreHeight;
-				DrawDebugBox(GetWorld(),
-					Weapon.TransformPosition(FVector(AnimInstance->LeftHandTargetLocal.X, 0.0f, Centre)),
-					FVector(7.0f, AnimInstance->ForeEndHalfWidth, AnimInstance->ForeEndHalfHeight),
-					Weapon.GetRotation(), FColor::Cyan, false, -1.0f, 0, 0.3f);
+				//
+				// Weapon geometry in grey and the things the hands are aimed at
+				// in red, so the two questions a bad hold raises -- is the target
+				// in the wrong place, or is the hand failing to reach a right one
+				// -- never wear the same colour.
+				if (GWeaponDrawBore > 0)
+				{
+					const float Centre = AnimInstance->ForeEndCentreHeight;
+					DrawDebugBox(GetWorld(),
+						Weapon.TransformPosition(FVector(AnimInstance->LeftHandTargetLocal.X, 0.0f, Centre)),
+						FVector(7.0f, AnimInstance->ForeEndHalfWidth, AnimInstance->ForeEndHalfHeight),
+						Weapon.GetRotation(), FColor(130, 130, 130), false, -1.0f, SDPG_Foreground, 0.3f);
 
-				const FVector Breech = Weapon.TransformPosition(FVector(-45.0f, 0.0f, AnimInstance->WeaponBoreHeight));
-				const FVector Muzzle = Weapon.TransformPosition(FVector(10.0f, 0.0f, AnimInstance->WeaponBoreHeight));
-				DrawDebugLine(GetWorld(), Breech, Muzzle, FColor::Blue, false, -1.0f, 0, 0.2f);
-				DrawDebugSphere(GetWorld(),
-					Weapon.TransformPosition(AnimInstance->LeftHandTargetLocal), 1.5f, 12,
-					FColor::Yellow, false, -1.0f, 0, 0.3f);
-				DrawDebugSphere(GetWorld(), Weapon.TransformPosition(AnimInstance->RightGripLocal), 1.5f, 12,
-					FColor::Red, false, -1.0f, 0, 0.3f);
+					const FVector Breech =
+						Weapon.TransformPosition(FVector(-45.0f, 0.0f, AnimInstance->WeaponBoreHeight));
+					const FVector Muzzle =
+						Weapon.TransformPosition(FVector(10.0f, 0.0f, AnimInstance->WeaponBoreHeight));
+					DrawDebugLine(GetWorld(), Breech, Muzzle, FColor(90, 90, 90), false, -1.0f,
+						SDPG_Foreground, 0.2f);
+				}
 
-				if (Mesh)
+				// Where the support hand is actually being sent, and facing which
+				// way. The socket is the whole of the grip now, and dialling one
+				// blind is what a debug draw exists to stop: a wrist that will
+				// not sit right is a different problem from a wrist being aimed
+				// at a point off the weapon, and they look alike on a character.
+				if (AnimInstance->bResolvedSupportSocketValid)
+				{
+					const FTransform Socket = AnimInstance->ResolvedSupportSocket * Weapon;
+					DrawDebugSphere(GetWorld(), Socket.GetLocation(), 1.5f, 12,
+						FColor::Red, false, -1.0f, SDPG_Foreground, 0.3f);
+					DrawDebugCoordinateSystem(GetWorld(), Socket.GetLocation(), Socket.Rotator(), 8.0f,
+						false, -1.0f, SDPG_Foreground, 0.3f);
+					DrawDebugString(GetWorld(), Socket.GetLocation() + FVector(0.0f, 0.0f, 3.0f),
+						TEXT("socket"), nullptr, FColor::Red, 0.0f, true, GGripBonesText);
+
+					// Where the wrist was sent, drawn apart from where the palm
+					// is meant to land. Orange to the red of the socket, because
+					// the gap between the two is the hand's own length and
+					// reading it as a miss is exactly the mistake that cost an
+					// evening: the line that matters runs from the wrist to the
+					// orange point, and it should be short.
+					const FVector TargetWorld =
+						Weapon.TransformPosition(AnimInstance->ResolvedSupportTarget);
+					DrawDebugSphere(GetWorld(), TargetWorld, 1.2f, 12,
+						FColor(255, 150, 0), false, -1.0f, SDPG_Foreground, 0.3f);
+					DrawDebugLine(GetWorld(), Socket.GetLocation(), TargetWorld,
+						FColor(120, 60, 0), false, -1.0f, SDPG_Foreground, 0.2f);
+
+					// Wrist to target, the length of the miss.
+					//
+					// The one measurement a still frame will not give up: an arm
+					// solved short and an arm solved to the wrong place look the
+					// same on a character, and this is the line between them.
+					if (Mesh)
+					{
+						DrawDebugLine(GetWorld(), Mesh->GetSocketLocation(TEXT("hand_l")),
+							TargetWorld, FColor::Red, false, -1.0f, SDPG_Foreground, 0.35f);
+					}
+				}
+				if (GWeaponDrawBore > 0)
+				{
+					DrawDebugSphere(GetWorld(), Weapon.TransformPosition(AnimInstance->RightGripLocal),
+						1.5f, 12, FColor(140, 0, 0), false, -1.0f, SDPG_Foreground, 0.3f);
+				}
+
+				if (GWeaponDrawBore > 0 && Mesh)
 				{
 					// Which wrist is which, because a screenshot does not say and
 					// the two are solved by completely different things: the left
 					// is placed by the grip solve, the right is whatever the clip
 					// animated and is never touched here.
 					DrawDebugSphere(GetWorld(), Mesh->GetSocketLocation(TEXT("hand_l")), 2.0f, 12,
-						FColor::Green, false, -1.0f, 0, 0.4f);
+						FColor::White, false, -1.0f, SDPG_Foreground, 0.4f);
 					DrawDebugSphere(GetWorld(), Mesh->GetSocketLocation(TEXT("hand_r")), 2.0f, 12,
-						FColor::Magenta, false, -1.0f, 0, 0.4f);
+						FColor(120, 120, 120), false, -1.0f, SDPG_Foreground, 0.4f);
 					DrawDebugLine(GetWorld(), Mesh->GetSocketLocation(TEXT("lowerarm_l")),
-						Mesh->GetSocketLocation(TEXT("hand_l")), FColor::Green, false, -1.0f, 0, 0.4f);
+						Mesh->GetSocketLocation(TEXT("hand_l")), FColor::White, false, -1.0f,
+						SDPG_Foreground, 0.4f);
 					DrawDebugLine(GetWorld(), Mesh->GetSocketLocation(TEXT("lowerarm_r")),
-						Mesh->GetSocketLocation(TEXT("hand_r")), FColor::Magenta, false, -1.0f, 0, 0.4f);
+						Mesh->GetSocketLocation(TEXT("hand_r")), FColor(120, 120, 120), false, -1.0f,
+						SDPG_Foreground, 0.4f);
 				}
 			}
 		}
@@ -464,6 +783,21 @@ void ARareIconPlayerPawn::UpdateLocomotionAnimation(float DeltaSeconds)
 {
 	if (!Mesh)
 	{
+		return;
+	}
+
+	// Held on idle so the hands stop moving while they are being looked at.
+	if (GGripLab != 0 && IdleAnim)
+	{
+		if (CurrentAnim != IdleAnim || !FMath::IsNearlyEqual(CurrentLabRate, GGripLabRate))
+		{
+			CurrentAnim = IdleAnim;
+			CurrentLabRate = GGripLabRate;
+			if (UKBVEFootIKAnimInstance* Anim = Cast<UKBVEFootIKAnimInstance>(Mesh->GetAnimInstance()))
+			{
+				Anim->SetLocomotionClip(IdleAnim, GGripLabRate);
+			}
+		}
 		return;
 	}
 

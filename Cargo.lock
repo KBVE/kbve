@@ -2275,34 +2275,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "axum-discordsh"
-version = "0.1.46"
-dependencies = [
- "anyhow",
- "askama",
- "axum 0.8.9",
- "axum-extra",
- "dotenvy",
- "http-body-util",
- "jedi",
- "kbve",
- "num_cpus",
- "reqwest 0.13.4",
- "serde",
- "serde_json",
- "serial_test",
- "socket2 0.6.5",
- "sysinfo 0.38.4",
- "thiserror 2.0.19",
- "tikv-jemallocator",
- "tokio",
- "tower 0.5.3",
- "tower-http 0.7.0",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "axum-extra"
 version = "0.12.6"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6577,6 +6549,34 @@ dependencies = [
  "option-ext",
  "redox_users",
  "windows-sys 0.61.2",
+]
+
+[[package]]
+name = "discordsh-api"
+version = "0.1.46"
+dependencies = [
+ "anyhow",
+ "askama",
+ "axum 0.8.9",
+ "axum-extra",
+ "dotenvy",
+ "http-body-util",
+ "jedi",
+ "kbve",
+ "num_cpus",
+ "reqwest 0.13.4",
+ "serde",
+ "serde_json",
+ "serial_test",
+ "socket2 0.6.5",
+ "sysinfo 0.38.4",
+ "thiserror 2.0.19",
+ "tikv-jemallocator",
+ "tokio",
+ "tower 0.5.3",
+ "tower-http 0.7.0",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]

@@ -132,6 +132,15 @@ def import_mesh():
     options.set_editor_property(
         "mesh_type_to_import", unreal.FBXImportType.FBXIT_SKELETAL_MESH
     )
+    # Convex bodies around the weapon's own parts, built by the engine.
+    #
+    # The support hand needs something to close against, and every attempt to
+    # supply that by hand has been a set of measured numbers per weapon -- a
+    # fore-end modelled as an ellipse, its width, height and centre dialled in
+    # against one rifle and wrong for the next. A physics asset is the same
+    # information taken off the mesh, in the mesh's own frame, for any weapon
+    # that imports. Nothing simulates: it is geometry to query.
+    options.set_editor_property("create_physics_asset", True)
 
     mesh_data = options.skeletal_mesh_import_data
     # The source is metric at scale 1.0 and the FBX carries its own unit scale,

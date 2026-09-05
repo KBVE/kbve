@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-09-04T05:51:38Z",
+  "generated_at": "2026-09-05T05:31:02Z",
   "summary": {
     "critical": 3,
-    "high": 43,
-    "medium": 64,
-    "low": 9,
+    "high": 38,
+    "medium": 55,
+    "low": 8,
     "info": 33
   },
   "ecosystems": {
     "npm": {
-      "total": 100,
+      "total": 85,
       "severities": {
         "critical": 3,
-        "high": 43,
-        "medium": 45,
-        "low": 9,
+        "high": 38,
+        "medium": 36,
+        "low": 8,
         "info": 0
       },
       "advisories": [
@@ -45,13 +45,6 @@
           "severity": "high",
           "package": "rollup",
           "url": "https://github.com/advisories/GHSA-mw96-cpmx-2vgc"
-        },
-        {
-          "id": "1113715",
-          "title": "ajv has ReDoS when using `$data` option",
-          "severity": "medium",
-          "package": "ajv",
-          "url": "https://github.com/advisories/GHSA-2g4f-4pwh-qvx6"
         },
         {
           "id": "1113719",
@@ -103,20 +96,6 @@
           "url": "https://github.com/advisories/GHSA-48c2-rrv3-qjmp"
         },
         {
-          "id": "1115806",
-          "title": "lodash vulnerable to Code Injection via `_.template` imports key names",
-          "severity": "high",
-          "package": "lodash",
-          "url": "https://github.com/advisories/GHSA-r5fr-rjxr-66jc"
-        },
-        {
-          "id": "1115810",
-          "title": "lodash vulnerable to Prototype Pollution via array path bypass in `_.unset` and `_.omit`",
-          "severity": "medium",
-          "package": "lodash",
-          "url": "https://github.com/advisories/GHSA-f23m-r3pf-42rh"
-        },
-        {
           "id": "1119440",
           "title": "Serialize JavaScript has CPU Exhaustion Denial of Service via crafted array-like objects",
           "severity": "medium",
@@ -138,13 +117,6 @@
           "url": "https://github.com/advisories/GHSA-q8mj-m7cp-5q26"
         },
         {
-          "id": "1120370",
-          "title": "Lodash has Prototype Pollution Vulnerability in `_.unset` and `_.omit` functions",
-          "severity": "medium",
-          "package": "lodash",
-          "url": "https://github.com/advisories/GHSA-xxjr-mmjv-4gpg"
-        },
-        {
           "id": "1120680",
           "title": "esbuild allows arbitrary file read when running the development server on Windows",
           "severity": "low",
@@ -160,13 +132,6 @@
         },
         {
           "id": "1120785",
-          "title": "launch-editor: NTLMv2 hash disclosure via UNC path handling on Windows",
-          "severity": "medium",
-          "package": "vite",
-          "url": "https://github.com/advisories/GHSA-v6wh-96g9-6wx3"
-        },
-        {
-          "id": "1120786",
           "title": "launch-editor: NTLMv2 hash disclosure via UNC path handling on Windows",
           "severity": "medium",
           "package": "vite",
@@ -258,13 +223,6 @@
         },
         {
           "id": "1123526",
-          "title": "vite: `server.fs.deny` bypass on Windows alternate paths",
-          "severity": "high",
-          "package": "vite",
-          "url": "https://github.com/advisories/GHSA-fx2h-pf6j-xcff"
-        },
-        {
-          "id": "1123527",
           "title": "vite: `server.fs.deny` bypass on Windows alternate paths",
           "severity": "high",
           "package": "vite",
@@ -390,13 +348,6 @@
           "url": "https://github.com/advisories/GHSA-mh99-v99m-4gvg"
         },
         {
-          "id": "1130709",
-          "title": "PostCSS: incomplete fix of GHSA-6g55-p6wh-862q \u2014 attacker-controlled sourceMappingURL reads arbitrary .map files when `from` is unset",
-          "severity": "medium",
-          "package": "postcss",
-          "url": "https://github.com/advisories/GHSA-fxqj-rqcc-2cmp"
-        },
-        {
           "id": "1130715",
           "title": "undici vulnerable to downstream response desynchronization via retry interceptor",
           "severity": "medium",
@@ -488,41 +439,6 @@
           "url": "https://github.com/advisories/GHSA-35p6-xmwp-9g52"
         },
         {
-          "id": "1138097",
-          "title": "Mermaid configuration APIs allow prototype pollution",
-          "severity": "low",
-          "package": "mermaid",
-          "url": "https://github.com/advisories/GHSA-c4c3-pg64-4m4v"
-        },
-        {
-          "id": "1138099",
-          "title": "Mermaid allows CSS injection applying to sibling elements of the diagram",
-          "severity": "medium",
-          "package": "mermaid",
-          "url": "https://github.com/advisories/GHSA-6x64-9x62-f2gx"
-        },
-        {
-          "id": "1138100",
-          "title": "Mermaid Architecture diagrams are vulnerable to prototype pollution",
-          "severity": "medium",
-          "package": "mermaid",
-          "url": "https://github.com/advisories/GHSA-3rrr-jr9j-h3q3"
-        },
-        {
-          "id": "1138101",
-          "title": "Mermaid XY Charts are vulnerable to an infinite loop DoS",
-          "severity": "medium",
-          "package": "mermaid",
-          "url": "https://github.com/advisories/GHSA-2v8p-3f2j-5mp7"
-        },
-        {
-          "id": "1138113",
-          "title": "Mermaid radar diagrams are vulnerable to DoS",
-          "severity": "medium",
-          "package": "mermaid",
-          "url": "https://github.com/advisories/GHSA-rhh3-jpg6-66xh"
-        },
-        {
           "id": "1138114",
           "title": "JS-YAML: Quadratic CPU consumption in !!omap resolution (3.x and 4.x) \u2014 CVE-2026-59870 fix not backported",
           "severity": "high",
@@ -558,32 +474,11 @@
           "url": "https://github.com/advisories/GHSA-5p2g-fcmc-qvqq"
         },
         {
-          "id": "1139427",
-          "title": "nanoid: custom generators can loop indefinitely when size is zero",
-          "severity": "high",
-          "package": "nanoid",
-          "url": "https://github.com/advisories/GHSA-2v37-7h3g-55p8"
-        },
-        {
-          "id": "1139510",
-          "title": "PostCSS: Path Traversal in Previous Source Map Auto-Loading (sourceMappingURL) leads to Arbitrary .map File Disclosure",
-          "severity": "high",
-          "package": "postcss",
-          "url": "https://github.com/advisories/GHSA-r28c-9q8g-f849"
-        },
-        {
           "id": "1139512",
           "title": "fast-xml-parser: Repeated DOCTYPE declarations reset entity expansion limits",
           "severity": "high",
           "package": "fast-xml-parser",
           "url": "https://github.com/advisories/GHSA-8r6m-32jq-jx6q"
-        },
-        {
-          "id": "1139518",
-          "title": "SVGO removeScripts plugin leaves some executable scripts intact",
-          "severity": "high",
-          "package": "svgo",
-          "url": "https://github.com/advisories/GHSA-2p49-hgcm-8545"
         },
         {
           "id": "1139529",
@@ -612,13 +507,6 @@
           "severity": "high",
           "package": "tar",
           "url": "https://github.com/advisories/GHSA-r292-9mhp-454m"
-        },
-        {
-          "id": "1147878",
-          "title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
-          "severity": "high",
-          "package": "fast-uri",
-          "url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
         },
         {
           "id": "1147955",
@@ -717,6 +605,13 @@
           "severity": "high",
           "package": "immutable",
           "url": "https://github.com/advisories/GHSA-xvcm-6775-5m9r"
+        },
+        {
+          "id": "1182133",
+          "title": "fast-uri vulnerable to host confusion via failed IDN canonicalization",
+          "severity": "high",
+          "package": "fast-uri",
+          "url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
         }
       ]
     },

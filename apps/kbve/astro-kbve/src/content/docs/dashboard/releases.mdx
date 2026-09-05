@@ -1,7 +1,7 @@
 ---
 title: Release Radar
 description: |
-    Daily auto-generated release drift (manifest vs registry) for the KBVE monorepo.
+    Daily auto-generated release status (version manifest vs git tag) for the KBVE monorepo.
 template: splash
 tableOfContents: false
 editUrl: false
@@ -29,16 +29,16 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 				</span>
 				<h1 class="bento-title">
 					Release radar
-					<span class="bento-title__accent">manifest versus registry.</span>
+					<span class="bento-title__accent">version manifest versus git tag.</span>
 				</h1>
-				<p class="bento-lede">No publishable packages tracked in the dispatch manifest.</p>
-				<p class="bento-lede">Last generated <strong>2026-09-04T05:45:37Z</strong>.</p>
+				<p class="bento-lede"><strong>88</strong> releasable projects — nothing waiting.</p>
+				<p class="bento-lede">Last generated <strong>2026-09-05T05:27:45Z</strong>.</p>
 				<div class="bento-cta">
-					<a class="bento-btn bento-btn--primary" href="#ecosystems">
-						View drift
+					<a class="bento-btn bento-btn--primary" href="#lanes">
+						View lanes
 						<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 12h14M13 6l6 6-6 6" /></svg>
 					</a>
-					<a class="bento-btn bento-btn--ghost" href="#packages">Packages</a>
+					<a class="bento-btn bento-btn--ghost" href="#projects">Projects</a>
 					<a class="bento-btn bento-btn--ghost" href="/dashboard/">Dashboard home</a>
 				</div>
 			</div>
@@ -47,73 +47,143 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
 					</span>
-					<span class="bento-stat__value">0</span>
-					<span class="bento-stat__label">Tracked</span>
+					<span class="bento-stat__value">88</span>
+					<span class="bento-stat__label">Releasable</span>
 				</div>
 				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7" /></svg>
 					</span>
 					<span class="bento-stat__value">0</span>
-					<span class="bento-stat__label">Pending</span>
+					<span class="bento-stat__label">Tag pending</span>
 				</div>
 				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
 					<span class="bento-icon-tile">
-						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14M5 12l7 7 7-7" /></svg>
+						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 8v4l3 3M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20z" /></svg>
 					</span>
 					<span class="bento-stat__value">0</span>
-					<span class="bento-stat__label">Behind</span>
+					<span class="bento-stat__label">Changes unreleased</span>
 				</div>
 				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4m0 4h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z" /></svg>
 					</span>
-					<span class="bento-stat__value">0</span>
-					<span class="bento-stat__label">Unpublished</span>
+					<span class="bento-stat__value">87</span>
+					<span class="bento-stat__label">Never released</span>
 				</div>
 				<div class="bento-cell bento-stat bento-card bento-card--glass bento-card--interactive">
 					<span class="bento-icon-tile">
 						<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.1V12a10 10 0 1 1-5.9-9.1M22 4 12 14.01l-3-3" /></svg>
 					</span>
-					<span class="bento-stat__value">0</span>
-					<span class="bento-stat__label">Published</span>
+					<span class="bento-stat__value">1</span>
+					<span class="bento-stat__label">Current</span>
 				</div>
 		</div>
 		<nav class="bento-jump" aria-label="On this page">
-			<a class="bento-chip" href="#ecosystems">Ecosystems</a>
-			<a class="bento-chip" href="#packages">Packages</a>
+			<a class="bento-chip" href="#lanes">Lanes</a>
+			<a class="bento-chip" href="#projects">Projects</a>
 		</nav>
 	</div>
 </section>
 
-<BentoShell id="ecosystems" eyebrow="Registries" heading="Ecosystem status">
+<BentoShell id="lanes" eyebrow="Publish lanes" heading="Lane status">
 	<div class="bento-board bento-board--cols-3">
-		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#packages">
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#projects">
 			<span class="bento-icon-tile">
 				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
 			</span>
-			<span class="bento-linkcard__title">Crates.io</span>
-			<span class="bento-linkcard__copy">0 tracked · 0 pending</span>
+			<span class="bento-linkcard__title">docker</span>
+			<span class="bento-linkcard__copy">45 project(s) · 0 waiting</span>
 			<span class="bento-linkcard__go" aria-hidden="true">
 				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
 			</span>
 		</a>
-		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#packages">
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#projects">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+			</span>
+			<span class="bento-linkcard__title">crates</span>
+			<span class="bento-linkcard__copy">27 project(s) · 0 waiting</span>
+			<span class="bento-linkcard__go" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+			</span>
+		</a>
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#projects">
 			<span class="bento-icon-tile">
 				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
 			</span>
 			<span class="bento-linkcard__title">npm</span>
-			<span class="bento-linkcard__copy">0 tracked · 0 pending</span>
+			<span class="bento-linkcard__copy">5 project(s) · 0 waiting</span>
 			<span class="bento-linkcard__go" aria-hidden="true">
 				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
 			</span>
 		</a>
-		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#packages">
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#projects">
 			<span class="bento-icon-tile">
 				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
 			</span>
-			<span class="bento-linkcard__title">PyPI</span>
-			<span class="bento-linkcard__copy">0 tracked · 0 pending</span>
+			<span class="bento-linkcard__title">unreal-game</span>
+			<span class="bento-linkcard__copy">3 project(s) · 0 waiting</span>
+			<span class="bento-linkcard__go" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+			</span>
+		</a>
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#projects">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+			</span>
+			<span class="bento-linkcard__title">desktop</span>
+			<span class="bento-linkcard__copy">2 project(s) · 0 waiting</span>
+			<span class="bento-linkcard__go" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+			</span>
+		</a>
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#projects">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+			</span>
+			<span class="bento-linkcard__title">python</span>
+			<span class="bento-linkcard__copy">2 project(s) · 0 waiting</span>
+			<span class="bento-linkcard__go" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+			</span>
+		</a>
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#projects">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+			</span>
+			<span class="bento-linkcard__title">web-game</span>
+			<span class="bento-linkcard__copy">2 project(s) · 0 waiting</span>
+			<span class="bento-linkcard__go" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+			</span>
+		</a>
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#projects">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+			</span>
+			<span class="bento-linkcard__title">godot</span>
+			<span class="bento-linkcard__copy">1 project(s) · 0 waiting</span>
+			<span class="bento-linkcard__go" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+			</span>
+		</a>
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#projects">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+			</span>
+			<span class="bento-linkcard__title">unity</span>
+			<span class="bento-linkcard__copy">1 project(s) · 0 waiting</span>
+			<span class="bento-linkcard__go" aria-hidden="true">
+				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
+			</span>
+		</a>
+		<a class="bento-cell bento-linkcard bento-card bento-card--glass bento-card--interactive" href="#projects">
+			<span class="bento-icon-tile">
+				<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 2 2 7l10 5 10-5zM2 17l10 5 10-5M2 12l10 5 10-5" /></svg>
+			</span>
+			<span class="bento-linkcard__title">ue5-server</span>
+			<span class="bento-linkcard__copy">1 project(s) · 0 waiting</span>
 			<span class="bento-linkcard__go" aria-hidden="true">
 				<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg>
 			</span>
@@ -121,11 +191,100 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 	</div>
 </BentoShell>
 
-<BentoProse id="packages" heading="Package status">
+<BentoProse id="projects" heading="Project status">
 
-:::tip[Empty]
-No tracked packages.
-:::
+<div class="kbve-figure"><svg class="kbve-chart" role="img" viewBox="0 0 620 300" width="620" height="300" aria-label="Projects by Release State" preserveAspectRatio="xMidYMid meet" style="width: 100%; height: auto; max-width: 620px"><title>Projects by Release State</title><text x="150.0" y="34" text-anchor="middle" font-size="16" font-weight="600" fill="currentColor">Projects by Release State</text><path d="M 150.00 60.00 A 110.00 110.00 0 1 1 142.15 60.28 L 145.29 104.17 A 66.00 66.00 0 1 0 150.00 104.00 Z" fill="#3b82f6" /><path d="M 142.15 60.28 A 110.00 110.00 0 0 1 150.00 60.00 L 150.00 104.00 A 66.00 66.00 0 0 0 145.29 104.17 Z" fill="#10b981" /><text x="150.0" y="176.0" text-anchor="middle" font-size="20" font-weight="700" fill="currentColor">88</text><rect x="310" y="92" width="14" height="14" rx="3" fill="#3b82f6" /><text x="334" y="104" font-size="14" fill="currentColor">Never released — 87 (98.9%)</text><rect x="310" y="122" width="14" height="14" rx="3" fill="#10b981" /><text x="334" y="134" font-size="14" fill="currentColor">Current — 1 (1.1%)</text></svg></div>
+
+| Project | Lanes | Manifest | Released | Commits since | State |
+|---------|-------|----------|----------|---------------|-------|
+| agones-factorio | docker | 0.0.14 | — | — | Never released |
+| agones-factorio-relay | docker | 0.0.1 | — | — | Never released |
+| agones-palworld | docker | 0.0.37 | — | — | Never released |
+| agones-palworld-relay | docker | 0.0.1 | — | — | Never released |
+| agones-palworld-savetool | docker | 0.0.7 | — | — | Never released |
+| agones-shim | docker | 0.0.0 | — | — | Never released |
+| arc-runner | docker | 0.1.7 | — | — | Never released |
+| aria2-proxy | docker | 0.1.1 | — | — | Never released |
+| arpg-server | docker | 0.1.29 | — | — | Never released |
+| arpg-web | docker | 0.1.30 | — | — | Never released |
+| astro | npm | 0.1.1 | — | — | Never released |
+| axum-chuckrpg | docker | 0.1.9 | — | — | Never released |
+| axum-cryptothrone | docker | 0.1.51 | — | — | Never released |
+| axum-herbmail | docker | 0.1.2 | — | — | Never released |
+| axum-kbve | docker | 1.0.296 | — | — | Never released |
+| axum-memes | docker | 0.1.9 | — | — | Never released |
+| axum-rareicon | docker | 0.1.3 | — | — | Never released |
+| axum-rentearth | docker | 0.1.1 | — | — | Never released |
+| bevy_battle | crates | 0.1.0 | — | — | Never released |
+| bevy_behavior | crates | 0.1.0 | — | — | Never released |
+| bevy_cam | crates | 0.1.0 | — | — | Never released |
+| bevy_chat | crates | 0.1.1 | — | — | Never released |
+| bevy_db | crates | 0.1.0 | — | — | Never released |
+| bevy_inventory | crates | 0.1.0 | — | — | Never released |
+| bevy_items | crates | 0.1.1 | — | — | Never released |
+| bevy_kbve_net | crates | 0.1.0 | — | — | Never released |
+| bevy_mapdb | crates | 0.1.1 | — | — | Never released |
+| bevy_npc | crates | 0.1.0 | — | — | Never released |
+| bevy_pathfinder | crates | 0.1.1 | — | — | Never released |
+| bevy_player | crates | 0.1.0 | — | — | Never released |
+| bevy_quests | crates | 0.1.0 | — | — | Never released |
+| bevy_skills | crates | 0.1.0 | — | — | Never released |
+| bevy_spells | crates | 0.1.0 | — | — | Never released |
+| bevy_statemachine | crates | 0.1.0 | — | — | Never released |
+| bevy_supa | crates | 0.1.0 | — | — | Never released |
+| bevy_tasker | crates | 0.1.1 | — | — | Never released |
+| chisel-ubuntu-axum | docker | 24.04.11 | — | — | Never released |
+| chuck-launcher | desktop | 0.1.0 | — | — | Never released |
+| cryptothrone-server | docker | 0.0.26 | — | — | Never released |
+| desktop-kbve | desktop | 0.1.0 | — | — | Never released |
+| devops | npm | 0.1.0 | — | — | Never released |
+| discordsh-api | docker | 0.1.46 | — | — | Never released |
+| discordsh-bot | docker | 0.1.35 | — | — | Never released |
+| droid | npm | 0.1.2 | — | — | Never released |
+| edge | docker | 0.1.50 | — | — | Never released |
+| embeddb | crates | 0.3.0 | — | — | Never released |
+| embeddb-derive | crates | 0.1.1 | — | — | Never released |
+| erust | crates | 0.1.8 | — | — | Never released |
+| factorio-ctl | docker | 0.0.1 | — | — | Never released |
+| firecracker-ctl | docker | 0.1.42 | — | — | Never released |
+| firecracker-node-web | docker | 0.1.0 | — | — | Never released |
+| firecracker-python-net | docker | 0.1.3 | — | — | Never released |
+| firecracker-python-web | docker | 0.1.0 | — | — | Never released |
+| friendslop-server | docker | 0.0.15 | — | — | Never released |
+| fudster | python | 1.0.3 | — | — | Never released |
+| godot-friendslop | godot | 0.1.11 | — | — | Never released |
+| herbmail-game | web-game | 0.1.21 | — | — | Never released |
+| herbmail-server | docker | 0.0.1 | — | — | Never released |
+| holy | crates | 0.2.2 | — | — | Never released |
+| irc-gateway | docker | 0.1.32 | — | — | Never released |
+| isometric | web-game | 0.1.0 | — | — | Never released |
+| jedi | crates | 0.2.3 | — | — | Never released |
+| jobboard | docker | 0.1.9 | — | — | Never released |
+| kasm-cloakbrowser | docker | 0.0.1 | — | — | Never released |
+| kasm-void | docker | 0.0.6 | — | — | Never released |
+| kbve | crates | 0.1.26 | — | — | Never released |
+| kbve-gate | docker | 0.1.9 | — | — | Never released |
+| kbve-kubectl | docker | 0.1.10 | — | — | Never released |
+| kbve-py | python | 1.0.14 | — | — | Never released |
+| khashvault | npm | 1.0.12 | — | — | Never released |
+| kilobase | docker | 17.4.1 | — | — | Never released |
+| laser | npm | 0.2.0 | — | — | Never released |
+| mc | docker | 1.0.67 | — | — | Never released |
+| mc-lobby | docker | 1.0.11 | — | — | Never released |
+| mc-velocity | docker | 1.1.13 | — | — | Never released |
+| met | docker | 0.1.6 | — | — | Never released |
+| q | crates | 0.1.7 | — | — | Never released |
+| reel | docker | 0.1.45 | — | — | Never released |
+| rows | docker | 0.1.39 | — | — | Never released |
+| steamcmd-ubuntu | docker | 0.0.0 | — | — | Never released |
+| tocloud9-gameserver | docker | 0.0.12 | — | — | Never released |
+| tocloud9-services | docker | 0.0.5 | — | — | Never released |
+| uniti | crates | 0.1.0 | — | — | Never released |
+| unity-rareicon | unity | 0.1.9 | — | — | Never released |
+| unreal-chuck | unreal-game | 0.3.56 | — | — | Never released |
+| unreal-rareicon | unreal-game, ue5-server | 0.0.1 | — | — | Never released |
+| unreal-rentearth | unreal-game | 0.3.19 | — | — | Never released |
+| unr | crates | 0.1.0 | 0.1.0 | — | Current |
 
 </BentoProse>
 

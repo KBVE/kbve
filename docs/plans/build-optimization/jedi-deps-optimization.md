@@ -85,17 +85,17 @@ valkey      = ["dep:lru"]
 
 ## Execution Status (2026-06-29)
 
-| Step                | Status      | PR     | Notes                                                                                          |
-| ------------------- | ----------- | ------ | ---------------------------------------------------------------------------------------------- |
-| Remove `askama`     | ✅ done     | #13587 | Dead dep dropped.                                                                               |
-| Gate `twitch`       | ✅ done     | #13587 | `twitch = ["dep:twitch-irc"]`; gated `wrapper/twitch_wrapper` + `proto/twitch`.                 |
-| Gate `fred` (redis) | ✅ done     | #13593 | Folded into `valkey = ["dep:lru", "dep:fred"]` — fred is internal-only, no consumer touches it. |
-| Gate `grpc`         | ✅ done     | (this) | `tonic*` optional behind `grpc`; gated 4 proto service submods + `error.rs` Status impls.       |
-| `reqwest` / `axum`  | ⬜ deferred | —      | Kept core (auth-core + response contract). See findings below.                                  |
+| Step                | Status      | PR     | Notes                                                                                                                             |
+| ------------------- | ----------- | ------ | --------------------------------------------------------------------------------------------------------------------------------- |
+| Remove `askama`     | ✅ done     | #13587 | Dead dep dropped.                                                                                                                 |
+| Gate `twitch`       | ✅ done     | #13587 | `twitch = ["dep:twitch-irc"]`; gated `wrapper/twitch_wrapper` + `proto/twitch`.                                                   |
+| Gate `fred` (redis) | ✅ done     | #13593 | Folded into `valkey = ["dep:lru", "dep:fred"]` — fred is internal-only, no consumer touches it.                                   |
+| Gate `grpc`         | ✅ done     | (this) | `tonic*` optional behind `grpc`; gated 4 proto service submods + `error.rs` Status impls.                                         |
+| `reqwest` / `axum`  | ⬜ deferred | —      | Kept core (auth-core + response contract). See findings below.                                                                    |
 | `tokio = "full"`    | ✅ done     | (this) | `full` → `["rt-multi-thread","macros","sync","time","net","fs","io-util"]`. Audited src: no process/signal/io-std/spawn_blocking. |
-| CI feature matrix   | ⬜ todo     | —      | `cargo hack --feature-powerset` smoke build.                                                    |
-| Measure build win   | ⬜ todo     | —      | Wall-time before/after for a trimmed consumer.                                                  |
-| Drop dead deps      | ✅ done     | (this) | Removed 6 always-on, 0-ref deps: `tower-http`, `axum-extra`, `hyper`, `hyper-util`, `http-body-util`, `tracing-subscriber`. |
+| CI feature matrix   | ⬜ todo     | —      | `cargo hack --feature-powerset` smoke build.                                                                                      |
+| Measure build win   | ⬜ todo     | —      | Wall-time before/after for a trimmed consumer.                                                                                    |
+| Drop dead deps      | ✅ done     | (this) | Removed 6 always-on, 0-ref deps: `tower-http`, `axum-extra`, `hyper`, `hyper-util`, `http-body-util`, `tracing-subscriber`.       |
 
 **dead-deps finding (verified):** 6 always-on deps had **0 references** crate-wide (src+tests). Removed: `tower-http` (its `compression-full` pulled brotli/zstd/flate2 for every consumer), `axum-extra` (protobuf/cookie/file-stream), `hyper` + `hyper-util` + `http-body-util` (axum brings its own), `tracing-subscriber` (env-filter — a library should never init the subscriber; bins/consumers do). `tower` stays (`error.rs` uses `BoxError` + `timeout`). Validated: jedi `--no-default-features` + `--all-features` clean; consumers axum-kbve/metrics/rows/arpg-server/irc-gateway build clean — none relied on jedi re-exporting the removed crates.
 
@@ -139,7 +139,7 @@ Used in 8 files incl. `src/jwks.rs` + `src/jwt_cache.rs` (JWKS fetch for ES256/J
 | rows                                                | `prometheus`                                                  |                                            |
 | factorio/relay, factorio-ctl                        | `clickhouse`                                                  |                                            |
 | irc-gateway, discordsh-bot                          | `valkey`                                                      |                                            |
-| axum-discordsh                                      | `postgres`                                                    |                                            |
+| discordsh-api                                       | `postgres`                                                    |                                            |
 | rentearth, chuckrpg                                 | `itch`                                                        | marker only                                |
 | axum-memes, axum-herbmail                           | _(none)_                                                      | pure core consumers                        |
 | packages/rust/kbve                                  | path only; `jedi/valkey` + `jedi/prometheus` via own features |                                            |

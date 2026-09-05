@@ -286,8 +286,8 @@ jobs:
                       apps/herbmail/axum-herbmail
                       apps/memes/axum-memes
                       apps/irc/irc-gateway
-                      apps/discordsh/axum-discordsh
-                      apps/discordsh/discordsh-bot
+                      apps/discordsh/api
+                      apps/discordsh/bot
                       apps/chuckrpg/axum-chuckrpg
                       apps/rentearth/axum-rentearth
                       apps/rareicon/axum-rareicon

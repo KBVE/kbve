@@ -18,7 +18,7 @@ on:
         paths:
             - 'packages/unreal/**'
             - '.github/workflows/ci-unreal-plugins.yml'
-            - '.github/workflows/ci-unreal-build.yml'
+            - '.github/workflows/utils-unreal-build.yml'
             - 'tools/release/unreal-matrix.mjs'
 
 permissions:
@@ -86,7 +86,7 @@ jobs:
             fail-fast: false
             max-parallel: 1
             matrix: ${{ fromJson(needs.discover.outputs.mac) }}
-        uses: ./.github/workflows/ci-unreal-build.yml
+        uses: ./.github/workflows/utils-unreal-build.yml
         with:
             mode: plugin
             plugin_name: ${{ matrix.plugin_name }}
@@ -108,7 +108,7 @@ jobs:
             fail-fast: false
             max-parallel: 4
             matrix: ${{ fromJson(needs.discover.outputs.linux) }}
-        uses: ./.github/workflows/ci-unreal-build.yml
+        uses: ./.github/workflows/utils-unreal-build.yml
         with:
             mode: plugin
             plugin_name: ${{ matrix.plugin_name }}
@@ -131,7 +131,7 @@ jobs:
             fail-fast: false
             max-parallel: 2
             matrix: ${{ fromJson(needs.discover.outputs.win) }}
-        uses: ./.github/workflows/ci-unreal-build.yml
+        uses: ./.github/workflows/utils-unreal-build.yml
         with:
             mode: plugin
             plugin_name: ${{ matrix.plugin_name }}

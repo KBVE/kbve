@@ -7,7 +7,7 @@
 # excepted 10.0.0.0/8, and Cilium service translation rewrites it to the
 # control-plane endpoint on :6443.
 #
-# The Win64 unreal build's "Boot Windows VM" preamble (ci-unreal-build.yml,
+# The Win64 unreal build's "Boot Windows VM" preamble (utils-unreal-build.yml,
 # win_vm_boot job) runs on arc-runner-set-kbve and uses the arc-vm-starter SA
 # token to GET + start the windows-builder KubeVirt VM via the apiserver.
 # Without this allow that curl is dropped, the VM never starts, and the Win64

@@ -21,7 +21,7 @@ spec:
                 rollout-restart: '2026-04-03T22:24:57Z'
             labels:
                 app: herbmail
-                version: 0.1.1
+                version: '0.1.2'
         spec:
             serviceAccountName: herbmail-sa
             automountServiceAccountToken: false

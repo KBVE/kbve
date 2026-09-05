@@ -334,7 +334,7 @@ Remember to setup your secrets for the `CRATES_TOKEN`!
 
 </Aside>
 
-These are brief notes on the `rust-publish-crate.yml` within our monorepo, which is used to publish Rust crates to crates.io.
+These are brief notes on the `utils-rust-publish-crate.yml` within our monorepo, which is used to publish Rust crates to crates.io.
 The old matrix approach used a single job to filter changed crates and fan them out via `strategy.matrix`.
 This has been superseded by per-crate `workflow_dispatch` runs fired from `ci-main.yml`'s `dispatch_publish` job, where each crate (q, jedi, soul, kbve, erust, holy) gets its own isolated `ci-publish.yml` run with concurrency group `ci-publish-crates-{name}`.
 
@@ -366,7 +366,7 @@ publish_crates:
     name: Publish Rust Crates
     strategy:
         matrix: ${{ fromJson(needs.generate_crates_matrix.outputs.matrix) }}
-    uses: KBVE/kbve/.github/workflows/rust-publish-crate.yml@main
+    uses: KBVE/kbve/.github/workflows/utils-rust-publish-crate.yml@main
     with:
         package: ${{ matrix.name }}
     secrets:
@@ -748,7 +748,7 @@ Each dispatch passes three fields: `app_name`, `sha` (the triggering commit), an
 
 2. **Config** (5 min timeout) — a single `case` statement resolves all per-app settings from the `app_name` input: runner type, Docker image name, e2e project, Cargo.toml path, deployment YAML, and whether tests exist.
 
-3. **Test** (conditional) — calls `docker-test-app.yml` which builds a `ci-{sha}` tagged image in GHCR and runs the app's e2e test suite against it. Skipped for apps without tests (e.g., `kilobase`).
+3. **Test** (conditional) — calls `utils-docker-test-app.yml` which builds a `ci-{sha}` tagged image in GHCR and runs the app's e2e test suite against it. Skipped for apps without tests (e.g., `kilobase`).
 
 4. **Publish** — calls `utils-publish-docker-image.yml` which promotes the tested `ci-{sha}` tag to a release tag, or rebuilds if the CI image is missing.
 
@@ -766,7 +766,7 @@ Each dispatch passes three fields: `app_name`, `sha` (the triggering commit), an
 | herbmail | `kbve/herbmail` | ubuntu-latest | herbmail | Yes |
 | memes | `kbve/memes` | ubuntu-latest | — | Yes |
 | irc-gateway | `kbve/irc-gateway` | ubuntu-latest | — | Yes |
-| discordsh | `kbve/discordsh` | ubuntu-latest | discordsh-e2e | Yes |
+| discordsh | `kbve/discordsh` | ubuntu-latest | discordsh-web-e2e | Yes |
 | mc | `kbve/mc` | ubuntu-latest | mc | Yes |
 | edge | `kbve/edge` | ubuntu-latest | edge | Yes |
 | cryptothrone | `kbve/cryptothrone` | ubuntu-latest | cryptothrone-e2e | Yes |

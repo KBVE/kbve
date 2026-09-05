@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # extract-debug.sh - restore an encrypted debug-symbol archive into a game build.
 #
-# The CI job `ci-unreal-build.yml` strips debug files (PDB / .map on Win64,
+# The CI job `utils-unreal-build.yml` strips debug files (PDB / .map on Win64,
 # .dSYM bundles on Mac, plus Manifest_*.txt on both) out of the payload
 # and uploads them as a SEPARATE, PASSWORD-ENCRYPTED artifact, because this repo
 # is public and a plaintext symbol artifact would be world-readable.
@@ -48,7 +48,7 @@ case "${ARCHIVE}" in
       read -r -s -p "Archive password: " SYMBOL_ARCHIVE_PASSWORD; echo
       export SYMBOL_ARCHIVE_PASSWORD
     fi
-    # Must match the encrypt side in ci-unreal-build.yml exactly.
+    # Must match the encrypt side in utils-unreal-build.yml exactly.
     openssl enc -d -aes-256-cbc -pbkdf2 -iter 100000 \
       -pass env:SYMBOL_ARCHIVE_PASSWORD \
       -in "${ARCHIVE}" -out "${ZIP}" \
