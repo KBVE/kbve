@@ -78,6 +78,7 @@ public:
 		UMaterialInterface* WoodMaterial = nullptr;
 		UMaterialInterface* StoneMaterial = nullptr;
 		UMaterialInterface* BrickMaterial = nullptr;
+		UMaterialInterface* RoofMaterial = nullptr;
 		const UStaticMesh* PartMesh = nullptr;
 	};
 
@@ -134,7 +135,7 @@ private:
 	void ReleaseBuildings();
 
 	/** Build every building at whatever detail its entity currently asks for. */
-	void BuildMasonry(const FBuild& In, struct FKBVEWorldRibbonMesh& Out);
+	void BuildStructures(const FBuild& In, struct FKBVEWorldBuildingMesh& Out);
 
 	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
 	TObjectPtr<UProceduralMeshComponent> Wood;
@@ -154,6 +155,15 @@ private:
 	 */
 	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
 	TObjectPtr<UProceduralMeshComponent> Brick;
+
+	/**
+	 * The roofs, which are their own section because they are their own material.
+	 *
+	 * Brick walls under tile or shingle is what everywhere with both settled on,
+	 * and a roof drawn in the wall's material reads as a building nobody finished.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
+	TObjectPtr<UProceduralMeshComponent> Roof;
 
 	/**
 	 * The routes this chunk's two edges took, kept rather than re-solved.
@@ -300,6 +310,9 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road")
 	TObjectPtr<UMaterialInterface> BrickMaterial;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road")
+	TObjectPtr<UMaterialInterface> RoofMaterial;
 
 	/**
 	 * A cube, for the parts of a crossing that are one.

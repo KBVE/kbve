@@ -98,13 +98,25 @@ FKBVEWorldBuildingPlan FKBVEWorldBuilding::Plan(const FKBVEWorldBuildingParams& 
 }
 
 void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
-	const FKBVEWorldBuildingPlan& Plan, EKBVEWorldWallDetail Detail, FKBVEWorldRibbonMesh& Out)
+	const FKBVEWorldBuildingPlan& Plan, EKBVEWorldWallDetail Detail, FKBVEWorldBuildingMesh& Out)
 {
 	FVector Corners[4];
 	Footprint(Plan, Corners);
 
 	const float Storey = FMath::Max(Building.Wall.Height, KINDA_SMALL_NUMBER);
 	const int32 Storeys = FMath::Max(Plan.Storeys, 1);
+
+	const bool bGable =
+		FKBVEWorldRoof::StyleFor(Building.Roof, Plan.Seed) == EKBVEWorldRoofStyle::Gable;
+
+	// Where the masonry has to stop to meet the underside of the slope. The roof
+	// slab has thickness measured vertically, so its soffit is already below the
+	// wall plate at the wall line -- carried to the corner, a gable end would come
+	// up through the roof it is meant to be closing.
+	const float Pitch = FMath::DegreesToRadians(FMath::Clamp(Building.Roof.Pitch, 1.0f, 85.0f));
+	const float Deep = FMath::Max(Building.Roof.Thickness, 0.0f);
+	const float Apex = FKBVEWorldRoof::Rise(Building.Roof, Plan.Depth) - Deep;
+	const float Inset = Deep / FMath::Max(FMath::Tan(Pitch), KINDA_SMALL_NUMBER);
 
 	TArray<FKBVEWorldWallOpening> Openings;
 
@@ -136,7 +148,9 @@ void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
 			// A closed loop of walls, so nothing but the eaves and the ground is
 			// ever an edge: the corners bury each other and every floor but the
 			// last has another one sitting on it.
-			Wall.bCapTop = Level == Storeys - 1;
+			// The top storey included: the roof slab's soffit sits below the plate
+			// at the wall line, so the top of the wall is inside the roof.
+			Wall.bCapTop = false;
 			Wall.bCapBottom = Level == 0;
 			Wall.bCapEnds = false;
 
@@ -145,9 +159,30 @@ void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
 			// A door on the ground floor of the front wall, which is the side
 			// the building was turned towards the road.
 			BayOpenings(Building, Length, Level == 0 && Side == 0, Openings);
-			FKBVEWorldWall::Build(Building.Wall, Wall, Openings, Detail, Out);
+			FKBVEWorldWall::Build(Building.Wall, Wall, Openings, Detail, Out.Masonry);
+
+			// The ridge runs across the front, so the two walls that meet the
+			// slopes end-on are the ones running back from it. A hip closes its own
+			// ends and wants no masonry above the plate at all.
+			if (bGable && Level == Storeys - 1 && (Side == 1 || Side == 3))
+			{
+				FKBVEWorldWall::Gable(Building.Wall, Wall, Apex, Inset, Out.Masonry);
+			}
 
 			Perimeter += Length;
 		}
 	}
+
+	FKBVEWorldRoofBuild RoofIn;
+	RoofIn.Centre = FVector(Plan.Centre.X, Plan.Centre.Y,
+		Plan.Centre.Z + static_cast<float>(Storeys) * Storey);
+	RoofIn.Yaw = Plan.Yaw;
+	RoofIn.Width = Plan.Width;
+	RoofIn.Depth = Plan.Depth;
+	RoofIn.Seed = Plan.Seed;
+
+	// Built at every level of detail, unlike the trim. A roof is most of what a
+	// building is from any distance at which the building is a shape at all --
+	// dropping it is how a village at range becomes a field of brick boxes.
+	FKBVEWorldRoof::Build(Building.Roof, RoofIn, Out.Roof);
 }

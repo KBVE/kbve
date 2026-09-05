@@ -105,8 +105,9 @@ AKBVEWorldRoadChunk::AKBVEWorldRoadChunk()
 	Wood = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Wood"));
 	Stone = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Stone"));
 	Brick = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Brick"));
+	Roof = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Roof"));
 
-	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get() })
+	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get(), Roof.Get() })
 	{
 		Mesh->SetupAttachment(SceneRoot);
 		Mesh->bUseAsyncCooking = true;
@@ -126,6 +127,11 @@ AKBVEWorldRoadChunk::AKBVEWorldRoadChunk()
 	// a wall rather than a box: the openings are holes in the section, so a
 	// simple hull around it would be a house with a doorway that is bricked up.
 	Brick->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+	// The roof does not collide. Nothing walks on it, an overhanging eave is the
+	// easiest thing in a village to snag a pawn on, and cooking a slope per house
+	// is work spent on a surface no query ever wants to find.
+	Roof->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
@@ -222,8 +228,8 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 	FKBVEWorldFenceMesh Fences;
 	BuildFenceParts(In, Fences);
 
-	FKBVEWorldRibbonMesh Masonry;
-	BuildMasonry(In, Masonry);
+	FKBVEWorldBuildingMesh Structures;
+	BuildStructures(In, Structures);
 
 	// World space, because the pool holds one component for the whole world and
 	// the rebase below is a thing only this chunk's own sections want.
@@ -241,17 +247,19 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 
 	Rebase(Data.Wood, Origin);
 	Rebase(Data.Stone, Origin);
-	Rebase(Masonry, Origin);
+	Rebase(Structures.Masonry, Origin);
+	Rebase(Structures.Roof, Origin);
 
 	Commit(Wood, Data.Wood, WoodMaterial, true);
 	Commit(Stone, Data.Stone, StoneMaterial, false);
-	Commit(Brick, Masonry, In.BrickMaterial, true);
+	Commit(Brick, Structures.Masonry, In.BrickMaterial, true);
+	Commit(Roof, Structures.Roof, In.RoofMaterial, false);
 
 	// The supports collide as blocks whether they were drawn as triangles here or
 	// as instances elsewhere, so this does not care which happened.
 	CommitBlocks(Stone, Data.Blocks, Origin);
 
-	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get() })
+	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get(), Roof.Get() })
 	{
 		Mesh->SetCullDistance(MaxDrawDistance);
 	}
@@ -535,7 +543,7 @@ void AKBVEWorldRoadChunk::ReleaseBuildings()
 	Buildings.Reset();
 }
 
-void AKBVEWorldRoadChunk::BuildMasonry(const FBuild& In, FKBVEWorldRibbonMesh& Out)
+void AKBVEWorldRoadChunk::BuildStructures(const FBuild& In, FKBVEWorldBuildingMesh& Out)
 {
 	if (!In.Settlement || Plans.Num() == 0)
 	{
@@ -589,10 +597,14 @@ bool AKBVEWorldRoadChunk::RebuildBuildings(const FBuild& In)
 		return false;
 	}
 
-	FKBVEWorldRibbonMesh Masonry;
-	BuildMasonry(In, Masonry);
-	Rebase(Masonry, GetActorLocation());
-	Commit(Brick, Masonry, In.BrickMaterial, true);
+	FKBVEWorldBuildingMesh Structures;
+	BuildStructures(In, Structures);
+
+	const FVector Origin = GetActorLocation();
+	Rebase(Structures.Masonry, Origin);
+	Rebase(Structures.Roof, Origin);
+	Commit(Brick, Structures.Masonry, In.BrickMaterial, true);
+	Commit(Roof, Structures.Roof, In.RoofMaterial, false);
 	return true;
 }
 
@@ -604,6 +616,7 @@ void AKBVEWorldRoadChunk::Release()
 	Wood->ClearAllMeshSections();
 	Stone->ClearAllMeshSections();
 	Brick->ClearAllMeshSections();
+	Roof->ClearAllMeshSections();
 	Stone->ClearCollisionConvexMeshes();
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
@@ -734,6 +747,7 @@ AKBVEWorldRoadChunk::FBuild AKBVEWorldRoadNetwork::MakeBuild(const FIntPoint& Co
 	In.WoodMaterial = WoodMaterial;
 	In.StoneMaterial = StoneMaterial;
 	In.BrickMaterial = BrickMaterial;
+	In.RoofMaterial = RoofMaterial;
 	In.PartMesh = bInstanced ? PartMesh.Get() : nullptr;
 	return In;
 }
