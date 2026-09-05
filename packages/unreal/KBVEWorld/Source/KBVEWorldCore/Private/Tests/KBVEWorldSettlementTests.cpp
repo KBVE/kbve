@@ -131,7 +131,10 @@ bool FKBVEWorldSettlementSitingTest::RunTest(const FString& Parameters)
 	int32 Sited = 0;
 	int32 Refused = 0;
 	int32 OnCrossings = 0;
+	int32 Stepped = 0;
+	int32 Unreachable = 0;
 	float Nearest = BIG_NUMBER;
+	float DeepestDoor = 0.0f;
 
 	TArray<FVector> Path;
 	TArray<FKBVEWorldRoadSpan> Spans;
@@ -184,6 +187,30 @@ bool FKBVEWorldSettlementSitingTest::RunTest(const FString& Parameters)
 				}
 				++Sited;
 
+				// A doorway is only a doorway if it can be walked through, and on
+				// a slope the floor is levelled above the ground outside it. What
+				// makes that reachable is the flight of steps, and what makes the
+				// flight reach is the plot having been refused before the drop
+				// outgrew it -- two limits in two different structs that have to
+				// agree, and nothing but this notices when they stop agreeing.
+				const FKBVEWorldStairParams& Stair = Settlement.Building.Stair;
+				const int32 Steps = FKBVEWorldStair::Count(Stair, Plan.DoorDrop);
+				DeepestDoor = FMath::Max(DeepestDoor, Plan.DoorDrop);
+				Stepped += Steps > 0 ? 1 : 0;
+
+				// Too steep to climb, or long enough to end in the carriageway.
+				// Both are the same failure seen from either end -- a flight has
+				// only so much ground to work in and only so much it can do with
+				// it -- and both are invisible from anywhere but the doorstep.
+				const float Riser =
+					Steps > 0 ? Plan.DoorDrop / static_cast<float>(Steps) : 0.0f;
+				if (Riser > Stair.MaxRiser + KINDA_SMALL_NUMBER
+					|| FKBVEWorldStair::Run(Stair, Plan.DoorDrop)
+						> Settlement.Setback - Road.CutFlatHalfWidth)
+				{
+					++Unreachable;
+				}
+
 				FVector Corners[4];
 				FKBVEWorldBuilding::Footprint(Plan, Corners);
 				for (const FVector& Corner : Corners)
@@ -196,10 +223,18 @@ bool FKBVEWorldSettlementSitingTest::RunTest(const FString& Parameters)
 
 	AddInfo(FString::Printf(TEXT("%d buildings sited, %d refused for slope, nearest %.0f from the road"),
 		Sited, Refused, Nearest));
+	AddInfo(FString::Printf(TEXT("%d of %d doors need steps, deepest drop %.0f"), Stepped, Sited,
+		DeepestDoor));
 
 	TestTrue(TEXT("the sweep raised some buildings"), Sited > 0);
 	TestEqual(TEXT("no plot sits on a crossing"), OnCrossings, 0);
 	TestTrue(TEXT("no corner stands in the carriageway"), Nearest > Road.CutFlatHalfWidth);
+	TestEqual(TEXT("every sited door has a flight that reaches it"), Unreachable, 0);
+
+	// And the drop is real on most of them, or the steps are being tested against
+	// a plain: a terrain that happened to be flat under every plot would pass the
+	// check above without any of this having been exercised at all.
+	TestTrue(TEXT("the terrain does put doors above their own ground"), Stepped > Sited / 4);
 
 	return true;
 }

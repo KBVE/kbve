@@ -146,6 +146,17 @@ bool FKBVEWorldSettlement::Site(const FKBVEWorldSettlementParams& Settlement,
 	FKBVEWorldBuildingPlan Plan = FKBVEWorldBuilding::Plan(Settlement.Building, Plot.Seed,
 		FVector::ZeroVector, 0.0f);
 
+	// What the steps outside the front door have to work in, which is the ground
+	// between the wall and the carriageway. Two limits and both of them refuse a
+	// plot rather than bending: a flight longer than the setback ends in the
+	// road, and one taller than its own steps allow ends in the air.
+	const FKBVEWorldStairParams& Stair = Settlement.Building.Stair;
+	const float Room = FMath::Max(Settlement.Setback - Road.CutFlatHalfWidth, 0.0f);
+	const int32 Steps = FMath::Max(
+		FMath::Min(Stair.MaxSteps, FMath::FloorToInt(Room / FMath::Max(Stair.Tread, 1.0f))), 0);
+	const float Reach = static_cast<float>(Steps) * FMath::Max(Stair.MaxRiser, 0.0f);
+	const float Approach = static_cast<float>(Steps) * FMath::Max(Stair.Tread, 0.0f);
+
 	auto Consider = [&](float Offset, FKBVEWorldBuildingPlan& Out, float& OutFall)
 	{
 		FVector Point;
@@ -182,6 +193,25 @@ bool FKBVEWorldSettlement::Site(const FKBVEWorldSettlementParams& Settlement,
 		Out.Centre.Z = Highest;
 		OutFall = Highest - Lowest;
 		Out.Embed = OutFall + Settlement.Building.Wall.PlinthHeight;
+
+		// How far the steps outside the front door have to come down.
+		//
+		// Walked out along the approach and taken at its lowest rather than
+		// measured at the wall, because the ground carries on falling away from a
+		// building on a slope: a flight cut to the height at the threshold would
+		// end in mid air a metre out. Too deep only buries the bottom step, which
+		// is the same trade the plinth makes and for the same reason.
+		FVector Doorway;
+		FVector Forward;
+		FKBVEWorldBuilding::Door(Settlement.Building, Out, Doorway, Forward);
+
+		float Ground = Highest;
+		for (int32 Probe = 0; Probe <= 6; ++Probe)
+		{
+			const float Distance = Approach * static_cast<float>(Probe) / 6.0f;
+			Ground = FMath::Min(Ground, GroundAt(Doorway + Forward * Distance));
+		}
+		Out.DoorDrop = FMath::Max(Highest - Ground, 0.0f);
 	};
 
 	// Look up and down the road a little for flatter ground before giving up.
@@ -195,6 +225,7 @@ bool FKBVEWorldSettlement::Site(const FKBVEWorldSettlementParams& Settlement,
 
 	FKBVEWorldBuildingPlan Best;
 	float BestFall = BIG_NUMBER;
+	bool bAny = false;
 
 	for (const float Offset : Offsets)
 	{
@@ -202,21 +233,27 @@ bool FKBVEWorldSettlement::Site(const FKBVEWorldSettlementParams& Settlement,
 		float Fall = BIG_NUMBER;
 		Consider(Offset, Candidate, Fall);
 
-		if (Fall < BestFall)
+		if (Fall > Settlement.MaxFall || Candidate.DoorDrop > Reach)
+		{
+			continue;
+		}
+
+		if (!bAny || Fall < BestFall)
 		{
 			BestFall = Fall;
 			Best = Candidate;
+			bAny = true;
 		}
 
 		// The nominal spot wins outright when it is good enough, so a settlement
 		// on level ground keeps the spacing the walk gave it rather than drifting.
-		if (Fall <= Settlement.MaxFall && Offset == 0.0f)
+		if (Offset == 0.0f)
 		{
 			break;
 		}
 	}
 
-	if (BestFall > Settlement.MaxFall)
+	if (!bAny)
 	{
 		return false;
 	}

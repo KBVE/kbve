@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "KBVEWorldRoof.h"
+#include "KBVEWorldStair.h"
 #include "KBVEWorldWall.h"
 
 #include "KBVEWorldBuilding.generated.h"
@@ -25,6 +26,9 @@ struct KBVEWORLDCORE_API FKBVEWorldBuildingParams
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building")
 	FKBVEWorldRoofParams Roof;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building")
+	FKBVEWorldStairParams Stair;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building", meta = (ClampMin = "100.0"))
 	float MinWidth = 620.0f;
@@ -100,6 +104,18 @@ struct FKBVEWorldBuildingPlan
 	/** How far the ground falls away under the footprint, for the plinth. */
 	float Embed = 60.0f;
 
+	/**
+	 * How far the ground outside the front door lies below the threshold.
+	 *
+	 * The floor is levelled to the highest corner of the footprint, so on any
+	 * slope the doorway is above the ground in front of it -- by as much as the
+	 * whole fall across the plot, which is a wall to walk into rather than a door
+	 * to walk through. This is what the steps outside it have to climb, and it is
+	 * measured out along the approach rather than at the wall so that a flight is
+	 * cut into a bank rather than left standing on top of one.
+	 */
+	float DoorDrop = 0.0f;
+
 	int32 Seed = 0;
 };
 
@@ -155,4 +171,25 @@ struct KBVEWORLDCORE_API FKBVEWorldBuilding
 	 * front is the side the road is on.
 	 */
 	static void Footprint(const FKBVEWorldBuildingPlan& Plan, FVector (&OutCorners)[4]);
+
+	/**
+	 * Where the front door goes, as a distance along the front wall.
+	 *
+	 * Here rather than inside the wall builder because two places need it and
+	 * they are on either side of the expensive step: siting has to sample the
+	 * ground the door will be approached across, and building has to put the door
+	 * there. Deciding it twice is how they come to disagree, and a stair to the
+	 * side of its own doorway is not a thing anybody would think to check for.
+	 */
+	static float DoorAlong(const FKBVEWorldBuildingParams& Building, float Length);
+
+	/**
+	 * The middle of the threshold and the way out of it, in world space.
+	 *
+	 * The outward direction is the front wall's own normal, which is what the
+	 * building was turned by to face the road -- so the steps come down towards
+	 * the road rather than towards north.
+	 */
+	static void Door(const FKBVEWorldBuildingParams& Building, const FKBVEWorldBuildingPlan& Plan,
+		FVector& OutPoint, FVector& OutForward);
 };
