@@ -2,6 +2,7 @@
 
 #include "AssetRegistry/AssetRegistryModule.h"
 #include "Engine/SkeletalMesh.h"
+#include "ReferenceSkeleton.h"
 #include "Rendering/SkeletalMeshLODModel.h"
 #include "Rendering/SkeletalMeshModel.h"
 #include "PhysicsAssetUtils.h"
@@ -288,4 +289,85 @@ bool UKBVEMoverEditorLibrary::DumpWeaponSlices(USkeletalMesh* Mesh, const FStrin
 	}
 	Json += TEXT("]");
 	return FFileHelper::SaveStringToFile(Json, *Path);
+}
+
+TArray<FString> UKBVEMoverEditorLibrary::DumpBoneRestOffsets(USkeletalMesh* Mesh, const TArray<FName>& Bones)
+{
+	TArray<FString> Out;
+	if (!Mesh)
+	{
+		return Out;
+	}
+	const FReferenceSkeleton& Skeleton = Mesh->GetRefSkeleton();
+	const TArray<FTransform>& Pose = Skeleton.GetRefBonePose();
+	for (const FName& Bone : Bones)
+	{
+		const int32 Index = Skeleton.FindBoneIndex(Bone);
+		if (Index == INDEX_NONE)
+		{
+			Out.Add(FString::Printf(TEXT("%s: absent"), *Bone.ToString()));
+			continue;
+		}
+		const FVector Offset = Pose[Index].GetLocation();
+		Out.Add(FString::Printf(TEXT("%s: (%.3f %.3f %.3f) len %.3f"),
+			*Bone.ToString(), Offset.X, Offset.Y, Offset.Z, Offset.Size()));
+	}
+	return Out;
+}
+
+TArray<FString> UKBVEMoverEditorLibrary::DumpFingerTips(USkeletalMesh* Mesh, FName HandBone)
+{
+	TArray<FString> Out;
+	if (!Mesh)
+	{
+		return Out;
+	}
+	const FReferenceSkeleton& Skeleton = Mesh->GetRefSkeleton();
+	const TArray<FTransform>& Pose = Skeleton.GetRefBonePose();
+	const int32 Hand = Skeleton.FindBoneIndex(HandBone);
+	if (Hand == INDEX_NONE)
+	{
+		Out.Add(TEXT("no hand bone"));
+		return Out;
+	}
+
+	for (int32 Bone = 0; Bone < Skeleton.GetNum(); ++Bone)
+	{
+		// Only the tips: a bone under the hand with no child of its own.
+		bool bLeaf = true;
+		for (int32 Other = 0; Other < Skeleton.GetNum(); ++Other)
+		{
+			if (Skeleton.GetParentIndex(Other) == Bone)
+			{
+				bLeaf = false;
+				break;
+			}
+		}
+		if (!bLeaf)
+		{
+			continue;
+		}
+
+		FTransform Accumulated = FTransform::Identity;
+		int32 Walk = Bone;
+		bool bUnderHand = false;
+		while (Walk != INDEX_NONE)
+		{
+			if (Walk == Hand)
+			{
+				bUnderHand = true;
+				break;
+			}
+			Accumulated = Accumulated * Pose[Walk];
+			Walk = Skeleton.GetParentIndex(Walk);
+		}
+		if (!bUnderHand)
+		{
+			continue;
+		}
+		const FVector Tip = Accumulated.GetLocation();
+		Out.Add(FString::Printf(TEXT("%s tip (%.3f %.3f %.3f)"),
+			*Skeleton.GetBoneName(Bone).ToString(), Tip.X, Tip.Y, Tip.Z));
+	}
+	return Out;
 }
