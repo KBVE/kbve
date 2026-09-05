@@ -262,11 +262,11 @@ bool FKBVEWorldBridgeJoinTest::RunTest(const FString& Parameters)
 				FKBVEWorldRoadGraph::FindRiverSpans(Road, Shape, Seed, Path, Spans);
 				for (const FKBVEWorldRoadSpan& Span : Spans)
 				{
-					FKBVEWorldRibbonMesh Wood;
-					FKBVEWorldRibbonMesh Stone;
-					TArray<FBox> Blocks;
+					FKBVEWorldBridgeMesh Built;
 					FKBVEWorldBridge::Build(Bridge, FKBVEWorldBridgeLod(), Road, Shape, Seed,
-						&Field, Path, Span, Wood, Stone, Blocks);
+						&Field, Path, Span, Built);
+					const FKBVEWorldRibbonMesh& Wood = Built.Wood;
+					const FKBVEWorldRibbonMesh& Stone = Built.Stone;
 					if (Wood.IsEmpty())
 					{
 						continue;
@@ -386,11 +386,11 @@ bool FKBVEWorldBridgeSupportTest::RunTest(const FString& Parameters)
 				FKBVEWorldRoadGraph::FindRiverSpans(Road, Shape, Seed, Path, Spans);
 				for (const FKBVEWorldRoadSpan& Span : Spans)
 				{
-					FKBVEWorldRibbonMesh Wood;
-					FKBVEWorldRibbonMesh Stone;
-					TArray<FBox> Blocks;
+					FKBVEWorldBridgeMesh Built;
 					FKBVEWorldBridge::Build(Bridge, FKBVEWorldBridgeLod(), Road, Shape, Seed,
-						&Field, Path, Span, Wood, Stone, Blocks);
+						&Field, Path, Span, Built);
+					const FKBVEWorldRibbonMesh& Wood = Built.Wood;
+					const FKBVEWorldRibbonMesh& Stone = Built.Stone;
 					if (Wood.IsEmpty())
 					{
 						continue;
@@ -776,11 +776,11 @@ bool FKBVEWorldBridgeSolidTest::RunTest(const FString& Parameters)
 				FKBVEWorldRoadGraph::FindRiverSpans(Road, Shape, Seed, Path, Spans);
 				for (const FKBVEWorldRoadSpan& Span : Spans)
 				{
-					FKBVEWorldRibbonMesh Wood;
-					FKBVEWorldRibbonMesh Stone;
-					TArray<FBox> Blocks;
+					FKBVEWorldBridgeMesh Built;
 					FKBVEWorldBridge::Build(Bridge, FKBVEWorldBridgeLod(), Road, Shape, Seed,
-						&Field, Path, Span, Wood, Stone, Blocks);
+						&Field, Path, Span, Built);
+					const FKBVEWorldRibbonMesh& Wood = Built.Wood;
+					const FKBVEWorldRibbonMesh& Stone = Built.Stone;
 					if (Wood.IsEmpty())
 					{
 						continue;
@@ -891,11 +891,11 @@ bool FKBVEWorldMasonryUnderDeckTest::RunTest(const FString& Parameters)
 				FKBVEWorldRoadGraph::FindRiverSpans(Road, Shape, Seed, Path, Spans);
 				for (const FKBVEWorldRoadSpan& Span : Spans)
 				{
-					FKBVEWorldRibbonMesh Wood;
-					FKBVEWorldRibbonMesh Stone;
-					TArray<FBox> Blocks;
+					FKBVEWorldBridgeMesh Built;
 					FKBVEWorldBridge::Build(Bridge, FKBVEWorldBridgeLod(), Road, Shape, Seed,
-						&Field, Path, Span, Wood, Stone, Blocks);
+						&Field, Path, Span, Built);
+					const FKBVEWorldRibbonMesh& Wood = Built.Wood;
+					const FKBVEWorldRibbonMesh& Stone = Built.Stone;
 					if (Stone.IsEmpty())
 					{
 						continue;

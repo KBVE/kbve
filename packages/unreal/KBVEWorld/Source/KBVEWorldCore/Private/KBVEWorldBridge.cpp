@@ -5,8 +5,11 @@
 void FKBVEWorldBridge::Build(const FKBVEWorldBridgeParams& Bridge, const FKBVEWorldBridgeLod& Lod,
 	const FKBVEWorldRoadParams& Road, const FKBVEWorldHeightfieldParams& Shape, int32 Seed,
 	const FKBVEWorldRoadField* Field, const TArray<FVector>& Path, const FKBVEWorldRoadSpan& Span,
-	FKBVEWorldRibbonMesh& OutWood, FKBVEWorldRibbonMesh& OutStone, TArray<FBox>& OutBlocks)
+	FKBVEWorldBridgeMesh& Out)
 {
+	FKBVEWorldRibbonMesh& OutWood = Out.Wood;
+	FKBVEWorldRibbonMesh& OutStone = Out.Stone;
+
 	int32 Count = Span.Num();
 	if (Count < 2 || Span.End >= Path.Num())
 	{
@@ -272,8 +275,19 @@ void FKBVEWorldBridge::Build(const FKBVEWorldBridgeParams& Bridge, const FKBVEWo
 		const float Half = Width * 0.5f;
 		const FVector Min(At.X - Half, At.Y - Half, Ground - Bridge.PierEmbed);
 		const FVector Max(At.X + Half, At.Y + Half, Top);
-		FKBVEWorldRibbon::AppendBox(OutStone, Min, Max, Bridge.StoneTileLength);
-		OutBlocks.Emplace(Min, Max);
+
+		if (Lod.bInstancedParts)
+		{
+			FKBVEWorldBridgePart& Part = Out.StoneParts.AddDefaulted_GetRef();
+			Part.Centre = (Min + Max) * 0.5f;
+			Part.Size = Max - Min;
+		}
+		else
+		{
+			FKBVEWorldRibbon::AppendBox(OutStone, Min, Max, Bridge.StoneTileLength);
+		}
+
+		Out.Blocks.Emplace(Min, Max);
 		return Top - Ground >= Bridge.MinPierHeight;
 	};
 
@@ -393,16 +407,32 @@ void FKBVEWorldBridge::Build(const FKBVEWorldBridgeParams& Bridge, const FKBVEWo
 			const FVector Tangent = (Deck[I] - Deck[I - 1]).GetSafeNormal();
 			const FVector Across(Tangent.Y, -Tangent.X, 0.0f);
 
-			TArray<FVector> Beam;
-			Beam.Add(At - Across * Reach);
-			Beam.Add(At + Across * Reach);
+			const float Drop = -(Bridge.DeckThickness + Bridge.GirderDepth);
 
-			FKBVEWorldRibbonParams Cross;
-			Cross.Width = Bridge.CrossBeamWidth;
-			Cross.TileLength = Bridge.TileLength;
-			Cross.Thickness = Bridge.CrossBeamDepth;
-			Cross.ZOffset = -(Bridge.DeckThickness + Bridge.GirderDepth);
-			FKBVEWorldRibbon::Append(OutWood, Beam, Cross);
+			if (Lod.bInstancedParts)
+			{
+				// A beam is a box lying across the deck, so it instances the same
+				// way a pier does once it is given the deck's own heading. Its
+				// length runs along Across and the sweep hangs it below the deck
+				// by half its depth, which is what the ribbon's thickness did.
+				FKBVEWorldBridgePart& Part = Out.WoodParts.AddDefaulted_GetRef();
+				Part.Centre = At + FVector(0.0f, 0.0f, Drop - Bridge.CrossBeamDepth * 0.5f);
+				Part.Rotation = FRotationMatrix::MakeFromXY(Across, Tangent).ToQuat();
+				Part.Size = FVector(Reach * 2.0f, Bridge.CrossBeamWidth, Bridge.CrossBeamDepth);
+			}
+			else
+			{
+				TArray<FVector> Beam;
+				Beam.Add(At - Across * Reach);
+				Beam.Add(At + Across * Reach);
+
+				FKBVEWorldRibbonParams Cross;
+				Cross.Width = Bridge.CrossBeamWidth;
+				Cross.TileLength = Bridge.TileLength;
+				Cross.Thickness = Bridge.CrossBeamDepth;
+				Cross.ZOffset = Drop;
+				FKBVEWorldRibbon::Append(OutWood, Beam, Cross);
+			}
 		}
 	}
 

@@ -9,8 +9,10 @@
 
 #include "KBVEWorldRoadNetwork.generated.h"
 
+class UKBVEWorldInstancePool;
 class UMaterialInterface;
 class UProceduralMeshComponent;
+class UStaticMesh;
 
 /**
  * The bridges the two road edges one chunk owns need.
@@ -29,11 +31,25 @@ class KBVEWORLD_API AKBVEWorldRoadChunk : public AActor
 public:
 	AKBVEWorldRoadChunk();
 
+	/**
+	 * The parts a crossing wants instanced, alongside the geometry it keeps.
+	 *
+	 * Handed back rather than submitted here: the pool holds one component for
+	 * the whole world, so it belongs to the network and a chunk has no business
+	 * reaching into it.
+	 */
+	struct FParts
+	{
+		TArray<FTransform> Stone;
+		TArray<FTransform> Wood;
+	};
+
 	void Build(const FIntPoint& InCoord, int32 InSeed, const FKBVEWorldRoadParams& Road,
 		const FKBVEWorldBridgeParams& Bridge, const FKBVEWorldBridgeLod& Lod,
 		const FKBVEWorldHeightfieldParams& Shape, const FKBVEWorldRoadField* Field,
 		UMaterialInterface* WoodMaterial, UMaterialInterface* StoneMaterial,
-		float MaxDrawDistance, bool bInDetailed);
+		const UStaticMesh* PartMesh, float MaxDrawDistance, bool bInDetailed,
+		FParts& OutParts);
 
 	void Release();
 
@@ -143,6 +159,22 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road")
 	TObjectPtr<UMaterialInterface> StoneMaterial;
 
+	/**
+	 * A cube, for the parts of a crossing that are one.
+	 *
+	 * The piers, the abutments and the cross beams are all a box, and a box is
+	 * worth handing to an instanced mesh rather than building into every chunk
+	 * that holds one: instanced, a pier here and a pier five chunks away are one
+	 * draw call between them, and the cost stops growing with the world. Left
+	 * unset they are triangulated into the chunk as before, so a level that has
+	 * assigned nothing still gets its bridges.
+	 *
+	 * Any cube of any size, centred on its own origin -- the scale onto each box
+	 * is worked out from the mesh's bounds rather than assumed.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road|Lod")
+	TObjectPtr<UStaticMesh> PartMesh;
+
 	virtual void Tick(float DeltaSeconds) override;
 
 #if WITH_EDITOR
@@ -169,6 +201,12 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<class AKBVEWorldStreamer> Streamer;
+
+	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
+	TObjectPtr<UKBVEWorldInstancePool> Parts;
+
+	int32 StoneBucket = INDEX_NONE;
+	int32 WoodBucket = INDEX_NONE;
 
 	TArray<FIntPoint> Pending;
 	FIntPoint LastCentre = FIntPoint(MAX_int32, MAX_int32);

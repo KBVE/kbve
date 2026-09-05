@@ -155,11 +155,11 @@ bool FKBVEWorldBridgeGeometryTest::RunTest(const FString& Parameters)
 		return false;
 	}
 
-	FKBVEWorldRibbonMesh Wood;
-	FKBVEWorldRibbonMesh Stone;
-	TArray<FBox> Blocks;
+	FKBVEWorldBridgeMesh Built;
 	FKBVEWorldBridge::Build(Bridge, FKBVEWorldBridgeLod(), Road, Shape, Seed, nullptr, Path,
-		Spans[0], Wood, Stone, Blocks);
+		Spans[0], Built);
+	const FKBVEWorldRibbonMesh& Wood = Built.Wood;
+	const FKBVEWorldRibbonMesh& Stone = Built.Stone;
 
 	TestFalse(TEXT("the deck has geometry"), Wood.IsEmpty());
 	TestFalse(TEXT("the supports have geometry"), Stone.IsEmpty());
@@ -218,21 +218,49 @@ bool FKBVEWorldBridgeLodTest::RunTest(const FString& Parameters)
 	Far.CurveSubdivisions = 1;
 	Far.bFrame = false;
 
-	FKBVEWorldRibbonMesh NearWood;
-	FKBVEWorldRibbonMesh NearStone;
-	TArray<FBox> NearBlocks;
+	FKBVEWorldBridgeMesh NearBuilt;
 	FKBVEWorldBridge::Build(Bridge, FKBVEWorldBridgeLod(), Road, Shape, Seed, nullptr, Path,
-		Spans[0], NearWood, NearStone, NearBlocks);
+		Spans[0], NearBuilt);
 
-	FKBVEWorldRibbonMesh FarWood;
-	FKBVEWorldRibbonMesh FarStone;
-	TArray<FBox> FarBlocks;
-	FKBVEWorldBridge::Build(Bridge, Far, Road, Shape, Seed, nullptr, Path, Spans[0],
-		FarWood, FarStone, FarBlocks);
+	FKBVEWorldBridgeMesh FarBuilt;
+	FKBVEWorldBridge::Build(Bridge, Far, Road, Shape, Seed, nullptr, Path, Spans[0], FarBuilt);
+
+	const FKBVEWorldRibbonMesh& NearWood = NearBuilt.Wood;
+	const FKBVEWorldRibbonMesh& NearStone = NearBuilt.Stone;
+	const FKBVEWorldRibbonMesh& FarWood = FarBuilt.Wood;
+	const TArray<FBox>& NearBlocks = NearBuilt.Blocks;
+	const TArray<FBox>& FarBlocks = FarBuilt.Blocks;
 
 	TestFalse(TEXT("the far deck still has geometry"), FarWood.IsEmpty());
 	TestTrue(TEXT("the far level is cheaper than the near one"),
 		FarWood.Vertices.Num() < NearWood.Vertices.Num());
+
+	// Instancing the boxes has to be a change of who draws them and not of what
+	// is drawn: the same blocks, in the same places, and no stone triangles left
+	// in the chunk for the instances to sit inside.
+	FKBVEWorldBridgeLod Instanced;
+	Instanced.bInstancedParts = true;
+
+	FKBVEWorldBridgeMesh InstancedBuilt;
+	FKBVEWorldBridge::Build(Bridge, Instanced, Road, Shape, Seed, nullptr, Path, Spans[0],
+		InstancedBuilt);
+
+	TestTrue(TEXT("instancing draws no stone into the chunk"), InstancedBuilt.Stone.IsEmpty());
+	TestEqual(TEXT("instancing stands the same supports"),
+		InstancedBuilt.StoneParts.Num(), NearBlocks.Num());
+	TestEqual(TEXT("instancing still reports the blocks to collide as"),
+		InstancedBuilt.Blocks.Num(), NearBlocks.Num());
+	TestTrue(TEXT("instancing hangs the cross beams it dropped"),
+		InstancedBuilt.WoodParts.Num() > 0);
+	TestTrue(TEXT("instancing leaves the deck and its rails alone"),
+		InstancedBuilt.Wood.Vertices.Num() < NearWood.Vertices.Num());
+
+	for (int32 I = 0; I < InstancedBuilt.StoneParts.Num() && I < NearBlocks.Num(); ++I)
+	{
+		TestTrue(FString::Printf(TEXT("instanced support %d is the same box"), I),
+			InstancedBuilt.StoneParts[I].Centre.Equals(NearBlocks[I].GetCenter(), 1.0f)
+				&& InstancedBuilt.StoneParts[I].Size.Equals(NearBlocks[I].GetSize(), 1.0f));
+	}
 
 	AddInfo(FString::Printf(
 		TEXT("near: %d wood tris, %d stone tris in %d blocks (stone is %.1f%% of the crossing)"),
@@ -240,7 +268,7 @@ bool FKBVEWorldBridgeLodTest::RunTest(const FString& Parameters)
 		100.0f * NearStone.Triangles.Num()
 			/ FMath::Max(NearWood.Triangles.Num() + NearStone.Triangles.Num(), 1)));
 	AddInfo(FString::Printf(TEXT("far: %d wood tris, %d stone tris (%.0f%% of near's wood)"),
-		FarWood.Triangles.Num() / 3, FarStone.Triangles.Num() / 3,
+		FarWood.Triangles.Num() / 3, FarBuilt.Stone.Triangles.Num() / 3,
 		100.0f * FarWood.Triangles.Num() / FMath::Max(NearWood.Triangles.Num(), 1)));
 
 	// Supports are placed off the frame's reach, which is solved at both levels,

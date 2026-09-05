@@ -3,6 +3,7 @@
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
 #include "KBVEWorldHeightfield.h"
+#include "KBVEWorldInstancePool.h"
 #include "KBVEWorldStreamer.h"
 #include "EngineUtils.h"
 #include "KBVEWorldRibbon.h"
@@ -61,6 +62,27 @@ namespace
 		Mesh->SetCollisionConvexMeshes(Hulls);
 	}
 
+	// Each box, as the transform that puts the level's cube on it. The scale comes
+	// off the mesh's own bounds, so a level is free to assign a cube of any size
+	// rather than having to match a number this plugin picked.
+	TArray<FTransform> TransformsFor(const TArray<FKBVEWorldBridgePart>& Parts,
+		const UStaticMesh* Mesh)
+	{
+		TArray<FTransform> Out;
+		if (!Mesh)
+		{
+			return Out;
+		}
+
+		Out.Reserve(Parts.Num());
+		for (const FKBVEWorldBridgePart& Part : Parts)
+		{
+			Out.Emplace(Part.Rotation, Part.Centre,
+				UKBVEWorldInstancePool::BoxScaleFor(Mesh, Part.Size));
+		}
+		return Out;
+	}
+
 	void Rebase(FKBVEWorldRibbonMesh& Data, const FVector& Origin)
 	{
 		for (FVector& V : Data.Vertices)
@@ -101,7 +123,8 @@ void AKBVEWorldRoadChunk::Build(const FIntPoint& InCoord, int32 InSeed,
 	const FKBVEWorldRoadParams& RoadParams, const FKBVEWorldBridgeParams& BridgeParams,
 	const FKBVEWorldBridgeLod& Lod, const FKBVEWorldHeightfieldParams& Shape,
 	const FKBVEWorldRoadField* Field, UMaterialInterface* WoodMaterial,
-	UMaterialInterface* StoneMaterial, float MaxDrawDistance, bool bInDetailed)
+	UMaterialInterface* StoneMaterial, const UStaticMesh* PartMesh, float MaxDrawDistance,
+	bool bInDetailed, FParts& OutParts)
 {
 	Coord = InCoord;
 	bActive = true;
@@ -111,9 +134,7 @@ void AKBVEWorldRoadChunk::Build(const FIntPoint& InCoord, int32 InSeed,
 	const FVector Origin((InCoord.X + 0.5f) * ChunkSize, (InCoord.Y + 0.5f) * ChunkSize, 0.0f);
 	SetActorLocation(Origin);
 
-	FKBVEWorldRibbonMesh WoodData;
-	FKBVEWorldRibbonMesh StoneData;
-	TArray<FBox> Blocks;
+	FKBVEWorldBridgeMesh Data;
 
 	if (Field)
 	{
@@ -142,16 +163,24 @@ void AKBVEWorldRoadChunk::Build(const FIntPoint& InCoord, int32 InSeed,
 		for (const FKBVEWorldRoadSpan& Span : Spans)
 		{
 			FKBVEWorldBridge::Build(BridgeParams, Lod, RoadParams, Shape, InSeed, Field, Path,
-				Span, WoodData, StoneData, Blocks);
+				Span, Data);
 		}
 	}
 
-	Rebase(WoodData, Origin);
-	Rebase(StoneData, Origin);
+	// World space, because the pool holds one component for the whole world and
+	// the rebase below is a thing only this chunk's own sections want.
+	OutParts.Stone = TransformsFor(Data.StoneParts, PartMesh);
+	OutParts.Wood = TransformsFor(Data.WoodParts, PartMesh);
 
-	Commit(Wood, WoodData, WoodMaterial, true);
-	Commit(Stone, StoneData, StoneMaterial, false);
-	CommitBlocks(Stone, Blocks, Origin);
+	Rebase(Data.Wood, Origin);
+	Rebase(Data.Stone, Origin);
+
+	Commit(Wood, Data.Wood, WoodMaterial, true);
+	Commit(Stone, Data.Stone, StoneMaterial, false);
+
+	// The supports collide as blocks whether they were drawn as triangles here or
+	// as instances elsewhere, so this does not care which happened.
+	CommitBlocks(Stone, Data.Blocks, Origin);
 
 	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get() })
 	{
@@ -176,6 +205,9 @@ AKBVEWorldRoadNetwork::AKBVEWorldRoadNetwork()
 {
 	PrimaryActorTick.bCanEverTick = true;
 	SetRootComponent(CreateDefaultSubobject<USceneComponent>(TEXT("Root")));
+
+	Parts = CreateDefaultSubobject<UKBVEWorldInstancePool>(TEXT("Parts"));
+	Parts->SetupAttachment(GetRootComponent());
 }
 
 void AKBVEWorldRoadNetwork::BeginPlay()
@@ -287,6 +319,10 @@ void AKBVEWorldRoadNetwork::ReleaseOutsideRadius(const FIntPoint& Centre)
 			Chunk->Release();
 			Pool.Add(Chunk);
 		}
+		if (Parts)
+		{
+			Parts->Release(Key);
+		}
 	}
 }
 
@@ -351,6 +387,16 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 		? (ViewRadiusChunks + DrawDistanceMarginChunks) * ChunkSize
 		: 0.0f;
 
+	// Buckets are made on the first tick that has a mesh to make them from, so a
+	// level that assigns one later does not need the actor rebuilt.
+	if (Parts && PartMesh && StoneBucket == INDEX_NONE)
+	{
+		StoneBucket = Parts->EnsureBucket(PartMesh, StoneMaterial, DrawDistance);
+		WoodBucket = Parts->EnsureBucket(PartMesh, WoodMaterial, DrawDistance);
+	}
+
+	const bool bInstanced = Parts && PartMesh && StoneBucket != INDEX_NONE;
+
 	while (Pending.Num() > 0 && Built < MaxBuildsPerTick)
 	{
 		const FIntPoint Coord = Pending[0];
@@ -392,14 +438,31 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 		FKBVEWorldBridgeLod Lod;
 		Lod.CurveSubdivisions = bDetailed ? Bridge.CurveSubdivisions : 1;
 		Lod.bFrame = bDetailed;
+		Lod.bInstancedParts = bInstanced;
+
+		AKBVEWorldRoadChunk::FParts ChunkParts;
 
 		const double Start = FPlatformTime::Seconds();
 		Chunk->Build(Coord, Seed, Road, Bridge, Lod, Shape,
 			Streamer ? Streamer->GetRoadField() : nullptr, WoodMaterial, StoneMaterial,
-			DrawDistance, bDetailed);
+			bInstanced ? PartMesh.Get() : nullptr, DrawDistance, bDetailed, ChunkParts);
 		LastBuildMs = static_cast<float>((FPlatformTime::Seconds() - Start) * 1000.0);
+
+		if (bInstanced)
+		{
+			Parts->Submit(StoneBucket, Coord, MoveTemp(ChunkParts.Stone));
+			Parts->Submit(WoodBucket, Coord, MoveTemp(ChunkParts.Wood));
+		}
+
 		Live.Add(Coord, Chunk);
 		++Built;
+	}
+
+	// Once per tick rather than per chunk: a bucket is rebuilt from all its keys,
+	// so flushing inside the loop would rebuild it once for every chunk built.
+	if (Parts)
+	{
+		Parts->Flush();
 	}
 
 	if (Built > 0 && Pending.Num() == 0)

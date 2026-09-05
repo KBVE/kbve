@@ -213,25 +213,63 @@ struct KBVEWORLDCORE_API FKBVEWorldBridgeLod
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bridge|Lod")
 	bool bFrame = true;
+
+	/**
+	 * Whether the repeated boxes come back as transforms rather than triangles.
+	 *
+	 * The piers, the abutments and the cross beams are all a box somewhere, and a
+	 * box is the one thing worth handing to an instanced mesh instead of building
+	 * per chunk. Off, they are triangulated into the meshes below as before, which
+	 * is what a caller with no mesh to instance needs.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Bridge|Lod")
+	bool bInstancedParts = false;
+};
+
+/**
+ * One box a crossing stands or hangs somewhere, as a place and a size.
+ *
+ * Kept as a centre, a rotation and a size rather than as a transform so that a
+ * caller can scale whatever mesh a level gave it onto the box. A bridge has no
+ * idea how big the cube it is being drawn with was authored.
+ */
+struct FKBVEWorldBridgePart
+{
+	FVector Centre = FVector::ZeroVector;
+	FQuat Rotation = FQuat::Identity;
+	FVector Size = FVector::ZeroVector;
+};
+
+/** Everything one crossing produces. */
+struct FKBVEWorldBridgeMesh
+{
+	/**
+	 * Wood and stone are separate meshes because they are separate materials,
+	 * and a material change inside one procedural mesh section is not a thing --
+	 * two sections is the cheapest form of the split.
+	 */
+	FKBVEWorldRibbonMesh Wood;
+	FKBVEWorldRibbonMesh Stone;
+
+	/**
+	 * The supports as the boxes they were before they were triangulated.
+	 *
+	 * Filled whether or not the parts are instanced, because this is what the
+	 * supports collide as: cooking a pier's twelve triangles buys nothing over
+	 * the convex hull it already is.
+	 */
+	TArray<FBox> Blocks;
+
+	/** The boxes to instance, when the level gave a mesh to instance them with. */
+	TArray<FKBVEWorldBridgePart> StoneParts;
+	TArray<FKBVEWorldBridgePart> WoodParts;
 };
 
 struct KBVEWORLDCORE_API FKBVEWorldBridge
 {
-	/**
-	 * Build one crossing from the road polyline and the span that is over water.
-	 *
-	 * Wood and stone come back as separate meshes because they are separate
-	 * materials, and a material change inside one procedural mesh section is not
-	 * a thing -- two sections is the cheapest form of the split.
-	 *
-	 * The supports also come back as the boxes they were before they were
-	 * triangulated. Cooking a pier's twelve triangles as a collision mesh buys
-	 * nothing over the convex hull it already is, and a crossing carries twenty
-	 * of them.
-	 */
+	/** Build one crossing from the road polyline and the span that is over water. */
 	static void Build(const FKBVEWorldBridgeParams& Bridge, const FKBVEWorldBridgeLod& Lod,
 		const FKBVEWorldRoadParams& Road, const FKBVEWorldHeightfieldParams& Shape, int32 Seed,
 		const FKBVEWorldRoadField* Field, const TArray<FVector>& Path,
-		const FKBVEWorldRoadSpan& Span, FKBVEWorldRibbonMesh& OutWood,
-		FKBVEWorldRibbonMesh& OutStone, TArray<FBox>& OutBlocks);
+		const FKBVEWorldRoadSpan& Span, FKBVEWorldBridgeMesh& Out);
 };
