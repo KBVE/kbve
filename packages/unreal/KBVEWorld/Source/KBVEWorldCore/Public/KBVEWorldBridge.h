@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "KBVEWorldHeightfieldParams.h"
+#include "KBVEWorldPart.h"
 #include "KBVEWorldRibbon.h"
 #include "KBVEWorldRoadField.h"
 #include "KBVEWorldRoadGraph.h"
@@ -226,19 +227,8 @@ struct KBVEWORLDCORE_API FKBVEWorldBridgeLod
 	bool bInstancedParts = false;
 };
 
-/**
- * One box a crossing stands or hangs somewhere, as a place and a size.
- *
- * Kept as a centre, a rotation and a size rather than as a transform so that a
- * caller can scale whatever mesh a level gave it onto the box. A bridge has no
- * idea how big the cube it is being drawn with was authored.
- */
-struct FKBVEWorldBridgePart
-{
-	FVector Centre = FVector::ZeroVector;
-	FQuat Rotation = FQuat::Identity;
-	FVector Size = FVector::ZeroVector;
-};
+/** What a crossing stands or hangs is the same box anything else does. */
+using FKBVEWorldBridgePart = FKBVEWorldPart;
 
 /** Everything one crossing produces. */
 struct FKBVEWorldBridgeMesh

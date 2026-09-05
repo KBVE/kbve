@@ -3,9 +3,11 @@
 #include "CoreMinimal.h"
 #include "GameFramework/Actor.h"
 #include "KBVEWorldBridge.h"
+#include "KBVEWorldFence.h"
 #include "KBVEWorldHeightfieldParams.h"
 #include "KBVEWorldRoadField.h"
 #include "KBVEWorldRoadGraph.h"
+#include "MassEntityHandle.h"
 
 #include "KBVEWorldRoadNetwork.generated.h"
 
@@ -44,12 +46,46 @@ public:
 		TArray<FTransform> Wood;
 	};
 
-	void Build(const FIntPoint& InCoord, int32 InSeed, const FKBVEWorldRoadParams& Road,
-		const FKBVEWorldBridgeParams& Bridge, const FKBVEWorldBridgeLod& Lod,
-		const FKBVEWorldHeightfieldParams& Shape, const FKBVEWorldRoadField* Field,
-		UMaterialInterface* WoodMaterial, UMaterialInterface* StoneMaterial,
-		const UStaticMesh* PartMesh, float MaxDrawDistance, bool bInDetailed,
-		FParts& OutParts);
+	/**
+	 * Everything a chunk needs to build itself.
+	 *
+	 * Passed as one thing rather than as arguments because the list only ever
+	 * grows: every structure the roads come to carry -- the crossings, the
+	 * fences, whatever follows them -- wants its own shape and its own level of
+	 * detail, and threading each one through as two more parameters is how a
+	 * build function stops being readable.
+	 */
+	struct FBuild
+	{
+		FIntPoint Coord = FIntPoint::ZeroValue;
+		int32 Seed = 0;
+		bool bDetailed = true;
+		float MaxDrawDistance = 0.0f;
+
+		const FKBVEWorldRoadParams* Road = nullptr;
+		const FKBVEWorldHeightfieldParams* Shape = nullptr;
+		const FKBVEWorldRoadField* Field = nullptr;
+
+		const FKBVEWorldBridgeParams* Bridge = nullptr;
+		FKBVEWorldBridgeLod BridgeLod;
+
+		const FKBVEWorldFenceParams* Fence = nullptr;
+
+		UMaterialInterface* WoodMaterial = nullptr;
+		UMaterialInterface* StoneMaterial = nullptr;
+		const UStaticMesh* PartMesh = nullptr;
+	};
+
+	void Build(const FBuild& In, FParts& OutParts);
+
+	/**
+	 * Stand this chunk's fences up again at whatever detail their runs now want.
+	 *
+	 * Kept off Build because it is the cheap half: the routes are already solved
+	 * and held, so a run changing tier costs the posts it stands and nothing
+	 * else. Returns false when no run had in fact changed.
+	 */
+	bool RebuildFences(const FBuild& In, FParts& OutParts);
 
 	void Release();
 
@@ -59,12 +95,50 @@ public:
 	/** The level this chunk's geometry was built at, so a changed ring can requeue it. */
 	bool IsDetailed() const { return bDetailed; }
 
+	/** The fence runs this chunk owns, as Mass entities. */
+	const TArray<FMassEntityHandle>& GetFenceRuns() const { return FenceRuns; }
+
 private:
+	/** One entity per run, spawned once the seed has decided where the runs are. */
+	void SpawnFenceRuns(const FBuild& In);
+
+	/** Hand the entities back, for a chunk leaving the window or being rebuilt. */
+	void ReleaseFenceRuns();
+
+	/** Stand every run up at whatever detail its entity currently asks for. */
+	void BuildFenceParts(const FBuild& In, struct FKBVEWorldFenceMesh& Out);
+
 	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
 	TObjectPtr<UProceduralMeshComponent> Wood;
 
 	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
 	TObjectPtr<UProceduralMeshComponent> Stone;
+
+	/**
+	 * The routes this chunk's two edges took, kept rather than re-solved.
+	 *
+	 * A run changing its level of detail has to stand its posts somewhere, and
+	 * the somewhere is the road's own polyline. Re-routing to find it again would
+	 * cost a Viterbi pass per edge for what is a couple of hundred vectors held.
+	 */
+	TArray<TArray<FVector>> EdgePaths;
+
+	/**
+	 * What the crossings contributed, kept so a fence can be restood without it.
+	 *
+	 * The pool replaces a key wholesale and a fence shares its mesh and material
+	 * with a pier, so the two land in the same bucket under the same key -- and a
+	 * fence-only resubmit would take this chunk's bridges out of the world. Both
+	 * go back every time instead.
+	 */
+	FParts BridgeParts;
+
+	UPROPERTY(Transient)
+	TObjectPtr<class UMassEntitySubsystem> Mass;
+
+	TArray<FMassEntityHandle> FenceRuns;
+	TArray<FKBVEWorldFenceRun> Runs;
+	TArray<int32> RunEdge;
 
 	FIntPoint Coord = FIntPoint::ZeroValue;
 	bool bActive = false;
@@ -106,6 +180,16 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road")
 	FKBVEWorldBridgeParams Bridge;
+
+	/**
+	 * The fences that run alongside the roads.
+	 *
+	 * Aesthetic rather than meaningful, and deliberately not everywhere: what
+	 * gives a road an edge is having one occasionally, and a fence down every
+	 * road is a corridor from one end of the world to the other.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road")
+	FKBVEWorldFenceParams Fence;
 
 	/**
 	 * Chunks kept either side of the viewer's own.
@@ -190,6 +274,10 @@ private:
 	class AKBVEWorldStreamer* FindStreamer();
 	FIntPoint ChunkCoordAt(const FVector& WorldLocation) const;
 	bool WantsDetail(const FIntPoint& Centre, const FIntPoint& Coord) const;
+
+	/** Everything a chunk build needs, gathered from this actor's own settings. */
+	AKBVEWorldRoadChunk::FBuild MakeBuild(const FIntPoint& Coord, int32 Seed, bool bDetailed,
+		bool bInstanced, float DrawDistance) const;
 	void ReleaseOutsideRadius(const FIntPoint& Centre);
 	void QueueInsideRadius(const FIntPoint& Centre);
 
