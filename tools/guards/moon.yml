@@ -5,6 +5,7 @@ language: 'bash'
 
 tasks:
     lint:
+        deps: ['~:lint-paths']
         script: >-
             python3 tools/guards/sync-cargo-workspace-stubs.py --check
             && ./tools/guards/kong-config-hash.sh --check
@@ -20,4 +21,14 @@ tasks:
             - '/apps/kube/vector/manifests/vector-config.yaml'
             - '/apps/kube/vector/manifests/vector-daemonset.yaml'
         options:
+            runFromWorkspaceRoot: true
+
+    # A path illegal on Windows anywhere in the tree breaks every Windows job,
+    # so the check reads `git ls-files` rather than a fixed input list -- and
+    # therefore cannot be cached against one, since the file that breaks it is
+    # by definition one nobody thought to list.
+    lint-paths:
+        command: 'python3 tools/guards/check-portable-paths.py'
+        options:
+            cache: false
             runFromWorkspaceRoot: true

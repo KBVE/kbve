@@ -44,8 +44,20 @@ def _dir_of(source_file: str) -> str:
     return "/".join(parts[:2]) if len(parts) > 1 else parts[0]
 
 
+# A slug becomes a filename. Windows rejects <>:"|?* in a path outright, and
+# git refuses to check out a tree containing one -- `invalid path`, exit 128,
+# before any job step runs. Directory keys come from import specifiers, so
+# `node:fs` and `virtual:starlight/user-config` land here as a matter of
+# course and broke every Windows checkout of the repository until they were
+# sanitised.
+_UNSAFE = '<>:"|?*\\'
+
+
 def _slug(dir_key: str) -> str:
-    return dir_key.replace("/", "__").replace(".", "_") or "_root"
+    slug = dir_key.replace("/", "__").replace(".", "_")
+    for ch in _UNSAFE:
+        slug = slug.replace(ch, "_")
+    return slug or "_root"
 
 
 def _basename(path: str) -> str:
