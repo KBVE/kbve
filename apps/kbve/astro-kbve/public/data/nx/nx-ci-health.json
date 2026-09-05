@@ -1,182 +1,134 @@
 {
-  "generated_at": "2026-09-04T05:45:32Z",
+  "generated_at": "2026-09-05T05:27:48Z",
   "window": {
     "days": 7,
-    "since": "2026-08-28"
+    "since": "2026-08-29"
   },
   "totals": {
     "runs": 1000,
-    "success": 517,
-    "failure": 165,
-    "cancelled": 297,
+    "success": 594,
+    "failure": 155,
+    "cancelled": 236,
     "skipped": 0,
-    "other": 21,
+    "other": 15,
     "flaky": 0,
-    "success_rate": 75.8,
-    "avg_duration_s": 2949
+    "success_rate": 79.3,
+    "avg_duration_s": 2789
   },
   "totals_24h": {
-    "runs": 253,
-    "success": 158,
-    "failure": 38,
-    "success_rate": 80.6
+    "runs": 294,
+    "success": 199,
+    "failure": 43,
+    "success_rate": 82.2
   },
   "workflows": [
     {
       "name": "CI",
-      "runs": 228,
-      "success": 87,
+      "runs": 239,
+      "success": 108,
       "failure": 49,
-      "cancelled": 91,
+      "cancelled": 79,
       "skipped": 0,
-      "other": 1,
+      "other": 3,
       "flaky": 0,
-      "success_rate": 64.0,
-      "avg_duration_s": 2223
+      "success_rate": 68.8,
+      "avg_duration_s": 2033
     },
     {
       "name": "CI - CodeQL",
-      "runs": 226,
-      "success": 72,
-      "failure": 20,
-      "cancelled": 133,
+      "runs": 237,
+      "success": 113,
+      "failure": 41,
+      "cancelled": 82,
       "skipped": 0,
       "other": 1,
       "flaky": 0,
-      "success_rate": 78.3,
-      "avg_duration_s": 3057
+      "success_rate": 73.4,
+      "avg_duration_s": 2126
     },
     {
       "name": "CI - Dev",
-      "runs": 162,
-      "success": 140,
-      "failure": 9,
-      "cancelled": 12,
+      "runs": 168,
+      "success": 155,
+      "failure": 6,
+      "cancelled": 6,
       "skipped": 0,
       "other": 1,
       "flaky": 0,
-      "success_rate": 94.0,
-      "avg_duration_s": 1735
+      "success_rate": 96.3,
+      "avg_duration_s": 1194
     },
     {
       "name": "CI - Godot Tests",
-      "runs": 106,
-      "success": 61,
-      "failure": 21,
-      "cancelled": 24,
+      "runs": 111,
+      "success": 77,
+      "failure": 11,
+      "cancelled": 23,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
-      "success_rate": 74.4,
-      "avg_duration_s": 2072
+      "success_rate": 87.5,
+      "avg_duration_s": 718
     },
     {
       "name": "CI - Actionlint",
-      "runs": 88,
-      "success": 74,
-      "failure": 1,
-      "cancelled": 12,
+      "runs": 85,
+      "success": 68,
+      "failure": 3,
+      "cancelled": 13,
       "skipped": 0,
       "other": 1,
       "flaky": 0,
-      "success_rate": 98.7,
-      "avg_duration_s": 1614
+      "success_rate": 95.8,
+      "avg_duration_s": 904
     },
     {
       "name": "CI - Unreal Plugins (verify)",
-      "runs": 74,
-      "success": 13,
-      "failure": 34,
-      "cancelled": 20,
+      "runs": 81,
+      "success": 9,
+      "failure": 33,
+      "cancelled": 31,
       "skipped": 0,
-      "other": 7,
+      "other": 8,
       "flaky": 0,
-      "success_rate": 27.7,
-      "avg_duration_s": 14426
+      "success_rate": 21.4,
+      "avg_duration_s": 17348
     },
     {
       "name": "CI - MC",
-      "runs": 37,
-      "success": 27,
-      "failure": 6,
-      "cancelled": 4,
+      "runs": 25,
+      "success": 22,
+      "failure": 1,
+      "cancelled": 2,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
-      "success_rate": 81.8,
-      "avg_duration_s": 531
-    },
-    {
-      "name": "ZZ Release Probe",
-      "runs": 10,
-      "success": 0,
-      "failure": 2,
-      "cancelled": 1,
-      "skipped": 0,
-      "other": 7,
-      "flaky": 0,
-      "success_rate": 0.0,
-      "avg_duration_s": 18
-    },
-    {
-      "name": "CI - MC Smoke",
-      "runs": 9,
-      "success": 9,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 185
+      "success_rate": 95.7,
+      "avg_duration_s": 455
     },
     {
       "name": "CI - Atomic Branches",
-      "runs": 8,
-      "success": 7,
+      "runs": 16,
+      "success": 15,
       "failure": 1,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
-      "success_rate": 87.5,
-      "avg_duration_s": 673
+      "success_rate": 93.8,
+      "avg_duration_s": 733
     },
     {
       "name": "CI - Forgejo Mirror",
-      "runs": 8,
-      "success": 7,
-      "failure": 1,
+      "runs": 9,
+      "success": 5,
+      "failure": 4,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
-      "success_rate": 87.5,
-      "avg_duration_s": 255
-    },
-    {
-      "name": "CI - MC Gradle Cache",
-      "runs": 8,
-      "success": 1,
-      "failure": 7,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 12.5,
-      "avg_duration_s": 214
-    },
-    {
-      "name": "CI - MC Mods Cache",
-      "runs": 8,
-      "success": 1,
-      "failure": 7,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 12.5,
-      "avg_duration_s": 269
+      "success_rate": 55.6,
+      "avg_duration_s": 128
     },
     {
       "name": "CI - Sync Branches",
@@ -188,7 +140,7 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 349
+      "avg_duration_s": 85
     },
     {
       "name": "Daily Content",
@@ -200,67 +152,43 @@
       "other": 1,
       "flaky": 0,
       "success_rate": 0.0,
-      "avg_duration_s": 731
+      "avg_duration_s": 824
+    },
+    {
+      "name": "CI - Security",
+      "runs": 3,
+      "success": 2,
+      "failure": 1,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 66.7,
+      "avg_duration_s": 1962
     },
     {
       "name": "Deploy",
-      "runs": 4,
-      "success": 3,
-      "failure": 1,
+      "runs": 2,
+      "success": 2,
+      "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
-      "success_rate": 75.0,
-      "avg_duration_s": 194
+      "success_rate": 100.0,
+      "avg_duration_s": 207
     },
     {
       "name": "Release",
-      "runs": 3,
+      "runs": 2,
       "success": 0,
-      "failure": 1,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 2,
-      "flaky": 0,
-      "success_rate": 0.0,
-      "avg_duration_s": 258
-    },
-    {
-      "name": "CI - MC Cache",
-      "runs": 1,
-      "success": 0,
-      "failure": 1,
+      "failure": 2,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 0.0,
-      "avg_duration_s": 261
-    },
-    {
-      "name": "Graph Update: pip in /apps/discordsh/notification-bot, /apps/pydesk #1548015788",
-      "runs": 1,
-      "success": 1,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 88
-    },
-    {
-      "name": "Graph Update: uv in /apps/agones/factorio/mods-src/kbve-orc, /apps/agones/factorio/mods-src/kbve-spider, /packages/python/kbve #1548015787",
-      "runs": 1,
-      "success": 1,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 60
+      "avg_duration_s": 670
     },
     {
       "name": "Graph Update: uv in /packages/python/kbve #1553305051",
@@ -311,6 +239,18 @@
       "avg_duration_s": 107
     },
     {
+      "name": "cargo in / for async-trait - Update #1558017494",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 77
+    },
+    {
       "name": "cargo in / for rapier2d - Update #1553586993",
       "runs": 1,
       "success": 1,
@@ -323,19 +263,7 @@
       "avg_duration_s": 125
     },
     {
-      "name": "docker in /. - Update #1548888913",
-      "runs": 1,
-      "success": 0,
-      "failure": 1,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 0.0,
-      "avg_duration_s": 46
-    },
-    {
-      "name": "github_actions in / for actions/setup-java - Update #1548161208",
+      "name": "github_actions in / for actions/setup-java - Update #1558126346",
       "runs": 1,
       "success": 1,
       "failure": 0,
@@ -344,114 +272,162 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 85
+      "avg_duration_s": 126
+    },
+    {
+      "name": "github_actions in / for game-ci/steam-deploy - Update #1558048180",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 56
+    },
+    {
+      "name": "npm_and_yarn in / for @scalar/api-reference - Update #1558126320",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 116
+    },
+    {
+      "name": "npm_and_yarn in / for cssnano - Update #1558126273",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 76
+    },
+    {
+      "name": "npm_and_yarn in / for expo-dev-client - Update #1558126284",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 121
     }
   ],
   "recent_failures": [
     {
+      "name": "CI",
+      "branch": "dev",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/33939530840",
+      "finished_at": "2026-09-05T05:05:05Z"
+    },
+    {
       "name": "CI - CodeQL",
       "branch": "dev",
       "event": "push",
-      "url": "https://github.com/KBVE/kbve/actions/runs/33834025994",
-      "finished_at": "2026-09-04T03:59:59Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/33943933994",
+      "finished_at": "2026-09-05T04:35:03Z"
     },
     {
-      "name": "Release",
-      "branch": "unr@0.1.0",
-      "event": "push",
-      "url": "https://github.com/KBVE/kbve/actions/runs/33827337987",
-      "finished_at": "2026-09-04T02:04:16Z"
-    },
-    {
-      "name": "CI - Forgejo Mirror",
-      "branch": "unr@0.1.0",
-      "event": "push",
-      "url": "https://github.com/KBVE/kbve/actions/runs/33827337580",
-      "finished_at": "2026-09-04T01:53:19Z"
-    },
-    {
-      "name": "CI - Unreal Plugins (verify)",
+      "name": "CI - CodeQL",
       "branch": "dev",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/33703509112",
-      "finished_at": "2026-09-04T01:29:44Z"
+      "event": "push",
+      "url": "https://github.com/KBVE/kbve/actions/runs/33942702553",
+      "finished_at": "2026-09-05T04:17:43Z"
+    },
+    {
+      "name": "CI - CodeQL",
+      "branch": "dev",
+      "event": "push",
+      "url": "https://github.com/KBVE/kbve/actions/runs/33942640250",
+      "finished_at": "2026-09-05T04:00:35Z"
     },
     {
       "name": "CI",
-      "branch": "dev",
-      "event": "push",
-      "url": "https://github.com/KBVE/kbve/actions/runs/33815852506",
-      "finished_at": "2026-09-04T00:22:06Z"
-    },
-    {
-      "name": "CI - CodeQL",
-      "branch": "dev",
-      "event": "push",
-      "url": "https://github.com/KBVE/kbve/actions/runs/33815852500",
-      "finished_at": "2026-09-03T23:49:21Z"
+      "branch": "trunk/discordsh-ids-1788574658",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/33938937172",
+      "finished_at": "2026-09-05T03:59:52Z"
     },
     {
       "name": "CI",
-      "branch": "trunk/readme-refresh",
+      "branch": "trunk/discordsh-layout-1788573944",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/33811424745",
-      "finished_at": "2026-09-03T23:38:29Z"
-    },
-    {
-      "name": "CI - CodeQL",
-      "branch": "main",
-      "event": "push",
-      "url": "https://github.com/KBVE/kbve/actions/runs/33815834870",
-      "finished_at": "2026-09-03T23:32:06Z"
-    },
-    {
-      "name": "CI - CodeQL",
-      "branch": "dev",
-      "event": "push",
-      "url": "https://github.com/KBVE/kbve/actions/runs/33815734486",
-      "finished_at": "2026-09-03T23:22:46Z"
-    },
-    {
-      "name": "CI - Unreal Plugins (verify)",
-      "branch": "dev",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/33628478476",
-      "finished_at": "2026-09-03T23:13:12Z"
-    },
-    {
-      "name": "CI - Unreal Plugins (verify)",
-      "branch": "dev",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/33807782614",
-      "finished_at": "2026-09-03T23:12:58Z"
-    },
-    {
-      "name": "CI - Dev",
-      "branch": "dev",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/33805758680",
-      "finished_at": "2026-09-03T23:02:45Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/33938255363",
+      "finished_at": "2026-09-05T03:32:56Z"
     },
     {
       "name": "CI",
       "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/33805758473",
-      "finished_at": "2026-09-03T23:02:45Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/33938643533",
+      "finished_at": "2026-09-05T03:28:15Z"
     },
     {
       "name": "CI - CodeQL",
       "branch": "dev",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/33805758515",
-      "finished_at": "2026-09-03T23:02:45Z"
+      "event": "push",
+      "url": "https://github.com/KBVE/kbve/actions/runs/33939528587",
+      "finished_at": "2026-09-05T03:11:50Z"
     },
     {
-      "name": "CI - Unreal Plugins (verify)",
-      "branch": "feat/kbve-world-road-bridge",
+      "name": "CI - CodeQL",
+      "branch": "dev",
+      "event": "push",
+      "url": "https://github.com/KBVE/kbve/actions/runs/33938641147",
+      "finished_at": "2026-09-05T02:51:01Z"
+    },
+    {
+      "name": "CI - CodeQL",
+      "branch": "dev",
+      "event": "push",
+      "url": "https://github.com/KBVE/kbve/actions/runs/33937295216",
+      "finished_at": "2026-09-05T02:30:14Z"
+    },
+    {
+      "name": "CI - CodeQL",
+      "branch": "dev",
+      "event": "push",
+      "url": "https://github.com/KBVE/kbve/actions/runs/33937286582",
+      "finished_at": "2026-09-05T02:06:42Z"
+    },
+    {
+      "name": "CI - CodeQL",
+      "branch": "dev",
+      "event": "push",
+      "url": "https://github.com/KBVE/kbve/actions/runs/33931374232",
+      "finished_at": "2026-09-05T00:35:32Z"
+    },
+    {
+      "name": "CI",
+      "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/33805574258",
-      "finished_at": "2026-09-03T22:11:37Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/33925675520",
+      "finished_at": "2026-09-05T00:08:28Z"
+    },
+    {
+      "name": "CI",
+      "branch": "trunk/dependabot-sweep-1788556304",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/33922988829",
+      "finished_at": "2026-09-04T23:16:50Z"
+    },
+    {
+      "name": "CI - CodeQL",
+      "branch": "dev",
+      "event": "push",
+      "url": "https://github.com/KBVE/kbve/actions/runs/33927014861",
+      "finished_at": "2026-09-04T23:15:26Z"
     }
   ]
 }
