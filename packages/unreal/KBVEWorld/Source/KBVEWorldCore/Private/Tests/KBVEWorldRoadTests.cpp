@@ -267,6 +267,22 @@ bool FKBVEWorldBridgeLodTest::RunTest(const FString& Parameters)
 		NearWood.Triangles.Num() / 3, NearStone.Triangles.Num() / 3, NearBlocks.Num(),
 		100.0f * NearStone.Triangles.Num()
 			/ FMath::Max(NearWood.Triangles.Num() + NearStone.Triangles.Num(), 1)));
+	AddInfo(FString::Printf(TEXT("near: %d wood verts, %.2f per triangle"),
+		NearWood.Vertices.Num(),
+		static_cast<float>(NearWood.Vertices.Num())
+			/ FMath::Max(NearWood.Triangles.Num() / 3, 1)));
+
+	// The swept faces share along their run rather than standing up four fresh
+	// vertices per segment each. Quad by quad this sat at 1.77 vertices per
+	// triangle, which for a closed strip is most of a mesh being a duplicate of
+	// the vertex beside it; shared, it is a little over one. Asserted rather than
+	// only logged, because nothing else here would notice the sharing being lost
+	// -- the triangles, the shape and the winding all stay exactly as they were.
+	TestTrue(FString::Printf(
+		TEXT("the swept faces share along their run (%.2f vertices per triangle)"),
+		static_cast<float>(NearWood.Vertices.Num())
+			/ FMath::Max(NearWood.Triangles.Num() / 3, 1)),
+		NearWood.Vertices.Num() * 4 < NearWood.Triangles.Num() / 3 * 5);
 	AddInfo(FString::Printf(TEXT("far: %d wood tris, %d stone tris (%.0f%% of near's wood)"),
 		FarWood.Triangles.Num() / 3, FarBuilt.Stone.Triangles.Num() / 3,
 		100.0f * FarWood.Triangles.Num() / FMath::Max(NearWood.Triangles.Num(), 1)));
