@@ -162,6 +162,10 @@ export class CloudCityScene extends Scene {
 	private floatState: FloatState = makeFloatState({ x: 0, y: 0 });
 	private movePath: { x: number; y: number }[] = [];
 	private moveSendAccumMs = 0;
+	// Stamped on every Move so the server applies them FIFO, one per tick.
+	// GameClient.move has taken this since the protocol bump; the call here
+	// was never updated and had been sending undefined.
+	private moveTick = 0;
 	private wasMoving = false;
 	private spriteOffset: { x: number; y: number } | null = null;
 
@@ -1161,7 +1165,8 @@ export class CloudCityScene extends Scene {
 			if (moving || this.wasMoving) {
 				const mx = moving ? Math.round((intent.x / mag) * 127) : 0;
 				const my = moving ? Math.round((intent.y / mag) * 127) : 0;
-				this.client?.move(mx, my, !walking);
+				this.moveTick += 1;
+				this.client?.move(mx, my, !walking, this.moveTick);
 			}
 			this.wasMoving = moving;
 		}

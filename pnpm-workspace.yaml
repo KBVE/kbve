@@ -14,6 +14,8 @@ overrides:
     'minimatch@>=9.0.0 <9.0.7': 9.0.7
     'minimatch@>=10.0.0 <10.2.3': 10.2.3
     'postcss@<8.5.26': '>=8.5.26'
+    '@codemirror/state': ^6.7.3
+    vite: 8.2.2
 allowBuilds:
     '@parcel/watcher': true
     '@swc/core': true

@@ -28,8 +28,8 @@ export function formatExpiry(iso: string): string {
 export function itemRefLabel(itemRef: unknown): string {
 	if (itemRef && typeof itemRef === 'object') {
 		const o = itemRef as Record<string, unknown>;
-		const kind = typeof o.kind === 'string' ? o.kind : '';
-		const id = typeof o.id === 'string' ? o.id : '';
+		const kind = typeof o['kind'] === 'string' ? o['kind'] : '';
+		const id = typeof o['id'] === 'string' ? o['id'] : '';
 		if (kind && id) return `${kind}:${id}`;
 		if (id) return id;
 		return JSON.stringify(itemRef).slice(0, 64);
@@ -39,6 +39,6 @@ export function itemRefLabel(itemRef: unknown): string {
 
 export function itemRefHasEnchants(itemRef: unknown): boolean {
 	if (!itemRef || typeof itemRef !== 'object') return false;
-	const e = (itemRef as Record<string, unknown>).enchants;
+	const e = (itemRef as Record<string, unknown>)['enchants'];
 	return Array.isArray(e) && e.length > 0;
 }

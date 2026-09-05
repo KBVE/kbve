@@ -124,7 +124,11 @@ export function createRowsStream(
 
 			// Sort by state (Allocated > Ready > Shutdown) then by age
 			return raw.sort((a, b) => {
-				const stateOrder = { Allocated: 0, Ready: 1, Shutdown: 2 };
+				const stateOrder: Partial<Record<ServerState, number>> = {
+					Allocated: 0,
+					Ready: 1,
+					Shutdown: 2,
+				};
 				const aState = normalizeState(a.state);
 				const bState = normalizeState(b.state);
 				const aOrd = stateOrder[aState] ?? 99;

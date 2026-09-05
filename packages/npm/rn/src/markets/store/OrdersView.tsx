@@ -67,9 +67,9 @@ function PurchaseRow({ row }: { row: StorePurchase }) {
 
 function OrderRow({ row }: { row: StoreOrder }) {
 	const tracking =
-		typeof row.tracking?.carrier === 'string' ||
-		typeof row.tracking?.code === 'string'
-			? [row.tracking.carrier, row.tracking.code]
+		typeof row.tracking?.['carrier'] === 'string' ||
+		typeof row.tracking?.['code'] === 'string'
+			? [row.tracking['carrier'], row.tracking['code']]
 					.filter(Boolean)
 					.join(' · ')
 			: null;

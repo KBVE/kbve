@@ -79,12 +79,12 @@
 			});
 			if (!res.ok) throw new Error(String(res.status));
 			const clients = await res.json();
-			const byPlatform = Object.fromEntries(
-				clients.map((c) => [c.platform, c]),
-			);
+			const byPlatform = new Map();
+			for (const client of clients)
+				byPlatform.set(client.platform, client);
 
 			el.innerHTML = PLATFORMS.map(({ slug, name }) => {
-				const c = byPlatform[slug];
+				const c = byPlatform.get(slug);
 				if (!c)
 					return `<div class="row"><div class="meta"><span class="name">${name}</span><span class="sub">no build available</span></div></div>`;
 				const ver = c.user_version ?? '—';

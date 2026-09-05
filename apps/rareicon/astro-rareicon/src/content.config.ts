@@ -24,7 +24,7 @@ export const collections = {
 		// Starlight's layout + Pagefind + sidebar. SocialMetaOverlay layers
 		// per-page og: / twitter: meta hooks consumed by the Head override.
 		schema: docsSchema({
-			extend: IconTermOverlaySchema.and(SocialMetaOverlay),
+			extend: IconTermOverlaySchema.extend(SocialMetaOverlay.shape),
 		}),
 	}),
 };
