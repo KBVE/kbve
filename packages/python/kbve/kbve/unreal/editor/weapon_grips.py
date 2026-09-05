@@ -76,6 +76,46 @@ def main():
                 x, y, z = entry[field]
                 grip.set_editor_property(field, unreal.Vector(float(x), float(y), float(z)))
 
+        # Where the support hand goes, computed from the fore-end rather than
+        # typed beside it.
+        #
+        # Typed, the two drifted: the socket sat at the forward end of the
+        # Mosin's wood while grip_along_barrel three lines above said the rear,
+        # and the file's own comment explains that the forward end is 52 cm from
+        # a 49 cm arm. The solver did the only thing it could -- straightened
+        # the arm, stopped short, and left the wrist hanging. A number derived
+        # from the section cannot disagree with the section.
+        socket = entry.get("support_hand_socket") or {}
+        along = float(entry.get("grip_along_barrel", 0.0))
+        centre = float(entry.get("fore_end_centre_height", 0.0))
+        half = float(entry.get("fore_end_half_height", 0.0))
+
+        # Under the fore-end by a palm's thickness. The clearance is the one
+        # measured constant here: 0.8 puts the Mosin's wrist where it was found
+        # by eye, and the same figure carries to a weapon nobody has looked at.
+        clearance = float(entry.get("grip_palm_clearance", 0.8))
+
+        # How much wood there is to choose from, and how much arm may be spent
+        # reaching along it. The hold itself is picked at runtime from these.
+        for field, prop in (("grip_along_min", "grip_along_min"),
+                            ("grip_along_max", "grip_along_max"),
+                            ("grip_arm_extension", "grip_arm_extension")):
+            if field in entry:
+                grip.set_editor_property(prop, float(entry[field]))
+
+        if "location" in socket:
+            loc = [float(v) for v in socket["location"]]
+        else:
+            loc = [along, 0.0, round(centre - half - clearance, 3)]
+        rot = [float(v) for v in socket.get("rotation", [0.0, 0.0, 0.0])]
+        unreal.log(f"{entry['asset']}: support socket {loc} (along={along} centre={centre} half={half})")
+        placed = unreal.Transform()
+        placed.set_editor_property("translation", unreal.Vector(*loc))
+        placed.set_editor_property(
+            "rotation", unreal.Rotator(roll=rot[2], pitch=rot[0], yaw=rot[1]).quaternion())
+        placed.set_editor_property("scale3d", unreal.Vector(1.0, 1.0, 1.0))
+        grip.set_editor_property("support_hand_socket", placed)
+
         attach = entry.get("attach_offset")
         if attach:
             loc = [float(v) for v in attach.get("location", [0.0, 0.0, 0.0])]

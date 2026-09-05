@@ -7,6 +7,8 @@
 			"fore_end_half_height": 3.5,
 			"fore_end_centre_height": 3.3,
 			"grip_along_barrel": -18.0,
+			"grip_along_min": -18.0,
+			"grip_along_max": -6.0,
 			"grip_angle_degrees": 270.0,
 			"knuckle_clearance": 0.6,
 			"support_hand_pose_time": 0.0,
@@ -21,10 +23,8 @@
 			"right_grip_local": [-37.0, 0.0, 0.0],
 			"left_grip_local": [-7.0, 0.0, -1.0],
 			"left_hand_target_local": [-4.0, -7.0, 5.7],
-			"attach_offset": {
-				"location": [-36.8, 3.41, -0.38],
-				"rotation": [0.0, 180.0, 0.0]
-			}
+			"attach_offset": { "location": [-36.8, 3.41, -0.38], "rotation": [0.0, 180.0, 0.0] },
+			"support_hand_socket": { "rotation": [0.0, 0.0, 0.0] }
 		},
 		{
 			"asset": "DA_Grip_SS2V5",
@@ -32,6 +32,8 @@
 			"fore_end_half_height": 3.41,
 			"fore_end_centre_height": 6.34,
 			"grip_along_barrel": 22.0,
+			"grip_along_min": 22.0,
+			"grip_along_max": 30.0,
 			"grip_angle_degrees": 270.0,
 			"knuckle_clearance": 0.6,
 			"finger_pose": {
@@ -44,10 +46,8 @@
 			"right_grip_local": [-8.0, 0.0, -4.0],
 			"left_grip_local": [26.0, 0.0, -1.0],
 			"left_hand_target_local": [26.0, -7.0, 5.7],
-			"attach_offset": {
-				"location": [-7.8, 3.41, 3.62],
-				"rotation": [0.0, 180.0, 0.0]
-			}
+			"attach_offset": { "location": [-7.8, 3.41, 3.62], "rotation": [0.0, 180.0, 0.0] },
+			"support_hand_socket": { "rotation": [0.0, 0.0, 0.0] }
 		}
 	]
 }

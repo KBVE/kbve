@@ -74,6 +74,41 @@ namespace KBVEGrip
 		TEXT("kbve.Grip.Lean"), GGripLean,
 		TEXT("How the fingers cross the fore-end, degrees. 90 is square across."), ECVF_Default);
 	int32 GFitWeapon = -1;
+	// The socket, dialable. Placing a grip is an eye job, and an eye job wants
+	// a knob rather than a rebuild between each look.
+	float GSocketPitch = -1000.0f;
+	float GSocketYaw = -1000.0f;
+	float GSocketRoll = -1000.0f;
+	static FAutoConsoleVariableRef CVarSocketPitch(
+		TEXT("kbve.Grip.SocketPitch"), GSocketPitch,
+		TEXT("Support-hand socket pitch, degrees. Any of these enables socket rotation."), ECVF_Default);
+	static FAutoConsoleVariableRef CVarSocketYaw(
+		TEXT("kbve.Grip.SocketYaw"), GSocketYaw, TEXT("Support-hand socket yaw, degrees."), ECVF_Default);
+	static FAutoConsoleVariableRef CVarSocketRoll(
+		TEXT("kbve.Grip.SocketRoll"), GSocketRoll, TEXT("Support-hand socket roll, degrees."), ECVF_Default);
+
+	float GSocketX = -1000.0f;
+	float GSocketY = -1000.0f;
+	float GSocketZ = -1000.0f;
+	static FAutoConsoleVariableRef CVarSocketX(
+		TEXT("kbve.Grip.SocketX"), GSocketX,
+		TEXT("Support-hand socket along the weapon, cm. Weapon space."), ECVF_Default);
+	static FAutoConsoleVariableRef CVarSocketY(
+		TEXT("kbve.Grip.SocketY"), GSocketY,
+		TEXT("Support-hand socket across the weapon, cm. Weapon space."), ECVF_Default);
+	static FAutoConsoleVariableRef CVarSocketZ(
+		TEXT("kbve.Grip.SocketZ"), GSocketZ,
+		TEXT("Support-hand socket above the weapon, cm. Weapon space."), ECVF_Default);
+
+	float GGripTrimX = -1000.0f;
+	float GGripTrimY = -1000.0f;
+	float GGripTrimZ = -1000.0f;
+	static FAutoConsoleVariableRef CVarGripTrimX(
+		TEXT("kbve.Grip.TrimX"), GGripTrimX, TEXT("Support hand nudge forward, cm."), ECVF_Default);
+	static FAutoConsoleVariableRef CVarGripTrimY(
+		TEXT("kbve.Grip.TrimY"), GGripTrimY, TEXT("Support hand nudge sideways, cm."), ECVF_Default);
+	static FAutoConsoleVariableRef CVarGripTrimZ(
+		TEXT("kbve.Grip.TrimZ"), GGripTrimZ, TEXT("Support hand nudge up, cm. Negative lowers the wrist."), ECVF_Default);
 	static FAutoConsoleVariableRef CVarFitWeapon(
 		TEXT("kbve.Weapon.FitToHands"), GFitWeapon,
 		TEXT("1 aims the weapon at the support hand, 0 solves the hand onto the weapon. -1 uses the property."),
@@ -108,6 +143,25 @@ namespace KBVEGrip
 
 	// What the grip solve decided, as numbers. A grip either closes on the wood
 	// or it does not, and that is a distance rather than an impression.
+	int32 GGripDerive = 1;
+	static FAutoConsoleVariableRef CVarGripDerive(
+		TEXT("kbve.Grip.Derive"), GGripDerive,
+		TEXT("Work the support hand's orientation out from the weapon. 0 keeps the clip's wrist."),
+		ECVF_Default);
+
+	// Off. It measures distance from the section's axis and nothing else, and a
+	// finger pointing straight away satisfies that exactly as well as a finger
+	// resting on the wood -- so asking it to fix fingers that started inside the
+	// fore-end straightened the hand instead of unwrapping it by the few degrees
+	// wanted. This is the failure the previous solver recorded before it was
+	// deleted, reached by a shorter route: contact distance is satisfied by
+	// poses no hand can hold. A test that separates wrapped from merely near
+	// needs the weapon's own geometry, not an ellipse.
+	int32 GGripWrap = 0;
+	static FAutoConsoleVariableRef CVarGripWrap(
+		TEXT("kbve.Grip.Wrap"), GGripWrap,
+		TEXT("Close the support fingers onto the fore-end until they contact it."), ECVF_Default);
+
 	int32 GGripTrace = 0;
 	static FAutoConsoleVariableRef CVarGripTrace(
 		TEXT("kbve.Grip.Trace"), GGripTrace,
@@ -498,94 +552,97 @@ bool FKBVEFootIKProxy::Evaluate(FPoseContext& Output)
 			WeaponTransform.GetRotation() * LeftHandGripRotation.Quaternion(), WeaponIKAlpha, WeaponIKAlpha);
 	}
 
-	// The weapon swung about the trigger hand until its fore-end meets the hand
-	// the clip already has out there.
+	// Support hand to the socket the weapon carries.
 	//
-	// Anchored at the right grip because that is the hand the rifle hangs off
-	// and the one contact that must not move; the barrel is then aimed at the
-	// left hand's own position. Roll is left as tuned -- two points fix a
-	// direction and leave rotation about it free, and the tuned roll already
-	// answers that.
-	if (bFitWeaponToHands && WeaponHand.IsValidToEvaluate() && LeftHand.IsValidToEvaluate())
+	// One transform per weapon, solved to with the same two-bone IK the rest of
+	// the body uses. What this replaces was a solver that modelled the fore-end
+	// as an elliptical cross-section and bisection-searched each finger for
+	// contact: hundreds of lines answering by measurement a question an artist
+	// answers by dragging a gizmo, and it never held a rifle convincingly.
+	if (LeftHandIKAlpha > KINDA_SMALL_NUMBER && bHasSupportSocket
+		&& WeaponHand.IsValidToEvaluate() && LeftUpperArm.IsValidToEvaluate())
 	{
 		const FTransform HandTransform =
 			Pose.GetComponentSpaceTransform(WeaponHand.GetCompactPoseIndex(Container));
-		const FTransform Weapon = WeaponRelativeToHand * HandTransform;
+		const FTransform WeaponToComponent = WeaponRelativeToHand * HandTransform;
 
-		const FVector Anchor = Weapon.TransformPosition(RightGripLocal);
-		const FVector ForeEnd = Weapon.TransformPosition(LeftHandTargetLocal);
-		const FVector Target =
-			Pose.GetComponentSpaceTransform(LeftHand.GetCompactPoseIndex(Container)).GetLocation();
+		// The socket says how the hand meets the wood; the arm says how far
+		// along it. Taken from the shoulder as the pose actually has it, so a
+		// character leaning or turning slides its own hold rather than reaching
+		// for a point fixed when the weapon was authored.
+		const FVector Shoulder =
+			Pose.GetComponentSpaceTransform(LeftUpperArm.GetCompactPoseIndex(Container)).GetLocation();
+		FTransform Placed = SupportHandSocket;
+		Placed.SetLocation(FVector(
+			ChooseGripAlong(Container, WeaponToComponent, Shoulder, SupportHandSocket.GetLocation().X),
+			SupportHandSocket.GetLocation().Y, SupportHandSocket.GetLocation().Z));
 
-		const FVector Have = (ForeEnd - Anchor).GetSafeNormal();
-		const FVector Want = (Target - Anchor).GetSafeNormal();
-		if (!Have.IsNearlyZero() && !Want.IsNearlyZero())
+		// Contact sits on the section, not below it: the standing-off is the
+		// hand's business and is applied as the wrist offset once the hand's
+		// own frame is known.
+		if (GGripDerive != 0)
 		{
-			const FQuat Swing = FQuat::FindBetweenNormals(Have, Want);
-			WeaponFitDegrees = FMath::RadiansToDegrees(Swing.GetAngle());
-
-			// About the anchor rather than the weapon's own origin, so the grip
-			// the right hand holds stays exactly where it is.
-			FTransform Fitted = Weapon;
-			Fitted.SetRotation((Swing * Weapon.GetRotation()).GetNormalized());
-			Fitted.SetLocation(Anchor + Swing.RotateVector(Weapon.GetLocation() - Anchor));
-			FittedWeaponRelativeToHand = Fitted * HandTransform.Inverse();
-
-			if (GGripTrace > 0)
-			{
-				// The two spans that have to agree for any rigid placement to
-				// satisfy both hands at once. When they differ, no transform
-				// exists that puts the fore-end in one hand and the grip in the
-				// other, and every solve is dragging a hand to cover it.
-				UE_LOG(LogKBVEFootIK, Display,
-					TEXT("weapon fit: swung %.1f deg | weapon grips %.1f cm apart, clip hands %.1f cm apart, short by %.1f"),
-					WeaponFitDegrees,
-					FVector::Dist(Anchor, ForeEnd), FVector::Dist(Anchor, Target),
-					FVector::Dist(Anchor, Target) - FVector::Dist(Anchor, ForeEnd));
-			}
+			Placed.SetLocation(FVector(Placed.GetLocation().X, 0.0f, ForeEndCentreHeight));
 		}
-	}
 
-	// Support hand onto the weapon the clip is already holding. The weapon is
-	// found from the hand it hangs off, so this stays correct through every clip
-	// without the solver needing to know which one is playing.
-	if (!bFitWeaponToHands && LeftHandIKAlpha > KINDA_SMALL_NUMBER && WeaponHand.IsValidToEvaluate()
-		&& LeftUpperArm.IsValidToEvaluate())
-	{
-		const FTransform HandTransform =
-			Pose.GetComponentSpaceTransform(WeaponHand.GetCompactPoseIndex(Container));
-		const FTransform WeaponTransform = WeaponRelativeToHand * HandTransform;
+		const FTransform Socket = Placed * WeaponToComponent;
+		SolvedSupportSocket = Placed;
 
-		// The pose is built whichever way the hand is placed: it describes the
-		// shape of the grip, and the branch below only decides where that grip
-		// is put and which way it faces.
+		// The fingers are a pose, still, and independent of where the hand is
+		// put: a grip is the same shape wherever the weapon happens to be.
 		SampleGripPose(Container);
 
-		if (bGripContactSolve)
-		{
-			SolveGrip(Pose, WeaponTransform, GripCurl);
-		}
-		else
-		{
-			// Rolled about the bore, not about the mesh's own X axis: the barrel
-			// sits above that axis, so rolling about it would swing the hand off
-			// the weapon instead of around it.
-			const FVector BoreOrigin(LeftHandTargetLocal.X, 0.0f, WeaponBoreHeight);
-			const FQuat Roll(FVector::ForwardVector, FMath::DegreesToRadians(LeftHandRollDegrees));
-			const FVector RolledLocal = BoreOrigin + Roll.RotateVector(LeftHandTargetLocal - BoreOrigin);
+		// The socket's rotation is a turn about the weapon's own axes, applied
+		// on top of the wrist the clip authored -- not a replacement for it.
+		//
+		// Written as a replacement it read as a search with no landmark in it:
+		// setting the hand's component rotation to the weapon's own puts the
+		// bone axes on the weapon axes, which points the fingers down the
+		// barrel, so identity is not "near correct" and no single value of roll
+		// walks out of it. As a delta, identity is the hold the animator gave
+		// and roll is what it says -- the hand turned about the barrel.
+		const FQuat WeaponRotation = WeaponToComponent.GetRotation();
+		const FQuat SocketDelta =
+			(WeaponRotation * SupportHandSocket.GetRotation() * WeaponRotation.Inverse()).GetNormalized();
 
-			// The same turn, expressed where the pose lives, so the hand rotates
-			// with the position rather than sliding round while still facing the
-			// old way.
-			const FQuat RollInComponent =
-				WeaponTransform.GetRotation() * Roll * WeaponTransform.GetRotation().Inverse();
+		// The frame first, the trim second. Where the derivation succeeds the
+		// socket's own rotation stops being the answer and becomes a correction
+		// to it -- which is the difference between a number that has to be found
+		// for every weapon and one that only exists when a weapon is unusual.
+		// Compared in component space, because the two candidate frames differ by
+		// half a turn about the palm and a bone-local rotation does not say which
+		// way a hand is actually facing on the body.
+		const FQuat ClipHandWorld = LeftHand.IsValidToEvaluate()
+			? Pose.GetComponentSpaceTransform(LeftHand.GetCompactPoseIndex(Container)).GetRotation()
+			: FQuat::Identity;
 
-			// Rotation alpha zero: the clip's wrist orientation is kept and only
-			// rolled, so there is no absolute rotation to blend toward.
-			SolveArm(Pose, LeftUpperArm, LeftLowerArm, LeftHand,
-				WeaponTransform.TransformPosition(RolledLocal), LeftElbowDirection,
-				FQuat::Identity, LeftHandIKAlpha, 0.0f, RollInComponent);
-		}
+		FQuat Derived = FQuat::Identity;
+		FVector WristOffset = FVector::ZeroVector;
+		const bool bDerived =
+			DeriveGripRotation(Container, WeaponRotation, ClipHandWorld, Derived, WristOffset);
+
+		// The socket names where the hand meets the wood; the offset carries the
+		// wrist back off it by the hand's own length and depth, so the palm ends
+		// up on the surface rather than the wrist joint.
+		const FVector Target = Socket.GetLocation() + WristOffset;
+
+		SolveArm(Pose, LeftUpperArm, LeftLowerArm, LeftHand,
+			Target, LeftElbowDirection, Derived,
+			LeftHandIKAlpha, bDerived ? LeftHandIKAlpha : 0.0f, SocketDelta);
+	}
+
+	// The support hand trimmed onto this particular weapon.
+	//
+	// A translation in component space rather than a solve: the hand keeps
+	// every angle the animator gave it and only sits somewhere slightly else.
+	// Applied here, before the pose goes back to local space, so everything
+	// below the wrist travels with it.
+	if (!SupportHandTrim.IsNearlyZero() && LeftHand.IsValidToEvaluate())
+	{
+		const FCompactPoseBoneIndex TrimIndex = LeftHand.GetCompactPoseIndex(Container);
+		FTransform Trimmed = Pose.GetComponentSpaceTransform(TrimIndex);
+		Trimmed.AddToTranslation(SupportHandTrim);
+		Pose.SetComponentSpaceTransform(TrimIndex, Trimmed);
 	}
 
 	// The roll each hand gained over the clip, about its own length, signed.
@@ -753,6 +810,19 @@ bool FKBVEFootIKProxy::Evaluate(FPoseContext& Output)
 			BoneSkew(LeftLowerArm, LeftHand), BoneSkew(RightLowerArm, RightHand));
 	}
 
+	// Kept before the pose leaves component space, because the finger wrap needs
+	// both and neither survives the conversion: the fingers are closed in local
+	// space, but whether they have reached the wood is a question about where
+	// they are on the character.
+	const FTransform WrapHand = LeftHand.IsValidToEvaluate()
+		? Pose.GetComponentSpaceTransform(LeftHand.GetCompactPoseIndex(Container))
+		: FTransform::Identity;
+	const FTransform WrapWeapon = WeaponHand.IsValidToEvaluate()
+		? WeaponRelativeToHand * Pose.GetComponentSpaceTransform(WeaponHand.GetCompactPoseIndex(Container))
+		: FTransform::Identity;
+	const bool bCanWrap = LeftHand.IsValidToEvaluate() && WeaponHand.IsValidToEvaluate()
+		&& LeftHandIKAlpha > KINDA_SMALL_NUMBER;
+
 	FCSPose<FCompactPose>::ConvertComponentPosesToLocalPoses(MoveTemp(Pose), Output.Pose);
 
 	// The roll the solve added at each wrist, paid down the forearm.
@@ -811,15 +881,7 @@ bool FKBVEFootIKProxy::Evaluate(FPoseContext& Output)
 	// nothing downstream reads it in component space.
 	if (WeaponIKAlpha > KINDA_SMALL_NUMBER)
 	{
-		// The left hand is skipped once its grip is solved: a constant curl added
-		// on top of a contact solve closes the fingers past the wood it just
-		// found.
-		const bool bLeftSolved = bGripContactSolve && LeftHandIKAlpha > KINDA_SMALL_NUMBER
-			&& WeaponHand.IsValidToEvaluate();
-		if (!bLeftSolved)
-		{
-			PoseFingers(Output.Pose, LeftFingers, WeaponIKAlpha);
-		}
+		PoseFingers(Output.Pose, LeftFingers, WeaponIKAlpha);
 		PoseFingers(Output.Pose, RightFingers, WeaponIKAlpha);
 	}
 
@@ -845,38 +907,16 @@ bool FKBVEFootIKProxy::Evaluate(FPoseContext& Output)
 		}
 	}
 
-	// The solved grip, applied the same way the tuned constants were: as a local
-	// rotation per joint, on top of whatever the clip posed. Nothing here moves
-	// a bone to a position -- a finger can only bend about its own axis, so a
-	// wrong angle is a wrong grip rather than a broken hand.
-	const FVector SolvedAxis = FingerCurlAxis.GetSafeNormal();
-	for (int32 Index = 0; Index < GripCurl.Num() && !SolvedAxis.IsNearlyZero(); ++Index)
-	{
-		if (FMath::IsNearlyZero(GripCurl[Index]))
-		{
-			continue;
-		}
-
-		const FQuat Curl(SolvedAxis, FMath::DegreesToRadians(GripCurl[Index]));
-		for (int32 Joint = 0; Joint < FingersPerHand; ++Joint)
-		{
-			const FBoneReference& Finger = LeftFingers[Index * FingersPerHand + Joint];
-			if (!Finger.IsValidToEvaluate())
-			{
-				continue;
-			}
-			const FCompactPoseBoneIndex BoneIndex = Finger.GetCompactPoseIndex(Container);
-			Output.Pose[BoneIndex].SetRotation((Output.Pose[BoneIndex].GetRotation() * Curl).GetNormalized());
-		}
-	}
-
 	// Independent of the procedural hold: this one corrects a clip that already
-	// poses the hand, rather than posing one that is not held at all. Skipped
-	// when the grip is solved to contact, which has already decided every one of
-	// these angles from the weapon itself.
-	if (!bGripContactSolve)
+	// poses the hand, rather than posing one that is not held at all.
+	CurlFingers(Output.Pose, LeftFingers, LeftGripCurlDegrees, LeftGripThumbDegrees);
+
+	// Last, so it closes whatever hand the steps above ended with. The authored
+	// pose says what shape the hand makes; this says how far that shape has to
+	// travel to reach a fore-end none of those steps has measured.
+	if (bCanWrap)
 	{
-		CurlFingers(Output.Pose, LeftFingers, LeftGripCurlDegrees, LeftGripThumbDegrees);
+		WrapFingers(Output.Pose, Container, WrapHand, WrapWeapon);
 	}
 
 	return true;
@@ -1251,7 +1291,6 @@ void UKBVEFootIKAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	Proxy.LeftHandIKAlpha = bSolveLeftHandToWeapon ? LeftHandIKAlpha : 0.0f;
 	Proxy.LeftGripCurlDegrees = GGripCurl > -999.0f ? GGripCurl : LeftGripCurlDegrees;
 	Proxy.LeftGripThumbDegrees = GGripThumb > -999.0f ? GGripThumb : LeftGripThumbDegrees;
-	Proxy.bGripContactSolve = GGripContact >= 0 ? GGripContact != 0 : bGripContactSolve;
 	Proxy.bGripSolveFingers = GGripFingers >= 0 ? GGripFingers != 0 : bGripSolveFingers;
 	Proxy.ForeEndHalfWidth = GGripWidth > -999.0f ? GGripWidth : ForeEndHalfWidth;
 	Proxy.ForeEndHalfHeight = GGripHeight > -999.0f ? GGripHeight : ForeEndHalfHeight;
@@ -1289,6 +1328,51 @@ void UKBVEFootIKAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 		Proxy.RightGripLocal = WeaponGrip->RightGripLocal;
 		Proxy.LeftGripLocal = WeaponGrip->LeftGripLocal;
 		Proxy.LeftHandTargetLocal = WeaponGrip->LeftHandTargetLocal;
+		Proxy.SupportHandSocket = WeaponGrip->SupportHandSocket;
+		Proxy.GripAlongMin = WeaponGrip->GripAlongMin;
+		Proxy.GripAlongMax = WeaponGrip->GripAlongMax;
+		Proxy.GripArmExtension = WeaponGrip->GripArmExtension;
+
+		// A socket with no position is unset, and an unset socket would drag the
+		// hand to the weapon's origin. The rotation says nothing about this: it
+		// is a delta now, and a delta of identity is a hold, not an absence.
+		Proxy.bHasSupportSocket = !WeaponGrip->SupportHandSocket.GetLocation().IsNearlyZero();
+
+		// Each axis dialled on its own, over whatever the asset carries, so
+		// finding roll does not silently throw away an authored pitch.
+		if (GSocketPitch > -999.0f || GSocketYaw > -999.0f || GSocketRoll > -999.0f)
+		{
+			const FRotator Authored = WeaponGrip->SupportHandSocket.Rotator();
+			Proxy.SupportHandSocket.SetRotation(FRotator(
+				GSocketPitch > -999.0f ? GSocketPitch : Authored.Pitch,
+				GSocketYaw > -999.0f ? GSocketYaw : Authored.Yaw,
+				GSocketRoll > -999.0f ? GSocketRoll : Authored.Roll).Quaternion());
+		}
+
+		if (GSocketX > -999.0f || GSocketY > -999.0f || GSocketZ > -999.0f)
+		{
+			const FVector Authored = WeaponGrip->SupportHandSocket.GetLocation();
+			Proxy.SupportHandSocket.SetLocation(FVector(
+				GSocketX > -999.0f ? GSocketX : Authored.X,
+				GSocketY > -999.0f ? GSocketY : Authored.Y,
+				GSocketZ > -999.0f ? GSocketZ : Authored.Z));
+			Proxy.bHasSupportSocket = true;
+		}
+
+		// Published for the debug draw, after the console has had its say. The
+		// asset's own value is the wrong thing to draw while a socket is being
+		// dialled: it would mark where the hand used to be told to go.
+		// The last evaluation's, when there has been one: the arm picks where
+		// along the wood to hold, so the authored socket is an input to that
+		// choice rather than the answer to it.
+		ResolvedSupportSocket = Proxy.SolvedSupportSocket.Equals(FTransform::Identity)
+			? Proxy.SupportHandSocket
+			: Proxy.SolvedSupportSocket;
+		bResolvedSupportSocketValid = Proxy.bHasSupportSocket;
+		Proxy.SupportHandTrim = WeaponGrip->SupportHandTrim
+			+ FVector(GGripTrimX > -999.0f ? GGripTrimX : 0.0f,
+				GGripTrimY > -999.0f ? GGripTrimY : 0.0f,
+				GGripTrimZ > -999.0f ? GGripTrimZ : 0.0f);
 		Proxy.SupportHandPoseTime = WeaponGrip->SupportHandPoseTime;
 		Proxy.SupportHandPoseWeight = WeaponGrip->SupportHandPoseWeight;
 
@@ -1347,12 +1431,10 @@ void UKBVEFootIKAnimInstance::NativeUpdateAnimation(float DeltaSeconds)
 	Proxy.RightForearmTwist2.BoneName = TEXT("lowerarm_twist_02_r");
 	Proxy.WristTwistShare = GWristTwistShare > -999.0f ? GWristTwistShare : WristTwistShare;
 	Proxy.MaxForearmTwistDegrees = MaxForearmTwistDegrees;
-	Proxy.bFitWeaponToHands = GFitWeapon >= 0 ? GFitWeapon != 0 : bFitWeaponToHands;
 
 	// Read back from the last evaluation, so the component can follow the swing
 	// the solve applied. One frame behind, which at animation rates is not a
 	// thing an eye resolves.
-	FittedWeaponRelativeToHand = Proxy.FittedWeaponRelativeToHand;
 
 	// Built once. The names are the UE mannequin's, and every joint of every
 	// finger is listed because a curl applied only to the knuckle leaves the

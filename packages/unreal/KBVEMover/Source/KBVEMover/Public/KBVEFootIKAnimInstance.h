@@ -125,6 +125,15 @@ struct FKBVEFootIKProxy : public FAnimInstanceProxy
 
 	float WristTwistShare = 1.0f;
 	float MaxForearmTwistDegrees = 45.0f;
+	FVector SupportHandTrim = FVector::ZeroVector;
+	FTransform SupportHandSocket = FTransform::Identity;
+
+	// The socket as solved, including where along the wood the arm chose to
+	// take hold. Read back so the debug draw marks the point the hand is
+	// actually sent to: drawing the authored one put a phantom gap between the
+	// wrist and its target and cost an evening chasing a miss that was not one.
+	mutable FTransform SolvedSupportSocket = FTransform::Identity;
+	bool bHasSupportSocket = false;
 
 	// Fit the weapon to the hands instead of the hands to the weapon.
 	//
@@ -233,6 +242,33 @@ private:
 	 * bends forward, an elbow bends back, and using the leg's fallback here
 	 * inverts the arm.
 	 */
+	/**
+	 * The support hand's orientation, worked out from the weapon rather than
+	 * tuned. False when the skeleton or the weapon cannot supply the frame, in
+	 * which case the clip's own wrist stands.
+	 */
+	bool DeriveGripRotation(const FBoneContainer& Container, const FQuat& WeaponRotation,
+		const FQuat& ClipHandRotation, FQuat& OutRotation, FVector& OutWristOffset) const;
+
+	/**
+	 * Close the support hand's fingers onto the weapon's fore-end.
+	 *
+	 * Run after the wrist is placed and the authored pose applied, because both
+	 * are inputs to it: this decides only how much further each finger has to
+	 * close to reach wood that the clip knows nothing about.
+	 */
+	/**
+	 * Where along the fore-end the support hand takes hold, given the arm.
+	 *
+	 * Returns DefaultAlong when the sliding hold is off or the weapon states no
+	 * extent for its woodwork.
+	 */
+	float ChooseGripAlong(const FBoneContainer& Container, const FTransform& WeaponToComponent,
+		const FVector& Shoulder, float DefaultAlong) const;
+
+	void WrapFingers(FCompactPose& Pose, const FBoneContainer& Container,
+		const FTransform& HandComponent, const FTransform& WeaponToComponent) const;
+
 	void SolveArm(FCSPose<FCompactPose>& Pose, const FBoneReference& UpperArm, const FBoneReference& LowerArm,
 		const FBoneReference& Hand, const FVector& Target, const FVector& ElbowDirection,
 		const FQuat& HandRotation, float Alpha, float RotationAlpha,
@@ -253,18 +289,6 @@ private:
 	void CurlFingers(FCompactPose& Pose, const TArray<FBoneReference>& Fingers,
 		float FingerDegrees, float ThumbDegrees) const;
 
-	/**
-	 * Solve the whole support grip against the weapon rather than pose it.
-	 *
-	 * Three solves, in the only order they work in: the wrist is rolled around
-	 * the bore to the angle a support wrist belongs at, the hand is turned so
-	 * its own palm plane faces the bore axis, and then each finger is closed
-	 * about its bend axis until some part of it touches the fore-end cylinder.
-	 * The third step is what removes the tuned constants -- a finger stops where
-	 * the weapon stops it, so a thinner fore-end simply closes further.
-	 */
-	void SolveGrip(FCSPose<FCompactPose>& Pose, const FTransform& WeaponTransform,
-		TArray<float>& OutCurlDegrees) const;
 };
 
 UCLASS()
@@ -504,7 +528,7 @@ public:
 	bool bSolveLeftHandToWeapon = true;
 
 	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
-	float LeftHandIKAlpha = 0.0f;
+	float LeftHandIKAlpha = 1.0f;
 
 	/**
 	 * Where the support wrist belongs, in the weapon's space.
@@ -558,6 +582,20 @@ public:
 
 	UPROPERTY(EditAnywhere, Category = "KBVE|Animation|Weapon")
 	FTransform WeaponRelativeToHand = FTransform::Identity;
+
+	/**
+	 * The support-hand socket the solve actually used, in weapon space.
+	 *
+	 * Read back rather than read off the asset, because the console overrides
+	 * the asset: drawing the authored value while a socket is being dialled
+	 * marks where the hand is no longer being sent, which is worse than drawing
+	 * nothing at all.
+	 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KBVE|Animation|Weapon")
+	FTransform ResolvedSupportSocket = FTransform::Identity;
+
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KBVE|Animation|Weapon")
+	bool bResolvedSupportSocketValid = false;
 
 	/**
 	 * Extra curl on the support hand, degrees per joint, added to the clip.
