@@ -82,7 +82,7 @@ services:
         image: ${DISCORDSH_IMAGE:-}
         build:
             context: ../../../
-            dockerfile: apps/discordsh/axum-discordsh/Dockerfile
+            dockerfile: apps/discordsh/api/Dockerfile
         ports:
             - '${DISCORDSH_PORT:-4321}:${DISCORDSH_PORT:-4321}'
         environment:

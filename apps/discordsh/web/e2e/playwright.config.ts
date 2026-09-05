@@ -1,7 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 import { resolve } from 'path';
 
-const workspaceRoot = resolve(__dirname, '../../..');
+const workspaceRoot = resolve(__dirname, '../../../..');
 const port = Number(process.env['E2E_PORT']) || 4321;
 const baseURL = `http://localhost:${port}`;
 

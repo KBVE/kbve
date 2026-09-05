@@ -192,7 +192,7 @@ function main() {
 			name: 'discordsh-bot',
 			path: resolve(
 				repoRoot,
-				'apps/discordsh/discordsh-bot/data/mapdb.json',
+				'apps/discordsh/bot/data/mapdb.json',
 			),
 		},
 	];

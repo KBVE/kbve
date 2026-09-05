@@ -20,7 +20,7 @@ tasks:
         options:
             cache: false
     container-prep:
-        script: 'rm -rf ./apps/discordsh/axum-discordsh/dist/ && mkdir -p ./apps/discordsh/axum-discordsh/dist/ && cp -a ./dist/apps/astro-discordsh/. ./apps/discordsh/axum-discordsh/dist/'
+        script: 'rm -rf ./apps/discordsh/api/dist/ && mkdir -p ./apps/discordsh/api/dist/ && cp -a ./dist/apps/astro-discordsh/. ./apps/discordsh/api/dist/'
         deps: ['astro-discordsh:build']
         options:
             runFromWorkspaceRoot: true
@@ -31,12 +31,12 @@ tasks:
         deps: ['protobuf:build']
         # The version tag is what the e2e and deploy tasks run; tagging only
         # :latest left them pulling a tag that a publish alone had produced.
-        script: "v=$(grep '^version' apps/discordsh/axum-discordsh/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker buildx build --load -f apps/discordsh/axum-discordsh/Dockerfile -t kbve/discordsh:latest -t kbve/discordsh:$v ."
+        script: "v=$(grep '^version' apps/discordsh/api/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker buildx build --load -f apps/discordsh/api/Dockerfile -t kbve/discordsh:latest -t kbve/discordsh:$v ."
         options:
             runFromWorkspaceRoot: true
             cache: false
     containerx-publish:
-        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/discordsh:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/discordsh:buildcache,mode=max -f apps/discordsh/axum-discordsh/Dockerfile -t ghcr.io/kbve/discordsh:latest -t kbve/discordsh:latest .'
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/discordsh:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/discordsh:buildcache,mode=max -f apps/discordsh/api/Dockerfile -t ghcr.io/kbve/discordsh:latest -t kbve/discordsh:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false

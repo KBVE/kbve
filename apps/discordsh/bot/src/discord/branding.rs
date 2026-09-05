@@ -12,7 +12,7 @@ pub const BOT_VERSION: &str = env!("CARGO_PKG_VERSION");
 pub const PROJECT_URL: &str = "https://kbve.com/project/discordsh-bot/";
 
 /// Source repository tree URL.
-pub const SOURCE_URL: &str = "https://github.com/KBVE/kbve/tree/main/apps/discordsh/discordsh-bot";
+pub const SOURCE_URL: &str = "https://github.com/KBVE/kbve/tree/main/apps/discordsh/bot";
 
 // ── GitHub embed colors (matching GitHub's UI palette) ──────────────
 

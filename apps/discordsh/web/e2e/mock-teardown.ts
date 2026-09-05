@@ -2,7 +2,7 @@ import { execSync } from 'child_process';
 import { resolve } from 'path';
 
 export default function globalTeardown() {
-	const workspaceRoot = resolve(__dirname, '../../..');
+	const workspaceRoot = resolve(__dirname, '../../../..');
 	const composePath = 'apps/discordsh/poc/docker-compose-poc-dev.yaml';
 
 	try {

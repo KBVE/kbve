@@ -68,8 +68,7 @@ impl WindmillConfig {
         let allowed_raw = std::env::var("WINDMILL_ALLOWED_PATHS")
             .ok()
             .filter(|s| !s.is_empty())?;
-        let workspace =
-            std::env::var("WINDMILL_WORKSPACE").unwrap_or_else(|_| "kbve".to_owned());
+        let workspace = std::env::var("WINDMILL_WORKSPACE").unwrap_or_else(|_| "kbve".to_owned());
 
         let allowed_paths = match build_globset(&allowed_raw) {
             Ok(set) => set,
@@ -677,10 +676,7 @@ mod tests {
         // Bare path collapses to f/discordsh/../../p/x, then the `..` segment
         // is rejected — the collapse cannot be used to escape the namespace.
         let cfg = make_cfg(server.uri(), "f/discordsh/**", 10, 60);
-        let err = cfg
-            .run("../../p/x", &[], &discord_ctx())
-            .await
-            .unwrap_err();
+        let err = cfg.run("../../p/x", &[], &discord_ctx()).await.unwrap_err();
         assert_eq!(err, RunError::PathNotAllowed);
     }
 
@@ -696,7 +692,9 @@ mod tests {
         let cfg = make_cfg(server.uri(), "f/discordsh/**", 10, 60);
         // Folder root (empty leaf) and empty interior segment both rejected.
         assert_eq!(
-            cfg.run("f/discordsh/", &[], &discord_ctx()).await.unwrap_err(),
+            cfg.run("f/discordsh/", &[], &discord_ctx())
+                .await
+                .unwrap_err(),
             RunError::PathNotAllowed
         );
         assert_eq!(

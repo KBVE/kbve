@@ -9,10 +9,10 @@
 # [STAGE A] - Cargo Chef Planner
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
 
-COPY apps/discordsh/discordsh-bot/Cargo.workspace.toml Cargo.toml
+COPY apps/discordsh/bot/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
-COPY apps/discordsh/discordsh-bot/Cargo.toml apps/discordsh/discordsh-bot/Cargo.toml
+COPY apps/discordsh/bot/Cargo.toml apps/discordsh/bot/Cargo.toml
 COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
 COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
 COPY crates/holy/Cargo.toml crates/holy/Cargo.toml
@@ -39,7 +39,7 @@ COPY crates/bevy_tasker/Cargo.toml crates/bevy_tasker/Cargo.toml
 
 COPY packages/data/proto packages/data/proto
 
-RUN mkdir -p apps/discordsh/discordsh-bot/src && echo "fn main() {}" > apps/discordsh/discordsh-bot/src/main.rs && \
+RUN mkdir -p apps/discordsh/bot/src && echo "fn main() {}" > apps/discordsh/bot/src/main.rs && \
     mkdir -p crates/jedi/src && echo "" > crates/jedi/src/lib.rs && \
     mkdir -p crates/bevy_dialogue/src && echo "" > crates/bevy_dialogue/src/lib.rs && \
     mkdir -p crates/holy-derive/src && echo "" > crates/holy-derive/src/lib.rs && \
@@ -86,9 +86,9 @@ COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
 COPY --from=planner /app/Cargo.toml ./
 COPY Cargo.lock ./
 
-COPY apps/discordsh/discordsh-bot/Cargo.toml apps/discordsh/discordsh-bot/Cargo.toml
-RUN mkdir -p apps/discordsh/discordsh-bot/src && \
-    echo "fn main() {}" > apps/discordsh/discordsh-bot/src/main.rs
+COPY apps/discordsh/bot/Cargo.toml apps/discordsh/bot/Cargo.toml
+RUN mkdir -p apps/discordsh/bot/src && \
+    echo "fn main() {}" > apps/discordsh/bot/src/main.rs
 
 COPY packages/data/proto packages/data/proto
 
@@ -156,7 +156,7 @@ COPY crates/bevy_dungeon crates/bevy_dungeon
 COPY crates/bevy_tasker crates/bevy_tasker
 
 # Application source (most frequently changing — placed last for cache)
-COPY apps/discordsh/discordsh-bot apps/discordsh/discordsh-bot
+COPY apps/discordsh/bot apps/discordsh/bot
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
@@ -172,8 +172,8 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
 COPY --from=builder --chown=10001:10001 /app/target/release/discordsh-bot /app/discordsh-bot
 
 # Game card fonts (SVG -> PNG rendering via resvg)
-COPY --chown=10001:10001 apps/discordsh/discordsh-bot/alagard.ttf /app/alagard.ttf
-COPY --chown=10001:10001 apps/discordsh/discordsh-bot/NotoSansSymbols-Regular.ttf /app/NotoSansSymbols-Regular.ttf
+COPY --chown=10001:10001 apps/discordsh/bot/alagard.ttf /app/alagard.ttf
+COPY --chown=10001:10001 apps/discordsh/bot/NotoSansSymbols-Regular.ttf /app/NotoSansSymbols-Regular.ttf
 
 ENV RUST_LOG=discordsh_bot=debug,kbve=debug \
     FONT_PATH=/app/alagard.ttf \

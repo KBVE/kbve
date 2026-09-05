@@ -26,7 +26,7 @@ Both share the same `discordsh-config` ConfigMap, `discordsh-redis-secret`, and 
 
 Both StatefulSets and their containers now run under a restricted PodSecurity profile:
 
-- `runAsNonRoot: true`, UID/GID `10001` (matches the binary owner set by `--chown=10001:10001` in `apps/discordsh/axum-discordsh/Dockerfile` and `apps/discordsh/discordsh-bot/Dockerfile`)
+- `runAsNonRoot: true`, UID/GID `10001` (matches the binary owner set by `--chown=10001:10001` in `apps/discordsh/api/Dockerfile` and `apps/discordsh/bot/Dockerfile`)
 - `readOnlyRootFilesystem: true` with a 64Mi `emptyDir` mounted at `/tmp` for scratch (the axum binary and the bot's image-rendering paths both stage to `/tmp`)
 - `allowPrivilegeEscalation: false`, all Linux capabilities dropped
 - `seccompProfile: RuntimeDefault`

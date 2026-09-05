@@ -64,8 +64,7 @@ impl PalworldStats {
                 url,
                 user: std::env::var("CLICKHOUSE_USER").unwrap_or_default(),
                 password: std::env::var("CLICKHOUSE_PASSWORD").unwrap_or_default(),
-                database: std::env::var("CLICKHOUSE_DATABASE")
-                    .unwrap_or_else(|_| "gameops".into()),
+                database: std::env::var("CLICKHOUSE_DATABASE").unwrap_or_else(|_| "gameops".into()),
             },
             server_id,
         })

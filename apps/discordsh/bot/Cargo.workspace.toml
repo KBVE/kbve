@@ -1,11 +1,18 @@
 [workspace]
 resolver = "2"
 members = [
-    "apps/discordsh/axum-discordsh",
+    "apps/discordsh/bot",
     "crates/jedi",
     "crates/kbve-proto",
     "crates/kbve",
-    "crates/holy",
+    "crates/bevy_inventory",
+    "crates/bevy_items",
+    "crates/bevy_behavior",
+    "crates/bevy_battle",
+    "crates/bevy_npc",
+    "crates/bevy_quests",
+    "crates/bevy_skills",
+    "crates/bevy_dungeon",
 ]
 
 [workspace.package]

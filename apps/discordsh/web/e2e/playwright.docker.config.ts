@@ -2,12 +2,12 @@ import { defineConfig, devices } from '@playwright/test';
 import { readFileSync } from 'fs';
 import { resolve } from 'path';
 
-const workspaceRoot = resolve(__dirname, '../../..');
+const workspaceRoot = resolve(__dirname, '../../../..');
 const port = Number(process.env['E2E_PORT']) || 4321;
 const baseURL = `http://localhost:${port}`;
 
 const cargoToml = readFileSync(
-	resolve(workspaceRoot, 'apps/discordsh/axum-discordsh/Cargo.toml'),
+	resolve(workspaceRoot, 'apps/discordsh/api/Cargo.toml'),
 	'utf-8',
 );
 const version = cargoToml.match(/^version\s*=\s*"(.+)"/m)?.[1] ?? '0.1.0';

@@ -80,7 +80,7 @@ const DATABASES = [
 		dirs: [
 			generatedDir,
 			unityStreamingAssets,
-			resolve(repoRoot, 'apps/discordsh/discordsh-bot/data'),
+			resolve(repoRoot, 'apps/discordsh/bot/data'),
 		],
 	},
 	{

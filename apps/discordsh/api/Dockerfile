@@ -31,10 +31,10 @@ COPY packages/npm/rn-astro/ packages/npm/rn-astro/
 COPY packages/data/codegen/generated/ packages/data/codegen/generated/
 
 # Copy astro-discordsh source
-COPY apps/discordsh/astro-discordsh/ apps/discordsh/astro-discordsh/
+COPY apps/discordsh/web/ apps/discordsh/web/
 
 # Build astro site
-WORKDIR /app/apps/discordsh/astro-discordsh
+WORKDIR /app/apps/discordsh/web
 # astro build handles sync internally — avoid separate sync which can
 # leave partial image cache entries that break the optimizer
 RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-discordsh-cache,sharing=locked \
@@ -77,10 +77,10 @@ RUN find . -type f \( \
 # [STAGE C] - Cargo Chef Planner
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
 
-COPY apps/discordsh/axum-discordsh/Cargo.workspace.toml Cargo.toml
+COPY apps/discordsh/api/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
-COPY apps/discordsh/axum-discordsh/Cargo.toml apps/discordsh/axum-discordsh/Cargo.toml
+COPY apps/discordsh/api/Cargo.toml apps/discordsh/api/Cargo.toml
 COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
 COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
 COPY crates/kbve/Cargo.toml crates/kbve/Cargo.toml
@@ -89,7 +89,7 @@ COPY crates/holy-derive/Cargo.toml crates/holy-derive/Cargo.toml
 
 COPY packages/data/proto packages/data/proto
 
-RUN mkdir -p apps/discordsh/axum-discordsh/src && echo "fn main() {}" > apps/discordsh/axum-discordsh/src/main.rs && \
+RUN mkdir -p apps/discordsh/api/src && echo "fn main() {}" > apps/discordsh/api/src/main.rs && \
     mkdir -p crates/jedi/src && echo "" > crates/jedi/src/lib.rs && \
     mkdir -p crates/holy-derive/src && echo "" > crates/holy-derive/src/lib.rs && \
     mkdir -p crates/kbve-proto/src && echo "" > crates/kbve-proto/src/lib.rs && \
@@ -122,9 +122,9 @@ COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
 COPY --from=planner /app/Cargo.toml ./
 COPY Cargo.lock ./
 
-COPY apps/discordsh/axum-discordsh/Cargo.toml apps/discordsh/axum-discordsh/Cargo.toml
-RUN mkdir -p apps/discordsh/axum-discordsh/src && \
-    echo "fn main() {}" > apps/discordsh/axum-discordsh/src/main.rs
+COPY apps/discordsh/api/Cargo.toml apps/discordsh/api/Cargo.toml
+RUN mkdir -p apps/discordsh/api/src && \
+    echo "fn main() {}" > apps/discordsh/api/src/main.rs
 
 COPY packages/data/proto packages/data/proto
 
@@ -150,7 +150,7 @@ RUN dpkg -s make >/dev/null 2>&1 || \
     (apt-get update && apt-get install -y --no-install-recommends make && rm -rf /var/lib/apt/lists/*)
 
 # Astro build output (precompressed) -> placed into templates/dist
-COPY --from=astro-precompressor /static /app/apps/discordsh/axum-discordsh/templates/dist
+COPY --from=astro-precompressor /static /app/apps/discordsh/api/templates/dist
 
 # Foundation crate source (cargo needs source to verify fingerprints)
 COPY packages/data/proto packages/data/proto
@@ -162,7 +162,7 @@ COPY crates/kbve crates/kbve
 COPY crates/holy crates/holy
 
 # Application source (most frequently changing — placed last for cache)
-COPY apps/discordsh/axum-discordsh apps/discordsh/axum-discordsh
+COPY apps/discordsh/api apps/discordsh/api
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
@@ -177,12 +177,12 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
 
 COPY --from=builder --chown=10001:10001 /app/target/release/axum-discordsh /app/axum-discordsh
 
-COPY --from=builder --chown=10001:10001 /app/apps/discordsh/axum-discordsh/templates/dist /app/templates/dist
-COPY --from=builder --chown=10001:10001 /app/apps/discordsh/axum-discordsh/templates/askama /app/templates/askama
+COPY --from=builder --chown=10001:10001 /app/apps/discordsh/api/templates/dist /app/templates/dist
+COPY --from=builder --chown=10001:10001 /app/apps/discordsh/api/templates/askama /app/templates/askama
 
 # Game card fonts (SVG -> PNG rendering via resvg)
-COPY --chown=10001:10001 apps/discordsh/axum-discordsh/alagard.ttf /app/alagard.ttf
-COPY --chown=10001:10001 apps/discordsh/axum-discordsh/NotoSansSymbols-Regular.ttf /app/NotoSansSymbols-Regular.ttf
+COPY --chown=10001:10001 apps/discordsh/api/alagard.ttf /app/alagard.ttf
+COPY --chown=10001:10001 apps/discordsh/api/NotoSansSymbols-Regular.ttf /app/NotoSansSymbols-Regular.ttf
 
 ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=4321

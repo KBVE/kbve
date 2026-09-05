@@ -52,11 +52,11 @@ cargo build --release -p discordsh-bot
 ## Docker
 
 ```bash
-docker build -f apps/discordsh/discordsh-bot/Dockerfile -t kbve/discordsh-bot .
+docker build -f apps/discordsh/bot/Dockerfile -t kbve/discordsh-bot .
 ```
 
 ## Related
 
-- `apps/discordsh/axum-discordsh/` — HTTP server (Astro site, REST API)
-- `apps/discordsh/discordsh-bot-e2e/` — E2E smoke tests
+- `apps/discordsh/api/` — HTTP server (Astro site, REST API)
+- `apps/discordsh/bot/e2e/` — E2E smoke tests
 - `packages/rust/bevy/` — Game engine crates (items, inventory, battle, NPC, quests)

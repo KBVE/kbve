@@ -100,9 +100,7 @@ describe('axum-discordsh /api/servers endpoints', () => {
 		it('includes security headers on API responses', async () => {
 			const res = await fetch(`${BASE_URL}/api/servers/list`);
 
-			expect(res.headers.get('x-content-type-options')).toBe(
-				'nosniff',
-			);
+			expect(res.headers.get('x-content-type-options')).toBe('nosniff');
 			expect(res.headers.get('x-frame-options')).toBe('DENY');
 			expect(res.headers.get('referrer-policy')).toBe(
 				'strict-origin-when-cross-origin',
