@@ -103,6 +103,7 @@ const STATUS_LABEL: Record<ConnectionStatus, string> = {
 	connected: 'Online',
 	connecting: 'Connecting…',
 	disconnected: 'Offline',
+	idle: 'Idle',
 	error: 'Error',
 };
 
