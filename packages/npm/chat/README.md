@@ -47,7 +47,7 @@ every producer/consumer — never hand-list tags:
 (`PLATFORM_NEXUS_DEFENSE` → `nexus_defense`).
 
 Adding a kind is a one-place change: add the enum value in `chat.proto`, run
-`nx run data-proto:generate-zod`, and both the TS codec and Rust `bevy_chat`
+`moon run data-proto:generate-zod`, and both the TS codec and Rust `bevy_chat`
 pick it up — no edits to parser code.
 
 ## Producer rules

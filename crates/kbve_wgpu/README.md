@@ -29,7 +29,7 @@ void kbve_wgpu_destroy(WgpuSurface*);
 
 ## Build (nx)
 
-- `nx run kbve_wgpu:verify` — fmt + clippy + headless test.
-- `nx run kbve_wgpu:build:ios` — xcframework → `apps/kbve/kbve-react-native/modules/kbve-wgpu/ios/`.
-- `nx run kbve_wgpu:build:android` — jniLibs → `.../modules/kbve-wgpu/android/src/main/jniLibs/`.
+- `moon run kbve_wgpu:verify` — fmt + clippy + headless test.
+- `moon run kbve_wgpu:build-ios` — xcframework → `apps/kbve/kbve-react-native/modules/kbve-wgpu/ios/`.
+- `moon run kbve_wgpu:build-android` — jniLibs → `.../modules/kbve-wgpu/android/src/main/jniLibs/`.
 - `build:ios:bevy` / `build:android:bevy` — with the Bevy game host.

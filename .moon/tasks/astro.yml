@@ -63,7 +63,13 @@ tasks:
         preset: 'server'
         deps: ['~:build']
 
+    # Same dependency as `build`, and for the reason `sync` exists at all.
+    # `astro check` runs its own sync, but not the wipe -- so it will happily
+    # type check against a .astro left over from the previous schema shape,
+    # which is the failure mode the wipe was written for. `build` got the dep
+    # and `check` did not; nothing ran `check`, so the gap went unnoticed.
     check:
         command: 'astro check'
         toolchains: ['node']
+        deps: ['~:sync']
         inputs: ['@group(sources)', '@group(configs)']
