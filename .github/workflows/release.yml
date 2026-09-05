@@ -216,7 +216,7 @@ jobs:
             issues: write
             pull-requests: write
             id-token: write
-        uses: ./.github/workflows/rust-publish-crate.yml
+        uses: ./.github/workflows/utils-rust-publish-crate.yml
         with:
             package: ${{ needs.verify.outputs.project }}
         secrets:
@@ -412,7 +412,7 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
-        uses: ./.github/workflows/ci-tauri-builder.yml
+        uses: ./.github/workflows/utils-tauri-build.yml
         with:
             project: ${{ needs.verify.outputs.project }}
             project_path: ${{ needs.verify.outputs.source }}

@@ -18,7 +18,7 @@ const BUILD_PLATFORMS = ['Linux', 'Win64', 'Mac'];
 /**
  * Every plugin this one needs built first, deepest first.
  *
- * ci-unreal-build.yml takes a space-separated list and builds them in order, so
+ * utils-unreal-build.yml takes a space-separated list and builds them in order, so
  * a dependency has to appear before the plugin that needs it. Depth-first
  * post-order gives that; the visited set makes a diamond appear once.
  */

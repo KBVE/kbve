@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # rotate-symbol-archive-password.sh — Rotate SYMBOL_ARCHIVE_PASSWORD, the key that
 # encrypts the Unreal debug-symbol artifacts (PDB / dSYM) produced by
-# .github/workflows/ci-unreal-build.yml when engine.debug_symbols="1".
+# .github/workflows/utils-unreal-build.yml when engine.debug_symbols="1".
 #
 # The password is stored in TWO places:
 #   1. GitHub repo secret SYMBOL_ARCHIVE_PASSWORD — what CI reads at build time.

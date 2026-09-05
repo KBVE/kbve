@@ -117,7 +117,7 @@ template:
             # attach. The 50GB UE image is pulled once and stays resident across
             # ephemeral runner pods instead of re-extracting into RAM every job.
             # Frees the 64Gi RAM the old tmpfs store burned; write-heavy UE caches
-            # (DDC) are tiered onto a per-build /ram tmpfs in ci-unreal-build.yml.
+            # (DDC) are tiered onto a per-build /ram tmpfs in utils-unreal-build.yml.
             - name: dind-storage
               persistentVolumeClaim:
                   claimName: arc-ue-dind-cache

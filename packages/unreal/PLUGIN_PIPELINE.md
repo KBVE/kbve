@@ -145,7 +145,7 @@ Mechanism (scaffolded, not yet active):
 - Engine-version matrix: `ci-publish.yml` passes `ue_image_tags` as a JSON
   array but plugin builds consume a single tag; multi-engine fan-out is not wired.
 - Lockfile resolver + source-build fallback need integration into the game build
-  jobs in `ci-unreal-build.yml`.
+  jobs in `utils-unreal-build.yml`.
 - A consumer registry / checksum so game builds verify the asset they pulled.
 - Mac plugin builds depend on the single self-hosted `macOS ARM64` runner; if it
   is offline a release blocks (this is the gate working as intended).

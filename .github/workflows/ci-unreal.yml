@@ -96,7 +96,7 @@ jobs:
     game:
         name: Game Build
         if: inputs.task == 'game'
-        uses: KBVE/kbve/.github/workflows/ci-unreal-build.yml@dev
+        uses: KBVE/kbve/.github/workflows/utils-unreal-build.yml@dev
         with:
             mode: game
             key: ${{ inputs.key }}
@@ -139,7 +139,7 @@ jobs:
     server:
         name: Dedicated Server
         if: inputs.task == 'server'
-        uses: KBVE/kbve/.github/workflows/ci-unreal-build.yml@dev
+        uses: KBVE/kbve/.github/workflows/utils-unreal-build.yml@dev
         with:
             mode: server
             shell_path: ${{ fromJSON(inputs.engine).shell_path }}
@@ -161,7 +161,7 @@ jobs:
     win_setup:
         name: Win VM Setup
         if: inputs.task == 'win-setup'
-        uses: KBVE/kbve/.github/workflows/ci-unreal-build.yml@dev
+        uses: KBVE/kbve/.github/workflows/utils-unreal-build.yml@dev
         with:
             mode: win-setup
         secrets:
@@ -173,7 +173,7 @@ jobs:
     mac_setup:
         name: Mac VM Setup
         if: inputs.task == 'mac-setup'
-        uses: KBVE/kbve/.github/workflows/ci-unreal-build.yml@dev
+        uses: KBVE/kbve/.github/workflows/utils-unreal-build.yml@dev
         with:
             mode: mac-setup
         secrets:

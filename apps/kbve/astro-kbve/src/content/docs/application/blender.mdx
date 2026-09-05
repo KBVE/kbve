@@ -962,7 +962,7 @@ Blender can be integrated into KBVE workflows for procedural asset generation, b
 The KBVE monorepo runs headless Blender through a **router → flow** pair on the self-hosted `mac-blender` runner:
 
 - [`.github/workflows/ci-blender-router.yml`](.github/workflows/ci-blender-router.yml) — `workflow_dispatch` entry point. Validates inputs, picks the LFS backend (`forgejo` or `azure`), then hands off to the flow.
-- [`.github/workflows/ci-blender-flow.yml`](.github/workflows/ci-blender-flow.yml) — reusable `workflow_call` builder. Pulls the target object from LFS, runs the task on `[self-hosted, macOS, ARM64, mac-blender]`, and uploads artifacts.
+- [`.github/workflows/utils-blender-flow.yml`](.github/workflows/utils-blender-flow.yml) — reusable `workflow_call` builder. Pulls the target object from LFS, runs the task on `[self-hosted, macOS, ARM64, mac-blender]`, and uploads artifacts.
 
 The object lives in external LFS — Forgejo (`git.kbve.com`, via `FORGEJO_USER`/`FORGEJO_TOKEN`) or Azure DevOps (via `AZURE_PAT`). Tag your runner with the `mac-blender` label so only Blender jobs land on it.
 
@@ -1035,7 +1035,7 @@ The workflow outputs artifacts via `actions/upload-artifact@v7`, which can be co
 # Example: Render in Blender, then deploy to Unreal
 jobs:
   render:
-    uses: KBVE/kbve/.github/workflows/ci-blender-flow.yml@dev
+    uses: KBVE/kbve/.github/workflows/utils-blender-flow.yml@dev
     with:
       task: render
       lfs_backend: forgejo

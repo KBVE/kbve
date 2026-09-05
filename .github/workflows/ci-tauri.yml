@@ -105,7 +105,7 @@ jobs:
         permissions:
             contents: write
             pull-requests: write
-        uses: ./.github/workflows/ci-tauri-builder.yml
+        uses: ./.github/workflows/utils-tauri-build.yml
         with:
             project: ${{ needs.resolve.outputs.project }}
             project_path: ${{ needs.resolve.outputs.project_path }}
