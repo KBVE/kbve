@@ -36,13 +36,18 @@ namespace
 	 * wall already has to decide what a mason could have built, and having two
 	 * places decide it is how they come to disagree.
 	 */
+	int32 BayCount(const FKBVEWorldBuildingParams& Building, float Length)
+	{
+		const float Bay = FMath::Max(Building.BayWidth, KINDA_SMALL_NUMBER);
+		return FMath::Max(FMath::RoundToInt(Length / Bay), 1);
+	}
+
 	void BayOpenings(const FKBVEWorldBuildingParams& Building, float Length, bool bDoor,
 		TArray<FKBVEWorldWallOpening>& Out)
 	{
 		Out.Reset();
 
-		const float Bay = FMath::Max(Building.BayWidth, KINDA_SMALL_NUMBER);
-		const int32 Bays = FMath::Max(FMath::RoundToInt(Length / Bay), 1);
+		const int32 Bays = BayCount(Building, Length);
 		const int32 DoorBay = bDoor ? Bays / 2 : INDEX_NONE;
 
 		for (int32 I = 0; I < Bays; ++I)
@@ -78,6 +83,28 @@ void FKBVEWorldBuilding::Footprint(const FKBVEWorldBuildingPlan& Plan, FVector (
 	OutCorners[1] = Plan.Centre + Front + Left;
 	OutCorners[2] = Plan.Centre - Front + Left;
 	OutCorners[3] = Plan.Centre - Front - Left;
+}
+
+float FKBVEWorldBuilding::DoorAlong(const FKBVEWorldBuildingParams& Building, float Length)
+{
+	const int32 Bays = BayCount(Building, Length);
+	return (static_cast<float>(Bays / 2) + 0.5f) * Length / static_cast<float>(Bays);
+}
+
+void FKBVEWorldBuilding::Door(const FKBVEWorldBuildingParams& Building,
+	const FKBVEWorldBuildingPlan& Plan, FVector& OutPoint, FVector& OutForward)
+{
+	FVector Corners[4];
+	Footprint(Plan, Corners);
+
+	// The front wall, which is the one the footprint starts on and the one the
+	// building was turned to face the road with.
+	const FVector Along = Corners[1] - Corners[0];
+	const float Length = Along.Size();
+	const FVector Right = Length > KINDA_SMALL_NUMBER ? Along / Length : FVector::RightVector;
+
+	OutForward = FVector::CrossProduct(Right, FVector::UpVector).GetSafeNormal();
+	OutPoint = Corners[0] + Right * DoorAlong(Building, Length);
 }
 
 FKBVEWorldBuildingPlan FKBVEWorldBuilding::Plan(const FKBVEWorldBuildingParams& Building,
@@ -170,6 +197,75 @@ void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
 			}
 
 			Perimeter += Length;
+		}
+	}
+
+	const float Half = 0.5f * FMath::Max(Building.Wall.Thickness, KINDA_SMALL_NUMBER);
+
+	// A floor, which is the difference between a building and four walls. Two
+	// triangles: the plinth already closes the sides of the pad it sits on, so
+	// all that is missing is the top -- and without it a doorway on a slope opens
+	// onto the hole between the floor level and the ground it was levelled above.
+	FKBVEWorldBuildingPlan Inside = Plan;
+	Inside.Width = FMath::Max(Plan.Width - 2.0f * Half, 0.0f);
+	Inside.Depth = FMath::Max(Plan.Depth - 2.0f * Half, 0.0f);
+	if (Inside.Width > 0.0f && Inside.Depth > 0.0f)
+	{
+		FVector Floor[4];
+		Footprint(Inside, Floor);
+
+		const float Tile = FMath::Max(Building.Wall.TileLength, KINDA_SMALL_NUMBER);
+		const float W = Inside.Width / Tile;
+		const float D = Inside.Depth / Tile;
+		FKBVEWorldRibbon::AppendQuad(Out.Masonry, Floor[0], Floor[1], Floor[2], Floor[3],
+			FVector2D(0.0f, 0.0f), FVector2D(W, 0.0f), FVector2D(W, D), FVector2D(0.0f, D));
+	}
+
+	// Steps up to the front door.
+	//
+	// Built from the opening the wall actually placed rather than the one that
+	// was asked for, because a door near the end of a short wall is moved to
+	// leave a pier beside it -- and a flight in front of where the door was going
+	// to be is worse than none. Skipped at the coarsest tier along with the
+	// openings it would serve: there is no doorway there to reach.
+	if (Detail != EKBVEWorldWallDetail::Solid && Plan.DoorDrop > KINDA_SMALL_NUMBER)
+	{
+		const float Front = FVector::Dist(Corners[0], Corners[1]);
+		BayOpenings(Building, Front, true, Openings);
+
+		TArray<FKBVEWorldWallPanel> Panels;
+		TArray<FKBVEWorldWallOpening> Placed;
+		FKBVEWorldWall::Panels(Building.Wall, Front, Openings, Detail, Panels, Placed);
+
+		for (const FKBVEWorldWallOpening& Open : Placed)
+		{
+			if (Open.Bottom > 0.0f)
+			{
+				continue;
+			}
+
+			FVector Point;
+			FVector Forward;
+			Door(Building, Plan, Point, Forward);
+
+			FKBVEWorldStairBuild Steps;
+			Steps.Right = (Corners[1] - Corners[0]).GetSafeNormal();
+			Steps.Out = Forward;
+
+			// Off the front of the plinth rather than the wall, so the top tread
+			// meets the plinth's own top face instead of lying on it -- two
+			// coincident surfaces across the width of every doorway in the
+			// village would z-fight from the one angle a doorway is looked at.
+			Steps.Origin = Corners[0] + Steps.Right * Open.Along
+				+ Forward * (Half + FMath::Max(Building.Wall.PlinthOverhang, 0.0f));
+			Steps.Origin.Z = Plan.Centre.Z;
+
+			Steps.Width = Open.Width;
+			Steps.Rise = Plan.DoorDrop;
+			Steps.TileLength = Building.Wall.TileLength;
+
+			FKBVEWorldStair::Build(Building.Stair, Steps, Out.Masonry);
+			break;
 		}
 	}
 
