@@ -222,8 +222,13 @@ void FKBVEWorldFence::BuildRun(const FKBVEWorldFenceParams& Fence, const FKBVEWo
 			continue;
 		}
 
+		// Yaw only. The tangent carries the road's own climb, and a post that
+		// inherits it leans by however steeply the road happens to be rising --
+		// which across a run reads as a fence that has been sheared rather than
+		// built. A post stands up whatever the ground under it is doing.
+		const FVector Level(Tangent.X, Tangent.Y, 0.0f);
 		const FVector Across(Tangent.Y, -Tangent.X, 0.0f);
-		const FQuat Facing = FRotationMatrix::MakeFromXY(Tangent, Across).ToQuat();
+		const FQuat Facing = FRotationMatrix::MakeFromXY(Level, Across).ToQuat();
 
 		if (bWall)
 		{
@@ -262,11 +267,21 @@ void FKBVEWorldFence::BuildRun(const FKBVEWorldFenceParams& Fence, const FKBVEWo
 				const FVector Mid = (Foot + PrevFoot) * 0.5f;
 				const float Span = FVector::Dist(Foot, PrevFoot);
 
+				// Pitched along the two posts it actually joins, not along the
+				// road. The feet are sampled a fence's offset out to the side,
+				// where the ground climbs at its own rate -- so a rail carrying
+				// the road's pitch leaves one post above its top and the other
+				// below it, which is the daylight along the run.
+				const FVector RailDir = (Foot - PrevFoot).GetSafeNormal();
+				const FQuat Pitched = RailDir.IsNearlyZero()
+					? Facing
+					: FRotationMatrix::MakeFromXY(RailDir, Across).ToQuat();
+
 				for (const float Height : { Fence.LowerRailHeight, Fence.UpperRailHeight })
 				{
 					FKBVEWorldPart& Rail = Parts.AddDefaulted_GetRef();
 					Rail.Centre = Mid + FVector(0.0f, 0.0f, Fence.PostHeight * Height);
-					Rail.Rotation = Facing;
+					Rail.Rotation = Pitched;
 					Rail.Size = FVector(Span, Fence.RailThickness, Fence.RailDepth);
 				}
 
@@ -280,7 +295,7 @@ void FKBVEWorldFence::BuildRun(const FKBVEWorldFenceParams& Fence, const FKBVEWo
 						FKBVEWorldPart& Board = Parts.AddDefaulted_GetRef();
 						Board.Centre = Mid + FVector(0.0f, 0.0f,
 							Fence.KickboardHeight * 0.5f);
-						Board.Rotation = Facing;
+						Board.Rotation = Pitched;
 						Board.Size = FVector(Span, Fence.RailThickness,
 							Fence.KickboardHeight);
 					}

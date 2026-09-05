@@ -248,3 +248,78 @@ bool FKBVEWorldFenceDetailTest::RunTest(const FString& Parameters)
 }
 
 #endif
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FKBVEWorldFenceStandsUprightTest,
+	"KBVE.World.Fence.PartsStandOnTheirPosts",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FKBVEWorldFenceStandsUprightTest::RunTest(const FString& Parameters)
+{
+	FKBVEWorldRoadParams Road;
+	FKBVEWorldFenceParams Fence;
+	const FKBVEWorldHeightfieldParams Shape;
+	const int32 Seed = FKBVEWorldHeightfield::SeedFromWorld(1337);
+
+	Fence.Coverage = 1.0f;
+
+	FIntPoint From;
+	TArray<FVector> Path;
+	TArray<FKBVEWorldRoadSpan> Spans;
+	if (!TestTrue(TEXT("some edge carries a road"),
+		FindRoutedEdge(Road, Shape, Seed, From, Path, Spans)))
+	{
+		return false;
+	}
+
+	TArray<FKBVEWorldFenceRun> Runs;
+	FKBVEWorldFence::FindRuns(Fence, Road, Seed, From, Path, Spans, Runs);
+	if (!TestTrue(TEXT("the edge carries a fence"), Runs.Num() > 0))
+	{
+		return false;
+	}
+
+	// A post takes its yaw from the road and nothing else. The road's tangent
+	// carries the climb it is making, and a post that inherits that leans by
+	// however steeply the road happens to be rising -- which across a run reads
+	// as a fence sheared over rather than built on the ground.
+	//
+	// A rail is the opposite: it spans two feet sampled a fence's offset out to
+	// the side, where the ground climbs at its own rate, so it has to be pitched
+	// along the posts it actually joins. Carrying the road's pitch instead leaves
+	// one end above its post and the other below it.
+	int32 Uprights = 0;
+	int32 Spanning = 0;
+
+	for (const FKBVEWorldFenceRun& Run : Runs)
+	{
+		FKBVEWorldFenceMesh Mesh;
+		FKBVEWorldFence::BuildRun(Fence, Road, Shape, Seed, nullptr, Path, Run,
+			EKBVEWorldFenceDetail::Full, Mesh);
+
+		for (const TArray<FKBVEWorldPart>* Set : { &Mesh.Wood, &Mesh.Stone })
+		{
+			for (const FKBVEWorldPart& Part : *Set)
+			{
+				const float Pitch = Part.Rotation.Rotator().Pitch;
+
+				// Square in plan and taller than it is wide: a post or a picket.
+				const bool bUpright = FMath::IsNearlyEqual(Part.Size.X, Part.Size.Y, 0.01f)
+					&& Part.Size.Z > Part.Size.X;
+				if (bUpright)
+				{
+					++Uprights;
+					TestTrue(TEXT("an upright part does not lean"), FMath::Abs(Pitch) < 0.01f);
+				}
+				else if (Part.Size.X > Part.Size.Y && Part.Size.X > Part.Size.Z)
+				{
+					++Spanning;
+				}
+			}
+		}
+	}
+
+	TestTrue(TEXT("the run stands some uprights"), Uprights > 0);
+	TestTrue(TEXT("the run spans some rails"), Spanning > 0);
+	return true;
+}
