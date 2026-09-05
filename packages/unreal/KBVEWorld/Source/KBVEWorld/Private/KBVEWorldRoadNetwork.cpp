@@ -2,10 +2,12 @@
 
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
+#include "KBVEWorldFenceMass.h"
 #include "KBVEWorldHeightfield.h"
 #include "KBVEWorldInstancePool.h"
 #include "KBVEWorldStreamer.h"
 #include "EngineUtils.h"
+#include "MassEntitySubsystem.h"
 #include "KBVEWorldRibbon.h"
 #include "KBVEWorldStreamer.h"
 #include "ProceduralMeshComponent.h"
@@ -119,19 +121,19 @@ AKBVEWorldRoadChunk::AKBVEWorldRoadChunk()
 	Stone->bUseComplexAsSimpleCollision = false;
 }
 
-void AKBVEWorldRoadChunk::Build(const FIntPoint& InCoord, int32 InSeed,
-	const FKBVEWorldRoadParams& RoadParams, const FKBVEWorldBridgeParams& BridgeParams,
-	const FKBVEWorldBridgeLod& Lod, const FKBVEWorldHeightfieldParams& Shape,
-	const FKBVEWorldRoadField* Field, UMaterialInterface* WoodMaterial,
-	UMaterialInterface* StoneMaterial, const UStaticMesh* PartMesh, float MaxDrawDistance,
-	bool bInDetailed, FParts& OutParts)
+void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 {
-	Coord = InCoord;
+	const FKBVEWorldRoadParams& RoadParams = *In.Road;
+	const FKBVEWorldHeightfieldParams& Shape = *In.Shape;
+	const FKBVEWorldRoadField* Field = In.Field;
+	const int32 InSeed = In.Seed;
+
+	Coord = In.Coord;
 	bActive = true;
-	bDetailed = bInDetailed;
+	bDetailed = In.bDetailed;
 
 	const float ChunkSize = RoadParams.TilesPerChunk * RoadParams.WorldUnitsPerTile;
-	const FVector Origin((InCoord.X + 0.5f) * ChunkSize, (InCoord.Y + 0.5f) * ChunkSize, 0.0f);
+	const FVector Origin((In.Coord.X + 0.5f) * ChunkSize, (In.Coord.Y + 0.5f) * ChunkSize, 0.0f);
 	SetActorLocation(Origin);
 
 	FKBVEWorldBridgeMesh Data;
@@ -145,15 +147,22 @@ void AKBVEWorldRoadChunk::Build(const FIntPoint& InCoord, int32 InSeed,
 
 	const FIntPoint Neighbours[2] = { FIntPoint(1, 0), FIntPoint(0, 1) };
 
-	TArray<FVector> Path;
 	TArray<FKBVEWorldRoadSpan> Spans;
+
+	ReleaseFenceRuns();
+	EdgePaths.SetNum(2);
+	Runs.Reset();
+	RunEdge.Reset();
 
 	// Only the crossings. The road surface itself is painted into the terrain and
 	// graded into it, so there is no strip here to stand off the ground; a bridge
 	// is the one part of a road that is meant to.
-	for (const FIntPoint& Step : Neighbours)
+	for (int32 Step = 0; Step < 2; ++Step)
 	{
-		FKBVEWorldRoadGraph::RouteEdge(RoadParams, Shape, InSeed, InCoord, InCoord + Step, Path);
+		TArray<FVector>& Path = EdgePaths[Step];
+		const FIntPoint Edge = In.Coord + Neighbours[Step];
+
+		FKBVEWorldRoadGraph::RouteEdge(RoadParams, Shape, InSeed, In.Coord, Edge, Path);
 		if (Path.Num() < 2)
 		{
 			continue;
@@ -162,15 +171,44 @@ void AKBVEWorldRoadChunk::Build(const FIntPoint& InCoord, int32 InSeed,
 		FKBVEWorldRoadGraph::FindRiverSpans(RoadParams, Shape, InSeed, Path, Spans);
 		for (const FKBVEWorldRoadSpan& Span : Spans)
 		{
-			FKBVEWorldBridge::Build(BridgeParams, Lod, RoadParams, Shape, InSeed, Field, Path,
-				Span, Data);
+			FKBVEWorldBridge::Build(*In.Bridge, In.BridgeLod, RoadParams, Shape, InSeed, Field,
+				Path, Span, Data);
+		}
+
+		// Where the fences are, which is cheap and touches no ground. What they
+		// are made of waits until something is near enough to look at them.
+		if (In.Fence)
+		{
+			TArray<FKBVEWorldFenceRun> EdgeRuns;
+			FKBVEWorldFence::FindRuns(*In.Fence, RoadParams, InSeed, In.Coord, Path, Spans,
+				EdgeRuns);
+
+			for (const FKBVEWorldFenceRun& Run : EdgeRuns)
+			{
+				Runs.Add(Run);
+				RunEdge.Add(Step);
+			}
 		}
 	}
 
+	SpawnFenceRuns(In);
+
+	FKBVEWorldFenceMesh Fences;
+	BuildFenceParts(In, Fences);
+
 	// World space, because the pool holds one component for the whole world and
 	// the rebase below is a thing only this chunk's own sections want.
-	OutParts.Stone = TransformsFor(Data.StoneParts, PartMesh);
-	OutParts.Wood = TransformsFor(Data.WoodParts, PartMesh);
+	BridgeParts.Stone = TransformsFor(Data.StoneParts, In.PartMesh);
+	BridgeParts.Wood = TransformsFor(Data.WoodParts, In.PartMesh);
+
+	OutParts.Stone = BridgeParts.Stone;
+	OutParts.Wood = BridgeParts.Wood;
+	OutParts.Stone.Append(TransformsFor(Fences.Stone, In.PartMesh));
+	OutParts.Wood.Append(TransformsFor(Fences.Wood, In.PartMesh));
+
+	UMaterialInterface* WoodMaterial = In.WoodMaterial;
+	UMaterialInterface* StoneMaterial = In.StoneMaterial;
+	const float MaxDrawDistance = In.MaxDrawDistance;
 
 	Rebase(Data.Wood, Origin);
 	Rebase(Data.Stone, Origin);
@@ -191,8 +229,166 @@ void AKBVEWorldRoadChunk::Build(const FIntPoint& InCoord, int32 InSeed,
 	SetActorEnableCollision(true);
 }
 
+void AKBVEWorldRoadChunk::SpawnFenceRuns(const FBuild& In)
+{
+	if (Runs.Num() == 0)
+	{
+		return;
+	}
+
+	if (!Mass)
+	{
+		Mass = UWorld::GetSubsystem<UMassEntitySubsystem>(GetWorld());
+	}
+	if (!Mass)
+	{
+		return;
+	}
+
+	FMassEntityManager& Manager = Mass->GetMutableEntityManager();
+
+	const FMassArchetypeHandle Archetype = Manager.CreateArchetype(
+		TArray<const UScriptStruct*>{
+			FKBVEWorldFenceRunFragment::StaticStruct(),
+			FKBVEWorldFenceRunTag::StaticStruct() });
+
+	FenceRuns.Reserve(Runs.Num());
+
+	for (int32 I = 0; I < Runs.Num(); ++I)
+	{
+		const FKBVEWorldFenceRun& Run = Runs[I];
+		const TArray<FVector>& Path = EdgePaths[RunEdge[I]];
+		if (Path.Num() < 2)
+		{
+			continue;
+		}
+
+		const FMassEntityHandle Entity = Manager.CreateEntity(Archetype);
+		FKBVEWorldFenceRunFragment& Fragment =
+			Manager.GetFragmentDataChecked<FKBVEWorldFenceRunFragment>(Entity);
+
+		Fragment.Edge = In.Coord;
+		Fragment.Side = Run.Side;
+		Fragment.Begin = Run.Begin;
+		Fragment.End = Run.End;
+		Fragment.RunSeed = Run.Seed;
+		Fragment.Style = static_cast<uint8>(Run.Style);
+
+		// Where the run is and how far it reaches, so the processor can measure
+		// against it without going back to the road for a polyline.
+		const FVector Head = FKBVEWorldFence::PointAt(Path, Run.Begin);
+		const FVector Tail = FKBVEWorldFence::PointAt(Path, Run.End);
+		Fragment.Centre = (Head + Tail) * 0.5f;
+		Fragment.Radius = FVector::Dist(Head, Tail) * 0.5f;
+
+		// Built at full detail and told so, rather than left at zero and rebuilt
+		// on the first tick for no reason.
+		Fragment.Detail = static_cast<uint8>(EKBVEWorldFenceDetail::Full);
+		Fragment.WantedDetail = Fragment.Detail;
+
+		FenceRuns.Add(Entity);
+	}
+}
+
+void AKBVEWorldRoadChunk::ReleaseFenceRuns()
+{
+	if (FenceRuns.Num() == 0)
+	{
+		return;
+	}
+
+	if (Mass)
+	{
+		FMassEntityManager& Manager = Mass->GetMutableEntityManager();
+		for (const FMassEntityHandle& Entity : FenceRuns)
+		{
+			if (Manager.IsEntityValid(Entity))
+			{
+				Manager.DestroyEntity(Entity);
+			}
+		}
+	}
+
+	FenceRuns.Reset();
+}
+
+void AKBVEWorldRoadChunk::BuildFenceParts(const FBuild& In, FKBVEWorldFenceMesh& Out)
+{
+	if (!In.Fence || Runs.Num() == 0)
+	{
+		return;
+	}
+
+	FMassEntityManager* Manager = Mass ? &Mass->GetMutableEntityManager() : nullptr;
+
+	for (int32 I = 0; I < Runs.Num() && I < FenceRuns.Num(); ++I)
+	{
+		const TArray<FVector>& Path = EdgePaths[RunEdge[I]];
+		if (Path.Num() < 2)
+		{
+			continue;
+		}
+
+		EKBVEWorldFenceDetail Detail = EKBVEWorldFenceDetail::Full;
+		if (Manager && Manager->IsEntityValid(FenceRuns[I]))
+		{
+			FKBVEWorldFenceRunFragment& Fragment =
+				Manager->GetFragmentDataChecked<FKBVEWorldFenceRunFragment>(FenceRuns[I]);
+			Detail = static_cast<EKBVEWorldFenceDetail>(Fragment.WantedDetail);
+			Fragment.Detail = Fragment.WantedDetail;
+		}
+
+		FKBVEWorldFence::BuildRun(*In.Fence, *In.Road, *In.Shape, In.Seed, In.Field, Path,
+			Runs[I], Detail, Out);
+	}
+}
+
+bool AKBVEWorldRoadChunk::RebuildFences(const FBuild& In, FParts& OutParts)
+{
+	if (!Mass || FenceRuns.Num() == 0)
+	{
+		return false;
+	}
+
+	FMassEntityManager& Manager = Mass->GetMutableEntityManager();
+
+	bool bStale = false;
+	for (const FMassEntityHandle& Entity : FenceRuns)
+	{
+		if (!Manager.IsEntityValid(Entity))
+		{
+			continue;
+		}
+		const FKBVEWorldFenceRunFragment& Fragment =
+			Manager.GetFragmentDataChecked<FKBVEWorldFenceRunFragment>(Entity);
+		if (Fragment.Detail != Fragment.WantedDetail)
+		{
+			bStale = true;
+			break;
+		}
+	}
+
+	if (!bStale)
+	{
+		return false;
+	}
+
+	FKBVEWorldFenceMesh Fences;
+	BuildFenceParts(In, Fences);
+
+	// The crossings go back too. They share a bucket and a key with the fences,
+	// so submitting one without the other is submitting that this chunk's bridges
+	// are gone.
+	OutParts.Stone = BridgeParts.Stone;
+	OutParts.Wood = BridgeParts.Wood;
+	OutParts.Stone.Append(TransformsFor(Fences.Stone, In.PartMesh));
+	OutParts.Wood.Append(TransformsFor(Fences.Wood, In.PartMesh));
+	return true;
+}
+
 void AKBVEWorldRoadChunk::Release()
 {
+	ReleaseFenceRuns();
 	bActive = false;
 	Wood->ClearAllMeshSections();
 	Stone->ClearAllMeshSections();
@@ -292,6 +488,35 @@ FIntPoint AKBVEWorldRoadNetwork::ChunkCoordAt(const FVector& WorldLocation) cons
 	return FIntPoint(
 		FMath::FloorToInt(WorldLocation.X / ChunkSize),
 		FMath::FloorToInt(WorldLocation.Y / ChunkSize));
+}
+
+AKBVEWorldRoadChunk::FBuild AKBVEWorldRoadNetwork::MakeBuild(const FIntPoint& Coord, int32 Seed,
+	bool bDetailed, bool bInstanced, float DrawDistance) const
+{
+	AKBVEWorldRoadChunk::FBuild In;
+	In.Coord = Coord;
+	In.Seed = Seed;
+	In.bDetailed = bDetailed;
+	In.MaxDrawDistance = DrawDistance;
+
+	In.Road = &Road;
+	In.Shape = &Shape;
+	In.Field = Streamer ? Streamer->GetRoadField() : nullptr;
+
+	In.Bridge = &Bridge;
+	In.BridgeLod.CurveSubdivisions = bDetailed ? Bridge.CurveSubdivisions : 1;
+	In.BridgeLod.bFrame = bDetailed;
+	In.BridgeLod.bInstancedParts = bInstanced;
+
+	// Fences are instanced or they are nothing: a run is hundreds of boxes, and
+	// building them into a chunk's own section is the case the pool exists to
+	// avoid. Without a mesh to instance, the roads simply have no fences.
+	In.Fence = bInstanced ? &Fence : nullptr;
+
+	In.WoodMaterial = WoodMaterial;
+	In.StoneMaterial = StoneMaterial;
+	In.PartMesh = bInstanced ? PartMesh.Get() : nullptr;
+	return In;
 }
 
 bool AKBVEWorldRoadNetwork::WantsDetail(const FIntPoint& Centre, const FIntPoint& Coord) const
@@ -435,17 +660,12 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 			break;
 		}
 
-		FKBVEWorldBridgeLod Lod;
-		Lod.CurveSubdivisions = bDetailed ? Bridge.CurveSubdivisions : 1;
-		Lod.bFrame = bDetailed;
-		Lod.bInstancedParts = bInstanced;
-
 		AKBVEWorldRoadChunk::FParts ChunkParts;
+		const AKBVEWorldRoadChunk::FBuild In = MakeBuild(Coord, Seed, bDetailed, bInstanced,
+			DrawDistance);
 
 		const double Start = FPlatformTime::Seconds();
-		Chunk->Build(Coord, Seed, Road, Bridge, Lod, Shape,
-			Streamer ? Streamer->GetRoadField() : nullptr, WoodMaterial, StoneMaterial,
-			bInstanced ? PartMesh.Get() : nullptr, DrawDistance, bDetailed, ChunkParts);
+		Chunk->Build(In, ChunkParts);
 		LastBuildMs = static_cast<float>((FPlatformTime::Seconds() - Start) * 1000.0);
 
 		if (bInstanced)
@@ -456,6 +676,32 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 
 		Live.Add(Coord, Chunk);
 		++Built;
+	}
+
+	// Whatever the fence processor decided since the last tick. It writes a tier
+	// and stops there -- standing the posts up is a component's business, and a
+	// Mass processor has none with components.
+	if (bInstanced && Built == 0)
+	{
+		int32 Restood = 0;
+		for (const TPair<FIntPoint, TObjectPtr<AKBVEWorldRoadChunk>>& Pair : Live)
+		{
+			if (!Pair.Value || Restood >= MaxBuildsPerTick)
+			{
+				continue;
+			}
+
+			AKBVEWorldRoadChunk::FParts FenceParts;
+			const AKBVEWorldRoadChunk::FBuild In = MakeBuild(Pair.Key, Seed,
+				Pair.Value->IsDetailed(), bInstanced, DrawDistance);
+
+			if (Pair.Value->RebuildFences(In, FenceParts))
+			{
+				Parts->Submit(StoneBucket, Pair.Key, MoveTemp(FenceParts.Stone));
+				Parts->Submit(WoodBucket, Pair.Key, MoveTemp(FenceParts.Wood));
+				++Restood;
+			}
+		}
 	}
 
 	// Once per tick rather than per chunk: a bucket is rebuilt from all its keys,
