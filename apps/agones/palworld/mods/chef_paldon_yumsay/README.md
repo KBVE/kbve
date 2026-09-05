@@ -27,11 +27,11 @@ All definitions here are authored independently. License: MIT.
 
 ## Building
 
-Phase 1 (now): `nx run agones-palworld-chef-food:validate` and
-`nx run agones-palworld-chef-food:generate-placeholders`.
+Phase 1 (now): `moon run agones-palworld-chef-food:validate` and
+`moon run agones-palworld-chef-food:generate-placeholders`.
 
 Phase 2 (UE 5.1 modkit, in CI / UE build VM against the licensed server's game paks): see
-`build/README.md`. `nx run agones-palworld-chef-food:cook` is a documented stub until then.
+`build/README.md`. `moon run agones-palworld-chef-food:cook` is a documented stub until then.
 
 ## Replacing placeholder art
 

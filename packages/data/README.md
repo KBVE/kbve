@@ -37,5 +37,5 @@ The proto file is authoritative for **structure**. Postgres migrations and Click
 
 ## Related
 
-- Memory pipeline pattern: itemdb / npcdb / mapdb / questdb sync via `astro-kbve` scripts (`nx run astro-kbve:sync:{itemdb,npcdb,mapdb}`). MDX is the source of truth for those pools.
+- Memory pipeline pattern: itemdb / npcdb / mapdb / questdb sync via `astro-kbve` scripts (`moon run astro-kbve:sync-{itemdb,npcdb,mapdb}`). MDX is the source of truth for those pools.
 - CI registry proto: [`proto/kbve/ci_registry.proto`](./proto/kbve/ci_registry.proto) → Zod → `@kbve/devops` registry → `.github/ci-dispatch-manifest.json`.

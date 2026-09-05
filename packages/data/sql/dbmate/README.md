@@ -193,12 +193,12 @@ prod with `permission denied for table identities`-class errors
 (see PR #12033). Prod-parity is the whole point of this script, so
 the only stack worth running is the one that mirrors prod.
 
-| Target                                    | When to use                                                                       |
-| ----------------------------------------- | --------------------------------------------------------------------------------- |
-| `nx run data-sql:smoke`                   | Default: up → apply all → rollback → re-apply → tear down. Use before opening PR. |
-| `nx run data-sql:smoke-kilobase`          | Same as `smoke` minus the rollback leg (faster).                                  |
-| `nx run data-sql:smoke-kilobase-keep`     | Apply all + leave the stack up so you can `psql` / `dbmate` against it.           |
-| `nx run data-sql:smoke-kilobase-rollback` | Explicit rollback target (alias of the default `smoke`).                          |
+| Target                                      | When to use                                                                       |
+| ------------------------------------------- | --------------------------------------------------------------------------------- |
+| `moon run data-sql:smoke`                   | Default: up → apply all → rollback → re-apply → tear down. Use before opening PR. |
+| `moon run data-sql:smoke-kilobase`          | Same as `smoke` minus the rollback leg (faster).                                  |
+| `moon run data-sql:smoke-kilobase-keep`     | Apply all + leave the stack up so you can `psql` / `dbmate` against it.           |
+| `moon run data-sql:smoke-kilobase-rollback` | Explicit rollback target (alias of the default `smoke`).                          |
 
 Underlying script: [`smoke.sh`](./smoke.sh). Pass `--keep` to leave
 the compose stack up, or `--rollback` to additionally exercise the
@@ -216,12 +216,12 @@ before bringing kilobase up so port 54322 is always free.
 
 Other granular nx targets if you only want one phase:
 
-| Target                                                             | What it does                                                                                          |
-| ------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- |
-| `nx run data-sql:kilobase-up` / `kilobase-down` / `kilobase-reset` | Lifecycle for the kilobase stack.                                                                     |
-| `nx run data-sql:migrate-up`                                       | `dbmate up` against the running stack.                                                                |
-| `nx run data-sql:migrate-status`                                   | Print applied / pending status.                                                                       |
-| `nx run data-sql:test-migration -- <basename>`                     | Per-migration smoke via companion `.test.sql` files (see [`test-migration.sh`](./test-migration.sh)). |
+| Target                                                               | What it does                                                                                          |
+| -------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `moon run data-sql:kilobase-up` / `kilobase-down` / `kilobase-reset` | Lifecycle for the kilobase stack.                                                                     |
+| `moon run data-sql:migrate-up`                                       | `dbmate up` against the running stack.                                                                |
+| `moon run data-sql:migrate-status`                                   | Print applied / pending status.                                                                       |
+| `moon run data-sql:test-migration -- <basename>`                     | Per-migration smoke via companion `.test.sql` files (see [`test-migration.sh`](./test-migration.sh)). |
 
 `test-migration.sh` runs on the same kilobase stack (db `supabase`,
 user `supabase_admin`) that `smoke.sh` and CI use, and brings it up
@@ -234,7 +234,7 @@ re-applied at the end, so the database is never left half-migrated.
 It reuses a running stack rather than nuking the volume, so a companion
 `.test.sql` whose SEED is not replay-safe (e.g.
 `store_topup_pod`, which trips `idempotency_key reused with different
-payload`) needs a `nx run data-sql:kilobase-reset` between runs.
+payload`) needs a `moon run data-sql:kilobase-reset` between runs.
 
 The `dev-up` / `dev-down` / `dev-reset` targets that drove the
 vanilla stack were dropped alongside the smoke retirement. The

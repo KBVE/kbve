@@ -20,7 +20,7 @@ For short-lived runs or arbitrary dependency sets, the cheaper path is the exist
 ## Output
 
 - Container image: `ghcr.io/kbve/firecracker-python-web:<version>` (alpine layer carrying `/rootfs.ext4` with a `cp` entrypoint)
-- Extracted ext4 (via `nx run firecracker-python-web:extract`): `dist/python-web.ext4`
+- Extracted ext4 (via `moon run firecracker-python-web:extract`): `dist/python-web.ext4`
 
 ## Build
 

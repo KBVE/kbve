@@ -22,7 +22,7 @@ Cross-cutting protobuf definitions used by multiple KBVE services. Anything that
 
 ## Notable consumers
 
-- `ci_registry.proto` → `@kbve/devops` Zod registry → [`.github/ci-dispatch-manifest.json`](../../../../.github/ci-dispatch-manifest.json) (built by `nx run astro-kbve:sync:ci-manifest`).
+- `ci_registry.proto` → generated Zod schema → project MDX frontmatter → `/api/ci-registry.json` on astro-kbve. It is display data: the dispatch manifest it used to build is gone, and a release tag states intent instead.
 - `forum.proto` / `meme.proto` / `discordsh.proto` → matching `sql/schema/<name>/` and dbmate migrations.
 - `common.proto` is imported by every other proto in this directory, plus most game protos under `proto/empire`, `proto/npc`, `proto/ows`.
 

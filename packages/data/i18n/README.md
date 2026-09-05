@@ -17,10 +17,10 @@ locales/
 
 ## Consumers
 
-| Surface          | How it reads this                                                                                      |
-| ---------------- | ------------------------------------------------------------------------------------------------------ |
-| godot-friendslop | `nx run godot-friendslop:i18n:sync` copies `locales/` into `assets/i18n/`, read by the `I18n` autoload |
-| TypeScript       | not wired yet — `desktop-kbve` still has its own `src/i18n/en.json`                                    |
+| Surface          | How it reads this                                                                                        |
+| ---------------- | -------------------------------------------------------------------------------------------------------- |
+| godot-friendslop | `moon run godot-friendslop:i18n-sync` copies `locales/` into `assets/i18n/`, read by the `I18n` autoload |
+| TypeScript       | not wired yet — `desktop-kbve` still has its own `src/i18n/en.json`                                      |
 
 Godot only packs files that live under its own project directory, which is why
 the game gets a synced copy rather than a path reference. The copy is committed

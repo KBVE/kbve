@@ -19,7 +19,7 @@ For short-lived runs the cheaper path is the existing `alpine-node` rootfs plus 
 ## Output
 
 - Container image: `ghcr.io/kbve/firecracker-node-web:<version>` (alpine layer carrying `/rootfs.ext4` with a `cp` entrypoint)
-- Extracted ext4 (via `nx run firecracker-node-web:extract`): `dist/node-web.ext4`
+- Extracted ext4 (via `moon run firecracker-node-web:extract`): `dist/node-web.ext4`
 
 ## Build
 
