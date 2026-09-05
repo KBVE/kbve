@@ -21,7 +21,7 @@ spec:
                 rollout-restart: '2026-04-03T22:25:16Z'
             labels:
                 app: memes
-                version: 0.1.8
+                version: '0.1.9'
         spec:
             serviceAccountName: memes-sa
             automountServiceAccountToken: false
