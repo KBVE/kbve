@@ -13,8 +13,13 @@ on:
         - cron: '0 9 * * 1'
     workflow_dispatch:
 
+# cancel-in-progress being off is not by itself enough to see a push through.
+# GitHub holds one pending run per group, so a third merge into dev cancels the
+# second before it has started a single job -- which is how the rust analysis
+# for a commit disappears without leaving a log to read. The sha in the group
+# gives each push its own lane; a pull request keeps the shared one.
 concurrency:
-    group: ${{ github.workflow }}-${{ github.ref }}
+    group: ${{ github.workflow }}-${{ github.ref }}${{ github.event_name == 'push' && format('-{0}', github.sha) || '' }}
     cancel-in-progress: false
 
 permissions: {}

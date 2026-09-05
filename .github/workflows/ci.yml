@@ -27,20 +27,25 @@ permissions:
     contents: read
 
 # A cancelled check is indistinguishable from a failing one on a pull request,
-# so both halves of this exist to keep the dev->main release PR from wearing
-# grey X's.
+# so all of this exists to keep the dev->main release PR from wearing grey X's.
 #
 # `github.workflow` is the *calling* workflow's name when this runs through
 # workflow_call, so a nested run and a direct one on the same ref sit in
 # different groups rather than cancelling each other.
 #
-# The condition covers the other source: every merge into dev updates that same
-# pull request, superseding its in-flight run, which left it marked failed for
-# as long as dev stayed busy. `head_ref` is empty on a push, so this leaves
-# push supersession alone and spares only the one pull request opened from dev.
+# Every push carries its own sha in the group, which is the only way to stop a
+# merge into dev from discarding the one before it. A shared group is not
+# enough even with cancel-in-progress off: GitHub holds exactly one *pending*
+# run per group, so in a burst of three merges the middle one is cancelled
+# before it starts a job. Half of this workflow's runs on dev were being thrown
+# away that way, and the commits they covered went unvalidated -- the tip was
+# always tested, but nothing in between it and the last green run was.
+#
+# A pull request keeps the shared group. There a new commit really does
+# supersede the run before it, and the old result is worth nothing.
 concurrency:
-    group: ci-${{ github.workflow }}-${{ github.ref }}
-    cancel-in-progress: ${{ github.head_ref != 'dev' }}
+    group: ci-${{ github.workflow }}-${{ github.ref }}${{ github.event_name == 'push' && format('-{0}', github.sha) || '' }}
+    cancel-in-progress: ${{ github.event_name == 'pull_request' && github.head_ref != 'dev' }}
 
 jobs:
     # The commit-msg hook covers commits, but a pull request title is composed
