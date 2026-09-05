@@ -323,3 +323,144 @@ bool FKBVEWorldFenceStandsUprightTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("the run spans some rails"), Spanning > 0);
 	return true;
 }
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FKBVEWorldFenceArchesTest,
+	"KBVE.World.Fence.EasingArchesTheRun",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FKBVEWorldFenceArchesTest::RunTest(const FString& Parameters)
+{
+	FKBVEWorldRoadParams Road;
+	const FKBVEWorldHeightfieldParams Shape;
+	const int32 Seed = FKBVEWorldHeightfield::SeedFromWorld(1337);
+
+	FIntPoint From;
+	TArray<FVector> Path;
+	TArray<FKBVEWorldRoadSpan> Spans;
+	if (!TestTrue(TEXT("some edge carries a road"),
+		FindRoutedEdge(Road, Shape, Seed, From, Path, Spans)))
+	{
+		return false;
+	}
+
+	// How much the run turns from bay to bay, summed. A fence standing on raw
+	// ground turns at every post by whatever the terrain did there; an eased one
+	// carries its rise across several bays instead, which is the arch.
+	auto KinkOf = [&](int32 Passes, float& OutWorstFloat) -> float
+	{
+		FKBVEWorldFenceParams Fence;
+		Fence.Coverage = 1.0f;
+		Fence.ProfileSmoothPasses = Passes;
+
+		TArray<FKBVEWorldFenceRun> Runs;
+		FKBVEWorldFence::FindRuns(Fence, Road, Seed, From, Path, Spans, Runs);
+
+		float Kink = 0.0f;
+		OutWorstFloat = 0.0f;
+
+		for (const FKBVEWorldFenceRun& Run : Runs)
+		{
+			FKBVEWorldFenceMesh Mesh;
+			FKBVEWorldFence::BuildRun(Fence, Road, Shape, Seed, nullptr, Path, Run,
+				EKBVEWorldFenceDetail::Full, Mesh);
+
+			for (const TArray<FKBVEWorldPart>* Set : { &Mesh.Wood, &Mesh.Stone })
+			{
+				float PrevPitch = 0.0f;
+				bool bHavePrev = false;
+				for (const FKBVEWorldPart& Part : *Set)
+				{
+					// Only the rails, matched by their cross-section. The kickboard
+					// spans too but deliberately stays on the raw ground, so
+					// including it measures rail-against-kickboard divergence --
+					// which easing the rails increases by design.
+					const bool bRail = Part.Size.X > Part.Size.Y
+						&& FMath::IsNearlyEqual(Part.Size.Z, Fence.RailDepth, 0.01f)
+						&& FMath::IsNearlyEqual(Part.Size.Y, Fence.RailThickness, 0.01f);
+					if (!bRail)
+					{
+						continue;
+					}
+
+					const float Pitch = Part.Rotation.Rotator().Pitch;
+					if (bHavePrev)
+					{
+						Kink += FMath::Abs(Pitch - PrevPitch);
+					}
+					PrevPitch = Pitch;
+					bHavePrev = true;
+				}
+			}
+		}
+		return Kink;
+	};
+
+	float Ignored = 0.0f;
+	const float Raw = KinkOf(0, Ignored);
+	const float Eased = KinkOf(6, Ignored);
+
+	UE_LOG(LogTemp, Warning, TEXT("ARCH raw=%.1f eased=%.1f"), Raw, Eased);
+
+	TestTrue(TEXT("the raw run turns at its posts"), Raw > 0.0f);
+	TestTrue(TEXT("easing takes the kink out of the run"), Eased < Raw);
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FKBVEWorldFenceReachesGroundTest,
+	"KBVE.World.Fence.PostsReachTheGround",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FKBVEWorldFenceReachesGroundTest::RunTest(const FString& Parameters)
+{
+	FKBVEWorldRoadParams Road;
+	FKBVEWorldFenceParams Fence;
+	const FKBVEWorldHeightfieldParams Shape;
+	const int32 Seed = FKBVEWorldHeightfield::SeedFromWorld(1337);
+
+	Fence.Coverage = 1.0f;
+
+	FIntPoint From;
+	TArray<FVector> Path;
+	TArray<FKBVEWorldRoadSpan> Spans;
+	if (!TestTrue(TEXT("some edge carries a road"),
+		FindRoutedEdge(Road, Shape, Seed, From, Path, Spans)))
+	{
+		return false;
+	}
+
+	TArray<FKBVEWorldFenceRun> Runs;
+	FKBVEWorldFence::FindRuns(Fence, Road, Seed, From, Path, Spans, Runs);
+
+	// Easing lifts the line the rails ride clear of the terrain in places. A post
+	// topped off against that line has to be lengthened downward to meet the
+	// ground, or the run hangs in the air over every hollow it smooths.
+	int32 Checked = 0;
+	for (const FKBVEWorldFenceRun& Run : Runs)
+	{
+		FKBVEWorldFenceMesh Mesh;
+		FKBVEWorldFence::BuildRun(Fence, Road, Shape, Seed, nullptr, Path, Run,
+			EKBVEWorldFenceDetail::Full, Mesh);
+
+		for (const FKBVEWorldPart& Part : Mesh.Wood)
+		{
+			const bool bUpright = FMath::IsNearlyEqual(Part.Size.X, Part.Size.Y, 0.01f)
+				&& Part.Size.Z > Part.Size.X;
+			if (!bUpright)
+			{
+				continue;
+			}
+
+			const float Bottom = static_cast<float>(Part.Centre.Z) - Part.Size.Z * 0.5f;
+			const float Ground = FKBVEWorldHeightfield::HeightAt(Shape, Seed,
+				Part.Centre.X / Road.WorldUnitsPerTile, Part.Centre.Y / Road.WorldUnitsPerTile);
+
+			TestTrue(TEXT("a post is not left hanging above its ground"), Bottom <= Ground);
+			++Checked;
+		}
+	}
+
+	TestTrue(TEXT("some posts were checked"), Checked > 0);
+	return true;
+}
