@@ -21,17 +21,3 @@ export type {
 	DispatchPipelineValue,
 	TestFrameworkValue,
 } from './ci_registry-schema.js';
-
-export {
-	buildDispatchManifest,
-	buildDispatchManifestSafe,
-	type SafeManifestResult,
-	type ManifestError,
-	type DispatchManifest,
-	type DockerEntry,
-	type NpmEntry,
-	type CratesEntry,
-	type PythonEntry,
-	type UnrealEntry,
-	type Ue5ServerEntry,
-} from './manifest.js';
