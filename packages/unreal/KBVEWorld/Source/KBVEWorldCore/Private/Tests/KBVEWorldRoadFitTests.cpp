@@ -264,8 +264,9 @@ bool FKBVEWorldBridgeJoinTest::RunTest(const FString& Parameters)
 				{
 					FKBVEWorldRibbonMesh Wood;
 					FKBVEWorldRibbonMesh Stone;
-					FKBVEWorldBridge::Build(Bridge, Road, Shape, Seed, &Field, Path, Span,
-						Wood, Stone);
+					TArray<FBox> Blocks;
+					FKBVEWorldBridge::Build(Bridge, FKBVEWorldBridgeLod(), Road, Shape, Seed,
+						&Field, Path, Span, Wood, Stone, Blocks);
 					if (Wood.IsEmpty())
 					{
 						continue;
@@ -387,8 +388,9 @@ bool FKBVEWorldBridgeSupportTest::RunTest(const FString& Parameters)
 				{
 					FKBVEWorldRibbonMesh Wood;
 					FKBVEWorldRibbonMesh Stone;
-					FKBVEWorldBridge::Build(Bridge, Road, Shape, Seed, &Field, Path, Span,
-						Wood, Stone);
+					TArray<FBox> Blocks;
+					FKBVEWorldBridge::Build(Bridge, FKBVEWorldBridgeLod(), Road, Shape, Seed,
+						&Field, Path, Span, Wood, Stone, Blocks);
 					if (Wood.IsEmpty())
 					{
 						continue;
@@ -776,8 +778,9 @@ bool FKBVEWorldBridgeSolidTest::RunTest(const FString& Parameters)
 				{
 					FKBVEWorldRibbonMesh Wood;
 					FKBVEWorldRibbonMesh Stone;
-					FKBVEWorldBridge::Build(Bridge, Road, Shape, Seed, &Field, Path, Span,
-						Wood, Stone);
+					TArray<FBox> Blocks;
+					FKBVEWorldBridge::Build(Bridge, FKBVEWorldBridgeLod(), Road, Shape, Seed,
+						&Field, Path, Span, Wood, Stone, Blocks);
 					if (Wood.IsEmpty())
 					{
 						continue;
@@ -890,8 +893,9 @@ bool FKBVEWorldMasonryUnderDeckTest::RunTest(const FString& Parameters)
 				{
 					FKBVEWorldRibbonMesh Wood;
 					FKBVEWorldRibbonMesh Stone;
-					FKBVEWorldBridge::Build(Bridge, Road, Shape, Seed, &Field, Path, Span,
-						Wood, Stone);
+					TArray<FBox> Blocks;
+					FKBVEWorldBridge::Build(Bridge, FKBVEWorldBridgeLod(), Road, Shape, Seed,
+						&Field, Path, Span, Wood, Stone, Blocks);
 					if (Stone.IsEmpty())
 					{
 						continue;

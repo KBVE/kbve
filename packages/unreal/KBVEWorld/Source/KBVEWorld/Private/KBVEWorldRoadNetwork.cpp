@@ -29,6 +29,38 @@ namespace
 		}
 	}
 
+	// The supports collide as the boxes they are drawn from rather than as the
+	// section's triangles. A convex hull is what a cook would derive from a box
+	// anyway, and a crossing carries twenty of them: cooking them is work spent
+	// arriving back at the shape that was passed in.
+	void CommitBlocks(UProceduralMeshComponent* Mesh, const TArray<FBox>& Blocks,
+		const FVector& Origin)
+	{
+		Mesh->ClearCollisionConvexMeshes();
+
+		TArray<TArray<FVector>> Hulls;
+		Hulls.Reserve(Blocks.Num());
+
+		for (const FBox& Block : Blocks)
+		{
+			const FVector Min = Block.Min - Origin;
+			const FVector Max = Block.Max - Origin;
+
+			TArray<FVector>& Hull = Hulls.AddDefaulted_GetRef();
+			Hull.Reserve(8);
+			Hull.Add(FVector(Min.X, Min.Y, Min.Z));
+			Hull.Add(FVector(Max.X, Min.Y, Min.Z));
+			Hull.Add(FVector(Max.X, Max.Y, Min.Z));
+			Hull.Add(FVector(Min.X, Max.Y, Min.Z));
+			Hull.Add(FVector(Min.X, Min.Y, Max.Z));
+			Hull.Add(FVector(Max.X, Min.Y, Max.Z));
+			Hull.Add(FVector(Max.X, Max.Y, Max.Z));
+			Hull.Add(FVector(Min.X, Max.Y, Max.Z));
+		}
+
+		Mesh->SetCollisionConvexMeshes(Hulls);
+	}
+
 	void Rebase(FKBVEWorldRibbonMesh& Data, const FVector& Origin)
 	{
 		for (FVector& V : Data.Vertices)
@@ -58,15 +90,22 @@ AKBVEWorldRoadChunk::AKBVEWorldRoadChunk()
 	// surface -- which is terrain, and collides as terrain -- it carries its own.
 	Wood->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	Stone->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+	// The supports carry convex hulls rather than a cooked section, so there is
+	// no complex geometry for a simple query to fall through to. Left on, every
+	// trace against a pier would find nothing there.
+	Stone->bUseComplexAsSimpleCollision = false;
 }
 
 void AKBVEWorldRoadChunk::Build(const FIntPoint& InCoord, int32 InSeed,
 	const FKBVEWorldRoadParams& RoadParams, const FKBVEWorldBridgeParams& BridgeParams,
-	const FKBVEWorldHeightfieldParams& Shape, const FKBVEWorldRoadField* Field,
-	UMaterialInterface* WoodMaterial, UMaterialInterface* StoneMaterial)
+	const FKBVEWorldBridgeLod& Lod, const FKBVEWorldHeightfieldParams& Shape,
+	const FKBVEWorldRoadField* Field, UMaterialInterface* WoodMaterial,
+	UMaterialInterface* StoneMaterial, float MaxDrawDistance, bool bInDetailed)
 {
 	Coord = InCoord;
 	bActive = true;
+	bDetailed = bInDetailed;
 
 	const float ChunkSize = RoadParams.TilesPerChunk * RoadParams.WorldUnitsPerTile;
 	const FVector Origin((InCoord.X + 0.5f) * ChunkSize, (InCoord.Y + 0.5f) * ChunkSize, 0.0f);
@@ -74,6 +113,7 @@ void AKBVEWorldRoadChunk::Build(const FIntPoint& InCoord, int32 InSeed,
 
 	FKBVEWorldRibbonMesh WoodData;
 	FKBVEWorldRibbonMesh StoneData;
+	TArray<FBox> Blocks;
 
 	if (Field)
 	{
@@ -101,8 +141,8 @@ void AKBVEWorldRoadChunk::Build(const FIntPoint& InCoord, int32 InSeed,
 		FKBVEWorldRoadGraph::FindRiverSpans(RoadParams, Shape, InSeed, Path, Spans);
 		for (const FKBVEWorldRoadSpan& Span : Spans)
 		{
-			FKBVEWorldBridge::Build(BridgeParams, RoadParams, Shape, InSeed, Field, Path, Span,
-				WoodData, StoneData);
+			FKBVEWorldBridge::Build(BridgeParams, Lod, RoadParams, Shape, InSeed, Field, Path,
+				Span, WoodData, StoneData, Blocks);
 		}
 	}
 
@@ -110,7 +150,13 @@ void AKBVEWorldRoadChunk::Build(const FIntPoint& InCoord, int32 InSeed,
 	Rebase(StoneData, Origin);
 
 	Commit(Wood, WoodData, WoodMaterial, true);
-	Commit(Stone, StoneData, StoneMaterial, true);
+	Commit(Stone, StoneData, StoneMaterial, false);
+	CommitBlocks(Stone, Blocks, Origin);
+
+	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get() })
+	{
+		Mesh->SetCullDistance(MaxDrawDistance);
+	}
 
 	SetActorHiddenInGame(false);
 	SetActorEnableCollision(true);
@@ -121,6 +167,7 @@ void AKBVEWorldRoadChunk::Release()
 	bActive = false;
 	Wood->ClearAllMeshSections();
 	Stone->ClearAllMeshSections();
+	Stone->ClearCollisionConvexMeshes();
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
 }
@@ -215,6 +262,12 @@ FIntPoint AKBVEWorldRoadNetwork::ChunkCoordAt(const FVector& WorldLocation) cons
 		FMath::FloorToInt(WorldLocation.Y / ChunkSize));
 }
 
+bool AKBVEWorldRoadNetwork::WantsDetail(const FIntPoint& Centre, const FIntPoint& Coord) const
+{
+	const FIntPoint Delta = Coord - Centre;
+	return FMath::Max(FMath::Abs(Delta.X), FMath::Abs(Delta.Y)) <= DetailRadiusChunks;
+}
+
 void AKBVEWorldRoadNetwork::ReleaseOutsideRadius(const FIntPoint& Centre)
 {
 	TArray<FIntPoint> Gone;
@@ -245,7 +298,14 @@ void AKBVEWorldRoadNetwork::QueueInsideRadius(const FIntPoint& Centre)
 		for (int32 X = -ViewRadiusChunks; X <= ViewRadiusChunks; ++X)
 		{
 			const FIntPoint Coord = Centre + FIntPoint(X, Y);
-			if (!Live.Contains(Coord))
+			const TObjectPtr<AKBVEWorldRoadChunk>* Existing = Live.Find(Coord);
+
+			// A chunk keeps whatever detail it was built at, and the ring it sits
+			// in moves with the viewer. Without requeueing on that change a
+			// crossing entered from the edge of the window keeps its far level all
+			// the way in, and the bridge under the pawn is the one with no frame.
+			if (!Existing || !*Existing
+				|| (*Existing)->IsDetailed() != WantsDetail(Centre, Coord))
 			{
 				Pending.Add(Coord);
 			}
@@ -284,22 +344,38 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 	const int32 Seed = FKBVEWorldHeightfield::SeedFromWorld(WorldSeed);
 	int32 Built = 0;
 
+	// Measured from the window's own reach, so widening the window widens the
+	// cull with it rather than leaving a ring of chunks built and never drawn.
+	const float ChunkSize = FMath::Max(Road.TilesPerChunk * Road.WorldUnitsPerTile, 1.0f);
+	const float DrawDistance = DrawDistanceMarginChunks > 0.0f
+		? (ViewRadiusChunks + DrawDistanceMarginChunks) * ChunkSize
+		: 0.0f;
+
 	while (Pending.Num() > 0 && Built < MaxBuildsPerTick)
 	{
 		const FIntPoint Coord = Pending[0];
 		Pending.RemoveAt(0, EAllowShrinking::No);
 
-		if (Live.Contains(Coord))
+		const bool bDetailed = WantsDetail(Centre, Coord);
+
+		// A live chunk in the queue is one whose ring has changed detail, so it is
+		// rebuilt in place rather than skipped. Releasing it first would drop the
+		// crossing for as many ticks as the queue is deep.
+		AKBVEWorldRoadChunk* Chunk = nullptr;
+		if (TObjectPtr<AKBVEWorldRoadChunk>* Existing = Live.Find(Coord))
 		{
-			continue;
+			if (*Existing && (*Existing)->IsDetailed() == bDetailed)
+			{
+				continue;
+			}
+			Chunk = *Existing;
 		}
 
-		AKBVEWorldRoadChunk* Chunk = nullptr;
-		if (Pool.Num() > 0)
+		if (!Chunk && Pool.Num() > 0)
 		{
 			Chunk = Pool.Pop(EAllowShrinking::No);
 		}
-		else
+		else if (!Chunk)
 		{
 			FActorSpawnParameters Params;
 			Params.ObjectFlags |= RF_Transient;
@@ -313,9 +389,14 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 			break;
 		}
 
+		FKBVEWorldBridgeLod Lod;
+		Lod.CurveSubdivisions = bDetailed ? Bridge.CurveSubdivisions : 1;
+		Lod.bFrame = bDetailed;
+
 		const double Start = FPlatformTime::Seconds();
-		Chunk->Build(Coord, Seed, Road, Bridge, Shape, Streamer ? Streamer->GetRoadField() : nullptr,
-			WoodMaterial, StoneMaterial);
+		Chunk->Build(Coord, Seed, Road, Bridge, Lod, Shape,
+			Streamer ? Streamer->GetRoadField() : nullptr, WoodMaterial, StoneMaterial,
+			DrawDistance, bDetailed);
 		LastBuildMs = static_cast<float>((FPlatformTime::Seconds() - Start) * 1000.0);
 		Live.Add(Coord, Chunk);
 		++Built;

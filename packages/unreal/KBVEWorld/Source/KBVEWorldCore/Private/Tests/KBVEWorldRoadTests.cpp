@@ -157,7 +157,9 @@ bool FKBVEWorldBridgeGeometryTest::RunTest(const FString& Parameters)
 
 	FKBVEWorldRibbonMesh Wood;
 	FKBVEWorldRibbonMesh Stone;
-	FKBVEWorldBridge::Build(Bridge, Road, Shape, Seed, nullptr, Path, Spans[0], Wood, Stone);
+	TArray<FBox> Blocks;
+	FKBVEWorldBridge::Build(Bridge, FKBVEWorldBridgeLod(), Road, Shape, Seed, nullptr, Path,
+		Spans[0], Wood, Stone, Blocks);
 
 	TestFalse(TEXT("the deck has geometry"), Wood.IsEmpty());
 	TestFalse(TEXT("the supports have geometry"), Stone.IsEmpty());
@@ -172,6 +174,84 @@ bool FKBVEWorldBridgeGeometryTest::RunTest(const FString& Parameters)
 			Anchor.X / Road.WorldUnitsPerTile, Anchor.Y / Road.WorldUnitsPerTile);
 		TestTrue(FString::Printf(TEXT("abutment at sample %d is out of the channel (mask %f)"),
 			Index, Mask), Mask <= Road.BridgeMaskThreshold);
+	}
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FKBVEWorldBridgeLodTest,
+	"KBVE.World.Road.BridgeFarLodIsASubset",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// The far level drops the frame and the curve refinement, and the whole of that
+// being safe is that it takes geometry away without moving any. A level that
+// shifted the deck would pop when the ring changed, and one that moved a support
+// would leave the near level's pier standing somewhere the far level's is not.
+bool FKBVEWorldBridgeLodTest::RunTest(const FString& Parameters)
+{
+	const FKBVEWorldRoadParams Road;
+	const FKBVEWorldBridgeParams Bridge;
+	const FKBVEWorldHeightfieldParams Shape;
+	const int32 Seed = FKBVEWorldHeightfield::SeedFromWorld(1337);
+
+	TArray<FVector> Path;
+	TArray<FKBVEWorldRoadSpan> Spans;
+	int32 Crossings = 0;
+
+	for (int32 X = -12; X <= 12 && Crossings == 0; ++X)
+	{
+		for (int32 Y = -12; Y <= 12 && Crossings == 0; ++Y)
+		{
+			FKBVEWorldRoadGraph::RouteEdge(Road, Shape, Seed, FIntPoint(X, Y), FIntPoint(X, Y + 1), Path);
+			FKBVEWorldRoadGraph::FindRiverSpans(Road, Shape, Seed, Path, Spans);
+			Crossings = Spans.Num();
+		}
+	}
+
+	if (!TestTrue(TEXT("the network crosses its rivers somewhere"), Crossings > 0))
+	{
+		return false;
+	}
+
+	FKBVEWorldBridgeLod Far;
+	Far.CurveSubdivisions = 1;
+	Far.bFrame = false;
+
+	FKBVEWorldRibbonMesh NearWood;
+	FKBVEWorldRibbonMesh NearStone;
+	TArray<FBox> NearBlocks;
+	FKBVEWorldBridge::Build(Bridge, FKBVEWorldBridgeLod(), Road, Shape, Seed, nullptr, Path,
+		Spans[0], NearWood, NearStone, NearBlocks);
+
+	FKBVEWorldRibbonMesh FarWood;
+	FKBVEWorldRibbonMesh FarStone;
+	TArray<FBox> FarBlocks;
+	FKBVEWorldBridge::Build(Bridge, Far, Road, Shape, Seed, nullptr, Path, Spans[0],
+		FarWood, FarStone, FarBlocks);
+
+	TestFalse(TEXT("the far deck still has geometry"), FarWood.IsEmpty());
+	TestTrue(TEXT("the far level is cheaper than the near one"),
+		FarWood.Vertices.Num() < NearWood.Vertices.Num());
+
+	AddInfo(FString::Printf(
+		TEXT("near: %d wood tris, %d stone tris in %d blocks (stone is %.1f%% of the crossing)"),
+		NearWood.Triangles.Num() / 3, NearStone.Triangles.Num() / 3, NearBlocks.Num(),
+		100.0f * NearStone.Triangles.Num()
+			/ FMath::Max(NearWood.Triangles.Num() + NearStone.Triangles.Num(), 1)));
+	AddInfo(FString::Printf(TEXT("far: %d wood tris, %d stone tris (%.0f%% of near's wood)"),
+		FarWood.Triangles.Num() / 3, FarStone.Triangles.Num() / 3,
+		100.0f * FarWood.Triangles.Num() / FMath::Max(NearWood.Triangles.Num(), 1)));
+
+	// Supports are placed off the frame's reach, which is solved at both levels,
+	// so the two have to agree on where every block stands.
+	if (TestEqual(TEXT("both levels stand the same supports"), FarBlocks.Num(), NearBlocks.Num()))
+	{
+		for (int32 I = 0; I < NearBlocks.Num(); ++I)
+		{
+			TestTrue(FString::Printf(TEXT("support %d stands in the same place"), I),
+				NearBlocks[I].Min.Equals(FarBlocks[I].Min, 1.0f));
+		}
 	}
 
 	return true;
