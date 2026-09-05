@@ -41,6 +41,7 @@ jobs:
             lanes: ${{ steps.tag.outputs.lanes }}
             file: ${{ steps.tag.outputs.file }}
             docker_target: ${{ steps.tag.outputs.docker_target }}
+            base_image: ${{ steps.tag.outputs.base_image }}
             docker_image: ${{ steps.tag.outputs.docker_image }}
             pypi_name: ${{ steps.tag.outputs.pypi_name }}
             external_publish: ${{ steps.tag.outputs.external_publish }}
@@ -202,7 +203,10 @@ jobs:
             runner: ${{ needs.verify.outputs.runner }}
             timeout_minutes: ${{ needs.verify.outputs.runner == 'ubuntu-latest' && 60 || 240 }}
         secrets:
-            MY_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+            # UNITY_PAT is this repo's package-scoped PAT -- ci-registry-cleanup
+            # already deletes GHCR packages with it. The name it replaces,
+            # MY_GITHUB_TOKEN, exists in neither the repo nor the org.
+            GHCR_TOKEN: ${{ secrets.UNITY_PAT }}
             FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
             FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
 
@@ -298,6 +302,27 @@ jobs:
             version_toml_path: ''
             image_name: ghcr.io/${{ needs.verify.outputs.docker_image }}
             deployment_yamls: ${{ needs.verify.outputs.deployment_yamls }}
+        secrets:
+            TRIGGER_PAT: ${{ secrets.TRIGGER_PAT }}
+
+    # A base image release ends with its consumers still pointing at the old
+    # version, which is how chisel-ubuntu-axum's builder drifted six weeks behind
+    # the toolchain it was supposed to carry. Runs after docker, so the tag it
+    # writes into those Dockerfiles is one that exists in the registry.
+    repin:
+        name: Repin base image consumers
+        needs: [verify, docker]
+        if: ${{ !cancelled() && !failure() && github.event_name == 'push' && needs.verify.outputs.base_image != '' }}
+        permissions:
+            contents: write
+            pull-requests: write
+            actions: write
+        uses: ./.github/workflows/utils-post-publish.yml
+        with:
+            app_name: ${{ needs.verify.outputs.project }}
+            version: ${{ needs.verify.outputs.version }}
+            version_toml_path: ''
+            base_image: ${{ needs.verify.outputs.base_image }}
         secrets:
             TRIGGER_PAT: ${{ secrets.TRIGGER_PAT }}
 

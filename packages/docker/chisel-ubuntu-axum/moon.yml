@@ -75,3 +75,10 @@ tasks:
         deps: ['~:container']
         options:
             runFromWorkspaceRoot: true
+
+env:
+    # Every Dockerfile that builds FROM this image is repinned to the version a
+    # release publishes, by utils-post-publish.yml. Without it the consumers sit
+    # on a floating tag: the image under them changes identity with no diff, and
+    # a publish that never happened looks exactly like one that did.
+    BASE_IMAGE: 'ghcr.io/kbve/chisel-ubuntu-axum'
