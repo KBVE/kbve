@@ -1,7 +1,8 @@
 /**
  * gen-mermaid
  *
- * Bakes every ```mermaid fence in `src/content` into committed SVG, once, so
+ * Bakes every ```mermaid fence in the docs corpus — `src/content` plus the
+ * repo-root docs/ sections — into committed SVG, once, so
  * the site ships zero mermaid JavaScript. Diagrams are keyed by a content hash
  * of their source, rendered in both Starlight themes, and written to
  * `src/generated/mermaid/`. `remark-mermaid-baked` inlines them at build time.
@@ -29,6 +30,8 @@ import { createRequire } from 'node:module';
 import { dirname, join, relative, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { EXTERNAL_DOCS_SECTIONS } from '../src/lib/external-docs.mjs';
+
 import { unified } from 'unified';
 import remarkParse from 'remark-parse';
 import { visit } from 'unist-util-visit';
@@ -37,6 +40,14 @@ const require = createRequire(import.meta.url);
 const HERE = dirname(fileURLToPath(import.meta.url));
 const APP_ROOT = resolve(HERE, '..');
 const CONTENT_DIR = join(APP_ROOT, 'src/content');
+// The docs collection is not all under src/content: the external-docs loader
+// pulls whole sections in from the repo-root docs/ tree, and a fence in one of
+// those renders through the same remark plugin. Scanning only src/content left
+// them looking for an SVG this never baked.
+const CONTENT_DIRS = [
+	CONTENT_DIR,
+	...EXTERNAL_DOCS_SECTIONS.map(({ base }) => resolve(APP_ROOT, base)),
+];
 const OUT_DIR = join(APP_ROOT, 'src/generated/mermaid');
 const MANIFEST = join(OUT_DIR, 'manifest.json');
 const CACHE_DIR = join(HERE, '.cache');
@@ -203,7 +214,7 @@ async function render(jobs) {
 	return out;
 }
 
-const files = walk(CONTENT_DIR).sort();
+const files = CONTENT_DIRS.flatMap((dir) => walk(dir)).sort();
 
 /** hash -> { definition, usedIn: string[] } */
 const wanted = new Map();

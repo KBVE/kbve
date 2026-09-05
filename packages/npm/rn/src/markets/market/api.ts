@@ -66,7 +66,7 @@ export function createMarketApi(opts: MarketApiOptions): MarketApi {
 		if (auth) {
 			const token = await getToken().catch(() => null);
 			if (!token) throw new MarketApiError('Not signed in', 401);
-			headers.Authorization = `Bearer ${token}`;
+			headers['Authorization'] = `Bearer ${token}`;
 		}
 		let res: Response;
 		try {
@@ -95,7 +95,10 @@ export function createMarketApi(opts: MarketApiOptions): MarketApi {
 				detail?: string;
 			};
 			throw new MarketApiError(
-				j.message ?? j.error ?? j.detail ?? (text || `HTTP ${res.status}`),
+				j.message ??
+					j.error ??
+					j.detail ??
+					(text || `HTTP ${res.status}`),
 				res.status,
 				j.error,
 			);

@@ -31,8 +31,8 @@ export function ItemIcon({ itemRef, size = 64 }: ItemIconProps) {
 	const meta = useMemo(() => {
 		const o = (itemRef ?? {}) as Record<string, unknown>;
 		return {
-			kind: typeof o.kind === 'string' ? o.kind : 'generic',
-			id: typeof o.id === 'string' ? o.id : '',
+			kind: typeof o['kind'] === 'string' ? o['kind'] : 'generic',
+			id: typeof o['id'] === 'string' ? o['id'] : '',
 		};
 	}, [itemRef]);
 	const [errIdx, setErrIdx] = useState(0);

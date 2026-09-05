@@ -15,15 +15,26 @@ import unreal
 
 LEVEL_PATH = "/Game/Map/L_RareIconWorld"
 
-# Only the bridges. The road surface is painted into the terrain and its
-# textures are sampled by the ground material, so there is no road material for
-# this actor to carry.
+# What stands off the ground: the crossings and the settlements. The road surface
+# is painted into the terrain and its textures are sampled by the ground
+# material, so there is no road material for this actor to carry.
+#
+# The brick is also the switch for the villages. Buildings are their own mesh
+# section rather than instances, so without a material to draw them with there is
+# nothing sensible to raise -- and a village in default grey is worse than none.
 MATERIALS = {
     "WoodMaterial": "/Game/Textures/World/M_RareIcon_BridgeWood",
     "StoneMaterial": "/Game/Textures/World/M_RareIcon_BridgeStone",
+    "BrickMaterial": "/Game/Textures/World/M_RareIcon_Brick",
 }
 
 WATER_MATERIAL = "/Game/Textures/World/M_RareIcon_Water"
+
+# The piers, the abutments and the cross beams are all a box, so they are drawn
+# as instances of one rather than built into every chunk that holds one. Any cube
+# centred on its own origin does: the scale onto each box comes off the mesh's
+# bounds, so this is not tied to the engine cube's own size.
+PART_MESH = "/Engine/BasicShapes/Cube"
 
 # Road nodes are this many terrain chunks apart. One node per terrain chunk puts
 # four roads through every chunk, which from the air is a lattice rather than a
@@ -90,6 +101,12 @@ def main():
             unreal.log_error(f"missing material: {path}")
             return
         network.set_editor_property(prop, material)
+
+    part_mesh = EAL.load_asset(PART_MESH)
+    if part_mesh is None:
+        unreal.log_error(f"missing mesh: {PART_MESH}")
+        return
+    network.set_editor_property("part_mesh", part_mesh)
 
     actor_subsystem.set_actor_selection_state(streamer, False)
     level_subsystem.save_current_level()

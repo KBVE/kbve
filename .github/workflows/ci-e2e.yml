@@ -185,6 +185,7 @@ jobs:
         if: always()
         needs: [discover]
         permissions:
+            actions: read
             issues: write
         uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:
@@ -199,6 +200,7 @@ jobs:
         if: always()
         needs: [e2e]
         permissions:
+            actions: read
             issues: write
         uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:
@@ -213,6 +215,7 @@ jobs:
         if: always()
         needs: [summary]
         permissions:
+            actions: read
             issues: write
         uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:

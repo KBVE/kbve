@@ -3,19 +3,16 @@
 namespace
 {
 	void AddQuad(FKBVEWorldRibbonMesh& Out, const FVector& P0, const FVector& P1,
-		const FVector& P2, const FVector& P3, const FVector2D& UVScale)
+		const FVector& P2, const FVector& P3, const FVector2D& UVSpan);
+
+	void AddQuad(FKBVEWorldRibbonMesh& Out, const FVector& P0, const FVector& P1,
+		const FVector& P2, const FVector& P3, const FVector2D (&UVs)[4])
 	{
 		const FVector Normal = FVector::CrossProduct(P1 - P0, P3 - P0).GetSafeNormal();
 		const FVector Tangent = (P1 - P0).GetSafeNormal();
 		const int32 Base = Out.Vertices.Num();
 
 		const FVector Corners[4] = { P0, P1, P2, P3 };
-		const FVector2D UVs[4] = {
-			FVector2D(0.0f, 0.0f),
-			FVector2D(UVScale.X, 0.0f),
-			FVector2D(UVScale.X, UVScale.Y),
-			FVector2D(0.0f, UVScale.Y),
-		};
 
 		for (int32 I = 0; I < 4; ++I)
 		{
@@ -39,6 +36,95 @@ namespace
 		Out.Triangles.Add(Base + 0);
 		Out.Triangles.Add(Base + 3);
 		Out.Triangles.Add(Base + 2);
+	}
+
+	void AddQuad(FKBVEWorldRibbonMesh& Out, const FVector& P0, const FVector& P1,
+		const FVector& P2, const FVector& P3, const FVector2D& UVSpan)
+	{
+		const FVector2D UVs[4] = {
+			FVector2D(0.0f, 0.0f),
+			FVector2D(UVSpan.X, 0.0f),
+			FVector2D(UVSpan.X, UVSpan.Y),
+			FVector2D(0.0f, UVSpan.Y),
+		};
+		AddQuad(Out, P0, P1, P2, P3, UVs);
+	}
+
+	/**
+	 * One face of a slab, as a strip that shares its vertices along the run.
+	 *
+	 * Quad by quad, a face costs four vertices per segment and the joint between
+	 * two segments is two coincident pairs -- on a deck refined to a few hundred
+	 * samples the underside and the two edges are most of the mesh, and almost
+	 * all of it is duplicates of the vertex next to it. Shared along the run, a
+	 * segment costs two.
+	 *
+	 * Only along the run. The crease across it stays split, because the three
+	 * faces are still built as three strips that share nothing with each other or
+	 * with the top: a deck seen from a riverbank shows all of them at once, and
+	 * welding around the edge would average the surface normal into a bevel.
+	 *
+	 * Winds as AddQuad would for (A[i], A[i+1], B[i+1], B[i]). Flipped, it winds
+	 * as it would for that quad's mirror, which is what a face running the other
+	 * way down the strip needs.
+	 */
+	void AddStrip(FKBVEWorldRibbonMesh& Out, const TArray<FVector>& A, const TArray<FVector>& B,
+		const TArray<FVector2D>& UVs, bool bFlip)
+	{
+		const int32 Num = A.Num();
+		if (Num < 2)
+		{
+			return;
+		}
+
+		const int32 Base = Out.Vertices.Num();
+
+		for (int32 I = 0; I < Num; ++I)
+		{
+			// Averaged from the segments either side, so the run shades smoothly
+			// while the crease across it stays hard.
+			const int32 Prev = FMath::Max(I - 1, 0);
+			const int32 Next = FMath::Min(I + 1, Num - 1);
+			const FVector Along = (A[Next] - A[Prev]).GetSafeNormal();
+			const FVector Normal = FVector::CrossProduct(B[I] - A[I], Along).GetSafeNormal();
+
+			Out.Vertices.Add(A[I]);
+			Out.Normals.Add(Normal);
+			Out.UV0.Add(FVector2D(UVs[I].X, 0.0f));
+			Out.Tangents.Add(FProcMeshTangent(Along, false));
+
+			Out.Vertices.Add(B[I]);
+			Out.Normals.Add(Normal);
+			Out.UV0.Add(FVector2D(UVs[I].X, UVs[I].Y));
+			Out.Tangents.Add(FProcMeshTangent(Along, false));
+		}
+
+		for (int32 I = 0; I + 1 < Num; ++I)
+		{
+			const int32 A0 = Base + I * 2;
+			const int32 B0 = A0 + 1;
+			const int32 A1 = A0 + 2;
+			const int32 B1 = A0 + 3;
+
+			if (bFlip)
+			{
+				Out.Triangles.Add(A0);
+				Out.Triangles.Add(A1);
+				Out.Triangles.Add(B1);
+				Out.Triangles.Add(A0);
+				Out.Triangles.Add(B1);
+				Out.Triangles.Add(B0);
+			}
+			else
+			{
+				Out.Triangles.Add(A0);
+				Out.Triangles.Add(B1);
+				Out.Triangles.Add(A1);
+				Out.Triangles.Add(A0);
+				Out.Triangles.Add(B0);
+				Out.Triangles.Add(B1);
+			}
+		}
 	}
 }
 
@@ -82,6 +168,11 @@ void FKBVEWorldRibbon::Append(FKBVEWorldRibbonMesh& Out, const TArray<FVector>& 
 	Left.SetNumUninitialized(Num);
 	Right.SetNumUninitialized(Num);
 
+	// Kept, because the underside and the edges want the same parameterisation
+	// the top has rather than one that restarts at every joint.
+	TArray<float> RunU;
+	RunU.SetNumUninitialized(Num);
+
 	float Distance = 0.0f;
 	const int32 Base = Out.Vertices.Num();
 
@@ -100,6 +191,7 @@ void FKBVEWorldRibbon::Append(FKBVEWorldRibbonMesh& Out, const TArray<FVector>& 
 			Distance += FVector::Dist2D(Centre[I - 1], Centre[I]);
 		}
 		const float U = Distance / TileLength;
+		RunU[I] = U;
 
 		for (int32 C = 0; C < Columns; ++C)
 		{
@@ -173,22 +265,42 @@ void FKBVEWorldRibbon::Append(FKBVEWorldRibbonMesh& Out, const TArray<FVector>& 
 
 	// Underside and edges get their own vertices rather than reusing the top's.
 	// A deck seen from a riverbank shows all three at once, and sharing vertices
-	// would average the surface normal around the edge into a rolled bevel.
+	// would average the surface normal around the edge into a rolled bevel. They
+	// do share along their own run, though, which is where the duplicates were.
 	const FVector Drop(0.0f, 0.0f, -Params.Thickness);
 	const FVector2D SideUV(1.0f, Params.Thickness / TileLength);
 
-	for (int32 I = 0; I < Num - 1; ++I)
+	TArray<FVector> LeftDrop;
+	TArray<FVector> RightDrop;
+	LeftDrop.SetNumUninitialized(Num);
+	RightDrop.SetNumUninitialized(Num);
+	for (int32 I = 0; I < Num; ++I)
 	{
-		const FVector2D StepUV(FVector::Dist2D(Centre[I], Centre[I + 1]) / TileLength, VSpan);
-
-		// Ordered the other way round from the top face, because it faces the
-		// other way: AddQuad takes its outward direction from the corners it is
-		// given, and the underside given in the top's order comes out facing up
-		// into the slab it is meant to close.
-		AddQuad(Out, Left[I] + Drop, Left[I + 1] + Drop, Right[I + 1] + Drop, Right[I] + Drop, StepUV);
-		AddQuad(Out, Left[I], Left[I + 1], Left[I + 1] + Drop, Left[I] + Drop, SideUV);
-		AddQuad(Out, Right[I + 1], Right[I], Right[I] + Drop, Right[I + 1] + Drop, SideUV);
+		LeftDrop[I] = Left[I] + Drop;
+		RightDrop[I] = Right[I] + Drop;
 	}
+
+	// Parameterised by distance like the top is, rather than restarting at every
+	// joint. The old per-segment UV made the pattern repeat once per segment
+	// whatever the segment's length, so it compressed wherever the route sampled
+	// finely -- and now that a far level sweeps a thinned line, the same rail
+	// would have carried a different texture at each level of detail.
+	TArray<FVector2D> AcrossUV;
+	TArray<FVector2D> DownUV;
+	AcrossUV.SetNumUninitialized(Num);
+	DownUV.SetNumUninitialized(Num);
+	for (int32 I = 0; I < Num; ++I)
+	{
+		AcrossUV[I] = FVector2D(RunU[I], VSpan);
+		DownUV[I] = FVector2D(RunU[I], SideUV.Y);
+	}
+
+	// Ordered the other way round from the top face, because it faces the other
+	// way: the underside given in the top's order comes out facing up into the
+	// slab it is meant to close.
+	AddStrip(Out, LeftDrop, RightDrop, AcrossUV, false);
+	AddStrip(Out, Left, LeftDrop, DownUV, false);
+	AddStrip(Out, Right, RightDrop, DownUV, true);
 
 	AddQuad(Out, Right[0], Left[0], Left[0] + Drop, Right[0] + Drop, SideUV);
 	AddQuad(Out, Left[Num - 1], Right[Num - 1], Right[Num - 1] + Drop, Left[Num - 1] + Drop, SideUV);
@@ -218,4 +330,12 @@ void FKBVEWorldRibbon::AppendBox(FKBVEWorldRibbonMesh& Out, const FVector& Min, 
 	AddQuad(Out, C, D, H, G, XZ);
 	AddQuad(Out, B, C, G, F, YZ);
 	AddQuad(Out, D, A, E, H, YZ);
+}
+
+void FKBVEWorldRibbon::AppendQuad(FKBVEWorldRibbonMesh& Out, const FVector& P0, const FVector& P1,
+	const FVector& P2, const FVector& P3, const FVector2D& UV0, const FVector2D& UV1,
+	const FVector2D& UV2, const FVector2D& UV3)
+{
+	const FVector2D UVs[4] = { UV0, UV1, UV2, UV3 };
+	AddQuad(Out, P0, P1, P2, P3, UVs);
 }

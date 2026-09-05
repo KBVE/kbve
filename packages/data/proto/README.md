@@ -76,7 +76,7 @@ Server-client communication protocols:
 ## Codegen Workflow
 
 1. **Edit proto** — Make changes to `.proto` files in this directory
-2. **Run codegen** — `nx run data-proto:generate` (runs both Zod + TypeScript generation)
+2. **Run codegen** — `moon run data-proto:generate` (runs both Zod + TypeScript generation)
 3. **Update config** — If adding new message types, update `../codegen/<name>-zod-config.json`:
     - Add to `include` array
     - Add field overrides for validation rules

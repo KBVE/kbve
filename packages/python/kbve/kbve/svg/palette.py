@@ -47,7 +47,7 @@ def series_color(index: int) -> str:
 
 
 def type_colors(project_type: str) -> tuple[str, str]:
-    """Return ``(fill, stroke)`` for an Nx project type."""
+    """Return ``(fill, stroke)`` for a project type."""
     return (
         TYPE_FILL.get(project_type, FALLBACK_FILL),
         TYPE_STROKE.get(project_type, FALLBACK_STROKE),

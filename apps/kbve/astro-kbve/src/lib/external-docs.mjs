@@ -3,6 +3,7 @@ export const EXTERNAL_DOCS_SECTIONS = [
 	{ prefix: 'guides', base: '../../../docs/guides' },
 	{ prefix: 'stock', base: '../../../docs/stock' },
 	{ prefix: 'theory', base: '../../../docs/theory' },
+	{ prefix: 'journal', base: '../../../docs/journal' },
 ];
 
 export const EXTERNAL_DOCS_ROOTS = EXTERNAL_DOCS_SECTIONS.map(

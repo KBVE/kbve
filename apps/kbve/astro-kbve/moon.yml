@@ -26,6 +26,7 @@ tasks:
                 '/docs/guides/**/*',
                 '/docs/stock/**/*',
                 '/docs/theory/**/*',
+                '/docs/journal/**/*',
             ]
         deps: ['~:proto']
         outputs: ['/dist/apps/astro-kbve']
@@ -38,6 +39,7 @@ tasks:
                 '/docs/guides/**/*',
                 '/docs/stock/**/*',
                 '/docs/theory/**/*',
+                '/docs/journal/**/*',
             ]
         deps: ['~:proto']
     preview:
@@ -52,6 +54,7 @@ tasks:
                 '/docs/guides/**/*',
                 '/docs/stock/**/*',
                 '/docs/theory/**/*',
+                '/docs/journal/**/*',
             ]
         deps: ['~:proto']
     test:
@@ -79,30 +82,18 @@ tasks:
         script: 'rm -rf apps/kbve/astro-kbve/src/generated/proto && mkdir -p apps/kbve/astro-kbve/src/generated/proto'
         options:
             runFromWorkspaceRoot: true
-    sync-ci-manifest:
-        script: "node -e \"const fs=require('fs');const src='dist/apps/astro-kbve/api/ci-registry.json';const dst='.github/ci-dispatch-manifest.json';if(!fs.existsSync(src)){console.error('Build output not found — run astro-kbve:build first');process.exit(1);}const data=JSON.parse(fs.readFileSync(src,'utf8'));const{index,...manifest}=data;fs.writeFileSync(dst,JSON.stringify(manifest,null,'\\t')+'\\n');console.log('Wrote',dst,'—',manifest.summary.total,'tracked items');\""
-        options:
-            runFromWorkspaceRoot: true
-    gen-ci-manifest:
-        script: 'npx tsx scripts/gen-ci-manifest.mts'
-        inputs:
-            [
-                'src/content/docs/project/*.mdx',
-                'src/data/ci/manifest-builder.ts',
-                'src/data/ci/project-schema.ts',
-                'src/data/schema/ICiProjectSchema.ts',
-                'scripts/gen-ci-manifest.mts',
-                '/packages/data/codegen/generated/ci_registry-schema.ts',
-            ]
-        outputs: ['/.github/ci-dispatch-manifest.json']
-    gen-ci-manifest-check:
-        script: 'npx tsx scripts/gen-ci-manifest.mts --check'
     gen-mermaid:
         script: 'node scripts/gen-mermaid.mjs'
         inputs:
             [
                 'src/content/**/*.mdx',
                 'src/content/**/*.md',
+                '/docs/legal/**/*',
+                '/docs/guides/**/*',
+                '/docs/stock/**/*',
+                '/docs/theory/**/*',
+                '/docs/journal/**/*',
+                'src/lib/external-docs.mjs',
                 'scripts/gen-mermaid.mjs',
             ]
         outputs: ['src/generated/mermaid']
@@ -112,6 +103,12 @@ tasks:
             [
                 'src/content/**/*.mdx',
                 'src/content/**/*.md',
+                '/docs/legal/**/*',
+                '/docs/guides/**/*',
+                '/docs/stock/**/*',
+                '/docs/theory/**/*',
+                '/docs/journal/**/*',
+                'src/lib/external-docs.mjs',
                 'scripts/gen-mermaid.mjs',
                 'src/generated/mermaid',
             ]

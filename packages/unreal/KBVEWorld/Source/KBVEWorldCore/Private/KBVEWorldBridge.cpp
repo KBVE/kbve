@@ -2,11 +2,14 @@
 
 #include "KBVEWorldHeightfield.h"
 
-void FKBVEWorldBridge::Build(const FKBVEWorldBridgeParams& Bridge, const FKBVEWorldRoadParams& Road,
-	const FKBVEWorldHeightfieldParams& Shape, int32 Seed, const FKBVEWorldRoadField* Field,
-	const TArray<FVector>& Path, const FKBVEWorldRoadSpan& Span, FKBVEWorldRibbonMesh& OutWood,
-	FKBVEWorldRibbonMesh& OutStone)
+void FKBVEWorldBridge::Build(const FKBVEWorldBridgeParams& Bridge, const FKBVEWorldBridgeLod& Lod,
+	const FKBVEWorldRoadParams& Road, const FKBVEWorldHeightfieldParams& Shape, int32 Seed,
+	const FKBVEWorldRoadField* Field, const TArray<FVector>& Path, const FKBVEWorldRoadSpan& Span,
+	FKBVEWorldBridgeMesh& Out)
 {
+	FKBVEWorldRibbonMesh& OutWood = Out.Wood;
+	FKBVEWorldRibbonMesh& OutStone = Out.Stone;
+
 	int32 Count = Span.Num();
 	if (Count < 2 || Span.End >= Path.Num())
 	{
@@ -109,6 +112,13 @@ void FKBVEWorldBridge::Build(const FKBVEWorldBridgeParams& Bridge, const FKBVEWo
 	// swept raw, every joint is a corner and a curve arrives as a row of flats.
 	// The spline passes through the original samples, so the ends stay pinned
 	// where the join depends on them being.
+	//
+	// Refined at the shape's own rate whatever level is being built. The route's
+	// length is what the abutment march walks and what the pier bays divide, so a
+	// level that refined less would arrive at a different length and stand its
+	// masonry somewhere else -- the supports would shift and appear as the ring
+	// changed, which is the one thing an LOD may not do. Detail is taken out of
+	// the swept surface below instead, after everything has been solved.
 	if (Bridge.CurveSubdivisions > 1 && Count > 2)
 	{
 		TArray<FVector> Curve;
@@ -146,11 +156,34 @@ void FKBVEWorldBridge::Build(const FKBVEWorldBridgeParams& Bridge, const FKBVEWo
 		Total = FMath::Max(Along.Last(), KINDA_SMALL_NUMBER);
 	}
 
+	// The line the deck and its rails are swept along, which is the refined one
+	// thinned rather than a coarser one solved. Both ends are kept, so the join
+	// at the abutment is the same geometry at every level and only the middle of
+	// the curve loses samples.
+	const int32 Stride = FMath::Max(
+		Bridge.CurveSubdivisions / FMath::Max(Lod.CurveSubdivisions, 1), 1);
+
+	TArray<FVector> Thinned;
+	if (Stride > 1)
+	{
+		Thinned.Reserve(Count / Stride + 2);
+		for (int32 I = 0; I < Count; I += Stride)
+		{
+			Thinned.Add(Deck[I]);
+		}
+		if (Thinned.Last() != Deck.Last())
+		{
+			Thinned.Add(Deck.Last());
+		}
+	}
+
+	const TArray<FVector>& Swept = Stride > 1 ? Thinned : Deck;
+
 	FKBVEWorldRibbonParams DeckParams;
 	DeckParams.Width = Bridge.DeckWidth;
 	DeckParams.TileLength = Bridge.TileLength;
 	DeckParams.Thickness = Bridge.DeckThickness;
-	FKBVEWorldRibbon::Append(OutWood, Deck, DeckParams);
+	FKBVEWorldRibbon::Append(OutWood, Swept, DeckParams);
 
 	const float RailOffset = Bridge.DeckWidth * 0.5f - Bridge.RailInset - Bridge.RailThickness * 0.5f;
 	for (int32 Side = 0; Side < 2; ++Side)
@@ -161,7 +194,7 @@ void FKBVEWorldBridge::Build(const FKBVEWorldBridgeParams& Bridge, const FKBVEWo
 		RailParams.Thickness = Bridge.RailHeight;
 		RailParams.ZOffset = Bridge.RailHeight;
 		RailParams.LateralOffset = (Side == 0) ? -RailOffset : RailOffset;
-		FKBVEWorldRibbon::Append(OutWood, Deck, RailParams);
+		FKBVEWorldRibbon::Append(OutWood, Swept, RailParams);
 	}
 
 	// Girders and cross beams under the deck, over the stretch that has the room
@@ -222,7 +255,7 @@ void FKBVEWorldBridge::Build(const FKBVEWorldBridgeParams& Bridge, const FKBVEWo
 			const float D = FMath::Clamp(Distance + Extent * Step / 3.0f, 0.0f, Total);
 			const FVector P = SampleDeck(D);
 			const float Under = P.Z - Bridge.DeckThickness;
-			const bool bFramed = bHasFrame && D >= FrameFrom && D <= FrameTo;
+			const bool bFramed = bHasFrame && Lod.bFrame && D >= FrameFrom && D <= FrameTo;
 			Top = FMath::Min(Top, Under - (bFramed ? FrameNeeds : 0.0f));
 		}
 
@@ -240,10 +273,21 @@ void FKBVEWorldBridge::Build(const FKBVEWorldBridgeParams& Bridge, const FKBVEWo
 		}
 
 		const float Half = Width * 0.5f;
-		FKBVEWorldRibbon::AppendBox(OutStone,
-			FVector(At.X - Half, At.Y - Half, Ground - Bridge.PierEmbed),
-			FVector(At.X + Half, At.Y + Half, Top),
-			Bridge.StoneTileLength);
+		const FVector Min(At.X - Half, At.Y - Half, Ground - Bridge.PierEmbed);
+		const FVector Max(At.X + Half, At.Y + Half, Top);
+
+		if (Lod.bInstancedParts)
+		{
+			FKBVEWorldBridgePart& Part = Out.StoneParts.AddDefaulted_GetRef();
+			Part.Centre = (Min + Max) * 0.5f;
+			Part.Size = Max - Min;
+		}
+		else
+		{
+			FKBVEWorldRibbon::AppendBox(OutStone, Min, Max, Bridge.StoneTileLength);
+		}
+
+		Out.Blocks.Emplace(Min, Max);
 		return Top - Ground >= Bridge.MinPierHeight;
 	};
 
@@ -324,7 +368,7 @@ void FKBVEWorldBridge::Build(const FKBVEWorldBridgeParams& Bridge, const FKBVEWo
 	FrameFrom = bHasFrame ? Along[FrameBegin] : 0.0f;
 	FrameTo = bHasFrame ? Along[FrameEnd] : 0.0f;
 
-	if (bHasFrame)
+	if (bHasFrame && Lod.bFrame)
 	{
 		TArray<FVector> Spine;
 		Spine.Append(Deck.GetData() + FrameBegin, FrameEnd - FrameBegin + 1);
@@ -363,16 +407,32 @@ void FKBVEWorldBridge::Build(const FKBVEWorldBridgeParams& Bridge, const FKBVEWo
 			const FVector Tangent = (Deck[I] - Deck[I - 1]).GetSafeNormal();
 			const FVector Across(Tangent.Y, -Tangent.X, 0.0f);
 
-			TArray<FVector> Beam;
-			Beam.Add(At - Across * Reach);
-			Beam.Add(At + Across * Reach);
+			const float Drop = -(Bridge.DeckThickness + Bridge.GirderDepth);
 
-			FKBVEWorldRibbonParams Cross;
-			Cross.Width = Bridge.CrossBeamWidth;
-			Cross.TileLength = Bridge.TileLength;
-			Cross.Thickness = Bridge.CrossBeamDepth;
-			Cross.ZOffset = -(Bridge.DeckThickness + Bridge.GirderDepth);
-			FKBVEWorldRibbon::Append(OutWood, Beam, Cross);
+			if (Lod.bInstancedParts)
+			{
+				// A beam is a box lying across the deck, so it instances the same
+				// way a pier does once it is given the deck's own heading. Its
+				// length runs along Across and the sweep hangs it below the deck
+				// by half its depth, which is what the ribbon's thickness did.
+				FKBVEWorldBridgePart& Part = Out.WoodParts.AddDefaulted_GetRef();
+				Part.Centre = At + FVector(0.0f, 0.0f, Drop - Bridge.CrossBeamDepth * 0.5f);
+				Part.Rotation = FRotationMatrix::MakeFromXY(Across, Tangent).ToQuat();
+				Part.Size = FVector(Reach * 2.0f, Bridge.CrossBeamWidth, Bridge.CrossBeamDepth);
+			}
+			else
+			{
+				TArray<FVector> Beam;
+				Beam.Add(At - Across * Reach);
+				Beam.Add(At + Across * Reach);
+
+				FKBVEWorldRibbonParams Cross;
+				Cross.Width = Bridge.CrossBeamWidth;
+				Cross.TileLength = Bridge.TileLength;
+				Cross.Thickness = Bridge.CrossBeamDepth;
+				Cross.ZOffset = Drop;
+				FKBVEWorldRibbon::Append(OutWood, Beam, Cross);
+			}
 		}
 	}
 

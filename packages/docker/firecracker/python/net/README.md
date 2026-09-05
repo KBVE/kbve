@@ -19,7 +19,7 @@ For sandbox quick-mode VMs (no network, public exec), keep using the no-network 
 ## Output
 
 - Container image: `ghcr.io/kbve/firecracker-python-net:<version>` (scratch image carrying `/rootfs.ext4`)
-- Extracted ext4 (via `nx run firecracker-python-net:extract`): `dist/python-net.ext4`
+- Extracted ext4 (via `moon run firecracker-python-net:extract`): `dist/python-net.ext4`
 
 ## Build
 

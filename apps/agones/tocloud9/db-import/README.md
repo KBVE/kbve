@@ -17,4 +17,4 @@ reads it. 3kynox's branch carries its own update chain, and applying it on top
 of a database built by upstream's importer fails — a clean install is the only
 path that works.
 
-Built via `nx run agones-tocloud9:container-db-import`.
+Built via `moon run agones-tocloud9:container-db-import`.

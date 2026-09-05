@@ -72,6 +72,11 @@ tasks:
             cache: false
 
     # What a push would change, without changing it.
+    #
+    # Shares an id with the `check` that every astro site uses for `astro
+    # check`, but this one talks to a live Windmill instance and needs
+    # WMILL_TOKEN, so it stays out of the `moon ci ':check'` sweep the way the
+    # godot suites and kilobase stay out of ':test'.
     check:
         command:
             - 'npx'
@@ -86,6 +91,7 @@ tasks:
         toolchains: ['node']
         options:
             cache: false
+            runInCI: false
 
     # Pulls the instance into the repo. Run this after anyone edits in the
     # Windmill UI, or the next push overwrites their change.

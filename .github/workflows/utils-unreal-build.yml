@@ -2601,6 +2601,7 @@ jobs:
                 game_post_publish,
             ]
         permissions:
+            actions: read
             issues: write
             contents: read
         uses: ./.github/workflows/utils-ci-failure-tracker.yml

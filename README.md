@@ -21,7 +21,7 @@ KBVE is a collective that builds programs, libraries, games and memes. This mono
 dozen web apps, a Kubernetes fleet, Rust crates, Unreal and Unity plugins, Godot and Bevy games, and the CI that
 ships them.
 
-The build graph is [moon](https://moonrepo.dev/). Every project declares its own tasks, and `moon` works out what a
+The build graph is [grapify + moon](https://kbve.com/graph/). Every project declares its own tasks, and `moon` works out what a
 change affects — you rarely need to know more than `moon run <project>:<task>`.
 
 ---
@@ -153,4 +153,9 @@ Getting-started docs: [kbve.com/guides](https://kbve.com/guides/getting-started/
 - **One source of truth.** Configs, schemas and deployment manifests sit next to the code they describe.
 - **It scales.** The moon graph only builds and tests what a change actually touches.
 
-Prior art we borrow from: [Cal.com](https://github.com/calcom/cal.com) · [E2B](https://github.com/e2b-dev/e2b/).
+---
+
+References to Monorepos
+
+- [Cal.com](https://github.com/calcom/cal.com)
+- [E2B](https://github.com/e2b-dev/e2b/).

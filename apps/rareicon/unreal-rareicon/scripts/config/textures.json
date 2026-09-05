@@ -34,6 +34,13 @@
 			"displacement": true,
 			"source": "World",
 			"destination": "/Game/Textures/World"
+		},
+		{
+			"stem": "T_ChurchBrick",
+			"pack": "church_bricks_03_2k",
+			"displacement": true,
+			"source": "World",
+			"destination": "/Game/Textures/World"
 		}
 	],
 	"terrain_material": {
@@ -51,6 +58,10 @@
 		{
 			"path": "/Game/Textures/World/M_RareIcon_BridgeStone",
 			"stem": "T_StonePier"
+		},
+		{
+			"path": "/Game/Textures/World/M_RareIcon_Brick",
+			"stem": "T_ChurchBrick"
 		}
 	],
 	"water_material": {
