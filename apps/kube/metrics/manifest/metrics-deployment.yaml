@@ -25,7 +25,7 @@ spec:
                 prometheus.io/path: /metrics
             labels:
                 app: metrics
-                version: 0.1.0
+                version: '0.1.6'
         spec:
             serviceAccountName: metrics-sa
             automountServiceAccountToken: false
