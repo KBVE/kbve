@@ -26,6 +26,7 @@ tasks:
                 '/docs/guides/**/*',
                 '/docs/stock/**/*',
                 '/docs/theory/**/*',
+                '/docs/journal/**/*',
             ]
         deps: ['~:proto']
         outputs: ['/dist/apps/astro-kbve']
@@ -38,6 +39,7 @@ tasks:
                 '/docs/guides/**/*',
                 '/docs/stock/**/*',
                 '/docs/theory/**/*',
+                '/docs/journal/**/*',
             ]
         deps: ['~:proto']
     preview:
@@ -52,6 +54,7 @@ tasks:
                 '/docs/guides/**/*',
                 '/docs/stock/**/*',
                 '/docs/theory/**/*',
+                '/docs/journal/**/*',
             ]
         deps: ['~:proto']
     test:
@@ -85,6 +88,12 @@ tasks:
             [
                 'src/content/**/*.mdx',
                 'src/content/**/*.md',
+                '/docs/legal/**/*',
+                '/docs/guides/**/*',
+                '/docs/stock/**/*',
+                '/docs/theory/**/*',
+                '/docs/journal/**/*',
+                'src/lib/external-docs.mjs',
                 'scripts/gen-mermaid.mjs',
             ]
         outputs: ['src/generated/mermaid']
@@ -94,6 +103,12 @@ tasks:
             [
                 'src/content/**/*.mdx',
                 'src/content/**/*.md',
+                '/docs/legal/**/*',
+                '/docs/guides/**/*',
+                '/docs/stock/**/*',
+                '/docs/theory/**/*',
+                '/docs/journal/**/*',
+                'src/lib/external-docs.mjs',
                 'scripts/gen-mermaid.mjs',
                 'src/generated/mermaid',
             ]

@@ -1,9 +1,10 @@
-"""The ``journal`` route — nightly year-block scaffold for journal/MM-DD.mdx."""
+"""The ``journal`` route — nightly year-block scaffold for docs/journal/MM-DD.mdx."""
 
 from __future__ import annotations
 
 import os
 from datetime import datetime, timedelta
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
 from ..builder import BuildContext, BuildResult, PlanResult, repo_root_for
@@ -13,6 +14,16 @@ from ..router import route
 _ET = ZoneInfo("America/New_York")
 
 
+def journal_root(content_root) -> Path:
+    """Journal lives in the repo-root ``docs/`` tree, not under ``src/content``.
+
+    The Astro side loads it through the external-docs loader, so the route has
+    to resolve it from the repo root rather than from the content root it is
+    handed.
+    """
+    return repo_root_for(content_root) / "docs" / "journal"
+
+
 def _target(ctx: BuildContext):
     if ctx.date is not None:
         target = ctx.date
@@ -20,7 +31,7 @@ def _target(ctx: BuildContext):
         target = datetime.now(_ET).date() + timedelta(days=1)
     mm_dd = target.strftime("%m-%d")
     year = target.strftime("%Y")
-    path = ctx.content_root / "journal" / ("%s.mdx" % mm_dd)
+    path = journal_root(ctx.content_root) / ("%s.mdx" % mm_dd)
     return path, mm_dd, year
 
 

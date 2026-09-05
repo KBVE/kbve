@@ -260,6 +260,7 @@ jobs:
                   # merging something unreviewed.
                   ALLOWED='
                   apps/kbve/astro-kbve/src/content/docs/
+                  docs/journal/
                   apps/kbve/astro-kbve/public/data/nx/
                   apps/kbve/astro-kbve/public/graphify/
                   apps/kbve/astro-kbve/src/data/
