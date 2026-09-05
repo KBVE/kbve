@@ -82,8 +82,29 @@ void FKBVEWorldRoof::Build(const FKBVEWorldRoofParams& Roof, const FKBVEWorldRoo
 	const float Deep = FMath::Max(Roof.Thickness, KINDA_SMALL_NUMBER);
 
 	// Out to the drip edge, which is where the roof actually ends.
-	const float X = HalfDepth + Over;
-	const float Y = HalfWidth + Over;
+	float X = HalfDepth + Over;
+	float Y = HalfWidth + Over;
+
+	const bool bHip = StyleFor(Roof, In.Seed) == EKBVEWorldRoofStyle::Hip;
+
+	FVector Forward(FMath::Cos(In.Yaw), FMath::Sin(In.Yaw), 0.0f);
+	FVector Side(-Forward.Y, Forward.X, 0.0f);
+
+	// A hip's ridge runs along whichever way the building is longer, and the rest
+	// of this only knows how to run one along the width. On a house deeper than
+	// it is wide that came out as a pyramid: the ridge collapsed to a point and
+	// the front and back planes had to reach it across the whole depth, so they
+	// were laid at a shallower pitch than the roof was asked for and the walls
+	// under them stood through the tiles. Turning the frame a quarter turn puts
+	// the long axis where the code expects it, and a rotation cannot change the
+	// winding, so every face still faces out afterwards.
+	if (bHip && X > Y)
+	{
+		Swap(X, Y);
+		const FVector Turned = Side;
+		Side = -Forward;
+		Forward = Turned;
+	}
 
 	// The eaves hang below the wall plate, because a constant pitch carried out
 	// past the wall has nowhere to go but down. That drop is the shadow line that
@@ -92,13 +113,11 @@ void FKBVEWorldRoof::Build(const FKBVEWorldRoofParams& Roof, const FKBVEWorldRoo
 
 	FRoofFrame F;
 	F.Origin = In.Centre;
-	F.Forward = FVector(FMath::Cos(In.Yaw), FMath::Sin(In.Yaw), 0.0f);
-	F.Side = FVector(-F.Forward.Y, F.Forward.X, 0.0f);
+	F.Forward = Forward;
+	F.Side = Side;
 	F.Tile = FMath::Max(Roof.TileLength, KINDA_SMALL_NUMBER);
 	F.SinPitch = FMath::Max(FMath::Sin(Pitch), KINDA_SMALL_NUMBER);
 	F.EaveZ = EaveZ;
-
-	const bool bHip = StyleFor(Roof, In.Seed) == EKBVEWorldRoofStyle::Hip;
 
 	// How long the ridge is, and it is not a free parameter. Every slope of a hip
 	// has the same pitch as the others -- that is what makes it a hip rather than

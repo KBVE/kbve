@@ -141,9 +141,18 @@ void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
 	// wall plate at the wall line -- carried to the corner, a gable end would come
 	// up through the roof it is meant to be closing.
 	const float Pitch = FMath::DegreesToRadians(FMath::Clamp(Building.Roof.Pitch, 1.0f, 85.0f));
+	const float Slope = FMath::Tan(Pitch);
 	const float Deep = FMath::Max(Building.Roof.Thickness, 0.0f);
-	const float Apex = FKBVEWorldRoof::Rise(Building.Roof, Plan.Depth) - Deep;
-	const float Inset = Deep / FMath::Max(FMath::Tan(Pitch), KINDA_SMALL_NUMBER);
+	const float Skin = 0.5f * FMath::Max(Building.Wall.Thickness, KINDA_SMALL_NUMBER);
+
+	// How far the roof stands above the footprint the walls are built along.
+	//
+	// The roof is given that same footprint, and a slope crossing it is at the
+	// plate on the line and below it outside -- so the outer half of every wall
+	// under an eave stands up through the tiles, by the drop across half a wall.
+	// Lifting the roof by that drop plus its own thickness puts its underside on
+	// top of the wall at the outer face, which is where a wall plate is.
+	const float Lift = Deep + Slope * Skin;
 
 	TArray<FKBVEWorldWallOpening> Openings;
 
@@ -177,7 +186,12 @@ void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
 			// last has another one sitting on it.
 			// The top storey included: the roof slab's soffit sits below the plate
 			// at the wall line, so the top of the wall is inside the roof.
-			Wall.bCapTop = false;
+			// The top of the top storey is now under the roof rather than in it,
+			// so it is an edge again and gets closed -- except where the gable
+			// carries the masonry on past it, which would bury the cap in stone.
+			const bool bUnderRoof = Level == Storeys - 1;
+			const bool bRakes = bGable && bUnderRoof && (Side == 1 || Side == 3);
+			Wall.bCapTop = bUnderRoof && !bRakes;
 			Wall.bCapBottom = Level == 0;
 			Wall.bCapEnds = false;
 
@@ -191,9 +205,15 @@ void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
 			// The ridge runs across the front, so the two walls that meet the
 			// slopes end-on are the ones running back from it. A hip closes its own
 			// ends and wants no masonry above the plate at all.
-			if (bGable && Level == Storeys - 1 && (Side == 1 || Side == 3))
+			// The gable follows the roof's underside up to the ridge, and with the
+			// roof standing on the outer face there is nothing left to inset from:
+			// the soffit clears the plate at the corner, so the masonry runs the
+			// whole length of the wall and meets the slope only at the peak.
+			if (bRakes)
 			{
-				FKBVEWorldWall::Gable(Building.Wall, Wall, Apex, Inset, Out.Masonry);
+				FKBVEWorldWall::Gable(Building.Wall, Wall,
+					FKBVEWorldRoof::Rise(Building.Roof, Plan.Depth) + Slope * Skin, 0.0f,
+					Out.Masonry);
 			}
 
 			Perimeter += Length;
@@ -271,7 +291,7 @@ void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
 
 	FKBVEWorldRoofBuild RoofIn;
 	RoofIn.Centre = FVector(Plan.Centre.X, Plan.Centre.Y,
-		Plan.Centre.Z + static_cast<float>(Storeys) * Storey);
+		Plan.Centre.Z + static_cast<float>(Storeys) * Storey + Lift);
 	RoofIn.Yaw = Plan.Yaw;
 	RoofIn.Width = Plan.Width;
 	RoofIn.Depth = Plan.Depth;
