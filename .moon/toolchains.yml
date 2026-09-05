@@ -4,8 +4,10 @@ $schema: 'https://moonrepo.dev/schemas/toolchains.json'
 # runtime (node), package manager (pnpm), ecosystem (javascript), type layer
 # (typescript). Each must be registered here to be active.
 #
-# rust and python are deliberately absent. They land after the node side is
-# proven; until then @monodon/rust and @nxlv/python keep owning those targets.
+# rust and python are deliberately absent. Their tasks declare `toolchain:
+# system` and shell out to the rustup/uv already on PATH, which is what lets a
+# task pick its own toolchain (`rustup run nightly`) instead of the one a moon
+# plugin would pin for the whole workspace.
 
 node:
     version: '24.20.0'
