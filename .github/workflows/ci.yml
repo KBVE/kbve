@@ -194,15 +194,20 @@ jobs:
             - name: Provision the moon toolchains
               run: moon setup
 
-            # Scoped to lint and test, which is what this job replaced. A bare
-            # `moon ci` runs every task carrying runInCI, and here that is 45
-            # container builds and 59 browser suites -- neither of which this
-            # runner has a docker registry or a Playwright install for, and
-            # neither of which ran on a pull request before. The e2e suites keep
-            # their own workflows.
+            # Scoped to the four static-analysis task ids, which is what this
+            # job replaced. A bare `moon ci` runs every task carrying runInCI,
+            # and here that is 45 container builds and 59 browser suites --
+            # neither of which this runner has a docker registry or a
+            # Playwright install for, and neither of which ran on a pull
+            # request before. The e2e suites keep their own workflows.
+            #
+            # typecheck and check were left off when this replaced Nx, so
+            # `tsc --noEmit` and `astro check` ran nowhere for the length of the
+            # migration. Turning them on surfaced 67 errors across rn and seven
+            # astro sites, all fixed in the commit that added them here.
             #
             # `moon ci` has no project filter, so the Godot suites opt out with
             # runInCI: false in their own moon.yml -- the reason lives beside
             # the task it applies to rather than in this file.
             - name: Run affected lint and test
-              run: moon ci ':lint' ':test' --job ${{ matrix.index }} --job-total ${{ matrix.total }}
+              run: moon ci ':lint' ':test' ':typecheck' ':check' --job ${{ matrix.index }} --job-total ${{ matrix.total }}
