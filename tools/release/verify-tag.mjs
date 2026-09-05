@@ -442,6 +442,10 @@ export function verify(tag, root = process.cwd(), factorioMods = [], node = null
 		tauriPlatforms: node.config?.env?.TAURI_PLATFORMS ?? '',
 		tauriNotarize: node.config?.env?.TAURI_NOTARIZE === 'true',
 		webGameNeedsRust: node.config?.env?.WEB_GAME_NEEDS_RUST === 'true',
+		// The image other Dockerfiles build FROM. Only base images set it, and
+		// it is what lets a release of one repin its consumers instead of
+		// leaving them on a floating tag that changes identity underneath them.
+		baseImage: node.config?.env?.BASE_IMAGE ?? '',
 	};
 }
 
@@ -490,6 +494,7 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop()
 					`pypi_name=${result.pypi ?? ''}`,
 					`external_publish=${result.external ? JSON.stringify(result.external) : ''}`,
 					`deployment_yamls=${result.deploymentYamls}`,
+					`base_image=${result.baseImage}`,
 					`runner=${result.runner}`,
 					`engine=${result.engine}`,
 					`publish=${result.publish}`,
