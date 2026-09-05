@@ -144,6 +144,16 @@ public:
 	/** Milliseconds spent inside CreateMeshSection, which includes any collision cook. */
 	float GetLastSectionMs() const { return LastSectionMs; }
 
+	/** Milliseconds spent sampling the heightfield and levelling it to the roads. */
+	float GetLastFillMs() const { return LastFillMs; }
+
+	// Everything Rebuild itself does, so the caller can tell it apart from what
+	// spawning an actor costs around it. A patch is timed by the streamer across
+	// FinishSpawning, which registers components and creates their render and
+	// physics state -- none of which is this class's arithmetic, and all of which
+	// was landing in the same number.
+	float GetLastRebuildMs() const { return LastRebuildMs; }
+
 protected:
 	virtual void OnConstruction(const FTransform& Transform) override;
 	virtual void BeginPlay() override;
@@ -172,6 +182,8 @@ private:
 	// total cannot tell the two apart.
 	float LastGenerateMs = 0.0f;
 	float LastSectionMs = 0.0f;
+	float LastFillMs = 0.0f;
+	float LastRebuildMs = 0.0f;
 
 	const FKBVEWorldRoadField* RoadField = nullptr;
 };

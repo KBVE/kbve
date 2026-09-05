@@ -1,5 +1,6 @@
 #include "KBVEWorldHeightfieldActor.h"
 
+#include "Async/ParallelFor.h"
 #include "KBVEWorldHeightfield.h"
 #include "KBVEWorldRoadField.h"
 #include "ProceduralMeshComponent.h"
@@ -71,21 +72,27 @@ void AKBVEWorldHeightfieldActor::BuildSection(UProceduralMeshComponent* Target, 
 			const float PadOrigin = -TileStep * 100.0f;
 			const FVector2D Min(TileOrigin.X * 100.0f + PadOrigin, TileOrigin.Y * 100.0f + PadOrigin);
 			const FVector2D Max = Min + FVector2D(PadEdge * VertexSize, PadEdge * VertexSize);
+			// Routed first, on this thread. Level only reads the corridors, but
+			// EnsureCovers builds them lazily into caches that are not guarded --
+			// so the routing has to be finished before any of this is spread out.
 			RoadField->EnsureCovers(Min, Max);
 
-			for (int32 Y = 0; Y < PadEdge; ++Y)
+			const FKBVEWorldRoadField* Field = RoadField;
+			float* const Heights = CachedPadded.GetData();
+
+			ParallelFor(PadEdge, [Field, Heights, Min, VertexSize, PadEdge](int32 Y)
 			{
+				const float Wy = Min.Y + Y * VertexSize;
+				float* Row = Heights + Y * PadEdge;
 				for (int32 X = 0; X < PadEdge; ++X)
 				{
-					const float Wx = Min.X + X * VertexSize;
-					const float Wy = Min.Y + Y * VertexSize;
-					float& H = CachedPadded[Y * PadEdge + X];
-					H = RoadField->Level(H, Wx, Wy);
+					Row[X] = Field->Level(Row[X], Min.X + X * VertexSize, Wy);
 				}
-			}
+			}, PadEdge >= 64 ? EParallelForFlags::None : EParallelForFlags::ForceSingleThread);
 		}
 
 		CachedPaddedStep = Step;
+		LastFillMs += static_cast<float>((FPlatformTime::Seconds() - GenerateStart) * 1000.0);
 	}
 
 	const TArray<float>& Padded = CachedPadded;
@@ -270,6 +277,9 @@ void AKBVEWorldHeightfieldActor::Rebuild()
 {
 	LastGenerateMs = 0.0f;
 	LastSectionMs = 0.0f;
+	LastFillMs = 0.0f;
+
+	const double RebuildStart = FPlatformTime::Seconds();
 
 	// A pooled patch arrives with the last coordinate's heights still cached.
 	CachedPaddedStep = 0;
@@ -292,6 +302,7 @@ void AKBVEWorldHeightfieldActor::Rebuild()
 		}
 	}
 
+	LastRebuildMs = static_cast<float>((FPlatformTime::Seconds() - RebuildStart) * 1000.0);
 }
 
 void AKBVEWorldHeightfieldActor::OnConstruction(const FTransform& Transform)
