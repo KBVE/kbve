@@ -30,4 +30,6 @@ namespace KBVEGrip
 	extern float GWristTwistShare;
 	extern int32 GGripContact;
 	extern int32 GGripTrace;
+	extern int32 GGripDerive;
+	extern int32 GGripWrap;
 }

@@ -149,6 +149,9 @@ public:
 	 * The translation puts the measured wrist of the stock on weapon_r, which is
 	 * 3.4 cm from hand_r -- the palm rather than the wrist joint.
 	 */
+	float IKReportElapsed = 0.0f;
+	float CurrentLabRate = -1.0f;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RareIcon|Weapon")
 	FName WeaponAttachBone = TEXT("hand_r");
 

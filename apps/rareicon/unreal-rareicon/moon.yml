@@ -68,6 +68,34 @@ tasks:
             runFromWorkspaceRoot: true
             cache: false
 
+    # The armoury: freeze the idle, park the camera on the weapon, photograph
+    # the hold and quit.
+    #
+    # A bench rather than a session in the editor, because judging a grip by
+    # chasing a walking character with a screenshot tool is how six rounds of
+    # this were spent. Nothing here needs a person: it runs headless, writes one
+    # PNG and prints the reach and roll numbers beside it, so a hold can be
+    # compared against the last one instead of remembered.
+    #
+    # Off screen, deliberately. A -game window steals focus and captures the
+    # mouse, so a bench meant to run while someone else works cannot own a
+    # window; -RenderOffScreen renders to a surface instead and the screenshot
+    # comes out the same.
+    armoury:
+        deps: ['~:build-editor']
+        script: >-
+            rm -f apps/rareicon/unreal-rareicon/Saved/Screenshots/MacEditor/*.png;
+            "${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Binaries/Mac/UnrealEditor-Cmd"
+            "$PWD/apps/rareicon/unreal-rareicon/RareIcon.uproject" /Game/Map/L_RareIconWorld
+            -game -unattended -nosound -nosplash -RenderOffScreen -resx=1600 -resy=900 -stdout
+            -ExecCmds="rareicon.Grip.Lab 1,rareicon.Weapon.DrawBore 1,rareicon.Grip.IKReport 1,kbve.Grip.Trace 1,rareicon.Weapon.GripShot 4"
+            2>&1 | sed -E 's/^\[[^]]*\]\[ *[0-9]+\]//'
+            | grep -E "grip (reach|ik|wrap):|derived hand frame|roll added vs clip"
+            | awk '!seen[$0]++' | tail -20
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
     regen-project-files:
         script: '"${UE_ROOT:-/Users/Shared/Epic Games/UE_5.8}/Engine/Build/BatchFiles/Mac/GenerateProjectFiles.sh" -project="$PWD/RareIcon.uproject" -game -engine'
         options:

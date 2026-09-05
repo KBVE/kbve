@@ -97,6 +97,30 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip|Section")
 	float GripAngleDegrees = 270.0f;
 
+	/**
+	 * How far the woodwork runs, along the weapon's own X.
+	 *
+	 * A range rather than the single point above, because where a hand lands on
+	 * a fore-end is not a property of the rifle: it is where the arm holding it
+	 * comfortably reaches, and that moves with the character. The rifle only
+	 * says how much wood there is to choose from. Equal values pin the hold.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip|Section")
+	float GripAlongMin = -18.0f;
+
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip|Section")
+	float GripAlongMax = -6.0f;
+
+	/**
+	 * How much of the arm's length the hold may use, as a fraction.
+	 *
+	 * Below one so the elbow keeps a bend: an arm solved to exactly its own
+	 * length is straight, and a straight support arm reads as a mannequin
+	 * holding a prop. Zero pins the hand at GripAlongMin.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip|Section")
+	float GripArmExtension = 0.92f;
+
 	/** How far the knuckles are held off the surface, cm. */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip|Section")
 	float KnuckleClearance = 0.6f;
@@ -117,6 +141,39 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip|Hold")
 	FVector LeftHandTargetLocal = FVector(-4.0f, -7.0f, 5.7f);
+
+	/**
+	 * Where the support hand goes on this weapon: position and orientation, in
+	 * the weapon's own space.
+	 *
+	 * One transform per weapon, placed by eye, and the arm is solved to it.
+	 * This replaces a solver that modelled the fore-end as an elliptical
+	 * section and bisection-searched for finger contact -- which is a great
+	 * deal of machinery for a question an artist answers by dragging a gizmo,
+	 * and it never produced a hold worth keeping.
+	 *
+	 * The rotation is a turn about the weapon's own axes, laid over the wrist
+	 * the clip authored, rather than a wrist orientation in its own right. As
+	 * an orientation it had no usable zero: a hand given the weapon's rotation
+	 * wears the weapon's axes and points its fingers down the barrel, so no
+	 * small value of roll is near anything. As a turn, zero is the animator's
+	 * hold and roll is roll -- the hand rotated about the barrel, which is the
+	 * one number the clip gets wrong on a weapon it was not authored for.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip|Hold")
+	FTransform SupportHandSocket;
+
+	/**
+	 * A last nudge for the support hand, in the character's own space, cm.
+	 *
+	 * Every clip was authored around one weapon, and no weapon a game ships is
+	 * that weapon. This is where the difference goes: the wrist a centimetre
+	 * low, the hand a touch further out. Per weapon because the difference is
+	 * per weapon, and applied whether or not anything else solves the hand, so
+	 * a grip can be trimmed without turning a solver on to do it.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip|Hold")
+	FVector SupportHandTrim = FVector::ZeroVector;
 
 	/** Where the weapon hangs off the trigger hand. Identity means "unset". */
 	UPROPERTY(EditAnywhere, BlueprintReadOnly, Category = "Grip|Hold")
