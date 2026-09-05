@@ -104,7 +104,7 @@ spec:
                                 name: supabase-postgres-password
                                 key: ro_url
                       - name: KBVE_PG_APPLICATION_NAME
-                        value: axum-discordsh
+                        value: discordsh-api
                   resources:
                       requests:
                           memory: 256Mi

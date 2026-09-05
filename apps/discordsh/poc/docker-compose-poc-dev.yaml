@@ -106,7 +106,7 @@ services:
             # ── Runtime ───────────────────────────────────────────────────
             HTTP_HOST: '0.0.0.0'
             HTTP_PORT: '${DISCORDSH_PORT:-4321}'
-            RUST_LOG: 'axum_discordsh=debug,tower_http=debug,kbve=debug,jedi=debug'
+            RUST_LOG: 'discordsh_api=debug,tower_http=debug,kbve=debug,jedi=debug'
         depends_on:
             mockoon-github:
                 condition: service_healthy

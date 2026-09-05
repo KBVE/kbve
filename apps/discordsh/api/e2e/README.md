@@ -1,6 +1,6 @@
-# axum-discordsh-e2e
+# discordsh-api-e2e
 
-End-to-end smoke tests for the `axum-discordsh` HTTP server.
+End-to-end smoke tests for the `discordsh-api` HTTP server.
 
 ## What it tests
 
@@ -15,15 +15,15 @@ End-to-end smoke tests for the `axum-discordsh` HTTP server.
 
 ```bash
 # Run e2e suite (builds container, runs tests, cleans up)
-nx e2e axum-discordsh-e2e
+nx e2e discordsh-api-e2e
 
-# Run locally (assumes axum-discordsh running on :4321)
+# Run locally (assumes discordsh-api running on :4321)
 cd apps/discordsh/api/e2e
 npx vitest run
 ```
 
 ## CI integration
 
-Tests run automatically in GitHub Actions when `axum-discordsh` changes.
+Tests run automatically in GitHub Actions when `discordsh-api` changes.
 
 See: https://github.com/KBVE/kbve/issues/12367

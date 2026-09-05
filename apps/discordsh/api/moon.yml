@@ -6,8 +6,8 @@ tags: ['rust', 'docker']
 
 tasks:
     dev:
-        script: 'STATIC_DIR=./dist/apps/astro-discordsh STATIC_PRECOMPRESSED=false cargo run -p axum-discordsh'
-        deps: ['astro-discordsh:build']
+        script: 'STATIC_DIR=./dist/apps/discordsh-web STATIC_PRECOMPRESSED=false cargo run -p discordsh-api'
+        deps: ['discordsh-web:build']
         options:
             runFromWorkspaceRoot: true
             # A task named dev takes moon's server preset, and that preset sets
@@ -16,12 +16,12 @@ tasks:
             # all -- "No tasks found. Unable to execute action pipeline."
             runInCI: true
     e2e:
-        deps: ['~:test', 'discordsh-e2e:e2e']
+        deps: ['~:test', 'discordsh-web-e2e:e2e']
         options:
             cache: false
     container-prep:
-        script: 'rm -rf ./apps/discordsh/api/dist/ && mkdir -p ./apps/discordsh/api/dist/ && cp -a ./dist/apps/astro-discordsh/. ./apps/discordsh/api/dist/'
-        deps: ['astro-discordsh:build']
+        script: 'rm -rf ./apps/discordsh/api/dist/ && mkdir -p ./apps/discordsh/api/dist/ && cp -a ./dist/apps/discordsh-web/. ./apps/discordsh/api/dist/'
+        deps: ['discordsh-web:build']
         options:
             runFromWorkspaceRoot: true
     containerx:

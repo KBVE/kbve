@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeAll } from 'vitest';
 import { BASE_URL, waitForReady } from './helpers/http';
 
-describe('axum-discordsh health endpoints', () => {
+describe('discordsh-api health endpoints', () => {
 	beforeAll(async () => {
 		await waitForReady();
 	});

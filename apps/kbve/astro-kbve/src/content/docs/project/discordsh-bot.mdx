@@ -35,7 +35,7 @@ next: false
 jsonld:
     faq:
         - question: What is the DiscordSH Bot?
-          answer: discordsh-bot is the standalone Discord gateway bot extracted from the axum-discordsh monolith. It handles all Discord interactions independently of the HTTP server, built on the poise/serenity gateway with shard support.
+          answer: discordsh-bot is the standalone Discord gateway bot extracted from the discordsh-api monolith. It handles all Discord interactions independently of the HTTP server, built on the poise/serenity gateway with shard support.
         - question: What can the DiscordSH Bot do?
           answer: It serves slash commands (/github, /gh, /dungeon, /ping, /status, /health, /restart, /cleanup, /skills, /wm), runs an embed dungeon game with bevy_battle combat and bevy_inventory items, manages GitHub issues and PRs with SVG card rendering, persists players via Supabase, and runs allowlisted Windmill scripts in-cluster.
         - question: How does the /wm command stay secure?
@@ -45,7 +45,7 @@ bento:
     title: Standalone gateway bot
     accent: DiscordSH Bot
     lede: >-
-        The standalone Discord gateway bot extracted from the axum-discordsh
+        The standalone Discord gateway bot extracted from the discordsh-api
         monolith. Built on the poise/serenity gateway with shard support, it
         handles every Discord interaction independently of the HTTP server —
         slash commands, an embed dungeon game, GitHub management, and a
@@ -108,7 +108,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 
 <BentoProse id="overview" eyebrow="Responsibilities" heading="Overview & features">
 
-`discordsh-bot` is the standalone Discord gateway bot extracted from the axum-discordsh monolith. It handles all Discord interactions independently of the HTTP server.
+`discordsh-bot` is the standalone Discord gateway bot extracted from the discordsh-api monolith. It handles all Discord interactions independently of the HTTP server.
 
 ### Features
 

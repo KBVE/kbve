@@ -15,7 +15,7 @@ workspace:
 
 tasks:
     e2e:
-        script: 'docker rm -f axum-discordsh-e2e 2>/dev/null || true && docker run -d --name axum-discordsh-e2e -p 4321:4321 -e HTTP_PORT=4321 -e RUST_LOG=info kbve/axum-discordsh:latest && sleep 3 && npx vitest run; EC=$?; docker rm -f axum-discordsh-e2e 2>/dev/null || true; exit $EC'
-        deps: ['axum-discordsh:container']
+        script: 'docker rm -f discordsh-api-e2e 2>/dev/null || true && docker run -d --name discordsh-api-e2e -p 4321:4321 -e HTTP_PORT=4321 -e RUST_LOG=info kbve/discordsh:latest && sleep 3 && npx vitest run; EC=$?; docker rm -f discordsh-api-e2e 2>/dev/null || true; exit $EC'
+        deps: ['discordsh-api:container']
         options:
             cache: false
