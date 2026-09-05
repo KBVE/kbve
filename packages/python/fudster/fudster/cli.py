@@ -4,8 +4,8 @@ Entry point: ``fudster`` (registered via ``[project.scripts]``).
 
 Usage::
 
-    fudster nx graph-to-mdx <graph.json> <output.mdx> <timestamp>
-    fudster nx security-to-mdx --input <raw.json> --timestamp <ISO> \
+    fudster content graph-to-mdx <graph.json> <output.mdx> <timestamp>
+    fudster content security-to-mdx --input <raw.json> --timestamp <ISO> \
         [--mdx-out <path>] [--json-out <path>]
 """
 
@@ -16,13 +16,13 @@ import json
 import click
 
 from kbve.mdx import MdxWriter
-from kbve.nx.graph import (
+from kbve.content.graph import (
     GraphData,
     parse_graph,
     top_hubs,
 )
 from kbve.svg import DagEdge, DagNode
-from kbve.nx.security import (
+from kbve.content.security import (
     SEVERITY_ORDER,
     parse_all_ecosystems,
 )
@@ -489,18 +489,18 @@ def gdrive_pdf_to_md(
         click.echo(md)
 
 
-# ── nx sub-group ─────────────────────────────────────────────────────
+# ── content sub-group ─────────────────────────────────────────────────────
 
 
 @main.group()
-def nx() -> None:
-    """Nx workspace commands."""
+def content() -> None:
+    """Daily content commands."""
 
 
-# ── nx graph-to-mdx ─────────────────────────────────────────────────
+# ── content graph-to-mdx ─────────────────────────────────────────────────
 
 
-@nx.command("graph-to-mdx")
+@content.command("graph-to-mdx")
 @click.argument("graph_json", type=click.Path(exists=True))
 @click.argument("output_mdx", type=click.Path())
 @click.argument("timestamp")
@@ -509,7 +509,7 @@ def graph_to_mdx(
     output_mdx: str,
     timestamp: str,
 ) -> None:
-    """Generate a Starlight MDX page from an Nx graph JSON file."""
+    """Generate a Starlight MDX page from a project graph JSON file."""
     gd: GraphData = parse_graph(graph_json)
     hubs = top_hubs(gd.rows)
 
@@ -639,10 +639,10 @@ def graph_to_mdx(
     click.echo(f"Generated {output_mdx} — {len(gd.nodes)} projects, {len(gd.edges)} edges")
 
 
-# ── nx security-to-mdx ──────────────────────────────────────────────
+# ── content security-to-mdx ──────────────────────────────────────────────
 
 
-@nx.command("security-to-mdx")
+@content.command("security-to-mdx")
 @click.option(
     "--input", "input_path", required=True, type=click.Path(exists=True), help="Path to aggregated raw security JSON."
 )

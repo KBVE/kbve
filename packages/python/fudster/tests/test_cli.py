@@ -52,9 +52,9 @@ def test_cli_help():
     assert "Fudster CLI" in result.output
 
 
-def test_nx_help():
+def test_content_help():
     runner = CliRunner()
-    result = runner.invoke(main, ["nx", "--help"])
+    result = runner.invoke(main, ["content", "--help"])
     assert result.exit_code == 0
     assert "graph-to-mdx" in result.output
     assert "security-to-mdx" in result.output
@@ -72,7 +72,7 @@ def test_graph_to_mdx(tmp_path):
     result = runner.invoke(
         main,
         [
-            "nx",
+            "content",
             "graph-to-mdx",
             str(graph_file),
             str(output_file),
@@ -101,7 +101,7 @@ def test_graph_to_mdx_frontmatter(tmp_path):
     runner.invoke(
         main,
         [
-            "nx",
+            "content",
             "graph-to-mdx",
             str(graph_file),
             str(output_file),
@@ -123,7 +123,7 @@ def test_graph_to_mdx_diagram_included(tmp_path):
     runner.invoke(
         main,
         [
-            "nx",
+            "content",
             "graph-to-mdx",
             str(graph_file),
             str(output_file),
@@ -146,7 +146,7 @@ def test_graph_to_mdx_project_index(tmp_path):
     runner.invoke(
         main,
         [
-            "nx",
+            "content",
             "graph-to-mdx",
             str(graph_file),
             str(output_file),
@@ -163,7 +163,7 @@ def test_graph_to_mdx_missing_file():
     result = runner.invoke(
         main,
         [
-            "nx",
+            "content",
             "graph-to-mdx",
             "/nonexistent/graph.json",
             "/tmp/out.mdx",
@@ -185,7 +185,7 @@ def test_security_to_mdx_json_output(tmp_path):
     result = runner.invoke(
         main,
         [
-            "nx",
+            "content",
             "security-to-mdx",
             "--input",
             str(input_file),
@@ -214,7 +214,7 @@ def test_security_to_mdx_mdx_output(tmp_path):
     result = runner.invoke(
         main,
         [
-            "nx",
+            "content",
             "security-to-mdx",
             "--input",
             str(input_file),
@@ -244,7 +244,7 @@ def test_security_to_mdx_both_outputs(tmp_path):
     result = runner.invoke(
         main,
         [
-            "nx",
+            "content",
             "security-to-mdx",
             "--input",
             str(input_file),
@@ -269,7 +269,7 @@ def test_security_to_mdx_no_output_flags(tmp_path):
     result = runner.invoke(
         main,
         [
-            "nx",
+            "content",
             "security-to-mdx",
             "--input",
             str(input_file),
@@ -302,7 +302,7 @@ def test_security_to_mdx_crit_high_callout(tmp_path):
     runner.invoke(
         main,
         [
-            "nx",
+            "content",
             "security-to-mdx",
             "--input",
             str(input_file),
@@ -335,7 +335,7 @@ def test_security_to_mdx_all_clear(tmp_path):
     runner.invoke(
         main,
         [
-            "nx",
+            "content",
             "security-to-mdx",
             "--input",
             str(input_file),
@@ -370,7 +370,7 @@ def test_security_to_mdx_medium_only(tmp_path):
     runner.invoke(
         main,
         [
-            "nx",
+            "content",
             "security-to-mdx",
             "--input",
             str(input_file),
@@ -406,7 +406,7 @@ def test_security_to_mdx_long_title_truncation(tmp_path):
     runner.invoke(
         main,
         [
-            "nx",
+            "content",
             "security-to-mdx",
             "--input",
             str(input_file),
@@ -441,7 +441,7 @@ def test_security_to_mdx_codeql_tab(tmp_path):
     runner.invoke(
         main,
         [
-            "nx",
+            "content",
             "security-to-mdx",
             "--input",
             str(input_file),
@@ -477,7 +477,7 @@ def test_security_to_mdx_dependabot_tab(tmp_path):
     runner.invoke(
         main,
         [
-            "nx",
+            "content",
             "security-to-mdx",
             "--input",
             str(input_file),
@@ -513,7 +513,7 @@ def test_info():
     assert result.exit_code == 0
     assert "kbve modules" in result.output
     assert "kbve.server" in result.output
-    assert "kbve.nx.graph" in result.output
+    assert "kbve.content.graph" in result.output
     assert "kbve.mdx" in result.output
     assert "kbve.utils" in result.output
 
@@ -527,7 +527,7 @@ def test_info_json():
     assert len(data) > 0
     names = [m["name"] for m in data]
     assert "kbve.server" in names
-    assert "kbve.nx.graph" in names
+    assert "kbve.content.graph" in names
     assert all("available" in m for m in data)
     assert all("description" in m for m in data)
 
