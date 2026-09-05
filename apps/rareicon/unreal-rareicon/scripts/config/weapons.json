@@ -40,7 +40,7 @@
 			"left_grip_local": [26.0, 0.0, -1.0],
 			"left_hand_target_local": [26.0, -7.0, 5.7],
 			"attach_offset": {
-				"location": [-7.8, 3.41, 3.62],
+				"location": [-10.8, 8.41, 3.62],
 				"rotation": [0.0, 180.0, 0.0]
 			},
 			"support_hand_socket": { "rotation": [0.0, 0.0, 0.0] }

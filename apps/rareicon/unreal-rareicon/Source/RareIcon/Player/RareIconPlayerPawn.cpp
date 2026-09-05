@@ -207,6 +207,17 @@ namespace
 	// the trigger-hand grip, because that is the contact that must not move.
 	static float GWeaponPitch = 0.0f;
 	static float GWeaponRoll = 0.0f;
+
+	// The attach offset, dialable. Pitch and roll were reachable from the
+	// console and the three numbers beside them were not, so the one transform
+	// that decides where a weapon sits in the hand could only be tried by
+	// editing a config, rebuilding the grip assets and restarting -- which is
+	// why the second rifle shipped with it unverified. In the hand's own space,
+	// which is the frame the offset is written in: X slides the hand along the
+	// weapon, Y takes it outboard, Z lifts it.
+	static float GWeaponOffsetX = 0.0f;
+	static float GWeaponOffsetY = 0.0f;
+	static float GWeaponOffsetZ = 0.0f;
 	static FAutoConsoleVariableRef CVarWeaponPitch(
 		TEXT("rareicon.Weapon.Pitch"), GWeaponPitch,
 		TEXT("Extra weapon pitch about the trigger-hand grip, degrees."), ECVF_Default);
@@ -258,6 +269,15 @@ namespace
 		TEXT("rareicon.Weapon.GripShot"), GGripShotSeconds,
 		TEXT("Seconds to wait, then frame the left hand, screenshot it and quit. -1 off."),
 		ECVF_Default);
+	static FAutoConsoleVariableRef CVarWeaponOffsetX(
+		TEXT("rareicon.Weapon.OffsetX"), GWeaponOffsetX,
+		TEXT("Slide the weapon along its own length in the trigger hand, cm."), ECVF_Default);
+	static FAutoConsoleVariableRef CVarWeaponOffsetY(
+		TEXT("rareicon.Weapon.OffsetY"), GWeaponOffsetY,
+		TEXT("Move the weapon outboard in the trigger hand, cm."), ECVF_Default);
+	static FAutoConsoleVariableRef CVarWeaponOffsetZ(
+		TEXT("rareicon.Weapon.OffsetZ"), GWeaponOffsetZ,
+		TEXT("Lift the weapon in the trigger hand, cm."), ECVF_Default);
 	static FAutoConsoleVariableRef CVarWeaponDrawBore(
 		TEXT("rareicon.Weapon.DrawBore"), GWeaponDrawBore,
 		TEXT("Draw the bore and fore-end the grip solver is aiming at."), ECVF_Default);
@@ -601,8 +621,9 @@ void ARareIconPlayerPawn::Tick(float DeltaSeconds)
 		const FTransform Base = (WeaponGrip && !WeaponGrip->AttachOffset.Equals(FTransform::Identity))
 			? WeaponGrip->AttachOffset
 			: WeaponAttachOffset;
-		const FTransform Tuned = FTransform(FRotator(GWeaponPitch, 0.0f, GWeaponRoll), FVector::ZeroVector)
+		FTransform Tuned = FTransform(FRotator(GWeaponPitch, 0.0f, GWeaponRoll), FVector::ZeroVector)
 			* Base;
+		Tuned.AddToTranslation(FVector(GWeaponOffsetX, GWeaponOffsetY, GWeaponOffsetZ));
 
 		// The mesh follows the fit; the solver keeps being told the untouched
 		// tuned offset.

@@ -371,3 +371,32 @@ TArray<FString> UKBVEMoverEditorLibrary::DumpFingerTips(USkeletalMesh* Mesh, FNa
 	}
 	return Out;
 }
+
+TArray<FString> UKBVEMoverEditorLibrary::DumpBonePositions(USkeletalMesh* Mesh, const TArray<FName>& Bones)
+{
+	TArray<FString> Out;
+	if (!Mesh)
+	{
+		return Out;
+	}
+	const FReferenceSkeleton& Skeleton = Mesh->GetRefSkeleton();
+	const TArray<FTransform>& Pose = Skeleton.GetRefBonePose();
+
+	const TArray<FName>& Wanted = Bones.Num() > 0 ? Bones : Skeleton.GetRawRefBoneNames();
+	for (const FName& Bone : Wanted)
+	{
+		const int32 Index = Skeleton.FindBoneIndex(Bone);
+		if (Index == INDEX_NONE)
+		{
+			continue;
+		}
+		FTransform Accumulated = FTransform::Identity;
+		for (int32 Walk = Index; Walk != INDEX_NONE; Walk = Skeleton.GetParentIndex(Walk))
+		{
+			Accumulated = Accumulated * Pose[Walk];
+		}
+		const FVector At = Accumulated.GetLocation();
+		Out.Add(FString::Printf(TEXT("%s at (%.3f %.3f %.3f)"), *Bone.ToString(), At.X, At.Y, At.Z));
+	}
+	return Out;
+}

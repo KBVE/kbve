@@ -93,4 +93,15 @@ public:
 	 */
 	UFUNCTION(BlueprintCallable, Category = "KBVE|Editor")
 	static TArray<FString> DumpFingerTips(USkeletalMesh* Mesh, FName HandBone);
+
+	/**
+	 * Where named bones sit in the mesh's own space, at rest.
+	 *
+	 * The offsets above are relative to a parent, which is the wrong frame for
+	 * asking a question like "where is the trigger": a rifle's trigger bone
+	 * hangs a couple of millimetres off its parent and the number that matters
+	 * is where that lands on the weapon.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Editor")
+	static TArray<FString> DumpBonePositions(USkeletalMesh* Mesh, const TArray<FName>& Bones);
 };
