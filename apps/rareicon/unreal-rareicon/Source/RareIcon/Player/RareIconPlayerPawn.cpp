@@ -340,6 +340,12 @@ void ARareIconPlayerPawn::Tick(float DeltaSeconds)
 		CameraBoom->TargetArmLength = GGripShotDist;
 		CameraBoom->bDoCollisionTest = false;
 
+		// The boom follows the controller by default, which quietly threw away
+		// every rotation set above: two bench runs at ninety degrees apart came
+		// out pixel for pixel identical, so the one control that frames the
+		// weapon did nothing and the shot was whatever the character faced.
+		CameraBoom->bUsePawnControlRotation = false;
+
 		GripShotElapsed += DeltaSeconds;
 		if (GripShotElapsed >= GGripShotSeconds && !bGripShotTaken)
 		{
@@ -381,23 +387,37 @@ void ARareIconPlayerPawn::Tick(float DeltaSeconds)
 				FVector::Dist(Shoulder.GetLocation(), Elbow.GetLocation())
 				+ FVector::Dist(Elbow.GetLocation(), HandL.GetLocation());
 
+			// Against the point the arm was sent to, not the point on the wood.
+			//
+			// They are deliberately different -- a wrist stands off a rifle by
+			// the length of the hand in front of it -- so scoring the wrist
+			// against the wood reported a fixed eight-centimetre miss on a grip
+			// that had landed exactly, and no amount of solving would ever have
+			// cleared it. The standoff is reported beside it as its own figure,
+			// because a hand that is not standing off is a different fault.
 			FVector SocketAt = FVector::ZeroVector;
+			FVector TargetAt = FVector::ZeroVector;
 			float NeedReach = 0.0f;
 			const UKBVEFootIKAnimInstance* Solved =
 				Cast<UKBVEFootIKAnimInstance>(Mesh->GetAnimInstance());
 			if (Solved && Solved->bResolvedSupportSocketValid && WeaponMesh)
 			{
-				const FTransform SocketWorld =
-					Solved->ResolvedSupportSocket * WeaponMesh->GetComponentTransform();
-				SocketAt = Mesh->GetComponentTransform().InverseTransformPosition(SocketWorld.GetLocation());
-				NeedReach = FVector::Dist(Shoulder.GetLocation(), SocketAt);
+				const FTransform Weapon = WeaponMesh->GetComponentTransform();
+				const FTransform ToLocal = Mesh->GetComponentTransform();
+				SocketAt = ToLocal.InverseTransformPosition(
+					(Solved->ResolvedSupportSocket * Weapon).GetLocation());
+				TargetAt = ToLocal.InverseTransformPosition(
+					Weapon.TransformPosition(Solved->ResolvedSupportTarget));
+				NeedReach = FVector::Dist(Shoulder.GetLocation(), TargetAt);
 			}
 
 			UE_LOG(LogTemp, Display,
-				TEXT("grip reach: shoulder(%.1f %.1f %.1f) socket(%.1f %.1f %.1f) need=%.1f arm=%.1f "
-					 "slack=%+.1f miss=%.1f"),
+				TEXT("grip reach: shoulder(%.1f %.1f %.1f) socket(%.1f %.1f %.1f) "
+					 "target(%.1f %.1f %.1f) need=%.1f arm=%.1f slack=%+.1f miss=%.1f standoff=%.1f"),
 				Shoulder.GetLocation().X, Shoulder.GetLocation().Y, Shoulder.GetLocation().Z,
-				SocketAt.X, SocketAt.Y, SocketAt.Z, NeedReach, ArmLength, ArmLength - NeedReach,
+				SocketAt.X, SocketAt.Y, SocketAt.Z, TargetAt.X, TargetAt.Y, TargetAt.Z,
+				NeedReach, ArmLength, ArmLength - NeedReach,
+				FVector::Dist(TargetAt, HandL.GetLocation()),
 				FVector::Dist(SocketAt, HandL.GetLocation()));
 
 			UE_LOG(LogTemp, Display,
@@ -665,7 +685,20 @@ void ARareIconPlayerPawn::Tick(float DeltaSeconds)
 					DrawDebugString(GetWorld(), Socket.GetLocation() + FVector(0.0f, 0.0f, 3.0f),
 						TEXT("socket"), nullptr, FColor::Red, 0.0f, true, GGripBonesText);
 
-					// Wrist to socket, the length of the miss.
+					// Where the wrist was sent, drawn apart from where the palm
+					// is meant to land. Orange to the red of the socket, because
+					// the gap between the two is the hand's own length and
+					// reading it as a miss is exactly the mistake that cost an
+					// evening: the line that matters runs from the wrist to the
+					// orange point, and it should be short.
+					const FVector TargetWorld =
+						Weapon.TransformPosition(AnimInstance->ResolvedSupportTarget);
+					DrawDebugSphere(GetWorld(), TargetWorld, 1.2f, 12,
+						FColor(255, 150, 0), false, -1.0f, SDPG_Foreground, 0.3f);
+					DrawDebugLine(GetWorld(), Socket.GetLocation(), TargetWorld,
+						FColor(120, 60, 0), false, -1.0f, SDPG_Foreground, 0.2f);
+
+					// Wrist to target, the length of the miss.
 					//
 					// The one measurement a still frame will not give up: an arm
 					// solved short and an arm solved to the wrong place look the
@@ -673,7 +706,7 @@ void ARareIconPlayerPawn::Tick(float DeltaSeconds)
 					if (Mesh)
 					{
 						DrawDebugLine(GetWorld(), Mesh->GetSocketLocation(TEXT("hand_l")),
-							Socket.GetLocation(), FColor::Red, false, -1.0f, SDPG_Foreground, 0.35f);
+							TargetWorld, FColor::Red, false, -1.0f, SDPG_Foreground, 0.35f);
 					}
 				}
 				if (GWeaponDrawBore > 0)

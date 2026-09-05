@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "KBVEWeaponGrip.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
 #include "KBVEMoverEditorLibrary.generated.h"
 
@@ -32,4 +33,40 @@ public:
 	UFUNCTION(BlueprintCallable, Category = "KBVE|Editor")
 	static UPhysicsAsset* CreatePhysicsAssetForMesh(USkeletalMesh* Mesh, const FString& PackagePath,
 		const FString& AssetName);
+
+	/**
+	 * Slice a weapon along its own length and report the underside of each slice.
+	 *
+	 * The one thing that made a grip per-weapon work was a person measuring the
+	 * fore-end, and a person is exactly what a second weapon does not get: the
+	 * SS2's numbers were an estimate, admitted as one, and the solver believed
+	 * them. The mesh already states its own shape, so it is asked.
+	 *
+	 * The underside rather than the bounds. A slice through a rifle contains the
+	 * scope, the sling swivel and the magazine as readily as the handguard, and
+	 * a bounding box round all of it describes nothing a hand can hold. Sorting
+	 * the slice by height and taking the lowest connected run of it gives the
+	 * part a support hand actually arrives at, and drops everything mounted
+	 * above the barrel without needing to know what any of it is.
+	 *
+	 * Vertices off the imported model, not the render buffers: this runs in the
+	 * import commandlet where the source model is loaded anyway, and the render
+	 * data would have to be built to be read.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Editor")
+	static TArray<FKBVEGripSlab> MeasureWeaponProfile(USkeletalMesh* Mesh, float SlabWidth = 1.0f,
+		float ClusterGap = 1.5f);
+
+	/**
+	 * Write every vertex of a weapon out as JSON, sliced by station.
+	 *
+	 * The measuring above is a rule applied to a point cloud, and a rule applied
+	 * to a point cloud that nobody has looked at is a guess with a compile step.
+	 * The first one produced a Mosin fore-end a centimetre tall; it was wrong in
+	 * a way no amount of reasoning about it would have settled, because the
+	 * question was what the vertices actually do between the wood and the
+	 * barrel. This answers that, once, outside the engine.
+	 */
+	UFUNCTION(BlueprintCallable, Category = "KBVE|Editor")
+	static bool DumpWeaponSlices(USkeletalMesh* Mesh, const FString& Path, float SlabWidth = 1.0f);
 };
