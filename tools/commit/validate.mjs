@@ -80,7 +80,23 @@ export function validate(message, { types, scopes }) {
 		// says what, and both are in this repository's history.
 		const unknown = parts.filter((s) => !scopes.includes(s) && !types.includes(s));
 		if (unknown.length) {
-			problems.push(`unknown scope${unknown.length > 1 ? 's' : ''}: ${unknown.join(', ')}`);
+			// Say the answer rather than where to go and look for it. The scope
+			// list mixes conventions -- `KBVEWorld` beside `kbve-py` beside
+			// `astro-kbve` -- so getting the case or a separator wrong is the
+			// likely mistake, and it is one the list itself can resolve. The
+			// title is composed in a browser where no hook runs, so this message
+			// in a failed check is the only place anyone finds out.
+			const near = (s) => {
+				const fold = (k) => k.toLowerCase().replace(/[-_]/g, '');
+				return scopes.find((k) => fold(k) === fold(s));
+			};
+			const named = unknown
+				.map((s) => {
+					const guess = near(s);
+					return guess ? `${s} (did you mean ${guess}?)` : s;
+				})
+				.join(', ');
+			problems.push(`unknown scope${unknown.length > 1 ? 's' : ''}: ${named}`);
 			problems.push('use a moon project id (moon query projects), or one from tools/commit/scopes.yml');
 		}
 	}
