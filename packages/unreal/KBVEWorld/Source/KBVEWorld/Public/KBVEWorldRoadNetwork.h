@@ -116,6 +116,23 @@ public:
 	/** The buildings this chunk owns, as Mass entities. */
 	const TArray<FMassEntityHandle>& GetBuildings() const { return Buildings; }
 
+	/**
+	 * Where the last build's time went, split by what spent it.
+	 *
+	 * One number for a chunk says only that it was slow. The reason to split it
+	 * is that the three things a chunk builds have completely different fixes --
+	 * routing is a Viterbi pass, the fences are instanced, the masonry is
+	 * triangles -- and optimising the wrong one is the usual way to spend a day.
+	 */
+	struct FTimings
+	{
+		float RouteMs = 0.0f;
+		float FenceMs = 0.0f;
+		float MasonryMs = 0.0f;
+	};
+
+	const FTimings& GetTimings() const { return Timings; }
+
 private:
 	/** One entity per run, spawned once the seed has decided where the runs are. */
 	void SpawnFenceRuns(const FBuild& In);
@@ -193,6 +210,8 @@ private:
 
 	TArray<FMassEntityHandle> Buildings;
 	TArray<FKBVEWorldBuildingPlan> Plans;
+
+	FTimings Timings;
 
 	FIntPoint Coord = FIntPoint::ZeroValue;
 	bool bActive = false;
@@ -370,4 +389,7 @@ private:
 	TArray<FIntPoint> Pending;
 	FIntPoint LastCentre = FIntPoint(MAX_int32, MAX_int32);
 	float LastBuildMs = 0.0f;
+
+	/** Summed across the chunks of one window fill, so the log names the cost. */
+	AKBVEWorldRoadChunk::FTimings FillTimings;
 };

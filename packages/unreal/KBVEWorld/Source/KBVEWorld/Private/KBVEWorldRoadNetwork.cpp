@@ -162,6 +162,9 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 
 	TArray<FKBVEWorldRoadSpan> Spans;
 
+	Timings = FTimings();
+	const double RouteStart = FPlatformTime::Seconds();
+
 	ReleaseFenceRuns();
 	EdgePaths.SetNum(2);
 	Runs.Reset();
@@ -220,16 +223,22 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 		}
 	}
 
+	Timings.RouteMs = static_cast<float>((FPlatformTime::Seconds() - RouteStart) * 1000.0);
+
 	SpawnFenceRuns(In);
 
+	const double FenceStart = FPlatformTime::Seconds();
+	FKBVEWorldFenceMesh Fences;
+	BuildFenceParts(In, Fences);
+	Timings.FenceMs = static_cast<float>((FPlatformTime::Seconds() - FenceStart) * 1000.0);
+
+	const double MasonryStart = FPlatformTime::Seconds();
 	SitePlots(In);
 	SpawnBuildings(In);
 
-	FKBVEWorldFenceMesh Fences;
-	BuildFenceParts(In, Fences);
-
 	FKBVEWorldBuildingMesh Structures;
 	BuildStructures(In, Structures);
+	Timings.MasonryMs = static_cast<float>((FPlatformTime::Seconds() - MasonryStart) * 1000.0);
 
 	// World space, because the pool holds one component for the whole world and
 	// the rebase below is a thing only this chunk's own sections want.
@@ -831,6 +840,7 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 	if (Centre != LastCentre)
 	{
 		LastCentre = Centre;
+		FillTimings = AKBVEWorldRoadChunk::FTimings();
 		ReleaseOutsideRadius(Centre);
 		QueueInsideRadius(Centre);
 	}
@@ -901,6 +911,11 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 		Chunk->Build(In, ChunkParts);
 		LastBuildMs = static_cast<float>((FPlatformTime::Seconds() - Start) * 1000.0);
 
+		const AKBVEWorldRoadChunk::FTimings& Spent = Chunk->GetTimings();
+		FillTimings.RouteMs += Spent.RouteMs;
+		FillTimings.FenceMs += Spent.FenceMs;
+		FillTimings.MasonryMs += Spent.MasonryMs;
+
 		if (bInstanced)
 		{
 			Parts->Submit(StoneBucket, Coord, MoveTemp(ChunkParts.Stone));
@@ -955,7 +970,9 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 	if (Built > 0 && Pending.Num() == 0)
 	{
 		UE_LOG(LogKBVEWorldStream, Display,
-			TEXT("road window filled at %d,%d: %d live (%d pooled), last build %.2f ms"),
-			Centre.X, Centre.Y, Live.Num(), Pool.Num(), LastBuildMs);
+			TEXT("road window filled at %d,%d: %d live (%d pooled), last build %.2f ms; "
+				 "routing %.1f ms, fences %.1f ms, masonry %.1f ms"),
+			Centre.X, Centre.Y, Live.Num(), Pool.Num(), LastBuildMs, FillTimings.RouteMs,
+			FillTimings.FenceMs, FillTimings.MasonryMs);
 	}
 }
