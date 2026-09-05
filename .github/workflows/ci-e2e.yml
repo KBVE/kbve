@@ -50,7 +50,7 @@ jobs:
               run: |
                   # Get all projects with an e2e target, excluding:
                   #   q           — desktop-only app
-                  #   bevy_*      — need Rust + wasm32 toolchain (not in docker-test-app.yml)
+                  #   bevy_*      — need Rust + wasm32 toolchain (not in utils-docker-test-app.yml)
                   #   kilobase    — needs pgrx/PostgreSQL build environment
                   #   astro-e2e   — shared Astro harness (not a standalone test project)
                   PROJECTS=$(moon query projects --tasks e2e \
@@ -120,7 +120,7 @@ jobs:
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.discover.outputs.matrix) }}
-        uses: KBVE/kbve/.github/workflows/docker-test-app.yml@dev
+        uses: KBVE/kbve/.github/workflows/utils-docker-test-app.yml@dev
         with:
             project: ${{ matrix.name }}
             runner: ${{ matrix.runner }}

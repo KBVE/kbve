@@ -296,7 +296,7 @@ COPY --from=builder --chown=10001:10001 /app/target/release/axum-kbve /app/axum-
 
 # Ship Cargo.toml alongside the binary so `/health` reports the version
 # that was current when *this image* was built. CI's pre-build sync step
-# (utils-publish-docker-image.yml + docker-test-app.yml) writes the
+# (utils-publish-docker-image.yml + utils-docker-test-app.yml) writes the
 # release version into apps/kbve/axum-kbve/Cargo.toml from api.mdx before
 # the image build, so the file copied here is always the right version
 # for this binary. Reading the file at runtime instead of using

@@ -4,7 +4,7 @@
 # Build context expects:
 #   server/   — pre-built Linux server binaries from the engine build
 #
-# Usage (called by ci-unreal-build.yml mode engine):
+# Usage (called by utils-unreal-build.yml mode engine):
 #   docker build -f Dockerfile -t ghcr.io/kbve/chuckrpg-server:0.1.0 .
 
 FROM ubuntu:24.04

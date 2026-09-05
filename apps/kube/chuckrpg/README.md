@@ -105,7 +105,7 @@ kubectl apply -f apps/kube/chuckrpg/manifest/chuck-symbol-archive-sealedsecret.y
 
 ### `SYMBOL_ARCHIVE_PASSWORD`
 
-`ci-unreal-build.yml` builds the Unreal client with debug symbols when the project mdx sets
+`utils-unreal-build.yml` builds the Unreal client with debug symbols when the project mdx sets
 `engine.debug_symbols: "1"`. The symbols are pulled out of the deployable build and uploaded as
 a **separate, AES-256 encrypted** artifact — this repo is public, so a plaintext PDB/dSYM
 artifact would be world-readable. `SYMBOL_ARCHIVE_PASSWORD` is that encryption key.

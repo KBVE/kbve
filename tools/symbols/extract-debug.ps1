@@ -3,7 +3,7 @@
     Restore an encrypted debug-symbol archive into a game build (Windows).
 
 .DESCRIPTION
-    ci-unreal-build.yml strips debug files (PDB, Binaries\*.map, Manifest_*.txt on
+    utils-unreal-build.yml strips debug files (PDB, Binaries\*.map, Manifest_*.txt on
     Win64; .dSYM bundles + Manifest_*.txt on Mac) out of the shipped payload and
     uploads them as a SEPARATE, PASSWORD-ENCRYPTED artifact - this repo is public,
     so a plaintext symbol artifact would be world-readable.
