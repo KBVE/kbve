@@ -293,6 +293,8 @@ void AKBVEWorldStreamer::AccountBuild(AKBVEWorldHeightfieldActor* Patch, float E
 	BuildMsByLOD[Slot] += LastBuildMs;
 	GenerateMsByLOD[Slot] += Patch->GetLastGenerateMs();
 	SectionMsByLOD[Slot] += Patch->GetLastSectionMs();
+	FillMsByLOD[Slot] += Patch->GetLastFillMs();
+	RebuildMsByLOD[Slot] += Patch->GetLastRebuildMs();
 	++BuildsByLOD[Slot];
 }
 
@@ -428,6 +430,8 @@ void AKBVEWorldStreamer::Tick(float DeltaSeconds)
 		FMemory::Memzero(BuildMsByLOD);
 		FMemory::Memzero(GenerateMsByLOD);
 		FMemory::Memzero(SectionMsByLOD);
+		FMemory::Memzero(FillMsByLOD);
+		FMemory::Memzero(RebuildMsByLOD);
 		FMemory::Memzero(BuildsByLOD);
 
 		// Display, not Verbose: a centre change is rare by design, so if these
@@ -496,9 +500,18 @@ void AKBVEWorldStreamer::Tick(float DeltaSeconds)
 		{
 			if (BuildsByLOD[I] > 0)
 			{
-				ByLOD += FString::Printf(TEXT(" stride%d=%dx%.1fms(gen %.1f, section %.1f)"),
-					1 << I, BuildsByLOD[I], BuildMsByLOD[I] / BuildsByLOD[I],
-					GenerateMsByLOD[I] / BuildsByLOD[I], SectionMsByLOD[I] / BuildsByLOD[I]);
+				// `spawn` is what is left once the patch's own work is subtracted:
+				// registering components and creating their render and physics
+				// state. It was the largest part of an innermost patch and had
+				// nowhere to appear.
+				const float Builds = static_cast<float>(BuildsByLOD[I]);
+				const float Total = BuildMsByLOD[I] / Builds;
+				const float Rebuild = RebuildMsByLOD[I] / Builds;
+				ByLOD += FString::Printf(
+					TEXT(" stride%d=%dx%.1fms(fill %.1f, gen %.1f, section %.1f, spawn %.1f)"),
+					1 << I, BuildsByLOD[I], Total,
+					FillMsByLOD[I] / Builds, GenerateMsByLOD[I] / Builds,
+					SectionMsByLOD[I] / Builds, FMath::Max(Total - Rebuild, 0.0f));
 			}
 		}
 

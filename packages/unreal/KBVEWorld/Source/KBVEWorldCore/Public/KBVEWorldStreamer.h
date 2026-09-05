@@ -282,6 +282,8 @@ private:
 	float BuildMsByLOD[MaxTrackedLOD] = {};
 	float GenerateMsByLOD[MaxTrackedLOD] = {};
 	float SectionMsByLOD[MaxTrackedLOD] = {};
+	float FillMsByLOD[MaxTrackedLOD] = {};
+	float RebuildMsByLOD[MaxTrackedLOD] = {};
 	int32 BuildsByLOD[MaxTrackedLOD] = {};
 	float WorstBuildMs = 0.0f;
 	double FillStartSeconds = 0.0;
