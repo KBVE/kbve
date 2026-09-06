@@ -217,6 +217,13 @@ def build_surface_material(spec, textures):
     MEL.connect_material_property(norm, "RGB", unreal.MaterialProperty.MP_NORMAL)
     MEL.connect_material_property(rh, "R", unreal.MaterialProperty.MP_ROUGHNESS)
 
+    # Declared here rather than left to the editor. A material handed to an
+    # instanced component without this compiles the permutation on the spot,
+    # warns, and dirties the package -- and a cook, which has no editor to do
+    # that, drops the material for the default one instead.
+    if spec.get("instanced", False):
+        mat.set_editor_property("used_with_instanced_static_meshes", True)
+
     MEL.recompile_material(mat)
     EAL.save_asset(path)
     unreal.log(f"built {path}")
