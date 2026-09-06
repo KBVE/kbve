@@ -31,6 +31,20 @@
 			}
 		},
 		{
+			"class": "KBVEWorldGrassField",
+			"location": [0, 0, 0],
+			"properties": {
+				"tile_size": 800.0,
+				"tile_radius": 8,
+				"instances_per_tile": 192,
+				"variant_count": 4,
+				"clump_height": 130.0,
+				"cull_start": 9000,
+				"cull_end": 12000,
+				"card_material": "/Game/Textures/Foliage/M_RareIcon_GrassCard"
+			}
+		},
+		{
 			"class": "PlayerStart",
 			"location": [0, 0, 1500]
 		}
