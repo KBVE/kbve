@@ -232,12 +232,15 @@ def build_glass_material(spec):
     mat.set_editor_property("blend_mode", unreal.BlendMode.BLEND_TRANSLUCENT)
     mat.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_THIN_TRANSLUCENT)
 
-    # Forward shading, because the deferred path has nowhere to put a second
-    # specular response and glass without its reflection is a coloured hole.
-    # TLM_SURFACE is what the editor labels "Surface ForwardShading"; the label
-    # is not the name the enum is reflected under.
+    # Surface ForwardShading, which Thin Translucent does not merely prefer but
+    # requires: the engine refuses to compile the pair otherwise and falls the
+    # material back to the opaque default, so the glass comes out a solid wall.
+    # The label in the editor is "Surface ForwardShading"; the enum it stands for
+    # is TLM_SURFACE_PER_PIXEL_LIGHTING. TLM_SURFACE is a different mode, the one
+    # labelled "Surface TranslucencyVolume".
     mat.set_editor_property(
-        "translucency_lighting_mode", unreal.TranslucencyLightingMode.TLM_SURFACE
+        "translucency_lighting_mode",
+        unreal.TranslucencyLightingMode.TLM_SURFACE_PER_PIXEL_LIGHTING,
     )
 
     def colour(values, y):

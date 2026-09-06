@@ -138,4 +138,48 @@ bool FKBVEWorldWindowTiersTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FKBVEWorldWindowReadsAsJoineryTest,
+	"KBVE.World.Window.TheFrameHasFaceAndDepth",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FKBVEWorldWindowReadsAsJoineryTest::RunTest(const FString& Parameters)
+{
+	const FKBVEWorldWallParams Wall;
+	const FKBVEWorldWindowParams Params;
+	const FKBVEWorldWallOpening Open = Window(300.0f, 104.0f);
+
+	FKBVEWorldWindowMesh Out;
+	FKBVEWorldWindow::Build(Wall, FlatFrame(), { Open }, EKBVEWorldWallDetail::Full,
+		Params, Out);
+
+	const FKBVEWorldWallFrame F = FlatFrame();
+
+	// Face, as a share of the hole it is set in. Joinery correct at arm's length
+	// is a hairline at the range a village is actually looked at from, so the
+	// number that matters is the proportion rather than the centimetres.
+	const float Stile = FMath::Min(Params.FrameWidth, 0.4f * Open.Width);
+	TestTrue(TEXT("a stile is a visible share of the opening"),
+		Stile >= 0.12f * Open.Width);
+
+	// Depth. Glass flush with the frame's outer face gives the frame no shadow
+	// under it, and a frame with no shadow is paint on the wall however wide it
+	// is. Measured along the frame's own normal, since cross(Right, Up) points
+	// away from a world axis for most walls.
+	float FrameFace = -FLT_MAX;
+	for (const FVector& V : Out.Joinery.Vertices)
+	{
+		FrameFace = FMath::Max(FrameFace, static_cast<float>(FVector::DotProduct(V, F.Norm)));
+	}
+
+	float GlassFace = -FLT_MAX;
+	for (const FVector& V : Out.Glazing.Vertices)
+	{
+		GlassFace = FMath::Max(GlassFace, static_cast<float>(FVector::DotProduct(V, F.Norm)));
+	}
+
+	TestTrue(TEXT("the glass sits back behind the frame"), FrameFace - GlassFace >= 5.0f);
+	return true;
+}
+
 #endif
