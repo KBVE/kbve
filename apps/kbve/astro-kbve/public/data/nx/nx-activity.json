@@ -1,180 +1,180 @@
 {
-  "generated_at": "2026-09-05T05:28:00Z",
+  "generated_at": "2026-09-06T05:41:34Z",
   "window": {
     "days": 7,
-    "since": "2026-08-29T05:28:00Z"
+    "since": "2026-08-30T05:41:34Z"
   },
   "commits": {
-    "total": 199,
+    "total": 220,
     "authors": 3,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 120
+        "commits": 156
       },
       {
         "author": "github-actions[bot]",
-        "commits": 69
+        "commits": 60
       },
       {
         "author": "Fudster",
-        "commits": 10
+        "commits": 4
       }
     ],
     "recent": [
       {
-        "sha": "647a059",
+        "sha": "b32a30b",
         "author": "h0lybyte",
-        "message": "Merge pull request #16784 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/647a059f44da5b60448624e9b38ae2d4b6efd038",
-        "date": "2026-09-04T22:47:59Z"
+        "message": "Merge pull request #16829 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/b32a30b82311e764763a0e185a9846e530c17c9d",
+        "date": "2026-09-06T00:30:58Z"
       },
       {
-        "sha": "4069b3e",
+        "sha": "d9dd2ff",
         "author": "h0lybyte",
-        "message": "chore(deps): node 24.20.0 + pending dependabot sweep (#16786)",
-        "url": "https://github.com/KBVE/kbve/commit/4069b3e427b4a78dc03e1b854dcbe4b68e1c81ce",
-        "date": "2026-09-04T22:28:39Z"
+        "message": "feat(commit): add the commit-msg hook the CI comment already assumed (#16838)",
+        "url": "https://github.com/KBVE/kbve/commit/d9dd2ffdada2754ce021150624dff5d5bd1e5220",
+        "date": "2026-09-05T23:25:43Z"
       },
       {
-        "sha": "c6c5f40",
+        "sha": "83cba35",
         "author": "h0lybyte",
-        "message": "ci: close tracker issues whose job no longer exists (#16785)",
-        "url": "https://github.com/KBVE/kbve/commit/c6c5f409a2a2b0410850ca59248cc0ab976e5969",
-        "date": "2026-09-04T22:28:27Z"
+        "message": "feat(KBVEWorld): give the houses a floor, a doorstep and a roof that clears the wall (#16835)",
+        "url": "https://github.com/KBVE/kbve/commit/83cba3518de3884ab59c8b5ef557f4608ce6b733",
+        "date": "2026-09-05T23:05:51Z"
       },
       {
-        "sha": "0d8966d",
+        "sha": "cd0da3f",
         "author": "h0lybyte",
-        "message": "build(deps): pin steam-deploy to v3.2.1 tag (#16783)",
-        "url": "https://github.com/KBVE/kbve/commit/0d8966d341612ab95bc3a78bdee54a7d5ace6405",
-        "date": "2026-09-04T21:10:13Z"
+        "message": "fix(release): publish docker images again, and repin what they feed (#16834)",
+        "url": "https://github.com/KBVE/kbve/commit/cd0da3f0c437ff7af8370964be00a318661dcba8",
+        "date": "2026-09-05T23:05:36Z"
       },
       {
-        "sha": "4196c24",
+        "sha": "e1e5f8d",
         "author": "h0lybyte",
-        "message": "Merge pull request #16758 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/4196c2481e16ca203c3c62f85e8e9e1734b18f6e",
-        "date": "2026-09-04T20:39:04Z"
+        "message": "fix(world): stand fence posts up, and arch a run over the ground (#16832)",
+        "url": "https://github.com/KBVE/kbve/commit/e1e5f8dc057db1d1ccc83995349fe379d293b8d1",
+        "date": "2026-09-05T22:39:05Z"
       },
       {
-        "sha": "75283ce",
+        "sha": "0fd6351",
         "author": "h0lybyte",
-        "message": "chore(deps): bump async-trait to 0.1.92 (#16781)",
-        "url": "https://github.com/KBVE/kbve/commit/75283ce541d0ef2f8f1ea069866ca4cbeef13447",
-        "date": "2026-09-04T20:38:52Z"
+        "message": "feat(KBVEWorld): roofs, better siting, and a planned start (#16831)",
+        "url": "https://github.com/KBVE/kbve/commit/0fd6351a84a70731ad0b405e846c1aa9ce558729",
+        "date": "2026-09-05T20:05:57Z"
       },
       {
-        "sha": "1547ef7",
+        "sha": "d5d1ccf",
         "author": "h0lybyte",
-        "message": "fix(release): settle stale release failure issues (#16782)",
-        "url": "https://github.com/KBVE/kbve/commit/1547ef76907398d7782c9b9c135c3444907ca601",
-        "date": "2026-09-04T20:38:42Z"
+        "message": "perf(world): fill a patch's heightfield across the worker threads (#16830)",
+        "url": "https://github.com/KBVE/kbve/commit/d5d1ccf610b0ef7acd2174ef3191b41545be2dfa",
+        "date": "2026-09-05T18:57:34Z"
       },
       {
-        "sha": "db4f2bd",
-        "author": "github-actions[bot]",
-        "message": "refactor(daily-content): split render.py by page and lift the route write block (#16780)",
-        "url": "https://github.com/KBVE/kbve/commit/db4f2bd9e3d42e5c0f8b3fcae5bcdb125d8f4e8c",
-        "date": "2026-09-04T20:14:47Z"
-      },
-      {
-        "sha": "c9fba78",
-        "author": "github-actions[bot]",
-        "message": "feat(graph): type the graph by moon layer and put the moon version on the dashboard (#16779)",
-        "url": "https://github.com/KBVE/kbve/commit/c9fba78de2abf4989feb5d90c50ecdd9ee8c7292",
-        "date": "2026-09-04T18:57:02Z"
-      },
-      {
-        "sha": "c4e8757",
+        "sha": "6d4b084",
         "author": "h0lybyte",
-        "message": "feat(release): report what has shipped and what is waiting (#16773)",
-        "url": "https://github.com/KBVE/kbve/commit/c4e8757c0c16144c5ea6e3e1b3de3fb55e63915a",
-        "date": "2026-09-04T18:48:14Z"
+        "message": "pref(world): adjustments to the umap.",
+        "url": "https://github.com/KBVE/kbve/commit/6d4b084f4052ef18ffa24dd0f7910e1aef8a7add",
+        "date": "2026-09-05T18:24:09Z"
       },
       {
-        "sha": "a4ff31b",
-        "author": "github-actions[bot]",
-        "message": "Atomic: daily moon (#16777)",
-        "url": "https://github.com/KBVE/kbve/commit/a4ff31b4fa4694d6c99b5bc4091673ecda96dacb",
-        "date": "2026-09-04T18:21:06Z"
-      },
-      {
-        "sha": "e86e9e8",
+        "sha": "30a9bae",
         "author": "h0lybyte",
-        "message": "fix(release): give the notes job the moon it depends on (#16772)",
-        "url": "https://github.com/KBVE/kbve/commit/e86e9e857b3fa3cc4d9e0f64c2b3632215810b05",
-        "date": "2026-09-04T18:19:55Z"
+        "message": "fix(codegen): sync npcdb enum prefixes with the generator (#16828)",
+        "url": "https://github.com/KBVE/kbve/commit/30a9bae45d0adfddbc5559ee0ed7bd4ce0364d87",
+        "date": "2026-09-05T18:15:29Z"
+      },
+      {
+        "sha": "c01c155",
+        "author": "h0lybyte",
+        "message": "fix(docker): make the chisel base images releasable again (#16827)",
+        "url": "https://github.com/KBVE/kbve/commit/c01c15530bf8af38cb16d62aa0df742e08d0657e",
+        "date": "2026-09-05T18:08:43Z"
+      },
+      {
+        "sha": "06a771e",
+        "author": "h0lybyte",
+        "message": "Merge pull request #16814 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/06a771e20b4e5ee1956512e93aefd93bc655afcf",
+        "date": "2026-09-05T17:48:01Z"
+      },
+      {
+        "sha": "49a3681",
+        "author": "h0lybyte",
+        "message": "feat(kbveworld): raise brick villages along the roads (#16826)",
+        "url": "https://github.com/KBVE/kbve/commit/49a36810fae23d56fc132d921750777c2d924b79",
+        "date": "2026-09-05T17:46:14Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 177,
+    "merged": 173,
     "recent": [
       {
-        "number": 16797,
-        "title": "fix(ci): scope codeql rust away from no-sysroot crates",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16797"
+        "number": 16856,
+        "title": "chore(content): daily ci-health scaffold",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16856"
       },
       {
-        "number": 16796,
-        "title": "feat(rareicon): measure the fore-end off the mesh and wrap the fingers",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16796"
+        "number": 16855,
+        "title": "chore(content): daily journal scaffold",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16855"
       },
       {
-        "number": 16794,
-        "title": "refactor(discordsh): fold the poc mock stack into web/e2e",
+        "number": 16848,
+        "title": "feat(KBVEPerf): drive the editor from the readout, and count what it draws",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16794"
+        "url": "https://github.com/KBVE/kbve/pull/16848"
       },
       {
-        "number": 16795,
-        "title": "chore(content): backfill the 2026 journal blocks",
+        "number": 16846,
+        "title": "fix(ci): stop the Forgejo mirror uploading LFS blobs it cannot fetch",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16795"
+        "url": "https://github.com/KBVE/kbve/pull/16846"
       },
       {
-        "number": 16793,
-        "title": "feat(rareicon): derive the support-hand wrist from the weapon",
+        "number": 16847,
+        "title": "fix(release): let post-publish actually run, and cut 24.04.13",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16793"
+        "url": "https://github.com/KBVE/kbve/pull/16847"
       },
       {
-        "number": 16792,
-        "title": "refactor(discordsh): rename project ids to discordsh-web/api",
+        "number": 16842,
+        "title": "feat(KBVETinyBVH): raycast the procedural world on TinyBVH 1.8.0",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16792"
+        "url": "https://github.com/KBVE/kbve/pull/16842"
       },
       {
-        "number": 16791,
-        "title": "refactor(discordsh): move to web/api/bot product layout",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16791"
+        "number": 16829,
+        "title": "Release: 3 features, 4 fixes, 1 perf \u2192 Main",
+        "user": "github-actions[bot]",
+        "url": "https://github.com/KBVE/kbve/pull/16829"
       },
       {
-        "number": 16790,
-        "title": "fix(graphify): keep chunk slugs checkout-safe on Windows",
+        "number": 16838,
+        "title": "feat(commit): add the commit-msg hook the CI comment already assumed",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16790"
+        "url": "https://github.com/KBVE/kbve/pull/16838"
       },
       {
-        "number": 16789,
-        "title": "fix(unreal): include Engine.h for GEngine in KBVEWorldStreamer",
+        "number": 16835,
+        "title": "feat(KBVEWorld): give the houses a floor, a doorstep and a roof that clears the wall",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16789"
+        "url": "https://github.com/KBVE/kbve/pull/16835"
       },
       {
-        "number": 16787,
-        "title": "chore(deps): same-major web and tooling bumps",
+        "number": 16834,
+        "title": "fix(release): publish docker images again, and repin what they feed",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16787"
+        "url": "https://github.com/KBVE/kbve/pull/16834"
       }
     ]
   },
   "issues": {
-    "opened": 189,
-    "closed": 194
+    "opened": 185,
+    "closed": 188
   }
 }
