@@ -382,7 +382,11 @@ jobs:
                   # in the atom PR (previously the singular deployment_yaml
                   # was added, but the deployment_yamls array was silently
                   # dropped — only version.toml shipped).
-                  git add "${{ inputs.version_toml_path }}"
+                  # `git add ""` is fatal, and a tag-driven release leaves this
+                  # empty on purpose -- the version was committed before the tag.
+                  if [ -n "${{ inputs.version_toml_path }}" ]; then
+                    git add "${{ inputs.version_toml_path }}"
+                  fi
                   if [ -n "${{ inputs.version_target_path }}" ] && [ -f "${{ inputs.version_target_path }}" ]; then
                     git add "${{ inputs.version_target_path }}"
                     case "${{ inputs.version_target_path }}" in
