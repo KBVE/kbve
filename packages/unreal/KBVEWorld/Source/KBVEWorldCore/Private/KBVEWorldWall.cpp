@@ -245,9 +245,22 @@ void FKBVEWorldWall::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWal
 		FaceT(Out, F, Panel.MinU, Panel.MaxU, Panel.MinV, Panel.MaxV, -Half, false);
 	}
 
+	// A wall in a loop is run half a thickness past both of its corners, so its
+	// horizontal surfaces overlap the neighbour's in a square at every corner --
+	// and two upward faces at one height are coincident rather than buried, which
+	// is a z-fight along all four corners of every building in the village.
+	//
+	// Started a corner's width further along instead: each of the four walls
+	// covers the corner ahead of it and none covers the one behind. The same
+	// ground, laid as a pinwheel, in a shorter run than before.
+	//
+	// A wall that caps its own ends is not in a loop and has no neighbour to
+	// mitre against, so it keeps the full run.
+	const float Mitre = In.bCapEnds ? 0.0f : 2.0f * Half;
+
 	if (In.bCapTop)
 	{
-		FaceV(Out, F, 0.0f, Length, -Half, Half, Height, true);
+		FaceV(Out, F, Mitre, Length, -Half, Half, Height, true);
 	}
 	if (In.bCapEnds)
 	{
@@ -256,7 +269,7 @@ void FKBVEWorldWall::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWal
 	}
 	if (In.bCapBottom && Foot <= 0.0f)
 	{
-		FaceV(Out, F, 0.0f, Length, -Half, Half, 0.0f, false);
+		FaceV(Out, F, Mitre, Length, -Half, Half, 0.0f, false);
 	}
 
 	// The inside of every hole. Four faces each, and they exist for one view: a
@@ -298,7 +311,11 @@ void FKBVEWorldWall::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWal
 	{
 		const float Over = FMath::Max(Wall.PlinthOverhang, 0.0f);
 		const float Low = -FMath::Max(In.Embed, 0.0f);
-		float From = -Over;
+
+		// The same mitre, widened by the overhang: a plinth stands proud of the
+		// wall on both faces, so the square it shares with its neighbour at a
+		// corner is that much bigger than the wall's own.
+		float From = In.bCapEnds ? -Over : Mitre + Over;
 
 		for (const FKBVEWorldWallOpening& Open : Placed)
 		{
