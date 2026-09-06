@@ -130,6 +130,20 @@ struct KBVEWORLDCORE_API FKBVEWorldRibbon
 	 * buffer for every one of them, which is a whole building's worth on a
 	 * village.
 	 */
+	/**
+	 * A quad that is allowed to have collapsed to a triangle.
+	 *
+	 * For anything fanning onto a line -- an arch springing off its transom, a
+	 * cone closing on a point. The end facet of a fan has two of its corners in
+	 * the same place, and AppendQuad takes its normal from the two edges leaving
+	 * the first corner, so a facet that collapses there hands every one of its
+	 * vertices a zero normal. Zero normals do not fail: they light, and what they
+	 * light as is a bright sliver that moves with the camera.
+	 */
+	static void AppendFacet(FKBVEWorldRibbonMesh& Out, const FVector& P0, const FVector& P1,
+		const FVector& P2, const FVector& P3, const FVector2D& UV0, const FVector2D& UV1,
+		const FVector2D& UV2, const FVector2D& UV3);
+
 	static void AppendTri(FKBVEWorldRibbonMesh& Out, const FVector& P0, const FVector& P1,
 		const FVector& P2, const FVector2D& UV0, const FVector2D& UV1, const FVector2D& UV2);
 };
