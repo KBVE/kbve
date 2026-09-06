@@ -71,10 +71,14 @@ UStaticMesh* FKBVEWorldGrassCard::GetOrCreateClumpMesh(UObject* Outer, const FSp
 		const float CellU = FMath::Max(Cell.Z - Cell.X, KINDA_SMALL_NUMBER);
 		const float CellV = FMath::Max(Cell.W - Cell.Y, KINDA_SMALL_NUMBER);
 
-		// The cell decides the shape. Width from the aspect keeps a stem thin and
-		// a rosette wide without either being told which it is.
-		const float SheetH = Spec.Height;
-		const float SheetW = SheetH * (CellU / CellV);
+		// The cell decides the shape and the size decides the longest side of it,
+		// whichever side that is. Deriving width from a fixed height instead
+		// makes a wide rosette as tall as a stem and then multiplies its width by
+		// the aspect -- which is how a ground cover ends up nearly three metres
+		// across.
+		const float Aspect = CellU / CellV;
+		const float SheetH = Aspect > 1.0f ? Spec.Height / Aspect : Spec.Height;
+		const float SheetW = SheetH * Aspect;
 		const float HalfW = SheetW * 0.5f;
 
 		const FTransform Sheet(FRotator(0.0f, YawStep * static_cast<float>(SheetIndex), 0.0f));

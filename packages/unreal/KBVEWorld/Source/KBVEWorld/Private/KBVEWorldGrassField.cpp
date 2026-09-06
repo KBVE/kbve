@@ -180,6 +180,7 @@ bool AKBVEWorldGrassField::EnsureComponents()
 	}
 
 	SlotTiles.Init(UnfilledSlot, Slots);
+	SlotBands.Init(INDEX_NONE, Slots);
 	return true;
 }
 
@@ -189,6 +190,24 @@ int32 AKBVEWorldGrassField::SlotOf(const FIntPoint& Tile) const
 	const int32 X = ((Tile.X % Edge) + Edge) % Edge;
 	const int32 Y = ((Tile.Y % Edge) + Edge) % Edge;
 	return X * Edge + Y;
+}
+
+int32 AKBVEWorldGrassField::BandOf(const FIntPoint& Tile) const
+{
+	const int32 Bands = FMath::Max(1, DensityBands);
+	const int32 Reach = FMath::Max(1, TileRadius);
+	const int32 Distance = FMath::Max(FMath::Abs(Tile.X - CentreTile.X), FMath::Abs(Tile.Y - CentreTile.Y));
+	return FMath::Clamp((Distance * Bands) / Reach, 0, Bands - 1);
+}
+
+float AKBVEWorldGrassField::BandDensity(int32 Band) const
+{
+	const int32 Bands = FMath::Max(1, DensityBands);
+	if (Bands == 1)
+	{
+		return 1.0f;
+	}
+	return FMath::Lerp(1.0f, EdgeDensity, static_cast<float>(Band) / static_cast<float>(Bands - 1));
 }
 
 FIntPoint AKBVEWorldGrassField::TileAt(const FVector& WorldLocation) const
@@ -301,6 +320,10 @@ int32 AKBVEWorldGrassField::BuildTile(const FIntPoint& Tile)
 	FRandomStream Rng(static_cast<int32>(HashCombine(GetTypeHash(Tile), static_cast<uint32>(Seed))));
 
 	const int32 Slot = SlotOf(Tile);
+	const int32 Band = BandOf(Tile);
+	const int32 Shown = FMath::Clamp(
+		FMath::RoundToInt(PerVariant * BandDensity(Band)), 0, PerVariant);
+
 	TArray<FTransform> Batch;
 	Batch.SetNumUninitialized(PerVariant);
 	int32 Placed = 0;
@@ -309,6 +332,12 @@ int32 AKBVEWorldGrassField::BuildTile(const FIntPoint& Tile)
 	{
 		for (int32 Index = 0; Index < PerVariant; ++Index)
 		{
+			if (Index >= Shown)
+			{
+				Batch[Index] = HiddenInstance();
+				continue;
+			}
+
 			const float LocalX = Rng.FRand() * Size;
 			const float LocalY = Rng.FRand() * Size;
 			const float WorldX = Min.X + LocalX;
@@ -352,6 +381,7 @@ int32 AKBVEWorldGrassField::BuildTile(const FIntPoint& Tile)
 	}
 
 	SlotTiles[Slot] = Tile;
+	SlotBands[Slot] = Band;
 	return Placed;
 }
 
@@ -382,7 +412,8 @@ void AKBVEWorldGrassField::Tick(float DeltaSeconds)
 			for (int32 X = -TileRadius; X <= TileRadius; ++X)
 			{
 				const FIntPoint Tile(Centre.X + X, Centre.Y + Y);
-				if (SlotTiles[SlotOf(Tile)] != Tile)
+				const int32 Slot = SlotOf(Tile);
+				if (SlotTiles[Slot] != Tile || SlotBands[Slot] != BandOf(Tile))
 				{
 					Pending.Add(Tile);
 				}
