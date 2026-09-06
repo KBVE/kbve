@@ -40,18 +40,18 @@ bool FKBVEWorldWindowSkipsDoorsTest::RunTest(const FString& Parameters)
 
 	// A sill on the floor is a doorway, which is the wall's own test too.
 	const FKBVEWorldWallOpening Door = Window(200.0f, 0.0f);
-	FKBVEWorldWindowMesh Doorway;
+	FKBVEWorldJoineryMesh Doorway;
 	FKBVEWorldWindow::Build(Wall, FlatFrame(), { Door }, EKBVEWorldWallDetail::Full,
 		Params, Doorway);
 
 	TestTrue(TEXT("a doorway gets neither timber nor glass"), Doorway.IsEmpty());
 
 	const FKBVEWorldWallOpening Pane = Window(200.0f, 104.0f);
-	FKBVEWorldWindowMesh Glazed;
+	FKBVEWorldJoineryMesh Glazed;
 	FKBVEWorldWindow::Build(Wall, FlatFrame(), { Pane }, EKBVEWorldWallDetail::Full,
 		Params, Glazed);
 
-	TestTrue(TEXT("a window gets timber"), !Glazed.Joinery.IsEmpty());
+	TestTrue(TEXT("a window gets timber"), !Glazed.Timber.IsEmpty());
 	TestTrue(TEXT("a window gets glass"), !Glazed.Glazing.IsEmpty());
 	return true;
 }
@@ -67,7 +67,7 @@ bool FKBVEWorldWindowFitsTheHoleTest::RunTest(const FString& Parameters)
 	const FKBVEWorldWindowParams Params;
 	const FKBVEWorldWallOpening Open = Window(300.0f, 104.0f);
 
-	FKBVEWorldWindowMesh Out;
+	FKBVEWorldJoineryMesh Out;
 	FKBVEWorldWindow::Build(Wall, FlatFrame(), { Open }, EKBVEWorldWallDetail::Full,
 		Params, Out);
 
@@ -79,7 +79,7 @@ bool FKBVEWorldWindowFitsTheHoleTest::RunTest(const FString& Parameters)
 	const float Bottom = Open.Bottom;
 	const float Top = Open.Bottom + Open.Height;
 
-	for (const FKBVEWorldRibbonMesh* Mesh : { &Out.Joinery, &Out.Glazing })
+	for (const FKBVEWorldRibbonMesh* Mesh : { &Out.Timber, &Out.Glazing })
 	{
 		for (const FVector& V : Mesh->Vertices)
 		{
@@ -100,7 +100,7 @@ bool FKBVEWorldWindowFitsTheHoleTest::RunTest(const FString& Parameters)
 	const FKBVEWorldWallFrame F = FlatFrame();
 	const float Half = 0.5f * Wall.Thickness;
 	float Furthest = 0.0f;
-	for (const FVector& V : Out.Joinery.Vertices)
+	for (const FVector& V : Out.Timber.Vertices)
 	{
 		Furthest = FMath::Max(Furthest, static_cast<float>(FVector::DotProduct(V, F.Norm)));
 	}
@@ -126,12 +126,12 @@ bool FKBVEWorldWindowTiersTest::RunTest(const FString& Parameters)
 	for (const EKBVEWorldWallDetail Detail :
 		{ EKBVEWorldWallDetail::Plain, EKBVEWorldWallDetail::Solid })
 	{
-		FKBVEWorldWindowMesh Out;
+		FKBVEWorldJoineryMesh Out;
 		FKBVEWorldWindow::Build(Wall, FlatFrame(), { Open }, Detail, Params, Out);
 		TestTrue(TEXT("a distant window is not glazed"), Out.IsEmpty());
 	}
 
-	FKBVEWorldWindowMesh Near;
+	FKBVEWorldJoineryMesh Near;
 	FKBVEWorldWindow::Build(Wall, FlatFrame(), { Open }, EKBVEWorldWallDetail::Full,
 		Params, Near);
 	TestTrue(TEXT("a near window is glazed"), !Near.IsEmpty());
@@ -149,7 +149,7 @@ bool FKBVEWorldWindowReadsAsJoineryTest::RunTest(const FString& Parameters)
 	const FKBVEWorldWindowParams Params;
 	const FKBVEWorldWallOpening Open = Window(300.0f, 104.0f);
 
-	FKBVEWorldWindowMesh Out;
+	FKBVEWorldJoineryMesh Out;
 	FKBVEWorldWindow::Build(Wall, FlatFrame(), { Open }, EKBVEWorldWallDetail::Full,
 		Params, Out);
 
@@ -167,7 +167,7 @@ bool FKBVEWorldWindowReadsAsJoineryTest::RunTest(const FString& Parameters)
 	// is. Measured along the frame's own normal, since cross(Right, Up) points
 	// away from a world axis for most walls.
 	float FrameFace = -FLT_MAX;
-	for (const FVector& V : Out.Joinery.Vertices)
+	for (const FVector& V : Out.Timber.Vertices)
 	{
 		FrameFace = FMath::Max(FrameFace, static_cast<float>(FVector::DotProduct(V, F.Norm)));
 	}
@@ -193,7 +193,7 @@ bool FKBVEWorldWindowBothSidesTest::RunTest(const FString& Parameters)
 	const FKBVEWorldWindowParams Params;
 	const FKBVEWorldWallOpening Open = Window(300.0f, 104.0f);
 
-	FKBVEWorldWindowMesh Out;
+	FKBVEWorldJoineryMesh Out;
 	FKBVEWorldWindow::Build(Wall, FlatFrame(), { Open }, EKBVEWorldWallDetail::Full,
 		Params, Out);
 
@@ -205,7 +205,7 @@ bool FKBVEWorldWindowBothSidesTest::RunTest(const FString& Parameters)
 	// outer face alone leaves the room an open-backed box.
 	float Front = -FLT_MAX;
 	float Back = FLT_MAX;
-	for (const FVector& V : Out.Joinery.Vertices)
+	for (const FVector& V : Out.Timber.Vertices)
 	{
 		const float T = static_cast<float>(FVector::DotProduct(V, F.Norm));
 		Front = FMath::Max(Front, T);
@@ -221,7 +221,7 @@ bool FKBVEWorldWindowBothSidesTest::RunTest(const FString& Parameters)
 	// looks at, and without it the timber is hollow from indoors.
 	int32 Outward = 0;
 	int32 Inward = 0;
-	for (const FVector& N : Out.Joinery.Normals)
+	for (const FVector& N : Out.Timber.Normals)
 	{
 		const float T = static_cast<float>(FVector::DotProduct(N, F.Norm));
 		Outward += T > 0.9f ? 1 : 0;

@@ -54,28 +54,6 @@ struct KBVEWORLDCORE_API FKBVEWorldWindowParams
 	float BarWidth = 9.0f;
 };
 
-/**
- * One building's glazing, split by what draws it.
- *
- * Two meshes for the same reason the building already splits masonry from roof:
- * timber and glass are two materials, and two materials is two sections. Both
- * append, so a chunk's whole settlement stays one section per material however
- * many windows are in it.
- */
-struct FKBVEWorldWindowMesh
-{
-	FKBVEWorldRibbonMesh Joinery;
-	FKBVEWorldRibbonMesh Glazing;
-
-	void Reset()
-	{
-		Joinery.Reset();
-		Glazing.Reset();
-	}
-
-	bool IsEmpty() const { return Joinery.IsEmpty() && Glazing.IsEmpty(); }
-};
-
 struct KBVEWORLDCORE_API FKBVEWorldWindow
 {
 	/**
@@ -97,7 +75,7 @@ struct KBVEWORLDCORE_API FKBVEWorldWindow
 	 */
 	static void Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWallFrame& Frame,
 		TArrayView<const FKBVEWorldWallOpening> Openings, EKBVEWorldWallDetail Detail,
-		const FKBVEWorldWindowParams& Window, FKBVEWorldWindowMesh& Out);
+		const FKBVEWorldWindowParams& Window, FKBVEWorldJoineryMesh& Out);
 
 	/** Whether this tier draws anything at all, so a caller can skip the walk. */
 	static bool Draws(EKBVEWorldWallDetail Detail);

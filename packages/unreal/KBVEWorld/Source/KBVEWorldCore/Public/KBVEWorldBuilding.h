@@ -4,6 +4,7 @@
 #include "KBVEWorldRoof.h"
 #include "KBVEWorldStair.h"
 #include "KBVEWorldWall.h"
+#include "KBVEWorldDoor.h"
 #include "KBVEWorldWindow.h"
 
 #include "KBVEWorldBuilding.generated.h"
@@ -71,6 +72,9 @@ struct KBVEWORLDCORE_API FKBVEWorldBuildingParams
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building|Openings")
 	FKBVEWorldWindowParams Window;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building|Openings")
+	FKBVEWorldDoorParams Door;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building|Openings",
 		meta = (ClampMin = "50.0"))
@@ -161,19 +165,19 @@ struct FKBVEWorldBuildingMesh
 	FKBVEWorldRibbonMesh Plinth;
 
 	/** Timber and glass, which are two more materials and so two more sections. */
-	FKBVEWorldWindowMesh Windows;
+	FKBVEWorldJoineryMesh Joinery;
 
 	void Reset()
 	{
 		Masonry.Reset();
 		Roof.Reset();
 		Plinth.Reset();
-		Windows.Reset();
+		Joinery.Reset();
 	}
 
 	bool IsEmpty() const
 	{
-		return Masonry.IsEmpty() && Roof.IsEmpty() && Plinth.IsEmpty() && Windows.IsEmpty();
+		return Masonry.IsEmpty() && Roof.IsEmpty() && Plinth.IsEmpty() && Joinery.IsEmpty();
 	}
 };
 
