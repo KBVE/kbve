@@ -263,7 +263,7 @@ def build_foliage_material(spec, textures):
     vertex = expr(mat, unreal.MaterialExpressionVertexColor, -700, -400)
 
     occlusion = expr(mat, unreal.MaterialExpressionLinearInterpolate, -400, -400)
-    occlusion.set_editor_property("const_a", spec.get("base_shade", 0.45))
+    occlusion.set_editor_property("const_a", spec.get("base_shade", 0.62))
     occlusion.set_editor_property("const_b", 1.0)
     MEL.connect_material_expressions(vertex, "G", occlusion, "Alpha")
 
@@ -271,7 +271,36 @@ def build_foliage_material(spec, textures):
     MEL.connect_material_expressions(diff, "RGB", shaded, "A")
     MEL.connect_material_expressions(occlusion, "", shaded, "B")
 
-    MEL.connect_material_property(shaded, "", unreal.MaterialProperty.MP_BASE_COLOR)
+    # The scan is a dry olive -- hue 69 degrees, and more red than a growing
+    # blade has. Corrected here rather than in the PNG so the source stays the
+    # measurement and this stays the artistic decision.
+    tint_rgb = spec.get("tint", [0.85, 1.15, 1.0])
+    tint = expr(mat, unreal.MaterialExpressionConstant3Vector, -400, -100)
+    tint.set_editor_property("constant", unreal.LinearColor(tint_rgb[0], tint_rgb[1], tint_rgb[2], 1.0))
+    tinted = expr(mat, unreal.MaterialExpressionMultiply, -100, -200)
+    MEL.connect_material_expressions(shaded, "", tinted, "A")
+    MEL.connect_material_expressions(tint, "", tinted, "B")
+
+    MEL.connect_material_property(tinted, "", unreal.MaterialProperty.MP_BASE_COLOR)
+
+    # A card's own normal points out of its face, sideways, so half a field faces
+    # away from any sun and shades to black -- which reads as dirt with a pattern
+    # on it rather than as ground cover. Bent toward world up, a clump lights
+    # like the ground it grows out of, which is what it is: this is the single
+    # difference between foliage that looks lit and foliage that looks cut out.
+    up = expr(mat, unreal.MaterialExpressionConstant3Vector, -700, 200)
+    up.set_editor_property("constant", unreal.LinearColor(0.0, 0.0, 1.0, 1.0))
+    face = expr(mat, unreal.MaterialExpressionVertexNormalWS, -700, 400)
+    bend = expr(mat, unreal.MaterialExpressionLinearInterpolate, -400, 300)
+    MEL.connect_material_expressions(face, "", bend, "A")
+    MEL.connect_material_expressions(up, "", bend, "B")
+    bend.set_editor_property("const_alpha", spec.get("normal_lift", 0.75))
+
+    # World space, because the normal being fed is the vertex normal in world
+    # space. Left tangent space, every card would read that vector as a tilt off
+    # its own face and light as if it were turned on its side.
+    mat.set_editor_property("tangent_space_normal", False)
+    MEL.connect_material_property(bend, "", unreal.MaterialProperty.MP_NORMAL)
     MEL.connect_material_property(packed, "B", unreal.MaterialProperty.MP_OPACITY_MASK)
     MEL.connect_material_property(packed, "R", unreal.MaterialProperty.MP_ROUGHNESS)
 

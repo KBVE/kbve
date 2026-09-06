@@ -38,7 +38,7 @@
 				"tile_radius": 8,
 				"instances_per_tile": 192,
 				"variant_count": 4,
-				"clump_height": 130.0,
+				"clump_height": 90.0,
 				"cull_start": 9000,
 				"cull_end": 12000,
 				"card_material": "/Game/Textures/Foliage/M_RareIcon_GrassCard"

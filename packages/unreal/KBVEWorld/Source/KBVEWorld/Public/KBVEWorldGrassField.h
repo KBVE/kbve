@@ -78,9 +78,17 @@ public:
 		meta = (ClampMin = "1", ClampMax = "6"))
 	int32 SheetsPerClump = 3;
 
+	/**
+	 * The longest side of a clump, in world units.
+	 *
+	 * Whichever side that is: a cell wider than it is tall is sized by its
+	 * width. Sizing every cell by height instead makes a rosette as tall as a
+	 * stem and then as wide again as its aspect, which is how ground cover ends
+	 * up nearly three metres across.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass",
 		meta = (ClampMin = "1.0"))
-	float ClumpHeight = 130.0f;
+	float ClumpHeight = 90.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass")
 	FFloatInterval ClumpScale = FFloatInterval(0.7f, 1.35f);
@@ -151,9 +159,17 @@ public:
 		meta = (ClampMin = "1"))
 	int32 MaxTilesPerTick = 6;
 
-	/** Shadows off by default: the depth pass is what a field of cards costs. */
+	/**
+	 * Whether clumps cast a shadow.
+	 *
+	 * The depth pass is most of what a field of cards costs, and turning this
+	 * off is the first thing to try when it costs too much -- but a clump that
+	 * casts nothing does not touch the ground it stands on, and a whole field of
+	 * them reads as a decal printed on the terrain. Far shadows stay off
+	 * regardless, so this is the near cascades only.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass")
-	bool bCastShadow = false;
+	bool bCastShadow = true;
 
 	virtual void Tick(float DeltaSeconds) override;
 	virtual bool ShouldTickIfViewportsOnly() const override { return true; }
