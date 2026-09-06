@@ -1,7 +1,6 @@
 #include "KBVEWorldFenceMass.h"
 
-#include "GameFramework/Pawn.h"
-#include "GameFramework/PlayerController.h"
+#include "KBVEWorldViewer.h"
 #include "MassExecutionContext.h"
 
 UKBVEWorldFenceLodProcessor::UKBVEWorldFenceLodProcessor()
@@ -11,9 +10,6 @@ UKBVEWorldFenceLodProcessor::UKBVEWorldFenceLodProcessor()
 	ProcessingPhase = EMassProcessingPhase::PrePhysics;
 	bAutoRegisterWithProcessingPhases = true;
 
-	// Nothing here touches a component or an actor -- it compares distances and
-	// writes a byte -- so unlike the grass processor beside it this does not have
-	// to be pinned to the game thread.
 	bRequiresGameThreadExecution = false;
 }
 
@@ -22,34 +18,25 @@ void UKBVEWorldFenceLodProcessor::ConfigureQueries(
 {
 	RunQuery.AddRequirement<FKBVEWorldFenceRunFragment>(EMassFragmentAccess::ReadWrite);
 	RunQuery.AddTagRequirement<FKBVEWorldFenceRunTag>(EMassFragmentPresence::All);
+	RunQuery.AddSubsystemRequirement<UKBVEWorldViewerSubsystem>(EMassFragmentAccess::ReadOnly);
 }
 
 void UKBVEWorldFenceLodProcessor::Execute(FMassEntityManager& EntityManager,
 	FMassExecutionContext& Context)
 {
-	const UWorld* World = EntityManager.GetWorld();
-	if (!World)
+	const UKBVEWorldViewerSubsystem* Viewer =
+		Context.GetSubsystem<UKBVEWorldViewerSubsystem>();
+	if (!Viewer || !Viewer->HasViewer())
 	{
 		return;
 	}
 
-	const APlayerController* PC = World->GetFirstPlayerController();
-	const APawn* Pawn = PC ? PC->GetPawn() : nullptr;
-	if (!Pawn)
-	{
-		return;
-	}
+	const FVector View = Viewer->GetViewLocation();
 
-	const FVector View = Pawn->GetActorLocation();
-
-	// Measured to the run's near end rather than its centre. A run is up to a few
-	// thousand units long, so a viewer standing at one end of a long one is
-	// nearer to it than its midpoint suggests -- and it is the end they are
-	// standing next to whose posts they can count.
 	const float Full = FullRange;
 	const float Framed = FramedRange;
 
-	RunQuery.ForEachEntityChunk(Context, [View, Full, Framed](FMassExecutionContext& Chunk)
+	RunQuery.ParallelForEachEntityChunk(Context, [View, Full, Framed](FMassExecutionContext& Chunk)
 	{
 		const TArrayView<FKBVEWorldFenceRunFragment> Runs =
 			Chunk.GetMutableFragmentView<FKBVEWorldFenceRunFragment>();

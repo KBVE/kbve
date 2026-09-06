@@ -295,25 +295,38 @@ void AKBVEWorldRoadChunk::SpawnFenceRuns(const FBuild& In)
 
 	FMassEntityManager& Manager = Mass->GetMutableEntityManager();
 
-	const FMassArchetypeHandle Archetype = Manager.CreateArchetype(
-		TArray<const UScriptStruct*>{
-			FKBVEWorldFenceRunFragment::StaticStruct(),
-			FKBVEWorldFenceRunTag::StaticStruct() });
+	if (!FenceArchetype.IsValid())
+	{
+		FenceArchetype = Manager.CreateArchetype(
+			TArray<const UScriptStruct*>{
+				FKBVEWorldFenceRunFragment::StaticStruct(),
+				FKBVEWorldFenceRunTag::StaticStruct() });
+	}
 
-	FenceRuns.Reserve(Runs.Num());
-
+	TArray<int32, TInlineAllocator<32>> Wanted;
 	for (int32 I = 0; I < Runs.Num(); ++I)
 	{
+		if (EdgePaths[RunEdge[I]].Num() >= 2)
+		{
+			Wanted.Add(I);
+		}
+	}
+
+	FenceRuns.Reset(Wanted.Num());
+	if (Wanted.Num() == 0)
+	{
+		return;
+	}
+	Manager.BatchCreateEntities(FenceArchetype, Wanted.Num(), FenceRuns);
+
+	for (int32 Slot = 0; Slot < Wanted.Num() && Slot < FenceRuns.Num(); ++Slot)
+	{
+		const int32 I = Wanted[Slot];
 		const FKBVEWorldFenceRun& Run = Runs[I];
 		const TArray<FVector>& Path = EdgePaths[RunEdge[I]];
-		if (Path.Num() < 2)
-		{
-			continue;
-		}
 
-		const FMassEntityHandle Entity = Manager.CreateEntity(Archetype);
 		FKBVEWorldFenceRunFragment& Fragment =
-			Manager.GetFragmentDataChecked<FKBVEWorldFenceRunFragment>(Entity);
+			Manager.GetFragmentDataChecked<FKBVEWorldFenceRunFragment>(FenceRuns[Slot]);
 
 		Fragment.Edge = In.Coord;
 		Fragment.Side = Run.Side;
@@ -333,8 +346,6 @@ void AKBVEWorldRoadChunk::SpawnFenceRuns(const FBuild& In)
 		// on the first tick for no reason.
 		Fragment.Detail = static_cast<uint8>(EKBVEWorldFenceDetail::Full);
 		Fragment.WantedDetail = Fragment.Detail;
-
-		FenceRuns.Add(Entity);
 	}
 }
 
@@ -497,18 +508,22 @@ void AKBVEWorldRoadChunk::SpawnBuildings(const FBuild& In)
 
 	FMassEntityManager& Manager = Mass->GetMutableEntityManager();
 
-	const FMassArchetypeHandle Archetype = Manager.CreateArchetype(
-		TArray<const UScriptStruct*>{
-			FKBVEWorldBuildingFragment::StaticStruct(),
-			FKBVEWorldBuildingTag::StaticStruct() });
-
-	Buildings.Reserve(Plans.Num());
-
-	for (const FKBVEWorldBuildingPlan& Plan : Plans)
+	if (!BuildingArchetype.IsValid())
 	{
-		const FMassEntityHandle Entity = Manager.CreateEntity(Archetype);
+		BuildingArchetype = Manager.CreateArchetype(
+			TArray<const UScriptStruct*>{
+				FKBVEWorldBuildingFragment::StaticStruct(),
+				FKBVEWorldBuildingTag::StaticStruct() });
+	}
+
+	Buildings.Reset(Plans.Num());
+	Manager.BatchCreateEntities(BuildingArchetype, Plans.Num(), Buildings);
+
+	for (int32 I = 0; I < Plans.Num() && I < Buildings.Num(); ++I)
+	{
+		const FKBVEWorldBuildingPlan& Plan = Plans[I];
 		FKBVEWorldBuildingFragment& Fragment =
-			Manager.GetFragmentDataChecked<FKBVEWorldBuildingFragment>(Entity);
+			Manager.GetFragmentDataChecked<FKBVEWorldBuildingFragment>(Buildings[I]);
 
 		Fragment.Chunk = In.Coord;
 		Fragment.Centre = Plan.Centre;
@@ -525,8 +540,6 @@ void AKBVEWorldRoadChunk::SpawnBuildings(const FBuild& In)
 
 		Fragment.Detail = static_cast<uint8>(In.WallDetail);
 		Fragment.WantedDetail = Fragment.Detail;
-
-		Buildings.Add(Entity);
 	}
 }
 

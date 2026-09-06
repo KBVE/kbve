@@ -9,6 +9,7 @@
 #include "KBVEWorldRoadGraph.h"
 #include "KBVEWorldSettlement.h"
 #include "Mass/EntityHandle.h"
+#include "MassArchetypeTypes.h"
 
 #include "KBVEWorldRoadNetwork.generated.h"
 
@@ -203,6 +204,9 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<class UMassEntitySubsystem> Mass;
+
+	FMassArchetypeHandle FenceArchetype;
+	FMassArchetypeHandle BuildingArchetype;
 
 	TArray<FMassEntityHandle> FenceRuns;
 	TArray<FKBVEWorldFenceRun> Runs;

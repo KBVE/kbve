@@ -1,7 +1,6 @@
 #include "KBVEWorldVillageMass.h"
 
-#include "GameFramework/Pawn.h"
-#include "GameFramework/PlayerController.h"
+#include "KBVEWorldViewer.h"
 #include "MassExecutionContext.h"
 
 UKBVEWorldBuildingLodProcessor::UKBVEWorldBuildingLodProcessor()
@@ -18,38 +17,32 @@ void UKBVEWorldBuildingLodProcessor::ConfigureQueries(
 {
 	BuildingQuery.AddRequirement<FKBVEWorldBuildingFragment>(EMassFragmentAccess::ReadWrite);
 	BuildingQuery.AddTagRequirement<FKBVEWorldBuildingTag>(EMassFragmentPresence::All);
+
+	BuildingQuery.AddSubsystemRequirement<UKBVEWorldViewerSubsystem>(
+		EMassFragmentAccess::ReadOnly);
 }
 
 void UKBVEWorldBuildingLodProcessor::Execute(FMassEntityManager& EntityManager,
 	FMassExecutionContext& Context)
 {
-	const UWorld* World = EntityManager.GetWorld();
-	if (!World)
+	const UKBVEWorldViewerSubsystem* Viewer =
+		Context.GetSubsystem<UKBVEWorldViewerSubsystem>();
+	if (!Viewer || !Viewer->HasViewer())
 	{
 		return;
 	}
 
-	const APlayerController* PC = World->GetFirstPlayerController();
-	const APawn* Pawn = PC ? PC->GetPawn() : nullptr;
-	if (!Pawn)
-	{
-		return;
-	}
-
-	const FVector View = Pawn->GetActorLocation();
+	const FVector View = Viewer->GetViewLocation();
 	const float Full = FullRange;
 	const float Plain = PlainRange;
 
-	BuildingQuery.ForEachEntityChunk(Context, [View, Full, Plain](FMassExecutionContext& Chunk)
+	BuildingQuery.ParallelForEachEntityChunk(Context, [View, Full, Plain](FMassExecutionContext& Chunk)
 	{
 		const TArrayView<FKBVEWorldBuildingFragment> Buildings =
 			Chunk.GetMutableFragmentView<FKBVEWorldBuildingFragment>();
 
 		for (FKBVEWorldBuildingFragment& Building : Buildings)
 		{
-			// To the near face rather than the centre. A building is a good
-			// fraction of the range its trim survives to, so someone standing
-			// against a wall is measurably nearer to it than its middle.
 			const float Distance =
 				FMath::Max(FVector::Dist(View, Building.Centre) - Building.Radius, 0.0f);
 
