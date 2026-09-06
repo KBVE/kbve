@@ -11,25 +11,7 @@ namespace
 	 * which is also how the UVs are worked out, and why a panel and the panel
 	 * beside it agree about where the coursing is.
 	 */
-	struct FWallFrame
-	{
-		FVector Origin = FVector::ZeroVector;
-		FVector Right = FVector::ForwardVector;
-		FVector Up = FVector::UpVector;
-		FVector Norm = FVector::RightVector;
-		float UOffset = 0.0f;
-		float Tile = 220.0f;
-
-		FVector At(float U, float V, float T) const
-		{
-			return Origin + Right * U + Up * V + Norm * T;
-		}
-
-		FVector2D UV(float A, float B) const
-		{
-			return FVector2D((UOffset + A) / Tile, B / Tile);
-		}
-	};
+	using FWallFrame = FKBVEWorldWallFrame;
 
 	/** A face at constant depth: the front and back of the wall. */
 	void FaceT(FKBVEWorldRibbonMesh& Out, const FWallFrame& F, float U0, float U1, float V0,
@@ -102,6 +84,22 @@ namespace
 		FaceU(Out, F, V0, V1, T0, T1, U1, true);
 		FaceU(Out, F, V0, V1, T0, T1, U0, false);
 	}
+}
+
+FKBVEWorldWallFrame FKBVEWorldWall::Frame(const FKBVEWorldWallParams& Wall,
+	const FKBVEWorldWallBuild& In)
+{
+	const FVector Along = In.End - In.Start;
+	const float Length = Along.Size();
+
+	FKBVEWorldWallFrame F;
+	F.Origin = In.Start;
+	F.Right = Length > KINDA_SMALL_NUMBER ? Along / Length : FVector::ForwardVector;
+	F.Up = FVector::UpVector;
+	F.Norm = FVector::CrossProduct(F.Right, F.Up).GetSafeNormal();
+	F.UOffset = In.UOffset;
+	F.Tile = FMath::Max(Wall.TileLength, KINDA_SMALL_NUMBER);
+	return F;
 }
 
 void FKBVEWorldWall::Panels(const FKBVEWorldWallParams& Wall, float Length,
@@ -223,13 +221,7 @@ void FKBVEWorldWall::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWal
 		return;
 	}
 
-	FWallFrame F;
-	F.Origin = In.Start;
-	F.Right = Along / Length;
-	F.Up = FVector::UpVector;
-	F.Norm = FVector::CrossProduct(F.Right, F.Up).GetSafeNormal();
-	F.UOffset = In.UOffset;
-	F.Tile = FMath::Max(Wall.TileLength, KINDA_SMALL_NUMBER);
+	const FWallFrame F = FKBVEWorldWall::Frame(Wall, In);
 
 	TArray<FKBVEWorldWallPanel> Panels;
 	TArray<FKBVEWorldWallOpening> Placed;

@@ -19,7 +19,13 @@ public class RareIcon : ModuleRules
 			"JsonUtilities",
 			"KBVEUnr",
 			"KBVEWorldCore",
+			"KBVETinyBVH",
 			"KBVEMover",
+			// The loading screen: the shared Slate library it is built from, and
+			// the two engine modules any widget needs.
+			"KBVEUI",
+			"Slate",
+			"SlateCore",
 			// Reading the pawn's movement mode needs the concrete component, not
 			// the forward declaration KBVEMoverPawn.h gets away with.
 			"Mover"
@@ -27,7 +33,8 @@ public class RareIcon : ModuleRules
 
 		PublicIncludePaths.AddRange(new string[] {
 			"RareIcon",
-			"RareIcon/Player"
+			"RareIcon/Player",
+			"RareIcon/World"
 		});
 	}
 }

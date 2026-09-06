@@ -2,6 +2,7 @@
 
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
+#include "KBVEWorldChunkDirty.h"
 #include "KBVEWorldFenceMass.h"
 #include "KBVEWorldHeightfield.h"
 #include "KBVEWorldInstancePool.h"
@@ -106,8 +107,11 @@ AKBVEWorldRoadChunk::AKBVEWorldRoadChunk()
 	Stone = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Stone"));
 	Brick = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Brick"));
 	Roof = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Roof"));
+	Joinery = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Joinery"));
+	Glazing = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Glazing"));
 
-	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get(), Roof.Get() })
+	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get(), Roof.Get(),
+		Joinery.Get(), Glazing.Get() })
 	{
 		Mesh->SetupAttachment(SceneRoot);
 		Mesh->bUseAsyncCooking = true;
@@ -257,18 +261,23 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 	Rebase(Data.Wood, Origin);
 	Rebase(Data.Stone, Origin);
 	Rebase(Structures.Masonry, Origin);
+	Rebase(Structures.Windows.Joinery, Origin);
+	Rebase(Structures.Windows.Glazing, Origin);
 	Rebase(Structures.Roof, Origin);
 
 	Commit(Wood, Data.Wood, WoodMaterial, true);
 	Commit(Stone, Data.Stone, StoneMaterial, false);
 	Commit(Brick, Structures.Masonry, In.BrickMaterial, true);
 	Commit(Roof, Structures.Roof, In.RoofMaterial, false);
+	Commit(Joinery, Structures.Windows.Joinery, In.WoodMaterial, false);
+	Commit(Glazing, Structures.Windows.Glazing, In.GlassMaterial, false);
 
 	// The supports collide as blocks whether they were drawn as triangles here or
 	// as instances elsewhere, so this does not care which happened.
 	CommitBlocks(Stone, Data.Blocks, Origin);
 
-	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get(), Roof.Get() })
+	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get(), Roof.Get(),
+		Joinery.Get(), Glazing.Get() })
 	{
 		Mesh->SetCullDistance(MaxDrawDistance);
 	}
@@ -295,27 +304,40 @@ void AKBVEWorldRoadChunk::SpawnFenceRuns(const FBuild& In)
 
 	FMassEntityManager& Manager = Mass->GetMutableEntityManager();
 
-	const FMassArchetypeHandle Archetype = Manager.CreateArchetype(
-		TArray<const UScriptStruct*>{
-			FKBVEWorldFenceRunFragment::StaticStruct(),
-			FKBVEWorldFenceRunTag::StaticStruct() });
+	if (!FenceArchetype.IsValid())
+	{
+		FenceArchetype = Manager.CreateArchetype(
+			TArray<const UScriptStruct*>{
+				FKBVEWorldFenceRunFragment::StaticStruct(),
+				FKBVEWorldFenceRunTag::StaticStruct() });
+	}
 
-	FenceRuns.Reserve(Runs.Num());
-
+	TArray<int32, TInlineAllocator<32>> Wanted;
 	for (int32 I = 0; I < Runs.Num(); ++I)
 	{
+		if (EdgePaths[RunEdge[I]].Num() >= 2)
+		{
+			Wanted.Add(I);
+		}
+	}
+
+	FenceRuns.Reset(Wanted.Num());
+	if (Wanted.Num() == 0)
+	{
+		return;
+	}
+	Manager.BatchCreateEntities(FenceArchetype, Wanted.Num(), FenceRuns);
+
+	for (int32 Slot = 0; Slot < Wanted.Num() && Slot < FenceRuns.Num(); ++Slot)
+	{
+		const int32 I = Wanted[Slot];
 		const FKBVEWorldFenceRun& Run = Runs[I];
 		const TArray<FVector>& Path = EdgePaths[RunEdge[I]];
-		if (Path.Num() < 2)
-		{
-			continue;
-		}
 
-		const FMassEntityHandle Entity = Manager.CreateEntity(Archetype);
 		FKBVEWorldFenceRunFragment& Fragment =
-			Manager.GetFragmentDataChecked<FKBVEWorldFenceRunFragment>(Entity);
+			Manager.GetFragmentDataChecked<FKBVEWorldFenceRunFragment>(FenceRuns[Slot]);
 
-		Fragment.Edge = In.Coord;
+		Fragment.Chunk = In.Coord;
 		Fragment.Side = Run.Side;
 		Fragment.Begin = Run.Begin;
 		Fragment.End = Run.End;
@@ -333,8 +355,6 @@ void AKBVEWorldRoadChunk::SpawnFenceRuns(const FBuild& In)
 		// on the first tick for no reason.
 		Fragment.Detail = static_cast<uint8>(EKBVEWorldFenceDetail::Full);
 		Fragment.WantedDetail = Fragment.Detail;
-
-		FenceRuns.Add(Entity);
 	}
 }
 
@@ -358,6 +378,15 @@ void AKBVEWorldRoadChunk::ReleaseFenceRuns()
 	}
 
 	FenceRuns.Reset();
+
+	if (UWorld* World = GetWorld())
+	{
+		if (UKBVEWorldChunkDirtySubsystem* Dirty =
+			World->GetSubsystem<UKBVEWorldChunkDirtySubsystem>())
+		{
+			Dirty->Forget(Coord);
+		}
+	}
 }
 
 void AKBVEWorldRoadChunk::BuildFenceParts(const FBuild& In, FKBVEWorldFenceMesh& Out)
@@ -497,18 +526,22 @@ void AKBVEWorldRoadChunk::SpawnBuildings(const FBuild& In)
 
 	FMassEntityManager& Manager = Mass->GetMutableEntityManager();
 
-	const FMassArchetypeHandle Archetype = Manager.CreateArchetype(
-		TArray<const UScriptStruct*>{
-			FKBVEWorldBuildingFragment::StaticStruct(),
-			FKBVEWorldBuildingTag::StaticStruct() });
-
-	Buildings.Reserve(Plans.Num());
-
-	for (const FKBVEWorldBuildingPlan& Plan : Plans)
+	if (!BuildingArchetype.IsValid())
 	{
-		const FMassEntityHandle Entity = Manager.CreateEntity(Archetype);
+		BuildingArchetype = Manager.CreateArchetype(
+			TArray<const UScriptStruct*>{
+				FKBVEWorldBuildingFragment::StaticStruct(),
+				FKBVEWorldBuildingTag::StaticStruct() });
+	}
+
+	Buildings.Reset(Plans.Num());
+	Manager.BatchCreateEntities(BuildingArchetype, Plans.Num(), Buildings);
+
+	for (int32 I = 0; I < Plans.Num() && I < Buildings.Num(); ++I)
+	{
+		const FKBVEWorldBuildingPlan& Plan = Plans[I];
 		FKBVEWorldBuildingFragment& Fragment =
-			Manager.GetFragmentDataChecked<FKBVEWorldBuildingFragment>(Entity);
+			Manager.GetFragmentDataChecked<FKBVEWorldBuildingFragment>(Buildings[I]);
 
 		Fragment.Chunk = In.Coord;
 		Fragment.Centre = Plan.Centre;
@@ -525,8 +558,6 @@ void AKBVEWorldRoadChunk::SpawnBuildings(const FBuild& In)
 
 		Fragment.Detail = static_cast<uint8>(In.WallDetail);
 		Fragment.WantedDetail = Fragment.Detail;
-
-		Buildings.Add(Entity);
 	}
 }
 
@@ -611,9 +642,13 @@ bool AKBVEWorldRoadChunk::RebuildBuildings(const FBuild& In)
 
 	const FVector Origin = GetActorLocation();
 	Rebase(Structures.Masonry, Origin);
+	Rebase(Structures.Windows.Joinery, Origin);
+	Rebase(Structures.Windows.Glazing, Origin);
 	Rebase(Structures.Roof, Origin);
 	Commit(Brick, Structures.Masonry, In.BrickMaterial, true);
 	Commit(Roof, Structures.Roof, In.RoofMaterial, false);
+	Commit(Joinery, Structures.Windows.Joinery, In.WoodMaterial, false);
+	Commit(Glazing, Structures.Windows.Glazing, In.GlassMaterial, false);
 	return true;
 }
 
@@ -668,6 +703,24 @@ void AKBVEWorldRoadNetwork::EndPlay(const EEndPlayReason::Type Reason)
 	Pending.Reset();
 
 	Super::EndPlay(Reason);
+}
+
+void AKBVEWorldRoadNetwork::SyncFromStreamer()
+{
+	const AKBVEWorldStreamer* Found = FindStreamer();
+	if (!Found)
+	{
+		return;
+	}
+
+	// Every number here describes ground this actor does not make. The terrain is
+	// graded for these roads and the start is planned from these villages, so a
+	// road actor holding its own copy lays a surface into a corridor cut
+	// somewhere else and builds houses the plan never saw.
+	WorldSeed = Found->WorldSeed;
+	Shape = Found->Shape;
+	Road = Found->Road;
+	Settlement = Found->Settlement;
 }
 
 AKBVEWorldStreamer* AKBVEWorldRoadNetwork::FindStreamer()
@@ -757,6 +810,7 @@ AKBVEWorldRoadChunk::FBuild AKBVEWorldRoadNetwork::MakeBuild(const FIntPoint& Co
 	In.StoneMaterial = StoneMaterial;
 	In.BrickMaterial = BrickMaterial;
 	In.RoofMaterial = RoofMaterial;
+	In.GlassMaterial = GlassMaterial;
 	In.PartMesh = bInstanced ? PartMesh.Get() : nullptr;
 	return In;
 }
@@ -832,6 +886,8 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 	{
 		return;
 	}
+
+	SyncFromStreamer();
 
 	FVector ViewLocation;
 	TryGetViewLocation(ViewLocation);
@@ -926,15 +982,20 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 		++Built;
 	}
 
-	// Whatever the fence processor decided since the last tick. It writes a tier
-	// and stops there -- standing the posts up is a component's business, and a
-	// Mass processor has none with components.
 	if (Built == 0)
 	{
+		UKBVEWorldChunkDirtySubsystem* Dirty =
+			GetWorld() ? GetWorld()->GetSubsystem<UKBVEWorldChunkDirtySubsystem>() : nullptr;
+
 		int32 Restood = 0;
 		for (const TPair<FIntPoint, TObjectPtr<AKBVEWorldRoadChunk>>& Pair : Live)
 		{
 			if (!Pair.Value || Restood >= MaxBuildsPerTick)
+			{
+				continue;
+			}
+
+			if (Dirty && !Dirty->Take(Pair.Key))
 			{
 				continue;
 			}

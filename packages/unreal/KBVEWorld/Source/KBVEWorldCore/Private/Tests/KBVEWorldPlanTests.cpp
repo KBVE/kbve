@@ -95,4 +95,95 @@ bool FKBVEWorldPlanDeterminismTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FKBVEWorldPlanVillageStartTest,
+	"KBVE.World.Plan.StartsInASettlement",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// Where a world opens. A start on bare road is somewhere connected, which the
+// road pass already guaranteed; what a player should be looking at is the one
+// part of the world that was built to be stood in. The check that matters is not
+// that the flag is set but that the point is where the chunks will raise houses:
+// the plan and the chunk have to walk the same edge key and the same plots, or
+// the spawn is in an empty field with the village next door.
+bool FKBVEWorldPlanVillageStartTest::RunTest(const FString& Parameters)
+{
+	const FKBVEWorldPlanParams Plan;
+	const FKBVEWorldRoadParams Road;
+	const FKBVEWorldHeightfieldParams Shape;
+	const FKBVEWorldSettlementParams Settlement;
+
+	int32 InVillage = 0;
+
+	TArray<FVector> Path;
+	TArray<FKBVEWorldRoadSpan> Spans;
+	TArray<FKBVEWorldPlot> Plots;
+
+	for (int32 World = 0; World < 24; ++World)
+	{
+		const int32 Seed = FKBVEWorldHeightfield::SeedFromWorld(1000 + World * 7919);
+		const FKBVEWorldPlan Made = FKBVEWorldPlanner::Make(Plan, Road, Shape, Seed, &Settlement);
+
+		TestTrue(TEXT("the seed gave a start"), Made.bValid);
+		if (!Made.bValid || !Made.bInSettlement)
+		{
+			continue;
+		}
+
+		++InVillage;
+		TestTrue(TEXT("a settlement start is on the network"), Made.bOnRoad);
+		TestTrue(TEXT("the start has houses around it"), Made.Buildings >= Plan.MinBuildings);
+
+		// The chunk's own reckoning, run again from the spawn chunk: one of that
+		// chunk's two edges has to carry plots that stand, and one of those has to
+		// be near what the plan returned.
+		int32 Standing = 0;
+		float Nearest = BIG_NUMBER;
+
+		for (int32 Step = 0; Step < 2; ++Step)
+		{
+			const FIntPoint To = Made.SpawnChunk + (Step == 0 ? FIntPoint(1, 0) : FIntPoint(0, 1));
+			FKBVEWorldRoadGraph::RouteEdge(Road, Shape, Seed, Made.SpawnChunk, To, Path);
+			if (Path.Num() < 2)
+			{
+				continue;
+			}
+
+			FKBVEWorldRoadGraph::FindRiverSpans(Road, Shape, Seed, Path, Spans);
+			const FIntPoint Key(Made.SpawnChunk.X, Made.SpawnChunk.Y * 2 + Step);
+			FKBVEWorldSettlement::FindPlots(Settlement, Road, Seed, Key, Path, Spans, Plots);
+
+			for (const FKBVEWorldPlot& Plot : Plots)
+			{
+				FKBVEWorldBuildingPlan Sited;
+				if (!FKBVEWorldSettlement::Site(Settlement, Road, Shape, Seed, nullptr, Path, Plot,
+					Sited))
+				{
+					continue;
+				}
+
+				++Standing;
+				Nearest = FMath::Min(Nearest, FVector::Dist2D(Sited.Centre, Made.Spawn));
+			}
+		}
+
+		TestTrue(TEXT("the spawn chunk raises the houses the plan counted"),
+			Standing >= Made.Buildings);
+
+		// Within a plot's reach of a house that stands, which is the difference
+		// between starting in the village and starting on the road to it.
+		TestTrue(TEXT("the start is at a house the chunk would build"),
+			Nearest < Settlement.Setback + Settlement.MaxGap);
+	}
+
+	AddInfo(FString::Printf(TEXT("%d of 24 seeds started in a settlement"), InVillage));
+
+	// Every one of them. Villages are sparse but the world is not finite, and the
+	// sweep reaches far enough that running out of them is not a thing a seed can
+	// do -- so a miss here is the search giving up, not the terrain being unkind.
+	TestEqual(TEXT("every seed starts in a settlement"), InVillage, 24);
+
+	return true;
+}
+
 #endif

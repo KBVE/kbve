@@ -26,6 +26,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "KBVEUI",
+			"Enabled": true
+		},
+		{
 			"Name": "MoverExamples",
 			"Enabled": true
 		},
@@ -35,6 +39,10 @@
 		},
 		{
 			"Name": "KBVEPerf",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVETinyBVH",
 			"Enabled": true
 		},
 		{

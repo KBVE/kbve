@@ -535,7 +535,7 @@ void AKBVEWorldStreamer::BeginPlay()
 
 	// Before anything streams, because the answer is what to stream around.
 	const int32 Seed = FKBVEWorldHeightfield::SeedFromWorld(WorldSeed);
-	WorldPlan = FKBVEWorldPlanner::Make(Plan, Road, Shape, Seed);
+	WorldPlan = FKBVEWorldPlanner::Make(Plan, Road, Shape, Seed, &Settlement);
 
 	if (!WorldPlan.bValid)
 	{
@@ -548,10 +548,13 @@ void AKBVEWorldStreamer::BeginPlay()
 		return;
 	}
 
+	const FString Kind = WorldPlan.bInSettlement
+		? FString::Printf(TEXT("in a settlement of %d"), WorldPlan.Buildings)
+		: FString(WorldPlan.bOnRoad ? TEXT("on the network") : TEXT("open country"));
+
 	UE_LOG(LogKBVEWorldStream, Display,
 		TEXT("start at %.0f,%.0f in chunk %d,%d (%s)"), WorldPlan.Spawn.X, WorldPlan.Spawn.Y,
-		WorldPlan.SpawnChunk.X, WorldPlan.SpawnChunk.Y,
-		WorldPlan.bOnRoad ? TEXT("on the network") : TEXT("open country"));
+		WorldPlan.SpawnChunk.X, WorldPlan.SpawnChunk.Y, *Kind);
 
 	bHolding = bHoldPlayerUntilReady;
 	HoldOrRelease();

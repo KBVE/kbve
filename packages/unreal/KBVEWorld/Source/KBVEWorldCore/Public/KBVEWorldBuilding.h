@@ -4,6 +4,7 @@
 #include "KBVEWorldRoof.h"
 #include "KBVEWorldStair.h"
 #include "KBVEWorldWall.h"
+#include "KBVEWorldWindow.h"
 
 #include "KBVEWorldBuilding.generated.h"
 
@@ -56,6 +57,9 @@ struct KBVEWORLDCORE_API FKBVEWorldBuildingParams
 	 * and a short one both come out evenly spaced instead of the short one
 	 * getting a window jammed against its corner.
 	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building|Openings")
+	FKBVEWorldWindowParams Window;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building|Openings",
 		meta = (ClampMin = "50.0"))
 	float BayWidth = 265.0f;
@@ -131,13 +135,20 @@ struct FKBVEWorldBuildingMesh
 	FKBVEWorldRibbonMesh Masonry;
 	FKBVEWorldRibbonMesh Roof;
 
+	/** Timber and glass, which are two more materials and so two more sections. */
+	FKBVEWorldWindowMesh Windows;
+
 	void Reset()
 	{
 		Masonry.Reset();
 		Roof.Reset();
+		Windows.Reset();
 	}
 
-	bool IsEmpty() const { return Masonry.IsEmpty() && Roof.IsEmpty(); }
+	bool IsEmpty() const
+	{
+		return Masonry.IsEmpty() && Roof.IsEmpty() && Windows.IsEmpty();
+	}
 };
 
 struct KBVEWORLDCORE_API FKBVEWorldBuilding

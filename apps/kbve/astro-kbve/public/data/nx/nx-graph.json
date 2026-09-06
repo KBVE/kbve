@@ -4187,6 +4187,11 @@
         },
         {
           "source": "unreal-rareicon",
+          "target": "KBVETinyBVH",
+          "type": "static"
+        },
+        {
+          "source": "unreal-rareicon",
           "target": "KBVEPerf",
           "type": "static"
         },
@@ -4198,6 +4203,11 @@
         {
           "source": "unreal-rareicon",
           "target": "KBVEMover",
+          "type": "static"
+        },
+        {
+          "source": "unreal-rareicon",
+          "target": "KBVEUI",
           "type": "static"
         }
       ],

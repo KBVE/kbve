@@ -168,12 +168,29 @@ void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
 
 		for (int32 Side = 0; Side < 4; ++Side)
 		{
+			// The footprint is the wall's centre line, so two walls that both
+			// stop at the corner point leave a square of nothing outside it the
+			// size of half a wall each way -- and with the ends uncapped you look
+			// through that notch into the inside of the masonry. Each wall is run
+			// half a thickness past both corners instead, so the pair overlap
+			// exactly over the corner square and bury each other's ends, which is
+			// what the ends were assumed to be doing all along. It costs no
+			// triangles: the wall is the same box, longer.
+			const FVector Run = Corners[(Side + 1) % 4] - Corners[Side];
+			const float Span = Run.Size();
+			const FVector Dir = Span > KINDA_SMALL_NUMBER ? Run / Span : FVector::ForwardVector;
+
 			FKBVEWorldWallBuild Wall;
-			Wall.Start = Corners[Side];
-			Wall.End = Corners[(Side + 1) % 4];
+			Wall.Start = Corners[Side] - Dir * Skin;
+			Wall.End = Corners[(Side + 1) % 4] + Dir * Skin;
 			Wall.Start.Z = Base;
 			Wall.End.Z = Base;
-			Wall.UOffset = Perimeter;
+
+			// Pulled back by the same half thickness, so the coursing still reads
+			// the corner point as the distance the perimeter says it is. Without
+			// this every corner would advance the brick by half a wall and the
+			// courses would walk out of step with themselves around the building.
+			Wall.UOffset = Perimeter - Skin;
 
 			// Only the ground floor stands on earth, so only it gets a plinth
 			// and only it has anything to bury: an upper storey sits on the one
@@ -195,12 +212,32 @@ void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
 			Wall.bCapBottom = Level == 0;
 			Wall.bCapEnds = false;
 
-			const float Length = FVector::Dist(Wall.Start, Wall.End);
+			// Bays are laid out on the centre line, not on the run the corners
+			// added to: the stairs are placed from an opening measured off the
+			// unextended front, and a door that moved half a thickness would be a
+			// door with its steps beside it. Shifted into the wall's own frame
+			// afterwards, which is the only place the overlap exists.
+			BayOpenings(Building, Span, Level == 0 && Side == 0, Openings);
+			for (FKBVEWorldWallOpening& Open : Openings)
+			{
+				Open.Along += Skin;
+			}
 
-			// A door on the ground floor of the front wall, which is the side
-			// the building was turned towards the road.
-			BayOpenings(Building, Length, Level == 0 && Side == 0, Openings);
 			FKBVEWorldWall::Build(Building.Wall, Wall, Openings, Detail, Out.Masonry);
+
+			// Framed from the openings the wall actually cut, not the ones it was
+			// handed: the wall snaps them to its coursing and clamps them into its
+			// own length, so the seeded rectangle and the hole are different
+			// rectangles and timber built on the first lands across brick.
+			if (FKBVEWorldWindow::Draws(Detail))
+			{
+				TArray<FKBVEWorldWallPanel> Solids;
+				TArray<FKBVEWorldWallOpening> Placed;
+				FKBVEWorldWall::Panels(Building.Wall, Span + 2.0f * Skin, Openings, Detail,
+					Solids, Placed);
+				FKBVEWorldWindow::Build(Building.Wall, FKBVEWorldWall::Frame(Building.Wall, Wall),
+					Placed, Detail, Building.Window, Out.Windows);
+			}
 
 			// The ridge runs across the front, so the two walls that meet the
 			// slopes end-on are the ones running back from it. A hip closes its own
@@ -211,12 +248,23 @@ void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
 			// whole length of the wall and meets the slope only at the peak.
 			if (bRakes)
 			{
-				FKBVEWorldWall::Gable(Building.Wall, Wall,
+				// On the centre line rather than the extended run. The rake is
+				// what the roof's underside is measured against, and widening its
+				// base without raising its apex would drop the masonry away from
+				// the slope it is meant to be closing against.
+				FKBVEWorldWallBuild Rake = Wall;
+				Rake.Start = Corners[Side];
+				Rake.End = Corners[(Side + 1) % 4];
+				Rake.Start.Z = Base;
+				Rake.End.Z = Base;
+				Rake.UOffset = Perimeter;
+
+				FKBVEWorldWall::Gable(Building.Wall, Rake,
 					FKBVEWorldRoof::Rise(Building.Roof, Plan.Depth) + Slope * Skin, 0.0f,
 					Out.Masonry);
 			}
 
-			Perimeter += Length;
+			Perimeter += Span;
 		}
 	}
 
@@ -253,9 +301,19 @@ void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
 		const float Front = FVector::Dist(Corners[0], Corners[1]);
 		BayOpenings(Building, Front, true, Openings);
 
+		// The front wall as it was actually built: run past both corners, with
+		// the bays shifted into that frame. Asked any other way this would place
+		// the steps from a door the wall never made -- an opening too near an end
+		// is moved to leave a pier beside it, and how near an end it is depends
+		// on the half thickness the corners added.
+		for (FKBVEWorldWallOpening& Open : Openings)
+		{
+			Open.Along += Half;
+		}
+
 		TArray<FKBVEWorldWallPanel> Panels;
 		TArray<FKBVEWorldWallOpening> Placed;
-		FKBVEWorldWall::Panels(Building.Wall, Front, Openings, Detail, Panels, Placed);
+		FKBVEWorldWall::Panels(Building.Wall, Front + 2.0f * Half, Openings, Detail, Panels, Placed);
 
 		for (const FKBVEWorldWallOpening& Open : Placed)
 		{
@@ -276,7 +334,7 @@ void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
 			// meets the plinth's own top face instead of lying on it -- two
 			// coincident surfaces across the width of every doorway in the
 			// village would z-fight from the one angle a doorway is looked at.
-			Steps.Origin = Corners[0] + Steps.Right * Open.Along
+			Steps.Origin = Corners[0] + Steps.Right * (Open.Along - Half)
 				+ Forward * (Half + FMath::Max(Building.Wall.PlinthOverhang, 0.0f));
 			Steps.Origin.Z = Plan.Centre.Z;
 

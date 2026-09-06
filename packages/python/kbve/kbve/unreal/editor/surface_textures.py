@@ -222,6 +222,52 @@ def build_surface_material(spec, textures):
     unreal.log(f"built {path}")
 
 
+def build_glass_material(spec):
+    # Thin Translucent, which is Unreal's model for a pane: a sheet with no
+    # interior worth simulating, where the tint belongs to how much light gets
+    # through rather than to a surface colour. A plain translucent surface with a
+    # low opacity fogs whatever is behind it instead of tinting it.
+    path = spec["path"]
+    mat = create_material(path)
+    mat.set_editor_property("blend_mode", unreal.BlendMode.BLEND_TRANSLUCENT)
+    mat.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_THIN_TRANSLUCENT)
+
+    # Forward shading, because the deferred path has nowhere to put a second
+    # specular response and glass without its reflection is a coloured hole.
+    # TLM_SURFACE is what the editor labels "Surface ForwardShading"; the label
+    # is not the name the enum is reflected under.
+    mat.set_editor_property(
+        "translucency_lighting_mode", unreal.TranslucencyLightingMode.TLM_SURFACE
+    )
+
+    def colour(values, y):
+        node = expr(mat, unreal.MaterialExpressionConstant3Vector, -400, y)
+        node.set_editor_property("constant", unreal.LinearColor(*values, 1.0))
+        return node
+
+    def scalar(value, y):
+        node = expr(mat, unreal.MaterialExpressionConstant, -400, y)
+        node.set_editor_property("r", value)
+        return node
+
+    MEL.connect_material_property(colour(spec["tint"], 0), "", unreal.MaterialProperty.MP_BASE_COLOR)
+    MEL.connect_material_property(scalar(spec["roughness"], 180), "", unreal.MaterialProperty.MP_ROUGHNESS)
+    MEL.connect_material_property(scalar(0.0, 320), "", unreal.MaterialProperty.MP_METALLIC)
+
+    # How much of the pane's own surface shows -- its sheen -- not how solid it
+    # is. What you can see through it is the transmittance below.
+    MEL.connect_material_property(scalar(spec["opacity"], 460), "", unreal.MaterialProperty.MP_OPACITY)
+
+    glass_out = expr(mat, unreal.MaterialExpressionThinTranslucentMaterialOutput, -100, 600)
+    MEL.connect_material_expressions(
+        colour(spec["transmittance"], 600), "", glass_out, "TransmittanceColor"
+    )
+
+    MEL.recompile_material(mat)
+    EAL.save_asset(path)
+    unreal.log(f"built {path}")
+
+
 def build_water_material(spec):
     # Single Layer Water rather than a translucent surface: carved channels are
     # shallow and a flat blue plane over them reads as plastic, where this
@@ -286,6 +332,8 @@ def build(config):
         build_surface_material(spec, textures)
     if config.get("water_material"):
         build_water_material(config["water_material"])
+    if config.get("glass_material"):
+        build_glass_material(config["glass_material"])
 
 
 build(load_config())

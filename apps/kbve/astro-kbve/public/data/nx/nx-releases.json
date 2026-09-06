@@ -1,17 +1,17 @@
 {
-  "generated_at": "2026-09-05T05:27:45Z",
+  "generated_at": "2026-09-06T05:41:51Z",
   "summary": {
-    "tag-pending": 0,
+    "tag-pending": 1,
     "changes-unreleased": 0,
     "manifest-behind": 0,
     "no-version": 0,
-    "never-released": 87,
+    "never-released": 86,
     "current": 1
   },
   "lanes": {
     "docker": {
       "total": 45,
-      "waiting": 0
+      "waiting": 1
     },
     "crates": {
       "total": 27,
@@ -51,6 +51,16 @@
     }
   },
   "rows": [
+    {
+      "project": "chisel-ubuntu-axum",
+      "lanes": [
+        "docker"
+      ],
+      "manifest": "24.04.13",
+      "released": "24.04.12",
+      "commits_since": 1,
+      "state": "tag-pending"
+    },
     {
       "project": "agones-factorio",
       "lanes": [
@@ -407,16 +417,6 @@
         "crates"
       ],
       "manifest": "0.1.1",
-      "released": null,
-      "commits_since": null,
-      "state": "never-released"
-    },
-    {
-      "project": "chisel-ubuntu-axum",
-      "lanes": [
-        "docker"
-      ],
-      "manifest": "24.04.11",
       "released": null,
       "commits_since": null,
       "state": "never-released"
@@ -934,5 +934,5 @@
     }
   ],
   "total": 88,
-  "waiting": 0
+  "waiting": 1
 }

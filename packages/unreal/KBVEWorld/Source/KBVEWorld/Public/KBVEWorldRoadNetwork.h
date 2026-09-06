@@ -9,6 +9,7 @@
 #include "KBVEWorldRoadGraph.h"
 #include "KBVEWorldSettlement.h"
 #include "Mass/EntityHandle.h"
+#include "MassArchetypeTypes.h"
 
 #include "KBVEWorldRoadNetwork.generated.h"
 
@@ -79,6 +80,7 @@ public:
 		UMaterialInterface* StoneMaterial = nullptr;
 		UMaterialInterface* BrickMaterial = nullptr;
 		UMaterialInterface* RoofMaterial = nullptr;
+		UMaterialInterface* GlassMaterial = nullptr;
 		const UStaticMesh* PartMesh = nullptr;
 	};
 
@@ -182,6 +184,14 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
 	TObjectPtr<UProceduralMeshComponent> Roof;
 
+	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
+	TObjectPtr<UProceduralMeshComponent> Joinery;
+
+	// Its own component because glass is the one surface here that is drawn
+	// translucent, and a translucent section cannot share one with an opaque.
+	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
+	TObjectPtr<UProceduralMeshComponent> Glazing;
+
 	/**
 	 * The routes this chunk's two edges took, kept rather than re-solved.
 	 *
@@ -203,6 +213,9 @@ private:
 
 	UPROPERTY(Transient)
 	TObjectPtr<class UMassEntitySubsystem> Mass;
+
+	FMassArchetypeHandle FenceArchetype;
+	FMassArchetypeHandle BuildingArchetype;
 
 	TArray<FMassEntityHandle> FenceRuns;
 	TArray<FKBVEWorldFenceRun> Runs;
@@ -251,6 +264,19 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KBVEWorld|Road")
 	FKBVEWorldRoadParams Road;
 
+	/**
+	 * The buildings that stand along the roads, taken from the streamer too.
+	 *
+	 * A settlement goes where the route already goes, because that is what a
+	 * settlement is and because the road is a solved polyline by the time
+	 * anything needs to know where a house belongs. Density is the only
+	 * difference between the village this raises and a town -- and the streamer
+	 * holds the numbers because it plans the start from them, so a copy edited
+	 * here would put the player in a village this actor then declines to build.
+	 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KBVEWorld|Road")
+	FKBVEWorldSettlementParams Settlement;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road")
 	FKBVEWorldBridgeParams Bridge;
 
@@ -264,16 +290,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road")
 	FKBVEWorldFenceParams Fence;
 
-	/**
-	 * The buildings that stand along the roads.
-	 *
-	 * A settlement goes where the route already goes, because that is what a
-	 * settlement is and because the road is a solved polyline by the time
-	 * anything needs to know where a house belongs. Density is the only
-	 * difference between the village this raises and a town.
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road")
-	FKBVEWorldSettlementParams Settlement;
 
 	/**
 	 * Chunks kept either side of the viewer's own.
@@ -333,6 +349,10 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road")
 	TObjectPtr<UMaterialInterface> RoofMaterial;
 
+	/** Thin translucent glass. Without one the windows are framed openings. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Materials")
+	TObjectPtr<UMaterialInterface> GlassMaterial;
+
 	/**
 	 * A cube, for the parts of a crossing that are one.
 	 *
@@ -362,6 +382,9 @@ protected:
 private:
 	bool TryGetViewLocation(FVector& Out) const;
 	class AKBVEWorldStreamer* FindStreamer();
+
+	/** Take the seed, the terrain shape, the roads and the villages off it. */
+	void SyncFromStreamer();
 	FIntPoint ChunkCoordAt(const FVector& WorldLocation) const;
 	bool WantsDetail(const FIntPoint& Centre, const FIntPoint& Coord) const;
 

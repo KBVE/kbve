@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KBVEPerf</title>
+<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4.1.13/dist/index.global.js"
+  integrity="sha384-P0V9YU7TFy919I0oVLXiqiUsdiJiaV+QKGysF4Lx+s901F1X9+zjFV0mc6pRKCKq"
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/alpinejs/3.14.9/cdn.min.js"
+  integrity="sha384-9Ax3MmS9AClxJyd5/zafcXXjxmwFhZCdsT6HJoJjarvCaAkJlk5QDzjLJm+Wdx5F"
+  crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+<script>
+const HISTORY = 240;
+const BUDGET = 16.7;
+
+const LINES = [
+  { key: 'gameMs',   label: 'game',   color: '#7dd3fc' },
+  { key: 'renderMs', label: 'render', color: '#a78bfa' },
+  { key: 'gpuMs',    label: 'gpu',    color: '#fbbf24' },
+  { key: 'rhiMs',    label: 'rhi',    color: '#f472b6' },
+];
+
+const BARS = [
+  { key: 'FrustumCulled',      label: 'frustum culled',      tone: 'bg-sky-500' },
+  { key: 'Occluded',           label: 'occluded',            tone: 'bg-violet-500' },
+  { key: 'StaticallyOccluded', label: 'statically occluded', tone: 'bg-violet-800' },
+  { key: 'VisibleStatic',      label: 'visible static',      tone: 'bg-emerald-500' },
+  { key: 'VisibleDynamic',     label: 'visible dynamic',     tone: 'bg-amber-500' },
+];
+
+document.addEventListener('alpine:init', () => {
+  Alpine.store('perf', {
+    frame: 0, fps: 0, status: 'idle', period: 500, running: true,
+    lines: {}, paths: {}, rules: {}, scene: {}, ops: [],
+    history: {}, log: [],
+
+    poll() {
+      // Same origin: the editor serves this page off the port the numbers are
+      // on, so there is nothing to configure and nothing to get wrong.
+      fetch('/perf', { cache: 'no-store' })
+        .then(r => r.json())
+        .then(json => this.apply(json))
+        .catch(() => { this.status = 'gone'; });
+    },
+
+    apply(json) {
+      // Only a frame that moved is a frame. The endpoint outlives a play
+      // session and keeps answering with the last frame of the last one, and
+      // charting that draws a flat line that reads like a steady sixty.
+      const moved = json.frame !== this.frame;
+      this.frame = json.frame;
+      this.fps = json.fps;
+      this.status = moved ? 'live' : 'idle';
+
+      for (const line of LINES) {
+        this.lines[line.key] = json[line.key];
+        if (!moved) continue;
+
+        const series = this.history[line.key] || (this.history[line.key] = []);
+        series.push(json[line.key]);
+        if (series.length > HISTORY) series.shift();
+        if (series.length < 2) continue;
+
+        const max = Math.max(BUDGET * 1.25, ...series);
+        const step = 100 / (series.length - 1);
+        let points = '';
+        for (let i = 0; i < series.length; i++) {
+          points += `${(i * step).toFixed(2)},${(40 - (series[i] / max) * 40).toFixed(2)} `;
+        }
+        this.paths[line.key] = points;
+        this.rules[line.key] = (40 - (BUDGET / max) * 40).toFixed(2);
+      }
+
+      const scene = {};
+      for (const c of json.counts) {
+        if (c.name.startsWith('Scene.')) scene[c.name.slice(6)] = c.value;
+      }
+      this.scene = scene;
+
+      // Worst first by p95 rather than by the frame on screen: a scope that
+      // spikes one frame in twenty is the one worth finding, and it is never
+      // the one you happen to be looking at.
+      this.ops = [...json.ops].sort((a, b) => b.p95Ms - a.p95Ms);
+    },
+
+    reset() {
+      fetch('/reset', { cache: 'no-store' }).then(() => { this.history = {}; this.ops = []; });
+    },
+
+    exec(cmd) {
+      if (!cmd) return;
+      fetch(`/exec?cmd=${encodeURIComponent(cmd)}`, { cache: 'no-store' })
+        .then(r => r.json())
+        .then(j => this.log.unshift({ cmd, text: j.error || j.output || 'ok', bad: !!j.error }))
+        .catch(e => this.log.unshift({ cmd, text: String(e), bad: true }))
+        .finally(() => { this.log = this.log.slice(0, 12); });
+    },
+
+    n(v) { return v === undefined || v === null ? '—' : v.toLocaleString(); },
+    pct(v) { const p = this.scene.Processed || 0; return p ? Math.min(100, ((v || 0) / p) * 100) : 0; },
+    worst() { return this.ops.length ? this.ops[0].p95Ms || 1 : 1; },
+  });
+});
+</script>
+</head>
+
+<body class="bg-neutral-950 text-neutral-200">
+<!--
+  Every binding below reads one field off the store, so a tick that changes the
+  frame time repaints the frame time. Nothing diffs a tree, and the sparklines
+  are a points attribute rather than two hundred elements.
+-->
+<div class="mx-auto max-w-6xl p-6" x-data x-init="
+    $store.perf.poll();
+    let id = setInterval(() => $store.perf.running && $store.perf.poll(), $store.perf.period);
+    $watch('$store.perf.period', p => { clearInterval(id); id = setInterval(() => $store.perf.running && $store.perf.poll(), p); });
+  ">
+
+  <header class="mb-6 flex flex-wrap items-center gap-4">
+    <div>
+      <h1 class="text-lg font-semibold text-neutral-100">KBVEPerf</h1>
+      <p class="text-xs text-neutral-500">frame <span x-text="$store.perf.n($store.perf.frame)"></span></p>
+    </div>
+
+    <div x-data="{
+        tone() { return { live: 'bg-emerald-950 text-emerald-300', idle: 'bg-neutral-900 text-neutral-400', gone: 'bg-red-950 text-red-300' }[$store.perf.status]; },
+        dot()  { return { live: 'bg-emerald-400', idle: 'bg-neutral-600', gone: 'bg-red-400' }[$store.perf.status]; },
+        label(){ return { live: 'live', idle: 'idle — last run held', gone: 'no editor' }[$store.perf.status]; }
+      }"
+      class="ml-auto flex items-center gap-2 rounded-full px-3 py-1 text-xs" :class="tone()">
+      <span class="h-1.5 w-1.5 rounded-full" :class="dot()"></span><span x-text="label()"></span>
+    </div>
+
+    <label class="text-xs text-neutral-500">
+      every
+      <input type="number" step="100" min="100" x-model.number="$store.perf.period"
+        class="ml-2 w-20 rounded border border-neutral-800 bg-neutral-900 px-2 py-1 text-neutral-200" />
+      ms
+    </label>
+    <button @click="$store.perf.running = !$store.perf.running"
+      class="rounded border border-neutral-800 bg-neutral-900 px-3 py-1 text-xs hover:bg-neutral-800"
+      x-text="$store.perf.running ? 'pause' : 'resume'"></button>
+    <button @click="$store.perf.reset()"
+      class="rounded border border-neutral-800 bg-neutral-900 px-3 py-1 text-xs hover:bg-neutral-800">reset</button>
+  </header>
+
+  <div class="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+    <div class="rounded-lg border border-neutral-800 bg-neutral-900/60 p-3">
+      <div class="text-xs uppercase tracking-wider text-neutral-500">fps</div>
+      <div class="text-3xl font-semibold tabular-nums"
+        :class="$store.perf.fps < 60 ? 'text-amber-400' : 'text-emerald-400'"
+        x-text="$store.perf.fps.toFixed(0)"></div>
+    </div>
+
+    <template x-for="line in LINES" :key="line.key">
+      <div class="rounded-lg border border-neutral-800 bg-neutral-900/60 p-3" x-data="{ line }">
+        <div class="flex items-baseline justify-between">
+          <span class="text-xs uppercase tracking-wider text-neutral-500" x-text="line.label"></span>
+          <span class="text-xl font-semibold tabular-nums"
+            :class="($store.perf.lines[line.key] || 0) > BUDGET ? 'text-red-400' : 'text-neutral-100'">
+            <span x-text="($store.perf.lines[line.key] || 0).toFixed(2)"></span><span class="ml-1 text-xs text-neutral-500">ms</span>
+          </span>
+        </div>
+        <svg class="h-10 w-full" viewBox="0 0 100 40" preserveAspectRatio="none">
+          <line x1="0" x2="100" :y1="$store.perf.rules[line.key] || 40" :y2="$store.perf.rules[line.key] || 40"
+            stroke="#525252" stroke-width="0.4" stroke-dasharray="2 2" />
+          <polyline :points="$store.perf.paths[line.key] || ''" fill="none" :stroke="line.color"
+            stroke-width="1" vector-effect="non-scaling-stroke" />
+        </svg>
+      </div>
+    </template>
+  </div>
+
+  <section class="mb-6 rounded-lg border border-neutral-800 bg-neutral-900/60 p-4">
+    <h2 class="mb-3 text-xs uppercase tracking-wider text-neutral-500">visibility</h2>
+    <div class="grid gap-4 lg:grid-cols-3">
+      <div class="lg:col-span-2">
+        <div class="mb-3 flex items-baseline gap-2">
+          <span class="text-2xl font-semibold tabular-nums text-neutral-100"
+            x-text="$store.perf.n($store.perf.scene.Processed)"></span>
+          <span class="text-xs uppercase tracking-wider text-neutral-500">primitives processed</span>
+        </div>
+        <template x-for="bar in BARS" :key="bar.key">
+          <div class="mb-2 flex items-center gap-3">
+            <span class="w-40 shrink-0 text-xs text-neutral-400" x-text="bar.label"></span>
+            <div class="h-2 flex-1 rounded bg-neutral-800">
+              <div class="h-2 rounded" :class="bar.tone"
+                :style="`width: ${$store.perf.pct($store.perf.scene[bar.key])}%`"></div>
+            </div>
+            <span class="w-16 shrink-0 text-right text-sm tabular-nums text-neutral-200"
+              x-text="$store.perf.n($store.perf.scene[bar.key])"></span>
+          </div>
+        </template>
+      </div>
+      <div class="grid content-start gap-3">
+        <div class="rounded-lg border border-neutral-800 p-3">
+          <div class="text-xs uppercase tracking-wider text-neutral-500">mesh draw calls</div>
+          <div class="text-2xl font-semibold tabular-nums text-neutral-100"
+            x-text="$store.perf.n($store.perf.scene.MeshDrawCalls)"></div>
+        </div>
+        <div class="rounded-lg border border-neutral-800 p-3">
+          <div class="text-xs uppercase tracking-wider text-neutral-500">occlusion queries</div>
+          <div class="text-2xl font-semibold tabular-nums text-neutral-100"
+            x-text="$store.perf.n($store.perf.scene.OcclusionQueries)"></div>
+          <div class="mt-1 text-xs text-neutral-500">
+            to hide <span x-text="$store.perf.n($store.perf.scene.Occluded || 0)"></span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!--
+    Editor-only on the engine side, and an allow-list rather than a console:
+    kbve.*, r.*, stat *, showflag.*, t.MaxFPS, fx.* and nothing else.
+  -->
+  <section class="mb-6 rounded-lg border border-neutral-800 bg-neutral-900/60 p-4"
+    x-data="{ cmd: '', send() { $store.perf.exec(this.cmd); this.cmd = ''; } }">
+    <h2 class="mb-3 text-xs uppercase tracking-wider text-neutral-500">console</h2>
+    <div class="flex gap-2">
+      <input type="text" x-model="cmd" @keydown.enter="send()"
+        placeholder="stat unit   ·   r.ScreenPercentage 50   ·   kbve.perf.overlay 1"
+        class="flex-1 rounded border border-neutral-800 bg-neutral-950 px-3 py-1.5 font-mono text-xs text-neutral-200 placeholder:text-neutral-600" />
+      <button @click="send()"
+        class="rounded border border-neutral-800 bg-neutral-900 px-3 py-1 text-xs hover:bg-neutral-800">run</button>
+    </div>
+    <template x-for="(entry, i) in $store.perf.log" :key="i">
+      <div class="mt-2 border-l-2 pl-3" :class="entry.bad ? 'border-red-800' : 'border-neutral-800'">
+        <div class="font-mono text-xs text-neutral-400" x-text="entry.cmd"></div>
+        <pre class="whitespace-pre-wrap font-mono text-xs"
+          :class="entry.bad ? 'text-red-400' : 'text-neutral-500'" x-text="entry.text"></pre>
+      </div>
+    </template>
+  </section>
+
+  <section class="rounded-lg border border-neutral-800 bg-neutral-900/60 p-4">
+    <h2 class="mb-3 text-xs uppercase tracking-wider text-neutral-500">scopes</h2>
+    <p class="text-sm text-neutral-500" x-show="!$store.perf.ops.length">
+      No scoped ops reported. Wrap work in <code>KBVEPERF_SCOPE</code> to see it here.
+    </p>
+    <div class="overflow-x-auto" x-show="$store.perf.ops.length">
+      <table class="w-full text-sm">
+        <thead class="text-xs uppercase tracking-wider text-neutral-500">
+          <tr class="border-b border-neutral-800">
+            <th class="py-2 text-left font-medium">scope</th>
+            <th class="py-2 text-right font-medium">count</th>
+            <th class="py-2 text-right font-medium">last</th>
+            <th class="py-2 text-right font-medium">avg</th>
+            <th class="py-2 text-right font-medium">p95</th>
+            <th class="py-2 text-right font-medium">max</th>
+            <th class="w-1/4"></th>
+          </tr>
+        </thead>
+        <tbody class="tabular-nums">
+          <template x-for="op in $store.perf.ops" :key="op.name">
+            <tr class="border-b border-neutral-900">
+              <td class="py-1.5 pr-4 font-mono text-xs text-neutral-300" x-text="op.name"></td>
+              <td class="py-1.5 text-right text-neutral-500" x-text="$store.perf.n(op.count)"></td>
+              <td class="py-1.5 text-right" x-text="op.lastMs.toFixed(2)"></td>
+              <td class="py-1.5 text-right text-neutral-400" x-text="op.avgMs.toFixed(2)"></td>
+              <td class="py-1.5 text-right font-semibold" x-text="op.p95Ms.toFixed(2)"></td>
+              <td class="py-1.5 text-right text-neutral-500" x-text="op.maxMs.toFixed(2)"></td>
+              <td class="py-1.5 pl-3">
+                <div class="h-1.5 rounded bg-neutral-800">
+                  <div class="h-1.5 rounded bg-amber-400"
+                    :style="`width: ${Math.min(100, (op.p95Ms / $store.perf.worst()) * 100)}%`"></div>
+                </div>
+              </td>
+            </tr>
+          </template>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+</body>
+</html>

@@ -156,4 +156,67 @@ bool FKBVEWorldBuildingRoofClearanceTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FKBVEWorldBuildingCornerTest,
+	"KBVE.World.Building.WallsCloseAtTheCorners",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// The hole you can see through. The footprint is the wall's centre line, so two
+// walls that each stop at the corner point leave a square of nothing outside it
+// half a thickness on a side -- and since the ends are deliberately uncapped, on
+// the assumption that the corners bury them, what is behind that square is the
+// inside of the masonry.
+//
+// Checked as a vertex at the outer corner rather than by eye or by counting
+// triangles: a wall run past the corner has to put one exactly there, and a wall
+// stopping short cannot.
+bool FKBVEWorldBuildingCornerTest::RunTest(const FString& Parameters)
+{
+	const FKBVEWorldBuildingParams Building;
+	const float Half = 0.5f * Building.Wall.Thickness;
+
+	for (int32 Step = 0; Step < 12; ++Step)
+	{
+		// Turned as well as resized. A corner is where two walls of different
+		// lengths meet at an angle the building was given by the road, and an
+		// axis-aligned test would only ever exercise one of those.
+		const float Yaw = static_cast<float>(Step) * 0.37f;
+		const FKBVEWorldBuildingPlan Plan =
+			FKBVEWorldBuilding::Plan(Building, 4000 + Step * 131, FVector::ZeroVector, Yaw);
+
+		FKBVEWorldBuildingMesh Mesh;
+		FKBVEWorldBuilding::Build(Building, Plan, EKBVEWorldWallDetail::Full, Mesh);
+
+		FVector Corners[4];
+		FKBVEWorldBuilding::Footprint(Plan, Corners);
+
+		for (int32 Side = 0; Side < 4; ++Side)
+		{
+			const FVector& At = Corners[Side];
+			const FVector Prev = Corners[(Side + 3) % 4];
+			const FVector Next = Corners[(Side + 1) % 4];
+
+			// Outwards along both walls at once, which is the diagonal into the
+			// missing square.
+			const FVector A = (At - Prev).GetSafeNormal();
+			const FVector B = (At - Next).GetSafeNormal();
+			const FVector Outer = At + (A + B) * Half;
+
+			bool bFound = false;
+			for (const FVector& Vertex : Mesh.Masonry.Vertices)
+			{
+				if (FVector::Dist2D(Vertex, Outer) < 1.0f)
+				{
+					bFound = true;
+					break;
+				}
+			}
+
+			TestTrue(FString::Printf(TEXT("corner %d of build %d is closed"), Side, Step), bFound);
+		}
+	}
+
+	return true;
+}
+
 #endif

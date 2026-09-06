@@ -1,9 +1,9 @@
 {
 	"FileVersion": 3,
-	"Version": 1,
-	"VersionName": "1.6.7",
+	"Version": 2,
+	"VersionName": "1.8.0",
 	"FriendlyName": "KBVE TinyBVH",
-	"Description": "Unreal Engine wrapper for TinyBVH 1.6.7 — single-header BVH construction and traversal library for ray tracing.",
+	"Description": "Unreal Engine wrapper for TinyBVH 1.8.0 — single-header BVH construction and traversal library for ray tracing.",
 	"Category": "Third Party",
 	"CreatedBy": "KBVE",
 	"CreatedByURL": "https://kbve.com",

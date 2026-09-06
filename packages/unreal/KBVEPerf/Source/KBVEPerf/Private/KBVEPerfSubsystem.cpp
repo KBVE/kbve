@@ -5,6 +5,7 @@
 #include "Engine/Engine.h"
 #include "RHI.h"
 #include "RenderCore.h"
+#include "RHIStats.h"
 #include "RenderingThread.h"
 #include "RenderTimer.h"
 #include "HAL/IConsoleManager.h"
@@ -15,6 +16,14 @@
 #include "HttpServerRequest.h"
 #include "HttpServerResponse.h"
 #include "IHttpRouter.h"
+#include "RenderCore.h"
+
+#if STATS
+#include "Stats/StatsData.h"
+#endif
+#include "Interfaces/IPluginManager.h"
+#include "Misc/FileHelper.h"
+#include "Misc/StringOutputDevice.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogKBVEPerf, Log, All);
 
@@ -31,6 +40,11 @@ static TAutoConsoleVariable<FString>* CVarPerfCategories = new TAutoConsoleVaria
 static TAutoConsoleVariable<int32>* CVarPerfPort = new TAutoConsoleVariable<int32>(
 	TEXT("kbve.perf.port"), 8099,
 	TEXT("Port for the KBVEPerf HTTP /perf JSON readout."),
+	ECVF_Default);
+
+static TAutoConsoleVariable<int32>* CVarPerfExec = new TAutoConsoleVariable<int32>(
+	TEXT("kbve.perf.exec"), 1,
+	TEXT("Allow /exec to run allow-listed console commands over HTTP. 0 = readout only."),
 	ECVF_Default);
 
 static TAutoConsoleVariable<int32>* CVarPerfOverlay = new TAutoConsoleVariable<int32>(
@@ -62,6 +76,20 @@ void UKBVEPerfSubsystem::Initialize(FSubsystemCollectionBase& Collection)
 	CVarPerfCategories->AsVariable()->SetOnChangedCallback(
 		FConsoleVariableDelegate::CreateWeakLambda(this, [this](IConsoleVariable*) { RebuildCategoryFilter(); }));
 
+	// The port has to be able to move after the server is up. Command lines set
+	// these one at a time and in the order they were written, so `kbve.perf 1`
+	// ahead of `kbve.perf.port N` binds the default and then hears about the port
+	// it was supposed to use -- which, before this, it ignored.
+	CVarPerfPort->AsVariable()->SetOnChangedCallback(
+		FConsoleVariableDelegate::CreateWeakLambda(this, [this](IConsoleVariable*)
+		{
+			if (bHttpActive && BoundPort != CVarPerfPort->GetValueOnGameThread())
+			{
+				StopHttp();
+				StartHttp();
+			}
+		}));
+
 	RebuildCategoryFilter();
 	ApplyEnabledState();
 
@@ -83,12 +111,172 @@ void UKBVEPerfSubsystem::Deinitialize()
 		MasterCVar = nullptr;
 	}
 	CVarPerfCategories->AsVariable()->SetOnChangedCallback(FConsoleVariableDelegate());
+	CVarPerfPort->AsVariable()->SetOnChangedCallback(FConsoleVariableDelegate());
 
+	StopStats();
 	StopHttp();
 	FKBVEPerf::SetMasterEnabled(false);
 	FKBVEPerf::SetSubsystem(nullptr);
 
 	Super::Deinitialize();
+}
+
+
+#if STATS
+namespace
+{
+	/**
+	 * What to publish, and what to call it.
+	 *
+	 * Named through GET_STATFNAME rather than by their display strings, so a stat
+	 * that is renamed upstream is a compile error here instead of a counter that
+	 * quietly reads zero forever.
+	 *
+	 * Chosen to answer one question between them: of everything the renderer
+	 * considered, how much did it throw away and how much did it draw. Processed
+	 * against culled and occluded is the whole argument about whether anything is
+	 * being drawn that does not matter -- and occlusion queries is what that
+	 * answer costs, because culling is not free either.
+	 */
+	/**
+	 * The same name with its number component removed.
+	 *
+	 * GET_STATFNAME returns an FName that carries a number; the same stat arriving
+	 * in the stream carries none. FName equality includes that number, so the two
+	 * never compare equal despite printing identically -- which is a mismatch that
+	 * cannot be seen by reading the log, only by reading the trailing digits.
+	 */
+	FName Bare(const FName Name)
+	{
+		return FName(Name, 0);
+	}
+
+	void BuildWatchList(TMap<FName, FName>& Out)
+	{
+		Out.Reset();
+		Out.Add(Bare(GET_STATFNAME(STAT_ProcessedPrimitives)), FName(TEXT("Scene.Processed")));
+		Out.Add(Bare(GET_STATFNAME(STAT_CulledPrimitives)), FName(TEXT("Scene.FrustumCulled")));
+		Out.Add(Bare(GET_STATFNAME(STAT_OccludedPrimitives)), FName(TEXT("Scene.Occluded")));
+		Out.Add(Bare(GET_STATFNAME(STAT_StaticallyOccludedPrimitives)),
+			FName(TEXT("Scene.StaticallyOccluded")));
+		Out.Add(Bare(GET_STATFNAME(STAT_OcclusionQueries)), FName(TEXT("Scene.OcclusionQueries")));
+		Out.Add(Bare(GET_STATFNAME(STAT_VisibleStaticMeshElements)), FName(TEXT("Scene.VisibleStatic")));
+		Out.Add(Bare(GET_STATFNAME(STAT_VisibleDynamicPrimitives)), FName(TEXT("Scene.VisibleDynamic")));
+		Out.Add(Bare(GET_STATFNAME(STAT_MeshDrawCalls)), FName(TEXT("Scene.MeshDrawCalls")));
+	}
+}
+#endif
+
+void UKBVEPerfSubsystem::StartStats()
+{
+#if STATS
+	if (StatsEnableCount > 0)
+	{
+		return;
+	}
+
+	BuildWatchList(Watched);
+
+	// Collection is off unless somebody is holding it on, and a group is dormant
+	// unless somebody has asked for it. Both are counted rather than boolean, so
+	// this has to be released exactly once -- hence the guard above and the count
+	// below rather than a bare pair of calls.
+	StatsPrimaryEnableAdd();
+	++StatsEnableCount;
+
+	// Through the command rather than SetHighPerformanceEnableForGroup, and not
+	// for tidiness: a group that has not registered yet -- which is every
+	// renderer group at engine startup, because nothing has declared a stat in
+	// it -- is simply not found by the setter, which then does nothing at all.
+	// The command remembers the intent in EnableForNewGroup and applies it when
+	// the group appears. That silent no-op is why this read zero for a whole
+	// evening while the listener sat there receiving three thousand messages a
+	// frame and matching none of them.
+	IStatGroupEnableManager& Groups = IStatGroupEnableManager::Get();
+	Groups.StatGroupEnableManagerCommand(TEXT("enable initviews"));
+	Groups.StatGroupEnableManagerCommand(TEXT("enable scenerendering"));
+
+	StatsHandle = FStatsThreadState::GetLocalState().NewFrameDelegate.AddUObject(
+		this, &UKBVEPerfSubsystem::OnStatsFrame);
+
+#endif
+}
+
+void UKBVEPerfSubsystem::StopStats()
+{
+#if STATS
+	if (StatsEnableCount <= 0)
+	{
+		return;
+	}
+
+	if (StatsHandle.IsValid())
+	{
+		FStatsThreadState::GetLocalState().NewFrameDelegate.Remove(StatsHandle);
+		StatsHandle.Reset();
+	}
+
+	IStatGroupEnableManager& Groups = IStatGroupEnableManager::Get();
+	Groups.StatGroupEnableManagerCommand(TEXT("disable initviews"));
+	Groups.StatGroupEnableManagerCommand(TEXT("disable scenerendering"));
+
+	StatsPrimaryEnableAdd(-1);
+	--StatsEnableCount;
+
+	FScopeLock Lock(&Mutex);
+	Scene.Reset();
+#endif
+}
+
+void UKBVEPerfSubsystem::OnStatsFrame(int64 Frame)
+{
+#if STATS
+	// On the stats thread, and reading a frame that has already been condensed:
+	// the counters are whole numbers collected for a frame that is over, so there
+	// is nothing to sample and nothing to race against but our own map.
+	const FStatsThreadState& State = FStatsThreadState::GetLocalState();
+	if (Frame < State.GetOldestValidFrame() || Frame > State.GetLatestValidFrame())
+	{
+		return;
+	}
+
+	TMap<FName, double> Collected;
+	for (const FStatMessage& Message : State.GetCondensedHistory(Frame))
+	{
+		// The raw name: GET_STATFNAME hands back the encoded FName, group and
+		// description and all, which is exactly what the stream carries.
+		const FName* Label = Watched.Find(Bare(Message.NameAndInfo.GetRawName()));
+		if (!Label)
+		{
+			continue;
+		}
+
+		// Counters are int64 here; anything else is a cycle stat we did not ask
+		// for, and guessing at its packing would publish nonsense.
+		if (Message.NameAndInfo.GetField<EStatDataType>() == EStatDataType::ST_int64)
+		{
+			Collected.Add(*Label, static_cast<double>(Message.GetValue_int64()));
+		}
+	}
+
+	// Merged rather than assigned. A counter is only in the stream on the frames
+	// it was touched, so replacing wholesale means every frame that happens not
+	// to mention occlusion blanks the occlusion number.
+	FScopeLock Lock(&Mutex);
+	for (const TPair<FName, double>& Pair : Collected)
+	{
+		Scene.Add(Pair.Key, Pair.Value);
+	}
+#endif
+}
+
+void UKBVEPerfSubsystem::ResetStats()
+{
+	FScopeLock Lock(&Mutex);
+	Ops.Reset();
+	Counts.Reset();
+	Recent.Reset();
+	RecentHead = 0;
 }
 
 void UKBVEPerfSubsystem::ApplyEnabledState()
@@ -98,9 +286,11 @@ void UKBVEPerfSubsystem::ApplyEnabledState()
 	if (bOn)
 	{
 		StartHttp();
+		StartStats();
 	}
 	else
 	{
+		StopStats();
 		StopHttp();
 	}
 }
@@ -189,8 +379,10 @@ FString UKBVEPerfSubsystem::BuildJson() const
 
 	FString Out;
 	Out += FString::Printf(
-		TEXT("{\"frame\":%llu,\"fps\":%.1f,\"gameMs\":%.3f,\"renderMs\":%.3f,\"gpuMs\":%.3f,\"rhiMs\":%.3f,\"ops\":["),
-		static_cast<uint64>(GFrameCounter), CachedFps, CachedGameMs, CachedRenderMs, CachedGpuMs, CachedRhiMs);
+		TEXT("{\"frame\":%llu,\"fps\":%.1f,\"gameMs\":%.3f,\"renderMs\":%.3f,\"gpuMs\":%.3f,")
+			TEXT("\"rhiMs\":%.3f,\"ops\":["),
+		static_cast<uint64>(GFrameCounter), CachedFps, CachedGameMs, CachedRenderMs, CachedGpuMs,
+		CachedRhiMs);
 
 	bool bFirst = true;
 	for (const TPair<FName, FKBVEPerfOpStat>& Pair : Ops)
@@ -216,6 +408,26 @@ FString UKBVEPerfSubsystem::BuildJson() const
 
 	Out += TEXT("],\"counts\":[");
 	bFirst = true;
+
+	if (CachedDrawCalls > 0 || CachedPrimitives > 0)
+	{
+		Out += FString::Printf(
+			TEXT("{\"name\":\"RHI.DrawCalls\",\"value\":%d},{\"name\":\"RHI.Triangles\",\"value\":%d}"),
+			CachedDrawCalls, CachedPrimitives);
+		bFirst = false;
+	}
+
+	for (const TPair<FName, double>& Pair : Scene)
+	{
+		if (!bFirst)
+		{
+			Out += TEXT(",");
+		}
+		bFirst = false;
+		Out += FString::Printf(TEXT("{\"name\":\"%s\",\"value\":%.0f}"), *Pair.Key.ToString(),
+			Pair.Value);
+	}
+
 	for (const TPair<FName, double>& Pair : Counts)
 	{
 		if (!bFirst)
@@ -267,14 +479,161 @@ void UKBVEPerfSubsystem::StartHttp()
 		return;
 	}
 
+	// The readout itself, on the same port the numbers are on, and reached by
+	// opening the port with nothing after it.
+	//
+	// A preprocessor rather than a route because root is not a path a route can
+	// have: `FHttpPath::IsValidPath` returns false for it and `BindRoute` checks
+	// that, so binding "/" takes the whole process down. This runs before the
+	// router on every request and passes everything it does not want straight
+	// through, which is what leaves /perf where it was.
+	//
+	// Served off disk rather than compiled in so the page can be edited and
+	// reloaded against a running game -- and read per request for the same
+	// reason. It is a few kilobytes asked for once per refresh; a cache here
+	// would only make editing it pointless.
+	PageHandle = Router->RegisterRequestPreprocessor(FHttpRequestHandler::CreateWeakLambda(this,
+		[this](const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete)
+		{
+			const FString Path = Request.RelativePath.GetPath();
+
+			// Now that the endpoint outlives a play session, the scopes it has
+			// collected do too -- so there has to be a way to say "from here",
+			// or every reading is the average of every run since the editor
+			// opened.
+			if (Path == TEXT("/reset"))
+			{
+				ResetStats();
+				const FString Body(TEXT("{\"reset\":true}"));
+				TUniquePtr<FHttpServerResponse> Cleared =
+					FHttpServerResponse::Create(Body, TEXT("application/json"));
+				Cleared->Headers.Add(TEXT("Access-Control-Allow-Origin"), { TEXT("*") });
+				OnComplete(MoveTemp(Cleared));
+				return true;
+			}
+
+#if WITH_EDITOR
+			// The way back in. A readout that can only be watched means every
+			// experiment is a walk to the editor window to type a cvar, and the
+			// numbers that say whether it worked are on this page.
+			//
+			// Editor builds only, and an allow-list rather than the console: this
+			// is an unauthenticated endpoint on every interface the machine has,
+			// so what it can do had better be a short list. Flipping a cvar and
+			// toggling a stat group is the whole use for it; `quit`, `obj gc` and
+			// everything else is refused by not being named here.
+			if (Path == TEXT("/exec"))
+			{
+				static const TCHAR* Allowed[] = { TEXT("kbve."), TEXT("r."), TEXT("stat "),
+					TEXT("showflag."), TEXT("t.MaxFPS"), TEXT("fx.") };
+
+				const FString* Command = Request.QueryParams.Find(TEXT("cmd"));
+				const FString Wanted = Command ? Command->TrimStartAndEnd() : FString();
+
+				bool bAllowed = false;
+				for (const TCHAR* Prefix : Allowed)
+				{
+					bAllowed |= Wanted.StartsWith(Prefix, ESearchCase::IgnoreCase);
+				}
+
+				FString Body;
+				if (CVarPerfExec->GetValueOnGameThread() == 0)
+				{
+					Body = TEXT("{\"error\":\"kbve.perf.exec is 0\"}");
+				}
+				else if (Wanted.IsEmpty())
+				{
+					Body = TEXT("{\"error\":\"no cmd\"}");
+				}
+				else if (!bAllowed)
+				{
+					Body = TEXT("{\"error\":\"not allow-listed: kbve. r. stat showflag. t.MaxFPS fx.\"}");
+				}
+				else
+				{
+					// Answered with what the console said rather than with an
+					// acknowledgement: a command whose output goes to a log
+					// nobody is reading is one you cannot tell has failed.
+					FStringOutputDevice Output;
+					UWorld* World = nullptr;
+
+					if (GEngine)
+					{
+						for (const FWorldContext& Context : GEngine->GetWorldContexts())
+						{
+							if (Context.WorldType == EWorldType::PIE
+								|| Context.WorldType == EWorldType::Game)
+							{
+								World = Context.World();
+								break;
+							}
+						}
+						GEngine->Exec(World, *Wanted, Output);
+					}
+
+					FString Said = Output;
+					Said.ReplaceInline(TEXT("\\"), TEXT("\\\\"));
+					Said.ReplaceInline(TEXT("\""), TEXT("\\\""));
+					Said.ReplaceInline(TEXT("\r"), TEXT(""));
+					Said.ReplaceInline(TEXT("\n"), TEXT("\\n"));
+					Body = FString::Printf(TEXT("{\"ran\":\"%s\",\"output\":\"%s\"}"),
+						*Wanted.Replace(TEXT("\""), TEXT("\\\"")), *Said);
+				}
+
+				TUniquePtr<FHttpServerResponse> Ran =
+					FHttpServerResponse::Create(Body, TEXT("application/json"));
+				Ran->Headers.Add(TEXT("Access-Control-Allow-Origin"), { TEXT("*") });
+				OnComplete(MoveTemp(Ran));
+				return true;
+			}
+#endif
+
+			if (Path != TEXT("/") && Path != TEXT("/index.html"))
+			{
+				return false;
+			}
+
+			FString Page;
+			const TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("KBVEPerf"));
+			const FString File = Plugin.IsValid()
+				? Plugin->GetBaseDir() / TEXT("Web") / TEXT("index.html")
+				: FString();
+
+			TUniquePtr<FHttpServerResponse> Response;
+			if (!File.IsEmpty() && FFileHelper::LoadFileToString(Page, *File))
+			{
+				Response = FHttpServerResponse::Create(Page, TEXT("text/html; charset=utf-8"));
+			}
+			else
+			{
+				// Said plainly rather than served as a blank page: the JSON is
+				// still there, and where the page was looked for is the whole of
+				// what went wrong.
+				Response = FHttpServerResponse::Create(
+					FString::Printf(TEXT("KBVEPerf: no page at %s -- /perf still serves JSON."),
+						*File),
+					TEXT("text/plain; charset=utf-8"));
+			}
+
+			Response->Headers.Add(TEXT("Cache-Control"), { TEXT("no-store") });
+			OnComplete(MoveTemp(Response));
+			return true;
+		}));
+
 	Server.StartAllListeners();
 	BoundPort = Port;
 	bHttpActive = true;
-	UE_LOG(LogKBVEPerf, Log, TEXT("KBVEPerf /perf live at http://localhost:%d/perf"), BoundPort);
+	UE_LOG(LogKBVEPerf, Log, TEXT("KBVEPerf live at http://localhost:%d/ (JSON at /perf)"), BoundPort);
 }
 
 void UKBVEPerfSubsystem::StopHttp()
 {
+	if (Router.IsValid() && PageHandle.IsValid())
+	{
+		Router->UnregisterRequestPreprocessor(PageHandle);
+	}
+	PageHandle.Reset();
+
 	if (Router.IsValid() && RouteHandle.IsValid())
 	{
 		Router->UnbindRoute(RouteHandle);
@@ -292,6 +651,13 @@ bool UKBVEPerfSubsystem::Tick(float DeltaSeconds)
 	CachedRenderMs = FPlatformTime::ToMilliseconds(GRenderThreadTime);
 	CachedGpuMs = FPlatformTime::ToMilliseconds(RHIGetGPUFrameCycles());
 	CachedRhiMs = FPlatformTime::ToMilliseconds(GRHIThreadTime);
+
+	// Retested now that the stat groups are actually collecting: these are
+	// filled by the GPU profiler's per-frame draw stats, and whether the Metal
+	// RHI feeds them is the question. Zero here means nobody counted, not that
+	// nothing was drawn -- so they are only published when they are non-zero.
+	CachedDrawCalls = GNumDrawCallsRHI[0];
+	CachedPrimitives = GNumPrimitivesDrawnRHI[0];
 
 	if (CVarPerfOverlay->GetValueOnGameThread() != 0 && FKBVEPerf::IsEnabled() && GEngine)
 	{

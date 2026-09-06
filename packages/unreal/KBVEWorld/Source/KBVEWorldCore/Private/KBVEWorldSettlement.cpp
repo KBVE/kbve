@@ -48,21 +48,22 @@ namespace
 	}
 }
 
+bool FKBVEWorldSettlement::HasPlots(const FKBVEWorldSettlementParams& Settlement, int32 Seed,
+	const FIntPoint& Edge)
+{
+	// The whole edge or none of it. Rolling per plot instead would scatter single
+	// houses evenly down every road in the world, which is a countryside of
+	// hermits rather than a map with villages on it.
+	return Settlement.Chance > 0.0f && Unit(PlotHash(Seed, Edge, 0)) < Settlement.Chance;
+}
+
 void FKBVEWorldSettlement::FindPlots(const FKBVEWorldSettlementParams& Settlement,
 	const FKBVEWorldRoadParams& Road, int32 Seed, const FIntPoint& Edge,
 	const TArray<FVector>& Path, const TArray<FKBVEWorldRoadSpan>& Spans,
 	TArray<FKBVEWorldPlot>& OutPlots)
 {
 	OutPlots.Reset();
-	if (Path.Num() < 2 || Settlement.Chance <= 0.0f)
-	{
-		return;
-	}
-
-	// The whole edge or none of it. Rolling per plot instead would scatter single
-	// houses evenly down every road in the world, which is a countryside of
-	// hermits rather than a map with villages on it.
-	if (Unit(PlotHash(Seed, Edge, 0)) >= Settlement.Chance)
+	if (Path.Num() < 2 || !HasPlots(Settlement, Seed, Edge))
 	{
 		return;
 	}
