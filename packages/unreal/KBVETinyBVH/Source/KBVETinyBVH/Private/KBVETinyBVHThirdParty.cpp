@@ -1,5 +1,5 @@
 /**
- * Compilation unit for TinyBVH 1.6.7 (MIT).
+ * Compilation unit for TinyBVH 1.8.0 (MIT).
  * https://github.com/jbikker/tinybvh
  *
  * TINYBVH_IMPLEMENTATION must be defined in exactly one translation unit
