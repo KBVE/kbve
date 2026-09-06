@@ -251,6 +251,19 @@ public:
 	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KBVEWorld|Road")
 	FKBVEWorldRoadParams Road;
 
+	/**
+	 * The buildings that stand along the roads, taken from the streamer too.
+	 *
+	 * A settlement goes where the route already goes, because that is what a
+	 * settlement is and because the road is a solved polyline by the time
+	 * anything needs to know where a house belongs. Density is the only
+	 * difference between the village this raises and a town -- and the streamer
+	 * holds the numbers because it plans the start from them, so a copy edited
+	 * here would put the player in a village this actor then declines to build.
+	 */
+	UPROPERTY(VisibleAnywhere, BlueprintReadOnly, Category = "KBVEWorld|Road")
+	FKBVEWorldSettlementParams Settlement;
+
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road")
 	FKBVEWorldBridgeParams Bridge;
 
@@ -264,16 +277,6 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road")
 	FKBVEWorldFenceParams Fence;
 
-	/**
-	 * The buildings that stand along the roads.
-	 *
-	 * A settlement goes where the route already goes, because that is what a
-	 * settlement is and because the road is a solved polyline by the time
-	 * anything needs to know where a house belongs. Density is the only
-	 * difference between the village this raises and a town.
-	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road")
-	FKBVEWorldSettlementParams Settlement;
 
 	/**
 	 * Chunks kept either side of the viewer's own.
@@ -362,6 +365,9 @@ protected:
 private:
 	bool TryGetViewLocation(FVector& Out) const;
 	class AKBVEWorldStreamer* FindStreamer();
+
+	/** Take the seed, the terrain shape, the roads and the villages off it. */
+	void SyncFromStreamer();
 	FIntPoint ChunkCoordAt(const FVector& WorldLocation) const;
 	bool WantsDetail(const FIntPoint& Centre, const FIntPoint& Coord) const;
 

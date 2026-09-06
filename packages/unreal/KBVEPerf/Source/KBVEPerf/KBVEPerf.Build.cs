@@ -16,6 +16,9 @@ public class KBVEPerf : ModuleRules
 		PrivateDependencyModuleNames.AddRange(new string[]
 		{
 			"HTTPServer",
+			// Finding the plugin's own Web/ directory, which the readout page is
+			// served out of rather than compiled into the binary.
+			"Projects",
 			"Json",
 			"RHI",
 			"RenderCore"

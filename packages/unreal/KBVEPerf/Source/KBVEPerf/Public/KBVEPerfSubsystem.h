@@ -73,6 +73,14 @@ private:
 
 	TSharedPtr<IHttpRouter> Router;
 	TSharedPtr<const FHttpRouteHandleInternal> RouteHandle;
+	/**
+	 * The readout page, which cannot be a route.
+	 *
+	 * `FHttpPath::IsValidPath` rejects root outright and `BindRoute` asserts on
+	 * it, so there is no way to bind "/" -- and a preprocessor is the only hook
+	 * that sees a request before the router decides it has nowhere to send it.
+	 */
+	FDelegateHandle PageHandle;
 	int32 BoundPort = 0;
 	bool bHttpActive = false;
 };

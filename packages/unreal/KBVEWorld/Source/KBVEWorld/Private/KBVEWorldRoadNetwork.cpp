@@ -670,6 +670,24 @@ void AKBVEWorldRoadNetwork::EndPlay(const EEndPlayReason::Type Reason)
 	Super::EndPlay(Reason);
 }
 
+void AKBVEWorldRoadNetwork::SyncFromStreamer()
+{
+	const AKBVEWorldStreamer* Found = FindStreamer();
+	if (!Found)
+	{
+		return;
+	}
+
+	// Every number here describes ground this actor does not make. The terrain is
+	// graded for these roads and the start is planned from these villages, so a
+	// road actor holding its own copy lays a surface into a corridor cut
+	// somewhere else and builds houses the plan never saw.
+	WorldSeed = Found->WorldSeed;
+	Shape = Found->Shape;
+	Road = Found->Road;
+	Settlement = Found->Settlement;
+}
+
 AKBVEWorldStreamer* AKBVEWorldRoadNetwork::FindStreamer()
 {
 	if (Streamer)
@@ -832,6 +850,8 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 	{
 		return;
 	}
+
+	SyncFromStreamer();
 
 	FVector ViewLocation;
 	TryGetViewLocation(ViewLocation);

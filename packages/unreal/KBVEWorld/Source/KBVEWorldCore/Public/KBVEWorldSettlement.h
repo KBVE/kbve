@@ -102,6 +102,18 @@ struct KBVEWORLDCORE_API FKBVEWorldSettlement
 	 * comes home the same place. Crossings are skipped: the stretch of road on a
 	 * bridge is over a river, and nobody builds there.
 	 */
+	/**
+	 * Whether an edge carries a settlement at all.
+	 *
+	 * The roll on its own, without the walk down the road, because the walk needs
+	 * a routed polyline and routing is the expensive half. Anything hunting for a
+	 * village across a wide search asks this first and routes only the edges that
+	 * answer yes -- and it is the same roll `FindPlots` makes, so the two cannot
+	 * disagree about which roads are built along.
+	 */
+	static bool HasPlots(const FKBVEWorldSettlementParams& Settlement, int32 Seed,
+		const FIntPoint& Edge);
+
 	static void FindPlots(const FKBVEWorldSettlementParams& Settlement,
 		const FKBVEWorldRoadParams& Road, int32 Seed, const FIntPoint& Edge,
 		const TArray<FVector>& Path, const TArray<FKBVEWorldRoadSpan>& Spans,

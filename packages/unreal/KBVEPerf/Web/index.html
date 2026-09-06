@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>KBVEPerf</title>
+<script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-neutral-950 text-neutral-200">
+<div id="root"></div>
+
+<script type="module">
+// React 19 ships no UMD build, so this is the ESM one. htm gives the tagged
+// template markup below without a build step or an in-page transform.
+import React from 'https://cdn.jsdelivr.net/npm/react@19.1.0/+esm';
+import { createRoot } from 'https://cdn.jsdelivr.net/npm/react-dom@19.1.0/client/+esm';
+import htm from 'https://cdn.jsdelivr.net/npm/htm@3.1.1/+esm';
+
+const html = htm.bind(React.createElement);
+const { useState, useEffect, useRef, useCallback } = React;
+
+const HISTORY = 240;
+
+// One budget per line, in milliseconds. 16.7 is sixty frames a second, and a
+// line goes red once that thread alone would miss it -- which is the only
+// number here that decides anything.
+const LINES = [
+  { key: 'gameMs',   label: 'game',   color: '#7dd3fc' },
+  { key: 'renderMs', label: 'render', color: '#a78bfa' },
+  { key: 'gpuMs',    label: 'gpu',    color: '#fbbf24' },
+  { key: 'rhiMs',    label: 'rhi',    color: '#f472b6' },
+];
+const BUDGET = 16.7;
+
+function Spark({ values, color }) {
+  if (values.length < 2) return html`<svg class="h-10 w-full"></svg>`;
+  const max = Math.max(BUDGET * 1.25, ...values);
+  const step = 100 / (values.length - 1);
+  const points = values.map((v, i) => `${i * step},${40 - (v / max) * 40}`).join(' ');
+  const line = 40 - (BUDGET / max) * 40;
+  return html`
+    <svg class="h-10 w-full" viewBox="0 0 100 40" preserveAspectRatio="none">
+      <line x1="0" y1=${line} x2="100" y2=${line} stroke="#525252" stroke-width="0.4" stroke-dasharray="2 2" />
+      <polyline points=${points} fill="none" stroke=${color} stroke-width="1" vector-effect="non-scaling-stroke" />
+    </svg>`;
+}
+
+function Tile({ line, values }) {
+  const now = values.length ? values[values.length - 1] : 0;
+  return html`
+    <div class="rounded-lg border border-neutral-800 bg-neutral-900/60 p-3">
+      <div class="flex items-baseline justify-between">
+        <span class="text-xs uppercase tracking-wider text-neutral-500">${line.label}</span>
+        <span class=${'text-xl font-semibold tabular-nums ' + (now > BUDGET ? 'text-red-400' : 'text-neutral-100')}>
+          ${now.toFixed(2)}<span class="ml-1 text-xs text-neutral-500">ms</span>
+        </span>
+      </div>
+      <${Spark} values=${values} color=${line.color} />
+    </div>`;
+}
+
+function Ops({ ops }) {
+  if (!ops.length) {
+    return html`<p class="text-sm text-neutral-500">No scoped ops reported. Wrap work in KBVEPERF_SCOPE to see it here.</p>`;
+  }
+  // Worst first by p95 rather than by the frame on screen: a scope that spikes
+  // one frame in twenty is the one worth finding, and it is never the one you
+  // happen to be looking at.
+  const rows = [...ops].sort((a, b) => b.p95Ms - a.p95Ms);
+  const worst = rows[0].p95Ms || 1;
+  return html`
+    <div class="overflow-x-auto">
+      <table class="w-full text-sm">
+        <thead class="text-xs uppercase tracking-wider text-neutral-500">
+          <tr class="border-b border-neutral-800">
+            <th class="py-2 text-left font-medium">scope</th>
+            <th class="py-2 text-right font-medium">count</th>
+            <th class="py-2 text-right font-medium">last</th>
+            <th class="py-2 text-right font-medium">avg</th>
+            <th class="py-2 text-right font-medium">p95</th>
+            <th class="py-2 text-right font-medium">max</th>
+            <th class="w-1/4"></th>
+          </tr>
+        </thead>
+        <tbody class="tabular-nums">
+          ${rows.map(op => html`
+            <tr key=${op.name} class="border-b border-neutral-900">
+              <td class="py-1.5 pr-4 font-mono text-xs text-neutral-300">${op.name}</td>
+              <td class="py-1.5 text-right text-neutral-500">${op.count}</td>
+              <td class="py-1.5 text-right">${op.lastMs.toFixed(2)}</td>
+              <td class="py-1.5 text-right text-neutral-400">${op.avgMs.toFixed(2)}</td>
+              <td class="py-1.5 text-right font-semibold">${op.p95Ms.toFixed(2)}</td>
+              <td class="py-1.5 text-right text-neutral-500">${op.maxMs.toFixed(2)}</td>
+              <td class="py-1.5 pl-3">
+                <div class="h-1.5 rounded bg-neutral-800">
+                  <div class="h-1.5 rounded bg-amber-400" style=${{ width: `${Math.min(100, (op.p95Ms / worst) * 100)}%` }}></div>
+                </div>
+              </td>
+            </tr>`)}
+        </tbody>
+      </table>
+    </div>`;
+}
+
+function App() {
+  const [period, setPeriod] = useState(500);
+  const [running, setRunning] = useState(true);
+  const [data, setData] = useState(null);
+  const [error, setError] = useState('');
+  const history = useRef({});
+
+  const poll = useCallback(async () => {
+    try {
+      // Same origin: this page is served by the game, off the port the numbers
+      // are on, so there is nothing to configure and nothing to get wrong.
+      const res = await fetch('/perf', { cache: 'no-store' });
+      const json = await res.json();
+      for (const line of LINES) {
+        const series = history.current[line.key] || [];
+        series.push(json[line.key]);
+        if (series.length > HISTORY) series.shift();
+        history.current[line.key] = series;
+      }
+      setData(json);
+      setError('');
+    } catch (e) {
+      // Worth saying and not worth clearing the screen over: the game is
+      // usually mid-load, and the last frame it did report is still the truth.
+      setError(String(e.message || e));
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!running) return undefined;
+    poll();
+    const id = setInterval(poll, period);
+    return () => clearInterval(id);
+  }, [poll, period, running]);
+
+  const fps = data ? data.fps : 0;
+
+  return html`
+    <div class="mx-auto max-w-6xl p-6">
+      <header class="mb-6 flex flex-wrap items-center gap-4">
+        <div>
+          <h1 class="text-lg font-semibold text-neutral-100">KBVEPerf</h1>
+          <p class="text-xs text-neutral-500">frame ${data ? data.frame.toLocaleString() : '—'}</p>
+        </div>
+        <div class=${'ml-auto flex items-center gap-2 rounded-full px-3 py-1 text-xs ' +
+          (error ? 'bg-red-950 text-red-300' : 'bg-emerald-950 text-emerald-300')}>
+          <span class=${'h-1.5 w-1.5 rounded-full ' + (error ? 'bg-red-400' : 'bg-emerald-400')}></span>
+          ${error ? 'stalled' : 'live'}
+        </div>
+        <label class="text-xs text-neutral-500">
+          every
+          <input type="number" step="100" min="100" value=${period}
+            onChange=${e => setPeriod(Math.max(100, Number(e.target.value)))}
+            class="ml-2 w-20 rounded border border-neutral-800 bg-neutral-900 px-2 py-1 text-neutral-200" />
+          ms
+        </label>
+        <button onClick=${() => setRunning(r => !r)}
+          class="rounded border border-neutral-800 bg-neutral-900 px-3 py-1 text-xs hover:bg-neutral-800">
+          ${running ? 'pause' : 'resume'}
+        </button>
+      </header>
+
+      <div class="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+        <div class="rounded-lg border border-neutral-800 bg-neutral-900/60 p-3">
+          <div class="text-xs uppercase tracking-wider text-neutral-500">fps</div>
+          <div class=${'text-3xl font-semibold tabular-nums ' + (fps < 60 ? 'text-amber-400' : 'text-emerald-400')}>
+            ${fps.toFixed(0)}
+          </div>
+        </div>
+        ${LINES.map(line => html`<${Tile} key=${line.key} line=${line} values=${history.current[line.key] || []} />`)}
+      </div>
+
+      <section class="mb-6 rounded-lg border border-neutral-800 bg-neutral-900/60 p-4">
+        <h2 class="mb-3 text-xs uppercase tracking-wider text-neutral-500">scopes</h2>
+        <${Ops} ops=${data ? data.ops : []} />
+      </section>
+
+      ${data && data.counts && data.counts.length > 0 ? html`
+        <section class="rounded-lg border border-neutral-800 bg-neutral-900/60 p-4">
+          <h2 class="mb-3 text-xs uppercase tracking-wider text-neutral-500">counters</h2>
+          <div class="grid gap-3 sm:grid-cols-3 lg:grid-cols-4">
+            ${data.counts.map(c => html`
+              <div key=${c.name} class="rounded border border-neutral-800 px-3 py-2">
+                <div class="font-mono text-xs text-neutral-500">${c.name}</div>
+                <div class="text-lg tabular-nums text-neutral-100">${c.value.toLocaleString()}</div>
+              </div>`)}
+          </div>
+        </section>` : null}
+
+      ${error ? html`
+        <p class="mt-6 text-xs text-neutral-600">${error}</p>` : null}
+    </div>`;
+}
+
+createRoot(document.getElementById('root')).render(html`<${App} />`);
+</script>
+</body>
+</html>

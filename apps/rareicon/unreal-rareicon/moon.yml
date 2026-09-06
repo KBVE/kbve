@@ -11,6 +11,8 @@ dependsOn:
     - 'KBVEUnr'
     - 'KBVEWorld'
     - 'KBVEMover'
+    # The loading screen is built from the shared Slate library.
+    - 'KBVEUI'
     # Ray queries against the procedural world, which exists as vertex and index
     # arrays before it exists as anything with collision on it.
     - 'KBVETinyBVH'

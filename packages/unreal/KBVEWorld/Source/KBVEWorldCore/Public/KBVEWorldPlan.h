@@ -3,6 +3,7 @@
 #include "CoreMinimal.h"
 #include "KBVEWorldHeightfieldParams.h"
 #include "KBVEWorldRoadGraph.h"
+#include "KBVEWorldSettlement.h"
 
 #include "KBVEWorldPlan.generated.h"
 
@@ -47,6 +48,40 @@ struct KBVEWORLDCORE_API FKBVEWorldPlanParams
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Plan", meta = (ClampMin = "1.0"))
 	float PadRadius = 420.0f;
 
+	/**
+	 * How far out to look for a village, in chunks.
+	 *
+	 * Much wider than the standable search above, and it costs almost nothing:
+	 * whether an edge carries a settlement is a hash, so the sweep only routes
+	 * the one edge in five that answers yes and stops at the first village it can
+	 * put somebody in. The world has no edge, so the only reason to bound this at
+	 * all is to bound the worst case.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Plan", meta = (ClampMin = "0"))
+	int32 SettlementSearchRadiusChunks = 48;
+
+	/**
+	 * How many houses have to actually stand before somewhere counts as a village.
+	 *
+	 * Plots are where houses would go; the ground decides how many can, and on
+	 * steep country most of a settlement's plots are refused. Starting at a place
+	 * that turned out to raise one cottage is starting in open country with a
+	 * neighbour.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Plan", meta = (ClampMin = "1"))
+	int32 MinBuildings = 2;
+
+	/**
+	 * Most edges the village sweep will route before giving up on the seed.
+	 *
+	 * A bound on the worst case rather than a budget: villages are common enough
+	 * that the first standable one is usually a handful of edges out, and this
+	 * only comes into play for a seed whose country near the origin is all river
+	 * and cliff.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Plan", meta = (ClampMin = "1"))
+	int32 MaxSettlementProbes = 512;
+
 	/** How far above the ground the player is put, so nothing starts inside it. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Plan", meta = (ClampMin = "0.0"))
 	float Lift = 160.0f;
@@ -67,6 +102,17 @@ struct FKBVEWorldPlan
 	 */
 	bool bOnRoad = false;
 
+	/**
+	 * Whether the start is in a settlement rather than merely on the network.
+	 *
+	 * The road pass answers "somewhere connected"; this answers "somewhere
+	 * inhabited", which is what a player opening a world is actually looking at.
+	 */
+	bool bInSettlement = false;
+
+	/** How many houses the sweep proved would stand at the start. */
+	int32 Buildings = 0;
+
 	/** False when nothing in range was dry and level enough to stand on. */
 	bool bValid = false;
 };
@@ -76,13 +122,16 @@ struct KBVEWORLDCORE_API FKBVEWorldPlanner
 	/**
 	 * Work out where to start.
 	 *
-	 * Roads first, and not as a nicety: a road is ground the router already
-	 * found a way across, so it is flat, dry and connected by construction, and
-	 * it is the only place a settlement can be. Open country is the fallback for
-	 * a seed whose network does not reach.
+	 * The village first when there is one to be had: a settlement is the only
+	 * part of the world that was built for somebody to be in, so a start
+	 * anywhere else is a start walking towards it. Given no settlement
+	 * parameters, or a seed whose villages are all on unstandable ground, this
+	 * falls back to bare road -- flat, dry and connected by construction --
+	 * and then to open country.
 	 */
 	static FKBVEWorldPlan Make(const FKBVEWorldPlanParams& Plan,
-		const FKBVEWorldRoadParams& Road, const FKBVEWorldHeightfieldParams& Shape, int32 Seed);
+		const FKBVEWorldRoadParams& Road, const FKBVEWorldHeightfieldParams& Shape, int32 Seed,
+		const FKBVEWorldSettlementParams* Settlement = nullptr);
 
 	/**
 	 * Whether one point is somewhere a person could be put.

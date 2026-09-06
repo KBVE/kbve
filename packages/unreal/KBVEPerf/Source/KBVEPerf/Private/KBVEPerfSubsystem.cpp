@@ -15,6 +15,8 @@
 #include "HttpServerRequest.h"
 #include "HttpServerResponse.h"
 #include "IHttpRouter.h"
+#include "Interfaces/IPluginManager.h"
+#include "Misc/FileHelper.h"
 
 DEFINE_LOG_CATEGORY_STATIC(LogKBVEPerf, Log, All);
 
@@ -267,14 +269,69 @@ void UKBVEPerfSubsystem::StartHttp()
 		return;
 	}
 
+	// The readout itself, on the same port the numbers are on, and reached by
+	// opening the port with nothing after it.
+	//
+	// A preprocessor rather than a route because root is not a path a route can
+	// have: `FHttpPath::IsValidPath` returns false for it and `BindRoute` checks
+	// that, so binding "/" takes the whole process down. This runs before the
+	// router on every request and passes everything it does not want straight
+	// through, which is what leaves /perf where it was.
+	//
+	// Served off disk rather than compiled in so the page can be edited and
+	// reloaded against a running game -- and read per request for the same
+	// reason. It is a few kilobytes asked for once per refresh; a cache here
+	// would only make editing it pointless.
+	PageHandle = Router->RegisterRequestPreprocessor(FHttpRequestHandler::CreateWeakLambda(this,
+		[this](const FHttpServerRequest& Request, const FHttpResultCallback& OnComplete)
+		{
+			const FString Path = Request.RelativePath.GetPath();
+			if (Path != TEXT("/") && Path != TEXT("/index.html"))
+			{
+				return false;
+			}
+
+			FString Page;
+			const TSharedPtr<IPlugin> Plugin = IPluginManager::Get().FindPlugin(TEXT("KBVEPerf"));
+			const FString File = Plugin.IsValid()
+				? Plugin->GetBaseDir() / TEXT("Web") / TEXT("index.html")
+				: FString();
+
+			TUniquePtr<FHttpServerResponse> Response;
+			if (!File.IsEmpty() && FFileHelper::LoadFileToString(Page, *File))
+			{
+				Response = FHttpServerResponse::Create(Page, TEXT("text/html; charset=utf-8"));
+			}
+			else
+			{
+				// Said plainly rather than served as a blank page: the JSON is
+				// still there, and where the page was looked for is the whole of
+				// what went wrong.
+				Response = FHttpServerResponse::Create(
+					FString::Printf(TEXT("KBVEPerf: no page at %s -- /perf still serves JSON."),
+						*File),
+					TEXT("text/plain; charset=utf-8"));
+			}
+
+			Response->Headers.Add(TEXT("Cache-Control"), { TEXT("no-store") });
+			OnComplete(MoveTemp(Response));
+			return true;
+		}));
+
 	Server.StartAllListeners();
 	BoundPort = Port;
 	bHttpActive = true;
-	UE_LOG(LogKBVEPerf, Log, TEXT("KBVEPerf /perf live at http://localhost:%d/perf"), BoundPort);
+	UE_LOG(LogKBVEPerf, Log, TEXT("KBVEPerf live at http://localhost:%d/ (JSON at /perf)"), BoundPort);
 }
 
 void UKBVEPerfSubsystem::StopHttp()
 {
+	if (Router.IsValid() && PageHandle.IsValid())
+	{
+		Router->UnregisterRequestPreprocessor(PageHandle);
+	}
+	PageHandle.Reset();
+
 	if (Router.IsValid() && RouteHandle.IsValid())
 	{
 		Router->UnbindRoute(RouteHandle);

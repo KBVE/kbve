@@ -6,6 +6,7 @@
 #include "KBVEWorldPlan.h"
 #include "KBVEWorldRoadField.h"
 #include "KBVEWorldRoadGraph.h"
+#include "KBVEWorldSettlement.h"
 
 #include "KBVEWorldStreamer.generated.h"
 
@@ -53,6 +54,18 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Streaming")
 	FKBVEWorldRoadParams Road;
+
+	/**
+	 * The settlements the roads carry.
+	 *
+	 * Here rather than on the road actor because the start is planned before
+	 * anything is built and the plan is what decides which village the player
+	 * opens in. Two actors holding their own copy of these numbers is two ideas
+	 * of where the houses are, and the failure is a spawn in an empty field with
+	 * the village a chunk away. The road actor reads them from this one.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Streaming")
+	FKBVEWorldSettlementParams Settlement;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Plan")
 	FKBVEWorldPlanParams Plan;
