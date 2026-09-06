@@ -89,6 +89,12 @@
 			"stem": "T_RoofSlate"
 		}
 	],
+	"foliage_materials": [
+		{
+			"path": "/Game/Textures/Foliage/M_RareIcon_GrassCard",
+			"stem": "T_GrassCard"
+		}
+	],
 	"water_material": {
 		"path": "/Game/Textures/World/M_RareIcon_Water",
 		"tint": [0.008, 0.035, 0.05],

@@ -229,6 +229,108 @@ def build_surface_material(spec, textures):
     unreal.log(f"built {path}")
 
 
+def build_foliage_material(spec, textures):
+    """A masked card material for a cutout atlas.
+
+    Cards are not a surface: they are a photograph of one plant with everything
+    around it cut away, so the whole material is what the cut is and how the
+    remainder is lit. Opacity comes from the packed map's blue channel, where
+    the ingest side puts a cutout mask -- that texture is already imported
+    linear and as masks, which is what coverage wants, and it needs no sampler
+    that roughness was not already paying for.
+
+    Built here rather than in C++ at runtime because material expressions are an
+    editor-only API: the same code that assembles a graph in the editor is a
+    crash in a packaged client and a silent null in a cook.
+    """
+    path, stem = spec["path"], spec["stem"]
+    mat = create_material(path)
+
+    mat.set_editor_property("blend_mode", unreal.BlendMode.BLEND_MASKED)
+    mat.set_editor_property("two_sided", True)
+    mat.set_editor_property("opacity_mask_clip_value", spec.get("clip", 0.33))
+    mat.set_editor_property("dithered_lod_transition", True)
+    mat.set_editor_property("used_with_instanced_static_meshes", True)
+
+    uv = expr(mat, unreal.MaterialExpressionTextureCoordinate, -700, 0)
+    uv.set_editor_property("coordinate_index", 0)
+
+    diff = sampler(mat, textures, f"{stem}_D", -200, "D", uv)
+    packed = sampler(mat, textures, f"{stem}_RH", 400, "RH", uv)
+
+    # The mesh writes height along the blade into green, and nothing else knows
+    # which end is the ground. Both the shading at the base and the wind need to.
+    vertex = expr(mat, unreal.MaterialExpressionVertexColor, -700, -400)
+
+    occlusion = expr(mat, unreal.MaterialExpressionLinearInterpolate, -400, -400)
+    occlusion.set_editor_property("const_a", spec.get("base_shade", 0.45))
+    occlusion.set_editor_property("const_b", 1.0)
+    MEL.connect_material_expressions(vertex, "G", occlusion, "Alpha")
+
+    shaded = expr(mat, unreal.MaterialExpressionMultiply, -100, -300)
+    MEL.connect_material_expressions(diff, "RGB", shaded, "A")
+    MEL.connect_material_expressions(occlusion, "", shaded, "B")
+
+    MEL.connect_material_property(shaded, "", unreal.MaterialProperty.MP_BASE_COLOR)
+    MEL.connect_material_property(packed, "B", unreal.MaterialProperty.MP_OPACITY_MASK)
+    MEL.connect_material_property(packed, "R", unreal.MaterialProperty.MP_ROUGHNESS)
+
+    # Wind phased by where in the world a clump stands, so a field does not sway
+    # as one object, and weighted by the same green so the base stays planted.
+    world = expr(mat, unreal.MaterialExpressionWorldPosition, -1200, 800)
+
+    # Masked rather than asked for "R": world position has one unnamed output,
+    # and a connection naming a channel it does not publish is not an error when
+    # it is made -- it is a material that fails to compile and silently draws as
+    # the default one. The mask's own input is unnamed for the same reason the
+    # sine's is.
+    world_x = expr(mat, unreal.MaterialExpressionComponentMask, -1000, 800)
+    world_x.set_editor_property("r", True)
+    world_x.set_editor_property("g", False)
+    world_x.set_editor_property("b", False)
+    world_x.set_editor_property("a", False)
+    MEL.connect_material_expressions(world, "", world_x, "")
+
+    wavelength = expr(mat, unreal.MaterialExpressionConstant, -1000, 1000)
+    wavelength.set_editor_property("r", spec.get("wind_wavelength", 0.0025))
+    phase = expr(mat, unreal.MaterialExpressionMultiply, -800, 900)
+    MEL.connect_material_expressions(world_x, "", phase, "A")
+    MEL.connect_material_expressions(wavelength, "", phase, "B")
+
+    time = expr(mat, unreal.MaterialExpressionTime, -1000, 1200)
+    speed = expr(mat, unreal.MaterialExpressionConstant, -1000, 1400)
+    speed.set_editor_property("r", spec.get("wind_speed", 1.4))
+    advance = expr(mat, unreal.MaterialExpressionMultiply, -800, 1300)
+    MEL.connect_material_expressions(time, "", advance, "A")
+    MEL.connect_material_expressions(speed, "", advance, "B")
+
+    argument = expr(mat, unreal.MaterialExpressionAdd, -600, 1100)
+    MEL.connect_material_expressions(phase, "", argument, "A")
+    MEL.connect_material_expressions(advance, "", argument, "B")
+
+    # The input pin is unnamed. Naming it "Input" -- which is what the property
+    # is called -- connects nothing, and the material then fails to compile with
+    # "Missing Sine input" long after the script has reported success.
+    wave = expr(mat, unreal.MaterialExpressionSine, -400, 1100)
+    MEL.connect_material_expressions(argument, "", wave, "")
+
+    weighted = expr(mat, unreal.MaterialExpressionMultiply, -200, 1100)
+    MEL.connect_material_expressions(wave, "", weighted, "A")
+    MEL.connect_material_expressions(vertex, "G", weighted, "B")
+
+    sway = expr(mat, unreal.MaterialExpressionConstant3Vector, -200, 1400)
+    amplitude = spec.get("wind_amplitude", 9.0)
+    sway.set_editor_property("constant", unreal.LinearColor(amplitude, amplitude * 0.4, 0.0, 1.0))
+    offset = expr(mat, unreal.MaterialExpressionMultiply, 0, 1200)
+    MEL.connect_material_expressions(weighted, "", offset, "A")
+    MEL.connect_material_expressions(sway, "", offset, "B")
+    MEL.connect_material_property(offset, "", unreal.MaterialProperty.MP_WORLD_POSITION_OFFSET)
+
+    MEL.recompile_material(mat)
+    EAL.save_asset(path)
+    unreal.log(f"built {path}")
+
+
 def build_glass_material(spec):
     # Thin Translucent, which is Unreal's model for a pane: a sheet with no
     # interior worth simulating, where the tint belongs to how much light gets
@@ -269,9 +371,7 @@ def build_glass_material(spec):
     MEL.connect_material_property(scalar(spec["opacity"], 460), "", unreal.MaterialProperty.MP_OPACITY)
 
     glass_out = expr(mat, unreal.MaterialExpressionThinTranslucentMaterialOutput, -100, 600)
-    MEL.connect_material_expressions(
-        colour(spec["transmittance"], 600), "", glass_out, "TransmittanceColor"
-    )
+    MEL.connect_material_expressions(colour(spec["transmittance"], 600), "", glass_out, "TransmittanceColor")
 
     MEL.recompile_material(mat)
     EAL.save_asset(path)
@@ -340,6 +440,8 @@ def build(config):
         build_terrain_material(config["terrain_material"], textures)
     for spec in config.get("surface_materials", []):
         build_surface_material(spec, textures)
+    for spec in config.get("foliage_materials", []):
+        build_foliage_material(spec, textures)
     if config.get("water_material"):
         build_water_material(config["water_material"])
     if config.get("glass_material"):
