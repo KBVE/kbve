@@ -303,7 +303,12 @@ jobs:
             image_name: ghcr.io/${{ needs.verify.outputs.docker_image }}
             deployment_yamls: ${{ needs.verify.outputs.deployment_yamls }}
         secrets:
-            TRIGGER_PAT: ${{ secrets.TRIGGER_PAT }}
+            # TRIGGER_PAT names the input, not a secret: nothing by that name
+            # exists in the repo or the org, so this resolved empty and checkout
+            # failed with "Input required and not supplied: token". Every other
+            # caller in the repo -- ci-godot, ci-unity, utils-unreal-build --
+            # already maps UNITY_PAT here.
+            TRIGGER_PAT: ${{ secrets.UNITY_PAT }}
 
     # A base image release ends with its consumers still pointing at the old
     # version, which is how chisel-ubuntu-axum's builder drifted six weeks behind
@@ -324,7 +329,12 @@ jobs:
             version_toml_path: ''
             base_image: ${{ needs.verify.outputs.base_image }}
         secrets:
-            TRIGGER_PAT: ${{ secrets.TRIGGER_PAT }}
+            # TRIGGER_PAT names the input, not a secret: nothing by that name
+            # exists in the repo or the org, so this resolved empty and checkout
+            # failed with "Input required and not supplied: token". Every other
+            # caller in the repo -- ci-godot, ci-unity, utils-unreal-build --
+            # already maps UNITY_PAT here.
+            TRIGGER_PAT: ${{ secrets.UNITY_PAT }}
 
     # The engine lanes. Each calls the build workflow that already existed, with
     # the engine blob the dispatch manifest used to carry -- it is the project's
