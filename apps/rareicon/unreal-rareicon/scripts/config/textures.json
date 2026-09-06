@@ -63,11 +63,13 @@
   "surface_materials": [
     {
       "path": "/Game/Textures/World/M_RareIcon_BridgeWood",
-      "stem": "T_WoodDeck"
+      "stem": "T_WoodDeck",
+      "instanced": true
     },
     {
       "path": "/Game/Textures/World/M_RareIcon_BridgeStone",
-      "stem": "T_StonePier"
+      "stem": "T_StonePier",
+      "instanced": true
     },
     {
       "path": "/Game/Textures/World/M_RareIcon_Brick",

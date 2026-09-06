@@ -115,6 +115,13 @@ AKBVEWorldRoadChunk::AKBVEWorldRoadChunk()
 	{
 		Mesh->SetupAttachment(SceneRoot);
 		Mesh->bUseAsyncCooking = true;
+
+		// Chunks are pooled, so an unbuilt one exists with six empty components
+		// on it. Navigation registers each anyway and warns about the bounds
+		// every time, which is six lines per chunk across a whole stream; the
+		// heightfield patches were taken off navigation for the same reason,
+		// and nothing here wants a navmesh either.
+		Mesh->SetCanEverAffectNavigation(false);
 	}
 
 	// A deck is the only thing between a pawn and the river, so unlike the road
