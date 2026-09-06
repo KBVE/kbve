@@ -128,6 +128,23 @@ struct KBVEWORLDCORE_API FKBVEWorldSettlement
 	 * floating at one corner or burying itself at another. Returns false where
 	 * the ground falls too far across the plot to build on at all.
 	 */
+	/**
+	 * The stretch of road one building's front door needs left clear.
+	 *
+	 * For the fences, which run between the houses and the carriageway and would
+	 * otherwise be built straight across every doorstep in the village. Answered
+	 * from the sited plan rather than the plot, because siting moves a house up
+	 * and down the road hunting for level ground -- and from the plan's own door
+	 * rather than its centre, because the bays put the door off centre whenever
+	 * there is an even number of them.
+	 *
+	 * Both ends as distances along the same polyline the fence runs are measured
+	 * on, so the two are directly comparable.
+	 */
+	static void Gateway(const FKBVEWorldBuildingParams& Building,
+		const FKBVEWorldBuildingPlan& Plan, const TArray<FVector>& Path, float Clearance,
+		float& OutBegin, float& OutEnd);
+
 	static bool Site(const FKBVEWorldSettlementParams& Settlement,
 		const FKBVEWorldRoadParams& Road, const FKBVEWorldHeightfieldParams& Shape, int32 Seed,
 		const FKBVEWorldRoadField* Field, const TArray<FVector>& Path,

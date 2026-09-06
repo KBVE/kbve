@@ -175,6 +175,8 @@ bool FKBVEWorldSettlement::Site(const FKBVEWorldSettlementParams& Settlement,
 		const FVector Centre =
 			Point + Across * (Plot.Side * (Settlement.Setback + 0.5f * Out.Depth));
 		Out.Centre = FVector(Centre.X, Centre.Y, 0.0f);
+		Out.Along = Plot.Along + Offset;
+		Out.Side = Plot.Side;
 
 		FVector Corners[4];
 		FKBVEWorldBuilding::Footprint(Out, Corners);
@@ -261,4 +263,59 @@ bool FKBVEWorldSettlement::Site(const FKBVEWorldSettlementParams& Settlement,
 
 	OutPlan = Best;
 	return true;
+}
+
+void FKBVEWorldSettlement::Gateway(const FKBVEWorldBuildingParams& Building,
+	const FKBVEWorldBuildingPlan& Plan, const TArray<FVector>& Path, float Clearance,
+	float& OutBegin, float& OutEnd)
+{
+	OutBegin = Plan.Along;
+	OutEnd = Plan.Along;
+
+	if (Path.Num() < 2)
+	{
+		return;
+	}
+
+	// The door is not at the centre of the front wall: bays are laid out across
+	// it and the door takes one of them, so on an even count it stands half a bay
+	// off centre.
+	FVector Doorway;
+	FVector Forward;
+	FKBVEWorldBuilding::Door(Building, Plan, Doorway, Forward);
+
+	// Walked rather than projected onto the tangent at the plan's own distance. A
+	// fence run is measured in distance along this polyline, so the gap in one has
+	// to be as well, and on a bend the tangent and the polyline part company by
+	// more than a doorway is wide.
+	float Travelled = 0.0f;
+	float At = Plan.Along;
+	float Nearest = BIG_NUMBER;
+
+	for (int32 I = 1; I < Path.Num(); ++I)
+	{
+		const FVector Leg = Path[I] - Path[I - 1];
+		const float Length = Leg.Size2D();
+		if (Length > KINDA_SMALL_NUMBER)
+		{
+			const FVector2D Flat(Leg.X, Leg.Y);
+			const FVector2D Offset(Doorway.X - Path[I - 1].X, Doorway.Y - Path[I - 1].Y);
+			const float T = FMath::Clamp(FVector2D::DotProduct(Offset, Flat) / (Length * Length),
+				0.0f, 1.0f);
+
+			const FVector On = Path[I - 1] + Leg * T;
+			const float Distance = FVector::Dist2D(On, Doorway);
+			if (Distance < Nearest)
+			{
+				Nearest = Distance;
+				At = Travelled + T * Length;
+			}
+		}
+
+		Travelled += Length;
+	}
+
+	const float Half = 0.5f * FMath::Max(Building.DoorWidth, 0.0f) + FMath::Max(Clearance, 0.0f);
+	OutBegin = At - Half;
+	OutEnd = At + Half;
 }
