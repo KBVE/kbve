@@ -92,7 +92,9 @@ export function useKanbanData(): [KanbanData | null, string | null] {
 
 	useEffect(() => {
 		let cancelled = false;
-		fetch('/data/nx/nx-kanban.json', { signal: AbortSignal.timeout(10000) })
+		fetch('/data/dashboard/kanban.json', {
+			signal: AbortSignal.timeout(10000),
+		})
 			.then((r) => {
 				if (!r.ok) throw new Error(`HTTP ${r.status}`);
 				return r.json();

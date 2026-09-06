@@ -11,7 +11,7 @@ from kbve.content.router import get
 
 def _ctx(tmp_path, inputs):
     content_root = tmp_path / "apps/kbve/astro-kbve/src/content/docs"
-    public_dir = tmp_path / "apps/kbve/astro-kbve/public/data/nx"
+    public_dir = tmp_path / "apps/kbve/astro-kbve/public/data/dashboard"
     content_root.mkdir(parents=True)
     (tmp_path / ".moon").mkdir()
     return BuildContext(
@@ -77,7 +77,7 @@ def test_activity_build_writes(tmp_path):
     result = get("activity").build(ctx)
     assert result.skipped is False and len(result.changed) == 2
 
-    data = json.loads((ctx.public_dir / "nx-activity.json").read_text())
+    data = json.loads((ctx.public_dir / "activity.json").read_text())
     assert data["generated_at"] == "2026-07-19T12:00:00Z"
     assert data["commits"]["total"] == 1
 

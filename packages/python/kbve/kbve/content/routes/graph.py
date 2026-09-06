@@ -5,7 +5,7 @@ renders the Starlight MDX. The raw graph JSON is written to the Astro public
 data dir, where the ``/graph/`` hub and the home dashboard read it.
 
 The envelope stays ``{graph: {nodes, dependencies}}`` because the site, the MDX
-renderer and the published ``/data/nx/nx-graph.json`` URL all read it. What a
+renderer and the published ``/data/dashboard/graph.json`` URL all read it. What a
 node *says* is moon's, though: the type is the project's layer, so a tool reads
 as a tool instead of being rounded to the nearest Nx project type.
 """
@@ -129,6 +129,5 @@ class GraphRoute:
             "graph",
             page="graph.mdx",
             mdx_text=render_graph_mdx(graph, ctx.timestamp),
-            json_name="nx-graph.json",
             json_text=json.dumps(raw, indent=2),
         )

@@ -107,7 +107,7 @@ class ProtoRoute:
         data["drift_files"] = list(drift.get("files", []))
 
         public_dir = Path(ctx.public_dir)
-        json_out = public_dir / "nx-proto.json"
+        json_out = public_dir / "proto.json"
         if not ctx.dry_run:
             public_dir.mkdir(parents=True, exist_ok=True)
             with open(json_out, "w") as f:

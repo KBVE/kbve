@@ -29,6 +29,13 @@ apps/rareicon/unity-rareicon/Assets/StreamingAssets/*.json
 apps/friendslop/godot-friendslop/assets/*db/*.json
 apps/discordsh/bot/data/*.json
 
+# Daily dashboard data — written by the kbve-content-build routes and committed
+# by the Daily Content workflow, where no hook runs. Prettier only ever saw them
+# when a human staged them, and a reflow there turns the next nightly rewrite
+# into a whole-file diff.
+apps/kbve/astro-kbve/public/data/dashboard/*.json
+apps/kbve/astro-kbve/src/data/kanban.json
+
 # Generated CI dispatch manifest (generated, must not be reflowed; prettier must not reflow it)
 .github/ci-dispatch-manifest.json
 

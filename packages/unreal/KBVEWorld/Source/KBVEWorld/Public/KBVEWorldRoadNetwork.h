@@ -192,6 +192,13 @@ private:
 	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
 	TObjectPtr<UProceduralMeshComponent> Glazing;
 
+	// Stone footings, which is the pier material on a building. Kept off the
+	// Stone component the piers use rather than sharing it: a building changing
+	// tier rebuilds its footings, and the bridges have no reason to be recooked
+	// every time somebody walks towards a village.
+	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
+	TObjectPtr<UProceduralMeshComponent> Plinth;
+
 	/**
 	 * The routes this chunk's two edges took, kept rather than re-solved.
 	 *

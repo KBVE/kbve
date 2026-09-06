@@ -16,7 +16,7 @@ import {
 let data: WorkspaceReportData | null = null;
 let parseError: string | null = null;
 const reportPath = fileURLToPath(
-	new URL('../../../public/data/nx/report.json', import.meta.url),
+	new URL('../../../public/data/dashboard/report.json', import.meta.url),
 );
 try {
 	data = JSON.parse(readFileSync(reportPath, 'utf8')) as WorkspaceReportData;

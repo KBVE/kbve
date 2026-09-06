@@ -241,7 +241,7 @@ struct KBVEWORLDCORE_API FKBVEWorldWall
 	 */
 	static void Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWallBuild& In,
 		TArrayView<const FKBVEWorldWallOpening> Openings, EKBVEWorldWallDetail Detail,
-		FKBVEWorldRibbonMesh& Out);
+		FKBVEWorldRibbonMesh& Out, FKBVEWorldRibbonMesh* Plinth = nullptr);
 
 	/**
 	 * The frame this wall is built in, for whatever is set into it.

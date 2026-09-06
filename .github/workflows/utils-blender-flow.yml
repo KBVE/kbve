@@ -176,7 +176,7 @@ jobs:
             - name: Clone object repo (Azure DevOps)
               if: inputs.lfs_backend == 'azure' && inputs.external_repo_url != ''
               env:
-                  AZURE_PAT: ${{ secrets.AZURE_PAT }}
+                  AZURE_PAT: ${{ secrets.AZURE_NOV2025_TOKEN_SECRET }}
                   AZURE_REPO_URL: ${{ inputs.external_repo_url }}
                   AZURE_DEST: ${{ inputs.external_path }}
                   AZURE_REF: ${{ inputs.external_ref }}

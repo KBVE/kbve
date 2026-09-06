@@ -15,7 +15,7 @@ tasks:
         # ci.yml runs `moon ci ':lint' ':test'`, which matches the task id
         # exactly -- a task called lint-pins is never reached by it. The dep is
         # what puts the pin check in CI.
-        deps: ['~:lint-pins', '~:lint-tracker']
+        deps: ['~:lint-pins', '~:lint-tracker', '~:lint-secrets']
         command: 'node permissions.mjs'
         toolchains: ['node']
         inputs:
@@ -43,3 +43,22 @@ tasks:
         inputs:
             - 'tracker-reaper.mjs'
             - '/.github/workflows/*.yml'
+
+    # A secret nothing can resolve does not fail where it is written: it becomes
+    # an empty string, and the step that reads it fails elsewhere about a
+    # password or a token. MY_GITHUB_TOKEN cost a docker publish that way and
+    # TRIGGER_PAT cost the post-publish behind it, and neither name had ever
+    # existed in the repo or the org.
+    lint-secrets:
+        command: 'node check-workflow-secrets.mjs'
+        toolchains: ['node']
+        inputs:
+            - 'check-workflow-secrets.mjs'
+            - 'known-secrets.txt'
+            - '/.github/workflows/*.yml'
+
+    test:
+        command: 'node --test'
+        toolchains: ['node']
+        inputs:
+            - '*.mjs'

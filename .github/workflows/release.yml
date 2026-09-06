@@ -251,7 +251,10 @@ jobs:
             project: ${{ needs.verify.outputs.project }}
             pypi_name: ${{ needs.verify.outputs.pypi_name }}
         secrets:
-            PYPI_TOKEN: ${{ secrets.PYPI_TOKEN }}
+            # The input is PYPI_TOKEN; the secret is PYPI_API_TOKEN. Passing the
+            # input's own name resolved empty and the upload authenticated as
+            # nobody.
+            PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
 
     # Where a release goes beyond its own registry: itch, Steam, Modrinth, the
     # Factorio mod portal. The deleted ci-docker.yml called this with the dispatch
@@ -273,7 +276,9 @@ jobs:
             MODRINTH_TOKEN: ${{ secrets.MODRINTH_TOKEN }}
             MODRINTH_SESSION: ${{ secrets.MODRINTH_SESSION }}
             MODRINTH_PASSKEY: ${{ secrets.MODRINTH_PASSKEY }}
-            ITCH_API_KEY: ${{ secrets.ITCH_API_KEY }}
+            # ITCH_API_KEY is the input; ITCH_API is the org secret behind it,
+            # as ci-godot, ci-unity and ci-unreal already pass it for butler.
+            ITCH_API_KEY: ${{ secrets.ITCH_API }}
             STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
             STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
             CURSEFORGE_TOKEN: ${{ secrets.CURSEFORGE_TOKEN }}
@@ -472,7 +477,9 @@ jobs:
             publish: ${{ needs.verify.outputs.publish }}
             needs_rust: ${{ needs.verify.outputs.web_game_needs_rust == 'true' }}
         secrets:
-            ITCH_API_KEY: ${{ secrets.ITCH_API_KEY }}
+            # ITCH_API_KEY is the input; ITCH_API is the org secret behind it,
+            # as ci-godot, ci-unity and ci-unreal already pass it for butler.
+            ITCH_API_KEY: ${{ secrets.ITCH_API }}
 
     # Withdraw a tag that never shipped.
     #

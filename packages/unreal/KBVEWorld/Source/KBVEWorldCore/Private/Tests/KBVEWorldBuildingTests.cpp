@@ -50,6 +50,59 @@ namespace
 
 		return bFound;
 	}
+
+	/**
+	 * How many upward-facing triangles at one height cover a point.
+	 *
+	 * The whole corner question reduces to this. One is a surface. Two is two
+	 * coplanar quads fighting for the same pixels. Zero, where there ought to be
+	 * stone, is a notch taken out of the footing.
+	 */
+	int32 LayersAt(const FKBVEWorldRibbonMesh& Mesh, const FVector2D& Point, float AtZ)
+	{
+		int32 Layers = 0;
+
+		for (int32 I = 0; I + 2 < Mesh.Triangles.Num(); I += 3)
+		{
+			const FVector& A = Mesh.Vertices[Mesh.Triangles[I]];
+			const FVector& B = Mesh.Vertices[Mesh.Triangles[I + 1]];
+			const FVector& C = Mesh.Vertices[Mesh.Triangles[I + 2]];
+
+			if (Mesh.Normals[Mesh.Triangles[I]].Z < 0.9f)
+			{
+				continue;
+			}
+			if (FMath::Abs(A.Z - AtZ) > 0.5f || FMath::Abs(B.Z - AtZ) > 0.5f
+				|| FMath::Abs(C.Z - AtZ) > 0.5f)
+			{
+				continue;
+			}
+
+			const FVector2D A2(A.X, A.Y);
+			const FVector2D B2(B.X, B.Y);
+			const FVector2D C2(C.X, C.Y);
+
+			const float Area = (B2.X - A2.X) * (C2.Y - A2.Y) - (C2.X - A2.X) * (B2.Y - A2.Y);
+			if (FMath::Abs(Area) <= KINDA_SMALL_NUMBER)
+			{
+				continue;
+			}
+
+			// Strictly inside, so a sample landing on the seam between the two
+			// triangles of one quad is not counted as two layers of stone.
+			const float U = ((B2.X - Point.X) * (C2.Y - Point.Y)
+				- (C2.X - Point.X) * (B2.Y - Point.Y)) / Area;
+			const float V = ((C2.X - Point.X) * (A2.Y - Point.Y)
+				- (A2.X - Point.X) * (C2.Y - Point.Y)) / Area;
+			const float W = 1.0f - U - V;
+			if (U > 0.001f && V > 0.001f && W > 0.001f)
+			{
+				++Layers;
+			}
+		}
+
+		return Layers;
+	}
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -215,6 +268,169 @@ bool FKBVEWorldBuildingCornerTest::RunTest(const FString& Parameters)
 			TestTrue(FString::Printf(TEXT("corner %d of build %d is closed"), Side, Step), bFound);
 		}
 	}
+
+	return true;
+}
+
+/**
+ * A stone footing goes somewhere else, and takes the whole footing with it.
+ *
+ * Two halves, and the second is the one worth having: a plinth split across two
+ * meshes would leave the boxes under the doorways in the brick while the rest of
+ * the band went to stone, and every house in the village would have a brick step
+ * across its threshold. So this checks that a stone-footed building writes
+ * nothing to the wall below its own base, rather than merely that the stone mesh
+ * came out non-empty.
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKBVEWorldBuildingPlinthTest,
+	"KBVE.World.Building.StoneFootingsLeaveTheWalls",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FKBVEWorldBuildingPlinthTest::RunTest(const FString&)
+{
+	FKBVEWorldBuildingParams Building;
+
+	int32 Stone = 0;
+	int32 Brick = 0;
+
+	for (int32 Seed = 0; Seed < 96; ++Seed)
+	{
+		FKBVEWorldBuildingPlan Plan = FKBVEWorldBuilding::Plan(Building, Seed * 7919 + 13,
+			FVector(0.0f, 0.0f, 400.0f), 0.7f * static_cast<float>(Seed % 9));
+		Plan.Embed = 90.0f;
+
+		FKBVEWorldBuildingMesh Mesh;
+		FKBVEWorldBuilding::Build(Building, Plan, EKBVEWorldWallDetail::Full, Mesh);
+
+		// Anything below the floor is footing: the walls start at the levelled
+		// height and only the plinth is taken down into the ground under it.
+		const float Under = Plan.Centre.Z - 1.0f;
+
+		auto Lowest = [](const FKBVEWorldRibbonMesh& Of)
+		{
+			float Low = BIG_NUMBER;
+			for (const FVector& Vertex : Of.Vertices)
+			{
+				Low = FMath::Min(Low, Vertex.Z);
+			}
+			return Low;
+		};
+
+		if (Plan.bStonePlinth)
+		{
+			++Stone;
+			TestTrue(TEXT("the stone footing was built"), !Mesh.Plinth.IsEmpty());
+			TestTrue(TEXT("no masonry is left under the floor"),
+				Lowest(Mesh.Masonry) >= Under);
+			TestTrue(TEXT("the footing goes under the floor"),
+				Lowest(Mesh.Plinth) < Under);
+		}
+		else
+		{
+			++Brick;
+			TestTrue(TEXT("nothing went to stone"), Mesh.Plinth.IsEmpty());
+			TestTrue(TEXT("the wall carries its own footing"),
+				Lowest(Mesh.Masonry) < Under);
+		}
+	}
+
+	// Both branches were actually taken. A chance that rolled one way for every
+	// seed would pass every assertion above without testing anything.
+	TestTrue(TEXT("some buildings are footed in stone"), Stone > 0);
+	TestTrue(TEXT("some buildings are not"), Brick > 0);
+	AddInfo(FString::Printf(TEXT("%d of %d buildings footed in stone"), Stone, Stone + Brick));
+
+	return true;
+}
+
+/**
+ * The top of the plinth is one layer thick, and it reaches the corners.
+ *
+ * Every wall is run half a thickness past both of its corners so the pair bury
+ * each other's ends, and the plinth is run past that again by its overhang. Laid
+ * the obvious way that puts two plinth boxes over the same square at every
+ * corner -- and both of their top faces are horizontal and at the plinth's
+ * height, so what the pair leave there is not buried geometry but two coincident
+ * quads, z-fighting along all four corners of every building in a village.
+ *
+ * Sampled rather than reasoned about, because the failure and its overcorrection
+ * are the same shape: mitre too little and the corners still fight, mitre too
+ * much and a notch of stone goes missing from each one. Counting layers catches
+ * both, and neither can be satisfied by geometry that merely exists.
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FKBVEWorldBuildingPlinthCornerTest,
+	"KBVE.World.Building.ThePlinthIsOneLayerThick",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FKBVEWorldBuildingPlinthCornerTest::RunTest(const FString& Parameters)
+{
+	const FKBVEWorldBuildingParams Building;
+
+	const float Reach = 0.5f * Building.Wall.Thickness + Building.Wall.PlinthOverhang;
+
+	int32 Doubled = 0;
+	int32 Bare = 0;
+	int32 Sampled = 0;
+
+	for (int32 Step = 0; Step < 12; ++Step)
+	{
+		// Axis aligned, so the footprint is a rectangle in X and Y and the band
+		// around it can be described without rotating every sample. The overlap
+		// is in the building's own frame and a yaw turns both halves of it.
+		FKBVEWorldBuildingPlan Plan = FKBVEWorldBuilding::Plan(Building, Step * 6151 + 29,
+			FVector::ZeroVector, 0.0f);
+		Plan.Embed = 70.0f;
+
+		FKBVEWorldBuildingMesh Mesh;
+		FKBVEWorldBuilding::Build(Building, Plan, EKBVEWorldWallDetail::Full, Mesh);
+
+		const float Top = Plan.Centre.Z + Building.Wall.PlinthHeight;
+		const float OuterX = 0.5f * Plan.Depth + Reach;
+		const float OuterY = 0.5f * Plan.Width + Reach;
+
+		// Nothing anywhere is covered twice. Swept over the whole footprint and
+		// its surround rather than over the corners alone: a mitre that missed
+		// would leave the overlap somewhere, and this does not need to guess
+		// where. Points off the band simply count zero and are not asserted on,
+		// because the doorway is a legitimate hole in the band.
+		for (int32 Ix = 0; Ix <= 40; ++Ix)
+		{
+			for (int32 Iy = 0; Iy <= 40; ++Iy)
+			{
+				const FVector2D P(
+					FMath::Lerp(-OuterX, OuterX, static_cast<float>(Ix) / 40.0f) + 0.37f,
+					FMath::Lerp(-OuterY, OuterY, static_cast<float>(Iy) / 40.0f) + 0.53f);
+
+				++Sampled;
+				if (LayersAt(Mesh.Masonry, P, Top) > 1)
+				{
+					++Doubled;
+				}
+			}
+		}
+
+		// And the corners themselves are covered. This is the half that fails if
+		// the mitre takes too much: a doorway is never at a corner, so there is
+		// no legitimate reason for one to be bare.
+		const float InnerX = OuterX - 0.5f * Reach;
+		const float InnerY = OuterY - 0.5f * Reach;
+		for (int32 Corner = 0; Corner < 4; ++Corner)
+		{
+			const FVector2D P(Corner < 2 ? InnerX : -InnerX,
+				Corner % 2 == 0 ? InnerY : -InnerY);
+
+			if (LayersAt(Mesh.Masonry, P, Top) == 0)
+			{
+				++Bare;
+			}
+		}
+	}
+
+	TestEqual(TEXT("no part of the plinth is laid twice"), Doubled, 0);
+	TestEqual(TEXT("every corner of the plinth is laid once"), Bare, 0);
+	AddInfo(FString::Printf(TEXT("%d samples, %d doubled, %d bare corners"),
+		Sampled, Doubled, Bare));
 
 	return true;
 }

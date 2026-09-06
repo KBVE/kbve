@@ -3,8 +3,7 @@
 Mirrors the ``ci-dashboard`` security job: acquire raw audit payloads from
 pnpm/cargo/pip-audit and the GitHub alerts feeds (tolerant fallbacks, never
 hard-fail on one feed), parse via :func:`parse_all_ecosystems`, and render
-the Starlight MDX + structured JSON with output parity to
-``scripts/nx-security-to-mdx.py``.
+the Starlight MDX + structured JSON.
 """
 
 from __future__ import annotations
@@ -92,7 +91,7 @@ def _acquire(ctx: BuildContext) -> dict:
         workdir = Path(ctx.workdir)
         workdir.mkdir(parents=True, exist_ok=True)
         for name, piece in raw.items():
-            with open(workdir / ("nx-security-%s.json" % name), "w") as f:
+            with open(workdir / ("security-%s.json" % name), "w") as f:
                 json.dump(piece, f, indent=2)
     return raw
 
@@ -119,6 +118,5 @@ class SecurityRoute:
             "security",
             page="security.mdx",
             mdx_text=render_security_mdx(data, ctx.timestamp),
-            json_name="nx-security.json",
             json_text=render_security_json(data),
         )

@@ -212,7 +212,7 @@ void FKBVEWorldWall::Panels(const FKBVEWorldWallParams& Wall, float Length,
 
 void FKBVEWorldWall::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWallBuild& In,
 	TArrayView<const FKBVEWorldWallOpening> Openings, EKBVEWorldWallDetail Detail,
-	FKBVEWorldRibbonMesh& Out)
+	FKBVEWorldRibbonMesh& Out, FKBVEWorldRibbonMesh* Plinth)
 {
 	const FVector Along = In.End - In.Start;
 	const float Length = Along.Size();
@@ -245,9 +245,22 @@ void FKBVEWorldWall::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWal
 		FaceT(Out, F, Panel.MinU, Panel.MaxU, Panel.MinV, Panel.MaxV, -Half, false);
 	}
 
+	// A wall in a loop is run half a thickness past both of its corners, so its
+	// horizontal surfaces overlap the neighbour's in a square at every corner --
+	// and two upward faces at one height are coincident rather than buried, which
+	// is a z-fight along all four corners of every building in the village.
+	//
+	// Started a corner's width further along instead: each of the four walls
+	// covers the corner ahead of it and none covers the one behind. The same
+	// ground, laid as a pinwheel, in a shorter run than before.
+	//
+	// A wall that caps its own ends is not in a loop and has no neighbour to
+	// mitre against, so it keeps the full run.
+	const float Mitre = In.bCapEnds ? 0.0f : 2.0f * Half;
+
 	if (In.bCapTop)
 	{
-		FaceV(Out, F, 0.0f, Length, -Half, Half, Height, true);
+		FaceV(Out, F, Mitre, Length, -Half, Half, Height, true);
 	}
 	if (In.bCapEnds)
 	{
@@ -256,7 +269,7 @@ void FKBVEWorldWall::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWal
 	}
 	if (In.bCapBottom && Foot <= 0.0f)
 	{
-		FaceV(Out, F, 0.0f, Length, -Half, Half, 0.0f, false);
+		FaceV(Out, F, Mitre, Length, -Half, Half, 0.0f, false);
 	}
 
 	// The inside of every hole. Four faces each, and they exist for one view: a
@@ -288,11 +301,21 @@ void FKBVEWorldWall::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWal
 	// floor and the plinth would put a third of a metre of masonry in it. Under
 	// the door it is carried at the foundation's height instead, which leaves its
 	// top face as the threshold the steps outside come up to.
+	// A footing is the one part of a wall that is plausibly not the wall's own
+	// material -- brick above, stone below is what a village on rock builds --
+	// so it can be sent to a mesh of its own. Left null it lands in the wall,
+	// which is what every caller that does not care about the distinction gets.
+	FKBVEWorldRibbonMesh& Footing = Plinth ? *Plinth : Out;
+
 	if (Foot > 0.0f)
 	{
 		const float Over = FMath::Max(Wall.PlinthOverhang, 0.0f);
 		const float Low = -FMath::Max(In.Embed, 0.0f);
-		float From = -Over;
+
+		// The same mitre, widened by the overhang: a plinth stands proud of the
+		// wall on both faces, so the square it shares with its neighbour at a
+		// corner is that much bigger than the wall's own.
+		float From = In.bCapEnds ? -Over : Mitre + Over;
 
 		for (const FKBVEWorldWallOpening& Open : Placed)
 		{
@@ -306,17 +329,17 @@ void FKBVEWorldWall::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWal
 			const float Left = Open.Along - 0.5f * Open.Width - Over;
 			const float Right = Open.Along + 0.5f * Open.Width + Over;
 
-			Box(Out, F, From, Left, Low, Foot, -Half - Over, Half + Over);
+			Box(Footing, F, From, Left, Low, Foot, -Half - Over, Half + Over);
 
 			// Stopped at the inner face rather than carried through it, so its top
 			// meets the floor inside edge to edge. Taken the whole way it would
 			// leave two coincident surfaces across the threshold of every doorway
 			// in the village, which is the one place they would be looked at.
-			Box(Out, F, Left, Right, Low, 0.0f, -Half, Half + Over);
+			Box(Footing, F, Left, Right, Low, 0.0f, -Half, Half + Over);
 			From = Right;
 		}
 
-		Box(Out, F, From, Length + Over, Low, Foot, -Half - Over, Half + Over);
+		Box(Footing, F, From, Length + Over, Low, Foot, -Half - Over, Half + Over);
 	}
 
 	if (Detail != EKBVEWorldWallDetail::Full)

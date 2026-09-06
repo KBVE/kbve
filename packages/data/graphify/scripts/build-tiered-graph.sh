@@ -54,7 +54,7 @@ uv run --no-project --python 3.13 --with 'networkx==3.4.2' --with 'numpy==2.2.6'
 
 echo "🔗 [4/4] fusing NX project deps + doc references (unified graph)…"
 uv run --no-project python "$SCRIPT_DIR/enrich_unified.py" "$TMP/overview.json" \
-	--nx-graph "$ROOT/apps/kbve/astro-kbve/public/data/nx/nx-graph.json" \
+	--project-graph "$ROOT/apps/kbve/astro-kbve/public/data/dashboard/graph.json" \
 	--docs-root "$ROOT/apps/kbve/astro-kbve/src/content/docs"
 
 rm -rf "$OUT"

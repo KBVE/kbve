@@ -388,7 +388,7 @@ async function fetchSecuritySummary(): Promise<SecuritySummary | null> {
 	if (cached) return cached;
 
 	try {
-		const resp = await fetch('/data/nx/nx-security.json', {
+		const resp = await fetch('/data/dashboard/security.json', {
 			signal: AbortSignal.timeout(8000),
 		});
 		if (!resp.ok) return null;
@@ -421,7 +421,7 @@ async function fetchKanbanSummary(): Promise<KanbanSummary | null> {
 	if (cached) return cached;
 
 	try {
-		const resp = await fetch('/data/nx/nx-kanban.json', {
+		const resp = await fetch('/data/dashboard/kanban.json', {
 			signal: AbortSignal.timeout(8000),
 		});
 		if (!resp.ok) return null;
@@ -453,7 +453,7 @@ async function fetchReportSummary(): Promise<ReportSummary | null> {
 	if (cached) return cached;
 
 	try {
-		const resp = await fetch('/data/nx/report.json', {
+		const resp = await fetch('/data/dashboard/report.json', {
 			signal: AbortSignal.timeout(8000),
 		});
 		if (!resp.ok) return null;
@@ -641,7 +641,7 @@ async function fetchGraphSummary(): Promise<GraphSummary | null> {
 	if (cached) return cached;
 
 	try {
-		const resp = await fetch('/data/nx/nx-graph.json', {
+		const resp = await fetch('/data/dashboard/graph.json', {
 			signal: AbortSignal.timeout(8000),
 		});
 		if (!resp.ok) return null;

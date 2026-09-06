@@ -109,12 +109,20 @@ AKBVEWorldRoadChunk::AKBVEWorldRoadChunk()
 	Roof = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Roof"));
 	Joinery = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Joinery"));
 	Glazing = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Glazing"));
+	Plinth = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Plinth"));
 
 	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get(), Roof.Get(),
-		Joinery.Get(), Glazing.Get() })
+		Joinery.Get(), Glazing.Get(), Plinth.Get() })
 	{
 		Mesh->SetupAttachment(SceneRoot);
 		Mesh->bUseAsyncCooking = true;
+
+		// Chunks are pooled, so an unbuilt one exists with six empty components
+		// on it. Navigation registers each anyway and warns about the bounds
+		// every time, which is six lines per chunk across a whole stream; the
+		// heightfield patches were taken off navigation for the same reason,
+		// and nothing here wants a navmesh either.
+		Mesh->SetCanEverAffectNavigation(false);
 	}
 
 	// A deck is the only thing between a pawn and the river, so unlike the road
@@ -263,6 +271,7 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 	Rebase(Structures.Masonry, Origin);
 	Rebase(Structures.Windows.Joinery, Origin);
 	Rebase(Structures.Windows.Glazing, Origin);
+	Rebase(Structures.Plinth, Origin);
 	Rebase(Structures.Roof, Origin);
 
 	Commit(Wood, Data.Wood, WoodMaterial, true);
@@ -271,13 +280,14 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 	Commit(Roof, Structures.Roof, In.RoofMaterial, false);
 	Commit(Joinery, Structures.Windows.Joinery, In.WoodMaterial, false);
 	Commit(Glazing, Structures.Windows.Glazing, In.GlassMaterial, false);
+	Commit(Plinth, Structures.Plinth, In.StoneMaterial, false);
 
 	// The supports collide as blocks whether they were drawn as triangles here or
 	// as instances elsewhere, so this does not care which happened.
 	CommitBlocks(Stone, Data.Blocks, Origin);
 
 	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get(), Roof.Get(),
-		Joinery.Get(), Glazing.Get() })
+		Joinery.Get(), Glazing.Get(), Plinth.Get() })
 	{
 		Mesh->SetCullDistance(MaxDrawDistance);
 	}
@@ -644,11 +654,13 @@ bool AKBVEWorldRoadChunk::RebuildBuildings(const FBuild& In)
 	Rebase(Structures.Masonry, Origin);
 	Rebase(Structures.Windows.Joinery, Origin);
 	Rebase(Structures.Windows.Glazing, Origin);
+	Rebase(Structures.Plinth, Origin);
 	Rebase(Structures.Roof, Origin);
 	Commit(Brick, Structures.Masonry, In.BrickMaterial, true);
 	Commit(Roof, Structures.Roof, In.RoofMaterial, false);
 	Commit(Joinery, Structures.Windows.Joinery, In.WoodMaterial, false);
 	Commit(Glazing, Structures.Windows.Glazing, In.GlassMaterial, false);
+	Commit(Plinth, Structures.Plinth, In.StoneMaterial, false);
 	return true;
 }
 
@@ -661,6 +673,9 @@ void AKBVEWorldRoadChunk::Release()
 	Stone->ClearAllMeshSections();
 	Brick->ClearAllMeshSections();
 	Roof->ClearAllMeshSections();
+	Joinery->ClearAllMeshSections();
+	Glazing->ClearAllMeshSections();
+	Plinth->ClearAllMeshSections();
 	Stone->ClearCollisionConvexMeshes();
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
