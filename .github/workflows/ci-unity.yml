@@ -254,7 +254,7 @@ jobs:
             - name: Clone Azure DevOps project
               if: ${{ inputs.external_repo_url != '' }}
               env:
-                  AZURE_PAT: ${{ secrets.AZURE_PAT }}
+                  AZURE_PAT: ${{ secrets.AZURE_NOV2025_TOKEN_SECRET }}
                   AZURE_REPO_URL: ${{ inputs.external_repo_url }}
                   AZURE_DEST: ${{ inputs.project_path }}
               run: |
@@ -349,7 +349,7 @@ jobs:
             - name: Clone Azure DevOps project
               if: ${{ inputs.external_repo_url != '' }}
               env:
-                  AZURE_PAT: ${{ secrets.AZURE_PAT }}
+                  AZURE_PAT: ${{ secrets.AZURE_NOV2025_TOKEN_SECRET }}
                   AZURE_REPO_URL: ${{ inputs.external_repo_url }}
                   AZURE_DEST: ${{ inputs.project_path }}
               run: |
