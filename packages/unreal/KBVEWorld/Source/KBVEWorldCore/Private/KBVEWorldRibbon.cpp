@@ -340,6 +340,37 @@ void FKBVEWorldRibbon::AppendQuad(FKBVEWorldRibbonMesh& Out, const FVector& P0, 
 	AddQuad(Out, P0, P1, P2, P3, UVs);
 }
 
+void FKBVEWorldRibbon::AppendFacet(FKBVEWorldRibbonMesh& Out, const FVector& P0,
+	const FVector& P1, const FVector& P2, const FVector& P3, const FVector2D& UV0,
+	const FVector2D& UV1, const FVector2D& UV2, const FVector2D& UV3)
+{
+	// Which pair collapsed decides which corner is dropped, and the triangle left
+	// behind is wound off the two edges that are still there -- the same
+	// orientation the quad would have had, rather than whatever a zero-length
+	// edge crossed with a real one comes out as.
+	const bool bStart = P0.Equals(P3, 0.01);
+	const bool bEnd = P1.Equals(P2, 0.01);
+
+	if (bStart && bEnd)
+	{
+		return;
+	}
+
+	if (bStart)
+	{
+		AppendTri(Out, P0, P1, P2, UV0, UV1, UV2);
+		return;
+	}
+
+	if (bEnd)
+	{
+		AppendTri(Out, P0, P1, P3, UV0, UV1, UV3);
+		return;
+	}
+
+	AppendQuad(Out, P0, P1, P2, P3, UV0, UV1, UV2, UV3);
+}
+
 void FKBVEWorldRibbon::AppendTri(FKBVEWorldRibbonMesh& Out, const FVector& P0, const FVector& P1,
 	const FVector& P2, const FVector2D& UV0, const FVector2D& UV1, const FVector2D& UV2)
 {
