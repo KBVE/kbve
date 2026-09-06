@@ -15,6 +15,7 @@ that the import side had never heard of.
 """
 
 import os
+import re
 import shutil
 import subprocess
 import sys
@@ -30,19 +31,32 @@ SUFFIXES = ("D", "N", "RH")
 # rather than after the measurement -- and are not consistent about the format
 # either. A hard-coded name or extension is a missing map for one pack and a
 # working conversion for the next.
+# {res} is the resolution PolyHaven stamps into every filename. It is the pack's
+# own resolution, not the one being converted to: a 1k pack downsampled to 512
+# is still named _1k on disk. Taken from the pack directory's suffix, which is
+# where PolyHaven puts the same token, and overridable with "res" for a pack
+# named some other way.
 CANDIDATES = {
-    "colour": (("diff_2k", "BaseColor", "basecolor", "albedo", "Albedo"), ("jpg", "png", "exr")),
-    "normal": (("nor_gl_2k", "nor_dx_2k", "Normal", "normal"), ("exr", "png", "jpg")),
-    "rough": (("rough_2k", "Roughness", "roughness"), ("exr", "png", "jpg")),
-    "height": (("disp_2k", "Height", "height", "Displacement"), ("png", "exr", "jpg")),
+    "colour": (("diff_{res}", "BaseColor", "basecolor", "albedo", "Albedo"), ("jpg", "png", "exr")),
+    "normal": (("nor_gl_{res}", "nor_dx_{res}", "Normal", "normal"), ("exr", "png", "jpg")),
+    "rough": (("rough_{res}", "Roughness", "roughness"), ("exr", "png", "jpg")),
+    "height": (("disp_{res}", "Height", "height", "Displacement"), ("png", "exr", "jpg")),
+    "alpha": (("alpha_{res}", "Alpha", "alpha", "Opacity", "opacity"), ("png", "jpg", "exr")),
 }
 
 
-def source_map(src: Path, base: str, name: str) -> Path | None:
+def res_token(entry: dict) -> str:
+    if entry.get("res"):
+        return entry["res"]
+    match = re.search(r"_(\d+k)$", entry["pack"])
+    return match.group(1) if match else "2k"
+
+
+def source_map(src: Path, base: str, name: str, res: str) -> Path | None:
     suffixes, extensions = CANDIDATES[name]
     for suffix in suffixes:
         for extension in extensions:
-            path = src / f"{base}_{suffix}.{extension}"
+            path = src / f"{base}_{suffix.format(res=res)}.{extension}"
             if path.is_file():
                 return path
     return None
@@ -73,9 +87,12 @@ def convert_set(art: Path, source_root: Path, entry: dict, resolution: int) -> b
         return False
 
     base = entry.get("base") or pack.rsplit("_", 1)[0]
-    maps = {name: source_map(src, base, name) for name in ("colour", "normal", "rough")}
+    res = res_token(entry)
+    maps = {name: source_map(src, base, name, res) for name in ("colour", "normal", "rough")}
     if entry.get("displacement"):
-        maps["height"] = source_map(src, base, "height")
+        maps["height"] = source_map(src, base, "height", res)
+    if entry.get("alpha"):
+        maps["alpha"] = source_map(src, base, "alpha", res)
     missing = [name for name, path in maps.items() if path is None]
     if missing:
         print(f"error: {pack} has no {', '.join(missing)} map in any known format", file=sys.stderr)
@@ -83,11 +100,28 @@ def convert_set(art: Path, source_root: Path, entry: dict, resolution: int) -> b
 
     out = art / entry["source"]
     out.mkdir(parents=True, exist_ok=True)
-    size = f"{resolution}x{resolution}"
+    # Per-set, because the run-wide resolution is a ceiling rather than a target:
+    # resizing a 1k pack to 2k stores four times the bytes of the same detail.
+    edge = min(resolution, int(entry.get("resolution", resolution)))
+    size = f"{edge}x{edge}"
     stem = entry["stem"]
     print(f"  {stem} <- {pack}")
 
-    if not magick([str(maps["colour"]), "-resize", size, "-depth", "8", str(out / f"{stem}_D.png")]):
+    # A cutout pack paints the cut-away region black, and black is not nothing:
+    # a mip is an average of its texels, so by the third one every blade carries
+    # a dark rim it never had, and a field of them at distance reads as grey mud
+    # rather than as grass. Grow the colour outwards under the mask first, so the
+    # texels that get averaged in are the colour the blade already was.
+    #
+    # Dilated then composited rather than dilated in place: a max filter over the
+    # blade itself would eat its own shading. Eight passes covers the gaps this
+    # atlas leaves between clumps at the mips that are actually sampled.
+    colour = [str(maps["colour"]), "-resize", size]
+    if entry.get("alpha"):
+        colour += ["(", "+clone"]
+        colour += ["-morphology", "Dilate", "Octagon:1"] * 8
+        colour += [")", "+swap", "(", str(maps["alpha"]), "-resize", size, ")", "-composite"]
+    if not magick([*colour, "-depth", "8", str(out / f"{stem}_D.png")]):
         return False
 
     # -set, not -colorspace: the EXR values are already the encoding wanted, and
@@ -116,9 +150,15 @@ def convert_set(art: Path, source_root: Path, entry: dict, resolution: int) -> b
     ):
         return False
 
-    # R = roughness, G = height, B unused. One sample instead of two. Sets with
-    # no displacement map get a flat mid-grey height so the channel stays
-    # meaningful rather than black.
+    # R = roughness, G = height, B = opacity mask. One sample instead of three.
+    # Sets with no displacement map get a flat mid-grey height so the channel
+    # stays meaningful rather than black.
+    #
+    # A cutout set -- a foliage card atlas -- rides its mask in blue rather than
+    # in the base colour's alpha, because the packed map is already imported as
+    # TC_MASKS and linear, which is what a coverage value wants: an alpha beside
+    # an sRGB base colour is gamma-shifted coverage, and it costs a second
+    # sampler that this channel was already reserving space for.
     if entry.get("displacement"):
         height = [
             "(",
@@ -137,6 +177,24 @@ def convert_set(art: Path, source_root: Path, entry: dict, resolution: int) -> b
     else:
         height = ["(", "-clone", "0", "-fill", "gray50", "-colorize", "100", ")"]
 
+    if entry.get("alpha"):
+        mask = [
+            "(",
+            str(maps["alpha"]),
+            "-set",
+            "colorspace",
+            "sRGB",
+            "-resize",
+            size,
+            "-channel",
+            "R",
+            "-separate",
+            "+channel",
+            ")",
+        ]
+    else:
+        mask = ["(", "-clone", "0", "-fill", "black", "-colorize", "100", ")"]
+
     return magick(
         [
             "(",
@@ -152,14 +210,7 @@ def convert_set(art: Path, source_root: Path, entry: dict, resolution: int) -> b
             "+channel",
             ")",
             *height,
-            "(",
-            "-clone",
-            "0",
-            "-fill",
-            "black",
-            "-colorize",
-            "100",
-            ")",
+            *mask,
             "-channel",
             "RGB",
             "-combine",
