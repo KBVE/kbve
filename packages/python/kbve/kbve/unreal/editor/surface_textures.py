@@ -323,38 +323,71 @@ def build_foliage_material(spec, textures):
     MEL.connect_material_property(packed, "B", unreal.MaterialProperty.MP_OPACITY_MASK)
     MEL.connect_material_property(packed, "R", unreal.MaterialProperty.MP_ROUGHNESS)
 
-    # Wind phased by where in the world a clump stands, so a field does not sway
-    # as one object, and weighted by the same green so the base stays planted.
-    world = expr(mat, unreal.MaterialExpressionWorldPosition, -1200, 800)
+    # Wind. Three things have to be true or a field of this reads as a chorus
+    # line rather than as weather.
+    #
+    # It travels across the ground in both axes: phased on world X alone, every
+    # clump sharing an X moves in lockstep, and a row of grass dances together.
+    #
+    # Each clump has its own offset into the wave, from the per-instance random
+    # the instanced component already provides -- without it, neighbours a
+    # centimetre apart are in perfect step, which nothing in a field ever is.
+    #
+    # And the amplitude is small against the clump. Nine units on a clump forty
+    # five tall is a fifth of its own height, which is not a breeze.
+    world = expr(mat, unreal.MaterialExpressionWorldPosition, -1400, 800)
 
     # Masked rather than asked for "R": world position has one unnamed output,
     # and a connection naming a channel it does not publish is not an error when
     # it is made -- it is a material that fails to compile and silently draws as
     # the default one. The mask's own input is unnamed for the same reason the
     # sine's is.
-    world_x = expr(mat, unreal.MaterialExpressionComponentMask, -1000, 800)
-    world_x.set_editor_property("r", True)
-    world_x.set_editor_property("g", False)
-    world_x.set_editor_property("b", False)
-    world_x.set_editor_property("a", False)
-    MEL.connect_material_expressions(world, "", world_x, "")
+    def channel(source, red, green, y):
+        node = expr(mat, unreal.MaterialExpressionComponentMask, -1200, y)
+        node.set_editor_property("r", red)
+        node.set_editor_property("g", green)
+        node.set_editor_property("b", False)
+        node.set_editor_property("a", False)
+        MEL.connect_material_expressions(source, "", node, "")
+        return node
 
-    wavelength = expr(mat, unreal.MaterialExpressionConstant, -1000, 1000)
-    wavelength.set_editor_property("r", spec.get("wind_wavelength", 0.0025))
-    phase = expr(mat, unreal.MaterialExpressionMultiply, -800, 900)
-    MEL.connect_material_expressions(world_x, "", phase, "A")
-    MEL.connect_material_expressions(wavelength, "", phase, "B")
+    wavelength = spec.get("wind_wavelength", 0.0025)
 
-    time = expr(mat, unreal.MaterialExpressionTime, -1000, 1200)
-    speed = expr(mat, unreal.MaterialExpressionConstant, -1000, 1400)
-    speed.set_editor_property("r", spec.get("wind_speed", 1.4))
-    advance = expr(mat, unreal.MaterialExpressionMultiply, -800, 1300)
+    def axis(source, red, green, scale, y):
+        constant = expr(mat, unreal.MaterialExpressionConstant, -1200, y + 100)
+        constant.set_editor_property("r", scale)
+        product = expr(mat, unreal.MaterialExpressionMultiply, -1000, y)
+        MEL.connect_material_expressions(channel(source, red, green, y), "", product, "A")
+        MEL.connect_material_expressions(constant, "", product, "B")
+        return product
+
+    along = axis(world, True, False, wavelength, 800)
+    across = axis(world, False, True, wavelength * 0.62, 1000)
+    phase = expr(mat, unreal.MaterialExpressionAdd, -800, 900)
+    MEL.connect_material_expressions(along, "", phase, "A")
+    MEL.connect_material_expressions(across, "", phase, "B")
+
+    time = expr(mat, unreal.MaterialExpressionTime, -1200, 1200)
+    speed = expr(mat, unreal.MaterialExpressionConstant, -1200, 1400)
+    speed.set_editor_property("r", spec.get("wind_speed", 1.1))
+    advance = expr(mat, unreal.MaterialExpressionMultiply, -1000, 1300)
     MEL.connect_material_expressions(time, "", advance, "A")
     MEL.connect_material_expressions(speed, "", advance, "B")
 
+    scatter = expr(mat, unreal.MaterialExpressionPerInstanceRandom, -1200, 1600)
+    turn = expr(mat, unreal.MaterialExpressionConstant, -1200, 1700)
+    turn.set_editor_property("r", 6.2831853)
+    stagger = expr(mat, unreal.MaterialExpressionMultiply, -1000, 1600)
+    MEL.connect_material_expressions(scatter, "", stagger, "A")
+    MEL.connect_material_expressions(turn, "", stagger, "B")
+
+    moving = expr(mat, unreal.MaterialExpressionAdd, -800, 1300)
+    MEL.connect_material_expressions(advance, "", moving, "A")
+    MEL.connect_material_expressions(stagger, "", moving, "B")
+
     argument = expr(mat, unreal.MaterialExpressionAdd, -600, 1100)
     MEL.connect_material_expressions(phase, "", argument, "A")
-    MEL.connect_material_expressions(advance, "", argument, "B")
+    MEL.connect_material_expressions(moving, "", argument, "B")
 
     # The input pin is unnamed. Naming it "Input" -- which is what the property
     # is called -- connects nothing, and the material then fails to compile with
@@ -367,7 +400,7 @@ def build_foliage_material(spec, textures):
     MEL.connect_material_expressions(vertex, "G", weighted, "B")
 
     sway = expr(mat, unreal.MaterialExpressionConstant3Vector, -200, 1400)
-    amplitude = spec.get("wind_amplitude", 9.0)
+    amplitude = spec.get("wind_amplitude", 3.0)
     sway.set_editor_property("constant", unreal.LinearColor(amplitude, amplitude * 0.4, 0.0, 1.0))
     offset = expr(mat, unreal.MaterialExpressionMultiply, 0, 1200)
     MEL.connect_material_expressions(weighted, "", offset, "A")
