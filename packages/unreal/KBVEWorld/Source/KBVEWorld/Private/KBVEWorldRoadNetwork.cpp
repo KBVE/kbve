@@ -269,8 +269,8 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 	Rebase(Data.Wood, Origin);
 	Rebase(Data.Stone, Origin);
 	Rebase(Structures.Masonry, Origin);
-	Rebase(Structures.Windows.Joinery, Origin);
-	Rebase(Structures.Windows.Glazing, Origin);
+	Rebase(Structures.Joinery.Timber, Origin);
+	Rebase(Structures.Joinery.Glazing, Origin);
 	Rebase(Structures.Plinth, Origin);
 	Rebase(Structures.Roof, Origin);
 
@@ -278,8 +278,8 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 	Commit(Stone, Data.Stone, StoneMaterial, false);
 	Commit(Brick, Structures.Masonry, In.BrickMaterial, true);
 	Commit(Roof, Structures.Roof, In.RoofMaterial, false);
-	Commit(Joinery, Structures.Windows.Joinery, In.WoodMaterial, false);
-	Commit(Glazing, Structures.Windows.Glazing, In.GlassMaterial, false);
+	Commit(Joinery, Structures.Joinery.Timber, In.WoodMaterial, false);
+	Commit(Glazing, Structures.Joinery.Glazing, In.GlassMaterial, false);
 	Commit(Plinth, Structures.Plinth, In.StoneMaterial, false);
 
 	// The supports collide as blocks whether they were drawn as triangles here or
@@ -652,14 +652,14 @@ bool AKBVEWorldRoadChunk::RebuildBuildings(const FBuild& In)
 
 	const FVector Origin = GetActorLocation();
 	Rebase(Structures.Masonry, Origin);
-	Rebase(Structures.Windows.Joinery, Origin);
-	Rebase(Structures.Windows.Glazing, Origin);
+	Rebase(Structures.Joinery.Timber, Origin);
+	Rebase(Structures.Joinery.Glazing, Origin);
 	Rebase(Structures.Plinth, Origin);
 	Rebase(Structures.Roof, Origin);
 	Commit(Brick, Structures.Masonry, In.BrickMaterial, true);
 	Commit(Roof, Structures.Roof, In.RoofMaterial, false);
-	Commit(Joinery, Structures.Windows.Joinery, In.WoodMaterial, false);
-	Commit(Glazing, Structures.Windows.Glazing, In.GlassMaterial, false);
+	Commit(Joinery, Structures.Joinery.Timber, In.WoodMaterial, false);
+	Commit(Glazing, Structures.Joinery.Glazing, In.GlassMaterial, false);
 	Commit(Plinth, Structures.Plinth, In.StoneMaterial, false);
 	return true;
 }

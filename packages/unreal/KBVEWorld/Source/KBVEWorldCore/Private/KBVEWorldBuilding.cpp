@@ -234,14 +234,21 @@ void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
 			// handed: the wall snaps them to its coursing and clamps them into its
 			// own length, so the seeded rectangle and the hole are different
 			// rectangles and timber built on the first lands across brick.
-			if (FKBVEWorldWindow::Draws(Detail))
+			if (FKBVEWorldWindow::Draws(Detail) || FKBVEWorldDoor::Draws(Detail))
 			{
 				TArray<FKBVEWorldWallPanel> Solids;
 				TArray<FKBVEWorldWallOpening> Placed;
 				FKBVEWorldWall::Panels(Building.Wall, Span + 2.0f * Skin, Openings, Detail,
 					Solids, Placed);
-				FKBVEWorldWindow::Build(Building.Wall, FKBVEWorldWall::Frame(Building.Wall, Wall),
-					Placed, Detail, Building.Window, Out.Windows);
+
+				// One frame and one list for both. The two builders partition it by
+				// whether an opening's sill is on the floor, so a doorway is glazed
+				// by neither and a window is hung by neither.
+				const FKBVEWorldWallFrame Face = FKBVEWorldWall::Frame(Building.Wall, Wall);
+				FKBVEWorldWindow::Build(Building.Wall, Face, Placed, Detail, Building.Window,
+					Out.Joinery);
+				FKBVEWorldDoor::Build(Building.Wall, Face, Placed, Detail, Building.Door,
+					Out.Joinery);
 			}
 
 			// The ridge runs across the front, so the two walls that meet the

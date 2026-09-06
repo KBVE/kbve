@@ -3,50 +3,6 @@
 namespace
 {
 	/**
-	 * A box in the wall's own frame, drawn on all six faces.
-	 *
-	 * All six because a window has two sides. The frame runs the whole depth of
-	 * the reveal and stands proud of both faces of the wall, so the room sees the
-	 * same joinery the street does -- a lining rather than a trim stuck on the
-	 * outside, which from indoors is an open-backed box with nothing facing you.
-	 */
-	void Timber(FKBVEWorldRibbonMesh& Out, const FKBVEWorldWallFrame& F, float U0, float U1,
-		float V0, float V1, float T0, float T1)
-	{
-		if (U1 - U0 <= KINDA_SMALL_NUMBER || V1 - V0 <= KINDA_SMALL_NUMBER)
-		{
-			return;
-		}
-
-		// The two faces, then the four returns. The returns are what stop a frame
-		// reading as a decal: at a glancing angle it is the reveal of the timber
-		// that says there is something standing off the wall.
-		FKBVEWorldRibbon::AppendQuad(Out,
-			F.At(U0, V0, T1), F.At(U1, V0, T1), F.At(U1, V1, T1), F.At(U0, V1, T1),
-			F.UV(U0, V0), F.UV(U1, V0), F.UV(U1, V1), F.UV(U0, V1));
-
-		FKBVEWorldRibbon::AppendQuad(Out,
-			F.At(U0, V1, T0), F.At(U1, V1, T0), F.At(U1, V0, T0), F.At(U0, V0, T0),
-			F.UV(U0, V1), F.UV(U1, V1), F.UV(U1, V0), F.UV(U0, V0));
-
-		FKBVEWorldRibbon::AppendQuad(Out,
-			F.At(U0, V1, T1), F.At(U1, V1, T1), F.At(U1, V1, T0), F.At(U0, V1, T0),
-			F.UV(U0, V1), F.UV(U1, V1), F.UV(U1, V1), F.UV(U0, V1));
-
-		FKBVEWorldRibbon::AppendQuad(Out,
-			F.At(U1, V0, T1), F.At(U0, V0, T1), F.At(U0, V0, T0), F.At(U1, V0, T0),
-			F.UV(U1, V0), F.UV(U0, V0), F.UV(U0, V0), F.UV(U1, V0));
-
-		FKBVEWorldRibbon::AppendQuad(Out,
-			F.At(U0, V0, T1), F.At(U0, V1, T1), F.At(U0, V1, T0), F.At(U0, V0, T0),
-			F.UV(U0, V0), F.UV(U0, V1), F.UV(U0, V1), F.UV(U0, V0));
-
-		FKBVEWorldRibbon::AppendQuad(Out,
-			F.At(U1, V1, T1), F.At(U1, V0, T1), F.At(U1, V0, T0), F.At(U1, V1, T0),
-			F.UV(U1, V1), F.UV(U1, V0), F.UV(U1, V0), F.UV(U1, V1));
-	}
-
-	/**
 	 * One pane, drawn from both sides. UVs span the pane so dirt and frosting fit it.
 	 *
 	 * Two quads back to back rather than a two-sided material: only ever one of
@@ -85,7 +41,7 @@ bool FKBVEWorldWindow::Draws(EKBVEWorldWallDetail Detail)
 
 void FKBVEWorldWindow::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWallFrame& Frame,
 	TArrayView<const FKBVEWorldWallOpening> Openings, EKBVEWorldWallDetail Detail,
-	const FKBVEWorldWindowParams& Window, FKBVEWorldWindowMesh& Out)
+	const FKBVEWorldWindowParams& Window, FKBVEWorldJoineryMesh& Out)
 {
 	if (!Draws(Detail))
 	{
@@ -121,11 +77,11 @@ void FKBVEWorldWindow::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldW
 		// The frame is set into the opening rather than laid around it, so the
 		// masonry keeps the size of hole the wall decided on and the timber does
 		// not creep across the brick beside it.
-		Timber(Out.Joinery, Frame, Left, Left + Bar, Bottom, Top, FrameBack, FrameFront);
-		Timber(Out.Joinery, Frame, Right - Bar, Right, Bottom, Top, FrameBack, FrameFront);
-		Timber(Out.Joinery, Frame, Left + Bar, Right - Bar, Bottom, Bottom + Bar,
+		FKBVEWorldJoinery::Box(Out.Timber, Frame, Left, Left + Bar, Bottom, Top, FrameBack, FrameFront);
+		FKBVEWorldJoinery::Box(Out.Timber, Frame, Right - Bar, Right, Bottom, Top, FrameBack, FrameFront);
+		FKBVEWorldJoinery::Box(Out.Timber, Frame, Left + Bar, Right - Bar, Bottom, Bottom + Bar,
 			FrameBack, FrameFront);
-		Timber(Out.Joinery, Frame, Left + Bar, Right - Bar, Top - Bar, Top,
+		FKBVEWorldJoinery::Box(Out.Timber, Frame, Left + Bar, Right - Bar, Top - Bar, Top,
 			FrameBack, FrameFront);
 
 		const float GlassLeft = Left + Bar;
@@ -152,7 +108,7 @@ void FKBVEWorldWindow::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldW
 		{
 			const float Mid = 0.5f * (GlassLeft + GlassRight);
 			const float HalfBar = 0.5f * FMath::Min(Window.BarWidth, 0.3f * Open.Width);
-			Timber(Out.Joinery, Frame, Mid - HalfBar, Mid + HalfBar, GlassBottom, GlassTop,
+			FKBVEWorldJoinery::Box(Out.Timber, Frame, Mid - HalfBar, Mid + HalfBar, GlassBottom, GlassTop,
 				FrameBack, FrameFront);
 			Columns.Emplace(GlassLeft, Mid - HalfBar);
 			Columns.Emplace(Mid + HalfBar, GlassRight);
@@ -166,7 +122,7 @@ void FKBVEWorldWindow::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldW
 		{
 			const float Mid = 0.5f * (GlassBottom + GlassTop);
 			const float HalfBar = 0.5f * FMath::Min(Window.BarWidth, 0.3f * Open.Height);
-			Timber(Out.Joinery, Frame, GlassLeft, GlassRight, Mid - HalfBar, Mid + HalfBar,
+			FKBVEWorldJoinery::Box(Out.Timber, Frame, GlassLeft, GlassRight, Mid - HalfBar, Mid + HalfBar,
 				FrameBack, FrameFront);
 			Rows.Emplace(GlassBottom, Mid - HalfBar);
 			Rows.Emplace(Mid + HalfBar, GlassTop);

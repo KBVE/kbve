@@ -173,6 +173,48 @@ struct KBVEWORLDCORE_API FKBVEWorldWallFrame
 };
 
 /**
+ * What fills the holes a wall leaves, split by what draws it.
+ *
+ * Here rather than with the window or the door because both of them fill it and
+ * neither owns it. Two meshes for the same reason a building splits masonry from
+ * roof: timber and glass are two materials, and two materials is two sections.
+ * One timber for the pair of them, though -- a door and a window sash are the
+ * same joiner's stock, and giving them a section each would be a second draw
+ * call per chunk to say the same thing twice.
+ *
+ * Both append, so a chunk's whole settlement stays one section per material
+ * however many openings are in it.
+ */
+struct FKBVEWorldJoineryMesh
+{
+	FKBVEWorldRibbonMesh Timber;
+	FKBVEWorldRibbonMesh Glazing;
+
+	void Reset()
+	{
+		Timber.Reset();
+		Glazing.Reset();
+	}
+
+	bool IsEmpty() const { return Timber.IsEmpty() && Glazing.IsEmpty(); }
+};
+
+/**
+ * The one shape everything set into a wall is made of.
+ *
+ * A frame member, a glazing bar, a threshold and a door leaf are all the same
+ * box in the wall's own frame, so they are one function rather than a copy of it
+ * per builder. Six faces, not five: the wall draws both of its faces and both
+ * reveals of every opening, so the side an outward-only box leaves open is the
+ * one the room looks at.
+ */
+struct KBVEWORLDCORE_API FKBVEWorldJoinery
+{
+	static void Box(FKBVEWorldRibbonMesh& Out, const FKBVEWorldWallFrame& F, float U0, float U1,
+		float V0, float V1, float T0, float T1);
+};
+
+/**
  * Where one wall stands and how it joins the rest of its building.
  */
 struct FKBVEWorldWallBuild
