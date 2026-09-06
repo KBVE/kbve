@@ -20,22 +20,30 @@ struct KBVEWORLDCORE_API FKBVEWorldWindowParams
 {
 	GENERATED_BODY()
 
-	/** Face width of a frame member, seen straight on. */
+	/**
+	 * Face width of a frame member, seen straight on.
+	 *
+	 * Sized against the opening it sits in rather than against a real sash. A
+	 * bay window here is 98cm wide, and joinery slim enough to be correct at arm's
+	 * length is a hairline by the time the building is a house across a field.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Window", meta = (ClampMin = "1.0"))
-	float FrameWidth = 11.0f;
+	float FrameWidth = 16.0f;
 
 	/**
 	 * How far the frame stands proud of the wall face.
 	 *
-	 * Small and non-zero on purpose. Flush with the masonry the two surfaces are
-	 * coplanar and z-fight along every edge of every window in the village.
+	 * Non-zero on purpose: flush with the masonry the two surfaces are coplanar
+	 * and z-fight along every edge of every window in the village. Past that it
+	 * is what casts the shadow line down the frame, and a frame with no shadow
+	 * under it reads as paint on the wall however wide its face is.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Window", meta = (ClampMin = "0.1"))
-	float FrameProud = 5.0f;
+	float FrameProud = 9.0f;
 
 	/** How far back from the frame's outer face the pane sits. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Window", meta = (ClampMin = "0.0"))
-	float GlassInset = 6.0f;
+	float GlassInset = 10.0f;
 
 	/** A window wider than this gets a vertical bar down the middle. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Window", meta = (ClampMin = "0.0"))
@@ -47,7 +55,7 @@ struct KBVEWORLDCORE_API FKBVEWorldWindowParams
 
 	/** Face width of a mullion or transom, which is lighter than the frame. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Window", meta = (ClampMin = "1.0"))
-	float BarWidth = 7.0f;
+	float BarWidth = 11.0f;
 };
 
 /**
