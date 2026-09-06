@@ -41,11 +41,27 @@ jobs:
 
                   echo "::notice::Mirroring ${REF_TYPE} '${REF_NAME}' to Forgejo (pointers only, non-destructive)"
 
+                  # --no-verify is what makes "pointers only" true. git-lfs works
+                  # through a pre-push hook, so a plain push here walks every commit
+                  # being mirrored, enumerates every LFS object in that history, and
+                  # uploads it: 6.6 GB on each run, and a hard failure on any object
+                  # the runner cannot fetch.
+                  #
+                  # It cannot fetch all of them. The checkout is deliberately
+                  # lfs: false, and a blob whose file was later deleted -- herbmail's
+                  # arms.glb, added in d3be0b8b06 and dropped in 1a4737dbee -- is
+                  # reachable only from history, so `(missing)` aborts the whole push
+                  # and no ref mirrors at all.
+                  #
+                  # The blobs do not belong in this remote regardless. Each game's
+                  # assets live in its own Forgejo repo (tools/lfs/remotes.tsv), and
+                  # Forgejo dedups content across the org, so the monorepo mirror only
+                  # ever needed the pointers.
                   if [ "${REF_TYPE}" = "branch" ] && [ "${REF_NAME}" = "main" ]; then
-                      git push "${REMOTE}" "HEAD:refs/heads/main"
+                      git push --no-verify "${REMOTE}" "HEAD:refs/heads/main"
                   fi
 
-                  git push "${REMOTE}" --tags
+                  git push --no-verify "${REMOTE}" --tags
 
     track-mirror:
         name: Track Mirror
