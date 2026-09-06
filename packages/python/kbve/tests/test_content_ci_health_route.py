@@ -11,7 +11,7 @@ from kbve.content.router import get
 
 def _ctx(tmp_path, inputs):
     content_root = tmp_path / "apps/kbve/astro-kbve/src/content/docs"
-    public_dir = tmp_path / "apps/kbve/astro-kbve/public/data/nx"
+    public_dir = tmp_path / "apps/kbve/astro-kbve/public/data/dashboard"
     content_root.mkdir(parents=True)
     (tmp_path / ".moon").mkdir()
     return BuildContext(
@@ -84,7 +84,7 @@ def test_ci_health_build_writes_json_and_mdx(tmp_path):
     assert result.skipped is False
     assert len(result.changed) == 2
 
-    json_out = ctx.public_dir / "nx-ci-health.json"
+    json_out = ctx.public_dir / "ci-health.json"
     mdx = ctx.content_root / "dashboard" / "ci-health.mdx"
     assert json_out.exists() and mdx.exists()
 

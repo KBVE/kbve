@@ -23,7 +23,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
-from typing import Iterable, Optional
+from collections.abc import Iterable
 
 DEPENDS_REL = "depends"
 
@@ -32,19 +32,18 @@ def _leaf(label: str) -> str:
     return label.rsplit("/", 1)[-1]
 
 
-def longest_prefix_dir(root: str, labels: list[str]) -> Optional[int]:
+def longest_prefix_dir(root: str, labels: list[str]) -> int | None:
     """Index of the directory whose label is the longest path-prefix of ``root``.
 
     NX project roots (``apps/kbve/axum-kbve``) are finer-grained than Graphify's
     directory bubbles (``apps/kbve``); a project attaches to the deepest bubble
     that contains it.
     """
-    best_i: Optional[int] = None
+    best_i: int | None = None
     best_len = -1
     for i, label in enumerate(labels):
-        if root == label or root.startswith(label + "/"):
-            if len(label) > best_len:
-                best_len, best_i = len(label), i
+        if (root == label or root.startswith(label + "/")) and len(label) > best_len:
+            best_len, best_i = len(label), i
     return best_i
 
 
@@ -61,7 +60,7 @@ def _slug_index(slugs: Iterable[str]) -> dict[str, str]:
     return index
 
 
-def doc_ref_for(candidates: Iterable[str], slug_index: dict[str, str]) -> Optional[str]:
+def doc_ref_for(candidates: Iterable[str], slug_index: dict[str, str]) -> str | None:
     for cand in candidates:
         slug = slug_index.get(cand.lower())
         if slug:
@@ -69,7 +68,7 @@ def doc_ref_for(candidates: Iterable[str], slug_index: dict[str, str]) -> Option
     return None
 
 
-def enrich(overview: dict, nx_graph: dict, doc_slugs: Iterable[str]) -> dict:
+def enrich(overview: dict, project_graph: dict, doc_slugs: Iterable[str]) -> dict:
     """Return ``overview`` enriched with NX identity/edges and doc refs.
 
     Mutates and returns the passed overview for convenience; callers that need
@@ -79,7 +78,7 @@ def enrich(overview: dict, nx_graph: dict, doc_slugs: Iterable[str]) -> dict:
     labels = [d["label"] for d in dirs]
     slug_index = _slug_index(doc_slugs)
 
-    graph = nx_graph.get("graph", {})
+    graph = project_graph.get("graph", {})
     nodes = graph.get("nodes", {})
     deps = graph.get("dependencies", {})
 
@@ -110,8 +109,7 @@ def enrich(overview: dict, nx_graph: dict, doc_slugs: Iterable[str]) -> dict:
             depends[key] = depends.get(key, 0) + 1
 
     relations = overview.setdefault("meta", {}).setdefault(
-        "relations", ["imports", "calls", "references",
-                      "contains", "extends", "other"]
+        "relations", ["imports", "calls", "references", "contains", "extends", "other"]
     )
     if DEPENDS_REL not in relations:
         relations.append(DEPENDS_REL)
@@ -144,12 +142,11 @@ def _walk_slugs(docs_root: str) -> list[str]:
     slugs: list[str] = []
     for base, _dirs, files in os.walk(docs_root):
         for f in files:
-            if not (f.endswith(".md") or f.endswith(".mdx")):
+            if not f.endswith((".md", ".mdx")):
                 continue
             rel = os.path.relpath(os.path.join(base, f), docs_root)
             slug = rel[: rel.rfind(".")].replace(os.sep, "/")
-            if slug.endswith("/index"):
-                slug = slug[: -len("/index")]
+            slug = slug.removesuffix("/index")
             slugs.append(slug)
     return slugs
 
@@ -157,18 +154,18 @@ def _walk_slugs(docs_root: str) -> list[str]:
 def main() -> None:
     ap = argparse.ArgumentParser()
     ap.add_argument("overview", help="tiered overview.json to enrich in place")
-    ap.add_argument("--nx-graph", required=True, help="nx-graph.json path")
+    ap.add_argument("--project-graph", required=True, help="dashboard graph.json path")
     ap.add_argument("--docs-root", required=True, help="content/docs root")
     ap.add_argument("--out", help="output path (default: overwrite overview)")
     args = ap.parse_args()
 
     with open(args.overview) as fh:
         overview = json.load(fh)
-    with open(args.nx_graph) as fh:
-        nx_graph = json.load(fh)
+    with open(args.project_graph) as fh:
+        project_graph = json.load(fh)
     doc_slugs = _walk_slugs(args.docs_root)
 
-    enrich(overview, nx_graph, doc_slugs)
+    enrich(overview, project_graph, doc_slugs)
 
     out = args.out or args.overview
     with open(out, "w") as fh:

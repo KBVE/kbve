@@ -97,7 +97,7 @@ def test_security_build_writes_mdx_and_json(tmp_path):
     assert result.route == "security"
 
     mdx = ctx.content_root / "dashboard" / "security.mdx"
-    js = ctx.public_dir / "nx-security.json"
+    js = ctx.public_dir / "security.json"
     assert mdx.exists()
     assert js.exists()
 

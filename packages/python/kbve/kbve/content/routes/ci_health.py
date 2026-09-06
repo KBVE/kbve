@@ -63,6 +63,5 @@ class CiHealthRoute:
             "ci-health",
             page="ci-health.mdx",
             mdx_text=render_ci_health_mdx(payload, ctx.timestamp),
-            json_name="nx-ci-health.json",
             json_text=render_ci_health_json(payload),
         )

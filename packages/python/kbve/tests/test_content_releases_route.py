@@ -11,7 +11,7 @@ from kbve.content.router import get
 
 def _ctx(tmp_path, inputs):
     content_root = tmp_path / "apps/kbve/astro-kbve/src/content/docs"
-    public_dir = tmp_path / "apps/kbve/astro-kbve/public/data/nx"
+    public_dir = tmp_path / "apps/kbve/astro-kbve/public/data/dashboard"
     content_root.mkdir(parents=True)
     (tmp_path / ".moon").mkdir()
     return BuildContext(
@@ -69,7 +69,7 @@ def test_releases_build_writes(tmp_path):
     result = get("releases").build(ctx)
     assert result.skipped is False and len(result.changed) == 2
 
-    data = json.loads((ctx.public_dir / "nx-releases.json").read_text())
+    data = json.loads((ctx.public_dir / "releases.json").read_text())
     assert data["total"] == 1
     assert data["summary"]["current"] == 1
 
@@ -89,4 +89,4 @@ def test_releases_build_skips_when_status_fails(tmp_path, monkeypatch):
     ctx = _ctx(tmp_path, {})
     result = get("releases").build(ctx)
     assert result.skipped is True
-    assert not (ctx.public_dir / "nx-releases.json").exists()
+    assert not (ctx.public_dir / "releases.json").exists()

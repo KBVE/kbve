@@ -2,7 +2,7 @@
 
 Mirrors the ``ci-dashboard`` kanban job: page the org project over GraphQL
 (``UNITY_PAT`` token), bucket items into the nine board columns, then render
-the Bento MDX plus the ``nx-kanban.json`` contract consumed by the interactive
+the Bento MDX plus the ``kanban.json`` contract consumed by the interactive
 dashboard island and runtime fetch. The token is read from the environment and
 a missing/empty token degrades to a graceful skip rather than a hard failure.
 """
@@ -65,7 +65,6 @@ class KanbanRoute:
             "kanban",
             page="kanban-data.mdx",
             mdx_text=render_kanban_mdx(payload, ctx.timestamp),
-            json_name="nx-kanban.json",
             json_text=json_text,
-            extra_json=(src_data / "nx-kanban.json",),
+            extra_json=(src_data / "kanban.json",),
         )

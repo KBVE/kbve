@@ -75,7 +75,7 @@ KANBAN_COL_SVG = {
 
 
 def build_kanban_payload(project: dict, columns: dict, summary: dict, timestamp: str) -> dict:
-    """Assemble the frozen ``nx-kanban.json`` contract (JS key order)."""
+    """Assemble the frozen ``kanban.json`` contract (JS key order)."""
     from ..kanban_board import VIEWS
 
     return {

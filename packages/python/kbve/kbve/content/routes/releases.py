@@ -44,6 +44,5 @@ class ReleasesRoute:
             "releases",
             page="releases.mdx",
             mdx_text=render_release_mdx(payload, ctx.timestamp),
-            json_name="nx-releases.json",
             json_text=render_release_json(payload),
         )

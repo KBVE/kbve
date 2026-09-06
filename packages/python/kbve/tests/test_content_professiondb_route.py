@@ -11,7 +11,7 @@ from kbve.content.routes import professiondb as mod
 
 def _ctx(tmp_path):
     content_root = tmp_path / "apps/kbve/astro-kbve/src/content/docs"
-    public_dir = tmp_path / "apps/kbve/astro-kbve/public/data/nx"
+    public_dir = tmp_path / "apps/kbve/astro-kbve/public/data/dashboard"
     content_root.mkdir(parents=True)
     (tmp_path / ".moon").mkdir()
     return BuildContext(

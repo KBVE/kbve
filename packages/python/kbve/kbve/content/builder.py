@@ -32,10 +32,10 @@ def public_dir_for(content_root: Path) -> Path:
     """Default public data dir for a content root.
 
     ``content_root`` is ``apps/kbve/astro-kbve/src/content/docs``; the Astro
-    public data dir is ``apps/kbve/astro-kbve/public/data/nx`` — three parents
-    up from ``docs`` (``docs`` → ``content`` → ``src`` → ``astro-kbve``).
+    public data dir is ``apps/kbve/astro-kbve/public/data/dashboard`` — three
+    parents up from ``docs`` (``docs`` → ``content`` → ``src`` → ``astro-kbve``).
     """
-    return Path(content_root).parent.parent.parent / "public" / "data" / "nx"
+    return Path(content_root).parent.parent.parent / "public" / "data" / "dashboard"
 
 
 def repo_root_for(content_root: Path) -> Path:
@@ -74,7 +74,6 @@ def emit_page(
     *,
     page: str,
     mdx_text: str,
-    json_name: str,
     json_text: str,
     extra_json: Sequence[Path] = (),
     note: str = "generated",
@@ -87,10 +86,13 @@ def emit_page(
     workflow stages exactly these strings from the repo root, so a route that
     computes them itself is a route that can get them wrong, which is how the
     journal route came to name a path `git add` could not resolve.
+
+    The JSON is always ``<route>.json``; every route passed its own name here
+    and each one had to be kept in step with the fetch on the dashboard side.
     """
     content_root = Path(ctx.content_root)
     mdx_out = content_root / "dashboard" / page
-    json_out = Path(ctx.public_dir) / json_name
+    json_out = Path(ctx.public_dir) / ("%s.json" % route)
     targets = [(mdx_out, mdx_text), *((p, json_text) for p in extra_json), (json_out, json_text)]
 
     if not ctx.dry_run:
