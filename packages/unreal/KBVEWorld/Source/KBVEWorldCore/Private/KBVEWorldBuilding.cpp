@@ -121,6 +121,10 @@ FKBVEWorldBuildingPlan FKBVEWorldBuilding::Plan(const FKBVEWorldBuildingParams& 
 	const int32 High = FMath::Max(Building.MaxStoreys, Low);
 	Out.Storeys = Low + static_cast<int32>(Unit(BuildingHash(Seed, 3)) * static_cast<float>(High - Low + 1));
 	Out.Storeys = FMath::Clamp(Out.Storeys, Low, High);
+
+	// Its own salt, so turning the stone up or down does not restack the storeys
+	// of every house in the world.
+	Out.bStonePlinth = Unit(BuildingHash(Seed, 4)) < Building.StonePlinthChance;
 	return Out;
 }
 
@@ -223,7 +227,8 @@ void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
 				Open.Along += Skin;
 			}
 
-			FKBVEWorldWall::Build(Building.Wall, Wall, Openings, Detail, Out.Masonry);
+			FKBVEWorldWall::Build(Building.Wall, Wall, Openings, Detail, Out.Masonry,
+				Plan.bStonePlinth ? &Out.Plinth : nullptr);
 
 			// Framed from the openings the wall actually cut, not the ones it was
 			// handed: the wall snaps them to its coursing and clamps them into its

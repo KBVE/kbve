@@ -219,4 +219,75 @@ bool FKBVEWorldBuildingCornerTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+/**
+ * A stone footing goes somewhere else, and takes the whole footing with it.
+ *
+ * Two halves, and the second is the one worth having: a plinth split across two
+ * meshes would leave the boxes under the doorways in the brick while the rest of
+ * the band went to stone, and every house in the village would have a brick step
+ * across its threshold. So this checks that a stone-footed building writes
+ * nothing to the wall below its own base, rather than merely that the stone mesh
+ * came out non-empty.
+ */
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(FKBVEWorldBuildingPlinthTest,
+	"KBVE.World.Building.StoneFootingsLeaveTheWalls",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FKBVEWorldBuildingPlinthTest::RunTest(const FString&)
+{
+	FKBVEWorldBuildingParams Building;
+
+	int32 Stone = 0;
+	int32 Brick = 0;
+
+	for (int32 Seed = 0; Seed < 96; ++Seed)
+	{
+		FKBVEWorldBuildingPlan Plan = FKBVEWorldBuilding::Plan(Building, Seed * 7919 + 13,
+			FVector(0.0f, 0.0f, 400.0f), 0.7f * static_cast<float>(Seed % 9));
+		Plan.Embed = 90.0f;
+
+		FKBVEWorldBuildingMesh Mesh;
+		FKBVEWorldBuilding::Build(Building, Plan, EKBVEWorldWallDetail::Full, Mesh);
+
+		// Anything below the floor is footing: the walls start at the levelled
+		// height and only the plinth is taken down into the ground under it.
+		const float Under = Plan.Centre.Z - 1.0f;
+
+		auto Lowest = [](const FKBVEWorldRibbonMesh& Of)
+		{
+			float Low = BIG_NUMBER;
+			for (const FVector& Vertex : Of.Vertices)
+			{
+				Low = FMath::Min(Low, Vertex.Z);
+			}
+			return Low;
+		};
+
+		if (Plan.bStonePlinth)
+		{
+			++Stone;
+			TestTrue(TEXT("the stone footing was built"), !Mesh.Plinth.IsEmpty());
+			TestTrue(TEXT("no masonry is left under the floor"),
+				Lowest(Mesh.Masonry) >= Under);
+			TestTrue(TEXT("the footing goes under the floor"),
+				Lowest(Mesh.Plinth) < Under);
+		}
+		else
+		{
+			++Brick;
+			TestTrue(TEXT("nothing went to stone"), Mesh.Plinth.IsEmpty());
+			TestTrue(TEXT("the wall carries its own footing"),
+				Lowest(Mesh.Masonry) < Under);
+		}
+	}
+
+	// Both branches were actually taken. A chance that rolled one way for every
+	// seed would pass every assertion above without testing anything.
+	TestTrue(TEXT("some buildings are footed in stone"), Stone > 0);
+	TestTrue(TEXT("some buildings are not"), Brick > 0);
+	AddInfo(FString::Printf(TEXT("%d of %d buildings footed in stone"), Stone, Stone + Brick));
+
+	return true;
+}
+
 #endif
