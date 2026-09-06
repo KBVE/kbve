@@ -12,6 +12,7 @@
 #include "MassEntitySubsystem.h"
 #include "KBVEWorldRibbon.h"
 #include "KBVEWorldStreamer.h"
+#include "KBVEPerf.h"
 #include "ProceduralMeshComponent.h"
 
 namespace
@@ -441,6 +442,8 @@ void AKBVEWorldRoadChunk::BuildFenceParts(const FBuild& In, FKBVEWorldFenceMesh&
 
 bool AKBVEWorldRoadChunk::RebuildFences(const FBuild& In, FParts& OutParts)
 {
+	KBVEPERF_SCOPE("Road.RebuildFences");
+
 	if (!Mass || FenceRuns.Num() == 0)
 	{
 		return false;
@@ -698,6 +701,8 @@ void AKBVEWorldRoadChunk::BuildStructures(const FBuild& In, FKBVEWorldBuildingMe
 
 bool AKBVEWorldRoadChunk::RebuildBuildings(const FBuild& In)
 {
+	KBVEPERF_SCOPE("Road.RebuildBuildings");
+
 	if (!Mass || Buildings.Num() == 0)
 	{
 		return false;
@@ -1097,6 +1102,8 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 			const AKBVEWorldRoadChunk::FBuild In = MakeBuild(Pair.Key, Seed,
 				Pair.Value->IsDetailed(), bInstanced, DrawDistance);
 
+			KBVEPERF_SCOPE("Road.RestandChunk");
+
 			AKBVEWorldRoadChunk::FParts FenceParts;
 			if (bInstanced && Pair.Value->RebuildFences(In, FenceParts))
 			{
@@ -1113,12 +1120,15 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 				++Restood;
 			}
 		}
+
+		KBVEPERF_COUNT("Road.Restood", Restood);
 	}
 
 	// Once per tick rather than per chunk: a bucket is rebuilt from all its keys,
 	// so flushing inside the loop would rebuild it once for every chunk built.
 	if (Parts)
 	{
+		KBVEPERF_SCOPE("Road.InstanceFlush");
 		Parts->Flush();
 	}
 
