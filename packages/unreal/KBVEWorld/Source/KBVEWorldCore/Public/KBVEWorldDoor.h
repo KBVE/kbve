@@ -39,14 +39,29 @@ struct KBVEWORLDCORE_API FKBVEWorldDoorParams
 	float LeafThickness = 11.0f;
 
 	/**
-	 * Gap between the leaf and the frame it hangs in.
+	 * How far the leaf laps behind the frame on each edge.
 	 *
-	 * Small and non-zero. A leaf built exactly to its hole is coplanar with the
-	 * jambs down both sides, and there is no join for the eye to read -- the
-	 * whole doorway becomes one flat panel of timber.
+	 * A rebate, and the reason a shut door is not a hole. Built to the clear
+	 * opening instead, a leaf leaves a slot of daylight down both jambs and along
+	 * the head that you can see the room through -- so the door reads as shut and
+	 * the doorway reads as open at the same time. Overlapping buries those edges
+	 * in the frame, which is what a real stop does and costs nothing: the leaf is
+	 * the same slab, wider.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door", meta = (ClampMin = "0.0"))
-	float LeafGap = 2.0f;
+	float LeafLap = 3.0f;
+
+	/**
+	 * How far the leaf's face sits inside the face of the wall.
+	 *
+	 * A door hangs near a face of the wall it is in, not in the middle of it. On
+	 * the centre plane of a wall this thick the leaf is at the bottom of a shaft
+	 * with a hand's depth of nothing in front of it, and neither side reads as
+	 * the outside. Zero puts the leaf flush with the masonry, so what stands
+	 * proud of it is the frame, which is the thing meant to.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door", meta = (ClampMin = "0.0"))
+	float LeafSetback = 0.0f;
 
 	/** Height of the threshold the leaf shuts down onto. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door", meta = (ClampMin = "0.0"))
@@ -73,6 +88,45 @@ struct KBVEWORLDCORE_API FKBVEWorldDoorParams
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door", meta = (ClampMin = "0.1"))
 	float LedgeProud = 4.0f;
+
+	/**
+	 * How far an arched head rises above the transom it springs from.
+	 *
+	 * The wall cuts rectangles and is not going to stop: an arch here is joinery
+	 * set inside a rectangular hole, with the timber above it filling out to the
+	 * corners. Which is how a real arched doorway in a masonry wall is built, and
+	 * it means an arch costs a doorway nothing anywhere else in the pipeline.
+	 *
+	 * Clamped against the width, since past a half the arc stops being an arch
+	 * and becomes a keyhole.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Arch", meta = (ClampMin = "1.0"))
+	float ArchRise = 44.0f;
+
+	/**
+	 * Facets the arc is drawn with.
+	 *
+	 * An arch is looked at from a doorstep away or not at all, so this is the one
+	 * curve in the village where the facets would show. Still cheap: the whole
+	 * head is this many quads three times over, on one building's front wall, at
+	 * the nearest tier only.
+	 *
+	 * Rounded up to an even number. On an odd one no facet lands on the middle,
+	 * so the crown of the arch is a flat chord across the top of it -- which is
+	 * the one place the eye goes and the one facet it would notice.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Arch", meta = (ClampMin = "2"))
+	int32 ArchSegments = 10;
+
+	/**
+	 * Glaze the arch rather than board it.
+	 *
+	 * A fanlight, which is what the space over a door is for: boarded, the arch
+	 * is a line drawn on a flat panel and there is nothing to see. Glazed, the
+	 * shape is a hole with light behind it and the arch is the thing you notice.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Arch")
+	bool bFanlight = true;
 };
 
 struct KBVEWORLDCORE_API FKBVEWorldDoor
@@ -97,7 +151,7 @@ struct KBVEWORLDCORE_API FKBVEWorldDoor
 	 */
 	static void Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWallFrame& Frame,
 		TArrayView<const FKBVEWorldWallOpening> Openings, EKBVEWorldWallDetail Detail,
-		const FKBVEWorldDoorParams& Door, FKBVEWorldJoineryMesh& Out);
+		const FKBVEWorldDoorParams& Door, bool bArched, FKBVEWorldJoineryMesh& Out);
 
 	/** Whether this tier draws anything at all, so a caller can skip the walk. */
 	static bool Draws(EKBVEWorldWallDetail Detail);

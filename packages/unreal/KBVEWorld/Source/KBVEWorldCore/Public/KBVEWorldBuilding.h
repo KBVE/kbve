@@ -63,6 +63,16 @@ struct KBVEWORLDCORE_API FKBVEWorldBuildingParams
 	float StonePlinthChance = 0.34f;
 
 	/**
+	 * How many front doors are arched rather than square.
+	 *
+	 * A minority on purpose. An arch says somebody spent money on this doorway,
+	 * which it only says while its neighbours are square.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building|Openings",
+		meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float ArchedDoorChance = 0.3f;
+
+	/**
 	 * Roughly how much wall each window gets to itself.
 	 *
 	 * A target rather than a spacing: the bays are worked out by dividing the
@@ -157,6 +167,9 @@ struct FKBVEWorldBuildingPlan
 	 * material as somebody walked towards it.
 	 */
 	bool bStonePlinth = false;
+
+	/** Whether the front door is arched, carried for the reason the plinth is. */
+	bool bArchedDoor = false;
 
 	int32 Seed = 0;
 };
