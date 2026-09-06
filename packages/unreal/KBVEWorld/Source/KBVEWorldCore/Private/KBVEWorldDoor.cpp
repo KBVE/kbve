@@ -148,11 +148,13 @@ void FKBVEWorldDoor::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWal
 				const FVector2D C(B.X, 1.0f);
 				const FVector2D D(A.X, 1.0f);
 
-				FKBVEWorldRibbon::AppendQuad(Out.Glazing,
+				// Facets, not quads: the fanlight fans onto its transom, so the
+				// panes at either springing have two corners in the same place.
+				FKBVEWorldRibbon::AppendFacet(Out.Glazing,
 					Frame.At(U0, Spring, 0.0f), Frame.At(U1, Spring, 0.0f),
 					Frame.At(U1, V1, 0.0f), Frame.At(U0, V0, 0.0f), A, B, C, D);
 
-				FKBVEWorldRibbon::AppendQuad(Out.Glazing,
+				FKBVEWorldRibbon::AppendFacet(Out.Glazing,
 					Frame.At(U0, V0, 0.0f), Frame.At(U1, V1, 0.0f),
 					Frame.At(U1, Spring, 0.0f), Frame.At(U0, Spring, 0.0f), D, C, B, A);
 			}
