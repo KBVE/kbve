@@ -125,6 +125,7 @@ FKBVEWorldBuildingPlan FKBVEWorldBuilding::Plan(const FKBVEWorldBuildingParams& 
 	// Its own salt, so turning the stone up or down does not restack the storeys
 	// of every house in the world.
 	Out.bStonePlinth = Unit(BuildingHash(Seed, 4)) < Building.StonePlinthChance;
+	Out.bArchedDoor = Unit(BuildingHash(Seed, 5)) < Building.ArchedDoorChance;
 	return Out;
 }
 
@@ -248,7 +249,7 @@ void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
 				FKBVEWorldWindow::Build(Building.Wall, Face, Placed, Detail, Building.Window,
 					Out.Joinery);
 				FKBVEWorldDoor::Build(Building.Wall, Face, Placed, Detail, Building.Door,
-					Out.Joinery);
+					Plan.bArchedDoor, Out.Joinery);
 			}
 
 			// The ridge runs across the front, so the two walls that meet the
