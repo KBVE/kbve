@@ -1,8 +1,5 @@
 #include "KBVETinyBVHScene.h"
-
-THIRD_PARTY_INCLUDES_START
-#include "tiny_bvh.h"
-THIRD_PARTY_INCLUDES_END
+#include "KBVETinyBVHLibrary.h"
 
 /**
  * tinybvh keeps pointers into the vertex and index buffers it was built over,

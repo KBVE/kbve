@@ -10,6 +10,4 @@
 
 #define TINYBVH_IMPLEMENTATION
 
-THIRD_PARTY_INCLUDES_START
-#include "tiny_bvh.h"
-THIRD_PARTY_INCLUDES_END
+#include "KBVETinyBVHLibrary.h"
