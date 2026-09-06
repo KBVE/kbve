@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-09-05T05:30:28Z",
+  "generated_at": "2026-09-06T05:45:13Z",
   "node": {
-    "count": 50,
+    "count": 53,
     "major": 28,
     "items": [
       {
@@ -69,6 +69,14 @@
         "major": true
       },
       {
+        "name": "@playwright/test",
+        "current": "1.62.1",
+        "wanted": "1.62.1",
+        "latest": "1.63.0",
+        "type": "devDependencies",
+        "major": false
+      },
+      {
         "name": "@react-native-async-storage/async-storage",
         "current": "2.2.0",
         "wanted": "2.2.0",
@@ -82,6 +90,14 @@
         "wanted": "2.6.9",
         "latest": "2.11.2",
         "type": "dependencies",
+        "major": false
+      },
+      {
+        "name": "@swc/core",
+        "current": "1.16.1",
+        "wanted": "1.16.1",
+        "latest": "1.16.2",
+        "type": "devDependencies",
         "major": false
       },
       {
@@ -232,7 +248,7 @@
         "name": "lint-staged",
         "current": "16.4.0",
         "wanted": "16.4.0",
-        "latest": "17.4.1",
+        "latest": "17.5.0",
         "type": "devDependencies",
         "major": true
       },
@@ -357,6 +373,14 @@
         "major": false
       },
       {
+        "name": "react-window",
+        "current": "2.3.0",
+        "wanted": "2.3.0",
+        "latest": "2.3.1",
+        "type": "dependencies",
+        "major": false
+      },
+      {
         "name": "shiki",
         "current": "1.29.2",
         "wanted": "1.29.2",
@@ -407,7 +431,7 @@
     ]
   },
   "rust": {
-    "count": 290,
+    "count": 296,
     "major": 1,
     "items": [
       {
@@ -1227,6 +1251,42 @@
         "major": false
       },
       {
+        "name": "crossbeam",
+        "current": "0.8.4",
+        "latest": "0.8.5",
+        "major": false
+      },
+      {
+        "name": "crossbeam-channel",
+        "current": "0.5.16",
+        "latest": "0.5.17",
+        "major": false
+      },
+      {
+        "name": "crossbeam-deque",
+        "current": "0.8.7",
+        "latest": "0.8.8",
+        "major": false
+      },
+      {
+        "name": "crossbeam-epoch",
+        "current": "0.9.20",
+        "latest": "0.9.21",
+        "major": false
+      },
+      {
+        "name": "crossbeam-queue",
+        "current": "0.3.13",
+        "latest": "0.3.14",
+        "major": false
+      },
+      {
+        "name": "crossbeam-utils",
+        "current": "0.8.22",
+        "latest": "0.8.23",
+        "major": false
+      },
+      {
         "name": "data-encoding",
         "current": "2.11.0",
         "latest": "2.11.1",
@@ -1565,7 +1625,7 @@
       {
         "name": "ipnet",
         "current": "2.12.0",
-        "latest": "2.12.1",
+        "latest": "2.12.2",
         "major": false
       },
       {
@@ -1685,25 +1745,25 @@
       {
         "name": "pest",
         "current": "2.8.7",
-        "latest": "2.9.0",
+        "latest": "2.9.1",
         "major": false
       },
       {
         "name": "pest_derive",
         "current": "2.8.7",
-        "latest": "2.9.0",
+        "latest": "2.9.1",
         "major": false
       },
       {
         "name": "pest_generator",
         "current": "2.8.7",
-        "latest": "2.9.0",
+        "latest": "2.9.1",
         "major": false
       },
       {
         "name": "pest_meta",
         "current": "2.8.7",
-        "latest": "2.9.0",
+        "latest": "2.9.1",
         "major": false
       },
       {
@@ -1763,7 +1823,7 @@
       {
         "name": "redox_syscall",
         "current": "0.9.0",
-        "latest": "0.9.3",
+        "latest": "0.9.4",
         "major": false
       },
       {
@@ -2152,6 +2212,6 @@
       }
     ]
   },
-  "total": 340,
+  "total": 349,
   "major_total": 29
 }
