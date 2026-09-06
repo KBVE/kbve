@@ -31,8 +31,28 @@ AKBVEWorldStreamer::AKBVEWorldStreamer()
 
 void AKBVEWorldStreamer::RebuildWaterPlane(const FIntPoint& Centre)
 {
-	if (!WaterPlane || !WaterMaterial)
+	if (!WaterPlane)
 	{
+		return;
+	}
+
+	// Said once, rather than returning quietly.
+	//
+	// An unset material here is a whole world with no water in it, and the only
+	// evidence was rivers that looked like dry trenches -- which is a plausible
+	// enough landscape that it survived several sessions before anybody asked.
+	// The level is generated from JSON and respawns this actor every time it is
+	// rebuilt, so a property the JSON does not name is not merely unset, it is
+	// unset again on every build.
+	if (!WaterMaterial)
+	{
+		if (!bWarnedNoWaterMaterial)
+		{
+			bWarnedNoWaterMaterial = true;
+			UE_LOG(LogKBVEWorldStream, Warning,
+				TEXT("no water material on the streamer, so the world has no water; "
+					"set water_material in the level's JSON"));
+		}
 		return;
 	}
 
