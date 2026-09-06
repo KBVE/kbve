@@ -212,7 +212,7 @@ void FKBVEWorldWall::Panels(const FKBVEWorldWallParams& Wall, float Length,
 
 void FKBVEWorldWall::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWallBuild& In,
 	TArrayView<const FKBVEWorldWallOpening> Openings, EKBVEWorldWallDetail Detail,
-	FKBVEWorldRibbonMesh& Out)
+	FKBVEWorldRibbonMesh& Out, FKBVEWorldRibbonMesh* Plinth)
 {
 	const FVector Along = In.End - In.Start;
 	const float Length = Along.Size();
@@ -288,6 +288,12 @@ void FKBVEWorldWall::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWal
 	// floor and the plinth would put a third of a metre of masonry in it. Under
 	// the door it is carried at the foundation's height instead, which leaves its
 	// top face as the threshold the steps outside come up to.
+	// A footing is the one part of a wall that is plausibly not the wall's own
+	// material -- brick above, stone below is what a village on rock builds --
+	// so it can be sent to a mesh of its own. Left null it lands in the wall,
+	// which is what every caller that does not care about the distinction gets.
+	FKBVEWorldRibbonMesh& Footing = Plinth ? *Plinth : Out;
+
 	if (Foot > 0.0f)
 	{
 		const float Over = FMath::Max(Wall.PlinthOverhang, 0.0f);
@@ -306,17 +312,17 @@ void FKBVEWorldWall::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWal
 			const float Left = Open.Along - 0.5f * Open.Width - Over;
 			const float Right = Open.Along + 0.5f * Open.Width + Over;
 
-			Box(Out, F, From, Left, Low, Foot, -Half - Over, Half + Over);
+			Box(Footing, F, From, Left, Low, Foot, -Half - Over, Half + Over);
 
 			// Stopped at the inner face rather than carried through it, so its top
 			// meets the floor inside edge to edge. Taken the whole way it would
 			// leave two coincident surfaces across the threshold of every doorway
 			// in the village, which is the one place they would be looked at.
-			Box(Out, F, Left, Right, Low, 0.0f, -Half, Half + Over);
+			Box(Footing, F, Left, Right, Low, 0.0f, -Half, Half + Over);
 			From = Right;
 		}
 
-		Box(Out, F, From, Length + Over, Low, Foot, -Half - Over, Half + Over);
+		Box(Footing, F, From, Length + Over, Low, Foot, -Half - Over, Half + Over);
 	}
 
 	if (Detail != EKBVEWorldWallDetail::Full)

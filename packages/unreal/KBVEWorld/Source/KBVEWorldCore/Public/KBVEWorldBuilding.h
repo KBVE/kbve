@@ -50,6 +50,18 @@ struct KBVEWORLDCORE_API FKBVEWorldBuildingParams
 	int32 MaxStoreys = 2;
 
 	/**
+	 * How often a building is footed in stone instead of its own walling.
+	 *
+	 * Per building rather than per settlement, which is what a village looks
+	 * like: the stone is whatever the plot was dug out of, so the house next
+	 * door having it says nothing about this one. A whole village of it reads as
+	 * a rule somebody enforced, and none of it reads as a texture atlas.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building|Plinth",
+		meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float StonePlinthChance = 0.34f;
+
+	/**
 	 * Roughly how much wall each window gets to itself.
 	 *
 	 * A target rather than a spacing: the bays are worked out by dividing the
@@ -120,6 +132,16 @@ struct FKBVEWorldBuildingPlan
 	 */
 	float DoorDrop = 0.0f;
 
+	/**
+	 * Whether the footing is stone rather than more of the wall.
+	 *
+	 * Decided with the dimensions and carried with them, because the chunk holds
+	 * the plan and rebuilds from it every time a building changes tier. Rolled
+	 * again at each rebuild it would be a house whose foundations changed
+	 * material as somebody walked towards it.
+	 */
+	bool bStonePlinth = false;
+
 	int32 Seed = 0;
 };
 
@@ -135,6 +157,9 @@ struct FKBVEWorldBuildingMesh
 	FKBVEWorldRibbonMesh Masonry;
 	FKBVEWorldRibbonMesh Roof;
 
+	/** The footings of whichever buildings were given stone ones. */
+	FKBVEWorldRibbonMesh Plinth;
+
 	/** Timber and glass, which are two more materials and so two more sections. */
 	FKBVEWorldWindowMesh Windows;
 
@@ -142,12 +167,13 @@ struct FKBVEWorldBuildingMesh
 	{
 		Masonry.Reset();
 		Roof.Reset();
+		Plinth.Reset();
 		Windows.Reset();
 	}
 
 	bool IsEmpty() const
 	{
-		return Masonry.IsEmpty() && Roof.IsEmpty() && Windows.IsEmpty();
+		return Masonry.IsEmpty() && Roof.IsEmpty() && Plinth.IsEmpty() && Windows.IsEmpty();
 	}
 };
 
