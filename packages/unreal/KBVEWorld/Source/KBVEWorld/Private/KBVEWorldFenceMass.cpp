@@ -27,20 +27,23 @@ void UKBVEWorldFenceLodProcessor::ConfigureQueries(
 void UKBVEWorldFenceLodProcessor::Execute(FMassEntityManager& EntityManager,
 	FMassExecutionContext& Context)
 {
-	const UKBVEWorldViewerSubsystem* Viewer =
-		Context.GetSubsystem<UKBVEWorldViewerSubsystem>();
-	if (!Viewer || !Viewer->HasViewer())
-	{
-		return;
-	}
-
-	const FVector View = Viewer->GetViewLocation();
-
 	const float Full = FullRange;
 	const float Framed = FramedRange;
 
-	RunQuery.ParallelForEachEntityChunk(Context, [View, Full, Framed](FMassExecutionContext& Chunk)
+	// Read inside the chunk, not out here. A requirement is declared on the query
+	// and applied to the context by the query as it runs, so the context this is
+	// handed has nothing declared on it yet and asking it for a subsystem ensures.
+	RunQuery.ParallelForEachEntityChunk(Context, [Full, Framed](FMassExecutionContext& Chunk)
 	{
+		const UKBVEWorldViewerSubsystem* Viewer =
+			Chunk.GetSubsystem<UKBVEWorldViewerSubsystem>();
+		if (!Viewer || !Viewer->HasViewer())
+		{
+			return;
+		}
+
+		const FVector View = Viewer->GetViewLocation();
+
 		const TArrayView<FKBVEWorldFenceRunFragment> Runs =
 			Chunk.GetMutableFragmentView<FKBVEWorldFenceRunFragment>();
 
