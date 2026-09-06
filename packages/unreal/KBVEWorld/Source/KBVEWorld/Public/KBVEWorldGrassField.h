@@ -54,7 +54,7 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass",
 		meta = (ClampMin = "1", ClampMax = "32"))
-	int32 TileRadius = 8;
+	int32 TileRadius = 6;
 
 	/**
 	 * Instance slots reserved per tile, shared out across the variants.
@@ -80,7 +80,7 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass",
 		meta = (ClampMin = "0.0", ClampMax = "1.0"))
-	float EdgeDensity = 0.3f;
+	float EdgeDensity = 0.12f;
 
 	/**
 	 * How many steps the falloff is quantised into.
@@ -144,11 +144,11 @@ public:
 	/** Where instances start fading, and where they stop being drawn. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass",
 		meta = (ClampMin = "0"))
-	int32 CullStart = 6500;
+	int32 CullStart = 4500;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass",
 		meta = (ClampMin = "0"))
-	int32 CullEnd = 9000;
+	int32 CullEnd = 6000;
 
 	/**
 	 * Steepest ground grass will stand on, as a slope rather than an angle:

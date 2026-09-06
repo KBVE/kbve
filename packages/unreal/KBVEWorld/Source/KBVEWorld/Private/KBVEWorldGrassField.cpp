@@ -18,6 +18,20 @@ DEFINE_LOG_CATEGORY(LogKBVEWorldGrass);
 
 namespace
 {
+	/**
+	 * A live multiplier on how much of each tile's budget is filled.
+	 *
+	 * Density is the knob that gets turned most and the one whose right value is
+	 * a judgement rather than a measurement, so it is worth being able to turn it
+	 * in front of the thing it changes. Every tile is refilled when it moves, so
+	 * a new value reaches the whole window within a few steps.
+	 */
+	float GGrassDensityScale = 1.0f;
+	FAutoConsoleVariableRef CVarGrassDensityScale(
+		TEXT("kbve.Grass.DensityScale"), GGrassDensityScale,
+		TEXT("Scales how many of each tile's grass slots are filled. 1 is as configured."),
+		ECVF_Default);
+
 	/** No tile can sit here, so a slot holding it has never been filled. */
 	const FIntPoint UnfilledSlot(MIN_int32, MIN_int32);
 
@@ -205,9 +219,11 @@ float AKBVEWorldGrassField::BandDensity(int32 Band) const
 	const int32 Bands = FMath::Max(1, DensityBands);
 	if (Bands == 1)
 	{
-		return 1.0f;
+		return FMath::Clamp(GGrassDensityScale, 0.0f, 1.0f);
 	}
-	return FMath::Lerp(1.0f, EdgeDensity, static_cast<float>(Band) / static_cast<float>(Bands - 1));
+	const float Falloff = FMath::Lerp(1.0f, EdgeDensity,
+		static_cast<float>(Band) / static_cast<float>(Bands - 1));
+	return FMath::Clamp(Falloff * GGrassDensityScale, 0.0f, 1.0f);
 }
 
 FIntPoint AKBVEWorldGrassField::TileAt(const FVector& WorldLocation) const
