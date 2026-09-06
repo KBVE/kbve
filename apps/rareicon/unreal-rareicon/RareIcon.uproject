@@ -38,6 +38,10 @@
 			"Enabled": true
 		},
 		{
+			"Name": "KBVETinyBVH",
+			"Enabled": true
+		},
+		{
 			"Name": "ModelingToolsEditorMode",
 			"Enabled": true,
 			"TargetAllowList": [

@@ -11,6 +11,9 @@ dependsOn:
     - 'KBVEUnr'
     - 'KBVEWorld'
     - 'KBVEMover'
+    # Ray queries against the procedural world, which exists as vertex and index
+    # arrays before it exists as anything with collision on it.
+    - 'KBVETinyBVH'
     # The frame-timing readout the inherited `perf` task talks to. Without it
     # that task has nothing to connect to, which is why the only numbers this
     # project could produce were its own build timings.
