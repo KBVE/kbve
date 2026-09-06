@@ -247,6 +247,106 @@ bool FKBVEWorldFenceDetailTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FKBVEWorldFenceGateTest,
+	"KBVE.World.Fence.AGatewayIsCutForEveryFrontDoor",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+bool FKBVEWorldFenceGateTest::RunTest(const FString& Parameters)
+{
+	FKBVEWorldFenceParams Fence;
+	Fence.PostSpacing = 260.0f;
+	Fence.MinPieceSpans = 2.0f;
+
+	const float Least = Fence.MinPieceSpans * Fence.PostSpacing;
+
+	auto Run = [](float Side, float Begin, float End)
+	{
+		FKBVEWorldFenceRun R;
+		R.Side = Side;
+		R.Begin = Begin;
+		R.End = End;
+		R.Seed = 4211;
+		return R;
+	};
+
+	auto Gate = [](float Side, float Begin, float End)
+	{
+		FKBVEWorldFenceGate G;
+		G.Side = Side;
+		G.Begin = Begin;
+		G.End = End;
+		return G;
+	};
+
+	// Cut in two, with clear ground across the doorway.
+	{
+		TArray<FKBVEWorldFenceRun> Runs = { Run(1.0f, 0.0f, 6000.0f) };
+		const FKBVEWorldFenceGate Gates[] = { Gate(1.0f, 2900.0f, 3300.0f) };
+		FKBVEWorldFence::Gates(Fence, Gates, Runs);
+
+		TestEqual(TEXT("one run becomes two"), Runs.Num(), 2);
+		for (const FKBVEWorldFenceRun& Piece : Runs)
+		{
+			TestTrue(TEXT("no piece crosses the doorway"),
+				Piece.End <= 2900.0f + 0.01f || Piece.Begin >= 3300.0f - 0.01f);
+			TestEqual(TEXT("both halves are the same fence"), Piece.Seed, 4211);
+		}
+	}
+
+	// The far side of the road is somebody else's frontage.
+	{
+		TArray<FKBVEWorldFenceRun> Runs = { Run(-1.0f, 0.0f, 6000.0f) };
+		const FKBVEWorldFenceGate Gates[] = { Gate(1.0f, 2900.0f, 3300.0f) };
+		FKBVEWorldFence::Gates(Fence, Gates, Runs);
+
+		TestEqual(TEXT("the opposite side is untouched"), Runs.Num(), 1);
+		TestEqual(TEXT("and keeps its length"), Runs[0].End, 6000.0f);
+	}
+
+	// A stub of one or two posts beside a gap reads as a fence that fell down.
+	{
+		TArray<FKBVEWorldFenceRun> Runs = { Run(1.0f, 0.0f, 6000.0f) };
+		const FKBVEWorldFenceGate Gates[] = { Gate(1.0f, 0.5f * Least, 3300.0f) };
+		FKBVEWorldFence::Gates(Fence, Gates, Runs);
+
+		TestEqual(TEXT("the stub is dropped rather than left standing"), Runs.Num(), 1);
+		TestTrue(TEXT("what is left starts past the doorway"), Runs[0].Begin >= 3300.0f - 0.01f);
+	}
+
+	// A run shorter than the frontage it passes goes entirely.
+	{
+		TArray<FKBVEWorldFenceRun> Runs = { Run(1.0f, 3000.0f, 3200.0f) };
+		const FKBVEWorldFenceGate Gates[] = { Gate(1.0f, 2900.0f, 3300.0f) };
+		FKBVEWorldFence::Gates(Fence, Gates, Runs);
+
+		TestEqual(TEXT("a run inside a gateway is removed"), Runs.Num(), 0);
+	}
+
+	// One run past a row of houses is cut by each of them in turn.
+	{
+		TArray<FKBVEWorldFenceRun> Runs = { Run(1.0f, 0.0f, 12000.0f) };
+		const FKBVEWorldFenceGate Gates[] = {
+			Gate(1.0f, 2000.0f, 2400.0f),
+			Gate(1.0f, 5000.0f, 5400.0f),
+			Gate(1.0f, 8000.0f, 8400.0f),
+		};
+		FKBVEWorldFence::Gates(Fence, Gates, Runs);
+
+		TestEqual(TEXT("three doorways leave four pieces"), Runs.Num(), 4);
+		for (const FKBVEWorldFenceRun& Piece : Runs)
+		{
+			for (const FKBVEWorldFenceGate& G : Gates)
+			{
+				TestTrue(TEXT("no piece crosses any doorway"),
+					Piece.End <= G.Begin + 0.01f || Piece.Begin >= G.End - 0.01f);
+			}
+		}
+	}
+
+	return true;
+}
+
 #endif
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(

@@ -176,6 +176,47 @@ struct KBVEWORLDCORE_API FKBVEWorldFenceParams
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fence", meta = (ClampMin = "0"))
 	int32 ProfileSmoothPasses = 6;
+
+	/**
+	 * How far past a front door on each side a run stands off.
+	 *
+	 * A fence runs between the houses and the carriageway, so without this it is
+	 * built straight across every doorstep in the village -- posts through the
+	 * steps and a rail at shin height across the one place anybody walks. The
+	 * opening is the door plus this either side, which wants to be wide enough
+	 * for the flight as well as the leaf.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fence", meta = (ClampMin = "0.0"))
+	float GateClearance = 130.0f;
+
+	/**
+	 * Shortest piece a gateway may leave behind, as a multiple of post spacing.
+	 *
+	 * A run cut close to its own end leaves a stub of one or two posts standing
+	 * beside a gap, which reads as a fence that fell down rather than one built
+	 * around a gate. Below this the piece is dropped and the run simply stops
+	 * short of the house.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fence", meta = (ClampMin = "0.0"))
+	float MinPieceSpans = 2.0f;
+};
+
+/**
+ * A stretch of one side of a road that must be left open.
+ *
+ * A gateway rather than a gate: what is built here is the absence of fence and
+ * the two stout posts a run already puts at its ends, which is what a field gate
+ * looks like with the gate open. Hanging a leaf across it would be a closed gate
+ * over the path from the road to the front door of every house in the village.
+ */
+struct FKBVEWorldFenceGate
+{
+	/** Which side of the road, matching a run's own sign. */
+	float Side = 1.0f;
+
+	/** Distances along the edge's polyline, the same measure a run uses. */
+	float Begin = 0.0f;
+	float End = 0.0f;
 };
 
 /** The boxes one stretch of roadside fence is built from, split by material. */
@@ -247,6 +288,22 @@ struct KBVEWORLDCORE_API FKBVEWorldFence
 	static void FindRuns(const FKBVEWorldFenceParams& Fence, const FKBVEWorldRoadParams& Road,
 		int32 Seed, const FIntPoint& Edge, const TArray<FVector>& Path,
 		const TArray<FKBVEWorldRoadSpan>& Spans, TArray<FKBVEWorldFenceRun>& OutRuns);
+
+	/**
+	 * Cut the gateways out of a set of runs.
+	 *
+	 * Separate from FindRuns because the two know different things. Where a run
+	 * goes is a pure function of the seed and costs nothing; where a front door
+	 * goes is only known once a plot has been sited, which needs the ground --
+	 * a house may be moved along the road to find level ground or refused
+	 * outright. Folding that into FindRuns would make the cheap half pay for the
+	 * expensive one every time a chunk asks where its fences are.
+	 *
+	 * A run may be cut in two, shortened, or removed entirely. Pieces too short
+	 * to read as built are dropped rather than left standing.
+	 */
+	static void Gates(const FKBVEWorldFenceParams& Fence,
+		TArrayView<const FKBVEWorldFenceGate> Gates, TArray<FKBVEWorldFenceRun>& Runs);
 
 	/**
 	 * Stand one run up as boxes, at the detail asked for.

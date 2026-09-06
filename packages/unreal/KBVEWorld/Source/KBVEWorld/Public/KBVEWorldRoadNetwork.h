@@ -148,6 +148,16 @@ private:
 	/** Site the plots this chunk's edges carry, which is what samples the ground. */
 	void SitePlots(const FBuild& In);
 
+	/**
+	 * Cut a gap in the fences in front of every front door on this chunk.
+	 *
+	 * After the plots are sited and before the runs become entities: a house may
+	 * be moved along the road to find level ground or refused outright, so where
+	 * the doors are is not known until the ground has been asked, and the runs
+	 * the entities carry should already have their gateways in them.
+	 */
+	void OpenGates(const FBuild& In);
+
 	/** One entity per building, spawned once the seed has decided where they are. */
 	void SpawnBuildings(const FBuild& In);
 
@@ -230,6 +240,9 @@ private:
 
 	TArray<FMassEntityHandle> Buildings;
 	TArray<FKBVEWorldBuildingPlan> Plans;
+
+	/** Which of the chunk's edges each plan was sited on, for the fence gates. */
+	TArray<int32> PlanEdge;
 
 	FTimings Timings;
 

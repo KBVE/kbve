@@ -125,6 +125,18 @@ struct FKBVEWorldBuildingPlan
 	float Embed = 60.0f;
 
 	/**
+	 * Where on its road the building ended up, and which side of it.
+	 *
+	 * Carried because siting moves a plot: it looks up and down the road for
+	 * flatter ground before giving up, so the distance a plot was rolled at is
+	 * not the distance a house stands at. Anything that has to line something
+	 * else up with the front door -- the gap a fence leaves for it, most of all
+	 * -- needs where the house went rather than where it was asked to go.
+	 */
+	float Along = 0.0f;
+	float Side = 1.0f;
+
+	/**
 	 * How far the ground outside the front door lies below the threshold.
 	 *
 	 * The floor is levelled to the highest corner of the footprint, so on any
