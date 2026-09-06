@@ -39,6 +39,17 @@ on:
                 required: false
                 type: string
                 default: ''
+            base_image:
+                description: >-
+                    Image name (no tag) that other Dockerfiles build FROM, e.g.
+                    ghcr.io/kbve/chisel-ubuntu-axum. When set, every Dockerfile
+                    pinning it is repinned to the version just published and
+                    joins the same atom PR. The consumer list is derived by
+                    searching the tree, not maintained by hand -- a base image
+                    nobody pins produces no change and no pull request.
+                required: false
+                type: string
+                default: ''
         secrets:
             TRIGGER_PAT:
                 description: 'PAT for pushing atom branches'
@@ -74,11 +85,12 @@ jobs:
                   VTARGET="${{ inputs.version_target_path }}"
                   IMAGE="${{ inputs.image_name }}"
                   DYAML="${{ inputs.deployment_yaml }}"
+                  BASE_IMAGE="${{ inputs.base_image }}"
 
                   # ASCII-only check — reject any non-ASCII character in ALL inputs.
                   # Blocks Unicode homoglyphs, RTL overrides, punycode (xn--),
                   # Arabic/Cyrillic/CJK substitutions, zero-width chars, etc.
-                  for VAL in "$APP" "$VERSION" "$VTOML" "$VTARGET" "$IMAGE" "$DYAML"; do
+                  for VAL in "$APP" "$VERSION" "$VTOML" "$VTARGET" "$IMAGE" "$DYAML" "$BASE_IMAGE"; do
                     if echo "$VAL" | grep -qP '[^\x20-\x7E]'; then
                       echo "::error::Non-ASCII characters detected in input: '$VAL' — only English ASCII allowed"
                       exit 1
@@ -86,7 +98,7 @@ jobs:
                   done
 
                   # Punycode / IDN attack check — reject xn-- anywhere
-                  for VAL in "$APP" "$VERSION" "$VTOML" "$VTARGET" "$IMAGE" "$DYAML"; do
+                  for VAL in "$APP" "$VERSION" "$VTOML" "$VTARGET" "$IMAGE" "$DYAML" "$BASE_IMAGE"; do
                     if echo "$VAL" | grep -qi 'xn--'; then
                       echo "::error::Punycode/IDN pattern (xn--) detected in input: '$VAL'"
                       exit 1
@@ -122,7 +134,7 @@ jobs:
                   done
 
                   # Reject shell metacharacters in all inputs
-                  for VAL in "$APP" "$VERSION" "$VTOML" "$VTARGET" "$IMAGE" "$DYAML"; do
+                  for VAL in "$APP" "$VERSION" "$VTOML" "$VTARGET" "$IMAGE" "$DYAML" "$BASE_IMAGE"; do
                     if echo "$VAL" | grep -qE '[;|&`$(){}!#%^]'; then
                       echo "::error::Shell metacharacter detected in input: '$VAL'"
                       exit 1
@@ -276,6 +288,38 @@ jobs:
                     echo "Updated $FILE: $OLD_TAG → $VERSION"
                   done
 
+            # A base image is pinned by the Dockerfiles that build FROM it, and
+            # those pins are the reason a stale publish is invisible: 79 files
+            # pinned chisel-ubuntu-axum's floating 24.04-builder, so the image
+            # under them changed identity without a single line of the repo
+            # changing. Repinning to the version just published makes the
+            # relationship a diff someone can review and git can bisect.
+            #
+            # The consumer list is searched for, never declared. A hand-kept
+            # list is what the dispatch manifest was, and it ended up with 55
+            # stale paths.
+            - name: Repin base image consumers
+              id: repin
+              if: inputs.base_image != ''
+              run: |
+                  VERSION="${{ steps.validate.outputs.version }}"
+                  BASE="${{ inputs.base_image }}"
+
+                  CHANGED=$(node tools/release/repin-base-image.mjs "$BASE" "$VERSION" | tr '\n' ' ')
+
+                  if [ -z "$CHANGED" ]; then
+                    echo "::notice::No Dockerfile pins ${BASE} at another version — nothing to repin."
+                    echo "files=" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+
+                  for FILE in $CHANGED; do
+                    echo "Repinned $FILE -> $(grep -oE "${BASE}:[^[:space:]]+" "$FILE" | head -1)"
+                  done
+
+                  echo "files=$(echo $CHANGED | tr -s ' ')" >> "$GITHUB_OUTPUT"
+                  echo "Repinned $(echo $CHANGED | wc -w) Dockerfile(s) onto ${VERSION}."
+
             # ── Safety check — verify only expected files changed ────────────
             - name: Verify changed files
               env:
@@ -299,6 +343,7 @@ jobs:
                     EXTRA=$(echo "$DEPLOYMENT_YAMLS_JSON" | jq -r '.[]' 2>/dev/null || true)
                     EXPECTED_FILES="$EXPECTED_FILES $EXTRA"
                   fi
+                  EXPECTED_FILES="$EXPECTED_FILES ${{ steps.repin.outputs.files }}"
 
                   CHANGED=$(git diff --name-only)
                   for f in $CHANGED; do
@@ -362,6 +407,10 @@ jobs:
                     else
                       echo "::warning::deployment manifest '$f' not found at git add — skipping."
                     fi
+                  done
+
+                  for f in ${{ steps.repin.outputs.files }}; do
+                    [ -f "$f" ] && git add "$f"
                   done
 
                   if git diff --cached --quiet; then
@@ -446,6 +495,7 @@ jobs:
                   VERSION_TARGET: ${{ inputs.version_target_path }}
                   DEPLOYMENT_YAML: ${{ inputs.deployment_yaml }}
                   DEPLOYMENT_YAMLS_JSON: ${{ inputs.deployment_yamls }}
+                  REPINNED: ${{ steps.repin.outputs.files }}
               run: |
                   set -euo pipefail
 
@@ -456,6 +506,7 @@ jobs:
                   if [ -n "${DEPLOYMENT_YAMLS_JSON}" ]; then
                     ALLOWED="${ALLOWED} $(echo "${DEPLOYMENT_YAMLS_JSON}" | jq -r '.[]')"
                   fi
+                  ALLOWED="${ALLOWED} ${REPINNED}"
 
                   blocked=0
                   while read -r file; do

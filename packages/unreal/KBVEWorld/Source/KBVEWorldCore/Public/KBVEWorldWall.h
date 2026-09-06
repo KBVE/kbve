@@ -213,4 +213,20 @@ struct KBVEWORLDCORE_API FKBVEWorldWall
 	static void Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWallBuild& In,
 		TArrayView<const FKBVEWorldWallOpening> Openings, EKBVEWorldWallDetail Detail,
 		FKBVEWorldRibbonMesh& Out);
+
+	/**
+	 * The triangle of wall above the plate, under a gable roof's rake.
+	 *
+	 * Masonry, not roof, which is the whole reason it lives here: a gable end is
+	 * the wall carried up to meet the slopes, and built anywhere else it would
+	 * restart the coursing at the eaves -- a seam straight across the top of the
+	 * building, in the one place the wall is most plainly one surface.
+	 *
+	 * Inset is how far in from each end the triangle starts, because the roof
+	 * slab has thickness: its underside dips below the plate at the wall line, so
+	 * masonry taken all the way to the corner would come up through the slope it
+	 * is supposed to be meeting. Apex is the height above the plate at the middle.
+	 */
+	static void Gable(const FKBVEWorldWallParams& Wall, const FKBVEWorldWallBuild& In, float Apex,
+		float Inset, FKBVEWorldRibbonMesh& Out);
 };

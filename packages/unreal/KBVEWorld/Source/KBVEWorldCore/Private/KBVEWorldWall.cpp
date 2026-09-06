@@ -289,11 +289,42 @@ void FKBVEWorldWall::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWal
 	// stop at the footprint, so a plinth that widened only outwards would leave a
 	// notch at every corner of every building; overlapping into each other costs
 	// geometry nobody sees and fills it.
+	//
+	// Broken across every doorway, and only there. The plinth is a band of stone
+	// standing proud of the wall, so run through a door it is a step across the
+	// threshold that nothing can be built to climb -- the doorway starts at the
+	// floor and the plinth would put a third of a metre of masonry in it. Under
+	// the door it is carried at the foundation's height instead, which leaves its
+	// top face as the threshold the steps outside come up to.
 	if (Foot > 0.0f)
 	{
 		const float Over = FMath::Max(Wall.PlinthOverhang, 0.0f);
-		Box(Out, F, -Over, Length + Over, -FMath::Max(In.Embed, 0.0f), Foot, -Half - Over,
-			Half + Over);
+		const float Low = -FMath::Max(In.Embed, 0.0f);
+		float From = -Over;
+
+		for (const FKBVEWorldWallOpening& Open : Placed)
+		{
+			if (Open.Bottom > 0.0f)
+			{
+				continue;
+			}
+
+			// Past the overhang either side, or the corner of the plinth returning
+			// into the wall sits inside the jamb of the door it is clearing.
+			const float Left = Open.Along - 0.5f * Open.Width - Over;
+			const float Right = Open.Along + 0.5f * Open.Width + Over;
+
+			Box(Out, F, From, Left, Low, Foot, -Half - Over, Half + Over);
+
+			// Stopped at the inner face rather than carried through it, so its top
+			// meets the floor inside edge to edge. Taken the whole way it would
+			// leave two coincident surfaces across the threshold of every doorway
+			// in the village, which is the one place they would be looked at.
+			Box(Out, F, Left, Right, Low, 0.0f, -Half, Half + Over);
+			From = Right;
+		}
+
+		Box(Out, F, From, Length + Over, Low, Foot, -Half - Over, Half + Over);
 	}
 
 	if (Detail != EKBVEWorldWallDetail::Full)
@@ -323,4 +354,44 @@ void FKBVEWorldWall::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWal
 				-Half - FMath::Max(Wall.SillProud, 0.0f), Half + FMath::Max(Wall.SillProud, 0.0f));
 		}
 	}
+}
+
+void FKBVEWorldWall::Gable(const FKBVEWorldWallParams& Wall, const FKBVEWorldWallBuild& In,
+	float Apex, float Inset, FKBVEWorldRibbonMesh& Out)
+{
+	const FVector Along = In.End - In.Start;
+	const float Length = Along.Size();
+	if (Length <= KINDA_SMALL_NUMBER || Apex <= KINDA_SMALL_NUMBER)
+	{
+		return;
+	}
+
+	const float Edge = FMath::Clamp(Inset, 0.0f, 0.5f * Length - KINDA_SMALL_NUMBER);
+	const float Peak = 0.5f * Length;
+
+	FWallFrame F;
+	F.Origin = In.Start;
+	F.Right = Along / Length;
+	F.Up = FVector::UpVector;
+	F.Norm = FVector::CrossProduct(F.Right, F.Up).GetSafeNormal();
+	F.UOffset = In.UOffset;
+	F.Tile = FMath::Max(Wall.TileLength, KINDA_SMALL_NUMBER);
+
+	const float Half = 0.5f * FMath::Max(Wall.Thickness, KINDA_SMALL_NUMBER);
+	const float Base = FMath::Max(Wall.Height, 0.0f);
+	const float Top = Base + Apex;
+
+	// Carries the wall's own UV frame, so the coursing runs on up through the
+	// gable from the storey below without a seam at the plate.
+	const FVector2D LeftUV = F.UV(Edge, Base);
+	const FVector2D RightUV = F.UV(Length - Edge, Base);
+	const FVector2D PeakUV = F.UV(Peak, Top);
+
+	FKBVEWorldRibbon::AppendTri(Out, F.At(Edge, Base, Half), F.At(Length - Edge, Base, Half),
+		F.At(Peak, Top, Half), LeftUV, RightUV, PeakUV);
+	FKBVEWorldRibbon::AppendTri(Out, F.At(Length - Edge, Base, -Half), F.At(Edge, Base, -Half),
+		F.At(Peak, Top, -Half), RightUV, LeftUV, PeakUV);
+
+	// No boards down the rake: the roof overhangs past this on both sides, so the
+	// open edge between the two faces is under the slope that covers it.
 }

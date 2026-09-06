@@ -26,6 +26,7 @@ MATERIALS = {
     "WoodMaterial": "/Game/Textures/World/M_RareIcon_BridgeWood",
     "StoneMaterial": "/Game/Textures/World/M_RareIcon_BridgeStone",
     "BrickMaterial": "/Game/Textures/World/M_RareIcon_Brick",
+    "RoofMaterial": "/Game/Textures/World/M_RareIcon_Roof",
 }
 
 WATER_MATERIAL = "/Game/Textures/World/M_RareIcon_Water"

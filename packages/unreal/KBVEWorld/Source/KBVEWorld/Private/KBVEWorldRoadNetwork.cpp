@@ -105,8 +105,9 @@ AKBVEWorldRoadChunk::AKBVEWorldRoadChunk()
 	Wood = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Wood"));
 	Stone = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Stone"));
 	Brick = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Brick"));
+	Roof = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Roof"));
 
-	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get() })
+	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get(), Roof.Get() })
 	{
 		Mesh->SetupAttachment(SceneRoot);
 		Mesh->bUseAsyncCooking = true;
@@ -126,6 +127,11 @@ AKBVEWorldRoadChunk::AKBVEWorldRoadChunk()
 	// a wall rather than a box: the openings are holes in the section, so a
 	// simple hull around it would be a house with a doorway that is bricked up.
 	Brick->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+
+	// The roof does not collide. Nothing walks on it, an overhanging eave is the
+	// easiest thing in a village to snag a pawn on, and cooking a slope per house
+	// is work spent on a surface no query ever wants to find.
+	Roof->SetCollisionEnabled(ECollisionEnabled::NoCollision);
 }
 
 void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
@@ -155,6 +161,9 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 	const FIntPoint Neighbours[2] = { FIntPoint(1, 0), FIntPoint(0, 1) };
 
 	TArray<FKBVEWorldRoadSpan> Spans;
+
+	Timings = FTimings();
+	const double RouteStart = FPlatformTime::Seconds();
 
 	ReleaseFenceRuns();
 	EdgePaths.SetNum(2);
@@ -214,16 +223,22 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 		}
 	}
 
+	Timings.RouteMs = static_cast<float>((FPlatformTime::Seconds() - RouteStart) * 1000.0);
+
 	SpawnFenceRuns(In);
 
+	const double FenceStart = FPlatformTime::Seconds();
+	FKBVEWorldFenceMesh Fences;
+	BuildFenceParts(In, Fences);
+	Timings.FenceMs = static_cast<float>((FPlatformTime::Seconds() - FenceStart) * 1000.0);
+
+	const double MasonryStart = FPlatformTime::Seconds();
 	SitePlots(In);
 	SpawnBuildings(In);
 
-	FKBVEWorldFenceMesh Fences;
-	BuildFenceParts(In, Fences);
-
-	FKBVEWorldRibbonMesh Masonry;
-	BuildMasonry(In, Masonry);
+	FKBVEWorldBuildingMesh Structures;
+	BuildStructures(In, Structures);
+	Timings.MasonryMs = static_cast<float>((FPlatformTime::Seconds() - MasonryStart) * 1000.0);
 
 	// World space, because the pool holds one component for the whole world and
 	// the rebase below is a thing only this chunk's own sections want.
@@ -241,17 +256,19 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 
 	Rebase(Data.Wood, Origin);
 	Rebase(Data.Stone, Origin);
-	Rebase(Masonry, Origin);
+	Rebase(Structures.Masonry, Origin);
+	Rebase(Structures.Roof, Origin);
 
 	Commit(Wood, Data.Wood, WoodMaterial, true);
 	Commit(Stone, Data.Stone, StoneMaterial, false);
-	Commit(Brick, Masonry, In.BrickMaterial, true);
+	Commit(Brick, Structures.Masonry, In.BrickMaterial, true);
+	Commit(Roof, Structures.Roof, In.RoofMaterial, false);
 
 	// The supports collide as blocks whether they were drawn as triangles here or
 	// as instances elsewhere, so this does not care which happened.
 	CommitBlocks(Stone, Data.Blocks, Origin);
 
-	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get() })
+	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get(), Roof.Get() })
 	{
 		Mesh->SetCullDistance(MaxDrawDistance);
 	}
@@ -535,7 +552,7 @@ void AKBVEWorldRoadChunk::ReleaseBuildings()
 	Buildings.Reset();
 }
 
-void AKBVEWorldRoadChunk::BuildMasonry(const FBuild& In, FKBVEWorldRibbonMesh& Out)
+void AKBVEWorldRoadChunk::BuildStructures(const FBuild& In, FKBVEWorldBuildingMesh& Out)
 {
 	if (!In.Settlement || Plans.Num() == 0)
 	{
@@ -589,10 +606,14 @@ bool AKBVEWorldRoadChunk::RebuildBuildings(const FBuild& In)
 		return false;
 	}
 
-	FKBVEWorldRibbonMesh Masonry;
-	BuildMasonry(In, Masonry);
-	Rebase(Masonry, GetActorLocation());
-	Commit(Brick, Masonry, In.BrickMaterial, true);
+	FKBVEWorldBuildingMesh Structures;
+	BuildStructures(In, Structures);
+
+	const FVector Origin = GetActorLocation();
+	Rebase(Structures.Masonry, Origin);
+	Rebase(Structures.Roof, Origin);
+	Commit(Brick, Structures.Masonry, In.BrickMaterial, true);
+	Commit(Roof, Structures.Roof, In.RoofMaterial, false);
 	return true;
 }
 
@@ -604,6 +625,7 @@ void AKBVEWorldRoadChunk::Release()
 	Wood->ClearAllMeshSections();
 	Stone->ClearAllMeshSections();
 	Brick->ClearAllMeshSections();
+	Roof->ClearAllMeshSections();
 	Stone->ClearCollisionConvexMeshes();
 	SetActorHiddenInGame(true);
 	SetActorEnableCollision(false);
@@ -734,6 +756,7 @@ AKBVEWorldRoadChunk::FBuild AKBVEWorldRoadNetwork::MakeBuild(const FIntPoint& Co
 	In.WoodMaterial = WoodMaterial;
 	In.StoneMaterial = StoneMaterial;
 	In.BrickMaterial = BrickMaterial;
+	In.RoofMaterial = RoofMaterial;
 	In.PartMesh = bInstanced ? PartMesh.Get() : nullptr;
 	return In;
 }
@@ -817,6 +840,7 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 	if (Centre != LastCentre)
 	{
 		LastCentre = Centre;
+		FillTimings = AKBVEWorldRoadChunk::FTimings();
 		ReleaseOutsideRadius(Centre);
 		QueueInsideRadius(Centre);
 	}
@@ -887,6 +911,11 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 		Chunk->Build(In, ChunkParts);
 		LastBuildMs = static_cast<float>((FPlatformTime::Seconds() - Start) * 1000.0);
 
+		const AKBVEWorldRoadChunk::FTimings& Spent = Chunk->GetTimings();
+		FillTimings.RouteMs += Spent.RouteMs;
+		FillTimings.FenceMs += Spent.FenceMs;
+		FillTimings.MasonryMs += Spent.MasonryMs;
+
 		if (bInstanced)
 		{
 			Parts->Submit(StoneBucket, Coord, MoveTemp(ChunkParts.Stone));
@@ -941,7 +970,9 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 	if (Built > 0 && Pending.Num() == 0)
 	{
 		UE_LOG(LogKBVEWorldStream, Display,
-			TEXT("road window filled at %d,%d: %d live (%d pooled), last build %.2f ms"),
-			Centre.X, Centre.Y, Live.Num(), Pool.Num(), LastBuildMs);
+			TEXT("road window filled at %d,%d: %d live (%d pooled), last build %.2f ms; "
+				 "routing %.1f ms, fences %.1f ms, masonry %.1f ms"),
+			Centre.X, Centre.Y, Live.Num(), Pool.Num(), LastBuildMs, FillTimings.RouteMs,
+			FillTimings.FenceMs, FillTimings.MasonryMs);
 	}
 }

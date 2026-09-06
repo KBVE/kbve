@@ -1,5 +1,7 @@
 #include "KBVEWorldHeightfield.h"
 
+#include "Async/ParallelFor.h"
+
 THIRD_PARTY_INCLUDES_START
 #include "FastNoiseLite.h"
 THIRD_PARTY_INCLUDES_END
@@ -143,13 +145,23 @@ void FKBVEWorldHeightfield::FillGrid(const FKBVEWorldHeightfieldParams& Params, 
 
 	const FHeightNoiseField Field(Params, Seed);
 
-	for (int32 Y = 0; Y < Edge; ++Y)
+	// A row at a time across the worker threads. The field is sampled and never
+	// written, the rows it writes into do not overlap, and the noise carries no
+	// state between samples -- so the only thing serialising this was the loop.
+	//
+	// Below the threshold it stays on one thread: the outer rings are a few
+	// hundred samples, and dispatching those costs more than computing them.
+	const bool bParallel = Edge >= 64;
+	float* const OutData = Out.GetData();
+
+	ParallelFor(Edge, [&Field, OutData, OriginTileX, OriginTileY, TileStep, Edge](int32 Y)
 	{
 		const float TileY = OriginTileY + Y * TileStep;
+		float* Row = OutData + Y * Edge;
 		for (int32 X = 0; X < Edge; ++X)
 		{
 			const float TileX = OriginTileX + X * TileStep;
-			Out[Y * Edge + X] = Field.Height(TileX, TileY);
+			Row[X] = Field.Height(TileX, TileY);
 		}
-	}
+	}, bParallel ? EParallelForFlags::None : EParallelForFlags::ForceSingleThread);
 }
