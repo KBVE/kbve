@@ -31,7 +31,7 @@ const BARS = [
 
 document.addEventListener('alpine:init', () => {
   Alpine.store('perf', {
-    frame: 0, fps: 0, status: 'idle', period: 500, running: true,
+    frame: 0, fps: 0, status: 'idle', period: 500, running: true, collecting: true,
     lines: {}, paths: {}, rules: {}, scene: {}, ops: [],
     history: {}, log: [],
 
@@ -52,6 +52,12 @@ document.addEventListener('alpine:init', () => {
       this.frame = json.frame;
       this.fps = json.fps;
       this.status = moved ? 'live' : 'idle';
+
+      // The page is served whenever the editor is up, so reaching it says
+      // nothing about whether anything is being measured. Without this an
+      // editor that is collecting nothing and an editor that is idle look
+      // identical: a readout full of zeroes.
+      this.collecting = json.enabled !== false;
 
       for (const line of LINES) {
         this.lines[line.key] = json[line.key];
@@ -116,6 +122,17 @@ document.addEventListener('alpine:init', () => {
     let id = setInterval(() => $store.perf.running && $store.perf.poll(), $store.perf.period);
     $watch('$store.perf.period', p => { clearInterval(id); id = setInterval(() => $store.perf.running && $store.perf.poll(), p); });
   ">
+
+  <div x-show="!$store.perf.collecting"
+    class="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-amber-800 bg-amber-950/40 px-4 py-3">
+    <div class="text-sm text-amber-200">
+      Collection is off, so every number below is zero. The page is up because the editor is.
+    </div>
+    <button @click="$store.perf.exec('kbve.perf 1')"
+      class="ml-auto shrink-0 rounded border border-amber-700 bg-amber-900/60 px-3 py-1 text-xs text-amber-100 hover:bg-amber-900">
+      start collecting
+    </button>
+  </div>
 
   <header class="mb-6 flex flex-wrap items-center gap-4">
     <div>

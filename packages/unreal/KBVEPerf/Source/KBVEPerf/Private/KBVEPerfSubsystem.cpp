@@ -283,14 +283,34 @@ void UKBVEPerfSubsystem::ApplyEnabledState()
 {
 	const bool bOn = CVarPerf->GetValueOnGameThread() != 0;
 	FKBVEPerf::SetMasterEnabled(bOn);
+
 	if (bOn)
 	{
-		StartHttp();
 		StartStats();
 	}
 	else
 	{
 		StopStats();
+	}
+
+	// The page and the collection are two switches, and in the editor only one
+	// of them is off by default.
+	//
+	// Serving only while collecting made the readout unreachable exactly when it
+	// was wanted: a page that does not exist until collection is on cannot be
+	// the thing that turns collection on, and it went away again the moment Play
+	// stopped -- which is the one moment there is something worth reading. An
+	// idle listener on a loopback port costs nothing; the collection is the part
+	// with a cost, and that stays behind `kbve.perf`.
+	//
+	// Outside the editor there is nothing to serve until somebody asks, so the
+	// old coupling stands.
+	if (bOn || WITH_EDITOR)
+	{
+		StartHttp();
+	}
+	else
+	{
 		StopHttp();
 	}
 }
@@ -379,8 +399,9 @@ FString UKBVEPerfSubsystem::BuildJson() const
 
 	FString Out;
 	Out += FString::Printf(
-		TEXT("{\"frame\":%llu,\"fps\":%.1f,\"gameMs\":%.3f,\"renderMs\":%.3f,\"gpuMs\":%.3f,")
-			TEXT("\"rhiMs\":%.3f,\"ops\":["),
+		TEXT("{\"enabled\":%s,\"frame\":%llu,\"fps\":%.1f,\"gameMs\":%.3f,\"renderMs\":%.3f,")
+			TEXT("\"gpuMs\":%.3f,\"rhiMs\":%.3f,\"ops\":["),
+		CVarPerf->GetValueOnGameThread() != 0 ? TEXT("true") : TEXT("false"),
 		static_cast<uint64>(GFrameCounter), CachedFps, CachedGameMs, CachedRenderMs, CachedGpuMs,
 		CachedRhiMs);
 
