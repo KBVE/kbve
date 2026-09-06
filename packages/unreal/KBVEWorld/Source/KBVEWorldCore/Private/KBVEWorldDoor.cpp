@@ -44,7 +44,11 @@ void FKBVEWorldDoor::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWal
 	const float Half = 0.5f * FMath::Max(Wall.Thickness, KINDA_SMALL_NUMBER);
 	const float Front = Half + Door.FrameProud;
 	const float Back = -Front;
-	const float LeafHalf = 0.5f * Door.LeafThickness;
+	// The leaf hangs at the street face rather than on the centre plane. Its own
+	// outer face is the wall's, so the only thing proud of the masonry at a
+	// doorway is the frame.
+	const float LeafFace = Half - FMath::Max(Door.LeafSetback, 0.0f);
+	const float LeafBack = LeafFace - FMath::Max(Door.LeafThickness, KINDA_SMALL_NUMBER);
 
 	for (const FKBVEWorldWallOpening& Open : Openings)
 	{
@@ -91,7 +95,7 @@ void FKBVEWorldDoor::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWal
 		// down to make room for it is a doorway nobody fits through.
 		const float Squat = Open.Bottom + Sill + 0.55f * Open.Height;
 		const bool bArch = bArched && Span > KINDA_SMALL_NUMBER && Rise > KINDA_SMALL_NUMBER
-			&& Spring - Jamb - Door.LeafGap > Squat;
+			&& Spring - Jamb > Squat;
 
 		// Even, so a facet lands on the crown rather than a chord lying across it.
 		const int32 Wanted = FMath::Max(Door.ArchSegments, 2);
@@ -160,10 +164,13 @@ void FKBVEWorldDoor::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWal
 
 		// The leaf, hung on the centre plane so the doorway is the same depth of
 		// reveal from the room as from the street.
-		const float LeafLeft = Inner + Door.LeafGap;
-		const float LeafRight = Outer - Door.LeafGap;
+		// Lapped past the clear opening on every edge, so the leaf's own edges are
+		// buried in the frame instead of showing a slot through to the room.
+		const float Lap = FMath::Min(Door.LeafLap, Jamb);
+		const float LeafLeft = Inner - Lap;
+		const float LeafRight = Outer + Lap;
 		const float LeafBottom = Open.Bottom + Sill;
-		const float LeafTop = (bArch ? Spring - Jamb : Top - Jamb) - Door.LeafGap;
+		const float LeafTop = (bArch ? Spring - Jamb : Top - Jamb) + Lap;
 
 		if (LeafRight - LeafLeft <= KINDA_SMALL_NUMBER
 			|| LeafTop - LeafBottom <= KINDA_SMALL_NUMBER)
@@ -172,7 +179,7 @@ void FKBVEWorldDoor::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWal
 		}
 
 		FKBVEWorldJoinery::Box(Out.Timber, Frame, LeafLeft, LeafRight, LeafBottom, LeafTop,
-			-LeafHalf, LeafHalf);
+			LeafBack, LeafFace);
 
 		// Battens across the outward face. The wall's normal is the direction the
 		// steps outside the front door are built along, so it is the street side
@@ -184,7 +191,7 @@ void FKBVEWorldDoor::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWal
 				+ Height * static_cast<float>(I + 1) / static_cast<float>(Door.Ledges + 1);
 			const float HalfLedge = 0.5f * FMath::Min(Door.LedgeHeight, 0.3f * Height);
 			FKBVEWorldJoinery::Box(Out.Timber, Frame, LeafLeft, LeafRight, At - HalfLedge,
-				At + HalfLedge, LeafHalf, LeafHalf + Door.LedgeProud);
+				At + HalfLedge, LeafFace, LeafFace + Door.LedgeProud);
 		}
 	}
 }

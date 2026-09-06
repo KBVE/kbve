@@ -39,14 +39,29 @@ struct KBVEWORLDCORE_API FKBVEWorldDoorParams
 	float LeafThickness = 11.0f;
 
 	/**
-	 * Gap between the leaf and the frame it hangs in.
+	 * How far the leaf laps behind the frame on each edge.
 	 *
-	 * Small and non-zero. A leaf built exactly to its hole is coplanar with the
-	 * jambs down both sides, and there is no join for the eye to read -- the
-	 * whole doorway becomes one flat panel of timber.
+	 * A rebate, and the reason a shut door is not a hole. Built to the clear
+	 * opening instead, a leaf leaves a slot of daylight down both jambs and along
+	 * the head that you can see the room through -- so the door reads as shut and
+	 * the doorway reads as open at the same time. Overlapping buries those edges
+	 * in the frame, which is what a real stop does and costs nothing: the leaf is
+	 * the same slab, wider.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door", meta = (ClampMin = "0.0"))
-	float LeafGap = 2.0f;
+	float LeafLap = 3.0f;
+
+	/**
+	 * How far the leaf's face sits inside the face of the wall.
+	 *
+	 * A door hangs near a face of the wall it is in, not in the middle of it. On
+	 * the centre plane of a wall this thick the leaf is at the bottom of a shaft
+	 * with a hand's depth of nothing in front of it, and neither side reads as
+	 * the outside. Zero puts the leaf flush with the masonry, so what stands
+	 * proud of it is the frame, which is the thing meant to.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door", meta = (ClampMin = "0.0"))
+	float LeafSetback = 0.0f;
 
 	/** Height of the threshold the leaf shuts down onto. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door", meta = (ClampMin = "0.0"))
