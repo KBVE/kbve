@@ -14,6 +14,7 @@
 #include "Net/UnrealNetwork.h"
 
 #include "DefaultMovementSet/CharacterMoverComponent.h"
+#include "DefaultMovementSet/InstantMovementEffects/BasicInstantMovementEffects.h"
 #include "MoverDataModelTypes.h"
 #include "KBVEEffectComponent.h"
 #include "DefaultMovementSet/Settings/CommonLegacyMovementSettings.h"
@@ -368,7 +369,35 @@ FVector AKBVEMoverPawn::GetAuthoritativeVelocity() const
 	return MoverComponent ? MoverComponent->GetVelocity() : GetVelocity();
 }
 
+bool AKBVEMoverPawn::PlaceAt(const FVector& Position)
+{
+	if (!MoverComponent)
+	{
+		return false;
+	}
+
+	// Queued as a teleport rather than set on the actor, because Mover keeps its
+	// own idea of where this pawn is and reconciles the component to it every
+	// tick. Moved from outside, the two disagree: Mover warns about out-of-band
+	// movement and then -- with bAcceptExternalMovement off, which is its
+	// default -- carries on from the position it already believed in. The move
+	// is not merely noisy, it is discarded.
+	TSharedPtr<FTeleportEffect> Teleport = MakeShared<FTeleportEffect>();
+	Teleport->TargetLocation = Position;
+	Teleport->bUseActorRotation = true;
+	MoverComponent->QueueInstantMovementEffect(Teleport);
+	return true;
+}
+
 void AKBVEMoverPawn::ApplyServerCorrection(const FVector& Position, const FVector& Velocity)
 {
+	// The same reasoning, and the reason this was worth chasing past the one
+	// warning that led to it: a correction applied by moving the actor was being
+	// thrown away by the simulation it was meant to correct.
+	if (PlaceAt(Position))
+	{
+		return;
+	}
+
 	SetActorLocation(Position, false, nullptr, ETeleportType::TeleportPhysics);
 }
