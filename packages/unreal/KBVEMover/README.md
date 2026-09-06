@@ -80,12 +80,33 @@ and ships Iris net serializers (`NetworkPredictionNetSerializers.cpp`, and the I
 export plumbing in `NetworkPredictionReplicationProxy.h`), so the backend above replicates
 under Iris as it does under the generic system.
 
-Iris is a config and command-line switch rather than a build one, so it costs nothing to
-run against today and find breakage while a game is still small:
+Iris is a config switch rather than a build one. `SetupIrisSupport` is unconditional in
+5.8 -- it always adds `IrisCore` and defines `UE_WITH_IRIS=1` -- so there is nothing to
+compile differently.
 
+Two gates, and only one of them is ours. `BaseEngine.ini` already permits Iris for the
+`GameNetDriver` and forbids it for the `DemoNetDriver`:
+
+```ini
++IrisNetDriverConfigs=(NetDriverDefinition=GameNetDriver, bCanUseIris=true)
++IrisNetDriverConfigs=(NetDriverName=DemoNetDriver, bCanUseIris=false)
 ```
--UseIrisReplication=1
+
+What it does not do is switch it on: `net.Iris.UseIrisReplication` defaults to `0`. So a
+project turns Iris on with one cvar, and **RareIcon sets it** in its `DefaultEngine.ini`:
+
+```ini
+[SystemSettings]
+net.Iris.UseIrisReplication=1
 ```
+
+Adding another `+IrisNetDriverConfigs` line for `GameNetDriver` would achieve nothing --
+`UEngine::GetIrisNetDriverConfig` takes the *first* match for a driver, and the engine's
+own entry is already in the array ahead of anything a project appends. Override by exact
+`NetDriverName` or by wildcard, which are matched first, or not at all.
+
+`-UseIrisReplication=1` / `=0` on the command line overrides the cvar either way, which is
+how to A/B a suspected Iris-specific bug without editing config.
 
 Two things to keep in view rather than fix now:
 
