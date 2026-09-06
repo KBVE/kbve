@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-09-05T05:31:02Z",
+  "generated_at": "2026-09-06T05:44:34Z",
   "summary": {
     "critical": 3,
-    "high": 38,
-    "medium": 55,
-    "low": 8,
+    "high": 37,
+    "medium": 54,
+    "low": 7,
     "info": 33
   },
   "ecosystems": {
     "npm": {
-      "total": 85,
+      "total": 82,
       "severities": {
         "critical": 3,
-        "high": 38,
-        "medium": 36,
-        "low": 8,
+        "high": 37,
+        "medium": 35,
+        "low": 7,
         "info": 0
       },
       "advisories": [
@@ -117,25 +117,11 @@
           "url": "https://github.com/advisories/GHSA-q8mj-m7cp-5q26"
         },
         {
-          "id": "1120680",
-          "title": "esbuild allows arbitrary file read when running the development server on Windows",
-          "severity": "low",
-          "package": "esbuild",
-          "url": "https://github.com/advisories/GHSA-g7r4-m6w7-qqqr"
-        },
-        {
           "id": "1120782",
           "title": "node-tar applies PAX size override to intermediary GNU long-name/long-link headers, causing tar parser interpretation differential (file smuggling)",
           "severity": "medium",
           "package": "tar",
           "url": "https://github.com/advisories/GHSA-vmf3-w455-68vh"
-        },
-        {
-          "id": "1120785",
-          "title": "launch-editor: NTLMv2 hash disclosure via UNC path handling on Windows",
-          "severity": "medium",
-          "package": "vite",
-          "url": "https://github.com/advisories/GHSA-v6wh-96g9-6wx3"
         },
         {
           "id": "1120787",
@@ -220,13 +206,6 @@
           "severity": "critical",
           "package": "websocket-driver",
           "url": "https://github.com/advisories/GHSA-xv26-6w52-cph6"
-        },
-        {
-          "id": "1123526",
-          "title": "vite: `server.fs.deny` bypass on Windows alternate paths",
-          "severity": "high",
-          "package": "vite",
-          "url": "https://github.com/advisories/GHSA-fx2h-pf6j-xcff"
         },
         {
           "id": "1123896",
