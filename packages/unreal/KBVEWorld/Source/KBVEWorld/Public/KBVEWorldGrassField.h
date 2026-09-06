@@ -66,7 +66,33 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass",
 		meta = (ClampMin = "0", ClampMax = "4096"))
-	int32 InstancesPerTile = 192;
+	int32 InstancesPerTile = 640;
+
+	/**
+	 * Density at the edge of the window, as a fraction of the density at its
+	 * centre.
+	 *
+	 * Grass short enough to be grass covers very little ground each, so the near
+	 * ring needs a lot of it -- and paying that everywhere is most of the cost
+	 * for the part of the field nobody can resolve. Tiles carry the same slots
+	 * whichever band they are in; a thinner band simply leaves more of them at
+	 * zero scale, so this trades drawn instances rather than memory.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass",
+		meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float EdgeDensity = 0.3f;
+
+	/**
+	 * How many steps the falloff is quantised into.
+	 *
+	 * A tile's distance from the centre changes as the window scrolls, and a
+	 * tile whose density is stale is a visible seam. Rebuilding on every change
+	 * would rebuild most of the window every time it recentres, so the falloff
+	 * is banded and a tile is only refilled when it changes band.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass",
+		meta = (ClampMin = "1", ClampMax = "8"))
+	int32 DensityBands = 3;
 
 	/** Distinct clump meshes cut from the atlas. Each one is a draw call. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass",
@@ -88,7 +114,7 @@ public:
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass",
 		meta = (ClampMin = "1.0"))
-	float ClumpHeight = 90.0f;
+	float ClumpHeight = 45.0f;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass")
 	FFloatInterval ClumpScale = FFloatInterval(0.7f, 1.35f);
@@ -118,11 +144,11 @@ public:
 	/** Where instances start fading, and where they stop being drawn. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass",
 		meta = (ClampMin = "0"))
-	int32 CullStart = 9000;
+	int32 CullStart = 6500;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass",
 		meta = (ClampMin = "0"))
-	int32 CullEnd = 12000;
+	int32 CullEnd = 9000;
 
 	/**
 	 * Steepest ground grass will stand on, as a slope rather than an angle:
@@ -196,6 +222,11 @@ private:
 
 	int32 SlotOf(const FIntPoint& Tile) const;
 
+	/** Which falloff band a tile currently sits in, from the window's centre. */
+	int32 BandOf(const FIntPoint& Tile) const;
+
+	float BandDensity(int32 Band) const;
+
 	FIntPoint TileAt(const FVector& WorldLocation) const;
 
 	bool TryGetViewLocation(FVector& Out) const;
@@ -218,6 +249,9 @@ private:
 
 	/** Which tile each slot currently holds, or the sentinel for none. */
 	TArray<FIntPoint> SlotTiles;
+
+	/** The band each slot was last filled for, so a stale one can be spotted. */
+	TArray<int32> SlotBands;
 
 	TArray<FIntPoint> Pending;
 	FIntPoint CentreTile = FIntPoint::ZeroValue;

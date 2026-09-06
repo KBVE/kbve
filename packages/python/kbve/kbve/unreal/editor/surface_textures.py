@@ -248,6 +248,12 @@ def build_foliage_material(spec, textures):
 
     mat.set_editor_property("blend_mode", unreal.BlendMode.BLEND_MASKED)
     mat.set_editor_property("two_sided", True)
+
+    # Two-sided foliage, which is Unreal's model for a leaf: light that hits the
+    # far side of a blade comes through it rather than stopping. That glow along
+    # a lit edge is most of what separates a photographed clump from a printed
+    # one, and it is the difference between this and the render the pack ships.
+    mat.set_editor_property("shading_model", unreal.MaterialShadingModel.MSM_TWO_SIDED_FOLIAGE)
     mat.set_editor_property("opacity_mask_clip_value", spec.get("clip", 0.33))
     mat.set_editor_property("dithered_lod_transition", True)
     mat.set_editor_property("used_with_instanced_static_meshes", True)
@@ -263,7 +269,7 @@ def build_foliage_material(spec, textures):
     vertex = expr(mat, unreal.MaterialExpressionVertexColor, -700, -400)
 
     occlusion = expr(mat, unreal.MaterialExpressionLinearInterpolate, -400, -400)
-    occlusion.set_editor_property("const_a", spec.get("base_shade", 0.62))
+    occlusion.set_editor_property("const_a", spec.get("base_shade", 0.70))
     occlusion.set_editor_property("const_b", 1.0)
     MEL.connect_material_expressions(vertex, "G", occlusion, "Alpha")
 
@@ -273,8 +279,11 @@ def build_foliage_material(spec, textures):
 
     # The scan is a dry olive -- hue 69 degrees, and more red than a growing
     # blade has. Corrected here rather than in the PNG so the source stays the
-    # measurement and this stays the artistic decision.
-    tint_rgb = spec.get("tint", [0.85, 1.15, 1.0])
+    # measurement and this stays the artistic decision. These numbers are solved
+    # rather than guessed: the sheet's mean under the mask is linear
+    # (0.120, 0.132, 0.038), and this lands the lit blade on hue 98 at 0.62
+    # saturation, which is a growing one.
+    tint_rgb = spec.get("tint", [0.62, 1.60, 0.80])
     tint = expr(mat, unreal.MaterialExpressionConstant3Vector, -400, -100)
     tint.set_editor_property("constant", unreal.LinearColor(tint_rgb[0], tint_rgb[1], tint_rgb[2], 1.0))
     tinted = expr(mat, unreal.MaterialExpressionMultiply, -100, -200)
@@ -282,6 +291,16 @@ def build_foliage_material(spec, textures):
     MEL.connect_material_expressions(tint, "", tinted, "B")
 
     MEL.connect_material_property(tinted, "", unreal.MaterialProperty.MP_BASE_COLOR)
+
+    # What comes through the blade, not what bounces off it: greener and darker
+    # than the surface, because a leaf filters the light it transmits.
+    through_rgb = spec.get("transmission", [0.09, 0.26, 0.05])
+    through = expr(mat, unreal.MaterialExpressionConstant3Vector, -400, 0)
+    through.set_editor_property(
+        "constant",
+        unreal.LinearColor(through_rgb[0], through_rgb[1], through_rgb[2], 1.0),
+    )
+    MEL.connect_material_property(through, "", unreal.MaterialProperty.MP_SUBSURFACE_COLOR)
 
     # A card's own normal points out of its face, sideways, so half a field faces
     # away from any sun and shades to black -- which reads as dirt with a pattern
