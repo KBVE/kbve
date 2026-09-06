@@ -103,6 +103,19 @@ namespace
 
 		return Layers;
 	}
+	/**
+	 * How many layers of plinth cover a point, wherever they were drawn.
+	 *
+	 * Both meshes, because a third of the village foots itself in stone and that
+	 * band is the same band -- it is simply committed against a different
+	 * material. Asking the masonry alone reads a stone-footed building as having
+	 * no plinth at all.
+	 */
+	int32 Layers(const FKBVEWorldBuildingMesh& Mesh, const FVector2D& Point, float AtZ)
+	{
+		return LayersAt(Mesh.Masonry, Point, AtZ) + LayersAt(Mesh.Plinth, Point, AtZ);
+	}
+
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -403,7 +416,7 @@ bool FKBVEWorldBuildingPlinthCornerTest::RunTest(const FString& Parameters)
 					FMath::Lerp(-OuterY, OuterY, static_cast<float>(Iy) / 40.0f) + 0.53f);
 
 				++Sampled;
-				if (LayersAt(Mesh.Masonry, P, Top) > 1)
+				if (Layers(Mesh, P, Top) > 1)
 				{
 					++Doubled;
 				}
@@ -420,7 +433,7 @@ bool FKBVEWorldBuildingPlinthCornerTest::RunTest(const FString& Parameters)
 			const FVector2D P(Corner < 2 ? InnerX : -InnerX,
 				Corner % 2 == 0 ? InnerY : -InnerY);
 
-			if (LayersAt(Mesh.Masonry, P, Top) == 0)
+			if (Layers(Mesh, P, Top) == 0)
 			{
 				++Bare;
 			}
