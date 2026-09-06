@@ -287,9 +287,14 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 	Commit(Stone, Data.Stone, StoneMaterial, false);
 	Commit(Brick, Structures.Masonry, In.BrickMaterial, true);
 	Commit(Roof, Structures.Roof, In.RoofMaterial, false);
-	Commit(Joinery, Structures.Joinery.Timber, In.WoodMaterial, false);
-	Commit(Glazing, Structures.Joinery.Glazing, In.GlassMaterial, false);
-	Commit(Plinth, Structures.Plinth, In.StoneMaterial, false);
+	// Joinery and glass collide, and the plinth with them. A door leaf that does
+	// not is a doorway you walk through with the door shut, which is the one place
+	// in a village somebody walks straight at a wall on purpose -- and a pane that
+	// does not is the same hole one storey up. Only at the tier they are drawn on,
+	// which is the tier anything is close enough to touch them at.
+	Commit(Joinery, Structures.Joinery.Timber, In.WoodMaterial, true);
+	Commit(Glazing, Structures.Joinery.Glazing, In.GlassMaterial, true);
+	Commit(Plinth, Structures.Plinth, In.StoneMaterial, true);
 
 	// The supports collide as blocks whether they were drawn as triangles here or
 	// as instances elsewhere, so this does not care which happened.
@@ -737,9 +742,9 @@ bool AKBVEWorldRoadChunk::RebuildBuildings(const FBuild& In)
 	Rebase(Structures.Roof, Origin);
 	Commit(Brick, Structures.Masonry, In.BrickMaterial, true);
 	Commit(Roof, Structures.Roof, In.RoofMaterial, false);
-	Commit(Joinery, Structures.Joinery.Timber, In.WoodMaterial, false);
-	Commit(Glazing, Structures.Joinery.Glazing, In.GlassMaterial, false);
-	Commit(Plinth, Structures.Plinth, In.StoneMaterial, false);
+	Commit(Joinery, Structures.Joinery.Timber, In.WoodMaterial, true);
+	Commit(Glazing, Structures.Joinery.Glazing, In.GlassMaterial, true);
+	Commit(Plinth, Structures.Plinth, In.StoneMaterial, true);
 	return true;
 }
 
