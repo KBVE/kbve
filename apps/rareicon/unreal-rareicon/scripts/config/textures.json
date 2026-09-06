@@ -51,6 +51,15 @@
 			"displacement": true,
 			"source": "World",
 			"destination": "/Game/Textures/World"
+		},
+		{
+			"stem": "T_GrassCard",
+			"pack": "grass_bermuda_01_1k",
+			"alpha": true,
+			"resolution": 1024,
+			"displacement": false,
+			"source": "Foliage",
+			"destination": "/Game/Textures/Foliage"
 		}
 	],
 	"terrain_material": {
