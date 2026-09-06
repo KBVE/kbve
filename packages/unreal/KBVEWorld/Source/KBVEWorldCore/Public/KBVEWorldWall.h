@@ -144,6 +144,35 @@ enum class EKBVEWorldWallDetail : uint8
 };
 
 /**
+ * A wall's own frame: along it, up it, and through it.
+ *
+ * Public because a window is built into a wall it does not own. Deriving the
+ * same three axes a second time in the window builder is how the two come to
+ * disagree about which way a wall faces, and this project has already paid for
+ * one mirrored derivation.
+ */
+struct KBVEWORLDCORE_API FKBVEWorldWallFrame
+{
+	FVector Origin = FVector::ZeroVector;
+	FVector Right = FVector::ForwardVector;
+	FVector Up = FVector::UpVector;
+	FVector Norm = FVector::RightVector;
+	float UOffset = 0.0f;
+	float Tile = 220.0f;
+
+	/** U along the wall, V up it, T through it. T is zero at the centre line. */
+	FVector At(float U, float V, float T) const
+	{
+		return Origin + Right * U + Up * V + Norm * T;
+	}
+
+	FVector2D UV(float A, float B) const
+	{
+		return FVector2D((UOffset + A) / Tile, B / Tile);
+	}
+};
+
+/**
  * Where one wall stands and how it joins the rest of its building.
  */
 struct FKBVEWorldWallBuild
@@ -213,6 +242,16 @@ struct KBVEWORLDCORE_API FKBVEWorldWall
 	static void Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWallBuild& In,
 		TArrayView<const FKBVEWorldWallOpening> Openings, EKBVEWorldWallDetail Detail,
 		FKBVEWorldRibbonMesh& Out);
+
+	/**
+	 * The frame this wall is built in, for whatever is set into it.
+	 *
+	 * A window is put in a wall by something that is not the wall, and it has to
+	 * agree with the wall about which way the wall faces down to the sign of the
+	 * normal. Handing the frame out is cheaper than being wrong about it.
+	 */
+	static FKBVEWorldWallFrame Frame(const FKBVEWorldWallParams& Wall,
+		const FKBVEWorldWallBuild& In);
 
 	/**
 	 * The triangle of wall above the plate, under a gable roof's rake.
