@@ -38,6 +38,5 @@ class DepsRoute:
             "deps",
             page="deps.mdx",
             mdx_text=render_deps_mdx(payload, ctx.timestamp),
-            json_name="nx-deps.json",
             json_text=render_deps_json(payload),
         )

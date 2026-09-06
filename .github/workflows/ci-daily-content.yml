@@ -183,7 +183,7 @@ jobs:
                   uv run kbve-content-build "${{ matrix.route }}" \
                     --timestamp "$(date -u +%Y-%m-%dT%H:%M:%SZ)" \
                     --workdir "${RUNNER_TEMP}" \
-                    --public-dir "$GITHUB_WORKSPACE/apps/kbve/astro-kbve/public/data/nx" \
+                    --public-dir "$GITHUB_WORKSPACE/apps/kbve/astro-kbve/public/data/dashboard" \
                     --content-root "$GITHUB_WORKSPACE/apps/kbve/astro-kbve/src/content/docs" \
                     | tee "${RUNNER_TEMP}/changed-${{ matrix.route }}.txt"
 
@@ -261,7 +261,7 @@ jobs:
                   ALLOWED='
                   apps/kbve/astro-kbve/src/content/docs/
                   docs/journal/
-                  apps/kbve/astro-kbve/public/data/nx/
+                  apps/kbve/astro-kbve/public/data/dashboard/
                   apps/kbve/astro-kbve/public/graphify/
                   apps/kbve/astro-kbve/src/data/
                   packages/data/codegen/generated/

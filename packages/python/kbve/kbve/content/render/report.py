@@ -67,7 +67,7 @@ def render_report_mdx(data: dict, timestamp: str) -> str:
         f" · moon <strong>{moon}</strong> · pnpm <strong>{pnpm}</strong>."
     )
 
-    out.write('<div class="nx-report" data-dash-report>\n\n')
+    out.write('<div class="dash-report" data-dash-report>\n\n')
 
     out.write(
         '<section class="bento-hero bento-section not-content"'
@@ -157,6 +157,6 @@ def render_report_mdx(data: dict, timestamp: str) -> str:
     out.write("</BentoProse>\n\n")
 
     out.write("</div>\n\n")
-    out.write("<style is:global>{`.nx-report{--bento-accent:#10b981;--bento-accent-2:#38bdf8}`}</style>\n")
+    out.write("<style is:global>{`.dash-report{--bento-accent:#10b981;--bento-accent-2:#38bdf8}`}</style>\n")
 
     return out.getvalue()

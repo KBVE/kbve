@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Generate nx-proto.json — machine-readable registry of all proto schemas
+ * Generate proto.json — machine-readable registry of all proto schemas
  * and their codegen status.
  *
  * Usage:

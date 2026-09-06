@@ -11,7 +11,7 @@ from kbve.content.router import get
 
 def _ctx(tmp_path, inputs):
     content_root = tmp_path / "apps/kbve/astro-kbve/src/content/docs"
-    public_dir = tmp_path / "apps/kbve/astro-kbve/public/data/nx"
+    public_dir = tmp_path / "apps/kbve/astro-kbve/public/data/dashboard"
     content_root.mkdir(parents=True)
     (tmp_path / ".moon").mkdir()
     return BuildContext(
@@ -78,8 +78,8 @@ def test_kanban_build_writes_all_three(tmp_path):
     assert result.skipped is False
     assert len(result.changed) == 3
 
-    json_src = tmp_path / "apps/kbve/astro-kbve/src/data/nx-kanban.json"
-    json_pub = ctx.public_dir / "nx-kanban.json"
+    json_src = tmp_path / "apps/kbve/astro-kbve/src/data/kanban.json"
+    json_pub = ctx.public_dir / "kanban.json"
     mdx = ctx.content_root / "dashboard" / "kanban-data.mdx"
     assert json_src.exists() and json_pub.exists() and mdx.exists()
     # both JSON copies byte-identical
@@ -121,7 +121,7 @@ def test_kanban_mdx_is_bento(tmp_path):
 def test_kanban_json_key_order(tmp_path):
     ctx = _ctx(tmp_path, _seam([_item("Todo", 1, "X")]))
     get("kanban").build(ctx)
-    data = json.loads((ctx.public_dir / "nx-kanban.json").read_text())
+    data = json.loads((ctx.public_dir / "kanban.json").read_text())
     assert list(data.keys()) == ["generated_at", "project", "summary", "columns", "views"]
 
 

@@ -76,6 +76,5 @@ class ActivityRoute:
             "activity",
             page="activity.mdx",
             mdx_text=render_activity_mdx(payload, ctx.timestamp),
-            json_name="nx-activity.json",
             json_text=render_activity_json(payload),
         )

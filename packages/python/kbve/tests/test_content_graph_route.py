@@ -58,7 +58,7 @@ def test_graph_build_writes_mdx_and_copies_json(tmp_path):
     assert result.route == "graph"
 
     mdx = ctx.content_root / "dashboard" / "graph.mdx"
-    js = ctx.public_dir / "nx-graph.json"
+    js = ctx.public_dir / "graph.json"
     assert mdx.exists()
     assert js.exists()
 
@@ -73,12 +73,12 @@ def test_graph_build_writes_mdx_and_copies_json(tmp_path):
 
 
 def test_graph_build_accepts_path_input(tmp_path):
-    graph_file = tmp_path / "nx-graph.json"
+    graph_file = tmp_path / "graph.json"
     graph_file.write_text(json.dumps(_graph_fixture()))
     ctx = _ctx(tmp_path, {"graph_json": str(graph_file)})
     get("graph").build(ctx)
     assert (ctx.content_root / "dashboard" / "graph.mdx").exists()
-    assert (ctx.public_dir / "nx-graph.json").exists()
+    assert (ctx.public_dir / "graph.json").exists()
 
 
 def test_graph_build_skips_on_bad_schema(tmp_path):
@@ -92,4 +92,4 @@ def test_graph_build_skips_on_empty_nodes(tmp_path):
     ctx = _ctx(tmp_path, {"graph_json": {"graph": {"nodes": {}, "dependencies": {}}}})
     result = get("graph").build(ctx)
     assert result.skipped is True
-    assert not (ctx.public_dir / "nx-graph.json").exists()
+    assert not (ctx.public_dir / "graph.json").exists()

@@ -5,10 +5,10 @@ from __future__ import annotations
 import copy
 
 from enrich_unified import (
+    _slug_index,
     doc_ref_for,
     enrich,
     longest_prefix_dir,
-    _slug_index,
 )
 
 
@@ -33,7 +33,7 @@ def overview():
     }
 
 
-def nx_graph():
+def project_graph():
     return {
         "graph": {
             "nodes": {
@@ -72,7 +72,7 @@ def test_doc_ref_matches_first_candidate():
 
 
 def test_enrich_attaches_nx_projects_to_containing_dir():
-    o = enrich(overview(), nx_graph(), DOCS)
+    o = enrich(overview(), project_graph(), DOCS)
     kbve_dir = o["dirs"][0]
     rust_dir = o["dirs"][1]
     assert {p["name"] for p in kbve_dir["nx"]["projects"]} == {"axum-kbve"}
@@ -80,7 +80,7 @@ def test_enrich_attaches_nx_projects_to_containing_dir():
 
 
 def test_enrich_adds_cross_dir_depends_edges_only():
-    o = enrich(overview(), nx_graph(), DOCS)
+    o = enrich(overview(), project_graph(), DOCS)
     rel = o["meta"]["relations"]
     assert rel[-1] == "depends"
     di = rel.index("depends")
@@ -92,15 +92,15 @@ def test_enrich_adds_cross_dir_depends_edges_only():
 
 
 def test_enrich_sets_doc_refs_by_leaf_then_project():
-    o = enrich(overview(), nx_graph(), DOCS)
+    o = enrich(overview(), project_graph(), DOCS)
     assert o["dirs"][1]["ref"] == "/application/rust/"  # leaf "rust"
     assert "ref" not in o["dirs"][0]  # no application/kbve or axum-kbve doc
     assert o["meta"]["docRefs"] == 1
 
 
 def test_enrich_is_idempotent():
-    once = enrich(overview(), nx_graph(), DOCS)
-    twice = enrich(copy.deepcopy(once), nx_graph(), DOCS)
+    once = enrich(overview(), project_graph(), DOCS)
+    twice = enrich(copy.deepcopy(once), project_graph(), DOCS)
     assert twice["dirEdges"] == once["dirEdges"]
     assert twice["meta"]["relations"] == once["meta"]["relations"]
     assert twice["meta"]["nxEdges"] == once["meta"]["nxEdges"]

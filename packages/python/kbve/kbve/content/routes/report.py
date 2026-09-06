@@ -202,6 +202,5 @@ class ReportRoute:
             "report",
             page="report.mdx",
             mdx_text=render_report_mdx(data, ctx.timestamp),
-            json_name="report.json",
             json_text=render_report_json(data),
         )

@@ -10,7 +10,7 @@ from kbve.content.router import get
 
 def _ctx(tmp_path, inputs):
     content_root = tmp_path / "apps/kbve/astro-kbve/src/content/docs"
-    public_dir = tmp_path / "apps/kbve/astro-kbve/public/data/nx"
+    public_dir = tmp_path / "apps/kbve/astro-kbve/public/data/dashboard"
     content_root.mkdir(parents=True)
     # mark repo root so repo_root_for resolves cleanly
     (tmp_path / ".moon").mkdir()
@@ -41,7 +41,7 @@ def test_proto_build_merges_drift_metadata(tmp_path):
     result = get("proto").build(ctx)
     assert result.skipped is False
 
-    out = ctx.public_dir / "nx-proto.json"
+    out = ctx.public_dir / "proto.json"
     assert out.exists()
     data = json.loads(out.read_text())
     assert data["count"] == 1
@@ -53,6 +53,6 @@ def test_proto_build_merges_drift_metadata(tmp_path):
 def test_proto_build_defaults_no_drift(tmp_path):
     ctx = _ctx(tmp_path, {"proto_registry": {"schemas": []}})
     get("proto").build(ctx)
-    data = json.loads((ctx.public_dir / "nx-proto.json").read_text())
+    data = json.loads((ctx.public_dir / "proto.json").read_text())
     assert data["drift_detected"] is False
     assert data["drift_files"] == []
