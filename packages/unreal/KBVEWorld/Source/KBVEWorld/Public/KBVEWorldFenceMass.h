@@ -26,8 +26,7 @@ struct KBVEWORLD_API FKBVEWorldFenceRunFragment : public FMassFragment
 {
 	GENERATED_BODY()
 
-	/** The edge this run lies along, which is what its geometry is derived from. */
-	UPROPERTY() FIntPoint Edge = FIntPoint::ZeroValue;
+	UPROPERTY() FIntPoint Chunk = FIntPoint::ZeroValue;
 
 	UPROPERTY() float Side = 1.0f;
 	UPROPERTY() float Begin = 0.0f;

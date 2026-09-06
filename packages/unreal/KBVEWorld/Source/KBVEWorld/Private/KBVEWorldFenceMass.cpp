@@ -1,5 +1,6 @@
 #include "KBVEWorldFenceMass.h"
 
+#include "KBVEWorldChunkDirty.h"
 #include "KBVEWorldViewer.h"
 #include "MassExecutionContext.h"
 
@@ -19,6 +20,8 @@ void UKBVEWorldFenceLodProcessor::ConfigureQueries(
 	RunQuery.AddRequirement<FKBVEWorldFenceRunFragment>(EMassFragmentAccess::ReadWrite);
 	RunQuery.AddTagRequirement<FKBVEWorldFenceRunTag>(EMassFragmentPresence::All);
 	RunQuery.AddSubsystemRequirement<UKBVEWorldViewerSubsystem>(EMassFragmentAccess::ReadOnly);
+	RunQuery.AddSubsystemRequirement<UKBVEWorldChunkDirtySubsystem>(
+		EMassFragmentAccess::ReadWrite);
 }
 
 void UKBVEWorldFenceLodProcessor::Execute(FMassEntityManager& EntityManager,
@@ -41,6 +44,11 @@ void UKBVEWorldFenceLodProcessor::Execute(FMassEntityManager& EntityManager,
 		const TArrayView<FKBVEWorldFenceRunFragment> Runs =
 			Chunk.GetMutableFragmentView<FKBVEWorldFenceRunFragment>();
 
+		UKBVEWorldChunkDirtySubsystem* Dirty =
+			Chunk.GetMutableSubsystem<UKBVEWorldChunkDirtySubsystem>();
+
+		TSet<FIntPoint, DefaultKeyFuncs<FIntPoint>, TInlineSetAllocator<4>> Changed;
+
 		for (FKBVEWorldFenceRunFragment& Run : Runs)
 		{
 			const float Distance = FMath::Max(
@@ -61,6 +69,19 @@ void UKBVEWorldFenceLodProcessor::Execute(FMassEntityManager& EntityManager,
 			}
 
 			Run.WantedDetail = static_cast<uint8>(Wanted);
+
+			if (Dirty && Run.WantedDetail != Run.Detail)
+			{
+				Changed.Add(Run.Chunk);
+			}
+		}
+
+		if (Dirty)
+		{
+			for (const FIntPoint& Coord : Changed)
+			{
+				Dirty->Mark(Coord);
+			}
 		}
 	});
 }

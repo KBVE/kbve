@@ -2,6 +2,7 @@
 
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
+#include "KBVEWorldChunkDirty.h"
 #include "KBVEWorldFenceMass.h"
 #include "KBVEWorldHeightfield.h"
 #include "KBVEWorldInstancePool.h"
@@ -328,7 +329,7 @@ void AKBVEWorldRoadChunk::SpawnFenceRuns(const FBuild& In)
 		FKBVEWorldFenceRunFragment& Fragment =
 			Manager.GetFragmentDataChecked<FKBVEWorldFenceRunFragment>(FenceRuns[Slot]);
 
-		Fragment.Edge = In.Coord;
+		Fragment.Chunk = In.Coord;
 		Fragment.Side = Run.Side;
 		Fragment.Begin = Run.Begin;
 		Fragment.End = Run.End;
@@ -369,6 +370,15 @@ void AKBVEWorldRoadChunk::ReleaseFenceRuns()
 	}
 
 	FenceRuns.Reset();
+
+	if (UWorld* World = GetWorld())
+	{
+		if (UKBVEWorldChunkDirtySubsystem* Dirty =
+			World->GetSubsystem<UKBVEWorldChunkDirtySubsystem>())
+		{
+			Dirty->Forget(Coord);
+		}
+	}
 }
 
 void AKBVEWorldRoadChunk::BuildFenceParts(const FBuild& In, FKBVEWorldFenceMesh& Out)
@@ -959,15 +969,20 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 		++Built;
 	}
 
-	// Whatever the fence processor decided since the last tick. It writes a tier
-	// and stops there -- standing the posts up is a component's business, and a
-	// Mass processor has none with components.
 	if (Built == 0)
 	{
+		UKBVEWorldChunkDirtySubsystem* Dirty =
+			GetWorld() ? GetWorld()->GetSubsystem<UKBVEWorldChunkDirtySubsystem>() : nullptr;
+
 		int32 Restood = 0;
 		for (const TPair<FIntPoint, TObjectPtr<AKBVEWorldRoadChunk>>& Pair : Live)
 		{
 			if (!Pair.Value || Restood >= MaxBuildsPerTick)
+			{
+				continue;
+			}
+
+			if (Dirty && !Dirty->Take(Pair.Key))
 			{
 				continue;
 			}
