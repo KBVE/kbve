@@ -320,6 +320,9 @@ private:
 	FKBVEWorldPlan WorldPlan;
 	bool bHolding = false;
 
+	/** So a missing water material is said once rather than every recentre. */
+	bool bWarnedNoWaterMaterial = false;
+
 	int32 BuildCount = 0;
 	float LastBuildMs = 0.0f;
 
