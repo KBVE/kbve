@@ -3,10 +3,12 @@
 namespace
 {
 	/**
-	 * A box in the wall's own frame, drawn on the five faces that can be seen.
+	 * A box in the wall's own frame, drawn on all six faces.
 	 *
-	 * The sixth is the one against the masonry, and a window in a village is
-	 * never looked at from inside the wall it is set in.
+	 * All six because a window has two sides. The frame runs the whole depth of
+	 * the reveal and stands proud of both faces of the wall, so the room sees the
+	 * same joinery the street does -- a lining rather than a trim stuck on the
+	 * outside, which from indoors is an open-backed box with nothing facing you.
 	 */
 	void Timber(FKBVEWorldRibbonMesh& Out, const FKBVEWorldWallFrame& F, float U0, float U1,
 		float V0, float V1, float T0, float T1)
@@ -16,12 +18,16 @@ namespace
 			return;
 		}
 
-		// Face, then the four returns. The returns are what stop a frame reading
-		// as a decal: at a glancing angle it is the reveal of the timber that
-		// says there is something standing off the wall.
+		// The two faces, then the four returns. The returns are what stop a frame
+		// reading as a decal: at a glancing angle it is the reveal of the timber
+		// that says there is something standing off the wall.
 		FKBVEWorldRibbon::AppendQuad(Out,
 			F.At(U0, V0, T1), F.At(U1, V0, T1), F.At(U1, V1, T1), F.At(U0, V1, T1),
 			F.UV(U0, V0), F.UV(U1, V0), F.UV(U1, V1), F.UV(U0, V1));
+
+		FKBVEWorldRibbon::AppendQuad(Out,
+			F.At(U0, V1, T0), F.At(U1, V1, T0), F.At(U1, V0, T0), F.At(U0, V0, T0),
+			F.UV(U0, V1), F.UV(U1, V1), F.UV(U1, V0), F.UV(U0, V0));
 
 		FKBVEWorldRibbon::AppendQuad(Out,
 			F.At(U0, V1, T1), F.At(U1, V1, T1), F.At(U1, V1, T0), F.At(U0, V1, T0),
@@ -40,7 +46,15 @@ namespace
 			F.UV(U1, V1), F.UV(U1, V0), F.UV(U1, V0), F.UV(U1, V1));
 	}
 
-	/** One pane, facing out. UVs span the pane so dirt and frosting fit it. */
+	/**
+	 * One pane, drawn from both sides. UVs span the pane so dirt and frosting fit it.
+	 *
+	 * Two quads back to back rather than a two-sided material: only ever one of
+	 * them faces the camera, so they never z-fight and never sort against each
+	 * other, and thin translucent stays a single sheet of glass however it is
+	 * looked at. A single outward quad is invisible from indoors, which is not a
+	 * clear window but a missing one.
+	 */
 	void Pane(FKBVEWorldRibbonMesh& Out, const FKBVEWorldWallFrame& F, float U0, float U1,
 		float V0, float V1, float T)
 	{
@@ -53,6 +67,11 @@ namespace
 			F.At(U0, V0, T), F.At(U1, V0, T), F.At(U1, V1, T), F.At(U0, V1, T),
 			FVector2D(0.0f, 0.0f), FVector2D(1.0f, 0.0f), FVector2D(1.0f, 1.0f),
 			FVector2D(0.0f, 1.0f));
+
+		FKBVEWorldRibbon::AppendQuad(Out,
+			F.At(U0, V1, T), F.At(U1, V1, T), F.At(U1, V0, T), F.At(U0, V0, T),
+			FVector2D(0.0f, 1.0f), FVector2D(1.0f, 1.0f), FVector2D(1.0f, 0.0f),
+			FVector2D(0.0f, 0.0f));
 	}
 }
 
@@ -75,11 +94,13 @@ void FKBVEWorldWindow::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldW
 
 	const float Half = 0.5f * FMath::Max(Wall.Thickness, KINDA_SMALL_NUMBER);
 
-	// Outward from the wall's front face. The frame stands proud of it and the
-	// glass sits back behind the frame's own outer face.
-	const float FrameBack = Half;
+	// Symmetric about the wall. The frame lines the whole reveal and stands the
+	// same amount proud of each face, and the pane sits on the centre plane, so
+	// the window looked out of is the window looked into. Set toward one face it
+	// gives that side a shallow reveal and the other a tunnel.
 	const float FrameFront = Half + Window.FrameProud;
-	const float GlassAt = FMath::Max(FrameFront - Window.GlassInset, -Half);
+	const float FrameBack = -FrameFront;
+	const float GlassAt = 0.0f;
 
 	for (const FKBVEWorldWallOpening& Open : Openings)
 	{

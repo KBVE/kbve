@@ -28,10 +28,10 @@ struct KBVEWORLDCORE_API FKBVEWorldWindowParams
 	 * length is a hairline by the time the building is a house across a field.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Window", meta = (ClampMin = "1.0"))
-	float FrameWidth = 16.0f;
+	float FrameWidth = 14.0f;
 
 	/**
-	 * How far the frame stands proud of the wall face.
+	 * How far the frame stands proud of the wall, on each face equally.
 	 *
 	 * Non-zero on purpose: flush with the masonry the two surfaces are coplanar
 	 * and z-fight along every edge of every window in the village. Past that it
@@ -39,11 +39,7 @@ struct KBVEWORLDCORE_API FKBVEWorldWindowParams
 	 * under it reads as paint on the wall however wide its face is.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Window", meta = (ClampMin = "0.1"))
-	float FrameProud = 9.0f;
-
-	/** How far back from the frame's outer face the pane sits. */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Window", meta = (ClampMin = "0.0"))
-	float GlassInset = 10.0f;
+	float FrameProud = 7.0f;
 
 	/** A window wider than this gets a vertical bar down the middle. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Window", meta = (ClampMin = "0.0"))
@@ -55,7 +51,7 @@ struct KBVEWORLDCORE_API FKBVEWorldWindowParams
 
 	/** Face width of a mullion or transom, which is lighter than the frame. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Window", meta = (ClampMin = "1.0"))
-	float BarWidth = 11.0f;
+	float BarWidth = 9.0f;
 };
 
 /**
@@ -93,6 +89,11 @@ struct KBVEWORLDCORE_API FKBVEWorldWindow
 	 * A doorway is skipped. Sill on the floor is what makes an opening a door,
 	 * which is the same test the wall itself uses, and a door wants a leaf and a
 	 * threshold rather than a pane.
+	 *
+	 * Built symmetrically about the wall, because the wall draws both of its
+	 * faces and both reveals of every opening -- so a window is looked out of as
+	 * often as it is looked at, and joinery hung on the outer face alone leaves
+	 * the room an open-backed box with the pane culled away behind it.
 	 */
 	static void Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWallFrame& Frame,
 		TArrayView<const FKBVEWorldWallOpening> Openings, EKBVEWorldWallDetail Detail,
