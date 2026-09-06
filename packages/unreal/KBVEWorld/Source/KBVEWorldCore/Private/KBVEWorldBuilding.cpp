@@ -225,6 +225,20 @@ void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
 
 			FKBVEWorldWall::Build(Building.Wall, Wall, Openings, Detail, Out.Masonry);
 
+			// Framed from the openings the wall actually cut, not the ones it was
+			// handed: the wall snaps them to its coursing and clamps them into its
+			// own length, so the seeded rectangle and the hole are different
+			// rectangles and timber built on the first lands across brick.
+			if (FKBVEWorldWindow::Draws(Detail))
+			{
+				TArray<FKBVEWorldWallPanel> Solids;
+				TArray<FKBVEWorldWallOpening> Placed;
+				FKBVEWorldWall::Panels(Building.Wall, Span + 2.0f * Skin, Openings, Detail,
+					Solids, Placed);
+				FKBVEWorldWindow::Build(Building.Wall, FKBVEWorldWall::Frame(Building.Wall, Wall),
+					Placed, Detail, Building.Window, Out.Windows);
+			}
+
 			// The ridge runs across the front, so the two walls that meet the
 			// slopes end-on are the ones running back from it. A hip closes its own
 			// ends and wants no masonry above the plate at all.

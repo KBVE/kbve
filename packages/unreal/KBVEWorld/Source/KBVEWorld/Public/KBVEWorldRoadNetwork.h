@@ -80,6 +80,7 @@ public:
 		UMaterialInterface* StoneMaterial = nullptr;
 		UMaterialInterface* BrickMaterial = nullptr;
 		UMaterialInterface* RoofMaterial = nullptr;
+		UMaterialInterface* GlassMaterial = nullptr;
 		const UStaticMesh* PartMesh = nullptr;
 	};
 
@@ -182,6 +183,14 @@ private:
 	 */
 	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
 	TObjectPtr<UProceduralMeshComponent> Roof;
+
+	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
+	TObjectPtr<UProceduralMeshComponent> Joinery;
+
+	// Its own component because glass is the one surface here that is drawn
+	// translucent, and a translucent section cannot share one with an opaque.
+	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
+	TObjectPtr<UProceduralMeshComponent> Glazing;
 
 	/**
 	 * The routes this chunk's two edges took, kept rather than re-solved.
@@ -339,6 +348,10 @@ public:
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road")
 	TObjectPtr<UMaterialInterface> RoofMaterial;
+
+	/** Thin translucent glass. Without one the windows are framed openings. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Materials")
+	TObjectPtr<UMaterialInterface> GlassMaterial;
 
 	/**
 	 * A cube, for the parts of a crossing that are one.

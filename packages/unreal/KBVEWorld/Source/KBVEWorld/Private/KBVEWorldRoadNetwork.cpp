@@ -107,8 +107,11 @@ AKBVEWorldRoadChunk::AKBVEWorldRoadChunk()
 	Stone = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Stone"));
 	Brick = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Brick"));
 	Roof = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Roof"));
+	Joinery = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Joinery"));
+	Glazing = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Glazing"));
 
-	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get(), Roof.Get() })
+	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get(), Roof.Get(),
+		Joinery.Get(), Glazing.Get() })
 	{
 		Mesh->SetupAttachment(SceneRoot);
 		Mesh->bUseAsyncCooking = true;
@@ -258,18 +261,23 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 	Rebase(Data.Wood, Origin);
 	Rebase(Data.Stone, Origin);
 	Rebase(Structures.Masonry, Origin);
+	Rebase(Structures.Windows.Joinery, Origin);
+	Rebase(Structures.Windows.Glazing, Origin);
 	Rebase(Structures.Roof, Origin);
 
 	Commit(Wood, Data.Wood, WoodMaterial, true);
 	Commit(Stone, Data.Stone, StoneMaterial, false);
 	Commit(Brick, Structures.Masonry, In.BrickMaterial, true);
 	Commit(Roof, Structures.Roof, In.RoofMaterial, false);
+	Commit(Joinery, Structures.Windows.Joinery, In.WoodMaterial, false);
+	Commit(Glazing, Structures.Windows.Glazing, In.GlassMaterial, false);
 
 	// The supports collide as blocks whether they were drawn as triangles here or
 	// as instances elsewhere, so this does not care which happened.
 	CommitBlocks(Stone, Data.Blocks, Origin);
 
-	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get(), Roof.Get() })
+	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get(), Roof.Get(),
+		Joinery.Get(), Glazing.Get() })
 	{
 		Mesh->SetCullDistance(MaxDrawDistance);
 	}
@@ -634,9 +642,13 @@ bool AKBVEWorldRoadChunk::RebuildBuildings(const FBuild& In)
 
 	const FVector Origin = GetActorLocation();
 	Rebase(Structures.Masonry, Origin);
+	Rebase(Structures.Windows.Joinery, Origin);
+	Rebase(Structures.Windows.Glazing, Origin);
 	Rebase(Structures.Roof, Origin);
 	Commit(Brick, Structures.Masonry, In.BrickMaterial, true);
 	Commit(Roof, Structures.Roof, In.RoofMaterial, false);
+	Commit(Joinery, Structures.Windows.Joinery, In.WoodMaterial, false);
+	Commit(Glazing, Structures.Windows.Glazing, In.GlassMaterial, false);
 	return true;
 }
 
@@ -798,6 +810,7 @@ AKBVEWorldRoadChunk::FBuild AKBVEWorldRoadNetwork::MakeBuild(const FIntPoint& Co
 	In.StoneMaterial = StoneMaterial;
 	In.BrickMaterial = BrickMaterial;
 	In.RoofMaterial = RoofMaterial;
+	In.GlassMaterial = GlassMaterial;
 	In.PartMesh = bInstanced ? PartMesh.Get() : nullptr;
 	return In;
 }

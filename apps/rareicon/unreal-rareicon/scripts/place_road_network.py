@@ -27,6 +27,10 @@ MATERIALS = {
     "StoneMaterial": "/Game/Textures/World/M_RareIcon_BridgeStone",
     "BrickMaterial": "/Game/Textures/World/M_RareIcon_Brick",
     "RoofMaterial": "/Game/Textures/World/M_RareIcon_Roof",
+    # The glass is also the switch for the windows: without a material to draw a
+    # pane with there is nothing to put in the openings, and they keep their
+    # reveals and read as unglazed.
+    "GlassMaterial": "/Game/Textures/World/M_RareIcon_Glass",
 }
 
 WATER_MATERIAL = "/Game/Textures/World/M_RareIcon_Water"
