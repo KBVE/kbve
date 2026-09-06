@@ -120,6 +120,7 @@ public:
 	virtual void SubmitMoveInput(const FVector& WorldIntent) override;
 	virtual void SubmitJump(bool bPressed) override;
 	virtual FVector GetAuthoritativeVelocity() const override;
+	virtual bool PlaceAt(const FVector& Position) override;
 	virtual void ApplyServerCorrection(const FVector& Position, const FVector& Velocity) override;
 
 	// IKBVEStatTarget — backed by the replicated Stats array

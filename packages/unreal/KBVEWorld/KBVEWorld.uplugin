@@ -47,6 +47,10 @@
 		{
 			"Name": "KBVEPerf",
 			"Enabled": true
+		},
+		{
+			"Name": "KBVEGameplay",
+			"Enabled": true
 		}
 	]
 }

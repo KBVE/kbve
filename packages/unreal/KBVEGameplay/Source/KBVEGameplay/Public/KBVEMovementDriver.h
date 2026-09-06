@@ -33,6 +33,23 @@ public:
 	/** Current authoritative velocity (cm/s). */
 	virtual FVector GetAuthoritativeVelocity() const { return FVector::ZeroVector; }
 
+	/**
+	 * Put the pawn somewhere, in a way its own simulation agrees with.
+	 *
+	 * Not a server correction, which reconciles a position the pawn was already
+	 * moving towards. This is an outside system deciding where the pawn now is --
+	 * a spawn, a level start, a portal -- and a predicted backend has to hear it
+	 * as a teleport rather than discover it by finding its own component
+	 * somewhere it did not put it. Moving the actor instead is what produces
+	 * "movement of the component out-of-band with the simulation", and the
+	 * simulation is entitled to ignore it and carry on from where it thought it
+	 * was.
+	 *
+	 * False when the driver has no opinion, so a caller can move the actor
+	 * itself and get the old behaviour.
+	 */
+	virtual bool PlaceAt(const FVector& Position) { return false; }
+
 	/** Hard correction from the server (position + velocity). Most predicted drivers self-correct. */
 	virtual void ApplyServerCorrection(const FVector& Position, const FVector& Velocity) {}
 
