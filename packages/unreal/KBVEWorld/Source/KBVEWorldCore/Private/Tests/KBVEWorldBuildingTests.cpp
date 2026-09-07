@@ -506,4 +506,66 @@ bool FKBVEWorldBuildingNormalsTest::RunTest(const FString& Parameters)
 	return true;
 }
 
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FKBVEWorldBuildingDoorKeyTest,
+	"KBVE.World.Building.EveryDoorIsNamedAfterItsHouse",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// A door left open has to still be open when you walk back, and chunks are
+// pooled and villages rebuild their geometry every time a building changes
+// tier -- so the thing remembering it cannot be the leaf, the chunk, or
+// anything else that gets thrown away. It is this key, and the key is only
+// worth anything if it is the same number every time the house is raised and a
+// different number from the house next door.
+bool FKBVEWorldBuildingDoorKeyTest::RunTest(const FString& Parameters)
+{
+	const FKBVEWorldBuildingParams Building;
+
+	TSet<int32> Seen;
+	int32 Doors = 0;
+	int32 Misnamed = 0;
+	int32 Shared = 0;
+	int32 Wandered = 0;
+
+	for (int32 Step = 0; Step < 32; ++Step)
+	{
+		FKBVEWorldBuildingPlan Plan = FKBVEWorldBuilding::Plan(Building, Step * 104729 + 7,
+			FVector(Step * 4000.0f, 0.0f, 0.0f), 0.0f);
+		Plan.Embed = 60.0f;
+
+		FKBVEWorldBuildingMesh Mesh;
+		FKBVEWorldBuilding::Build(Building, Plan, EKBVEWorldWallDetail::Full, Mesh);
+
+		// The tier a building is drawn at is the thing that rebuilds it, so it is
+		// the thing a key most has to survive. Same house, drawn again, same door.
+		FKBVEWorldBuildingMesh Again;
+		FKBVEWorldBuilding::Build(Building, Plan, EKBVEWorldWallDetail::Full, Again);
+
+		Wandered += Mesh.Joinery.Leaves.Num() != Again.Joinery.Leaves.Num() ? 1 : 0;
+
+		for (int32 I = 0; I < Mesh.Joinery.Leaves.Num(); ++I)
+		{
+			const int32 Key = Mesh.Joinery.Leaves[I].Key;
+			++Doors;
+
+			Misnamed += Key != Plan.Seed ? 1 : 0;
+			Shared += Seen.Contains(Key) ? 1 : 0;
+			Seen.Add(Key);
+
+			if (I < Again.Joinery.Leaves.Num())
+			{
+				Wandered += Again.Joinery.Leaves[I].Key != Key ? 1 : 0;
+			}
+		}
+	}
+
+	TestTrue(TEXT("the village had doors in it"), Doors > 0);
+	TestEqual(TEXT("every door carries its own building's seed"), Misnamed, 0);
+	TestEqual(TEXT("and no two houses answer to the same key"), Shared, 0);
+	TestEqual(TEXT("a house raised again hangs the same door"), Wandered, 0);
+	AddInfo(FString::Printf(TEXT("%d doors keyed"), Doors));
+
+	return true;
+}
+
 #endif

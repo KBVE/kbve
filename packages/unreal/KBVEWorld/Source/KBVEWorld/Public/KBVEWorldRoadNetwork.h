@@ -147,6 +147,15 @@ public:
 	 */
 	virtual void OnInteract_Implementation(AActor* Instigator) override;
 
+	/**
+	 * The network this chunk belongs to, which is its spawn owner.
+	 *
+	 * Where an open door is remembered. Reached through the owner rather than
+	 * held, because a chunk is pooled and a pointer it kept would be one more
+	 * thing to clear on the way back in.
+	 */
+	AKBVEWorldRoadNetwork* Doors() const;
+
 	virtual void Tick(float DeltaSeconds) override;
 
 private:
@@ -253,7 +262,17 @@ private:
 	 */
 	struct FLeaf
 	{
+		int32 Key = INDEX_NONE;
 		FVector Hinge = FVector::ZeroVector;
+
+		/**
+		 * How the leaf stands when it is shut.
+		 *
+		 * Kept because a swing is this turned, not this replaced. Setting the
+		 * relative rotation to a bare yaw throws away the frame that put the leaf
+		 * in its wall, so the door would jump to a world axis the moment it moved.
+		 */
+		FQuat Base = FQuat::Identity;
 		float Swing = 88.0f;
 		float Angle = 0.0f;
 		float Target = 0.0f;
@@ -318,6 +337,38 @@ class KBVEWORLD_API AKBVEWorldRoadNetwork : public AActor
 
 public:
 	AKBVEWorldRoadNetwork();
+
+	/**
+	 * Which doors somebody has left open.
+	 *
+	 * Here rather than on a chunk because a chunk is the thing this has to
+	 * outlive: they are pooled and handed back as the view moves, and a village
+	 * rebuilds its geometry from scratch every time a building changes tier. A
+	 * door remembered on either would shut itself the moment you walked far
+	 * enough away to stop looking at it.
+	 *
+	 * Keyed by the building's own seed, so it survives the house being raised
+	 * again somewhere else in the pool. Only the open ones are held: a world of
+	 * shut doors costs nothing, which is the state nearly all of them are in.
+	 */
+	bool IsDoorOpen(int32 Key) const { return Key != INDEX_NONE && OpenDoors.Contains(Key); }
+
+	void SetDoorOpen(int32 Key, bool bOpen)
+	{
+		if (Key == INDEX_NONE)
+		{
+			return;
+		}
+
+		if (bOpen)
+		{
+			OpenDoors.Add(Key);
+		}
+		else
+		{
+			OpenDoors.Remove(Key);
+		}
+	}
 
 	/**
 	 * Seed, terrain shape and road network, taken from the terrain streamer.
@@ -471,6 +522,9 @@ private:
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<AKBVEWorldRoadChunk>> Pool;
+
+	/** Keys of the doors left open, and nothing about the shut ones. */
+	TSet<int32> OpenDoors;
 
 	UPROPERTY(Transient)
 	TObjectPtr<class AKBVEWorldStreamer> Streamer;

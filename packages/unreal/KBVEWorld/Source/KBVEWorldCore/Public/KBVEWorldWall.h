@@ -211,6 +211,16 @@ struct FKBVEWorldDoorLeaf
 
 	/** How far it opens, in degrees. Positive swings away from the street. */
 	float Swing = 88.0f;
+
+	/**
+	 * Which door this is, for anything that has to remember it.
+	 *
+	 * The building's own seed, which is a hash of the world, the road and the plot
+	 * and so is the same number every time that house is raised. A chunk cannot be
+	 * the identity: chunks are pooled, and the whole point of a key is to survive
+	 * one being handed back.
+	 */
+	int32 Key = INDEX_NONE;
 };
 
 struct FKBVEWorldJoineryMesh

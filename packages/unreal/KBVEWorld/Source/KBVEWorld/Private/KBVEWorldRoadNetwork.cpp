@@ -609,6 +609,11 @@ void AKBVEWorldRoadChunk::OpenGates(const FBuild& In)
 	}
 }
 
+AKBVEWorldRoadNetwork* AKBVEWorldRoadChunk::Doors() const
+{
+	return Cast<AKBVEWorldRoadNetwork>(GetOwner());
+}
+
 void AKBVEWorldRoadChunk::CommitLeaves(const FKBVEWorldJoineryMesh& Fittings, const FVector& Origin,
 	UMaterialInterface* Material)
 {
@@ -652,15 +657,24 @@ void AKBVEWorldRoadChunk::CommitLeaves(const FKBVEWorldJoineryMesh& Fittings, co
 		// so opening one is a rotation about its own origin rather than a rebuild.
 		// X along the leaf and Z up leaves Y pointing away from the street, which
 		// is what makes a positive yaw a door swinging inwards.
+		// Re-hung, so whatever this leaf was doing a moment ago is gone. A door
+		// somebody opened is put back open rather than eased there: the rebuild
+		// that lost it is a building changing tier or a chunk coming back, and
+		// neither is a reason for a door across the village to swing itself.
+		const AKBVEWorldRoadNetwork* Network = Doors();
+		const bool bOpen = Network && Network->IsDoorOpen(Leaf.Key);
+
+		Leaves[I].Key = Leaf.Key;
 		Leaves[I].Hinge = Leaf.Hinge - Origin;
 		Leaves[I].Swing = Leaf.Swing;
-		Leaves[I].Angle = 0.0f;
-		Leaves[I].Target = 0.0f;
+		Leaves[I].Angle = bOpen ? Leaf.Swing : 0.0f;
+		Leaves[I].Target = Leaves[I].Angle;
 
 		Part->SetVisibility(true);
 		Part->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		Leaves[I].Base = FRotationMatrix::MakeFromXZ(Leaf.Along, FVector::UpVector).ToQuat();
 		Part->SetRelativeLocationAndRotation(Leaves[I].Hinge,
-			FRotationMatrix::MakeFromXZ(Leaf.Along, FVector::UpVector).ToQuat());
+			FRotator(0.0f, Leaves[I].Angle, 0.0f).Quaternion() * Leaves[I].Base);
 
 		Part->ClearAllMeshSections();
 		if (Leaf.Mesh.IsEmpty())
@@ -714,6 +728,14 @@ void AKBVEWorldRoadChunk::OnInteract_Implementation(AActor* Instigator)
 	// halfway through opening shuts again instead of finishing first.
 	FLeaf& Leaf = Leaves[Nearest];
 	Leaf.Target = Leaf.Target > 0.0f ? 0.0f : Leaf.Swing;
+
+	// Written down where it outlives the geometry, so the door is still open when
+	// the village is rebuilt around it.
+	if (AKBVEWorldRoadNetwork* Network = Doors())
+	{
+		Network->SetDoorOpen(Leaf.Key, Leaf.Target > 0.0f);
+	}
+
 	SetActorTickEnabled(true);
 }
 
@@ -743,7 +765,13 @@ void AKBVEWorldRoadChunk::Tick(float DeltaSeconds)
 			// Turned about the component rather than rebuilt, so the collision --
 			// which is the component's own cooked shape -- comes round with it and
 			// an open doorway is one you can walk through.
-			Part->SetRelativeRotation(FRotator(0.0f, Leaf.Angle, 0.0f));
+			//
+			// Turned from where it was hung, not set to a bare yaw: the frame that
+			// stood the leaf up in its wall is in that rotation, and replacing it
+			// would swing every door in the village onto a world axis. The hinge
+			// runs up, so a world yaw and a yaw in the leaf's own frame are the
+			// same turn either way round.
+			Part->SetRelativeRotation(FRotator(0.0f, Leaf.Angle, 0.0f).Quaternion() * Leaf.Base);
 		}
 	}
 
