@@ -774,9 +774,15 @@ void ARareIconPlayerPawn::Tick(float DeltaSeconds)
 	// run records it without anyone typing into a console.
 	// A series rather than one sample: a capsule still settling and a capsule
 	// wedged at the wrong height look identical in a single reading.
+	// Advanced unconditionally: it used to be stepped inside the feet-report
+	// block, so the clock stopped the moment the last report was filed. Anything
+	// scheduled after that -- the screenshot below is the whole reason this
+	// exists -- simply never came due, and looked like a feature that did not
+	// work rather than a clock that had stopped.
+	TimeSinceBeginPlay += DeltaSeconds;
+
 	if (FeetReportsDone < FeetReportCount)
 	{
-		TimeSinceBeginPlay += DeltaSeconds;
 		if (TimeSinceBeginPlay >= FeetReportDelay + FeetReportInterval * FeetReportsDone)
 		{
 			++FeetReportsDone;

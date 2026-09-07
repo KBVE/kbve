@@ -58,6 +58,10 @@ def resolve_value(value):
         return unreal.Vector(*[float(v) for v in value])
     if isinstance(value, list) and len(value) == 2 and all(isinstance(v, (int, float)) for v in value):
         return unreal.Vector2D(*[float(v) for v in value])
+    # Elementwise, so an array property can name assets the same way a single one
+    # does. Checked after the vector cases so a three-number list stays a Vector.
+    if isinstance(value, list):
+        return [resolve_value(item) for item in value]
     return value
 
 

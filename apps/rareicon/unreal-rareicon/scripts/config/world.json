@@ -37,13 +37,16 @@
 			"properties": {
 				"tile_size": 800.0,
 				"tile_radius": 6,
-				"instances_per_tile": 640,
-				"edge_density": 0.12,
-				"variant_count": 4,
+				"instances_per_tile": 560,
+				"edge_density": 0.1,
+				"variant_count": 30,
 				"clump_height": 45.0,
-				"cull_start": 4500,
-				"cull_end": 6000,
-				"card_material": "/Game/Textures/Foliage/M_RareIcon_GrassCard"
+				"cull_start": 3300,
+				"cull_end": 4300,
+				"atlases": [
+					"/Game/Textures/Foliage/DA_RareIcon_GrassCard",
+					"/Game/Textures/Foliage/DA_RareIcon_GrassMedium"
+				]
 			}
 		},
 		{

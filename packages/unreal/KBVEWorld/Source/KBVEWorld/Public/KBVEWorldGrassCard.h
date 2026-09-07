@@ -29,6 +29,15 @@ struct KBVEWORLD_API FKBVEWorldGrassCard
 		/** Height of the tallest sheet in world units. Width follows the cell. */
 		float Height = 110.0f;
 
+		/**
+		 * Screen size at which the clump drops to a single sheet.
+		 *
+		 * Roughly twice the clump's radius over the distance to it, so smaller
+		 * is further away. The build's own default of 0.75 is close enough to
+		 * touching that the reduced level is what the whole field draws.
+		 */
+		float ReducedScreenSize = 0.05f;
+
 		/** Distinguishes one variant's cache entry from another's. */
 		FName UniqueId = TEXT("KBVEWorld_GrassCard");
 	};

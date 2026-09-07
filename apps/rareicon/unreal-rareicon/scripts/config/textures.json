@@ -53,6 +53,15 @@
 			"destination": "/Game/Textures/World"
 		},
 		{
+			"stem": "T_GrassMedium",
+			"pack": "grass_medium_01_1k",
+			"alpha": true,
+			"resolution": 1024,
+			"displacement": false,
+			"source": "Foliage",
+			"destination": "/Game/Textures/Foliage"
+		},
+		{
 			"stem": "T_GrassCard",
 			"pack": "grass_bermuda_01_1k",
 			"alpha": true,
@@ -92,7 +101,40 @@
 	"foliage_materials": [
 		{
 			"path": "/Game/Textures/Foliage/M_RareIcon_GrassCard",
-			"stem": "T_GrassCard"
+			"stem": "T_GrassCard",
+			"atlas": "/Game/Textures/Foliage/DA_RareIcon_GrassCard",
+			"weight": 2,
+			"fade_start": 2400,
+			"fade_range": 900,
+			"cells": [
+				[364, 28, 484, 320],
+				[548, 32, 680, 236],
+				[696, 112, 972, 244],
+				[44, 160, 320, 296],
+				[52, 428, 192, 556],
+				[284, 412, 472, 552],
+				[552, 368, 736, 560],
+				[796, 328, 960, 564],
+				[48, 696, 176, 1012],
+				[236, 644, 396, 1012],
+				[432, 700, 632, 1016],
+				[712, 680, 888, 1016]
+			]
+		},
+		{
+			"path": "/Game/Textures/Foliage/M_RareIcon_GrassMedium",
+			"stem": "T_GrassMedium",
+			"atlas": "/Game/Textures/Foliage/DA_RareIcon_GrassMedium",
+			"weight": 3,
+			"fade_start": 2400,
+			"fade_range": 900,
+			"cells": [
+				[200, 776, 455, 890],
+				[600, 776, 800, 890],
+				[24, 888, 190, 1020],
+				[250, 898, 470, 1022],
+				[596, 898, 772, 1022]
+			]
 		}
 	],
 	"water_material": {

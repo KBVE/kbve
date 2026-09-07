@@ -7,8 +7,10 @@
 #include "EngineUtils.h"
 #include "GameFramework/Pawn.h"
 #include "GameFramework/PlayerController.h"
+#include "KBVEWorldGrassAtlas.h"
 #include "KBVEWorldGrassCard.h"
 #include "KBVEWorldHeightfield.h"
+#include "KBVEWorldNoise.h"
 #include "KBVEWorldRoadField.h"
 #include "KBVEWorldStreamer.h"
 #include "Materials/MaterialInterface.h"
@@ -54,29 +56,6 @@ AKBVEWorldGrassField::AKBVEWorldGrassField()
 
 	USceneComponent* Root = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(Root);
-
-	// Measured off grass_bermuda_01, whose clumps are laid out to fill the sheet
-	// rather than to fill a lattice. Replaced wholesale by whatever sheet the
-	// project points at; they are defaults, not a description of every atlas.
-	const float Boxes[12][4] = {
-		{ 364.f, 28.f, 484.f, 320.f },
-		{ 548.f, 32.f, 680.f, 236.f },
-		{ 696.f, 112.f, 972.f, 244.f },
-		{ 44.f, 160.f, 320.f, 296.f },
-		{ 52.f, 428.f, 192.f, 556.f },
-		{ 284.f, 412.f, 472.f, 552.f },
-		{ 552.f, 368.f, 736.f, 560.f },
-		{ 796.f, 328.f, 960.f, 564.f },
-		{ 48.f, 696.f, 176.f, 1012.f },
-		{ 236.f, 644.f, 396.f, 1012.f },
-		{ 432.f, 700.f, 632.f, 1016.f },
-		{ 712.f, 680.f, 888.f, 1016.f }
-	};
-	AtlasCells.Reserve(UE_ARRAY_COUNT(Boxes));
-	for (const float* Box : Boxes)
-	{
-		AtlasCells.Emplace(Box[0] / 1024.0, Box[1] / 1024.0, Box[2] / 1024.0, Box[3] / 1024.0);
-	}
 }
 
 void AKBVEWorldGrassField::BeginPlay()
@@ -113,6 +92,80 @@ const AKBVEWorldStreamer* AKBVEWorldGrassField::FindStreamer() const
 	return Streamer.Get();
 }
 
+namespace
+{
+	/**
+	 * What a pack's clumps have to be multiplied by for its tallest to stand
+	 * Height tall.
+	 *
+	 * Taken off the tallest rather than each clump so the pack keeps its own
+	 * range: a seedling authored a third the size of a tuft stays a third the
+	 * size of it. A pack whose bounds cannot be read is left alone rather than
+	 * guessed at.
+	 */
+	float NormaliseToHeight(const UKBVEWorldGrassAtlas* Atlas, float Height)
+	{
+		float Tallest = 0.0f;
+		for (const UStaticMesh* Clump : Atlas->Clumps)
+		{
+			if (Clump)
+			{
+				Tallest = FMath::Max(Tallest,
+					static_cast<float>(Clump->GetBounds().BoxExtent.Z) * 2.0f);
+			}
+		}
+		return Tallest > KINDA_SMALL_NUMBER ? Height / Tallest : 1.0f;
+	}
+}
+
+void AKBVEWorldGrassField::AddVariant(UStaticMesh* Mesh, UMaterialInterface* Material,
+	const TArray<FTransform>& Empty, float Normalise)
+{
+	UInstancedStaticMeshComponent* Component =
+		NewObject<UInstancedStaticMeshComponent>(this, NAME_None, RF_Transient);
+	Component->SetStaticMesh(Mesh);
+	Component->SetMaterial(0, Material);
+	Component->SetupAttachment(GetRootComponent());
+
+	// Submissions are world space, so the component must not add its own.
+	Component->SetAbsolute(true, true, true);
+
+	Component->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+	Component->SetCastShadow(bCastShadow);
+	Component->bAffectDistanceFieldLighting = false;
+	Component->bAffectDynamicIndirectLighting = false;
+
+	// Clamped to what the ring actually holds. A cull distance beyond the window
+	// is a promise the builder cannot keep, and it is kept in code rather than
+	// only in the config because the two numbers are set in different files and
+	// drift apart the moment either is tuned alone.
+	const int32 Reach = FMath::TruncToInt(TileRadius * TileSize);
+	const int32 End = FMath::Min(CullEnd, Reach);
+	const int32 Start = FMath::Min(CullStart, End);
+	if (CullEnd > Reach)
+	{
+		UE_LOG(LogKBVEWorldGrass, Warning,
+			TEXT("cull end %d is past the window's %d; using %d"), CullEnd, Reach, End);
+	}
+	Component->SetCullDistances(Start, End);
+	Component->SetWorldPositionOffsetDisableDistance(WindDisableDistance);
+	Component->PrimaryComponentTick.bCanEverTick = false;
+	Component->RegisterComponent();
+
+	Component->AddInstances(Empty, false, true);
+
+	Variants.Add(Component);
+	VariantMeshes.Add(Mesh);
+	VariantScales.Add(Normalise);
+
+	const FBoxSphereBounds Bounds = Mesh->GetBounds();
+	const float Floor = static_cast<float>(Bounds.Origin.Z - Bounds.BoxExtent.Z);
+	VariantFloors.Add(Floor);
+	UE_LOG(LogKBVEWorldGrass, Display,
+		TEXT("%s: %.1f tall, underside at %.1f, drawn at x%.2f"),
+		*Mesh->GetName(), static_cast<float>(Bounds.BoxExtent.Z) * 2.0f, Floor, Normalise);
+}
+
 bool AKBVEWorldGrassField::EnsureComponents()
 {
 	if (Variants.Num() > 0)
@@ -120,18 +173,48 @@ bool AKBVEWorldGrassField::EnsureComponents()
 		return true;
 	}
 
-	if (AtlasCells.Num() == 0)
+	// Loaded up front and then held: a variant is bound to its sheet's material
+	// for the life of the component, so a soft reference resolved per build
+	// would be the same lookup repeated with nothing gained by the indirection.
+	LoadedAtlases.Reset();
+	for (const TSoftObjectPtr<UKBVEWorldGrassAtlas>& Ref : Atlases)
+	{
+		UKBVEWorldGrassAtlas* Atlas = Ref.IsValid() ? Ref.Get() : Ref.LoadSynchronous();
+		const bool bHasGeometry = Atlas && (Atlas->Clumps.Num() > 0 || Atlas->Cells.Num() > 0);
+		if (bHasGeometry && Atlas->Material && Atlas->Weight > 0)
+		{
+			LoadedAtlases.Add(Atlas);
+		}
+	}
+	if (LoadedAtlases.Num() == 0)
 	{
 		return false;
 	}
 
-	LoadedMaterial = CardMaterial.IsValid() ? CardMaterial.Get() : CardMaterial.LoadSynchronous();
-	if (!LoadedMaterial)
+	// Weights decide how many variants each sheet gets rather than how often one
+	// is picked per clump: a clump is a mesh, and a mesh built from two sheets
+	// would need both their materials on one component.
+	TArray<int32> SheetForVariant;
 	{
-		return false;
+		int32 Total = 0;
+		for (const UKBVEWorldGrassAtlas* Atlas : LoadedAtlases)
+		{
+			Total += Atlas->Weight;
+		}
+		const int32 Wanted = FMath::Max(LoadedAtlases.Num(), VariantCount);
+		for (int32 Index = 0; Index < LoadedAtlases.Num(); ++Index)
+		{
+			// At least one each, so a sheet that is configured is always seen.
+			const int32 Share = FMath::Max(1,
+				FMath::RoundToInt(Wanted * (static_cast<float>(LoadedAtlases[Index]->Weight) / Total)));
+			for (int32 Repeat = 0; Repeat < Share; ++Repeat)
+			{
+				SheetForVariant.Add(Index);
+			}
+		}
 	}
 
-	const int32 Count = FMath::Max(1, VariantCount);
+	const int32 Count = SheetForVariant.Num();
 	PerVariant = FMath::Max(1, InstancesPerTile / Count);
 
 	const int32 Edge = 2 * TileRadius + 1;
@@ -140,12 +223,36 @@ bool AKBVEWorldGrassField::EnsureComponents()
 	TArray<FTransform> Empty;
 	Empty.Init(HiddenInstance(), Slots * PerVariant);
 
+	// How many variants each sheet has taken so far, so each draws its own
+	// models from its own beginning. Indexing the clumps by the global variant
+	// number instead means the first sheet's share is subtracted from where the
+	// second one starts reading -- and a pack that leads with its tall models
+	// and follows with its small ones then never shows a tall one at all.
+	TArray<int32> TakenPerSheet;
+	TakenPerSheet.Init(0, LoadedAtlases.Num());
+
 	for (int32 Index = 0; Index < Count; ++Index)
 	{
+		const int32 SheetIndex = SheetForVariant[Index];
+		UKBVEWorldGrassAtlas* Atlas = LoadedAtlases[SheetIndex];
+
+		// A pack that ships models is drawn with them. The card generator stays
+		// for sheets that ship nothing but a sheet, which is the case it was
+		// written for and the only one it is better than.
+		if (Atlas->Clumps.Num() > 0)
+		{
+			const int32 Pick = TakenPerSheet[SheetIndex]++ % Atlas->Clumps.Num();
+			if (UStaticMesh* Authored = Atlas->Clumps[Pick])
+			{
+				AddVariant(Authored, Atlas->Material, Empty, NormaliseToHeight(Atlas, ClumpHeight));
+				continue;
+			}
+		}
+
 		FKBVEWorldGrassCard::FSpec Spec;
 		Spec.Height = ClumpHeight;
-		Spec.UniqueId = *FString::Printf(TEXT("KBVEWorld_GrassCard_%d_%d_%d"),
-			Index, FMath::RoundToInt(ClumpHeight), AtlasCells.Num());
+		Spec.UniqueId = *FString::Printf(TEXT("KBVEWorld_GrassCard_%s_%d_%d"),
+			*Atlas->GetName(), Index, FMath::RoundToInt(ClumpHeight));
 
 		// Each variant takes its own draw of cells, so one clump is several
 		// different photographs crossed through each other rather than the same
@@ -153,44 +260,44 @@ bool AKBVEWorldGrassField::EnsureComponents()
 		FRandomStream Rng(GetTypeHash(Spec.UniqueId));
 		for (int32 Sheet = 0; Sheet < FMath::Max(1, SheetsPerClump); ++Sheet)
 		{
-			const FVector4& Cell = AtlasCells[Rng.RandRange(0, AtlasCells.Num() - 1)];
+			const FVector4& Cell = Atlas->Cells[Rng.RandRange(0, Atlas->Cells.Num() - 1)];
 			Spec.Cells.Emplace(
 				static_cast<float>(Cell.X), static_cast<float>(Cell.Y),
 				static_cast<float>(Cell.Z), static_cast<float>(Cell.W));
 		}
 
-		UStaticMesh* Mesh = FKBVEWorldGrassCard::GetOrCreateClumpMesh(this, Spec, LoadedMaterial);
-		if (!Mesh)
+		UStaticMesh* Mesh = FKBVEWorldGrassCard::GetOrCreateClumpMesh(this, Spec, Atlas->Material);
+		if (Mesh)
 		{
-			continue;
+			AddVariant(Mesh, Atlas->Material, Empty, 1.0f);
 		}
-
-		UInstancedStaticMeshComponent* Component =
-			NewObject<UInstancedStaticMeshComponent>(this, NAME_None, RF_Transient);
-		Component->SetStaticMesh(Mesh);
-		Component->SetMaterial(0, LoadedMaterial);
-		Component->SetupAttachment(GetRootComponent());
-
-		// Submissions are world space, so the component must not add its own.
-		Component->SetAbsolute(true, true, true);
-
-		Component->SetCollisionEnabled(ECollisionEnabled::NoCollision);
-		Component->SetCastShadow(bCastShadow);
-		Component->bAffectDistanceFieldLighting = false;
-		Component->bAffectDynamicIndirectLighting = false;
-		Component->SetCullDistances(CullStart, CullEnd);
-		Component->PrimaryComponentTick.bCanEverTick = false;
-		Component->RegisterComponent();
-
-		Component->AddInstances(Empty, false, true);
-
-		Variants.Add(Component);
-		VariantMeshes.Add(Mesh);
 	}
 
 	if (Variants.Num() == 0)
 	{
 		return false;
+	}
+
+	// Which sheets ended up in the mixture, once. A field drawing from one sheet
+	// because the other failed to load looks like a field drawing from one sheet
+	// because that is what was asked for.
+	{
+		TArray<FString> Shares;
+		for (int32 Index = 0; Index < LoadedAtlases.Num(); ++Index)
+		{
+			int32 Taken = 0;
+			for (int32 Sheet : SheetForVariant)
+			{
+				Taken += (Sheet == Index) ? 1 : 0;
+			}
+			// Which of the two it drew with, because falling back to cards is
+			// silent otherwise and looks exactly like a pack that ships none.
+			const int32 Models = LoadedAtlases[Index]->Clumps.Num();
+			Shares.Add(FString::Printf(TEXT("%s x%d (%s)"), *LoadedAtlases[Index]->GetName(), Taken,
+				Models > 0 ? *FString::Printf(TEXT("%d models"), Models) : TEXT("cut cards")));
+		}
+		UE_LOG(LogKBVEWorldGrass, Display, TEXT("drawing from %d sheets: %s"),
+			LoadedAtlases.Num(), *FString::Join(Shares, TEXT(", ")));
 	}
 
 	SlotTiles.Init(UnfilledSlot, Slots);
@@ -344,8 +451,12 @@ int32 AKBVEWorldGrassField::BuildTile(const FIntPoint& Tile)
 	Batch.SetNumUninitialized(PerVariant);
 	int32 Placed = 0;
 
-	for (UInstancedStaticMeshComponent* Component : Variants)
+	for (int32 Variant = 0; Variant < Variants.Num(); ++Variant)
 	{
+		UInstancedStaticMeshComponent* Component = Variants[Variant];
+		const float Normalise = VariantScales[Variant];
+		const float Floor = VariantFloors[Variant];
+
 		for (int32 Index = 0; Index < PerVariant; ++Index)
 		{
 			if (Index >= Shown)
@@ -358,6 +469,33 @@ int32 AKBVEWorldGrassField::BuildTile(const FIntPoint& Tile)
 			const float LocalY = Rng.FRand() * Size;
 			const float WorldX = Min.X + LocalX;
 			const float WorldY = Min.Y + LocalY;
+
+			// Thick here, bare there. Tested before the ground is sampled at
+			// all, so the points this turns away cost a noise lookup rather
+			// than a heightfield fill and two road queries.
+			if (PatchThreshold > 0.0f)
+			{
+				FKBVENoiseSettings Patches;
+				Patches.NoiseType = EKBVENoiseType::OpenSimplex2;
+				Patches.FractalType = EKBVEFractalType::FBm;
+				Patches.Frequency = 1.0f / FMath::Max(PatchSize, 1.0f);
+				Patches.Octaves = 3;
+
+				// Its own seed, not the world's. Sharing one would tie where the
+				// grass grows to where the hills are, and a stand of it would
+				// creep up every slope in the world the same way.
+				const float Fertility = FKBVEWorldNoise::Sample2DNormalized(
+					WorldX, WorldY, Seed ^ 0x6772'6173, Patches);
+
+				const float Takes = FMath::SmoothStep(
+					PatchThreshold - PatchSoftness, PatchThreshold + PatchSoftness, Fertility);
+				if (Rng.FRand() > Takes)
+				{
+					++WindowRejected.Bare;
+					Batch[Index] = HiddenInstance();
+					continue;
+				}
+			}
 
 			const float Fx = LocalX / CellWorld;
 			const float Fy = LocalY / CellWorld;
@@ -373,23 +511,46 @@ int32 AKBVEWorldGrassField::BuildTile(const FIntPoint& Tile)
 				/ (2.0f * CellWorld);
 			const float Slope = FMath::Sqrt(SlopeX * SlopeX + SlopeY * SlopeY);
 
+			const float River = FKBVEWorldHeightfield::RiverMaskAt(Owner->Shape, Seed,
+				WorldX / 100.0f, WorldY / 100.0f);
+
 			const bool bDrowned = Ground < WaterLine;
 			const bool bSteep = Slope > MaxSlope;
-			const bool bRiver = FKBVEWorldHeightfield::RiverMaskAt(Owner->Shape, Seed,
-				WorldX / 100.0f, WorldY / 100.0f) > 0.2f;
+			const bool bRiver = River > 0.2f;
 			const bool bRoad = Field && Field->SurfaceWeight(WorldX, WorldY) > MaxRoadWeight;
 
-			if (bDrowned || bSteep || bRiver || bRoad)
+			// Where a road meets a river there is a deck over this ground, and
+			// the weight painted on the terrain knows nothing about it.
+			bool bBridge = false;
+			if (Field && River > 0.02f && BridgeClearance > 0.0f)
 			{
+				float Distance = 0.0f;
+				float CorridorZ = 0.0f;
+				float Weight = 0.0f;
+				bBridge = Field->Probe(WorldX, WorldY, Distance, CorridorZ, Weight)
+					&& Distance < BridgeClearance;
+			}
+
+			if (bDrowned || bSteep || bRiver || bRoad || bBridge)
+			{
+				// Counted in priority order rather than summed, so the totals
+				// add up to the rejections and a point failing three tests does
+				// not read as three points.
+				WindowRejected.Drowned += bDrowned ? 1 : 0;
+				WindowRejected.Steep += (!bDrowned && bSteep) ? 1 : 0;
+				WindowRejected.River += (!bDrowned && !bSteep && bRiver) ? 1 : 0;
+				WindowRejected.Road += (!bDrowned && !bSteep && !bRiver && bRoad) ? 1 : 0;
+				WindowRejected.Bridge += (!bDrowned && !bSteep && !bRiver && !bRoad && bBridge) ? 1 : 0;
+
 				Batch[Index] = HiddenInstance();
 				continue;
 			}
 
 			++Placed;
-			const float Scale = Rng.FRandRange(ClumpScale.Min, ClumpScale.Max);
+			const float Scale = Rng.FRandRange(ClumpScale.Min, ClumpScale.Max) * Normalise;
 			Batch[Index] = FTransform(
 				FRotator(0.0f, Rng.FRand() * 360.0f, 0.0f),
-				FVector(WorldX, WorldY, Ground - SinkDepth),
+				FVector(WorldX, WorldY, Ground - SinkDepth - Floor * Scale),
 				FVector(Scale));
 		}
 
@@ -464,7 +625,12 @@ void AKBVEWorldGrassField::Tick(float DeltaSeconds)
 		UE_LOG(LogKBVEWorldGrass, Display,
 			TEXT("window around tile %d,%d: %d clumps in %d slots over %d tiles (%d variants)"),
 			CentreTile.X, CentreTile.Y, WindowPlaced, Slots, SlotTiles.Num(), Variants.Num());
+		UE_LOG(LogKBVEWorldGrass, Display,
+			TEXT("turned away: %d bare, %d drowned, %d steep, %d river, %d road, %d bridge"),
+			WindowRejected.Bare, WindowRejected.Drowned, WindowRejected.Steep,
+			WindowRejected.River, WindowRejected.Road, WindowRejected.Bridge);
 		WindowPlaced = 0;
+		WindowRejected = FRejections();
 	}
 	bPendingWasNonEmpty = Pending.Num() > 0;
 }

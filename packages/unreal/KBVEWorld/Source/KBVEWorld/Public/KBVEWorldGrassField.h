@@ -9,6 +9,7 @@ KBVEWORLD_API DECLARE_LOG_CATEGORY_EXTERN(LogKBVEWorldGrass, Log, All);
 
 class AKBVEWorldStreamer;
 class UInstancedStaticMeshComponent;
+class UKBVEWorldGrassAtlas;
 class UMaterialInterface;
 class UStaticMesh;
 
@@ -120,35 +121,70 @@ public:
 	FFloatInterval ClumpScale = FFloatInterval(0.7f, 1.35f);
 
 	/**
-	 * The masked material the atlas is sampled through.
+	 * Width of the bare and thick patches a field breaks into, in world units.
 	 *
-	 * The plugin has no content of its own, so the project says which sheet its
-	 * grass is cut from and supplies the material built over it. Built by the
-	 * editor script beside the rest of them -- material expressions are an
-	 * editor-only API, so a graph assembled at runtime is a crash in a packaged
-	 * client and a silent null in a cook.
+	 * Scattering uniformly gives every square metre the same count, and a field
+	 * where no patch is thicker than any other reads as generated however good
+	 * the clump in it is -- it is the placement, not the plant, that gives it
+	 * away. Real ground is not evenly seeded: it is thick where the water sits
+	 * and thin where it does not, at a scale a good deal larger than a clump.
 	 */
-	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass")
-	TSoftObjectPtr<UMaterialInterface> CardMaterial;
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass",
+		meta = (ClampMin = "100.0"))
+	float PatchSize = 1400.0f;
 
 	/**
-	 * Cells in the atlas, as (U0, V0, U1, V1).
+	 * How fertile ground has to be before grass takes at all, nought to one.
 	 *
-	 * Measured from the sheet rather than assumed to be a grid: the packs worth
-	 * using lay their clumps out to fill the sheet, not to fill a lattice, and a
-	 * uniform slice through one cuts blades in half.
+	 * Raise it for open ground between thick stands; drop it to nothing for the
+	 * uniform scatter this replaced.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass",
+		meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float PatchThreshold = 0.38f;
+
+	/**
+	 * Width of the ground between bare and thick, in the same nought-to-one.
+	 *
+	 * Zero cuts a hard shoreline around every patch, which is worse than no
+	 * patches at all. This is the band over which a stand thins out.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass",
+		meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float PatchSoftness = 0.24f;
+
+	/**
+	 * The sheets this field cuts its clumps from.
+	 *
+	 * More than one because a single pack is a single plant: bermuda is stems
+	 * and seed heads, a meadow pack is broad tufts, and a field of either alone
+	 * reads as one thing repeated. Variants are shared out across these by
+	 * weight, and each carries its own material, so mixing packs costs a draw
+	 * call per sheet rather than a second system.
+	 *
+	 * The plugin has no content of its own: the project supplies these, built by
+	 * the editor script from the same JSON that imports the textures.
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass")
-	TArray<FVector4> AtlasCells;
+	TArray<TSoftObjectPtr<UKBVEWorldGrassAtlas>> Atlases;
 
-	/** Where instances start fading, and where they stop being drawn. */
+	/**
+	 * Where instances start fading, and where they stop being drawn.
+	 *
+	 * Both have to stay inside the window, and the window's guaranteed reach is
+	 * TileRadius times TileSize along an axis -- not its diagonal, which is
+	 * further but only in the corners. Drawn further than that and there is a
+	 * ring the cull permits grass in that the ring has not built yet: bare
+	 * ground that fills in as it is walked toward, which is the pop-in this is
+	 * most often blamed on.
+	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass",
 		meta = (ClampMin = "0"))
-	int32 CullStart = 4500;
+	int32 CullStart = 3300;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass",
 		meta = (ClampMin = "0"))
-	int32 CullEnd = 6000;
+	int32 CullEnd = 4300;
 
 	/**
 	 * Steepest ground grass will stand on, as a slope rather than an angle:
@@ -168,6 +204,37 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass",
 		meta = (ClampMin = "0.0", ClampMax = "1.0"))
 	float MaxRoadWeight = 0.15f;
+
+	/**
+	 * How far from a road's centre line grass stops growing where that road
+	 * crosses water.
+	 *
+	 * A bridge is wider than its carriageway and stands above the ground rather
+	 * than being graded into it, so the road weight painted on the terrain --
+	 * which is what keeps grass off a road -- says nothing about the deck over
+	 * it. The result is grass growing up through the planks. Applied only where
+	 * there is a river to cross, so a verge keeps its grass.
+	 *
+	 * A stopgap, and worth naming as one: it infers a bridge from a road and a
+	 * river rather than asking whether one is there, and it does nothing at all
+	 * for stairs, plinths or anything else the world builds on top of ground
+	 * that grass is still placing itself from.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass",
+		meta = (ClampMin = "0.0"))
+	float BridgeClearance = 340.0f;
+
+	/**
+	 * Distance past which the wind stops being evaluated.
+	 *
+	 * World position offset runs per vertex per frame whether or not anyone can
+	 * see the result, and a field is tens of thousands of clumps. Past a couple
+	 * of tile widths the sway is under a pixel and the arithmetic is the whole
+	 * of what it costs.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass",
+		meta = (ClampMin = "0"))
+	int32 WindDisableDistance = 2600;
 
 	/** Height above the water line grass needs before it will grow. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Grass")
@@ -204,6 +271,10 @@ protected:
 	virtual void BeginPlay() override;
 
 private:
+	/** Register one instanced component for a clump mesh, with its slots. */
+	void AddVariant(UStaticMesh* Mesh, UMaterialInterface* Material, const TArray<FTransform>& Empty,
+		float Normalise);
+
 	/** Build the meshes, the material and the instance slots. Idempotent. */
 	bool EnsureComponents();
 
@@ -239,8 +310,34 @@ private:
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<UStaticMesh>> VariantMeshes;
 
+	/**
+	 * What each variant's mesh has to be multiplied by to stand ClumpHeight tall.
+	 *
+	 * A generated card is built at that height already and normalises to one. A
+	 * pack's own model is authored at the plant's real size -- bermuda is a ten
+	 * centimetre turf, so its clumps arrive under ten units against a player of
+	 * a hundred and eighty -- and drawn raw it is ground fuzz that vanishes at
+	 * the first cull band. Normalising per atlas rather than per clump keeps a
+	 * pack's own range, its seedlings still shorter than its tufts, and leaves
+	 * ClumpHeight as the single knob that means the same thing for every pack.
+	 */
+	TArray<float> VariantScales;
+
+	/**
+	 * Where each variant's mesh has its underside, in its own local space.
+	 *
+	 * A clump is placed by its pivot, and a pivot is wherever the mesh happened
+	 * to be authored around. The card builder puts it on the ground because it
+	 * builds the card upwards from nought; a model exported out of Blender
+	 * usually carries its origin at the object's centre, which plants the clump
+	 * with half of itself under the terrain. Subtracting the underside puts
+	 * every mesh on the ground on its own terms, whatever it was authored
+	 * around.
+	 */
+	TArray<float> VariantFloors;
+
 	UPROPERTY(Transient)
-	TObjectPtr<UMaterialInterface> LoadedMaterial;
+	TArray<TObjectPtr<UKBVEWorldGrassAtlas>> LoadedAtlases;
 
 	// Weak and untracked: the streamer outlives this actor in every case that
 	// matters, and a hard reference here would be a second owner of the thing
@@ -259,4 +356,16 @@ private:
 	bool bCentred = false;
 	bool bPendingWasNonEmpty = false;
 	int32 WindowPlaced = 0;
+
+	/** Why candidates were turned away, for the window's summary line. */
+	struct FRejections
+	{
+		int32 Drowned = 0;
+		int32 Steep = 0;
+		int32 River = 0;
+		int32 Road = 0;
+		int32 Bridge = 0;
+		int32 Bare = 0;
+	};
+	FRejections WindowRejected;
 };

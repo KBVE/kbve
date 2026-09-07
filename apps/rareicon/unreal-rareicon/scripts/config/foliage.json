@@ -1,0 +1,27 @@
+{
+	"package_path": "/Game/Foliage",
+	"art_subdir": "Foliage/Models",
+	"packs": [
+		{
+			"pack": "grass_bermuda_01_1k",
+			"atlas": "/Game/Textures/Foliage/DA_RareIcon_GrassCard",
+			"material": "/Game/Textures/Foliage/M_RareIcon_GrassCard",
+			"include": [
+				"medium_",
+				"small_",
+				"single_",
+				"seedling_",
+				"dead_",
+				"flattened_"
+			],
+			"exclude": []
+		},
+		{
+			"pack": "grass_medium_01_1k",
+			"atlas": "/Game/Textures/Foliage/DA_RareIcon_GrassMedium",
+			"material": "/Game/Textures/Foliage/M_RareIcon_GrassMedium",
+			"include": ["tiny_", "small_", "mid_", "tall_", "large_"],
+			"exclude": []
+		}
+	]
+}
