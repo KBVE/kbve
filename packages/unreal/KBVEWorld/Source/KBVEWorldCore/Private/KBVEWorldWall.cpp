@@ -410,3 +410,39 @@ void FKBVEWorldWall::Gable(const FKBVEWorldWallParams& Wall, const FKBVEWorldWal
 	// No boards down the rake: the roof overhangs past this on both sides, so the
 	// open edge between the two faces is under the slope that covers it.
 }
+
+void FKBVEWorldJoinery::Box(FKBVEWorldRibbonMesh& Out, const FKBVEWorldWallFrame& F, float U0,
+	float U1, float V0, float V1, float T0, float T1)
+{
+	if (U1 - U0 <= KINDA_SMALL_NUMBER || V1 - V0 <= KINDA_SMALL_NUMBER)
+	{
+		return;
+	}
+
+	// The two faces, then the four returns. The returns are what stop a frame
+	// reading as a decal: at a glancing angle it is the reveal of the timber that
+	// says there is something standing off the wall.
+	FKBVEWorldRibbon::AppendQuad(Out,
+		F.At(U0, V0, T1), F.At(U1, V0, T1), F.At(U1, V1, T1), F.At(U0, V1, T1),
+		F.UV(U0, V0), F.UV(U1, V0), F.UV(U1, V1), F.UV(U0, V1));
+
+	FKBVEWorldRibbon::AppendQuad(Out,
+		F.At(U0, V1, T0), F.At(U1, V1, T0), F.At(U1, V0, T0), F.At(U0, V0, T0),
+		F.UV(U0, V1), F.UV(U1, V1), F.UV(U1, V0), F.UV(U0, V0));
+
+	FKBVEWorldRibbon::AppendQuad(Out,
+		F.At(U0, V1, T1), F.At(U1, V1, T1), F.At(U1, V1, T0), F.At(U0, V1, T0),
+		F.UV(U0, V1), F.UV(U1, V1), F.UV(U1, V1), F.UV(U0, V1));
+
+	FKBVEWorldRibbon::AppendQuad(Out,
+		F.At(U1, V0, T1), F.At(U0, V0, T1), F.At(U0, V0, T0), F.At(U1, V0, T0),
+		F.UV(U1, V0), F.UV(U0, V0), F.UV(U0, V0), F.UV(U1, V0));
+
+	FKBVEWorldRibbon::AppendQuad(Out,
+		F.At(U0, V0, T1), F.At(U0, V1, T1), F.At(U0, V1, T0), F.At(U0, V0, T0),
+		F.UV(U0, V0), F.UV(U0, V1), F.UV(U0, V1), F.UV(U0, V0));
+
+	FKBVEWorldRibbon::AppendQuad(Out,
+		F.At(U1, V1, T1), F.At(U1, V0, T1), F.At(U1, V0, T0), F.At(U1, V1, T0),
+		F.UV(U1, V1), F.UV(U1, V0), F.UV(U1, V0), F.UV(U1, V1));
+}

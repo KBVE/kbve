@@ -102,6 +102,18 @@ tasks:
             runFromWorkspaceRoot: true
             cache: false
 
+    # Read a session back: where the frames went, and what the engine said while
+    # they went there. Works on any log the editor already wrote, so a slow run
+    # can be understood after the fact rather than reproduced.
+    triage:
+        command: >-
+            uv run --project $workspaceRoot/packages/python/kbve
+            kbve-unreal-triage --project $workspaceRoot/$UE_PROJECT
+            --log-prefix $UE_LOG_PREFIX
+        options:
+            runFromWorkspaceRoot: true
+            cache: false
+
     clangd-db:
         command: 'uv run --project $workspaceRoot/packages/python/kbve kbve-unreal-clangd'
         options:

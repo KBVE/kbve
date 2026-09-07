@@ -19,6 +19,7 @@
 				"max_build_milliseconds_per_tick": 4.0,
 				"recentre_hysteresis": 0.15,
 				"terrain_material": "/Game/Textures/Terrain/M_RareIcon_Terrain",
+				"water_material": "/Game/Textures/World/M_RareIcon_Water",
 				"shadow_radius_chunks": 2,
 				"collision_lod_step": 1
 			},
@@ -28,6 +29,21 @@
 					"detail_freq": 0.05,
 					"amplitude": 650.0
 				}
+			}
+		},
+		{
+			"class": "KBVEWorldGrassField",
+			"location": [0, 0, 0],
+			"properties": {
+				"tile_size": 800.0,
+				"tile_radius": 6,
+				"instances_per_tile": 640,
+				"edge_density": 0.12,
+				"variant_count": 4,
+				"clump_height": 45.0,
+				"cull_start": 4500,
+				"cull_end": 6000,
+				"card_material": "/Game/Textures/Foliage/M_RareIcon_GrassCard"
 			}
 		},
 		{

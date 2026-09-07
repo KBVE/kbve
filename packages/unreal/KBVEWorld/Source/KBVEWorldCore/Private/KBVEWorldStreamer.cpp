@@ -1,5 +1,7 @@
 #include "KBVEWorldStreamer.h"
 
+#include "KBVEMovementDriver.h"
+
 #include "KBVEWorldHeightfield.h"
 #include "KBVEWorldRoadField.h"
 
@@ -29,8 +31,28 @@ AKBVEWorldStreamer::AKBVEWorldStreamer()
 
 void AKBVEWorldStreamer::RebuildWaterPlane(const FIntPoint& Centre)
 {
-	if (!WaterPlane || !WaterMaterial)
+	if (!WaterPlane)
 	{
+		return;
+	}
+
+	// Said once, rather than returning quietly.
+	//
+	// An unset material here is a whole world with no water in it, and the only
+	// evidence was rivers that looked like dry trenches -- which is a plausible
+	// enough landscape that it survived several sessions before anybody asked.
+	// The level is generated from JSON and respawns this actor every time it is
+	// rebuilt, so a property the JSON does not name is not merely unset, it is
+	// unset again on every build.
+	if (!WaterMaterial)
+	{
+		if (!bWarnedNoWaterMaterial)
+		{
+			bWarnedNoWaterMaterial = true;
+			UE_LOG(LogKBVEWorldStream, Warning,
+				TEXT("no water material on the streamer, so the world has no water; "
+					"set water_material in the level's JSON"));
+		}
 		return;
 	}
 
@@ -578,7 +600,18 @@ void AKBVEWorldStreamer::HoldOrRelease()
 	// Put down every tick rather than frozen once. A pawn can be told to stop in
 	// a dozen ways depending on what it is, and this plugin does not know what it
 	// is -- but every one of them ends up somewhere, and this is where.
-	Pawn->SetActorLocation(WorldPlan.Spawn, false, nullptr, ETeleportType::TeleportPhysics);
+	//
+	// Through the pawn's own movement driver when it has one. A predicted backend
+	// holds its own idea of where the pawn is and reconciles the component to it,
+	// so a pawn put down by having its actor moved is put back again a moment
+	// later by the simulation that was never told. Asked properly it is a
+	// teleport, and the two agree.
+	IKBVEMovementDriver* Driver = Cast<IKBVEMovementDriver>(Pawn);
+	if (!Driver || !Driver->PlaceAt(WorldPlan.Spawn))
+	{
+		Pawn->SetActorLocation(WorldPlan.Spawn, false, nullptr, ETeleportType::TeleportPhysics);
+	}
+
 	if (UPawnMovementComponent* Movement = Pawn->GetMovementComponent())
 	{
 		Movement->StopMovementImmediately();

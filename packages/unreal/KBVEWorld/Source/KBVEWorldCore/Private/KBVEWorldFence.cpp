@@ -404,3 +404,74 @@ void FKBVEWorldFence::BuildRun(const FKBVEWorldFenceParams& Fence, const FKBVEWo
 		bHasPrev = true;
 	}
 }
+
+void FKBVEWorldFence::Gates(const FKBVEWorldFenceParams& Fence,
+	TArrayView<const FKBVEWorldFenceGate> Gates, TArray<FKBVEWorldFenceRun>& Runs)
+{
+	if (Gates.Num() == 0 || Runs.Num() == 0)
+	{
+		return;
+	}
+
+	const float Least = FMath::Max(Fence.MinPieceSpans, 0.0f)
+		* FMath::Max(Fence.PostSpacing, KINDA_SMALL_NUMBER);
+
+	TArray<FKBVEWorldFenceRun> Cut;
+	Cut.Reserve(Runs.Num() + Gates.Num());
+
+	for (const FKBVEWorldFenceRun& Run : Runs)
+	{
+		// Carried as a list rather than cut in place, because one run may pass
+		// several houses and each piece it is left in can be cut again by the
+		// next of them.
+		TArray<FKBVEWorldFenceRun, TInlineAllocator<4>> Pieces;
+		Pieces.Add(Run);
+
+		for (const FKBVEWorldFenceGate& Gate : Gates)
+		{
+			// Sides are opposite signs of the same lateral offset, so a house on
+			// one side of a road never opens onto the fence along the other.
+			if (Gate.Side * Run.Side <= 0.0f || Gate.End <= Gate.Begin)
+			{
+				continue;
+			}
+
+			TArray<FKBVEWorldFenceRun, TInlineAllocator<4>> Kept;
+			for (const FKBVEWorldFenceRun& Piece : Pieces)
+			{
+				if (Gate.End <= Piece.Begin || Gate.Begin >= Piece.End)
+				{
+					Kept.Add(Piece);
+					continue;
+				}
+
+				// The head and the tail either side of the doorway. Both ends keep
+				// the run's own seed, so a run cut in two is the same fence twice
+				// rather than two fences that happen to be in line.
+				if (Gate.Begin - Piece.Begin >= Least)
+				{
+					FKBVEWorldFenceRun Head = Piece;
+					Head.End = Gate.Begin;
+					Kept.Add(Head);
+				}
+
+				if (Piece.End - Gate.End >= Least)
+				{
+					FKBVEWorldFenceRun Tail = Piece;
+					Tail.Begin = Gate.End;
+					Kept.Add(Tail);
+				}
+			}
+
+			Pieces = MoveTemp(Kept);
+			if (Pieces.Num() == 0)
+			{
+				break;
+			}
+		}
+
+		Cut.Append(Pieces);
+	}
+
+	Runs = MoveTemp(Cut);
+}

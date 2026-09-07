@@ -4,6 +4,7 @@
 #include "KBVEWorldRoof.h"
 #include "KBVEWorldStair.h"
 #include "KBVEWorldWall.h"
+#include "KBVEWorldDoor.h"
 #include "KBVEWorldWindow.h"
 
 #include "KBVEWorldBuilding.generated.h"
@@ -62,6 +63,16 @@ struct KBVEWORLDCORE_API FKBVEWorldBuildingParams
 	float StonePlinthChance = 0.34f;
 
 	/**
+	 * How many front doors are arched rather than square.
+	 *
+	 * A minority on purpose. An arch says somebody spent money on this doorway,
+	 * which it only says while its neighbours are square.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building|Openings",
+		meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float ArchedDoorChance = 0.3f;
+
+	/**
 	 * Roughly how much wall each window gets to itself.
 	 *
 	 * A target rather than a spacing: the bays are worked out by dividing the
@@ -71,6 +82,9 @@ struct KBVEWORLDCORE_API FKBVEWorldBuildingParams
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building|Openings")
 	FKBVEWorldWindowParams Window;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building|Openings")
+	FKBVEWorldDoorParams Door;
 
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building|Openings",
 		meta = (ClampMin = "50.0"))
@@ -121,6 +135,18 @@ struct FKBVEWorldBuildingPlan
 	float Embed = 60.0f;
 
 	/**
+	 * Where on its road the building ended up, and which side of it.
+	 *
+	 * Carried because siting moves a plot: it looks up and down the road for
+	 * flatter ground before giving up, so the distance a plot was rolled at is
+	 * not the distance a house stands at. Anything that has to line something
+	 * else up with the front door -- the gap a fence leaves for it, most of all
+	 * -- needs where the house went rather than where it was asked to go.
+	 */
+	float Along = 0.0f;
+	float Side = 1.0f;
+
+	/**
 	 * How far the ground outside the front door lies below the threshold.
 	 *
 	 * The floor is levelled to the highest corner of the footprint, so on any
@@ -142,6 +168,9 @@ struct FKBVEWorldBuildingPlan
 	 */
 	bool bStonePlinth = false;
 
+	/** Whether the front door is arched, carried for the reason the plinth is. */
+	bool bArchedDoor = false;
+
 	int32 Seed = 0;
 };
 
@@ -161,19 +190,19 @@ struct FKBVEWorldBuildingMesh
 	FKBVEWorldRibbonMesh Plinth;
 
 	/** Timber and glass, which are two more materials and so two more sections. */
-	FKBVEWorldWindowMesh Windows;
+	FKBVEWorldJoineryMesh Joinery;
 
 	void Reset()
 	{
 		Masonry.Reset();
 		Roof.Reset();
 		Plinth.Reset();
-		Windows.Reset();
+		Joinery.Reset();
 	}
 
 	bool IsEmpty() const
 	{
-		return Masonry.IsEmpty() && Roof.IsEmpty() && Plinth.IsEmpty() && Windows.IsEmpty();
+		return Masonry.IsEmpty() && Roof.IsEmpty() && Plinth.IsEmpty() && Joinery.IsEmpty();
 	}
 };
 

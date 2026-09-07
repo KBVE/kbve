@@ -12,6 +12,7 @@
 #include "MassEntitySubsystem.h"
 #include "KBVEWorldRibbon.h"
 #include "KBVEWorldStreamer.h"
+#include "KBVEPerf.h"
 #include "ProceduralMeshComponent.h"
 
 namespace
@@ -237,6 +238,15 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 
 	Timings.RouteMs = static_cast<float>((FPlatformTime::Seconds() - RouteStart) * 1000.0);
 
+	// Before the fences, not after. The runs an entity carries should already
+	// have their gateways cut, and where a gateway goes is only known once a plot
+	// has been sited -- a house is moved along the road to find level ground, or
+	// refused. Still counted against the masonry, which is whose work it is.
+	const double PlotStart = FPlatformTime::Seconds();
+	SitePlots(In);
+	const double PlotMs = (FPlatformTime::Seconds() - PlotStart) * 1000.0;
+
+	OpenGates(In);
 	SpawnFenceRuns(In);
 
 	const double FenceStart = FPlatformTime::Seconds();
@@ -245,12 +255,12 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 	Timings.FenceMs = static_cast<float>((FPlatformTime::Seconds() - FenceStart) * 1000.0);
 
 	const double MasonryStart = FPlatformTime::Seconds();
-	SitePlots(In);
 	SpawnBuildings(In);
 
 	FKBVEWorldBuildingMesh Structures;
 	BuildStructures(In, Structures);
-	Timings.MasonryMs = static_cast<float>((FPlatformTime::Seconds() - MasonryStart) * 1000.0);
+	Timings.MasonryMs =
+		static_cast<float>((FPlatformTime::Seconds() - MasonryStart) * 1000.0 + PlotMs);
 
 	// World space, because the pool holds one component for the whole world and
 	// the rebase below is a thing only this chunk's own sections want.
@@ -269,8 +279,8 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 	Rebase(Data.Wood, Origin);
 	Rebase(Data.Stone, Origin);
 	Rebase(Structures.Masonry, Origin);
-	Rebase(Structures.Windows.Joinery, Origin);
-	Rebase(Structures.Windows.Glazing, Origin);
+	Rebase(Structures.Joinery.Timber, Origin);
+	Rebase(Structures.Joinery.Glazing, Origin);
 	Rebase(Structures.Plinth, Origin);
 	Rebase(Structures.Roof, Origin);
 
@@ -278,9 +288,14 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 	Commit(Stone, Data.Stone, StoneMaterial, false);
 	Commit(Brick, Structures.Masonry, In.BrickMaterial, true);
 	Commit(Roof, Structures.Roof, In.RoofMaterial, false);
-	Commit(Joinery, Structures.Windows.Joinery, In.WoodMaterial, false);
-	Commit(Glazing, Structures.Windows.Glazing, In.GlassMaterial, false);
-	Commit(Plinth, Structures.Plinth, In.StoneMaterial, false);
+	// Joinery and glass collide, and the plinth with them. A door leaf that does
+	// not is a doorway you walk through with the door shut, which is the one place
+	// in a village somebody walks straight at a wall on purpose -- and a pane that
+	// does not is the same hole one storey up. Only at the tier they are drawn on,
+	// which is the tier anything is close enough to touch them at.
+	Commit(Joinery, Structures.Joinery.Timber, In.WoodMaterial, true);
+	Commit(Glazing, Structures.Joinery.Glazing, In.GlassMaterial, true);
+	Commit(Plinth, Structures.Plinth, In.StoneMaterial, true);
 
 	// The supports collide as blocks whether they were drawn as triangles here or
 	// as instances elsewhere, so this does not care which happened.
@@ -432,6 +447,8 @@ void AKBVEWorldRoadChunk::BuildFenceParts(const FBuild& In, FKBVEWorldFenceMesh&
 
 bool AKBVEWorldRoadChunk::RebuildFences(const FBuild& In, FParts& OutParts)
 {
+	KBVEPERF_SCOPE("Road.RebuildFences");
+
 	if (!Mass || FenceRuns.Num() == 0)
 	{
 		return false;
@@ -476,6 +493,7 @@ bool AKBVEWorldRoadChunk::RebuildFences(const FBuild& In, FParts& OutParts)
 void AKBVEWorldRoadChunk::SitePlots(const FBuild& In)
 {
 	Plans.Reset();
+	PlanEdge.Reset();
 	if (!In.Settlement)
 	{
 		return;
@@ -513,7 +531,76 @@ void AKBVEWorldRoadChunk::SitePlots(const FBuild& In)
 				Path, Plot, Plan))
 			{
 				Plans.Add(Plan);
+				PlanEdge.Add(Step);
 			}
+		}
+	}
+}
+
+void AKBVEWorldRoadChunk::OpenGates(const FBuild& In)
+{
+	if (!In.Fence || !In.Settlement || Plans.Num() == 0 || Runs.Num() == 0)
+	{
+		return;
+	}
+
+	// Cut per edge. A run and a gateway are both distances along one polyline, so
+	// a gate measured on one edge means nothing on the other.
+	for (int32 Step = 0; Step < EdgePaths.Num(); ++Step)
+	{
+		const TArray<FVector>& Path = EdgePaths[Step];
+		if (Path.Num() < 2)
+		{
+			continue;
+		}
+
+		TArray<FKBVEWorldFenceGate> Gates;
+		for (int32 I = 0; I < Plans.Num(); ++I)
+		{
+			if (PlanEdge[I] != Step)
+			{
+				continue;
+			}
+
+			FKBVEWorldFenceGate Gate;
+			Gate.Side = Plans[I].Side;
+			FKBVEWorldSettlement::Gateway(In.Settlement->Building, Plans[I], Path,
+				In.Fence->GateClearance, Gate.Begin, Gate.End);
+			Gates.Add(Gate);
+		}
+
+		if (Gates.Num() == 0)
+		{
+			continue;
+		}
+
+		// Split out and put back rather than cut in place, so the run's edge index
+		// travels with it: a run may come back as two and both halves still belong
+		// to the edge the whole one did.
+		TArray<FKBVEWorldFenceRun> Mine;
+		TArray<FKBVEWorldFenceRun> Others;
+		TArray<int32> OtherEdge;
+		for (int32 I = 0; I < Runs.Num(); ++I)
+		{
+			if (RunEdge[I] == Step)
+			{
+				Mine.Add(Runs[I]);
+			}
+			else
+			{
+				Others.Add(Runs[I]);
+				OtherEdge.Add(RunEdge[I]);
+			}
+		}
+
+		FKBVEWorldFence::Gates(*In.Fence, Gates, Mine);
+
+		Runs = MoveTemp(Others);
+		RunEdge = MoveTemp(OtherEdge);
+		for (const FKBVEWorldFenceRun& Run : Mine)
+		{
+			Runs.Add(Run);
+			RunEdge.Add(Step);
 		}
 	}
 }
@@ -619,6 +706,8 @@ void AKBVEWorldRoadChunk::BuildStructures(const FBuild& In, FKBVEWorldBuildingMe
 
 bool AKBVEWorldRoadChunk::RebuildBuildings(const FBuild& In)
 {
+	KBVEPERF_SCOPE("Road.RebuildBuildings");
+
 	if (!Mass || Buildings.Num() == 0)
 	{
 		return false;
@@ -652,15 +741,15 @@ bool AKBVEWorldRoadChunk::RebuildBuildings(const FBuild& In)
 
 	const FVector Origin = GetActorLocation();
 	Rebase(Structures.Masonry, Origin);
-	Rebase(Structures.Windows.Joinery, Origin);
-	Rebase(Structures.Windows.Glazing, Origin);
+	Rebase(Structures.Joinery.Timber, Origin);
+	Rebase(Structures.Joinery.Glazing, Origin);
 	Rebase(Structures.Plinth, Origin);
 	Rebase(Structures.Roof, Origin);
 	Commit(Brick, Structures.Masonry, In.BrickMaterial, true);
 	Commit(Roof, Structures.Roof, In.RoofMaterial, false);
-	Commit(Joinery, Structures.Windows.Joinery, In.WoodMaterial, false);
-	Commit(Glazing, Structures.Windows.Glazing, In.GlassMaterial, false);
-	Commit(Plinth, Structures.Plinth, In.StoneMaterial, false);
+	Commit(Joinery, Structures.Joinery.Timber, In.WoodMaterial, true);
+	Commit(Glazing, Structures.Joinery.Glazing, In.GlassMaterial, true);
+	Commit(Plinth, Structures.Plinth, In.StoneMaterial, true);
 	return true;
 }
 
@@ -1018,6 +1107,8 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 			const AKBVEWorldRoadChunk::FBuild In = MakeBuild(Pair.Key, Seed,
 				Pair.Value->IsDetailed(), bInstanced, DrawDistance);
 
+			KBVEPERF_SCOPE("Road.RestandChunk");
+
 			AKBVEWorldRoadChunk::FParts FenceParts;
 			if (bInstanced && Pair.Value->RebuildFences(In, FenceParts))
 			{
@@ -1034,12 +1125,15 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 				++Restood;
 			}
 		}
+
+		KBVEPERF_COUNT("Road.Restood", Restood);
 	}
 
 	// Once per tick rather than per chunk: a bucket is rebuilt from all its keys,
 	// so flushing inside the loop would rebuild it once for every chunk built.
 	if (Parts)
 	{
+		KBVEPERF_SCOPE("Road.InstanceFlush");
 		Parts->Flush();
 	}
 

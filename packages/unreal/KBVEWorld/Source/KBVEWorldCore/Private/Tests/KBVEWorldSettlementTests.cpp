@@ -1,3 +1,4 @@
+#include "KBVEWorldFence.h"
 #include "KBVEWorldHeightfield.h"
 #include "KBVEWorldRoadGraph.h"
 #include "KBVEWorldSettlement.h"
@@ -235,6 +236,121 @@ bool FKBVEWorldSettlementSitingTest::RunTest(const FString& Parameters)
 	// a plain: a terrain that happened to be flat under every plot would pass the
 	// check above without any of this having been exercised at all.
 	TestTrue(TEXT("the terrain does put doors above their own ground"), Stepped > Sited / 4);
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FKBVEWorldSettlementGatewayTest,
+	"KBVE.World.Settlement.TheGatewayIsInFrontOfTheDoor",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// The gap a fence leaves has to be in front of the doorstep, not in front of the
+// middle of the house. Bays put the door off centre whenever there is an even
+// number of them, and siting moves a house up and down the road looking for
+// level ground, so neither the plot's distance nor the plan's centre is where
+// somebody actually walks out.
+//
+// Measured by finding the door on the road independently -- the nearest point of
+// the polyline to the doorway itself -- rather than by repeating the projection
+// the answer was built with.
+bool FKBVEWorldSettlementGatewayTest::RunTest(const FString& Parameters)
+{
+	FKBVEWorldSettlementParams Settlement;
+	Settlement.Chance = 1.0f;
+
+	FKBVEWorldFenceParams Fence;
+
+	const FKBVEWorldRoadParams Road;
+	const FKBVEWorldHeightfieldParams Shape;
+	const int32 Seed = FKBVEWorldHeightfield::SeedFromWorld(20260906);
+
+	TArray<FVector> Path;
+	TArray<FKBVEWorldRoadSpan> Spans;
+	TArray<FKBVEWorldPlot> Plots;
+
+	int32 Checked = 0;
+	int32 Missed = 0;
+	int32 Narrow = 0;
+	int32 OffCentre = 0;
+
+	for (int32 X = -4; X <= 4; ++X)
+	{
+		for (int32 Y = -4; Y <= 4; ++Y)
+		{
+			const FIntPoint Edge(X, Y);
+			FKBVEWorldRoadGraph::RouteEdge(Road, Shape, Seed, Edge, Edge + FIntPoint(1, 0), Path);
+			if (Path.Num() < 2)
+			{
+				continue;
+			}
+
+			FKBVEWorldRoadGraph::FindRiverSpans(Road, Shape, Seed, Path, Spans);
+			FKBVEWorldSettlement::FindPlots(Settlement, Road, Seed, Edge, Path, Spans, Plots);
+
+			for (const FKBVEWorldPlot& Plot : Plots)
+			{
+				FKBVEWorldBuildingPlan Plan;
+				if (!FKBVEWorldSettlement::Site(Settlement, Road, Shape, Seed, nullptr, Path,
+					Plot, Plan))
+				{
+					continue;
+				}
+
+				float Begin = 0.0f;
+				float End = 0.0f;
+				FKBVEWorldSettlement::Gateway(Settlement.Building, Plan, Path,
+					Fence.GateClearance, Begin, End);
+
+				FVector Doorway;
+				FVector Forward;
+				FKBVEWorldBuilding::Door(Settlement.Building, Plan, Doorway, Forward);
+
+				// Where the doorstep is on the road, found the slow honest way.
+				float Travelled = 0.0f;
+				float AtDoor = 0.0f;
+				float Nearest = BIG_NUMBER;
+				for (int32 I = 1; I < Path.Num(); ++I)
+				{
+					const FVector A = Path[I - 1];
+					const FVector B = Path[I];
+					const FVector Leg = B - A;
+					const float Length = Leg.Size2D();
+					if (Length > KINDA_SMALL_NUMBER)
+					{
+						const float T = FMath::Clamp(
+							static_cast<float>(FVector::DotProduct(
+								FVector(Doorway.X - A.X, Doorway.Y - A.Y, 0.0),
+								FVector(Leg.X, Leg.Y, 0.0))) / (Length * Length),
+							0.0f, 1.0f);
+						const FVector On = A + Leg * T;
+						const float Distance = FVector::Dist2D(On, Doorway);
+						if (Distance < Nearest)
+						{
+							Nearest = Distance;
+							AtDoor = Travelled + T * Length;
+						}
+					}
+					Travelled += Length;
+				}
+
+				++Checked;
+				Missed += (AtDoor < Begin || AtDoor > End) ? 1 : 0;
+				Narrow += (End - Begin < Settlement.Building.DoorWidth) ? 1 : 0;
+
+				// And it is the door the gap is centred on, not the house. On an
+				// even bay count those are not the same place, and a gap centred
+				// on the wrong one puts a post on the doorstep.
+				OffCentre += FMath::Abs(0.5f * (Begin + End) - AtDoor) > 1.0f ? 1 : 0;
+			}
+		}
+	}
+
+	TestTrue(TEXT("there were villages to check"), Checked > 0);
+	TestEqual(TEXT("every doorstep is inside its gateway"), Missed, 0);
+	TestEqual(TEXT("no gateway is narrower than the door"), Narrow, 0);
+	TestEqual(TEXT("every gateway is centred on its door"), OffCentre, 0);
+	AddInfo(FString::Printf(TEXT("%d doorways checked"), Checked));
 
 	return true;
 }

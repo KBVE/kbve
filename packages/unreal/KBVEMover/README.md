@@ -38,12 +38,96 @@ Builds in `ci-unreal`, not locally. Touchpoints to confirm in-editor (Mover API 
 virtual void    SubmitMoveInput(const FVector& WorldIntent);   // 0..1 directional
 virtual void    SubmitJump(bool bPressed);
 virtual FVector GetAuthoritativeVelocity() const;
+virtual bool    PlaceAt(const FVector& Pos);                   // teleport; false = no opinion
 virtual void    ApplyServerCorrection(const FVector& Pos, const FVector& Vel);
+virtual void    ApplyServerCorrection(const FVector& Pos, const FVector& Vel, uint32 InputAck);
 ```
 
 `AKBVEMoverPawn` is the **Mover-backed reference implementation**. A CMC driver can wrap the existing `AchuckCoreCharacter` later; both satisfy the same interface.
 
 **Transport is orthogonal:** a driver decides how movement is _simulated_; Iris / KBVENet decide how it _replicates_. Don't conflate them.
+
+## Networking invariants
+
+Four rules. Each one was a bug before it was a rule, and each is cheap to hold and
+expensive to discover.
+
+**Never move a simulated pawn's actor.** Use `PlaceAt`, which queues Mover's
+`FTeleportEffect` so the simulation and the component move together. Mover keeps its
+own idea of where the pawn is and reconciles the component to it every tick, so a
+`SetActorLocation` is not a move — it is a disagreement, and the simulation wins it.
+
+**Leave `UMoverComponent`'s two external-movement flags alone.** `bWarnOnExternalMovement`
+defaults on and `bAcceptExternalMovement` defaults off, and both defaults are correct.
+Turning accept on would make out-of-band moves land, which sounds like a fix and is
+actually the loss of the only signal that anyone is making them. The warning is the
+tripwire; keep it armed.
+
+**Movement replicates through Mover, not through the actor.** `SetReplicatingMovement(false)`
+in the constructor is load-bearing. An actor replicating its own transform alongside a
+predicting movement simulation is the same class of bug as an out-of-band move, arriving
+from the network instead of from gameplay code.
+
+**The backend stays `UMoverNetworkPredictionLiaisonComponent`.** That is `UMoverComponent`'s
+default, so nothing sets it and nothing should. `MoverStandaloneLiaison` is the tempting
+alternative — simpler, cheaper, fine in PIE — and it does not replicate at all, so choosing
+it breaks multiplayer silently rather than loudly.
+
+### On Iris
+
+Nothing here needs porting. `NetworkPrediction` already calls `SetupIrisSupport(Target)`
+and ships Iris net serializers (`NetworkPredictionNetSerializers.cpp`, and the Iris package-map
+export plumbing in `NetworkPredictionReplicationProxy.h`), so the backend above replicates
+under Iris as it does under the generic system.
+
+Iris is a config switch rather than a build one. `SetupIrisSupport` is unconditional in
+5.8 -- it always adds `IrisCore` and defines `UE_WITH_IRIS=1` -- so there is nothing to
+compile differently.
+
+Two gates, and only one of them is ours. `BaseEngine.ini` already permits Iris for the
+`GameNetDriver` and forbids it for the `DemoNetDriver`:
+
+```ini
++IrisNetDriverConfigs=(NetDriverDefinition=GameNetDriver, bCanUseIris=true)
++IrisNetDriverConfigs=(NetDriverName=DemoNetDriver, bCanUseIris=false)
+```
+
+What it does not do is switch it on: `net.Iris.UseIrisReplication` defaults to `0`. So a
+project turns Iris on with one cvar, and **RareIcon sets it** in its `DefaultEngine.ini`:
+
+```ini
+[SystemSettings]
+net.Iris.UseIrisReplication=1
+```
+
+Adding another `+IrisNetDriverConfigs` line for `GameNetDriver` would achieve nothing --
+`UEngine::GetIrisNetDriverConfig` takes the *first* match for a driver, and the engine's
+own entry is already in the array ahead of anything a project appends. Override by exact
+`NetDriverName` or by wildcard, which are matched first, or not at all.
+
+`-UseIrisReplication=1` / `=0` on the command line overrides the cvar either way, which is
+how to A/B a suspected Iris-specific bug without editing config.
+
+Two things to keep in view rather than fix now:
+
+- `TArray<FKBVEMoverStat> Stats` is a plain replicated array, so any single stat change
+  resends the lot. Correct under Iris, just wasteful — a `FFastArraySerializer` is the
+  answer if stats ever change per-frame rather than per-event.
+- Structs with `WithNetDeltaSerializer` need an explicit Iris net serializer. None are on
+  this pawn; `FKBVENetEntityReplicator` in **KBVENet** has one, and that is the first
+  thing to check if that path is ever pointed at an Unreal dedicated server.
+
+### Which correction path applies
+
+`ApplyServerCorrection` exists for games whose authority is a **KBVENet/Simgrid** server
+pushing snapshots. A game on an Unreal dedicated server does not use it at all — Mover's
+own prediction and reconciliation carry the player pawn, and reaching for the driver's
+correction hook there means two systems correcting the same pawn.
+
+The `InputAck` overload is the seam for rollback-replay. `AKBVEMoverPawn` implements only
+the ack-less one, so under Simgrid every correction is a hard teleport with no replay.
+That is a real gap for a Simgrid-authoritative game and a non-issue for an Unreal-server
+one; decide which a game is before deciding whether it matters.
 
 ## Selecting a backend (policy)
 

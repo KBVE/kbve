@@ -103,6 +103,19 @@ namespace
 
 		return Layers;
 	}
+	/**
+	 * How many layers of plinth cover a point, wherever they were drawn.
+	 *
+	 * Both meshes, because a third of the village foots itself in stone and that
+	 * band is the same band -- it is simply committed against a different
+	 * material. Asking the masonry alone reads a stone-footed building as having
+	 * no plinth at all.
+	 */
+	int32 Layers(const FKBVEWorldBuildingMesh& Mesh, const FVector2D& Point, float AtZ)
+	{
+		return LayersAt(Mesh.Masonry, Point, AtZ) + LayersAt(Mesh.Plinth, Point, AtZ);
+	}
+
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -403,7 +416,7 @@ bool FKBVEWorldBuildingPlinthCornerTest::RunTest(const FString& Parameters)
 					FMath::Lerp(-OuterY, OuterY, static_cast<float>(Iy) / 40.0f) + 0.53f);
 
 				++Sampled;
-				if (LayersAt(Mesh.Masonry, P, Top) > 1)
+				if (Layers(Mesh, P, Top) > 1)
 				{
 					++Doubled;
 				}
@@ -420,7 +433,7 @@ bool FKBVEWorldBuildingPlinthCornerTest::RunTest(const FString& Parameters)
 			const FVector2D P(Corner < 2 ? InnerX : -InnerX,
 				Corner % 2 == 0 ? InnerY : -InnerY);
 
-			if (LayersAt(Mesh.Masonry, P, Top) == 0)
+			if (Layers(Mesh, P, Top) == 0)
 			{
 				++Bare;
 			}
@@ -431,6 +444,64 @@ bool FKBVEWorldBuildingPlinthCornerTest::RunTest(const FString& Parameters)
 	TestEqual(TEXT("every corner of the plinth is laid once"), Bare, 0);
 	AddInfo(FString::Printf(TEXT("%d samples, %d doubled, %d bare corners"),
 		Sampled, Doubled, Bare));
+
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FKBVEWorldBuildingNormalsTest,
+	"KBVE.World.Building.EveryFacetHasANormal",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// A zero normal does not fail anywhere it can be caught. It survives the build,
+// it survives the commit, and it lights -- as a bright sliver that slides about
+// with the camera, on the one facet of the one feature that happened to collapse.
+//
+// The whole building, at every tier, because the shape that produces one is any
+// surface fanning onto a line and there is no telling in advance which feature
+// grows one next.
+bool FKBVEWorldBuildingNormalsTest::RunTest(const FString& Parameters)
+{
+	const FKBVEWorldBuildingParams Building;
+
+	int32 Sampled = 0;
+	int32 Zeroed = 0;
+	int32 Skewed = 0;
+
+	for (int32 Step = 0; Step < 24; ++Step)
+	{
+		FKBVEWorldBuildingPlan Plan = FKBVEWorldBuilding::Plan(Building, Step * 7919 + 13,
+			FVector::ZeroVector, 0.37f);
+		Plan.Embed = 60.0f;
+
+		// Both doorways, whatever the roll gave, so neither shape can hide behind
+		// the other being the common one.
+		Plan.bArchedDoor = Step % 2 == 0;
+
+		for (const EKBVEWorldWallDetail Detail : { EKBVEWorldWallDetail::Full,
+			EKBVEWorldWallDetail::Plain, EKBVEWorldWallDetail::Solid })
+		{
+			FKBVEWorldBuildingMesh Mesh;
+			FKBVEWorldBuilding::Build(Building, Plan, Detail, Mesh);
+
+			for (const FKBVEWorldRibbonMesh* Part : { &Mesh.Masonry, &Mesh.Roof, &Mesh.Plinth,
+				&Mesh.Joinery.Timber, &Mesh.Joinery.Glazing })
+			{
+				for (const FVector& Normal : Part->Normals)
+				{
+					++Sampled;
+					const float Length = static_cast<float>(Normal.Size());
+					Zeroed += Length < 0.5f ? 1 : 0;
+					Skewed += (Length >= 0.5f && FMath::Abs(Length - 1.0f) > 0.01f) ? 1 : 0;
+				}
+			}
+		}
+	}
+
+	TestTrue(TEXT("there was a building to look at"), Sampled > 0);
+	TestEqual(TEXT("no facet was left without a normal"), Zeroed, 0);
+	TestEqual(TEXT("and none of them is unnormalised"), Skewed, 0);
+	AddInfo(FString::Printf(TEXT("%d normals checked"), Sampled));
 
 	return true;
 }
