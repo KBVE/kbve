@@ -1,13 +1,6 @@
-// Deno global types
-declare namespace Deno {
-  interface Env {
-    get(key: string): string | undefined;
-    toObject(): Record<string, string>;
-  }
-  const env: Env;
-
-  function readTextFile(path: string): Promise<string>;
-}
+// Deno globals (Deno.env, Deno.readTextFile) come from the runtime's own
+// lib.deno.ns.d.ts. A local `declare namespace Deno` shadowed it and collided
+// once the toolchain was pinned to the deno the edge runtime actually bundles.
 
 // Edge Runtime types
 declare namespace EdgeRuntime {

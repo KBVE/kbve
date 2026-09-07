@@ -209,7 +209,7 @@ async function sha256(...chunks: Uint8Array[]): Promise<Uint8Array> {
   return new Uint8Array(await crypto.subtle.digest("SHA-256", joined));
 }
 
-function xorInto(a: Uint8Array, b: Uint8Array): Uint8Array<ArrayBuffer> {
+function xorInto(a: Uint8Array, b: Uint8Array): Uint8Array {
   const out = new Uint8Array(a.length);
   for (let i = 0; i < a.length; i++) out[i] = a[i] ^ b[i % b.length];
   return out;
@@ -231,7 +231,7 @@ async function scramble(
   return xorInto(h1, h3);
 }
 
-function pemToDer(pem: string): Uint8Array<ArrayBuffer> {
+function pemToDer(pem: string): Uint8Array {
   const body = pem
     .replace(/-----BEGIN [^-]+-----/, "")
     .replace(/-----END [^-]+-----/, "")
