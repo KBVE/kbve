@@ -2,8 +2,8 @@
 # discordsh-api — Multi-stage Docker build
 #
 # Uses shared chisel base images:
-#   ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder  (Rust + Node + pnpm + cargo-chef)
-#   ghcr.io/kbve/chisel-ubuntu-axum:24.04.3         (chiseled Ubuntu + jemalloc + libpq)
+#   ghcr.io/kbve/chisel-ubuntu-axum:<version>-builder  (Rust + Node + pnpm + cargo-chef)
+#   ghcr.io/kbve/chisel-ubuntu-axum:<version>         (chiseled Ubuntu + jemalloc + libpq)
 # ============================================================================
 
 # ============================================================================
