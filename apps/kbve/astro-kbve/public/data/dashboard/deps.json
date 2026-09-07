@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-09-06T05:45:13Z",
+  "generated_at": "2026-09-07T05:55:52Z",
   "node": {
-    "count": 53,
+    "count": 56,
     "major": 28,
     "items": [
       {
@@ -173,6 +173,22 @@
         "major": false
       },
       {
+        "name": "cssnano",
+        "current": "9.0.2",
+        "wanted": "9.0.2",
+        "latest": "9.0.3",
+        "type": "devDependencies",
+        "major": false
+      },
+      {
+        "name": "dompurify",
+        "current": "3.4.14",
+        "wanted": "3.4.14",
+        "latest": "3.4.15",
+        "type": "dependencies",
+        "major": false
+      },
+      {
         "name": "eslint",
         "current": "9.39.5",
         "wanted": "9.39.5",
@@ -280,7 +296,7 @@
         "name": "postcss-merge-rules",
         "current": "8.0.1",
         "wanted": "8.0.1",
-        "latest": "9.0.2",
+        "latest": "9.0.3",
         "type": "devDependencies",
         "major": true
       },
@@ -405,6 +421,14 @@
         "major": true
       },
       {
+        "name": "verdaccio",
+        "current": "6.10.2",
+        "wanted": "6.10.2",
+        "latest": "6.10.3",
+        "type": "devDependencies",
+        "major": false
+      },
+      {
         "name": "vite-plugin-dts",
         "current": "4.5.4",
         "wanted": "4.5.4",
@@ -431,7 +455,7 @@
     ]
   },
   "rust": {
-    "count": 296,
+    "count": 298,
     "major": 1,
     "items": [
       {
@@ -1773,6 +1797,12 @@
         "major": false
       },
       {
+        "name": "plist",
+        "current": "1.10.0",
+        "latest": "1.10.1",
+        "major": false
+      },
+      {
         "name": "portable-atomic",
         "current": "1.14.0",
         "latest": "1.15.0",
@@ -1806,6 +1836,12 @@
         "name": "pulldown-cmark-to-cmark",
         "current": "22.0.0",
         "latest": "22.0.1",
+        "major": false
+      },
+      {
+        "name": "quick-xml",
+        "current": "0.39.4",
+        "latest": "0.42.0",
         "major": false
       },
       {
@@ -2033,13 +2069,13 @@
       {
         "name": "ureq",
         "current": "3.3.0",
-        "latest": "3.4.0",
+        "latest": "3.4.1",
         "major": false
       },
       {
         "name": "ureq-proto",
         "current": "0.6.0",
-        "latest": "0.6.1",
+        "latest": "0.6.2",
         "major": false
       },
       {
@@ -2212,6 +2248,6 @@
       }
     ]
   },
-  "total": 349,
+  "total": 354,
   "major_total": 29
 }

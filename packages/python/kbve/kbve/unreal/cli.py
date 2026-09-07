@@ -39,6 +39,18 @@ def world_map_main(argv: list[str] | None = None) -> int:
     return _run(argv or sys.argv[1:], "world_map", "Populate an Unreal level from a JSON description.")
 
 
+def foliage_pack_main(argv: list[str] | None = None) -> int:
+    """Lay a folder of cutout scans out as a pack the texture ingest can read.
+
+    Imported here rather than at the top because it is the one thing in this
+    module that needs Pillow and numpy, and the rest of these commands are run
+    on machines that install neither.
+    """
+    from .foliage_pack import main
+
+    return main(argv)
+
+
 def surface_textures_main(argv: list[str] | None = None) -> int:
     """Convert the source sets, then import them and rebuild their materials.
 

@@ -24,11 +24,6 @@
 			"Name": "KBVEWorld",
 			"Type": "Runtime",
 			"LoadingPhase": "PostConfigInit"
-		},
-		{
-			"Name": "KBVEHexWorld",
-			"Type": "Runtime",
-			"LoadingPhase": "PostConfigInit"
 		}
 	],
 	"Plugins": [
@@ -50,6 +45,10 @@
 		},
 		{
 			"Name": "KBVEGameplay",
+			"Enabled": true
+		},
+		{
+			"Name": "KBVEMover",
 			"Enabled": true
 		}
 	]

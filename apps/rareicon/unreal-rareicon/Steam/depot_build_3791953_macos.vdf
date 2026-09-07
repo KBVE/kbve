@@ -1,0 +1,23 @@
+// macOS depot for RareIcon Demo (AppID 3791950).
+//
+// Unreal stages the Mac client as a `<AppName>.app/` bundle under Mac/.
+// The wildcard captures the bundle plus any sibling artifacts at that root.
+//
+// The bundle is Developer ID signed and notarized before it is archived
+// (NOTARIZE=true on the project), so the depot must not rewrite it: no
+// exclusion here may reach inside the .app or the signature breaks.
+
+"DepotBuildConfig"
+{
+	"DepotID"        "3791953"
+
+	"FileMapping"
+	{
+		"LocalPath"  "Mac/*"
+		"DepotPath"  "."
+		"recursive"  "1"
+	}
+
+	"FileExclusion" "*.dSYM*"
+	"FileExclusion" "Manifest_*.txt"
+}

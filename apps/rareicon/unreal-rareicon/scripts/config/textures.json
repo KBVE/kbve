@@ -53,10 +53,28 @@
 			"destination": "/Game/Textures/World"
 		},
 		{
+			"stem": "T_GrassMedium",
+			"pack": "grass_medium_01_1k",
+			"alpha": true,
+			"resolution": 1024,
+			"displacement": false,
+			"source": "Foliage",
+			"destination": "/Game/Textures/Foliage"
+		},
+		{
 			"stem": "T_GrassCard",
 			"pack": "grass_bermuda_01_1k",
 			"alpha": true,
 			"resolution": 1024,
+			"displacement": false,
+			"source": "Foliage",
+			"destination": "/Game/Textures/Foliage"
+		},
+		{
+			"stem": "T_IvyLeaf",
+			"pack": "english_ivy_2k",
+			"alpha": true,
+			"resolution": 2048,
 			"displacement": false,
 			"source": "Foliage",
 			"destination": "/Game/Textures/Foliage"
@@ -92,21 +110,289 @@
 	"foliage_materials": [
 		{
 			"path": "/Game/Textures/Foliage/M_RareIcon_GrassCard",
-			"stem": "T_GrassCard"
+			"stem": "T_GrassCard",
+			"atlas": "/Game/Textures/Foliage/DA_RareIcon_GrassCard",
+			"weight": 2,
+			"fade_start": 2400,
+			"fade_range": 900,
+			"cells": [
+				[
+					364,
+					28,
+					484,
+					320
+				],
+				[
+					548,
+					32,
+					680,
+					236
+				],
+				[
+					696,
+					112,
+					972,
+					244
+				],
+				[
+					44,
+					160,
+					320,
+					296
+				],
+				[
+					52,
+					428,
+					192,
+					556
+				],
+				[
+					284,
+					412,
+					472,
+					552
+				],
+				[
+					552,
+					368,
+					736,
+					560
+				],
+				[
+					796,
+					328,
+					960,
+					564
+				],
+				[
+					48,
+					696,
+					176,
+					1012
+				],
+				[
+					236,
+					644,
+					396,
+					1012
+				],
+				[
+					432,
+					700,
+					632,
+					1016
+				],
+				[
+					712,
+					680,
+					888,
+					1016
+				]
+			]
+		},
+		{
+			"path": "/Game/Textures/Foliage/M_RareIcon_GrassMedium",
+			"stem": "T_GrassMedium",
+			"atlas": "/Game/Textures/Foliage/DA_RareIcon_GrassMedium",
+			"weight": 3,
+			"fade_start": 2400,
+			"fade_range": 900,
+			"cells": [
+				[
+					200,
+					776,
+					455,
+					890
+				],
+				[
+					600,
+					776,
+					800,
+					890
+				],
+				[
+					24,
+					888,
+					190,
+					1020
+				],
+				[
+					250,
+					898,
+					470,
+					1022
+				],
+				[
+					596,
+					898,
+					772,
+					1022
+				]
+			]
+		},
+		{
+			"path": "/Game/Textures/Foliage/M_RareIcon_Ivy",
+			"stem": "T_IvyLeaf",
+			"atlas": "/Game/Textures/Foliage/DA_RareIcon_Ivy",
+			"sheet": 2048,
+			"weight": 1,
+			"wind": false,
+			"tint": [
+				1.0,
+				1.0,
+				1.0
+			],
+			"tint_variation": 0.1,
+			"base_shade": 0.86,
+			"fade_start": 3600,
+			"fade_range": 1200,
+			"cells": [
+				[
+					732,
+					594,
+					1084,
+					1086
+				],
+				[
+					523,
+					0,
+					996,
+					568
+				],
+				[
+					1487,
+					0,
+					1873,
+					554
+				],
+				[
+					0,
+					1136,
+					314,
+					1594
+				],
+				[
+					0,
+					0,
+					515,
+					586
+				],
+				[
+					322,
+					1136,
+					758,
+					1588
+				],
+				[
+					0,
+					1602,
+					482,
+					2040
+				],
+				[
+					0,
+					594,
+					272,
+					1128
+				],
+				[
+					1120,
+					1136,
+					1382,
+					1585
+				],
+				[
+					1562,
+					594,
+					1941,
+					1070
+				],
+				[
+					1390,
+					1136,
+					1725,
+					1582
+				],
+				[
+					490,
+					1602,
+					802,
+					1946
+				],
+				[
+					766,
+					1136,
+					1112,
+					1587
+				],
+				[
+					280,
+					594,
+					724,
+					1109
+				],
+				[
+					1004,
+					0,
+					1479,
+					555
+				],
+				[
+					810,
+					1602,
+					1099,
+					1898
+				],
+				[
+					1092,
+					594,
+					1554,
+					1074
+				]
+			]
 		}
 	],
 	"water_material": {
 		"path": "/Game/Textures/World/M_RareIcon_Water",
-		"tint": [0.008, 0.035, 0.05],
+		"tint": [
+			0.008,
+			0.035,
+			0.05
+		],
 		"roughness": 0.02,
-		"scattering": [0.004, 0.0016, 0.0012],
-		"absorption": [0.006, 0.003, 0.002]
+		"scattering": [
+			0.004,
+			0.0016,
+			0.0012
+		],
+		"absorption": [
+			0.006,
+			0.003,
+			0.002
+		]
 	},
 	"glass_material": {
 		"path": "/Game/Textures/World/M_RareIcon_Glass",
-		"tint": [0.02, 0.025, 0.028],
+		"tint": [
+			0.02,
+			0.025,
+			0.028
+		],
 		"roughness": 0.08,
 		"opacity": 0.12,
-		"transmittance": [0.78, 0.86, 0.82]
+		"transmittance": [
+			0.78,
+			0.86,
+			0.82
+		]
+	},
+	"wind_collection": {
+		"path": "/Game/Textures/MPC_RareIcon_Wind",
+		"direction": [
+			1,
+			-1
+		],
+		"speed": 0.85,
+		"strength": 1.0
 	}
 }

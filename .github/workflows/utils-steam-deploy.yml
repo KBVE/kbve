@@ -1,0 +1,202 @@
+# =============================================================================
+# UTILS: Steam deploy
+#
+# Uploads a game's build artifacts to Steam via SteamPipe, one job per entry in
+# the caller's `steam_apps` array, and dispatches the branch promotion when an
+# entry asks for one.
+#
+# Engine-agnostic on purpose. This was ci-unity.yml's `deploy_steam` job, which
+# was the only real steamcmd in the repo -- the Unreal lane had none and
+# utils-external-publish.yml has a stub. The two lanes differ in exactly two
+# things, both inputs here: what the platform directories are called, and
+# whether a build artifact is the directory itself (Unity) or a zip of it
+# (Unreal).
+# =============================================================================
+name: UTILS - Steam deploy
+
+on:
+    workflow_call:
+        inputs:
+            app_name:
+                description: 'Project id, used to find its build artifacts'
+                required: true
+                type: string
+            project_path:
+                description: 'Project dir holding Steam/app_build_<label>.vdf'
+                required: true
+                type: string
+            version:
+                description: 'Version the artifacts were built at'
+                required: false
+                type: string
+                default: ''
+            steam_apps:
+                description: 'JSON array of { app_id, label, branch, promote_to_branch }'
+                required: true
+                type: string
+            artifact_pattern:
+                description: 'download-artifact pattern (default: <app_name>-*)'
+                required: false
+                type: string
+                default: ''
+            depot1_path:
+                description: 'Content dir for the first depot (e.g. Windows)'
+                required: false
+                type: string
+                default: ''
+            depot2_path:
+                description: 'Content dir for the second depot (e.g. Linux)'
+                required: false
+                type: string
+                default: ''
+            depot3_path:
+                description: 'Content dir for the third depot (e.g. Mac)'
+                required: false
+                type: string
+                default: ''
+        secrets:
+            STEAM_USERNAME:
+                required: false
+            STEAM_PASSWORD:
+                required: false
+            STEAM_TOTP_SECRET:
+                required: false
+            PROMOTE_TOKEN:
+                description: 'Token allowed to dispatch ci-steam-promote.yml'
+                required: false
+
+permissions:
+    contents: read
+
+jobs:
+    deploy:
+        name: Steam deploy ${{ matrix.app.label || matrix.app.app_id }}
+        # One job per SteamApp entry. Each entry expects a matching
+        # <project_path>/Steam/app_build_<label>.vdf -- missing files log + skip
+        # so dormant entries (e.g. a main game queued for later release) can sit
+        # in the config without breaking the matrix.
+        if: inputs.steam_apps != '[]' && inputs.steam_apps != 'null' && inputs.steam_apps != ''
+        runs-on: ubuntu-latest
+        timeout-minutes: 60
+        strategy:
+            fail-fast: false
+            matrix:
+                app: ${{ fromJson(inputs.steam_apps) }}
+        steps:
+            - name: Checkout monorepo
+              uses: actions/checkout@v7
+              with:
+                  lfs: false
+
+            - name: Resolve VDF
+              id: vdf
+              run: |
+                  LABEL="${{ matrix.app.label }}"
+                  if [ -z "$LABEL" ]; then
+                      LABEL="${{ matrix.app.app_id }}"
+                  fi
+                  VDF="${{ inputs.project_path }}/Steam/app_build_${LABEL}.vdf"
+                  if [ ! -f "$VDF" ]; then
+                      echo "::notice::Skipping Steam upload for app ${{ matrix.app.app_id }} — VDF missing at $VDF"
+                      echo "skip=true" >> "$GITHUB_OUTPUT"
+                      exit 0
+                  fi
+                  PATTERN="${{ inputs.artifact_pattern }}"
+                  if [ -z "$PATTERN" ]; then
+                      PATTERN="${{ inputs.app_name }}-*"
+                  fi
+                  {
+                      echo "skip=false"
+                      echo "label=$LABEL"
+                      echo "pattern=$PATTERN"
+                  } >> "$GITHUB_OUTPUT"
+
+            - name: Download all build artifacts
+              if: steps.vdf.outputs.skip != 'true'
+              uses: actions/download-artifact@v8
+              with:
+                  pattern: ${{ steps.vdf.outputs.pattern }}
+                  path: ${{ inputs.project_path }}/build/
+                  merge-multiple: false
+
+            - name: Flatten artifacts into the ContentRoot layout
+              if: steps.vdf.outputs.skip != 'true'
+              env:
+                  PREFIX: ${{ inputs.app_name }}-
+              run: |
+                  set -euo pipefail
+                  cd "${{ inputs.project_path }}/build"
+
+                  # Debug symbols are uploaded as their own artifact and must
+                  # never reach a depot -- on the Unreal lane they are also an
+                  # encrypted blob no depot could use.
+                  find . -maxdepth 1 -type d -name '*symbols*' -exec rm -rf {} +
+
+                  # The Unreal lane uploads one zip per platform whose top-level
+                  # directory is already the depot name; extracting at the root
+                  # is the whole of the flatten for it.
+                  while IFS= read -r -d '' zip; do
+                      unzip -q -o "$zip" -d .
+                      rm -f "$zip"
+                  done < <(find . -name '*.zip' -print0)
+                  find . -maxdepth 1 -type d -empty -delete
+
+                  # The Unity lane uploads the build directories themselves, so
+                  # download-artifact leaves build/<app>-<target>/ where the
+                  # depots reference build/<target>/.
+                  for d in */; do
+                      d="${d%/}"
+                      case "$d" in "$PREFIX"*) ;; *) continue ;; esac
+                      target="${d#"$PREFIX"}"
+                      [ -n "$target" ] || continue
+                      [ -d "$target" ] || mv "$d" "$target"
+                  done
+                  ls -la
+
+            - name: Generate Steam Guard TOTP
+              if: steps.vdf.outputs.skip != 'true'
+              id: steam_totp
+              uses: CyberAndrii/steam-totp@v1
+              with:
+                  shared_secret: ${{ secrets.STEAM_TOTP_SECRET }}
+
+            # SHA-pin to the v3.2.1 tag: it is the first release that tees
+            # steamcmd output and scrapes `(BuildID NNN)` into the buildId step
+            # output. Stay on a tag rather than main — main now shells out to a
+            # `game-ci/cli` binary resolved at run time.
+            - name: Upload via SteamPipe (game-ci/steam-deploy)
+              if: steps.vdf.outputs.skip != 'true'
+              id: steam_deploy
+              uses: game-ci/steam-deploy@50f6b29fc64922e19a16d202a88fe199d394b536 # v3.2.1
+              with:
+                  username: ${{ secrets.STEAM_USERNAME }}
+                  password: ${{ secrets.STEAM_PASSWORD }}
+                  totp: ${{ steps.steam_totp.outputs.code }}
+                  appId: ${{ matrix.app.app_id }}
+                  buildDescription: '${{ github.sha }} (${{ steps.vdf.outputs.label }} v${{ inputs.version }})'
+                  rootPath: ${{ inputs.project_path }}/build
+                  depot1Path: ${{ inputs.depot1_path }}
+                  depot2Path: ${{ inputs.depot2_path }}
+                  depot3Path: ${{ inputs.depot3_path }}
+                  releaseBranch: ${{ matrix.app.branch }}
+
+            # Auto-dispatch promotion to the live branch, gated by the
+            # `steam-prod` GitHub environment in ci-steam-promote.yml. Only
+            # fires when the entry declares a promote_to_branch, which keeps
+            # dormant entries safe.
+            - name: Dispatch Steam branch promotion
+              if: ${{ steps.vdf.outputs.skip != 'true' && matrix.app.promote_to_branch != '' && steps.steam_deploy.outputs.buildId != '' }}
+              env:
+                  GH_TOKEN: ${{ secrets.PROMOTE_TOKEN }}
+              run: |
+                  BUILD_ID="${{ steps.steam_deploy.outputs.buildId }}"
+                  echo "::notice::Dispatching promotion: app=${{ matrix.app.app_id }} build=$BUILD_ID ${{ matrix.app.branch }} → ${{ matrix.app.promote_to_branch }}"
+                  gh workflow run ci-steam-promote.yml \
+                    --repo "${{ github.repository }}" \
+                    --ref "${{ github.ref_name }}" \
+                    -f app_id="${{ matrix.app.app_id }}" \
+                    -f build_id="$BUILD_ID" \
+                    -f from_branch="${{ matrix.app.branch }}" \
+                    -f to_branch="${{ matrix.app.promote_to_branch }}" \
+                    -f app_label="${{ steps.vdf.outputs.label }}" \
+                    -f source_sha="${{ github.sha }}"

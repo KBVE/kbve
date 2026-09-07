@@ -1,0 +1,23 @@
+// Windows depot for RareIcon Demo (AppID 3791950).
+//
+// LocalPath is relative to the parent app_build's `contentroot`
+// (../build/) so this depot pulls everything Unreal archives under
+// build/Windows/.
+
+"DepotBuildConfig"
+{
+	"DepotID"        "3791951"
+
+	"FileMapping"
+	{
+		"LocalPath"  "Windows/*"
+		"DepotPath"  "."
+		"recursive"  "1"
+	}
+
+	// Debug symbols and UE's stage-time manifests are not player content:
+	// the PDBs are larger than the exe, and Manifest_UFSFiles leaks the
+	// whole cooked asset tree.
+	"FileExclusion" "*.pdb"
+	"FileExclusion" "Manifest_*.txt"
+}

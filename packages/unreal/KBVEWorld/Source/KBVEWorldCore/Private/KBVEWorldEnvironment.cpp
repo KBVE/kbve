@@ -4,6 +4,9 @@
 #include "Components/ExponentialHeightFogComponent.h"
 #include "Components/SkyAtmosphereComponent.h"
 #include "Components/SkyLightComponent.h"
+#include "Components/VolumetricCloudComponent.h"
+#include "Kismet/KismetMaterialLibrary.h"
+#include "Materials/MaterialParameterCollection.h"
 
 DEFINE_LOG_CATEGORY(LogKBVEWorldEnv);
 
@@ -34,6 +37,12 @@ AKBVEWorldEnvironment::AKBVEWorldEnvironment()
 
 	Fog = CreateDefaultSubobject<UExponentialHeightFogComponent>(TEXT("Fog"));
 	Fog->SetupAttachment(Root);
+
+	// Hidden until asked for. The component exists whatever the setting says, so
+	// turning weather on is a property change rather than a rebuild of the map.
+	Clouds = CreateDefaultSubobject<UVolumetricCloudComponent>(TEXT("Clouds"));
+	Clouds->SetupAttachment(Root);
+	Clouds->SetVisibility(false);
 }
 
 FRotator AKBVEWorldEnvironment::QuantisedSunRotation() const
@@ -82,6 +91,65 @@ void AKBVEWorldEnvironment::ApplyEnvironment()
 		Fog->SetFogInscatteringColor(FogColor);
 		Fog->MarkRenderStateDirty();
 	}
+
+	if (Clouds)
+	{
+		Clouds->SetVisibility(bCloudsEnabled);
+		if (bCloudsEnabled)
+		{
+			// Kilometres in the property, because that is the unit a cloud layer
+			// is discussed in; the component wants them too, so nothing here
+			// converts and nothing here can convert wrongly.
+			Clouds->SetLayerBottomAltitude(CloudBottomKm);
+			Clouds->SetLayerHeight(CloudThicknessKm);
+			if (CloudTracingStartMaxDistanceKm > 0.0f)
+			{
+				Clouds->SetTracingStartMaxDistance(CloudTracingStartMaxDistanceKm);
+			}
+			if (UMaterialInterface* Sheet = CloudMaterial.LoadSynchronous())
+			{
+				Clouds->SetMaterial(Sheet);
+			}
+		}
+		Clouds->MarkRenderStateDirty();
+	}
+
+	if (Sun)
+	{
+		// Shadowing is asked of the light rather than of the cloud, and only
+		// while there are clouds to cast them: left on with the layer hidden it
+		// is a shadow map built every frame for nothing.
+		Sun->bCastCloudShadows = bCloudsEnabled && bCloudShadows;
+		Sun->CloudShadowStrength = CloudShadowStrength;
+		Sun->MarkRenderStateDirty();
+	}
+
+	PublishWind();
+}
+
+void AKBVEWorldEnvironment::PublishWind()
+{
+	UMaterialParameterCollection* Collection = WindCollection.LoadSynchronous();
+	if (!Collection || !GetWorld())
+	{
+		return;
+	}
+
+	// Normalised on the way out so the property can be written as a plain
+	// direction. A heading that is also a magnitude is a heading that silently
+	// changes the wind's strength every time someone turns it.
+	const FVector2D Heading = WindTravelDirection.GetSafeNormal();
+
+	UKismetMaterialLibrary::SetVectorParameterValue(GetWorld(), Collection,
+		TEXT("WindTravelDirection"), FLinearColor(Heading.X, Heading.Y, 0.0f, 0.0f));
+	UKismetMaterialLibrary::SetScalarParameterValue(GetWorld(), Collection,
+		TEXT("WindSpeed"), WindSpeed);
+	UKismetMaterialLibrary::SetScalarParameterValue(GetWorld(), Collection,
+		TEXT("WindStrength"), WindStrength);
+
+	UE_LOG(LogKBVEWorldEnv, Display,
+		TEXT("wind travelling (%.2f, %.2f) at %.2f, strength %.2f"),
+		Heading.X, Heading.Y, WindSpeed, WindStrength);
 }
 
 void AKBVEWorldEnvironment::SetSunAngle(float ElevationDegrees, float AzimuthDegrees)

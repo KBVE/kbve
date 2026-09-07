@@ -99,7 +99,10 @@ namespace
 
 AKBVEWorldRoadChunk::AKBVEWorldRoadChunk()
 {
-	PrimaryActorTick.bCanEverTick = false;
+	// Only while a door is moving. A chunk with nothing swinging on it is a
+	// chunk with nothing to do every frame, and there are a lot of chunks.
+	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bStartWithTickEnabled = false;
 
 	USceneComponent* SceneRoot = CreateDefaultSubobject<USceneComponent>(TEXT("Root"));
 	SetRootComponent(SceneRoot);
@@ -296,6 +299,7 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 	Commit(Joinery, Structures.Joinery.Timber, In.WoodMaterial, true);
 	Commit(Glazing, Structures.Joinery.Glazing, In.GlassMaterial, true);
 	Commit(Plinth, Structures.Plinth, In.StoneMaterial, true);
+	CommitLeaves(Structures.Joinery, Origin, In.WoodMaterial);
 
 	// The supports collide as blocks whether they were drawn as triangles here or
 	// as instances elsewhere, so this does not care which happened.
@@ -605,6 +609,178 @@ void AKBVEWorldRoadChunk::OpenGates(const FBuild& In)
 	}
 }
 
+AKBVEWorldRoadNetwork* AKBVEWorldRoadChunk::Doors() const
+{
+	return Cast<AKBVEWorldRoadNetwork>(GetOwner());
+}
+
+void AKBVEWorldRoadChunk::CommitLeaves(const FKBVEWorldJoineryMesh& Fittings, const FVector& Origin,
+	UMaterialInterface* Material)
+{
+	const int32 Wanted = Fittings.Leaves.Num();
+
+	// Grown to fit and never shrunk. A village is a handful of doors and a chunk
+	// comes back with roughly the same ones, so the components are worth keeping;
+	// what is not worth keeping is the geometry in the ones nobody needs.
+	while (LeafParts.Num() < Wanted)
+	{
+		UProceduralMeshComponent* Part = NewObject<UProceduralMeshComponent>(this);
+		Part->SetupAttachment(GetRootComponent());
+		Part->bUseAsyncCooking = true;
+		Part->SetCanEverAffectNavigation(false);
+		Part->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		Part->RegisterComponent();
+		LeafParts.Add(Part);
+	}
+
+	Leaves.SetNum(Wanted);
+
+	for (int32 I = 0; I < LeafParts.Num(); ++I)
+	{
+		UProceduralMeshComponent* Part = LeafParts[I];
+		if (!Part)
+		{
+			continue;
+		}
+
+		if (I >= Wanted)
+		{
+			Part->ClearAllMeshSections();
+			Part->SetVisibility(false);
+			Part->SetCollisionEnabled(ECollisionEnabled::NoCollision);
+			continue;
+		}
+
+		const FKBVEWorldDoorLeaf& Leaf = Fittings.Leaves[I];
+
+		// The hinge is where the component stands and the leaf is drawn around it,
+		// so opening one is a rotation about its own origin rather than a rebuild.
+		// X along the leaf and Z up leaves Y pointing away from the street, which
+		// is what makes a positive yaw a door swinging inwards.
+		// Re-hung, so whatever this leaf was doing a moment ago is gone. A door
+		// somebody opened is put back open rather than eased there: the rebuild
+		// that lost it is a building changing tier or a chunk coming back, and
+		// neither is a reason for a door across the village to swing itself.
+		const AKBVEWorldRoadNetwork* Network = Doors();
+		const bool bOpen = Network && Network->IsDoorOpen(Leaf.Key);
+
+		Leaves[I].Key = Leaf.Key;
+		Leaves[I].Hinge = Leaf.Hinge - Origin;
+		Leaves[I].Swing = Leaf.Swing;
+		Leaves[I].Angle = bOpen ? Leaf.Swing : 0.0f;
+		Leaves[I].Target = Leaves[I].Angle;
+
+		Part->SetVisibility(true);
+		Part->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
+		Leaves[I].Base = FRotationMatrix::MakeFromXZ(Leaf.Along, FVector::UpVector).ToQuat();
+		Part->SetRelativeLocationAndRotation(Leaves[I].Hinge,
+			FRotator(0.0f, Leaves[I].Angle, 0.0f).Quaternion() * Leaves[I].Base);
+
+		Part->ClearAllMeshSections();
+		if (Leaf.Mesh.IsEmpty())
+		{
+			continue;
+		}
+
+		const TArray<FLinearColor> NoColors;
+		Part->CreateMeshSection_LinearColor(0, Leaf.Mesh.Vertices, Leaf.Mesh.Triangles,
+			Leaf.Mesh.Normals, Leaf.Mesh.UV0, NoColors, Leaf.Mesh.Tangents, true);
+		if (Material)
+		{
+			Part->SetMaterial(0, Material);
+		}
+	}
+
+	SetActorTickEnabled(false);
+}
+
+void AKBVEWorldRoadChunk::OnInteract_Implementation(AActor* Instigator)
+{
+	if (!Instigator || Leaves.Num() == 0)
+	{
+		return;
+	}
+
+	// The pawn traced and hit the chunk, which is a whole village, so which door
+	// was meant is decided here. Nearest hinge to whoever asked: a doorway is a
+	// metre across and the houses are twelve apart, so there is nothing to be
+	// ambiguous about at the range the trace already had to succeed from.
+	const FVector At = Instigator->GetActorLocation() - GetActorLocation();
+
+	int32 Nearest = INDEX_NONE;
+	float Closest = FMath::Square(400.0f);
+	for (int32 I = 0; I < Leaves.Num(); ++I)
+	{
+		const float Distance = static_cast<float>(FVector::DistSquared(Leaves[I].Hinge, At));
+		if (Distance < Closest)
+		{
+			Closest = Distance;
+			Nearest = I;
+		}
+	}
+
+	if (Nearest == INDEX_NONE)
+	{
+		return;
+	}
+
+	// Toggled against where it is going rather than where it is, so a door caught
+	// halfway through opening shuts again instead of finishing first.
+	FLeaf& Leaf = Leaves[Nearest];
+	Leaf.Target = Leaf.Target > 0.0f ? 0.0f : Leaf.Swing;
+
+	// Written down where it outlives the geometry, so the door is still open when
+	// the village is rebuilt around it.
+	if (AKBVEWorldRoadNetwork* Network = Doors())
+	{
+		Network->SetDoorOpen(Leaf.Key, Leaf.Target > 0.0f);
+	}
+
+	SetActorTickEnabled(true);
+}
+
+void AKBVEWorldRoadChunk::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	// Eased towards the target and stopped dead on arrival, which is also what
+	// turns the tick back off: a chunk with nothing swinging on it has nothing to
+	// do every frame, and a stream holds a great many chunks.
+	bool bMoving = false;
+
+	for (int32 I = 0; I < Leaves.Num() && I < LeafParts.Num(); ++I)
+	{
+		FLeaf& Leaf = Leaves[I];
+		if (FMath::IsNearlyEqual(Leaf.Angle, Leaf.Target, 0.01f))
+		{
+			Leaf.Angle = Leaf.Target;
+			continue;
+		}
+
+		Leaf.Angle = FMath::FInterpTo(Leaf.Angle, Leaf.Target, DeltaSeconds, 7.0f);
+		bMoving = true;
+
+		if (UProceduralMeshComponent* Part = LeafParts[I])
+		{
+			// Turned about the component rather than rebuilt, so the collision --
+			// which is the component's own cooked shape -- comes round with it and
+			// an open doorway is one you can walk through.
+			//
+			// Turned from where it was hung, not set to a bare yaw: the frame that
+			// stood the leaf up in its wall is in that rotation, and replacing it
+			// would swing every door in the village onto a world axis. The hinge
+			// runs up, so a world yaw and a yaw in the leaf's own frame are the
+			// same turn either way round.
+			Part->SetRelativeRotation(FRotator(0.0f, Leaf.Angle, 0.0f).Quaternion() * Leaf.Base);
+		}
+	}
+
+	if (!bMoving)
+	{
+		SetActorTickEnabled(false);
+	}
+}
+
 void AKBVEWorldRoadChunk::SpawnBuildings(const FBuild& In)
 {
 	if (Plans.Num() == 0)
@@ -750,6 +926,7 @@ bool AKBVEWorldRoadChunk::RebuildBuildings(const FBuild& In)
 	Commit(Joinery, Structures.Joinery.Timber, In.WoodMaterial, true);
 	Commit(Glazing, Structures.Joinery.Glazing, In.GlassMaterial, true);
 	Commit(Plinth, Structures.Plinth, In.StoneMaterial, true);
+	CommitLeaves(Structures.Joinery, Origin, In.WoodMaterial);
 	return true;
 }
 

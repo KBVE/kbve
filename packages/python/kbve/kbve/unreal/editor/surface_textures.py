@@ -24,20 +24,32 @@ material with a switch.
 """
 
 import json
+import math
 import os
+import sys
 
 import unreal
 
-ASSET_TOOLS = unreal.AssetToolsHelpers.get_asset_tools()
-EAL = unreal.EditorAssetLibrary
-MEL = unreal.MaterialEditingLibrary
+# The editor runs this as a loose file, not as part of a package: the commandlet
+# is handed a path and there is no kbve.unreal.editor around it by then, so a
+# relative import raises before the script does anything at all. Putting this
+# file's own directory on the path is what allows an editor script to be more
+# than one file -- which is why the ones beside it each carry their own copy of
+# everything they need.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-# suffix -> (sRGB, compression, sampler type)
-MAPS = {
-    "D": (True, unreal.TextureCompressionSettings.TC_DEFAULT, unreal.MaterialSamplerType.SAMPLERTYPE_COLOR),
-    "N": (False, unreal.TextureCompressionSettings.TC_NORMALMAP, unreal.MaterialSamplerType.SAMPLERTYPE_NORMAL),
-    "RH": (False, unreal.TextureCompressionSettings.TC_MASKS, unreal.MaterialSamplerType.SAMPLERTYPE_MASKS),
-}
+import foliage_wpo  # noqa: E402
+from material_graph import (  # noqa: E402
+    ASSET_TOOLS,
+    EAL,
+    MAPS,
+    MEL,
+    create_material,
+    expr,
+    link,
+    link_any,
+    sampler,
+)
 
 
 def load_config():
@@ -83,27 +95,6 @@ def import_texture(art_root, name, subdir, content_dir):
     EAL.save_asset(f"{content_dir}/{name}")
     unreal.log(f"imported {name} (srgb={srgb})")
     return tex
-
-
-def create_material(path):
-    if EAL.does_asset_exist(path):
-        EAL.delete_asset(path)
-    pkg_dir, pkg_name = path.rsplit("/", 1)
-    return ASSET_TOOLS.create_asset(pkg_name, pkg_dir, unreal.Material, unreal.MaterialFactoryNew())
-
-
-def expr(mat, cls, x, y):
-    return MEL.create_material_expression(mat, cls, x, y)
-
-
-def sampler(mat, textures, name, y, suffix, uvs, parameter=None):
-    _srgb, _compression, sampler_type = MAPS[suffix]
-    node = expr(mat, unreal.MaterialExpressionTextureSampleParameter2D, -300, y)
-    node.set_editor_property("parameter_name", parameter or name)
-    node.set_editor_property("texture", textures[name])
-    node.set_editor_property("sampler_type", sampler_type)
-    MEL.connect_material_expressions(uvs, "", node, "UVs")
-    return node
 
 
 def build_terrain_material(spec, textures):
@@ -264,18 +255,100 @@ def build_foliage_material(spec, textures):
     diff = sampler(mat, textures, f"{stem}_D", -200, "D", uv)
     packed = sampler(mat, textures, f"{stem}_RH", 400, "RH", uv)
 
-    # The mesh writes height along the blade into green, and nothing else knows
-    # which end is the ground. Both the shading at the base and the wind need to.
-    vertex = expr(mat, unreal.MaterialExpressionVertexColor, -700, -400)
+    # How far up its own clump a vertex sits, nought at the ground and one at the
+    # crown. Both the shading at the base and the wind are meaningless without
+    # it: they are the difference between a plant rooted in the earth and a
+    # cut-out sliding about on top of it.
+    #
+    # Measured off the geometry rather than read out of a vertex colour, which is
+    # where it used to come from. The card builder paints the channel, so that
+    # worked for exactly as long as every clump was a generated card -- a pack's
+    # own model arrives with no colours at all, which Unreal reads as white, and
+    # white means every vertex claims to be the crown. The base then lights as
+    # brightly as the tip and sways as far as it, so the whole clump slides from
+    # side to side instead of bending. That is the "dancing", and it is not a
+    # question of amplitude.
+    #
+    # Taken in the mesh's own local space, before any transform reaches it.
+    #
+    # Deriving it in world space instead needs the clump's pivot and its height,
+    # and both of those are traps: ObjectPositionWS is the centre of the bounds
+    # rather than the pivot, so half of every clump reads as below the ground;
+    # and world position is reported after the material's own offsets, so the
+    # wind moves the vertex, the moved vertex changes the height, and the height
+    # changes the wind, which is a clump that drives itself back and forth.
+    #
+    # Local bounds have neither problem. Bounds minimum is the bottom of the
+    # mesh whatever its pivot, the full extent is its height, and nothing here
+    # is downstream of the wind. It is also free of the instance's scale, so a
+    # clump normalised up from ten units answers the same as one authored at
+    # sixty.
+    local = expr(mat, unreal.MaterialExpressionPreSkinnedPosition, -1600, 400)
+    extent = expr(mat, unreal.MaterialExpressionPreSkinnedLocalBounds, -1600, 540)
+
+    def upward(source, outputs, y):
+        node = expr(mat, unreal.MaterialExpressionComponentMask, -1300, y)
+        node.set_editor_property("r", False)
+        node.set_editor_property("g", False)
+        node.set_editor_property("b", True)
+        node.set_editor_property("a", False)
+        link_any(source, outputs, node, "")
+        return node
+
+    off_floor = expr(mat, unreal.MaterialExpressionSubtract, -1050, 400)
+    link(upward(local, [""], 400), "", off_floor, "A")
+    link(upward(extent, ["Bounds Min", "BoundsMin", "Min"], 470), "", off_floor, "B")
+
+    # A unit of slack in the divisor: a mesh with no readable height would
+    # otherwise divide by zero, and an infinity saturates to one -- which is the
+    # every-vertex-is-the-crown case this whole block exists to remove.
+    one = expr(mat, unreal.MaterialExpressionConstant, -1300, 620)
+    one.set_editor_property("r", 1.0)
+    tall = expr(mat, unreal.MaterialExpressionAdd, -1050, 560)
+    link(upward(extent, ["Full Extents", "FullExtents", "Extents"], 540), "", tall, "A")
+    link(one, "", tall, "B")
+
+    rise = expr(mat, unreal.MaterialExpressionDivide, -800, 460)
+    link(off_floor, "", rise, "A")
+    link(tall, "", rise, "B")
+
+    # Vertex stage only: PreSkinnedPosition is a vertex-shader identifier, and a
+    # material that reaches for it from the pixel shader does not fail at that
+    # node -- it fails entirely, and Unreal quietly draws the default material
+    # instead. Which looks like grey untextured geometry, and reads as a broken
+    # mesh rather than a broken material.
+    #
+    # So the height is computed once here for the wind, which is a vertex
+    # concern, and carried across the interpolator for the shading and the
+    # ground blend, which are pixel ones.
+    lifted = expr(mat, unreal.MaterialExpressionClamp, -600, 460)
+    link(rise, "", lifted, "")
+
+    along = expr(mat, unreal.MaterialExpressionVertexInterpolator, -450, 460)
+    link(lifted, "", along, "")
+
+    # World space for the two things that genuinely want it: the ground the root
+    # blends into, and the direction out of the clump's centre the normal is bent
+    # along. Both without the material's own offsets, or each swims as the wind
+    # moves the blade it is measuring.
+    crown = expr(mat, unreal.MaterialExpressionWorldPosition, -1900, 200)
+    crown.set_editor_property(
+        "world_position_shader_offset",
+        unreal.WorldPositionIncludedOffsets.WPT_EXCLUDE_ALL_SHADER_OFFSETS,
+    )
+    pivot = expr(mat, unreal.MaterialExpressionObjectPositionWS, -1900, 340)
+    spoke = expr(mat, unreal.MaterialExpressionSubtract, -1700, 260)
+    link(crown, "", spoke, "A")
+    link(pivot, "", spoke, "B")
 
     occlusion = expr(mat, unreal.MaterialExpressionLinearInterpolate, -400, -400)
     occlusion.set_editor_property("const_a", spec.get("base_shade", 0.70))
     occlusion.set_editor_property("const_b", 1.0)
-    MEL.connect_material_expressions(vertex, "G", occlusion, "Alpha")
+    link(along, "", occlusion, "Alpha")
 
     shaded = expr(mat, unreal.MaterialExpressionMultiply, -100, -300)
-    MEL.connect_material_expressions(diff, "RGB", shaded, "A")
-    MEL.connect_material_expressions(occlusion, "", shaded, "B")
+    link(diff, "RGB", shaded, "A")
+    link(occlusion, "", shaded, "B")
 
     # The scan is a dry olive -- hue 69 degrees, and more red than a growing
     # blade has. Corrected here rather than in the PNG so the source stays the
@@ -284,13 +357,84 @@ def build_foliage_material(spec, textures):
     # (0.120, 0.132, 0.038), and this lands the lit blade on hue 98 at 0.62
     # saturation, which is a growing one.
     tint_rgb = spec.get("tint", [0.62, 1.60, 0.80])
-    tint = expr(mat, unreal.MaterialExpressionConstant3Vector, -400, -100)
-    tint.set_editor_property("constant", unreal.LinearColor(tint_rgb[0], tint_rgb[1], tint_rgb[2], 1.0))
-    tinted = expr(mat, unreal.MaterialExpressionMultiply, -100, -200)
-    MEL.connect_material_expressions(shaded, "", tinted, "A")
-    MEL.connect_material_expressions(tint, "", tinted, "B")
 
-    MEL.connect_material_property(tinted, "", unreal.MaterialProperty.MP_BASE_COLOR)
+    # One tint over the whole field is the loudest thing left saying this was
+    # generated. A real sward is a range -- the same species drier here, lusher
+    # there -- and the eye reads that range long before it reads any blade.
+    #
+    # Drier is redder and less saturated, lusher is greener: a scale on its own
+    # only makes some clumps darker, which reads as shadow rather than as a
+    # different plant. Per instance rather than per pixel, so a clump varies
+    # from its neighbour and not from itself.
+    scatter = expr(mat, unreal.MaterialExpressionPerInstanceRandom, -1200, 1600)
+
+    vary = spec.get("tint_variation", 0.18)
+    dry_rgb = [tint_rgb[0] * (1.0 + vary * 0.35), tint_rgb[1] * (1.0 - vary), tint_rgb[2] * (1.0 - vary * 0.5)]
+    lush_rgb = [tint_rgb[0] * (1.0 - vary * 0.35), tint_rgb[1] * (1.0 + vary), tint_rgb[2] * (1.0 + vary * 0.5)]
+
+    dry = expr(mat, unreal.MaterialExpressionConstant3Vector, -700, -160)
+    dry.set_editor_property("constant", unreal.LinearColor(dry_rgb[0], dry_rgb[1], dry_rgb[2], 1.0))
+    lush = expr(mat, unreal.MaterialExpressionConstant3Vector, -700, -60)
+    lush.set_editor_property("constant", unreal.LinearColor(lush_rgb[0], lush_rgb[1], lush_rgb[2], 1.0))
+    tint = expr(mat, unreal.MaterialExpressionLinearInterpolate, -400, -100)
+    link(dry, "", tint, "A")
+    link(lush, "", tint, "B")
+    link(scatter, "", tint, "Alpha")
+
+    tinted = expr(mat, unreal.MaterialExpressionMultiply, -100, -200)
+    link(shaded, "", tinted, "A")
+    link(tint, "", tinted, "B")
+
+    # Grass that ignores the ground it stands in reads as stickers laid on a
+    # surface, and no amount of shading on the blade itself fixes it -- the tell
+    # is the hard edge where the clump meets a colour it has nothing to do with.
+    # Pulling the root toward the ground's own albedo removes that edge.
+    #
+    # Sampled from the terrain's texture at the terrain's own world-space UVs
+    # rather than through a runtime virtual texture. The terrain material maps
+    # by world position, so the same position and the same scale land on exactly
+    # the same texel -- the registration an RVT would buy is already free here.
+    # What this does not get is anything painted on the terrain rather than
+    # tiled into it: a road blends its own surface in on top, and a clump at the
+    # verge blends toward the hillside instead. Grass is kept off the roads
+    # anyway, so that is a seam we do not currently draw.
+    ground_stem = spec.get("ground")
+    grounded = tinted
+    if ground_stem and f"{ground_stem}_D" in textures:
+        ground_uv_scale = expr(mat, unreal.MaterialExpressionConstant, -1000, -420)
+        ground_uv_scale.set_editor_property("r", 1.0 / float(spec.get("ground_repeat_uu", 512)))
+        flat = expr(mat, unreal.MaterialExpressionComponentMask, -1200, -420)
+        flat.set_editor_property("r", True)
+        flat.set_editor_property("g", True)
+        flat.set_editor_property("b", False)
+        flat.set_editor_property("a", False)
+        link(crown, "", flat, "")
+        ground_uv = expr(mat, unreal.MaterialExpressionMultiply, -800, -420)
+        link(flat, "", ground_uv, "A")
+        link(ground_uv_scale, "", ground_uv, "B")
+
+        earth = sampler(mat, textures, f"{ground_stem}_D", -600, "D", ground_uv)
+
+        # Strongest at the root and gone by the crown, because that is where the
+        # eye looks for the join. Squared so the blend stays near the ground
+        # instead of washing the whole clump toward dirt.
+        reach = expr(mat, unreal.MaterialExpressionOneMinus, -400, -520)
+        link(along, "", reach, "")
+        sharpen = expr(mat, unreal.MaterialExpressionMultiply, -300, -520)
+        link(reach, "", sharpen, "A")
+        link(reach, "", sharpen, "B")
+        depth = expr(mat, unreal.MaterialExpressionConstant, -400, -460)
+        depth.set_editor_property("r", spec.get("ground_blend", 0.45))
+        amount = expr(mat, unreal.MaterialExpressionMultiply, -200, -500)
+        link(sharpen, "", amount, "A")
+        link(depth, "", amount, "B")
+
+        grounded = expr(mat, unreal.MaterialExpressionLinearInterpolate, 0, -300)
+        link(tinted, "", grounded, "A")
+        link(earth, "RGB", grounded, "B")
+        link(amount, "", grounded, "Alpha")
+
+    MEL.connect_material_property(grounded, "", unreal.MaterialProperty.MP_BASE_COLOR)
 
     # What comes through the blade, not what bounces off it: greener and darker
     # than the surface, because a leaf filters the light it transmits.
@@ -304,15 +448,34 @@ def build_foliage_material(spec, textures):
 
     # A card's own normal points out of its face, sideways, so half a field faces
     # away from any sun and shades to black -- which reads as dirt with a pattern
-    # on it rather than as ground cover. Bent toward world up, a clump lights
-    # like the ground it grows out of, which is what it is: this is the single
-    # difference between foliage that looks lit and foliage that looks cut out.
+    # on it rather than as ground cover. It has to be bent, and what it is bent
+    # toward decides whether the result looks like a plant or like a decal.
+    #
+    # Bent toward world up, every blade in the field ends up holding the same
+    # vector, and a thing that shades identically everywhere reads as flat no
+    # matter how much geometry is in it -- the whole clump lights as one panel.
+    #
+    # Bent instead toward the direction out of the clump's own centre, each
+    # vertex gets its own answer: the crown points up, the skirt points out, and
+    # the clump shades as the rounded tuft it is. This is the dome-normal trick
+    # every foliage pipeline arrives at, and it costs two nodes.
     up = expr(mat, unreal.MaterialExpressionConstant3Vector, -700, 200)
     up.set_editor_property("constant", unreal.LinearColor(0.0, 0.0, 1.0, 1.0))
+
+    dome = expr(mat, unreal.MaterialExpressionNormalize, -950, 260)
+    link(spoke, "", dome, "")
+
+    # Pure outward would leave the skirt horizontal and unlit from above. Some
+    # up keeps the underside off black without flattening the crown back out.
+    domed = expr(mat, unreal.MaterialExpressionLinearInterpolate, -700, 300)
+    link(dome, "", domed, "A")
+    link(up, "", domed, "B")
+    domed.set_editor_property("const_alpha", spec.get("dome_up", 0.35))
+
     face = expr(mat, unreal.MaterialExpressionVertexNormalWS, -700, 400)
     bend = expr(mat, unreal.MaterialExpressionLinearInterpolate, -400, 300)
-    MEL.connect_material_expressions(face, "", bend, "A")
-    MEL.connect_material_expressions(up, "", bend, "B")
+    link(face, "", bend, "A")
+    link(domed, "", bend, "B")
     bend.set_editor_property("const_alpha", spec.get("normal_lift", 0.75))
 
     # World space, because the normal being fed is the vertex normal in world
@@ -321,95 +484,134 @@ def build_foliage_material(spec, textures):
     mat.set_editor_property("tangent_space_normal", False)
     MEL.connect_material_property(bend, "", unreal.MaterialProperty.MP_NORMAL)
     MEL.connect_material_property(packed, "B", unreal.MaterialProperty.MP_OPACITY_MASK)
-    MEL.connect_material_property(packed, "R", unreal.MaterialProperty.MP_ROUGHNESS)
+    # Remapped, not used as it stands. The scan's roughness averages 0.37 with
+    # 94% of it under 0.5 -- a polished surface, which is what a wet studio leaf
+    # measures as and not what a field of dry grass is. At that gloss the sun's
+    # highlight blows the blade out to white, and it does it across the whole
+    # field at once, because a sun that catches one blade catches every blade
+    # pointing the same way. The map still carries the variation; only its
+    # range moves.
+    rough_lo, rough_hi = spec.get("roughness_range", [0.62, 0.95])
+    roughness = expr(mat, unreal.MaterialExpressionLinearInterpolate, -100, 400)
+    roughness.set_editor_property("const_a", rough_lo)
+    roughness.set_editor_property("const_b", rough_hi)
+    link(packed, "R", roughness, "Alpha")
+    MEL.connect_material_property(roughness, "", unreal.MaterialProperty.MP_ROUGHNESS)
 
-    # Wind. Three things have to be true or a field of this reads as a chorus
-    # line rather than as weather.
-    #
-    # It travels across the ground in both axes: phased on world X alone, every
-    # clump sharing an X moves in lockstep, and a row of grass dances together.
-    #
-    # Each clump has its own offset into the wave, from the per-instance random
-    # the instanced component already provides -- without it, neighbours a
-    # centimetre apart are in perfect step, which nothing in a field ever is.
-    #
-    # And the amplitude is small against the clump. Nine units on a clump forty
-    # five tall is a fifth of its own height, which is not a breeze.
-    world = expr(mat, unreal.MaterialExpressionWorldPosition, -1400, 800)
+    # Grass is not a dielectric worth a half-strength highlight. Dropping this is
+    # the other half of the same problem: roughness widens the lobe, specular is
+    # how much energy goes into it at all.
+    specular = expr(mat, unreal.MaterialExpressionConstant, -100, 550)
+    specular.set_editor_property("r", spec.get("specular", 0.15))
+    MEL.connect_material_property(specular, "", unreal.MaterialProperty.MP_SPECULAR)
 
-    # Masked rather than asked for "R": world position has one unnamed output,
-    # and a connection naming a channel it does not publish is not an error when
-    # it is made -- it is a material that fails to compile and silently draws as
-    # the default one. The mask's own input is unnamed for the same reason the
-    # sine's is.
-    def channel(source, red, green, y):
-        node = expr(mat, unreal.MaterialExpressionComponentMask, -1200, y)
-        node.set_editor_property("r", red)
-        node.set_editor_property("g", green)
-        node.set_editor_property("b", False)
-        node.set_editor_property("a", False)
-        MEL.connect_material_expressions(source, "", node, "")
-        return node
-
-    wavelength = spec.get("wind_wavelength", 0.0025)
-
-    def axis(source, red, green, scale, y):
-        constant = expr(mat, unreal.MaterialExpressionConstant, -1200, y + 100)
-        constant.set_editor_property("r", scale)
-        product = expr(mat, unreal.MaterialExpressionMultiply, -1000, y)
-        MEL.connect_material_expressions(channel(source, red, green, y), "", product, "A")
-        MEL.connect_material_expressions(constant, "", product, "B")
-        return product
-
-    along = axis(world, True, False, wavelength, 800)
-    across = axis(world, False, True, wavelength * 0.62, 1000)
-    phase = expr(mat, unreal.MaterialExpressionAdd, -800, 900)
-    MEL.connect_material_expressions(along, "", phase, "A")
-    MEL.connect_material_expressions(across, "", phase, "B")
-
-    time = expr(mat, unreal.MaterialExpressionTime, -1200, 1200)
-    speed = expr(mat, unreal.MaterialExpressionConstant, -1200, 1400)
-    speed.set_editor_property("r", spec.get("wind_speed", 1.1))
-    advance = expr(mat, unreal.MaterialExpressionMultiply, -1000, 1300)
-    MEL.connect_material_expressions(time, "", advance, "A")
-    MEL.connect_material_expressions(speed, "", advance, "B")
-
-    scatter = expr(mat, unreal.MaterialExpressionPerInstanceRandom, -1200, 1600)
-    turn = expr(mat, unreal.MaterialExpressionConstant, -1200, 1700)
-    turn.set_editor_property("r", 6.2831853)
-    stagger = expr(mat, unreal.MaterialExpressionMultiply, -1000, 1600)
-    MEL.connect_material_expressions(scatter, "", stagger, "A")
-    MEL.connect_material_expressions(turn, "", stagger, "B")
-
-    moving = expr(mat, unreal.MaterialExpressionAdd, -800, 1300)
-    MEL.connect_material_expressions(advance, "", moving, "A")
-    MEL.connect_material_expressions(stagger, "", moving, "B")
-
-    argument = expr(mat, unreal.MaterialExpressionAdd, -600, 1100)
-    MEL.connect_material_expressions(phase, "", argument, "A")
-    MEL.connect_material_expressions(moving, "", argument, "B")
-
-    # The input pin is unnamed. Naming it "Input" -- which is what the property
-    # is called -- connects nothing, and the material then fails to compile with
-    # "Missing Sine input" long after the script has reported success.
-    wave = expr(mat, unreal.MaterialExpressionSine, -400, 1100)
-    MEL.connect_material_expressions(argument, "", wave, "")
-
-    weighted = expr(mat, unreal.MaterialExpressionMultiply, -200, 1100)
-    MEL.connect_material_expressions(wave, "", weighted, "A")
-    MEL.connect_material_expressions(vertex, "G", weighted, "B")
-
-    sway = expr(mat, unreal.MaterialExpressionConstant3Vector, -200, 1400)
-    amplitude = spec.get("wind_amplitude", 3.0)
-    sway.set_editor_property("constant", unreal.LinearColor(amplitude, amplitude * 0.4, 0.0, 1.0))
-    offset = expr(mat, unreal.MaterialExpressionMultiply, 0, 1200)
-    MEL.connect_material_expressions(weighted, "", offset, "A")
-    MEL.connect_material_expressions(sway, "", offset, "B")
-    MEL.connect_material_property(offset, "", unreal.MaterialProperty.MP_WORLD_POSITION_OFFSET)
+    foliage_wpo.connect(mat, spec, lifted=lifted, scatter=scatter, pivot=pivot)
 
     MEL.recompile_material(mat)
     EAL.save_asset(path)
     unreal.log(f"built {path}")
+
+    build_foliage_atlas(spec, mat)
+
+
+def build_foliage_atlas(spec, material):
+    """Bake a sheet's cells beside its material, for the field to draw from.
+
+    Cells are pixel rectangles in the config and UV rectangles in the asset,
+    because a rectangle is measured off an image and consumed as a coordinate,
+    and converting at the boundary means neither end has to know about the
+    other's units.
+
+    They are authored rather than detected, and that is not laziness: a cutout
+    pack lays its clumps out to fill the sheet, and a pack built around a model
+    spends most of its sheet on UV islands for single blades. A component pass
+    over the mask returns hundreds of slivers for the second kind and merges
+    overlapping clumps in the first. Someone has to say which rectangles are a
+    plant.
+    """
+    cells = spec.get("cells")
+    if not cells:
+        return
+
+    path = spec["atlas"]
+    sheet = float(spec.get("sheet", 1024))
+
+    # Updated in place rather than deleted and remade. Two builders write to
+    # this asset -- this one owns the material, the weight and the cells, and the
+    # model importer owns the clumps -- and recreating it here silently threw the
+    # importer's half away. The field then fell back to cutting cards out of the
+    # sheet, which it is entitled to do and says nothing about, so the packs'
+    # own models disappeared every time the textures were rebuilt.
+    if EAL.does_asset_exist(path):
+        atlas = EAL.load_asset(path)
+    else:
+        pkg_dir, pkg_name = path.rsplit("/", 1)
+        factory = unreal.DataAssetFactory()
+        factory.set_editor_property("data_asset_class", unreal.KBVEWorldGrassAtlas)
+        atlas = ASSET_TOOLS.create_asset(pkg_name, pkg_dir, unreal.KBVEWorldGrassAtlas, factory)
+
+    atlas.set_editor_property("material", material)
+    atlas.set_editor_property("weight", spec.get("weight", 1))
+    atlas.set_editor_property(
+        "cells",
+        [unreal.Vector4(x0 / sheet, y0 / sheet, x1 / sheet, y1 / sheet) for x0, y0, x1, y1 in cells],
+    )
+    EAL.save_asset(path)
+    kept = len(atlas.get_editor_property("clumps") or [])
+    unreal.log(f"built {path} with {len(cells)} cells, {kept} models kept")
+
+
+def build_wind_collection(spec):
+    """The one wind every material that moves in it reads from.
+
+    A parameter collection rather than a constant in each material, because the
+    wind is a property of the weather and not of the grass. Baked per material it
+    cannot gust, cannot turn, cannot be told a storm is coming, and -- worse --
+    each material carries its own copy of the answer, so the day one of them is
+    retuned the field and the sky quietly start disagreeing about which way the
+    weather is going.
+
+    Named for where the wind is going rather than where it comes from. Both
+    conventions are ordinary -- a meteorologist's "north-westerly" blows towards
+    the south-east -- and a name that has to be qualified every time it is read
+    is a name that will eventually be read wrong by something that then leans the
+    opposite way to everything else.
+    """
+    # Updated in place, never recreated. Every material that reads the wind refers
+    # to this asset by name, and so does the map -- delete it and the delete is
+    # refused as in-use, the create then hands back nothing, and the texture build
+    # falls over on its second run having worked perfectly on its first.
+    path = spec["path"]
+    if EAL.does_asset_exist(path):
+        collection = EAL.load_asset(path)
+    else:
+        pkg_dir, pkg_name = path.rsplit("/", 1)
+        collection = ASSET_TOOLS.create_asset(
+            pkg_name, pkg_dir, unreal.MaterialParameterCollection, unreal.MaterialParameterCollectionFactoryNew()
+        )
+
+    dx, dy = spec.get("direction", [1.0, -1.0])[:2]
+    span = math.hypot(dx, dy) or 1.0
+
+    heading = unreal.CollectionVectorParameter()
+    heading.set_editor_property("parameter_name", "WindTravelDirection")
+    heading.set_editor_property("default_value", unreal.LinearColor(dx / span, dy / span, 0.0, 0.0))
+    collection.set_editor_property("vector_parameters", [heading])
+
+    scalars = []
+    for name, value in (
+        ("WindSpeed", spec.get("speed", 0.85)),
+        ("WindStrength", spec.get("strength", 1.0)),
+    ):
+        entry = unreal.CollectionScalarParameter()
+        entry.set_editor_property("parameter_name", name)
+        entry.set_editor_property("default_value", value)
+        scalars.append(entry)
+    collection.set_editor_property("scalar_parameters", scalars)
+
+    EAL.save_asset(path)
+    unreal.log(f"built {path}")
+    return collection
 
 
 def build_glass_material(spec):
@@ -452,7 +654,7 @@ def build_glass_material(spec):
     MEL.connect_material_property(scalar(spec["opacity"], 460), "", unreal.MaterialProperty.MP_OPACITY)
 
     glass_out = expr(mat, unreal.MaterialExpressionThinTranslucentMaterialOutput, -100, 600)
-    MEL.connect_material_expressions(colour(spec["transmittance"], 600), "", glass_out, "TransmittanceColor")
+    link(colour(spec["transmittance"], 600), "", glass_out, "TransmittanceColor")
 
     MEL.recompile_material(mat)
     EAL.save_asset(path)
@@ -517,11 +719,22 @@ def build(config):
                 return
             textures[name] = tex
 
+    wind_collection = None
+    if config.get("wind_collection"):
+        wind_collection = build_wind_collection(config["wind_collection"])
+
     if config.get("terrain_material"):
         build_terrain_material(config["terrain_material"], textures)
     for spec in config.get("surface_materials", []):
         build_surface_material(spec, textures)
     for spec in config.get("foliage_materials", []):
+        # The ground a clump blends its root into is the terrain's, so it is
+        # taken from the terrain rather than restated per foliage set and left
+        # to drift out of step with it.
+        spec["wind_collection"] = wind_collection
+        terrain = config.get("terrain_material") or {}
+        spec.setdefault("ground", terrain.get("ground"))
+        spec.setdefault("ground_repeat_uu", terrain.get("repeat_uu", 512))
         build_foliage_material(spec, textures)
     if config.get("water_material"):
         build_water_material(config["water_material"])

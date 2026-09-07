@@ -180,19 +180,36 @@ void FKBVEWorldDoor::Build(const FKBVEWorldWallParams& Wall, const FKBVEWorldWal
 			continue;
 		}
 
-		FKBVEWorldJoinery::Box(Out.Timber, Frame, LeafLeft, LeafRight, LeafBottom, LeafTop,
-			LeafBack, LeafFace);
+		// The leaf is built in its own space rather than the wall's, hinge at the
+		// origin, because it is the one part of a building that moves. Local X
+		// runs along the leaf from the hinge and local Y is the way it opens, so
+		// a positive yaw takes the free edge away from the street.
+		FKBVEWorldDoorLeaf& Leaf = Out.Leaves.AddDefaulted_GetRef();
+		Leaf.Hinge = Frame.At(LeafLeft, LeafBottom, 0.0f);
+		Leaf.Along = Frame.Right;
+		Leaf.Swing = FMath::Clamp(Door.Swing, 0.0f, 175.0f);
+
+		FKBVEWorldWallFrame Local;
+		Local.Origin = FVector::ZeroVector;
+		Local.Right = FVector::ForwardVector;
+		Local.Up = FVector::UpVector;
+		Local.Norm = FVector::CrossProduct(Local.Right, Local.Up).GetSafeNormal();
+		Local.Tile = Frame.Tile;
+		Local.UOffset = Frame.UOffset + LeafLeft;
+
+		const float Width = LeafRight - LeafLeft;
+		const float Height = LeafTop - LeafBottom;
+
+		FKBVEWorldJoinery::Box(Leaf.Mesh, Local, 0.0f, Width, 0.0f, Height, LeafBack, LeafFace);
 
 		// Battens across the outward face. The wall's normal is the direction the
 		// steps outside the front door are built along, so it is the street side
 		// by construction rather than by guess.
-		const float Height = LeafTop - LeafBottom;
 		for (int32 I = 0; I < Door.Ledges; ++I)
 		{
-			const float At = LeafBottom
-				+ Height * static_cast<float>(I + 1) / static_cast<float>(Door.Ledges + 1);
+			const float At = Height * static_cast<float>(I + 1) / static_cast<float>(Door.Ledges + 1);
 			const float HalfLedge = 0.5f * FMath::Min(Door.LedgeHeight, 0.3f * Height);
-			FKBVEWorldJoinery::Box(Out.Timber, Frame, LeafLeft, LeafRight, At - HalfLedge,
+			FKBVEWorldJoinery::Box(Leaf.Mesh, Local, 0.0f, Width, At - HalfLedge,
 				At + HalfLedge, LeafFace, LeafFace + Door.LedgeProud);
 		}
 	}

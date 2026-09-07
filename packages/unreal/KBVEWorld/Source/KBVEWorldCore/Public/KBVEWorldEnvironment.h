@@ -9,6 +9,9 @@ class UDirectionalLightComponent;
 class UExponentialHeightFogComponent;
 class USkyAtmosphereComponent;
 class USkyLightComponent;
+class UMaterialParameterCollection;
+class UMaterialInterface;
+class UVolumetricCloudComponent;
 
 KBVEWORLDCORE_API DECLARE_LOG_CATEGORY_EXTERN(LogKBVEWorldEnv, Log, All);
 
@@ -90,6 +93,101 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Fog")
 	FLinearColor FogColor = FLinearColor(0.45f, 0.55f, 0.65f);
 
+	/**
+	 * The one wind, published for every material that has to move in it.
+	 *
+	 * It lives on the environment because that is what it is a property of: the
+	 * weather over the world, not a setting on the grass. Anything that answers
+	 * it -- foliage now, cloud and rain and water later -- reads the same
+	 * collection, so they cannot drift apart, and a gust or a turning storm is
+	 * one write here rather than a rebuild of every material that moves.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Wind")
+	TSoftObjectPtr<UMaterialParameterCollection> WindCollection;
+
+	/**
+	 * Where the weather is going, not where it comes from.
+	 *
+	 * Named for travel because both conventions are ordinary and the other one
+	 * is the reverse of this: a meteorologist's north-westerly blows towards the
+	 * south-east. A name needing that qualification every time it is read will
+	 * eventually be read wrong by something that then leans the opposite way to
+	 * everything else in the same frame.
+	 *
+	 * X is north and Y is east, so north-west is +X -Y. Normalised on push, so
+	 * this can be written as a plain direction.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Wind")
+	FVector2D WindTravelDirection = FVector2D(1.0f, -1.0f);
+
+	/** How fast gusts travel along that heading. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Wind",
+		meta = (ClampMin = "0.0"))
+	float WindSpeed = 0.85f;
+
+	/**
+	 * A multiplier on how hard everything is pushed, not a distance.
+	 *
+	 * How far a given plant gives is a property of that plant and stays in its
+	 * own material; this is the weather turning up for all of them at once.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Wind",
+		meta = (ClampMin = "0.0"))
+	float WindStrength = 1.0f;
+
+	/**
+	 * Weather in the sky, off by default.
+	 *
+	 * Volumetric cloud is a ray-marched participating medium and it is the most
+	 * expensive thing this actor can switch on, so it is a decision the project
+	 * makes with a number in front of it rather than a default someone inherits.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Clouds")
+	bool bCloudsEnabled = false;
+
+	/** Material the layer is marched through. Engine's simple cloud if unset. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Clouds")
+	TSoftObjectPtr<UMaterialInterface> CloudMaterial;
+
+	/** Height of the layer's underside above the ground, in kilometres. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Clouds",
+		meta = (ClampMin = "0.1"))
+	float CloudBottomKm = 5.0f;
+
+	/** How deep the layer is, in kilometres. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Clouds",
+		meta = (ClampMin = "0.1"))
+	float CloudThicknessKm = 6.0f;
+
+	/**
+	 * Step length along the view ray, in kilometres.
+	 *
+	 * The cost knob. Coarser is cheaper and softens the cloud's edges; there is
+	 * no correct value, only a budget.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Clouds",
+		meta = (ClampMin = "0.01"))
+	float CloudTracingStartMaxDistanceKm = 0.0f;
+
+	/**
+	 * Whether the clouds darken the ground under them.
+	 *
+	 * This is the half of the effect that is felt rather than looked at: a gust
+	 * crossing the grass while the hillside behind it dims is weather, where a
+	 * cloud that only exists overhead is scenery. It is also the half that costs
+	 * a shadow map, so it is separable from drawing the clouds at all.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Clouds")
+	bool bCloudShadows = true;
+
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Clouds",
+		meta = (ClampMin = "0.0", ClampMax = "1.0"))
+	float CloudShadowStrength = 1.0f;
+
+	/** Write the wind onto the shared collection. Called by ApplyEnvironment. */
+	UFUNCTION(BlueprintCallable, Category = "KBVEWorld|Wind")
+	void PublishWind();
+
 	/** Push every property onto the components. Safe to call at any time. */
 	UFUNCTION(BlueprintCallable, Category = "KBVEWorld|Environment")
 	void ApplyEnvironment();
@@ -129,4 +227,7 @@ private:
 
 	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
 	TObjectPtr<UExponentialHeightFogComponent> Fog;
+
+	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
+	TObjectPtr<UVolumetricCloudComponent> Clouds;
 };

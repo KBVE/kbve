@@ -7,7 +7,7 @@
 # ============================================================================
 
 # [STAGE A] - Cargo Chef Planner
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS planner
 
 COPY apps/kbve/kbve-gate/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
@@ -31,7 +31,7 @@ RUN mkdir -p apps/kbve/kbve-gate/src && echo "fn main() {}" > apps/kbve/kbve-gat
 RUN cargo chef prepare --recipe-path recipe.json
 
 # [STAGE B] - Cargo Chef Cook (cache external deps)
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS builder-deps
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS builder-deps
 ENV CARGO_INCREMENTAL=0
 
 COPY --from=planner /app/recipe.json recipe.json
@@ -45,7 +45,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cargo chef cook --release --recipe-path recipe.json -p kbve-gate
 
 # [STAGE C] - Foundation (compile kbve + jedi + holy from source)
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS foundation
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS foundation
 ENV CARGO_INCREMENTAL=0
 
 COPY --from=builder-deps /app/target target
@@ -92,7 +92,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     strip target/release/kbve-gate
 
 # [STAGE Z] - Runtime
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13 AS runtime
 
 COPY --from=builder --chown=10001:10001 /app/target/release/kbve-gate /app/kbve-gate
 

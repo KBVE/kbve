@@ -8,7 +8,7 @@
 # ============================================================================
 
 # ── Stage 1: Plan — generate dependency recipe ──────────────
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS planner
 ENV CARGO_INCREMENTAL=0
 
 # The real workspace root, with `members` narrowed to the crates this image builds.
@@ -35,7 +35,7 @@ COPY crates/kbve/src/ crates/kbve/src/
 RUN cargo chef prepare --recipe-path recipe.json
 
 # ── Stage 2: Cook — build deps only (cached layer) ─────────
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS cook
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS cook
 ENV CARGO_INCREMENTAL=0
 
 # The real workspace root, with `members` narrowed to the crates this image builds.
@@ -81,7 +81,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     strip target/release/rows
 
 # ── Stage 4: Runtime ────────────────────────────────────────
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13 AS runtime
 
 COPY --from=builder --chown=10001:10001 /app/target/release/rows /app/rows
 

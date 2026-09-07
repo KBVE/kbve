@@ -127,6 +127,19 @@ struct KBVEWORLDCORE_API FKBVEWorldDoorParams
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door|Arch")
 	bool bFanlight = true;
+
+	/**
+	 * How far a leaf swings when it is opened, in degrees.
+	 *
+	 * Short of a right angle on purpose. A leaf that opens to exactly ninety
+	 * degrees lies flat along the reveal it came out of, and two flat surfaces a
+	 * hair apart across a doorway is where the z-fighting in a village would be
+	 * most looked at. It also reads as a door that was pushed rather than one
+	 * that swung.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Door",
+		meta = (ClampMin = "0.0", ClampMax = "175.0"))
+	float Swing = 88.0f;
 };
 
 struct KBVEWORLDCORE_API FKBVEWorldDoor

@@ -774,9 +774,15 @@ void ARareIconPlayerPawn::Tick(float DeltaSeconds)
 	// run records it without anyone typing into a console.
 	// A series rather than one sample: a capsule still settling and a capsule
 	// wedged at the wrong height look identical in a single reading.
+	// Advanced unconditionally: it used to be stepped inside the feet-report
+	// block, so the clock stopped the moment the last report was filed. Anything
+	// scheduled after that -- the screenshot below is the whole reason this
+	// exists -- simply never came due, and looked like a feature that did not
+	// work rather than a clock that had stopped.
+	TimeSinceBeginPlay += DeltaSeconds;
+
 	if (FeetReportsDone < FeetReportCount)
 	{
-		TimeSinceBeginPlay += DeltaSeconds;
 		if (TimeSinceBeginPlay >= FeetReportDelay + FeetReportInterval * FeetReportsDone)
 		{
 			++FeetReportsDone;
@@ -1153,3 +1159,29 @@ static FAutoConsoleCommand GRareIconFeetCmd(
 	TEXT("rareicon.Feet"),
 	TEXT("Report capsule, trace, analytic terrain and foot-bone heights at the pawn."),
 	FConsoleCommandDelegate::CreateStatic(&RareIconFeetCmd));
+
+int32 ARareIconPlayerPawn::WeaponCount()
+{
+	return 2;
+}
+
+FText ARareIconPlayerPawn::WeaponName(const int32 Index)
+{
+	switch (Index)
+	{
+	case 0:  return NSLOCTEXT("RareIcon", "WeaponMosin", "Mosin");
+	case 1:  return NSLOCTEXT("RareIcon", "WeaponSS2", "SS2-V5");
+	default: return FText::GetEmpty();
+	}
+}
+
+void ARareIconPlayerPawn::EquipWeapon(const int32 Index)
+{
+	// Through the variable rather than straight to AppliedWeapon: Tick swaps the
+	// mesh and the grip asset when the two differ, and writing the applied value
+	// directly would tell it the swap had already happened.
+	if (IConsoleVariable* Var = IConsoleManager::Get().FindConsoleVariable(TEXT("rareicon.Weapon.Use")))
+	{
+		Var->Set(FMath::Clamp(Index, 0, WeaponCount() - 1), ECVF_SetByCode);
+	}
+}

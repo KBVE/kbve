@@ -1,0 +1,19 @@
+// Linux depot for RareIcon Demo (AppID 3791950).
+//
+// Pulls build/Linux/, Unreal's archive directory for the Linux client.
+
+"DepotBuildConfig"
+{
+	"DepotID"        "3791952"
+
+	"FileMapping"
+	{
+		"LocalPath"  "Linux/*"
+		"DepotPath"  "."
+		"recursive"  "1"
+	}
+
+	"FileExclusion" "*.debug"
+	"FileExclusion" "*.sym"
+	"FileExclusion" "Manifest_*.txt"
+}
