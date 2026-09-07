@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, '..');
-const PALSHOP_DIR = join(PROJECT_ROOT, 'src/content/docs/palworld/palshop');
+const PALSHOP_DIR = join(PROJECT_ROOT, '../../../docs/palworld/palshop');
 const OUTPUT = resolve(
 	PROJECT_ROOT,
 	'../../agones/palworld/mods/PalSchema/mods/KBVEShops/raw/kbve-shops.json',
