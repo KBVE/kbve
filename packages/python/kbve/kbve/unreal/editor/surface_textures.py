@@ -26,55 +26,30 @@ material with a switch.
 import json
 import math
 import os
+import sys
 
 import unreal
 
-ASSET_TOOLS = unreal.AssetToolsHelpers.get_asset_tools()
-EAL = unreal.EditorAssetLibrary
-MEL = unreal.MaterialEditingLibrary
+# The editor runs this as a loose file, not as part of a package: the commandlet
+# is handed a path and there is no kbve.unreal.editor around it by then, so a
+# relative import raises before the script does anything at all. Putting this
+# file's own directory on the path is what allows an editor script to be more
+# than one file -- which is why the ones beside it each carry their own copy of
+# everything they need.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-
-def link(source, output, target, target_input):
-    """Connect two expressions, or stop the build saying which pair refused.
-
-    MaterialEditingLibrary reports a refused connection by returning False, and
-    every caller here used to ignore it. A wrong pin name is therefore not an
-    error when it is made: the script reports success, the material silently
-    fails to compile, and the field draws in the default grey -- or worse, draws
-    almost right with one term missing. Several of the names in this file are
-    unnamed pins that must be passed as "", which is exactly the mistake this
-    catches.
-    """
-    if not MEL.connect_material_expressions(source, output, target, target_input):
-        raise RuntimeError(
-            f"{type(source).__name__}.{output or '<unnamed>'} would not connect to "
-            f"{type(target).__name__}.{target_input or '<unnamed>'}"
-        )
-
-
-def link_any(source, outputs, target, target_input):
-    """Connect the first of several candidate pin names that the node accepts.
-
-    A multi-output node publishes its pins under names this API will not read
-    back -- Outputs is protected -- so the only way to learn one from a script is
-    to offer a name and see whether it is taken. Rather than pin a spelling that
-    is right for one engine version, offer the spellings and let the node choose,
-    and say what was tried when none of them fit.
-    """
-    for output in outputs:
-        if MEL.connect_material_expressions(source, output, target, target_input):
-            return output
-    raise RuntimeError(
-        f"{type(source).__name__} took none of {outputs} into {type(target).__name__}.{target_input or '<unnamed>'}"
-    )
-
-
-# suffix -> (sRGB, compression, sampler type)
-MAPS = {
-    "D": (True, unreal.TextureCompressionSettings.TC_DEFAULT, unreal.MaterialSamplerType.SAMPLERTYPE_COLOR),
-    "N": (False, unreal.TextureCompressionSettings.TC_NORMALMAP, unreal.MaterialSamplerType.SAMPLERTYPE_NORMAL),
-    "RH": (False, unreal.TextureCompressionSettings.TC_MASKS, unreal.MaterialSamplerType.SAMPLERTYPE_MASKS),
-}
+import foliage_wpo  # noqa: E402
+from material_graph import (  # noqa: E402
+    ASSET_TOOLS,
+    EAL,
+    MAPS,
+    MEL,
+    create_material,
+    expr,
+    link,
+    link_any,
+    sampler,
+)
 
 
 def load_config():
@@ -120,27 +95,6 @@ def import_texture(art_root, name, subdir, content_dir):
     EAL.save_asset(f"{content_dir}/{name}")
     unreal.log(f"imported {name} (srgb={srgb})")
     return tex
-
-
-def create_material(path):
-    if EAL.does_asset_exist(path):
-        EAL.delete_asset(path)
-    pkg_dir, pkg_name = path.rsplit("/", 1)
-    return ASSET_TOOLS.create_asset(pkg_name, pkg_dir, unreal.Material, unreal.MaterialFactoryNew())
-
-
-def expr(mat, cls, x, y):
-    return MEL.create_material_expression(mat, cls, x, y)
-
-
-def sampler(mat, textures, name, y, suffix, uvs, parameter=None):
-    _srgb, _compression, sampler_type = MAPS[suffix]
-    node = expr(mat, unreal.MaterialExpressionTextureSampleParameter2D, -300, y)
-    node.set_editor_property("parameter_name", parameter or name)
-    node.set_editor_property("texture", textures[name])
-    node.set_editor_property("sampler_type", sampler_type)
-    MEL.connect_material_expressions(uvs, "", node, "UVs")
-    return node
 
 
 def build_terrain_material(spec, textures):
@@ -551,237 +505,7 @@ def build_foliage_material(spec, textures):
     specular.set_editor_property("r", spec.get("specular", 0.15))
     MEL.connect_material_property(specular, "", unreal.MaterialProperty.MP_SPECULAR)
 
-    # Wind. Three things have to be true or a field of this reads as a chorus
-    # line rather than as weather.
-    #
-    # It travels across the ground in both axes: phased on world X alone, every
-    # clump sharing an X moves in lockstep, and a row of grass dances together.
-    #
-    # Each clump has its own offset into the wave, from the per-instance random
-    # the instanced component already provides -- without it, neighbours a
-    # centimetre apart are in perfect step, which nothing in a field ever is.
-    #
-    # And the amplitude is small against the clump. Nine units on a clump forty
-    # five tall is a fifth of its own height, which is not a breeze.
-    world = expr(mat, unreal.MaterialExpressionWorldPosition, -1400, 800)
-    world.set_editor_property(
-        "world_position_shader_offset",
-        unreal.WorldPositionIncludedOffsets.WPT_EXCLUDE_ALL_SHADER_OFFSETS,
-    )
-
-    # Masked rather than asked for "R": world position has one unnamed output,
-    # and a connection naming a channel it does not publish is not an error when
-    # it is made -- it is a material that fails to compile and silently draws as
-    # the default one. The mask's own input is unnamed for the same reason the
-    # sine's is.
-    def channel(source, red, green, y):
-        node = expr(mat, unreal.MaterialExpressionComponentMask, -1200, y)
-        node.set_editor_property("r", red)
-        node.set_editor_property("g", green)
-        node.set_editor_property("b", False)
-        node.set_editor_property("a", False)
-        link(source, "", node, "")
-        return node
-
-    wavelength = spec.get("wind_wavelength", 0.0025)
-
-    # Which way the weather is going, read from the shared collection rather than
-    # built in here. A material carrying its own copy cannot be told the wind has
-    # turned, and two materials each carrying one eventually disagree about which
-    # way it was going in the first place.
-    collection = spec.get("wind_collection")
-
-    def wind(name, y):
-        node = expr(mat, unreal.MaterialExpressionCollectionParameter, -1500, y)
-        node.set_editor_property("collection", collection)
-        node.set_editor_property("parameter_name", name)
-        return node
-
-    heading3 = wind("WindTravelDirection", 900)
-
-    # The gust travels along the wind rather than across each axis separately.
-    # Phasing on X and Y independently makes a chequerwork whose fronts run at
-    # whatever angle the two wavelengths happen to give; projecting the ground
-    # position onto the wind direction makes the fronts square to it, so what
-    # crosses the field is a gust going one way and not a pattern.
-    ground = expr(mat, unreal.MaterialExpressionComponentMask, -1200, 800)
-    ground.set_editor_property("r", True)
-    ground.set_editor_property("g", True)
-    ground.set_editor_property("b", False)
-    ground.set_editor_property("a", False)
-    link(world, "", ground, "")
-
-    heading = expr(mat, unreal.MaterialExpressionComponentMask, -1350, 900)
-    heading.set_editor_property("r", True)
-    heading.set_editor_property("g", True)
-    heading.set_editor_property("b", False)
-    heading.set_editor_property("a", False)
-    link(heading3, "", heading, "")
-
-    downwind = expr(mat, unreal.MaterialExpressionDotProduct, -1000, 850)
-    link(ground, "", downwind, "A")
-    link(heading, "", downwind, "B")
-
-    stretch = expr(mat, unreal.MaterialExpressionConstant, -1000, 960)
-    stretch.set_editor_property("r", wavelength)
-    phase = expr(mat, unreal.MaterialExpressionMultiply, -800, 900)
-    link(downwind, "", phase, "A")
-    link(stretch, "", phase, "B")
-
-    time = expr(mat, unreal.MaterialExpressionTime, -1200, 1200)
-    speed = wind("WindSpeed", 1400)
-    advance = expr(mat, unreal.MaterialExpressionMultiply, -1000, 1300)
-    link(time, "", advance, "A")
-    link(speed, "", advance, "B")
-
-    # A nudge out of step with the neighbours, not a random place in the cycle.
-    # A full turn of per-instance offset decorrelates the field completely: one
-    # clump leans while the one beside it stands up, which is not wind, it is
-    # each plant having its own private weather. A fraction of a turn keeps the
-    # gust legible and still stops the field moving as one rigid sheet.
-    turn = expr(mat, unreal.MaterialExpressionConstant, -1200, 1700)
-    turn.set_editor_property("r", 6.2831853 * spec.get("wind_scatter", 0.12))
-    stagger = expr(mat, unreal.MaterialExpressionMultiply, -1000, 1600)
-    link(scatter, "", stagger, "A")
-    link(turn, "", stagger, "B")
-
-    moving = expr(mat, unreal.MaterialExpressionAdd, -800, 1300)
-    link(advance, "", moving, "A")
-    link(stagger, "", moving, "B")
-
-    argument = expr(mat, unreal.MaterialExpressionAdd, -600, 1100)
-    link(phase, "", argument, "A")
-    link(moving, "", argument, "B")
-
-    # The input pin is unnamed. Naming it "Input" -- which is what the property
-    # is called -- connects nothing, and the material then fails to compile with
-    # "Missing Sine input" long after the script has reported success.
-    swing = expr(mat, unreal.MaterialExpressionSine, -400, 1100)
-    link(argument, "", swing, "")
-
-    # Gusts, not oscillation. A sine spends half its cycle negative, and a
-    # negative displacement leans the blade into the wind -- so half the field is
-    # always bending upwind, which is the thing that reads as wobble rather than
-    # weather. Folded to nought-and-one the grass only ever leans downwind, and
-    # what varies is how hard it is pushed.
-    wave = expr(mat, unreal.MaterialExpressionLinearInterpolate, -250, 1060)
-    wave.set_editor_property("const_a", spec.get("wind_lull", 0.15))
-    wave.set_editor_property("const_b", 1.0)
-    link(swing, "", wave, "Alpha")
-
-    # Bent like a cantilever rather than sheared like a stack of cards.
-    #
-    # Weighting the sway by height directly is a straight line from a still root
-    # to a moving tip, which puts real travel into the lower third of the blade
-    # -- and a plant whose base swings is a plant that is not rooted in anything.
-    # Raising it concentrates the movement at the top, where a blade actually
-    # gives, and stiffens the bottom towards nothing.
-    bend_curve = expr(mat, unreal.MaterialExpressionPower, -250, 1140)
-    link(lifted, "", bend_curve, "Base")
-    bend_curve.set_editor_property("const_exponent", spec.get("wind_stiffness", 2.4))
-
-    weighted = expr(mat, unreal.MaterialExpressionMultiply, -200, 1100)
-    link(wave, "", weighted, "A")
-    link(bend_curve, "", weighted, "B")
-
-    # Every clump pushed the same way, because they are all standing in the same
-    # wind. The strength varies with the gust above; the heading does not.
-    # How far this particular plant gives stays here -- a blade of grass and a
-    # branch answer the same weather by different amounts -- but it is scaled by
-    # the collection's strength, which is what a gust front turns up for
-    # everything at once.
-    reach = expr(mat, unreal.MaterialExpressionConstant, -500, 1460)
-    reach.set_editor_property("r", spec.get("wind_amplitude", 2.2))
-    amplitude = expr(mat, unreal.MaterialExpressionMultiply, -350, 1420)
-    link(reach, "", amplitude, "A")
-    link(wind("WindStrength", 1520), "", amplitude, "B")
-
-    # Masked to three channels: a collection parameter reads back as a float4,
-    # and a four-channel offset added to a three-channel world position is not a
-    # broadened type, it is a material that will not compile.
-    heading_xyz = expr(mat, unreal.MaterialExpressionComponentMask, -350, 1360)
-    heading_xyz.set_editor_property("r", True)
-    heading_xyz.set_editor_property("g", True)
-    heading_xyz.set_editor_property("b", True)
-    heading_xyz.set_editor_property("a", False)
-    link(heading3, "", heading_xyz, "")
-
-    sway = expr(mat, unreal.MaterialExpressionMultiply, -200, 1400)
-    link(heading_xyz, "", sway, "A")
-    link(amplitude, "", sway, "B")
-    offset = expr(mat, unreal.MaterialExpressionMultiply, 0, 1200)
-    link(weighted, "", offset, "A")
-    link(sway, "", offset, "B")
-
-    # Clumps shrink into their own pivot as they go away, each starting at its
-    # own distance.
-    #
-    # A cull distance alone is a line in the world that things wink out of
-    # crossing, and every clump crosses it at the same range -- so what the eye
-    # catches is not one clump disappearing but a ring of them doing it at once.
-    # Collapsing to the pivot spreads that disappearance over hundreds of units,
-    # and the per-instance random spreads the ring itself into a band, so nothing
-    # shares its moment with a neighbour.
-    #
-    # Distance is measured to the pivot rather than to the vertex: the pivot is
-    # constant over a clump, so the whole thing shrinks together instead of its
-    # far half leading its near half.
-    camera = expr(mat, unreal.MaterialExpressionCameraPositionWS, -1400, 1900)
-    span = expr(mat, unreal.MaterialExpressionDistance, -1200, 1950)
-    link(camera, "", span, "A")
-    link(pivot, "", span, "B")
-
-    stagger_amount = spec.get("fade_stagger", 0.45)
-    spread = expr(mat, unreal.MaterialExpressionConstant, -1400, 2100)
-    spread.set_editor_property("r", stagger_amount)
-    jitter = expr(mat, unreal.MaterialExpressionMultiply, -1200, 2100)
-    link(scatter, "", jitter, "A")
-    link(spread, "", jitter, "B")
-
-    base_start = expr(mat, unreal.MaterialExpressionConstant, -1400, 2200)
-    base_start.set_editor_property("r", 1.0 - stagger_amount * 0.5)
-    scaled_start = expr(mat, unreal.MaterialExpressionAdd, -1000, 2150)
-    link(jitter, "", scaled_start, "A")
-    link(base_start, "", scaled_start, "B")
-
-    begin = expr(mat, unreal.MaterialExpressionConstant, -1000, 2250)
-    begin.set_editor_property("r", spec.get("fade_start", 2400.0))
-    start = expr(mat, unreal.MaterialExpressionMultiply, -800, 2200)
-    link(scaled_start, "", start, "A")
-    link(begin, "", start, "B")
-
-    past = expr(mat, unreal.MaterialExpressionSubtract, -600, 1950)
-    link(span, "", past, "A")
-    link(start, "", past, "B")
-
-    reach = expr(mat, unreal.MaterialExpressionConstant, -600, 2100)
-    reach.set_editor_property("r", 1.0 / max(spec.get("fade_range", 900.0), 1.0))
-    ramp = expr(mat, unreal.MaterialExpressionMultiply, -400, 1950)
-    link(past, "", ramp, "A")
-    link(reach, "", ramp, "B")
-
-    gone = expr(mat, unreal.MaterialExpressionClamp, -200, 1950)
-    link(ramp, "", gone, "")
-
-    # The wind goes with it, or a clump shrunk to nothing still swings its
-    # vanished self about and flickers a pixel where it used to be.
-    standing = expr(mat, unreal.MaterialExpressionOneMinus, -200, 1750)
-    link(gone, "", standing, "")
-    settled = expr(mat, unreal.MaterialExpressionMultiply, 0, 1400)
-    link(offset, "", settled, "A")
-    link(standing, "", settled, "B")
-
-    to_pivot = expr(mat, unreal.MaterialExpressionSubtract, -1000, 1800)
-    link(pivot, "", to_pivot, "A")
-    link(world, "", to_pivot, "B")
-    collapse = expr(mat, unreal.MaterialExpressionMultiply, 0, 1700)
-    link(to_pivot, "", collapse, "A")
-    link(gone, "", collapse, "B")
-
-    total = expr(mat, unreal.MaterialExpressionAdd, 200, 1500)
-    link(settled, "", total, "A")
-    link(collapse, "", total, "B")
-    MEL.connect_material_property(total, "", unreal.MaterialProperty.MP_WORLD_POSITION_OFFSET)
+    foliage_wpo.connect(mat, spec, lifted=lifted, scatter=scatter, pivot=pivot)
 
     MEL.recompile_material(mat)
     EAL.save_asset(path)
