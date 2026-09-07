@@ -10,6 +10,26 @@ owners:
     defaultOwner: '@h0lybyte'
 
 tasks:
+    hydrate:
+        # Worktrees are created with GIT_LFS_SKIP_SMUDGE=1, so a game's assets
+        # arrive as pointer stubs. This materializes one game's prefix against
+        # one game's endpoint:
+        #
+        #   LFS_GAME=chuck moon run lfs-tools:hydrate
+        #
+        # The game comes in as LFS_GAME rather than a positional: moon appends
+        # `--` args after the script, which would land the name after the
+        # subcommand. Names come from remotes.tsv. Runs from the workspace root
+        # because the pathspec and `git lfs ls-files` are both root-relative.
+        script: './kbve.sh -lfs "$LFS_GAME" hydrate'
+        options:
+            runFromWorkspaceRoot: true
+            # Pulls bytes off Forgejo and writes into the working tree; there is
+            # no output to hash and a cache hit would skip the pull that is the
+            # entire point.
+            cache: false
+            runInCI: false
+
     test:
         script: 'bash ensure.test.sh && bash scope.test.sh'
         options:
