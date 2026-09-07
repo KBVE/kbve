@@ -45,11 +45,15 @@ def resolve_class(name):
 def resolve_value(value):
     """Turn a JSON value into what set_editor_property expects.
 
-    A string that looks like a content path is loaded as an asset, so a config
-    can name a material without the caller doing the lookup. A three-element
+    A string that looks like a content path -- the project's or the engine's --
+    is loaded as an asset, so a config can name a material without the caller
+    doing the lookup. A three-element
     list becomes a Vector, a two-element list a Vector2D.
     """
-    if isinstance(value, str) and value.startswith("/Game/"):
+    # /Engine/ as well as /Game/: the engine ships usable content -- a cloud
+    # material, a default mesh -- and a config that can only name the project's
+    # own assets forces a needless copy of each one into the project to refer to.
+    if isinstance(value, str) and value.startswith(("/Game/", "/Engine/")):
         asset = EAL.load_asset(value)
         if asset is None:
             raise RuntimeError(f"asset not found: {value}")

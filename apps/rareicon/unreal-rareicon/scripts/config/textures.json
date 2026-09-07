@@ -150,5 +150,11 @@
 		"roughness": 0.08,
 		"opacity": 0.12,
 		"transmittance": [0.78, 0.86, 0.82]
+	},
+	"wind_collection": {
+		"path": "/Game/Textures/MPC_RareIcon_Wind",
+		"direction": [1, -1],
+		"speed": 0.85,
+		"strength": 1.0
 	}
 }

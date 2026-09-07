@@ -585,12 +585,19 @@ def build_foliage_material(spec, textures):
 
     wavelength = spec.get("wind_wavelength", 0.0025)
 
-    # Which way the weather is going, as a world direction. Normalised here so
-    # the config can name a direction without also having to be a unit vector.
-    # X is north and Y is east, so north-west is +X -Y.
-    dx, dy = spec.get("wind_direction", [1.0, -1.0])[:2]
-    span = math.hypot(dx, dy) or 1.0
-    dx, dy = dx / span, dy / span
+    # Which way the weather is going, read from the shared collection rather than
+    # built in here. A material carrying its own copy cannot be told the wind has
+    # turned, and two materials each carrying one eventually disagree about which
+    # way it was going in the first place.
+    collection = spec.get("wind_collection")
+
+    def wind(name, y):
+        node = expr(mat, unreal.MaterialExpressionCollectionParameter, -1500, y)
+        node.set_editor_property("collection", collection)
+        node.set_editor_property("parameter_name", name)
+        return node
+
+    heading3 = wind("WindTravelDirection", 900)
 
     # The gust travels along the wind rather than across each axis separately.
     # Phasing on X and Y independently makes a chequerwork whose fronts run at
@@ -604,9 +611,13 @@ def build_foliage_material(spec, textures):
     ground.set_editor_property("a", False)
     link(world, "", ground, "")
 
-    heading = expr(mat, unreal.MaterialExpressionConstant2Vector, -1200, 900)
-    heading.set_editor_property("r", dx)
-    heading.set_editor_property("g", dy)
+    heading = expr(mat, unreal.MaterialExpressionComponentMask, -1350, 900)
+    heading.set_editor_property("r", True)
+    heading.set_editor_property("g", True)
+    heading.set_editor_property("b", False)
+    heading.set_editor_property("a", False)
+    link(heading3, "", heading, "")
+
     downwind = expr(mat, unreal.MaterialExpressionDotProduct, -1000, 850)
     link(ground, "", downwind, "A")
     link(heading, "", downwind, "B")
@@ -618,8 +629,7 @@ def build_foliage_material(spec, textures):
     link(stretch, "", phase, "B")
 
     time = expr(mat, unreal.MaterialExpressionTime, -1200, 1200)
-    speed = expr(mat, unreal.MaterialExpressionConstant, -1200, 1400)
-    speed.set_editor_property("r", spec.get("wind_speed", 0.85))
+    speed = wind("WindSpeed", 1400)
     advance = expr(mat, unreal.MaterialExpressionMultiply, -1000, 1300)
     link(time, "", advance, "A")
     link(speed, "", advance, "B")
@@ -676,9 +686,29 @@ def build_foliage_material(spec, textures):
 
     # Every clump pushed the same way, because they are all standing in the same
     # wind. The strength varies with the gust above; the heading does not.
-    sway = expr(mat, unreal.MaterialExpressionConstant3Vector, -200, 1400)
-    amplitude = spec.get("wind_amplitude", 2.2)
-    sway.set_editor_property("constant", unreal.LinearColor(amplitude * dx, amplitude * dy, 0.0, 1.0))
+    # How far this particular plant gives stays here -- a blade of grass and a
+    # branch answer the same weather by different amounts -- but it is scaled by
+    # the collection's strength, which is what a gust front turns up for
+    # everything at once.
+    reach = expr(mat, unreal.MaterialExpressionConstant, -500, 1460)
+    reach.set_editor_property("r", spec.get("wind_amplitude", 2.2))
+    amplitude = expr(mat, unreal.MaterialExpressionMultiply, -350, 1420)
+    link(reach, "", amplitude, "A")
+    link(wind("WindStrength", 1520), "", amplitude, "B")
+
+    # Masked to three channels: a collection parameter reads back as a float4,
+    # and a four-channel offset added to a three-channel world position is not a
+    # broadened type, it is a material that will not compile.
+    heading_xyz = expr(mat, unreal.MaterialExpressionComponentMask, -350, 1360)
+    heading_xyz.set_editor_property("r", True)
+    heading_xyz.set_editor_property("g", True)
+    heading_xyz.set_editor_property("b", True)
+    heading_xyz.set_editor_property("a", False)
+    link(heading3, "", heading_xyz, "")
+
+    sway = expr(mat, unreal.MaterialExpressionMultiply, -200, 1400)
+    link(heading_xyz, "", sway, "A")
+    link(amplitude, "", sway, "B")
     offset = expr(mat, unreal.MaterialExpressionMultiply, 0, 1200)
     link(weighted, "", offset, "A")
     link(sway, "", offset, "B")
@@ -807,6 +837,59 @@ def build_foliage_atlas(spec, material):
     unreal.log(f"built {path} with {len(cells)} cells, {kept} models kept")
 
 
+def build_wind_collection(spec):
+    """The one wind every material that moves in it reads from.
+
+    A parameter collection rather than a constant in each material, because the
+    wind is a property of the weather and not of the grass. Baked per material it
+    cannot gust, cannot turn, cannot be told a storm is coming, and -- worse --
+    each material carries its own copy of the answer, so the day one of them is
+    retuned the field and the sky quietly start disagreeing about which way the
+    weather is going.
+
+    Named for where the wind is going rather than where it comes from. Both
+    conventions are ordinary -- a meteorologist's "north-westerly" blows towards
+    the south-east -- and a name that has to be qualified every time it is read
+    is a name that will eventually be read wrong by something that then leans the
+    opposite way to everything else.
+    """
+    # Updated in place, never recreated. Every material that reads the wind refers
+    # to this asset by name, and so does the map -- delete it and the delete is
+    # refused as in-use, the create then hands back nothing, and the texture build
+    # falls over on its second run having worked perfectly on its first.
+    path = spec["path"]
+    if EAL.does_asset_exist(path):
+        collection = EAL.load_asset(path)
+    else:
+        pkg_dir, pkg_name = path.rsplit("/", 1)
+        collection = ASSET_TOOLS.create_asset(
+            pkg_name, pkg_dir, unreal.MaterialParameterCollection, unreal.MaterialParameterCollectionFactoryNew()
+        )
+
+    dx, dy = spec.get("direction", [1.0, -1.0])[:2]
+    span = math.hypot(dx, dy) or 1.0
+
+    heading = unreal.CollectionVectorParameter()
+    heading.set_editor_property("parameter_name", "WindTravelDirection")
+    heading.set_editor_property("default_value", unreal.LinearColor(dx / span, dy / span, 0.0, 0.0))
+    collection.set_editor_property("vector_parameters", [heading])
+
+    scalars = []
+    for name, value in (
+        ("WindSpeed", spec.get("speed", 0.85)),
+        ("WindStrength", spec.get("strength", 1.0)),
+    ):
+        entry = unreal.CollectionScalarParameter()
+        entry.set_editor_property("parameter_name", name)
+        entry.set_editor_property("default_value", value)
+        scalars.append(entry)
+    collection.set_editor_property("scalar_parameters", scalars)
+
+    EAL.save_asset(path)
+    unreal.log(f"built {path}")
+    return collection
+
+
 def build_glass_material(spec):
     # Thin Translucent, which is Unreal's model for a pane: a sheet with no
     # interior worth simulating, where the tint belongs to how much light gets
@@ -912,6 +995,10 @@ def build(config):
                 return
             textures[name] = tex
 
+    wind_collection = None
+    if config.get("wind_collection"):
+        wind_collection = build_wind_collection(config["wind_collection"])
+
     if config.get("terrain_material"):
         build_terrain_material(config["terrain_material"], textures)
     for spec in config.get("surface_materials", []):
@@ -920,6 +1007,7 @@ def build(config):
         # The ground a clump blends its root into is the terrain's, so it is
         # taken from the terrain rather than restated per foliage set and left
         # to drift out of step with it.
+        spec["wind_collection"] = wind_collection
         terrain = config.get("terrain_material") or {}
         spec.setdefault("ground", terrain.get("ground"))
         spec.setdefault("ground_repeat_uu", terrain.get("repeat_uu", 512))

@@ -3,7 +3,16 @@
 	"actors": [
 		{
 			"class": "KBVEWorldEnvironment",
-			"location": [0, 0, 0]
+			"location": [0, 0, 0],
+			"properties": {
+				"wind_collection": "/Game/Textures/MPC_RareIcon_Wind",
+				"wind_travel_direction": [1.0, -1.0],
+				"clouds_enabled": true,
+				"cloud_material": "/Engine/EngineSky/VolumetricClouds/m_SimpleVolumetricCloud_Inst",
+				"cloud_bottom_km": 5.0,
+				"cloud_thickness_km": 6.0,
+				"cloud_shadows": true
+			}
 		},
 		{
 			"class": "KBVEWorldStreamer",
