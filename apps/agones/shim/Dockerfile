@@ -7,7 +7,7 @@
 # change to an unrelated crate does not invalidate this build's cache. The shim
 # depends on no internal crates, which keeps that list to one member.
 
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS planner
 
 WORKDIR /app
 
@@ -20,7 +20,7 @@ RUN mkdir -p apps/agones/shim/src && echo 'fn main() {}' > apps/agones/shim/src/
 
 RUN cargo chef prepare --recipe-path recipe.json
 
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS builder
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS builder
 
 WORKDIR /app
 
@@ -35,7 +35,7 @@ COPY apps/agones/shim/src apps/agones/shim/src
 RUN cargo build --release --bin agones-shim && \
     strip target/release/agones-shim
 
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13
 
 COPY --from=builder /app/target/release/agones-shim /usr/local/bin/agones-shim
 

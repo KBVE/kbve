@@ -9,7 +9,7 @@
 # ============================================================================
 # [STAGE A] - Build Astro Static Site
 # ============================================================================
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS astro-builder
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS astro-builder
 
 WORKDIR /app
 
@@ -90,7 +90,7 @@ RUN find . -type f \( \
 # ============================================================================
 
 # [STAGE C] - Cargo Chef Planner
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS planner
 
 COPY apps/cryptothrone/api/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
@@ -114,7 +114,7 @@ RUN mkdir -p apps/cryptothrone/api/src && echo "fn main() {}" > apps/cryptothron
 RUN cargo chef prepare --recipe-path recipe.json
 
 # [STAGE D] - Cargo Chef Cook (Cache External Dependencies)
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS builder-deps
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS builder-deps
 ENV CARGO_INCREMENTAL=0
 
 COPY --from=planner /app/recipe.json recipe.json
@@ -128,7 +128,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cargo chef cook --release --recipe-path recipe.json -p axum-cryptothrone
 
 # [STAGE E] - Foundation Layer (Compile kbve + jedi from real source)
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS foundation
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS foundation
 ENV CARGO_INCREMENTAL=0
 
 COPY --from=builder-deps /app/target target
@@ -191,7 +191,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 # ============================================================================
 # [STAGE Z] - Runtime Image (shared chisel base)
 # ============================================================================
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13 AS runtime
 
 COPY --from=builder --chown=10001:10001 /app/target/release/axum-cryptothrone /app/axum-cryptothrone
 

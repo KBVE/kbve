@@ -9,7 +9,7 @@
 # ============================================================================
 # [STAGE A] - Build Astro Static Site
 # ============================================================================
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS astro-builder
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS astro-builder
 
 WORKDIR /app
 
@@ -94,7 +94,7 @@ RUN find . -type f \( \
 # ============================================================================
 
 # [STAGE C] - Cargo Chef Planner
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS planner
 
 # sccache 0.14.0 refuses to wrap rustc unless CARGO_INCREMENTAL is explicitly 0.
 # Cargo-chef's first probe is `sccache rustc -vV`, which trips this guard.
@@ -150,7 +150,7 @@ RUN mkdir -p apps/kbve/axum-kbve/src && echo "fn main() {}" > apps/kbve/axum-kbv
 RUN cargo chef prepare --recipe-path recipe.json
 
 # [STAGE D] - Cargo Chef Cook (Cache External Dependencies)
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS builder-deps
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS builder-deps
 # sccache is incompatible with incremental compilation
 ENV CARGO_INCREMENTAL=0
 ENV RUSTFLAGS="-C link-arg=-fuse-ld=mold"
@@ -178,7 +178,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     (sccache --show-stats || true)
 
 # [STAGE E] - Foundation Layer (Compile kbve + jedi from real source)
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS foundation
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS foundation
 ENV CARGO_INCREMENTAL=0
 ENV RUSTFLAGS="-C link-arg=-fuse-ld=mold"
 
@@ -290,7 +290,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 # ============================================================================
 # [STAGE Z] - Runtime Image (shared chisel base)
 # ============================================================================
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13 AS runtime
 
 COPY --from=builder --chown=10001:10001 /app/target/release/axum-kbve /app/axum-kbve
 

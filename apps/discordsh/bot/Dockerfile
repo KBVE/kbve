@@ -7,7 +7,7 @@
 # ============================================================================
 
 # [STAGE A] - Cargo Chef Planner
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS planner
 
 COPY apps/discordsh/bot/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
@@ -63,7 +63,7 @@ RUN mkdir -p apps/discordsh/bot/src && echo "fn main() {}" > apps/discordsh/bot/
 RUN cargo chef prepare --recipe-path recipe.json
 
 # [STAGE B] - Cargo Chef Cook (Cache External Dependencies)
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS builder-deps
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS builder-deps
 ENV CARGO_INCREMENTAL=0
 
 COPY --from=planner /app/recipe.json recipe.json
@@ -77,7 +77,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cargo chef cook --release --recipe-path recipe.json -p discordsh-bot
 
 # [STAGE C] - Foundation Layer (Compile workspace crates from real source)
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS foundation
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS foundation
 ENV CARGO_INCREMENTAL=0
 
 COPY --from=builder-deps /app/target target
@@ -167,7 +167,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 # ============================================================================
 # [STAGE Z] - Runtime Image
 # ============================================================================
-FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.3 AS runtime
+FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13 AS runtime
 
 COPY --from=builder --chown=10001:10001 /app/target/release/discordsh-bot /app/discordsh-bot
 
