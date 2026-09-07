@@ -12,9 +12,15 @@ tasks:
                 'discordsh-api:container',
                 'discordsh-web-e2e:e2e-docker',
             ]
+        inputs:
+            - '**/*'
+            - '!**/*.md'
         options:
             runFromWorkspaceRoot: true
     container:
         deps: ['discordsh-api:container']
+        inputs:
+            - '**/*'
+            - '!**/*.md'
         options:
             cache: false

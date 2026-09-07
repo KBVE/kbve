@@ -22,11 +22,11 @@ On the browser side the client work is largely **already available**: `@kbve/las
 
 ### Three corrections to the brief, stated up front
 
-1. **`simgrid` does not use rapier.** Its own `Cargo.toml` description says so verbatim: *"No godot, no rapier, no lightyear."* There is no rapier dependency anywhere in it. Collision is tile occupancy; movement is float bodies with sub-stepped axis-separated resolution (`packages/rust/simgrid/src/float_move.rs`). The only rapier in the Rust workspace is `packages/rust/q` (rapier**2d**, optional feature, unrelated to this stack).
+1. **`simgrid` does not use rapier.** Its own `Cargo.toml` description says so verbatim: _"No godot, no rapier, no lightyear."_ There is no rapier dependency anywhere in it. Collision is tile occupancy; movement is float bodies with sub-stepped axis-separated resolution (`packages/rust/simgrid/src/float_move.rs`). The only rapier in the Rust workspace is `packages/rust/q` (rapier**2d**, optional feature, unrelated to this stack).
 
 2. **rapier already exists in the herbmail client, and it is cosmetic.** `apps/herbmail/herbmail-game/src/game/sab/sim.worker.ts` runs `@dimforge/rapier3d-compat`, but the player is a `RigidBodyDesc.kinematicPositionBased()` proxy driven from the main thread — rapier decides nothing about the player. Its only dynamic bodies are the six break-off panels spawned by `shatter()` (`BODY_PANEL`, `F_BREAKABLE`, `PANEL_TTL = 8`, `PANEL_FADE = 1.2`). It is a debris VFX sim. Replicating it server-side would buy nothing.
 
-3. **"MMORPG" and what this stack delivers are different things.** Both existing simgrid games run as a *single pod, single world* — `minReplicas: maxReplicas: 1` with `MAX_PLAYERS: 32`, because "a Service round-robins; multiple Ready pods would split players across separate worlds" (`apps/kube/agones/cryptothrone/README.md`). There is no sharding, no cross-server handoff and no zone service anywhere in this repo. This design gets herbmail to a solid 32-player shared world on well-trodden rails; going beyond that is an unsolved problem here and should be scoped separately.
+3. **"MMORPG" and what this stack delivers are different things.** Both existing simgrid games run as a _single pod, single world_ — `minReplicas: maxReplicas: 1` with `MAX_PLAYERS: 32`, because "a Service round-robins; multiple Ready pods would split players across separate worlds" (`apps/kube/agones/cryptothrone/README.md`). There is no sharding, no cross-server handoff and no zone service anywhere in this repo. This design gets herbmail to a solid 32-player shared world on well-trodden rails; going beyond that is an unsolved problem here and should be scoped separately.
 
 4. **`apps/herbmail/axum-herbmail` is a static file server.** Its routes are `/health`, `/_astro/{*path}`, `/`, and MIME overrides so `.ts` worker files are served as JS (`src/transport/https.rs`). No DB, no auth, no WebSocket handler, no game state. It should be left alone; the game server goes **beside** it, not inside it.
 
@@ -48,19 +48,19 @@ The README's own layout note is out of date (`build_app` now takes a `KindRegist
 
 Modules relevant to herbmail:
 
-| Module | Lines | What it gives herbmail |
-| --- | --- | --- |
-| `proto.rs` | 1932 | `PROTOCOL_VERSION: u32 = 16`, `ClientMessage`, `Input`, `ServerEvent`, `Snapshot`, `EntityDelta`, COBS-framed postcard encode/decode, `UdpPacket` |
-| `sim.rs` | 6604 | `build_app`, `run_sim_loop`, `SIM_TICK_HZ = 20`, `SimSet` ordering, `Health`/`Inventory`/`Loot`/`XpState`/`Equipped`/`EnvObject`, persistence sinks |
-| `net.rs` | 869 | axum `/ws` + `/healthz` router, per-connection session loop, `Roster`, **AOI snapshot routing** |
-| `net_udp.rs` | 405 | `UdpLane` — token-authenticated UDP fastlane with automatic WS fallback |
-| `float_move.rs` | 395 | `FloatBody`, `step_float`, `step_steer`, sub-stepped axis-separated tile collision |
-| `arpg_dungeon.rs` | 414 | Endless chunk-streamed multi-floor dungeon, collision as a pure `is_floor(seed, x, y)` |
-| `dungeon.rs` | 333 | Bounded rooms+corridors generator, semantic `role` grid, `role_blocks` |
-| `grid.rs` | 627 | `WalkableMap` (bitset **or** pure-function collision + dynamic `blocked` overlay), `Floor`, `Stairs`, `StairGrace` |
-| `rng.rs` | 123 | `Mulberry32`, `mix32`, `stream`, `roll_pct`, domain tags incl. `LOOT` / `DUNGEON` — **byte-mirrored in TS** |
-| `data.rs` | 351 | `ItemDb`, `NpcDb`, `KindRegistry` loaded from codegen JSON |
-| `auth.rs` | 93 | Supabase JWT verification, trusts the `kbve_username` claim |
+| Module            | Lines | What it gives herbmail                                                                                                                              |
+| ----------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `proto.rs`        | 1932  | `PROTOCOL_VERSION: u32 = 16`, `ClientMessage`, `Input`, `ServerEvent`, `Snapshot`, `EntityDelta`, COBS-framed postcard encode/decode, `UdpPacket`   |
+| `sim.rs`          | 6604  | `build_app`, `run_sim_loop`, `SIM_TICK_HZ = 20`, `SimSet` ordering, `Health`/`Inventory`/`Loot`/`XpState`/`Equipped`/`EnvObject`, persistence sinks |
+| `net.rs`          | 869   | axum `/ws` + `/healthz` router, per-connection session loop, `Roster`, **AOI snapshot routing**                                                     |
+| `net_udp.rs`      | 405   | `UdpLane` — token-authenticated UDP fastlane with automatic WS fallback                                                                             |
+| `float_move.rs`   | 395   | `FloatBody`, `step_float`, `step_steer`, sub-stepped axis-separated tile collision                                                                  |
+| `arpg_dungeon.rs` | 414   | Endless chunk-streamed multi-floor dungeon, collision as a pure `is_floor(seed, x, y)`                                                              |
+| `dungeon.rs`      | 333   | Bounded rooms+corridors generator, semantic `role` grid, `role_blocks`                                                                              |
+| `grid.rs`         | 627   | `WalkableMap` (bitset **or** pure-function collision + dynamic `blocked` overlay), `Floor`, `Stairs`, `StairGrace`                                  |
+| `rng.rs`          | 123   | `Mulberry32`, `mix32`, `stream`, `roll_pct`, domain tags incl. `LOOT` / `DUNGEON` — **byte-mirrored in TS**                                         |
+| `data.rs`         | 351   | `ItemDb`, `NpcDb`, `KindRegistry` loaded from codegen JSON                                                                                          |
+| `auth.rs`         | 93    | Supabase JWT verification, trusts the `kbve_username` claim                                                                                         |
 
 **Is it game-agnostic?** Yes, demonstrably. `sim.rs` comments call the sim "content-agnostic"; `SimConfig` has a `corpse_kind: Option<u16>` field explicitly because "the sim is content-agnostic". Two very different games already ride it:
 
@@ -153,12 +153,19 @@ There is **no `Math.random` anywhere in the generation path**. The entire world 
 
 ```ts
 export function hashInt(x: number, y: number, z = 0): number {
-	let h = Math.imul(x | 0, 374761393) + Math.imul(y | 0, 668265263) + Math.imul(z | 0, 1274126177);
+	let h =
+		Math.imul(x | 0, 374761393) +
+		Math.imul(y | 0, 668265263) +
+		Math.imul(z | 0, 1274126177);
 	h = Math.imul(h ^ (h >>> 13), 1274126177);
 	return (h ^ (h >>> 16)) >>> 0;
 }
-export function hash01(x, y, z = 0) { return hashInt(x, y, z) / 4294967295; }
-export function jitter(x, y, z, min, max) { return min + hash01(x, y, z) * (max - min); }
+export function hash01(x, y, z = 0) {
+	return hashInt(x, y, z) / 4294967295;
+}
+export function jitter(x, y, z, min, max) {
+	return min + hash01(x, y, z) * (max - min);
+}
 ```
 
 `Math.imul` is `i32` wrapping multiply and `>>>` is a logical shift, so this is a trivially exact Rust port (`wrapping_mul` on `i32`, shifts on `u32`). It is a **coordinate hash, not a stream** — which is better than `Mulberry32` for a server: draws are order-independent and can be evaluated for any tile in O(1) without generating anything else.
@@ -167,19 +174,22 @@ export function jitter(x, y, z, min, max) { return min + hash01(x, y, z) * (max 
 
 Coordinate scheme (three nested levels):
 
-| Level | Constant | Value | Defined in |
-| --- | --- | --- | --- |
-| tile | `TILE` | 3 world units | `src/game/config.ts` |
-| cell | `CELL` | 6 tiles = 18 units | `src/game/dungeon/generate.ts` |
-| sector | `SECTOR` | 8 cells = 48 tiles = **144 world units** | `src/game/dungeon/sector.ts` |
+| Level  | Constant | Value                                    | Defined in                     |
+| ------ | -------- | ---------------------------------------- | ------------------------------ |
+| tile   | `TILE`   | 3 world units                            | `src/game/config.ts`           |
+| cell   | `CELL`   | 6 tiles = 18 units                       | `src/game/dungeon/generate.ts` |
+| sector | `SECTOR` | 8 cells = 48 tiles = **144 world units** | `src/game/dungeon/sector.ts`   |
 
 One caveat for the port: `sector.ts` also wraps `hashInt` in a **counter-based stream**:
 
 ```ts
 function makeRng(seed) {
-  let i = 0;
-  const next = () => hashInt(seed | 0, i++, 0x9e3779b9) / 4294967295;
-  return { next, int: (min, max) => min + Math.floor(next() * (max - min + 1)) };
+	let i = 0;
+	const next = () => hashInt(seed | 0, i++, 0x9e3779b9) / 4294967295;
+	return {
+		next,
+		int: (min, max) => min + Math.floor(next() * (max - min + 1)),
+	};
 }
 ```
 
@@ -191,26 +201,34 @@ This is draw-order dependent. Any reordering of `rng.next()` calls in `partition
 
 `src/game/dungeon/collision.ts::solidAtWorld(x, z)` takes **only X and Z**. Consulted in order:
 
-1. `DOORWAY` bit → `doorClosedAt(wc, wr)`, else a jittered opening half-width — the arch's *collision* geometry comes from the same hash as its rendered mesh:
-   ```ts
-   const openHW = jitter(lc, lr, 1 + desc.variant * ARCH_SALT, TILE * 0.28, TILE * 0.38);
-   const lat = ns ? z - (wr + 0.5) * TILE : x - (wc + 0.5) * TILE;
-   return Math.abs(lat) > openHW;
-   ```
+1. `DOORWAY` bit → `doorClosedAt(wc, wr)`, else a jittered opening half-width — the arch's _collision_ geometry comes from the same hash as its rendered mesh:
+    ```ts
+    const openHW = jitter(
+    	lc,
+    	lr,
+    	1 + desc.variant * ARCH_SALT,
+    	TILE * 0.28,
+    	TILE * 0.38,
+    );
+    const lat = ns ? z - (wr + 0.5) * TILE : x - (wc + 0.5) * TILE;
+    return Math.abs(lat) > openHW;
+    ```
 2. `PILLAR` → circle test, `COLUMN_R = 0.55`
 3. `SOLID` → true
 4. prop footprint via `colliderAt(wc, wr)` → AABB from `Collider.hx/hz`
 
 Vertical geometry is `floorYAtWorld(x, z)`, which returns exactly `0` or `-OASIS_DEPTH` depending on the `PIT` bit. That is the entire height model: two discrete planes, a pure function of tile.
 
-**Therefore jumping cannot bypass any wall, and swimming cannot reach anywhere walking cannot.** The Y axis is cosmetic and derivable. This is the finding that closes the rapier question: herbmail's *gameplay* space is already 2.5D, identical in shape to what simgrid models.
+**Therefore jumping cannot bypass any wall, and swimming cannot reach anywhere walking cannot.** The Y axis is cosmetic and derivable. This is the finding that closes the rapier question: herbmail's _gameplay_ space is already 2.5D, identical in shape to what simgrid models.
 
 `makeMover(radius, self, skipBodies, blockPits)` resolves motion by sub-stepped axis-separated sliding, then actor-vs-actor depenetration against a global `Set<Body>`:
 
 ```ts
 const moveAxis = (pos, dx, dz) => {
-  if (dx !== 0 && !blocked(pos.x + dx + Math.sign(dx) * radius, pos.z)) pos.x += dx;
-  if (dz !== 0 && !blocked(pos.x, pos.z + dz + Math.sign(dz) * radius)) pos.z += dz;
+	if (dx !== 0 && !blocked(pos.x + dx + Math.sign(dx) * radius, pos.z))
+		pos.x += dx;
+	if (dz !== 0 && !blocked(pos.x, pos.z + dz + Math.sign(dz) * radius))
+		pos.z += dz;
 };
 const steps = Math.min(64, Math.max(1, Math.ceil(dist / radius)));
 ```
@@ -235,7 +253,7 @@ b.vx += (target_vx - b.vx) * response;
 
 **These are the same equation.** herbmail already uses simgrid's acceleration model. `DEFAULT_MOTOR = { walkSpeed: 1.8, runSpeed: 4.5, accel: 12, turnLerp: 10, gravity: 22, jumpSpeed: 6 }`, body radius `0.35`.
 
-The one real mismatch is timestep: herbmail runs the motor from `useFrame` at variable `dt` clamped to 50 ms (`Character.tsx:681`), in two independent per-frame callbacks. A server sim is fixed at 20 Hz. Converting the client to a fixed-step accumulator for the *motor only* (render interpolation on top) is prerequisite work for prediction — see Milestone 1.
+The one real mismatch is timestep: herbmail runs the motor from `useFrame` at variable `dt` clamped to 50 ms (`Character.tsx:681`), in two independent per-frame callbacks. A server sim is fixed at 20 Hz. Converting the client to a fixed-step accumulator for the _motor only_ (render interpolation on top) is prerequisite work for prediction — see Milestone 1.
 
 ### 3.4 Everywhere the client currently assumes authority
 
@@ -245,26 +263,26 @@ Nothing in `herbmail-game` is persisted — there is no `localStorage`, no `fetc
 
 The complete list of client-authority sites:
 
-| # | Site | What it decides unilaterally |
-| --- | --- | --- |
-| A | `character/mine.ts::mineHit` | node HP decrement, **loot roll**, **XP grant**, node destruction |
-| B | `profession/store.ts::grantXp` | XP and level-ups; backing store is a bare module-level `Map` |
-| C | `inventory/store.ts::addLoot` | item creation; backing store is `let items: PlacedItem[] = []` |
-| D | `character/useCrateBreak.ts` | crate HP, unconditional `addLoot('wood')` |
-| E | `prop/burn.ts::killByBurn` | DoT ticks and the resulting `addLoot('wood')` |
-| F | `combat/castSystem.ts::applyDamage` | all damage and all kills |
-| G | `combat/castSystem.ts` cone test | hit detection (`reach`/`arc`, no raycast, no server) |
-| H | `character/melee.ts` | crate hits sampled from **render skeleton bone positions** |
-| I | `door/doors.ts::unlockDoor` | door unlock, with **no key check at all** (`SEdge.keyId` is generated but never consulted) |
-| J | `prop/placed.ts` | placed/destroyed props, FIFO-capped at `CAP = 24` / `SUPPRESS_CAP = 4096` |
-| K | `npc/goblinSim.ts` | all NPC position, aggro, and death |
-| L | `npc/spawn.ts::enemyBudget` | enemy population, from **client session history** (`progress.maxDist`) |
-| M | `character/playerStats.ts` | HP/MP/EP/SP pools and regen |
-| N | `character/mine.ts::mineRefusal` | tool + level gating, read from client-only `isHeld()` / `levelOf()` |
+| #   | Site                                | What it decides unilaterally                                                               |
+| --- | ----------------------------------- | ------------------------------------------------------------------------------------------ |
+| A   | `character/mine.ts::mineHit`        | node HP decrement, **loot roll**, **XP grant**, node destruction                           |
+| B   | `profession/store.ts::grantXp`      | XP and level-ups; backing store is a bare module-level `Map`                               |
+| C   | `inventory/store.ts::addLoot`       | item creation; backing store is `let items: PlacedItem[] = []`                             |
+| D   | `character/useCrateBreak.ts`        | crate HP, unconditional `addLoot('wood')`                                                  |
+| E   | `prop/burn.ts::killByBurn`          | DoT ticks and the resulting `addLoot('wood')`                                              |
+| F   | `combat/castSystem.ts::applyDamage` | all damage and all kills                                                                   |
+| G   | `combat/castSystem.ts` cone test    | hit detection (`reach`/`arc`, no raycast, no server)                                       |
+| H   | `character/melee.ts`                | crate hits sampled from **render skeleton bone positions**                                 |
+| I   | `door/doors.ts::unlockDoor`         | door unlock, with **no key check at all** (`SEdge.keyId` is generated but never consulted) |
+| J   | `prop/placed.ts`                    | placed/destroyed props, FIFO-capped at `CAP = 24` / `SUPPRESS_CAP = 4096`                  |
+| K   | `npc/goblinSim.ts`                  | all NPC position, aggro, and death                                                         |
+| L   | `npc/spawn.ts::enemyBudget`         | enemy population, from **client session history** (`progress.maxDist`)                     |
+| M   | `character/playerStats.ts`          | HP/MP/EP/SP pools and regen                                                                |
+| N   | `character/mine.ts::mineRefusal`    | tool + level gating, read from client-only `isHeld()` / `levelOf()`                        |
 
 Two of these are easy wins because they are already deterministic and coordinate-derived:
 
-- **A's loot roll is a pure function of world tile.** `Stone.seed[eid] = hashInt(worldCol, worldRow, 0x570e)` (`prop/stone.ts`), and the roll is `hash01(seed, 0x10a7 + i * 0x3f, i + 1) >= chance`. A server can recompute the exact drop from `(wc, wr)` with no RNG synchronisation problem whatsoever. Only *whether the node is still there* needs authority.
+- **A's loot roll is a pure function of world tile.** `Stone.seed[eid] = hashInt(worldCol, worldRow, 0x570e)` (`prop/stone.ts`), and the roll is `hash01(seed, 0x10a7 + i * 0x3f, i + 1) >= chance`. A server can recompute the exact drop from `(wc, wr)` with no RNG synchronisation problem whatsoever. Only _whether the node is still there_ needs authority.
 - **F/G have no RNG at all.** `Health.hp[t] -= Math.max(1, ability.damage - def)` with a deterministic cone test. Combat is trivially reproducible server-side and trivially predictable client-side.
 
 The genuinely hard one is **K**: `goblinSim.ts` is the only true nondeterminism in the game (`Math.random()` at lines 127, 273-274, 295-296, 300), its runtime state lives in an off-ECS plain JS `Map<eid, NpcRuntime>`, and **L** makes population a function of client session history rather than world coordinates. NPCs must be rewritten, not ported.
@@ -287,7 +305,7 @@ Reasoning, concretely:
 
 - **Not "ignore"** — simgrid solves transport, framing, admission, roster, AOI, snapshot/delta, reconciliation, persistence sinks and the Agones host shape. Rebuilding that is months of work that two other games have already paid for and hardened with integration tests (`tests/ws_flow.rs`, `tests/udp_flow.rs`).
 - **Not "fork"** — the integration surface is seven arguments to `build_app` plus `app.add_systems`. `arpg-server` layers ~200KB of game-specific systems on top without touching simgrid. herbmail needs strictly less than that.
-- **"Extend" only for one thing** (see §5): a continuous-coordinate blocked predicate. Even that is better done *locally first* and upstreamed once proven.
+- **"Extend" only for one thing** (see §5): a continuous-coordinate blocked predicate. Even that is better done _locally first_ and upstreamed once proven.
 
 ### What the herbmail adapter looks like
 
@@ -316,22 +334,24 @@ herbmail-server/
 `game.rs` is the adapter proper. It provides:
 
 - `walkable_map() -> WalkableMap` — herbmail cannot use `WalkableMap::from_blocked` (the world is unbounded) and cannot use `WalkableMap::arpg_dungeon` (wrong generator). It needs a third `Collision` variant. `grid.rs` already models exactly this distinction:
-  ```rust
-  enum Collision {
-      Bitset(Vec<bool>),
-      Dungeon { seed: u32 },
-  }
-  ```
-  Adding `Collision::Herbmail { seed: u32 }` backed by `collide::solid_at(seed, x, z)` is a ~20-line upstream change and is the right kind of extension — it follows the pattern the module was built for. The dynamic `blocked: HashSet<(i32, Tile)>` overlay already exists and is exactly what player-placed props and closed doors need.
+    ```rust
+    enum Collision {
+        Bitset(Vec<bool>),
+        Dungeon { seed: u32 },
+    }
+    ```
+    Adding `Collision::Herbmail { seed: u32 }` backed by `collide::solid_at(seed, x, z)` is a ~20-line upstream change and is the right kind of extension — it follows the pattern the module was built for. The dynamic `blocked: HashSet<(i32, Tile)>` overlay already exists and is exactly what player-placed props and closed doors need.
 - `registry() -> KindRegistry` — kind IDs for player, goblin, kurenai, stone node, crate, torch, door, ground item.
 - `config() -> SimConfig` — `spawn` from the ported `dungeonSpawn()`, `player_hp: 100`, `safe_radius` around the entrance room.
 - data resources loaded from codegen, mirroring `cryptothrone-server/src/game.rs:17-20`:
-  ```rust
-  const ITEMDB_JSON: &[u8] = include_bytes!(".../packages/data/codegen/generated/itemdb-data.json");
-  ```
-  arpg does the same with `.binpb` and typed decoders: `bevy_mapdb::MapDb::from_bytes(include_bytes!(".../mapdb-data.binpb"))`, `bevy_items::ItemDb::from_bytes(...)`, `simgrid::NpcDb::from_json(...)`. **One source of truth, two consumers, no schema duplication.**
 
-  herbmail additionally needs **professiondb** (mining actions, XP curves, `spawnWeight` tables) and **mapdb** (`objectDefs`, the join target for `resourceNodeRef`). mapdb already has a Rust decoder. **professiondb does not** — see §10; it is the one piece of genuinely new data-layer tooling this design requires.
+    ```rust
+    const ITEMDB_JSON: &[u8] = include_bytes!(".../packages/data/codegen/generated/itemdb-data.json");
+    ```
+
+    arpg does the same with `.binpb` and typed decoders: `bevy_mapdb::MapDb::from_bytes(include_bytes!(".../mapdb-data.binpb"))`, `bevy_items::ItemDb::from_bytes(...)`, `simgrid::NpcDb::from_json(...)`. **One source of truth, two consumers, no schema duplication.**
+
+    herbmail additionally needs **professiondb** (mining actions, XP curves, `spawnWeight` tables) and **mapdb** (`objectDefs`, the join target for `resourceNodeRef`). mapdb already has a Rust decoder. **professiondb does not** — see §10; it is the one piece of genuinely new data-layer tooling this design requires.
 
 ### Where the crate should live
 
@@ -347,13 +367,15 @@ Root `Cargo.toml` `[workspace] members` is an **explicit list, not a glob**, so 
 
 > **This section's original conclusion ("no rapier server-side") was overturned and the code now does the opposite.** It is kept below with the reasoning that failed, because two of the four arguments were factually wrong at the time of writing and the other two were weaker than they read. Implemented in `packages/rust/simbody3d`.
 >
-> **Argument 2 was simply false.** `sim.worker.ts` imports `@dimforge/rapier3d-compat` and runs a `KinematicCharacterController` for the authority capsule. The client *is* running rapier for movement.
+> **Argument 2 was simply false.** `sim.worker.ts` imports `@dimforge/rapier3d-compat` and runs a `KinematicCharacterController` for the authority capsule. The client _is_ running rapier for movement.
 >
 > **The measured 24cm authority drift is the argument against the original plan, not for it.** That gap is rapier disagreeing with the tile motor over wall slides and body pushout. Server rapier + client tile motor makes it permanent and puts it inside the reconciliation loop. Both sides must run the same solver.
 >
-> **The argument this section missed:** one solver compiled twice beats two transliterations pinned by parity vectors. `@dimforge/rapier3d-compat` 0.19.3 is built from `rapier3d` 0.30.1 (read out of the shipped wasm), so pinning that crate makes both sides the same code — no draw-order fragility, no `Math.imul` vs `wrapping_mul`, no ulp chasing in `jitter`.
+> **The argument this section missed:** one solver compiled twice beats two transliterations pinned by parity vectors. Matching the JS package to the crate `simbody3d` builds against makes both sides the same code — no draw-order fragility, no `Math.imul` vs `wrapping_mul`, no ulp chasing in `jitter`.
 >
-> **Argument 4 was wrong-shaped.** It assumed per-player geometry. The world is static and seed-derived, so colliders build per *sector* and are shared across all players; 32 kinematic capsules in one rapier world is negligible.
+> **Version pairing, corrected 2026-09-07.** The pairing this section named (`rapier3d-compat` 0.19.3 against `rapier3d` 0.30.1) stopped holding once `simbody3d` moved to `rapier3d` 0.35.3, and the JS side did not follow. 0.19.3 embeds `parry3d` 0.25.3 / `nalgebra` 0.34.1; `rapier3d` 0.35.3 resolves `parry3d` 0.30.2 / `nalgebra` 0.35.0. `rapier3d-compat` 0.20.0 embeds `parry3d` 0.30.2 / `nalgebra` 0.35.0, so it is the package that pairs with the crate the server actually links, and the client is pinned there. Read the embedded versions out of `dist/rapier_wasm3d_bg.wasm` before changing either side.
+>
+> **Argument 4 was wrong-shaped.** It assumed per-player geometry. The world is static and seed-derived, so colliders build per _sector_ and are shared across all players; 32 kinematic capsules in one rapier world is negligible.
 >
 > **Argument 1 still stands and is why simgrid remains the right netcode host** — gameplay is XZ, Y is cosmetic. It is not a reason to avoid rapier, only a reason not to put Y on the wire.
 >
@@ -367,7 +389,7 @@ The brief proposes "physics via rapier". The evidence says don't.
 
 **Argument 1 — herbmail's gameplay space has no vertical dimension.** `solidAtWorld(x, z)` never reads Y. `floorYAtWorld` returns `0` or `-OASIS_DEPTH` as a pure function of tile. Nothing can be jumped over, climbed onto, or fallen off. A 3D rigid-body solver would be simulating a degree of freedom that does not affect a single gameplay outcome.
 
-**Argument 2 — the client is not running rapier for movement either.** The player is `kinematicPositionBased()` in `sim.worker.ts`; the tile grid decides where it goes. Introducing server rapier would create a *new* disagreement between client tile-collision and server rigid-body collision that does not exist today.
+**Argument 2 — the client is not running rapier for movement either.** The player is `kinematicPositionBased()` in `sim.worker.ts`; the tile grid decides where it goes. Introducing server rapier would create a _new_ disagreement between client tile-collision and server rigid-body collision that does not exist today.
 
 **Argument 3 — herbmail's collision is intentionally non-physical.** The doorway rule (`|lat| > openHW`, where `openHW = jitter(lc, lr, 1 + variant * ARCH_SALT, TILE*0.28, TILE*0.38)`) is a hash-derived gameplay constraint, not a mesh. Reproducing it as rapier colliders means baking per-arch geometry on the server and keeping it in sync with a hash the client evaluates lazily. Reproducing it as a predicate is four lines.
 
@@ -380,7 +402,7 @@ The brief proposes "physics via rapier". The evidence says don't.
 **No — port it into `herbmail-server/src/motor.rs` instead.** Three concrete incompatibilities:
 
 1. **Predicate signature.** `float_move` threads `is_blocked: &impl Fn(i32, i32) -> bool` — tile-discrete. herbmail's `solidAtWorld` is continuous in `(x, z)` because of doorway half-widths, pillar circles and prop AABBs. A tile-granular predicate would make every arch either fully open or fully closed.
-2. **Tile space.** `float_move::tile_at(v) = (v + 0.5).floor()` puts tile *centres* on integers, with `BODY_RADIUS = 0.34`. herbmail uses `Math.floor(x / TILE)` with `TILE = 3` and radius `0.35` (≈ 0.117 tiles). Different origin convention and a ~3× different body-to-tile ratio.
+2. **Tile space.** `float_move::tile_at(v) = (v + 0.5).floor()` puts tile _centres_ on integers, with `BODY_RADIUS = 0.34`. herbmail uses `Math.floor(x / TILE)` with `TILE = 3` and radius `0.35` (≈ 0.117 tiles). Different origin convention and a ~3× different body-to-tile ratio.
 3. **Actor depenetration.** herbmail pushes actors apart against a registered body set and routes the push back through `moveAxis` so it respects walls. `float_move` has no actor-vs-actor pass; simgrid handles crowding elsewhere.
 
 `motor.rs` will be roughly 200 lines and is a direct transliteration of two files the client already ships and tests (`collision.test.ts`, `doorwaySteer.test.ts`, `strafe.test.ts`). Keeping it in the herbmail crate lets it stay byte-identical to the TS without negotiating a general abstraction in simgrid.
@@ -396,7 +418,7 @@ Same discipline `arpg-server` and `@kbve/laser` already use:
 - **Correction is smoothed, not snapped.** cryptothrone uses `RECONCILE_LERP = 0.25` per correction with a hard snap only past `RECONCILE_SNAP_DIST = 6` tiles, and seeds the replay with the server's reported velocity (`qvx/qvy`) so unacked inputs reproduce the authoritative coast. Replaying from rest leaves the body trailing. Copy this.
 - **Fixed timestep on both sides.** Server 20 Hz; the client motor must move to a 20 Hz (or 50 Hz, integer multiple) accumulator, with render interpolation on top. This is the only real refactor the client needs.
 - **Reconciliation via `input_ack`.** `EntityDelta` already carries `qx`, `qy`, `qvx`, `qvy` and `input_ack`; `GameClient` already keeps `unackedMoves`. On a snapshot the client snaps its authoritative body to the server position and replays unacked inputs.
-- **Divergence is bounded, not eliminated.** `f32` `exp()` differs between JS and Rust in the last bits. That is fine: reconciliation corrects sub-centimetre drift invisibly. The thing that must be *exact* is the tile grid and the loot/hash derivations, which use only integer ops.
+- **Divergence is bounded, not eliminated.** `f32` `exp()` differs between JS and Rust in the last bits. That is fine: reconciliation corrects sub-centimetre drift invisibly. The thing that must be _exact_ is the tile grid and the loot/hash derivations, which use only integer ops.
 
 ---
 
@@ -404,33 +426,33 @@ Same discipline `arpg-server` and `@kbve/laser` already use:
 
 ### Server-authoritative
 
-| System | Notes |
-| --- | --- |
-| Player position | Server owns `FloatBody`; client predicts and reconciles. Y stays client-side cosmetic. |
-| NPC position, aggro, death | Full rewrite of `goblinSim.ts`; `Math.random` → `simgrid::rng::stream(root, WANDER, &[eid, tick])`. |
-| NPC population | Replace `enemyBudget()`'s client-history budget with a per-sector, seed-derived spawn table, so two players in the same sector see the same goblins. |
-| Combat damage and kills | `applyDamage` moves server-side verbatim (no RNG). Client predicts the swing and the hit-flash; server confirms HP. |
-| Hit detection | Server re-runs the cone test at the caster's *server* position. `melee.ts` bone-sampling cannot be authoritative — replace it with the same cone/reach model used for abilities. |
-| Loot | Server recomputes `hash01(stoneId(wc, wr), 0x10a7 + i*0x3f, i+1)`. Deterministic, so the client can *predict* the drop and be right every time. |
-| Node/crate depletion | The only genuinely stateful part of mining. Lives in simgrid's dynamic overlay + a persisted env log. |
-| Profession XP and levels | `grantXp` becomes a server event; client shows a server-sent `StatsEvent`. |
-| Inventory | Server owns the item list; client renders a synced view. `Input::MoveItem { from, to }` already exists in the protocol. |
-| Door unlock | Server checks `SEdge.keyId` against the player's keys — the check the client never does. Unlocked doors become entries in the dynamic blocked overlay. |
-| Placed / destroyed props | Server owns; `prop/placed.ts`'s FIFO caps disappear. simgrid already has `PersistedEnvObject` / `EnvPersistSink` for exactly this. |
-| Player pools (HP/MP/EP/SP) | Server regen; simgrid's `EntityDelta` already carries `mp/max_mp/energy/max_energy/stamina/max_stamina`. |
+| System                     | Notes                                                                                                                                                                            |
+| -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Player position            | Server owns `FloatBody`; client predicts and reconciles. Y stays client-side cosmetic.                                                                                           |
+| NPC position, aggro, death | Full rewrite of `goblinSim.ts`; `Math.random` → `simgrid::rng::stream(root, WANDER, &[eid, tick])`.                                                                              |
+| NPC population             | Replace `enemyBudget()`'s client-history budget with a per-sector, seed-derived spawn table, so two players in the same sector see the same goblins.                             |
+| Combat damage and kills    | `applyDamage` moves server-side verbatim (no RNG). Client predicts the swing and the hit-flash; server confirms HP.                                                              |
+| Hit detection              | Server re-runs the cone test at the caster's _server_ position. `melee.ts` bone-sampling cannot be authoritative — replace it with the same cone/reach model used for abilities. |
+| Loot                       | Server recomputes `hash01(stoneId(wc, wr), 0x10a7 + i*0x3f, i+1)`. Deterministic, so the client can _predict_ the drop and be right every time.                                  |
+| Node/crate depletion       | The only genuinely stateful part of mining. Lives in simgrid's dynamic overlay + a persisted env log.                                                                            |
+| Profession XP and levels   | `grantXp` becomes a server event; client shows a server-sent `StatsEvent`.                                                                                                       |
+| Inventory                  | Server owns the item list; client renders a synced view. `Input::MoveItem { from, to }` already exists in the protocol.                                                          |
+| Door unlock                | Server checks `SEdge.keyId` against the player's keys — the check the client never does. Unlocked doors become entries in the dynamic blocked overlay.                           |
+| Placed / destroyed props   | Server owns; `prop/placed.ts`'s FIFO caps disappear. simgrid already has `PersistedEnvObject` / `EnvPersistSink` for exactly this.                                               |
+| Player pools (HP/MP/EP/SP) | Server regen; simgrid's `EntityDelta` already carries `mp/max_mp/energy/max_energy/stamina/max_stamina`.                                                                         |
 
 ### Client-predicted / client-only
 
-| System | Rationale |
-| --- | --- |
-| Player XZ movement | Predicted from local input, reconciled on `input_ack`. |
-| Player Y — jump, swim, pit descent | Purely cosmetic; cannot affect XZ collision. Do not put it on the wire. |
-| Yaw / turn lerp | Cosmetic; `EntityDelta.facing` is enough for remote players. |
-| Camera, targeting lock, HUD | `combat/targeting.ts` is UI state. |
-| Cast windup/active/recover phases | Predicted for responsiveness; server confirms damage. |
+| System                                   | Rationale                                                                            |
+| ---------------------------------------- | ------------------------------------------------------------------------------------ |
+| Player XZ movement                       | Predicted from local input, reconciled on `input_ack`.                               |
+| Player Y — jump, swim, pit descent       | Purely cosmetic; cannot affect XZ collision. Do not put it on the wire.              |
+| Yaw / turn lerp                          | Cosmetic; `EntityDelta.facing` is enough for remote players.                         |
+| Camera, targeting lock, HUD              | `combat/targeting.ts` is UI state.                                                   |
+| Cast windup/active/recover phases        | Predicted for responsiveness; server confirms damage.                                |
 | Break-off panel debris (`sim.worker.ts`) | Stays entirely client-side. Server sends "node destroyed", client plays `shatter()`. |
-| Torch flicker, fireflies, decor, embers | All `hash01`-derived or purely visual; derived locally from seed. |
-| Baked vertex lighting, occlusion, LOD | Rendering. |
+| Torch flicker, fireflies, decor, embers  | All `hash01`-derived or purely visual; derived locally from seed.                    |
+| Baked vertex lighting, occlusion, LOD    | Rendering.                                                                           |
 
 ### Derived on both sides, never transmitted
 
@@ -443,28 +465,30 @@ Sector layout, room/corridor topology, doorway positions and widths, pillar plac
 **Recommendation: adopt simgrid's protocol as-is. Do not design a new one.**
 
 - **Transport: WebSocket only. herbmail cannot use the UDP lane.** simgrid's `UdpLane` is real, tested (`tests/udp_flow.rs`) and wired into snapshot routing:
-  ```rust
-  if let Some(lane) = udp
-      && let Some(addr) = lane.bound_addr(h.slot)
-      && lane.try_send_snapshot(addr, &view) { continue; }
-  let frame = Arc::new(encode_frame(&proto::ServerEventRef::Snapshot(view)));
-  deliver(h.value(), frame);
-  ```
-  But **cryptothrone never calls `.with_udp()`** — `state.udp` is `None` and no `UDP_OFFER` is ever emitted, because a browser cannot open a raw UDP socket. Only `arpg-server` enables it, env-gated on `ARPG_UDP_ADDR`, for native clients. herbmail is browser-only, so plan for WS and **omit the UDP Service from the manifests** until a native client exists.
 
-  WebTransport is not used anywhere in this repo, and `apps/kbve/astro-kbve/src/content/docs/gdd/netcode.mdx:103` records a standing rule that WS and WT transports are never mixed in shared structs. If sub-WS latency is ever needed, `UdpPacket` / `UdpPacketRef` is already the right shape to port onto WebTransport — but that is out of scope here.
+    ```rust
+    if let Some(lane) = udp
+        && let Some(addr) = lane.bound_addr(h.slot)
+        && lane.try_send_snapshot(addr, &view) { continue; }
+    let frame = Arc::new(encode_frame(&proto::ServerEventRef::Snapshot(view)));
+    deliver(h.value(), frame);
+    ```
 
-  WS is also what the Cilium Gateway `HTTPRoute` already terminates, with the `backendRequest: 3600s` timeout configured for exactly this.
+    But **cryptothrone never calls `.with_udp()`** — `state.udp` is `None` and no `UDP_OFFER` is ever emitted, because a browser cannot open a raw UDP socket. Only `arpg-server` enables it, env-gated on `ARPG_UDP_ADDR`, for native clients. herbmail is browser-only, so plan for WS and **omit the UDP Service from the manifests** until a native client exists.
+
+    WebTransport is not used anywhere in this repo, and `apps/kbve/astro-kbve/src/content/docs/gdd/netcode.mdx:103` records a standing rule that WS and WT transports are never mixed in shared structs. If sub-WS latency is ever needed, `UdpPacket` / `UdpPacketRef` is already the right shape to port onto WebTransport — but that is out of scope here.
+
+    WS is also what the Cilium Gateway `HTTPRoute` already terminates, with the `backendRequest: 3600s` timeout configured for exactly this.
 
 - **The WS handshake itself is unauthenticated.** The JWT arrives inside the first postcard `JoinMatch` frame, not in a header or query param, so the edge cannot reject unauthorized connections — every client gets a socket and a decode before rejection. Inherited from simgrid; note it, don't fix it here.
 
 - **Framing: COBS-framed postcard.** `proto::encode`. Note the hard rule stated in `proto.rs`: postcard is positional, so **never** use `skip_serializing_if` on a wire field — a conditionally omitted field shifts every following byte. New fields are appended last, with `#[serde(default)]`.
 
-- **Versioning:** `PROTOCOL_VERSION: u32 = 16`, sent in `JoinMatch` and checked on admission. Bump when variants are added. Note the repeated comment convention in `Input`: *"Appended last so serde variant indices of the existing inputs are unchanged."*
+- **Versioning:** `PROTOCOL_VERSION: u32 = 16`, sent in `JoinMatch` and checked on admission. Bump when variants are added. Note the repeated comment convention in `Input`: _"Appended last so serde variant indices of the existing inputs are unchanged."_
 
 - **Tick rates:** `SIM_TICK_HZ = 20`, `SNAPSHOT_EVERY_N_TICKS = 2` (10 Hz snapshots), `KEYFRAME_EVERY_N_TICKS = 100` (5 s). `run_sim_loop` uses a tokio interval with `MissedTickBehavior::Skip` and feeds physics a constant `dt_ms = 1000.0 / SIM_TICK_HZ` — never wall-clock delta, so the sim is deterministic in tick count. These are good defaults for a dungeon crawler; no change needed.
 
-- **"Snapshot" is a full state broadcast, not a delta — despite the type name `EntityDelta`.** `emit_snapshot` maps *every* matching entity every time. `Snapshot.keyframe` is computed but nothing branches on it, `Snapshot.input_ack` is hardcoded `0` (the real ack rides per-entity `EntityDelta.input_ack`), and `destroyed` is always `false` — client despawn is by **absence from the snapshot**, which is why AOI culling and despawn are coupled. Do not design herbmail around a baseline/ack delta scheme that does not exist. If bandwidth becomes a problem, adding real delta encoding is an upstream simgrid project, not a herbmail one.
+- **"Snapshot" is a full state broadcast, not a delta — despite the type name `EntityDelta`.** `emit_snapshot` maps _every_ matching entity every time. `Snapshot.keyframe` is computed but nothing branches on it, `Snapshot.input_ack` is hardcoded `0` (the real ack rides per-entity `EntityDelta.input_ack`), and `destroyed` is always `false` — client despawn is by **absence from the snapshot**, which is why AOI culling and despawn are coupled. Do not design herbmail around a baseline/ack delta scheme that does not exist. If bandwidth becomes a problem, adding real delta encoding is an upstream simgrid project, not a herbmail one.
 
 - **Input handling: `IntentBuffer`, a per-player client-tick jitter buffer** (`sim.rs:2042-2178`). `INPUT_JITTER_BUFFER = 2` intents are primed before consumption starts; exactly one intent is consumed per server tick in client-tick order; on starvation the last intent is held for `INPUT_STARVE_GRACE = 2` ticks then zeroed, accumulating `debt` so a late stop lands next tick rather than replaying a burst. This is what makes "the release stops exactly when the client did" true, and it is the reason the client must stamp `Input::Move.tick`. herbmail gets it for free and must send `tick` correctly.
 
@@ -478,7 +502,7 @@ Sector layout, room/corridor topology, doorway positions and widths, pillar plac
 
 - **Coordinate encoding.** `EntityDelta` carries both `tile: Tile` (i32 pair) and `qx/qy: i32` + `qvx/qvy: i16` quantized floats (`POS_SCALE = 32`, i.e. 1/32 tile; `VEL_SCALE = 256`). herbmail should send positions in **tile units** (world units / `TILE`), matching simgrid's convention, and convert at the client boundary. Do not send world units — the AOI filter and the tile field both assume tile space.
 
-  **One thing herbmail must not copy from cryptothrone:** its client reads `qx/qy/qvx/qvy` only for `myEid` and renders *remote* players at tile granularity, letting gridEngine tween between 10 Hz tile steps. The sub-tile data is on the wire and thrown away. herbmail is a 3D third-person crawler where remote players sliding between tile centres would look broken — read `qx/qy/qvx/qvy` for every entity and interpolate continuously. The bandwidth is already being spent.
+    **One thing herbmail must not copy from cryptothrone:** its client reads `qx/qy/qvx/qvy` only for `myEid` and renders _remote_ players at tile granularity, letting gridEngine tween between 10 Hz tile steps. The sub-tile data is on the wire and thrown away. herbmail is a 3D third-person crawler where remote players sliding between tile centres would look broken — read `qx/qy/qvx/qvy` for every entity and interpolate continuously. The bandwidth is already being spent.
 
 ---
 
@@ -493,7 +517,7 @@ Copy the arpg pattern verbatim.
 5. **`version.toml`** in the crate dir, and a registration in `.github/ci-dispatch-manifest.json` (`version_toml`, `version_target`, `image`, `deployment_yaml`) alongside the existing `arpg_server` / `cryptothrone_server` / `herbmail` entries. There is also a CI guard for the Dockerfile stub trick: `.github/workflows/ci-cargo-stub-guard.yml`.
 6. **Manifests** at `apps/kube/agones/herbmail/manifests`: `namespace.yaml`, `fleet.yaml` (port 7979/TCP only — see §7 on UDP; `portPolicy: None`, `runAsNonRoot`, `readOnlyRootFilesystem: true`, drop ALL caps), `fleet-autoscaler.yaml` (`Buffer`, `minReplicas: 1, maxReplicas: 1`, with an ArgoCD `ignoreDifferences` on `/spec/replicas` since the Fleet declares `replicas: 0`), `game-service.yaml` (ClusterIP, `sessionAffinity: ClientIP`), `game-httproute.yaml` (`/ws` → game service with `backendRequest: 3600s`, `/` → the static client), `external-secrets.yaml` for `SUPABASE_JWT_SECRET` + `SUPABASE_JWKS_URI`, `game-certificate.yaml`, plus `application.yaml` one level up.
 7. **Agones integration** is just the health loop — copy `src/agones.rs` unchanged: `agones::Sdk::new(None, None)`, `sdk.ready()`, then a 2 s `health_check()` ping, and `sdk.shutdown()` on SIGTERM. It is deliberately non-fatal: on `Err` it logs "running outside Agones (local dev?)" and returns, so local dev needs no sidecar. The `agones = "1.57"` crate is already in the root `[workspace.dependencies]`.
-8. **No allocation path.** One shard, one persistent world, reached by a stable Service. The reason the autoscaler is pinned to 1 is recorded in `apps/kube/agones/cryptothrone/README.md`: *"A Service round-robins; multiple Ready pods would split players across separate worlds."* If herbmail later wants instanced dungeons, `apps/cryptothrone/api/src/agones.rs` is the template — `kube::Client::try_default()` + a POST to `/apis/allocation.agones.dev/v1/.../gameserverallocations`, exposed as `POST /api/join`, with `allocator-rbac.yaml` granting `create` on `gameserverallocations`. A richer version with retries and a circuit breaker lives in `apps/rows/src/agones/`. Note that `herbmail-sa` currently sets `automountServiceAccountToken: false`, so an allocator would need that flipped plus RBAC.
+8. **No allocation path.** One shard, one persistent world, reached by a stable Service. The reason the autoscaler is pinned to 1 is recorded in `apps/kube/agones/cryptothrone/README.md`: _"A Service round-robins; multiple Ready pods would split players across separate worlds."_ If herbmail later wants instanced dungeons, `apps/cryptothrone/api/src/agones.rs` is the template — `kube::Client::try_default()` + a POST to `/apis/allocation.agones.dev/v1/.../gameserverallocations`, exposed as `POST /api/join`, with `allocator-rbac.yaml` granting `create` on `gameserverallocations`. A richer version with retries and a circuit breaker lives in `apps/rows/src/agones/`. Note that `herbmail-sa` currently sets `automountServiceAccountToken: false`, so an allocator would need that flipped plus RBAC.
 9. **Versioning** is MDX-driven in this repo; the Fleet image tag tracks the crate version that the release pipeline publishes. Nothing in this design touches version files.
 10. **The Dockerfile must explicitly `COPY` the codegen blobs** it `include_bytes!`s, before `cargo build` — see the corresponding lines in arpg's Dockerfile for itemdb/mapdb/spelldb/npcdb.
 
@@ -503,7 +527,7 @@ The static client already has a home: `astro-herbmail` / `axum-herbmail` serve t
 
 ## 9. Migration path
 
-> **Amended 2026-08-06 for the rapier reversal in §5.** Wherever a milestone says "port `motor.rs`" or "`motor.rs`'s TS twin", read `simbody3d` instead: `packages/rust/simbody3d` already provides the collider builder and rapier character controller, generic over `SimbodyConfig`/`TileMask`, compiling both natively and to wasm. M1 is unchanged and still gates everything — the port now feeds *colliders* rather than a `solidAtWorld` predicate. M3's "`Blocked` trait generalisation upstream into `float_move`" is dropped: nothing transliterates `float_move` any more.
+> **Amended 2026-08-06 for the rapier reversal in §5.** Wherever a milestone says "port `motor.rs`" or "`motor.rs`'s TS twin", read `simbody3d` instead: `packages/rust/simbody3d` already provides the collider builder and rapier character controller, generic over `SimbodyConfig`/`TileMask`, compiling both natively and to wasm. M1 is unchanged and still gates everything — the port now feeds _colliders_ rather than a `solidAtWorld` predicate. M3's "`Blocked` trait generalisation upstream into `float_move`" is dropped: nothing transliterates `float_move` any more.
 >
 > Status: M0 done (fixed-step motor). M1 partially done — `rng.rs` hash layer ported and pinned on both sides; `sectorSeed` and the tile-grid generator are not. Server scaffolding, auth and deployment manifests exist ahead of M2, with collision explicitly non-authoritative until M1 completes.
 
@@ -513,7 +537,7 @@ The rule for every milestone: **the single-player game keeps working**. Gate the
 
 **M1 — Geometry parity harness.** Port `hashInt`/`hash01`/`jitter`, `sectorSeed`, `sector.ts` and `generate.ts` to Rust. Add a pinned parity test in the style of `heightfield.rs::PINNED_BITS`: for a fixed list of `(seed, sx, sy)`, assert a fingerprint of the generated tile grid, and assert the same fingerprint from a TS spec in `herbmail-game`. **Nothing ships until this is green.** No server, no protocol, no client change.
 
-**M2 — Two capsules in one sector.** ← *the recommended first useful milestone.*
+**M2 — Two capsules in one sector.** ← _the recommended first useful milestone._
 Stand up `herbmail-server` with `SimConfig`, a `KindRegistry` containing only `PLAYER_KIND`, and a `WalkableMap` backed by the M1 collision port. Port `motor.rs`. Client: import `GameClient` from `@kbve/laser`, send `Input::Move` at the fixed tick, render remote players from `Snapshot.entities` as capsules with nameplates. No prediction yet — render the local player from the server position with interpolation, accepting the latency, to prove the loop end-to-end. Scope: sector (0,0) only.
 
 **M3 — Prediction and reconciliation.** Local player predicts with `motor.rs`'s TS twin; replay `unackedMoves` on each snapshot. Add the `Blocked` trait generalisation upstream if the local `motor.rs` has stabilised. Raise `AOI_RADIUS` and let players roam across sectors.
@@ -545,7 +569,7 @@ Separated deliberately from the recommendations above.
 - ~~**Body radius mismatch.**~~ **Resolved by §5.** simgrid's `BODY_RADIUS` is irrelevant now that `float_move` is not in the path. The radius is declared once, in `simbody3d`'s `CharacterConfig` (`presets::herbmail()`), and both the server and a wasm client build read it from there — there is no second value to keep in sync. The underlying concern was correct: differing radii would clip differently through the `TILE * 0.28` doorway gaps, the tightest geometry in the game.
 - **`herbmail-game` has no auth at all.** Supabase exists at the site level (`astro-herbmail/src/lib/supa.ts`) but the game bundle has zero hooks into it. Getting a JWT into `GameClient` requires plumbing that does not exist yet and is not in any milestone above.
 - **No persistence model exists to migrate.** `prop/placed.ts` caps at 24 records; `unlocked` caps at 2048. A server introduces persistent world state for the first time, which means schema design, migration, and a `dbmate` story that this document does not cover.
-- **`combat/los.ts` and `flowField.ts` both sample `solidAtWorld` heavily.** Server-side BFS flow fields over a *computed* collision function are more expensive than over a bitset. `WalkableMap::arpg_dungeon` already accepts a `path_window` to bound BFS for this reason (`MAX_PATH_LEN = 64`); herbmail will need the same cap and should measure it.
+- **`combat/los.ts` and `flowField.ts` both sample `solidAtWorld` heavily.** Server-side BFS flow fields over a _computed_ collision function are more expensive than over a bitset. `WalkableMap::arpg_dungeon` already accepts a `path_window` to bound BFS for this reason (`MAX_PATH_LEN = 64`); herbmail will need the same cap and should measure it.
 - **The TS wire mirror is hand-written and is the highest-maintenance surface in the stack.** `packages/npm/laser/src/lib/net/postcard.ts` (a hand-rolled postcard v1 + COBS codec) plus `postcard-wire.ts` (815 lines of field-by-field mirrors of `proto.rs`) plus `protocol.ts` — roughly 1000 lines kept in sync only by byte-exact hex fixtures asserted on both sides (e.g. `assert_eq!(hex, "0e01070301037fff0109180a050d00")` in `proto.rs`, mirrored in `postcard-wire.spec.ts`). Every new `Input` variant or `EntityDelta` field herbmail adds requires a matching hand edit in TS. Postcard is positional, so a mistake here is a silent byte-shift desync, not a type error. Budget for it, and add fixtures for every herbmail-specific message.
 - **Hard scaling ceiling: one pod, one world.** `minReplicas: maxReplicas: 1` + `MAX_PLAYERS: 32` + `sessionAffinity: ClientIP`. There is no sharding, no cross-server handoff, no zone service anywhere in this repo. "MMO" in the brief and what this stack can currently deliver are different things — herbmail would be a 32-player shared world, and going beyond that is unsolved here.
 - **Snapshot cost is O(connections × entities).** Per-recipient AOI means a fresh postcard allocation per connection per snapshot, 10×/second. Fine at 32 players; measure before assuming more.
@@ -560,8 +584,9 @@ Separated deliberately from the recommendations above.
 - ~~**Where does the `Blocked` trait generalisation land?**~~ **Moot.** There is no second copy of `float_move` to reconcile — `simbody3d` uses rapier's own controller. The generalisation that did land is `TileMask`, which lets any consumer map its own tile bitfield onto "blocks movement" / "no floor slab".
 - **`professiondb` in Rust — this one is confirmed net-new work.** There are Rust consumers of itemdb, mapdb, spelldb and npcdb (`bevy_mapdb::MapDb::from_bytes`, `bevy_items::ItemDb::from_bytes`, `simgrid::NpcDb::from_json`, all via `include_bytes!`), but **no Rust consumer of professiondb exists anywhere in the repo.** `professiondb-data.binpb` (proto wire, `profession.ProfessionRegistry`) is generated and is the cleanest target — a `bevy_professiondb` crate with a `prost`/`prost-build` `build.rs`, mirroring `bevy_mapdb`. Open question: does it live in `simgrid::data`, in a new `bevy_professiondb`, or local to `herbmail-server`?
 
-  **Watch the two views.** `gen-professiondb-data.mjs` emits both `professiondb-data.json` (canonical) and `professiondb-runtime.json` (slimmed, camelCase, Astro-only fields like `title` stripped, enum strings prefixed e.g. `PROFESSION_CATEGORY_`). The herbmail client reads the **runtime** view — `src/game/data/professiondb.ts` imports `@kbve/professiondb-data`, aliased in `tsconfig.json` to `professiondb-runtime.json`. A Rust proto decode of the `.binpb` yields the **canonical** view. Field-name and enum-representation parity must be checked before either side is trusted. Also note `RUNTIME_SYNC_TARGETS` in that generator currently lists only the Unity StreamingAssets dir; herbmail is not in it.
+    **Watch the two views.** `gen-professiondb-data.mjs` emits both `professiondb-data.json` (canonical) and `professiondb-runtime.json` (slimmed, camelCase, Astro-only fields like `title` stripped, enum strings prefixed e.g. `PROFESSION_CATEGORY_`). The herbmail client reads the **runtime** view — `src/game/data/professiondb.ts` imports `@kbve/professiondb-data`, aliased in `tsconfig.json` to `professiondb-runtime.json`. A Rust proto decode of the `.binpb` yields the **canonical** view. Field-name and enum-representation parity must be checked before either side is trusted. Also note `RUNTIME_SYNC_TARGETS` in that generator currently lists only the Unity StreamingAssets dir; herbmail is not in it.
 
-  The join key matters too, and is documented in `professiondb.ts`: `professiondb.resourceNodeRef -> mapdb.objectDefs[].ref`, with `mapdb.professionActionRef` pointing back. The server needs both DBs to resolve a mining action.
+    The join key matters too, and is documented in `professiondb.ts`: `professiondb.resourceNodeRef -> mapdb.objectDefs[].ref`, with `mapdb.professionActionRef` pointing back. The server needs both DBs to resolve a mining action.
+
 - **Kurenai.** `npc/KurenaiNpc.tsx` is 320 lines of retargeted-animation NPC with `NPC_KURENAI { hp: 60, power: 9, defense: 3 }`. Is it a scripted set-piece (stays client-side) or a world NPC (must move server-side in M5)?
-- **Nothing currently damages the player.** Grepping `Health.hp[` writes finds only crate DoT, player→NPC casts, crate break and mining. There is no incoming-damage path to port, which means M4 is partly *new feature work*, not migration.
+- **Nothing currently damages the player.** Grepping `Health.hp[` writes finds only crate DoT, player→NPC casts, crate break and mining. There is no incoming-damage path to port, which means M4 is partly _new feature work_, not migration.

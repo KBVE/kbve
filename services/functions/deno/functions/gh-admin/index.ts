@@ -257,7 +257,7 @@ async function upsertGuildSecret(
   );
   if (error) {
     logError("gh-admin.set_guild_token", error.message);
-    return { ok: false, error: error.message };
+    return { ok: false, error: "vault upsert failed" };
   }
   const row = (Array.isArray(data) ? data[0] : data) as
     | { success?: boolean; message?: string }
@@ -363,7 +363,6 @@ async function handlePing(
       {
         error: "GitHub ping failed",
         status: ping.status,
-        detail: ping.body,
       },
       502,
     );
@@ -478,7 +477,6 @@ async function handleInstall(
     return jsonResponse(
       {
         error: "GitHub rejected webhook config",
-        detail: created.body,
       },
       422,
     );
@@ -647,7 +645,6 @@ async function handleDelete(
     {
       error: "GitHub API error deleting hook",
       status: del.status,
-      detail: del.body,
     },
     502,
   );
@@ -703,7 +700,6 @@ async function handleRotate(
       {
         error: "GitHub PATCH hook config failed",
         status: patch.status,
-        detail: patch.body,
       },
       502,
     );
@@ -719,8 +715,7 @@ async function handleRotate(
   if (!upsert.ok) {
     return jsonResponse(
       {
-        error:
-          `Webhook secret rotated on GitHub but vault upsert failed: ${upsert.error}`,
+        error: "Webhook secret rotated on GitHub but vault upsert failed",
       },
       500,
     );
@@ -760,7 +755,7 @@ async function handleEventStats(serverId: string): Promise<Response> {
   if (error) {
     const errCode = (error as { code?: string }).code ?? "";
     if (errCode === "GH006") {
-      return jsonResponse({ error: error.message }, 413);
+      return jsonResponse({ error: "Repo allowlist too large" }, 413);
     }
     logError("gh-admin.event_stats", error.message);
     return jsonResponse({ error: "stats lookup failed" }, 500);
@@ -795,7 +790,7 @@ async function handleEventFailed(
   if (error) {
     const errCode = (error as { code?: string }).code ?? "";
     if (errCode === "GH006") {
-      return jsonResponse({ error: error.message }, 413);
+      return jsonResponse({ error: "Repo allowlist too large" }, 413);
     }
     logError("gh-admin.event_failed", error.message);
     return jsonResponse({ error: "failed-events lookup failed" }, 500);
@@ -829,7 +824,7 @@ async function handleEventPending(
   if (error) {
     const errCode = (error as { code?: string }).code ?? "";
     if (errCode === "GH006") {
-      return jsonResponse({ error: error.message }, 413);
+      return jsonResponse({ error: "Repo allowlist too large" }, 413);
     }
     logError("gh-admin.event_pending", error.message);
     return jsonResponse({ error: "pending-events lookup failed" }, 500);
@@ -858,6 +853,7 @@ async function handleEventRequeue(
   if (error) {
     const errCode = (error as { code?: string }).code ?? "";
     const message = error.message ?? "requeue failed";
+    logError("gh-admin.event_requeue", message, { code: errCode });
     if (errCode === "GH004") {
       return jsonResponse(
         {
@@ -868,12 +864,11 @@ async function handleEventRequeue(
       );
     }
     if (errCode === "GH001" || errCode === "GH002" || errCode === "GH003") {
-      return jsonResponse({ error: message }, 400);
+      return jsonResponse({ error: "Invalid requeue request" }, 400);
     }
     if (errCode === "GH006") {
-      return jsonResponse({ error: message }, 413);
+      return jsonResponse({ error: "Repo allowlist too large" }, 413);
     }
-    logError("gh-admin.event_requeue", message);
     return jsonResponse({ error: "requeue failed" }, 500);
   }
   const row = (Array.isArray(data) ? data[0] : data) as

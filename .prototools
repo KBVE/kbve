@@ -1,6 +1,13 @@
 node = "24.20.0"
 pnpm = "11.15.0"
 moon = "2.5.3"
+
+# Matches the deno bundled inside supabase/edge-runtime (see
+# services/functions/deno/Dockerfile). The edge worker executes on the
+# runtime's own deno, so checking the tree against a newer one lets syntax
+# and APIs the runtime rejects pass `edge:check`. Bump this only alongside
+# the edge-runtime tag, after confirming the new image's `deno --version`.
+deno = "2.1.4"
 # Matches rust-toolchain.toml; the crates from KBVE/workspace are edition 2024.
 rust = "1.98.0"
 

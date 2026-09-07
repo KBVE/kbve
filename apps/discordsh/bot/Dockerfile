@@ -2,8 +2,8 @@
 # discordsh-bot — Multi-stage Docker build
 #
 # Uses shared chisel base images:
-#   ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder  (Rust + cargo-chef + sccache)
-#   ghcr.io/kbve/chisel-ubuntu-axum:24.04.3         (chiseled Ubuntu + jemalloc + libpq)
+#   ghcr.io/kbve/chisel-ubuntu-axum:<version>-builder  (Rust + cargo-chef + sccache)
+#   ghcr.io/kbve/chisel-ubuntu-axum:<version>         (chiseled Ubuntu + jemalloc + libpq)
 # ============================================================================
 
 # [STAGE A] - Cargo Chef Planner

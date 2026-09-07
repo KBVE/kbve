@@ -10,7 +10,7 @@ This document exists because the schema work ran ahead of the game work. The SQL
 
 **When to write this migration:** when the ephemeral run is the shape we want to keep and players start asking for their progress back. Not before. Two things should be settled first — whether the BBS run stays its own small game or gets replaced by the extracted discordsh core, and which kind of cross-play is actually wanted (see the last two sections).
 
-Related: [DISCORDSH_PLAN.md](./DISCORDSH_PLAN.md), [DISCORDSH_GAMEIDEA.md](./DISCORDSH_GAMEIDEA.md).
+Related: [DISCORDSH_GAMEIDEA.md](./bot/DISCORDSH_GAMEIDEA.md).
 
 ---
 
@@ -18,14 +18,14 @@ Related: [DISCORDSH_PLAN.md](./DISCORDSH_PLAN.md), [DISCORDSH_GAMEIDEA.md](./DIS
 
 The identity plumbing is further along than it looks. Already in place:
 
-| Piece | Where |
-|---|---|
-| `auth.identities` rows with `provider='discord'`, `provider_id` = snowflake | Supabase auth |
-| `tracker.find_claim_identity_by_discord_id(TEXT)` → `user_id` | `20260523033932` |
-| `dungeon_profiles.auth_user_id UUID UNIQUE` + index | `20260409210000` |
-| `service_load_profile_by_auth(UUID)` | `20260409210000` |
-| `service_link_auth(BIGINT, UUID)` | `20260409210000` |
-| `service_claim_mode` / `service_release_mode` mode lock | `20260409210000` |
+| Piece                                                                       | Where            |
+| --------------------------------------------------------------------------- | ---------------- |
+| `auth.identities` rows with `provider='discord'`, `provider_id` = snowflake | Supabase auth    |
+| `tracker.find_claim_identity_by_discord_id(TEXT)` → `user_id`               | `20260523033932` |
+| `dungeon_profiles.auth_user_id UUID UNIQUE` + index                         | `20260409210000` |
+| `service_load_profile_by_auth(UUID)`                                        | `20260409210000` |
+| `service_link_auth(BIGINT, UUID)`                                           | `20260409210000` |
+| `service_claim_mode` / `service_release_mode` mode lock                     | `20260409210000` |
 
 `service_load_profile_by_auth` and `service_link_auth` currently have **zero Rust callers** — they were built for the isometric client and never wired up.
 
