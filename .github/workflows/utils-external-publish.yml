@@ -717,11 +717,12 @@ jobs:
             - run: echo "::notice::Itch publish not yet implemented for ${{ inputs.app_name }}"
 
     steam:
-        name: Steam (stub)
-        # New shape: external_publish.steam_apps is an array of
-        # { app_id, label, depot_id, branch } entries. Stub runs once per
-        # entry so future steamcmd implementation already iterates the
-        # right matrix.
+        name: Steam (built elsewhere)
+        # Not a stub waiting to be written: the upload needs the build
+        # artifacts, which exist in the engine lane and not here, so it lives
+        # in utils-steam-deploy.yml and is called by ci-unity.yml and
+        # utils-unreal-build.yml. This job stays as the record that a project
+        # declares steam_apps at all.
         if: fromJson(inputs.external_publish).steam_apps != null
         runs-on: ubuntu-latest
         strategy:
@@ -730,7 +731,7 @@ jobs:
                 app: ${{ fromJson(inputs.external_publish).steam_apps }}
         steps:
             - run: |
-                  echo "::notice::Steam publish stub — app=${{ matrix.app.app_id }} label=${{ matrix.app.label }} branch=${{ matrix.app.branch }} (not yet implemented for ${{ inputs.app_name }})"
+                  echo "::notice::Steam upload for ${{ inputs.app_name }} app=${{ matrix.app.app_id }} label=${{ matrix.app.label }} branch=${{ matrix.app.branch }} runs in the engine lane (utils-steam-deploy.yml), not here"
 
     apple:
         name: Apple App Store (stub)

@@ -46,6 +46,11 @@ on:
                 required: false
                 type: string
                 default: '{}'
+            steam_apps:
+                description: '[game] JSON array of SteamApp entries from external_publish.steam_apps'
+                required: false
+                type: string
+                default: '[]'
 
     workflow_dispatch:
         inputs:
@@ -84,6 +89,11 @@ on:
                 required: false
                 type: string
                 default: '{}'
+            steam_apps:
+                description: '[game] JSON array of SteamApp entries from external_publish.steam_apps'
+                required: false
+                type: string
+                default: '[]'
 
 permissions:
     contents: write
@@ -123,6 +133,7 @@ jobs:
             itch_game_id: ${{ fromJSON(inputs.publish).itch_game }}
             itch_channel: ${{ fromJSON(inputs.publish).itch_channel }}
             notarize: ${{ fromJSON(inputs.publish).notarize || false }}
+            steam_apps: ${{ inputs.steam_apps }}
         secrets:
             UNITY_PAT: ${{ secrets.UNITY_PAT }}
             butler_api: ${{ secrets.ITCH_API }}
@@ -135,6 +146,9 @@ jobs:
             APPLE_ID: ${{ secrets.APPLE_ID }}
             APPLE_PASSWORD: ${{ secrets.APPLE_PASSWORD }}
             APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+            STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+            STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
+            STEAM_TOTP_SECRET: ${{ secrets.STEAM_TOTP_SECRET }}
 
     server:
         name: Dedicated Server

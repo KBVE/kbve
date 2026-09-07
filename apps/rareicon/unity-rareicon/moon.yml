@@ -14,12 +14,6 @@ env:
     # workflows already take it in exactly this shape -- it was the
     # dispatch manifest's `engine` block, moved beside the project.
     ENGINE_CONFIG: '{"version":"6000.3.10f1","project_path":"apps/rareicon/unity-rareicon","build_targets":["StandaloneLinux64","StandaloneWindows64","StandaloneOSX","Android","iOS"],"license_method":"personal"}'
-    # The Steam apps a release promotes, as JSON because this one is genuinely
-    # structured -- two apps, each with a branch and one with a promotion
-    # target. Everything else here is a scalar and is a plain key.
-    STEAM_APPS: '[{"app_id":"3791950","label":"demo","branch":"beta","promote_to_branch":"default"},{"app_id":"2238370","label":"main","branch":"beta"}]'
-    # Where a release of this project publishes to, declared beside the
-    # project. This was the `external_publish` blob of its dispatch manifest
-    # entry; release.yml reads it off the graph.
-    ITCH_GAME: 'rareicon'
-    ITCH_USER: 'kbve'
+    # Itch, Steam and the release lane moved to unreal-rareicon with the game
+    # itself. This project keeps its engine config so it can still be built by
+    # hand, and publishes nowhere.
