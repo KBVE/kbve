@@ -188,7 +188,7 @@
 		"expo-build-properties": "~57.0.8",
 		"expo-dev-client": "~57.0.18",
 		"expo-linking": "~57.0.4",
-		"expo-modules-core": "~57.0.8",
+		"expo-modules-core": "~57.0.15",
 		"expo-status-bar": "~57.0.1",
 		"expo-web-browser": "~57.0.2",
 		"fastnoise-lite": "1.1.1",
