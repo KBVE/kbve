@@ -185,18 +185,63 @@ struct KBVEWORLDCORE_API FKBVEWorldWallFrame
  * Both append, so a chunk's whole settlement stays one section per material
  * however many openings are in it.
  */
+/**
+ * One door leaf, as a thing that moves rather than a thing that was drawn.
+ *
+ * Apart from the timber because it is the one piece of a building that does not
+ * stay where it was built. The rest of a chunk's joinery is a single buffer per
+ * material, rebuilt only when a building changes tier -- nothing in it can be
+ * moved without rebuilding all of it, which is the whole settlement's worth of
+ * geometry to swing one door.
+ *
+ * So the mesh here is in the leaf's own space, hinge at the origin, and opening
+ * it is a transform rather than a rebuild. Which is also what makes its
+ * collision follow it: the shape is the component's, and the component turns.
+ */
+struct FKBVEWorldDoorLeaf
+{
+	/** Hinge at the origin, X along the leaf, Z up, Y the way it opens. */
+	FKBVEWorldRibbonMesh Mesh;
+
+	/** Where the hinge stands, in whatever space the rest of the mesh is in. */
+	FVector Hinge = FVector::ZeroVector;
+
+	/** Along the leaf from the hinge, which with world up gives the rest. */
+	FVector Along = FVector::ForwardVector;
+
+	/** How far it opens, in degrees. Positive swings away from the street. */
+	float Swing = 88.0f;
+
+	/**
+	 * Which door this is, for anything that has to remember it.
+	 *
+	 * The building's own seed, which is a hash of the world, the road and the plot
+	 * and so is the same number every time that house is raised. A chunk cannot be
+	 * the identity: chunks are pooled, and the whole point of a key is to survive
+	 * one being handed back.
+	 */
+	int32 Key = INDEX_NONE;
+};
+
 struct FKBVEWorldJoineryMesh
 {
 	FKBVEWorldRibbonMesh Timber;
 	FKBVEWorldRibbonMesh Glazing;
 
+	/** One per doorway, and never merged into the timber beside them. */
+	TArray<FKBVEWorldDoorLeaf> Leaves;
+
 	void Reset()
 	{
 		Timber.Reset();
 		Glazing.Reset();
+		Leaves.Reset();
 	}
 
-	bool IsEmpty() const { return Timber.IsEmpty() && Glazing.IsEmpty(); }
+	bool IsEmpty() const
+	{
+		return Timber.IsEmpty() && Glazing.IsEmpty() && Leaves.Num() == 0;
+	}
 };
 
 /**

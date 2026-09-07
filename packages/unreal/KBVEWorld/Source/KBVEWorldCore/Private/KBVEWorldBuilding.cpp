@@ -132,6 +132,10 @@ FKBVEWorldBuildingPlan FKBVEWorldBuilding::Plan(const FKBVEWorldBuildingParams& 
 void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
 	const FKBVEWorldBuildingPlan& Plan, EKBVEWorldWallDetail Detail, FKBVEWorldBuildingMesh& Out)
 {
+	// Where the leaves of this building start. A chunk builds its whole settlement
+	// into one mesh, so the ones added below are this house's and the ones already
+	// there belong to its neighbours.
+	const int32 FirstLeaf = Out.Joinery.Leaves.Num();
 	FVector Corners[4];
 	Footprint(Plan, Corners);
 
@@ -372,4 +376,14 @@ void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
 	// building is from any distance at which the building is a shape at all --
 	// dropping it is how a village at range becomes a field of brick boxes.
 	FKBVEWorldRoof::Build(Building.Roof, RoofIn, Out.Roof);
+
+	// Signed with the plan that raised them. The door builder works in a wall's
+	// frame and has no idea which house the wall belongs to, and the identity is
+	// wanted here anyway: it is the plan's seed, which is the same number every
+	// time this building is raised and is therefore what anything remembering an
+	// open door has to key on.
+	for (int32 I = FirstLeaf; I < Out.Joinery.Leaves.Num(); ++I)
+	{
+		Out.Joinery.Leaves[I].Key = Plan.Seed;
+	}
 }

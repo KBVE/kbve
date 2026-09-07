@@ -37,6 +37,26 @@ namespace
 		Open.Height = 136.0f;
 		return Open;
 	}
+
+	/**
+	 * A leaf put back where it hangs.
+	 *
+	 * The builder draws a leaf in its own space -- hinge at the origin, X along
+	 * it, Z up -- because that is what lets a door open by turning rather than by
+	 * being rebuilt. Everything asked about a shut door is still asked in the
+	 * wall's frame, so this is the way back.
+	 */
+	FKBVEWorldRibbonMesh Hung(const FKBVEWorldDoorLeaf& Leaf, const FKBVEWorldWallFrame& F)
+	{
+		const FVector Norm = FVector::CrossProduct(Leaf.Along, FVector::UpVector).GetSafeNormal();
+
+		FKBVEWorldRibbonMesh Out = Leaf.Mesh;
+		for (FVector& V : Out.Vertices)
+		{
+			V = Leaf.Hinge + Leaf.Along * V.X + FVector::UpVector * V.Z + Norm * -V.Y;
+		}
+		return Out;
+	}
 }
 
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
@@ -94,7 +114,13 @@ bool FKBVEWorldDoorFillsTheHoleTest::RunTest(const FString& Parameters)
 	const float Right = Open.Along + 0.5f * Open.Width;
 	const float Top = Open.Bottom + Open.Height;
 
-	for (const FVector& V : Out.Timber.Vertices)
+	FKBVEWorldRibbonMesh Shut = Out.Timber;
+	for (const FKBVEWorldDoorLeaf& Leaf : Out.Leaves)
+	{
+		Shut.Vertices.Append(Hung(Leaf, F).Vertices);
+	}
+
+	for (const FVector& V : Shut.Vertices)
 	{
 		const float U = static_cast<float>(FVector::DotProduct(V, F.Right));
 		const float H = static_cast<float>(FVector::DotProduct(V, F.Up));
@@ -173,16 +199,20 @@ bool FKBVEWorldDoorLedgesTest::RunTest(const FString& Parameters)
 	FKBVEWorldJoineryMesh Boarded;
 	FKBVEWorldDoor::Build(Wall, F, { Open }, EKBVEWorldWallDetail::Full, Ledged, false, Boarded);
 
-	TestTrue(TEXT("battens are geometry"), Boarded.Timber.Vertices.Num()
-		> Slab.Timber.Vertices.Num());
+	TestEqual(TEXT("a doorway hangs one leaf"), Boarded.Leaves.Num(), 1);
+	TestEqual(TEXT("with or without them"), Slab.Leaves.Num(), 1);
+	TestTrue(TEXT("battens are geometry"), Boarded.Leaves[0].Mesh.Vertices.Num()
+		> Slab.Leaves[0].Mesh.Vertices.Num());
 
 	// The leaf's face is the wall's, so the battens are the only timber between
 	// it and the frame standing proud outside it.
 	const float LeafFace = 0.5f * Wall.Thickness - Ledged.LeafSetback;
 	const float FrameFace = 0.5f * Wall.Thickness + Ledged.FrameProud;
 
+	const FKBVEWorldRibbonMesh Leaf = Hung(Boarded.Leaves[0], F);
+
 	float Proudest = -FLT_MAX;
-	for (const FVector& V : Boarded.Timber.Vertices)
+	for (const FVector& V : Leaf.Vertices)
 	{
 		const float T = static_cast<float>(FVector::DotProduct(V, F.Norm));
 		if (T < FrameFace - 0.01f)
@@ -266,22 +296,20 @@ bool FKBVEWorldDoorArchTest::RunTest(const FString& Parameters)
 	// its old height would run up through the fanlight.
 	float SquareTop = -FLT_MAX;
 	float ArchedTop = -FLT_MAX;
-	const float LeafBack = 0.5f * Wall.Thickness - Door.LeafSetback - Door.LeafThickness;
-	auto TopOfLeaf = [&F, LeafBack](const FKBVEWorldRibbonMesh& Mesh)
+	auto TopOfLeaf = [](const FKBVEWorldJoineryMesh& Mesh)
 	{
 		float Highest = -FLT_MAX;
-		for (const FVector& V : Mesh.Vertices)
+		for (const FKBVEWorldDoorLeaf& Leaf : Mesh.Leaves)
 		{
-			if (FMath::IsNearlyEqual(static_cast<float>(FVector::DotProduct(V, F.Norm)),
-				LeafBack, 0.01f))
+			for (const FVector& V : Leaf.Mesh.Vertices)
 			{
-				Highest = FMath::Max(Highest, static_cast<float>(FVector::DotProduct(V, F.Up)));
+				Highest = FMath::Max(Highest, static_cast<float>(V.Z));
 			}
 		}
 		return Highest;
 	};
-	SquareTop = TopOfLeaf(Square.Timber);
-	ArchedTop = TopOfLeaf(Arched.Timber);
+	SquareTop = TopOfLeaf(Square);
+	ArchedTop = TopOfLeaf(Arched);
 	TestTrue(TEXT("the transom takes the top of the leaf"), ArchedTop < SquareTop - 1.0f);
 
 	// The glass sits under the arc and over the transom, nowhere else. Checked
@@ -376,6 +404,15 @@ bool FKBVEWorldDoorShutTest::RunTest(const FString& Parameters)
 		const float Left = Open.Along - 0.5f * Open.Width;
 		const float Top = Open.Bottom + Open.Height;
 
+		// Put back where they hang once, not once per sample. Standing a leaf up
+		// copies and transforms the whole mesh, and there are tens of thousands of
+		// samples below.
+		TArray<FKBVEWorldRibbonMesh> Standing;
+		for (const FKBVEWorldDoorLeaf& Leaf : Out.Leaves)
+		{
+			Standing.Add(Hung(Leaf, F));
+		}
+
 		// Finer than it looks like it needs to be. The gap this exists to catch is
 		// the width of the tolerance between a leaf and its frame -- a couple of
 		// centimetres -- so a grid coarser than that steps straight over it and
@@ -392,7 +429,13 @@ bool FKBVEWorldDoorShutTest::RunTest(const FString& Parameters)
 				const float V = Open.Bottom + (Top - Open.Bottom)
 					* static_cast<float>(Iy) / static_cast<float>(Steps);
 
-				Holes += (Covered(Out.Timber, U, V) || Covered(Out.Glazing, U, V)) ? 0 : 1;
+				bool bShut = Covered(Out.Timber, U, V) || Covered(Out.Glazing, U, V);
+				for (const FKBVEWorldRibbonMesh& Leaf : Standing)
+				{
+					bShut = bShut || Covered(Leaf, U, V);
+				}
+
+				Holes += bShut ? 0 : 1;
 			}
 		}
 
@@ -400,6 +443,67 @@ bool FKBVEWorldDoorShutTest::RunTest(const FString& Parameters)
 			: TEXT("a square doorway has nothing to see through"), Holes, 0);
 	}
 
+	return true;
+}
+
+IMPLEMENT_SIMPLE_AUTOMATION_TEST(
+	FKBVEWorldDoorSwingTest,
+	"KBVE.World.Door.ALeafOpensAwayFromTheStreet",
+	EAutomationTestFlags::EditorContext | EAutomationTestFlags::EngineFilter)
+
+// The leaf is drawn in its own space so that opening it is a turn rather than a
+// rebuild, and the chunk stands its component up with X along the leaf and Z up
+// and then yaws it. That leaves the direction it opens in implied rather than
+// stated, which is the kind of thing that is a mirror image in half the village
+// and nobody notices until a door swings out over its own doorstep.
+bool FKBVEWorldDoorSwingTest::RunTest(const FString& Parameters)
+{
+	const FKBVEWorldWallParams Wall;
+	const FKBVEWorldDoorParams Door;
+	const FKBVEWorldWallOpening Open = Doorway(300.0f);
+	const FKBVEWorldWallFrame F = DoorFrame();
+
+	FKBVEWorldJoineryMesh Out;
+	FKBVEWorldDoor::Build(Wall, F, { Open }, EKBVEWorldWallDetail::Full, Door, false, Out);
+
+	TestEqual(TEXT("one doorway hangs one leaf"), Out.Leaves.Num(), 1);
+	if (Out.Leaves.Num() != 1)
+	{
+		return false;
+	}
+
+	const FKBVEWorldDoorLeaf& Leaf = Out.Leaves[0];
+
+	// Unreal yaws X towards Y, and the chunk builds the leaf's frame from X and
+	// Z, so Y is what a positive angle swings into. It has to be the room.
+	const FVector Y = FVector::CrossProduct(FVector::UpVector, Leaf.Along).GetSafeNormal();
+	TestTrue(TEXT("a positive swing turns away from the street"),
+		FVector::DotProduct(Y, F.Norm) < -0.99f);
+
+	// Hinged on one jamb rather than through the middle, and drawn out from it,
+	// so the mesh sits on one side of its own origin.
+	float Behind = 0.0f;
+	float Below = 0.0f;
+	for (const FVector& V : Leaf.Mesh.Vertices)
+	{
+		Behind = FMath::Min(Behind, static_cast<float>(V.X));
+		Below = FMath::Min(Below, static_cast<float>(V.Z));
+	}
+	TestTrue(TEXT("the hinge is at the edge of the leaf"), Behind >= -0.01f);
+	TestTrue(TEXT("and at the foot of it"), Below >= -0.01f);
+
+	// Shut is the leaf standing in the wall, so before it is turned it has to be
+	// where the doorway is rather than merely near it.
+	const FKBVEWorldRibbonMesh Standing = Hung(Leaf, F);
+	float Deepest = FLT_MAX;
+	for (const FVector& V : Standing.Vertices)
+	{
+		Deepest = FMath::Min(Deepest,
+			FMath::Abs(static_cast<float>(FVector::DotProduct(V, F.Norm))));
+	}
+	TestTrue(TEXT("a shut leaf is inside the wall"), Deepest < 0.5f * Wall.Thickness);
+
+	TestTrue(TEXT("it opens short of a right angle"), Leaf.Swing > 0.0f && Leaf.Swing < 90.0f);
 	return true;
 }
 

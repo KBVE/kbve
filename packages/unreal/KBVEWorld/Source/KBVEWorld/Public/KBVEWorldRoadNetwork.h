@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "KBVEMoverInteractable.h"
 #include "GameFramework/Actor.h"
 #include "KBVEWorldBridge.h"
 #include "KBVEWorldFence.h"
@@ -28,7 +29,7 @@ class UStaticMesh;
  * actor only the parts of a road that genuinely stand off the ground.
  */
 UCLASS()
-class KBVEWORLD_API AKBVEWorldRoadChunk : public AActor
+class KBVEWORLD_API AKBVEWorldRoadChunk : public AActor, public IKBVEMoverInteractable
 {
 	GENERATED_BODY()
 
@@ -135,6 +136,28 @@ public:
 
 	const FTimings& GetTimings() const { return Timings; }
 
+	/**
+	 * Swing the nearest door, which is what a chunk is asked when somebody presses
+	 * interact while looking at one.
+	 *
+	 * The pawn traces and hands the actor it hit, which for a village is the whole
+	 * chunk -- so the leaf is picked here, by which hinge is nearest whoever asked
+	 * and in front of them. A doorway is a metre wide and the nearest hinge to
+	 * somebody standing at one is not ambiguous.
+	 */
+	virtual void OnInteract_Implementation(AActor* Instigator) override;
+
+	/**
+	 * The network this chunk belongs to, which is its spawn owner.
+	 *
+	 * Where an open door is remembered. Reached through the owner rather than
+	 * held, because a chunk is pooled and a pointer it kept would be one more
+	 * thing to clear on the way back in.
+	 */
+	AKBVEWorldRoadNetwork* Doors() const;
+
+	virtual void Tick(float DeltaSeconds) override;
+
 private:
 	/** One entity per run, spawned once the seed has decided where the runs are. */
 	void SpawnFenceRuns(const FBuild& In);
@@ -157,6 +180,16 @@ private:
 	 * the entities carry should already have their gateways in them.
 	 */
 	void OpenGates(const FBuild& In);
+
+	/**
+	 * Hang this chunk's leaves on components of their own.
+	 *
+	 * Reuses whatever components are already here and hides the rest, so a
+	 * village that shrinks does not leave doors standing in a field and one that
+	 * grows does not pay to create components it had a moment ago.
+	 */
+	void CommitLeaves(const FKBVEWorldJoineryMesh& Fittings, const FVector& Origin,
+		UMaterialInterface* Material);
 
 	/** One entity per building, spawned once the seed has decided where they are. */
 	void SpawnBuildings(const FBuild& In);
@@ -208,6 +241,44 @@ private:
 	// every time somebody walks towards a village.
 	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
 	TObjectPtr<UProceduralMeshComponent> Plinth;
+
+	/**
+	 * One component per door leaf, because a leaf is the one part of a building
+	 * that moves and a section cannot be moved without rebuilding the buffer it
+	 * shares with the whole settlement.
+	 *
+	 * Kept and reused rather than destroyed with the geometry: a chunk that
+	 * streams out and back, or a village that changes tier, wants the same
+	 * handful of components filled with different meshes.
+	 */
+	UPROPERTY()
+	TArray<TObjectPtr<UProceduralMeshComponent>> LeafParts;
+
+	/**
+	 * Where each leaf hangs and how far round it currently is.
+	 *
+	 * Shut is zero and open is the leaf's own swing. Eased rather than snapped,
+	 * and the actor only ticks while at least one of them is between the two.
+	 */
+	struct FLeaf
+	{
+		int32 Key = INDEX_NONE;
+		FVector Hinge = FVector::ZeroVector;
+
+		/**
+		 * How the leaf stands when it is shut.
+		 *
+		 * Kept because a swing is this turned, not this replaced. Setting the
+		 * relative rotation to a bare yaw throws away the frame that put the leaf
+		 * in its wall, so the door would jump to a world axis the moment it moved.
+		 */
+		FQuat Base = FQuat::Identity;
+		float Swing = 88.0f;
+		float Angle = 0.0f;
+		float Target = 0.0f;
+	};
+
+	TArray<FLeaf> Leaves;
 
 	/**
 	 * The routes this chunk's two edges took, kept rather than re-solved.
@@ -266,6 +337,38 @@ class KBVEWORLD_API AKBVEWorldRoadNetwork : public AActor
 
 public:
 	AKBVEWorldRoadNetwork();
+
+	/**
+	 * Which doors somebody has left open.
+	 *
+	 * Here rather than on a chunk because a chunk is the thing this has to
+	 * outlive: they are pooled and handed back as the view moves, and a village
+	 * rebuilds its geometry from scratch every time a building changes tier. A
+	 * door remembered on either would shut itself the moment you walked far
+	 * enough away to stop looking at it.
+	 *
+	 * Keyed by the building's own seed, so it survives the house being raised
+	 * again somewhere else in the pool. Only the open ones are held: a world of
+	 * shut doors costs nothing, which is the state nearly all of them are in.
+	 */
+	bool IsDoorOpen(int32 Key) const { return Key != INDEX_NONE && OpenDoors.Contains(Key); }
+
+	void SetDoorOpen(int32 Key, bool bOpen)
+	{
+		if (Key == INDEX_NONE)
+		{
+			return;
+		}
+
+		if (bOpen)
+		{
+			OpenDoors.Add(Key);
+		}
+		else
+		{
+			OpenDoors.Remove(Key);
+		}
+	}
 
 	/**
 	 * Seed, terrain shape and road network, taken from the terrain streamer.
@@ -419,6 +522,9 @@ private:
 
 	UPROPERTY(Transient)
 	TArray<TObjectPtr<AKBVEWorldRoadChunk>> Pool;
+
+	/** Keys of the doors left open, and nothing about the shut ones. */
+	TSet<int32> OpenDoors;
 
 	UPROPERTY(Transient)
 	TObjectPtr<class AKBVEWorldStreamer> Streamer;
