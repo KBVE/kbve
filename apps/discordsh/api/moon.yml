@@ -17,11 +17,17 @@ tasks:
             runInCI: true
     e2e:
         deps: ['~:test', 'discordsh-web-e2e:e2e']
+        inputs:
+            - '**/*'
+            - '!**/*.md'
         options:
             cache: false
     container-prep:
         script: 'rm -rf ./apps/discordsh/api/dist/ && mkdir -p ./apps/discordsh/api/dist/ && cp -a ./dist/apps/discordsh-web/. ./apps/discordsh/api/dist/'
         deps: ['discordsh-web:build']
+        inputs:
+            - '**/*'
+            - '!**/*.md'
         options:
             runFromWorkspaceRoot: true
     containerx:
@@ -32,11 +38,17 @@ tasks:
         # The version tag is what the e2e and deploy tasks run; tagging only
         # :latest left them pulling a tag that a publish alone had produced.
         script: "v=$(grep '^version' apps/discordsh/api/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker buildx build --load -f apps/discordsh/api/Dockerfile -t kbve/discordsh:latest -t kbve/discordsh:$v ."
+        inputs:
+            - '**/*'
+            - '!**/*.md'
         options:
             runFromWorkspaceRoot: true
             cache: false
     containerx-publish:
         script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/discordsh:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/discordsh:buildcache,mode=max -f apps/discordsh/api/Dockerfile -t ghcr.io/kbve/discordsh:latest -t kbve/discordsh:latest .'
+        inputs:
+            - '**/*'
+            - '!**/*.md'
         options:
             runFromWorkspaceRoot: true
             cache: false
