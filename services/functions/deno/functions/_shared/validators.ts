@@ -153,12 +153,11 @@ export function safeRpcError(
   logError(context, error.message, {
     code: error.code,
     hint: error.hint,
+    details: error.details,
   });
   return jsonResponse(
     {
       error: "Operation failed. Please try again or contact support.",
-      sqlstate: error.code ?? null,
-      hint: error.hint ?? null,
       context,
     },
     status,

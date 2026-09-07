@@ -48,7 +48,7 @@ export async function parseJwt(token: string): Promise<JwtClaims> {
   try {
     if (alg && alg !== "HS256") {
       if (!JWKS) {
-        throw new AuthError("Auth not configured (missing SUPABASE_URL)", 500);
+        throw new AuthError("Auth not configured", 500);
       }
       const { payload } = await jwtVerify(token, JWKS, {
         algorithms: ["ES256"],
@@ -57,7 +57,7 @@ export async function parseJwt(token: string): Promise<JwtClaims> {
     }
 
     if (!JWT_SECRET) {
-      throw new AuthError("Auth not configured (missing JWT_SECRET)", 500);
+      throw new AuthError("Auth not configured", 500);
     }
     const key = new TextEncoder().encode(JWT_SECRET);
     const { payload } = await jwtVerify(token, key, { algorithms: ["HS256"] });
@@ -72,7 +72,7 @@ export async function parseJwt(token: string): Promise<JwtClaims> {
       throw new AuthError("Session token signature invalid");
     }
     if (code === "ERR_JOSE_ALG_NOT_ALLOWED") {
-      throw new AuthError(`Unsupported token algorithm: ${alg ?? "unknown"}`);
+      throw new AuthError("Unsupported token algorithm");
     }
     throw new AuthError("Invalid session token");
   }

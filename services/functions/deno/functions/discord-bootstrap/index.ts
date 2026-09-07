@@ -162,12 +162,7 @@ serve(async (req) => {
         hint: error.hint,
       });
       return jsonResponse(
-        {
-          error: "Failed to verify linked Discord identity",
-          detail: error.message,
-          code: error.code ?? null,
-          hint: error.hint ?? null,
-        },
+        { error: "Failed to verify linked Discord identity" },
         500,
       );
     }
@@ -259,7 +254,7 @@ serve(async (req) => {
     // SQLSTATE 22023 = validation failure from the RPC; map to 400.
     const status = rpcError.code === "22023" ? 400 : 500;
     return jsonResponse(
-      { error: "Failed to upsert bootstrap cache", detail: rpcError.message },
+      { error: "Failed to upsert bootstrap cache" },
       status,
     );
   }
