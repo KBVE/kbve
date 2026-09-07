@@ -874,7 +874,7 @@ The Rust build stage receives the Astro output via `COPY --from=astro-build`, en
 
 1. **Create the Astro MDX page** with askama variables in the frontmatter.
 
-    Place it under `src/content/docs/askama/` so it builds to a known path.
+    Place it under `docs/askama/` so it builds to a known path.
     Use askama template syntax (`{{ var }}`, `{% if %}`, `{% for %}`) directly in the frontmatter and component props — Astro outputs them as literal text.
 
     ```mdx
