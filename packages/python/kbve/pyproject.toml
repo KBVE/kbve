@@ -22,6 +22,13 @@ sprite = [
     "pillow>=10.0,<12.0",
     "numpy>=1.26,<3.0",
 ]
+# Cutout-scan packing (kbve.unreal.foliage_pack). Only the one command needs
+# it, and the machines that run the rest of the unreal tooling do not.
+# Enable with: uv sync --extra foliage
+foliage = [
+    "pillow>=10.0,<12.0",
+    "numpy>=1.26,<3.0",
+]
 # OSRS item-corpus analysis (kbve.osrs.*). Only needs PyYAML (already core),
 # but kept behind an extra so corpus tooling stays opt-in. Enable with:
 # uv sync --extra osrs
@@ -53,6 +60,7 @@ kbve-unreal-clangd = "kbve.unreal.clangd:main"
 kbve-unreal-check = "kbve.unreal.check:main"
 kbve-unreal-input-assets = "kbve.unreal.cli:input_assets_main"
 kbve-unreal-textures = "kbve.unreal.cli:surface_textures_main"
+kbve-unreal-foliage-pack = "kbve.unreal.cli:foliage_pack_main"
 kbve-unreal-world-map = "kbve.unreal.cli:world_map_main"
 kbve-unreal-weapon-grips = "kbve.unreal.cli:weapon_grips_main"
 kbve-unreal-quit = "kbve.unreal.cli:quit_main"
