@@ -101,6 +101,13 @@ verified — or let CI do it: a `STEAM_APPS` entry with
 
 - AppID `3791950` is the standalone **Steam demo**. The full game is
   AppID `2238370` (separate app + depots, queued for later release).
+- The macOS bundle is **not notarized**, and Steam does not need it to
+  be: the Steam client does not put `com.apple.quarantine` on depot
+  content, so Gatekeeper never runs its notarization check on a game it
+  installed. Apple Silicon does still require *some* signature — Xcode
+  ad-hoc signs the bundle at build time, which is enough. itch is the
+  target that needs real notarization, because a browser download is
+  quarantined; that is why the project publishes to Steam alone for now.
 - The Unreal project does **not** enable `OnlineSubsystemSteam` yet, so
   these builds ship without the Steam overlay, achievements or a
   `steam_appid.txt`. That is a game-side change, not an upload one — the
