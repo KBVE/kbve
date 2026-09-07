@@ -25,7 +25,6 @@ TArray<FKBVEPluginEntry> FKBVEPluginRegistry::GetDefaultEntries()
 	Add(TEXT("KBVEMapDB"),      TEXT("World/map database loader"));
 	Add(TEXT("KBVEQuestDB"),    TEXT("Quest database loader"));
 	Add(TEXT("KBVEWorld"),      TEXT("Procedural terrain + foliage + chunk streaming toolkit"));
-	Add(TEXT("KBVEHexWorld"),   TEXT("Hex grid world utilities"));
 	Add(TEXT("KBVEROWS"),       TEXT("Open World Server (ROWS) auth + character + instance client"));
 	Add(TEXT("KBVESupabase"),   TEXT("Supabase auth, JWT, storage, chat WebSocket bridge"));
 	Add(TEXT("KBVEULID"),       TEXT("ULID generation"));
