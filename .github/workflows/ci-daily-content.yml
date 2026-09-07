@@ -286,4 +286,18 @@ jobs:
 
                   gh pr review "${PR_NUM}" --approve \
                     --body "Auto-approved — content route \`${ROUTE}\` wrote only generated files."
-                  gh pr merge "${PR_NUM}" --squash --auto
+                  # `--auto` only queues when the PR still has pending required
+                  # checks. A content PR is CLEAN the moment it opens, so gh
+                  # falls back to merging immediately — and the ten routes all
+                  # merge into dev within the same minute, so whichever ones
+                  # lose the race die on "Base branch was modified" with no
+                  # auto-merge queued behind them, leaving the PR open forever.
+                  for attempt in 1 2 3 4 5; do
+                    if gh pr merge "${PR_NUM}" --squash --auto; then
+                      exit 0
+                    fi
+                    echo "::notice::PR #${PR_NUM} (${ROUTE}) merge attempt ${attempt} failed — retrying"
+                    sleep $((attempt * 20))
+                  done
+                  echo "::error::PR #${PR_NUM} (${ROUTE}) could not be merged after 5 attempts"
+                  exit 1
