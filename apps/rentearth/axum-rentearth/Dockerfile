@@ -6,7 +6,7 @@
 # ============================================================================
 # [STAGE W] - Build the Vite + TanStack web (self-contained, no monorepo deps)
 # ============================================================================
-FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS web-builder
+FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS web-builder
 
 WORKDIR /web
 
@@ -19,7 +19,7 @@ RUN npm run build
 # ============================================================================
 # [STAGE C] - Cargo Chef Planner
 # ============================================================================
-FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS planner
+FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS planner
 
 # sccache 0.14.0 refuses to wrap rustc unless CARGO_INCREMENTAL is explicitly 0.
 # Cargo-chef's first probe is `sccache rustc -vV`, which trips this guard.
@@ -59,7 +59,7 @@ RUN cargo chef prepare --recipe-path recipe.json
 # ============================================================================
 # [STAGE D] - Cargo Chef Cook (Cache External Dependencies)
 # ============================================================================
-FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS builder-deps
+FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS builder-deps
 
 ENV CARGO_INCREMENTAL=0
 
@@ -77,7 +77,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 # ============================================================================
 # [STAGE E] - Foundation Layer (Compile kbve + jedi from real source)
 # ============================================================================
-FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder AS foundation
+FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS foundation
 
 ENV CARGO_INCREMENTAL=0
 
@@ -135,7 +135,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 # ============================================================================
 # [STAGE Z] - Runtime Image (pre-built chisel + jemalloc + libpq)
 # ============================================================================
-FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04 AS runtime
+FROM ghcr.io/kbve/chisel-ubuntu-axum:24.04.13 AS runtime
 
 WORKDIR /app
 
