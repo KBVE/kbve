@@ -24,11 +24,6 @@
 			"Name": "KBVEWorld",
 			"Type": "Runtime",
 			"LoadingPhase": "PostConfigInit"
-		},
-		{
-			"Name": "KBVEHexWorld",
-			"Type": "Runtime",
-			"LoadingPhase": "PostConfigInit"
 		}
 	],
 	"Plugins": [
