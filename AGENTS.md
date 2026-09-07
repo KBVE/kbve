@@ -16,8 +16,10 @@ All work must happen in isolated git worktrees branched from `dev`. Never commit
 
     ```bash
     git fetch origin dev
-    git worktree add ../kbve-<task-name> dev -b trunk/<task-name>-<MM-DD-YYYY>
+    GIT_LFS_SKIP_SMUDGE=1 git worktree add ../kbve-<task-name> dev -b trunk/<task-name>-<MM-DD-YYYY>
     ```
+
+    `GIT_LFS_SKIP_SMUDGE=1` is not optional — see [Worktrees and LFS](#worktrees-and-lfs).
 
 2. **No per-worktree setup.** moon finds the workspace root by walking up to `.moon/`, so a worktree needs no environment telling it where it is, and task outputs are shared across worktrees through the CAS (`cache.unstable_sharedWorktreeCache`). A new worktree does not start cold.
 
@@ -58,6 +60,7 @@ All work must happen in isolated git worktrees branched from `dev`. Never commit
 - Branch naming: `trunk/<task-name>-<MM-DD-YYYY>`
 - Worktree path: `../kbve-<task-name>` (adjacent to main repo)
 - Always `pnpm install` in new worktrees
+- Worktrees start with LFS assets as pointer stubs. Hydrate the one game you are touching with `LFS_GAME=<game> moon run lfs-tools:hydrate` — see [Worktrees and LFS](#worktrees-and-lfs)
 - Run tasks with `moon run <project>:<task>` from anywhere in the worktree. `./kbve.sh -moon` is the same thing through the repo shell.
 - PRs target `dev`, never `main`
 - No co-authoring lines in commits
@@ -83,8 +86,10 @@ For small, self-contained changes (docs, config, single-file fixes). Atoms use i
 
     ```bash
     git fetch origin dev
-    git worktree add ../kbve-atom-<description> -b atom-<MMDDHHMM>-<description> origin/dev
+    GIT_LFS_SKIP_SMUDGE=1 git worktree add ../kbve-atom-<description> -b atom-<MMDDHHMM>-<description> origin/dev
     ```
+
+    `GIT_LFS_SKIP_SMUDGE=1` is not optional — see [Worktrees and LFS](#worktrees-and-lfs).
 
 2. **Do work** in the worktree, commit with conventional commits:
 
@@ -121,6 +126,75 @@ For small, self-contained changes (docs, config, single-file fixes). Atoms use i
 
 - Multi-commit features requiring iterative testing
 - Changes spanning many files across multiple projects
+
+---
+
+# Worktrees and LFS
+
+Every worktree is created with `GIT_LFS_SKIP_SMUDGE=1`, by `kbve.sh` and by the
+manual commands above. This is deliberate, and it is the only form that works.
+
+## Why the smudge is skipped
+
+`git worktree add` runs the LFS smudge filter over every pointer in the tree.
+Two things go wrong when it does:
+
+- **One bad pointer kills the whole checkout.** A blob missing from the game's
+  Forgejo repo (an oversized `.umap` under `apps/chuckrpg`, historically) 404s,
+  the filter is `required = true`, and `worktree add` aborts having created
+  nothing. The failure has nothing to do with the branch being checked out.
+- **It pulls gigabytes nobody asked for.** The monorepo tracks eight games'
+  binaries. A docs worktree does not need Unreal assets, and the objects land
+  in the shared `.git/lfs/objects` store, which is how that store reaches
+  double-digit gigabytes.
+
+So assets arrive as ~130-byte pointer stubs. That is the expected state of a
+fresh worktree.
+
+## Hydrating
+
+Pull the one game you are actually touching:
+
+```bash
+LFS_GAME=chuck moon run lfs-tools:hydrate
+```
+
+Equivalently, `./kbve.sh -lfs chuck hydrate`. Game names come from
+`tools/lfs/remotes.tsv`; `./kbve.sh -lfs` with no game lists them.
+
+`hydrate` scopes the pull to the game's path prefix _and_ routes it to the
+game's own endpoint, then fails if any pointer under the prefix is still a stub.
+
+**Do not use a bare `git lfs pull`.** Stock git-lfs reads `lfs.url` from the
+repository-root `.lfsconfig` only, which names `KBVE/rareicon` for the entire
+monorepo. A bare pull therefore asks the rareicon endpoint for every game's
+blobs — slow, and wrong for anything that is not rareicon. The per-project
+`.lfsconfig` files document intent and route no traffic.
+
+CI does the same thing through `tools/lfs/ensure.sh` (`LFS_REMOTE=<game>`),
+which adds Forgejo auth preflight and retries.
+
+## A pointer stub is not a corrupt asset
+
+An unhydrated pointer reaches a consumer as garbage, and every engine reports
+it as something else: Godot raises `ERR_FILE_CORRUPT` or dies on a signal,
+Unreal fails to load the package, an export "succeeds" and ships a broken
+build. Before debugging any asset-shaped failure in a worktree, check whether
+the file is a stub:
+
+```bash
+head -c 60 <path>   # "version https://git-lfs..." means it was never hydrated
+```
+
+## Reclaiming disk
+
+Hydrated objects accumulate in `.git/lfs/objects` in the main repo and are
+shared by every worktree — they are never freed by removing a worktree. To
+reclaim:
+
+```bash
+git lfs prune
+```
 
 ---
 

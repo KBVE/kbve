@@ -995,6 +995,7 @@ run_moon() {
 #   rareicon   → KBVE/rareicon  (apps/rareicon/**) — matches root .lfsconfig
 #
 # Examples:
+#   ./kbve.sh -lfs chuck hydrate
 #   ./kbve.sh -lfs chuck push origin dev
 #   ./kbve.sh -lfs chuck pull
 #   ./kbve.sh -lfs chuck ls-files
@@ -1009,6 +1010,18 @@ Standard subcommands forwarded to `git lfs`:
   push|pull|fetch|ls-files|env|...
 
 Custom subcommands:
+  hydrate [git-lfs-pull-args...]
+                Materialize the game's LFS objects in this worktree. Worktrees
+                are created with GIT_LFS_SKIP_SMUDGE=1 (a single bad pointer
+                otherwise 404s and aborts the whole `git worktree add`), so
+                assets start as pointer stubs and have to be pulled on demand.
+
+                Scoped to the game's path prefix and its own endpoint. A bare
+                `git lfs pull` is not the same thing — it pulls every game in
+                the monorepo through the rareicon endpoint the root .lfsconfig
+                names, which is both slow and wrong. Fails if any pointer under
+                the prefix is still a stub afterwards.
+
   register [remote] [range]
                 Register every LFS OID under the game's path prefix with the
                 game's Forgejo repo. No bytes are uploaded if the blob already
@@ -1065,6 +1078,28 @@ EOF
 
     if [ "$1" = "path" ]; then
         echo "$path_prefix"
+        return 0
+    fi
+
+    if [ "$1" = "hydrate" ]; then
+        # Worktrees are created with GIT_LFS_SKIP_SMUDGE=1, so every pointer
+        # under the game arrives as a ~130-byte stub. This materializes just
+        # that game's prefix against just that game's endpoint. A bare
+        # `git lfs pull` does neither: it drags every game in the monorepo
+        # through the rareicon endpoint named by the root .lfsconfig.
+        shift
+        echo "→ hydrating $path_prefix/ from $url"
+        git -c "lfs.url=$url" lfs pull --include="$path_prefix/**" "$@" || return $?
+        local stubs
+        stubs=$(git lfs ls-files -n |
+            /usr/bin/grep "^$path_prefix" |
+            xargs -r grep -l "^version https://git-lfs" 2>/dev/null || true)
+        if [ -n "$stubs" ]; then
+            echo "ERROR: pointers still unresolved after pull:" >&2
+            printf '  %s\n' $stubs >&2
+            return 1
+        fi
+        echo "✓ $path_prefix/ hydrated"
         return 0
     fi
 
@@ -1449,9 +1484,9 @@ case "$1" in
         echo ""
         echo "Git LFS:"
         echo "  -lfs <game> <cmd>  Route git-lfs to per-game Forgejo endpoint"
-        echo "                     Games: chuck, rareicon"
-        echo "                     Examples: -lfs chuck push origin dev"
-        echo "                               -lfs chuck pull"
+        echo "                     Games: tools/lfs/remotes.tsv (-lfs with no game lists them)"
+        echo "                     Examples: -lfs chuck hydrate"
+        echo "                               -lfs chuck push origin dev"
         echo ""
         echo "Utilities:"
         echo "  -check [cmds...]   Check if commands are installed"
