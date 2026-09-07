@@ -1,29 +1,29 @@
 # discordsh-api-e2e
 
-End-to-end smoke tests for the `discordsh-api` HTTP server.
+Vitest smoke suite for the `discordsh-api` HTTP server, run against the built
+container.
 
 ## What it tests
 
 - Health endpoints (`/health`, `/healthz`)
-- API server listing endpoints:
+- Server directory endpoints:
     - `GET /api/servers/list` (pagination, sorting, category filter)
-    - `GET /api/servers/:server_id` (single server fetch)
+    - `GET /api/servers/{server_id}`
 - Security headers (CSP, X-Frame-Options, etc.)
-- Performance (response time < 1s)
+- Response time under 1s
 
-## Running tests
+## Running
 
 ```bash
-# Run e2e suite (builds container, runs tests, cleans up)
-nx e2e discordsh-api-e2e
+# Builds the image, runs the container on :4321, tears it down after
+moon run discordsh-api-e2e:e2e
 
-# Run locally (assumes discordsh-api running on :4321)
-cd apps/discordsh/api/e2e
+# Against an already-running server on :4321
 npx vitest run
 ```
 
-## CI integration
+This suite is not part of `moon run discordsh:e2e` — that pipeline runs the
+Playwright suites in [`../../web/e2e/`](../../web/e2e/).
 
-Tests run automatically in GitHub Actions when `discordsh-api` changes.
-
-See: https://github.com/KBVE/kbve/issues/12367
+The inherited vitest `test` task is excluded in `moon.yml`: these specs need a
+service behind them, so `test` on its own would fail on a refused connection.

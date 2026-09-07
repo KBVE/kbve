@@ -5,7 +5,7 @@ Standalone Discord gateway bot for DiscordSH.
 ## Features
 
 - Poise/serenity Discord gateway with shard support
-- Slash commands: `/github`, `/gh`, `/dungeon`, `/ping`, `/status`, `/health`, `/admin`
+- Slash commands: `/github`, `/gh`, `/dungeon`, `/skills`, `/palworld`, `/windmill`, `/ping`, `/status`, `/health`, `/admin`
 - Embed Dungeon game with bevy_battle combat and bevy_inventory item management
 - GitHub issue/PR management with SVG card rendering
 - Player persistence via Supabase
@@ -57,6 +57,8 @@ docker build -f apps/discordsh/bot/Dockerfile -t kbve/discordsh-bot .
 
 ## Related
 
-- `apps/discordsh/api/` — HTTP server (Astro site, REST API)
-- `apps/discordsh/bot/e2e/` — E2E smoke tests
-- `packages/rust/bevy/` — Game engine crates (items, inventory, battle, NPC, quests)
+- [`DISCORDSH_GAMEIDEA.md`](./DISCORDSH_GAMEIDEA.md) — Embed Dungeon design, architecture and roadmap
+- [`../SQL_DUNGEON.md`](../SQL_DUNGEON.md) — proposed cross-door (bot + BBS) schema
+- [`../api/`](../api/) — HTTP server (Astro site, REST API)
+- [`./e2e/`](./e2e/) — E2E smoke tests
+- `packages/rust/bevy/` — game engine crates (dungeon, items, inventory, battle, NPC, quests)
