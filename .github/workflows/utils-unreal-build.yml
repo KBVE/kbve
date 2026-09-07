@@ -181,6 +181,11 @@ on:
                 required: false
                 type: boolean
                 default: false
+            steam_apps:
+                description: '[game] JSON array of SteamApp entries from external_publish.steam_apps. Empty array = no Steam upload.'
+                required: false
+                type: string
+                default: '[]'
         secrets:
             epic_pat:
                 description: 'PAT for ghcr.io/epicgames + game repo (falls back to UNITY_PAT)'
@@ -217,6 +222,15 @@ on:
                 required: false
             APPLE_TEAM_ID:
                 description: '[game/notarize] 10-char team id'
+                required: false
+            STEAM_USERNAME:
+                description: '[game] Steamworks build account'
+                required: false
+            STEAM_PASSWORD:
+                description: '[game] Steamworks build account password'
+                required: false
+            STEAM_TOTP_SECRET:
+                description: '[game] Steam Guard shared secret for that account'
                 required: false
         outputs:
             version:
@@ -1832,6 +1846,49 @@ jobs:
                   itchGameId: ${{ inputs.itch_game_id }}
                   buildChannel: ${{ inputs.itch_channel != '' && format('macos-{0}', inputs.itch_channel) || 'macos' }}
                   buildNumber: ${{ needs.game_gate.outputs.version }}
+
+    game_steam:
+        name: Game Deploy to Steam
+        needs: [game_gate, game_build_linux, game_build_windows, game_build_mac]
+        # A platform this project does not build is skipped, not failed, and a
+        # SteamPipe build only touches the depots it carries -- an untouched
+        # depot keeps whatever is already live. So a partial upload is the
+        # correct behaviour while a game builds for one platform, and the
+        # condition asks that nothing FAILED and that something was built.
+        if: |
+            !cancelled() &&
+            inputs.mode == 'game' &&
+            needs.game_gate.outputs.should_build == 'true' &&
+            inputs.steam_apps != '[]' && inputs.steam_apps != 'null' &&
+            needs.game_build_linux.result != 'failure' &&
+            needs.game_build_windows.result != 'failure' &&
+            needs.game_build_mac.result != 'failure' &&
+            (needs.game_build_linux.result == 'success' ||
+             needs.game_build_windows.result == 'success' ||
+             needs.game_build_mac.result == 'success')
+        permissions:
+            contents: read
+        # Absolute, like the post-publish call below: this workflow is itself
+        # reached as KBVE/kbve/...@dev, so a relative path would mix a pull
+        # request's copy of one half with dev's copy of the other.
+        uses: KBVE/kbve/.github/workflows/utils-steam-deploy.yml@dev
+        with:
+            app_name: ${{ inputs.app_name }}
+            project_path: ${{ inputs.project_path }}
+            version: ${{ needs.game_gate.outputs.version }}
+            steam_apps: ${{ inputs.steam_apps }}
+            # Each platform artifact is a zip whose top-level directory is
+            # already the name UAT archived it under, so the depot paths are
+            # those names -- and a target that was not built has none.
+            artifact_pattern: ${{ inputs.app_name }}-*-v${{ needs.game_gate.outputs.version }}
+            depot1_path: ${{ contains(inputs.build_targets, 'Win64') && 'Windows' || '' }}
+            depot2_path: ${{ contains(inputs.build_targets, 'Linux') && 'Linux' || '' }}
+            depot3_path: ${{ contains(inputs.build_targets, 'Mac') && 'Mac' || '' }}
+        secrets:
+            STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+            STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
+            STEAM_TOTP_SECRET: ${{ secrets.STEAM_TOTP_SECRET }}
+            PROMOTE_TOKEN: ${{ secrets.UNITY_PAT }}
 
     game_post_publish:
         name: Game Post-publish version sync

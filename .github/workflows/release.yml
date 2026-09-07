@@ -386,6 +386,10 @@ jobs:
             engine: ${{ needs.verify.outputs.engine }}
             version: '{"source":"","toml":"","manifest":"${{ needs.verify.outputs.version }}"}'
             publish: ${{ needs.verify.outputs.publish }}
+            # Steam is the one target with structured config; it rides in the
+            # external_publish blob and is passed through as JSON, as the Unity
+            # lane already does.
+            steam_apps: ${{ contains(needs.verify.outputs.external_publish, 'steam_apps') && toJSON(fromJSON(needs.verify.outputs.external_publish).steam_apps) || '[]' }}
         secrets: inherit
 
     ue5-server:

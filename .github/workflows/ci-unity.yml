@@ -530,117 +530,27 @@ jobs:
                   fi
 
     deploy_steam:
-        name: Steam deploy ${{ matrix.app.label || matrix.app.app_id }}
+        name: Steam deploy
         needs: [version_gate, build_matrix, build]
-        # Independent of deploy_itch — runs in parallel after build.
-        # One job per SteamApp entry. Each entry expects a matching
-        # apps/<project>/Steam/app_build_<label>.vdf — missing files
-        # log + skip so dormant entries (e.g. main game queued for
-        # later release) can sit in the manifest without breaking the
-        # matrix.
+        # Independent of deploy_itch — runs in parallel after build. The upload
+        # itself lives in utils-steam-deploy.yml so the Unreal lane can reach
+        # the same SteamPipe step; the depot paths are what makes this call the
+        # Unity one.
         if: ${{ inputs.deploy_to_steam && needs.version_gate.outputs.should_publish == 'true' && needs.build.result == 'success' && inputs.steam_apps != '[]' }}
-        runs-on: ubuntu-latest
-        timeout-minutes: 60
-        strategy:
-            fail-fast: false
-            matrix:
-                app: ${{ fromJson(inputs.steam_apps) }}
-        steps:
-            - name: Checkout monorepo
-              uses: actions/checkout@v7
-              with:
-                  lfs: false
-
-            - name: Resolve VDF
-              id: vdf
-              run: |
-                  LABEL="${{ matrix.app.label }}"
-                  if [ -z "$LABEL" ]; then
-                      LABEL="${{ matrix.app.app_id }}"
-                  fi
-                  VDF="${{ inputs.project_path }}/Steam/app_build_${LABEL}.vdf"
-                  if [ ! -f "$VDF" ]; then
-                      echo "::notice::Skipping Steam upload for app ${{ matrix.app.app_id }} — VDF missing at $VDF"
-                      echo "skip=true" >> "$GITHUB_OUTPUT"
-                      exit 0
-                  fi
-                  echo "skip=false" >> "$GITHUB_OUTPUT"
-                  echo "label=$LABEL" >> "$GITHUB_OUTPUT"
-
-            - name: Download all build artifacts
-              if: steps.vdf.outputs.skip != 'true'
-              uses: actions/download-artifact@v8
-              with:
-                  pattern: ${{ inputs.app_name }}-*
-                  path: ${{ inputs.project_path }}/build/
-                  merge-multiple: false
-
-            - name: Flatten artifact paths into VDF ContentRoot layout
-              if: steps.vdf.outputs.skip != 'true'
-              run: |
-                  # download-artifact creates build/<app>-<target>/ for each
-                  # build artifact; the VDFs reference build/<target>/, so
-                  # rename each subdir back to the bare target name.
-                  cd "${{ inputs.project_path }}/build"
-                  for d in "${{ inputs.app_name }}-"*/; do
-                      [ -d "$d" ] || continue
-                      target="${d#${{ inputs.app_name }}-}"
-                      target="${target%/}"
-                      if [ ! -d "$target" ]; then
-                          mv "$d" "$target/"
-                      fi
-                  done
-                  ls -la
-
-            - name: Generate Steam Guard TOTP
-              if: steps.vdf.outputs.skip != 'true'
-              id: steam_totp
-              uses: CyberAndrii/steam-totp@v1
-              with:
-                  shared_secret: ${{ secrets.STEAM_TOTP_SECRET }}
-
-            # SHA-pin to the v3.2.1 tag: it is the first release that
-            # tees steamcmd output and scrapes `(BuildID NNN)` into the
-            # buildId step output, so the old main-HEAD pin is no longer
-            # needed. Stay on a tag rather than main — main now shells out
-            # to a `game-ci/cli` binary resolved at run time.
-            - name: Upload via SteamPipe (game-ci/steam-deploy)
-              if: steps.vdf.outputs.skip != 'true'
-              id: steam_deploy
-              uses: game-ci/steam-deploy@50f6b29fc64922e19a16d202a88fe199d394b536 # v3.2.1
-              with:
-                  username: ${{ secrets.STEAM_USERNAME }}
-                  password: ${{ secrets.STEAM_PASSWORD }}
-                  totp: ${{ steps.steam_totp.outputs.code }}
-                  appId: ${{ matrix.app.app_id }}
-                  buildDescription: '${{ github.sha }} (${{ steps.vdf.outputs.label }})'
-                  rootPath: ${{ inputs.project_path }}/build
-                  depot1Path: StandaloneWindows64
-                  depot2Path: StandaloneLinux64
-                  depot3Path: StandaloneOSX
-                  releaseBranch: ${{ matrix.app.branch }}
-
-            # Auto-dispatch promotion to default branch, gated by the
-            # `steam-prod` GitHub environment in ci-steam-promote.yml.
-            # Only fires when the matrix entry declares a promote_to_branch
-            # AND the source branch matches what was just uploaded — keeps
-            # dormant manifest entries (no promote configured) safe.
-            - name: Dispatch Steam branch promotion
-              if: ${{ steps.vdf.outputs.skip != 'true' && matrix.app.promote_to_branch != '' && steps.steam_deploy.outputs.buildId != '' }}
-              env:
-                  GH_TOKEN: ${{ secrets.UNITY_PAT }}
-              run: |
-                  BUILD_ID="${{ steps.steam_deploy.outputs.buildId }}"
-                  echo "::notice::Dispatching promotion: app=${{ matrix.app.app_id }} build=$BUILD_ID ${{ matrix.app.branch }} → ${{ matrix.app.promote_to_branch }}"
-                  gh workflow run ci-steam-promote.yml \
-                    --repo "${{ github.repository }}" \
-                    --ref "${{ github.ref_name }}" \
-                    -f app_id="${{ matrix.app.app_id }}" \
-                    -f build_id="$BUILD_ID" \
-                    -f from_branch="${{ matrix.app.branch }}" \
-                    -f to_branch="${{ matrix.app.promote_to_branch }}" \
-                    -f app_label="${{ steps.vdf.outputs.label }}" \
-                    -f source_sha="${{ github.sha }}"
+        uses: ./.github/workflows/utils-steam-deploy.yml
+        with:
+            app_name: ${{ inputs.app_name }}
+            project_path: ${{ inputs.project_path }}
+            version: ${{ needs.version_gate.outputs.local_version }}
+            steam_apps: ${{ inputs.steam_apps }}
+            depot1_path: StandaloneWindows64
+            depot2_path: StandaloneLinux64
+            depot3_path: StandaloneOSX
+        secrets:
+            STEAM_USERNAME: ${{ secrets.STEAM_USERNAME }}
+            STEAM_PASSWORD: ${{ secrets.STEAM_PASSWORD }}
+            STEAM_TOTP_SECRET: ${{ secrets.STEAM_TOTP_SECRET }}
+            PROMOTE_TOKEN: ${{ secrets.UNITY_PAT }}
 
     post_publish_sync:
         name: Post-publish version sync

@@ -145,3 +145,22 @@ env:
     UE_TEXTURE_CONFIG: 'apps/rareicon/unreal-rareicon/scripts/config/textures.json'
     # Not the default two-core hosted runner: an Unreal compile.
     CI_RUNNER: 'arc-runner-ue'
+    # Where a release of this project publishes to. RareIcon shipped from
+    # unity-rareicon before; these moved with the game rather than being copied
+    # so that only one project can publish to the page.
+    ITCH_GAME: 'rareicon'
+    ITCH_USER: 'kbve'
+    # The Steam apps a release uploads to, as JSON because this one is
+    # genuinely structured -- two apps, each with a branch and one with a
+    # promotion target. The demo's depots are described under Steam/; the full
+    # game has none yet and is skipped with a notice until it does.
+    #
+    # Which depots an upload actually fills follows ENGINE_CONFIG's
+    # build_targets above, so while that says Mac the Steam build carries the
+    # macOS depot alone and the other two keep whatever is already live.
+    #
+    # NOTARIZE is deliberately not set: the notarize path signs the .app but
+    # the project has not baked its bundle id and Info.plist template yet
+    # (Config/Mac/MacEngine.ini), which notarizes a bundle that cannot be
+    # patched afterwards. Turn it on in the same change that adds those.
+    STEAM_APPS: '[{"app_id":"3791950","label":"demo","branch":"beta","promote_to_branch":"default"},{"app_id":"2238370","label":"main","branch":"beta"}]'
