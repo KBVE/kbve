@@ -32,8 +32,8 @@ import AstroWorkspaceReport from '@/components/dashboard/AstroWorkspaceReport.as
 					Workspace
 					<span class="bento-title__accent">report.</span>
 				</h1>
-				<p class="bento-lede">201 projects and 1109 tasks · Node <strong>24.20.0</strong> · moon <strong>2.5.3</strong> · pnpm <strong>11.15.0</strong>.</p>
-				<p class="bento-lede">Last generated <strong>2026-09-06T05:41:43Z</strong>.</p>
+				<p class="bento-lede">201 projects and 1114 tasks · Node <strong>24.20.0</strong> · moon <strong>2.5.3</strong> · pnpm <strong>11.15.0</strong>.</p>
+				<p class="bento-lede">Last generated <strong>2026-09-07T05:52:46Z</strong>.</p>
 				<div class="bento-cta">
 					<a class="bento-btn bento-btn--primary" href="#insights">
 						View insights
@@ -89,46 +89,46 @@ import AstroWorkspaceReport from '@/components/dashboard/AstroWorkspaceReport.as
 ### LOC Statistics
 
 ```
-github.com/AlDanial/cloc v 2.06  T=27.12 s (743.5 files/s, 133576.7 lines/s)
+github.com/AlDanial/cloc v 2.06  T=27.24 s (741.1 files/s, 133211.1 lines/s)
 ----------------------------------------------------------------------------------
 Language                        files          blank        comment           code
 ----------------------------------------------------------------------------------
-Markdown                         9194          66793             27         783950
-JSON                              404            134              0         309467
-TypeScript                       2435          30292          22844         301173
+Markdown                         9194          66821             27         784053
+JSON                              405            134              0         309382
+TypeScript                       2435          30292          22844         301175
 Rust                             1169          32954          36679         288789
-Python                           1455          68404          86702         276957
+Python                           1459          68592          87078         277615
 C                                 100          30421          91443         263980
-YAML                              989           9896           7213          98827
-C#                                846          13212           7240          80183
-C/C++ Header                      599          16646          56378          67210
+YAML                              990           9905           7280          98985
+C#                                846          13212           7243          80184
+C/C++ Header                      605          16797          57006          67617
 C# Generated                       23           4291           5837          67066
 SQL                               311           9280          13147          62155
 Astro                             346           5745           1747          59165
-JavaScript                        225           5875          14478          54064
-C++                               386           7774           3611          45894
+JavaScript                        227           5892          14505          54181
+C++                               394           8196           4047          48022
 GDScript                          416          11771           4537          39001
 XML                                43            237             16          30341
 Protocol Buffers                  127           3263           6189          15448
 Cython                             65           2810           1181          10796
 HLSL                               95           1839           1924           9975
 CSS                                31            924            431           8917
-Bourne Shell                      122           1454           2101           7969
+Bourne Shell                      123           1459           2111           8004
 Lua                                31            583            179           5502
-TOML                              181            526            571           5370
-HTML                               66            242             69           4734
+TOML                              181            526            571           5371
+HTML                               66            244             69           4753
 Java                               70            884           1217           4445
 Dockerfile                         58            979           1420           3376
 Godot Scene                        31            485              0           3092
 GLSL                               24            452           1394           2847
 OpenCL                              9            119            240           2109
 Kotlin                             16            225            308           1612
-Text                               83            155              0           1514
+Text                               84            161              0           1593
 USS                                 2             96            170           1466
 SVG                                91            188            242           1024
 WGSL                                6            196            183            748
 Godot Resource                     19             64              0            667
-INI                                23             75             55            609
+INI                                23             76             67            611
 Assembly                            4            107            220            438
 PowerShell                          4             70             80            360
 Gradle                             13             48             27            311
@@ -150,7 +150,7 @@ Properties                          1              0              0             
 CMake                               2              4             14              4
 Titanium Style Sheet                1              0              0              1
 ----------------------------------------------------------------------------------
-SUM:                            20166         329749         370276        2922870
+SUM:                            20190         330578         371835        2926495
 ----------------------------------------------------------------------------------
 
 One or more files took longer to process than expected.
@@ -179,34 +179,35 @@ Line count, exceeded timeout:  ./apps/vm/firecracker-ctl/src/main.rs
 ▮▮▮▮ installing node 24.20.0
 ▮▮▮▮ installing pnpm 11.15.0
 ▮▮▮▮ pnpm install
+▮▮▮▮ khashvault:coverage (08d5c41d)
 ▮▮▮▮ laser:coverage (9b6b0e3a)
 ▮▮▮▮ droid:coverage (cc9ca016)
-▮▮▮▮ khashvault:coverage (08d5c41d)
 Already up to date
-Done in 1.1s using pnpm v11.15.0
+Done in 1s using pnpm v11.15.0
 ▮▮▮▮ devops:coverage (45af2fdb)
 khashvault:coverage | RUN  v4.0.9 /home/runner/work/kbve/kbve/packages/npm/khashvault
 khashvault:coverage |       Coverage enabled with v8
 khashvault:coverage | 
-khashvault:coverage |  ✓ src/lib/pgp/pgp.spec.ts (4 tests) 394ms
-khashvault:coverage |  ✓ src/lib/aes/aes.spec.ts (7 tests) 1934ms
-khashvault:coverage |      ✓ should encrypt and decrypt with a password  980ms
-khashvault:coverage |      ✓ should fail with wrong password  889ms
-khashvault:coverage |  ✓ src/lib/kdf/kdf.spec.ts (5 tests) 3158ms
-khashvault:coverage |      ✓ should derive a CryptoKey from a password  431ms
-khashvault:coverage |      ✓ should produce same key with same password and salt  1180ms
-khashvault:coverage |      ✓ should produce different keys with different passwords  1096ms
-khashvault:coverage |      ✓ should derive raw bits  437ms
-khashvault:coverage |  ✓ src/lib/storage/storage.spec.ts (7 tests) 69ms
-khashvault:coverage |  ✓ src/lib/storage/indexeddb.spec.ts (7 tests) 115ms
-khashvault:coverage |  ✓ src/lib/keys/keys.spec.ts (6 tests) 43ms
-khashvault:coverage |  ✓ src/lib/hash/hash.spec.ts (7 tests) 30ms
-khashvault:coverage |  ✓ src/lib/worker/worker.spec.ts (5 tests) 17ms
+khashvault:coverage |  ✓ src/lib/pgp/pgp.spec.ts (4 tests) 638ms
+khashvault:coverage |      ✓ should encrypt and decrypt with passphrase-protected key  327ms
+khashvault:coverage |  ✓ src/lib/aes/aes.spec.ts (7 tests) 2299ms
+khashvault:coverage |      ✓ should encrypt and decrypt with a password  1010ms
+khashvault:coverage |      ✓ should fail with wrong password  1223ms
+khashvault:coverage |  ✓ src/lib/kdf/kdf.spec.ts (5 tests) 3081ms
+khashvault:coverage |      ✓ should derive a CryptoKey from a password  623ms
+khashvault:coverage |      ✓ should produce same key with same password and salt  776ms
+khashvault:coverage |      ✓ should produce different keys with different passwords  1176ms
+khashvault:coverage |      ✓ should derive raw bits  482ms
+khashvault:coverage |  ✓ src/lib/storage/storage.spec.ts (7 tests) 91ms
+khashvault:coverage |  ✓ src/lib/storage/indexeddb.spec.ts (7 tests) 80ms
+khashvault:coverage |  ✓ src/lib/keys/keys.spec.ts (6 tests) 77ms
+khashvault:coverage |  ✓ src/lib/hash/hash.spec.ts (7 tests) 62ms
+khashvault:coverage |  ✓ src/lib/worker/worker.spec.ts (5 tests) 14ms
 khashvault:coverage | 
 khashvault:coverage |  Test Files  8 passed (8)
 khashvault:coverage |       Tests  48 passed (48)
-khashvault:coverage |    Start at  05:42:40
-khashvault:coverage |    Duration  8.44s (transform 433ms, setup 1.05s, collect 1.05s, tests 5.76s, environment 9.45s, prepare 1.10s)
+khashvault:coverage |    Start at  05:53:48
+khashvault:coverage |    Duration  10.07s (transform 745ms, setup 1.18s, collect 1.36s, tests 6.34s, environment 10.40s, prepare 1.10s)
 khashvault:coverage | 
 khashvault:coverage |  % Coverage report from v8
 khashvault:coverage | -------------------|---------|----------|---------|---------|--------------------------------
@@ -232,22 +233,22 @@ khashvault:coverage |   storage.ts       |   82.85 |    43.75 |     100 |    86.
 khashvault:coverage |  lib/worker        |      70 |    33.33 |      80 |      70 |                                
 khashvault:coverage |   shared-buffer.ts |      70 |    33.33 |      80 |      70 | 20,44,77-80                    
 khashvault:coverage | -------------------|---------|----------|---------|---------|--------------------------------
-▮▮▮▮ khashvault:coverage (11s 6ms, 08d5c41d)
+▮▮▮▮ khashvault:coverage (12s 861ms, 08d5c41d)
     devops:coverage | RUN  v4.0.9 /home/runner/work/kbve/kbve/packages/npm/devops
     devops:coverage |       Coverage enabled with v8
     devops:coverage | 
-    devops:coverage |  ✓ src/lib/codegen/__tests__/field-mapper.spec.ts (46 tests) 62ms
-    devops:coverage |  ✓ src/lib/codegen/__tests__/emitter.spec.ts (19 tests) 54ms
-    devops:coverage |  ✓ src/lib/client/github/ci-failure.spec.ts (29 tests) 60ms
-    devops:coverage |  ✓ src/lib/codegen/__tests__/enum-mapper.spec.ts (22 tests) 44ms
-    devops:coverage |  ✓ src/lib/codegen/__tests__/topo-sort.spec.ts (15 tests) 33ms
+    devops:coverage |  ✓ src/lib/codegen/__tests__/emitter.spec.ts (19 tests) 74ms
+    devops:coverage |  ✓ src/lib/codegen/__tests__/field-mapper.spec.ts (46 tests) 71ms
+    devops:coverage |  ✓ src/lib/client/github/ci-failure.spec.ts (29 tests) 107ms
+    devops:coverage |  ✓ src/lib/codegen/__tests__/enum-mapper.spec.ts (22 tests) 90ms
+    devops:coverage |  ✓ src/lib/codegen/__tests__/topo-sort.spec.ts (15 tests) 78ms
     devops:coverage | stdout | src/lib/client/github/issues.spec.ts > issues.verifyMatrixLabel > should add label 0 when no matrix labels are present
     devops:coverage | No matrix labels present. Added label: 0
     devops:coverage | 
     devops:coverage | stdout | src/lib/client/github/issues.spec.ts > issues.verifyMatrixLabel > should keep highest label and remove lower ones when multiple matrix labels exist
     devops:coverage | Removed lower labels, kept highest label: 5
     devops:coverage | 
-    devops:coverage |  ✓ src/lib/client/github/issues.spec.ts (18 tests) 132ms
+    devops:coverage |  ✓ src/lib/client/github/issues.spec.ts (18 tests) 133ms
     devops:coverage | stdout | src/lib/client/github/pulls.spec.ts > pulls.createOrUpdatePR > should create a new PR when none exists
     devops:coverage | GitHub Event Name: undefined
     devops:coverage | Using github.ref: feature-branch
@@ -279,9 +280,9 @@ khashvault:coverage | -------------------|---------|----------|---------|-------
     devops:coverage | stdout | src/lib/client/github/pulls.spec.ts > pulls.createOrUpdatePR > should throw when no branch can be determined
     devops:coverage | GitHub Event Name: undefined
     devops:coverage | 
-    devops:coverage |  ✓ src/lib/client/github/pulls.spec.ts (10 tests) 114ms
-    devops:coverage |  ✓ src/lib/sanitization.spec.ts (54 tests) 1316ms
-    devops:coverage |      ✓ should convert markdown to JSON-safe string  859ms
+    devops:coverage |  ✓ src/lib/client/github/pulls.spec.ts (10 tests) 139ms
+    devops:coverage |  ✓ src/lib/sanitization.spec.ts (54 tests) 1083ms
+    devops:coverage |      ✓ should convert markdown to JSON-safe string  635ms
     devops:coverage | stdout | src/lib/client/github/docker.spec.ts > docker.runContainer > should succeed with valid inputs when exec succeeds
     devops:coverage | Docker container started successfully: container-id-123
     devops:coverage | 
@@ -294,22 +295,22 @@ khashvault:coverage | -------------------|---------|----------|---------|-------
     devops:coverage | stdout | src/lib/client/github/docker.spec.ts > docker.stopContainer > should throw when stop succeeds but remove fails
     devops:coverage | Docker container stopped successfully: stopped
     devops:coverage | 
-    devops:coverage |  ✓ src/lib/client/github/docker.spec.ts (11 tests) 62ms
-    devops:coverage |  ✓ src/lib/client/yt.spec.ts (10 tests) 569ms
-    devops:coverage |      ✓ should return the title of the YouTube video  510ms
-    devops:coverage |  ✓ src/lib/codegen/__tests__/argocd-schema.spec.ts (6 tests) 33ms
-    devops:coverage |  ✓ src/lib/client/github/retry.spec.ts (6 tests) 18ms
+    devops:coverage |  ✓ src/lib/client/github/docker.spec.ts (11 tests) 90ms
     devops:coverage |  ✓ src/lib/client/github/actions.spec.ts (10 tests) 19ms
-    devops:coverage |  ✓ src/lib/api.spec.ts (5 tests) 487ms
-    devops:coverage |      ✓ _message should sanitize message correctly  471ms
-    devops:coverage |  ✓ src/lib/client/github/gha.spec.ts (3 tests) 13ms
-    devops:coverage |  ✓ src/index.spec.ts (5 tests) 13ms
+    devops:coverage |  ✓ src/lib/codegen/__tests__/argocd-schema.spec.ts (6 tests) 77ms
+    devops:coverage |  ✓ src/lib/client/yt.spec.ts (10 tests) 732ms
+    devops:coverage |      ✓ should return the title of the YouTube video  650ms
+    devops:coverage |  ✓ src/lib/client/github/retry.spec.ts (6 tests) 21ms
+    devops:coverage |  ✓ src/lib/client/github/gha.spec.ts (3 tests) 7ms
+    devops:coverage |  ✓ src/lib/api.spec.ts (5 tests) 564ms
+    devops:coverage |      ✓ _message should sanitize message correctly  540ms
     devops:coverage |  ✓ src/lib/client/github/types.spec.ts (2 tests) 6ms
+    devops:coverage |  ✓ src/index.spec.ts (5 tests) 11ms
     devops:coverage | 
     devops:coverage |  Test Files  17 passed (17)
     devops:coverage |       Tests  271 passed (271)
-    devops:coverage |    Start at  05:42:42
-    devops:coverage |    Duration  12.57s (transform 1.68s, setup 0ms, collect 19.55s, tests 3.03s, environment 3ms, prepare 1.75s)
+    devops:coverage |    Start at  05:53:50
+    devops:coverage |    Duration  14.55s (transform 2.22s, setup 0ms, collect 24.20s, tests 3.30s, environment 7ms, prepare 1.67s)
     devops:coverage | 
     devops:coverage |  % Coverage report from v8
     devops:coverage | -------------------|---------|----------|---------|---------|-------------------
@@ -359,23 +360,23 @@ khashvault:coverage | -------------------|---------|----------|---------|-------
     devops:coverage |  ...etry/generated |     100 |      100 |     100 |     100 |                   
     devops:coverage |   ...try-schema.ts |     100 |      100 |     100 |     100 |                   
     devops:coverage | -------------------|---------|----------|---------|---------|-------------------
-▮▮▮▮ devops:coverage (17s 52ms, 45af2fdb)
+▮▮▮▮ devops:coverage (18s 447ms, 45af2fdb)
      droid:coverage | RUN  v4.0.9 /home/runner/work/kbve/kbve/packages/npm/droid
      droid:coverage |       Coverage enabled with v8
      droid:coverage | 
-     droid:coverage |  ✓ src/lib/workers/events.spec.ts (13 tests) 92ms
-     droid:coverage |  ✓ src/lib/sw-recovery.spec.ts (7 tests) 44ms
-     droid:coverage |  ✓ src/lib/state/ui.spec.ts (16 tests) 62ms
-     droid:coverage |  ✓ src/lib/gateway/capabilities.spec.ts (10 tests) 45ms
-     droid:coverage |  ✓ src/lib/types/bento.spec.ts (13 tests) 92ms
-     droid:coverage |  ✓ src/lib/types/event-schemas.spec.ts (17 tests) 59ms
-     droid:coverage |  ✓ src/lib/state/toasts.spec.ts (9 tests) 89ms
-     droid:coverage |  ✓ src/lib/state/welcome-toast.spec.ts (7 tests) 52ms
-     droid:coverage |  ✓ src/lib/types/event-types.spec.ts (11 tests) 43ms
-     droid:coverage |  ✓ src/lib/state/auth.spec.ts (5 tests) 24ms
-     droid:coverage |  ✓ src/lib/state/bento.spec.ts (8 tests) 31ms
-     droid:coverage |  ✓ src/lib/workers/ws-worker.spec.ts (5 tests) 20ms
-     droid:coverage |  ✓ src/lib/mod/module/supabase/mod-supabase.spec.ts (4 tests) 8ms
+     droid:coverage |  ✓ src/lib/workers/events.spec.ts (13 tests) 104ms
+     droid:coverage |  ✓ src/lib/sw-recovery.spec.ts (7 tests) 49ms
+     droid:coverage |  ✓ src/lib/state/ui.spec.ts (16 tests) 71ms
+     droid:coverage |  ✓ src/lib/gateway/capabilities.spec.ts (10 tests) 42ms
+     droid:coverage |  ✓ src/lib/types/bento.spec.ts (13 tests) 38ms
+     droid:coverage |  ✓ src/lib/types/event-schemas.spec.ts (17 tests) 23ms
+     droid:coverage |  ✓ src/lib/types/event-types.spec.ts (11 tests) 45ms
+     droid:coverage |  ✓ src/lib/state/welcome-toast.spec.ts (7 tests) 27ms
+     droid:coverage |  ✓ src/lib/state/toasts.spec.ts (9 tests) 43ms
+     droid:coverage |  ✓ src/lib/state/bento.spec.ts (8 tests) 53ms
+     droid:coverage |  ✓ src/lib/state/auth.spec.ts (5 tests) 12ms
+     droid:coverage |  ✓ src/lib/workers/ws-worker.spec.ts (5 tests) 17ms
+     droid:coverage |  ✓ src/lib/mod/module/supabase/mod-supabase.spec.ts (4 tests) 9ms
      droid:coverage | stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.kbve
      droid:coverage | [DROID]: droid&lt;T>
      droid:coverage | 
@@ -398,12 +399,12 @@ khashvault:coverage | -------------------|---------|----------|---------|-------
      droid:coverage | stdout | src/lib/droid.spec.ts > droid > should initialize and attach to window.kbve
      droid:coverage | [DROID]: droid&lt;T> => await WorkerRefs + URLs
      droid:coverage | 
-     droid:coverage |  ✓ src/lib/droid.spec.ts (1 test) 268ms
+     droid:coverage |  ✓ src/lib/droid.spec.ts (1 test) 269ms
      droid:coverage | 
      droid:coverage |  Test Files  14 passed (14)
      droid:coverage |       Tests  126 passed (126)
-     droid:coverage |    Start at  05:42:40
-     droid:coverage |    Duration  18.00s (transform 966ms, setup 1.95s, collect 3.53s, tests 929ms, environment 32.17s, prepare 2.16s)
+     droid:coverage |    Start at  05:53:48
+     droid:coverage |    Duration  18.88s (transform 954ms, setup 1.98s, collect 3.70s, tests 801ms, environment 35.95s, prepare 2.55s)
      droid:coverage | 
      droid:coverage |  % Coverage report from v8
      droid:coverage | -------------------|---------|----------|---------|---------|-------------------
@@ -454,46 +455,46 @@ khashvault:coverage | -------------------|---------|----------|---------|-------
      droid:coverage |   tools.ts         |       0 |        0 |       0 |       0 | 4-59              
      droid:coverage |   ws-worker.ts     |   18.03 |     4.83 |    5.88 |   18.64 | 66-295,302        
      droid:coverage | -------------------|---------|----------|---------|---------|-------------------
-▮▮▮▮ droid:coverage (20s 609ms, cc9ca016)
+▮▮▮▮ droid:coverage (21s 547ms, cc9ca016)
 ▮▮▮▮ laser:coverage (running for 30s)
      laser:coverage | RUN  v4.0.9 /home/runner/work/kbve/kbve/packages/npm/laser
      laser:coverage |       Coverage enabled with v8
      laser:coverage | 
-     laser:coverage |  ✓ src/lib/net/protocol.spec.ts (13 tests) 58ms
-     laser:coverage |  ✓ src/lib/net/postcard-wire.spec.ts (32 tests) 79ms
-     laser:coverage |  ✓ src/lib/core/events.spec.ts (14 tests) 68ms
-     laser:coverage |  ✓ src/lib/phaser/ambient-dust.spec.ts (7 tests) 38ms
-     laser:coverage |  ✓ src/lib/auth/game-auth.spec.ts (12 tests) 11ms
-     laser:coverage |  ✓ src/lib/phaser/player-controller.spec.ts (6 tests) 15ms
-     laser:coverage |  ✓ src/lib/phaser/use-phaser-event.spec.tsx (7 tests) 57ms
-     laser:coverage |  ✓ src/entrypoints.spec.ts (11 tests) 64ms
-     laser:coverage |  ✓ src/lib/spatial/quadtree.spec.ts (8 tests) 11ms
-     laser:coverage |  ✓ src/lib/phaser/PhaserGame.spec.tsx (10 tests) 174ms
-     laser:coverage |  ✓ src/lib/mecs/sab.spec.ts (10 tests) 17ms
-     laser:coverage |  ✓ src/lib/net/postcard.spec.ts (7 tests) 11ms
+     laser:coverage |  ✓ src/lib/net/postcard-wire.spec.ts (32 tests) 90ms
+     laser:coverage |  ✓ src/lib/net/protocol.spec.ts (13 tests) 73ms
+     laser:coverage |  ✓ src/lib/core/events.spec.ts (14 tests) 59ms
+     laser:coverage |  ✓ src/lib/phaser/ambient-dust.spec.ts (7 tests) 67ms
+     laser:coverage |  ✓ src/lib/phaser/player-controller.spec.ts (6 tests) 48ms
+     laser:coverage |  ✓ src/lib/auth/game-auth.spec.ts (12 tests) 22ms
+     laser:coverage |  ✓ src/lib/phaser/use-phaser-event.spec.tsx (7 tests) 77ms
+     laser:coverage |  ✓ src/entrypoints.spec.ts (11 tests) 69ms
+     laser:coverage |  ✓ src/lib/spatial/quadtree.spec.ts (8 tests) 12ms
+     laser:coverage |  ✓ src/lib/mecs/sab.spec.ts (10 tests) 20ms
+     laser:coverage |  ✓ src/lib/phaser/PhaserGame.spec.tsx (10 tests) 158ms
+     laser:coverage |  ✓ src/lib/net/postcard.spec.ts (7 tests) 9ms
      laser:coverage |  ✓ src/lib/ecs/store.spec.ts (7 tests) 10ms
-     laser:coverage |  ✓ src/lib/phaser/monsters/bird.spec.ts (9 tests) 13ms
-     laser:coverage |  ✓ src/lib/phaser/gpu-sprite-layer.spec.ts (4 tests) 24ms
-     laser:coverage |  ✓ src/lib/determ/heightfield.spec.ts (4 tests) 176ms
-     laser:coverage |  ✓ src/lib/core/invariant.spec.ts (5 tests) 8ms
-     laser:coverage |  ✓ src/lib/phaser/arrow-projectile.spec.ts (2 tests) 10ms
-     laser:coverage |  ✓ src/lib/i18n/store.spec.ts (8 tests) 7ms
-     laser:coverage |  ✓ src/lib/webgl/pom/uniforms.spec.ts (7 tests) 6ms
-     laser:coverage |  ✓ src/lib/r3f/use-game-loop.spec.tsx (3 tests) 42ms
-     laser:coverage |  ✓ src/lib/phaser/object-pool.spec.ts (3 tests) 10ms
+     laser:coverage |  ✓ src/lib/phaser/gpu-sprite-layer.spec.ts (4 tests) 23ms
+     laser:coverage |  ✓ src/lib/phaser/monsters/bird.spec.ts (9 tests) 11ms
+     laser:coverage |  ✓ src/lib/determ/heightfield.spec.ts (4 tests) 228ms
+     laser:coverage |  ✓ src/lib/core/invariant.spec.ts (5 tests) 11ms
+     laser:coverage |  ✓ src/lib/phaser/arrow-projectile.spec.ts (2 tests) 14ms
+     laser:coverage |  ✓ src/lib/i18n/store.spec.ts (8 tests) 10ms
+     laser:coverage |  ✓ src/lib/webgl/pom/uniforms.spec.ts (7 tests) 8ms
+     laser:coverage |  ✓ src/lib/r3f/use-game-loop.spec.tsx (3 tests) 59ms
+     laser:coverage |  ✓ src/lib/phaser/object-pool.spec.ts (3 tests) 7ms
      laser:coverage |  ✓ src/lib/combat/combat.test.ts (6 tests) 8ms
-     laser:coverage |  ✓ src/lib/phaser/use-phaser.spec.tsx (3 tests) 47ms
-     laser:coverage |  ✓ src/lib/promo/registry.spec.ts (5 tests) 7ms
-     laser:coverage |  ✓ src/lib/tile/path.spec.ts (5 tests) 61ms
-     laser:coverage |  ✓ src/lib/phaser/keyboard-map.spec.ts (2 tests) 10ms
+     laser:coverage |  ✓ src/lib/phaser/use-phaser.spec.tsx (3 tests) 45ms
+     laser:coverage |  ✓ src/lib/promo/registry.spec.ts (5 tests) 20ms
+     laser:coverage |  ✓ src/lib/tile/path.spec.ts (5 tests) 57ms
+     laser:coverage |  ✓ src/lib/phaser/keyboard-map.spec.ts (2 tests) 9ms
      laser:coverage |  ✓ src/lib/determ/determ.test.ts (5 tests) 8ms
-     laser:coverage |  ✓ src/lib/r3f/Stage.spec.tsx (3 tests) 51ms
-     laser:coverage |  ✓ src/lib/ecs/helpers.spec.ts (4 tests) 104ms
+     laser:coverage |  ✓ src/lib/r3f/Stage.spec.tsx (3 tests) 61ms
+     laser:coverage |  ✓ src/lib/ecs/helpers.spec.ts (4 tests) 74ms
      laser:coverage | 
      laser:coverage |  Test Files  30 passed (30)
      laser:coverage |       Tests  222 passed (222)
-     laser:coverage |    Start at  05:42:40
-     laser:coverage |    Duration  27.58s (transform 12.14s, setup 0ms, collect 15.23s, tests 1.20s, environment 40.85s, prepare 2.88s)
+     laser:coverage |    Start at  05:53:48
+     laser:coverage |    Duration  28.28s (transform 10.60s, setup 0ms, collect 13.59s, tests 1.37s, environment 44.74s, prepare 2.97s)
      laser:coverage | 
      laser:coverage |  % Coverage report from v8
      laser:coverage | -------------------|---------|----------|---------|---------|-------------------
@@ -554,13 +555,13 @@ khashvault:coverage | -------------------|---------|----------|---------|-------
      laser:coverage |  webgl/pom         |     100 |      100 |     100 |     100 |                   
      laser:coverage |   uniforms.ts      |     100 |      100 |     100 |     100 |                   
      laser:coverage | -------------------|---------|----------|---------|---------|-------------------
-▮▮▮▮ laser:coverage (30s 559ms, 9b6b0e3a)
+▮▮▮▮ laser:coverage (30s 924ms, 9b6b0e3a)
 
 Tasks: 4 completed
- Time: 36s 232ms
+ Time: 39s 401ms
 
-[ WARN 2026-09-06 05:42:32.811] moon_app::queries::changed_files  Detected a shallow checkout, unable to run Git commands to determine changed files. 
-[ WARN 05:42:32.811] moon_app::queries::changed_files  A full Git history is required for affected checks, falling back to an empty files list. 
+[ WARN 2026-09-07 05:53:37.620] moon_app::queries::changed_files  Detected a shallow checkout, unable to run Git commands to determine changed files. 
+[ WARN 05:53:37.620] moon_app::queries::changed_files  A full Git history is required for affected checks, falling back to an empty files list. 
 khashvault:coverage | (!) Your Vite config uses features that are unsupported by `configLoader: 'native'`, which is planned to become the default in a future major version of Vite:
 khashvault:coverage |   - `__dirname` (vite.config.ts:8:8). Use `import.meta.dirname` instead
 khashvault:coverage | Set `VITE_CONFIG_NATIVE_IGNORE_WARNING=true` to suppress this warning.

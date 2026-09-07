@@ -34,6 +34,7 @@ public class RareIcon : ModuleRules
 		PublicIncludePaths.AddRange(new string[] {
 			"RareIcon",
 			"RareIcon/Player",
+			"RareIcon/UI",
 			"RareIcon/World"
 		});
 	}

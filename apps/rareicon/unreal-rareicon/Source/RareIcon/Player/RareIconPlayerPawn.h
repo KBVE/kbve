@@ -40,6 +40,21 @@ public:
 	 */
 	void ReportFeet() const;
 
+	/**
+	 * The weapon rack, as the HUD sees it.
+	 *
+	 * Which weapon is mounted has always been a console variable, because the
+	 * point of the swap is comparing two grips without a relaunch. These do not
+	 * add a second way to hold that: EquipWeapon writes the same variable, so a
+	 * hotbar click and `rareicon.Weapon.Use 1` are the same action and the
+	 * readout cannot disagree with the console.
+	 */
+	static int32 WeaponCount();
+	static FText WeaponName(int32 Index);
+
+	int32 EquippedWeapon() const { return AppliedWeapon; }
+	void EquipWeapon(int32 Index);
+
 	/** Speed, cm/s, at which walking gives way to running. */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "RareIcon|Animation")
 	float RunSpeedThreshold = 320.0f;

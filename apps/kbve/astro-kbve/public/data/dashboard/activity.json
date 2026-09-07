@@ -1,180 +1,180 @@
 {
-  "generated_at": "2026-09-06T05:41:34Z",
+  "generated_at": "2026-09-07T05:52:28Z",
   "window": {
     "days": 7,
-    "since": "2026-08-30T05:41:34Z"
+    "since": "2026-08-31T05:52:28Z"
   },
   "commits": {
-    "total": 220,
+    "total": 236,
     "authors": 3,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 156
+        "commits": 187
       },
       {
         "author": "github-actions[bot]",
-        "commits": 60
+        "commits": 48
       },
       {
         "author": "Fudster",
-        "commits": 4
+        "commits": 1
       }
     ],
     "recent": [
       {
-        "sha": "b32a30b",
+        "sha": "1171610",
         "author": "h0lybyte",
-        "message": "Merge pull request #16829 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/b32a30b82311e764763a0e185a9846e530c17c9d",
-        "date": "2026-09-06T00:30:58Z"
+        "message": "Merge pull request #16884 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/117161011b9d17198db4e89d5b89bc10fab403b2",
+        "date": "2026-09-07T01:36:37Z"
       },
       {
-        "sha": "d9dd2ff",
+        "sha": "a97f8c6",
         "author": "h0lybyte",
-        "message": "feat(commit): add the commit-msg hook the CI comment already assumed (#16838)",
-        "url": "https://github.com/KBVE/kbve/commit/d9dd2ffdada2754ce021150624dff5d5bd1e5220",
-        "date": "2026-09-05T23:25:43Z"
+        "message": "fix(KBVEWorld): give the fanlight's end panes a normal (#16913)",
+        "url": "https://github.com/KBVE/kbve/commit/a97f8c68048c0c84bde4295a24e0d83bb6b5208d",
+        "date": "2026-09-06T22:37:09Z"
       },
       {
-        "sha": "83cba35",
+        "sha": "337d565",
         "author": "h0lybyte",
-        "message": "feat(KBVEWorld): give the houses a floor, a doorstep and a roof that clears the wall (#16835)",
-        "url": "https://github.com/KBVE/kbve/commit/83cba3518de3884ab59c8b5ef557f4608ce6b733",
-        "date": "2026-09-05T23:05:51Z"
+        "message": "fix(KBVEWorld): give the world its water back, and say so when it has none (#16912)",
+        "url": "https://github.com/KBVE/kbve/commit/337d5651373421fc3db3c46ca912a1315e9decce",
+        "date": "2026-09-06T21:33:03Z"
       },
       {
-        "sha": "cd0da3f",
+        "sha": "e4965f9",
         "author": "h0lybyte",
-        "message": "fix(release): publish docker images again, and repin what they feed (#16834)",
-        "url": "https://github.com/KBVE/kbve/commit/cd0da3f0c437ff7af8370964be00a318661dcba8",
-        "date": "2026-09-05T23:05:36Z"
+        "message": "fix(KBVEWorld): stop the grass dancing in step and thin it out at distance (#16909)",
+        "url": "https://github.com/KBVE/kbve/commit/e4965f926b5755222af86c192c725cc1f0ecdd7a",
+        "date": "2026-09-06T19:51:43Z"
       },
       {
-        "sha": "e1e5f8d",
+        "sha": "3286de8",
         "author": "h0lybyte",
-        "message": "fix(world): stand fence posts up, and arch a run over the ground (#16832)",
-        "url": "https://github.com/KBVE/kbve/commit/e1e5f8dc057db1d1ccc83995349fe379d293b8d1",
-        "date": "2026-09-05T22:39:05Z"
+        "message": "fix(KBVEWorld): make the grass green, shorter and lit like ground cover (#16902)",
+        "url": "https://github.com/KBVE/kbve/commit/3286de85908f32ad0f8a93fda4b884ce46ee8032",
+        "date": "2026-09-06T17:55:13Z"
       },
       {
-        "sha": "0fd6351",
+        "sha": "84be6fb",
         "author": "h0lybyte",
-        "message": "feat(KBVEWorld): roofs, better siting, and a planned start (#16831)",
-        "url": "https://github.com/KBVE/kbve/commit/0fd6351a84a70731ad0b405e846c1aa9ce558729",
-        "date": "2026-09-05T20:05:57Z"
+        "message": "feat(KBVEWorld): arch a third of the front doors and glaze the head (#16904)",
+        "url": "https://github.com/KBVE/kbve/commit/84be6fb1ab04c697650548fd55862a1c8c2069e9",
+        "date": "2026-09-06T17:54:50Z"
       },
       {
-        "sha": "d5d1ccf",
+        "sha": "12cf747",
         "author": "h0lybyte",
-        "message": "perf(world): fill a patch's heightfield across the worker threads (#16830)",
-        "url": "https://github.com/KBVE/kbve/commit/d5d1ccf610b0ef7acd2174ef3191b41545be2dfa",
-        "date": "2026-09-05T18:57:34Z"
+        "message": "fix(KBVEWorld): make a shut door something you walk into (#16896)",
+        "url": "https://github.com/KBVE/kbve/commit/12cf7473a282e4740cc6956c2fb8a643d6fdd258",
+        "date": "2026-09-06T16:40:56Z"
       },
       {
-        "sha": "6d4b084",
+        "sha": "d15e053",
         "author": "h0lybyte",
-        "message": "pref(world): adjustments to the umap.",
-        "url": "https://github.com/KBVE/kbve/commit/6d4b084f4052ef18ffa24dd0f7910e1aef8a7add",
-        "date": "2026-09-05T18:24:09Z"
+        "message": "feat(KBVEWorld): grow grass in a ring that follows the player (#16895)",
+        "url": "https://github.com/KBVE/kbve/commit/d15e053f52ce537d18a3e50bea57c62e6faf9288",
+        "date": "2026-09-06T16:40:11Z"
       },
       {
-        "sha": "30a9bae",
+        "sha": "9ca61dd",
         "author": "h0lybyte",
-        "message": "fix(codegen): sync npcdb enum prefixes with the generator (#16828)",
-        "url": "https://github.com/KBVE/kbve/commit/30a9bae45d0adfddbc5559ee0ed7bd4ce0364d87",
-        "date": "2026-09-05T18:15:29Z"
+        "message": "feat(kbve-py): read an editor session back to find where the frames went (#16893)",
+        "url": "https://github.com/KBVE/kbve/commit/9ca61dd6a91d20f83f1881611f0e18fb4610e271",
+        "date": "2026-09-06T16:39:59Z"
       },
       {
-        "sha": "c01c155",
+        "sha": "4cc2235",
         "author": "h0lybyte",
-        "message": "fix(docker): make the chisel base images releasable again (#16827)",
-        "url": "https://github.com/KBVE/kbve/commit/c01c15530bf8af38cb16d62aa0df742e08d0657e",
-        "date": "2026-09-05T18:08:43Z"
+        "message": "fix(KBVEPerf): serve the readout whenever the editor is up (#16891)",
+        "url": "https://github.com/KBVE/kbve/commit/4cc223546aa351715d8442dab1ab7e97d057354f",
+        "date": "2026-09-06T16:39:50Z"
       },
       {
-        "sha": "06a771e",
+        "sha": "a1c27ee",
         "author": "h0lybyte",
-        "message": "Merge pull request #16814 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/06a771e20b4e5ee1956512e93aefd93bc655afcf",
-        "date": "2026-09-05T17:48:01Z"
+        "message": "feat(unreal-rareicon): ingest the grass card atlas into the channel already reserved for it (#16889)",
+        "url": "https://github.com/KBVE/kbve/commit/a1c27ee905c7c1d20ce322ef09ccfeb0f10c0cbe",
+        "date": "2026-09-06T16:03:57Z"
       },
       {
-        "sha": "49a3681",
+        "sha": "9633cc5",
         "author": "h0lybyte",
-        "message": "feat(kbveworld): raise brick villages along the roads (#16826)",
-        "url": "https://github.com/KBVE/kbve/commit/49a36810fae23d56fc132d921750777c2d924b79",
-        "date": "2026-09-05T17:46:14Z"
+        "message": "feat(unreal-rareicon): replicate on Iris by default (#16888)",
+        "url": "https://github.com/KBVE/kbve/commit/9633cc579e729da56281ee426f27378adac0e759",
+        "date": "2026-09-06T16:03:35Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 173,
+    "merged": 189,
     "recent": [
       {
-        "number": 16856,
-        "title": "chore(content): daily ci-health scaffold",
+        "number": 16920,
+        "title": "feat(unreal-rareicon): ship the Steam release lane",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/16920"
+      },
+      {
+        "number": 16918,
+        "title": "Atomic: chisel-ubuntu-axum v24.04.13 post-publish sync",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16856"
+        "url": "https://github.com/KBVE/kbve/pull/16918"
       },
       {
-        "number": 16855,
-        "title": "chore(content): daily journal scaffold",
+        "number": 16884,
+        "title": "Release: 7 features, 7 fixes, 1 doc \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16855"
+        "url": "https://github.com/KBVE/kbve/pull/16884"
       },
       {
-        "number": 16848,
-        "title": "feat(KBVEPerf): drive the editor from the readout, and count what it draws",
+        "number": 16913,
+        "title": "fix(KBVEWorld): give the fanlight's end panes a normal",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16848"
+        "url": "https://github.com/KBVE/kbve/pull/16913"
       },
       {
-        "number": 16846,
-        "title": "fix(ci): stop the Forgejo mirror uploading LFS blobs it cannot fetch",
+        "number": 16912,
+        "title": "fix(KBVEWorld): give the world its water back, and say so when it has none",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16846"
+        "url": "https://github.com/KBVE/kbve/pull/16912"
       },
       {
-        "number": 16847,
-        "title": "fix(release): let post-publish actually run, and cut 24.04.13",
+        "number": 16904,
+        "title": "feat(KBVEWorld): arch a third of the front doors and glaze the head",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16847"
+        "url": "https://github.com/KBVE/kbve/pull/16904"
       },
       {
-        "number": 16842,
-        "title": "feat(KBVETinyBVH): raycast the procedural world on TinyBVH 1.8.0",
+        "number": 16909,
+        "title": "fix(KBVEWorld): stop the grass dancing in step and thin it out at distance",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16842"
+        "url": "https://github.com/KBVE/kbve/pull/16909"
       },
       {
-        "number": 16829,
-        "title": "Release: 3 features, 4 fixes, 1 perf \u2192 Main",
-        "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16829"
-      },
-      {
-        "number": 16838,
-        "title": "feat(commit): add the commit-msg hook the CI comment already assumed",
+        "number": 16902,
+        "title": "fix(KBVEWorld): make the grass green, shorter and lit like ground cover",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16838"
+        "url": "https://github.com/KBVE/kbve/pull/16902"
       },
       {
-        "number": 16835,
-        "title": "feat(KBVEWorld): give the houses a floor, a doorstep and a roof that clears the wall",
+        "number": 16896,
+        "title": "fix(KBVEWorld): make a shut door something you walk into",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16835"
+        "url": "https://github.com/KBVE/kbve/pull/16896"
       },
       {
-        "number": 16834,
-        "title": "fix(release): publish docker images again, and repin what they feed",
+        "number": 16895,
+        "title": "feat(KBVEWorld): grow grass in a ring that follows the player",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16834"
+        "url": "https://github.com/KBVE/kbve/pull/16895"
       }
     ]
   },
   "issues": {
-    "opened": 185,
-    "closed": 188
+    "opened": 197,
+    "closed": 203
   }
 }
