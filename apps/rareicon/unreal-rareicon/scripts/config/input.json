@@ -43,7 +43,7 @@
 		{ "action": "IA_Jump", "key": "Gamepad_FaceButton_Bottom" },
 		{ "action": "IA_Sprint", "key": "LeftShift" },
 		{ "action": "IA_Sprint", "key": "Gamepad_LeftShoulder" },
-		{ "action": "IA_Interact", "key": "E" },
+		{ "action": "IA_Interact", "key": "F" },
 		{ "action": "IA_Interact", "key": "Gamepad_FaceButton_Right" },
 		{ "action": "IA_Inventory", "key": "Tab" },
 		{ "action": "IA_Inventory", "key": "Gamepad_Special_Right" },

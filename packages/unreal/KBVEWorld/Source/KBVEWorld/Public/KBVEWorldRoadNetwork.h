@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "KBVEMoverInteractable.h"
 #include "GameFramework/Actor.h"
 #include "KBVEWorldBridge.h"
 #include "KBVEWorldFence.h"
@@ -28,7 +29,7 @@ class UStaticMesh;
  * actor only the parts of a road that genuinely stand off the ground.
  */
 UCLASS()
-class KBVEWORLD_API AKBVEWorldRoadChunk : public AActor
+class KBVEWORLD_API AKBVEWorldRoadChunk : public AActor, public IKBVEMoverInteractable
 {
 	GENERATED_BODY()
 
@@ -135,6 +136,19 @@ public:
 
 	const FTimings& GetTimings() const { return Timings; }
 
+	/**
+	 * Swing the nearest door, which is what a chunk is asked when somebody presses
+	 * interact while looking at one.
+	 *
+	 * The pawn traces and hands the actor it hit, which for a village is the whole
+	 * chunk -- so the leaf is picked here, by which hinge is nearest whoever asked
+	 * and in front of them. A doorway is a metre wide and the nearest hinge to
+	 * somebody standing at one is not ambiguous.
+	 */
+	virtual void OnInteract_Implementation(AActor* Instigator) override;
+
+	virtual void Tick(float DeltaSeconds) override;
+
 private:
 	/** One entity per run, spawned once the seed has decided where the runs are. */
 	void SpawnFenceRuns(const FBuild& In);
@@ -157,6 +171,16 @@ private:
 	 * the entities carry should already have their gateways in them.
 	 */
 	void OpenGates(const FBuild& In);
+
+	/**
+	 * Hang this chunk's leaves on components of their own.
+	 *
+	 * Reuses whatever components are already here and hides the rest, so a
+	 * village that shrinks does not leave doors standing in a field and one that
+	 * grows does not pay to create components it had a moment ago.
+	 */
+	void CommitLeaves(const FKBVEWorldJoineryMesh& Fittings, const FVector& Origin,
+		UMaterialInterface* Material);
 
 	/** One entity per building, spawned once the seed has decided where they are. */
 	void SpawnBuildings(const FBuild& In);
@@ -208,6 +232,34 @@ private:
 	// every time somebody walks towards a village.
 	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
 	TObjectPtr<UProceduralMeshComponent> Plinth;
+
+	/**
+	 * One component per door leaf, because a leaf is the one part of a building
+	 * that moves and a section cannot be moved without rebuilding the buffer it
+	 * shares with the whole settlement.
+	 *
+	 * Kept and reused rather than destroyed with the geometry: a chunk that
+	 * streams out and back, or a village that changes tier, wants the same
+	 * handful of components filled with different meshes.
+	 */
+	UPROPERTY()
+	TArray<TObjectPtr<UProceduralMeshComponent>> LeafParts;
+
+	/**
+	 * Where each leaf hangs and how far round it currently is.
+	 *
+	 * Shut is zero and open is the leaf's own swing. Eased rather than snapped,
+	 * and the actor only ticks while at least one of them is between the two.
+	 */
+	struct FLeaf
+	{
+		FVector Hinge = FVector::ZeroVector;
+		float Swing = 88.0f;
+		float Angle = 0.0f;
+		float Target = 0.0f;
+	};
+
+	TArray<FLeaf> Leaves;
 
 	/**
 	 * The routes this chunk's two edges took, kept rather than re-solved.

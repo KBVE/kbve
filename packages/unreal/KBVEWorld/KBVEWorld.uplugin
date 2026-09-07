@@ -51,6 +51,10 @@
 		{
 			"Name": "KBVEGameplay",
 			"Enabled": true
+		},
+		{
+			"Name": "KBVEMover",
+			"Enabled": true
 		}
 	]
 }
