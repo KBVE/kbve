@@ -108,10 +108,16 @@ verified — or let CI do it: a `STEAM_APPS` entry with
   ad-hoc signs the bundle at build time, which is enough. itch is the
   target that needs real notarization, because a browser download is
   quarantined; that is why the project publishes to Steam alone for now.
-- The Unreal project does **not** enable `OnlineSubsystemSteam` yet, so
-  these builds ship without the Steam overlay, achievements or a
-  `steam_appid.txt`. That is a game-side change, not an upload one — the
-  Unity postprocessor that used to write `steam_appid.txt` went with the
-  Unity project.
+- The project enables `OnlineSubsystemSteam`, `OnlineSubsystemUtils` and
+  `SteamSockets`, configured in `Config/DefaultEngine.ini`. Steam is the
+  default platform service, the game connection prefers the SteamSockets
+  net driver with the IP driver as its fallback, and `SteamDevAppId` is
+  the demo AppID.
+- `steam_appid.txt` sits beside the `.uproject`, not in the depot. Steam
+  hands a game it launched its own AppID through the environment; the
+  file is what an editor session or a directly-launched executable reads
+  instead, so it belongs to the working copy rather than to the build.
+- Achievements and rich presence are not wired to anything yet. They need
+  to be defined in Steamworks first, which is a dashboard task.
 - `BuildOutput/` in this directory holds steamcmd's intermediate cache
   files and is git-ignored.
