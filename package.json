@@ -199,7 +199,7 @@
 		"guacamole-common-js": "^1.5.0",
 		"happy-dom": "20.14.0",
 		"hls.js": "^1.7.2",
-		"html-react-parser": "^5.1.18",
+		"html-react-parser": "^6.1.7",
 		"lucide": "^0.575.0",
 		"lucide-react": "^0.575.0",
 		"marked": "^18.0.11",
