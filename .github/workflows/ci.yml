@@ -217,16 +217,18 @@ jobs:
     # someone opened a pull request and read the log themselves. A stale proto
     # descriptor did exactly that for hours (#16963, #16965, #16968).
     #
-    # Push and merge_group only. On a pull request the failure is the author's,
-    # it is already visible on the PR, and tracking it would open an issue for
-    # every red branch.
+    # dev, main and the merge queue only. On a pull request the failure is the
+    # author's, it is already visible on the PR, and tracking it would open an
+    # issue for every red branch. A ref test rather than an event test because
+    # ci-atom.yml calls this workflow on a push to an atom-* branch, and an atom
+    # branch breaking is not dev breaking -- it would land on the same issue.
     #
     # The matrix shards share one job_name deliberately: three shards of one
     # command are one signal, and a per-shard name would open three issues for
     # a single break and leave two of them behind when the work moves shards.
     track:
         name: Track Failures
-        if: ${{ always() && (github.event_name == 'push' || github.event_name == 'merge_group') && (contains(needs.*.result, 'failure') || !contains(needs.*.result, 'cancelled')) }}
+        if: ${{ always() && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main' || github.event_name == 'merge_group') && (contains(needs.*.result, 'failure') || !contains(needs.*.result, 'cancelled')) }}
         needs: [ci]
         permissions:
             actions: read

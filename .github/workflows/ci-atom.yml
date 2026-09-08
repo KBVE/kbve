@@ -306,8 +306,14 @@ jobs:
         name: 'Run Tests'
         needs: [check_pr_status, create_pr]
         if: always() && !failure() && !cancelled() && (needs.check_pr_status.outputs.pr_exists == 'true' || needs.create_pr.outputs.pr_created == 'true')
+        # ci.yml's own failure tracker never runs on an atom-* branch, but a
+        # permission a callee declares is a ceiling the caller has to grant
+        # whether the job runs or not -- short it and GitHub refuses to start
+        # the run at all. tools/ci/permissions.mjs is what catches that.
         permissions:
             contents: read
+            actions: read
+            issues: write
         uses: ./.github/workflows/ci.yml
 
     # Job 6: Security check — defense-in-depth validation of PR author
