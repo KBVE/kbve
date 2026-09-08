@@ -156,5 +156,16 @@ test.describe('yuki dock — SSE chat consumer', () => {
 		await input.press('Enter');
 		const req = await requestPromise;
 		expect(req.url()).toContain('q=hi%20yuki');
+
+		// The consumer half of the SSE contract, which used to be asserted
+		// against a live axum container from axum-kbve-e2e. The handler's own
+		// half -- the 400s, the chunk split, the `done` terminator -- is
+		// covered by the unit tests in transport/yuki.rs.
+		const bubbles = page.locator(
+			`${DOCK_SEL} .yuki-msg--yuki .yuki-msg__bubble`,
+		);
+		await expect(bubbles.last()).toContainText('Hello. World.', {
+			timeout: 15_000,
+		});
 	});
 });
