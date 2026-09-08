@@ -358,14 +358,14 @@ impl Engine {
         std::fs::create_dir_all(&cfg.active_dir)?;
         std::fs::create_dir_all(&cfg.library_dir)?;
         std::fs::create_dir_all(&cfg.session_dir)?;
-        let listen_port_range = match &cfg.bt_port_file {
+        let forwarded_listen_port = match &cfg.bt_port_file {
             Some(path) => {
                 match await_forwarded_port(path, cfg.bt_port_wait_secs, cfg.bt_port_stable_secs)
                     .await
                 {
                     Some(port) => {
                         tracing::info!(port, "using VPN forwarded port for BitTorrent listener");
-                        Some(port..port.saturating_add(1))
+                        Some(port)
                     }
                     None => {
                         tracing::warn!(
@@ -390,6 +390,19 @@ impl Engine {
             keep_alive_interval: (cfg.peer_keepalive_secs > 0)
                 .then(|| Duration::from_secs(cfg.peer_keepalive_secs)),
         });
+        let connect = Some(librqbit::ConnectionOptions {
+            peer_opts,
+            ..Default::default()
+        });
+        let listen = Some(librqbit::ListenerOptions {
+            listen_addr: (
+                std::net::Ipv6Addr::UNSPECIFIED,
+                forwarded_listen_port.unwrap_or(0),
+            )
+                .into(),
+            enable_upnp_port_forwarding: false,
+            ..Default::default()
+        });
         let opts = librqbit::SessionOptions {
             fastresume: true,
             persistence: Some(SessionPersistenceConfig::Json {
@@ -399,9 +412,8 @@ impl Engine {
                 upload_bps: cfg.upload_limit_bps.and_then(std::num::NonZeroU32::new),
                 download_bps: None,
             },
-            peer_opts,
-            listen_port_range,
-            enable_upnp_port_forwarding: false,
+            connect,
+            listen,
             ..Default::default()
         };
         if let Some(bps) = opts.ratelimits.upload_bps {
@@ -662,9 +674,9 @@ impl Engine {
                             .map(|l| {
                                 (
                                     l.download_speed.mbps,
-                                    l.snapshot.peer_stats.live,
-                                    l.snapshot.peer_stats.seen,
-                                    l.snapshot.peer_stats.connecting,
+                                    l.snapshot.peer_stats.live as usize,
+                                    l.snapshot.peer_stats.seen as usize,
+                                    l.snapshot.peer_stats.connecting as usize,
                                 )
                             })
                             .unwrap_or((0.0, 0, 0, 0));
@@ -967,7 +979,7 @@ impl Engine {
         }
     }
 
-    pub fn open_stream(
+    pub async fn open_stream(
         &self,
         id: &str,
         file_id: usize,
@@ -975,14 +987,14 @@ impl Engine {
         let handle = self
             .handle(id)
             .ok_or_else(|| anyhow::anyhow!("no managed torrent for id {id}"))?;
-        handle.stream(file_id)
+        handle.stream(file_id).await
     }
 
     /// Open a sequential-priority stream over the largest media file of a
     /// leeching torrent, for live playback while the download is still in
     /// flight. The returned reader carries a leech guard, so the completion
     /// watcher will not tear the torrent down until the reader is dropped.
-    pub fn primary_stream(&self, id: &str) -> LeechStream {
+    pub async fn primary_stream(&self, id: &str) -> LeechStream {
         let files = match self.list_files(id) {
             Ok(Some(f)) => f,
             _ => return LeechStream::NotReady,
@@ -995,7 +1007,7 @@ impl Engine {
             Some(e) => (e.name.clone(), e.len),
             None => return LeechStream::NoMedia,
         };
-        match self.open(id, idx) {
+        match self.open(id, idx).await {
             Ok(reader) => LeechStream::Ready { reader, name, len },
             Err(_) => LeechStream::NotReady,
         }
@@ -1141,22 +1153,28 @@ pub enum LeechStream {
     },
 }
 
+pub type OpenFuture<'a> = std::pin::Pin<
+    Box<dyn std::future::Future<Output = anyhow::Result<Box<dyn ReadSeek>>> + Send + 'a>,
+>;
+
 pub trait MediaSource: Send + Sync {
     fn entries(&self, id: &str) -> anyhow::Result<Option<Vec<FileEntry>>>;
-    fn open(&self, id: &str, file_id: usize) -> anyhow::Result<Box<dyn ReadSeek>>;
+    fn open<'a>(&'a self, id: &'a str, file_id: usize) -> OpenFuture<'a>;
 }
 
 impl MediaSource for Engine {
     fn entries(&self, id: &str) -> anyhow::Result<Option<Vec<FileEntry>>> {
         self.list_files(id)
     }
-    fn open(&self, id: &str, file_id: usize) -> anyhow::Result<Box<dyn ReadSeek>> {
-        let reader = self.open_stream(id, file_id)?;
-        let guard = self.leech_enter(id);
-        Ok(Box::new(GuardedReader {
-            inner: reader,
-            _guard: guard,
-        }))
+    fn open<'a>(&'a self, id: &'a str, file_id: usize) -> OpenFuture<'a> {
+        Box::pin(async move {
+            let reader = self.open_stream(id, file_id).await?;
+            let guard = self.leech_enter(id);
+            Ok(Box::new(GuardedReader {
+                inner: reader,
+                _guard: guard,
+            }) as Box<dyn ReadSeek>)
+        })
     }
 }
 
@@ -1267,9 +1285,9 @@ impl Engine {
                     finished: s.finished,
                     download_mbps: down,
                     upload_mbps: up,
-                    peers_live: live,
-                    peers_seen: seen,
-                    peers_connecting: connecting,
+                    peers_live: live as usize,
+                    peers_seen: seen as usize,
+                    peers_connecting: connecting as usize,
                 }
             })
             .collect()
@@ -1288,7 +1306,7 @@ impl Engine {
     }
 
     pub fn bt_listen_port(&self) -> Option<u16> {
-        self.session.tcp_listen_port()
+        self.session.listen_addr().map(|addr| addr.port())
     }
 
     pub fn forwarded_port(&self) -> Option<u16> {
