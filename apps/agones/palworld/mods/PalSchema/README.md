@@ -69,7 +69,7 @@ erroring. Confirm additions against a dump before extending the list.
 ## Shops (KBVEShops)
 
 Shop tables (`DT_ItemShopCreateData`) are generated from MDX frontmatter under
-`apps/kbve/astro-kbve/src/content/docs/palworld/palshop/*.mdx` by
+`docs/palworld/palshop/*.mdx` by
 `scripts/generate-palworld-shops.mjs` (nx target `astro-kbve:gen:palworld-shops`).
 Edit the MDX, regenerate, commit both. Item ids and layout take structural
 reference from the Hex Reworked Shop (Nexus) PalSchema mod; all prices, stock,

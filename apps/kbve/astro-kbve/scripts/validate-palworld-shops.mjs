@@ -4,7 +4,7 @@ import { fileURLToPath } from 'node:url';
 import { extractFrontmatter, parsePalshop, KNOWN_SHOPS } from './generate-palworld-shops.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const PALSHOP_DIR = resolve(__dirname, '../src/content/docs/palworld/palshop');
+const PALSHOP_DIR = resolve(__dirname, '../../../../docs/palworld/palshop');
 
 export const PRODUCT_TYPES = ['Normal'];
 const ACTIONS = ['Clear'];
