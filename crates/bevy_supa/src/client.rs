@@ -1,11 +1,13 @@
-//! Native PostgREST client — ports the struct originally living in
-//! `packages/rust/kbve/src/entity/client/supabase.rs` into a standalone,
+//! Native PostgREST client — the struct that used to live in
+//! `crates/kbve/src/entity/client/supabase.rs`, in a standalone,
 //! dependency-lean form so JNI and other embedded consumers can link it
-//! without dragging diesel / axum / tower along for the ride.
+//! without dragging diesel / axum / tower along for the ride. `kbve` now
+//! re-exports it from here, so this is the only copy.
 //!
-//! Feature-gated behind `native`. When the `wasm` feature stabilizes this
-//! module will grow a transport trait so the API shape stays identical
-//! across browser and desktop builds.
+//! Feature-gated behind `native`, which does not build for wasm32 — reqwest
+//! carries no browser transport. Browser callers want the `auth` feature's
+//! GoTrue client instead; the two speak to different halves of Supabase and
+//! deliberately do not share a transport.
 
 use reqwest::Client;
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
@@ -197,6 +199,222 @@ impl SupaClient {
         }
         self.post_json(&url, headers, &params).await
     }
+
+    /// Start building a table query.
+    ///
+    /// RPC covers most of what this stack asks PostgREST for; this is the
+    /// direct-table path for the cases that have no function behind them.
+    ///
+    /// # Arguments
+    ///
+    /// * `table` — table name as exposed by PostgREST.
+    pub fn from(&self, table: &str) -> QueryBuilder {
+        QueryBuilder {
+            http: self.http.clone(),
+            url: format!("{}/rest/v1/{}", self.base_url, table),
+            headers: self.default_headers(),
+            timeout: self.timeout,
+            filters: Vec::new(),
+            select_columns: None,
+            order_clause: None,
+            limit_val: None,
+            offset_val: None,
+        }
+    }
+}
+
+/// Builder for a PostgREST table query: filters, ordering, pagination, CRUD.
+///
+/// Built by [`SupaClient::from`], which seeds it with the client's headers and
+/// timeout so a query cannot end up unauthenticated or unbounded.
+#[derive(Debug)]
+pub struct QueryBuilder {
+    http: Client,
+    url: String,
+    headers: HeaderMap,
+    timeout: Duration,
+    filters: Vec<String>,
+    select_columns: Option<String>,
+    order_clause: Option<String>,
+    limit_val: Option<u32>,
+    offset_val: Option<u32>,
+}
+
+impl QueryBuilder {
+    /// Select specific columns (comma-separated).
+    pub fn select(mut self, columns: &str) -> Self {
+        self.select_columns = Some(columns.to_string());
+        self
+    }
+
+    /// Filter: column equals value.
+    pub fn eq(mut self, column: &str, value: &str) -> Self {
+        self.filters.push(format!("{}=eq.{}", column, value));
+        self
+    }
+
+    /// Filter: column not equals value.
+    pub fn neq(mut self, column: &str, value: &str) -> Self {
+        self.filters.push(format!("{}=neq.{}", column, value));
+        self
+    }
+
+    /// Filter: column greater than value.
+    pub fn gt(mut self, column: &str, value: &str) -> Self {
+        self.filters.push(format!("{}=gt.{}", column, value));
+        self
+    }
+
+    /// Filter: column less than value.
+    pub fn lt(mut self, column: &str, value: &str) -> Self {
+        self.filters.push(format!("{}=lt.{}", column, value));
+        self
+    }
+
+    /// Filter: column greater than or equal to value.
+    pub fn gte(mut self, column: &str, value: &str) -> Self {
+        self.filters.push(format!("{}=gte.{}", column, value));
+        self
+    }
+
+    /// Filter: column less than or equal to value.
+    pub fn lte(mut self, column: &str, value: &str) -> Self {
+        self.filters.push(format!("{}=lte.{}", column, value));
+        self
+    }
+
+    /// Filter: column matches pattern (case-sensitive).
+    pub fn like(mut self, column: &str, pattern: &str) -> Self {
+        self.filters.push(format!("{}=like.{}", column, pattern));
+        self
+    }
+
+    /// Filter: column matches pattern (case-insensitive).
+    pub fn ilike(mut self, column: &str, pattern: &str) -> Self {
+        self.filters.push(format!("{}=ilike.{}", column, pattern));
+        self
+    }
+
+    /// Filter: column value is in the provided list.
+    pub fn in_list(mut self, column: &str, values: &[&str]) -> Self {
+        let list = format!("({})", values.join(","));
+        self.filters.push(format!("{}=in.{}", column, list));
+        self
+    }
+
+    /// Order results by column.
+    pub fn order(mut self, column: &str, ascending: bool) -> Self {
+        let dir = if ascending { "asc" } else { "desc" };
+        self.order_clause = Some(format!("{}.{}", column, dir));
+        self
+    }
+
+    /// Limit the number of rows returned.
+    pub fn limit(mut self, count: u32) -> Self {
+        self.limit_val = Some(count);
+        self
+    }
+
+    /// Offset (skip) a number of rows.
+    pub fn offset(mut self, count: u32) -> Self {
+        self.offset_val = Some(count);
+        self
+    }
+
+    /// Convenience: set both offset and limit for range-based pagination.
+    pub fn range(self, from: u32, to: u32) -> Self {
+        self.offset(from).limit(to - from + 1)
+    }
+
+    fn build_url(&self) -> String {
+        let mut params: Vec<String> = Vec::new();
+
+        if let Some(ref cols) = self.select_columns {
+            params.push(format!("select={}", cols));
+        }
+
+        for filter in &self.filters {
+            params.push(filter.clone());
+        }
+
+        if let Some(ref order) = self.order_clause {
+            params.push(format!("order={}", order));
+        }
+
+        if let Some(limit) = self.limit_val {
+            params.push(format!("limit={}", limit));
+        }
+
+        if let Some(offset) = self.offset_val {
+            params.push(format!("offset={}", offset));
+        }
+
+        if params.is_empty() {
+            self.url.clone()
+        } else {
+            format!("{}?{}", self.url, params.join("&"))
+        }
+    }
+
+    /// Execute a GET request (select/read).
+    pub async fn execute(self) -> Result<reqwest::Response, SupaError> {
+        let url = self.build_url();
+        let resp = self
+            .http
+            .get(&url)
+            .headers(self.headers)
+            .timeout(self.timeout)
+            .send()
+            .await?;
+        Ok(resp)
+    }
+
+    /// Execute a POST request (insert).
+    pub async fn insert(self, body: serde_json::Value) -> Result<reqwest::Response, SupaError> {
+        let url = self.build_url();
+        let mut headers = self.headers;
+        headers.insert("prefer", HeaderValue::from_static("return=representation"));
+
+        let resp = self
+            .http
+            .post(&url)
+            .headers(headers)
+            .json(&body)
+            .timeout(self.timeout)
+            .send()
+            .await?;
+        Ok(resp)
+    }
+
+    /// Execute a PATCH request (update). Filters determine which rows to update.
+    pub async fn update(self, body: serde_json::Value) -> Result<reqwest::Response, SupaError> {
+        let url = self.build_url();
+        let mut headers = self.headers;
+        headers.insert("prefer", HeaderValue::from_static("return=representation"));
+
+        let resp = self
+            .http
+            .patch(&url)
+            .headers(headers)
+            .json(&body)
+            .timeout(self.timeout)
+            .send()
+            .await?;
+        Ok(resp)
+    }
+
+    /// Execute a DELETE request. Filters determine which rows to delete.
+    pub async fn delete(self) -> Result<reqwest::Response, SupaError> {
+        let url = self.build_url();
+        let resp = self
+            .http
+            .delete(&url)
+            .headers(self.headers)
+            .timeout(self.timeout)
+            .send()
+            .await?;
+        Ok(resp)
+    }
 }
 
 #[cfg(test)]
@@ -244,5 +462,119 @@ mod tests {
             std::env::remove_var("SUPABASE_SERVICE_ROLE_KEY");
         }
         assert!(SupaClient::from_env().is_none());
+    }
+
+    fn test_client() -> SupaClient {
+        SupaClient::new("https://test.supabase.co", "test-api-key")
+    }
+
+    #[test]
+    fn query_builder_base_url() {
+        let qb = test_client().from("users");
+        assert_eq!(qb.url, "https://test.supabase.co/rest/v1/users");
+        assert_eq!(qb.build_url(), "https://test.supabase.co/rest/v1/users");
+        assert!(!qb.build_url().contains('?'));
+    }
+
+    #[test]
+    fn query_builder_inherits_client_headers_and_timeout() {
+        let qb =
+            SupaClient::with_timeout("https://test.supabase.co", "key", Duration::from_secs(5))
+                .with_jwt("user-jwt")
+                .from("users");
+        assert_eq!(qb.timeout, Duration::from_secs(5));
+        assert_eq!(qb.headers.get("apikey").unwrap(), "key");
+        assert_eq!(qb.headers.get(AUTHORIZATION).unwrap(), "Bearer user-jwt");
+    }
+
+    #[test]
+    fn query_builder_select() {
+        let url = test_client()
+            .from("users")
+            .select("id,name,email")
+            .build_url();
+        assert_eq!(
+            url,
+            "https://test.supabase.co/rest/v1/users?select=id,name,email"
+        );
+    }
+
+    #[test]
+    fn query_builder_comparison_filters() {
+        let url = test_client()
+            .from("items")
+            .eq("active", "true")
+            .neq("status", "deleted")
+            .gt("price", "10")
+            .lt("price", "100")
+            .gte("qty", "1")
+            .lte("qty", "50")
+            .build_url();
+        assert!(url.contains("active=eq.true"));
+        assert!(url.contains("status=neq.deleted"));
+        assert!(url.contains("price=gt.10"));
+        assert!(url.contains("price=lt.100"));
+        assert!(url.contains("qty=gte.1"));
+        assert!(url.contains("qty=lte.50"));
+    }
+
+    #[test]
+    fn query_builder_pattern_and_list_filters() {
+        let url = test_client()
+            .from("users")
+            .like("name", "%john%")
+            .ilike("nick", "%JOHN%")
+            .in_list("role", &["admin", "mod", "user"])
+            .build_url();
+        assert!(url.contains("name=like.%john%"));
+        assert!(url.contains("nick=ilike.%JOHN%"));
+        assert!(url.contains("role=in.(admin,mod,user)"));
+    }
+
+    #[test]
+    fn query_builder_order_both_directions() {
+        assert!(
+            test_client()
+                .from("users")
+                .order("name", true)
+                .build_url()
+                .contains("order=name.asc")
+        );
+        assert!(
+            test_client()
+                .from("users")
+                .order("created_at", false)
+                .build_url()
+                .contains("order=created_at.desc")
+        );
+    }
+
+    #[test]
+    fn query_builder_limit_offset_and_range() {
+        let url = test_client().from("users").limit(25).offset(50).build_url();
+        assert!(url.contains("limit=25"));
+        assert!(url.contains("offset=50"));
+
+        // range is inclusive on both ends, so 10..=19 is ten rows.
+        let ranged = test_client().from("users").range(10, 19).build_url();
+        assert!(ranged.contains("offset=10"));
+        assert!(ranged.contains("limit=10"));
+    }
+
+    #[test]
+    fn query_builder_combines_every_clause() {
+        let url = test_client()
+            .from("products")
+            .select("id,name,price")
+            .eq("category", "electronics")
+            .gt("price", "50")
+            .order("price", true)
+            .limit(20)
+            .build_url();
+        assert!(url.contains("select=id,name,price"));
+        assert!(url.contains("category=eq.electronics"));
+        assert!(url.contains("price=gt.50"));
+        assert!(url.contains("order=price.asc"));
+        assert!(url.contains("limit=20"));
     }
 }

@@ -13,7 +13,7 @@ use lru::LruCache;
 use serde::{Deserialize, Serialize};
 use tracing::{info, warn};
 
-use super::supabase::SupabaseClient;
+use super::SupabaseClient;
 
 const SCHEMA: &str = "gh";
 /// KvCache key prefixes for the reverse-sync lookups (namespaced again by KvCache).
@@ -136,7 +136,7 @@ pub enum GithubStoreError {
         body: String,
     },
     #[error("supabase transport: {0}")]
-    Transport(#[from] super::supabase::SupabaseError),
+    Transport(#[from] super::SupabaseError),
     #[error("response decode: {0}")]
     Decode(#[from] serde_json::Error),
     #[error("response body: {0}")]
@@ -253,9 +253,10 @@ impl GithubStore {
         {
             let mut cache = self.cache.lock().unwrap_or_else(|e| e.into_inner());
             if let Some(entry) = cache.get(&key)
-                && Instant::now() < entry.expires_at {
-                    return Ok(entry.issue.clone());
-                }
+                && Instant::now() < entry.expires_at
+            {
+                return Ok(entry.issue.clone());
+            }
         }
 
         let Some(client) = self.client.as_ref() else {

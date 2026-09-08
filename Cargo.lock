@@ -10538,6 +10538,7 @@ dependencies = [
  "axum 0.8.9",
  "axum-extra",
  "bb8",
+ "bevy_supa",
  "chrono",
  "dashmap 6.2.1",
  "diesel",

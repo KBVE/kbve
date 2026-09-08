@@ -6,7 +6,7 @@ use lru::LruCache;
 use serde::Deserialize;
 use tracing::{info, warn};
 
-use super::supabase::SupabaseClient;
+use super::SupabaseClient;
 
 // ── Types ────────────────────────────────────────────────────────────
 
@@ -137,9 +137,10 @@ impl MemberCache {
         {
             let mut cache = self.cache.lock().unwrap_or_else(|e| e.into_inner());
             if let Some(entry) = cache.get(&discord_id)
-                && Instant::now() < entry.expires_at {
-                    return entry.status.clone();
-                }
+                && Instant::now() < entry.expires_at
+            {
+                return entry.status.clone();
+            }
         }
 
         // Fetch from Supabase (no lock held)
@@ -167,9 +168,9 @@ impl MemberCache {
             && let MemberStatus::Guest {
                 ref mut notified, ..
             } = entry.status
-            {
-                *notified = true;
-            }
+        {
+            *notified = true;
+        }
     }
 
     /// Invalidate a specific user's cache entry.
@@ -184,9 +185,10 @@ impl MemberCache {
         {
             let mut cache = self.claim_cache.lock().unwrap_or_else(|e| e.into_inner());
             if let Some(entry) = cache.get(&discord_id)
-                && Instant::now() < entry.expires_at {
-                    return entry.identity.clone();
-                }
+                && Instant::now() < entry.expires_at
+            {
+                return entry.identity.clone();
+            }
         }
 
         match self.fetch_claim_identity_from_supabase(discord_id).await {
@@ -305,10 +307,11 @@ impl MemberCache {
         }
 
         if let Ok(profiles) = serde_json::from_str::<Vec<UserProfile>>(&text)
-            && let Some(profile) = profiles.into_iter().next() {
-                info!(discord_id, user_id = %profile.user_id, "Member found");
-                return MemberStatus::Member(profile);
-            }
+            && let Some(profile) = profiles.into_iter().next()
+        {
+            info!(discord_id, user_id = %profile.user_id, "Member found");
+            return MemberStatus::Member(profile);
+        }
 
         MemberStatus::Guest { notified: false }
     }
