@@ -16,7 +16,7 @@ owners:
 env:
     # Pinned to the version isometric's wasm lane already installs, so a runner
     # that built either project has the other's bindgen in its cargo bin.
-    WASM_BINDGEN_VERSION: '0.2.114'
+    WASM_BINDGEN_VERSION: '0.2.126'
     MMORPG_WEB_PORT: '4321'
 
 # build/test/lint/format/run are inherited from the rust toolchain tasks.

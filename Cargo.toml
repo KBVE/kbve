@@ -142,7 +142,7 @@ ulid = "1.2.1"
 url = "2.5"
 utoipa = "5"
 uuid = "1"
-wasm-bindgen = { version = "=0.2.114", default-features = false }
+wasm-bindgen = { version = "=0.2.126", default-features = false }
 wasm-bindgen-futures = "0.4"
 web-sys = "0.3"
 webpki-roots = "1.0"
