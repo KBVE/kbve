@@ -32,6 +32,19 @@ projects:
         # names are unique across the graph. They were never registered at all
         # -- the plugin build matrix read them out of the dispatch manifest.
         - 'packages/unreal/*'
+
+        # The arcade. Same three properties as the two above -- flat, every
+        # directory is a project with a moon.yml, names unique across the graph
+        # -- and one more reason on top of them.
+        #
+        # Every task in the workspace implicitly inputs
+        # `/.moon/*.{yml,yaml,jsonc,json,pkl,hcl,toml}`, so an edit to this file
+        # invalidates all of them: registering one project took `moon ci` from 1
+        # affected task to 214 across 169 projects, and a pull request that
+        # moved TypeScript ran every rust crate's clippy. A directory that grows
+        # a project per game is the wrong place to pay that, so the arcade
+        # registers by shape rather than by name.
+        - 'apps/arcade/*'
     sources:
         # The workspace itself: whole-tree tasks that belong to no project.
         root: '.'
@@ -112,9 +125,9 @@ projects:
         desktop-kbve: 'apps/kbve/desktop-kbve'
         isometric: 'apps/kbve/isometric'
 
-        # Bevy games
-        colony: 'apps/arcade/colony'
-        mmorpg: 'apps/arcade/mmorpg'
+        # The arcade games are not listed here: apps/arcade/* is globbed
+        # above, which registers colony and mmorpg under the same ids these
+        # lines gave them.
 
         # Published npm packages
         astro: 'packages/npm/astro'
