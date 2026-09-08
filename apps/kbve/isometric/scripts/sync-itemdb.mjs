@@ -14,10 +14,7 @@ import { fileURLToPath } from 'url';
 import { parse as parseYaml } from 'yaml';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const ITEMDB_DIR = resolve(
-	__dirname,
-	'../../astro-kbve/src/content/docs/itemdb',
-);
+const ITEMDB_DIR = resolve(__dirname, '../../../../docs/itemdb');
 // The isometric Tauri build, the axum-kbve server and the bevy_dungeon rules
 // engine all embed the same itemdb.json via `include_str!` — emit to every
 // location so item lookups resolve identically without a network hop.

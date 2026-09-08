@@ -3,7 +3,7 @@
  * Jobboard taxonomy codegen — MDX is the single source of truth.
  *
  * Reads the `verticals` block in:
- *   apps/kbve/astro-kbve/src/content/docs/project/jobboard.mdx
+ *   docs/project/jobboard.mdx
  *
  * Emits:
  *   packages/data/codegen/generated/jobboard-taxonomy.json   (canonical bundle)
@@ -25,7 +25,7 @@ const repoRoot = resolve(__dirname, '../../..');
 
 const MDX = resolve(
 	repoRoot,
-	'apps/kbve/astro-kbve/src/content/docs/project/jobboard.mdx',
+	'docs/project/jobboard.mdx',
 );
 const GEN_DIR = resolve(__dirname, 'generated');
 const BUNDLE = resolve(GEN_DIR, 'jobboard-taxonomy.json');
@@ -86,7 +86,7 @@ function build() {
 function seedSql({ verticals, taxonomy }) {
 	const L = [
 		'-- AUTO-GENERATED — do not edit. Source of truth:',
-		'--   apps/kbve/astro-kbve/src/content/docs/project/jobboard.mdx (verticals block)',
+		'--   docs/project/jobboard.mdx (verticals block)',
 		'-- Regenerate: nx run astro-kbve:sync:jobboard-taxonomy',
 		'',
 		'insert into jobboard.verticals (slug, label, description, status, sort_order) values',

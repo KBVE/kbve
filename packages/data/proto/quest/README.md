@@ -19,24 +19,24 @@ The quest system operates as a **narrative quest graph** with these layers:
 
 ## Integration Points
 
-| System | How Quests Are Referenced |
-|--------|-------------------------|
-| NPC proto | `quest_refs`, `prerequisite_quest_refs`, `NPC_TYPE_QUEST_GIVER`, `DialogueTree` |
-| Item proto | `quest_requirement`, `ITEM_TYPE_QUEST`, `source_type: "quest"` |
-| astro-kbve | MDX frontmatter via `IQuestSchema`, served at `/api/questdb.json` |
-| discordsh | Story events and room choices (implicit objectives, no formal quest system yet) |
-| isometric | Not yet integrated |
+| System     | How Quests Are Referenced                                                       |
+| ---------- | ------------------------------------------------------------------------------- |
+| NPC proto  | `quest_refs`, `prerequisite_quest_refs`, `NPC_TYPE_QUEST_GIVER`, `DialogueTree` |
+| Item proto | `quest_requirement`, `ITEM_TYPE_QUEST`, `source_type: "quest"`                  |
+| astro-kbve | MDX frontmatter via `IQuestSchema`, served at `/api/questdb.json`               |
+| discordsh  | Story events and room choices (implicit objectives, no formal quest system yet) |
+| isometric  | Not yet integrated                                                              |
 
 ## Enums
 
-| Enum | Values | Purpose |
-|------|--------|---------|
-| `QuestCategory` | 8 types | main, side, daily, event, challenge, tutorial, bounty, guild |
-| `ObjectiveType` | 9 types | collect, kill, visit, interact, escort, defend, craft, explore, custom |
-| `QuestStatus` | 7 states | Runtime tracking: locked → available → active → complete → turned_in → failed → abandoned |
+| Enum                    | Values   | Purpose                                                                                                     |
+| ----------------------- | -------- | ----------------------------------------------------------------------------------------------------------- |
+| `QuestCategory`         | 8 types  | main, side, daily, event, challenge, tutorial, bounty, guild                                                |
+| `ObjectiveType`         | 9 types  | collect, kill, visit, interact, escort, defend, craft, explore, custom                                      |
+| `QuestStatus`           | 7 states | Runtime tracking: locked → available → active → complete → turned_in → failed → abandoned                   |
 | `ChoiceConsequenceType` | 13 types | advance, fail, branch, give/take item, reputation, spawn, teleport, unlock, set/clear flag, NPC disposition |
-| `FailurePolicy` | 4 modes | permanent, retry step, retry quest, soft-fail |
-| `RewardPolicy` | 3 modes | individual, shared (split), leader-only |
+| `FailurePolicy`         | 4 modes  | permanent, retry step, retry quest, soft-fail                                                               |
+| `RewardPolicy`          | 3 modes  | individual, shared (split), leader-only                                                                     |
 
 ## Sub-messages
 
@@ -99,6 +99,7 @@ Metadata:        credits, drafted
 ## Registry
 
 `QuestRegistry` contains:
+
 - `repeated Quest quests` — all quest definitions
 - `repeated QuestChain chains` — quest chain / storyline groupings
 
@@ -119,4 +120,4 @@ Metadata:        credits, drafted
 - Item proto: [`../item/`](../item/) (quest requirements, quest items)
 - Common types: [`../kbve/common.proto`](../kbve/common.proto)
 - Astro-kbve quest schema: `apps/kbve/astro-kbve/src/data/schema/IQuestSchema.ts`
-- Astro-kbve quest content: `apps/kbve/astro-kbve/src/content/docs/questdb/`
+- Astro-kbve quest content: `docs/questdb/`

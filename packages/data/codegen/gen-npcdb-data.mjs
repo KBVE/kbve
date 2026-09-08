@@ -5,7 +5,7 @@
  * Mirrors gen-mapdb-data.mjs / gen-questdb-data.mjs.
  *
  * Inputs:
- *   apps/kbve/astro-kbve/src/content/docs/npcdb/*.mdx (authoritative catalog)
+ *   docs/npcdb/*.mdx (authoritative catalog)
  *   packages/data/codegen/descriptors/npcdb.binpb     (proto schema descriptor)
  *
  * Outputs:
@@ -43,7 +43,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');
 const npcdbDir = resolve(
 	repoRoot,
-	'apps/kbve/astro-kbve/src/content/docs/npcdb',
+	'docs/npcdb',
 );
 const generatedDir = resolve(__dirname, 'generated');
 const outputJsonPath = resolve(generatedDir, 'npcdb-data.json');

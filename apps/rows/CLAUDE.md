@@ -73,7 +73,7 @@ Tracking issue for the lifecycle work: [#13281](https://github.com/KBVE/kbve/iss
   change git, never the cluster. SealedSecrets are per-namespace (`kubeseal --raw`); controller in
   `kube-system`.
 - **Versioning:** never bump `version.toml` / `Cargo.toml` versions by hand — bump only the mdx
-  frontmatter in `apps/kbve/astro-kbve/src/content/docs/project/rows.mdx` (`pipeline: docker`);
+  frontmatter in `docs/project/rows.mdx` (`pipeline: docker`);
   CI's post-publish PR owns the rest. Pre-bumping silently skips the build.
 - **The chuck UE server binary is a PVC path, not an image tag** (`ows-server-build` PVC,
   `/server/latest/...` — mutable `latest/` is the known R0 hazard). Bumping the fleet `image:`

@@ -4,7 +4,7 @@ Companion to [BUILDING.md](./BUILDING.md). BUILDING.md covers one `WorldObjectTy
 
 ## 1. Context
 
-MapDB ([packages/data/proto/map/mapdb.proto](../../packages/data/proto/map/mapdb.proto)) is the shared game-data source for every KBVE game — Rareicon, the isometric project, and the discordsh MUD. Each game consumes a **filtered view** of the same mdx pool at `apps/kbve/astro-kbve/src/content/docs/mapdb/`. The frontmatter on each mdx is proto-typed (`WorldObjectDef` + Astro rendering extension) and baked to `/api/mapdb.json` at build time.
+MapDB ([packages/data/proto/map/mapdb.proto](../../packages/data/proto/map/mapdb.proto)) is the shared game-data source for every KBVE game — Rareicon, the isometric project, and the discordsh MUD. Each game consumes a **filtered view** of the same mdx pool at `docs/mapdb/`. The frontmatter on each mdx is proto-typed (`WorldObjectDef` + Astro rendering extension) and baked to `/api/mapdb.json` at build time.
 
 Rareicon's job is to read that JSON at startup and turn each record into runtime entities: a Farm mdx becomes a prefab entity in `BuildingPrefabRegistry`, an Iron-Vein mdx becomes a harvestable node template, a Dusty-Bazaar mdx becomes a merchant spawn point.
 

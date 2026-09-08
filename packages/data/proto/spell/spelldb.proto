@@ -62,7 +62,7 @@ enum SpellRarity {
 // =============================================================================
 
 // A single castable spell. The MDX frontmatter under
-// astro-kbve/src/content/docs/spelldb/*.mdx is the source of truth; this proto
+// docs/spelldb/*.mdx is the source of truth; this proto
 // is the wire/codegen shape every consumer (web HUD, Rust sim) decodes.
 message Spell {
   string ref = 1;

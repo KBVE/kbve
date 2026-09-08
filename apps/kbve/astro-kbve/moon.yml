@@ -140,16 +140,13 @@ tasks:
                 '/packages/data/codegen/tiles/tiles.manifest.json',
                 '/apps/cryptothrone/web/public/assets/map/cloud_tileset.png',
             ]
-        outputs: ['public/assets/tiledb', 'src/content/docs/tiledb']
+        outputs: ['public/assets/tiledb', '/docs/tiledb']
         options:
             runFromWorkspaceRoot: true
     sync-tiledb:
         script: 'node packages/data/codegen/gen-tiledb-data.mjs'
         inputs:
-            [
-                '/packages/data/codegen/gen-tiledb-data.mjs',
-                'src/content/docs/tiledb/*.mdx',
-            ]
+            ['/packages/data/codegen/gen-tiledb-data.mjs', '/docs/tiledb/*.mdx']
         outputs: ['/packages/data/codegen/generated/tiledb-data.json']
         options:
             runFromWorkspaceRoot: true
@@ -189,7 +186,7 @@ tasks:
         script: 'node packages/data/codegen/gen-mapdb-data.mjs'
         inputs:
             [
-                'src/content/docs/mapdb/*.mdx',
+                '/docs/mapdb/*.mdx',
                 '/packages/data/codegen/gen-mapdb-data.mjs',
                 '/packages/proto/kbve/**/*.proto',
             ]
@@ -224,7 +221,7 @@ tasks:
         script: 'node packages/data/codegen/gen-jobboard-taxonomy.mjs'
         inputs:
             [
-                'src/content/docs/project/jobboard.mdx',
+                '/docs/project/jobboard.mdx',
                 '/packages/data/codegen/gen-jobboard-taxonomy.mjs',
             ]
         outputs:
@@ -241,7 +238,7 @@ tasks:
         deps: ['~:sync-itemdb-uecpp']
         inputs:
             [
-                'src/content/docs/itemdb/*.mdx',
+                '/docs/itemdb/*.mdx',
                 '/packages/data/codegen/gen-itemdb-data.mjs',
                 '/packages/proto/kbve/**/*.proto',
             ]
@@ -288,7 +285,7 @@ tasks:
         deps: ['~:sync-mapdb', '~:sync-itemdb', '~:sync-professiondb-uecpp']
         inputs:
             [
-                'src/content/docs/professiondb/**/*.mdx',
+                '/docs/professiondb/**/*.mdx',
                 '/packages/data/codegen/gen-professiondb-data.mjs',
                 '/packages/data/codegen/gen-professiondb-xref.mjs',
                 '/packages/proto/kbve/**/*.proto',
@@ -323,7 +320,7 @@ tasks:
         script: 'node packages/data/codegen/gen-questdb-data.mjs'
         inputs:
             [
-                'src/content/docs/questdb/*.mdx',
+                '/docs/questdb/*.mdx',
                 '/packages/data/codegen/gen-questdb-data.mjs',
                 '/packages/proto/kbve/**/*.proto',
             ]
@@ -355,7 +352,7 @@ tasks:
         deps: ['~:sync-abilitydb']
         inputs:
             [
-                'src/content/docs/npcdb/*.mdx',
+                '/docs/npcdb/*.mdx',
                 '/packages/data/codegen/gen-npcdb-data.mjs',
                 '/packages/proto/kbve/**/*.proto',
             ]
@@ -373,7 +370,7 @@ tasks:
         inputs:
             [
                 'src/content/docs/abilitydb/*.mdx',
-                'src/content/docs/npcdb/*.mdx',
+                '/docs/npcdb/*.mdx',
                 '/packages/data/codegen/gen-abilitydb-data.mjs',
                 '/packages/data/codegen/descriptors/common.binpb',
             ]
@@ -392,7 +389,7 @@ tasks:
         deps: ['~:sync-spelldb-uecpp']
         inputs:
             [
-                'src/content/docs/spelldb/*.mdx',
+                '/docs/spelldb/*.mdx',
                 '/packages/data/codegen/gen-spelldb-data.mjs',
                 '/packages/proto/kbve/**/*.proto',
             ]
@@ -421,7 +418,7 @@ tasks:
         script: 'node packages/data/codegen/gen-itemdb-atlas.mjs'
         inputs:
             [
-                'src/content/docs/itemdb/*.mdx',
+                '/docs/itemdb/*.mdx',
                 'public/assets/items/**/*.png',
                 '/packages/data/codegen/gen-itemdb-atlas.mjs',
             ]

@@ -317,7 +317,7 @@ Money is inventory items, defined in itemdb (MDX is source of truth):
 | Coin | `coin` | 533 | stackable, max 50 | 1 | copper base unit, spendable |
 | Gold Bar | `gold-bar` | 538 | not stackable (max 1) | 150 | high denomination, store of value |
 
-- **Source of truth:** `apps/kbve/astro-kbve/src/content/docs/itemdb/coin.mdx` and `gold-bar.mdx`. Edit MDX, then `nx run astro-kbve:sync:itemdb` — never hand-edit generated JSON/binpb.
+- **Source of truth:** `docs/itemdb/coin.mdx` and `gold-bar.mdx`. Edit MDX, then `nx run astro-kbve:sync:itemdb` — never hand-edit generated JSON/binpb.
 - **Denomination:** `coin` carries `compress: { target_ref: 'gold-bar', ratio: 100 }`. 100 coins = 1 gold bar. Matched server-side by `GOLD_BAR_VALUE = 100` (`packages/rust/simgrid/src/sim.rs`).
 
 #### How it's earned

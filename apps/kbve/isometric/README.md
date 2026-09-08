@@ -78,7 +78,7 @@ Additional modules without plugins: `grass`, `mushrooms`, `rocks`, `input_bridge
 
 ## Item Database
 
-Items are defined as MDX files in `apps/kbve/astro-kbve/src/content/docs/itemdb/` and baked into the binary at compile time via `include_str!()`.
+Items are defined as MDX files in `docs/itemdb/` and baked into the binary at compile time via `include_str!()`.
 
 To regenerate after adding or changing items:
 

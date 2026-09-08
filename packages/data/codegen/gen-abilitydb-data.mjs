@@ -25,7 +25,7 @@
  *
  * Inputs:
  *   apps/kbve/astro-kbve/src/content/docs/abilitydb/*.mdx  (shared ability text)
- *   apps/kbve/astro-kbve/src/content/docs/npcdb/*.mdx      (English being asserted)
+ *   docs/npcdb/*.mdx      (English being asserted)
  *
  * Outputs:
  *   packages/data/codegen/generated/abilitydb.<locale>.json|.binpb
@@ -61,7 +61,7 @@ const abilitydbDir = resolve(
 );
 const npcdbDir = resolve(
 	repoRoot,
-	'apps/kbve/astro-kbve/src/content/docs/npcdb',
+	'docs/npcdb',
 );
 const generatedDir = resolve(__dirname, 'generated');
 

@@ -1,5 +1,5 @@
 -- AUTO-GENERATED — do not edit. Source of truth:
---   apps/kbve/astro-kbve/src/content/docs/project/jobboard.mdx (verticals block)
+--   docs/project/jobboard.mdx (verticals block)
 -- Regenerate: nx run astro-kbve:sync:jobboard-taxonomy
 
 insert into jobboard.verticals (slug, label, description, status, sort_order) values

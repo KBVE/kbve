@@ -340,7 +340,7 @@ type(scope): subject
 
 # itemdb / npcdb / mapdb / questdb MDX — content, not versioned
 
-Different rule for content collections under `apps/kbve/astro-kbve/src/content/docs/{itemdb,npcdb,mapdb,questdb}/*.mdx`:
+Different rule for content collections under `docs/{itemdb,npcdb,mapdb,questdb}/*.mdx`:
 
 - These have **no** `version:` field. They're data, not packages.
 - Edit MDX → run the matching codegen target:
