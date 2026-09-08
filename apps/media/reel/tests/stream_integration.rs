@@ -26,7 +26,7 @@ async fn progressive_stream_reads_head_before_complete() {
     }
     let files = files.expect("metadata resolved");
     let idx = reel::engine::primary_file_index(&files).expect("a media file");
-    let mut stream = eng.open_stream(&id, idx).unwrap();
+    let mut stream = eng.open_stream(&id, idx).await.unwrap();
     let mut buf = vec![0u8; 64 * 1024];
     let n = stream.read(&mut buf).await.unwrap();
     assert!(n > 0, "progressive read returned bytes before completion");

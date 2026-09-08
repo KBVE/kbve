@@ -461,7 +461,7 @@ async fn live_manifest(st: &AppState, id: &str, meta: state::Metadata) -> axum::
         Some(d) => std::path::PathBuf::from(d),
         None => return StatusCode::TOO_EARLY.into_response(),
     };
-    match st.engine.primary_stream(id) {
+    match st.engine.primary_stream(id).await {
         engine::LeechStream::NotReady => (
             StatusCode::ACCEPTED,
             Json(serde_json::json!({"status": "resolving"})),
@@ -695,7 +695,7 @@ pub(crate) async fn stream_core<S: engine::MediaSource>(
             if head_only {
                 return crate::stream::head_response(total, range, ct);
             }
-            let stream = match source.open(id, idx) {
+            let stream = match source.open(id, idx).await {
                 Ok(s) => s,
                 Err(e) => {
                     tracing::warn!(id = %id, error = %e, "stream: leech open failed");
@@ -1367,12 +1367,11 @@ mod tests {
         fn entries(&self, _id: &str) -> anyhow::Result<Option<Vec<crate::engine::FileEntry>>> {
             Ok(self.entries.clone())
         }
-        fn open(
-            &self,
-            _id: &str,
-            _file_id: usize,
-        ) -> anyhow::Result<Box<dyn crate::engine::ReadSeek>> {
-            Ok(Box::new(std::io::Cursor::new(self.data.clone())))
+        fn open<'a>(&'a self, _id: &'a str, _file_id: usize) -> crate::engine::OpenFuture<'a> {
+            let data = self.data.clone();
+            Box::pin(async move {
+                Ok(Box::new(std::io::Cursor::new(data)) as Box<dyn crate::engine::ReadSeek>)
+            })
         }
     }
 
