@@ -289,6 +289,14 @@ jobs:
     # from this list is invisible to `needs.*.result`, so its failure is
     # reported here as a success and closes the open issue. It also gates the
     # shards, so its failure skips them and leaves nothing else to notice.
+    #
+    # The ref does belong in job_name, by the same #16972 rule: this workflow
+    # runs once per ref, and a merge into main pushes the same sha to both
+    # branches, where `affected-toolchains` reads a different `before` and so
+    # runs a different set of tasks. Run 34279665588 passed on main and run
+    # 34279774313 failed on dev for commit b4a9126c, and the main run closed
+    # the dev issue (#16995). A merge queue ref is unique per entry, so it
+    # collapses to one name rather than opening an issue per queued group.
     track:
         name: Track Failures
         if: ${{ always() && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main' || github.event_name == 'merge_group') && (contains(needs.*.result, 'failure') || !contains(needs.*.result, 'cancelled')) }}
@@ -300,7 +308,7 @@ jobs:
         uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:
             workflow_name: 'CI'
-            job_name: 'ci'
+            job_name: ci (${{ github.event_name == 'merge_group' && 'merge queue' || github.ref_name }})
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             status: ${{ contains(needs.*.result, 'failure') && 'failure' || 'success' }}
