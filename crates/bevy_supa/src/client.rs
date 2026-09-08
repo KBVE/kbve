@@ -1,11 +1,13 @@
-//! Native PostgREST client — ports the struct originally living in
-//! `packages/rust/kbve/src/entity/client/supabase.rs` into a standalone,
+//! Native PostgREST client — the struct that used to live in
+//! `crates/kbve/src/entity/client/supabase.rs`, in a standalone,
 //! dependency-lean form so JNI and other embedded consumers can link it
-//! without dragging diesel / axum / tower along for the ride.
+//! without dragging diesel / axum / tower along for the ride. `kbve` now
+//! re-exports it from here, so this is the only copy.
 //!
-//! Feature-gated behind `native`. When the `wasm` feature stabilizes this
-//! module will grow a transport trait so the API shape stays identical
-//! across browser and desktop builds.
+//! Feature-gated behind `native`, which does not build for wasm32 — reqwest
+//! carries no browser transport. Browser callers want the `auth` feature's
+//! GoTrue client instead; the two speak to different halves of Supabase and
+//! deliberately do not share a transport.
 
 use reqwest::Client;
 use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
