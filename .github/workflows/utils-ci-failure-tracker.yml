@@ -40,12 +40,23 @@ jobs:
             issues: write
 
         steps:
+            # A caller that keeps its own sha in the concurrency group (ci.yml does,
+            # so that no commit merged into dev goes unvalidated) runs every push to
+            # completion, and those runs finish out of order: a slow shard started at
+            # 19:01 reported its failure at 20:25, long after a run started at 19:04
+            # had gone green and closed the issue. Four issues opened and closed in
+            # two hours that way (#16984, #16989, #16990, #16991) for two real breaks.
+            #
+            # So the issue records the run that last decided its state, and a result
+            # from an older run is dropped. Run ids increase with run creation, which
+            # is push order -- the ordering the results themselves do not keep.
             - name: Search for existing failure issue
               id: search
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   WORKFLOW_NAME: ${{ inputs.workflow_name }}
                   JOB_NAME: ${{ inputs.job_name }}
+                  RUN_ID: ${{ inputs.run_id }}
               run: |
                   set -euo pipefail
                   TITLE="[CI] ${WORKFLOW_NAME} / ${JOB_NAME} — Failed"
@@ -55,6 +66,33 @@ jobs:
                     --jq "[.[] | select(.title == \"$TITLE\")][0].number // empty")
                   echo "issue_number=${ISSUE:-}" >> "$GITHUB_OUTPUT"
                   echo "title=$TITLE" >> "$GITHUB_OUTPUT"
+
+                  # The marker lives on the open issue, or on the most recently closed
+                  # one with this title when there is none -- a stale failure arriving
+                  # after a close must not open a second issue for a fixed break.
+                  MARKER_ISSUE="${ISSUE:-}"
+                  if [ -z "$MARKER_ISSUE" ]; then
+                    # Listing rather than searching: the search index lags a close by
+                    # up to a minute, which is exactly the window a stale result lands in.
+                    MARKER_ISSUE=$(gh issue list --repo "${{ github.repository }}" \
+                      --state closed --limit 100 --json number,title,closedAt \
+                      --jq "[.[] | select(.title == \"$TITLE\")] | sort_by(.closedAt) | last | .number // empty")
+                  fi
+
+                  LAST_RUN=""
+                  if [ -n "$MARKER_ISSUE" ]; then
+                    LAST_RUN=$(gh issue view "$MARKER_ISSUE" --repo "${{ github.repository }}" \
+                      --json body --jq .body \
+                      | sed -n 's/.*<!-- ci-tracker:run=\([0-9][0-9]*\) -->.*/\1/p' | head -1)
+                  fi
+
+                  STALE=false
+                  if [ -n "$LAST_RUN" ] && [ "$RUN_ID" -lt "$LAST_RUN" ]; then
+                    STALE=true
+                    echo "::notice::Run ${RUN_ID} is older than run ${LAST_RUN}, which last decided #${MARKER_ISSUE}. Dropping this result."
+                  fi
+                  echo "stale=$STALE" >> "$GITHUB_OUTPUT"
+
                   if [ -n "${ISSUE:-}" ]; then
                     echo "Found open issue #$ISSUE"
                   else
@@ -62,7 +100,7 @@ jobs:
                   fi
 
             - name: Extract failed step logs
-              if: inputs.status == 'failure'
+              if: inputs.status == 'failure' && steps.search.outputs.stale != 'true'
               id: logs
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -140,7 +178,7 @@ jobs:
                   echo "reason=${REASON}" >> "$GITHUB_OUTPUT"
 
             - name: Create new failure issue
-              if: inputs.status == 'failure' && steps.search.outputs.issue_number == ''
+              if: inputs.status == 'failure' && steps.search.outputs.issue_number == '' && steps.search.outputs.stale != 'true'
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   TITLE: ${{ steps.search.outputs.title }}
@@ -155,6 +193,7 @@ jobs:
                   set -euo pipefail
                   TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
                   LOG_SNIPPET=$(cat /tmp/log_snippet.txt 2>/dev/null || echo "Logs unavailable")
+                  RUN_MARKER="<!-- ci-tracker:run=${RUN_ID} -->"
                   VERSION_LINE=""
                   VERSION_MARKER=""
                   if [ -n "${VERSION:-}" ]; then
@@ -168,6 +207,7 @@ jobs:
 
                   cat > /tmp/issue-body.md << ISSUEEOF
                   ## ${TITLE}
+                  ${RUN_MARKER}
                   ${VERSION_MARKER}
 
                   **Workflow:** ${WORKFLOW_NAME}
@@ -230,7 +270,7 @@ jobs:
                   done
 
             - name: Comment on existing failure issue
-              if: inputs.status == 'failure' && steps.search.outputs.issue_number != ''
+              if: inputs.status == 'failure' && steps.search.outputs.issue_number != '' && steps.search.outputs.stale != 'true'
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   ISSUE_NUMBER: ${{ steps.search.outputs.issue_number }}
@@ -273,8 +313,18 @@ jobs:
                     --repo "${{ github.repository }}" \
                     --body-file /tmp/comment-body-clean.md
 
+                  # Stamp the run that decided this state, so a slower run started
+                  # before it cannot reopen or close the issue behind it.
+                  BODY=$(gh issue view "$ISSUE_NUMBER" --repo "${{ github.repository }}" --json body --jq .body)
+                  if printf '%s' "$BODY" | grep -q '<!-- ci-tracker:run='; then
+                    printf '%s' "$BODY" | sed "s|<!-- ci-tracker:run=[0-9]* -->|<!-- ci-tracker:run=${RUN_ID} -->|" > /tmp/marked-body.md
+                  else
+                    { printf '%s\n\n' "$BODY"; printf '<!-- ci-tracker:run=%s -->\n' "$RUN_ID"; } > /tmp/marked-body.md
+                  fi
+                  gh issue edit "$ISSUE_NUMBER" --repo "${{ github.repository }}" --body-file /tmp/marked-body.md
+
             - name: Close resolved issue
-              if: inputs.status == 'success' && steps.search.outputs.issue_number != ''
+              if: inputs.status == 'success' && steps.search.outputs.issue_number != '' && steps.search.outputs.stale != 'true'
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   ISSUE_NUMBER: ${{ steps.search.outputs.issue_number }}
@@ -304,6 +354,16 @@ jobs:
                   gh issue comment "$ISSUE_NUMBER" \
                     --repo "${{ github.repository }}" \
                     --body-file /tmp/resolve-body-clean.md
+
+                  # Stamp the run that decided this state, so a slower run started
+                  # before it cannot reopen or close the issue behind it.
+                  BODY=$(gh issue view "$ISSUE_NUMBER" --repo "${{ github.repository }}" --json body --jq .body)
+                  if printf '%s' "$BODY" | grep -q '<!-- ci-tracker:run='; then
+                    printf '%s' "$BODY" | sed "s|<!-- ci-tracker:run=[0-9]* -->|<!-- ci-tracker:run=${RUN_ID} -->|" > /tmp/marked-body.md
+                  else
+                    { printf '%s\n\n' "$BODY"; printf '<!-- ci-tracker:run=%s -->\n' "$RUN_ID"; } > /tmp/marked-body.md
+                  fi
+                  gh issue edit "$ISSUE_NUMBER" --repo "${{ github.repository }}" --body-file /tmp/marked-body.md
 
                   gh issue close "$ISSUE_NUMBER" \
                     --repo "${{ github.repository }}" \
