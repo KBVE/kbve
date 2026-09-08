@@ -37,11 +37,11 @@ Each game used to maintain its own NPC enum / struct. That meant identical creat
 - `ref` is the **stable** slug (`"meadow-firefly"`). Always present.
 - `id` is the runtime ULID — present after publish, blank in source MDX.
 - Field numbers are append-only. Spawn rules / phase rules use `repeated` so multi-zone creatures fit in one entry.
-- New games adding NPCs **edit MDX, not this proto**. The MDX → JSON / binpb pipeline lives in `apps/kbve/astro-kbve/src/content/docs/npcdb/` and produces `Generated NpcRegistry` consumed by `NpcDb::from_bytes`.
+- New games adding NPCs **edit MDX, not this proto**. The MDX → JSON / binpb pipeline lives in `docs/npcdb/` and produces `Generated NpcRegistry` consumed by `NpcDb::from_bytes`.
 
 ## Related
 
 - Bevy adapter: [`packages/rust/bevy/bevy_npc`](../../../../packages/rust/bevy/bevy_npc/).
 - Unity adapter (Rareicon): `apps/rareicon/unity-rareicon/Assets/_RareIcon/Generated/`.
 - Codegen: [`../../codegen/gen-npcdb-zod.mjs`](../../codegen/gen-npcdb-zod.mjs), [`../../codegen/gen-npcdb-data.mjs`](../../codegen/gen-npcdb-data.mjs).
-- Source MDX: `apps/kbve/astro-kbve/src/content/docs/npcdb/`.
+- Source MDX: `docs/npcdb/`.

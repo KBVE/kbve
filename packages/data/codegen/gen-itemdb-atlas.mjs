@@ -3,7 +3,7 @@
  * Generate item sprite atlas + UV map from the MDX source of truth.
  *
  * Inputs:
- *   apps/kbve/astro-kbve/src/content/docs/itemdb/*.mdx       (img per item)
+ *   docs/itemdb/*.mdx       (img per item)
  *   apps/kbve/astro-kbve/public/<img path>                   (referenced PNGs)
  *
  * Outputs:
@@ -43,7 +43,7 @@ import { PNG } from 'pngjs';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');
 
-const MDX_DIR     = resolve(repoRoot, 'apps/kbve/astro-kbve/src/content/docs/itemdb');
+const MDX_DIR     = resolve(repoRoot, 'docs/itemdb');
 const ASSET_ROOT  = resolve(repoRoot, 'apps/kbve/astro-kbve/public');
 const ATLAS_OUT   = resolve(repoRoot, 'apps/rareicon/unity-rareicon/Assets/StreamingAssets/itemdb-atlas.png');
 const SOURCE_OUT  = resolve(repoRoot, 'apps/rareicon/unity-rareicon/Assets/_RareIcon/Scripts/ECS/DB/Items/Data/ItemSpriteAtlas.Generated.cs');

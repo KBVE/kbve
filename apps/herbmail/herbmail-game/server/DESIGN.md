@@ -476,7 +476,7 @@ Sector layout, room/corridor topology, doorway positions and widths, pillar plac
 
     But **cryptothrone never calls `.with_udp()`** — `state.udp` is `None` and no `UDP_OFFER` is ever emitted, because a browser cannot open a raw UDP socket. Only `arpg-server` enables it, env-gated on `ARPG_UDP_ADDR`, for native clients. herbmail is browser-only, so plan for WS and **omit the UDP Service from the manifests** until a native client exists.
 
-    WebTransport is not used anywhere in this repo, and `apps/kbve/astro-kbve/src/content/docs/gdd/netcode.mdx:103` records a standing rule that WS and WT transports are never mixed in shared structs. If sub-WS latency is ever needed, `UdpPacket` / `UdpPacketRef` is already the right shape to port onto WebTransport — but that is out of scope here.
+    WebTransport is not used anywhere in this repo, and `docs/gdd/netcode.mdx:103` records a standing rule that WS and WT transports are never mixed in shared structs. If sub-WS latency is ever needed, `UdpPacket` / `UdpPacketRef` is already the right shape to port onto WebTransport — but that is out of scope here.
 
     WS is also what the Cilium Gateway `HTTPRoute` already terminates, with the `backendRequest: 3600s` timeout configured for exactly this.
 

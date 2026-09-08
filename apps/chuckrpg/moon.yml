@@ -1,0 +1,19 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+layer: 'application'
+language: 'typescript'
+
+# Aggregate only. Each child keeps its own moon.yml, manifest and Dockerfile;
+# nothing here is built. `inputs: []` keeps the project hash off the tree --
+# this root contains the cleanroom's multi-GB LFS working copy.
+tasks:
+    e2e:
+        deps: ['axum-chuckrpg:test', 'axum-chuckrpg-e2e:e2e']
+        inputs: []
+        options:
+            cache: false
+    container:
+        deps: ['axum-chuckrpg:container']
+        inputs: []
+        options:
+            cache: false

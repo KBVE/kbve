@@ -211,3 +211,33 @@ jobs:
             # the task it applies to rather than in this file.
             - name: Run affected lint and test
               run: moon ci ':lint' ':test' ':typecheck' ':check' --job ${{ matrix.index }} --job-total ${{ matrix.total }}
+
+    # ci.yml runs on every push and pull request and was the only high-traffic
+    # workflow with no failure tracker, so a broken dev sat unreported until
+    # someone opened a pull request and read the log themselves. A stale proto
+    # descriptor did exactly that for hours (#16963, #16965, #16968).
+    #
+    # dev, main and the merge queue only. On a pull request the failure is the
+    # author's, it is already visible on the PR, and tracking it would open an
+    # issue for every red branch. A ref test rather than an event test because
+    # ci-atom.yml calls this workflow on a push to an atom-* branch, and an atom
+    # branch breaking is not dev breaking -- it would land on the same issue.
+    #
+    # The matrix shards share one job_name deliberately: three shards of one
+    # command are one signal, and a per-shard name would open three issues for
+    # a single break and leave two of them behind when the work moves shards.
+    track:
+        name: Track Failures
+        if: ${{ always() && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main' || github.event_name == 'merge_group') && (contains(needs.*.result, 'failure') || !contains(needs.*.result, 'cancelled')) }}
+        needs: [ci]
+        permissions:
+            actions: read
+            issues: write
+            contents: read
+        uses: ./.github/workflows/utils-ci-failure-tracker.yml
+        with:
+            workflow_name: 'CI'
+            job_name: 'ci'
+            run_id: ${{ github.run_id }}
+            run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+            status: ${{ contains(needs.*.result, 'failure') && 'failure' || 'success' }}

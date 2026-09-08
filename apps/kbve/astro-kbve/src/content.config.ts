@@ -54,21 +54,21 @@ export function validateItemUniqueness(items: z.infer<typeof IObjectSchema>[]) {
 const application = defineCollection({
 	loader: glob({
 		pattern: '**/*.mdx',
-		base: './src/content/docs/application',
+		base: '../../../docs/application',
 	}),
 });
 
 const gdd = defineCollection({
 	loader: glob({
 		pattern: '**/*.mdx',
-		base: './src/content/docs/gdd',
+		base: '../../../docs/gdd',
 	}),
 });
 
 const project = defineCollection({
 	loader: glob({
 		pattern: '**/*.mdx',
-		base: './src/content/docs/project',
+		base: '../../../docs/project',
 	}),
 	schema: ProjectSchemaWithEngine,
 });
@@ -76,7 +76,7 @@ const project = defineCollection({
 const itemdb = defineCollection({
 	loader: glob({
 		pattern: '**/*.mdx',
-		base: './src/content/docs/itemdb',
+		base: '../../../docs/itemdb',
 	}),
 	schema: IObjectSchema,
 });
@@ -84,7 +84,7 @@ const itemdb = defineCollection({
 const questdb = defineCollection({
 	loader: glob({
 		pattern: '**/*.mdx',
-		base: './src/content/docs/questdb',
+		base: '../../../docs/questdb',
 	}),
 	schema: IQuestSchema,
 });
@@ -92,7 +92,7 @@ const questdb = defineCollection({
 const mapdb = defineCollection({
 	loader: glob({
 		pattern: '**/*.mdx',
-		base: './src/content/docs/mapdb',
+		base: '../../../docs/mapdb',
 	}),
 	schema: IMapObjectSchema,
 });
@@ -100,7 +100,7 @@ const mapdb = defineCollection({
 const npcdb = defineCollection({
 	loader: glob({
 		pattern: '**/*.mdx',
-		base: './src/content/docs/npcdb',
+		base: '../../../docs/npcdb',
 	}),
 	schema: INpcSchema,
 });
@@ -108,7 +108,7 @@ const npcdb = defineCollection({
 const spelldb = defineCollection({
 	loader: glob({
 		pattern: '**/*.mdx',
-		base: './src/content/docs/spelldb',
+		base: '../../../docs/spelldb',
 	}),
 	schema: ISpellSchema,
 });
@@ -116,7 +116,7 @@ const spelldb = defineCollection({
 const professiondb = defineCollection({
 	loader: glob({
 		pattern: '**/*.mdx',
-		base: './src/content/docs/professiondb',
+		base: '../../../docs/professiondb',
 	}),
 	schema: IProfessionEntrySchema,
 });
@@ -124,7 +124,7 @@ const professiondb = defineCollection({
 const tiledb = defineCollection({
 	loader: glob({
 		pattern: '**/*.mdx',
-		base: './src/content/docs/tiledb',
+		base: '../../../docs/tiledb',
 	}),
 	schema: ITileSchema,
 });

@@ -5,7 +5,7 @@ typed Rust structs via `prost` and wraps them in a searchable [`SpellDb`] Bevy
 resource — the Rust counterpart to the MDX→proto spelldb pipeline.
 
 The spell source of truth is the MDX catalog under
-`apps/kbve/astro-kbve/src/content/docs/spelldb/`, codegen'd to
+`docs/spelldb/`, codegen'd to
 `spelldb-data.binpb`. Load it at startup:
 
 ```rust,ignore

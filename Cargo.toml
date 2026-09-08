@@ -12,7 +12,7 @@ members = [
 	'apps/discordsh/bot',
 	'apps/kbve/axum-kbve',
 	'apps/kbve/kbve-gate',
-	'apps/chuckrpg/axum-chuckrpg',
+	'apps/chuckrpg/api',
 	'apps/rentearth/axum-rentearth',
 	'apps/rareicon/axum-rareicon',
 	'apps/cryptothrone/api',

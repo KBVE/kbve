@@ -9,6 +9,11 @@
  * The closure matters: `npcdb.proto` imports `kbve/common.proto`, and `--include_imports` bakes
  * the imported definitions into the descriptor. A change to `common.proto` therefore staleness
  * every descriptor that imports it, even though those `.proto` files are untouched.
+ *
+ * Comments and layout are stripped before hashing. `gen-all.mjs` compiles without
+ * `--include_source_info`, so comments never reach the `.binpb` at all — hashing them reported
+ * every doc touch as a stale descriptor whose only possible fix was a manifest hash bump that
+ * changed no artifact. #16963, #16965 and #16968 each broke CI that way on a one-line comment.
  */
 
 import { createHash } from 'node:crypto';
@@ -16,6 +21,55 @@ import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 
 const IMPORT_RE = /^\s*import\s+(?:public\s+|weak\s+)?"([^"]+)"\s*;/gm;
+
+/**
+ * `//` and block comments removed, string literals left intact — a `default = "https://..."`
+ * must not lose its tail. Lines are trimmed and blanks dropped so reindenting is not a change
+ * either; protoc ignores that too.
+ */
+function stripComments(text) {
+	let out = '';
+	let i = 0;
+	while (i < text.length) {
+		const ch = text[i];
+		if (ch === '"' || ch === "'") {
+			const quote = ch;
+			out += ch;
+			i++;
+			while (i < text.length) {
+				out += text[i];
+				if (text[i] === '\\') {
+					if (i + 1 < text.length) out += text[++i];
+					i++;
+					continue;
+				}
+				if (text[i] === quote) {
+					i++;
+					break;
+				}
+				i++;
+			}
+			continue;
+		}
+		if (ch === '/' && text[i + 1] === '/') {
+			while (i < text.length && text[i] !== '\n') i++;
+			continue;
+		}
+		if (ch === '/' && text[i + 1] === '*') {
+			i += 2;
+			while (i < text.length && !(text[i] === '*' && text[i + 1] === '/')) i++;
+			i += 2;
+			continue;
+		}
+		out += ch;
+		i++;
+	}
+	return out
+		.split('\n')
+		.map((line) => line.trim())
+		.filter((line) => line.length > 0)
+		.join('\n');
+}
 
 /**
  * Every proto path reachable from `entry`, including itself, relative to `protoRoot`.
@@ -45,7 +99,9 @@ export function protoClosure(protoRoot, entry) {
 			continue;
 		}
 		seen.add(rel);
-		for (const match of text.matchAll(IMPORT_RE)) {
+		// Commented-out imports are not imports; strip before scanning or the closure grows
+		// a file protoc never reads.
+		for (const match of stripComments(text).matchAll(IMPORT_RE)) {
 			// Well-known types ship with protoc; they are not ours to track.
 			if (match[1].startsWith('google/')) continue;
 			queue.push(match[1]);
@@ -65,7 +121,14 @@ export function hashProtoClosure(protoRoot, entry) {
 	for (const rel of protoClosure(protoRoot, entry)) {
 		hash.update(rel);
 		hash.update('\0');
-		hash.update(readFileSync(resolve(protoRoot, rel), 'utf8').replace(/\r\n/g, '\n'));
+		hash.update(
+			stripComments(
+				readFileSync(resolve(protoRoot, rel), 'utf8').replace(
+					/\r\n/g,
+					'\n',
+				),
+			),
+		);
 		hash.update('\0');
 	}
 	return hash.digest('hex');

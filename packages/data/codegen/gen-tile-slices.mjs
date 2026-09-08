@@ -25,10 +25,11 @@ const manifest = JSON.parse(
 	readFileSync(resolve(__dirname, 'tiles/tiles.manifest.json'), 'utf8'),
 );
 
-// Catalog lives in astro-kbve (kbve.com data site), alongside mapdb/itemdb.
+// Catalog lives in the root docs tree, alongside mapdb/itemdb; the sprites
+// still ship from astro-kbve's public dir.
 const app = 'apps/kbve/astro-kbve';
 const tileImgDir = resolve(repoRoot, app, 'public/assets/tiledb');
-const mdxDir = resolve(repoRoot, app, 'src/content/docs/tiledb');
+const mdxDir = resolve(repoRoot, 'docs/tiledb');
 
 const tile = manifest.source.tileSize;
 const srcCols = manifest.source.columns;

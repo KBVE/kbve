@@ -18,7 +18,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');
 const tiledbDir = resolve(
 	repoRoot,
-	'apps/kbve/astro-kbve/src/content/docs/tiledb',
+	'docs/tiledb',
 );
 const outFile = resolve(__dirname, 'generated/tiledb-data.json');
 

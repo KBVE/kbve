@@ -26,6 +26,16 @@ const SECTION_PREFIXES = [
 	'travel',
 	'webmaster',
 	'wow',
+	'application',
+	'gdd',
+	'itemdb',
+	'mapdb',
+	'npcdb',
+	'professiondb',
+	'project',
+	'questdb',
+	'spelldb',
+	'tiledb',
 ];
 
 export const EXTERNAL_DOCS_SECTIONS = SECTION_PREFIXES.map((prefix) => ({

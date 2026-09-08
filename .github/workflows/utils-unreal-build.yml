@@ -9,7 +9,7 @@ on:
                 type: string
 
             shell_path:
-                description: '[server] Monorepo shell project path (e.g. apps/chuckrpg/unreal-chuck)'
+                description: '[server] Monorepo shell project path (e.g. apps/chuckrpg/unreal)'
                 required: false
                 type: string
                 default: ''
@@ -2636,6 +2636,17 @@ jobs:
     # One job rather than a failure/success pair. The pair reported the same
     # five inputs twice and differed only in a status string, and their two
     # conditions had to stay each other's exact complement by hand.
+    #
+    # `needs` is the whole job list on purpose: `contains(needs.*.result,
+    # 'failure')` can only see what it is given, so a job left out reports a
+    # failing run as a success and CLOSES the issue the run just opened.
+    # plugin_build_mac was missing and did exactly that -- run 34135246261 opened
+    # #16959 on a Linux failure and closed it four minutes later on a Mac one.
+    #
+    # target_platforms belongs in job_name for the same reason it is already in
+    # the concurrency group above: ci-unreal-plugins.yml calls this once per
+    # platform, so without it Linux/Win64/Mac collide on a single issue title and
+    # ping-pong it open and closed. ~50 issues in 48 hours came from those two.
     track:
         name: Track Failures
         if: ${{ always() && (contains(needs.*.result, 'failure') || !contains(needs.*.result, 'cancelled')) }}
@@ -2649,10 +2660,15 @@ jobs:
                 game_build_linux,
                 game_build_windows,
                 game_build_mac,
+                win_vm_boot,
+                game_itch_mac,
+                game_steam,
                 plugin_check,
                 plugin_build_linux,
                 plugin_build_win,
+                plugin_build_mac,
                 plugin_release,
+                plugin_itch,
                 win_setup,
                 mac_setup,
                 game_post_publish,
@@ -2664,7 +2680,7 @@ jobs:
         uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:
             workflow_name: 'CI - Unreal Build (${{ inputs.mode }})'
-            job_name: '${{ inputs.app_name }}${{ inputs.plugin_name }}${{ inputs.shell_path }}${{ inputs.mode }}'
+            job_name: "${{ inputs.app_name }}${{ inputs.plugin_name }}${{ inputs.shell_path }}${{ inputs.mode }}${{ inputs.target_platforms && format(' ({0})', inputs.target_platforms) || '' }}"
             run_id: ${{ github.run_id }}
             run_url: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
             status: ${{ contains(needs.*.result, 'failure') && 'failure' || 'success' }}

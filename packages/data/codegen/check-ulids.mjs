@@ -29,7 +29,7 @@ const CROCKFORD = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');
-const contentRoot = resolve(repoRoot, 'apps/kbve/astro-kbve/src/content/docs');
+const contentRoot = resolve(repoRoot, 'docs');
 const CATALOGS = [
 	'mapdb',
 	'npcdb',

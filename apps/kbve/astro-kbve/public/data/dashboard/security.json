@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-09-07T05:55:50Z",
+  "generated_at": "2026-09-08T05:51:15Z",
   "summary": {
     "critical": 3,
     "high": 37,
-    "medium": 54,
+    "medium": 52,
     "low": 7,
-    "info": 33
+    "info": 30
   },
   "ecosystems": {
     "npm": {
@@ -595,13 +595,13 @@
       ]
     },
     "cargo": {
-      "total": 52,
+      "total": 47,
       "severities": {
         "critical": 0,
         "high": 0,
-        "medium": 19,
+        "medium": 17,
         "low": 0,
-        "info": 33
+        "info": 30
       },
       "advisories": [
         {
@@ -624,20 +624,6 @@
           "severity": "medium",
           "package": "h2",
           "url": "https://github.com/hyperium/hyper/security/advisories/GHSA-q83h-524g-xf6h"
-        },
-        {
-          "id": "RUSTSEC-2026-0194",
-          "title": "Quadratic run time when checking a start tag for duplicate attribute names",
-          "severity": "medium",
-          "package": "quick-xml",
-          "url": "https://github.com/tafia/quick-xml/issues/969"
-        },
-        {
-          "id": "RUSTSEC-2026-0195",
-          "title": "Unbounded namespace-declaration allocation in `NsReader` enables memory-exhaustion denial of service",
-          "severity": "medium",
-          "package": "quick-xml",
-          "url": "https://github.com/tafia/quick-xml/issues/970"
         },
         {
           "id": "RUSTSEC-2026-0194",
@@ -752,20 +738,6 @@
           "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
         },
         {
-          "id": "RUSTSEC-2025-0012",
-          "title": "`backoff` is unmaintained.",
-          "severity": "info",
-          "package": "backoff",
-          "url": "https://github.com/ihrwein/backoff/issues/66"
-        },
-        {
-          "id": "RUSTSEC-2025-0141",
-          "title": "Bincode is unmaintained",
-          "severity": "info",
-          "package": "bincode",
-          "url": "https://git.sr.ht/~stygianentity/bincode/tree/v3.0/item/README.md"
-        },
-        {
           "id": "RUSTSEC-2025-0141",
           "title": "Bincode is unmaintained",
           "severity": "info",
@@ -841,13 +813,6 @@
           "severity": "info",
           "package": "gtk3-macros",
           "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0384",
-          "title": "`instant` is unmaintained",
-          "severity": "info",
-          "package": "instant",
-          "url": null
         },
         {
           "id": "RUSTSEC-2024-0436",
