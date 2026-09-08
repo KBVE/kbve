@@ -23,6 +23,14 @@ inputs:
         # most callers had none. The four that set it to skip pass 'false'.
         # Flipping the default would silently stop the browser suites working.
         default: 'true'
+    scrub:
+        description: 'Run the install under a scrubbed environment so lifecycle scripts cannot read runner secrets.'
+        required: false
+        default: 'true'
+    keep-env:
+        description: 'Space-separated extra env var names to forward through the scrub (e.g. a private-registry token).'
+        required: false
+        default: ''
 
 runs:
     using: 'composite'
@@ -57,9 +65,83 @@ runs:
               node-version: ${{ steps.node.outputs.version }}
               cache: 'pnpm'
 
-        - name: Install dependencies
+        # `pnpm install` welds two jobs together, and only one of them runs
+        # third-party code. Resolving and fetching the lockfile executes
+        # nothing; the postinstall scripts of the eight packages under
+        # `allowBuilds` in pnpm-workspace.yaml -- esbuild, sharp, @swc/core,
+        # grpc-tools and four more -- are the whole of the untrusted surface.
+        #
+        # So the two are split. The fetch keeps the ambient environment, which
+        # is what a private registry token or a proxy would need. The build runs
+        # under `env -i` with an explicit allowlist, so a compromised postinstall
+        # sees no GITHUB_TOKEN, no AWS_*, no APPLE_*, no FORGEJO_* -- absent by
+        # construction rather than by denylist.
+        #
+        # On GitHub-hosted runners this is close to a no-op, since every secret
+        # in this repo is mapped at step level and never reaches the install. On
+        # ARC the ambient environment is the pod's, which is where the secrets
+        # are, and that is the case this exists for.
+        #
+        # `minimumReleaseAge` and `allowBuilds` already narrow *which* package
+        # can run a script. This narrows what one sees when it does.
+        #
+        # What this deliberately does not do is cut the network for the build.
+        # grpc-tools fetches protoc from node-precompiled-binaries.grpc.io,
+        # sharp fetches libvips, and esbuild's install.js downloads its platform
+        # binary -- three of the eight need egress to build at all.
+        - name: Fetch dependencies
           if: ${{ inputs.install == 'true' }}
           shell: bash
           env:
+              SETUP_JS_SCRUB: ${{ inputs.scrub }}
+          run: |
+              set -euo pipefail
+              if [ "$SETUP_JS_SCRUB" != 'true' ] || [ "${RUNNER_OS:-}" = 'Windows' ]; then
+                exec pnpm install --frozen-lockfile
+              fi
+              exec pnpm install --frozen-lockfile --ignore-scripts
+
+        # `--pending` builds exactly what the fetch skipped. It also runs the
+        # root project's own `prepare`, so husky is still installed here.
+        #
+        # Windows is exempt: node under git-bash wants SYSTEMROOT, APPDATA and a
+        # long tail of host vars an allowlist would have to guess at, and the one
+        # Windows caller (utils-tauri-build) is GitHub-hosted, so it has no pod
+        # environment to leak. It took the unsplit install above and needs no
+        # build step here.
+        - name: Build allowed dependencies
+          if: ${{ inputs.install == 'true' && inputs.scrub == 'true' && runner.os != 'Windows' }}
+          shell: bash
+          env:
               PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: ${{ inputs.playwright == 'true' && '0' || '1' }}
-          run: pnpm install --frozen-lockfile
+              SETUP_JS_KEEP_ENV: ${{ inputs.keep-env }}
+          run: |
+              set -euo pipefail
+
+              PNPM_BIN="$(command -v pnpm)"
+
+              # Finding node and the store, and reaching the network for the
+              # three packages that fetch a binary. Nothing else.
+              KEEP=(
+                PATH HOME USER LANG LC_ALL TERM TMPDIR CI
+                PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD
+                PNPM_HOME COREPACK_HOME
+                XDG_CACHE_HOME XDG_CONFIG_HOME XDG_DATA_HOME
+                NODE_OPTIONS NODE_PATH
+                npm_config_registry NPM_CONFIG_REGISTRY
+                RUNNER_OS RUNNER_ARCH RUNNER_TEMP RUNNER_TOOL_CACHE
+                HTTP_PROXY HTTPS_PROXY NO_PROXY
+                http_proxy https_proxy no_proxy
+              )
+              for extra in $SETUP_JS_KEEP_ENV; do
+                KEEP+=("$extra")
+              done
+
+              FORWARD=()
+              for name in "${KEEP[@]}"; do
+                if [ -n "${!name:-}" ]; then
+                  FORWARD+=("$name=${!name}")
+                fi
+              done
+
+              exec env -i "${FORWARD[@]}" "$PNPM_BIN" rebuild --pending
