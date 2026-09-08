@@ -14,7 +14,7 @@ option csharp_namespace = "KBVE.Proto.Profession";
 // Per-unit progression (which unit has Mining L14, current xp) is RUNTIME STATE
 // and lives on the entity + each game's persist layer — NOT here.
 //
-// The MDX frontmatter under docs/professiondb/*.mdx is the
+// The MDX frontmatter under astro-kbve/src/content/docs/professiondb/*.mdx is the
 // source of truth; this proto is the wire/codegen shape every consumer decodes.
 // Item/tool references are plain itemdb refs (slug or ULID), matching the string
 // -ref convention used by npcdb LootEntry / EquipmentEntry.
