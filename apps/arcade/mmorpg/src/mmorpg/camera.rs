@@ -13,8 +13,16 @@ pub struct CameraPlugin;
 
 impl Plugin for CameraPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_camera)
-            .add_systems(PostUpdate, follow_player.after(TransformSystems::Propagate));
+        // Before propagation, not after. The camera is a root entity, so
+        // writing its Transform once Propagate has already run leaves its
+        // GlobalTransform -- the thing that actually renders -- a frame stale.
+        // A camera chasing a moving target one frame late reads as shake, and
+        // no amount of physics interpolation fixes it, because the body was
+        // never the part that was late.
+        app.add_systems(Startup, spawn_camera).add_systems(
+            PostUpdate,
+            follow_player.before(TransformSystems::Propagate),
+        );
     }
 }
 

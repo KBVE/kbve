@@ -25,7 +25,16 @@ fn main() {
         //
         // The plugin is already in PhysicsPlugins::default(), but opted out of
         // per entity until told otherwise.
-        .add_plugins(PhysicsPlugins::default().set(PhysicsInterpolationPlugin::interpolate_all()))
+        //
+        // Translation only: rotation on these bodies is locked and driven by
+        // `face_travel_direction`, so easing it would have physics reset the
+        // facing to the locked value every fixed step and the slerp restart
+        // from scratch -- a character that leans toward its heading and never
+        // arrives.
+        .add_plugins(
+            PhysicsPlugins::default()
+                .set(PhysicsInterpolationPlugin::interpolate_translation_all()),
+        )
         .insert_resource(Gravity(Vec3::NEG_Y * 24.0))
         .insert_resource(ClearColor(Color::srgb(0.52, 0.68, 0.85)))
         .add_plugins(KinetreePlugin)

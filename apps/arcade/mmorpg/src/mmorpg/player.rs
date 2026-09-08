@@ -29,7 +29,12 @@ const JOG_MAX: f32 = 7.0;
 /// Without it, holding a speed near a threshold flips the gait every frame,
 /// and each flip restarts a 180ms cross-fade that never gets to finish -- the
 /// legs stutter between two clips while the character walks in a straight line.
-const GAIT_HYSTERESIS: f32 = 0.5;
+///
+/// A fraction of each boundary rather than a fixed speed. As an absolute it has
+/// to be smaller than the tightest threshold it guards, and `IDLE_MAX` is 0.3 --
+/// a flat 0.5 put the drop back to idle at -0.2, which a magnitude can never
+/// reach, so a character that ever started walking walked forever.
+const GAIT_HYSTERESIS: f32 = 0.25;
 
 /// Picks a gait from ground speed, keeping the one already running until the
 /// speed clears its boundary by [`GAIT_HYSTERESIS`].
@@ -38,13 +43,49 @@ fn gait_for(speed: f32, current: Gait) -> Gait {
     const EDGES: [f32; 3] = [IDLE_MAX, WALK_MAX, JOG_MAX];
 
     let mut rank = LADDER.iter().position(|gait| *gait == current).unwrap_or(0);
-    while rank < EDGES.len() && speed > EDGES[rank] + GAIT_HYSTERESIS {
+    while rank < EDGES.len() && speed > EDGES[rank] * (1.0 + GAIT_HYSTERESIS) {
         rank += 1;
     }
-    while rank > 0 && speed < EDGES[rank - 1] - GAIT_HYSTERESIS {
+    while rank > 0 && speed < EDGES[rank - 1] * (1.0 - GAIT_HYSTERESIS) {
         rank -= 1;
     }
     LADDER[rank]
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn every_gait_can_return_to_idle() {
+        for start in [Gait::Walk, Gait::Jog, Gait::Sprint, Gait::Airborne] {
+            assert_eq!(
+                gait_for(0.0, start),
+                Gait::Idle,
+                "{start:?} could not fall back to idle at a standstill"
+            );
+        }
+    }
+
+    #[test]
+    fn the_ladder_climbs_and_descends() {
+        assert_eq!(gait_for(0.0, Gait::Idle), Gait::Idle);
+        assert_eq!(gait_for(1.5, Gait::Idle), Gait::Walk);
+        assert_eq!(gait_for(5.0, Gait::Walk), Gait::Jog);
+        assert_eq!(gait_for(9.0, Gait::Jog), Gait::Sprint);
+        assert_eq!(gait_for(5.0, Gait::Sprint), Gait::Jog);
+        assert_eq!(gait_for(1.5, Gait::Jog), Gait::Walk);
+    }
+
+    #[test]
+    fn a_speed_on_a_boundary_does_not_flip() {
+        // The whole point of the band: sitting exactly on an edge holds
+        // whichever gait is already running, in both directions.
+        assert_eq!(gait_for(WALK_MAX, Gait::Walk), Gait::Walk);
+        assert_eq!(gait_for(WALK_MAX, Gait::Jog), Gait::Jog);
+        assert_eq!(gait_for(JOG_MAX, Gait::Jog), Gait::Jog);
+        assert_eq!(gait_for(JOG_MAX, Gait::Sprint), Gait::Sprint);
+    }
 }
 const GROUND_PROBE: f32 = 0.25;
 
@@ -67,13 +108,37 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_player)
-            .add_systems(Update, (drive_player, face_travel_direction).chain());
+        app.add_systems(Startup, spawn_player).add_systems(
+            Update,
+            (read_input, apply_movement, pick_gait, face_travel_direction).chain(),
+        );
     }
 }
 
+/// Marks the one character the keyboard drives.
+///
+/// A tag, and only `read_input` looks at it. Everything downstream works off
+/// [`MoveIntent`], so an NPC or a networked player runs the identical movement
+/// and animation path -- the only difference is what fills the intent in.
 #[derive(Component)]
 pub struct Player;
+
+/// Anything that walks: has an intent, a gait, and legs to solve.
+#[derive(Component)]
+pub struct Character;
+
+/// What a character is trying to do this frame, in world space.
+///
+/// The seam between "who decides" and "what happens". It is also the shape a
+/// client would put on the wire, so server-authoritative movement later means
+/// filling this from a packet rather than restructuring the systems.
+#[derive(Component, Default)]
+pub struct MoveIntent {
+    /// Desired planar direction, unit length or zero.
+    pub wish: Vec3,
+    pub sprint: bool,
+    pub jump: bool,
+}
 
 #[derive(Component)]
 pub struct Grounded(pub bool);
@@ -83,6 +148,8 @@ fn spawn_player(mut commands: Commands, assets: Res<AssetServer>) {
     let player = commands
         .spawn((
             Player,
+            Character,
+            MoveIntent::default(),
             Grounded(false),
             Gait::Idle,
             Transform::from_translation(spawn),
@@ -211,74 +278,96 @@ fn wire_skeleton(
     }
 }
 
-fn drive_player(
+/// The only system in the game that knows a keyboard exists.
+fn read_input(
     keys: Res<ButtonInput<KeyCode>>,
     camera: Single<&OrbitCamera>,
-    mut player: Single<(&mut LinearVelocity, &mut Grounded, &mut Gait, &ShapeHits), With<Player>>,
+    mut controlled: Query<&mut MoveIntent, With<Player>>,
 ) {
-    let (velocity, grounded, gait, hits) = &mut *player;
-    grounded.0 = !hits.is_empty();
-
-    let mut input = Vec2::ZERO;
+    let mut stick = Vec2::ZERO;
     if keys.pressed(KeyCode::KeyW) {
-        input.y += 1.0;
+        stick.y += 1.0;
     }
     if keys.pressed(KeyCode::KeyS) {
-        input.y -= 1.0;
+        stick.y -= 1.0;
     }
     if keys.pressed(KeyCode::KeyD) {
-        input.x += 1.0;
+        stick.x += 1.0;
     }
     if keys.pressed(KeyCode::KeyA) {
-        input.x -= 1.0;
+        stick.x -= 1.0;
     }
 
-    let sprinting = keys.pressed(KeyCode::ShiftLeft);
-    let speed = if sprinting { SPRINT_SPEED } else { RUN_SPEED };
+    // Resolved against the camera here, so the intent that leaves this system
+    // is already in world space and nothing downstream needs a camera.
     let yaw = Quat::from_rotation_y(camera.yaw);
-    let forward = yaw * Vec3::NEG_Z;
-    let right = yaw * Vec3::X;
-    let wish = (forward * input.y + right * input.x).normalize_or_zero() * speed;
+    let wish = (yaw * Vec3::NEG_Z * stick.y + yaw * Vec3::X * stick.x).normalize_or_zero();
 
-    let blend = if grounded.0 { 1.0 } else { 0.12 };
-    velocity.x += (wish.x - velocity.x) * blend;
-    velocity.z += (wish.z - velocity.z) * blend;
-
-    if grounded.0 && keys.just_pressed(KeyCode::Space) {
-        velocity.y = JUMP_SPEED;
+    for mut intent in &mut controlled {
+        intent.wish = wish;
+        intent.sprint = keys.pressed(KeyCode::ShiftLeft);
+        intent.jump = keys.just_pressed(KeyCode::Space);
     }
+}
 
-    let planar = Vec2::new(velocity.x, velocity.z).length();
-    let wanted = if !grounded.0 {
-        Gait::Airborne
-    } else {
-        // Airborne is not on the speed ladder, so landing resumes from the
-        // gait the speed implies rather than from wherever it left off.
-        let resume = if **gait == Gait::Airborne {
-            Gait::Idle
+fn apply_movement(
+    mut characters: Query<
+        (&MoveIntent, &mut LinearVelocity, &mut Grounded, &ShapeHits),
+        With<Character>,
+    >,
+) {
+    for (intent, mut velocity, mut grounded, hits) in &mut characters {
+        grounded.0 = !hits.is_empty();
+
+        let speed = if intent.sprint {
+            SPRINT_SPEED
         } else {
-            **gait
+            RUN_SPEED
         };
-        gait_for(planar, resume)
-    };
-    if **gait != wanted {
-        **gait = wanted;
+        let wish = intent.wish * speed;
+
+        let blend = if grounded.0 { 1.0 } else { 0.12 };
+        velocity.x += (wish.x - velocity.x) * blend;
+        velocity.z += (wish.z - velocity.z) * blend;
+
+        if grounded.0 && intent.jump {
+            velocity.y = JUMP_SPEED;
+        }
+    }
+}
+
+fn pick_gait(mut characters: Query<(&LinearVelocity, &Grounded, &mut Gait), With<Character>>) {
+    for (velocity, grounded, mut gait) in &mut characters {
+        let planar = Vec2::new(velocity.x, velocity.z).length();
+        let wanted = if !grounded.0 {
+            Gait::Airborne
+        } else {
+            // Airborne is not on the speed ladder, so landing resumes from the
+            // gait the speed implies rather than from wherever it left off.
+            let resume = if *gait == Gait::Airborne {
+                Gait::Idle
+            } else {
+                *gait
+            };
+            gait_for(planar, resume)
+        };
+        gait.set_if_neq(wanted);
     }
 }
 
 fn face_travel_direction(
     time: Res<Time>,
-    mut player: Single<(&mut Transform, &LinearVelocity), With<Player>>,
+    mut characters: Query<(&mut Transform, &LinearVelocity), With<Character>>,
 ) {
-    let (transform, velocity) = &mut *player;
-    let planar = Vec3::new(velocity.x, 0.0, velocity.z);
-    if planar.length_squared() < 0.25 {
-        return;
+    let step = (14.0 * time.delta_secs()).min(1.0);
+    for (mut transform, velocity) in &mut characters {
+        let planar = Vec3::new(velocity.x, 0.0, velocity.z);
+        if planar.length_squared() < 0.25 {
+            continue;
+        }
+        let target = Quat::from_rotation_arc(Vec3::NEG_Z, planar.normalize());
+        transform.rotation = transform.rotation.slerp(target, step);
     }
-    let target = Quat::from_rotation_arc(Vec3::NEG_Z, planar.normalize());
-    transform.rotation = transform
-        .rotation
-        .slerp(target, (14.0 * time.delta_secs()).min(1.0));
 }
 
 /// Gives every bone under `root` the identity a clip binds to: the hash of its
