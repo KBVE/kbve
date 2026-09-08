@@ -166,3 +166,29 @@ apps/friendslop/godot-friendslop/addons/**/*.framework/Info.plist !filter !diff 
 # encrypted sits behind an off-by-default cargo feature, so a clone with no
 # key still builds and runs the game — it just gets the public half.
 apps/arcade/colony/src/private/** filter=git-crypt diff=git-crypt
+
+# Arcade — apps/arcade bevy game assets (colony, mmorpg)
+# Pointer files live in this repo; blobs live on git.kbve.com/KBVE/arcade.git
+# (see apps/arcade/.lfsconfig). Push/pull the blobs to the arcade endpoint with
+# `./kbve.sh -lfs arcade <push|pull|register|...>`.
+#
+# Scoped to apps/arcade/*/assets rather than the whole tree: every project here
+# is a rust crate, and a bare apps/arcade/**/*.png would swallow anything a
+# future project keeps beside its source.
+apps/arcade/*/assets/**/*.glb   filter=lfs diff=lfs merge=lfs -text
+apps/arcade/*/assets/**/*.gltf  filter=lfs diff=lfs merge=lfs -text
+apps/arcade/*/assets/**/*.fbx   filter=lfs diff=lfs merge=lfs -text
+apps/arcade/*/assets/**/*.bin   filter=lfs diff=lfs merge=lfs -text
+apps/arcade/*/assets/**/*.blend filter=lfs diff=lfs merge=lfs -text
+apps/arcade/*/assets/**/*.png   filter=lfs diff=lfs merge=lfs -text
+apps/arcade/*/assets/**/*.webp  filter=lfs diff=lfs merge=lfs -text
+apps/arcade/*/assets/**/*.jpg   filter=lfs diff=lfs merge=lfs -text
+apps/arcade/*/assets/**/*.jpeg  filter=lfs diff=lfs merge=lfs -text
+apps/arcade/*/assets/**/*.tga   filter=lfs diff=lfs merge=lfs -text
+apps/arcade/*/assets/**/*.exr   filter=lfs diff=lfs merge=lfs -text
+apps/arcade/*/assets/**/*.hdr   filter=lfs diff=lfs merge=lfs -text
+apps/arcade/*/assets/**/*.ktx2  filter=lfs diff=lfs merge=lfs -text
+apps/arcade/*/assets/**/*.ogg   filter=lfs diff=lfs merge=lfs -text
+apps/arcade/*/assets/**/*.wav   filter=lfs diff=lfs merge=lfs -text
+apps/arcade/*/assets/**/*.mp3   filter=lfs diff=lfs merge=lfs -text
+apps/arcade/*/assets/**/*.ttf   filter=lfs diff=lfs merge=lfs -text
