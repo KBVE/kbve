@@ -12,9 +12,9 @@ key: chuckrpg
 pipeline: docker
 app_name: axum-chuckrpg
 version: "0.1.9"
-source_path: apps/chuckrpg/axum-chuckrpg
-version_toml: apps/chuckrpg/axum-chuckrpg/version.toml
-version_target: apps/chuckrpg/axum-chuckrpg/Cargo.toml
+source_path: apps/chuckrpg/api
+version_toml: apps/chuckrpg/api/version.toml
+version_target: apps/chuckrpg/api/Cargo.toml
 runner: ubuntu-latest
 image: kbve/chuckrpg
 deployment_yaml: apps/kube/chuckrpg/manifest/deployment.yaml
@@ -53,7 +53,7 @@ bento:
         game API, and signed itch.io desktop downloads.
     ctas:
         - label: View source
-          href: https://github.com/KBVE/kbve/tree/main/apps/chuckrpg/axum-chuckrpg
+          href: https://github.com/KBVE/kbve/tree/main/apps/chuckrpg/api
           primary: true
           external: true
         - label: Usage

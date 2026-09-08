@@ -13,8 +13,8 @@ tags:
 key: unreal_chuck_dev
 pipeline: unreal_game
 app_name: chuck-dev
-source_path: apps/chuckrpg/unreal-chuck
-version_toml: apps/chuckrpg/unreal-chuck/version-dev.toml
+source_path: apps/chuckrpg/unreal
+version_toml: apps/chuckrpg/unreal/version-dev.toml
 version: "0.3.20"
 runner: arc-runner-ue
 author: h0lybyte
@@ -41,7 +41,7 @@ external_publish:
     itch_user: kbve
     itch_game: chuckrpg
     itch_channel: dev
-shell_path: apps/chuckrpg/unreal-chuck
+shell_path: apps/chuckrpg/unreal
 template: splash
 tableOfContents: false
 editUrl: false
@@ -65,7 +65,7 @@ bento:
         and shipped to itch.io as kbve/chuckrpg beside Unreal Chuck Beta.
     ctas:
         - label: View source
-          href: https://github.com/KBVE/kbve/tree/main/apps/chuckrpg/unreal-chuck
+          href: https://github.com/KBVE/kbve/tree/main/apps/chuckrpg/unreal
           primary: true
           external: true
         - label: Build
@@ -139,7 +139,7 @@ same gate, to:
 
 - `task: game` (`mode: game`) — Win64 + Linux clients.
 - `task: server` (`mode: server`) — the Linux dedicated server, triggered because this
-  entry carries a `shell_path`. The server reads `apps/chuckrpg/unreal-chuck/build.toml`
+  entry carries a `shell_path`. The server reads `apps/chuckrpg/unreal/build.toml`
   for repo / `server_target` / UE image and archives to the OWS PVC at
   `/mnt/longhorn/ows-server/<server_target>/<version>`.
 

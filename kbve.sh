@@ -991,7 +991,7 @@ run_moon() {
 #   ./kbve.sh -lfs <game> <lfs-subcommand> [args...]
 #
 # Games:
-#   chuck      → KBVE/chuck     (apps/chuckrpg/unreal-chuck/**)
+#   chuck      → KBVE/chuck     (apps/chuckrpg/unreal/**)
 #   rareicon   → KBVE/rareicon  (apps/rareicon/**) — matches root .lfsconfig
 #
 # Examples:

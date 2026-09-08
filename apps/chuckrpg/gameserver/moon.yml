@@ -19,6 +19,6 @@ tasks:
             runFromWorkspaceRoot: true
             cache: false
     version:
-        script: 'cat apps/chuckrpg/chuckrpg-server/version.toml'
+        script: 'cat apps/chuckrpg/gameserver/version.toml'
         options:
             runFromWorkspaceRoot: true

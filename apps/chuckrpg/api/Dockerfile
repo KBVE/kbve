@@ -25,9 +25,9 @@ COPY packages/npm/rn-astro/ packages/npm/rn-astro/
 
 COPY packages/data/codegen/generated/ packages/data/codegen/generated/
 
-COPY apps/chuckrpg/astro-chuckrpg/ apps/chuckrpg/astro-chuckrpg/
+COPY apps/chuckrpg/web/ apps/chuckrpg/web/
 
-WORKDIR /app/apps/chuckrpg/astro-chuckrpg
+WORKDIR /app/apps/chuckrpg/web
 RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-chuckrpg-cache,sharing=locked \
     cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true && \
     npx astro sync && \
@@ -72,10 +72,10 @@ ENV CARGO_INCREMENTAL=0
 
 WORKDIR /app
 
-COPY apps/chuckrpg/axum-chuckrpg/Cargo.workspace.toml Cargo.toml
+COPY apps/chuckrpg/api/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
-COPY apps/chuckrpg/axum-chuckrpg/Cargo.toml apps/chuckrpg/axum-chuckrpg/Cargo.toml
+COPY apps/chuckrpg/api/Cargo.toml apps/chuckrpg/api/Cargo.toml
 COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
 COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
 COPY crates/holy/Cargo.toml crates/holy/Cargo.toml
@@ -90,7 +90,7 @@ COPY crates/bevy_tasker/Cargo.toml crates/bevy_tasker/Cargo.toml
 
 COPY packages/data/proto packages/data/proto
 
-RUN mkdir -p apps/chuckrpg/axum-chuckrpg/src && echo "fn main() {}" > apps/chuckrpg/axum-chuckrpg/src/main.rs && \
+RUN mkdir -p apps/chuckrpg/api/src && echo "fn main() {}" > apps/chuckrpg/api/src/main.rs && \
     mkdir -p crates/jedi/src && echo "" > crates/jedi/src/lib.rs && \
     mkdir -p crates/kbve-proto/src && echo "" > crates/kbve-proto/src/lib.rs && \
     mkdir -p crates/holy/src && echo "" > crates/holy/src/lib.rs && \
@@ -141,9 +141,9 @@ COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
 COPY --from=planner /app/Cargo.toml ./
 COPY Cargo.lock ./
 
-COPY apps/chuckrpg/axum-chuckrpg/Cargo.toml apps/chuckrpg/axum-chuckrpg/Cargo.toml
-RUN mkdir -p apps/chuckrpg/axum-chuckrpg/src && \
-    echo "fn main() {}" > apps/chuckrpg/axum-chuckrpg/src/main.rs
+COPY apps/chuckrpg/api/Cargo.toml apps/chuckrpg/api/Cargo.toml
+RUN mkdir -p apps/chuckrpg/api/src && \
+    echo "fn main() {}" > apps/chuckrpg/api/src/main.rs
 
 COPY packages/data/proto packages/data/proto
 
@@ -171,7 +171,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
 FROM foundation AS builder
 
 # Astro build output (precompressed) -> placed into templates/dist
-COPY --from=astro-precompressor /static /app/apps/chuckrpg/axum-chuckrpg/templates/dist
+COPY --from=astro-precompressor /static /app/apps/chuckrpg/api/templates/dist
 
 # Foundation crate source (cargo needs source to verify fingerprints)
 COPY packages/data/proto packages/data/proto
@@ -185,7 +185,7 @@ COPY crates/bevy_npc crates/bevy_npc
 COPY crates/bevy_tasker crates/bevy_tasker
 
 # Application source (most frequently changing — placed last for cache)
-COPY apps/chuckrpg/axum-chuckrpg apps/chuckrpg/axum-chuckrpg
+COPY apps/chuckrpg/api apps/chuckrpg/api
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
@@ -201,7 +201,7 @@ WORKDIR /app
 
 COPY --from=builder --chown=10001:10001 /app/target/release/axum-chuckrpg /app/axum-chuckrpg
 
-COPY --from=builder --chown=10001:10001 /app/apps/chuckrpg/axum-chuckrpg/templates/dist /app/templates/dist
+COPY --from=builder --chown=10001:10001 /app/apps/chuckrpg/api/templates/dist /app/templates/dist
 
 ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=4322

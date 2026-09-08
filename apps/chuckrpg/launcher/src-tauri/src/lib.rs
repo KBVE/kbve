@@ -3,9 +3,9 @@ mod launcher;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 
+use erust::SupabaseClient;
 use erust::supabase::Session;
 use erust::tauri as ebridge;
-use erust::SupabaseClient;
 use launcher::{ClientVersion, Installed, LauncherError};
 use serde::Serialize;
 use tauri::{Emitter, Window};
@@ -51,7 +51,11 @@ fn install_state() -> Option<Installed> {
 }
 
 #[tauri::command]
-fn auth_authorize_url(provider: String, redirect_to: String, auth: tauri::State<'_, Auth>) -> String {
+fn auth_authorize_url(
+    provider: String,
+    redirect_to: String,
+    auth: tauri::State<'_, Auth>,
+) -> String {
     auth.0.authorize_url(&provider, &redirect_to)
 }
 

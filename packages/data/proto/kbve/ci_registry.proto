@@ -371,7 +371,7 @@ message CiProject {
   TestFramework test_framework = 31;       // Which CI toolchain to use for tests
 
   // --- UE5 server build config (ue5_server pipeline) ---
-  optional string shell_path = 32;         // Monorepo shell project path (e.g. "apps/chuckrpg/unreal-chuck")
+  optional string shell_path = 32;         // Monorepo shell project path (e.g. "apps/chuckrpg/unreal")
 
   // --- External publish targets (storefronts / mod platforms) -----------
   // Consumed by utils-external-publish.yml. Empty / unset = skip target.

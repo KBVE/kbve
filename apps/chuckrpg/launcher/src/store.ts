@@ -28,12 +28,7 @@ async function freshSession(session: Session): Promise<Session> {
 }
 
 type Phase =
-	| 'idle'
-	| 'loading'
-	| 'installing'
-	| 'launching'
-	| 'running'
-	| 'error';
+	'idle' | 'loading' | 'installing' | 'launching' | 'running' | 'error';
 type AuthPhase = 'anon' | 'authing' | 'authed';
 
 type LauncherState = {

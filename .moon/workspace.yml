@@ -77,11 +77,11 @@ projects:
         # The Unreal monorepo shells. Each is a version.toml and a build.toml
         # pointing at a fork; both had a dispatch manifest entry and no moon.yml,
         # so no release tag could name them.
-        unreal-chuck: 'apps/chuckrpg/unreal-chuck'
+        unreal-chuck: 'apps/chuckrpg/unreal'
         unreal-rareicon: 'apps/rareicon/unreal-rareicon'
 
         # Sites
-        astro-chuckrpg: 'apps/chuckrpg/astro-chuckrpg'
+        astro-chuckrpg: 'apps/chuckrpg/web'
         astro-kbve: 'apps/kbve/astro-kbve'
         astro-cryptothrone: 'apps/cryptothrone/web'
         discordsh-web: 'apps/discordsh/web'
@@ -108,7 +108,7 @@ projects:
         protobuf: 'packages/proto'
 
         # Desktop shells (tauri)
-        chuck-launcher: 'apps/chuckrpg/chuck-launcher'
+        chuck-launcher: 'apps/chuckrpg/launcher'
         desktop-kbve: 'apps/kbve/desktop-kbve'
         isometric: 'apps/kbve/isometric'
 
@@ -136,7 +136,7 @@ projects:
         agones-factorio-relay: 'apps/agones/factorio/relay'
         agones-palworld-relay: 'apps/agones/palworld/relay'
         arpg-server: 'apps/agones/arpg/server'
-        axum-chuckrpg: 'apps/chuckrpg/axum-chuckrpg'
+        axum-chuckrpg: 'apps/chuckrpg/api'
         axum-cryptothrone: 'apps/cryptothrone/api'
         discordsh-api: 'apps/discordsh/api'
         axum-herbmail: 'apps/herbmail/axum-herbmail'
@@ -183,7 +183,7 @@ projects:
         mc-velocity: 'apps/mc/velocity'
 
         # Other apps
-        chuckrpg-server: 'apps/chuckrpg/chuckrpg-server'
+        chuckrpg-server: 'apps/chuckrpg/gameserver'
         aria2-proxy: 'apps/vm/aria2-proxy'
         arpg-web: 'apps/agones/arpg/web'
         herbmail-game: 'apps/herbmail/herbmail-game'
@@ -203,7 +203,7 @@ projects:
         aria2-proxy-e2e: 'apps/vm/aria2-proxy-e2e'
         arpg-e2e: 'apps/agones/arpg/arpg-e2e'
         astro-kbve-e2e: 'apps/kbve/astro-kbve-e2e'
-        axum-chuckrpg-e2e: 'apps/chuckrpg/axum-chuckrpg-e2e'
+        axum-chuckrpg-e2e: 'apps/chuckrpg/api/e2e'
         discordsh-api-e2e: 'apps/discordsh/api/e2e'
         axum-kbve-e2e: 'apps/kbve/axum-kbve-e2e'
         axum-rareicon-e2e: 'apps/rareicon/axum-rareicon-e2e'
@@ -228,6 +228,7 @@ projects:
         rn-tauri: 'packages/npm/rn-tauri'
 
         # Umbrellas: a site, its service and its suite behind one id
+        chuckrpg: 'apps/chuckrpg'
         cryptothrone: 'apps/cryptothrone'
         discordsh: 'apps/discordsh'
         herbmail: 'apps/herbmail'
@@ -239,7 +240,7 @@ projects:
         arpg: 'apps/agones/arpg'
         kbve-react-native: 'apps/kbve/kbve-react-native'
         unity-rareicon: 'apps/rareicon/unity-rareicon'
-        unreal-cleanroom: 'apps/chuckrpg/unreal-cleanroom'
+        unreal-cleanroom: 'apps/chuckrpg/cleanroom'
         unreal-rentearth: 'apps/rentearth/unreal-rentearth'
 
         # Remaining

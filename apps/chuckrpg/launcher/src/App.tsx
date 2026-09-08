@@ -187,9 +187,7 @@ function AuthBlock() {
 	return (
 		<div className="mb-6">
 			<p className="ck-label mb-2 text-center text-[0.5rem] text-[var(--ck-firelight-dim)]">
-				{authing
-					? 'Opening portal…'
-					: 'Sign in to carry your legend'}
+				{authing ? 'Opening portal…' : 'Sign in to carry your legend'}
 			</p>
 			<div className="flex gap-2">
 				<button
