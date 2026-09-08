@@ -21,7 +21,7 @@ root=$(git rev-parse --show-toplevel 2>/dev/null) || exit 0
 [ -x "$root/kbve.sh" ] || exit 0
 zero=0000000000000000000000000000000000000000
 
-for game in chuck rareicon rentearth arpg cryptothrone cleanroom herbmail; do
+for game in chuck rareicon rentearth arpg cryptothrone cleanroom herbmail arcade; do
     prefix=$("$root/kbve.sh" -lfs "$game" path 2>/dev/null) || continue
     [ -n "$prefix" ] || continue
 
