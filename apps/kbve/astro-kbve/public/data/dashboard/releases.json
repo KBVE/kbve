@@ -1,5 +1,5 @@
 {
-  "generated_at": "2026-09-07T05:52:31Z",
+  "generated_at": "2026-09-08T05:50:10Z",
   "summary": {
     "tag-pending": 0,
     "changes-unreleased": 0,
@@ -816,7 +816,7 @@
       "lanes": [
         "docker"
       ],
-      "manifest": "0.1.45",
+      "manifest": "0.1.46",
       "released": null,
       "commits_since": null,
       "state": "never-released"
