@@ -669,7 +669,7 @@
         "name": "astro-chuckrpg",
         "type": "application",
         "data": {
-          "root": "apps/chuckrpg/astro-chuckrpg",
+          "root": "apps/chuckrpg/web",
           "name": "astro-chuckrpg",
           "layer": "application",
           "stack": "frontend",
@@ -827,7 +827,7 @@
         "name": "axum-chuckrpg",
         "type": "application",
         "data": {
-          "root": "apps/chuckrpg/axum-chuckrpg",
+          "root": "apps/chuckrpg/api",
           "name": "axum-chuckrpg",
           "layer": "application",
           "stack": "unknown",
@@ -842,7 +842,7 @@
         "name": "axum-chuckrpg-e2e",
         "type": "application",
         "data": {
-          "root": "apps/chuckrpg/axum-chuckrpg-e2e",
+          "root": "apps/chuckrpg/api/e2e",
           "name": "axum-chuckrpg-e2e",
           "layer": "application",
           "stack": "unknown",
@@ -1317,7 +1317,7 @@
         "name": "chuck-launcher",
         "type": "application",
         "data": {
-          "root": "apps/chuckrpg/chuck-launcher",
+          "root": "apps/chuckrpg/launcher",
           "name": "chuck-launcher",
           "layer": "application",
           "stack": "frontend",
@@ -1329,11 +1329,23 @@
           ]
         }
       },
+      "chuckrpg": {
+        "name": "chuckrpg",
+        "type": "application",
+        "data": {
+          "root": "apps/chuckrpg",
+          "name": "chuckrpg",
+          "layer": "application",
+          "stack": "unknown",
+          "language": "typescript",
+          "tags": []
+        }
+      },
       "chuckrpg-server": {
         "name": "chuckrpg-server",
         "type": "application",
         "data": {
-          "root": "apps/chuckrpg/chuckrpg-server",
+          "root": "apps/chuckrpg/gameserver",
           "name": "chuckrpg-server",
           "layer": "application",
           "stack": "unknown",
@@ -2758,7 +2770,7 @@
         "name": "unreal-chuck",
         "type": "application",
         "data": {
-          "root": "apps/chuckrpg/unreal-chuck",
+          "root": "apps/chuckrpg/unreal",
           "name": "unreal-chuck",
           "layer": "application",
           "stack": "unknown",
@@ -2772,7 +2784,7 @@
         "name": "unreal-cleanroom",
         "type": "application",
         "data": {
-          "root": "apps/chuckrpg/unreal-cleanroom",
+          "root": "apps/chuckrpg/cleanroom",
           "name": "unreal-cleanroom",
           "layer": "application",
           "stack": "unknown",
@@ -3490,6 +3502,18 @@
         {
           "source": "chuck-launcher",
           "target": "kbve-tauri",
+          "type": "static"
+        }
+      ],
+      "chuckrpg": [
+        {
+          "source": "chuckrpg",
+          "target": "axum-chuckrpg",
+          "type": "static"
+        },
+        {
+          "source": "chuckrpg",
+          "target": "axum-chuckrpg-e2e",
           "type": "static"
         }
       ],
