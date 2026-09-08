@@ -5,7 +5,7 @@ date: 2026-09-08 12:00:00
 client: Self
 unsplash: 1691183336426-10e4a01f19ec
 img: https://images.unsplash.com/photo-1691183336426-10e4a01f19ec?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
-description: September 8th. 
+description: September 8th.
 tags:
   - daily
 template: splash
@@ -56,6 +56,26 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 
 <BentoProse id="2026" heading="2026">
 
+### Nvidia 225 Puts
+
+-   09:30AM
+
+    Since I got called on a couple of options at 230, I am going to continue to wheel Nvidia for the short term.
+    All the sales will go back to the war chest, so that I can increase my position in STAG.
+
+### Bevy MMORPG
+
+-   11:02AM
+
+    Going to try and drop everything and stick with pure rust build this time around!
+    It hurts to see the unreal performance come down to a small crawl on my macbook, with a terrible 60 fps.
+    We are going to try wgpu implementation, which we did with the isometric earlier, but I think I could squeeze it out again for bevy.'
+
+-   03:02PM
+
+    Okay the progress is definitely bettter, I think that if we keep looping through, we should be able to get even further than before.
+    The main idea here will be to go straight to the wgpu, so that we can make a brwoser based version of the game as well.
+
 - [ ]
 
 </BentoProse>
@@ -82,7 +102,7 @@ import BentoProse from '@/components/hero/BentoProse.astro';
 
 <BentoProse id="2024" heading="2024">
 
-**Secrets** 
+**Secrets**
 
 The next issue that we have to handle is the `secrets` and its management!
 There are a couple options that we can look through but we will start with `sealed_secrets` for now.
@@ -102,10 +122,10 @@ The league burn out is starting to hit hard, I am getting really tired of the ga
 
 <BentoProse id="2023" heading="2023">
 
-- 6:03am - Currently going through the process of setting up the decentralized file storage but I am not too sure how I should go about handling the meta data engine. I am debating if I should just use the cloudflare egress or maybe switch over to another type of meta storage. 
-- 11:15am - I am thinking that it might make sense to create a global redis instance that we could call from any point? There are a couple different ways that I wanted to approach this concept, one being a bit similar to how I was planning to handle the Rust+Redis build / layout. Okay so we could have two instances in this structure, one being the meta and the other just being a general redis? Hmm, I suppose one would be `meta.kbve.com`, the next being `engine.kbve.com` and finally `redis.kbve.com`? This would be the first move before building out the decentralized hybrid swarm. 
-- 11:27am - Pushed through some minor updates to the general KBVE repo, now I am currently looking over the appwrite upgrade to v1.4.2, including setting up the clustering! There should not be any major issues that I should face as of right now, but this is going to be an interesting experiment, none the less. Let me see if I could update the existing documentation as well. 
-- 11:38am - I believe the first engine that I want to deploy would be the meta, which can then be used by a meta-engine for the storage of the general key-values that will be then used by the scaling redis clusters. The meta engine will be like an index that will reference different data blobs spread across all our containers, virtual machines and emulators! The best option for this engine would be to use the Amazon Elastic Redis instance, yet I am not too sure if we would need to do that as of right now, since one of the goals would be to keep the cost bases as low as possible?  
+- 6:03am - Currently going through the process of setting up the decentralized file storage but I am not too sure how I should go about handling the meta data engine. I am debating if I should just use the cloudflare egress or maybe switch over to another type of meta storage.
+- 11:15am - I am thinking that it might make sense to create a global redis instance that we could call from any point? There are a couple different ways that I wanted to approach this concept, one being a bit similar to how I was planning to handle the Rust+Redis build / layout. Okay so we could have two instances in this structure, one being the meta and the other just being a general redis? Hmm, I suppose one would be `meta.kbve.com`, the next being `engine.kbve.com` and finally `redis.kbve.com`? This would be the first move before building out the decentralized hybrid swarm.
+- 11:27am - Pushed through some minor updates to the general KBVE repo, now I am currently looking over the appwrite upgrade to v1.4.2, including setting up the clustering! There should not be any major issues that I should face as of right now, but this is going to be an interesting experiment, none the less. Let me see if I could update the existing documentation as well.
+- 11:38am - I believe the first engine that I want to deploy would be the meta, which can then be used by a meta-engine for the storage of the general key-values that will be then used by the scaling redis clusters. The meta engine will be like an index that will reference different data blobs spread across all our containers, virtual machines and emulators! The best option for this engine would be to use the Amazon Elastic Redis instance, yet I am not too sure if we would need to do that as of right now, since one of the goals would be to keep the cost bases as low as possible?
 
 </BentoProse>
 
