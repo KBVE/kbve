@@ -72,17 +72,70 @@ jobs:
                   TITLE: ${{ github.event.pull_request.title }}
               run: node tools/commit/validate.mjs --title "$TITLE"
 
+    # What the shards below have to provision, decided from the project graph
+    # rather than installed unconditionally.
+    #
+    # The shard preamble was 422 seconds before a single task ran, and three
+    # quarters of it was for toolchains the change did not touch: 127s of `uv`
+    # and 150s of rust cache and disk clearing on a pull request that moved
+    # TypeScript. Times three shards.
+    #
+    # Fails open, deliberately. Every output defaults to "true" and the shards
+    # test for `!= 'false'`, so a detection that errors, times out, or meets a
+    # ref it cannot resolve installs everything and costs what it costs today.
+    # The opposite bias trades seven minutes for a red shard that reads as a
+    # broken toolchain.
+    toolchains:
+        name: Detect toolchains
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        outputs:
+            rust: ${{ steps.detect.outputs.rust }}
+            python: ${{ steps.detect.outputs.python }}
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+                  persist-credentials: false
+
+            # No install: the project graph is read from moon.yml files, and
+            # nothing here runs a task.
+            - name: Setup JavaScript
+              uses: ./.github/actions/setup-js
+              with:
+                  install: 'false'
+
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
+            - name: Query the affected tasks
+              id: detect
+              env:
+                  EVENT: ${{ github.event_name }}
+                  BASE_REF: ${{ github.base_ref }}
+                  BEFORE: ${{ github.event.before }}
+              run: node tools/moon/affected-toolchains.mjs
+
     ci:
         name: ci (${{ matrix.index }}/${{ matrix.total }})
         runs-on: ubuntu-latest
+        needs: [toolchains]
         timeout-minutes: 120
         strategy:
             fail-fast: false
             matrix:
                 index: [0, 1, 2]
                 total: [3]
+        env:
+            NEEDS_RUST: ${{ needs.toolchains.outputs.rust != 'false' }}
+            NEEDS_PYTHON: ${{ needs.toolchains.outputs.python != 'false' }}
         steps:
+            # Two minutes of deleting preinstalled SDKs, for the target
+            # directory of a cargo build. A shard with no rust task fits on the
+            # runner as shipped.
             - name: Free disk space
+              if: env.NEEDS_RUST == 'true'
               uses: jlumbroso/free-disk-space@main
               with:
                   tool-cache: false
@@ -103,6 +156,7 @@ jobs:
             # and the runner's CPython has no manylinux wheel for it, so uv
             # builds it from source and needs the headers.
             - name: Install the system libraries the rust crates link against
+              if: env.NEEDS_RUST == 'true' || env.NEEDS_PYTHON == 'true'
               run: |
                   sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update -qq
                   sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 install -y --no-install-recommends \
@@ -114,6 +168,7 @@ jobs:
               uses: ./.github/actions/setup-js
 
             - name: Install uv
+              if: env.NEEDS_PYTHON == 'true'
               uses: astral-sh/setup-uv@v7
               with:
                   github-token: ${{ github.token }}
@@ -124,6 +179,7 @@ jobs:
             # here. registry/src is deliberately not in the list: cargo
             # re-extracts it from the tarballs beside it in seconds.
             - name: Restore the cargo registry
+              if: env.NEEDS_RUST == 'true'
               uses: actions/cache@v6
               with:
                   path: |
@@ -139,6 +195,7 @@ jobs:
             # trunk branches, so a pull request cannot fill the cache budget with
             # an entry only it will ever read.
             - name: Restore compiled dependencies
+              if: env.NEEDS_RUST == 'true'
               uses: Swatinem/rust-cache@v2
               with:
                   key: shard-${{ matrix.index }}
@@ -172,6 +229,7 @@ jobs:
             # repeated here, for the same reason setup-moon reads its version from
             # .prototools: a copy would drift from what moon actually provisions.
             - name: Preinstall the rust toolchain
+              if: env.NEEDS_RUST == 'true'
               run: |
                   rustup show active-toolchain || rustup toolchain install
                   TARGETS="$(node tools/moon/rust-targets.mjs)"
@@ -226,10 +284,15 @@ jobs:
     # The matrix shards share one job_name deliberately: three shards of one
     # command are one signal, and a per-shard name would open three issues for
     # a single break and leave two of them behind when the work moves shards.
+    #
+    # `toolchains` is in needs for the reason #16972 documents: a job absent
+    # from this list is invisible to `needs.*.result`, so its failure is
+    # reported here as a success and closes the open issue. It also gates the
+    # shards, so its failure skips them and leaves nothing else to notice.
     track:
         name: Track Failures
         if: ${{ always() && (github.ref == 'refs/heads/dev' || github.ref == 'refs/heads/main' || github.event_name == 'merge_group') && (contains(needs.*.result, 'failure') || !contains(needs.*.result, 'cancelled')) }}
-        needs: [ci]
+        needs: [toolchains, ci]
         permissions:
             actions: read
             issues: write

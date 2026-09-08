@@ -61,6 +61,7 @@
 		"arc-runner",
 		"arc-runner-e2e",
 		"arc-runners",
+		"arcade",
 		"argocd",
 		"aria2-proxy",
 		"aria2-proxy-e2e",
@@ -242,6 +243,7 @@
 		"khashvault",
 		"khashvault-e2e",
 		"kilobase",
+		"kinetree",
 		"kong",
 		"kube",
 		"kubectl",
@@ -266,6 +268,7 @@
 		"metrics",
 		"metrics-e2e",
 		"ml",
+		"mmorpg",
 		"mod-dragon-wars",
 		"monitoring",
 		"moon",
@@ -343,6 +346,7 @@
 		"wm",
 		"workflows",
 		"world",
-		"wow"
+		"wow",
+		"yuki"
 	]
 }

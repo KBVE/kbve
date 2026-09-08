@@ -45,16 +45,3 @@ test.describe('visual regression — dashboards', () => {
 		});
 	});
 });
-
-test.describe('visual regression — yuki dock', () => {
-	test.beforeEach(async ({ page }) => {
-		await mockSupaSession(page);
-	});
-
-	test('yuki dock — collapsed', async ({ page }) => {
-		await page.goto('/', { waitUntil: 'load' });
-		const dock = page.locator('[data-yuki-dock], #yuki-dock').first();
-		await expect(dock).toBeVisible({ timeout: 30_000 });
-		await expect(dock).toHaveScreenshot('yuki-dock-collapsed.png');
-	});
-});

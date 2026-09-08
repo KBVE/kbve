@@ -24,7 +24,7 @@ export PATH="$HOME/.cargo/bin:$PATH"
 
 # ── Ensure wasm-bindgen-cli is installed ──
 if ! command -v wasm-bindgen >/dev/null; then
-  cargo install wasm-bindgen-cli@0.2.114 --locked
+  cargo install wasm-bindgen-cli@0.2.126 --locked
 fi
 
 # ── Generate mkcert certs (if not present) ──

@@ -1,0 +1,58 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+# 3D open-world MMORPG client. Perspective third-person camera over real
+# terrain geometry -- the opposite end from `colony`, which is 3D geometry
+# under a fixed orthographic camera, and from `isometric`, which is 2.5D.
+layer: 'application'
+language: 'rust'
+stack: 'frontend'
+tags: ['bevy', 'game', 'web-game']
+toolchains:
+    default: 'rust'
+
+owners:
+    defaultOwner: '@h0lybyte'
+
+env:
+    # Pinned to the version isometric's wasm lane already installs, so a runner
+    # that built either project has the other's bindgen in its cargo bin.
+    WASM_BINDGEN_VERSION: '0.2.126'
+    MMORPG_WEB_PORT: '4321'
+
+# build/test/lint/format/run are inherited from the rust toolchain tasks.
+tasks:
+    # Bevy resolves its graphics backend at compile time, so the browser
+    # backend running natively is a separate binary, not a runtime switch.
+    run-webgpu:
+        command: 'cargo run'
+        args: '--features webgpu'
+        preset: 'server'
+
+    # Stable toolchain, no -Z build-std, no atomics: this is the single-threaded
+    # wasm bundle. isometric needs the nightly shared-memory build because it
+    # runs the sim on a worker; this one does not, and paying for that lane
+    # would mean COOP/COEP headers on every host that serves the game.
+    build-wasm:
+        script: |
+            set -euo pipefail
+            command -v wasm-bindgen >/dev/null || cargo install wasm-bindgen-cli@$WASM_BINDGEN_VERSION --locked
+            cargo build --release --target wasm32-unknown-unknown --no-default-features --features webgpu
+            mkdir -p web
+            wasm-bindgen ../../../dist/target/wasm32-unknown-unknown/release/mmorpg.wasm \
+                --out-dir web/pkg --target web --out-name mmorpg
+            cp index.html web/index.html
+        inputs:
+            - '@group(sources)'
+            - '@group(manifests)'
+            - 'index.html'
+        outputs:
+            - 'web'
+
+    # Serves the bundle the way a browser needs it: over http, with the wasm
+    # mime type. Opening web/index.html from the filesystem fails the module
+    # fetch before any of this runs.
+    serve-wasm:
+        script: 'npx --yes serve web -l $MMORPG_WEB_PORT'
+        deps: ['build-wasm']
+        preset: 'server'
+        toolchain: 'node'

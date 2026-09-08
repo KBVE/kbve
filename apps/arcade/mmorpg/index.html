@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>MMORPG</title>
+		<style>
+			html,
+			body {
+				margin: 0;
+				height: 100%;
+				background: #0b1220;
+				overflow: hidden;
+			}
+			canvas {
+				display: block;
+				width: 100%;
+				height: 100%;
+				outline: none;
+			}
+			#unsupported {
+				position: fixed;
+				inset: 0;
+				display: none;
+				place-content: center;
+				padding: 2rem;
+				color: #dbe4f5;
+				font: 16px/1.6 system-ui, sans-serif;
+				text-align: center;
+			}
+		</style>
+	</head>
+	<body>
+		<canvas id="mmorpg"></canvas>
+		<div id="unsupported">
+			<p>This build renders through WebGPU. Use Chrome 113+, Edge 113+, or Safari 26+.</p>
+		</div>
+		<script type="module">
+			if (!navigator.gpu) {
+				document.getElementById('mmorpg').remove();
+				document.getElementById('unsupported').style.display = 'grid';
+			} else {
+				const init = (await import('./pkg/mmorpg.js')).default;
+				await init();
+			}
+		</script>
+	</body>
+</html>
