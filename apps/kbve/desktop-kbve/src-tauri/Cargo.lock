@@ -414,6 +414,17 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2af50177e190e07a26ab74f8b1efbfe2ef87da2116221318cb1c2e82baf7de06"
 
 [[package]]
+name = "bevy_supa"
+version = "0.2.0"
+dependencies = [
+ "ehttp",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.19",
+ "tracing",
+]
+
+[[package]]
 name = "bincode"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1831,16 +1842,15 @@ checksum = "dea2df4cf52843e0452895c455a1a2cfbb842a1e7329671acf418fdc53ed4c59"
 
 [[package]]
 name = "erust"
-version = "0.1.8"
+version = "0.2.0"
 dependencies = [
  "base64 0.22.1",
+ "bevy_supa",
  "chrono",
- "ehttp",
  "holy",
  "log",
  "serde",
  "serde_json",
- "wasm-bindgen-futures",
 ]
 
 [[package]]
@@ -2613,6 +2623,14 @@ checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
 name = "holy"
+version = "0.2.2"
+dependencies = [
+ "holy-derive",
+ "regex",
+]
+
+[[package]]
+name = "holy-derive"
 version = "0.2.2"
 dependencies = [
  "proc-macro2",
