@@ -230,6 +230,7 @@ jobs:
         permissions:
             actions: read
             issues: write
+            contents: read
         uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:
             workflow_name: 'CI - Sync Branches'
@@ -245,6 +246,7 @@ jobs:
         permissions:
             actions: read
             issues: write
+            contents: read
         uses: ./.github/workflows/utils-ci-failure-tracker.yml
         with:
             workflow_name: 'CI - Sync Branches'
