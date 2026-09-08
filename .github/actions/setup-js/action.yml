@@ -65,41 +65,63 @@ runs:
               node-version: ${{ steps.node.outputs.version }}
               cache: 'pnpm'
 
-        # An install runs the postinstall scripts of everything under
-        # `allowBuilds` in pnpm-workspace.yaml -- esbuild, sharp, @swc/core and
-        # five more -- and those inherit whatever the runner left in the
-        # environment. On GitHub-hosted runners that is close to nothing, since
-        # every secret in this repo is mapped at step level. On ARC it is the
-        # whole pod environment, which is where the secrets live. Nothing pnpm
-        # needs to resolve a lockfile is a secret, so the install runs under
-        # `env -i` with an explicit allowlist instead of the ambient env.
+        # `pnpm install` welds two jobs together, and only one of them runs
+        # third-party code. Resolving and fetching the lockfile executes
+        # nothing; the postinstall scripts of the eight packages under
+        # `allowBuilds` in pnpm-workspace.yaml -- esbuild, sharp, @swc/core,
+        # grpc-tools and four more -- are the whole of the untrusted surface.
+        #
+        # So the two are split. The fetch keeps the ambient environment, which
+        # is what a private registry token or a proxy would need. The build runs
+        # under `env -i` with an explicit allowlist, so a compromised postinstall
+        # sees no GITHUB_TOKEN, no AWS_*, no APPLE_*, no FORGEJO_* -- absent by
+        # construction rather than by denylist.
+        #
+        # On GitHub-hosted runners this is close to a no-op, since every secret
+        # in this repo is mapped at step level and never reaches the install. On
+        # ARC the ambient environment is the pod's, which is where the secrets
+        # are, and that is the case this exists for.
         #
         # `minimumReleaseAge` and `allowBuilds` already narrow *which* package
-        # can run a script; this narrows what one sees if it does.
+        # can run a script. This narrows what one sees when it does.
         #
-        # Windows is exempt: node under git-bash needs SYSTEMROOT, APPDATA and a
-        # long tail of host vars that an allowlist would have to guess at, and
-        # the one Windows caller (utils-tauri-build) is GitHub-hosted, so it has
-        # no pod environment to leak in the first place.
-        - name: Install dependencies
+        # What this deliberately does not do is cut the network for the build.
+        # grpc-tools fetches protoc from node-precompiled-binaries.grpc.io,
+        # sharp fetches libvips, and esbuild's install.js downloads its platform
+        # binary -- three of the eight need egress to build at all.
+        - name: Fetch dependencies
           if: ${{ inputs.install == 'true' }}
           shell: bash
           env:
-              PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: ${{ inputs.playwright == 'true' && '0' || '1' }}
               SETUP_JS_SCRUB: ${{ inputs.scrub }}
+          run: |
+              set -euo pipefail
+              if [ "$SETUP_JS_SCRUB" != 'true' ] || [ "${RUNNER_OS:-}" = 'Windows' ]; then
+                exec pnpm install --frozen-lockfile
+              fi
+              exec pnpm install --frozen-lockfile --ignore-scripts
+
+        # `--pending` builds exactly what the fetch skipped. It also runs the
+        # root project's own `prepare`, so husky is still installed here.
+        #
+        # Windows is exempt: node under git-bash wants SYSTEMROOT, APPDATA and a
+        # long tail of host vars an allowlist would have to guess at, and the one
+        # Windows caller (utils-tauri-build) is GitHub-hosted, so it has no pod
+        # environment to leak. It took the unsplit install above and needs no
+        # build step here.
+        - name: Build allowed dependencies
+          if: ${{ inputs.install == 'true' && inputs.scrub == 'true' && runner.os != 'Windows' }}
+          shell: bash
+          env:
+              PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: ${{ inputs.playwright == 'true' && '0' || '1' }}
               SETUP_JS_KEEP_ENV: ${{ inputs.keep-env }}
           run: |
               set -euo pipefail
 
               PNPM_BIN="$(command -v pnpm)"
 
-              if [ "$SETUP_JS_SCRUB" != 'true' ] || [ "${RUNNER_OS:-}" = 'Windows' ]; then
-                exec "$PNPM_BIN" install --frozen-lockfile
-              fi
-
-              # Locating binaries, the store, and the registry -- nothing else.
-              # GITHUB_TOKEN, GH_TOKEN, AWS_*, APPLE_*, FORGEJO_*, UNITY_* and
-              # every other secret are absent by construction, not by denylist.
+              # Finding node and the store, and reaching the network for the
+              # three packages that fetch a binary. Nothing else.
               KEEP=(
                 PATH HOME USER LANG LC_ALL TERM TMPDIR CI
                 PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD
@@ -122,4 +144,4 @@ runs:
                 fi
               done
 
-              exec env -i "${FORWARD[@]}" "$PNPM_BIN" install --frozen-lockfile
+              exec env -i "${FORWARD[@]}" "$PNPM_BIN" rebuild --pending
