@@ -331,7 +331,7 @@ cargo bench -p embeddb
 
 ## Publishing
 
-The MDX file at `apps/kbve/astro-kbve/src/content/docs/project/embeddb-crate.mdx` (and, for the companion crate, `embeddb-derive-crate.mdx`) is the source of truth for the published version — its `version:` frontmatter field drives what the publish pipeline writes into `Cargo.toml` at release time.
+The MDX file at `docs/project/embeddb-crate.mdx` (and, for the companion crate, `embeddb-derive-crate.mdx`) is the source of truth for the published version — its `version:` frontmatter field drives what the publish pipeline writes into `Cargo.toml` at release time.
 
 `version.toml` in each crate root carries the last-published marker (seeded at `0.0.1` for both crates) plus a `publish` flag the pipeline reads to decide whether to publish at all.
 

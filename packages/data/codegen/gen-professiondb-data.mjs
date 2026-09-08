@@ -7,7 +7,7 @@
  * progression is runtime state owned by each game, not this catalog.
  *
  * Inputs:
- *   apps/kbve/astro-kbve/src/content/docs/professiondb/*.mdx (authoritative catalog)
+ *   docs/professiondb/*.mdx (authoritative catalog)
  *   packages/data/codegen/descriptors/professiondb.binpb     (proto schema descriptor)
  *
  * Outputs:
@@ -42,7 +42,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');
 const professiondbDir = resolve(
 	repoRoot,
-	'apps/kbve/astro-kbve/src/content/docs/professiondb',
+	'docs/professiondb',
 );
 const generatedDir = resolve(__dirname, 'generated');
 const outputJsonPath = resolve(generatedDir, 'professiondb-data.json');

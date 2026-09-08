@@ -6,7 +6,7 @@ How KBVE Unreal plugins version, build, publish, and (future) get consumed by ga
 
 MDX `version:` is the single lever. Bump it and nothing else — every other
 version field is derived. The page lives at
-`apps/kbve/astro-kbve/src/content/docs/project/<plugin>.mdx` and carries the
+`docs/project/<plugin>.mdx` and carries the
 CI registry frontmatter (`key`, `pipeline: unreal`, `plugin_name`,
 `plugin_path`, `version`, `supported_platforms`).
 

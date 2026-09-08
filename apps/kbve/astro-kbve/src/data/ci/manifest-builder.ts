@@ -1,7 +1,7 @@
 import type { ExternalPublish, ICiProject } from '@/data/schema';
 import { DispatchPipelines } from '@kbve/proto/ci_registry-schema';
 
-export const MDX_BASE = 'apps/kbve/astro-kbve/src/content/docs/project';
+export const MDX_BASE = 'docs/project';
 
 interface DockerEntry {
 	key: string;

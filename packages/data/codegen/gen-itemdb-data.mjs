@@ -3,7 +3,7 @@
  * Generate item data artifacts from the MDX source of truth.
  *
  * Inputs:
- *   apps/kbve/astro-kbve/src/content/docs/itemdb/*.mdx  (authoritative catalog)
+ *   docs/itemdb/*.mdx  (authoritative catalog)
  *   packages/data/codegen/descriptors/itemdb.binpb       (proto schema descriptor)
  *
  * Outputs (central — proto-canonical, for any cross-language consumer):
@@ -43,7 +43,7 @@ const repoRoot = resolve(__dirname, '../../..');
 
 const MDX_DIR = resolve(
 	repoRoot,
-	'apps/kbve/astro-kbve/src/content/docs/itemdb',
+	'docs/itemdb',
 );
 const GENERATED_DIR = resolve(__dirname, 'generated');
 const CENTRAL_JSON = resolve(GENERATED_DIR, 'itemdb-data.json');

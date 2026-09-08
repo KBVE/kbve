@@ -34,7 +34,7 @@ enum SpellEffect {
 
 // A single castable spell.
 //
-// The MDX frontmatter under astro-kbve/src/content/docs/spelldb/*.mdx is the
+// The MDX frontmatter under docs/spelldb/*.mdx is the
 // source of truth; this message is the wire and codegen shape every consumer
 // decodes.
 message Spell {

@@ -8,7 +8,7 @@
 > `agones/pipeline.rs`, `jobs.rs`). Defaults are quoted from those files at the SHA in the changelog.
 >
 > Items marked **→ /project/rows/** are queued to graduate into the published page
-> `apps/kbve/astro-kbve/src/content/docs/project/rows.mdx` (`https://kbve.com/project/rows/`) once
+> `docs/project/rows.mdx` (`https://kbve.com/project/rows/`) once
 > the owning feature is enabled in an env. They are **staged here, not yet published** — see
 > [§ Promotion](#promotion-to-kbvecomprojectrows).
 
@@ -24,8 +24,8 @@
 | [rows-drain-admission](./2026-06-24-rows-drain-admission.md)                             | Admission control during drain (Phase 2)         | not started                              | admission policy (UE-owned), routing exclusion                                             |
 | [rows-drain-fleet-restart](./2026-06-24-rows-drain-fleet-restart.md)                     | Fleet-restart / maintenance drains (Phase 3)     | not started                              | `reason/urgency/drop_players/deadline/request_id` request annotations (🕳️ unpinned)        |
 | [ue-chuck-drain-contract](./2026-06-24-ue-chuck-drain-contract.md)                       | Chuck (UE5) side of the cooperative contract     | LIVING (cross-repo)                      | heartbeat fields, SDK obligations, save budget vs Fleet TGPS                               |
-| [rows.mdx](../../kbve/astro-kbve/src/content/docs/project/rows.mdx)                      | **Published** project page (`/project/rows/`)    | live                                     | the operator-facing subset (see [§ Promotion](#promotion-to-kbvecomprojectrows))           |
-| [kbverows.mdx](../../kbve/astro-kbve/src/content/docs/project/kbverows.mdx)              | UE client/plugin glue page                       | live                                     | client-side wiring                                                                         |
+| [rows.mdx](../../../docs/project/rows.mdx)                                               | **Published** project page (`/project/rows/`)    | live                                     | the operator-facing subset (see [§ Promotion](#promotion-to-kbvecomprojectrows))           |
+| [kbverows.mdx](../../../docs/project/kbverows.mdx)                                       | UE client/plugin glue page                       | live                                     | client-side wiring                                                                         |
 
 **Phase chain:** lifecycle-spec → reaper (done) → drain-core → drain-admission → drain-fleet-restart,
 with ue-chuck-drain-contract tracking the UE obligations for each. The reaper is the only piece
@@ -122,7 +122,7 @@ modes & version-parity gate" (🕳️ V1).
 
 Parsed in `RowsConfig::from_env` + `db.rs`. Beta/release **require** the tenant-critical secrets
 (no localhost fallback). Already partially documented on the published page — see
-[rows.mdx](../../kbve/astro-kbve/src/content/docs/project/rows.mdx) "Per-tenant deployment".
+[rows.mdx](../../../docs/project/rows.mdx) "Per-tenant deployment".
 
 | Env var                      | Default (dev)                    | beta/release | Notes                                                                                                                                                                                                                                                                   |
 | ---------------------------- | -------------------------------- | ------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -210,7 +210,7 @@ Marker columns on `mapinstances` (maintained by `update_number_of_players`): `nu
 ## Promotion to kbve.com/project/rows/
 
 Staged — **not yet published**. Each block graduates into
-[rows.mdx](../../kbve/astro-kbve/src/content/docs/project/rows.mdx) when its owning feature
+[rows.mdx](../../../docs/project/rows.mdx) when its owning feature
 is enabled in an env (so the public page only documents live behavior). Per repo rules, that mdx is
 version-pipelined (`pipeline: docker`) — a content-only edit is fine but lands in the next docs build.
 

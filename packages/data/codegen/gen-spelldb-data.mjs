@@ -6,7 +6,7 @@
  * the arpg web HUD and the Rust sim).
  *
  * Inputs:
- *   apps/kbve/astro-kbve/src/content/docs/spelldb/*.mdx (authoritative catalog)
+ *   docs/spelldb/*.mdx (authoritative catalog)
  *   packages/proto/kbve/spell/v1/spell.proto            (proto schema)
  *
  * Outputs:
@@ -33,7 +33,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');
 const spelldbDir = resolve(
 	repoRoot,
-	'apps/kbve/astro-kbve/src/content/docs/spelldb',
+	'docs/spelldb',
 );
 const generatedDir = resolve(__dirname, 'generated');
 const outputJsonPath = resolve(generatedDir, 'spelldb-data.json');

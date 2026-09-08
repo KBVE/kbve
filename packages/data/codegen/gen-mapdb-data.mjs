@@ -5,7 +5,7 @@
  * Mirrors gen-itemdb-data.mjs — shared mapdb pipeline, not game-specific.
  *
  * Inputs:
- *   apps/kbve/astro-kbve/src/content/docs/mapdb/*.mdx   (authoritative catalog)
+ *   docs/mapdb/*.mdx   (authoritative catalog)
  *   packages/data/codegen/descriptors/mapdb.binpb       (proto schema descriptor)
  *
  * Outputs:
@@ -40,7 +40,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');
 const mapdbDir = resolve(
 	repoRoot,
-	'apps/kbve/astro-kbve/src/content/docs/mapdb',
+	'docs/mapdb',
 );
 const generatedDir = resolve(__dirname, 'generated');
 const outputJsonPath = resolve(generatedDir, 'mapdb-data.json');

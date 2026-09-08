@@ -99,7 +99,7 @@ The component runs as a hydrated React island, rendered through
 `react-native-web`. Use `client:only="react"` (RN-web components don't SSR).
 
 A live POC ships in `astro-kbve` as a Starlight doc at `/application/rn-web/`
-(`src/content/docs/application/rn-web.mdx` → `src/components/rnweb/`) — Gradient
+(`docs/application/rn-web.mdx` → `src/components/rnweb/`) — Gradient
 
 - Surface + Stack + Text + Button variants + a hydrated counter, all from
   `@kbve/rn` primitives.

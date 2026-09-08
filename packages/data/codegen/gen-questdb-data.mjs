@@ -5,7 +5,7 @@
  * Mirrors gen-mapdb-data.mjs / gen-itemdb-data.mjs.
  *
  * Inputs:
- *   apps/kbve/astro-kbve/src/content/docs/questdb/*.mdx (authoritative catalog)
+ *   docs/questdb/*.mdx (authoritative catalog)
  *   packages/data/codegen/descriptors/questdb.binpb     (proto schema descriptor)
  *
  * Outputs:
@@ -45,7 +45,7 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const repoRoot = resolve(__dirname, '../../..');
 const questdbDir = resolve(
 	repoRoot,
-	'apps/kbve/astro-kbve/src/content/docs/questdb',
+	'docs/questdb',
 );
 const generatedDir = resolve(__dirname, 'generated');
 const outputJsonPath = resolve(generatedDir, 'questdb-data.json');
