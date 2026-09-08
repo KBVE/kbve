@@ -53,12 +53,14 @@ jobs:
                   #   bevy_*      — need Rust + wasm32 toolchain (not in utils-docker-test-app.yml)
                   #   kilobase    — needs pgrx/PostgreSQL build environment
                   #   astro-e2e   — shared Astro harness (not a standalone test project)
+                  # id and source together: the source is what the callee needs
+                  # for source_path, and moon is the only thing that knows it.
                   PROJECTS=$(moon query projects --tasks e2e \
-                    | jq -r '.projects[].id' \
-                    | grep -v '^q$' \
+                    | jq -r '.projects[] | "\(.id)\t\(.source)"' \
+                    | grep -v '^q	' \
                     | grep -v '^bevy_' \
-                    | grep -v '^kilobase$' \
-                    | grep -v '^astro-e2e$' \
+                    | grep -v '^kilobase	' \
+                    | grep -v '^astro-e2e	' \
                     | sort)
 
                   if [ -z "$PROJECTS" ]; then
@@ -75,7 +77,7 @@ jobs:
                   # Heavy Docker-based tests go to arc-runner-set;
                   # lighter Playwright/vitest tests stay on ubuntu-latest.
                   ENTRIES="[]"
-                  while IFS= read -r project; do
+                  while IFS=$'\t' read -r project source; do
                     [ -z "$project" ] && continue
 
                     RUNNER="ubuntu-latest"
@@ -93,9 +95,10 @@ jobs:
 
                     ENTRIES=$(echo "$ENTRIES" | jq -c \
                       --arg name "$project" \
+                      --arg source "$source" \
                       --arg runner "$RUNNER" \
                       --arg pw "$PLAYWRIGHT" \
-                      '. + [{"name": $name, "runner": $runner, "playwright": ($pw == "true")}]')
+                      '. + [{"name": $name, "source": $source, "runner": $runner, "playwright": ($pw == "true")}]')
                   done <<< "$PROJECTS"
 
                   MATRIX=$(echo "$ENTRIES" | jq -c '{include: .}')
@@ -125,6 +128,17 @@ jobs:
             project: ${{ matrix.name }}
             runner: ${{ matrix.runner }}
             install_playwright: ${{ matrix.playwright }}
+            # Drives the callee's "Detect Forgejo LFS assets" step. Without it
+            # SCOPE is empty, the detect reports uses_lfs=false, and a project
+            # whose art is on a Forgejo remote builds ~130-byte pointer stubs --
+            # yuki's VRM never parses and its canvas test fails on what reads as
+            # a broken model. That step runs before Setup JavaScript on purpose:
+            # ensure.sh calls `git lfs install --local`, which exits 2 once husky
+            # has written its own pre-push hook.
+            source_path: ${{ matrix.source }}
+        secrets:
+            FORGEJO_USER: ${{ secrets.FORGEJO_USER }}
+            FORGEJO_TOKEN: ${{ secrets.FORGEJO_TOKEN }}
 
     # -----------------------------------------------------------------------
     # Job 3: Summary — collect results and report.
