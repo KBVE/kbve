@@ -5,7 +5,7 @@ use bevy::prelude::*;
 use bevy::transform::TransformSystems;
 use kinetree::{IkLimb, IkLimbBones, KinetreeSystems, bone_world_transform};
 
-use super::player::{Grounded, Player};
+use super::character::{Character, Grounded};
 use super::world::height_at;
 
 /// Distance from the ankle bone to the sole in the rest pose, measured off the
@@ -229,7 +229,7 @@ fn report(
     show: Res<FootIkDebug>,
     time: Res<Time>,
     mut next: Local<f32>,
-    players: Query<(&GlobalTransform, &Grounded), With<Player>>,
+    bodies: Query<(&GlobalTransform, &Grounded), With<Character>>,
     globals: Query<&GlobalTransform>,
     limbs: Query<(&IkLimb, &IkLimbBones), With<FootGoal>>,
 ) {
@@ -242,7 +242,7 @@ fn report(
     }
     *next = now + 1.0;
 
-    for (body, grounded) in &players {
+    for (body, grounded) in &bodies {
         let p = body.translation();
         let terrain = height_at(p.x, p.z);
         let mut feet = String::new();
