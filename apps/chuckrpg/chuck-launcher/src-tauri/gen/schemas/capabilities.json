@@ -1,0 +1,14 @@
+{
+	"default": {
+		"identifier": "default",
+		"description": "Capability for the main launcher window",
+		"local": true,
+		"windows": ["main"],
+		"permissions": [
+			"core:default",
+			"opener:default",
+			"store:default",
+			"deep-link:default"
+		]
+	}
+}
