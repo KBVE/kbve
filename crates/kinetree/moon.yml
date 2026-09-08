@@ -1,0 +1,36 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+# Closed-form hinge inverse kinematics for skeletal limbs.
+#
+# The solver is engine-agnostic on purpose: the core is glam and nothing else,
+# and Bevy lives behind a default feature. That is what lets the same algorithm
+# run in the bevy client, in a Godot gdext cdylib, and in an Unreal build,
+# rather than being transliterated three times and drifting.
+layer: 'library'
+stack: 'frontend'
+toolchains:
+    default: 'rust'
+
+owners:
+    defaultOwner: '@h0lybyte'
+
+# Publishes to crates.io.
+tags: ['crates']
+
+tasks:
+    # The core claims to need nothing but glam. Left unchecked that claim rots
+    # the first time a bevy type reaches a file outside `plugin.rs`, and the
+    # default build would never notice because the bevy feature is on.
+    check-core:
+        command: 'cargo check -p kinetree --no-default-features --features std'
+        inputs:
+            - '@group(sources)'
+            - '@group(manifests)'
+
+    # And it has to reach wasm, since the browser client solves the same limbs
+    # the native one does.
+    check-wasm:
+        command: 'cargo check -p kinetree --target wasm32-unknown-unknown'
+        inputs:
+            - '@group(sources)'
+            - '@group(manifests)'

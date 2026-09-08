@@ -1,0 +1,43 @@
+[package]
+name = "kinetree"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Closed-form hinge inverse kinematics for skeletal limbs — pure glam core with optional Bevy ECS integration."
+homepage = "https://kbve.com/"
+repository.workspace = true
+keywords = ["ik", "inverse-kinematics", "skeleton", "animation", "gamedev"]
+categories = ["game-development", "mathematics"]
+readme = "README.md"
+
+[features]
+default = ["std", "bevy"]
+
+# glam refuses to build without a math backend; this picks the std one.
+std = ["glam/std"]
+
+# Bevy ECS integration — adds the plugin, components and the system that reads
+# bone GlobalTransforms and writes back rotations. Without this feature the
+# crate is glam and nothing else, which is what lets the same solver run inside
+# a Godot gdext cdylib and an Unreal build where the original of this algorithm
+# already lives.
+bevy = ["dep:bevy"]
+
+# Route every transcendental through libm instead of std. Two machines running
+# the same solver bit-for-bit matters when a server re-simulates a client's
+# limb; std's sin/cos/acos carry no such guarantee across platforms.
+# Pair it with `default-features = false` — leaving `std` on lets glam keep
+# using its own std backend underneath.
+libm = ["dep:libm", "glam/libm"]
+
+[dependencies]
+glam = { workspace = true }
+libm = { workspace = true, optional = true }
+bevy = { workspace = true, optional = true, features = ["bevy_scene"] }
+
+[package.metadata.docs.rs]
+all-features = true
+targets = ["x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
+rustdoc-args = ["--cfg", "docsrs"]
