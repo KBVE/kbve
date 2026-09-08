@@ -27,7 +27,10 @@ jobs:
     track:
         if: inputs.status == 'failure' || inputs.status == 'success'
         runs-on: ubuntu-latest
-        timeout-minutes: 5
+        # The log blob lands asynchronously and the fetch below backs off for up
+        # to two minutes waiting for it. Five was not enough room for that plus
+        # the issue writes.
+        timeout-minutes: 10
         permissions:
             # The job logs endpoint is the only Actions API call here that is
             # not anonymously readable on a public repository: the run's job
@@ -38,8 +41,19 @@ jobs:
             # which is what made it look like a timing problem.
             actions: read
             issues: write
+            # tools/ci/failure-summary.mjs is checked out and run below.
+            contents: read
 
         steps:
+            # Only the summariser. The tracker reads everything else over the
+            # API, and a full checkout of this repository is minutes of LFS.
+            - name: Checkout the summariser
+              uses: actions/checkout@v7
+              with:
+                  persist-credentials: false
+                  sparse-checkout: tools/ci
+                  sparse-checkout-cone-mode: false
+
             # A caller that keeps its own sha in the concurrency group (ci.yml does,
             # so that no commit merged into dev goes unvalidated) runs every push to
             # completion, and those runs finish out of order: a slow shard started at
@@ -59,13 +73,19 @@ jobs:
                   RUN_ID: ${{ inputs.run_id }}
               run: |
                   set -euo pipefail
-                  TITLE="[CI] ${WORKFLOW_NAME} / ${JOB_NAME} — Failed"
+                  # The identity of the issue is the prefix, and only the prefix.
+                  # What follows it is the current headline -- "kinetree:build
+                  # could not find cargo" rather than a fourth issue this week
+                  # titled "Failed" -- and it is rewritten as the cause changes,
+                  # so it cannot take part in matching. Every lookup here and the
+                  # reaper's regex therefore anchor on the prefix alone.
+                  PREFIX="[CI] ${WORKFLOW_NAME} / ${JOB_NAME} — Failed"
                   ISSUE=$(gh issue list --repo "${{ github.repository }}" \
-                    --search "\"$TITLE\" in:title" \
+                    --search "\"$PREFIX\" in:title" \
                     --state open --json number,title \
-                    --jq "[.[] | select(.title == \"$TITLE\")][0].number // empty")
+                    --jq "[.[] | select(.title | startswith(\"$PREFIX\"))][0].number // empty")
                   echo "issue_number=${ISSUE:-}" >> "$GITHUB_OUTPUT"
-                  echo "title=$TITLE" >> "$GITHUB_OUTPUT"
+                  echo "prefix=$PREFIX" >> "$GITHUB_OUTPUT"
 
                   # The marker lives on the open issue, or on the most recently closed
                   # one with this title when there is none -- a stale failure arriving
@@ -76,7 +96,7 @@ jobs:
                     # up to a minute, which is exactly the window a stale result lands in.
                     MARKER_ISSUE=$(gh issue list --repo "${{ github.repository }}" \
                       --state closed --limit 100 --json number,title,closedAt \
-                      --jq "[.[] | select(.title == \"$TITLE\")] | sort_by(.closedAt) | last | .number // empty")
+                      --jq "[.[] | select(.title | startswith(\"$PREFIX\"))] | sort_by(.closedAt) | last | .number // empty")
                   fi
 
                   LAST_RUN=""
@@ -134,10 +154,15 @@ jobs:
                   # The error is kept rather than discarded: a 403 here means the caller
                   # did not grant actions:read, which is silent and looks exactly like a
                   # blob that never arrived.
+                  # The blob is written after the job ends, and the tracker used
+                  # to give it thirty seconds. Losing that race is what put
+                  # "Process completed with exit code 1" in #16998 -- the log had
+                  # the answer two lines up and nobody read it. Backs off to about
+                  # two minutes before falling through to annotations.
                   RAW_LOG=""
-                  LOG_SNIPPET="See [run logs](${{ inputs.run_url }}) for details."
                   if [ -n "$JOB_ID" ]; then
-                    for attempt in 1 2 3; do
+                    for delay in 0 5 10 20 40 60; do
+                      [ "$delay" -gt 0 ] && sleep "$delay"
                       CANDIDATE=$(gh api "repos/${{ github.repository }}/actions/jobs/${JOB_ID}/logs" \
                         2>/tmp/log_error.txt || echo "")
                       if [ -n "$CANDIDATE" ] && ! printf '%s' "$CANDIDATE" | head -c 512 | grep -qiE '<\?xml|<Error>|<Code>(BlobNotFound|AuthenticationFailed|ResourceNotFound)'; then
@@ -148,89 +173,94 @@ jobs:
                         echo "::warning::Cannot read job logs — the calling job needs actions:read."
                         break
                       fi
-                      echo "Log blob not ready (attempt ${attempt}/3), retrying..."
-                      sleep 10
+                      echo "Log blob not ready, retrying..."
                     done
-                    if [ -n "$RAW_LOG" ]; then
-                      LOG_SNIPPET=$(echo "$RAW_LOG" | tail -50 | head -50)
-                    else
-                      # Annotations are a separate store and stay readable when the log
-                      # blob is not, so a `::error::` line still reaches the issue.
-                      ANNOTATIONS=$(gh api "repos/${{ github.repository }}/check-runs/${JOB_ID}/annotations" \
-                        --jq '.[] | select(.annotation_level == "failure") | .message' 2>/dev/null | head -20 || echo "")
-                      if [ -n "$ANNOTATIONS" ]; then
-                        LOG_SNIPPET="$ANNOTATIONS"
-                      else
-                        LOG_SNIPPET="Log blob unavailable when this issue was written. See [run logs](${{ inputs.run_url }})."
-                      fi
-                    fi
                   fi
 
-                  # Classify a likely cause from the logs so the issue states WHY, not just where.
+                  HEADLINE=""
                   REASON=""
-                  if printf '%s' "${RAW_LOG}${LOG_SNIPPET}" | grep -qiE 'Forgejo LFS auth failed|Authentication required|Authorization error|info/lfs/objects/batch'; then
-                    REASON="🔑 Forgejo LFS authentication failed — FORGEJO_TOKEN is likely invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."
+                  if [ -n "$RAW_LOG" ]; then
+                    printf '%s' "$RAW_LOG" > /tmp/raw.log
+                    node tools/ci/failure-summary.mjs /tmp/raw.log > /tmp/summary.json
+                    jq -r '.excerpt' /tmp/summary.json > /tmp/log_snippet.txt
+                    HEADLINE=$(jq -r '.headline // ""' /tmp/summary.json)
+                    REASON=$(jq -r '.reason // ""' /tmp/summary.json)
+                    echo "cause=$(jq -r '.cause // "unclassified"' /tmp/summary.json)"
+                  else
+                    # Annotations are a separate store and stay readable when the
+                    # log blob is not. A `run:` step contributes only its exit
+                    # code there, so anything else is worth more than all of them.
+                    gh api "repos/${{ github.repository }}/check-runs/${JOB_ID}/annotations" \
+                      --jq '[.[] | select(.annotation_level == "failure") | .message]' \
+                      > /tmp/annotations.json 2>/dev/null || echo '[]' > /tmp/annotations.json
+                    node tools/ci/failure-summary.mjs --annotations /tmp/annotations.json > /tmp/log_snippet.txt \
+                      || echo "Log blob unavailable when this issue was written. See [run logs](${{ inputs.run_url }})." > /tmp/log_snippet.txt
                   fi
 
-                  # Write to file to avoid delimiter issues
-                  echo "$LOG_SNIPPET" > /tmp/log_snippet.txt
+                  # A cause the log text names but the table does not. The LFS one
+                  # predates the table and is kept here so a fallback snippet --
+                  # where there is no log to classify -- still reaches it.
+                  if [ -z "$REASON" ] && grep -qiE 'Forgejo LFS auth failed|info/lfs/objects/batch' /tmp/log_snippet.txt; then
+                    REASON="FORGEJO_TOKEN is likely invalid or expired. Rotate the token via kube (forgejo namespace: forgejo-deploy-keys / forgejo-admin) and re-sync the FORGEJO_TOKEN GitHub secret."
+                  fi
+
                   echo "failed_step=${FAILED_STEP:-unknown}" >> "$GITHUB_OUTPUT"
+                  echo "headline=${HEADLINE}" >> "$GITHUB_OUTPUT"
                   echo "reason=${REASON}" >> "$GITHUB_OUTPUT"
 
             - name: Create new failure issue
               if: inputs.status == 'failure' && steps.search.outputs.issue_number == '' && steps.search.outputs.stale != 'true'
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-                  TITLE: ${{ steps.search.outputs.title }}
+                  PREFIX: ${{ steps.search.outputs.prefix }}
                   WORKFLOW_NAME: ${{ inputs.workflow_name }}
                   JOB_NAME: ${{ inputs.job_name }}
                   RUN_ID: ${{ inputs.run_id }}
                   RUN_URL: ${{ inputs.run_url }}
                   FAILED_STEP: ${{ steps.logs.outputs.failed_step }}
+                  HEADLINE: ${{ steps.logs.outputs.headline }}
                   REASON: ${{ steps.logs.outputs.reason }}
                   VERSION: ${{ inputs.version }}
               run: |
                   set -euo pipefail
+                  TITLE="$PREFIX"
+                  if [ -n "${HEADLINE:-}" ]; then TITLE="${PREFIX}: ${HEADLINE}"; fi
                   TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
                   LOG_SNIPPET=$(cat /tmp/log_snippet.txt 2>/dev/null || echo "Logs unavailable")
                   RUN_MARKER="<!-- ci-tracker:run=${RUN_ID} -->"
                   VERSION_LINE=""
                   VERSION_MARKER=""
                   if [ -n "${VERSION:-}" ]; then
-                    VERSION_LINE="**Version:** ${VERSION}"
+                    VERSION_LINE="Version ${VERSION}."
                     VERSION_MARKER="<!-- ci-tracker:version=${VERSION} -->"
+                  fi
+                  # The headline, when there is one, already says what broke, so
+                  # the body opens with the cause and the log rather than with
+                  # five lines of metadata the title and the run link repeat.
+                  HEADLINE_LINE="\`${JOB_NAME}\` is failing in **${FAILED_STEP}**."
+                  if [ -n "${HEADLINE:-}" ]; then
+                    HEADLINE_LINE="\`${JOB_NAME}\` is failing in **${FAILED_STEP}**: ${HEADLINE}."
                   fi
                   REASON_LINE=""
                   if [ -n "${REASON:-}" ]; then
-                    REASON_LINE="**Likely cause:** ${REASON}"
+                    REASON_LINE="**Likely cause.** ${REASON}"
                   fi
 
                   cat > /tmp/issue-body.md << ISSUEEOF
-                  ## ${TITLE}
                   ${RUN_MARKER}
                   ${VERSION_MARKER}
+                  ${HEADLINE_LINE}
 
-                  **Workflow:** ${WORKFLOW_NAME}
-                  **Job:** ${JOB_NAME}
-                  ${VERSION_LINE}
-                  **Failed step:** ${FAILED_STEP}
                   ${REASON_LINE}
-                  **Status:** Failing since ${TIMESTAMP}
-                  **Consecutive failures:** 1
-
-                  ### Latest Failure
-
-                  - **Run:** [#${RUN_ID}](${RUN_URL})
-                  - **Trigger:** ${{ github.event_name }}
-                  - **Ref:** ${{ github.ref }}
-
-                  ### Error Summary
 
                   \`\`\`
                   ${LOG_SNIPPET}
                   \`\`\`
 
-                  ### Failure History
+                  Failing since ${TIMESTAMP} — **1** consecutive failure.
+                  Workflow \`${WORKFLOW_NAME}\`, job \`${JOB_NAME}\`, on \`${{ github.ref }}\` via ${{ github.event_name }}. ${VERSION_LINE}
+
+                  ### Failure history
 
                   | # | Date | Run | Ref | Trigger |
                   |---|------|-----|-----|---------|
@@ -253,14 +283,14 @@ jobs:
                   # reconciles: keep the lowest number, fold the rest into it. Every run
                   # after this one then finds a single issue and comments on it.
                   DUPES=$(gh issue list --repo "${{ github.repository }}" \
-                    --search "\"$TITLE\" in:title" \
+                    --search "\"$PREFIX\" in:title" \
                     --state open --json number,title \
-                    --jq "[.[] | select(.title == \"$TITLE\") | .number] | sort | .[1:] | .[]")
+                    --jq "[.[] | select(.title | startswith(\"$PREFIX\")) | .number] | sort | .[1:] | .[]")
 
                   KEEP=$(gh issue list --repo "${{ github.repository }}" \
-                    --search "\"$TITLE\" in:title" \
+                    --search "\"$PREFIX\" in:title" \
                     --state open --json number,title \
-                    --jq "[.[] | select(.title == \"$TITLE\") | .number] | sort | .[0] // empty")
+                    --jq "[.[] | select(.title | startswith(\"$PREFIX\")) | .number] | sort | .[0] // empty")
 
                   for dupe in $DUPES; do
                     echo "Closing duplicate #$dupe in favour of #$KEEP"
@@ -274,9 +304,11 @@ jobs:
               env:
                   GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
                   ISSUE_NUMBER: ${{ steps.search.outputs.issue_number }}
+                  PREFIX: ${{ steps.search.outputs.prefix }}
                   RUN_ID: ${{ inputs.run_id }}
                   RUN_URL: ${{ inputs.run_url }}
                   FAILED_STEP: ${{ steps.logs.outputs.failed_step }}
+                  HEADLINE: ${{ steps.logs.outputs.headline }}
                   REASON: ${{ steps.logs.outputs.reason }}
                   VERSION: ${{ inputs.version }}
               run: |
@@ -285,26 +317,29 @@ jobs:
                   LOG_SNIPPET=$(cat /tmp/log_snippet.txt 2>/dev/null || echo "Logs unavailable")
                   VERSION_LINE=""
                   if [ -n "${VERSION:-}" ]; then
-                    VERSION_LINE="- **Version:** ${VERSION}"
+                    VERSION_LINE="Version ${VERSION}."
+                  fi
+                  HEADLINE_LINE=""
+                  if [ -n "${HEADLINE:-}" ]; then
+                    HEADLINE_LINE="**${HEADLINE}**"
                   fi
                   REASON_LINE=""
                   if [ -n "${REASON:-}" ]; then
-                    REASON_LINE="- **Likely cause:** ${REASON}"
+                    REASON_LINE="**Likely cause.** ${REASON}"
                   fi
 
                   cat > /tmp/comment-body.md << COMMENTEOF
-                  ## Failure — ${TIMESTAMP}
+                  ### Failed again — ${TIMESTAMP}
 
-                  - **Run:** [#${RUN_ID}](${RUN_URL})
-                  - **Failed step:** ${FAILED_STEP}
+                  ${HEADLINE_LINE}
+
                   ${REASON_LINE}
-                  ${VERSION_LINE}
-                  - **Ref:** ${{ github.ref }}
-                  - **Trigger:** ${{ github.event_name }}
 
                   \`\`\`
                   ${LOG_SNIPPET}
                   \`\`\`
+
+                  [Run #${RUN_ID}](${RUN_URL}) — step \`${FAILED_STEP}\`, on \`${{ github.ref }}\` via ${{ github.event_name }}. ${VERSION_LINE}
                   COMMENTEOF
 
                   sed 's/^                  //' /tmp/comment-body.md > /tmp/comment-body-clean.md
@@ -322,6 +357,15 @@ jobs:
                     { printf '%s\n\n' "$BODY"; printf '<!-- ci-tracker:run=%s -->\n' "$RUN_ID"; } > /tmp/marked-body.md
                   fi
                   gh issue edit "$ISSUE_NUMBER" --repo "${{ github.repository }}" --body-file /tmp/marked-body.md
+
+                  # A job that starts failing for a new reason keeps its issue --
+                  # the prefix is unchanged and it is the same job breaking -- but
+                  # the title should say what it is breaking on now rather than
+                  # what it broke on the first time.
+                  if [ -n "${HEADLINE:-}" ]; then
+                    gh issue edit "$ISSUE_NUMBER" --repo "${{ github.repository }}" \
+                      --title "${PREFIX}: ${HEADLINE}"
+                  fi
 
             - name: Close resolved issue
               if: inputs.status == 'success' && steps.search.outputs.issue_number != '' && steps.search.outputs.stale != 'true'
