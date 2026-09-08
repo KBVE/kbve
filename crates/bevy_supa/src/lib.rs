@@ -75,7 +75,7 @@ pub use error::SupaError;
 #[cfg(feature = "native")]
 mod client;
 #[cfg(feature = "native")]
-pub use client::SupaClient;
+pub use client::{QueryBuilder, SupaClient};
 
 // GoTrue auth + edge functions. `ehttp` compiles for native and wasm32 alike,
 // so this module carries no per-target gate of its own.

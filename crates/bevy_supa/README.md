@@ -2,7 +2,7 @@
 
 Supabase client with optional Bevy integration. Two halves of Supabase, two clients, one crate: PostgREST over `reqwest` for servers, GoTrue auth over `ehttp` for players — the latter compiling for `wasm32` so browser-hosted Bevy games can log a player in.
 
-The PostgREST half came out of `kbve` as `entity::client::supabase`; the auth half came out of `erust`, where it had been sharing a crate with egui widgets it never used.
+The PostgREST half came out of `kbve` as `entity::client::supabase`, which now re-exports it from here; the auth half came out of `erust`, where it had been sharing a crate with egui widgets it never used.
 
 ## Why
 
@@ -10,6 +10,7 @@ The PostgREST half came out of `kbve` as `entity::client::supabase`; the auth ha
 - **One client, two callers** — the same [`SupaClient`] is used from JNI MC plugins (no Bevy) and from servers as a `Resource` (with the `bevy` feature). No newtype wrapper needed.
 - **Browser-capable auth** — [`SupabaseClient`] talks to GoTrue over `ehttp`, which is `ureq` natively and `fetch` on wasm32. It is callback-driven, so it needs no async runtime and works on wasm's single thread.
 - **Schema-aware RPC** — [`SupaClient::rpc_schema`] sets `Content-Profile` / `Accept-Profile` headers so PostgREST routes calls to non-default schemas (e.g. `mc`, `tracker`).
+- **Table queries too** — `SupaClient::from("table")` returns a `QueryBuilder` for the cases with no RPC behind them. It inherits the client's headers and timeout, so a query cannot end up unauthenticated or unbounded.
 - **JWT layering** — [`SupaClient::with_jwt`] swaps just the `Authorization` header so service-role + per-user JWT can coexist on one client.
 
 ## Which client?
@@ -130,6 +131,7 @@ client.sign_in_with_password("player@example.com", "hunter2", |result| {
 | [`SupaClient::new`] / [`with_timeout`] / [`from_env`] / [`with_jwt`] | Constructors + builder ops                                                     |
 | [`SupaClient::rpc`]                                                  | RPC in the default schema                                                      |
 | [`SupaClient::rpc_schema`]                                           | RPC in a specific PostgreSQL schema                                            |
+| `SupaClient::from` → `QueryBuilder`                                  | Direct table query — filters, order, pagination, insert/update/delete          |
 | [`SupaError`]                                                        | PostgREST error enum (`Config`, `Transport`, `Http`, `Decode`)                 |
 | `BevySupaPlugin`                                                     | Bevy plugin — inserts `SupaClient` as a `Resource` (feature `bevy` + `native`) |
 | `DEFAULT_TIMEOUT`                                                    | 15 s — tuned for in-cluster Kong → PostgREST hops                              |
