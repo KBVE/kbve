@@ -288,7 +288,7 @@ jobs:
                       apps/irc/irc-gateway
                       apps/discordsh/api
                       apps/discordsh/bot
-                      apps/chuckrpg/axum-chuckrpg
+                      apps/chuckrpg/api
                       apps/rentearth/axum-rentearth
                       apps/rareicon/axum-rareicon
                       apps/cryptothrone/api

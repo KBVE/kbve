@@ -13,8 +13,8 @@ tags:
 key: unreal_chuck_beta
 pipeline: unreal_game
 app_name: chuck
-source_path: apps/chuckrpg/unreal-chuck
-version_toml: apps/chuckrpg/unreal-chuck/version.toml
+source_path: apps/chuckrpg/unreal
+version_toml: apps/chuckrpg/unreal/version.toml
 version: "0.3.57"
 runner: arc-runner-ue
 author: h0lybyte
@@ -43,7 +43,7 @@ engine:
 external_publish:
     itch_user: kbve
     itch_game: chuckrpg
-shell_path: apps/chuckrpg/unreal-chuck
+shell_path: apps/chuckrpg/unreal
 template: splash
 tableOfContents: false
 editUrl: false
@@ -68,7 +68,7 @@ bento:
         and shipped to itch.io as kbve/chuckrpg via the ci-unreal pipeline.
     ctas:
         - label: View source
-          href: https://github.com/KBVE/kbve/tree/main/apps/chuckrpg/unreal-chuck
+          href: https://github.com/KBVE/kbve/tree/main/apps/chuckrpg/unreal
           primary: true
           external: true
         - label: Build
@@ -162,7 +162,7 @@ Version tracking via butler's `--userversion` parameter. Requires the `butler_ap
 
 ## Release
 
-Bump `version:` above `version.toml` (`apps/chuckrpg/unreal-chuck/version.toml`),
+Bump `version:` above `version.toml` (`apps/chuckrpg/unreal/version.toml`),
 run `moon run astro-kbve:sync-ci-manifest`, commit. The next `ci-main` run fans
 out the game build + itch upload for this entry.
 
@@ -177,7 +177,7 @@ Forgejo remote, which the builder normalizes to the authenticated HTTPS ingress
 route at build time.
 
 When `engine.external_repo_url` is empty the builder falls back to the monorepo
-shell `apps/chuckrpg/unreal-chuck` (the lightweight plugin build/test loop in
+shell `apps/chuckrpg/unreal` (the lightweight plugin build/test loop in
 `packages/unreal/`). Closes [#11828](https://github.com/KBVE/kbve/issues/11828).
 
 </BentoProse>

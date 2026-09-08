@@ -84,7 +84,7 @@ Large binaries tracked via `.gitattributes`. Commit only:
 1. Open Unreal Engine 5.8
 2. Create New Project → Blank
 3. Name: `UnrealCleanroom`
-4. Location: `apps/chuckrpg/unreal-cleanroom/`
+4. Location: `apps/chuckrpg/cleanroom/`
 5. Save
 
 ### Option 2: CLI (if UE 5.8 CLI available)
@@ -94,7 +94,7 @@ Large binaries tracked via `.gitattributes`. Commit only:
 /path/to/UE_5.8/Engine/Binaries/Mac/UnrealEditor \
   -CreateProject \
   -projectname=UnrealCleanroom \
-  -targetpath=apps/chuckrpg/unreal-cleanroom
+  -targetpath=apps/chuckrpg/cleanroom
 ```
 
 ## Integration with Main Project

@@ -6,7 +6,7 @@ tags: ['rust', 'docker']
 
 tasks:
     container:
-        script: 'docker buildx build --platform linux/amd64 -f apps/chuckrpg/axum-chuckrpg/Dockerfile -t kbve/chuckrpg:latest --load .'
+        script: 'docker buildx build --platform linux/amd64 -f apps/chuckrpg/api/Dockerfile -t kbve/chuckrpg:latest --load .'
         options:
             runFromWorkspaceRoot: true
 
@@ -15,7 +15,7 @@ tasks:
     # on the same target. It differs only in pushing the layer cache to the
     # registry and carrying runInCI, so a local `container` stays a local build.
     container-publish:
-        script: 'docker buildx build --platform linux/amd64 --cache-from=type=gha --cache-from=type=registry,ref=ghcr.io/kbve/chuckrpg:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/chuckrpg:buildcache,mode=max -f apps/chuckrpg/axum-chuckrpg/Dockerfile -t kbve/chuckrpg:latest --load .'
+        script: 'docker buildx build --platform linux/amd64 --cache-from=type=gha --cache-from=type=registry,ref=ghcr.io/kbve/chuckrpg:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/chuckrpg:buildcache,mode=max -f apps/chuckrpg/api/Dockerfile -t kbve/chuckrpg:latest --load .'
         options:
             runFromWorkspaceRoot: true
             cache: false

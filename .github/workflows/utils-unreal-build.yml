@@ -9,7 +9,7 @@ on:
                 type: string
 
             shell_path:
-                description: '[server] Monorepo shell project path (e.g. apps/chuckrpg/unreal-chuck)'
+                description: '[server] Monorepo shell project path (e.g. apps/chuckrpg/unreal)'
                 required: false
                 type: string
                 default: ''

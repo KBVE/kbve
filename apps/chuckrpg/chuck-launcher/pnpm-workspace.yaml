@@ -1,7 +1,0 @@
-packages:
-  - '.'
-  - '../../../packages/npm/tauri'
-  - '../../../packages/npm/observ'
-
-onlyBuiltDependencies:
-  - esbuild
