@@ -1,7 +1,13 @@
 use bevy::input::mouse::{AccumulatedMouseMotion, AccumulatedMouseScroll};
 use bevy::prelude::*;
 
-use super::player::Player;
+/// The character the camera orbits.
+///
+/// A component rather than `With<Player>`, so spectating, a cutscene or a
+/// mounted vehicle is a matter of moving this tag rather than teaching the
+/// camera about each case.
+#[derive(Component)]
+pub struct CameraTarget;
 
 const MIN_PITCH: f32 = -1.35;
 const MAX_PITCH: f32 = 1.15;
@@ -21,10 +27,23 @@ impl Plugin for CameraPlugin {
         // never the part that was late.
         app.add_systems(Startup, spawn_camera).add_systems(
             PostUpdate,
-            follow_player.before(TransformSystems::Propagate),
+            follow_target.before(TransformSystems::Propagate),
         );
     }
 }
+
+/// How fast the focus chases the target vertically, per second, as the rate of
+/// an exponential decay rather than a fraction per frame -- a fraction would
+/// make the camera stiffer at high frame rates and looser at low ones.
+///
+/// Only vertical is damped. A capsule on a triangle mesh is always being nudged
+/// a few millimetres out of the ground and steps up terrain in discrete bumps,
+/// and following that rigidly is what reads as an unsteady camera. Horizontally
+/// there is no such noise -- the motion is the player's own input, already
+/// smooth -- so the focus tracks it exactly. Smoothing it instead costs a
+/// steady-state offset of `speed / rate`, which is invisible along the view
+/// axis but slides the character off centre when strafing.
+const FOLLOW_RATE_VERTICAL: f32 = 7.0;
 
 #[derive(Component)]
 pub struct OrbitCamera {
@@ -32,6 +51,10 @@ pub struct OrbitCamera {
     pub pitch: f32,
     pub distance: f32,
     pub focus_height: f32,
+    /// The point the camera looks at: the target's position, with the height
+    /// damped. `None` until the first frame, so the camera starts on the target
+    /// instead of easing in from the world origin.
+    focus: Option<Vec3>,
 }
 
 impl Default for OrbitCamera {
@@ -41,6 +64,7 @@ impl Default for OrbitCamera {
             pitch: -0.42,
             distance: 11.0,
             focus_height: 1.4,
+            focus: None,
         }
     }
 }
@@ -63,11 +87,12 @@ fn spawn_camera(mut commands: Commands) {
     ));
 }
 
-fn follow_player(
+fn follow_target(
+    time: Res<Time>,
     buttons: Res<ButtonInput<MouseButton>>,
     motion: Res<AccumulatedMouseMotion>,
     scroll: Res<AccumulatedMouseScroll>,
-    player: Single<&Transform, (With<Player>, Without<OrbitCamera>)>,
+    target: Single<&Transform, (With<CameraTarget>, Without<OrbitCamera>)>,
     mut camera: Single<(&mut OrbitCamera, &mut Transform)>,
 ) {
     let (orbit, transform) = &mut *camera;
@@ -80,8 +105,25 @@ fn follow_player(
         orbit.distance = (orbit.distance - scroll.delta.y).clamp(MIN_DISTANCE, MAX_DISTANCE);
     }
 
-    let focus = player.translation + Vec3::Y * orbit.focus_height;
+    let wanted = target.translation + Vec3::Y * orbit.focus_height;
+
+    // Exponential decay on height only, integrated over the frame's own
+    // duration so the result does not change with frame rate.
+    let focus = match orbit.focus {
+        Some(previous) => {
+            let vertical = 1.0 - (-FOLLOW_RATE_VERTICAL * time.delta_secs()).exp();
+            Vec3::new(
+                wanted.x,
+                previous.y + (wanted.y - previous.y) * vertical,
+                wanted.z,
+            )
+        }
+        None => wanted,
+    };
+    orbit.focus = Some(focus);
+
     let rotation = Quat::from_euler(EulerRot::YXZ, orbit.yaw, orbit.pitch, 0.0);
+
     transform.translation = focus + rotation * Vec3::Z * orbit.distance;
     transform.look_at(focus, Vec3::Y);
 }
