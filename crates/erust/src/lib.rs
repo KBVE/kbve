@@ -5,9 +5,16 @@ pub mod applicationstate;
 #[cfg(feature = "egui")]
 pub mod ironatom;
 pub mod state;
-pub mod supabase;
 #[cfg(feature = "egui")]
 pub mod widgets;
+
+/// The Supabase client, re-exported from `bevy_supa`.
+///
+/// It lived here until the Bevy games needed the same GoTrue flows: the module
+/// never touched egui, and `ehttp` already compiled for wasm32, so it moved to
+/// the crate that can also hand it to an ECS. Paths under `erust::supabase::`
+/// are unchanged.
+pub use bevy_supa::supabase;
 
 #[cfg(feature = "tauri")]
 pub mod tauri;

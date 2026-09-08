@@ -1,7 +1,7 @@
 [package]
 name = "erust"
 description = "Extendable egui and eframe components."
-version = "0.1.9"
+version = "0.2.0"
 authors = ["kbve", "h0lybyte"]
 homepage = "https://kbve.com/"
 readme = "README.md"
@@ -12,11 +12,17 @@ rust-version.workspace = true
 
 [features]
 default = ["egui"]
-egui = ["dep:egui", "dep:eframe", "dep:image"]
+egui = ["dep:egui", "dep:eframe", "dep:ehttp", "dep:image"]
 tauri = []
 
 [dependencies]
 base64 = { workspace = true }
+# The Supabase client this crate used to own. `auth` is the ehttp transport,
+# which is the same code that shipped here; `native` stays off so the reqwest
+# PostgREST half is not dragged into a GUI or Tauri binary.
+bevy_supa = { version = "0.2.0", path = "../bevy_supa", default-features = false, features = [
+    "auth",
+] }
 chrono = { workspace = true, features = ["default", "serde"] }
 holy = { version = "0.2.2", path = "../holy" }
 log = { workspace = true }
@@ -35,8 +41,7 @@ eframe = { version = "0.36.2", default-features = false, optional = true, featur
     "wayland",       # Linux.
     "x11",           # Linux.
 ] }
-ehttp = "0.6.0"
+# Only the image widgets fetch directly now; the Supabase calls go through
+# bevy_supa, which carries its own copy.
+ehttp = { version = "0.6.0", optional = true }
 image = { version = "0.25.9", optional = true, default-features = false, features = ["png", "jpeg", "webp"] }
-
-[target.'cfg(target_arch = "wasm32")'.dependencies]
-wasm-bindgen-futures = { workspace = true }

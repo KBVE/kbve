@@ -4105,9 +4105,10 @@ dependencies = [
 
 [[package]]
 name = "bevy_supa"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "bevy",
+ "ehttp",
  "reqwest 0.13.4",
  "serde",
  "serde_json",
@@ -7423,9 +7424,10 @@ checksum = "dea2df4cf52843e0452895c455a1a2cfbb842a1e7329671acf418fdc53ed4c59"
 
 [[package]]
 name = "erust"
-version = "0.1.9"
+version = "0.2.0"
 dependencies = [
  "base64 0.22.1",
+ "bevy_supa",
  "chrono",
  "eframe",
  "egui",
@@ -7435,7 +7437,6 @@ dependencies = [
  "log",
  "serde",
  "serde_json",
- "wasm-bindgen-futures",
 ]
 
 [[package]]
