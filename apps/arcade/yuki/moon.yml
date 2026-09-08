@@ -1,0 +1,56 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+# Yuki, the virtual concierge. A VRM avatar dock plus the fullscreen skills
+# scene, lifted out of astro-kbve so the three.js payload is not part of the
+# site build. Two Vite entries: index.html is the dock, jay.html is the scene.
+layer: 'application'
+language: 'typescript'
+stack: 'frontend'
+tags: ['vite', 'playwright', 'web-game']
+
+owners:
+    defaultOwner: '@h0lybyte'
+
+env:
+    # The chat stream and the docs metadata are still axum-kbve routes. Until
+    # they move to services/api the dev server proxies them to production.
+    YUKI_API_TARGET: 'https://kbve.com'
+    YUKI_DEV_PORT: '4330'
+
+tasks:
+    dev:
+        script: 'vite'
+        options:
+            cache: false
+            persistent: true
+
+    build:
+        script: 'npx tsc && vite build'
+        inputs:
+            [
+                'src/**/*',
+                'public/**/*',
+                '*.html',
+                'vite.config.ts',
+                'tsconfig.json',
+            ]
+        outputs: ['dist']
+
+    preview:
+        script: 'vite preview'
+        deps: ['~:build']
+        options:
+            cache: false
+            persistent: true
+
+    e2e:
+        script: 'pnpm exec playwright test --config=playwright.config.ts'
+        deps: ['~:build']
+
+    # Same suite with the line reporter, which is what a log without a terminal
+    # wants. CI runs this one.
+    e2e-ci:
+        script: 'pnpm exec playwright test --config=playwright.config.ts --reporter=line'
+        deps: ['~:build']
+        options:
+            cache: false
