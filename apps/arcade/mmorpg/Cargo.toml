@@ -1,0 +1,58 @@
+[package]
+name = "mmorpg"
+description = "3D open-world MMORPG client on bevy + avian3d, one source for native and browser wgpu."
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+rust-version.workspace = true
+
+[features]
+# `native` carries everything that is a liability in a browser: the threaded
+# task pool, avian's rayon solver, and the two linux windowing backends. A
+# wasm build is `--no-default-features --features webgpu`, so none of it is
+# compiled rather than compiled and left inert.
+default = ["native"]
+native = ["bevy/multi_threaded", "bevy/x11", "bevy/wayland", "avian3d/parallel"]
+webgpu = ["bevy/webgpu"]
+
+[dependencies]
+bevy = { workspace = true, features = [
+	"std",
+	"async_executor",
+	"bevy_asset",
+	"bevy_color",
+	"bevy_core_pipeline",
+	"bevy_gizmos",
+	"bevy_log",
+	"bevy_mesh",
+	"bevy_pbr",
+	"bevy_render",
+	"bevy_state",
+	"bevy_text",
+	"bevy_ui",
+	"bevy_ui_render",
+	"bevy_window",
+	"bevy_animation",
+	"bevy_gltf",
+	"bevy_world_serialization",
+	# Spawning a glTF goes through the world-asset spawner, which reflects
+	# every component it writes. Without this the first character panics on
+	# "world contains the unregistered type bevy_transform::...::Transform" --
+	# the types derive Reflect, but nothing registers them.
+	"reflect_auto_register",
+	"bevy_winit",
+	"default_font",
+	"png",
+	"tonemapping_luts",
+	"zstd_rust",
+] }
+kinetree = { path = "../../../crates/kinetree" }
+bevy_gltf = { workspace = true }
+avian3d = { workspace = true, features = [
+	"3d",
+	"f32",
+	"parry-f32",
+	"debug-plugin",
+	"collider-from-mesh",
+] }

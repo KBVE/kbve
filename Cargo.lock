@@ -12540,6 +12540,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "mmorpg"
+version = "0.1.0"
+dependencies = [
+ "avian3d",
+ "bevy",
+ "bevy_gltf",
+ "kinetree",
+]
+
+[[package]]
 name = "moka"
 version = "0.12.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -14058,6 +14068,7 @@ dependencies = [
  "num-derive",
  "num-traits",
  "ordered-float 5.3.0",
+ "rayon",
  "rstar 0.12.2",
  "serde",
  "serde_arrays",
@@ -14117,6 +14128,7 @@ dependencies = [
  "num-derive",
  "num-traits",
  "ordered-float 5.3.0",
+ "rayon",
  "rstar 0.12.2",
  "serde",
  "serde_arrays",

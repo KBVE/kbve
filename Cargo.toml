@@ -33,6 +33,7 @@ members = [
 	'apps/agones/friendslop/server',
 	'apps/media/reel',
 	'apps/arcade/colony',
+	'apps/arcade/mmorpg',
 ]
 
 exclude = [
@@ -67,6 +68,11 @@ axum-extra = "0.12.6"
 base64 = "0.22.1"
 bb8 = "0.9"
 bevy = { version = "0.19", default-features = false }
+# Depended on directly only to turn on its `bevy_animation` feature: the
+# `bevy/bevy_animation` feature adds the plugin but does NOT forward to
+# bevy_gltf, so the loader compiles without animation and a glb yields zero
+# Animation labels. Feature unification does the rest.
+bevy_gltf = { version = "0.19", default-features = false, features = ["bevy_animation"] }
 bincode = "2.0"
 bitflags = "2.9.0"
 bytes = "1"

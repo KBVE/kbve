@@ -114,6 +114,7 @@ projects:
 
         # Bevy games
         colony: 'apps/arcade/colony'
+        mmorpg: 'apps/arcade/mmorpg'
 
         # Published npm packages
         astro: 'packages/npm/astro'
