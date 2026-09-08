@@ -1,16 +1,31 @@
 ---
-title:  Jay Yuki
+title: Jay Yuki
 head:
     - tag: title
       content: KiloByte Virtual Enterprise | KBVE
 description: |
     Yuki Jay is a software developer and content creator at KiloByte Virtual Enterprise.
-template: splash
 editUrl: false
 lastUpdated: false
 next: false
 ---
 
-import AstroJayYuki from '@/components/jay/AstroJayYuki.astro';
+Yuki is the KBVE virtual concierge: a VRM avatar dock with a streaming chat
+panel, plus a fullscreen three.js skills scene.
 
-<AstroJayYuki />
+The runtime moved out of this site into its own Vite app at
+`apps/arcade/yuki`, so the three.js and VRM payload is no longer part of the
+astro-kbve bundle. The chat stream is still an axum-kbve route —
+`GET /api/v1/yuki/chat?q=<prompt>` — until it moves to the shared services
+API.
+
+## Running it
+
+```shell
+moon run yuki:dev      # dock at http://localhost:4330, scene at /jay.html
+moon run yuki:build
+moon run yuki:e2e
+```
+
+`YUKI_API_TARGET` points the dev proxy at whichever backend serves
+`/api/v1/yuki/chat`; it defaults to `https://kbve.com`.

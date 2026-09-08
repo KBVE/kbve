@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>Yuki — Virtual Concierge</title>
+		<meta
+			name="description"
+			content="Yuki, the KBVE virtual concierge: a VRM avatar dock with a streaming chat panel." />
+	</head>
+	<body>
+		<main class="yuki-host">
+			<h1>Yuki</h1>
+			<p>
+				Virtual concierge — early preview. Open the dock in the lower
+				right. The fullscreen skills scene lives at
+				<a href="/jay.html">/jay.html</a>.
+			</p>
+		</main>
+
+		<div
+			id="kbve-yuki-dock"
+			class="kbve-yuki-dock"
+			data-kbve-yuki-dock
+			data-state="collapsed"
+			aria-live="polite">
+			<button
+				type="button"
+				class="kbve-yuki-dock__fab"
+				data-kbve-yuki-toggle
+				aria-controls="kbve-yuki-panel"
+				aria-expanded="false"
+				aria-label="Open Yuki assistant">
+				<img
+					class="kbve-yuki-dock__avatar"
+					src="/assets/images/brand/earth_ceo.png"
+					alt=""
+					loading="lazy"
+					decoding="async"
+					draggable="false" />
+				<span class="kbve-yuki-dock__pulse" aria-hidden="true"></span>
+			</button>
+
+			<aside
+				id="kbve-yuki-panel"
+				class="kbve-yuki-dock__panel"
+				role="dialog"
+				aria-modal="false"
+				aria-labelledby="kbve-yuki-panel-title"
+				hidden
+				inert>
+				<header class="kbve-yuki-dock__header">
+					<div class="kbve-yuki-dock__title-row">
+						<img
+							class="kbve-yuki-dock__title-avatar"
+							src="/assets/images/brand/earth_ceo.png"
+							alt=""
+							loading="lazy"
+							decoding="async"
+							draggable="false" />
+						<div>
+							<h2
+								id="kbve-yuki-panel-title"
+								class="kbve-yuki-dock__title">
+								Yuki
+							</h2>
+							<p class="kbve-yuki-dock__subtitle">
+								Virtual concierge · early preview
+							</p>
+						</div>
+					</div>
+					<button
+						type="button"
+						class="kbve-yuki-dock__close"
+						data-kbve-yuki-toggle
+						aria-label="Close Yuki assistant">
+						<svg
+							width="16"
+							height="16"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							aria-hidden="true">
+							<line x1="18" y1="6" x2="6" y2="18"></line>
+							<line x1="6" y1="6" x2="18" y2="18"></line>
+						</svg>
+					</button>
+				</header>
+
+				<div
+					class="kbve-yuki-dock__body"
+					id="kbve-yuki-mount"
+					data-kbve-yuki-mount>
+					<p class="kbve-yuki-dock__placeholder">
+						Yuki is warming up — the assistant runtime ships in a
+						follow-up release.
+					</p>
+				</div>
+			</aside>
+		</div>
+
+		<script type="module" src="/src/main.ts"></script>
+	</body>
+</html>
