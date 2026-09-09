@@ -6,8 +6,12 @@ tags: ['docker']
 
 tasks:
     container:
+        command: 'noop'
+        args: []
         deps: ['~:containerx']
         options:
+            mergeArgs: 'replace'
+            mergeDeps: 'replace'
             cache: false
     containerx:
         script: 'docker buildx build --load --platform linux/amd64 -f packages/docker/kasm-cloakbrowser/Dockerfile -t ghcr.io/kbve/kasm-cloakbrowser:dev packages/docker/kasm-cloakbrowser'
