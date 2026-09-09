@@ -228,7 +228,11 @@ jobs:
                         sh tools/release/set-toml-version.sh "$f" "$VERSION"
                         ;;
                       *.json)
-                        jq --arg v "$VERSION" '.version = $v' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+                        # sed rather than jq: jq reprints the whole document in
+                        # its own style, so a one-line version bump arrived as a
+                        # 15-line reindent of deno.json (tabs to spaces).
+                        sed 's|^\([[:space:]]*"version"[[:space:]]*:[[:space:]]*\)"[^"]*"|\1"'"$VERSION"'"|' "$f" > "$f.tmp"
+                        mv "$f.tmp" "$f"
                         ;;
                       *)
                         echo "::warning::Unknown version file type '$f' — skipping."
