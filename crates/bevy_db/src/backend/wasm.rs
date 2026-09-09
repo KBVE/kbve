@@ -3,7 +3,7 @@
 //! Uses a single object store with composite keys (`"table\0key"`) to avoid
 //! needing to know all table names at IndexedDB open time.
 
-use once_cell::sync::OnceCell;
+use std::sync::OnceLock;
 use rexie::{ObjectStore, Rexie, TransactionMode};
 use wasm_bindgen::JsValue;
 
@@ -31,7 +31,7 @@ fn js_err(e: rexie::Error) -> DbError {
 pub(crate) struct WasmStore {
     db_name: String,
     /// Lazily initialized. First operation triggers the IndexedDB open.
-    db: OnceCell<Rexie>,
+    db: OnceLock<Rexie>,
 }
 
 // Safety: WASM is single-threaded. Rexie handles are !Send but we never
@@ -44,7 +44,7 @@ impl WasmStore {
     pub fn new(db_name: String) -> Self {
         Self {
             db_name,
-            db: OnceCell::new(),
+            db: OnceLock::new(),
         }
     }
 

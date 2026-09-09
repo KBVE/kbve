@@ -3255,7 +3255,6 @@ dependencies = [
  "hound",
  "log",
  "natural",
- "once_cell",
  "ort",
  "portable-pty",
  "rdev",

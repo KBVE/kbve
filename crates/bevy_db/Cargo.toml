@@ -39,7 +39,6 @@ rexie = "0.6"
 wasm-bindgen = { workspace = true, features = ["default"] }
 wasm-bindgen-futures = { workspace = true }
 js-sys = { workspace = true, features = ["default"] }
-once_cell = "1"
 
 [dev-dependencies]
 tokio = { workspace = true, features = ["default", "macros", "rt"] }

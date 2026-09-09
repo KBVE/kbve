@@ -15,7 +15,7 @@
 //! - VS Code compatibility
 //! - Proper toolchain configuration
 
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use specta::Type;
@@ -26,7 +26,7 @@ const CLAUDE_DEVCONTAINER_FEATURE: &str =
     "ghcr.io/anthropics/devcontainer-features/claude-code:1.0";
 
 /// Regex patterns for sanitizing sensitive data from error messages and logs
-static SENSITIVE_PATTERNS: Lazy<Regex> = Lazy::new(|| {
+static SENSITIVE_PATTERNS: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?i)(sk-ant-[a-zA-Z0-9\-_]+|ghp_[a-zA-Z0-9]+|gho_[a-zA-Z0-9]+|github_pat_[a-zA-Z0-9_]+|ANTHROPIC_API_KEY=[^\s]+|GH_TOKEN=[^\s]+|GITHUB_TOKEN=[^\s]+|Bearer\s+[a-zA-Z0-9\-_.]+)").unwrap()
 });
 
