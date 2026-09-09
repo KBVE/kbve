@@ -9,6 +9,9 @@ $schema: 'https://moonrepo.dev/schemas/toolchains.json'
 # task pick its own toolchain (`rustup run nightly`) instead of the one a moon
 # plugin would pin for the whole workspace.
 
+deno:
+    version: '2.1.4'
+
 node:
     version: '24.20.0'
 
