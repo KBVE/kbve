@@ -56,4 +56,6 @@ pub use rig::{Bone, Half, MAX_SPINE, Side, Skeleton, UNMAPPED, arm, leg, role_of
 mod plugin;
 
 #[cfg(feature = "bevy")]
-pub use plugin::{IkLimb, IkLimbBones, KinetreePlugin, KinetreeSystems, bone_world_transform};
+pub use plugin::{
+    IkLimb, IkLimbBones, KinetreePlugin, KinetreeSystems, LimbOutput, bone_world_transform,
+};

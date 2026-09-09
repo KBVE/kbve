@@ -142,7 +142,7 @@ fn draw_probes(
 /// distance test.
 #[derive(SystemParam)]
 struct Pose<'w, 's> {
-    transforms: Query<'w, 's, &'static mut Transform>,
+    transforms: Query<'w, 's, &'static Transform>,
     parents: Query<'w, 's, &'static ChildOf>,
     globals: Query<'w, 's, &'static GlobalTransform>,
 }
@@ -158,65 +158,68 @@ fn aim_feet(
     let step = (BLEND_RATE * time.delta_secs()).min(1.0);
     let eye = camera.translation();
 
-    for (mut limb, bones, mut goal) in &mut limbs {
-        // Distance first, before any walk or cast. One frame stale, because
-        // propagation has not run -- which does not matter for a 25m cutoff.
-        let far = pose
-            .globals
-            .get(goal.character)
-            .is_ok_and(|body| body.translation().distance_squared(eye) > IK_RANGE * IK_RANGE);
-        if far {
-            goal.grounded -= goal.grounded * step;
-            limb.weight = 0.0;
-            continue;
-        }
-
-        // Composed from the bone chain, not read from GlobalTransform: this is
-        // the pose the animation just wrote, before the solver touches it.
-        let Some(ankle) = bone_world_transform(bones.tip, &pose.transforms, &pose.parents) else {
-            continue;
-        };
-        let ankle = ankle.translation;
-
-        // The character's own capsule is the only thing standing between the
-        // ankle and the terrain; without excluding it every ray stops on the
-        // body and the feet stick to the collider's shell. Excluded by entity
-        // rather than by a Player check, so an NPC's feet work the same way.
-        let filter = SpatialQueryFilter::default().with_excluded_entities([goal.character]);
-
-        let origin = ankle + Vec3::Y * PROBE_UP;
-        let hit = enabled
-            .0
-            .then(|| spatial.cast_ray(origin, Dir3::NEG_Y, PROBE_UP + PROBE_DOWN, true, &filter));
-
-        let plant = match hit.flatten() {
-            Some(hit) => {
-                let ground = origin + Vec3::NEG_Y * hit.distance;
-                let target = ground + Vec3::Y * goal.ankle_height;
-                limb.goal = target;
-                goal.grounded += (1.0 - goal.grounded) * step;
-
-                // How far the clip is already holding this foot above where it
-                // would be planted. Negative means the clip has driven it into
-                // the ground, which the solver always corrects.
-                let lift = ankle.y - target.y;
-                if lift <= PLANT_BAND {
-                    1.0
-                } else if lift >= SWING_BAND {
-                    0.0
-                } else {
-                    let t = (lift - PLANT_BAND) / (SWING_BAND - PLANT_BAND);
-                    1.0 - t * t * (3.0 - 2.0 * t)
-                }
-            }
-            None => {
+    limbs
+        .par_iter_mut()
+        .for_each(|(mut limb, bones, mut goal)| {
+            // Distance first, before any walk or cast. One frame stale, because
+            // propagation has not run -- which does not matter for a 25m cutoff.
+            let far = pose
+                .globals
+                .get(goal.character)
+                .is_ok_and(|body| body.translation().distance_squared(eye) > IK_RANGE * IK_RANGE);
+            if far {
                 goal.grounded -= goal.grounded * step;
-                0.0
+                limb.weight = 0.0;
+                return;
             }
-        };
 
-        limb.weight = plant * goal.grounded;
-    }
+            // Composed from the bone chain, not read from GlobalTransform: this is
+            // the pose the animation just wrote, before the solver touches it.
+            let Some(ankle) = bone_world_transform(bones.tip, &pose.transforms, &pose.parents)
+            else {
+                return;
+            };
+            let ankle = ankle.translation;
+
+            // The character's own capsule is the only thing standing between the
+            // ankle and the terrain; without excluding it every ray stops on the
+            // body and the feet stick to the collider's shell. Excluded by entity
+            // rather than by a Player check, so an NPC's feet work the same way.
+            let filter = SpatialQueryFilter::default().with_excluded_entities([goal.character]);
+
+            let origin = ankle + Vec3::Y * PROBE_UP;
+            let hit = enabled.0.then(|| {
+                spatial.cast_ray(origin, Dir3::NEG_Y, PROBE_UP + PROBE_DOWN, true, &filter)
+            });
+
+            let plant = match hit.flatten() {
+                Some(hit) => {
+                    let ground = origin + Vec3::NEG_Y * hit.distance;
+                    let target = ground + Vec3::Y * goal.ankle_height;
+                    limb.goal = target;
+                    goal.grounded += (1.0 - goal.grounded) * step;
+
+                    // How far the clip is already holding this foot above where it
+                    // would be planted. Negative means the clip has driven it into
+                    // the ground, which the solver always corrects.
+                    let lift = ankle.y - target.y;
+                    if lift <= PLANT_BAND {
+                        1.0
+                    } else if lift >= SWING_BAND {
+                        0.0
+                    } else {
+                        let t = (lift - PLANT_BAND) / (SWING_BAND - PLANT_BAND);
+                        1.0 - t * t * (3.0 - 2.0 * t)
+                    }
+                }
+                None => {
+                    goal.grounded -= goal.grounded * step;
+                    0.0
+                }
+            };
+
+            limb.weight = plant * goal.grounded;
+        });
 }
 
 /// Prints the whole vertical chain once a second: where physics thinks the
