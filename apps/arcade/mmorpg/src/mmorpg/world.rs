@@ -3,6 +3,7 @@
 use avian3d::prelude::*;
 use bevy::prelude::*;
 
+use super::river::river_at;
 use super::terrain::TerrainPlugin;
 
 pub const WORLD_SEED: u32 = 0x4b_42_56_45;
@@ -20,7 +21,20 @@ impl Plugin for WorldPlugin {
 }
 
 /// Ground height at a world-space XZ position; the single source of truth for terrain elevation.
+///
+/// The river carve lives here rather than in the mesh builder: a bed only the renderer knows about
+/// is ground the rest of the game still treats as solid.
 pub fn height_at(x: f32, z: f32) -> f32 {
+    let natural = natural_height(x, z);
+    let Some(sample) = river_at(x, z) else {
+        return natural;
+    };
+    let carved = sample.bed().min(natural);
+    natural + (carved - natural) * sample.carve_weight()
+}
+
+/// Terrain elevation before any water is carved into it.
+pub fn natural_height(x: f32, z: f32) -> f32 {
     let mut height = 0.0;
     let mut amplitude = 18.0;
     let mut frequency = 1.0 / 140.0;
@@ -30,8 +44,29 @@ pub fn height_at(x: f32, z: f32) -> f32 {
         amplitude *= 0.48;
         frequency *= 2.07;
     }
+    height + ridge_at(x, z) - 12.0
+}
+
+/// The large-scale trend of [`natural_height`], used to route water.
+///
+/// Flow only needs to know which way the land falls, and dropping the fine octaves keeps the
+/// routing search affordable.
+pub fn macro_height(x: f32, z: f32) -> f32 {
+    let mut height = 0.0;
+    let mut amplitude = 18.0;
+    let mut frequency = 1.0 / 140.0;
+    for octave in 0..2 {
+        height +=
+            value_noise(x * frequency, z * frequency, WORLD_SEED ^ (octave * 0x9e37)) * amplitude;
+        amplitude *= 0.48;
+        frequency *= 2.07;
+    }
+    height + ridge_at(x, z) - 12.0
+}
+
+fn ridge_at(x: f32, z: f32) -> f32 {
     let ridge = 1.0 - (value_noise(x / 320.0, z / 320.0, WORLD_SEED ^ 0x51ed) * 2.0 - 1.0).abs();
-    height + ridge * ridge * 26.0 - 12.0
+    ridge * ridge * 26.0
 }
 
 /// Ground normal differentiated from [`height_at`], so it is continuous across chunk and LOD seams.
