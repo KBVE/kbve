@@ -1,8 +1,14 @@
 # cert-manager Certificate for the Stalwart SMTP/submission listeners.
-# Requires DNS: mail.herbmail.com A -> 142.132.206.71 (the shared public
-# LB IP) before the HTTP-01 challenge can complete. The resulting
-# stalwart-tls Secret is mounted read-only at /opt/stalwart-tls and the
-# cert/key paths are wired up in the Stalwart admin UI.
+#
+# DNS-01, not HTTP-01. stalwart-lb only publishes 25/587/465 — there is no
+# port 80 backend for mail.herbmail.com, so the HTTP-01 solver's self check
+# (GET http://mail.herbmail.com/.well-known/acme-challenge/...) could never
+# succeed and cert-manager retried it forever, which is where the
+# "propagation check failed" flood in the cert-manager-controller logs came
+# from. DNS-01 via Cloudflare needs no HTTP path at all.
+#
+# The resulting stalwart-tls Secret is mounted read-only at /opt/stalwart-tls
+# and the cert/key paths are wired up in the Stalwart admin UI.
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
@@ -13,6 +19,6 @@ spec:
     dnsNames:
         - mail.herbmail.com
     issuerRef:
-        name: letsencrypt-http
+        name: letsencrypt-dns
         kind: ClusterIssuer
         group: cert-manager.io
