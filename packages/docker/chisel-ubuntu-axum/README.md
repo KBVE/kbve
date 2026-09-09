@@ -113,7 +113,7 @@ CI compares the two — when they differ, Docker publish triggers. Post-publish 
 | `discordsh-api`     | planned |
 | `axum-kbve`         | planned |
 | `axum-memes`        | planned |
-| `axum-herbmail`     | planned |
+| `herbmail-api`      | planned |
 | `axum-chuckrpg`     | planned |
 | `axum-cryptothrone` | planned |
 | `rows`              | planned |

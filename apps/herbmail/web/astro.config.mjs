@@ -5,7 +5,7 @@ import react from '@astrojs/react';
 
 export default defineConfig({
   site: 'https://herbmail.com',
-  outDir: '../../../dist/apps/astro-herbmail',
+  outDir: '../../../dist/apps/herbmail-web',
   integrations: [
     starlight({
       title: 'Herbmail',
