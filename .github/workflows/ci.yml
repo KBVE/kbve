@@ -72,28 +72,34 @@ jobs:
                   TITLE: ${{ github.event.pull_request.title }}
               run: node tools/commit/validate.mjs --title "$TITLE"
 
-    # What the shards below have to provision, decided from the project graph
-    # rather than installed unconditionally.
+    # What the shards run, and what they have to provision to run it, both read
+    # off the project graph rather than assumed.
+    #
+    # One query for both answers, on purpose. They used to be two: this job
+    # decided the toolchains from `before..HEAD`, and each shard then let
+    # `moon ci` resolve its own base -- `Base revision: N/A` -- so on a merge
+    # commit the shards ran tasks from a wider range than the toolchain answer
+    # covered, and died on `proto::locate::missing_executable` (#16998). Naming
+    # the targets here leaves nothing for the shards to re-derive.
     #
     # The shard preamble was 422 seconds before a single task ran, and three
     # quarters of it was for toolchains the change did not touch: 127s of `uv`
     # and 150s of rust cache and disk clearing on a pull request that moved
     # TypeScript. Times three shards.
     #
-    # Fails open, deliberately. Every output defaults to "true" and the shards
-    # test for `!= 'false'`, so a detection that errors, times out, or meets a
-    # ref it cannot resolve installs everything and costs what it costs today.
-    # The opposite bias trades seven minutes for a red shard that reads as a
-    # broken toolchain.
+    # Fails open on toolchains, deliberately: a detection that errors, times
+    # out, or meets a ref it cannot resolve installs everything and costs what
+    # it costs today. It does not fail open on the target list -- an empty list
+    # would report green having run nothing -- so an unresolvable range widens
+    # to the whole graph and a moon that cannot answer fails the job.
     toolchains:
-        name: Detect toolchains
+        name: Plan the run
         runs-on: ubuntu-latest
         timeout-minutes: 10
         outputs:
             rust: ${{ steps.detect.outputs.rust }}
             python: ${{ steps.detect.outputs.python }}
-            base: ${{ steps.detect.outputs.base }}
-            head: ${{ steps.detect.outputs.head }}
+            targets: ${{ steps.detect.outputs.targets }}
         steps:
             - name: Checkout
               uses: actions/checkout@v7
@@ -111,13 +117,13 @@ jobs:
             - name: Setup moon
               uses: ./.github/actions/setup-moon
 
-            - name: Query the affected tasks
+            - name: Plan what the shards run
               id: detect
               env:
                   EVENT: ${{ github.event_name }}
                   BASE_REF: ${{ github.base_ref }}
                   BEFORE: ${{ github.event.before }}
-              run: node tools/moon/affected-toolchains.mjs
+              run: node tools/moon/ci-plan.mjs
 
     ci:
         name: ci (${{ matrix.index }}/${{ matrix.total }})
@@ -132,21 +138,10 @@ jobs:
         env:
             NEEDS_RUST: ${{ needs.toolchains.outputs.rust != 'false' }}
             NEEDS_PYTHON: ${{ needs.toolchains.outputs.python != 'false' }}
-            # The range the detect job answered from. Two computations of "what
-            # changed" decided one thing between them: this job asked
-            # affected-toolchains.mjs over `before..HEAD`, and `moon ci` then
-            # resolved its own base, logged `Base revision: N/A`, and ran tasks
-            # from a wider range than the one the toolchain answer covered. A
-            # merge commit into dev is where they part -- run 34281544535 drew
-            # mmorpg:lint from an edit two commits back that had already gone
-            # green, with rust deliberately not installed, and died on
-            # `proto::locate::missing_executable` in kinetree:build.
-            #
-            # Empty when the detector could not resolve a range. It installs
-            # every toolchain in that case, and leaving these unset lets moon
-            # pick its own base, so the fail-open bias holds on both halves.
-            MOON_BASE: ${{ needs.toolchains.outputs.base }}
-            MOON_HEAD: ${{ needs.toolchains.outputs.head }}
+            # Every `project:task` the plan job resolved, newline separated. No
+            # base or head here on purpose: affectedness was decided once, up
+            # there, and these are explicit targets.
+            CI_TARGETS: ${{ needs.toolchains.outputs.targets }}
         steps:
             # Two minutes of deleting preinstalled SDKs, for the target
             # directory of a cargo build. A shard with no rust task fits on the
@@ -269,31 +264,35 @@ jobs:
             - name: Provision the moon toolchains
               run: moon setup
 
-            # Scoped to the four static-analysis task ids, which is what this
-            # job replaced. A bare `moon ci` runs every task carrying runInCI,
-            # and here that is 45 container builds and 59 browser suites --
-            # neither of which this runner has a docker registry or a
-            # Playwright install for, and neither of which ran on a pull
-            # request before. The e2e suites keep their own workflows.
+            # `moon run`, not `moon ci`. The targets moon ci takes are additive:
+            # it runs every affected task carrying runInCI and then the named
+            # ones on top, so `moon ci ':lint' ':test' ':typecheck' ':check'`
+            # was also running the 60 `e2e` suites, 52 `container` builds and 26
+            # `containerx-publish` tasks in the graph -- the last of those carry
+            # `--cache-to=type=registry,ref=ghcr.io/...`, a registry write, on
+            # every pull request. Run 34279599076 failed in `irc-e2e:e2e` for
+            # want of a Playwright browser this runner never had (#17003).
+            # Those lanes keep their own workflows, with the credentials and the
+            # browsers they need.
             #
-            # typecheck and check were left off when this replaced Nx, so
-            # `tsc --noEmit` and `astro check` ran nowhere for the length of the
-            # migration. Turning them on surfaced 67 errors across rn and seven
-            # astro sites, all fixed in the commit that added them here.
+            # An explicit target list runs those tasks and their dependencies
+            # and nothing else, so a task added later cannot join this lane by
+            # defaulting to runInCI.
             #
-            # `moon ci` has no project filter, so the Godot suites opt out with
-            # runInCI: false in their own moon.yml -- the reason lives beside
-            # the task it applies to rather than in this file.
-            #
-            # The unsets are for the fail-open case. GitHub writes an unset job
-            # output as the empty string rather than dropping the variable, and
-            # an empty MOON_BASE is a base moon cannot resolve rather than one
-            # it was never given.
-            - name: Run affected lint and test
+            # Sharded round-robin over the sorted list rather than by
+            # `moon ci --job`, which has no `moon run` counterpart. Deterministic
+            # for a given plan, which is what matters -- a target must land on
+            # exactly one shard.
+            - name: Run the planned lint and test
               run: |
-                  [ -n "${MOON_BASE:-}" ] || unset MOON_BASE
-                  [ -n "${MOON_HEAD:-}" ] || unset MOON_HEAD
-                  moon ci ':lint' ':test' ':typecheck' ':check' --job ${{ matrix.index }} --job-total ${{ matrix.total }}
+                  TARGETS="$(printf '%s\n' "$CI_TARGETS" | awk 'NF' | awk -v i=${{ matrix.index }} -v n=${{ matrix.total }} '(NR - 1) % n == i')"
+                  if [ -z "$TARGETS" ]; then
+                    echo "nothing planned for this shard"
+                    exit 0
+                  fi
+                  echo "$TARGETS"
+                  # shellcheck disable=SC2086
+                  moon run $TARGETS
 
     # ci.yml runs on every push and pull request and was the only high-traffic
     # workflow with no failure tracker, so a broken dev sat unreported until

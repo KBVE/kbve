@@ -10,11 +10,11 @@ tasks:
     # A calling job that grants a called workflow less than it asks for does not
     # fail the job -- GitHub refuses to create the run, with no job and no log.
     # actionlint cannot see it, because every file involved is valid on its own.
-    # `lint` rather than a task of its own, so `moon ci` reaches it.
+    # `lint` rather than a task of its own, so the CI lane reaches it.
     lint:
-        # ci.yml runs `moon ci ':lint' ':test'`, which matches the task id
-        # exactly -- a task called lint-pins is never reached by it. The dep is
-        # what puts the pin check in CI.
+        # ci.yml plans its targets by task id -- lint, test, typecheck, check
+        # and nothing else -- so a task called lint-pins is never reached by it.
+        # The dep is what puts the pin check in CI.
         deps: ['~:lint-pins', '~:lint-tracker', '~:lint-secrets']
         command: 'node permissions.mjs'
         toolchains: ['node']
