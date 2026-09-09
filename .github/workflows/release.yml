@@ -521,8 +521,14 @@ jobs:
     # tag alone, saying so in the issue rather than deleting something that
     # shipped. A docker push can be repeated onto the same tag and the
     # deployment pin can be re-run, so neither of those burns a version.
+    #
+    # "Not spent" is not the same as "not published", and the report has to keep
+    # them apart. edge@0.1.51 pushed its image and then failed in the deployment
+    # pin; the version was correctly left reusable, but the issue it opened said
+    # "Nothing was published" while ghcr.io/kbve/edge:0.1.51 existed. Whoever
+    # read that would go looking for a registry that did not match the report.
     cleanup:
-        name: Withdraw the tag if nothing shipped
+        name: Withdraw the tag unless the version is spent
         needs:
             - verify
             - test
@@ -550,12 +556,23 @@ jobs:
                   CRATES: ${{ needs.crates.result }}
                   NPM: ${{ needs.npm.result }}
                   PYTHON: ${{ needs.python.result }}
+                  DOCKER: ${{ needs.docker.result }}
               run: |
                   spent=false
                   for result in "$CRATES" "$NPM" "$PYTHON"; do
                     if [ "$result" = "success" ]; then spent=true; fi
                   done
                   echo "spent=$spent" >> "$GITHUB_OUTPUT"
+
+                  # Whether an image reached the registry is a separate question
+                  # from whether the version is spent. A docker push can be
+                  # repeated onto the same tag, so it never spends a version --
+                  # but the image is still there, and a report that says nothing
+                  # was published sends whoever reads it looking for a registry
+                  # that does not match what they were told.
+                  published=false
+                  if [ "$DOCKER" = "success" ]; then published=true; fi
+                  echo "published=$published" >> "$GITHUB_OUTPUT"
 
             - name: Delete the draft release and the tag
               if: ${{ steps.spent.outputs.spent == 'false' }}
@@ -586,6 +603,7 @@ jobs:
                   TAG: ${{ github.ref_name }}
                   REPO: ${{ github.repository }}
                   SPENT: ${{ steps.spent.outputs.spent }}
+                  PUBLISHED: ${{ steps.spent.outputs.published }}
                   RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
               run: |
                   set -euo pipefail
@@ -606,6 +624,26 @@ jobs:
                       echo
                       echo "Fix the failing lane, bump the version manifest, and tag the next patch."
                       echo "Do not retag \`$TAG\`."
+                    } > body.md
+                  elif [ "$PUBLISHED" = "true" ]; then
+                    title="Release $TAG failed after the image was published"
+                    {
+                      echo "The image was pushed to the registry, then a later lane failed."
+                      echo
+                      echo "\`$TAG\` and its draft release have been deleted, and the version is"
+                      echo "**not** spent: a docker push can be repeated onto the same tag, so the"
+                      echo "same version can be tagged again once the failure is fixed."
+                      echo
+                      echo "The registry already holds an image for this version. Retagging"
+                      echo "republishes it and re-runs the lanes that failed."
+                      echo
+                      echo "Run: $RUN_URL"
+                      echo
+                      echo "Fix the failure in a pull request, then tag the same version again:"
+                      echo
+                      echo '```'
+                      echo "git tag $TAG && git push origin $TAG"
+                      echo '```'
                     } > body.md
                   else
                     title="Release $TAG failed before publishing"

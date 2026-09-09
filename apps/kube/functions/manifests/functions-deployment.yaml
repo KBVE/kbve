@@ -17,11 +17,11 @@ spec:
             labels:
                 app: functions
             annotations:
-                rollout-restart: '2026-04-04T09:00:00Z'
+                rollout-restart: '2026-09-09T14:09:20Z'
         spec:
             containers:
                 - name: edge-functions
-                  image: ghcr.io/kbve/edge:0.1.50
+                  image: ghcr.io/kbve/edge:0.1.51
                   imagePullPolicy: Always
                   command:
                       - edge-runtime

@@ -4,6 +4,18 @@ layer: 'tool'
 language: 'bash'
 
 tasks:
+    # The other half of the stub check below. The guard is the only thing that
+    # notices when a root workspace dependency lands without the stubs being
+    # regenerated -- #17013 was two of them, `bevy_egui` and `ron`, three
+    # commits apart -- and by then it is a red dev. A task means the fix is
+    # `moon run guards:sync` rather than a path the failure message has to
+    # spell out.
+    sync:
+        command: 'python3 tools/guards/sync-cargo-workspace-stubs.py'
+        options:
+            cache: false
+            runFromWorkspaceRoot: true
+
     lint:
         deps: ['~:lint-paths']
         script: >-

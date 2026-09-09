@@ -14,7 +14,7 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS 
 WORKDIR /app
 
 # Copy root dependency and config files (layer-cached separately from source)
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc tsconfig.base.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
 
 # Install all dependencies (hoisted mode - all go to root node_modules)
 # Cache pnpm content-addressable store across builds to skip re-downloading
