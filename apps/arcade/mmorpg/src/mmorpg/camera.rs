@@ -1,5 +1,6 @@
 use bevy::input::mouse::{AccumulatedMouseMotion, AccumulatedMouseScroll};
 use bevy::prelude::*;
+use bevy_egui::PrimaryEguiContext;
 
 /// The character the camera orbits.
 ///
@@ -8,6 +9,12 @@ use bevy::prelude::*;
 /// camera about each case.
 #[derive(Component)]
 pub struct CameraTarget;
+
+/// Ordering handle for the camera update, so anything that wants to influence
+/// the camera -- a target lock swinging the yaw -- can be scheduled before it
+/// rather than a frame late.
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+pub struct CameraSystems;
 
 const MIN_PITCH: f32 = -1.35;
 const MAX_PITCH: f32 = 1.15;
@@ -27,7 +34,9 @@ impl Plugin for CameraPlugin {
         // never the part that was late.
         app.add_systems(Startup, spawn_camera).add_systems(
             PostUpdate,
-            follow_target.before(TransformSystems::Propagate),
+            follow_target
+                .in_set(CameraSystems)
+                .before(TransformSystems::Propagate),
         );
     }
 }
@@ -73,6 +82,8 @@ fn spawn_camera(mut commands: Commands) {
     commands.spawn((
         OrbitCamera::default(),
         Camera3d::default(),
+        // egui draws through a camera, and this is the only one.
+        PrimaryEguiContext,
         AmbientLight {
             color: Color::srgb(0.68, 0.76, 0.92),
             brightness: 260.0,

@@ -1,0 +1,33 @@
+[package]
+name = "combat"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+description = "Deterministic combat resolution for real-time and turn-based games — stats, abilities, effects and damage, with no engine attached."
+homepage = "https://kbve.com/"
+repository.workspace = true
+keywords = ["combat", "rpg", "damage", "deterministic", "gamedev"]
+categories = ["game-development", "simulation"]
+readme = "README.md"
+
+[features]
+default = ["std"]
+
+std = []
+
+# Bevy ECS integration -- components wrapping the pure types, the messages that
+# request and report an ability, and the systems that tick cooldowns, casts and
+# effects. Deliberately separable: without this feature the crate is the
+# resolution maths and nothing else, which is what lets an authoritative server
+# or a headless balance run share it with the client.
+bevy = ["dep:bevy", "std"]
+
+[dependencies]
+bevy = { workspace = true, optional = true }
+
+[package.metadata.docs.rs]
+all-features = true
+targets = ["x86_64-unknown-linux-gnu", "wasm32-unknown-unknown"]
+rustdoc-args = ["--cfg", "docsrs"]

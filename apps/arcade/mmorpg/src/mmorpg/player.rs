@@ -9,6 +9,7 @@ use bevy::prelude::*;
 
 use super::camera::{CameraTarget, OrbitCamera};
 use super::character::{MoveIntent, spawn_character};
+use super::combat::{CameraLock, Faction, make_combatant};
 use super::world::height_at;
 
 /// How many idle characters to place beside the player.
@@ -39,7 +40,16 @@ fn spawn_cast(mut commands: Commands, assets: Res<AssetServer>) {
     let drop = |x: f32, z: f32| Vec3::new(x, height_at(x, z) + 4.0, z);
 
     let player = spawn_character(&mut commands, &assets, drop(0.0, 0.0));
-    commands.entity(player).insert((Player, CameraTarget));
+    commands
+        .entity(player)
+        .insert((Player, CameraTarget, CameraLock::default()));
+    make_combatant(
+        &mut commands,
+        player,
+        Faction::Friendly,
+        500,
+        super::combat::player_stats(),
+    );
 
     for index in 0..COMPANIONS {
         let angle = index as f32 / COMPANIONS as f32 * core::f32::consts::TAU;

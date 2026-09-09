@@ -1,9 +1,14 @@
 use bevy::prelude::*;
 
+pub mod action;
 pub mod camera;
 pub mod character;
+pub mod combat;
 pub mod foot_ik;
 pub mod player;
+pub mod target_ring;
+pub mod theme;
+pub mod ui;
 pub mod world;
 
 pub struct MmorpgPlugin;
@@ -13,9 +18,13 @@ impl Plugin for MmorpgPlugin {
         app.add_plugins((
             world::WorldPlugin,
             character::CharacterPlugin,
+            action::ActionPlugin,
+            combat::GameCombatPlugin,
             player::PlayerPlugin,
             foot_ik::FootIkPlugin,
             camera::CameraPlugin,
+            target_ring::TargetRingPlugin,
+            ui::UiPlugin,
         ));
     }
 }

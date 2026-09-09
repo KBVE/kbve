@@ -1,0 +1,37 @@
+$schema: 'https://moonrepo.dev/schemas/project.json'
+
+# Deterministic combat resolution, with no engine attached.
+#
+# Real-time and turn-based combat disagree about when a resolution happens and
+# how time advances; they agree completely about what a resolution is. So the
+# maths lives here, once, and the scheduling lives with whoever owns the world
+# -- the bevy client, an authoritative server, or a headless run used to balance
+# the numbers.
+layer: 'library'
+stack: 'frontend'
+toolchains:
+    default: 'rust'
+
+owners:
+    defaultOwner: '@h0lybyte'
+
+# Publishes to crates.io.
+tags: ['crates']
+
+tasks:
+    # The crate claims to need no allocator and no std. Left unchecked that
+    # claim rots quietly, because the default build has std on and would never
+    # notice a `Vec` or a `f32::sqrt` reaching a file.
+    check-core:
+        command: 'cargo check -p combat --no-default-features'
+        inputs:
+            - '@group(sources)'
+            - '@group(manifests)'
+
+    # And it has to reach wasm, since the browser client predicts the same
+    # outcomes the server confirms.
+    check-wasm:
+        command: 'cargo check -p combat --target wasm32-unknown-unknown'
+        inputs:
+            - '@group(sources)'
+            - '@group(manifests)'

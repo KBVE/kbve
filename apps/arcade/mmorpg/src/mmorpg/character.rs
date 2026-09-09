@@ -31,6 +31,18 @@ const CLIP_JOG: usize = 67;
 const CLIP_SPRINT: usize = 108;
 const CLIP_JUMP: usize = 72;
 
+// The combat clips, by their index in UAL1.glb. Indices rather than names
+// because that is what `GltfAssetLabel::Animation` takes; the names they
+// correspond to are beside them, since an index alone is unreadable and the
+// next person to touch this will otherwise have to dump the glTF again.
+const CLIP_PUNCH_JAB: usize = 84; // Punch_Jab -- leads with the LEFT hand
+const CLIP_PUNCH_CROSS: usize = 83; // Punch_Cross -- leads with the right
+const CLIP_CAST_CHANNEL: usize = 104; // Spell_Simple_Idle_Loop
+const CLIP_CAST_RELEASE: usize = 105; // Spell_Simple_Shoot
+const CLIP_CAST_POISON: usize = 101; // Spell_Double_Shoot_Loop
+const CLIP_HIT: usize = 47; // Hit_Chest
+const CLIP_DEATH: usize = 37; // Death01
+
 pub const CHARACTER_RADIUS: f32 = 0.32;
 pub const CHARACTER_HEIGHT: f32 = 1.16;
 const RUN_SPEED: f32 = 5.5;
@@ -111,7 +123,56 @@ pub struct Locomotion {
     pub jog: AnimationNodeIndex,
     pub sprint: AnimationNodeIndex,
     pub jump: AnimationNodeIndex,
+    pub jab: Attack,
+    pub cross: Attack,
+    pub cast_channel: Clip,
+    pub cast_release: Clip,
+    pub cast_poison: Clip,
+    pub hit: Clip,
+    pub death: Clip,
     pub graph: Handle<AnimationGraph>,
+}
+
+/// An attack clip.
+///
+/// What was measured out of these clips, for the IK and contact-timing work
+/// that will consume it:
+///
+/// | clip | length | lead arm | contact | reach |
+/// |------|--------|----------|---------|-------|
+/// | `Punch_Jab`   | 0.867s | left  | 50% (greatest reach) | 0.255m |
+/// | `Punch_Cross` | 1.000s | right | 42% (greatest reach) | 0.547m |
+///
+/// Contact is the frame of greatest reach because these are thrusts. A sword
+/// swing would instead use its frame of peak hand speed -- 25% for
+/// `Sword_Attack` -- since a blade sweeps through contact rather than stopping
+/// at it. The lead arm is measured, not assumed: the jab extends the left hand
+/// 0.547m and the right only 0.255m.
+///
+/// The fields those numbers belong in are not here yet, because nothing reads
+/// them and a field nobody reads is a field nobody keeps correct.
+#[derive(Clone)]
+pub struct Attack {
+    pub clip: Clip,
+}
+
+/// A one-shot clip, kept with its handle.
+///
+/// The handle is the point: a one-shot has to be given back to locomotion when
+/// it ends, and knowing when that is means asking the loaded
+/// [`AnimationClip`] how long it runs. A hard-coded duration would be wrong for
+/// every clip but one, and silently wrong when an artist re-times it.
+#[derive(Clone)]
+pub struct Clip {
+    pub node: AnimationNodeIndex,
+    pub handle: Handle<AnimationClip>,
+}
+
+impl Clip {
+    /// How long the clip runs, or `None` while it is still loading.
+    pub fn duration(&self, clips: &Assets<AnimationClip>) -> Option<f32> {
+        clips.get(&self.handle).map(|clip| clip.duration())
+    }
 }
 
 #[derive(Component, Clone, Copy, PartialEq, Eq, Debug)]
@@ -125,11 +186,18 @@ pub enum Gait {
 
 pub struct CharacterPlugin;
 
+/// Ordering handle for movement and locomotion animation, so the action layer
+/// can place itself after the gait it overrides.
+#[derive(SystemSet, Debug, Clone, PartialEq, Eq, Hash)]
+pub struct CharacterSystems;
+
 impl Plugin for CharacterPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Startup, load_locomotion).add_systems(
             Update,
-            (apply_movement, pick_gait, face_travel_direction, drive_gait).chain(),
+            (apply_movement, pick_gait, face_travel_direction, drive_gait)
+                .chain()
+                .in_set(CharacterSystems),
         );
     }
 }
@@ -140,13 +208,27 @@ fn load_locomotion(
     mut graphs: ResMut<Assets<AnimationGraph>>,
 ) {
     let clip = |index: usize| assets.load(GltfAssetLabel::Animation(index).from_asset(CLIPS));
-    let (graph, nodes) = AnimationGraph::from_clips([
+
+    let handles: [Handle<AnimationClip>; 12] = [
         clip(CLIP_IDLE),
         clip(CLIP_WALK),
         clip(CLIP_JOG),
         clip(CLIP_SPRINT),
         clip(CLIP_JUMP),
-    ]);
+        clip(CLIP_PUNCH_JAB),
+        clip(CLIP_PUNCH_CROSS),
+        clip(CLIP_CAST_CHANNEL),
+        clip(CLIP_CAST_RELEASE),
+        clip(CLIP_CAST_POISON),
+        clip(CLIP_HIT),
+        clip(CLIP_DEATH),
+    ];
+    let (graph, nodes) = AnimationGraph::from_clips(handles.clone());
+
+    let one_shot = |index: usize| Clip {
+        node: nodes[index],
+        handle: handles[index].clone(),
+    };
 
     commands.insert_resource(Locomotion {
         idle: nodes[0],
@@ -154,6 +236,13 @@ fn load_locomotion(
         jog: nodes[2],
         sprint: nodes[3],
         jump: nodes[4],
+        jab: Attack { clip: one_shot(5) },
+        cross: Attack { clip: one_shot(6) },
+        cast_channel: one_shot(7),
+        cast_release: one_shot(8),
+        cast_poison: one_shot(9),
+        hit: one_shot(10),
+        death: one_shot(11),
         graph: graphs.add(graph),
     });
 }
@@ -443,12 +532,16 @@ fn face_travel_direction(
 
 fn drive_gait(
     locomotion: Option<Res<Locomotion>>,
-    characters: Query<(Ref<Gait>, &CharacterAnimator)>,
+    characters: Query<(Ref<Gait>, &CharacterAnimator), Without<super::action::Action>>,
     mut players: Query<(&mut AnimationPlayer, &mut AnimationTransitions)>,
 ) {
     let Some(locomotion) = locomotion else {
         return;
     };
+    // Characters mid-action are excluded by the query rather than skipped
+    // inside it: a swing that gets overwritten by a gait change on the frame
+    // the player happens to start running is the sort of thing that looks like
+    // a dropped input.
     for (gait, animator) in &characters {
         let Ok((mut player, mut transitions)) = players.get_mut(animator.0) else {
             continue;

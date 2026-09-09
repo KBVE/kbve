@@ -16,6 +16,11 @@ default = ["native"]
 native = ["bevy/multi_threaded", "bevy/x11", "bevy/wayland", "avian3d/parallel"]
 webgpu = ["bevy/webgpu"]
 
+# Links bevy as a shared library instead of statically, which removes most of
+# the link step from every rebuild. Iteration only -- the resulting binary needs
+# the dylib beside it, so it must never reach a release or a wasm build.
+turbo = ["bevy/dynamic_linking"]
+
 [dependencies]
 bevy = { workspace = true, features = [
 	"std",
@@ -48,6 +53,8 @@ bevy = { workspace = true, features = [
 	"zstd_rust",
 ] }
 kinetree = { path = "../../../crates/kinetree" }
+combat = { path = "../../../crates/combat", features = ["bevy"] }
+bevy_egui = { workspace = true, features = ["render", "default_fonts"] }
 bevy_gltf = { workspace = true }
 avian3d = { workspace = true, features = [
 	"3d",
