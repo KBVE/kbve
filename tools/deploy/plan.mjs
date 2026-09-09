@@ -26,8 +26,8 @@
 // CI, and it is how windmill was first written -- but moon applies it to
 // `moon run` as well as to `moon ci`, so the lane's own invocation found no
 // task and the first real deploy failed with "No tasks found". Keeping a
-// service out of CI is ci.yml's `moon ci ':lint' ':test'` scope doing it: name
-// the task anything but lint or test and CI never reaches it.
+// service out of CI is ci.yml's target scope doing it: it plans lint, test,
+// typecheck and check by id, so a task named none of those is never reached.
 
 import { execFileSync } from 'node:child_process';
 import { appendFileSync } from 'node:fs';
@@ -64,8 +64,8 @@ for (const project of services.sort((a, b) => a.id.localeCompare(b.id))) {
   if (filtered.length > 0) {
     problems.push(
       `${project.id} sets runInCI: false on ${filtered.join(' and ')}. moon applies that to ` +
-        `\`moon run\` too, so the deploy lane would find no task. Remove it -- ci.yml runs ` +
-        `\`moon ci ':lint' ':test'\`, so a task named neither is already out of CI.`,
+        `\`moon run\` too, so the deploy lane would find no task. Remove it -- ci.yml plans ` +
+        `only lint, test, typecheck and check, so a task named none of those is already out of CI.`,
     );
     continue;
   }
