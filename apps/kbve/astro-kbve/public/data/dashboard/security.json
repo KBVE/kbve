@@ -1,20 +1,20 @@
 {
-  "generated_at": "2026-09-08T05:51:15Z",
+  "generated_at": "2026-09-09T05:58:17Z",
   "summary": {
-    "critical": 3,
-    "high": 37,
-    "medium": 52,
-    "low": 7,
-    "info": 30
+    "critical": 4,
+    "high": 60,
+    "medium": 58,
+    "low": 10,
+    "info": 20
   },
   "ecosystems": {
     "npm": {
-      "total": 82,
+      "total": 116,
       "severities": {
-        "critical": 3,
-        "high": 37,
-        "medium": 35,
-        "low": 7,
+        "critical": 4,
+        "high": 60,
+        "medium": 42,
+        "low": 10,
         "info": 0
       },
       "advisories": [
@@ -591,17 +591,255 @@
           "severity": "high",
           "package": "fast-uri",
           "url": "https://github.com/advisories/GHSA-4c8g-83qw-93j6"
+        },
+        {
+          "id": "1193659",
+          "title": "@ai-sdk/provider-utils has an Uncontrolled Resource Consumption issue",
+          "severity": "low",
+          "package": "@ai-sdk/provider-utils",
+          "url": "https://github.com/advisories/GHSA-866g-f22w-33x8"
+        },
+        {
+          "id": "1193671",
+          "title": "xmldom: HTML raw-text closing-tag case mismatch causes output amplification",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-6mj3-qw4j-hgrw"
+        },
+        {
+          "id": "1193674",
+          "title": "joi: Prototype pollution via a `__proto__` language key in custom messages",
+          "severity": "low",
+          "package": "joi",
+          "url": "https://github.com/advisories/GHSA-6w3j-5fw6-r9vr"
+        },
+        {
+          "id": "1193679",
+          "title": "joi: object().rename() with a template target can set the validated object's prototype",
+          "severity": "low",
+          "package": "joi",
+          "url": "https://github.com/advisories/GHSA-gg4h-3hg2-grpc"
+        },
+        {
+          "id": "1193683",
+          "title": "Vitest: Path Traversal / Arbitrary File Read via @vitest/mocker Redirect Mock",
+          "severity": "medium",
+          "package": "vitest",
+          "url": "https://github.com/advisories/GHSA-82fw-gwwq-j7x9"
+        },
+        {
+          "id": "1193684",
+          "title": "Vitest: Path Traversal / Arbitrary File Read via @vitest/mocker Redirect Mock",
+          "severity": "medium",
+          "package": "@vitest/mocker",
+          "url": "https://github.com/advisories/GHSA-82fw-gwwq-j7x9"
+        },
+        {
+          "id": "1193686",
+          "title": "baseline-browser-mapping process termination on invalid input causes denial of service",
+          "severity": "medium",
+          "package": "baseline-browser-mapping",
+          "url": "https://github.com/advisories/GHSA-w5vr-8v7q-w6rv"
+        },
+        {
+          "id": "1193687",
+          "title": "xmldom PI grammar regex ReDoS: quadratic backtracking on unterminated processing instructions",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-g53g-w8rj-fmg7"
+        },
+        {
+          "id": "1193689",
+          "title": "xmldom: Element name injection via createElement() bypasses requireWellFormed",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-w2rr-34g9-rvrj"
+        },
+        {
+          "id": "1193690",
+          "title": "xmldom: Element name injection via createElement() bypasses requireWellFormed",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-w2rr-34g9-rvrj"
+        },
+        {
+          "id": "1193692",
+          "title": "xmldom: Attribute name injection via setAttribute() bypasses requireWellFormed",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-4w3w-2rp5-g8jm"
+        },
+        {
+          "id": "1193693",
+          "title": "xmldom: Attribute name injection via setAttribute() bypasses requireWellFormed",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-4w3w-2rp5-g8jm"
+        },
+        {
+          "id": "1193695",
+          "title": "xmldom: Processing Instruction Target Injection Bypasses requireWellFormed",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-c7q8-3ch8-vqpv"
+        },
+        {
+          "id": "1193696",
+          "title": "xmldom: Processing Instruction Target Injection Bypasses requireWellFormed",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-c7q8-3ch8-vqpv"
+        },
+        {
+          "id": "1193699",
+          "title": "xmldom: DocType `name` Injection Bypasses requireWellFormed",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-27p8-2357-5qqv"
+        },
+        {
+          "id": "1193700",
+          "title": "xmldom: DocType `name` Injection Bypasses requireWellFormed",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-27p8-2357-5qqv"
+        },
+        {
+          "id": "1193701",
+          "title": "xmldom: Creation-time XML Name/QName validation is bypassable via an embedded line terminator, allowing injection on the default serialization path",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-3px3-54cx-rmw9"
+        },
+        {
+          "id": "1193702",
+          "title": "xmldom: requireWellFormed DocType publicId/systemId validation is bypassable via an embedded line terminator",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-vr34-hp96-76pp"
+        },
+        {
+          "id": "1193704",
+          "title": "xmldom: Parser silently accepts a not-well-formed end tag whose name is followed by a line break and trailing content",
+          "severity": "medium",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-6h8r-xr42-gp59"
+        },
+        {
+          "id": "1193705",
+          "title": "xmldom: Parser silently accepts a not-well-formed end tag whose name is followed by a line break and trailing content",
+          "severity": "medium",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-6h8r-xr42-gp59"
+        },
+        {
+          "id": "1193707",
+          "title": "xmldom: Quadratic-time attribute deduplication",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-8344-3jmq-59r6"
+        },
+        {
+          "id": "1193708",
+          "title": "xmldom: Quadratic-time attribute deduplication",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-8344-3jmq-59r6"
+        },
+        {
+          "id": "1193709",
+          "title": "xmldom: End-tag Whitespace-Trim Regex ReDoS \u2014 quadratic backtracking in the 0.8.x end-tag parser",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-x4fp-j954-r2f4"
+        },
+        {
+          "id": "1193711",
+          "title": "xmldom: Quadratic-memory consumption",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-965w-775f-mr7g"
+        },
+        {
+          "id": "1193712",
+          "title": "xmldom: Quadratic-memory consumption",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-965w-775f-mr7g"
+        },
+        {
+          "id": "1193714",
+          "title": "xmldom: Quadratic-time parsing via the malformed-input recovery path \u2014 `parseElementStartPart` re-scan and `normalize()` adjacent-text merge",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-93r5-fhx6-vmg9"
+        },
+        {
+          "id": "1193715",
+          "title": "xmldom: Quadratic-time parsing via the malformed-input recovery path \u2014 `parseElementStartPart` re-scan and `normalize()` adjacent-text merge",
+          "severity": "high",
+          "package": "@xmldom/xmldom",
+          "url": "https://github.com/advisories/GHSA-93r5-fhx6-vmg9"
+        },
+        {
+          "id": "1193723",
+          "title": "Astro: Remote code execution through AVIF image optimization",
+          "severity": "critical",
+          "package": "astro",
+          "url": "https://github.com/advisories/GHSA-26w7-cxv4-gfx2"
+        },
+        {
+          "id": "1193724",
+          "title": "Astro: Authorization bypass from missing path-segment boundary check when stripping the configured base",
+          "severity": "medium",
+          "package": "astro",
+          "url": "https://github.com/advisories/GHSA-376h-93r7-7g6f"
+        },
+        {
+          "id": "1193725",
+          "title": "sharp: Vulnerabilities in libheif: GHSA-g89c-p67h-r497 and GHSA-2jg2-4ch7-h545",
+          "severity": "high",
+          "package": "sharp",
+          "url": "https://github.com/advisories/GHSA-rgj7-g3m4-5g8c"
+        },
+        {
+          "id": "1193726",
+          "title": "js-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources",
+          "severity": "high",
+          "package": "js-yaml",
+          "url": "https://github.com/advisories/GHSA-2883-xcg3-v3hh"
+        },
+        {
+          "id": "1193727",
+          "title": "js-yaml: maxTotalMergeKeys does not limit CPU use for empty merge sources",
+          "severity": "high",
+          "package": "js-yaml",
+          "url": "https://github.com/advisories/GHSA-2883-xcg3-v3hh"
+        },
+        {
+          "id": "1193735",
+          "title": "SVGO: removeScripts allows executable links through namespace and control-character bypasses",
+          "severity": "high",
+          "package": "svgo",
+          "url": "https://github.com/advisories/GHSA-w27v-7q3p-w38r"
+        },
+        {
+          "id": "1193738",
+          "title": "SVGO: removeScripts incompletely sanitizes executable HTML in SVG foreignObject elements",
+          "severity": "medium",
+          "package": "svgo",
+          "url": "https://github.com/advisories/GHSA-4vpr-x523-8j87"
         }
       ]
     },
     "cargo": {
-      "total": 47,
+      "total": 36,
       "severities": {
         "critical": 0,
         "high": 0,
-        "medium": 17,
+        "medium": 16,
         "low": 0,
-        "info": 30
+        "info": 20
       },
       "advisories": [
         {
@@ -717,27 +955,6 @@
           "url": "https://github.com/Noxime/steamworks-rs/issues/321"
         },
         {
-          "id": "RUSTSEC-2026-0257",
-          "title": "Unix `BROWSER` handling allows browser argument injection",
-          "severity": "medium",
-          "package": "webbrowser",
-          "url": "https://github.com/amodm/webbrowser-rs/security/advisories/GHSA-2ph8-5cr8-hr33"
-        },
-        {
-          "id": "RUSTSEC-2024-0413",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "atk",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0416",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "atk-sys",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
           "id": "RUSTSEC-2025-0141",
           "title": "Bincode is unmaintained",
           "severity": "info",
@@ -757,62 +974,6 @@
           "severity": "info",
           "package": "derivative",
           "url": "https://github.com/mcarton/rust-derivative/issues/117"
-        },
-        {
-          "id": "RUSTSEC-2024-0412",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gdk",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0418",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gdk-sys",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0411",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gdkwayland-sys",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0417",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gdkx11",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0414",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gdkx11-sys",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0415",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gtk",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0420",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gtk-sys",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
-        },
-        {
-          "id": "RUSTSEC-2024-0419",
-          "title": "gtk-rs GTK3 bindings - no longer maintained",
-          "severity": "info",
-          "package": "gtk3-macros",
-          "url": "https://github.com/gtk-rs/gtk3-rs/commit/508a69b63a3c5bf73790e0e59101a955847f30d6"
         },
         {
           "id": "RUSTSEC-2024-0436",
