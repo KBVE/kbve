@@ -1,158 +1,134 @@
 {
-  "generated_at": "2026-09-08T05:47:28Z",
+  "generated_at": "2026-09-09T05:55:20Z",
   "window": {
     "days": 7,
-    "since": "2026-09-01"
+    "since": "2026-09-02"
   },
   "totals": {
     "runs": 1000,
-    "success": 630,
-    "failure": 221,
-    "cancelled": 133,
+    "success": 610,
+    "failure": 247,
+    "cancelled": 134,
     "skipped": 0,
-    "other": 16,
+    "other": 9,
     "flaky": 0,
-    "success_rate": 74.0,
-    "avg_duration_s": 3977
+    "success_rate": 71.2,
+    "avg_duration_s": 3588
   },
   "totals_24h": {
-    "runs": 295,
-    "success": 181,
-    "failure": 72,
-    "success_rate": 71.5
+    "runs": 329,
+    "success": 194,
+    "failure": 84,
+    "success_rate": 69.8
   },
   "workflows": [
     {
-      "name": "CI",
-      "runs": 255,
-      "success": 185,
-      "failure": 43,
-      "cancelled": 26,
+      "name": "CI - CodeQL",
+      "runs": 262,
+      "success": 136,
+      "failure": 113,
+      "cancelled": 12,
       "skipped": 0,
       "other": 1,
       "flaky": 0,
-      "success_rate": 81.1,
-      "avg_duration_s": 1707
+      "success_rate": 54.6,
+      "avg_duration_s": 1469
     },
     {
-      "name": "CI - CodeQL",
-      "runs": 253,
-      "success": 141,
-      "failure": 101,
-      "cancelled": 10,
+      "name": "CI",
+      "runs": 260,
+      "success": 161,
+      "failure": 67,
+      "cancelled": 30,
       "skipped": 0,
-      "other": 1,
+      "other": 2,
       "flaky": 0,
-      "success_rate": 58.3,
-      "avg_duration_s": 1412
+      "success_rate": 70.6,
+      "avg_duration_s": 2128
     },
     {
       "name": "CI - Dev",
-      "runs": 158,
-      "success": 130,
-      "failure": 8,
-      "cancelled": 19,
+      "runs": 171,
+      "success": 139,
+      "failure": 9,
+      "cancelled": 22,
       "skipped": 0,
       "other": 1,
       "flaky": 0,
-      "success_rate": 94.2,
-      "avg_duration_s": 1322
-    },
-    {
-      "name": "CI - Unreal Plugins (verify)",
-      "runs": 112,
-      "success": 21,
-      "failure": 50,
-      "cancelled": 30,
-      "skipped": 0,
-      "other": 11,
-      "flaky": 0,
-      "success_rate": 29.6,
-      "avg_duration_s": 25137
+      "success_rate": 93.9,
+      "avg_duration_s": 1289
     },
     {
       "name": "CI - Godot Tests",
-      "runs": 100,
-      "success": 67,
-      "failure": 4,
-      "cancelled": 28,
+      "runs": 112,
+      "success": 72,
+      "failure": 8,
+      "cancelled": 31,
       "skipped": 0,
       "other": 1,
       "flaky": 0,
-      "success_rate": 94.4,
-      "avg_duration_s": 1159
+      "success_rate": 90.0,
+      "avg_duration_s": 1335
+    },
+    {
+      "name": "CI - Unreal Plugins (verify)",
+      "runs": 77,
+      "success": 13,
+      "failure": 43,
+      "cancelled": 18,
+      "skipped": 0,
+      "other": 3,
+      "flaky": 0,
+      "success_rate": 23.2,
+      "avg_duration_s": 29172
     },
     {
       "name": "CI - Actionlint",
-      "runs": 53,
-      "success": 36,
+      "runs": 65,
+      "success": 44,
       "failure": 0,
-      "cancelled": 17,
+      "cancelled": 21,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 142
+      "avg_duration_s": 181
     },
     {
       "name": "CI - Forgejo Mirror",
       "runs": 11,
-      "success": 7,
-      "failure": 4,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 63.6,
-      "avg_duration_s": 259
-    },
-    {
-      "name": "CI - dbmate validate",
-      "runs": 9,
-      "success": 9,
+      "success": 11,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 563
+      "avg_duration_s": 262
     },
     {
       "name": "CI - Sync Branches",
-      "runs": 8,
-      "success": 8,
+      "runs": 10,
+      "success": 10,
       "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 376
-    },
-    {
-      "name": "CI - MC",
-      "runs": 6,
-      "success": 3,
-      "failure": 0,
-      "cancelled": 3,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 1381
+      "avg_duration_s": 268
     },
     {
       "name": "Daily Content",
       "runs": 4,
-      "success": 1,
-      "failure": 2,
+      "success": 2,
+      "failure": 1,
       "cancelled": 0,
       "skipped": 0,
       "other": 1,
       "flaky": 0,
-      "success_rate": 33.3,
-      "avg_duration_s": 678
+      "success_rate": 66.7,
+      "avg_duration_s": 682
     },
     {
       "name": ".github/workflows/ci-unreal-plugins.yml",
@@ -167,28 +143,28 @@
       "avg_duration_s": 0
     },
     {
-      "name": "CI - Atomic Branches",
+      "name": "CI - MC",
       "runs": 3,
-      "success": 2,
-      "failure": 1,
+      "success": 3,
+      "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
-      "success_rate": 66.7,
-      "avg_duration_s": 1194
+      "success_rate": 100.0,
+      "avg_duration_s": 1426
     },
     {
-      "name": "Release",
-      "runs": 3,
-      "success": 1,
-      "failure": 2,
+      "name": "CI - Atomic Branches",
+      "runs": 2,
+      "success": 2,
+      "failure": 0,
       "cancelled": 0,
       "skipped": 0,
       "other": 0,
       "flaky": 0,
-      "success_rate": 33.3,
-      "avg_duration_s": 1060
+      "success_rate": 100.0,
+      "avg_duration_s": 615
     },
     {
       "name": "CI Tracker Reaper",
@@ -203,18 +179,6 @@
       "avg_duration_s": 56
     },
     {
-      "name": "Deploy",
-      "runs": 2,
-      "success": 2,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 246
-    },
-    {
       "name": "CI - E2E / main",
       "runs": 1,
       "success": 0,
@@ -227,7 +191,7 @@
       "avg_duration_s": 1675
     },
     {
-      "name": "CI - Registry Cleanup (GHCR)",
+      "name": "Deploy",
       "runs": 1,
       "success": 1,
       "failure": 0,
@@ -236,19 +200,7 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 102
-    },
-    {
-      "name": "Graph Update: uv in /packages/python/kbve #1558777891",
-      "runs": 1,
-      "success": 1,
-      "failure": 0,
-      "cancelled": 0,
-      "skipped": 0,
-      "other": 0,
-      "flaky": 0,
-      "success_rate": 100.0,
-      "avg_duration_s": 385
+      "avg_duration_s": 142
     },
     {
       "name": "Graph Update: uv in /packages/python/kbve #1560107251",
@@ -275,7 +227,7 @@
       "avg_duration_s": 501
     },
     {
-      "name": "Organize Labels",
+      "name": "Graph Update: uv in /packages/python/kbve #1564059165",
       "runs": 1,
       "success": 1,
       "failure": 0,
@@ -284,7 +236,19 @@
       "other": 0,
       "flaky": 0,
       "success_rate": 100.0,
-      "avg_duration_s": 25
+      "avg_duration_s": 74
+    },
+    {
+      "name": "Release",
+      "runs": 1,
+      "success": 1,
+      "failure": 0,
+      "cancelled": 0,
+      "skipped": 0,
+      "other": 0,
+      "flaky": 0,
+      "success_rate": 100.0,
+      "avg_duration_s": 1016
     },
     {
       "name": "cargo in / for tauri-plugin-deep-link - Update #1562029625",
@@ -436,106 +400,106 @@
       "name": "CI",
       "branch": "dev",
       "event": "push",
-      "url": "https://github.com/KBVE/kbve/actions/runs/34185792609",
-      "finished_at": "2026-09-08T05:38:55Z"
-    },
-    {
-      "name": "CI",
-      "branch": "dev",
-      "event": "push",
-      "url": "https://github.com/KBVE/kbve/actions/runs/34185862921",
-      "finished_at": "2026-09-08T05:37:59Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/34306568948",
+      "finished_at": "2026-09-09T05:11:40Z"
     },
     {
       "name": "CI",
       "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/34185865485",
-      "finished_at": "2026-09-08T05:33:49Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/34306311336",
+      "finished_at": "2026-09-09T04:54:23Z"
     },
     {
       "name": "CI",
-      "branch": "chore/reel-librqbit-9",
+      "branch": "dev",
+      "event": "push",
+      "url": "https://github.com/KBVE/kbve/actions/runs/34306307960",
+      "finished_at": "2026-09-09T04:54:14Z"
+    },
+    {
+      "name": "CI",
+      "branch": "chore/once-cell-lazylock",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/34184812104",
-      "finished_at": "2026-09-08T05:14:33Z"
-    },
-    {
-      "name": "CI - CodeQL",
-      "branch": "dev",
-      "event": "push",
-      "url": "https://github.com/KBVE/kbve/actions/runs/34185862919",
-      "finished_at": "2026-09-08T04:44:28Z"
-    },
-    {
-      "name": "CI - CodeQL",
-      "branch": "dev",
-      "event": "push",
-      "url": "https://github.com/KBVE/kbve/actions/runs/34185815999",
-      "finished_at": "2026-09-08T04:41:37Z"
-    },
-    {
-      "name": "CI - CodeQL",
-      "branch": "dev",
-      "event": "push",
-      "url": "https://github.com/KBVE/kbve/actions/runs/34185804813",
-      "finished_at": "2026-09-08T04:37:13Z"
-    },
-    {
-      "name": "CI - CodeQL",
-      "branch": "dev",
-      "event": "push",
-      "url": "https://github.com/KBVE/kbve/actions/runs/34185792560",
-      "finished_at": "2026-09-08T04:29:06Z"
-    },
-    {
-      "name": "CI",
-      "branch": "fix/ci-descriptors-tracker",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/34186361341",
-      "finished_at": "2026-09-08T04:25:52Z"
-    },
-    {
-      "name": "CI - CodeQL",
-      "branch": "dev",
-      "event": "push",
-      "url": "https://github.com/KBVE/kbve/actions/runs/34185720277",
-      "finished_at": "2026-09-08T04:22:08Z"
-    },
-    {
-      "name": "CI",
-      "branch": "dev",
-      "event": "push",
-      "url": "https://github.com/KBVE/kbve/actions/runs/34185815969",
-      "finished_at": "2026-09-08T04:21:22Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/34306258719",
+      "finished_at": "2026-09-09T04:49:07Z"
     },
     {
       "name": "CI - Unreal Plugins (verify)",
       "branch": "dev",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/34006937116",
-      "finished_at": "2026-09-08T04:19:54Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/34037567696",
+      "finished_at": "2026-09-09T04:22:57Z"
     },
     {
       "name": "CI",
+      "branch": "trunk/herbmail-product-dirs-1788922948",
+      "event": "pull_request",
+      "url": "https://github.com/KBVE/kbve/actions/runs/34305818826",
+      "finished_at": "2026-09-09T04:20:56Z"
+    },
+    {
+      "name": "CI - CodeQL",
       "branch": "dev",
       "event": "push",
-      "url": "https://github.com/KBVE/kbve/actions/runs/34185804836",
-      "finished_at": "2026-09-08T04:18:57Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/34307032902",
+      "finished_at": "2026-09-09T04:13:08Z"
     },
     {
-      "name": "CI",
+      "name": "CI - CodeQL",
       "branch": "dev",
-      "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/34185724042",
-      "finished_at": "2026-09-08T04:17:34Z"
+      "event": "push",
+      "url": "https://github.com/KBVE/kbve/actions/runs/34307010573",
+      "finished_at": "2026-09-09T04:12:35Z"
     },
     {
-      "name": "CI",
-      "branch": "trunk/chuckrpg-product-dirs-1788835042",
+      "name": "CI - CodeQL",
+      "branch": "dev",
+      "event": "push",
+      "url": "https://github.com/KBVE/kbve/actions/runs/34306618546",
+      "finished_at": "2026-09-09T04:07:17Z"
+    },
+    {
+      "name": "CI - CodeQL",
+      "branch": "dev",
+      "event": "push",
+      "url": "https://github.com/KBVE/kbve/actions/runs/34306789987",
+      "finished_at": "2026-09-09T04:01:53Z"
+    },
+    {
+      "name": "CI - CodeQL",
+      "branch": "dev",
+      "event": "push",
+      "url": "https://github.com/KBVE/kbve/actions/runs/34306578867",
+      "finished_at": "2026-09-09T03:52:59Z"
+    },
+    {
+      "name": "CI - CodeQL",
+      "branch": "dev",
+      "event": "push",
+      "url": "https://github.com/KBVE/kbve/actions/runs/34306307867",
+      "finished_at": "2026-09-09T03:41:50Z"
+    },
+    {
+      "name": "CI - CodeQL",
+      "branch": "dev",
+      "event": "push",
+      "url": "https://github.com/KBVE/kbve/actions/runs/34306545258",
+      "finished_at": "2026-09-09T03:41:02Z"
+    },
+    {
+      "name": "CI - CodeQL",
+      "branch": "dev",
+      "event": "push",
+      "url": "https://github.com/KBVE/kbve/actions/runs/34306568815",
+      "finished_at": "2026-09-09T03:39:31Z"
+    },
+    {
+      "name": "CI - Godot Tests",
+      "branch": "atom-09082258-ik-research-doc",
       "event": "pull_request",
-      "url": "https://github.com/KBVE/kbve/actions/runs/34181057438",
-      "finished_at": "2026-09-08T04:13:18Z"
+      "url": "https://github.com/KBVE/kbve/actions/runs/34305943067",
+      "finished_at": "2026-09-09T03:18:35Z"
     }
   ]
 }
