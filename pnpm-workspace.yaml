@@ -1,4 +1,6 @@
 minimumReleaseAge: 2880
+publicHoistPattern:
+    - '@bruits/*'
 overrides:
     '@xmldom/xmldom@<0.8.13': '>=0.8.13'
     '@expo/plist>@xmldom/xmldom': ^0.8.13
