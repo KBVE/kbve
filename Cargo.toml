@@ -4,7 +4,7 @@ resolver = '2'
 members = [
 	'crates/*',
 	'apps/kbve/kilobase',
-'apps/herbmail/axum-herbmail',
+'apps/herbmail/api',
 	'apps/memes/axum-memes',
 	'apps/irc/irc-gateway',
 	'apps/agones/shim',

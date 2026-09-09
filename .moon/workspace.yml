@@ -98,7 +98,7 @@ projects:
         astro-kbve: 'apps/kbve/astro-kbve'
         astro-cryptothrone: 'apps/cryptothrone/web'
         discordsh-web: 'apps/discordsh/web'
-        astro-herbmail: 'apps/herbmail/astro-herbmail'
+        astro-herbmail: 'apps/herbmail/web'
         astro-irc: 'apps/irc/astro-irc'
         astro-memes: 'apps/memes/astro-memes'
         astro-rareicon: 'apps/rareicon/astro-rareicon'
@@ -107,7 +107,7 @@ projects:
         astro-cryptothrone-e2e: 'apps/cryptothrone/web/e2e'
         astro-rareicon-e2e: 'apps/rareicon/astro-rareicon-e2e'
         discordsh-web-e2e: 'apps/discordsh/web/e2e'
-        herbmail-e2e: 'apps/herbmail/herbmail-e2e'
+        herbmail-e2e: 'apps/herbmail/api/e2e'
         irc-e2e: 'apps/irc/irc-e2e'
         memes-e2e: 'apps/memes/memes-e2e'
 
@@ -153,7 +153,7 @@ projects:
         axum-chuckrpg: 'apps/chuckrpg/api'
         axum-cryptothrone: 'apps/cryptothrone/api'
         discordsh-api: 'apps/discordsh/api'
-        axum-herbmail: 'apps/herbmail/axum-herbmail'
+        axum-herbmail: 'apps/herbmail/api'
         axum-kbve: 'apps/kbve/axum-kbve'
         axum-memes: 'apps/memes/axum-memes'
         axum-rareicon: 'apps/rareicon/axum-rareicon'
@@ -200,7 +200,7 @@ projects:
         chuckrpg-server: 'apps/chuckrpg/gameserver'
         aria2-proxy: 'apps/vm/aria2-proxy'
         arpg-web: 'apps/agones/arpg/web'
-        herbmail-game: 'apps/herbmail/herbmail-game'
+        herbmail-game: 'apps/herbmail/game'
         rentearth-web: 'apps/rentearth/axum-rentearth/web'
 
         # Firmware. Top-level like crates/, but named rather than globbed:

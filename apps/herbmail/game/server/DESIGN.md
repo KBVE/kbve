@@ -24,11 +24,11 @@ On the browser side the client work is largely **already available**: `@kbve/las
 
 1. **`simgrid` does not use rapier.** Its own `Cargo.toml` description says so verbatim: _"No godot, no rapier, no lightyear."_ There is no rapier dependency anywhere in it. Collision is tile occupancy; movement is float bodies with sub-stepped axis-separated resolution (`packages/rust/simgrid/src/float_move.rs`). The only rapier in the Rust workspace is `packages/rust/q` (rapier**2d**, optional feature, unrelated to this stack).
 
-2. **rapier already exists in the herbmail client, and it is cosmetic.** `apps/herbmail/herbmail-game/src/game/sab/sim.worker.ts` runs `@dimforge/rapier3d-compat`, but the player is a `RigidBodyDesc.kinematicPositionBased()` proxy driven from the main thread — rapier decides nothing about the player. Its only dynamic bodies are the six break-off panels spawned by `shatter()` (`BODY_PANEL`, `F_BREAKABLE`, `PANEL_TTL = 8`, `PANEL_FADE = 1.2`). It is a debris VFX sim. Replicating it server-side would buy nothing.
+2. **rapier already exists in the herbmail client, and it is cosmetic.** `apps/herbmail/game/src/game/sab/sim.worker.ts` runs `@dimforge/rapier3d-compat`, but the player is a `RigidBodyDesc.kinematicPositionBased()` proxy driven from the main thread — rapier decides nothing about the player. Its only dynamic bodies are the six break-off panels spawned by `shatter()` (`BODY_PANEL`, `F_BREAKABLE`, `PANEL_TTL = 8`, `PANEL_FADE = 1.2`). It is a debris VFX sim. Replicating it server-side would buy nothing.
 
 3. **"MMORPG" and what this stack delivers are different things.** Both existing simgrid games run as a _single pod, single world_ — `minReplicas: maxReplicas: 1` with `MAX_PLAYERS: 32`, because "a Service round-robins; multiple Ready pods would split players across separate worlds" (`apps/kube/agones/cryptothrone/README.md`). There is no sharding, no cross-server handoff and no zone service anywhere in this repo. This design gets herbmail to a solid 32-player shared world on well-trodden rails; going beyond that is an unsolved problem here and should be scoped separately.
 
-4. **`apps/herbmail/axum-herbmail` is a static file server.** Its routes are `/health`, `/_astro/{*path}`, `/`, and MIME overrides so `.ts` worker files are served as JS (`src/transport/https.rs`). No DB, no auth, no WebSocket handler, no game state. It should be left alone; the game server goes **beside** it, not inside it.
+4. **`apps/herbmail/api` is a static file server.** Its routes are `/health`, `/_astro/{*path}`, `/`, and MIME overrides so `.ts` worker files are served as JS (`src/transport/https.rs`). No DB, no auth, no WebSocket handler, no game state. It should be left alone; the game server goes **beside** it, not inside it.
 
 ### Recommended first milestone
 
@@ -123,7 +123,7 @@ That is the whole integration surface. It is small, and it is the reason "fork" 
 - `encodeClientMessage` / `decodeServerEvent` and the full typed protocol mirror (`lib/net/protocol.ts`, `lib/net/postcard-wire.ts`, with `postcard-wire.spec.ts` pinning parity);
 - `Domain`, `mix32`, `mulberry32`, `stream`, `rollPct` (`lib/determ`) — the exact mirrors of `simgrid::rng`.
 
-`apps/herbmail/herbmail-game/vite.config.ts:286-298` already aliases `@kbve/laser/mecs`, `/ecs`, `/phaser`, `/r3f`. Adding the root import costs nothing. Note that `net` lives in the **root** barrel (`@kbve/laser`), not a subpath — consistent with the "peers never in the root barrel" rule, since the net module has no peer deps.
+`apps/herbmail/game/vite.config.ts:286-298` already aliases `@kbve/laser/mecs`, `/ecs`, `/phaser`, `/r3f`. Adding the root import costs nothing. Note that `net` lives in the **root** barrel (`@kbve/laser`), not a subpath — consistent with the "peers never in the root barrel" rule, since the net module has no peer deps.
 
 ### 2.4 Deployment precedent
 
@@ -143,7 +143,7 @@ That is the whole integration surface. It is small, and it is the reason "fork" 
 
 ### 3.1 Determinism from the seed — verified, and stronger than the brief claims
 
-`apps/herbmail/herbmail-game/src/game/dungeon/store.ts:28`:
+`apps/herbmail/game/src/game/dungeon/store.ts:28`:
 
 ```ts
 export const DUNGEON_SEED = 1337;
@@ -355,9 +355,9 @@ herbmail-server/
 
 ### Where the crate should live
 
-The brief specifies `apps/herbmail/herbmail-game/server/`. **Repo convention says otherwise**: every Agones game server in this monorepo lives at `apps/agones/<game>/server` (`cryptothrone`, `arpg`), is a member of the root `Cargo.toml` `[workspace] members` list, has a sibling `apps/agones/<game>/web`, and gets its k8s manifests at `apps/kube/agones/<game>/manifests`.
+The brief specifies `apps/herbmail/game/server/`. **Repo convention says otherwise**: every Agones game server in this monorepo lives at `apps/agones/<game>/server` (`cryptothrone`, `arpg`), is a member of the root `Cargo.toml` `[workspace] members` list, has a sibling `apps/agones/<game>/web`, and gets its k8s manifests at `apps/kube/agones/<game>/manifests`.
 
-Recommendation: put the crate at **`apps/agones/herbmail/server`** and keep `apps/herbmail/herbmail-game/` as the pure client. Deviating would make the Dockerfile's `Cargo.workspace.toml` trick, the nx tags (`["rust", "game-server", "agones", "herbmail"]`), and the CI dispatch manifest all one-off. This document lives at the requested path; the code should not follow it.
+Recommendation: put the crate at **`apps/agones/herbmail/server`** and keep `apps/herbmail/game/` as the pure client. Deviating would make the Dockerfile's `Cargo.workspace.toml` trick, the nx tags (`["rust", "game-server", "agones", "herbmail"]`), and the CI dispatch manifest all one-off. This document lives at the requested path; the code should not follow it.
 
 Root `Cargo.toml` `[workspace] members` is an **explicit list, not a glob**, so the new crate must be added to it (one line, alongside `'apps/agones/arpg/server'`).
 

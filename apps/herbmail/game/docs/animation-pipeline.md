@@ -104,7 +104,7 @@ A knight outfit (`FANT_KNGT_17`) replaces those slots with armor and adds extra 
 
 ### Output
 
-`apps/herbmail/herbmail-game/public/models/character.glb`
+`apps/herbmail/game/public/models/character.glb`
 
 - ~1.9MB, T-pose, 88-bone rig, 2 materials.
 
