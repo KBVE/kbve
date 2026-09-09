@@ -21,6 +21,11 @@ resources:
     # CA staleness monitor — detects pods with stale serviceaccount CA mounts
     # after a cluster CA rotation. Read-only CronJob, emits JSON to Vector.
     - ca-staleness-monitor/application.yaml
+    # virt-api cert watchdog — compares the certificate virt-api actually
+    # serves against the one virt-operator rotated into its secret, and
+    # deletes the pod when the reload has stalled. Pod deletion is the only
+    # remediation virt-operator does not revert.
+    - virt-api-cert-watchdog/application.yaml
     - keda/application.yaml
     - kyverno/application.yaml
     - crossplane/application.yaml
