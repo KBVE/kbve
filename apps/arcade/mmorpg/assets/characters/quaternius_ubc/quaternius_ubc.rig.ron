@@ -4,8 +4,8 @@
     armature: "Armature",
     ankle_height: 0.0865,
     legs: [
-        (root: "thigh_l", mid: "calf_l", tip: "foot_l", hinge: Some((-1.0, 0.0, 0.0)), max_flexion_deg: 150.0),
-        (root: "thigh_r", mid: "calf_r", tip: "foot_r", hinge: Some((-1.0, 0.0, 0.0)), max_flexion_deg: 150.0),
+        (root: "thigh_l", mid: "calf_l", tip: "foot_l", hinge: Some((-1.0, 0.0, 0.0)), max_flexion_deg: 160.0),
+        (root: "thigh_r", mid: "calf_r", tip: "foot_r", hinge: Some((-1.0, 0.0, 0.0)), max_flexion_deg: 160.0),
     ],
     gaits: (
         idle: "Idle_Loop",
