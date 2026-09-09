@@ -8,9 +8,8 @@ use crate::tray::{TrayIconState, change_tray_icon};
 use crate::utils::{self, show_recording_overlay, show_transcribing_overlay};
 use ferrous_opencc::{OpenCC, config::BuiltinConfig};
 use log::{debug, error};
-use once_cell::sync::Lazy;
 use std::collections::HashMap;
-use std::sync::Arc;
+use std::sync::{Arc, LazyLock};
 use std::time::Instant;
 use tauri::AppHandle;
 use tauri::Emitter;
@@ -230,7 +229,7 @@ impl ShortcutAction for TestAction {
 }
 
 // Static Action Map
-pub static ACTION_MAP: Lazy<HashMap<String, Arc<dyn ShortcutAction>>> = Lazy::new(|| {
+pub static ACTION_MAP: LazyLock<HashMap<String, Arc<dyn ShortcutAction>>> = LazyLock::new(|| {
     let mut map = HashMap::new();
     map.insert(
         "transcribe".to_string(),

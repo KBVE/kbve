@@ -3,14 +3,14 @@
 //! Uses the `gh` CLI to interact with GitHub issues, providing
 //! task queue functionality for coding agents.
 
-use once_cell::sync::Lazy;
+use std::sync::LazyLock;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use specta::Type;
 use std::process::Command;
 
 /// Regex patterns for sanitizing sensitive data from content before posting to GitHub.
-static SENSITIVE_PATTERNS: Lazy<Regex> = Lazy::new(|| {
+static SENSITIVE_PATTERNS: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(r"(?i)(sk-ant-[a-zA-Z0-9\-_]+|ghp_[a-zA-Z0-9]+|gho_[a-zA-Z0-9]+|github_pat_[a-zA-Z0-9_]+|ANTHROPIC_API_KEY=[^\s]+|GH_TOKEN=[^\s]+|GITHUB_TOKEN=[^\s]+|Bearer\s+[a-zA-Z0-9\-_.]+)").unwrap()
 });
 
