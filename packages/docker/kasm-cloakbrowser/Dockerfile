@@ -49,7 +49,12 @@ RUN set -eux; \
 
 RUN set -eux; \
     pip_spec="cloakbrowser${CLOAKBROWSER_PIP_VERSION:+==${CLOAKBROWSER_PIP_VERSION}}"; \
-    pip3 install --no-cache-dir --break-system-packages "$pip_spec"; \
+    PIP_MAJOR="$(pip3 --version | awk '{print $2}' | cut -d. -f1)"; \
+    if [ "${PIP_MAJOR}" -ge 23 ]; then \
+      pip3 install --no-cache-dir --break-system-packages "$pip_spec"; \
+    else \
+      pip3 install --no-cache-dir "$pip_spec"; \
+    fi; \
     mkdir -p "$CLOAKBROWSER_CACHE_DIR"; \
     chown 1000:1000 "$CLOAKBROWSER_CACHE_DIR"; \
     CLOAKBROWSER_CACHE_DIR="$CLOAKBROWSER_CACHE_DIR" \
