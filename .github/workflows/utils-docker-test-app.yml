@@ -181,6 +181,16 @@ jobs:
             - name: Setup moon
               uses: ./.github/actions/setup-moon
 
+            # moon only installs a toolchain when the task it is about to run
+            # declares it, and it does so per task. A rust-backed suite boots
+            # its server through `cargo run` from a playwright webServer, which
+            # moon never sees as a task, so the toolchain was never provisioned
+            # and every such job died on `proto::locate::missing_executable`
+            # (cargo does not exist). ci.yml hit the same wall in #16998 and
+            # provisions everything .moon/toolchains.yml declares up front.
+            - name: Provision the moon toolchains
+              run: moon setup
+
             - name: e2e ${{ inputs.project }}
               env:
                   BUILDKIT_PROGRESS: plain
