@@ -13,7 +13,8 @@ struct TerrainParams {
     snow_level: f32,
     blend_range: f32,
     macro_strength: f32,
-    _pad: f32,
+    wet_darkening: f32,
+    wet_roughness: f32,
 }
 
 @group(#{MATERIAL_BIND_GROUP}) @binding(100) var<uniform> terrain: TerrainParams;
@@ -47,7 +48,10 @@ fn fragment(in: VertexOutput, @builtin(front_facing) is_front: bool) -> Fragment
     let ddx = dpdx(uv);
     let ddy = dpdy(uv);
 
-    let weights = splat_weights(in.world_normal, in.world_position.y);
+    let wetness = in.uv.x;
+    let dry = splat_weights(in.world_normal, in.world_position.y);
+    let bank = vec4(0.0, dry.y, 1.0 - dry.y, 0.0);
+    let weights = mix(dry, bank, wetness);
     let detail = blend_layers(uv, ddx, ddy, weights);
 
     let macro_uv = uv * terrain.macro_scale;
@@ -61,7 +65,13 @@ fn fragment(in: VertexOutput, @builtin(front_facing) is_front: bool) -> Fragment
     ).rgb;
 
     let tinted = detail * mix(vec3(1.0), macro_tint * 2.0, terrain.macro_strength);
-    pbr_input.material.base_color *= vec4(tinted, 1.0);
+    let soaked = tinted * mix(1.0, terrain.wet_darkening, wetness);
+    pbr_input.material.base_color *= vec4(soaked, 1.0);
+    pbr_input.material.perceptual_roughness = mix(
+        pbr_input.material.perceptual_roughness,
+        terrain.wet_roughness,
+        wetness,
+    );
     pbr_input.material.base_color = alpha_discard(pbr_input.material, pbr_input.material.base_color);
 
     var out: FragmentOutput;

@@ -6,9 +6,11 @@ use bevy::platform::collections::HashMap;
 use bevy::prelude::*;
 use bevy::render::mesh::{Indices, PrimitiveTopology};
 
+use super::river::{bank_wetness, river_at};
 use super::terrain_material::{
     TerrainExtension, TerrainMaterial, TerrainParams, terrain_layer_image,
 };
+use super::water_material::{WaterMaterial, water_material};
 use super::world::{height_at, normal_at};
 
 /// Side length of one chunk in meters.
@@ -29,11 +31,15 @@ pub const CHUNK_BUDGET: usize = 2;
 /// How far skirt vertices hang below the chunk edge, hiding LOD cracks.
 const SKIRT_DROP: f32 = 8.0;
 
+/// Chebyshev radius in chunks that gets a water surface.
+pub const WATER_CHUNKS: i32 = 4;
+
 pub struct TerrainPlugin;
 
 impl Plugin for TerrainPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(MaterialPlugin::<TerrainMaterial>::default())
+            .add_plugins(MaterialPlugin::<WaterMaterial>::default())
             .init_resource::<ChunkMap>()
             .add_systems(Startup, seed_terrain)
             .add_systems(Update, stream_chunks);
@@ -50,6 +56,7 @@ pub struct TerrainChunk {
 #[derive(Resource)]
 struct TerrainAssets {
     material: Handle<TerrainMaterial>,
+    water: Handle<WaterMaterial>,
 }
 
 /// Which chunk coordinates are currently spawned.
@@ -97,6 +104,7 @@ pub fn chunk_mesh(coord: IVec2, lod: u32) -> Mesh {
 
     let mut positions = Vec::with_capacity((side * side) as usize);
     let mut normals = Vec::with_capacity((side * side) as usize);
+    let mut wetness = Vec::with_capacity((side * side) as usize);
     let mut indices = Vec::with_capacity(((side - 1) * (side - 1) * 6) as usize);
 
     for row in 0..side {
@@ -110,9 +118,11 @@ pub fn chunk_mesh(coord: IVec2, lod: u32) -> Mesh {
             let world_x = center.x + local_x;
             let world_z = center.y + local_z;
 
-            let height = height_at(world_x, world_z) - if skirt { SKIRT_DROP } else { 0.0 };
+            let ground = height_at(world_x, world_z);
+            let height = ground - if skirt { SKIRT_DROP } else { 0.0 };
             positions.push([local_x, height, local_z]);
             normals.push(normal_at(world_x, world_z).to_array());
+            wetness.push([bank_wetness(world_x, world_z, ground), 0.0]);
         }
     }
 
@@ -139,8 +149,113 @@ pub fn chunk_mesh(coord: IVec2, lod: u32) -> Mesh {
     );
     mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
     mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
+    mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, wetness);
     mesh.insert_indices(Indices::U32(indices));
     mesh
+}
+
+/// Water surface for one chunk, on the same lattice as [`chunk_mesh`].
+///
+/// Sharing the lattice is what keeps the bank from tearing through the surface: an overlay that
+/// samples the same field on a different grid disagrees with it wherever the ground is steep.
+///
+/// Returns `None` where the chunk holds no water at all.
+pub fn water_mesh(coord: IVec2, lod: u32) -> Option<Mesh> {
+    let quads = (CHUNK_QUADS >> lod).max(1);
+    let step = CHUNK_SIZE / quads as f32;
+    let half = CHUNK_SIZE * 0.5;
+    let center = chunk_center(coord);
+    let side = quads + 1;
+
+    let span = side as usize;
+    let surface: Vec<Option<(f32, f32)>> = (0..span * span)
+        .map(|index| {
+            let local_x = -half + (index % span) as f32 * step;
+            let local_z = -half + (index / span) as f32 * step;
+            let world_x = center.x + local_x;
+            let world_z = center.y + local_z;
+            river_at(world_x, world_z).map(|sample| {
+                (
+                    sample.water_level,
+                    sample.water_level - height_at(world_x, world_z),
+                )
+            })
+        })
+        .collect();
+
+    if !surface
+        .iter()
+        .any(|vertex| vertex.is_some_and(|(_, depth)| depth > 0.0))
+    {
+        return None;
+    }
+
+    let mut positions = Vec::new();
+    let mut normals = Vec::new();
+    let mut uvs = Vec::new();
+    let mut indices = Vec::new();
+    let mut emitted = vec![u32::MAX; surface.len()];
+
+    let push = |index: usize,
+                positions: &mut Vec<[f32; 3]>,
+                normals: &mut Vec<[f32; 3]>,
+                uvs: &mut Vec<[f32; 2]>,
+                emitted: &mut Vec<u32>| {
+        if emitted[index] == u32::MAX {
+            let (level, depth) = surface[index].expect("only emitted for wet vertices");
+            let local_x = -half + (index % span) as f32 * step;
+            let local_z = -half + (index / span) as f32 * step;
+            emitted[index] = positions.len() as u32;
+            positions.push([local_x, level, local_z]);
+            normals.push([0.0, 1.0, 0.0]);
+            uvs.push([depth.max(0.0), 0.0]);
+        }
+        emitted[index]
+    };
+
+    for row in 0..side - 1 {
+        for col in 0..side - 1 {
+            let corners = [
+                (row * side + col) as usize,
+                (row * side + col + 1) as usize,
+                ((row + 1) * side + col) as usize,
+                ((row + 1) * side + col + 1) as usize,
+            ];
+            if !corners.iter().all(|corner| surface[*corner].is_some()) {
+                continue;
+            }
+            if !corners
+                .iter()
+                .any(|corner| surface[*corner].is_some_and(|(_, depth)| depth > 0.0))
+            {
+                continue;
+            }
+            let [top_left, top_right, bottom_left, bottom_right] = corners
+                .map(|corner| push(corner, &mut positions, &mut normals, &mut uvs, &mut emitted));
+            indices.extend_from_slice(&[
+                top_left,
+                bottom_left,
+                top_right,
+                top_right,
+                bottom_left,
+                bottom_right,
+            ]);
+        }
+    }
+
+    if indices.is_empty() {
+        return None;
+    }
+
+    let mut mesh = Mesh::new(
+        PrimitiveTopology::TriangleList,
+        RenderAssetUsages::RENDER_WORLD,
+    );
+    mesh.insert_attribute(Mesh::ATTRIBUTE_POSITION, positions);
+    mesh.insert_attribute(Mesh::ATTRIBUTE_NORMAL, normals);
+    mesh.insert_attribute(Mesh::ATTRIBUTE_UV_0, uvs);
+    mesh.insert_indices(Indices::U32(indices));
+    Some(mesh)
 }
 
 /// Heightfield collider for one chunk, always at full resolution so LOD cannot move the ground.
@@ -185,7 +300,20 @@ fn spawn_chunk(
         chunk.insert((RigidBody::Static, chunk_collider(coord), Friction::new(1.0)));
     }
 
-    chunk.id()
+    let chunk = chunk.id();
+
+    if ring <= WATER_CHUNKS
+        && let Some(surface) = water_mesh(coord, lod)
+    {
+        commands.spawn((
+            ChildOf(chunk),
+            Mesh3d(meshes.add(surface)),
+            MeshMaterial3d(assets.water.clone()),
+            Transform::IDENTITY,
+        ));
+    }
+
+    chunk
 }
 
 fn seed_terrain(
@@ -193,6 +321,7 @@ fn seed_terrain(
     mut meshes: ResMut<Assets<Mesh>>,
     mut images: ResMut<Assets<Image>>,
     mut materials: ResMut<Assets<TerrainMaterial>>,
+    mut waters: ResMut<Assets<WaterMaterial>>,
     mut map: ResMut<ChunkMap>,
 ) {
     let layers = images.add(terrain_layer_image());
@@ -207,6 +336,7 @@ fn seed_terrain(
                 layers,
             },
         }),
+        water: waters.add(water_material()),
     };
 
     for row in -COLLIDER_CHUNKS..=COLLIDER_CHUNKS {
@@ -298,6 +428,76 @@ mod tests {
                 Vec3::new(center.x + vertex[0], vertex[1], center.y + vertex[2])
             })
             .collect()
+    }
+
+    const WATER_PROBES: [IVec2; 6] = [
+        IVec2::new(0, 0),
+        IVec2::new(3, -5),
+        IVec2::new(-8, 6),
+        IVec2::new(11, 11),
+        IVec2::new(-14, -2),
+        IVec2::new(7, 19),
+    ];
+
+    fn xz_key(vertex: [f32; 3]) -> (i32, i32) {
+        (
+            (vertex[0] * 64.0).round() as i32,
+            (vertex[2] * 64.0).round() as i32,
+        )
+    }
+
+    #[test]
+    fn water_shares_the_ground_lattice() {
+        let mut checked = 0;
+        for coord in WATER_PROBES {
+            let Some(surface) = water_mesh(coord, 0) else {
+                continue;
+            };
+            checked += 1;
+            let ground: std::collections::HashSet<(i32, i32)> = positions(&chunk_mesh(coord, 0))
+                .into_iter()
+                .map(xz_key)
+                .collect();
+            for vertex in positions(&surface) {
+                assert!(
+                    ground.contains(&xz_key(vertex)),
+                    "water vertex {vertex:?} is off the ground lattice in chunk {coord}"
+                );
+            }
+        }
+        assert!(checked > 0, "no water found in any probed chunk");
+    }
+
+    fn uvs(mesh: &Mesh) -> Vec<[f32; 2]> {
+        match mesh.attribute(Mesh::ATTRIBUTE_UV_0).unwrap() {
+            bevy::render::mesh::VertexAttributeValues::Float32x2(values) => values.clone(),
+            other => panic!("water uvs are Float32x2, got {other:?}"),
+        }
+    }
+
+    #[test]
+    fn baked_depth_matches_the_surface_it_describes() {
+        let mut wet = 0;
+        for coord in WATER_PROBES {
+            let Some(surface) = water_mesh(coord, 0) else {
+                continue;
+            };
+            let center = chunk_center(coord);
+            for (vertex, uv) in positions(&surface).into_iter().zip(uvs(&surface)) {
+                let ground = height_at(center.x + vertex[0], center.y + vertex[2]);
+                let expected = (vertex[1] - ground).max(0.0);
+                assert!(
+                    (uv[0] - expected).abs() < 1e-3,
+                    "baked depth {} disagrees with surface {expected} at {vertex:?}",
+                    uv[0]
+                );
+                if uv[0] > 0.0 {
+                    wet += 1;
+                    assert!(vertex[1] > ground);
+                }
+            }
+        }
+        assert!(wet > 0, "no wet vertices found in any probed chunk");
     }
 
     #[test]

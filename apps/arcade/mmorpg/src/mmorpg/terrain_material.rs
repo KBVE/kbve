@@ -49,7 +49,10 @@ pub struct TerrainParams {
     pub blend_range: f32,
     /// How strongly the macro tap modulates the detail blend.
     pub macro_strength: f32,
-    _pad: f32,
+    /// Albedo multiplier at the water line.
+    pub wet_darkening: f32,
+    /// Roughness of fully soaked ground.
+    pub wet_roughness: f32,
 }
 
 impl Default for TerrainParams {
@@ -62,7 +65,8 @@ impl Default for TerrainParams {
             snow_level: 30.0,
             blend_range: 5.0,
             macro_strength: 0.35,
-            _pad: 0.0,
+            wet_darkening: 0.52,
+            wet_roughness: 0.22,
         }
     }
 }
