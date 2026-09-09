@@ -2,7 +2,7 @@ use bevy::app::AnimationSystems;
 use bevy::prelude::*;
 use bevy::transform::TransformSystems;
 
-use crate::limb::{LimbPose, RestHinge, solve_limb};
+use crate::limb::{LimbLimits, LimbPose, RestHinge, solve_limb_with};
 
 /// The three bones of a limb, outermost last.
 ///
@@ -27,6 +27,8 @@ pub struct IkLimb {
     /// Measured from the first pose the solver sees, then held. Set it
     /// yourself to pin the hinge to a specific bind pose.
     pub rest: Option<RestHinge>,
+    /// Joint guardrails, none by default.
+    pub limits: LimbLimits,
 }
 
 impl Default for IkLimb {
@@ -36,6 +38,7 @@ impl Default for IkLimb {
             weight: 1.0,
             enabled: true,
             rest: None,
+            limits: LimbLimits::NONE,
         }
     }
 }
@@ -125,7 +128,7 @@ fn solve_limbs(
             }
         };
 
-        let solve = solve_limb(&pose, &rest, limb.goal);
+        let solve = solve_limb_with(&pose, &rest, &limb.limits, limb.goal);
         let weight = limb.weight.clamp(0.0, 1.0);
         let turn = Quat::from_axis_angle(solve.hinge_axis, solve.hinge_turn);
 

@@ -47,7 +47,9 @@ mod rig;
 
 pub use chain::{Effort, segment_lengths, solve_chain, tip_error};
 pub use hinge::{HingeTurn, Reach, solve_hinge};
-pub use limb::{LimbPose, LimbSolve, RestHinge, solve_limb};
+pub use limb::{
+    LimbLimits, LimbPose, LimbSolve, RestHinge, hinge_angle, solve_limb, solve_limb_with,
+};
 pub use rig::{Bone, Half, MAX_SPINE, Side, Skeleton, UNMAPPED, arm, leg, role_of};
 
 #[cfg(feature = "bevy")]

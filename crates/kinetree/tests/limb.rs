@@ -1,5 +1,5 @@
 use glam::{Quat, Vec3};
-use kinetree::{LimbPose, Reach, RestHinge, solve_hinge, solve_limb};
+use kinetree::{LimbLimits, LimbPose, Reach, RestHinge, solve_hinge, solve_limb, solve_limb_with};
 
 fn rest_leg() -> (Vec3, Vec3, Vec3) {
     (
@@ -209,4 +209,61 @@ fn a_known_axis_solves_a_straight_bind_pose() {
     let solve = solve_limb(&pose, &rest, goal);
     assert_eq!(solve.reach, Reach::Exact);
     assert!(solve.tip_after(&pose).distance(goal) < 1e-4);
+}
+
+fn flexion_after(pose: &LimbPose, solve: &kinetree::LimbSolve) -> f32 {
+    let mid = solve.mid_after(pose);
+    let tip = solve.tip_after(pose);
+    let interior = (pose.root - mid).angle_between(tip - mid);
+    core::f32::consts::PI - interior
+}
+
+#[test]
+fn a_flexion_ceiling_stops_the_fold() {
+    let (hip, knee, ankle) = rest_leg();
+    let rest = RestHinge::from_rest(hip, knee, ankle, Quat::IDENTITY).unwrap();
+    let pose = LimbPose {
+        root: hip,
+        mid: knee,
+        tip: ankle,
+        root_basis: Quat::IDENTITY,
+    };
+    let goal = goal_at(hip, Vec3::new(0.0, -1.0, 0.3), 0.30);
+    let max = 60f32.to_radians();
+
+    let free = solve_limb(&pose, &rest, goal);
+    let capped = solve_limb_with(&pose, &rest, &LimbLimits::flexion(max), goal);
+
+    assert!(flexion_after(&pose, &free) > max + 0.1);
+    assert!(flexion_after(&pose, &capped) <= max + 1e-4);
+    assert_eq!(capped.reach, Reach::Clamped);
+
+    let thigh = hip.distance(knee);
+    let shin = knee.distance(ankle);
+    assert!((hip.distance(capped.mid_after(&pose)) - thigh).abs() < 1e-5);
+    assert!((capped.mid_after(&pose).distance(capped.tip_after(&pose)) - shin).abs() < 1e-5);
+}
+
+#[test]
+fn a_slack_ceiling_changes_nothing() {
+    let (hip, knee, ankle) = rest_leg();
+    let rest = RestHinge::from_rest(hip, knee, ankle, Quat::IDENTITY).unwrap();
+    let pose = LimbPose {
+        root: hip,
+        mid: knee,
+        tip: ankle,
+        root_basis: Quat::IDENTITY,
+    };
+    let goal = goal_at(hip, Vec3::new(0.10, -1.0, 0.20), 0.82);
+
+    let free = solve_limb(&pose, &rest, goal);
+    let capped = solve_limb_with(
+        &pose,
+        &rest,
+        &LimbLimits::flexion(150f32.to_radians()),
+        goal,
+    );
+
+    assert!((free.hinge_turn - capped.hinge_turn).abs() < 1e-6);
+    assert_eq!(capped.reach, Reach::Exact);
 }
