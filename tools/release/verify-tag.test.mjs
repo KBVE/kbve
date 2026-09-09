@@ -206,14 +206,14 @@ test('the shell version reader agrees with manifestVersion on every releasable p
 
 	assert.ok(projects.length > 50, 'expected the graph to have releasable projects');
 
-	// A lane tag says a project *can* publish; it does not promise the project
-	// carries a version. yuki is tagged web-game but its only manifest is a
-	// `"private": true` package.json, which manifestVersion skips by design --
-	// a private stub is not a version claim. Such a project cannot be released
-	// until it grows a real manifest, and that is a separate question from
-	// whether the two readers agree. Named explicitly so a new one shows up as
-	// a failure here rather than disappearing into a silent skip.
-	const noManifest = new Set(['yuki']);
+	// A lane tag says a project *can* publish, and every project carrying one
+	// must therefore have a version to check its tag against. A `"private": true`
+	// package.json does not count -- manifestVersion skips it by design, since an
+	// npm stub is not a version claim -- so a private web game keeps a
+	// version.toml beside it, the way herbmail-game does.
+	//
+	// Empty on purpose: a lane-tagged project with no version file is a release
+	// that fails at tag time, so it fails here first.
 	const unreleasable = [];
 
 	for (const project of projects) {
@@ -233,9 +233,9 @@ test('the shell version reader agrees with manifestVersion on every releasable p
 	}
 
 	assert.deepEqual(
-		unreleasable.sort(),
-		[...noManifest].sort(),
-		'a lane-tagged project with no version manifest: either give it one or add it here',
+		unreleasable,
+		[],
+		'a lane-tagged project with no version manifest — add a version.toml, or drop the lane tag',
 	);
 });
 
