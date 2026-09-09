@@ -1,0 +1,229 @@
+name: 'KBVE - Setup Playwright'
+description: 'Resolves which Playwright browsers a project needs and puts them on the runner, cached'
+
+branding:
+    color: 'green'
+    icon: 'monitor'
+
+# The browsers do not arrive with `pnpm install`. `playwright`'s postinstall is
+# what downloads them, and pnpm only runs the postinstall of a package listed
+# under `allowBuilds` in pnpm-workspace.yaml -- which playwright is not, and
+# should not be: a 400MB download on every install, in every job, is not what
+# `pnpm install` should mean.
+#
+# So a job that needs browsers installs them, here. Nothing else in the repo
+# does, which is why run 34279599076 met
+# `browserType.launch: Executable doesn't exist at .../chromium_headless_shell`
+# the moment a browser suite ran outside the e2e lane (#17003). setup-js used to
+# carry a `playwright` input that set PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD; it read
+# as the switch for this and had never done anything.
+#
+# Lifted out of utils-docker-test-app.yml, which had the only working version of
+# this and kept it to itself. ci-playwright-snapshots.yml had a bare
+# `playwright install`, uncached, with no fallback.
+
+inputs:
+    enable:
+        description: "'true' to install, 'false' to skip, 'auto' to decide from the playwright configs under source-path."
+        required: false
+        default: 'auto'
+    source-path:
+        description: 'Directory to scan for playwright configs, for enable=auto and for choosing which browsers to fetch.'
+        required: false
+        default: '.'
+    browsers:
+        description: 'Space-separated browsers to install, overriding what the configs ask for.'
+        required: false
+        default: ''
+
+outputs:
+    enabled:
+        description: "'true' when browsers were provisioned."
+        value: ${{ steps.detect.outputs.enabled }}
+    browsers:
+        description: 'The browsers that were provisioned, space separated.'
+        value: ${{ steps.detect.outputs.browsers }}
+    version:
+        description: 'The Playwright version resolved from node_modules.'
+        value: ${{ steps.detect.outputs.version }}
+
+runs:
+    using: 'composite'
+    steps:
+        # Which browsers, not just whether. A suite that only drives chromium
+        # has no reason to wait on a webkit download, and the answer is in the
+        # project's own config rather than in a list this action would have to
+        # keep in sync.
+        - name: Detect Playwright usage
+          id: detect
+          shell: bash
+          env:
+              ENABLE: ${{ inputs.enable }}
+              ROOT: ${{ inputs.source-path }}
+              FORCED_BROWSERS: ${{ inputs.browsers }}
+          run: |
+              set -uo pipefail
+              CFGS=""
+              if [ -n "$ROOT" ] && [ -d "$ROOT" ]; then
+                CFGS=$(find "$ROOT" -maxdepth 6 -type f -name 'playwright*.config.*' -not -path '*/node_modules/*' 2>/dev/null || true)
+              fi
+
+              case "$ENABLE" in
+                true)  ENABLED=true ;;
+                false) ENABLED=false ;;
+                *)     [ -n "$CFGS" ] && ENABLED=true || ENABLED=false ;;
+              esac
+              echo "enabled=${ENABLED}" >> "$GITHUB_OUTPUT"
+              if [ "$ENABLED" != 'true' ]; then
+                echo "Playwright OFF"
+                exit 0
+              fi
+
+              BROWSERS="$FORCED_BROWSERS"
+              if [ -z "$BROWSERS" ] && [ -n "$CFGS" ]; then
+                add() {
+                  case " $BROWSERS " in
+                    *" $1 "*) ;;
+                    *) BROWSERS="${BROWSERS:+$BROWSERS }$1" ;;
+                  esac
+                }
+                if echo "$CFGS" | xargs grep -lqE "devices\['Desktop Chrome'|name: *'chromium|chromium.*channel|name: *'mobile-chrome" 2>/dev/null; then add chromium; fi
+                if echo "$CFGS" | xargs grep -lqE "devices\['Desktop Safari|name: *'webkit|name: *'mobile-safari" 2>/dev/null; then add webkit; fi
+                if echo "$CFGS" | xargs grep -lqE "devices\['Desktop Firefox|name: *'firefox" 2>/dev/null; then add firefox; fi
+              fi
+              # A config this could not read still gets a browser rather than a
+              # launch failure forty minutes into the suite.
+              [ -n "$BROWSERS" ] || BROWSERS=chromium
+
+              # The cache key has to move with the version, because a browser
+              # build is pinned to one. `unknown` when node_modules has no
+              # playwright, which is a job that will fail on its own terms.
+              VER=$(node -e "console.log(require('./node_modules/playwright/package.json').version)" 2>/dev/null || echo unknown)
+
+              echo "browsers=${BROWSERS}" >> "$GITHUB_OUTPUT"
+              echo "browsers_key=$(echo "$BROWSERS" | tr ' ' '-')" >> "$GITHUB_OUTPUT"
+              echo "version=${VER}" >> "$GITHUB_OUTPUT"
+              echo "Playwright ON ${VER} — browsers: ${BROWSERS}"
+
+        # The mcr playwright image bakes its browsers into /opt/ms-playwright.
+        # A job running on one already has them and needs neither the cache nor
+        # the download.
+        - name: Check baked Playwright browsers
+          if: ${{ steps.detect.outputs.enabled == 'true' }}
+          id: baked
+          shell: bash
+          env:
+              REQ_BROWSERS: ${{ steps.detect.outputs.browsers }}
+          run: |
+              set -uo pipefail
+              BAKE_DIR="${PLAYWRIGHT_BROWSERS_PATH:-/opt/ms-playwright}"
+              if [ ! -d "$BAKE_DIR" ]; then
+                echo "No baked browsers at ${BAKE_DIR} — falling back to install"
+                echo "all_present=false" >> "$GITHUB_OUTPUT"
+                echo "missing=${REQ_BROWSERS}" >> "$GITHUB_OUTPUT"
+                exit 0
+              fi
+              MISSING=""
+              for b in $REQ_BROWSERS; do
+                case "$b" in
+                  chromium) glob="${BAKE_DIR}/chromium-"*/chrome-linux*/chrome ;;
+                  webkit)   glob="${BAKE_DIR}/webkit-"*/pw_run.sh ;;
+                  firefox)  glob="${BAKE_DIR}/firefox-"*/firefox/firefox ;;
+                  *)        glob="${BAKE_DIR}/${b}-"* ;;
+                esac
+                if compgen -G "$glob" >/dev/null; then
+                  echo "  ${b}: baked"
+                else
+                  echo "  ${b}: missing"
+                  MISSING="${MISSING:+$MISSING }${b}"
+                fi
+              done
+              if [ -z "$MISSING" ]; then
+                echo "all_present=true" >> "$GITHUB_OUTPUT"
+              else
+                echo "all_present=false" >> "$GITHUB_OUTPUT"
+                echo "missing=${MISSING}" >> "$GITHUB_OUTPUT"
+              fi
+
+        - name: Cache Playwright browsers
+          if: ${{ steps.detect.outputs.enabled == 'true' && steps.baked.outputs.all_present != 'true' }}
+          id: cache
+          uses: actions/cache@v6
+          with:
+              path: ~/.cache/ms-playwright
+              key: ${{ runner.os }}-playwright-${{ steps.detect.outputs.version }}-${{ steps.detect.outputs.browsers_key }}
+              restore-keys: |
+                  ${{ runner.os }}-playwright-${{ steps.detect.outputs.version }}-
+                  ${{ runner.os }}-playwright-
+
+        - name: Install Playwright browsers
+          if: ${{ steps.detect.outputs.enabled == 'true' && steps.baked.outputs.all_present != 'true' && steps.cache.outputs.cache-hit != 'true' }}
+          shell: bash
+          env:
+              UV_THREADPOOL_SIZE: '128'
+              PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '120000'
+              MISSING: ${{ steps.baked.outputs.missing || steps.detect.outputs.browsers }}
+              PW_VERSION: ${{ steps.detect.outputs.version }}
+          run: |
+              set -uo pipefail
+              # Only cdn.playwright.dev serves the Chrome-for-Testing artifacts
+              # (prss/npmmirror/azureedge do not mirror them), so retry the
+              # default host -- UV_THREADPOOL_SIZE dodges the chromium-extract
+              # libuv deadlock, CONNECTION_TIMEOUT + `timeout` turn a silent 100%
+              # stall into a retryable error -- then fall back to the bundled mcr
+              # docker image.
+              attempt() {
+                echo "::group::playwright install ($1)"
+                timeout 600 pnpm exec playwright install --with-deps ${MISSING}
+                local rc=$?
+                echo "::endgroup::"
+                return $rc
+              }
+              attempt "try 1" && exit 0
+              echo "::warning::try 1 failed/stalled; retrying"
+              sleep 10
+              attempt "try 2" && exit 0
+              echo "::warning::try 2 failed/stalled; retrying"
+              sleep 15
+              attempt "try 3" && exit 0
+              echo "::warning::cdn.playwright.dev exhausted; falling back to mcr playwright image"
+
+              IMG="mcr.microsoft.com/playwright:v${PW_VERSION}-jammy"
+              DEST="${PLAYWRIGHT_BROWSERS_PATH:-$HOME/.cache/ms-playwright}"
+              mkdir -p "$DEST"
+              echo "::group::pull ${IMG}"
+              if ! docker pull "$IMG"; then
+                echo "::error::docker pull ${IMG} failed"
+                echo "::endgroup::"
+                exit 1
+              fi
+              echo "::endgroup::"
+              CID=$(docker create "$IMG")
+              docker cp "$CID:/ms-playwright/." "$DEST/"
+              docker rm "$CID" >/dev/null
+              pnpm exec playwright install-deps ${MISSING}
+              echo "playwright browsers restored from ${IMG} into ${DEST}"
+
+        # The cache holds the browsers, not the shared libraries they link
+        # against. A hit still needs the apt half.
+        - name: Install Playwright OS deps
+          if: ${{ steps.detect.outputs.enabled == 'true' && steps.baked.outputs.all_present != 'true' && steps.cache.outputs.cache-hit == 'true' }}
+          shell: bash
+          env:
+              BROWSERS: ${{ steps.detect.outputs.browsers }}
+          run: |
+              set -uo pipefail
+              install_deps() {
+                echo "::group::playwright install-deps ($1)"
+                sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update || true
+                pnpm exec playwright install-deps ${BROWSERS}
+                local rc=$?
+                echo "::endgroup::"
+                return $rc
+              }
+              install_deps "try 1" && exit 0
+              echo "::warning::install-deps try 1 failed; retrying"
+              sleep 10
+              install_deps "try 2" && exit 0
+              echo "::warning::install-deps exhausted; trying install --with-deps"
+              pnpm exec playwright install --with-deps ${BROWSERS}

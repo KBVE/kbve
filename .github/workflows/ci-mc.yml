@@ -137,8 +137,6 @@ jobs:
 
             - name: Setup JavaScript
               uses: ./.github/actions/setup-js
-              with:
-                  playwright: 'false'
 
             - name: Setup moon
               uses: ./.github/actions/setup-moon
@@ -249,8 +247,6 @@ jobs:
 
             - name: Setup JavaScript
               uses: ./.github/actions/setup-js
-              with:
-                  playwright: 'false'
 
             - name: Install mc-monitor (itzg)
               run: |

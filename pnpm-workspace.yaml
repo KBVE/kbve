@@ -28,4 +28,3 @@ allowBuilds:
     '@bufbuild/buf': false
     unrs-resolver: false
     vue-demi: false
-    nx: set this to true or false
