@@ -32,6 +32,27 @@ on:
                 required: false
                 type: string
                 default: ''
+            release_version:
+                description: >-
+                    The version the tag resolved to. A tag may run ahead of the
+                    committed manifest, and an image that bakes its own version
+                    in at build time -- edge stamps deno.json into the VERSION
+                    its /health reports -- would otherwise ship labelled with the
+                    version it replaced. Given this, the build stamps the version
+                    files first.
+                required: false
+                type: string
+                default: ''
+            version_toml_path:
+                description: 'version.toml to stamp with release_version before building'
+                required: false
+                type: string
+                default: ''
+            version_target_path:
+                description: 'Second version file (Cargo.toml/deno.json) to stamp before building'
+                required: false
+                type: string
+                default: ''
             source_path:
                 description: 'Project source path (e.g. apps/cryptothrone). Used to detect Forgejo LFS assets for the rebuild fallback.'
                 required: false
@@ -106,8 +127,17 @@ jobs:
               id: version_check
               if: ${{ inputs.image != '' && inputs.cargo_toml != '' }}
               run: |
-                  LOCAL_VERSION=$(bash tools/docker/version.sh "${{ inputs.cargo_toml }}")
-                  echo "Local version: $LOCAL_VERSION"
+                  # The tag is the release version when there is one. Reading the
+                  # committed manifest instead would tag the image with the
+                  # version the tag replaced, and check GHCR for the wrong tag --
+                  # so a re-release could be skipped as "already published".
+                  if [ -n "${{ inputs.release_version }}" ]; then
+                    LOCAL_VERSION="${{ inputs.release_version }}"
+                    echo "Release version (from tag): $LOCAL_VERSION"
+                  else
+                    LOCAL_VERSION=$(bash tools/docker/version.sh "${{ inputs.cargo_toml }}")
+                    echo "Local version: $LOCAL_VERSION"
+                  fi
 
                   IMAGE="${{ inputs.image }}"
                   GHCR_IMAGE="ghcr.io/${IMAGE#ghcr.io/}"
@@ -178,6 +208,37 @@ jobs:
                     sed -i "s/^version = .*/version = \"${VER}\"/" "$TGT"
                     echo "Synced version ${VER} → ${TGT}"
                   fi
+
+            # A tag-driven release resolves its version before anything is built,
+            # and the post-publish sync writes the tree forward only afterwards.
+            # That is too late for an image that reads a version file during its
+            # own build, so the files are stamped here, in the build checkout.
+            # Nothing is committed: this checkout is thrown away, and the atom PR
+            # is what makes the change durable.
+            - name: Stamp the release version into the build checkout
+              if: ${{ steps.version_check.outputs.should_publish != 'false' && steps.promote.outputs.found != 'true' && inputs.release_version != '' }}
+              run: |
+                  VERSION="${{ inputs.release_version }}"
+                  for f in "${{ inputs.version_toml_path }}" "${{ inputs.version_target_path }}"; do
+                    [ -z "$f" ] && continue
+                    if [ ! -f "$f" ]; then
+                      echo "::warning::'$f' not found — skipping."
+                      continue
+                    fi
+                    case "$f" in
+                      *.toml)
+                        sh tools/release/set-toml-version.sh "$f" "$VERSION"
+                        ;;
+                      *.json)
+                        jq --arg v "$VERSION" '.version = $v' "$f" > "$f.tmp" && mv "$f.tmp" "$f"
+                        ;;
+                      *)
+                        echo "::warning::Unknown version file type '$f' — skipping."
+                        continue
+                        ;;
+                    esac
+                    echo "Stamped $f to $VERSION"
+                  done
 
             - name: Detect Forgejo LFS assets
               id: lfs_detect

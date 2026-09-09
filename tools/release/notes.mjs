@@ -24,7 +24,7 @@
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
-import { projectNode, parseTag, TagError } from './verify-tag.mjs';
+import { projectNode, parseTag, TagError, compareSemver } from './verify-tag.mjs';
 
 // Field and record separators. A commit body is multi-line and may contain any
 // printable character, so the delimiters have to be ones git will never emit
@@ -32,51 +32,10 @@ import { projectNode, parseTag, TagError } from './verify-tag.mjs';
 const FS = '\x1f';
 const RS = '\x1e';
 
-/**
- * Splits a semver into comparable parts. Not a full spec implementation: build
- * metadata is ignored (semver says it never affects precedence) and anything
- * unparseable sorts last, so a malformed tag cannot silently become "newest"
- * and swallow a whole release's commits into one entry.
- */
-export function semverParts(version) {
-  const match = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/.exec(version);
-  if (!match) return null;
-  const [, major, minor, patch, prerelease] = match;
-  return {
-    core: [Number(major), Number(minor), Number(patch)],
-    prerelease: prerelease === undefined ? null : prerelease.split('.'),
-  };
-}
-
-/** Negative when a sorts before b. Unparseable versions sort before parseable. */
-export function compareSemver(a, b) {
-  const pa = semverParts(a);
-  const pb = semverParts(b);
-  if (!pa && !pb) return a < b ? -1 : a > b ? 1 : 0;
-  if (!pa) return -1;
-  if (!pb) return 1;
-  for (let i = 0; i < 3; i++) {
-    if (pa.core[i] !== pb.core[i]) return pa.core[i] - pb.core[i];
-  }
-  // A release outranks any of its prereleases: 1.0.0 is newer than 1.0.0-rc.1.
-  if (!pa.prerelease && !pb.prerelease) return 0;
-  if (!pa.prerelease) return 1;
-  if (!pb.prerelease) return -1;
-  for (let i = 0; i < Math.max(pa.prerelease.length, pb.prerelease.length); i++) {
-    const x = pa.prerelease[i];
-    const y = pb.prerelease[i];
-    if (x === undefined) return -1;
-    if (y === undefined) return 1;
-    if (x === y) continue;
-    const nx = /^\d+$/.test(x);
-    const ny = /^\d+$/.test(y);
-    if (nx && ny) return Number(x) - Number(y);
-    // Numeric identifiers always have lower precedence than alphanumeric ones.
-    if (nx !== ny) return nx ? -1 : 1;
-    return x < y ? -1 : 1;
-  }
-  return 0;
-}
+// semverParts and compareSemver moved into verify-tag.mjs, which this module
+// already imports from -- defining them here and importing them there would
+// have made the pair circular. Re-exported so existing callers are unchanged.
+export { semverParts, compareSemver } from './verify-tag.mjs';
 
 /**
  * The tag this project was released at before `version`.
