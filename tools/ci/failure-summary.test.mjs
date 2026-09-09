@@ -1,7 +1,7 @@
 import { strict as assert } from 'node:assert';
 import { test } from 'node:test';
 
-import { fromAnnotations, summarize } from './failure-summary.mjs';
+import { fromAnnotations, summarize, summarizeAnnotations } from './failure-summary.mjs';
 
 const ts = (i) => `2026-09-08T21:43:${String(i).padStart(2, '0')}.0000000Z `;
 const log = (...lines) => lines.map((l, i) => ts(i) + l).join('\n');
@@ -134,4 +134,118 @@ test('annotations prefer anything over the exit code', () => {
         fromAnnotations(['Process completed with exit code 1.', 'moon: kinetree:build failed']),
         { messages: ['moon: kinetree:build failed'], useful: true },
     );
+});
+
+// The shape of run 34306307960, which opened #17013 as `[CI] CI / ci — Failed`
+// with no idea which of a hundred tasks broke.
+const MOON = log(
+    'astro-kbve:build | src/a.ts(3,9): error TS2322: Type mismatch',
+    'pass RunTask(kbve:test) (3m 53s 119ms, d76a25fc)',
+    'pass RunTask(simgrid:build) (11m 8s 500ms, a2c202b0)',
+    'skip RunTask(axum-kbve:test) (skipped, 2ms)',
+    'fail RunTask(astro-kbve:build) (4m 11s 420ms, bdf8b5c8)',
+    ' STATS ',
+    'Actions: 112 completed, 1 failed, 8 skipped',
+    '   Time: 57m 26s 110ms',
+    '##[error]Process completed with exit code 1.',
+);
+
+test('the title names the moon target that failed', () => {
+    const { targets, headline } = summarize(MOON);
+    assert.deepEqual(targets, ['astro-kbve:build']);
+    assert.equal(headline, 'astro-kbve:build: error TS2322: Type mismatch');
+});
+
+test('a hundred passing tasks do not crowd the failing one out of the excerpt', () => {
+    const { excerpt } = summarize(MOON);
+    assert.match(excerpt, /fail RunTask\(astro-kbve:build\)/);
+    assert.match(excerpt, /error TS2322/);
+    assert.doesNotMatch(excerpt, /pass RunTask/);
+    assert.doesNotMatch(excerpt, /skip RunTask/);
+    assert.doesNotMatch(excerpt, /Actions: 112 completed/);
+});
+
+test('several failed targets are named without spending the whole title', () => {
+    const { headline } = summarize(
+        log(
+            'fail RunTask(a:lint) (1s, 1)',
+            'fail RunTask(b:test) (1s, 2)',
+            'fail RunTask(c:build) (1s, 3)',
+            '##[error]Process completed with exit code 1.',
+        ),
+    );
+    assert.equal(headline, 'a:lint, b:test +1 more failed');
+    assert.ok(headline.length <= 72);
+});
+
+test('a target with no other clue still beats the exit code', () => {
+    assert.equal(
+        summarize(log('fail RunTask(q:test) (1s, 1)', '##[error]Process completed with exit code 1.')).headline,
+        'q:test failed',
+    );
+});
+
+test('annotations carry a headline when they say more than the exit code', () => {
+    assert.equal(
+        summarizeAnnotations(['Process completed with exit code 1.', 'moon: kinetree:build failed']).headline,
+        'moon: kinetree:build failed',
+    );
+    const bare = summarizeAnnotations(['Process completed with exit code 1.']);
+    assert.equal(bare.headline, '');
+    assert.match(bare.excerpt, /still being written/);
+});
+
+// Run 34306307960 in miniature: two failing tasks, one of which prints a line
+// per page and would otherwise be the whole excerpt.
+const TWO_TARGETS = log(
+    'guards:lint | Cargo.workspace.toml stubs out of sync with the root workspace tables:',
+    'guards:lint | Run: python3 tools/guards/sync-cargo-workspace-stubs.py',
+    ...Array.from({ length: 80 }, (_, i) => `astro-kbve:build |   ├─ /page-${i}/index.html (+3ms)`),
+    'astro-kbve:build | [ERROR] [build] Caught error: Cannot find native binding.',
+    'astro-kbve:build |     at async file:///home/runner/work/kbve/kbve/chunks/common.mjs:12851:74',
+    'fail RunTask(guards:lint) (531ms, 394b463e)',
+    'fail RunTask(astro-kbve:build) (3m 23s 555ms, bdf8b5c8)',
+    '##[error]Process completed with exit code 1.',
+);
+
+test('both failing tasks reach the excerpt, however loud one of them is', () => {
+    const { excerpt, headline, cause } = summarize(TWO_TARGETS);
+    assert.equal(cause, 'native-binding');
+    assert.equal(headline, 'guards:lint, astro-kbve:build: a native binding was missing at runtime');
+    assert.match(excerpt, /Cargo.workspace.toml stubs out of sync/);
+    assert.match(excerpt, /Cannot find native binding/);
+    assert.doesNotMatch(excerpt, /at async file:/);
+});
+
+test('a passing task does not get to decide the headline', () => {
+    const { cause, headline } = summarize(
+        log(
+            'kbve:test | test error::tests::rustc_error_E0432_is_reported ... ok',
+            'kbve:test | error[E0432]: this string lives in a passing test name',
+            'guards:lint | Cargo.workspace.toml stubs out of sync',
+            'fail RunTask(guards:lint) (531ms, 394b463e)',
+            '##[error]Process completed with exit code 1.',
+        ),
+    );
+    assert.equal(cause, '');
+    assert.equal(headline, 'guards:lint: Cargo.workspace.toml stubs out of sync');
+});
+
+test('many long target names give the title back to the error', () => {
+    const targets = [
+        'memes-e2e:e2e',
+        'astro-cryptothrone-e2e:e2e-docker',
+        'discordsh-web-e2e:e2e',
+        'irc-e2e:e2e',
+    ];
+    const { headline, cause } = summarize(
+        log(
+            "memes-e2e:e2e | Error: browserType.launch: Executable doesn't exist at /home/runner/.cache/ms-playwright/chromium_headless_shell-1234/chrome-headless-shell",
+            ...targets.map((t) => `fail RunTask(${t}) (1s, 1)`),
+            '##[error]Process completed with exit code 1.',
+        ),
+    );
+    assert.equal(cause, 'playwright-browser');
+    assert.equal(headline, 'memes-e2e:e2e +3 more: a Playwright browser was never installed');
+    assert.ok(headline.length <= 72);
 });

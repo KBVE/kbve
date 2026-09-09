@@ -71,6 +71,47 @@ impl Bone {
     pub const fn is_hinge(self) -> bool {
         matches!(self, Self::LowerArm(_) | Self::Calf(_))
     }
+
+    /// Which half of the body this bone drives.
+    ///
+    /// A property of the skeleton rather than of any one engine, which is why it
+    /// lives here: the split between "what the legs are doing" and "what the
+    /// arms are doing" is the same split whether it ends up as a Bevy animation
+    /// mask, a UE5 layered blend per bone, or a pair of buffers over FFI.
+    pub const fn half(self) -> Half {
+        match self {
+            Self::Root
+            | Self::Pelvis
+            | Self::Thigh(_)
+            | Self::Calf(_)
+            | Self::Foot(_)
+            | Self::Ball(_) => Half::Lower,
+            Self::Spine(_)
+            | Self::Neck
+            | Self::Head
+            | Self::Clavicle(_)
+            | Self::UpperArm(_)
+            | Self::LowerArm(_)
+            | Self::Hand(_) => Half::Upper,
+        }
+    }
+}
+
+/// The half of the body a bone belongs to.
+///
+/// The seam is the waist: the pelvis walks, the spine fights. The pelvis counts
+/// as lower because that is where a stride actually comes from -- an upper-body
+/// clip loses its weight shift through the hips, which is the standard price of
+/// splitting a body in two.
+///
+/// Deliberately two and not more. A third group for the head, so a character can
+/// look somewhere while doing something else, is a real thing to want, but it is
+/// a different mechanism -- an additive aim offset rather than a mask -- and
+/// adding a variant here would suggest otherwise.
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+pub enum Half {
+    Lower,
+    Upper,
 }
 
 /// Recognises a bone from its name, across the conventions we meet.

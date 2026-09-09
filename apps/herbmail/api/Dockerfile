@@ -26,9 +26,9 @@ COPY packages/npm/rn-astro/ packages/npm/rn-astro/
 
 COPY packages/data/codegen/generated/ packages/data/codegen/generated/
 
-COPY apps/herbmail/astro-herbmail/ apps/herbmail/astro-herbmail/
+COPY apps/herbmail/web/ apps/herbmail/web/
 
-WORKDIR /app/apps/herbmail/astro-herbmail
+WORKDIR /app/apps/herbmail/web
 RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-herbmail-cache,sharing=locked \
     cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true && \
     npx astro sync && \
@@ -69,10 +69,10 @@ RUN find . -type f \( \
 # [STAGE C] - Cargo Chef Planner
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS planner
 
-COPY apps/herbmail/axum-herbmail/Cargo.workspace.toml Cargo.toml
+COPY apps/herbmail/api/Cargo.workspace.toml Cargo.toml
 COPY Cargo.lock ./
 
-COPY apps/herbmail/axum-herbmail/Cargo.toml apps/herbmail/axum-herbmail/Cargo.toml
+COPY apps/herbmail/api/Cargo.toml apps/herbmail/api/Cargo.toml
 COPY crates/jedi/Cargo.toml crates/jedi/Cargo.toml
 COPY crates/kbve-proto/Cargo.toml crates/kbve-proto/Cargo.toml
 COPY crates/kbve/Cargo.toml crates/kbve/Cargo.toml
@@ -81,7 +81,7 @@ COPY crates/holy-derive/Cargo.toml crates/holy-derive/Cargo.toml
 
 COPY packages/data/proto packages/data/proto
 
-RUN mkdir -p apps/herbmail/axum-herbmail/src && echo "fn main() {}" > apps/herbmail/axum-herbmail/src/main.rs && \
+RUN mkdir -p apps/herbmail/api/src && echo "fn main() {}" > apps/herbmail/api/src/main.rs && \
     mkdir -p crates/jedi/src && echo "" > crates/jedi/src/lib.rs && \
     mkdir -p crates/holy-derive/src && echo "" > crates/holy-derive/src/lib.rs && \
     mkdir -p crates/kbve-proto/src && echo "" > crates/kbve-proto/src/lib.rs && \
@@ -114,9 +114,9 @@ COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
 COPY --from=planner /app/Cargo.toml ./
 COPY Cargo.lock ./
 
-COPY apps/herbmail/axum-herbmail/Cargo.toml apps/herbmail/axum-herbmail/Cargo.toml
-RUN mkdir -p apps/herbmail/axum-herbmail/src && \
-    echo "fn main() {}" > apps/herbmail/axum-herbmail/src/main.rs
+COPY apps/herbmail/api/Cargo.toml apps/herbmail/api/Cargo.toml
+RUN mkdir -p apps/herbmail/api/src && \
+    echo "fn main() {}" > apps/herbmail/api/src/main.rs
 
 COPY packages/data/proto packages/data/proto
 
@@ -141,7 +141,7 @@ FROM foundation AS builder
 RUN dpkg -s make >/dev/null 2>&1 || \
     (apt-get update && apt-get install -y --no-install-recommends make && rm -rf /var/lib/apt/lists/*)
 
-COPY --from=astro-precompressor /static /app/apps/herbmail/axum-herbmail/templates/dist
+COPY --from=astro-precompressor /static /app/apps/herbmail/api/templates/dist
 
 COPY packages/data/proto packages/data/proto
 COPY crates/jedi crates/jedi
@@ -151,9 +151,9 @@ COPY packages/proto packages/proto
 COPY crates/kbve crates/kbve
 COPY crates/holy crates/holy
 
-COPY apps/herbmail/axum-herbmail apps/herbmail/axum-herbmail
+COPY apps/herbmail/api apps/herbmail/api
 
-COPY apps/herbmail/axum-herbmail/templates/askama /app/apps/herbmail/axum-herbmail/templates/askama
+COPY apps/herbmail/api/templates/askama /app/apps/herbmail/api/templates/askama
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
@@ -168,8 +168,8 @@ FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13 AS runtime
 
 COPY --from=builder --chown=10001:10001 /app/target/release/axum-herbmail /app/axum-herbmail
 
-COPY --from=builder --chown=10001:10001 /app/apps/herbmail/axum-herbmail/templates/dist /app/templates/dist
-COPY --from=builder --chown=10001:10001 /app/apps/herbmail/axum-herbmail/templates/askama /app/templates/askama
+COPY --from=builder --chown=10001:10001 /app/apps/herbmail/api/templates/dist /app/templates/dist
+COPY --from=builder --chown=10001:10001 /app/apps/herbmail/api/templates/askama /app/templates/askama
 
 ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=4321

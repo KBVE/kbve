@@ -7,7 +7,7 @@ tasks:
     rebake:
         script: 'bash art/character/rebake.sh'
     lfs-pull:
-        script: '(cd "$(git rev-parse --show-toplevel)" && ./kbve.sh -lfs herbmail pull --include=''apps/herbmail/herbmail-game/public/**'') || echo ''herbmail LFS pull skipped (no creds / offline) — assets may be pointer stubs'''
+        script: '(cd "$(git rev-parse --show-toplevel)" && ./kbve.sh -lfs herbmail pull --include=''apps/herbmail/game/public/**'') || echo ''herbmail LFS pull skipped (no creds / offline) — assets may be pointer stubs'''
         options:
             runFromWorkspaceRoot: true
     lfs-push:
@@ -19,12 +19,12 @@ tasks:
         options:
             runFromWorkspaceRoot: true
     e2e:
-        script: 'pnpm exec playwright test -c apps/herbmail/herbmail-game/playwright.config.ts'
+        script: 'pnpm exec playwright test -c apps/herbmail/game/playwright.config.ts'
         deps: ['~:build']
         options:
             runFromWorkspaceRoot: true
     test:
-        script: 'vitest run --config apps/herbmail/herbmail-game/vite.config.ts'
+        script: 'vitest run --config apps/herbmail/game/vite.config.ts'
         options:
             runFromWorkspaceRoot: true
 
@@ -33,7 +33,7 @@ env:
     # a key per field: it is nested and list-valued, and the build
     # workflows already take it in exactly this shape -- it was the
     # dispatch manifest's `engine` block, moved beside the project.
-    ENGINE_CONFIG: '{"version":"vite","project_path":"apps/herbmail/herbmail-game","build_targets":["html5"]}'
+    ENGINE_CONFIG: '{"version":"vite","project_path":"apps/herbmail/game","build_targets":["html5"]}'
     # Where a release of this project publishes to, declared beside the
     # project. This was the `external_publish` blob of its dispatch manifest
     # entry; release.yml reads it off the graph.

@@ -1,7 +1,7 @@
 [workspace]
 resolver = "2"
 members = [
-    "apps/herbmail/axum-herbmail",
+    "apps/herbmail/api",
     "crates/jedi",
     "crates/kbve-proto",
     "crates/kbve",

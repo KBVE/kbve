@@ -66,6 +66,19 @@ def retarget_main() -> None:
     sys.exit(code)
 
 
+def gait_main() -> None:
+    p = argparse.ArgumentParser(
+        prog="kbve-blender-gait", description="Fit rig-independent gait curves from locomotion clips."
+    )
+    p.add_argument("--clip", action="append", required=True, help="name=<fbx|glb>, repeatable")
+    p.add_argument("--out", required=True, help="output gait.ron")
+    p.add_argument("--blender", default=None, help="path to blender binary")
+    a = p.parse_args()
+    blender = find_blender(a.blender)
+    code = run_in_blender(HERE / "gait_bake.py", [*a.clip, a.out], blender)
+    sys.exit(code)
+
+
 def vat_main() -> None:
     p = argparse.ArgumentParser(
         prog="kbve-blender-vat", description="Bake a looping skinned animation to a vertex animation texture."

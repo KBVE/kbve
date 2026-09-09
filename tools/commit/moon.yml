@@ -24,7 +24,7 @@ tasks:
 
     # The lock is a generated file that a stale commit would leave behind, and
     # the symptom is a contributor's correct commit being rejected. `lint`
-    # rather than a task of its own, so `moon ci` reaches it.
+    # rather than a task of its own, so the CI lane reaches it.
     lint:
         command: 'node sync.mjs --check'
         toolchains: ['node']

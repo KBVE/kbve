@@ -9,7 +9,7 @@ owners:
 tasks:
     # A project tagged 'service' with no 'ship' task is invisible until the
     # lane tries to run it, and by then it is a failed push to main. `lint`
-    # rather than a task of its own, so `moon ci` reaches it.
+    # rather than a task of its own, so the CI lane reaches it.
     lint:
         command: 'node plan.mjs --check'
         toolchains: ['node']

@@ -1,11 +1,11 @@
 {
-  "generated_at": "2026-09-08T05:50:10Z",
+  "generated_at": "2026-09-09T05:56:53Z",
   "summary": {
     "tag-pending": 0,
     "changes-unreleased": 0,
     "manifest-behind": 0,
     "no-version": 0,
-    "never-released": 86,
+    "never-released": 90,
     "current": 2
   },
   "lanes": {
@@ -14,11 +14,15 @@
       "waiting": 0
     },
     "crates": {
-      "total": 27,
+      "total": 29,
       "waiting": 0
     },
     "npm": {
       "total": 5,
+      "waiting": 0
+    },
+    "web-game": {
+      "total": 4,
       "waiting": 0
     },
     "unreal-game": {
@@ -30,10 +34,6 @@
       "waiting": 0
     },
     "python": {
-      "total": 2,
-      "waiting": 0
-    },
-    "web-game": {
       "total": 2,
       "waiting": 0
     },
@@ -396,7 +396,7 @@
       "lanes": [
         "crates"
       ],
-      "manifest": "0.1.0",
+      "manifest": "0.2.0",
       "released": null,
       "commits_since": null,
       "state": "never-released"
@@ -415,6 +415,16 @@
       "project": "chuck-launcher",
       "lanes": [
         "desktop"
+      ],
+      "manifest": "0.1.0",
+      "released": null,
+      "commits_since": null,
+      "state": "never-released"
+    },
+    {
+      "project": "combat",
+      "lanes": [
+        "crates"
       ],
       "manifest": "0.1.0",
       "released": null,
@@ -516,7 +526,7 @@
       "lanes": [
         "crates"
       ],
-      "manifest": "0.1.8",
+      "manifest": "0.2.0",
       "released": null,
       "commits_since": null,
       "state": "never-released"
@@ -752,6 +762,16 @@
       "state": "never-released"
     },
     {
+      "project": "kinetree",
+      "lanes": [
+        "crates"
+      ],
+      "manifest": "0.1.0",
+      "released": null,
+      "commits_since": null,
+      "state": "never-released"
+    },
+    {
       "project": "laser",
       "lanes": [
         "npm"
@@ -797,6 +817,16 @@
         "docker"
       ],
       "manifest": "0.1.6",
+      "released": null,
+      "commits_since": null,
+      "state": "never-released"
+    },
+    {
+      "project": "mmorpg",
+      "lanes": [
+        "web-game"
+      ],
+      "manifest": "0.1.0",
       "released": null,
       "commits_since": null,
       "state": "never-released"
@@ -913,6 +943,16 @@
       "state": "never-released"
     },
     {
+      "project": "yuki",
+      "lanes": [
+        "web-game"
+      ],
+      "manifest": "0.0.1",
+      "released": null,
+      "commits_since": null,
+      "state": "never-released"
+    },
+    {
       "project": "chisel-ubuntu-axum",
       "lanes": [
         "docker"
@@ -933,6 +973,6 @@
       "state": "current"
     }
   ],
-  "total": 88,
+  "total": 92,
   "waiting": 0
 }

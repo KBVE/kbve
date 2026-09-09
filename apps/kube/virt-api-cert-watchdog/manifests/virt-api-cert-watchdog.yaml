@@ -1,0 +1,215 @@
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: virt-api-cert-watchdog
+    namespace: kubevirt
+    labels:
+        app.kubernetes.io/name: virt-api-cert-watchdog
+        app.kubernetes.io/component: cluster-ops
+        app.kubernetes.io/managed-by: argocd
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: virt-api-cert-watchdog
+    namespace: kubevirt
+    labels:
+        app.kubernetes.io/name: virt-api-cert-watchdog
+        app.kubernetes.io/component: cluster-ops
+        app.kubernetes.io/managed-by: argocd
+rules:
+    # The wire cert is compared against the one the operator rotated into
+    # this secret. Scoped by name: nothing else in kubevirt is readable.
+    - apiGroups:
+          - ''
+      resources:
+          - secrets
+      verbs:
+          - get
+      resourceNames:
+          - kubevirt-virt-api-certs
+    - apiGroups:
+          - ''
+      resources:
+          - pods
+      verbs:
+          - get
+          - list
+    # Deleting the pod is the ONLY remediation that survives virt-operator:
+    # it reverts any Deployment mutation (annotation, env var) within ~5s,
+    # which is why `kubectl rollout restart` and Reloader do not work here.
+    - apiGroups:
+          - ''
+      resources:
+          - pods
+      verbs:
+          - delete
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: virt-api-cert-watchdog
+    namespace: kubevirt
+    labels:
+        app.kubernetes.io/name: virt-api-cert-watchdog
+        app.kubernetes.io/component: cluster-ops
+        app.kubernetes.io/managed-by: argocd
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: virt-api-cert-watchdog
+subjects:
+    - kind: ServiceAccount
+      name: virt-api-cert-watchdog
+      namespace: kubevirt
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: virt-api-cert-watchdog
+    namespace: kubevirt
+    labels:
+        app.kubernetes.io/name: virt-api-cert-watchdog
+        app.kubernetes.io/component: cluster-ops
+        app.kubernetes.io/managed-by: argocd
+        kbve.com/category: application
+        kbve.com/stack: core
+        kbve.com/managed-by: argocd
+spec:
+    schedule: '*/15 * * * *'
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+    jobTemplate:
+        metadata:
+            labels:
+                app.kubernetes.io/name: virt-api-cert-watchdog
+                app.kubernetes.io/component: cluster-ops
+        spec:
+            activeDeadlineSeconds: 180
+            ttlSecondsAfterFinished: 86400
+            backoffLimit: 0
+            template:
+                metadata:
+                    labels:
+                        app.kubernetes.io/name: virt-api-cert-watchdog
+                        app.kubernetes.io/component: cluster-ops
+                spec:
+                    serviceAccountName: virt-api-cert-watchdog
+                    automountServiceAccountToken: true
+                    restartPolicy: Never
+                    securityContext:
+                        runAsNonRoot: true
+                        runAsUser: 1000
+                        runAsGroup: 1000
+                        fsGroup: 1000
+                        seccompProfile:
+                            type: RuntimeDefault
+                    containers:
+                        - name: scan
+                          image: ghcr.io/kbve/kubectl:0.1.10
+                          imagePullPolicy: IfNotPresent
+                          securityContext:
+                              allowPrivilegeEscalation: false
+                              readOnlyRootFilesystem: true
+                              capabilities:
+                                  drop:
+                                      - ALL
+                          resources:
+                              limits:
+                                  cpu: 100m
+                                  memory: 128Mi
+                              requests:
+                                  cpu: 25m
+                                  memory: 32Mi
+                          env:
+                              - name: SCAN_ID
+                                valueFrom:
+                                    fieldRef:
+                                        fieldPath: metadata.name
+                              # Set to "0" to observe and report without ever
+                              # deleting a pod. Everything else is unchanged,
+                              # so the JSON stream still shows what it would
+                              # have done.
+                              - name: REMEDIATE
+                                value: '1'
+                          volumeMounts:
+                              - name: tmp
+                                mountPath: /tmp
+                          command:
+                              - /bin/bash
+                              - -c
+                              - |
+                                  set -euo pipefail
+
+                                  NS=kubevirt
+                                  SVC=virt-api.kubevirt.svc:443
+                                  SECRET=kubevirt-virt-api-certs
+                                  SCAN_TS=$(date -u +%Y-%m-%dT%H:%M:%SZ)
+                                  NOW=$(date -u +%s)
+                                  REMEDIATE="${REMEDIATE:-1}"
+
+                                  emit() { jq -cn --arg ts "$SCAN_TS" --arg comp virt-api-cert-watchdog "$@"; }
+
+                                  # The cert virt-operator rotated in. This is the
+                                  # intended state.
+                                  WANT=$(kubectl -n "$NS" get secret "$SECRET" \
+                                      -o jsonpath='{.data.tls\.crt}' | base64 -d)
+                                  WANT_SERIAL=$(printf '%s' "$WANT" | openssl x509 -noout -serial | cut -d= -f2)
+                                  WANT_NOT_AFTER=$(printf '%s' "$WANT" | openssl x509 -noout -enddate | cut -d= -f2)
+                                  WANT_EPOCH=$(date -u -d "$WANT_NOT_AFTER" +%s)
+
+                                  # The cert the pod is actually presenting. The
+                                  # image is distroless with no shell, so the
+                                  # mounted file cannot be read directly -- the
+                                  # TLS handshake is the only way to see this.
+                                  GOT=$(echo | openssl s_client -connect "$SVC" 2>/dev/null | openssl x509 2>/dev/null || true)
+                                  if [ -z "$GOT" ]; then
+                                      emit '{level:"error",component:$comp,event:"probe_failed",scan_ts:$ts,service:"virt-api.kubevirt.svc:443",detail:"TLS handshake returned no certificate"}'
+                                      exit 1
+                                  fi
+                                  GOT_SERIAL=$(printf '%s' "$GOT" | openssl x509 -noout -serial | cut -d= -f2)
+                                  GOT_NOT_AFTER=$(printf '%s' "$GOT" | openssl x509 -noout -enddate | cut -d= -f2)
+                                  GOT_EPOCH=$(date -u -d "$GOT_NOT_AFTER" +%s)
+                                  EXPIRES_IN=$((GOT_EPOCH - NOW))
+
+                                  # Serials, not dates: two rotations can share a
+                                  # notAfter, and a serial match is exact.
+                                  if [ "$WANT_SERIAL" = "$GOT_SERIAL" ]; then
+                                      emit --arg serial "$GOT_SERIAL" --argjson expires_in "$EXPIRES_IN" \
+                                          '{level:"info",component:$comp,event:"cert_in_sync",scan_ts:$ts,serial:$serial,expires_in_seconds:$expires_in}'
+                                      exit 0
+                                  fi
+
+                                  # Drift. Only act when the secret is strictly
+                                  # NEWER than the wire -- during a rotation the
+                                  # wire can legitimately lead the secret for a
+                                  # moment, and deleting on that race would
+                                  # delete-loop the pod every 15 minutes.
+                                  POD=$(kubectl -n "$NS" get pods -l kubevirt.io=virt-api \
+                                      -o jsonpath='{.items[0].metadata.name}' 2>/dev/null || true)
+
+                                  if [ "$WANT_EPOCH" -le "$GOT_EPOCH" ]; then
+                                      emit --arg want "$WANT_SERIAL" --arg got "$GOT_SERIAL" --arg pod "${POD:-unknown}" \
+                                          '{level:"info",component:$comp,event:"cert_drift_benign",scan_ts:$ts,secret_serial:$want,wire_serial:$got,pod:$pod,detail:"wire cert is not older than the secret; mid-rotation, no action"}'
+                                      exit 0
+                                  fi
+
+                                  emit --arg want "$WANT_SERIAL" --arg got "$GOT_SERIAL" --arg pod "${POD:-unknown}" \
+                                      --argjson expires_in "$EXPIRES_IN" --argjson remediate "$([ "$REMEDIATE" = "1" ] && echo true || echo false)" \
+                                      '{level:"warn",component:$comp,event:"cert_reload_stalled",scan_ts:$ts,secret_serial:$want,wire_serial:$got,pod:$pod,wire_expires_in_seconds:$expires_in,remediate:$remediate,recommendation:"delete the virt-api pod; virt-operator reverts every Deployment-level restart"}'
+
+                                  if [ "$REMEDIATE" != "1" ]; then
+                                      exit 0
+                                  fi
+                                  if [ -z "$POD" ]; then
+                                      emit '{level:"error",component:$comp,event:"remediation_failed",scan_ts:$ts,detail:"no virt-api pod found to delete"}'
+                                      exit 1
+                                  fi
+
+                                  kubectl -n "$NS" delete pod "$POD" --wait=false
+                                  emit --arg pod "$POD" \
+                                      '{level:"warn",component:$comp,event:"pod_deleted",scan_ts:$ts,pod:$pod,detail:"deleted to force a certificate reload"}'
+                    volumes:
+                        - name: tmp
+                          emptyDir: {}

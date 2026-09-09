@@ -2964,7 +2964,6 @@ dependencies = [
  "crossbeam-channel",
  "dirs",
  "js-sys",
- "once_cell",
  "redb",
  "rexie",
  "serde",
@@ -12617,6 +12616,9 @@ dependencies = [
  "bevy_gltf",
  "combat",
  "kinetree",
+ "ron",
+ "serde",
+ "thiserror 2.0.19",
 ]
 
 [[package]]

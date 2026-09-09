@@ -1,4 +1,4 @@
-use kinetree::{Bone, Side, Skeleton, arm, leg, role_of};
+use kinetree::{Bone, Half, Side, Skeleton, arm, leg, role_of};
 
 #[test]
 fn the_unreal_convention_is_recognised() {
@@ -249,4 +249,49 @@ fn the_table_is_plain_numbers() {
         core::mem::size_of::<Skeleton>(),
         Bone::COUNT * core::mem::size_of::<u16>()
     );
+}
+
+#[test]
+fn the_waist_is_the_seam() {
+    for name in ["root", "pelvis", "thigh_l", "calf_r", "foot_l", "ball_r"] {
+        assert_eq!(
+            role_of(name).map(Bone::half),
+            Some(Half::Lower),
+            "{name} should walk"
+        );
+    }
+    for name in [
+        "spine_01",
+        "spine_03",
+        "neck_01",
+        "head",
+        "clavicle_l",
+        "upperarm_r",
+        "lowerarm_l",
+        "hand_r",
+    ] {
+        assert_eq!(
+            role_of(name).map(Bone::half),
+            Some(Half::Upper),
+            "{name} should fight"
+        );
+    }
+}
+
+#[test]
+fn both_conventions_agree_about_halves() {
+    // The same joint under two naming schemes has to land in the same half, or
+    // a Mixamo clip and an Unreal one would split the body in different places.
+    for (unreal, mixamo) in [
+        ("thigh_l", "mixamorig:LeftUpLeg"),
+        ("upperarm_r", "mixamorig:RightArm"),
+        ("pelvis", "mixamorig:Hips"),
+        ("head", "mixamorig:Head"),
+    ] {
+        assert_eq!(
+            role_of(unreal).map(Bone::half),
+            role_of(mixamo).map(Bone::half),
+            "{unreal} and {mixamo} disagree"
+        );
+    }
 }

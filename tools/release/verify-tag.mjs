@@ -12,10 +12,55 @@
 // tell. That is the whole job of this script.
 
 import { execFileSync } from 'node:child_process';
-import { readFileSync, existsSync, appendFileSync } from 'node:fs';
+import { readFileSync, readdirSync, existsSync, appendFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 export class TagError extends Error {}
+
+/**
+ * Semver parsing lives here rather than in notes.mjs because notes.mjs already
+ * imports from this file; putting it the other way round would make the two
+ * modules circular. notes.mjs re-exports both so its own callers are unchanged.
+ */
+export function semverParts(version) {
+	const match = /^(\d+)\.(\d+)\.(\d+)(?:-([0-9A-Za-z.-]+))?(?:\+[0-9A-Za-z.-]+)?$/.exec(version);
+	if (!match) return null;
+	const [, major, minor, patch, prerelease] = match;
+	return {
+		core: [Number(major), Number(minor), Number(patch)],
+		prerelease: prerelease === undefined ? null : prerelease.split('.'),
+	};
+}
+
+/** Negative when a sorts before b. Unparseable versions sort before parseable. */
+export function compareSemver(a, b) {
+	const pa = semverParts(a);
+	const pb = semverParts(b);
+	if (!pa && !pb) return a < b ? -1 : a > b ? 1 : 0;
+	if (!pa) return -1;
+	if (!pb) return 1;
+	for (let i = 0; i < 3; i++) {
+		if (pa.core[i] !== pb.core[i]) return pa.core[i] - pb.core[i];
+	}
+	// A release outranks any of its prereleases: 1.0.0 is newer than 1.0.0-rc.1.
+	if (!pa.prerelease && !pb.prerelease) return 0;
+	if (!pa.prerelease) return 1;
+	if (!pb.prerelease) return -1;
+	for (let i = 0; i < Math.max(pa.prerelease.length, pb.prerelease.length); i++) {
+		const x = pa.prerelease[i];
+		const y = pb.prerelease[i];
+		if (x === undefined) return -1;
+		if (y === undefined) return 1;
+		if (x === y) continue;
+		const nx = /^\d+$/.test(x);
+		const ny = /^\d+$/.test(y);
+		if (nx && ny) return Number(x) - Number(y);
+		// Numeric identifiers always have lower precedence than alphanumeric ones.
+		if (nx !== ny) return nx ? -1 : 1;
+		return x < y ? -1 : 1;
+	}
+	return 0;
+}
 
 /** Splits on the LAST @, so a scoped name like @kbve/astro@1.0.0 still parses. */
 export function parseTag(tag) {
@@ -232,6 +277,53 @@ export function pypiName(root, source) {
 	return readFileSync(path, 'utf8').match(/^\s*name\s*=\s*"([^"]+)"/m)?.[1] ?? null;
 }
 
+/** Reads one top-level scalar out of a file's YAML frontmatter block. */
+export function frontmatterField(text, field) {
+	const end = text.indexOf('\n---', 3);
+	if (!text.startsWith('---') || end === -1) return null;
+	const block = text.slice(3, end);
+	// Anchored to column zero so a key nested under `kube:` or `sidebar:` is
+	// never mistaken for the top-level one of the same name.
+	const match = block.match(new RegExp(`^${field}:[ \\t]*"?([^"\\n]+?)"?[ \\t]*$`, 'm'));
+	return match ? match[1].trim() : null;
+}
+
+/**
+ * The project doc that declares this release, and the extra version files it
+ * names.
+ *
+ * A project can carry more than one version file -- edge keeps the number in
+ * both version.toml and deno.json, where the first is what a tag is verified
+ * against and the second is what the Dockerfile bakes into the runtime VERSION
+ * that /health reports. Nothing reconciled them, so they could ship apart.
+ *
+ * The MDX has been naming both files all along in `version_toml` and
+ * `version_target`, and those declarations are accurate: across the 53 project
+ * docs carrying a version, every declared path exists. So the docs are the
+ * registry here, rather than a new per-project config.
+ */
+export function releaseDoc(root, project) {
+	const none = { mdxPath: '', versionToml: '', versionTarget: '' };
+	const dir = join(root, 'docs/project');
+	if (!existsSync(dir)) return none;
+
+	// Matched on the `app_name` field rather than the filename: the two are not
+	// the same, and assuming they were resolved nothing for most projects.
+	// chisel-ubuntu-axum is documented in chisel.mdx, unity-rareicon in a doc
+	// naming rareicon. The declaration inside the file is the claim that counts.
+	for (const entry of readdirSync(dir)) {
+		if (!entry.endsWith('.mdx')) continue;
+		const text = readFileSync(join(dir, entry), 'utf8');
+		if (frontmatterField(text, 'app_name') !== project) continue;
+		return {
+			mdxPath: `docs/project/${entry}`,
+			versionToml: frontmatterField(text, 'version_toml') ?? '',
+			versionTarget: frontmatterField(text, 'version_target') ?? '',
+		};
+	}
+	return none;
+}
+
 /**
  * Which publishers a tag belongs to.
  *
@@ -395,21 +487,37 @@ export function verify(tag, root = process.cwd(), factorioMods = [], node = null
 	}
 	const source = node.source;
 	const manifest = manifestVersion(root, source);
-	if (manifest.version !== version) {
+	// The tag states the intent; the manifest follows it. A manifest behind the
+	// tag is the normal case now -- the release writes it forward -- so only the
+	// direction that cannot be honoured is fatal. A manifest AHEAD of the tag
+	// means the tag names a version older than what is already committed, and
+	// publishing it would move a released number backwards.
+	const direction = compareSemver(manifest.version, version);
+	if (direction > 0) {
 		throw new TagError(
-			`Tag ${tag} claims version ${version}, but ${manifest.file} says ` +
-				`${manifest.version}.\n\nEither the version bump was not committed ` +
-				`before tagging, or the tag has a typo. Delete the tag, fix it, and ` +
-				`tag again -- do not move a tag that has already been released.`,
+			`Tag ${tag} claims version ${version}, but ${manifest.file} already says ` +
+				`${manifest.version}.\n\nA tag may run ahead of its manifest -- the ` +
+				`release syncs it forward -- but never behind it. Either the tag has a ` +
+				`typo, or ${manifest.version} was meant to ship. Delete the tag and tag ` +
+				`again -- do not move a tag that has already been released.`,
 		);
 	}
 	const tags = node.config?.tags ?? [];
+	const doc = releaseDoc(root, project);
 	return {
 		project,
 		version,
 		source,
 		file: manifest.file,
 		tags,
+		// The files this release writes the version into. `file` is the one the
+		// tag was checked against; these are every file that must agree with it
+		// once the release lands, so the sync can move them together.
+		mdxPath: doc.mdxPath,
+		// Fall back to the verified manifest when the doc names nothing, so a
+		// project with no MDX still gets its own version file synced.
+		versionTomlPath: doc.versionToml || manifest.file,
+		versionTargetPath: doc.versionTarget,
 		// Only meaningful for the lane that asks for them. A crate release has
 		// no image and a docker release has no PyPI name, and the workflow
 		// picks its lane from `tags` before it reads either.
@@ -485,6 +593,9 @@ if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop()
 					`version=${result.version}`,
 					`source=${result.source}`,
 					`file=${result.file}`,
+					`mdx_path=${result.mdxPath}`,
+					`version_toml_path=${result.versionTomlPath}`,
+					`version_target_path=${result.versionTargetPath}`,
 					`tags=${JSON.stringify(result.tags)}`,
 					`lanes=${JSON.stringify(result.lanes)}`,
 					`has_e2e=${result.hasE2e}`,

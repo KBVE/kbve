@@ -955,20 +955,45 @@ jobs:
                   TOKEN=$(cat "$SA/token")
                   NS=angelscript
                   VM=windows-builder
+                  # A dead aggregation layer is not a retryable condition:
+                  # virt-api serving an expired cert fails every subsequent
+                  # poll identically, so polling 12 minutes into a silent skip
+                  # just hides it. Fail the job on that signature instead.
+                  fatal_api() {
+                    echo "::error::KubeVirt aggregated API is unreachable: $1"
+                    echo "::error::All VM power control terminates in virt-api; no bypass exists (the VM webhooks are failurePolicy=Fail and served by it)."
+                    echo "::error::Check: kubectl get --raw /apis/subresources.kubevirt.io/v1/healthz"
+                    echo "::error::If the served cert is stale, delete the virt-api pod (rollout restart is reverted by virt-operator)."
+                    exit 1
+                  }
                   status() {
                     local body
+                    # 2>&1, not 2>/dev/null: the TLS failure text is the whole
+                    # signal, and discarding it is what turned a dead control
+                    # plane into an endless "Unknown" poll.
                     body=$(curl -sS --max-time 8 --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
-                      "$API/apis/kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM" 2>/dev/null) \
+                      "$API/apis/kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM" 2>&1) \
                       || { echo "Unknown"; return 0; }
+                    case "$body" in
+                      *"certificate has expired"*|*"failed to verify certificate"*)
+                        fatal_api "$body" ;;
+                    esac
                     printf '%s' "$body" | jq -r '.status.printableStatus? // "Unknown"' 2>/dev/null \
                       || echo "Unknown"
                   }
                   request_start() {
                     echo "Requesting start..."
-                    if ! curl -sS --max-time 15 --fail-with-body --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
+                    local body rc
+                    body=$(curl -sS --max-time 15 --fail-with-body --cacert "$SA/ca.crt" -H "Authorization: Bearer $TOKEN" \
                       -X PUT -H "Content-Type: application/json" -d '{}' \
-                      "$API/apis/subresources.kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM/start"; then
+                      "$API/apis/subresources.kubevirt.io/v1/namespaces/$NS/virtualmachines/$VM/start" 2>&1) || rc=$?
+                    if [ -n "${rc:-}" ]; then
+                      case "$body" in
+                        *"certificate has expired"*|*"failed to verify certificate"*|*"x509"*|*"503"*|*"ServiceUnavailable"*)
+                          fatal_api "$body" ;;
+                      esac
                       echo "::warning::start request failed (already running, RBAC, or API error) — will retry on next poll"
+                      echo "$body"
                     fi
                   }
                   S=$(status); echo "::notice::$VM status: $S"
@@ -999,6 +1024,7 @@ jobs:
                     sleep 15
                   done
                   echo "::warning::$VM did not reach Running in ~12m; SKIPPING the Win64 client build so the run still finishes (Linux client + dedicated server + publish unaffected)."
+                  echo "::warning::If this repeats, check virt-api's served certificate — a stalled cert reload presents as a VM that never leaves Stopped/Unknown."
                   echo "vm_ready=false" >> "$GITHUB_OUTPUT"
 
     game_build_windows:

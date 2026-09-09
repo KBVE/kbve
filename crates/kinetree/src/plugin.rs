@@ -2,7 +2,7 @@ use bevy::app::AnimationSystems;
 use bevy::prelude::*;
 use bevy::transform::TransformSystems;
 
-use crate::limb::{LimbPose, RestHinge, solve_limb};
+use crate::limb::{LimbLimits, LimbPose, RestHinge, solve_limb_with};
 
 /// The three bones of a limb, outermost last.
 ///
@@ -18,6 +18,7 @@ pub struct IkLimbBones {
 
 /// A limb to solve, and where its tip should end up.
 #[derive(Component, Debug, Clone, Copy)]
+#[require(LimbOutput)]
 pub struct IkLimb {
     /// World-space position for the tip.
     pub goal: Vec3,
@@ -27,6 +28,8 @@ pub struct IkLimb {
     /// Measured from the first pose the solver sees, then held. Set it
     /// yourself to pin the hinge to a specific bind pose.
     pub rest: Option<RestHinge>,
+    /// Joint guardrails, none by default.
+    pub limits: LimbLimits,
 }
 
 impl Default for IkLimb {
@@ -36,8 +39,22 @@ impl Default for IkLimb {
             weight: 1.0,
             enabled: true,
             rest: None,
+            limits: LimbLimits::NONE,
         }
     }
+}
+
+/// Local bone rotations the solve produced this frame, applied after every limb has been solved.
+#[derive(Component, Debug, Clone, Copy, Default)]
+pub struct LimbOutput {
+    pending: Option<LimbRotations>,
+}
+
+#[derive(Debug, Clone, Copy)]
+struct LimbRotations {
+    root_local: Quat,
+    mid_local: Quat,
+    weight: f32,
 }
 
 /// The set the solver runs in: after animation has written its bone
@@ -51,7 +68,8 @@ impl Plugin for KinetreePlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             PostUpdate,
-            solve_limbs
+            (solve_limbs, apply_limbs)
+                .chain()
                 .in_set(KinetreeSystems)
                 .after(AnimationSystems)
                 .before(TransformSystems::Propagate),
@@ -72,7 +90,7 @@ impl Plugin for KinetreePlugin {
 /// goal derived from the previous solve feeds the solver its own output.
 pub fn bone_world_transform(
     entity: Entity,
-    transforms: &Query<&mut Transform>,
+    transforms: &Query<&Transform>,
     parents: &Query<&ChildOf>,
 ) -> Option<Transform> {
     let mut accumulated = *transforms.get(entity).ok()?;
@@ -88,62 +106,76 @@ pub fn bone_world_transform(
 }
 
 fn solve_limbs(
-    mut limbs: Query<(&mut IkLimb, &IkLimbBones)>,
-    mut transforms: Query<&mut Transform>,
+    mut limbs: Query<(&mut IkLimb, &IkLimbBones, &mut LimbOutput)>,
+    transforms: Query<&Transform>,
     parents: Query<&ChildOf>,
 ) {
-    for (mut limb, bones) in &mut limbs {
-        if !limb.enabled || limb.weight <= 0.0 {
-            continue;
+    limbs
+        .par_iter_mut()
+        .for_each(|(mut limb, bones, mut output)| {
+            output.pending = solve_one(&mut limb, bones, &transforms, &parents);
+        });
+}
+
+fn solve_one(
+    limb: &mut IkLimb,
+    bones: &IkLimbBones,
+    transforms: &Query<&Transform>,
+    parents: &Query<&ChildOf>,
+) -> Option<LimbRotations> {
+    if !limb.enabled || limb.weight <= 0.0 {
+        return None;
+    }
+
+    let root = bone_world_transform(bones.root, transforms, parents)?;
+    let mid = bone_world_transform(bones.mid, transforms, parents)?;
+    let tip = bone_world_transform(bones.tip, transforms, parents)?;
+
+    let pose = LimbPose {
+        root: root.translation,
+        mid: mid.translation,
+        tip: tip.translation,
+        root_basis: root.rotation,
+    };
+
+    let rest = match limb.rest {
+        Some(rest) => rest,
+        None => {
+            let measured = RestHinge::from_rest(pose.root, pose.mid, pose.tip, pose.root_basis)?;
+            limb.rest = Some(measured);
+            measured
         }
+    };
 
-        let (Some(root), Some(mid), Some(tip)) = (
-            bone_world_transform(bones.root, &transforms, &parents),
-            bone_world_transform(bones.mid, &transforms, &parents),
-            bone_world_transform(bones.tip, &transforms, &parents),
-        ) else {
+    let solve = solve_limb_with(&pose, &rest, &limb.limits, limb.goal);
+    let turn = Quat::from_axis_angle(solve.hinge_axis, solve.hinge_turn);
+
+    let mid_local = root.rotation.inverse() * turn * mid.rotation;
+    let root_world = solve.root_swing * root.rotation;
+    let root_current = transforms.get(bones.root).ok()?.rotation;
+    let root_parent = root.rotation * root_current.inverse();
+    let root_local = root_parent.inverse() * root_world;
+
+    Some(LimbRotations {
+        root_local,
+        mid_local,
+        weight: limb.weight.clamp(0.0, 1.0),
+    })
+}
+
+fn apply_limbs(
+    mut outputs: Query<(&mut LimbOutput, &IkLimbBones)>,
+    mut transforms: Query<&mut Transform>,
+) {
+    for (mut output, bones) in &mut outputs {
+        let Some(rotations) = output.pending.take() else {
             continue;
         };
-
-        let pose = LimbPose {
-            root: root.translation,
-            mid: mid.translation,
-            tip: tip.translation,
-            root_basis: root.rotation,
-        };
-
-        let rest = match limb.rest {
-            Some(rest) => rest,
-            None => {
-                let Some(measured) =
-                    RestHinge::from_rest(pose.root, pose.mid, pose.tip, pose.root_basis)
-                else {
-                    continue;
-                };
-                limb.rest = Some(measured);
-                measured
-            }
-        };
-
-        let solve = solve_limb(&pose, &rest, limb.goal);
-        let weight = limb.weight.clamp(0.0, 1.0);
-        let turn = Quat::from_axis_angle(solve.hinge_axis, solve.hinge_turn);
-
-        // The root swing cancels out of the mid bone's local rotation: mid's
-        // parent is the root, so both sides of the change carry it.
-        let mid_local = root.rotation.inverse() * turn * mid.rotation;
-        let root_world = solve.root_swing * root.rotation;
-
-        let Ok(mut root_transform) = transforms.get_mut(bones.root) else {
-            continue;
-        };
-        let root_parent = root.rotation * root_transform.rotation.inverse();
-        let root_local = root_parent.inverse() * root_world;
-        root_transform.rotation = root_transform.rotation.slerp(root_local, weight);
-
-        let Ok(mut mid_transform) = transforms.get_mut(bones.mid) else {
-            continue;
-        };
-        mid_transform.rotation = mid_transform.rotation.slerp(mid_local, weight);
+        if let Ok(mut root) = transforms.get_mut(bones.root) {
+            root.rotation = root.rotation.slerp(rotations.root_local, rotations.weight);
+        }
+        if let Ok(mut mid) = transforms.get_mut(bones.mid) {
+            mid.rotation = mid.rotation.slerp(rotations.mid_local, rotations.weight);
+        }
     }
 }

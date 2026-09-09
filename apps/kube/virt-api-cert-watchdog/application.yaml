@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: virt-api-cert-watchdog
+    namespace: argocd
+    annotations:
+        kbve.com/source-path: kube/virt-api-cert-watchdog
+        kbve.com/manifest-path: apps/kube/virt-api-cert-watchdog/manifests
+        kbve.com/application-file: kube/virt-api-cert-watchdog/application.yaml
+        kbve.com/managed-by: argocd
+        kbve.com/schema-version: v1
+        kbve.com/category: application
+        kbve.com/stack: core
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/kbve/kbve
+        targetRevision: main
+        path: apps/kube/virt-api-cert-watchdog/manifests
+    destination:
+        server: https://kubernetes.default.svc
+    syncPolicy:
+        automated:
+            selfHeal: true
+            prune: true
+        syncOptions:
+            - CreateNamespace=false

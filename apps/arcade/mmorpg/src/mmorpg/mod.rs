@@ -6,7 +6,10 @@ pub mod character;
 pub mod combat;
 pub mod foot_ik;
 pub mod player;
+pub mod rig;
 pub mod target_ring;
+pub mod terrain;
+pub mod terrain_material;
 pub mod theme;
 pub mod ui;
 pub mod world;
@@ -17,6 +20,7 @@ impl Plugin for MmorpgPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins((
             world::WorldPlugin,
+            rig::RigPlugin,
             character::CharacterPlugin,
             action::ActionPlugin,
             combat::GameCombatPlugin,

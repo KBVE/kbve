@@ -156,177 +156,12 @@ jobs:
             - name: Setup JavaScript
               uses: ./.github/actions/setup-js
 
-            - name: Detect Playwright usage
-              id: detect-playwright
-              run: |
-                  FORCE="${{ inputs.install_playwright }}"
-                  if [ "$FORCE" = "true" ]; then
-                    USES=true
-                  elif [ "$FORCE" = "false" ]; then
-                    USES=false
-                  else
-                    ROOT="${{ inputs.source_path }}"
-                    if [ -z "$ROOT" ] || [ ! -d "$ROOT" ]; then
-                      USES=false
-                    elif find "$ROOT" -maxdepth 6 -type f -name 'playwright.config.*' -not -path '*/node_modules/*' 2>/dev/null | grep -q .; then
-                      USES=true
-                    else
-                      USES=false
-                    fi
-                  fi
-                  echo "uses_playwright=${USES}" >> "$GITHUB_OUTPUT"
-                  if [ "$USES" != "true" ]; then
-                    echo "Playwright OFF"
-                    exit 0
-                  fi
-                  ROOT="${{ inputs.source_path }}"
-                  BROWSERS=""
-                  CFGS=$(find "$ROOT" -maxdepth 6 -type f -name "playwright.config.*" -not -path "*/node_modules/*" 2>/dev/null || true)
-                  if [ -n "$CFGS" ]; then
-                    add() {
-                      case " $BROWSERS " in
-                        *" $1 "*) ;;
-                        *) BROWSERS="${BROWSERS:+$BROWSERS }$1" ;;
-                      esac
-                    }
-                    if echo "$CFGS" | xargs grep -lqE "devices\['Desktop Chrome'|name: *'chromium|chromium.*channel|name: *'mobile-chrome" 2>/dev/null; then add chromium; fi
-                    if echo "$CFGS" | xargs grep -lqE "devices\['Desktop Safari|name: *'webkit|name: *'mobile-safari" 2>/dev/null; then add webkit; fi
-                    if echo "$CFGS" | xargs grep -lqE "devices\['Desktop Firefox|name: *'firefox" 2>/dev/null; then add firefox; fi
-                  fi
-                  if [ -z "$BROWSERS" ]; then BROWSERS=chromium; fi
-                  KEY=$(echo "$BROWSERS" | tr ' ' '-')
-                  echo "browsers=${BROWSERS}" >> "$GITHUB_OUTPUT"
-                  echo "browsers_key=${KEY}" >> "$GITHUB_OUTPUT"
-                  echo "Playwright ON — browsers: ${BROWSERS}"
-
-            - name: Resolve Playwright version
-              if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' }}
-              id: playwright-version
-              run: |
-                  VER=$(node -e "console.log(require('./node_modules/playwright/package.json').version)" 2>/dev/null || echo "unknown")
-                  echo "version=${VER}" >> "$GITHUB_OUTPUT"
-                  echo "Resolved Playwright version: ${VER}"
-
-            - name: Check baked Playwright browsers
-              if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' }}
-              id: baked-playwright
-              env:
-                  REQ_BROWSERS: ${{ steps.detect-playwright.outputs.browsers }}
-              run: |
-                  set -euo pipefail
-                  BAKE_DIR="${PLAYWRIGHT_BROWSERS_PATH:-/opt/ms-playwright}"
-                  MISSING=""
-                  if [ ! -d "$BAKE_DIR" ]; then
-                    echo "No baked browsers at ${BAKE_DIR} — falling back to install"
-                    echo "all_present=false" >> "$GITHUB_OUTPUT"
-                    echo "missing=${REQ_BROWSERS}" >> "$GITHUB_OUTPUT"
-                    exit 0
-                  fi
-                  for b in $REQ_BROWSERS; do
-                    case "$b" in
-                      chromium) glob="${BAKE_DIR}/chromium-"*/chrome-linux*/chrome ;;
-                      webkit)   glob="${BAKE_DIR}/webkit-"*/pw_run.sh ;;
-                      firefox)  glob="${BAKE_DIR}/firefox-"*/firefox/firefox ;;
-                      *)        glob="${BAKE_DIR}/${b}-"* ;;
-                    esac
-                    if compgen -G "$glob" >/dev/null; then
-                      echo "  ${b}: baked"
-                    else
-                      echo "  ${b}: missing"
-                      MISSING="${MISSING:+$MISSING }${b}"
-                    fi
-                  done
-                  if [ -z "$MISSING" ]; then
-                    echo "all_present=true" >> "$GITHUB_OUTPUT"
-                  else
-                    echo "all_present=false" >> "$GITHUB_OUTPUT"
-                    echo "missing=${MISSING}" >> "$GITHUB_OUTPUT"
-                  fi
-
-            - name: Cache Playwright browsers
-              if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && steps.baked-playwright.outputs.all_present != 'true' }}
-              id: playwright-cache
-              uses: actions/cache@v6
+            - name: Setup Playwright
+              id: playwright
+              uses: ./.github/actions/setup-playwright
               with:
-                  path: ~/.cache/ms-playwright
-                  key: ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}-${{ steps.detect-playwright.outputs.browsers_key }}
-                  restore-keys: |
-                      ${{ runner.os }}-playwright-${{ steps.playwright-version.outputs.version }}-
-                      ${{ runner.os }}-playwright-
-
-            - name: Install Playwright Browsers
-              if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && steps.baked-playwright.outputs.all_present != 'true' && steps.playwright-cache.outputs.cache-hit != 'true' }}
-              timeout-minutes: 40
-              env:
-                  UV_THREADPOOL_SIZE: '128'
-                  PLAYWRIGHT_DOWNLOAD_CONNECTION_TIMEOUT: '120000'
-                  MISSING: ${{ steps.baked-playwright.outputs.missing || steps.detect-playwright.outputs.browsers }}
-                  PW_VERSION: ${{ steps.playwright-version.outputs.version }}
-              run: |
-                  set -uo pipefail
-                  # Only cdn.playwright.dev serves the Chrome-for-Testing
-                  # artifacts (prss/npmmirror/azureedge do not mirror them), so
-                  # retry the default host — UV_THREADPOOL_SIZE dodges the
-                  # chromium-extract libuv deadlock, CONNECTION_TIMEOUT + `timeout`
-                  # turn a silent 100% stall into a retryable error — then fall
-                  # back to the bundled mcr docker image.
-                  attempt() {
-                    echo "::group::playwright install ($1)"
-                    timeout 600 pnpm exec playwright install --with-deps ${MISSING}
-                    local rc=$?
-                    echo "::endgroup::"
-                    return $rc
-                  }
-                  attempt "try 1" && exit 0
-                  echo "::warning::try 1 failed/stalled; retrying"
-                  sleep 10
-                  attempt "try 2" && exit 0
-                  echo "::warning::try 2 failed/stalled; retrying"
-                  sleep 15
-                  attempt "try 3" && exit 0
-                  echo "::warning::cdn.playwright.dev exhausted; falling back to mcr playwright image"
-
-                  IMG="mcr.microsoft.com/playwright:v${PW_VERSION}-jammy"
-                  DEST="${PLAYWRIGHT_BROWSERS_PATH:-$HOME/.cache/ms-playwright}"
-                  mkdir -p "$DEST"
-                  echo "::group::pull ${IMG}"
-                  if ! docker pull "$IMG"; then
-                    echo "::error::docker pull ${IMG} failed"
-                    echo "::endgroup::"
-                    exit 1
-                  fi
-                  echo "::endgroup::"
-                  CID=$(docker create "$IMG")
-                  docker cp "$CID:/ms-playwright/." "$DEST/"
-                  docker rm "$CID" >/dev/null
-                  pnpm exec playwright install-deps ${MISSING}
-                  echo "playwright browsers restored from ${IMG} into ${DEST}"
-
-            - name: Install Playwright OS deps (cache hit)
-              if: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && steps.baked-playwright.outputs.all_present != 'true' && steps.playwright-cache.outputs.cache-hit == 'true' }}
-              timeout-minutes: 10
-              env:
-                  BROWSERS: ${{ steps.detect-playwright.outputs.browsers }}
-              run: |
-                  set -uo pipefail
-                  # Belt-and-suspenders for the apt OS-dep install: the flaky
-                  # third-party apt source is already stripped above; retry to
-                  # ride transient mirror blips, then fall back to the full
-                  # `install --with-deps` path as a last resort.
-                  install_deps() {
-                    echo "::group::playwright install-deps ($1)"
-                    sudo apt-get -o DPkg::Lock::Timeout=120 -o Acquire::Retries=3 update || true
-                    pnpm exec playwright install-deps ${BROWSERS}
-                    local rc=$?
-                    echo "::endgroup::"
-                    return $rc
-                  }
-                  install_deps "try 1" && exit 0
-                  echo "::warning::install-deps try 1 failed; retrying"
-                  sleep 10
-                  install_deps "try 2" && exit 0
-                  echo "::warning::install-deps exhausted; trying install --with-deps"
-                  pnpm exec playwright install --with-deps ${BROWSERS}
+                  enable: ${{ inputs.install_playwright }}
+                  source-path: ${{ inputs.source_path }}
 
             # Rust-backed e2e projects boot their server via `cargo run` as a
             # playwright webServer. The agones crate's build script shells out to
@@ -350,7 +185,7 @@ jobs:
               env:
                   BUILDKIT_PROGRESS: plain
                   INPUT_GITHUB_TOKEN: ${{ github.token }}
-                  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: ${{ steps.detect-playwright.outputs.uses_playwright == 'true' && '1' || '' }}
+                  PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: ${{ steps.playwright.outputs.enabled == 'true' && '1' || '' }}
               run: |
                   # A project with a CI-specific suite declares e2e-ci; the rest
                   # just have e2e. Under Nx this was `--configuration=ci`, which

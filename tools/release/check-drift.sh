@@ -199,7 +199,7 @@ echo ""
 printf "${BOLD}${CYAN}=== Docker Apps (GHCR) ===${RESET}\n"
 #          name            pipeline  source_file                                    type   version_toml                        registry_name  ghcr_image
 check_item "axum-kbve"     docker   "apps/kbve/axum-kbve/Cargo.toml"               cargo  "apps/kbve/axum-kbve/version.toml"  "ghcr"         "kbve/kbve"
-check_item "herbmail"      docker   "apps/herbmail/axum-herbmail/Cargo.toml"        cargo  "apps/herbmail/version.toml"        "ghcr"         "kbve/herbmail"
+check_item "herbmail"      docker   "apps/herbmail/api/Cargo.toml"        cargo  "apps/herbmail/version.toml"        "ghcr"         "kbve/herbmail"
 check_item "memes"         docker   "apps/memes/axum-memes/Cargo.toml"             cargo  "apps/memes/version.toml"           "ghcr"         "kbve/memes"
 check_item "irc-gateway"   docker   "apps/irc/irc-gateway/Cargo.toml"              cargo  "apps/irc/version.toml"             "ghcr"         "kbve/irc-gateway"
 check_item "discordsh"     docker   "apps/discordsh/api/Cargo.toml"     cargo  "apps/discordsh/version.toml"       "ghcr"         "kbve/discordsh"

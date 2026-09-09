@@ -157,11 +157,12 @@ jobs:
                   # The blob is written after the job ends, and the tracker used
                   # to give it thirty seconds. Losing that race is what put
                   # "Process completed with exit code 1" in #16998 -- the log had
-                  # the answer two lines up and nobody read it. Backs off to about
-                  # two minutes before falling through to annotations.
+                  # the answer two lines up and nobody read it, and #17013 lost
+                  # the same race at two minutes. Backs off to about four before
+                  # falling through to annotations.
                   RAW_LOG=""
                   if [ -n "$JOB_ID" ]; then
-                    for delay in 0 5 10 20 40 60; do
+                    for delay in 0 5 10 20 40 60 60 60; do
                       [ "$delay" -gt 0 ] && sleep "$delay"
                       CANDIDATE=$(gh api "repos/${{ github.repository }}/actions/jobs/${JOB_ID}/logs" \
                         2>/tmp/log_error.txt || echo "")
@@ -177,15 +178,11 @@ jobs:
                     done
                   fi
 
-                  HEADLINE=""
-                  REASON=""
+                  # Both branches produce the same JSON, so the headline that
+                  # scopes the title is read the same way whichever one ran.
                   if [ -n "$RAW_LOG" ]; then
                     printf '%s' "$RAW_LOG" > /tmp/raw.log
                     node tools/ci/failure-summary.mjs /tmp/raw.log > /tmp/summary.json
-                    jq -r '.excerpt' /tmp/summary.json > /tmp/log_snippet.txt
-                    HEADLINE=$(jq -r '.headline // ""' /tmp/summary.json)
-                    REASON=$(jq -r '.reason // ""' /tmp/summary.json)
-                    echo "cause=$(jq -r '.cause // "unclassified"' /tmp/summary.json)"
                   else
                     # Annotations are a separate store and stay readable when the
                     # log blob is not. A `run:` step contributes only its exit
@@ -193,8 +190,25 @@ jobs:
                     gh api "repos/${{ github.repository }}/check-runs/${JOB_ID}/annotations" \
                       --jq '[.[] | select(.annotation_level == "failure") | .message]' \
                       > /tmp/annotations.json 2>/dev/null || echo '[]' > /tmp/annotations.json
-                    node tools/ci/failure-summary.mjs --annotations /tmp/annotations.json > /tmp/log_snippet.txt \
-                      || echo "Log blob unavailable when this issue was written. See [run logs](${{ inputs.run_url }})." > /tmp/log_snippet.txt
+                    node tools/ci/failure-summary.mjs --annotations /tmp/annotations.json > /tmp/summary.json \
+                      || printf '{"headline":"","reason":"","excerpt":"Log blob unavailable when this issue was written. See [run logs](%s)."}' \
+                         "${{ inputs.run_url }}" > /tmp/summary.json
+                  fi
+                  jq -r '.excerpt // ""' /tmp/summary.json > /tmp/log_snippet.txt
+                  HEADLINE=$(jq -r '.headline // ""' /tmp/summary.json)
+                  REASON=$(jq -r '.reason // ""' /tmp/summary.json)
+                  echo "cause=$(jq -r '.cause // "unclassified"' /tmp/summary.json)"
+
+                  # What the title says, which is not always what the body
+                  # says. A title reading only "Failed" is identical for every
+                  # break in the repository (#17013), so when the log offered no
+                  # headline the step name goes in instead -- it at least
+                  # separates a broken lint run from a broken descriptor check.
+                  # The body keeps the empty headline, because there the step is
+                  # already named on its own line.
+                  TITLE_HEADLINE="$HEADLINE"
+                  if [ -z "$TITLE_HEADLINE" ] && [ -n "${FAILED_STEP:-}" ]; then
+                    TITLE_HEADLINE="failed in ${FAILED_STEP}"
                   fi
 
                   # A cause the log text names but the table does not. The LFS one
@@ -206,6 +220,7 @@ jobs:
 
                   echo "failed_step=${FAILED_STEP:-unknown}" >> "$GITHUB_OUTPUT"
                   echo "headline=${HEADLINE}" >> "$GITHUB_OUTPUT"
+                  echo "title_headline=${TITLE_HEADLINE}" >> "$GITHUB_OUTPUT"
                   echo "reason=${REASON}" >> "$GITHUB_OUTPUT"
 
             - name: Create new failure issue
@@ -219,12 +234,13 @@ jobs:
                   RUN_URL: ${{ inputs.run_url }}
                   FAILED_STEP: ${{ steps.logs.outputs.failed_step }}
                   HEADLINE: ${{ steps.logs.outputs.headline }}
+                  TITLE_HEADLINE: ${{ steps.logs.outputs.title_headline }}
                   REASON: ${{ steps.logs.outputs.reason }}
                   VERSION: ${{ inputs.version }}
               run: |
                   set -euo pipefail
                   TITLE="$PREFIX"
-                  if [ -n "${HEADLINE:-}" ]; then TITLE="${PREFIX}: ${HEADLINE}"; fi
+                  if [ -n "${TITLE_HEADLINE:-}" ]; then TITLE="${PREFIX}: ${TITLE_HEADLINE}"; fi
                   TIMESTAMP=$(date -u +%Y-%m-%dT%H:%M:%SZ)
                   LOG_SNIPPET=$(cat /tmp/log_snippet.txt 2>/dev/null || echo "Logs unavailable")
                   RUN_MARKER="<!-- ci-tracker:run=${RUN_ID} -->"
@@ -309,6 +325,7 @@ jobs:
                   RUN_URL: ${{ inputs.run_url }}
                   FAILED_STEP: ${{ steps.logs.outputs.failed_step }}
                   HEADLINE: ${{ steps.logs.outputs.headline }}
+                  TITLE_HEADLINE: ${{ steps.logs.outputs.title_headline }}
                   REASON: ${{ steps.logs.outputs.reason }}
                   VERSION: ${{ inputs.version }}
               run: |
@@ -362,9 +379,9 @@ jobs:
                   # the prefix is unchanged and it is the same job breaking -- but
                   # the title should say what it is breaking on now rather than
                   # what it broke on the first time.
-                  if [ -n "${HEADLINE:-}" ]; then
+                  if [ -n "${TITLE_HEADLINE:-}" ]; then
                     gh issue edit "$ISSUE_NUMBER" --repo "${{ github.repository }}" \
-                      --title "${PREFIX}: ${HEADLINE}"
+                      --title "${PREFIX}: ${TITLE_HEADLINE}"
                   fi
 
             - name: Close resolved issue

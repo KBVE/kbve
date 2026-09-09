@@ -7,6 +7,7 @@
 //! target, how a target is chosen, and what the view does about it.
 
 use avian3d::prelude::LinearVelocity;
+use bevy::input::mouse::AccumulatedMouseMotion;
 use bevy::prelude::*;
 use combat::{
     Ability, AbilityBar, AbilityDenied, AbilityLanded, ActiveEffects, CombatPlugin, CombatSystems,
@@ -14,7 +15,7 @@ use combat::{
 };
 
 use super::camera::OrbitCamera;
-use super::character::{Character, MoveIntent, spawn_character};
+use super::character::{Character, Heading, MoveIntent, spawn_character};
 use super::player::Player;
 use super::world::height_at;
 
@@ -34,6 +35,13 @@ impl Plugin for GameCombatPlugin {
                     (read_ability_keys, flush_queue)
                         .chain()
                         .before(CombatSystems),
+                    // Before the character systems rather than after: the model
+                    // is turned and the bearing decided in the same frame the
+                    // target changed, so a fresh selection does not spend a
+                    // frame walking backwards away from the old one.
+                    aim_at_target
+                        .after(cycle_target)
+                        .before(super::character::CharacterSystems),
                     (report_denials, queue_denied, report_landings, on_death).after(CombatSystems),
                 ),
             )
@@ -183,13 +191,13 @@ pub fn make_combatant(
     ));
 }
 
-fn spawn_training_dummies(mut commands: Commands, assets: Res<AssetServer>) {
+fn spawn_training_dummies(mut commands: Commands) {
     for index in 0..DUMMIES {
         let angle = index as f32 / DUMMIES as f32 * core::f32::consts::TAU;
         let (x, z) = (angle.cos() * 9.0, angle.sin() * 9.0);
         let position = Vec3::new(x, height_at(x, z) + 4.0, z);
 
-        let dummy = spawn_character(&mut commands, &assets, position);
+        let dummy = spawn_character(&mut commands, position);
         make_combatant(&mut commands, dummy, Faction::Hostile, 220, dummy_stats());
     }
 }
@@ -282,6 +290,29 @@ fn clear_dead_target(
     }
 }
 
+/// Points a character at whatever it has selected.
+///
+/// Deliberately keyed off the selection and not the camera lock. Breaking the
+/// lock means "stop moving my camera for me", which is a different request from
+/// "stop looking at the thing I am fighting" -- keeping the two apart is what
+/// lets a player swing the view around a fight without the character pirouetting
+/// to match.
+fn aim_at_target(
+    mut selectors: Query<(&Transform, &Target, &mut Heading)>,
+    subjects: Query<&Transform, With<Character>>,
+) {
+    for (transform, target, mut heading) in &mut selectors {
+        let wanted = target
+            .0
+            .and_then(|entity| subjects.get(entity).ok())
+            .and_then(|subject| {
+                let offset = subject.translation - transform.translation;
+                Dir3::new(Vec3::new(offset.x, 0.0, offset.z)).ok()
+            });
+        heading.0 = wanted;
+    }
+}
+
 /// Turns number keys into ability requests. The only place a keycode meets
 /// combat.
 fn read_ability_keys(
@@ -367,18 +398,34 @@ fn queue_denied(
 /// the player for control of the camera every time they looked somewhere on
 /// purpose, and this is meant to help them find the target, not to hold their
 /// head.
+///
+/// The lock is soft in the literal sense: the moment the player drags the mouse,
+/// it is gone. Two things writing the same yaw in the same frame is a fight the
+/// player always loses -- the camera creeps back the instant they let go -- and
+/// an assist that cannot be overridden stops being an assist. Tab puts it back.
 fn face_target(
     time: Res<Time>,
+    buttons: Res<ButtonInput<MouseButton>>,
+    motion: Res<AccumulatedMouseMotion>,
     targets: Query<&Transform, Without<OrbitCamera>>,
-    selectors: Query<(&Transform, &Target, &CameraLock), With<Player>>,
+    mut selectors: Query<(&Transform, &Target, &mut CameraLock), With<Player>>,
     mut camera: Single<&mut OrbitCamera>,
 ) {
-    let Ok((me, target, lock)) = selectors.single() else {
+    let Ok((me, target, mut lock)) = selectors.single_mut() else {
         return;
     };
     if !lock.0 {
         return;
     }
+
+    // The same test the camera itself uses to decide it is being steered, so the
+    // two cannot disagree about whether the player took over.
+    let steering = buttons.pressed(MouseButton::Right) || buttons.pressed(MouseButton::Left);
+    if steering && motion.delta.x != 0.0 {
+        lock.0 = false;
+        return;
+    }
+
     let Some(subject) = target.0.and_then(|entity| targets.get(entity).ok()) else {
         return;
     };

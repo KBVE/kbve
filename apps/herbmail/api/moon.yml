@@ -15,17 +15,17 @@ tasks:
         options:
             cache: false
     container-prep:
-        script: 'rm -rf ./apps/herbmail/axum-herbmail/dist/ && mkdir -p ./apps/herbmail/axum-herbmail/dist/ && cp -a ./dist/apps/astro-herbmail/. ./apps/herbmail/axum-herbmail/dist/'
+        script: 'rm -rf ./apps/herbmail/api/dist/ && mkdir -p ./apps/herbmail/api/dist/ && cp -a ./dist/apps/astro-herbmail/. ./apps/herbmail/api/dist/'
         deps: ['astro-herbmail:build']
         options:
             runFromWorkspaceRoot: true
     containerx:
-        script: 'docker buildx build --load -f apps/herbmail/axum-herbmail/Dockerfile -t kbve/herbmail:latest .'
+        script: 'docker buildx build --load -f apps/herbmail/api/Dockerfile -t kbve/herbmail:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false
     containerx-publish:
-        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/herbmail:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/herbmail:buildcache,mode=max -f apps/herbmail/axum-herbmail/Dockerfile -t ghcr.io/kbve/herbmail:latest -t kbve/herbmail:latest .'
+        script: 'docker buildx build --load --cache-from=type=registry,ref=ghcr.io/kbve/herbmail:buildcache --cache-to=type=registry,ref=ghcr.io/kbve/herbmail:buildcache,mode=max -f apps/herbmail/api/Dockerfile -t ghcr.io/kbve/herbmail:latest -t kbve/herbmail:latest .'
         options:
             runFromWorkspaceRoot: true
             cache: false

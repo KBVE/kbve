@@ -10,45 +10,50 @@ use core::time::Duration;
 use avian3d::prelude::*;
 use bevy::animation::transition::AnimationTransitions;
 use bevy::animation::{AnimatedBy, AnimationTargetId, RepeatAnimation};
-use bevy::gltf::GltfAssetLabel;
+use bevy::ecs::system::SystemParam;
+use bevy::gltf::{Gltf, GltfAssetLabel};
 use bevy::platform::collections::HashMap;
 use bevy::prelude::*;
 use bevy::world_serialization::WorldInstanceReady;
-use kinetree::{IkLimb, IkLimbBones, RestHinge};
+use kinetree::{IkLimb, IkLimbBones};
 
 use super::foot_ik::FootGoal;
-
-const MODEL: &str = "characters/quaternius_ubc/models/Regular_Male_FullBody.glb";
-const CLIPS: &str = "characters/quaternius_ubc/animations/UAL1.glb";
-
-// Indices into UAL1's animation array. The library is a flat alphabetical list
-// of 120 clips with no manifest, so these are positions, not names -- reread
-// them with `GltfAssetLabel::Animation(n)` against a fresh dump if the pack is
-// ever updated.
-const CLIP_IDLE: usize = 53;
-const CLIP_WALK: usize = 119;
-const CLIP_JOG: usize = 67;
-const CLIP_SPRINT: usize = 108;
-const CLIP_JUMP: usize = 72;
-
-// The combat clips, by their index in UAL1.glb. Indices rather than names
-// because that is what `GltfAssetLabel::Animation` takes; the names they
-// correspond to are beside them, since an index alone is unreadable and the
-// next person to touch this will otherwise have to dump the glTF again.
-const CLIP_PUNCH_JAB: usize = 84; // Punch_Jab -- leads with the LEFT hand
-const CLIP_PUNCH_CROSS: usize = 83; // Punch_Cross -- leads with the right
-const CLIP_CAST_CHANNEL: usize = 104; // Spell_Simple_Idle_Loop
-const CLIP_CAST_RELEASE: usize = 105; // Spell_Simple_Shoot
-const CLIP_CAST_POISON: usize = 101; // Spell_Double_Shoot_Loop
-const CLIP_HIT: usize = 47; // Hit_Chest
-const CLIP_DEATH: usize = 37; // Death01
+use super::rig::{GaitClips, LimbSpec, Rig, RigProfile};
 
 pub const CHARACTER_RADIUS: f32 = 0.32;
 pub const CHARACTER_HEIGHT: f32 = 1.16;
+/// Walking is what a character does with no modifier held, and it has to land
+/// inside the walk band or the gait ladder answers with a jog -- which is
+/// exactly what it used to do, so the game had no walk in it at all.
+const WALK_SPEED: f32 = 2.2;
 const RUN_SPEED: f32 = 5.5;
-const SPRINT_SPEED: f32 = 9.0;
 const JUMP_SPEED: f32 = 8.0;
 const GROUND_PROBE: f32 = 0.25;
+
+/// How much speed is left when retreating.
+///
+/// Backing away is slower than advancing in every game that has both, because
+/// the alternative is a fight where disengaging costs nothing. Not so slow that
+/// the backpedal clip has to crawl, which is what 0.4 looked like.
+const BACKPEDAL: f32 = 0.7;
+
+/// Travel that counts as backing away rather than circling, as the cosine of the
+/// angle from the heading. Just past a right angle, so strafing keeps full speed
+/// and only genuine retreat is taxed.
+const BACKPEDAL_ARC: f32 = -0.35;
+
+/// The ground speed the directional clips were authored at.
+///
+/// They are jog cycles, so their footfalls line up at [`RUN_SPEED`] and have to
+/// be scaled anywhere else.
+const DIRECTIONAL_REFERENCE: f32 = RUN_SPEED;
+
+/// How far playback may be scaled to match the ground.
+///
+/// A clip slowed past the floor stops reading as walking and starts reading as
+/// wading -- exactly what the first attempt at 0.4 did.
+const RATE_FLOOR: f32 = 0.65;
+const RATE_CEILING: f32 = 1.35;
 
 /// Speeds the gait clips read as natural at. Below `WALK_MAX` the walk cycle
 /// matches the ground; above `JOG_MAX` only the sprint cycle keeps up.
@@ -82,10 +87,39 @@ const MODEL_FACING: f32 = core::f32::consts::PI;
 /// How long a gait change takes to cross-fade.
 const BLEND: Duration = Duration::from_millis(180);
 
-const LEGS: [(&str, &str, &str); 2] = [
-    ("thigh_l", "calf_l", "foot_l"),
-    ("thigh_r", "calf_r", "foot_r"),
-];
+/// The two halves of the body, as animation mask groups.
+///
+/// A mask group is a set of bones a graph node is forbidden to touch, which is
+/// what lets one clip drive the legs while another drives the arms. Without the
+/// split, throwing a punch replaces the whole animation and the legs stop dead
+/// while the character is still sliding along the ground.
+///
+/// The waist is the seam: the pelvis and everything below it walks, the spine
+/// and everything above it fights. The pelvis belongs to the legs because it is
+/// where the stride actually comes from -- a punch's weight shift through the
+/// hips is lost, which is the standard price of a two-layer split.
+pub const LOWER_BODY: u32 = 0;
+pub const UPPER_BODY: u32 = 1;
+
+/// Which half of the body a bone belongs to.
+///
+/// The classification is [`kinetree::role_of`]'s, not this game's, so the same
+/// split lands correctly on a Mixamo rig or an Epic one without a second table
+/// of names here.
+///
+/// Bones it does not recognise -- fingers, leaf bones, anything a particular rig
+/// invents -- inherit from their parent rather than being guessed at. That is
+/// what makes this work on a skeleton nobody has catalogued: a finger is upper
+/// because the hand it hangs from is, and it stays upper if someone renames it.
+/// Every bone must land in exactly one group; a bone in neither is driven by
+/// both layers at once and blends a walk against a punch.
+fn mask_group(name: &str, parent: u32) -> u32 {
+    match kinetree::role_of(name).map(kinetree::Bone::half) {
+        Some(kinetree::Half::Lower) => LOWER_BODY,
+        Some(kinetree::Half::Upper) => UPPER_BODY,
+        None => parent,
+    }
+}
 
 /// Anything that walks: has an intent, a gait, and legs to solve.
 #[derive(Component)]
@@ -100,12 +134,43 @@ pub struct Character;
 pub struct MoveIntent {
     /// Desired planar direction, unit length or zero.
     pub wish: Vec3,
-    pub sprint: bool,
+    /// Whether to move at [`RUN_SPEED`] instead of [`WALK_SPEED`].
+    pub run: bool,
     pub jump: bool,
 }
 
 #[derive(Component)]
 pub struct Grounded(pub bool);
+
+/// A direction the character should face regardless of where it is walking.
+///
+/// `None` means "face where you are going", which is the ordinary case. Combat
+/// writes a direction into it while something is selected, and that is the whole
+/// mechanism behind backing away from an enemy while still looking at it -- the
+/// facing stops following the feet, so the feet have something to disagree with.
+#[derive(Component, Default)]
+pub struct Heading(pub Option<Dir3>);
+
+/// Which way the character is travelling relative to the way it is facing.
+///
+/// Always `Forward` unless a [`Heading`] is set, since a character with no
+/// heading turns to face its own velocity and therefore cannot be moving
+/// sideways in its own frame.
+#[derive(Component, Clone, Copy, PartialEq, Eq, Debug, Default)]
+pub enum Bearing {
+    #[default]
+    Forward,
+    Back,
+    Left,
+    Right,
+}
+
+/// How much better a bearing has to score before it takes over.
+///
+/// The same problem the gait ladder has: four contiguous bands means a diagonal
+/// sits on a seam, and a bearing that flips every frame restarts a cross-fade
+/// that never finishes.
+const BEARING_HYSTERESIS: f32 = 0.2;
 
 /// Root of the spawned glTF, kept so systems can find the skeleton under it.
 #[derive(Component)]
@@ -115,14 +180,30 @@ pub struct CharacterModel;
 #[derive(Component)]
 pub struct CharacterAnimator(pub Entity);
 
-/// Locomotion clips, as graph nodes. One graph, shared by every character.
-#[derive(Resource)]
-pub struct Locomotion {
+/// One gait clip per direction and speed, as graph nodes.
+///
+/// There are two of these, holding the same eight clips wired under different
+/// branches of the graph: one that drives the whole body and one that drives
+/// only the legs. Which is playing is the difference between standing still to
+/// punch and punching while walking.
+pub struct Gaits {
     pub idle: AnimationNodeIndex,
     pub walk: AnimationNodeIndex,
     pub jog: AnimationNodeIndex,
     pub sprint: AnimationNodeIndex,
     pub jump: AnimationNodeIndex,
+    pub back: AnimationNodeIndex,
+    pub left: AnimationNodeIndex,
+    pub right: AnimationNodeIndex,
+}
+
+/// Locomotion clips, as graph nodes. One graph, shared by every character.
+#[derive(Resource)]
+pub struct Locomotion {
+    /// Locomotion over the whole body, for a character doing nothing else.
+    pub whole: Gaits,
+    /// The same clips, legs only, for a character whose arms are busy.
+    pub legs: Gaits,
     pub jab: Attack,
     pub cross: Attack,
     pub cast_channel: Clip,
@@ -134,23 +215,6 @@ pub struct Locomotion {
 }
 
 /// An attack clip.
-///
-/// What was measured out of these clips, for the IK and contact-timing work
-/// that will consume it:
-///
-/// | clip | length | lead arm | contact | reach |
-/// |------|--------|----------|---------|-------|
-/// | `Punch_Jab`   | 0.867s | left  | 50% (greatest reach) | 0.255m |
-/// | `Punch_Cross` | 1.000s | right | 42% (greatest reach) | 0.547m |
-///
-/// Contact is the frame of greatest reach because these are thrusts. A sword
-/// swing would instead use its frame of peak hand speed -- 25% for
-/// `Sword_Attack` -- since a blade sweeps through contact rather than stopping
-/// at it. The lead arm is measured, not assumed: the jab extends the left hand
-/// 0.547m and the right only 0.255m.
-///
-/// The fields those numbers belong in are not here yet, because nothing reads
-/// them and a field nobody reads is a field nobody keeps correct.
 #[derive(Clone)]
 pub struct Attack {
     pub clip: Clip,
@@ -193,69 +257,181 @@ pub struct CharacterSystems;
 
 impl Plugin for CharacterPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, load_locomotion).add_systems(
+        app.add_systems(
             Update,
-            (apply_movement, pick_gait, face_travel_direction, drive_gait)
+            (
+                build_locomotion.run_if(not(resource_exists::<Locomotion>)),
+                dress,
+                bind_graph,
+            ),
+        )
+        .add_systems(
+            Update,
+            (
+                apply_movement,
+                pick_gait,
+                pick_bearing,
+                face_travel_direction,
+                drive_gait,
+            )
                 .chain()
                 .in_set(CharacterSystems),
         );
     }
 }
 
-fn load_locomotion(
+/// Mask-group table for the rig, recorded by the first skeleton wired and applied to the graph once.
+#[derive(Resource)]
+pub struct RigMask(pub Vec<(AnimationTargetId, u32)>);
+
+/// A character whose model has been spawned under it.
+#[derive(Component)]
+pub struct Dressed;
+
+/// The animation root of a character, awaiting a graph if locomotion was not ready when it was wired.
+#[derive(Component)]
+pub struct Armature;
+
+fn build_locomotion(
     mut commands: Commands,
     assets: Res<AssetServer>,
+    mut rig: ResMut<Rig>,
+    profiles: Res<Assets<RigProfile>>,
+    libraries: Res<Assets<Gltf>>,
     mut graphs: ResMut<Assets<AnimationGraph>>,
+    mask: Option<Res<RigMask>>,
 ) {
-    let clip = |index: usize| assets.load(GltfAssetLabel::Animation(index).from_asset(CLIPS));
-
-    let handles: [Handle<AnimationClip>; 12] = [
-        clip(CLIP_IDLE),
-        clip(CLIP_WALK),
-        clip(CLIP_JOG),
-        clip(CLIP_SPRINT),
-        clip(CLIP_JUMP),
-        clip(CLIP_PUNCH_JAB),
-        clip(CLIP_PUNCH_CROSS),
-        clip(CLIP_CAST_CHANNEL),
-        clip(CLIP_CAST_RELEASE),
-        clip(CLIP_CAST_POISON),
-        clip(CLIP_HIT),
-        clip(CLIP_DEATH),
-    ];
-    let (graph, nodes) = AnimationGraph::from_clips(handles.clone());
-
-    let one_shot = |index: usize| Clip {
-        node: nodes[index],
-        handle: handles[index].clone(),
+    let Some(profile) = profiles.get(&rig.profile) else {
+        return;
     };
+    let library = rig
+        .library
+        .get_or_insert_with(|| assets.load(profile.library.clone()))
+        .clone();
+    let Some(library) = libraries.get(&library) else {
+        return;
+    };
+    let Some(locomotion) = assemble(profile, library, &mut graphs) else {
+        return;
+    };
+    info!(
+        "locomotion built from {} ({} named clips)",
+        profile.library,
+        library.named_animations.len()
+    );
+    if let Some(mask) = mask
+        && let Some(mut graph) = graphs.get_mut(&locomotion.graph)
+    {
+        for (id, half) in &mask.0 {
+            graph.add_target_to_mask_group(*id, *half);
+        }
+    }
+    commands.insert_resource(locomotion);
+}
 
-    commands.insert_resource(Locomotion {
-        idle: nodes[0],
-        walk: nodes[1],
-        jog: nodes[2],
-        sprint: nodes[3],
-        jump: nodes[4],
-        jab: Attack { clip: one_shot(5) },
-        cross: Attack { clip: one_shot(6) },
-        cast_channel: one_shot(7),
-        cast_release: one_shot(8),
-        cast_poison: one_shot(9),
-        hit: one_shot(10),
-        death: one_shot(11),
+fn assemble(
+    profile: &RigProfile,
+    library: &Gltf,
+    graphs: &mut Assets<AnimationGraph>,
+) -> Option<Locomotion> {
+    let clip = |name: &str| {
+        let handle = library.named_animations.get(name).cloned();
+        if handle.is_none() {
+            error!("clip {name:?} is not in {}", profile.library);
+        }
+        handle
+    };
+    let gaits = gait_handles(&profile.gaits, clip)?;
+
+    let mut graph = AnimationGraph::new();
+    let root = graph.root;
+    let whole = graph.add_blend(1.0, root);
+    let legs = graph.add_blend_with_mask(1 << UPPER_BODY, 1.0, root);
+    let arms = graph.add_blend_with_mask(1 << LOWER_BODY, 1.0, root);
+
+    let whole_gaits = add_gaits(&mut graph, &gaits, whole);
+    let legs_gaits = add_gaits(&mut graph, &gaits, legs);
+
+    let mut one_shot = |name: &str, parent| {
+        let handle = clip(name)?;
+        Some(Clip {
+            node: graph.add_clip(handle.clone(), 1.0, parent),
+            handle,
+        })
+    };
+    let jab = Attack {
+        clip: one_shot(&profile.attacks.jab, arms)?,
+    };
+    let cross = Attack {
+        clip: one_shot(&profile.attacks.cross, arms)?,
+    };
+    let cast_channel = one_shot(&profile.casts.channel, arms)?;
+    let cast_release = one_shot(&profile.casts.release, arms)?;
+    let cast_poison = one_shot(&profile.casts.poison, arms)?;
+    let hit = one_shot(&profile.hit, arms)?;
+    let death = one_shot(&profile.death, whole)?;
+
+    Some(Locomotion {
+        whole: whole_gaits,
+        legs: legs_gaits,
+        jab,
+        cross,
+        cast_channel,
+        cast_release,
+        cast_poison,
+        hit,
+        death,
         graph: graphs.add(graph),
-    });
+    })
+}
+
+fn gait_handles(
+    names: &GaitClips,
+    mut clip: impl FnMut(&str) -> Option<Handle<AnimationClip>>,
+) -> Option<[Handle<AnimationClip>; 8]> {
+    Some([
+        clip(&names.idle)?,
+        clip(&names.walk)?,
+        clip(&names.jog)?,
+        clip(&names.sprint)?,
+        clip(&names.jump)?,
+        clip(&names.back)?,
+        clip(&names.left)?,
+        clip(&names.right)?,
+    ])
+}
+
+/// Wires the eight gait clips under one branch of the graph.
+fn add_gaits(
+    graph: &mut AnimationGraph,
+    clips: &[Handle<AnimationClip>; 8],
+    parent: AnimationNodeIndex,
+) -> Gaits {
+    let mut add = |index: usize| graph.add_clip(clips[index].clone(), 1.0, parent);
+    Gaits {
+        idle: add(0),
+        walk: add(1),
+        jog: add(2),
+        sprint: add(3),
+        jump: add(4),
+        back: add(5),
+        left: add(6),
+        right: add(7),
+    }
 }
 
 /// Spawns a character at `position` and returns it, ready for something to
 /// write its [`MoveIntent`].
-pub fn spawn_character(commands: &mut Commands, assets: &AssetServer, position: Vec3) -> Entity {
-    let character = commands
+pub fn spawn_character(commands: &mut Commands, position: Vec3) -> Entity {
+    commands
         .spawn((
             Character,
             MoveIntent::default(),
             Grounded(false),
             Gait::Idle,
+            Bearing::default(),
+            Heading::default(),
+            super::action::Arms::default(),
             Transform::from_translation(position),
             Visibility::default(),
             RigidBody::Dynamic,
@@ -271,19 +447,58 @@ pub fn spawn_character(commands: &mut Commands, assets: &AssetServer, position: 
             )
             .with_max_distance(CHARACTER_HEIGHT * 0.5 + GROUND_PROBE),
         ))
-        .id();
+        .id()
+}
 
-    commands
-        .spawn((
-            CharacterModel,
-            WorldAssetRoot(assets.load(GltfAssetLabel::Scene(0).from_asset(MODEL))),
-            Transform::from_xyz(0.0, MODEL_DROP, 0.0)
-                .with_rotation(Quat::from_rotation_y(MODEL_FACING)),
-            ChildOf(character),
-        ))
-        .observe(wire_skeleton);
+fn dress(
+    mut commands: Commands,
+    assets: Res<AssetServer>,
+    rig: Res<Rig>,
+    profiles: Res<Assets<RigProfile>>,
+    bare: Query<Entity, (With<Character>, Without<Dressed>)>,
+) {
+    let Some(profile) = profiles.get(&rig.profile) else {
+        return;
+    };
+    for character in &bare {
+        commands
+            .spawn((
+                CharacterModel,
+                WorldAssetRoot(
+                    assets.load(GltfAssetLabel::Scene(0).from_asset(profile.model.clone())),
+                ),
+                Transform::from_xyz(0.0, MODEL_DROP, 0.0)
+                    .with_rotation(Quat::from_rotation_y(MODEL_FACING)),
+                ChildOf(character),
+            ))
+            .observe(wire_skeleton);
+        commands.entity(character).insert(Dressed);
+    }
+}
 
-    character
+fn bind_graph(
+    mut commands: Commands,
+    locomotion: Option<Res<Locomotion>>,
+    unbound: Query<Entity, (With<Armature>, Without<AnimationGraphHandle>)>,
+) {
+    let Some(locomotion) = locomotion else {
+        return;
+    };
+    for armature in &unbound {
+        commands
+            .entity(armature)
+            .insert(AnimationGraphHandle(locomotion.graph.clone()));
+    }
+}
+
+/// Everything the skeleton wiring reads about the rig and its shared graph.
+#[derive(SystemParam)]
+struct RigState<'w> {
+    locomotion: Option<Res<'w, Locomotion>>,
+    rig: Res<'w, Rig>,
+    profiles: Res<'w, Assets<RigProfile>>,
+    mask: Option<Res<'w, RigMask>>,
+    graphs: ResMut<'w, Assets<AnimationGraph>>,
 }
 
 /// Runs once the glTF has actually spawned its entities. Nothing about the
@@ -292,13 +507,24 @@ pub fn spawn_character(commands: &mut Commands, assets: &AssetServer, position: 
 fn wire_skeleton(
     event: On<WorldInstanceReady>,
     mut commands: Commands,
-    locomotion: Option<Res<Locomotion>>,
+    mut state: RigState,
     parents: Query<&ChildOf>,
-    children: Query<&Children>,
-    names: Query<&Name>,
+    children: Query<&'static Children>,
+    names: Query<&'static Name>,
 ) {
     let model = event.entity;
     let Ok(character) = parents.get(model).map(ChildOf::parent) else {
+        return;
+    };
+    let RigState {
+        locomotion,
+        rig,
+        profiles,
+        mask,
+        graphs,
+    } = &mut state;
+    let Some(profile) = profiles.get(&rig.profile) else {
+        warn!("rig profile unloaded while a character spawned; nothing to animate");
         return;
     };
 
@@ -312,15 +538,17 @@ fn wire_skeleton(
     // top-level scene node, and it is the only one in this file. Target ids are
     // hashes of the name path from that root down, which is why the clips in
     // UAL1.glb bind at all: both files spell the path the same way.
-    let Some(armature) = find_bone(model, "Armature", &names, &children) else {
+    let Some(armature) = find_bone(model, &profile.armature, &names, &children) else {
         warn!("character model has no Armature node; nothing to animate");
         return;
     };
 
-    commands
-        .entity(armature)
-        .insert((AnimationPlayer::default(), AnimationTransitions::new()));
-    if let Some(locomotion) = locomotion {
+    commands.entity(armature).insert((
+        Armature,
+        AnimationPlayer::default(),
+        AnimationTransitions::new(),
+    ));
+    if let Some(locomotion) = locomotion.as_ref() {
         commands
             .entity(armature)
             .insert(AnimationGraphHandle(locomotion.graph.clone()));
@@ -334,86 +562,131 @@ fn wire_skeleton(
     // Six separate find_bone calls each rewalked all 69 nodes, which is fine
     // for one character and 414 wasted visits per character in a crowd.
     let mut wanted = HashMap::new();
-    for (root, mid, tip) in LEGS {
-        wanted.insert(root, Entity::PLACEHOLDER);
-        wanted.insert(mid, Entity::PLACEHOLDER);
-        wanted.insert(tip, Entity::PLACEHOLDER);
+    for limb in &profile.legs {
+        for name in [&limb.root, &limb.mid, &limb.tip] {
+            wanted.insert(name.as_str(), Entity::PLACEHOLDER);
+        }
     }
     let mut path = Vec::new();
+    let mut bones = Vec::new();
     retarget(
         armature,
-        armature,
         &mut path,
-        &mut commands,
-        &names,
-        &children,
-        &mut wanted,
+        // The armature itself is not a bone. Starting at the lower half means
+        // anything above the first recognised bone inherits the legs, which is
+        // the safe default: the alternative hands a stray root node to the arms
+        // and lets a punch translate the character.
+        LOWER_BODY,
+        &mut Walk {
+            names: &names,
+            children: &children,
+            wanted: &mut wanted,
+            bones: &mut bones,
+        },
     );
 
-    // Measured off Jog_Fwd_Loop at its most-bent frame: the knee turns about
-    // the thigh's own -X, to (-0.9997, 0.0000, -0.0228) on the left leg and
-    // (-0.9995, -0.0000, -0.0310) on the right. Both sides, so the rig did not
-    // mirror its local axes.
-    //
-    // Not inferred at runtime. The bind pose has the leg dead straight, and
-    // the idle clip only bends it 23 degrees -- enough for a cross product,
-    // and that cross product points 40 degrees away from the real hinge.
-    let knee_hinge = RestHinge::from_local_axis(Vec3::NEG_X);
+    for (bone, id, _) in &bones {
+        commands.entity(*bone).insert((*id, AnimatedBy(armature)));
+    }
 
-    for (root, mid, tip) in LEGS {
-        let found = |name: &str| {
-            wanted
-                .get(name)
-                .copied()
-                .filter(|e| *e != Entity::PLACEHOLDER)
-        };
-        let (Some(root), Some(mid), Some(tip)) = (found(root), found(mid), found(tip)) else {
-            warn!("leg {root}/{mid}/{tip} not found under the character model");
-            continue;
-        };
-
-        commands.spawn((
-            IkLimbBones { root, mid, tip },
-            IkLimb {
-                rest: knee_hinge,
-                weight: 0.0,
-                ..default()
-            },
-            FootGoal {
-                character,
-                grounded: 0.0,
-            },
+    if mask.is_none() {
+        commands.insert_resource(RigMask(
+            bones.iter().map(|(_, id, half)| (*id, *half)).collect(),
         ));
+    }
+    if let Some(locomotion) = locomotion.as_ref()
+        && let Some(mut graph) = graphs.get_mut(&locomotion.graph)
+        && graph.mask_groups.is_empty()
+    {
+        for (_, id, half) in &bones {
+            graph.add_target_to_mask_group(*id, *half);
+        }
+    }
+
+    for limb in &profile.legs {
+        spawn_leg(&mut commands, character, profile, limb, &wanted);
     }
 }
 
-/// Gives every bone under `root` the identity a clip binds to: the hash of its
-/// name path from the animation root, plus a pointer back to the player that
-/// drives it. Mirrors what bevy's glTF loader does for a file that has clips.
-fn retarget(
-    entity: Entity,
-    root: Entity,
-    path: &mut Vec<Name>,
+fn spawn_leg(
     commands: &mut Commands,
-    names: &Query<&Name>,
-    children: &Query<&Children>,
-    wanted: &mut HashMap<&'static str, Entity>,
+    character: Entity,
+    profile: &RigProfile,
+    limb: &LimbSpec,
+    wanted: &HashMap<&str, Entity>,
 ) {
+    let found = |name: &str| {
+        wanted
+            .get(name)
+            .copied()
+            .filter(|e| *e != Entity::PLACEHOLDER)
+    };
+    let (Some(root), Some(mid), Some(tip)) =
+        (found(&limb.root), found(&limb.mid), found(&limb.tip))
+    else {
+        warn!(
+            "leg {}/{}/{} not found under the character model",
+            limb.root, limb.mid, limb.tip
+        );
+        return;
+    };
+
+    commands.spawn((
+        IkLimbBones { root, mid, tip },
+        IkLimb {
+            rest: limb.rest(),
+            limits: limb.limits(),
+            weight: 0.0,
+            ..default()
+        },
+        FootGoal {
+            character,
+            grounded: 0.0,
+            ankle_height: profile.ankle_height,
+        },
+    ));
+}
+
+/// Everything the skeleton walk carries down the tree with it.
+///
+/// A struct rather than a longer parameter list, because one traversal does
+/// every per-bone job there is: naming, IK lookup and mask assignment. Walking
+/// 69 nodes three times to keep the signatures short would be a poor trade at
+/// one character and a worse one at a thousand.
+///
+/// It collects rather than acts. `Commands` here would tie the queries'
+/// lifetimes to the command buffer's, and the walk has nothing to say that
+/// cannot be said afterwards.
+struct Walk<'a, 'k, 'wn, 'sn, 'wc, 'sc> {
+    names: &'a Query<'wn, 'sn, &'static Name>,
+    children: &'a Query<'wc, 'sc, &'static Children>,
+    wanted: &'a mut HashMap<&'k str, Entity>,
+    /// Every bone, the animation id a clip binds to it by, and the half of the
+    /// body it belongs to.
+    bones: &'a mut Vec<(Entity, AnimationTargetId, u32)>,
+}
+
+/// Finds the identity a clip binds each bone by -- the hash of its name path
+/// from the animation root -- and which half of the body it drives. Mirrors what
+/// bevy's glTF loader does for a file that has clips.
+fn retarget(entity: Entity, path: &mut Vec<Name>, half: u32, walk: &mut Walk) {
     // An unnamed node cannot be addressed by a clip, and neither can anything
     // below it, since the path would have a hole in it. bevy's loader warns and
     // drops the subtree here too.
-    let Ok(name) = names.get(entity) else {
+    let Ok(name) = walk.names.get(entity) else {
         return;
     };
     path.push(name.clone());
-    commands
-        .entity(entity)
-        .insert((AnimationTargetId::from_names(path.iter()), AnimatedBy(root)));
-    if let Some(slot) = wanted.get_mut(name.as_str()) {
+
+    let id = AnimationTargetId::from_names(path.iter());
+    let half = mask_group(name.as_str(), half);
+    walk.bones.push((entity, id, half));
+
+    if let Some(slot) = walk.wanted.get_mut(name.as_str()) {
         *slot = entity;
     }
-    for child in children.get(entity).into_iter().flatten() {
-        retarget(*child, root, path, commands, names, children, wanted);
+    for child in walk.children.get(entity).into_iter().flatten() {
+        retarget(*child, path, half, walk);
     }
     path.pop();
 }
@@ -422,8 +695,8 @@ fn retarget(
 pub fn find_bone(
     root: Entity,
     name: &str,
-    names: &Query<&Name>,
-    children: &Query<&Children>,
+    names: &Query<&'static Name>,
+    children: &Query<&'static Children>,
 ) -> Option<Entity> {
     if names.get(root).is_ok_and(|found| found.as_str() == name) {
         return Some(root);
@@ -438,18 +711,38 @@ pub fn find_bone(
 
 fn apply_movement(
     mut characters: Query<
-        (&MoveIntent, &mut LinearVelocity, &mut Grounded, &ShapeHits),
+        (
+            &MoveIntent,
+            &Heading,
+            &mut LinearVelocity,
+            &mut Grounded,
+            &ShapeHits,
+        ),
         With<Character>,
     >,
 ) {
-    for (intent, mut velocity, mut grounded, hits) in &mut characters {
+    for (intent, heading, mut velocity, mut grounded, hits) in &mut characters {
         grounded.0 = !hits.is_empty();
 
-        let speed = if intent.sprint {
-            SPRINT_SPEED
-        } else {
+        // A heading means something is selected, which means a fight, which
+        // means running. Holding a modifier for the whole of every fight is the
+        // same thing as not having a modifier.
+        let stance = heading.0.is_some();
+        let base = if intent.run || stance {
             RUN_SPEED
+        } else {
+            WALK_SPEED
         };
+
+        // Taken from the intent rather than the bearing, which is computed from
+        // the velocity this system is about to write and would therefore be a
+        // frame behind its own cause.
+        let retreating = heading.0.is_some_and(|heading| {
+            let facing = Vec3::new(heading.x, 0.0, heading.z).normalize_or_zero();
+            intent.wish.dot(facing) < BACKPEDAL_ARC
+        });
+
+        let speed = if retreating { base * BACKPEDAL } else { base };
         let wish = intent.wish * speed;
 
         let blend = if grounded.0 { 1.0 } else { 0.12 };
@@ -497,6 +790,51 @@ fn pick_gait(mut characters: Query<(&LinearVelocity, &Grounded, &mut Gait), With
     }
 }
 
+/// Decides whether the character is walking forwards, backwards or sideways.
+///
+/// Scored rather than branched, so the four cases share one rule and the
+/// hysteresis applies to all of them the same way.
+fn pick_bearing(mut characters: Query<(&LinearVelocity, &Heading, &mut Bearing), With<Character>>) {
+    for (velocity, heading, mut bearing) in &mut characters {
+        let Some(heading) = heading.0 else {
+            bearing.set_if_neq(Bearing::Forward);
+            continue;
+        };
+
+        let planar = Vec3::new(velocity.x, 0.0, velocity.z);
+        // Standing still holds the last bearing instead of snapping to forward:
+        // stopping mid-backstep should settle into idle, not spin the model
+        // round for the two frames it takes to decelerate.
+        let Some(travel) = planar.try_normalize() else {
+            continue;
+        };
+
+        let forward = Vec3::new(heading.x, 0.0, heading.z).normalize_or_zero();
+        let right = forward.cross(Vec3::Y);
+        let along = travel.dot(forward);
+        let across = travel.dot(right);
+
+        let scores = [
+            (Bearing::Forward, along),
+            (Bearing::Back, -along),
+            (Bearing::Left, -across),
+            (Bearing::Right, across),
+        ];
+        let current = scores
+            .iter()
+            .find(|(candidate, _)| *candidate == *bearing)
+            .map_or(0.0, |(_, score)| *score);
+
+        if let Some((best, _)) = scores
+            .iter()
+            .max_by(|a, b| a.1.total_cmp(&b.1))
+            .filter(|(_, score)| *score > current + BEARING_HYSTERESIS)
+        {
+            *bearing = *best;
+        }
+    }
+}
+
 /// Turns the model to face where it is travelling.
 ///
 /// Deliberately the model child and not the body. The capsule is
@@ -509,61 +847,117 @@ fn pick_gait(mut characters: Query<(&LinearVelocity, &Grounded, &mut Gait), With
 /// on the entity that exists for visuals.
 fn face_travel_direction(
     time: Res<Time>,
-    velocities: Query<&LinearVelocity, With<Character>>,
+    velocities: Query<(&LinearVelocity, &Heading), With<Character>>,
     mut models: Query<(&mut Transform, &ChildOf), With<CharacterModel>>,
 ) {
     let step = (14.0 * time.delta_secs()).min(1.0);
     for (mut transform, parent) in &mut models {
-        let Ok(velocity) = velocities.get(parent.parent()) else {
+        let Ok((velocity, heading)) = velocities.get(parent.parent()) else {
             continue;
         };
-        let planar = Vec3::new(velocity.x, 0.0, velocity.z);
-        if planar.length_squared() < 0.25 {
+        // A heading wins outright, and unlike travel it holds while standing
+        // still: a character that stops moving should keep looking at whatever
+        // it was looking at.
+        let facing = match heading.0 {
+            Some(heading) => Vec3::new(heading.x, 0.0, heading.z).normalize_or_zero(),
+            None => {
+                let planar = Vec3::new(velocity.x, 0.0, velocity.z);
+                if planar.length_squared() < 0.25 {
+                    continue;
+                }
+                planar.normalize()
+            }
+        };
+        if facing == Vec3::ZERO {
             continue;
         }
         // The body no longer carries the facing, so the model's own local
         // rotation has to be the whole of it: the heading, then the correction
         // for a rig that was authored looking down +Z.
-        let target = Quat::from_rotation_arc(Vec3::NEG_Z, planar.normalize())
-            * Quat::from_rotation_y(MODEL_FACING);
+        let target =
+            Quat::from_rotation_arc(Vec3::NEG_Z, facing) * Quat::from_rotation_y(MODEL_FACING);
         transform.rotation = transform.rotation.slerp(target, step);
     }
 }
 
+/// What choosing a locomotion clip needs: the gait, the direction it is
+/// travelling in, and where to play the result.
+type Stride = (
+    Ref<'static, Gait>,
+    Ref<'static, Bearing>,
+    &'static LinearVelocity,
+    &'static CharacterAnimator,
+    Has<super::action::Action>,
+);
+
 fn drive_gait(
     locomotion: Option<Res<Locomotion>>,
-    characters: Query<(Ref<Gait>, &CharacterAnimator), Without<super::action::Action>>,
+    characters: Query<Stride, Without<super::action::Frozen>>,
     mut players: Query<(&mut AnimationPlayer, &mut AnimationTransitions)>,
 ) {
     let Some(locomotion) = locomotion else {
         return;
     };
-    // Characters mid-action are excluded by the query rather than skipped
-    // inside it: a swing that gets overwritten by a gait change on the frame
-    // the player happens to start running is the sort of thing that looks like
-    // a dropped input.
-    for (gait, animator) in &characters {
+    // Characters mid-action are no longer excluded. They used to be, because an
+    // action replaced the whole animation and a gait change would cut it short;
+    // now the two occupy different halves of the body, so the legs must keep
+    // being driven while the arms are busy.
+    for (gait, bearing, velocity, animator, acting) in &characters {
         let Ok((mut player, mut transitions)) = players.get_mut(animator.0) else {
             continue;
         };
-        // `is_added` on the transitions, not on the gait: the character spawns
-        // with a Gait, but the animator arrives later from the glTF observer,
-        // so the initial Idle change has already gone stale by the time this
-        // query can match it and the model would stand in its bind pose until
-        // the first time the player moved.
-        if !gait.is_changed() && !transitions.is_added() {
-            continue;
-        }
-        let node = match *gait {
-            Gait::Idle => locomotion.idle,
-            Gait::Walk => locomotion.walk,
-            Gait::Jog => locomotion.jog,
-            Gait::Sprint => locomotion.sprint,
-            Gait::Airborne => locomotion.jump,
+        // The same eight clips either way. The only difference is which branch
+        // of the graph they are on, and therefore which bones they are allowed
+        // to touch.
+        let gaits = if acting {
+            &locomotion.legs
+        } else {
+            &locomotion.whole
         };
-        transitions
-            .play(&mut player, node, BLEND)
-            .set_repeat(RepeatAnimation::Forever);
+        // Bearing is checked before the gait for everything that moves: there is
+        // one backpedal cycle and one strafe cycle either side, and no walking
+        // or sprinting variants of them to choose between.
+        let node = match (*gait, *bearing) {
+            (Gait::Idle, _) => gaits.idle,
+            (Gait::Airborne, _) => gaits.jump,
+            (_, Bearing::Back) => gaits.back,
+            (_, Bearing::Left) => gaits.left,
+            (_, Bearing::Right) => gaits.right,
+            (Gait::Walk, _) => gaits.walk,
+            (Gait::Jog, _) => gaits.jog,
+            (Gait::Sprint, _) => gaits.sprint,
+        };
+        // The backward and sideways clips are jog cycles whatever the gait, so
+        // moving at anything but running pace makes the feet skate. Scaling
+        // playback by the ratio of real speed to the speed the clip was authored
+        // at puts the footfalls back on the ground.
+        //
+        // Bounded, because matching perfectly is not the goal: a clip slowed to
+        // 0.4 tracked the ground exactly and read as wading. The floor trades a
+        // little skate for a stride that still looks like walking. Forward gaits
+        // need none of it -- there is a clip per speed already.
+        let rate = if *bearing == Bearing::Forward {
+            1.0
+        } else {
+            let planar = Vec2::new(velocity.x, velocity.z).length();
+            (planar / DIRECTIONAL_REFERENCE).clamp(RATE_FLOOR, RATE_CEILING)
+        };
+
+        // Compared against what is actually playing rather than against change
+        // detection. Three separate things pick the node -- the gait, the
+        // bearing, and which branch of the graph the character is on -- and
+        // asking the player what it is doing is both shorter than tracking all
+        // three and correct on the frame the animator arrives, which change
+        // detection on the gait was not.
+        if transitions.get_main_animation() != Some(node) {
+            transitions
+                .play(&mut player, node, BLEND)
+                .set_repeat(RepeatAnimation::Forever);
+        }
+
+        if let Some(active) = player.animation_mut(node) {
+            active.set_speed(rate);
+        }
     }
 }
 

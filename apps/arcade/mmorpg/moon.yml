@@ -36,7 +36,8 @@ tasks:
         script: |
             set -euo pipefail
             command -v wasm-bindgen >/dev/null || cargo install wasm-bindgen-cli@$WASM_BINDGEN_VERSION --locked
-            cargo build --release --target wasm32-unknown-unknown --no-default-features --features webgpu
+            RUSTFLAGS="${RUSTFLAGS:-} -C target-feature=+simd128" \
+                cargo build --release --target wasm32-unknown-unknown --no-default-features --features webgpu
             mkdir -p web
             wasm-bindgen ../../../dist/target/wasm32-unknown-unknown/release/mmorpg.wasm \
                 --out-dir web/pkg --target web --out-name mmorpg

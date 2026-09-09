@@ -1,6 +1,9 @@
 use glam::{Quat, Vec3};
 
-use crate::hinge::{Reach, solve_hinge};
+use crate::hinge::{HingeTurn, Reach, solve_hinge};
+use crate::math::{atan2, wrap_pi};
+
+const FLAT_EPSILON: f32 = 1e-9;
 
 /// The hinge axis of a two-bone limb, measured once from its rest pose and
 /// stored in the *root* bone's basis.
@@ -124,9 +127,40 @@ impl LimbSolve {
 /// constrain the invention back to something plausible. The rest-pose hinge is
 /// measured, so none of that is needed.
 pub fn solve_limb(pose: &LimbPose, rest: &RestHinge, goal: Vec3) -> LimbSolve {
+    solve_limb_with(pose, rest, &LimbLimits::NONE, goal)
+}
+
+/// Joint guardrails applied on top of the hinge solve.
+#[derive(Debug, Clone, Copy, Default, PartialEq)]
+pub struct LimbLimits {
+    /// Greatest flexion at the hinge in radians, zero being full extension.
+    pub max_flexion: Option<f32>,
+}
+
+impl LimbLimits {
+    pub const NONE: Self = Self { max_flexion: None };
+
+    /// Caps flexion at `radians` from full extension.
+    pub fn flexion(radians: f32) -> Self {
+        Self {
+            max_flexion: Some(radians),
+        }
+    }
+}
+
+/// Solves a two-bone limb onto `goal` under `limits`, reporting `Reach::Clamped` when a limit binds.
+pub fn solve_limb_with(
+    pose: &LimbPose,
+    rest: &RestHinge,
+    limits: &LimbLimits,
+    goal: Vec3,
+) -> LimbSolve {
     let hinge_axis = rest.axis(pose.root_basis);
     let span = (goal - pose.root).length();
-    let hinge = solve_hinge(hinge_axis, pose.root, pose.mid, pose.tip, span);
+    let mut hinge = solve_hinge(hinge_axis, pose.root, pose.mid, pose.tip, span);
+    if let Some(max_flexion) = limits.max_flexion {
+        hinge = clamp_flexion(hinge_axis, pose, hinge, max_flexion);
+    }
 
     let turned = pose.mid + Quat::from_axis_angle(hinge_axis, hinge.turn) * (pose.tip - pose.mid);
     let from = (turned - pose.root).try_normalize();
@@ -141,5 +175,34 @@ pub fn solve_limb(pose: &LimbPose, rest: &RestHinge, goal: Vec3) -> LimbSolve {
         hinge_turn: hinge.turn,
         root_swing,
         reach: hinge.reach,
+    }
+}
+
+/// Signed angle from the root bone to the tip bone about `axis`, at `mid`; magnitude pi when straight.
+pub fn hinge_angle(axis: Vec3, pose: &LimbPose) -> Option<f32> {
+    let u = pose.tip - pose.mid;
+    let v = pose.root - pose.mid;
+    let u_flat = u - axis * u.dot(axis);
+    let v_flat = v - axis * v.dot(axis);
+    if u_flat.length_squared() <= FLAT_EPSILON || v_flat.length_squared() <= FLAT_EPSILON {
+        return None;
+    }
+    Some(atan2(axis.dot(v_flat.cross(u_flat)), v_flat.dot(u_flat)))
+}
+
+fn clamp_flexion(axis: Vec3, pose: &LimbPose, hinge: HingeTurn, max_flexion: f32) -> HingeTurn {
+    let Some(before) = hinge_angle(axis, pose) else {
+        return hinge;
+    };
+    let after = wrap_pi(before + hinge.turn);
+    let floor = core::f32::consts::PI - max_flexion.clamp(0.0, core::f32::consts::PI);
+    if after.abs() >= floor {
+        return hinge;
+    }
+    let side = if before != 0.0 { before } else { after };
+    let clamped = if side >= 0.0 { floor } else { -floor };
+    HingeTurn {
+        turn: wrap_pi(clamped - before),
+        reach: Reach::Clamped,
     }
 }

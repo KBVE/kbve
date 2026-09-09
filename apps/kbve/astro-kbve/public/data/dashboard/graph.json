@@ -564,6 +564,18 @@
           ]
         }
       },
+      "arcade": {
+        "name": "arcade",
+        "type": "unknown",
+        "data": {
+          "root": "apps/arcade",
+          "name": "arcade",
+          "layer": "unknown",
+          "stack": "unknown",
+          "language": "unknown",
+          "tags": []
+        }
+      },
       "aria2-proxy": {
         "name": "aria2-proxy",
         "type": "library",
@@ -727,7 +739,7 @@
         "name": "astro-herbmail",
         "type": "application",
         "data": {
-          "root": "apps/herbmail/astro-herbmail",
+          "root": "apps/herbmail/web",
           "name": "astro-herbmail",
           "layer": "application",
           "stack": "frontend",
@@ -871,7 +883,7 @@
         "name": "axum-herbmail",
         "type": "application",
         "data": {
-          "root": "apps/herbmail/axum-herbmail",
+          "root": "apps/herbmail/api",
           "name": "axum-herbmail",
           "layer": "application",
           "stack": "unknown",
@@ -1377,6 +1389,20 @@
           "tags": [
             "bevy",
             "game"
+          ]
+        }
+      },
+      "combat": {
+        "name": "combat",
+        "type": "library",
+        "data": {
+          "root": "crates/combat",
+          "name": "combat",
+          "layer": "library",
+          "stack": "frontend",
+          "language": "rust",
+          "tags": [
+            "crates"
           ]
         }
       },
@@ -1944,7 +1970,7 @@
         "name": "herbmail-e2e",
         "type": "automation",
         "data": {
-          "root": "apps/herbmail/herbmail-e2e",
+          "root": "apps/herbmail/api/e2e",
           "name": "herbmail-e2e",
           "layer": "automation",
           "stack": "unknown",
@@ -1958,7 +1984,7 @@
         "name": "herbmail-game",
         "type": "application",
         "data": {
-          "root": "apps/herbmail/herbmail-game",
+          "root": "apps/herbmail/game",
           "name": "herbmail-game",
           "layer": "application",
           "stack": "unknown",
@@ -2336,6 +2362,20 @@
           ]
         }
       },
+      "kinetree": {
+        "name": "kinetree",
+        "type": "library",
+        "data": {
+          "root": "crates/kinetree",
+          "name": "kinetree",
+          "layer": "library",
+          "stack": "frontend",
+          "language": "rust",
+          "tags": [
+            "crates"
+          ]
+        }
+      },
       "kubectl-e2e": {
         "name": "kubectl-e2e",
         "type": "application",
@@ -2490,6 +2530,22 @@
           "stack": "unknown",
           "language": "typescript",
           "tags": []
+        }
+      },
+      "mmorpg": {
+        "name": "mmorpg",
+        "type": "application",
+        "data": {
+          "root": "apps/arcade/mmorpg",
+          "name": "mmorpg",
+          "layer": "application",
+          "stack": "frontend",
+          "language": "rust",
+          "tags": [
+            "bevy",
+            "game",
+            "web-game"
+          ]
         }
       },
       "observ": {
@@ -2835,6 +2891,22 @@
             "windmill"
           ]
         }
+      },
+      "yuki": {
+        "name": "yuki",
+        "type": "application",
+        "data": {
+          "root": "apps/arcade/yuki",
+          "name": "yuki",
+          "layer": "application",
+          "stack": "frontend",
+          "language": "typescript",
+          "tags": [
+            "vite",
+            "playwright",
+            "web-game"
+          ]
+        }
       }
     },
     "dependencies": {
@@ -3054,6 +3126,7 @@
         }
       ],
       "arc-runner-e2e": [],
+      "arcade": [],
       "aria2-proxy": [
         {
           "source": "aria2-proxy",
@@ -3520,6 +3593,7 @@
       "chuckrpg-server": [],
       "ci-tools": [],
       "colony": [],
+      "combat": [],
       "commit": [],
       "core": [
         {
@@ -3749,6 +3823,11 @@
           "source": "erust",
           "target": "holy",
           "type": "static"
+        },
+        {
+          "source": "erust",
+          "target": "bevy_supa",
+          "type": "static"
         }
       ],
       "esp32c6-display": [],
@@ -3975,6 +4054,11 @@
           "source": "kbve",
           "target": "jedi",
           "type": "static"
+        },
+        {
+          "source": "kbve",
+          "target": "bevy_supa",
+          "type": "static"
         }
       ],
       "kbve-gate": [
@@ -4030,6 +4114,7 @@
           "type": "static"
         }
       ],
+      "kinetree": [],
       "kubectl-e2e": [],
       "laser": [
         {
@@ -4098,6 +4183,18 @@
         }
       ],
       "metrics-e2e": [],
+      "mmorpg": [
+        {
+          "source": "mmorpg",
+          "target": "combat",
+          "type": "static"
+        },
+        {
+          "source": "mmorpg",
+          "target": "kinetree",
+          "type": "static"
+        }
+      ],
       "observ": [],
       "protobuf": [],
       "q": [],
@@ -4236,7 +4333,8 @@
         }
       ],
       "unreal-rentearth": [],
-      "windmill": []
+      "windmill": [],
+      "yuki": []
     }
   }
 }

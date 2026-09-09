@@ -1,20 +1,20 @@
 {
-	"generated_at": "2026-09-08T05:47:09Z",
+	"generated_at": "2026-09-09T05:54:50Z",
 	"project": {
 		"title": "KBVE",
 		"url": "https://github.com/orgs/KBVE/projects/5",
-		"total_items": 383
+		"total_items": 380
 	},
 	"summary": {
-		"Theory": 72,
-		"AI": 1,
-		"Todo": 24,
-		"Backlog": 12,
-		"Error": 23,
+		"Theory": 68,
+		"AI": 0,
+		"Todo": 23,
+		"Backlog": 9,
+		"Error": 21,
 		"Support": 0,
 		"Staging": 1,
-		"Review": 5,
-		"Done": 242
+		"Review": 6,
+		"Done": 249
 	},
 	"columns": {
 		"Theory": [
@@ -35,24 +35,6 @@
 			},
 			{
 				"type": "ISSUE",
-				"number": 4643,
-				"title": "[Concept] : [Unity] : Transport System",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/4643",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"enhancement",
-					"unity"
-				],
-				"matrix": null,
-				"date": "2025-05-12",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
 				"number": 5624,
 				"title": "[Concept] : Add Intel NUC worker nodes to existing Talos KBVE cluster",
 				"state": "OPEN",
@@ -67,60 +49,6 @@
 				],
 				"matrix": null,
 				"date": "2025-08-03",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
-				"number": 6437,
-				"title": "[Concept] : [Unity] : Pathfinding ECS",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/6437",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"enhancement",
-					"unity"
-				],
-				"matrix": null,
-				"date": "2025-09-28",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
-				"number": 6438,
-				"title": "[Concept] : [Unity] : ItemDB ECS Migration",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/6438",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"enhancement",
-					"unity"
-				],
-				"matrix": null,
-				"date": "2025-09-28",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
-				"number": 6576,
-				"title": "[Concept] : [Unity] : Entity Blittable System",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/6576",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"enhancement",
-					"unity"
-				],
-				"matrix": null,
-				"date": "2025-10-14",
 				"milestone": null
 			},
 			{
@@ -1097,27 +1025,7 @@
 				"milestone": null
 			}
 		],
-		"AI": [
-			{
-				"type": "ISSUE",
-				"number": 4906,
-				"title": "[Bug] : [Unity] : Character Orchestrator",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/4906",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"bug",
-					"unity",
-					"codex"
-				],
-				"matrix": null,
-				"date": "2025-06-09",
-				"milestone": null
-			}
-		],
+		"AI": [],
 		"Todo": [
 			{
 				"type": "ISSUE",
@@ -1460,22 +1368,6 @@
 			},
 			{
 				"type": "ISSUE",
-				"number": 15271,
-				"title": "chore(reel): librqbit 8 → 9, drops one of two reqwest 0.12 holdouts",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/15271",
-				"assignees": [],
-				"labels": [
-					"update",
-					"media",
-					"rust"
-				],
-				"matrix": null,
-				"date": "2026-08-03",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
 				"number": 15272,
 				"title": "chore(discordsh-bot): serenity pins the last reqwest 0.12 in the workspace",
 				"state": "OPEN",
@@ -1509,21 +1401,6 @@
 		"Backlog": [
 			{
 				"type": "ISSUE",
-				"number": 75,
-				"title": "[Concept] : HerbMail.com - Front Page",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/75",
-				"assignees": [],
-				"labels": [
-					"1",
-					"backlog"
-				],
-				"matrix": null,
-				"date": "2023-11-22",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
 				"number": 96,
 				"title": "[Concept] : [Backend] : Charles.",
 				"state": "OPEN",
@@ -1537,25 +1414,6 @@
 				],
 				"matrix": null,
 				"date": "2023-12-14",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
-				"number": 4642,
-				"title": "[Concept] : [Unity] : Droid System - Hybrid NPC System.",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/4642",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"enhancement",
-					"backlog",
-					"unity"
-				],
-				"matrix": null,
-				"date": "2025-09-28",
 				"milestone": null
 			},
 			{
@@ -1665,20 +1523,6 @@
 			},
 			{
 				"type": "ISSUE",
-				"number": 15771,
-				"title": "Isometric: pixel-swim fix roadmap (shadow texel snapping first)",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/15771",
-				"assignees": [],
-				"labels": [
-					"backlog"
-				],
-				"matrix": null,
-				"date": "2026-08-14",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
 				"number": 15768,
 				"title": "Rareicon: split InventorySlot into PackSlot (units) + InventorySlot (buildings)",
 				"state": "OPEN",
@@ -1726,42 +1570,6 @@
 				],
 				"matrix": null,
 				"date": "2024-12-12",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
-				"number": 3538,
-				"title": "[Bug] : [Unity] : Gameplay Mechanics - Farming & Crafting",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/3538",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"bug",
-					"unity"
-				],
-				"matrix": null,
-				"date": "2024-12-13",
-				"milestone": null
-			},
-			{
-				"type": "ISSUE",
-				"number": 6705,
-				"title": "[Bug] : [Unity] : Chip Character Sheet Off Center Sprites",
-				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/issues/6705",
-				"assignees": [
-					"h0lybyte"
-				],
-				"labels": [
-					"0",
-					"bug",
-					"unity"
-				],
-				"matrix": null,
-				"date": "2025-11-23",
 				"milestone": null
 			},
 			{
@@ -2124,10 +1932,10 @@
 			},
 			{
 				"type": "PULL_REQUEST",
-				"number": 16966,
-				"title": "Release: 1 fix, 2 docs, 1 CI, 1 build, 1 refactor, 1 chore → Main",
+				"number": 17004,
+				"title": "Release: 5 features, 3 fixes, 1 doc, 1 refactor → Main",
 				"state": "OPEN",
-				"url": "https://github.com/KBVE/kbve/pull/16966",
+				"url": "https://github.com/KBVE/kbve/pull/17004",
 				"assignees": [],
 				"labels": [
 					"auto-pr",
@@ -2136,9 +1944,184 @@
 				"matrix": null,
 				"date": null,
 				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 17016,
+				"title": "chore(content): daily activity scaffold",
+				"state": "OPEN",
+				"url": "https://github.com/KBVE/kbve/pull/17016",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
 			}
 		],
 		"Done": [
+			{
+				"type": "ISSUE",
+				"number": 75,
+				"title": "[Concept] : HerbMail.com - Front Page",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/75",
+				"assignees": [],
+				"labels": [
+					"1",
+					"backlog"
+				],
+				"matrix": null,
+				"date": "2023-11-22",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 3538,
+				"title": "[Bug] : [Unity] : Gameplay Mechanics - Farming & Crafting",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/3538",
+				"assignees": [
+					"h0lybyte"
+				],
+				"labels": [
+					"0",
+					"bug",
+					"unity"
+				],
+				"matrix": null,
+				"date": "2024-12-13",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 4642,
+				"title": "[Concept] : [Unity] : Droid System - Hybrid NPC System.",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/4642",
+				"assignees": [
+					"h0lybyte"
+				],
+				"labels": [
+					"0",
+					"enhancement",
+					"backlog",
+					"unity"
+				],
+				"matrix": null,
+				"date": "2025-09-28",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 4643,
+				"title": "[Concept] : [Unity] : Transport System",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/4643",
+				"assignees": [
+					"h0lybyte"
+				],
+				"labels": [
+					"0",
+					"enhancement",
+					"unity"
+				],
+				"matrix": null,
+				"date": "2025-05-12",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 4906,
+				"title": "[Bug] : [Unity] : Character Orchestrator",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/4906",
+				"assignees": [
+					"h0lybyte"
+				],
+				"labels": [
+					"0",
+					"bug",
+					"unity",
+					"codex"
+				],
+				"matrix": null,
+				"date": "2025-06-09",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 6437,
+				"title": "[Concept] : [Unity] : Pathfinding ECS",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/6437",
+				"assignees": [
+					"h0lybyte"
+				],
+				"labels": [
+					"0",
+					"enhancement",
+					"unity"
+				],
+				"matrix": null,
+				"date": "2025-09-28",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 6438,
+				"title": "[Concept] : [Unity] : ItemDB ECS Migration",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/6438",
+				"assignees": [
+					"h0lybyte"
+				],
+				"labels": [
+					"0",
+					"enhancement",
+					"unity"
+				],
+				"matrix": null,
+				"date": "2025-09-28",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 6576,
+				"title": "[Concept] : [Unity] : Entity Blittable System",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/6576",
+				"assignees": [
+					"h0lybyte"
+				],
+				"labels": [
+					"0",
+					"enhancement",
+					"unity"
+				],
+				"matrix": null,
+				"date": "2025-10-14",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 6705,
+				"title": "[Bug] : [Unity] : Chip Character Sheet Off Center Sprites",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/6705",
+				"assignees": [
+					"h0lybyte"
+				],
+				"labels": [
+					"0",
+					"bug",
+					"unity"
+				],
+				"matrix": null,
+				"date": "2025-11-23",
+				"milestone": null
+			},
 			{
 				"type": "PULL_REQUEST",
 				"number": 13278,
@@ -2184,6 +2167,36 @@
 				"milestone": null
 			},
 			{
+				"type": "ISSUE",
+				"number": 15271,
+				"title": "chore(reel): librqbit 8 → 9, drops one of two reqwest 0.12 holdouts",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/15271",
+				"assignees": [],
+				"labels": [
+					"update",
+					"media",
+					"rust"
+				],
+				"matrix": null,
+				"date": "2026-08-03",
+				"milestone": null
+			},
+			{
+				"type": "ISSUE",
+				"number": 15771,
+				"title": "Isometric: pixel-swim fix roadmap (shadow texel snapping first)",
+				"state": "CLOSED",
+				"url": "https://github.com/KBVE/kbve/issues/15771",
+				"assignees": [],
+				"labels": [
+					"backlog"
+				],
+				"matrix": null,
+				"date": "2026-08-14",
+				"milestone": null
+			},
+			{
 				"type": "PULL_REQUEST",
 				"number": 16375,
 				"title": "Atomic: rows tenant user",
@@ -2193,295 +2206,6 @@
 				"labels": [
 					"auto-pr",
 					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16378,
-				"title": "Release: 1 feature → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/16378",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16379,
-				"title": "Atomic: tc9 bot pool",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/16379",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16380,
-				"title": "Release: 1 fix → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/16380",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16381,
-				"title": "chore(content): daily journal scaffold",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/16381",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16382,
-				"title": "chore(content): daily kanban scaffold",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/16382",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16383,
-				"title": "chore(content): daily activity scaffold",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/16383",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16384,
-				"title": "chore(content): daily releases scaffold",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/16384",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16385,
-				"title": "chore(content): daily ci-health scaffold",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/16385",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16386,
-				"title": "chore(content): daily graph scaffold",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/16386",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16387,
-				"title": "chore(content): daily proto scaffold",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/16387",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16388,
-				"title": "chore(content): daily report scaffold",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/16388",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16389,
-				"title": "chore(content): daily deps scaffold",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/16389",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16390,
-				"title": "chore(content): daily security scaffold",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/16390",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16392,
-				"title": "Atomic: tc9 cluster pool",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/16392",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16393,
-				"title": "Release: 1 feature → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/16393",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16394,
-				"title": "chore(ci): sync ci-dispatch-manifest",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/16394",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16395,
-				"title": "Atomic: tocloud9-gameserver v0.0.6 post-publish sync",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/16395",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16396,
-				"title": "Release: 1 chore → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/16396",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16397,
-				"title": "Atomic: tc9 shard b pins",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/16397",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"atomic"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16398,
-				"title": "Release: 1 fix → Main",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/16398",
-				"assignees": [],
-				"labels": [
-					"auto-pr",
-					"dev→main"
 				],
 				"matrix": null,
 				"date": null,
@@ -2512,20 +2236,6 @@
 				"labels": [
 					"auto-pr",
 					"dev→main"
-				],
-				"matrix": null,
-				"date": null,
-				"milestone": null
-			},
-			{
-				"type": "PULL_REQUEST",
-				"number": 16402,
-				"title": "chore(ci): sync ci-dispatch-manifest",
-				"state": "MERGED",
-				"url": "https://github.com/KBVE/kbve/pull/16402",
-				"assignees": [],
-				"labels": [
-					"auto-pr"
 				],
 				"matrix": null,
 				"date": null,
@@ -5639,6 +5349,249 @@
 				"labels": [
 					"auto-pr",
 					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16966,
+				"title": "Release: 1 fix, 2 docs, 1 CI, 1 build, 1 refactor, 12 chores → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16966",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16973,
+				"title": "chore(content): daily kanban scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16973",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16974,
+				"title": "chore(content): daily proto scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16974",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16975,
+				"title": "chore(content): daily activity scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16975",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16976,
+				"title": "chore(content): daily ci-health scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16976",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16977,
+				"title": "chore(content): daily journal scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16977",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16978,
+				"title": "chore(content): daily graph scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16978",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16979,
+				"title": "chore(content): daily report scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16979",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16980,
+				"title": "chore(content): daily releases scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16980",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16981,
+				"title": "chore(content): daily deps scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16981",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16982,
+				"title": "chore(content): daily security scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16982",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16985,
+				"title": "Release: 4 features, 3 fixes, 1 doc, 1 test, 1 chore → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16985",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16994,
+				"title": "Release: 1 fix → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16994",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 16999,
+				"title": "Release: 3 features, 1 fix, 1 refactor → Main",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/16999",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"dev→main"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 17009,
+				"title": "Atomic: ik research doc",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/17009",
+				"assignees": [],
+				"labels": [
+					"auto-pr",
+					"atomic"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 17014,
+				"title": "chore(content): daily graph scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/17014",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
+				],
+				"matrix": null,
+				"date": null,
+				"milestone": null
+			},
+			{
+				"type": "PULL_REQUEST",
+				"number": 17015,
+				"title": "chore(content): daily journal scaffold",
+				"state": "MERGED",
+				"url": "https://github.com/KBVE/kbve/pull/17015",
+				"assignees": [],
+				"labels": [
+					"auto-pr"
 				],
 				"matrix": null,
 				"date": null,

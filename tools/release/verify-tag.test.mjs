@@ -1,6 +1,31 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { parseTag, cargoVersion, tomlVersion, godotVersion, TagError } from './verify-tag.mjs';
+import { mkdtempSync, mkdirSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join } from 'node:path';
+import {
+	parseTag,
+	cargoVersion,
+	tomlVersion,
+	godotVersion,
+	compareSemver,
+	semverParts,
+	verify,
+	releaseDoc,
+	frontmatterField,
+	TagError,
+} from './verify-tag.mjs';
+
+/** A throwaway tree holding just the manifest files a case needs. */
+function fixtureRoot(files) {
+	const root = mkdtempSync(join(tmpdir(), 'verify-tag-'));
+	for (const [rel, body] of Object.entries(files)) {
+		const abs = join(root, rel);
+		mkdirSync(dirname(abs), { recursive: true });
+		writeFileSync(abs, body);
+	}
+	return root;
+}
 
 test('parseTag splits on the last @, so scoped names survive', () => {
 	assert.deepEqual(parseTag('axum-kbve@0.5.2'), { project: 'axum-kbve', version: '0.5.2' });
@@ -180,12 +205,181 @@ test('the shell version reader agrees with manifestVersion on every releasable p
 	).projects.filter((p) => lanes(p.config?.tags ?? []).length);
 
 	assert.ok(projects.length > 50, 'expected the graph to have releasable projects');
+
+	// A lane tag says a project *can* publish, and every project carrying one
+	// must therefore have a version to check its tag against. A `"private": true`
+	// package.json does not count -- manifestVersion skips it by design, since an
+	// npm stub is not a version claim -- so a private web game keeps a
+	// version.toml beside it, the way herbmail-game does.
+	//
+	// Empty on purpose: a lane-tagged project with no version file is a release
+	// that fails at tag time, so it fails here first.
+	const unreleasable = [];
+
 	for (const project of projects) {
-		const { file, version } = manifestVersion(root, project.source);
+		let manifest;
+		try {
+			manifest = manifestVersion(root, project.source);
+		} catch {
+			unreleasable.push(project.id);
+			continue;
+		}
+		const { file, version } = manifest;
 		const shell = execFileSync('bash', ['tools/docker/version.sh', file], {
 			encoding: 'utf8',
 			cwd: root,
 		}).trim();
 		assert.equal(shell, version, `${project.id} (${file})`);
 	}
+
+	assert.deepEqual(
+		unreleasable,
+		[],
+		'a lane-tagged project with no version manifest — add a version.toml, or drop the lane tag',
+	);
+});
+
+// ---------------------------------------------------------------------------
+// The tag leads the manifest.
+//
+// A tag used to have to equal its manifest exactly, which meant every release
+// carried a version-bump commit pushed before the tag. The tag now states the
+// intent and the release syncs the manifest forward, so only a manifest AHEAD
+// of its tag is fatal -- that direction cannot be honoured without moving an
+// already-released number backwards.
+// ---------------------------------------------------------------------------
+
+test('compareSemver orders releases, prereleases and unparseable versions', () => {
+	assert.ok(compareSemver('0.1.50', '0.1.51') < 0);
+	assert.ok(compareSemver('0.1.51', '0.1.50') > 0);
+	assert.equal(compareSemver('0.1.51', '0.1.51'), 0);
+	// A release outranks its own prereleases.
+	assert.ok(compareSemver('1.0.0-rc.1', '1.0.0') < 0);
+	assert.ok(compareSemver('1.0.0-rc.1', '1.0.0-rc.2') < 0);
+	// Unparseable sorts before parseable, so a malformed tag never reads newest.
+	assert.ok(compareSemver('not-a-version', '1.0.0') < 0);
+});
+
+test('compareSemver treats a date-shaped version as ordinary semver', () => {
+	// chisel-ubuntu-axum releases as 24.04.13; nothing may special-case it.
+	// Core differences return the numeric gap rather than a normalised -1/1,
+	// so callers must test the sign -- which is what the direction check does.
+	assert.ok(compareSemver('24.04.11', '24.04.13') < 0);
+	assert.ok(compareSemver('24.04.13', '24.04.11') > 0);
+	assert.equal(compareSemver('24.04.13', '24.04.13'), 0);
+});
+
+test('semverParts ignores build metadata and rejects malformed input', () => {
+	assert.deepEqual(semverParts('1.2.3+build.5').core, [1, 2, 3]);
+	assert.equal(semverParts('1.2'), null);
+});
+
+test('verify accepts a tag ahead of its manifest and releases the tag version', () => {
+	// The normal case now: manifest 0.1.50, tag 0.1.51.
+	const node = { id: 'demo', source: 'x', config: { tags: ['docker'] } };
+	const root = fixtureRoot({ 'x/version.toml': 'version = "0.1.50"\n' });
+	const out = verify('demo@0.1.51', root, [], node);
+	assert.equal(out.version, '0.1.51', 'the tag, not the manifest, is the release version');
+	assert.equal(out.project, 'demo');
+});
+
+test('verify accepts a tag equal to its manifest', () => {
+	const node = { id: 'demo', source: 'x', config: { tags: ['docker'] } };
+	const root = fixtureRoot({ 'x/version.toml': 'version = "0.1.51"\n' });
+	assert.equal(verify('demo@0.1.51', root, [], node).version, '0.1.51');
+});
+
+test('verify rejects a tag behind its manifest', () => {
+	// Tagging 0.1.49 when 0.1.51 is committed would move a released number
+	// backwards; that is a typo, not an intent.
+	const node = { id: 'demo', source: 'x', config: { tags: ['docker'] } };
+	const root = fixtureRoot({ 'x/version.toml': 'version = "0.1.51"\n' });
+	assert.throws(
+		() => verify('demo@0.1.49', root, [], node),
+		(err) => err instanceof TagError && /already says/.test(err.message),
+	);
+});
+
+test('verify still rejects a tag naming a different project than the node', () => {
+	const node = { id: 'other', source: 'x', config: { tags: ['docker'] } };
+	const root = fixtureRoot({ 'x/version.toml': 'version = "1.0.0"\n' });
+	assert.throws(() => verify('demo@1.0.0', root, [], node), TagError);
+});
+
+// ---------------------------------------------------------------------------
+// The project doc as the registry of a release's version files.
+// ---------------------------------------------------------------------------
+
+test('frontmatterField reads a top-level key and ignores nested ones', () => {
+	const text = [
+		'---',
+		'title: T',
+		'version: "1.0.0"',
+		'kube:',
+		'    version: "9.9.9"',
+		'---',
+		'',
+		'Body mentioning version: "8.8.8".',
+	].join('\n');
+	assert.equal(frontmatterField(text, 'version'), '1.0.0');
+	assert.equal(frontmatterField(text, 'title'), 'T');
+	assert.equal(frontmatterField(text, 'absent'), null);
+});
+
+test('frontmatterField returns null when there is no frontmatter block', () => {
+	assert.equal(frontmatterField('# Just a heading\n', 'version'), null);
+});
+
+test('releaseDoc matches on app_name, not on the filename', () => {
+	// chisel-ubuntu-axum is documented in chisel.mdx and axum-kbve in api.mdx,
+	// so resolving by filename finds neither.
+	const root = fixtureRoot({
+		'docs/project/chisel.mdx': [
+			'---',
+			'app_name: chisel-ubuntu-axum',
+			'version: "24.04.13"',
+			'version_toml: packages/docker/chisel-ubuntu-axum/version.toml',
+			'---',
+		].join('\n'),
+	});
+	const doc = releaseDoc(root, 'chisel-ubuntu-axum');
+	assert.equal(doc.mdxPath, 'docs/project/chisel.mdx');
+	assert.equal(doc.versionToml, 'packages/docker/chisel-ubuntu-axum/version.toml');
+	assert.equal(doc.versionTarget, '', 'absent version_target reads as empty, not undefined');
+});
+
+test('releaseDoc reports both version files when the doc names both', () => {
+	const root = fixtureRoot({
+		'docs/project/edge.mdx': [
+			'---',
+			'app_name: edge',
+			'version: "0.1.50"',
+			'version_toml: services/functions/deno/version.toml',
+			'version_target: services/functions/deno/deno.json',
+			'---',
+		].join('\n'),
+	});
+	assert.deepEqual(releaseDoc(root, 'edge'), {
+		mdxPath: 'docs/project/edge.mdx',
+		versionToml: 'services/functions/deno/version.toml',
+		versionTarget: 'services/functions/deno/deno.json',
+	});
+});
+
+test('releaseDoc returns empty paths for a project with no doc', () => {
+	const root = fixtureRoot({ 'docs/project/other.mdx': '---\napp_name: other\n---' });
+	assert.deepEqual(releaseDoc(root, 'demo'), {
+		mdxPath: '',
+		versionToml: '',
+		versionTarget: '',
+	});
+});
+
+test('verify falls back to the verified manifest when no doc names one', () => {
+	// A project with no MDX still has its own version file synced forward.
+	const node = { id: 'demo', source: 'x', config: { tags: ['docker'] } };
+	const root = fixtureRoot({ 'x/version.toml': 'version = "1.0.0"\n' });
+	const out = verify('demo@1.0.1', root, [], node);
+	assert.equal(out.mdxPath, '');
+	assert.equal(out.versionTomlPath, 'x/version.toml');
 });

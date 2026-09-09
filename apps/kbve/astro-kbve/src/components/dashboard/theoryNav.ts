@@ -23,6 +23,11 @@ export const THEORY_NAV: DashboardNavGroup[] = [
 				copy: 'Notes and resources on the craft of writing code.',
 			},
 			{
+				label: 'Inverse Kinematics',
+				href: '/theory/ik/',
+				copy: 'Solver theory, anatomical constraints, contact, and deformation for believable motion.',
+			},
+			{
 				label: 'Automation',
 				href: '/theory/automation/',
 				copy: 'Turning manual work into workflows — efficiency, fewer errors, more room to build.',
