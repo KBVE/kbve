@@ -11,8 +11,12 @@ dependencies stops the image at "`workspace.package.edition` was not
 defined".
 
 Usage:
-    python3 tools/guards/sync-cargo-workspace-stubs.py           # rewrite stubs
-    python3 tools/guards/sync-cargo-workspace-stubs.py --check   # CI drift check
+    moon run guards:sync                                         # rewrite stubs
+    moon run guards:lint                                         # CI drift check
+
+or directly:
+    python3 tools/guards/sync-cargo-workspace-stubs.py
+    python3 tools/guards/sync-cargo-workspace-stubs.py --check
 """
 
 from __future__ import annotations
@@ -95,7 +99,7 @@ def main() -> int:
         print("Cargo.workspace.toml stubs out of sync with the root workspace tables:")
         for path in drifted:
             print(f"  {path}")
-        print("Run: python3 tools/guards/sync-cargo-workspace-stubs.py")
+        print("Run: moon run guards:sync")
         return 1
 
     print(f"{'drift' if check else 'synced'}: {len(drifted)}/{len(stubs)} stubs")
