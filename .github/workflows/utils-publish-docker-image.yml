@@ -149,8 +149,6 @@ jobs:
 
             - name: Setup JavaScript
               uses: ./.github/actions/setup-js
-              with:
-                  playwright: 'false'
 
             - name: Set up QEMU
               if: ${{ steps.version_check.outputs.should_publish != 'false' && steps.promote.outputs.found != 'true' && startsWith(inputs.runner, 'ubuntu-') }}

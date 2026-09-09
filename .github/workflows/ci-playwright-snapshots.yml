@@ -41,9 +41,11 @@ jobs:
             - name: Setup JavaScript
               uses: ./.github/actions/setup-js
 
-            - name: Install Playwright browsers
-              timeout-minutes: 15
-              run: pnpm exec playwright install --with-deps chromium webkit
+            - name: Setup Playwright
+              uses: ./.github/actions/setup-playwright
+              with:
+                  enable: 'true'
+                  browsers: 'chromium webkit'
 
             - name: Setup moon
               uses: ./.github/actions/setup-moon

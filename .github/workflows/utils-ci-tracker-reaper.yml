@@ -42,8 +42,6 @@ jobs:
 
             - name: Setup JavaScript
               uses: ./.github/actions/setup-js
-              with:
-                  playwright: 'false'
 
             - name: Reap
               env:

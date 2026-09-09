@@ -15,14 +15,6 @@ inputs:
         description: 'Run `pnpm install --frozen-lockfile` after the toolchain is set up.'
         required: false
         default: 'true'
-    playwright:
-        description: 'Let the install download Playwright browsers.'
-        required: false
-        # Defaults to downloading, because that is what an install with no
-        # PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD did before this action existed and
-        # most callers had none. The four that set it to skip pass 'false'.
-        # Flipping the default would silently stop the browser suites working.
-        default: 'true'
     scrub:
         description: 'Run the install under a scrubbed environment so lifecycle scripts cannot read runner secrets.'
         required: false
@@ -113,7 +105,14 @@ runs:
           if: ${{ inputs.install == 'true' && inputs.scrub == 'true' && runner.os != 'Windows' }}
           shell: bash
           env:
-              PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: ${{ inputs.playwright == 'true' && '0' || '1' }}
+              # Browsers come from .github/actions/setup-playwright, never from
+              # an install. This action used to carry a `playwright` input that
+              # flipped this to '0' and read as the switch for the browser
+              # suites; it never was one. playwright is not in `allowBuilds`, so
+              # pnpm does not run its postinstall and the variable it reads has
+              # nothing to say to. Pinned to '1' so that stays true if it ever
+              # is listed.
+              PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: '1'
               SETUP_JS_KEEP_ENV: ${{ inputs.keep-env }}
           run: |
               set -euo pipefail
