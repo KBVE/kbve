@@ -13,14 +13,24 @@ on:
                 type: string
             version_toml_path:
                 description: >-
-                    Path to version.toml. Optional: a tag-driven release has the
-                    version committed and verified before it runs, so it asks for
-                    the deployment pin alone and leaves this empty.
+                    Path to version.toml. A tag may now run ahead of its manifest
+                    -- the tag states the intent and this job writes the manifest
+                    forward -- so a tag-driven release passes the real path and
+                    the sync is what makes the tree match what shipped.
                 required: false
                 default: ''
                 type: string
             version_target_path:
-                description: 'Path to Cargo.toml/package.json/.csproj to sync version into'
+                description: 'Path to Cargo.toml/package.json/.csproj/deno.json to sync version into'
+                required: false
+                type: string
+                default: ''
+            mdx_path:
+                description: >-
+                    Path to the project's docs/project/<name>.mdx. Its `version:`
+                    frontmatter is the other half of the release declaration and
+                    rotted once CI stopped syncing it -- chisel-ubuntu-axum shipped
+                    24.04.13 while its doc still claimed 24.04.11.
                 required: false
                 type: string
                 default: ''
@@ -202,6 +212,46 @@ jobs:
                   esac
                   echo "Synced $TARGET to $VERSION"
 
+            # The docs half of the declaration. Frontmatter is YAML, so the
+            # rewrite is anchored to a top-level `version:` key and stops at the
+            # first match -- a `version:` nested under `kube:` or inside the body
+            # must not be touched.
+            - name: Sync MDX frontmatter version
+              if: inputs.mdx_path != ''
+              run: |
+                  MDX="${{ inputs.mdx_path }}"
+                  VERSION="${{ steps.validate.outputs.version }}"
+
+                  if [ ! -f "$MDX" ]; then
+                    echo "::warning::mdx_path '$MDX' not found — skipping."
+                    exit 0
+                  fi
+
+                  # POSIX awk, matching set-toml-version.sh: a caller-supplied
+                  # runner may ship busybox, where GNU sed's `0,/re/` address is
+                  # silently ignored and every later match is rewritten too.
+                  if awk -v v="$VERSION" '
+                    NR == 1 && /^---[ \t]*$/ { infm = 1; print; next }
+                    infm && /^---[ \t]*$/ { infm = 0; print; next }
+                    infm && !done && /^version:[ \t]*/ {
+                      print "version: \"" v "\""
+                      done = 1
+                      next
+                    }
+                    { print }
+                    END { if (!done) exit 3 }
+                  ' "$MDX" > "$MDX.tmp"; then
+                    mv "$MDX.tmp" "$MDX"
+                  else
+                    rc=$?
+                    rm -f "$MDX.tmp"
+                    if [ "$rc" -eq 3 ]; then
+                      echo "::error::No top-level version: key in $MDX frontmatter — refusing to guess."
+                    fi
+                    exit "$rc"
+                  fi
+                  echo "Synced $MDX to $VERSION"
+
             # Bump the matching [[package]] block in the workspace
             # Cargo.lock so the lockfile no longer drifts when CI bumps a
             # Cargo.toml. Without this step, every fresh checkout regenerates
@@ -336,6 +386,9 @@ jobs:
                         ;;
                     esac
                   fi
+                  if [ -n "${{ inputs.mdx_path }}" ]; then
+                    EXPECTED_FILES="$EXPECTED_FILES ${{ inputs.mdx_path }}"
+                  fi
                   if [ -n "${{ inputs.deployment_yaml }}" ]; then
                     EXPECTED_FILES="$EXPECTED_FILES ${{ inputs.deployment_yaml }}"
                   fi
@@ -382,8 +435,8 @@ jobs:
                   # in the atom PR (previously the singular deployment_yaml
                   # was added, but the deployment_yamls array was silently
                   # dropped — only version.toml shipped).
-                  # `git add ""` is fatal, and a tag-driven release leaves this
-                  # empty on purpose -- the version was committed before the tag.
+                  # `git add ""` is fatal, so each path is guarded. A release
+                  # that asked for the deployment pin alone leaves them empty.
                   if [ -n "${{ inputs.version_toml_path }}" ]; then
                     git add "${{ inputs.version_toml_path }}"
                   fi
@@ -394,6 +447,9 @@ jobs:
                         [ -f Cargo.lock ] && git add Cargo.lock
                         ;;
                     esac
+                  fi
+                  if [ -n "${{ inputs.mdx_path }}" ] && [ -f "${{ inputs.mdx_path }}" ]; then
+                    git add "${{ inputs.mdx_path }}"
                   fi
 
                   DEPLOYMENT_FILES=""

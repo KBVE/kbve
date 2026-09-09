@@ -40,6 +40,9 @@ jobs:
             source: ${{ steps.tag.outputs.source }}
             lanes: ${{ steps.tag.outputs.lanes }}
             file: ${{ steps.tag.outputs.file }}
+            mdx_path: ${{ steps.tag.outputs.mdx_path }}
+            version_toml_path: ${{ steps.tag.outputs.version_toml_path }}
+            version_target_path: ${{ steps.tag.outputs.version_target_path }}
             docker_target: ${{ steps.tag.outputs.docker_target }}
             base_image: ${{ steps.tag.outputs.base_image }}
             docker_image: ${{ steps.tag.outputs.docker_image }}
@@ -196,6 +199,15 @@ jobs:
             target: ${{ needs.verify.outputs.docker_target }}
             image: ${{ needs.verify.outputs.docker_image }}
             cargo_toml: ${{ needs.verify.outputs.file }}
+            # The tag may run ahead of the committed manifest. The post-publish
+            # sync writes the tree forward afterwards, which is too late for an
+            # image that bakes its own version in at build time -- edge stamps
+            # deno.json into the VERSION its /health reports. Handing the build
+            # the resolved version lets it stamp the manifests before it builds,
+            # so the image cannot ship labelled with the version it replaced.
+            release_version: ${{ needs.verify.outputs.version }}
+            version_toml_path: ${{ needs.verify.outputs.version_toml_path }}
+            version_target_path: ${{ needs.verify.outputs.version_target_path }}
             # A project declares a runner when the default two-core hosted one
             # is not enough for it. Self-hosted runners are declared for builds
             # that do not fit the default budget, so give them a proportionate
@@ -304,7 +316,12 @@ jobs:
         with:
             app_name: ${{ needs.verify.outputs.project }}
             version: ${{ needs.verify.outputs.version }}
-            version_toml_path: ''
+            # The tag states the version and this is what writes it back into
+            # the tree. Passing these empty is what let the manifests and the
+            # project doc drift away from what actually shipped.
+            version_toml_path: ${{ needs.verify.outputs.version_toml_path }}
+            version_target_path: ${{ needs.verify.outputs.version_target_path }}
+            mdx_path: ${{ needs.verify.outputs.mdx_path }}
             image_name: ghcr.io/${{ needs.verify.outputs.docker_image }}
             deployment_yamls: ${{ needs.verify.outputs.deployment_yamls }}
         secrets:
