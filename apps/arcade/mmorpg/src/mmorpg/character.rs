@@ -18,7 +18,7 @@ use bevy::world_serialization::WorldInstanceReady;
 use kinetree::{IkLimb, IkLimbBones};
 
 use super::foot_ik::FootGoal;
-use super::rig::{GaitClips, LimbSpec, Rig, RigProfile};
+use super::rig::{GaitBlend, GaitClips, LimbSpec, Rig, RigProfile};
 
 pub const CHARACTER_RADIUS: f32 = 0.32;
 pub const CHARACTER_HEIGHT: f32 = 1.16;
@@ -204,6 +204,10 @@ pub struct Locomotion {
     pub whole: Gaits,
     /// The same clips, legs only, for a character whose arms are busy.
     pub legs: Gaits,
+    /// The same clips, upper body only, for a character whose legs are procedural.
+    pub torso: Gaits,
+    /// Each torso node with its clip and the phase at which its left foot lands.
+    pub torso_sync: Vec<(AnimationNodeIndex, Handle<AnimationClip>, f32)>,
     pub jab: Attack,
     pub cross: Attack,
     pub cast_channel: Clip,
@@ -288,6 +292,80 @@ pub struct RigMask(pub Vec<(AnimationTargetId, u32)>);
 #[derive(Component)]
 pub struct Dressed;
 
+/// Where a character is in its stride, and the gait blend its speed selects.
+#[derive(Component, Debug, Clone, Copy)]
+pub struct Cadence {
+    pub phase: f32,
+    pub speed: f32,
+    /// Body facing, which the stride frame hangs off.
+    pub forward: Vec3,
+    /// Planar travel used to predict where the body will be: along facing unless a heading holds it elsewhere.
+    pub velocity: Vec3,
+    /// Travel direction off facing in degrees, right positive.
+    pub direction: f32,
+    /// Facing yaw in radians, and how fast it is changing.
+    pub yaw: f32,
+    pub turn_rate: f32,
+    pub leg_length: f32,
+    pub blend: Option<GaitBlend>,
+    /// Whether the legs are being generated this frame rather than played.
+    pub stepping: bool,
+    /// How much of the lower body is procedural right now, faded in and out around the walk.
+    pub weight: f32,
+    /// Phase left to run after a stop so the airborne foot lands before the legs fade.
+    pub settle: Option<f32>,
+}
+
+impl Cadence {
+    pub fn new(leg_length: f32) -> Self {
+        Self {
+            phase: 0.0,
+            speed: 0.0,
+            forward: Vec3::NEG_Z,
+            velocity: Vec3::ZERO,
+            direction: 0.0,
+            yaw: 0.0,
+            turn_rate: 0.0,
+            leg_length,
+            blend: None,
+            stepping: false,
+            weight: 0.0,
+            settle: None,
+        }
+    }
+}
+
+/// The bones the clip is masked off while legs are procedural, with their bind pose, and the model root that carries the pelvis bob.
+#[derive(Component)]
+pub struct LowerBody {
+    pub model: Entity,
+    pub model_rest: Transform,
+    pub bones: Vec<(Entity, Transform)>,
+    pub legs: Vec<LegRig>,
+    pub pelvis: Option<PelvisRig>,
+}
+
+/// The pelvis bone with its bind orientation in model space and its parent's, so a data yaw and roll can be composed onto it.
+#[derive(Debug, Clone, Copy)]
+pub struct PelvisRig {
+    pub bone: Entity,
+    pub rest: Quat,
+    pub parent_rest: Quat,
+}
+
+/// One leg's procedural fixings: the calf pre-bend that picks the knee side, and the foot's bind orientation in model space.
+#[derive(Debug, Clone, Copy)]
+pub struct LegRig {
+    pub calf: Entity,
+    pub foot: Entity,
+    pub right: bool,
+    pub prebend: Quat,
+    pub foot_rest: Quat,
+}
+
+/// How far the knee is folded before each solve so the hinge never picks the backward root.
+const KNEE_PREBEND: f32 = 0.2;
+
 /// The animation root of a character, awaiting a graph if locomotion was not ready when it was wired.
 #[derive(Component)]
 pub struct Armature;
@@ -351,6 +429,22 @@ fn assemble(
 
     let whole_gaits = add_gaits(&mut graph, &gaits, whole);
     let legs_gaits = add_gaits(&mut graph, &gaits, legs);
+    let torso_gaits = add_gaits(&mut graph, &gaits, arms);
+    let contacts = &profile.gaits;
+    let torso_sync = vec![
+        (torso_gaits.idle, gaits[0].clone(), contacts.idle.contact),
+        (torso_gaits.walk, gaits[1].clone(), contacts.walk.contact),
+        (torso_gaits.jog, gaits[2].clone(), contacts.jog.contact),
+        (
+            torso_gaits.sprint,
+            gaits[3].clone(),
+            contacts.sprint.contact,
+        ),
+        (torso_gaits.jump, gaits[4].clone(), contacts.jump.contact),
+        (torso_gaits.back, gaits[5].clone(), contacts.back.contact),
+        (torso_gaits.left, gaits[6].clone(), contacts.left.contact),
+        (torso_gaits.right, gaits[7].clone(), contacts.right.contact),
+    ];
 
     let mut one_shot = |name: &str, parent| {
         let handle = clip(name)?;
@@ -374,6 +468,8 @@ fn assemble(
     Some(Locomotion {
         whole: whole_gaits,
         legs: legs_gaits,
+        torso: torso_gaits,
+        torso_sync,
         jab,
         cross,
         cast_channel,
@@ -390,14 +486,14 @@ fn gait_handles(
     mut clip: impl FnMut(&str) -> Option<Handle<AnimationClip>>,
 ) -> Option<[Handle<AnimationClip>; 8]> {
     Some([
-        clip(&names.idle)?,
-        clip(&names.walk)?,
-        clip(&names.jog)?,
-        clip(&names.sprint)?,
-        clip(&names.jump)?,
-        clip(&names.back)?,
-        clip(&names.left)?,
-        clip(&names.right)?,
+        clip(&names.idle.clip)?,
+        clip(&names.walk.clip)?,
+        clip(&names.jog.clip)?,
+        clip(&names.sprint.clip)?,
+        clip(&names.jump.clip)?,
+        clip(&names.back.clip)?,
+        clip(&names.left.clip)?,
+        clip(&names.right.clip)?,
     ])
 }
 
@@ -453,13 +549,16 @@ pub fn spawn_character(commands: &mut Commands, position: Vec3) -> Entity {
 fn dress(
     mut commands: Commands,
     assets: Res<AssetServer>,
-    rig: Res<Rig>,
+    mut rig: ResMut<Rig>,
     profiles: Res<Assets<RigProfile>>,
     bare: Query<Entity, (With<Character>, Without<Dressed>)>,
 ) {
     let Some(profile) = profiles.get(&rig.profile) else {
         return;
     };
+    if rig.gaits.is_none() {
+        rig.gaits = Some(assets.load(profile.gait_set.clone()));
+    }
     for character in &bare {
         commands
             .spawn((
@@ -509,6 +608,7 @@ fn wire_skeleton(
     mut commands: Commands,
     mut state: RigState,
     parents: Query<&ChildOf>,
+    transforms: Query<&Transform>,
     children: Query<&'static Children>,
     names: Query<&'static Name>,
 ) {
@@ -562,6 +662,7 @@ fn wire_skeleton(
     // Six separate find_bone calls each rewalked all 69 nodes, which is fine
     // for one character and 414 wasted visits per character in a crowd.
     let mut wanted = HashMap::new();
+    wanted.insert(profile.pelvis.as_str(), Entity::PLACEHOLDER);
     for limb in &profile.legs {
         for name in [&limb.root, &limb.mid, &limb.tip] {
             wanted.insert(name.as_str(), Entity::PLACEHOLDER);
@@ -603,18 +704,85 @@ fn wire_skeleton(
         }
     }
 
+    let mut leg_length = 0.0;
+    let mut legs = Vec::new();
     for limb in &profile.legs {
-        spawn_leg(&mut commands, character, profile, limb, &wanted);
+        if let Some((length, rig)) = spawn_leg(
+            &mut commands,
+            (character, model),
+            profile,
+            limb,
+            &wanted,
+            &transforms,
+            &parents,
+        ) {
+            leg_length = length;
+            legs.push(rig);
+        }
     }
+    let lower = bones
+        .iter()
+        .filter(|(_, _, half)| *half == LOWER_BODY)
+        .filter_map(|(bone, _, _)| transforms.get(*bone).ok().map(|t| (*bone, *t)))
+        .collect();
+    let model_rest = transforms.get(model).copied().unwrap_or_default();
+    let pelvis = wanted
+        .get(profile.pelvis.as_str())
+        .copied()
+        .filter(|e| *e != Entity::PLACEHOLDER)
+        .map(|bone| {
+            let parent = parents.get(bone).map(ChildOf::parent).ok();
+            PelvisRig {
+                bone,
+                rest: rest_in_model(bone, model, &transforms, &parents).rotation,
+                parent_rest: parent
+                    .map(|p| rest_in_model(p, model, &transforms, &parents).rotation)
+                    .unwrap_or(Quat::IDENTITY),
+            }
+        });
+    commands.entity(character).insert((
+        Cadence::new(leg_length),
+        LowerBody {
+            model,
+            model_rest,
+            bones: lower,
+            legs,
+            pelvis,
+        },
+    ));
+}
+
+/// A bone's rest transform relative to the model root.
+fn rest_in_model(
+    bone: Entity,
+    model: Entity,
+    transforms: &Query<&Transform>,
+    parents: &Query<&ChildOf>,
+) -> Transform {
+    let mut accumulated = transforms.get(bone).copied().unwrap_or_default();
+    let mut current = bone;
+    while let Ok(parent) = parents.get(current) {
+        current = parent.parent();
+        if current == model {
+            break;
+        }
+        if let Ok(local) = transforms.get(current) {
+            accumulated = local.mul_transform(accumulated);
+        }
+    }
+    accumulated
 }
 
 fn spawn_leg(
     commands: &mut Commands,
-    character: Entity,
+    owner: (Entity, Entity),
     profile: &RigProfile,
     limb: &LimbSpec,
     wanted: &HashMap<&str, Entity>,
-) {
+    transforms: &Query<&Transform>,
+    parents: &Query<&ChildOf>,
+) -> Option<(f32, LegRig)> {
+    let (character, model) = owner;
     let found = |name: &str| {
         wanted
             .get(name)
@@ -628,7 +796,37 @@ fn spawn_leg(
             "leg {}/{}/{} not found under the character model",
             limb.root, limb.mid, limb.tip
         );
-        return;
+        return None;
+    };
+    let length = |bone: Entity| {
+        transforms
+            .get(bone)
+            .map(|t| t.translation.length())
+            .unwrap_or(0.0)
+    };
+    let leg_length = length(mid) + length(tip);
+
+    let thigh = rest_in_model(root, model, transforms, parents);
+    let calf = transforms.get(mid).copied().unwrap_or_default();
+    let foot = transforms.get(tip).copied().unwrap_or_default();
+    let foot_rest = rest_in_model(tip, model, transforms, parents).rotation;
+    let axis = limb
+        .rest()
+        .map(|rest| rest.axis_local())
+        .unwrap_or(Vec3::NEG_X);
+    let foot_z = |turn: Quat| {
+        let bent = Transform {
+            rotation: turn * calf.rotation,
+            ..calf
+        };
+        thigh.mul_transform(bent).mul_transform(foot).translation.z
+    };
+    let forward = Quat::from_axis_angle(axis, KNEE_PREBEND);
+    let backward = Quat::from_axis_angle(axis, -KNEE_PREBEND);
+    let prebend = if foot_z(forward) < foot_z(backward) {
+        forward
+    } else {
+        backward
     };
 
     commands.spawn((
@@ -639,12 +837,18 @@ fn spawn_leg(
             weight: 0.0,
             ..default()
         },
-        FootGoal {
-            character,
-            grounded: 0.0,
-            ankle_height: profile.ankle_height,
-        },
+        FootGoal::new(character, profile.ankle_height, limb.tip.ends_with("_r")),
     ));
+    Some((
+        leg_length,
+        LegRig {
+            calf: mid,
+            foot: tip,
+            right: limb.tip.ends_with("_r"),
+            prebend,
+            foot_rest,
+        },
+    ))
 }
 
 /// Everything the skeleton walk carries down the tree with it.
@@ -888,10 +1092,12 @@ type Stride = (
     &'static LinearVelocity,
     &'static CharacterAnimator,
     Has<super::action::Action>,
+    Option<&'static Cadence>,
 );
 
 fn drive_gait(
     locomotion: Option<Res<Locomotion>>,
+    clips: Res<Assets<AnimationClip>>,
     characters: Query<Stride, Without<super::action::Frozen>>,
     mut players: Query<(&mut AnimationPlayer, &mut AnimationTransitions)>,
 ) {
@@ -902,14 +1108,17 @@ fn drive_gait(
     // action replaced the whole animation and a gait change would cut it short;
     // now the two occupy different halves of the body, so the legs must keep
     // being driven while the arms are busy.
-    for (gait, bearing, velocity, animator, acting) in &characters {
+    for (gait, bearing, velocity, animator, acting, cadence) in &characters {
         let Ok((mut player, mut transitions)) = players.get_mut(animator.0) else {
             continue;
         };
         // The same eight clips either way. The only difference is which branch
         // of the graph they are on, and therefore which bones they are allowed
         // to touch.
-        let gaits = if acting {
+        let stepping = cadence.is_some_and(|c| c.weight >= 0.99);
+        let gaits = if stepping {
+            &locomotion.torso
+        } else if acting {
             &locomotion.legs
         } else {
             &locomotion.whole
@@ -955,8 +1164,26 @@ fn drive_gait(
                 .set_repeat(RepeatAnimation::Forever);
         }
 
+        let sync = if stepping {
+            cadence.and_then(|c| {
+                let (_, handle, contact) =
+                    locomotion.torso_sync.iter().find(|(n, _, _)| *n == node)?;
+                let duration = clips.get(handle)?.duration();
+                Some((c.phase + contact).rem_euclid(1.0) * duration)
+            })
+        } else {
+            None
+        };
         if let Some(active) = player.animation_mut(node) {
-            active.set_speed(rate);
+            match sync {
+                Some(seek) => {
+                    active.set_speed(0.0);
+                    active.seek_to(seek);
+                }
+                None => {
+                    active.set_speed(rate);
+                }
+            }
         }
     }
 }
