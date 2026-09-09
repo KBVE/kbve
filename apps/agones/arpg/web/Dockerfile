@@ -18,7 +18,7 @@ RUN corepack enable
 # `packages:`, so the one root node_modules IS the whole tree — this reproduces
 # the exact resolution `nx build arpg-web` uses locally, instead of a separate
 # app lockfile that silently drifts from it.
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml .npmrc tsconfig.base.json ./
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml tsconfig.base.json ./
 RUN --mount=type=cache,target=/root/.local/share/pnpm/store/v3,id=pnpm-store \
     pnpm install --frozen-lockfile
 
