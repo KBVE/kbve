@@ -53,6 +53,9 @@ bevy = { workspace = true, features = [
 	"zstd_rust",
 ] }
 kinetree = { path = "../../../crates/kinetree" }
+serde = { workspace = true, features = ["derive"] }
+ron = { workspace = true }
+thiserror = { workspace = true }
 combat = { path = "../../../crates/combat", features = ["bevy"] }
 bevy_egui = { workspace = true, features = ["render", "default_fonts"] }
 bevy_gltf = { workspace = true }

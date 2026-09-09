@@ -36,10 +36,10 @@ impl Plugin for PlayerPlugin {
 #[derive(Component)]
 pub struct Player;
 
-fn spawn_cast(mut commands: Commands, assets: Res<AssetServer>) {
+fn spawn_cast(mut commands: Commands) {
     let drop = |x: f32, z: f32| Vec3::new(x, height_at(x, z) + 4.0, z);
 
-    let player = spawn_character(&mut commands, &assets, drop(0.0, 0.0));
+    let player = spawn_character(&mut commands, drop(0.0, 0.0));
     commands
         .entity(player)
         .insert((Player, CameraTarget, CameraLock::default()));
@@ -54,7 +54,7 @@ fn spawn_cast(mut commands: Commands, assets: Res<AssetServer>) {
     for index in 0..COMPANIONS {
         let angle = index as f32 / COMPANIONS as f32 * core::f32::consts::TAU;
         let (x, z) = (angle.cos() * 4.0, angle.sin() * 4.0);
-        spawn_character(&mut commands, &assets, drop(x, z));
+        spawn_character(&mut commands, drop(x, z));
     }
 }
 

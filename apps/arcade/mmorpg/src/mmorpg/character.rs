@@ -10,48 +10,15 @@ use core::time::Duration;
 use avian3d::prelude::*;
 use bevy::animation::transition::AnimationTransitions;
 use bevy::animation::{AnimatedBy, AnimationTargetId, RepeatAnimation};
-use bevy::gltf::GltfAssetLabel;
+use bevy::ecs::system::SystemParam;
+use bevy::gltf::{Gltf, GltfAssetLabel};
 use bevy::platform::collections::HashMap;
 use bevy::prelude::*;
 use bevy::world_serialization::WorldInstanceReady;
-use kinetree::{IkLimb, IkLimbBones, RestHinge};
+use kinetree::{IkLimb, IkLimbBones};
 
 use super::foot_ik::FootGoal;
-
-const MODEL: &str = "characters/quaternius_ubc/models/Regular_Male_FullBody.glb";
-const CLIPS: &str = "characters/quaternius_ubc/animations/UAL1.glb";
-
-// Indices into UAL1's animation array. The library is a flat alphabetical list
-// of 120 clips with no manifest, so these are positions, not names -- reread
-// them with `GltfAssetLabel::Animation(n)` against a fresh dump if the pack is
-// ever updated.
-const CLIP_IDLE: usize = 53;
-const CLIP_WALK: usize = 119;
-const CLIP_JOG: usize = 67;
-const CLIP_SPRINT: usize = 108;
-const CLIP_JUMP: usize = 72;
-
-// Travelling somewhere other than where you are facing, which only happens once
-// something makes a character face a direction it is not walking in -- a
-// selected target. The pack has no walking equivalents, so these cover every
-// gait: backing away at walking pace plays the jog cycle slightly too fast,
-// which is a great deal less wrong than sliding backwards through a forward
-// walk.
-const CLIP_JOG_BACK: usize = 62; // Jog_Bwd_Loop
-const CLIP_JOG_LEFT: usize = 69; // Jog_Left_Loop
-const CLIP_JOG_RIGHT: usize = 70; // Jog_Right_Loop
-
-// The combat clips, by their index in UAL1.glb. Indices rather than names
-// because that is what `GltfAssetLabel::Animation` takes; the names they
-// correspond to are beside them, since an index alone is unreadable and the
-// next person to touch this will otherwise have to dump the glTF again.
-const CLIP_PUNCH_JAB: usize = 84; // Punch_Jab -- leads with the LEFT hand
-const CLIP_PUNCH_CROSS: usize = 83; // Punch_Cross -- leads with the right
-const CLIP_CAST_CHANNEL: usize = 104; // Spell_Simple_Idle_Loop
-const CLIP_CAST_RELEASE: usize = 105; // Spell_Simple_Shoot
-const CLIP_CAST_POISON: usize = 101; // Spell_Double_Shoot_Loop
-const CLIP_HIT: usize = 47; // Hit_Chest
-const CLIP_DEATH: usize = 37; // Death01
+use super::rig::{GaitClips, LimbSpec, Rig, RigProfile};
 
 pub const CHARACTER_RADIUS: f32 = 0.32;
 pub const CHARACTER_HEIGHT: f32 = 1.16;
@@ -154,11 +121,6 @@ fn mask_group(name: &str, parent: u32) -> u32 {
     }
 }
 
-const LEGS: [(&str, &str, &str); 2] = [
-    ("thigh_l", "calf_l", "foot_l"),
-    ("thigh_r", "calf_r", "foot_r"),
-];
-
 /// Anything that walks: has an intent, a gait, and legs to solve.
 #[derive(Component)]
 pub struct Character;
@@ -253,23 +215,6 @@ pub struct Locomotion {
 }
 
 /// An attack clip.
-///
-/// What was measured out of these clips, for the IK and contact-timing work
-/// that will consume it:
-///
-/// | clip | length | lead arm | contact | reach |
-/// |------|--------|----------|---------|-------|
-/// | `Punch_Jab`   | 0.867s | left  | 50% (greatest reach) | 0.255m |
-/// | `Punch_Cross` | 1.000s | right | 42% (greatest reach) | 0.547m |
-///
-/// Contact is the frame of greatest reach because these are thrusts. A sword
-/// swing would instead use its frame of peak hand speed -- 25% for
-/// `Sword_Attack` -- since a blade sweeps through contact rather than stopping
-/// at it. The lead arm is measured, not assumed: the jab extends the left hand
-/// 0.547m and the right only 0.255m.
-///
-/// The fields those numbers belong in are not here yet, because nothing reads
-/// them and a field nobody reads is a field nobody keeps correct.
 #[derive(Clone)]
 pub struct Attack {
     pub clip: Clip,
@@ -312,7 +257,15 @@ pub struct CharacterSystems;
 
 impl Plugin for CharacterPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, load_locomotion).add_systems(
+        app.add_systems(
+            Update,
+            (
+                build_locomotion.run_if(not(resource_exists::<Locomotion>)),
+                dress,
+                bind_graph,
+            ),
+        )
+        .add_systems(
             Update,
             (
                 apply_movement,
@@ -327,28 +280,69 @@ impl Plugin for CharacterPlugin {
     }
 }
 
-fn load_locomotion(
+/// Mask-group table for the rig, recorded by the first skeleton wired and applied to the graph once.
+#[derive(Resource)]
+pub struct RigMask(pub Vec<(AnimationTargetId, u32)>);
+
+/// A character whose model has been spawned under it.
+#[derive(Component)]
+pub struct Dressed;
+
+/// The animation root of a character, awaiting a graph if locomotion was not ready when it was wired.
+#[derive(Component)]
+pub struct Armature;
+
+fn build_locomotion(
     mut commands: Commands,
     assets: Res<AssetServer>,
+    mut rig: ResMut<Rig>,
+    profiles: Res<Assets<RigProfile>>,
+    libraries: Res<Assets<Gltf>>,
     mut graphs: ResMut<Assets<AnimationGraph>>,
+    mask: Option<Res<RigMask>>,
 ) {
-    let clip = |index: usize| assets.load(GltfAssetLabel::Animation(index).from_asset(CLIPS));
+    let Some(profile) = profiles.get(&rig.profile) else {
+        return;
+    };
+    let library = rig
+        .library
+        .get_or_insert_with(|| assets.load(profile.library.clone()))
+        .clone();
+    let Some(library) = libraries.get(&library) else {
+        return;
+    };
+    let Some(locomotion) = assemble(profile, library, &mut graphs) else {
+        return;
+    };
+    info!(
+        "locomotion built from {} ({} named clips)",
+        profile.library,
+        library.named_animations.len()
+    );
+    if let Some(mask) = mask
+        && let Some(mut graph) = graphs.get_mut(&locomotion.graph)
+    {
+        for (id, half) in &mask.0 {
+            graph.add_target_to_mask_group(*id, *half);
+        }
+    }
+    commands.insert_resource(locomotion);
+}
 
-    let gaits: [Handle<AnimationClip>; 8] = [
-        clip(CLIP_IDLE),
-        clip(CLIP_WALK),
-        clip(CLIP_JOG),
-        clip(CLIP_SPRINT),
-        clip(CLIP_JUMP),
-        clip(CLIP_JOG_BACK),
-        clip(CLIP_JOG_LEFT),
-        clip(CLIP_JOG_RIGHT),
-    ];
+fn assemble(
+    profile: &RigProfile,
+    library: &Gltf,
+    graphs: &mut Assets<AnimationGraph>,
+) -> Option<Locomotion> {
+    let clip = |name: &str| {
+        let handle = library.named_animations.get(name).cloned();
+        if handle.is_none() {
+            error!("clip {name:?} is not in {}", profile.library);
+        }
+        handle
+    };
+    let gaits = gait_handles(&profile.gaits, clip)?;
 
-    // Three branches, because a mask forbids a node and everything under it from
-    // touching a group of bones. Locomotion appears under two of them so that a
-    // character with idle hands animates as one clip, while one that is swinging
-    // keeps its legs from the same clip and its arms from another.
     let mut graph = AnimationGraph::new();
     let root = graph.root;
     let whole = graph.add_blend(1.0, root);
@@ -358,36 +352,53 @@ fn load_locomotion(
     let whole_gaits = add_gaits(&mut graph, &gaits, whole);
     let legs_gaits = add_gaits(&mut graph, &gaits, legs);
 
-    let one_shot = |graph: &mut AnimationGraph, index: usize, parent| {
-        let handle = clip(index);
-        Clip {
+    let mut one_shot = |name: &str, parent| {
+        let handle = clip(name)?;
+        Some(Clip {
             node: graph.add_clip(handle.clone(), 1.0, parent),
             handle,
-        }
+        })
     };
+    let jab = Attack {
+        clip: one_shot(&profile.attacks.jab, arms)?,
+    };
+    let cross = Attack {
+        clip: one_shot(&profile.attacks.cross, arms)?,
+    };
+    let cast_channel = one_shot(&profile.casts.channel, arms)?;
+    let cast_release = one_shot(&profile.casts.release, arms)?;
+    let cast_poison = one_shot(&profile.casts.poison, arms)?;
+    let hit = one_shot(&profile.hit, arms)?;
+    let death = one_shot(&profile.death, whole)?;
 
-    let jab = one_shot(&mut graph, CLIP_PUNCH_JAB, arms);
-    let cross = one_shot(&mut graph, CLIP_PUNCH_CROSS, arms);
-    let cast_channel = one_shot(&mut graph, CLIP_CAST_CHANNEL, arms);
-    let cast_release = one_shot(&mut graph, CLIP_CAST_RELEASE, arms);
-    let cast_poison = one_shot(&mut graph, CLIP_CAST_POISON, arms);
-    let hit = one_shot(&mut graph, CLIP_HIT, arms);
-    // Death is the exception: a corpse whose legs carry on walking is not a
-    // corpse, so it goes on the branch that owns the whole body.
-    let death = one_shot(&mut graph, CLIP_DEATH, whole);
-
-    commands.insert_resource(Locomotion {
+    Some(Locomotion {
         whole: whole_gaits,
         legs: legs_gaits,
-        jab: Attack { clip: jab },
-        cross: Attack { clip: cross },
+        jab,
+        cross,
         cast_channel,
         cast_release,
         cast_poison,
         hit,
         death,
         graph: graphs.add(graph),
-    });
+    })
+}
+
+fn gait_handles(
+    names: &GaitClips,
+    mut clip: impl FnMut(&str) -> Option<Handle<AnimationClip>>,
+) -> Option<[Handle<AnimationClip>; 8]> {
+    Some([
+        clip(&names.idle)?,
+        clip(&names.walk)?,
+        clip(&names.jog)?,
+        clip(&names.sprint)?,
+        clip(&names.jump)?,
+        clip(&names.back)?,
+        clip(&names.left)?,
+        clip(&names.right)?,
+    ])
 }
 
 /// Wires the eight gait clips under one branch of the graph.
@@ -411,8 +422,8 @@ fn add_gaits(
 
 /// Spawns a character at `position` and returns it, ready for something to
 /// write its [`MoveIntent`].
-pub fn spawn_character(commands: &mut Commands, assets: &AssetServer, position: Vec3) -> Entity {
-    let character = commands
+pub fn spawn_character(commands: &mut Commands, position: Vec3) -> Entity {
+    commands
         .spawn((
             Character,
             MoveIntent::default(),
@@ -436,19 +447,58 @@ pub fn spawn_character(commands: &mut Commands, assets: &AssetServer, position: 
             )
             .with_max_distance(CHARACTER_HEIGHT * 0.5 + GROUND_PROBE),
         ))
-        .id();
+        .id()
+}
 
-    commands
-        .spawn((
-            CharacterModel,
-            WorldAssetRoot(assets.load(GltfAssetLabel::Scene(0).from_asset(MODEL))),
-            Transform::from_xyz(0.0, MODEL_DROP, 0.0)
-                .with_rotation(Quat::from_rotation_y(MODEL_FACING)),
-            ChildOf(character),
-        ))
-        .observe(wire_skeleton);
+fn dress(
+    mut commands: Commands,
+    assets: Res<AssetServer>,
+    rig: Res<Rig>,
+    profiles: Res<Assets<RigProfile>>,
+    bare: Query<Entity, (With<Character>, Without<Dressed>)>,
+) {
+    let Some(profile) = profiles.get(&rig.profile) else {
+        return;
+    };
+    for character in &bare {
+        commands
+            .spawn((
+                CharacterModel,
+                WorldAssetRoot(
+                    assets.load(GltfAssetLabel::Scene(0).from_asset(profile.model.clone())),
+                ),
+                Transform::from_xyz(0.0, MODEL_DROP, 0.0)
+                    .with_rotation(Quat::from_rotation_y(MODEL_FACING)),
+                ChildOf(character),
+            ))
+            .observe(wire_skeleton);
+        commands.entity(character).insert(Dressed);
+    }
+}
 
-    character
+fn bind_graph(
+    mut commands: Commands,
+    locomotion: Option<Res<Locomotion>>,
+    unbound: Query<Entity, (With<Armature>, Without<AnimationGraphHandle>)>,
+) {
+    let Some(locomotion) = locomotion else {
+        return;
+    };
+    for armature in &unbound {
+        commands
+            .entity(armature)
+            .insert(AnimationGraphHandle(locomotion.graph.clone()));
+    }
+}
+
+/// Everything the skeleton wiring reads about the rig and its shared graph.
+#[derive(SystemParam)]
+struct RigState<'w> {
+    locomotion: Option<Res<'w, Locomotion>>,
+    rig: Res<'w, Rig>,
+    profiles: Res<'w, Assets<RigProfile>>,
+    mask: Option<Res<'w, RigMask>>,
+    graphs: ResMut<'w, Assets<AnimationGraph>>,
 }
 
 /// Runs once the glTF has actually spawned its entities. Nothing about the
@@ -457,14 +507,24 @@ pub fn spawn_character(commands: &mut Commands, assets: &AssetServer, position: 
 fn wire_skeleton(
     event: On<WorldInstanceReady>,
     mut commands: Commands,
-    locomotion: Option<Res<Locomotion>>,
-    mut graphs: ResMut<Assets<AnimationGraph>>,
+    mut state: RigState,
     parents: Query<&ChildOf>,
     children: Query<&'static Children>,
     names: Query<&'static Name>,
 ) {
     let model = event.entity;
     let Ok(character) = parents.get(model).map(ChildOf::parent) else {
+        return;
+    };
+    let RigState {
+        locomotion,
+        rig,
+        profiles,
+        mask,
+        graphs,
+    } = &mut state;
+    let Some(profile) = profiles.get(&rig.profile) else {
+        warn!("rig profile unloaded while a character spawned; nothing to animate");
         return;
     };
 
@@ -478,14 +538,16 @@ fn wire_skeleton(
     // top-level scene node, and it is the only one in this file. Target ids are
     // hashes of the name path from that root down, which is why the clips in
     // UAL1.glb bind at all: both files spell the path the same way.
-    let Some(armature) = find_bone(model, "Armature", &names, &children) else {
+    let Some(armature) = find_bone(model, &profile.armature, &names, &children) else {
         warn!("character model has no Armature node; nothing to animate");
         return;
     };
 
-    commands
-        .entity(armature)
-        .insert((AnimationPlayer::default(), AnimationTransitions::new()));
+    commands.entity(armature).insert((
+        Armature,
+        AnimationPlayer::default(),
+        AnimationTransitions::new(),
+    ));
     if let Some(locomotion) = locomotion.as_ref() {
         commands
             .entity(armature)
@@ -500,10 +562,10 @@ fn wire_skeleton(
     // Six separate find_bone calls each rewalked all 69 nodes, which is fine
     // for one character and 414 wasted visits per character in a crowd.
     let mut wanted = HashMap::new();
-    for (root, mid, tip) in LEGS {
-        wanted.insert(root, Entity::PLACEHOLDER);
-        wanted.insert(mid, Entity::PLACEHOLDER);
-        wanted.insert(tip, Entity::PLACEHOLDER);
+    for limb in &profile.legs {
+        for name in [&limb.root, &limb.mid, &limb.tip] {
+            wanted.insert(name.as_str(), Entity::PLACEHOLDER);
+        }
     }
     let mut path = Vec::new();
     let mut bones = Vec::new();
@@ -527,8 +589,11 @@ fn wire_skeleton(
         commands.entity(*bone).insert((*id, AnimatedBy(armature)));
     }
 
-    // Once per rig, not once per character: the ids are hashes of bone paths, so
-    // every character built from this model produces exactly the same table.
+    if mask.is_none() {
+        commands.insert_resource(RigMask(
+            bones.iter().map(|(_, id, half)| (*id, *half)).collect(),
+        ));
+    }
     if let Some(locomotion) = locomotion.as_ref()
         && let Some(mut graph) = graphs.get_mut(&locomotion.graph)
         && graph.mask_groups.is_empty()
@@ -538,41 +603,48 @@ fn wire_skeleton(
         }
     }
 
-    // Measured off Jog_Fwd_Loop at its most-bent frame: the knee turns about
-    // the thigh's own -X, to (-0.9997, 0.0000, -0.0228) on the left leg and
-    // (-0.9995, -0.0000, -0.0310) on the right. Both sides, so the rig did not
-    // mirror its local axes.
-    //
-    // Not inferred at runtime. The bind pose has the leg dead straight, and
-    // the idle clip only bends it 23 degrees -- enough for a cross product,
-    // and that cross product points 40 degrees away from the real hinge.
-    let knee_hinge = RestHinge::from_local_axis(Vec3::NEG_X);
-
-    for (root, mid, tip) in LEGS {
-        let found = |name: &str| {
-            wanted
-                .get(name)
-                .copied()
-                .filter(|e| *e != Entity::PLACEHOLDER)
-        };
-        let (Some(root), Some(mid), Some(tip)) = (found(root), found(mid), found(tip)) else {
-            warn!("leg {root}/{mid}/{tip} not found under the character model");
-            continue;
-        };
-
-        commands.spawn((
-            IkLimbBones { root, mid, tip },
-            IkLimb {
-                rest: knee_hinge,
-                weight: 0.0,
-                ..default()
-            },
-            FootGoal {
-                character,
-                grounded: 0.0,
-            },
-        ));
+    for limb in &profile.legs {
+        spawn_leg(&mut commands, character, profile, limb, &wanted);
     }
+}
+
+fn spawn_leg(
+    commands: &mut Commands,
+    character: Entity,
+    profile: &RigProfile,
+    limb: &LimbSpec,
+    wanted: &HashMap<&str, Entity>,
+) {
+    let found = |name: &str| {
+        wanted
+            .get(name)
+            .copied()
+            .filter(|e| *e != Entity::PLACEHOLDER)
+    };
+    let (Some(root), Some(mid), Some(tip)) =
+        (found(&limb.root), found(&limb.mid), found(&limb.tip))
+    else {
+        warn!(
+            "leg {}/{}/{} not found under the character model",
+            limb.root, limb.mid, limb.tip
+        );
+        return;
+    };
+
+    commands.spawn((
+        IkLimbBones { root, mid, tip },
+        IkLimb {
+            rest: limb.rest(),
+            limits: limb.limits(),
+            weight: 0.0,
+            ..default()
+        },
+        FootGoal {
+            character,
+            grounded: 0.0,
+            ankle_height: profile.ankle_height,
+        },
+    ));
 }
 
 /// Everything the skeleton walk carries down the tree with it.
@@ -585,10 +657,10 @@ fn wire_skeleton(
 /// It collects rather than acts. `Commands` here would tie the queries'
 /// lifetimes to the command buffer's, and the walk has nothing to say that
 /// cannot be said afterwards.
-struct Walk<'a, 'wn, 'sn, 'wc, 'sc> {
+struct Walk<'a, 'k, 'wn, 'sn, 'wc, 'sc> {
     names: &'a Query<'wn, 'sn, &'static Name>,
     children: &'a Query<'wc, 'sc, &'static Children>,
-    wanted: &'a mut HashMap<&'static str, Entity>,
+    wanted: &'a mut HashMap<&'k str, Entity>,
     /// Every bone, the animation id a clip binds to it by, and the half of the
     /// body it belongs to.
     bones: &'a mut Vec<(Entity, AnimationTargetId, u32)>,

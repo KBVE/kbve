@@ -1,0 +1,31 @@
+(
+    model: "characters/quaternius_ubc/models/Regular_Male_FullBody.glb",
+    library: "characters/quaternius_ubc/animations/UAL1.glb",
+    armature: "Armature",
+    ankle_height: 0.0865,
+    legs: [
+        (root: "thigh_l", mid: "calf_l", tip: "foot_l", hinge: Some((-1.0, 0.0, 0.0)), max_flexion_deg: 150.0),
+        (root: "thigh_r", mid: "calf_r", tip: "foot_r", hinge: Some((-1.0, 0.0, 0.0)), max_flexion_deg: 150.0),
+    ],
+    gaits: (
+        idle: "Idle_Loop",
+        walk: "Walk_Loop",
+        jog: "Jog_Fwd_Loop",
+        sprint: "Sprint_Loop",
+        jump: "Jump_Loop",
+        back: "Jog_Bwd_Loop",
+        left: "Jog_Left_Loop",
+        right: "Jog_Right_Loop",
+    ),
+    attacks: (
+        jab: "Punch_Jab",
+        cross: "Punch_Cross",
+    ),
+    casts: (
+        channel: "Spell_Simple_Idle_Loop",
+        release: "Spell_Simple_Shoot",
+        poison: "Spell_Double_Shoot_Loop",
+    ),
+    hit: "Hit_Chest",
+    death: "Death01",
+)

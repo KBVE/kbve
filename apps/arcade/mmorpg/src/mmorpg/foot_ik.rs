@@ -8,11 +8,6 @@ use kinetree::{IkLimb, IkLimbBones, KinetreeSystems, bone_world_transform};
 use super::character::{Character, Grounded};
 use super::world::height_at;
 
-/// Distance from the ankle bone to the sole in the rest pose, measured off the
-/// glTF: `foot_l` sits 0.0865 above the model origin. The solver aims the
-/// ankle, not the foot, so the goal has to sit this far above the ground.
-const ANKLE_HEIGHT: f32 = 0.0865;
-
 /// How far above and below the current ankle the ground is looked for. Past
 /// this the leg is over a cliff and the clip is left alone.
 const PROBE_UP: f32 = 0.6;
@@ -84,6 +79,8 @@ pub struct FootGoal {
     /// the plant weight so losing the ground is smooth while the plant/swing
     /// handoff stays instant.
     pub grounded: f32,
+    /// Ankle-bone height above the sole in the rest pose.
+    pub ankle_height: f32,
 }
 
 /// Gizmos and the per-character log, together: both are debug scaffolding and
@@ -195,7 +192,7 @@ fn aim_feet(
         let plant = match hit.flatten() {
             Some(hit) => {
                 let ground = origin + Vec3::NEG_Y * hit.distance;
-                let target = ground + Vec3::Y * ANKLE_HEIGHT;
+                let target = ground + Vec3::Y * goal.ankle_height;
                 limb.goal = target;
                 goal.grounded += (1.0 - goal.grounded) * step;
 

@@ -191,13 +191,13 @@ pub fn make_combatant(
     ));
 }
 
-fn spawn_training_dummies(mut commands: Commands, assets: Res<AssetServer>) {
+fn spawn_training_dummies(mut commands: Commands) {
     for index in 0..DUMMIES {
         let angle = index as f32 / DUMMIES as f32 * core::f32::consts::TAU;
         let (x, z) = (angle.cos() * 9.0, angle.sin() * 9.0);
         let position = Vec3::new(x, height_at(x, z) + 4.0, z);
 
-        let dummy = spawn_character(&mut commands, &assets, position);
+        let dummy = spawn_character(&mut commands, position);
         make_combatant(&mut commands, dummy, Faction::Hostile, 220, dummy_stats());
     }
 }
