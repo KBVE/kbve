@@ -6,8 +6,8 @@ tags: ['rust', 'docker']
 
 tasks:
     dev:
-        script: 'STATIC_DIR=./dist/apps/astro-herbmail STATIC_PRECOMPRESSED=false cargo run -p axum-herbmail'
-        deps: ['astro-herbmail:build']
+        script: 'STATIC_DIR=./dist/apps/herbmail-web STATIC_PRECOMPRESSED=false cargo run -p herbmail-api'
+        deps: ['herbmail-web:build']
         options:
             runFromWorkspaceRoot: true
     e2e:
@@ -15,8 +15,8 @@ tasks:
         options:
             cache: false
     container-prep:
-        script: 'rm -rf ./apps/herbmail/api/dist/ && mkdir -p ./apps/herbmail/api/dist/ && cp -a ./dist/apps/astro-herbmail/. ./apps/herbmail/api/dist/'
-        deps: ['astro-herbmail:build']
+        script: 'rm -rf ./apps/herbmail/api/dist/ && mkdir -p ./apps/herbmail/api/dist/ && cp -a ./dist/apps/herbmail-web/. ./apps/herbmail/api/dist/'
+        deps: ['herbmail-web:build']
         options:
             runFromWorkspaceRoot: true
     containerx:

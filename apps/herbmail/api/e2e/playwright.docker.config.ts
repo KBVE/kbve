@@ -6,7 +6,10 @@ const workspaceRoot = resolve(__dirname, '../../../..');
 const port = 4321;
 const baseURL = `http://localhost:${port}`;
 
-const cargoToml = readFileSync(resolve(workspaceRoot, 'apps/herbmail/api/Cargo.toml'), 'utf-8');
+const cargoToml = readFileSync(
+	resolve(workspaceRoot, 'apps/herbmail/api/Cargo.toml'),
+	'utf-8',
+);
 const version = cargoToml.match(/^version\s*=\s*"(.+)"/m)?.[1] ?? '0.1.0';
 
 const killPort = `lsof -ti:${port} | xargs kill -9 2>/dev/null; sleep 1;`;
@@ -31,7 +34,7 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: `${killPort} docker run --rm --name herbmail-e2e-test -p ${port}:${port} kbve/herbmail:${version}`,
+		command: `${killPort} docker run --rm --name herbmail-api-e2e-test -p ${port}:${port} kbve/herbmail:${version}`,
 		url: `${baseURL}/health`,
 		reuseExistingServer: false,
 		timeout: 30_000,

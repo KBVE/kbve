@@ -6,7 +6,7 @@ tags: ['playwright']
 
 # Nx also listed the axum/gateway service here, but those projects are not
 # in moon's graph yet. The edge is added when they are ported.
-dependsOn: ['astro-herbmail']
+dependsOn: ['herbmail-web']
 
 tasks:
     e2e-docker:
