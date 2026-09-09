@@ -96,9 +96,18 @@ runs:
               [ -n "$BROWSERS" ] || BROWSERS=chromium
 
               # The cache key has to move with the version, because a browser
-              # build is pinned to one. `unknown` when node_modules has no
-              # playwright, which is a job that will fail on its own terms.
-              VER=$(node -e "console.log(require('./node_modules/playwright/package.json').version)" 2>/dev/null || echo unknown)
+              # build is pinned to one, and the mcr fallback image below is
+              # tagged by it. Resolved through node's own lookup rather than a
+              # literal ./node_modules path: the weekly lane keyed every cache
+              # as `Linux-playwright-unknown-...` and then tried to pull
+              # `mcr.microsoft.com/playwright:vunknown-jammy` (#11156).
+              # @playwright/test is the root dependency; bare playwright is
+              # only there because pnpm hoists it. The CLI answers when neither
+              # resolves. `unknown` is still the last resort, for a job that
+              # will fail on its own terms.
+              VER=$(node -p "try{require('@playwright/test/package.json').version}catch{try{require('playwright/package.json').version}catch{''}}" 2>/dev/null || true)
+              [ -n "$VER" ] || VER=$(pnpm exec playwright --version 2>/dev/null | awk '/^Version/ {print $2}' || true)
+              [ -n "$VER" ] || VER=unknown
 
               echo "browsers=${BROWSERS}" >> "$GITHUB_OUTPUT"
               echo "browsers_key=$(echo "$BROWSERS" | tr ' ' '-')" >> "$GITHUB_OUTPUT"
