@@ -269,7 +269,7 @@ export default defineConfig({
 		plugins: () => [tsconfigPaths(), assetHashes()],
 	},
 	build: {
-		outDir: '../../../dist/apps/herbmail/herbmail-game',
+		outDir: '../../../dist/apps/herbmail/game',
 		emptyOutDir: true,
 	},
 	test: {

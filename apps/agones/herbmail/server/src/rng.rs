@@ -1,4 +1,4 @@
-//! Transliteration of `apps/herbmail/herbmail-game/src/game/geometry/rng.ts`.
+//! Transliteration of `apps/herbmail/game/src/game/geometry/rng.ts`.
 //!
 //! The client's world is a pure function of a seed, so these three functions
 //! decide where every wall, arch and ore node in the dungeon lands. They must

@@ -25,7 +25,7 @@ export default defineConfig({
 		{ name: 'chromium', use: { ...devices['Desktop Chrome'] } },
 	],
 	webServer: {
-		command: `pnpm exec vite preview --config apps/herbmail/herbmail-game/vite.config.ts --port ${PORT} --strictPort`,
+		command: `pnpm exec vite preview --config apps/herbmail/game/vite.config.ts --port ${PORT} --strictPort`,
 		cwd: '../../..',
 		port: PORT,
 		reuseExistingServer: !process.env.CI,
