@@ -196,7 +196,11 @@ jobs:
                       sh tools/release/set-toml-version.sh "$TARGET" "$VERSION"
                       ;;
                     *.json)
-                      jq --arg v "$VERSION" '.version = $v' "$TARGET" > "$TARGET.tmp" && mv "$TARGET.tmp" "$TARGET"
+                      # sed rather than jq: jq reprints the whole document in its
+                      # own style, so a one-line version bump arrived as a
+                      # 15-line reindent of deno.json (tabs to spaces).
+                      sed 's|^\([[:space:]]*"version"[[:space:]]*:[[:space:]]*\)"[^"]*"|\1"'"$VERSION"'"|' "$TARGET" > "$TARGET.tmp"
+                      mv "$TARGET.tmp" "$TARGET"
                       ;;
                     *.csproj)
                       if grep -q '<Version>' "$TARGET"; then
@@ -553,13 +557,14 @@ jobs:
                   APP: ${{ steps.validate.outputs.app }}
                   VERSION_TOML: ${{ inputs.version_toml_path }}
                   VERSION_TARGET: ${{ inputs.version_target_path }}
+                  MDX_PATH: ${{ inputs.mdx_path }}
                   DEPLOYMENT_YAML: ${{ inputs.deployment_yaml }}
                   DEPLOYMENT_YAMLS_JSON: ${{ inputs.deployment_yamls }}
                   REPINNED: ${{ steps.repin.outputs.files }}
               run: |
                   set -euo pipefail
 
-                  ALLOWED="${VERSION_TOML} ${VERSION_TARGET} ${DEPLOYMENT_YAML}"
+                  ALLOWED="${VERSION_TOML} ${VERSION_TARGET} ${MDX_PATH} ${DEPLOYMENT_YAML}"
                   case "${VERSION_TARGET}" in
                     *Cargo.toml) ALLOWED="${ALLOWED} Cargo.lock";;
                   esac
