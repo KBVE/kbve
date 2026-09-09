@@ -76,14 +76,35 @@ def flexion(clip: Clip, chain: tuple[str, str, str], side: str) -> list[float]:
     return out
 
 
-def contacts(height: list[float], ankle: list[Vector], fps: float, speed: float) -> list[bool]:
-    n = len(ankle)
+def contacts(points: list[tuple[list[float], list[Vector]]], fps: float, speed: float) -> list[bool]:
+    """A foot is down while any of its points (heel, ball) is low and still."""
+    n = len(points[0][1])
     still = max(STILL_FLOOR, STILL_FRACTION * speed)
     out = []
     for i in range(n):
-        velocity = (ankle[(i + 1) % n] - ankle[i]).length * fps
-        out.append(height[i] < CONTACT_HEIGHT and velocity < still)
+        down = False
+        for height, track in points:
+            velocity = (track[(i + 1) % n] - track[i]).length * fps
+            down = down or (height[i] < CONTACT_HEIGHT and velocity < still)
+        out.append(down)
     return out
+
+
+def stance_level(clip: Clip, speed: float) -> float:
+    """Mean ankle height while planted: the reference for hip height and lift."""
+    lowest = min(p.z for side in "lr" for p in clip.pos[f"foot_{side}"])
+    planted = []
+    for side in "lr":
+        ankle = clip.pos[f"foot_{side}"]
+        ball = clip.pos[f"ball_{side}"]
+        ball_lowest = min(p.z for p in ball)
+        down = contacts(
+            [([p.z - lowest for p in ankle], ankle), ([p.z - ball_lowest for p in ball], ball)],
+            clip.fps,
+            speed,
+        )
+        planted += [ankle[i].z for i in range(len(ankle)) if down[i]]
+    return sum(planted) / len(planted) if planted else lowest
 
 
 def onsets(contact: list[bool]) -> list[int]:
@@ -119,13 +140,16 @@ def fit(name: str, source: str, clip: Clip) -> dict:
     forward = Vector((0.0, -1.0, 0.0))
     right = forward.cross(up)
     direction = math.degrees(math.atan2(travel.dot(right), travel.dot(forward))) if speed > 0.05 else 0.0
-    ground = min(p.z for side in "lr" for p in clip.pos[f"foot_{side}"])
+    ground = stance_level(clip, speed)
 
     feet = {}
     for side in "lr":
         ankle = clip.pos[f"foot_{side}"]
+        ball = clip.pos[f"ball_{side}"]
         height = [p.z - ground for p in ankle]
-        contact = contacts(height, ankle, clip.fps, speed)
+        ball_ground = min(p.z for s in "lr" for p in clip.pos[f"ball_{s}"])
+        ball_height = [p.z - ball_ground for p in ball]
+        contact = contacts([(height, ankle), (ball_height, ball)], clip.fps, speed)
         toe = [clip.pos[f"ball_{side}"][i] - ankle[i] for i in range(n)]
         pitch = [math.degrees(math.atan2(t.z, Vector((t.x, t.y, 0.0)).length)) for t in toe]
         planted = sorted(p for p, down in zip(pitch, contact) if down) or sorted(pitch)
