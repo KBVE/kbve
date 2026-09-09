@@ -46,6 +46,15 @@ spec:
     #
     # json (not strategic) so the ops append to args rather than replacing
     # the whole list, which would pin operator-managed flags to this file.
+    # virt-api's cert reload can stall while rotation itself keeps working:
+    # the operator rotates the secret and the APIService caBundle, but the
+    # running pod keeps presenting the old leaf until it is replaced (issue
+    # #16357 — four days of dead VM power control, both health signals green).
+    # Do NOT add a Reloader annotation or a restart annotation here to fix it:
+    # virt-operator reverts pod-template mutations within ~5s, and Reloader's
+    # restart strategy applies to Argo Rollouts, not Deployments. Deleting the
+    # pod is the only remediation that sticks, which is what
+    # apps/kube/virt-api-cert-watchdog does on a 15-minute schedule.
     customizeComponents:
         patches:
             - resourceType: DaemonSet
