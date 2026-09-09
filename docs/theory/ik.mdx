@@ -1,0 +1,488 @@
+---
+title: Inverse Kinematics
+description: |
+    A practical research guide to inverse kinematics for believable human motion, covering solver families, anatomical constraints, contact, rigging, deformation, and validation.
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+sidebar:
+    label: Inverse Kinematics
+    order: 5
+tags:
+    - inverse-kinematics
+    - animation
+    - game-development
+    - biomechanics
+bento:
+    badge: theory · animation · biomechanics
+    title: 'Place the hand, preserve the body,'
+    accent: inverse kinematics.
+    lede: >-
+        Inverse kinematics turns a desired hand, foot, or body contact into a
+        joint pose. The endpoint is only the beginning: believable motion also
+        requires reachable targets, stable bend planes, anatomical joint
+        frames, coordinated shoulders and pelvis, persistent contacts, and a
+        surface that deforms with the skeleton.
+    ctas:
+        - label: IK foundations
+          href: '#foundations'
+          primary: true
+        - label: Solver families
+          href: '#solvers'
+        - label: Human constraints
+          href: '#anatomy'
+        - label: Validation
+          href: '#validation'
+    aside:
+        icon: render
+        title: A target is not a pose
+        body: >-
+            Many joint configurations can place an endpoint at the same target.
+            A useful solver must choose among them while respecting bone lengths,
+            preferred posture, joint limits, balance, collision, and contact.
+        points:
+            - <strong>Reach</strong> — solve without stretching the skeleton.
+            - <strong>Posture</strong> — preserve stable elbow and knee direction.
+            - <strong>Contact</strong> — keep planted hands and feet planted.
+    stats:
+        - { label: Input, value: Target pose, icon: sensor }
+        - { label: Output, value: Joint pose, icon: render }
+        - { label: Core rule, value: Fixed bones, icon: link }
+        - { label: Goal, value: Believable motion, icon: eye }
+    features:
+        - title: Foundations
+          icon: book
+          href: '#foundations'
+          body: Forward versus inverse kinematics, underdetermined poses, reachability, and residual error.
+        - title: Solver families
+          icon: gears
+          href: '#solvers'
+          body: Analytic two-bone IK, FABRIK, and full-body approaches with their practical tradeoffs.
+        - title: Constraints and singularities
+          icon: settings
+          href: '#constraints'
+          body: Joint limits, preferred bend planes, unreachable targets, and stable fallback behavior.
+        - title: Human anatomy
+          icon: sensor
+          href: '#anatomy'
+          body: Why local joint frames, shoulder-girdle motion, forearm roll, pelvis, knees, and ankles matter.
+        - title: Animation and contact
+          icon: route
+          href: '#pipeline'
+          body: Layer IK over authored motion, select contacts intentionally, and correct after blending.
+        - title: Deformation and validation
+          icon: check
+          href: '#validation'
+          body: Skinning artifacts, test cases, visual review, and the limits of what IK can prove.
+    related:
+        - title: Programming
+          href: /theory/programming/
+          copy: The algorithms and implementation craft behind animation systems.
+          icon: code
+        - title: Automation
+          href: /theory/automation/
+          copy: Building repeatable content, testing, and validation pipelines.
+          icon: gears
+        - title: Theory index
+          href: /theory/
+          copy: Explore the rest of the KBVE theory collection.
+          icon: book
+    features_eyebrow: On this page
+    features_heading: From target points to believable bodies
+    related_eyebrow: Keep exploring
+    related_heading: Related theory
+jsonld:
+    type: WebPage
+    breadcrumb:
+        - { name: Home, path: / }
+        - { name: Theory, path: /theory/ }
+        - { name: Inverse Kinematics, path: /theory/ik/ }
+    faq:
+        - question: What is inverse kinematics?
+          answer: Inverse kinematics starts with a desired endpoint, such as a hand or foot position, and computes joint configurations that place the endpoint there while satisfying the model's constraints.
+        - question: How is inverse kinematics different from forward kinematics?
+          answer: Forward kinematics applies known joint transforms to find the final body-part positions. Inverse kinematics begins with a desired body-part position or orientation and works backward to find suitable joint transforms.
+        - question: Why can an IK pose look wrong even when the hand reaches its target?
+          answer: The target usually has multiple solutions. Without preferred posture, anatomical joint frames, bend constraints, contact rules, and coordinated body motion, a solver can reach the point with an implausible elbow, shoulder, wrist, or balance state.
+        - question: Which IK solver should a game use?
+          answer: A constrained analytic solver is efficient for a two-segment arm or leg. FABRIK is useful for longer chains, while multi-contact characters may need a full-body solver. The best choice depends on chain complexity, constraints, contacts, and runtime budget.
+        - question: Does inverse kinematics simulate muscle forces?
+          answer: No. IK produces a pose. It does not by itself determine muscle activation, joint torque, ground reaction forces, fatigue, or whether a real person could perform the motion.
+---
+
+import Adsense from '@/components/ads/Adsense.astro';
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+import BentoProse from '@/components/hero/BentoProse.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq}>
+
+<BentoProse id="foundations" eyebrow="Start here" heading="What inverse kinematics solves">
+
+Kinematics describes motion without first asking which forces produced it. In a
+skeleton, **forward kinematics** starts with joint transformations and follows
+the hierarchy outward to calculate where each body part ends up. **Inverse
+kinematics**, usually shortened to **IK**, begins with a desired endpoint or set
+of endpoints and searches for joint transformations that reach them.
+
+The endpoint may be a hand gripping a ledge, a foot planted on uneven ground, a
+head looking toward a subject, or several contacts acting at once. The desired
+position and orientation are commonly called the **target** or **effector**.
+
+IK is usually underdetermined. An elbow beside the torso and an elbow behind it
+can place the same hand at the same point. A mathematical solution is therefore
+not automatically a useful pose. A practical solver also needs:
+
+- fixed segment lengths;
+- a preferred or reference posture;
+- joint rotation limits;
+- a stable bend direction for elbows and knees;
+- rules for unreachable targets;
+- orientation and twist constraints;
+- collision and contact handling; and
+- priorities when several effectors compete.
+
+This leads to the central rule of character IK: **placing the endpoint is only
+one constraint among many**. A hand that reaches a wall through an impossible
+shoulder pose is not a successful human-motion solution.
+
+### Reachable does not always mean feasible
+
+For a two-segment chain with lengths `a` and `b`, a target at distance `d` from
+the root is positionally reachable only when `|a - b| <= d <= a + b`. That test
+does not account for joint limits, preferred posture, collisions, or whether the
+rest of the body can support the pose. A point can sit inside the chain's
+geometric reach while remaining infeasible under the complete character model.
+
+When a target is outside the feasible region, the system should clamp or project
+it to a valid position, move a permitted root such as the shoulder or pelvis, or
+report the remaining **residual error**. It should not silently lengthen a bone.
+
+</BentoProse>
+
+<section class="bento-section not-content">
+	<div class="bento-frame bento-band">
+		<Adsense />
+	</div>
+</section>
+
+<BentoProse id="solvers" eyebrow="Algorithms" heading="Choosing a solver">
+
+There is no universal best IK algorithm. Solver choice follows the structure of
+the rig, the number of contacts, the constraints that must be enforced, and the
+available frame-time budget.
+
+### Analytic two-bone IK
+
+Arms and legs are often modeled as two primary segments: upper arm and forearm,
+or thigh and lower leg. An analytic solver uses geometry to produce a direct
+solution:
+
+1. Measure the root-to-target distance and clamp it to the chain's valid reach.
+2. Establish a bend plane using a pole or preferred direction.
+3. Use the segment lengths to locate the middle joint in that plane.
+4. Orient the root and middle joints toward the solved positions.
+5. Apply endpoint orientation and distribute axial twist deliberately.
+6. Preserve any residual error when the original request was infeasible.
+
+This approach is fast, deterministic, and a strong fit for constrained limbs.
+Its limitation is scope: it does not decide how the spine, clavicle, pelvis, or
+other limbs should cooperate unless the surrounding controller explicitly moves
+them.
+
+### FABRIK
+
+**FABRIK**—Forward And Backward Reaching Inverse Kinematics—solves a chain with
+alternating positional passes. A backward pass begins at the target and adjusts
+joints toward the root; a forward pass restores the root and adjusts joints
+toward the endpoint. Each pass maintains the distance between neighboring
+joints. The process repeats until the endpoint is close enough or an iteration
+limit is reached.
+
+The method is intuitive and works well for longer chains, but the unconstrained
+algorithm is not a complete human model. Joint limits, closed chains, preferred
+posture, and unreachable configurations require additional handling. The
+original method and later constraint extensions are described by
+[Aristidou and Lasenby (2011)](https://andreasaristidou.com/publications/papers/FABRIK.pdf)
+and
+[Aristidou, Chrysanthou, and Lasenby (2016)](https://andreasaristidou.com/publications/papers/Extending_FABRIK_with_Model_C%CE%BFnstraints.pdf).
+
+### Full-body IK
+
+A full-body solver allows effectors to influence a connected hierarchy. A hand
+target may recruit the clavicle, spine, pelvis, and legs instead of forcing all
+correction into the arm. Multiple effectors can be solved together, while
+per-bone stiffness and priorities determine which regions yield and which resist.
+
+Epic's [Full Body IK documentation](https://dev.epicgames.com/documentation/en-us/unreal-engine/control-rig-full-body-ik-in-unreal-engine)
+illustrates effectors, preferred angles, stiffness, rotation limits, and root
+behavior. These controls are procedural animation tools; example engine values
+should not be treated as clinical measurements of human range of motion.
+
+Full-body solving is most valuable when several contacts interact—two hands on
+a bar, feet planted while a hand reaches, or a character maintaining balance on
+uneven terrain. It also introduces more competing objectives, more tuning, and
+more opportunities for unexpected motion.
+
+</BentoProse>
+
+<BentoProse id="constraints" eyebrow="Robustness" heading="Constraints, poles, and singularities">
+
+### Preferred bend planes
+
+A two-bone chain needs more information than an endpoint. The root and endpoint
+define an axis around which the middle joint can rotate, producing a family of
+valid solutions. A **pole vector** or preferred bend direction selects the plane
+for the elbow or knee.
+
+The preference should be signed. An unsigned bend angle may say that a knee is
+folded by the right amount while missing that it points backward. Animation
+systems should preserve bend direction across frames and avoid allowing tiny
+target movements to flip the limb to the opposite solution.
+
+### Singular configurations
+
+A chain becomes singular when its geometry no longer defines a unique or stable
+bend plane—for example, when the limb is perfectly straight, the target is
+coincident with the root, or the pole lies parallel to the target direction.
+Normalizing a zero-length vector in these states can create invalid rotations or
+collapse the limb.
+
+A robust solver detects these cases and selects a stable perpendicular fallback,
+usually derived from the previous pose or the character's local frame. Temporal
+continuity matters: the fallback should not change unpredictably from one frame
+to the next.
+
+### Joint limits need coordinate frames
+
+A limit has meaning only together with its axis, reference pose, and rotation
+convention. Clamping a shoulder or wrist against world axes may appear correct
+while the character is upright and become nonsensical when the torso turns or
+the character lies on the ground.
+
+The International Society of Biomechanics recommends anatomical landmarks and
+local coordinate systems for reporting upper-body joint motion. Its guidance is
+a useful foundation for rig-local limits and consistent measurement; see
+[Wu et al. (2005)](https://media.isbweb.org/images/documents/standards/isb_jcs_part_ii.pdf)
+and the [ISB elbow committee proposal](https://isbweb.org/activities/standards/452-proposal-by-the-elbow-committee).
+
+Published human range-of-motion values also require careful interpretation.
+Population averages are not maximum safe limits, athletic performance targets,
+or prescriptions for every character. The
+[CDC joint range-of-motion study](https://archive.cdc.gov/www_cdc_gov/ncbddd/jointrom/index.html)
+and [Soucie et al. (2011)](https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1365-2516.2010.02399.x)
+show variation across joints and groups. Runtime limits should be documented as
+tunable animation guardrails unless they have been validated for another use.
+
+</BentoProse>
+
+<BentoProse id="anatomy" eyebrow="Human model" heading="Anatomy behind the chain">
+
+IK operates on a rig abstraction, but viewers judge the moving surface as a
+body. Better endpoint accuracy cannot repair an anatomically incoherent
+skeleton, a disconnected shoulder, an inverted knee, or a collapsing skin
+deformation.
+
+### The shoulder is a moving complex
+
+Arm elevation is not produced by a fixed ball joint on the side of the chest.
+The clavicle, scapula, and humerus move together, and the coordination changes
+with the plane of elevation. Research using bone-fixed sensors supports this
+coordinated model rather than a single universal ratio; see
+[Ludewig et al. (2009)](https://pmc.ncbi.nlm.nih.gov/articles/PMC2657311/).
+
+A practical rig can approximate the effect by allowing bounded clavicle and
+upper-torso participation during high reaches. This is still not a complete
+scapulothoracic model. A richer rig may need scapular rotation and translation,
+pose-corrective deformation, and collision between the upper arm and torso.
+
+The surface must reinforce the motion. The deltoid wraps the shoulder, while the
+pectoralis major and latissimus connect the torso toward the upper arm. Biceps
+and triceps occupy different sides of the arm. These structures should not be
+represented as uniform tubes joined at a hinge. See the OpenStax overview of
+[pectoral-girdle and upper-limb muscles](https://openstax.org/books/anatomy-and-physiology-2e/pages/11-5-muscles-of-the-pectoral-girdle-and-upper-limbs).
+
+### Elbows, forearms, and wrists
+
+Forearm pronation and supination should not be disguised as wrist rotation. If
+all axial roll is concentrated at one joint, the wrist develops a visible seam
+and the forearm appears mechanically wrong. Twist or deformation bones can
+distribute roll gradually while leaving the canonical hand and finger controls
+available for gripping.
+
+Helpers of this kind improve deformation; they do not explicitly simulate the
+radius crossing the ulna. Wrist flexion, deviation, forearm roll, and elbow
+flexion should remain distinct controls in the joint model.
+
+### Pelvis, knees, ankles, and support
+
+The pelvis transfers upper-body load toward the supporting leg and supplies the
+root context for lower-body IK. A foot target should therefore influence more
+than the ankle when the requested pose requires the pelvis to translate, tilt,
+or rotate.
+
+Knees need a stable signed bend preference, just like elbows. Ankles and feet
+must address both endpoint placement and surface orientation. For a planted
+foot, sole contact, leg reach, knee direction, pelvis position, and balance are
+linked constraints—not independent finishing passes.
+
+Visible lower-body anatomy also has direction: quadriceps shape the anterior
+thigh, hamstrings the posterior thigh, and the calf narrows into the Achilles
+region rather than continuing as a cylinder. OpenStax provides useful visual
+context for the [pelvis](https://openstax.org/books/anatomy-and-physiology-2e/pages/8-3-the-pelvic-girdle-and-pelvis)
+and [lower-limb muscles](https://openstax.org/books/anatomy-and-physiology-2e/pages/11-6-appendicular-muscles-of-the-pelvic-girdle-and-lower-limbs).
+
+</BentoProse>
+
+<BentoProse id="pipeline" eyebrow="Animation system" heading="IK in a movement pipeline">
+
+IK is strongest as one layer in a larger animation system. A believable runtime
+pipeline commonly follows this order:
+
+1. Start from a good authored or captured movement source.
+2. Interpret player intent and choose the movement task.
+3. Query the environment for usable surfaces and contacts.
+4. Select explicit hand, foot, gaze, or body targets.
+5. Move permitted roots such as the pelvis, chest, or clavicle.
+6. Solve constrained limbs or the full hierarchy.
+7. Apply endpoint orientation, twist distribution, and deformation corrections.
+8. Reassert important contacts after animation blending.
+9. Validate the final pose for limits, penetration, continuity, and balance.
+
+Environmental geometry alone should not assign intent. The same ledge can be a
+surface to climb onto, cross, hang from, or ignore. A movement controller first
+decides what action is allowed; IK then adapts that action to the selected
+contacts.
+
+### Contact must survive blending
+
+Blending two individually valid poses does not guarantee another valid pose. A
+hand planted in both source animations can drift through a wall between them,
+and a foot can pass through the floor. High-priority contacts should be solved
+or corrected after the blend that would otherwise disturb them.
+
+Contact state also needs hysteresis and continuity. Repeatedly acquiring and
+releasing a target near a threshold produces visible popping. Once a hand or
+foot is declared planted, keep its target stable until a deliberate release
+condition is met.
+
+### Priorities and graceful failure
+
+Not every simultaneous request can be satisfied. A useful controller defines
+which constraints may yield:
+
+- bone lengths should remain invariant;
+- safety and hard joint limits should outrank endpoint precision;
+- load-bearing contacts usually outrank decorative reaches;
+- a supporting foot may outrank a looking direction;
+- the pelvis or torso may move within authored bounds; and
+- impossible requests should retain measurable residual error.
+
+This hierarchy turns failure into controlled approximation instead of a broken
+pose.
+
+</BentoProse>
+
+<BentoProse id="deformation" eyebrow="The visible result" heading="Skinning and body shape">
+
+A correct skeleton can still produce an implausible character surface. Linear
+blend skinning may lose volume where differently rotated bones influence the
+same vertices, especially under shoulder motion, deep flexion, and forearm
+twist. Dual-quaternion skinning reduces familiar twisting and collapse artifacts,
+but it is still a deformation method rather than a muscle simulation. See
+[Kavan et al. (2007)](https://users.cs.utah.edu/~ladislav/kavan07skinning/kavan07skinning.pdf).
+
+It is useful to separate three kinds of change:
+
+- **body shape**, such as proportions and tissue distribution;
+- **skeletal pose**, produced by animation and IK; and
+- **pose-dependent deformation**, such as an elbow crease or corrected shoulder volume.
+
+[SMPL](https://files.is.tue.mpg.de/black/papers/SMPL2015.pdf) demonstrates this
+conceptual separation with learned body shape and pose-dependent corrections.
+That does not make an arbitrary procedural bulge physiologically accurate, and
+an IK system using the idea does not need to use SMPL assets.
+
+Athletic appearance must also remain separate from simulated ability. Muscle
+definition, body fullness, sex-linked presets, age, and individual proportions
+are authoring choices. They should not silently assign strength, coordination,
+joint limits, or traversal permissions. Population studies such as
+[Janssen et al. (2000)](https://journals.physiology.org/doi/abs/10.1152/jappl.2000.89.1.81)
+describe regional muscle distribution, not the ability of a particular
+character to perform a movement.
+
+</BentoProse>
+
+<BentoProse id="validation" eyebrow="Testing" heading="How to validate an IK system">
+
+Endpoint error is necessary to measure, but it is not sufficient. Validation
+should cover the solver, the skeleton, the final surface, and transitions over
+time.
+
+### Automated checks
+
+- Segment lengths remain constant within numerical tolerance.
+- Reachable targets converge within the intended positional and rotational error.
+- Unreachable targets produce a bounded solution and an accurate residual.
+- Coincident targets and parallel poles do not create invalid numbers.
+- Elbows and knees preserve their signed preferred bend direction.
+- Joint rotations stay inside limits expressed in the correct local frames.
+- Planted contacts remain stable through blend transitions.
+- Canonical joint names, bind transforms, and skin weights survive asset export.
+- Helper bones improve deformation without moving canonical endpoints.
+
+Property-based tests are especially valuable for analytic solvers: generate
+targets throughout and beyond the workspace, vary pole directions, and assert
+invariants rather than checking only a handful of attractive poses.
+
+### Visual review
+
+Inspect motion from the front, side, and back, both paused and at reduced speed.
+Use tasks that stress different parts of the system:
+
+- a low step-up with a planted lead foot;
+- a high ascent with hand support;
+- a ledge hang with load-bearing arms;
+- a two-handed bar swing;
+- a reach near full extension;
+- a deep crouch or raised-foot pose; and
+- a floor recovery that changes the torso's local frame.
+
+Look beyond the endpoint. Check palm direction, thumb orientation, forearm
+twist, elbow and knee folding, shoulder connection, pelvis response, foot
+penetration, self-contact, and continuity between poses.
+
+### What a passing IK test does not prove
+
+IK does not determine the forces that created a pose. A solved configuration
+does not establish muscle activation, joint torque, ground reaction forces,
+fatigue, or whether a particular real person can execute the movement. OpenSim's
+[workflow overview](https://opensimconfluence.atlassian.net/wiki/spaces/OpenSim/pages/53084226/Overview+of+OpenSim+Workflows)
+distinguishes inverse kinematics from inverse dynamics and muscle-driven
+analysis.
+
+For this reason, numerical limits should state their provenance. A value may be
+an animation guardrail, a design choice, a value measured from a specific
+dataset, or a validated biomechanical limit. These categories should never be
+presented as interchangeable.
+
+</BentoProse>
+
+<BentoProse id="references" eyebrow="Further reading" heading="Research references">
+
+- Andreas Aristidou and Joan Lasenby, [FABRIK: A fast, iterative solver for the inverse kinematics problem](https://andreasaristidou.com/publications/papers/FABRIK.pdf), 2011.
+- Andreas Aristidou, Yiorgos Chrysanthou, and Joan Lasenby, [Extending FABRIK with model constraints](https://andreasaristidou.com/publications/papers/Extending_FABRIK_with_Model_C%CE%BFnstraints.pdf), 2016.
+- Epic Games, [Full Body IK in Control Rig](https://dev.epicgames.com/documentation/en-us/unreal-engine/control-rig-full-body-ik-in-unreal-engine).
+- Ge Wu et al., [ISB recommendation on definitions of joint coordinate systems](https://media.isbweb.org/images/documents/standards/isb_jcs_part_ii.pdf), 2005.
+- Paula Ludewig et al., [Motion of the shoulder complex during multiplanar humeral elevation](https://pmc.ncbi.nlm.nih.gov/articles/PMC2657311/), 2009.
+- Michael Soucie et al., [Range of motion measurements](https://onlinelibrary.wiley.com/doi/abs/10.1111/j.1365-2516.2010.02399.x), 2011.
+- Ladislav Kavan et al., [Skinning with dual quaternions](https://users.cs.utah.edu/~ladislav/kavan07skinning/kavan07skinning.pdf), 2007.
+- Matthew Loper et al., [SMPL: A skinned multi-person linear model](https://files.is.tue.mpg.de/black/papers/SMPL2015.pdf), 2015.
+- OpenStax, [Anatomy and Physiology 2e](https://openstax.org/details/books/anatomy-and-physiology-2e).
+- OpenSim, [Overview of OpenSim workflows](https://opensimconfluence.atlassian.net/wiki/spaces/OpenSim/pages/53084226/Overview+of+OpenSim+Workflows).
+
+</BentoProse>
+
+</BentoDoc>
