@@ -1,176 +1,176 @@
 {
-  "generated_at": "2026-09-08T05:47:34Z",
+  "generated_at": "2026-09-09T05:54:33Z",
   "window": {
     "days": 7,
-    "since": "2026-09-01T05:47:34Z"
+    "since": "2026-09-02T05:54:33Z"
   },
   "commits": {
-    "total": 220,
+    "total": 247,
     "authors": 2,
     "leaderboard": [
       {
         "author": "h0lybyte",
-        "commits": 176
+        "commits": 193
       },
       {
         "author": "github-actions[bot]",
-        "commits": 44
+        "commits": 54
       }
     ],
     "recent": [
       {
-        "sha": "ecfa874",
+        "sha": "5ed6707",
         "author": "h0lybyte",
-        "message": "Merge pull request #16964 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/ecfa8749bd9ed487a662a7868e2b908cc5587a17",
-        "date": "2026-09-08T00:23:43Z"
+        "message": "Merge pull request #16999 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/5ed6707993eac1f8fee7b9c426f4a7cf1bfda8c8",
+        "date": "2026-09-09T01:39:49Z"
       },
       {
-        "sha": "dc1faef",
+        "sha": "26339df",
         "author": "h0lybyte",
-        "message": "docs(kbve): migrate 22 doc sections into root docs/ (#16963)",
-        "url": "https://github.com/KBVE/kbve/commit/dc1faef6eac9678fa21101fb779402b2c4ad8d3f",
-        "date": "2026-09-07T20:49:43Z"
+        "message": "feat(mmorpg): adding the basic ik integration.",
+        "url": "https://github.com/KBVE/kbve/commit/26339df184b5d7b6c8bb885f2d791983a4043284",
+        "date": "2026-09-09T01:27:40Z"
       },
       {
-        "sha": "ec41798",
+        "sha": "d04c050",
         "author": "h0lybyte",
-        "message": "Merge pull request #16958 from KBVE/dev",
-        "url": "https://github.com/KBVE/kbve/commit/ec41798d30ea839d9eb80b5e18d9d337dbc78802",
-        "date": "2026-09-07T19:59:32Z"
+        "message": "feat(ci-tools): make tracker issues say what actually broke (#17002)",
+        "url": "https://github.com/KBVE/kbve/commit/d04c0505181d0c0e29dbdc49775e524c428d3541",
+        "date": "2026-09-08T22:38:10Z"
       },
       {
-        "sha": "47f7631",
+        "sha": "ebdead9",
         "author": "h0lybyte",
-        "message": "chore(discordsh): keep markdown out of the container task inputs (#16962)",
-        "url": "https://github.com/KBVE/kbve/commit/47f7631b61fd0b14523901c61532a9466789f541",
-        "date": "2026-09-07T19:59:21Z"
+        "message": "refactor(kbve): drop the duplicate supabase client for the bevy_supa one (#17001)",
+        "url": "https://github.com/KBVE/kbve/commit/ebdead973b0acf4004004f4707c54aa9e95b4ea9",
+        "date": "2026-09-08T22:18:10Z"
       },
       {
-        "sha": "99a4113",
+        "sha": "df2cc7d",
         "author": "h0lybyte",
-        "message": "fix(release-tools): resolve check-drift REPO_ROOT to the repo, not tools/ (#16961)",
-        "url": "https://github.com/KBVE/kbve/commit/99a411358ba695a9cfef52876108a98772159882",
-        "date": "2026-09-07T19:59:14Z"
+        "message": "fix(ci): give moon ci the base the toolchain detector answered from (#17000)",
+        "url": "https://github.com/KBVE/kbve/commit/df2cc7d67cf41f5a266c966184230061baa9685f",
+        "date": "2026-09-08T22:17:55Z"
       },
       {
-        "sha": "b1e36b9",
+        "sha": "a445644",
         "author": "h0lybyte",
-        "message": "fix(edge): resolving the deno proto and updating the loc for the said functions.",
-        "url": "https://github.com/KBVE/kbve/commit/b1e36b97cb71f6d4928c037bfa259818149204a6",
-        "date": "2026-09-07T19:58:28Z"
+        "message": "feat(bevy_supa): move the erust supabase client in and give it a bevy auth layer (#16997)",
+        "url": "https://github.com/KBVE/kbve/commit/a445644ccdeb19d06e6085e71807c22323d8a55e",
+        "date": "2026-09-08T22:03:46Z"
       },
       {
-        "sha": "1f9e2db",
+        "sha": "adc1190",
         "author": "h0lybyte",
-        "message": "docs(discordsh): updating the notes on discordsh.",
-        "url": "https://github.com/KBVE/kbve/commit/1f9e2db9e1699836e863ede0933011773da626a1",
-        "date": "2026-09-07T18:52:49Z"
+        "message": "Merge pull request #16994 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/adc11900951d5910d289fcd33145391b085b35a1",
+        "date": "2026-09-08T21:31:46Z"
       },
       {
-        "sha": "874918e",
+        "sha": "8b59aaa",
         "author": "h0lybyte",
-        "message": "fix(herbmail-game): pin rapier3d-compat 0.20.0 to match crate",
-        "url": "https://github.com/KBVE/kbve/commit/874918e079c398609dcd425e3997348982ec1c23",
-        "date": "2026-09-07T17:07:17Z"
+        "message": "fix(ci): drop out-of-order results in the failure tracker (#16996)",
+        "url": "https://github.com/KBVE/kbve/commit/8b59aaa3aa569981de3d9d17a510997138f0b1a9",
+        "date": "2026-09-08T21:30:58Z"
       },
       {
-        "sha": "7ff04f8",
+        "sha": "ec93c68",
         "author": "h0lybyte",
-        "message": "chore(edge): bump supabase edge-runtime to v1.76.2",
-        "url": "https://github.com/KBVE/kbve/commit/7ff04f86f53a70a18494ea6fb5d53b8c0f2b4f80",
-        "date": "2026-09-07T17:07:16Z"
+        "message": "fix(mmorpg): move character concerns out of player.",
+        "url": "https://github.com/KBVE/kbve/commit/ec93c6887de17ddf08e1ea853ca8487bc9aac442",
+        "date": "2026-09-08T21:18:10Z"
       },
       {
-        "sha": "71d8dcd",
+        "sha": "b4a9126",
         "author": "h0lybyte",
-        "message": "fix(edge): redact postgres error detail from responses",
-        "url": "https://github.com/KBVE/kbve/commit/71d8dcd91bcbe87446e4cccee2d8880ac3f2d044",
-        "date": "2026-09-07T17:07:13Z"
+        "message": "Merge pull request #16985 from KBVE/dev",
+        "url": "https://github.com/KBVE/kbve/commit/b4a9126cf37891c8bf2622947aa930ed42d4ee7f",
+        "date": "2026-09-08T21:16:29Z"
       },
       {
-        "sha": "2fc5172",
-        "author": "github-actions[bot]",
-        "message": "docs(lfs-tools): document worktree LFS smudge skip and add hydrate task (#16960)",
-        "url": "https://github.com/KBVE/kbve/commit/2fc5172c065dfe36e487b3a2f8fcc616fc371d91",
-        "date": "2026-09-07T17:06:11Z"
+        "sha": "165420b",
+        "author": "h0lybyte",
+        "message": "fix(commit): sync scopes.lock.json with arcade project (#16992)",
+        "url": "https://github.com/KBVE/kbve/commit/165420bd134a48a88b4dfd06d9736ba23cd502cd",
+        "date": "2026-09-08T21:16:12Z"
       },
       {
-        "sha": "057d1c8",
+        "sha": "1346842",
         "author": "h0lybyte",
-        "message": "docs(journal): updating the daily entry.",
-        "url": "https://github.com/KBVE/kbve/commit/057d1c8bbc5a6f5b9e376741daed6aafe25c85ec",
-        "date": "2026-09-07T16:44:59Z"
+        "message": "chore(erust): upgrade egui and eframe to 0.36.2 (#16993)",
+        "url": "https://github.com/KBVE/kbve/commit/1346842b153921fcb0a8d944ffb543920aaccbfa",
+        "date": "2026-09-08T21:15:47Z"
       }
     ]
   },
   "pull_requests": {
-    "merged": 183,
+    "merged": 213,
     "recent": [
       {
-        "number": 16973,
-        "title": "chore(content): daily kanban scaffold",
+        "number": 17014,
+        "title": "chore(content): daily graph scaffold",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16973"
+        "url": "https://github.com/KBVE/kbve/pull/17014"
       },
       {
-        "number": 16971,
-        "title": "chore(reel): librqbit 8 -> 9, drops reqwest 0.12",
+        "number": 17010,
+        "title": "fix(ci): install the playwright browsers from one place",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16971"
+        "url": "https://github.com/KBVE/kbve/pull/17010"
       },
       {
-        "number": 16970,
-        "title": "build(pnpm): raise minimumReleaseAge to 48h",
+        "number": 17012,
+        "title": "feat(mmorpg): stream endless terrain chunks with a world-space ground material",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16970"
+        "url": "https://github.com/KBVE/kbve/pull/17012"
       },
       {
-        "number": 16969,
-        "title": "ci(kbve): scrub the environment for dependency builds",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16969"
-      },
-      {
-        "number": 16968,
-        "title": "refactor(chuckrpg): one directory per product",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16968"
-      },
-      {
-        "number": 16967,
-        "title": "fix(codegen): restore spelldb/professiondb proto comments",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16967"
-      },
-      {
-        "number": 16965,
-        "title": "docs(kbve): migrate the db content collections into root docs/",
-        "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16965"
-      },
-      {
-        "number": 16964,
-        "title": "Release: 1 doc \u2192 Main",
+        "number": 17009,
+        "title": "Atomic: ik research doc",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16964"
+        "url": "https://github.com/KBVE/kbve/pull/17009"
       },
       {
-        "number": 16963,
-        "title": "docs(kbve): migrate 22 doc sections into root docs/",
+        "number": 17007,
+        "title": "feat(kube): add virt-api cert watchdog and fail CI loudly on a dead KubeVirt API",
         "user": "h0lybyte",
-        "url": "https://github.com/KBVE/kbve/pull/16963"
+        "url": "https://github.com/KBVE/kbve/pull/17007"
       },
       {
-        "number": 16958,
-        "title": "Release: 0 commits \u2192 Main",
+        "number": 17006,
+        "title": "refactor(herbmail): move web/api/game into product directory layout",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/17006"
+      },
+      {
+        "number": 17005,
+        "title": "feat(release-tools): let a release tag lead its manifest and sync the docs back",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/17005"
+      },
+      {
+        "number": 16999,
+        "title": "Release: 3 features, 1 fix, 1 refactor \u2192 Main",
         "user": "github-actions[bot]",
-        "url": "https://github.com/KBVE/kbve/pull/16958"
+        "url": "https://github.com/KBVE/kbve/pull/16999"
+      },
+      {
+        "number": 17002,
+        "title": "feat(ci-tools): make tracker issues say what actually broke",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/17002"
+      },
+      {
+        "number": 17001,
+        "title": "refactor(kbve): drop the duplicate supabase client for the bevy_supa one",
+        "user": "h0lybyte",
+        "url": "https://github.com/KBVE/kbve/pull/17001"
       }
     ]
   },
   "issues": {
-    "opened": 194,
-    "closed": 204
+    "opened": 226,
+    "closed": 234
   }
 }
