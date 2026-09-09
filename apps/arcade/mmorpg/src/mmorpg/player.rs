@@ -85,7 +85,7 @@ fn read_input(
 
     for mut intent in &mut controlled {
         intent.wish = wish;
-        intent.sprint = keys.pressed(KeyCode::ShiftLeft);
+        intent.run = keys.pressed(KeyCode::ShiftLeft) || keys.pressed(KeyCode::ShiftRight);
         intent.jump = keys.just_pressed(KeyCode::Space);
     }
 }
