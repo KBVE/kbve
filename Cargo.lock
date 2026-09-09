@@ -2635,6 +2635,7 @@ version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "950238d3049d81006a6fd6b898a34cfc01bb5462a7668795a54d640aed19fd0a"
 dependencies = [
+ "bevy_dylib",
  "bevy_internal",
 ]
 
@@ -3068,6 +3069,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "bevy_dylib"
+version = "0.19.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "70547c664f17a903cdef1e8e673496e9bdfa3d69dece9c01523d79067a876e34"
+dependencies = [
+ "bevy_internal",
+]
+
+[[package]]
 name = "bevy_ecs"
 version = "0.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3118,6 +3128,48 @@ dependencies = [
  "proc-macro2",
  "quote",
  "syn 2.0.119",
+]
+
+[[package]]
+name = "bevy_egui"
+version = "0.42.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e99e2d018c7e567a268638d3058e57895e914e5650dcf7bd80a5fead9e6413a9"
+dependencies = [
+ "bevy_app",
+ "bevy_asset",
+ "bevy_camera",
+ "bevy_color",
+ "bevy_core_pipeline",
+ "bevy_derive",
+ "bevy_ecs",
+ "bevy_image",
+ "bevy_input",
+ "bevy_log",
+ "bevy_math",
+ "bevy_mesh",
+ "bevy_platform",
+ "bevy_reflect",
+ "bevy_render",
+ "bevy_shader",
+ "bevy_time",
+ "bevy_transform",
+ "bevy_utils",
+ "bevy_window",
+ "bevy_winit",
+ "bytemuck",
+ "crossbeam-channel",
+ "egui",
+ "encase",
+ "getrandom 0.4.3",
+ "image",
+ "itertools 0.14.0",
+ "js-sys",
+ "wasm-bindgen",
+ "wasm-bindgen-futures",
+ "web-sys",
+ "wgpu-types 29.0.4",
+ "winit",
 ]
 
 [[package]]
@@ -4105,9 +4157,10 @@ dependencies = [
 
 [[package]]
 name = "bevy_supa"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "bevy",
+ "ehttp",
  "reqwest 0.13.4",
  "serde",
  "serde_json",
@@ -5433,6 +5486,13 @@ name = "colorchoice"
 version = "1.0.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d07550c9036bf2ae0c684c4297d503f838287c83c53686d05370d0e139ae570"
+
+[[package]]
+name = "combat"
+version = "0.1.0"
+dependencies = [
+ "bevy",
+]
 
 [[package]]
 name = "combine"
@@ -7423,9 +7483,10 @@ checksum = "dea2df4cf52843e0452895c455a1a2cfbb842a1e7329671acf418fdc53ed4c59"
 
 [[package]]
 name = "erust"
-version = "0.1.9"
+version = "0.2.0"
 dependencies = [
  "base64 0.22.1",
+ "bevy_supa",
  "chrono",
  "eframe",
  "egui",
@@ -7435,7 +7496,6 @@ dependencies = [
  "log",
  "serde",
  "serde_json",
- "wasm-bindgen-futures",
 ]
 
 [[package]]
@@ -10537,6 +10597,7 @@ dependencies = [
  "axum 0.8.9",
  "axum-extra",
  "bb8",
+ "bevy_supa",
  "chrono",
  "dashmap 6.2.1",
  "diesel",
@@ -12552,7 +12613,9 @@ version = "0.1.0"
 dependencies = [
  "avian3d",
  "bevy",
+ "bevy_egui",
  "bevy_gltf",
+ "combat",
  "kinetree",
 ]
 

@@ -92,6 +92,8 @@ jobs:
         outputs:
             rust: ${{ steps.detect.outputs.rust }}
             python: ${{ steps.detect.outputs.python }}
+            base: ${{ steps.detect.outputs.base }}
+            head: ${{ steps.detect.outputs.head }}
         steps:
             - name: Checkout
               uses: actions/checkout@v7
@@ -130,6 +132,21 @@ jobs:
         env:
             NEEDS_RUST: ${{ needs.toolchains.outputs.rust != 'false' }}
             NEEDS_PYTHON: ${{ needs.toolchains.outputs.python != 'false' }}
+            # The range the detect job answered from. Two computations of "what
+            # changed" decided one thing between them: this job asked
+            # affected-toolchains.mjs over `before..HEAD`, and `moon ci` then
+            # resolved its own base, logged `Base revision: N/A`, and ran tasks
+            # from a wider range than the one the toolchain answer covered. A
+            # merge commit into dev is where they part -- run 34281544535 drew
+            # mmorpg:lint from an edit two commits back that had already gone
+            # green, with rust deliberately not installed, and died on
+            # `proto::locate::missing_executable` in kinetree:build.
+            #
+            # Empty when the detector could not resolve a range. It installs
+            # every toolchain in that case, and leaving these unset lets moon
+            # pick its own base, so the fail-open bias holds on both halves.
+            MOON_BASE: ${{ needs.toolchains.outputs.base }}
+            MOON_HEAD: ${{ needs.toolchains.outputs.head }}
         steps:
             # Two minutes of deleting preinstalled SDKs, for the target
             # directory of a cargo build. A shard with no rust task fits on the
@@ -267,8 +284,16 @@ jobs:
             # `moon ci` has no project filter, so the Godot suites opt out with
             # runInCI: false in their own moon.yml -- the reason lives beside
             # the task it applies to rather than in this file.
+            #
+            # The unsets are for the fail-open case. GitHub writes an unset job
+            # output as the empty string rather than dropping the variable, and
+            # an empty MOON_BASE is a base moon cannot resolve rather than one
+            # it was never given.
             - name: Run affected lint and test
-              run: moon ci ':lint' ':test' ':typecheck' ':check' --job ${{ matrix.index }} --job-total ${{ matrix.total }}
+              run: |
+                  [ -n "${MOON_BASE:-}" ] || unset MOON_BASE
+                  [ -n "${MOON_HEAD:-}" ] || unset MOON_HEAD
+                  moon ci ':lint' ':test' ':typecheck' ':check' --job ${{ matrix.index }} --job-total ${{ matrix.total }}
 
     # ci.yml runs on every push and pull request and was the only high-traffic
     # workflow with no failure tracker, so a broken dev sat unreported until

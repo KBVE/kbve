@@ -63,6 +63,10 @@ askama = "0.16.0"
 async-nats = { version = "0.50", default-features = false }
 async-trait = "0.1.88"
 avian3d = { version = "0.7", default-features = false }
+# Bridges egui into bevy's render world. 0.42 is the line that tracks bevy 0.19,
+# and it wants egui ^0.36 -- the same egui `erust` pins, so widgets written
+# against `egui::Ui` there compile here without a version fight.
+bevy_egui = { version = "0.42", default-features = false }
 axum = { version = "0.8.9", default-features = false }
 axum-extra = "0.12.6"
 base64 = "0.22.1"
@@ -151,6 +155,23 @@ zip = { version = "6", default-features = false }
 
 [profile.dev]
 opt-level = 1
+
+# Iteration profile for the game clients: `cargo run -p mmorpg --profile fast`.
+#
+# A separate profile rather than a change to `dev`, because `dev` is shared with
+# 35 other crates and CI, and building all of their dependencies at opt-level 3
+# would be paid for on every cold cache in exchange for nothing.
+#
+# The split is the point: dependencies are optimised once and then cached
+# forever, so the frame rate is playable, while the crate actually being edited
+# stays cheap to rebuild. Release is what the LTO and codegen-units=1 settings
+# below are for, and neither belongs in a loop measured in seconds.
+[profile.fast]
+inherits = 'dev'
+opt-level = 1
+
+[profile.fast.package."*"]
+opt-level = 3
 
 [profile.release]
 opt-level = 3

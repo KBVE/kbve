@@ -17,7 +17,7 @@ gate-auth = ["dep:lru"]
 image-gen = ["dep:resvg"]
 kv = ["supabase", "jedi/valkey"]
 legacy-sync-db = ["diesel/postgres", "diesel/r2d2", "dep:r2d2"]
-supabase = ["dep:lru", "dep:uuid"]
+supabase = ["dep:bevy_supa", "dep:lru", "dep:uuid"]
 wallet = ["dep:uuid"]
 
 [dependencies]
@@ -28,6 +28,9 @@ askama = { workspace = true }
 async-trait = { workspace = true }
 axum = { workspace = true, features = ["default", "macros"] }
 axum-extra = { workspace = true, features = ["cookie"] }
+# The PostgREST client this crate used to own. Optional so a build without
+# `supabase` does not link reqwest twice over.
+bevy_supa = { version = "0.2.0", path = "../bevy_supa", optional = true }
 bb8 = { workspace = true }
 chrono = { workspace = true, features = ["default", "serde"] }
 dashmap = { workspace = true, features = ["serde"] }

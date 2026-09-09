@@ -24,10 +24,22 @@ import { appendFileSync } from 'node:fs';
 // this set is not needed by the shards.
 const CI_TASKS = new Set(['lint', 'test', 'typecheck', 'check']);
 
-function emit(rust, python, why) {
+// The shards run `moon ci` against the same range this answered from. moon
+// resolves its own base when MOON_BASE is unset, and on a merge commit pushed
+// to dev it reaches back past the commits already validated -- run 34281544535
+// logged `Base revision: N/A` and drew mmorpg:lint and mmorpg:test from an
+// edit that had landed and gone green two commits earlier, while this script,
+// asked about `before..HEAD`, correctly answered zero. The shard then had no
+// rust toolchain, because the answer it was given was the right one, and died
+// in kinetree:build on `proto::locate::missing_executable`.
+//
+// Empty on the fail-open paths, where there is no range to speak of. The
+// shards leave MOON_BASE unset there and moon picks its own base as before,
+// which is the same everything-installed bias the toolchain outputs carry.
+function emit(rust, python, why, base = '', head = '') {
     const out = process.env['GITHUB_OUTPUT'];
-    if (out) appendFileSync(out, `rust=${rust}\npython=${python}\n`);
-    console.log(`rust=${rust} python=${python} (${why})`);
+    if (out) appendFileSync(out, `rust=${rust}\npython=${python}\nbase=${base}\nhead=${head}\n`);
+    console.log(`rust=${rust} python=${python} base=${base || 'none'} (${why})`);
 }
 
 function emitEverything(why) {
@@ -124,4 +136,4 @@ const python = toolchains.has('python') || toolchains.has('uv');
 console.log(`base ${base.slice(0, 12)}, ${count} affected ci task(s)`);
 console.log(`toolchains: ${[...toolchains].sort().join(', ') || 'none'}`);
 
-emit(rust, python, `${count} affected ci tasks`);
+emit(rust, python, `${count} affected ci tasks`, base, head);

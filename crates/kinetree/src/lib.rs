@@ -26,17 +26,29 @@
 //! assert!(solve.tip_after(&pose).distance(goal) < 1e-4);
 //! ```
 //!
+//! # Longer chains
+//!
+//! [`solve_chain`] is the other half: FABRIK, for chains of any length, when
+//! the question is "put the end here" rather than "bend this hinge". It is
+//! iterative and unconstrained, so it does not know an elbow from a shoulder --
+//! the intended pairing is to position a long chain with it and then finish the
+//! genuine hinges with [`solve_limb`].
+//!
 //! The core is glam and nothing else. Bevy components and the plugin live
 //! behind the `bevy` feature, which is on by default.
 
 #![cfg_attr(docsrs, feature(doc_cfg))]
 
+mod chain;
 mod hinge;
 mod limb;
 mod math;
+mod rig;
 
+pub use chain::{Effort, segment_lengths, solve_chain, tip_error};
 pub use hinge::{HingeTurn, Reach, solve_hinge};
 pub use limb::{LimbPose, LimbSolve, RestHinge, solve_limb};
+pub use rig::{Bone, MAX_SPINE, Side, Skeleton, UNMAPPED, arm, leg, role_of};
 
 #[cfg(feature = "bevy")]
 mod plugin;
