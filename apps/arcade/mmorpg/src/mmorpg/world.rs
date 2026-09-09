@@ -8,6 +8,9 @@ use super::terrain::TerrainPlugin;
 
 pub const WORLD_SEED: u32 = 0x4b_42_56_45;
 
+/// `MMORPG_FLAT` flattens the whole world to one height, a test floor for gait measurement.
+static FLAT: std::sync::OnceLock<bool> = std::sync::OnceLock::new();
+
 /// Distance in meters between the samples used to differentiate [`height_at`].
 const NORMAL_EPSILON: f32 = 0.5;
 
@@ -25,6 +28,9 @@ impl Plugin for WorldPlugin {
 /// The river carve lives here rather than in the mesh builder: a bed only the renderer knows about
 /// is ground the rest of the game still treats as solid.
 pub fn height_at(x: f32, z: f32) -> f32 {
+    if *FLAT.get_or_init(|| std::env::var("MMORPG_FLAT").is_ok()) {
+        return 18.0;
+    }
     let natural = natural_height(x, z);
     let Some(sample) = river_at(x, z) else {
         return natural;

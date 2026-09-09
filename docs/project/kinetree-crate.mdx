@@ -1,0 +1,193 @@
+---
+title: Kinetree — Closed-Form Hinge IK Crate
+description: kinetree solves two-bone limbs (hip/knee/ankle, shoulder/elbow/wrist) in closed form on a hinge axis measured from the rest pose, with a pure glam core, optional Bevy integration, a name-based skeleton role map, and a FABRIK chain fallback. It is the leg solver behind the mmorpg procedural gait, and this page carries the working notes for that integration.
+sem: 1
+sidebar:
+    label: Kinetree Crate
+    order: 76
+tags:
+    - crates
+    - rust
+    - bevy
+    - animation
+key: kinetree_crate
+pipeline: crates
+package_name: kinetree
+version: "0.1.0"
+source_path: crates/kinetree
+author: h0lybyte
+license: MIT
+status: active
+template: splash
+tableOfContents: false
+editUrl: false
+lastUpdated: false
+prev: false
+next: false
+jsonld:
+    faq:
+        - question: What is the kinetree crate?
+          answer: kinetree is a Rust library for two-bone limb inverse kinematics. A limb with a hinge in the middle, such as a leg or an arm, is solved in closed form on a hinge axis taken from the rest pose. One atan2 and one acos, no iteration, no pole target, no convergence threshold. The core depends only on glam; a bevy feature adds components, a plugin and a parallel solver system.
+        - question: How does it pick the knee direction?
+          answer: From a RestHinge, the hinge axis expressed in the root bone's basis. It is measured from a bent rest pose with from_rest, or named outright with from_local_axis when the bind pose is straight and leaves nothing to measure. The axis follows the thigh, so the knee points where the hip points, and a small pre-bend on the calf keeps the solver from picking the backward root.
+        - question: Does it enforce joint limits?
+          answer: Yes. LimbLimits sets a flexion ceiling; solve_limb_with clamps the hinge to it, keeps the bend on the same side, and reports Reach::Clamped so the caller can drop the pelvis or shorten the step instead of locking the knee.
+        - question: Can it run outside Bevy?
+          answer: Yes. With default-features off and the std feature on, the crate is glam and nothing else, so the same solver can sit inside a Godot gdext cdylib or an Unreal module. A libm feature routes every transcendental through libm for bit-for-bit results across machines, which matters when a server re-simulates a client's limb.
+        - question: How does it find bones on an unknown rig?
+          answer: role_of maps a bone name to a Bone role (pelvis, thigh, calf, foot, ball, spine, clavicle, upper arm, lower arm, hand, neck, head) with a side, covering Epic, Mixamo and common Blender naming. Skeleton::learn ingests a whole name list and answers by role, and Bone::half says which half of the body a bone belongs to, which is what the mmorpg uses to mask animation clips off the legs.
+bento:
+    badge: crates · rust · bevy
+    title: Closed-form hinge IK for
+    accent: kbve
+    lede: >-
+        Two-bone limbs solved on a rest-measured hinge axis — one atan2, one
+        acos, no iteration — with flexion limits, a name-based skeleton role
+        map, a parallel Bevy solver, and a FABRIK chain for everything else.
+    ctas:
+        - label: View source
+          href: https://github.com/KBVE/kbve/tree/main/crates/kinetree
+          primary: true
+          external: true
+        - label: Field notes
+          href: "#field-notes"
+    aside:
+        icon: activity
+        title: Legs, arms, and the notes
+        body: >-
+            The solver behind the mmorpg procedural gait. The lower half of this
+            page is the working log for that integration: what was tried, what
+            the numbers said, and where it is going next.
+        points:
+            - <strong>Solve</strong> — closed-form hinge, flexion ceiling, reach report.
+            - <strong>Rig</strong> — bone roles by name, body halves for masking.
+            - <strong>Bevy</strong> — IkLimb goals, par_iter solve, serial apply.
+    stats:
+        - { label: Package, value: kinetree, icon: package }
+        - { label: Edition, value: "2024", icon: rust }
+        - { label: Version, value: "0.1.0", icon: branch }
+        - { label: License, value: MIT, icon: license }
+    features:
+        - title: Closed-form hinge
+          icon: activity
+          body: solve_limb bends the middle joint on the rest hinge axis and swings the root to aim the tip. Exact for knees and elbows; no pole vector to author.
+        - title: Flexion limits
+          icon: shield
+          body: LimbLimits plus solve_limb_with cap the bend, keep the bend side, and return Reach::Clamped when the goal needed more than the joint allows.
+        - title: Skeleton roles
+          icon: network
+          body: role_of and Skeleton::learn resolve Epic, Mixamo and Blender bone names to roles and sides, so one rig profile drives any humanoid.
+        - title: Bevy plugin
+          icon: server
+          body: IkLimb, IkLimbBones and LimbOutput; solve_limbs runs par_iter_mut over limbs, apply_limbs writes rotations serially before transform propagation.
+        - title: Chain fallback
+          icon: package
+          body: solve_chain is a FABRIK pass with an Effort budget for tails, tentacles and anything without a hinge.
+        - title: Engine-agnostic core
+          icon: database
+          body: glam only with default-features off; libm feature for deterministic transcendentals across server and client.
+    related:
+        - title: MMORPG client source
+          href: https://github.com/KBVE/kbve/tree/main/apps/arcade/mmorpg
+          copy: The bevy + avian3d client whose legs this crate solves.
+          icon: package
+    features_eyebrow: What it gives you
+    features_heading: Features
+    related_heading: Related
+---
+
+import BentoDoc from '@/components/hero/BentoDoc.astro';
+
+<BentoDoc data={frontmatter.bento} faq={frontmatter.jsonld?.faq} />
+
+## API at a glance
+
+```rust
+use glam::{Quat, Vec3};
+use kinetree::{LimbLimits, LimbPose, RestHinge, solve_limb_with};
+
+let rest = RestHinge::from_local_axis(Vec3::NEG_X).unwrap();
+let pose = LimbPose { root: hip, mid: knee, tip: ankle, root_basis: thigh_world_rotation };
+let solve = solve_limb_with(&pose, &rest, goal, LimbLimits::flexion(160f32.to_radians()));
+// solve.hinge_turn about solve.hinge_axis at the knee, then solve.root_swing about the hip;
+// solve.reach is Reach::Exact, Clamped or Degenerate; solve.tip_after(&pose) previews the ankle.
+```
+
+| Item | Purpose |
+| --- | --- |
+| `RestHinge::from_rest(root, mid, tip, root_basis)` | Measure the hinge axis from a bent rest pose. |
+| `RestHinge::from_local_axis(axis)` | Name the axis when the bind pose is straight. |
+| `solve_limb`, `solve_limb_with` | Closed-form solve, optionally with `LimbLimits`. |
+| `hinge_angle`, `clamp_flexion` | Read and cap the current bend. |
+| `solve_chain`, `segment_lengths`, `tip_error` | FABRIK for chains without a hinge. |
+| `role_of`, `Bone`, `Side`, `Half`, `Skeleton` | Rig-independent bone identity. |
+| `IkLimb`, `IkLimbBones`, `LimbOutput`, `KinetreePlugin`, `KinetreeSystems`, `bone_world_transform` | Bevy integration (feature `bevy`). |
+
+Tests live in `crates/kinetree/tests` (limb, chain, rig, plugin). Run them with `cargo test -p kinetree`.
+
+## Field notes
+
+Working log for the `apps/arcade/mmorpg` integration. Written for whoever picks this up next, human or agent. Dates are absolute.
+
+### Goal
+
+Replace shipped animation clips for locomotion with compact data that IK and procedural code can drive, so gaits can be changed, scaled and generated (PCG) without re-exporting FBX/GLB, and so the same data can later feed the Unreal client (rareicon). Order of work: Kinetree → Bevy first, then Bevy → UE5.
+
+### Where the data comes from
+
+Epic's Game Animation Sample locomotion set (GASP), kept locally in `~/Downloads/Animations-2`. Not in the repo, 5.5 GB, UE-only licence, never shipped. It is baked with the headless Blender tool `kbve-blender-gait` (`packages/python/kbve/kbve/blender/gait_bake.py`) into `apps/arcade/mmorpg/assets/gaits/neutral.gait.ron`: 20 loops (idle, walk and jog in 8 directions, sprint in 3), 71 KB. Per gait: direction, speed, hip height, stride period, pelvis bob, yaw and roll, and per foot contact phase, duty, lift, forward, side and pitch as 32 samples on a shared clock that starts at left-foot contact. Everything is normalised by leg length so it is rig-independent.
+
+Bake rules learned the hard way:
+
+- Contact = heel OR ball low and still. Ankle-only stillness cut contact at heel-off and gave walk duty 0.43, which is flight in a walk, which is both legs forward at once. Walk duty must come out ≥ 0.5.
+- Hip height is measured above the mean stance ankle, not the lowest ankle frame. The min-frame reference sat the hip 2.4% high and locked knees mid-stance.
+- Foot pitch is relative to the flat-stance median. The ball bone sits below the ankle, so absolute pitch reads −25°.
+- Strafe loops in GASP are fast cross-over walks; travel direction only counts when a heading (target lock) is set, and direction lanes are blended by angle.
+
+### How the mmorpg uses it (state on 2026-09-09, uncommitted in the local dev tree)
+
+- Animation clips are masked off the lower body with `AnimationGraph` mask groups (`Bone::half` decides the group). While moving, the clip plays on a torso-only branch and is seek-driven from the stride phase; pelvis, legs and feet are procedural. Idle, jump and one-shots still play clips.
+- The stride phase is the only clock. Stance is the data's contact window, swing is the rest. A planted foot the body has walked or turned away from may lift early, but its landing time never moves; strain speeds the whole clock up (×1.25) rather than rushing one foot. Independent per-foot clocks were tried and drifted off phase (duty 0.6, 20% double support). Never again.
+- Facing lives on the character model child, not the physics capsule. The stride frame reads `model.rotation * Vec3::Z`. Reading the capsule's forward was the original cause of crossing legs.
+- Ground probe is a 6 cm sphere sweep from body height with a ray fallback, returning point and normal, excluding every character body. Landing spot is damped early in swing and frozen at 65%.
+- Stop: freeze the gait blend, run the phase until the airborne foot lands, then fade over 0.25 s. Walk→run: capsule accelerates at 14 m/s², the gait mix chases a smoothed pace. Turns: ground heading swings at 4 rad/s, reversals over 120° are instant, model facing capped at 6 rad/s.
+- Debug: `MMORPG_AUTOWALK=walk|jog|turn|jogturn|zigzag|reverse|stopgo|gear`, `MMORPG_CAMERA=dist,pitch,yaw,focus`, keys P (procedural / lock / follow), G (gizmos and a 1 Hz report), I (IK off). Probes log `CROSS` and `FLIGHT`.
+
+### Verify with numbers, not screenshots
+
+`MMORPG_TRACE=<file.csv>` writes one row per frame per character: phase, clock rate, speed, turn, WASD wish, hip height, and per foot the ankle in the pelvis frame (leg units), IK goal, plant and strain state, lift phase, knee angle, thigh-to-ankle reach. The comparison script in the session scratchpad (`compare.py`) prints the same statistics from GASP clips sampled through Blender (`sample_fbx.py`), so a game run and a mocap clip are read side by side. Targets from the neutral walk loop: foot forward ±0.55 leg, duty 0.50, double support 0.02, knee 5–72°, thigh-to-ankle reach by stride tenth `[0.97, 0.97, 0.995, 0.98, 0.97, 0.945, 0.83, 0.90, 0.99, 1.00]`.
+
+Bugs this found in one pass that weeks of looking at frames missed: a hurry loop (landing predicted with the nominal period while the clock ran 1.6×, so the foot overshot, which read as strain, which kept the hurry on); per-foot clocks drifting off phase; feet placed relative to the capsule while the data is pelvis-relative (0.2 m bias); a landing-frame re-prediction that jumped every pin 20–35 cm; a pelvis reach drop and a pin slide that fought each other into squats and skating.
+
+### Why it still reads wrong, and the pivot (decided 2026-09-09)
+
+The bake keeps ankle positions and discards every joint rotation. Legs rebuilt from foot positions by two-bone IK are "IK legs": feet right, everything above synthetic. Turns, starts and stops are separate mocap clips with real weight shifts that rules cannot fake; every rule fought another. The reviewer's point 6 in `apps/arcade/mmorpg/FEEDBACK.md` was right.
+
+Next architecture, still no GLB, still our own data:
+
+1. Bake lower-body joint rotations per frame from the GASP locomotion clips into a compact rig-independent pose database (rotations relative to each bone's rest, by role; pelvis height; root motion; contacts). Roughly 60 clips × 100 frames × 8 bones × 8 bytes ≈ 400 KB.
+2. Play those rotations onto any rig through `role_of`.
+3. Use kinetree only to correct contact: plant, slope, stance lock.
+4. Select the segment by motion matching on the steered trajectory. Arcs, box steps, pivots, starts and stops come from their clips.
+5. Upper body, PCG scaling and the UE5 consumer stay data-driven off the same file.
+
+Blender is the bake and retarget-check tool; Bevy owns selection and playback.
+
+### Pose playback, first result (2026-09-09, evening)
+
+- `kbve-blender-pose` (`packages/python/kbve/kbve/blender/pose_bake.py`) writes `assets/gaits/neutral.pose.ron`: 26 clips (idle, walk/jog in 8 lanes, sprint in 3, six walk arcs), 1.9 MB as text before any quantisation. Per frame and per role bone: rotation as a delta from rest in a canonical frame (Y up, facing +Z, right −X), the unit direction to the child joint, plus hip-centre height above the mean stance ankle in leg lengths, root motion and foot contacts.
+- `src/mmorpg/pose.rs` samples the first full stride of the chosen clip by the existing stride phase and writes it onto the rig. Thigh, calf and foot are retargeted by direction (`from_rotation_arc(rest_dir, baked_dir) * rest`), pelvis and ball by the delta. The pelvis gets its full local translation from the hip-centre height; its parent is rotated −90° about X, so height is local Z, not Y. Lower-bone translations and scale are reset to bind first, because the torso clip leaves stale translations behind (the leg measured 0.83 m instead of 0.888 m until it did).
+- Clip choice: lane by travel angle, then nearest speed in that lane. `MMORPG_POSE=0` returns to the old procedural stride.
+- Result on the circle run, no contact IK at all: knee, hip-to-ankle vertical and foot clearance profiles match the mocap walk loop within a few percent at every tenth of the stride. Compare that with the weeks spent on rules.
+- Contact correction over the pose (`hold_foot` in `foot_ik.rs`): while the clip says a foot is down, the ball's ground position is held with 5 cm of slack (the capture's own feet creep that much in stance), the ankle follows the pose's foot geometry from the ball, and the ball never goes below the ground surface. In swing a foot is only lifted out of the ground. Nothing else. Every stricter variant (hard ankle pin, re-centred ankle path, ball held 2 cm up) bent stance knees 10–17° over the mocap because near a straight leg 1.5 cm of reach is 13° of knee.
+- The stride clock in pose mode is the clip's own stride travel over the body's speed, not the gait-curve period (the lane mix cancelled the stretch and the foot skated 4%).
+- Travel direction always chooses the lane in pose mode: when the facing lags a reversal the body is briefly walking backward and the backward clip is right; the forward clip marched a planted foot 0.8 m.
+- Measure on `MMORPG_FLAT=1` (one-height world) with `MMORPG_AUTOWALK=reverse` (6 s legs) and steady frames only; every earlier probe ran on a hillside, which is why the pelvis reach drop looked necessary.
+- Result on flat, straight and circle, lock on: knee within 4° of mocap at every tenth, clearance within 2 cm, planted ankle 0.23 m/s (mocap 0.10–0.15).
+- Open: turning still plays the straight clip while the body arcs, so the lock absorbs the turn in the knee; the arc, box, pivot, start and stop clips and a trajectory-matched selector fix that. Then lane and speed blending, quantising the 1.9 MB file, upper-body lean from data, the UE5 consumer.
+
+### Rules for this work
+
+- Nothing here is committed or pushed until the legs are verified in play. Commits are small, titles validated with `node tools/commit/validate.mjs --title`, no Co-Authored-By.
+- One-line rustdoc only, no inline comments.
+- When a hand rule is needed to fix motion, the missing quantity should be baked from the mocap instead.
