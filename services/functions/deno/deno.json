@@ -1,15 +1,19 @@
 {
-	"version": "0.1.50",
-	"compilerOptions": {
-		"lib": ["deno.window"],
-		"strict": true
-	},
-	"fmt": {
-		"useTabs": false,
-		"lineWidth": 80,
-		"indentWidth": 2,
-		"singleQuote": false,
-		"proseWrap": "preserve",
-		"include": ["functions/"]
-	}
+  "version": "0.1.51",
+  "compilerOptions": {
+    "lib": [
+      "deno.window"
+    ],
+    "strict": true
+  },
+  "fmt": {
+    "useTabs": false,
+    "lineWidth": 80,
+    "indentWidth": 2,
+    "singleQuote": false,
+    "proseWrap": "preserve",
+    "include": [
+      "functions/"
+    ]
+  }
 }
