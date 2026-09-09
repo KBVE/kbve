@@ -6,6 +6,7 @@ pub mod character;
 pub mod combat;
 pub mod foot_ik;
 pub mod player;
+pub mod pose;
 pub mod rig;
 pub mod river;
 pub mod target_ring;
@@ -28,6 +29,7 @@ impl Plugin for MmorpgPlugin {
             combat::GameCombatPlugin,
             player::PlayerPlugin,
             foot_ik::FootIkPlugin,
+            pose::PosePlugin,
             camera::CameraPlugin,
             target_ring::TargetRingPlugin,
             ui::UiPlugin,

@@ -17,6 +17,9 @@ pub struct RigProfile {
     pub pelvis: String,
     pub ankle_height: f32,
     pub gait_set: String,
+    /// Baked lower-body joint rotations, played back in place of the procedural stride when present.
+    #[serde(default)]
+    pub pose_set: Option<String>,
     pub legs: Vec<LimbSpec>,
     pub gaits: GaitClips,
     pub attacks: AttackClips,
@@ -240,10 +243,10 @@ impl GaitSet {
         lane.sort_by(|a, b| a.normalised_speed().total_cmp(&b.normalised_speed()));
         let (first, last) = (*lane.first()?, *lane.last()?);
         if speed_per_leg <= first.normalised_speed() {
-            return Some(Self::mixed(first, first, 0.0));
+            return Some(Self::mixed(first, first, 0.0, speed_per_leg));
         }
         if speed_per_leg >= last.normalised_speed() {
-            return Some(Self::mixed(last, last, 0.0));
+            return Some(Self::mixed(last, last, 0.0, speed_per_leg));
         }
         let upper = lane
             .iter()
@@ -255,15 +258,24 @@ impl GaitSet {
         } else {
             1.0
         };
-        Some(Self::mixed(lo, hi, t))
+        Some(Self::mixed(lo, hi, t, speed_per_leg))
     }
 
-    fn mixed(lo: &GaitCurve, hi: &GaitCurve, t: f32) -> GaitBlend {
-        let period = if lo.stride_period <= f32::EPSILON {
+    /// Mixes two curves of one lane, then runs the clock at the speed actually walked over the baked speed, so one stride covers exactly the ground the body does and a planted foot never skates.
+    fn mixed(lo: &GaitCurve, hi: &GaitCurve, t: f32, speed_per_leg: f32) -> GaitBlend {
+        let mut period = if lo.stride_period <= f32::EPSILON {
             hi.stride_period
         } else {
             lo.stride_period + (hi.stride_period - lo.stride_period) * t
         };
+        let baked = lo.normalised_speed() + (hi.normalised_speed() - lo.normalised_speed()) * t;
+        let ratio = if baked > 0.05 && speed_per_leg > 0.05 {
+            (speed_per_leg / baked).clamp(0.5, 2.0)
+        } else {
+            1.0
+        };
+        period /= ratio;
+        let stretch = 1.0;
         let feet = if lo.stride_period <= f32::EPSILON {
             [
                 mix_foot(&hi.feet[0], &hi.feet[0], 0.0),
@@ -275,6 +287,12 @@ impl GaitSet {
                 mix_foot(&lo.feet[1], &hi.feet[1], t),
             ]
         };
+        let feet = feet.map(|mut f| {
+            for v in f.fwd.iter_mut() {
+                *v *= stretch;
+            }
+            f
+        });
         GaitBlend {
             hip_height: lo.hip_height + (hi.hip_height - lo.hip_height) * t,
             stride_period: period,
@@ -292,6 +310,137 @@ pub fn at(curve: &[f32; SAMPLES], phase: f32) -> f32 {
     let i = x.floor() as usize % SAMPLES;
     let f = x - x.floor();
     curve[i] * (1.0 - f) + curve[(i + 1) % SAMPLES] * f
+}
+
+/// Rig-independent lower-body pose database: per clip, per frame, each role bone's rotation as a delta from its rest in a canonical frame (Y up, facing +Z), the pelvis relative to the root in leg lengths, root motion, and foot contacts.
+#[derive(Asset, TypePath, Deserialize, Debug, Clone)]
+pub struct PoseSet {
+    pub bones: Vec<String>,
+    pub clips: Vec<PoseClip>,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct PoseClip {
+    pub name: String,
+    pub source: String,
+    pub fps: f32,
+    pub leg_length: f32,
+    pub speed: f32,
+    pub direction: f32,
+    pub frames: Vec<PoseFrame>,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct PoseFrame {
+    pub root: (f32, f32, f32),
+    pub pelvis: (f32, f32, f32),
+    pub rotations: Vec<(f32, f32, f32, f32)>,
+    /// Unit direction from each bone to its child in the canonical frame, zero for leaves.
+    #[serde(default)]
+    pub directions: Vec<(f32, f32, f32)>,
+    pub contact: (bool, bool),
+}
+
+impl PoseClip {
+    /// Frame indices at which the left foot lands, in order.
+    pub fn left_onsets(&self) -> Vec<usize> {
+        let n = self.frames.len();
+        (0..n)
+            .filter(|&i| self.frames[i].contact.0 && !self.frames[(i + n - 1) % n].contact.0)
+            .collect()
+    }
+
+    /// One stride as a frame window starting at a left-foot landing, or the whole clip if it has no second landing.
+    pub fn stride(&self) -> (usize, usize) {
+        let onsets = self.left_onsets();
+        match onsets.as_slice() {
+            [a, b, ..] => (*a, *b),
+            [a] => (*a, *a + self.frames.len()),
+            [] => (0, self.frames.len()),
+        }
+    }
+
+    /// Ground the root covers over the first full stride, metres.
+    pub fn stride_length(&self) -> f32 {
+        let (start, end) = self.stride();
+        let n = self.frames.len();
+        if n == 0 {
+            return 0.0;
+        }
+        let a = self.frames[start % n].root;
+        let b = self.frames[end % n].root;
+        let wrap = if end >= n {
+            let first = self.frames[0].root;
+            let last = self.frames[n - 1].root;
+            Vec2::new(last.0 - first.0, last.1 - first.1)
+        } else {
+            Vec2::ZERO
+        };
+        (Vec2::new(b.0 - a.0, b.1 - a.1) + wrap).length()
+    }
+
+    /// Seconds one stride of this clip takes at its own baked speed.
+    pub fn stride_seconds(&self) -> f32 {
+        let (start, end) = self.stride();
+        (end - start).max(1) as f32 / self.fps.max(1.0)
+    }
+
+    /// The pose at stride `phase` in 0..1, interpolated between frames of the first full stride.
+    pub fn sample(&self, phase: f32) -> Option<(Vec3, Vec<Quat>, Vec<Vec3>, (bool, bool))> {
+        let n = self.frames.len();
+        if n == 0 {
+            return None;
+        }
+        let (start, end) = self.stride();
+        let span = (end - start).max(1) as f32;
+        let x = start as f32 + phase.rem_euclid(1.0) * span;
+        let i = x.floor() as usize % n;
+        let j = (i + 1) % n;
+        let f = x - x.floor();
+        let a = &self.frames[i];
+        let b = &self.frames[j];
+        let pelvis = Vec3::new(a.pelvis.0, a.pelvis.1, a.pelvis.2)
+            .lerp(Vec3::new(b.pelvis.0, b.pelvis.1, b.pelvis.2), f);
+        let rotations = a
+            .rotations
+            .iter()
+            .zip(&b.rotations)
+            .map(|(p, q)| {
+                Quat::from_xyzw(p.1, p.2, p.3, p.0).slerp(Quat::from_xyzw(q.1, q.2, q.3, q.0), f)
+            })
+            .collect();
+        let directions = a
+            .directions
+            .iter()
+            .zip(&b.directions)
+            .map(|(p, q)| Vec3::new(p.0, p.1, p.2).lerp(Vec3::new(q.0, q.1, q.2), f))
+            .collect();
+        Some((pelvis, rotations, directions, a.contact))
+    }
+}
+
+#[derive(Default, TypePath)]
+pub struct PoseLoader;
+
+impl AssetLoader for PoseLoader {
+    type Asset = PoseSet;
+    type Settings = ();
+    type Error = RigError;
+
+    async fn load(
+        &self,
+        reader: &mut dyn Reader,
+        _settings: &(),
+        _context: &mut LoadContext<'_>,
+    ) -> Result<PoseSet, RigError> {
+        let mut bytes = Vec::new();
+        reader.read_to_end(&mut bytes).await?;
+        Ok(ron::de::from_bytes(&bytes)?)
+    }
+
+    fn extensions(&self) -> &[&str] {
+        &["pose.ron"]
+    }
 }
 
 #[derive(Default, TypePath)]
@@ -356,6 +505,7 @@ pub struct Rig {
     pub profile: Handle<RigProfile>,
     pub library: Option<Handle<Gltf>>,
     pub gaits: Option<Handle<GaitSet>>,
+    pub poses: Option<Handle<PoseSet>>,
 }
 
 pub struct RigPlugin;
@@ -366,6 +516,8 @@ impl Plugin for RigPlugin {
             .init_asset_loader::<RigLoader>()
             .init_asset::<GaitSet>()
             .init_asset_loader::<GaitLoader>()
+            .init_asset::<PoseSet>()
+            .init_asset_loader::<PoseLoader>()
             .add_systems(Startup, load_rig)
             .add_systems(Update, announce_gaits);
     }
@@ -376,6 +528,7 @@ fn load_rig(mut commands: Commands, assets: Res<AssetServer>) {
         profile: assets.load(PROFILE),
         library: None,
         gaits: None,
+        poses: None,
     });
 }
 
