@@ -3,3 +3,4 @@ name: kbve
 paths-ignore:
     - hardware/esp32c6-display
     - crates/uniti/fuzz
+    - packages/proto/verify/rust
