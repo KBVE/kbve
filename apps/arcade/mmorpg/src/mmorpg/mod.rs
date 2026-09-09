@@ -8,6 +8,8 @@ pub mod foot_ik;
 pub mod player;
 pub mod rig;
 pub mod target_ring;
+pub mod terrain;
+pub mod terrain_material;
 pub mod theme;
 pub mod ui;
 pub mod world;
