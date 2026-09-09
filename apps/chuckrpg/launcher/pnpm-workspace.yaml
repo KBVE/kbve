@@ -3,5 +3,8 @@ packages:
     - '../../../packages/npm/tauri'
     - '../../../packages/npm/observ'
 
+allowBuilds:
+    esbuild: true
+
 onlyBuiltDependencies:
     - esbuild
