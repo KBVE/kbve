@@ -33,6 +33,9 @@ typescript:
     createMissingConfig: false
     includeSharedTypes: false
 
+deno:
+    version: '2.1.4'
+
 rust:
     version: '1.98.0'
     # Both of these rewrite Cargo.toml on sync: the writer reformats the file,

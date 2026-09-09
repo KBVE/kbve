@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # seal-stalwart-hook-secret.sh — Seal the shared bearer secret that
-# Stalwart presents when calling the axum-herbmail MTA hook endpoint.
+# Stalwart presents when calling the herbmail-api MTA hook endpoint.
 #
 # Pipeline that:
 #   1. Prompts for (or reads from env) the hook secret

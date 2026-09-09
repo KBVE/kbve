@@ -33,18 +33,28 @@ RUN set -eux; \
     curl -fL --retry 5 -o /tmp/cloak.tar.gz "$url"; \
     if [ -n "$CLOAK_SHA256" ]; then echo "$CLOAK_SHA256  /tmp/cloak.tar.gz" | sha256sum -c -; fi; \
     mkdir -p "$CLOAK_HOME"; \
-    tar -C "$CLOAK_HOME" --strip-components=1 -xzf /tmp/cloak.tar.gz; \
+    top_count="$(tar -tzf /tmp/cloak.tar.gz | awk -F/ 'NF>0 {print $1}' | sort -u | wc -l | tr -d ' ')"; \
+    if [ "$top_count" = "1" ]; then strip=1; else strip=0; fi; \
+    tar -C "$CLOAK_HOME" --strip-components="$strip" -xzf /tmp/cloak.tar.gz; \
     rm /tmp/cloak.tar.gz; \
-    if [ ! -x "$CLOAK_BIN" ]; then \
-      candidate="$(find "$CLOAK_HOME" -maxdepth 2 -type f \( -name cloakbrowser -o -name chrome -o -name chromium \) -perm -u+x | head -1)"; \
-      [ -n "$candidate" ] && ln -sf "$candidate" "$CLOAK_BIN"; \
+    candidate="$(find "$CLOAK_HOME" -maxdepth 3 -type f \( -name cloakbrowser -o -name chrome -o -name chromium \) -perm -u+x | head -1)"; \
+    if [ -z "$candidate" ]; then \
+      echo "no browser binary found in $CLOAK_HOME" >&2; \
+      ls -la "$CLOAK_HOME" >&2; \
+      exit 1; \
     fi; \
+    ln -sf "$candidate" "$CLOAK_BIN"; \
     [ -x "$CLOAK_BIN" ]; \
     chown -R 1000:1000 "$CLOAK_HOME"
 
 RUN set -eux; \
     pip_spec="cloakbrowser${CLOAKBROWSER_PIP_VERSION:+==${CLOAKBROWSER_PIP_VERSION}}"; \
-    pip3 install --no-cache-dir --break-system-packages "$pip_spec"; \
+    PIP_MAJOR="$(pip3 --version | awk '{print $2}' | cut -d. -f1)"; \
+    if [ "${PIP_MAJOR}" -ge 23 ]; then \
+      pip3 install --no-cache-dir --break-system-packages "$pip_spec"; \
+    else \
+      pip3 install --no-cache-dir "$pip_spec"; \
+    fi; \
     mkdir -p "$CLOAKBROWSER_CACHE_DIR"; \
     chown 1000:1000 "$CLOAKBROWSER_CACHE_DIR"; \
     CLOAKBROWSER_CACHE_DIR="$CLOAKBROWSER_CACHE_DIR" \

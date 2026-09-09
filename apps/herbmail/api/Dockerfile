@@ -1,5 +1,5 @@
 # ============================================================================
-# axum-herbmail — Multi-stage Docker build
+# herbmail-api — Multi-stage Docker build
 #
 # Uses shared chisel base images:
 #   ghcr.io/kbve/chisel-ubuntu-axum:24.04-builder  (Rust + Node + pnpm + cargo-chef)
@@ -29,7 +29,7 @@ COPY packages/data/codegen/generated/ packages/data/codegen/generated/
 COPY apps/herbmail/web/ apps/herbmail/web/
 
 WORKDIR /app/apps/herbmail/web
-RUN --mount=type=cache,target=/tmp/astro-cache,id=astro-herbmail-cache,sharing=locked \
+RUN --mount=type=cache,target=/tmp/astro-cache,id=herbmail-web-cache,sharing=locked \
     cp -a /tmp/astro-cache/. .astro/ 2>/dev/null || true && \
     npx astro sync && \
     UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build && \
@@ -44,7 +44,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends gzip brotli && \
     rm -rf /var/lib/apt/lists/*
 
-COPY --from=astro-builder /app/dist/apps/astro-herbmail /static
+COPY --from=astro-builder /app/dist/apps/herbmail-web /static
 
 WORKDIR /static
 RUN find . -type f \( \
@@ -102,7 +102,7 @@ COPY --from=planner /app/packages packages
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
-    cargo chef cook --release --recipe-path recipe.json -p axum-herbmail
+    cargo chef cook --release --recipe-path recipe.json -p herbmail-api
 
 # [STAGE E] - Foundation Layer (Compile kbve + jedi from real source)
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13-builder AS foundation
@@ -158,15 +158,15 @@ COPY apps/herbmail/api/templates/askama /app/apps/herbmail/api/templates/askama
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     --mount=type=cache,target=/usr/local/sccache,id=sccache \
-    cargo build --release -p axum-herbmail --features jemalloc && \
-    strip target/release/axum-herbmail
+    cargo build --release -p herbmail-api --features jemalloc && \
+    strip target/release/herbmail-api
 
 # ============================================================================
 # [STAGE Z] - Runtime Image (shared chisel base)
 # ============================================================================
 FROM --platform=linux/amd64 ghcr.io/kbve/chisel-ubuntu-axum:24.04.13 AS runtime
 
-COPY --from=builder --chown=10001:10001 /app/target/release/axum-herbmail /app/axum-herbmail
+COPY --from=builder --chown=10001:10001 /app/target/release/herbmail-api /app/herbmail-api
 
 COPY --from=builder --chown=10001:10001 /app/apps/herbmail/api/templates/dist /app/templates/dist
 COPY --from=builder --chown=10001:10001 /app/apps/herbmail/api/templates/askama /app/templates/askama
@@ -177,4 +177,4 @@ ENV RUST_LOG=info
 
 EXPOSE 4321
 
-ENTRYPOINT ["/app/axum-herbmail"]
+ENTRYPOINT ["/app/herbmail-api"]

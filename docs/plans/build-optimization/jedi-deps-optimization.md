@@ -141,7 +141,7 @@ Used in 8 files incl. `src/jwks.rs` + `src/jwt_cache.rs` (JWKS fetch for ES256/J
 | irc-gateway, discordsh-bot                          | `valkey`                                                      |                                            |
 | discordsh-api                                       | `postgres`                                                    |                                            |
 | rentearth, chuckrpg                                 | `itch`                                                        | marker only                                |
-| axum-memes, axum-herbmail                           | _(none)_                                                      | pure core consumers                        |
+| axum-memes, herbmail-api                            | _(none)_                                                      | pure core consumers                        |
 | packages/rust/kbve                                  | path only; `jedi/valkey` + `jedi/prometheus` via own features |                                            |
 
 **Nobody uses twitch or grpc-as-consumer feature today** → both currently compile for all 17 for zero benefit. Highest ROI gates.

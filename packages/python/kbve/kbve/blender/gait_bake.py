@@ -10,8 +10,9 @@ import bpy
 from mathutils import Quaternion, Vector
 
 SAMPLES = 32
-CONTACT_ENTER = 0.03
-CONTACT_LEAVE = 0.07
+CONTACT_HEIGHT = 0.1
+STILL_FRACTION = 0.4
+STILL_FLOOR = 0.25
 BENT_DEGREES = 25.0
 
 LEG = ("thigh", "calf", "foot")
@@ -75,23 +76,13 @@ def flexion(clip: Clip, chain: tuple[str, str, str], side: str) -> list[float]:
     return out
 
 
-def contacts(height: list[float]) -> list[bool]:
-    down = height[0] < CONTACT_ENTER
-    first = []
-    for h in height:
-        if down and h > CONTACT_LEAVE:
-            down = False
-        elif not down and h < CONTACT_ENTER:
-            down = True
-        first.append(down)
-    down = first[-1]
+def contacts(height: list[float], ankle: list[Vector], fps: float, speed: float) -> list[bool]:
+    n = len(ankle)
+    still = max(STILL_FLOOR, STILL_FRACTION * speed)
     out = []
-    for h in height:
-        if down and h > CONTACT_LEAVE:
-            down = False
-        elif not down and h < CONTACT_ENTER:
-            down = True
-        out.append(down)
+    for i in range(n):
+        velocity = (ankle[(i + 1) % n] - ankle[i]).length * fps
+        out.append(height[i] < CONTACT_HEIGHT and velocity < still)
     return out
 
 
@@ -119,60 +110,111 @@ def fit(name: str, source: str, clip: Clip) -> dict:
     thigh = (clip.pos["thigh_l"][0] - clip.pos["calf_l"][0]).length
     shin = (clip.pos["calf_l"][0] - clip.pos["foot_l"][0]).length
     leg = thigh + shin
+    n = clip.frames
     pelvis = clip.pos["pelvis"]
     travel = pelvis[-1] - pelvis[0]
-    seconds = clip.frames / clip.fps
+    seconds = n / clip.fps
     speed = travel.length / seconds
-    forward = travel.normalized() if travel.length > 0.05 else Vector((0.0, -1.0, 0.0))
+    up = Vector((0.0, 0.0, 1.0))
+    forward = Vector((0.0, -1.0, 0.0))
+    right = forward.cross(up)
+    direction = math.degrees(math.atan2(travel.dot(right), travel.dot(forward))) if speed > 0.05 else 0.0
     ground = min(p.z for side in "lr" for p in clip.pos[f"foot_{side}"])
 
     feet = {}
     for side in "lr":
         ankle = clip.pos[f"foot_{side}"]
         height = [p.z - ground for p in ankle]
-        contact = contacts(height)
-        feet[side] = (height, contact, onsets(contact))
+        contact = contacts(height, ankle, clip.fps, speed)
+        toe = [clip.pos[f"ball_{side}"][i] - ankle[i] for i in range(n)]
+        pitch = [math.degrees(math.atan2(t.z, Vector((t.x, t.y, 0.0)).length)) for t in toe]
+        planted = sorted(p for p, down in zip(pitch, contact) if down) or sorted(pitch)
+        flat = planted[len(planted) // 2]
+        feet[side] = {
+            "height": height,
+            "contact": contact,
+            "onsets": onsets(contact),
+            "fwd": [(ankle[i] - pelvis[i]).dot(forward) / leg for i in range(n)],
+            "side": [(ankle[i] - pelvis[i]).dot(right) / leg for i in range(n)],
+            "pitch": [p - flat for p in pitch],
+        }
+
+    hips = [(clip.pos["thigh_l"][i].z + clip.pos["thigh_r"][i].z) / 2 - ground for i in range(n)]
+    hip_height = sum(hips) / n / leg
+    pelvis_yaw, pelvis_roll = [], []
+    for i in range(n):
+        hip_line = clip.pos["thigh_r"][i] - clip.pos["thigh_l"][i]
+        pelvis_yaw.append(math.degrees(math.atan2(hip_line.dot(forward), hip_line.dot(right))))
+        span = Vector((hip_line.x, hip_line.y, 0.0)).length
+        pelvis_roll.append(math.degrees(math.atan2(hip_line.z, span)))
+    mean_height = sum(p.z for p in pelvis) / n
+    bob = [(p.z - mean_height) / leg for p in pelvis]
 
     knee = [flexion(clip, LEG, s) for s in "lr"]
     elbow = [flexion(clip, ARM, s) for s in "lr"]
     record = {
         "name": name,
         "source": source,
+        "direction": direction,
         "leg_length": leg,
         "speed": speed,
+        "hip_height": hip_height,
         "knee_flexion": (min(min(k) for k in knee), max(max(k) for k in knee)),
         "elbow_flexion": (min(min(e) for e in elbow), max(max(e) for e in elbow)),
     }
 
-    left_onsets = feet["l"][2]
+    left_onsets = feet["l"]["onsets"]
     if len(left_onsets) < 2 or speed < 0.05:
-        flat = [0.0] * SAMPLES
-        record.update(stride_period=0.0, duty=1.0, offset_r=0.5, lift=flat, swing=flat, bob=flat)
+        mean = lambda values: [sum(values) / n] * SAMPLES  # noqa: E731
+        record.update(
+            stride_period=0.0,
+            bob=[0.0] * SAMPLES,
+            pelvis_yaw=mean(pelvis_yaw),
+            pelvis_roll=mean(pelvis_roll),
+            feet=[
+                {
+                    "contact": 0.0,
+                    "duty": 1.0,
+                    "lift": mean(feet[s]["height"]),
+                    "fwd": mean(feet[s]["fwd"]),
+                    "side": mean(feet[s]["side"]),
+                    "pitch": mean(feet[s]["pitch"]),
+                }
+                for s in "lr"
+            ],
+        )
         return record
 
     gaps = [b - a for a, b in zip(left_onsets, left_onsets[1:])]
     period = sum(gaps) / len(gaps)
     record["stride_period"] = period / clip.fps
-    record["duty"] = sum(feet["l"][1]) / clip.frames
+    windows = left_onsets[:-1]
+    record["bob"] = average([resample(bob, start, period) for start in windows])
+    record["pelvis_yaw"] = average([resample(pelvis_yaw, start, period) for start in windows])
+    record["pelvis_roll"] = average([resample(pelvis_roll, start, period) for start in windows])
 
-    right_onsets = feet["r"][2]
-    offsets = []
-    for start in left_onsets:
-        later = [r for r in right_onsets if r > start]
-        if later:
-            offsets.append(((later[0] - start) / period) % 1.0)
-    record["offset_r"] = sum(offsets) / len(offsets) if offsets else 0.5
-
-    mean_height = sum(p.z for p in pelvis) / clip.frames
-    lift, swing, bob = [], [], []
-    ankle = clip.pos["foot_l"]
-    for start in left_onsets[:-1]:
-        lift.append(resample([h / leg for h in feet["l"][0]], start, period))
-        swing.append(resample([(ankle[i] - pelvis[i]).dot(forward) / leg for i in range(clip.frames)], start, period))
-        bob.append(resample([(p.z - mean_height) / leg for p in pelvis], start, period))
-    record["lift"] = average(lift)
-    record["swing"] = average(swing)
-    record["bob"] = average(bob)
+    out_feet = []
+    for s in "lr":
+        foot = feet[s]
+        phases = []
+        for start in windows:
+            later = [o for o in foot["onsets"] if o >= start]
+            if later:
+                phases.append(((later[0] - start) / period) % 1.0)
+        contact = sum(phases) / len(phases) if phases else 0.0
+        if s == "l":
+            contact = 0.0
+        out_feet.append(
+            {
+                "contact": contact,
+                "duty": sum(foot["contact"]) / n,
+                "lift": average([resample([h / leg for h in foot["height"]], start, period) for start in windows]),
+                "fwd": average([resample(foot["fwd"], start, period) for start in windows]),
+                "side": average([resample(foot["side"], start, period) for start in windows]),
+                "pitch": average([resample(foot["pitch"], start, period) for start in windows]),
+            }
+        )
+    record["feet"] = out_feet
     return record
 
 
@@ -181,22 +223,32 @@ def ron_list(values: list[float]) -> str:
 
 
 def ron(records: list[dict]) -> str:
-    lines = ["("]
-    lines.append("    gaits: [")
+    lines = ["(", "    gaits: ["]
     for r in records:
         lines.append("        (")
         lines.append(f'            name: "{r["name"]}",')
         lines.append(f'            source: "{r["source"]}",')
+        lines.append(f"            direction: {r['direction']:.1f},")
         lines.append(f"            leg_length: {r['leg_length']:.4f},")
         lines.append(f"            speed: {r['speed']:.3f},")
+        lines.append(f"            hip_height: {r['hip_height']:.3f},")
         lines.append(f"            stride_period: {r['stride_period']:.3f},")
-        lines.append(f"            duty: {r['duty']:.3f},")
-        lines.append(f"            offset_r: {r['offset_r']:.3f},")
         lines.append(f"            knee_flexion: ({r['knee_flexion'][0]:.1f}, {r['knee_flexion'][1]:.1f}),")
         lines.append(f"            elbow_flexion: ({r['elbow_flexion'][0]:.1f}, {r['elbow_flexion'][1]:.1f}),")
-        lines.append(f"            lift: {ron_list(r['lift'])},")
-        lines.append(f"            swing: {ron_list(r['swing'])},")
         lines.append(f"            bob: {ron_list(r['bob'])},")
+        lines.append(f"            pelvis_yaw: {ron_list(r['pelvis_yaw'])},")
+        lines.append(f"            pelvis_roll: {ron_list(r['pelvis_roll'])},")
+        lines.append("            feet: [")
+        for foot in r["feet"]:
+            lines.append("                (")
+            lines.append(f"                    contact: {foot['contact']:.3f},")
+            lines.append(f"                    duty: {foot['duty']:.3f},")
+            lines.append(f"                    lift: {ron_list(foot['lift'])},")
+            lines.append(f"                    fwd: {ron_list(foot['fwd'])},")
+            lines.append(f"                    side: {ron_list(foot['side'])},")
+            lines.append(f"                    pitch: {ron_list(foot['pitch'])},")
+            lines.append("                ),")
+        lines.append("            ],")
         lines.append("        ),")
     lines.append("    ],")
     lines.append(")")

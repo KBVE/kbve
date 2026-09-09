@@ -39,7 +39,7 @@ cd kbve
 pnpm install
 
 moon run astro-kbve:dev        # kbve.com dev server
-moon run astro-herbmail:dev    # herbmail.com dev server
+moon run herbmail-web:dev    # herbmail.com dev server
 ```
 
 Useful workspace tasks:

@@ -56,7 +56,7 @@ const mapdb = mapdbData as {
 	})[];
 };
 
-const RESOURCE_NODE_TYPE = 'WORLD_OBJECT_RESOURCE_NODE';
+const RESOURCE_NODE_TYPE = 'WORLD_OBJECT_TYPE_RESOURCE_NODE';
 
 export function profession(ref: string): RuntimeProfession | undefined {
 	return runtime.professions.find((p) => p.ref === ref);

@@ -23,7 +23,8 @@ pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_cast)
+        app.insert_resource(Autowalk::from_env())
+            .add_systems(Startup, spawn_cast)
             .add_systems(Update, read_input);
     }
 }
@@ -59,11 +60,88 @@ fn spawn_cast(mut commands: Commands) {
 }
 
 /// The only system in the game that knows a keyboard exists.
+/// Drives the player without a keyboard, from `MMORPG_AUTOWALK=walk|jog|turn|jogturn`.
+#[derive(Resource, Default)]
+pub struct Autowalk {
+    pub enabled: bool,
+    pub run: bool,
+    pub turn_rate: f32,
+}
+
+impl Autowalk {
+    fn from_env() -> Self {
+        match std::env::var("MMORPG_AUTOWALK").as_deref() {
+            Ok("walk") => Self {
+                enabled: true,
+                run: false,
+                turn_rate: 0.0,
+            },
+            Ok("jog") => Self {
+                enabled: true,
+                run: true,
+                turn_rate: 0.0,
+            },
+            Ok("turn") => Self {
+                enabled: true,
+                run: false,
+                turn_rate: 0.8,
+            },
+            Ok("jogturn") => Self {
+                enabled: true,
+                run: true,
+                turn_rate: 0.8,
+            },
+            Ok("zigzag") => Self {
+                enabled: true,
+                run: false,
+                turn_rate: -1.0,
+            },
+            Ok("reverse") => Self {
+                enabled: true,
+                run: false,
+                turn_rate: -2.0,
+            },
+            Ok("stopgo") => Self {
+                enabled: true,
+                run: false,
+                turn_rate: -3.0,
+            },
+            _ => Self::default(),
+        }
+    }
+}
+
 fn read_input(
     keys: Res<ButtonInput<KeyCode>>,
+    time: Res<Time>,
+    auto: Res<Autowalk>,
     camera: Single<&OrbitCamera>,
     mut controlled: Query<&mut MoveIntent, With<Player>>,
 ) {
+    if auto.enabled {
+        let angle = if auto.turn_rate < 0.0 {
+            let flip = (time.elapsed_secs() / 1.5).floor() as i32 % 2 == 1;
+            match (flip, auto.turn_rate < -1.5) {
+                (false, _) => 0.0,
+                (true, false) => core::f32::consts::FRAC_PI_2,
+                (true, true) => core::f32::consts::PI,
+            }
+        } else {
+            time.elapsed_secs() * auto.turn_rate
+        };
+        let halted = auto.turn_rate < -2.5 && (time.elapsed_secs() / 1.5).floor() as i32 % 2 == 1;
+        let wish = if halted {
+            Vec3::ZERO
+        } else {
+            Quat::from_rotation_y(angle) * Vec3::NEG_Z
+        };
+        for mut intent in &mut controlled {
+            intent.wish = wish;
+            intent.run = auto.run;
+            intent.jump = false;
+        }
+        return;
+    }
     let mut stick = Vec2::ZERO;
     if keys.pressed(KeyCode::KeyW) {
         stick.y += 1.0;

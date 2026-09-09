@@ -68,13 +68,29 @@ pub struct OrbitCamera {
 
 impl Default for OrbitCamera {
     fn default() -> Self {
-        Self {
+        let mut camera = Self {
             yaw: 0.0,
             pitch: -0.42,
             distance: 11.0,
             focus_height: 1.4,
             focus: None,
+        };
+        if let Ok(spec) = std::env::var("MMORPG_CAMERA") {
+            let mut parts = spec.split(',').filter_map(|v| v.trim().parse::<f32>().ok());
+            if let Some(distance) = parts.next() {
+                camera.distance = distance;
+            }
+            if let Some(pitch) = parts.next() {
+                camera.pitch = pitch;
+            }
+            if let Some(yaw) = parts.next() {
+                camera.yaw = yaw;
+            }
+            if let Some(focus_height) = parts.next() {
+                camera.focus_height = focus_height;
+            }
         }
+        camera
     }
 }
 

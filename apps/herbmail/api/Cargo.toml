@@ -1,5 +1,5 @@
 [package]
-name = "axum-herbmail"
+name = "herbmail-api"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.2"
 edition = "2021"
