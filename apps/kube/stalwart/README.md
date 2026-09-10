@@ -30,7 +30,8 @@ store**; the only local file is `/etc/stalwart/config.json`, a single
 serialized `DataStore` object. We mount it from the `stalwart-config`
 ConfigMap with the password indirected through
 `{"@type": "EnvironmentVariable", "variableName": "STALWART_DB_PASSWORD"}`
-(fed by the `stalwart-db-credentials` sealed secret). On first boot Stalwart
+(fed by `stalwart-db-credentials`, an ExternalSecret mirror of the
+`stalwart-db-password` sealed secret in kilobase). On first boot Stalwart
 connects to kilobase, creates its key-value tables inside the `stalwart`
 schema (role `search_path` pins them there — verified locally), and starts
 default listeners: **25, 443, 465, 993, 995, 4190, 8080 — note: no 587 by
@@ -47,9 +48,12 @@ they persist in postgres, not on the PVC.
       `search_path` pinned so Stalwart's tables land in its own schema.
     - `20260807121000_mail_schema_init.sql` — `mail.messages`, RLS,
       `public.stalwart_ingest` RPC, pg_cron purge (90d).
-2. **Role password** — `./seal-stalwart-db-credentials.sh`, add the sealed
-   yaml to the kustomization, then
-   `ALTER ROLE stalwart WITH PASSWORD '<same-password>';`
+2. **Role password** — `./seal-stalwart-db-credentials.sh` writes
+   `sealed-stalwart-db-password.yaml` into `apps/kube/kilobase/manifests`.
+   CNPG manages the `stalwart` role from that secret (`managed.roles` in
+   `postgres-cluster.yaml`), and `manifest/externalsecret.yaml` mirrors it
+   into this namespace as `stalwart-db-credentials`. No `ALTER ROLE` by hand;
+   order against the migration does not matter.
 3. **Admin login** — `STALWART_RECOVERY_ADMIN` is not set, so use the
    bootstrap credentials printed on first boot:
    `kubectl logs -n stalwart deploy/stalwart | grep -A8 'bootstrap'`

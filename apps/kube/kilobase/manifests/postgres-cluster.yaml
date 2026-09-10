@@ -63,6 +63,18 @@ spec:
               connectionLimit: 10
               passwordSecret:
                   name: ows-db-password
+            - name: stalwart
+              ensure: present
+              comment: Stalwart Mail Server role — owns the stalwart schema only, no superuser, no RLS bypass
+              login: true
+              superuser: false
+              createdb: false
+              createrole: false
+              bypassrls: false
+              inherit: true
+              connectionLimit: 20
+              passwordSecret:
+                  name: stalwart-db-password
             - name: supabase_admin
               ensure: present
               comment: Supabase Admin
