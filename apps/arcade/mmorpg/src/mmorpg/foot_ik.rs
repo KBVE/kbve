@@ -153,12 +153,19 @@ const MAX_REACH_DROP: f32 = 0.0;
 const REACH_RESERVE: f32 = 0.0;
 const REACH_DROP_RATE: f32 = 14.0;
 const REACH_RISE_RATE: f32 = 5.0;
+/// Pelvis drop cap and leg reserve while standing on held feet, so a stance wider than the idle's does not lock the knees.
+const REST_DROP: f32 = 0.04;
+const REST_RESERVE: f32 = 0.02;
+/// Ground speed, m/s, under which feet stay held where they came to rest while the pose fades between idle and a clip.
+const REST_SPEED: f32 = 0.4;
 
 /// Below this ground speed a character is standing, and its feet follow the clip.
 const STEP_SPEED: f32 = 0.15;
 
 /// Seconds over which a released foot sheds what the lock was holding it away from the pose.
 const CARRY_FADE: f32 = 0.08;
+/// Fraction of the leg a resting foot may sit from the pose's ankle before the hold is dropped as a warp's leftover.
+const REST_REACH: f32 = 0.4;
 
 /// Extra lock slack per radian per second of facing turn: the straight clips do not turn, so the pose wins over the pin while the body does.
 const TURN_SLACK: f32 = 0.1;
@@ -212,6 +219,10 @@ pub struct FootGoal {
     carry: Vec3,
     /// Whether the pin is under the ball; until the ball comes down after a heel strike it is under the ankle.
     pin_ball: bool,
+    /// Where the foot was when the body came to rest, held through the idle so the stance it arrived in is the stance it stands in.
+    rest: Option<Vec3>,
+    /// Where the pose's foot sat relative to the pin when the pin was set, so the lock's slack measures the pose's own creep since then.
+    base: Vec3,
 }
 
 impl FootGoal {
@@ -236,6 +247,8 @@ impl FootGoal {
             sample: None,
             carry: Vec3::ZERO,
             pin_ball: false,
+            rest: None,
+            base: Vec3::ZERO,
         }
     }
 }
@@ -764,7 +777,12 @@ fn reach_pelvis(
 ) {
     let dt = time.delta_secs();
     for (character, mut cadence, lower) in &mut characters {
-        if !cadence.stepping {
+        let resting = !cadence.stepping || cadence.weight < 0.99;
+        if resting
+            && !goals
+                .iter()
+                .any(|(_, _, g)| g.character == character && g.rest.is_some())
+        {
             continue;
         }
         let read = transforms.as_readonly();
@@ -777,21 +795,24 @@ fn reach_pelvis(
                 continue;
             };
             let hip = hip.translation;
-            let reach = cadence.leg_length * (1.0 - REACH_RESERVE);
+            let reserve = if resting { REST_RESERVE } else { REACH_RESERVE };
+            let reach = cadence.leg_length * (1.0 - reserve);
             let flat = Vec2::new(limb.goal.x - hip.x, limb.goal.z - hip.z).length();
             let rise = (reach * reach - flat * flat).max(0.0).sqrt();
-            let drop = hip.y - (limb.goal.y + rise);
+            let drop = hip.y + cadence.reach_drop - (limb.goal.y + rise);
             wanted = wanted.max(drop * limb.weight);
         }
-        let wanted = wanted.min(MAX_REACH_DROP);
-        let rate = if wanted > cadence.reach_drop {
+        let wanted = wanted.min(if resting { REST_DROP } else { MAX_REACH_DROP });
+        let rate = if resting {
+            f32::INFINITY
+        } else if wanted > cadence.reach_drop {
             REACH_DROP_RATE
         } else {
             REACH_RISE_RATE
         };
         cadence.reach_drop += (wanted - cadence.reach_drop) * (rate * dt).min(1.0);
         if let Ok(mut model) = transforms.get_mut(lower.model) {
-            model.translation.y -= cadence.reach_drop * cadence.weight;
+            model.translation.y -= cadence.reach_drop * if resting { 1.0 } else { cadence.weight };
         }
     }
 }
@@ -1195,7 +1216,7 @@ fn hold_foot(
     ground: &dyn Fn(Vec3) -> Option<(Vec3, Vec3)>,
     step: f32,
 ) {
-    let full = cadence.weight >= 0.99;
+    let full = cadence.weight >= 0.99 || cadence.shot.is_some();
     let down = if goal.right {
         cadence.contact.1
     } else {
@@ -1216,25 +1237,27 @@ fn hold_foot(
         if goal.plant.is_none() {
             goal.pin_ball = ball_down;
             let under = if ball_down { ball } else { ankle };
-            goal.plant = Some(Vec3::new(under.x, hit.y, under.z));
+            let pinned = match goal.rest.take() {
+                Some(rest) => rest + (under - ankle),
+                None => under,
+            };
+            goal.base = Vec3::new(under.x - pinned.x, 0.0, under.z - pinned.z);
+            goal.plant = Some(Vec3::new(pinned.x, hit.y, pinned.z));
             goal.from = ball;
             goal.plant_yaw = cadence.yaw;
             goal.low = f32::MAX;
         } else if !goal.pin_ball && ball_down {
             goal.pin_ball = true;
             goal.plant = Some(Vec3::new(ball.x, hit.y, ball.z));
+            goal.base = Vec3::ZERO;
         }
         goal.low = goal.low.min(ankle.y - hit.y);
         let pin = goal.plant.unwrap_or(ball);
         let under = if goal.pin_ball { ball } else { ankle };
         goal.offset = under - pin;
-        let slip = Vec3::new(goal.offset.x, 0.0, goal.offset.z);
-        let over = slip.length() - (LOCK_SLACK + cadence.turn.abs() * TURN_SLACK);
-        let held = if over > 0.0 {
-            Vec3::new(under.x, 0.0, under.z) - slip.normalize_or_zero() * over
-        } else {
-            Vec3::new(under.x, 0.0, under.z)
-        };
+        let creep = Vec3::new(goal.offset.x, 0.0, goal.offset.z) - goal.base;
+        let slack = LOCK_SLACK + cadence.turn.abs() * TURN_SLACK;
+        let held = Vec3::new(pin.x, 0.0, pin.z) + creep.clamp_length_max(slack);
         limb.goal = if goal.pin_ball {
             let foot = Quat::from_rotation_y(goal.plant_yaw - cadence.yaw) * (ankle - ball);
             Vec3::new(held.x, ball.y.max(pin.y), held.z) + foot
@@ -1244,7 +1267,9 @@ fn hold_foot(
         };
         let reach = (ankle - hip).length().max(cadence.leg_length * HOLD_REACH);
         let span = limb.goal - hip;
-        if span.length() > reach {
+        if span.length() > reach && goal.base.length_squared() > 0.0 {
+            limb.goal = hip + span.normalize_or(Vec3::NEG_Y) * reach;
+        } else if span.length() > reach {
             let pull = limb.goal - ankle;
             let mut lo = 0.0;
             let mut hi = 1.0;
@@ -1260,14 +1285,33 @@ fn hold_foot(
         }
         goal.carry = limb.goal - ankle;
 
-        limb.weight = goal.grounded * cadence.weight;
+        limb.weight = goal.grounded
+            * if cadence.shot.is_some() {
+                1.0
+            } else {
+                cadence.weight
+            };
         goal.stepping = true;
+        goal.rest = None;
     } else {
         if goal.plant.is_some() && full && goal.low < f32::MAX {
             goal.sample = Some(goal.ankle_height - goal.low);
         }
         goal.plant = None;
         goal.stepping = false;
+        let resting = !full && !cadence.hold && cadence.speed <= REST_SPEED;
+        if resting {
+            let held = *goal.rest.get_or_insert(ankle + goal.carry);
+            if held.distance(ankle) > cadence.leg_length * REST_REACH {
+                goal.rest = Some(ankle);
+            }
+            let held = goal.rest.unwrap_or(ankle);
+            goal.carry = Vec3::ZERO;
+            limb.goal = Vec3::new(held.x, held.y.max(floor.y), held.z);
+            limb.weight = goal.grounded;
+            return;
+        }
+        goal.rest = None;
         goal.carry *= (-cadence.frame_dt / CARRY_FADE).exp();
         let carried = ankle + goal.carry;
         let sink = floor.y - carried.y;

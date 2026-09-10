@@ -63,7 +63,7 @@ fn spawn_cast(mut commands: Commands) {
 }
 
 /// The only system in the game that knows a keyboard exists.
-/// Drives the player without a keyboard, from `MMORPG_AUTOWALK=walk|jog|turn|jogturn|zigzag|reverse|stopgo|gear|jitter|swap|stopswap`; `MMORPG_AUTORUN=1` runs any of them.
+/// Drives the player without a keyboard, from `MMORPG_AUTOWALK=walk|jog|turn|jogturn|zigzag|reverse|stopgo|gear|jitter|swap|stopswap|rest`; `MMORPG_AUTORUN=1` runs any of them.
 #[derive(Resource, Default)]
 pub struct Autowalk {
     pub enabled: bool,
@@ -129,6 +129,11 @@ impl Autowalk {
                 run: false,
                 turn_rate: -7.0,
             },
+            Ok("rest") => Self {
+                enabled: true,
+                run: false,
+                turn_rate: -8.0,
+            },
             _ => Self::default(),
         };
         Self {
@@ -155,9 +160,18 @@ fn read_input(
         let gear = auto.turn_rate < -3.5 && auto.turn_rate > -4.5;
         let jitter = auto.turn_rate < -4.5 && auto.turn_rate > -5.5;
         let swap = auto.turn_rate < -5.5;
-        let swap_gap = if auto.turn_rate < -6.5 { 1.0 } else { 0.15 };
+        let rest = auto.turn_rate < -7.5;
+        let swap_gap = if rest {
+            3.0
+        } else if auto.turn_rate < -6.5 {
+            1.0
+        } else {
+            0.15
+        };
         let swap_leg = 4.0 + swap_gap;
         let angle = if gear {
+            0.0
+        } else if rest {
             0.0
         } else if swap {
             ((time.elapsed_secs() / swap_leg).floor() as i32 % 2) as f32 * core::f32::consts::PI

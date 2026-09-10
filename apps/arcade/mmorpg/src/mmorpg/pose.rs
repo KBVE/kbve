@@ -376,6 +376,9 @@ fn play_pose(
                     let aborted = !stopping && pushing && off >= REDIRECT;
                     let dropped = !stopping && !pushing;
                     if shot.frame >= shot.end || resumed || aborted || dropped {
+                        if stopping && !pushing {
+                            cadence.weight = 0.0;
+                        }
                         cadence.shot = None;
                         cadence.clip = None;
                         cadence.turn = 0.0;
@@ -635,7 +638,11 @@ fn play_pose(
             }
             inertia.apply(dt, &mut pelvis, &mut rotations, &mut directions);
         }
-        cadence.contact = if mix >= 0.99 { contact } else { (false, false) };
+        cadence.contact = if mix >= 0.99 || cadence.shot.is_some() {
+            contact
+        } else {
+            (false, false)
+        };
         for (bone, rest) in &lower.bones {
             if let Ok(mut transform) = transforms.get_mut(*bone) {
                 transform.translation = rest.translation;
