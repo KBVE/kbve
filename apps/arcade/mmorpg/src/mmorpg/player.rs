@@ -52,6 +52,9 @@ fn spawn_cast(mut commands: Commands) {
         super::combat::player_stats(),
     );
 
+    if std::env::var("MMORPG_NPCS").as_deref() == Ok("0") {
+        return;
+    }
     for index in 0..COMPANIONS {
         let angle = index as f32 / COMPANIONS as f32 * core::f32::consts::TAU;
         let (x, z) = (angle.cos() * 4.0, angle.sin() * 4.0);

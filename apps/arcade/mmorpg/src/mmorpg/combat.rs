@@ -192,6 +192,9 @@ pub fn make_combatant(
 }
 
 fn spawn_training_dummies(mut commands: Commands) {
+    if std::env::var("MMORPG_NPCS").as_deref() == Ok("0") {
+        return;
+    }
     for index in 0..DUMMIES {
         let angle = index as f32 / DUMMIES as f32 * core::f32::consts::TAU;
         let (x, z) = (angle.cos() * 9.0, angle.sin() * 9.0);
