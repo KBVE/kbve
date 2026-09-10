@@ -1,7 +1,7 @@
 {
-  "generated_at": "2026-09-09T05:58:00Z",
+  "generated_at": "2026-09-10T05:50:47Z",
   "node": {
-    "count": 52,
+    "count": 60,
     "major": 27,
     "items": [
       {
@@ -77,6 +77,30 @@
         "major": true
       },
       {
+        "name": "@scalar/api-reference",
+        "current": "1.67.0",
+        "wanted": "1.67.0",
+        "latest": "1.68.0",
+        "type": "devDependencies",
+        "major": false
+      },
+      {
+        "name": "@scalar/client-side-rendering",
+        "current": "0.3.10",
+        "wanted": "0.3.10",
+        "latest": "0.4.0",
+        "type": "devDependencies",
+        "major": false
+      },
+      {
+        "name": "@supabase/supabase-js",
+        "current": "2.115.0",
+        "wanted": "2.115.0",
+        "latest": "2.116.0",
+        "type": "dependencies",
+        "major": false
+      },
+      {
         "name": "@swc/core",
         "current": "1.16.1",
         "wanted": "1.16.1",
@@ -112,9 +136,25 @@
         "name": "@types/node",
         "current": "18.19.17",
         "wanted": "18.19.17",
-        "latest": "26.4.1",
+        "latest": "26.5.0",
         "type": "devDependencies",
         "major": true
+      },
+      {
+        "name": "@typescript-eslint/eslint-plugin",
+        "current": "8.69.0",
+        "wanted": "8.69.0",
+        "latest": "8.70.0",
+        "type": "devDependencies",
+        "major": false
+      },
+      {
+        "name": "@typescript-eslint/parser",
+        "current": "8.69.0",
+        "wanted": "8.69.0",
+        "latest": "8.70.0",
+        "type": "devDependencies",
+        "major": false
       },
       {
         "name": "@vitest/coverage-v8",
@@ -240,7 +280,7 @@
         "name": "lucide",
         "current": "0.575.0",
         "wanted": "0.575.0",
-        "latest": "1.41.0",
+        "latest": "1.42.0",
         "type": "dependencies",
         "major": true
       },
@@ -248,9 +288,25 @@
         "name": "lucide-react",
         "current": "0.575.0",
         "wanted": "0.575.0",
-        "latest": "1.41.0",
+        "latest": "1.42.0",
         "type": "dependencies",
         "major": true
+      },
+      {
+        "name": "marked",
+        "current": "18.0.11",
+        "wanted": "18.0.11",
+        "latest": "18.0.12",
+        "type": "dependencies",
+        "major": false
+      },
+      {
+        "name": "mdream",
+        "current": "1.7.1",
+        "wanted": "1.7.1",
+        "latest": "1.7.2",
+        "type": "devDependencies",
+        "major": false
       },
       {
         "name": "monocart-reporter",
@@ -376,7 +432,7 @@
         "name": "typegpu",
         "current": "0.11.9",
         "wanted": "0.11.9",
-        "latest": "0.12.4",
+        "latest": "0.12.5",
         "type": "dependencies",
         "major": false
       },
@@ -387,6 +443,14 @@
         "latest": "7.0.2",
         "type": "devDependencies",
         "major": true
+      },
+      {
+        "name": "typescript-eslint",
+        "current": "8.69.0",
+        "wanted": "8.69.0",
+        "latest": "8.70.0",
+        "type": "devDependencies",
+        "major": false
       },
       {
         "name": "verdaccio",
@@ -423,7 +487,7 @@
     ]
   },
   "rust": {
-    "count": 305,
+    "count": 307,
     "major": 1,
     "items": [
       {
@@ -609,7 +673,7 @@
       {
         "name": "async-compression",
         "current": "0.4.42",
-        "latest": "0.4.45",
+        "latest": "0.4.46",
         "major": false
       },
       {
@@ -1123,6 +1187,12 @@
         "major": false
       },
       {
+        "name": "bitflags",
+        "current": "2.13.1",
+        "latest": "2.13.2",
+        "major": false
+      },
+      {
         "name": "blake3",
         "current": "1.8.5",
         "latest": "1.8.7",
@@ -1203,7 +1273,7 @@
       {
         "name": "compression-codecs",
         "current": "0.4.38",
-        "latest": "0.4.40",
+        "latest": "0.4.41",
         "major": false
       },
       {
@@ -1341,7 +1411,7 @@
       {
         "name": "encoding_rs",
         "current": "0.8.35",
-        "latest": "0.8.40",
+        "latest": "0.8.41",
         "major": false
       },
       {
@@ -1653,7 +1723,7 @@
       {
         "name": "jsonpath-rust",
         "current": "1.0.5",
-        "latest": "1.0.10",
+        "latest": "1.0.11",
         "major": false
       },
       {
@@ -1755,7 +1825,7 @@
       {
         "name": "open",
         "current": "5.4.0",
-        "latest": "5.4.3",
+        "latest": "5.4.4",
         "major": false
       },
       {
@@ -2107,6 +2177,12 @@
         "major": false
       },
       {
+        "name": "uuid",
+        "current": "1.26.0",
+        "latest": "1.26.1",
+        "major": false
+      },
+      {
         "name": "wayland-backend",
         "current": "0.3.15",
         "latest": "0.3.17",
@@ -2258,6 +2334,6 @@
       }
     ]
   },
-  "total": 357,
+  "total": 367,
   "major_total": 28
 }
