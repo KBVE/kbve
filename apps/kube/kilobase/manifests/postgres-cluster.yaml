@@ -185,6 +185,9 @@ spec:
         recovery:
             source: kilobase-postgres-backup
             database: postgres
+            owner: supabase_admin
+            secret:
+                name: supabase-superuser
     externalClusters:
         - name: kilobase-postgres-backup
           plugin:
