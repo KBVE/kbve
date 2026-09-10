@@ -144,7 +144,7 @@ Bake rules learned the hard way:
 - Foot pitch is relative to the flat-stance median. The ball bone sits below the ankle, so absolute pitch reads −25°.
 - Strafe loops in GASP are fast cross-over walks; travel direction only counts when a heading (target lock) is set, and direction lanes are blended by angle.
 
-### How the mmorpg uses it (state on 2026-09-09, uncommitted in the local dev tree)
+### How the mmorpg used it before pose playback (state on 2026-09-09, afternoon)
 
 - Animation clips are masked off the lower body with `AnimationGraph` mask groups (`Bone::half` decides the group). While moving, the clip plays on a torso-only branch and is seek-driven from the stride phase; pelvis, legs and feet are procedural. Idle, jump and one-shots still play clips.
 - The stride phase is the only clock. Stance is the data's contact window, swing is the rest. A planted foot the body has walked or turned away from may lift early, but its landing time never moves; strain speeds the whole clock up (×1.25) rather than rushing one foot. Independent per-foot clocks were tried and drifted off phase (duty 0.6, 20% double support). Never again.
@@ -184,7 +184,26 @@ Blender is the bake and retarget-check tool; Bevy owns selection and playback.
 - Travel direction always chooses the lane in pose mode: when the facing lags a reversal the body is briefly walking backward and the backward clip is right; the forward clip marched a planted foot 0.8 m.
 - Measure on `MMORPG_FLAT=1` (one-height world) with `MMORPG_AUTOWALK=reverse` (6 s legs) and steady frames only; every earlier probe ran on a hillside, which is why the pelvis reach drop looked necessary.
 - Result on flat, straight and circle, lock on: knee within 4° of mocap at every tenth, clearance within 2 cm, planted ankle 0.23 m/s (mocap 0.10–0.15).
-- Open: turning still plays the straight clip while the body arcs, so the lock absorbs the turn in the knee; the arc, box, pivot, start and stop clips and a trajectory-matched selector fix that. Then lane and speed blending, quantising the 1.9 MB file, upper-body lean from data, the UE5 consumer.
+- Open at that point: turning still plays the straight clip while the body arcs, so the lock absorbs the turn in the knee; the arc, box, pivot, start and stop clips and a trajectory-matched selector fix that.
+
+### Pose owns the body (2026-09-09, night)
+
+The user still saw the walk as bad, with a "snap right when the leg gets placed". Slow motion (`MMORPG_SLOW=0.15`, burst screenshots by window id) plus the trace found six separate causes, none visible at speed. Each was measured, fixed and re-measured; the numbers below are from `MMORPG_FLAT=1 MMORPG_NPCS=0 MMORPG_AUTOWALK=walk|stopgo`.
+
+- The plant snap: the rig's bind ankle sits 0.0865 m over the sole, but the same joint angles put the ankle 0.066 m up on this rig (leg proportions differ from Manny). The swing sink clamp held the ankle at bind height, and the plant released it: 2 cm drop, 6° knee pop, every step. Fix: `Cadence.floor_fix`, learned from the lowest ankle height of each clean stance (first few average in, then a quarter each) and added to the pose floor. Converges to 0.02 m in a few strides.
+- The start snap: the first pin was set at 7% blend weight, on the idle clip's foot, and held while the walk pose moved 50 cm away; the leg straightened behind and snapped forward at release. Pins now need the pose fully in (weight ≥ 0.99).
+- Start and stop jumps at the weight 0 ↔ 0.07 boundary were the Bevy clip switch (idle ↔ walk on the unmasked leg branch) landing under the pose. The pose now owns the legs whenever the character is grounded, idle included: the baked mocap idle plays by time, walk ↔ idle is a slerp of two baked frames over the existing 0.25 s fade, `settle` is off in pose mode, and the torso branch (legs masked) is used whenever the pose owns them. Grounded idle also goes through `hold_foot`; the clip-era foot branch pulled the idle ankle to bind height and bent the near-straight knee 20°.
+- Torso hunch and dead arms: the Quaternius clip stands hunched by itself, and its walk swings the arms barely at all. The bake now carries chest (highest spine), neck, head, clavicles and arms; the rig's three spines share the chest delta by rank, arms retarget by direction, hands and clavicles by delta. Actions keep the upper body (`Has<Action>` skips upper roles). Pose file is 3.8 MB as text now.
+- Every 4th stride, an 18–20° knee step at phase 0.04: the exported loop ends on two copies of its first frame, so the last window stalled for two mocap frames; and the last left landing is the first one seen across the seam, giving a 2–6 frame window that spent a whole stride's clock in a few frames. Load now trims trailing frames that repeat, closes contact gaps of up to 3 frames, drops onsets that start a window under half the median, and plays every stride window of the loop in turn (`Cadence.stride_count`) instead of one window on repeat. The loop's translation at the seam is (last − first) × n/(n−1); without the extra frame step the root stalls for a frame there.
+- A lock that pins the ball at heel strike pins a point 3–12 cm in the air; the foot then rolls about it and drags the ankle. The pin now sits under the heel (ankle) until the ball comes within 2 cm of the ground, then hands over to the ball at its real touchdown spot. A held foot is never pulled past the larger of the pose's own reach and 98.5% of the leg; past that the pin slides instead of the knee locking straight (kinetree's clamp gave a 5.9° knee for six frames at every toe-off). What the lock still held at release fades over 80 ms into the swing.
+- Zero slack was tried and rejected again: the capture's own stance foot creeps ~4 cm backward per stance (median ankle 0.13 m/s), so a hard pin forces 10° of extra knee into every toe-off. 5 cm of slack over the heel/ball pin never engages on flat straight walking and only corrects turns, acceleration and terrain.
+- The pose frame is now chosen by the clip's root distance within the window (`frame_at_distance`), not by time, so the body's uniform motion and the clip's uneven root motion cannot separate a planted pose foot from the ground.
+
+Result, steady walk on flat: left knee by tenth `[27.6, 27.8, 12.6, 20.7, 31.1, 45.1, 68.2, 51.2, 14.2, 10.0]` against mocap `[29, 28, 11, 21, 29, 38, 67, 52, 11, 4]`; ankle clearance within 1 cm at every tenth; planted ankle speed median 0.18 m/s (mocap 0.13); no knee step over 6° at any contact edge; the only per-frame knee changes above 9° are mid-swing, where the mocap itself does 8.3° per 60 Hz frame. Stop-go: clean apart from the very first stride after launch while the floor fix is still learning.
+
+Still open: turning (arc, box, pivot clips with a trajectory-matched selector; the arcs are baked but excluded from `pick`), start and stop clips instead of the idle blend, jump and airborne still from the clip, lane and speed blending, quantising the pose file, the UE5 consumer.
+
+Debug switches added: `MMORPG_SLOW=<0..1>` scales virtual time, `MMORPG_NPCS=0` spawns no dummies or companions (they walked into every autowalk), `MMORPG_IK=0` plays the pure pose with no contact correction. The trace gained `stride` and `period` columns; `drop` now carries the floor fix.
 
 ### Rules for this work
 
