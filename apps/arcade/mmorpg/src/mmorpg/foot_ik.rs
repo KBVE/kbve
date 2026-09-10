@@ -812,7 +812,9 @@ fn reach_pelvis(
         };
         cadence.reach_drop += (wanted - cadence.reach_drop) * (rate * dt).min(1.0);
         if let Ok(mut model) = transforms.get_mut(lower.model) {
-            model.translation.y -= cadence.reach_drop * if resting { 1.0 } else { cadence.weight };
+            model.translation.y += cadence.root_drop;
+            cadence.root_drop = cadence.reach_drop * if resting { 1.0 } else { cadence.weight };
+            model.translation.y -= cadence.root_drop;
         }
     }
 }
@@ -994,8 +996,15 @@ fn aim_feet(
                 let hip = bone_world_transform(bones.root, &pose.transforms, &pose.parents)
                     .map(|t| t.translation)
                     .unwrap_or(ankle + Vec3::Y * cadence.leg_length);
+                let body_floor = pose
+                    .globals
+                    .get(goal.character)
+                    .ok()
+                    .map(|body| body.translation())
+                    .and_then(|body| ground(Vec3::new(body.x, ankle.y, body.z)))
+                    .map(|(hit, _)| hit.y);
                 hold_foot(
-                    &mut limb, &mut goal, cadence, hip, ankle, ball, &ground, step,
+                    &mut limb, &mut goal, cadence, hip, ankle, ball, &ground, body_floor, step,
                 );
                 return;
             }
@@ -1214,6 +1223,7 @@ fn hold_foot(
     ankle: Vec3,
     ball: Option<Vec3>,
     ground: &dyn Fn(Vec3) -> Option<(Vec3, Vec3)>,
+    body_floor: Option<f32>,
     step: f32,
 ) {
     let full = cadence.weight >= 0.99 || cadence.shot.is_some();
@@ -1251,7 +1261,11 @@ fn hold_foot(
             goal.plant = Some(Vec3::new(ball.x, hit.y, ball.z));
             goal.base = Vec3::ZERO;
         }
-        goal.low = goal.low.min(ankle.y - hit.y);
+        if cadence.weight >= 0.99 && cadence.shot.is_none() && goal.base.length_squared() == 0.0 {
+            goal.low = goal
+                .low
+                .min(ankle.y + cadence.reach_drop - body_floor.unwrap_or(hit.y));
+        }
         let pin = goal.plant.unwrap_or(ball);
         let under = if goal.pin_ball { ball } else { ankle };
         goal.offset = under - pin;
@@ -1294,7 +1308,11 @@ fn hold_foot(
         goal.stepping = true;
         goal.rest = None;
     } else {
-        if goal.plant.is_some() && full && goal.low < f32::MAX {
+        if goal.plant.is_some()
+            && cadence.weight >= 0.99
+            && cadence.shot.is_none()
+            && goal.low < f32::MAX
+        {
             goal.sample = Some(goal.ankle_height - goal.low);
         }
         goal.plant = None;

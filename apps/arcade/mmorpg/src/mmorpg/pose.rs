@@ -23,7 +23,9 @@ impl Plugin for PosePlugin {
 }
 
 /// The least of each stance's floor error folded into the fix once the first few have averaged in, and the most the pose may be shifted.
-const FLOOR_LEARN: f32 = 0.25;
+const FLOOR_LEARN: f32 = 0.02;
+/// Strides a clip must have run before its stances feed the floor fix, so the settling after a cut is not learned.
+const FLOOR_SETTLE: u32 = 2;
 const FLOOR_FIX_MAX: f32 = 0.1;
 
 /// Heading change, degrees, from which a walking body plays a turn clip instead of bending its loop.
@@ -332,6 +334,7 @@ fn play_pose(
         for mut goal in &mut goals {
             if goal.character == character
                 && let Some(sample) = goal.sample.take()
+                && cadence.stride_count >= cadence.clip_since + FLOOR_SETTLE
             {
                 cadence.floor_samples += 1;
                 let learn = (1.0 / cadence.floor_samples as f32).max(FLOOR_LEARN);
@@ -423,6 +426,7 @@ fn play_pose(
             } else {
                 0.0
             };
+            let previous = cadence.clip.map(|(index, _)| index);
             let chosen = match cadence.clip {
                 Some((index, stride)) if stride == cadence.stride_count => Some(index),
                 _ => pick(
@@ -434,6 +438,9 @@ fn play_pose(
                 ),
             };
             cadence.clip = chosen.map(|index| (index, cadence.stride_count));
+            if chosen != previous {
+                cadence.clip_since = cadence.stride_count;
+            }
             chosen
                 .and_then(|index| set.clips.get(index))
                 .and_then(|clip| {
@@ -465,6 +472,7 @@ fn play_pose(
             cadence.shot_facing = cadence.forward;
             cadence.shot_velocity = cadence.velocity;
             cadence.clip = Some((index, cadence.stride_count));
+            cadence.clip_since = cadence.stride_count;
             cadence.clip_period = None;
             clip.sample_frame(start)
         };

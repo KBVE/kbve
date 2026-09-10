@@ -332,6 +332,8 @@ pub struct Cadence {
     pub settle: Option<f32>,
     /// Extra model drop so both feet stay reachable, smoothed.
     pub reach_drop: f32,
+    /// How much of that drop is currently applied to the model root, restored before the next is applied.
+    pub root_drop: f32,
     /// Seconds the last stride advance covered, and the clock multiplier it ran at.
     pub frame_dt: f32,
     pub rate: f32,
@@ -343,6 +345,8 @@ pub struct Cadence {
     pub floor_fix: f32,
     /// Strides completed since the walk began, so a loop with several baked strides plays them all in turn.
     pub stride_count: u32,
+    /// Stride count when the playing clip last changed, so freshly cut stances can be told from settled ones.
+    pub clip_since: u32,
     /// Which pose clip is playing and the stride it was chosen on; a clip is chosen once per stride so lanes and arcs cannot flicker mid-step.
     pub clip: Option<(usize, u32)>,
     /// How many stances have fed the floor fix, so early ones weigh more.
@@ -398,12 +402,14 @@ impl Cadence {
             weight: 0.0,
             settle: None,
             reach_drop: 0.0,
+            root_drop: 0.0,
             frame_dt: 0.0,
             rate: 1.0,
             contact: (false, false),
             clip_period: None,
             floor_fix: 0.0,
             stride_count: 0,
+            clip_since: 0,
             clip: None,
             floor_samples: 0,
             grounded: false,
