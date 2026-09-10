@@ -8,6 +8,7 @@
 #include "Misc/ScopeLock.h"
 #include "StaticMeshAttributes.h"
 #include "StaticMeshOperations.h"
+#include "StaticMeshResources.h"
 #include "UObject/Package.h"
 #include "UObject/UObjectGlobals.h"
 

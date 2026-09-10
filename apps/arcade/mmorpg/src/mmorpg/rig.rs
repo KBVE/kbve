@@ -492,6 +492,26 @@ impl PoseClip {
         self.root_at(end).distance(self.root_at(start))
     }
 
+    /// Signed turn of the path per metre travelled, radians, left positive: the heading swept over the clip divided by its ground travel.
+    pub fn curvature(&self) -> f32 {
+        let n = self.frames.len();
+        if n < 2 {
+            return 0.0;
+        }
+        let swept = (self.frames[n - 1].root.2 - self.frames[0].root.2).to_radians();
+        let mut travel = 0.0;
+        for i in 0..n - 1 {
+            travel += self.root_at(i + 1).distance(self.root_at(i));
+        }
+        if travel < 0.05 { 0.0 } else { -swept / travel }
+    }
+
+    /// Ground the root covers over one stride, metres, averaged over the loop.
+    pub fn stride_length(&self) -> f32 {
+        let windows = self.strides();
+        windows.iter().map(|&w| self.travel(w)).sum::<f32>() / windows.len().max(1) as f32
+    }
+
     /// Ground the root covers over the loop's `stride`-th window, metres, so the clock matches the frames it plays.
     pub fn stride_travel(&self, stride: u32) -> f32 {
         let windows = self.strides();
@@ -510,6 +530,165 @@ impl PoseClip {
         self.speed / self.leg_length.max(0.01)
     }
 
+    /// Whether the clip plays once through rather than looping: a turn, pivot, start or stop.
+    pub fn one_shot(&self) -> bool {
+        ["_turn_", "_start_", "_stop_", "_pivot_", "_reface_"]
+            .iter()
+            .any(|p| self.name.contains(p))
+    }
+
+    /// Last frame index the clip can be sampled at.
+    pub fn last_frame(&self) -> f32 {
+        self.frames.len().saturating_sub(1) as f32
+    }
+
+    /// Body heading at fractional frame `x`, degrees right positive, relative to the first frame.
+    pub fn heading_at(&self, x: f32) -> f32 {
+        let n = self.frames.len();
+        if n == 0 {
+            return 0.0;
+        }
+        let x = x.clamp(0.0, self.last_frame());
+        let i = x.floor() as usize;
+        let j = (i + 1).min(n - 1);
+        let f = x - i as f32;
+        let a = self.frames[i].root.2;
+        let b = self.frames[j].root.2;
+        a + (b - a) * f - self.frames[0].root.2
+    }
+
+    /// Root velocity in the body's own frame at fractional frame `x`, canonical metres per second, so a one-shot can carry the body the way the capture moved.
+    pub fn body_velocity_at(&self, x: f32) -> Vec3 {
+        let n = self.frames.len();
+        if n < 2 {
+            return Vec3::ZERO;
+        }
+        let i = (x.floor() as usize).min(n - 2);
+        let a = self.frames[i].root;
+        let b = self.frames[i + 1].root;
+        let step = Vec3::new(b.0 - a.0, 0.0, b.1 - a.1) * self.fps;
+        Quat::from_rotation_y(a.2.to_radians()) * step
+    }
+
+    /// Frame of the last left-foot landing at or before `end`, so a one-shot can hand its stride phase to the loop that follows.
+    pub fn last_left_onset(&self, end: usize) -> Option<usize> {
+        self.left_onsets().into_iter().filter(|&o| o <= end).last()
+    }
+
+    /// The frames over which a turn clip actually turns: from the last landing of the `left` or right foot before the heading starts to move, advanced by `frac` of that foot's stride so it matches where the loop is, to the first landing after the heading settles, with how many frames that start sits past the turn onset (negative when it leads in). The walk in and out the capture kept around the turn are left to the loops.
+    pub fn turn_window(&self, left: bool, frac: f32) -> (f32, usize, f32) {
+        let n = self.frames.len();
+        if n < 2 {
+            return (0.0, n.saturating_sub(1), 0.0);
+        }
+        let h0 = self.frames[0].root.2;
+        let swept = self.frames[n - 1].root.2 - h0;
+        if swept.abs() < 10.0 {
+            return (0.0, n - 1, 0.0);
+        }
+        let swung = |i: usize| (self.frames[i].root.2 - h0) / swept;
+        let onset = (0..n).find(|&i| swung(i) > 0.05).unwrap_or(0);
+        let start = onset;
+        let end = (0..n).find(|&i| swung(i) > 0.95).unwrap_or(n - 1);
+        let landing = |i: usize, foot: Option<bool>| {
+            let (a, b) = (&self.frames[i - 1].contact, &self.frames[i].contact);
+            match foot {
+                Some(true) => b.0 && !a.0,
+                Some(false) => b.1 && !a.1,
+                None => (b.0 && !a.0) || (b.1 && !a.1),
+            }
+        };
+        let start = (1..=start)
+            .rev()
+            .find(|&i| landing(i, Some(left)))
+            .or_else(|| (start.max(1)..n).find(|&i| landing(i, Some(left))))
+            .unwrap_or(start);
+        let end = (end.max(start + 1)..n)
+            .find(|&i| landing(i, None))
+            .unwrap_or(n - 1);
+        let next = (start + 1..n)
+            .find(|&i| landing(i, Some(left)))
+            .unwrap_or(end);
+        let at = start as f32 + frac.clamp(0.0, 1.0) * (next - start) as f32;
+        let at = at.min(end as f32 - 1.0);
+        (at, end, at - onset as f32)
+    }
+
+    /// Window of a turn-in-place clip: from its first frame to where 95% of the heading is swept.
+    pub fn stand_window(&self) -> (f32, usize) {
+        let n = self.frames.len();
+        if n < 2 {
+            return (0.0, n.saturating_sub(1));
+        }
+        let h0 = self.frames[0].root.2;
+        let swept = self.frames[n - 1].root.2 - h0;
+        if swept.abs() < 10.0 {
+            return (0.0, n - 1);
+        }
+        let end = (0..n)
+            .find(|&i| (self.frames[i].root.2 - h0) / swept > 0.95)
+            .unwrap_or(n - 1);
+        (0.0, end.max(1))
+    }
+
+    /// Ground speed of the root at frame `i`, metres per second.
+    fn root_speed(&self, i: usize) -> f32 {
+        let n = self.frames.len();
+        if n < 2 {
+            return 0.0;
+        }
+        let i = i.min(n - 2);
+        let (a, b) = (self.frames[i].root, self.frames[i + 1].root);
+        Vec2::new(b.0 - a.0, b.1 - a.1).length() * self.fps
+    }
+
+    /// Frame at which `left` (or the right) foot lands, searching forward from `from`.
+    fn landing_from(&self, from: usize, left: bool) -> Option<usize> {
+        (from.max(1)..self.frames.len()).find(|&i| {
+            let (a, b) = (&self.frames[i - 1].contact, &self.frames[i].contact);
+            if left { b.0 && !a.0 } else { b.1 && !a.1 }
+        })
+    }
+
+    /// The frames of a start clip worth playing: from standing to the first landing after the body reaches its walking speed, so the loop takes over on a stride.
+    pub fn start_window(&self) -> (usize, usize) {
+        let n = self.frames.len();
+        let top = (0..n).map(|i| self.root_speed(i)).fold(0.0, f32::max);
+        let up = (0..n)
+            .find(|&i| self.root_speed(i) >= 0.9 * top)
+            .unwrap_or(0);
+        let end = self
+            .landing_from(up, true)
+            .or_else(|| self.landing_from(up, false))
+            .unwrap_or(n.saturating_sub(1));
+        (0, end)
+    }
+
+    /// The frames of a stop clip worth playing: from the landing of the `left` or right foot, advanced by `frac` of that foot's stride to match the loop, to the frame the body comes to rest.
+    pub fn stop_window(&self, left: bool, frac: f32) -> (f32, usize) {
+        let n = self.frames.len();
+        let start = self.landing_from(1, left).unwrap_or(0);
+        let end = (start..n)
+            .find(|&i| self.root_speed(i) < 0.05)
+            .unwrap_or(n.saturating_sub(1));
+        let end = end.max(start + 1).min(n.saturating_sub(1));
+        let next = self.landing_from(start + 1, left).unwrap_or(end);
+        let at = start as f32 + frac.clamp(0.0, 1.0) * (next - start) as f32;
+        (at.min(end as f32 - 1.0), end)
+    }
+
+    /// The pose at absolute fractional frame `x`, clamped to the clip's end rather than wrapped.
+    pub fn sample_frame(&self, x: f32) -> Option<PoseSample> {
+        let n = self.frames.len();
+        if n == 0 {
+            return None;
+        }
+        let x = x.clamp(0.0, self.last_frame());
+        let i = x.floor() as usize;
+        let j = (i + 1).min(n - 1);
+        Some(self.sample_between(i, j, x - i as f32))
+    }
+
     /// The pose at `phase` in 0..1 of the loop's `stride`-th window, interpolated between frames.
     pub fn sample(&self, phase: f32, stride: u32) -> Option<PoseSample> {
         let n = self.frames.len();
@@ -525,7 +704,11 @@ impl PoseClip {
             .unwrap_or(start as f32 + phase * span);
         let i = x.floor() as usize % n;
         let j = (i + 1) % n;
-        let f = x - x.floor();
+        Some(self.sample_between(i, j, x - x.floor()))
+    }
+
+    /// Frames `i` and `j` mixed by `f`.
+    fn sample_between(&self, i: usize, j: usize, f: f32) -> PoseSample {
         let a = &self.frames[i];
         let b = &self.frames[j];
         let pelvis = Vec3::new(a.pelvis.0, a.pelvis.1, a.pelvis.2)
@@ -544,12 +727,12 @@ impl PoseClip {
             .zip(&b.directions)
             .map(|(p, q)| Vec3::new(p.0, p.1, p.2).lerp(Vec3::new(q.0, q.1, q.2), f))
             .collect();
-        Some(PoseSample {
+        PoseSample {
             pelvis,
             rotations,
             directions,
             contact: a.contact,
-        })
+        }
     }
 }
 
@@ -579,7 +762,9 @@ impl AssetLoader for PoseLoader {
         reader.read_to_end(&mut bytes).await?;
         let mut set: PoseSet = ron::de::from_bytes(&bytes)?;
         for clip in &mut set.clips {
-            clip.trim_seam();
+            if !clip.one_shot() {
+                clip.trim_seam();
+            }
             clip.mend_contacts();
         }
         Ok(set)
