@@ -63,7 +63,7 @@ fn spawn_cast(mut commands: Commands) {
 }
 
 /// The only system in the game that knows a keyboard exists.
-/// Drives the player without a keyboard, from `MMORPG_AUTOWALK=walk|jog|turn|jogturn`.
+/// Drives the player without a keyboard, from `MMORPG_AUTOWALK=walk|jog|turn|jogturn|zigzag|reverse|stopgo|gear|jitter|swap|stopswap`; `MMORPG_AUTORUN=1` runs any of them.
 #[derive(Resource, Default)]
 pub struct Autowalk {
     pub enabled: bool,
@@ -73,7 +73,7 @@ pub struct Autowalk {
 
 impl Autowalk {
     fn from_env() -> Self {
-        match std::env::var("MMORPG_AUTOWALK").as_deref() {
+        let auto = match std::env::var("MMORPG_AUTOWALK").as_deref() {
             Ok("walk") => Self {
                 enabled: true,
                 run: false,
@@ -114,7 +114,26 @@ impl Autowalk {
                 run: false,
                 turn_rate: -4.0,
             },
+            Ok("jitter") => Self {
+                enabled: true,
+                run: false,
+                turn_rate: -5.0,
+            },
+            Ok("swap") => Self {
+                enabled: true,
+                run: false,
+                turn_rate: -6.0,
+            },
+            Ok("stopswap") => Self {
+                enabled: true,
+                run: false,
+                turn_rate: -7.0,
+            },
             _ => Self::default(),
+        };
+        Self {
+            run: auto.run || std::env::var("MMORPG_AUTORUN").is_ok_and(|v| v != "0"),
+            ..auto
         }
     }
 }
@@ -133,9 +152,17 @@ fn read_input(
             1.5
         };
         let flip = (time.elapsed_secs() / leg).floor() as i32 % 2 == 1;
-        let gear = auto.turn_rate < -3.5;
+        let gear = auto.turn_rate < -3.5 && auto.turn_rate > -4.5;
+        let jitter = auto.turn_rate < -4.5 && auto.turn_rate > -5.5;
+        let swap = auto.turn_rate < -5.5;
+        let swap_gap = if auto.turn_rate < -6.5 { 1.0 } else { 0.15 };
+        let swap_leg = 4.0 + swap_gap;
         let angle = if gear {
             0.0
+        } else if swap {
+            ((time.elapsed_secs() / swap_leg).floor() as i32 % 2) as f32 * core::f32::consts::PI
+        } else if jitter {
+            ((time.elapsed_secs() / 0.6).floor() as i32 % 4) as f32 * core::f32::consts::FRAC_PI_2
         } else if auto.turn_rate < 0.0 {
             match (flip, auto.turn_rate < -1.5) {
                 (false, _) => 0.0,
@@ -145,7 +172,11 @@ fn read_input(
         } else {
             time.elapsed_secs() * auto.turn_rate
         };
-        let halted = !gear && auto.turn_rate < -2.5 && flip;
+        let halted = if swap {
+            time.elapsed_secs().rem_euclid(swap_leg) < swap_gap
+        } else {
+            !gear && !jitter && auto.turn_rate < -2.5 && flip
+        };
         let wish = if halted {
             Vec3::ZERO
         } else {

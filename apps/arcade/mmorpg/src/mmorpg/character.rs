@@ -343,12 +343,41 @@ pub struct Cadence {
     pub floor_fix: f32,
     /// Strides completed since the walk began, so a loop with several baked strides plays them all in turn.
     pub stride_count: u32,
+    /// Which pose clip is playing and the stride it was chosen on; a clip is chosen once per stride so lanes and arcs cannot flicker mid-step.
+    pub clip: Option<(usize, u32)>,
     /// How many stances have fed the floor fix, so early ones weigh more.
     pub floor_samples: u32,
     /// Whether the body stands on ground this frame, so the played pose may own the legs.
     pub grounded: bool,
     /// Where the baked idle loop is, in turns.
     pub idle_phase: f32,
+    /// A turn, start or stop clip playing once through, which owns the facing and the velocity while it runs.
+    pub shot: Option<Shot>,
+    /// World velocity the running shot asks for, and the facing it has turned the body to.
+    pub shot_velocity: Vec3,
+    pub shot_facing: Vec3,
+    /// Ground speed the frame before, so a stop can hold the pace the body had until its clip begins.
+    pub prior_speed: f32,
+    /// The pose is holding the body between clips: facing and velocity come from `shot_facing` and `shot_velocity` as during a shot.
+    pub hold: bool,
+    /// Seconds the stick has been released while walking, so a tap does not start a stop.
+    pub release: f32,
+}
+
+/// One pass through a one-shot clip: which clip, how far in, and the facing it started from.
+#[derive(Debug, Clone, Copy)]
+pub struct Shot {
+    pub clip: usize,
+    pub frame: f32,
+    /// Frame the shot ends on, and the clip heading at its first frame.
+    pub end: f32,
+    pub heading: f32,
+    pub facing: Vec3,
+    /// Whether the clip's root heading turns the body; a start or stop holds its facing.
+    pub turns: bool,
+    /// Frame the shot began on, and extra yaw (radians) spread evenly over the window so the shot ends facing the stick exactly.
+    pub start: f32,
+    pub steer: f32,
 }
 
 impl Cadence {
@@ -375,9 +404,16 @@ impl Cadence {
             clip_period: None,
             floor_fix: 0.0,
             stride_count: 0,
+            clip: None,
             floor_samples: 0,
             grounded: false,
             idle_phase: 0.0,
+            shot: None,
+            shot_velocity: Vec3::ZERO,
+            shot_facing: Vec3::NEG_Z,
+            prior_speed: 0.0,
+            hold: false,
+            release: 0.0,
         }
     }
 }
@@ -848,6 +884,7 @@ fn wire_skeleton(
             "lowerarm_l" => "hand_l",
             "upperarm_r" => "lowerarm_r",
             "lowerarm_r" => "hand_r",
+            "neck" => "head",
             _ => return None,
         })
     };
@@ -903,6 +940,7 @@ fn wire_skeleton(
         });
     commands.entity(character).insert((
         Cadence::new(leg_length),
+        super::pose::Inertia::default(),
         LowerBody {
             model,
             model_rest,
@@ -1097,12 +1135,21 @@ fn apply_movement(
             &mut LinearVelocity,
             &mut Grounded,
             &ShapeHits,
+            Option<&Cadence>,
         ),
         With<Character>,
     >,
 ) {
-    for (intent, heading, mut velocity, mut grounded, hits) in &mut characters {
+    for (intent, heading, mut velocity, mut grounded, hits, cadence) in &mut characters {
         grounded.0 = !hits.is_empty();
+        if let Some(cadence) = cadence
+            && (cadence.shot.is_some() || cadence.hold)
+            && grounded.0
+        {
+            velocity.x = cadence.shot_velocity.x;
+            velocity.z = cadence.shot_velocity.z;
+            continue;
+        }
 
         // A heading means something is selected, which means a fight, which
         // means running. Holding a modifier for the whole of every fight is the
@@ -1260,14 +1307,21 @@ fn pick_bearing(mut characters: Query<(&LinearVelocity, &Heading, &mut Bearing),
 /// on the entity that exists for visuals.
 fn face_travel_direction(
     time: Res<Time>,
-    velocities: Query<(&LinearVelocity, &Heading), With<Character>>,
+    velocities: Query<(&LinearVelocity, &Heading, Option<&Cadence>), With<Character>>,
     mut models: Query<(&mut Transform, &ChildOf), With<CharacterModel>>,
 ) {
     let dt = time.delta_secs();
     for (mut transform, parent) in &mut models {
-        let Ok((velocity, heading)) = velocities.get(parent.parent()) else {
+        let Ok((velocity, heading, cadence)) = velocities.get(parent.parent()) else {
             continue;
         };
+        if let Some(cadence) = cadence
+            && (cadence.shot.is_some() || cadence.hold)
+        {
+            transform.rotation = Quat::from_rotation_arc(Vec3::NEG_Z, cadence.shot_facing)
+                * Quat::from_rotation_y(MODEL_FACING);
+            continue;
+        }
         // A heading wins outright, and unlike travel it holds while standing
         // still: a character that stops moving should keep looking at whatever
         // it was looking at.

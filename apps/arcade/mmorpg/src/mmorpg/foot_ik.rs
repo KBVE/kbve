@@ -160,6 +160,9 @@ const STEP_SPEED: f32 = 0.15;
 /// Seconds over which a released foot sheds what the lock was holding it away from the pose.
 const CARRY_FADE: f32 = 0.08;
 
+/// Extra lock slack per radian per second of facing turn: the straight clips do not turn, so the pose wins over the pin while the body does.
+const TURN_SLACK: f32 = 0.1;
+
 /// Ball height over the ground under which the ball, not the heel, is what the foot stands on.
 const BALL_CLEAR: f32 = 0.02;
 
@@ -365,7 +368,7 @@ impl Trace {
             .map(|mut file| {
                 let _ = writeln!(
                     file,
-                    "t,entity,phase,rate,speed,turn,yaw,x,z,weight,wish_x,wish_z,run,hip_y,drop,l_fwd,l_side,l_up,l_twist,l_knee,l_plant,l_strain,l_lift_at,l_goal_fwd,l_goal_side,l_goal_up,l_w,l_ax,l_ay,l_az,l_reach,l_why,l_gx,l_gy,l_gz,l_gnd,l_len,l_ox,l_oy,l_oz,r_fwd,r_side,r_up,r_twist,r_knee,r_plant,r_strain,r_lift_at,r_goal_fwd,r_goal_side,r_goal_up,r_w,r_ax,r_ay,r_az,r_reach,r_why,r_gx,r_gy,r_gz,r_gnd,r_len,r_ox,r_oy,r_oz,stride,period"
+                    "t,entity,phase,rate,speed,turn,yaw,x,z,weight,wish_x,wish_z,run,hip_y,drop,l_fwd,l_side,l_up,l_twist,l_knee,l_plant,l_strain,l_lift_at,l_goal_fwd,l_goal_side,l_goal_up,l_w,l_ax,l_ay,l_az,l_reach,l_why,l_gx,l_gy,l_gz,l_gnd,l_len,l_ox,l_oy,l_oz,r_fwd,r_side,r_up,r_twist,r_knee,r_plant,r_strain,r_lift_at,r_goal_fwd,r_goal_side,r_goal_up,r_w,r_ax,r_ay,r_az,r_reach,r_why,r_gx,r_gy,r_gz,r_gnd,r_len,r_ox,r_oy,r_oz,stride,period,clip,torso_fwd,torso_side,chest_yaw,chest_pitch,head_yaw,head_pitch"
                 );
                 Mutex::new(file)
             });
@@ -460,9 +463,10 @@ fn trace_pose(
             .map(|t| t.translation().y)
             .sum::<f32>()
             / lower.legs.len().max(1) as f32;
+        let torso = torso_angles(lower, &globals, cadence.forward, right);
         let _ = writeln!(
             file,
-            "{:.4},{},{:.4},{:.2},{:.3},{:.3},{:.3},{:.3},{:.3},{:.2},{:.2},{:.2},{},{:.4},{:.4},{},{},{},{:.4}",
+            "{:.4},{},{:.4},{:.2},{:.3},{:.3},{:.3},{:.3},{:.3},{:.2},{:.2},{:.2},{},{:.4},{:.4},{},{},{},{:.4},{},{}",
             time.elapsed_secs(),
             entity,
             cadence.phase,
@@ -481,9 +485,60 @@ fn trace_pose(
             feet[0],
             feet[1],
             cadence.stride_count,
-            cadence.clip_period.unwrap_or(0.0)
+            cadence.clip_period.unwrap_or(0.0),
+            cadence.clip.map(|(i, _)| i as i64).unwrap_or(-1),
+            torso
         );
     }
+}
+
+/// Torso lean, chest facing and head facing in degrees, for checking the upper body against the mocap.
+fn torso_angles(
+    lower: &LowerBody,
+    globals: &Query<&GlobalTransform>,
+    forward: Vec3,
+    right: Vec3,
+) -> String {
+    let role = |name: &str| lower.roles.iter().find(|r| r.role == name);
+    let at =
+        |name: &str| role(name).and_then(|r| globals.get(r.bone).ok().map(|g| g.translation()));
+    let lean = |a: Vec3, b: Vec3| {
+        let v = (b - a).normalize_or_zero();
+        (
+            v.dot(forward).atan2(v.y).to_degrees(),
+            v.dot(right).atan2(v.y).to_degrees(),
+        )
+    };
+    let facing = |name: &str| {
+        role(name).and_then(|r| globals.get(r.bone).ok()).map(|g| {
+            let f = g.rotation()
+                * role(name)
+                    .map(|r| r.rest.rotation.inverse())
+                    .unwrap_or(Quat::IDENTITY)
+                * Vec3::Z;
+            (
+                f.dot(right).atan2(f.dot(forward)).to_degrees(),
+                (-f.y).asin().to_degrees(),
+            )
+        })
+    };
+    let torso = match (at("spine_0"), at("neck")) {
+        (Some(a), Some(b)) => lean(a, b),
+        _ => (0.0, 0.0),
+    };
+    let top = lower
+        .roles
+        .iter()
+        .filter(|r| r.role.starts_with("spine_"))
+        .map(|r| r.role)
+        .max()
+        .unwrap_or("spine_0");
+    let chest = facing(top).unwrap_or((0.0, 0.0));
+    let head = facing("head").unwrap_or((0.0, 0.0));
+    format!(
+        "{:.1},{:.1},{:.1},{:.1},{:.1},{:.1}",
+        torso.0, torso.1, chest.0, chest.1, head.0, head.1
+    )
 }
 
 /// Which feet of each character were planted at the end of last frame, indexed left then right, so a foot never lifts early while the other is already in the air.
@@ -563,6 +618,7 @@ fn advance_stride(
             .get(&entity)
             .is_some_and(|feet| feet.iter().any(|f| f.strained));
         let planar = Vec3::new(velocity.x, 0.0, velocity.z);
+        stride.prior_speed = stride.speed;
         stride.speed = planar.length();
         stride.velocity = planar;
         let facing = transforms
@@ -590,7 +646,10 @@ fn advance_stride(
         if heading.0.is_none() {
             stride.velocity = stride.forward * stride.speed;
         }
-        let moving = grounded.0 && stride.speed > STEP_SPEED;
+        let moving = grounded.0
+            && (stride.speed.max(stride.prior_speed) > STEP_SPEED
+                || stride.shot.is_some()
+                || stride.hold);
         stride.grounded = grounded.0;
         let chase = PACE_RATE * dt;
         stride.pace = if moving {
@@ -1170,7 +1229,7 @@ fn hold_foot(
         let under = if goal.pin_ball { ball } else { ankle };
         goal.offset = under - pin;
         let slip = Vec3::new(goal.offset.x, 0.0, goal.offset.z);
-        let over = slip.length() - LOCK_SLACK;
+        let over = slip.length() - (LOCK_SLACK + cadence.turn.abs() * TURN_SLACK);
         let held = if over > 0.0 {
             Vec3::new(under.x, 0.0, under.z) - slip.normalize_or_zero() * over
         } else {
