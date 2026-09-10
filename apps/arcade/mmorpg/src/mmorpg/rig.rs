@@ -512,12 +512,6 @@ impl PoseClip {
         if travel < 0.05 { 0.0 } else { -swept / travel }
     }
 
-    /// Ground the root covers over one stride, metres, averaged over the loop.
-    pub fn stride_length(&self) -> f32 {
-        let windows = self.strides();
-        windows.iter().map(|&w| self.travel(w)).sum::<f32>() / windows.len().max(1) as f32
-    }
-
     /// Ground the root covers over the loop's `stride`-th window, metres, so the clock matches the frames it plays.
     pub fn stride_travel(&self, stride: u32) -> f32 {
         let windows = self.strides();
@@ -580,7 +574,7 @@ impl PoseClip {
 
     /// Frame of the last left-foot landing at or before `end`, so a one-shot can hand its stride phase to the loop that follows.
     pub fn last_left_onset(&self, end: usize) -> Option<usize> {
-        self.left_onsets().into_iter().filter(|&o| o <= end).last()
+        self.left_onsets().into_iter().rfind(|&o| o <= end)
     }
 
     /// The frames over which a turn clip actually turns: from the last landing of the `left` or right foot before the heading starts to move, advanced by `frac` of that foot's stride so it matches where the loop is, to the first landing after the heading settles, with how many frames that start sits past the turn onset (negative when it leads in). The walk in and out the capture kept around the turn are left to the loops.

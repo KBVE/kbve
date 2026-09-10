@@ -1186,23 +1186,24 @@ pub fn find_bone(
     None
 }
 
-fn apply_movement(
-    time: Res<Time>,
-    spatial: SpatialQuery,
-    mut characters: Query<
-        (
-            Entity,
-            &Transform,
-            &mut MoveIntent,
-            &Heading,
-            &mut LinearVelocity,
-            &mut Grounded,
-            &ShapeHits,
-            Option<&mut Cadence>,
-        ),
-        With<Character>,
-    >,
-) {
+/// Every character the mover drives, with the ground contact and cadence that decide whether it drives at all.
+type MovingCharacters<'w, 's> = Query<
+    'w,
+    's,
+    (
+        Entity,
+        &'static Transform,
+        &'static mut MoveIntent,
+        &'static Heading,
+        &'static mut LinearVelocity,
+        &'static mut Grounded,
+        &'static ShapeHits,
+        Option<&'static mut Cadence>,
+    ),
+    With<Character>,
+>;
+
+fn apply_movement(time: Res<Time>, spatial: SpatialQuery, mut characters: MovingCharacters) {
     let nose = Collider::sphere(CHARACTER_RADIUS * 0.9);
     for (entity, transform, mut intent, heading, mut velocity, mut grounded, hits, mut cadence) in
         &mut characters

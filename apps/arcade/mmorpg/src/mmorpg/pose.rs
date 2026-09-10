@@ -430,19 +430,26 @@ fn blend(idle: PoseSample, moving: PoseSample, mix: f32) -> PoseSample {
     }
 }
 
+/// Every character the pose player drives, with the intent and inertia that pick which clip plays.
+type PosedCharacters<'w, 's> = Query<
+    'w,
+    's,
+    (
+        Entity,
+        &'static mut Cadence,
+        &'static LowerBody,
+        Has<Action>,
+        Option<&'static MoveIntent>,
+        Option<&'static mut Inertia>,
+    ),
+>;
+
 fn play_pose(
     time: Res<Time>,
     playback: Res<PosePlayback>,
     rig: Res<Rig>,
     sets: Res<Assets<PoseSet>>,
-    mut characters: Query<(
-        Entity,
-        &mut Cadence,
-        &LowerBody,
-        Has<Action>,
-        Option<&MoveIntent>,
-        Option<&mut Inertia>,
-    )>,
+    mut characters: PosedCharacters,
     mut goals: Query<&mut FootGoal>,
     mut transforms: Query<&mut Transform>,
     mut profile: Local<(f32, f64, u32, u32)>,
