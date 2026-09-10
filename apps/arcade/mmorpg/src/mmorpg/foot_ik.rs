@@ -303,6 +303,14 @@ fn draw_probes(
     }
 }
 
+/// The switches the leg systems read together: whether foot IK runs at all, which leg mode it runs in, and whether a baked clip is driving the legs.
+#[derive(SystemParam)]
+struct Switches<'w> {
+    enabled: Res<'w, FootIkEnabled>,
+    mode: Res<'w, FootIkMode>,
+    playback: Res<'w, PosePlayback>,
+}
+
 /// The three views needed to read a pose: bone locals to compose from, the
 /// parent links to compose along, and the propagated globals for the coarse
 /// distance test.
@@ -533,8 +541,7 @@ fn note_support(mut support: ResMut<Support>, goals: Query<&FootGoal>, cadences:
 fn advance_stride(
     time: Res<Time>,
     rig: Res<Rig>,
-    mode: Res<FootIkMode>,
-    playback: Res<PosePlayback>,
+    switches: Switches,
     support: Res<Support>,
     sets: Res<Assets<GaitSet>>,
     transforms: Query<&Transform>,
@@ -571,14 +578,15 @@ fn advance_stride(
         stride.turn += (rate - stride.turn) * (6.0 * dt).min(1.0);
         stride.yaw = yaw;
         let right = stride.forward.cross(Vec3::Y);
-        stride.direction = if stride.speed > STEP_SPEED && (heading.0.is_some() || playback.on) {
-            planar
-                .dot(right)
-                .atan2(planar.dot(stride.forward))
-                .to_degrees()
-        } else {
-            0.0
-        };
+        stride.direction =
+            if stride.speed > STEP_SPEED && (heading.0.is_some() || switches.playback.on) {
+                planar
+                    .dot(right)
+                    .atan2(planar.dot(stride.forward))
+                    .to_degrees()
+            } else {
+                0.0
+            };
         if heading.0.is_none() {
             stride.velocity = stride.forward * stride.speed;
         }
@@ -596,15 +604,16 @@ fn advance_stride(
             }
             _ => None,
         };
-        let wants = *mode == FootIkMode::Procedural && fresh.is_some_and(|b| b.stride_period > 0.0);
+        let wants = *switches.mode == FootIkMode::Procedural
+            && fresh.is_some_and(|b| b.stride_period > 0.0);
         if wants {
             stride.blend = fresh;
             stride.settle = None;
         } else if stride.weight > 0.001 {
             if stride.settle.is_none()
                 && grounded.0
-                && !playback.on
-                && *mode == FootIkMode::Procedural
+                && !switches.playback.on
+                && *switches.mode == FootIkMode::Procedural
             {
                 stride.settle = stride.blend.map(|b| {
                     b.feet
@@ -810,12 +819,10 @@ fn level_feet(
 
 fn aim_feet(
     time: Res<Time>,
-    enabled: Res<FootIkEnabled>,
-    mode: Res<FootIkMode>,
+    switches: Switches,
     spatial: SpatialQuery,
     camera: Single<&GlobalTransform, With<Camera3d>>,
     pose: Pose,
-    playback: Res<PosePlayback>,
     walkers: Query<(), With<Character>>,
     mut limbs: Query<(&mut IkLimb, &IkLimbBones, &mut FootGoal)>,
 ) {
@@ -853,7 +860,7 @@ fn aim_feet(
             let filter = SpatialQueryFilter::default().with_excluded_entities([goal.character]);
             let sole = Collider::sphere(SOLE_RADIUS);
             let ground = |probe: Vec3| {
-                if !enabled.0 {
+                if !switches.enabled.0 {
                     return None;
                 }
                 let origin = Vec3::new(probe.x, top, probe.z);
@@ -890,7 +897,7 @@ fn aim_feet(
             };
 
             let cadence = pose.cadences.get(goal.character).ok();
-            if playback.on
+            if switches.playback.on
                 && let Some(cadence) = cadence
                 && cadence.grounded
             {
@@ -943,7 +950,7 @@ fn aim_feet(
             };
 
             let locking =
-                *mode == FootIkMode::Lock && cadence.is_some_and(|c| c.speed > STEP_SPEED);
+                *switches.mode == FootIkMode::Lock && cadence.is_some_and(|c| c.speed > STEP_SPEED);
             if !locking || plant <= 0.0 {
                 goal.plant = None;
             } else if goal.plant.is_none() && plant >= 1.0 {

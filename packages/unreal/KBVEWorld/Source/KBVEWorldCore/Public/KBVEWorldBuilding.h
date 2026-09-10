@@ -1,6 +1,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "KBVEWorldIvy.h"
 #include "KBVEWorldRoof.h"
 #include "KBVEWorldStair.h"
 #include "KBVEWorldWall.h"
@@ -109,6 +110,10 @@ struct KBVEWORLDCORE_API FKBVEWorldBuildingParams
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building|Openings",
 		meta = (ClampMin = "10.0"))
 	float DoorHeight = 218.0f;
+
+	/** What grows up the walls, for the walls the seed lets it grow on. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Building|Ivy")
+	FKBVEWorldIvyParams Ivy;
 };
 
 /**
@@ -192,17 +197,39 @@ struct FKBVEWorldBuildingMesh
 	/** Timber and glass, which are two more materials and so two more sections. */
 	FKBVEWorldJoineryMesh Joinery;
 
+	/**
+	 * Whatever is growing up the outside, as instances rather than as geometry.
+	 *
+	 * Not part of the masonry for the same reason a door leaf is not: the walls
+	 * are one buffer per chunk and the ivy is thousands of cards over a masked
+	 * material, and merging the two would draw a village's brick through the
+	 * plant's own sort order.
+	 */
+	TArray<FKBVEWorldIvySprig> Ivy;
+
+	/**
+	 * The runners those leaves are set on.
+	 *
+	 * Triangles rather than instances, and a section of its own rather than part
+	 * of the masonry: a stem is a strip a couple of centimetres wide that wanders
+	 * where it likes, so it shares neither the wall's material nor its UVs.
+	 */
+	FKBVEWorldRibbonMesh Vines;
+
 	void Reset()
 	{
 		Masonry.Reset();
 		Roof.Reset();
 		Plinth.Reset();
 		Joinery.Reset();
+		Ivy.Reset();
+		Vines.Reset();
 	}
 
 	bool IsEmpty() const
 	{
-		return Masonry.IsEmpty() && Roof.IsEmpty() && Plinth.IsEmpty() && Joinery.IsEmpty();
+		return Masonry.IsEmpty() && Roof.IsEmpty() && Plinth.IsEmpty() && Joinery.IsEmpty()
+			&& Ivy.Num() == 0 && Vines.IsEmpty();
 	}
 };
 

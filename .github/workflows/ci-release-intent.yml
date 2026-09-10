@@ -1,0 +1,89 @@
+name: Release Intent
+
+# A version bump in a project doc is a release request.
+#
+# Releasing by tag asks a person to know that a tag is `<project>@<semver>`,
+# that the project id is a moon node id rather than the doc's filename, and
+# that the version has to be one the manifest can move to. Bumping `version:`
+# in docs/project/<name>.mdx asks for the same thing in the terms someone
+# already has open.
+#
+# This publishes nothing. It pushes the tag a person would have pushed, so both
+# routes converge on release.yml and there is one release path rather than two.
+# The rules live in tools/release/mdx-intent.mjs with its own tests; this file
+# is the caller.
+
+on:
+    push:
+        branches: [dev]
+        paths:
+            - 'docs/project/*.mdx'
+
+concurrency:
+    # Serialised: two pushes resolving intents at once could both decide the
+    # same tag does not exist yet and race to create it.
+    group: release-intent
+    cancel-in-progress: false
+
+permissions:
+    contents: read
+
+jobs:
+    intent:
+        name: Tag what the docs asked for
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        steps:
+            # Tags are read to decide whether a release was already requested,
+            # and the doc is read at both ends of the push, so neither a shallow
+            # clone nor a tagless one will do.
+            - name: Checkout
+              uses: actions/checkout@v7
+              with:
+                  fetch-depth: 0
+
+            - name: Setup JavaScript
+              uses: ./.github/actions/setup-js
+              with:
+                  install: 'false'
+
+            - name: Setup moon
+              uses: ./.github/actions/setup-moon
+
+            - name: Resolve what the docs asked for
+              id: intent
+              run: |
+                  node tools/release/mdx-intent.mjs \
+                    "${{ github.event.before }}" \
+                    "${{ github.sha }}"
+
+            # The PAT matters: a tag pushed with GITHUB_TOKEN does not start a
+            # workflow run, so release.yml would never see it and the bump would
+            # look like it had shipped while nothing happened. Every other
+            # workflow here that has to trigger another one maps UNITY_PAT the
+            # same way.
+            - name: Push the tags
+              if: steps.intent.outputs.tags != '[]'
+              env:
+                  TAGS: ${{ steps.intent.outputs.tags }}
+                  GH_TOKEN: ${{ secrets.UNITY_PAT }}
+              run: |
+                  set -euo pipefail
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+                  git remote set-url origin \
+                    "https://x-access-token:${GH_TOKEN}@github.com/${{ github.repository }}.git"
+
+                  echo "$TAGS" | jq -r '.[]' | while read -r tag; do
+                    [ -z "$tag" ] && continue
+                    # Re-checked at push time rather than trusted from the
+                    # resolve step: the two are seconds apart and a tag pushed
+                    # by hand in between must not be overwritten.
+                    if git ls-remote --exit-code --tags origin "refs/tags/$tag" >/dev/null 2>&1; then
+                      echo "::notice::$tag already exists — leaving it alone"
+                      continue
+                    fi
+                    git tag "$tag" "${{ github.sha }}"
+                    git push origin "$tag"
+                    echo "::notice::pushed $tag — release.yml takes it from here"
+                  done

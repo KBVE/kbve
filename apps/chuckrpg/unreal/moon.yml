@@ -16,7 +16,7 @@ env:
     # a key per field: it is nested and list-valued, and the build
     # workflows already take it in exactly this shape -- it was the
     # dispatch manifest's `engine` block, moved beside the project.
-    ENGINE_CONFIG: '{"version":"5.8.0","project_path":"chuck","build_targets":["Win64","Linux","Mac"],"external_repo_url":"https://github.com/kbve/chuck","server_target":"chuckServer","server_config":"Shipping","client_config":"Shipping","maps":["/Game/Menus/L_MainMenu","/Game/Map/L_ChuckWorld"],"game_mode":"/Script/Chuck.ChuckGameMode","custom_config":"Beta","use_logging_in_shipping":"1","debug_symbols":"1"}'
+    ENGINE_CONFIG: '{"version":"5.8.2","project_path":"chuck","build_targets":["Win64","Linux","Mac"],"external_repo_url":"https://github.com/kbve/chuck","server_target":"chuckServer","server_config":"Shipping","client_config":"Shipping","maps":["/Game/Menus/L_MainMenu","/Game/Map/L_ChuckWorld"],"game_mode":"/Script/Chuck.ChuckGameMode","custom_config":"Beta","use_logging_in_shipping":"1","debug_symbols":"1"}'
     # The runner a release of this project builds on. Declared because the
     # default two-core hosted runner is not enough for it -- the dispatch
     # manifest carried this per entry, and dropping it would put a build

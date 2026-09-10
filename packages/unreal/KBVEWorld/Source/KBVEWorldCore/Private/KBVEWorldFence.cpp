@@ -1,6 +1,7 @@
 #include "KBVEWorldFence.h"
 
 #include "KBVEWorldHeightfield.h"
+#include "KBVEWorldSeed.h"
 
 namespace
 {
@@ -332,6 +333,19 @@ void FKBVEWorldFence::BuildRun(const FKBVEWorldFenceParams& Fence, const FKBVEWo
 			Post.Centre = FVector(Foot.X, Foot.Y, (Top + Bottom) * 0.5f);
 			Post.Rotation = Facing;
 			Post.Size = FVector(Width, Width, Top - Bottom);
+
+			// The post as it stands out of the ground, which is not the box that
+			// was just built: a post is driven a hand's depth into the earth, and
+			// ivy measured from the bottom of it would spend the first of its
+			// climb underground. Off the run's own stream and the station index,
+			// so a post keeps its plant when the run beside it changes.
+			{
+				FKBVEWorldPart Above = Post;
+				Above.Centre.Z = (Top + Foot.Z) * 0.5f;
+				Above.Size.Z = Top - Foot.Z;
+				FKBVEWorldIvy::Post(Fence.Ivy, Above,
+					FKBVEWorldSeed::DeriveSeed(Run.Seed, { I, 0x17 }), Out.Ivy, Out.Vines);
+			}
 
 			if (bHasPrev && Detail != EKBVEWorldFenceDetail::Posts)
 			{

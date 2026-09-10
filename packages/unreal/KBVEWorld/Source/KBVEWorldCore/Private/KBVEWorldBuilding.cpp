@@ -1,5 +1,7 @@
 #include "KBVEWorldBuilding.h"
 
+#include "KBVEWorldSeed.h"
+
 namespace
 {
 	// The settlement's own stream, off the world seed rather than out of it, for
@@ -165,6 +167,15 @@ void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
 
 	TArray<FKBVEWorldWallOpening> Openings;
 
+	// Which leaf this house's ivy wears, decided once for the building rather
+	// than per wall: a plant that went round a corner is the same plant, and two
+	// faces of one cottage in two different leaves is what gives that away.
+	const int32 IvyLeaf = Building.Ivy.Variants > 0
+		? static_cast<int32>(FKBVEWorldSeed::MakeStream(
+			FKBVEWorldSeed::DeriveSeed(Plan.Seed, { 0x1F })).RandRange(0,
+				Building.Ivy.Variants - 1))
+		: 0;
+
 	// The perimeter is carried across the walls and up through the storeys, so
 	// the coursing is continuous around every corner and from one floor to the
 	// next. Restarting it per wall is what makes a procedural building read as
@@ -239,7 +250,21 @@ void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
 			// handed: the wall snaps them to its coursing and clamps them into its
 			// own length, so the seeded rectangle and the hole are different
 			// rectangles and timber built on the first lands across brick.
-			if (FKBVEWorldWindow::Draws(Detail) || FKBVEWorldDoor::Draws(Detail))
+			// Ivy wants the same decomposition the joinery does, and for the
+			// opposite reason: the joinery fills the holes and the plant has to
+			// stay off them.
+			//
+			// Two ends and one plant. It climbs off the ground, so only the storey
+			// standing on earth is rooted; and what got as far as the roof came
+			// back over the eaves, so only the storey under them is draped. On a
+			// cottage those are the same wall, which is why they are two flags
+			// rather than two calls.
+			const bool bIvy = Building.Ivy.Coverage > 0.0f;
+			const bool bClimbs = bIvy && Level == 0;
+			const bool bDrapes = bIvy && Level == Storeys - 1 && Building.Ivy.Drape > 0.0f;
+
+			if (FKBVEWorldWindow::Draws(Detail) || FKBVEWorldDoor::Draws(Detail)
+				|| bClimbs || bDrapes)
 			{
 				TArray<FKBVEWorldWallPanel> Solids;
 				TArray<FKBVEWorldWallOpening> Placed;
@@ -250,10 +275,55 @@ void FKBVEWorldBuilding::Build(const FKBVEWorldBuildingParams& Building,
 				// whether an opening's sill is on the floor, so a doorway is glazed
 				// by neither and a window is hung by neither.
 				const FKBVEWorldWallFrame Face = FKBVEWorldWall::Frame(Building.Wall, Wall);
-				FKBVEWorldWindow::Build(Building.Wall, Face, Placed, Detail, Building.Window,
-					Out.Joinery);
-				FKBVEWorldDoor::Build(Building.Wall, Face, Placed, Detail, Building.Door,
-					Plan.bArchedDoor, Out.Joinery);
+				if (FKBVEWorldWindow::Draws(Detail) || FKBVEWorldDoor::Draws(Detail))
+				{
+					FKBVEWorldWindow::Build(Building.Wall, Face, Placed, Detail, Building.Window,
+						Out.Joinery);
+					FKBVEWorldDoor::Build(Building.Wall, Face, Placed, Detail, Building.Door,
+						Plan.bArchedDoor, Out.Joinery);
+				}
+
+				if (bClimbs || bDrapes)
+				{
+					// Grown off the wall as it is built up close, whatever tier is
+					// being built now. A wall's tiers are not the same rectangle:
+					// the cheapest one is a single slab with its openings filled
+					// in, so a plant grown from whatever the wall happens to be
+					// would rearrange itself every time somebody walked towards
+					// it -- and walking along the range where the tier changes
+					// would make it do that over and over.
+					//
+					// The same reason it is grown at every tier rather than
+					// dropped at the far one: a plant that vanishes at two hundred
+					// metres is a plant that appears when you turn round.
+					TArray<FKBVEWorldWallPanel> Rooted;
+					TArray<FKBVEWorldWallOpening> Cut;
+					if (Detail == EKBVEWorldWallDetail::Solid)
+					{
+						FKBVEWorldWall::Panels(Building.Wall, Span + 2.0f * Skin, Openings,
+							EKBVEWorldWallDetail::Plain, Rooted, Cut);
+					}
+
+					// What this wall stands on, for the stretch of plant below its
+					// foot. Only the storey on earth has any: an upper floor sits
+					// on the one below, where there is no plinth to cross and no
+					// ground to arrive out of. A hand deeper than the wall is
+					// buried, so the runner ends under the terrain rather than
+					// stopping flush with it.
+					FKBVEWorldIvyFooting Footing;
+					if (Wall.bPlinth)
+					{
+						Footing.Depth = FMath::Max(Wall.Embed, 0.0f) + 14.0f;
+						Footing.Lip = Building.Wall.PlinthHeight;
+						Footing.Stand = Building.Wall.PlinthOverhang;
+					}
+
+					FKBVEWorldIvy::Wall(Building.Ivy, Face,
+						Detail == EKBVEWorldWallDetail::Solid ? Rooted : Solids,
+						Building.Wall.Height, Building.Wall.Thickness, bClimbs, bDrapes,
+						FKBVEWorldSeed::DeriveSeed(Plan.Seed, { Side, 0x17 }), Out.Ivy,
+						Out.Vines, IvyLeaf, Footing);
+				}
 			}
 
 			// The ridge runs across the front, so the two walls that meet the

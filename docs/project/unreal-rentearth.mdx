@@ -20,7 +20,7 @@ author: h0lybyte
 license: KBVE
 status: beta
 engine:
-    version: "5.8.0"
+    version: "5.8.2"
     project_path: apps/rentearth/unreal-rentearth
     build_targets:
         - Win64
@@ -68,7 +68,7 @@ bento:
             - <strong>Win64</strong> — native on the UE5-Win KubeVirt VM.
             - <strong>Linux</strong> — Epic UE5.8 Docker image on arc-runner-ue.
     stats:
-        - { label: Engine, value: UE 5.8.0, icon: box }
+        - { label: Engine, value: UE 5.8.2, icon: box }
         - { label: Pipeline, value: unreal_game, icon: gears }
         - { label: Targets, value: Win64/Linux, icon: box }
         - { label: Ships to, value: itch.io, icon: package }
@@ -117,7 +117,7 @@ repo), the same way the early Chuck demo did, and is wired to the shared `unreal
 `engine.external_repo_url`, the builder checks out the monorepo and builds the `.uproject` under
 `engine.project_path` against the prebuilt UE5.8 on the `UE5-Win` KubeVirt VM
 (`C:\Program Files\Epic Games\UE_5.8`); the Linux client builds in the cached
-`ghcr.io/epicgames/unreal-engine:dev-5.8.0` image on `arc-runner-ue`.
+`ghcr.io/epicgames/unreal-engine:dev-5.8.2` image on `arc-runner-ue`.
 
 ## Build Matrix
 

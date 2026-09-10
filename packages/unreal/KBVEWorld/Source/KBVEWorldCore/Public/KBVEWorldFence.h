@@ -2,6 +2,7 @@
 
 #include "CoreMinimal.h"
 #include "KBVEWorldHeightfieldParams.h"
+#include "KBVEWorldIvy.h"
 #include "KBVEWorldPart.h"
 #include "KBVEWorldRoadField.h"
 #include "KBVEWorldRoadGraph.h"
@@ -199,6 +200,10 @@ struct KBVEWORLDCORE_API FKBVEWorldFenceParams
 	 */
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fence", meta = (ClampMin = "0.0"))
 	float MinPieceSpans = 2.0f;
+
+	/** What grows up the posts, for the runs the seed lets it grow on. */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "Fence|Ivy")
+	FKBVEWorldIvyParams Ivy;
 };
 
 /**
@@ -224,6 +229,19 @@ struct FKBVEWorldFenceMesh
 {
 	TArray<FKBVEWorldPart> Wood;
 	TArray<FKBVEWorldPart> Stone;
+
+	/**
+	 * Whatever climbed the posts, kept apart from them.
+	 *
+	 * Boxes and cards are two meshes and two materials, so they were never going
+	 * to share a bucket -- and the ivy is placed on the post rather than being
+	 * part of it, which is what lets a run stand its posts at one tier and its
+	 * plant at another.
+	 */
+	TArray<FKBVEWorldIvySprig> Ivy;
+
+	/** The runners those leaves are set on, which are triangles rather than cards. */
+	FKBVEWorldRibbonMesh Vines;
 };
 
 /**
