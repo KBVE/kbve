@@ -29,8 +29,9 @@ const WALK_SPEED: f32 = 2.2;
 const RUN_SPEED: f32 = 5.5;
 const JUMP_SPEED: f32 = 8.0;
 
-/// Ground acceleration in metres per second squared, for speeding up and turning; braking stays instant.
+/// Ground acceleration in metres per second squared, for speeding up and turning; easing off to a slower gait uses [`GROUND_DECEL`], letting go brakes instantly.
 const GROUND_ACCEL: f32 = 14.0;
+const GROUND_DECEL: f32 = 9.0;
 
 /// How fast ground travel may swing its heading, radians per second.
 const TURN_RATE: f32 = 4.0;
@@ -349,6 +350,12 @@ pub struct Cadence {
     pub clip_since: u32,
     /// Which pose clip is playing and the stride it was chosen on; a clip is chosen once per stride so lanes and arcs cannot flicker mid-step.
     pub clip: Option<(usize, u32)>,
+    /// The two loops either side of the pace this stride, blended by it; `clip` is whichever leads.
+    pub pair: Option<(usize, usize)>,
+    /// The same pair one direction lane over, blended in by how far the travel sits past `lane_base` degrees, when a heading locks the facing.
+    pub pair2: Option<(usize, usize)>,
+    pub lane_base: f32,
+    pub locked: bool,
     /// How many stances have fed the floor fix, so early ones weigh more.
     pub floor_samples: u32,
     /// Whether the body stands on ground this frame, so the played pose may own the legs.
@@ -379,8 +386,11 @@ pub struct Shot {
     pub facing: Vec3,
     /// Whether the clip's root heading turns the body; a start or stop holds its facing.
     pub turns: bool,
-    /// Frame the shot began on, and extra yaw (radians) spread evenly over the window so the shot ends facing the stick exactly.
+    /// Frame the shot began on.
     pub start: f32,
+    /// Extra yaw (radians) already added by `steer_from`, and the rest spread evenly from there to the end so the shot lands facing the stick.
+    pub steered: f32,
+    pub steer_from: f32,
     pub steer: f32,
 }
 
@@ -411,6 +421,10 @@ impl Cadence {
             stride_count: 0,
             clip_since: 0,
             clip: None,
+            pair: None,
+            pair2: None,
+            lane_base: 0.0,
+            locked: false,
             floor_samples: 0,
             grounded: false,
             idle_phase: 0.0,
@@ -1194,12 +1208,14 @@ fn apply_movement(
     }
 }
 
-/// Moves ground velocity toward `wish`: speed climbs at [`GROUND_ACCEL`], braking is instant, and heading swings round at [`TURN_RATE`] so a turn is an arc the feet can walk rather than a sideways jump. A near reversal skips the arc and reverses outright.
+/// Moves ground velocity toward `wish`: speed climbs at [`GROUND_ACCEL`] and settles at [`GROUND_DECEL`], a release brakes instantly, and heading swings round at [`TURN_RATE`] so a turn is an arc the feet can walk rather than a sideways jump. A near reversal skips the arc and reverses outright.
 fn steer(planar: Vec3, wish: Vec3, dt: f32) -> Vec3 {
     let speed = planar.length();
     let want = wish.length();
-    let target = if want <= speed {
-        want
+    let target = if want <= f32::EPSILON {
+        0.0
+    } else if want <= speed {
+        (speed - GROUND_DECEL * dt).max(want)
     } else {
         (speed + GROUND_ACCEL * dt).min(want)
     };

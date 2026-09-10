@@ -303,7 +303,10 @@ fn clear_dead_target(
 fn aim_at_target(
     mut selectors: Query<(&Transform, &Target, &mut Heading)>,
     subjects: Query<&Transform, With<Character>>,
+    mut strafe: Local<Option<bool>>,
 ) {
+    let strafe =
+        *strafe.get_or_insert_with(|| std::env::var("MMORPG_STRAFE").is_ok_and(|v| v != "0"));
     for (transform, target, mut heading) in &mut selectors {
         let wanted = target
             .0
@@ -312,7 +315,7 @@ fn aim_at_target(
                 let offset = subject.translation - transform.translation;
                 Dir3::new(Vec3::new(offset.x, 0.0, offset.z)).ok()
             });
-        heading.0 = wanted;
+        heading.0 = wanted.or(strafe.then_some(Dir3::NEG_Z));
     }
 }
 
