@@ -356,11 +356,6 @@ impl PoseClip {
             .collect()
     }
 
-    /// One stride as a frame window starting at a left-foot landing, or the whole clip if it has no second landing.
-    pub fn stride(&self) -> (usize, usize) {
-        self.strides()[0]
-    }
-
     /// Drops trailing frames that repeat the frame before them or the first frame: an exported loop ends on a copy of its start, which would stall the pose for those frames every time round.
     pub fn trim_seam(&mut self) {
         let same = |a: &PoseFrame, b: &PoseFrame| {
@@ -497,12 +492,6 @@ impl PoseClip {
         self.root_at(end).distance(self.root_at(start))
     }
 
-    /// Ground the root covers over one stride, metres, averaged over the loop.
-    pub fn stride_length(&self) -> f32 {
-        let windows = self.strides();
-        windows.iter().map(|&w| self.travel(w)).sum::<f32>() / windows.len().max(1) as f32
-    }
-
     /// Ground the root covers over the loop's `stride`-th window, metres, so the clock matches the frames it plays.
     pub fn stride_travel(&self, stride: u32) -> f32 {
         let windows = self.strides();
@@ -516,12 +505,13 @@ impl PoseClip {
         (end - start).max(1) as f32 / self.fps.max(1.0)
     }
 
+    /// Speed in leg lengths per second, so a clip baked off one actor drives a rig of another size.
+    pub fn normalized(&self) -> f32 {
+        self.speed / self.leg_length.max(0.01)
+    }
+
     /// The pose at `phase` in 0..1 of the loop's `stride`-th window, interpolated between frames.
-    pub fn sample(
-        &self,
-        phase: f32,
-        stride: u32,
-    ) -> Option<(Vec3, Vec<Quat>, Vec<Vec3>, (bool, bool))> {
+    pub fn sample(&self, phase: f32, stride: u32) -> Option<PoseSample> {
         let n = self.frames.len();
         if n == 0 {
             return None;
@@ -554,8 +544,21 @@ impl PoseClip {
             .zip(&b.directions)
             .map(|(p, q)| Vec3::new(p.0, p.1, p.2).lerp(Vec3::new(q.0, q.1, q.2), f))
             .collect();
-        Some((pelvis, rotations, directions, a.contact))
+        Some(PoseSample {
+            pelvis,
+            rotations,
+            directions,
+            contact: a.contact,
+        })
     }
+}
+
+/// One interpolated frame of a `PoseClip`: the pelvis in leg lengths from the root, each role bone's rotation and bone direction in the canonical frame, and which feet are down.
+pub struct PoseSample {
+    pub pelvis: Vec3,
+    pub rotations: Vec<Quat>,
+    pub directions: Vec<Vec3>,
+    pub contact: (bool, bool),
 }
 
 #[derive(Default, TypePath)]
@@ -663,7 +666,7 @@ impl Plugin for RigPlugin {
             .init_asset::<PoseSet>()
             .init_asset_loader::<PoseLoader>()
             .add_systems(Startup, load_rig)
-            .add_systems(Update, announce_gaits);
+            .add_systems(Update, (announce_gaits, announce_poses));
     }
 }
 
@@ -697,6 +700,30 @@ fn announce_gaits(mut events: MessageReader<AssetEvent<GaitSet>>, sets: Res<Asse
                 gait.knee_flexion.1,
                 gait.elbow_flexion.0,
                 gait.elbow_flexion.1
+            );
+        }
+    }
+}
+
+fn announce_poses(mut events: MessageReader<AssetEvent<PoseSet>>, sets: Res<Assets<PoseSet>>) {
+    for event in events.read() {
+        let AssetEvent::Added { id } = event else {
+            continue;
+        };
+        let Some(set) = sets.get(*id) else {
+            continue;
+        };
+        for clip in &set.clips {
+            info!(
+                "pose {} <- {}: {:+.0} deg {:.2} m/s over {:.2} m legs ({:.2} leg/s), {} frames at {:.0} fps",
+                clip.name,
+                clip.source,
+                clip.direction,
+                clip.speed,
+                clip.leg_length,
+                clip.normalized(),
+                clip.frames.len(),
+                clip.fps
             );
         }
     }

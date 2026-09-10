@@ -396,8 +396,6 @@ pub struct LowerBody {
     pub hip_rest: f32,
     /// Lower-body bones by canonical role, with what a baked pose needs to land on them.
     pub roles: Vec<RoleBone>,
-    /// Ankle-bone height above the sole in the rest pose, from the rig profile.
-    pub ankle_height: f32,
 }
 
 /// One bone a pose database drives: its rest orientation in model space, and its parent's rest so a model-space target can be turned back into a local rotation.
@@ -914,7 +912,6 @@ fn wire_skeleton(
             spine,
             hip_rest,
             roles,
-            ankle_height: profile.ankle_height,
         },
     ));
 }
