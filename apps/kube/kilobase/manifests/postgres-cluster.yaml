@@ -82,13 +82,12 @@ spec:
               superuser: true
               connectionLimit: -1
               inherit: true
+              createdb: true
+              createrole: true
+              replication: true
+              bypassrls: true
               passwordSecret:
                   name: supabase-superuser
-              inRoles:
-                  - createdb
-                  - createrole
-                  - replication
-                  - bypassrls
     enableSuperuserAccess: true
     postgresql:
         parameters:
