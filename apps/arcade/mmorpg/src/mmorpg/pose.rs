@@ -9,7 +9,7 @@ use bevy::prelude::*;
 use super::action::Action;
 use super::character::{Cadence, LowerBody};
 use super::foot_ik::FootGoal;
-use super::rig::{PoseSet, Rig};
+use super::rig::{PoseSample, PoseSet, Rig};
 
 pub struct PosePlugin;
 
@@ -76,14 +76,23 @@ fn lane(direction: f32) -> &'static str {
     }
 }
 
-/// The loop closest in speed within the travel direction's lane; sideways and backward lanes have no sprint, so the jog stands in.
-fn pick(set: &PoseSet, speed: f32, direction: f32) -> Option<&super::rig::PoseClip> {
-    let lane = lane(direction);
-    let suffix = format!("_{lane}");
+/// The loop closest in speed within the travel direction's lane, matched in leg lengths per second so the actor's size drops out; sideways and backward lanes have no sprint, so the jog stands in.
+fn pick(
+    set: &PoseSet,
+    speed: f32,
+    direction: f32,
+    leg_length: f32,
+) -> Option<&super::rig::PoseClip> {
+    let want_lane = lane(direction);
+    let want = speed / leg_length.max(0.01);
     set.clips
         .iter()
-        .filter(|c| c.speed > 0.05 && c.name.ends_with(&suffix) && !c.name.contains("arc"))
-        .min_by(|a, b| (a.speed - speed).abs().total_cmp(&(b.speed - speed).abs()))
+        .filter(|c| c.speed > 0.05 && lane(c.direction) == want_lane && !c.name.contains("arc"))
+        .min_by(|a, b| {
+            (a.normalized() - want)
+                .abs()
+                .total_cmp(&(b.normalized() - want).abs())
+        })
 }
 
 /// Whether a role is above the waist, where an action owns the bones instead of the pose.
@@ -103,20 +112,24 @@ fn upper(role: &str) -> bool {
 }
 
 /// A frame of the baked lower body: hip centre, per-bone rotation deltas and bone directions, and which feet the data has down.
-type Sample = (Vec3, Vec<Quat>, Vec<Vec3>, (bool, bool));
-
 /// The moving frame over the idle one by `mix`, so a start or stop is a blend of two baked poses rather than a switch.
-fn blend(idle: Sample, moving: Sample, mix: f32) -> Sample {
-    let (ip, ir, id, _) = idle;
-    let (mp, mr, md, contact) = moving;
-    let pelvis = ip.lerp(mp, mix);
-    let rotations = ir.iter().zip(&mr).map(|(a, b)| a.slerp(*b, mix)).collect();
-    let directions = id
-        .iter()
-        .zip(&md)
-        .map(|(a, b)| a.lerp(*b, mix).normalize_or(*b))
-        .collect();
-    (pelvis, rotations, directions, contact)
+fn blend(idle: PoseSample, moving: PoseSample, mix: f32) -> PoseSample {
+    PoseSample {
+        pelvis: idle.pelvis.lerp(moving.pelvis, mix),
+        rotations: idle
+            .rotations
+            .iter()
+            .zip(&moving.rotations)
+            .map(|(a, b)| a.slerp(*b, mix))
+            .collect(),
+        directions: idle
+            .directions
+            .iter()
+            .zip(&moving.directions)
+            .map(|(a, b)| a.lerp(*b, mix).normalize_or(*b))
+            .collect(),
+        contact: moving.contact,
+    }
 }
 
 fn play_pose(
@@ -158,7 +171,7 @@ fn play_pose(
             clip.sample(cadence.idle_phase, 0)
         });
         let moving = if cadence.stepping {
-            pick(set, cadence.pace, cadence.direction).and_then(|clip| {
+            pick(set, cadence.pace, cadence.direction, cadence.leg_length).and_then(|clip| {
                 let stride = clip.stride_travel(cadence.stride_count);
                 cadence.clip_period = Some(if stride > 0.05 && cadence.pace > 0.05 {
                     stride / cadence.pace
@@ -178,8 +191,11 @@ fn play_pose(
             (Some(idle), None) => idle,
             (None, None) => continue,
         };
-        let (pelvis, rotations, directions, contact) = frame;
-        cadence.contact = if mix >= 0.99 { contact } else { (false, false) };
+        cadence.contact = if mix >= 0.99 {
+            frame.contact
+        } else {
+            (false, false)
+        };
         for (bone, rest) in &lower.bones {
             if let Ok(mut transform) = transforms.get_mut(*bone) {
                 transform.translation = rest.translation;
@@ -196,7 +212,7 @@ fn play_pose(
             .bones
             .iter()
             .position(|b| b == "chest")
-            .and_then(|i| rotations.get(i).copied());
+            .and_then(|i| frame.rotations.get(i).copied());
         let mut model_rot: Vec<(Entity, Quat)> = Vec::with_capacity(lower.roles.len());
         for role in &lower.roles {
             if acting && upper(role.role) {
@@ -212,10 +228,10 @@ fn play_pose(
                 let Some(index) = set.bones.iter().position(|b| b == role.role) else {
                     continue;
                 };
-                let Some(delta) = rotations.get(index) else {
+                let Some(delta) = frame.rotations.get(index) else {
                     continue;
                 };
-                let direction = directions.get(index).copied().unwrap_or(Vec3::ZERO);
+                let direction = frame.directions.get(index).copied().unwrap_or(Vec3::ZERO);
                 if role.rest_dir != Vec3::ZERO && direction.length_squared() > 0.5 {
                     Quat::from_rotation_arc(role.rest_dir, direction.normalize())
                         * role.rest.rotation
@@ -243,7 +259,8 @@ fn play_pose(
                         (Some(l), Some(r)) => (l + r) * 0.5,
                         _ => role.rest.translation,
                     };
-                    let hips = pelvis * cadence.leg_length + Vec3::Y * (floor + cadence.floor_fix);
+                    let hips =
+                        frame.pelvis * cadence.leg_length + Vec3::Y * (floor + cadence.floor_fix);
                     let world = hips + (role.rest.translation - hips_rest);
                     transform.translation = role.parent_rest.rotation.inverse()
                         * (world - role.parent_rest.translation);
