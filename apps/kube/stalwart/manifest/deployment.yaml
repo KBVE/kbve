@@ -40,7 +40,12 @@ spec:
                 - name: seed-config
                   image: docker.io/stalwartlabs/stalwart:v0.16.16
                   imagePullPolicy: IfNotPresent
-                  command: ['sh', '-c', 'cp /config-src/config.json /etc/stalwart/config.json']
+                  command:
+                      [
+                          'sh',
+                          '-c',
+                          'cp /config-src/config.json /etc/stalwart/config.json',
+                      ]
                   securityContext:
                       allowPrivilegeEscalation: false
                       capabilities:
@@ -89,6 +94,16 @@ spec:
                       capabilities:
                           drop:
                               - ALL
+                          # The image ships /usr/local/bin/stalwart with the
+                          # file capability cap_net_bind_service=ep. Exec of a
+                          # file-capped binary fails outright ("operation not
+                          # permitted") when that cap is outside the bounding
+                          # set, so drop ALL alone crashlooped the pod before
+                          # main() ever ran. Re-adding it only widens the
+                          # bounding set; port 25 still binds through the
+                          # ip_unprivileged_port_start sysctl above.
+                          add:
+                              - NET_BIND_SERVICE
                   readinessProbe:
                       tcpSocket:
                           port: 8080
