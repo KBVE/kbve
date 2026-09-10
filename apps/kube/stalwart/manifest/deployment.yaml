@@ -69,6 +69,19 @@ spec:
                             secretKeyRef:
                                 name: stalwart-db-credentials
                                 key: password
+                      # The bootstrap admin credentials Stalwart prints on
+                      # first boot never reached stdout (kubectl logs shows
+                      # zero lines for the running container), so the web
+                      # admin was unreachable. Stalwart's documented reset is
+                      # this env var, "user:password"; it is only consulted
+                      # when set, and it stays optional so the pod still
+                      # starts before the sealed secret exists.
+                      - name: STALWART_RECOVERY_ADMIN
+                        valueFrom:
+                            secretKeyRef:
+                                name: stalwart-recovery-admin
+                                key: credentials
+                                optional: true
                   ports:
                       - name: smtp
                         containerPort: 25
