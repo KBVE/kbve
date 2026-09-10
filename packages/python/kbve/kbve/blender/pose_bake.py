@@ -52,7 +52,9 @@ CHILD = {
     "upperarm_r": "lowerarm_r",
     "lowerarm_r": "hand_r",
 }
-BONE_FOR = {"chest": ["spine_05", "spine_04", "spine_03"], "neck": ["neck_01"], "head": ["head", "neck_02", "neck_01"]}
+TURN_DEG = 30.0
+HEADING_WINDOW = 0.5
+BONE_FOR = {"chest": ["spine_05", "spine_04", "spine_03"], "neck": ["neck_01"], "head": ["head", "neck_02"]}
 
 
 def bone_for(role: str, clip: Clip) -> str:
@@ -77,9 +79,10 @@ def to_canon_quat(q: Quaternion) -> Quaternion:
 
 
 def rest_world(arm: bpy.types.Object) -> dict[str, Quaternion]:
+    """Bind orientation per bone in armature space; the object transform is left out because some captures rotate it."""
     out = {}
     for bone in arm.data.bones:
-        out[bone.name] = (arm.matrix_world @ bone.matrix_local).to_quaternion()
+        out[bone.name] = bone.matrix_local.to_quaternion()
     return out
 
 
@@ -113,31 +116,35 @@ def bake(name: str, source: str, arm: bpy.types.Object) -> dict:
             speed,
         )
 
+    segments = {role: (bone[role], bone[child]) for role, child in CHILD.items()}
+    segments["chest"] = (bone_for("spine_01", clip), bone["neck"])
+    segments["neck"] = (bone["neck"], bone["head"])
+    headings = body_headings(clip, rest, forward, right)
+    turning = abs(headings[-1] - headings[0]) > TURN_DEG
+    facing = sum(headings) / n if speed < 0.05 and not turning else 0.0
     frames = []
     for i in range(n):
         r = root[i]
-        root_yaw = 0.0
-        if "root" in clip.rot:
-            f = clip.rot["root"][i] @ forward
-            root_yaw = math.degrees(math.atan2(f.dot(right), f.dot(forward)))
+        heading = headings[i] - facing
+        unturn = Matrix.Rotation(math.radians(heading if turning else facing), 3, up)
         hips = (clip.pos["thigh_l"][i] + clip.pos["thigh_r"][i]) / 2
-        rel = to_canon_vec(Vector((hips.x - r.x, hips.y - r.y, hips.z - ground))) / leg
+        rel = to_canon_vec(unturn @ Vector((hips.x - r.x, hips.y - r.y, hips.z - ground))) / leg
         rots = []
         dirs = []
         for role in ROLES:
-            delta = clip.rot[bone[role]][i] @ rest[bone[role]].inverted()
-            q = to_canon_quat(delta).normalized()
+            delta = unturn @ (clip.rot[bone[role]][i] @ rest[bone[role]].inverted()).to_matrix()
+            q = to_canon_quat(delta.to_quaternion()).normalized()
             rots.append((q.w, q.x, q.y, q.z))
-            child = CHILD.get(role)
-            if child:
-                d = to_canon_vec(clip.pos[bone[child]][i] - clip.pos[bone[role]][i]).normalized()
+            seg = segments.get(role)
+            if seg:
+                d = to_canon_vec(unturn @ (clip.pos[seg[1]][i] - clip.pos[seg[0]][i])).normalized()
             else:
                 d = Vector((0.0, 0.0, 0.0))
             dirs.append((d.x, d.y, d.z))
         pos = to_canon_vec(Vector((r.x - root[0].x, r.y - root[0].y, 0.0)))
         frames.append(
             {
-                "root": (pos.x, pos.z, root_yaw),
+                "root": (pos.x, pos.z, heading),
                 "pelvis": (rel.x, rel.y, rel.z),
                 "rotations": rots,
                 "directions": dirs,
@@ -153,6 +160,29 @@ def bake(name: str, source: str, arm: bpy.types.Object) -> dict:
         "direction": direction,
         "frames": frames,
     }
+
+
+def body_headings(clip: Clip, rest: dict[str, Quaternion], forward: Vector, right: Vector) -> list[float]:
+    """Pelvis facing per frame, degrees right positive, unwrapped and low-passed so sway stays in the pose.
+
+    The window shrinks toward the ends so the first and last frames are exact.
+    """
+    n = clip.frames
+    raw = []
+    for i in range(n):
+        f = (clip.rot["pelvis"][i] @ rest["pelvis"].inverted()) @ forward
+        raw.append(math.degrees(math.atan2(f.dot(right), f.dot(forward))))
+    unwrapped = [raw[0]]
+    for h in raw[1:]:
+        d = (h - unwrapped[-1] + 180.0) % 360.0 - 180.0
+        unwrapped.append(unwrapped[-1] + d)
+    half = int(clip.fps * HEADING_WINDOW)
+    out = []
+    for i in range(n):
+        k = min(half, i, n - 1 - i)
+        lo, hi = i - k, i + k + 1
+        out.append(sum(unwrapped[lo:hi]) / (hi - lo))
+    return out
 
 
 def fmt(v: float) -> str:
