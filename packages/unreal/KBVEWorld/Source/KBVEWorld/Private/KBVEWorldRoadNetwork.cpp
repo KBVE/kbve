@@ -4,8 +4,10 @@
 #include "GameFramework/PlayerController.h"
 #include "KBVEWorldChunkDirty.h"
 #include "KBVEWorldFenceMass.h"
+#include "KBVEWorldGrassAtlas.h"
 #include "KBVEWorldHeightfield.h"
 #include "KBVEWorldInstancePool.h"
+#include "KBVEWorldIvyCard.h"
 #include "KBVEWorldVillageMass.h"
 #include "KBVEWorldStreamer.h"
 #include "EngineUtils.h"
@@ -88,6 +90,36 @@ namespace
 		return Out;
 	}
 
+	// The sprigs of both plants, sorted into the buckets they are drawn from.
+	//
+	// Every array is written whether or not anything landed in it: the pool
+	// replaces a key wholesale, so a variant left out is not a variant unchanged,
+	// it is that variant's leaves gone from this chunk.
+	void GatherIvy(TArrayView<const FKBVEWorldIvySprig> Wall,
+		TArrayView<const FKBVEWorldIvySprig> Post, int32 Variants,
+		TArray<TArray<FTransform>>& Out)
+	{
+		Out.Reset();
+		if (Variants <= 0)
+		{
+			return;
+		}
+
+		Out.SetNum(Variants);
+		for (TArrayView<const FKBVEWorldIvySprig> Source : { Wall, Post })
+		{
+			for (const FKBVEWorldIvySprig& Sprig : Source)
+			{
+				// Modulo rather than a clamp: a sheet with fewer cells than the
+				// placement drew variants from would otherwise pile every leaf
+				// past the end onto the last one.
+				const int32 Bucket = ((Sprig.Variant % Variants) + Variants) % Variants;
+				Out[Bucket].Emplace(Sprig.Rotation, Sprig.Centre,
+					FVector(Sprig.Size / FKBVEWorldIvyCard::SprigHeight));
+			}
+		}
+	}
+
 	void Rebase(FKBVEWorldRibbonMesh& Data, const FVector& Origin)
 	{
 		for (FVector& V : Data.Vertices)
@@ -114,9 +146,10 @@ AKBVEWorldRoadChunk::AKBVEWorldRoadChunk()
 	Joinery = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Joinery"));
 	Glazing = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Glazing"));
 	Plinth = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Plinth"));
+	Vines = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("Vines"));
 
 	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get(), Roof.Get(),
-		Joinery.Get(), Glazing.Get(), Plinth.Get() })
+		Joinery.Get(), Glazing.Get(), Plinth.Get(), Vines.Get() })
 	{
 		Mesh->SetupAttachment(SceneRoot);
 		Mesh->bUseAsyncCooking = true;
@@ -301,12 +334,26 @@ void AKBVEWorldRoadChunk::Build(const FBuild& In, FParts& OutParts)
 	Commit(Plinth, Structures.Plinth, In.StoneMaterial, true);
 	CommitLeaves(Structures.Joinery, Origin, In.WoodMaterial);
 
+	// World space like the crossings' own parts, and for the same reason: the
+	// buckets are the network's and hold the whole world between them.
+	WallIvy = MoveTemp(Structures.Ivy);
+	PostIvy = MoveTemp(Fences.Ivy);
+	GatherIvy(WallIvy, PostIvy, In.IvyVariants, OutParts.Ivy);
+
+	// The stems are this chunk's own triangles, so unlike the leaves they are
+	// rebased onto it before they are committed.
+	WallVines = MoveTemp(Structures.Vines);
+	PostVines = MoveTemp(Fences.Vines);
+	Rebase(WallVines, Origin);
+	Rebase(PostVines, Origin);
+	CommitVines(In.VineMaterial);
+
 	// The supports collide as blocks whether they were drawn as triangles here or
 	// as instances elsewhere, so this does not care which happened.
 	CommitBlocks(Stone, Data.Blocks, Origin);
 
 	for (UProceduralMeshComponent* Mesh : { Wood.Get(), Stone.Get(), Brick.Get(), Roof.Get(),
-		Joinery.Get(), Glazing.Get(), Plinth.Get() })
+		Joinery.Get(), Glazing.Get(), Plinth.Get(), Vines.Get() })
 	{
 		Mesh->SetCullDistance(MaxDrawDistance);
 	}
@@ -491,6 +538,15 @@ bool AKBVEWorldRoadChunk::RebuildFences(const FBuild& In, FParts& OutParts)
 	OutParts.Wood = BridgeParts.Wood;
 	OutParts.Stone.Append(TransformsFor(Fences.Stone, In.PartMesh));
 	OutParts.Wood.Append(TransformsFor(Fences.Wood, In.PartMesh));
+
+	// The walls' ivy with it, unchanged and resubmitted anyway: the two plants
+	// share these buckets under this key, so posts alone would strip the village.
+	PostIvy = MoveTemp(Fences.Ivy);
+	GatherIvy(WallIvy, PostIvy, In.IvyVariants, OutParts.Ivy);
+
+	PostVines = MoveTemp(Fences.Vines);
+	Rebase(PostVines, GetActorLocation());
+	CommitVines(In.VineMaterial);
 	return true;
 }
 
@@ -612,6 +668,29 @@ void AKBVEWorldRoadChunk::OpenGates(const FBuild& In)
 AKBVEWorldRoadNetwork* AKBVEWorldRoadChunk::Doors() const
 {
 	return Cast<AKBVEWorldRoadNetwork>(GetOwner());
+}
+
+void AKBVEWorldRoadChunk::CommitVines(UMaterialInterface* Material)
+{
+	// One section for both plants. A wall's runners and a post's are the same
+	// strip of the same material, and a chunk that gave each its own component
+	// would draw a village's ivy in two calls to say one thing.
+	FKBVEWorldRibbonMesh Both = WallVines;
+	const int32 Base = Both.Vertices.Num();
+	Both.Vertices.Append(PostVines.Vertices);
+	Both.Normals.Append(PostVines.Normals);
+	Both.UV0.Append(PostVines.UV0);
+	Both.Tangents.Append(PostVines.Tangents);
+	Both.Triangles.Reserve(Both.Triangles.Num() + PostVines.Triangles.Num());
+	for (const int32 Index : PostVines.Triangles)
+	{
+		Both.Triangles.Add(Base + Index);
+	}
+
+	// No collision. A stem is two centimetres of leaf litter on a wall that
+	// already collides, and cooking a village's worth of them would be a cook
+	// per chunk for a surface nothing can stand on.
+	Commit(Vines, Both, Material, false);
 }
 
 void AKBVEWorldRoadChunk::CommitLeaves(const FKBVEWorldJoineryMesh& Fittings, const FVector& Origin,
@@ -880,7 +959,7 @@ void AKBVEWorldRoadChunk::BuildStructures(const FBuild& In, FKBVEWorldBuildingMe
 	}
 }
 
-bool AKBVEWorldRoadChunk::RebuildBuildings(const FBuild& In)
+bool AKBVEWorldRoadChunk::RebuildBuildings(const FBuild& In, FParts& OutParts)
 {
 	KBVEPERF_SCOPE("Road.RebuildBuildings");
 
@@ -927,6 +1006,13 @@ bool AKBVEWorldRoadChunk::RebuildBuildings(const FBuild& In)
 	Commit(Glazing, Structures.Joinery.Glazing, In.GlassMaterial, true);
 	Commit(Plinth, Structures.Plinth, In.StoneMaterial, true);
 	CommitLeaves(Structures.Joinery, Origin, In.WoodMaterial);
+
+	WallIvy = MoveTemp(Structures.Ivy);
+	GatherIvy(WallIvy, PostIvy, In.IvyVariants, OutParts.Ivy);
+
+	WallVines = MoveTemp(Structures.Vines);
+	Rebase(WallVines, Origin);
+	CommitVines(In.VineMaterial);
 	return true;
 }
 
@@ -934,6 +1020,11 @@ void AKBVEWorldRoadChunk::Release()
 {
 	ReleaseFenceRuns();
 	ReleaseBuildings();
+	WallIvy.Reset();
+	PostIvy.Reset();
+	WallVines.Reset();
+	PostVines.Reset();
+	Vines->ClearAllMeshSections();
 	bActive = false;
 	Wood->ClearAllMeshSections();
 	Stone->ClearAllMeshSections();
@@ -1092,14 +1183,147 @@ AKBVEWorldRoadChunk::FBuild AKBVEWorldRoadNetwork::MakeBuild(const FIntPoint& Co
 	In.BrickMaterial = BrickMaterial;
 	In.RoofMaterial = RoofMaterial;
 	In.GlassMaterial = GlassMaterial;
+	In.VineMaterial = IvyStemMaterial;
 	In.PartMesh = bInstanced ? PartMesh.Get() : nullptr;
+
+	// However many buckets there turned out to be, which is however many cells
+	// the sheet has. Zero until the first tick that could make them, so a chunk
+	// built before the atlas arrived grows nothing and is rebuilt with the ring.
+	In.IvyVariants = IvyBuckets.Num();
 	return In;
+}
+
+void AKBVEWorldRoadNetwork::EnsureIvyBuckets(float DrawDistance)
+{
+	if (!Parts || !IvyAtlas || IvyBuckets.Num() > 0)
+	{
+		return;
+	}
+
+	// Whichever cells this level said are its plant. Both the fence and the
+	// settlement draw from the one sheet, so they are told the same number of
+	// variants rather than each keeping its own count.
+	const int32 Fallback = FMath::Max(Fence.Ivy.Variants, Settlement.Building.Ivy.Variants);
+
+	TArray<UStaticMesh*> Sprigs;
+	FKBVEWorldIvyCard::SprigMeshes(this, IvyAtlas, IvyLeafCells, Fallback,
+		FKBVEWorldIvyCard::LeavesPerSprig, Sprigs);
+	if (Sprigs.Num() == 0)
+	{
+		return;
+	}
+
+	IvyBuckets.Reserve(Sprigs.Num());
+	for (UStaticMesh* Sprig : Sprigs)
+	{
+		// The material is the sheet's own, and it is already on the mesh: a bucket
+		// keyed on both is what keeps one variant from being handed another's.
+		IvyBuckets.Add(Parts->EnsureBucket(Sprig, IvyAtlas->Material, DrawDistance));
+	}
+
+	Fence.Ivy.Variants = IvyBuckets.Num();
+	Settlement.Building.Ivy.Variants = IvyBuckets.Num();
+
+	// How many leaves one of those meshes turned out to carry. The placement
+	// spaces its sprigs by it, so a mesh built with more leaves than the walk
+	// leaves room for would lay them over each other.
+	Fence.Ivy.LeafCluster = FKBVEWorldIvyCard::LeavesPerSprig;
+	Settlement.Building.Ivy.LeafCluster = FKBVEWorldIvyCard::LeavesPerSprig;
+
+	UE_LOG(LogKBVEWorldStream, Display, TEXT("ivy sheet %s: %d sprig variants"),
+		*IvyAtlas->GetName(), IvyBuckets.Num());
+}
+
+void AKBVEWorldRoadNetwork::SubmitIvy(const FIntPoint& Key, AKBVEWorldRoadChunk::FParts& ChunkParts)
+{
+	if (!Parts)
+	{
+		return;
+	}
+
+	for (const TArray<FTransform>& Variant : ChunkParts.Ivy)
+	{
+		IvySprigs += Variant.Num();
+	}
+
+	// Every bucket, not only the ones with leaves in them. A key left out of a
+	// bucket is that key's last submission still standing, which for a chunk that
+	// has just lost its ivy is the plant left hanging where the wall used to be.
+	for (int32 I = 0; I < IvyBuckets.Num(); ++I)
+	{
+		TArray<FTransform> Sprigs;
+		if (ChunkParts.Ivy.IsValidIndex(I))
+		{
+			Sprigs = MoveTemp(ChunkParts.Ivy[I]);
+		}
+		Parts->Submit(IvyBuckets[I], Key, MoveTemp(Sprigs));
+	}
 }
 
 bool AKBVEWorldRoadNetwork::WantsDetail(const FIntPoint& Centre, const FIntPoint& Coord) const
 {
 	const FIntPoint Delta = Coord - Centre;
 	return FMath::Max(FMath::Abs(Delta.X), FMath::Abs(Delta.Y)) <= DetailRadiusChunks;
+}
+
+void AKBVEWorldRoadNetwork::Regrow()
+{
+	for (const TPair<FIntPoint, TObjectPtr<AKBVEWorldRoadChunk>>& Pair : Live)
+	{
+		if (AKBVEWorldRoadChunk* Chunk = Pair.Value)
+		{
+			Chunk->Release();
+			Pool.Add(Chunk);
+		}
+	}
+
+	Live.Reset();
+	Pending.Reset();
+
+	if (Parts)
+	{
+		Parts->Empty();
+		Parts->Flush();
+	}
+
+	// The buckets are made from the sheet's cells on the first tick that can make
+	// them, so dropping them is what lets a change to which cells are this plant's
+	// leaf take effect. The components they were made against stay and are left
+	// empty, which is a handful of empty draws in an editor session and nothing at
+	// all in a game: nobody calls this from one.
+	IvyBuckets.Reset();
+	StoneBucket = INDEX_NONE;
+	WoodBucket = INDEX_NONE;
+
+	// Nowhere, so the next tick sees the viewer somewhere else and refills.
+	LastCentre = FIntPoint(MAX_int32, MAX_int32);
+
+	UE_LOG(LogKBVEWorldStream, Display, TEXT("road network regrowing from its parameters"));
+}
+
+namespace
+{
+	// Every network in the world, because a level has one of these and typing a
+	// name to reach it is worse than telling all of them.
+	FAutoConsoleCommandWithWorld GKBVEWorldRegrowCmd(
+		TEXT("kbve.Road.Regrow"),
+		TEXT("Rebuild every road chunk from the road network's current parameters."),
+		FConsoleCommandWithWorldDelegate::CreateLambda([](UWorld* World)
+		{
+			if (!World)
+			{
+				return;
+			}
+
+			int32 Told = 0;
+			for (TActorIterator<AKBVEWorldRoadNetwork> It(World); It; ++It)
+			{
+				It->Regrow();
+				++Told;
+			}
+
+			UE_LOG(LogKBVEWorldStream, Display, TEXT("kbve.Road.Regrow: %d network(s)"), Told);
+		}));
 }
 
 void AKBVEWorldRoadNetwork::ReleaseOutsideRadius(const FIntPoint& Centre)
@@ -1178,6 +1402,7 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 	{
 		LastCentre = Centre;
 		FillTimings = AKBVEWorldRoadChunk::FTimings();
+		IvySprigs = 0;
 		ReleaseOutsideRadius(Centre);
 		QueueInsideRadius(Centre);
 	}
@@ -1199,6 +1424,8 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 		StoneBucket = Parts->EnsureBucket(PartMesh, StoneMaterial, DrawDistance);
 		WoodBucket = Parts->EnsureBucket(PartMesh, WoodMaterial, DrawDistance);
 	}
+
+	EnsureIvyBuckets(DrawDistance);
 
 	const bool bInstanced = Parts && PartMesh && StoneBucket != INDEX_NONE;
 
@@ -1259,6 +1486,8 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 			Parts->Submit(WoodBucket, Coord, MoveTemp(ChunkParts.Wood));
 		}
 
+		SubmitIvy(Coord, ChunkParts);
+
 		Live.Add(Coord, Chunk);
 		++Built;
 	}
@@ -1291,14 +1520,17 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 			{
 				Parts->Submit(StoneBucket, Pair.Key, MoveTemp(FenceParts.Stone));
 				Parts->Submit(WoodBucket, Pair.Key, MoveTemp(FenceParts.Wood));
+				SubmitIvy(Pair.Key, FenceParts);
 				++Restood;
 			}
 
 			// Counted against the same budget the fences spend from. Both are
 			// rebuilds that a viewer walking causes, and letting them each have a
 			// budget means a viewer walking towards a village pays twice.
-			if (Restood < MaxBuildsPerTick && Pair.Value->RebuildBuildings(In))
+			AKBVEWorldRoadChunk::FParts WallParts;
+			if (Restood < MaxBuildsPerTick && Pair.Value->RebuildBuildings(In, WallParts))
 			{
+				SubmitIvy(Pair.Key, WallParts);
 				++Restood;
 			}
 		}
@@ -1318,8 +1550,8 @@ void AKBVEWorldRoadNetwork::Tick(float DeltaSeconds)
 	{
 		UE_LOG(LogKBVEWorldStream, Display,
 			TEXT("road window filled at %d,%d: %d live (%d pooled), last build %.2f ms; "
-				 "routing %.1f ms, fences %.1f ms, masonry %.1f ms"),
+				 "routing %.1f ms, fences %.1f ms, masonry %.1f ms, %d ivy sprigs"),
 			Centre.X, Centre.Y, Live.Num(), Pool.Num(), LastBuildMs, FillTimings.RouteMs,
-			FillTimings.FenceMs, FillTimings.MasonryMs);
+			FillTimings.FenceMs, FillTimings.MasonryMs, IvySprigs);
 	}
 }

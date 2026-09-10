@@ -14,6 +14,7 @@
 
 #include "KBVEWorldRoadNetwork.generated.h"
 
+class UKBVEWorldGrassAtlas;
 class UKBVEWorldInstancePool;
 class UMaterialInterface;
 class UProceduralMeshComponent;
@@ -47,6 +48,15 @@ public:
 	{
 		TArray<FTransform> Stone;
 		TArray<FTransform> Wood;
+
+		/**
+		 * The ivy, one array per sprig variant.
+		 *
+		 * Split by variant because a bucket is a mesh, and each variant is a
+		 * different leaf off the sheet -- so what would otherwise be one array
+		 * of transforms is already sorted into the buckets it is going into.
+		 */
+		TArray<TArray<FTransform>> Ivy;
 	};
 
 	/**
@@ -82,7 +92,19 @@ public:
 		UMaterialInterface* BrickMaterial = nullptr;
 		UMaterialInterface* RoofMaterial = nullptr;
 		UMaterialInterface* GlassMaterial = nullptr;
+
+		/** What the ivy's own runners are drawn with. Unset draws no stems. */
+		UMaterialInterface* VineMaterial = nullptr;
 		const UStaticMesh* PartMesh = nullptr;
+
+		/**
+		 * How many sprig meshes the ivy has to draw from.
+		 *
+		 * The sheet decides it, so it arrives with the build rather than being a
+		 * parameter: zero is a level with no ivy sheet assigned, and nothing is
+		 * grown at all.
+		 */
+		int32 IvyVariants = 0;
 	};
 
 	void Build(const FBuild& In, FParts& OutParts);
@@ -103,7 +125,7 @@ public:
 	 * sited, so a tier change costs the masonry and not the ground sampling that
 	 * decided where a house could go. Returns false when nothing had changed.
 	 */
-	bool RebuildBuildings(const FBuild& In);
+	bool RebuildBuildings(const FBuild& In, FParts& OutParts);
 
 	void Release();
 
@@ -188,6 +210,9 @@ private:
 	 * village that shrinks does not leave doors standing in a field and one that
 	 * grows does not pay to create components it had a moment ago.
 	 */
+	/** Put both plants' stems into the one section, or empty it of them. */
+	void CommitVines(UMaterialInterface* Material);
+
 	void CommitLeaves(const FKBVEWorldJoineryMesh& Fittings, const FVector& Origin,
 		UMaterialInterface* Material);
 
@@ -241,6 +266,17 @@ private:
 	// every time somebody walks towards a village.
 	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
 	TObjectPtr<UProceduralMeshComponent> Plinth;
+
+	/**
+	 * The ivy's runners, which are neither masonry nor timber.
+	 *
+	 * A section of its own because it is the one thing in a chunk that crosses
+	 * the others: a stem starts on a wall and ends under an eave, and its strip
+	 * is a couple of centimetres wide -- so it shares no material and no UV
+	 * parameterisation with anything it grows over.
+	 */
+	UPROPERTY(VisibleAnywhere, Category = "KBVEWorld|Components")
+	TObjectPtr<UProceduralMeshComponent> Vines;
 
 	/**
 	 * One component per door leaf, because a leaf is the one part of a building
@@ -298,6 +334,28 @@ private:
 	 * go back every time instead.
 	 */
 	FParts BridgeParts;
+
+	/**
+	 * What this chunk's walls and its posts each grew, kept apart and kept at all.
+	 *
+	 * The same trap the bridges are held against, one level down: ivy from both
+	 * sources lands in the same buckets under the same key, so a fence restood on
+	 * its own would submit that the village's walls are bare. Held as sprigs
+	 * rather than transforms because the mesh they scale against is the network's
+	 * and a chunk never sees it.
+	 */
+	TArray<FKBVEWorldIvySprig> WallIvy;
+	TArray<FKBVEWorldIvySprig> PostIvy;
+
+	/**
+	 * The stems those leaves are set on, in this chunk's own space.
+	 *
+	 * Held for the same reason the leaves are and rebuilt on the same terms: one
+	 * section carries both plants, so a fence restood alone would have to write
+	 * the walls' runners back into it from somewhere.
+	 */
+	FKBVEWorldRibbonMesh WallVines;
+	FKBVEWorldRibbonMesh PostVines;
 
 	UPROPERTY(Transient)
 	TObjectPtr<class UMassEntitySubsystem> Mass;
@@ -492,6 +550,56 @@ public:
 	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Road|Lod")
 	TObjectPtr<UStaticMesh> PartMesh;
 
+	/**
+	 * The leaves the walls and the fence posts are grown from.
+	 *
+	 * The same sheet asset a grass field draws its clumps out of, because it is
+	 * the same question: a masked material and the rectangles on it that are a
+	 * plant. Left unset, nothing grows -- the masonry and the posts are built
+	 * exactly as they were.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Foliage")
+	TObjectPtr<UKBVEWorldGrassAtlas> IvyAtlas;
+
+	/**
+	 * Which cells of that sheet are this plant's leaf.
+	 *
+	 * A scanned sheet is a botanist's page: seventeen leaves off however many
+	 * plants, variegated beside plain and lime beside near-black. Drawn from
+	 * evenly, a wall carries all of them and reads as a collection rather than
+	 * as one thing growing -- so a level says which few belong to the plant it
+	 * wants. Empty draws from the whole sheet, which is almost never right.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Foliage")
+	TArray<int32> IvyLeafCells;
+
+	/**
+	 * What the ivy's runners are drawn with.
+	 *
+	 * A stem is a strip a couple of centimetres across, so almost any tiling
+	 * timber does: what it must not be is the leaf material, which is masked and
+	 * would cut the stem out of itself.
+	 */
+	UPROPERTY(EditAnywhere, BlueprintReadWrite, Category = "KBVEWorld|Foliage")
+	TObjectPtr<UMaterialInterface> IvyStemMaterial;
+
+	/**
+	 * Throw the world's chunks away and build them again.
+	 *
+	 * Every number the roads, the fences, the villages and their ivy are grown
+	 * from is a property on this actor, and every one of them is read at build
+	 * time -- so a chunk that is already standing keeps whatever it was built
+	 * with however far the details panel is dragged. This is how a change to
+	 * them is seen without restarting the editor, and it is the whole of what
+	 * `kbve.Road.Regrow` does.
+	 *
+	 * The buckets go with it. Which cells of a sheet are this plant's leaf
+	 * decides which meshes the instances are drawn from, and those are made once
+	 * on the first tick that can make them.
+	 */
+	UFUNCTION(BlueprintCallable, CallInEditor, Category = "KBVEWorld|Road")
+	void Regrow();
+
 	virtual void Tick(float DeltaSeconds) override;
 
 #if WITH_EDITOR
@@ -514,6 +622,19 @@ private:
 	/** Everything a chunk build needs, gathered from this actor's own settings. */
 	AKBVEWorldRoadChunk::FBuild MakeBuild(const FIntPoint& Coord, int32 Seed, bool bDetailed,
 		bool bInstanced, float DrawDistance) const;
+	/**
+	 * Stand up one bucket per sprig variant, once the atlas has arrived.
+	 *
+	 * Made on the first tick that can make them, like the crossings' own, so a
+	 * level that assigns its sheet later does not need the actor rebuilt. Tells
+	 * the fences and the settlement how many variants there turned out to be:
+	 * the sheet decides that, not the parameters.
+	 */
+	void EnsureIvyBuckets(float DrawDistance);
+
+	/** Hand one chunk's ivy to the buckets, or clear them of it. */
+	void SubmitIvy(const FIntPoint& Key, AKBVEWorldRoadChunk::FParts& ChunkParts);
+
 	void ReleaseOutsideRadius(const FIntPoint& Centre);
 	void QueueInsideRadius(const FIntPoint& Centre);
 
@@ -534,6 +655,12 @@ private:
 
 	int32 StoneBucket = INDEX_NONE;
 	int32 WoodBucket = INDEX_NONE;
+
+	/** One bucket per sprig variant, made the first tick the atlas is there. */
+	TArray<int32> IvyBuckets;
+
+	/** How many leaves the window's fill put up, counted with its timings. */
+	int32 IvySprigs = 0;
 
 	TArray<FIntPoint> Pending;
 	FIntPoint LastCentre = FIntPoint(MAX_int32, MAX_int32);
