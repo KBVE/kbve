@@ -59,7 +59,7 @@ env:
     # a key per field: it is nested and list-valued, and the build
     # workflows already take it in exactly this shape -- it was the
     # dispatch manifest's `engine` block, moved beside the project.
-    ENGINE_CONFIG: '{"version":"5.8.0","project_path":"apps/rentearth/unreal-rentearth","build_targets":["Win64","Linux"]}'
+    ENGINE_CONFIG: '{"version":"5.8.2","project_path":"apps/rentearth/unreal-rentearth","build_targets":["Win64","Linux"]}'
     # The runner a release of this project builds on. Declared because the
     # default two-core hosted runner is not enough for it -- the dispatch
     # manifest carried this per entry, and dropping it would put a build

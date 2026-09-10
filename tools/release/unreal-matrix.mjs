@@ -80,7 +80,7 @@ function query(args, input) {
 
 if (process.argv[1] && import.meta.url.endsWith(process.argv[1].split('/').pop())) {
 	const mode = (process.env.MODE || 'changed').trim();
-	const imageTag = (process.env.UE_IMAGE_TAG || 'dev-5.8.0').trim();
+	const imageTag = (process.env.UE_IMAGE_TAG || 'dev-5.8.2').trim();
 	const plugins = query(['--tags', 'unreal']);
 
 	let selected = null;

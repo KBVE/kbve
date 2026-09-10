@@ -22,7 +22,7 @@ license: KBVE
 status: beta
 homepage_url: https://kbve.itch.io/chuckrpg
 engine:
-    version: "5.8.0"
+    version: "5.8.2"
     project_path: chuck
     external_repo_url: https://github.com/kbve/chuck
     build_targets:
@@ -85,7 +85,7 @@ bento:
             - <strong>Client</strong> — Development config, Win64 + Linux + Mac.
             - <strong>Server</strong> — bundled Linux dedicated server, same version.
     stats:
-        - { label: Engine, value: UE 5.8.0, icon: box }
+        - { label: Engine, value: UE 5.8.2, icon: box }
         - { label: Client config, value: Development, icon: settings }
         - { label: Platforms, value: Win/Linux/Mac, icon: box }
         - { label: Channel, value: demo, icon: package }
@@ -146,7 +146,7 @@ same gate, to:
 With `engine.external_repo_url` set, the builder clones `KBVE/chuck` (default branch) and
 builds the `.uproject` under `engine.project_path` = `chuck` against the prebuilt UE5.7 on the
 `UE5-Win` KubeVirt VM (`C:\Program Files\Epic Games\UE_5.7`); the Linux client + server build
-in the cached `ghcr.io/epicgames/unreal-engine:dev-5.8.0` image on `arc-runner-ue`.
+in the cached `ghcr.io/epicgames/unreal-engine:dev-5.8.2` image on `arc-runner-ue`.
 
 ## Build Matrix
 

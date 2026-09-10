@@ -128,7 +128,7 @@ env:
     # only the host target wired up so far. Declaring Win64/Linux here would
     # hand CI a build that fails in Build.cs on a missing library. Widen this
     # and KBVEUnr's UE_SUPPORTED_PLATFORMS together, never separately.
-    ENGINE_CONFIG: '{"version":"5.8.0","project_path":"apps/rareicon/unreal-rareicon","build_targets":["Mac"],"maps":["/Game/Map/L_RareIconWorld"]}'
+    ENGINE_CONFIG: '{"version":"5.8.2","project_path":"apps/rareicon/unreal-rareicon","build_targets":["Mac"],"maps":["/Game/Map/L_RareIconWorld"]}'
     # The monorepo shell utils-unreal-build.yml reads build.toml from.
     UE_SHELL_PATH: 'apps/rareicon/unreal-rareicon'
     # What .moon/tasks/unreal.yml needs to drive this project. Everything else
