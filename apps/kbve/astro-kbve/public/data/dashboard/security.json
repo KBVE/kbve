@@ -1,18 +1,18 @@
 {
-  "generated_at": "2026-09-09T05:58:17Z",
+  "generated_at": "2026-09-10T05:51:56Z",
   "summary": {
     "critical": 4,
-    "high": 60,
+    "high": 61,
     "medium": 58,
     "low": 10,
     "info": 20
   },
   "ecosystems": {
     "npm": {
-      "total": 116,
+      "total": 117,
       "severities": {
         "critical": 4,
-        "high": 60,
+        "high": 61,
         "medium": 42,
         "low": 10,
         "info": 0
@@ -829,6 +829,13 @@
           "severity": "medium",
           "package": "svgo",
           "url": "https://github.com/advisories/GHSA-4vpr-x523-8j87"
+        },
+        {
+          "id": "1193945",
+          "title": "smol-toml: Denial of Service via malformed TOML documents",
+          "severity": "high",
+          "package": "smol-toml",
+          "url": "https://github.com/advisories/GHSA-7w5x-hrqm-74c2"
         }
       ]
     },
