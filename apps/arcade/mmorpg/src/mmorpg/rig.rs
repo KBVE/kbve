@@ -319,6 +319,9 @@ pub struct PoseSet {
     pub clips: Vec<PoseClip>,
 }
 
+/// Weight of the root speed mismatch, per (m/s)², against the squared leg joint angles in a pose match.
+const MATCH_SPEED: f32 = 0.5;
+
 /// Longest run of missing contact frames closed at load, in frames of the bake.
 const CONTACT_GAP: usize = 3;
 
@@ -582,7 +585,7 @@ impl PoseClip {
             return (0.0, n.saturating_sub(1), 0.0);
         }
         let h0 = self.frames[0].root.2;
-        let swept = self.frames[n - 1].root.2 - h0;
+        let swept = self.settled_heading() - h0;
         if swept.abs() < 10.0 {
             return (0.0, n - 1, 0.0);
         }
@@ -621,7 +624,7 @@ impl PoseClip {
             return (0.0, n.saturating_sub(1));
         }
         let h0 = self.frames[0].root.2;
-        let swept = self.frames[n - 1].root.2 - h0;
+        let swept = self.settled_heading() - h0;
         if swept.abs() < 10.0 {
             return (0.0, n - 1);
         }
@@ -629,6 +632,17 @@ impl PoseClip {
             .find(|&i| (self.frames[i].root.2 - h0) / swept > 0.95)
             .unwrap_or(n - 1);
         (0.0, end.max(1))
+    }
+
+    /// Heading the clip settles on: the mean over its last sixth, since the bake's low-pass window closes to nothing on the final frame and leaves raw sway there.
+    fn settled_heading(&self) -> f32 {
+        let n = self.frames.len();
+        let tail = (n / 6).max(1).min(n);
+        self.frames[n - tail..]
+            .iter()
+            .map(|f| f.root.2)
+            .sum::<f32>()
+            / tail as f32
     }
 
     /// Ground speed of the root at frame `i`, metres per second.
@@ -675,6 +689,67 @@ impl PoseClip {
         let next = self.landing_from(start + 1, left).unwrap_or(end);
         let at = start as f32 + frac.clamp(0.0, 1.0) * (next - start) as f32;
         (at.min(end as f32 - 1.0), end)
+    }
+
+    /// The frame in `lo..hi` whose legs, and where they are `step` frames on, best match `now` and `ahead`, with the root speed weighed against `speed` so a braking frame is not matched at full pace; returns the frame and its cost.
+    pub fn match_frame(
+        &self,
+        lo: usize,
+        hi: usize,
+        now: &PoseSample,
+        ahead: &PoseSample,
+        step: f32,
+        speed: f32,
+        legs: &[usize],
+    ) -> (f32, f32) {
+        let last = self.last_frame();
+        let mut best = (lo as f32, f32::INFINITY);
+        for i in lo..hi.max(lo + 1) {
+            let x = i as f32;
+            if x > last {
+                break;
+            }
+            let (Some(a), Some(b)) = (
+                self.sample_frame(x),
+                self.sample_frame((x + step).min(last)),
+            ) else {
+                continue;
+            };
+            let pose = legs
+                .iter()
+                .map(|&k| {
+                    let d0 = now.rotations[k].angle_between(a.rotations[k]);
+                    let d1 = ahead.rotations[k].angle_between(b.rotations[k]);
+                    d0 * d0 + d1 * d1
+                })
+                .sum::<f32>();
+            let pace = self.root_speed(i) - speed;
+            let cost = pose + MATCH_SPEED * pace * pace;
+            if cost < best.1 {
+                best = (x, cost);
+            }
+        }
+        best
+    }
+
+    /// The stop window starting wherever the clip's legs best match the loop's: from that frame to the frame the body comes to rest, with the match cost so the foot variants can be compared.
+    pub fn stop_window_matched(
+        &self,
+        now: &PoseSample,
+        ahead: &PoseSample,
+        step: f32,
+        speed: f32,
+        legs: &[usize],
+    ) -> (f32, usize, f32) {
+        let n = self.frames.len();
+        let end = (0..n)
+            .find(|&i| self.root_speed(i) < 0.05)
+            .unwrap_or(n.saturating_sub(1))
+            .max(1)
+            .min(n.saturating_sub(1));
+        let hi = end.saturating_sub(step.ceil() as usize + 1).max(1);
+        let (at, cost) = self.match_frame(0, hi, now, ahead, step, speed, legs);
+        (at.min(end as f32 - 1.0), end, cost)
     }
 
     /// The pose at absolute fractional frame `x`, clamped to the clip's end rather than wrapped.
