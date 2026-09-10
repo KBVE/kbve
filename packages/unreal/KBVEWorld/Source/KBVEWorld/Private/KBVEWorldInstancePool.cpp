@@ -100,6 +100,15 @@ void UKBVEWorldInstancePool::Release(const FIntPoint& Key)
 	}
 }
 
+void UKBVEWorldInstancePool::Empty()
+{
+	for (FBucket& Bucket : Buckets)
+	{
+		Bucket.bDirty |= Bucket.ByKey.Num() > 0;
+		Bucket.ByKey.Reset();
+	}
+}
+
 void UKBVEWorldInstancePool::Flush()
 {
 	for (FBucket& Bucket : Buckets)

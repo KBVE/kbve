@@ -54,6 +54,15 @@ public:
 	/** Drop a key from every bucket, for a chunk going out of the window. */
 	void Release(const FIntPoint& Key);
 
+	/**
+	 * Drop every key from every bucket, keeping the buckets themselves.
+	 *
+	 * For a rebuild of the whole world rather than of one chunk: the components
+	 * and their meshes are still wanted, and what has to go is everything that
+	 * was submitted against the parameters somebody has just changed.
+	 */
+	void Empty();
+
 	/** Rebuild whatever has changed since the last call. Cheap when nothing has. */
 	void Flush();
 

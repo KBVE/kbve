@@ -41,6 +41,26 @@ WATER_MATERIAL = "/Game/Textures/World/M_RareIcon_Water"
 # bounds, so this is not tied to the engine cube's own size.
 PART_MESH = "/Engine/BasicShapes/Cube"
 
+# The sheet the ivy is cut from, and the switch for the whole plant: without it
+# the walls and the fence posts are built exactly as they were. The same kind of
+# asset a grass field draws its clumps from, because it is the same question --
+# a masked material and the rectangles on it that are a leaf.
+IVY_ATLAS = "/Game/Textures/Foliage/DA_RareIcon_Ivy"
+
+# Which of that sheet's seventeen cells this village's ivy is.
+#
+# The scans are a botanist's page rather than a plant: variegated cream beside
+# plain green, lime beside near-black, and two cells that are mostly stem. Drawn
+# from evenly they make a wall look like a collection of leaves somebody stuck
+# up, so the plant is picked here -- four of the darker greens, which are one
+# species at four ages.
+IVY_LEAF_CELLS = [12, 13, 14, 16]
+
+# What the runners are drawn with. A stem is a strip a couple of centimetres
+# across, so the bridge timber does: what it must not be is the leaf material,
+# which is masked and would cut the stem out of itself.
+IVY_STEM_MATERIAL = "/Game/Textures/World/M_RareIcon_BridgeWood"
+
 # Road nodes are this many terrain chunks apart. One node per terrain chunk puts
 # four roads through every chunk, which from the air is a lattice rather than a
 # network -- what makes roads read as roads is that most of the map has none.
@@ -112,6 +132,19 @@ def main():
         unreal.log_error(f"missing mesh: {PART_MESH}")
         return
     network.set_editor_property("part_mesh", part_mesh)
+
+    ivy = EAL.load_asset(IVY_ATLAS)
+    if ivy is None:
+        unreal.log_error(f"missing atlas: {IVY_ATLAS}")
+        return
+    network.set_editor_property("ivy_atlas", ivy)
+    network.set_editor_property("ivy_leaf_cells", IVY_LEAF_CELLS)
+
+    stem = EAL.load_asset(IVY_STEM_MATERIAL)
+    if stem is None:
+        unreal.log_error(f"missing material: {IVY_STEM_MATERIAL}")
+        return
+    network.set_editor_property("ivy_stem_material", stem)
 
     actor_subsystem.set_actor_selection_state(streamer, False)
     level_subsystem.save_current_level()
