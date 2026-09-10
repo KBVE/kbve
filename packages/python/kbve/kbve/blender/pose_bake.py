@@ -1,6 +1,6 @@
 """kbve-blender-pose --clip name=<fbx|glb> [...] --out <pose.ron>
 
-Bakes lower-body joint rotations per frame into a rig-independent pose database:
+Bakes body joint rotations per frame into a rig-independent pose database:
 each bone's rotation as a delta from its own rest orientation, in a canonical
 character frame (Y up, facing +Z), so the same numbers retarget onto any humanoid
 whose rest pose stands straight.
@@ -18,7 +18,28 @@ from mathutils import Matrix, Quaternion, Vector
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 from gait_bake import Clip, argv, contacts, load, stance_level  # noqa: E402
 
-ROLES = ["pelvis", "thigh_l", "calf_l", "foot_l", "ball_l", "thigh_r", "calf_r", "foot_r", "ball_r"]
+ROLES = [
+    "pelvis",
+    "thigh_l",
+    "calf_l",
+    "foot_l",
+    "ball_l",
+    "thigh_r",
+    "calf_r",
+    "foot_r",
+    "ball_r",
+    "chest",
+    "neck",
+    "head",
+    "clavicle_l",
+    "upperarm_l",
+    "lowerarm_l",
+    "hand_l",
+    "clavicle_r",
+    "upperarm_r",
+    "lowerarm_r",
+    "hand_r",
+]
 CHILD = {
     "thigh_l": "calf_l",
     "calf_l": "foot_l",
@@ -26,7 +47,23 @@ CHILD = {
     "thigh_r": "calf_r",
     "calf_r": "foot_r",
     "foot_r": "ball_r",
+    "upperarm_l": "lowerarm_l",
+    "lowerarm_l": "hand_l",
+    "upperarm_r": "lowerarm_r",
+    "lowerarm_r": "hand_r",
 }
+BONE_FOR = {"chest": ["spine_05", "spine_04", "spine_03"], "neck": ["neck_01"], "head": ["head", "neck_02", "neck_01"]}
+
+
+def bone_for(role: str, clip: Clip) -> str:
+    """The skeleton bone a role reads from: the highest spine present is the chest."""
+    for name in BONE_FOR.get(role, [role]):
+        for actual in clip.pos:
+            if actual.lower() == name.lower():
+                return actual
+    raise SystemExit(f"no bone for {role}")
+
+
 CANON = Matrix(((1.0, 0.0, 0.0), (0.0, 0.0, 1.0), (0.0, -1.0, 0.0)))
 CANON_T = CANON.transposed()
 
@@ -49,9 +86,7 @@ def rest_world(arm: bpy.types.Object) -> dict[str, Quaternion]:
 def bake(name: str, source: str, arm: bpy.types.Object) -> dict:
     clip = Clip(arm)
     rest = rest_world(arm)
-    for role in ROLES:
-        if role not in clip.pos:
-            raise SystemExit(f"bone {role} missing in {source}")
+    bone = {role: bone_for(role, clip) for role in ROLES}
     n = clip.frames
     thigh = (clip.pos["thigh_l"][0] - clip.pos["calf_l"][0]).length
     shin = (clip.pos["calf_l"][0] - clip.pos["foot_l"][0]).length
@@ -90,12 +125,12 @@ def bake(name: str, source: str, arm: bpy.types.Object) -> dict:
         rots = []
         dirs = []
         for role in ROLES:
-            delta = clip.rot[role][i] @ rest[role].inverted()
+            delta = clip.rot[bone[role]][i] @ rest[bone[role]].inverted()
             q = to_canon_quat(delta).normalized()
             rots.append((q.w, q.x, q.y, q.z))
             child = CHILD.get(role)
             if child:
-                d = to_canon_vec(clip.pos[child][i] - clip.pos[role][i]).normalized()
+                d = to_canon_vec(clip.pos[bone[child]][i] - clip.pos[bone[role]][i]).normalized()
             else:
                 d = Vector((0.0, 0.0, 0.0))
             dirs.append((d.x, d.y, d.z))
