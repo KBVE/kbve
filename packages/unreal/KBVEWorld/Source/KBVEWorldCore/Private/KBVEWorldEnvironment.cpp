@@ -5,7 +5,9 @@
 #include "Components/SkyAtmosphereComponent.h"
 #include "Components/SkyLightComponent.h"
 #include "Components/VolumetricCloudComponent.h"
+#include "Engine/World.h"
 #include "Kismet/KismetMaterialLibrary.h"
+#include "Materials/MaterialInterface.h"
 #include "Materials/MaterialParameterCollection.h"
 
 DEFINE_LOG_CATEGORY(LogKBVEWorldEnv);

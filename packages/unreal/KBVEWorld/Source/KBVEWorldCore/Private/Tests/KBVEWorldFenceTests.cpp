@@ -347,8 +347,6 @@ bool FKBVEWorldFenceGateTest::RunTest(const FString& Parameters)
 	return true;
 }
 
-#endif
-
 IMPLEMENT_SIMPLE_AUTOMATION_TEST(
 	FKBVEWorldFenceStandsUprightTest,
 	"KBVE.World.Fence.PartsStandOnTheirPosts",
@@ -564,3 +562,5 @@ bool FKBVEWorldFenceReachesGroundTest::RunTest(const FString& Parameters)
 	TestTrue(TEXT("some posts were checked"), Checked > 0);
 	return true;
 }
+
+#endif
