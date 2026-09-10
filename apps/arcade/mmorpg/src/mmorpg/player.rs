@@ -63,7 +63,7 @@ fn spawn_cast(mut commands: Commands) {
 }
 
 /// The only system in the game that knows a keyboard exists.
-/// Drives the player without a keyboard, from `MMORPG_AUTOWALK=walk|jog|turn|jogturn|zigzag|reverse|stopgo|gear|jitter|swap|stopswap|rest`; `MMORPG_AUTORUN=1` runs any of them.
+/// Drives the player without a keyboard, from `MMORPG_AUTOWALK=walk|jog|turn|jogturn|zigzag|reverse|stopgo|gear|jitter|swap|stopswap|rest|nudge|orbit`; `MMORPG_STRAFE=1` locks the facing north; `MMORPG_AUTORUN=1` runs any of them.
 #[derive(Resource, Default)]
 pub struct Autowalk {
     pub enabled: bool,
@@ -134,6 +134,16 @@ impl Autowalk {
                 run: false,
                 turn_rate: -8.0,
             },
+            Ok("nudge") => Self {
+                enabled: true,
+                run: false,
+                turn_rate: -9.0,
+            },
+            Ok("orbit") => Self {
+                enabled: true,
+                run: false,
+                turn_rate: -10.0,
+            },
             _ => Self::default(),
         };
         Self {
@@ -159,8 +169,10 @@ fn read_input(
         let flip = (time.elapsed_secs() / leg).floor() as i32 % 2 == 1;
         let gear = auto.turn_rate < -3.5 && auto.turn_rate > -4.5;
         let jitter = auto.turn_rate < -4.5 && auto.turn_rate > -5.5;
-        let swap = auto.turn_rate < -5.5;
-        let rest = auto.turn_rate < -7.5;
+        let orbit = auto.turn_rate < -9.5;
+        let nudge = auto.turn_rate < -8.5 && !orbit;
+        let swap = auto.turn_rate < -5.5 && !nudge && !orbit;
+        let rest = auto.turn_rate < -7.5 && !nudge && !orbit;
         let swap_gap = if rest {
             3.0
         } else if auto.turn_rate < -6.5 {
@@ -171,6 +183,17 @@ fn read_input(
         let swap_leg = 4.0 + swap_gap;
         let angle = if gear {
             0.0
+        } else if orbit {
+            time.elapsed_secs() * 0.4
+        } else if nudge {
+            let at = time.elapsed_secs().rem_euclid(3.0);
+            if at < 1.5 {
+                0.0
+            } else if at < 1.6 {
+                -core::f32::consts::FRAC_PI_2
+            } else {
+                -core::f32::consts::FRAC_PI_4
+            }
         } else if rest {
             0.0
         } else if swap {
@@ -189,7 +212,7 @@ fn read_input(
         let halted = if swap {
             time.elapsed_secs().rem_euclid(swap_leg) < swap_gap
         } else {
-            !gear && !jitter && auto.turn_rate < -2.5 && flip
+            !gear && !jitter && !nudge && !orbit && auto.turn_rate < -2.5 && flip
         };
         let wish = if halted {
             Vec3::ZERO

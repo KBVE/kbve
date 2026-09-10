@@ -30,6 +30,7 @@ const FLOOR_FIX_MAX: f32 = 0.1;
 
 /// Heading change, degrees, from which a walking body plays a turn clip instead of bending its loop.
 const TURN_TRIGGER: f32 = 60.0;
+
 /// Clock multiplier on a turn clip: the capture turns at a stroll, and the body's speed scales with it so the feet stay under the motion.
 const TURN_HURRY: f32 = 1.2;
 /// Heading error, degrees, between where a running turn or start will face and the stick, past which the clip is abandoned for a fresh one.
@@ -46,7 +47,11 @@ const JOGGING: f32 = 3.5;
 const REFACE: f32 = 60.0;
 /// Most extra yaw, degrees, a shot may add on top of its clip's own sweep to land on the stick.
 const STEER_MAX: f32 = 45.0;
+/// Fastest a shot may add steer, radians per second, so a stick change late in the window leaves the rest to the loop.
+const STEER_RATE: f32 = 3.0;
 const STRIDING: f32 = 1.5;
+/// Fraction of a stride the loop is sampled ahead by when matching a one-shot's frame to it, so the legs' motion is matched and not just their pose.
+const LOOKAHEAD: f32 = 0.1;
 /// Seconds over which the offset left by a source switch decays.
 const INERTIA: f32 = 0.2;
 
@@ -158,14 +163,55 @@ fn lane(direction: f32) -> &'static str {
     }
 }
 
-/// The loop closest in speed within the travel direction's lane, matched in leg lengths per second so the actor's size drops out; sideways and backward lanes have no sprint, so the jog stands in. Walking forward round a bend picks the arc whose curvature is nearest the body's, left positive.
+/// The lane centre, degrees, at or below `direction`, and how far past it the direction sits in 0..1 of the 45° to the next lane.
+fn lane_split(direction: f32) -> (f32, f32) {
+    let base = (direction / 45.0).floor() * 45.0;
+    (base, ((direction - base) / 45.0).clamp(0.0, 1.0))
+}
+
+/// The two loops bracketing the speed within a named lane, slower first, matched in leg lengths per second so the actor's size drops out; past either end of the lane the nearest loop stands in twice.
+fn pick_lane(
+    set: &PoseSet,
+    speed: f32,
+    want_lane: &str,
+    leg_length: f32,
+) -> Option<(usize, usize)> {
+    let want = speed / leg_length.max(0.01);
+    let loops = set
+        .clips
+        .iter()
+        .enumerate()
+        .filter(|(_, c)| {
+            c.speed > 0.05
+                && lane(c.direction) == want_lane
+                && !c.name.contains("arc")
+                && !c.one_shot()
+        })
+        .map(|(i, c)| (i, c.normalized()));
+    let below = loops
+        .clone()
+        .filter(|(_, v)| *v <= want)
+        .max_by(|a, b| a.1.total_cmp(&b.1));
+    let above = loops
+        .filter(|(_, v)| *v > want)
+        .min_by(|a, b| a.1.total_cmp(&b.1));
+    match (below, above) {
+        (Some((low, _)), Some((high, _))) => Some((low, high)),
+        (Some((low, _)), None) => Some((low, low)),
+        (None, Some((high, _))) => Some((high, high)),
+        (None, None) => None,
+    }
+}
+
+/// The loops for a travel: the speed pair in the direction's lane and, when the facing is locked, the pair one lane on so the two can be mixed by angle. Walking forward round a bend picks the arc whose curvature is nearest the body's, left positive.
 fn pick(
     set: &PoseSet,
     speed: f32,
     direction: f32,
     curvature: f32,
     leg_length: f32,
-) -> Option<usize> {
+    locked: bool,
+) -> Option<((usize, usize), Option<(usize, usize)>)> {
     let want_lane = lane(direction);
     if want_lane == "F" && curvature.abs() > ARC_MIN && speed < ARC_SPEED_MAX {
         let side = if curvature > 0.0 { "_l" } else { "_r" };
@@ -182,26 +228,90 @@ fn pick(
                     .total_cmp(&(b.1.abs() - curvature.abs()).abs())
             })
             .map(|(i, _)| i);
-        if arc.is_some() {
-            return arc;
+        if let Some(index) = arc {
+            return Some(((index, index), None));
         }
     }
-    let want = speed / leg_length.max(0.01);
-    set.clips
-        .iter()
-        .enumerate()
-        .filter(|(_, c)| {
-            c.speed > 0.05
-                && lane(c.direction) == want_lane
-                && !c.name.contains("arc")
-                && !c.one_shot()
-        })
-        .min_by(|(_, a), (_, b)| {
-            (a.normalized() - want)
-                .abs()
-                .total_cmp(&(b.normalized() - want).abs())
-        })
-        .map(|(i, _)| i)
+    if !locked {
+        return pick_lane(set, speed, want_lane, leg_length).map(|pair| (pair, None));
+    }
+    let (base, _) = lane_split(direction);
+    let first = pick_lane(set, speed, lane(base), leg_length)?;
+    let second = pick_lane(set, speed, lane(base + 45.0), leg_length);
+    Some((first, second))
+}
+
+/// The pose of a speed pair at `phase`, mixed by `mix`.
+fn sample_pair(
+    set: &PoseSet,
+    (low, high): (usize, usize),
+    mix: f32,
+    phase: f32,
+    count: u32,
+) -> Option<PoseSample> {
+    let a = set.clips.get(low)?.sample(phase, count)?;
+    if low == high {
+        return Some(a);
+    }
+    let b = set.clips.get(high)?.sample(phase, count)?;
+    let contact = if mix < 0.5 { a.contact } else { b.contact };
+    let mut out = blend(a, b, mix);
+    out.contact = contact;
+    Some(out)
+}
+
+/// Ground a speed pair covers over its `count`-th stride and how long that takes at the clips' own speeds, each mixed by `mix`.
+fn pair_stride(set: &PoseSet, (low, high): (usize, usize), mix: f32, count: u32) -> (f32, f32) {
+    let (Some(a), Some(b)) = (set.clips.get(low), set.clips.get(high)) else {
+        return (0.0, 1.0);
+    };
+    let lerp = |x: f32, y: f32| x + (y - x) * mix;
+    (
+        lerp(a.stride_travel(count), b.stride_travel(count)),
+        lerp(a.stride_seconds(count), b.stride_seconds(count)),
+    )
+}
+
+/// Where the pace falls between a pair's speeds, 0 at the slower loop and 1 at the faster.
+fn pair_mix(set: &PoseSet, pair: (usize, usize), pace: f32, leg_length: f32) -> f32 {
+    let want = pace / leg_length.max(0.01);
+    let (Some(low), Some(high)) = (set.clips.get(pair.0), set.clips.get(pair.1)) else {
+        return 0.0;
+    };
+    let span = high.normalized() - low.normalized();
+    if span < 1e-3 {
+        0.0
+    } else {
+        ((want - low.normalized()) / span).clamp(0.0, 1.0)
+    }
+}
+
+/// Yaw, radians, a shot has turned the body by `frame`: the clip's own sweep plus the steer added so far.
+fn turned_at(shot: &Shot, clip: &PoseClip, frame: f32) -> f32 {
+    let swept = if shot.turns {
+        -(clip.heading_at(frame) - shot.heading).to_radians()
+    } else {
+        0.0
+    };
+    let progress =
+        ((frame - shot.steer_from) / (shot.end - shot.steer_from).max(1.0)).clamp(0.0, 1.0);
+    swept + shot.steered + shot.steer * progress
+}
+
+/// Re-aims a shot from `frame` to end `angle` degrees off the facing it began with: the steer already added stays, the rest is spread over what is left, capped by [`STEER_MAX`] and [`STEER_RATE`].
+fn steer_shot(shot: &mut Shot, clip: &PoseClip, frame: f32, angle: f32) {
+    let frame = frame.clamp(shot.start, shot.end);
+    let swept_end = if shot.turns {
+        -(clip.heading_at(shot.end) - shot.heading).to_radians()
+    } else {
+        0.0
+    };
+    let progress =
+        ((frame - shot.steer_from) / (shot.end - shot.steer_from).max(1.0)).clamp(0.0, 1.0);
+    shot.steered += shot.steer * progress;
+    shot.steer_from = frame;
+    let room = (STEER_RATE * (shot.end - frame) / clip.fps.max(1.0)).min(STEER_MAX.to_radians());
+    shot.steer = (angle.to_radians() - swept_end - shot.steered).clamp(-room, room);
 }
 
 /// Curvature, radians per metre, below which a bend plays the straight loop, and the speed above which no walk arc applies.
@@ -364,19 +474,15 @@ fn play_pose(
                     shot.frame += dt * clip.fps * hurry;
                     let stopping = clip.name.contains("_stop_");
                     let resumed = stopping && pushing;
-                    let turned_at = |frame: f32| {
-                        let swept = if shot.turns {
-                            -(clip.heading_at(frame) - shot.heading).to_radians()
-                        } else {
-                            0.0
-                        };
-                        let progress = ((frame - shot.start) / (shot.end - shot.start).max(1.0))
-                            .clamp(0.0, 1.0);
-                        swept + shot.steer * progress
-                    };
-                    let goal = Quat::from_rotation_y(turned_at(shot.end)) * shot.facing;
-                    let off = goal.cross(wish).y.atan2(goal.dot(wish)).to_degrees().abs();
-                    let aborted = !stopping && pushing && off >= REDIRECT;
+                    let goal =
+                        Quat::from_rotation_y(turned_at(&shot, clip, shot.end)) * shot.facing;
+                    let off = goal.cross(wish).y.atan2(goal.dot(wish)).to_degrees();
+                    let aborted = !stopping && pushing && off.abs() >= REDIRECT;
+                    if !stopping && pushing && off.abs() > 1.0 && !aborted && !cadence.locked {
+                        let total = turned_at(&shot, clip, shot.end).to_degrees() + off;
+                        let frame = shot.frame;
+                        steer_shot(&mut shot, clip, frame, total);
+                    }
                     let dropped = !stopping && !pushing;
                     if shot.frame >= shot.end || resumed || aborted || dropped {
                         if stopping && !pushing {
@@ -394,7 +500,8 @@ fn play_pose(
                             cadence.phase = ((at - onset as f32) / span).rem_euclid(1.0);
                         }
                     } else {
-                        let facing = Quat::from_rotation_y(turned_at(shot.frame)) * shot.facing;
+                        let facing =
+                            Quat::from_rotation_y(turned_at(&shot, clip, shot.frame)) * shot.facing;
                         let right = facing.cross(Vec3::Y);
                         let local = clip.body_velocity_at(shot.frame) * hurry;
                         cadence.shot_facing = facing;
@@ -427,36 +534,114 @@ fn play_pose(
                 0.0
             };
             let previous = cadence.clip.map(|(index, _)| index);
-            let chosen = match cadence.clip {
-                Some((index, stride)) if stride == cadence.stride_count => Some(index),
-                _ => pick(
+            let inside = |(low, high): (usize, usize)| {
+                let want = cadence.pace / cadence.leg_length.max(0.01);
+                let bounded = |index: usize, past: bool| {
+                    set.clips.get(index).is_some_and(|c| {
+                        let edge = c.normalized();
+                        if past { want <= edge } else { want >= edge }
+                    })
+                };
+                low == high || (bounded(low, false) && bounded(high, true))
+            };
+            let (base, lane_mix) = if cadence.locked {
+                lane_split(cadence.direction)
+            } else {
+                (0.0, 0.0)
+            };
+            let kept = match (cadence.clip, cadence.pair) {
+                (Some((_, stride)), Some(pair))
+                    if stride == cadence.stride_count
+                        && inside(pair)
+                        && cadence.pair2.is_none_or(inside)
+                        && (!cadence.locked || base == cadence.lane_base) =>
+                {
+                    Some((pair, cadence.pair2))
+                }
+                _ => None,
+            };
+            let loops = kept.or_else(|| {
+                pick(
                     set,
                     cadence.pace,
                     cadence.direction,
                     curvature,
                     cadence.leg_length,
-                ),
+                    cadence.locked,
+                )
+            });
+            let lane_of = |pair: Option<(usize, usize)>| {
+                pair.and_then(|(low, _)| set.clips.get(low))
+                    .map(|c| lane(c.direction))
             };
+            if kept.is_none()
+                && lane_of(cadence.pair)
+                    .is_some_and(|was| was != lane_of(loops.map(|(pair, _)| pair)).unwrap_or(was))
+            {
+                cut = true;
+            }
+            cadence.pair = loops.map(|(pair, _)| pair);
+            cadence.pair2 = loops.and_then(|(_, second)| second);
+            cadence.lane_base = base;
+            let (pace, leg_length) = (cadence.pace, cadence.leg_length);
+            let mix = move |pair| pair_mix(set, pair, pace, leg_length);
+            let lead = if lane_mix < 0.5 || cadence.pair2.is_none() {
+                cadence.pair
+            } else {
+                cadence.pair2
+            };
+            let chosen = lead.map(|(low, high)| if mix((low, high)) < 0.5 { low } else { high });
             cadence.clip = chosen.map(|index| (index, cadence.stride_count));
             if chosen != previous {
                 cadence.clip_since = cadence.stride_count;
             }
-            chosen
-                .and_then(|index| set.clips.get(index))
-                .and_then(|clip| {
-                    let stride = clip.stride_travel(cadence.stride_count);
-                    cadence.clip_period = Some(if stride > 0.05 && cadence.pace > 0.05 {
-                        stride / cadence.pace
+            loops.and_then(|(pair, second)| {
+                let count = cadence.stride_count;
+                let (mut travel, mut seconds) = pair_stride(set, pair, mix(pair), count);
+                let mut out = sample_pair(set, pair, mix(pair), cadence.phase, count)?;
+                if let Some(second) = second {
+                    let (travel2, seconds2) = pair_stride(set, second, mix(second), count);
+                    travel += (travel2 - travel) * lane_mix;
+                    seconds += (seconds2 - seconds) * lane_mix;
+                    let other = sample_pair(set, second, mix(second), cadence.phase, count)?;
+                    let contact = if lane_mix < 0.5 {
+                        out.contact
                     } else {
-                        clip.stride_seconds(cadence.stride_count)
-                    });
-                    clip.sample(cadence.phase, cadence.stride_count)
-                })
+                        other.contact
+                    };
+                    out = blend(out, other, lane_mix);
+                    out.contact = contact;
+                }
+                cadence.clip_period = Some(if travel > 0.05 && cadence.pace > 0.05 {
+                    travel / cadence.pace
+                } else {
+                    seconds
+                });
+                Some(out)
+            })
         } else {
             cadence.clip_period = None;
             cadence.clip = None;
             None
         };
+        let ahead = match cadence.shot {
+            None if cadence.stepping => cadence.pair.and_then(|pair| {
+                let phase = cadence.phase + LOOKAHEAD;
+                let count = cadence.stride_count;
+                let mix = |pair| pair_mix(set, pair, cadence.pace, cadence.leg_length);
+                let mut out = sample_pair(set, pair, mix(pair), phase, count)?;
+                if let Some(second) = cadence.pair2 {
+                    let other = sample_pair(set, second, mix(second), phase, count)?;
+                    out = blend(out, other, lane_split(cadence.direction).1);
+                }
+                Some(out)
+            }),
+            _ => None,
+        };
+        let legs: Vec<usize> = ["thigh_l", "calf_l", "foot_l", "thigh_r", "calf_r", "foot_r"]
+            .iter()
+            .filter_map(|name| set.bones.iter().position(|b| b == name))
+            .collect();
         let begin = |index: usize, start: f32, end: usize, turns: bool, cadence: &mut Cadence| {
             let clip = &set.clips[index];
             cadence.shot = Some(Shot {
@@ -467,6 +652,8 @@ fn play_pose(
                 facing: cadence.forward,
                 turns,
                 start,
+                steered: 0.0,
+                steer_from: start,
                 steer: 0.0,
             });
             cadence.shot_facing = cadence.forward;
@@ -490,12 +677,7 @@ fn play_pose(
         let running = intent.is_some_and(|i| i.run);
         let steer_to = |cadence: &mut Cadence, clip: &PoseClip, angle: f32| {
             if let Some(shot) = cadence.shot.as_mut() {
-                let swept = if shot.turns {
-                    -(clip.heading_at(shot.end) - shot.heading)
-                } else {
-                    0.0
-                };
-                shot.steer = (angle - swept).clamp(-STEER_MAX, STEER_MAX).to_radians();
+                steer_shot(shot, clip, shot.start, angle);
             }
         };
         if (restart || standing || (!cut && cadence.prior_speed.max(cadence.speed) < STANDING))
@@ -506,13 +688,14 @@ fn play_pose(
             let angle = forward.cross(wish).y.atan2(forward.dot(wish)).to_degrees();
             let side = if angle > 0.0 { "l" } else { "r" };
             let find = |name: String| set.clips.iter().enumerate().find(|(_, c)| c.name == name);
-            let reface = if angle.abs() >= REFACE && !running {
+            let locked = cadence.locked;
+            let reface = if angle.abs() >= REFACE && !running && !locked {
                 let deg = if angle.abs() >= 135.0 { 180 } else { 90 };
                 find(format!("walk_reface_f_{side}_{deg:03}"))
             } else {
                 None
             };
-            let stand = if angle.abs() >= 22.5 {
+            let stand = if angle.abs() >= 22.5 && !locked {
                 let deg = [45, 90, 135, 180]
                     .into_iter()
                     .min_by(|a, b| {
@@ -536,24 +719,32 @@ fn play_pose(
                 moving = begin(index, start, end, true, &mut cadence);
                 steer_to(&mut cadence, clip, angle);
                 cut = true;
-            } else if angle.abs() >= 22.5 {
+            } else if angle.abs() >= 22.5 && !locked {
                 let step = (FACE_RATE * dt)
                     .min(angle.abs().to_radians())
                     .copysign(angle);
                 cadence.hold = true;
                 cadence.shot_facing = Quat::from_rotation_y(step) * forward;
                 cadence.shot_velocity = Vec3::ZERO;
-            } else if let Some((index, clip, (start, end))) = set
-                .clips
-                .iter()
-                .enumerate()
-                .filter(|(_, c)| c.name.starts_with(&format!("{gait}_start_f_")))
-                .map(|(i, c)| (i, c, c.start_window()))
-                .min_by_key(|(_, _, (start, end))| end - start)
-            {
-                moving = begin(index, start as f32, end, false, &mut cadence);
-                steer_to(&mut cadence, clip, angle);
-                cut = true;
+            } else {
+                let lane = if locked {
+                    lane(angle).to_lowercase()
+                } else {
+                    "f".into()
+                };
+                let starts = |lane: &str| {
+                    set.clips
+                        .iter()
+                        .enumerate()
+                        .filter(|(_, c)| c.name.starts_with(&format!("{gait}_start_{lane}_")))
+                        .map(|(i, c)| (i, c, c.start_window()))
+                        .min_by_key(|(_, _, (start, end))| end - start)
+                };
+                if let Some((index, clip, (start, end))) = starts(&lane).or_else(|| starts("f")) {
+                    moving = begin(index, start as f32, end, false, &mut cadence);
+                    steer_to(&mut cadence, clip, if locked { 0.0 } else { angle });
+                    cut = true;
+                }
             }
         }
         if (released || !cut)
@@ -574,17 +765,44 @@ fn play_pose(
                 cadence.hold = true;
                 cadence.shot_facing = cadence.forward;
                 cadence.shot_velocity = held;
-            } else if let Some((index, (start, end))) = set
-                .clips
-                .iter()
-                .enumerate()
-                .filter(|(_, c)| c.name.starts_with(&format!("{gait}_stop_f_")))
-                .map(|(i, c)| (i, c.stop_window(left, frac)))
-                .min_by_key(|(_, (start, end))| (*end as f32 - start) as i32)
-            {
-                moving = begin(index, start, end, false, &mut cadence);
-                cadence.shot_velocity = held;
-                cut = true;
+            } else {
+                let lane = if cadence.locked {
+                    lane(cadence.direction).to_lowercase()
+                } else {
+                    "f".into()
+                };
+                let prefix = format!("{gait}_stop_{lane}_");
+                let prefix = if set.clips.iter().any(|c| c.name.starts_with(&prefix)) {
+                    prefix
+                } else {
+                    format!("{gait}_stop_f_")
+                };
+                let stops = set
+                    .clips
+                    .iter()
+                    .enumerate()
+                    .filter(|(_, c)| c.name.starts_with(&prefix));
+                let window = match (&moving, &ahead) {
+                    (Some(now), Some(ahead)) => stops
+                        .map(|(i, c)| {
+                            let step = LOOKAHEAD * (c.strides()[0].1 - c.strides()[0].0) as f32;
+                            (
+                                i,
+                                c.stop_window_matched(now, ahead, step, held.length(), &legs),
+                            )
+                        })
+                        .min_by(|a, b| a.1.2.total_cmp(&b.1.2))
+                        .map(|(i, (start, end, _))| (i, start, end)),
+                    _ => stops
+                        .map(|(i, c)| (i, c.stop_window(left, frac)))
+                        .min_by_key(|(_, (start, end))| (*end as f32 - start) as i32)
+                        .map(|(i, (start, end))| (i, start, end)),
+                };
+                if let Some((index, start, end)) = window {
+                    moving = begin(index, start, end, false, &mut cadence);
+                    cadence.shot_velocity = held;
+                    cut = true;
+                }
             }
         }
         if (redirect || !cut)
@@ -593,6 +811,7 @@ fn play_pose(
             && cadence.weight >= 0.99
             && cadence.prior_speed.max(cadence.speed) > STRIDING
             && pushing
+            && !cadence.locked
             && moving.is_some()
         {
             let forward = cadence.forward;
