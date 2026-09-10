@@ -735,20 +735,6 @@
           ]
         }
       },
-      "astro-herbmail": {
-        "name": "astro-herbmail",
-        "type": "application",
-        "data": {
-          "root": "apps/herbmail/web",
-          "name": "astro-herbmail",
-          "layer": "application",
-          "stack": "frontend",
-          "language": "typescript",
-          "tags": [
-            "astro"
-          ]
-        }
-      },
       "astro-irc": {
         "name": "astro-irc",
         "type": "application",
@@ -870,21 +856,6 @@
         "data": {
           "root": "apps/cryptothrone/api",
           "name": "axum-cryptothrone",
-          "layer": "application",
-          "stack": "unknown",
-          "language": "rust",
-          "tags": [
-            "rust",
-            "docker"
-          ]
-        }
-      },
-      "axum-herbmail": {
-        "name": "axum-herbmail",
-        "type": "application",
-        "data": {
-          "root": "apps/herbmail/api",
-          "name": "axum-herbmail",
           "layer": "application",
           "stack": "unknown",
           "language": "rust",
@@ -1966,12 +1937,27 @@
           "tags": []
         }
       },
-      "herbmail-e2e": {
-        "name": "herbmail-e2e",
+      "herbmail-api": {
+        "name": "herbmail-api",
+        "type": "application",
+        "data": {
+          "root": "apps/herbmail/api",
+          "name": "herbmail-api",
+          "layer": "application",
+          "stack": "unknown",
+          "language": "rust",
+          "tags": [
+            "rust",
+            "docker"
+          ]
+        }
+      },
+      "herbmail-api-e2e": {
+        "name": "herbmail-api-e2e",
         "type": "automation",
         "data": {
           "root": "apps/herbmail/api/e2e",
-          "name": "herbmail-e2e",
+          "name": "herbmail-api-e2e",
           "layer": "automation",
           "stack": "unknown",
           "language": "typescript",
@@ -2009,6 +1995,20 @@
           "tags": [
             "rust",
             "docker"
+          ]
+        }
+      },
+      "herbmail-web": {
+        "name": "herbmail-web",
+        "type": "application",
+        "data": {
+          "root": "apps/herbmail/web",
+          "name": "herbmail-web",
+          "layer": "application",
+          "stack": "frontend",
+          "language": "typescript",
+          "tags": [
+            "astro"
           ]
         }
       },
@@ -3193,7 +3193,6 @@
         }
       ],
       "astro-e2e": [],
-      "astro-herbmail": [],
       "astro-irc": [],
       "astro-kbve": [
         {
@@ -3260,28 +3259,6 @@
         },
         {
           "source": "axum-cryptothrone",
-          "target": "kbve",
-          "type": "static"
-        }
-      ],
-      "axum-herbmail": [
-        {
-          "source": "axum-herbmail",
-          "target": "protobuf",
-          "type": "static"
-        },
-        {
-          "source": "axum-herbmail",
-          "target": "astro-herbmail",
-          "type": "static"
-        },
-        {
-          "source": "axum-herbmail",
-          "target": "jedi",
-          "type": "static"
-        },
-        {
-          "source": "axum-herbmail",
           "target": "kbve",
           "type": "static"
         }
@@ -3909,19 +3886,41 @@
       "herbmail": [
         {
           "source": "herbmail",
-          "target": "herbmail-e2e",
+          "target": "herbmail-api",
           "type": "static"
         },
         {
           "source": "herbmail",
-          "target": "axum-herbmail",
+          "target": "herbmail-api-e2e",
           "type": "static"
         }
       ],
-      "herbmail-e2e": [
+      "herbmail-api": [
         {
-          "source": "herbmail-e2e",
-          "target": "astro-herbmail",
+          "source": "herbmail-api",
+          "target": "herbmail-web",
+          "type": "static"
+        },
+        {
+          "source": "herbmail-api",
+          "target": "protobuf",
+          "type": "static"
+        },
+        {
+          "source": "herbmail-api",
+          "target": "jedi",
+          "type": "static"
+        },
+        {
+          "source": "herbmail-api",
+          "target": "kbve",
+          "type": "static"
+        }
+      ],
+      "herbmail-api-e2e": [
+        {
+          "source": "herbmail-api-e2e",
+          "target": "herbmail-web",
           "type": "static"
         }
       ],
@@ -3948,6 +3947,7 @@
           "type": "static"
         }
       ],
+      "herbmail-web": [],
       "holy": [
         {
           "source": "holy",
@@ -4030,20 +4030,8 @@
           "type": "static"
         }
       ],
-      "kasm-cloakbrowser": [
-        {
-          "source": "kasm-cloakbrowser",
-          "target": "protobuf",
-          "type": "static"
-        }
-      ],
-      "kasm-void": [
-        {
-          "source": "kasm-void",
-          "target": "protobuf",
-          "type": "static"
-        }
-      ],
+      "kasm-cloakbrowser": [],
+      "kasm-void": [],
       "kbve": [
         {
           "source": "kbve",
