@@ -9,3 +9,4 @@ resources:
     - service.yaml
     - service-lb.yaml
     - certificate.yaml
+    - externalsecret.yaml

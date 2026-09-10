@@ -23,6 +23,7 @@ rules:
               'supabase-server-tls',
               'twitch-oauth-config',
               'ows-db-password',
+              'stalwart-db-password',
               'referral-hash',
           ]
       verbs: ['get', 'list', 'watch']
@@ -80,6 +81,9 @@ subjects:
     - kind: ServiceAccount
       name: herbmail-game-external-secrets
       namespace: herbmail-game
+    - kind: ServiceAccount
+      name: stalwart-external-secrets
+      namespace: stalwart
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
