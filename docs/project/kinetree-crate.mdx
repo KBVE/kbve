@@ -233,6 +233,15 @@ Measured with the `swap` (4 s each way, 0.15 s gap) and `stopswap` (1 s gap) aut
 
 Still open: the running slide; angled starts under 60° still turn in place before stepping; heading mode does not use the stand turns yet; single-frame 10–12° knee deltas in the reface and start data; the pose file wants quantising; jump from data; NPC avoidance; the UE5 consumer.
 
+### The idle keeps the stance it arrived in (2026-09-10, night)
+
+The user saw the legs teleport when a walk ended. The trace showed the stop clip playing to its end and then, for the 0.27 s idle fade, the moving half of the blend being the walk loop at phase 0.03 with the feet 45 cm apart, so both feet glided 10 cm into the idle's stance. Handing the stop straight to the idle through the inertia blend left 8 cm of glide, because the idle's stance is narrower than the stop's; the real fix is the one symbios-avatar makes for its idle: the feet stay where they came to rest.
+
+- Each foot goal keeps a `rest` point once the body is under 0.4 m/s and the pose is not at full blend, and the solver serves that point back at full weight until the body moves again. The pelvis drops up to 4 cm with a 2% leg reserve so a wider stance does not lock the knees (1% left the leg on the lock's 98.5% reach limit); the drop is applied instantly at rest, and it is measured against the undropped hip, because measuring after its own drop halved it every frame.
+- When a clip starts from rest, the first pins are seeded from the held feet, and the lock's slack now measures the pose's creep since the pin was set rather than the distance to the pin, or the whole 5 cm of slack was spent on the first frame. Pins engage and contacts count during a shot regardless of the fade-in, and a seeded pin that the new pose puts beyond reach shortens along the leg instead of sliding toward the clip's foot.
+
+Measured with the `rest` autowalk (walk, stop, three seconds idle, start): the stop ends with knees at 20°, the idle holds the feet within 1 mm at 25°, the start's first frame moves the foot 1 mm and the knee 7°; before, the feet moved 10 cm and 4.5 cm respectively. Planted slide on the walk unchanged at 0.19–0.25 m/s.
+
 ### Rules for this work
 
 - Nothing here is committed or pushed until the legs are verified in play. Commits are small, titles validated with `node tools/commit/validate.mjs --title`, no Co-Authored-By.
